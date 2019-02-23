@@ -8,16 +8,16 @@ import {
   css
 } from "lit-element";
 
-interface BOILERPLATEConfig {
+interface BoilerplateConfig {
   type: string;
 }
 
-@customElement("BOILERPLATE-card")
-class BOILERPLATECard extends LitElement {
+@customElement("boilerplate-card")
+class BoilerplateCard extends LitElement {
   @property() public hass?: any;
-  @property() private _config?: BOILERPLATEConfig;
+  @property() private _config?: BoilerplateConfig;
 
-  public setConfig(config: BOILERPLATEConfig): void {
+  public setConfig(config: BoilerplateConfig): void {
     if (!this._config) {
       // TODO Log error
     }
@@ -31,7 +31,7 @@ class BOILERPLATECard extends LitElement {
     }
 
     return html`
-      <div>BOILERPLATE</div>
+      <div>boilerplate</div>
     `;
   }
 
@@ -42,6 +42,6 @@ class BOILERPLATECard extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "BOILERPLATE-card": BOILERPLATECard;
+    "boilerplate-card": BoilerplateCard;
   }
 }

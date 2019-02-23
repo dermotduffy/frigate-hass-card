@@ -1,5 +1,5 @@
 {
-    "name": "BOILERPLATE-card",
+    "name": "boilerplate-card",
     "version": "1.0.0",
     "description": "A templatable config pass-through",
     "keywords": [
@@ -10,8 +10,8 @@
         "lovelace",
         "custom-cards"
     ],
-    "umd:main": "BOILERPLATE-card.js",
-    "repository": "git@github.com:custom_cards/BOILERPLATE-card.git",
+    "umd:main": "boilerplate-card.js",
+    "repository": "git@github.com:custom_cards/boilerplate-card.git",
     "author": "Ian Richardson <iantrich@gmail.com>",
     "license": "MIT",
     "dependencies": {
@@ -29,7 +29,7 @@
     },
     "scripts": {
         "start": "microbundle watch",
-        "build": "npm run lint && microbundle --globals lit-element --target browser --format umd",
+        "build": "npm run lint && microbundle --external litElement --target browser --format umd",
         "lint": "tslint index.ts"
     }
 }
