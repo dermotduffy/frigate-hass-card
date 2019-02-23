@@ -1,0 +1,35 @@
+{
+    "name": "BOILERPLATE-card",
+    "version": "1.0.0",
+    "description": "A templatable config pass-through",
+    "keywords": [
+        "home-assistant",
+        "homeassistant",
+        "hass",
+        "automation",
+        "lovelace",
+        "custom-cards"
+    ],
+    "umd:main": "BOILERPLATE-card.js",
+    "repository": "git@github.com:custom_cards/BOILERPLATE-card.git",
+    "author": "Ian Richardson <iantrich@gmail.com>",
+    "license": "MIT",
+    "dependencies": {
+        "lit-element": "^2.0.1"
+    },
+    "devDependencies": {
+        "microbundle": "^0.10.1",
+        "prettier": "^1.16.4",
+        "tslib": "^1.9.3",
+        "tslint": "^5.12.1",
+        "tslint-config-prettier": "^1.18.0",
+        "tslint-eslint-rules": "^5.4.0",
+        "tslint-plugin-prettier": "^2.0.1",
+        "typescript": "^3.3.3333"
+    },
+    "scripts": {
+        "start": "microbundle watch",
+        "build": "npm run lint && microbundle --globals lit-element --target browser --format umd",
+        "lint": "tslint index.ts"
+    }
+}

@@ -1,0 +1,5 @@
+/node_modules/
+/.rts2_cache_umd/
+yarn.lock
+/dist/BOILERPLATE-card.js.map
+/dist/index.d.ts
