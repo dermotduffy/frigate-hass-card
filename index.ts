@@ -25,7 +25,11 @@ class BOILERPLATECard extends LitElement {
     this._config = config;
   }
 
-  protected render(): TemplateResult {
+  protected render(): TemplateResult | void {
+    if (!this._config || !this.hass) {
+      return html``;
+    }
+
     return html`
       <div>BOILERPLATE</div>
     `;
