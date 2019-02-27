@@ -39,9 +39,3 @@ class BoilerplateCard extends LitElement {
     return css``;
   }
 }
-
-declare global {
-  interface HTMLElementTagNameMap {
-    "boilerplate-card": BoilerplateCard;
-  }
-}
