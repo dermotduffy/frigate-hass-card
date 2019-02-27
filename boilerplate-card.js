@@ -2326,5 +2326,5 @@ __decorate([
     property()
 ], BoilerplateCard.prototype, "_config", void 0);
 BoilerplateCard = __decorate([
-    customElement("boilerplate-card")
+    customElement('boilerplate-card')
 ], BoilerplateCard);

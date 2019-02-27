@@ -5,16 +5,17 @@ import {
   property,
   CSSResult,
   TemplateResult,
-  css
-} from "lit-element";
+  css,
+} from 'lit-element';
 
 interface BoilerplateConfig {
   type: string;
 }
 
-@customElement("boilerplate-card")
+@customElement('boilerplate-card')
 class BoilerplateCard extends LitElement {
   @property() public hass?: any;
+
   @property() private _config?: BoilerplateConfig;
 
   public setConfig(config: BoilerplateConfig): void {

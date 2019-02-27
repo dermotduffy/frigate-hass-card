@@ -20,8 +20,9 @@
     "devDependencies": {
         "@typescript-eslint/parser": "^1.4.1",
         "eslint": "^5.14.1",
+        "eslint-config-airbnb-base": "^13.1.0",
+        "eslint-plugin-import": "^2.16.0",
         "eslint-plugin-typescript": "^0.14.0",
-        "microbundle": "^0.10.1",
         "prettier": "^1.16.4",
         "rollup": "^1.2.3",
         "rollup-plugin-node-resolve": "^4.0.1",

@@ -1,5 +1,3 @@
 /node_modules/
-/.rts2_cache_umd/
+/.rpt2_cache/
 yarn.lock
-/dist/boilerplate-card.js.map
-/dist/index.d.ts
