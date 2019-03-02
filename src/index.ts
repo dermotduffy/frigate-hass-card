@@ -43,13 +43,12 @@ class BoilerplateCard extends LitElement {
       return html`
         <ha-card>
           <div class="warning">Show Warning</div>
-        </ha-card>`;
+        </ha-card>
+      `;
     }
 
     return html`
-      <ha-card
-        .header=${this._config.name ? this._config.name : 'Boilerplate'}
-      ></ha-card>
+      <ha-card .header=${this._config.name ? this._config.name : 'Boilerplate'}></ha-card>
     `;
   }
 
