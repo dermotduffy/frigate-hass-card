@@ -2302,21 +2302,41 @@ LitElement.finalized = true;
  */
 LitElement.render = render$1;
 
+// TODO Name your custom element
 let BoilerplateCard = class BoilerplateCard extends LitElement {
     setConfig(config) {
-        if (!this._config) ;
+        // TODO Check for required fields and that they are of the proper format
+        if (!config || config.show_error) {
+            throw new Error('Invalid configuration');
+        }
         this._config = config;
     }
     render() {
         if (!this._config || !this.hass) {
             return html ``;
         }
+        // TODO Check for stateObj or other necessary things and render a warning if missing
+        if (this._config.show_warning) {
+            return html `
+        <ha-card>
+          <div class="warning">Show Warning</div>
+        </ha-card>`;
+        }
         return html `
-      <div>boilerplate</div>
+      <ha-card
+        .header=${this._config.name ? this._config.name : 'Boilerplate'}
+      ></ha-card>
     `;
     }
     static get styles() {
-        return css ``;
+        return css `
+      .warning {
+        display: block;
+        color: black;
+        background-color: #fce588;
+        padding: 8px;
+      }
+    `;
     }
 };
 __decorate([
