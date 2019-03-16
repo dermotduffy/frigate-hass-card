@@ -40,7 +40,7 @@ Customize to suit your needs and contribute it back to the custom-cards org
 [commits-shield]: https://img.shields.io/github/commit-activity/y/custom-cards/boilerplate-card.svg?style=for-the-badge
 [commits]: https://github.com/custom-cards/boilerplate-card/commits/master
 [discord]: https://discord.gg/5e9yvq
-[discord-shield]: https://img.shields.io/discord/478094546522079232.svg?style=for-the-badge
+[discord-shield]: https://img.shields.io/discord/330944238910963714.svg?style=for-the-badge
 [forum-shield]: https://img.shields.io/badge/community-forum-brightgreen.svg?style=for-the-badge
 [forum]: https://community.home-assistant.io/c/projects/frontend
 [license-shield]: https://img.shields.io/github/license/custom-cards/boilerplate-card.svg?style=for-the-badge
