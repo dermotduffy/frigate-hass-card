@@ -1,27 +1,17 @@
 import resolve from 'rollup-plugin-node-resolve';
-import typescript  from 'rollup-plugin-typescript2';
+import typescript from 'rollup-plugin-typescript2';
+import babel from 'rollup-plugin-babel';
 
-
-const commonPlugins = [
+export default {
+  input: ['src/card.ts'],
+  output: {
+    dir: './dist',
+    format: 'es',
+  },
+  plugins: [
     resolve(),
-    typescript()
-];
-
-export default [
-    {
-        input: 'src/index.ts',
-        output: {
-            file: 'boilerplate-card.js',
-            format: 'es'
-        },
-        plugins: [...commonPlugins]
-    },
-    {
-        input: 'src/editor.ts',
-        output: {
-            file: 'boilerplate-card-editor.js',
-            format: 'es'
-        },
-        plugins: [...commonPlugins]
-    }
-]
+    typescript(),
+    babel({
+    exclude: 'node_modules/**'
+  })],
+};

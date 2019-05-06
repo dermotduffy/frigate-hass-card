@@ -1543,7 +1543,6 @@ class UpdatingElement extends HTMLElement {
         Object.defineProperty(this.prototype, name, {
             // tslint:disable-next-line:no-any no symbol in index
             get() {
-                // tslint:disable-next-line:no-any no symbol in index
                 return this[key];
             },
             set(value) {
@@ -1551,7 +1550,7 @@ class UpdatingElement extends HTMLElement {
                 const oldValue = this[name];
                 // tslint:disable-next-line:no-any no symbol in index
                 this[key] = value;
-                this.requestUpdate(name, oldValue);
+                this._requestUpdate(name, oldValue);
             },
             configurable: true,
             enumerable: true
@@ -1655,6 +1654,8 @@ class UpdatingElement extends HTMLElement {
      */
     initialize() {
         this._saveInstanceProperties();
+        // ensures first update will be caught by an early access of `updateComplete`
+        this._requestUpdate();
     }
     /**
      * Fixes any properties set on the instance before upgrade time.
@@ -1695,16 +1696,13 @@ class UpdatingElement extends HTMLElement {
     }
     connectedCallback() {
         this._updateState = this._updateState | STATE_HAS_CONNECTED;
-        // Ensure connection triggers an update. Updates cannot complete before
+        // Ensure first connection completes an update. Updates cannot complete before
         // connection and if one is pending connection the `_hasConnectionResolver`
         // will exist. If so, resolve it to complete the update, otherwise
         // requestUpdate.
         if (this._hasConnectedResolver) {
             this._hasConnectedResolver();
             this._hasConnectedResolver = undefined;
-        }
-        else {
-            this.requestUpdate();
         }
     }
     /**
@@ -1770,6 +1768,42 @@ class UpdatingElement extends HTMLElement {
         }
     }
     /**
+     * This private version of `requestUpdate` does not access or return the
+     * `updateComplete` promise. This promise can be overridden and is therefore
+     * not free to access.
+     */
+    _requestUpdate(name, oldValue) {
+        let shouldRequestUpdate = true;
+        // If we have a property key, perform property update steps.
+        if (name !== undefined) {
+            const ctor = this.constructor;
+            const options = ctor._classProperties.get(name) || defaultPropertyDeclaration;
+            if (ctor._valueHasChanged(this[name], oldValue, options.hasChanged)) {
+                if (!this._changedProperties.has(name)) {
+                    this._changedProperties.set(name, oldValue);
+                }
+                // Add to reflecting properties set.
+                // Note, it's important that every change has a chance to add the
+                // property to `_reflectingProperties`. This ensures setting
+                // attribute + property reflects correctly.
+                if (options.reflect === true &&
+                    !(this._updateState & STATE_IS_REFLECTING_TO_PROPERTY)) {
+                    if (this._reflectingProperties === undefined) {
+                        this._reflectingProperties = new Map();
+                    }
+                    this._reflectingProperties.set(name, options);
+                }
+            }
+            else {
+                // Abort the request if the property should not be considered changed.
+                shouldRequestUpdate = false;
+            }
+        }
+        if (!this._hasRequestedUpdate && shouldRequestUpdate) {
+            this._enqueueUpdate();
+        }
+    }
+    /**
      * Requests an update which is processed asynchronously. This should
      * be called when an element should update based on some state not triggered
      * by setting a property. In this case, pass no arguments. It should also be
@@ -1783,31 +1817,7 @@ class UpdatingElement extends HTMLElement {
      * @returns {Promise} A Promise that is resolved when the update completes.
      */
     requestUpdate(name, oldValue) {
-        let shouldRequestUpdate = true;
-        // if we have a property key, perform property update steps.
-        if (name !== undefined && !this._changedProperties.has(name)) {
-            const ctor = this.constructor;
-            const options = ctor._classProperties.get(name) || defaultPropertyDeclaration;
-            if (ctor._valueHasChanged(this[name], oldValue, options.hasChanged)) {
-                // track old value when changing.
-                this._changedProperties.set(name, oldValue);
-                // add to reflecting properties set
-                if (options.reflect === true &&
-                    !(this._updateState & STATE_IS_REFLECTING_TO_PROPERTY)) {
-                    if (this._reflectingProperties === undefined) {
-                        this._reflectingProperties = new Map();
-                    }
-                    this._reflectingProperties.set(name, options);
-                }
-                // abort the request if the property should not be considered changed.
-            }
-            else {
-                shouldRequestUpdate = false;
-            }
-        }
-        if (!this._hasRequestedUpdate && shouldRequestUpdate) {
-            this._enqueueUpdate();
-        }
+        this._requestUpdate(name, oldValue);
         return this.updateComplete;
     }
     /**
@@ -1817,22 +1827,36 @@ class UpdatingElement extends HTMLElement {
         // Mark state updating...
         this._updateState = this._updateState | STATE_UPDATE_REQUESTED;
         let resolve;
+        let reject;
         const previousUpdatePromise = this._updatePromise;
-        this._updatePromise = new Promise((res) => resolve = res);
-        // Ensure any previous update has resolved before updating.
-        // This `await` also ensures that property changes are batched.
-        await previousUpdatePromise;
+        this._updatePromise = new Promise((res, rej) => {
+            resolve = res;
+            reject = rej;
+        });
+        try {
+            // Ensure any previous update has resolved before updating.
+            // This `await` also ensures that property changes are batched.
+            await previousUpdatePromise;
+        }
+        catch (e) {
+            // Ignore any previous errors. We only care that the previous cycle is
+            // done. Any error should have been handled in the previous update.
+        }
         // Make sure the element has connected before updating.
         if (!this._hasConnected) {
             await new Promise((res) => this._hasConnectedResolver = res);
         }
-        // Allow `performUpdate` to be asynchronous to enable scheduling of updates.
-        const result = this.performUpdate();
-        // Note, this is to avoid delaying an additional microtask unless we need
-        // to.
-        if (result != null &&
-            typeof result.then === 'function') {
-            await result;
+        try {
+            const result = this.performUpdate();
+            // If `performUpdate` returns a Promise, we await it. This is done to
+            // enable coordinating updates with a scheduler. Note, the result is
+            // checked to avoid delaying an additional microtask unless we need to.
+            if (result != null) {
+                await result;
+            }
+        }
+        catch (e) {
+            reject(e);
         }
         resolve(!this._hasRequestedUpdate);
     }
@@ -1846,10 +1870,13 @@ class UpdatingElement extends HTMLElement {
         return (this._updateState & STATE_HAS_UPDATED);
     }
     /**
-     * Performs an element update.
+     * Performs an element update. Note, if an exception is thrown during the
+     * update, `firstUpdated` and `updated` will not be called.
      *
-     * You can override this method to change the timing of updates. For instance,
-     * to schedule updates to occur just before the next frame:
+     * You can override this method to change the timing of updates. If this
+     * method is overridden, `super.performUpdate()` must be called.
+     *
+     * For instance, to schedule updates to occur just before the next frame:
      *
      * ```
      * protected async performUpdate(): Promise<unknown> {
@@ -1863,18 +1890,30 @@ class UpdatingElement extends HTMLElement {
         if (this._instanceProperties) {
             this._applyInstanceProperties();
         }
-        if (this.shouldUpdate(this._changedProperties)) {
-            const changedProperties = this._changedProperties;
-            this.update(changedProperties);
+        let shouldUpdate = false;
+        const changedProperties = this._changedProperties;
+        try {
+            shouldUpdate = this.shouldUpdate(changedProperties);
+            if (shouldUpdate) {
+                this.update(changedProperties);
+            }
+        }
+        catch (e) {
+            // Prevent `firstUpdated` and `updated` from running when there's an
+            // update exception.
+            shouldUpdate = false;
+            throw e;
+        }
+        finally {
+            // Ensure element can accept additional updates after an exception.
             this._markUpdated();
+        }
+        if (shouldUpdate) {
             if (!(this._updateState & STATE_HAS_UPDATED)) {
                 this._updateState = this._updateState | STATE_HAS_UPDATED;
                 this.firstUpdated(changedProperties);
             }
             this.updated(changedProperties);
-        }
-        else {
-            this._markUpdated();
         }
     }
     _markUpdated() {
@@ -1885,7 +1924,8 @@ class UpdatingElement extends HTMLElement {
      * Returns a Promise that resolves when the element has completed updating.
      * The Promise value is a boolean that is `true` if the element completed the
      * update without triggering another update. The Promise result is `false` if
-     * a property was set inside `updated()`. This getter can be implemented to
+     * a property was set inside `updated()`. If the Promise is rejected, an
+     * exception was thrown during the update. This getter can be implemented to
      * await additional state. For example, it is sometimes useful to await a
      * rendered element before fulfilling this Promise. To do this, first await
      * `super.updateComplete` then any subsequent state.
@@ -2196,7 +2236,8 @@ class LitElement extends UpdatingElement {
      */
     initialize() {
         super.initialize();
-        this.renderRoot = this.createRenderRoot();
+        this.renderRoot =
+            this.createRenderRoot();
         // Note, if renderRoot is not a shadowRoot, styles would/could apply to the
         // element's getRootNode(). While this could be done, we're choosing not to
         // support this now since it would require different logic around de-duping.
@@ -2302,14 +2343,37 @@ LitElement.finalized = true;
  */
 LitElement.render = render$1;
 
+/**
+ * Parse or format dates
+ * @class fecha
+ */
+
+function shorten(arr, sLen) {
+  var newArr = [];
+  for (var i = 0, len = arr.length; i < len; i++) {
+    newArr.push(arr[i].substr(0, sLen));
+  }
+  return newArr;
+}
+
+var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+var monthNamesShort = shorten(monthNames, 3);
+var dayNamesShort = shorten(dayNames, 3);
+
+function e(t){return t.substr(0,t.indexOf("."))}!function(){try{(new Date).toLocaleDateString("i");}catch(t){return "RangeError"===t.name}}(),function(){try{(new Date).toLocaleString("i");}catch(t){return "RangeError"===t.name}}(),function(){try{(new Date).toLocaleTimeString("i");}catch(t){return "RangeError"===t.name}}();var s=["closed","locked","off"],h=function(t,e,n,o){o=o||{},n=null==n?{}:n;var i=new Event(e,{bubbles:void 0===o.bubbles||o.bubbles,cancelable:Boolean(o.cancelable),composed:void 0===o.composed||o.composed});return i.detail=n,t.dispatchEvent(i),i},m=function(t,e,n){void 0===n&&(n=!1),n?history.replaceState(null,"",e):history.pushState(null,"",e),h(window,"location-changed",{replace:n});},v=function(t,n,o){void 0===o&&(o=!0);var i,r=e(n),a="group"===r?"homeassistant":r;switch(r){case"lock":i=o?"unlock":"lock";break;case"cover":i=o?"open_cover":"close_cover";break;default:i=o?"turn_on":"turn_off";}return t.callService(a,i,{entity_id:n})},f=function(t,e){var n=s.includes(t.states[e].state);return v(t,e,n)},w=function(t,e){h(t,"haptic",e);},g=function(t,e,n,o){var i;switch(o&&n.hold_action?i=n.hold_action:!o&&n.tap_action&&(i=n.tap_action),i||(i={action:"more-info"}),i.action){case"more-info":n.entity&&(h(t,"hass-more-info",{entityId:n.entity}),i.haptic&&w(t,i.haptic));break;case"navigate":i.navigation_path&&(m(0,i.navigation_path),i.haptic&&w(t,i.haptic));break;case"url":i.url&&window.open(i.url),i.haptic&&w(t,i.haptic);break;case"toggle":n.entity&&(f(e,n.entity),i.haptic&&w(t,i.haptic));break;case"call-service":if(!i.service)return;var r=i.service.split(".",2);e.callService(r[0],r[1],i.service_data),i.haptic&&w(t,i.haptic);}};function _(t,e){if(e.has("_config"))return !0;var n=e.get("hass");return !n||n.states[t._config.entity]!==t.hass.states[t._config.entity]}const b=new WeakMap;String(Math.random()).slice(2);try{const t={get capture(){return !1}};window.addEventListener("test",t,t),window.removeEventListener("test",t,t);}catch(t){}(window.litHtmlVersions||(window.litHtmlVersions=[])).push("1.0.0");var y="ontouchstart"in window||navigator.maxTouchPoints>0||navigator.msMaxTouchPoints>0,E=function(t){function e(){t.call(this),this.holdTime=500,this.ripple=document.createElement("paper-ripple"),this.timer=void 0,this.held=!1,this.cooldownStart=!1,this.cooldownEnd=!1;}return t&&(e.__proto__=t),(e.prototype=Object.create(t&&t.prototype)).constructor=e,e.prototype.connectedCallback=function(){var t=this;Object.assign(this.style,{borderRadius:"50%",position:"absolute",width:y?"100px":"50px",height:y?"100px":"50px",transform:"translate(-50%, -50%)",pointerEvents:"none"}),this.appendChild(this.ripple),this.ripple.style.color="#03a9f4",this.ripple.style.color="var(--primary-color)",["touchcancel","mouseout","mouseup","touchmove","mousewheel","wheel","scroll"].forEach(function(e){document.addEventListener(e,function(){clearTimeout(t.timer),t.stopAnimation(),t.timer=void 0;},{passive:!0});});},e.prototype.bind=function(t){var e=this;if(!t.longPress){t.longPress=!0,t.addEventListener("contextmenu",function(t){var e=t||window.event;return e.preventDefault&&e.preventDefault(),e.stopPropagation&&e.stopPropagation(),e.cancelBubble=!0,e.returnValue=!1,!1});var n=function(t){var n,o;e.cooldownStart||(e.held=!1,t.touches?(n=t.touches[0].pageX,o=t.touches[0].pageY):(n=t.pageX,o=t.pageY),e.timer=window.setTimeout(function(){e.startAnimation(n,o),e.held=!0;},e.holdTime),e.cooldownStart=!0,window.setTimeout(function(){return e.cooldownStart=!1},100));},o=function(n){e.cooldownEnd||["touchend","touchcancel"].includes(n.type)&&void 0===e.timer||(clearTimeout(e.timer),e.stopAnimation(),e.timer=void 0,t.dispatchEvent(e.held?new Event("ha-hold"):new Event("ha-click")),e.cooldownEnd=!0,window.setTimeout(function(){return e.cooldownEnd=!1},100));};t.addEventListener("touchstart",n,{passive:!0}),t.addEventListener("touchend",o),t.addEventListener("touchcancel",o),t.addEventListener("mousedown",n,{passive:!0}),t.addEventListener("click",o);}},e.prototype.startAnimation=function(t,e){Object.assign(this.style,{left:t+"px",top:e+"px",display:null}),this.ripple.holdDown=!0,this.ripple.simulatedRipple();},e.prototype.stopAnimation=function(){this.ripple.holdDown=!1,this.style.display="none";},e}(HTMLElement);customElements.get("long-press")||customElements.define("long-press",E);var k=function(t){var e=function(){var t=document.body;if(t.querySelector("long-press"))return t.querySelector("long-press");var e=document.createElement("long-press");return t.appendChild(e),e}();e&&e.bind(t);},S=(t=>(...t)=>{const e=function(){return function(t){k(t.committer.element);}}(...t);return b.set(e,!0),e})();
+
 // TODO Name your custom element
 let BoilerplateCard = class BoilerplateCard extends LitElement {
     setConfig(config) {
         // TODO Check for required fields and that they are of the proper format
         if (!config || config.show_error) {
-            throw new Error('Invalid configuration');
+            throw new Error("Invalid configuration");
         }
         this._config = config;
+    }
+    shouldUpdate(changedProps) {
+        return _(this, changedProps);
     }
     render() {
         if (!this._config || !this.hass) {
@@ -2324,8 +2388,19 @@ let BoilerplateCard = class BoilerplateCard extends LitElement {
       `;
         }
         return html `
-      <ha-card .header=${this._config.name ? this._config.name : 'Boilerplate'}></ha-card>
+      <ha-card
+        .header=${this._config.name ? this._config.name : "Boilerplate"}
+        @ha-click="${this._handleTap}"
+        @ha-hold="${this._handleHold}"
+        .longpress="${S()}"
+      ></ha-card>
     `;
+    }
+    _handleTap() {
+        g(this, this.hass, this._config, false);
+    }
+    _handleHold() {
+        g(this, this.hass, this._config, true);
     }
     static get styles() {
         return css `
@@ -2345,5 +2420,5 @@ __decorate([
     property()
 ], BoilerplateCard.prototype, "_config", void 0);
 BoilerplateCard = __decorate([
-    customElement('boilerplate-card')
+    customElement("boilerplate-card")
 ], BoilerplateCard);

@@ -1,5 +1,6 @@
 # Boilerplate Card
-A community driven boilerplate of best practices from Home Assistant Lovelace custom cards
+
+A community driven boilerplate of best practices for Home Assistant Lovelace custom cards
 
 [![GitHub Release][releases-shield]][releases]
 [![License][license-shield]](LICENSE.md)
@@ -12,27 +13,45 @@ A community driven boilerplate of best practices from Home Assistant Lovelace cu
 
 ## Options
 
-| Name | Type | Requirement | Description
-| ---- | ---- | ------- | -----------
+| Name | Type | Requirement | Description | Default
+| ---- | ---- | ------- | ----------- | -------
 | type | string | **Required** | `custom:boilerplate-card`
-| name | string | **Optional** | Card name
-| show_error | boolean | **Optional** | Show what an error looks like for the card
-| show_warning | boolean | **Optional** | Show what a warning looks like for the card
+| name | string | **Optional** | Card name | `Boilerplate`
+| show_error | boolean | **Optional** | Show what an error looks like for the card | `false`
+| show_warning | boolean | **Optional** | Show what a warning looks like for the card | `false`
+| entity | string | **Optional** | Home Assistant entity ID. | `none`
+| tap_action | object | **Optional** | Action to take on tap | `action: more-info`
+| hold_action | object | **Optional** | Action to take on hold | `none`
+
+## Action Options
+
+| Name | Type | Requirement | Description | Default
+| ---- | ---- | ------- | ----------- | -------
+| action | string | **Required** | Action to perform (toggle-menu, more-info, toggle, call-service, navigate url, none) | `toggle-menu` for menu and `more-info` for items
+| navigation_path | string | **Optional** | Path to navigate to (e.g. /lovelace/0/) when action defined as navigate | `none`
+| url | string | **Optional** | URL to open on click when action is url. The URL will open in a new tab | `none`
+| service | string | **Optional** | Service to call (e.g. media_player.media_play_pause) when action defined as call-service | `none`
+| service_data | object | **Optional** | Service data to include (e.g. entity_id: media_player.bedroom) when action defined as call-service | `none`
+| haptic | string | **Optional** | Haptic feedback for the [Beta IOS App](http://home-assistant.io/ios/beta) _success, warning, failure, light, medium, heavy, selection_ | `none`
 
 ## Starting a new card from boilerplate-card
 
 ### Step 1
+
 Clone this repo
 
 ### Step 2
+
 Install necessary modules
 `yarn install` or `npm install`
 
 ### Step 3
+
 Do a test lint & build on the project. You can see available scripts in the package.json
 `npm run build`
 
 ### Step 4
+
 Customize to suit your needs and contribute it back to the custom-cards org
 
 [Troubleshooting](https://github.com/thomasloven/hass-config/wiki/Lovelace-Plugins)
