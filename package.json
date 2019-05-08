@@ -32,7 +32,9 @@
         "rollup": "^1.2.3",
         "rollup-plugin-babel": "^4.3.2",
         "rollup-plugin-node-resolve": "^4.0.1",
+        "rollup-plugin-terser": "^4.0.4",
         "rollup-plugin-typescript2": "^0.19.2",
+        "rollup-plugin-uglify": "^6.0.2",
         "typescript": "^3.3.3333"
     },
     "scripts": {
