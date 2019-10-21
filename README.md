@@ -1,4 +1,4 @@
-# Boilerplate Card
+# Boilerplate Card by [@iantrich](https://www.github.com/iantrich)
 
 A community driven boilerplate of best practices for Home Assistant Lovelace custom cards
 
