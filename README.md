@@ -27,7 +27,7 @@ A community driven boilerplate of best practices for Home Assistant Lovelace cus
 
 | Name | Type | Requirement | Description | Default
 | ---- | ---- | ------- | ----------- | -------
-| action | string | **Required** | Action to perform (toggle-menu, more-info, toggle, call-service, navigate url, none) | `toggle-menu` for menu and `more-info` for items
+| action | string | **Required** | Action to perform (more-info, toggle, call-service, navigate url, none) | `more-info`
 | navigation_path | string | **Optional** | Path to navigate to (e.g. /lovelace/0/) when action defined as navigate | `none`
 | url | string | **Optional** | URL to open on click when action is url. The URL will open in a new tab | `none`
 | service | string | **Optional** | Service to call (e.g. media_player.media_play_pause) when action defined as call-service | `none`
