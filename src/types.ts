@@ -1,4 +1,4 @@
-import { ActionConfig } from "custom-card-helpers";
+import { ActionConfig, HASSDomEvent } from "custom-card-helpers";
 
 // TODO Add your configuration elements here for type-checking
 export interface BoilerplateConfig {
@@ -9,4 +9,5 @@ export interface BoilerplateConfig {
   entity?: string;
   tap_aciton?: ActionConfig;
   hold_action?: ActionConfig;
+  double_tap_action?: ActionConfig;
 }

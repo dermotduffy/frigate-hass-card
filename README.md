@@ -4,6 +4,7 @@ A community driven boilerplate of best practices for Home Assistant Lovelace cus
 
 [![GitHub Release][releases-shield]][releases]
 [![License][license-shield]](LICENSE.md)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 
 ![Project Maintenance][maintenance-shield]
 [![GitHub Activity][commits-shield]][commits]
@@ -50,9 +51,13 @@ Install necessary modules
 Do a test lint & build on the project. You can see available scripts in the package.json
 `npm run build`
 
-### Step 4
+## Step 4
 
-Customize to suit your needs and contribute it back to the custom-cards org
+Search the repo for all instances of "TODO" and handle the changes/suggestions
+
+### Step 5
+
+Customize to suit your needs and contribute it back to the community
 
 [Troubleshooting](https://github.com/thomasloven/hass-config/wiki/Lovelace-Plugins)
 

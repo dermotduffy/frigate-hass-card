@@ -10,19 +10,20 @@ import {
 } from "lit-element";
 import {
   HomeAssistant,
-  handleClick,
-  longPress,
-  hasConfigOrEntityChanged
+  hasConfigOrEntityChanged,
+  hasAction,
+  ActionHandlerEvent,
+  handleAction
 } from "custom-card-helpers";
 
 import { BoilerplateConfig } from "./types";
+import { actionHandler } from "./action-handler-directive";
 
 // TODO Name your custom element
 @customElement("boilerplate-card")
 class BoilerplateCard extends LitElement {
   // TODO Add any properities that should cause your element to re-render here
   @property() public hass?: HomeAssistant;
-
   @property() private _config?: BoilerplateConfig;
 
   public setConfig(config: BoilerplateConfig): void {
@@ -31,11 +32,14 @@ class BoilerplateCard extends LitElement {
       throw new Error("Invalid configuration");
     }
 
-    this._config = config;
+    this._config = {
+      name: "Boilerplate",
+      ...config
+    };
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    return hasConfigOrEntityChanged(this, changedProps);
+    return hasConfigOrEntityChanged(this, changedProps, false);
   }
 
   protected render(): TemplateResult | void {
@@ -54,20 +58,18 @@ class BoilerplateCard extends LitElement {
 
     return html`
       <ha-card
-        .header=${this._config.name ? this._config.name : "Boilerplate"}
-        @ha-click="${this._handleTap}"
-        @ha-hold="${this._handleHold}"
-        .longpress="${longPress()}"
+        .header=${this._config.name}
+        @action=${this._handleAction}
+        .actionHandler=${actionHandler({
+          hasHold: hasAction(this._config!.hold_action),
+          hasDoubleTap: hasAction(this._config!.double_tap_action)
+        })}
       ></ha-card>
     `;
   }
 
-  private _handleTap(): void {
-    handleClick(this, this.hass!, this._config!, false);
-  }
-
-  private _handleHold(): void {
-    handleClick(this, this.hass!, this._config!, true);
+  private _handleAction(ev: ActionHandlerEvent) {
+    handleAction(this, this.hass!, this._config!, ev.detail.action!);
   }
 
   static get styles(): CSSResult {
