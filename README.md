@@ -51,7 +51,7 @@ Install necessary modules
 Do a test lint & build on the project. You can see available scripts in the package.json
 `npm run build`
 
-## Step 4
+### Step 4
 
 Search the repo for all instances of "TODO" and handle the changes/suggestions
 
