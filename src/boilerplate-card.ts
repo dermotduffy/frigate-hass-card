@@ -1,27 +1,26 @@
-import {
-  LitElement,
-  html,
-  customElement,
-  property,
-  CSSResult,
-  TemplateResult,
-  css,
-  PropertyValues
-} from "lit-element";
+import { LitElement, html, customElement, property, CSSResult, TemplateResult, css, PropertyValues } from 'lit-element';
 import {
   HomeAssistant,
   hasConfigOrEntityChanged,
   hasAction,
   ActionHandlerEvent,
-  handleAction
-} from "custom-card-helpers";
+  handleAction,
+} from 'custom-card-helpers';
 
-import { BoilerplateConfig } from "./types";
-import { actionHandler } from "./action-handler-directive";
+import { BoilerplateConfig } from './types';
+import { actionHandler } from './action-handler-directive';
+import { CARD_VERSION } from './const';
+
+/* eslint no-console: 0 */
+console.info(
+  `%c  BOILERPLATE-CARD     \n%c  Version ${CARD_VERSION}     `,
+  'color: orange; font-weight: bold; background: black',
+  'color: white; font-weight: bold; background: dimgray',
+);
 
 // TODO Name your custom element
-@customElement("boilerplate-card")
-class BoilerplateCard extends LitElement {
+@customElement('boilerplate-card')
+export class BoilerplateCard extends LitElement {
   // TODO Add any properities that should cause your element to re-render here
   @property() public hass?: HomeAssistant;
   @property() private _config?: BoilerplateConfig;
@@ -29,12 +28,12 @@ class BoilerplateCard extends LitElement {
   public setConfig(config: BoilerplateConfig): void {
     // TODO Check for required fields and that they are of the proper format
     if (!config || config.show_error) {
-      throw new Error("Invalid configuration");
+      throw new Error('Invalid configuration');
     }
 
     this._config = {
-      name: "Boilerplate",
-      ...config
+      name: 'Boilerplate',
+      ...config,
     };
   }
 
@@ -61,15 +60,18 @@ class BoilerplateCard extends LitElement {
         .header=${this._config.name}
         @action=${this._handleAction}
         .actionHandler=${actionHandler({
-          hasHold: hasAction(this._config!.hold_action),
-          hasDoubleTap: hasAction(this._config!.double_tap_action)
+          hasHold: hasAction(this._config.hold_action),
+          hasDoubleTap: hasAction(this._config.double_tap_action),
+          repeat: this._config.hold_action ? this._config.hold_action.repeat : undefined,
         })}
       ></ha-card>
     `;
   }
 
-  private _handleAction(ev: ActionHandlerEvent) {
-    handleAction(this, this.hass!, this._config!, ev.detail.action!);
+  private _handleAction(ev: ActionHandlerEvent): void {
+    if (this.hass && this._config && ev.detail.action) {
+      handleAction(this, this.hass, this._config, ev.detail.action);
+    }
   }
 
   static get styles(): CSSResult {
