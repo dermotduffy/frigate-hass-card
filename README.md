@@ -12,6 +12,12 @@ A community driven boilerplate of best practices for Home Assistant Lovelace cus
 [![Discord][discord-shield]][discord]
 [![Community Forum][forum-shield]][forum]
 
+## Support
+
+Hey dude! Help me out for a couple of :beers: or a :coffee:!
+
+[![coffee](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/zJtVxUAgH)
+
 ## Options
 
 | Name              | Type    | Requirement  | Description                                 | Default             |
@@ -35,6 +41,7 @@ A community driven boilerplate of best practices for Home Assistant Lovelace cus
 | service         | string | **Optional** | Service to call (e.g. media_player.media_play_pause) when action defined as call-service                                               | `none`      |
 | service_data    | object | **Optional** | Service data to include (e.g. entity_id: media_player.bedroom) when action defined as call-service                                     | `none`      |
 | haptic          | string | **Optional** | Haptic feedback for the [Beta IOS App](http://home-assistant.io/ios/beta) _success, warning, failure, light, medium, heavy, selection_ | `none`      |
+| repeat          | number | **Optional** | How often to repeat the `hold_action` in milliseconds.                                                                                 | `non`       |
 
 ## Starting a new card from boilerplate-card
 

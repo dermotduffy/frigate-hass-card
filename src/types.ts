@@ -1,4 +1,4 @@
-import { ActionConfig, HASSDomEvent } from "custom-card-helpers";
+import { ActionConfig } from 'custom-card-helpers';
 
 // TODO Add your configuration elements here for type-checking
 export interface BoilerplateConfig {
