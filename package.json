@@ -1,46 +1,47 @@
 {
-    "name": "boilerplate-card",
-    "version": "1.1.1",
-    "description": "Lovelace boilerplate-card",
-    "keywords": [
-        "home-assistant",
-        "homeassistant",
-        "hass",
-        "automation",
-        "lovelace",
-        "custom-cards"
-    ],
-    "module": "boilerplate-card.js",
-    "repository": "git@github.com:custom_cards/boilerplate-card.git",
-    "author": "Ian Richardson <iantrich@gmail.com>",
-    "license": "MIT",
-    "dependencies": {
-        "custom-card-helpers": "^1.3.5",
-        "home-assistant-js-websocket": "^4.4.0",
-        "lit-element": "^2.2.1"
-    },
-    "devDependencies": {
-        "@babel/core": "^7.6.4",
-        "@babel/plugin-proposal-class-properties": "^7.5.5",
-        "@babel/plugin-proposal-decorators": "^7.4.0",
-        "@typescript-eslint/eslint-plugin": "^2.6.0",
-        "@typescript-eslint/parser": "^2.6.0",
-        "eslint": "^6.6.0",
-        "eslint-config-airbnb-base": "^14.0.0",
-        "eslint-plugin-import": "^2.18.2",
-        "prettier": "^1.18.2",
-        "rollup": "^1.26.0",
-        "rollup-plugin-babel": "^4.3.3",
-        "rollup-plugin-node-resolve": "^5.2.0",
-        "rollup-plugin-terser": "^5.1.2",
-        "rollup-plugin-typescript2": "^0.24.3",
-        "rollup-plugin-uglify": "^6.0.3",
-        "typescript": "^3.6.4"
-    },
-    "scripts": {
-        "start": "rollup -c --watch",
-        "build": "npm run lint && npm run rollup",
-        "lint": "eslint src/*.ts",
-        "rollup": "rollup -c"
-    }
+  "name": "boilerplate-card",
+  "version": "1.1.1",
+  "description": "Lovelace boilerplate-card",
+  "keywords": [
+    "home-assistant",
+    "homeassistant",
+    "hass",
+    "automation",
+    "lovelace",
+    "custom-cards"
+  ],
+  "module": "boilerplate-card.js",
+  "repository": "git@github.com:custom_cards/boilerplate-card.git",
+  "author": "Ian Richardson <iantrich@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "custom-card-helpers": "^1.3.5",
+    "home-assistant-js-websocket": "^4.4.0",
+    "lit-element": "^2.2.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.6.4",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/plugin-proposal-decorators": "^7.4.0",
+    "@typescript-eslint/eslint-plugin": "^2.6.0",
+    "@typescript-eslint/parser": "^2.6.0",
+    "eslint": "^6.6.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.18.2",
+    "prettier": "^1.18.2",
+    "rollup": "^1.26.0",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-serve": "^1.0.1",
+    "rollup-plugin-terser": "^5.1.2",
+    "rollup-plugin-typescript2": "^0.24.3",
+    "rollup-plugin-uglify": "^6.0.3",
+    "typescript": "^3.6.4"
+  },
+  "scripts": {
+    "start": "rollup -c --watch",
+    "build": "npm run lint && npm run rollup",
+    "lint": "eslint src/*.ts",
+    "rollup": "rollup -c"
+  }
 }

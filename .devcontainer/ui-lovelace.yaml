@@ -1,0 +1,7 @@
+resources:
+  - url: http://127.0.0.1:5000/boilerplate-card.js
+    type: module
+views:
+  - cards:
+      - type: "custom:boilerplate-card"
+        name: Boilerplace card development
