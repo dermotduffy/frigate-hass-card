@@ -47,7 +47,7 @@ Hey dude! Help me out for a couple of :beers: or a :coffee:!
 
 ### Step 1
 
-Clone this repo
+Clone this repository
 
 ### Step 2
 
@@ -61,16 +61,41 @@ Do a test lint & build on the project. You can see available scripts in the pack
 
 ### Step 4
 
-Search the repo for all instances of "TODO" and handle the changes/suggestions
+Search the repository for all instances of "TODO" and handle the changes/suggestions
 
 ### Step 5
 
 Customize to suit your needs and contribute it back to the community
 
-[Troubleshooting](https://github.com/thomasloven/hass-config/wiki/Lovelace-Plugins)
+
+## Starting a new card from boilerplate-card with [devcontainer][devcontainer]
+
+1. Fork and clone the repository.
+2. Open the [devcontainer][devcontainer] and run `npm start` when it's ready.
+3. The compiled `.js` file will be accessible on
+   `http://127.0.0.1:5000/custom-header.js`.
+4. On a running Home Assistant installation add this to your Lovelace
+   `resources:`
+
+```yaml
+- url: "http://127.0.0.1:5000/custom-header.js"
+  type: module
+```
+
+_Change "127.0.0.1" to the IP of your development machine._
+
+### Bonus
+
+If you need a fresh test instance you can install a fresh Home Assistant instance inside the devcontainer as well.
+
+1. Run the command `dc start`.
+2. Home Assistant will install and will eventually be running on port `9123`
+
+## [Troubleshooting](https://github.com/thomasloven/hass-config/wiki/Lovelace-Plugins)
 
 [commits-shield]: https://img.shields.io/github/commit-activity/y/custom-cards/boilerplate-card.svg?style=for-the-badge
 [commits]: https://github.com/custom-cards/boilerplate-card/commits/master
+[devcontainer]: https://code.visualstudio.com/docs/remote/containers
 [discord]: https://discord.gg/5e9yvq
 [discord-shield]: https://img.shields.io/discord/330944238910963714.svg?style=for-the-badge
 [forum-shield]: https://img.shields.io/badge/community-forum-brightgreen.svg?style=for-the-badge

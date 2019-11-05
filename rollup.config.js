@@ -1,19 +1,20 @@
-import resolve from 'rollup-plugin-node-resolve';
-import typescript from 'rollup-plugin-typescript2';
-import babel from 'rollup-plugin-babel';
+import resolve from "rollup-plugin-node-resolve";
+import typescript from "rollup-plugin-typescript2";
+import babel from "rollup-plugin-babel";
 import { terser } from "rollup-plugin-terser";
 
 export default {
-  input: ['src/boilerplate-card.ts'],
+  input: ["src/boilerplate-card.ts"],
   output: {
-    dir: './dist',
-    format: 'es',
+    dir: "./dist",
+    format: "es"
   },
   plugins: [
     resolve(),
     typescript(),
     babel({
-      exclude: 'node_modules/**'
+      exclude: "node_modules/**"
     }),
-    terser()]
+    terser(),
+  ]
 };
