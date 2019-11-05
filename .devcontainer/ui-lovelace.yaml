@@ -4,4 +4,5 @@ resources:
 views:
   - cards:
       - type: "custom:boilerplate-card"
-        name: Boilerplace card development
+        name: Boilerplate card development
+        entity: sun.sun
