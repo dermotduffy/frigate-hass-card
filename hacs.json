@@ -2,5 +2,5 @@
     "name": "Boilerplate Card",
     "render_readme": true,
     "filename": "boilerplate-card.js",
-    "filename": true
+    "zip_release": true
 }
