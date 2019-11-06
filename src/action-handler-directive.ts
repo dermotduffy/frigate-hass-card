@@ -111,7 +111,7 @@ class ActionHandler extends HTMLElement implements ActionHandler {
       if (this.held) {
         fireEvent(element as HTMLElement, 'action', { action: 'hold' });
       } else if (options.hasDoubleTap) {
-        if ((ev as MouseEvent).detail === 1) {
+        if ((ev as MouseEvent).detail === 1 || ev.type === 'keyup') {
           this.dblClickTimeout = window.setTimeout(() => {
             fireEvent(element as HTMLElement, 'action', { action: 'tap' });
           }, 250);
@@ -126,9 +126,16 @@ class ActionHandler extends HTMLElement implements ActionHandler {
       window.setTimeout(() => (this.cooldownEnd = false), 100);
     };
 
+    const handleEnter = (ev: Event): void => {
+      if ((ev as KeyboardEvent).keyCode === 13) {
+        return clickEnd(ev);
+      }
+    };
+
     element.addEventListener('touchstart', clickStart, { passive: true });
     element.addEventListener('touchend', clickEnd);
     element.addEventListener('touchcancel', clickEnd);
+    element.addEventListener('keyup', handleEnter);
 
     // iOS 13 sends a complete normal touchstart-touchend series of events followed by a mousedown-click series.
     // That might be a bug, but until it's fixed, this should make action-handler work.
