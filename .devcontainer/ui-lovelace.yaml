@@ -3,6 +3,7 @@ resources:
     type: module
 views:
   - cards:
-      - type: "custom:boilerplate-card"
-        name: Boilerplate card development
+      - type: 'custom:boilerplate-card'
+        name: Boilerplate Card Development
         entity: sun.sun
+        test_gui: true
