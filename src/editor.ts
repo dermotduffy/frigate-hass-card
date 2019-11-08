@@ -3,26 +3,46 @@ import { HomeAssistant, fireEvent, LovelaceCardEditor, ActionConfig } from 'cust
 
 import { BoilerplateCardConfig } from './types';
 
-const options = [
-  {
+const options = {
+  required: {
     icon: 'tune',
     name: 'Required',
     secondary: 'Required options for this card to function',
     show: true,
   },
-  {
+  actions: {
     icon: 'gesture-tap-hold',
     name: 'Actions',
     secondary: 'Perform actions based on tapping/clicking',
     show: false,
+    options: {
+      tap: {
+        icon: 'gesture-tap',
+        name: 'Tap',
+        secondary: 'Set the action to perform on tap',
+        show: false,
+      },
+      hold: {
+        icon: 'gesture-tap-hold',
+        name: 'Hold',
+        secondary: 'Set the action to perform on hold',
+        show: false,
+      },
+      double_tap: {
+        icon: 'gesture-double-tap',
+        name: 'Double Tap',
+        secondary: 'Set the action to perform on double tap',
+        show: false,
+      },
+    },
   },
-  {
+  appearance: {
     icon: 'palette',
     name: 'Appearance',
     secondary: 'Customize the name, icon, etc',
     show: false,
   },
-];
+};
 
 @customElement('boilerplate-card-editor')
 export class BoilerplateCardEditor extends LitElement implements LovelaceCardEditor {
@@ -100,14 +120,14 @@ export class BoilerplateCardEditor extends LitElement implements LovelaceCardEdi
 
     return html`
       <div class="card-config">
-        <div class="option" @click=${this._toggleOption} .index=${0}>
+        <div class="option" @click=${this._toggleOption} .option=${'required'}>
           <div class="row">
-            <ha-icon .icon=${`mdi:${options[0].icon}`}></ha-icon>
-            <div class="title">${options[0].name}</div>
+            <ha-icon .icon=${`mdi:${options.required.icon}`}></ha-icon>
+            <div class="title">${options.required.name}</div>
           </div>
-          <div class="secondary">${options[0].secondary}</div>
+          <div class="secondary">${options.required.secondary}</div>
         </div>
-        ${options[0].show
+        ${options.required.show
           ? html`
               <div class="values">
                 <paper-dropdown-menu
@@ -126,28 +146,69 @@ export class BoilerplateCardEditor extends LitElement implements LovelaceCardEdi
               </div>
             `
           : ''}
-        <div class="option" @click=${this._toggleOption} .index=${1}>
+        <div class="option" @click=${this._toggleOption} .option=${'actions'}>
           <div class="row">
-            <ha-icon .icon=${`mdi:${options[1].icon}`}></ha-icon>
-            <div class="title">${options[1].name}</div>
+            <ha-icon .icon=${`mdi:${options.actions.icon}`}></ha-icon>
+            <div class="title">${options.actions.name}</div>
           </div>
-          <div class="secondary">${options[1].secondary}</div>
+          <div class="secondary">${options.actions.secondary}</div>
         </div>
-        ${options[1].show
+        ${options.actions.show
           ? html`
               <div class="values">
-                <paper-item>Action Editors Coming Soon</paper-item>
+                <div class="option" @click=${this._toggleAction} .option=${'tap'}>
+                  <div class="row">
+                    <ha-icon .icon=${`mdi:${options.actions.options.tap.icon}`}></ha-icon>
+                    <div class="title">${options.actions.options.tap.name}</div>
+                  </div>
+                  <div class="secondary">${options.actions.options.tap.secondary}</div>
+                </div>
+                ${options.actions.options.tap.show
+                  ? html`
+                      <div class="values">
+                        <paper-item>Action Editors Coming Soon</paper-item>
+                      </div>
+                    `
+                  : ''}
+                <div class="option" @click=${this._toggleAction} .option=${'hold'}>
+                  <div class="row">
+                    <ha-icon .icon=${`mdi:${options.actions.options.hold.icon}`}></ha-icon>
+                    <div class="title">${options.actions.options.hold.name}</div>
+                  </div>
+                  <div class="secondary">${options.actions.options.hold.secondary}</div>
+                </div>
+                ${options.actions.options.hold.show
+                  ? html`
+                      <div class="values">
+                        <paper-item>Action Editors Coming Soon</paper-item>
+                      </div>
+                    `
+                  : ''}
+                <div class="option" @click=${this._toggleAction} .option=${'double_tap'}>
+                  <div class="row">
+                    <ha-icon .icon=${`mdi:${options.actions.options.double_tap.icon}`}></ha-icon>
+                    <div class="title">${options.actions.options.double_tap.name}</div>
+                  </div>
+                  <div class="secondary">${options.actions.options.double_tap.secondary}</div>
+                </div>
+                ${options.actions.options.double_tap.show
+                  ? html`
+                      <div class="values">
+                        <paper-item>Action Editors Coming Soon</paper-item>
+                      </div>
+                    `
+                  : ''}
               </div>
             `
           : ''}
-        <div class="option" @click=${this._toggleOption} .index=${2}>
+        <div class="option" @click=${this._toggleOption} .option=${'appearance'}>
           <div class="row">
-            <ha-icon .icon=${`mdi:${options[2].icon}`}></ha-icon>
-            <div class="title">${options[2].name}</div>
+            <ha-icon .icon=${`mdi:${options.appearance.icon}`}></ha-icon>
+            <div class="title">${options.appearance.name}</div>
           </div>
-          <div class="secondary">${options[2].secondary}</div>
+          <div class="secondary">${options.appearance.secondary}</div>
         </div>
-        ${options[2].show
+        ${options.appearance.show
           ? html`
               <div class="values">
                 <paper-input
@@ -178,11 +239,20 @@ export class BoilerplateCardEditor extends LitElement implements LovelaceCardEdi
     `;
   }
 
+  private _toggleAction(ev): void {
+    this._toggleThing(ev, options.actions.options);
+  }
+
   private _toggleOption(ev): void {
-    console.log(options[ev.target.index]);
-    const show = !options[ev.target.index].show;
-    options.forEach(option => (option.show = false));
-    options[ev.target.index].show = show;
+    this._toggleThing(ev, options);
+  }
+
+  private _toggleThing(ev, optionList): void {
+    const show = !optionList[ev.target.option].show;
+    for (const [key] of Object.entries(optionList)) {
+      optionList[key].show = false;
+    }
+    optionList[ev.target.option].show = show;
     this._toggle = !this._toggle;
   }
 
