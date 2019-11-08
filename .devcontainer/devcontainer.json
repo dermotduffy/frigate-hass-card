@@ -11,13 +11,14 @@
   ],
   "extensions": [
     "github.vscode-pull-request-github",
-    "tabnine.tabnine-vscode",
+    "eamodio.gitlens",
     "dbaeumer.vscode-eslint",
-    "ms-vscode.vscode-typescript-tslint-plugin",
     "esbenp.prettier-vscode",
     "bierner.lit-html",
     "runem.lit-plugin",
-    "ms-python.python"
+    "auchenberg.vscode-browser-preview",
+    "davidanson.vscode-markdownlint",
+    "redhat.vscode-yaml"
   ],
   "settings": {
     "files.eol": "\n",
