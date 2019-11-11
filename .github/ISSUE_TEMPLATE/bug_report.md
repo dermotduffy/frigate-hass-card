@@ -1,9 +1,9 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: ""
+title: ''
 labels: bug
-assignees: ""
+assignees: ''
 ---
 
 <!-- READ THIS FIRST:
@@ -19,9 +19,7 @@ assignees: ""
 
 **Release with the issue:**
 
-
 **Last working release (if known):**
-
 
 **Browser and Operating System:**
 
