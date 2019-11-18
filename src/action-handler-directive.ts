@@ -90,12 +90,10 @@ class ActionHandler extends HTMLElement implements ActionHandler {
         y = (ev as MouseEvent).pageY;
       }
 
-      if (options.hasHold) {
-        this.timer = window.setTimeout(() => {
-          this.startAnimation(x, y);
-          this.held = true;
-        }, this.holdTime);
-      }
+      this.timer = window.setTimeout(() => {
+        this.startAnimation(x, y);
+        this.held = true;
+      }, this.holdTime);
 
       this.cooldownStart = true;
       window.setTimeout(() => (this.cooldownStart = false), 100);
@@ -141,7 +139,7 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     // That might be a bug, but until it's fixed, this should make action-handler work.
     // If it's not a bug that is fixed, this might need updating with the next iOS version.
     // Note that all events (both touch and mouse) must be listened for in order to work on computers with both mouse and touchscreen.
-    const isIOS13 = window.navigator.userAgent.match(/iPhone OS 13_/);
+    const isIOS13 = /iPhone OS 13_/.test(window.navigator.userAgent);
     if (!isIOS13) {
       element.addEventListener('mousedown', clickStart, { passive: true });
       element.addEventListener('click', clickEnd);
@@ -169,7 +167,7 @@ class ActionHandler extends HTMLElement implements ActionHandler {
 // TODO You need to replace all instances of "action-handler-boilerplate" with "action-handler-<your card name>"
 customElements.define('action-handler-boilerplate', ActionHandler);
 
-const geActionHandler = (): ActionHandler => {
+const getActionHandler = (): ActionHandler => {
   const body = document.body;
   if (body.querySelector('action-handler-boilerplate')) {
     return body.querySelector('action-handler-boilerplate') as ActionHandler;
@@ -182,7 +180,7 @@ const geActionHandler = (): ActionHandler => {
 };
 
 export const actionHandlerBind = (element: ActionHandlerElement, options: ActionHandlerOptions): void => {
-  const actionhandler: ActionHandler = geActionHandler();
+  const actionhandler: ActionHandler = getActionHandler();
   if (!actionhandler) {
     return;
   }
