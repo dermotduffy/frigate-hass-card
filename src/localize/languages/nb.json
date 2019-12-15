@@ -1,0 +1,7 @@
+{
+  "common": {
+    "version": "VErsjon",
+    "invalid_configuration": "Ikke gyldig konfiguration",
+    "show_warning": "Vis advarsel"
+  }
+}

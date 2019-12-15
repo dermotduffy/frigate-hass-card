@@ -15,9 +15,11 @@ import { BoilerplateCardConfig } from './types';
 import { actionHandler } from './action-handler-directive';
 import { CARD_VERSION } from './const';
 
+import { localize } from './localize/localize';
+
 /* eslint no-console: 0 */
 console.info(
-  `%c  BOILERPLATE-CARD \n%c  Version ${CARD_VERSION}    `,
+  `%c  BOILERPLATE-CARD \n%c  ${localize('common.version')} ${CARD_VERSION}    `,
   'color: orange; font-weight: bold; background: black',
   'color: white; font-weight: bold; background: dimgray',
 );
@@ -40,7 +42,7 @@ export class BoilerplateCard extends LitElement {
   public setConfig(config: BoilerplateCardConfig): void {
     // TODO Check for required fields and that they are of the proper format
     if (!config || config.show_error) {
-      throw new Error('Invalid configuration');
+      throw new Error(localize('common.invalid_configuration'));
     }
 
     if (config.test_gui) {
@@ -66,7 +68,7 @@ export class BoilerplateCard extends LitElement {
     if (this._config.show_warning) {
       return html`
         <ha-card>
-          <div class="warning">Show Warning</div>
+          <div class="warning">${localize('common.show_warning')}</div>
         </ha-card>
       `;
     }
