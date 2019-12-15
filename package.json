@@ -24,6 +24,7 @@
     "@babel/core": "^7.6.4",
     "@babel/plugin-proposal-class-properties": "^7.5.5",
     "@babel/plugin-proposal-decorators": "^7.4.0",
+    "@rollup/plugin-json": "^4.0.0",
     "@typescript-eslint/eslint-plugin": "^2.6.0",
     "@typescript-eslint/parser": "^2.6.0",
     "eslint": "^6.6.0",
@@ -34,6 +35,7 @@
     "prettier": "^1.18.2",
     "rollup": "^1.26.0",
     "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-serve": "^1.0.1",
     "rollup-plugin-terser": "^5.1.2",
@@ -42,7 +44,7 @@
     "typescript": "^3.6.4"
   },
   "scripts": {
-    "start": "rollup -c rollup.config.dev.js --watch",
+    "start": "rollup -c --watch",
     "build": "npm run lint && npm run rollup",
     "lint": "eslint src/*.ts",
     "rollup": "rollup -c"
