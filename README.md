@@ -74,12 +74,10 @@ Customize to suit your needs and contribute it back to the community
 Note: this is available only in vscode ensure you have the [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension installed.
 
 1. Fork and clone the repository.
-2. Install necessary modules (verified to work in node 8.x)
-`yarn install` or `npm install`
-3. Open a [devcontainer][devcontainer] terminal and run `npm start` when it's ready.
-4. The compiled `.js` file will be accessible on
+2. Open a [devcontainer][devcontainer] terminal and run `npm start` when it's ready.
+3. The compiled `.js` file will be accessible on
    `http://127.0.0.1:5000/boilerplate-card.js`.
-5. On a running Home Assistant installation add this to your Lovelace
+4. On a running Home Assistant installation add this to your Lovelace
    `resources:`
 
 ```yaml
