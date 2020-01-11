@@ -88,7 +88,7 @@ export class BoilerplateCardEditor extends LitElement implements LovelaceCardEdi
 
   get _tap_action(): ActionConfig {
     if (this._config) {
-      return this._config.tap_aciton || { action: 'more-info' };
+      return this._config.tap_action || { action: 'more-info' };
     }
 
     return { action: 'more-info' };
