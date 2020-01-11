@@ -8,7 +8,7 @@ export interface BoilerplateCardConfig {
   show_error?: boolean;
   test_gui?: boolean;
   entity?: string;
-  tap_aciton?: ActionConfig;
+  tap_action?: ActionConfig;
   hold_action?: ActionConfig;
   double_tap_action?: ActionConfig;
 }
