@@ -97,6 +97,16 @@ If you need a fresh test instance you can install a fresh Home Assistant instanc
 2. Home Assistant will install and will eventually be running on port `9123`
 
 ## [Troubleshooting](https://github.com/thomasloven/hass-config/wiki/Lovelace-Plugins)
+NB This will not work with node 9.x if you see the following errors try installing node 8.10.0
+```yarn install
+yarn install v1.3.2
+[1/4] 🔍  Resolving packages...
+warning rollup-plugin-commonjs@10.1.0: This package has been deprecated and is no longer maintained. Please use @rollup/plugin-commonjs.
+[2/4] 🚚  Fetching packages...
+error @typescript-eslint/eslint-plugin@2.6.0: The engine "node" is incompatible with this module. Expected version "^8.10.0 || ^10.13.0 || >=11.10.1".
+error Found incompatible module
+info Visit https://yarnpkg.com/en/docs/cli/install for documentation about this command.
+```
 
 [commits-shield]: https://img.shields.io/github/commit-activity/y/custom-cards/boilerplate-card.svg?style=for-the-badge
 [commits]: https://github.com/custom-cards/boilerplate-card/commits/master
