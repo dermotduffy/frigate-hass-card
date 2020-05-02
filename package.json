@@ -1,6 +1,6 @@
 {
   "name": "boilerplate-card",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "Lovelace boilerplate-card",
   "keywords": [
     "home-assistant",
@@ -15,7 +15,7 @@
   "author": "Ian Richardson <iantrich@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "custom-card-helpers": "^1.3.9",
+    "custom-card-helpers": "^1.6.3",
     "home-assistant-js-websocket": "^4.4.0",
     "lit-element": "^2.2.1",
     "lit-html": "^1.1.2"
@@ -32,7 +32,7 @@
     "eslint-config-prettier": "^6.5.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-prettier": "^3.1.1",
-    "prettier": "^1.18.2",
+    "prettier": "^1.19.1",
     "rollup": "^1.26.0",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-commonjs": "^10.1.0",

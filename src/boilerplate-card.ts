@@ -79,8 +79,7 @@ export class BoilerplateCard extends LitElement {
         @action=${this._handleAction}
         .actionHandler=${actionHandler({
           hasHold: hasAction(this._config.hold_action),
-          hasDoubleTap: hasAction(this._config.double_tap_action),
-          repeat: this._config.hold_action ? this._config.hold_action.repeat : undefined,
+          hasDoubleClick: hasAction(this._config.double_tap_action),
         })}
         tabindex="0"
         aria-label=${`Boilerplate: ${this._config.entity}`}
