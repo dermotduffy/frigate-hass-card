@@ -1,7 +1,7 @@
 // See https://aka.ms/vscode-remote/devcontainer.json for format details.
 {
   "name": "Boilerplate Card Development",
-  "image": "ludeeus/devcontainer:monster-stable",
+  "image": "ludeeus/container:monster",
   "context": "..",
   "appPort": ["5000:5000", "9123:8123"],
   "postCreateCommand": "npm install",
