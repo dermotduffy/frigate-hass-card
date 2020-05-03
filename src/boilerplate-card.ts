@@ -24,6 +24,13 @@ console.info(
   'color: white; font-weight: bold; background: dimgray',
 );
 
+(window as any).customCards = (window as any).customCards || [];
+(window as any).customCards.push({
+  type: 'boilerplate-card',
+  name: 'Boilerplate Card',
+  description: 'A template custom card for you to create something awesome',
+});
+
 // TODO Name your custom element
 @customElement('boilerplate-card')
 export class BoilerplateCard extends LitElement {
