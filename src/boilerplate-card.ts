@@ -7,6 +7,7 @@ import {
   handleAction,
   LovelaceCardEditor,
   getLovelace,
+  LovelaceCard,
 } from 'custom-card-helpers';
 
 import './editor';
@@ -43,8 +44,8 @@ export class BoilerplateCard extends LitElement {
   }
 
   // TODO Add any properities that should cause your element to re-render here
-  @property() public hass?: HomeAssistant;
-  @property() private _config?: BoilerplateCardConfig;
+  @property() public hass!: HomeAssistant;
+  @property() private _config!: BoilerplateCardConfig;
 
   public setConfig(config: BoilerplateCardConfig): void {
     // TODO Check for required fields and that they are of the proper format
@@ -67,17 +68,9 @@ export class BoilerplateCard extends LitElement {
   }
 
   protected render(): TemplateResult | void {
-    if (!this._config || !this.hass) {
-      return html``;
-    }
-
     // TODO Check for stateObj or other necessary things and render a warning if missing
     if (this._config.show_warning) {
-      return html`
-        <ha-card>
-          <div class="warning">${localize('common.show_warning')}</div>
-        </ha-card>
-      `;
+      return this.showWarning(localize('common.show_warning'));
     }
 
     return html`
@@ -100,14 +93,26 @@ export class BoilerplateCard extends LitElement {
     }
   }
 
-  static get styles(): CSSResult {
-    return css`
-      .warning {
-        display: block;
-        color: black;
-        background-color: #fce588;
-        padding: 8px;
-      }
+  private showWarning(warning: string): TemplateResult {
+    return html`
+      <hui-warning>${warning}</hui-warning>
     `;
+  }
+
+  private showError(error: string): TemplateResult {
+    const errorCard = document.createElement('hui-error-card') as LovelaceCard;
+    errorCard.setConfig({
+      type: 'error',
+      error,
+      origConfig: this._config,
+    });
+
+    return html`
+      ${errorCard}
+    `;
+  }
+
+  static get styles(): CSSResult {
+    return css``;
   }
 }
