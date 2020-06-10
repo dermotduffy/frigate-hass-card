@@ -7,20 +7,18 @@ var languages = {
 };
 
 export function localize(string: string, search: string = '', replace: string = '') {
-  const section = string.split('.')[0];
-  const key = string.split('.')[1];
 
   const lang = (localStorage.getItem('selectedLanguage') || 'en').replace(/['"]+/g, '').replace('-', '_');
 
   var tranlated: string;
 
   try {
-    tranlated = languages[lang][section][key];
+    tranlated = string.split('.').reduce((o, i) => o[i], languages[lang]);
   } catch (e) {
-    tranlated = languages['en'][section][key];
+    tranlated = string.split('.').reduce((o, i) => o[i], languages['en']);
   }
 
-  if (tranlated === undefined) tranlated = languages['en'][section][key];
+  if (tranlated === undefined) tranlated = string.split('.').reduce((o, i) => o[i], languages['en']);
 
   if (search !== '' && replace !== '') {
     tranlated = tranlated.replace(search, replace);
