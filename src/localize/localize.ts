@@ -10,7 +10,7 @@ export function localize(string: string, search: string = '', replace: string = 
 
   const lang = (localStorage.getItem('selectedLanguage') || 'en').replace(/['"]+/g, '').replace('-', '_');
 
-  var tranlated: string;
+  var translated: string;
 
   try {
     tranlated = string.split('.').reduce((o, i) => o[i], languages[lang]);
