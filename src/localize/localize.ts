@@ -13,15 +13,15 @@ export function localize(string: string, search: string = '', replace: string = 
   var translated: string;
 
   try {
-    tranlated = string.split('.').reduce((o, i) => o[i], languages[lang]);
+    translated = string.split('.').reduce((o, i) => o[i], languages[lang]);
   } catch (e) {
-    tranlated = string.split('.').reduce((o, i) => o[i], languages['en']);
+    translated = string.split('.').reduce((o, i) => o[i], languages['en']);
   }
 
-  if (tranlated === undefined) tranlated = string.split('.').reduce((o, i) => o[i], languages['en']);
+  if (translated === undefined) translated = string.split('.').reduce((o, i) => o[i], languages['en']);
 
   if (search !== '' && replace !== '') {
-    tranlated = tranlated.replace(search, replace);
+    translated = translated.replace(search, replace);
   }
-  return tranlated;
+  return translated;
 }
