@@ -1,7 +1,7 @@
 import * as en from './languages/en.json';
 import * as nb from './languages/nb.json';
 
-var languages = {
+var languages: any = {
   en: en,
   nb: nb,
 };
