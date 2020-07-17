@@ -1,29 +1,27 @@
 import * as en from './languages/en.json';
 import * as nb from './languages/nb.json';
 
-var languages = {
+var languages: any = {
   en: en,
   nb: nb,
 };
 
 export function localize(string: string, search: string = '', replace: string = '') {
-  const section = string.split('.')[0];
-  const key = string.split('.')[1];
 
   const lang = (localStorage.getItem('selectedLanguage') || 'en').replace(/['"]+/g, '').replace('-', '_');
 
-  var tranlated: string;
+  var translated: string;
 
   try {
-    tranlated = languages[lang][section][key];
+    translated = string.split('.').reduce((o, i) => o[i], languages[lang]);
   } catch (e) {
-    tranlated = languages['en'][section][key];
+    translated = string.split('.').reduce((o, i) => o[i], languages['en']);
   }
 
-  if (tranlated === undefined) tranlated = languages['en'][section][key];
+  if (translated === undefined) translated = string.split('.').reduce((o, i) => o[i], languages['en']);
 
   if (search !== '' && replace !== '') {
-    tranlated = tranlated.replace(search, replace);
+    translated = translated.replace(search, replace);
   }
-  return tranlated;
+  return translated;
 }
