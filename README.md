@@ -29,7 +29,7 @@ Hey dude! Help me out for a couple of :beers: or a :coffee:!
 | entity            | string  | **Optional** | Home Assistant entity ID.                   | `none`              |
 | tap_action        | object  | **Optional** | Action to take on tap                       | `action: more-info` |
 | hold_action       | object  | **Optional** | Action to take on hold                      | `none`              |
-| double_tap_action | object  | **Optional** | Action to take on hold                      | `none`              |
+| double_tap_action | object  | **Optional** | Action to take on double tap                | `none`              |
 
 ## Action Options
 
