@@ -91,7 +91,7 @@ _Change "127.0.0.1" to the IP of your development machine._
 
 If you need a fresh test instance you can install a fresh Home Assistant instance inside the devcontainer as well.
 
-1. Run the command `dc start`.
+1. Run the command `container start`.
 2. Home Assistant will install and will eventually be running on port `9123`
 
 ## [Troubleshooting](https://github.com/thomasloven/hass-config/wiki/Lovelace-Plugins)
