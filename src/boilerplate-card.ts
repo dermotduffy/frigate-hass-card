@@ -45,7 +45,7 @@ export class BoilerplateCard extends LitElement {
 
   // TODO Add any properities that should cause your element to re-render here
   @property() public hass!: HomeAssistant;
-  @property() private _config!: BoilerplateCardConfig;
+  @property() private config!: BoilerplateCardConfig;
 
   public setConfig(config: BoilerplateCardConfig): void {
     // TODO Check for required fields and that they are of the proper format
@@ -57,39 +57,43 @@ export class BoilerplateCard extends LitElement {
       getLovelace().setEditMode(true);
     }
 
-    this._config = {
+    this.config = {
       name: 'Boilerplate',
       ...config,
     };
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
+    if (!this.config) {
+      return false;
+    }
+
     return hasConfigOrEntityChanged(this, changedProps, false);
   }
 
   protected render(): TemplateResult | void {
     // TODO Check for stateObj or other necessary things and render a warning if missing
-    if (this._config.show_warning) {
+    if (this.config.show_warning) {
       return this.showWarning(localize('common.show_warning'));
     }
 
     return html`
       <ha-card
-        .header=${this._config.name}
+        .header=${this.config.name}
         @action=${this._handleAction}
         .actionHandler=${actionHandler({
-          hasHold: hasAction(this._config.hold_action),
-          hasDoubleClick: hasAction(this._config.double_tap_action),
+          hasHold: hasAction(this.config.hold_action),
+          hasDoubleClick: hasAction(this.config.double_tap_action),
         })}
         tabindex="0"
-        aria-label=${`Boilerplate: ${this._config.entity}`}
+        .label=${`Boilerplate: ${this.config.entity || 'No Entity Defined'}`}
       ></ha-card>
     `;
   }
 
   private _handleAction(ev: ActionHandlerEvent): void {
-    if (this.hass && this._config && ev.detail.action) {
-      handleAction(this, this.hass, this._config, ev.detail.action);
+    if (this.hass && this.config && ev.detail.action) {
+      handleAction(this, this.hass, this.config, ev.detail.action);
     }
   }
 
@@ -104,7 +108,7 @@ export class BoilerplateCard extends LitElement {
     errorCard.setConfig({
       type: 'error',
       error,
-      origConfig: this._config,
+      origConfig: this.config,
     });
 
     return html`

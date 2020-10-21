@@ -1,6 +1,6 @@
 {
   "name": "boilerplate-card",
-  "version": "1.1.9",
+  "version": "1.2.0",
   "description": "Lovelace boilerplate-card",
   "keywords": [
     "home-assistant",
@@ -24,7 +24,7 @@
     "@babel/core": "^7.6.4",
     "@babel/plugin-proposal-class-properties": "^7.5.5",
     "@babel/plugin-proposal-decorators": "^7.4.0",
-    "@rollup/plugin-json": "^4.0.0",
+    "@rollup/plugin-json": "^4.1.0",
     "@typescript-eslint/eslint-plugin": "^2.6.0",
     "@typescript-eslint/parser": "^2.6.0",
     "eslint": "^6.6.0",
@@ -44,7 +44,7 @@
     "typescript": "^3.6.4"
   },
   "scripts": {
-    "start": "rollup -c --watch",
+    "start": "rollup -c rollup.config.dev.js --watch",
     "build": "npm run lint && npm run rollup",
     "lint": "eslint src/*.ts",
     "rollup": "rollup -c"

@@ -49,9 +49,21 @@ export class BoilerplateCardEditor extends LitElement implements LovelaceCardEdi
   @property() public hass?: HomeAssistant;
   @property() private _config?: BoilerplateCardConfig;
   @property() private _toggle?: boolean;
+  @property() private _helpers?: any;
+  private _initialized = false;
 
   public setConfig(config: BoilerplateCardConfig): void {
     this._config = config;
+
+    this.loadCardHelpers();
+  }
+
+  protected shouldUpdate(): boolean {
+    if (!this._initialized) {
+      this._initialize();
+    }
+
+    return true;
   }
 
   get _name(): string {
@@ -111,9 +123,12 @@ export class BoilerplateCardEditor extends LitElement implements LovelaceCardEdi
   }
 
   protected render(): TemplateResult | void {
-    if (!this.hass) {
+    if (!this.hass || !this._helpers) {
       return html``;
     }
+
+    // The climate more-info has ha-switch and paper-dropdown-menu elements that are lazy loaded unless explicitly done here
+    this._helpers.importMoreInfoControl('climate');
 
     // You can restrict on domain type
     const entities = Object.keys(this.hass.states).filter(eid => eid.substr(0, eid.indexOf('.')) === 'sun');
@@ -218,25 +233,36 @@ export class BoilerplateCardEditor extends LitElement implements LovelaceCardEdi
                   @value-changed=${this._valueChanged}
                 ></paper-input>
                 <br />
-                <ha-switch
-                  aria-label=${`Toggle warning ${this._show_warning ? 'off' : 'on'}`}
-                  .checked=${this._show_warning !== false}
-                  .configValue=${'show_warning'}
-                  @change=${this._valueChanged}
-                  >Show Warning?</ha-switch
-                >
-                <ha-switch
-                  aria-label=${`Toggle error ${this._show_error ? 'off' : 'on'}`}
-                  .checked=${this._show_error !== false}
-                  .configValue=${'show_error'}
-                  @change=${this._valueChanged}
-                  >Show Error?</ha-switch
-                >
+                <ha-formfield .label=${`Toggle warning ${this._show_warning ? 'off' : 'on'}`}>
+                  <ha-switch
+                    .checked=${this._show_warning !== false}
+                    .configValue=${'show_warning'}
+                    @change=${this._valueChanged}
+                  ></ha-switch>
+                </ha-formfield>
+                <ha-formfield .label=${`Toggle error ${this._show_error ? 'off' : 'on'}`}>
+                  <ha-switch
+                    .checked=${this._show_error !== false}
+                    .configValue=${'show_error'}
+                    @change=${this._valueChanged}
+                  ></ha-switch>
+                </ha-formfield>
               </div>
             `
           : ''}
       </div>
     `;
+  }
+
+  private _initialize(): void {
+    if (this.hass === undefined) return;
+    if (this._config === undefined) return;
+    if (this._helpers === undefined) return;
+    this._initialized = true;
+  }
+
+  private async loadCardHelpers(): Promise<void> {
+    this._helpers = await (window as any).loadCardHelpers();
   }
 
   private _toggleAction(ev): void {
@@ -301,8 +327,9 @@ export class BoilerplateCardEditor extends LitElement implements LovelaceCardEdi
       .values {
         padding-left: 16px;
         background: var(--secondary-background-color);
+        display: grid;
       }
-      ha-switch {
+      ha-formfield {
         padding-bottom: 8px;
       }
     `;
