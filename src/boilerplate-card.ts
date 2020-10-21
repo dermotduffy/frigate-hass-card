@@ -7,7 +7,6 @@ import {
   handleAction,
   LovelaceCardEditor,
   getLovelace,
-  LovelaceCard,
 } from 'custom-card-helpers';
 
 import './editor';
@@ -36,7 +35,7 @@ console.info(
 @customElement('boilerplate-card')
 export class BoilerplateCard extends LitElement {
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    return document.createElement('boilerplate-card-editor') as LovelaceCardEditor;
+    return document.createElement('boilerplate-card-editor');
   }
 
   public static getStubConfig(): object {
@@ -104,7 +103,7 @@ export class BoilerplateCard extends LitElement {
   }
 
   private showError(error: string): TemplateResult {
-    const errorCard = document.createElement('hui-error-card') as LovelaceCard;
+    const errorCard = document.createElement('hui-error-card');
     errorCard.setConfig({
       type: 'error',
       error,
