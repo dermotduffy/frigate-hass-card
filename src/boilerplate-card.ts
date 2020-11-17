@@ -18,14 +18,13 @@ import {
   handleAction,
   LovelaceCardEditor,
   getLovelace,
-} from 'custom-card-helpers';
+} from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types
 
 import './editor';
 
-import { BoilerplateCardConfig } from './types';
+import type { BoilerplateCardConfig } from './types';
 import { actionHandler } from './action-handler-directive';
 import { CARD_VERSION } from './const';
-
 import { localize } from './localize/localize';
 
 /* eslint no-console: 0 */
@@ -35,6 +34,7 @@ console.info(
   'color: white; font-weight: bold; background: dimgray',
 );
 
+// This puts your card into the UI card picker dialog
 (window as any).customCards = (window as any).customCards || [];
 (window as any).customCards.push({
   type: 'boilerplate-card',
@@ -54,9 +54,11 @@ export class BoilerplateCard extends LitElement {
   }
 
   // TODO Add any properities that should cause your element to re-render here
+  // https://lit-element.polymer-project.org/guide/properties
   @property({ attribute: false }) public hass!: HomeAssistant;
   @internalProperty() private config!: BoilerplateCardConfig;
 
+  // https://lit-element.polymer-project.org/guide/properties#accessors-custom
   public setConfig(config: BoilerplateCardConfig): void {
     // TODO Check for required fields and that they are of the proper format
     if (!config) {
@@ -73,6 +75,7 @@ export class BoilerplateCard extends LitElement {
     };
   }
 
+  // https://lit-element.polymer-project.org/guide/lifecycle#shouldupdate
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!this.config) {
       return false;
@@ -81,6 +84,7 @@ export class BoilerplateCard extends LitElement {
     return hasConfigOrEntityChanged(this, changedProps, false);
   }
 
+  // https://lit-element.polymer-project.org/guide/templates
   protected render(): TemplateResult | void {
     // TODO Check for stateObj or other necessary things and render a warning if missing
     if (this.config.show_warning) {
@@ -130,6 +134,7 @@ export class BoilerplateCard extends LitElement {
     `;
   }
 
+  // https://lit-element.polymer-project.org/guide/styles
   static get styles(): CSSResult {
     return css``;
   }
