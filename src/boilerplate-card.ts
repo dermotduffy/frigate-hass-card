@@ -1,4 +1,15 @@
-import { LitElement, html, customElement, property, CSSResult, TemplateResult, css, PropertyValues } from 'lit-element';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import {
+  LitElement,
+  html,
+  customElement,
+  property,
+  CSSResult,
+  TemplateResult,
+  css,
+  PropertyValues,
+  internalProperty,
+} from 'lit-element';
 import {
   HomeAssistant,
   hasConfigOrEntityChanged,
@@ -43,8 +54,8 @@ export class BoilerplateCard extends LitElement {
   }
 
   // TODO Add any properities that should cause your element to re-render here
-  @property() public hass!: HomeAssistant;
-  @property() private config!: BoilerplateCardConfig;
+  @property({ attribute: false }) public hass!: HomeAssistant;
+  @internalProperty() private config!: BoilerplateCardConfig;
 
   public setConfig(config: BoilerplateCardConfig): void {
     // TODO Check for required fields and that they are of the proper format

@@ -1,4 +1,15 @@
-import { LitElement, html, customElement, property, TemplateResult, CSSResult, css } from 'lit-element';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/camelcase */
+import {
+  LitElement,
+  html,
+  customElement,
+  property,
+  TemplateResult,
+  CSSResult,
+  css,
+  internalProperty,
+} from 'lit-element';
 import { HomeAssistant, fireEvent, LovelaceCardEditor, ActionConfig } from 'custom-card-helpers';
 
 import { BoilerplateCardConfig } from './types';
@@ -46,10 +57,10 @@ const options = {
 
 @customElement('boilerplate-card-editor')
 export class BoilerplateCardEditor extends LitElement implements LovelaceCardEditor {
-  @property() public hass?: HomeAssistant;
-  @property() private _config?: BoilerplateCardConfig;
-  @property() private _toggle?: boolean;
-  @property() private _helpers?: any;
+  @property({ attribute: false }) public hass?: HomeAssistant;
+  @internalProperty() private _config?: BoilerplateCardConfig;
+  @internalProperty() private _toggle?: boolean;
+  @internalProperty() private _helpers?: any;
   private _initialized = false;
 
   public setConfig(config: BoilerplateCardConfig): void {
@@ -67,59 +78,31 @@ export class BoilerplateCardEditor extends LitElement implements LovelaceCardEdi
   }
 
   get _name(): string {
-    if (this._config) {
-      return this._config.name || '';
-    }
-
-    return '';
+    return this._config?.name || '';
   }
 
   get _entity(): string {
-    if (this._config) {
-      return this._config.entity || '';
-    }
-
-    return '';
+    return this._config?.entity || '';
   }
 
   get _show_warning(): boolean {
-    if (this._config) {
-      return this._config.show_warning || false;
-    }
-
-    return false;
+    return this._config?.show_warning || false;
   }
 
   get _show_error(): boolean {
-    if (this._config) {
-      return this._config.show_error || false;
-    }
-
-    return false;
+    return this._config?.show_error || false;
   }
 
   get _tap_action(): ActionConfig {
-    if (this._config) {
-      return this._config.tap_action || { action: 'more-info' };
-    }
-
-    return { action: 'more-info' };
+    return this._config?.tap_action || { action: 'more-info' };
   }
 
   get _hold_action(): ActionConfig {
-    if (this._config) {
-      return this._config.hold_action || { action: 'none' };
-    }
-
-    return { action: 'none' };
+    return this._config?.hold_action || { action: 'none' };
   }
 
   get _double_tap_action(): ActionConfig {
-    if (this._config) {
-      return this._config.double_tap_action || { action: 'none' };
-    }
-
-    return { action: 'none' };
+    return this._config?.double_tap_action || { action: 'none' };
   }
 
   protected render(): TemplateResult | void {
