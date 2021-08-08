@@ -124,15 +124,15 @@ export class FrigateCard extends LitElement {
       }
     }
 
-    if (cardConfig.timeout_ms) {
-      if (isNaN(Number(cardConfig.timeout_ms))) {
-        throw new Error(localize('common.invalid_configuration') + ": timeout_ms");
+    if (cardConfig.view_timeout) {
+      if (isNaN(Number(cardConfig.view_timeout))) {
+        throw new Error(localize('common.invalid_configuration') + ": view_timeout");
       }
     }
 
-    if (cardConfig.default_view) {
-      if (!["live", "clips", "clip", "snapshots", "snapshot"].includes(cardConfig.default_view)) {
-        throw new Error(localize('common.invalid_configuration') + ": default_view");
+    if (cardConfig.view_default) {
+      if (!["live", "clips", "clip", "snapshots", "snapshot"].includes(cardConfig.view_default)) {
+        throw new Error(localize('common.invalid_configuration') + ": view_default");
       }
     }
 
@@ -141,15 +141,15 @@ export class FrigateCard extends LitElement {
   }
 
   protected _setViewModeToDefault(): void {
-    if (this.config.default_view == "live") {
+    if (this.config.view_default == "live") {
       this._viewMode = FrigateCardView.LIVE;
-    } else if (this.config.default_view == "clips") {
+    } else if (this.config.view_default == "clips") {
       this._viewMode = FrigateCardView.CLIPS;
-    } else if (this.config.default_view == "clip") {
+    } else if (this.config.view_default == "clip") {
         this._viewMode = FrigateCardView.CLIP;
-    } else if (this.config.default_view == "snapshots") {
+    } else if (this.config.view_default == "snapshots") {
       this._viewMode = FrigateCardView.SNAPSHOTS;
-    } else if (this.config.default_view == "snapshot") {
+    } else if (this.config.view_default == "snapshot") {
       this._viewMode = FrigateCardView.SNAPSHOT;
     }
   }
@@ -357,7 +357,7 @@ export class FrigateCard extends LitElement {
   }
 
   protected _interactionHandler(): void {
-    if (!this.config.timeout_ms) {
+    if (!this.config.view_timeout) {
       return;
     }
     if (this._interactionTimerID) {
@@ -366,7 +366,7 @@ export class FrigateCard extends LitElement {
     this._interactionTimerID = window.setTimeout(() => {
       this._interactionTimerID = null;
       this._setViewModeToDefault();
-    }, this.config.timeout_ms);
+    }, this.config.view_timeout * 1000);
   }
 
   protected render(): TemplateResult | void {
