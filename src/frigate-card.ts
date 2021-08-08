@@ -147,10 +147,12 @@ export class FrigateCard extends LitElement {
       this._viewMode = FrigateCardView.CLIPS;
     } else if (this.config.view_default == "clip") {
         this._viewMode = FrigateCardView.CLIP;
+        this._viewEvent = null;
     } else if (this.config.view_default == "snapshots") {
       this._viewMode = FrigateCardView.SNAPSHOTS;
     } else if (this.config.view_default == "snapshot") {
       this._viewMode = FrigateCardView.SNAPSHOT;
+      this._viewEvent = null;
     }
   }
 
@@ -292,7 +294,9 @@ export class FrigateCard extends LitElement {
 
   protected async _renderClipPlayer(): Promise<TemplateResult> {
     let event: FrigateEvent;
-    if (!this._viewEvent) {
+    if (this._viewEvent) {
+      event = this._viewEvent;
+    } else {
       const events = await this._getEvents({
         has_clip: true,
         limit: 1
@@ -300,16 +304,12 @@ export class FrigateCard extends LitElement {
       if (!events.length) {
         return html`
           <div class="frigate-card-exception">
-            <ha-icon
-              icon="mdi:camera-off"
-            ></ha-icon>
+            <ha-icon icon="mdi:camera-off">
+            </ha-icon>
           </div>`
       }
       event = events[0];
-    } else {
-      event = this._viewEvent;
     }
-
     const url = `${this.config.frigate_url}/clips/` +
         `${event.camera}-${event.id}.mp4`;
     return html`
@@ -318,12 +318,25 @@ export class FrigateCard extends LitElement {
       </video>`
   }
 
-  protected _renderSnapshotViewer(): TemplateResult {
-    if (!this._viewEvent) {
-      return html``
+  protected async _renderSnapshotViewer(): Promise<TemplateResult> {
+    let event: FrigateEvent;
+    if (this._viewEvent) {
+      event = this._viewEvent;
+    } else {
+      const events = await this._getEvents({
+        has_snapshot: true,
+        limit: 1
+      });
+      if (!events.length) {
+        return html`
+          <div class="frigate-card-exception">
+            <ha-icon icon="mdi:filmstrip-off">
+            </ha-icon>
+          </div>`
+      }
+      event = events[0];
     }
-    const url = `${this.config.frigate_url}/clips/` +
-        `${this._viewEvent.camera}-${this._viewEvent.id}.jpg`;
+    const url = `${this.config.frigate_url}/clips/${event.camera}-${event.id}.jpg`;
     return html`<img class="frigate-card-viewer" src="${url}">`
   }
 
@@ -400,7 +413,9 @@ export class FrigateCard extends LitElement {
           </div>` : ``
         }
         ${this._viewMode == FrigateCardView.SNAPSHOT ?
-          this._renderSnapshotViewer() : ``
+          html`<div class="frigate-card-viewer">
+            ${until(this._renderSnapshotViewer(), this._renderProgressIndicator())}
+          </div>` : ``
         }
         ${this._renderStatusBar()}
         ${this._renderLiveViewer()}
