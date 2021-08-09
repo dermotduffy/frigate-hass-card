@@ -3,8 +3,6 @@
 
 // TODO Does each event contain thumbnail?
 
-// TODO comments per method.
-
 // TODO Check for HA state presence and validity before using it, otherwise warn.
 
 // TODO Add material tooltips
@@ -64,8 +62,11 @@ enum FrigateCardView {
   SNAPSHOTS,  // Show the snapshots gallery.
 }
 
+// Main FrigateCard class.
 @customElement('frigate-card')
 export class FrigateCard extends LitElement {
+
+  // Constructor for FrigateCard.
   constructor() {
     super();
     this._viewMode = FrigateCardView.LIVE;
@@ -73,10 +74,12 @@ export class FrigateCard extends LitElement {
     this._interactionTimerID = null;
   }
 
+  // Get the configuration element.
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
     return document.createElement('frigate-card-editor');
   }
 
+  // Get a stub basic config.
   public static getStubConfig(): Record<string, string> {
     return {};
   }
@@ -95,12 +98,13 @@ export class FrigateCard extends LitElement {
 
   protected _interactionTimerID: number | null;
 
+  // Set the object configuration.
   public setConfig(inputConfig: FrigateCardConfig): void {
     if (!inputConfig) {
       throw new Error(localize('common.invalid_configuration:'));
     }
-    // inputConfig is not extensible, need to make a copy to allow
-    // modifications.
+    // inputConfig is not "extensible" (i.e. preventExtensions() has been
+    // called on it), need to make a copy to allow modifications.
     const cardConfig = Object.assign({
       name: 'Frigate'
     }, inputConfig);
@@ -137,7 +141,8 @@ export class FrigateCard extends LitElement {
     this.config = cardConfig;
     this._setViewModeToDefault();
   }
-
+  
+  // Set the view mode to the configured default.
   protected _setViewModeToDefault(): void {
     if (this.config.view_default == "live") {
       this._viewMode = FrigateCardView.LIVE;
@@ -164,6 +169,7 @@ export class FrigateCard extends LitElement {
   // this.renderRoot.appendChild(div);
   // ==
 
+  // Determine whether the card should be updated.
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!this.config || !this.hass) {
       return false;
@@ -194,6 +200,7 @@ export class FrigateCard extends LitElement {
     return true;
   }
 
+  // Get FrigateEvents from the Frigate server API.
   protected async _getEvents({
     has_clip = false,
     has_snapshot = false,
@@ -223,6 +230,7 @@ export class FrigateCard extends LitElement {
     }
   }
 
+  // Render Frigate events into a card gallery.
   protected async _renderEvents() : Promise<TemplateResult> {
     const want_clips = this._viewMode == FrigateCardView.CLIPS;
 
@@ -259,6 +267,7 @@ export class FrigateCard extends LitElement {
       </ul>`;
   }
 
+  // Render a progress spinner while content loads.
   protected _renderProgressIndicator(): TemplateResult {
     return html`
       <div class="frigate-card-exception">
@@ -269,6 +278,7 @@ export class FrigateCard extends LitElement {
       </div>`
   }
 
+  // Stop/Play video controls.
   protected _controlVideos({
       stop,
       control_live = false,
@@ -314,6 +324,7 @@ export class FrigateCard extends LitElement {
     }
   }
 
+  // Render the main navbar (live, clips, snapshots).
   protected _renderNavigationBar(): TemplateResult {
     return html`
       <div class="frigate-card-navbar" >
@@ -345,6 +356,7 @@ export class FrigateCard extends LitElement {
       </div>`
   }
 
+  // Render the player for a saved clip.
   protected async _renderClipPlayer(): Promise<TemplateResult> {
     let event: FrigateEvent;
     if (this._viewEvent) {
@@ -371,6 +383,7 @@ export class FrigateCard extends LitElement {
       </video>`
   }
 
+  // Render a snapshot.
   protected async _renderSnapshotViewer(): Promise<TemplateResult> {
     let event: FrigateEvent;
     if (this._viewEvent) {
@@ -393,6 +406,7 @@ export class FrigateCard extends LitElement {
     return html`<img class="frigate-card-viewer" src="${url}">`
   }
 
+  // Render the status bar (motion icon).
   protected _renderStatusBar(): TemplateResult {
     if (!this.config.motion_entity || !(this.config.motion_entity in this.hass.states)) {
       return html``;
@@ -410,6 +424,9 @@ export class FrigateCard extends LitElement {
       </div>`
     }
 
+  // Render the live viewer.
+  // Note: The live viewer is the main element used to size the overall card. It
+  // is always rendered (but sometimes hidden).
   protected _renderLiveViewer(): TemplateResult {
     return html`
       <ha-camera-stream
@@ -423,6 +440,7 @@ export class FrigateCard extends LitElement {
       </ha-camera-stream>`;
   }
 
+  // Record interactions with the card.
   protected _interactionHandler(): void {
     if (!this.config.view_timeout) {
       return;
@@ -436,6 +454,7 @@ export class FrigateCard extends LitElement {
     }, this.config.view_timeout * 1000);
   }
 
+  // Render the call (master render method).
   protected render(): TemplateResult | void {
     if (this.config.show_warning) {
       return this._showWarning(localize('common.show_warning'));
@@ -443,8 +462,6 @@ export class FrigateCard extends LitElement {
     if (this.config.show_error) {
       return this._showError(localize('common.show_error'));
     }
-
-    // TODO: Add latest snapshot fetch functionality.
     return html`
       <div 
         class="frigate-card-container"
@@ -482,12 +499,14 @@ export class FrigateCard extends LitElement {
   //   }
   // }
 
+  // Show a warning card.
   private _showWarning(warning: string): TemplateResult {
     return html`
       <hui-warning> ${warning} </hui-warning>
         `;
   }
 
+  // Show an error card.
   private _showError(error: string): TemplateResult {
     const errorCard = document.createElement('hui-error-card');
     errorCard.setConfig({
@@ -501,11 +520,13 @@ export class FrigateCard extends LitElement {
     `;
   }
 
+  // Get the CSS styles. CSS is compiled from frigate-card.scss, so this is
+  // safe to be piped through `unsafeCSS`.
   static get styles(): CSSResult {
-    // CSS is compiled from frigate-card.scss, so this is safe.
     return unsafeCSS(style);
   }
 
+  // Get the Lovelace card size.
   static getCardSize(): number {
     return 5;
   }
