@@ -44,3 +44,9 @@ export interface GetEventsParameters {
   has_snapshot?: boolean;
   limit?: number;
 }
+
+export interface ControlVideosParameters {
+  stop: boolean;
+  control_live?: boolean;
+  control_clip?: boolean;
+}

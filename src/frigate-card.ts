@@ -5,8 +5,6 @@
 
 // TODO comments per method.
 
-// TODO: Stop the live view video when I hide it.
-
 // TODO Check for HA state presence and validity before using it, otherwise warn.
 
 // TODO Add material tooltips
@@ -38,7 +36,7 @@ import './editor';
 
 import style from './frigate-card.scss'
 
-import type { FrigateCardConfig, FrigateEvent, GetEventsParameters } from './types';
+import type { FrigateCardConfig, FrigateEvent, GetEventsParameters, ControlVideosParameters } from './types';
 import { actionHandler } from './action-handler-directive';
 import { CARD_VERSION } from './const';
 import { localize } from './localize/localize';
@@ -120,7 +118,7 @@ export class FrigateCard extends LitElement {
       if (cardConfig.camera_entity.includes(".")) {
         cardConfig.frigate_camera_name = cardConfig.camera_entity.split('.', 2)[1]
       } else {
-        throw new Error(localize('common.invalid_configuration_missing') + ": camera");
+        throw new Error(localize('common.invalid_configuration_missing') + ": camera_entity");
       }
     }
 
@@ -271,23 +269,78 @@ export class FrigateCard extends LitElement {
       </div>`
   }
 
+  protected _controlVideos({
+      stop,
+      control_live = false,
+      control_clip = false}: ControlVideosParameters): void {
+    const controlVideo = (stop: boolean, is_live: boolean, video: HTMLVideoElement) => {
+      if (video) {
+        if (stop) {
+          video.pause();
+          video.currentTime = 0;
+        } else {
+          if (is_live) {
+            // If it's a live view, 'fast-forward' to most recent content.
+            const duration = video.duration;
+            video.currentTime = duration;
+          }
+          video.play();
+        }
+      }
+    }
+    if (!this.shadowRoot) {
+      return;
+    }
+    if (control_clip) {
+      controlVideo(
+        stop,
+        false,
+        this.shadowRoot?.querySelector(
+          `#frigate-card-clip-player`) as HTMLVideoElement);
+    }
+    if (control_live) {
+      // Don't have direct access to the live video player as it is buried in
+      // multiple components/shadow-roots, so need to navigate the path to get to <video>.
+      const ha_camera_stream = this.shadowRoot?.querySelector(`#frigate-card-live-player`);
+      if (ha_camera_stream && ha_camera_stream?.shadowRoot) {
+        const ha_hls_player = ha_camera_stream.shadowRoot.querySelector(`ha-hls-player`);
+        if (ha_hls_player && ha_hls_player?.shadowRoot) {
+          controlVideo(
+            stop,
+            true,
+            ha_hls_player.shadowRoot.querySelector(`video`) as HTMLVideoElement);
+        }
+      }
+    }
+  }
+
   protected _renderNavigationBar(): TemplateResult {
     return html`
       <div class="frigate-card-navbar" >
         <ha-icon-button
           class="button"
           icon="mdi:cctv"
-          @click=${() => this._viewMode = FrigateCardView.LIVE}
+          @click=${() => {
+            this._controlVideos({stop: true, control_clip: true});
+            this._controlVideos({stop: false, control_live: true});
+            this._viewMode = FrigateCardView.LIVE
+          }}
         ></ha-icon-button>
         <ha-icon-button
           class="button"
           icon = "mdi:filmstrip"
-          @click=${() => this._viewMode = FrigateCardView.CLIPS}
+          @click=${() => {
+            this._controlVideos({stop: true, control_live: true});
+            this._viewMode = FrigateCardView.CLIPS
+          }}
         ></ha-icon-button>
         <ha-icon-button
           class="button"
           icon = "mdi:camera"
-          @click=${() => this._viewMode = FrigateCardView.SNAPSHOTS}
+          @click=${() => {
+            this._controlVideos({stop: true, control_clip: true, control_live: true});
+            this._viewMode = FrigateCardView.SNAPSHOTS
+          }}
         ></ha-icon-button>
       </div>`
   }
@@ -313,7 +366,7 @@ export class FrigateCard extends LitElement {
     const url = `${this.config.frigate_url}/clips/` +
         `${event.camera}-${event.id}.mp4`;
     return html`
-      <video class="frigate-card-viewer" autoplay controls>
+      <video id="frigate-card-clip-player" class="frigate-card-viewer" autoplay controls>
         <source src="${url}" type="video/mp4">
       </video>`
   }
@@ -360,6 +413,7 @@ export class FrigateCard extends LitElement {
   protected _renderLiveViewer(): TemplateResult {
     return html`
       <ha-camera-stream
+        id="frigate-card-live-player"
         .hass=${this.hass}
         .stateObj=${this.hass.states[this.config.camera_entity]}
         .controls=${true}
