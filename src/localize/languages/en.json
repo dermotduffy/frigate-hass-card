@@ -2,7 +2,6 @@
   "common": {
     "version": "Version",
     "invalid_configuration": "Invalid configuration",
-    "invalid_configuration_missing": "Missing parameter in configuration",
     "show_warning": "Show Warning",
     "show_error": "Show Error"
   }

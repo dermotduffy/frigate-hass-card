@@ -30,7 +30,7 @@ import './editor';
 
 import style from './frigate-card.scss'
 
-import { frigateGetEventsResponseSchema } from './types';
+import { frigateCardConfigSchema, frigateGetEventsResponseSchema } from './types';
 import type { FrigateCardConfig, FrigateEvent, FrigateGetEventsResponse, GetEventsParameters, ControlVideosParameters } from './types';
 import { actionHandler } from './action-handler-directive';
 import { CARD_VERSION } from './const';
@@ -100,42 +100,29 @@ export class FrigateCard extends LitElement {
     if (!inputConfig) {
       throw new Error(localize('common.invalid_configuration:'));
     }
-    // inputConfig is not "extensible" (i.e. preventExtensions() has been
-    // called on it), need to make a copy to allow modifications.
-    const cardConfig = Object.assign({
-      name: 'Frigate'
-    }, inputConfig);
 
-    if (cardConfig.test_gui) {
+    const parseResult = frigateCardConfigSchema.safeParse(inputConfig);
+    if (!parseResult.success) {
+      const errors = parseResult.error.format()
+      const keys = Object.keys(errors).filter(v => !v.startsWith("_"));
+      throw new Error(localize('common.invalid_configuration') + ": " + keys.join(", "));
+    }
+    const config = parseResult.data;
+
+    if (config.test_gui) {
       getLovelace().setEditMode(true);
     }
 
-    if (!cardConfig.frigate_url) {
-      throw new Error(localize('common.invalid_configuration_missing') + ": frigate_url");
-    }
-
-    if (!cardConfig.frigate_camera_name) {
+    if (!config.frigate_camera_name) {
       // No camera name specified, so just assume it's the same as the entity name.
-      if (cardConfig.camera_entity.includes(".")) {
-        cardConfig.frigate_camera_name = cardConfig.camera_entity.split('.', 2)[1]
+      if (config.camera_entity.includes(".")) {
+        config.frigate_camera_name = config.camera_entity.split('.', 2)[1]
       } else {
-        throw new Error(localize('common.invalid_configuration_missing') + ": camera_entity");
+        throw new Error(localize('common.invalid_configuration') + ": camera_entity");
       }
     }
 
-    if (cardConfig.view_timeout) {
-      if (isNaN(Number(cardConfig.view_timeout))) {
-        throw new Error(localize('common.invalid_configuration') + ": view_timeout");
-      }
-    }
-
-    if (cardConfig.view_default) {
-      if (!["live", "clips", "clip", "snapshots", "snapshot"].includes(cardConfig.view_default)) {
-        throw new Error(localize('common.invalid_configuration') + ": view_default");
-      }
-    }
-
-    this.config = cardConfig;
+    this.config = config;
     this._setViewModeToDefault();
   }
   

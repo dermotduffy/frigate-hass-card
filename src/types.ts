@@ -1,5 +1,6 @@
 import { ActionConfig, LovelaceCard, LovelaceCardConfig, LovelaceCardEditor } from 'custom-card-helpers';
 import { z } from "zod";
+
 declare global {
   interface HTMLElementTagNameMap {
     'frigate-card-editor': LovelaceCardEditor;
@@ -10,24 +11,22 @@ declare global {
 /**
  * Internal types.
  */
-export interface FrigateCardConfig extends LovelaceCardConfig {
-  type: string;
-  name?: string;
 
-  camera_entity: string;
-  motion_entity: string | null;
-  frigate_url: string;
-  frigate_camera_name?: string | null;
-  default_view: string | null;
-  timeout_ms?: number | null;
+export const frigateCardConfigSchema = z.object({
+  camera_entity: z.string(),
+  motion_entity: z.string().optional(),
+  frigate_url: z.string().url(),
+  frigate_camera_name: z.string().optional(),
+  view_default: z.enum(["live", "clips", "clip", "snapshots", "snapshot"]).optional().default("live"),
+  view_timeout: z.number().optional(),
+  label: z.string().optional(),
 
-  show_warning?: boolean;
-  show_error?: boolean;
-  test_gui?: boolean;
-  tap_action?: ActionConfig;
-  hold_action?: ActionConfig;
-  double_tap_action?: ActionConfig;
-}
+  show_warning: z.boolean().optional(),
+  show_error: z.boolean().optional(),
+  test_gui: z.boolean().optional(),
+})
+export type FrigateCardConfig = z.infer<typeof frigateCardConfigSchema>;
+
 
 export interface GetEventsParameters {
   has_clip?: boolean;
