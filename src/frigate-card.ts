@@ -2,6 +2,8 @@
 // TODO Action handlers.
 // TODO Make editor work.
 // TODO Try nav popout menu.
+// TODO Explore webrtc support.
+// TODO Add documentation & screenshots.
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
