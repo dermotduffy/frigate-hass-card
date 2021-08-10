@@ -4,8 +4,6 @@
 
 // TODO Action handlers.
 
-// TODO _getEvents may throw errors, catch them when called.
-
 // TODO Can I use Zod for FrigateCardConfig validation?
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -34,7 +32,7 @@ import './editor';
 
 import style from './frigate-card.scss'
 
-import { frigateEventSchema, frigateGetEventsResponseSchema } from './types';
+import { frigateGetEventsResponseSchema } from './types';
 import type { FrigateCardConfig, FrigateEvent, FrigateGetEventsResponse, GetEventsParameters, ControlVideosParameters } from './types';
 import { actionHandler } from './action-handler-directive';
 import { CARD_VERSION } from './const';
@@ -228,35 +226,51 @@ export class FrigateCard extends LitElement {
       try {
         raw_json = await response.json();
       } catch(e) {
+        console.warn(e);
         throw new Error(`Could not JSON decode Frigate API response: ${e}`);
       }
       try {
         return frigateGetEventsResponseSchema.parse(raw_json);
       } catch(e) {
+        console.warn(e);
         throw new Error(`Frigate events were malformed: ${e}`);
       }
     } else {
-      // TODO: Catch when json decoding fails.
-      throw new Error(`Frigate API request failed with status: ${response.status}`);
+      const error_message = `Frigate API request failed with status: ${response.status}`;
+      console.warn(error_message);
+      throw new Error(error_message);
     }
+  }
+
+  protected _renderAttentionIcon(icon: string): TemplateResult {
+    return html`
+      <div class="frigate-card-attention">
+        <ha-icon icon="${icon}">
+        </ha-icon>
+      </div>`;
+  }
+
+  // Render an embedded error situation.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected _renderError(_error: string) : TemplateResult {
+    return this._renderAttentionIcon("mdi:alert-circle");
   }
 
   // Render Frigate events into a card gallery.
   protected async _renderEvents() : Promise<TemplateResult> {
     const want_clips = this._viewMode == FrigateCardView.CLIPS;
-
-    const events = await this._getEvents({
-      has_clip: want_clips,
-      has_snapshot: !want_clips,
-    });
+    let events;
+    try {
+      events = await this._getEvents({
+        has_clip: want_clips,
+        has_snapshot: !want_clips,
+      });
+    } catch (e) {
+      return this._renderError(e);
+    }
 
     if (!events.length) {
-      return html`
-        <div class="frigate-card-exception">
-          <ha-icon
-            icon="${want_clips ? "mdi:filmstrip-off" : "mdi:camera-off"}"
-          ></ha-icon>
-        </div>`
+      return this._renderAttentionIcon(want_clips ? "mdi:filmstrip-off" : "mdi:camera-off");
     }
 
     return html`
@@ -281,7 +295,7 @@ export class FrigateCard extends LitElement {
   // Render a progress spinner while content loads.
   protected _renderProgressIndicator(): TemplateResult {
     return html`
-      <div class="frigate-card-exception">
+      <div class="frigate-card-attention">
         <ha-circular-progress
           active="true"
           size="large"
@@ -369,20 +383,20 @@ export class FrigateCard extends LitElement {
 
   // Render the player for a saved clip.
   protected async _renderClipPlayer(): Promise<TemplateResult> {
-    let event: FrigateEvent;
+    let event: FrigateEvent, events: FrigateGetEventsResponse;
     if (this._viewEvent) {
       event = this._viewEvent;
     } else {
-      const events = await this._getEvents({
-        has_clip: true,
-        limit: 1
-      });
+      try {
+        events = await this._getEvents({
+          has_clip: true,
+          limit: 1
+        });
+      } catch (e) {
+        return this._renderError(e);
+      }
       if (!events.length) {
-        return html`
-          <div class="frigate-card-exception">
-            <ha-icon icon="mdi:camera-off">
-            </ha-icon>
-          </div>`
+        return this._renderAttentionIcon("mdi:camera-off");
       }
       event = events[0];
     }
@@ -396,20 +410,20 @@ export class FrigateCard extends LitElement {
 
   // Render a snapshot.
   protected async _renderSnapshotViewer(): Promise<TemplateResult> {
-    let event: FrigateEvent;
+    let event: FrigateEvent, events: FrigateGetEventsResponse;
     if (this._viewEvent) {
       event = this._viewEvent;
     } else {
-      const events = await this._getEvents({
-        has_snapshot: true,
-        limit: 1
-      });
+      try {
+        events = await this._getEvents({
+          has_snapshot: true,
+          limit: 1
+        });
+      } catch (e) {
+        return this._renderError(e);
+      }
       if (!events.length) {
-        return html`
-          <div class="frigate-card-exception">
-            <ha-icon icon="mdi:filmstrip-off">
-            </ha-icon>
-          </div>`
+        return this._renderAttentionIcon("mdi:filmstrip-off");
       }
       event = events[0];
     }
