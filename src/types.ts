@@ -21,6 +21,8 @@ export const frigateCardConfigSchema = z.object({
   view_timeout: z.number().optional(),
   label: z.string().optional(),
 
+  // Stock lovelace card config.
+  type: z.string(),
   show_warning: z.boolean().optional(),
   show_error: z.boolean().optional(),
   test_gui: z.boolean().optional(),

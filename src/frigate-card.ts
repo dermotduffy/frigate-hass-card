@@ -1,6 +1,7 @@
 // TODO Add material tooltips
-
 // TODO Action handlers.
+// TODO Make editor work.
+// TODO Try nav popout menu.
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {

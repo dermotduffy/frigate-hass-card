@@ -77,11 +77,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   get _name(): string {
-    return this._config?.name || '';
+    return "Frigate";
   }
 
-  get _entity(): string {
-    return this._config?.entity || '';
+  get _camera_entity(): string {
+    return this._config?.camera_entity || '';
   }
 
   get _show_warning(): boolean {
@@ -90,18 +90,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
   get _show_error(): boolean {
     return this._config?.show_error || false;
-  }
-
-  get _tap_action(): ActionConfig {
-    return this._config?.tap_action || { action: 'more-info' };
-  }
-
-  get _hold_action(): ActionConfig {
-    return this._config?.hold_action || { action: 'none' };
-  }
-
-  get _double_tap_action(): ActionConfig {
-    return this._config?.double_tap_action || { action: 'none' };
   }
 
   protected render(): TemplateResult | void {
@@ -132,7 +120,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   @value-changed=${this._valueChanged}
                   .configValue=${'entity'}
                 >
-                  <paper-listbox slot="dropdown-content" .selected=${entities.indexOf(this._entity)}>
+                  <paper-listbox slot="dropdown-content" .selected=${entities.indexOf(this._camera_entity)}>
                     ${entities.map(entity => {
                       return html`
                         <paper-item>${entity}</paper-item>
