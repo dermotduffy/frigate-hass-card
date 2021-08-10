@@ -1,5 +1,3 @@
-// TODO Check for HA state presence and validity before using it, otherwise warn.
-
 // TODO Add material tooltips
 
 // TODO Action handlers.
@@ -188,10 +186,13 @@ export class FrigateCard extends LitElement {
     const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
   
     if (oldHass) {
-      if (oldHass.states[cameraEntity] !== this.hass.states[cameraEntity]) {
+      if (cameraEntity in this.hass
+          && oldHass.states[cameraEntity] !== this.hass.states[cameraEntity]) {
         return true;
       }
-      if (motionEntity && oldHass.states[motionEntity] !== this.hass.states[motionEntity]) {
+      if (motionEntity
+          && motionEntity in this.hass
+          && oldHass.states[motionEntity] !== this.hass.states[motionEntity]) {
         return true;
       }
       return false;
@@ -453,6 +454,9 @@ export class FrigateCard extends LitElement {
   // Note: The live viewer is the main element used to size the overall card. It
   // is always rendered (but sometimes hidden).
   protected _renderLiveViewer(): TemplateResult {
+    if (!(this.config.camera_entity in this.hass.states)) {
+      return this._renderError("mdi:camera-off")
+    }
     return html`
       <ha-camera-stream
         id="frigate-card-live-player"
