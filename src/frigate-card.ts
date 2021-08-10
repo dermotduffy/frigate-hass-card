@@ -2,8 +2,6 @@
 
 // TODO Action handlers.
 
-// TODO Can I use Zod for FrigateCardConfig validation?
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   LitElement,
