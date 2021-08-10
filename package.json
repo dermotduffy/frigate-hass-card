@@ -18,7 +18,8 @@
     "custom-card-helpers": "^1.7.1",
     "home-assistant-js-websocket": "^5.11.1",
     "lit-element": "^2.5.1",
-    "lit-html": "^1.4.1"
+    "lit-html": "^1.4.1",
+    "zod": "^3.7.1"
   },
   "devDependencies": {
     "@babel/core": "^7.15.0",

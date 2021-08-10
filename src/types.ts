@@ -1,4 +1,5 @@
 import { ActionConfig, LovelaceCard, LovelaceCardConfig, LovelaceCardEditor } from 'custom-card-helpers';
+import { z } from "zod";
 declare global {
   interface HTMLElementTagNameMap {
     'frigate-card-editor': LovelaceCardEditor;
@@ -6,6 +7,9 @@ declare global {
   }
 }
 
+/**
+ * Internal types.
+ */
 export interface FrigateCardConfig extends LovelaceCardConfig {
   type: string;
   name?: string;
@@ -25,20 +29,6 @@ export interface FrigateCardConfig extends LovelaceCardConfig {
   double_tap_action?: ActionConfig;
 }
 
-export interface FrigateEvent {
-  camera: string;
-  end_time: number;
-  false_positive: boolean;
-  has_clip: boolean;
-  has_snapshot: boolean;
-  id: string;
-  label: string;
-  start_time: number;
-  thumbnail: string;
-  top_score: number;
-  zones: string[];
-}
-
 export interface GetEventsParameters {
   has_clip?: boolean;
   has_snapshot?: boolean;
@@ -50,3 +40,25 @@ export interface ControlVideosParameters {
   control_live?: boolean;
   control_clip?: boolean;
 }
+
+/**
+ * Frigate API types.
+ */
+
+export const frigateEventSchema = z.object({
+  camera: z.string(),
+  end_time: z.number(),
+  false_positive: z.boolean(),
+  has_clip: z.boolean(),
+  has_snapshot: z.boolean(),
+  id: z.string(),
+  label: z.string(),
+  start_time: z.number(),
+  thumbnail: z.string(),
+  top_score: z.number(),
+  zones: z.string().array(),
+})
+export type FrigateEvent = z.infer<typeof frigateEventSchema>;
+
+export const frigateGetEventsResponseSchema = z.array(frigateEventSchema);
+export type FrigateGetEventsResponse = z.infer<typeof frigateGetEventsResponseSchema>;

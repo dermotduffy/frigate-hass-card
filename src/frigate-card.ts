@@ -1,12 +1,12 @@
-// TODO: Can I use ajv (https://ajv.js.org/guide/typescript.html) to verify
-// event return matches the TS interface?
-
-// TODO Does each event contain thumbnail?
-
 // TODO Check for HA state presence and validity before using it, otherwise warn.
 
 // TODO Add material tooltips
 
+// TODO Action handlers.
+
+// TODO _getEvents may throw errors, catch them when called.
+
+// TODO Can I use Zod for FrigateCardConfig validation?
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
@@ -34,7 +34,8 @@ import './editor';
 
 import style from './frigate-card.scss'
 
-import type { FrigateCardConfig, FrigateEvent, GetEventsParameters, ControlVideosParameters } from './types';
+import { frigateEventSchema, frigateGetEventsResponseSchema } from './types';
+import type { FrigateCardConfig, FrigateEvent, FrigateGetEventsResponse, GetEventsParameters, ControlVideosParameters } from './types';
 import { actionHandler } from './action-handler-directive';
 import { CARD_VERSION } from './const';
 import { localize } from './localize/localize';
@@ -205,7 +206,7 @@ export class FrigateCard extends LitElement {
     has_clip = false,
     has_snapshot = false,
     limit = 100,
-  }: GetEventsParameters): Promise<FrigateEvent[]> {
+  }: GetEventsParameters): Promise<FrigateGetEventsResponse> {
     let url = `${this.config.frigate_url}/api/events?camera=${this.config.frigate_camera_name}`;
     if (has_clip) {
       url += `&has_clip=1`
@@ -223,7 +224,17 @@ export class FrigateCard extends LitElement {
 
     const response = await fetch(url);
     if (response.ok) {
-      return await response.json();
+      let raw_json;
+      try {
+        raw_json = await response.json();
+      } catch(e) {
+        throw new Error(`Could not JSON decode Frigate API response: ${e}`);
+      }
+      try {
+        return frigateGetEventsResponseSchema.parse(raw_json);
+      } catch(e) {
+        throw new Error(`Frigate events were malformed: ${e}`);
+      }
     } else {
       // TODO: Catch when json decoding fails.
       throw new Error(`Frigate API request failed with status: ${response.status}`);
