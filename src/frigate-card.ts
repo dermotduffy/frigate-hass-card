@@ -1,4 +1,3 @@
-// TODO Action handlers.
 // TODO Make editor work.
 // TODO Explore webrtc support.
 // TODO Add documentation & screenshots.
@@ -19,9 +18,7 @@ import {
 import { until } from 'lit-html/directives/until.js';
 import {
   HomeAssistant,
-  ActionHandlerEvent,
   fireEvent,
-  handleAction,
   LovelaceCardEditor,
   getLovelace,
 } from 'custom-card-helpers';
@@ -32,7 +29,6 @@ import style from './frigate-card.scss'
 
 import { frigateCardConfigSchema, frigateGetEventsResponseSchema } from './types';
 import type { FrigateCardConfig, FrigateEvent, FrigateGetEventsResponse, GetEventsParameters, ControlVideosParameters } from './types';
-import { actionHandler } from './action-handler-directive';
 import { CARD_VERSION } from './const';
 import { localize } from './localize/localize';
 
