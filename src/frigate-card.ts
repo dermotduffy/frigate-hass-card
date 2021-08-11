@@ -20,6 +20,7 @@ import { until } from 'lit-html/directives/until.js';
 import {
   HomeAssistant,
   ActionHandlerEvent,
+  fireEvent,
   handleAction,
   LovelaceCardEditor,
   getLovelace,
@@ -423,11 +424,12 @@ export class FrigateCard extends LitElement {
 
   // Render the status bar (motion icon).
   protected _renderStatusBar(): TemplateResult {
-    if (!this.config.motion_entity || !(this.config.motion_entity in this.hass.states)) {
+    const motionEntity = this.config.motion_entity
+    if (!motionEntity || !(motionEntity in this.hass.states)) {
       return html``;
     }
-    const icon = this.hass.states[this.config.motion_entity].state == "on" ?
-        "mdi:motion-sensor" : "mdi:walk"
+    const icon = this.hass.states[motionEntity].state == "on" ?
+        "mdi:motion-sensor" : "mdi:walk";
     return html`
       <div class="frigate-card-statusbar ${
         this._viewMode == FrigateCardView.LIVE ? 'visible' : 'invisible'}
@@ -436,9 +438,12 @@ export class FrigateCard extends LitElement {
           data-toggle="tooltip" title="View motion sensor"
           class="button"
           icon="${icon}"
+          @click=${() => {
+            fireEvent(this, "hass-more-info", {entityId: motionEntity});
+          }}
         ></ha-icon-button>
       </div>`
-    }
+  }
 
   // Render the live viewer.
   // Note: The live viewer is the main element used to size the overall card. It
@@ -508,12 +513,6 @@ export class FrigateCard extends LitElement {
         ${this._renderLiveViewer()}
       </ha-card>`;
   }
-
-  // private _handleAction(ev: ActionHandlerEvent): void {
-  //   if (this.hass && this.config && ev.detail.action) {
-  //     handleAction(this, this.hass, this.config, ev.detail.action);
-  //   }
-  // }
 
   // Show a warning card.
   private _showWarning(warning: string): TemplateResult {
