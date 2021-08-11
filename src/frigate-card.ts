@@ -1,7 +1,5 @@
-// TODO Add material tooltips
 // TODO Action handlers.
 // TODO Make editor work.
-// TODO Try nav popout menu.
 // TODO Explore webrtc support.
 // TODO Add documentation & screenshots.
 
@@ -345,6 +343,7 @@ export class FrigateCard extends LitElement {
         <ha-icon-button
           class="button"
           icon="mdi:cctv"
+          data-toggle="tooltip" title="View live"
           @click=${() => {
             this._controlVideos({stop: true, control_clip: true});
             this._controlVideos({stop: false, control_live: true});
@@ -354,6 +353,7 @@ export class FrigateCard extends LitElement {
         <ha-icon-button
           class="button"
           icon = "mdi:filmstrip"
+          data-toggle="tooltip" title="View clips"
           @click=${() => {
             this._controlVideos({stop: true, control_live: true});
             this._viewMode = FrigateCardView.CLIPS
@@ -362,6 +362,7 @@ export class FrigateCard extends LitElement {
         <ha-icon-button
           class="button"
           icon = "mdi:camera"
+          data-toggle="tooltip" title="View snapshots"
           @click=${() => {
             this._controlVideos({stop: true, control_clip: true, control_live: true});
             this._viewMode = FrigateCardView.SNAPSHOTS
@@ -432,6 +433,7 @@ export class FrigateCard extends LitElement {
         this._viewMode == FrigateCardView.LIVE ? 'visible' : 'invisible'}
       ">
         <ha-icon-button
+          data-toggle="tooltip" title="View motion sensor"
           class="button"
           icon="${icon}"
         ></ha-icon-button>
