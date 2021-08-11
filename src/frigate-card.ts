@@ -482,10 +482,7 @@ export class FrigateCard extends LitElement {
       return this._showError(localize('common.show_error'));
     }
     return html`
-      <div 
-        class="frigate-card-container"
-        @click=${this._interactionHandler}
-      >
+      <ha-card @click=${this._interactionHandler}>
         ${this._renderNavigationBar()}
         ${this._viewMode == FrigateCardView.CLIPS ?
           html`<div class="frigate-card-gallery">
@@ -509,7 +506,7 @@ export class FrigateCard extends LitElement {
         }
         ${this._renderStatusBar()}
         ${this._renderLiveViewer()}
-      </div>`;
+      </ha-card>`;
   }
 
   // private _handleAction(ev: ActionHandlerEvent): void {

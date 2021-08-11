@@ -54,11 +54,6 @@
   border-color: var(--primary-color);
 }
 
-.frigate-card-container {
-  position: relative;
-  overflow: hidden;
-}
-
 .frigate-card-navbar {
   position: absolute;
   width: 50px;
@@ -89,7 +84,6 @@ ha-icon-button.button {
 
 ha-card {
   display: flex;
-  justify-content: center;
   flex-direction: column;
   margin: auto;
   overflow: hidden;
