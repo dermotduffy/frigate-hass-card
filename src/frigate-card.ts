@@ -1,5 +1,8 @@
 // TODO Make editor work.
-// TODO Explore webrtc support.
+// TODO Add title to clips / snapshots playing/viewing
+// TODO Add tooltips for gallary clips with details of event. 
+// TODO Sometimes webrtc component shows up as not found in browser (maybe after fresh build?)
+// TODO Add gallery item to take to media browser
 // TODO Add documentation & screenshots.
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -65,6 +68,8 @@ export class FrigateCard extends LitElement {
     this._viewMode = FrigateCardView.LIVE;
     this._viewEvent = null;
     this._interactionTimerID = null;
+    this._webrtcElement = null;
+    this._hass = null;
   }
 
   // Get the configuration element.
@@ -76,9 +81,15 @@ export class FrigateCard extends LitElement {
   public static getStubConfig(): Record<string, string> {
     return {};
   }
+  set hass(hass: HomeAssistant) {
+    if (this._webrtcElement) {
+      this._webrtcElement.hass = hass;
+    }
+    this._hass = hass;
+  }
 
   @property({ attribute: false })
-  public hass!: HomeAssistant;
+  protected _hass: HomeAssistant | null;
 
   @state()
   public config!: FrigateCardConfig;
@@ -90,6 +101,7 @@ export class FrigateCard extends LitElement {
   protected _viewEvent: FrigateEvent | null;
 
   protected _interactionTimerID: number | null;
+  protected _webrtcElement: any | null;
 
   // Set the object configuration.
   public setConfig(inputConfig: FrigateCardConfig): void {
@@ -118,10 +130,23 @@ export class FrigateCard extends LitElement {
       }
     }
 
+    if (config.live_provider == "webrtc") {
+      // Create a WebRTC element (https://github.com/AlexxIT/WebRTC)
+      const webrtcElement = customElements.get('webrtc-camera');
+      if (webrtcElement) {
+        const webrtc = new webrtcElement();
+        webrtc.setConfig(config.webrtc || {});
+        webrtc.hass = this._hass;
+        this._webrtcElement = webrtc;
+      } else {
+        throw new Error(localize('common.missing_webrtc'));
+      }
+    }
+
     this.config = config;
     this._setViewModeToDefault();
   }
-  
+
   // Set the view mode to the configured default.
   protected _setViewModeToDefault(): void {
     if (this.config.view_default == "live") {
@@ -139,19 +164,9 @@ export class FrigateCard extends LitElement {
     }
   }
 
-  // == RTC experimentation ==
-  // const div = document.createElement("div");
-  // const webrtcElement = customElements.get('webrtc-camera');
-  // const webrtc = new webrtcElement();
-  // webrtc.setConfig({ "entity": "camera.landing_rtsp" });
-  // webrtc.hass = this.hass;
-  // div.appendChild(webrtc);
-  // this.renderRoot.appendChild(div);
-  // ==
-
   // Determine whether the card should be updated.
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    if (!this.config || !this.hass) {
+    if (!this.config || !this._hass) {
       return false;
     }
 
@@ -166,16 +181,16 @@ export class FrigateCard extends LitElement {
       return true;
     }
     
-    const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
+    const oldHass = changedProps.get('_hass') as HomeAssistant | undefined;
   
     if (oldHass) {
-      if (cameraEntity in this.hass
-          && oldHass.states[cameraEntity] !== this.hass.states[cameraEntity]) {
+      if (cameraEntity in this._hass
+          && oldHass.states[cameraEntity] !== this._hass.states[cameraEntity]) {
         return true;
       }
       if (motionEntity
-          && motionEntity in this.hass
-          && oldHass.states[motionEntity] !== this.hass.states[motionEntity]) {
+          && motionEntity in this._hass
+          && oldHass.states[motionEntity] !== this._hass.states[motionEntity]) {
         return true;
       }
       return false;
@@ -297,8 +312,9 @@ export class FrigateCard extends LitElement {
         if (stop) {
           video.pause();
           video.currentTime = 0;
-        } else {
-          if (is_live) {
+        } else if (is_live) {
+          // Duration on webrtc is infinity so cannot fast-forward.
+          if (!this._webrtcElement) {
             // If it's a live view, 'fast-forward' to most recent content.
             const duration = video.duration;
             video.currentTime = duration;
@@ -314,21 +330,28 @@ export class FrigateCard extends LitElement {
       controlVideo(
         stop,
         false,
-        this.shadowRoot?.querySelector(
-          `#frigate-card-clip-player`) as HTMLVideoElement);
+        this.shadowRoot?.
+            querySelector('video.frigate-card-viewer') as HTMLVideoElement);
     }
     if (control_live) {
       // Don't have direct access to the live video player as it is buried in
       // multiple components/shadow-roots, so need to navigate the path to get to <video>.
-      const ha_camera_stream = this.shadowRoot?.querySelector(`#frigate-card-live-player`);
-      if (ha_camera_stream && ha_camera_stream?.shadowRoot) {
-        const ha_hls_player = ha_camera_stream.shadowRoot.querySelector(`ha-hls-player`);
-        if (ha_hls_player && ha_hls_player?.shadowRoot) {
-          controlVideo(
-            stop,
-            true,
-            ha_hls_player.shadowRoot.querySelector(`video`) as HTMLVideoElement);
-        }
+      if (this._webrtcElement) {
+        controlVideo(
+          stop,
+          true,
+          this.shadowRoot?.
+              querySelector('webrtc-camera video') as HTMLVideoElement
+        )
+      } else {
+        controlVideo(
+          stop,
+          true,
+          this.shadowRoot?.
+              querySelector('ha-camera-stream')?.shadowRoot?.
+              querySelector('ha-hls-player')?.shadowRoot?.
+              querySelector('video') as HTMLVideoElement
+        )
       }
     }
   }
@@ -390,7 +413,7 @@ export class FrigateCard extends LitElement {
     const url = `${this.config.frigate_url}/clips/` +
         `${event.camera}-${event.id}.mp4`;
     return html`
-      <video id="frigate-card-clip-player" class="frigate-card-viewer" autoplay controls>
+      <video class="frigate-card-viewer" autoplay controls>
         <source src="${url}" type="video/mp4">
       </video>`
   }
@@ -421,14 +444,15 @@ export class FrigateCard extends LitElement {
   // Render the status bar (motion icon).
   protected _renderStatusBar(): TemplateResult {
     const motionEntity = this.config.motion_entity
-    if (!motionEntity || !(motionEntity in this.hass.states)) {
+    if (!motionEntity || !this._hass || !(motionEntity in this._hass.states)) {
       return html``;
     }
-    const icon = this.hass.states[motionEntity].state == "on" ?
+    const icon = this._hass.states[motionEntity].state == "on" ?
         "mdi:motion-sensor" : "mdi:walk";
     return html`
-      <div class="frigate-card-statusbar ${
-        this._viewMode == FrigateCardView.LIVE ? 'visible' : 'invisible'}
+      <div class="
+        ${this._webrtcElement ? 'frigate-card-statusbar-webrtc' : 'frigate-card-statusbar'}
+        ${this._viewMode == FrigateCardView.LIVE ? 'visible' : 'invisible'}
       ">
         <ha-icon-button
           data-toggle="tooltip" title="View motion sensor"
@@ -445,14 +469,21 @@ export class FrigateCard extends LitElement {
   // Note: The live viewer is the main element used to size the overall card. It
   // is always rendered (but sometimes hidden).
   protected _renderLiveViewer(): TemplateResult {
-    if (!(this.config.camera_entity in this.hass.states)) {
+    if (!this._hass || !(this.config.camera_entity in this._hass.states)) {
       return this._renderError("mdi:camera-off")
+    }
+    if (this._webrtcElement) {
+      return html`
+        <div 
+          class=${this._viewMode == FrigateCardView.LIVE ? 'visible' : 'invisible'}
+        >
+          ${this._webrtcElement}  
+        </div>`;
     }
     return html`
       <ha-camera-stream
-        id="frigate-card-live-player"
-        .hass=${this.hass}
-        .stateObj=${this.hass.states[this.config.camera_entity]}
+        .hass=${this._hass}
+        .stateObj=${this._hass.states[this.config.camera_entity]}
         .controls=${true}
         .muted=${true}
         class=${this._viewMode == FrigateCardView.LIVE ? 'visible' : 'invisible'}

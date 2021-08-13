@@ -56,6 +56,7 @@
 
 .frigate-card-navbar {
   position: absolute;
+  top: 0px;
   width: 50px;
   z-index: 1;
 }
@@ -63,6 +64,11 @@
 .frigate-card-statusbar {
   @extend .frigate-card-navbar;
   right: 3px;
+}
+
+.frigate-card-statusbar-webrtc {
+  @extend .frigate-card-navbar;
+  left: 53px;
 }
 
 ha-icon-button.button {
