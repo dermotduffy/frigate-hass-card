@@ -1,7 +1,6 @@
 // TODO Feature: Make editor work.
 // TODO Feature: Add title to clips / snapshots playing/viewing
 // TODO Bug: Clips do not auto-play on Android.
-// TODO Bug: Motion icon does not appear to update
 // TODO Bug: Sometimes webrtc component shows up as not found in browser (maybe after fresh build?)
 // TODO Last step: Add documentation & screenshots.
 
@@ -650,7 +649,7 @@ export class FrigateCard extends LitElement {
     return html`
       <ha-card @click=${this._interactionHandler}>
         <frigate-card-menu
-            .motionEntity=${this.config.motion_entity},
+            .motionEntity=${this.config.motion_entity}
             .hass=${this._hass}
             .actionCallback=${this._menuActionHandler.bind(this)}
         >
