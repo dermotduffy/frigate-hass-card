@@ -1,6 +1,5 @@
 // TODO Feature: Make editor work.
 // TODO Feature: Add title to clips / snapshots playing/viewing
-// TODO Bug: Clips do not auto-play on Android.
 // TODO Bug: Sometimes webrtc component shows up as not found in browser (maybe after fresh build?)
 // TODO Last step: Add documentation & screenshots.
 
@@ -570,7 +569,7 @@ export class FrigateCard extends LitElement {
     const url = `${this.config.frigate_url}/clips/` +
         `${event.camera}-${event.id}.mp4`;
     return html`
-      <video class="frigate-card-viewer" autoplay controls>
+      <video class="frigate-card-viewer" autoplay muted controls>
         <source src="${url}" type="video/mp4">
       </video>`
   }
