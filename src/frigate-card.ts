@@ -1,9 +1,9 @@
 // TODO Make editor work.
 // TODO Add title to clips / snapshots playing/viewing
-// TODO Add tooltips for gallary clips with details of event. 
-// TODO Sometimes webrtc component shows up as not found in browser (maybe after fresh build?)
+// TODO Try new navbar idea
 // TODO Add gallery item to take to media browser
 // TODO Add documentation & screenshots.
+// TODO Sometimes webrtc component shows up as not found in browser (maybe after fresh build?)
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
@@ -34,6 +34,13 @@ import { frigateCardConfigSchema, frigateGetEventsResponseSchema } from './types
 import type { FrigateCardConfig, FrigateEvent, FrigateGetEventsResponse, GetEventsParameters, ControlVideosParameters } from './types';
 import { CARD_VERSION } from './const';
 import { localize } from './localize/localize';
+import dayjs from 'dayjs';
+import dayjs_utc from 'dayjs/plugin/utc';
+import dayjs_timezone from 'dayjs/plugin/timezone';
+
+// Load dayjs plugins.
+dayjs.extend(dayjs_timezone);
+dayjs.extend(dayjs_utc);
 
 /* eslint no-console: 0 */
 console.info(
@@ -255,6 +262,22 @@ export class FrigateCard extends LitElement {
     return this._renderAttentionIcon("mdi:alert-circle");
   }
 
+  // Generate a human-readable title from an event.
+  // MediaBrowser title: 2021-08-12 19:20:14 [10s, Person 76%]
+  protected _getEventTitle(event: FrigateEvent) : string {
+    const date = dayjs.unix(event.end_time).tz("UTC").local();
+
+    const iso_datetime = date.format("YYYY-MM-DD HH:mm:ss");
+    const duration = Math.trunc(event.end_time > event.start_time ?
+        event.end_time - event.start_time : 0);
+    const score = Math.trunc(event.top_score*100);
+
+    // Capitalize the label.
+    const label = event.label.charAt(0).toUpperCase() + event.label.slice(1);
+
+    return `${iso_datetime} [${duration}s, ${label} ${score}%]`;
+  }
+
   // Render Frigate events into a card gallery.
   protected async _renderEvents() : Promise<TemplateResult> {
     const want_clips = this._viewMode == FrigateCardView.CLIPS;
@@ -278,6 +301,7 @@ export class FrigateCard extends LitElement {
           <li class="mdc-image-list__item">
             <div class="mdc-image-list__image-aspect-container">
               <img
+                data-toggle="tooltip" title="${this._getEventTitle(event)}"
                 class="mdc-image-list__image"
                 src="data:image/png;base64,${event.thumbnail}"
                 @click=${() => {
