@@ -1,0 +1,24 @@
+.frigate-card-menu {
+  position: absolute;
+  top: 0px;
+  z-index: 1;
+  height: 56px;
+  width: 50px;
+}
+
+.frigate-card-menu-expanded {
+  @extend .frigate-card-menu;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+ha-icon-button.button {
+  position: relative;
+  z-index: 10;
+  color: white;
+  opacity: 0.8;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  padding: 0px;
+  margin: 3px;
+}
