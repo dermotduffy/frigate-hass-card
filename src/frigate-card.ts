@@ -1,5 +1,6 @@
 // TODO Feature: Make editor work.
 // TODO Feature: Add title to clips / snapshots playing/viewing
+// TODO Quality: Single enum for view modes across enum and types and editor.
 // TODO Bug: Sometimes webrtc component shows up as not found in browser (maybe after fresh build?)
 // TODO Last step: Add documentation & screenshots.
 

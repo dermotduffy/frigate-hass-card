@@ -9,7 +9,7 @@ import {
   css,
   state,
 } from 'lit-element';
-import { HomeAssistant, fireEvent, LovelaceCardEditor, ActionConfig } from 'custom-card-helpers';
+import { HomeAssistant, fireEvent, LovelaceCardEditor } from 'custom-card-helpers';
 
 import { FrigateCardConfig } from './types';
 
@@ -20,10 +20,10 @@ const options = {
     secondary: 'Required options for this card to function',
     show: true,
   },
-  actions: {
+  optional: {
     icon: 'gesture-tap-hold',
-    name: 'Actions',
-    secondary: 'Perform actions based on tapping/clicking',
+    name: 'Optional',
+    secondary: 'Optional configuration to tune this',
     show: false,
     options: {
       tap: {
@@ -45,13 +45,7 @@ const options = {
         show: false,
       },
     },
-  },
-  appearance: {
-    icon: 'palette',
-    name: 'Appearance',
-    secondary: 'Customize the name, icon, etc',
-    show: false,
-  },
+  }
 };
 
 @customElement('frigate-card-editor')
@@ -64,7 +58,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
   public setConfig(config: FrigateCardConfig): void {
     this._config = config;
-
     this.loadCardHelpers();
   }
 
@@ -76,20 +69,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     return true;
   }
 
-  get _name(): string {
-    return "Frigate";
-  }
-
-  get _camera_entity(): string {
-    return this._config?.camera_entity || '';
-  }
-
-  get _show_warning(): boolean {
-    return this._config?.show_warning || false;
-  }
-
-  get _show_error(): boolean {
-    return this._config?.show_error || false;
+  protected _getEntities(domain: string) : string[] {
+    if (!this.hass) {
+      return [];
+    }
+    const entities = Object.keys(
+      this.hass.states).filter(eid => eid.substr(0, eid.indexOf('.')) === domain);
+    return entities.sort();
   }
 
   protected render(): TemplateResult | void {
@@ -101,7 +87,16 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     this._helpers.importMoreInfoControl('climate');
 
     // You can restrict on domain type
-    const entities = Object.keys(this.hass.states).filter(eid => eid.substr(0, eid.indexOf('.')) === 'sun');
+    const camera_entities = this._getEntities('camera');
+    const binary_sensor_entities = this._getEntities('binary_sensor');
+
+    const view_modes = {
+      "live": "Live view",
+      "clips": "Clip gallery",
+      "snapshots": "Snapshot gallery",
+      "clip": "Latest clip",
+      "snapshot": "Latest snapshot",
+    }
 
     return html`
       <div class="card-config">
@@ -116,110 +111,82 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html`
               <div class="values">
                 <paper-dropdown-menu
-                  label="Entity (Required)"
+                  label="Camera Entity (Required)"
                   @value-changed=${this._valueChanged}
-                  .configValue=${'entity'}
+                  .configValue=${'camera_entity'}
                 >
-                  <paper-listbox slot="dropdown-content" .selected=${entities.indexOf(this._camera_entity)}>
-                    ${entities.map(entity => {
+                  <paper-listbox slot="dropdown-content" .selected=${camera_entities.indexOf(this._config?.camera_entity || '')}>
+                    ${camera_entities.map(entity => {
                       return html`
                         <paper-item>${entity}</paper-item>
                       `;
                     })}
                   </paper-listbox>
                 </paper-dropdown-menu>
-              </div>
-            `
-          : ''}
-        <div class="option" @click=${this._toggleOption} .option=${'actions'}>
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.actions.icon}`}></ha-icon>
-            <div class="title">${options.actions.name}</div>
-          </div>
-          <div class="secondary">${options.actions.secondary}</div>
-        </div>
-        ${options.actions.show
-          ? html`
-              <div class="values">
-                <div class="option" @click=${this._toggleAction} .option=${'tap'}>
-                  <div class="row">
-                    <ha-icon .icon=${`mdi:${options.actions.options.tap.icon}`}></ha-icon>
-                    <div class="title">${options.actions.options.tap.name}</div>
-                  </div>
-                  <div class="secondary">${options.actions.options.tap.secondary}</div>
-                </div>
-                ${options.actions.options.tap.show
-                  ? html`
-                      <div class="values">
-                        <paper-item>Action Editors Coming Soon</paper-item>
-                      </div>
-                    `
-                  : ''}
-                <div class="option" @click=${this._toggleAction} .option=${'hold'}>
-                  <div class="row">
-                    <ha-icon .icon=${`mdi:${options.actions.options.hold.icon}`}></ha-icon>
-                    <div class="title">${options.actions.options.hold.name}</div>
-                  </div>
-                  <div class="secondary">${options.actions.options.hold.secondary}</div>
-                </div>
-                ${options.actions.options.hold.show
-                  ? html`
-                      <div class="values">
-                        <paper-item>Action Editors Coming Soon</paper-item>
-                      </div>
-                    `
-                  : ''}
-                <div class="option" @click=${this._toggleAction} .option=${'double_tap'}>
-                  <div class="row">
-                    <ha-icon .icon=${`mdi:${options.actions.options.double_tap.icon}`}></ha-icon>
-                    <div class="title">${options.actions.options.double_tap.name}</div>
-                  </div>
-                  <div class="secondary">${options.actions.options.double_tap.secondary}</div>
-                </div>
-                ${options.actions.options.double_tap.show
-                  ? html`
-                      <div class="values">
-                        <paper-item>Action Editors Coming Soon</paper-item>
-                      </div>
-                    `
-                  : ''}
-              </div>
-            `
-          : ''}
-        <div class="option" @click=${this._toggleOption} .option=${'appearance'}>
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.appearance.icon}`}></ha-icon>
-            <div class="title">${options.appearance.name}</div>
-          </div>
-          <div class="secondary">${options.appearance.secondary}</div>
-        </div>
-        ${options.appearance.show
-          ? html`
-              <div class="values">
                 <paper-input
-                  label="Name (Optional)"
-                  .value=${this._name}
-                  .configValue=${'name'}
+                  label="Frigate URL (Required)"
+                  .value=${this._config?.frigate_url || ''}
+                  .configValue=${'frigate_url'}
                   @value-changed=${this._valueChanged}
                 ></paper-input>
-                <br />
-                <ha-formfield .label=${`Toggle warning ${this._show_warning ? 'off' : 'on'}`}>
-                  <ha-switch
-                    .checked=${this._show_warning !== false}
-                    .configValue=${'show_warning'}
-                    @change=${this._valueChanged}
-                  ></ha-switch>
-                </ha-formfield>
-                <ha-formfield .label=${`Toggle error ${this._show_error ? 'off' : 'on'}`}>
-                  <ha-switch
-                    .checked=${this._show_error !== false}
-                    .configValue=${'show_error'}
-                    @change=${this._valueChanged}
-                  ></ha-switch>
-                </ha-formfield>
               </div>
             `
           : ''}
+        <div class="option" @click=${this._toggleOption} .option=${'optional'}>
+          <div class="row">
+            <ha-icon .icon=${`mdi:${options.optional.icon}`}></ha-icon>
+            <div class="title">${options.optional.name}</div>
+          </div>
+          <div class="secondary">${options.optional.secondary}</div>
+        </div>
+        ${options.optional.show
+          ? html`
+            <div class="values">
+              <paper-dropdown-menu
+                  label="Motion Entity (Optional)"
+                  @value-changed=${this._valueChanged}
+                  .configValue=${'motion_entity'}
+              >
+                <paper-listbox slot="dropdown-content" .selected=${binary_sensor_entities.indexOf(this._config?.motion_entity || '')}>
+                  ${binary_sensor_entities.map(entity => {
+                    return html`
+                      <paper-item>${entity}</paper-item>
+                    `;
+                  })}
+                </paper-listbox>
+              </paper-dropdown-menu>
+              <paper-input
+                label="Frigate camera name (Optional)"
+                .value=${this._config?.frigate_camera_name || ''}
+                .configValue=${'frigate_camera_name'}
+                @value-changed=${this._valueChanged}
+              ></paper-input>
+              <paper-dropdown-menu
+                  label="Default view (Optional)"
+                  @value-changed=${this._valueChanged}
+                  .configValue=${'view_default'}
+              >
+                <paper-listbox slot="dropdown-content" .selected=${Object.keys(view_modes).indexOf(this._config?.view_default || '')}>
+                  ${Object.keys(view_modes).map(key => {
+                    return html`
+                      <paper-item .label="${key}"
+                      >${view_modes[key]}
+                      </paper-item>
+                    `;
+                  })}
+                </paper-listbox>
+              </paper-dropdown-menu>
+              <paper-input
+                  label="View timeout (seconds)"
+                  prevent-invalid-input
+                  allowed-pattern="[0-9]"
+                  .value=${this._config?.view_timeout ? String(this._config.view_timeout) : ''}
+                  .configValue=${'view_timeout'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+            </div>`
+          : ''
+        }
       </div>
     `;
   }
@@ -233,10 +200,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
   private async loadCardHelpers(): Promise<void> {
     this._helpers = await (window as any).loadCardHelpers();
-  }
-
-  private _toggleAction(ev): void {
-    this._toggleThing(ev, options.actions.options);
   }
 
   private _toggleOption(ev): void {
