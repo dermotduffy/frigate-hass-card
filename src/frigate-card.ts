@@ -1,9 +1,9 @@
-// TODO Make editor work.
-// TODO Add title to clips / snapshots playing/viewing
-// TODO Add gallery item to take to media browser
-// TODO Add documentation & screenshots.
-// TODO Clips do not auto-play on Android.
-// TODO Sometimes webrtc component shows up as not found in browser (maybe after fresh build?)
+// TODO Feature: Make editor work.
+// TODO Feature: Add title to clips / snapshots playing/viewing
+// TODO Bug: Clips do not auto-play on Android.
+// TODO Bug: Motion icon does not appear to update
+// TODO Bug: Sometimes webrtc component shows up as not found in browser (maybe after fresh build?)
+// TODO Last step: Add documentation & screenshots.
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
@@ -28,7 +28,8 @@ import {
 
 import './editor';
 
-import style from './frigate-card.scss'
+import frigate_card_style from './frigate-card.scss'
+import frigate_card_menu_style from './frigate-card-menu.scss'
 
 import { frigateCardConfigSchema, frigateGetEventsResponseSchema } from './types';
 import type { FrigateCardConfig, FrigateEvent, FrigateGetEventsResponse, GetEventsParameters, ControlVideosParameters } from './types';
@@ -64,6 +65,142 @@ enum FrigateCardView {
   SNAPSHOT,   // Show a snapshot.
   SNAPSHOTS,  // Show the snapshots gallery.
 }
+
+type FrigateCardMenuCallback = (name: string) => any;
+
+// A menu for the Frigate card.
+@customElement('frigate-card-menu')
+export class FrigateCardMenu extends LitElement {
+  constructor() {
+    super();
+    this.expand = false;
+    this.motionEntity = null;
+    this.hass = null;
+    this.actionCallback = null;
+  }
+
+  @property({ attribute: false })
+  protected expand: boolean;
+
+  @property({ attribute: false })
+  protected motionEntity: string | null;
+
+  @property({ attribute: false })
+  protected hass: HomeAssistant | null;
+
+  @property({ attribute: false })
+  protected actionCallback: FrigateCardMenuCallback | null;
+
+  protected shouldUpdate(changedProps: PropertyValues): boolean {
+    if (!this.hass) {
+      return false;
+    }
+
+    const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
+  
+    if (oldHass && this.motionEntity) {
+      if (oldHass.states[this.motionEntity] !== this.hass.states[this.motionEntity]) {
+        return true;
+      }
+      return false;
+    }
+    return true;
+  }
+
+  // Render the Frigate menu button.
+  protected _renderFrigateButton(): TemplateResult {
+    return html`
+      <ha-icon-button
+        class="button"
+        icon="mdi:alpha-f-box"
+        data-toggle="tooltip" title="Frigate menu"
+        @click=${() => {
+          this.expand = !this.expand;
+        }}
+      ></ha-icon-button>`;
+  }
+
+  // Call the callback.
+  protected _callAction(name: string): void {
+    if (this.actionCallback) {
+      this.actionCallback(name);
+    }
+  }
+
+  // Render the menu.
+  protected render(): TemplateResult | void {
+    if (!this.expand) {
+      return html`
+        <div class="frigate-card-menu">
+          ${this._renderFrigateButton()}
+        </div>`;
+    }
+    
+    let motionIcon: string | null = null;
+    if (this.motionEntity && this.hass) {
+      motionIcon = this.hass.states[this.motionEntity]?.state == "on" ? "mdi:motion-sensor" : "mdi:walk";
+    }
+
+    return html`
+        <div class="frigate-card-menu-expanded">
+          ${this._renderFrigateButton()}
+          <ha-icon-button
+            class="button"
+            icon="mdi:cctv"
+            data-toggle="tooltip" title="View live"
+            @click=${() => {
+              this.expand = false;
+              this._callAction("live");
+            }}
+          ></ha-icon-button>
+          <ha-icon-button
+            class="button"
+            icon = "mdi:filmstrip"
+            data-toggle="tooltip" title="View clips"
+            @click=${() => {
+              this.expand = false;
+              this._callAction("clips");
+            }}
+          ></ha-icon-button>
+          <ha-icon-button
+            class="button"
+            icon = "mdi:camera"
+            data-toggle="tooltip" title="View snapshots"
+            @click=${() => {
+              this.expand = false;
+              this._callAction("snapshots");
+            }}
+          ></ha-icon-button>
+          <ha-icon-button
+            class="button"
+            icon = "mdi:web"
+            data-toggle="tooltip" title="View Frigate UI"
+            @click=${() => {
+              this.expand = false;
+              this._callAction("frigate-ui");
+            }}
+          ></ha-icon-button>
+          ${!motionIcon ? html`` : html`
+            <ha-icon-button 
+              data-toggle="tooltip" title="View motion sensor"
+              class="button"
+              icon="${motionIcon}"
+              @click=${() => {
+                this.expand = false;
+                this._callAction("motion");
+              }}
+            ></ha-icon-button>`
+          }
+        </div>
+    `;
+  }
+
+  // Return compiled CSS styles (thus safe to use with unsafeCSS).
+  static get styles(): CSSResult {
+    return unsafeCSS(frigate_card_menu_style);
+  }
+}
+
 
 // Main FrigateCard class.
 @customElement('frigate-card')
@@ -385,92 +522,32 @@ export class FrigateCard extends LitElement {
     }
   }
 
-  // Render the Frigate menu button.
-  protected _renderFrigateButton(): TemplateResult {
-    return html`
-      <ha-icon-button
-        class="button"
-        icon="mdi:alpha-f-box"
-        data-toggle="tooltip" title="Frigate menu"
-        @click=${() => {
-          this._showMenu = !this._showMenu;
-        }}
-      ></ha-icon-button>`;
-  }
-
-
-  // Render the menu bar.
-  protected _renderMenuBar(): TemplateResult {
-    if (!this._showMenu) {
-      return html`
-        <div class="frigate-card-menubar">
-          ${this._renderFrigateButton()}
-        </div>`;
+  protected _menuActionHandler(name: string): void {
+    switch (name) {
+      case "live":
+        this._controlVideos({stop: true, control_clip: true});
+        this._controlVideos({stop: false, control_live: true});
+        this._viewMode = FrigateCardView.LIVE;
+        break;
+      case "clips":
+        this._controlVideos({stop: true, control_live: true});
+        this._viewMode = FrigateCardView.CLIPS;
+        break;
+      case "snapshots":
+        this._controlVideos({stop: true, control_clip: true, control_live: true});
+        this._viewMode = FrigateCardView.SNAPSHOTS;
+        break;
+      case "frigate-ui":
+        window.open(this.config.frigate_url);
+        break;
+      case "motion":
+        if (this.config.motion_entity) {
+          fireEvent(this, "hass-more-info", {entityId: this.config.motion_entity});
+        }
+        break;
+      default:
+        console.warn("Unknown Frigate card menu option.")
     }
-    
-    let motionIcon: string | null = null;
-    const motionEntity = this.config.motion_entity ? this.config.motion_entity : null;
-    if (motionEntity && this._hass && motionEntity in this._hass.states) {
-      motionIcon = (this._hass.states[motionEntity].state == "on" ?
-          "mdi:motion-sensor" : "mdi:walk");
-    }
-
-    return html`
-        <div class="frigate-card-menubar-full">
-          ${this._renderFrigateButton()}
-          <ha-icon-button
-            class="button"
-            icon="mdi:cctv"
-            data-toggle="tooltip" title="View live"
-            @click=${() => {
-              this._controlVideos({stop: true, control_clip: true});
-              this._controlVideos({stop: false, control_live: true});
-              this._viewMode = FrigateCardView.LIVE;
-              this._showMenu = false;
-            }}
-          ></ha-icon-button>
-          <ha-icon-button
-            class="button"
-            icon = "mdi:filmstrip"
-            data-toggle="tooltip" title="View clips"
-            @click=${() => {
-              this._controlVideos({stop: true, control_live: true});
-              this._viewMode = FrigateCardView.CLIPS;
-              this._showMenu = false;
-            }}
-          ></ha-icon-button>
-          <ha-icon-button
-            class="button"
-            icon = "mdi:camera"
-            data-toggle="tooltip" title="View snapshots"
-            @click=${() => {
-              this._controlVideos({stop: true, control_clip: true, control_live: true});
-              this._viewMode = FrigateCardView.SNAPSHOTS;
-              this._showMenu = false;
-            }}
-          ></ha-icon-button>
-          <ha-icon-button
-            class="button"
-            icon = "mdi:web"
-            data-toggle="tooltip" title="View Frigate UI"
-            @click=${() => {
-              window.open(this.config.frigate_url);
-              this._showMenu = false;
-            }}
-          ></ha-icon-button>
-          ${!motionIcon ? html`` : html`
-            <ha-icon-button 
-              data-toggle="tooltip" title="View motion sensor"
-              class="button"
-              icon="${motionIcon}"
-              @click=${() => {
-                fireEvent(this, "hass-more-info", {entityId: motionEntity});
-                this._showMenu = false;
-              }}
-            ></ha-icon-button>`
-          }
-        </div>
-    `;
   }
 
   // Render the player for a saved clip.
@@ -573,7 +650,12 @@ export class FrigateCard extends LitElement {
     }
     return html`
       <ha-card @click=${this._interactionHandler}>
-        ${this._renderMenuBar()}
+        <frigate-card-menu
+            .motionEntity=${this.config.motion_entity},
+            .hass=${this._hass}
+            .actionCallback=${this._menuActionHandler.bind(this)}
+        >
+        </frigate-card-menu>
         ${this._viewMode == FrigateCardView.CLIPS ?
           html`<div class="frigate-card-gallery">
             ${until(this._renderEvents(), this._renderProgressIndicator())}
@@ -619,10 +701,9 @@ export class FrigateCard extends LitElement {
     `;
   }
 
-  // Get the CSS styles. CSS is compiled from frigate-card.scss, so this is
-  // safe to be piped through `unsafeCSS`.
+  // Return compiled CSS styles (thus safe to use with unsafeCSS).
   static get styles(): CSSResult {
-    return unsafeCSS(style);
+    return unsafeCSS(frigate_card_style);
   }
 
   // Get the Lovelace card size.
