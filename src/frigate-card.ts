@@ -447,6 +447,15 @@ export class FrigateCard extends LitElement {
               this._showMenu = false;
             }}
           ></ha-icon-button>
+          <ha-icon-button
+            class="button"
+            icon = "mdi:web"
+            data-toggle="tooltip" title="View Frigate UI"
+            @click=${() => {
+              window.open(this.config.frigate_url);
+              this._showMenu = false;
+            }}
+          ></ha-icon-button>
           ${!motionIcon ? html`` : html`
             <ha-icon-button 
               data-toggle="tooltip" title="View motion sensor"
