@@ -2,6 +2,7 @@
 // TODO Add title to clips / snapshots playing/viewing
 // TODO Add gallery item to take to media browser
 // TODO Add documentation & screenshots.
+// TODO Clips do not auto-play on Android.
 // TODO Sometimes webrtc component shows up as not found in browser (maybe after fresh build?)
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -308,9 +309,10 @@ export class FrigateCard extends LitElement {
                 class="mdc-image-list__image"
                 src="data:image/png;base64,${event.thumbnail}"
                 @click=${() => {
+                  this._showMenu = false;
                   this._viewEvent = event;
                   this._viewMode = want_clips ?
-                      FrigateCardView.CLIP : FrigateCardView.SNAPSHOT
+                      FrigateCardView.CLIP : FrigateCardView.SNAPSHOT;
                 }}
               >
             </div>
