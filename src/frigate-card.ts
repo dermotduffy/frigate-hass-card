@@ -18,7 +18,9 @@ import {
   unsafeCSS,
 } from 'lit-element';
 
+import { NodePart } from "lit-html";
 import { until } from 'lit-html/directives/until.js';
+import { transition } from 'lit-transition';
 import {
   HomeAssistant,
   fireEvent,
@@ -71,25 +73,17 @@ type FrigateCardMenuCallback = (name: string) => any;
 // A menu for the Frigate card.
 @customElement('frigate-card-menu')
 export class FrigateCardMenu extends LitElement {
-  constructor() {
-    super();
-    this.expand = false;
-    this.motionEntity = null;
-    this.hass = null;
-    this.actionCallback = null;
-  }
+  @property({ attribute: false })
+  protected expand = false;
 
   @property({ attribute: false })
-  protected expand: boolean;
+  protected motionEntity: string | null = null;
 
   @property({ attribute: false })
-  protected motionEntity: string | null;
+  protected hass: HomeAssistant | null = null;
 
   @property({ attribute: false })
-  protected hass: HomeAssistant | null;
-
-  @property({ attribute: false })
-  protected actionCallback: FrigateCardMenuCallback | null;
+  protected actionCallback: FrigateCardMenuCallback | null = null;
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!this.hass) {
@@ -128,12 +122,13 @@ export class FrigateCardMenu extends LitElement {
   }
 
   // Render the menu.
-  protected render(): TemplateResult | void {
+  protected render(): TemplateResult | void | ((part: NodePart) => Promise<void>) {
     if (!this.expand) {
-      return html`
-        <div class="frigate-card-menu">
-          ${this._renderFrigateButton()}
-        </div>`;
+      return transition(
+        html`
+          <div class="frigate-card-menu">
+            ${this._renderFrigateButton()}
+          </div>`);
     }
     
     let motionIcon: string | null = null;
@@ -141,8 +136,11 @@ export class FrigateCardMenu extends LitElement {
       motionIcon = this.hass.states[this.motionEntity]?.state == "on" ? "mdi:motion-sensor" : "mdi:walk";
     }
 
-    return html`
-        <div class="frigate-card-menu-expanded">
+    return transition(
+      html`
+        <div
+            class="frigate-card-menu-expanded"
+          >
           ${this._renderFrigateButton()}
           <ha-icon-button
             class="button"
@@ -192,7 +190,8 @@ export class FrigateCardMenu extends LitElement {
             ></ha-icon-button>`
           }
         </div>
-    `;
+      `
+    );
   }
 
   // Return compiled CSS styles (thus safe to use with unsafeCSS).
