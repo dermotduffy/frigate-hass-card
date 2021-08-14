@@ -1,6 +1,5 @@
 // TODO Make editor work.
 // TODO Add title to clips / snapshots playing/viewing
-// TODO Try new navbar idea
 // TODO Add gallery item to take to media browser
 // TODO Add documentation & screenshots.
 // TODO Sometimes webrtc component shows up as not found in browser (maybe after fresh build?)
@@ -77,6 +76,7 @@ export class FrigateCard extends LitElement {
     this._interactionTimerID = null;
     this._webrtcElement = null;
     this._hass = null;
+    this._showMenu = false;
   }
 
   // Get the configuration element.
@@ -106,6 +106,9 @@ export class FrigateCard extends LitElement {
 
   @property({ attribute: false })
   protected _viewEvent: FrigateEvent | null;
+
+  @property({ attribute: false })
+  protected _showMenu: boolean;
 
   protected _interactionTimerID: number | null;
   protected _webrtcElement: any | null;
@@ -380,39 +383,83 @@ export class FrigateCard extends LitElement {
     }
   }
 
-  // Render the main navbar (live, clips, snapshots).
-  protected _renderNavigationBar(): TemplateResult {
+  // Render the Frigate menu button.
+  protected _renderFrigateButton(): TemplateResult {
     return html`
-      <div class="frigate-card-navbar" >
-        <ha-icon-button
-          class="button"
-          icon="mdi:cctv"
-          data-toggle="tooltip" title="View live"
-          @click=${() => {
-            this._controlVideos({stop: true, control_clip: true});
-            this._controlVideos({stop: false, control_live: true});
-            this._viewMode = FrigateCardView.LIVE
-          }}
-        ></ha-icon-button>
-        <ha-icon-button
-          class="button"
-          icon = "mdi:filmstrip"
-          data-toggle="tooltip" title="View clips"
-          @click=${() => {
-            this._controlVideos({stop: true, control_live: true});
-            this._viewMode = FrigateCardView.CLIPS
-          }}
-        ></ha-icon-button>
-        <ha-icon-button
-          class="button"
-          icon = "mdi:camera"
-          data-toggle="tooltip" title="View snapshots"
-          @click=${() => {
-            this._controlVideos({stop: true, control_clip: true, control_live: true});
-            this._viewMode = FrigateCardView.SNAPSHOTS
-          }}
-        ></ha-icon-button>
-      </div>`
+      <ha-icon-button
+        class="button"
+        icon="mdi:alpha-f-box"
+        data-toggle="tooltip" title="Frigate menu"
+        @click=${() => {
+          this._showMenu = !this._showMenu;
+        }}
+      ></ha-icon-button>`;
+  }
+
+
+  // Render the menu bar.
+  protected _renderMenuBar(): TemplateResult {
+    if (!this._showMenu) {
+      return html`
+        <div class="frigate-card-menubar">
+          ${this._renderFrigateButton()}
+        </div>`;
+    }
+    
+    let motionIcon: string | null = null;
+    const motionEntity = this.config.motion_entity ? this.config.motion_entity : null;
+    if (motionEntity && this._hass && motionEntity in this._hass.states) {
+      motionIcon = (this._hass.states[motionEntity].state == "on" ?
+          "mdi:motion-sensor" : "mdi:walk");
+    }
+
+    return html`
+        <div class="frigate-card-menubar-full">
+          ${this._renderFrigateButton()}
+          <ha-icon-button
+            class="button"
+            icon="mdi:cctv"
+            data-toggle="tooltip" title="View live"
+            @click=${() => {
+              this._controlVideos({stop: true, control_clip: true});
+              this._controlVideos({stop: false, control_live: true});
+              this._viewMode = FrigateCardView.LIVE;
+              this._showMenu = false;
+            }}
+          ></ha-icon-button>
+          <ha-icon-button
+            class="button"
+            icon = "mdi:filmstrip"
+            data-toggle="tooltip" title="View clips"
+            @click=${() => {
+              this._controlVideos({stop: true, control_live: true});
+              this._viewMode = FrigateCardView.CLIPS;
+              this._showMenu = false;
+            }}
+          ></ha-icon-button>
+          <ha-icon-button
+            class="button"
+            icon = "mdi:camera"
+            data-toggle="tooltip" title="View snapshots"
+            @click=${() => {
+              this._controlVideos({stop: true, control_clip: true, control_live: true});
+              this._viewMode = FrigateCardView.SNAPSHOTS;
+              this._showMenu = false;
+            }}
+          ></ha-icon-button>
+          ${!motionIcon ? html`` : html`
+            <ha-icon-button 
+              data-toggle="tooltip" title="View motion sensor"
+              class="button"
+              icon="${motionIcon}"
+              @click=${() => {
+                fireEvent(this, "hass-more-info", {entityId: motionEntity});
+                this._showMenu = false;
+              }}
+            ></ha-icon-button>`
+          }
+        </div>
+    `;
   }
 
   // Render the player for a saved clip.
@@ -465,30 +512,6 @@ export class FrigateCard extends LitElement {
     return html`<img class="frigate-card-viewer" src="${url}">`
   }
 
-  // Render the status bar (motion icon).
-  protected _renderStatusBar(): TemplateResult {
-    const motionEntity = this.config.motion_entity
-    if (!motionEntity || !this._hass || !(motionEntity in this._hass.states)) {
-      return html``;
-    }
-    const icon = this._hass.states[motionEntity].state == "on" ?
-        "mdi:motion-sensor" : "mdi:walk";
-    return html`
-      <div class="
-        ${this._webrtcElement ? 'frigate-card-statusbar-webrtc' : 'frigate-card-statusbar'}
-        ${this._viewMode == FrigateCardView.LIVE ? 'visible' : 'invisible'}
-      ">
-        <ha-icon-button
-          data-toggle="tooltip" title="View motion sensor"
-          class="button"
-          icon="${icon}"
-          @click=${() => {
-            fireEvent(this, "hass-more-info", {entityId: motionEntity});
-          }}
-        ></ha-icon-button>
-      </div>`
-  }
-
   // Render the live viewer.
   // Note: The live viewer is the main element used to size the overall card. It
   // is always rendered (but sometimes hidden).
@@ -539,7 +562,7 @@ export class FrigateCard extends LitElement {
     }
     return html`
       <ha-card @click=${this._interactionHandler}>
-        ${this._renderNavigationBar()}
+        ${this._renderMenuBar()}
         ${this._viewMode == FrigateCardView.CLIPS ?
           html`<div class="frigate-card-gallery">
             ${until(this._renderEvents(), this._renderProgressIndicator())}
@@ -560,7 +583,6 @@ export class FrigateCard extends LitElement {
             ${until(this._renderSnapshotViewer(), this._renderProgressIndicator())}
           </div>` : ``
         }
-        ${this._renderStatusBar()}
         ${this._renderLiveViewer()}
       </ha-card>`;
   }
