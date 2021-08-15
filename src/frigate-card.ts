@@ -105,7 +105,7 @@ export class FrigateCardMenu extends LitElement {
     return html`
       <ha-icon-button
         class="button"
-        icon="mdi:alpha-f-box"
+        icon=${this.expand ? "mdi:alpha-f-box" :  "mdi:alpha-f-box-outline"}
         data-toggle="tooltip" title="Frigate menu"
         @click=${() => {
           this.expand = !this.expand;
