@@ -1,0 +1,27 @@
+.option {
+  padding: 4px 0px;
+  cursor: pointer;
+}
+.row {
+  display: flex;
+  margin-bottom: -14px;
+  pointer-events: none;
+}
+.title {
+  padding-left: 16px;
+  margin-top: -6px;
+  pointer-events: none;
+}
+.secondary {
+  padding-left: 40px;
+  color: var(--secondary-text-color);
+  pointer-events: none;
+}
+.values {
+  padding-left: 16px;
+  background: var(--secondary-background-color);
+  display: grid;
+}
+ha-formfield {
+  padding-bottom: 8px;
+}

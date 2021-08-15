@@ -6,12 +6,14 @@ import {
   property,
   TemplateResult,
   CSSResult,
-  css,
   state,
+  unsafeCSS,
 } from 'lit-element';
 import { HomeAssistant, fireEvent, LovelaceCardEditor } from 'custom-card-helpers';
 
 import { FrigateCardConfig } from './types';
+
+import frigate_card_editor_style from './frigate-card-editor.scss'
 
 const options = {
   required: {
@@ -236,35 +238,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     fireEvent(this, 'config-changed', { config: this._config });
   }
 
+  // Return compiled CSS styles (thus safe to use with unsafeCSS).
   static get styles(): CSSResult {
-    return css`
-      .option {
-        padding: 4px 0px;
-        cursor: pointer;
-      }
-      .row {
-        display: flex;
-        margin-bottom: -14px;
-        pointer-events: none;
-      }
-      .title {
-        padding-left: 16px;
-        margin-top: -6px;
-        pointer-events: none;
-      }
-      .secondary {
-        padding-left: 40px;
-        color: var(--secondary-text-color);
-        pointer-events: none;
-      }
-      .values {
-        padding-left: 16px;
-        background: var(--secondary-background-color);
-        display: grid;
-      }
-      ha-formfield {
-        padding-bottom: 8px;
-      }
-    `;
+    return unsafeCSS(frigate_card_editor_style);
   }
 }
