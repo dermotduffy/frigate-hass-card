@@ -17,36 +17,16 @@ import frigate_card_editor_style from './frigate-card-editor.scss'
 
 const options = {
   required: {
-    icon: 'tune',
+    icon: 'cog',
     name: 'Required',
     secondary: 'Required options for this card to function',
     show: true,
   },
   optional: {
-    icon: 'gesture-tap-hold',
+    icon: 'tune',
     name: 'Optional',
-    secondary: 'Optional configuration to tune this',
+    secondary: 'Optional configuration to tweak card behavior',
     show: false,
-    options: {
-      tap: {
-        icon: 'gesture-tap',
-        name: 'Tap',
-        secondary: 'Set the action to perform on tap',
-        show: false,
-      },
-      hold: {
-        icon: 'gesture-tap-hold',
-        name: 'Hold',
-        secondary: 'Set the action to perform on hold',
-        show: false,
-      },
-      double_tap: {
-        icon: 'gesture-double-tap',
-        name: 'Double Tap',
-        secondary: 'Set the action to perform on double tap',
-        show: false,
-      },
-    },
   }
 };
 
@@ -77,7 +57,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     }
     const entities = Object.keys(
       this.hass.states).filter(eid => eid.substr(0, eid.indexOf('.')) === domain);
-    return entities.sort();
+    entities.sort();
+
+    // Add a blank entry to unset a selection.
+    entities.unshift('');
+    return entities;
   }
 
   protected render(): TemplateResult | void {
@@ -91,13 +75,25 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     // You can restrict on domain type
     const camera_entities = this._getEntities('camera');
     const binary_sensor_entities = this._getEntities('binary_sensor');
+    
+    const webrtc_camera_entity = 
+      this._config?.webrtc && (this._config?.webrtc as any).entity ?
+          (this._config?.webrtc as any).entity :
+          '';
 
     const view_modes = {
+      "": "",
       "live": "Live view",
       "clips": "Clip gallery",
       "snapshots": "Snapshot gallery",
       "clip": "Latest clip",
       "snapshot": "Latest snapshot",
+    }
+
+    const live_provider = {
+      "": "",
+      "frigate": "Frigate",
+      "webrtc": "WebRTC",
     }
 
     return html`
@@ -171,21 +167,49 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 <paper-listbox slot="dropdown-content" .selected=${Object.keys(view_modes).indexOf(this._config?.view_default || '')}>
                   ${Object.keys(view_modes).map(key => {
                     return html`
-                      <paper-item .label="${key}"
-                      >${view_modes[key]}
+                      <paper-item .label="${key}">
+                      ${view_modes[key]}
                       </paper-item>
                     `;
                   })}
                 </paper-listbox>
               </paper-dropdown-menu>
               <paper-input
-                  label="View timeout (seconds)"
-                  prevent-invalid-input
-                  allowed-pattern="[0-9]"
-                  .value=${this._config?.view_timeout ? String(this._config.view_timeout) : ''}
-                  .configValue=${'view_timeout'}
+                label="View timeout (seconds)"
+                prevent-invalid-input
+                allowed-pattern="[0-9]"
+                .value=${this._config?.view_timeout ? String(this._config.view_timeout) : ''}
+                .configValue=${'view_timeout'}
+                @value-changed=${this._valueChanged}
+              ></paper-input>
+              <paper-dropdown-menu
+                  label="Live provider (Optional)"
                   @value-changed=${this._valueChanged}
-                ></paper-input>
+                  .configValue=${'live_provider'}
+              >
+                <paper-listbox slot="dropdown-content" .selected=${Object.keys(live_provider).indexOf(this._config?.live_provider || '')}>
+                  ${Object.keys(live_provider).map(key => {
+                    return html`
+                      <paper-item .label="${key}"
+                      >${live_provider[key]}
+                      </paper-item>
+                    `;
+                  })}
+                </paper-listbox>
+              </paper-dropdown-menu>
+              <paper-dropdown-menu
+                  label="WebRTC Camera Entity (To use with WebRTC Live Provider)"
+                  @value-changed=${this._valueChanged}
+                  .configValue=${'webrtc.entity'}
+                >
+                  <paper-listbox slot="dropdown-content" .selected=${camera_entities.indexOf(webrtc_camera_entity)}>
+                    ${camera_entities.map(entity => {
+                      return html`
+                        <paper-item>${entity}</paper-item>
+                      `;
+                    })}
+                  </paper-listbox>
+                </paper-dropdown-menu>
             </div>`
           : ''
         }
@@ -222,19 +246,38 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       return;
     }
     const target = ev.target;
-    if (this[`_${target.configValue}`] === target.value) {
+    let key: string = target.configValue;
+    console.log(target);
+    console.log(target.value);
+
+    if (!key) {
       return;
     }
-    if (target.configValue) {
-      if (target.value === '') {
-        delete this._config[target.configValue];
-      } else {
-        this._config = {
-          ...this._config,
-          [target.configValue]: target.checked !== undefined ? target.checked : target.value,
-        };
+
+    // Need to deep copy the config so cannot use Object.assign.
+    const newConfig = JSON.parse(JSON.stringify(this._config)); 
+    let objectTarget = newConfig;
+
+    if (key.includes('.')) {
+      const parts = key.split('.', 2);
+      const configName = parts[0];
+      if (!(configName in newConfig)) {
+        newConfig[configName] = {}
       }
+      objectTarget = newConfig[configName];
+      key = parts[1];
     }
+    //console.log(`Value is: ${target.value}`);
+    //return;
+
+    if (objectTarget[key] === target.value) {
+      return;
+    } else if (target.value === '') {
+      delete objectTarget[key];
+    } else {
+      objectTarget[key] = (target.checked !== undefined ? target.checked : target.value);
+    }
+    this._config = newConfig;
     fireEvent(this, 'config-changed', { config: this._config });
   }
 

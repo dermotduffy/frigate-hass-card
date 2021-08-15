@@ -19,7 +19,7 @@ export const frigateCardConfigSchema = z.object({
   frigate_camera_name: z.string().optional(),
   view_default: z.enum(["live", "clips", "clip", "snapshots", "snapshot"]).optional().default("live"),
  
-  view_timeout: z.number().or(z.string().regex(/^\d+$/).transform(val => Number(val))),
+  view_timeout: z.number().or(z.string().regex(/^\d+$/).transform(val => Number(val))).optional(),
   live_provider: z.enum(["frigate", "webrtc"]).default("frigate"),
   webrtc: z.object({}).passthrough().optional(),
   label: z.string().optional(),
