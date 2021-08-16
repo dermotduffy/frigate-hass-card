@@ -22,6 +22,9 @@ const serveopts = {
 const plugins = [
   styles({
     modules: false,
+    // Behavior of inject mode, without actually injecting style
+    // into <head>.
+    mode: ["inject", () => undefined],
     sass: {
       includePaths: ["./node_modules/"]
     }
