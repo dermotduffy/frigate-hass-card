@@ -12,14 +12,6 @@ declare global {
  * Internal types.
  */
 
-
-// enum FrigateCardView {
-//   LIVE = "live",           // Show the live camera.
-//   CLIP = "clip",           // Show a clip video.
-//   CLIPS = "clips",         // Show the clips gallery.
-//   SNAPSHOT = "snapshot",   // Show a snapshot.
-//   SNAPSHOTS = "snapshots", // Show the snapshots gallery.
-// }
 export const FRIGATE_CARD_VIEWS = ["live", "clip", "clips", "snapshot", "snapshots"] as const;
 export type FrigateCardView = typeof FRIGATE_CARD_VIEWS[number];
 
