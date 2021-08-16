@@ -12,12 +12,23 @@ declare global {
  * Internal types.
  */
 
+
+// enum FrigateCardView {
+//   LIVE = "live",           // Show the live camera.
+//   CLIP = "clip",           // Show a clip video.
+//   CLIPS = "clips",         // Show the clips gallery.
+//   SNAPSHOT = "snapshot",   // Show a snapshot.
+//   SNAPSHOTS = "snapshots", // Show the snapshots gallery.
+// }
+export const FRIGATE_CARD_VIEWS = ["live", "clip", "clips", "snapshot", "snapshots"] as const;
+export type FrigateCardView = typeof FRIGATE_CARD_VIEWS[number];
+
 export const frigateCardConfigSchema = z.object({
   camera_entity: z.string(),
   motion_entity: z.string().optional(),
   frigate_url: z.string().url(),
   frigate_camera_name: z.string().optional(),
-  view_default: z.enum(["live", "clips", "clip", "snapshots", "snapshot"]).optional().default("live"),
+  view_default: z.enum(FRIGATE_CARD_VIEWS).optional().default("live"),
  
   view_timeout: z.number().or(z.string().regex(/^\d+$/).transform(val => Number(val))).optional(),
   live_provider: z.enum(["frigate", "webrtc"]).default("frigate"),

@@ -33,7 +33,7 @@ import frigate_card_style from './frigate-card.scss'
 import frigate_card_menu_style from './frigate-card-menu.scss'
 
 import { frigateCardConfigSchema, frigateGetEventsResponseSchema } from './types';
-import type { FrigateCardConfig, FrigateEvent, FrigateGetEventsResponse, GetEventsParameters, ControlVideosParameters } from './types';
+import type { FrigateCardView, FrigateCardConfig, FrigateEvent, FrigateGetEventsResponse, GetEventsParameters, ControlVideosParameters } from './types';
 import { CARD_VERSION } from './const';
 import { localize } from './localize/localize';
 import dayjs from 'dayjs';
@@ -58,14 +58,6 @@ console.info(
   name: 'Frigate Card',
   description: 'A lovelace card for use with Frigate',
 });
-
-enum FrigateCardView {
-  LIVE,       // Show the live camera.
-  CLIP,       // Show a clip video.
-  CLIPS,      // Show the clips gallery.
-  SNAPSHOT,   // Show a snapshot.
-  SNAPSHOTS,  // Show the snapshots gallery.
-}
 
 type FrigateCardMenuCallback = (name: string) => any;
 
@@ -207,7 +199,7 @@ export class FrigateCard extends LitElement {
   // Constructor for FrigateCard.
   constructor() {
     super();
-    this._viewMode = FrigateCardView.LIVE;
+    this._viewMode = "live";
     this._viewEvent = null;
     this._interactionTimerID = null;
     this._webrtcElement = null;
@@ -295,18 +287,9 @@ export class FrigateCard extends LitElement {
 
   // Set the view mode to the configured default.
   protected _setViewModeToDefault(): void {
-    if (this.config.view_default == "live") {
-      this._viewMode = FrigateCardView.LIVE;
-    } else if (this.config.view_default == "clips") {
-      this._viewMode = FrigateCardView.CLIPS;
-    } else if (this.config.view_default == "clip") {
-        this._viewMode = FrigateCardView.CLIP;
+    this._viewMode = this.config.view_default;
+    if (["clip", "snapshot"].includes(this._viewMode)) {
         this._viewEvent = null;
-    } else if (this.config.view_default == "snapshots") {
-      this._viewMode = FrigateCardView.SNAPSHOTS;
-    } else if (this.config.view_default == "snapshot") {
-      this._viewMode = FrigateCardView.SNAPSHOT;
-      this._viewEvent = null;
     }
   }
 
@@ -419,7 +402,7 @@ export class FrigateCard extends LitElement {
 
   // Render Frigate events into a card gallery.
   protected async _renderEvents() : Promise<TemplateResult> {
-    const want_clips = this._viewMode == FrigateCardView.CLIPS;
+    const want_clips = (this._viewMode == "clips");
     let events;
     try {
       events = await this._getEvents({
@@ -446,8 +429,7 @@ export class FrigateCard extends LitElement {
                 @click=${() => {
                   this._showMenu = false;
                   this._viewEvent = event;
-                  this._viewMode = want_clips ?
-                      FrigateCardView.CLIP : FrigateCardView.SNAPSHOT;
+                  this._viewMode = want_clips ? "clip" : "snapshot";
                 }}
               >
             </div>
@@ -525,15 +507,15 @@ export class FrigateCard extends LitElement {
       case "live":
         this._controlVideos({stop: true, control_clip: true});
         this._controlVideos({stop: false, control_live: true});
-        this._viewMode = FrigateCardView.LIVE;
+        this._viewMode = name;
         break;
       case "clips":
         this._controlVideos({stop: true, control_live: true});
-        this._viewMode = FrigateCardView.CLIPS;
+        this._viewMode = name;
         break;
       case "snapshots":
         this._controlVideos({stop: true, control_clip: true, control_live: true});
-        this._viewMode = FrigateCardView.SNAPSHOTS;
+        this._viewMode = name;
         break;
       case "frigate-ui":
         window.open(this.config.frigate_url);
@@ -608,7 +590,7 @@ export class FrigateCard extends LitElement {
     if (this._webrtcElement) {
       return html`
         <div 
-          class=${this._viewMode == FrigateCardView.LIVE ? 'visible' : 'invisible'}
+          class=${this._viewMode == "live" ? 'visible' : 'invisible'}
         >
           ${this._webrtcElement}  
         </div>`;
@@ -619,7 +601,7 @@ export class FrigateCard extends LitElement {
         .stateObj=${this._hass.states[this.config.camera_entity]}
         .controls=${true}
         .muted=${true}
-        class=${this._viewMode == FrigateCardView.LIVE ? 'visible' : 'invisible'}
+        class=${this._viewMode == "live" ? 'visible' : 'invisible'}
       >
       </ha-camera-stream>`;
   }
@@ -654,22 +636,22 @@ export class FrigateCard extends LitElement {
             .actionCallback=${this._menuActionHandler.bind(this)}
         >
         </frigate-card-menu>
-        ${this._viewMode == FrigateCardView.CLIPS ?
+        ${this._viewMode == "clips" ?
           html`<div class="frigate-card-gallery">
             ${until(this._renderEvents(), this._renderProgressIndicator())}
           </div>` : ``
         }
-        ${this._viewMode == FrigateCardView.SNAPSHOTS ?
+        ${this._viewMode == "snapshots" ?
           html`<div class="frigate-card-gallery">
             ${until(this._renderEvents(), this._renderProgressIndicator())}
           </div>` : ``
         }
-        ${this._viewMode == FrigateCardView.CLIP ?
+        ${this._viewMode == "clip" ?
           html`<div class="frigate-card-viewer">
             ${until(this._renderClipPlayer(), this._renderProgressIndicator())}
           </div>` : ``
         }
-        ${this._viewMode == FrigateCardView.SNAPSHOT ?
+        ${this._viewMode == "snapshot" ?
           html`<div class="frigate-card-viewer">
             ${until(this._renderSnapshotViewer(), this._renderProgressIndicator())}
           </div>` : ``

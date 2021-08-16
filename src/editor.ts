@@ -73,15 +73,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     this._helpers.importMoreInfoControl('climate');
 
     // You can restrict on domain type
-    const camera_entities = this._getEntities('camera');
-    const binary_sensor_entities = this._getEntities('binary_sensor');
+    const cameraEntities = this._getEntities('camera');
+    const binarySensorEntities = this._getEntities('binary_sensor');
     
-    const webrtc_camera_entity = 
+    const webrtcCameraEntity = 
       this._config?.webrtc && (this._config?.webrtc as any).entity ?
           (this._config?.webrtc as any).entity :
           '';
 
-    const view_modes = {
+    const viewModes = {
       "": "",
       "live": "Live view",
       "clips": "Clip gallery",
@@ -90,7 +90,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       "snapshot": "Latest snapshot",
     }
 
-    const live_provider = {
+    const liveProvider = {
       "": "",
       "frigate": "Frigate",
       "webrtc": "WebRTC",
@@ -113,8 +113,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   @value-changed=${this._valueChanged}
                   .configValue=${'camera_entity'}
                 >
-                  <paper-listbox slot="dropdown-content" .selected=${camera_entities.indexOf(this._config?.camera_entity || '')}>
-                    ${camera_entities.map(entity => {
+                  <paper-listbox slot="dropdown-content" .selected=${cameraEntities.indexOf(this._config?.camera_entity || '')}>
+                    ${cameraEntities.map(entity => {
                       return html`
                         <paper-item>${entity}</paper-item>
                       `;
@@ -145,8 +145,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   @value-changed=${this._valueChanged}
                   .configValue=${'motion_entity'}
               >
-                <paper-listbox slot="dropdown-content" .selected=${binary_sensor_entities.indexOf(this._config?.motion_entity || '')}>
-                  ${binary_sensor_entities.map(entity => {
+                <paper-listbox slot="dropdown-content" .selected=${binarySensorEntities.indexOf(this._config?.motion_entity || '')}>
+                  ${binarySensorEntities.map(entity => {
                     return html`
                       <paper-item>${entity}</paper-item>
                     `;
@@ -164,11 +164,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   @value-changed=${this._valueChanged}
                   .configValue=${'view_default'}
               >
-                <paper-listbox slot="dropdown-content" .selected=${Object.keys(view_modes).indexOf(this._config?.view_default || '')}>
-                  ${Object.keys(view_modes).map(key => {
+                <paper-listbox slot="dropdown-content" .selected=${Object.keys(viewModes).indexOf(this._config?.view_default || '')}>
+                  ${Object.keys(viewModes).map(key => {
                     return html`
                       <paper-item .label="${key}">
-                      ${view_modes[key]}
+                      ${viewModes[key]}
                       </paper-item>
                     `;
                   })}
@@ -185,13 +185,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               <paper-dropdown-menu
                   label="Live provider (Optional)"
                   @value-changed=${this._valueChanged}
-                  .configValue=${'live_provider'}
+                  .configValue=${'liveProvider'}
               >
-                <paper-listbox slot="dropdown-content" .selected=${Object.keys(live_provider).indexOf(this._config?.live_provider || '')}>
-                  ${Object.keys(live_provider).map(key => {
+                <paper-listbox slot="dropdown-content" .selected=${Object.keys(liveProvider).indexOf(this._config?.live_provider || '')}>
+                  ${Object.keys(liveProvider).map(key => {
                     return html`
                       <paper-item .label="${key}"
-                      >${live_provider[key]}
+                      >${liveProvider[key]}
                       </paper-item>
                     `;
                   })}
@@ -202,8 +202,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   @value-changed=${this._valueChanged}
                   .configValue=${'webrtc.entity'}
                 >
-                  <paper-listbox slot="dropdown-content" .selected=${camera_entities.indexOf(webrtc_camera_entity)}>
-                    ${camera_entities.map(entity => {
+                  <paper-listbox slot="dropdown-content" .selected=${cameraEntities.indexOf(webrtcCameraEntity)}>
+                    ${cameraEntities.map(entity => {
                       return html`
                         <paper-item>${entity}</paper-item>
                       `;
