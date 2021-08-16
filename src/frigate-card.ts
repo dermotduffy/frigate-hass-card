@@ -1,5 +1,6 @@
 // TODO Feature: Add title to clips / snapshots playing/viewing
 // TODO Feature: Automatically reload views as events happen.
+// TODO Feature: Zone label for selectinge events?
 // TODO Bug: Sometimes webrtc component shows up as not found in browser (maybe after fresh build?)
 // TODO Last step: Add documentation & screenshots.
 
@@ -60,6 +61,35 @@ console.info(
 
 type FrigateCardMenuCallback = (name: string) => any;
 
+// Determine whether the card should be updated based on Home Assistant changes.
+function shouldUpdateBasedOnHass(
+  newHass: HomeAssistant | null,
+  oldHass: HomeAssistant | undefined,
+  entities: (string | null | undefined)[],
+): boolean {
+  if (!newHass) {
+    return false;
+  }
+  if (!entities.length) {
+    return false;
+  }
+    
+  if (oldHass) {
+    for(let i = 0; i < entities.length; i++) {
+      const entity = entities[i];
+      if (!entity) {
+        continue;
+      }
+      console.info(`${entity} -> ${oldHass.states[entity].state}/${newHass.states[entity].state}`)
+      if (oldHass.states[entity] !== newHass.states[entity]) {
+        return true;
+      }
+    }
+    return false;
+  }
+  return true;
+}
+
 // A menu for the Frigate card.
 @customElement('frigate-card-menu')
 export class FrigateCardMenu extends LitElement {
@@ -76,19 +106,10 @@ export class FrigateCardMenu extends LitElement {
   protected actionCallback: FrigateCardMenuCallback | null = null;
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    if (!this.hass) {
-      return false;
-    }
-
-    const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
-  
-    if (oldHass && this.motionEntity) {
-      if (oldHass.states[this.motionEntity] !== this.hass.states[this.motionEntity]) {
-        return true;
-      }
-      return false;
-    }
-    return true;
+    return shouldUpdateBasedOnHass(
+      this.hass,
+      changedProps.get('hass') as HomeAssistant | undefined,
+      [this.motionEntity]);
   }
 
   // Render the Frigate menu button.
@@ -294,36 +315,17 @@ export class FrigateCard extends LitElement {
 
   // Determine whether the card should be updated.
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    if (!this.config || !this._hass) {
+    if (!this.config) {
       return false;
     }
-
-    const cameraEntity = this.config.camera_entity;
-    const motionEntity = this.config.motion_entity;
-
-    if (!cameraEntity) {
-      return false;
-    }
-
     if (changedProps.has('config')) {
       return true;
     }
-    
-    const oldHass = changedProps.get('_hass') as HomeAssistant | undefined;
-  
-    if (oldHass) {
-      if (cameraEntity in this._hass
-          && oldHass.states[cameraEntity] !== this._hass.states[cameraEntity]) {
-        return true;
-      }
-      if (motionEntity
-          && motionEntity in this._hass
-          && oldHass.states[motionEntity] !== this._hass.states[motionEntity]) {
-        return true;
-      }
-      return false;
-    }
-    return true;
+
+    return shouldUpdateBasedOnHass(
+      this._hass,
+      changedProps.get('_hass') as HomeAssistant | undefined,
+      [this.config.camera_entity, this.config.motion_entity]);
   }
 
   // Get FrigateEvents from the Frigate server API.
