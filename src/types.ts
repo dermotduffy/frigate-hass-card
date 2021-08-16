@@ -26,6 +26,7 @@ export const frigateCardConfigSchema = z.object({
   live_provider: z.enum(["frigate", "webrtc"]).default("frigate"),
   webrtc: z.object({}).passthrough().optional(),
   label: z.string().optional(),
+  zone: z.string().optional(),
 
   // Stock lovelace card config.
   type: z.string(),

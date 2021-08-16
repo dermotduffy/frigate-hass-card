@@ -1,6 +1,4 @@
 // TODO Feature: Add title to clips / snapshots playing/viewing
-// TODO Feature: Automatically reload views as events happen.
-// TODO Feature: Zone label for selectinge events?
 // TODO Bug: Sometimes webrtc component shows up as not found in browser (maybe after fresh build?)
 // TODO Last step: Add documentation & screenshots.
 
@@ -80,7 +78,6 @@ function shouldUpdateBasedOnHass(
       if (!entity) {
         continue;
       }
-      console.info(`${entity} -> ${oldHass.states[entity].state}/${newHass.states[entity].state}`)
       if (oldHass.states[entity] !== newHass.states[entity]) {
         return true;
       }
@@ -347,6 +344,9 @@ export class FrigateCard extends LitElement {
 
     if (this.config.label) {
       url += `&label=${this.config.label}`;
+    }
+    if (this.config.zone) {
+      url += `&zone=${this.config.zone}`;
     }
 
     const response = await fetch(url);

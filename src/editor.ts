@@ -27,7 +27,19 @@ const options = {
     name: 'Optional',
     secondary: 'Optional configuration to tweak card behavior',
     show: false,
-  }
+  },
+  webrtc: {
+    icon: 'webrtc',
+    name: 'WebRTC',
+    secondary: 'Optional WebRTC parameters',
+    show: false,
+  },
+  advanced: {
+    icon: 'cogs',
+    name: 'Advanced',
+    secondary: 'Advanced options',
+    show: false,
+  },
 };
 
 @customElement('frigate-card-editor')
@@ -182,10 +194,50 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 .configValue=${'view_timeout'}
                 @value-changed=${this._valueChanged}
               ></paper-input>
+            </div>`
+          : ''
+        }
+        <div class="option" @click=${this._toggleOption} .option=${'advanced'}>
+          <div class="row">
+            <ha-icon .icon=${`mdi:${options.advanced.icon}`}></ha-icon>
+            <div class="title">${options.advanced.name}</div>
+          </div>
+          <div class="secondary">${options.advanced.secondary}</div>
+        </div>
+        ${options.advanced.show
+          ? html`
+            <div class="values">
+              <paper-input
+                label="Frigate zone filter (Optional)"
+                .value=${this._config?.zone || ''}
+                .configValue=${'zone'}
+                @value-changed=${this._valueChanged}
+              ></paper-input>
+            </div>
+            <div class="values">
+              <paper-input
+                label="Frigate label/object filter (Optional)"
+                .value=${this._config?.label || ''}
+                .configValue=${'label'}
+                @value-changed=${this._valueChanged}
+              ></paper-input>
+            </div>`
+          : ''
+        }
+        <div class="option" @click=${this._toggleOption} .option=${'webrtc'}>
+          <div class="row">
+            <ha-icon .icon=${`mdi:${options.webrtc.icon}`}></ha-icon>
+            <div class="title">${options.webrtc.name}</div>
+          </div>
+          <div class="secondary">${options.webrtc.secondary}</div>
+        </div>
+        ${options.webrtc.show
+          ? html`
+            <div class="values">
               <paper-dropdown-menu
-                  label="Live provider (Optional)"
+                  label="WebRTC/Frigate Live provider (Optional)"
                   @value-changed=${this._valueChanged}
-                  .configValue=${'liveProvider'}
+                  .configValue=${'live_provider'}
               >
                 <paper-listbox slot="dropdown-content" .selected=${Object.keys(liveProvider).indexOf(this._config?.live_provider || '')}>
                   ${Object.keys(liveProvider).map(key => {
@@ -201,15 +253,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   label="WebRTC Camera Entity (To use with WebRTC Live Provider)"
                   @value-changed=${this._valueChanged}
                   .configValue=${'webrtc.entity'}
-                >
-                  <paper-listbox slot="dropdown-content" .selected=${cameraEntities.indexOf(webrtcCameraEntity)}>
-                    ${cameraEntities.map(entity => {
-                      return html`
-                        <paper-item>${entity}</paper-item>
-                      `;
-                    })}
-                  </paper-listbox>
-                </paper-dropdown-menu>
+              >
+                <paper-listbox slot="dropdown-content" .selected=${cameraEntities.indexOf(webrtcCameraEntity)}>
+                  ${cameraEntities.map(entity => {
+                    return html`
+                      <paper-item>${entity}</paper-item>
+                    `;
+                  })}
+                </paper-listbox>
+              </paper-dropdown-menu>
             </div>`
           : ''
         }
