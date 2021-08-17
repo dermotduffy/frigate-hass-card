@@ -1,5 +1,4 @@
 // TODO Bug: Sometimes webrtc component shows up as not found in browser (maybe after fresh build?)
-// TODO Bug: Initializers in main class.
 // TODO Last step: Add documentation & screenshots.
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -223,17 +222,6 @@ export class FrigateCardMenu extends LitElement {
 @customElement('frigate-card')
 export class FrigateCard extends LitElement {
 
-  // Constructor for FrigateCard.
-  constructor() {
-    super();
-    this._viewMode = "live";
-    this._viewEvent = null;
-    this._interactionTimerID = null;
-    this._webrtcElement = null;
-    this._hass = null;
-    this._showMenu = false;
-  }
-
   // Get the configuration element.
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
     return document.createElement('frigate-card-editor');
@@ -251,25 +239,25 @@ export class FrigateCard extends LitElement {
   }
 
   @property({ attribute: false })
-  protected _hass: HomeAssistant | null;
+  protected _hass: HomeAssistant | null = null;
 
   @state()
   public config!: FrigateCardConfig;
 
   @property({ attribute: false })
-  protected _viewMode: FrigateCardView;
+  protected _viewMode: FrigateCardView = "live";
 
   @property({ attribute: false })
-  protected _viewEvent: FrigateEvent | null;
+  protected _viewEvent: FrigateEvent | null = null;
 
   @property({ attribute: false })
-  protected _showMenu: boolean;
+  protected _showMenu = false;
 
   @state()
   protected _heading: string | null =  null;
 
-  protected _interactionTimerID: number | null;
-  protected _webrtcElement: any | null;
+  protected _interactionTimerID: number | null = null;
+  protected _webrtcElement: any | null = null;
 
   // Set the object configuration.
   public setConfig(inputConfig: FrigateCardConfig): void {
