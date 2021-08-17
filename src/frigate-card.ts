@@ -1,5 +1,5 @@
-// TODO Feature: Add title to clips / snapshots playing/viewing
 // TODO Bug: Sometimes webrtc component shows up as not found in browser (maybe after fresh build?)
+// TODO Bug: Initializers in main class.
 // TODO Last step: Add documentation & screenshots.
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -102,6 +102,9 @@ export class FrigateCardMenu extends LitElement {
   @property({ attribute: false })
   protected actionCallback: FrigateCardMenuCallback | null = null;
 
+  @property({ attribute: false })
+  protected heading: string | null = null;
+
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     return shouldUpdateBasedOnHass(
       this.hass,
@@ -146,6 +149,7 @@ export class FrigateCardMenu extends LitElement {
 
     return transition(
       html`
+      <div class="frigate-card-menu-container">
         <div
             class="frigate-card-menu-expanded"
           >
@@ -198,6 +202,12 @@ export class FrigateCardMenu extends LitElement {
             ></ha-icon-button>`
           }
         </div>
+        ${this.heading ? html`
+          <div class="frigate-card-menu-title">
+            ${this.heading}
+          </div>
+        ` : ``}
+      </div>
       `
     );
   }
@@ -254,6 +264,9 @@ export class FrigateCard extends LitElement {
 
   @property({ attribute: false })
   protected _showMenu: boolean;
+
+  @state()
+  protected _heading: string | null =  null;
 
   protected _interactionTimerID: number | null;
   protected _webrtcElement: any | null;
@@ -509,14 +522,17 @@ export class FrigateCard extends LitElement {
         this._controlVideos({stop: true, control_clip: true});
         this._controlVideos({stop: false, control_live: true});
         this._viewMode = name;
+        this._heading = null;
         break;
       case "clips":
         this._controlVideos({stop: true, control_live: true});
         this._viewMode = name;
+        this._heading = null;
         break;
       case "snapshots":
         this._controlVideos({stop: true, control_clip: true, control_live: true});
         this._viewMode = name;
+        this._heading = null;
         break;
       case "frigate-ui":
         window.open(this.config.frigate_url);
@@ -550,6 +566,7 @@ export class FrigateCard extends LitElement {
       }
       event = events[0];
     }
+    this._heading = this._getEventTitle(event);
     const url = `${this.config.frigate_url}/clips/` +
         `${event.camera}-${event.id}.mp4`;
     return html`
@@ -577,6 +594,7 @@ export class FrigateCard extends LitElement {
       }
       event = events[0];
     }
+    this._heading = this._getEventTitle(event);
     const url = `${this.config.frigate_url}/clips/${event.camera}-${event.id}.jpg`;
     return html`<img class="frigate-card-viewer" src="${url}">`
   }
@@ -629,13 +647,9 @@ export class FrigateCard extends LitElement {
     if (this.config.show_error) {
       return this._showError(localize('common.show_error'));
     }
+    // Note: Menu is rendered last to allow heading to be set by render methods.
     return html`
       <ha-card @click=${this._interactionHandler}>
-        <frigate-card-menu
-            .motionEntity=${this.config.motion_entity}
-            .hass=${this._hass}
-            .actionCallback=${this._menuActionHandler.bind(this)}
-        >
         </frigate-card-menu>
         ${this._viewMode == "clips" ?
           html`<div class="frigate-card-gallery">
@@ -658,6 +672,12 @@ export class FrigateCard extends LitElement {
           </div>` : ``
         }
         ${this._renderLiveViewer()}
+        <frigate-card-menu
+            .motionEntity=${this.config.motion_entity}
+            .hass=${this._hass}
+            .actionCallback=${this._menuActionHandler.bind(this)}
+            .heading=${this._heading}
+        ></frigate-card-menu>
       </ha-card>`;
   }
 

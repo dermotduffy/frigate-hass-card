@@ -1,3 +1,10 @@
+.frigate-card-menu-container {
+  position: absolute;
+  top: 0px;
+  z-index: 1;
+  width: 100%;
+}
+
 .frigate-card-menu {
   position: absolute;
   top: 0px;
@@ -10,6 +17,15 @@
   @extend .frigate-card-menu;
   width: 100%;
   background-color: rgba(0, 0, 0, 0.6);
+}
+
+.frigate-card-menu-title {
+  @extend .frigate-card-menu-expanded;
+  top: 56px;
+  height: 1em;
+  padding-bottom: 0.5em;
+  color: rgba(255,255,255,0.7);
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 ha-icon-button.button {
