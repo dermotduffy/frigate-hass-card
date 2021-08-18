@@ -24,7 +24,7 @@ jobs:
 
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist/frigate-card.js
-          asset_name: frigate-card.js
+          file: dist/frigate-hass-card.js
+          asset_name: frigate-hass-card.js
           tag: ${{ github.ref }}
           overwrite: true
