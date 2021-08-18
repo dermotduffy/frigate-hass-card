@@ -1,5 +1,10 @@
-import { ActionConfig, LovelaceCard, LovelaceCardConfig, LovelaceCardEditor } from 'custom-card-helpers';
-import { number, z } from "zod";
+import {
+  ActionConfig,
+  LovelaceCard,
+  LovelaceCardConfig,
+  LovelaceCardEditor,
+} from 'custom-card-helpers';
+import { number, z } from 'zod';
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -12,7 +17,13 @@ declare global {
  * Internal types.
  */
 
-export const FRIGATE_CARD_VIEWS = ["live", "clip", "clips", "snapshot", "snapshots"] as const;
+export const FRIGATE_CARD_VIEWS = [
+  'live',
+  'clip',
+  'clips',
+  'snapshot',
+  'snapshots',
+] as const;
 export type FrigateCardView = typeof FRIGATE_CARD_VIEWS[number];
 
 export const frigateCardConfigSchema = z.object({
@@ -20,10 +31,18 @@ export const frigateCardConfigSchema = z.object({
   motion_entity: z.string().optional(),
   frigate_url: z.string().url(),
   frigate_camera_name: z.string().optional(),
-  view_default: z.enum(FRIGATE_CARD_VIEWS).optional().default("live"),
- 
-  view_timeout: z.number().or(z.string().regex(/^\d+$/).transform(val => Number(val))).optional(),
-  live_provider: z.enum(["frigate", "webrtc"]).default("frigate"),
+  view_default: z.enum(FRIGATE_CARD_VIEWS).optional().default('live'),
+
+  view_timeout: z
+    .number()
+    .or(
+      z
+        .string()
+        .regex(/^\d+$/)
+        .transform((val) => Number(val)),
+    )
+    .optional(),
+  live_provider: z.enum(['frigate', 'webrtc']).default('frigate'),
   webrtc: z.object({}).passthrough().optional(),
   label: z.string().optional(),
   zone: z.string().optional(),
@@ -33,9 +52,8 @@ export const frigateCardConfigSchema = z.object({
   show_warning: z.boolean().optional(),
   show_error: z.boolean().optional(),
   test_gui: z.boolean().optional(),
-})
+});
 export type FrigateCardConfig = z.infer<typeof frigateCardConfigSchema>;
-
 
 export interface GetEventsParameters {
   has_clip?: boolean;
@@ -65,7 +83,7 @@ export const frigateEventSchema = z.object({
   thumbnail: z.string(),
   top_score: z.number(),
   zones: z.string().array(),
-})
+});
 export type FrigateEvent = z.infer<typeof frigateEventSchema>;
 
 export const frigateGetEventsResponseSchema = z.array(frigateEventSchema);

@@ -5,7 +5,7 @@ import babel from 'rollup-plugin-babel';
 import { terser } from 'rollup-plugin-terser';
 import serve from 'rollup-plugin-serve';
 import json from '@rollup/plugin-json';
-import styles from "rollup-plugin-styles";
+import styles from 'rollup-plugin-styles';
 
 const dev = process.env.ROLLUP_WATCH;
 
@@ -24,10 +24,10 @@ const plugins = [
     modules: false,
     // Behavior of inject mode, without actually injecting style
     // into <head>.
-    mode: ["inject", () => undefined],
+    mode: ['inject', () => undefined],
     sass: {
-      includePaths: ["./node_modules/"]
-    }
+      includePaths: ['./node_modules/'],
+    },
   }),
   nodeResolve({}),
   commonjs(),

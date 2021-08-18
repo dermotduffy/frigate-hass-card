@@ -16,8 +16,8 @@
   top: 0px;
   height: 100%;
 
- -ms-overflow-style: none;  // Hide scrollbar: IE and Edge
- scrollbar-width: none;     // Hide scrollbar: Firefox
+  -ms-overflow-style: none; // Hide scrollbar: IE and Edge
+  scrollbar-width: none; // Hide scrollbar: Firefox
 }
 
 .frigate-card-attention {
@@ -29,7 +29,7 @@
 
 /* Hide scrollbar for Chrome, Safari and Opera */
 .frigate-card-gallery::-webkit-scrollbar {
- display: none;
+  display: none;
 }
 
 .frigate-card-image-list {

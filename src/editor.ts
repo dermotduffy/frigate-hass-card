@@ -13,7 +13,7 @@ import { HomeAssistant, fireEvent, LovelaceCardEditor } from 'custom-card-helper
 
 import { FrigateCardConfig } from './types';
 
-import frigate_card_editor_style from './frigate-card-editor.scss'
+import frigate_card_editor_style from './frigate-card-editor.scss';
 
 const options = {
   required: {
@@ -63,12 +63,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     return true;
   }
 
-  protected _getEntities(domain: string) : string[] {
+  protected _getEntities(domain: string): string[] {
     if (!this.hass) {
       return [];
     }
-    const entities = Object.keys(
-      this.hass.states).filter(eid => eid.substr(0, eid.indexOf('.')) === domain);
+    const entities = Object.keys(this.hass.states).filter(
+      (eid) => eid.substr(0, eid.indexOf('.')) === domain,
+    );
     entities.sort();
 
     // Add a blank entry to unset a selection.
@@ -87,26 +88,26 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     // You can restrict on domain type
     const cameraEntities = this._getEntities('camera');
     const binarySensorEntities = this._getEntities('binary_sensor');
-    
-    const webrtcCameraEntity = 
-      this._config?.webrtc && (this._config?.webrtc as any).entity ?
-          (this._config?.webrtc as any).entity :
-          '';
+
+    const webrtcCameraEntity =
+      this._config?.webrtc && (this._config?.webrtc as any).entity
+        ? (this._config?.webrtc as any).entity
+        : '';
 
     const viewModes = {
-      "": "",
-      "live": "Live view",
-      "clips": "Clip gallery",
-      "snapshots": "Snapshot gallery",
-      "clip": "Latest clip",
-      "snapshot": "Latest snapshot",
-    }
+      '': '',
+      live: 'Live view',
+      clips: 'Clip gallery',
+      snapshots: 'Snapshot gallery',
+      clip: 'Latest clip',
+      snapshot: 'Latest snapshot',
+    };
 
     const liveProvider = {
-      "": "",
-      "frigate": "Frigate",
-      "webrtc": "WebRTC",
-    }
+      '': '',
+      frigate: 'Frigate',
+      webrtc: 'WebRTC',
+    };
 
     return html`
       <div class="card-config">
@@ -125,11 +126,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   @value-changed=${this._valueChanged}
                   .configValue=${'camera_entity'}
                 >
-                  <paper-listbox slot="dropdown-content" .selected=${cameraEntities.indexOf(this._config?.camera_entity || '')}>
-                    ${cameraEntities.map(entity => {
-                      return html`
-                        <paper-item>${entity}</paper-item>
-                      `;
+                  <paper-listbox
+                    slot="dropdown-content"
+                    .selected=${cameraEntities.indexOf(
+                      this._config?.camera_entity || '',
+                    )}
+                  >
+                    ${cameraEntities.map((entity) => {
+                      return html` <paper-item>${entity}</paper-item> `;
                     })}
                   </paper-listbox>
                 </paper-dropdown-menu>
@@ -150,18 +154,20 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           <div class="secondary">${options.optional.secondary}</div>
         </div>
         ${options.optional.show
-          ? html`
-            <div class="values">
+          ? html` <div class="values">
               <paper-dropdown-menu
-                  label="Motion Entity (Optional)"
-                  @value-changed=${this._valueChanged}
-                  .configValue=${'motion_entity'}
+                label="Motion Entity (Optional)"
+                @value-changed=${this._valueChanged}
+                .configValue=${'motion_entity'}
               >
-                <paper-listbox slot="dropdown-content" .selected=${binarySensorEntities.indexOf(this._config?.motion_entity || '')}>
-                  ${binarySensorEntities.map(entity => {
-                    return html`
-                      <paper-item>${entity}</paper-item>
-                    `;
+                <paper-listbox
+                  slot="dropdown-content"
+                  .selected=${binarySensorEntities.indexOf(
+                    this._config?.motion_entity || '',
+                  )}
+                >
+                  ${binarySensorEntities.map((entity) => {
+                    return html` <paper-item>${entity}</paper-item> `;
                   })}
                 </paper-listbox>
               </paper-dropdown-menu>
@@ -172,16 +178,19 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 @value-changed=${this._valueChanged}
               ></paper-input>
               <paper-dropdown-menu
-                  label="Default view (Optional)"
-                  @value-changed=${this._valueChanged}
-                  .configValue=${'view_default'}
+                label="Default view (Optional)"
+                @value-changed=${this._valueChanged}
+                .configValue=${'view_default'}
               >
-                <paper-listbox slot="dropdown-content" .selected=${Object.keys(viewModes).indexOf(this._config?.view_default || '')}>
-                  ${Object.keys(viewModes).map(key => {
+                <paper-listbox
+                  slot="dropdown-content"
+                  .selected=${Object.keys(viewModes).indexOf(
+                    this._config?.view_default || '',
+                  )}
+                >
+                  ${Object.keys(viewModes).map((key) => {
                     return html`
-                      <paper-item .label="${key}">
-                      ${viewModes[key]}
-                      </paper-item>
+                      <paper-item .label="${key}"> ${viewModes[key]} </paper-item>
                     `;
                   })}
                 </paper-listbox>
@@ -190,13 +199,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 label="View timeout (seconds)"
                 prevent-invalid-input
                 allowed-pattern="[0-9]"
-                .value=${this._config?.view_timeout ? String(this._config.view_timeout) : ''}
+                .value=${this._config?.view_timeout
+                  ? String(this._config.view_timeout)
+                  : ''}
                 .configValue=${'view_timeout'}
                 @value-changed=${this._valueChanged}
               ></paper-input>
             </div>`
-          : ''
-        }
+          : ''}
         <div class="option" @click=${this._toggleOption} .option=${'advanced'}>
           <div class="row">
             <ha-icon .icon=${`mdi:${options.advanced.icon}`}></ha-icon>
@@ -205,25 +215,23 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           <div class="secondary">${options.advanced.secondary}</div>
         </div>
         ${options.advanced.show
-          ? html`
-            <div class="values">
-              <paper-input
-                label="Frigate zone filter (Optional)"
-                .value=${this._config?.zone || ''}
-                .configValue=${'zone'}
-                @value-changed=${this._valueChanged}
-              ></paper-input>
-            </div>
-            <div class="values">
-              <paper-input
-                label="Frigate label/object filter (Optional)"
-                .value=${this._config?.label || ''}
-                .configValue=${'label'}
-                @value-changed=${this._valueChanged}
-              ></paper-input>
-            </div>`
-          : ''
-        }
+          ? html` <div class="values">
+                <paper-input
+                  label="Frigate zone filter (Optional)"
+                  .value=${this._config?.zone || ''}
+                  .configValue=${'zone'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+              </div>
+              <div class="values">
+                <paper-input
+                  label="Frigate label/object filter (Optional)"
+                  .value=${this._config?.label || ''}
+                  .configValue=${'label'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+              </div>`
+          : ''}
         <div class="option" @click=${this._toggleOption} .option=${'webrtc'}>
           <div class="row">
             <ha-icon .icon=${`mdi:${options.webrtc.icon}`}></ha-icon>
@@ -232,39 +240,41 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           <div class="secondary">${options.webrtc.secondary}</div>
         </div>
         ${options.webrtc.show
-          ? html`
-            <div class="values">
+          ? html` <div class="values">
               <paper-dropdown-menu
-                  label="WebRTC/Frigate Live provider (Optional)"
-                  @value-changed=${this._valueChanged}
-                  .configValue=${'live_provider'}
+                label="WebRTC/Frigate Live provider (Optional)"
+                @value-changed=${this._valueChanged}
+                .configValue=${'live_provider'}
               >
-                <paper-listbox slot="dropdown-content" .selected=${Object.keys(liveProvider).indexOf(this._config?.live_provider || '')}>
-                  ${Object.keys(liveProvider).map(key => {
+                <paper-listbox
+                  slot="dropdown-content"
+                  .selected=${Object.keys(liveProvider).indexOf(
+                    this._config?.live_provider || '',
+                  )}
+                >
+                  ${Object.keys(liveProvider).map((key) => {
                     return html`
-                      <paper-item .label="${key}"
-                      >${liveProvider[key]}
-                      </paper-item>
+                      <paper-item .label="${key}">${liveProvider[key]} </paper-item>
                     `;
                   })}
                 </paper-listbox>
               </paper-dropdown-menu>
               <paper-dropdown-menu
-                  label="WebRTC Camera Entity (To use with WebRTC Live Provider)"
-                  @value-changed=${this._valueChanged}
-                  .configValue=${'webrtc.entity'}
+                label="WebRTC Camera Entity (To use with WebRTC Live Provider)"
+                @value-changed=${this._valueChanged}
+                .configValue=${'webrtc.entity'}
               >
-                <paper-listbox slot="dropdown-content" .selected=${cameraEntities.indexOf(webrtcCameraEntity)}>
-                  ${cameraEntities.map(entity => {
-                    return html`
-                      <paper-item>${entity}</paper-item>
-                    `;
+                <paper-listbox
+                  slot="dropdown-content"
+                  .selected=${cameraEntities.indexOf(webrtcCameraEntity)}
+                >
+                  ${cameraEntities.map((entity) => {
+                    return html` <paper-item>${entity}</paper-item> `;
                   })}
                 </paper-listbox>
               </paper-dropdown-menu>
             </div>`
-          : ''
-        }
+          : ''}
       </div>
     `;
   }
@@ -307,14 +317,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     }
 
     // Need to deep copy the config so cannot use Object.assign.
-    const newConfig = JSON.parse(JSON.stringify(this._config)); 
+    const newConfig = JSON.parse(JSON.stringify(this._config));
     let objectTarget = newConfig;
 
     if (key.includes('.')) {
       const parts = key.split('.', 2);
       const configName = parts[0];
       if (!(configName in newConfig)) {
-        newConfig[configName] = {}
+        newConfig[configName] = {};
       }
       objectTarget = newConfig[configName];
       key = parts[1];
@@ -327,7 +337,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     } else if (target.value === '') {
       delete objectTarget[key];
     } else {
-      objectTarget[key] = (target.checked !== undefined ? target.checked : target.value);
+      objectTarget[key] = target.checked !== undefined ? target.checked : target.value;
     }
     this._config = newConfig;
     fireEvent(this, 'config-changed', { config: this._config });

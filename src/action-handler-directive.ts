@@ -1,9 +1,15 @@
 import { directive, PropertyPart } from 'lit-html';
 
-import { ActionHandlerDetail, ActionHandlerOptions } from 'custom-card-helpers/dist/types';
+import {
+  ActionHandlerDetail,
+  ActionHandlerOptions,
+} from 'custom-card-helpers/dist/types';
 import { fireEvent } from 'custom-card-helpers';
 
-const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
+const isTouch =
+  'ontouchstart' in window ||
+  navigator.maxTouchPoints > 0 ||
+  navigator.msMaxTouchPoints > 0;
 
 interface ActionHandler extends HTMLElement {
   holdTime: number;
@@ -49,7 +55,15 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     this.appendChild(this.ripple);
     this.ripple.primary = true;
 
-    ['touchcancel', 'mouseout', 'mouseup', 'touchmove', 'mousewheel', 'wheel', 'scroll'].forEach(ev => {
+    [
+      'touchcancel',
+      'mouseout',
+      'mouseup',
+      'touchmove',
+      'mousewheel',
+      'wheel',
+      'scroll',
+    ].forEach((ev) => {
       document.addEventListener(
         ev,
         () => {
@@ -111,7 +125,10 @@ class ActionHandler extends HTMLElement implements ActionHandler {
       if (this.held) {
         fireEvent(element, 'action', { action: 'hold' });
       } else if (options.hasDoubleClick) {
-        if ((ev.type === 'click' && (ev as MouseEvent).detail < 2) || !this.dblClickTimeout) {
+        if (
+          (ev.type === 'click' && (ev as MouseEvent).detail < 2) ||
+          !this.dblClickTimeout
+        ) {
           this.dblClickTimeout = window.setTimeout(() => {
             this.dblClickTimeout = undefined;
             fireEvent(element, 'action', { action: 'tap' });
@@ -175,7 +192,10 @@ const getActionHandler = (): ActionHandler => {
   return actionhandler as ActionHandler;
 };
 
-export const actionHandlerBind = (element: ActionHandlerElement, options: ActionHandlerOptions): void => {
+export const actionHandlerBind = (
+  element: ActionHandlerElement,
+  options: ActionHandlerOptions,
+): void => {
   const actionhandler: ActionHandler = getActionHandler();
   if (!actionhandler) {
     return;
@@ -183,6 +203,9 @@ export const actionHandlerBind = (element: ActionHandlerElement, options: Action
   actionhandler.bind(element, options);
 };
 
-export const actionHandler = directive((options: ActionHandlerOptions = {}) => (part: PropertyPart): void => {
-  actionHandlerBind(part.committer.element as ActionHandlerElement, options);
-});
+export const actionHandler = directive(
+  (options: ActionHandlerOptions = {}) =>
+    (part: PropertyPart): void => {
+      actionHandlerBind(part.committer.element as ActionHandlerElement, options);
+    },
+);
