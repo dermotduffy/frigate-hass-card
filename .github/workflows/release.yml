@@ -1,3 +1,4 @@
+---
 name: Release
 
 on:
@@ -14,7 +15,6 @@ jobs:
       # Build
       - name: Build the file
         run: |
-          cd /home/runner/work/frigate-card/frigate-card
           npm install
           npm run build
 
@@ -24,7 +24,7 @@ jobs:
 
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: /home/runner/work/frigate-card/frigate-card/dist/frigate-card.js
+          file: dist/frigate-card.js
           asset_name: frigate-card.js
           tag: ${{ github.ref }}
           overwrite: true
