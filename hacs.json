@@ -1,5 +1,5 @@
 {
     "name": "Frigate Card",
     "render_readme": true,
-    "filename": "frigate-card.js"
+    "filename": "frigate-hass-card.js"
 }
