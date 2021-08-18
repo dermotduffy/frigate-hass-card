@@ -42,7 +42,7 @@ const plugins = [
 
 export default [
   {
-    input: 'src/frigate-card.ts',
+    input: 'src/frigate-hass-card.ts',
     output: {
       dir: 'dist',
       format: 'es',

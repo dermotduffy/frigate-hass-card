@@ -23,8 +23,8 @@ import {
 
 import './editor';
 
-import frigate_card_style from './frigate-card.scss';
-import frigate_card_menu_style from './frigate-card-menu.scss';
+import frigate_card_style from './frigate-hass-card.scss';
+import frigate_card_menu_style from './frigate-hass-card-menu.scss';
 
 import { frigateCardConfigSchema, frigateGetEventsResponseSchema } from './types';
 import type {

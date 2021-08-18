@@ -13,7 +13,7 @@ import { HomeAssistant, fireEvent, LovelaceCardEditor } from 'custom-card-helper
 
 import { FrigateCardConfig } from './types';
 
-import frigate_card_editor_style from './frigate-card-editor.scss';
+import frigate_card_editor_style from './frigate-hass-card-editor.scss';
 
 const options = {
   required: {
