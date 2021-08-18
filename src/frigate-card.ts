@@ -16,7 +16,7 @@ import {
 
 import { NodePart } from "lit-html";
 import { until } from 'lit-html/directives/until.js';
-import { transition } from 'lit-transition';
+
 import {
   HomeAssistant,
   fireEvent,
@@ -134,11 +134,10 @@ export class FrigateCardMenu extends LitElement {
   // Render the menu.
   protected render(): TemplateResult | void | ((part: NodePart) => Promise<void>) {
     if (!this.expand) {
-      return transition(
-        html`
-          <div class="frigate-card-menu">
-            ${this._renderFrigateButton()}
-          </div>`);
+      return html`
+        <div class="frigate-card-menu">
+          ${this._renderFrigateButton()}
+        </div>`;
     }
     
     let motionIcon: string | null = null;
@@ -146,8 +145,7 @@ export class FrigateCardMenu extends LitElement {
       motionIcon = this.hass.states[this.motionEntity]?.state == "on" ? "mdi:motion-sensor" : "mdi:walk";
     }
 
-    return transition(
-      html`
+    return html`
       <div class="frigate-card-menu-container">
         <div
             class="frigate-card-menu-expanded"
