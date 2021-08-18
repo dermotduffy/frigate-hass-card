@@ -1,10 +1,8 @@
 import {
-  ActionConfig,
   LovelaceCard,
-  LovelaceCardConfig,
   LovelaceCardEditor,
 } from 'custom-card-helpers';
-import { number, z } from 'zod';
+import { z } from 'zod';
 
 declare global {
   interface HTMLElementTagNameMap {
