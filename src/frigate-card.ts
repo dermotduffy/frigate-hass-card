@@ -1,6 +1,3 @@
-// TODO Bug: Sometimes webrtc component shows up as not found in browser (maybe after fresh build?)
-// TODO Last step: Add documentation & screenshots.
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   LitElement,
