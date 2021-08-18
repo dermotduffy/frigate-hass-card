@@ -22,14 +22,6 @@ jobs:
         run: |
           npm install
           npm run build
-
-  hacs:
-    runs-on: "ubuntu-latest"
-    name: HACS
-    steps:
-      - name: Check out the repository
-        uses: "actions/checkout@v2.3.4"
-
       - name: HACS validation
         uses: "hacs/action@21.2.2"
         with:
