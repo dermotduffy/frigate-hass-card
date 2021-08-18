@@ -205,8 +205,7 @@ export class FrigateCardMenu extends LitElement {
           </div>
         ` : ``}
       </div>
-      `
-    );
+    `;
   }
 
   // Return compiled CSS styles (thus safe to use with unsafeCSS).
