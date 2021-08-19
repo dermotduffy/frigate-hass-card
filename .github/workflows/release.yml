@@ -28,3 +28,8 @@ jobs:
           asset_name: frigate-hass-card.js
           tag: ${{ github.ref }}
           overwrite: true
+
+      - name: HACS release validation
+        uses: "hacs/action@21.2.2"
+        with:
+          category: "plugin"
