@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/github/license/dermotduffy/frigate-hass-card.svg?style=flat-square)](LICENSE)
 [![hacs](https://img.shields.io/badge/HACS-custom-orange.svg?style=flat-square)](https://hacs.xyz)
 
-<img src="images/menu_clip.png" alt="Live viewing" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu_clip.png" alt="Live viewing" width="400px">
 
 # Frigate Lovelace Card
 
@@ -54,7 +54,7 @@ WebRTC support allows the use of the ultra-realtime [WebRTC live view](https://g
 
 Note: WebRTC must be installed and configured separately (see [details](https://github.com/AlexxIT/WebRTC)).
 
-<img src="images/webrtc.png" alt="Live viewing" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/webrtc.png" alt="Live viewing" width="400px">
 
 | Option           | Description                                         |
 | ------------- | --------------------------------------------- |
@@ -79,10 +79,10 @@ For the `clip` or `snapshot` view, the most recent clip/snapshot is rendered. Th
 
 Full viewing of clips 
 
-<img src="images/gallery.png" alt="Gallery" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/gallery.png" alt="Gallery" width="400px">
 
 ## Card Editing
 
 This card supports full editing via the Lovelace card editor. Additional arbitrary configuration for WebRTC may be specified in YAML mode.
 
-<img src="images/editor.png" alt="Live viewing" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/editor.png" alt="Live viewing" width="400px">
