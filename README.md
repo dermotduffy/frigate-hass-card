@@ -22,6 +22,35 @@ A full-featured Frigate Lovelace card:
    * Full Lovelace editing support.
    * **Advanced**: Support for [WebRTC](https://github.com/AlexxIT/WebRTC) live viewing.
 
+## Installation
+
+   * Add the custom repository:
+
+```
+Home Assistant > HACS > Integrations > [...] > Custom Repositories
+```
+
+| Key            | Value                                         |
+| -------------- | --------------------------------------------- |
+| Repository URL | https://github.com/dermotduffy/frigate-hass-card |
+| Category       | Lovelace / Plugin                                 |
+
+   * Use [HACS](https://hacs.xyz/) to install the card:
+```
+Home Assistant > HACS > Integrations > "Explore & Add Integrations" > Frigate Card
+```
+   * Add the following to your `configuration.yaml`:
+
+```yaml
+lovelace:
+  resources:
+    - url: /hacsfiles/frigate-hass-card/frigate-hass-card.js
+      type: module
+```
+
+   * Restart Home Assistant.
+   * Add your new card to your Lovelace configuration!
+
 ## Options
 
 ### Required
