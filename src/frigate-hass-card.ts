@@ -374,16 +374,20 @@ export class FrigateCard extends LitElement {
     }
   }
 
-  protected _renderAttentionIcon(icon: string): TemplateResult {
+  // Render an attention grabbing icon.
+  protected _renderAttentionIcon(
+    icon: string,
+    tooltip: string | null = null,
+  ): TemplateResult {
     return html` <div class="frigate-card-attention">
-      <ha-icon icon="${icon}"> </ha-icon>
+      <ha-icon data-toggle="tooltip" title=${tooltip ? tooltip : ''} icon="${icon}">
+      </ha-icon>
     </div>`;
   }
 
   // Render an embedded error situation.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected _renderError(_error: string): TemplateResult {
-    return this._renderAttentionIcon('mdi:alert-circle');
+  protected _renderError(error: string): TemplateResult {
+    return this._renderAttentionIcon('mdi:alert-circle', error);
   }
 
   // Generate a human-readable title from an event.
@@ -419,6 +423,7 @@ export class FrigateCard extends LitElement {
     if (!events.length) {
       return this._renderAttentionIcon(
         want_clips ? 'mdi:filmstrip-off' : 'mdi:camera-off',
+        want_clips ? 'No clips' : 'No snapshots',
       );
     }
 
@@ -550,7 +555,7 @@ export class FrigateCard extends LitElement {
         return this._renderError(e);
       }
       if (!events.length) {
-        return this._renderAttentionIcon('mdi:camera-off');
+        return this._renderAttentionIcon('mdi:camera-off', 'No recent clip');
       }
       event = events[0];
     }
@@ -576,7 +581,7 @@ export class FrigateCard extends LitElement {
         return this._renderError(e);
       }
       if (!events.length) {
-        return this._renderAttentionIcon('mdi:filmstrip-off');
+        return this._renderAttentionIcon('mdi:filmstrip-off', 'No recent snapshots');
       }
       event = events[0];
     }
@@ -590,7 +595,7 @@ export class FrigateCard extends LitElement {
   // is always rendered (but sometimes hidden).
   protected _renderLiveViewer(): TemplateResult {
     if (!this._hass || !(this.config.camera_entity in this._hass.states)) {
-      return this._renderError('mdi:camera-off');
+      return this._renderAttentionIcon('mdi:camera-off', 'No live camera');
     }
     if (this._webrtcElement) {
       return html` <div class=${this._viewMode == 'live' ? 'visible' : 'invisible'}>
