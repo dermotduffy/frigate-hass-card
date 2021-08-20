@@ -104,6 +104,17 @@ Note: WebRTC must be installed and configured separately (see [details](https://
 
 For the `clip` or `snapshot` view, the most recent clip/snapshot is rendered. This will automatically update whenever the state of the `camera_entity` or `motion_entity` changes. In particular, if the desire is to have a live view of the most recent event, you should configure `motion_entity` to a Frigate binary sensor associated with that camera in order to trigger updates more regularly (the underlying camera entity state does not change often, the motion binary sensors do).
 
+### Example YAML Configuration
+
+```yaml
+- type: 'custom:frigate-card'
+  camera_entity: camera.front_door
+  frigate_url: http://frigate
+  motion_entity: binary_sensor.front_door_person_motion
+  live_provider: webrtc
+  webrtc:
+    entity: camera.front_door_rtsp
+```
 ### Screenshot: Snapshot / Clip Gallery
 
 Full viewing of clips 
