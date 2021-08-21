@@ -543,6 +543,7 @@ export class FrigateCard extends LitElement {
   // Render the player for a saved clip.
   protected async _renderClipPlayer(): Promise<TemplateResult> {
     let event: FrigateEvent, events: FrigateGetEventsResponse;
+    let autoplay = true;
     if (this._viewEvent) {
       event = this._viewEvent;
     } else {
@@ -558,10 +559,22 @@ export class FrigateCard extends LitElement {
         return this._renderAttentionIcon('mdi:camera-off', 'No recent clip');
       }
       event = events[0];
+
+      // In this block, no clip has been manually selected, so this is loading
+      // the most recent clip on card load. In this mode, autoplay of the clip
+      // may be disabled by configuration. If does not make sense to disable
+      // autoplay when the user has explicitly picked an event to play in the
+      // gallery.
+      autoplay = this.config.autoplay_clip;
     }
     this._heading = this._getEventTitle(event);
     const url = `${this.config.frigate_url}/clips/` + `${event.camera}-${event.id}.mp4`;
-    return html` <video class="frigate-card-viewer" autoplay muted controls>
+    return html` <video
+      class="frigate-card-viewer"
+      muted
+      controls
+      ?autoplay="${autoplay}"
+    >
       <source src="${url}" type="video/mp4" />
     </video>`;
   }

@@ -205,6 +205,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 .configValue=${'view_timeout'}
                 @value-changed=${this._valueChanged}
               ></paper-input>
+              <ha-formfield .label=${`Autoplay clip`}>
+                <ha-switch
+                  .checked=${this._config?.autoplay_clip !== false}
+                  .configValue=${'autoplay_clip'}
+                  @change=${this._valueChanged}
+                ></ha-switch>
+              </ha-formfield>
             </div>`
           : ''}
         <div class="option" @click=${this._toggleOption} .option=${'advanced'}>
@@ -309,8 +316,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     }
     const target = ev.target;
     let key: string = target.configValue;
-    console.log(target);
-    console.log(target.value);
 
     if (!key) {
       return;
@@ -329,10 +334,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       objectTarget = newConfig[configName];
       key = parts[1];
     }
-    //console.log(`Value is: ${target.value}`);
-    //return;
 
-    if (objectTarget[key] === target.value) {
+    if (target.value !== undefined && objectTarget[key] === target.value) {
       return;
     } else if (target.value === '') {
       delete objectTarget[key];
