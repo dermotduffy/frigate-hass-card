@@ -441,7 +441,7 @@ export class FrigateCard extends LitElement {
                 this._viewEvent = event;
                 this._viewMode = want_clips ? 'clip' : 'snapshot';
               }}
-            />
+            >
           </div>
         </li>`,
       )}
@@ -540,6 +540,21 @@ export class FrigateCard extends LitElement {
     }
   }
 
+  protected _getClipURLFromEvent(event: FrigateEvent): string | null {
+    if (!event.has_clip) {
+      return null;
+    }
+    return `${this.config.frigate_url}/clips/${event.camera}-${event.id}.mp4`;
+  }
+
+  protected _getSnapshotURLFromEvent(event: FrigateEvent): string | null {
+    if (!event.has_snapshot) {
+      return null;
+    }
+    return `${this.config.frigate_url}/clips/${event.camera}-${event.id}.jpg`;
+  }
+
+
   // Render the player for a saved clip.
   protected async _renderClipPlayer(): Promise<TemplateResult> {
     let event: FrigateEvent, events: FrigateGetEventsResponse;
@@ -567,15 +582,23 @@ export class FrigateCard extends LitElement {
       // gallery.
       autoplay = this.config.autoplay_clip;
     }
+
+    const clipURL = this._getClipURLFromEvent(event);
+    if (!clipURL) {
+      // Frigate has returned an event without a clip, even though it was
+      // specifically asked only for events with clips.
+      return this._renderAttentionIcon('mdi:camera-off', 'No recent clip');
+    }
+
     this._heading = this._getEventTitle(event);
-    const url = `${this.config.frigate_url}/clips/` + `${event.camera}-${event.id}.mp4`;
+
     return html` <video
       class="frigate-card-viewer"
       muted
       controls
       ?autoplay="${autoplay}"
     >
-      <source src="${url}" type="video/mp4" />
+      <source src="${clipURL}" type="video/mp4">
     </video>`;
   }
 
@@ -598,9 +621,27 @@ export class FrigateCard extends LitElement {
       }
       event = events[0];
     }
+
+    const snapshotURL = this._getSnapshotURLFromEvent(event);
+    if (!snapshotURL) {
+      // Frigate has returned an event without a snapshot, even though it was
+      // specifically asked only for events with snapshots.
+      return this._renderAttentionIcon('mdi:filmstrip-off', 'No recent snapshots');
+    }
+
     this._heading = this._getEventTitle(event);
-    const url = `${this.config.frigate_url}/clips/${event.camera}-${event.id}.jpg`;
-    return html`<img class="frigate-card-viewer" src="${url}" />`;
+    
+    return html`
+      <img
+        class="frigate-card-viewer"
+        src="${snapshotURL}"
+        @click=${() => {
+          if (event.has_clip) {
+            this._viewEvent = event;
+            this._viewMode = 'clip';
+          }
+        }}
+      >`;
   }
 
   // Render the live viewer.
