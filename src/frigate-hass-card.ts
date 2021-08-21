@@ -87,12 +87,14 @@ function shouldUpdateBasedOnHass(
     }
     return false;
   }
-  return true;
+  return false;
 }
 
 // A menu for the Frigate card.
 @customElement('frigate-card-menu')
 export class FrigateCardMenu extends LitElement {
+  static FRIGATE_CARD_MENU_ID: string = 'frigate-card-menu-id' as const;
+
   @property({ attribute: false })
   protected expand = false;
 
@@ -100,7 +102,7 @@ export class FrigateCardMenu extends LitElement {
   protected motionEntity: string | null = null;
 
   @property({ attribute: false })
-  protected hass: HomeAssistant | null = null;
+  public hass: HomeAssistant | null = null;
 
   @property({ attribute: false })
   protected actionCallback: FrigateCardMenuCallback | null = null;
@@ -109,11 +111,11 @@ export class FrigateCardMenu extends LitElement {
   protected heading: string | null = null;
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    return shouldUpdateBasedOnHass(
-      this.hass,
-      changedProps.get('hass') as HomeAssistant | undefined,
-      [this.motionEntity],
-    );
+    const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
+    if (oldHass) {
+      return shouldUpdateBasedOnHass(this.hass, oldHass, [this.motionEntity]);
+    }
+    return true;
   }
 
   // Render the Frigate menu button.
@@ -237,6 +239,16 @@ export class FrigateCard extends LitElement {
       this._webrtcElement.hass = hass;
     }
     this._hass = hass;
+
+    // Manually set hass in the menu. This is to allow the menu to update,
+    // without necessarily re-rendering the entire card (re-rendering interrupts
+    // clip playing).
+    const menu = this.shadowRoot?.getElementById(
+      FrigateCardMenu.FRIGATE_CARD_MENU_ID,
+    ) as FrigateCardMenu;
+    if (menu) {
+      menu.hass = hass;
+    }
   }
 
   @property({ attribute: false })
@@ -259,6 +271,9 @@ export class FrigateCard extends LitElement {
 
   protected _interactionTimerID: number | null = null;
   protected _webrtcElement: any | null = null;
+
+  // Whether or not there is an active clip being played.
+  protected _clipPlaying = false;
 
   // Set the object configuration.
   public setConfig(inputConfig: FrigateCardConfig): void {
@@ -321,11 +336,19 @@ export class FrigateCard extends LitElement {
       return true;
     }
 
-    return shouldUpdateBasedOnHass(
-      this._hass,
-      changedProps.get('_hass') as HomeAssistant | undefined,
-      [this.config.camera_entity, this.config.motion_entity],
-    );
+    const oldHass = changedProps.get('_hass') as HomeAssistant | undefined;
+    if (oldHass) {
+      // A re-render will interrupt a clip that is playing. Do not allow this
+      // for hass state updates.
+      if (this._clipPlaying) {
+        return false;
+      }
+      return shouldUpdateBasedOnHass(this._hass, oldHass, [
+        this.config.camera_entity,
+        this.config.motion_entity,
+      ]);
+    }
+    return true;
   }
 
   // Get FrigateEvents from the Frigate server API.
@@ -441,7 +464,7 @@ export class FrigateCard extends LitElement {
                 this._viewEvent = event;
                 this._viewMode = want_clips ? 'clip' : 'snapshot';
               }}
-            >
+            />
           </div>
         </li>`,
       )}
@@ -554,7 +577,6 @@ export class FrigateCard extends LitElement {
     return `${this.config.frigate_url}/clips/${event.camera}-${event.id}.jpg`;
   }
 
-
   // Render the player for a saved clip.
   protected async _renderClipPlayer(): Promise<TemplateResult> {
     let event: FrigateEvent, events: FrigateGetEventsResponse;
@@ -596,9 +618,15 @@ export class FrigateCard extends LitElement {
       class="frigate-card-viewer"
       muted
       controls
+      @play=${() => {
+        this._clipPlaying = true;
+      }}
+      @pause=${() => {
+        this._clipPlaying = false;
+      }}
       ?autoplay="${autoplay}"
     >
-      <source src="${clipURL}" type="video/mp4">
+      <source src="${clipURL}" type="video/mp4" />
     </video>`;
   }
 
@@ -630,18 +658,17 @@ export class FrigateCard extends LitElement {
     }
 
     this._heading = this._getEventTitle(event);
-    
-    return html`
-      <img
-        class="frigate-card-viewer"
-        src="${snapshotURL}"
-        @click=${() => {
-          if (event.has_clip) {
-            this._viewEvent = event;
-            this._viewMode = 'clip';
-          }
-        }}
-      >`;
+
+    return html` <img
+      class="frigate-card-viewer"
+      src="${snapshotURL}"
+      @click=${() => {
+        if (event.has_clip) {
+          this._viewEvent = event;
+          this._viewMode = 'clip';
+        }
+      }}
+    />`;
   }
 
   // Render the live viewer.
@@ -722,6 +749,7 @@ export class FrigateCard extends LitElement {
         }
         ${this._renderLiveViewer()}
         <frigate-card-menu
+            id="${FrigateCardMenu.FRIGATE_CARD_MENU_ID}"
             .motionEntity=${this.config.motion_entity}
             .hass=${this._hass}
             .actionCallback=${this._menuActionHandler.bind(this)}
