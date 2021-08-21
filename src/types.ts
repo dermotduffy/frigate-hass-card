@@ -44,7 +44,7 @@ export const frigateCardConfigSchema = z.object({
   webrtc: z.object({}).passthrough().optional(),
   label: z.string().optional(),
   zone: z.string().optional(),
-  autoplay_clip: z.boolean().default(true),
+  autoplay_clip: z.boolean().default(false),
 
   // Stock lovelace card config.
   type: z.string(),

@@ -207,7 +207,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ></paper-input>
               <ha-formfield .label=${`Autoplay clip`}>
                 <ha-switch
-                  .checked=${this._config?.autoplay_clip !== false}
+                  .checked=${this._config?.autoplay_clip === true}
                   .configValue=${'autoplay_clip'}
                   @change=${this._valueChanged}
                 ></ha-switch>
