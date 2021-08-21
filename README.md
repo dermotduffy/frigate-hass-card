@@ -1,9 +1,12 @@
+<!-- markdownlint-disable first-line-heading -->
+<!-- markdownlint-disable fenced-code-language -->
+<!-- markdownlint-disable no-inline-html -->
+
 <img src="https://raw.githubusercontent.com/blakeblackshear/frigate-hass-integration/master/frigate.png"
      alt="Frigate icon"
      width="35%"
      align="right"
      style="float: right; margin: 10px 0px 20px 20px;" />
-     
 [![GitHub Release](https://img.shields.io/github/release/dermotduffy/frigate-hass-card.svg?style=flat-square)](https://github.com/dermotduffy/frigate-hass-card/releases)
 [![Build Status](https://img.shields.io/github/workflow/status/dermotduffy/frigate-hass-card/Build?style=flat-square)](https://github.com/dermotduffy/frigate-hass-card/actions/workflows/build.yaml)
 [![License](https://img.shields.io/github/license/dermotduffy/frigate-hass-card.svg?style=flat-square)](LICENSE)
@@ -14,32 +17,37 @@
 # Frigate Lovelace Card
 
 A full-featured Frigate Lovelace card:
-   * Live viewing.
-   * Clips and snapshot browsing via mini-gallery.
-   * Automatic updating to continually show latest clip / snapshot.
-   * Support for filtering events by zone and label.
-   * Motion sensor access.
-   * Full Lovelace editing support.
-   * **Advanced**: Support for [WebRTC](https://github.com/AlexxIT/WebRTC) live viewing.
+
+* Live viewing.
+* Clips and snapshot browsing via mini-gallery.
+* Automatic updating to continually show latest clip / snapshot.
+* Support for filtering events by zone and label.
+* Motion sensor access.
+* Full Lovelace editing support.
+* **Advanced**: Support for [WebRTC](https://github.com/AlexxIT/WebRTC) live viewing.
 
 ## Installation
 
-   * Add the custom repository:
+* Add the custom repository:
 
 ```
 Home Assistant > HACS > Integrations > [...] > Custom Repositories
 ```
 
+<!-- markdownlint-disable no-bare-urls -->
 | Key            | Value                                         |
 | -------------- | --------------------------------------------- |
 | Repository URL | https://github.com/dermotduffy/frigate-hass-card |
 | Category       | Lovelace / Plugin                                 |
+<!-- markdownlint-enable no-bare-urls -->
 
-   * Use [HACS](https://hacs.xyz/) to install the card:
+* Use [HACS](https://hacs.xyz/) to install the card:
+
 ```
 Home Assistant > HACS > Integrations > "Explore & Add Integrations" > Frigate Card
 ```
-   * Add the following to your `configuration.yaml`:
+
+* Add the following to your `configuration.yaml`:
 
 ```yaml
 lovelace:
@@ -48,36 +56,37 @@ lovelace:
       type: module
 ```
 
-   * Restart Home Assistant.
-   * Add your new card to your Lovelace configuration!
+* Restart Home Assistant.
+* Add your new card to your Lovelace configuration!
 
 ## Options
 
 ### Required
 
-| Option           | Description                                         |
-| ------------- | --------------------------------------------- |
-| `camera_entity` | The Frigate camera entity to show by default on the card.|
-| `frigate_url` | The URL of the frigate server. Must be manually specified, as the URL from the underlying device is not available to Lovelace cards.|
+| Option           | Default | Description                                         |
+| ------------- | - | --------------------------------------------- |
+| `camera_entity` | | The Frigate camera entity to show by default on the card.|
+| `frigate_url` | | The URL of the frigate server. Must be manually specified, as the URL from the underlying device is not available to Lovelace cards.|
 
 ### Optional
 
-| Option           | Description                                         |
-| ------------- | --------------------------------------------- |
-| `motion_entity` | A binary sensor to show in the menu (e.g. a Frigate motion binary sensor) and to use to trigger card updates.|
-| `frigate_camera_name` | By default, the Frigate camera name is assumed to be the string after the `camera.` in the entity name. This parameter allows that heuristic to be overriden for cases where the entity name does not cleanly map to the Frigate camera name.|
-| `view_default` | The view to show by default. See [views](#views) below.|
-| `view_timeout` | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
-| `autoplay_clip` | Whether or not to autoplay clips in the 'clip' [view](#views). Clips manually chosen in the clips gallery will still autoplay.|
+| Option           | Default | Description                                         |
+| ------------- | --------------------------------------------- | - |
+| `motion_entity` | | A binary sensor to show in the menu (e.g. a Frigate motion binary sensor) and to use to trigger card updates.|
+| `frigate_camera_name` | The string after the "camera." in the `camera_entity` option (above). | This parameter allows the camera name heuristic to be overriden for cases where the entity name does not cleanly map to the Frigate camera name.|
+| `view_default` | `live` | The view to show by default. See [views](#views) below.|
+| `view_timeout` | | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
+| `autoplay_clip` | `false` | Whether or not to autoplay clips in the 'clip' [view](#views). Clips manually chosen in the clips gallery will still autoplay.|
 
 ### Advanced
 
-| Option           | Description                                         |
-| ------------- | --------------------------------------------- |
-| `label` | A label used to filter events (clips & snapshots), e.g. 'person'.|
-| `zone` | A zone used to filter events (clips & snapshots), e.g. 'front_door'.|
+| Option           | Default | Description                                         |
+| ------------- | - | --------------------------------------------- |
+| `label` | | A label used to filter events (clips & snapshots), e.g. 'person'.|
+| `zone` | | A zone used to filter events (clips & snapshots), e.g. 'front_door'.|
 
 <a name="webrtc"></a>
+
 ### WebRTC Options
 
 WebRTC support allows the use of the ultra-realtime [WebRTC live view](https://github.com/AlexxIT/WebRTC) along with the event browsing of Frigate. A perfect combination!
@@ -86,13 +95,14 @@ Note: WebRTC must be installed and configured separately (see [details](https://
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/webrtc.png" alt="Live viewing" width="400px">
 
-| Option           | Description                                         |
-| ------------- | --------------------------------------------- |
-| `live_provider` | Whether `frigate` or `webrtc` should provide the live camera view.|
-| `webrtc.entity` | The RTSP entity to use with WebRTC.|
-| `webrtc.*`| Any other options in a `webrtc:` YAML dictionary are silently passed through to WebRTC. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides.|
+| Option           | Default | Description                                         |
+| ------------- | - | -------------------------------------------- |
+| `live_provider` | | Whether `frigate` or `webrtc` should provide the live camera view.|
+| `webrtc.entity` | | The RTSP entity to use with WebRTC.|
+| `webrtc.*`| | Any other options in a `webrtc:` YAML dictionary are silently passed through to WebRTC. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides.|
 
 <a name="views"></a>
+
 ## Views
 
 | Key           | Description                                         |
@@ -106,6 +116,7 @@ Note: WebRTC must be installed and configured separately (see [details](https://
 For the `clip` or `snapshot` view, the most recent clip/snapshot is rendered. This will automatically update whenever the state of the `camera_entity` or `motion_entity` changes. In particular, if the desire is to have a live view of the most recent event, you should configure `motion_entity` to a Frigate binary sensor associated with that camera in order to trigger updates more regularly (the underlying camera entity state does not change often, the motion binary sensors do).
 
 <a name="yaml-examples"></a>
+
 ### Example YAML Configuration
 
 A configuration that uses WebRTC for live:
@@ -128,12 +139,11 @@ A configuration that shows the latest clip on load, but does not automatically p
   frigate_url: http://frigate
   motion_entity: binary_sensor.front_door_person_motion
   view_default: clip
-  autoplay_clip: false
 ```
 
 ### Screenshot: Snapshot / Clip Gallery
 
-Full viewing of clips 
+Full viewing of clips:
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/gallery.png" alt="Gallery" width="400px">
 
