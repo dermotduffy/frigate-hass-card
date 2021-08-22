@@ -651,6 +651,7 @@ export class FrigateCard extends LitElement {
         class="frigate-card-viewer"
         muted
         controls
+        playsinline
         @play=${() => {
           this._clipPlaying = true;
         }}

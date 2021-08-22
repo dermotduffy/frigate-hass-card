@@ -47,6 +47,8 @@ ha-card {
   height: 100%;
   position: relative;
   background-color: var(--secondary-background-color, black);
+
+  transform-style: preserve-3d; /* Safari brings video elements forward without this */
 }
 
 /* Don't drop shadow or have radius for nested cards: webrtc */
