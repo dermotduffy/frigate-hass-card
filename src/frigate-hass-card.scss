@@ -30,7 +30,7 @@
 }
 
 .frigate-card-image-list {
-  @include image-list.standard-columns(5, 0px);
+  @include image-list.standard-columns(5, 1px);
   @include image-list.shape-radius(5px);
 }
 
