@@ -1,7 +1,3 @@
-// TODO Put heading back
-// TODO Verify getCardSize()
-// TODO edit menu mode
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   LitElement,

@@ -103,6 +103,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       snapshot: 'Latest snapshot',
     };
 
+    const menuModes = {
+      '': '',
+      hidden: 'Hidden',
+      overlay: 'Overlay',
+      above: 'Above',
+      below: 'Below',
+    };
+
     const liveProvider = {
       '': '',
       frigate: 'Frigate',
@@ -195,6 +203,24 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   })}
                 </paper-listbox>
               </paper-dropdown-menu>
+              <paper-dropdown-menu
+                label="Menu mode (Optional)"
+                @value-changed=${this._valueChanged}
+                .configValue=${'menu_mode'}
+              >
+                <paper-listbox
+                  slot="dropdown-content"
+                  .selected=${Object.keys(menuModes).indexOf(
+                    this._config?.menu_mode || '',
+                  )}
+                >
+                  ${Object.keys(menuModes).map((key) => {
+                    return html`
+                      <paper-item .label="${key}"> ${menuModes[key]} </paper-item>
+                    `;
+                  })}
+                </paper-listbox>
+              </paper-dropdown-menu>
               <paper-input
                 label="View timeout (seconds)"
                 prevent-invalid-input
@@ -205,7 +231,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 .configValue=${'view_timeout'}
                 @value-changed=${this._valueChanged}
               ></paper-input>
-              <ha-formfield .label=${`Autoplay clip`}>
+              <ha-formfield .label=${`Autoplay latest clip`}>
                 <ha-switch
                   .checked=${this._config?.autoplay_clip === true}
                   .configValue=${'autoplay_clip'}
