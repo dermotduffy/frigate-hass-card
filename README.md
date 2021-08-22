@@ -2,7 +2,7 @@
 <!-- markdownlint-disable fenced-code-language -->
 <!-- markdownlint-disable no-inline-html -->
 
-<img src="https://raw.githubusercontent.com/blakeblackshear/frigate-hass-integration/master/frigate.png"
+<img src="https://raw.githubusercontent.com/blakeblackshear/frigate-hass-integration/master/images/frigate.png"
      alt="Frigate icon"
      width="35%"
      align="right"
