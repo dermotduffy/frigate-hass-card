@@ -1,5 +1,6 @@
 // TODO Put heading back
 // TODO Verify getCardSize()
+// TODO edit menu mode
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
@@ -269,17 +270,18 @@ export class FrigateCard extends LitElement {
   @property({ attribute: false })
   protected _viewMode: FrigateCardView = 'live';
 
-  @property({ attribute: false })
-  protected _viewEvent: FrigateEvent | null = null;
-
-  @property({ attribute: false })
-  protected _showMenu = false;
-
-  @state()
-  protected _heading: string | null = null;
-
   protected _interactionTimerID: number | null = null;
   protected _webrtcElement: any | null = null;
+
+  // Event specifically requested to be shown by the user.
+  @property({ attribute: false })
+  protected _requestedEvent: FrigateEvent | null = null;
+
+  // Event actually being shown to the user. This may be different from
+  // _requestedEvent when no particular event is requested (e.g. most recent) --
+  // in that case the requestedEvent will be null, but _eventBeingShown will be
+  // the actual event shown.
+  protected _eventBeingShown: FrigateEvent | null = null;
 
   // Whether or not there is an active clip being played.
   protected _clipPlaying = false;
@@ -325,14 +327,23 @@ export class FrigateCard extends LitElement {
     }
 
     this.config = config;
-    this._setViewModeToDefault();
+    this._changeView();
   }
 
-  // Set the view mode to the configured default.
-  protected _setViewModeToDefault(): void {
-    this._viewMode = this.config.view_default;
-    if (['clip', 'snapshot'].includes(this._viewMode)) {
-      this._viewEvent = null;
+  protected _changeView(
+      view?: FrigateCardView | undefined,
+      event?: FrigateEvent | undefined): void {
+    if (view !== undefined) {
+      this._viewMode = view;
+    } else {
+      this._viewMode = this.config.view_default;
+      if (['clip', 'snapshot'].includes(this.config.view_default)) {
+        this._requestedEvent = null;
+      }
+    }
+    this._eventBeingShown = null;
+    if (event !== undefined) {
+      this._requestedEvent = event;
     }
   }
 
@@ -469,9 +480,7 @@ export class FrigateCard extends LitElement {
               class="mdc-image-list__image"
               src="data:image/png;base64,${event.thumbnail}"
               @click=${() => {
-                this._showMenu = false;
-                this._viewEvent = event;
-                this._viewMode = want_clips ? 'clip' : 'snapshot';
+                this._changeView(want_clips ? 'clip' : 'snapshot' , event);
               }}
             />
           </div>
@@ -546,27 +555,23 @@ export class FrigateCard extends LitElement {
       case 'default':
         this._controlVideos({ stop: true, control_clip: true });
         this._controlVideos({ stop: true, control_live: true });
-        this._heading = null;
-        this._setViewModeToDefault();
+        this._changeView();
         break;      
       case 'live':
         this._controlVideos({ stop: true, control_clip: true });
         this._controlVideos({ stop: false, control_live: true });
-        this._viewMode = name;
-        this._heading = null;
+        this._changeView(name);
         break;
       case 'clips':
         this._controlVideos({ stop: true, control_live: true });
-        this._viewMode = name;
-        this._heading = null;
+        this._changeView(name);
         break;
       case 'snapshots':
         this._controlVideos({ stop: true, control_clip: true, control_live: true });
-        this._viewMode = name;
-        this._heading = null;
+        this._changeView(name);
         break;
       case 'frigate-ui':
-        window.open(this.config.frigate_url);
+        window.open(this._getFrigateURLFromContext());
         break;
       case 'motion':
         if (this.config.motion_entity) {
@@ -576,6 +581,13 @@ export class FrigateCard extends LitElement {
       default:
         console.warn('Unknown Frigate card menu option.');
     }
+  }
+
+  protected _getFrigateURLFromContext(): string {
+    if (this._eventBeingShown) {
+      return `${this.config.frigate_url}/events/${this._eventBeingShown.id}`;
+    }
+    return `${this.config.frigate_url}/cameras/${this.config.frigate_camera_name}`;
   }
 
   protected _getClipURLFromEvent(event: FrigateEvent): string | null {
@@ -596,8 +608,8 @@ export class FrigateCard extends LitElement {
   protected async _renderClipPlayer(): Promise<TemplateResult> {
     let event: FrigateEvent, events: FrigateGetEventsResponse;
     let autoplay = true;
-    if (this._viewEvent) {
-      event = this._viewEvent;
+    if (this._requestedEvent) {
+      event = this._requestedEvent;
     } else {
       try {
         events = await this._getEvents({
@@ -627,29 +639,30 @@ export class FrigateCard extends LitElement {
       return this._renderAttentionIcon('mdi:camera-off', 'No recent clip');
     }
 
-    this._heading = this._getEventTitle(event);
+    this._eventBeingShown = event;
 
     return html` <video
-      class="frigate-card-viewer"
-      muted
-      controls
-      @play=${() => {
-        this._clipPlaying = true;
-      }}
-      @pause=${() => {
-        this._clipPlaying = false;
-      }}
-      ?autoplay="${autoplay}"
-    >
-      <source src="${clipURL}" type="video/mp4" />
-    </video>`;
+        class="frigate-card-viewer"
+        muted
+        controls
+        @play=${() => {
+          this._clipPlaying = true;
+        }}
+        @pause=${() => {
+          this._clipPlaying = false;
+        }}
+        ?autoplay="${autoplay}"
+      >
+        <source src="${clipURL}" type="video/mp4" />
+      </video>
+    `;
   }
 
   // Render a snapshot.
   protected async _renderSnapshotViewer(): Promise<TemplateResult> {
     let event: FrigateEvent, events: FrigateGetEventsResponse;
-    if (this._viewEvent) {
-      event = this._viewEvent;
+    if (this._requestedEvent) {
+      event = this._requestedEvent;
     } else {
       try {
         events = await this._getEvents({
@@ -672,15 +685,14 @@ export class FrigateCard extends LitElement {
       return this._renderAttentionIcon('mdi:filmstrip-off', 'No recent snapshots');
     }
 
-    this._heading = this._getEventTitle(event);
+    this._eventBeingShown = event;
 
     return html` <img
       class="frigate-card-viewer"
       src="${snapshotURL}"
       @click=${() => {
         if (event.has_clip) {
-          this._viewEvent = event;
-          this._viewMode = 'clip';
+          this._changeView('clip', event);
         }
       }}
     />`;
@@ -715,7 +727,7 @@ export class FrigateCard extends LitElement {
     }
     this._interactionTimerID = window.setTimeout(() => {
       this._interactionTimerID = null;
-      this._setViewModeToDefault();
+      this._changeView();
     }, this.config.view_timeout * 1000);
   }
 
