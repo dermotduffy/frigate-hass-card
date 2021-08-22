@@ -48,7 +48,7 @@ Home Assistant > HACS > Integrations > [...] > Custom Repositories
 Home Assistant > HACS > Integrations > "Explore & Add Integrations" > Frigate Card
 ```
 
-* Add the following to your `configuration.yaml`:
+* Add the following to `configuration.yaml`:
 
 ```yaml
 lovelace:
@@ -58,7 +58,7 @@ lovelace:
 ```
 
 * Restart Home Assistant.
-* Add your new card to your Lovelace configuration!
+* Add the new card to the Lovelace configuration!
 
 ## Options
 
@@ -117,8 +117,24 @@ This card supports several different views.
 |`clips`|Shows the clip gallery for this camera/zone/label.|
 |`clip`|Shows the most recent clip for this camera/zone/label.|
 
-For the `clip` or `snapshot` view, the most recent clip/snapshot is rendered. This will automatically update whenever the state of the `camera_entity` or `motion_entity` changes. In particular, if the desire is to have a live view of the most recent event, you should configure `motion_entity` to a Frigate binary sensor associated with that camera in order to trigger updates more regularly (the underlying camera entity state does not change often, the motion binary sensors do).
+### Automatic updates in the `clip` or `snapshot` view
 
+Updates will occur whenever the state of the `camera_entity` or `motion_entity`
+changes. In particular, if the desire is to have a live view of the most recent
+event, the user should configure `motion_entity` to a Frigate binary sensor
+associated with that camera in order to trigger updates more regularly (the
+underlying camera entity state does not change often, the motion binary sensors
+do).
+
+### Getting from a snapshot to a clip
+
+Clicking on a snapshot will take the user to the clip associated with the
+snapshot (if any).
+
+### Getting event details
+
+More details about an event can be found by clicking the 'globe' icon in the
+menu, which takes the user to the Frigate page for that event.
 
 ## Menu Modes
 
