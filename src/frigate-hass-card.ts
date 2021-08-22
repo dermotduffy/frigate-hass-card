@@ -26,7 +26,11 @@ import './editor';
 import frigate_card_style from './frigate-hass-card.scss';
 import frigate_card_menu_style from './frigate-hass-card-menu.scss';
 
-import { frigateCardConfigSchema, frigateGetEventsResponseSchema, FrigateMenuMode } from './types';
+import {
+  frigateCardConfigSchema,
+  frigateGetEventsResponseSchema,
+  FrigateMenuMode,
+} from './types';
 import type {
   FrigateCardView,
   FrigateCardConfig,
@@ -96,7 +100,7 @@ export class FrigateCardMenu extends LitElement {
   static FRIGATE_CARD_MENU_ID: string = 'frigate-card-menu-id' as const;
 
   @property({ attribute: false })
-  protected menuMode: FrigateMenuMode = "hidden";
+  protected menuMode: FrigateMenuMode = 'hidden';
 
   @property({ attribute: false })
   protected expand = false;
@@ -122,7 +126,9 @@ export class FrigateCardMenu extends LitElement {
   protected _renderFrigateButton(): TemplateResult {
     return html` <ha-icon-button
       class="button"
-      icon=${this.menuMode != 'hidden' || this.expand ? 'mdi:alpha-f-box' : 'mdi:alpha-f-box-outline'}
+      icon=${this.menuMode != 'hidden' || this.expand
+        ? 'mdi:alpha-f-box'
+        : 'mdi:alpha-f-box-outline'}
       data-toggle="tooltip"
       title="Frigate menu"
       @click=${() => {
@@ -152,72 +158,74 @@ export class FrigateCardMenu extends LitElement {
           : 'mdi:walk';
     }
 
-    let menuClass = "frigate-card-menu-full";
-    if (["hidden", "overlay"].includes(this.menuMode)) {
+    let menuClass = 'frigate-card-menu-full';
+    if (['hidden', 'overlay'].includes(this.menuMode)) {
       if (this.menuMode == 'overlay' || this.expand) {
-        menuClass = "frigate-card-menu-overlay";
+        menuClass = 'frigate-card-menu-overlay';
       } else {
-        menuClass = "frigate-card-menu-hidden";
+        menuClass = 'frigate-card-menu-hidden';
       }
     }
 
     return html`
       <div class=${menuClass}>
         ${this._renderFrigateButton()}
-        ${this.menuMode != "hidden" || this.expand ? html`
-          <ha-icon-button
-            class="button"
-            icon="mdi:cctv"
-            data-toggle="tooltip"
-            title="View live"
-            @click=${() => {
-              this.expand = false;
-              this._callAction('live');
-            }}
-          ></ha-icon-button>
-          <ha-icon-button
-            class="button"
-            icon="mdi:filmstrip"
-            data-toggle="tooltip"
-            title="View clips"
-            @click=${() => {
-              this.expand = false;
-              this._callAction('clips');
-            }}
-          ></ha-icon-button>
-          <ha-icon-button
-            class="button"
-            icon="mdi:camera"
-            data-toggle="tooltip"
-            title="View snapshots"
-            @click=${() => {
-              this.expand = false;
-              this._callAction('snapshots');
-            }}
-          ></ha-icon-button>
-          <ha-icon-button
-            class="button"
-            icon="mdi:web"
-            data-toggle="tooltip"
-            title="View Frigate UI"
-            @click=${() => {
-              this.expand = false;
-              this._callAction('frigate-ui');
-            }}
-          ></ha-icon-button>
-          ${!motionIcon
-            ? html``
-            : html` <ha-icon-button
-                data-toggle="tooltip"
-                title="View motion sensor"
+        ${this.menuMode != 'hidden' || this.expand
+          ? html`
+              <ha-icon-button
                 class="button"
-                icon="${motionIcon}"
+                icon="mdi:cctv"
+                data-toggle="tooltip"
+                title="View live"
                 @click=${() => {
                   this.expand = false;
-                  this._callAction('motion');
+                  this._callAction('live');
                 }}
-              ></ha-icon-button>`}
-        ` : ``}
+              ></ha-icon-button>
+              <ha-icon-button
+                class="button"
+                icon="mdi:filmstrip"
+                data-toggle="tooltip"
+                title="View clips"
+                @click=${() => {
+                  this.expand = false;
+                  this._callAction('clips');
+                }}
+              ></ha-icon-button>
+              <ha-icon-button
+                class="button"
+                icon="mdi:camera"
+                data-toggle="tooltip"
+                title="View snapshots"
+                @click=${() => {
+                  this.expand = false;
+                  this._callAction('snapshots');
+                }}
+              ></ha-icon-button>
+              <ha-icon-button
+                class="button"
+                icon="mdi:web"
+                data-toggle="tooltip"
+                title="View Frigate UI"
+                @click=${() => {
+                  this.expand = false;
+                  this._callAction('frigate-ui');
+                }}
+              ></ha-icon-button>
+              ${!motionIcon
+                ? html``
+                : html` <ha-icon-button
+                    data-toggle="tooltip"
+                    title="View motion sensor"
+                    class="button"
+                    icon="${motionIcon}"
+                    @click=${() => {
+                      this.expand = false;
+                      this._callAction('motion');
+                    }}
+                  ></ha-icon-button>`}
+            `
+          : ``}
       </div>
     `;
   }
@@ -327,8 +335,9 @@ export class FrigateCard extends LitElement {
   }
 
   protected _changeView(
-      view?: FrigateCardView | undefined,
-      event?: FrigateEvent | undefined): void {
+    view?: FrigateCardView | undefined,
+    event?: FrigateEvent | undefined,
+  ): void {
     if (view !== undefined) {
       this._viewMode = view;
     } else {
@@ -476,7 +485,7 @@ export class FrigateCard extends LitElement {
               class="mdc-image-list__image"
               src="data:image/png;base64,${event.thumbnail}"
               @click=${() => {
-                this._changeView(want_clips ? 'clip' : 'snapshot' , event);
+                this._changeView(want_clips ? 'clip' : 'snapshot', event);
               }}
             />
           </div>
@@ -552,7 +561,7 @@ export class FrigateCard extends LitElement {
         this._controlVideos({ stop: true, control_clip: true });
         this._controlVideos({ stop: true, control_live: true });
         this._changeView();
-        break;      
+        break;
       case 'live':
         this._controlVideos({ stop: true, control_clip: true });
         this._controlVideos({ stop: false, control_live: true });
@@ -637,7 +646,8 @@ export class FrigateCard extends LitElement {
 
     this._eventBeingShown = event;
 
-    return html` <video
+    return html`
+      <video
         class="frigate-card-viewer"
         muted
         controls
@@ -747,48 +757,35 @@ export class FrigateCard extends LitElement {
     if (this.config.show_error) {
       return this._showError(localize('common.show_error'));
     }
-    return html`
-      <ha-card @click=${this._interactionHandler}>
-        ${this.config.menu_mode != 'below' ? this._renderMenu() : ''}
-        <div class="frigate-card-contents">
-          ${
-            this._viewMode == 'clips'
-              ? html`<div class="frigate-card-gallery">
-                  ${until(this._renderEvents(), this._renderProgressIndicator())}
-                </div>`
-              : ``
-          }
-          ${
-            this._viewMode == 'snapshots'
-              ? html`<div class="frigate-card-gallery">
-                  ${until(this._renderEvents(), this._renderProgressIndicator())}
-                </div>`
-              : ``
-          }
-          ${
-            this._viewMode == 'clip'
-              ? html`<div class="frigate-card-viewer">
-                  ${until(this._renderClipPlayer(), this._renderProgressIndicator())}
-                </div>`
-              : ``
-          }
-          ${
-            this._viewMode == 'snapshot'
-              ? html`<div class="frigate-card-viewer">
-                  ${until(this._renderSnapshotViewer(), this._renderProgressIndicator())}
-                </div>`
-              : ``
-          }
-          ${
-            this._viewMode == 'live'
-              ? html`<div class="frigate-card-viewer">
-                ${this._renderLiveViewer()}
-              </div>`
-            : ``            
-          }
-        </div>
-        ${this.config.menu_mode == 'below' ? this._renderMenu() : ''}
-      </ha-card>`;
+    return html` <ha-card @click=${this._interactionHandler}>
+      ${this.config.menu_mode != 'below' ? this._renderMenu() : ''}
+      <div class="frigate-card-contents">
+        ${this._viewMode == 'clips'
+          ? html`<div class="frigate-card-gallery">
+              ${until(this._renderEvents(), this._renderProgressIndicator())}
+            </div>`
+          : ``}
+        ${this._viewMode == 'snapshots'
+          ? html`<div class="frigate-card-gallery">
+              ${until(this._renderEvents(), this._renderProgressIndicator())}
+            </div>`
+          : ``}
+        ${this._viewMode == 'clip'
+          ? html`<div class="frigate-card-viewer">
+              ${until(this._renderClipPlayer(), this._renderProgressIndicator())}
+            </div>`
+          : ``}
+        ${this._viewMode == 'snapshot'
+          ? html`<div class="frigate-card-viewer">
+              ${until(this._renderSnapshotViewer(), this._renderProgressIndicator())}
+            </div>`
+          : ``}
+        ${this._viewMode == 'live'
+          ? html`<div class="frigate-card-viewer">${this._renderLiveViewer()}</div>`
+          : ``}
+      </div>
+      ${this.config.menu_mode == 'below' ? this._renderMenu() : ''}
+    </ha-card>`;
   }
 
   // Show a warning card.
