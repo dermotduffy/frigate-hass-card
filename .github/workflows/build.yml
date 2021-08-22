@@ -4,9 +4,7 @@ name: 'Build'
 on:
   push:
     branches:
-      - master
       - main
-      - dev
   pull_request:
   schedule:
     - cron: "17 6 * * *"

@@ -24,6 +24,7 @@ A full-featured Frigate Lovelace card:
 * Support for filtering events by zone and label.
 * Motion sensor access.
 * Full Lovelace editing support.
+* Theme friendly.
 * **Advanced**: Support for [WebRTC](https://github.com/AlexxIT/WebRTC) live viewing.
 
 ## Installation
@@ -47,7 +48,7 @@ Home Assistant > HACS > Integrations > [...] > Custom Repositories
 Home Assistant > HACS > Integrations > "Explore & Add Integrations" > Frigate Card
 ```
 
-* Add the following to your `configuration.yaml`:
+* Add the following to `configuration.yaml`:
 
 ```yaml
 lovelace:
@@ -57,7 +58,7 @@ lovelace:
 ```
 
 * Restart Home Assistant.
-* Add your new card to your Lovelace configuration!
+* Add the new card to the Lovelace configuration!
 
 ## Options
 
@@ -75,6 +76,7 @@ lovelace:
 | `motion_entity` | | A binary sensor to show in the menu (e.g. a Frigate motion binary sensor) and to use to trigger card updates.|
 | `frigate_camera_name` | The string after the "camera." in the `camera_entity` option (above). | This parameter allows the camera name heuristic to be overriden for cases where the entity name does not cleanly map to the Frigate camera name.|
 | `view_default` | `live` | The view to show by default. See [views](#views) below.|
+| `menu_mode` | `hidden` | The menu mode to show by default. See [menu modes](#menu-modes) below.|
 | `view_timeout` | | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
 | `autoplay_clip` | `false` | Whether or not to autoplay clips in the 'clip' [view](#views). Clips manually chosen in the clips gallery will still autoplay.|
 
@@ -105,15 +107,46 @@ Note: WebRTC must be installed and configured separately (see [details](https://
 
 ## Views
 
+This card supports several different views.
+
 | Key           | Description                                         |
 | ------------- | --------------------------------------------- |
-|`live`| Shows the live camera view, either the name Frigate view or [WebRTC](#webrtc) if configured.|
+|`live` (default)| Shows the live camera view, either the name Frigate view or [WebRTC](#webrtc) if configured.|
 |`snapshots`|Shows the snapshot gallery for this camera/zone/label.|
 |`snapshot`|Shows the most recent snapshot for this camera/zone/label.|
 |`clips`|Shows the clip gallery for this camera/zone/label.|
 |`clip`|Shows the most recent clip for this camera/zone/label.|
 
-For the `clip` or `snapshot` view, the most recent clip/snapshot is rendered. This will automatically update whenever the state of the `camera_entity` or `motion_entity` changes. In particular, if the desire is to have a live view of the most recent event, you should configure `motion_entity` to a Frigate binary sensor associated with that camera in order to trigger updates more regularly (the underlying camera entity state does not change often, the motion binary sensors do).
+### Automatic updates in the `clip` or `snapshot` view
+
+Updates will occur whenever the state of the `camera_entity` or `motion_entity`
+changes. In particular, if the desire is to have a live view of the most recent
+event, the user should configure `motion_entity` to a Frigate binary sensor
+associated with that camera in order to trigger updates more regularly (the
+underlying camera entity state does not change often, the motion binary sensors
+do).
+
+### Getting from a snapshot to a clip
+
+Clicking on a snapshot will take the user to the clip associated with the
+snapshot (if any).
+
+### Getting event details
+
+More details about an event can be found by clicking the 'globe' icon in the
+menu, which takes the user to the Frigate page for that event.
+
+## Menu Modes
+
+This card supports several menu configurations.
+
+| Key           | Description                                         | Screenshot |
+| ------------- | --------------------------------------------- | - |
+|`hidden`  (default)| Hide the menu by default, expandable upon clicking the 'F' button. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-hidden.png" alt="Menu hidden" width="400px"> |
+|`overlay`| Overlay the menu on top of the card contents. The 'F' button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-overlay.png" alt="Menu overlaid" width="400px"> |
+|`above`| Render the menu above the card. The 'F' button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-above.png" alt="Menu above" width="400px"> |
+|`below`| Render the menu below the card. The 'F' button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-below.png" alt="Menu below" width="400px"> |
+
 
 <a name="yaml-examples"></a>
 

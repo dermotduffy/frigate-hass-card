@@ -1,41 +1,45 @@
-.frigate-card-menu-container {
-  position: absolute;
-  top: 0px;
-  z-index: 1;
-  width: 100%;
-}
-
-.frigate-card-menu {
-  position: absolute;
-  top: 0px;
+/* Base: Not used directly */
+.frigate-card-menu-base {
   z-index: 1;
   height: 56px;
+
+  /* Menu div itself does not handle click events. Without this, in overlay
+     mode, the menu div prevents clicking on gallery items 'behind' the overlay.
+     */
+  pointer-events: none;
+}
+
+/* Small 'F' button for hidden menu */
+.frigate-card-menu-hidden {
+  @extend .frigate-card-menu-base;
+  position: absolute;
   width: 50px;
 }
 
-.frigate-card-menu-expanded {
-  @extend .frigate-card-menu;
+/* Expanded overlay menu */
+.frigate-card-menu-overlay {
+  @extend .frigate-card-menu-hidden;
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
+  background: linear-gradient(90deg, rgba(0,0,0,0.3), rgba(0,0,0,0))
 }
 
-.frigate-card-menu-title {
-  @extend .frigate-card-menu-expanded;
-  top: 56px;
-  height: 1em;
-  padding-bottom: 0.5em;
-  padding-left: 0.5em;
-  color: rgba(255, 255, 255, 0.7);
-  background-color: rgba(0, 0, 0, 0.5);
+/* Full above/below menu */
+.frigate-card-menu-full {
+  @extend .frigate-card-menu-base;
+  width: 100%;
+  background: var(--secondary-background-color);
 }
 
 ha-icon-button.button {
   position: relative;
   z-index: 10;
-  color: white;
+  color: var(--secondary-color, white);
   opacity: 0.8;
   background-color: rgba(0, 0, 0, 0.6);
   border-radius: 50%;
   padding: 0px;
   margin: 3px;
+
+  /* Buttons can always be clicked */
+  pointer-events: auto;
 }
