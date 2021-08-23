@@ -606,7 +606,7 @@ export class FrigateCard extends LitElement {
     if (!event.has_clip) {
       return null;
     }
-    return `${this.config.frigate_url}/clips/${event.camera}-${event.id}.mp4`;
+    return `${this.config.frigate_url}/vod/event/${event.id}/index.m3u8`
   }
 
   protected _getSnapshotURLFromEvent(event: FrigateEvent): string | null {
@@ -667,7 +667,7 @@ export class FrigateCard extends LitElement {
         }}
         ?autoplay="${autoplay}"
       >
-        <source src="${clipURL}" type="video/mp4" />
+        <source src="${clipURL}" type="application/x-mpegURL" />
       </video>
     `;
   }
