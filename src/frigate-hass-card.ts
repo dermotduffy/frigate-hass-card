@@ -45,6 +45,8 @@ import dayjs from 'dayjs';
 import dayjs_utc from 'dayjs/plugin/utc';
 import dayjs_timezone from 'dayjs/plugin/timezone';
 
+const URL_TROUBLESHOOTING = "https://github.com/dermotduffy/frigate-hass-card#troubleshooting";
+
 // Load dayjs plugins.
 dayjs.extend(dayjs_timezone);
 dayjs.extend(dayjs_utc);
@@ -425,17 +427,22 @@ export class FrigateCard extends LitElement {
   // Render an attention grabbing icon.
   protected _renderAttentionIcon(
     icon: string,
-    tooltip: string | null = null,
+    message: string | TemplateResult | null = null,
   ): TemplateResult {
     return html` <div class="frigate-card-attention">
-      <ha-icon data-toggle="tooltip" title=${tooltip ? tooltip : ''} icon="${icon}">
-      </ha-icon>
+      <span>
+        <ha-icon icon="${icon}">
+        </ha-icon>
+        ${message ? html`&nbsp;${message}` : ''}
+      </span>
     </div>`;
   }
 
   // Render an embedded error situation.
   protected _renderError(error: string): TemplateResult {
-    return this._renderAttentionIcon('mdi:alert-circle', error);
+    return this._renderAttentionIcon(
+      'mdi:alert-circle',
+      html`${error}. See <a href="${URL_TROUBLESHOOTING}">troubleshooting</a></span>.`);
   }
 
   // Generate a human-readable title from an event.
@@ -465,7 +472,7 @@ export class FrigateCard extends LitElement {
         has_snapshot: !want_clips,
       });
     } catch (e) {
-      return this._renderError(e);
+      return this._renderError(e.message);
     }
 
     if (!events.length) {
@@ -622,7 +629,7 @@ export class FrigateCard extends LitElement {
           limit: 1,
         });
       } catch (e) {
-        return this._renderError(e);
+        return this._renderError(e.message);
       }
       if (!events.length) {
         return this._renderAttentionIcon('mdi:camera-off', 'No recent clip');
@@ -677,7 +684,7 @@ export class FrigateCard extends LitElement {
           limit: 1,
         });
       } catch (e) {
-        return this._renderError(e);
+        return this._renderError(e.message);
       }
       if (!events.length) {
         return this._renderAttentionIcon('mdi:filmstrip-off', 'No recent snapshots');

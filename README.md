@@ -185,3 +185,34 @@ Full viewing of clips:
 This card supports full editing via the Lovelace card editor. Additional arbitrary configuration for WebRTC may be specified in YAML mode.
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/editor.png" alt="Live viewing" width="400px">
+
+## Troubleshooting
+
+### Failed to fetch / Cannot load clips or snapshots
+
+`Failed to fetch` is a generic error indicating your browser (and this card)
+could not communicate with the Frigate server specified in the card
+configuration. This could be for any number of reasons (e.g. incorrect URL,
+incorrect port, broken DNS, etc). 
+
+If the 'globe' icon in the menu bar of the card also doesn't open the Frigate
+UI, the address entered is probably incorrect/inaccessible.
+
+#### Mixed content
+
+If you are accessing your Home Assistant instance over `https`, you will likely
+receive this error unless you have configured the card to also communicate with
+Frigate via `https` (e.g. via a reverse proxy). This is because the browser is
+blocking the attempt to mix access to both `https` and `http` resources.
+
+The javascript console ([how to access](https://javascript.info/devtools)) will
+show an error such as:
+
+```
+Mixed Content: The page at '<URL>' was loaded over HTTPS, but requested an 
+insecure resource '<URL>'. This request has been blocked; the content must be
+served over HTTPS.
+```
+
+Accessing both Home Assistant and Frigate over `https` will likely resolve this
+issue (e.g. through the use of a reverse proxy in front of Frigate).
