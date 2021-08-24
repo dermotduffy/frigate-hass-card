@@ -91,9 +91,9 @@ lovelace:
 
 ### WebRTC Options
 
-WebRTC support allows the use of the ultra-realtime [WebRTC live view](https://github.com/AlexxIT/WebRTC) along with the event browsing of Frigate. A perfect combination!
-
-Note: WebRTC must be installed and configured separately (see [details](https://github.com/AlexxIT/WebRTC)).
+WebRTC support blends the use of the ultra-realtime [WebRTC live
+view](https://github.com/AlexxIT/WebRTC) with convenient access to Frigate
+events/snapshots/UI. A perfect combination!
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/webrtc.png" alt="Live viewing" width="400px">
 
@@ -102,6 +102,31 @@ Note: WebRTC must be installed and configured separately (see [details](https://
 | `live_provider` | | Whether `frigate` or `webrtc` should provide the live camera view.|
 | `webrtc.entity` | | The RTSP entity to use with WebRTC.|
 | `webrtc.*`| | Any other options in a `webrtc:` YAML dictionary are silently passed through to WebRTC. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides.|
+
+
+**Note**: WebRTC must be installed and configured separately (see [details](https://github.com/AlexxIT/WebRTC)) before it can be used with this card.
+
+#### Specifying the WebRTC Camera
+
+There are two ways to specify the WebRTC source camera:
+
+* Manual setup of separate RTSP camera entities in Home Assistant. These entities will then be available for selection in the GUI card editor for the Frigate card under the WebRTC options, or can be manually specified with a `webrtc.entity` option in YAML:
+
+```yaml
+[rest of Frigate card configuration]
+webrtc:
+  entity: 'camera.front_door_rstp`
+```
+* OR manually configuring the `url` parameter as part of a manual Frigate card configuration, like the following example:
+
+```yaml
+[rest of Frigate card configuration]
+webrtc:
+  url: 'rtsp://USERNAME:PASSWORD@CAMERA:554/RTSP_PATH'
+```
+
+ See [WebRTC configuration](https://github.com/AlexxIT/WebRTC#configuration) for full configuration options.
+
 
 <a name="views"></a>
 
