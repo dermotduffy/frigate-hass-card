@@ -66,7 +66,7 @@ lovelace:
 
 | Option           | Default | Description                                         |
 | ------------- | - | --------------------------------------------- |
-| `camera_entity` | | The Frigate camera entity to show by default on the card.|
+| `camera_entity` | | The Frigate camera entity to use in the live camera view.|
 | `frigate_url` | | The URL of the frigate server. Must be manually specified, as the URL from the underlying device is not available to Lovelace cards.|
 
 ### Optional
@@ -74,7 +74,7 @@ lovelace:
 | Option           | Default | Description                                         |
 | ------------- | --------------------------------------------- | - |
 | `motion_entity` | | A binary sensor to show in the menu (e.g. a Frigate motion binary sensor) and to use to trigger card updates.|
-| `frigate_camera_name` | The string after the "camera." in the `camera_entity` option (above). | This parameter allows the camera name heuristic to be overriden for cases where the entity name does not cleanly map to the Frigate camera name.|
+| `frigate_camera_name` | The string after the "camera." in the `camera_entity` option (above). | This parameter allows the camera name heuristic to be overriden for cases where the entity name does not cleanly map to the Frigate camera name (e.g. when the Frigate camera name is capitalized, but the entity name is lower case). This camera name is used for communicating with the Frigate backend, e.g. for fetching events. |
 | `view_default` | `live` | The view to show by default. See [views](#views) below.|
 | `menu_mode` | `hidden` | The menu mode to show by default. See [menu modes](#menu-modes) below.|
 | `view_timeout` | | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
