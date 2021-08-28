@@ -408,13 +408,13 @@ export class FrigateCard extends LitElement {
       let raw_json;
       try {
         raw_json = await response.json();
-      } catch (e) {
+      } catch (e: any) {
         console.warn(e);
         throw new Error(`Could not JSON decode Frigate API response: ${e}`);
       }
       try {
         return frigateGetEventsResponseSchema.parse(raw_json);
-      } catch (e) {
+      } catch (e: any) {
         console.warn(e);
         throw new Error(`Frigate events were malformed: ${e}`);
       }
@@ -472,7 +472,7 @@ export class FrigateCard extends LitElement {
         has_clip: want_clips,
         has_snapshot: !want_clips,
       });
-    } catch (e) {
+    } catch (e: any) {
       return this._renderError(e.message);
     }
 
@@ -629,7 +629,7 @@ export class FrigateCard extends LitElement {
           has_clip: true,
           limit: 1,
         });
-      } catch (e) {
+      } catch (e: any) {
         return this._renderError(e.message);
       }
       if (!events.length) {
@@ -709,7 +709,7 @@ export class FrigateCard extends LitElement {
           has_snapshot: true,
           limit: 1,
         });
-      } catch (e) {
+      } catch (e: any) {
         return this._renderError(e.message);
       }
       if (!events.length) {
