@@ -322,7 +322,7 @@ export class FrigateCard extends LitElement {
 
     if (config.live_provider == 'webrtc') {
       // Create a WebRTC element (https://github.com/AlexxIT/WebRTC)
-      const webrtcElement = customElements.get('webrtc-camera');
+      const webrtcElement = customElements.get('webrtc-camera') as any;
       if (webrtcElement) {
         const webrtc = new webrtcElement();
         webrtc.setConfig(config.webrtc || {});
