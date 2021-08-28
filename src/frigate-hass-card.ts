@@ -45,7 +45,8 @@ import dayjs from 'dayjs';
 import dayjs_utc from 'dayjs/plugin/utc';
 import dayjs_timezone from 'dayjs/plugin/timezone';
 
-const URL_TROUBLESHOOTING = "https://github.com/dermotduffy/frigate-hass-card#troubleshooting";
+const URL_TROUBLESHOOTING =
+  'https://github.com/dermotduffy/frigate-hass-card#troubleshooting';
 
 // Load dayjs plugins.
 dayjs.extend(dayjs_timezone);
@@ -321,7 +322,7 @@ export class FrigateCard extends LitElement {
 
     if (config.live_provider == 'webrtc') {
       // Create a WebRTC element (https://github.com/AlexxIT/WebRTC)
-      const webrtcElement = customElements.get('webrtc-camera');
+      const webrtcElement = customElements.get('webrtc-camera') as any;
       if (webrtcElement) {
         const webrtc = new webrtcElement();
         webrtc.setConfig(config.webrtc || {});
@@ -407,13 +408,13 @@ export class FrigateCard extends LitElement {
       let raw_json;
       try {
         raw_json = await response.json();
-      } catch (e) {
+      } catch (e: any) {
         console.warn(e);
         throw new Error(`Could not JSON decode Frigate API response: ${e}`);
       }
       try {
         return frigateGetEventsResponseSchema.parse(raw_json);
-      } catch (e) {
+      } catch (e: any) {
         console.warn(e);
         throw new Error(`Frigate events were malformed: ${e}`);
       }
@@ -431,8 +432,7 @@ export class FrigateCard extends LitElement {
   ): TemplateResult {
     return html` <div class="frigate-card-attention">
       <span>
-        <ha-icon icon="${icon}">
-        </ha-icon>
+        <ha-icon icon="${icon}"> </ha-icon>
         ${message ? html`&nbsp;${message}` : ''}
       </span>
     </div>`;
@@ -442,7 +442,8 @@ export class FrigateCard extends LitElement {
   protected _renderError(error: string): TemplateResult {
     return this._renderAttentionIcon(
       'mdi:alert-circle',
-      html`${error}. See <a href="${URL_TROUBLESHOOTING}">troubleshooting</a></span>.`);
+      html`${error}. See <a href="${URL_TROUBLESHOOTING}">troubleshooting</a></span>.`,
+    );
   }
 
   // Generate a human-readable title from an event.
@@ -471,7 +472,7 @@ export class FrigateCard extends LitElement {
         has_clip: want_clips,
         has_snapshot: !want_clips,
       });
-    } catch (e) {
+    } catch (e: any) {
       return this._renderError(e.message);
     }
 
@@ -606,7 +607,7 @@ export class FrigateCard extends LitElement {
     if (!event.has_clip) {
       return null;
     }
-    return `${this.config.frigate_url}/clips/${event.camera}-${event.id}.mp4`;
+    return `${this.config.frigate_url}/vod/event/${event.id}/index.m3u8`;
   }
 
   protected _getSnapshotURLFromEvent(event: FrigateEvent): string | null {
@@ -628,7 +629,7 @@ export class FrigateCard extends LitElement {
           has_clip: true,
           limit: 1,
         });
-      } catch (e) {
+      } catch (e: any) {
         return this._renderError(e.message);
       }
       if (!events.length) {
@@ -654,22 +655,47 @@ export class FrigateCard extends LitElement {
     this._eventBeingShown = event;
 
     return html`
-      <video
+      <ha-hls-player
+        .hass=${this._hass}
+        .url=${clipURL}
         class="frigate-card-viewer"
         muted
         controls
         playsinline
-        @play=${() => {
-          this._clipPlaying = true;
-        }}
-        @pause=${() => {
-          this._clipPlaying = false;
-        }}
+        allow-exoplayer
         ?autoplay="${autoplay}"
       >
-        <source src="${clipURL}" type="video/mp4" />
-      </video>
+      </ha-hls-player>
     `;
+  }
+
+  public updated(): void {
+    this.updateComplete.then(() => {
+      // DOM elements are not always present until after updateComplete promise
+      // is resolved. Note that children of children (i.e. the underlying video
+      // element) is not always present even when the promise returns, so
+      // capture the event at the upper shadow root instead.
+      const hls_player = this.renderRoot
+        ?.querySelector('ha-card')
+        ?.querySelector('ha-hls-player');
+
+      if (hls_player) {
+        hls_player.shadowRoot?.addEventListener(
+          'play',
+          () => {
+            this._clipPlaying = true;
+          },
+          true,
+        );
+        hls_player.shadowRoot?.addEventListener(
+          'pause',
+          () => {
+            this._clipPlaying = true;
+          },
+          true,
+        );
+      }
+    });
   }
 
   // Render a snapshot.
@@ -683,7 +709,7 @@ export class FrigateCard extends LitElement {
           has_snapshot: true,
           limit: 1,
         });
-      } catch (e) {
+      } catch (e: any) {
         return this._renderError(e.message);
       }
       if (!events.length) {
