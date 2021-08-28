@@ -32,7 +32,7 @@ A full-featured Frigate Lovelace card:
 * Use [HACS](https://hacs.xyz/) to install the card:
 
 ```
-Home Assistant > HACS > Integrations > "Explore & Add Integrations" > Frigate Card
+Home Assistant > HACS > Frontend > "Explore & Add Integrations" > Frigate Card
 ```
 
 * Add the following to `configuration.yaml`:
