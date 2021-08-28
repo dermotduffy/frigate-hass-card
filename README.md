@@ -10,7 +10,7 @@
 [![GitHub Release](https://img.shields.io/github/release/dermotduffy/frigate-hass-card.svg?style=flat-square)](https://github.com/dermotduffy/frigate-hass-card/releases)
 [![Build Status](https://img.shields.io/github/workflow/status/dermotduffy/frigate-hass-card/Build?style=flat-square)](https://github.com/dermotduffy/frigate-hass-card/actions/workflows/build.yaml)
 [![License](https://img.shields.io/github/license/dermotduffy/frigate-hass-card.svg?style=flat-square)](LICENSE)
-[![hacs](https://img.shields.io/badge/HACS-custom-orange.svg?style=flat-square)](https://hacs.xyz)
+[![hacs](https://img.shields.io/badge/HACS-default-orange.svg?style=flat-square)](https://hacs.xyz)
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu_clip.png" alt="Live viewing" width="400px">
 
@@ -28,19 +28,6 @@ A full-featured Frigate Lovelace card:
 * **Advanced**: Support for [WebRTC](https://github.com/AlexxIT/WebRTC) live viewing.
 
 ## Installation
-
-* Add the custom repository:
-
-```
-Home Assistant > HACS > Integrations > [...] > Custom Repositories
-```
-
-<!-- markdownlint-disable no-bare-urls -->
-| Key            | Value                                         |
-| -------------- | --------------------------------------------- |
-| Repository URL | https://github.com/dermotduffy/frigate-hass-card |
-| Category       | Lovelace / Plugin                                 |
-<!-- markdownlint-enable no-bare-urls -->
 
 * Use [HACS](https://hacs.xyz/) to install the card:
 
