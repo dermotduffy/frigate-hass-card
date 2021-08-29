@@ -35,7 +35,6 @@ import {
 } from './types';
 import type {
   BrowseMediaSource,
-  ControlVideosParameters,
   FrigateCardView,
   FrigateCardConfig,
   FrigateMenuMode,
@@ -340,9 +339,13 @@ export class FrigateCard extends LitElement {
 
     const oldHass = changedProps.get('_hass') as HomeAssistant | undefined;
     if (oldHass) {
-      // A re-render will interrupt a clip that is playing. Do not allow this
-      // for hass state updates.
-      if (this._clipPlaying) {
+      // Home Assistant pumps a lot of updates through. Re-rendering the card is
+      // necessary at times (e.g. to update the 'clip' view as new clips
+      // arrive), but also is a jarring experience for the user (e.g. if they
+      // are browsing the mini-gallery). Do not allow re-rendering from a Home
+      // Assistant update if there's been recent interaction (e.g. clicks on the
+      // card) or if there is a clip active playing.
+      if (this._interactionTimerID || this._clipPlaying) {
         return false;
       }
       return shouldUpdateBasedOnHass(this._hass, oldHass, [
@@ -513,85 +516,20 @@ export class FrigateCard extends LitElement {
     </div>`;
   }
 
-  // Stop/Play video controls.
-  protected _controlVideos({
-    stop,
-    control_live = false,
-    control_clip = false,
-  }: ControlVideosParameters): void {
-    const controlVideo = (stop: boolean, is_live: boolean, video: HTMLVideoElement) => {
-      if (video) {
-        if (stop) {
-          video.pause();
-          video.currentTime = 0;
-        } else if (is_live) {
-          // Duration on webrtc is infinity so cannot fast-forward.
-          if (!this._webrtcElement) {
-            // If it's a live view, 'fast-forward' to most recent content.
-            const duration = video.duration;
-            video.currentTime = duration;
-          }
-          video.play();
-        }
-      }
-    };
-    if (!this.shadowRoot) {
-      return;
-    }
-    if (control_clip) {
-      controlVideo(
-        stop,
-        false,
-        this.shadowRoot?.querySelector('video.frigate-card-viewer') as HTMLVideoElement,
-      );
-    }
-    if (control_live) {
-      // Don't have direct access to the live video player as it is buried in
-      // multiple components/shadow-roots, so need to navigate the path to get to <video>.
-      if (this._webrtcElement) {
-        controlVideo(
-          stop,
-          true,
-          this.shadowRoot?.querySelector('webrtc-camera video') as HTMLVideoElement,
-        );
-      } else {
-        controlVideo(
-          stop,
-          true,
-          this.shadowRoot
-            ?.querySelector('ha-camera-stream')
-            ?.shadowRoot?.querySelector('ha-hls-player')
-            ?.shadowRoot?.querySelector('video') as HTMLVideoElement,
-        );
-      }
-    }
-  }
-
   protected _menuActionHandler(name: string): void {
     switch (name) {
       case 'frigate':
-        this._controlVideos({ stop: true, control_clip: true });
-        this._controlVideos({ stop: true, control_live: true });
         this._changeView();
         break;
       case 'live':
-        this._controlVideos({ stop: true, control_clip: true });
-        this._controlVideos({ stop: false, control_live: true });
-        this._changeView(name);
-        break;
       case 'clips':
-        this._controlVideos({ stop: true, control_live: true });
-        this._changeView(name);
-        break;
       case 'snapshots':
-        this._controlVideos({ stop: true, control_clip: true, control_live: true });
         this._changeView(name);
         break;
       case 'frigate_ui':
         const frigate_url = this._getFrigateURLFromContext();
         if (frigate_url) {
           window.open(frigate_url);
-          break;
         }
         break;
       case 'motion':

@@ -41,7 +41,6 @@ export const frigateCardConfigSchema = z.object({
   frigate_client_id: z.string().optional().default("frigate"),
   frigate_camera_name: z.string().optional(),
   view_default: z.enum(FRIGATE_CARD_VIEWS).optional().default('live'),
-
   view_timeout: z
     .number()
     .or(
@@ -50,7 +49,7 @@ export const frigateCardConfigSchema = z.object({
         .regex(/^\d+$/)
         .transform((val) => Number(val)),
     )
-    .optional(),
+    .optional().default(180),
   live_provider: z.enum(['frigate', 'webrtc']).default('frigate'),
   webrtc: z.object({}).passthrough().optional(),
   label: z.string().optional(),
@@ -65,12 +64,6 @@ export const frigateCardConfigSchema = z.object({
   test_gui: z.boolean().optional(),
 });
 export type FrigateCardConfig = z.infer<typeof frigateCardConfigSchema>;
-
-export interface ControlVideosParameters {
-  stop: boolean;
-  control_live?: boolean;
-  control_clip?: boolean;
-}
 
 export interface MediaBeingShown {
   browseMedia: BrowseMediaSource;
