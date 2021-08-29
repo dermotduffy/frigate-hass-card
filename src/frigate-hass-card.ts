@@ -1,4 +1,3 @@
-// TODO Don't show button if no Frigate url.
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   LitElement,
@@ -10,6 +9,7 @@ import {
   PropertyValues,
   state,
   unsafeCSS,
+  query,
 } from 'lit-element';
 
 import { NodePart } from 'lit-html';
@@ -30,6 +30,7 @@ import frigate_card_menu_style from './frigate-hass-card-menu.scss';
 import {
   browseMediaSourceSchema,
   frigateCardConfigSchema,
+  MenuButton,
   resolvedMediaSchema,
 } from './types';
 import type {
@@ -112,58 +113,46 @@ export class FrigateCardMenu extends LitElement {
   protected expand = false;
 
   @property({ attribute: false })
-  protected motionEntity: string | null = null;
-
-  @property({ attribute: false })
-  public hass: HomeAssistant | null = null;
-
-  @property({ attribute: false })
   protected actionCallback: FrigateCardMenuCallback | null = null;
 
-  protected shouldUpdate(changedProps: PropertyValues): boolean {
-    const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
-    if (oldHass) {
-      return shouldUpdateBasedOnHass(this.hass, oldHass, [this.motionEntity]);
-    }
-    return true;
-  }
-
-  // Render the Frigate menu button.
-  protected _renderFrigateButton(): TemplateResult {
-    return html` <ha-icon-button
-      class="button"
-      icon=${this.menuMode != 'hidden' || this.expand
-        ? 'mdi:alpha-f-box'
-        : 'mdi:alpha-f-box-outline'}
-      data-toggle="tooltip"
-      title="Frigate menu"
-      @click=${() => {
-        if (this.menuMode == 'hidden') {
-          this.expand = !this.expand;
-        } else {
-          this._callAction('default');
-        }
-      }}
-    ></ha-icon-button>`;
-  }
+  @property({ attribute: false })
+  public buttons: Map<string, MenuButton> = new Map();
 
   // Call the callback.
   protected _callAction(name: string): void {
+    if (name == 'frigate' && this.menuMode == 'hidden') {
+      this.expand = !this.expand;
+      return;
+    }
+
     if (this.actionCallback) {
       this.actionCallback(name);
     }
   }
 
+  // Render a menu button.
+  protected _renderButton(name: string, button: MenuButton): TemplateResult {
+    return html` <ha-icon-button
+      class=${button.emphasize ? "emphasized-button" : "button"}
+      icon=${button.icon || 'mdi:gesture-tap-button'}
+      data-toggle="tooltip"
+      title=${button.description}
+      @click=${() => this._callAction(name)}
+    ></ha-icon-button>`;
+  }
+
+  // Render the Frigate menu button.
+  protected _renderFrigateButton(name: string, button: MenuButton): TemplateResult {
+    const icon =
+      this.menuMode != 'hidden' || this.expand
+        ? 'mdi:alpha-f-box'
+        : 'mdi:alpha-f-box-outline';
+
+    return this._renderButton(name, Object.assign({}, button, { icon: icon }));
+  }
+
   // Render the menu.
   protected render(): TemplateResult | void | ((part: NodePart) => Promise<void>) {
-    let motionIcon: string | null = null;
-    if (this.motionEntity && this.hass) {
-      motionIcon =
-        this.hass.states[this.motionEntity]?.state == 'on'
-          ? 'mdi:motion-sensor'
-          : 'mdi:walk';
-    }
-
     let menuClass = 'frigate-card-menu-full';
     if (['hidden', 'overlay'].includes(this.menuMode)) {
       if (this.menuMode == 'overlay' || this.expand) {
@@ -175,63 +164,15 @@ export class FrigateCardMenu extends LitElement {
 
     return html`
       <div class=${menuClass}>
-        ${this._renderFrigateButton()}
-        ${this.menuMode != 'hidden' || this.expand
-          ? html`
-              <ha-icon-button
-                class="button"
-                icon="mdi:cctv"
-                data-toggle="tooltip"
-                title="View live"
-                @click=${() => {
-                  this.expand = false;
-                  this._callAction('live');
-                }}
-              ></ha-icon-button>
-              <ha-icon-button
-                class="button"
-                icon="mdi:filmstrip"
-                data-toggle="tooltip"
-                title="View clips"
-                @click=${() => {
-                  this.expand = false;
-                  this._callAction('clips');
-                }}
-              ></ha-icon-button>
-              <ha-icon-button
-                class="button"
-                icon="mdi:camera"
-                data-toggle="tooltip"
-                title="View snapshots"
-                @click=${() => {
-                  this.expand = false;
-                  this._callAction('snapshots');
-                }}
-              ></ha-icon-button>
-              <ha-icon-button
-                class="button"
-                icon="mdi:web"
-                data-toggle="tooltip"
-                title="View Frigate UI"
-                @click=${() => {
-                  this.expand = false;
-                  this._callAction('frigate-ui');
-                }}
-              ></ha-icon-button>
-              ${!motionIcon
-                ? html``
-                : html` <ha-icon-button
-                    data-toggle="tooltip"
-                    title="View motion sensor"
-                    class="button"
-                    icon="${motionIcon}"
-                    @click=${() => {
-                      this.expand = false;
-                      this._callAction('motion');
-                    }}
-                  ></ha-icon-button>`}
-            `
-          : ``}
+        ${Array.from(this.buttons.keys()).map((name) => {
+          const button = this.buttons.get(name);
+          if (button) {
+            return name === 'frigate'
+              ? this._renderFrigateButton(name, button)
+              : this._renderButton(name, button);
+          }
+          return html``;
+        })}
       </div>
     `;
   }
@@ -259,16 +200,7 @@ export class FrigateCard extends LitElement {
       this._webrtcElement.hass = hass;
     }
     this._hass = hass;
-
-    // Manually set hass in the menu. This is to allow the menu to update,
-    // without necessarily re-rendering the entire card (re-rendering interrupts
-    // clip playing).
-    const menu = this.shadowRoot?.getElementById(
-      FrigateCardMenu.FRIGATE_CARD_MENU_ID,
-    ) as FrigateCardMenu;
-    if (menu) {
-      menu.hass = hass;
-    }
+    this._updateMenu();
   }
 
   @property({ attribute: false })
@@ -296,6 +228,44 @@ export class FrigateCard extends LitElement {
 
   // Whether or not there is an active clip being played.
   protected _clipPlaying = false;
+
+  @query(FrigateCardMenu.FRIGATE_CARD_MENU_ID)
+  _menu!: FrigateCardMenu | null;
+
+  protected _updateMenu(): void {
+    // Manually set hass in the menu. This is to allow the menu to update,
+    // without necessarily re-rendering the entire card (re-rendering interrupts
+    // clip playing).
+    if (!this._menu || !this._hass) {
+      return;
+    }
+
+    this._menu.buttons = this._getMenuButtons();
+  }
+
+  protected _getMenuButtons(): Map<string, MenuButton> {
+    const buttons: Map<string, MenuButton> = new Map();
+
+    buttons.set('frigate', { description: 'Frigate Menu' });
+    buttons.set('live', { icon: 'mdi:cctv', description: 'View Live' });
+    buttons.set('clips', { icon: 'mdi:filmstrip', description: 'View Clips' });
+    buttons.set('snapshots', { icon: 'mdi:camera', description: 'View Snapshots' });
+    if (this.config.frigate_url) {
+      buttons.set('frigate_ui', { icon: 'mdi:web', description: 'View Frigate UI' });
+    }
+
+    if (this._hass && this.config.motion_entity) {
+      const on = this._hass.states[this.config.motion_entity]?.state == 'on';
+      const motionIcon = on ? 'mdi:motion-sensor' : 'mdi:walk';
+
+      buttons.set('motion', {
+        icon: motionIcon,
+        description: 'View Motion Sensor',
+        emphasize: on,
+      });
+    }
+    return buttons;
+  }
 
   protected _getParseErrorKeys(error: z.ZodError): string[] {
     const errors = error.format();
@@ -579,7 +549,7 @@ export class FrigateCard extends LitElement {
 
   protected _menuActionHandler(name: string): void {
     switch (name) {
-      case 'default':
+      case 'frigate':
         this._controlVideos({ stop: true, control_clip: true });
         this._controlVideos({ stop: true, control_live: true });
         this._changeView();
@@ -597,7 +567,7 @@ export class FrigateCard extends LitElement {
         this._controlVideos({ stop: true, control_clip: true, control_live: true });
         this._changeView(name);
         break;
-      case 'frigate-ui':
+      case 'frigate_ui':
         const frigate_url = this._getFrigateURLFromContext();
         if (frigate_url) {
           window.open(frigate_url);
@@ -806,7 +776,7 @@ export class FrigateCard extends LitElement {
           if (relatedClip) {
             this._changeView('clip', relatedClip);
           }
-        })
+        });
       }}
     />`;
   }
@@ -848,10 +818,9 @@ export class FrigateCard extends LitElement {
     return html`
       <frigate-card-menu
         id="${FrigateCardMenu.FRIGATE_CARD_MENU_ID}"
-        .motionEntity=${this.config.motion_entity}
-        .hass=${this._hass}
         .actionCallback=${this._menuActionHandler.bind(this)}
         .menuMode=${this.config.menu_mode}
+        .buttons=${this._getMenuButtons()}
       ></frigate-card-menu>
     `;
   }

@@ -77,6 +77,12 @@ export interface MediaBeingShown {
   resolvedMedia: ResolvedMedia;
 }
 
+export interface MenuButton {
+  icon?: string;
+  description: string;
+  emphasize?: boolean;
+}
+
 /**
  * Media Browser API types.
  */
