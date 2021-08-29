@@ -54,7 +54,6 @@ lovelace:
 | Option           | Default | Description                                         |
 | ------------- | - | --------------------------------------------- |
 | `camera_entity` | | The Frigate camera entity to use in the live camera view.|
-| `frigate_url` | | The URL of the frigate server. Must be manually specified, as the URL from the underlying device is not available to Lovelace cards.|
 
 ### Optional
 
@@ -64,7 +63,9 @@ lovelace:
 | `frigate_camera_name` | The string after the "camera." in the `camera_entity` option (above). | This parameter allows the camera name heuristic to be overriden for cases where the entity name does not cleanly map to the Frigate camera name (e.g. when the Frigate camera name is capitalized, but the entity name is lower case). This camera name is used for communicating with the Frigate backend, e.g. for fetching events. |
 | `view_default` | `live` | The view to show by default. See [views](#views) below.|
 | `menu_mode` | `hidden` | The menu mode to show by default. See [menu modes](#menu-modes) below.|
+| `frigate_client_id` | `frigate` | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://blakeblackshear.github.io/frigate/usage/home-assistant/#multiple-instance-support).|
 | `view_timeout` | | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
+| `frigate_url` | | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. |
 | `autoplay_clip` | `false` | Whether or not to autoplay clips in the 'clip' [view](#views). Clips manually chosen in the clips gallery will still autoplay.|
 
 ### Advanced
@@ -140,8 +141,8 @@ do).
 
 ### Getting from a snapshot to a clip
 
-Clicking on a snapshot will take the user to the clip associated with the
-snapshot (if any).
+Clicking on a snapshot will take the user to a clip that was taken at the ~same
+time as the snapshot (if any).
 
 ### Getting event details
 
@@ -200,17 +201,21 @@ This card supports full editing via the Lovelace card editor. Additional arbitra
 
 ## Troubleshooting
 
-### Failed to fetch / Cannot load clips or snapshots
+### Failed to fetch
+
+**Note:** This error should no longer be possible >= v0.1.5 .
 
 `Failed to fetch` is a generic error indicating your browser (and this card)
 could not communicate with the Frigate server specified in the card
 configuration. This could be for any number of reasons (e.g. incorrect URL,
-incorrect port, broken DNS, etc). 
+incorrect port, broken DNS, etc).
 
 If the 'globe' icon in the menu bar of the card also doesn't open the Frigate
 UI, the address entered is probably incorrect/inaccessible.
 
 #### Mixed content
+
+**Note:** This error should no longer be possible >= v0.1.5 .
 
 If you are accessing your Home Assistant instance over `https`, you will likely
 receive this error unless you have configured the card to also communicate with
