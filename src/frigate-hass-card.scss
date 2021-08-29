@@ -44,6 +44,20 @@
   @include image-list.shape-radius(5px);
 }
 
+ha-card .frigate-card-image-list-folder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  text-align: center;
+  border-style: 2px solid;
+  color: var(--secondary-text-color, white);
+  border-color: var(--secondary-text-color, black);
+  background-color: var(--primary-background-color, black);
+  --mdc-icon-size: 40px;
+  padding: 10px;
+}
+
 video, img {
   display: block;
 }
@@ -61,8 +75,8 @@ ha-card {
   transform-style: preserve-3d; /* Safari brings video elements forward without this */
 }
 
-/* Don't drop shadow or have radius for nested cards: webrtc */
-ha-card ha-card {
+/* Don't drop shadow or have radius for nested webrtc card */
+webrtc-camera ha-card {
   box-shadow: none;
   border-radius: 0px;
   background-color: var(--secondary-background-color, black);
