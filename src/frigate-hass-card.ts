@@ -120,9 +120,13 @@ export class FrigateCardMenu extends LitElement {
 
   // Call the callback.
   protected _callAction(name: string): void {
-    if (name == 'frigate' && this.menuMode == 'hidden') {
-      this.expand = !this.expand;
-      return;
+    if (this.menuMode == 'hidden') {
+      if (name == 'frigate') {
+        this.expand = !this.expand;
+        return;
+      }
+      // Collapse menu after the user clicks on something.
+      this.expand = false;
     }
 
     if (this.actionCallback) {
@@ -133,7 +137,7 @@ export class FrigateCardMenu extends LitElement {
   // Render a menu button.
   protected _renderButton(name: string, button: MenuButton): TemplateResult {
     return html` <ha-icon-button
-      class=${button.emphasize ? "emphasized-button" : "button"}
+      class=${button.emphasize ? 'emphasized-button' : 'button'}
       icon=${button.icon || 'mdi:gesture-tap-button'}
       data-toggle="tooltip"
       title=${button.description}
@@ -215,7 +219,7 @@ export class FrigateCard extends LitElement {
   protected _interactionTimerID: number | null = null;
   protected _webrtcElement: any | null = null;
 
-  // Event specifically requested to be shown by the user.
+  // A specific media source requested by the user.
   @property({ attribute: false })
   protected _requestedMediaSource: BrowseMediaSource | null = null;
 
@@ -315,22 +319,14 @@ export class FrigateCard extends LitElement {
     this._changeView();
   }
 
+  // Update the card view.
   protected _changeView(
     view?: FrigateCardView | undefined,
     mediaSource?: BrowseMediaSource | undefined,
   ): void {
-    if (view !== undefined) {
-      this._viewMode = view;
-    } else {
-      this._viewMode = this.config.view_default;
-      if (['clip', 'snapshot'].includes(this.config.view_default)) {
-        this._requestedMediaSource = null;
-      }
-    }
+    this._viewMode = view || this.config.view_default;
+    this._requestedMediaSource = mediaSource || null;
     this._mediaBeingShown = null;
-    if (mediaSource !== undefined) {
-      this._requestedMediaSource = mediaSource;
-    }
   }
 
   // Determine whether the card should be updated.
@@ -388,17 +384,27 @@ export class FrigateCard extends LitElement {
     return parseResult.data;
   }
 
-  // Browse Frigate media.
+  // Browse Frigate media with a media content id.
   protected async _browseMedia(
+    media_content_id: string,
+  ): Promise<BrowseMediaSource | null> {
+    const request = {
+      type: 'media_source/browse_media',
+      media_content_id: media_content_id,
+    };
+    return this._makeWSRequest(browseMediaSourceSchema, request);
+  }
+
+  // Browse Frigate media with query parameters.
+  protected async _browseMediaQuery(
     want_clips?: boolean,
     before?: number,
     after?: number,
   ): Promise<BrowseMediaSource | null> {
-    // Defined in:
-    // https://github.com/blakeblackshear/frigate-hass-integration/blob/master/custom_components/frigate/media_source.py
-    const request = {
-      type: 'media_source/browse_media',
-      media_content_id: [
+    return this._browseMedia(
+      // Defined in:
+      // https://github.com/blakeblackshear/frigate-hass-integration/blob/master/custom_components/frigate/media_source.py
+      [
         'media-source://frigate',
         this.config.frigate_client_id,
         'event-search',
@@ -410,8 +416,7 @@ export class FrigateCard extends LitElement {
         this.config.label,
         this.config.zone,
       ].join('/'),
-    };
-    return this._makeWSRequest(browseMediaSourceSchema, request);
+    );
   }
 
   // Resolve Frigate media identifier to a real URL.
@@ -453,7 +458,11 @@ export class FrigateCard extends LitElement {
     const want_clips = this._viewMode == 'clips';
     let media;
     try {
-      media = await this._browseMedia(want_clips);
+      if (this._requestedMediaSource) {
+        media = await this._browseMedia(this._requestedMediaSource.media_content_id);
+      } else {
+        media = await this._browseMediaQuery(want_clips);
+      }
     } catch (e: any) {
       return this._renderError(e.message);
     }
@@ -466,22 +475,33 @@ export class FrigateCard extends LitElement {
     }
 
     return html` <ul class="mdc-image-list frigate-card-image-list">
-      ${media.children.map((mediaSource) =>
-        mediaSource.can_expand
-          ? ''
-          : html` <li class="mdc-image-list__item">
-              <div class="mdc-image-list__image-aspect-container">
-                <img
-                  data-toggle="tooltip"
-                  title="${mediaSource.title}"
-                  class="mdc-image-list__image"
-                  src="${mediaSource.thumbnail}"
-                  @click=${() => {
-                    this._changeView(want_clips ? 'clip' : 'snapshot', mediaSource);
-                  }}
-                />
-              </div>
-            </li>`,
+      ${media.children.map(
+        (mediaSource) =>
+          html` <li class="mdc-image-list__item">
+            <div class="mdc-image-list__image-aspect-container">
+              ${mediaSource.can_expand
+                ? html`<div class="mdc-image-list__image">
+                    <ha-card
+                      @click=${() => {
+                        this._changeView(this._viewMode, mediaSource);
+                      }}
+                      outlined=""
+                      class="frigate-card-image-list-folder"
+                    >
+                      <div>${mediaSource.title}</div>
+                    </ha-card>
+                  </div>`
+                : html`<img
+                    data-toggle="tooltip"
+                    title="${mediaSource.title}"
+                    class="mdc-image-list__image"
+                    src="${mediaSource.thumbnail}"
+                    @click=${() => {
+                      this._changeView(want_clips ? 'clip' : 'snapshot', mediaSource);
+                    }}
+                  />`}
+            </div>
+          </li>`,
       )}
     </ul>`;
   }
@@ -645,7 +665,7 @@ export class FrigateCard extends LitElement {
     } else {
       let media;
       try {
-        media = await this._browseMedia(true);
+        media = await this._browseMediaQuery(true);
       } catch (e: any) {
         return this._renderError(e.message);
       }
@@ -726,7 +746,11 @@ export class FrigateCard extends LitElement {
     if (startTime) {
       try {
         // Fetch clips within the same second (same camera/zone/label, etc).
-        const clipsAtSameTime = await this._browseMedia(true, startTime + 1, startTime);
+        const clipsAtSameTime = await this._browseMediaQuery(
+          true,
+          startTime + 1,
+          startTime,
+        );
         if (clipsAtSameTime) {
           return this._getFirstTrueMediaItem(clipsAtSameTime);
         }
@@ -745,7 +769,7 @@ export class FrigateCard extends LitElement {
     } else {
       let media;
       try {
-        media = await this._browseMedia(false);
+        media = await this._browseMediaQuery(false);
       } catch (e: any) {
         return this._renderError(e.message);
       }
