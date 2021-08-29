@@ -36,7 +36,9 @@ export type FrigateMenuMode = typeof FRIGATE_MENU_MODES[number];
 export const frigateCardConfigSchema = z.object({
   camera_entity: z.string(),
   motion_entity: z.string().optional(),
-  frigate_url: z.string().url(),
+  // No URL validation to allow relative URLs within HA (e.g. addons).
+  frigate_url: z.string().optional(),
+  frigate_client_id: z.string().optional().default("frigate"),
   frigate_camera_name: z.string().optional(),
   view_default: z.enum(FRIGATE_CARD_VIEWS).optional().default('live'),
 
@@ -64,36 +66,54 @@ export const frigateCardConfigSchema = z.object({
 });
 export type FrigateCardConfig = z.infer<typeof frigateCardConfigSchema>;
 
-export interface GetEventsParameters {
-  has_clip?: boolean;
-  has_snapshot?: boolean;
-  limit?: number;
-}
-
 export interface ControlVideosParameters {
   stop: boolean;
   control_live?: boolean;
   control_clip?: boolean;
 }
 
+export interface MediaBeingShown {
+  browseMedia: BrowseMediaSource;
+  resolvedMedia: ResolvedMedia;
+}
+
 /**
- * Frigate API types.
+ * Media Browser API types.
  */
 
-export const frigateEventSchema = z.object({
-  camera: z.string(),
-  end_time: z.number(),
-  false_positive: z.boolean(),
-  has_clip: z.boolean(),
-  has_snapshot: z.boolean(),
-  id: z.string(),
-  label: z.string(),
-  start_time: z.number(),
-  thumbnail: z.string(),
-  top_score: z.number(),
-  zones: z.string().array(),
-});
-export type FrigateEvent = z.infer<typeof frigateEventSchema>;
+// Recursive type, cannot use type interference:
+// See: https://github.com/colinhacks/zod#recursive-types
+//
+// Server side data-type defined here: https://github.com/home-assistant/core/blob/dev/homeassistant/components/media_player/__init__.py
+export interface BrowseMediaSource {
+  title: string;
+  media_class: string;
+  media_content_type: string;
+  media_content_id: string;
+  can_play: boolean;
+  can_expand: boolean;
+  children_media_class: string | null;
+  thumbnail: string | null
+  children?: BrowseMediaSource[] | null;
+}
 
-export const frigateGetEventsResponseSchema = z.array(frigateEventSchema);
-export type FrigateGetEventsResponse = z.infer<typeof frigateGetEventsResponseSchema>;
+export const browseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.lazy(() =>
+  z.object({
+    title: z.string(),
+    media_class: z.string(),
+    media_content_type: z.string(),
+    media_content_id: z.string(),
+    can_play: z.boolean(),
+    can_expand: z.boolean(),
+    children_media_class: z.string().nullable(),
+    thumbnail: z.string().nullable(),
+    children: z.array(browseMediaSourceSchema).nullable().optional(),
+  })
+);
+
+// Server side data-type defined here: https://github.com/home-assistant/core/blob/dev/homeassistant/components/media_source/models.py
+export const resolvedMediaSchema = z.object({
+  url: z.string(),
+  mime_type: z.string(),
+});
+export type ResolvedMedia = z.infer<typeof resolvedMediaSchema>;

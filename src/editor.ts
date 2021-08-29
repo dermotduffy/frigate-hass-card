@@ -145,12 +145,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     })}
                   </paper-listbox>
                 </paper-dropdown-menu>
-                <paper-input
-                  label="Frigate URL (Required)"
-                  .value=${this._config?.frigate_url || ''}
-                  .configValue=${'frigate_url'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
               </div>
             `
           : ''}
@@ -222,6 +216,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 </paper-listbox>
               </paper-dropdown-menu>
               <paper-input
+                  label="Frigate client id (Optional, for >1 Frigate server)"
+                  .value=${this._config?.frigate_client_id || ''}
+                  .configValue=${'frigate_client_id'}
+                  @value-changed=${this._valueChanged}
+              ></paper-input>
+              <paper-input
                 label="View timeout (seconds)"
                 prevent-invalid-input
                 allowed-pattern="[0-9]"
@@ -230,6 +230,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   : ''}
                 .configValue=${'view_timeout'}
                 @value-changed=${this._valueChanged}
+              ></paper-input>
+              <paper-input
+                  label="Frigate URL (Optional, for Frigate UI button)"
+                  .value=${this._config?.frigate_url || ''}
+                  .configValue=${'frigate_url'}
+                  @value-changed=${this._valueChanged}
               ></paper-input>
               <ha-formfield .label=${`Autoplay latest clip`}>
                 <ha-switch
@@ -341,6 +347,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       return;
     }
     const target = ev.target;
+    const value = target.value?.trim();
     let key: string = target.configValue;
 
     if (!key) {
@@ -361,12 +368,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       key = parts[1];
     }
 
-    if (target.value !== undefined && objectTarget[key] === target.value) {
+    if (value !== undefined && objectTarget[key] === value) {
       return;
-    } else if (target.value === '') {
+    } else if (value === '') {
       delete objectTarget[key];
     } else {
-      objectTarget[key] = target.checked !== undefined ? target.checked : target.value;
+      objectTarget[key] = target.checked !== undefined ? target.checked : value;
     }
     this._config = newConfig;
     fireEvent(this, 'config-changed', { config: this._config });
