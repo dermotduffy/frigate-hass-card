@@ -2,7 +2,7 @@
 .frigate-card-menu-base {
   z-index: 1;
   height: 56px;
-
+  overflow: hidden;
   /* Menu div itself does not handle click events. Without this, in overlay
      mode, the menu div prevents clicking on gallery items 'behind' the overlay.
      */

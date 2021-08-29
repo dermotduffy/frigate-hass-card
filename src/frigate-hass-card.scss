@@ -7,14 +7,14 @@
 
 .frigate-card-viewer {
   width: 100%;
+  max-height: 277px;        /* Max Lovelace 16/9 video height */
 }
 
 .frigate-card-gallery {
   overflow: auto;
-  aspect-ratio: 16 / 9;
+  max-height: 277px;        /* Max Lovelace 16/9 video height */
   -ms-overflow-style: none; /* Hide scrollbar: IE and Edge */
   scrollbar-width: none;    /* Hide scrollbar: Firefox */
-  max-height: 277px;        /* Safari does not support aspect-ratio yet */
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
