@@ -9,6 +9,7 @@ import {
   PropertyValues,
   state,
   unsafeCSS,
+  query,
 } from 'lit-element';
 
 import { NodePart } from 'lit-html';
@@ -27,30 +28,33 @@ import frigate_card_style from './frigate-hass-card.scss';
 import frigate_card_menu_style from './frigate-hass-card-menu.scss';
 
 import {
+  browseMediaSourceSchema,
   frigateCardConfigSchema,
-  frigateGetEventsResponseSchema,
-  FrigateMenuMode,
+  MenuButton,
+  resolvedMediaSchema,
 } from './types';
 import type {
+  BrowseMediaSource,
+  ControlVideosParameters,
   FrigateCardView,
   FrigateCardConfig,
-  FrigateEvent,
-  FrigateGetEventsResponse,
-  GetEventsParameters,
-  ControlVideosParameters,
+  FrigateMenuMode,
+  MediaBeingShown,
+  ResolvedMedia,
 } from './types';
 import { CARD_VERSION } from './const';
 import { localize } from './localize/localize';
 import dayjs from 'dayjs';
-import dayjs_utc from 'dayjs/plugin/utc';
-import dayjs_timezone from 'dayjs/plugin/timezone';
+import dayjs_custom_parse_format from 'dayjs/plugin/customParseFormat';
+
+import { z, ZodSchema } from 'zod';
+import { MessageBase } from 'home-assistant-js-websocket';
 
 const URL_TROUBLESHOOTING =
   'https://github.com/dermotduffy/frigate-hass-card#troubleshooting';
 
-// Load dayjs plugins.
-dayjs.extend(dayjs_timezone);
-dayjs.extend(dayjs_utc);
+// Load dayjs plugin(s).
+dayjs.extend(dayjs_custom_parse_format);
 
 /* eslint no-console: 0 */
 console.info(
@@ -109,58 +113,46 @@ export class FrigateCardMenu extends LitElement {
   protected expand = false;
 
   @property({ attribute: false })
-  protected motionEntity: string | null = null;
-
-  @property({ attribute: false })
-  public hass: HomeAssistant | null = null;
-
-  @property({ attribute: false })
   protected actionCallback: FrigateCardMenuCallback | null = null;
 
-  protected shouldUpdate(changedProps: PropertyValues): boolean {
-    const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
-    if (oldHass) {
-      return shouldUpdateBasedOnHass(this.hass, oldHass, [this.motionEntity]);
-    }
-    return true;
-  }
-
-  // Render the Frigate menu button.
-  protected _renderFrigateButton(): TemplateResult {
-    return html` <ha-icon-button
-      class="button"
-      icon=${this.menuMode != 'hidden' || this.expand
-        ? 'mdi:alpha-f-box'
-        : 'mdi:alpha-f-box-outline'}
-      data-toggle="tooltip"
-      title="Frigate menu"
-      @click=${() => {
-        if (this.menuMode == 'hidden') {
-          this.expand = !this.expand;
-        } else {
-          this._callAction('default');
-        }
-      }}
-    ></ha-icon-button>`;
-  }
+  @property({ attribute: false })
+  public buttons: Map<string, MenuButton> = new Map();
 
   // Call the callback.
   protected _callAction(name: string): void {
+    if (name == 'frigate' && this.menuMode == 'hidden') {
+      this.expand = !this.expand;
+      return;
+    }
+
     if (this.actionCallback) {
       this.actionCallback(name);
     }
   }
 
+  // Render a menu button.
+  protected _renderButton(name: string, button: MenuButton): TemplateResult {
+    return html` <ha-icon-button
+      class=${button.emphasize ? "emphasized-button" : "button"}
+      icon=${button.icon || 'mdi:gesture-tap-button'}
+      data-toggle="tooltip"
+      title=${button.description}
+      @click=${() => this._callAction(name)}
+    ></ha-icon-button>`;
+  }
+
+  // Render the Frigate menu button.
+  protected _renderFrigateButton(name: string, button: MenuButton): TemplateResult {
+    const icon =
+      this.menuMode != 'hidden' || this.expand
+        ? 'mdi:alpha-f-box'
+        : 'mdi:alpha-f-box-outline';
+
+    return this._renderButton(name, Object.assign({}, button, { icon: icon }));
+  }
+
   // Render the menu.
   protected render(): TemplateResult | void | ((part: NodePart) => Promise<void>) {
-    let motionIcon: string | null = null;
-    if (this.motionEntity && this.hass) {
-      motionIcon =
-        this.hass.states[this.motionEntity]?.state == 'on'
-          ? 'mdi:motion-sensor'
-          : 'mdi:walk';
-    }
-
     let menuClass = 'frigate-card-menu-full';
     if (['hidden', 'overlay'].includes(this.menuMode)) {
       if (this.menuMode == 'overlay' || this.expand) {
@@ -172,63 +164,15 @@ export class FrigateCardMenu extends LitElement {
 
     return html`
       <div class=${menuClass}>
-        ${this._renderFrigateButton()}
-        ${this.menuMode != 'hidden' || this.expand
-          ? html`
-              <ha-icon-button
-                class="button"
-                icon="mdi:cctv"
-                data-toggle="tooltip"
-                title="View live"
-                @click=${() => {
-                  this.expand = false;
-                  this._callAction('live');
-                }}
-              ></ha-icon-button>
-              <ha-icon-button
-                class="button"
-                icon="mdi:filmstrip"
-                data-toggle="tooltip"
-                title="View clips"
-                @click=${() => {
-                  this.expand = false;
-                  this._callAction('clips');
-                }}
-              ></ha-icon-button>
-              <ha-icon-button
-                class="button"
-                icon="mdi:camera"
-                data-toggle="tooltip"
-                title="View snapshots"
-                @click=${() => {
-                  this.expand = false;
-                  this._callAction('snapshots');
-                }}
-              ></ha-icon-button>
-              <ha-icon-button
-                class="button"
-                icon="mdi:web"
-                data-toggle="tooltip"
-                title="View Frigate UI"
-                @click=${() => {
-                  this.expand = false;
-                  this._callAction('frigate-ui');
-                }}
-              ></ha-icon-button>
-              ${!motionIcon
-                ? html``
-                : html` <ha-icon-button
-                    data-toggle="tooltip"
-                    title="View motion sensor"
-                    class="button"
-                    icon="${motionIcon}"
-                    @click=${() => {
-                      this.expand = false;
-                      this._callAction('motion');
-                    }}
-                  ></ha-icon-button>`}
-            `
-          : ``}
+        ${Array.from(this.buttons.keys()).map((name) => {
+          const button = this.buttons.get(name);
+          if (button) {
+            return name === 'frigate'
+              ? this._renderFrigateButton(name, button)
+              : this._renderButton(name, button);
+          }
+          return html``;
+        })}
       </div>
     `;
   }
@@ -256,16 +200,7 @@ export class FrigateCard extends LitElement {
       this._webrtcElement.hass = hass;
     }
     this._hass = hass;
-
-    // Manually set hass in the menu. This is to allow the menu to update,
-    // without necessarily re-rendering the entire card (re-rendering interrupts
-    // clip playing).
-    const menu = this.shadowRoot?.getElementById(
-      FrigateCardMenu.FRIGATE_CARD_MENU_ID,
-    ) as FrigateCardMenu;
-    if (menu) {
-      menu.hass = hass;
-    }
+    this._updateMenu();
   }
 
   @property({ attribute: false })
@@ -282,16 +217,60 @@ export class FrigateCard extends LitElement {
 
   // Event specifically requested to be shown by the user.
   @property({ attribute: false })
-  protected _requestedEvent: FrigateEvent | null = null;
+  protected _requestedMediaSource: BrowseMediaSource | null = null;
 
-  // Event actually being shown to the user. This may be different from
-  // _requestedEvent when no particular event is requested (e.g. most recent) --
-  // in that case the requestedEvent will be null, but _eventBeingShown will be
-  // the actual event shown.
-  protected _eventBeingShown: FrigateEvent | null = null;
+  // Media (both browse item & resolved media) actually being shown to the user.
+  // This may be different from _requestedMediaSource when no particular event is
+  // requested (e.g. 'clip' view that views the most recent) -- in that case the
+  // requestedEvent will be null, but _mediaBeingShown will be the actual event
+  // shown.
+  protected _mediaBeingShown: MediaBeingShown | null = null;
 
   // Whether or not there is an active clip being played.
   protected _clipPlaying = false;
+
+  @query(FrigateCardMenu.FRIGATE_CARD_MENU_ID)
+  _menu!: FrigateCardMenu | null;
+
+  protected _updateMenu(): void {
+    // Manually set hass in the menu. This is to allow the menu to update,
+    // without necessarily re-rendering the entire card (re-rendering interrupts
+    // clip playing).
+    if (!this._menu || !this._hass) {
+      return;
+    }
+
+    this._menu.buttons = this._getMenuButtons();
+  }
+
+  protected _getMenuButtons(): Map<string, MenuButton> {
+    const buttons: Map<string, MenuButton> = new Map();
+
+    buttons.set('frigate', { description: 'Frigate Menu' });
+    buttons.set('live', { icon: 'mdi:cctv', description: 'View Live' });
+    buttons.set('clips', { icon: 'mdi:filmstrip', description: 'View Clips' });
+    buttons.set('snapshots', { icon: 'mdi:camera', description: 'View Snapshots' });
+    if (this.config.frigate_url) {
+      buttons.set('frigate_ui', { icon: 'mdi:web', description: 'View Frigate UI' });
+    }
+
+    if (this._hass && this.config.motion_entity) {
+      const on = this._hass.states[this.config.motion_entity]?.state == 'on';
+      const motionIcon = on ? 'mdi:motion-sensor' : 'mdi:walk';
+
+      buttons.set('motion', {
+        icon: motionIcon,
+        description: 'View Motion Sensor',
+        emphasize: on,
+      });
+    }
+    return buttons;
+  }
+
+  protected _getParseErrorKeys(error: z.ZodError): string[] {
+    const errors = error.format();
+    return Object.keys(errors).filter((v) => !v.startsWith('_'));
+  }
 
   // Set the object configuration.
   public setConfig(inputConfig: FrigateCardConfig): void {
@@ -301,8 +280,7 @@ export class FrigateCard extends LitElement {
 
     const parseResult = frigateCardConfigSchema.safeParse(inputConfig);
     if (!parseResult.success) {
-      const errors = parseResult.error.format();
-      const keys = Object.keys(errors).filter((v) => !v.startsWith('_'));
+      const keys = this._getParseErrorKeys(parseResult.error);
       throw new Error(localize('common.invalid_configuration') + ': ' + keys.join(', '));
     }
     const config = parseResult.data;
@@ -339,19 +317,19 @@ export class FrigateCard extends LitElement {
 
   protected _changeView(
     view?: FrigateCardView | undefined,
-    event?: FrigateEvent | undefined,
+    mediaSource?: BrowseMediaSource | undefined,
   ): void {
     if (view !== undefined) {
       this._viewMode = view;
     } else {
       this._viewMode = this.config.view_default;
       if (['clip', 'snapshot'].includes(this.config.view_default)) {
-        this._requestedEvent = null;
+        this._requestedMediaSource = null;
       }
     }
-    this._eventBeingShown = null;
-    if (event !== undefined) {
-      this._requestedEvent = event;
+    this._mediaBeingShown = null;
+    if (mediaSource !== undefined) {
+      this._requestedMediaSource = mediaSource;
     }
   }
 
@@ -379,50 +357,72 @@ export class FrigateCard extends LitElement {
     return true;
   }
 
-  // Get FrigateEvents from the Frigate server API.
-  protected async _getEvents({
-    has_clip = false,
-    has_snapshot = false,
-    limit = 100,
-  }: GetEventsParameters): Promise<FrigateGetEventsResponse> {
-    let url = `${this.config.frigate_url}/api/events?camera=${this.config.frigate_camera_name}`;
-    if (has_clip) {
-      url += `&has_clip=1`;
-    }
-    if (has_snapshot) {
-      url += `&has_snapshot=1`;
-    }
-    if (limit > 0) {
-      url += `&limit=${limit}`;
+  // Make a websocket request to Home Assistant.
+  protected async _makeWSRequest<T>(
+    schema: ZodSchema<T>,
+    request: MessageBase,
+  ): Promise<T | null> {
+    if (!this._hass) {
+      return null;
     }
 
-    if (this.config.label) {
-      url += `&label=${this.config.label}`;
-    }
-    if (this.config.zone) {
-      url += `&zone=${this.config.zone}`;
-    }
+    const response = await this._hass.callWS<T>(request);
 
-    const response = await fetch(url);
-    if (response.ok) {
-      let raw_json;
-      try {
-        raw_json = await response.json();
-      } catch (e: any) {
-        console.warn(e);
-        throw new Error(`Could not JSON decode Frigate API response: ${e}`);
-      }
-      try {
-        return frigateGetEventsResponseSchema.parse(raw_json);
-      } catch (e: any) {
-        console.warn(e);
-        throw new Error(`Frigate events were malformed: ${e}`);
-      }
-    } else {
-      const error_message = `Frigate API request failed with status: ${response.status}`;
+    if (!response) {
+      const error_message = `Received empty response from Home Assistant for request ${JSON.stringify(
+        request,
+      )}`;
       console.warn(error_message);
       throw new Error(error_message);
     }
+    const parseResult = schema.safeParse(response);
+    if (!parseResult.success) {
+      const keys = this._getParseErrorKeys(parseResult.error);
+      const error_message =
+        `Received invalid response from Home Assistant for request ${JSON.stringify(
+          request,
+        )}, ` + `invalid keys were '${keys}'`;
+      console.warn(error_message);
+      throw new Error(error_message);
+    }
+    return parseResult.data;
+  }
+
+  // Browse Frigate media.
+  protected async _browseMedia(
+    want_clips?: boolean,
+    before?: number,
+    after?: number,
+  ): Promise<BrowseMediaSource | null> {
+    // Defined in:
+    // https://github.com/blakeblackshear/frigate-hass-integration/blob/master/custom_components/frigate/media_source.py
+    const request = {
+      type: 'media_source/browse_media',
+      media_content_id: [
+        'media-source://frigate',
+        this.config.frigate_client_id,
+        'event-search',
+        want_clips ? 'clips' : 'snapshots',
+        '', // Name/Title to render (not necessary here)
+        after ? String(after) : '',
+        before ? String(before) : '',
+        this.config.frigate_camera_name,
+        this.config.label,
+        this.config.zone,
+      ].join('/'),
+    };
+    return this._makeWSRequest(browseMediaSourceSchema, request);
+  }
+
+  // Resolve Frigate media identifier to a real URL.
+  protected async _resolveMedia(
+    mediaSource: BrowseMediaSource,
+  ): Promise<ResolvedMedia | null> {
+    const request = {
+      type: 'media_source/resolve_media',
+      media_content_id: mediaSource.media_content_id,
+    };
+    return this._makeWSRequest(resolvedMediaSchema, request);
   }
 
   // Render an attention grabbing icon.
@@ -442,41 +442,23 @@ export class FrigateCard extends LitElement {
   protected _renderError(error: string): TemplateResult {
     return this._renderAttentionIcon(
       'mdi:alert-circle',
-      html`${error}. See <a href="${URL_TROUBLESHOOTING}">troubleshooting</a></span>.`,
+      html`${
+        error ? `${error} .` : `Unknown error`
+      }Check <a href="${URL_TROUBLESHOOTING}">troubleshooting</a></span>.`,
     );
-  }
-
-  // Generate a human-readable title from an event.
-  // MediaBrowser title: 2021-08-12 19:20:14 [10s, Person 76%]
-  protected _getEventTitle(event: FrigateEvent): string {
-    const date = dayjs.unix(event.end_time).tz('UTC').local();
-
-    const iso_datetime = date.format('YYYY-MM-DD HH:mm:ss');
-    const duration = Math.trunc(
-      event.end_time > event.start_time ? event.end_time - event.start_time : 0,
-    );
-    const score = Math.trunc(event.top_score * 100);
-
-    // Capitalize the label.
-    const label = event.label.charAt(0).toUpperCase() + event.label.slice(1);
-
-    return `${iso_datetime} [${duration}s, ${label} ${score}%]`;
   }
 
   // Render Frigate events into a card gallery.
   protected async _renderEvents(): Promise<TemplateResult> {
     const want_clips = this._viewMode == 'clips';
-    let events;
+    let media;
     try {
-      events = await this._getEvents({
-        has_clip: want_clips,
-        has_snapshot: !want_clips,
-      });
+      media = await this._browseMedia(want_clips);
     } catch (e: any) {
       return this._renderError(e.message);
     }
-
-    if (!events.length) {
+    const firstMediaItem = this._getFirstTrueMediaItem(media);
+    if (!firstMediaItem) {
       return this._renderAttentionIcon(
         want_clips ? 'mdi:filmstrip-off' : 'mdi:camera-off',
         want_clips ? 'No clips' : 'No snapshots',
@@ -484,20 +466,22 @@ export class FrigateCard extends LitElement {
     }
 
     return html` <ul class="mdc-image-list frigate-card-image-list">
-      ${events.map(
-        (event) => html` <li class="mdc-image-list__item">
-          <div class="mdc-image-list__image-aspect-container">
-            <img
-              data-toggle="tooltip"
-              title="${this._getEventTitle(event)}"
-              class="mdc-image-list__image"
-              src="data:image/png;base64,${event.thumbnail}"
-              @click=${() => {
-                this._changeView(want_clips ? 'clip' : 'snapshot', event);
-              }}
-            />
-          </div>
-        </li>`,
+      ${media.children.map((mediaSource) =>
+        mediaSource.can_expand
+          ? ''
+          : html` <li class="mdc-image-list__item">
+              <div class="mdc-image-list__image-aspect-container">
+                <img
+                  data-toggle="tooltip"
+                  title="${mediaSource.title}"
+                  class="mdc-image-list__image"
+                  src="${mediaSource.thumbnail}"
+                  @click=${() => {
+                    this._changeView(want_clips ? 'clip' : 'snapshot', mediaSource);
+                  }}
+                />
+              </div>
+            </li>`,
       )}
     </ul>`;
   }
@@ -565,7 +549,7 @@ export class FrigateCard extends LitElement {
 
   protected _menuActionHandler(name: string): void {
     switch (name) {
-      case 'default':
+      case 'frigate':
         this._controlVideos({ stop: true, control_clip: true });
         this._controlVideos({ stop: true, control_live: true });
         this._changeView();
@@ -583,8 +567,12 @@ export class FrigateCard extends LitElement {
         this._controlVideos({ stop: true, control_clip: true, control_live: true });
         this._changeView(name);
         break;
-      case 'frigate-ui':
-        window.open(this._getFrigateURLFromContext());
+      case 'frigate_ui':
+        const frigate_url = this._getFrigateURLFromContext();
+        if (frigate_url) {
+          window.open(frigate_url);
+          break;
+        }
         break;
       case 'motion':
         if (this.config.motion_entity) {
@@ -596,46 +584,76 @@ export class FrigateCard extends LitElement {
     }
   }
 
-  protected _getFrigateURLFromContext(): string {
-    if (this._eventBeingShown) {
-      return `${this.config.frigate_url}/events/${this._eventBeingShown.id}`;
+  // Extract the Frigate event id from the resolved media. Unfortunately, there
+  // is no way to attach metadata to BrowseMediaSource so this must suffice.
+  protected _extractEventIDFromResolvedMedia(
+    resolvedMedia: ResolvedMedia,
+  ): string | null {
+    // Example: /api/frigate/frigate/clips/camera-1630123639.21596-l1y9af.jpg?authSig=[large_string]
+    const result = resolvedMedia.url.match(/-(?<id>[\w]+)\.(jpg|m3u8|mp4)($|\?)/i);
+    if (result && result.groups) {
+      return result.groups['id'] || null;
+    }
+    return null;
+  }
+
+  protected _extractEventStartTimeFromBrowseMedia(
+    browseMedia: BrowseMediaSource,
+  ): number | null {
+    // Example: 2021-08-27 20:57:22 [10s, Person 76%]
+    const result = browseMedia.title.match(/^(?<iso_datetime>.+) \[/);
+    if (result && result.groups) {
+      const iso_datetime_str = result.groups['iso_datetime'];
+      if (iso_datetime_str) {
+        const iso_datetime = dayjs(iso_datetime_str, 'YYYY-MM-DD HH:mm:ss', true);
+        if (iso_datetime.isValid()) {
+          return iso_datetime.unix();
+        }
+      }
+    }
+    return null;
+  }
+
+  // Get the Frigate UI url.
+  protected _getFrigateURLFromContext(): string | null {
+    if (!this.config.frigate_url) {
+      return null;
+    }
+    if (this._mediaBeingShown) {
+      const eventID = this._extractEventIDFromResolvedMedia(
+        this._mediaBeingShown.resolvedMedia,
+      );
+      if (eventID) {
+        return `${this.config.frigate_url}/events/${eventID}`;
+      }
     }
     return `${this.config.frigate_url}/cameras/${this.config.frigate_camera_name}`;
   }
 
-  protected _getClipURLFromEvent(event: FrigateEvent): string | null {
-    if (!event.has_clip) {
-      return null;
-    }
-    return `${this.config.frigate_url}/vod/event/${event.id}/index.m3u8`;
-  }
-
-  protected _getSnapshotURLFromEvent(event: FrigateEvent): string | null {
-    if (!event.has_snapshot) {
-      return null;
-    }
-    return `${this.config.frigate_url}/clips/${event.camera}-${event.id}.jpg`;
+  // From a BrowseMediaSource item extract the first true media item (i.e. a
+  // clip/snapshot, not a folder).
+  protected _getFirstTrueMediaItem(media: BrowseMediaSource): BrowseMediaSource | null {
+    return media.children?.find((mediaSource) => !mediaSource.can_expand) || null;
   }
 
   // Render the player for a saved clip.
   protected async _renderClipPlayer(): Promise<TemplateResult> {
-    let event: FrigateEvent, events: FrigateGetEventsResponse;
+    let mediaSource: BrowseMediaSource;
     let autoplay = true;
-    if (this._requestedEvent) {
-      event = this._requestedEvent;
+    if (this._requestedMediaSource) {
+      mediaSource = this._requestedMediaSource;
     } else {
+      let media;
       try {
-        events = await this._getEvents({
-          has_clip: true,
-          limit: 1,
-        });
+        media = await this._browseMedia(true);
       } catch (e: any) {
         return this._renderError(e.message);
       }
-      if (!events.length) {
-        return this._renderAttentionIcon('mdi:camera-off', 'No recent clip');
+      const firstMediaItem = this._getFirstTrueMediaItem(media);
+      if (!firstMediaItem) {
+        return this._renderAttentionIcon('mdi:filmstrip-off', 'No recent clip');
       }
-      event = events[0];
+      mediaSource = firstMediaItem;
 
       // In this block, no clip has been manually selected, so this is loading
       // the most recent clip on card load. In this mode, autoplay of the clip
@@ -645,19 +663,21 @@ export class FrigateCard extends LitElement {
       autoplay = this.config.autoplay_clip;
     }
 
-    const clipURL = this._getClipURLFromEvent(event);
-    if (!clipURL) {
-      // Frigate has returned an event without a clip, even though it was
-      // specifically asked only for events with clips.
-      return this._renderAttentionIcon('mdi:camera-off', 'No recent clip');
+    const resolvedMedia = await this._resolveMedia(mediaSource);
+    if (!resolvedMedia) {
+      // Home Assistant could not resolve media item.
+      return this._renderError('Could not resolve clip URL');
     }
 
-    this._eventBeingShown = event;
+    this._mediaBeingShown = {
+      browseMedia: mediaSource,
+      resolvedMedia: resolvedMedia,
+    };
 
     return html`
       <ha-hls-player
         .hass=${this._hass}
-        .url=${clipURL}
+        .url=${resolvedMedia.url}
         class="frigate-card-viewer"
         muted
         controls
@@ -698,42 +718,65 @@ export class FrigateCard extends LitElement {
     });
   }
 
+  // Get a clip at the same time as a snapshot.
+  protected async _findRelatedClips(
+    snapshot: BrowseMediaSource,
+  ): Promise<BrowseMediaSource | null> {
+    const startTime = this._extractEventStartTimeFromBrowseMedia(snapshot);
+    if (startTime) {
+      try {
+        // Fetch clips within the same second (same camera/zone/label, etc).
+        const clipsAtSameTime = await this._browseMedia(true, startTime + 1, startTime);
+        if (clipsAtSameTime) {
+          return this._getFirstTrueMediaItem(clipsAtSameTime);
+        }
+      } catch (e: any) {
+        // Pass. This is best effort.
+      }
+    }
+    return null;
+  }
+
   // Render a snapshot.
   protected async _renderSnapshotViewer(): Promise<TemplateResult> {
-    let event: FrigateEvent, events: FrigateGetEventsResponse;
-    if (this._requestedEvent) {
-      event = this._requestedEvent;
+    let mediaSource: BrowseMediaSource;
+    if (this._requestedMediaSource) {
+      mediaSource = this._requestedMediaSource;
     } else {
+      let media;
       try {
-        events = await this._getEvents({
-          has_snapshot: true,
-          limit: 1,
-        });
+        media = await this._browseMedia(false);
       } catch (e: any) {
         return this._renderError(e.message);
       }
-      if (!events.length) {
-        return this._renderAttentionIcon('mdi:filmstrip-off', 'No recent snapshots');
+      const firstMediaItem = this._getFirstTrueMediaItem(media);
+      if (!firstMediaItem) {
+        return this._renderAttentionIcon('mdi:camera-off', 'No recent snapshots');
       }
-      event = events[0];
+      mediaSource = firstMediaItem;
     }
 
-    const snapshotURL = this._getSnapshotURLFromEvent(event);
-    if (!snapshotURL) {
-      // Frigate has returned an event without a snapshot, even though it was
-      // specifically asked only for events with snapshots.
-      return this._renderAttentionIcon('mdi:filmstrip-off', 'No recent snapshots');
+    const resolvedMedia = await this._resolveMedia(mediaSource);
+    if (!resolvedMedia) {
+      // Home Assistant could not resolve media item.
+      return this._renderError('Could not resolve snapshot URL');
     }
 
-    this._eventBeingShown = event;
+    this._mediaBeingShown = {
+      browseMedia: mediaSource,
+      resolvedMedia: resolvedMedia,
+    };
 
     return html` <img
       class="frigate-card-viewer"
-      src="${snapshotURL}"
+      src="${resolvedMedia.url}"
       @click=${() => {
-        if (event.has_clip) {
-          this._changeView('clip', event);
-        }
+        // Get clips potentially related to this snapshot.
+        this._findRelatedClips(mediaSource).then((relatedClip) => {
+          if (relatedClip) {
+            this._changeView('clip', relatedClip);
+          }
+        });
       }}
     />`;
   }
@@ -775,10 +818,9 @@ export class FrigateCard extends LitElement {
     return html`
       <frigate-card-menu
         id="${FrigateCardMenu.FRIGATE_CARD_MENU_ID}"
-        .motionEntity=${this.config.motion_entity}
-        .hass=${this._hass}
         .actionCallback=${this._menuActionHandler.bind(this)}
         .menuMode=${this.config.menu_mode}
+        .buttons=${this._getMenuButtons()}
       ></frigate-card-menu>
     `;
   }

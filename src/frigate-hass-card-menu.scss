@@ -43,3 +43,8 @@ ha-icon-button.button {
   /* Buttons can always be clicked */
   pointer-events: auto;
 }
+
+ha-icon-button.emphasized-button {
+  @extend ha-icon-button, .button;
+  color: var(--primary-color, white);
+}

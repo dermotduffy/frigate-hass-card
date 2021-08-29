@@ -3,18 +3,26 @@
 
 .frigate-card-contents {
   width: 100%;
+
+  max-height: 277px;        /* Max Lovelace 16/9 video height */
+  height: 100%;
+  aspect-ratio: 16 / 9;
 }
 
 .frigate-card-viewer {
   width: 100%;
-  max-height: 277px;        /* Max Lovelace 16/9 video height */
+
+  height: 100%;
+  aspect-ratio: 16 / 9;
 }
 
 .frigate-card-gallery {
   overflow: auto;
-  max-height: 277px;        /* Max Lovelace 16/9 video height */
   -ms-overflow-style: none; /* Hide scrollbar: IE and Edge */
   scrollbar-width: none;    /* Hide scrollbar: Firefox */
+
+  height: 100%;
+  aspect-ratio: 16 / 9;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -26,6 +34,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 0% 5% 0% 5%;
+
   height: 100%;
 }
 
