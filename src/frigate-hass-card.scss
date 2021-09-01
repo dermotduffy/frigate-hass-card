@@ -81,3 +81,21 @@ webrtc-camera ha-card {
   border-radius: 0px;
   background-color: var(--secondary-background-color, black);
 }
+
+.frigate-media-controls {
+  position: absolute;
+  z-index: 1;
+  overflow: hidden;
+  opacity: 0.8;
+  border-radius: 50%;
+  top: calc(50% - (54px /2));
+  height: 54px;
+}
+
+.frigate-media-controls.previous {
+  left: 20px;  
+}
+
+.frigate-media-controls.next {
+  right: 20px;  
+}

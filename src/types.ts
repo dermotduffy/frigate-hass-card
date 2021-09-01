@@ -116,3 +116,11 @@ export const resolvedMediaSchema = z.object({
   mime_type: z.string(),
 });
 export type ResolvedMedia = z.infer<typeof resolvedMediaSchema>;
+
+export interface BrowseMediaNeighbors {
+  previous: BrowseMediaSource | null;
+  previousIndex: number | null;
+
+  next: BrowseMediaSource | null;
+  nextIndex: number | null;
+}

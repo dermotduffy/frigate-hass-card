@@ -34,6 +34,7 @@ import {
   resolvedMediaSchema,
 } from './types';
 import type {
+  BrowseMediaNeighbors,
   BrowseMediaSource,
   FrigateCardView,
   FrigateCardConfig,
@@ -186,6 +187,41 @@ export class FrigateCardMenu extends LitElement {
   }
 }
 
+interface ViewParameters {
+  view?: FrigateCardView;
+  target?: BrowseMediaSource;
+  childIndex?: number;
+  previous?: View;
+}
+
+class View {
+  view: FrigateCardView;
+  target?: BrowseMediaSource;
+  childIndex?: number;
+  previous?: View;
+
+  constructor(params?: ViewParameters) {
+    this.view = params?.view || 'live';
+    this.target = params?.target;
+    this.childIndex = params?.childIndex;
+    this.previous = params?.previous;
+  }
+
+  public is(name: string): boolean {
+    return this.view == name;
+  }
+
+  get media(): BrowseMediaSource | undefined {
+    if (this.target) {
+      if (this.target.children && this.childIndex !== undefined) {
+        return this.target.children[this.childIndex];
+      }
+      return this.target;
+    }
+    return undefined;
+  }
+}
+
 // Main FrigateCard class.
 @customElement('frigate-card')
 export class FrigateCard extends LitElement {
@@ -212,20 +248,16 @@ export class FrigateCard extends LitElement {
   @state()
   public config!: FrigateCardConfig;
 
-  @property({ attribute: false })
-  protected _viewMode: FrigateCardView = 'live';
-
   protected _interactionTimerID: number | null = null;
   protected _webrtcElement: any | null = null;
 
-  // A specific media source requested by the user.
   @property({ attribute: false })
-  protected _requestedMediaSource: BrowseMediaSource | null = null;
+  protected _view: View = new View();
 
   // Media (both browse item & resolved media) actually being shown to the user.
-  // This may be different from _requestedMediaSource when no particular event is
+  // This may be different from _view.target when no particular event is
   // requested (e.g. 'clip' view that views the most recent) -- in that case the
-  // requestedEvent will be null, but _mediaBeingShown will be the actual event
+  // _view.target will be null, but _mediaBeingShown will be the actual event
   // shown.
   protected _mediaBeingShown: MediaBeingShown | null = null;
 
@@ -320,11 +352,13 @@ export class FrigateCard extends LitElement {
 
   // Update the card view.
   protected _changeView(
-    view?: FrigateCardView | undefined,
-    mediaSource?: BrowseMediaSource | undefined,
+    view?: View | undefined,
   ): void {
-    this._viewMode = view || this.config.view_default;
-    this._requestedMediaSource = mediaSource || null;
+    if (view === undefined) {
+      this._view = new View({view: this.config.view_default})
+    } else {
+      this._view = view;
+    }
     this._mediaBeingShown = null;
   }
 
@@ -424,8 +458,11 @@ export class FrigateCard extends LitElement {
 
   // Resolve Frigate media identifier to a real URL.
   protected async _resolveMedia(
-    mediaSource: BrowseMediaSource,
+    mediaSource: BrowseMediaSource | null,
   ): Promise<ResolvedMedia | null> {
+    if (!mediaSource) {
+      return null;
+    }
     const request = {
       type: 'media_source/resolve_media',
       media_content_id: mediaSource.media_content_id,
@@ -451,56 +488,62 @@ export class FrigateCard extends LitElement {
     return this._renderAttentionIcon(
       'mdi:alert-circle',
       html`${
-        error ? `${error} .` : `Unknown error`
+        error ? `${error} .` : `Unknown error .`
       }Check <a href="${URL_TROUBLESHOOTING}">troubleshooting</a></span>.`,
     );
   }
 
   // Render Frigate events into a card gallery.
   protected async _renderEvents(): Promise<TemplateResult> {
-    const want_clips = this._viewMode == 'clips';
-    let media;
+    let parent;
     try {
-      if (this._requestedMediaSource) {
-        media = await this._browseMedia(this._requestedMediaSource.media_content_id);
+      if (this._view.target) {
+        parent = await this._browseMedia(this._view.target.media_content_id);
       } else {
-        media = await this._browseMediaQuery(want_clips);
+        parent = await this._browseMediaQuery(this._view.is('clips'));
       }
     } catch (e: any) {
       return this._renderError(e.message);
     }
-    const firstMediaItem = this._getFirstTrueMediaItem(media);
-    if (!firstMediaItem) {
+
+    if (this._getFirstTrueMediaChildIndex(parent) == null) {
       return this._renderAttentionIcon(
-        want_clips ? 'mdi:filmstrip-off' : 'mdi:camera-off',
-        want_clips ? 'No clips' : 'No snapshots',
+        this._view.is('clips') ? 'mdi:filmstrip-off' : 'mdi:camera-off',
+        this._view.is('clips') ? 'No clips' : 'No snapshots',
       );
     }
 
     return html` <ul class="mdc-image-list frigate-card-image-list">
-      ${media.children.map(
-        (mediaSource) =>
+      ${parent.children.map(
+        (child, index) =>
           html` <li class="mdc-image-list__item">
             <div class="mdc-image-list__image-aspect-container">
-              ${mediaSource.can_expand
+              ${child.can_expand
                 ? html`<div class="mdc-image-list__image">
                     <ha-card
                       @click=${() => {
-                        this._changeView(this._viewMode, mediaSource);
+                        this._changeView(new View({
+                          view: this._view.view,
+                          target: child,
+                          previous: this._view}))
                       }}
                       outlined=""
                       class="frigate-card-image-list-folder"
                     >
-                      <div>${mediaSource.title}</div>
+                      <div>${child.title}</div>
                     </ha-card>
                   </div>`
                 : html`<img
                     data-toggle="tooltip"
-                    title="${mediaSource.title}"
+                    title="${child.title}"
                     class="mdc-image-list__image"
-                    src="${mediaSource.thumbnail}"
+                    src="${child.thumbnail}"
                     @click=${() => {
-                      this._changeView(want_clips ? 'clip' : 'snapshot', mediaSource);
+\                      this._changeView(new View({
+                        view: this._view.is('clips') ? 'clip' : 'snapshot',
+                        target: parent,
+                        childIndex: index,
+                        previous: this._view}));
                     }}
                   />`}
             </div>
@@ -524,7 +567,7 @@ export class FrigateCard extends LitElement {
       case 'live':
       case 'clips':
       case 'snapshots':
-        this._changeView(name);
+        this._changeView(new View({view: name}));
         break;
       case 'frigate_ui':
         const frigate_url = this._getFrigateURLFromContext();
@@ -590,28 +633,80 @@ export class FrigateCard extends LitElement {
 
   // From a BrowseMediaSource item extract the first true media item (i.e. a
   // clip/snapshot, not a folder).
-  protected _getFirstTrueMediaItem(media: BrowseMediaSource): BrowseMediaSource | null {
-    return media.children?.find((mediaSource) => !mediaSource.can_expand) || null;
+  protected _getFirstTrueMediaChildIndex(media: BrowseMediaSource | null): number | null {
+    if (!media || !media.children) {
+      return null;
+    }
+    for (let i = 0; i < media.children.length; i++) {
+      if (!media.children[i].can_expand) {
+        return i;
+      }
+    }
+    return null;
   }
 
-  // Render the player for a saved clip.
-  protected async _renderClipPlayer(): Promise<TemplateResult> {
-    let mediaSource: BrowseMediaSource;
+  // Get the previous and next real media items, given the index
+  protected _getMediaNeighbors(
+    parent: BrowseMediaSource,
+    index: number | null,
+  ): BrowseMediaNeighbors | null {
+    if (index == null || !parent.children) {
+      return null;
+    }
+
+    // Work backwards from the index to get the previous real media.
+    let prevIndex: number | null = null;
+    for (let i = index - 1; i >= 0; i--) {
+      const media = parent.children[i];
+      if (media && !media.can_expand) {
+        prevIndex = i;
+        break;
+      }
+    }
+
+    // Work forwards from the index to get the next real media.
+    let nextIndex: number | null = null;
+    for (let i = index + 1; i < parent.children.length; i++) {
+      const media = parent.children[i];
+      if (media && !media.can_expand) {
+        nextIndex = i;
+        break;
+      }
+    }
+
+    return {
+      previousIndex: prevIndex,
+      previous: prevIndex != null ? parent.children[prevIndex] : null,
+      nextIndex: nextIndex,
+      next: nextIndex != null ? parent.children[nextIndex] : null,
+    };
+  }
+
+  // Render the view for media.
+  protected async _renderViewer(): Promise<TemplateResult> {
     let autoplay = true;
-    if (this._requestedMediaSource) {
-      mediaSource = this._requestedMediaSource;
+
+    let parent: BrowseMediaSource | null = null;
+    let childIndex: number | null = null;
+    let mediaToRender: BrowseMediaSource | null = null;
+
+    if (this._view.target) {
+      parent = this._view.target;
+      childIndex = this._view.childIndex ?? null;
+      mediaToRender = this._view.media ?? null;
     } else {
-      let media;
       try {
-        media = await this._browseMediaQuery(true);
+        parent = await this._browseMediaQuery(this._view.is('clip'));
       } catch (e: any) {
         return this._renderError(e.message);
       }
-      const firstMediaItem = this._getFirstTrueMediaItem(media);
-      if (!firstMediaItem) {
-        return this._renderAttentionIcon('mdi:filmstrip-off', 'No recent clip');
+      childIndex = this._getFirstTrueMediaChildIndex(parent);
+      if (!parent || !parent.children || childIndex == null) {
+        return this._renderAttentionIcon(
+          this._view.is('clip') ? 'mdi:filmstrip-off' : 'mdi:camera-off',
+          this._view.is('clip') ? 'No recent clip' : 'No recent snapshots');
       }
-      mediaSource = firstMediaItem;
+      mediaToRender = parent.children[childIndex];
 
       // In this block, no clip has been manually selected, so this is loading
       // the most recent clip on card load. In this mode, autoplay of the clip
@@ -620,30 +715,76 @@ export class FrigateCard extends LitElement {
       // gallery.
       autoplay = this.config.autoplay_clip;
     }
-
-    const resolvedMedia = await this._resolveMedia(mediaSource);
-    if (!resolvedMedia) {
+    const resolvedMedia = await this._resolveMedia(mediaToRender);
+    if (!mediaToRender || !resolvedMedia) {
       // Home Assistant could not resolve media item.
       return this._renderError('Could not resolve clip URL');
     }
 
     this._mediaBeingShown = {
-      browseMedia: mediaSource,
+      browseMedia: mediaToRender,
       resolvedMedia: resolvedMedia,
     };
 
+    const neighbors = this._getMediaNeighbors(parent, childIndex);
+
     return html`
-      <ha-hls-player
-        .hass=${this._hass}
-        .url=${resolvedMedia.url}
-        class="frigate-card-viewer"
-        muted
-        controls
-        playsinline
-        allow-exoplayer
-        ?autoplay="${autoplay}"
-      >
-      </ha-hls-player>
+      ${neighbors?.previous
+        ? html`<img
+            src="${neighbors.previous.thumbnail}"
+            class="frigate-media-controls previous"
+            @click=${() => {
+              this._view = new View({
+                view: this._view.view,
+                target: parent || undefined,
+                childIndex: neighbors.previousIndex ?? undefined,
+                previous: this._view,
+              })
+            }}
+          />`
+        : ``}
+      ${this._view.is('clip') ?
+        html`<ha-hls-player
+          .hass=${this._hass}
+          .url=${resolvedMedia.url}
+          class="frigate-card-viewer"
+          muted
+          controls
+          playsinline
+          allow-exoplayer
+          ?autoplay="${autoplay}"
+        >
+        </ha-hls-player>`
+      : html`<img
+          src=${resolvedMedia.url}
+          class="frigate-card-viewer"
+          @click=${() => {
+            // Get clips potentially related to this snapshot.
+            this._findRelatedClips(mediaToRender).then((relatedClip) => {
+              if (relatedClip) {
+                this._changeView(new View({
+                    view: 'clip',
+                    target: relatedClip,
+                    previous: this._view,
+                }));
+              }
+            });
+          }}
+        />`}
+      ${neighbors?.next
+        ? html`<img
+            src="${neighbors.next.thumbnail}"
+            class="frigate-media-controls next"
+            @click=${() => {
+              this._view = new View({
+                view: this._view.view,
+                target: parent || undefined,
+                childIndex: neighbors.nextIndex ?? undefined,
+                previous: this._view,
+              })
+            }}
+          />`
+        : ``}
     `;
   }
 
@@ -678,8 +819,12 @@ export class FrigateCard extends LitElement {
 
   // Get a clip at the same time as a snapshot.
   protected async _findRelatedClips(
-    snapshot: BrowseMediaSource,
+    snapshot: BrowseMediaSource | null,
   ): Promise<BrowseMediaSource | null> {
+    if (!snapshot) {
+      return null;
+    }
+
     const startTime = this._extractEventStartTimeFromBrowseMedia(snapshot);
     if (startTime) {
       try {
@@ -690,57 +835,16 @@ export class FrigateCard extends LitElement {
           startTime,
         );
         if (clipsAtSameTime) {
-          return this._getFirstTrueMediaItem(clipsAtSameTime);
+          const index = this._getFirstTrueMediaChildIndex(clipsAtSameTime);
+          if (index != null && clipsAtSameTime.children?.length) {
+            return clipsAtSameTime.children[index];
+          }
         }
       } catch (e: any) {
         // Pass. This is best effort.
       }
     }
     return null;
-  }
-
-  // Render a snapshot.
-  protected async _renderSnapshotViewer(): Promise<TemplateResult> {
-    let mediaSource: BrowseMediaSource;
-    if (this._requestedMediaSource) {
-      mediaSource = this._requestedMediaSource;
-    } else {
-      let media;
-      try {
-        media = await this._browseMediaQuery(false);
-      } catch (e: any) {
-        return this._renderError(e.message);
-      }
-      const firstMediaItem = this._getFirstTrueMediaItem(media);
-      if (!firstMediaItem) {
-        return this._renderAttentionIcon('mdi:camera-off', 'No recent snapshots');
-      }
-      mediaSource = firstMediaItem;
-    }
-
-    const resolvedMedia = await this._resolveMedia(mediaSource);
-    if (!resolvedMedia) {
-      // Home Assistant could not resolve media item.
-      return this._renderError('Could not resolve snapshot URL');
-    }
-
-    this._mediaBeingShown = {
-      browseMedia: mediaSource,
-      resolvedMedia: resolvedMedia,
-    };
-
-    return html` <img
-      class="frigate-card-viewer"
-      src="${resolvedMedia.url}"
-      @click=${() => {
-        // Get clips potentially related to this snapshot.
-        this._findRelatedClips(mediaSource).then((relatedClip) => {
-          if (relatedClip) {
-            this._changeView('clip', relatedClip);
-          }
-        });
-      }}
-    />`;
   }
 
   // Render the live viewer.
@@ -798,27 +902,27 @@ export class FrigateCard extends LitElement {
     return html` <ha-card @click=${this._interactionHandler}>
       ${this.config.menu_mode != 'below' ? this._renderMenu() : ''}
       <div class="frigate-card-contents">
-        ${this._viewMode == 'clips'
+        ${this._view.is('clips')
           ? html`<div class="frigate-card-gallery">
               ${until(this._renderEvents(), this._renderProgressIndicator())}
             </div>`
           : ``}
-        ${this._viewMode == 'snapshots'
+        ${this._view.is('snapshots')
           ? html`<div class="frigate-card-gallery">
               ${until(this._renderEvents(), this._renderProgressIndicator())}
             </div>`
           : ``}
-        ${this._viewMode == 'clip'
+        ${this._view.is('clip')
           ? html`<div class="frigate-card-viewer">
-              ${until(this._renderClipPlayer(), this._renderProgressIndicator())}
+              ${until(this._renderViewer(), this._renderProgressIndicator())}
             </div>`
           : ``}
-        ${this._viewMode == 'snapshot'
+        ${this._view.is('snapshot')
           ? html`<div class="frigate-card-viewer">
-              ${until(this._renderSnapshotViewer(), this._renderProgressIndicator())}
+              ${until(this._renderViewer(), this._renderProgressIndicator())}
             </div>`
           : ``}
-        ${this._viewMode == 'live'
+        ${this._view.is('live')
           ? html`<div class="frigate-card-viewer">${this._renderLiveViewer()}</div>`
           : ``}
       </div>
