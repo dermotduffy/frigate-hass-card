@@ -51,6 +51,7 @@ ha-card .frigate-card-image-list-folder {
   box-sizing: border-box;
   text-align: center;
   border-style: 2px solid;
+  opacity: 0.7;
   color: var(--secondary-text-color, white);
   border-color: var(--secondary-text-color, black);
   background-color: var(--primary-background-color, black);
@@ -86,10 +87,10 @@ webrtc-camera ha-card {
   position: absolute;
   z-index: 1;
   overflow: hidden;
-  opacity: 0.8;
+  opacity: 0.9;
   border-radius: 50%;
-  top: calc(50% - (54px /2));
-  height: 54px;
+  top: calc(50% - (48px /2));
+  height: 48px;
 }
 
 .frigate-media-controls.previous {

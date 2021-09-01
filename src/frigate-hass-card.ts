@@ -351,11 +351,9 @@ export class FrigateCard extends LitElement {
   }
 
   // Update the card view.
-  protected _changeView(
-    view?: View | undefined,
-  ): void {
+  protected _changeView(view?: View | undefined): void {
     if (view === undefined) {
-      this._view = new View({view: this.config.view_default})
+      this._view = new View({ view: this.config.view_default });
     } else {
       this._view = view;
     }
@@ -514,6 +512,23 @@ export class FrigateCard extends LitElement {
     }
 
     return html` <ul class="mdc-image-list frigate-card-image-list">
+      ${this._view.previous
+        ? html`<li class="mdc-image-list__item">
+            <div class="mdc-image-list__image-aspect-container">
+              <div class="mdc-image-list__image">
+                <ha-card
+                  @click=${() => {
+                    this._changeView(this._view.previous);
+                  }}
+                  outlined=""
+                  class="frigate-card-image-list-folder"
+                >
+                  <ha-icon .icon=${"mdi:arrow-left"}></ha-icon>
+                </ha-card>
+              </div>
+            </div>
+          </li>`
+        : ''}
       ${parent.children.map(
         (child, index) =>
           html` <li class="mdc-image-list__item">
@@ -522,10 +537,13 @@ export class FrigateCard extends LitElement {
                 ? html`<div class="mdc-image-list__image">
                     <ha-card
                       @click=${() => {
-                        this._changeView(new View({
-                          view: this._view.view,
-                          target: child,
-                          previous: this._view}))
+                        this._changeView(
+                          new View({
+                            view: this._view.view,
+                            target: child,
+                            previous: this._view,
+                          }),
+                        );
                       }}
                       outlined=""
                       class="frigate-card-image-list-folder"
@@ -539,11 +557,14 @@ export class FrigateCard extends LitElement {
                     class="mdc-image-list__image"
                     src="${child.thumbnail}"
                     @click=${() => {
-\                      this._changeView(new View({
-                        view: this._view.is('clips') ? 'clip' : 'snapshot',
-                        target: parent,
-                        childIndex: index,
-                        previous: this._view}));
+                      this._changeView(
+                        new View({
+                          view: this._view.is('clips') ? 'clip' : 'snapshot',
+                          target: parent,
+                          childIndex: index,
+                          previous: this._view,
+                        }),
+                      );
                     }}
                   />`}
             </div>
@@ -567,7 +588,7 @@ export class FrigateCard extends LitElement {
       case 'live':
       case 'clips':
       case 'snapshots':
-        this._changeView(new View({view: name}));
+        this._changeView(new View({ view: name }));
         break;
       case 'frigate_ui':
         const frigate_url = this._getFrigateURLFromContext();
@@ -633,7 +654,9 @@ export class FrigateCard extends LitElement {
 
   // From a BrowseMediaSource item extract the first true media item (i.e. a
   // clip/snapshot, not a folder).
-  protected _getFirstTrueMediaChildIndex(media: BrowseMediaSource | null): number | null {
+  protected _getFirstTrueMediaChildIndex(
+    media: BrowseMediaSource | null,
+  ): number | null {
     if (!media || !media.children) {
       return null;
     }
@@ -704,7 +727,8 @@ export class FrigateCard extends LitElement {
       if (!parent || !parent.children || childIndex == null) {
         return this._renderAttentionIcon(
           this._view.is('clip') ? 'mdi:filmstrip-off' : 'mdi:camera-off',
-          this._view.is('clip') ? 'No recent clip' : 'No recent snapshots');
+          this._view.is('clip') ? 'No recent clip' : 'No recent snapshots',
+        );
       }
       mediaToRender = parent.children[childIndex];
 
@@ -739,38 +763,40 @@ export class FrigateCard extends LitElement {
                 target: parent || undefined,
                 childIndex: neighbors.previousIndex ?? undefined,
                 previous: this._view,
-              })
+              });
             }}
           />`
         : ``}
-      ${this._view.is('clip') ?
-        html`<ha-hls-player
-          .hass=${this._hass}
-          .url=${resolvedMedia.url}
-          class="frigate-card-viewer"
-          muted
-          controls
-          playsinline
-          allow-exoplayer
-          ?autoplay="${autoplay}"
-        >
-        </ha-hls-player>`
-      : html`<img
-          src=${resolvedMedia.url}
-          class="frigate-card-viewer"
-          @click=${() => {
-            // Get clips potentially related to this snapshot.
-            this._findRelatedClips(mediaToRender).then((relatedClip) => {
-              if (relatedClip) {
-                this._changeView(new View({
-                    view: 'clip',
-                    target: relatedClip,
-                    previous: this._view,
-                }));
-              }
-            });
-          }}
-        />`}
+      ${this._view.is('clip')
+        ? html`<ha-hls-player
+            .hass=${this._hass}
+            .url=${resolvedMedia.url}
+            class="frigate-card-viewer"
+            muted
+            controls
+            playsinline
+            allow-exoplayer
+            ?autoplay="${autoplay}"
+          >
+          </ha-hls-player>`
+        : html`<img
+            src=${resolvedMedia.url}
+            class="frigate-card-viewer"
+            @click=${() => {
+              // Get clips potentially related to this snapshot.
+              this._findRelatedClips(mediaToRender).then((relatedClip) => {
+                if (relatedClip) {
+                  this._changeView(
+                    new View({
+                      view: 'clip',
+                      target: relatedClip,
+                      previous: this._view,
+                    }),
+                  );
+                }
+              });
+            }}
+          />`}
       ${neighbors?.next
         ? html`<img
             src="${neighbors.next.thumbnail}"
@@ -781,7 +807,7 @@ export class FrigateCard extends LitElement {
                 target: parent || undefined,
                 childIndex: neighbors.nextIndex ?? undefined,
                 previous: this._view,
-              })
+              });
             }}
           />`
         : ``}
