@@ -753,7 +753,7 @@ export class FrigateCard extends LitElement {
     const neighbors = this._getMediaNeighbors(parent, childIndex);
 
     return html`
-      ${neighbors?.previous
+      ${neighbors?.previous && neighbors.previous.thumbnail
         ? html`<img
             src="${neighbors.previous.thumbnail}"
             class="frigate-media-controls previous"
@@ -797,7 +797,7 @@ export class FrigateCard extends LitElement {
               });
             }}
           />`}
-      ${neighbors?.next
+      ${neighbors?.next && neighbors.next.thumbnail
         ? html`<img
             src="${neighbors.next.thumbnail}"
             class="frigate-media-controls next"
