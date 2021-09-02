@@ -87,10 +87,11 @@ webrtc-camera ha-card {
   position: absolute;
   z-index: 1;
   overflow: hidden;
-  opacity: 0.9;
+  opacity: 0.8;
   border-radius: 50%;
   top: calc(50% - (48px /2));
   height: 48px;
+  box-shadow: 0px 0px 30px 1px black;
 }
 
 .frigate-media-controls.previous {
