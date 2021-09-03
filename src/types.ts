@@ -25,8 +25,14 @@ export const FRIGATE_CARD_VIEWS = [
 export type FrigateCardView = typeof FRIGATE_CARD_VIEWS[number];
 
 export const FRIGATE_MENU_MODES = [
-  'hidden',
-  'overlay',
+  'hidden-top',
+  'hidden-left',
+  'hidden-bottom',
+  'hidden-right',
+  'overlay-top',
+  'overlay-left',
+  'overlay-bottom',
+  'overlay-right',
   'above',
   'below',
 ] as const;
@@ -55,7 +61,7 @@ export const frigateCardConfigSchema = z.object({
   label: z.string().optional(),
   zone: z.string().optional(),
   autoplay_clip: z.boolean().default(false),
-  menu_mode: z.enum(FRIGATE_MENU_MODES).optional().default('hidden'),
+  menu_mode: z.enum(FRIGATE_MENU_MODES).optional().default('hidden-top'),
 
   // Stock lovelace card config.
   type: z.string(),
