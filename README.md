@@ -62,7 +62,7 @@ lovelace:
 | `motion_entity` | | A binary sensor to show in the menu (e.g. a Frigate motion binary sensor) and to use to trigger card updates.|
 | `frigate_camera_name` | The string after the "camera." in the `camera_entity` option (above). | This parameter allows the camera name heuristic to be overriden for cases where the entity name does not cleanly map to the Frigate camera name (e.g. when the Frigate camera name is capitalized, but the entity name is lower case). This camera name is used for communicating with the Frigate backend, e.g. for fetching events. |
 | `view_default` | `live` | The view to show by default. See [views](#views) below.|
-| `menu_mode` | `hidden` | The menu mode to show by default. See [menu modes](#menu-modes) below.|
+| `menu_mode` | `hidden-top` | The menu mode to show by default. See [menu modes](#menu-modes) below.|
 | `frigate_client_id` | `frigate` | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://blakeblackshear.github.io/frigate/usage/home-assistant/#multiple-instance-support).|
 | `view_timeout` | | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
 | `frigate_url` | | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. |
@@ -155,8 +155,8 @@ This card supports several menu configurations.
 
 | Key           | Description                                         | Screenshot |
 | ------------- | --------------------------------------------- | - |
-|`hidden`  (default)| Hide the menu by default, expandable upon clicking the 'F' button. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-hidden.png" alt="Menu hidden" width="400px"> |
-|`overlay`| Overlay the menu on top of the card contents. The 'F' button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-overlay.png" alt="Menu overlaid" width="400px"> |
+|`hidden-{top,bottom,right,left}`  (default)| Hide the menu by default, expandable upon clicking the 'F' button. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-hidden.png" alt="Menu hidden" width="400px"> |
+|`overlay-{top,bottom,right,left}`| Overlay the menu on top of the card contents. The 'F' button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-overlay.png" alt="Menu overlaid" width="400px"> |
 |`above`| Render the menu above the card. The 'F' button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-above.png" alt="Menu above" width="400px"> |
 |`below`| Render the menu below the card. The 'F' button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-below.png" alt="Menu below" width="400px"> |
 
