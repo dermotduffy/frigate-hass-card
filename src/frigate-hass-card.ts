@@ -14,6 +14,7 @@ import {
 
 import { NodePart } from 'lit-html';
 import { until } from 'lit-html/directives/until.js';
+import { classMap } from 'lit-html/directives/class-map.js';
 
 import {
   HomeAssistant,
@@ -107,7 +108,7 @@ export class FrigateCardMenu extends LitElement {
   static FRIGATE_CARD_MENU_ID: string = 'frigate-card-menu-id' as const;
 
   @property({ attribute: false })
-  protected menuMode: FrigateMenuMode = 'hidden';
+  protected menuMode: FrigateMenuMode = 'hidden-top';
 
   @property({ attribute: false })
   protected expand = false;
@@ -120,7 +121,7 @@ export class FrigateCardMenu extends LitElement {
 
   // Call the callback.
   protected _callAction(name: string): void {
-    if (this.menuMode == 'hidden') {
+    if (this.menuMode.startsWith('hidden-')) {
       if (name == 'frigate') {
         this.expand = !this.expand;
         return;
@@ -136,8 +137,13 @@ export class FrigateCardMenu extends LitElement {
 
   // Render a menu button.
   protected _renderButton(name: string, button: MenuButton): TemplateResult {
+    const classes = {
+      button: true,
+      emphasize: button.emphasize ?? false,
+    };
+
     return html` <ha-icon-button
-      class=${button.emphasize ? 'emphasized-button' : 'button'}
+      class="${classMap(classes)}"
       icon=${button.icon || 'mdi:gesture-tap-button'}
       data-toggle="tooltip"
       title=${button.description}
@@ -148,26 +154,34 @@ export class FrigateCardMenu extends LitElement {
   // Render the Frigate menu button.
   protected _renderFrigateButton(name: string, button: MenuButton): TemplateResult {
     const icon =
-      this.menuMode != 'hidden' || this.expand
-        ? 'mdi:alpha-f-box'
-        : 'mdi:alpha-f-box-outline';
+      this.menuMode.startsWith('hidden-') && !this.expand
+        ? 'mdi:alpha-f-box-outline'
+        : 'mdi:alpha-f-box';
 
     return this._renderButton(name, Object.assign({}, button, { icon: icon }));
   }
 
   // Render the menu.
   protected render(): TemplateResult | void | ((part: NodePart) => Promise<void>) {
-    let menuClass = 'frigate-card-menu-full';
-    if (['hidden', 'overlay'].includes(this.menuMode)) {
-      if (this.menuMode == 'overlay' || this.expand) {
-        menuClass = 'frigate-card-menu-overlay';
-      } else {
-        menuClass = 'frigate-card-menu-hidden';
-      }
-    }
+    const classes = {
+      'frigate-card-menu': true,
+      'overlay-hidden':
+        this.menuMode.startsWith('hidden-') || this.menuMode.startsWith('overlay-'),
+      'expanded-horizontal':
+        (this.menuMode.startsWith('overlay-') || this.expand) &&
+        (this.menuMode.endsWith('-top') || this.menuMode.endsWith('-bottom')),
+      'expanded-vertical':
+        (this.menuMode.startsWith('overlay-') || this.expand) &&
+        (this.menuMode.endsWith('-left') || this.menuMode.endsWith('-right')),
+      full: ['above', 'below'].includes(this.menuMode),
+      left: this.menuMode.endsWith('-left'),
+      right: this.menuMode.endsWith('-right'),
+      top: this.menuMode.endsWith('-top'),
+      bottom: this.menuMode.endsWith('-bottom'),
+    };
 
     return html`
-      <div class=${menuClass}>
+      <div class=${classMap(classes)}>
         ${Array.from(this.buttons.keys()).map((name) => {
           const button = this.buttons.get(name);
           if (button) {
@@ -523,7 +537,7 @@ export class FrigateCard extends LitElement {
                   outlined=""
                   class="frigate-card-image-list-folder"
                 >
-                  <ha-icon .icon=${"mdi:arrow-left"}></ha-icon>
+                  <ha-icon .icon=${'mdi:arrow-left'}></ha-icon>
                 </ha-card>
               </div>
             </div>

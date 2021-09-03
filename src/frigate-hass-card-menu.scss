@@ -1,5 +1,4 @@
-/* Base: Not used directly */
-.frigate-card-menu-base {
+.frigate-card-menu {
   z-index: 1;
   height: 56px;
   overflow: hidden;
@@ -8,24 +7,32 @@
      */
   pointer-events: none;
 }
-
-/* Small 'F' button for hidden menu */
-.frigate-card-menu-hidden {
-  @extend .frigate-card-menu-base;
+.frigate-card-menu.overlay-hidden {
   position: absolute;
   width: 56px;
 }
-
-/* Expanded overlay menu */
-.frigate-card-menu-overlay {
-  @extend .frigate-card-menu-hidden;
-  width: 100%;
-  background: linear-gradient(90deg, rgba(0,0,0,0.3), rgba(0,0,0,0))
+.frigate-card-menu.overlay-hidden.left {
+  left: 0px;
 }
-
+.frigate-card-menu.overlay-hidden.right {
+  right: 0px;
+}
+.frigate-card-menu.overlay-hidden.top {
+  top: 0px;
+}
+.frigate-card-menu.overlay-hidden.bottom {
+  bottom: 0px;
+}
+.frigate-card-menu.overlay-hidden.expanded-horizontal {
+  width: 100%;
+  background: linear-gradient(90deg, rgba(0,0,0,0.3), rgba(0,0,0,0));
+}
+.frigate-card-menu.overlay-hidden.expanded-vertical {
+  height: 100%;
+  background: linear-gradient(180deg, rgba(0,0,0,0.3), rgba(0,0,0,0));
+}
 /* Full above/below menu */
-.frigate-card-menu-full {
-  @extend .frigate-card-menu-base;
+.frigate-card-menu.full {
   width: 100%;
   background: var(--secondary-background-color);
 }
@@ -44,7 +51,6 @@ ha-icon-button.button {
   pointer-events: auto;
 }
 
-ha-icon-button.emphasized-button {
-  @extend ha-icon-button, .button;
+ha-icon-button.button.emphasize {
   color: var(--primary-color, white);
 }

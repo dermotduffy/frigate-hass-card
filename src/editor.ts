@@ -105,8 +105,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
     const menuModes = {
       '': '',
-      hidden: 'Hidden',
-      overlay: 'Overlay',
+      'hidden-top': 'Hidden Top',
+      'hidden-left': 'Hidden Left',
+      'hidden-bottom': 'Hidden Bottom',
+      'hidden-right': 'Hidden Right',
+      'overlay-top': 'Overlay Top',
+      'overlay-left': 'Overlay Left',
+      'overlay-bottom': 'Overlay Bottom',
+      'overlay-right': 'Overlay Right',
       above: 'Above',
       below: 'Below',
     };
