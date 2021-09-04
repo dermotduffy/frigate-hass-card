@@ -44,6 +44,7 @@
     "frigate_ui": "Frigate User Interface"
   },
   "menu_mode": {
+    "none": "No menu",
     "hidden-top": "Hidden Top",
     "hidden-left": "Hidden Left",
     "hidden-bottom": "Hidden Bottom",

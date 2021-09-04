@@ -114,6 +114,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
     const menuModes = {
       '': '',
+      'none': localize('menu_mode.none'),
       'hidden-top': localize('menu_mode.hidden-top'),
       'hidden-left': localize('menu_mode.hidden-left'),
       'hidden-bottom': localize('menu_mode.hidden-bottom'),
