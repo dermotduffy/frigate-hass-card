@@ -1035,7 +1035,7 @@ export class FrigateCard extends LitElement {
   }
 
   // Get the Lovelace card size.
-  static getCardSize(): number {
-    return 5;
+  public getCardSize(): number {
+    return 6;
   }
 }
