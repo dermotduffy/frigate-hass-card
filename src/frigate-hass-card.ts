@@ -164,6 +164,15 @@ export class FrigateCardMenu extends LitElement {
 
   // Render the menu.
   protected render(): TemplateResult | void | ((part: NodePart) => Promise<void>) {
+    // If the menu is off, or if it's in hidden mode but there's no button to
+    // unhide it, just show nothing.
+    if (
+      this.menuMode == 'none' ||
+      (this.menuMode.startsWith('hidden-') && !this.buttons.get('frigate'))
+    ) {
+      return html``;
+    }
+
     const classes = {
       'frigate-card-menu': true,
       'overlay-hidden':
@@ -180,12 +189,6 @@ export class FrigateCardMenu extends LitElement {
       top: this.menuMode.endsWith('-top'),
       bottom: this.menuMode.endsWith('-bottom'),
     };
-
-    // If the menu is in hidden mode and there's no button to unhide it, just
-    // show nothing.
-    if (this.menuMode.startsWith('hidden-') && !this.buttons.get('frigate')) {
-      return html``;
-    }
 
     return html`
       <div class=${classMap(classes)}>
@@ -775,7 +778,9 @@ export class FrigateCard extends LitElement {
       if (!parent || !parent.children || childIndex == null) {
         return this._renderAttentionIcon(
           this._view.is('clip') ? 'mdi:filmstrip-off' : 'mdi:camera-off',
-          this._view.is('clip') ? localize('common.no_clip') : localize('common.no_snapshot'),
+          this._view.is('clip')
+            ? localize('common.no_clip')
+            : localize('common.no_snapshot'),
         );
       }
       mediaToRender = parent.children[childIndex];
@@ -926,7 +931,10 @@ export class FrigateCard extends LitElement {
   // is always rendered (but sometimes hidden).
   protected _renderLiveViewer(): TemplateResult {
     if (!this._hass || !(this.config.camera_entity in this._hass.states)) {
-      return this._renderAttentionIcon('mdi:camera-off', localize('error.no_live_camera'));
+      return this._renderAttentionIcon(
+        'mdi:camera-off',
+        localize('error.no_live_camera'),
+      );
     }
     if (this._webrtcElement) {
       return html`${this._webrtcElement}`;

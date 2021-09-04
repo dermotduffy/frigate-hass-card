@@ -25,6 +25,7 @@ export const FRIGATE_CARD_VIEWS = [
 export type FrigateCardView = typeof FRIGATE_CARD_VIEWS[number];
 
 export const FRIGATE_MENU_MODES = [
+  'none',
   'hidden-top',
   'hidden-left',
   'hidden-bottom',
