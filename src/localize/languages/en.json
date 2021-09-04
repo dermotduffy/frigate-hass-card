@@ -5,5 +5,59 @@
     "missing_webrtc": "WebRTC component not found",
     "show_warning": "Show Warning",
     "show_error": "Show Error"
+  },
+  "editor": {
+    "required": "Required",
+    "required_secondary": "Required options for this card to function",
+    "optional": "Optional",
+    "optional_secondary": "Optional configuration to tweak card behavior",
+    "appearance": "Appearance",
+    "appearance_secondary": "Appearance of the card",
+    "webrtc": "WebRTC",
+    "webrtc_secondary": "Optional WebRTC parameters",
+    "advanced": "Advanced",
+    "advanced_secondary": "Advanced options",
+    "camera_entity": "Camera Entity (Required)",
+    "motion_entity": "Motion Entity (Optional)",
+    "frigate_camera_name": "Frigate camera name (Optional)",
+    "default_view": "Default view (Optional)",
+    "frigate_client_id": "Frigate client id (Optional, for >1 Frigate server)",
+    "view_timeout": "View timeout (seconds)",
+    "frigate_url": "Frigate URL (Optional, for Frigate UI button)",
+    "autoplay_clip": "Autoplay latest clip",
+    "menu_mode": "Menu mode (Optional)",
+    "show_button": "Show button",
+    "zone": "Zone",
+    "label": "Frigate label/object filter (Optional)",
+    "live_provider": "Live view provider (Optional)"
+  },
+  "menu": {
+    "frigate": "Frigate",
+    "live": "Live View",
+    "clips": "Clips Gallery",
+    "snapshots": "Snapshots Gallery",
+    "clip": "Latest Clip",
+    "snapshot": "Latest Snapshot",
+    "frigate_ui": "Frigate User Interface",
+    "motion": "Motion Entity"
+  },
+  "menu_mode": {
+    "hidden-top": "Hidden Top",
+    "hidden-left": "Hidden Left",
+    "hidden-bottom": "Hidden Bottom",
+    "hidden-right": "Hidden Right",
+    "overlay-top": "Overlay Top",
+    "overlay-left": "Overlay Left",
+    "overlay-bottom": "Overlay Bottom",
+    "overlay-right": "Overlay Right",
+    "above": "Above",
+    "below": "Below"
+  },
+  "live_provider": {
+    "frigate": "Frigate",
+    "webrtc": "WebRTC"
+  },
+  "webrtc": {
+    "entity": "WebRTC Camera Entity (To use with WebRTC Live Provider)"
   }
 }

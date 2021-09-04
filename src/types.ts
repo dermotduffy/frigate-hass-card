@@ -62,6 +62,21 @@ export const frigateCardConfigSchema = z.object({
   zone: z.string().optional(),
   autoplay_clip: z.boolean().default(false),
   menu_mode: z.enum(FRIGATE_MENU_MODES).optional().default('hidden-top'),
+  menu_buttons: z.object({
+    frigate: z.boolean().default(true),
+    live: z.boolean().default(true),
+    clips: z.boolean().default(true),
+    snapshots: z.boolean().default(true),
+    frigate_ui: z.boolean().default(true),
+    motion: z.boolean().default(true),
+  }).default({
+    frigate: true,
+    live: true,
+    clips: true,
+    snapshots: true,
+    frigate_ui: true,
+    motion: true,
+  }),
 
   // Stock lovelace card config.
   type: z.string(),
