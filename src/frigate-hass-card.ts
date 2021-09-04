@@ -69,8 +69,8 @@ console.info(
 (window as any).customCards = (window as any).customCards || [];
 (window as any).customCards.push({
   type: 'frigate-card',
-  name: 'Frigate Card',
-  description: 'A lovelace card for use with Frigate',
+  name: localize('common.frigate_card'),
+  description: localize('common.frigate_card_description'),
 });
 
 type FrigateCardMenuCallback = (name: string) => any;
@@ -307,31 +307,34 @@ export class FrigateCard extends LitElement {
     const buttons: Map<string, MenuButton> = new Map();
 
     if (this.config.menu_buttons?.frigate ?? true) {
-      buttons.set('frigate', { description: 'Frigate Menu' });
+      buttons.set('frigate', { description: localize('menu.frigate') });
     }
     if (this.config.menu_buttons?.live ?? true) {
       buttons.set('live', {
         icon: 'mdi:cctv',
-        description: 'View Live',
+        description: localize('menu.live'),
         emphasize: this._view.is('live'),
       });
     }
     if (this.config.menu_buttons?.clips ?? true) {
       buttons.set('clips', {
         icon: 'mdi:filmstrip',
-        description: 'View Clips',
+        description: localize('menu.clips'),
         emphasize: this._view.is('clips'),
       });
     }
     if (this.config.menu_buttons?.snapshots ?? true) {
       buttons.set('snapshots', {
         icon: 'mdi:camera',
-        description: 'View Snapshots',
+        description: localize('menu.snapshots'),
         emphasize: this._view.is('snapshots'),
       });
     }
     if ((this.config.menu_buttons?.frigate_ui ?? true) && this.config.frigate_url) {
-      buttons.set('frigate_ui', { icon: 'mdi:web', description: 'View Frigate UI' });
+      buttons.set('frigate_ui', {
+        icon: 'mdi:web',
+        description: localize('menu.frigate_ui'),
+      });
     }
     const entities = this.config.entities || [];
     for (let i = 0; this._hass && i < entities.length; i++) {
@@ -357,13 +360,13 @@ export class FrigateCard extends LitElement {
   // Set the object configuration.
   public setConfig(inputConfig: FrigateCardConfig): void {
     if (!inputConfig) {
-      throw new Error(localize('common.invalid_configuration:'));
+      throw new Error(localize('error.invalid_configuration:'));
     }
 
     const parseResult = frigateCardConfigSchema.safeParse(inputConfig);
     if (!parseResult.success) {
       const keys = this._getParseErrorKeys(parseResult.error);
-      throw new Error(localize('common.invalid_configuration') + ': ' + keys.join(', '));
+      throw new Error(localize('error.invalid_configuration') + ': ' + keys.join(', '));
     }
     const config = parseResult.data;
 
@@ -376,7 +379,7 @@ export class FrigateCard extends LitElement {
       if (config.camera_entity.includes('.')) {
         config.frigate_camera_name = config.camera_entity.split('.', 2)[1];
       } else {
-        throw new Error(localize('common.invalid_configuration') + ': camera_entity');
+        throw new Error(localize('error.invalid_configuration') + ': camera_entity');
       }
     }
 
@@ -389,7 +392,7 @@ export class FrigateCard extends LitElement {
         webrtc.hass = this._hass;
         this._webrtcElement = webrtc;
       } else {
-        throw new Error(localize('common.missing_webrtc'));
+        throw new Error(localize('error.missing_webrtc'));
       }
     }
 
@@ -448,7 +451,7 @@ export class FrigateCard extends LitElement {
     const response = await this._hass.callWS<T>(request);
 
     if (!response) {
-      const error_message = `Received empty response from Home Assistant for request ${JSON.stringify(
+      const error_message = `${localize('error.empty_response')}: ${JSON.stringify(
         request,
       )}`;
       console.warn(error_message);
@@ -458,9 +461,9 @@ export class FrigateCard extends LitElement {
     if (!parseResult.success) {
       const keys = this._getParseErrorKeys(parseResult.error);
       const error_message =
-        `Received invalid response from Home Assistant for request ${JSON.stringify(
-          request,
-        )}, ` + `invalid keys were '${keys}'`;
+        `${localize('error.invalid_response')}: ${JSON.stringify(request)}. ` +
+        localize('error.invalid_keys') +
+        `: '${keys}'`;
       console.warn(error_message);
       throw new Error(error_message);
     }
@@ -533,9 +536,8 @@ export class FrigateCard extends LitElement {
   protected _renderError(error: string): TemplateResult {
     return this._renderAttentionIcon(
       'mdi:alert-circle',
-      html`${
-        error ? `${error} .` : `Unknown error .`
-      }Check <a href="${URL_TROUBLESHOOTING}">troubleshooting</a></span>.`,
+      html`${error ? `${error}.` : `${localize('error.unknown_error')}.`}
+        <a href="${URL_TROUBLESHOOTING}">${localize('error.troubleshooting')}</a>.`,
     );
   }
 
@@ -555,7 +557,9 @@ export class FrigateCard extends LitElement {
     if (this._getFirstTrueMediaChildIndex(parent) == null) {
       return this._renderAttentionIcon(
         this._view.is('clips') ? 'mdi:filmstrip-off' : 'mdi:camera-off',
-        this._view.is('clips') ? 'No clips' : 'No snapshots',
+        this._view.is('clips')
+          ? localize('common.no_clips')
+          : localize('common.no_snapshots'),
       );
     }
 
@@ -771,7 +775,7 @@ export class FrigateCard extends LitElement {
       if (!parent || !parent.children || childIndex == null) {
         return this._renderAttentionIcon(
           this._view.is('clip') ? 'mdi:filmstrip-off' : 'mdi:camera-off',
-          this._view.is('clip') ? 'No recent clip' : 'No recent snapshots',
+          this._view.is('clip') ? localize('common.no_clip') : localize('common.no_snapshot'),
         );
       }
       mediaToRender = parent.children[childIndex];
@@ -786,7 +790,7 @@ export class FrigateCard extends LitElement {
     const resolvedMedia = await this._resolveMedia(mediaToRender);
     if (!mediaToRender || !resolvedMedia) {
       // Home Assistant could not resolve media item.
-      return this._renderError('Could not resolve clip URL');
+      return this._renderError(localize('error.could_not_resolve'));
     }
 
     this._mediaBeingShown = {
@@ -922,7 +926,7 @@ export class FrigateCard extends LitElement {
   // is always rendered (but sometimes hidden).
   protected _renderLiveViewer(): TemplateResult {
     if (!this._hass || !(this.config.camera_entity in this._hass.states)) {
-      return this._renderAttentionIcon('mdi:camera-off', 'No live camera');
+      return this._renderAttentionIcon('mdi:camera-off', localize('error.no_live_camera'));
     }
     if (this._webrtcElement) {
       return html`${this._webrtcElement}`;

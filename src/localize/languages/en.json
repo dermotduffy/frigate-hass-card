@@ -1,10 +1,14 @@
 {
   "common": {
     "version": "Version",
-    "invalid_configuration": "Invalid configuration",
-    "missing_webrtc": "WebRTC component not found",
     "show_warning": "Show Warning",
-    "show_error": "Show Error"
+    "show_error": "Show Error",
+    "frigate_card": "Frigate Card",
+    "frigate_card_description": "A lovelace card for use with Frigate",
+    "no_snapshots": "No snapshots",
+    "no_clips": "No clips",
+    "no_snapshot": "No recent snapshot",
+    "no_clip": "No recent clip"
   },
   "editor": {
     "required": "Required",
@@ -31,7 +35,7 @@
     "live_provider": "Live view provider (Optional)"
   },
   "menu": {
-    "frigate": "Frigate",
+    "frigate": "Frigate Menu / Default View",
     "live": "Live View",
     "clips": "Clips Gallery",
     "snapshots": "Snapshots Gallery",
@@ -57,5 +61,16 @@
   },
   "webrtc": {
     "entity": "WebRTC Camera Entity (To use with WebRTC Live Provider)"
+  },
+  "error": {
+    "empty_response": "Received empty response from Home Assistant for request",
+    "invalid_response": "Received invalid response from Home Assistant for request",
+    "invalid_keys": "Invalid keys",
+    "unknown": "Unknown error",
+    "troubleshooting": "Check troubleshooting",
+    "could_not_resolve": "Could not resolve media URL",
+    "no_live_camera": "No live camera",
+    "invalid_configuration": "Invalid configuration",
+    "missing_webrtc": "WebRTC component not found"
   }
 }
