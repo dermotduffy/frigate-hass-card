@@ -18,7 +18,6 @@
     "advanced": "Advanced",
     "advanced_secondary": "Advanced options",
     "camera_entity": "Camera Entity (Required)",
-    "motion_entity": "Motion Entity (Optional)",
     "frigate_camera_name": "Frigate camera name (Optional)",
     "default_view": "Default view (Optional)",
     "frigate_client_id": "Frigate client id (Optional, for >1 Frigate server)",
@@ -38,8 +37,7 @@
     "snapshots": "Snapshots Gallery",
     "clip": "Latest Clip",
     "snapshot": "Latest Snapshot",
-    "frigate_ui": "Frigate User Interface",
-    "motion": "Motion Entity"
+    "frigate_ui": "Frigate User Interface"
   },
   "menu_mode": {
     "hidden-top": "Hidden Top",
