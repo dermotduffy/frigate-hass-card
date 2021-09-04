@@ -171,22 +171,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         </div>
         ${options.optional.show
           ? html` <div class="values">
-              <paper-dropdown-menu
-                label=${localize('editor.motion_entity')}
-                @value-changed=${this._valueChanged}
-                .configValue=${'motion_entity'}
-              >
-                <paper-listbox
-                  slot="dropdown-content"
-                  .selected=${binarySensorEntities.indexOf(
-                    this._config?.motion_entity || '',
-                  )}
-                >
-                  ${binarySensorEntities.map((entity) => {
-                    return html` <paper-item>${entity}</paper-item> `;
-                  })}
-                </paper-listbox>
-              </paper-dropdown-menu>
               <paper-input
                 label=${localize('editor.frigate_camera_name')}
                 .value=${this._config?.frigate_camera_name || ''}
@@ -323,17 +307,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   @change=${this._valueChanged}
                 ></ha-switch>
               </ha-formfield>
-              <br />
-              <ha-formfield
-                .label=${localize('editor.show_button') + ': ' + localize('menu.motion')}
-              >
-                <ha-switch
-                  .checked=${this._config?.menu_buttons?.frigate_ui ?? true}
-                  .configValue=${'menu_buttons.motion'}
-                  @change=${this._valueChanged}
-                ></ha-switch>
-              </ha-formfield>
-              <br /> `
+              <br />`
           : ''}
         <div class="option" @click=${this._toggleOption} .option=${'advanced'}>
           <div class="row">

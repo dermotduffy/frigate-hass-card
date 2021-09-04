@@ -18,9 +18,10 @@ import { classMap } from 'lit-html/directives/class-map.js';
 
 import {
   HomeAssistant,
-  fireEvent,
   LovelaceCardEditor,
+  fireEvent,
   getLovelace,
+  stateIcon,
 } from 'custom-card-helpers';
 
 import './editor';
@@ -78,9 +79,9 @@ type FrigateCardMenuCallback = (name: string) => any;
 function shouldUpdateBasedOnHass(
   newHass: HomeAssistant | null,
   oldHass: HomeAssistant | undefined,
-  entities: (string | null | undefined)[],
+  entities: string[] | null,
 ): boolean {
-  if (!newHass) {
+  if (!newHass || !entities) {
     return false;
   }
   if (!entities.length) {
@@ -284,8 +285,12 @@ export class FrigateCard extends LitElement {
   // Whether or not there is an active clip being played.
   protected _clipPlaying = false;
 
-  @query(FrigateCardMenu.FRIGATE_CARD_MENU_ID)
+  @query(`#${FrigateCardMenu.FRIGATE_CARD_MENU_ID}`)
   _menu!: FrigateCardMenu | null;
+
+  // A small cache to avoid needing to create a new list of entities every time
+  // a hass update arrives.
+  protected _entitiesToMonitor: string[] | null = null;
 
   protected _updateMenu(): void {
     // Manually set hass in the menu. This is to allow the menu to update,
@@ -301,29 +306,44 @@ export class FrigateCard extends LitElement {
   protected _getMenuButtons(): Map<string, MenuButton> {
     const buttons: Map<string, MenuButton> = new Map();
 
-    if (this.config.menu_buttons?.frigate) {
+    if (this.config.menu_buttons?.frigate ?? true) {
       buttons.set('frigate', { description: 'Frigate Menu' });
     }
-    if (this.config.menu_buttons?.live) {
-      buttons.set('live', { icon: 'mdi:cctv', description: 'View Live' });
+    if (this.config.menu_buttons?.live ?? true) {
+      buttons.set('live', {
+        icon: 'mdi:cctv',
+        description: 'View Live',
+        emphasize: this._view.is('live'),
+      });
     }
-    if (this.config.menu_buttons?.clips) {
-      buttons.set('clips', { icon: 'mdi:filmstrip', description: 'View Clips' });
+    if (this.config.menu_buttons?.clips ?? true) {
+      buttons.set('clips', {
+        icon: 'mdi:filmstrip',
+        description: 'View Clips',
+        emphasize: this._view.is('clips'),
+      });
     }
-    if (this.config.menu_buttons?.snapshots) {
-      buttons.set('snapshots', { icon: 'mdi:camera', description: 'View Snapshots' });
+    if (this.config.menu_buttons?.snapshots ?? true) {
+      buttons.set('snapshots', {
+        icon: 'mdi:camera',
+        description: 'View Snapshots',
+        emphasize: this._view.is('snapshots'),
+      });
     }
-    if (this.config.menu_buttons?.frigate_ui && this.config.frigate_url) {
+    if ((this.config.menu_buttons?.frigate_ui ?? true) && this.config.frigate_url) {
       buttons.set('frigate_ui', { icon: 'mdi:web', description: 'View Frigate UI' });
     }
-    if (this.config.menu_buttons?.motion && this._hass && this.config.motion_entity) {
-      const on = this._hass.states[this.config.motion_entity]?.state == 'on';
-      const motionIcon = on ? 'mdi:motion-sensor' : 'mdi:walk';
-
-      buttons.set('motion', {
-        icon: motionIcon,
-        description: 'View Motion Sensor',
-        emphasize: on,
+    const entities = this.config.entities || [];
+    for (let i = 0; this._hass && i < entities.length; i++) {
+      if (!entities[i].show) {
+        continue;
+      }
+      const entity = entities[i].entity;
+      const state = this._hass.states[entity];
+      buttons.set(entity, {
+        description: state.attributes.friendly_name || entity,
+        emphasize: ['on', 'active', 'home'].includes(state.state),
+        icon: entities[i].icon || stateIcon(state),
       });
     }
     return buttons;
@@ -374,6 +394,10 @@ export class FrigateCard extends LitElement {
     }
 
     this.config = config;
+    this._entitiesToMonitor = [
+      ...(this.config.entities || []).map((entity) => entity.entity),
+      this.config.camera_entity,
+    ];
     this._changeView();
   }
 
@@ -407,10 +431,7 @@ export class FrigateCard extends LitElement {
       if (this._interactionTimerID || this._clipPlaying) {
         return false;
       }
-      return shouldUpdateBasedOnHass(this._hass, oldHass, [
-        this.config.camera_entity,
-        this.config.motion_entity,
-      ]);
+      return shouldUpdateBasedOnHass(this._hass, oldHass, this._entitiesToMonitor);
     }
     return true;
   }
@@ -623,13 +644,9 @@ export class FrigateCard extends LitElement {
           window.open(frigate_url);
         }
         break;
-      case 'motion':
-        if (this.config.motion_entity) {
-          fireEvent(this, 'hass-more-info', { entityId: this.config.motion_entity });
-        }
-        break;
       default:
-        console.warn('Unknown Frigate card menu option.');
+        // If it's unknown, it's assumed to be an entity_id.
+        fireEvent(this, 'hass-more-info', { entityId: name });
     }
   }
 

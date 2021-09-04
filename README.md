@@ -22,7 +22,7 @@ A full-featured Frigate Lovelace card:
 * Clips and snapshot browsing via mini-gallery.
 * Automatic updating to continually show latest clip / snapshot.
 * Support for filtering events by zone and label.
-* Motion sensor access.
+* Arbitrary entity access via menu (e.g. motion sensor access).
 * Full Lovelace editing support.
 * Theme friendly.
 * **Advanced**: Support for [WebRTC](https://github.com/AlexxIT/WebRTC) live viewing.
@@ -59,14 +59,19 @@ lovelace:
 
 | Option           | Default | Description                                         |
 | ------------- | --------------------------------------------- | - |
-| `motion_entity` | | A binary sensor to show in the menu (e.g. a Frigate motion binary sensor) and to use to trigger card updates.|
 | `frigate_camera_name` | The string after the "camera." in the `camera_entity` option (above). | This parameter allows the camera name heuristic to be overriden for cases where the entity name does not cleanly map to the Frigate camera name (e.g. when the Frigate camera name is capitalized, but the entity name is lower case). This camera name is used for communicating with the Frigate backend, e.g. for fetching events. |
 | `view_default` | `live` | The view to show by default. See [views](#views) below.|
-| `menu_mode` | `hidden-top` | The menu mode to show by default. See [menu modes](#menu-modes) below.|
 | `frigate_client_id` | `frigate` | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://blakeblackshear.github.io/frigate/usage/home-assistant/#multiple-instance-support).|
 | `view_timeout` | | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
 | `frigate_url` | | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. |
 | `autoplay_clip` | `false` | Whether or not to autoplay clips in the 'clip' [view](#views). Clips manually chosen in the clips gallery will still autoplay.|
+
+### Appearance
+
+| Option           | Default | Description                                         |
+| ------------- | --------------------------------------------- | - |
+| `menu_mode` | `hidden-top` | The menu mode to show by default. See [menu modes](#menu-modes) below.|
+| `menu_buttons.{frigate, live, clips, snapshots, frigate_ui}` | `true` | Whether or not to show these builtin actions in the card menu. |
 
 ### Advanced
 
@@ -93,6 +98,35 @@ events/snapshots/UI. A perfect combination!
 
 
 **Note**: WebRTC must be installed and configured separately (see [details](https://github.com/AlexxIT/WebRTC)) before it can be used with this card.
+
+<a name="entities"></a>
+
+### Entities
+
+Additional entities may be configured to trigger updates to the card, and
+optionally to appear in the menu. An `entities` section may be added to the card
+configuration containing a list with entries of the following format:
+
+| Option           | Default | Description                                         |
+| ------------- | - | -------------------------------------------- |
+| `entity` | | Entity ID to use to trigger updates, and optionally appear in the menu. |
+| `icon` | [default entity icon] | An optional manual override of the icon to use in the menu, e.g. `mdi:car`. |
+| `show`| `true` | Whether or not to show the entity in the menu. When `false` the entity ID will trigger card updates only, but not appear in the menu. |
+
+#### Example
+
+This example allows access to the detection, recordings and snapshots switches
+from the menu. It also enables a different entity to trigger a card update (but
+without appearing in the menu).
+
+```yaml
+entities:
+  - entity: switch.front_door_recordings
+  - entity: switch.front_door_snapshots
+  - entity: switch.front_door_detect
+  - entity: binary_sensor.front_door_person_motion
+    show: false
+```
 
 #### Specifying the WebRTC Camera
 
@@ -132,12 +166,19 @@ This card supports several different views.
 
 ### Automatic updates in the `clip` or `snapshot` view
 
-Updates will occur whenever the state of the `camera_entity` or `motion_entity`
-changes. In particular, if the desire is to have a live view of the most recent
-event, the user should configure `motion_entity` to a Frigate binary sensor
-associated with that camera in order to trigger updates more regularly (the
-underlying camera entity state does not change often, the motion binary sensors
-do).
+Updates will occur whenever on every change of the state of the `camera_entity`
+or any entity configured under `entities`. In particular, if the desire is
+to have an auto-refreshing view of the most recent event, the `camera_entity`
+will not be sufficient alone since the Home Assistant state for Frigate camera
+entities does not change often. Instead, use the Frigate binary_sensor for that
+camera (or any other entity at your discretion) to trigger the update:
+
+```yaml
+entities:
+  - entity: binary_sensor.office_person_motion
+```
+
+See [entities](#entities) above.
 
 ### Getting from a snapshot to a clip
 
@@ -171,7 +212,6 @@ A configuration that uses WebRTC for live:
 - type: 'custom:frigate-card'
   camera_entity: camera.front_door
   frigate_url: http://frigate
-  motion_entity: binary_sensor.front_door_person_motion
   live_provider: webrtc
   webrtc:
     entity: camera.front_door_rtsp
@@ -183,7 +223,6 @@ A configuration that shows the latest clip on load, but does not automatically p
 - type: 'custom:frigate-card'
   camera_entity: camera.front_door
   frigate_url: http://frigate
-  motion_entity: binary_sensor.front_door_person_motion
   view_default: clip
 ```
 

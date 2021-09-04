@@ -41,7 +41,6 @@ export type FrigateMenuMode = typeof FRIGATE_MENU_MODES[number];
 
 export const frigateCardConfigSchema = z.object({
   camera_entity: z.string(),
-  motion_entity: z.string().optional(),
   // No URL validation to allow relative URLs within HA (e.g. addons).
   frigate_url: z.string().optional(),
   frigate_client_id: z.string().optional().default("frigate"),
@@ -68,15 +67,12 @@ export const frigateCardConfigSchema = z.object({
     clips: z.boolean().default(true),
     snapshots: z.boolean().default(true),
     frigate_ui: z.boolean().default(true),
-    motion: z.boolean().default(true),
-  }).default({
-    frigate: true,
-    live: true,
-    clips: true,
-    snapshots: true,
-    frigate_ui: true,
-    motion: true,
   }),
+  entities: z.object({
+    entity: z.string(),
+    show: z.boolean().default(true),
+    icon: z.string().optional(),
+  }).array().optional(),
 
   // Stock lovelace card config.
   type: z.string(),
