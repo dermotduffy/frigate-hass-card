@@ -10,34 +10,40 @@ import {
   unsafeCSS,
 } from 'lit-element';
 import { HomeAssistant, fireEvent, LovelaceCardEditor } from 'custom-card-helpers';
-
-import { FrigateCardConfig } from './types';
+import { localize } from './localize/localize';
+import type { FrigateCardConfig } from './types';
 
 import frigate_card_editor_style from './frigate-hass-card-editor.scss';
 
 const options = {
   required: {
     icon: 'cog',
-    name: 'Required',
-    secondary: 'Required options for this card to function',
+    name: localize('editor.required'),
+    secondary: localize('editor.required_secondary'),
     show: true,
   },
   optional: {
     icon: 'tune',
-    name: 'Optional',
-    secondary: 'Optional configuration to tweak card behavior',
+    name: localize('editor.optional'),
+    secondary: localize('editor.optional_secondary'),
+    show: false,
+  },
+  appearance: {
+    icon: 'palette',
+    name: localize('editor.appearance'),
+    secondary: localize('editor.appearance_secondary'),
     show: false,
   },
   webrtc: {
     icon: 'webrtc',
-    name: 'WebRTC',
-    secondary: 'Optional WebRTC parameters',
+    name: localize('editor.webrtc'),
+    secondary: localize('editor.webrtc_secondary'),
     show: false,
   },
   advanced: {
     icon: 'cogs',
-    name: 'Advanced',
-    secondary: 'Advanced options',
+    name: localize('editor.advanced'),
+    secondary: localize('editor.advanced_secondary'),
     show: false,
   },
 };
@@ -51,6 +57,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   private _initialized = false;
 
   public setConfig(config: FrigateCardConfig): void {
+    // Note: This does not use Zod to parse the configuration, so it may be
+    // partially or completely invalid. It's more useful to have a partially
+    // valid configuration here, to allow the user to fix the broken parts.
     this._config = config;
     this.loadCardHelpers();
   }
@@ -96,33 +105,32 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
     const viewModes = {
       '': '',
-      live: 'Live view',
-      clips: 'Clip gallery',
-      snapshots: 'Snapshot gallery',
-      clip: 'Latest clip',
-      snapshot: 'Latest snapshot',
+      live: localize('menu.live'),
+      clips: localize('menu.clips'),
+      snapshots: localize('menu.snapshots'),
+      clip: localize('menu.clip'),
+      snapshot: localize('menu.snapshot'),
     };
 
     const menuModes = {
       '': '',
-      'hidden-top': 'Hidden Top',
-      'hidden-left': 'Hidden Left',
-      'hidden-bottom': 'Hidden Bottom',
-      'hidden-right': 'Hidden Right',
-      'overlay-top': 'Overlay Top',
-      'overlay-left': 'Overlay Left',
-      'overlay-bottom': 'Overlay Bottom',
-      'overlay-right': 'Overlay Right',
-      above: 'Above',
-      below: 'Below',
+      'hidden-top': localize('menu_mode.hidden-top'),
+      'hidden-left': localize('menu_mode.hidden-left'),
+      'hidden-bottom': localize('menu_mode.hidden-bottom'),
+      'hidden-right': localize('menu_mode.hidden-right'),
+      'overlay-top': localize('menu_mode.overlay-top'),
+      'overlay-left': localize('menu_mode.overlay-left'),
+      'overlay-bottom': localize('menu_mode.overlay-bottom'),
+      'overlay-right': localize('menu_mode.overlay-right'),
+      above: localize('menu_mode.above'),
+      below: localize('menu_mode.below'),
     };
 
     const liveProvider = {
       '': '',
-      frigate: 'Frigate',
-      webrtc: 'WebRTC',
+      frigate: localize('live_provider.frigate'),
+      webrtc: localize('live_provider.webrtc'),
     };
-
     return html`
       <div class="card-config">
         <div class="option" @click=${this._toggleOption} .option=${'required'}>
@@ -136,7 +144,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html`
               <div class="values">
                 <paper-dropdown-menu
-                  label="Camera Entity (Required)"
+                  label=${localize('editor.camera_entity')}
                   @value-changed=${this._valueChanged}
                   .configValue=${'camera_entity'}
                 >
@@ -164,7 +172,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.optional.show
           ? html` <div class="values">
               <paper-dropdown-menu
-                label="Motion Entity (Optional)"
+                label=${localize('editor.motion_entity')}
                 @value-changed=${this._valueChanged}
                 .configValue=${'motion_entity'}
               >
@@ -180,13 +188,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 </paper-listbox>
               </paper-dropdown-menu>
               <paper-input
-                label="Frigate camera name (Optional)"
+                label=${localize('editor.frigate_camera_name')}
                 .value=${this._config?.frigate_camera_name || ''}
                 .configValue=${'frigate_camera_name'}
                 @value-changed=${this._valueChanged}
               ></paper-input>
               <paper-dropdown-menu
-                label="Default view (Optional)"
+                label=${localize('editor.default_view')}
                 @value-changed=${this._valueChanged}
                 .configValue=${'view_default'}
               >
@@ -203,8 +211,47 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   })}
                 </paper-listbox>
               </paper-dropdown-menu>
-              <paper-dropdown-menu
-                label="Menu mode (Optional)"
+              <paper-input
+                label=${localize('editor.frigate_client_id')}
+                .value=${this._config?.frigate_client_id || ''}
+                .configValue=${'frigate_client_id'}
+                @value-changed=${this._valueChanged}
+              ></paper-input>
+              <paper-input
+                label=${localize('editor.view_timeout')}
+                prevent-invalid-input
+                allowed-pattern="[0-9]"
+                .value=${this._config?.view_timeout
+                  ? String(this._config.view_timeout)
+                  : ''}
+                .configValue=${'view_timeout'}
+                @value-changed=${this._valueChanged}
+              ></paper-input>
+              <paper-input
+                label=${localize('editor.frigate_url')}
+                .value=${this._config?.frigate_url || ''}
+                .configValue=${'frigate_url'}
+                @value-changed=${this._valueChanged}
+              ></paper-input>
+              <ha-formfield .label=${localize('editor.autoplay_clip')}>
+                <ha-switch
+                  .checked=${this._config?.autoplay_clip === true}
+                  .configValue=${'autoplay_clip'}
+                  @change=${this._valueChanged}
+                ></ha-switch>
+              </ha-formfield>
+            </div>`
+          : ''}
+        <div class="option" @click=${this._toggleOption} .option=${'appearance'}>
+          <div class="row">
+            <ha-icon .icon=${`mdi:${options.appearance.icon}`}></ha-icon>
+            <div class="title">${options.appearance.name}</div>
+          </div>
+          <div class="secondary">${options.appearance.secondary}</div>
+        </div>
+        ${options.appearance.show
+          ? html`<paper-dropdown-menu
+                .label=${localize('editor.menu_mode')}
                 @value-changed=${this._valueChanged}
                 .configValue=${'menu_mode'}
               >
@@ -219,38 +266,74 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       <paper-item .label="${key}"> ${menuModes[key]} </paper-item>
                     `;
                   })}
-                </paper-listbox>
-              </paper-dropdown-menu>
-              <paper-input
-                  label="Frigate client id (Optional, for >1 Frigate server)"
-                  .value=${this._config?.frigate_client_id || ''}
-                  .configValue=${'frigate_client_id'}
-                  @value-changed=${this._valueChanged}
-              ></paper-input>
-              <paper-input
-                label="View timeout (seconds)"
-                prevent-invalid-input
-                allowed-pattern="[0-9]"
-                .value=${this._config?.view_timeout
-                  ? String(this._config.view_timeout)
-                  : ''}
-                .configValue=${'view_timeout'}
-                @value-changed=${this._valueChanged}
-              ></paper-input>
-              <paper-input
-                  label="Frigate URL (Optional, for Frigate UI button)"
-                  .value=${this._config?.frigate_url || ''}
-                  .configValue=${'frigate_url'}
-                  @value-changed=${this._valueChanged}
-              ></paper-input>
-              <ha-formfield .label=${`Autoplay latest clip`}>
+                </paper-listbox> </paper-dropdown-menu
+              ><br />
+              <ha-formfield
+                .label=${localize('editor.show_button') +
+                ': ' +
+                localize('menu.frigate')}
+              >
                 <ha-switch
-                  .checked=${this._config?.autoplay_clip === true}
-                  .configValue=${'autoplay_clip'}
+                  .checked=${this._config?.menu_buttons?.frigate ?? true}
+                  .configValue=${'menu_buttons.frigate'}
                   @change=${this._valueChanged}
                 ></ha-switch>
               </ha-formfield>
-            </div>`
+              <br />
+              <ha-formfield
+                .label=${localize('editor.show_button') + ': ' + localize('menu.live')}
+              >
+                <ha-switch
+                  .checked=${this._config?.menu_buttons?.live ?? true}
+                  .configValue=${'menu_buttons.live'}
+                  @change=${this._valueChanged}
+                ></ha-switch>
+              </ha-formfield>
+              <br />
+              <ha-formfield
+                .label=${localize('editor.show_button') + ': ' + localize('menu.clips')}
+              >
+                <ha-switch
+                  .checked=${this._config?.menu_buttons?.clips ?? true}
+                  .configValue=${'menu_buttons.clips'}
+                  @change=${this._valueChanged}
+                ></ha-switch>
+              </ha-formfield>
+              <br />
+              <ha-formfield
+                .label=${localize('editor.show_button') +
+                ': ' +
+                localize('menu.snapshots')}
+              >
+                <ha-switch
+                  .checked=${this._config?.menu_buttons?.snapshots ?? true}
+                  .configValue=${'menu_buttons.snapshots'}
+                  @change=${this._valueChanged}
+                ></ha-switch>
+              </ha-formfield>
+              <br />
+              <ha-formfield
+                .label=${localize('editor.show_button') +
+                ': ' +
+                localize('menu.frigate_ui')}
+              >
+                <ha-switch
+                  .checked=${this._config?.menu_buttons?.frigate_ui ?? true}
+                  .configValue=${'menu_buttons.frigate_ui'}
+                  @change=${this._valueChanged}
+                ></ha-switch>
+              </ha-formfield>
+              <br />
+              <ha-formfield
+                .label=${localize('editor.show_button') + ': ' + localize('menu.motion')}
+              >
+                <ha-switch
+                  .checked=${this._config?.menu_buttons?.frigate_ui ?? true}
+                  .configValue=${'menu_buttons.motion'}
+                  @change=${this._valueChanged}
+                ></ha-switch>
+              </ha-formfield>
+              <br /> `
           : ''}
         <div class="option" @click=${this._toggleOption} .option=${'advanced'}>
           <div class="row">
@@ -262,7 +345,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.advanced.show
           ? html` <div class="values">
                 <paper-input
-                  label="Frigate zone filter (Optional)"
+                  .label=${localize('editor.zone')}
                   .value=${this._config?.zone || ''}
                   .configValue=${'zone'}
                   @value-changed=${this._valueChanged}
@@ -270,7 +353,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
               <div class="values">
                 <paper-input
-                  label="Frigate label/object filter (Optional)"
+                  .label=${localize('editor.label')}
                   .value=${this._config?.label || ''}
                   .configValue=${'label'}
                   @value-changed=${this._valueChanged}
@@ -287,7 +370,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.webrtc.show
           ? html` <div class="values">
               <paper-dropdown-menu
-                label="WebRTC/Frigate Live provider (Optional)"
+                .label=${localize('editor.live_provider')}
                 @value-changed=${this._valueChanged}
                 .configValue=${'live_provider'}
               >
@@ -305,7 +388,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 </paper-listbox>
               </paper-dropdown-menu>
               <paper-dropdown-menu
-                label="WebRTC Camera Entity (To use with WebRTC Live Provider)"
+                .label=${localize('webrtc.entity')}
                 @value-changed=${this._valueChanged}
                 .configValue=${'webrtc.entity'}
               >

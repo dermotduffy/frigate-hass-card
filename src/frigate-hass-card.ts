@@ -180,6 +180,12 @@ export class FrigateCardMenu extends LitElement {
       bottom: this.menuMode.endsWith('-bottom'),
     };
 
+    // If the menu is in hidden mode and there's no button to unhide it, just
+    // show nothing.
+    if (this.menuMode.startsWith('hidden-') && !this.buttons.get('frigate')) {
+      return html``;
+    }
+
     return html`
       <div class=${classMap(classes)}>
         ${Array.from(this.buttons.keys()).map((name) => {
@@ -295,15 +301,22 @@ export class FrigateCard extends LitElement {
   protected _getMenuButtons(): Map<string, MenuButton> {
     const buttons: Map<string, MenuButton> = new Map();
 
-    buttons.set('frigate', { description: 'Frigate Menu' });
-    buttons.set('live', { icon: 'mdi:cctv', description: 'View Live' });
-    buttons.set('clips', { icon: 'mdi:filmstrip', description: 'View Clips' });
-    buttons.set('snapshots', { icon: 'mdi:camera', description: 'View Snapshots' });
-    if (this.config.frigate_url) {
+    if (this.config.menu_buttons?.frigate) {
+      buttons.set('frigate', { description: 'Frigate Menu' });
+    }
+    if (this.config.menu_buttons?.live) {
+      buttons.set('live', { icon: 'mdi:cctv', description: 'View Live' });
+    }
+    if (this.config.menu_buttons?.clips) {
+      buttons.set('clips', { icon: 'mdi:filmstrip', description: 'View Clips' });
+    }
+    if (this.config.menu_buttons?.snapshots) {
+      buttons.set('snapshots', { icon: 'mdi:camera', description: 'View Snapshots' });
+    }
+    if (this.config.menu_buttons?.frigate_ui && this.config.frigate_url) {
       buttons.set('frigate_ui', { icon: 'mdi:web', description: 'View Frigate UI' });
     }
-
-    if (this._hass && this.config.motion_entity) {
+    if (this.config.menu_buttons?.motion && this._hass && this.config.motion_entity) {
       const on = this._hass.states[this.config.motion_entity]?.state == 'on';
       const motionIcon = on ? 'mdi:motion-sensor' : 'mdi:walk';
 
