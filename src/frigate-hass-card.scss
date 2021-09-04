@@ -55,7 +55,6 @@ ha-card .frigate-card-image-list-folder {
   color: var(--secondary-text-color, white);
   border-color: var(--secondary-text-color, black);
   background-color: var(--primary-background-color, black);
-  --mdc-icon-size: 40px;
   padding: 10px;
 }
 
@@ -102,15 +101,15 @@ webrtc-camera ha-card {
 }
 
 .frigate-media-controls.previous {
-  left: 50px;
+  left: 45px;
 }
 .frigate-media-controls.previous:hover {
-  left: 38px;
+  left: 33px;
 }
 
 .frigate-media-controls.next {
-  right: 50px;  
+  right: 45px;  
 }
 .frigate-media-controls.next:hover {
-  right: 38px;
+  right: 33px;
 }

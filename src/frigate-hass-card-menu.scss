@@ -1,6 +1,6 @@
 .frigate-card-menu {
   z-index: 1;
-  height: 56px;
+  height: 46px;
   overflow: hidden;
   /* Menu div itself does not handle click events. Without this, in overlay
      mode, the menu div prevents clicking on gallery items 'behind' the overlay.
@@ -9,7 +9,7 @@
 }
 .frigate-card-menu.overlay-hidden {
   position: absolute;
-  width: 56px;
+  width: 46px;
 }
 .frigate-card-menu.overlay-hidden.left {
   left: 0px;
@@ -46,7 +46,7 @@ ha-icon-button.button {
   border-radius: 50%;
   padding: 0px;
   margin: 3px;
-
+  --mdc-icon-button-size: 40px;
   /* Buttons can always be clicked */
   pointer-events: auto;
 }
