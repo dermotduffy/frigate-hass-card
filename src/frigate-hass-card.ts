@@ -7,7 +7,7 @@ import {
   html,
   unsafeCSS,
 } from 'lit';
-import { customElement, property, query, state, } from 'lit/decorators';
+import { customElement, property, query, state } from 'lit/decorators';
 import { classMap } from 'lit/directives/class-map.js';
 import { until } from 'lit/directives/until.js';
 
@@ -36,7 +36,6 @@ import type {
   FrigateCardConfig,
   FrigateCardView,
   FrigateMenuMode,
-  MediaBeingShown,
   ResolvedMedia,
 } from './types';
 import { CARD_VERSION } from './const';
@@ -141,7 +140,6 @@ export class FrigateCardMenu extends LitElement {
     return html` <ha-icon-button
       class="${classMap(classes)}"
       icon=${button.icon || 'mdi:gesture-tap-button'}
-      data-toggle="tooltip"
       title=${button.description}
       @click=${() => this._callAction(name)}
     ></ha-icon-button>`;
@@ -273,13 +271,6 @@ export class FrigateCard extends LitElement {
   @property({ attribute: false })
   protected _view: View = new View();
 
-  // Media (both browse item & resolved media) actually being shown to the user.
-  // This may be different from _view.target when no particular event is
-  // requested (e.g. 'clip' view that views the most recent) -- in that case the
-  // _view.target will be null, but _mediaBeingShown will be the actual event
-  // shown.
-  protected _mediaBeingShown: MediaBeingShown | null = null;
-
   // Whether or not there is an active clip being played.
   protected _clipPlaying = false;
 
@@ -409,7 +400,6 @@ export class FrigateCard extends LitElement {
     } else {
       this._view = view;
     }
-    this._mediaBeingShown = null;
   }
 
   // Determine whether the card should be updated.
@@ -602,7 +592,6 @@ export class FrigateCard extends LitElement {
                     </ha-card>
                   </div>`
                 : html`<img
-                    data-toggle="tooltip"
                     title="${child.title}"
                     class="mdc-image-list__image"
                     src="${child.thumbnail}"
@@ -652,19 +641,6 @@ export class FrigateCard extends LitElement {
     }
   }
 
-  // Extract the Frigate event id from the resolved media. Unfortunately, there
-  // is no way to attach metadata to BrowseMediaSource so this must suffice.
-  protected _extractEventIDFromResolvedMedia(
-    resolvedMedia: ResolvedMedia,
-  ): string | null {
-    // Example: /api/frigate/frigate/clips/camera-1630123639.21596-l1y9af.jpg?authSig=[large_string]
-    const result = resolvedMedia.url.match(/-(?<id>[\w]+)\.(jpg|m3u8|mp4)($|\?)/i);
-    if (result && result.groups) {
-      return result.groups['id'] || null;
-    }
-    return null;
-  }
-
   protected _extractEventStartTimeFromBrowseMedia(
     browseMedia: BrowseMediaSource,
   ): number | null {
@@ -687,15 +663,10 @@ export class FrigateCard extends LitElement {
     if (!this.config.frigate_url) {
       return null;
     }
-    if (this._mediaBeingShown) {
-      const eventID = this._extractEventIDFromResolvedMedia(
-        this._mediaBeingShown.resolvedMedia,
-      );
-      if (eventID) {
-        return `${this.config.frigate_url}/events/${eventID}`;
-      }
+    if (this._view.is('live')) {
+      return `${this.config.frigate_url}/cameras/${this.config.frigate_camera_name}`;
     }
-    return `${this.config.frigate_url}/cameras/${this.config.frigate_camera_name}`;
+    return `${this.config.frigate_url}/events?camera=${this.config.frigate_camera_name}`;
   }
 
   // From a BrowseMediaSource item extract the first true media item (i.e. a
@@ -793,11 +764,6 @@ export class FrigateCard extends LitElement {
       return this._renderError(localize('error.could_not_resolve'));
     }
 
-    this._mediaBeingShown = {
-      browseMedia: mediaToRender,
-      resolvedMedia: resolvedMedia,
-    };
-
     const neighbors = this._getMediaNeighbors(parent, childIndex);
 
     return html`
@@ -805,6 +771,7 @@ export class FrigateCard extends LitElement {
         ? html`<img
             src="${neighbors.previous.thumbnail}"
             class="frigate-media-controls previous"
+            title="${neighbors.previous.title}"
             @click=${() => {
               this._view = new View({
                 view: this._view.view,
@@ -820,6 +787,7 @@ export class FrigateCard extends LitElement {
             .hass=${this._hass}
             .url=${resolvedMedia.url}
             class="frigate-card-viewer"
+            title="${mediaToRender.title}"
             muted
             controls
             playsinline
@@ -830,6 +798,7 @@ export class FrigateCard extends LitElement {
         : html`<img
             src=${resolvedMedia.url}
             class="frigate-card-viewer"
+            title="${mediaToRender.title}"
             @click=${() => {
               // Get clips potentially related to this snapshot.
               this._findRelatedClips(mediaToRender).then((relatedClip) => {
@@ -849,6 +818,7 @@ export class FrigateCard extends LitElement {
         ? html`<img
             src="${neighbors.next.thumbnail}"
             class="frigate-media-controls next"
+            title="${neighbors.next.title}"
             @click=${() => {
               this._view = new View({
                 view: this._view.view,

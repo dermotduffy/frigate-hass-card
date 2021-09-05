@@ -83,11 +83,6 @@ export const frigateCardConfigSchema = z.object({
 });
 export type FrigateCardConfig = z.infer<typeof frigateCardConfigSchema>;
 
-export interface MediaBeingShown {
-  browseMedia: BrowseMediaSource;
-  resolvedMedia: ResolvedMedia;
-}
-
 export interface MenuButton {
   icon?: string;
   description: string;
