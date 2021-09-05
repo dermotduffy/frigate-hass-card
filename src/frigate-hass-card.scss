@@ -7,6 +7,7 @@
   max-height: 277px;        /* Max Lovelace 16/9 video height */
   height: 100%;
   aspect-ratio: 16 / 9;
+  overflow: auto;
 }
 
 .frigate-card-viewer {
