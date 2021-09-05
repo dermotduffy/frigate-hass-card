@@ -1,20 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  CSSResultGroup,
   LitElement,
-  html,
-  customElement,
-  property,
-  CSSResult,
-  TemplateResult,
   PropertyValues,
-  state,
+  TemplateResult,
+  html,
   unsafeCSS,
-  query,
-} from 'lit-element';
-
-import { NodePart } from 'lit-html';
-import { until } from 'lit-html/directives/until.js';
-import { classMap } from 'lit-html/directives/class-map.js';
+} from 'lit';
+import { customElement, property, query, state, } from 'lit/decorators';
+import { classMap } from 'lit/directives/class-map.js';
+import { until } from 'lit/directives/until.js';
 
 import {
   HomeAssistant,
@@ -30,16 +25,16 @@ import frigate_card_style from './frigate-hass-card.scss';
 import frigate_card_menu_style from './frigate-hass-card-menu.scss';
 
 import {
+  MenuButton,
   browseMediaSourceSchema,
   frigateCardConfigSchema,
-  MenuButton,
   resolvedMediaSchema,
 } from './types';
 import type {
   BrowseMediaNeighbors,
   BrowseMediaSource,
-  FrigateCardView,
   FrigateCardConfig,
+  FrigateCardView,
   FrigateMenuMode,
   MediaBeingShown,
   ResolvedMedia,
@@ -49,7 +44,7 @@ import { localize } from './localize/localize';
 import dayjs from 'dayjs';
 import dayjs_custom_parse_format from 'dayjs/plugin/customParseFormat';
 
-import { z, ZodSchema } from 'zod';
+import { ZodSchema, z } from 'zod';
 import { MessageBase } from 'home-assistant-js-websocket';
 
 const URL_TROUBLESHOOTING =
@@ -163,7 +158,7 @@ export class FrigateCardMenu extends LitElement {
   }
 
   // Render the menu.
-  protected render(): TemplateResult | void | ((part: NodePart) => Promise<void>) {
+  protected render(): TemplateResult {
     // If the menu is off, or if it's in hidden mode but there's no button to
     // unhide it, just show nothing.
     if (
@@ -206,7 +201,7 @@ export class FrigateCardMenu extends LitElement {
   }
 
   // Return compiled CSS styles (thus safe to use with unsafeCSS).
-  static get styles(): CSSResult {
+  static get styles(): CSSResultGroup {
     return unsafeCSS(frigate_card_menu_style);
   }
 }
@@ -1030,7 +1025,7 @@ export class FrigateCard extends LitElement {
   }
 
   // Return compiled CSS styles (thus safe to use with unsafeCSS).
-  static get styles(): CSSResult {
+  static get styles(): CSSResultGroup {
     return unsafeCSS(frigate_card_style);
   }
 

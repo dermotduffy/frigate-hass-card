@@ -1,15 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  LitElement,
-  html,
-  customElement,
-  property,
-  TemplateResult,
-  CSSResult,
-  state,
-  unsafeCSS,
-} from 'lit-element';
-import { HomeAssistant, fireEvent, LovelaceCardEditor } from 'custom-card-helpers';
+import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
+import { customElement, property, state } from 'lit/decorators';
+
+import { HomeAssistant, LovelaceCardEditor, fireEvent } from 'custom-card-helpers';
 import { localize } from './localize/localize';
 import type { FrigateCardConfig } from './types';
 
@@ -96,7 +89,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
     // You can restrict on domain type
     const cameraEntities = this._getEntities('camera');
-    const binarySensorEntities = this._getEntities('binary_sensor');
 
     const webrtcCameraEntity =
       this._config?.webrtc && (this._config?.webrtc as any).entity
@@ -114,7 +106,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
     const menuModes = {
       '': '',
-      'none': localize('menu_mode.none'),
+      none: localize('menu_mode.none'),
       'hidden-top': localize('menu_mode.hidden-top'),
       'hidden-left': localize('menu_mode.hidden-left'),
       'hidden-bottom': localize('menu_mode.hidden-bottom'),
@@ -444,7 +436,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   // Return compiled CSS styles (thus safe to use with unsafeCSS).
-  static get styles(): CSSResult {
+  static get styles(): CSSResultGroup {
     return unsafeCSS(frigate_card_editor_style);
   }
 }
