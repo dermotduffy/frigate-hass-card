@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
-  LitElement,
   CSSResultGroup,
-  TemplateResult,
+  LitElement,
   PropertyValues,
+  TemplateResult,
   html,
   unsafeCSS,
 } from 'lit';
 import { customElement, property, query, state, } from 'lit/decorators';
-import { until } from 'lit/directives/until.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { until } from 'lit/directives/until.js';
 
 import {
   HomeAssistant,
@@ -25,16 +25,16 @@ import frigate_card_style from './frigate-hass-card.scss';
 import frigate_card_menu_style from './frigate-hass-card-menu.scss';
 
 import {
+  MenuButton,
   browseMediaSourceSchema,
   frigateCardConfigSchema,
-  MenuButton,
   resolvedMediaSchema,
 } from './types';
 import type {
   BrowseMediaNeighbors,
   BrowseMediaSource,
-  FrigateCardView,
   FrigateCardConfig,
+  FrigateCardView,
   FrigateMenuMode,
   MediaBeingShown,
   ResolvedMedia,
@@ -44,7 +44,7 @@ import { localize } from './localize/localize';
 import dayjs from 'dayjs';
 import dayjs_custom_parse_format from 'dayjs/plugin/customParseFormat';
 
-import { z, ZodSchema } from 'zod';
+import { ZodSchema, z } from 'zod';
 import { MessageBase } from 'home-assistant-js-websocket';
 
 const URL_TROUBLESHOOTING =

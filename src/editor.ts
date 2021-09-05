@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { LitElement, html, TemplateResult, CSSResultGroup, unsafeCSS } from 'lit';
+import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators';
 
-import { HomeAssistant, fireEvent, LovelaceCardEditor } from 'custom-card-helpers';
+import { HomeAssistant, LovelaceCardEditor, fireEvent } from 'custom-card-helpers';
 import { localize } from './localize/localize';
 import type { FrigateCardConfig } from './types';
 
