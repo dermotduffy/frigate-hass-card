@@ -18,7 +18,7 @@
 }
 
 .frigate-card-gallery {
-  overflow: scroll;
+  overflow: auto;
   -ms-overflow-style: none; /* Hide scrollbar: IE and Edge */
   scrollbar-width: none;    /* Hide scrollbar: Firefox */
 
