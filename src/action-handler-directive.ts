@@ -1,4 +1,5 @@
-import { directive, PropertyPart } from 'lit-html';
+import { noChange } from 'lit';
+import { AttributePart, directive, Directive, DirectiveParameters } from 'lit/directive';
 
 import {
   ActionHandlerDetail,
@@ -194,7 +195,7 @@ const getActionHandler = (): ActionHandler => {
 
 export const actionHandlerBind = (
   element: ActionHandlerElement,
-  options: ActionHandlerOptions,
+  options?: ActionHandlerOptions,
 ): void => {
   const actionhandler: ActionHandler = getActionHandler();
   if (!actionhandler) {
@@ -204,8 +205,13 @@ export const actionHandlerBind = (
 };
 
 export const actionHandler = directive(
-  (options: ActionHandlerOptions = {}) =>
-    (part: PropertyPart): void => {
-      actionHandlerBind(part.committer.element as ActionHandlerElement, options);
-    },
+  class extends Directive {
+    update(part: AttributePart, [options]: DirectiveParameters<this>) {
+      actionHandlerBind(part.element as ActionHandlerElement, options);
+      return noChange;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+    render(_options?: ActionHandlerOptions) {}
+  },
 );
