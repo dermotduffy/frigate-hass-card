@@ -74,6 +74,9 @@ export const frigateCardConfigSchema = z.object({
     show: z.boolean().default(true),
     icon: z.string().optional(),
   }).array().optional(),
+  controls: z.object({
+    nextprev: z.boolean().default(true),
+  }).optional(),
 
   // Stock lovelace card config.
   type: z.string(),

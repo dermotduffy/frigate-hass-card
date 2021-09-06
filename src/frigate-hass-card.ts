@@ -767,7 +767,9 @@ export class FrigateCard extends LitElement {
     const neighbors = this._getMediaNeighbors(parent, childIndex);
 
     return html`
-      ${neighbors?.previous && neighbors.previous.thumbnail
+      ${(this.config.controls?.nextprev ?? true) &&
+      neighbors?.previous &&
+      neighbors.previous.thumbnail
         ? html`<img
             src="${neighbors.previous.thumbnail}"
             class="frigate-media-controls previous"
@@ -831,7 +833,9 @@ export class FrigateCard extends LitElement {
               });
             }}
           />`}
-      ${neighbors?.next && neighbors.next.thumbnail
+      ${(this.config.controls?.nextprev ?? true) &&
+      neighbors?.next &&
+      neighbors.next.thumbnail
         ? html`<img
             src="${neighbors.next.thumbnail}"
             class="frigate-media-controls next"

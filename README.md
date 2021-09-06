@@ -72,6 +72,7 @@ lovelace:
 | ------------- | --------------------------------------------- | - |
 | `menu_mode` | `hidden-top` | The menu mode to show by default. See [menu modes](#menu-modes) below.|
 | `menu_buttons.{frigate, live, clips, snapshots, frigate_ui}` | `true` | Whether or not to show these builtin actions in the card menu. |
+| `controls.nextprev` | `true` | Whether or not to show the next and previous controls when viewing media. |
 
 ### Advanced
 

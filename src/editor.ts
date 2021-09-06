@@ -300,6 +300,18 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   @change=${this._valueChanged}
                 ></ha-switch>
               </ha-formfield>
+              <br />
+              <ha-formfield
+                .label=${localize('editor.show_control') +
+                ': ' +
+                localize('control.nextprev')}
+              >
+                <ha-switch
+                  .checked=${this._config?.controls?.nextprev ?? true}
+                  .configValue=${'controls.nextprev'}
+                  @change=${this._valueChanged}
+                ></ha-switch>
+              </ha-formfield>
               <br />`
           : ''}
         <div class="option" @click=${this._toggleOption} .option=${'advanced'}>
