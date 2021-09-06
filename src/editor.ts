@@ -6,7 +6,7 @@ import { HomeAssistant, LovelaceCardEditor, fireEvent } from 'custom-card-helper
 import { localize } from './localize/localize';
 import type { FrigateCardConfig } from './types';
 
-import frigate_card_editor_style from './frigate-hass-card-editor.scss';
+import frigate_card_editor_style from './scss/editor.scss';
 
 const options = {
   required: {
@@ -124,6 +124,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       frigate: localize('live_provider.frigate'),
       webrtc: localize('live_provider.webrtc'),
     };
+
+    const controlsNextPrev = {
+      '': '',
+      thumbnails: localize('control.thumbnails'),
+      chevrons: localize('control.chevrons'),
+      none: localize('control.none'),
+    };
+
     return html`
       <div class="card-config">
         <div class="option" @click=${this._toggleOption} .option=${'required'}>
@@ -243,8 +251,28 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       <paper-item .label="${key}"> ${menuModes[key]} </paper-item>
                     `;
                   })}
-                </paper-listbox> </paper-dropdown-menu
-              ><br />
+                </paper-listbox>
+              </paper-dropdown-menu>
+              <br />
+              <paper-dropdown-menu
+                .label=${localize('control.nextprev')}
+                @value-changed=${this._valueChanged}
+                .configValue=${'controls.nextprev'}
+              >
+                <paper-listbox
+                  slot="dropdown-content"
+                  .selected=${Object.keys(controlsNextPrev).indexOf(
+                    this._config?.controls?.nextprev || '',
+                  )}
+                >
+                  ${Object.keys(controlsNextPrev).map((key) => {
+                    return html`
+                      <paper-item .label="${key}"> ${controlsNextPrev[key]} </paper-item>
+                    `;
+                  })}
+                </paper-listbox>
+              </paper-dropdown-menu>
+              <br />
               <ha-formfield
                 .label=${localize('editor.show_button') +
                 ': ' +
@@ -297,18 +325,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 <ha-switch
                   .checked=${this._config?.menu_buttons?.frigate_ui ?? true}
                   .configValue=${'menu_buttons.frigate_ui'}
-                  @change=${this._valueChanged}
-                ></ha-switch>
-              </ha-formfield>
-              <br />
-              <ha-formfield
-                .label=${localize('editor.show_control') +
-                ': ' +
-                localize('control.nextprev')}
-              >
-                <ha-switch
-                  .checked=${this._config?.controls?.nextprev ?? true}
-                  .configValue=${'controls.nextprev'}
                   @change=${this._valueChanged}
                 ></ha-switch>
               </ha-formfield>

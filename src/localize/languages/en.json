@@ -32,8 +32,7 @@
     "show_button": "Show button",
     "zone": "Zone",
     "label": "Frigate label/object filter (Optional)",
-    "live_provider": "Live view provider (Optional)",
-    "show_control": "Show control"
+    "live_provider": "Live view provider (Optional)"
   },
   "menu": {
     "frigate": "Frigate Menu / Default View",
@@ -45,7 +44,10 @@
     "frigate_ui": "Frigate User Interface"
   },
   "control": {
-    "nextprev": "Media Next & Previous"
+    "nextprev": "Media Next & Previous Controls",
+    "thumbnails": "Thumbnails",
+    "chevrons": "Chevrons",
+    "none": "None"
   },
   "menu_mode": {
     "none": "No menu",
