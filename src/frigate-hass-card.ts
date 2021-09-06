@@ -21,8 +21,8 @@ import {
 
 import './editor';
 
-import frigate_card_style from './frigate-hass-card.scss';
-import frigate_card_menu_style from './frigate-hass-card-menu.scss';
+import frigate_card_style from './scss/card.scss';
+import frigate_card_menu_style from './scss/menu.scss';
 
 import {
   MenuButton,
@@ -722,6 +722,55 @@ export class FrigateCard extends LitElement {
     };
   }
 
+  // Render the next/previous controls.
+  protected _renderNextPreviousControls(
+    previous: boolean,
+    parent?: BrowseMediaSource,
+    targetChildIndex?: number,
+    neighbor?: BrowseMediaSource,
+  ): TemplateResult {
+    if (!neighbor || this.config.controls?.nextprev === 'none') {
+      return html``;
+    }
+
+    const classes = {
+      'frigate-media-controls': true,
+      previous: previous,
+      next: !previous,
+      thumbnails: this.config.controls?.nextprev === "thumbnails",
+      chevrons: this.config.controls?.nextprev === "chevrons",
+      button: this.config.controls?.nextprev === "chevrons",
+    }
+
+    const clickChangeView = () => {
+      this._view = new View({
+        view: this._view.view,
+        target: parent,
+        childIndex: targetChildIndex,
+        previous: this._view,
+      });
+    }
+
+    if (this.config.controls?.nextprev == 'chevrons') {
+      return html` <ha-icon-button
+        icon=${previous ? 'mdi:chevron-left' : 'mdi:chevron-right'}
+        class="${classMap(classes)}"
+        title=${neighbor.title}
+        @click=${clickChangeView}
+      ></ha-icon-button>`;
+    }
+
+    if (!neighbor.thumbnail) {
+      return html``;
+    }
+    return html`<img
+      src="${neighbor.thumbnail}"
+      class="${classMap(classes)}"
+      title="${neighbor.title}"
+      @click=${clickChangeView}
+    />`;
+  }
+
   // Render the view for media.
   protected async _renderViewer(): Promise<TemplateResult> {
     let autoplay = true;
@@ -767,21 +816,12 @@ export class FrigateCard extends LitElement {
     const neighbors = this._getMediaNeighbors(parent, childIndex);
 
     return html`
-      ${neighbors?.previous && neighbors.previous.thumbnail
-        ? html`<img
-            src="${neighbors.previous.thumbnail}"
-            class="frigate-media-controls previous"
-            title="${neighbors.previous.title}"
-            @click=${() => {
-              this._view = new View({
-                view: this._view.view,
-                target: parent || undefined,
-                childIndex: neighbors.previousIndex ?? undefined,
-                previous: this._view,
-              });
-            }}
-          />`
-        : ``}
+      ${this._renderNextPreviousControls(
+        true,
+        parent,
+        neighbors?.previousIndex ?? undefined,
+        neighbors?.previous ?? undefined,
+      )}
       ${this._view.is('clip')
         ? resolvedMedia?.mime_type.toLowerCase() == 'application/x-mpegurl'
           ? html`<ha-hls-player
@@ -831,21 +871,12 @@ export class FrigateCard extends LitElement {
               });
             }}
           />`}
-      ${neighbors?.next && neighbors.next.thumbnail
-        ? html`<img
-            src="${neighbors.next.thumbnail}"
-            class="frigate-media-controls next"
-            title="${neighbors.next.title}"
-            @click=${() => {
-              this._view = new View({
-                view: this._view.view,
-                target: parent || undefined,
-                childIndex: neighbors.nextIndex ?? undefined,
-                previous: this._view,
-              });
-            }}
-          />`
-        : ``}
+      ${this._renderNextPreviousControls(
+        false,
+        parent,
+        neighbors?.nextIndex ?? undefined,
+        neighbors?.next ?? undefined,
+      )}
     `;
   }
 

@@ -43,6 +43,12 @@
     "snapshot": "Latest Snapshot",
     "frigate_ui": "Frigate User Interface"
   },
+  "control": {
+    "nextprev": "Media Next & Previous Controls",
+    "thumbnails": "Thumbnails",
+    "chevrons": "Chevrons",
+    "none": "None"
+  },
   "menu_mode": {
     "none": "No menu",
     "hidden-top": "Hidden Top",
