@@ -783,18 +783,35 @@ export class FrigateCard extends LitElement {
           />`
         : ``}
       ${this._view.is('clip')
-        ? html`<ha-hls-player
-            .hass=${this._hass}
-            .url=${resolvedMedia.url}
-            class="frigate-card-viewer"
-            title="${mediaToRender.title}"
-            muted
-            controls
-            playsinline
-            allow-exoplayer
-            ?autoplay="${autoplay}"
-          >
-          </ha-hls-player>`
+        ? resolvedMedia?.mime_type.toLowerCase() == 'application/x-mpegurl'
+          ? html`<ha-hls-player
+              .hass=${this._hass}
+              .url=${resolvedMedia.url}
+              class="frigate-card-viewer"
+              title="${mediaToRender.title}"
+              muted
+              controls
+              playsinline
+              allow-exoplayer
+              ?autoplay="${autoplay}"
+            >
+            </ha-hls-player>`
+          : html`<video
+              class="frigate-card-viewer"
+              title="${mediaToRender.title}"
+              muted
+              controls
+              playsinline
+              @play=${() => {
+                this._clipPlaying = true;
+              }}
+              @pause=${() => {
+                this._clipPlaying = false;
+              }}
+              ?autoplay="${autoplay}"
+            >
+              <source src="${resolvedMedia.url}" type="${resolvedMedia.mime_type}" />
+            </video>`
         : html`<img
             src=${resolvedMedia.url}
             class="frigate-card-viewer"
