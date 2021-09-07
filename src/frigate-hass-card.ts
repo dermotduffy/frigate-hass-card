@@ -512,7 +512,7 @@ export class FrigateCard extends LitElement {
     icon: string,
     message: string | TemplateResult | null = null,
   ): TemplateResult {
-    return html` <div class="frigate-card-contents attention">
+    return html` <div class="attention">
       <span>
         <ha-icon icon="${icon}"> </ha-icon>
         ${message ? html`&nbsp;${message}` : ''}
@@ -829,7 +829,6 @@ export class FrigateCard extends LitElement {
           ? html`<ha-hls-player
               .hass=${this._hass}
               .url=${resolvedMedia.url}
-              class="frigate-card-contents"
               title="${mediaToRender.title}"
               muted
               controls
@@ -839,7 +838,6 @@ export class FrigateCard extends LitElement {
             >
             </ha-hls-player>`
           : html`<video
-              class="frigate-card-contents"
               title="${mediaToRender.title}"
               muted
               controls
@@ -856,7 +854,7 @@ export class FrigateCard extends LitElement {
             </video>`
         : html`<img
             src=${resolvedMedia.url}
-            class="frigate-card-contents"
+            class="snapshot"
             title="${mediaToRender.title}"
             @click=${() => {
               // Get clips potentially related to this snapshot.
@@ -998,14 +996,16 @@ export class FrigateCard extends LitElement {
     }
     return html` <ha-card @click=${this._interactionHandler}>
       ${this.config.menu_mode != 'below' ? this._renderMenu() : ''}
-      <div class="frigate-card-contents">
-        ${this._view.is('clips') || this._view.is('snapshots')
-          ? until(this._renderEvents(), this._renderProgressIndicator())
-          : ``}
-        ${this._view.is('clip') || this._view.is('snapshot')
-          ? until(this._renderViewer(), this._renderProgressIndicator())
-          : ``}
-        ${this._view.is('live') ? this._renderLiveViewer() : ``}
+      <div class="container_16_9">
+        <div class="frigate-card-contents">
+          ${this._view.is('clips') || this._view.is('snapshots')
+            ? until(this._renderEvents(), this._renderProgressIndicator())
+            : ``}
+          ${this._view.is('clip') || this._view.is('snapshot')
+            ? until(this._renderViewer(), this._renderProgressIndicator())
+            : ``}
+          ${this._view.is('live') ? this._renderLiveViewer() : ``}
+        </div>
       </div>
       ${this.config.menu_mode == 'below' ? this._renderMenu() : ''}
     </ha-card>`;
