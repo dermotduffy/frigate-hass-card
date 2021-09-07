@@ -997,22 +997,12 @@ export class FrigateCard extends LitElement {
     return html` <ha-card @click=${this._interactionHandler}>
       ${this.config.menu_mode != 'below' ? this._renderMenu() : ''}
       <div class="frigate-card-contents">
-        ${this._view.is('clips')
+        ${this._view.is('clips') || this._view.is('snapshots')
           ? html`<div class="frigate-card-gallery">
               ${until(this._renderEvents(), this._renderProgressIndicator())}
             </div>`
           : ``}
-        ${this._view.is('snapshots')
-          ? html`<div class="frigate-card-gallery">
-              ${until(this._renderEvents(), this._renderProgressIndicator())}
-            </div>`
-          : ``}
-        ${this._view.is('clip')
-          ? html`<div class="frigate-card-viewer">
-              ${until(this._renderViewer(), this._renderProgressIndicator())}
-            </div>`
-          : ``}
-        ${this._view.is('snapshot')
+        ${this._view.is('clip') || this._view.is('snapshot')
           ? html`<div class="frigate-card-viewer">
               ${until(this._renderViewer(), this._renderProgressIndicator())}
             </div>`
