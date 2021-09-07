@@ -737,7 +737,9 @@ export class FrigateCard extends LitElement {
       'frigate-media-controls': true,
       previous: previous,
       next: !previous,
-      thumbnails: this.config.controls?.nextprev === "thumbnails",
+      thumbnails: (
+        !this.config.controls?.nextprev ||
+        this.config.controls?.nextprev === "thumbnails"),
       chevrons: this.config.controls?.nextprev === "chevrons",
       button: this.config.controls?.nextprev === "chevrons",
     }
