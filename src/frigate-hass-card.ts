@@ -512,7 +512,7 @@ export class FrigateCard extends LitElement {
     icon: string,
     message: string | TemplateResult | null = null,
   ): TemplateResult {
-    return html` <div class="frigate-card-attention">
+    return html` <div class="frigate-card-contents attention">
       <span>
         <ha-icon icon="${icon}"> </ha-icon>
         ${message ? html`&nbsp;${message}` : ''}
@@ -737,12 +737,12 @@ export class FrigateCard extends LitElement {
       'frigate-media-controls': true,
       previous: previous,
       next: !previous,
-      thumbnails: (
+      thumbnails:
         !this.config.controls?.nextprev ||
-        this.config.controls?.nextprev === "thumbnails"),
-      chevrons: this.config.controls?.nextprev === "chevrons",
-      button: this.config.controls?.nextprev === "chevrons",
-    }
+        this.config.controls?.nextprev === 'thumbnails',
+      chevrons: this.config.controls?.nextprev === 'chevrons',
+      button: this.config.controls?.nextprev === 'chevrons',
+    };
 
     const clickChangeView = () => {
       this._view = new View({
@@ -751,7 +751,7 @@ export class FrigateCard extends LitElement {
         childIndex: targetChildIndex,
         previous: this._view,
       });
-    }
+    };
 
     if (this.config.controls?.nextprev == 'chevrons') {
       return html` <ha-icon-button
@@ -829,7 +829,7 @@ export class FrigateCard extends LitElement {
           ? html`<ha-hls-player
               .hass=${this._hass}
               .url=${resolvedMedia.url}
-              class="frigate-card-viewer"
+              class="frigate-card-contents"
               title="${mediaToRender.title}"
               muted
               controls
@@ -839,7 +839,7 @@ export class FrigateCard extends LitElement {
             >
             </ha-hls-player>`
           : html`<video
-              class="frigate-card-viewer"
+              class="frigate-card-contents"
               title="${mediaToRender.title}"
               muted
               controls
@@ -856,7 +856,7 @@ export class FrigateCard extends LitElement {
             </video>`
         : html`<img
             src=${resolvedMedia.url}
-            class="frigate-card-viewer"
+            class="frigate-card-contents"
             title="${mediaToRender.title}"
             @click=${() => {
               // Get clips potentially related to this snapshot.
@@ -1000,18 +1000,12 @@ export class FrigateCard extends LitElement {
       ${this.config.menu_mode != 'below' ? this._renderMenu() : ''}
       <div class="frigate-card-contents">
         ${this._view.is('clips') || this._view.is('snapshots')
-          ? html`<div class="frigate-card-gallery">
-              ${until(this._renderEvents(), this._renderProgressIndicator())}
-            </div>`
+          ? until(this._renderEvents(), this._renderProgressIndicator())
           : ``}
         ${this._view.is('clip') || this._view.is('snapshot')
-          ? html`<div class="frigate-card-viewer">
-              ${until(this._renderViewer(), this._renderProgressIndicator())}
-            </div>`
+          ? until(this._renderViewer(), this._renderProgressIndicator())
           : ``}
-        ${this._view.is('live')
-          ? html`<div class="frigate-card-viewer">${this._renderLiveViewer()}</div>`
-          : ``}
+        ${this._view.is('live') ? this._renderLiveViewer() : ``}
       </div>
       ${this.config.menu_mode == 'below' ? this._renderMenu() : ''}
     </ha-card>`;
