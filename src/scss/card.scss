@@ -2,43 +2,42 @@
 @use "@material/image-list";
 @use './common.scss';
 
+.container_16_9 {
+  /* 16:9 Aspect Ratio. When Safari supports 'aspect-ratio' this should not be
+     necessary */
+  position: relative;
+  padding-top: 56.25%;  // 9 / 16 == 0.5625
+}
+
 .frigate-card-contents {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
   width: 100%;
-
-  max-height: 277px;        /* Max Lovelace 16/9 video height */
   height: 100%;
-  aspect-ratio: 16 / 9;
-  overflow: auto;
-}
-
-.frigate-card-viewer {
-  width: 100%;
-
-  height: 100%;
-  aspect-ratio: 16 / 9;
-}
-
-.frigate-card-gallery {
   overflow: auto;
   -ms-overflow-style: none; /* Hide scrollbar: IE and Edge */
   scrollbar-width: none;    /* Hide scrollbar: Firefox */
+}
 
-  height: 100%;
-  aspect-ratio: 16 / 9;
+.frigate-card-contents img.media,video.media {
+  width: 100%;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
-.frigate-card-gallery::-webkit-scrollbar {
+.frigate-card-contents::-webkit-scrollbar {
   display: none;
 }
 
-.frigate-card-attention {
+.frigate-card-contents .attention {
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 0% 5% 0% 5%;
-
-  height: 100%;
+  box-sizing: border-box;
+  padding: 5%;
 }
 
 .frigate-card-image-list {
