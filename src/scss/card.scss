@@ -5,16 +5,18 @@
 .container_16_9 {
   /* 16:9 Aspect Ratio. When Safari supports 'aspect-ratio' this should not be
      necessary */
+  position: relative;
   padding-top: 56.25%;  // 9 / 16 == 0.5625
 }
 
 .frigate-card-contents {
   position: absolute;
   top: 0px;
+  right: 0px;
+  bottom: 0px;
   left: 0px;
   width: 100%;
   height: 100%;
-  aspect-ratio: 16 / 9;
   overflow: auto;
   -ms-overflow-style: none; /* Hide scrollbar: IE and Edge */
   scrollbar-width: none;    /* Hide scrollbar: Firefox */
