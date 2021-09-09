@@ -13,16 +13,16 @@
   position: absolute;
   width: 46px;
 }
-.frigate-card-menu.overlay-hidden.left {
+.frigate-card-menu.overlay-hidden.left, .frigate-card-menu.overlay-hidden.top {
   left: 0px;
+  top: 0px;
 }
 .frigate-card-menu.overlay-hidden.right {
   right: 0px;
-}
-.frigate-card-menu.overlay-hidden.top {
   top: 0px;
 }
 .frigate-card-menu.overlay-hidden.bottom {
+  left: 0px;
   bottom: 0px;
 }
 .frigate-card-menu.overlay-hidden.expanded-horizontal {

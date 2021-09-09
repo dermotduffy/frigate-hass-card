@@ -34,6 +34,10 @@ export const FRIGATE_MENU_MODES = [
   'overlay-left',
   'overlay-bottom',
   'overlay-right',
+  'hover-top',
+  'hover-left',
+  'hover-bottom',
+  'hover-right',
   'above',
   'below',
 ] as const;

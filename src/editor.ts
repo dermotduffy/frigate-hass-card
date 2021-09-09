@@ -115,6 +115,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       'overlay-left': localize('menu_mode.overlay-left'),
       'overlay-bottom': localize('menu_mode.overlay-bottom'),
       'overlay-right': localize('menu_mode.overlay-right'),
+      'hover-top': localize('menu_mode.hover-top'),
+      'hover-left': localize('menu_mode.hover-left'),
+      'hover-bottom': localize('menu_mode.hover-bottom'),
+      'hover-right': localize('menu_mode.hover-right'),
       above: localize('menu_mode.above'),
       below: localize('menu_mode.below'),
     };

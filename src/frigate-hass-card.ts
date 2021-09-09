@@ -169,12 +169,18 @@ export class FrigateCardMenu extends LitElement {
     const classes = {
       'frigate-card-menu': true,
       'overlay-hidden':
-        this.menuMode.startsWith('hidden-') || this.menuMode.startsWith('overlay-'),
+        this.menuMode.startsWith('hidden-') ||
+        this.menuMode.startsWith('overlay-') ||
+        this.menuMode.startsWith('hover-'),
       'expanded-horizontal':
-        (this.menuMode.startsWith('overlay-') || this.expand) &&
+        (this.menuMode.startsWith('overlay-') ||
+          this.menuMode.startsWith('hover-') ||
+          this.expand) &&
         (this.menuMode.endsWith('-top') || this.menuMode.endsWith('-bottom')),
       'expanded-vertical':
-        (this.menuMode.startsWith('overlay-') || this.expand) &&
+        (this.menuMode.startsWith('overlay-') ||
+          this.menuMode.startsWith('hover-') ||
+          this.expand) &&
         (this.menuMode.endsWith('-left') || this.menuMode.endsWith('-right')),
       full: ['above', 'below'].includes(this.menuMode),
       left: this.menuMode.endsWith('-left'),
@@ -978,9 +984,13 @@ export class FrigateCard extends LitElement {
   }
 
   protected _renderMenu(): TemplateResult | void {
+    const classes = {
+      'hover-menu': this.config.menu_mode.startsWith('hover-'),
+    };
     return html`
       <frigate-card-menu
         id="${FrigateCardMenu.FRIGATE_CARD_MENU_ID}"
+        class="${classMap(classes)}"
         .actionCallback=${this._menuActionHandler.bind(this)}
         .menuMode=${this.config.menu_mode}
         .buttons=${this._getMenuButtons()}
@@ -997,8 +1007,8 @@ export class FrigateCard extends LitElement {
       return this._showError(localize('common.show_error'));
     }
     return html` <ha-card @click=${this._interactionHandler}>
-      ${this.config.menu_mode != 'below' ? this._renderMenu() : ''}
-      <div class="container_16_9">
+      ${this.config.menu_mode == 'above' ? this._renderMenu() : ''}
+      <div class="container_16_9 outer">
         <div class="frigate-card-contents">
           ${this._view.is('clips') || this._view.is('snapshots')
             ? until(this._renderEvents(), this._renderProgressIndicator())
@@ -1009,7 +1019,7 @@ export class FrigateCard extends LitElement {
           ${this._view.is('live') ? this._renderLiveViewer() : ``}
         </div>
       </div>
-      ${this.config.menu_mode == 'below' ? this._renderMenu() : ''}
+      ${this.config.menu_mode != 'above' ? this._renderMenu() : ''}
     </ha-card>`;
   }
 
