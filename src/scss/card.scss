@@ -22,6 +22,18 @@
   scrollbar-width: none;    /* Hide scrollbar: Firefox */
 }
 
+/* Support the 'hover' menu mode. */
+.hover-menu {
+  z-index: 1;
+  transition: all 0.5s ease;
+}
+.outer + .hover-menu {
+  opacity: 0.0;
+}
+.outer:hover + .hover-menu, .hover-menu:hover {
+  opacity: 1.0;
+}
+
 .frigate-card-contents img.media,video.media {
   width: 100%;
 }

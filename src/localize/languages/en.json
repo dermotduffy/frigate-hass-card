@@ -59,6 +59,10 @@
     "overlay-left": "Overlay Left",
     "overlay-bottom": "Overlay Bottom",
     "overlay-right": "Overlay Right",
+    "hover-top": "Hover Top",
+    "hover-left": "Hover Left",
+    "hover-bottom": "Hover Bottom",
+    "hover-right": "Hover Right",
     "above": "Above",
     "below": "Below"
   },
