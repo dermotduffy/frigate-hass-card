@@ -60,6 +60,7 @@ lovelace:
 | Option           | Default | Description                                         |
 | ------------- | --------------------------------------------- | - |
 | `frigate_camera_name` | The string after the "camera." in the `camera_entity` option (above). | This parameter allows the camera name heuristic to be overriden for cases where the entity name does not cleanly map to the Frigate camera name (e.g. when the Frigate camera name is capitalized, but the entity name is lower case). This camera name is used for communicating with the Frigate backend, e.g. for fetching events. |
+| `live_provider` | `frigate` | Whether `frigate` (the default Frigate camera in Home Assistant which uses an RTMP stream), `frigate-jsmpeg` (JSMPEG stream proxied from the Frigate backend) or `webrtc` should provide the live camera view. See [note below on the required integration version](#jsmpeg-troubleshooting) for `frigate-jsmpeg` to function.|
 | `view_default` | `live` | The view to show by default. See [views](#views) below.|
 | `frigate_client_id` | `frigate` | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://blakeblackshear.github.io/frigate/usage/home-assistant/#multiple-instance-support).|
 | `view_timeout` | | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
@@ -93,7 +94,6 @@ events/snapshots/UI. A perfect combination!
 
 | Option           | Default | Description                                         |
 | ------------- | - | -------------------------------------------- |
-| `live_provider` | | Whether `frigate` or `webrtc` should provide the live camera view.|
 | `webrtc.entity` | | The RTSP entity to use with WebRTC.|
 | `webrtc.*`| | Any other options in a `webrtc:` YAML dictionary are silently passed through to WebRTC. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides.|
 
@@ -241,6 +241,16 @@ This card supports full editing via the Lovelace card editor. Additional arbitra
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/editor.png" alt="Live viewing" width="400px">
 
 ## Troubleshooting
+
+<a name="jsmpeg-troubleshooting"></a>
+
+### JSMPEG live camera only shows a 'spinner'
+
+**Note:** As of 2021-09-12, no released version of the [Frigate
+integration](https://github.com/blakeblackshear/frigate-hass-integration)
+supports JSMPEG proxying. That functionality is already merged, and will be in
+the release *after* (not including) v2.0.0. The `frigate-jsmpeg` live provider
+will not work with earlier integration versions.
 
 ### Failed to fetch
 

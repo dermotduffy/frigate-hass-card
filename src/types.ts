@@ -60,7 +60,7 @@ export const frigateCardConfigSchema = z.object({
         .transform((val) => Number(val)),
     )
     .optional().default(180),
-  live_provider: z.enum(['frigate', 'webrtc']).default('frigate'),
+  live_provider: z.enum(['frigate', 'frigate-jsmpeg', 'webrtc']).default('frigate'),
   webrtc: z.object({}).passthrough().optional(),
   label: z.string().optional(),
   zone: z.string().optional(),
@@ -94,6 +94,10 @@ export interface MenuButton {
   icon?: string;
   description: string;
   emphasize?: boolean;
+}
+
+export interface ExtendedHomeAssistant {
+  hassUrl(path?): string;
 }
 
 /**
@@ -144,3 +148,8 @@ export interface BrowseMediaNeighbors {
   next: BrowseMediaSource | null;
   nextIndex: number | null;
 }
+
+export const signedPathSchema = z.object({
+  path: z.string(),
+});
+export type SignedPath = z.infer<typeof signedPathSchema>;

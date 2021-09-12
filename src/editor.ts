@@ -126,6 +126,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     const liveProvider = {
       '': '',
       frigate: localize('live_provider.frigate'),
+      'frigate-jsmpeg': localize('live_provider.frigate-jsmpeg'),
       webrtc: localize('live_provider.webrtc'),
     };
 
@@ -182,6 +183,24 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 .configValue=${'frigate_camera_name'}
                 @value-changed=${this._valueChanged}
               ></paper-input>
+              <paper-dropdown-menu
+                .label=${localize('editor.live_provider')}
+                @value-changed=${this._valueChanged}
+                .configValue=${'live_provider'}
+              >
+                <paper-listbox
+                  slot="dropdown-content"
+                  .selected=${Object.keys(liveProvider).indexOf(
+                    this._config?.live_provider || '',
+                  )}
+                >
+                  ${Object.keys(liveProvider).map((key) => {
+                    return html`
+                      <paper-item .label="${key}">${liveProvider[key]} </paper-item>
+                    `;
+                  })}
+                </paper-listbox>
+              </paper-dropdown-menu>
               <paper-dropdown-menu
                 label=${localize('editor.default_view')}
                 @value-changed=${this._valueChanged}
@@ -368,24 +387,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         </div>
         ${options.webrtc.show
           ? html` <div class="values">
-              <paper-dropdown-menu
-                .label=${localize('editor.live_provider')}
-                @value-changed=${this._valueChanged}
-                .configValue=${'live_provider'}
-              >
-                <paper-listbox
-                  slot="dropdown-content"
-                  .selected=${Object.keys(liveProvider).indexOf(
-                    this._config?.live_provider || '',
-                  )}
-                >
-                  ${Object.keys(liveProvider).map((key) => {
-                    return html`
-                      <paper-item .label="${key}">${liveProvider[key]} </paper-item>
-                    `;
-                  })}
-                </paper-listbox>
-              </paper-dropdown-menu>
               <paper-dropdown-menu
                 .label=${localize('webrtc.entity')}
                 @value-changed=${this._valueChanged}
