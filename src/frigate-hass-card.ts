@@ -1001,6 +1001,10 @@ export class FrigateCard extends LitElement {
         return this._renderError('Could not retrieve or sign JSMPEG websocket path');
       }
 
+      // Return the html canvas node only after the JSMPEG video has loaded and
+      // is playing, to reduce the amount of time the user is staring at a blank
+      // white canvas (instead they get the progress spinner until this promise
+      // resolves).
       return new Promise<TemplateResult>((resolve) => {
         this._jsmpegPlayer = new JSMpeg.VideoElement(
           this,
