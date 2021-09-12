@@ -29,10 +29,12 @@ import {
   browseMediaSourceSchema,
   frigateCardConfigSchema,
   resolvedMediaSchema,
+  signedPathSchema,
 } from './types';
 import type {
   BrowseMediaNeighbors,
   BrowseMediaSource,
+  ExtendedHomeAssistant,
   FrigateCardConfig,
   FrigateCardView,
   FrigateMenuMode,
@@ -45,6 +47,8 @@ import dayjs_custom_parse_format from 'dayjs/plugin/customParseFormat';
 
 import { ZodSchema, z } from 'zod';
 import { MessageBase } from 'home-assistant-js-websocket';
+
+import JSMpeg from '@cycjimmy/jsmpeg-player';
 
 const URL_TROUBLESHOOTING =
   'https://github.com/dermotduffy/frigate-hass-card#troubleshooting';
@@ -257,7 +261,7 @@ export class FrigateCard extends LitElement {
   public static getStubConfig(): Record<string, string> {
     return {};
   }
-  set hass(hass: HomeAssistant) {
+  set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
     if (this._webrtcElement) {
       this._webrtcElement.hass = hass;
     }
@@ -266,12 +270,14 @@ export class FrigateCard extends LitElement {
   }
 
   @property({ attribute: false })
-  protected _hass: HomeAssistant | null = null;
+  protected _hass: (HomeAssistant & ExtendedHomeAssistant) | null = null;
 
   @state()
   public config!: FrigateCardConfig;
 
   protected _interactionTimerID: number | null = null;
+  protected _jsmpegCanvasElement: any | null = null;
+  protected _jsmpegPlayer: any | null = null;
   protected _webrtcElement: any | null = null;
 
   @property({ attribute: false })
@@ -406,6 +412,7 @@ export class FrigateCard extends LitElement {
     } else {
       this._view = view;
     }
+    this._resetJSMPEGIfNecessary();
   }
 
   // Determine whether the card should be updated.
@@ -620,7 +627,7 @@ export class FrigateCard extends LitElement {
 
   // Render a progress spinner while content loads.
   protected _renderProgressIndicator(): TemplateResult {
-    return html` <div class="frigate-card-attention">
+    return html` <div class="attention">
       <ha-circular-progress active="true" size="large"></ha-circular-progress>
     </div>`;
   }
@@ -947,10 +954,80 @@ export class FrigateCard extends LitElement {
     return null;
   }
 
+  protected async _getJSMPEGURL(): Promise<string | null> {
+    if (!this._hass) {
+      return null;
+    }
+
+    const request = {
+      type: 'auth/sign_path',
+      path:
+        `/api/frigate/${this.config.frigate_client_id}` +
+        `/jsmpeg/${this.config.frigate_camera_name}`,
+    };
+    // Sign the path so it includes an authSig parameter.
+    let response;
+    try {
+      response = await this._makeWSRequest(signedPathSchema, request);
+    } catch (err) {
+      console.warn(err);
+      return null;
+    }
+    const url = this._hass.hassUrl(response.path);
+    return url.replace(/^http/i, 'ws');
+  }
+
+  protected _resetJSMPEGIfNecessary(): void {
+    if (!this._view.is('live') || this.config.live_provider != 'frigate-jsmpeg') {
+      if (this._jsmpegPlayer) {
+        this._jsmpegPlayer.destroy();
+        this._jsmpegPlayer = null;
+      }
+      this._jsmpegCanvasElement = null;
+    }
+  }
+
+  // Cleanup and/or start the JSMPEG player.
+  protected async _renderJSMPEGPlayer(): Promise<TemplateResult> {
+    if (!this._jsmpegCanvasElement) {
+      this._jsmpegCanvasElement = document.createElement('canvas');
+      this._jsmpegCanvasElement.className = 'media';
+    }
+
+    if (!this._jsmpegPlayer) {
+      const jsmpeg_url = await this._getJSMPEGURL();
+
+      if (!jsmpeg_url) {
+        return this._renderError('Could not retrieve or sign JSMPEG websocket path');
+      }
+
+      // Return the html canvas node only after the JSMPEG video has loaded and
+      // is playing, to reduce the amount of time the user is staring at a blank
+      // white canvas (instead they get the progress spinner until this promise
+      // resolves).
+      return new Promise<TemplateResult>((resolve) => {
+        this._jsmpegPlayer = new JSMpeg.VideoElement(
+          this,
+          jsmpeg_url,
+          {
+            canvas: this._jsmpegCanvasElement,
+            hooks: {
+              play: () => {
+                resolve(html`${this._jsmpegCanvasElement}`);
+              },
+            },
+          },
+          { protocols: [], videoBufferSize: 1024 * 1024 * 4 },
+        );
+      });
+    }
+    return html`${this._jsmpegCanvasElement}`;
+  }
+
   // Render the live viewer.
   // Note: The live viewer is the main element used to size the overall card. It
   // is always rendered (but sometimes hidden).
-  protected _renderLiveViewer(): TemplateResult {
+  protected async _renderLiveViewer(): Promise<TemplateResult> {
     if (!this._hass || !(this.config.camera_entity in this._hass.states)) {
       return this._renderAttentionIcon(
         'mdi:camera-off',
@@ -959,6 +1036,9 @@ export class FrigateCard extends LitElement {
     }
     if (this._webrtcElement) {
       return html`${this._webrtcElement}`;
+    }
+    if (this.config.live_provider == 'frigate-jsmpeg') {
+      return await this._renderJSMPEGPlayer();
     }
     return html` <ha-camera-stream
       .hass=${this._hass}
@@ -1016,7 +1096,9 @@ export class FrigateCard extends LitElement {
           ${this._view.is('clip') || this._view.is('snapshot')
             ? until(this._renderViewer(), this._renderProgressIndicator())
             : ``}
-          ${this._view.is('live') ? this._renderLiveViewer() : ``}
+          ${this._view.is('live')
+            ? until(this._renderLiveViewer(), this._renderProgressIndicator())
+            : ``}
         </div>
       </div>
       ${this.config.menu_mode != 'above' ? this._renderMenu() : ''}
