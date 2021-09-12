@@ -25,7 +25,7 @@ A full-featured Frigate Lovelace card:
 * Arbitrary entity access via menu (e.g. motion sensor access).
 * Full Lovelace editing support.
 * Theme friendly.
-* **Advanced**: Support for [WebRTC](https://github.com/AlexxIT/WebRTC) live viewing.
+* **Advanced**: Support for [WebRTC](https://github.com/AlexxIT/WebRTC) live viewing by embedding the WebRTC card.
 
 ## Installation
 
@@ -94,11 +94,41 @@ events/snapshots/UI. A perfect combination!
 
 | Option           | Default | Description                                         |
 | ------------- | - | -------------------------------------------- |
-| `webrtc.entity` | | The RTSP entity to use with WebRTC.|
+****| `webrtc.url` | | The RTSP url to pass to WebRTC. Specify this OR `webrtc.entity` (below).|
+| `webrtc.entity` | | The RTSP entity to pass WebRTC. Specify this OR `webrtc.url` (above). |
 | `webrtc.*`| | Any other options in a `webrtc:` YAML dictionary are silently passed through to WebRTC. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides.|
 
-
 **Note**: WebRTC must be installed and configured separately (see [details](https://github.com/AlexxIT/WebRTC)) before it can be used with this card.
+
+#### Specifying the WebRTC Camera
+
+WebRTC does **not** support use of Frigate-provided camera entities, as it
+requires an RTSP stream which Frigate does not provide. There are two ways to
+specify the WebRTC source camera:
+
+* Manual setup of separate RTSP camera entities in Home Assistant ([see
+  example](https://www.home-assistant.io/integrations/generic/#live-stream)).
+  These entities will then be available for selection in the GUI card editor for
+  the Frigate card under the WebRTC options, or can be manually specified with a
+  `webrtc.entity` option in the YAML configuration for this card:
+
+```yaml
+[rest of Frigate card configuration]
+webrtc:
+  entity: 'camera.front_door_rstp`
+```
+
+* OR manually entering the WebRTC camera URL parameter in the GUI card editor,
+  or configuring the `url` parameter as part of a manual Frigate card
+  configuration, like the following example:
+
+```yaml
+[rest of Frigate card configuration]
+webrtc:
+  url: 'rtsp://USERNAME:PASSWORD@CAMERA:554/RTSP_PATH'
+```
+
+See [WebRTC configuration](https://github.com/AlexxIT/WebRTC#configuration) for full configuration options.
 
 <a name="entities"></a>
 
@@ -128,28 +158,6 @@ entities:
   - entity: binary_sensor.front_door_person_motion
     show: false
 ```
-
-#### Specifying the WebRTC Camera
-
-There are two ways to specify the WebRTC source camera:
-
-* Manual setup of separate RTSP camera entities in Home Assistant. These entities will then be available for selection in the GUI card editor for the Frigate card under the WebRTC options, or can be manually specified with a `webrtc.entity` option in YAML:
-
-```yaml
-[rest of Frigate card configuration]
-webrtc:
-  entity: 'camera.front_door_rstp`
-```
-* OR manually configuring the `url` parameter as part of a manual Frigate card configuration, like the following example:
-
-```yaml
-[rest of Frigate card configuration]
-webrtc:
-  url: 'rtsp://USERNAME:PASSWORD@CAMERA:554/RTSP_PATH'
-```
-
- See [WebRTC configuration](https://github.com/AlexxIT/WebRTC#configuration) for full configuration options.
-
 
 <a name="views"></a>
 

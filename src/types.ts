@@ -61,7 +61,10 @@ export const frigateCardConfigSchema = z.object({
     )
     .optional().default(180),
   live_provider: z.enum(['frigate', 'frigate-jsmpeg', 'webrtc']).default('frigate'),
-  webrtc: z.object({}).passthrough().optional(),
+  webrtc: z.object({
+    entity: z.string().optional(),
+    url: z.string().optional(),
+  }).passthrough().optional(),
   label: z.string().optional(),
   zone: z.string().optional(),
   autoplay_clip: z.boolean().default(false),
