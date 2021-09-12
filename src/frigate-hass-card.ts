@@ -988,7 +988,7 @@ export class FrigateCard extends LitElement {
   }
 
   // Cleanup and/or start the JSMPEG player.
-  protected async _renderJSMPEG(): Promise<TemplateResult> {
+  protected async _renderJSMPEGPlayer(): Promise<TemplateResult> {
     if (!this._jsmpegCanvasElement) {
       this._jsmpegCanvasElement = document.createElement('canvas');
       this._jsmpegCanvasElement.className = 'media';
@@ -1038,7 +1038,7 @@ export class FrigateCard extends LitElement {
       return html`${this._webrtcElement}`;
     }
     if (this.config.live_provider == 'frigate-jsmpeg') {
-      return await this._renderJSMPEG();
+      return await this._renderJSMPEGPlayer();
     }
     return html` <ha-camera-stream
       .hass=${this._hass}
