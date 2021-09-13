@@ -401,6 +401,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   })}
                 </paper-listbox>
               </paper-dropdown-menu>
+              <paper-input
+                  label=${localize('webrtc.url')}
+                  .value=${this._config?.webrtc?.url || ''}
+                  .configValue=${'webrtc.url'}
+                  @value-changed=${this._valueChanged}
+              ></paper-input>
             </div>`
           : ''}
       </div>

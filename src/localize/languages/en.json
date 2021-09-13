@@ -72,7 +72,8 @@
     "webrtc": "WebRTC"
   },
   "webrtc": {
-    "entity": "WebRTC Camera Entity (To use with WebRTC Live Provider)"
+    "entity": "Optional WebRTC Camera Entity (Not a Frigate camera)",
+    "url": "Optional WebRTC Camera URL"
   },
   "error": {
     "empty_response": "Received empty response from Home Assistant for request",
