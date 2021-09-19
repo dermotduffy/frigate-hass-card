@@ -11,6 +11,8 @@ import { customElement, property, query, state } from 'lit/decorators';
 import { classMap } from 'lit/directives/class-map.js';
 import { until } from 'lit/directives/until.js';
 
+import { renderMessage, renderErrorMessage, renderProgressIndicator } from './message';
+
 import {
   HomeAssistant,
   LovelaceCardEditor,
@@ -49,9 +51,6 @@ import { ZodSchema, z } from 'zod';
 import { MessageBase } from 'home-assistant-js-websocket';
 
 import JSMpeg from '@cycjimmy/jsmpeg-player';
-
-const URL_TROUBLESHOOTING =
-  'https://github.com/dermotduffy/frigate-hass-card#troubleshooting';
 
 // Load dayjs plugin(s).
 dayjs.extend(dayjs_custom_parse_format);
@@ -520,28 +519,6 @@ export class FrigateCard extends LitElement {
     return this._makeWSRequest(resolvedMediaSchema, request);
   }
 
-  // Render an attention grabbing icon.
-  protected _renderAttentionIcon(
-    icon: string,
-    message: string | TemplateResult | null = null,
-  ): TemplateResult {
-    return html` <div class="attention">
-      <span>
-        <ha-icon icon="${icon}"> </ha-icon>
-        ${message ? html`&nbsp;${message}` : ''}
-      </span>
-    </div>`;
-  }
-
-  // Render an embedded error situation.
-  protected _renderError(error: string): TemplateResult {
-    return this._renderAttentionIcon(
-      'mdi:alert-circle',
-      html`${error ? `${error}.` : `${localize('error.unknown_error')}.`}
-        <a href="${URL_TROUBLESHOOTING}">${localize('error.troubleshooting')}</a>.`,
-    );
-  }
-
   // Render Frigate events into a card gallery.
   protected async _renderEvents(): Promise<TemplateResult> {
     let parent;
@@ -552,15 +529,15 @@ export class FrigateCard extends LitElement {
         parent = await this._browseMediaQuery(this._view.is('clips'));
       }
     } catch (e: any) {
-      return this._renderError(e.message);
+      return renderErrorMessage(e.message);
     }
 
     if (this._getFirstTrueMediaChildIndex(parent) == null) {
-      return this._renderAttentionIcon(
-        this._view.is('clips') ? 'mdi:filmstrip-off' : 'mdi:camera-off',
+      return renderMessage(
         this._view.is('clips')
-          ? localize('common.no_clips')
-          : localize('common.no_snapshots'),
+        ? localize('common.no_clips')
+        : localize('common.no_snapshots'),
+        this._view.is('clips') ? 'mdi:filmstrip-off' : 'mdi:camera-off',
       );
     }
 
@@ -623,13 +600,6 @@ export class FrigateCard extends LitElement {
           </li>`,
       )}
     </ul>`;
-  }
-
-  // Render a progress spinner while content loads.
-  protected _renderProgressIndicator(): TemplateResult {
-    return html` <div class="attention">
-      <ha-circular-progress active="true" size="large"></ha-circular-progress>
-    </div>`;
   }
 
   protected _menuActionHandler(name: string): void {
@@ -802,15 +772,15 @@ export class FrigateCard extends LitElement {
       try {
         parent = await this._browseMediaQuery(this._view.is('clip'));
       } catch (e: any) {
-        return this._renderError(e.message);
+        return renderErrorMessage(e.message);
       }
       childIndex = this._getFirstTrueMediaChildIndex(parent);
       if (!parent || !parent.children || childIndex == null) {
-        return this._renderAttentionIcon(
-          this._view.is('clip') ? 'mdi:filmstrip-off' : 'mdi:camera-off',
+        return renderMessage(
           this._view.is('clip')
             ? localize('common.no_clip')
             : localize('common.no_snapshot'),
+          this._view.is('clip') ? 'mdi:filmstrip-off' : 'mdi:camera-off',
         );
       }
       mediaToRender = parent.children[childIndex];
@@ -825,7 +795,7 @@ export class FrigateCard extends LitElement {
     const resolvedMedia = await this._resolveMedia(mediaToRender);
     if (!mediaToRender || !resolvedMedia) {
       // Home Assistant could not resolve media item.
-      return this._renderError(localize('error.could_not_resolve'));
+      return renderErrorMessage(localize('error.could_not_resolve'));
     }
 
     const neighbors = this._getMediaNeighbors(parent, childIndex);
@@ -998,7 +968,7 @@ export class FrigateCard extends LitElement {
       const jsmpeg_url = await this._getJSMPEGURL();
 
       if (!jsmpeg_url) {
-        return this._renderError('Could not retrieve or sign JSMPEG websocket path');
+        return renderErrorMessage('Could not retrieve or sign JSMPEG websocket path');
       }
 
       // Return the html canvas node only after the JSMPEG video has loaded and
@@ -1029,9 +999,9 @@ export class FrigateCard extends LitElement {
   // is always rendered (but sometimes hidden).
   protected async _renderLiveViewer(): Promise<TemplateResult> {
     if (!this._hass || !(this.config.camera_entity in this._hass.states)) {
-      return this._renderAttentionIcon(
-        'mdi:camera-off',
+      return renderMessage(
         localize('error.no_live_camera'),
+        'mdi:camera-off',
       );
     }
     if (this._webrtcElement) {
@@ -1091,13 +1061,13 @@ export class FrigateCard extends LitElement {
       <div class="container_16_9 outer">
         <div class="frigate-card-contents">
           ${this._view.is('clips') || this._view.is('snapshots')
-            ? until(this._renderEvents(), this._renderProgressIndicator())
+            ? until(this._renderEvents(), renderProgressIndicator())
             : ``}
           ${this._view.is('clip') || this._view.is('snapshot')
-            ? until(this._renderViewer(), this._renderProgressIndicator())
+            ? until(this._renderViewer(), renderProgressIndicator())
             : ``}
           ${this._view.is('live')
-            ? until(this._renderLiveViewer(), this._renderProgressIndicator())
+            ? until(this._renderLiveViewer(), renderProgressIndicator())
             : ``}
         </div>
       </div>
