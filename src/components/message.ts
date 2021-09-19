@@ -1,8 +1,7 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators';
-import { localize } from './localize/localize';
-
-import frigate_card_message_style from './scss/message.scss';
+import { localize } from '../localize/localize';
+import messageStyle from '../scss/message.scss';
 
 const URL_TROUBLESHOOTING =
   'https://github.com/dermotduffy/frigate-hass-card#troubleshooting';
@@ -26,7 +25,7 @@ export class FrigateCardMessage extends LitElement {
   }
 
   static get styles(): CSSResultGroup {
-    return unsafeCSS(frigate_card_message_style);
+    return unsafeCSS(messageStyle);
   }
 }
 
@@ -54,7 +53,7 @@ export class FrigateCardProgressIndicator extends LitElement {
   }
 
   static get styles(): CSSResultGroup {
-    return unsafeCSS(frigate_card_message_style);
+    return unsafeCSS(messageStyle);
   }
 }
 

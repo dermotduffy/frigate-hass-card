@@ -11,7 +11,8 @@ import { customElement, property, query, state } from 'lit/decorators';
 import { classMap } from 'lit/directives/class-map.js';
 import { until } from 'lit/directives/until.js';
 
-import { renderMessage, renderErrorMessage, renderProgressIndicator } from './message';
+import { FrigateCardMenu } from './components/menu';
+import { renderMessage, renderErrorMessage, renderProgressIndicator } from './components/message';
 
 import {
   HomeAssistant,
@@ -22,9 +23,11 @@ import {
 } from 'custom-card-helpers';
 
 import './editor';
+import './components/menu'
+import './components/message'
 
-import frigate_card_style from './scss/card.scss';
-import frigate_card_menu_style from './scss/menu.scss';
+
+import cardStyle from './scss/card.scss';
 
 import {
   MenuButton,
@@ -39,7 +42,6 @@ import type {
   ExtendedHomeAssistant,
   FrigateCardConfig,
   FrigateCardView,
-  FrigateMenuMode,
   ResolvedMedia,
 } from './types';
 import { CARD_VERSION } from './const';
@@ -70,8 +72,6 @@ console.info(
   description: localize('common.frigate_card_description'),
 });
 
-type FrigateCardMenuCallback = (name: string) => any;
-
 // Determine whether the card should be updated based on Home Assistant changes.
 function shouldUpdateBasedOnHass(
   newHass: HomeAssistant | null,
@@ -98,119 +98,6 @@ function shouldUpdateBasedOnHass(
     return false;
   }
   return false;
-}
-
-// A menu for the Frigate card.
-@customElement('frigate-card-menu')
-export class FrigateCardMenu extends LitElement {
-  static FRIGATE_CARD_MENU_ID: string = 'frigate-card-menu-id' as const;
-
-  @property({ attribute: false })
-  protected menuMode: FrigateMenuMode = 'hidden-top';
-
-  @property({ attribute: false })
-  protected expand = false;
-
-  @property({ attribute: false })
-  protected actionCallback: FrigateCardMenuCallback | null = null;
-
-  @property({ attribute: false })
-  public buttons: Map<string, MenuButton> = new Map();
-
-  // Call the callback.
-  protected _callAction(name: string): void {
-    if (this.menuMode.startsWith('hidden-')) {
-      if (name == 'frigate') {
-        this.expand = !this.expand;
-        return;
-      }
-      // Collapse menu after the user clicks on something.
-      this.expand = false;
-    }
-
-    if (this.actionCallback) {
-      this.actionCallback(name);
-    }
-  }
-
-  // Render a menu button.
-  protected _renderButton(name: string, button: MenuButton): TemplateResult {
-    const classes = {
-      button: true,
-      emphasize: button.emphasize ?? false,
-    };
-
-    return html` <ha-icon-button
-      class="${classMap(classes)}"
-      icon=${button.icon || 'mdi:gesture-tap-button'}
-      title=${button.description}
-      @click=${() => this._callAction(name)}
-    ></ha-icon-button>`;
-  }
-
-  // Render the Frigate menu button.
-  protected _renderFrigateButton(name: string, button: MenuButton): TemplateResult {
-    const icon =
-      this.menuMode.startsWith('hidden-') && !this.expand
-        ? 'mdi:alpha-f-box-outline'
-        : 'mdi:alpha-f-box';
-
-    return this._renderButton(name, Object.assign({}, button, { icon: icon }));
-  }
-
-  // Render the menu.
-  protected render(): TemplateResult {
-    // If the menu is off, or if it's in hidden mode but there's no button to
-    // unhide it, just show nothing.
-    if (
-      this.menuMode == 'none' ||
-      (this.menuMode.startsWith('hidden-') && !this.buttons.get('frigate'))
-    ) {
-      return html``;
-    }
-
-    const classes = {
-      'frigate-card-menu': true,
-      'overlay-hidden':
-        this.menuMode.startsWith('hidden-') ||
-        this.menuMode.startsWith('overlay-') ||
-        this.menuMode.startsWith('hover-'),
-      'expanded-horizontal':
-        (this.menuMode.startsWith('overlay-') ||
-          this.menuMode.startsWith('hover-') ||
-          this.expand) &&
-        (this.menuMode.endsWith('-top') || this.menuMode.endsWith('-bottom')),
-      'expanded-vertical':
-        (this.menuMode.startsWith('overlay-') ||
-          this.menuMode.startsWith('hover-') ||
-          this.expand) &&
-        (this.menuMode.endsWith('-left') || this.menuMode.endsWith('-right')),
-      full: ['above', 'below'].includes(this.menuMode),
-      left: this.menuMode.endsWith('-left'),
-      right: this.menuMode.endsWith('-right'),
-      top: this.menuMode.endsWith('-top'),
-      bottom: this.menuMode.endsWith('-bottom'),
-    };
-
-    return html`
-      <div class=${classMap(classes)}>
-        ${Array.from(this.buttons.keys()).map((name) => {
-          const button = this.buttons.get(name);
-          if (button) {
-            return name === 'frigate'
-              ? this._renderFrigateButton(name, button)
-              : this._renderButton(name, button);
-          }
-          return html``;
-        })}
-      </div>
-    `;
-  }
-
-  // Return compiled CSS styles (thus safe to use with unsafeCSS).
-  static get styles(): CSSResultGroup {
-    return unsafeCSS(frigate_card_menu_style);
-  }
 }
 
 interface ViewParameters {
@@ -285,7 +172,7 @@ export class FrigateCard extends LitElement {
   // Whether or not there is an active clip being played.
   protected _clipPlaying = false;
 
-  @query(`#${FrigateCardMenu.FRIGATE_CARD_MENU_ID}`)
+  @query("frigate-card-menu")
   _menu!: FrigateCardMenu | null;
 
   // A small cache to avoid needing to create a new list of entities every time
@@ -1039,7 +926,6 @@ export class FrigateCard extends LitElement {
     };
     return html`
       <frigate-card-menu
-        id="${FrigateCardMenu.FRIGATE_CARD_MENU_ID}"
         class="${classMap(classes)}"
         .actionCallback=${this._menuActionHandler.bind(this)}
         .menuMode=${this.config.menu_mode}
@@ -1094,7 +980,7 @@ export class FrigateCard extends LitElement {
 
   // Return compiled CSS styles (thus safe to use with unsafeCSS).
   static get styles(): CSSResultGroup {
-    return unsafeCSS(frigate_card_style);
+    return unsafeCSS(cardStyle);
   }
 
   // Get the Lovelace card size.
