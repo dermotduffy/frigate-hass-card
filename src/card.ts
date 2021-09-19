@@ -10,10 +10,13 @@ import {
 import { customElement, property, query, state } from 'lit/decorators';
 import { classMap } from 'lit/directives/class-map.js';
 import { until } from 'lit/directives/until.js';
-
+import { View } from './view';
 import { FrigateCardMenu } from './components/menu';
-import { renderMessage, renderErrorMessage, renderProgressIndicator } from './components/message';
-
+import {
+  renderMessage,
+  renderErrorMessage,
+  renderProgressIndicator,
+} from './components/message';
 import {
   HomeAssistant,
   LovelaceCardEditor,
@@ -23,9 +26,9 @@ import {
 } from 'custom-card-helpers';
 
 import './editor';
-import './components/menu'
-import './components/message'
-
+import './components/menu';
+import './components/message';
+import './components/gallery';
 
 import cardStyle from './scss/card.scss';
 
@@ -41,7 +44,6 @@ import type {
   BrowseMediaSource,
   ExtendedHomeAssistant,
   FrigateCardConfig,
-  FrigateCardView,
   ResolvedMedia,
 } from './types';
 import { CARD_VERSION } from './const';
@@ -100,41 +102,6 @@ function shouldUpdateBasedOnHass(
   return false;
 }
 
-interface ViewParameters {
-  view?: FrigateCardView;
-  target?: BrowseMediaSource;
-  childIndex?: number;
-  previous?: View;
-}
-
-class View {
-  view: FrigateCardView;
-  target?: BrowseMediaSource;
-  childIndex?: number;
-  previous?: View;
-
-  constructor(params?: ViewParameters) {
-    this.view = params?.view || 'live';
-    this.target = params?.target;
-    this.childIndex = params?.childIndex;
-    this.previous = params?.previous;
-  }
-
-  public is(name: string): boolean {
-    return this.view == name;
-  }
-
-  get media(): BrowseMediaSource | undefined {
-    if (this.target) {
-      if (this.target.children && this.childIndex !== undefined) {
-        return this.target.children[this.childIndex];
-      }
-      return this.target;
-    }
-    return undefined;
-  }
-}
-
 // Main FrigateCard class.
 @customElement('frigate-card')
 export class FrigateCard extends LitElement {
@@ -172,7 +139,7 @@ export class FrigateCard extends LitElement {
   // Whether or not there is an active clip being played.
   protected _clipPlaying = false;
 
-  @query("frigate-card-menu")
+  @query('frigate-card-menu')
   _menu!: FrigateCardMenu | null;
 
   // A small cache to avoid needing to create a new list of entities every time
@@ -291,6 +258,9 @@ export class FrigateCard extends LitElement {
     this._changeView();
   }
 
+  protected _changeViewHandler(e: CustomEvent<View>): void {
+    this._changeView(e.detail);
+  }
   // Update the card view.
   protected _changeView(view?: View | undefined): void {
     if (view === undefined) {
@@ -404,89 +374,6 @@ export class FrigateCard extends LitElement {
       media_content_id: mediaSource.media_content_id,
     };
     return this._makeWSRequest(resolvedMediaSchema, request);
-  }
-
-  // Render Frigate events into a card gallery.
-  protected async _renderEvents(): Promise<TemplateResult> {
-    let parent;
-    try {
-      if (this._view.target) {
-        parent = await this._browseMedia(this._view.target.media_content_id);
-      } else {
-        parent = await this._browseMediaQuery(this._view.is('clips'));
-      }
-    } catch (e: any) {
-      return renderErrorMessage(e.message);
-    }
-
-    if (this._getFirstTrueMediaChildIndex(parent) == null) {
-      return renderMessage(
-        this._view.is('clips')
-        ? localize('common.no_clips')
-        : localize('common.no_snapshots'),
-        this._view.is('clips') ? 'mdi:filmstrip-off' : 'mdi:camera-off',
-      );
-    }
-
-    return html` <ul class="mdc-image-list frigate-card-image-list">
-      ${this._view.previous
-        ? html`<li class="mdc-image-list__item">
-            <div class="mdc-image-list__image-aspect-container">
-              <div class="mdc-image-list__image">
-                <ha-card
-                  @click=${() => {
-                    this._changeView(this._view.previous);
-                  }}
-                  outlined=""
-                  class="frigate-card-image-list-folder"
-                >
-                  <ha-icon .icon=${'mdi:arrow-left'}></ha-icon>
-                </ha-card>
-              </div>
-            </div>
-          </li>`
-        : ''}
-      ${parent.children.map(
-        (child, index) =>
-          html` <li class="mdc-image-list__item">
-            <div class="mdc-image-list__image-aspect-container">
-              ${child.can_expand
-                ? html`<div class="mdc-image-list__image">
-                    <ha-card
-                      @click=${() => {
-                        this._changeView(
-                          new View({
-                            view: this._view.view,
-                            target: child,
-                            previous: this._view,
-                          }),
-                        );
-                      }}
-                      outlined=""
-                      class="frigate-card-image-list-folder"
-                    >
-                      <div>${child.title}</div>
-                    </ha-card>
-                  </div>`
-                : html`<img
-                    title="${child.title}"
-                    class="mdc-image-list__image"
-                    src="${child.thumbnail}"
-                    @click=${() => {
-                      this._changeView(
-                        new View({
-                          view: this._view.is('clips') ? 'clip' : 'snapshot',
-                          target: parent,
-                          childIndex: index,
-                          previous: this._view,
-                        }),
-                      );
-                    }}
-                  />`}
-            </div>
-          </li>`,
-      )}
-    </ul>`;
   }
 
   protected _menuActionHandler(name: string): void {
@@ -886,10 +773,7 @@ export class FrigateCard extends LitElement {
   // is always rendered (but sometimes hidden).
   protected async _renderLiveViewer(): Promise<TemplateResult> {
     if (!this._hass || !(this.config.camera_entity in this._hass.states)) {
-      return renderMessage(
-        localize('error.no_live_camera'),
-        'mdi:camera-off',
-      );
+      return renderMessage(localize('error.no_live_camera'), 'mdi:camera-off');
     }
     if (this._webrtcElement) {
       return html`${this._webrtcElement}`;
@@ -947,7 +831,16 @@ export class FrigateCard extends LitElement {
       <div class="container_16_9 outer">
         <div class="frigate-card-contents">
           ${this._view.is('clips') || this._view.is('snapshots')
-            ? until(this._renderEvents(), renderProgressIndicator())
+            ? html` <frigate-card-gallery
+                .hass=${this._hass}
+                .cameraName=${this.config.frigate_camera_name}
+                .clientId=${this.config.frigate_client_id}
+                .label=${this.config.label}
+                .zone=${this.config.zone}
+                .view=${this._view}
+                @frigate-card:change-view=${this._changeViewHandler}
+              >
+              </frigate-card-gallery>`
             : ``}
           ${this._view.is('clip') || this._view.is('snapshot')
             ? until(this._renderViewer(), renderProgressIndicator())
