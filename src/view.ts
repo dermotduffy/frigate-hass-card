@@ -34,7 +34,7 @@ export class View {
     return undefined;
   }
 
-  public generateChangeEvent(node: HTMLElement): void {
+  public dispatchChangeEvent(node: HTMLElement): void {
     node.dispatchEvent(
       new CustomEvent<View>('frigate-card:change-view', {
         bubbles: true,

@@ -9,7 +9,11 @@ import { HomeAssistant } from 'custom-card-helpers';
 
 import galleryStyle from '../scss/gallery.scss';
 
-import type { ExtendedHomeAssistant } from '../types';
+import type {
+  BrowseMediaSource,
+  BrowseMediaQueryParameters,
+  ExtendedHomeAssistant,
+} from '../types';
 import { localize } from '../localize/localize';
 
 import { browseMedia, browseMediaQuery, getFirstTrueMediaChildIndex } from '../common';
@@ -18,22 +22,13 @@ import { View } from '../view';
 @customElement('frigate-card-gallery')
 export class FrigateCardGallery extends LitElement {
   @property({ attribute: false })
-  protected hass: (HomeAssistant & ExtendedHomeAssistant) | null = null;
+  protected hass!: HomeAssistant & ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected cameraName: string | null = null;
+  protected view!: View;
 
   @property({ attribute: false })
-  protected clientId: string | null = null;
-
-  @property({ attribute: false })
-  protected view: View | null = null;
-
-  @property({ attribute: false })
-  protected label?: string;
-
-  @property({ attribute: false })
-  protected zone?: string;
+  protected browseMediaQueryParameters!: BrowseMediaQueryParameters;
 
   protected _getMediaType(): 'clips' | 'snapshots' {
     return this.view?.view == 'clips' ? 'clips' : 'snapshots';
@@ -44,29 +39,18 @@ export class FrigateCardGallery extends LitElement {
   }
 
   protected async _renderEvents(): Promise<TemplateResult> {
-    if (!this.hass || !this.clientId || !this.cameraName || !this.view) {
-      return renderErrorMessage(localize('error.internal'));
-    }
-
-    let parent;
+    let parent: BrowseMediaSource | null;
     try {
       if (this.view.target) {
         parent = await browseMedia(this.hass, this.view.target.media_content_id);
       } else {
-        parent = await browseMediaQuery({
-          hass: this.hass,
-          clientId: this.clientId,
-          mediaType: this._getMediaType(),
-          cameraName: this.cameraName,
-          label: this.label,
-          zone: this.zone,
-        });
+        parent = await browseMediaQuery(this.hass, this.browseMediaQueryParameters);
       }
     } catch (e: any) {
       return renderErrorMessage(e.message);
     }
 
-    if (getFirstTrueMediaChildIndex(parent) == null) {
+    if (!parent || !parent.children || getFirstTrueMediaChildIndex(parent) == null) {
       return renderMessage(
         this._getMediaType() == 'clips'
           ? localize('common.no_clips')
@@ -83,7 +67,7 @@ export class FrigateCardGallery extends LitElement {
                 <ha-card
                   @click=${() => {
                     if (this.view && this.view.previous) {
-                      this.view.previous.generateChangeEvent(this);
+                      this.view.previous.dispatchChangeEvent(this);
                     }
                   }}
                   outlined=""
@@ -107,7 +91,7 @@ export class FrigateCardGallery extends LitElement {
                           view: this._getMediaType(),
                           target: child,
                           previous: this.view ?? undefined,
-                        }).generateChangeEvent(this);
+                        }).dispatchChangeEvent(this);
                       }}
                       outlined=""
                       class="frigate-card-gallery-folder"
@@ -115,19 +99,21 @@ export class FrigateCardGallery extends LitElement {
                       <div>${child.title}</div>
                     </ha-card>
                   </div>`
-                : html`<img
+                : child.thumbnail
+                ? html`<img
                     title="${child.title}"
                     class="mdc-image-list__image"
                     src="${child.thumbnail}"
                     @click=${() => {
                       new View({
                         view: this._getMediaType() == 'clips' ? 'clip' : 'snapshot',
-                        target: parent,
+                        target: parent ?? undefined,
                         childIndex: index,
                         previous: this.view ?? undefined,
-                      }).generateChangeEvent(this);
+                      }).dispatchChangeEvent(this);
                     }}
-                  />`}
+                  />`
+                : ``}
             </div>
           </li>`,
       )}

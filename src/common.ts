@@ -2,7 +2,12 @@ import { ZodSchema, z } from 'zod';
 import { MessageBase } from 'home-assistant-js-websocket';
 import { HomeAssistant } from 'custom-card-helpers';
 import { localize } from './localize/localize';
-import { BrowseMediaSource, browseMediaSourceSchema, ExtendedHomeAssistant } from './types';
+import type {
+  BrowseMediaQueryParameters,
+  BrowseMediaSource,
+  ExtendedHomeAssistant,
+} from './types';
+import { browseMediaSourceSchema } from './types';
 
 export function getParseErrorKeys<T>(error: z.ZodError<T>): string[] {
   const errors = error.format();
@@ -54,7 +59,7 @@ export function getFirstTrueMediaChildIndex(
 
 // Browse Frigate media with a media content id.
 export async function browseMedia(
-  hass: HomeAssistant & ExtendedHomeAssistant | null,
+  hass: (HomeAssistant & ExtendedHomeAssistant) | null,
   media_content_id: string,
 ): Promise<BrowseMediaSource | null> {
   if (!hass) {
@@ -67,21 +72,13 @@ export async function browseMedia(
   return homeAssistantWSRequest(hass, browseMediaSourceSchema, request);
 }
 
-interface BrowseMediaQueryParameters {
-  hass: HomeAssistant & ExtendedHomeAssistant,
-  mediaType: "clips" | "snapshots",
-  clientId: string,
-  cameraName: string,
-  label?: string,
-  zone?: string,
-  before?: number,
-  after?: number,
-}
-
 // Browse Frigate media with query parameters.
-export async function browseMediaQuery(params: BrowseMediaQueryParameters): Promise<BrowseMediaSource | null> {
+export async function browseMediaQuery(
+  hass: HomeAssistant & ExtendedHomeAssistant,
+  params: BrowseMediaQueryParameters,
+): Promise<BrowseMediaSource | null> {
   return browseMedia(
-    params.hass,
+    hass,
     // Defined in:
     // https://github.com/blakeblackshear/frigate-hass-integration/blob/master/custom_components/frigate/media_source.py
     [
@@ -96,5 +93,23 @@ export async function browseMediaQuery(params: BrowseMediaQueryParameters): Prom
       params.label,
       params.zone,
     ].join('/'),
+  );
+}
+
+export function dispatchPlayEvent(node: HTMLElement): void {
+  node.dispatchEvent(
+    new CustomEvent<void>('frigate-card:play', {
+      bubbles: true,
+      composed: true,
+    }),
+  );
+}
+
+export function dispatchPauseEvent(node: HTMLElement): void {
+  node.dispatchEvent(
+    new CustomEvent<void>('frigate-card:pause', {
+      bubbles: true,
+      composed: true,
+    }),
   );
 }

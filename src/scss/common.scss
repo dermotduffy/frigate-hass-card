@@ -14,3 +14,7 @@ ha-icon-button.button {
 ha-icon-button.button.emphasize {
   color: var(--primary-color, white);
 }
+
+video, img {
+  display: block;
+}

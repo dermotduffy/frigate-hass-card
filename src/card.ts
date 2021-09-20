@@ -29,35 +29,25 @@ import './editor';
 import './components/menu';
 import './components/message';
 import './components/gallery';
+import './components/viewer';
 
 import cardStyle from './scss/card.scss';
 
 import {
   MenuButton,
-  browseMediaSourceSchema,
   frigateCardConfigSchema,
-  resolvedMediaSchema,
   signedPathSchema,
 } from './types';
 import type {
-  BrowseMediaNeighbors,
-  BrowseMediaSource,
+  BrowseMediaQueryParameters,
   ExtendedHomeAssistant,
   FrigateCardConfig,
-  ResolvedMedia,
 } from './types';
 import { CARD_VERSION } from './const';
 import { localize } from './localize/localize';
-import dayjs from 'dayjs';
-import dayjs_custom_parse_format from 'dayjs/plugin/customParseFormat';
-
-import { ZodSchema, z } from 'zod';
-import { MessageBase } from 'home-assistant-js-websocket';
 
 import JSMpeg from '@cycjimmy/jsmpeg-player';
-
-// Load dayjs plugin(s).
-dayjs.extend(dayjs_custom_parse_format);
+import { getParseErrorKeys, homeAssistantWSRequest } from './common';
 
 /* eslint no-console: 0 */
 console.info(
@@ -206,11 +196,6 @@ export class FrigateCard extends LitElement {
     return buttons;
   }
 
-  protected _getParseErrorKeys(error: z.ZodError): string[] {
-    const errors = error.format();
-    return Object.keys(errors).filter((v) => !v.startsWith('_'));
-  }
-
   // Set the object configuration.
   public setConfig(inputConfig: FrigateCardConfig): void {
     if (!inputConfig) {
@@ -219,7 +204,7 @@ export class FrigateCard extends LitElement {
 
     const parseResult = frigateCardConfigSchema.safeParse(inputConfig);
     if (!parseResult.success) {
-      const keys = this._getParseErrorKeys(parseResult.error);
+      const keys = getParseErrorKeys(parseResult.error);
       throw new Error(localize('error.invalid_configuration') + ': ' + keys.join(', '));
     }
     const config = parseResult.data;
@@ -259,8 +244,16 @@ export class FrigateCard extends LitElement {
   }
 
   protected _changeViewHandler(e: CustomEvent<View>): void {
-    this._changeView(e.detail);
+    const view = e.detail;
+
+    if (view === undefined) {
+      this._view = new View({ view: this.config.view_default });
+    } else {
+      this._view = view;
+    }
+    this._resetJSMPEGIfNecessary();
   }
+
   // Update the card view.
   protected _changeView(view?: View | undefined): void {
     if (view === undefined) {
@@ -296,86 +289,6 @@ export class FrigateCard extends LitElement {
     return true;
   }
 
-  // Make a websocket request to Home Assistant.
-  protected async _makeWSRequest<T>(
-    schema: ZodSchema<T>,
-    request: MessageBase,
-  ): Promise<T | null> {
-    if (!this._hass) {
-      return null;
-    }
-
-    const response = await this._hass.callWS<T>(request);
-
-    if (!response) {
-      const error_message = `${localize('error.empty_response')}: ${JSON.stringify(
-        request,
-      )}`;
-      console.warn(error_message);
-      throw new Error(error_message);
-    }
-    const parseResult = schema.safeParse(response);
-    if (!parseResult.success) {
-      const keys = this._getParseErrorKeys(parseResult.error);
-      const error_message =
-        `${localize('error.invalid_response')}: ${JSON.stringify(request)}. ` +
-        localize('error.invalid_keys') +
-        `: '${keys}'`;
-      console.warn(error_message);
-      throw new Error(error_message);
-    }
-    return parseResult.data;
-  }
-
-  // Browse Frigate media with a media content id.
-  protected async _browseMedia(
-    media_content_id: string,
-  ): Promise<BrowseMediaSource | null> {
-    const request = {
-      type: 'media_source/browse_media',
-      media_content_id: media_content_id,
-    };
-    return this._makeWSRequest(browseMediaSourceSchema, request);
-  }
-
-  // Browse Frigate media with query parameters.
-  protected async _browseMediaQuery(
-    want_clips?: boolean,
-    before?: number,
-    after?: number,
-  ): Promise<BrowseMediaSource | null> {
-    return this._browseMedia(
-      // Defined in:
-      // https://github.com/blakeblackshear/frigate-hass-integration/blob/master/custom_components/frigate/media_source.py
-      [
-        'media-source://frigate',
-        this.config.frigate_client_id,
-        'event-search',
-        want_clips ? 'clips' : 'snapshots',
-        '', // Name/Title to render (not necessary here)
-        after ? String(after) : '',
-        before ? String(before) : '',
-        this.config.frigate_camera_name,
-        this.config.label,
-        this.config.zone,
-      ].join('/'),
-    );
-  }
-
-  // Resolve Frigate media identifier to a real URL.
-  protected async _resolveMedia(
-    mediaSource: BrowseMediaSource | null,
-  ): Promise<ResolvedMedia | null> {
-    if (!mediaSource) {
-      return null;
-    }
-    const request = {
-      type: 'media_source/resolve_media',
-      media_content_id: mediaSource.media_content_id,
-    };
-    return this._makeWSRequest(resolvedMediaSchema, request);
-  }
-
   protected _menuActionHandler(name: string): void {
     switch (name) {
       case 'frigate':
@@ -398,23 +311,6 @@ export class FrigateCard extends LitElement {
     }
   }
 
-  protected _extractEventStartTimeFromBrowseMedia(
-    browseMedia: BrowseMediaSource,
-  ): number | null {
-    // Example: 2021-08-27 20:57:22 [10s, Person 76%]
-    const result = browseMedia.title.match(/^(?<iso_datetime>.+) \[/);
-    if (result && result.groups) {
-      const iso_datetime_str = result.groups['iso_datetime'];
-      if (iso_datetime_str) {
-        const iso_datetime = dayjs(iso_datetime_str, 'YYYY-MM-DD HH:mm:ss', true);
-        if (iso_datetime.isValid()) {
-          return iso_datetime.unix();
-        }
-      }
-    }
-    return null;
-  }
-
   // Get the Frigate UI url.
   protected _getFrigateURLFromContext(): string | null {
     if (!this.config.frigate_url) {
@@ -424,219 +320,6 @@ export class FrigateCard extends LitElement {
       return `${this.config.frigate_url}/cameras/${this.config.frigate_camera_name}`;
     }
     return `${this.config.frigate_url}/events?camera=${this.config.frigate_camera_name}`;
-  }
-
-  // From a BrowseMediaSource item extract the first true media item (i.e. a
-  // clip/snapshot, not a folder).
-  protected _getFirstTrueMediaChildIndex(
-    media: BrowseMediaSource | null,
-  ): number | null {
-    if (!media || !media.children) {
-      return null;
-    }
-    for (let i = 0; i < media.children.length; i++) {
-      if (!media.children[i].can_expand) {
-        return i;
-      }
-    }
-    return null;
-  }
-
-  // Get the previous and next real media items, given the index
-  protected _getMediaNeighbors(
-    parent: BrowseMediaSource,
-    index: number | null,
-  ): BrowseMediaNeighbors | null {
-    if (index == null || !parent.children) {
-      return null;
-    }
-
-    // Work backwards from the index to get the previous real media.
-    let prevIndex: number | null = null;
-    for (let i = index - 1; i >= 0; i--) {
-      const media = parent.children[i];
-      if (media && !media.can_expand) {
-        prevIndex = i;
-        break;
-      }
-    }
-
-    // Work forwards from the index to get the next real media.
-    let nextIndex: number | null = null;
-    for (let i = index + 1; i < parent.children.length; i++) {
-      const media = parent.children[i];
-      if (media && !media.can_expand) {
-        nextIndex = i;
-        break;
-      }
-    }
-
-    return {
-      previousIndex: prevIndex,
-      previous: prevIndex != null ? parent.children[prevIndex] : null,
-      nextIndex: nextIndex,
-      next: nextIndex != null ? parent.children[nextIndex] : null,
-    };
-  }
-
-  // Render the next/previous controls.
-  protected _renderNextPreviousControls(
-    previous: boolean,
-    parent?: BrowseMediaSource,
-    targetChildIndex?: number,
-    neighbor?: BrowseMediaSource,
-  ): TemplateResult {
-    if (!neighbor || this.config.controls?.nextprev === 'none') {
-      return html``;
-    }
-
-    const classes = {
-      'frigate-media-controls': true,
-      previous: previous,
-      next: !previous,
-      thumbnails:
-        !this.config.controls?.nextprev ||
-        this.config.controls?.nextprev === 'thumbnails',
-      chevrons: this.config.controls?.nextprev === 'chevrons',
-      button: this.config.controls?.nextprev === 'chevrons',
-    };
-
-    const clickChangeView = () => {
-      this._view = new View({
-        view: this._view.view,
-        target: parent,
-        childIndex: targetChildIndex,
-        previous: this._view,
-      });
-    };
-
-    if (this.config.controls?.nextprev == 'chevrons') {
-      return html` <ha-icon-button
-        icon=${previous ? 'mdi:chevron-left' : 'mdi:chevron-right'}
-        class="${classMap(classes)}"
-        title=${neighbor.title}
-        @click=${clickChangeView}
-      ></ha-icon-button>`;
-    }
-
-    if (!neighbor.thumbnail) {
-      return html``;
-    }
-    return html`<img
-      src="${neighbor.thumbnail}"
-      class="${classMap(classes)}"
-      title="${neighbor.title}"
-      @click=${clickChangeView}
-    />`;
-  }
-
-  // Render the view for media.
-  protected async _renderViewer(): Promise<TemplateResult> {
-    let autoplay = true;
-
-    let parent: BrowseMediaSource | null = null;
-    let childIndex: number | null = null;
-    let mediaToRender: BrowseMediaSource | null = null;
-
-    if (this._view.target) {
-      parent = this._view.target;
-      childIndex = this._view.childIndex ?? null;
-      mediaToRender = this._view.media ?? null;
-    } else {
-      try {
-        parent = await this._browseMediaQuery(this._view.is('clip'));
-      } catch (e: any) {
-        return renderErrorMessage(e.message);
-      }
-      childIndex = this._getFirstTrueMediaChildIndex(parent);
-      if (!parent || !parent.children || childIndex == null) {
-        return renderMessage(
-          this._view.is('clip')
-            ? localize('common.no_clip')
-            : localize('common.no_snapshot'),
-          this._view.is('clip') ? 'mdi:filmstrip-off' : 'mdi:camera-off',
-        );
-      }
-      mediaToRender = parent.children[childIndex];
-
-      // In this block, no clip has been manually selected, so this is loading
-      // the most recent clip on card load. In this mode, autoplay of the clip
-      // may be disabled by configuration. If does not make sense to disable
-      // autoplay when the user has explicitly picked an event to play in the
-      // gallery.
-      autoplay = this.config.autoplay_clip;
-    }
-    const resolvedMedia = await this._resolveMedia(mediaToRender);
-    if (!mediaToRender || !resolvedMedia) {
-      // Home Assistant could not resolve media item.
-      return renderErrorMessage(localize('error.could_not_resolve'));
-    }
-
-    const neighbors = this._getMediaNeighbors(parent, childIndex);
-
-    return html`
-      ${this._renderNextPreviousControls(
-        true,
-        parent,
-        neighbors?.previousIndex ?? undefined,
-        neighbors?.previous ?? undefined,
-      )}
-      ${this._view.is('clip')
-        ? resolvedMedia?.mime_type.toLowerCase() == 'application/x-mpegurl'
-          ? html`<ha-hls-player
-              class="media"
-              .hass=${this._hass}
-              .url=${resolvedMedia.url}
-              title="${mediaToRender.title}"
-              muted
-              controls
-              playsinline
-              allow-exoplayer
-              ?autoplay="${autoplay}"
-            >
-            </ha-hls-player>`
-          : html`<video
-              class="media"
-              title="${mediaToRender.title}"
-              muted
-              controls
-              playsinline
-              @play=${() => {
-                this._clipPlaying = true;
-              }}
-              @pause=${() => {
-                this._clipPlaying = false;
-              }}
-              ?autoplay="${autoplay}"
-            >
-              <source src="${resolvedMedia.url}" type="${resolvedMedia.mime_type}" />
-            </video>`
-        : html`<img
-            src=${resolvedMedia.url}
-            class="media"
-            title="${mediaToRender.title}"
-            @click=${() => {
-              // Get clips potentially related to this snapshot.
-              this._findRelatedClips(mediaToRender).then((relatedClip) => {
-                if (relatedClip) {
-                  this._changeView(
-                    new View({
-                      view: 'clip',
-                      target: relatedClip,
-                      previous: this._view,
-                    }),
-                  );
-                }
-              });
-            }}
-          />`}
-      ${this._renderNextPreviousControls(
-        false,
-        parent,
-        neighbors?.nextIndex ?? undefined,
-        neighbors?.next ?? undefined,
-      )}
-    `;
   }
 
   public updated(): void {
@@ -668,36 +351,6 @@ export class FrigateCard extends LitElement {
     });
   }
 
-  // Get a clip at the same time as a snapshot.
-  protected async _findRelatedClips(
-    snapshot: BrowseMediaSource | null,
-  ): Promise<BrowseMediaSource | null> {
-    if (!snapshot) {
-      return null;
-    }
-
-    const startTime = this._extractEventStartTimeFromBrowseMedia(snapshot);
-    if (startTime) {
-      try {
-        // Fetch clips within the same second (same camera/zone/label, etc).
-        const clipsAtSameTime = await this._browseMediaQuery(
-          true,
-          startTime + 1,
-          startTime,
-        );
-        if (clipsAtSameTime) {
-          const index = this._getFirstTrueMediaChildIndex(clipsAtSameTime);
-          if (index != null && clipsAtSameTime.children?.length) {
-            return clipsAtSameTime.children[index];
-          }
-        }
-      } catch (e: any) {
-        // Pass. This is best effort.
-      }
-    }
-    return null;
-  }
-
   protected async _getJSMPEGURL(): Promise<string | null> {
     if (!this._hass) {
       return null;
@@ -712,7 +365,7 @@ export class FrigateCard extends LitElement {
     // Sign the path so it includes an authSig parameter.
     let response;
     try {
-      response = await this._makeWSRequest(signedPathSchema, request);
+      response = await homeAssistantWSRequest(this._hass, signedPathSchema, request);
     } catch (err) {
       console.warn(err);
       return null;
@@ -818,6 +471,19 @@ export class FrigateCard extends LitElement {
     `;
   }
 
+  protected _getBrowseMediaQueryParameters(): BrowseMediaQueryParameters {
+    return {
+      mediaType: this._view.view == 'clips' ? 'clips' : 'snapshots',
+      clientId: this.config.frigate_client_id,
+      // frigate_camera_name cannot be null, it will be set to a default value
+      // in setConfig if not specified in the configuration.
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      cameraName: this.config.frigate_camera_name!,
+      label: this.config.label,
+      zone: this.config.zone,
+    };
+  }
+
   // Render the call (master render method).
   protected render(): TemplateResult | void {
     if (this.config.show_warning) {
@@ -833,17 +499,22 @@ export class FrigateCard extends LitElement {
           ${this._view.is('clips') || this._view.is('snapshots')
             ? html` <frigate-card-gallery
                 .hass=${this._hass}
-                .cameraName=${this.config.frigate_camera_name}
-                .clientId=${this.config.frigate_client_id}
-                .label=${this.config.label}
-                .zone=${this.config.zone}
                 .view=${this._view}
+                .browseMediaQueryParameters=${this._getBrowseMediaQueryParameters()}
                 @frigate-card:change-view=${this._changeViewHandler}
               >
               </frigate-card-gallery>`
             : ``}
           ${this._view.is('clip') || this._view.is('snapshot')
-            ? until(this._renderViewer(), renderProgressIndicator())
+            ? html` <frigate-card-viewer
+                .hass=${this._hass}
+                .view=${this._view}
+                .browseMediaQueryParameters=${this._getBrowseMediaQueryParameters()}
+                .nextPreviousControlStyle=${this.config.controls?.nextprev ?? 'thumbnails'}
+                .autoplayClip=${this.config.autoplay_clip}
+                @frigate-card:change-view=${this._changeViewHandler}
+              >
+              </frigate-card-viewer>`
             : ``}
           ${this._view.is('live')
             ? until(this._renderLiveViewer(), renderProgressIndicator())
