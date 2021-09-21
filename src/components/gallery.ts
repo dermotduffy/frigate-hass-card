@@ -35,10 +35,10 @@ export class FrigateCardGallery extends LitElement {
   }
 
   protected render(): TemplateResult | void {
-    return html`${until(this._renderEvents(), renderProgressIndicator())}`;
+    return html`${until(this._render(), renderProgressIndicator())}`;
   }
 
-  protected async _renderEvents(): Promise<TemplateResult> {
+  protected async _render(): Promise<TemplateResult> {
     let parent: BrowseMediaSource | null;
     try {
       if (this.view.target) {

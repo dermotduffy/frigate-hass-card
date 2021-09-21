@@ -9,14 +9,8 @@ import {
 } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators';
 import { classMap } from 'lit/directives/class-map.js';
-import { until } from 'lit/directives/until.js';
 import { View } from './view';
 import { FrigateCardMenu } from './components/menu';
-import {
-  renderMessage,
-  renderErrorMessage,
-  renderProgressIndicator,
-} from './components/message';
 import {
   HomeAssistant,
   LovelaceCardEditor,
@@ -26,6 +20,7 @@ import {
 } from 'custom-card-helpers';
 
 import './editor';
+import './components/live';
 import './components/menu';
 import './components/message';
 import './components/gallery';
@@ -36,7 +31,6 @@ import cardStyle from './scss/card.scss';
 import {
   MenuButton,
   frigateCardConfigSchema,
-  signedPathSchema,
 } from './types';
 import type {
   BrowseMediaQueryParameters,
@@ -46,8 +40,7 @@ import type {
 import { CARD_VERSION } from './const';
 import { localize } from './localize/localize';
 
-import JSMpeg from '@cycjimmy/jsmpeg-player';
-import { getParseErrorKeys, homeAssistantWSRequest } from './common';
+import { getParseErrorKeys } from './common';
 
 /* eslint no-console: 0 */
 console.info(
@@ -105,9 +98,6 @@ export class FrigateCard extends LitElement {
     return {};
   }
   set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
-    if (this._webrtcElement) {
-      this._webrtcElement.hass = hass;
-    }
     this._hass = hass;
     this._updateMenu();
   }
@@ -119,9 +109,6 @@ export class FrigateCard extends LitElement {
   public config!: FrigateCardConfig;
 
   protected _interactionTimerID: number | null = null;
-  protected _jsmpegCanvasElement: any | null = null;
-  protected _jsmpegPlayer: any | null = null;
-  protected _webrtcElement: any | null = null;
 
   @property({ attribute: false })
   protected _view: View = new View();
@@ -222,19 +209,6 @@ export class FrigateCard extends LitElement {
       }
     }
 
-    if (config.live_provider == 'webrtc') {
-      // Create a WebRTC element (https://github.com/AlexxIT/WebRTC)
-      const webrtcElement = customElements.get('webrtc-camera') as any;
-      if (webrtcElement) {
-        const webrtc = new webrtcElement();
-        webrtc.setConfig(config.webrtc || {});
-        webrtc.hass = this._hass;
-        this._webrtcElement = webrtc;
-      } else {
-        throw new Error(localize('error.missing_webrtc'));
-      }
-    }
-
     this.config = config;
     this._entitiesToMonitor = [
       ...(this.config.entities || []).map((entity) => entity.entity),
@@ -251,7 +225,6 @@ export class FrigateCard extends LitElement {
     } else {
       this._view = view;
     }
-    this._resetJSMPEGIfNecessary();
   }
 
   // Update the card view.
@@ -261,7 +234,6 @@ export class FrigateCard extends LitElement {
     } else {
       this._view = view;
     }
-    this._resetJSMPEGIfNecessary();
   }
 
   // Determine whether the card should be updated.
@@ -351,98 +323,6 @@ export class FrigateCard extends LitElement {
     });
   }
 
-  protected async _getJSMPEGURL(): Promise<string | null> {
-    if (!this._hass) {
-      return null;
-    }
-
-    const request = {
-      type: 'auth/sign_path',
-      path:
-        `/api/frigate/${this.config.frigate_client_id}` +
-        `/jsmpeg/${this.config.frigate_camera_name}`,
-    };
-    // Sign the path so it includes an authSig parameter.
-    let response;
-    try {
-      response = await homeAssistantWSRequest(this._hass, signedPathSchema, request);
-    } catch (err) {
-      console.warn(err);
-      return null;
-    }
-    const url = this._hass.hassUrl(response.path);
-    return url.replace(/^http/i, 'ws');
-  }
-
-  protected _resetJSMPEGIfNecessary(): void {
-    if (!this._view.is('live') || this.config.live_provider != 'frigate-jsmpeg') {
-      if (this._jsmpegPlayer) {
-        this._jsmpegPlayer.destroy();
-        this._jsmpegPlayer = null;
-      }
-      this._jsmpegCanvasElement = null;
-    }
-  }
-
-  // Cleanup and/or start the JSMPEG player.
-  protected async _renderJSMPEGPlayer(): Promise<TemplateResult> {
-    if (!this._jsmpegCanvasElement) {
-      this._jsmpegCanvasElement = document.createElement('canvas');
-      this._jsmpegCanvasElement.className = 'media';
-    }
-
-    if (!this._jsmpegPlayer) {
-      const jsmpeg_url = await this._getJSMPEGURL();
-
-      if (!jsmpeg_url) {
-        return renderErrorMessage('Could not retrieve or sign JSMPEG websocket path');
-      }
-
-      // Return the html canvas node only after the JSMPEG video has loaded and
-      // is playing, to reduce the amount of time the user is staring at a blank
-      // white canvas (instead they get the progress spinner until this promise
-      // resolves).
-      return new Promise<TemplateResult>((resolve) => {
-        this._jsmpegPlayer = new JSMpeg.VideoElement(
-          this,
-          jsmpeg_url,
-          {
-            canvas: this._jsmpegCanvasElement,
-            hooks: {
-              play: () => {
-                resolve(html`${this._jsmpegCanvasElement}`);
-              },
-            },
-          },
-          { protocols: [], videoBufferSize: 1024 * 1024 * 4 },
-        );
-      });
-    }
-    return html`${this._jsmpegCanvasElement}`;
-  }
-
-  // Render the live viewer.
-  // Note: The live viewer is the main element used to size the overall card. It
-  // is always rendered (but sometimes hidden).
-  protected async _renderLiveViewer(): Promise<TemplateResult> {
-    if (!this._hass || !(this.config.camera_entity in this._hass.states)) {
-      return renderMessage(localize('error.no_live_camera'), 'mdi:camera-off');
-    }
-    if (this._webrtcElement) {
-      return html`${this._webrtcElement}`;
-    }
-    if (this.config.live_provider == 'frigate-jsmpeg') {
-      return await this._renderJSMPEGPlayer();
-    }
-    return html` <ha-camera-stream
-      .hass=${this._hass}
-      .stateObj=${this._hass.states[this.config.camera_entity]}
-      .controls=${true}
-      .muted=${true}
-    >
-    </ha-camera-stream>`;
-  }
-
   // Record interactions with the card.
   protected _interactionHandler(): void {
     if (!this.config.view_timeout) {
@@ -517,7 +397,11 @@ export class FrigateCard extends LitElement {
               </frigate-card-viewer>`
             : ``}
           ${this._view.is('live')
-            ? until(this._renderLiveViewer(), renderProgressIndicator())
+            ? html` <frigate-card-live
+                .hass=${this._hass}
+                .config=${this.config}
+              >
+              </frigate-card-live>`
             : ``}
         </div>
       </div>

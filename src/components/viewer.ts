@@ -152,10 +152,10 @@ export class FrigateCardViewer extends LitElement {
   }
 
   protected render(): TemplateResult | void {
-    return html`${until(this._renderViewer(), renderProgressIndicator())}`;
+    return html`${until(this._render(), renderProgressIndicator())}`;
   }
 
-  protected async _renderViewer(): Promise<TemplateResult> {
+  protected async _render(): Promise<TemplateResult> {
     let autoplay = true;
 
     let parent: BrowseMediaSource | null = null;

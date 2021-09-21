@@ -43,6 +43,9 @@ export type FrigateMenuMode = typeof FRIGATE_MENU_MODES[number];
 export const NEXT_PREVIOUS_CONTROL_STYLES = ['none', 'thumbnails', 'chevrons'] as const;
 export type NextPreviousControlStyle = typeof NEXT_PREVIOUS_CONTROL_STYLES[number];
 
+export const LIVE_PROVIDERS = ['frigate', 'frigate-jsmpeg', 'webrtc'] as const;
+export type LiveProvider = typeof LIVE_PROVIDERS[number];
+
 export const frigateCardConfigSchema = z.object({
   camera_entity: z.string(),
   // No URL validation to allow relative URLs within HA (e.g. addons).
@@ -60,7 +63,7 @@ export const frigateCardConfigSchema = z.object({
     )
     .optional()
     .default(180),
-  live_provider: z.enum(['frigate', 'frigate-jsmpeg', 'webrtc']).default('frigate'),
+  live_provider: z.enum(LIVE_PROVIDERS).default('frigate'),
   webrtc: z
     .object({
       entity: z.string().optional(),
