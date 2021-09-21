@@ -50,6 +50,10 @@ export class FrigateCardViewer extends LitElement {
         >
         </frigate-card-live-jsmpeg>`}`;
   }
+
+  static get styles(): CSSResultGroup {
+    return unsafeCSS(liveStyle);
+  }
 }
 
 @customElement('frigate-card-live-frigate')
@@ -71,6 +75,10 @@ export class FrigateCardViewerFrigate extends LitElement {
       .muted=${true}
     >
     </ha-camera-stream>`;
+  }
+
+  static get styles(): CSSResultGroup {
+    return unsafeCSS(liveStyle);
   }
 }
 
@@ -109,6 +117,10 @@ export class FrigateCardViewerWebRTC extends LitElement {
       }
     }
     return html`${this._webRTCElement}`;
+  }
+
+  static get styles(): CSSResultGroup {
+    return unsafeCSS(liveStyle);
   }
 }
 
