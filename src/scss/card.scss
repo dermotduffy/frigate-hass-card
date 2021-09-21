@@ -1,5 +1,3 @@
-@use './common.scss';
-
 .container_16_9 {
   /* 16:9 Aspect Ratio. When Safari supports 'aspect-ratio' this should not be
      necessary */
@@ -65,7 +63,6 @@ ha-card {
   color: var(--secondary-text-color, white);
   background-color: var(--secondary-background-color, black);
 
-  transform-style: preserve-3d; /* Safari brings video elements forward without this */
 }
 
 ha-card a {

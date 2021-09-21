@@ -212,7 +212,6 @@ export class FrigateCardViewer extends LitElement {
       ${this.view.is('clip')
         ? resolvedMedia?.mime_type.toLowerCase() == 'application/x-mpegurl'
           ? html`<ha-hls-player
-              class="media"
               .hass=${this.hass}
               .url=${resolvedMedia.url}
               title="${mediaToRender.title}"
@@ -224,7 +223,6 @@ export class FrigateCardViewer extends LitElement {
             >
             </ha-hls-player>`
           : html`<video
-              class="media"
               title="${mediaToRender.title}"
               muted
               controls
@@ -237,7 +235,6 @@ export class FrigateCardViewer extends LitElement {
             </video>`
         : html`<img
             src=${resolvedMedia.url}
-            class="media"
             title="${mediaToRender.title}"
             @click=${() => {
               // Get clips potentially related to this snapshot.
