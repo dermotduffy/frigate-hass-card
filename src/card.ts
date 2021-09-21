@@ -88,20 +88,6 @@ function shouldUpdateBasedOnHass(
 // Main FrigateCard class.
 @customElement('frigate-card')
 export class FrigateCard extends LitElement {
-  // Get the configuration element.
-  public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    return document.createElement('frigate-card-editor');
-  }
-
-  // Get a stub basic config.
-  public static getStubConfig(): Record<string, string> {
-    return {};
-  }
-  set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
-    this._hass = hass;
-    this._updateMenu();
-  }
-
   @property({ attribute: false })
   protected _hass: (HomeAssistant & ExtendedHomeAssistant) | null = null;
 
@@ -113,15 +99,30 @@ export class FrigateCard extends LitElement {
   @property({ attribute: false })
   protected _view: View = new View();
 
+  @query('frigate-card-menu')
+  _menu!: FrigateCardMenu;
+
   // Whether or not there is an active clip being played.
   protected _clipPlaying = false;
-
-  @query('frigate-card-menu')
-  _menu!: FrigateCardMenu | null;
 
   // A small cache to avoid needing to create a new list of entities every time
   // a hass update arrives.
   protected _entitiesToMonitor: string[] | null = null;
+
+  set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
+    this._hass = hass;
+    this._updateMenu();
+  }
+
+  // Get the configuration element.
+  public static async getConfigElement(): Promise<LovelaceCardEditor> {
+    return document.createElement('frigate-card-editor');
+  }
+
+  // Get a stub basic config.
+  public static getStubConfig(): Record<string, string> {
+    return {};
+  }
 
   protected _updateMenu(): void {
     // Manually set hass in the menu. This is to allow the menu to update,
@@ -130,7 +131,6 @@ export class FrigateCard extends LitElement {
     if (!this._menu || !this._hass) {
       return;
     }
-
     this._menu.buttons = this._getMenuButtons();
   }
 
@@ -217,9 +217,7 @@ export class FrigateCard extends LitElement {
     this._changeView();
   }
 
-  protected _changeViewHandler(e: CustomEvent<View>): void {
-    const view = e.detail;
-
+  protected _changeView(view?: View | undefined): void {
     if (view === undefined) {
       this._view = new View({ view: this.config.view_default });
     } else {
@@ -227,13 +225,8 @@ export class FrigateCard extends LitElement {
     }
   }
 
-  // Update the card view.
-  protected _changeView(view?: View | undefined): void {
-    if (view === undefined) {
-      this._view = new View({ view: this.config.view_default });
-    } else {
-      this._view = view;
-    }
+  protected _changeViewHandler(e: CustomEvent<View>): void {
+    this._changeView(e.detail);
   }
 
   // Determine whether the card should be updated.
