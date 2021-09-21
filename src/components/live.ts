@@ -1,21 +1,22 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators';
 import { until } from 'lit/directives/until.js';
+import { HomeAssistant } from 'custom-card-helpers';
+
+import { signedPathSchema } from '../types';
+import type { ExtendedHomeAssistant, FrigateCardConfig } from '../types';
+
+import { localize } from '../localize/localize';
+import { homeAssistantWSRequest } from '../common';
 import {
   renderMessage,
   renderErrorMessage,
   renderProgressIndicator,
 } from '../components/message';
-import { HomeAssistant } from 'custom-card-helpers';
-
-import liveStyle from '../scss/live.scss';
-
-import { signedPathSchema } from '../types';
-import type { ExtendedHomeAssistant, FrigateCardConfig } from '../types';
-import { localize } from '../localize/localize';
-import { homeAssistantWSRequest } from '../common';
 
 import JSMpeg from '@cycjimmy/jsmpeg-player';
+
+import liveStyle from '../scss/live.scss';
 
 @customElement('frigate-card-live')
 export class FrigateCardViewer extends LitElement {

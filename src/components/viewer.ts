@@ -1,15 +1,10 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators';
 import { until } from 'lit/directives/until.js';
-import { View } from '../view';
-import {
-  renderMessage,
-  renderErrorMessage,
-  renderProgressIndicator,
-} from '../components/message';
 import { HomeAssistant } from 'custom-card-helpers';
 
-import viewerStyle from '../scss/viewer.scss';
+import dayjs from 'dayjs';
+import dayjs_custom_parse_format from 'dayjs/plugin/customParseFormat';
 
 import { resolvedMediaSchema } from '../types';
 import type {
@@ -29,10 +24,16 @@ import {
   homeAssistantWSRequest,
 } from '../common';
 
-import dayjs from 'dayjs';
-import dayjs_custom_parse_format from 'dayjs/plugin/customParseFormat';
+import { View } from '../view';
+import {
+  renderMessage,
+  renderErrorMessage,
+  renderProgressIndicator,
+} from '../components/message';
 
 import './next-prev-control';
+
+import viewerStyle from '../scss/viewer.scss';
 
 // Load dayjs plugin(s).
 dayjs.extend(dayjs_custom_parse_format);

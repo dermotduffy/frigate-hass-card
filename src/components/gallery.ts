@@ -2,22 +2,20 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators';
 import { until } from 'lit/directives/until.js';
-
-import { renderMessage, renderErrorMessage, renderProgressIndicator } from './message';
-
 import { HomeAssistant } from 'custom-card-helpers';
-
-import galleryStyle from '../scss/gallery.scss';
 
 import type {
   BrowseMediaSource,
   BrowseMediaQueryParameters,
   ExtendedHomeAssistant,
 } from '../types';
-import { localize } from '../localize/localize';
 
-import { browseMedia, browseMediaQuery, getFirstTrueMediaChildIndex } from '../common';
 import { View } from '../view';
+import { browseMedia, browseMediaQuery, getFirstTrueMediaChildIndex } from '../common';
+import { localize } from '../localize/localize';
+import { renderMessage, renderErrorMessage, renderProgressIndicator } from './message';
+
+import galleryStyle from '../scss/gallery.scss';
 
 @customElement('frigate-card-gallery')
 export class FrigateCardGallery extends LitElement {

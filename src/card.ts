@@ -9,8 +9,6 @@ import {
 } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators';
 import { classMap } from 'lit/directives/class-map.js';
-import { View } from './view';
-import { FrigateCardMenu } from './components/menu';
 import {
   HomeAssistant,
   LovelaceCardEditor,
@@ -18,15 +16,6 @@ import {
   getLovelace,
   stateIcon,
 } from 'custom-card-helpers';
-
-import './editor';
-import './components/live';
-import './components/menu';
-import './components/message';
-import './components/gallery';
-import './components/viewer';
-
-import cardStyle from './scss/card.scss';
 
 import {
   MenuButton,
@@ -37,10 +26,21 @@ import type {
   ExtendedHomeAssistant,
   FrigateCardConfig,
 } from './types';
+
 import { CARD_VERSION } from './const';
+import { FrigateCardMenu } from './components/menu';
+import { View } from './view';
+import { getParseErrorKeys } from './common';
 import { localize } from './localize/localize';
 
-import { getParseErrorKeys } from './common';
+import './editor';
+import './components/gallery';
+import './components/live';
+import './components/menu';
+import './components/message';
+import './components/viewer';
+
+import cardStyle from './scss/card.scss';
 
 /* eslint no-console: 0 */
 console.info(

@@ -1,9 +1,12 @@
- import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
+import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators';
 import { classMap } from 'lit/directives/class-map';
-import controlStyle from '../scss/next-previous-control.scss';
+
 import { BrowseMediaSource, NextPreviousControlStyle } from '../types';
+
 import { View } from '../view';
+
+import controlStyle from '../scss/next-previous-control.scss';
 
 @customElement('frigate-card-next-previous-control')
 export class FrigateCardMessage extends LitElement {

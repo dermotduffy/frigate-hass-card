@@ -2,10 +2,10 @@ import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators';
 import { classMap } from 'lit/directives/class-map.js';
 
-import menuStyle from '../scss/menu.scss';
-
 import { MenuButton } from '../types';
 import type { FrigateMenuMode } from '../types';
+
+import menuStyle from '../scss/menu.scss';
 
 type FrigateCardMenuCallback = (name: string) => void;
 

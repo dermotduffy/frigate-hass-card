@@ -1,6 +1,8 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators';
+
 import { localize } from '../localize/localize';
+
 import messageStyle from '../scss/message.scss';
 
 const URL_TROUBLESHOOTING =
