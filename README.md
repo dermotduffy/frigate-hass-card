@@ -47,6 +47,19 @@ lovelace:
 * Restart Home Assistant.
 * Add the new card to the Lovelace configuration!
 
+### Advanced Users: Manual Installation
+
+* Download the `frigate-hass-card.js` attachment of the desired [release](https://github.com/dermotduffy/frigate-hass-card/releases) to a location accessible by Home Assistant.
+* Add the location as a Lovelace resource via the UI, or via [YAML configuration](https://www.home-assistant.io/lovelace/dashboards/#resources)) such as:
+
+```yaml
+lovelace:
+  mode: yaml
+  resources:
+   - url: /local/frigate-hass-card.js
+     type: module
+```
+
 ## Options
 
 ### Required
