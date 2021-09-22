@@ -1,0 +1,22 @@
+@use "@material/image-list/mdc-image-list";
+@use "@material/image-list";
+
+.frigate-card-gallery {
+  @include image-list.standard-columns(5, 1px);
+  @include image-list.shape-radius(5px);
+}
+
+ha-card.frigate-card-gallery-folder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  text-align: center;
+  border-style: 2px solid;
+  opacity: 0.7;
+  color: var(--secondary-text-color, white);
+  border-color: var(--secondary-text-color, black);
+  background-color: var(--primary-background-color, black);
+  padding: 10px;
+  height: 100%;
+}

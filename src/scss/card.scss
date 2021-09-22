@@ -1,7 +1,3 @@
-@use "@material/image-list/mdc-image-list";
-@use "@material/image-list";
-@use './common.scss';
-
 .container_16_9 {
   /* 16:9 Aspect Ratio. When Safari supports 'aspect-ratio' this should not be
      necessary */
@@ -22,7 +18,12 @@
   scrollbar-width: none;    /* Hide scrollbar: Firefox */
 }
 
-/* Support the 'hover' menu mode. */
+/* Hide scrollbar for Chrome, Safari and Opera */
+.frigate-card-contents::-webkit-scrollbar {
+  display: none;
+}
+
+/* The 'hover' menu mode is styling applied outside of the menu itself */
 .hover-menu {
   z-index: 1;
   transition: all 0.5s ease;
@@ -32,47 +33,6 @@
 }
 .outer:hover + .hover-menu, .hover-menu:hover {
   opacity: 1.0;
-}
-
-.frigate-card-contents img.media,video.media,canvas.media {
-  width: 100%;
-}
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-.frigate-card-contents::-webkit-scrollbar {
-  display: none;
-}
-
-.frigate-card-contents .attention {
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-sizing: border-box;
-  padding: 10%;
-}
-
-.frigate-card-image-list {
-  @include image-list.standard-columns(5, 1px);
-  @include image-list.shape-radius(5px);
-}
-
-ha-card .frigate-card-image-list-folder {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-sizing: border-box;
-  text-align: center;
-  border-style: 2px solid;
-  opacity: 0.7;
-  color: var(--secondary-text-color, white);
-  border-color: var(--secondary-text-color, black);
-  background-color: var(--primary-background-color, black);
-  padding: 10px;
-}
-
-video, img {
-  display: block;
 }
 
 ha-card {
@@ -85,55 +45,8 @@ ha-card {
   position: relative;
   color: var(--secondary-text-color, white);
   background-color: var(--secondary-background-color, black);
-
-  transform-style: preserve-3d; /* Safari brings video elements forward without this */
 }
 
 ha-card a {
   color: var(--primary-text-color, white);
-}
-
-/* Don't drop shadow or have radius for nested webrtc card */
-webrtc-camera ha-card {
-  box-shadow: none;
-  border-radius: 0px;
-  background-color: var(--secondary-background-color, black);
-}
-
-.frigate-media-controls {
-  position: absolute;
-  z-index: 1;
-  overflow: hidden;
-}
-.frigate-media-controls.previous {
-  left: 45px;
-}
-.frigate-media-controls.next {
-  right: 45px;  
-}
-
-.frigate-media-controls.chevrons {
-  top: calc(50% - (40px / 2));
-}
-
-.frigate-media-controls.thumbnails {
-  border-radius: 50%;
-  height: 48px;
-  top: calc(50% - (48px / 2));
-  box-shadow: 0px 0px 30px 1px black;
-  transition: all .2s ease;
-  opacity: 0.8;
-}
-.frigate-media-controls.thumbnails:hover {
-  opacity: 1 !important;
-  height: 72px;
-  top: calc(50% - (72px / 2));
-}
-
-.frigate-media-controls.previous.thumbnails:hover {
-  left: 33px;
-}
-
-.frigate-media-controls.next.thumbnails:hover {
-  right: 33px;
 }

@@ -1,7 +1,4 @@
-import {
-  LovelaceCard,
-  LovelaceCardEditor,
-} from 'custom-card-helpers';
+import { LovelaceCard, LovelaceCardEditor } from 'custom-card-helpers';
 import { z } from 'zod';
 
 declare global {
@@ -43,12 +40,17 @@ export const FRIGATE_MENU_MODES = [
 ] as const;
 export type FrigateMenuMode = typeof FRIGATE_MENU_MODES[number];
 
+export const NEXT_PREVIOUS_CONTROL_STYLES = ['none', 'thumbnails', 'chevrons'] as const;
+export type NextPreviousControlStyle = typeof NEXT_PREVIOUS_CONTROL_STYLES[number];
+
+export const LIVE_PROVIDERS = ['frigate', 'frigate-jsmpeg', 'webrtc'] as const;
+export type LiveProvider = typeof LIVE_PROVIDERS[number];
 
 export const frigateCardConfigSchema = z.object({
   camera_entity: z.string(),
   // No URL validation to allow relative URLs within HA (e.g. addons).
   frigate_url: z.string().optional(),
-  frigate_client_id: z.string().optional().default("frigate"),
+  frigate_client_id: z.string().optional().default('frigate'),
   frigate_camera_name: z.string().optional(),
   view_default: z.enum(FRIGATE_CARD_VIEWS).optional().default('live'),
   view_timeout: z
@@ -59,31 +61,42 @@ export const frigateCardConfigSchema = z.object({
         .regex(/^\d+$/)
         .transform((val) => Number(val)),
     )
-    .optional().default(180),
-  live_provider: z.enum(['frigate', 'frigate-jsmpeg', 'webrtc']).default('frigate'),
-  webrtc: z.object({
-    entity: z.string().optional(),
-    url: z.string().optional(),
-  }).passthrough().optional(),
+    .optional()
+    .default(180),
+  live_provider: z.enum(LIVE_PROVIDERS).default('frigate'),
+  webrtc: z
+    .object({
+      entity: z.string().optional(),
+      url: z.string().optional(),
+    })
+    .passthrough()
+    .optional(),
   label: z.string().optional(),
   zone: z.string().optional(),
   autoplay_clip: z.boolean().default(false),
   menu_mode: z.enum(FRIGATE_MENU_MODES).optional().default('hidden-top'),
-  menu_buttons: z.object({
-    frigate: z.boolean().default(true),
-    live: z.boolean().default(true),
-    clips: z.boolean().default(true),
-    snapshots: z.boolean().default(true),
-    frigate_ui: z.boolean().default(true),
-  }).optional(),
-  entities: z.object({
-    entity: z.string(),
-    show: z.boolean().default(true),
-    icon: z.string().optional(),
-  }).array().optional(),
-  controls: z.object({
-    nextprev: z.enum(['thumbnails', 'chevrons', 'none']).default('thumbnails'),
-  }).optional(),
+  menu_buttons: z
+    .object({
+      frigate: z.boolean().default(true),
+      live: z.boolean().default(true),
+      clips: z.boolean().default(true),
+      snapshots: z.boolean().default(true),
+      frigate_ui: z.boolean().default(true),
+    })
+    .optional(),
+  entities: z
+    .object({
+      entity: z.string(),
+      show: z.boolean().default(true),
+      icon: z.string().optional(),
+    })
+    .array()
+    .optional(),
+  controls: z
+    .object({
+      nextprev: z.enum(NEXT_PREVIOUS_CONTROL_STYLES).default('thumbnails'),
+    })
+    .optional(),
 
   // Stock lovelace card config.
   type: z.string(),
@@ -103,6 +116,16 @@ export interface ExtendedHomeAssistant {
   hassUrl(path?): string;
 }
 
+export interface BrowseMediaQueryParameters {
+  mediaType: 'clips' | 'snapshots';
+  clientId: string;
+  cameraName: string;
+  label?: string;
+  zone?: string;
+  before?: number;
+  after?: number;
+}
+
 /**
  * Media Browser API types.
  */
@@ -119,7 +142,7 @@ export interface BrowseMediaSource {
   can_play: boolean;
   can_expand: boolean;
   children_media_class: string | null;
-  thumbnail: string | null
+  thumbnail: string | null;
   children?: BrowseMediaSource[] | null;
 }
 
@@ -134,7 +157,7 @@ export const browseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.lazy(()
     children_media_class: z.string().nullable(),
     thumbnail: z.string().nullable(),
     children: z.array(browseMediaSourceSchema).nullable().optional(),
-  })
+  }),
 );
 
 // Server side data-type defined here: https://github.com/home-assistant/core/blob/dev/homeassistant/components/media_source/models.py
