@@ -35,7 +35,7 @@ A full-featured Frigate Lovelace card:
 Home Assistant > HACS > Frontend > "Explore & Add Integrations" > Frigate Card
 ```
 
-* Add the following to `configuration.yaml`:
+* Add the following to `configuration.yaml` (note that `/hacsfiles/` is just an [optimized equivalent](https://hacs.xyz/docs/categories/plugins#custom-view-hacsfiles) of `/local/community/` that HACS natively supports):
 
 ```yaml
 lovelace:
