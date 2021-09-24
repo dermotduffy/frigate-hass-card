@@ -419,22 +419,22 @@ export class FrigateCard extends LitElement {
     }
 
     const padding = this._getAspectRatioPadding();
-    let container_style_map = {};
+    let containerStyleMap = {};
     if (padding != null) {
-      container_style_map = {
+      containerStyleMap = {
         'padding-top': `${padding}%`,
       };
     }
 
-    const content_classes = {
+    const contentClasses = {
       'frigate-card-contents': true,
       absolute: padding != null,
     };
 
     return html` <ha-card @click=${this._interactionHandler}>
       ${this.config.menu_mode == 'above' ? this._renderMenu() : ''}
-      <div class="container outer" style="${styleMap(container_style_map)}">
-        <div class="${classMap(content_classes)}">
+      <div class="container outer" style="${styleMap(containerStyleMap)}">
+        <div class="${classMap(contentClasses)}">
           ${this._view.is('clips') || this._view.is('snapshots')
             ? html` <frigate-card-gallery
                 .hass=${this._hass}
