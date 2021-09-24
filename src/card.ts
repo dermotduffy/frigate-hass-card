@@ -252,7 +252,7 @@ export class FrigateCard extends LitElement {
       // arrive), but also is a jarring experience for the user (e.g. if they
       // are browsing the mini-gallery). Do not allow re-rendering from a Home
       // Assistant update if there's been recent interaction (e.g. clicks on the
-      // card) or if there is a clip active playing.
+      // card) or if there is media active playing.
       if (this._interactionTimerID || this._mediaPlaying) {
         return false;
       }
@@ -334,7 +334,7 @@ export class FrigateCard extends LitElement {
       zone: this.config.zone,
     };
   }
-  
+
   protected _playHandler(): void {
     this._mediaPlaying = true;
   }
@@ -373,12 +373,9 @@ export class FrigateCard extends LitElement {
     // media view (i.e. not the gallery) and there's a loaded media item in
     // dynamic mode (as the aspect_ratio is essentially whatever the media
     // dimensions are).
-    if (aspect_ratio_mode == 'unconstrained' ||
-      (
-        !this._view.isGalleryView() &&
-        aspect_ratio_mode == 'dynamic' && 
-        this._mediaInfo
-      )
+    if (
+      aspect_ratio_mode == 'unconstrained' ||
+      (!this._view.isGalleryView() && aspect_ratio_mode == 'dynamic' && this._mediaInfo)
     ) {
       return null;
     }
@@ -414,7 +411,7 @@ export class FrigateCard extends LitElement {
 
     const content_classes = {
       'frigate-card-contents': true,
-      absolute: (padding != null),
+      absolute: padding != null,
     };
 
     return html` <ha-card @click=${this._interactionHandler}>
@@ -442,7 +439,7 @@ export class FrigateCard extends LitElement {
                 @frigate-card:media-load=${this._mediaLoadHandler}
                 @frigate-card:pause=${this._pauseHandler}
                 @frigate-card:play=${this._playHandler}
-                >
+              >
               </frigate-card-viewer>`
             : ``}
           ${this._view.is('live')
