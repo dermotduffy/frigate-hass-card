@@ -46,6 +46,23 @@ import cardStyle from './scss/card.scss';
 const MEDIA_HEIGHT_CUTOFF = 50;
 const MEDIA_WIDTH_CUTOFF = MEDIA_HEIGHT_CUTOFF;
 
+/** A note on media callbacks:
+ *
+ * We need media elements (e.g. <video>, <img> or <canvas>) to callback when:
+ *  - Metadata is loaded / dimensions are known (for aspect-ratio)
+ *  - Media is playing / paused (to avoid reloading)
+ *
+ * There are a number of different approaches used to attach event handlers to
+ * get these callbacks (which need to be attached directly to the media
+ * elements, which may be 'buried' down the DOM):
+ *  - Extend the `ha-hls-player` and `ha-camera-stream` to specify the required
+ *    hooks (as querySelecting the media elements after rendering was a fight
+ *    with the Lit rendering engine and was very fragile) .
+ *  - For non-Lit elements (e.g. WebRTC) query selecting after rendering.
+ *  - Library provided hooks (e.g. JSMPEG)
+ *  - Directly specifying hooks (e.g. for snapshot viewing with simple <img> tags)
+ */
+
 /* eslint no-console: 0 */
 console.info(
   `%c  FRIGATE-HASS-CARD \n%c  ${localize('common.version')} ${CARD_VERSION}    `,
