@@ -116,7 +116,7 @@ If no aspect ratio is specified or available, but one is needed then `16:9` will
 
 #### Example aspect ratio configuration
 
-Force the aspect-ratio to always be `4:3`:
+Have the card aspect-ratio dynamically follow the last loaded media, but use `4:3` as the default when there is no such media:
 
 ```yaml
 dimensions:
