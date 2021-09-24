@@ -98,7 +98,7 @@ export const frigateCardConfigSchema = z.object({
     })
     .optional(),
   dimensions: z.object({
-    aspect_ratio_mode: z.enum(['dynamic', 'static']).default('dynamic'),
+    aspect_ratio_mode: z.enum(['dynamic', 'static', 'unconstrained']).default('dynamic'),
     aspect_ratio:
       z.number().array().length(2).or(
         z.string()

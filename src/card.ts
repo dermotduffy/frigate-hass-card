@@ -372,10 +372,9 @@ export class FrigateCard extends LitElement {
     if (mediaInfo.height < MEDIA_HEIGHT_CUTOFF || mediaInfo.width < MEDIA_WIDTH_CUTOFF) {
       return;
     }
-
     let requestRefresh = false;
     if (
-      this.config.dimensions?.aspect_ratio_mode != 'static' &&
+      (this.config.dimensions?.aspect_ratio_mode ?? 'dynamic') == 'dynamic' &&
       (mediaInfo.width != this._mediaInfo?.width ||
         mediaInfo.height != this._mediaInfo?.height)
     ) {
@@ -389,19 +388,23 @@ export class FrigateCard extends LitElement {
   }
 
   protected _getAspectRatioPadding(): number | null {
-    const aspect_ratio_mode = this.config.dimensions?.aspect_ratio_mode ?? 'auto';
+    const aspect_ratio_mode = this.config.dimensions?.aspect_ratio_mode ?? 'dynamic';
 
-    // Do not constrain aspect ratio if it's not a gallery (clips or snapshots),
-    // if the aspect ratio is not static and if there is a loaded media item.
-    if (
-      !this._view.isGalleryView() &&
-      aspect_ratio_mode != 'static' &&
-      this._mediaInfo
+    // Do not constrain aspect ratio if either it's entire disabled or it's a
+    // media view (i.e. not the gallery) and there's a loaded media item in
+    // dynamic mode (as the aspect_ratio is essentially whatever the media
+    // dimensions are).
+    if (aspect_ratio_mode == 'unconstrained' ||
+      (
+        !this._view.isGalleryView() &&
+        aspect_ratio_mode == 'dynamic' && 
+        this._mediaInfo
+      )
     ) {
       return null;
     }
 
-    if (aspect_ratio_mode == 'auto' && this._mediaInfo) {
+    if (aspect_ratio_mode == 'dynamic' && this._mediaInfo) {
       return (this._mediaInfo.height / this._mediaInfo.width) * 100;
     }
 
