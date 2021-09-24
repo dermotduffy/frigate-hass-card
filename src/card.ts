@@ -106,8 +106,8 @@ export class FrigateCard extends LitElement {
   @query('frigate-card-menu')
   _menu!: FrigateCardMenu;
 
-  // Whether or not there is an active clip being played.
-  protected _clipPlaying = false;
+  // Whether or not media is actively playing (live or clip).
+  protected _mediaPlaying = false;
 
   // A small cache to avoid needing to create a new list of entities every time
   // a hass update arrives.
@@ -253,7 +253,7 @@ export class FrigateCard extends LitElement {
       // are browsing the mini-gallery). Do not allow re-rendering from a Home
       // Assistant update if there's been recent interaction (e.g. clicks on the
       // card) or if there is a clip active playing.
-      if (this._interactionTimerID || this._clipPlaying) {
+      if (this._interactionTimerID || this._mediaPlaying) {
         return false;
       }
       return shouldUpdateBasedOnHass(this._hass, oldHass, this._entitiesToMonitor);
@@ -292,35 +292,6 @@ export class FrigateCard extends LitElement {
       return `${this.config.frigate_url}/cameras/${this.config.frigate_camera_name}`;
     }
     return `${this.config.frigate_url}/events?camera=${this.config.frigate_camera_name}`;
-  }
-
-  public updated(): void {
-    this.updateComplete.then(() => {
-      // DOM elements are not always present until after updateComplete promise
-      // is resolved. Note that children of children (i.e. the underlying video
-      // element) is not always present even when the promise returns, so
-      // capture the event at the upper shadow root instead.
-      const hls_player = this.renderRoot
-        ?.querySelector('ha-card')
-        ?.querySelector('ha-hls-player');
-
-      if (hls_player) {
-        hls_player.shadowRoot?.addEventListener(
-          'play',
-          () => {
-            this._clipPlaying = true;
-          },
-          true,
-        );
-        hls_player.shadowRoot?.addEventListener(
-          'pause',
-          () => {
-            this._clipPlaying = true;
-          },
-          true,
-        );
-      }
-    });
   }
 
   // Record interactions with the card.
@@ -362,6 +333,14 @@ export class FrigateCard extends LitElement {
       label: this.config.label,
       zone: this.config.zone,
     };
+  }
+  
+  protected _playHandler(): void {
+    this._mediaPlaying = true;
+  }
+
+  protected _pauseHandler(): void {
+    this._mediaPlaying = false;
   }
 
   protected _mediaLoadHandler(e: CustomEvent<MediaLoadInfo>): void {
@@ -461,7 +440,9 @@ export class FrigateCard extends LitElement {
                 .autoplayClip=${this.config.autoplay_clip}
                 @frigate-card:change-view=${this._changeViewHandler}
                 @frigate-card:media-load=${this._mediaLoadHandler}
-              >
+                @frigate-card:pause=${this._pauseHandler}
+                @frigate-card:play=${this._playHandler}
+                >
               </frigate-card-viewer>`
             : ``}
           ${this._view.is('live')
@@ -469,6 +450,8 @@ export class FrigateCard extends LitElement {
                 .hass=${this._hass}
                 .config=${this.config}
                 @frigate-card:media-load=${this._mediaLoadHandler}
+                @frigate-card:pause=${this._pauseHandler}
+                @frigate-card:play=${this._playHandler}
               >
               </frigate-card-live>`
             : ``}

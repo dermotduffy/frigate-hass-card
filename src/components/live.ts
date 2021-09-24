@@ -7,7 +7,12 @@ import { signedPathSchema } from '../types';
 import type { ExtendedHomeAssistant, FrigateCardConfig } from '../types';
 
 import { localize } from '../localize/localize';
-import { dispatchMediaLoadEvent, homeAssistantWSRequest } from '../common';
+import {
+  dispatchMediaLoadEvent,
+  dispatchPauseEvent,
+  dispatchPlayEvent,
+  homeAssistantWSRequest,
+} from '../common';
 import {
   renderMessage,
   renderErrorMessage,
@@ -95,7 +100,6 @@ export class FrigateCardViewerWebRTC extends LitElement {
   protected _webRTCElement: HTMLElement | null = null;
 
   protected _createWebRTC(): TemplateResult | void {
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const webrtcElement = customElements.get('webrtc-camera') as any;
     if (webrtcElement) {
@@ -125,11 +129,30 @@ export class FrigateCardViewerWebRTC extends LitElement {
     this.updateComplete.then(() => {
       const video = this.renderRoot.querySelector('#video') as HTMLVideoElement;
       if (video) {
-        video.onloadedmetadata = () => { 
+        const onloadedmetadata = video.onloadedmetadata;
+        const onplay = video.onplay;
+        const onpause = video.onpause;
+
+        video.onloadedmetadata = (e) => {
+          if (onloadedmetadata) {
+            onloadedmetadata.call(video, e);
+          }
           dispatchMediaLoadEvent(this, video);
-        }
+        };
+        video.onplay = (e) => {
+          if (onplay) {
+            onplay.call(video, e);
+          }
+          dispatchPlayEvent(this);
+        };
+        video.onpause = (e) => {
+          if (onpause) {
+            onpause.call(video, e);
+          }
+          dispatchPauseEvent(this);
+        };
       }
-    })
+    });
   }
 
   static get styles(): CSSResultGroup {
@@ -212,11 +235,16 @@ export class FrigateCardViewerJSMPEG extends LitElement {
               // amount of time the canvas is empty (and show the spinner
               // instead).
               play: () => {
+                dispatchPlayEvent(this);
                 resolve(html`${this._jsmpegCanvasElement}`);
+              },
+              pause: () => {
+                dispatchPauseEvent(this);
               },
             },
           },
-          { protocols: [],
+          {
+            protocols: [],
             videoBufferSize: 1024 * 1024 * 4,
             onVideoDecode: () => {
               // This is the only callback that is called after the dimensions
@@ -226,8 +254,8 @@ export class FrigateCardViewerJSMPEG extends LitElement {
                 videoDecoded = true;
                 dispatchMediaLoadEvent(this, this._jsmpegCanvasElement);
               }
-            }
-           },
+            },
+          },
         );
       });
     }
