@@ -137,6 +137,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       none: localize('control.none'),
     };
 
+    const aspectRatioModes = {
+      '': '',
+      dynamic: localize('aspect_ratio_mode.dynamic'),
+      static: localize('aspect_ratio_mode.static'),
+      unconstrained: localize('aspect_ratio_mode.unconstrained'),
+    }
+
     return html`
       <div class="card-config">
         <div class="option" @click=${this._toggleOption} .option=${'required'}>
@@ -296,6 +303,34 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 </paper-listbox>
               </paper-dropdown-menu>
               <br />
+              <paper-dropdown-menu
+                .label=${localize('dimensions.aspect_ratio_mode')}
+                @value-changed=${this._valueChanged}
+                .configValue=${'dimensions.aspect_ratio_mode'}
+              >
+                <paper-listbox
+                  slot="dropdown-content"
+                  .selected=${Object.keys(aspectRatioModes).indexOf(
+                    this._config?.dimensions?.aspect_ratio_mode || '',
+                  )}
+                >
+                  ${Object.keys(aspectRatioModes).map((key) => {
+                    return html`
+                      <paper-item .label="${key}"> ${aspectRatioModes[key]} </paper-item>
+                    `;
+                  })}
+                </paper-listbox>
+              </paper-dropdown-menu>
+              <br />
+              <paper-input
+                label=${localize('dimensions.aspect_ratio')}
+                prevent-invalid-input
+                .value=${this._config?.dimensions?.aspect_ratio
+                  ? String(this._config?.dimensions?.aspect_ratio)
+                  : ''}
+                .configValue=${'dimensions.aspect_ratio'}
+                @value-changed=${this._valueChanged}
+              ></paper-input>
               <ha-formfield
                 .label=${localize('editor.show_button') +
                 ': ' +

@@ -102,8 +102,8 @@ export const frigateCardConfigSchema = z.object({
     aspect_ratio:
       z.number().array().length(2).or(
         z.string()
-        .regex(/^\s*\d+\s*\/\s*\d+\s*$/)
-        .transform((input) => input.split("/").map((d) => Number(d)))
+        .regex(/^\s*\d+\s*[:\/]\s*\d+\s*$/)
+        .transform((input) => input.split(/[:\/]/).map((d) => Number(d)))
       ).default([16, 9]),
   }).optional(),
 
