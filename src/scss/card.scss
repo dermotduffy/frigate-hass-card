@@ -1,16 +1,8 @@
-.container_16_9 {
-  /* 16:9 Aspect Ratio. When Safari supports 'aspect-ratio' this should not be
-     necessary */
+.container {
   position: relative;
-  padding-top: 56.25%;  // 9 / 16 == 0.5625
 }
 
 .frigate-card-contents {
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  bottom: 0px;
-  left: 0px;
   width: 100%;
   height: 100%;
   overflow: auto;
@@ -24,6 +16,15 @@
 }
 
 /* The 'hover' menu mode is styling applied outside of the menu itself */
+.frigate-card-contents.absolute {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
+}
+
+/* Support the 'hover' menu mode. */
 .hover-menu {
   z-index: 1;
   transition: all 0.5s ease;

@@ -6,6 +6,7 @@ import type {
   BrowseMediaQueryParameters,
   BrowseMediaSource,
   ExtendedHomeAssistant,
+  MediaLoadInfo,
 } from './types';
 import { browseMediaSourceSchema } from './types';
 
@@ -96,20 +97,46 @@ export async function browseMediaQuery(
   );
 }
 
-export function dispatchPlayEvent(node: HTMLElement): void {
-  node.dispatchEvent(
-    new CustomEvent<void>('frigate-card:play', {
+export function dispatchEvent<T>(element: HTMLElement, name: string, detail?: T): void {
+  element.dispatchEvent(
+    new CustomEvent<T>(`frigate-card:${name}`, {
       bubbles: true,
       composed: true,
+      detail: detail,
     }),
   );
 }
 
-export function dispatchPauseEvent(node: HTMLElement): void {
-  node.dispatchEvent(
-    new CustomEvent<void>('frigate-card:pause', {
-      bubbles: true,
-      composed: true,
-    }),
-  );
+export function dispatchPlayEvent(element: HTMLElement): void {
+  dispatchEvent(element, 'play')
+}
+
+export function dispatchPauseEvent(element: HTMLElement): void {
+  dispatchEvent(element, 'pause')
+}
+
+export function dispatchMediaLoadEvent(element: HTMLElement, source: Event | HTMLElement): void {
+  let target: HTMLElement | EventTarget;
+  if (source instanceof Event) {
+    target = source.composedPath()[0];
+  } else {
+    target = source;
+  }
+
+  if (target instanceof HTMLImageElement) {
+    dispatchEvent<MediaLoadInfo>(element, 'media-load', {
+      width: (target as HTMLImageElement).naturalWidth,
+      height: (target as HTMLImageElement).naturalHeight,
+    });
+  } else if (target instanceof HTMLVideoElement) {
+    dispatchEvent<MediaLoadInfo>(element, 'media-load', {
+      width: (target as HTMLVideoElement).videoWidth,
+      height: (target as HTMLVideoElement).videoHeight,
+    });
+  } else if (target instanceof HTMLCanvasElement) {
+    dispatchEvent<MediaLoadInfo>(element, 'media-load', {
+      width: (target as HTMLCanvasElement).width,
+      height: (target as HTMLCanvasElement).height,
+    });
+  }
 }

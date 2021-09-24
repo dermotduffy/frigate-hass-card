@@ -9,6 +9,7 @@ import {
 } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators';
 import { classMap } from 'lit/directives/class-map.js';
+import { styleMap } from 'lit/directives/style-map.js';
 import {
   HomeAssistant,
   LovelaceCardEditor,
@@ -17,14 +18,12 @@ import {
   stateIcon,
 } from 'custom-card-helpers';
 
-import {
-  MenuButton,
-  frigateCardConfigSchema,
-} from './types';
+import { MenuButton, frigateCardConfigSchema } from './types';
 import type {
   BrowseMediaQueryParameters,
   ExtendedHomeAssistant,
   FrigateCardConfig,
+  MediaLoadInfo,
 } from './types';
 
 import { CARD_VERSION } from './const';
@@ -39,8 +38,13 @@ import './components/live';
 import './components/menu';
 import './components/message';
 import './components/viewer';
+import './patches/ha-camera-stream';
+import './patches/ha-hls-player';
 
 import cardStyle from './scss/card.scss';
+
+const MEDIA_HEIGHT_CUTOFF = 50;
+const MEDIA_WIDTH_CUTOFF = MEDIA_HEIGHT_CUTOFF;
 
 /* eslint no-console: 0 */
 console.info(
@@ -108,6 +112,9 @@ export class FrigateCard extends LitElement {
   // A small cache to avoid needing to create a new list of entities every time
   // a hass update arrives.
   protected _entitiesToMonitor: string[] | null = null;
+
+  // Information about the most recently loaded media item.
+  protected _mediaInfo: MediaLoadInfo | null = null;
 
   set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
     this._hass = hass;
@@ -357,6 +364,55 @@ export class FrigateCard extends LitElement {
     };
   }
 
+  protected _mediaLoadHandler(e: CustomEvent<MediaLoadInfo>): void {
+    const mediaInfo = e.detail;
+
+    // In Safari, with WebRTC, 0x0 is occasionally returned during loading,
+    // so treat anything less than a safety cutoff as bogus.
+    if (mediaInfo.height < MEDIA_HEIGHT_CUTOFF || mediaInfo.width < MEDIA_WIDTH_CUTOFF) {
+      return;
+    }
+
+    let requestRefresh = false;
+    if (
+      this.config.dimensions?.aspect_ratio_mode != 'static' &&
+      (mediaInfo.width != this._mediaInfo?.width ||
+        mediaInfo.height != this._mediaInfo?.height)
+    ) {
+      requestRefresh = true;
+    }
+
+    this._mediaInfo = mediaInfo;
+    if (requestRefresh) {
+      this.requestUpdate();
+    }
+  }
+
+  protected _getAspectRatioPadding(): number | null {
+    const aspect_ratio_mode = this.config.dimensions?.aspect_ratio_mode ?? 'auto';
+
+    // Do not constrain aspect ratio if it's not a gallery (clips or snapshots),
+    // if the aspect ratio is not static and if there is a loaded media item.
+    if (
+      !this._view.isGalleryView() &&
+      aspect_ratio_mode != 'static' &&
+      this._mediaInfo
+    ) {
+      return null;
+    }
+
+    if (aspect_ratio_mode == 'auto' && this._mediaInfo) {
+      return (this._mediaInfo.height / this._mediaInfo.width) * 100;
+    }
+
+    const default_aspect_ratio = this.config.dimensions?.aspect_ratio;
+    if (default_aspect_ratio) {
+      return (default_aspect_ratio[1] / default_aspect_ratio[0]) * 100;
+    } else {
+      return (9 / 16) * 100;
+    }
+  }
+
   // Render the call (master render method).
   protected render(): TemplateResult | void {
     if (this.config.show_warning) {
@@ -365,10 +421,24 @@ export class FrigateCard extends LitElement {
     if (this.config.show_error) {
       return this._showError(localize('common.show_error'));
     }
+
+    const padding = this._getAspectRatioPadding();
+    let container_style_map = {};
+    if (padding != null) {
+      container_style_map = {
+        'padding-top': `${padding}%`,
+      };
+    }
+
+    const content_classes = {
+      'frigate-card-contents': true,
+      absolute: (padding != null),
+    };
+
     return html` <ha-card @click=${this._interactionHandler}>
       ${this.config.menu_mode == 'above' ? this._renderMenu() : ''}
-      <div class="container_16_9 outer">
-        <div class="frigate-card-contents">
+      <div class="container outer" style="${styleMap(container_style_map)}">
+        <div class="${classMap(content_classes)}">
           ${this._view.is('clips') || this._view.is('snapshots')
             ? html` <frigate-card-gallery
                 .hass=${this._hass}
@@ -383,9 +453,11 @@ export class FrigateCard extends LitElement {
                 .hass=${this._hass}
                 .view=${this._view}
                 .browseMediaQueryParameters=${this._getBrowseMediaQueryParameters()}
-                .nextPreviousControlStyle=${this.config.controls?.nextprev ?? 'thumbnails'}
+                .nextPreviousControlStyle=${this.config.controls?.nextprev ??
+                'thumbnails'}
                 .autoplayClip=${this.config.autoplay_clip}
                 @frigate-card:change-view=${this._changeViewHandler}
+                @frigate-card:media-load=${this._mediaLoadHandler}
               >
               </frigate-card-viewer>`
             : ``}
@@ -393,6 +465,7 @@ export class FrigateCard extends LitElement {
             ? html` <frigate-card-live
                 .hass=${this._hass}
                 .config=${this.config}
+                @frigate-card:media-load=${this._mediaLoadHandler}
               >
               </frigate-card-live>`
             : ``}
@@ -426,6 +499,9 @@ export class FrigateCard extends LitElement {
 
   // Get the Lovelace card size.
   public getCardSize(): number {
+    if (this._mediaInfo) {
+      return this._mediaInfo.height / 50;
+    }
     return 6;
   }
 }

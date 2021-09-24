@@ -6,7 +6,6 @@ import { terser } from 'rollup-plugin-terser';
 import serve from 'rollup-plugin-serve';
 import json from '@rollup/plugin-json';
 import styles from 'rollup-plugin-styles';
-import multi from '@rollup/plugin-multi-entry';
 
 const dev = process.env.ROLLUP_WATCH;
 
@@ -21,7 +20,6 @@ const serveopts = {
 };
 
 const plugins = [
-  multi(),
   styles({
     modules: false,
     // Behavior of inject mode, without actually injecting style
@@ -44,7 +42,7 @@ const plugins = [
 
 export default [
   {
-    input: ['src/card.ts'],
+    input: 'src/card.ts',
     output: {
       file: 'dist/frigate-hass-card.js',
       format: 'es',
