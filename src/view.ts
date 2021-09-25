@@ -24,6 +24,10 @@ export class View {
     return this.view == name;
   }
 
+  public isGalleryView(): boolean {
+    return this.view == 'clips' || this.view == 'snapshots';
+  }
+
   get media(): BrowseMediaSource | undefined {
     if (this.target) {
       if (this.target.children && this.childIndex !== undefined) {

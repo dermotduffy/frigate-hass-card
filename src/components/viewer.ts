@@ -18,6 +18,7 @@ import type {
 import { localize } from '../localize/localize';
 import {
   browseMediaQuery,
+  dispatchMediaLoadEvent,
   dispatchPauseEvent,
   dispatchPlayEvent,
   getFirstTrueMediaChildIndex,
@@ -199,7 +200,7 @@ export class FrigateCardViewer extends LitElement {
 
     const neighbors = this._getMediaNeighbors(parent, childIndex);
 
-    return html`
+    return html` <div>
       ${neighbors?.previousIndex != null
         ? html`<frigate-card-next-previous-control
             .control=${'previous'}
@@ -211,7 +212,7 @@ export class FrigateCardViewer extends LitElement {
         : ``}
       ${this.view.is('clip')
         ? resolvedMedia?.mime_type.toLowerCase() == 'application/x-mpegurl'
-          ? html`<ha-hls-player
+          ? html`<frigate-card-ha-hls-player
               .hass=${this.hass}
               .url=${resolvedMedia.url}
               title="${mediaToRender.title}"
@@ -221,13 +222,14 @@ export class FrigateCardViewer extends LitElement {
               allow-exoplayer
               ?autoplay="${autoplay}"
             >
-            </ha-hls-player>`
+            </frigate-card-ha-hls-player>`
           : html`<video
               title="${mediaToRender.title}"
               muted
               controls
               playsinline
               ?autoplay="${autoplay}"
+              @loadedmetadata=${(e) => dispatchMediaLoadEvent(this, e)}a
               @play=${() => dispatchPlayEvent(this)}
               @pause=${() => dispatchPauseEvent(this)}
             >
@@ -247,6 +249,9 @@ export class FrigateCardViewer extends LitElement {
                 }
               });
             }}
+            @load=${(e) => {
+              dispatchMediaLoadEvent(this, e);
+            }}
           />`}
       ${neighbors?.nextIndex != null
         ? html`<frigate-card-next-previous-control
@@ -257,7 +262,7 @@ export class FrigateCardViewer extends LitElement {
             .view=${this.view}
           ></frigate-card-next-previous-control>`
         : ``}
-    `;
+    </div>`;
   }
 
   static get styles(): CSSResultGroup {

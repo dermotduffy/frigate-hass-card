@@ -9,6 +9,7 @@ import {
 } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators';
 import { classMap } from 'lit/directives/class-map.js';
+import { styleMap } from 'lit/directives/style-map.js';
 import {
   HomeAssistant,
   LovelaceCardEditor,
@@ -17,14 +18,12 @@ import {
   stateIcon,
 } from 'custom-card-helpers';
 
-import {
-  MenuButton,
-  frigateCardConfigSchema,
-} from './types';
+import { MenuButton, frigateCardConfigSchema } from './types';
 import type {
   BrowseMediaQueryParameters,
   ExtendedHomeAssistant,
   FrigateCardConfig,
+  MediaLoadInfo,
 } from './types';
 
 import { CARD_VERSION } from './const';
@@ -39,8 +38,30 @@ import './components/live';
 import './components/menu';
 import './components/message';
 import './components/viewer';
+import './patches/ha-camera-stream';
+import './patches/ha-hls-player';
 
 import cardStyle from './scss/card.scss';
+
+const MEDIA_HEIGHT_CUTOFF = 50;
+const MEDIA_WIDTH_CUTOFF = MEDIA_HEIGHT_CUTOFF;
+
+/** A note on media callbacks:
+ *
+ * We need media elements (e.g. <video>, <img> or <canvas>) to callback when:
+ *  - Metadata is loaded / dimensions are known (for aspect-ratio)
+ *  - Media is playing / paused (to avoid reloading)
+ *
+ * There are a number of different approaches used to attach event handlers to
+ * get these callbacks (which need to be attached directly to the media
+ * elements, which may be 'buried' down the DOM):
+ *  - Extend the `ha-hls-player` and `ha-camera-stream` to specify the required
+ *    hooks (as querySelecting the media elements after rendering was a fight
+ *    with the Lit rendering engine and was very fragile) .
+ *  - For non-Lit elements (e.g. WebRTC) query selecting after rendering.
+ *  - Library provided hooks (e.g. JSMPEG)
+ *  - Directly specifying hooks (e.g. for snapshot viewing with simple <img> tags)
+ */
 
 /* eslint no-console: 0 */
 console.info(
@@ -102,12 +123,15 @@ export class FrigateCard extends LitElement {
   @query('frigate-card-menu')
   _menu!: FrigateCardMenu;
 
-  // Whether or not there is an active clip being played.
-  protected _clipPlaying = false;
+  // Whether or not media is actively playing (live or clip).
+  protected _mediaPlaying = false;
 
   // A small cache to avoid needing to create a new list of entities every time
   // a hass update arrives.
   protected _entitiesToMonitor: string[] | null = null;
+
+  // Information about the most recently loaded media item.
+  protected _mediaInfo: MediaLoadInfo | null = null;
 
   set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
     this._hass = hass;
@@ -245,8 +269,8 @@ export class FrigateCard extends LitElement {
       // arrive), but also is a jarring experience for the user (e.g. if they
       // are browsing the mini-gallery). Do not allow re-rendering from a Home
       // Assistant update if there's been recent interaction (e.g. clicks on the
-      // card) or if there is a clip active playing.
-      if (this._interactionTimerID || this._clipPlaying) {
+      // card) or if there is media active playing.
+      if (this._interactionTimerID || this._mediaPlaying) {
         return false;
       }
       return shouldUpdateBasedOnHass(this._hass, oldHass, this._entitiesToMonitor);
@@ -285,35 +309,6 @@ export class FrigateCard extends LitElement {
       return `${this.config.frigate_url}/cameras/${this.config.frigate_camera_name}`;
     }
     return `${this.config.frigate_url}/events?camera=${this.config.frigate_camera_name}`;
-  }
-
-  public updated(): void {
-    this.updateComplete.then(() => {
-      // DOM elements are not always present until after updateComplete promise
-      // is resolved. Note that children of children (i.e. the underlying video
-      // element) is not always present even when the promise returns, so
-      // capture the event at the upper shadow root instead.
-      const hls_player = this.renderRoot
-        ?.querySelector('ha-card')
-        ?.querySelector('ha-hls-player');
-
-      if (hls_player) {
-        hls_player.shadowRoot?.addEventListener(
-          'play',
-          () => {
-            this._clipPlaying = true;
-          },
-          true,
-        );
-        hls_player.shadowRoot?.addEventListener(
-          'pause',
-          () => {
-            this._clipPlaying = true;
-          },
-          true,
-        );
-      }
-    });
   }
 
   // Record interactions with the card.
@@ -357,6 +352,63 @@ export class FrigateCard extends LitElement {
     };
   }
 
+  protected _playHandler(): void {
+    this._mediaPlaying = true;
+  }
+
+  protected _pauseHandler(): void {
+    this._mediaPlaying = false;
+  }
+
+  protected _mediaLoadHandler(e: CustomEvent<MediaLoadInfo>): void {
+    const mediaInfo = e.detail;
+
+    // In Safari, with WebRTC, 0x0 is occasionally returned during loading,
+    // so treat anything less than a safety cutoff as bogus.
+    if (mediaInfo.height < MEDIA_HEIGHT_CUTOFF || mediaInfo.width < MEDIA_WIDTH_CUTOFF) {
+      return;
+    }
+    let requestRefresh = false;
+    if (
+      (this.config.dimensions?.aspect_ratio_mode ?? 'dynamic') == 'dynamic' &&
+      (mediaInfo.width != this._mediaInfo?.width ||
+        mediaInfo.height != this._mediaInfo?.height)
+    ) {
+      requestRefresh = true;
+    }
+
+    this._mediaInfo = mediaInfo;
+    if (requestRefresh) {
+      this.requestUpdate();
+    }
+  }
+
+  protected _getAspectRatioPadding(): number | null {
+    const aspect_ratio_mode = this.config.dimensions?.aspect_ratio_mode ?? 'dynamic';
+
+    // Do not constrain aspect ratio if either it's entire disabled or it's a
+    // media view (i.e. not the gallery) and there's a loaded media item in
+    // dynamic mode (as the aspect_ratio is essentially whatever the media
+    // dimensions are).
+    if (
+      aspect_ratio_mode == 'unconstrained' ||
+      (!this._view.isGalleryView() && aspect_ratio_mode == 'dynamic' && this._mediaInfo)
+    ) {
+      return null;
+    }
+
+    if (aspect_ratio_mode == 'dynamic' && this._mediaInfo) {
+      return (this._mediaInfo.height / this._mediaInfo.width) * 100;
+    }
+
+    const default_aspect_ratio = this.config.dimensions?.aspect_ratio;
+    if (default_aspect_ratio) {
+      return (default_aspect_ratio[1] / default_aspect_ratio[0]) * 100;
+    } else {
+      return (9 / 16) * 100;
+    }
+  }
+
   // Render the call (master render method).
   protected render(): TemplateResult | void {
     if (this.config.show_warning) {
@@ -365,10 +417,24 @@ export class FrigateCard extends LitElement {
     if (this.config.show_error) {
       return this._showError(localize('common.show_error'));
     }
+
+    const padding = this._getAspectRatioPadding();
+    let containerStyleMap = {};
+    if (padding != null) {
+      containerStyleMap = {
+        'padding-top': `${padding}%`,
+      };
+    }
+
+    const contentClasses = {
+      'frigate-card-contents': true,
+      absolute: padding != null,
+    };
+
     return html` <ha-card @click=${this._interactionHandler}>
       ${this.config.menu_mode == 'above' ? this._renderMenu() : ''}
-      <div class="container_16_9 outer">
-        <div class="frigate-card-contents">
+      <div class="container outer" style="${styleMap(containerStyleMap)}">
+        <div class="${classMap(contentClasses)}">
           ${this._view.is('clips') || this._view.is('snapshots')
             ? html` <frigate-card-gallery
                 .hass=${this._hass}
@@ -383,9 +449,13 @@ export class FrigateCard extends LitElement {
                 .hass=${this._hass}
                 .view=${this._view}
                 .browseMediaQueryParameters=${this._getBrowseMediaQueryParameters()}
-                .nextPreviousControlStyle=${this.config.controls?.nextprev ?? 'thumbnails'}
+                .nextPreviousControlStyle=${this.config.controls?.nextprev ??
+                'thumbnails'}
                 .autoplayClip=${this.config.autoplay_clip}
                 @frigate-card:change-view=${this._changeViewHandler}
+                @frigate-card:media-load=${this._mediaLoadHandler}
+                @frigate-card:pause=${this._pauseHandler}
+                @frigate-card:play=${this._playHandler}
               >
               </frigate-card-viewer>`
             : ``}
@@ -393,6 +463,9 @@ export class FrigateCard extends LitElement {
             ? html` <frigate-card-live
                 .hass=${this._hass}
                 .config=${this.config}
+                @frigate-card:media-load=${this._mediaLoadHandler}
+                @frigate-card:pause=${this._pauseHandler}
+                @frigate-card:play=${this._playHandler}
               >
               </frigate-card-live>`
             : ``}
@@ -426,6 +499,9 @@ export class FrigateCard extends LitElement {
 
   // Get the Lovelace card size.
   public getCardSize(): number {
+    if (this._mediaInfo) {
+      return this._mediaInfo.height / 50;
+    }
     return 6;
   }
 }

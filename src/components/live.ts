@@ -7,7 +7,12 @@ import { signedPathSchema } from '../types';
 import type { ExtendedHomeAssistant, FrigateCardConfig } from '../types';
 
 import { localize } from '../localize/localize';
-import { homeAssistantWSRequest } from '../common';
+import {
+  dispatchMediaLoadEvent,
+  dispatchPauseEvent,
+  dispatchPlayEvent,
+  homeAssistantWSRequest,
+} from '../common';
 import {
   renderMessage,
   renderErrorMessage,
@@ -68,13 +73,13 @@ export class FrigateCardViewerFrigate extends LitElement {
     if (!(this.cameraEntity in this.hass.states)) {
       return renderMessage(localize('error.no_live_camera'), 'mdi:camera-off');
     }
-    return html` <ha-camera-stream
+    return html` <frigate-card-ha-camera-stream
       .hass=${this.hass}
       .stateObj=${this.hass.states[this.cameraEntity]}
       .controls=${true}
       .muted=${true}
     >
-    </ha-camera-stream>`;
+    </frigate-card-ha-camera-stream>`;
   }
 
   static get styles(): CSSResultGroup {
@@ -95,7 +100,6 @@ export class FrigateCardViewerWebRTC extends LitElement {
   protected _webRTCElement: HTMLElement | null = null;
 
   protected _createWebRTC(): TemplateResult | void {
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const webrtcElement = customElements.get('webrtc-camera') as any;
     if (webrtcElement) {
@@ -119,6 +123,38 @@ export class FrigateCardViewerWebRTC extends LitElement {
     return html`${this._webRTCElement}`;
   }
 
+  public updated(): void {
+    // Extract the video component after it has been rendered and generate the
+    // media load event.
+    this.updateComplete.then(() => {
+      const video = this.renderRoot.querySelector('#video') as HTMLVideoElement;
+      if (video) {
+        const onloadedmetadata = video.onloadedmetadata;
+        const onplay = video.onplay;
+        const onpause = video.onpause;
+
+        video.onloadedmetadata = (e) => {
+          if (onloadedmetadata) {
+            onloadedmetadata.call(video, e);
+          }
+          dispatchMediaLoadEvent(this, video);
+        };
+        video.onplay = (e) => {
+          if (onplay) {
+            onplay.call(video, e);
+          }
+          dispatchPlayEvent(this);
+        };
+        video.onpause = (e) => {
+          if (onpause) {
+            onpause.call(video, e);
+          }
+          dispatchPauseEvent(this);
+        };
+      }
+    });
+  }
+
   static get styles(): CSSResultGroup {
     return unsafeCSS(liveStyle);
   }
@@ -135,7 +171,7 @@ export class FrigateCardViewerJSMPEG extends LitElement {
   @property({ attribute: false })
   protected clientId!: string;
 
-  protected _jsmpegCanvasElement: HTMLElement | null = null;
+  protected _jsmpegCanvasElement: HTMLCanvasElement | null = null;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected _jsmpegVideoPlayer: any | null = null;
@@ -187,10 +223,7 @@ export class FrigateCardViewerJSMPEG extends LitElement {
         return renderErrorMessage('Could not retrieve or sign JSMPEG websocket path');
       }
 
-      // Return the html canvas node only after the JSMPEG video has loaded and
-      // is playing, to reduce the amount of time the user is staring at a blank
-      // white canvas (instead they get the progress spinner until this promise
-      // resolves).
+      let videoDecoded = false;
       return new Promise<TemplateResult>((resolve) => {
         this._jsmpegVideoPlayer = new JSMpeg.VideoElement(
           this,
@@ -198,12 +231,31 @@ export class FrigateCardViewerJSMPEG extends LitElement {
           {
             canvas: this._jsmpegCanvasElement,
             hooks: {
+              // Don't resolve the promise until it's playing to minimize the
+              // amount of time the canvas is empty (and show the spinner
+              // instead).
               play: () => {
+                dispatchPlayEvent(this);
                 resolve(html`${this._jsmpegCanvasElement}`);
+              },
+              pause: () => {
+                dispatchPauseEvent(this);
               },
             },
           },
-          { protocols: [], videoBufferSize: 1024 * 1024 * 4 },
+          {
+            protocols: [],
+            videoBufferSize: 1024 * 1024 * 4,
+            onVideoDecode: () => {
+              // This is the only callback that is called after the dimensions
+              // are available. It's called on every frame decode, so just
+              // ignore any subsequent calls.
+              if (!videoDecoded && this._jsmpegCanvasElement) {
+                videoDecoded = true;
+                dispatchMediaLoadEvent(this, this._jsmpegCanvasElement);
+              }
+            },
+          },
         );
       });
     }

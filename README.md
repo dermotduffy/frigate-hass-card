@@ -87,8 +87,44 @@ lovelace:
 | `menu_mode` | `hidden-top` | The menu mode to show by default. See [menu modes](#menu-modes) below.|
 | `menu_buttons.{frigate, live, clips, snapshots, frigate_ui}` | `true` | Whether or not to show these builtin actions in the card menu. |
 | `controls.nextprev` | `thumbnails` | When viewing media, what kind of controls to show to move to the previous/next media item. Acceptable values: `thumbnails`, `chevrons`, `none` . |
+| `dimensions.aspect_ratio_mode` | `dynamic` | The aspect ratio mode to use. Acceptable values: `dynamic`, `static`, `unconstrained`. See [aspect ratios](#aspect-ratios) below.|
+| `dimensions.aspect_ratio` | `16:9` | The aspect ratio  to use. Acceptable values: `<W>:<H>` or `<W>/<H>`. See [aspect ratios](#aspect-ratios) below.|
 
-### Advanced
+<a name="aspect-ratios"></a>
+
+#### Aspect Ratio
+
+The card can show live cameras, stored events (clip or snapshot) and an event gallery (clips or snapshots). Of these [views](#views), the gallery views have no intrinsic aspect-ratio, whereas the other views have the aspect-ratio of the media.
+
+The card aspect ratio can be changed with the `dimensions.aspect_ratio_mode` and `dimensions.aspect_ratio` appearance options.
+
+If no aspect ratio is specified or available, but one is needed then `16:9` will be used by default.
+
+#### `dimensions.aspect_ratio_mode`:
+
+| Option           | Description                                         |
+| ------------- | --------------------------------------------- |
+| `dynamic` | The aspect-ratio of the card will match the aspect-ratio of the last loaded media. |
+| `static` | A fixed aspect-ratio (as defined by `dimensions.aspect_ratio`) will be applied to all views. |
+| `unconstrained` | No aspect ratio is enforced in any view, the card will expand with the content (may be especially useful for a panel-mode dashboard). |
+
+#### `dimensions.aspect_ratio`:
+
+* `16 / 9` or `16:9`: Default widescreen ratio.
+* `4 / 3` or `4:3`: Default fullscreen ratio.
+* `<W>/<H>` or `<W>:<H>`: Any arbitrary aspect-ratio.
+
+#### Example aspect ratio configuration
+
+Have the card aspect-ratio dynamically follow the last loaded media, but use `4:3` as the default when there is no such media:
+
+```yaml
+dimensions:
+  aspect_ratio_mode: dynamic
+  aspect_ratio: '4:3'
+```
+
+### Advanced Options
 
 | Option           | Default | Description                                         |
 | ------------- | - | --------------------------------------------- |

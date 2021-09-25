@@ -49,6 +49,15 @@
     "chevrons": "Chevrons",
     "none": "None"
   },
+  "dimensions": {
+    "aspect_ratio_mode": "Aspect Ratio Mode",
+    "aspect_ratio": "Default aspect ratio (Optional)"
+  },
+  "aspect_ratio_mode": {
+    "unconstrained": "Unconstrained aspect ratio",
+    "dynamic": "Aspect ratio adjusts to media",
+    "static": "Static aspect ratio"
+  },
   "menu_mode": {
     "none": "No menu",
     "hidden-top": "Hidden Top",
