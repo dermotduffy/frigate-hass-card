@@ -16,6 +16,10 @@ import { localize } from '../localize/localize';
 import { renderMessage, renderErrorMessage, renderProgressIndicator } from './message';
 
 import galleryStyle from '../scss/gallery.scss';
+import { styleMap } from 'lit/directives/style-map.js';
+
+const MAX_THUMBNAIL_WIDTH = 175;
+const DEFAULT_COLUMNS = 5;
 
 @customElement('frigate-card-gallery')
 export class FrigateCardGallery extends LitElement {
@@ -28,8 +32,36 @@ export class FrigateCardGallery extends LitElement {
   @property({ attribute: false })
   protected browseMediaQueryParameters!: BrowseMediaQueryParameters;
 
+  protected _resizeObserver: ResizeObserver;
+  protected _columns = DEFAULT_COLUMNS;
+
   protected _getMediaType(): 'clips' | 'snapshots' {
     return this.view?.view == 'clips' ? 'clips' : 'snapshots';
+  }
+
+  constructor() {
+    super();
+    this._resizeObserver = new ResizeObserver(this._resizeHandler.bind(this));
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this._resizeObserver?.observe(this);
+  }
+  disconnectedCallback(): void {
+    this._resizeObserver.disconnect();
+    super.disconnectedCallback();
+  }
+  protected _resizeHandler(): void {
+    let columns = Math.floor(this.clientWidth / MAX_THUMBNAIL_WIDTH);
+
+    if (columns < DEFAULT_COLUMNS) {
+      columns = DEFAULT_COLUMNS;
+    }
+    if (this._columns != columns) {
+      this._columns = columns;
+      this.requestUpdate();
+    }
   }
 
   protected render(): TemplateResult | void {
@@ -57,9 +89,14 @@ export class FrigateCardGallery extends LitElement {
       );
     }
 
+    const styles = {
+      width: `calc(${100/this._columns}% - 1.2px)`
+    };
+
+    console.info(this.clientWidth);
     return html` <ul class="mdc-image-list frigate-card-gallery">
       ${this.view && this.view.previous
-        ? html`<li class="mdc-image-list__item">
+        ? html`<li class="mdc-image-list__item" style="${styleMap(styles)}">
             <div class="mdc-image-list__image-aspect-container">
               <div class="mdc-image-list__image">
                 <ha-card
@@ -79,7 +116,7 @@ export class FrigateCardGallery extends LitElement {
         : ''}
       ${parent.children.map(
         (child, index) =>
-          html` <li class="mdc-image-list__item">
+          html` <li class="mdc-image-list__item" style="${styleMap(styles)}">
             <div class="mdc-image-list__image-aspect-container">
               ${child.can_expand
                 ? html`<div class="mdc-image-list__image">
