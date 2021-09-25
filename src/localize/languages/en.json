@@ -41,7 +41,8 @@
     "snapshots": "Snapshots Gallery",
     "clip": "Latest Clip",
     "snapshot": "Latest Snapshot",
-    "frigate_ui": "Frigate User Interface"
+    "frigate_ui": "Frigate User Interface",
+    "fullscreen": "Fullscreen"
   },
   "control": {
     "nextprev": "Media Next & Previous Controls",
@@ -93,7 +94,6 @@
     "could_not_resolve": "Could not resolve media URL",
     "no_live_camera": "No live camera",
     "invalid_configuration": "Invalid configuration",
-    "missing_webrtc": "WebRTC component not found",
-    "internal": "Internal error"
+    "missing_webrtc": "WebRTC component not found"
   }
 }

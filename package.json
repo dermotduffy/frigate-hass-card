@@ -20,6 +20,7 @@
     "dayjs": "^1.10.6",
     "home-assistant-js-websocket": "^5.11.1",
     "lit": "^2.0.0-rc.2",
+    "screenfull": "^5.1.0",
     "zod": "^3.8.2"
   },
   "devDependencies": {

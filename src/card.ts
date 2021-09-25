@@ -17,6 +17,7 @@ import {
   getLovelace,
   stateIcon,
 } from 'custom-card-helpers';
+import screenfull from 'screenfull';
 
 import { MenuButton, frigateCardConfigSchema } from './types';
 import type {
@@ -191,6 +192,13 @@ export class FrigateCard extends LitElement {
         description: localize('menu.frigate_ui'),
       });
     }
+    if ((this.config.menu_buttons?.fullscreen ?? false) && screenfull.isEnabled) {
+      buttons.set('fullscreen', {
+        icon: screenfull.isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
+        description: localize('menu.fullscreen'),
+      });
+    }
+
     const entities = this.config.entities || [];
     for (let i = 0; this._hass && i < entities.length; i++) {
       if (!entities[i].show) {
@@ -294,6 +302,11 @@ export class FrigateCard extends LitElement {
           window.open(frigate_url);
         }
         break;
+      case 'fullscreen':
+        if (screenfull.isEnabled) {
+          screenfull.toggle(this);
+        }
+        break;
       default:
         // If it's unknown, it's assumed to be an entity_id.
         fireEvent(this, 'hass-more-info', { entityId: name });
@@ -383,6 +396,25 @@ export class FrigateCard extends LitElement {
     }
   }
 
+  protected _fullScreenHandler(): void {
+    // Re-render after a change to fullscreen mode to take advantage of
+    // the expanded screen real-estate (vs staying in aspect-ratio locked
+    // modes).
+    this.requestUpdate();
+  }
+  connectedCallback(): void {
+    super.connectedCallback();
+    if (screenfull.isEnabled) {
+      screenfull.on('change', this._fullScreenHandler.bind(this));
+    }
+  }
+  disconnectedCallback(): void {
+    if (screenfull.isEnabled) {
+      screenfull.off('change', this._fullScreenHandler.bind(this));
+    }
+    super.disconnectedCallback();
+  }
+
   protected _getAspectRatioPadding(): number | null {
     const aspect_ratio_mode = this.config.dimensions?.aspect_ratio_mode ?? 'dynamic';
 
@@ -391,6 +423,7 @@ export class FrigateCard extends LitElement {
     // dynamic mode (as the aspect_ratio is essentially whatever the media
     // dimensions are).
     if (
+      (screenfull.isEnabled && screenfull.isFullscreen) ||
       aspect_ratio_mode == 'unconstrained' ||
       (!this._view.isGalleryView() && aspect_ratio_mode == 'dynamic' && this._mediaInfo)
     ) {

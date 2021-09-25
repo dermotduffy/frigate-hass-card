@@ -1,5 +1,7 @@
 .container {
   position: relative;
+  overflow: auto;
+  height: 100%;
 }
 
 .frigate-card-contents {
@@ -8,6 +10,11 @@
   overflow: auto;
   -ms-overflow-style: none; /* Hide scrollbar: IE and Edge */
   scrollbar-width: none;    /* Hide scrollbar: Firefox */
+
+  // Vertically align items in case the container is larger than the media (e.g.
+  // fullscreen mode, or forced aspect ratios).
+  display: flex;
+  align-items: center;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -15,7 +22,7 @@
   display: none;
 }
 
-/* The 'hover' menu mode is styling applied outside of the menu itself */
+/* When forcing aspect ratio absolute positioning is required */
 .frigate-card-contents.absolute {
   position: absolute;
   top: 0px;
@@ -24,7 +31,7 @@
   left: 0px;
 }
 
-/* Support the 'hover' menu mode. */
+/* The 'hover' menu mode is styling applied outside of the menu itself */
 .hover-menu {
   z-index: 1;
   transition: all 0.5s ease;
@@ -50,4 +57,31 @@ ha-card {
 
 ha-card a {
   color: var(--primary-text-color, white);
+}
+
+frigate-card-gallery, frigate-card-viewer, frigate-card-live {
+  width: 100%;
+}
+frigate-card-gallery {
+  height: 100%;
+}
+
+// Browsers will reject invalid whole CSS selectors if one selector is bad, so
+// need to use mixin here instead of just comma-separated selectors.
+//  - Related: https://stackoverflow.com/questions/16982449/why-isnt-it-possible-to-combine-vendor-specific-pseudo-elements-classes-into-on
+@mixin fullscreen-ha-card {
+  // Make the background black, to give it the expected fullscreen feel.
+  background-color: black;
+}
+:host(:fullscreen) ha-card {
+  @include fullscreen-ha-card;
+}
+:host(:-webkit-full-screen) ha-card {
+  @include fullscreen-ha-card;
+}
+:host(:-moz-full-screen) ha-card {
+  @include fullscreen-ha-card;
+}
+:host(:-webkit-full-screen) ha-card {
+  @include fullscreen-ha-card;
 }
