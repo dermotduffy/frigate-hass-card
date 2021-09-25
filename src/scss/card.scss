@@ -72,6 +72,9 @@ frigate-card-gallery {
 @mixin fullscreen-ha-card {
   // Make the background black, to give it the expected fullscreen feel.
   background-color: black;
+
+  // Hide corners on Safari fullscreen.
+  border-radius: 0px;
 }
 :host(:fullscreen) ha-card {
   @include fullscreen-ha-card;
