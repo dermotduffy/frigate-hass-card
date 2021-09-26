@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import { customElement, property } from 'lit/decorators';
+import { customElement, property, state } from 'lit/decorators';
 import { until } from 'lit/directives/until.js';
 import { HomeAssistant } from 'custom-card-helpers';
 
@@ -33,6 +33,8 @@ export class FrigateCardGallery extends LitElement {
   protected browseMediaQueryParameters!: BrowseMediaQueryParameters;
 
   protected _resizeObserver: ResizeObserver;
+
+  @state()
   protected _columns = DEFAULT_COLUMNS;
 
   protected _getMediaType(): 'clips' | 'snapshots' {
@@ -53,15 +55,10 @@ export class FrigateCardGallery extends LitElement {
     super.disconnectedCallback();
   }
   protected _resizeHandler(): void {
-    let columns = Math.floor(this.clientWidth / MAX_THUMBNAIL_WIDTH);
-
-    if (columns < DEFAULT_COLUMNS) {
-      columns = DEFAULT_COLUMNS;
-    }
-    if (this._columns != columns) {
-      this._columns = columns;
-      this.requestUpdate();
-    }
+    this._columns = Math.max(
+      DEFAULT_COLUMNS,
+      Math.floor(this.clientWidth / MAX_THUMBNAIL_WIDTH),
+    );
   }
 
   protected render(): TemplateResult | void {
@@ -90,7 +87,8 @@ export class FrigateCardGallery extends LitElement {
     }
 
     const styles = {
-      width: `calc(${100/this._columns}% - 1.2px)`
+      // Controls the number of columns in the gallery (allows for 1px gutter).
+      width: `calc(${100 / this._columns}% - 1.2px)`,
     };
 
     console.info(this.clientWidth);
