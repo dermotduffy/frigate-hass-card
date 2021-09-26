@@ -82,6 +82,7 @@ export const frigateCardConfigSchema = z.object({
       clips: z.boolean().default(true),
       snapshots: z.boolean().default(true),
       frigate_ui: z.boolean().default(true),
+      fullscreen: z.boolean().default(true),
     })
     .optional(),
   entities: z

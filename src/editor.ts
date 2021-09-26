@@ -386,6 +386,18 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   @change=${this._valueChanged}
                 ></ha-switch>
               </ha-formfield>
+              <br />
+              <ha-formfield
+                .label=${localize('editor.show_button') +
+                ': ' +
+                localize('menu.fullscreen')}
+              >
+                <ha-switch
+                  .checked=${this._config?.menu_buttons?.frigate_ui ?? true}
+                  .configValue=${'menu_buttons.fullscreen'}
+                  @change=${this._valueChanged}
+                ></ha-switch>
+              </ha-formfield>
               <br />`
           : ''}
         <div class="option" @click=${this._toggleOption} .option=${'advanced'}>

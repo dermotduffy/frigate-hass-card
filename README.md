@@ -23,6 +23,7 @@ A full-featured Frigate Lovelace card:
 * Automatic updating to continually show latest clip / snapshot.
 * Support for filtering events by zone and label.
 * Arbitrary entity access via menu (e.g. motion sensor access).
+* Fullscreen event gallery & media viewing.
 * Full Lovelace editing support.
 * Theme friendly.
 * **Advanced**: Support for [WebRTC](https://github.com/AlexxIT/WebRTC) live viewing by embedding the WebRTC card.
@@ -73,19 +74,28 @@ lovelace:
 | Option           | Default | Description                                         |
 | ------------- | --------------------------------------------- | - |
 | `frigate_camera_name` | The string after the "camera." in the `camera_entity` option (above). | This parameter allows the camera name heuristic to be overriden for cases where the entity name does not cleanly map to the Frigate camera name (e.g. when the Frigate camera name is capitalized, but the entity name is lower case). This camera name is used for communicating with the Frigate backend, e.g. for fetching events. |
-| `live_provider` | `frigate` | Whether `frigate` (the default Frigate camera in Home Assistant which uses an RTMP stream), `frigate-jsmpeg` (JSMPEG stream proxied from the Frigate backend) or `webrtc` should provide the live camera view. See [note below on the required integration version](#jsmpeg-troubleshooting) for `frigate-jsmpeg` to function.|
+| `live_provider` | `frigate` | The means through which the live camera view is displayed. See [Live Provider](#live-provider) below.|
 | `view_default` | `live` | The view to show by default. See [views](#views) below.|
 | `frigate_client_id` | `frigate` | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://blakeblackshear.github.io/frigate/usage/home-assistant/#multiple-instance-support).|
 | `view_timeout` | | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
 | `frigate_url` | | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. |
 | `autoplay_clip` | `false` | Whether or not to autoplay clips in the 'clip' [view](#views). Clips manually chosen in the clips gallery will still autoplay.|
 
+
+#### Live Provider
+
+|Live Provider|Latency|Frame Rate|Installation|Description|
+| -- | -- | -- | -- | -- |
+|`frigate`|High|High|Builtin|Use the built-in Home Assistant camera stream from Frigate (RTMP). The camera doesn't even need to be a Frigate camera! |
+|`frigate-jsmpeg`|Lower|Low|Builtin|Stream the JSMPEG stream from Frigate (proxied via the Frigate integration). See [note below on the required integration version](#jsmpeg-troubleshooting) for this live provider to function.|
+|`webrtc`|Lowest|High|Separate installation required|Uses [WebRTC](https://github.com/AlexxIT/WebRTC) to stream live feed, requires manual extra setup, see [below](#webrtc).|
+
 ### Appearance
 
 | Option           | Default | Description                                         |
 | ------------- | --------------------------------------------- | - |
 | `menu_mode` | `hidden-top` | The menu mode to show by default. See [menu modes](#menu-modes) below.|
-| `menu_buttons.{frigate, live, clips, snapshots, frigate_ui}` | `true` | Whether or not to show these builtin actions in the card menu. |
+| `menu_buttons.{frigate, live, clips, snapshots, frigate_ui, fullscreen}` | `true` | Whether or not to show these builtin actions in the card menu. |
 | `controls.nextprev` | `thumbnails` | When viewing media, what kind of controls to show to move to the previous/next media item. Acceptable values: `thumbnails`, `chevrons`, `none` . |
 | `dimensions.aspect_ratio_mode` | `dynamic` | The aspect ratio mode to use. Acceptable values: `dynamic`, `static`, `unconstrained`. See [aspect ratios](#aspect-ratios) below.|
 | `dimensions.aspect_ratio` | `16:9` | The aspect ratio  to use. Acceptable values: `<W>:<H>` or `<W>/<H>`. See [aspect ratios](#aspect-ratios) below.|

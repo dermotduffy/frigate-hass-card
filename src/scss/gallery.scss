@@ -2,6 +2,8 @@
 @use "@material/image-list";
 
 .frigate-card-gallery {
+  // Note: In fullscreen, number of columns is overwritten in Javascript based
+  // on dimensions.
   @include image-list.standard-columns(5, 1px);
   @include image-list.shape-radius(5px);
 }

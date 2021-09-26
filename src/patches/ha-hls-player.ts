@@ -31,8 +31,10 @@ customElements.whenDefined("ha-hls-player").then(() => {
           .muted=${this.muted}
           ?playsinline=${this.playsInline}
           ?controls=${this.controls}
-          @loadedmetadata=${(e) => dispatchMediaLoadEvent(this, e)}
-          @loadeddata=${this._elementResized}
+          @loadeddata=${(e) => {
+            this._elementResized();
+            dispatchMediaLoadEvent(this, e);
+          }}
           @pause=${() => dispatchPauseEvent(this)}
           @play=${() => dispatchPlayEvent(this)}
         ></video>
