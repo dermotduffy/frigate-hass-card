@@ -192,7 +192,7 @@ export class FrigateCard extends LitElement {
         description: localize('menu.frigate_ui'),
       });
     }
-    if ((this.config.menu_buttons?.fullscreen ?? false) && screenfull.isEnabled) {
+    if ((this.config.menu_buttons?.fullscreen ?? true) && screenfull.isEnabled) {
       buttons.set('fullscreen', {
         icon: screenfull.isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
         description: localize('menu.fullscreen'),
@@ -418,14 +418,15 @@ export class FrigateCard extends LitElement {
   protected _getAspectRatioPadding(): number | null {
     const aspect_ratio_mode = this.config.dimensions?.aspect_ratio_mode ?? 'dynamic';
 
-    // Do not constrain aspect ratio if either it's entire disabled or it's a
-    // media view (i.e. not the gallery) and there's a loaded media item in
-    // dynamic mode (as the aspect_ratio is essentially whatever the media
-    // dimensions are).
+    // Do not artifically constrain aspect ratio if:
+    // - It's fullscreen.
+    // - Aspect ratio enforcement is disabled.
+    // - Or it's a media view (i.e. not the gallery) and there's a loaded media
+    //   item.
     if (
       (screenfull.isEnabled && screenfull.isFullscreen) ||
       aspect_ratio_mode == 'unconstrained' ||
-      (!this._view.isGalleryView() && aspect_ratio_mode == 'dynamic' && this._mediaInfo)
+      (this._view.isMediaView() && aspect_ratio_mode == 'dynamic' && this._mediaInfo)
     ) {
       return null;
     }
@@ -452,11 +453,34 @@ export class FrigateCard extends LitElement {
     }
 
     const padding = this._getAspectRatioPadding();
-    let containerStyleMap = {};
+    const outerStyle = {}, innerStyle = {};
+
+    // Padding to force a particular aspect ratio.
     if (padding != null) {
-      containerStyleMap = {
-        'padding-top': `${padding}%`,
-      };
+      outerStyle['padding-top'] = `${padding}%`;
+    }
+
+    // Special treatment required when:
+    //
+    // - It's in fullscreen mode
+    // - It's viewing a media clip
+    // - And the media clip is taller than wider (portrait)
+    // 
+    // We cannot seem to scale the video by height in CSS without actually
+    // styling the underlying video element (which we do not have access to as
+    // it's buried past multiple shadow roots), so instead scale the width in
+    // terms of'vh' (viewport height) in proportion to the aspect-ratio of the
+    // media.
+    if (
+      screenfull.isEnabled &&
+      screenfull.isFullscreen &&
+      this._view.isMediaView() &&
+      this._mediaInfo &&
+      this._mediaInfo.width < this._mediaInfo.height
+    ) {
+      innerStyle['max-width'] = `${
+        (100 * this._mediaInfo.width) / this._mediaInfo.height
+      }vh`;
     }
 
     const contentClasses = {
@@ -466,8 +490,8 @@ export class FrigateCard extends LitElement {
 
     return html` <ha-card @click=${this._interactionHandler}>
       ${this.config.menu_mode == 'above' ? this._renderMenu() : ''}
-      <div class="container outer" style="${styleMap(containerStyleMap)}">
-        <div class="${classMap(contentClasses)}">
+      <div class="container outer" style="${styleMap(outerStyle)}">
+        <div class="${classMap(contentClasses)}" style="${styleMap(innerStyle)}">
           ${this._view.is('clips') || this._view.is('snapshots')
             ? html` <frigate-card-gallery
                 .hass=${this._hass}
