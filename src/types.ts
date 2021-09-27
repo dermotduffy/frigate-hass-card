@@ -98,15 +98,24 @@ export const frigateCardConfigSchema = z.object({
       nextprev: z.enum(NEXT_PREVIOUS_CONTROL_STYLES).default('thumbnails'),
     })
     .optional(),
-  dimensions: z.object({
-    aspect_ratio_mode: z.enum(['dynamic', 'static', 'unconstrained']).default('dynamic'),
-    aspect_ratio:
-      z.number().array().length(2).or(
-        z.string()
-        .regex(/^\s*\d+\s*[:\/]\s*\d+\s*$/)
-        .transform((input) => input.split(/[:\/]/).map((d) => Number(d)))
-      ).default([16, 9]),
-  }).optional(),
+  dimensions: z
+    .object({
+      aspect_ratio_mode: z
+        .enum(['dynamic', 'static', 'unconstrained'])
+        .default('dynamic'),
+      aspect_ratio: z
+        .number()
+        .array()
+        .length(2)
+        .or(
+          z
+            .string()
+            .regex(/^\s*\d+\s*[:\/]\s*\d+\s*$/)
+            .transform((input) => input.split(/[:\/]/).map((d) => Number(d))),
+        )
+        .default([16, 9]),
+    })
+    .optional(),
 
   // Stock lovelace card config.
   type: z.string(),
@@ -134,6 +143,14 @@ export interface BrowseMediaQueryParameters {
   zone?: string;
   before?: number;
   after?: number;
+}
+
+export interface BrowseMediaNeighbors {
+  previous: BrowseMediaSource | null;
+  previousIndex: number | null;
+
+  next: BrowseMediaSource | null;
+  nextIndex: number | null;
 }
 
 export interface MediaLoadInfo {
@@ -182,15 +199,14 @@ export const resolvedMediaSchema = z.object({
 });
 export type ResolvedMedia = z.infer<typeof resolvedMediaSchema>;
 
-export interface BrowseMediaNeighbors {
-  previous: BrowseMediaSource | null;
-  previousIndex: number | null;
-
-  next: BrowseMediaSource | null;
-  nextIndex: number | null;
-}
-
 export const signedPathSchema = z.object({
   path: z.string(),
 });
 export type SignedPath = z.infer<typeof signedPathSchema>;
+
+export const entitySchema = z.object({
+  entity_id: z.string(),
+  unique_id: z.string(),
+  platform: z.string(),
+});
+export type Entity = z.infer<typeof entitySchema>;

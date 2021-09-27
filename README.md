@@ -73,7 +73,7 @@ lovelace:
 
 | Option           | Default | Description                                         |
 | ------------- | --------------------------------------------- | - |
-| `frigate_camera_name` | The string after the "camera." in the `camera_entity` option (above). | This parameter allows the camera name heuristic to be overriden for cases where the entity name does not cleanly map to the Frigate camera name (e.g. when the Frigate camera name is capitalized, but the entity name is lower case). This camera name is used for communicating with the Frigate backend, e.g. for fetching events. |
+| `frigate_camera_name` | The Frigate camera name Home Assistant associates with that camera entity, if none then the string after the `camera.` in the `camera_entity` field. | This parameter allows the Frigate camera name to be overriden. This name is used for communicating with the Frigate backend, e.g. for fetching events. |
 | `live_provider` | `frigate` | The means through which the live camera view is displayed. See [Live Provider](#live-provider) below.|
 | `view_default` | `live` | The view to show by default. See [views](#views) below.|
 | `frigate_client_id` | `frigate` | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://blakeblackshear.github.io/frigate/usage/home-assistant/#multiple-instance-support).|

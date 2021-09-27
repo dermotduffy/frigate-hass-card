@@ -94,6 +94,7 @@
     "could_not_resolve": "Could not resolve media URL",
     "no_live_camera": "No live camera",
     "invalid_configuration": "Invalid configuration",
-    "missing_webrtc": "WebRTC component not found"
+    "missing_webrtc": "WebRTC component not found",
+    "no_frigate_camera_name": "Cannot derive frigate_camera_name, you may need to set it manually"
   }
 }
