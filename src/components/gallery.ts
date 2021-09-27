@@ -91,7 +91,6 @@ export class FrigateCardGallery extends LitElement {
       width: `calc(${100 / this._columns}% - 1.2px)`,
     };
 
-    console.info(this.clientWidth);
     return html` <ul class="mdc-image-list frigate-card-gallery">
       ${this.view && this.view.previous
         ? html`<li class="mdc-image-list__item" style="${styleMap(styles)}">

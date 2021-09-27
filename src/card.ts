@@ -10,6 +10,7 @@ import {
 import { customElement, property, query, state } from 'lit/decorators';
 import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
+import { until } from 'lit/directives/until';
 import {
   HomeAssistant,
   LovelaceCardEditor,
@@ -19,19 +20,22 @@ import {
 } from 'custom-card-helpers';
 import screenfull from 'screenfull';
 
-import { MenuButton, frigateCardConfigSchema } from './types';
+import { entitySchema, frigateCardConfigSchema } from './types';
 import type {
   BrowseMediaQueryParameters,
+  Entity,
   ExtendedHomeAssistant,
   FrigateCardConfig,
   MediaLoadInfo,
+  MenuButton,
 } from './types';
 
 import { CARD_VERSION } from './const';
 import { FrigateCardMenu } from './components/menu';
 import { View } from './view';
-import { getParseErrorKeys } from './common';
+import { getParseErrorKeys, homeAssistantWSRequest } from './common';
 import { localize } from './localize/localize';
+import { renderErrorMessage, renderProgressIndicator } from './components/message';
 
 import './editor';
 import './components/gallery';
@@ -134,6 +138,10 @@ export class FrigateCard extends LitElement {
   // Information about the most recently loaded media item.
   protected _mediaInfo: MediaLoadInfo | null = null;
 
+  // The frigate camera name to use (may be manually specified or automatically
+  // derived).
+  protected _frigateCameraName: string | null = null;
+
   set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
     this._hass = hass;
     this._updateMenu();
@@ -215,6 +223,49 @@ export class FrigateCard extends LitElement {
     return buttons;
   }
 
+  protected async _getFrigateCameraName(): Promise<string | null> {
+    // No camera name specified, apply two heuristics in this order:
+    // - Get the entity information and pull out the camera name from the unique_id.
+    // - Apply basic entity name guesswork.
+
+    if (!this._hass || !this.config) {
+      return null;
+    }
+
+    // Option 1: Name specified in config -> done!
+    if (this.config.frigate_camera_name) {
+      return this.config.frigate_camera_name;
+    }
+
+    // Option 2: Find entity unique_id in registry.
+    const request = {
+      type: 'config/entity_registry/get',
+      entity_id: this.config.camera_entity,
+    };
+    try {
+      const entityResult = await homeAssistantWSRequest<Entity>(
+        this._hass,
+        entitySchema,
+        request,
+      );
+      if (entityResult && entityResult.platform == 'frigate') {
+        const match = entityResult.unique_id.match(/:camera:(?<camera>[^:]+)$/);
+        if (match && match.groups) {
+          return match.groups['camera'];
+        }
+      }
+    } catch (e: any) {
+      // Pass.
+    }
+
+    // Option 3: Guess from the entity_id.
+    if (this.config.camera_entity.includes('.')) {
+      return this.config.camera_entity.split('.', 2)[1];
+    }
+
+    return null;
+  }
+
   // Set the object configuration.
   public setConfig(inputConfig: FrigateCardConfig): void {
     if (!inputConfig) {
@@ -230,15 +281,6 @@ export class FrigateCard extends LitElement {
 
     if (config.test_gui) {
       getLovelace().setEditMode(true);
-    }
-
-    if (!config.frigate_camera_name) {
-      // No camera name specified, so just assume it's the same as the entity name.
-      if (config.camera_entity.includes('.')) {
-        config.frigate_camera_name = config.camera_entity.split('.', 2)[1];
-      } else {
-        throw new Error(localize('error.invalid_configuration') + ': camera_entity');
-      }
     }
 
     this.config = config;
@@ -318,10 +360,12 @@ export class FrigateCard extends LitElement {
     if (!this.config.frigate_url) {
       return null;
     }
-    if (this._view.is('live')) {
-      return `${this.config.frigate_url}/cameras/${this.config.frigate_camera_name}`;
+    if (!this._frigateCameraName) {
+      return this.config.frigate_url;
+    } else if (this._view.is('live')) {
+      return `${this.config.frigate_url}/cameras/${this._frigateCameraName}`;
     }
-    return `${this.config.frigate_url}/events?camera=${this.config.frigate_camera_name}`;
+    return `${this.config.frigate_url}/events?camera=${this._frigateCameraName}`;
   }
 
   // Record interactions with the card.
@@ -352,14 +396,15 @@ export class FrigateCard extends LitElement {
     `;
   }
 
-  protected _getBrowseMediaQueryParameters(): BrowseMediaQueryParameters {
+  protected _getBrowseMediaQueryParameters(): BrowseMediaQueryParameters | null {
+    if (!this._frigateCameraName) {
+      return null;
+    }
+
     return {
       mediaType: this._view.view == 'clips' ? 'clips' : 'snapshots',
       clientId: this.config.frigate_client_id,
-      // frigate_camera_name cannot be null, it will be set to a default value
-      // in setConfig if not specified in the configuration.
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      cameraName: this.config.frigate_camera_name!,
+      cameraName: this._frigateCameraName,
       label: this.config.label,
       zone: this.config.zone,
     };
@@ -492,44 +537,57 @@ export class FrigateCard extends LitElement {
       ${this.config.menu_mode == 'above' ? this._renderMenu() : ''}
       <div class="container outer" style="${styleMap(outerStyle)}">
         <div class="${classMap(contentClasses)}" style="${styleMap(innerStyle)}">
-          ${this._view.is('clips') || this._view.is('snapshots')
-            ? html` <frigate-card-gallery
-                .hass=${this._hass}
-                .view=${this._view}
-                .browseMediaQueryParameters=${this._getBrowseMediaQueryParameters()}
-                @frigate-card:change-view=${this._changeViewHandler}
-              >
-              </frigate-card-gallery>`
-            : ``}
-          ${this._view.is('clip') || this._view.is('snapshot')
-            ? html` <frigate-card-viewer
-                .hass=${this._hass}
-                .view=${this._view}
-                .browseMediaQueryParameters=${this._getBrowseMediaQueryParameters()}
-                .nextPreviousControlStyle=${this.config.controls?.nextprev ??
-                'thumbnails'}
-                .autoplayClip=${this.config.autoplay_clip}
-                @frigate-card:change-view=${this._changeViewHandler}
-                @frigate-card:media-load=${this._mediaLoadHandler}
-                @frigate-card:pause=${this._pauseHandler}
-                @frigate-card:play=${this._playHandler}
-              >
-              </frigate-card-viewer>`
-            : ``}
-          ${this._view.is('live')
-            ? html` <frigate-card-live
-                .hass=${this._hass}
-                .config=${this.config}
-                @frigate-card:media-load=${this._mediaLoadHandler}
-                @frigate-card:pause=${this._pauseHandler}
-                @frigate-card:play=${this._playHandler}
-              >
-              </frigate-card-live>`
-            : ``}
+          ${until(this._render(), renderProgressIndicator())}
         </div>
       </div>
       ${this.config.menu_mode != 'above' ? this._renderMenu() : ''}
     </ha-card>`;
+  }
+
+  protected async _render(): Promise<TemplateResult> {
+    if (!this._frigateCameraName) {
+      this._frigateCameraName = await this._getFrigateCameraName();
+    }
+    const mediaQueryParameters = this._getBrowseMediaQueryParameters();
+    if (!this._frigateCameraName || !mediaQueryParameters) {
+      return renderErrorMessage(localize('error.no_frigate_camera_name'));
+    }
+
+    return html`
+      ${this._view.is('clips') || this._view.is('snapshots')
+        ? html` <frigate-card-gallery
+            .hass=${this._hass}
+            .view=${this._view}
+            .browseMediaQueryParameters=${mediaQueryParameters}
+            @frigate-card:change-view=${this._changeViewHandler}
+          >
+          </frigate-card-gallery>`
+        : ``}
+      ${this._view.is('clip') || this._view.is('snapshot')
+        ? html` <frigate-card-viewer
+            .hass=${this._hass}
+            .view=${this._view}
+            .browseMediaQueryParameters=${mediaQueryParameters}
+            .nextPreviousControlStyle=${this.config.controls?.nextprev ?? 'thumbnails'}
+            .autoplayClip=${this.config.autoplay_clip}
+            @frigate-card:change-view=${this._changeViewHandler}
+            @frigate-card:media-load=${this._mediaLoadHandler}
+            @frigate-card:pause=${this._pauseHandler}
+            @frigate-card:play=${this._playHandler}
+          >
+          </frigate-card-viewer>`
+        : ``}
+      ${this._view.is('live')
+        ? html` <frigate-card-live
+            .hass=${this._hass}
+            .config=${this.config}
+            @frigate-card:media-load=${this._mediaLoadHandler}
+            @frigate-card:pause=${this._pauseHandler}
+            @frigate-card:play=${this._playHandler}
+          >
+          </frigate-card-live>`
+        : ``}
+    `;
   }
 
   // Show a warning card.

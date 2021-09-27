@@ -6,3 +6,7 @@
   box-sizing: border-box;
   padding: 10%;
 }
+
+.message a {
+  color: var(--primary-text-color, white);
+}
