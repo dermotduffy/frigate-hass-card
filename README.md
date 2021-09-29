@@ -313,11 +313,9 @@ This card supports full editing via the Lovelace card editor. Additional arbitra
 
 ### JSMPEG live camera only shows a 'spinner'
 
-**Note:** As of 2021-09-12, no released version of the [Frigate
-integration](https://github.com/blakeblackshear/frigate-hass-integration)
-supports JSMPEG proxying. That functionality is already merged, and will be in
-the release *after* (not including) v2.0.0. The `frigate-jsmpeg` live provider
-will not work with earlier integration versions.
+You must be using a version of the [Frigate integration](https://github.com/blakeblackshear/frigate-hass-integration) >= 2.1.0
+to use JSMPEG proxying. The `frigate-jsmpeg` live provider will not work with earlier
+integration versions.
 
 ### Failed to fetch
 
