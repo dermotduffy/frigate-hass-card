@@ -31,7 +31,7 @@ import type {
 } from './types';
 
 import { CARD_VERSION } from './const';
-import { FrigateCardMenu } from './components/menu';
+import { FrigateCardMenu, MENU_HEIGHT } from './components/menu';
 import { View } from './view';
 import { getParseErrorKeys, homeAssistantWSRequest } from './common';
 import { localize } from './localize/localize';
@@ -420,7 +420,6 @@ export class FrigateCard extends LitElement {
 
   protected _mediaLoadHandler(e: CustomEvent<MediaLoadInfo>): void {
     const mediaInfo = e.detail;
-
     // In Safari, with WebRTC, 0x0 is occasionally returned during loading,
     // so treat anything less than a safety cutoff as bogus.
     if (mediaInfo.height < MEDIA_HEIGHT_CUTOFF || mediaInfo.width < MEDIA_WIDTH_CUTOFF) {
@@ -498,34 +497,37 @@ export class FrigateCard extends LitElement {
     }
 
     const padding = this._getAspectRatioPadding();
-    const outerStyle = {}, innerStyle = {};
+    const outerStyle = {},
+      innerStyle = {};
 
     // Padding to force a particular aspect ratio.
     if (padding != null) {
       outerStyle['padding-top'] = `${padding}%`;
     }
 
-    // Special treatment required when:
+    // Special hacky treatment required when:
     //
     // - It's in fullscreen mode
-    // - It's viewing a media clip
-    // - And the media clip is taller than wider (portrait)
-    // 
-    // We cannot seem to scale the video by height in CSS without actually
-    // styling the underlying video element (which we do not have access to as
-    // it's buried past multiple shadow roots), so instead scale the width in
-    // terms of'vh' (viewport height) in proportion to the aspect-ratio of the
-    // media.
+    // - It's viewing a media item
+    // - And the aspect ratio of the media item < aspect ratio of the window
+    //
+    // Cannot seem to scale the video by height in CSS without actually styling
+    // the underlying video element (which there is no access to as it's buried
+    // past multiple shadow roots), so instead scale the width in terms of'vh'
+    // (viewport height) in proportion to the aspect-ratio of the media.
     if (
       screenfull.isEnabled &&
       screenfull.isFullscreen &&
       this._view.isMediaView() &&
       this._mediaInfo &&
-      this._mediaInfo.width < this._mediaInfo.height
+      this._mediaInfo.width / this._mediaInfo.height <
+        window.innerWidth / window.innerHeight
     ) {
-      innerStyle['max-width'] = `${
+      // If the menu is outside the media (i.e. above/below) allow space for it.
+      const allowance = ["above", "below"].includes(this.config.menu_mode) ? MENU_HEIGHT : 0;
+      innerStyle['max-width'] = `calc(${
         (100 * this._mediaInfo.width) / this._mediaInfo.height
-      }vh`;
+      }vh - ${allowance}px )`;
     }
 
     const contentClasses = {

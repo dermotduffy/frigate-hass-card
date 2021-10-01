@@ -9,6 +9,8 @@ import menuStyle from '../scss/menu.scss';
 
 type FrigateCardMenuCallback = (name: string) => void;
 
+export const MENU_HEIGHT = 46;
+
 // A menu for the Frigate card.
 @customElement('frigate-card-menu')
 export class FrigateCardMenu extends LitElement {
