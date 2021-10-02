@@ -134,12 +134,15 @@ dimensions:
   aspect_ratio: '4:3'
 ```
 
+<a name="advanced-options"></a>
+
 ### Advanced Options
 
 | Option           | Default | Description                                         |
 | ------------- | - | --------------------------------------------- |
 | `label` | | A label used to filter events (clips & snapshots), e.g. 'person'.|
 | `zone` | | A zone used to filter events (clips & snapshots), e.g. 'front_door'.|
+| `update_entities` | | A list of entity ids that should cause the card to re-render, this can be useful in the `clip` or `snapshot` mode to (for example) cause a motion sensor to trigger a card refresh. Configurable in YAML only. |
 
 <a name="webrtc"></a>
 
@@ -189,20 +192,6 @@ webrtc:
 
 See [WebRTC configuration](https://github.com/AlexxIT/WebRTC#configuration) for full configuration options.
 
-<a name="entities"></a>
-
-### Entities
-
-Additional entities may be configured to trigger updates to the card, and
-optionally to appear in the menu. An `entities` section may be added to the card
-configuration containing a list with entries of the following format:
-
-| Option           | Default | Description                                         |
-| ------------- | - | -------------------------------------------- |
-| `entity` | | Entity ID to use to trigger updates, and optionally appear in the menu. |
-| `icon` | [default entity icon] | An optional manual override of the icon to use in the menu, e.g. `mdi:car`. |
-| `show`| `true` | Whether or not to show the entity in the menu. When `false` the entity ID will trigger card updates only, but not appear in the menu. |
-
 #### Example
 
 This example allows access to the detection, recordings and snapshots switches
@@ -217,6 +206,46 @@ entities:
   - entity: binary_sensor.front_door_person_motion
     show: false
 ```
+
+### Picture Elements / Menu customizations
+
+This card supports a subset of the [Picture Elements
+configuration](https://www.home-assistant.io/lovelace/picture-elements/) to
+allow the user to add custom elements to the card, which may be configured to
+perform different actions on `tap`, `double_tap` and `hold`.
+
+In the card YAML configuration, elements may be manually added under an `elements` key.
+
+#### Supported Elements
+
+| Element name | Description                                         |
+| ------------- | --------------------------------------------- |
+| `menu-icon` | Add an arbitrary icon to the Frigate Card menu. Configuration is identical to that of the [Picture elements icon](https://www.home-assistant.io/lovelace/picture-elements/#icon-element).|
+| `menu-state-icon` | Add a state icon to the Frigate Card menu that represents the state of a Home Assistant entity. Configuration is identical to that of the [Picture elements state icon](https://www.home-assistant.io/lovelace/picture-elements/#state-icon).|
+
+#### Example
+
+Add an icon that represents the state of the `light.office_main_lights` entity, that shows more information on single click (the default action) and toggles the light on double click.
+
+```yaml
+elements:
+  - type: menu-state-icon
+    entity: light.office_main_lights
+    double_tap_action:
+      action: toggle
+```
+
+Add an icon that navigates the brower to the releases page for this card:
+
+```yaml
+  - type: menu-icon
+    icon: mdi:book
+    tap_action:
+      action: url
+      url_path: https://github.com/dermotduffy/frigate-hass-card/releases
+```
+
+See the [action documentation](https://www.home-assistant.io/lovelace/actions/#hold-action) for more information on the action options available.
 
 <a name="views"></a>
 
@@ -235,18 +264,18 @@ This card supports several different views.
 ### Automatic updates in the `clip` or `snapshot` view
 
 Updates will occur whenever on every change of the state of the `camera_entity`
-or any entity configured under `entities`. In particular, if the desire is
+or any entity configured under `update_entities`. In particular, if the desire is
 to have an auto-refreshing view of the most recent event, the `camera_entity`
 will not be sufficient alone since the Home Assistant state for Frigate camera
 entities does not change often. Instead, use the Frigate binary_sensor for that
 camera (or any other entity at your discretion) to trigger the update:
 
 ```yaml
-entities:
-  - entity: binary_sensor.office_person_motion
+update_entities:
+  - binary_sensor.office_person_motion
 ```
 
-See [entities](#entities) above.
+See the [advanced options](#advanced-options) above.
 
 ### Getting from a snapshot to a clip
 
