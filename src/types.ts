@@ -1,4 +1,12 @@
-import { LovelaceCard, LovelaceCardEditor } from 'custom-card-helpers';
+import {
+  CallServiceActionConfig,
+  LovelaceCard,
+  LovelaceCardEditor,
+  MoreInfoActionConfig,
+  NavigateActionConfig,
+  ToggleActionConfig,
+  UrlActionConfig,
+} from 'custom-card-helpers';
 import { z } from 'zod';
 
 declare global {
@@ -46,6 +54,112 @@ export type NextPreviousControlStyle = typeof NEXT_PREVIOUS_CONTROL_STYLES[numbe
 export const LIVE_PROVIDERS = ['frigate', 'frigate-jsmpeg', 'webrtc'] as const;
 export type LiveProvider = typeof LIVE_PROVIDERS[number];
 
+/**
+ * Action Types (for "Picture Elements" / Menu)
+ */
+
+// Declare schemas to existing types:
+// - https://github.com/colinhacks/zod/issues/372#issuecomment-826380330
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const schemaForType =
+  <T>() =>
+  <S extends z.ZodType<T, any, any>>(arg: S) => {
+    return arg;
+  };
+const toggleActionSchema = schemaForType<ToggleActionConfig>()(
+  z.object({
+    action: z.literal('toggle'),
+  }),
+);
+const callServiceActionSchema = schemaForType<CallServiceActionConfig>()(
+  z.object({
+    action: z.literal('call-service'),
+    service: z.string(),
+    service_data: z.object({}).passthrough().optional(),
+  }),
+);
+const navigateActionSchema = schemaForType<NavigateActionConfig>()(
+  z.object({
+    action: z.literal('navigate'),
+    navigation_path: z.string(),
+  }),
+);
+const urlActionSchema = schemaForType<UrlActionConfig>()(
+  z.object({
+    action: z.literal('url'),
+    url_path: z.string(),
+  }),
+);
+const moreInfoActionSchema = schemaForType<MoreInfoActionConfig>()(
+  z.object({
+    action: z.literal('more-info'),
+  }),
+);
+const elementsActionSchema = z.union([
+  toggleActionSchema,
+  callServiceActionSchema,
+  navigateActionSchema,
+  urlActionSchema,
+  moreInfoActionSchema,
+]);
+export type ElementsActionType = z.infer<typeof elementsActionSchema>;
+
+const elementsActionsSchema = z.object({
+  tap_action: elementsActionSchema.optional(),
+  hold_action: elementsActionSchema.optional(),
+  double_tap_action: elementsActionSchema.optional(),
+});
+
+/**
+ * Menu Types
+ */
+
+const menuItemBaseSchema = z.object({
+  title: z.string().optional(),
+  style: z.object({}).passthrough().optional(),
+});
+
+const menuIconSchema = menuItemBaseSchema
+  .merge(
+    z.object({
+      type: z.literal('menu-icon'),
+      icon: z.string(),
+    }),
+  )
+  .merge(elementsActionsSchema);
+
+const menuStateIconSchema = menuItemBaseSchema
+  .merge(
+    z.object({
+      type: z.literal('menu-state-icon'),
+      entity: z.string(),
+      icon: z.string().optional(),
+      state_color: z.boolean().default(true),
+    }),
+  )
+  .merge(elementsActionsSchema);
+
+// Schema for card (non-user configured) menu icons.
+const internalMenuIconSchema = menuItemBaseSchema.merge(
+  z.object({
+    type: z.literal('internal-menu-icon'),
+    icon: z.string().optional(),
+    emphasize: z.boolean().default(false).optional(),
+    card_action: z.string(),
+  }),
+);
+
+const menuButtonSchema = z.union([
+  menuIconSchema,
+  menuStateIconSchema,
+  internalMenuIconSchema,
+]);
+export type MenuButton = z.infer<typeof menuButtonSchema>;
+
+// 'internalMenuIconSchema' is excluded to disallow the user from manually
+// changing the internal menu buttons.
+const elementsSchema = z.union([menuStateIconSchema, menuIconSchema]);
+
 export const frigateCardConfigSchema = z.object({
   camera_entity: z.string(),
   // No URL validation to allow relative URLs within HA (e.g. addons).
@@ -85,14 +199,8 @@ export const frigateCardConfigSchema = z.object({
       fullscreen: z.boolean().default(true),
     })
     .optional(),
-  entities: z
-    .object({
-      entity: z.string(),
-      show: z.boolean().default(true),
-      icon: z.string().optional(),
-    })
-    .array()
-    .optional(),
+  update_entities: z.string().array().optional(),
+  elements: elementsSchema.array().optional(),
   controls: z
     .object({
       nextprev: z.enum(NEXT_PREVIOUS_CONTROL_STYLES).default('thumbnails'),
@@ -124,12 +232,6 @@ export const frigateCardConfigSchema = z.object({
   test_gui: z.boolean().optional(),
 });
 export type FrigateCardConfig = z.infer<typeof frigateCardConfigSchema>;
-
-export interface MenuButton {
-  icon?: string;
-  description: string;
-  emphasize?: boolean;
-}
 
 export interface ExtendedHomeAssistant {
   hassUrl(path?): string;

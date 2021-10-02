@@ -14,9 +14,9 @@ import { until } from 'lit/directives/until';
 import {
   HomeAssistant,
   LovelaceCardEditor,
-  fireEvent,
   getLovelace,
-  stateIcon,
+  handleAction,
+  ActionHandlerEvent,
 } from 'custom-card-helpers';
 import screenfull from 'screenfull';
 
@@ -33,7 +33,12 @@ import type {
 import { CARD_VERSION } from './const';
 import { FrigateCardMenu, MENU_HEIGHT } from './components/menu';
 import { View } from './view';
-import { getParseErrorKeys, homeAssistantWSRequest } from './common';
+import { actionHandler } from './action-handler-directive';
+import {
+  getParseErrorKeys,
+  homeAssistantWSRequest,
+  shouldUpdateBasedOnHass,
+} from './common';
 import { localize } from './localize/localize';
 import { renderErrorMessage, renderProgressIndicator } from './components/message';
 
@@ -83,34 +88,6 @@ console.info(
   description: localize('common.frigate_card_description'),
 });
 
-// Determine whether the card should be updated based on Home Assistant changes.
-function shouldUpdateBasedOnHass(
-  newHass: HomeAssistant | null,
-  oldHass: HomeAssistant | undefined,
-  entities: string[] | null,
-): boolean {
-  if (!newHass || !entities) {
-    return false;
-  }
-  if (!entities.length) {
-    return false;
-  }
-
-  if (oldHass) {
-    for (let i = 0; i < entities.length; i++) {
-      const entity = entities[i];
-      if (!entity) {
-        continue;
-      }
-      if (oldHass.states[entity] !== newHass.states[entity]) {
-        return true;
-      }
-    }
-    return false;
-  }
-  return false;
-}
-
 // Main FrigateCard class.
 @customElement('frigate-card')
 export class FrigateCard extends LitElement {
@@ -144,7 +121,13 @@ export class FrigateCard extends LitElement {
 
   set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
     this._hass = hass;
-    this._updateMenu();
+
+    // Manually set hass in the menu. This is to allow the menu to update,
+    // without necessarily re-rendering the entire card (re-rendering interrupts
+    // clip playing).
+    if (this._menu && this._hass) {
+      this._menu.hass = this._hass;
+    }
   }
 
   // Get the configuration element.
@@ -157,68 +140,66 @@ export class FrigateCard extends LitElement {
     return {};
   }
 
-  protected _updateMenu(): void {
-    // Manually set hass in the menu. This is to allow the menu to update,
-    // without necessarily re-rendering the entire card (re-rendering interrupts
-    // clip playing).
-    if (!this._menu || !this._hass) {
-      return;
-    }
-    this._menu.buttons = this._getMenuButtons();
-  }
-
-  protected _getMenuButtons(): Map<string, MenuButton> {
-    const buttons: Map<string, MenuButton> = new Map();
+  protected _getMenuButtons(): MenuButton[] {
+    const buttons: MenuButton[] = [];
 
     if (this.config.menu_buttons?.frigate ?? true) {
-      buttons.set('frigate', { description: localize('menu.frigate') });
+      buttons.push({
+        type: 'internal-menu-icon',
+        card_action: 'frigate',
+        title: localize('menu.frigate'),
+      });
     }
     if (this.config.menu_buttons?.live ?? true) {
-      buttons.set('live', {
+      buttons.push({
+        type: 'internal-menu-icon',
+        card_action: 'live',
+        title: localize('menu.live'),
         icon: 'mdi:cctv',
-        description: localize('menu.live'),
         emphasize: this._view.is('live'),
       });
     }
     if (this.config.menu_buttons?.clips ?? true) {
-      buttons.set('clips', {
+      buttons.push({
+        type: 'internal-menu-icon',
+        card_action: 'clips',
+        title: localize('menu.clips'),
         icon: 'mdi:filmstrip',
-        description: localize('menu.clips'),
         emphasize: this._view.is('clips'),
       });
     }
     if (this.config.menu_buttons?.snapshots ?? true) {
-      buttons.set('snapshots', {
+      buttons.push({
+        type: 'internal-menu-icon',
+        card_action: 'snapshots',
+        title: localize('menu.snapshots'),
         icon: 'mdi:camera',
-        description: localize('menu.snapshots'),
         emphasize: this._view.is('snapshots'),
       });
     }
     if ((this.config.menu_buttons?.frigate_ui ?? true) && this.config.frigate_url) {
-      buttons.set('frigate_ui', {
+      buttons.push({
+        type: 'internal-menu-icon',
+        card_action: 'frigate_ui',
+        title: localize('menu.frigate_ui'),
         icon: 'mdi:web',
-        description: localize('menu.frigate_ui'),
       });
     }
     if ((this.config.menu_buttons?.fullscreen ?? true) && screenfull.isEnabled) {
-      buttons.set('fullscreen', {
+      buttons.push({
+        type: 'internal-menu-icon',
+        card_action: 'fullscreen',
+        title: localize('menu.fullscreen'),
         icon: screenfull.isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
-        description: localize('menu.fullscreen'),
       });
     }
 
-    const entities = this.config.entities || [];
-    for (let i = 0; this._hass && i < entities.length; i++) {
-      if (!entities[i].show) {
-        continue;
+    const elements = this.config.elements || [];
+    for (let i = 0; this._hass && i < elements.length; i++) {
+      const element = elements[i];
+      if (['menu-icon', 'menu-state-icon'].includes(element.type)) {
+        buttons.push(element);
       }
-      const entity = entities[i].entity;
-      const state = this._hass.states[entity];
-      buttons.set(entity, {
-        description: state.attributes.friendly_name || entity,
-        emphasize: ['on', 'active', 'home'].includes(state.state),
-        icon: entities[i].icon || stateIcon(state),
-      });
     }
     return buttons;
   }
@@ -285,7 +266,7 @@ export class FrigateCard extends LitElement {
 
     this.config = config;
     this._entitiesToMonitor = [
-      ...(this.config.entities || []).map((entity) => entity.entity),
+      ...(this.config.update_entities || []),
       this.config.camera_entity,
     ];
     this._changeView();
@@ -328,15 +309,20 @@ export class FrigateCard extends LitElement {
     return true;
   }
 
-  protected _menuActionHandler(name: string): void {
-    switch (name) {
+  protected _menuActionHandler(action: string, button: MenuButton): void {
+    if (button.type != 'internal-menu-icon') {
+      handleAction(this, this._hass as HomeAssistant, button, action);
+      return;
+    }
+
+    switch (button.card_action) {
       case 'frigate':
         this._changeView();
         break;
       case 'live':
       case 'clips':
       case 'snapshots':
-        this._changeView(new View({ view: name }));
+        this._changeView(new View({ view: button.card_action }));
         break;
       case 'frigate_ui':
         const frigate_url = this._getFrigateURLFromContext();
@@ -350,8 +336,7 @@ export class FrigateCard extends LitElement {
         }
         break;
       default:
-        // If it's unknown, it's assumed to be an entity_id.
-        fireEvent(this, 'hass-more-info', { entityId: name });
+        console.warn(`Frigate card received unknown menu action: ${button.card_action}`);
     }
   }
 
@@ -389,6 +374,7 @@ export class FrigateCard extends LitElement {
     return html`
       <frigate-card-menu
         class="${classMap(classes)}"
+        .hass=${this._hass}
         .actionCallback=${this._menuActionHandler.bind(this)}
         .menuMode=${this.config.menu_mode}
         .buttons=${this._getMenuButtons()}
@@ -524,7 +510,9 @@ export class FrigateCard extends LitElement {
         window.innerWidth / window.innerHeight
     ) {
       // If the menu is outside the media (i.e. above/below) allow space for it.
-      const allowance = ["above", "below"].includes(this.config.menu_mode) ? MENU_HEIGHT : 0;
+      const allowance = ['above', 'below'].includes(this.config.menu_mode)
+        ? MENU_HEIGHT
+        : 0;
       innerStyle['max-width'] = `calc(${
         (100 * this._mediaInfo.width) / this._mediaInfo.height
       }vh - ${allowance}px )`;

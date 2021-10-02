@@ -108,14 +108,17 @@ export function dispatchEvent<T>(element: HTMLElement, name: string, detail?: T)
 }
 
 export function dispatchPlayEvent(element: HTMLElement): void {
-  dispatchEvent(element, 'play')
+  dispatchEvent(element, 'play');
 }
 
 export function dispatchPauseEvent(element: HTMLElement): void {
-  dispatchEvent(element, 'pause')
+  dispatchEvent(element, 'pause');
 }
 
-export function dispatchMediaLoadEvent(element: HTMLElement, source: Event | HTMLElement): void {
+export function dispatchMediaLoadEvent(
+  element: HTMLElement,
+  source: Event | HTMLElement,
+): void {
   let target: HTMLElement | EventTarget;
   if (source instanceof Event) {
     target = source.composedPath()[0];
@@ -139,4 +142,32 @@ export function dispatchMediaLoadEvent(element: HTMLElement, source: Event | HTM
       height: (target as HTMLCanvasElement).height,
     });
   }
+}
+
+// Determine whether the card should be updated based on Home Assistant changes.
+export function shouldUpdateBasedOnHass(
+  newHass: HomeAssistant | null,
+  oldHass: HomeAssistant | undefined,
+  entities: string[] | null,
+): boolean {
+  if (!newHass || !entities) {
+    return false;
+  }
+  if (!entities.length) {
+    return false;
+  }
+
+  if (oldHass) {
+    for (let i = 0; i < entities.length; i++) {
+      const entity = entities[i];
+      if (!entity) {
+        continue;
+      }
+      if (oldHass.states[entity] !== newHass.states[entity]) {
+        return true;
+      }
+    }
+    return false;
+  }
+  return false;
 }

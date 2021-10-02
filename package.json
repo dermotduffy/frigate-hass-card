@@ -16,28 +16,28 @@
   "dependencies": {
     "@cycjimmy/jsmpeg-player": "^5.0.1",
     "@material/image-list": "^12.0.0",
-    "custom-card-helpers": "^1.7.2",
-    "dayjs": "^1.10.6",
+    "custom-card-helpers": "^1.8.0",
+    "dayjs": "^1.10.7",
     "home-assistant-js-websocket": "^5.11.1",
-    "lit": "^2.0.0-rc.2",
+    "lit": "^2.0.0",
     "screenfull": "^5.1.0",
-    "zod": "^3.8.2"
+    "zod": "^3.9.5"
   },
   "devDependencies": {
     "@babel/core": "^7.15.5",
     "@babel/plugin-proposal-class-properties": "^7.14.5",
     "@babel/plugin-proposal-decorators": "^7.15.4",
     "@rollup/plugin-json": "^4.1.0",
-    "@typescript-eslint/eslint-plugin": "^4.30.0",
-    "@typescript-eslint/parser": "^4.30.0",
+    "@typescript-eslint/eslint-plugin": "^4.32.0",
+    "@typescript-eslint/parser": "^4.32.0",
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.24.2",
     "eslint-plugin-prettier": "^3.4.1",
     "npm-check-updates": "^11.8.5",
-    "prettier": "^2.3.2",
-    "rollup": "^2.56.3",
+    "prettier": "^2.4.1",
+    "rollup": "^2.58.0",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-resolve": "^5.2.0",
@@ -45,8 +45,8 @@
     "rollup-plugin-styles": "^3.14.1",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.30.0",
-    "sass": "^1.39.0",
-    "typescript": "^4.4.2"
+    "sass": "^1.42.1",
+    "typescript": "^4.4.3"
   },
   "scripts": {
     "start": "rollup -c rollup.config.dev.js --watch",
