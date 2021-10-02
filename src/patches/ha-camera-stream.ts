@@ -43,13 +43,16 @@ customElements.whenDefined('ha-camera-stream').then(() => {
         return html``;
       }
 
-      // Below .src binding tweaked to work pre/post:
+      // Below .src/@load bindings tweaked to work pre/post:
       // - https://github.com/home-assistant/frontend/commit/e963735dbabdc2fea8a95aea325952560c727625
       return html`
         ${this._shouldRenderMJPEG
           ? html`
               <img
                 @load=${(e) => {
+                  if (typeof this._elementResized != 'undefined') {
+                    this._elementResized();
+                  }
                   dispatchMediaLoadEvent(this, e);
                 }}
                 .src=${
