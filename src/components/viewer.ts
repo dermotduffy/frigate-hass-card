@@ -137,6 +137,7 @@ export class FrigateCardViewer extends LitElement {
         // Fetch clips within the same second (same camera/zone/label, etc).
         const clipsAtSameTime = await browseMediaQuery(this.hass, {
           ...this.browseMediaQueryParameters,
+          mediaType: 'clips',
           before: startTime + 1,
           after: startTime,
         });
