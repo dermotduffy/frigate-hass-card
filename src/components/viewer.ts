@@ -18,7 +18,9 @@ import type {
 import { localize } from '../localize/localize';
 import {
   browseMediaQuery,
+  dispatchErrorMessageEvent,
   dispatchMediaLoadEvent,
+  dispatchMessageEvent,
   dispatchPauseEvent,
   dispatchPlayEvent,
   getFirstTrueMediaChildIndex,
@@ -27,8 +29,6 @@ import {
 
 import { View } from '../view';
 import {
-  renderMessage,
-  renderErrorMessage,
   renderProgressIndicator,
 } from '../components/message';
 
@@ -158,7 +158,7 @@ export class FrigateCardViewer extends LitElement {
     return html`${until(this._render(), renderProgressIndicator())}`;
   }
 
-  protected async _render(): Promise<TemplateResult> {
+  protected async _render(): Promise<TemplateResult | void> {
     let autoplay = true;
 
     let parent: BrowseMediaSource | null = null;
@@ -173,11 +173,12 @@ export class FrigateCardViewer extends LitElement {
       try {
         parent = await browseMediaQuery(this.hass, this.browseMediaQueryParameters);
       } catch (e) {
-        return renderErrorMessage((e as Error).message);
+        return dispatchErrorMessageEvent(this, (e as Error).message);
       }
       childIndex = getFirstTrueMediaChildIndex(parent);
       if (!parent || !parent.children || childIndex == null) {
-        return renderMessage(
+        return dispatchMessageEvent(
+          this,
           this.view.is('clip')
             ? localize('common.no_clip')
             : localize('common.no_snapshot'),
@@ -196,7 +197,7 @@ export class FrigateCardViewer extends LitElement {
     const resolvedMedia = await this._resolveMedia(mediaToRender);
     if (!mediaToRender || !resolvedMedia) {
       // Home Assistant could not resolve media item.
-      return renderErrorMessage(localize('error.could_not_resolve'));
+      return dispatchErrorMessageEvent(this, localize('error.could_not_resolve'));
     }
 
     const neighbors = this._getMediaNeighbors(parent, childIndex);

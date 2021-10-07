@@ -74,6 +74,7 @@ export class FrigateCardMenu extends LitElement {
     let emphasize = false;
     let title = button.title;
     let icon = button.icon;
+    const style = ('style' in button ? button.style : {}) || {};
 
     if (button.type === 'menu-state-icon') {
       state = this.hass.states[button.entity];
@@ -100,7 +101,7 @@ export class FrigateCardMenu extends LitElement {
 
     return html` <ha-icon-button
       class="${classMap(classes)}"
-      style="${styleMap(button.style || {})}"
+      style="${styleMap(style)}"
       icon=${icon || 'mdi:gesture-tap-button'}
       title=${title || ''}
       @action=${(ev) => this._callAction(ev, button)}

@@ -209,21 +209,25 @@ entities:
 
 ### Picture Elements / Menu customizations
 
-This card supports a subset of the [Picture Elements
-configuration](https://www.home-assistant.io/lovelace/picture-elements/) to
+This card supports the [Picture Elements configuration
+syntax](https://www.home-assistant.io/lovelace/picture-elements/) to seamlessly
 allow the user to add custom elements to the card, which may be configured to
-perform different actions on `tap`, `double_tap` and `hold`.
+perform a variety of actions on `tap`, `double_tap` and `hold`.
 
 In the card YAML configuration, elements may be manually added under an `elements` key.
 
-#### Supported Elements
+#### Special Elements
+
+This card supports all [Picture Elements](https://www.home-assistant.io/lovelace/picture-elements/#icon-element) using the same syntax. The card also supports two special elements to add plain icons and state-based icons to the Frigate card menu.
 
 | Element name | Description                                         |
 | ------------- | --------------------------------------------- |
-| `menu-icon` | Add an arbitrary icon to the Frigate Card menu. Configuration is identical to that of the [Picture elements icon](https://www.home-assistant.io/lovelace/picture-elements/#icon-element).|
-| `menu-state-icon` | Add a state icon to the Frigate Card menu that represents the state of a Home Assistant entity. Configuration is identical to that of the [Picture elements state icon](https://www.home-assistant.io/lovelace/picture-elements/#state-icon).|
+| `menu-icon` | Add an arbitrary icon to the Frigate Card menu. Configuration is ~identical to that of the [Picture elements icon](https://www.home-assistant.io/lovelace/picture-elements/#icon-element).|
+| `menu-state-icon` | Add a state icon to the Frigate Card menu that represents the state of a Home Assistant entity. Configuration is ~identical to that of the [Picture elements state icon](https://www.home-assistant.io/lovelace/picture-elements/#state-icon).|
 
-#### Example
+See the [action documentation](https://www.home-assistant.io/lovelace/actions/#hold-action) for more information on the action options available.
+
+#### Elements Example
 
 Add an icon that represents the state of the `light.office_main_lights` entity, that shows more information on single click (the default action) and toggles the light on double click.
 
@@ -245,7 +249,19 @@ Add an icon that navigates the brower to the releases page for this card:
       url_path: https://github.com/dermotduffy/frigate-hass-card/releases
 ```
 
-See the [action documentation](https://www.home-assistant.io/lovelace/actions/#hold-action) for more information on the action options available.
+Add a state badge showing the temperature but hide the label text:
+
+```yaml
+  - type: state-badge
+    entity: sensor.kitchen_temperature
+    style:
+      right: '-20px'
+      top: 100px
+      color: rgba(0,0,0,0)
+      opacity: 0.5
+```
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/picture_elements_temperature.png" alt="Picture elements temperature example" width="400px">
 
 <a name="views"></a>
 

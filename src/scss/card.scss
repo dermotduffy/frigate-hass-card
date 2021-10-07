@@ -1,15 +1,16 @@
 .container {
   position: relative;
   overflow: auto;
-  height: 100%;
   width: 100%;
+  height: 100%;
   margin: auto;
   display: flex;
   justify-content: center;
 }
 
 .frigate-card-contents {
-  width: 100%;
+  width: inherit;
+  height: inherit;
   margin: auto;
   overflow: auto;
   -ms-overflow-style: none; /* Hide scrollbar: IE and Edge */
@@ -43,6 +44,17 @@
 .outer:hover + .hover-menu, .hover-menu:hover {
   opacity: 1.0;
 }
+/* A relative div to place absolute picture elements onto */
+.picture-elements {
+  position: relative;
+  width: inherit;
+}
+
+/* Enforce picture elements to only be the size of the card/fullscreen (and not
+larger) when in gallery mode so that the picture elements do not scroll. */
+.picture-elements.gallery {
+  height: 100%;
+}
 
 ha-card {
   display: flex;
@@ -56,7 +68,7 @@ ha-card {
   background-color: var(--secondary-background-color, black);
 }
 
-frigate-card-gallery, frigate-card-viewer, frigate-card-live {
+frigate-card-gallery, frigate-card-viewer, frigate-card-live, frigate-card-message, frigate-card-error-message {
   width: 100%;
   display: block;
 }

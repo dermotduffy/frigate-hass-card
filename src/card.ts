@@ -16,11 +16,10 @@ import {
   LovelaceCardEditor,
   getLovelace,
   handleAction,
-  ActionHandlerEvent,
 } from 'custom-card-helpers';
 import screenfull from 'screenfull';
 
-import { entitySchema, frigateCardConfigSchema } from './types';
+import { entitySchema, frigateCardConfigSchema, Message } from './types';
 import type {
   BrowseMediaQueryParameters,
   Entity,
@@ -33,16 +32,16 @@ import type {
 import { CARD_VERSION } from './const';
 import { FrigateCardMenu, MENU_HEIGHT } from './components/menu';
 import { View } from './view';
-import { actionHandler } from './action-handler-directive';
 import {
   getParseErrorKeys,
   homeAssistantWSRequest,
   shouldUpdateBasedOnHass,
 } from './common';
 import { localize } from './localize/localize';
-import { renderErrorMessage, renderProgressIndicator } from './components/message';
+import { renderMessage, renderProgressIndicator } from './components/message';
 
 import './editor';
+import './components/elements';
 import './components/gallery';
 import './components/live';
 import './components/menu';
@@ -52,6 +51,7 @@ import './patches/ha-camera-stream';
 import './patches/ha-hls-player';
 
 import cardStyle from './scss/card.scss';
+import { FrigateCardElements } from './components/elements';
 
 const MEDIA_HEIGHT_CUTOFF = 50;
 const MEDIA_WIDTH_CUTOFF = MEDIA_HEIGHT_CUTOFF;
@@ -105,6 +105,9 @@ export class FrigateCard extends LitElement {
   @query('frigate-card-menu')
   _menu!: FrigateCardMenu;
 
+  @query('frigate-card-elements')
+  _elements!: FrigateCardElements;
+
   // Whether or not media is actively playing (live or clip).
   protected _mediaPlaying = false;
 
@@ -119,14 +122,22 @@ export class FrigateCard extends LitElement {
   // derived).
   protected _frigateCameraName: string | null = null;
 
+  // Error/info message to render.
+  protected _message: Message | null = null;
+
   set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
     this._hass = hass;
 
-    // Manually set hass in the menu. This is to allow the menu to update,
-    // without necessarily re-rendering the entire card (re-rendering interrupts
-    // clip playing).
-    if (this._menu && this._hass) {
-      this._menu.hass = this._hass;
+    // Manually set hass in the menu & elements. This is to allow these to
+    // update, without necessarily re-rendering the entire card (re-rendering
+    // interrupts clip playing).
+    if (this._hass) {
+      if (this._menu) {
+        this._menu.hass = this._hass;
+      }
+      if (this._elements) {
+        this._elements.hass = this._hass;
+      }
     }
   }
 
@@ -197,7 +208,7 @@ export class FrigateCard extends LitElement {
     const elements = this.config.elements || [];
     for (let i = 0; this._hass && i < elements.length; i++) {
       const element = elements[i];
-      if (['menu-icon', 'menu-state-icon'].includes(element.type)) {
+      if (element.type == 'menu-icon' || element.type == 'menu-state-icon') {
         buttons.push(element);
       }
     }
@@ -404,6 +415,27 @@ export class FrigateCard extends LitElement {
     this._mediaPlaying = false;
   }
 
+  protected _setMessageAndUpdate(message: Message): void {
+    // Only register the first message.
+    if (!this._message) {
+      this._message = message;
+      this.requestUpdate();
+    }
+  }
+
+  protected _messageHandler(e: CustomEvent<Message>): void {
+    return this._setMessageAndUpdate(e.detail);
+  }
+
+  protected _renderAndResetMessage(): TemplateResult | void {
+    if (this._message) {
+      const message = this._message;
+      this._message = null;
+      return renderMessage(message);
+    }
+    return html``;
+  }
+
   protected _mediaLoadHandler(e: CustomEvent<MediaLoadInfo>): void {
     const mediaInfo = e.detail;
     // In Safari, with WebRTC, 0x0 is occasionally returned during loading,
@@ -527,57 +559,79 @@ export class FrigateCard extends LitElement {
       ${this.config.menu_mode == 'above' ? this._renderMenu() : ''}
       <div class="container outer" style="${styleMap(outerStyle)}">
         <div class="${classMap(contentClasses)}" style="${styleMap(innerStyle)}">
-          ${until(this._render(), renderProgressIndicator())}
+          ${this._message
+            ? this._renderAndResetMessage()
+            : until(this._render(), renderProgressIndicator())}
         </div>
       </div>
       ${this.config.menu_mode != 'above' ? this._renderMenu() : ''}
     </ha-card>`;
   }
 
-  protected async _render(): Promise<TemplateResult> {
+  protected async _render(): Promise<TemplateResult | void> {
     if (!this._frigateCameraName) {
       this._frigateCameraName = await this._getFrigateCameraName();
     }
     const mediaQueryParameters = this._getBrowseMediaQueryParameters();
     if (!this._frigateCameraName || !mediaQueryParameters) {
-      return renderErrorMessage(localize('error.no_frigate_camera_name'));
+      return this._setMessageAndUpdate({
+        message: localize('error.no_frigate_camera_name'),
+        type: 'error',
+      });
     }
 
+    const pictureElementsClasses = {
+      'picture-elements': true,
+      gallery: this._view.isGalleryView(),
+    };
+
     return html`
-      ${this._view.is('clips') || this._view.is('snapshots')
-        ? html` <frigate-card-gallery
-            .hass=${this._hass}
-            .view=${this._view}
-            .browseMediaQueryParameters=${mediaQueryParameters}
-            @frigate-card:change-view=${this._changeViewHandler}
-          >
-          </frigate-card-gallery>`
-        : ``}
-      ${this._view.is('clip') || this._view.is('snapshot')
-        ? html` <frigate-card-viewer
-            .hass=${this._hass}
-            .view=${this._view}
-            .browseMediaQueryParameters=${mediaQueryParameters}
-            .nextPreviousControlStyle=${this.config.controls?.nextprev ?? 'thumbnails'}
-            .autoplayClip=${this.config.autoplay_clip}
-            @frigate-card:change-view=${this._changeViewHandler}
-            @frigate-card:media-load=${this._mediaLoadHandler}
-            @frigate-card:pause=${this._pauseHandler}
-            @frigate-card:play=${this._playHandler}
-          >
-          </frigate-card-viewer>`
-        : ``}
-      ${this._view.is('live')
-        ? html` <frigate-card-live
-            .hass=${this._hass}
-            .config=${this.config}
-            .frigateCameraName=${this._frigateCameraName}
-            @frigate-card:media-load=${this._mediaLoadHandler}
-            @frigate-card:pause=${this._pauseHandler}
-            @frigate-card:play=${this._playHandler}
-          >
-          </frigate-card-live>`
-        : ``}
+      <div class="${classMap(pictureElementsClasses)}">
+        ${this._view.is('clips') || this._view.is('snapshots')
+          ? html` <frigate-card-gallery
+              .hass=${this._hass}
+              .view=${this._view}
+              .browseMediaQueryParameters=${mediaQueryParameters}
+              @frigate-card:change-view=${this._changeViewHandler}
+              @frigate-card:message=${this._messageHandler}
+            >
+            </frigate-card-gallery>`
+          : ``}
+        ${this._view.is('clip') || this._view.is('snapshot')
+          ? html` <frigate-card-viewer
+              .hass=${this._hass}
+              .view=${this._view}
+              .browseMediaQueryParameters=${mediaQueryParameters}
+              .nextPreviousControlStyle=${this.config.controls?.nextprev ?? 'thumbnails'}
+              .autoplayClip=${this.config.autoplay_clip}
+              @frigate-card:change-view=${this._changeViewHandler}
+              @frigate-card:media-load=${this._mediaLoadHandler}
+              @frigate-card:pause=${this._pauseHandler}
+              @frigate-card:play=${this._playHandler}
+              @frigate-card:message=${this._messageHandler}
+            >
+            </frigate-card-viewer>`
+          : ``}
+        ${this._view.is('live')
+          ? html`
+              <frigate-card-live
+                .hass=${this._hass}
+                .config=${this.config}
+                .frigateCameraName=${this._frigateCameraName}
+                @frigate-card:media-load=${this._mediaLoadHandler}
+                @frigate-card:pause=${this._pauseHandler}
+                @frigate-card:play=${this._playHandler}
+                @frigate-card:message=${this._messageHandler}
+              >
+              </frigate-card-live>
+            `
+          : ``}
+        <frigate-card-elements
+          .hass=${this._hass}
+          .pictureElements=${this.config.elements}
+        >
+        </frigate-card-elements>
+      </div>
     `;
   }
 

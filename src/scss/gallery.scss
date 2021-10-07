@@ -1,6 +1,10 @@
 @use "@material/image-list/mdc-image-list";
 @use "@material/image-list";
 
+:host {
+  overflow: auto;
+}
+
 .frigate-card-gallery {
   // Note: In fullscreen, number of columns is overwritten in Javascript based
   // on dimensions.

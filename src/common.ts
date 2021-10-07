@@ -7,6 +7,7 @@ import type {
   BrowseMediaSource,
   ExtendedHomeAssistant,
   MediaLoadInfo,
+  Message,
 } from './types';
 import { browseMediaSourceSchema } from './types';
 
@@ -142,6 +143,28 @@ export function dispatchMediaLoadEvent(
       height: (target as HTMLCanvasElement).height,
     });
   }
+}
+
+export function dispatchMessageEvent(
+  element: HTMLElement,
+  message: string,
+  icon?: string,
+): void {
+  dispatchEvent<Message>(element, 'message', {
+    message: message,
+    type: 'info',
+    icon: icon,
+  });
+}
+
+export function dispatchErrorMessageEvent(
+  element: HTMLElement,
+  message: string,
+): void {
+  dispatchEvent<Message>(element, 'message', {
+    message: message,
+    type: 'error',
+  });
 }
 
 // Determine whether the card should be updated based on Home Assistant changes.

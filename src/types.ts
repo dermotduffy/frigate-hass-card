@@ -60,9 +60,9 @@ export type LiveProvider = typeof LIVE_PROVIDERS[number];
 
 // Declare schemas to existing types:
 // - https://github.com/colinhacks/zod/issues/372#issuecomment-826380330
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const schemaForType =
   <T>() =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   <S extends z.ZodType<T, any, any>>(arg: S) => {
     return arg;
   };
@@ -104,50 +104,113 @@ const elementsActionSchema = z.union([
 ]);
 export type ElementsActionType = z.infer<typeof elementsActionSchema>;
 
-const elementsActionsSchema = z.object({
+const elementsBaseSchema = z.object({
+  style: z.object({}).passthrough().optional(),
+  title: z.string().nullable().optional(),
   tap_action: elementsActionSchema.optional(),
   hold_action: elementsActionSchema.optional(),
   double_tap_action: elementsActionSchema.optional(),
 });
 
 /**
- * Menu Types
+ * Picture Element Types
  */
 
-const menuItemBaseSchema = z.object({
-  title: z.string().optional(),
-  style: z.object({}).passthrough().optional(),
-});
+// https://www.home-assistant.io/lovelace/picture-elements/#state-badge
+const stateBadgeIconSchema = elementsBaseSchema.merge(
+  z.object({
+    type: z.literal('state-badge'),
+    entity: z.string(),
+  }));
 
-const menuIconSchema = menuItemBaseSchema
-  .merge(
-    z.object({
-      type: z.literal('menu-icon'),
-      icon: z.string(),
-    }),
+// https://www.home-assistant.io/lovelace/picture-elements/#state-icon
+const stateIconSchema = elementsBaseSchema.merge(
+  z.object({
+    type: z.literal('state-icon'),
+    entity: z.string(),
+    icon: z.string().optional(),
+    state_color: z.boolean().default(true),
+  }));
+
+// https://www.home-assistant.io/lovelace/picture-elements/#state-label
+const stateLabelSchema = elementsBaseSchema.merge(
+  z.object({
+    type: z.literal('state-label'),
+    entity: z.string(),
+    attribute: z.string().optional(),
+    prefix: z.string().optional(),
+    suffix: z.string().optional(),
+  }));
+
+// https://www.home-assistant.io/lovelace/picture-elements/#service-call-button
+const serviceCallButtonSchema = 
+  elementsBaseSchema.merge(z
+    .object({
+      type: z.literal('service-button'),
+      // Title is required for service button.
+      title: z.string(),  
+      service: z.string(),
+      service_data: z.object({}).passthrough().optional(),
+    })
   )
-  .merge(elementsActionsSchema);
 
-const menuStateIconSchema = menuItemBaseSchema
-  .merge(
-    z.object({
-      type: z.literal('menu-state-icon'),
+// https://www.home-assistant.io/lovelace/picture-elements/#icon
+const iconSchema = elementsBaseSchema.merge(
+  z.object({
+    type: z.literal('icon'),
+    icon: z.string(),
+    entity: z.string().optional(),
+  }));
+
+// https://www.home-assistant.io/lovelace/picture-elements/#image-element
+const imageSchema = elementsBaseSchema.merge(
+  z.object({
+    type: z.literal('image'),
+    entity: z.string().optional(),
+    image: z.string().optional(),
+    camera_image: z.string().optional(),
+    camera_view: z.string().optional(),
+    state_image: z.object({}).passthrough().optional(),
+    filter: z.string().optional(),
+    state_filter: z.object({}).passthrough().optional(),
+    aspect_ratio: z.string().optional(),
+}));
+
+// https://www.home-assistant.io/lovelace/picture-elements/#image-element
+const conditionalSchema = elementsBaseSchema.merge(
+  z.object({
+    type: z.literal('conditional'),
+    conditions: z.object({
       entity: z.string(),
-      icon: z.string().optional(),
-      state_color: z.boolean().default(true),
-    }),
-  )
-  .merge(elementsActionsSchema);
+      state: z.string().optional(),
+      state_not: z.string().optional(),
+    }).array(),
+    elements: z.lazy(() => pictureElementsSchema),
+  }));
+
+/**
+ * Menu Element Types
+ */
+
+const menuIconSchema = iconSchema.merge(
+  z.object({
+    type: z.literal('menu-icon'),
+  }));
+
+const menuStateIconSchema = stateIconSchema.merge(
+  z.object({
+    type: z.literal('menu-state-icon'),
+  }));
 
 // Schema for card (non-user configured) menu icons.
-const internalMenuIconSchema = menuItemBaseSchema.merge(
-  z.object({
+const internalMenuIconSchema = z
+  .object({
     type: z.literal('internal-menu-icon'),
+    title: z.string(),
     icon: z.string().optional(),
     emphasize: z.boolean().default(false).optional(),
     card_action: z.string(),
-  }),
-);
+  });
 
 const menuButtonSchema = z.union([
   menuIconSchema,
@@ -158,7 +221,21 @@ export type MenuButton = z.infer<typeof menuButtonSchema>;
 
 // 'internalMenuIconSchema' is excluded to disallow the user from manually
 // changing the internal menu buttons.
-const elementsSchema = z.union([menuStateIconSchema, menuIconSchema]);
+const pictureElementSchema = z.union([
+  menuStateIconSchema,
+  menuIconSchema,
+  stateBadgeIconSchema,
+  stateIconSchema,
+  stateLabelSchema,
+  serviceCallButtonSchema,
+  iconSchema,
+  imageSchema,
+  conditionalSchema,
+]);
+export type PictureElement = z.infer<typeof pictureElementSchema>;
+
+const pictureElementsSchema = pictureElementSchema.array().optional();
+export type PictureElements = z.infer<typeof pictureElementsSchema>;
 
 export const frigateCardConfigSchema = z.object({
   camera_entity: z.string(),
@@ -200,7 +277,7 @@ export const frigateCardConfigSchema = z.object({
     })
     .optional(),
   update_entities: z.string().array().optional(),
-  elements: elementsSchema.array().optional(),
+  elements: pictureElementsSchema,
   controls: z
     .object({
       nextprev: z.enum(NEXT_PREVIOUS_CONTROL_STYLES).default('thumbnails'),
@@ -258,6 +335,12 @@ export interface BrowseMediaNeighbors {
 export interface MediaLoadInfo {
   width: number;
   height: number;
+}
+
+export interface Message {
+  message: string;
+  type: 'error' | 'info';
+  icon?: string;
 }
 
 /**
