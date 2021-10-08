@@ -583,6 +583,7 @@ export class FrigateCard extends LitElement {
         ? html` <frigate-card-live
             .hass=${this._hass}
             .config=${this.config}
+            .frigateCameraName=${this._frigateCameraName}
             @frigate-card:media-load=${this._mediaLoadHandler}
             @frigate-card:pause=${this._pauseHandler}
             @frigate-card:play=${this._playHandler}

@@ -31,6 +31,9 @@ export class FrigateCardViewer extends LitElement {
   @property({ attribute: false })
   protected config!: FrigateCardConfig;
 
+  @property({ attribute: false })
+  protected frigateCameraName!: string;
+
   protected render(): TemplateResult | void {
     return html`${until(this._render(), renderProgressIndicator())}`;
   }
@@ -50,7 +53,7 @@ export class FrigateCardViewer extends LitElement {
         </frigate-card-live-webrtc>`
       : html` <frigate-card-live-jsmpeg
           .hass=${this.hass}
-          .cameraName=${this.config.frigate_camera_name}
+          .cameraName=${this.frigateCameraName}
           .clientId=${this.config.frigate_client_id}
         >
         </frigate-card-live-jsmpeg>`}`;
