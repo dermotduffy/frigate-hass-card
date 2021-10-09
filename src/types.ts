@@ -114,6 +114,10 @@ const elementsBaseSchema = z.object({
 
 /**
  * Picture Element Types
+ * 
+ * All picture element types are validated (not just the Frigate card custom
+ * ones) as a convenience to present the user with a consistent error display
+ * up-front regardless of where they made their error.
  */
 
 // https://www.home-assistant.io/lovelace/picture-elements/#state-badge
@@ -188,19 +192,27 @@ const conditionalSchema = elementsBaseSchema.merge(
     elements: z.lazy(() => pictureElementsSchema),
   }));
 
+// https://www.home-assistant.io/lovelace/picture-elements/#custom-elements
+const customSchema = z.object({
+    // Insist that Frigate card custom elements are handled by other schemas.
+    type: z.string().regex(/^custom:(?!frigate-card).+/),
+  }).passthrough();
+
 /**
  * Menu Element Types
  */
 
-const menuIconSchema = iconSchema.merge(
+export const menuIconSchema = iconSchema.merge(
   z.object({
-    type: z.literal('menu-icon'),
+    type: z.literal('custom:frigate-card-menu-icon'),
   }));
+export type MenuIcon = z.infer<typeof menuIconSchema>;
 
-const menuStateIconSchema = stateIconSchema.merge(
+export const menuStateIconSchema = stateIconSchema.merge(
   z.object({
-    type: z.literal('menu-state-icon'),
+    type: z.literal('custom:frigate-card-menu-state-icon'),
   }));
+export type MenuStateIcon = z.infer<typeof menuStateIconSchema>;
 
 // Schema for card (non-user configured) menu icons.
 const internalMenuIconSchema = z
@@ -231,6 +243,7 @@ const pictureElementSchema = z.union([
   iconSchema,
   imageSchema,
   conditionalSchema,
+  customSchema,
 ]);
 export type PictureElement = z.infer<typeof pictureElementSchema>;
 

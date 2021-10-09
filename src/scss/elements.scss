@@ -2,3 +2,11 @@
   position: absolute;
   transform: translate(-50%, -50%);
 }
+
+// Errors encountered by HA (not the card) during parsing of the configuration
+// (e.g. custom picture element that does not exist).
+hui-error-card.element {
+  inset: 0px;
+  background-color: var(--secondary-background-color, black);
+  transform: unset;
+}

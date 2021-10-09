@@ -19,7 +19,11 @@ import {
 } from 'custom-card-helpers';
 import screenfull from 'screenfull';
 
-import { entitySchema, frigateCardConfigSchema, Message } from './types';
+import {
+  entitySchema,
+  frigateCardConfigSchema,
+  Message,
+} from './types';
 import type {
   BrowseMediaQueryParameters,
   Entity,
@@ -203,14 +207,6 @@ export class FrigateCard extends LitElement {
         title: localize('menu.fullscreen'),
         icon: screenfull.isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
       });
-    }
-
-    const elements = this.config.elements || [];
-    for (let i = 0; this._hass && i < elements.length; i++) {
-      const element = elements[i];
-      if (element.type == 'menu-icon' || element.type == 'menu-state-icon') {
-        buttons.push(element);
-      }
     }
     return buttons;
   }
@@ -573,7 +569,7 @@ export class FrigateCard extends LitElement {
       this._frigateCameraName = await this._getFrigateCameraName();
     }
     const mediaQueryParameters = this._getBrowseMediaQueryParameters();
-    if (!this._frigateCameraName || !mediaQueryParameters) {
+    if (!this._hass || !this._frigateCameraName || !mediaQueryParameters) {
       return this._setMessageAndUpdate({
         message: localize('error.no_frigate_camera_name'),
         type: 'error',
@@ -629,6 +625,13 @@ export class FrigateCard extends LitElement {
         <frigate-card-elements
           .hass=${this._hass}
           .pictureElements=${this.config.elements}
+          @frigate-card:message=${this._messageHandler}
+          @frigate-card:menu-add=${(e) => {
+            this._menu.addButton(e.detail);
+          }}
+          @frigate-card:menu-remove=${(e) => {
+            this._menu.removeButton(e.detail);
+          }}
         >
         </frigate-card-elements>
       </div>

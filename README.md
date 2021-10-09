@@ -222,18 +222,18 @@ This card supports all [Picture Elements](https://www.home-assistant.io/lovelace
 
 | Element name | Description                                         |
 | ------------- | --------------------------------------------- |
-| `menu-icon` | Add an arbitrary icon to the Frigate Card menu. Configuration is ~identical to that of the [Picture elements icon](https://www.home-assistant.io/lovelace/picture-elements/#icon-element).|
-| `menu-state-icon` | Add a state icon to the Frigate Card menu that represents the state of a Home Assistant entity. Configuration is ~identical to that of the [Picture elements state icon](https://www.home-assistant.io/lovelace/picture-elements/#state-icon).|
+| `custom:frigate-card-menu-icon` | Add an arbitrary icon to the Frigate Card menu. Configuration is ~identical to that of the [Picture elements icon](https://www.home-assistant.io/lovelace/picture-elements/#icon-element).|
+| `custom:frigate-card-menu-state-icon` | Add a state icon to the Frigate Card menu that represents the state of a Home Assistant entity. Configuration is ~identical to that of the [Picture elements state icon](https://www.home-assistant.io/lovelace/picture-elements/#state-icon).|
 
 See the [action documentation](https://www.home-assistant.io/lovelace/actions/#hold-action) for more information on the action options available.
 
-#### Elements Example
+#### Elements Examples
 
 Add an icon that represents the state of the `light.office_main_lights` entity, that shows more information on single click (the default action) and toggles the light on double click.
 
 ```yaml
 elements:
-  - type: menu-state-icon
+  - type: custom:frigate-card-menu-state-icon
     entity: light.office_main_lights
     double_tap_action:
       action: toggle
@@ -242,7 +242,7 @@ elements:
 Add an icon that navigates the brower to the releases page for this card:
 
 ```yaml
-  - type: menu-icon
+  - type: custom:frigate-card-menu-icon
     icon: mdi:book
     tap_action:
       action: url
@@ -262,6 +262,20 @@ Add a state badge showing the temperature but hide the label text:
 ```
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/picture_elements_temperature.png" alt="Picture elements temperature example" width="400px">
+
+You can also have icons conditionally added to the menu, such as only showing a menu icon if a light is on:
+
+```yaml
+  - type: conditional
+    conditions:
+      - entity: light.kitchen
+        state: 'on'
+    elements:
+      - type: custom:frigate-card-menu-state-icon
+        entity: light.kitchen
+        tap_action:
+          action: toggle
+```
 
 <a name="views"></a>
 

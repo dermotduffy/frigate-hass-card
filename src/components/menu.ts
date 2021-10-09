@@ -33,6 +33,16 @@ export class FrigateCardMenu extends LitElement {
   @property({ attribute: false })
   public buttons: MenuButton[] = [];
 
+  public addButton(button: MenuButton): void {
+    if (!this.buttons.includes(button)) {
+      this.buttons = [...this.buttons, button];
+    }
+  }
+
+  public removeButton(target: MenuButton): void {
+    this.buttons = this.buttons.filter(button => button != target);
+  }
+
   // Call the callback.
   protected _callAction(ev: CustomEvent, button: MenuButton): void {
     if (this.menuMode.startsWith('hidden-')) {
@@ -53,7 +63,7 @@ export class FrigateCardMenu extends LitElement {
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
 
-    if (!oldHass) {
+    if (changedProps.size > 1 || !oldHass) {
       return true;
     }
 
@@ -61,7 +71,7 @@ export class FrigateCardMenu extends LitElement {
     const entities: string[] = []
     for (let i = 0; i < this.buttons.length; i++) {
       const button = this.buttons[i];
-      if (button.type == 'menu-state-icon') {
+      if (button.type == 'custom:frigate-card-menu-state-icon') {
         entities.push(button.entity);
       }
     }
@@ -76,7 +86,7 @@ export class FrigateCardMenu extends LitElement {
     let icon = button.icon;
     const style = ('style' in button ? button.style : {}) || {};
 
-    if (button.type === 'menu-state-icon') {
+    if (button.type === 'custom:frigate-card-menu-state-icon') {
       state = this.hass.states[button.entity];
       emphasize =
         !!state && button.state_color && ['on', 'active', 'home'].includes(state.state);

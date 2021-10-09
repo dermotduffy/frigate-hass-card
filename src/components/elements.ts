@@ -2,91 +2,136 @@ import { LitElement, TemplateResult, html, CSSResultGroup, unsafeCSS } from 'lit
 import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property } from 'lit/decorators';
 
-import { ExtendedHomeAssistant, PictureElement, PictureElements } from '../types';
+import { ExtendedHomeAssistant, MenuButton, MenuIcon, MenuStateIcon, menuStateIconSchema, PictureElements } from '../types';
+import { menuIconSchema } from '../types'
+import { dispatchErrorMessageEvent, dispatchEvent, getParseErrorKeys } from '../common';
 
 import elementsStyle from '../scss/elements.scss';
+import { localize } from '../localize/localize';
+import { z } from 'zod';
+
+/* A note on picture element rendering:
+ *
+ * To avoid needing to deal with the rendering of all the picture elements
+ * ourselves, instead the card relies on a stock conditional element (with no
+ * conditions) to render elements (this._root). This has a few advantages:
+ * 
+ * - Does not depend on (much of!) an internal API -- conditional picture
+ *   elements are unlikely to go away or change.
+ * - Forces usage of elements that HA understands. If the rendering is done
+ *   directly, it is (ask me how I know!) very tempting to render things in such
+ *   a way that a nested conditional element would not be able to render, i.e.
+ *   the custom rendering logic would only apply at the first level.
+ */
+
+/* A note on custom elements:
+ *
+ * The native HA support for custom elements is used for the menu-icon and
+ * menu-state-icon elements. This ensures multi-nested conditionals will work
+ * correctly. These custom elements 'render' by firing events that are caught by
+ * the card to call for inclusion/exclusion of the menu icon in question.
+ * 
+ * One major complexity here is that the top <frigate-card-elements> element
+ * will not necessarily know when a menu icon is no longer rendered because of a
+ * conditional that no-longer evaluates to true. As such, it cannot know when to
+ * signal for the menu icon removal. Furthermore, the menu icon element itself
+ * will only know it's been removed _after_ it's been disconnected from the DOM,
+ * so normal event propagation at that point will not work. Instead, we must
+ * catch the menu icon _addition_ and register the eventhandler for the removal
+ * directly on the child (which will have no parent at time of calling). That
+ * then triggers <frigate-card-elements> to re-dispatch a removal event for
+ * upper layers to handle correctly.
+ */
+
 
 @customElement('frigate-card-elements')
 export class FrigateCardElements extends LitElement {
   @property({ attribute: false })
-  protected _pictureElements: PictureElements;
+  protected pictureElements: PictureElements;
 
   protected _hass!: HomeAssistant & ExtendedHomeAssistant;
-  protected _elements: HTMLElement[] = [];
+  protected _root: HTMLElement | null = null;
 
   set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
-    for (let i = 0; hass && i < this._elements.length; i++) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (this._elements[i] as any).hass = hass;
+    if (this._root) {
+      (this._root as any).hass = hass;
     }
     this._hass = hass;
   }
 
-  set pictureElements(pictureElements: PictureElements) {
-    if (this._elements.length > 0) {
-      this._elements.forEach((el: HTMLElement) => {
-        if (el.parentElement) {
-          el.parentElement.removeChild(el);
-        }
-      });
-      this._elements = [];
-    }
-    if (!pictureElements) {
+  protected _menuRemoveHandler(ev: Event): void {
+    // Re-dispatch event from this element (instead of the disconnected one, as
+    // there is no parent of the disconnected element).
+    dispatchEvent<MenuButton>(this, 'menu-remove', (ev as CustomEvent).detail);
+  }
+
+  protected _menuAddHandler(ev: Event): void {
+    ev = ev as CustomEvent<MenuButton>;
+    const path = ev.composedPath()
+    if (!path.length) {
       return;
     }
-    for (let i = 0; i < pictureElements.length && pictureElements[i]; i++) {
-      const element = this._createPictureElement(pictureElements[i]);
-      if (element) {
-        this._elements.push(element);
-      }
+
+    // See 'A note on custom elements' above to explain what's going on here.
+
+    // Ensure listener is only attached 1 time by removing it first.
+    path[0].removeEventListener(
+      'frigate-card:menu-remove',
+      this._menuRemoveHandler.bind(this));
+
+    path[0].addEventListener(
+      'frigate-card:menu-remove',
+      this._menuRemoveHandler.bind(this));
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+
+    // Catch icons being added to the menu (so their removal can be subsequently
+    // handled).
+    this.addEventListener(
+      'frigate-card:menu-add',
+      this._menuAddHandler,
+    );
+
+    if (!this._root) {
+      this._createRoot();
     }
   }
 
-  @property({ attribute: false })
-  protected _createPictureElement(pictureElement: PictureElement): HTMLElement | null {
-    let customElementName: string | null = null;
+  disconnectedCallback(): void {
+    this.removeEventListener(
+      'frigate-card:menu-add',
+      this._menuAddHandler,
+    );
+    super.disconnectedCallback();
+  }
 
-    switch (pictureElement.type) {
-      case 'state-badge':
-      case 'state-icon':
-      case 'state-label':
-      case 'service-button':
-      case 'icon':
-      case 'image':
-      case 'conditional':
-        customElementName = `hui-${pictureElement.type}-element`;
-        break;
-    }
-
-    if (!customElementName) {
-      return null;
-    }
-
+  protected _createRoot(): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const elementConstructor = customElements.get(customElementName) as any;
+    const elementConstructor = customElements.get('hui-conditional-element') as any;
     if (!elementConstructor) {
-      return null;
+      return;
     }
 
     const element = new elementConstructor();
     element.hass = this._hass;
+    const config = {
+      type: 'conditional',
+      conditions: [],
+      elements: this.pictureElements,
+    }
     try {
-      element.setConfig(pictureElement);
+      element.setConfig(config);
     } catch (e) {
       console.error(e, (e as Error).stack);
-      return null;
+      return;
     }
-    element.classList.add('element');
-
-    const targetStyle = pictureElement.style || {};
-    Object.keys(targetStyle).forEach((prop) => {
-      element.style.setProperty(prop, targetStyle[prop]);
-    });
-    return element;
+    this._root = element;
   }
 
   protected render(): TemplateResult {
-    return html`${this._elements.map((element) => element)}`;
+    return html`${this._root || ''}`;
   }
 
   static get styles(): CSSResultGroup {
@@ -94,10 +139,31 @@ export class FrigateCardElements extends LitElement {
   }
 }
 
-export function renderFrigateCardElements(
-  hass: HomeAssistant & ExtendedHomeAssistant,
-  pictureElements: PictureElements,
-): TemplateResult {
-  return html` <frigate-card-elements .hass=${hass} .pictureElements=${pictureElements}>
-  </frigate-card-elements>`;
+export class FrigateCardElementsBaseMenuIcon<T> extends LitElement {
+  @property({ attribute: false })
+  protected _config: T | null = null;
+
+  public setConfig(config: T): void {
+    this._config = config;
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback()
+    if (this._config) {
+       dispatchEvent<T>(this, 'menu-add', this._config);
+    }
+  }
+
+  disconnectedCallback(): void {
+    if (this._config) {
+       dispatchEvent<T>(this, 'menu-remove', this._config);
+    }
+    super.disconnectedCallback()
+  }
 }
+
+@customElement('frigate-card-menu-icon')
+export class FrigateCardElementsMenuIcon extends FrigateCardElementsBaseMenuIcon<MenuIcon> {}
+
+@customElement('frigate-card-menu-state-icon')
+export class FrigateCardElementsMenuStateIcon extends FrigateCardElementsBaseMenuIcon<MenuStateIcon> {}
