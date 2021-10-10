@@ -250,14 +250,14 @@ export class FrigateCard extends LitElement {
     return null;
   }
 
-  protected _getParseErrorPathString(path: (string|number)[]): string {
+  protected _getParseErrorPathString(path: (string | number)[]): string {
     let out = '';
     for (let i = 0; i < path.length; i++) {
       const item = path[i];
       if (typeof item == 'number') {
         out += '[' + item + ']';
       } else if (out) {
-        out += " -> " + item;
+        out += ' -> ' + item;
       } else {
         out = item;
       }
@@ -277,7 +277,9 @@ export class FrigateCard extends LitElement {
       if (parseResult.error && parseResult.error.issues) {
         hint = this._getParseErrorPathString(parseResult.error.issues[0].path);
       }
-      throw new Error(localize('error.invalid_configuration') + (hint ? `: ${hint}` : ''));
+      throw new Error(
+        localize('error.invalid_configuration') + (hint ? `: ${hint}` : ''),
+      );
     }
     const config = parseResult.data;
 
@@ -448,7 +450,7 @@ export class FrigateCard extends LitElement {
     }
     let requestRefresh = false;
     if (
-      (this.config.dimensions?.aspect_ratio_mode ?? 'dynamic') == 'dynamic' &&
+      this._isAspectRatioEnforced() &&
       (mediaInfo.width != this._mediaInfo?.width ||
         mediaInfo.height != this._mediaInfo?.height)
     ) {
@@ -480,22 +482,27 @@ export class FrigateCard extends LitElement {
     super.disconnectedCallback();
   }
 
-  protected _getAspectRatioPadding(): number | null {
+  protected _isAspectRatioEnforced(): boolean {
     const aspect_ratio_mode = this.config.dimensions?.aspect_ratio_mode ?? 'dynamic';
 
     // Do not artifically constrain aspect ratio if:
     // - It's fullscreen.
     // - Aspect ratio enforcement is disabled.
-    // - Or it's a media view (i.e. not the gallery) and there's a loaded media
-    //   item.
-    if (
+    // - Or aspect ratio enforcement is dynamic and it's a media view (i.e. not the gallery).
+
+    return !(
       (screenfull.isEnabled && screenfull.isFullscreen) ||
       aspect_ratio_mode == 'unconstrained' ||
-      (this._view.isMediaView() && aspect_ratio_mode == 'dynamic' && this._mediaInfo)
-    ) {
+      (aspect_ratio_mode == 'dynamic' && this._view.isMediaView())
+    );
+  }
+
+  protected _getAspectRatioPadding(): number | null {
+    if (!this._isAspectRatioEnforced()) {
       return null;
     }
 
+    const aspect_ratio_mode = this.config.dimensions?.aspect_ratio_mode ?? 'dynamic';
     if (aspect_ratio_mode == 'dynamic' && this._mediaInfo) {
       return (this._mediaInfo.height / this._mediaInfo.width) * 100;
     }
