@@ -134,12 +134,15 @@ dimensions:
   aspect_ratio: '4:3'
 ```
 
+<a name="advanced-options"></a>
+
 ### Advanced Options
 
 | Option           | Default | Description                                         |
 | ------------- | - | --------------------------------------------- |
 | `label` | | A label used to filter events (clips & snapshots), e.g. 'person'.|
 | `zone` | | A zone used to filter events (clips & snapshots), e.g. 'front_door'.|
+| `update_entities` | | A list of entity ids that should cause the whole card to re-render, this can be useful in the `clip` or `snapshot` mode to (for example) cause a motion sensor to trigger a card refresh. Configurable in YAML only. Entities used in picture elements / included in the menu do not need to be explicitly included here to be kept updated. |
 
 <a name="webrtc"></a>
 
@@ -189,20 +192,6 @@ webrtc:
 
 See [WebRTC configuration](https://github.com/AlexxIT/WebRTC#configuration) for full configuration options.
 
-<a name="entities"></a>
-
-### Entities
-
-Additional entities may be configured to trigger updates to the card, and
-optionally to appear in the menu. An `entities` section may be added to the card
-configuration containing a list with entries of the following format:
-
-| Option           | Default | Description                                         |
-| ------------- | - | -------------------------------------------- |
-| `entity` | | Entity ID to use to trigger updates, and optionally appear in the menu. |
-| `icon` | [default entity icon] | An optional manual override of the icon to use in the menu, e.g. `mdi:car`. |
-| `show`| `true` | Whether or not to show the entity in the menu. When `false` the entity ID will trigger card updates only, but not appear in the menu. |
-
 #### Example
 
 This example allows access to the detection, recordings and snapshots switches
@@ -217,6 +206,202 @@ entities:
   - entity: binary_sensor.front_door_person_motion
     show: false
 ```
+
+## Picture Elements / Menu customizations
+
+This card supports the [Picture Elements configuration
+syntax](https://www.home-assistant.io/lovelace/picture-elements/) to seamlessly
+allow the user to add custom elements to the card, which may be configured to
+perform a variety of actions on `tap`, `double_tap` and `hold`.
+
+In the card YAML configuration, elements may be manually added under an
+`elements` key.
+
+See the [action
+documentation](https://www.home-assistant.io/lovelace/actions/#hold-action) for
+more information on the action options available.
+
+### Special Elements
+
+This card supports all [Picture Elements](https://www.home-assistant.io/lovelace/picture-elements/#icon-element) using the same syntax. The card also supports a handful of custom special elements to add special Frigate card functionality.
+
+| Element name | Description                                         |
+| ------------- | --------------------------------------------- |
+| `custom:frigate-card-menu-icon` | Add an arbitrary icon to the Frigate Card menu. Configuration is ~identical to that of the [Picture Elements Icon](https://www.home-assistant.io/lovelace/picture-elements/#icon-element) except with a type name of `custom:frigate-card-menu-icon`.|
+| `custom:frigate-card-menu-state-icon` | Add a state icon to the Frigate Card menu that represents the state of a Home Assistant entity. Configuration is ~identical to that of the [Picture Elements State Icon](https://www.home-assistant.io/lovelace/picture-elements/#state-icon) except with a type name of `custom:frigate-card-menu-state-icon`.|
+| `custom:frigate-card-conditional` | Restrict a set of elements to only render when the card is showing particular a particular [view](#views). See [configuration below](#frigate-card-conditional).|
+
+<a name="frigate-card-conditional"></a>
+
+### `custom:frigate-card-conditional`
+
+Parameters for the `custom:frigate-card-conditional` element:
+
+| Parameter | Description |
+| ------------- | --------------------------------------------- |
+| `type` | Must be `custom:frigate-card-conditional`. |
+| `conditions` | A set of conditions that must evaluate to true in order for the elements to be rendered. |
+| `conditions.view` | A list of [views](#views) in which these elements should be rendered. |
+| `elements` | The elements to render. Can be any supported element, include additional condition or custom elements. |
+
+See the [PTZ example below](#frigate-card-conditional-example) for a real-world example.
+### Elements Examples
+
+#### Menu icons
+
+You can add custom icons to the menu with arbitrary actions.
+
+<details>
+  <summary>Expand: Custom menu icon</summary>
+
+This example adds an icon that navigates the brower to the releases page for this
+card:
+
+```yaml
+  - type: custom:frigate-card-menu-icon
+    icon: mdi:book
+    tap_action:
+      action: url
+      url_path: https://github.com/dermotduffy/frigate-hass-card/releases
+```
+</details>
+
+#### Menu state icons
+
+You can add custom state icons to the menu to show the state of an entity and complete arbitrary actions.
+
+<details>
+  <summary>Expand: Custom menu state icon</summary>
+
+This example adds an icon that represents the state of the
+`light.office_main_lights` entity, that toggles the light on double click.
+
+```yaml
+elements:
+  - type: custom:frigate-card-menu-state-icon
+    entity: light.office_main_lights
+    tap_action:
+      action: toggle
+```
+</details>
+
+#### State badges
+
+You can adds a state badge to the card showing arbitrary entity states.
+
+<details>
+  <summary>Expand: State badge</summary>
+
+This example adds a state badge showing the temperature and hides the label text:
+
+```yaml
+  - type: state-badge
+    entity: sensor.kitchen_temperature
+    style:
+      right: '-20px'
+      top: 100px
+      color: rgba(0,0,0,0)
+      opacity: 0.5
+```
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/picture_elements_temperature.png" alt="Picture elements temperature example" width="400px">
+</details>
+
+#### Conditional menu icons
+
+You can have icons conditionally added to the menu based on entity state.
+
+<details>
+  <summary>Expand: Conditional menu icons</summary>
+
+This example only adds the light entity to the menu if a light is on.
+
+```yaml
+  - type: conditional
+    conditions:
+      - entity: light.kitchen
+        state: 'on'
+    elements:
+      - type: custom:frigate-card-menu-state-icon
+        entity: light.kitchen
+        tap_action:
+          action: toggle
+```
+</details>
+
+<a name="frigate-card-conditional-example"></a>
+
+#### Restricting icons to certain views
+
+You can restrict icons to only show for certain [views](#views) using a
+`custom:frigate-card-conditional` element (e.g. PTZ controls)
+
+<details>
+  <summary>Expand: View-based conditions (e.g. PTZ controls)</summary>
+
+This example shows PTZ icons that call a PTZ service, but only in the `live` view.
+
+```yaml
+elements:
+  - type: custom:frigate-card-conditional
+    conditions:
+      view:
+        - live
+    elements:
+      - type: icon
+        icon: mdi:arrow-up
+        style:
+          background: rgba(255, 255, 255, 0.25)
+          border-radius: 5px
+          right: 25px
+          bottom: 50px
+        tap_action:
+          action: call-service
+          service: amcrest.ptz_control
+          service_data:
+            entity_id: camera.kitchen
+            movement: up
+      - type: icon
+        icon: mdi:arrow-down
+        style:
+          background: rgba(255, 255, 255, 0.25)
+          border-radius: 5px
+          right: 25px
+          bottom: 0px
+        tap_action:
+          action: call-service
+          service: amcrest.ptz_control
+          service_data:
+            entity_id: camera.kitchen
+            movement: down
+      - type: icon
+        icon: mdi:arrow-left
+        style:
+          background: rgba(255, 255, 255, 0.25)
+          border-radius: 5px
+          right: 50px
+          bottom: 25px
+        tap_action:
+          action: call-service
+          service: amcrest.ptz_control
+          service_data:
+            entity_id: camera.kitchen
+            movement: left
+      - type: icon
+        icon: mdi:arrow-right
+        style:
+          background: rgba(255, 255, 255, 0.25)
+          border-radius: 5px
+          right: 0px
+          bottom: 25px
+        tap_action:
+          action: call-service
+          service: amcrest.ptz_control
+          service_data:
+            entity_id: camera.kitchen
+            movement: right
+```
+</details>
 
 <a name="views"></a>
 
@@ -235,18 +420,18 @@ This card supports several different views.
 ### Automatic updates in the `clip` or `snapshot` view
 
 Updates will occur whenever on every change of the state of the `camera_entity`
-or any entity configured under `entities`. In particular, if the desire is
+or any entity configured under `update_entities`. In particular, if the desire is
 to have an auto-refreshing view of the most recent event, the `camera_entity`
 will not be sufficient alone since the Home Assistant state for Frigate camera
 entities does not change often. Instead, use the Frigate binary_sensor for that
 camera (or any other entity at your discretion) to trigger the update:
 
 ```yaml
-entities:
-  - entity: binary_sensor.office_person_motion
+update_entities:
+  - binary_sensor.office_person_motion
 ```
 
-See [entities](#entities) above.
+See the [advanced options](#advanced-options) above.
 
 ### Getting from a snapshot to a clip
 

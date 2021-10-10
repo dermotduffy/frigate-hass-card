@@ -8,16 +8,14 @@ import type { ExtendedHomeAssistant, FrigateCardConfig } from '../types';
 
 import { localize } from '../localize/localize';
 import {
+  dispatchErrorMessageEvent,
   dispatchMediaLoadEvent,
+  dispatchMessageEvent,
   dispatchPauseEvent,
   dispatchPlayEvent,
   homeAssistantWSRequest,
 } from '../common';
-import {
-  renderMessage,
-  renderErrorMessage,
-  renderProgressIndicator,
-} from '../components/message';
+import { renderProgressIndicator } from '../components/message';
 
 import JSMpeg from '@cycjimmy/jsmpeg-player';
 
@@ -74,7 +72,11 @@ export class FrigateCardViewerFrigate extends LitElement {
 
   protected render(): TemplateResult | void {
     if (!(this.cameraEntity in this.hass.states)) {
-      return renderMessage(localize('error.no_live_camera'), 'mdi:camera-off');
+      return dispatchMessageEvent(
+        this,
+        localize('error.no_live_camera'),
+        'mdi:camera-off',
+      );
     }
     return html` <frigate-card-ha-camera-stream
       .hass=${this.hass}
@@ -120,7 +122,7 @@ export class FrigateCardViewerWebRTC extends LitElement {
       try {
         this._createWebRTC();
       } catch (e) {
-        return renderErrorMessage((e as Error).message);
+        return dispatchErrorMessageEvent(this, (e as Error).message);
       }
     }
     return html`${this._webRTCElement}`;
@@ -213,7 +215,7 @@ export class FrigateCardViewerJSMPEG extends LitElement {
     return html`${until(this._render(), renderProgressIndicator())}`;
   }
 
-  protected async _render(): Promise<TemplateResult> {
+  protected async _render(): Promise<TemplateResult | void> {
     if (!this._jsmpegCanvasElement) {
       this._jsmpegCanvasElement = document.createElement('canvas');
       this._jsmpegCanvasElement.className = 'media';
@@ -223,7 +225,10 @@ export class FrigateCardViewerJSMPEG extends LitElement {
       const jsmpeg_url = await this._getURL();
 
       if (!jsmpeg_url) {
-        return renderErrorMessage('Could not retrieve or sign JSMPEG websocket path');
+        return dispatchErrorMessageEvent(
+          this,
+          'Could not retrieve or sign JSMPEG websocket path',
+        );
       }
 
       let videoDecoded = false;

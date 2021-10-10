@@ -1,19 +1,26 @@
-import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
+import { HomeAssistant, hasAction, stateIcon } from 'custom-card-helpers';
+import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS, PropertyValues } from 'lit';
+import { actionHandler } from '../action-handler-directive';
 import { customElement, property } from 'lit/decorators';
 import { classMap } from 'lit/directives/class-map.js';
-
+import { styleMap } from 'lit/directives/style-map.js';
 import { MenuButton } from '../types';
-import type { FrigateMenuMode } from '../types';
+import type { ExtendedHomeAssistant, FrigateMenuMode } from '../types';
 
 import menuStyle from '../scss/menu.scss';
+import { HassEntity } from 'home-assistant-js-websocket';
+import { shouldUpdateBasedOnHass } from '../common';
 
-type FrigateCardMenuCallback = (name: string) => void;
+type FrigateCardMenuCallback = (name: string, button: MenuButton) => void;
 
 export const MENU_HEIGHT = 46;
 
 // A menu for the Frigate card.
 @customElement('frigate-card-menu')
 export class FrigateCardMenu extends LitElement {
+  @property({ attribute: false })
+  public hass!: HomeAssistant & ExtendedHomeAssistant;
+
   @property({ attribute: false })
   protected menuMode: FrigateMenuMode = 'hidden-top';
 
@@ -24,12 +31,22 @@ export class FrigateCardMenu extends LitElement {
   protected actionCallback: FrigateCardMenuCallback | null = null;
 
   @property({ attribute: false })
-  public buttons: Map<string, MenuButton> = new Map();
+  public buttons: MenuButton[] = [];
+
+  public addButton(button: MenuButton): void {
+    if (!this.buttons.includes(button)) {
+      this.buttons = [...this.buttons, button];
+    }
+  }
+
+  public removeButton(target: MenuButton): void {
+    this.buttons = this.buttons.filter(button => button != target);
+  }
 
   // Call the callback.
-  protected _callAction(name: string): void {
+  protected _callAction(ev: CustomEvent, button: MenuButton): void {
     if (this.menuMode.startsWith('hidden-')) {
-      if (name == 'frigate') {
+      if (button.type == 'internal-menu-icon' && button.card_action === 'frigate') {
         this.expand = !this.expand;
         return;
       }
@@ -38,42 +55,94 @@ export class FrigateCardMenu extends LitElement {
     }
 
     if (this.actionCallback) {
-      this.actionCallback(name);
+      this.actionCallback(ev.detail.action, button);
     }
   }
 
+  // Determine whether the menu should be updated.
+  protected shouldUpdate(changedProps: PropertyValues): boolean {
+    const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
+
+    if (changedProps.size > 1 || !oldHass) {
+      return true;
+    }
+
+    // Extract the entities the menu rendering depends on (if any).
+    const entities: string[] = []
+    for (let i = 0; i < this.buttons.length; i++) {
+      const button = this.buttons[i];
+      if (button.type == 'custom:frigate-card-menu-state-icon') {
+        entities.push(button.entity);
+      }
+    }
+    return shouldUpdateBasedOnHass(this.hass, oldHass, entities);
+  }
+
   // Render a menu button.
-  protected _renderButton(name: string, button: MenuButton): TemplateResult {
+  protected _renderButton(button: MenuButton): TemplateResult {
+    let state: HassEntity | null = null;
+    let emphasize = false;
+    let title = button.title;
+    let icon = button.icon;
+    const style = ('style' in button ? button.style : {}) || {};
+
+    if (button.type === 'custom:frigate-card-menu-state-icon') {
+      state = this.hass.states[button.entity];
+      emphasize =
+        !!state && button.state_color && ['on', 'active', 'home'].includes(state.state);
+      title = title ?? (state.attributes.friendly_name || button.entity);
+      icon = icon ?? stateIcon(state);
+    } else if (button.type === 'internal-menu-icon') {
+      emphasize = button.emphasize ?? false;
+    }
+
+    let hasHold = false;
+    let hasDoubleClick = false;
+
+    if (button.type != 'internal-menu-icon') {
+      hasHold = hasAction(button.hold_action);
+      hasDoubleClick = hasAction(button.double_tap_action);
+    }
+
     const classes = {
       button: true,
-      emphasize: button.emphasize ?? false,
+      emphasize: emphasize,
     };
 
     return html` <ha-icon-button
       class="${classMap(classes)}"
-      icon=${button.icon || 'mdi:gesture-tap-button'}
-      title=${button.description}
-      @click=${() => this._callAction(name)}
+      style="${styleMap(style)}"
+      icon=${icon || 'mdi:gesture-tap-button'}
+      title=${title || ''}
+      @action=${(ev) => this._callAction(ev, button)}
+      .actionHandler=${actionHandler({
+        hasHold: hasHold,
+        hasDoubleClick: hasDoubleClick,
+      })}
     ></ha-icon-button>`;
   }
 
   // Render the Frigate menu button.
-  protected _renderFrigateButton(name: string, button: MenuButton): TemplateResult {
+  protected _renderFrigateButton(button: MenuButton): TemplateResult {
     const icon =
       this.menuMode.startsWith('hidden-') && !this.expand
         ? 'mdi:alpha-f-box-outline'
         : 'mdi:alpha-f-box';
 
-    return this._renderButton(name, Object.assign({}, button, { icon: icon }));
+    return this._renderButton(Object.assign({}, button, { icon: icon }));
   }
 
   // Render the menu.
   protected render(): TemplateResult {
+    const isFrigateButton = function (button: MenuButton): boolean {
+      return button.type === 'internal-menu-icon' && button.card_action === 'frigate';
+    };
+
     // If the menu is off, or if it's in hidden mode but there's no button to
     // unhide it, just show nothing.
     if (
       this.menuMode == 'none' ||
-      (this.menuMode.startsWith('hidden-') && !this.buttons.get('frigate'))
+      (this.menuMode.startsWith('hidden-') && !this.buttons.find(isFrigateButton))
     ) {
       return html``;
     }
@@ -103,14 +172,10 @@ export class FrigateCardMenu extends LitElement {
 
     return html`
       <div class=${classMap(classes)}>
-        ${Array.from(this.buttons.keys()).map((name) => {
-          const button = this.buttons.get(name);
-          if (button) {
-            return name === 'frigate'
-              ? this._renderFrigateButton(name, button)
-              : this._renderButton(name, button);
-          }
-          return html``;
+        ${Array.from(this.buttons).map((button) => {
+          return isFrigateButton(button)
+            ? this._renderFrigateButton(button)
+            : this._renderButton(button);
         })}
       </div>
     `;

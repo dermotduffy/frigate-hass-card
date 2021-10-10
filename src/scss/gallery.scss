@@ -1,6 +1,17 @@
 @use "@material/image-list/mdc-image-list";
 @use "@material/image-list";
 
+:host {
+  overflow: auto;
+  -ms-overflow-style: none; /* Hide scrollbar: IE and Edge */
+  scrollbar-width: none;    /* Hide scrollbar: Firefox */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+:host::-webkit-scrollbar {
+  display: none;
+}
+
 .frigate-card-gallery {
   // Note: In fullscreen, number of columns is overwritten in Javascript based
   // on dimensions.

@@ -3,6 +3,8 @@ import { customElement, property } from 'lit/decorators';
 
 import { localize } from '../localize/localize';
 
+import { Message } from '../types';
+
 import messageStyle from '../scss/message.scss';
 
 const URL_TROUBLESHOOTING =
@@ -14,14 +16,17 @@ export class FrigateCardMessage extends LitElement {
   protected message = '';
 
   @property({ attribute: false })
-  protected icon = 'mdi:information-outline';
+  protected icon?;
 
   // Render the menu.
   protected render(): TemplateResult {
+    const icon = this.icon ? this.icon : 'mdi:information-outline';
     return html` <div class="message">
       <span>
-        <ha-icon icon="${this.icon}"> </ha-icon>
-        ${this.message ? html`&nbsp;${this.message}` : ''}
+        <ha-icon icon="${icon}"> </ha-icon>
+      </span>
+      <span>
+        ${this.message ? html`${this.message}` : ''}
       </span>
     </div>`;
   }
@@ -39,7 +44,7 @@ export class FrigateCardErrorMessage extends LitElement {
   protected render(): TemplateResult {
     return html` <frigate-card-message
       .message=${html` ${this.error}.
-        <a href="${URL_TROUBLESHOOTING}"> ${localize('error.troubleshooting')} </a>.`}
+        <a href="${URL_TROUBLESHOOTING}"> ${localize('error.troubleshooting')}</a>.`}
       .icon=${'mdi:alert-circle'}
     >
     </frigate-card-message>`;
@@ -59,16 +64,18 @@ export class FrigateCardProgressIndicator extends LitElement {
   }
 }
 
-export function renderErrorMessage(error: string): TemplateResult {
-  return html`
-    <frigate-card-error-message .error=${error}></frigate-card-error-message>
-  `;
-}
-
-export function renderMessage(message: string, icon: string): TemplateResult {
-  return html`
-    <frigate-card-message .message=${message} .icon=${icon}></frigate-card-message>
-  `;
+export function renderMessage(message: Message): TemplateResult {
+  if (message.type == 'error') {
+    return html` <frigate-card-error-message
+      .error=${message.message}
+    ></frigate-card-error-message>`;
+  } else if (message.type == 'info') {
+    return html` <frigate-card-message
+      .message=${message.message}
+      .icon=${message.icon}
+    ></frigate-card-message>`;
+  }
+  return html``;
 }
 
 export function renderProgressIndicator(): TemplateResult {

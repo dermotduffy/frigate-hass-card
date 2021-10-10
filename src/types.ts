@@ -1,4 +1,12 @@
-import { LovelaceCard, LovelaceCardEditor } from 'custom-card-helpers';
+import {
+  CallServiceActionConfig,
+  LovelaceCard,
+  LovelaceCardEditor,
+  MoreInfoActionConfig,
+  NavigateActionConfig,
+  ToggleActionConfig,
+  UrlActionConfig,
+} from 'custom-card-helpers';
 import { z } from 'zod';
 
 declare global {
@@ -46,6 +54,195 @@ export type NextPreviousControlStyle = typeof NEXT_PREVIOUS_CONTROL_STYLES[numbe
 export const LIVE_PROVIDERS = ['frigate', 'frigate-jsmpeg', 'webrtc'] as const;
 export type LiveProvider = typeof LIVE_PROVIDERS[number];
 
+/**
+ * Action Types (for "Picture Elements" / Menu)
+ */
+
+// Declare schemas to existing types:
+// - https://github.com/colinhacks/zod/issues/372#issuecomment-826380330
+const schemaForType =
+  <T>() =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  <S extends z.ZodType<T, any, any>>(arg: S) => {
+    return arg;
+  };
+const toggleActionSchema = schemaForType<ToggleActionConfig>()(
+  z.object({
+    action: z.literal('toggle'),
+  }),
+);
+const callServiceActionSchema = schemaForType<CallServiceActionConfig>()(
+  z.object({
+    action: z.literal('call-service'),
+    service: z.string(),
+    service_data: z.object({}).passthrough().optional(),
+  }),
+);
+const navigateActionSchema = schemaForType<NavigateActionConfig>()(
+  z.object({
+    action: z.literal('navigate'),
+    navigation_path: z.string(),
+  }),
+);
+const urlActionSchema = schemaForType<UrlActionConfig>()(
+  z.object({
+    action: z.literal('url'),
+    url_path: z.string(),
+  }),
+);
+const moreInfoActionSchema = schemaForType<MoreInfoActionConfig>()(
+  z.object({
+    action: z.literal('more-info'),
+  }),
+);
+const elementsActionSchema = z.union([
+  toggleActionSchema,
+  callServiceActionSchema,
+  navigateActionSchema,
+  urlActionSchema,
+  moreInfoActionSchema,
+]);
+export type ElementsActionType = z.infer<typeof elementsActionSchema>;
+
+const elementsBaseSchema = z.object({
+  style: z.object({}).passthrough().optional(),
+  title: z.string().nullable().optional(),
+  tap_action: elementsActionSchema.optional(),
+  hold_action: elementsActionSchema.optional(),
+  double_tap_action: elementsActionSchema.optional(),
+});
+
+/**
+ * Picture Element Types
+ * 
+ * All picture element types are validated (not just the Frigate card custom
+ * ones) as a convenience to present the user with a consistent error display
+ * up-front regardless of where they made their error.
+ */
+
+// https://www.home-assistant.io/lovelace/picture-elements/#state-badge
+const stateBadgeIconSchema = elementsBaseSchema.merge(
+  z.object({
+    type: z.literal('state-badge'),
+    entity: z.string(),
+  }));
+
+// https://www.home-assistant.io/lovelace/picture-elements/#state-icon
+const stateIconSchema = elementsBaseSchema.merge(
+  z.object({
+    type: z.literal('state-icon'),
+    entity: z.string(),
+    icon: z.string().optional(),
+    state_color: z.boolean().default(true),
+  }));
+
+// https://www.home-assistant.io/lovelace/picture-elements/#state-label
+const stateLabelSchema = elementsBaseSchema.merge(
+  z.object({
+    type: z.literal('state-label'),
+    entity: z.string(),
+    attribute: z.string().optional(),
+    prefix: z.string().optional(),
+    suffix: z.string().optional(),
+  }));
+
+// https://www.home-assistant.io/lovelace/picture-elements/#service-call-button
+const serviceCallButtonSchema = 
+  elementsBaseSchema.merge(z
+    .object({
+      type: z.literal('service-button'),
+      // Title is required for service button.
+      title: z.string(),  
+      service: z.string(),
+      service_data: z.object({}).passthrough().optional(),
+    })
+  )
+
+// https://www.home-assistant.io/lovelace/picture-elements/#icon
+const iconSchema = elementsBaseSchema.merge(
+  z.object({
+    type: z.literal('icon'),
+    icon: z.string(),
+    entity: z.string().optional(),
+  }));
+
+// https://www.home-assistant.io/lovelace/picture-elements/#image-element
+const imageSchema = elementsBaseSchema.merge(
+  z.object({
+    type: z.literal('image'),
+    entity: z.string().optional(),
+    image: z.string().optional(),
+    camera_image: z.string().optional(),
+    camera_view: z.string().optional(),
+    state_image: z.object({}).passthrough().optional(),
+    filter: z.string().optional(),
+    state_filter: z.object({}).passthrough().optional(),
+    aspect_ratio: z.string().optional(),
+}));
+
+// https://www.home-assistant.io/lovelace/picture-elements/#image-element
+const conditionalSchema = z.object({
+    type: z.literal('conditional'),
+    conditions: z.object({
+      entity: z.string(),
+      state: z.string().optional(),
+      state_not: z.string().optional(),
+    }).array(),
+    elements: z.lazy(() => pictureElementsSchema),
+  });
+
+// https://www.home-assistant.io/lovelace/picture-elements/#custom-elements
+const customSchema = z.object({
+    // Insist that Frigate card custom elements are handled by other schemas.
+    type: z.string().regex(/^custom:(?!frigate-card).+/),
+  }).passthrough();
+
+/**
+ * Custom Element Types
+ */
+
+export const menuIconSchema = iconSchema.merge(
+  z.object({
+    type: z.literal('custom:frigate-card-menu-icon'),
+  }));
+export type MenuIcon = z.infer<typeof menuIconSchema>;
+
+export const menuStateIconSchema = stateIconSchema.merge(
+  z.object({
+    type: z.literal('custom:frigate-card-menu-state-icon'),
+  }));
+export type MenuStateIcon = z.infer<typeof menuStateIconSchema>;
+
+const frigateConditionalSchema = z.object({
+  type: z.literal('custom:frigate-card-conditional'),
+  conditions: z.object({
+    view: z.string().array().optional(),
+  }),
+  elements: z.lazy(() => pictureElementsSchema),
+});
+export type FrigateConditional = z.infer<typeof frigateConditionalSchema>;
+
+
+// 'internalMenuIconSchema' is excluded to disallow the user from manually
+// changing the internal menu buttons.
+const pictureElementSchema = z.union([
+  menuStateIconSchema,
+  menuIconSchema,
+  frigateConditionalSchema,
+  stateBadgeIconSchema,
+  stateIconSchema,
+  stateLabelSchema,
+  serviceCallButtonSchema,
+  iconSchema,
+  imageSchema,
+  conditionalSchema,
+  customSchema,
+]);
+export type PictureElement = z.infer<typeof pictureElementSchema>;
+
+const pictureElementsSchema = pictureElementSchema.array().optional();
+export type PictureElements = z.infer<typeof pictureElementsSchema>;
+
 export const frigateCardConfigSchema = z.object({
   camera_entity: z.string(),
   // No URL validation to allow relative URLs within HA (e.g. addons).
@@ -85,14 +282,8 @@ export const frigateCardConfigSchema = z.object({
       fullscreen: z.boolean().default(true),
     })
     .optional(),
-  entities: z
-    .object({
-      entity: z.string(),
-      show: z.boolean().default(true),
-      icon: z.string().optional(),
-    })
-    .array()
-    .optional(),
+  update_entities: z.string().array().optional(),
+  elements: pictureElementsSchema,
   controls: z
     .object({
       nextprev: z.enum(NEXT_PREVIOUS_CONTROL_STYLES).default('thumbnails'),
@@ -125,12 +316,22 @@ export const frigateCardConfigSchema = z.object({
 });
 export type FrigateCardConfig = z.infer<typeof frigateCardConfigSchema>;
 
-export interface MenuButton {
-  icon?: string;
-  description: string;
-  emphasize?: boolean;
-}
+// Schema for card (non-user configured) menu icons.
+const internalMenuIconSchema = z
+  .object({
+    type: z.literal('internal-menu-icon'),
+    title: z.string(),
+    icon: z.string().optional(),
+    emphasize: z.boolean().default(false).optional(),
+    card_action: z.string(),
+  });
 
+const menuButtonSchema = z.union([
+  menuIconSchema,
+  menuStateIconSchema,
+  internalMenuIconSchema,
+]);
+export type MenuButton = z.infer<typeof menuButtonSchema>;
 export interface ExtendedHomeAssistant {
   hassUrl(path?): string;
 }
@@ -156,6 +357,12 @@ export interface BrowseMediaNeighbors {
 export interface MediaLoadInfo {
   width: number;
   height: number;
+}
+
+export interface Message {
+  message: string;
+  type: 'error' | 'info';
+  icon?: string;
 }
 
 /**

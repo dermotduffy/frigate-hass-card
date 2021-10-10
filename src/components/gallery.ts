@@ -11,9 +11,15 @@ import type {
 } from '../types';
 
 import { View } from '../view';
-import { browseMedia, browseMediaQuery, getFirstTrueMediaChildIndex } from '../common';
+import {
+  browseMedia,
+  browseMediaQuery,
+  dispatchErrorMessageEvent,
+  dispatchMessageEvent,
+  getFirstTrueMediaChildIndex,
+} from '../common';
 import { localize } from '../localize/localize';
-import { renderMessage, renderErrorMessage, renderProgressIndicator } from './message';
+import { renderProgressIndicator } from './message';
 
 import galleryStyle from '../scss/gallery.scss';
 import { styleMap } from 'lit/directives/style-map.js';
@@ -65,7 +71,7 @@ export class FrigateCardGallery extends LitElement {
     return html`${until(this._render(), renderProgressIndicator())}`;
   }
 
-  protected async _render(): Promise<TemplateResult> {
+  protected async _render(): Promise<TemplateResult | void> {
     let parent: BrowseMediaSource | null;
     try {
       if (this.view.target) {
@@ -74,11 +80,12 @@ export class FrigateCardGallery extends LitElement {
         parent = await browseMediaQuery(this.hass, this.browseMediaQueryParameters);
       }
     } catch (e: any) {
-      return renderErrorMessage(e.message);
+      return dispatchErrorMessageEvent(this, e.message);
     }
 
     if (!parent || !parent.children || getFirstTrueMediaChildIndex(parent) == null) {
-      return renderMessage(
+      return dispatchMessageEvent(
+        this,
         this._getMediaType() == 'clips'
           ? localize('common.no_clips')
           : localize('common.no_snapshots'),
