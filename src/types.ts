@@ -181,8 +181,7 @@ const imageSchema = elementsBaseSchema.merge(
 }));
 
 // https://www.home-assistant.io/lovelace/picture-elements/#image-element
-const conditionalSchema = elementsBaseSchema.merge(
-  z.object({
+const conditionalSchema = z.object({
     type: z.literal('conditional'),
     conditions: z.object({
       entity: z.string(),
@@ -190,7 +189,7 @@ const conditionalSchema = elementsBaseSchema.merge(
       state_not: z.string().optional(),
     }).array(),
     elements: z.lazy(() => pictureElementsSchema),
-  }));
+  });
 
 // https://www.home-assistant.io/lovelace/picture-elements/#custom-elements
 const customSchema = z.object({
@@ -199,7 +198,7 @@ const customSchema = z.object({
   }).passthrough();
 
 /**
- * Menu Element Types
+ * Custom Element Types
  */
 
 export const menuIconSchema = iconSchema.merge(
@@ -214,28 +213,22 @@ export const menuStateIconSchema = stateIconSchema.merge(
   }));
 export type MenuStateIcon = z.infer<typeof menuStateIconSchema>;
 
-// Schema for card (non-user configured) menu icons.
-const internalMenuIconSchema = z
-  .object({
-    type: z.literal('internal-menu-icon'),
-    title: z.string(),
-    icon: z.string().optional(),
-    emphasize: z.boolean().default(false).optional(),
-    card_action: z.string(),
-  });
+const frigateConditionalSchema = z.object({
+  type: z.literal('custom:frigate-card-conditional'),
+  conditions: z.object({
+    view: z.string().array().optional(),
+  }),
+  elements: z.lazy(() => pictureElementsSchema),
+});
+export type FrigateConditional = z.infer<typeof frigateConditionalSchema>;
 
-const menuButtonSchema = z.union([
-  menuIconSchema,
-  menuStateIconSchema,
-  internalMenuIconSchema,
-]);
-export type MenuButton = z.infer<typeof menuButtonSchema>;
 
 // 'internalMenuIconSchema' is excluded to disallow the user from manually
 // changing the internal menu buttons.
 const pictureElementSchema = z.union([
   menuStateIconSchema,
   menuIconSchema,
+  frigateConditionalSchema,
   stateBadgeIconSchema,
   stateIconSchema,
   stateLabelSchema,
@@ -323,6 +316,22 @@ export const frigateCardConfigSchema = z.object({
 });
 export type FrigateCardConfig = z.infer<typeof frigateCardConfigSchema>;
 
+// Schema for card (non-user configured) menu icons.
+const internalMenuIconSchema = z
+  .object({
+    type: z.literal('internal-menu-icon'),
+    title: z.string(),
+    icon: z.string().optional(),
+    emphasize: z.boolean().default(false).optional(),
+    card_action: z.string(),
+  });
+
+const menuButtonSchema = z.union([
+  menuIconSchema,
+  menuStateIconSchema,
+  internalMenuIconSchema,
+]);
+export type MenuButton = z.infer<typeof menuButtonSchema>;
 export interface ExtendedHomeAssistant {
   hassUrl(path?): string;
 }

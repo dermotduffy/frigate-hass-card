@@ -19,11 +19,7 @@ import {
 } from 'custom-card-helpers';
 import screenfull from 'screenfull';
 
-import {
-  entitySchema,
-  frigateCardConfigSchema,
-  Message,
-} from './types';
+import { entitySchema, frigateCardConfigSchema, Message } from './types';
 import type {
   BrowseMediaQueryParameters,
   Entity,
@@ -280,6 +276,8 @@ export class FrigateCard extends LitElement {
   }
 
   protected _changeView(view?: View | undefined): void {
+    this._message = null;
+
     if (view === undefined) {
       this._view = new View({ view: this.config.view_default });
     } else {
@@ -412,8 +410,8 @@ export class FrigateCard extends LitElement {
   }
 
   protected _setMessageAndUpdate(message: Message): void {
-    // Only register the first message.
-    if (!this._message) {
+    // Register the first message, or prioritize errors if there's pre-render competition.
+    if (!this._message || (message.type == 'error' && this._message.type != 'error')) {
       this._message = message;
       this.requestUpdate();
     }
@@ -421,15 +419,6 @@ export class FrigateCard extends LitElement {
 
   protected _messageHandler(e: CustomEvent<Message>): void {
     return this._setMessageAndUpdate(e.detail);
-  }
-
-  protected _renderAndResetMessage(): TemplateResult | void {
-    if (this._message) {
-      const message = this._message;
-      this._message = null;
-      return renderMessage(message);
-    }
-    return html``;
   }
 
   protected _mediaLoadHandler(e: CustomEvent<MediaLoadInfo>): void {
@@ -556,7 +545,7 @@ export class FrigateCard extends LitElement {
       <div class="container outer" style="${styleMap(outerStyle)}">
         <div class="${classMap(contentClasses)}" style="${styleMap(innerStyle)}">
           ${this._message
-            ? this._renderAndResetMessage()
+            ? renderMessage(this._message)
             : until(this._render(), renderProgressIndicator())}
         </div>
       </div>
@@ -624,13 +613,16 @@ export class FrigateCard extends LitElement {
           : ``}
         <frigate-card-elements
           .hass=${this._hass}
-          .pictureElements=${this.config.elements}
+          .elements=${this.config.elements}
           @frigate-card:message=${this._messageHandler}
           @frigate-card:menu-add=${(e) => {
             this._menu.addButton(e.detail);
           }}
           @frigate-card:menu-remove=${(e) => {
             this._menu.removeButton(e.detail);
+          }}
+          @frigate-card:state-request=${(e) => {
+            e.view = this._view;
           }}
         >
         </frigate-card-elements>

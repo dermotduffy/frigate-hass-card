@@ -207,39 +207,55 @@ entities:
     show: false
 ```
 
-### Picture Elements / Menu customizations
+## Picture Elements / Menu customizations
 
 This card supports the [Picture Elements configuration
 syntax](https://www.home-assistant.io/lovelace/picture-elements/) to seamlessly
 allow the user to add custom elements to the card, which may be configured to
 perform a variety of actions on `tap`, `double_tap` and `hold`.
 
-In the card YAML configuration, elements may be manually added under an `elements` key.
+In the card YAML configuration, elements may be manually added under an
+`elements` key.
 
-#### Special Elements
+See the [action
+documentation](https://www.home-assistant.io/lovelace/actions/#hold-action) for
+more information on the action options available.
 
-This card supports all [Picture Elements](https://www.home-assistant.io/lovelace/picture-elements/#icon-element) using the same syntax. The card also supports two special elements to add plain icons and state-based icons to the Frigate card menu.
+### Special Elements
+
+This card supports all [Picture Elements](https://www.home-assistant.io/lovelace/picture-elements/#icon-element) using the same syntax. The card also supports a handful of custom special elements to add special Frigate card functionality.
 
 | Element name | Description                                         |
 | ------------- | --------------------------------------------- |
-| `custom:frigate-card-menu-icon` | Add an arbitrary icon to the Frigate Card menu. Configuration is ~identical to that of the [Picture elements icon](https://www.home-assistant.io/lovelace/picture-elements/#icon-element).|
-| `custom:frigate-card-menu-state-icon` | Add a state icon to the Frigate Card menu that represents the state of a Home Assistant entity. Configuration is ~identical to that of the [Picture elements state icon](https://www.home-assistant.io/lovelace/picture-elements/#state-icon).|
+| `custom:frigate-card-menu-icon` | Add an arbitrary icon to the Frigate Card menu. Configuration is ~identical to that of the [Picture Elements Icon](https://www.home-assistant.io/lovelace/picture-elements/#icon-element) except with a type name of `custom:frigate-card-menu-icon`.|
+| `custom:frigate-card-menu-state-icon` | Add a state icon to the Frigate Card menu that represents the state of a Home Assistant entity. Configuration is ~identical to that of the [Picture Elements State Icon](https://www.home-assistant.io/lovelace/picture-elements/#state-icon) except with a type name of `custom:frigate-card-menu-state-icon`.|
+| `custom:frigate-card-conditional` | Restrict a set of elements to only render when the card is showing particular a particular [view](#views). See [configuration below](#frigate-card-conditional).|
 
-See the [action documentation](https://www.home-assistant.io/lovelace/actions/#hold-action) for more information on the action options available.
+<a name="frigate-card-conditional"></a>
 
-#### Elements Examples
+### `custom:frigate-card-conditional`
 
-Add an icon that represents the state of the `light.office_main_lights` entity, that shows more information on single click (the default action) and toggles the light on double click.
+Parameters for the `custom:frigate-card-conditional` element:
 
-```yaml
-elements:
-  - type: custom:frigate-card-menu-state-icon
-    entity: light.office_main_lights
-    double_tap_action:
-      action: toggle
-```
+| Parameter | Description |
+| ------------- | --------------------------------------------- |
+| `type` | Must be `custom:frigate-card-conditional`. |
+| `conditions` | A set of conditions that must evaluate to true in order for the elements to be rendered. |
+| `conditions.view` | A list of [views](#views) in which these elements should be rendered. |
+| `elements` | The elements to render. Can be any supported element, include additional condition or custom elements. |
 
-Add an icon that navigates the brower to the releases page for this card:
+See the [PTZ example below](#frigate-card-conditional-example) for a real-world example.
+### Elements Examples
+
+#### Menu icons
+
+You can add custom icons to the menu with arbitrary actions.
+
+<details>
+  <summary>Expand: Custom menu icon</summary>
+
+This example adds an icon that navigates the brower to the releases page for this
+card:
 
 ```yaml
   - type: custom:frigate-card-menu-icon
@@ -248,8 +264,35 @@ Add an icon that navigates the brower to the releases page for this card:
       action: url
       url_path: https://github.com/dermotduffy/frigate-hass-card/releases
 ```
+</details>
 
-Add a state badge showing the temperature but hide the label text:
+#### Menu state icons
+
+You can add custom state icons to the menu to show the state of an entity and complete arbitrary actions.
+
+<details>
+  <summary>Expand: Custom menu state icon</summary>
+
+This example adds an icon that represents the state of the
+`light.office_main_lights` entity, that toggles the light on double click.
+
+```yaml
+elements:
+  - type: custom:frigate-card-menu-state-icon
+    entity: light.office_main_lights
+    tap_action:
+      action: toggle
+```
+</details>
+
+#### State badges
+
+You can adds a state badge to the card showing arbitrary entity states.
+
+<details>
+  <summary>Expand: State badge</summary>
+
+This example adds a state badge showing the temperature and hides the label text:
 
 ```yaml
   - type: state-badge
@@ -262,8 +305,16 @@ Add a state badge showing the temperature but hide the label text:
 ```
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/picture_elements_temperature.png" alt="Picture elements temperature example" width="400px">
+</details>
 
-You can also have icons conditionally added to the menu, such as only showing a menu icon if a light is on:
+#### Conditional menu icons
+
+You can have icons conditionally added to the menu based on entity state.
+
+<details>
+  <summary>Expand: Conditional menu icons</summary>
+
+This example only adds the light entity to the menu if a light is on.
 
 ```yaml
   - type: conditional
@@ -276,6 +327,81 @@ You can also have icons conditionally added to the menu, such as only showing a 
         tap_action:
           action: toggle
 ```
+</details>
+
+<a name="frigate-card-conditional-example"></a>
+
+#### Restricting icons to certain views
+
+You can restrict icons to only show for certain [views](#views) using a
+`custom:frigate-card-conditional` element (e.g. PTZ controls)
+
+<details>
+  <summary>Expand: View-based conditions (e.g. PTZ controls)</summary>
+
+This example shows PTZ icons that call a PTZ service, but only in the `live` view.
+
+```yaml
+elements:
+  - type: custom:frigate-card-conditional
+    conditions:
+      view:
+        - live
+    elements:
+      - type: icon
+        icon: mdi:arrow-up
+        style:
+          background: rgba(255, 255, 255, 0.25)
+          border-radius: 5px
+          right: 25px
+          bottom: 50px
+        tap_action:
+          action: call-service
+          service: amcrest.ptz_control
+          service_data:
+            entity_id: camera.kitchen
+            movement: up
+      - type: icon
+        icon: mdi:arrow-down
+        style:
+          background: rgba(255, 255, 255, 0.25)
+          border-radius: 5px
+          right: 25px
+          bottom: 0px
+        tap_action:
+          action: call-service
+          service: amcrest.ptz_control
+          service_data:
+            entity_id: camera.kitchen
+            movement: down
+      - type: icon
+        icon: mdi:arrow-left
+        style:
+          background: rgba(255, 255, 255, 0.25)
+          border-radius: 5px
+          right: 50px
+          bottom: 25px
+        tap_action:
+          action: call-service
+          service: amcrest.ptz_control
+          service_data:
+            entity_id: camera.kitchen
+            movement: left
+      - type: icon
+        icon: mdi:arrow-right
+        style:
+          background: rgba(255, 255, 255, 0.25)
+          border-radius: 5px
+          right: 0px
+          bottom: 25px
+        tap_action:
+          action: call-service
+          service: amcrest.ptz_control
+          service_data:
+            entity_id: camera.kitchen
+            movement: right
+```
+</details>
 
 <a name="views"></a>
 

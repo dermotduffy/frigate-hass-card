@@ -24,7 +24,9 @@ export class FrigateCardMessage extends LitElement {
     return html` <div class="message">
       <span>
         <ha-icon icon="${icon}"> </ha-icon>
-        ${this.message ? html`&nbsp;${this.message}` : ''}
+      </span>
+      <span>
+        ${this.message ? html`${this.message}` : ''}
       </span>
     </div>`;
   }
@@ -42,7 +44,7 @@ export class FrigateCardErrorMessage extends LitElement {
   protected render(): TemplateResult {
     return html` <frigate-card-message
       .message=${html` ${this.error}.
-        <a href="${URL_TROUBLESHOOTING}"> ${localize('error.troubleshooting')} </a>.`}
+        <a href="${URL_TROUBLESHOOTING}"> ${localize('error.troubleshooting')}</a>.`}
       .icon=${'mdi:alert-circle'}
     >
     </frigate-card-message>`;

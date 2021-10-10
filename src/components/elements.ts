@@ -1,21 +1,27 @@
 import { LitElement, TemplateResult, html, CSSResultGroup, unsafeCSS } from 'lit';
 import { HomeAssistant } from 'custom-card-helpers';
-import { customElement, property } from 'lit/decorators';
+import { customElement, property, query } from 'lit/decorators';
 
-import { ExtendedHomeAssistant, MenuButton, MenuIcon, MenuStateIcon, menuStateIconSchema, PictureElements } from '../types';
-import { menuIconSchema } from '../types'
-import { dispatchErrorMessageEvent, dispatchEvent, getParseErrorKeys } from '../common';
+import {
+  ExtendedHomeAssistant,
+  FrigateConditional,
+  MenuButton,
+  MenuIcon,
+  MenuStateIcon,
+  PictureElements,
+} from '../types';
+import { dispatchErrorMessageEvent, dispatchEvent } from '../common';
 
 import elementsStyle from '../scss/elements.scss';
 import { localize } from '../localize/localize';
-import { z } from 'zod';
+import { View } from '../view';
 
 /* A note on picture element rendering:
  *
  * To avoid needing to deal with the rendering of all the picture elements
  * ourselves, instead the card relies on a stock conditional element (with no
  * conditions) to render elements (this._root). This has a few advantages:
- * 
+ *
  * - Does not depend on (much of!) an internal API -- conditional picture
  *   elements are unlikely to go away or change.
  * - Forces usage of elements that HA understands. If the rendering is done
@@ -30,7 +36,7 @@ import { z } from 'zod';
  * menu-state-icon elements. This ensures multi-nested conditionals will work
  * correctly. These custom elements 'render' by firing events that are caught by
  * the card to call for inclusion/exclusion of the menu icon in question.
- * 
+ *
  * One major complexity here is that the top <frigate-card-elements> element
  * will not necessarily know when a menu icon is no longer rendered because of a
  * conditional that no-longer evaluates to true. As such, it cannot know when to
@@ -43,18 +49,78 @@ import { z } from 'zod';
  * upper layers to handle correctly.
  */
 
-
-@customElement('frigate-card-elements')
-export class FrigateCardElements extends LitElement {
+// A small wrapper around a HA conditional element used to render a set of
+// picture elements.
+@customElement('frigate-card-elements-core')
+class FrigateCardElementsCore extends LitElement {
   @property({ attribute: false })
-  protected pictureElements: PictureElements;
+  protected elements: PictureElements;
 
-  protected _hass!: HomeAssistant & ExtendedHomeAssistant;
   protected _root: HTMLElement | null = null;
+  protected _hass!: HomeAssistant & ExtendedHomeAssistant;
 
   set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
     if (this._root) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (this._root as any).hass = hass;
+    }
+    this._hass = hass;
+  }
+
+  // Transparent to elements.
+  createRenderRoot(): LitElement {
+    return this;
+  }
+
+  protected _createRoot(): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const elementConstructor = customElements.get('hui-conditional-element') as any;
+    if (!elementConstructor) {
+      throw new Error(localize('error.could_not_render_elements'));
+    }
+
+    const element = new elementConstructor();
+    element.hass = this._hass;
+    const config = {
+      type: 'conditional',
+      conditions: [],
+      elements: this.elements,
+    };
+    try {
+      element.setConfig(config);
+    } catch (e) {
+      console.error(e, (e as Error).stack);
+      throw new Error(localize('error.invalid_elements_config'));
+    }
+    this._root = element;
+  }
+
+  protected render(): TemplateResult | void {
+    if (!this._root) {
+      try {
+        this._createRoot();
+      } catch (e) {
+        return dispatchErrorMessageEvent(this, (e as Error).message);
+      }
+    }
+    return html`${this._root || ''}`;
+  }
+}
+
+// THe master <frigate-card-elements> class, handles event listeners and styles.
+@customElement('frigate-card-elements')
+export class FrigateCardElements extends LitElement {
+  @property({ attribute: false })
+  protected elements: PictureElements;
+
+  protected _hass!: HomeAssistant & ExtendedHomeAssistant;
+
+  @query('frigate-card-elements-core')
+  _core!: FrigateCardElementsCore;
+
+  set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
+    if (this._core) {
+      this._core.hass = hass;
     }
     this._hass = hass;
   }
@@ -67,7 +133,7 @@ export class FrigateCardElements extends LitElement {
 
   protected _menuAddHandler(ev: Event): void {
     ev = ev as CustomEvent<MenuButton>;
-    const path = ev.composedPath()
+    const path = ev.composedPath();
     if (!path.length) {
       return;
     }
@@ -77,11 +143,13 @@ export class FrigateCardElements extends LitElement {
     // Ensure listener is only attached 1 time by removing it first.
     path[0].removeEventListener(
       'frigate-card:menu-remove',
-      this._menuRemoveHandler.bind(this));
+      this._menuRemoveHandler.bind(this),
+    );
 
     path[0].addEventListener(
       'frigate-card:menu-remove',
-      this._menuRemoveHandler.bind(this));
+      this._menuRemoveHandler.bind(this),
+    );
   }
 
   connectedCallback(): void {
@@ -89,49 +157,20 @@ export class FrigateCardElements extends LitElement {
 
     // Catch icons being added to the menu (so their removal can be subsequently
     // handled).
-    this.addEventListener(
-      'frigate-card:menu-add',
-      this._menuAddHandler,
-    );
-
-    if (!this._root) {
-      this._createRoot();
-    }
+    this.addEventListener('frigate-card:menu-add', this._menuAddHandler);
   }
 
   disconnectedCallback(): void {
-    this.removeEventListener(
-      'frigate-card:menu-add',
-      this._menuAddHandler,
-    );
+    this.removeEventListener('frigate-card:menu-add', this._menuAddHandler);
     super.disconnectedCallback();
   }
 
-  protected _createRoot(): void {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const elementConstructor = customElements.get('hui-conditional-element') as any;
-    if (!elementConstructor) {
-      return;
-    }
-
-    const element = new elementConstructor();
-    element.hass = this._hass;
-    const config = {
-      type: 'conditional',
-      conditions: [],
-      elements: this.pictureElements,
-    }
-    try {
-      element.setConfig(config);
-    } catch (e) {
-      console.error(e, (e as Error).stack);
-      return;
-    }
-    this._root = element;
-  }
-
   protected render(): TemplateResult {
-    return html`${this._root || ''}`;
+    return html` <frigate-card-elements-core
+      .hass=${this._hass}
+      .elements=${this.elements}
+    >
+    </frigate-card-elements-core>`;
   }
 
   static get styles(): CSSResultGroup {
@@ -139,6 +178,84 @@ export class FrigateCardElements extends LitElement {
   }
 }
 
+class StateRequestEvent extends Event {
+  public view: View | undefined;
+}
+
+// An element that can render others based on Frigate state (e.g. only show
+// overlays in particular views). This is the Frigate Card equivalent to the HA
+// conditional card.
+@customElement('frigate-card-conditional')
+export class FrigateCardElementsConditional extends LitElement {
+  protected _config: FrigateConditional | null = null;
+  protected _hass!: HomeAssistant & ExtendedHomeAssistant;
+
+  @query('frigate-card-elements-core')
+  _core!: FrigateCardElementsCore;
+
+  set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
+    if (this._core) {
+      this._core.hass = hass;
+    }
+    this._hass = hass;
+  }
+
+  public setConfig(config: FrigateConditional): void {
+    this._config = config;
+  }
+
+  // Transparent to elements.
+  createRenderRoot(): LitElement {
+    return this;
+  }
+
+  protected evaluate(stateEvent: StateRequestEvent): boolean {
+    if (stateEvent.view && this._config.conditions.view) {
+      return this._config.conditions.view.includes(stateEvent.view.view);
+    }
+    return true;
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+
+    // HA will automatically attach the 'element' class to picture elements. As
+    // this is a transparent 'conditional' element (just like the stock HA
+    // 'conditional' element), it should not have positioning.
+    this.className = '';
+  }
+
+  protected render(): TemplateResult | void {
+    const stateEvent = new StateRequestEvent(`frigate-card:state-request`, {
+      bubbles: true,
+      composed: true,
+    });
+
+    /* Special note on what's going on here:
+     *
+     * Picture elements all are descendents of <frigate-card-elements>, but
+     * there may be arbitrary complexity and layers (that this card doesn't
+     * control) between that master element and this custom conditional element.
+     * This element needs Frigate card state to function (e.g. view), but
+     * there's no clean way to pass state from the rest of card down through
+     * these layers. Instead, we dispatch a "request for state"
+     * (StateRequestEvent) event upwards which is caught by the outer card and
+     * state added to the event object. Because event propagation is handled
+     * synchronously, the state will be added to the event before the flow
+     * proceeds.
+     */
+    this.dispatchEvent(stateEvent);
+    if (this.evaluate(stateEvent)) {
+      return html` <frigate-card-elements-core
+        .hass=${this._hass}
+        .elements=${this._config.elements}
+      >
+      </frigate-card-elements-core>`;
+    }
+  }
+}
+
+// A base class for rendering menu icons / menu state icons.
 export class FrigateCardElementsBaseMenuIcon<T> extends LitElement {
   @property({ attribute: false })
   protected _config: T | null = null;
@@ -148,17 +265,17 @@ export class FrigateCardElementsBaseMenuIcon<T> extends LitElement {
   }
 
   connectedCallback(): void {
-    super.connectedCallback()
+    super.connectedCallback();
     if (this._config) {
-       dispatchEvent<T>(this, 'menu-add', this._config);
+      dispatchEvent<T>(this, 'menu-add', this._config);
     }
   }
 
   disconnectedCallback(): void {
     if (this._config) {
-       dispatchEvent<T>(this, 'menu-remove', this._config);
+      dispatchEvent<T>(this, 'menu-remove', this._config);
     }
-    super.disconnectedCallback()
+    super.disconnectedCallback();
   }
 }
 
