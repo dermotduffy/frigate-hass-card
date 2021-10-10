@@ -502,6 +502,12 @@ You must be using a version of the [Frigate integration](https://github.com/blak
 to use JSMPEG proxying. The `frigate-jsmpeg` live provider will not work with earlier
 integration versions.
 
+### Fullscreen button does not appear on iPhone
+
+Unfortunately, [iOS does not support the Javascript fullscreen
+API](https://caniuse.com/fullscreen). As a result, card-level fullscreen support
+for the iPhone is not currently possible.
+
 ### Failed to fetch
 
 **Note:** This error should no longer be possible >= v0.1.5 .
