@@ -250,6 +250,21 @@ export class FrigateCard extends LitElement {
     return null;
   }
 
+  protected _getParseErrorPathString(path: (string|number)[]): string {
+    let out = '';
+    for (let i = 0; i < path.length; i++) {
+      const item = path[i];
+      if (typeof item == 'number') {
+        out += '[' + item + ']';
+      } else if (out) {
+        out += " -> " + item;
+      } else {
+        out = item;
+      }
+    }
+    return out;
+  }
+
   // Set the object configuration.
   public setConfig(inputConfig: FrigateCardConfig): void {
     if (!inputConfig) {
@@ -258,8 +273,11 @@ export class FrigateCard extends LitElement {
 
     const parseResult = frigateCardConfigSchema.safeParse(inputConfig);
     if (!parseResult.success) {
-      const keys = getParseErrorKeys(parseResult.error);
-      throw new Error(localize('error.invalid_configuration') + ': ' + keys.join(', '));
+      let hint = '';
+      if (parseResult.error && parseResult.error.issues) {
+        hint = this._getParseErrorPathString(parseResult.error.issues[0].path);
+      }
+      throw new Error(localize('error.invalid_configuration') + (hint ? `: ${hint}` : ''));
     }
     const config = parseResult.data;
 
