@@ -142,7 +142,7 @@ dimensions:
 | ------------- | - | --------------------------------------------- |
 | `label` | | A label used to filter events (clips & snapshots), e.g. 'person'.|
 | `zone` | | A zone used to filter events (clips & snapshots), e.g. 'front_door'.|
-| `update_entities` | | A list of entity ids that should cause the card to re-render, this can be useful in the `clip` or `snapshot` mode to (for example) cause a motion sensor to trigger a card refresh. Configurable in YAML only. |
+| `update_entities` | | A list of entity ids that should cause the whole card to re-render, this can be useful in the `clip` or `snapshot` mode to (for example) cause a motion sensor to trigger a card refresh. Configurable in YAML only. Entities used in picture elements / included in the menu do not need to be explicitly included here to be kept updated. |
 
 <a name="webrtc"></a>
 
