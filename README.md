@@ -254,7 +254,7 @@ You can add custom icons to the menu with arbitrary actions.
 <details>
   <summary>Expand: Custom menu icon</summary>
 
-This example adds an icon that navigates the brower to the releases page for this
+This example adds an icon that navigates the browser to the releases page for this
 card:
 
 ```yaml
