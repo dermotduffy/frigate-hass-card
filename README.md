@@ -63,19 +63,19 @@ lovelace:
 
 ## Options
 
-### Required
+### Basic
 
 | Option           | Default | Description                                         |
 | ------------- | - | --------------------------------------------- |
-| `camera_entity` | | The Frigate camera entity to use in the live camera view.|
+| `camera_entity` | | The optional Frigate camera entity to use in the `frigate` live provider view. Also used to automatically detect the `frigate_camera_name`.|
+| `frigate_camera_name` | Autodetected from `camera_entity` if that is specified. | The Frigate camera name to use when communicating with the Frigate server, e.g. for viewing clips/snapshots or the JSMPEG live view. To view the birdseye view set this to `birdseye` and use the `frigate-jsmpeg` live provider.|
+| `view_default` | `live` | The view to show by default. See [views](#views) below.|
 
 ### Optional
 
 | Option           | Default | Description                                         |
 | ------------- | --------------------------------------------- | - |
-| `frigate_camera_name` | The Frigate camera name Home Assistant associates with that camera entity, if none then the string after the `camera.` in the `camera_entity` field. | This parameter allows the Frigate camera name to be overriden. This name is used for communicating with the Frigate backend, e.g. for fetching events. |
 | `live_provider` | `frigate` | The means through which the live camera view is displayed. See [Live Provider](#live-provider) below.|
-| `view_default` | `live` | The view to show by default. See [views](#views) below.|
 | `frigate_client_id` | `frigate` | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://blakeblackshear.github.io/frigate/usage/home-assistant/#multiple-instance-support).|
 | `view_timeout` | | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
 | `frigate_url` | | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. |
@@ -87,7 +87,7 @@ lovelace:
 |Live Provider|Latency|Frame Rate|Installation|Description|
 | -- | -- | -- | -- | -- |
 |`frigate`|High|High|Builtin|Use the built-in Home Assistant camera stream from Frigate (RTMP). The camera doesn't even need to be a Frigate camera! |
-|`frigate-jsmpeg`|Lower|Low|Builtin|Stream the JSMPEG stream from Frigate (proxied via the Frigate integration). See [note below on the required integration version](#jsmpeg-troubleshooting) for this live provider to function.|
+|`frigate-jsmpeg`|Lower|Low|Builtin|Stream the JSMPEG stream from Frigate (proxied via the Frigate integration). See [note below on the required integration version](#jsmpeg-troubleshooting) for this live provider to function. This is the only live provider that can view the Frigate `birdseye` view.|
 |`webrtc`|Lowest|High|Separate installation required|Uses [WebRTC](https://github.com/AlexxIT/WebRTC) to stream live feed, requires manual extra setup, see [below](#webrtc).|
 
 ### Appearance

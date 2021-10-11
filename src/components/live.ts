@@ -68,10 +68,10 @@ export class FrigateCardViewerFrigate extends LitElement {
   protected hass!: HomeAssistant & ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected cameraEntity!: string;
+  protected cameraEntity?: string;
 
   protected render(): TemplateResult | void {
-    if (!(this.cameraEntity in this.hass.states)) {
+    if (!this.cameraEntity || !(this.cameraEntity in this.hass.states)) {
       return dispatchMessageEvent(
         this,
         localize('error.no_live_camera'),
