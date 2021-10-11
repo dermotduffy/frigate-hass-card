@@ -1,14 +1,11 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators';
 
+import { Message } from '../types';
+import { TROUBLESHOOTING_URL } from '../const';
 import { localize } from '../localize/localize';
 
-import { Message } from '../types';
-
 import messageStyle from '../scss/message.scss';
-
-const URL_TROUBLESHOOTING =
-  'https://github.com/dermotduffy/frigate-hass-card#troubleshooting';
 
 @customElement('frigate-card-message')
 export class FrigateCardMessage extends LitElement {
@@ -44,7 +41,7 @@ export class FrigateCardErrorMessage extends LitElement {
   protected render(): TemplateResult {
     return html` <frigate-card-message
       .message=${html` ${this.error}.
-        <a href="${URL_TROUBLESHOOTING}"> ${localize('error.troubleshooting')}</a>.`}
+        <a href="${TROUBLESHOOTING_URL}"> ${localize('error.troubleshooting')}</a>.`}
       .icon=${'mdi:alert-circle'}
     >
     </frigate-card-message>`;

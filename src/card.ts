@@ -19,7 +19,7 @@ import {
 } from 'custom-card-helpers';
 import screenfull from 'screenfull';
 
-import { entitySchema, frigateCardConfigSchema, Message } from './types';
+import { entitySchema, frigateCardConfigSchema } from './types';
 import type {
   BrowseMediaQueryParameters,
   Entity,
@@ -27,9 +27,10 @@ import type {
   FrigateCardConfig,
   MediaLoadInfo,
   MenuButton,
+  Message,
 } from './types';
 
-import { CARD_VERSION } from './const';
+import { CARD_VERSION, REPO_URL } from './const';
 import { FrigateCardMenu, MENU_HEIGHT } from './components/menu';
 import { View } from './view';
 import {
@@ -85,6 +86,8 @@ console.info(
   type: 'frigate-card',
   name: localize('common.frigate_card'),
   description: localize('common.frigate_card_description'),
+  preview: true,
+  documentationURL: REPO_URL,
 });
 
 // Main FrigateCard class.
@@ -145,9 +148,15 @@ export class FrigateCard extends LitElement {
     return document.createElement('frigate-card-editor');
   }
 
-  // Get a stub basic config.
-  public static getStubConfig(): Record<string, string> {
-    return {};
+  // Get a stub basic config using the first available camera of any kind.
+  public static getStubConfig(
+    _hass: HomeAssistant,
+    entities: string[],
+  ): FrigateCardConfig {
+    const cameraEntity = entities.find(element => element.startsWith('camera.'));
+    return {
+      camera_entity: cameraEntity,
+    } as FrigateCardConfig;
   }
 
   protected _getMenuButtons(): MenuButton[] {
