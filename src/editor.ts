@@ -9,10 +9,10 @@ import type { FrigateCardConfig } from './types';
 import frigate_card_editor_style from './scss/editor.scss';
 
 const options = {
-  required: {
+  basic: {
     icon: 'cog',
-    name: localize('editor.required'),
-    secondary: localize('editor.required_secondary'),
+    name: localize('editor.basic'),
+    secondary: localize('editor.basic_secondary'),
     show: true,
   },
   optional: {
@@ -146,14 +146,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
     return html`
       <div class="card-config">
-        <div class="option" @click=${this._toggleOption} .option=${'required'}>
+        <div class="option" @click=${this._toggleOption} .option=${'basic'}>
           <div class="row">
-            <ha-icon .icon=${`mdi:${options.required.icon}`}></ha-icon>
-            <div class="title">${options.required.name}</div>
+            <ha-icon .icon=${`mdi:${options.basic.icon}`}></ha-icon>
+            <div class="title">${options.basic.name}</div>
           </div>
-          <div class="secondary">${options.required.secondary}</div>
+          <div class="secondary">${options.basic.secondary}</div>
         </div>
-        ${options.required.show
+        ${options.basic.show
           ? html`
               <div class="values">
                 <paper-dropdown-menu
@@ -172,6 +172,30 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     })}
                   </paper-listbox>
                 </paper-dropdown-menu>
+                <paper-input
+                  label=${localize('editor.frigate_camera_name')}
+                  .value=${this._config?.frigate_camera_name || ''}
+                  .configValue=${'frigate_camera_name'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-dropdown-menu
+                  label=${localize('editor.default_view')}
+                  @value-changed=${this._valueChanged}
+                  .configValue=${'view_default'}
+                >
+                <paper-listbox
+                  slot="dropdown-content"
+                  .selected=${Object.keys(viewModes).indexOf(
+                    this._config?.view_default || '',
+                  )}
+                >
+                  ${Object.keys(viewModes).map((key) => {
+                    return html`
+                      <paper-item .label="${key}"> ${viewModes[key]} </paper-item>
+                    `;
+                  })}
+                </paper-listbox>
+              </paper-dropdown-menu>
               </div>
             `
           : ''}
@@ -184,12 +208,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         </div>
         ${options.optional.show
           ? html` <div class="values">
-              <paper-input
-                label=${localize('editor.frigate_camera_name')}
-                .value=${this._config?.frigate_camera_name || ''}
-                .configValue=${'frigate_camera_name'}
-                @value-changed=${this._valueChanged}
-              ></paper-input>
               <paper-dropdown-menu
                 .label=${localize('editor.live_provider')}
                 @value-changed=${this._valueChanged}
@@ -204,24 +222,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   ${Object.keys(liveProvider).map((key) => {
                     return html`
                       <paper-item .label="${key}">${liveProvider[key]} </paper-item>
-                    `;
-                  })}
-                </paper-listbox>
-              </paper-dropdown-menu>
-              <paper-dropdown-menu
-                label=${localize('editor.default_view')}
-                @value-changed=${this._valueChanged}
-                .configValue=${'view_default'}
-              >
-                <paper-listbox
-                  slot="dropdown-content"
-                  .selected=${Object.keys(viewModes).indexOf(
-                    this._config?.view_default || '',
-                  )}
-                >
-                  ${Object.keys(viewModes).map((key) => {
-                    return html`
-                      <paper-item .label="${key}"> ${viewModes[key]} </paper-item>
                     `;
                   })}
                 </paper-listbox>

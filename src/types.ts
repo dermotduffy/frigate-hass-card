@@ -244,7 +244,8 @@ const pictureElementsSchema = pictureElementSchema.array().optional();
 export type PictureElements = z.infer<typeof pictureElementsSchema>;
 
 export const frigateCardConfigSchema = z.object({
-  camera_entity: z.string(),
+  camera_entity: z.string().optional(),
+
   // No URL validation to allow relative URLs within HA (e.g. addons).
   frigate_url: z.string().optional(),
   frigate_client_id: z.string().optional().default('frigate'),

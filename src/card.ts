@@ -33,7 +33,6 @@ import { CARD_VERSION } from './const';
 import { FrigateCardMenu, MENU_HEIGHT } from './components/menu';
 import { View } from './view';
 import {
-  getParseErrorKeys,
   homeAssistantWSRequest,
   shouldUpdateBasedOnHass,
 } from './common';
@@ -221,30 +220,32 @@ export class FrigateCard extends LitElement {
       return this.config.frigate_camera_name;
     }
 
-    // Option 2: Find entity unique_id in registry.
-    const request = {
-      type: 'config/entity_registry/get',
-      entity_id: this.config.camera_entity,
-    };
-    try {
-      const entityResult = await homeAssistantWSRequest<Entity>(
-        this._hass,
-        entitySchema,
-        request,
-      );
-      if (entityResult && entityResult.platform == 'frigate') {
-        const match = entityResult.unique_id.match(/:camera:(?<camera>[^:]+)$/);
-        if (match && match.groups) {
-          return match.groups['camera'];
+    if (this.config.camera_entity) {
+      // Option 2: Find entity unique_id in registry.
+      const request = {
+        type: 'config/entity_registry/get',
+        entity_id: this.config.camera_entity,
+      };
+      try {
+        const entityResult = await homeAssistantWSRequest<Entity>(
+          this._hass,
+          entitySchema,
+          request,
+        );
+        if (entityResult && entityResult.platform == 'frigate') {
+          const match = entityResult.unique_id.match(/:camera:(?<camera>[^:]+)$/);
+          if (match && match.groups) {
+            return match.groups['camera'];
+          }
         }
+      } catch (e: any) {
+        // Pass.
       }
-    } catch (e: any) {
-      // Pass.
-    }
 
-    // Option 3: Guess from the entity_id.
-    if (this.config.camera_entity.includes('.')) {
-      return this.config.camera_entity.split('.', 2)[1];
+      // Option 3: Guess from the entity_id.
+      if (this.config.camera_entity.includes('.')) {
+        return this.config.camera_entity.split('.', 2)[1];
+      }
     }
 
     return null;
@@ -287,11 +288,13 @@ export class FrigateCard extends LitElement {
       getLovelace().setEditMode(true);
     }
 
+    this._frigateCameraName = null;
     this.config = config;
-    this._entitiesToMonitor = [
-      ...(this.config.update_entities || []),
-      this.config.camera_entity,
-    ];
+
+    this._entitiesToMonitor = this.config.update_entities || [];
+    if (this.config.camera_entity) {
+      this._entitiesToMonitor.push(this.config.camera_entity);
+    }
     this._changeView();
   }
 
@@ -636,21 +639,25 @@ export class FrigateCard extends LitElement {
               </frigate-card-live>
             `
           : ``}
-        <frigate-card-elements
-          .hass=${this._hass}
-          .elements=${this.config.elements}
-          @frigate-card:message=${this._messageHandler}
-          @frigate-card:menu-add=${(e) => {
-            this._menu.addButton(e.detail);
-          }}
-          @frigate-card:menu-remove=${(e) => {
-            this._menu.removeButton(e.detail);
-          }}
-          @frigate-card:state-request=${(e) => {
-            e.view = this._view;
-          }}
-        >
-        </frigate-card-elements>
+        ${this.config.elements 
+          ? html`
+              <frigate-card-elements
+                .hass=${this._hass}
+                .elements=${this.config.elements}
+                @frigate-card:message=${this._messageHandler}
+                @frigate-card:menu-add=${(e) => {
+                  this._menu.addButton(e.detail);
+                }}
+                @frigate-card:menu-remove=${(e) => {
+                  this._menu.removeButton(e.detail);
+                }}
+                @frigate-card:state-request=${(e) => {
+                  e.view = this._view;
+                }}
+              >
+              </frigate-card-elements>
+            `
+          : ``}
       </div>
     `;
   }
