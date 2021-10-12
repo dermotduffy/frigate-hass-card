@@ -202,15 +202,6 @@ export class FrigateCardViewerJSMPEG extends LitElement {
     return url.replace(/^http/i, 'ws');
   }
 
-  disconnectedCallback(): void {
-    if (this._jsmpegVideoPlayer) {
-      this._jsmpegVideoPlayer.destroy();
-      this._jsmpegVideoPlayer = null;
-    }
-    this._jsmpegCanvasElement = null;
-    super.disconnectedCallback();
-  }
-
   protected render(): TemplateResult | void {
     return html`${until(this._render(), renderProgressIndicator())}`;
   }
