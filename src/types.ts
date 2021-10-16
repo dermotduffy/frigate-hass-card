@@ -262,6 +262,7 @@ export const frigateCardConfigSchema = z.object({
     .optional()
     .default(180),
   live_provider: z.enum(LIVE_PROVIDERS).default('frigate'),
+  live_preload: z.boolean().default(false),
   webrtc: z
     .object({
       entity: z.string().optional(),

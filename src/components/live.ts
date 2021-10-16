@@ -22,7 +22,7 @@ import JSMpeg from '@cycjimmy/jsmpeg-player';
 import liveStyle from '../scss/live.scss';
 
 @customElement('frigate-card-live')
-export class FrigateCardViewer extends LitElement {
+export class FrigateCardLive extends LitElement {
   @property({ attribute: false })
   protected hass!: HomeAssistant & ExtendedHomeAssistant;
 
@@ -33,10 +33,6 @@ export class FrigateCardViewer extends LitElement {
   protected frigateCameraName!: string;
 
   protected render(): TemplateResult | void {
-    return html`${until(this._render(), renderProgressIndicator())}`;
-  }
-
-  protected async _render(): Promise<TemplateResult> {
     return html` ${this.config.live_provider == 'frigate'
       ? html` <frigate-card-live-frigate
           .hass=${this.hass}
@@ -63,7 +59,7 @@ export class FrigateCardViewer extends LitElement {
 }
 
 @customElement('frigate-card-live-frigate')
-export class FrigateCardViewerFrigate extends LitElement {
+export class FrigateCardLiveFrigate extends LitElement {
   @property({ attribute: false })
   protected hass!: HomeAssistant & ExtendedHomeAssistant;
 
@@ -95,13 +91,11 @@ export class FrigateCardViewerFrigate extends LitElement {
 // Create a wrapper for the WebRTC element
 //  - https://github.com/AlexxIT/WebRTC
 @customElement('frigate-card-live-webrtc')
-export class FrigateCardViewerWebRTC extends LitElement {
-  @property({ attribute: false })
-  protected hass!: HomeAssistant & ExtendedHomeAssistant;
-
+export class FrigateCardLiveWebRTC extends LitElement {
   @property({ attribute: false })
   protected webRTCConfig!: Record<string, unknown>;
 
+  protected hass!: HomeAssistant & ExtendedHomeAssistant;
   protected _webRTCElement: HTMLElement | null = null;
 
   protected _createWebRTC(): TemplateResult | void {
@@ -166,20 +160,17 @@ export class FrigateCardViewerWebRTC extends LitElement {
 }
 
 @customElement('frigate-card-live-jsmpeg')
-export class FrigateCardViewerJSMPEG extends LitElement {
-  @property({ attribute: false })
-  protected hass!: HomeAssistant & ExtendedHomeAssistant;
-
+export class FrigateCardLiveJSMPEG extends LitElement {
   @property({ attribute: false })
   protected cameraName!: string;
 
   @property({ attribute: false })
   protected clientId!: string;
 
-  protected _jsmpegCanvasElement: HTMLCanvasElement | null = null;
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected _jsmpegVideoPlayer: any | null = null;
+  protected hass!: HomeAssistant & ExtendedHomeAssistant;
+  protected _jsmpegCanvasElement?: HTMLCanvasElement;
+  protected _jsmpegVideoPlayer?;
+  protected _jsmpegURL?: string | null;
 
   protected async _getURL(): Promise<string | null> {
     if (!this.hass) {
@@ -202,62 +193,77 @@ export class FrigateCardViewerJSMPEG extends LitElement {
     return url.replace(/^http/i, 'ws');
   }
 
-  protected render(): TemplateResult | void {
-    return html`${until(this._render(), renderProgressIndicator())}`;
+  protected async _createJSMPEGPlayer(): Promise<void> {
+    let videoDecoded = false;
+    return new Promise<void>((resolve) => {
+      this._jsmpegVideoPlayer = new JSMpeg.VideoElement(
+        this,
+        this._jsmpegURL,
+        {
+          preserveDrawingBuffer: true,
+          canvas: this._jsmpegCanvasElement,
+          hooks: {
+            // Don't resolve the promise until it's playing to minimize the
+            // amount of time the canvas is empty (and show the spinner
+            // instead).
+            play: () => {
+              dispatchPlayEvent(this);
+              resolve();
+            },
+            pause: () => {
+              dispatchPauseEvent(this);
+            },
+          },
+        },
+        {
+          protocols: [],
+          videoBufferSize: 1024 * 1024 * 4,
+          onVideoDecode: () => {
+            // This is the only callback that is called after the dimensions
+            // are available. It's called on every frame decode, so just
+            // ignore any subsequent calls.
+            if (!videoDecoded && this._jsmpegCanvasElement) {
+              videoDecoded = true;
+              dispatchMediaLoadEvent(this, this._jsmpegCanvasElement);
+            }
+          },
+        },
+      );
+    });
   }
 
-  protected async _render(): Promise<TemplateResult | void> {
+  protected render(): TemplateResult | void {
     if (!this._jsmpegCanvasElement) {
       this._jsmpegCanvasElement = document.createElement('canvas');
       this._jsmpegCanvasElement.className = 'media';
     }
 
-    if (!this._jsmpegVideoPlayer) {
-      const jsmpeg_url = await this._getURL();
-
-      if (!jsmpeg_url) {
-        return dispatchErrorMessageEvent(
-          this,
-          'Could not retrieve or sign JSMPEG websocket path',
-        );
-      }
-
-      let videoDecoded = false;
-      return new Promise<TemplateResult>((resolve) => {
-        this._jsmpegVideoPlayer = new JSMpeg.VideoElement(
-          this,
-          jsmpeg_url,
-          {
-            canvas: this._jsmpegCanvasElement,
-            hooks: {
-              // Don't resolve the promise until it's playing to minimize the
-              // amount of time the canvas is empty (and show the spinner
-              // instead).
-              play: () => {
-                dispatchPlayEvent(this);
-                resolve(html`${this._jsmpegCanvasElement}`);
-              },
-              pause: () => {
-                dispatchPauseEvent(this);
-              },
-            },
-          },
-          {
-            protocols: [],
-            videoBufferSize: 1024 * 1024 * 4,
-            onVideoDecode: () => {
-              // This is the only callback that is called after the dimensions
-              // are available. It's called on every frame decode, so just
-              // ignore any subsequent calls.
-              if (!videoDecoded && this._jsmpegCanvasElement) {
-                videoDecoded = true;
-                dispatchMediaLoadEvent(this, this._jsmpegCanvasElement);
-              }
-            },
-          },
-        );
-      });
+    if (this._jsmpegURL === undefined) {
+      return html`${until(
+        (async () => {
+          this._jsmpegURL = await this._getURL();
+          this.requestUpdate();
+        })(),
+        renderProgressIndicator(),
+      )}`;
     }
+    if (!this._jsmpegURL) {
+      return dispatchErrorMessageEvent(
+        this,
+        'Could not retrieve or sign JSMPEG websocket path',
+      );
+    }
+
+    if (!this._jsmpegVideoPlayer) {
+      return html`${until(
+        (async () => {
+          await this._createJSMPEGPlayer();
+          this.requestUpdate();
+        })(),
+        renderProgressIndicator(),
+      )}`;
+    }
+
     return html`${this._jsmpegCanvasElement}`;
   }
 

@@ -255,6 +255,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   @change=${this._valueChanged}
                 ></ha-switch>
               </ha-formfield>
+              <ha-formfield .label=${localize('editor.live_preload')}>
+                <ha-switch
+                  .checked=${this._config?.live_preload === true}
+                  .configValue=${'live_preload'}
+                  @change=${this._valueChanged}
+                ></ha-switch>
+              </ha-formfield>
             </div>`
           : ''}
         <div class="option" @click=${this._toggleOption} .option=${'appearance'}>
