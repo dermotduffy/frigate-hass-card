@@ -80,6 +80,7 @@ lovelace:
 | `view_timeout` | | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
 | `frigate_url` | | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. |
 | `autoplay_clip` | `false` | Whether or not to autoplay clips in the 'clip' [view](#views). Clips manually chosen in the clips gallery will still autoplay.|
+| `live_preload` | `false` | Whether or not to preload the live view. Preloading causes the live view to render in the background so it's instantly available when requested. This consumes additional network/CPU resources continually.|
 
 
 #### Live Provider

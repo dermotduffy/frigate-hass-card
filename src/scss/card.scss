@@ -75,6 +75,9 @@ frigate-card-gallery, frigate-card-viewer, frigate-card-live, frigate-card-messa
 frigate-card-gallery {
   height: 100%;
 }
+frigate-card-gallery.hidden,frigate-card-viewer.hidden,frigate-card-live.hidden  {
+  display: none;
+}
 
 // Browsers will reject invalid whole CSS selectors if one selector is bad, so
 // need to use mixin here instead of just comma-separated selectors.

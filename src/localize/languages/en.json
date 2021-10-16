@@ -32,7 +32,8 @@
     "show_button": "Show button",
     "zone": "Zone",
     "label": "Frigate label/object filter (Optional)",
-    "live_provider": "Live view provider (Optional)"
+    "live_provider": "Live view provider (Optional)",
+    "live_preload": "Preload live view (Optional)"
   },
   "menu": {
     "frigate": "Frigate Menu / Default View",
