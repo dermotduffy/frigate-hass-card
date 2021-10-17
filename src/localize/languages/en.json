@@ -43,7 +43,8 @@
     "clip": "Latest Clip",
     "snapshot": "Latest Snapshot",
     "frigate_ui": "Frigate User Interface",
-    "fullscreen": "Fullscreen"
+    "fullscreen": "Fullscreen",
+    "image": "Static Image"
   },
   "control": {
     "nextprev": "Media Next & Previous Controls",

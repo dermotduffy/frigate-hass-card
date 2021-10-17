@@ -31,6 +31,7 @@ import type {
 } from './types';
 
 import { CARD_VERSION, REPO_URL } from './const';
+import { FrigateCardElements } from './components/elements';
 import { FrigateCardMenu, MENU_HEIGHT } from './components/menu';
 import { View } from './view';
 import { homeAssistantWSRequest, shouldUpdateBasedOnHass } from './common';
@@ -40,6 +41,7 @@ import { renderMessage, renderProgressIndicator } from './components/message';
 import './editor';
 import './components/elements';
 import './components/gallery';
+import './components/image';
 import './components/live';
 import './components/menu';
 import './components/message';
@@ -48,7 +50,6 @@ import './patches/ha-camera-stream';
 import './patches/ha-hls-player';
 
 import cardStyle from './scss/card.scss';
-import { FrigateCardElements } from './components/elements';
 
 const MEDIA_HEIGHT_CUTOFF = 50;
 const MEDIA_WIDTH_CUTOFF = MEDIA_HEIGHT_CUTOFF;
@@ -112,7 +113,7 @@ export class FrigateCard extends LitElement {
 
   // A small cache to avoid needing to create a new list of entities every time
   // a hass update arrives.
-  protected _entitiesToMonitor: string[] | null = null;
+  protected _entitiesToMonitor: string[] = [];
 
   // Information about the most recently loaded media item.
   protected _mediaInfo: MediaLoadInfo | null = null;
@@ -195,6 +196,15 @@ export class FrigateCard extends LitElement {
         title: localize('menu.snapshots'),
         icon: 'mdi:camera',
         emphasize: this._view.is('snapshots'),
+      });
+    }
+    if (this.config.menu_buttons?.image ?? false) {
+      buttons.push({
+        type: 'internal-menu-icon',
+        card_action: 'image',
+        title: localize('menu.image'),
+        icon: 'mdi:image',
+        emphasize: this._view.is('image'),
       });
     }
     if ((this.config.menu_buttons?.frigate_ui ?? true) && this.config.frigate_url) {
@@ -357,6 +367,7 @@ export class FrigateCard extends LitElement {
       case 'frigate':
         this._changeView();
         break;
+      case 'image':
       case 'live':
       case 'clips':
       case 'snapshots':
@@ -625,10 +636,22 @@ export class FrigateCard extends LitElement {
     const liveClasses = {
       hidden: this.config.live_preload && this._view.view != 'live',
     };
+    const imageClasses = {
+      hidden: this.config.live_preload && this._view.view != 'image',
+    };
 
     return html`
       <div class="${classMap(pictureElementsClasses)}">
         ${this._message ? renderMessage(this._message) : ``}
+        ${!this._message && this._view.is('image')
+          ? html` <frigate-card-image
+              .image=${this.config.image}
+              class="${classMap(imageClasses)}"
+              @frigate-card:media-load=${this._mediaLoadHandler}
+              @frigate-card:message=${this._messageHandler}
+            >
+            </frigate-card-image>`
+          : ``}
         ${!this._message && this._view.isGalleryView()
           ? html` <frigate-card-gallery
               .hass=${this._hass}

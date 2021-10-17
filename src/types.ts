@@ -26,6 +26,7 @@ export const FRIGATE_CARD_VIEWS = [
   'clips',
   'snapshot',
   'snapshots',
+  'image'
 ] as const;
 export type FrigateCardView = typeof FRIGATE_CARD_VIEWS[number];
 
@@ -263,6 +264,7 @@ export const frigateCardConfigSchema = z.object({
     .default(180),
   live_provider: z.enum(LIVE_PROVIDERS).default('frigate'),
   live_preload: z.boolean().default(false),
+  image: z.string().optional(),
   webrtc: z
     .object({
       entity: z.string().optional(),
@@ -280,6 +282,7 @@ export const frigateCardConfigSchema = z.object({
       live: z.boolean().default(true),
       clips: z.boolean().default(true),
       snapshots: z.boolean().default(true),
+      image: z.boolean().default(false),
       frigate_ui: z.boolean().default(true),
       fullscreen: z.boolean().default(true),
     })
