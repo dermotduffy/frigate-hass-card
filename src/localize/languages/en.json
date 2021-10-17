@@ -33,7 +33,7 @@
     "zone": "Zone",
     "label": "Frigate label/object filter (Optional)",
     "live_provider": "Live view provider (Optional)",
-    "live_preload": "Preload live view (Optional)",
+    "live_preload": "Preload live view",
     "image": "Static image URL for image view (Optional)"
   },
   "menu": {
