@@ -339,6 +339,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 .configValue=${'dimensions.aspect_ratio'}
                 @value-changed=${this._valueChanged}
               ></paper-input>
+              <paper-input
+                label=${localize('editor.image')}
+                prevent-invalid-input
+                .value=${this._config?.image
+                  ? String(this._config?.image)
+                  : ''}
+                .configValue=${'image'}
+                @value-changed=${this._valueChanged}
+              ></paper-input>
               <ha-formfield
                 .label=${localize('editor.show_button') +
                 ': ' +

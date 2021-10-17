@@ -23,8 +23,9 @@ A full-featured Frigate Lovelace card:
 * Automatic updating to continually show latest clip / snapshot.
 * Support for filtering events by zone and label.
 * Arbitrary entity access via menu (e.g. motion sensor access).
-* Fullscreen event gallery & media viewing.
-* Full Lovelace editing support.
+* Fullscreen mode.
+* Lovelace visual editing support.
+* Full [Picture Elements](https://www.home-assistant.io/lovelace/picture-elements/) support.
 * Theme friendly.
 * **Advanced**: Support for [WebRTC](https://github.com/AlexxIT/WebRTC) live viewing by embedding the WebRTC card.
 
@@ -100,6 +101,7 @@ lovelace:
 | `controls.nextprev` | `thumbnails` | When viewing media, what kind of controls to show to move to the previous/next media item. Acceptable values: `thumbnails`, `chevrons`, `none` . |
 | `dimensions.aspect_ratio_mode` | `dynamic` | The aspect ratio mode to use. Acceptable values: `dynamic`, `static`, `unconstrained`. See [aspect ratios](#aspect-ratios) below.|
 | `dimensions.aspect_ratio` | `16:9` | The aspect ratio  to use. Acceptable values: `<W>:<H>` or `<W>/<H>`. See [aspect ratios](#aspect-ratios) below.|
+| `image` | [embedded image](https://www.flickr.com/photos/dianasch/47543120431) | A static image URL for use with the `image` [view](#views).|
 
 <a name="aspect-ratios"></a>
 
@@ -417,6 +419,7 @@ This card supports several different views.
 |`snapshot`|Shows the most recent snapshot for this camera/zone/label.|
 |`clips`|Shows the clip gallery for this camera/zone/label.|
 |`clip`|Shows the most recent clip for this camera/zone/label.|
+|`image`|Shows a static image specified by the `image` parameter, can be used as a discrete default view or a screensaver (via `view_timeout`).|
 
 ### Automatic updates in the `clip` or `snapshot` view
 
