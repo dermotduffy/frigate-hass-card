@@ -13,6 +13,11 @@
 **Modifications**:
 
 * Cropped for 16:9
-* Scaled down to 420x277
-* Gaussian blur 0.05 
-* Quality @ 50%
+* Scaled down to 492x277
+* Gaussian blur 0.01
+* Quality @ 85%
+
+```sh
+$ convert -extent 2048x1152 -gravity center -47543120431_b285c45ac8_k.jpg output.jpg
+$ mogrify -strip -interlace Plane -gaussian-blur 0.01 -quality 85% -scale 492x277 output.jpg
+```
