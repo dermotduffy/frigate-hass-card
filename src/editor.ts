@@ -102,6 +102,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       snapshots: localize('menu.snapshots'),
       clip: localize('menu.clip'),
       snapshot: localize('menu.snapshot'),
+      image: localize('menu.image'),
     };
 
     const menuModes = {
@@ -338,6 +339,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 .configValue=${'dimensions.aspect_ratio'}
                 @value-changed=${this._valueChanged}
               ></paper-input>
+              <paper-input
+                label=${localize('editor.image')}
+                prevent-invalid-input
+                .value=${this._config?.image
+                  ? String(this._config?.image)
+                  : ''}
+                .configValue=${'image'}
+                @value-changed=${this._valueChanged}
+              ></paper-input>
               <ha-formfield
                 .label=${localize('editor.show_button') +
                 ': ' +
@@ -378,6 +388,18 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 <ha-switch
                   .checked=${this._config?.menu_buttons?.snapshots ?? true}
                   .configValue=${'menu_buttons.snapshots'}
+                  @change=${this._valueChanged}
+                ></ha-switch>
+              </ha-formfield>
+              <br />
+              <ha-formfield
+                .label=${localize('editor.show_button') +
+                ': ' +
+                localize('menu.image')}
+              >
+                <ha-switch
+                  .checked=${this._config?.menu_buttons?.image ?? false}
+                  .configValue=${'menu_buttons.image'}
                   @change=${this._valueChanged}
                 ></ha-switch>
               </ha-formfield>

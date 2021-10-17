@@ -33,7 +33,8 @@
     "zone": "Zone",
     "label": "Frigate label/object filter (Optional)",
     "live_provider": "Live view provider (Optional)",
-    "live_preload": "Preload live view (Optional)"
+    "live_preload": "Preload live view",
+    "image": "Static image URL for image view (Optional)"
   },
   "menu": {
     "frigate": "Frigate Menu / Default View",
@@ -43,7 +44,8 @@
     "clip": "Latest Clip",
     "snapshot": "Latest Snapshot",
     "frigate_ui": "Frigate User Interface",
-    "fullscreen": "Fullscreen"
+    "fullscreen": "Fullscreen",
+    "image": "Static Image"
   },
   "control": {
     "nextprev": "Media Next & Previous Controls",
