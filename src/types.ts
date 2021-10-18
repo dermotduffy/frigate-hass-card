@@ -195,7 +195,15 @@ const conditionalSchema = z.object({
 // https://www.home-assistant.io/lovelace/picture-elements/#custom-elements
 const customSchema = z.object({
     // Insist that Frigate card custom elements are handled by other schemas.
-    type: z.string().regex(/^custom:(?!frigate-card).+/),
+    type: z.string().superRefine((val, ctx) => {
+      if (!val.match(/^custom:(?!frigate-card).+/)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.invalid_type,
+          expected: "string",
+          received: "string",
+        });
+      }
+    })
   }).passthrough();
 
 /**

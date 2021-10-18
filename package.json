@@ -21,7 +21,7 @@
     "home-assistant-js-websocket": "^5.11.1",
     "lit": "^2.0.2",
     "screenfull": "^5.1.0",
-    "zod": "^3.10.0-beta.1"
+    "zod": "^3.10.0"
   },
   "devDependencies": {
     "@babel/core": "^7.15.8",
