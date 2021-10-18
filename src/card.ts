@@ -18,6 +18,7 @@ import {
   handleAction,
 } from 'custom-card-helpers';
 import screenfull from 'screenfull';
+import { z } from 'zod';
 
 import { entitySchema, frigateCardConfigSchema } from './types';
 import type {
@@ -271,6 +272,42 @@ export class FrigateCard extends LitElement {
     return null;
   }
 
+  protected _getParseErrorPaths<T>(error: z.ZodError<T>): string[] {
+    /* Zod errors involving unions are complex, as Zod may not be able to tell
+     * where the 'real' error is vs simply a union option not matching. This
+     * function finds all ZodError "issues" that don't have an error with 'type'
+     * in that object ('type' is the union discriminator for picture elements,
+     * the major union in the schema). An array of human-readable error
+     * locations is returned, or an empty list if none is available. None being
+     * available suggests the configuration has an error, but we can't tell
+     * exactly why (or rather Zod simply says it doesn't match any of the
+     * available unions). This usually suggests the user specified an incorrect
+     * type name entirely. */
+    let contenders: string[] = [];
+    if (error && error.issues) {
+      for (let i = 0; i < error.issues.length; i++) {
+        const issue = error.issues[i];
+        if (issue.code == 'invalid_union') {
+          const unionErrors = (issue as z.ZodInvalidUnionIssue).unionErrors;
+          for (let j = 0; j < unionErrors.length; j++) {
+            const nestedErrors = this._getParseErrorPaths(unionErrors[j]);
+            if (nestedErrors.length) {
+              contenders = contenders.concat(nestedErrors);
+            }
+          }
+        } else if (issue.code == 'invalid_type') {
+          if (issue.path[issue.path.length - 1] == 'type') {
+            return [];
+          }
+          contenders.push(this._getParseErrorPathString(issue.path));
+        }
+      }
+    }
+    return contenders;
+  }
+
+  // Convert an array of strings and indices into a more human readable string,
+  // e.g. [a, 1, b, 2] => 'a[1] -> b[2]'
   protected _getParseErrorPathString(path: (string | number)[]): string {
     let out = '';
     for (let i = 0; i < path.length; i++) {
@@ -294,12 +331,12 @@ export class FrigateCard extends LitElement {
 
     const parseResult = frigateCardConfigSchema.safeParse(inputConfig);
     if (!parseResult.success) {
-      let hint = '';
-      if (parseResult.error && parseResult.error.issues) {
-        hint = this._getParseErrorPathString(parseResult.error.issues[0].path);
-      }
+      const hint = this._getParseErrorPaths(parseResult.error);
       throw new Error(
-        localize('error.invalid_configuration') + (hint ? `: ${hint}` : ''),
+        `${localize('error.invalid_configuration')}: ` +
+          (hint.length
+            ? JSON.stringify(hint, null, ' ')
+            : localize('error.invalid_configuration_no_hint')),
       );
     }
     const config = parseResult.data;
