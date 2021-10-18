@@ -180,6 +180,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     const request = {
       type: 'auth/sign_path',
       path: `/api/frigate/${this.clientId}` + `/jsmpeg/${this.cameraName}`,
+      expires: 60 * 15,
     };
     // Sign the path so it includes an authSig parameter.
     let response;
