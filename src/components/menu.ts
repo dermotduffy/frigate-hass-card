@@ -33,16 +33,6 @@ export class FrigateCardMenu extends LitElement {
   @property({ attribute: false })
   public buttons: MenuButton[] = [];
 
-  public addButton(button: MenuButton): void {
-    if (!this.buttons.includes(button)) {
-      this.buttons = [...this.buttons, button];
-    }
-  }
-
-  public removeButton(target: MenuButton): void {
-    this.buttons = this.buttons.filter(button => button != target);
-  }
-
   // Call the callback.
   protected _callAction(ev: CustomEvent, button: MenuButton): void {
     if (this.menuMode.startsWith('hidden-')) {

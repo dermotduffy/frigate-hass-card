@@ -119,6 +119,9 @@ export class FrigateCard extends LitElement {
   // Information about the most recently loaded media item.
   protected _mediaInfo: MediaLoadInfo | null = null;
 
+  // Array of dynamic menu buttons to be added to menu.
+  protected _dynamicMenuButtons: MenuButton[] = [];
+
   // The frigate camera name to use (may be manually specified or automatically
   // derived).
   // Values:
@@ -224,7 +227,21 @@ export class FrigateCard extends LitElement {
         icon: screenfull.isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
       });
     }
-    return buttons;
+    return buttons.concat(this._dynamicMenuButtons);
+  }
+
+  public _addDynamicMenuButton(button: MenuButton): void {
+    if (!this._dynamicMenuButtons.includes(button)) {
+      this._dynamicMenuButtons = [...this._dynamicMenuButtons, button];
+    }
+    this._menu.buttons = this._getMenuButtons();
+  }
+
+  public _removeDynamicMenuButton(target: MenuButton): void {
+    this._dynamicMenuButtons = this._dynamicMenuButtons.filter(
+      (button) => button != target,
+    );
+    this._menu.buttons = this._getMenuButtons();
   }
 
   protected async _getFrigateCameraName(): Promise<string | null> {
@@ -733,19 +750,22 @@ export class FrigateCard extends LitElement {
               </frigate-card-live>
             `
           : ``}
-        ${!this._message && this.config.elements
+        ${this.config.elements
           ? html`
               <frigate-card-elements
                 .hass=${this._hass}
                 .elements=${this.config.elements}
+                .view=${this._view}
                 @frigate-card:message=${this._messageHandler}
                 @frigate-card:menu-add=${(e) => {
-                  this._menu.addButton(e.detail);
+                  this._addDynamicMenuButton(e.detail);
                 }}
                 @frigate-card:menu-remove=${(e) => {
-                  this._menu.removeButton(e.detail);
+                  this._removeDynamicMenuButton(e.detail);
                 }}
                 @frigate-card:state-request=${(e) => {
+                  // State filled here must also trigger the
+                  // 'frigate-card-elements' to re-render (by being a property).
                   e.view = this._view;
                 }}
               >

@@ -56,6 +56,9 @@ class FrigateCardElementsCore extends LitElement {
   @property({ attribute: false })
   protected elements: PictureElements;
 
+  @property({ attribute: false })
+  protected view?: View;
+
   protected _root: HTMLElement | null = null;
   protected _hass!: HomeAssistant & ExtendedHomeAssistant;
 
@@ -72,7 +75,7 @@ class FrigateCardElementsCore extends LitElement {
     return this;
   }
 
-  protected _createRoot(): void {
+  protected _createRoot(): HTMLElement {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const elementConstructor = customElements.get('hui-conditional-element') as any;
     if (!elementConstructor) {
@@ -92,16 +95,16 @@ class FrigateCardElementsCore extends LitElement {
       console.error(e, (e as Error).stack);
       throw new Error(localize('error.invalid_elements_config'));
     }
-    this._root = element;
+    return element;
   }
 
   protected render(): TemplateResult | void {
-    if (!this._root) {
-      try {
-        this._createRoot();
-      } catch (e) {
-        return dispatchErrorMessageEvent(this, (e as Error).message);
-      }
+    try {
+      // Recreate the root on each render to ensure conditional ancestors
+      // re-fire events as necessary.
+      this._root = this._createRoot();
+    } catch (e) {
+      return dispatchErrorMessageEvent(this, (e as Error).message);
     }
     return html`${this._root || ''}`;
   }
@@ -112,6 +115,9 @@ class FrigateCardElementsCore extends LitElement {
 export class FrigateCardElements extends LitElement {
   @property({ attribute: false })
   protected elements: PictureElements;
+
+  @property({ attribute: false })
+  protected view!: View;
 
   protected _hass!: HomeAssistant & ExtendedHomeAssistant;
 
@@ -168,6 +174,7 @@ export class FrigateCardElements extends LitElement {
   protected render(): TemplateResult {
     return html` <frigate-card-elements-core
       .hass=${this._hass}
+      .view=${this.view}
       .elements=${this.elements}
     >
     </frigate-card-elements-core>`;
