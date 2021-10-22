@@ -218,6 +218,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
         },
         {
           protocols: [],
+          audio: false,
           videoBufferSize: 1024 * 1024 * 4,
           onVideoDecode: () => {
             // This is the only callback that is called after the dimensions
