@@ -733,23 +733,25 @@ export class FrigateCard extends LitElement {
             >
             </frigate-card-viewer>`
           : ``}
-        <!-- Note the subtle difference in condition below vs the other views in order
-             to always render the live view for live_preload mode -->
-        ${(!this._message && this._view.is('live')) || this.config.live_preload
-          ? html`
-              <frigate-card-live
-                .hass=${this._hass}
-                .config=${this.config}
-                .frigateCameraName=${this._frigateCameraName}
-                class="${classMap(liveClasses)}"
-                @frigate-card:media-load=${this._mediaLoadHandler}
-                @frigate-card:pause=${this._pauseHandler}
-                @frigate-card:play=${this._playHandler}
-                @frigate-card:message=${this._messageHandler}
-              >
-              </frigate-card-live>
-            `
-          : ``}
+        ${
+          // Note the subtle difference in condition below vs the other views in order
+          // to always render the live view for live_preload mode.
+          (!this._message && this._view.is('live')) || this.config.live_preload
+            ? html`
+                <frigate-card-live
+                  .hass=${this._hass}
+                  .config=${this.config}
+                  .frigateCameraName=${this._frigateCameraName}
+                  class="${classMap(liveClasses)}"
+                  @frigate-card:media-load=${this._mediaLoadHandler}
+                  @frigate-card:pause=${this._pauseHandler}
+                  @frigate-card:play=${this._playHandler}
+                  @frigate-card:message=${this._messageHandler}
+                >
+                </frigate-card-live>
+              `
+            : ``
+        }
         ${this.config.elements
           ? html`
               <frigate-card-elements
