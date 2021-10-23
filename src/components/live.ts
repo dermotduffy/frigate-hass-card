@@ -21,6 +21,12 @@ import JSMpeg from '@cycjimmy/jsmpeg-player';
 
 import liveStyle from '../scss/live.scss';
 
+// Number of seconds a signed URL is valid for.
+const URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
+
+// Number of seconds before the expiry to trigger a refresh.
+const URL_SIGN_REFRESH_THRESHOLD_SECONDS = 1 * 60 * 60;
+
 @customElement('frigate-card-live')
 export class FrigateCardLive extends LitElement {
   @property({ attribute: false })
@@ -169,8 +175,9 @@ export class FrigateCardLiveJSMPEG extends LitElement {
 
   protected hass!: HomeAssistant & ExtendedHomeAssistant;
   protected _jsmpegCanvasElement?: HTMLCanvasElement;
-  protected _jsmpegVideoPlayer?;
+  protected _jsmpegVideoPlayer?: JSMpeg.VideoElement;
   protected _jsmpegURL?: string | null;
+  protected _refreshPlayerTimerID?: number;
 
   protected async _getURL(): Promise<string | null> {
     if (!this.hass) {
@@ -180,7 +187,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     const request = {
       type: 'auth/sign_path',
       path: `/api/frigate/${this.clientId}` + `/jsmpeg/${this.cameraName}`,
-      expires: 60 * 15,
+      expires: URL_SIGN_EXPIRY_SECONDS,
     };
     // Sign the path so it includes an authSig parameter.
     let response;
@@ -194,78 +201,102 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     return url.replace(/^http/i, 'ws');
   }
 
-  protected async _createJSMPEGPlayer(): Promise<void> {
+  protected _createJSMPEGPlayer(): JSMpeg.VideoElement {
     let videoDecoded = false;
-    return new Promise<void>((resolve) => {
-      this._jsmpegVideoPlayer = new JSMpeg.VideoElement(
-        this,
-        this._jsmpegURL,
-        {
-          preserveDrawingBuffer: true,
-          canvas: this._jsmpegCanvasElement,
-          hooks: {
-            // Don't resolve the promise until it's playing to minimize the
-            // amount of time the canvas is empty (and show the spinner
-            // instead).
-            play: () => {
-              dispatchPlayEvent(this);
-              resolve();
-            },
-            pause: () => {
-              dispatchPauseEvent(this);
-            },
+    return new JSMpeg.VideoElement(
+      this,
+      this._jsmpegURL,
+      {
+        preserveDrawingBuffer: true,
+        canvas: this._jsmpegCanvasElement,
+        hooks: {
+          play: () => {
+            dispatchPlayEvent(this);
+          },
+          pause: () => {
+            dispatchPauseEvent(this);
           },
         },
-        {
-          protocols: [],
-          audio: false,
-          videoBufferSize: 1024 * 1024 * 4,
-          onVideoDecode: () => {
-            // This is the only callback that is called after the dimensions
-            // are available. It's called on every frame decode, so just
-            // ignore any subsequent calls.
-            if (!videoDecoded && this._jsmpegCanvasElement) {
-              videoDecoded = true;
-              dispatchMediaLoadEvent(this, this._jsmpegCanvasElement);
-            }
-          },
+      },
+      {
+        pauseWhenHidden: false,
+        protocols: [],
+        audio: false,
+        videoBufferSize: 1024 * 1024 * 4,
+        onVideoDecode: () => {
+          // This is the only callback that is called after the dimensions
+          // are available. It's called on every frame decode, so just
+          // ignore any subsequent calls.
+          if (!videoDecoded && this._jsmpegCanvasElement) {
+            videoDecoded = true;
+            dispatchMediaLoadEvent(this, this._jsmpegCanvasElement);
+          }
         },
-      );
-    });
+      },
+    );
+  }
+
+  protected _resetPlayer(): void {
+    if (this._refreshPlayerTimerID) {
+      window.clearTimeout(this._refreshPlayerTimerID);
+      this._refreshPlayerTimerID = undefined;
+    }
+    if (this._jsmpegVideoPlayer) {
+      this._jsmpegVideoPlayer.destroy();
+      this._jsmpegVideoPlayer = undefined;
+    }
+    if (this._jsmpegCanvasElement) {
+      this._jsmpegCanvasElement.remove();
+      this._jsmpegCanvasElement = undefined;
+    }
+    this._jsmpegURL = undefined;
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    if (this.isConnected) {
+      this.requestUpdate();
+    }
+  }
+
+  disconnectedCallback(): void {
+    if (!this.isConnected) {
+      this._resetPlayer();
+    }
+    super.disconnectedCallback();
+  }
+
+  protected async _refreshPlayer(): Promise<void> {
+    this._resetPlayer();
+
+    this._jsmpegCanvasElement = document.createElement('canvas');
+    this._jsmpegCanvasElement.className = 'media';
+
+    this._jsmpegURL = await this._getURL();
+    if (this._jsmpegURL) {
+      this._jsmpegVideoPlayer = this._createJSMPEGPlayer();
+
+      this._refreshPlayerTimerID = window.setTimeout(() => {
+        this._refreshPlayer();
+      }, (URL_SIGN_EXPIRY_SECONDS - URL_SIGN_REFRESH_THRESHOLD_SECONDS) * 1000);
+    }
+    this.requestUpdate();
   }
 
   protected render(): TemplateResult | void {
-    if (!this._jsmpegCanvasElement) {
-      this._jsmpegCanvasElement = document.createElement('canvas');
-      this._jsmpegCanvasElement.className = 'media';
-    }
-
-    if (this._jsmpegURL === undefined) {
-      return html`${until(
-        (async () => {
-          this._jsmpegURL = await this._getURL();
-          this.requestUpdate();
-        })(),
-        renderProgressIndicator(),
-      )}`;
+    if (
+      this._jsmpegURL === undefined ||
+      !this._jsmpegVideoPlayer ||
+      !this._jsmpegCanvasElement
+    ) {
+      return html`${until(this._refreshPlayer(), renderProgressIndicator())}`;
     }
     if (!this._jsmpegURL) {
-      return dispatchErrorMessageEvent(
-        this,
-        'Could not retrieve or sign JSMPEG websocket path',
-      );
+      return dispatchErrorMessageEvent(this, localize('error.jsmpeg_no_sign'));
     }
-
-    if (!this._jsmpegVideoPlayer) {
-      return html`${until(
-        (async () => {
-          await this._createJSMPEGPlayer();
-          this.requestUpdate();
-        })(),
-        renderProgressIndicator(),
-      )}`;
+    if (!this._jsmpegVideoPlayer || !this._jsmpegCanvasElement) {
+      return dispatchErrorMessageEvent(this, localize('error.jsmpeg_no_player'));
     }
-
     return html`${this._jsmpegCanvasElement}`;
   }
 

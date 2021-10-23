@@ -101,6 +101,8 @@
     "missing_webrtc": "WebRTC component not found",
     "no_frigate_camera_name": "Cannot autodetect Frigate camera name, you need to either set camera_entity and / or frigate_camera_name",
     "could_not_render_elements": "Could not render picture elements",
-    "invalid_elements_config": "Invalid picture elements configuration"
+    "invalid_elements_config": "Invalid picture elements configuration",
+    "jsmpeg_no_sign": "Could not retrieve or sign JSMPEG websocket path",
+    "jsmpeg_no_player": "Could not start JSMPEG player"
   }
 }
