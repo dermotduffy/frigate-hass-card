@@ -269,11 +269,11 @@ export class FrigateCardLiveJSMPEG extends LitElement {
 
     this._jsmpegURL = await this._getURL();
     if (this._jsmpegURL) {
+      this._jsmpegVideoPlayer = this._createJSMPEGPlayer();
+
       this._refreshPlayerTimerID = window.setTimeout(() => {
         this._refreshPlayer();
       }, (URL_SIGN_EXPIRY_SECONDS - URL_SIGN_REFRESH_THRESHOLD_SECONDS) * 1000);
-      
-      this._jsmpegVideoPlayer = this._createJSMPEGPlayer();
     }
     this.requestUpdate();
   }
