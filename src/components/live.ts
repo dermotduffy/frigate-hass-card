@@ -219,6 +219,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
         },
       },
       {
+        pauseWhenHidden: false,
         protocols: [],
         audio: false,
         videoBufferSize: 1024 * 1024 * 4,
@@ -253,11 +254,15 @@ export class FrigateCardLiveJSMPEG extends LitElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this.requestUpdate();
+    if (this.isConnected) {
+      this.requestUpdate();
+    }
   }
 
   disconnectedCallback(): void {
-    this._resetPlayer();
+    if (!this.isConnected) {
+      this._resetPlayer();
+    }
     super.disconnectedCallback();
   }
 
