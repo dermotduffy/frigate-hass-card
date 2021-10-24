@@ -1,15 +1,17 @@
+import { HassEntity } from 'home-assistant-js-websocket';
 import { HomeAssistant, hasAction, stateIcon } from 'custom-card-helpers';
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS, PropertyValues } from 'lit';
-import { actionHandler } from '../action-handler-directive';
-import { customElement, property } from 'lit/decorators';
+import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
-import { MenuButton } from '../types';
-import type { ExtendedHomeAssistant, FrigateMenuMode } from '../types';
+
+import { actionHandler } from '../action-handler-directive.js';
+
+import type { ExtendedHomeAssistant, FrigateMenuMode } from '../types.js';
+import { MenuButton } from '../types.js';
+import { shouldUpdateBasedOnHass } from '../common.js';
 
 import menuStyle from '../scss/menu.scss';
-import { HassEntity } from 'home-assistant-js-websocket';
-import { shouldUpdateBasedOnHass } from '../common';
 
 type FrigateCardMenuCallback = (name: string, button: MenuButton) => void;
 

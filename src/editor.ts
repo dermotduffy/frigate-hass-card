@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import { customElement, property, state } from 'lit/decorators';
+import { customElement, property, state } from 'lit/decorators.js';
 
 import { HomeAssistant, LovelaceCardEditor, fireEvent } from 'custom-card-helpers';
-import { localize } from './localize/localize';
-import type { FrigateCardConfig } from './types';
+import { localize } from './localize/localize.js';
+import type { FrigateCardConfig } from './types.js';
 
 import frigate_card_editor_style from './scss/editor.scss';
 

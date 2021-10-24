@@ -32,7 +32,9 @@ const plugins = [
   }),
   image(),
   nodeResolve({}),
-  commonjs(),
+  commonjs({
+    include: 'node_modules/**'
+  }),
   typescript(),
   json(),
   babel({

@@ -1,7 +1,7 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import { customElement, property } from 'lit/decorators';
+import { customElement, property } from 'lit/decorators.js';
 
-import { dispatchMediaLoadEvent } from '../common';
+import { dispatchMediaLoadEvent } from '../common.js';
 
 import imageStyle from '../scss/image.scss';
 import defaultImage from '../images/frigate-bird-in-sky.jpg'

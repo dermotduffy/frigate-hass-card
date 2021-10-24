@@ -13,8 +13,8 @@ import {
   TemplateResult,
   html,
 } from 'lit';
-import { customElement } from 'lit/decorators';
-import { dispatchMediaLoadEvent, dispatchPauseEvent, dispatchPlayEvent } from '../common';
+import { customElement } from 'lit/decorators.js';
+import { dispatchMediaLoadEvent, dispatchPauseEvent, dispatchPlayEvent } from '../common.js';
 
 customElements.whenDefined("ha-hls-player").then(() => {
   @customElement("frigate-card-ha-hls-player")

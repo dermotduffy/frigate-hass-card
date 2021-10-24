@@ -1,6 +1,6 @@
 import { LitElement, TemplateResult, html, CSSResultGroup, unsafeCSS } from 'lit';
 import { HomeAssistant } from 'custom-card-helpers';
-import { customElement, property, query } from 'lit/decorators';
+import { customElement, property, query } from 'lit/decorators.js';
 
 import {
   ExtendedHomeAssistant,
@@ -9,12 +9,12 @@ import {
   MenuIcon,
   MenuStateIcon,
   PictureElements,
-} from '../types';
-import { dispatchErrorMessageEvent, dispatchEvent } from '../common';
+} from '../types.js';
+import { dispatchErrorMessageEvent, dispatchEvent } from '../common.js';
 
 import elementsStyle from '../scss/elements.scss';
-import { localize } from '../localize/localize';
-import { View } from '../view';
+import { localize } from '../localize/localize.js';
+import { View } from '../view.js';
 
 /* A note on picture element rendering:
  *
