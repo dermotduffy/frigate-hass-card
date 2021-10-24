@@ -1,12 +1,12 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import { customElement, property } from 'lit/decorators';
+import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
 import { HomeAssistant } from 'custom-card-helpers';
 
 import dayjs from 'dayjs';
-import dayjs_custom_parse_format from 'dayjs/plugin/customParseFormat';
+import dayjs_custom_parse_format from 'dayjs/plugin/customParseFormat.js';
 
-import { resolvedMediaSchema } from '../types';
+import { resolvedMediaSchema } from '../types.js';
 import type {
   BrowseMediaNeighbors,
   BrowseMediaQueryParameters,
@@ -14,8 +14,8 @@ import type {
   ExtendedHomeAssistant,
   NextPreviousControlStyle,
   ResolvedMedia,
-} from '../types';
-import { localize } from '../localize/localize';
+} from '../types.js';
+import { localize } from '../localize/localize.js';
 import {
   browseMediaQuery,
   dispatchErrorMessageEvent,
@@ -25,14 +25,14 @@ import {
   dispatchPlayEvent,
   getFirstTrueMediaChildIndex,
   homeAssistantWSRequest,
-} from '../common';
+} from '../common.js';
 
-import { View } from '../view';
+import { View } from '../view.js';
 import {
   renderProgressIndicator,
-} from '../components/message';
+} from '../components/message.js';
 
-import './next-prev-control';
+import './next-prev-control.js';
 
 import viewerStyle from '../scss/viewer.scss';
 
@@ -147,7 +147,7 @@ export class FrigateCardViewer extends LitElement {
             return clipsAtSameTime.children[index];
           }
         }
-      } catch (e: any) {
+      } catch (e) {
         // Pass. This is best effort.
       }
     }

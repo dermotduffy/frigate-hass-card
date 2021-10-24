@@ -1,12 +1,12 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import { customElement, property } from 'lit/decorators';
+import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
 import { HomeAssistant } from 'custom-card-helpers';
 
-import { signedPathSchema } from '../types';
-import type { ExtendedHomeAssistant, FrigateCardConfig } from '../types';
+import { signedPathSchema } from '../types.js';
+import type { ExtendedHomeAssistant, FrigateCardConfig } from '../types.js';
 
-import { localize } from '../localize/localize';
+import { localize } from '../localize/localize.js';
 import {
   dispatchErrorMessageEvent,
   dispatchMediaLoadEvent,
@@ -14,8 +14,8 @@ import {
   dispatchPauseEvent,
   dispatchPlayEvent,
   homeAssistantWSRequest,
-} from '../common';
-import { renderProgressIndicator } from '../components/message';
+} from '../common.js';
+import { renderProgressIndicator } from '../components/message.js';
 
 import JSMpeg from '@cycjimmy/jsmpeg-player';
 

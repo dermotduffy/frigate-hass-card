@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import { customElement, property, state } from 'lit/decorators';
+import { customElement, property, state } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
 import { HomeAssistant } from 'custom-card-helpers';
 
@@ -8,18 +8,18 @@ import type {
   BrowseMediaSource,
   BrowseMediaQueryParameters,
   ExtendedHomeAssistant,
-} from '../types';
+} from '../types.js';
 
-import { View } from '../view';
+import { View } from '../view.js';
 import {
   browseMedia,
   browseMediaQuery,
   dispatchErrorMessageEvent,
   dispatchMessageEvent,
   getFirstTrueMediaChildIndex,
-} from '../common';
-import { localize } from '../localize/localize';
-import { renderProgressIndicator } from './message';
+} from '../common.js';
+import { localize } from '../localize/localize.js';
+import { renderProgressIndicator } from './message.js';
 
 import galleryStyle from '../scss/gallery.scss';
 import { styleMap } from 'lit/directives/style-map.js';

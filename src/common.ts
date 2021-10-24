@@ -1,15 +1,15 @@
 import { ZodSchema, z } from 'zod';
 import { MessageBase } from 'home-assistant-js-websocket';
 import { HomeAssistant } from 'custom-card-helpers';
-import { localize } from './localize/localize';
+import { localize } from './localize/localize.js';
 import type {
   BrowseMediaQueryParameters,
   BrowseMediaSource,
   ExtendedHomeAssistant,
   MediaLoadInfo,
   Message,
-} from './types';
-import { browseMediaSourceSchema } from './types';
+} from './types.js';
+import { browseMediaSourceSchema } from './types.js';
 
 export function getParseErrorKeys<T>(error: z.ZodError<T>): string[] {
   const errors = error.format();

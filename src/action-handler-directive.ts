@@ -1,10 +1,10 @@
 import { noChange } from 'lit';
-import { AttributePart, directive, Directive, DirectiveParameters } from 'lit/directive';
+import { AttributePart, directive, Directive, DirectiveParameters } from 'lit/directive.js';
 
-import {
+import type {
   ActionHandlerDetail,
   ActionHandlerOptions,
-} from 'custom-card-helpers/dist/types';
+} from 'custom-card-helpers/dist/types.d.js';
 import { fireEvent } from 'custom-card-helpers';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

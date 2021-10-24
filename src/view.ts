@@ -1,4 +1,4 @@
-import type { BrowseMediaSource, FrigateCardView } from './types';
+import type { BrowseMediaSource, FrigateCardView } from './types.js';
 
 export interface ViewParameters {
   view?: FrigateCardView;

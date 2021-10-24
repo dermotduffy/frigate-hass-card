@@ -1,9 +1,9 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import { customElement, property } from 'lit/decorators';
+import { customElement, property } from 'lit/decorators.js';
 
-import { Message } from '../types';
-import { TROUBLESHOOTING_URL } from '../const';
-import { localize } from '../localize/localize';
+import { Message } from '../types.js';
+import { TROUBLESHOOTING_URL } from '../const.js';
+import { localize } from '../localize/localize.js';
 
 import messageStyle from '../scss/message.scss';
 

@@ -10,8 +10,8 @@
 // ====================================================================
 
 import { TemplateResult, html } from 'lit';
-import { customElement } from 'lit/decorators';
-import { dispatchMediaLoadEvent } from '../common';
+import { customElement } from 'lit/decorators.js';
+import { dispatchMediaLoadEvent } from '../common.js';
 
 customElements.whenDefined('ha-camera-stream').then(() => {
   // ========================================================================================

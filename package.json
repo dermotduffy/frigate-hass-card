@@ -9,7 +9,8 @@
     "hass",
     "lovelace"
   ],
-  "module": "frigate-card.js",
+  "type": "module",
+  "module": "frigate-hass-card.js",
   "repository": "git@github.com:dermotduffy/frigate-hass-card.git",
   "author": "Dermot Duffy <dermot.duffy@gmail.com>",
   "license": "MIT",
@@ -52,7 +53,7 @@
   "scripts": {
     "start": "rollup -c rollup.config.dev.js --watch",
     "build": "npm run lint && npm run rollup",
-    "lint": "eslint src/*.ts",
+    "lint": "eslint 'src/**/*.ts'",
     "rollup": "rollup -c"
   }
 }

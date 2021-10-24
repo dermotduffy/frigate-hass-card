@@ -7,10 +7,10 @@ import {
   html,
   unsafeCSS,
 } from 'lit';
-import { customElement, property, query, state } from 'lit/decorators';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
-import { until } from 'lit/directives/until';
+import { until } from 'lit/directives/until.js';
 import {
   HomeAssistant,
   LovelaceCardEditor,
@@ -20,7 +20,7 @@ import {
 import screenfull from 'screenfull';
 import { z } from 'zod';
 
-import { entitySchema, frigateCardConfigSchema } from './types';
+import { entitySchema, frigateCardConfigSchema } from './types.js';
 import type {
   BrowseMediaQueryParameters,
   Entity,
@@ -29,26 +29,26 @@ import type {
   MediaLoadInfo,
   MenuButton,
   Message,
-} from './types';
+} from './types.js';
 
-import { CARD_VERSION, REPO_URL } from './const';
-import { FrigateCardElements } from './components/elements';
-import { FrigateCardMenu, MENU_HEIGHT } from './components/menu';
-import { View } from './view';
-import { homeAssistantWSRequest, shouldUpdateBasedOnHass } from './common';
-import { localize } from './localize/localize';
-import { renderMessage, renderProgressIndicator } from './components/message';
+import { CARD_VERSION, REPO_URL } from './const.js';
+import { FrigateCardElements } from './components/elements.js';
+import { FrigateCardMenu, MENU_HEIGHT } from './components/menu.js';
+import { View } from './view.js';
+import { homeAssistantWSRequest, shouldUpdateBasedOnHass } from './common.js';
+import { localize } from './localize/localize.js';
+import { renderMessage, renderProgressIndicator } from './components/message.js';
 
-import './editor';
-import './components/elements';
-import './components/gallery';
-import './components/image';
-import './components/live';
-import './components/menu';
-import './components/message';
-import './components/viewer';
-import './patches/ha-camera-stream';
-import './patches/ha-hls-player';
+import './editor.js';
+import './components/elements.js';
+import './components/gallery.js';
+import './components/image.js';
+import './components/live.js';
+import './components/menu.js';
+import './components/message.js';
+import './components/viewer.js';
+import './patches/ha-camera-stream.js';
+import './patches/ha-hls-player.js';
 
 import cardStyle from './scss/card.scss';
 

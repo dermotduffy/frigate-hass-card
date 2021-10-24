@@ -1,10 +1,10 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import { customElement, property } from 'lit/decorators';
-import { classMap } from 'lit/directives/class-map';
+import { customElement, property } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
 
-import { BrowseMediaSource, NextPreviousControlStyle } from '../types';
+import { BrowseMediaSource, NextPreviousControlStyle } from '../types.js';
 
-import { View } from '../view';
+import { View } from '../view.js';
 
 import controlStyle from '../scss/next-previous-control.scss';
 
