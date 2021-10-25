@@ -51,6 +51,7 @@ import './patches/ha-camera-stream.js';
 import './patches/ha-hls-player.js';
 
 import cardStyle from './scss/card.scss';
+import { ResolvedMediaCache } from './resolved-media.js';
 
 const MEDIA_HEIGHT_CUTOFF = 50;
 const MEDIA_WIDTH_CUTOFF = MEDIA_HEIGHT_CUTOFF;
@@ -132,6 +133,9 @@ export class FrigateCard extends LitElement {
 
   // Error/info message to render.
   protected _message: Message | null = null;
+
+  // A cache of resolved media URLs/mimetypes for use in the whole card.
+  protected _resolvedMediaCache = new ResolvedMediaCache();
 
   set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
     this._hass = hass;
@@ -724,6 +728,7 @@ export class FrigateCard extends LitElement {
               .browseMediaQueryParameters=${mediaQueryParameters}
               .nextPreviousControlStyle=${this.config.controls?.nextprev ?? 'thumbnails'}
               .autoplayClip=${this.config.autoplay_clip}
+              .resolvedMediaCache=${this._resolvedMediaCache}
               class="${classMap(viewerClasses)}"
               @frigate-card:change-view=${this._changeViewHandler}
               @frigate-card:media-load=${this._mediaLoadHandler}

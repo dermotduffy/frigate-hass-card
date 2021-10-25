@@ -6,14 +6,12 @@ import { HomeAssistant } from 'custom-card-helpers';
 import dayjs from 'dayjs';
 import dayjs_custom_parse_format from 'dayjs/plugin/customParseFormat.js';
 
-import { resolvedMediaSchema } from '../types.js';
 import type {
   BrowseMediaNeighbors,
   BrowseMediaQueryParameters,
   BrowseMediaSource,
   ExtendedHomeAssistant,
   NextPreviousControlStyle,
-  ResolvedMedia,
 } from '../types.js';
 import { localize } from '../localize/localize.js';
 import {
@@ -24,7 +22,6 @@ import {
   dispatchPauseEvent,
   dispatchPlayEvent,
   getFirstTrueMediaChildIndex,
-  homeAssistantWSRequest,
 } from '../common.js';
 
 import { View } from '../view.js';
@@ -35,6 +32,7 @@ import {
 import './next-prev-control.js';
 
 import viewerStyle from '../scss/viewer.scss';
+import { ResolvedMediaCache, ResolvedMediaUtil } from '../resolved-media.js';
 
 // Load dayjs plugin(s).
 dayjs.extend(dayjs_custom_parse_format);
@@ -42,32 +40,110 @@ dayjs.extend(dayjs_custom_parse_format);
 @customElement('frigate-card-viewer')
 export class FrigateCardViewer extends LitElement {
   @property({ attribute: false })
-  protected hass!: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: HomeAssistant & ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected view!: View;
+  protected view?: View;
 
   @property({ attribute: false })
-  protected browseMediaQueryParameters!: BrowseMediaQueryParameters;
+  protected browseMediaQueryParameters?: BrowseMediaQueryParameters;
 
   @property({ attribute: false })
-  protected nextPreviousControlStyle!: NextPreviousControlStyle;
+  protected nextPreviousControlStyle?: NextPreviousControlStyle;
 
   @property({ attribute: false })
-  protected autoplayClip!: boolean;
+  protected autoplayClip?: boolean;
 
-  protected async _resolveMedia(
-    mediaSource: BrowseMediaSource | null,
-  ): Promise<ResolvedMedia | null> {
-    if (!mediaSource) {
-      return null;
-    }
-    const request = {
-      type: 'media_source/resolve_media',
-      media_content_id: mediaSource.media_content_id,
-    };
-    return homeAssistantWSRequest(this.hass, resolvedMediaSchema, request);
+  @property({ attribute: false })
+  protected resolvedMediaCache?: ResolvedMediaCache;
+
+  protected render(): TemplateResult | void {
+    return html`${until(this._render(), renderProgressIndicator())}`;
   }
+
+  protected async _render(): Promise<TemplateResult | void> {
+    if (!this.hass || !this.view || !this.browseMediaQueryParameters) {
+      return html``;
+    }
+
+    let autoplay = true;
+    let view = this.view;
+
+    if (!view.target) {
+      let parent: BrowseMediaSource | null = null;
+      try {
+        parent = await browseMediaQuery(this.hass, this.browseMediaQueryParameters);
+      } catch (e) {
+        return dispatchErrorMessageEvent(this, (e as Error).message);
+      }
+      const childIndex = getFirstTrueMediaChildIndex(parent);
+      if (!parent || !parent.children || childIndex == null) {
+        return dispatchMessageEvent(
+          this,
+          this.view.is('clip')
+            ? localize('common.no_clip')
+            : localize('common.no_snapshot'),
+          this.view.is('clip') ? 'mdi:filmstrip-off' : 'mdi:camera-off',
+        );
+      }
+      view = new View({
+        view: this.view.view,
+        target: parent,
+        childIndex: childIndex,
+      })
+
+      // In this block, no clip has been manually selected, so this is loading
+      // the most recent clip on card load. In this mode, autoplay of the clip
+      // may be disabled by configuration. If does not make sense to disable
+      // autoplay when the user has explicitly picked an event to play in the
+      // gallery.
+      autoplay = this.autoplayClip ?? true;
+    }
+
+    const resolvedMedia = await ResolvedMediaUtil.resolveMedia(
+      this.hass, view.media, this.resolvedMediaCache);
+    if (!resolvedMedia) {
+      // Home Assistant could not resolve media item.
+      return dispatchErrorMessageEvent(this, localize('error.could_not_resolve'));
+    }
+
+    return html`
+      <frigate-card-viewer-core
+        .view=${view}
+        .nextPreviousControlStyle=${this.nextPreviousControlStyle}
+        .resolvedMediaCache=${this.resolvedMediaCache}
+        .autoplayClip=${autoplay}
+        .hass=${this.hass}
+        .browseMediaQueryParameters=${this.browseMediaQueryParameters}
+      >
+      </frigate-card-viewer-core>`;
+  }
+
+  static get styles(): CSSResultGroup {
+    return unsafeCSS(viewerStyle);
+  }
+}
+
+
+@customElement('frigate-card-viewer-core')
+export class FrigateCardViewerCore extends LitElement {
+  @property({ attribute: false })
+  protected view?: View;
+
+  @property({ attribute: false })
+  protected nextPreviousControlStyle?: NextPreviousControlStyle;
+
+  @property({ attribute: false })
+  protected resolvedMediaCache?: ResolvedMediaCache;
+
+  @property({ attribute: false })
+  protected autoplayClip?: boolean;
+
+  @property({ attribute: false })
+  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+
+  @property({ attribute: false })
+  protected browseMediaQueryParameters?: BrowseMediaQueryParameters;
 
   protected _extractEventStartTimeFromBrowseMedia(
     browseMedia: BrowseMediaSource,
@@ -87,18 +163,18 @@ export class FrigateCardViewer extends LitElement {
   }
 
   // Get the previous and next real media items, given the index
-  protected _getMediaNeighbors(
-    parent: BrowseMediaSource,
-    index: number | null,
-  ): BrowseMediaNeighbors | null {
-    if (index == null || !parent.children) {
+  protected _getMediaNeighbors() : BrowseMediaNeighbors | null {
+    if (!this.view ||
+        !this.view.target ||
+        !this.view.target.children ||
+        this.view.childIndex === undefined) {
       return null;
     }
 
     // Work backwards from the index to get the previous real media.
     let prevIndex: number | null = null;
-    for (let i = index - 1; i >= 0; i--) {
-      const media = parent.children[i];
+    for (let i = this.view.childIndex - 1; i >= 0; i--) {
+      const media = this.view.target.children[i];
       if (media && !media.can_expand) {
         prevIndex = i;
         break;
@@ -107,8 +183,8 @@ export class FrigateCardViewer extends LitElement {
 
     // Work forwards from the index to get the next real media.
     let nextIndex: number | null = null;
-    for (let i = index + 1; i < parent.children.length; i++) {
-      const media = parent.children[i];
+    for (let i = this.view.childIndex + 1; i < this.view.target.children.length; i++) {
+      const media = this.view.target.children[i];
       if (media && !media.can_expand) {
         nextIndex = i;
         break;
@@ -117,9 +193,9 @@ export class FrigateCardViewer extends LitElement {
 
     return {
       previousIndex: prevIndex,
-      previous: prevIndex != null ? parent.children[prevIndex] : null,
+      previous: prevIndex != null ? this.view.target.children[prevIndex] : null,
       nextIndex: nextIndex,
-      next: nextIndex != null ? parent.children[nextIndex] : null,
+      next: nextIndex != null ? this.view.target.children[nextIndex] : null,
     };
   }
 
@@ -127,7 +203,7 @@ export class FrigateCardViewer extends LitElement {
   protected async _findRelatedClips(
     snapshot: BrowseMediaSource | null,
   ): Promise<BrowseMediaSource | null> {
-    if (!snapshot) {
+    if (!snapshot || !this.hass || !this.browseMediaQueryParameters) {
       return null;
     }
 
@@ -155,59 +231,24 @@ export class FrigateCardViewer extends LitElement {
   }
 
   protected render(): TemplateResult | void {
-    return html`${until(this._render(), renderProgressIndicator())}`;
-  }
-
-  protected async _render(): Promise<TemplateResult | void> {
-    let autoplay = true;
-
-    let parent: BrowseMediaSource | null = null;
-    let childIndex: number | null = null;
-    let mediaToRender: BrowseMediaSource | null = null;
-
-    if (this.view.target) {
-      parent = this.view.target;
-      childIndex = this.view.childIndex ?? null;
-      mediaToRender = this.view.media ?? null;
-    } else {
-      try {
-        parent = await browseMediaQuery(this.hass, this.browseMediaQueryParameters);
-      } catch (e) {
-        return dispatchErrorMessageEvent(this, (e as Error).message);
-      }
-      childIndex = getFirstTrueMediaChildIndex(parent);
-      if (!parent || !parent.children || childIndex == null) {
-        return dispatchMessageEvent(
-          this,
-          this.view.is('clip')
-            ? localize('common.no_clip')
-            : localize('common.no_snapshot'),
-          this.view.is('clip') ? 'mdi:filmstrip-off' : 'mdi:camera-off',
-        );
-      }
-      mediaToRender = parent.children[childIndex];
-
-      // In this block, no clip has been manually selected, so this is loading
-      // the most recent clip on card load. In this mode, autoplay of the clip
-      // may be disabled by configuration. If does not make sense to disable
-      // autoplay when the user has explicitly picked an event to play in the
-      // gallery.
-      autoplay = this.autoplayClip;
+    if (!this.view || !this.resolvedMediaCache) {
+      return html``;
     }
-    const resolvedMedia = await this._resolveMedia(mediaToRender);
+
+    const mediaToRender = this.view.media;
+    const resolvedMedia = mediaToRender ? this.resolvedMediaCache.get(
+      mediaToRender.media_content_id) : undefined;
     if (!mediaToRender || !resolvedMedia) {
-      // Home Assistant could not resolve media item.
-      return dispatchErrorMessageEvent(this, localize('error.could_not_resolve'));
+      return html``;
     }
 
-    const neighbors = this._getMediaNeighbors(parent, childIndex);
-
+    const neighbors = this._getMediaNeighbors();
     return html` <div>
       ${neighbors?.previousIndex != null
         ? html`<frigate-card-next-previous-control
             .control=${'previous'}
             .controlStyle=${this.nextPreviousControlStyle}
-            .parent=${parent}
+            .parent=${this.view.target}
             .childIndex=${neighbors.previousIndex}
             .view=${this.view}
           ></frigate-card-next-previous-control>`
@@ -222,7 +263,7 @@ export class FrigateCardViewer extends LitElement {
               controls
               playsinline
               allow-exoplayer
-              ?autoplay="${autoplay}"
+              ?autoplay="${this.autoplayClip}"
             >
             </frigate-card-ha-hls-player>`
           : html`<video
@@ -230,7 +271,7 @@ export class FrigateCardViewer extends LitElement {
               muted
               controls
               playsinline
-              ?autoplay="${autoplay}"
+              ?autoplay="${this.autoplayClip}"
               @loadedmetadata=${(e) => dispatchMediaLoadEvent(this, e)}a
               @play=${() => dispatchPlayEvent(this)}
               @pause=${() => dispatchPauseEvent(this)}
@@ -259,7 +300,7 @@ export class FrigateCardViewer extends LitElement {
         ? html`<frigate-card-next-previous-control
             .control=${'next'}
             .controlStyle=${this.nextPreviousControlStyle}
-            .parent=${parent}
+            .parent=${this.view.target}
             .childIndex=${neighbors.nextIndex}
             .view=${this.view}
           ></frigate-card-next-previous-control>`
