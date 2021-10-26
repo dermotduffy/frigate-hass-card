@@ -36,7 +36,7 @@ export class FrigateCardGallery extends LitElement {
   protected view!: View;
 
   @property({ attribute: false })
-  protected browseMediaQueryParameters!: BrowseMediaQueryParameters;
+  protected browseMediaQueryParameters?: BrowseMediaQueryParameters;
 
   protected _resizeObserver: ResizeObserver;
 
@@ -72,6 +72,10 @@ export class FrigateCardGallery extends LitElement {
   }
 
   protected async _render(): Promise<TemplateResult | void> {
+    if (!this.browseMediaQueryParameters) {
+      return html``;
+    }
+
     let parent: BrowseMediaSource | null;
     try {
       if (this.view.target) {

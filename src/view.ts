@@ -24,14 +24,37 @@ export class View {
     return this.view == name;
   }
 
+  /**
+   * Determine if a view is a gallery.
+   */
   public isGalleryView(): boolean {
     return this.view == 'clips' || this.view == 'snapshots';
   }
 
+  /**
+   * Determine if a view is of a piece of media (i.e. not the gallery).
+   */
   public isMediaView(): boolean {
     return !this.isGalleryView();
   }
 
+  /**
+   * Determine if a view is related to a clip or clips.
+   */
+  public isClipRelatedView(): boolean {
+    return ['clip', 'clips'].includes(this.view);
+  }
+
+  /**
+   * Determine if a view is related to a snapshot or snapshots.
+   */
+  public isSnapshotRelatedView(): boolean {
+    return ['snapshot', 'snapshots'].includes(this.view);
+  }
+
+  /**
+   *  Get the media item that should be played.
+   **/
   get media(): BrowseMediaSource | undefined {
     if (this.target) {
       if (this.target.children && this.childIndex !== undefined) {
@@ -42,6 +65,10 @@ export class View {
     return undefined;
   }
 
+  /**
+   * Dispatch an event to request a view change.
+   * @param node The element dispatching the event.
+   */
   public dispatchChangeEvent(node: HTMLElement): void {
     node.dispatchEvent(
       new CustomEvent<View>('frigate-card:change-view', {

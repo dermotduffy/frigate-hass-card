@@ -51,6 +51,7 @@ import './patches/ha-camera-stream.js';
 import './patches/ha-hls-player.js';
 
 import cardStyle from './scss/card.scss';
+import { ResolvedMediaCache } from './resolved-media.js';
 
 const MEDIA_HEIGHT_CUTOFF = 50;
 const MEDIA_WIDTH_CUTOFF = MEDIA_HEIGHT_CUTOFF;
@@ -132,6 +133,9 @@ export class FrigateCard extends LitElement {
 
   // Error/info message to render.
   protected _message: Message | null = null;
+
+  // A cache of resolved media URLs/mimetypes for use in the whole card.
+  protected _resolvedMediaCache = new ResolvedMediaCache();
 
   set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
     this._hass = hass;
@@ -485,13 +489,19 @@ export class FrigateCard extends LitElement {
     `;
   }
 
-  protected _getBrowseMediaQueryParameters(): BrowseMediaQueryParameters | null {
-    if (!this._frigateCameraName) {
-      return null;
+  /**
+   * Get the parameters to search for media related to the current view.
+   * @returns A BrowseMediaQueryParameters object.
+   */
+  protected _getBrowseMediaQueryParameters(): BrowseMediaQueryParameters | undefined {
+    if (
+      !this._frigateCameraName ||
+      !(this._view.isClipRelatedView() || this._view.isSnapshotRelatedView())
+    ) {
+      return undefined;
     }
-
     return {
-      mediaType: this._view.view == 'clips' ? 'clips' : 'snapshots',
+      mediaType: this._view.isClipRelatedView() ? 'clips' : 'snapshots',
       clientId: this.config.frigate_client_id,
       cameraName: this._frigateCameraName,
       label: this.config.label,
@@ -499,10 +509,16 @@ export class FrigateCard extends LitElement {
     };
   }
 
+  /**
+   * Handler for media play event.
+   */
   protected _playHandler(): void {
     this._mediaPlaying = true;
   }
 
+  /**
+   * Handler for media pause event.
+   */
   protected _pauseHandler(): void {
     this._mediaPlaying = false;
   }
@@ -665,8 +681,10 @@ export class FrigateCard extends LitElement {
   }
 
   protected _render(): TemplateResult | void {
-    const mediaQueryParameters = this._getBrowseMediaQueryParameters();
-    if (!this._hass || !this._frigateCameraName || !mediaQueryParameters) {
+    if (!this._hass) {
+      return html``;
+    }
+    if (!this._frigateCameraName) {
       this._setMessageAndUpdate(
         {
           message: localize('error.no_frigate_camera_name'),
@@ -675,6 +693,7 @@ export class FrigateCard extends LitElement {
         true,
       );
     }
+    const mediaQueryParameters = this._getBrowseMediaQueryParameters();
 
     const pictureElementsClasses = {
       'picture-elements': true,
@@ -724,6 +743,8 @@ export class FrigateCard extends LitElement {
               .browseMediaQueryParameters=${mediaQueryParameters}
               .nextPreviousControlStyle=${this.config.controls?.nextprev ?? 'thumbnails'}
               .autoplayClip=${this.config.autoplay_clip}
+              .resolvedMediaCache=${this._resolvedMediaCache}
+              .lazyLoad=${this.config.event_viewer?.lazy_load ?? true}
               class="${classMap(viewerClasses)}"
               @frigate-card:change-view=${this._changeViewHandler}
               @frigate-card:media-load=${this._mediaLoadHandler}

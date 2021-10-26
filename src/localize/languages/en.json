@@ -34,7 +34,8 @@
     "label": "Frigate label/object filter (Optional)",
     "live_provider": "Live view provider (Optional)",
     "live_preload": "Preload live view",
-    "image": "Static image URL for image view (Optional)"
+    "image": "Static image URL for image view (Optional)",
+    "lazy_load": "Lazily load event media"
   },
   "menu": {
     "frigate": "Frigate Menu / Default View",

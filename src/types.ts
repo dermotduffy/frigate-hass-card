@@ -283,6 +283,9 @@ export const frigateCardConfigSchema = z.object({
   label: z.string().optional(),
   zone: z.string().optional(),
   autoplay_clip: z.boolean().default(false),
+  event_viewer: z.object({
+    lazy_load: z.boolean().default(true),
+  }).optional(),
   menu_mode: z.enum(FRIGATE_MENU_MODES).optional().default('hidden-top'),
   menu_buttons: z
     .object({

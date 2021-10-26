@@ -2,72 +2,50 @@ import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import { BrowseMediaSource, NextPreviousControlStyle } from '../types.js';
-
-import { View } from '../view.js';
+import { NextPreviousControlStyle } from '../types.js';
 
 import controlStyle from '../scss/next-previous-control.scss';
 
 @customElement('frigate-card-next-previous-control')
 export class FrigateCardMessage extends LitElement {
   @property({ attribute: false })
-  protected control!: "next" | "previous";
+  protected direction?: 'next' | 'previous';
 
   @property({ attribute: false })
-  protected controlStyle!: NextPreviousControlStyle;
-  
-  @property({ attribute: false })
-  protected parent!: BrowseMediaSource;
+  protected controlStyle?: NextPreviousControlStyle;
 
   @property({ attribute: false })
-  protected childIndex!: number;
+  protected thumbnail?: string;
 
-  @property({ attribute: false })
-  protected view!: View;
-
-  protected _changeView(): void {
-    new View({
-      view: this.view.view,
-      target: this.parent,
-      childIndex: this.childIndex,
-    }).dispatchChangeEvent(this);
-  }
-
-  protected render() : TemplateResult {
-    if (this.controlStyle == 'none' || !this.parent.children) {
-      return html``;
-    }
-    const target = this.parent.children[this.childIndex];
-    if (!target) {
+  protected render(): TemplateResult {
+    if (!this.controlStyle || this.controlStyle == 'none') {
       return html``;
     }
 
     const classes = {
       controls: true,
-      previous: this.control == "previous",
-      next: this.control == "next",
-      thumbnails: this.controlStyle == "thumbnails",
-      chevrons: this.controlStyle == "chevrons",
-      button: this.controlStyle == "chevrons",
+      previous: this.direction == 'previous',
+      next: this.direction == 'next',
+      thumbnails: this.controlStyle == 'thumbnails',
+      chevrons: this.controlStyle == 'chevrons',
+      button: this.controlStyle == 'chevrons',
     };
 
-    if (this.controlStyle == "chevrons") {
+    if (this.controlStyle == 'chevrons') {
       return html` <ha-icon-button
-        icon=${this.control == "previous" ? 'mdi:chevron-left' : 'mdi:chevron-right'}
+        icon=${this.direction == 'previous' ? 'mdi:chevron-left' : 'mdi:chevron-right'}
         class="${classMap(classes)}"
-        title=${target.title}
-        @click=${this._changeView}
+        title=${this.title}
       ></ha-icon-button>`;
     }
 
-    if (!target.thumbnail) {
+    if (!this.thumbnail) {
       return html``;
     }
     return html`<img
-      src="${target.thumbnail}"
+      src="${this.thumbnail}"
       class="${classMap(classes)}"
-      title="${target.title}"
-      @click=${this._changeView}
+      title="${this.title}"
     />`;
   }
 
