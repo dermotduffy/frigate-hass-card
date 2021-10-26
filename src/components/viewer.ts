@@ -478,7 +478,6 @@ export class FrigateCardViewerCore extends LitElement {
       if (img) {
         img.src = img.getAttribute('data-src') || img.src;
       } else if (hls_player) {
-        console.info(hls_player);
         hls_player.url = hls_player.getAttribute('data-url') || hls_player.url;
       } else if (video_source) {
         video_source.src = video_source.getAttribute('data-src') || video_source.src;

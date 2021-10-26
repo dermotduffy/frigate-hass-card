@@ -489,13 +489,19 @@ export class FrigateCard extends LitElement {
     `;
   }
 
-  protected _getBrowseMediaQueryParameters(): BrowseMediaQueryParameters | null {
-    if (!this._frigateCameraName) {
-      return null;
+  /**
+   * Get the parameters to search for media related to the current view.
+   * @returns A BrowseMediaQueryParameters object.
+   */
+  protected _getBrowseMediaQueryParameters(): BrowseMediaQueryParameters | undefined {
+    if (
+      !this._frigateCameraName ||
+      !(this._view.isClipRelatedView() || this._view.isSnapshotRelatedView())
+    ) {
+      return undefined;
     }
-
     return {
-      mediaType: this._view.view == 'clips' ? 'clips' : 'snapshots',
+      mediaType: this._view.isClipRelatedView() ? 'clips' : 'snapshots',
       clientId: this.config.frigate_client_id,
       cameraName: this._frigateCameraName,
       label: this.config.label,
@@ -503,10 +509,16 @@ export class FrigateCard extends LitElement {
     };
   }
 
+  /**
+   * Handler for media play event.
+   */
   protected _playHandler(): void {
     this._mediaPlaying = true;
   }
 
+  /**
+   * Handler for media pause event.
+   */
   protected _pauseHandler(): void {
     this._mediaPlaying = false;
   }
@@ -669,8 +681,10 @@ export class FrigateCard extends LitElement {
   }
 
   protected _render(): TemplateResult | void {
-    const mediaQueryParameters = this._getBrowseMediaQueryParameters();
-    if (!this._hass || !this._frigateCameraName || !mediaQueryParameters) {
+    if (!this._hass) {
+      return html``;
+    }
+    if (!this._frigateCameraName) {
       this._setMessageAndUpdate(
         {
           message: localize('error.no_frigate_camera_name'),
@@ -679,6 +693,7 @@ export class FrigateCard extends LitElement {
         true,
       );
     }
+    const mediaQueryParameters = this._getBrowseMediaQueryParameters();
 
     const pictureElementsClasses = {
       'picture-elements': true,
