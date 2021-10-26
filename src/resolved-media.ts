@@ -6,24 +6,33 @@ import {
   ResolvedMedia,
   resolvedMediaSchema,
 } from './types.js';
+import QuickLRU from 'quick-lru';
+
+// It's important the cache size be at least as large as the largest likely
+// media query or media items will from a given query will be evicted for other
+// items in the same query (which would result in only partial results being
+// returned to the user).
+// Note: Each entry is about 400 bytes. 
+
+const RESOLVED_MEDIA_CACHE_SIZE = 1000; 
 
 export class ResolvedMediaCache {
-  protected _cache: Record<string, ResolvedMedia>;
+  protected _cache: QuickLRU<string, ResolvedMedia>;
 
   constructor() {
-    this._cache = {};
+    this._cache = new QuickLRU({maxSize: RESOLVED_MEDIA_CACHE_SIZE});
   }
 
   public has(id: string): boolean {
-    return id in this._cache;
+    return this._cache.has(id);
   }
 
   public get(id: string): ResolvedMedia | undefined {
-    return this._cache[id];
+    return this._cache.get(id);
   }
 
   public set(id: string, resolvedMedia: ResolvedMedia): void {
-    this._cache[id] = resolvedMedia;
+    this._cache.set(id, resolvedMedia);
   }
 }
 
