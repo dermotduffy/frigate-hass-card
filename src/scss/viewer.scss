@@ -2,8 +2,9 @@ ha-hls-player {
   transform-style: preserve-3d;
 }
 img,video {
+  width: 100%;
+  height: 100%;
   display: block;
-  max-width: 100%;
 }
 
 div.container {
