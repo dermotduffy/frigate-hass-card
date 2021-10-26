@@ -43,6 +43,10 @@ export async function homeAssistantWSRequest<T>(
   return parseResult.data;
 }
 
+export function isTrueMedia(media: BrowseMediaSource): boolean {
+  return !media.can_expand;
+}
+
 // From a BrowseMediaSource item extract the first true media item (i.e. a
 // clip/snapshot, not a folder).
 export function getFirstTrueMediaChildIndex(
@@ -52,7 +56,7 @@ export function getFirstTrueMediaChildIndex(
     return null;
   }
   for (let i = 0; i < media.children.length; i++) {
-    if (!media.children[i].can_expand) {
+    if (isTrueMedia(media.children[i])) {
       return i;
     }
   }

@@ -19,6 +19,7 @@
     "@material/image-list": "^12.0.0",
     "custom-card-helpers": "^1.8.0",
     "dayjs": "^1.10.7",
+    "embla-carousel": "^5.0.1",
     "home-assistant-js-websocket": "^5.11.1",
     "lit": "^2.0.2",
     "screenfull": "^5.1.0",
