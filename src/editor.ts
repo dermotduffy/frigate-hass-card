@@ -263,6 +263,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   @change=${this._valueChanged}
                 ></ha-switch>
               </ha-formfield>
+              <ha-formfield .label=${localize('editor.lazy_load')}>
+                <ha-switch
+                  .checked=${this._config?.event_viewer?.lazy_load !== false}
+                  .configValue=${'event_viewer.lazy_load'}
+                  @change=${this._valueChanged}
+                ></ha-switch>
+              </ha-formfield>
             </div>`
           : ''}
         <div class="option" @click=${this._toggleOption} .option=${'appearance'}>

@@ -83,7 +83,7 @@ lovelace:
 | `frigate_url` | | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. |
 | `autoplay_clip` | `false` | Whether or not to autoplay clips in the 'clip' [view](#views). Clips manually chosen in the clips gallery will still autoplay.|
 | `live_preload` | `false` | Whether or not to preload the live view. Preloading causes the live view to render in the background so it's instantly available when requested. This consumes additional network/CPU resources continually.|
-
+| `event_viewer.lazy_load` | `true` | Whether or not to lazily load media in the event viewer carousel. Setting this will false will fetch all media immediately which may make the carousel experience smoother at a cost of (potentially) a substantial number of simultaneous media fetches on load. |
 
 #### Live Provider
 
