@@ -729,6 +729,7 @@ export class FrigateCard extends LitElement {
               .nextPreviousControlStyle=${this.config.controls?.nextprev ?? 'thumbnails'}
               .autoplayClip=${this.config.autoplay_clip}
               .resolvedMediaCache=${this._resolvedMediaCache}
+              .lazyLoad=${this.config.event_viewer?.lazy_load ?? true}
               class="${classMap(viewerClasses)}"
               @frigate-card:change-view=${this._changeViewHandler}
               @frigate-card:media-load=${this._mediaLoadHandler}
