@@ -65,10 +65,6 @@ export class FrigateCardViewer extends LitElement {
   @property({ attribute: false })
   protected lazyLoad?: boolean;
 
-  protected render(): TemplateResult | void {
-    return html`${until(this._render(), renderProgressIndicator())}`;
-  }
-
   /**
    * Resolve all the given media for a target.
    * @param target The target to resolve media from.
@@ -92,6 +88,10 @@ export class FrigateCardViewer extends LitElement {
       }
     }
     return errorFree;
+  }
+
+  protected render(): TemplateResult | void {
+    return html`${until(this._render(), renderProgressIndicator())}`;
   }
 
   /**
