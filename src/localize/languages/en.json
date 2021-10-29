@@ -46,7 +46,8 @@
     "snapshot": "Latest Snapshot",
     "frigate_ui": "Frigate User Interface",
     "fullscreen": "Fullscreen",
-    "image": "Static Image"
+    "image": "Static Image",
+    "download": "Download event media"
   },
   "control": {
     "nextprev": "Media Next & Previous Controls",
@@ -104,6 +105,9 @@
     "could_not_render_elements": "Could not render picture elements",
     "invalid_elements_config": "Invalid picture elements configuration",
     "jsmpeg_no_sign": "Could not retrieve or sign JSMPEG websocket path",
-    "jsmpeg_no_player": "Could not start JSMPEG player"
+    "jsmpeg_no_player": "Could not start JSMPEG player",
+    "download_no_media": "No media to download",
+    "download_no_event_id": "Could not extract Frigate event id from media",
+    "download_sign_failed": "Could not sign media URL for download"
   }
 }

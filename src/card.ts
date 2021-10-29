@@ -26,7 +26,7 @@ import type {
   Entity,
   ExtendedHomeAssistant,
   FrigateCardConfig,
-  MediaLoadInfo,
+  MediaShowInfo,
   MenuButton,
   Message,
 } from './types.js';
@@ -35,7 +35,12 @@ import { CARD_VERSION, REPO_URL } from './const.js';
 import { FrigateCardElements } from './components/elements.js';
 import { FrigateCardMenu, MENU_HEIGHT } from './components/menu.js';
 import { View } from './view.js';
-import { homeAssistantWSRequest, shouldUpdateBasedOnHass } from './common.js';
+import {
+  homeAssistantSignPath,
+  homeAssistantWSRequest,
+  isValidMediaShowInfo,
+  shouldUpdateBasedOnHass,
+} from './common.js';
 import { localize } from './localize/localize.js';
 import { renderMessage, renderProgressIndicator } from './components/message.js';
 
@@ -52,9 +57,7 @@ import './patches/ha-hls-player.js';
 
 import cardStyle from './scss/card.scss';
 import { ResolvedMediaCache } from './resolved-media.js';
-
-const MEDIA_HEIGHT_CUTOFF = 50;
-const MEDIA_WIDTH_CUTOFF = MEDIA_HEIGHT_CUTOFF;
+import { BrowseMediaUtil } from './browse-media-util.js';
 
 /** A note on media callbacks:
  *
@@ -118,7 +121,7 @@ export class FrigateCard extends LitElement {
   protected _entitiesToMonitor: string[] = [];
 
   // Information about the most recently loaded media item.
-  protected _mediaInfo: MediaLoadInfo | null = null;
+  protected _mediaShowInfo: MediaShowInfo | null = null;
 
   // Array of dynamic menu buttons to be added to menu.
   protected _dynamicMenuButtons: MenuButton[] = [];
@@ -213,6 +216,14 @@ export class FrigateCard extends LitElement {
         title: localize('menu.image'),
         icon: 'mdi:image',
         emphasize: this._view.is('image'),
+      });
+    }
+    if (this._view.isViewerView() && (this.config.menu_buttons?.download ?? true)) {
+      buttons.push({
+        type: 'internal-menu-icon',
+        card_action: 'download',
+        title: localize('menu.download'),
+        icon: 'mdi:download',
       });
     }
     if ((this.config.menu_buttons?.frigate_ui ?? true) && this.config.frigate_url) {
@@ -415,6 +426,57 @@ export class FrigateCard extends LitElement {
     return true;
   }
 
+  protected async _downloadViewerMedia(): Promise<void> {
+    if (!this._hass || !this._view.isViewerView()) {
+      // Should not occur.
+      return;
+    }
+
+    if (!this._view.media) {
+      this._setMessageAndUpdate({
+        message: localize('error.download_no_media'),
+        type: 'error',
+      })
+      return;
+    }
+    const event_id = BrowseMediaUtil.extractEventID(this._view.media);
+    if (!event_id) {
+      this._setMessageAndUpdate({
+        message: localize('error.download_no_event_id'),
+        type: 'error',
+      })
+      return;
+    }
+
+    const path =
+      `/api/frigate/${this.config.frigate_client_id}` +
+      `/notifications/${event_id}/` +
+      `${this._view.isClipRelatedView() ? 'clip.mp4': 'snapshot.jpg'}` +
+      `?download=true`;
+    let response: string | null | undefined;
+    try {
+      response = await homeAssistantSignPath(this._hass, path);
+    } catch (e) {
+      console.error(e, (e as Error).stack);
+    }
+
+    if (!response) {
+      this._setMessageAndUpdate({
+        message: localize('error.download_sign_failed'),
+        type: 'error',
+      })
+      return;
+    }
+
+    // Use the HTML5 download attribute to prevent a new window from temporarily
+    // opening.
+    const link = document.createElement('a');
+    link.setAttribute('download', '');
+    link.href = response;
+    link.click();
+    link.remove();
+  }
+
   protected _menuActionHandler(action: string, button: MenuButton): void {
     if (button.type != 'internal-menu-icon') {
       handleAction(this, this._hass as HomeAssistant, button, action);
@@ -430,6 +492,9 @@ export class FrigateCard extends LitElement {
       case 'clips':
       case 'snapshots':
         this._changeView(new View({ view: button.card_action }));
+        break;
+      case 'download':
+        this._downloadViewerMedia();
         break;
       case 'frigate_ui':
         const frigate_url = this._getFrigateURLFromContext();
@@ -537,23 +602,24 @@ export class FrigateCard extends LitElement {
     return this._setMessageAndUpdate(e.detail);
   }
 
-  protected _mediaLoadHandler(e: CustomEvent<MediaLoadInfo>): void {
-    const mediaInfo = e.detail;
+  protected _mediaShowHandler(e: CustomEvent<MediaShowInfo>): void {
+    const mediaShowInfo = e.detail;
     // In Safari, with WebRTC, 0x0 is occasionally returned during loading,
     // so treat anything less than a safety cutoff as bogus.
-    if (mediaInfo.height < MEDIA_HEIGHT_CUTOFF || mediaInfo.width < MEDIA_WIDTH_CUTOFF) {
+    if (!isValidMediaShowInfo(mediaShowInfo)) {
       return;
     }
+    console.info(`Media show: ${JSON.stringify(mediaShowInfo)}`);
     let requestRefresh = false;
     if (
       this._isAspectRatioEnforced() &&
-      (mediaInfo.width != this._mediaInfo?.width ||
-        mediaInfo.height != this._mediaInfo?.height)
+      (mediaShowInfo.width != this._mediaShowInfo?.width ||
+        mediaShowInfo.height != this._mediaShowInfo?.height)
     ) {
       requestRefresh = true;
     }
 
-    this._mediaInfo = mediaInfo;
+    this._mediaShowInfo = mediaShowInfo;
     if (requestRefresh) {
       this.requestUpdate();
     }
@@ -599,8 +665,8 @@ export class FrigateCard extends LitElement {
     }
 
     const aspect_ratio_mode = this.config.dimensions?.aspect_ratio_mode ?? 'dynamic';
-    if (aspect_ratio_mode == 'dynamic' && this._mediaInfo) {
-      return (this._mediaInfo.height / this._mediaInfo.width) * 100;
+    if (aspect_ratio_mode == 'dynamic' && this._mediaShowInfo) {
+      return (this._mediaShowInfo.height / this._mediaShowInfo.width) * 100;
     }
 
     const default_aspect_ratio = this.config.dimensions?.aspect_ratio;
@@ -643,8 +709,8 @@ export class FrigateCard extends LitElement {
       screenfull.isEnabled &&
       screenfull.isFullscreen &&
       this._view.isMediaView() &&
-      this._mediaInfo &&
-      this._mediaInfo.width / this._mediaInfo.height <
+      this._mediaShowInfo &&
+      this._mediaShowInfo.width / this._mediaShowInfo.height <
         window.innerWidth / window.innerHeight
     ) {
       // If the menu is outside the media (i.e. above/below) allow space for it.
@@ -652,7 +718,7 @@ export class FrigateCard extends LitElement {
         ? MENU_HEIGHT
         : 0;
       innerStyle['max-width'] = `calc(${
-        (100 * this._mediaInfo.width) / this._mediaInfo.height
+        (100 * this._mediaShowInfo.width) / this._mediaShowInfo.height
       }vh - ${allowance}px )`;
     }
 
@@ -703,8 +769,7 @@ export class FrigateCard extends LitElement {
       hidden: this.config.live_preload && !this._view.isGalleryView(),
     };
     const viewerClasses = {
-      hidden:
-        this.config.live_preload && !['clip', 'snapshot'].includes(this._view.view),
+      hidden: this.config.live_preload && !this._view.isViewerView(),
     };
     const liveClasses = {
       hidden: this.config.live_preload && this._view.view != 'live',
@@ -720,7 +785,7 @@ export class FrigateCard extends LitElement {
           ? html` <frigate-card-image
               .image=${this.config.image}
               class="${classMap(imageClasses)}"
-              @frigate-card:media-load=${this._mediaLoadHandler}
+              @frigate-card:media-show=${this._mediaShowHandler}
               @frigate-card:message=${this._messageHandler}
             >
             </frigate-card-image>`
@@ -736,7 +801,7 @@ export class FrigateCard extends LitElement {
             >
             </frigate-card-gallery>`
           : ``}
-        ${!this._message && (this._view.is('clip') || this._view.is('snapshot'))
+        ${!this._message && this._view.isViewerView()
           ? html` <frigate-card-viewer
               .hass=${this._hass}
               .view=${this._view}
@@ -747,7 +812,7 @@ export class FrigateCard extends LitElement {
               .lazyLoad=${this.config.event_viewer?.lazy_load ?? true}
               class="${classMap(viewerClasses)}"
               @frigate-card:change-view=${this._changeViewHandler}
-              @frigate-card:media-load=${this._mediaLoadHandler}
+              @frigate-card:media-show=${this._mediaShowHandler}
               @frigate-card:pause=${this._pauseHandler}
               @frigate-card:play=${this._playHandler}
               @frigate-card:message=${this._messageHandler}
@@ -764,7 +829,7 @@ export class FrigateCard extends LitElement {
                   .config=${this.config}
                   .frigateCameraName=${this._frigateCameraName}
                   class="${classMap(liveClasses)}"
-                  @frigate-card:media-load=${this._mediaLoadHandler}
+                  @frigate-card:media-show=${this._mediaShowHandler}
                   @frigate-card:pause=${this._pauseHandler}
                   @frigate-card:play=${this._playHandler}
                   @frigate-card:message=${this._messageHandler}
@@ -823,8 +888,8 @@ export class FrigateCard extends LitElement {
 
   // Get the Lovelace card size.
   public getCardSize(): number {
-    if (this._mediaInfo) {
-      return this._mediaInfo.height / 50;
+    if (this._mediaShowInfo) {
+      return this._mediaShowInfo.height / 50;
     }
     return 6;
   }

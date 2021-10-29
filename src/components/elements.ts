@@ -10,7 +10,7 @@ import {
   MenuStateIcon,
   PictureElements,
 } from '../types.js';
-import { dispatchErrorMessageEvent, dispatchEvent } from '../common.js';
+import { dispatchErrorMessageEvent, dispatchFrigateCardEvent } from '../common.js';
 
 import elementsStyle from '../scss/elements.scss';
 import { localize } from '../localize/localize.js';
@@ -134,7 +134,11 @@ export class FrigateCardElements extends LitElement {
   protected _menuRemoveHandler(ev: Event): void {
     // Re-dispatch event from this element (instead of the disconnected one, as
     // there is no parent of the disconnected element).
-    dispatchEvent<MenuButton>(this, 'menu-remove', (ev as CustomEvent).detail);
+    dispatchFrigateCardEvent<MenuButton>(
+      this,
+      'menu-remove',
+      (ev as CustomEvent).detail,
+    );
   }
 
   protected _menuAddHandler(ev: Event): void {
@@ -274,13 +278,13 @@ export class FrigateCardElementsBaseMenuIcon<T> extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     if (this._config) {
-      dispatchEvent<T>(this, 'menu-add', this._config);
+      dispatchFrigateCardEvent<T>(this, 'menu-add', this._config);
     }
   }
 
   disconnectedCallback(): void {
     if (this._config) {
-      dispatchEvent<T>(this, 'menu-remove', this._config);
+      dispatchFrigateCardEvent<T>(this, 'menu-remove', this._config);
     }
     super.disconnectedCallback();
   }

@@ -2,20 +2,34 @@ import { ZodSchema, z } from 'zod';
 import { MessageBase } from 'home-assistant-js-websocket';
 import { HomeAssistant } from 'custom-card-helpers';
 import { localize } from './localize/localize.js';
-import type {
-  BrowseMediaQueryParameters,
-  BrowseMediaSource,
+import {
   ExtendedHomeAssistant,
-  MediaLoadInfo,
+  MediaShowInfo,
   Message,
+  SignedPath,
+  signedPathSchema,
 } from './types.js';
-import { browseMediaSourceSchema } from './types.js';
 
+const MEDIA_INFO_HEIGHT_CUTOFF = 50;
+const MEDIA_INFO_WIDTH_CUTOFF = MEDIA_INFO_HEIGHT_CUTOFF;
+
+/**
+ * Get the keys that didn't parse from a ZodError.
+ * @param error The zoderror to extract the keys from.
+ * @returns An array of error keys.
+ */
 export function getParseErrorKeys<T>(error: z.ZodError<T>): string[] {
   const errors = error.format();
   return Object.keys(errors).filter((v) => !v.startsWith('_'));
 }
 
+/**
+ * Make a HomeAssistant websocket request. May throw.
+ * @param hass The HomeAssistant object to send the request with.
+ * @param schema The expected Zod schema of the response.
+ * @param request The request to make.
+ * @returns The parsed valid response or null on malformed.
+ */
 export async function homeAssistantWSRequest<T>(
   hass: HomeAssistant & ExtendedHomeAssistant,
   schema: ZodSchema<T>,
@@ -43,66 +57,41 @@ export async function homeAssistantWSRequest<T>(
   return parseResult.data;
 }
 
-export function isTrueMedia(media: BrowseMediaSource): boolean {
-  return !media.can_expand;
-}
-
-// From a BrowseMediaSource item extract the first true media item (i.e. a
-// clip/snapshot, not a folder).
-export function getFirstTrueMediaChildIndex(
-  media: BrowseMediaSource | null,
-): number | null {
-  if (!media || !media.children) {
-    return null;
-  }
-  for (let i = 0; i < media.children.length; i++) {
-    if (isTrueMedia(media.children[i])) {
-      return i;
-    }
-  }
-  return null;
-}
-
-// Browse Frigate media with a media content id.
-export async function browseMedia(
-  hass: (HomeAssistant & ExtendedHomeAssistant) | null,
-  media_content_id: string,
-): Promise<BrowseMediaSource | null> {
-  if (!hass) {
-    return null;
-  }
-  const request = {
-    type: 'media_source/browse_media',
-    media_content_id: media_content_id,
-  };
-  return homeAssistantWSRequest(hass, browseMediaSourceSchema, request);
-}
-
-// Browse Frigate media with query parameters.
-export async function browseMediaQuery(
+/**
+ * Request that HA sign a path. May throw.
+ * @param hass The HomeAssistant object used to request the signature.
+ * @param path The path to sign.
+ * @param expires An optional number of seconds to sign the path for.
+ * @returns The signed URL, or null if the response was malformed.
+ */
+export async function homeAssistantSignPath(
   hass: HomeAssistant & ExtendedHomeAssistant,
-  params: BrowseMediaQueryParameters,
-): Promise<BrowseMediaSource | null> {
-  return browseMedia(
+  path: string,
+  expires?: number,
+): Promise<string | null> {
+  const request = {
+    type: 'auth/sign_path',
+    path: path,
+    expires: expires,
+  };
+  const response = await homeAssistantWSRequest<SignedPath>(
     hass,
-    // Defined in:
-    // https://github.com/blakeblackshear/frigate-hass-integration/blob/master/custom_components/frigate/media_source.py
-    [
-      'media-source://frigate',
-      params.clientId,
-      'event-search',
-      params.mediaType,
-      '', // Name/Title to render (not necessary here)
-      params.after ? String(params.after) : '',
-      params.before ? String(params.before) : '',
-      params.cameraName,
-      params.label,
-      params.zone,
-    ].join('/'),
+    signedPathSchema,
+    request,
   );
+  if (!response) {
+    return null;
+  }
+  return hass.hassUrl(response.path);
 }
 
-export function dispatchEvent<T>(element: HTMLElement, name: string, detail?: T): void {
+/**
+ * Dispatch a Frigate Card event.
+ * @param element The element to send the event.
+ * @param name The name of the Frigate card event to send.
+ * @param detail An optional detail object to attach.
+ */
+export function dispatchFrigateCardEvent<T>(element: HTMLElement, name: string, detail?: T): void {
   element.dispatchEvent(
     new CustomEvent<T>(`frigate-card:${name}`, {
       bubbles: true,
@@ -112,18 +101,28 @@ export function dispatchEvent<T>(element: HTMLElement, name: string, detail?: T)
   );
 }
 
+/**
+ * Dispatch a Frigate card play event.
+ * @param element The element to send the event.
+ */
 export function dispatchPlayEvent(element: HTMLElement): void {
-  dispatchEvent(element, 'play');
+  dispatchFrigateCardEvent(element, 'play');
 }
 
+/**
+ * Dispatch a Frigate card pause event.
+ * @param element The element to send the event.
+ */
 export function dispatchPauseEvent(element: HTMLElement): void {
-  dispatchEvent(element, 'pause');
+  dispatchFrigateCardEvent(element, 'pause');
 }
 
-export function dispatchMediaLoadEvent(
-  element: HTMLElement,
-  source: Event | HTMLElement,
-): void {
+/**
+ * Create a MediaShowInfo object.
+ * @param source An event or HTMLElement that should be used as a source.
+ * @returns A new MediaShowInfo object or null if one could not be created.
+ */
+export function createMediaShowInfo(source: Event | HTMLElement): MediaShowInfo | null {
   let target: HTMLElement | EventTarget;
   if (source instanceof Event) {
     target = source.composedPath()[0];
@@ -132,46 +131,88 @@ export function dispatchMediaLoadEvent(
   }
 
   if (target instanceof HTMLImageElement) {
-    dispatchEvent<MediaLoadInfo>(element, 'media-load', {
+    return {
       width: (target as HTMLImageElement).naturalWidth,
       height: (target as HTMLImageElement).naturalHeight,
-    });
+    };
   } else if (target instanceof HTMLVideoElement) {
-    dispatchEvent<MediaLoadInfo>(element, 'media-load', {
+    return {
       width: (target as HTMLVideoElement).videoWidth,
       height: (target as HTMLVideoElement).videoHeight,
-    });
+    };
   } else if (target instanceof HTMLCanvasElement) {
-    dispatchEvent<MediaLoadInfo>(element, 'media-load', {
+    return {
       width: (target as HTMLCanvasElement).width,
       height: (target as HTMLCanvasElement).height,
-    });
+    };
+  }
+  return null;
+}
+
+/**
+ * Dispatch a Frigate card media show event.
+ * @param element The element to send the event.
+ * @param source An event or HTMLElement that should be used as a source.
+ */
+export function dispatchMediaShowEvent(
+  element: HTMLElement,
+  source: Event | HTMLElement,
+): void {
+  const mediaShowInfo = createMediaShowInfo(source);
+  if (mediaShowInfo) {
+    dispatchExistingMediaShowInfoAsEvent(element, mediaShowInfo);
   }
 }
 
+/**
+ * Dispatch a pre-existing MediaShowInfo object as an event.
+ * @param element The element to send the event.
+ * @param mediaShowInfo The MediaShowInfo object to send.
+ */
+export function dispatchExistingMediaShowInfoAsEvent(
+  element: HTMLElement,
+  mediaShowInfo: MediaShowInfo,
+): void {
+  dispatchFrigateCardEvent<MediaShowInfo>(element, 'media-show', mediaShowInfo);
+}
+
+/**
+ * Dispatch an event with a message to show to the user.
+ * @param element The element to send the event.
+ * @param message The message to show.
+ * @param icon An optional icon to attach to the message.
+ */
 export function dispatchMessageEvent(
   element: HTMLElement,
   message: string,
   icon?: string,
 ): void {
-  dispatchEvent<Message>(element, 'message', {
+  dispatchFrigateCardEvent<Message>(element, 'message', {
     message: message,
     type: 'info',
     icon: icon,
   });
 }
 
-export function dispatchErrorMessageEvent(
-  element: HTMLElement,
-  message: string,
-): void {
-  dispatchEvent<Message>(element, 'message', {
+/**
+ * Dispatch an event with an error message to show to the user.
+ * @param element The element to send the event.
+ * @param message The message to show.
+  */
+export function dispatchErrorMessageEvent(element: HTMLElement, message: string): void {
+  dispatchFrigateCardEvent<Message>(element, 'message', {
     message: message,
     type: 'error',
   });
 }
 
-// Determine whether the card should be updated based on Home Assistant changes.
+/**
+ * Determine whether the card should be updated based on Home Assistant changes.
+ * @param newHass The new HA object.
+ * @param oldHass The old HA object.
+ * @param entities The entities to examine for changes.
+ * @returns A boolean indicating whether or not to allow an update.
+ */
 export function shouldUpdateBasedOnHass(
   newHass: HomeAssistant | null,
   oldHass: HomeAssistant | undefined,
@@ -197,4 +238,13 @@ export function shouldUpdateBasedOnHass(
     return false;
   }
   return false;
+}
+
+/**
+ * Determine if a MediaShowInfo object is valid/acceptable.
+ * @param info The MediaShowInfo object.
+ * @returns True if the object is valid, false otherwise.
+ */
+export function isValidMediaShowInfo(info: MediaShowInfo): boolean {
+  return info.height >= MEDIA_INFO_HEIGHT_CUTOFF && info.width >= MEDIA_INFO_WIDTH_CUTOFF;
 }

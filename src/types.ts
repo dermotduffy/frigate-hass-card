@@ -20,15 +20,23 @@ declare global {
  * Internal types.
  */
 
-export const FRIGATE_CARD_VIEWS = [
-  'live',
-  'clip',
-  'clips',
-  'snapshot',
-  'snapshots',
-  'image'
+const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
+  'live', // Live view.
+  'clip', // Most recent clip.
+  'clips', // Clips gallery.
+  'snapshot', // Most recent snapshot.
+  'snapshots', // Snapshots gallery.
+  'image', // Static image.
 ] as const;
-export type FrigateCardView = typeof FRIGATE_CARD_VIEWS[number];
+
+const FRIGATE_CARD_VIEWS_INTERNAL = [
+  'clip-specific', // A specific clip.
+  'snapshot-specific', // A specific snapshot.
+] as const;
+
+export type FrigateCardView =
+  | typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED[number]
+  | typeof FRIGATE_CARD_VIEWS_INTERNAL[number];
 
 export const FRIGATE_MENU_MODES = [
   'none',
@@ -115,7 +123,7 @@ const elementsBaseSchema = z.object({
 
 /**
  * Picture Element Types
- * 
+ *
  * All picture element types are validated (not just the Frigate card custom
  * ones) as a convenience to present the user with a consistent error display
  * up-front regardless of where they made their error.
@@ -126,7 +134,8 @@ const stateBadgeIconSchema = elementsBaseSchema.merge(
   z.object({
     type: z.literal('state-badge'),
     entity: z.string(),
-  }));
+  }),
+);
 
 // https://www.home-assistant.io/lovelace/picture-elements/#state-icon
 const stateIconSchema = elementsBaseSchema.merge(
@@ -135,7 +144,8 @@ const stateIconSchema = elementsBaseSchema.merge(
     entity: z.string(),
     icon: z.string().optional(),
     state_color: z.boolean().default(true),
-  }));
+  }),
+);
 
 // https://www.home-assistant.io/lovelace/picture-elements/#state-label
 const stateLabelSchema = elementsBaseSchema.merge(
@@ -145,19 +155,19 @@ const stateLabelSchema = elementsBaseSchema.merge(
     attribute: z.string().optional(),
     prefix: z.string().optional(),
     suffix: z.string().optional(),
-  }));
+  }),
+);
 
 // https://www.home-assistant.io/lovelace/picture-elements/#service-call-button
-const serviceCallButtonSchema = 
-  elementsBaseSchema.merge(z
-    .object({
-      type: z.literal('service-button'),
-      // Title is required for service button.
-      title: z.string(),  
-      service: z.string(),
-      service_data: z.object({}).passthrough().optional(),
-    })
-  )
+const serviceCallButtonSchema = elementsBaseSchema.merge(
+  z.object({
+    type: z.literal('service-button'),
+    // Title is required for service button.
+    title: z.string(),
+    service: z.string(),
+    service_data: z.object({}).passthrough().optional(),
+  }),
+);
 
 // https://www.home-assistant.io/lovelace/picture-elements/#icon
 const iconSchema = elementsBaseSchema.merge(
@@ -165,7 +175,8 @@ const iconSchema = elementsBaseSchema.merge(
     type: z.literal('icon'),
     icon: z.string(),
     entity: z.string().optional(),
-  }));
+  }),
+);
 
 // https://www.home-assistant.io/lovelace/picture-elements/#image-element
 const imageSchema = elementsBaseSchema.merge(
@@ -179,32 +190,37 @@ const imageSchema = elementsBaseSchema.merge(
     filter: z.string().optional(),
     state_filter: z.object({}).passthrough().optional(),
     aspect_ratio: z.string().optional(),
-}));
+  }),
+);
 
 // https://www.home-assistant.io/lovelace/picture-elements/#image-element
 const conditionalSchema = z.object({
-    type: z.literal('conditional'),
-    conditions: z.object({
+  type: z.literal('conditional'),
+  conditions: z
+    .object({
       entity: z.string(),
       state: z.string().optional(),
       state_not: z.string().optional(),
-    }).array(),
-    elements: z.lazy(() => pictureElementsSchema),
-  });
+    })
+    .array(),
+  elements: z.lazy(() => pictureElementsSchema),
+});
 
 // https://www.home-assistant.io/lovelace/picture-elements/#custom-elements
-const customSchema = z.object({
+const customSchema = z
+  .object({
     // Insist that Frigate card custom elements are handled by other schemas.
     type: z.string().superRefine((val, ctx) => {
       if (!val.match(/^custom:(?!frigate-card).+/)) {
         ctx.addIssue({
           code: z.ZodIssueCode.invalid_type,
-          expected: "string",
-          received: "string",
+          expected: 'string',
+          received: 'string',
         });
       }
-    })
-  }).passthrough();
+    }),
+  })
+  .passthrough();
 
 /**
  * Custom Element Types
@@ -213,13 +229,15 @@ const customSchema = z.object({
 export const menuIconSchema = iconSchema.merge(
   z.object({
     type: z.literal('custom:frigate-card-menu-icon'),
-  }));
+  }),
+);
 export type MenuIcon = z.infer<typeof menuIconSchema>;
 
 export const menuStateIconSchema = stateIconSchema.merge(
   z.object({
     type: z.literal('custom:frigate-card-menu-state-icon'),
-  }));
+  }),
+);
 export type MenuStateIcon = z.infer<typeof menuStateIconSchema>;
 
 const frigateConditionalSchema = z.object({
@@ -230,7 +248,6 @@ const frigateConditionalSchema = z.object({
   elements: z.lazy(() => pictureElementsSchema),
 });
 export type FrigateConditional = z.infer<typeof frigateConditionalSchema>;
-
 
 // 'internalMenuIconSchema' is excluded to disallow the user from manually
 // changing the internal menu buttons.
@@ -259,7 +276,7 @@ export const frigateCardConfigSchema = z.object({
   frigate_url: z.string().optional(),
   frigate_client_id: z.string().optional().default('frigate'),
   frigate_camera_name: z.string().optional(),
-  view_default: z.enum(FRIGATE_CARD_VIEWS).optional().default('live'),
+  view_default: z.enum(FRIGATE_CARD_VIEWS_USER_SPECIFIED).optional().default('live'),
   view_timeout: z
     .number()
     .or(
@@ -283,9 +300,11 @@ export const frigateCardConfigSchema = z.object({
   label: z.string().optional(),
   zone: z.string().optional(),
   autoplay_clip: z.boolean().default(false),
-  event_viewer: z.object({
-    lazy_load: z.boolean().default(true),
-  }).optional(),
+  event_viewer: z
+    .object({
+      lazy_load: z.boolean().default(true),
+    })
+    .optional(),
   menu_mode: z.enum(FRIGATE_MENU_MODES).optional().default('hidden-top'),
   menu_buttons: z
     .object({
@@ -294,6 +313,7 @@ export const frigateCardConfigSchema = z.object({
       clips: z.boolean().default(true),
       snapshots: z.boolean().default(true),
       image: z.boolean().default(false),
+      download: z.boolean().default(true),
       frigate_ui: z.boolean().default(true),
       fullscreen: z.boolean().default(true),
     })
@@ -333,14 +353,13 @@ export const frigateCardConfigSchema = z.object({
 export type FrigateCardConfig = z.infer<typeof frigateCardConfigSchema>;
 
 // Schema for card (non-user configured) menu icons.
-const internalMenuIconSchema = z
-  .object({
-    type: z.literal('internal-menu-icon'),
-    title: z.string(),
-    icon: z.string().optional(),
-    emphasize: z.boolean().default(false).optional(),
-    card_action: z.string(),
-  });
+const internalMenuIconSchema = z.object({
+  type: z.literal('internal-menu-icon'),
+  title: z.string(),
+  icon: z.string().optional(),
+  emphasize: z.boolean().default(false).optional(),
+  card_action: z.string(),
+});
 
 const menuButtonSchema = z.union([
   menuIconSchema,
@@ -370,7 +389,7 @@ export interface BrowseMediaNeighbors {
   nextIndex: number | null;
 }
 
-export interface MediaLoadInfo {
+export interface MediaShowInfo {
   width: number;
   height: number;
 }
