@@ -1,28 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import { until } from 'lit/directives/until.js';
 import { HomeAssistant } from 'custom-card-helpers';
+import { customElement, property, state } from 'lit/decorators.js';
+import { styleMap } from 'lit/directives/style-map.js';
+import { until } from 'lit/directives/until.js';
 
 import type {
   BrowseMediaSource,
   BrowseMediaQueryParameters,
   ExtendedHomeAssistant,
 } from '../types.js';
-
+import { BrowseMediaUtil } from '../browse-media-util.js';
 import { View } from '../view.js';
 import {
-  browseMedia,
-  browseMediaQuery,
   dispatchErrorMessageEvent,
   dispatchMessageEvent,
-  getFirstTrueMediaChildIndex,
 } from '../common.js';
 import { localize } from '../localize/localize.js';
 import { renderProgressIndicator } from './message.js';
 
 import galleryStyle from '../scss/gallery.scss';
-import { styleMap } from 'lit/directives/style-map.js';
 
 const MAX_THUMBNAIL_WIDTH = 175;
 const DEFAULT_COLUMNS = 5;
@@ -79,15 +76,15 @@ export class FrigateCardGallery extends LitElement {
     let parent: BrowseMediaSource | null;
     try {
       if (this.view.target) {
-        parent = await browseMedia(this.hass, this.view.target.media_content_id);
+        parent = await BrowseMediaUtil.browseMedia(this.hass, this.view.target.media_content_id);
       } else {
-        parent = await browseMediaQuery(this.hass, this.browseMediaQueryParameters);
+        parent = await BrowseMediaUtil.browseMediaQuery(this.hass, this.browseMediaQueryParameters);
       }
     } catch (e: any) {
       return dispatchErrorMessageEvent(this, e.message);
     }
 
-    if (!parent || !parent.children || getFirstTrueMediaChildIndex(parent) == null) {
+    if (!parent || !parent.children || BrowseMediaUtil.getFirstTrueMediaChildIndex(parent) == null) {
       return dispatchMessageEvent(
         this,
         this._getMediaType() == 'clips'
@@ -149,7 +146,7 @@ export class FrigateCardGallery extends LitElement {
                     src="${child.thumbnail}"
                     @click=${() => {
                       new View({
-                        view: this._getMediaType() == 'clips' ? 'clip' : 'snapshot',
+                        view: this._getMediaType() == 'clips' ? 'clip-specific' : 'snapshot-specific',
                         target: parent ?? undefined,
                         childIndex: index,
                         previous: this.view ?? undefined,

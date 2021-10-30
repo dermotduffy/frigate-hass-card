@@ -6,47 +6,40 @@ import {
   unsafeCSS,
   PropertyValues,
 } from 'lit';
+import { BrowseMediaUtil } from '../browse-media-util.js';
 import EmblaCarousel, { EmblaCarouselType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property } from 'lit/decorators.js';
-import { until } from 'lit/directives/until.js';
 import { ifDefined } from 'lit-html/directives/if-defined.js';
-
-import dayjs from 'dayjs';
-import dayjs_custom_parse_format from 'dayjs/plugin/customParseFormat.js';
+import { until } from 'lit/directives/until.js';
 
 import type {
   BrowseMediaNeighbors,
   BrowseMediaQueryParameters,
   BrowseMediaSource,
   ExtendedHomeAssistant,
+  MediaShowInfo,
   NextPreviousControlStyle,
 } from '../types.js';
 import { ResolvedMediaCache, ResolvedMediaUtil } from '../resolved-media.js';
-import { localize } from '../localize/localize.js';
+import { View } from '../view.js';
 import {
-  browseMediaQuery,
+  createMediaShowInfo,
   dispatchErrorMessageEvent,
-  dispatchMediaLoadEvent,
   dispatchMessageEvent,
   dispatchPauseEvent,
   dispatchPlayEvent,
-  getFirstTrueMediaChildIndex,
-  isTrueMedia,
+  dispatchExistingMediaShowInfoAsEvent,
+  isValidMediaShowInfo,
 } from '../common.js';
-
-import { View } from '../view.js';
+import { localize } from '../localize/localize.js';
 import { renderProgressIndicator } from '../components/message.js';
 
 import './next-prev-control.js';
 
 import viewerStyle from '../scss/viewer.scss';
 
-const IMG_TRANSPARENT_1x1 =
-  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-
-// Load dayjs plugin(s).
-dayjs.extend(dayjs_custom_parse_format);
+const IMG_EMPTY = 'data:,';
 
 @customElement('frigate-card-viewer')
 export class FrigateCardViewer extends LitElement {
@@ -71,10 +64,6 @@ export class FrigateCardViewer extends LitElement {
   @property({ attribute: false })
   protected lazyLoad?: boolean;
 
-  protected render(): TemplateResult | void {
-    return html`${until(this._render(), renderProgressIndicator())}`;
-  }
-
   /**
    * Resolve all the given media for a target.
    * @param target The target to resolve media from.
@@ -89,7 +78,7 @@ export class FrigateCardViewer extends LitElement {
 
     let errorFree = true;
     for (let i = 0; target.children && i < (target.children || []).length; ++i) {
-      if (isTrueMedia(target.children[i])) {
+      if (BrowseMediaUtil.isTrueMedia(target.children[i])) {
         errorFree &&= !!(await ResolvedMediaUtil.resolveMedia(
           this.hass,
           target.children[i],
@@ -98,6 +87,10 @@ export class FrigateCardViewer extends LitElement {
       }
     }
     return errorFree;
+  }
+
+  protected render(): TemplateResult | void {
+    return html`${until(this._render(), renderProgressIndicator())}`;
   }
 
   /**
@@ -110,16 +103,18 @@ export class FrigateCardViewer extends LitElement {
     }
 
     let autoplay = true;
-    let view = this.view;
 
-    if (!view.target) {
+    if (this.view.is('clip') || this.view.is('snapshot')) {
       let parent: BrowseMediaSource | null = null;
       try {
-        parent = await browseMediaQuery(this.hass, this.browseMediaQueryParameters);
+        parent = await BrowseMediaUtil.browseMediaQuery(
+          this.hass,
+          this.browseMediaQueryParameters,
+        );
       } catch (e) {
         return dispatchErrorMessageEvent(this, (e as Error).message);
       }
-      const childIndex = getFirstTrueMediaChildIndex(parent);
+      const childIndex = BrowseMediaUtil.getFirstTrueMediaChildIndex(parent);
       if (!parent || !parent.children || childIndex == null) {
         return dispatchMessageEvent(
           this,
@@ -129,11 +124,8 @@ export class FrigateCardViewer extends LitElement {
           this.view.is('clip') ? 'mdi:filmstrip-off' : 'mdi:camera-off',
         );
       }
-      view = new View({
-        view: this.view.view,
-        target: parent,
-        childIndex: childIndex,
-      });
+      this.view.target = parent;
+      this.view.childIndex = childIndex;
 
       // In this block, no clip has been manually selected, so this is loading
       // the most recent clip on card load. In this mode, autoplay of the clip
@@ -143,12 +135,12 @@ export class FrigateCardViewer extends LitElement {
       autoplay = this.autoplayClip ?? true;
     }
 
-    if (view.target && !(await this._resolveAllMediaForTarget(view.target))) {
+    if (this.view.target && !(await this._resolveAllMediaForTarget(this.view.target))) {
       return dispatchErrorMessageEvent(this, localize('error.could_not_resolve'));
     }
 
     return html` <frigate-card-viewer-core
-      .view=${view}
+      .view=${this.view}
       .nextPreviousControlStyle=${this.nextPreviousControlStyle}
       .resolvedMediaCache=${this.resolvedMediaCache}
       .autoplayClip=${autoplay}
@@ -198,6 +190,10 @@ export class FrigateCardViewerCore extends LitElement {
   // (Folders are not media items that can be rendered).
   protected _slideToChild: Record<number, number> = {};
 
+  // A "map" from slide number to MediaShowInfo object or null if the slide has
+  // been lazy loaded, but the MediaShowInfo object is not yet available.
+  protected _mediaShowInfo: Record<number, MediaShowInfo | null> = {};
+
   /**
    * The updated lifecycle callback for this element.
    * @param changedProperties The properties that were changed in this render.
@@ -233,8 +229,9 @@ export class FrigateCardViewerCore extends LitElement {
       this._carousel = EmblaCarousel(carouselNode, {
         startIndex: isNaN(startIndex) ? undefined : startIndex,
       });
-      // Update views based on slide selections.
-      this._carousel.on('select', this._slideSelectHandler.bind(this));
+      // Update views and dispatch media-show events based on slide selections.
+      this._carousel.on('select', this._selectSlideSetViewHandler.bind(this));
+      this._carousel.on('select', this._selectSlideMediaShowHandler.bind(this));
 
       // Lazily load media that is displayed. These handlers are registered
       // regardless of the value of this.lazyLoad to allow that value to change
@@ -243,28 +240,6 @@ export class FrigateCardViewerCore extends LitElement {
       this._carousel.on('select', this._lazyLoadMediaHandler.bind(this));
       this._carousel.on('resize', this._lazyLoadMediaHandler.bind(this));
     }
-  }
-
-  /**
-   * Get the event start time from a media object.
-   * @param browseMedia The media object to extract the start time from.
-   * @returns The start time in unix/epoch time, or null if it cannot be determined.
-   */
-  protected _extractEventStartTimeFromBrowseMedia(
-    browseMedia: BrowseMediaSource,
-  ): number | null {
-    // Example: 2021-08-27 20:57:22 [10s, Person 76%]
-    const result = browseMedia.title.match(/^(?<iso_datetime>.+) \[/);
-    if (result && result.groups) {
-      const iso_datetime_str = result.groups['iso_datetime'];
-      if (iso_datetime_str) {
-        const iso_datetime = dayjs(iso_datetime_str, 'YYYY-MM-DD HH:mm:ss', true);
-        if (iso_datetime.isValid()) {
-          return iso_datetime.unix();
-        }
-      }
-    }
-    return null;
   }
 
   /**
@@ -286,7 +261,7 @@ export class FrigateCardViewerCore extends LitElement {
     let prevIndex: number | null = null;
     for (let i = this.view.childIndex - 1; i >= 0; i--) {
       const media = this.view.target.children[i];
-      if (media && isTrueMedia(media)) {
+      if (media && BrowseMediaUtil.isTrueMedia(media)) {
         prevIndex = i;
         break;
       }
@@ -296,7 +271,7 @@ export class FrigateCardViewerCore extends LitElement {
     let nextIndex: number | null = null;
     for (let i = this.view.childIndex + 1; i < this.view.target.children.length; i++) {
       const media = this.view.target.children[i];
-      if (media && isTrueMedia(media)) {
+      if (media && BrowseMediaUtil.isTrueMedia(media)) {
         nextIndex = i;
         break;
       }
@@ -330,7 +305,7 @@ export class FrigateCardViewerCore extends LitElement {
       return null;
     }
 
-    const snapshotStartTime = this._extractEventStartTimeFromBrowseMedia(snapshot);
+    const snapshotStartTime = BrowseMediaUtil.extractEventStartTime(snapshot);
     if (!snapshotStartTime) {
       return null;
     }
@@ -348,10 +323,10 @@ export class FrigateCardViewerCore extends LitElement {
     let latest: number | null = null;
     for (let i = 0; i < this.view.target.children.length; i++) {
       const child = this.view.target.children[i];
-      if (!isTrueMedia(child)) {
+      if (!BrowseMediaUtil.isTrueMedia(child)) {
         continue;
       }
-      const startTime = this._extractEventStartTimeFromBrowseMedia(child);
+      const startTime = BrowseMediaUtil.extractEventStartTime(child);
 
       if (startTime && (earliest === null || startTime < earliest)) {
         earliest = startTime;
@@ -367,7 +342,7 @@ export class FrigateCardViewerCore extends LitElement {
     let clips: BrowseMediaSource | null;
 
     try {
-      clips = await browseMediaQuery(this.hass, {
+      clips = await BrowseMediaUtil.browseMediaQuery(this.hass, {
         ...this.browseMediaQueryParameters,
         mediaType: 'clips',
         before: latest,
@@ -384,13 +359,13 @@ export class FrigateCardViewerCore extends LitElement {
 
     for (let i = 0; i < clips.children.length; i++) {
       const child = clips.children[i];
-      if (!isTrueMedia(child)) {
+      if (!BrowseMediaUtil.isTrueMedia(child)) {
         continue;
       }
-      const clipStartTime = this._extractEventStartTimeFromBrowseMedia(child);
+      const clipStartTime = BrowseMediaUtil.extractEventStartTime(child);
       if (clipStartTime && clipStartTime === snapshotStartTime) {
         return new View({
-          view: 'clip',
+          view: 'clip-specific',
           target: clips,
           childIndex: i,
           previous: this.view,
@@ -403,12 +378,12 @@ export class FrigateCardViewerCore extends LitElement {
   /**
    * Handle the user selecting a new slide in the carousel.
    */
-  protected _slideSelectHandler(): void {
+  protected _selectSlideSetViewHandler(): void {
     if (!this._carousel || !this.view) {
       return;
     }
 
-    // Update the childIndex in the view (without re-render)
+    // Update the childIndex in the view.
     const slidesInView = this._carousel.slidesInView(true);
     if (slidesInView.length) {
       const childIndex = this._slideToChild[slidesInView[0]];
@@ -434,8 +409,6 @@ export class FrigateCardViewerCore extends LitElement {
 
   /**
    * Lazily load media in the carousel.
-   * @param eventName The Embla event name that triggered this load.
-   * // TODO delete eventName above?
    */
   protected _lazyLoadMediaHandler(): void {
     if (!this.lazyLoad || !this._carousel) {
@@ -459,6 +432,12 @@ export class FrigateCardViewerCore extends LitElement {
     }
 
     slidesToLoad.forEach((index) => {
+      // Only lazy loads slides that are not already loaded.
+      if (index in this._mediaShowInfo) {
+        return;
+      }
+      this._mediaShowInfo[index] = null;
+
       const slide = slides[index];
 
       // Snapshots.
@@ -505,7 +484,7 @@ export class FrigateCardViewerCore extends LitElement {
     this._slideToChild = {};
 
     for (let i = 0; i < this.view.target.children?.length; ++i) {
-      const slide = this._renderMediaItem(this.view.target.children[i]);
+      const slide = this._renderMediaItem(this.view.target.children[i], slides.length);
       if (slide) {
         this._slideToChild[slides.length] = i;
         slides.push(slide);
@@ -542,14 +521,71 @@ export class FrigateCardViewerCore extends LitElement {
   }
 
   /**
+   * Fire a media show event when a slide is selected.
+   */
+  protected _selectSlideMediaShowHandler(): void {
+    if (!this._carousel || !this.view) {
+      return;
+    }
+
+    this._carousel.slidesInView(true).forEach((slideIndex) => {
+      if (slideIndex in this._mediaShowInfo) {
+        const mediaShowInfo = this._mediaShowInfo[slideIndex];
+        if (mediaShowInfo) {
+          dispatchExistingMediaShowInfoAsEvent(this, mediaShowInfo);
+        }
+      }
+    });
+  }
+
+  /**
+   * Handle a media-show event that is generated by a child component, saving the
+   * contents for future use when the relevant slide is shown.
+   * @param slideIndex The relevant slide index.
+   * @param event The media-show event from the child component.
+   */
+  protected _mediaShowEventHandler(
+    slideIndex: number,
+    event: CustomEvent<MediaShowInfo>,
+  ): void {
+    // Don't allow the inbound event to propagate upwards, that will be
+    // automatically done at the appropriate time as the slide is shown.
+    event.stopPropagation();
+    this._mediaShowInfoHandler(slideIndex, event.detail);
+  }
+
+  /**
+   * Handle a MediaShowInfo object that is generated on media load, by saving it
+   * for future, or immediate use, when the relevant slide is displayed.
+   * @param slideIndex The relevant slide index.
+   * @param mediaShowInfo The MediaShowInfo object generated by the media.
+   */
+  protected _mediaShowInfoHandler(
+    slideIndex: number,
+    mediaShowInfo?: MediaShowInfo | null,
+  ): void {
+    // isValidMediaShowInfo is used to weed out the initial load of the
+    // transparent 1x1 placeholders.
+    if (mediaShowInfo && isValidMediaShowInfo(mediaShowInfo)) {
+      this._mediaShowInfo[slideIndex] = mediaShowInfo;
+      if (this._carousel && this._carousel?.slidesInView(true).includes(slideIndex)) {
+        dispatchExistingMediaShowInfoAsEvent(this, mediaShowInfo);
+      }
+    }
+  }
+
+  /**
    * Render a given media item.
    * @param mediaToRender The media item to render.
    * @returns A template or void if the item could not be rendered.
    */
-  protected _renderMediaItem(mediaToRender: BrowseMediaSource): TemplateResult | void {
+  protected _renderMediaItem(
+    mediaToRender: BrowseMediaSource,
+    slideIndex: number,
+  ): TemplateResult | void {
     // media that can be expanded (folders) cannot be resolved to a single media
     // item, skip them.
-    if (!this.view || !isTrueMedia(mediaToRender)) {
+    if (!this.view || !BrowseMediaUtil.isTrueMedia(mediaToRender)) {
       return;
     }
 
@@ -560,7 +596,7 @@ export class FrigateCardViewerCore extends LitElement {
 
     return html`
       <div class="embla__slide">
-        ${this.view.is('clip')
+        ${this.view.isClipRelatedView()
           ? resolvedMedia?.mime_type.toLowerCase() == 'application/x-mpegurl'
             ? html`<frigate-card-ha-hls-player
                 .hass=${this.hass}
@@ -572,6 +608,8 @@ export class FrigateCardViewerCore extends LitElement {
                 playsinline
                 allow-exoplayer
                 ?autoplay="${this.autoplayClip}"
+                @frigate-card:media-show=${(e: CustomEvent<MediaShowInfo>) =>
+                  this._mediaShowEventHandler(slideIndex, e)}
               >
               </frigate-card-ha-hls-player>`
             : html`<video
@@ -580,7 +618,9 @@ export class FrigateCardViewerCore extends LitElement {
                 controls
                 playsinline
                 ?autoplay="${this.autoplayClip}"
-                @loadedmetadata="${(e) => dispatchMediaLoadEvent(this, e)}"
+                @loadedmetadata="${(e: Event) => {
+                  this._mediaShowInfoHandler(slideIndex, createMediaShowInfo(e));
+                }}"
                 @play=${() => dispatchPlayEvent(this)}
                 @pause=${() => dispatchPauseEvent(this)}
               >
@@ -591,7 +631,7 @@ export class FrigateCardViewerCore extends LitElement {
                 />
               </video>`
           : html`<img
-              src=${ifDefined(this.lazyLoad ? IMG_TRANSPARENT_1x1 : resolvedMedia.url)}
+              src=${ifDefined(this.lazyLoad ? IMG_EMPTY : resolvedMedia.url)}
               data-src=${ifDefined(this.lazyLoad ? resolvedMedia.url : undefined)}
               title="${mediaToRender.title}"
               @click=${() => {
@@ -603,9 +643,9 @@ export class FrigateCardViewerCore extends LitElement {
                   });
                 }
               }}
-              @load=${(e) => {
-                dispatchMediaLoadEvent(this, e);
-              }}
+              @load="${(e: Event) => {
+                this._mediaShowInfoHandler(slideIndex, createMediaShowInfo(e));
+              }}"
             />`}
       </div>
     `;

@@ -1,7 +1,7 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { dispatchMediaLoadEvent } from '../common.js';
+import { dispatchMediaShowEvent } from '../common.js';
 
 import imageStyle from '../scss/image.scss';
 import defaultImage from '../images/frigate-bird-in-sky.jpg'
@@ -15,7 +15,7 @@ export class FrigateCardImage extends LitElement {
     return html` <img
       src=${this.image || defaultImage}
       @load=${(e) => {
-        dispatchMediaLoadEvent(this, e);
+        dispatchMediaShowEvent(this, e);
       }}
     >`;
   }

@@ -414,6 +414,18 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               <ha-formfield
                 .label=${localize('editor.show_button') +
                 ': ' +
+                localize('menu.download')}
+              >
+                <ha-switch
+                  .checked=${this._config?.menu_buttons?.download ?? true}
+                  .configValue=${'menu_buttons.download'}
+                  @change=${this._valueChanged}
+                ></ha-switch>
+              </ha-formfield>
+              <br />
+              <ha-formfield
+                .label=${localize('editor.show_button') +
+                ': ' +
                 localize('menu.frigate_ui')}
               >
                 <ha-switch

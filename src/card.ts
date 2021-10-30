@@ -26,7 +26,7 @@ import type {
   Entity,
   ExtendedHomeAssistant,
   FrigateCardConfig,
-  MediaLoadInfo,
+  MediaShowInfo,
   MenuButton,
   Message,
 } from './types.js';
@@ -35,7 +35,12 @@ import { CARD_VERSION, REPO_URL } from './const.js';
 import { FrigateCardElements } from './components/elements.js';
 import { FrigateCardMenu, MENU_HEIGHT } from './components/menu.js';
 import { View } from './view.js';
-import { homeAssistantWSRequest, shouldUpdateBasedOnHass } from './common.js';
+import {
+  homeAssistantSignPath,
+  homeAssistantWSRequest,
+  isValidMediaShowInfo,
+  shouldUpdateBasedOnHass,
+} from './common.js';
 import { localize } from './localize/localize.js';
 import { renderMessage, renderProgressIndicator } from './components/message.js';
 
@@ -52,9 +57,7 @@ import './patches/ha-hls-player.js';
 
 import cardStyle from './scss/card.scss';
 import { ResolvedMediaCache } from './resolved-media.js';
-
-const MEDIA_HEIGHT_CUTOFF = 50;
-const MEDIA_WIDTH_CUTOFF = MEDIA_HEIGHT_CUTOFF;
+import { BrowseMediaUtil } from './browse-media-util.js';
 
 /** A note on media callbacks:
  *
@@ -90,7 +93,9 @@ console.info(
   documentationURL: REPO_URL,
 });
 
-// Main FrigateCard class.
+/**
+ * Main FrigateCard class.
+ */
 @customElement('frigate-card')
 export class FrigateCard extends LitElement {
   @property({ attribute: false })
@@ -118,7 +123,7 @@ export class FrigateCard extends LitElement {
   protected _entitiesToMonitor: string[] = [];
 
   // Information about the most recently loaded media item.
-  protected _mediaInfo: MediaLoadInfo | null = null;
+  protected _mediaShowInfo: MediaShowInfo | null = null;
 
   // Array of dynamic menu buttons to be added to menu.
   protected _dynamicMenuButtons: MenuButton[] = [];
@@ -137,6 +142,9 @@ export class FrigateCard extends LitElement {
   // A cache of resolved media URLs/mimetypes for use in the whole card.
   protected _resolvedMediaCache = new ResolvedMediaCache();
 
+  /**
+   * Set the Home Assistant object.
+   */
   set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
     this._hass = hass;
 
@@ -153,12 +161,20 @@ export class FrigateCard extends LitElement {
     }
   }
 
-  // Get the configuration element.
+  /**
+   * Get the card editor element.
+   * @returns A LovelaceCardEditor element.
+   */
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
     return document.createElement('frigate-card-editor');
   }
 
-  // Get a stub basic config using the first available camera of any kind.
+  /**
+   * Get a stub basic config using the first available camera of any kind.
+   * @param _hass The Home Assistant object.
+   * @param entities The entities available to Home Assistant.
+   * @returns A valid stub card configuration.
+   */
   public static getStubConfig(
     _hass: HomeAssistant,
     entities: string[],
@@ -169,6 +185,10 @@ export class FrigateCard extends LitElement {
     } as FrigateCardConfig;
   }
 
+  /**
+   * Get the menu buttons to display.
+   * @returns An array of menu buttons.
+   */
   protected _getMenuButtons(): MenuButton[] {
     const buttons: MenuButton[] = [];
 
@@ -215,6 +235,14 @@ export class FrigateCard extends LitElement {
         emphasize: this._view.is('image'),
       });
     }
+    if (this._view.isViewerView() && (this.config.menu_buttons?.download ?? true)) {
+      buttons.push({
+        type: 'internal-menu-icon',
+        card_action: 'download',
+        title: localize('menu.download'),
+        icon: 'mdi:download',
+      });
+    }
     if ((this.config.menu_buttons?.frigate_ui ?? true) && this.config.frigate_url) {
       buttons.push({
         type: 'internal-menu-icon',
@@ -234,6 +262,10 @@ export class FrigateCard extends LitElement {
     return buttons.concat(this._dynamicMenuButtons);
   }
 
+  /**
+   * Add a dynamic (elements) menu button.
+   * @param button The button to add.
+   */
   public _addDynamicMenuButton(button: MenuButton): void {
     if (!this._dynamicMenuButtons.includes(button)) {
       this._dynamicMenuButtons = [...this._dynamicMenuButtons, button];
@@ -241,6 +273,10 @@ export class FrigateCard extends LitElement {
     this._menu.buttons = this._getMenuButtons();
   }
 
+  /**
+   * Remove a dynamic (elements) menu button that was previously added.
+   * @param target The button to remove.
+   */
   public _removeDynamicMenuButton(target: MenuButton): void {
     this._dynamicMenuButtons = this._dynamicMenuButtons.filter(
       (button) => button != target,
@@ -248,6 +284,10 @@ export class FrigateCard extends LitElement {
     this._menu.buttons = this._getMenuButtons();
   }
 
+  /**
+   * Get the Frigate camera name through a variety of means.
+   * @returns The Frigate camera name or null if unavailable.
+   */
   protected async _getFrigateCameraName(): Promise<string | null> {
     // No camera name specified, apply two heuristics in this order:
     // - Get the entity information and pull out the camera name from the unique_id.
@@ -293,6 +333,11 @@ export class FrigateCard extends LitElement {
     return null;
   }
 
+  /**
+   * Get configuration parse errors.
+   * @param error The ZodError object from parsing.
+   * @returns An array of string error paths.
+   */
   protected _getParseErrorPaths<T>(error: z.ZodError<T>): string[] {
     /* Zod errors involving unions are complex, as Zod may not be able to tell
      * where the 'real' error is vs simply a union option not matching. This
@@ -327,8 +372,12 @@ export class FrigateCard extends LitElement {
     return contenders;
   }
 
-  // Convert an array of strings and indices into a more human readable string,
-  // e.g. [a, 1, b, 2] => 'a[1] -> b[2]'
+  /**
+   * Convert an array of strings and indices into a more human readable string,
+   * e.g. [a, 1, b, 2] => 'a[1] -> b[2]'
+   * @param path An array of strings and numbers.
+   * @returns A single string.
+   */
   protected _getParseErrorPathString(path: (string | number)[]): string {
     let out = '';
     for (let i = 0; i < path.length; i++) {
@@ -344,7 +393,10 @@ export class FrigateCard extends LitElement {
     return out;
   }
 
-  // Set the object configuration.
+  /**
+   * Set the card configuration.
+   * @param inputConfig The card configuration.
+   */
   public setConfig(inputConfig: FrigateCardConfig): void {
     if (!inputConfig) {
       throw new Error(localize('error.invalid_configuration:'));
@@ -390,7 +442,11 @@ export class FrigateCard extends LitElement {
     this._changeView(e.detail);
   }
 
-  // Determine whether the card should be updated.
+  /**
+   * Determine whether the card should be updated.
+   * @param changedProps The changed properties if any.
+   * @returns True if the card should be updated.
+   */
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!this.config) {
       return false;
@@ -415,6 +471,65 @@ export class FrigateCard extends LitElement {
     return true;
   }
 
+  /**
+   * Download media being displayed in the viewer.
+   */
+  protected async _downloadViewerMedia(): Promise<void> {
+    if (!this._hass || !this._view.isViewerView()) {
+      // Should not occur.
+      return;
+    }
+
+    if (!this._view.media) {
+      this._setMessageAndUpdate({
+        message: localize('error.download_no_media'),
+        type: 'error',
+      })
+      return;
+    }
+    const event_id = BrowseMediaUtil.extractEventID(this._view.media);
+    if (!event_id) {
+      this._setMessageAndUpdate({
+        message: localize('error.download_no_event_id'),
+        type: 'error',
+      })
+      return;
+    }
+
+    const path =
+      `/api/frigate/${this.config.frigate_client_id}` +
+      `/notifications/${event_id}/` +
+      `${this._view.isClipRelatedView() ? 'clip.mp4': 'snapshot.jpg'}` +
+      `?download=true`;
+    let response: string | null | undefined;
+    try {
+      response = await homeAssistantSignPath(this._hass, path);
+    } catch (e) {
+      console.error(e, (e as Error).stack);
+    }
+
+    if (!response) {
+      this._setMessageAndUpdate({
+        message: localize('error.download_sign_failed'),
+        type: 'error',
+      })
+      return;
+    }
+
+    // Use the HTML5 download attribute to prevent a new window from temporarily
+    // opening.
+    const link = document.createElement('a');
+    link.setAttribute('download', '');
+    link.href = response;
+    link.click();
+    link.remove();
+  }
+
+  /**
+   * Handle a menu button being clicked.
+   * @param action The action to be called from the clicked button.
+   * @param button The button that was clicked.
+   */
   protected _menuActionHandler(action: string, button: MenuButton): void {
     if (button.type != 'internal-menu-icon') {
       handleAction(this, this._hass as HomeAssistant, button, action);
@@ -430,6 +545,9 @@ export class FrigateCard extends LitElement {
       case 'clips':
       case 'snapshots':
         this._changeView(new View({ view: button.card_action }));
+        break;
+      case 'download':
+        this._downloadViewerMedia();
         break;
       case 'frigate_ui':
         const frigate_url = this._getFrigateURLFromContext();
@@ -447,7 +565,10 @@ export class FrigateCard extends LitElement {
     }
   }
 
-  // Get the Frigate UI url.
+  /**
+   * Get the Frigate UI URL from context.
+   * @returns The URL or null if unavailable.
+   */
   protected _getFrigateURLFromContext(): string | null {
     if (!this.config.frigate_url) {
       return null;
@@ -460,7 +581,9 @@ export class FrigateCard extends LitElement {
     return `${this.config.frigate_url}/events?camera=${this._frigateCameraName}`;
   }
 
-  // Record interactions with the card.
+  /**
+   * Handle interaction with the card.
+   */
   protected _interactionHandler(): void {
     if (!this.config.view_timeout) {
       return;
@@ -474,6 +597,10 @@ export class FrigateCard extends LitElement {
     }, this.config.view_timeout * 1000);
   }
 
+  /**
+   * Render the card menu.
+   * @returns A rendered template.
+   */
   protected _renderMenu(): TemplateResult | void {
     const classes = {
       'hover-menu': this.config.menu_mode.startsWith('hover-'),
@@ -523,6 +650,11 @@ export class FrigateCard extends LitElement {
     this._mediaPlaying = false;
   }
 
+  /**
+   * Set the message to display and trigger an update.
+   * @param message The message to display.
+   * @param skipUpdate If true an update request is skipped.
+   */
   protected _setMessageAndUpdate(message: Message, skipUpdate?: boolean): void {
     // Register the first message, or prioritize errors if there's pre-render competition.
     if (!this._message || (message.type == 'error' && this._message.type != 'error')) {
@@ -533,44 +665,63 @@ export class FrigateCard extends LitElement {
     }
   }
 
+  /**
+   * Handle a message event to render to the user.
+   * @param e The message event.
+   */
   protected _messageHandler(e: CustomEvent<Message>): void {
     return this._setMessageAndUpdate(e.detail);
   }
 
-  protected _mediaLoadHandler(e: CustomEvent<MediaLoadInfo>): void {
-    const mediaInfo = e.detail;
+  /**
+   * Handle a new piece of media being shown.
+   * @param e Event with MediaShowInfo details for the media.
+   */
+  protected _mediaShowHandler(e: CustomEvent<MediaShowInfo>): void {
+    const mediaShowInfo = e.detail;
     // In Safari, with WebRTC, 0x0 is occasionally returned during loading,
     // so treat anything less than a safety cutoff as bogus.
-    if (mediaInfo.height < MEDIA_HEIGHT_CUTOFF || mediaInfo.width < MEDIA_WIDTH_CUTOFF) {
+    if (!isValidMediaShowInfo(mediaShowInfo)) {
       return;
     }
     let requestRefresh = false;
     if (
       this._isAspectRatioEnforced() &&
-      (mediaInfo.width != this._mediaInfo?.width ||
-        mediaInfo.height != this._mediaInfo?.height)
+      (mediaShowInfo.width != this._mediaShowInfo?.width ||
+        mediaShowInfo.height != this._mediaShowInfo?.height)
     ) {
       requestRefresh = true;
     }
 
-    this._mediaInfo = mediaInfo;
+    this._mediaShowInfo = mediaShowInfo;
     if (requestRefresh) {
       this.requestUpdate();
     }
   }
 
+  /**
+   * Handler called when fullscreen is toggled.
+   */
   protected _fullScreenHandler(): void {
     // Re-render after a change to fullscreen mode to take advantage of
     // the expanded screen real-estate (vs staying in aspect-ratio locked
     // modes).
     this.requestUpdate();
   }
+
+  /**
+   * Component connected callback.
+   */
   connectedCallback(): void {
     super.connectedCallback();
     if (screenfull.isEnabled) {
       screenfull.on('change', this._fullScreenHandler.bind(this));
     }
   }
+
+  /**
+   * Component disconnected callback.
+   */
   disconnectedCallback(): void {
     if (screenfull.isEnabled) {
       screenfull.off('change', this._fullScreenHandler.bind(this));
@@ -578,6 +729,10 @@ export class FrigateCard extends LitElement {
     super.disconnectedCallback();
   }
 
+  /**
+   * Determine if the aspect ratio should be enforced given the current view and
+   * context.
+   */
   protected _isAspectRatioEnforced(): boolean {
     const aspect_ratio_mode = this.config.dimensions?.aspect_ratio_mode ?? 'dynamic';
 
@@ -593,14 +748,19 @@ export class FrigateCard extends LitElement {
     );
   }
 
+  /**
+   * Get the aspect ratio padding required to enforce the aspect ratio (if it is
+   * required).
+   * @returns A padding percentage.
+   */
   protected _getAspectRatioPadding(): number | null {
     if (!this._isAspectRatioEnforced()) {
       return null;
     }
 
     const aspect_ratio_mode = this.config.dimensions?.aspect_ratio_mode ?? 'dynamic';
-    if (aspect_ratio_mode == 'dynamic' && this._mediaInfo) {
-      return (this._mediaInfo.height / this._mediaInfo.width) * 100;
+    if (aspect_ratio_mode == 'dynamic' && this._mediaShowInfo) {
+      return (this._mediaShowInfo.height / this._mediaShowInfo.width) * 100;
     }
 
     const default_aspect_ratio = this.config.dimensions?.aspect_ratio;
@@ -611,7 +771,9 @@ export class FrigateCard extends LitElement {
     }
   }
 
-  // Render the call (master render method).
+  /**
+   * Master render method for the card.
+   */
   protected render(): TemplateResult | void {
     if (this.config.show_warning) {
       return this._showWarning(localize('common.show_warning'));
@@ -643,8 +805,8 @@ export class FrigateCard extends LitElement {
       screenfull.isEnabled &&
       screenfull.isFullscreen &&
       this._view.isMediaView() &&
-      this._mediaInfo &&
-      this._mediaInfo.width / this._mediaInfo.height <
+      this._mediaShowInfo &&
+      this._mediaShowInfo.width / this._mediaShowInfo.height <
         window.innerWidth / window.innerHeight
     ) {
       // If the menu is outside the media (i.e. above/below) allow space for it.
@@ -652,7 +814,7 @@ export class FrigateCard extends LitElement {
         ? MENU_HEIGHT
         : 0;
       innerStyle['max-width'] = `calc(${
-        (100 * this._mediaInfo.width) / this._mediaInfo.height
+        (100 * this._mediaShowInfo.width) / this._mediaShowInfo.height
       }vh - ${allowance}px )`;
     }
 
@@ -680,6 +842,9 @@ export class FrigateCard extends LitElement {
     </ha-card>`;
   }
 
+  /**
+   * Sub-render method for the card.
+   */
   protected _render(): TemplateResult | void {
     if (!this._hass) {
       return html``;
@@ -703,8 +868,7 @@ export class FrigateCard extends LitElement {
       hidden: this.config.live_preload && !this._view.isGalleryView(),
     };
     const viewerClasses = {
-      hidden:
-        this.config.live_preload && !['clip', 'snapshot'].includes(this._view.view),
+      hidden: this.config.live_preload && !this._view.isViewerView(),
     };
     const liveClasses = {
       hidden: this.config.live_preload && this._view.view != 'live',
@@ -720,7 +884,7 @@ export class FrigateCard extends LitElement {
           ? html` <frigate-card-image
               .image=${this.config.image}
               class="${classMap(imageClasses)}"
-              @frigate-card:media-load=${this._mediaLoadHandler}
+              @frigate-card:media-show=${this._mediaShowHandler}
               @frigate-card:message=${this._messageHandler}
             >
             </frigate-card-image>`
@@ -736,7 +900,7 @@ export class FrigateCard extends LitElement {
             >
             </frigate-card-gallery>`
           : ``}
-        ${!this._message && (this._view.is('clip') || this._view.is('snapshot'))
+        ${!this._message && this._view.isViewerView()
           ? html` <frigate-card-viewer
               .hass=${this._hass}
               .view=${this._view}
@@ -747,7 +911,7 @@ export class FrigateCard extends LitElement {
               .lazyLoad=${this.config.event_viewer?.lazy_load ?? true}
               class="${classMap(viewerClasses)}"
               @frigate-card:change-view=${this._changeViewHandler}
-              @frigate-card:media-load=${this._mediaLoadHandler}
+              @frigate-card:media-show=${this._mediaShowHandler}
               @frigate-card:pause=${this._pauseHandler}
               @frigate-card:play=${this._playHandler}
               @frigate-card:message=${this._messageHandler}
@@ -764,7 +928,7 @@ export class FrigateCard extends LitElement {
                   .config=${this.config}
                   .frigateCameraName=${this._frigateCameraName}
                   class="${classMap(liveClasses)}"
-                  @frigate-card:media-load=${this._mediaLoadHandler}
+                  @frigate-card:media-show=${this._mediaShowHandler}
                   @frigate-card:pause=${this._pauseHandler}
                   @frigate-card:play=${this._playHandler}
                   @frigate-card:message=${this._messageHandler}
@@ -799,12 +963,20 @@ export class FrigateCard extends LitElement {
     `;
   }
 
-  // Show a warning card.
+  /**
+   * Show a warning card.
+   * @param warning The warning message.
+   * @returns A rendered template.
+   */
   private _showWarning(warning: string): TemplateResult {
     return html` <hui-warning> ${warning} </hui-warning> `;
   }
 
-  // Show an error card.
+  /**
+   * Show an error card.
+   * @param error The error message.
+   * @returns A rendered template.
+   */
   private _showError(error: string): TemplateResult {
     const errorCard = document.createElement('hui-error-card');
     errorCard.setConfig({
@@ -816,15 +988,20 @@ export class FrigateCard extends LitElement {
     return html` ${errorCard} `;
   }
 
-  // Return compiled CSS styles (thus safe to use with unsafeCSS).
+  /**
+   * Return compiled CSS styles (thus safe to use with unsafeCSS).
+   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(cardStyle);
   }
 
-  // Get the Lovelace card size.
+  /**
+   * Get the Lovelace card size.
+   * @returns The Lovelace card size in units of 50px.
+   */
   public getCardSize(): number {
-    if (this._mediaInfo) {
-      return this._mediaInfo.height / 50;
+    if (this._mediaShowInfo) {
+      return this._mediaShowInfo.height / 50;
     }
     return 6;
   }

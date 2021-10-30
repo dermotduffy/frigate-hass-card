@@ -1,19 +1,17 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
+import type { ExtendedHomeAssistant, FrigateCardConfig } from '../types.js';
+import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
-import { HomeAssistant } from 'custom-card-helpers';
-
-import { signedPathSchema } from '../types.js';
-import type { ExtendedHomeAssistant, FrigateCardConfig } from '../types.js';
 
 import { localize } from '../localize/localize.js';
 import {
   dispatchErrorMessageEvent,
-  dispatchMediaLoadEvent,
+  dispatchMediaShowEvent,
   dispatchMessageEvent,
   dispatchPauseEvent,
   dispatchPlayEvent,
-  homeAssistantWSRequest,
+  homeAssistantSignPath,
 } from '../common.js';
 import { renderProgressIndicator } from '../components/message.js';
 
@@ -142,7 +140,7 @@ export class FrigateCardLiveWebRTC extends LitElement {
           if (onloadedmetadata) {
             onloadedmetadata.call(video, e);
           }
-          dispatchMediaLoadEvent(this, video);
+          dispatchMediaShowEvent(this, video);
         };
         video.onplay = (e) => {
           if (onplay) {
@@ -184,21 +182,20 @@ export class FrigateCardLiveJSMPEG extends LitElement {
       return null;
     }
 
-    const request = {
-      type: 'auth/sign_path',
-      path: `/api/frigate/${this.clientId}` + `/jsmpeg/${this.cameraName}`,
-      expires: URL_SIGN_EXPIRY_SECONDS,
-    };
-    // Sign the path so it includes an authSig parameter.
-    let response;
+    let response: string | null | undefined;
     try {
-      response = await homeAssistantWSRequest(this.hass, signedPathSchema, request);
+      response = await homeAssistantSignPath(
+        this.hass,
+        `/api/frigate/${this.clientId}` + `/jsmpeg/${this.cameraName}`,
+        URL_SIGN_EXPIRY_SECONDS);
     } catch (err) {
       console.warn(err);
       return null;
     }
-    const url = this.hass.hassUrl(response.path);
-    return url.replace(/^http/i, 'ws');
+    if (!response) {
+      return null;
+    }
+    return response.replace(/^http/i, 'ws');
   }
 
   protected _createJSMPEGPlayer(): JSMpeg.VideoElement {
@@ -229,7 +226,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
           // ignore any subsequent calls.
           if (!videoDecoded && this._jsmpegCanvasElement) {
             videoDecoded = true;
-            dispatchMediaLoadEvent(this, this._jsmpegCanvasElement);
+            dispatchMediaShowEvent(this, this._jsmpegCanvasElement);
           }
         },
       },

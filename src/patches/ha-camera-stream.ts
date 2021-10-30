@@ -11,7 +11,7 @@
 
 import { TemplateResult, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { dispatchMediaLoadEvent } from '../common.js';
+import { dispatchMediaShowEvent } from '../common.js';
 
 customElements.whenDefined('ha-camera-stream').then(() => {
   // ========================================================================================
@@ -53,7 +53,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
                   if (typeof this._elementResized != 'undefined') {
                     this._elementResized();
                   }
-                  dispatchMediaLoadEvent(this, e);
+                  dispatchMediaShowEvent(this, e);
                 }}
                 .src=${
                   (typeof this._connected == 'undefined' ||

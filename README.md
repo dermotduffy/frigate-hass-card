@@ -98,7 +98,7 @@ lovelace:
 | Option           | Default | Description                                         |
 | ------------- | --------------------------------------------- | - |
 | `menu_mode` | `hidden-top` | The menu mode to show by default. See [menu modes](#menu-modes) below.|
-| `menu_buttons.{frigate, live, clips, snapshots, frigate_ui, fullscreen}` | `true` | Whether or not to show these builtin actions in the card menu. |
+| `menu_buttons.{frigate, live, clips, snapshots, download, frigate_ui, fullscreen}` | `true` | Whether or not to show these builtin actions in the card menu. |
 | `controls.nextprev` | `thumbnails` | When viewing media, what kind of controls to show to move to the previous/next media item. Acceptable values: `thumbnails`, `chevrons`, `none` . |
 | `dimensions.aspect_ratio_mode` | `dynamic` | The aspect ratio mode to use. Acceptable values: `dynamic`, `static`, `unconstrained`. See [aspect ratios](#aspect-ratios) below.|
 | `dimensions.aspect_ratio` | `16:9` | The aspect ratio  to use. Acceptable values: `<W>:<H>` or `<W>/<H>`. See [aspect ratios](#aspect-ratios) below.|
