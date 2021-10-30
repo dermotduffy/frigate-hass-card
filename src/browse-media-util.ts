@@ -63,12 +63,8 @@ export class BrowseMediaUtil {
     if (!media || !media.children) {
       return null;
     }
-    for (let i = 0; i < media.children.length; i++) {
-      if (this.isTrueMedia(media.children[i])) {
-        return i;
-      }
-    }
-    return null;
+    const index = media.children.findIndex((child) => this.isTrueMedia(child));
+    return index >= 0 ? index : null;
   }
   
   // 

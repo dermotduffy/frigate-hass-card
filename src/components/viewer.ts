@@ -39,8 +39,7 @@ import './next-prev-control.js';
 
 import viewerStyle from '../scss/viewer.scss';
 
-const IMG_TRANSPARENT_1x1 =
-  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+const IMG_EMPTY = 'data:,';
 
 @customElement('frigate-card-viewer')
 export class FrigateCardViewer extends LitElement {
@@ -549,10 +548,10 @@ export class FrigateCardViewerCore extends LitElement {
     slideIndex: number,
     event: CustomEvent<MediaShowInfo>,
   ): void {
-    this._mediaShowInfoHandler(slideIndex, event.detail);
     // Don't allow the inbound event to propagate upwards, that will be
     // automatically done at the appropriate time as the slide is shown.
     event.stopPropagation();
+    this._mediaShowInfoHandler(slideIndex, event.detail);
   }
 
   /**
@@ -632,7 +631,7 @@ export class FrigateCardViewerCore extends LitElement {
                 />
               </video>`
           : html`<img
-              src=${ifDefined(this.lazyLoad ? IMG_TRANSPARENT_1x1 : resolvedMedia.url)}
+              src=${ifDefined(this.lazyLoad ? IMG_EMPTY : resolvedMedia.url)}
               data-src=${ifDefined(this.lazyLoad ? resolvedMedia.url : undefined)}
               title="${mediaToRender.title}"
               @click=${() => {
