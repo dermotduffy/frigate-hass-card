@@ -358,7 +358,8 @@ const internalMenuIconSchema = z.object({
   title: z.string(),
   icon: z.string().optional(),
   emphasize: z.boolean().default(false).optional(),
-  card_action: z.string(),
+  tap_action: z.string(),
+  hold_action: z.string().optional(),
 });
 
 const menuButtonSchema = z.union([
@@ -398,6 +399,11 @@ export interface Message {
   message: string;
   type: 'error' | 'info';
   icon?: string;
+}
+
+export interface MenuInteraction {
+  interaction: "hold" | "tap" | "double_tap",
+  button: MenuButton,
 }
 
 /**
