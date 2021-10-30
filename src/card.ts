@@ -20,7 +20,7 @@ import {
 import screenfull from 'screenfull';
 import { z } from 'zod';
 
-import { entitySchema, frigateCardConfigSchema } from './types.js';
+import { entitySchema, frigateCardConfigSchema, MenuInteraction } from './types.js';
 import type {
   BrowseMediaQueryParameters,
   Entity,
@@ -195,14 +195,14 @@ export class FrigateCard extends LitElement {
     if (this.config.menu_buttons?.frigate ?? true) {
       buttons.push({
         type: 'internal-menu-icon',
-        card_action: 'frigate',
+        tap_action: 'frigate',
         title: localize('menu.frigate'),
       });
     }
     if (this.config.menu_buttons?.live ?? true) {
       buttons.push({
         type: 'internal-menu-icon',
-        card_action: 'live',
+        tap_action: 'live',
         title: localize('menu.live'),
         icon: 'mdi:cctv',
         emphasize: this._view.is('live'),
@@ -211,7 +211,8 @@ export class FrigateCard extends LitElement {
     if (this.config.menu_buttons?.clips ?? true) {
       buttons.push({
         type: 'internal-menu-icon',
-        card_action: 'clips',
+        tap_action: 'clips',
+        hold_action: 'clip',
         title: localize('menu.clips'),
         icon: 'mdi:filmstrip',
         emphasize: this._view.is('clips'),
@@ -220,7 +221,8 @@ export class FrigateCard extends LitElement {
     if (this.config.menu_buttons?.snapshots ?? true) {
       buttons.push({
         type: 'internal-menu-icon',
-        card_action: 'snapshots',
+        tap_action: 'snapshots',
+        hold_action: 'snapshot',
         title: localize('menu.snapshots'),
         icon: 'mdi:camera',
         emphasize: this._view.is('snapshots'),
@@ -229,7 +231,7 @@ export class FrigateCard extends LitElement {
     if (this.config.menu_buttons?.image ?? false) {
       buttons.push({
         type: 'internal-menu-icon',
-        card_action: 'image',
+        tap_action: 'image',
         title: localize('menu.image'),
         icon: 'mdi:image',
         emphasize: this._view.is('image'),
@@ -238,7 +240,7 @@ export class FrigateCard extends LitElement {
     if (this._view.isViewerView() && (this.config.menu_buttons?.download ?? true)) {
       buttons.push({
         type: 'internal-menu-icon',
-        card_action: 'download',
+        tap_action: 'download',
         title: localize('menu.download'),
         icon: 'mdi:download',
       });
@@ -246,7 +248,7 @@ export class FrigateCard extends LitElement {
     if ((this.config.menu_buttons?.frigate_ui ?? true) && this.config.frigate_url) {
       buttons.push({
         type: 'internal-menu-icon',
-        card_action: 'frigate_ui',
+        tap_action: 'frigate_ui',
         title: localize('menu.frigate_ui'),
         icon: 'mdi:web',
       });
@@ -254,7 +256,7 @@ export class FrigateCard extends LitElement {
     if ((this.config.menu_buttons?.fullscreen ?? true) && screenfull.isEnabled) {
       buttons.push({
         type: 'internal-menu-icon',
-        card_action: 'fullscreen',
+        tap_action: 'fullscreen',
         title: localize('menu.fullscreen'),
         icon: screenfull.isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
       });
@@ -438,6 +440,10 @@ export class FrigateCard extends LitElement {
     }
   }
 
+  /**
+   * Handle a change view event.
+   * @param e The change view event.
+   */
   protected _changeViewHandler(e: CustomEvent<View>): void {
     this._changeView(e.detail);
   }
@@ -484,7 +490,7 @@ export class FrigateCard extends LitElement {
       this._setMessageAndUpdate({
         message: localize('error.download_no_media'),
         type: 'error',
-      })
+      });
       return;
     }
     const event_id = BrowseMediaUtil.extractEventID(this._view.media);
@@ -492,14 +498,14 @@ export class FrigateCard extends LitElement {
       this._setMessageAndUpdate({
         message: localize('error.download_no_event_id'),
         type: 'error',
-      })
+      });
       return;
     }
 
     const path =
       `/api/frigate/${this.config.frigate_client_id}` +
       `/notifications/${event_id}/` +
-      `${this._view.isClipRelatedView() ? 'clip.mp4': 'snapshot.jpg'}` +
+      `${this._view.isClipRelatedView() ? 'clip.mp4' : 'snapshot.jpg'}` +
       `?download=true`;
     let response: string | null | undefined;
     try {
@@ -512,7 +518,7 @@ export class FrigateCard extends LitElement {
       this._setMessageAndUpdate({
         message: localize('error.download_sign_failed'),
         type: 'error',
-      })
+      });
       return;
     }
 
@@ -527,24 +533,41 @@ export class FrigateCard extends LitElement {
 
   /**
    * Handle a menu button being clicked.
-   * @param action The action to be called from the clicked button.
-   * @param button The button that was clicked.
+   * @param interaction The interaction that was applied to the button (e.g.
+   * tap, double_tap, hold).
+   * @param button The button that was interacted with.
    */
-  protected _menuActionHandler(action: string, button: MenuButton): void {
+  protected _menuInteractionHandler(event: CustomEvent<MenuInteraction>): void {
+    const interaction = event.detail.interaction;
+    const button = event.detail.button;
+
     if (button.type != 'internal-menu-icon') {
-      handleAction(this, this._hass as HomeAssistant, button, action);
+      handleAction(this, this._hass as HomeAssistant, button, interaction);
       return;
     }
 
-    switch (button.card_action) {
+    let action: string | undefined = undefined;
+    if (interaction == 'tap') {
+      action = button.tap_action;
+    } else if (interaction == 'hold') {
+      action = button.hold_action;
+    }
+
+    if (!action) {
+      return;
+    }
+
+    switch (action) {
       case 'frigate':
         this._changeView();
         break;
+      case 'clip':
+      case 'clips':
       case 'image':
       case 'live':
-      case 'clips':
+      case 'snapshot':
       case 'snapshots':
-        this._changeView(new View({ view: button.card_action }));
+        this._changeView(new View({ view: action }));
         break;
       case 'download':
         this._downloadViewerMedia();
@@ -561,7 +584,7 @@ export class FrigateCard extends LitElement {
         }
         break;
       default:
-        console.warn(`Frigate card received unknown menu action: ${button.card_action}`);
+        console.warn(`Frigate card received unknown menu action: ${action}`);
     }
   }
 
@@ -609,9 +632,9 @@ export class FrigateCard extends LitElement {
       <frigate-card-menu
         class="${classMap(classes)}"
         .hass=${this._hass}
-        .actionCallback=${this._menuActionHandler.bind(this)}
         .menuMode=${this.config.menu_mode}
         .buttons=${this._getMenuButtons()}
+        @frigate-card:menu-interaction=${this._menuInteractionHandler.bind(this)}
       ></frigate-card-menu>
     `;
   }

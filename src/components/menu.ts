@@ -14,13 +14,15 @@ import { styleMap } from 'lit/directives/style-map.js';
 
 import { actionHandler } from '../action-handler-directive.js';
 
-import type { ExtendedHomeAssistant, FrigateMenuMode } from '../types.js';
-import { MenuButton } from '../types.js';
-import { shouldUpdateBasedOnHass } from '../common.js';
+import type {
+  ExtendedHomeAssistant,
+  FrigateMenuMode,
+  MenuButton,
+  MenuInteraction,
+} from '../types.js';
+import { dispatchFrigateCardEvent, shouldUpdateBasedOnHass } from '../common.js';
 
 import menuStyle from '../scss/menu.scss';
-
-type FrigateCardMenuCallback = (name: string, button: MenuButton) => void;
 
 export const MENU_HEIGHT = 46;
 
@@ -37,15 +39,11 @@ export class FrigateCardMenu extends LitElement {
   protected expand = false;
 
   @property({ attribute: false })
-  protected actionCallback: FrigateCardMenuCallback | null = null;
-
-  @property({ attribute: false })
   public buttons: MenuButton[] = [];
 
-  // Call the callback.
-  protected _callAction(ev: CustomEvent, button: MenuButton): void {
+  protected _interactionHandler(ev: CustomEvent, button: MenuButton): void {
     if (this.menuMode.startsWith('hidden-')) {
-      if (button.type == 'internal-menu-icon' && button.card_action === 'frigate') {
+      if (button.type == 'internal-menu-icon' && button.tap_action === 'frigate') {
         this.expand = !this.expand;
         return;
       }
@@ -53,9 +51,10 @@ export class FrigateCardMenu extends LitElement {
       this.expand = false;
     }
 
-    if (this.actionCallback) {
-      this.actionCallback(ev.detail.action, button);
-    }
+    dispatchFrigateCardEvent<MenuInteraction>(this, 'menu-interaction', {
+      interaction: ev.detail.action,
+      button: button,
+    });
   }
 
   // Determine whether the menu should be updated.
@@ -118,7 +117,7 @@ export class FrigateCardMenu extends LitElement {
       icon=${icon || 'mdi:gesture-tap-button'}
       .label=${title || ''}
       title=${title || ''}
-      @action=${(ev) => this._callAction(ev, button)}
+      @action=${(ev) => this._interactionHandler(ev, button)}
       .actionHandler=${actionHandler({
         hasHold: hasHold,
         hasDoubleClick: hasDoubleClick,
@@ -141,7 +140,7 @@ export class FrigateCardMenu extends LitElement {
   // Render the menu.
   protected render(): TemplateResult {
     const isFrigateButton = function (button: MenuButton): boolean {
-      return button.type === 'internal-menu-icon' && button.card_action === 'frigate';
+      return button.type === 'internal-menu-icon' && button.tap_action === 'frigate';
     };
 
     // If the menu is off, or if it's in hidden mode but there's no button to

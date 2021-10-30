@@ -411,15 +411,15 @@ elements:
 
 ## Views
 
-This card supports several different views.
+This card supports several different views:
 
 | Key           | Description                                         |
 | ------------- | --------------------------------------------- |
 |`live` (default)| Shows the live camera view, either the name Frigate view or [WebRTC](#webrtc) if configured.|
 |`snapshots`|Shows the snapshot gallery for this camera/zone/label.|
-|`snapshot`|Shows the most recent snapshot for this camera/zone/label.|
+|`snapshot`|Shows the most recent snapshot for this camera/zone/label. Can also be accessed by holding down the `snapshots` menu icon.|
 |`clips`|Shows the clip gallery for this camera/zone/label.|
-|`clip`|Shows the most recent clip for this camera/zone/label.|
+|`clip`|Shows the most recent clip for this camera/zone/label.  Can also be accessed by holding down the `clips` menu icon.|
 |`image`|Shows a static image specified by the `image` parameter, can be used as a discrete default view or a screensaver (via `view_timeout`).|
 
 ### Automatic updates in the `clip` or `snapshot` view
