@@ -43,21 +43,18 @@ customElements.whenDefined('ha-camera-stream').then(() => {
         return html``;
       }
 
-      // Below .src/@load bindings tweaked to work pre/post:
-      // - https://github.com/home-assistant/frontend/commit/e963735dbabdc2fea8a95aea325952560c727625
       return html`
         ${this._shouldRenderMJPEG
           ? html`
               <img
                 @load=${(e) => {
+                  // TODO: This block can be removed a safe distance from HA 2021.11.
                   if (typeof this._elementResized != 'undefined') {
                     this._elementResized();
                   }
                   dispatchMediaShowEvent(this, e);
                 }}
-                .src=${
-                  (typeof this._connected == 'undefined' ||
-                   this._connected)
+                .src=${typeof this._connected == 'undefined' || this._connected
                   ? computeMJPEGStreamUrl(this.stateObj)
                   : ''}
                 .alt=${`Preview of the ${computeStateName(this.stateObj)} camera.`}
