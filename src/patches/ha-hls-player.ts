@@ -9,17 +9,18 @@
 // available as compilation time.
 // ====================================================================
 
-import {
-  TemplateResult,
-  html,
-} from 'lit';
+import { TemplateResult, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { dispatchMediaShowEvent, dispatchPauseEvent, dispatchPlayEvent } from '../common.js';
+import {
+  dispatchMediaShowEvent,
+  dispatchPauseEvent,
+  dispatchPlayEvent,
+} from '../common.js';
 
-customElements.whenDefined("ha-hls-player").then(() => {
-  @customElement("frigate-card-ha-hls-player")
+customElements.whenDefined('ha-hls-player').then(() => {
+  @customElement('frigate-card-ha-hls-player')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  class FrigateCardHaHlsPlayer extends customElements.get("ha-hls-player") {
+  class FrigateCardHaHlsPlayer extends customElements.get('ha-hls-player') {
     // =====================================================================================
     // Minor modifications from:
     // - https://github.com/home-assistant/frontend/blob/dev/src/components/ha-hls-player.ts
@@ -32,13 +33,16 @@ customElements.whenDefined("ha-hls-player").then(() => {
           ?playsinline=${this.playsInline}
           ?controls=${this.controls}
           @loadeddata=${(e) => {
-            this._elementResized();
+            // TODO: This block can be removed a safe distance from HA 2021.11.
+            if (typeof this._elementResized != 'undefined') {
+              this._elementResized();
+            }
             dispatchMediaShowEvent(this, e);
           }}
           @pause=${() => dispatchPauseEvent(this)}
           @play=${() => dispatchPlayEvent(this)}
         ></video>
       `;
-    }  
+    }
   }
-})
+});
