@@ -213,9 +213,9 @@ const customSchema = z
     type: z.string().superRefine((val, ctx) => {
       if (!val.match(/^custom:(?!frigate-card).+/)) {
         ctx.addIssue({
-          code: z.ZodIssueCode.invalid_type,
-          expected: 'string',
-          received: 'string',
+          code: z.ZodIssueCode.custom,
+          message: "Frigate-card custom elements must match specific schemas",
+          fatal: true,
         });
       }
     }),

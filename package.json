@@ -24,7 +24,7 @@
     "lit": "^2.0.2",
     "quick-lru": "github:sindresorhus/quick-lru",
     "screenfull": "^5.1.0",
-    "zod": "^3.10.0"
+    "zod": "^3.11.6"
   },
   "devDependencies": {
     "@babel/core": "^7.15.8",

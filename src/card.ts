@@ -368,6 +368,8 @@ export class FrigateCard extends LitElement {
             return [];
           }
           contenders.push(this._getParseErrorPathString(issue.path));
+        } else if (issue.code != 'custom') {
+          contenders.push(this._getParseErrorPathString(issue.path));
         }
       }
     }
