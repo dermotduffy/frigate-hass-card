@@ -1,6 +1,13 @@
 import { HassEntity } from 'home-assistant-js-websocket';
 import { HomeAssistant, hasAction, stateIcon } from 'custom-card-helpers';
-import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS, PropertyValues } from 'lit';
+import {
+  CSSResultGroup,
+  LitElement,
+  TemplateResult,
+  html,
+  unsafeCSS,
+  PropertyValues,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
@@ -60,7 +67,7 @@ export class FrigateCardMenu extends LitElement {
     }
 
     // Extract the entities the menu rendering depends on (if any).
-    const entities: string[] = []
+    const entities: string[] = [];
     for (let i = 0; i < this.buttons.length; i++) {
       const button = this.buttons[i];
       if (button.type == 'custom:frigate-card-menu-state-icon') {
@@ -101,17 +108,24 @@ export class FrigateCardMenu extends LitElement {
       emphasize: emphasize,
     };
 
+    // TODO: Upon a safe distance from the release of HA 2021.11 these
+    // attributes can be removed from the <ha-icon-button>.
+    // - icon (replaced with the embedded <ha-icon>)
+    // - title (replaced with .label)
     return html` <ha-icon-button
       class="${classMap(classes)}"
       style="${styleMap(style)}"
       icon=${icon || 'mdi:gesture-tap-button'}
+      .label=${title || ''}
       title=${title || ''}
       @action=${(ev) => this._callAction(ev, button)}
       .actionHandler=${actionHandler({
         hasHold: hasHold,
         hasDoubleClick: hasDoubleClick,
       })}
-    ></ha-icon-button>`;
+    >
+      <ha-icon icon="${icon || 'mdi:gesture-tap-button'}"></ha-icon>
+    </ha-icon-button>`;
   }
 
   // Render the Frigate menu button.
