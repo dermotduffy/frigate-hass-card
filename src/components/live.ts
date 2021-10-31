@@ -1,5 +1,5 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import type { ExtendedHomeAssistant, FrigateCardConfig } from '../types.js';
+import type { ExtendedHomeAssistant, FrigateCardConfig, MediaShowInfo } from '../types.js';
 import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
@@ -7,6 +7,7 @@ import { until } from 'lit/directives/until.js';
 import { localize } from '../localize/localize.js';
 import {
   dispatchErrorMessageEvent,
+  dispatchExistingMediaShowInfoAsEvent,
   dispatchMediaShowEvent,
   dispatchMessageEvent,
   dispatchPauseEvent,
@@ -36,23 +37,51 @@ export class FrigateCardLive extends LitElement {
   @property({ attribute: false })
   protected frigateCameraName!: string;
 
+  @property({ attribute: false })
+  set preload(preload: boolean) {
+    this._preload = preload;
+
+    if (!preload && this._savedMediaShowInfo) {
+      dispatchExistingMediaShowInfoAsEvent(this, this._savedMediaShowInfo);
+    }
+  }
+
+  // Whether or not the live view is currently being preloaded.
+  protected _preload?: boolean;
+
+  // MediaShowInfo object from the underlying live object. In the case of
+  // pre-loading it may be propagated upwards later.
+  protected _savedMediaShowInfo?: MediaShowInfo;
+
+  protected _mediaShowHandler(e: CustomEvent<MediaShowInfo>): void {
+    this._savedMediaShowInfo = e.detail;
+    if (this._preload) {
+      // If live is being pre-loaded, don't let the event propogate upwards yet
+      // as the media is not really being shown.
+      e.stopPropagation();
+    }
+  }
+
   protected render(): TemplateResult | void {
     return html` ${this.config.live_provider == 'frigate'
       ? html` <frigate-card-live-frigate
           .hass=${this.hass}
           .cameraEntity=${this.config.camera_entity}
+          @frigate-card:media-show=${this._mediaShowHandler}
         >
         </frigate-card-live-frigate>`
       : this.config.live_provider == 'webrtc'
       ? html`<frigate-card-live-webrtc
           .hass=${this.hass}
           .webRTCConfig=${this.config.webrtc || {}}
+          @frigate-card:media-show=${this._mediaShowHandler}
         >
         </frigate-card-live-webrtc>`
       : html` <frigate-card-live-jsmpeg
           .hass=${this.hass}
           .cameraName=${this.frigateCameraName}
           .clientId=${this.config.frigate_client_id}
+          @frigate-card:media-show=${this._mediaShowHandler}
         >
         </frigate-card-live-jsmpeg>`}`;
   }

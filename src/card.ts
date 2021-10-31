@@ -710,6 +710,7 @@ export class FrigateCard extends LitElement {
     if (!isValidMediaShowInfo(mediaShowInfo)) {
       return;
     }
+    console.info(`Media show: ${JSON.stringify(mediaShowInfo)}`)
     let requestRefresh = false;
     if (
       this._isAspectRatioEnforced() &&
@@ -954,6 +955,7 @@ export class FrigateCard extends LitElement {
                   .hass=${this._hass}
                   .config=${this.config}
                   .frigateCameraName=${this._frigateCameraName}
+                  .preload=${this.config.live_preload && !this._view.is('live')}
                   class="${classMap(liveClasses)}"
                   @frigate-card:media-show=${this._mediaShowHandler}
                   @frigate-card:pause=${this._pauseHandler}
