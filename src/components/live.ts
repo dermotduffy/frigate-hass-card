@@ -29,13 +29,13 @@ const URL_SIGN_REFRESH_THRESHOLD_SECONDS = 1 * 60 * 60;
 @customElement('frigate-card-live')
 export class FrigateCardLive extends LitElement {
   @property({ attribute: false })
-  protected hass!: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: HomeAssistant & ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected config!: FrigateCardConfig;
+  protected config?: FrigateCardConfig;
 
   @property({ attribute: false })
-  protected frigateCameraName!: string;
+  protected frigateCameraName?: string;
 
   @property({ attribute: false })
   set preload(preload: boolean) {
@@ -53,6 +53,10 @@ export class FrigateCardLive extends LitElement {
   // pre-loading it may be propagated upwards later.
   protected _savedMediaShowInfo?: MediaShowInfo;
 
+  /**
+   * Handler for media show events that special cases preloaded live views.
+   * @param e The media show event.
+   */
   protected _mediaShowHandler(e: CustomEvent<MediaShowInfo>): void {
     this._savedMediaShowInfo = e.detail;
     if (this._preload) {
@@ -62,7 +66,15 @@ export class FrigateCardLive extends LitElement {
     }
   }
 
+  /**
+   * Master render method.
+   * @returns A rendered template.
+   */
   protected render(): TemplateResult | void {
+    if (!this.hass || !this.config) {
+      return;
+    }
+
     return html` ${this.config.live_provider == 'frigate'
       ? html` <frigate-card-live-frigate
           .hass=${this.hass}
@@ -86,6 +98,9 @@ export class FrigateCardLive extends LitElement {
         </frigate-card-live-jsmpeg>`}`;
   }
 
+  /**
+   * Get styles.
+   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(liveStyle);
   }
@@ -94,12 +109,20 @@ export class FrigateCardLive extends LitElement {
 @customElement('frigate-card-live-frigate')
 export class FrigateCardLiveFrigate extends LitElement {
   @property({ attribute: false })
-  protected hass!: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: HomeAssistant & ExtendedHomeAssistant;
 
   @property({ attribute: false })
   protected cameraEntity?: string;
 
+  /**
+   * Master render method.
+   * @returns A rendered template.
+   */
   protected render(): TemplateResult | void {
+    if (!this.hass) {
+      return;
+    }
+
     if (!this.cameraEntity || !(this.cameraEntity in this.hass.states)) {
       return dispatchMessageEvent(
         this,
@@ -116,6 +139,9 @@ export class FrigateCardLiveFrigate extends LitElement {
     </frigate-card-ha-camera-stream>`;
   }
 
+  /**
+   * Get styles.
+   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(liveStyle);
   }
@@ -126,11 +152,14 @@ export class FrigateCardLiveFrigate extends LitElement {
 @customElement('frigate-card-live-webrtc')
 export class FrigateCardLiveWebRTC extends LitElement {
   @property({ attribute: false })
-  protected webRTCConfig!: Record<string, unknown>;
+  protected webRTCConfig?: Record<string, unknown>;
 
-  protected hass!: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: HomeAssistant & ExtendedHomeAssistant;
   protected _webRTCElement: HTMLElement | null = null;
 
+  /**
+   * Create the WebRTC element. May throw.
+   */
   protected _createWebRTC(): TemplateResult | void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const webrtcElement = customElements.get('webrtc-camera') as any;
@@ -144,7 +173,14 @@ export class FrigateCardLiveWebRTC extends LitElement {
     }
   }
 
+  /**
+   * Master render method.
+   * @returns A rendered template.
+   */
   protected render(): TemplateResult | void {
+    if (!this.hass) {
+      return;
+    }
     if (!this._webRTCElement) {
       try {
         this._createWebRTC();
@@ -155,6 +191,9 @@ export class FrigateCardLiveWebRTC extends LitElement {
     return html`${this._webRTCElement}`;
   }
 
+  /**
+   * Updated lifecycle callback.
+   */
   public updated(): void {
     // Extract the video component after it has been rendered and generate the
     // media load event.
@@ -187,6 +226,9 @@ export class FrigateCardLiveWebRTC extends LitElement {
     });
   }
 
+  /**
+   * Get styles.
+   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(liveStyle);
   }
@@ -195,19 +237,23 @@ export class FrigateCardLiveWebRTC extends LitElement {
 @customElement('frigate-card-live-jsmpeg')
 export class FrigateCardLiveJSMPEG extends LitElement {
   @property({ attribute: false })
-  protected cameraName!: string;
+  protected cameraName?: string;
 
   @property({ attribute: false })
-  protected clientId!: string;
+  protected clientId?: string;
 
-  protected hass!: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: HomeAssistant & ExtendedHomeAssistant;
   protected _jsmpegCanvasElement?: HTMLCanvasElement;
   protected _jsmpegVideoPlayer?: JSMpeg.VideoElement;
   protected _jsmpegURL?: string | null;
   protected _refreshPlayerTimerID?: number;
 
+  /**
+   * Get a signed player URL.
+   * @returns A URL or null.
+   */
   protected async _getURL(): Promise<string | null> {
-    if (!this.hass) {
+    if (!this.hass || !this.clientId || !this.cameraName) {
       return null;
     }
 
@@ -227,6 +273,10 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     return response.replace(/^http/i, 'ws');
   }
 
+  /**
+   * Create a JSMPEG player.
+   * @returns A JSMPEG player.
+   */
   protected _createJSMPEGPlayer(): JSMpeg.VideoElement {
     let videoDecoded = false;
     return new JSMpeg.VideoElement(
@@ -262,6 +312,9 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     );
   }
 
+  /**
+   * Reset / destroy the player.
+   */
   protected _resetPlayer(): void {
     if (this._refreshPlayerTimerID) {
       window.clearTimeout(this._refreshPlayerTimerID);
@@ -278,6 +331,9 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     this._jsmpegURL = undefined;
   }
 
+  /**
+   * Component connected callback.
+   */
   connectedCallback(): void {
     super.connectedCallback();
     if (this.isConnected) {
@@ -285,6 +341,9 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     }
   }
 
+  /**
+   * Component disconnected callback.
+   */
   disconnectedCallback(): void {
     if (!this.isConnected) {
       this._resetPlayer();
@@ -292,6 +351,9 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     super.disconnectedCallback();
   }
 
+  /**
+   * Refresh the JSMPEG player.
+   */
   protected async _refreshPlayer(): Promise<void> {
     this._resetPlayer();
 
@@ -309,6 +371,9 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     this.requestUpdate();
   }
 
+  /**
+   * Master render method.
+   */
   protected render(): TemplateResult | void {
     if (
       this._jsmpegURL === undefined ||
@@ -326,6 +391,9 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     return html`${this._jsmpegCanvasElement}`;
   }
 
+  /**
+   * Get styles.
+   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(liveStyle);
   }

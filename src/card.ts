@@ -710,7 +710,6 @@ export class FrigateCard extends LitElement {
     if (!isValidMediaShowInfo(mediaShowInfo)) {
       return;
     }
-    console.info(`Media show: ${JSON.stringify(mediaShowInfo)}`)
     let requestRefresh = false;
     if (
       this._isAspectRatioEnforced() &&
