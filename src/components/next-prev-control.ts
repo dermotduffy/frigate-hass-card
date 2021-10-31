@@ -17,6 +17,13 @@ export class FrigateCardMessage extends LitElement {
   @property({ attribute: false })
   protected thumbnail?: string;
 
+  @property({ attribute: false })
+  set controlSize(controlSize: string | undefined) {
+    if (controlSize) {
+      this.style.setProperty('--frigate-card-next-prev-size', controlSize);
+    }
+  }
+
   protected render(): TemplateResult {
     if (!this.controlStyle || this.controlStyle == 'none') {
       return html``;
@@ -32,11 +39,20 @@ export class FrigateCardMessage extends LitElement {
     };
 
     if (this.controlStyle == 'chevrons') {
+      const icon = this.direction == 'previous' ? 'mdi:chevron-left' : 'mdi:chevron-right';
+
+      // TODO: Upon a safe distance from the release of HA 2021.11 these
+      // attributes can be removed from the <ha-icon-button>.
+      // - icon (replaced with the embedded <ha-icon>)
+      // - title (replaced with .label)
       return html` <ha-icon-button
-        icon=${this.direction == 'previous' ? 'mdi:chevron-left' : 'mdi:chevron-right'}
+        icon=${icon}
         class="${classMap(classes)}"
+        .label=${this.title}
         title=${this.title}
-      ></ha-icon-button>`;
+      >
+        <ha-icon icon=${icon}></ha-icon>
+      </ha-icon-button>`;
     }
 
     if (!this.thumbnail) {

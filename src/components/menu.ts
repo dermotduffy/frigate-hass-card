@@ -41,6 +41,11 @@ export class FrigateCardMenu extends LitElement {
   @property({ attribute: false })
   public buttons: MenuButton[] = [];
 
+  @property({ attribute: false })
+  set buttonSize(buttonSize: string) {
+    this.style.setProperty('--frigate-card-menu-button-size', buttonSize);
+  }
+
   protected _interactionHandler(ev: CustomEvent, button: MenuButton): void {
     if (this.menuMode.startsWith('hidden-')) {
       if (button.type == 'internal-menu-icon' && button.tap_action === 'frigate') {

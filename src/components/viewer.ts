@@ -56,6 +56,9 @@ export class FrigateCardViewer extends LitElement {
   protected nextPreviousControlStyle?: NextPreviousControlStyle;
 
   @property({ attribute: false })
+  protected nextPreviousControlSize?: string;
+
+  @property({ attribute: false })
   protected autoplayClip?: boolean;
 
   @property({ attribute: false })
@@ -142,6 +145,7 @@ export class FrigateCardViewer extends LitElement {
     return html` <frigate-card-viewer-core
       .view=${this.view}
       .nextPreviousControlStyle=${this.nextPreviousControlStyle}
+      .nextPreviousControlSize=${this.nextPreviousControlSize}
       .resolvedMediaCache=${this.resolvedMediaCache}
       .autoplayClip=${autoplay}
       .hass=${this.hass}
@@ -166,6 +170,9 @@ export class FrigateCardViewerCore extends LitElement {
 
   @property({ attribute: false })
   protected nextPreviousControlStyle?: NextPreviousControlStyle;
+
+  @property({ attribute: false })
+  protected nextPreviousControlSize?: string;
 
   @property({ attribute: false })
   protected resolvedMediaCache?: ResolvedMediaCache;
@@ -498,6 +505,7 @@ export class FrigateCardViewerCore extends LitElement {
         ? html`<frigate-card-next-previous-control
             .direction=${'previous'}
             .controlStyle=${this.nextPreviousControlStyle}
+            .controlSize=${this.nextPreviousControlSize}
             .thumbnail=${neighbors.previous.thumbnail}
             .title=${neighbors.previous.title}
             @click=${() => this._nextPreviousHandler('previous')}
@@ -512,6 +520,7 @@ export class FrigateCardViewerCore extends LitElement {
         ? html`<frigate-card-next-previous-control
             .direction=${'next'}
             .controlStyle=${this.nextPreviousControlStyle}
+            .controlSize=${this.nextPreviousControlSize}
             .thumbnail=${neighbors.next.thumbnail}
             .title=${neighbors.next.title}
             @click=${() => this._nextPreviousHandler('next')}

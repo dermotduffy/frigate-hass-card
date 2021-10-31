@@ -318,11 +318,13 @@ export const frigateCardConfigSchema = z.object({
       fullscreen: z.boolean().default(true),
     })
     .optional(),
+  menu_button_size: z.string().default('40px'),
   update_entities: z.string().array().optional(),
   elements: pictureElementsSchema,
   controls: z
     .object({
       nextprev: z.enum(NEXT_PREVIOUS_CONTROL_STYLES).default('thumbnails'),
+      nextprev_size: z.string().default('48px'),
     })
     .optional(),
   dimensions: z
