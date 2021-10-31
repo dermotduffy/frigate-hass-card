@@ -1,15 +1,24 @@
 @use './button.scss';
 
+:host {
+  --frigate-card-next-prev-size: 48px;
+  --frigate-card-next-prev-size-hover: calc(var(--frigate-card-next-prev-size) * 2);
+  --frigate-card-prev-position: 45px;
+  --frigate-card-next-position: 45px;
+  --mdc-icon-button-size: var(--frigate-card-next-prev-size);
+  --mdc-icon-size: calc(var(--mdc-icon-button-size) / 2);
+}
+
 .controls {
   position: absolute;
   z-index: 1;
   overflow: hidden;
 }
 .controls.previous {
-  left: 45px;
+  left: var(--frigate-card-prev-position);
 }
 .controls.next {
-  right: 45px;  
+  right: var(--frigate-card-next-position);
 }
 
 .controls.chevrons {
@@ -18,22 +27,28 @@
 
 .controls.thumbnails {
   border-radius: 50%;
-  height: 48px;
-  top: calc(50% - (48px / 2));
-  box-shadow: 0px 0px 30px 1px black;
-  transition: all .2s ease;
+  height: var(--frigate-card-next-prev-size);
+  top: calc(50% - (var(--frigate-card-next-prev-size) / 2));
+  box-shadow: 0px 0px 20px 5px black;
+  transition: all 0.2s ease-out;
   opacity: 0.8;
 }
 .controls.thumbnails:hover {
   opacity: 1 !important;
-  height: 72px;
-  top: calc(50% - (72px / 2));
+  height: var(--frigate-card-next-prev-size-hover);
+  top: calc(50% - (var(--frigate-card-next-prev-size-hover) / 2));
 }
 
 .controls.previous.thumbnails:hover {
-  left: 33px;
+  left: calc(
+    var(--frigate-card-prev-position) -
+      (var(--frigate-card-next-prev-size-hover) - var(--frigate-card-next-prev-size)) / 2
+  );
 }
 
 .controls.next.thumbnails:hover {
-  right: 33px;
+  right: calc(
+    var(--frigate-card-next-position) -
+      (var(--frigate-card-next-prev-size-hover) - var(--frigate-card-next-prev-size)) / 2
+  );
 }

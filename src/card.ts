@@ -636,6 +636,7 @@ export class FrigateCard extends LitElement {
         .hass=${this._hass}
         .menuMode=${this.config.menu_mode}
         .buttons=${this._getMenuButtons()}
+        .buttonSize=${this.config.menu_button_size}
         @frigate-card:menu-interaction=${this._menuInteractionHandler.bind(this)}
       ></frigate-card-menu>
     `;
@@ -931,6 +932,7 @@ export class FrigateCard extends LitElement {
               .view=${this._view}
               .browseMediaQueryParameters=${mediaQueryParameters}
               .nextPreviousControlStyle=${this.config.controls?.nextprev ?? 'thumbnails'}
+              .nextPreviousControlSize=${this.config.controls?.nextprev_size}
               .autoplayClip=${this.config.autoplay_clip}
               .resolvedMediaCache=${this._resolvedMediaCache}
               .lazyLoad=${this.config.event_viewer?.lazy_load ?? true}
