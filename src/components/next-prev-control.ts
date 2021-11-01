@@ -2,30 +2,29 @@ import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import { NextPreviousControlStyle } from '../types.js';
+import { NextPreviousControlConfig } from '../types.js';
 
 import controlStyle from '../scss/next-previous-control.scss';
 
 @customElement('frigate-card-next-previous-control')
-export class FrigateCardMessage extends LitElement {
+export class FrigateCardNextPreviousControl extends LitElement {
   @property({ attribute: false })
   protected direction?: 'next' | 'previous';
 
   @property({ attribute: false })
-  protected controlStyle?: NextPreviousControlStyle;
+  set controlConfig(controlConfig: NextPreviousControlConfig | undefined) {
+    if (controlConfig?.size) {
+      this.style.setProperty('--frigate-card-next-prev-size', controlConfig.size);
+    }
+    this._controlConfig = controlConfig;
+  }
+  protected _controlConfig?: NextPreviousControlConfig;
 
   @property({ attribute: false })
   protected thumbnail?: string;
 
-  @property({ attribute: false })
-  set controlSize(controlSize: string | undefined) {
-    if (controlSize) {
-      this.style.setProperty('--frigate-card-next-prev-size', controlSize);
-    }
-  }
-
   protected render(): TemplateResult {
-    if (!this.controlStyle || this.controlStyle == 'none') {
+    if (!this._controlConfig || this._controlConfig.style == 'none') {
       return html``;
     }
 
@@ -33,12 +32,12 @@ export class FrigateCardMessage extends LitElement {
       controls: true,
       previous: this.direction == 'previous',
       next: this.direction == 'next',
-      thumbnails: this.controlStyle == 'thumbnails',
-      chevrons: this.controlStyle == 'chevrons',
-      button: this.controlStyle == 'chevrons',
+      thumbnails: this._controlConfig.style == 'thumbnails',
+      chevrons: this._controlConfig.style == 'chevrons',
+      button: this._controlConfig.style == 'chevrons',
     };
 
-    if (this.controlStyle == 'chevrons') {
+    if (this._controlConfig.style == 'chevrons') {
       const icon = this.direction == 'previous' ? 'mdi:chevron-left' : 'mdi:chevron-right';
 
       // TODO: Upon a safe distance from the release of HA 2021.11 these

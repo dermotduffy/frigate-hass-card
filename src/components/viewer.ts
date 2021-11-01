@@ -19,7 +19,7 @@ import type {
   BrowseMediaSource,
   ExtendedHomeAssistant,
   MediaShowInfo,
-  NextPreviousControlStyle,
+  ViewerConfig,
 } from '../types.js';
 import { ResolvedMediaCache, ResolvedMediaUtil } from '../resolved-media.js';
 import { View } from '../view.js';
@@ -50,22 +50,13 @@ export class FrigateCardViewer extends LitElement {
   protected view?: View;
 
   @property({ attribute: false })
+  protected viewerConfig?: ViewerConfig;
+
+  @property({ attribute: false })
   protected browseMediaQueryParameters?: BrowseMediaQueryParameters;
 
   @property({ attribute: false })
-  protected nextPreviousControlStyle?: NextPreviousControlStyle;
-
-  @property({ attribute: false })
-  protected nextPreviousControlSize?: string;
-
-  @property({ attribute: false })
-  protected autoplayClip?: boolean;
-
-  @property({ attribute: false })
   protected resolvedMediaCache?: ResolvedMediaCache;
-
-  @property({ attribute: false })
-  protected lazyLoad?: boolean;
 
   /**
    * Resolve all the given media for a target.
@@ -92,20 +83,22 @@ export class FrigateCardViewer extends LitElement {
     return errorFree;
   }
 
+  /**
+   * Master render method.
+   * @returns A rendered template.
+   */
   protected render(): TemplateResult | void {
     return html`${until(this._render(), renderProgressIndicator())}`;
   }
 
   /**
    * Asyncronously render the element.
-   * @returns A template to render.
+   * @returns A rendered template.
    */
   protected async _render(): Promise<TemplateResult | void> {
     if (!this.hass || !this.view || !this.browseMediaQueryParameters) {
       return html``;
     }
-
-    let autoplay = true;
 
     if (this.view.is('clip') || this.view.is('snapshot')) {
       let parent: BrowseMediaSource | null = null;
@@ -129,13 +122,6 @@ export class FrigateCardViewer extends LitElement {
       }
       this.view.target = parent;
       this.view.childIndex = childIndex;
-
-      // In this block, no clip has been manually selected, so this is loading
-      // the most recent clip on card load. In this mode, autoplay of the clip
-      // may be disabled by configuration. If does not make sense to disable
-      // autoplay when the user has explicitly picked an event to play in the
-      // gallery.
-      autoplay = this.autoplayClip ?? true;
     }
 
     if (this.view.target && !(await this._resolveAllMediaForTarget(this.view.target))) {
@@ -144,13 +130,10 @@ export class FrigateCardViewer extends LitElement {
 
     return html` <frigate-card-viewer-core
       .view=${this.view}
-      .nextPreviousControlStyle=${this.nextPreviousControlStyle}
-      .nextPreviousControlSize=${this.nextPreviousControlSize}
+      .viewerConfig=${this.viewerConfig}
       .resolvedMediaCache=${this.resolvedMediaCache}
-      .autoplayClip=${autoplay}
       .hass=${this.hass}
       .browseMediaQueryParameters=${this.browseMediaQueryParameters}
-      .lazyLoad=${this.lazyLoad}
     >
     </frigate-card-viewer-core>`;
   }
@@ -166,28 +149,19 @@ export class FrigateCardViewer extends LitElement {
 @customElement('frigate-card-viewer-core')
 export class FrigateCardViewerCore extends LitElement {
   @property({ attribute: false })
+  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+
+  @property({ attribute: false })
   protected view?: View;
 
   @property({ attribute: false })
-  protected nextPreviousControlStyle?: NextPreviousControlStyle;
-
-  @property({ attribute: false })
-  protected nextPreviousControlSize?: string;
-
-  @property({ attribute: false })
-  protected resolvedMediaCache?: ResolvedMediaCache;
-
-  @property({ attribute: false })
-  protected autoplayClip?: boolean;
-
-  @property({ attribute: false })
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected viewerConfig?: ViewerConfig;
 
   @property({ attribute: false })
   protected browseMediaQueryParameters?: BrowseMediaQueryParameters;
 
   @property({ attribute: false })
-  protected lazyLoad?: boolean;
+  protected resolvedMediaCache?: ResolvedMediaCache;
 
   // Media carousel object.
   protected _carousel?: EmblaCarouselType;
@@ -418,7 +392,7 @@ export class FrigateCardViewerCore extends LitElement {
    * Lazily load media in the carousel.
    */
   protected _lazyLoadMediaHandler(): void {
-    if (!this.lazyLoad || !this._carousel) {
+    if (!this.viewerConfig?.lazy_load || !this._carousel) {
       return;
     }
     const slides = this._carousel.slideNodes();
@@ -504,8 +478,7 @@ export class FrigateCardViewerCore extends LitElement {
       ${neighbors && neighbors.previous
         ? html`<frigate-card-next-previous-control
             .direction=${'previous'}
-            .controlStyle=${this.nextPreviousControlStyle}
-            .controlSize=${this.nextPreviousControlSize}
+            .controlConfig=${this.viewerConfig?.controls.next_previous}
             .thumbnail=${neighbors.previous.thumbnail}
             .title=${neighbors.previous.title}
             @click=${() => this._nextPreviousHandler('previous')}
@@ -519,8 +492,7 @@ export class FrigateCardViewerCore extends LitElement {
       ${neighbors && neighbors.next
         ? html`<frigate-card-next-previous-control
             .direction=${'next'}
-            .controlStyle=${this.nextPreviousControlStyle}
-            .controlSize=${this.nextPreviousControlSize}
+            .controlConfig=${this.viewerConfig?.controls.next_previous}
             .thumbnail=${neighbors.next.thumbnail}
             .title=${neighbors.next.title}
             @click=${() => this._nextPreviousHandler('next')}
@@ -594,7 +566,7 @@ export class FrigateCardViewerCore extends LitElement {
   ): TemplateResult | void {
     // media that can be expanded (folders) cannot be resolved to a single media
     // item, skip them.
-    if (!this.view || !BrowseMediaUtil.isTrueMedia(mediaToRender)) {
+    if (!this.view || !this.viewerConfig || !BrowseMediaUtil.isTrueMedia(mediaToRender)) {
       return;
     }
 
@@ -603,20 +575,32 @@ export class FrigateCardViewerCore extends LitElement {
       return;
     }
 
+    // In this block, no clip has been manually selected, so this is loading
+    // the most recent clip on card load. In this mode, autoplay of the clip
+    // may be disabled by configuration. If does not make sense to disable
+    // autoplay when the user has explicitly picked an event to play in the
+    // gallery.
+    let autoplay = true;
+    if (this.view.is('clip') || this.view.is('snapshot')) {
+      autoplay = this.viewerConfig.autoplay_clip;
+    }
+
+    const lazyLoad = this.viewerConfig.lazy_load;
+
     return html`
       <div class="embla__slide">
         ${this.view.isClipRelatedView()
           ? resolvedMedia?.mime_type.toLowerCase() == 'application/x-mpegurl'
             ? html`<frigate-card-ha-hls-player
                 .hass=${this.hass}
-                url=${ifDefined(this.lazyLoad ? undefined : resolvedMedia.url)}
-                data-url=${ifDefined(this.lazyLoad ? resolvedMedia.url : undefined)}
+                url=${ifDefined(lazyLoad ? undefined : resolvedMedia.url)}
+                data-url=${ifDefined(lazyLoad ? resolvedMedia.url : undefined)}
                 title="${mediaToRender.title}"
                 muted
                 controls
                 playsinline
                 allow-exoplayer
-                ?autoplay="${this.autoplayClip}"
+                ?autoplay="${autoplay}"
                 @frigate-card:media-show=${(e: CustomEvent<MediaShowInfo>) =>
                   this._mediaShowEventHandler(slideIndex, e)}
               >
@@ -626,7 +610,7 @@ export class FrigateCardViewerCore extends LitElement {
                 muted
                 controls
                 playsinline
-                ?autoplay="${this.autoplayClip}"
+                ?autoplay="${autoplay}"
                 @loadedmetadata="${(e: Event) => {
                   this._mediaShowInfoHandler(slideIndex, createMediaShowInfo(e));
                 }}"
@@ -634,14 +618,14 @@ export class FrigateCardViewerCore extends LitElement {
                 @pause=${() => dispatchPauseEvent(this)}
               >
                 <source
-                  src=${ifDefined(this.lazyLoad ? undefined : resolvedMedia.url)}
-                  data-src=${ifDefined(this.lazyLoad ? resolvedMedia.url : undefined)}
+                  src=${ifDefined(lazyLoad ? undefined : resolvedMedia.url)}
+                  data-src=${ifDefined(lazyLoad ? resolvedMedia.url : undefined)}
                   type="${resolvedMedia.mime_type}"
                 />
               </video>`
           : html`<img
-              src=${ifDefined(this.lazyLoad ? IMG_EMPTY : resolvedMedia.url)}
-              data-src=${ifDefined(this.lazyLoad ? resolvedMedia.url : undefined)}
+              src=${ifDefined(lazyLoad ? IMG_EMPTY : resolvedMedia.url)}
+              data-src=${ifDefined(lazyLoad ? resolvedMedia.url : undefined)}
               title="${mediaToRender.title}"
               @click=${() => {
                 if (this._carousel?.clickAllowed()) {

@@ -214,8 +214,8 @@ export function dispatchErrorMessageEvent(element: HTMLElement, message: string)
  * @returns A boolean indicating whether or not to allow an update.
  */
 export function shouldUpdateBasedOnHass(
-  newHass: HomeAssistant | null,
-  oldHass: HomeAssistant | undefined,
+  newHass: HomeAssistant | undefined | null,
+  oldHass: HomeAssistant | undefined | null,
   entities: string[] | null,
 ): boolean {
   if (!newHass || !entities) {

@@ -1,14 +1,102 @@
 {
   "common": {
     "version": "Version",
-    "show_warning": "Show Warning",
-    "show_error": "Show Error",
-    "frigate_card": "Frigate Card",
+    "show_warning": "Show warning",
+    "show_error": "Show error",
+    "frigate_card": "Frigate card",
     "frigate_card_description": "A Lovelace card for use with Frigate",
     "no_snapshots": "No snapshots",
     "no_clips": "No clips",
     "no_snapshot": "No recent snapshot",
     "no_clip": "No recent clip"
+  },
+  "config": {
+    "camera_entity": "Camera Entity",
+    "frigate": {
+      "camera_name": "Frigate camera name (Optional, autodetected from entity)",
+      "client_id": "Frigate client id (For >1 Frigate server)",
+      "label": "Label/object filter",
+      "url": "Frigate server URL",
+      "zone": "Zone"
+    },
+    "view": {
+      "default": "Default view",
+      "views": {
+        "live": "Live view",
+        "clip": "Most recent clip",
+        "clips": "Clips gallery",
+        "snapshot": "Most recent snapshot",
+        "snapshots": "Snapshots gallery",
+        "image": "Static image"
+      },
+      "timeout": "View timeout (seconds)"
+    },
+    "event_viewer": {
+      "autoplay_clip": "Autoplay most recent clip",
+      "lazy_load": "Lazily load event media",
+      "controls": {
+        "next_previous": {
+          "style": "Event Viewer Next & Previous Control style",
+          "size": "Event Viewer Next & Previous Control size",
+          "styles": {
+            "thumbnails": "Thumbnails",
+            "chevrons": "Chevrons",
+            "none": "None"
+          }
+        }
+      }
+    },
+    "live": {
+      "preload": "Preload live view",
+      "provider": "Live view provider",
+      "providers": {
+        "frigate": "Frigate",
+        "frigate-jsmpeg": "Frigate JSMpeg",
+        "webrtc": "WebRTC"
+      },
+      "webrtc": {
+        "entity": "WebRTC Camera Entity (Not a Frigate camera)",
+        "url": "WebRTC Camera URL"
+      }
+    },
+    "image": {
+      "src": "Static image URL/data for image view"
+    },
+    "menu": {
+      "buttons": {
+        "frigate": "Frigate menu / Default view",
+        "frigate_ui": "Frigate user Interface",
+        "fullscreen": "Fullscreen",
+        "download": "Download event media"
+      },
+      "mode": "Menu mode",
+      "modes": {
+        "none": "No menu",
+        "hidden-top": "Hidden top",
+        "hidden-left": "Hidden left",
+        "hidden-bottom": "Hidden bottom",
+        "hidden-right": "Hidden right",
+        "overlay-top": "Overlay top",
+        "overlay-left": "Overlay left",
+        "overlay-bottom": "Overlay bottom",
+        "overlay-right": "Overlay right",
+        "hover-top": "Hover top",
+        "hover-left": "Hover left",
+        "hover-bottom": "Hover bottom",
+        "hover-right": "Hover right",
+        "above": "Above",
+        "below": "Below"
+      }
+    },
+    "dimensions": {
+      "aspect_ratio": "Default aspect ratio",
+      "aspect_ratio_mode": "Aspect ratio mode",
+      "aspect_ratio_modes": {
+        "unconstrained": "Unconstrained aspect ratio",
+        "dynamic": "Aspect ratio adjusts to media",
+        "static": "Static aspect ratio"
+      }
+    }
   },
   "editor": {
     "basic": "Basic",
@@ -21,74 +109,7 @@
     "webrtc_secondary": "Optional WebRTC parameters",
     "advanced": "Advanced",
     "advanced_secondary": "Advanced options",
-    "camera_entity": "Camera Entity (Optional)",
-    "frigate_camera_name": "Frigate camera name (Optional, autodetected from entity)",
-    "default_view": "Default view (Optional)",
-    "frigate_client_id": "Frigate client id (Optional, for >1 Frigate server)",
-    "view_timeout": "View timeout (seconds)",
-    "frigate_url": "Frigate URL (Optional, for Frigate UI button)",
-    "autoplay_clip": "Autoplay latest clip",
-    "menu_mode": "Menu mode (Optional)",
-    "show_button": "Show button",
-    "zone": "Zone",
-    "label": "Frigate label/object filter (Optional)",
-    "live_provider": "Live view provider (Optional)",
-    "live_preload": "Preload live view",
-    "image": "Static image URL for image view (Optional)",
-    "lazy_load": "Lazily load event media"
-  },
-  "menu": {
-    "frigate": "Frigate Menu / Default View",
-    "live": "Live View",
-    "clips": "Clips Gallery",
-    "snapshots": "Snapshots Gallery",
-    "clip": "Latest Clip",
-    "snapshot": "Latest Snapshot",
-    "frigate_ui": "Frigate User Interface",
-    "fullscreen": "Fullscreen",
-    "image": "Static Image",
-    "download": "Download event media"
-  },
-  "control": {
-    "nextprev": "Media Next & Previous Controls",
-    "thumbnails": "Thumbnails",
-    "chevrons": "Chevrons",
-    "none": "None"
-  },
-  "dimensions": {
-    "aspect_ratio_mode": "Aspect Ratio Mode",
-    "aspect_ratio": "Default aspect ratio (Optional)"
-  },
-  "aspect_ratio_mode": {
-    "unconstrained": "Unconstrained aspect ratio",
-    "dynamic": "Aspect ratio adjusts to media",
-    "static": "Static aspect ratio"
-  },
-  "menu_mode": {
-    "none": "No menu",
-    "hidden-top": "Hidden Top",
-    "hidden-left": "Hidden Left",
-    "hidden-bottom": "Hidden Bottom",
-    "hidden-right": "Hidden Right",
-    "overlay-top": "Overlay Top",
-    "overlay-left": "Overlay Left",
-    "overlay-bottom": "Overlay Bottom",
-    "overlay-right": "Overlay Right",
-    "hover-top": "Hover Top",
-    "hover-left": "Hover Left",
-    "hover-bottom": "Hover Bottom",
-    "hover-right": "Hover Right",
-    "above": "Above",
-    "below": "Below"
-  },
-  "live_provider": {
-    "frigate": "Frigate",
-    "frigate-jsmpeg": "Frigate JSMpeg",
-    "webrtc": "WebRTC"
-  },
-  "webrtc": {
-    "entity": "Optional WebRTC Camera Entity (Not a Frigate camera)",
-    "url": "Optional WebRTC Camera URL"
+    "show_button": "Show button"
   },
   "error": {
     "empty_response": "Received empty response from Home Assistant for request",
@@ -101,7 +122,7 @@
     "invalid_configuration": "Invalid configuration",
     "invalid_configuration_no_hint": "No location hint available (bad or missing type?)",
     "missing_webrtc": "WebRTC component not found",
-    "no_frigate_camera_name": "Cannot autodetect Frigate camera name, you need to either set camera_entity and / or frigate_camera_name",
+    "no_frigate_camera_name": "Cannot autodetect Frigate camera name, you need to either set camera_entity and / or frigate.camera_name",
     "could_not_render_elements": "Could not render picture elements",
     "invalid_elements_config": "Invalid picture elements configuration",
     "jsmpeg_no_sign": "Could not retrieve or sign JSMPEG websocket path",
