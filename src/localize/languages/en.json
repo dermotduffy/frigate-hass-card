@@ -15,9 +15,9 @@
     "frigate": {
       "camera_name": "Frigate camera name (Optional, autodetected from entity)",
       "client_id": "Frigate client id (For >1 Frigate server)",
-      "label": "Label/object filter",
+      "label": "Frigate label/object filter",
       "url": "Frigate server URL",
-      "zone": "Zone"
+      "zone": "Frigate zone"
     },
     "view": {
       "default": "Default view",
@@ -29,15 +29,15 @@
         "snapshots": "Snapshots gallery",
         "image": "Static image"
       },
-      "timeout": "View timeout (seconds)"
+      "timeout": "View timeout secs (before returning to default, 0=never)"
     },
     "event_viewer": {
-      "autoplay_clip": "Autoplay most recent clip",
+      "autoplay_clip": "Autoplay most recent clip (In 'clip' view)",
       "lazy_load": "Lazily load event media",
       "controls": {
         "next_previous": {
           "style": "Event Viewer Next & Previous Control style",
-          "size": "Event Viewer Next & Previous Control size",
+          "size": "Event Viewer Next & Previous Control size (e.g. '48px')",
           "styles": {
             "thumbnails": "Thumbnails",
             "chevrons": "Chevrons",
@@ -86,10 +86,11 @@
         "hover-right": "Hover right",
         "above": "Above",
         "below": "Below"
-      }
+      },
+      "button_size": "Menu button size (e.g. '40px')"
     },
     "dimensions": {
-      "aspect_ratio": "Default aspect ratio",
+      "aspect_ratio": "Default aspect ratio (e.g. '16:9')",
       "aspect_ratio_mode": "Aspect ratio mode",
       "aspect_ratio_modes": {
         "unconstrained": "Unconstrained aspect ratio",
@@ -101,14 +102,20 @@
   "editor": {
     "basic": "Basic",
     "basic_secondary": "Basic options for most users",
-    "optional": "Optional",
-    "optional_secondary": "Optional configuration to tweak card behavior",
-    "appearance": "Appearance",
-    "appearance_secondary": "Appearance of the card",
-    "webrtc": "WebRTC",
-    "webrtc_secondary": "Optional WebRTC parameters",
-    "advanced": "Advanced",
-    "advanced_secondary": "Advanced options",
+    "frigate": "Frigate",
+    "frigate_secondary": "Frigate server options",
+    "view": "View",
+    "view_secondary": "Card view options",
+    "menu": "Menu",
+    "menu_secondary": "Menu options",
+    "live": "Live",
+    "live_secondary": "Live view options",
+    "event_viewer": "Event viewer",
+    "event_viewer_secondary": "Event viewer options",
+    "image": "Image",
+    "image_secondary": "Static image view options",
+    "dimensions": "Dimensions",
+    "dimensions_secondary": "Card dimensions options",
     "show_button": "Show button"
   },
   "error": {

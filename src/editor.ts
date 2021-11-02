@@ -1,8 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-// TODO Add editor for control sizes
-// TODO reorganizse editor by section
-
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
@@ -23,28 +19,46 @@ const options = {
     secondary: localize('editor.basic_secondary'),
     show: true,
   },
-  optional: {
-    icon: 'tune',
-    name: localize('editor.optional'),
-    secondary: localize('editor.optional_secondary'),
+  frigate: {
+    icon: 'alpha-f-box',
+    name: localize('editor.frigate'),
+    secondary: localize('editor.frigate_secondary'),
     show: false,
   },
-  appearance: {
-    icon: 'palette',
-    name: localize('editor.appearance'),
-    secondary: localize('editor.appearance_secondary'),
+  view: {
+    icon: 'eye',
+    name: localize('editor.view'),
+    secondary: localize('editor.view_secondary'),
     show: false,
   },
-  webrtc: {
-    icon: 'webrtc',
-    name: localize('editor.webrtc'),
-    secondary: localize('editor.webrtc_secondary'),
+  menu: {
+    icon: 'menu',
+    name: localize('editor.menu'),
+    secondary: localize('editor.menu_secondary'),
     show: false,
   },
-  advanced: {
-    icon: 'cogs',
-    name: localize('editor.advanced'),
-    secondary: localize('editor.advanced_secondary'),
+  live: {
+    icon: 'cctv',
+    name: localize('editor.live'),
+    secondary: localize('editor.live_secondary'),
+    show: false,
+  },
+  event_viewer: {
+    icon: 'filmstrip',
+    name: localize('editor.event_viewer'),
+    secondary: localize('editor.event_viewer_secondary'),
+    show: false,
+  },
+  image: {
+    icon: 'image',
+    name: localize('editor.image'),
+    secondary: localize('editor.image_secondary'),
+    show: false,
+  },
+  dimensions: {
+    icon: 'aspect-ratio',
+    name: localize('editor.dimensions'),
+    secondary: localize('editor.dimensions'),
     show: false,
   },
 };
@@ -185,12 +199,62 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     })}
                   </paper-listbox>
                 </paper-dropdown-menu>
+              </div>
+            `
+          : ''}
+        <div class="option" @click=${this._toggleOption} .option=${'frigate'}>
+          <div class="row">
+            <ha-icon .icon=${`mdi:${options.frigate.icon}`}></ha-icon>
+            <div class="title">${options.frigate.name}</div>
+          </div>
+          <div class="secondary">${options.frigate.secondary}</div>
+        </div>
+        ${options.frigate.show
+          ? html`
+              <div class="values">
                 <paper-input
                   label=${localize('config.frigate.camera_name')}
                   .value=${this._config?.frigate?.camera_name || ''}
                   .configValue=${'frigate.camera_name'}
                   @value-changed=${this._valueChanged}
                 ></paper-input>
+                <paper-input
+                  label=${localize('config.frigate.url')}
+                  .value=${this._config?.frigate?.url || ''}
+                  .configValue=${'frigate.url'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  .label=${localize('config.frigate.label')}
+                  .value=${this._config?.frigate?.label || ''}
+                  .configValue=${'frigate.label'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  .label=${localize('config.frigate.zone')}
+                  .value=${this._config?.frigate?.zone || ''}
+                  .configValue=${'frigate.zone'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  label=${localize('config.frigate.client_id')}
+                  .value=${this._config?.frigate?.client_id || ''}
+                  .configValue=${'frigate.client_id'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+              </div>
+            `
+          : ''}
+        <div class="option" @click=${this._toggleOption} .option=${'view'}>
+          <div class="row">
+            <ha-icon .icon=${`mdi:${options.view.icon}`}></ha-icon>
+            <div class="title">${options.view.name}</div>
+          </div>
+          <div class="secondary">${options.view.secondary}</div>
+        </div>
+        ${options.view.show
+          ? html`
+              <div class="values">
                 <paper-dropdown-menu
                   label=${localize('config.view.default')}
                   @value-changed=${this._valueChanged}
@@ -209,70 +273,226 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     })}
                   </paper-listbox>
                 </paper-dropdown-menu>
+                <paper-input
+                  label=${localize('config.view.timeout')}
+                  prevent-invalid-input
+                  allowed-pattern="[0-9]"
+                  .value=${this._config?.view?.timeout
+                    ? String(this._config?.view?.timeout)
+                    : ''}
+                  .configValue=${'view.timeout'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
               </div>
             `
           : ''}
-        <div class="option" @click=${this._toggleOption} .option=${'optional'}>
+        <div class="option" @click=${this._toggleOption} .option=${'menu'}>
           <div class="row">
-            <ha-icon .icon=${`mdi:${options.optional.icon}`}></ha-icon>
-            <div class="title">${options.optional.name}</div>
+            <ha-icon .icon=${`mdi:${options.menu.icon}`}></ha-icon>
+            <div class="title">${options.menu.name}</div>
           </div>
-          <div class="secondary">${options.optional.secondary}</div>
+          <div class="secondary">${options.menu.secondary}</div>
         </div>
-        ${options.optional.show
-          ? html` <div class="values">
-              <paper-dropdown-menu
-                .label=${localize('config.live.provider')}
-                @value-changed=${this._valueChanged}
-                .configValue=${'live.provider'}
-              >
-                <paper-listbox
-                  slot="dropdown-content"
-                  .selected=${Object.keys(liveProviders).indexOf(
-                    this._config?.live?.provider || '',
-                  )}
+        ${options.menu.show
+          ? html`
+              <div class="values">
+                <paper-dropdown-menu
+                  .label=${localize('config.menu.mode')}
+                  @value-changed=${this._valueChanged}
+                  .configValue=${'menu.mode'}
                 >
-                  ${Object.keys(liveProviders).map((key) => {
-                    return html`
-                      <paper-item .label="${key}">${liveProviders[key]} </paper-item>
-                    `;
-                  })}
-                </paper-listbox>
-              </paper-dropdown-menu>
-              <paper-input
-                label=${localize('config.frigate.client_id')}
-                .value=${this._config?.frigate?.client_id || ''}
-                .configValue=${'frigate.client_id'}
-                @value-changed=${this._valueChanged}
-              ></paper-input>
-              <paper-input
-                label=${localize('config.view.timeout')}
-                prevent-invalid-input
-                allowed-pattern="[0-9]"
-                .value=${this._config?.view?.timeout
-                  ? String(this._config?.view?.timeout)
-                  : ''}
-                .configValue=${'view.timeout'}
-                @value-changed=${this._valueChanged}
-              ></paper-input>
-              <paper-input
-                label=${localize('config.frigate.url')}
-                .value=${this._config?.frigate?.url || ''}
-                .configValue=${'frigate.url'}
-                @value-changed=${this._valueChanged}
-              ></paper-input>
+                  <paper-listbox
+                    slot="dropdown-content"
+                    .selected=${Object.keys(menuModes).indexOf(
+                      this._config?.menu?.mode || '',
+                    )}
+                  >
+                    ${Object.keys(menuModes).map((key) => {
+                      return html`
+                        <paper-item .label="${key}"> ${menuModes[key]} </paper-item>
+                      `;
+                    })}
+                  </paper-listbox>
+                </paper-dropdown-menu>
+                <paper-input
+                  label=${localize('config.menu.button_size')}
+                  .value=${this._config?.menu?.button_size || ''}
+                  .configValue=${'menu.button_size'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <ha-formfield
+                  .label=${localize('editor.show_button') +
+                  ': ' +
+                  localize('config.menu.buttons.frigate')}
+                >
+                  <ha-switch
+                    .checked=${this._config?.menu?.buttons?.frigate ??
+                    defaults.menu.buttons.frigate}
+                    .configValue=${'menu.buttons.frigate'}
+                    @change=${this._valueChanged}
+                  ></ha-switch>
+                </ha-formfield>
+                <ha-formfield
+                  .label=${localize('editor.show_button') +
+                  ': ' +
+                  localize('config.view.views.live')}
+                >
+                  <ha-switch
+                    .checked=${this._config?.menu?.buttons?.live ??
+                    defaults.menu.buttons.live}
+                    .configValue=${'menu.buttons.live'}
+                    @change=${this._valueChanged}
+                  ></ha-switch>
+                </ha-formfield>
+                <ha-formfield
+                  .label=${localize('editor.show_button') +
+                  ': ' +
+                  localize('config.view.views.clips')}
+                >
+                  <ha-switch
+                    .checked=${this._config?.menu?.buttons?.clips ??
+                    defaults.menu.buttons.clips}
+                    .configValue=${'menu.buttons.clips'}
+                    @change=${this._valueChanged}
+                  ></ha-switch>
+                </ha-formfield>
+                <ha-formfield
+                  .label=${localize('editor.show_button') +
+                  ': ' +
+                  localize('config.view.views.snapshots')}
+                >
+                  <ha-switch
+                    .checked=${this._config?.menu?.buttons?.snapshots ??
+                    defaults.menu.buttons.snapshots}
+                    .configValue=${'menu.buttons.snapshots'}
+                    @change=${this._valueChanged}
+                  ></ha-switch>
+                </ha-formfield>
+                <ha-formfield
+                  .label=${localize('editor.show_button') +
+                  ': ' +
+                  localize('config.view.views.image')}
+                >
+                  <ha-switch
+                    .checked=${this._config?.menu?.buttons?.image ??
+                    defaults.menu.buttons.image}
+                    .configValue=${'menu.buttons.image'}
+                    @change=${this._valueChanged}
+                  ></ha-switch>
+                </ha-formfield>
+                <ha-formfield
+                  .label=${localize('editor.show_button') +
+                  ': ' +
+                  localize('config.menu.buttons.download')}
+                >
+                  <ha-switch
+                    .checked=${this._config?.menu?.buttons?.download ??
+                    defaults.menu.buttons.download}
+                    .configValue=${'menu.buttons.download'}
+                    @change=${this._valueChanged}
+                  ></ha-switch>
+                </ha-formfield>
+                <ha-formfield
+                  .label=${localize('editor.show_button') +
+                  ': ' +
+                  localize('config.menu.buttons.frigate_ui')}
+                >
+                  <ha-switch
+                    .checked=${this._config?.menu?.buttons?.frigate_ui ??
+                    defaults.menu.buttons.frigate_ui}
+                    .configValue=${'menu.buttons.frigate_ui'}
+                    @change=${this._valueChanged}
+                  ></ha-switch>
+                </ha-formfield>
+                <ha-formfield
+                  .label=${localize('editor.show_button') +
+                  ': ' +
+                  localize('config.menu.buttons.fullscreen')}
+                >
+                  <ha-switch
+                    .checked=${this._config?.menu?.buttons?.fullscreen ??
+                    defaults.menu.buttons.fullscreen}
+                    .configValue=${'menu.buttons.fullscreen'}
+                    @change=${this._valueChanged}
+                  ></ha-switch>
+                </ha-formfield>
+              </div>
+            `
+          : ''}
+        <div class="option" @click=${this._toggleOption} .option=${'live'}>
+          <div class="row">
+            <ha-icon .icon=${`mdi:${options.live.icon}`}></ha-icon>
+            <div class="title">${options.live.name}</div>
+          </div>
+          <div class="secondary">${options.live.secondary}</div>
+        </div>
+        ${options.live.show
+          ? html`
+              <div class="values">
+                <br />
+                <ha-formfield .label=${localize('config.live.preload')}>
+                  <ha-switch
+                    .checked=${this._config?.live?.preload ?? defaults.live.preload}
+                    .configValue=${'live.preload'}
+                    @change=${this._valueChanged}
+                  ></ha-switch>
+                </ha-formfield>
+                <paper-dropdown-menu
+                  .label=${localize('config.live.provider')}
+                  @value-changed=${this._valueChanged}
+                  .configValue=${'live.provider'}
+                >
+                  <paper-listbox
+                    slot="dropdown-content"
+                    .selected=${Object.keys(liveProviders).indexOf(
+                      this._config?.live?.provider || '',
+                    )}
+                  >
+                    ${Object.keys(liveProviders).map((key) => {
+                      return html`
+                        <paper-item .label="${key}">${liveProviders[key]} </paper-item>
+                      `;
+                    })}
+                  </paper-listbox>
+                </paper-dropdown-menu>
+                <paper-dropdown-menu
+                  .label=${localize('config.live.webrtc.entity')}
+                  @value-changed=${this._valueChanged}
+                  .configValue=${'live.webrtc.entity'}
+                >
+                  <paper-listbox
+                    slot="dropdown-content"
+                    .selected=${cameraEntities.indexOf(webrtcCameraEntity)}
+                  >
+                    ${cameraEntities.map((entity) => {
+                      return html` <paper-item>${entity}</paper-item> `;
+                    })}
+                  </paper-listbox>
+                </paper-dropdown-menu>
+                <paper-input
+                  label=${localize('config.live.webrtc.url')}
+                  .value=${this._config?.live?.webrtc?.url || ''}
+                  .configValue=${'live.webrtc.url'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+              </div>
+            `
+          : ''}
+        <div class="option" @click=${this._toggleOption} .option=${'event_viewer'}>
+          <div class="row">
+            <ha-icon .icon=${`mdi:${options.event_viewer.icon}`}></ha-icon>
+            <div class="title">${options.event_viewer.name}</div>
+          </div>
+          <div class="secondary">${options.event_viewer.secondary}</div>
+        </div>
+        ${options.event_viewer.show
+          ? html` <div class="values">
+              <br />
               <ha-formfield .label=${localize('config.event_viewer.autoplay_clip')}>
                 <ha-switch
                   .checked=${this._config?.event_viewer?.autoplay_clip ??
                   defaults.event_viewer.autoplay_clip}
                   .configValue=${'event_viewer.autoplay_clip'}
-                  @change=${this._valueChanged}
-                ></ha-switch>
-              </ha-formfield>
-              <ha-formfield .label=${localize('config.live.preload')}>
-                <ha-switch
-                  .checked=${this._config?.live?.preload ?? defaults.live.preload}
-                  .configValue=${'live.preload'}
                   @change=${this._valueChanged}
                 ></ha-switch>
               </ha-formfield>
@@ -284,35 +504,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   @change=${this._valueChanged}
                 ></ha-switch>
               </ha-formfield>
-            </div>`
-          : ''}
-        <div class="option" @click=${this._toggleOption} .option=${'appearance'}>
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.appearance.icon}`}></ha-icon>
-            <div class="title">${options.appearance.name}</div>
-          </div>
-          <div class="secondary">${options.appearance.secondary}</div>
-        </div>
-        ${options.appearance.show
-          ? html`<paper-dropdown-menu
-                .label=${localize('config.menu.mode')}
-                @value-changed=${this._valueChanged}
-                .configValue=${'menu.mode'}
-              >
-                <paper-listbox
-                  slot="dropdown-content"
-                  .selected=${Object.keys(menuModes).indexOf(
-                    this._config?.menu?.mode || '',
-                  )}
-                >
-                  ${Object.keys(menuModes).map((key) => {
-                    return html`
-                      <paper-item .label="${key}"> ${menuModes[key]} </paper-item>
-                    `;
-                  })}
-                </paper-listbox>
-              </paper-dropdown-menu>
-              <br />
               <paper-dropdown-menu
                 .label=${localize('config.event_viewer.controls.next_previous.style')}
                 @value-changed=${this._valueChanged}
@@ -333,7 +524,43 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   })}
                 </paper-listbox>
               </paper-dropdown-menu>
-              <br />
+              <paper-input
+                label=${localize('config.event_viewer.controls.next_previous.size')}
+                .value=${this._config?.event_viewer?.controls?.next_previous?.size || ''}
+                .configValue=${'event_viewer.controls.next_previous.size'}
+                @value-changed=${this._valueChanged}
+              ></paper-input>
+            </div>`
+          : ''}
+        <div class="option" @click=${this._toggleOption} .option=${'image'}>
+          <div class="row">
+            <ha-icon .icon=${`mdi:${options.image.icon}`}></ha-icon>
+            <div class="title">${options.image.name}</div>
+          </div>
+          <div class="secondary">${options.image.secondary}</div>
+        </div>
+        ${options.image.show
+          ? html` <div class="values">
+              <paper-input
+                label=${localize('config.image.src')}
+                prevent-invalid-input
+                .value=${this._config?.image?.src
+                  ? String(this._config?.image?.src)
+                  : ''}
+                .configValue=${'image.src'}
+                @value-changed=${this._valueChanged}
+              ></paper-input>
+            </div>`
+          : ''}
+        <div class="option" @click=${this._toggleOption} .option=${'dimensions'}>
+          <div class="row">
+            <ha-icon .icon=${`mdi:${options.dimensions.icon}`}></ha-icon>
+            <div class="title">${options.dimensions.name}</div>
+          </div>
+          <div class="secondary">${options.dimensions.secondary}</div>
+        </div>
+        ${options.dimensions.show
+          ? html` <div class="values">
               <paper-dropdown-menu
                 .label=${localize('config.dimensions.aspect_ratio_mode')}
                 @value-changed=${this._valueChanged}
@@ -352,7 +579,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   })}
                 </paper-listbox>
               </paper-dropdown-menu>
-              <br />
               <paper-input
                 label=${localize('config.dimensions.aspect_ratio')}
                 prevent-invalid-input
@@ -360,174 +586,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   ? String(this._config?.dimensions?.aspect_ratio)
                   : ''}
                 .configValue=${'dimensions.aspect_ratio'}
-                @value-changed=${this._valueChanged}
-              ></paper-input>
-              <paper-input
-                label=${localize('config.image.src')}
-                prevent-invalid-input
-                .value=${this._config?.image?.src
-                  ? String(this._config?.image?.src)
-                  : ''}
-                .configValue=${'image.src'}
-                @value-changed=${this._valueChanged}
-              ></paper-input>
-              <ha-formfield
-                .label=${localize('editor.show_button') +
-                ': ' +
-                localize('config.menu.buttons.frigate')}
-              >
-                <ha-switch
-                  .checked=${this._config?.menu?.buttons?.frigate ??
-                  defaults.menu.buttons.frigate}
-                  .configValue=${'menu.buttons.frigate'}
-                  @change=${this._valueChanged}
-                ></ha-switch>
-              </ha-formfield>
-              <br />
-              <ha-formfield
-                .label=${localize('editor.show_button') +
-                ': ' +
-                localize('config.view.views.live')}
-              >
-                <ha-switch
-                  .checked=${this._config?.menu?.buttons?.live ??
-                  defaults.menu.buttons.live}
-                  .configValue=${'menu.buttons.live'}
-                  @change=${this._valueChanged}
-                ></ha-switch>
-              </ha-formfield>
-              <br />
-              <ha-formfield
-                .label=${localize('editor.show_button') +
-                ': ' +
-                localize('config.view.views.clips')}
-              >
-                <ha-switch
-                  .checked=${this._config?.menu?.buttons?.clips ??
-                  defaults.menu.buttons.clips}
-                  .configValue=${'menu.buttons.clips'}
-                  @change=${this._valueChanged}
-                ></ha-switch>
-              </ha-formfield>
-              <br />
-              <ha-formfield
-                .label=${localize('editor.show_button') +
-                ': ' +
-                localize('config.view.views.snapshots')}
-              >
-                <ha-switch
-                  .checked=${this._config?.menu?.buttons?.snapshots ??
-                  defaults.menu.buttons.snapshots}
-                  .configValue=${'menu.buttons.snapshots'}
-                  @change=${this._valueChanged}
-                ></ha-switch>
-              </ha-formfield>
-              <br />
-              <ha-formfield
-                .label=${localize('editor.show_button') +
-                ': ' +
-                localize('config.view.views.image')}
-              >
-                <ha-switch
-                  .checked=${this._config?.menu?.buttons?.image ??
-                  defaults.menu.buttons.image}
-                  .configValue=${'menu.buttons.image'}
-                  @change=${this._valueChanged}
-                ></ha-switch>
-              </ha-formfield>
-              <br />
-              <ha-formfield
-                .label=${localize('editor.show_button') +
-                ': ' +
-                localize('config.menu.buttons.download')}
-              >
-                <ha-switch
-                  .checked=${this._config?.menu?.buttons?.download ??
-                  defaults.menu.buttons.download}
-                  .configValue=${'menu.buttons.download'}
-                  @change=${this._valueChanged}
-                ></ha-switch>
-              </ha-formfield>
-              <br />
-              <ha-formfield
-                .label=${localize('editor.show_button') +
-                ': ' +
-                localize('config.menu.buttons.frigate_ui')}
-              >
-                <ha-switch
-                  .checked=${this._config?.menu?.buttons?.frigate_ui ??
-                  defaults.menu.buttons.frigate_ui}
-                  .configValue=${'menu.buttons.frigate_ui'}
-                  @change=${this._valueChanged}
-                ></ha-switch>
-              </ha-formfield>
-              <br />
-              <ha-formfield
-                .label=${localize('editor.show_button') +
-                ': ' +
-                localize('config.menu.buttons.fullscreen')}
-              >
-                <ha-switch
-                  .checked=${this._config?.menu?.buttons?.fullscreen ??
-                  defaults.menu.buttons.fullscreen}
-                  .configValue=${'menu.buttons.fullscreen'}
-                  @change=${this._valueChanged}
-                ></ha-switch>
-              </ha-formfield>
-              <br />`
-          : ''}
-        <div class="option" @click=${this._toggleOption} .option=${'advanced'}>
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.advanced.icon}`}></ha-icon>
-            <div class="title">${options.advanced.name}</div>
-          </div>
-          <div class="secondary">${options.advanced.secondary}</div>
-        </div>
-        ${options.advanced.show
-          ? html` <div class="values">
-                <paper-input
-                  .label=${localize('config.frigate.label')}
-                  .value=${this._config?.frigate?.label || ''}
-                  .configValue=${'frigate.label'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-              </div>
-              <div class="values">
-                <paper-input
-                  .label=${localize('config.frigate.zone')}
-                  .value=${this._config?.frigate?.zone || ''}
-                  .configValue=${'frigate.zone'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-              </div>`
-          : ''}
-        <div class="option" @click=${this._toggleOption} .option=${'webrtc'}>
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.webrtc.icon}`}></ha-icon>
-            <div class="title">${options.webrtc.name}</div>
-          </div>
-          <div class="secondary">${options.webrtc.secondary}</div>
-        </div>
-        ${options.webrtc.show
-          ? html` <div class="values">
-              <paper-dropdown-menu
-                .label=${localize('config.live.webrtc.entity')}
-                @value-changed=${this._valueChanged}
-                .configValue=${'live.webrtc.entity'}
-              >
-                <paper-listbox
-                  slot="dropdown-content"
-                  .selected=${cameraEntities.indexOf(webrtcCameraEntity)}
-                >
-                  ${cameraEntities.map((entity) => {
-                    return html` <paper-item>${entity}</paper-item> `;
-                  })}
-                </paper-listbox>
-              </paper-dropdown-menu>
-              <paper-input
-                label=${localize('config.live.webrtc.url')}
-                .value=${this._config?.live?.webrtc?.url || ''}
-                .configValue=${'live.webrtc.url'}
                 @value-changed=${this._valueChanged}
               ></paper-input>
             </div>`
@@ -584,7 +642,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         }
         return obj[key];
       }, newConfig);
-      key = parts[parts.length-1];
+      key = parts[parts.length - 1];
     }
 
     if (value !== undefined && objectTarget[key] === value) {
