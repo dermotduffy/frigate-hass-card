@@ -97,7 +97,7 @@ export class FrigateCardMenu extends LitElement {
       state = this.hass.states[button.entity];
       emphasize =
         !!state && button.state_color && ['on', 'active', 'home'].includes(state.state);
-      title = title ?? (state.attributes.friendly_name || button.entity);
+      title = title ?? (state?.attributes?.friendly_name || button.entity);
       icon = icon ?? stateIcon(state);
     } else if (button.type === 'internal-menu-icon') {
       emphasize = button.emphasize ?? false;
