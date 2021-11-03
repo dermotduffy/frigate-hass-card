@@ -446,6 +446,7 @@ const dimensionsConfigSchema = z
 export const frigateCardConfigSchema = z.object({
   camera_entity: z.string().optional(),
 
+  // Main configuration sections.
   frigate: frigateConfigDefaultSchema,
   view: viewConfigSchema,
   menu: menuConfigSchema,

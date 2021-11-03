@@ -65,27 +65,56 @@ lovelace:
 
 ## Options
 
-### Basic
+### Basic options
 
-| Option           | Default | Description                                         |
-| ------------- | - | --------------------------------------------- |
-| `camera_entity` | | The optional Frigate camera entity to use in the `frigate` live provider view. Also used to automatically detect the `frigate_camera_name`.|
-| `frigate_camera_name` | Autodetected from `camera_entity` if that is specified. | The Frigate camera name to use when communicating with the Frigate server, e.g. for viewing clips/snapshots or the JSMPEG live view. To view the birdseye view set this to `birdseye` and use the `frigate-jsmpeg` live provider.|
-| `view_default` | `live` | The view to show by default. See [views](#views) below.|
+| Option | Default | Description |
+| - | - | - |
+| `camera_entity` | | The optional Frigate camera entity to use in the `frigate` live provider view. Also used to automatically detect the value of `frigate.camera_name`.|
 
-### Optional
+### Frigate server options
 
-| Option           | Default | Description                                         |
-| ------------- | --------------------------------------------- | - |
-| `live_provider` | `frigate` | The means through which the live camera view is displayed. See [Live Provider](#live-provider) below.|
-| `frigate_client_id` | `frigate` | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://blakeblackshear.github.io/frigate/usage/home-assistant/#multiple-instance-support).|
-| `view_timeout` | | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
-| `frigate_url` | | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. |
-| `autoplay_clip` | `false` | Whether or not to autoplay clips in the 'clip' [view](#views). Clips manually chosen in the clips gallery will still autoplay.|
-| `live_preload` | `false` | Whether or not to preload the live view. Preloading causes the live view to render in the background so it's instantly available when requested. This consumes additional network/CPU resources continually.|
-| `event_viewer.lazy_load` | `true` | Whether or not to lazily load media in the event viewer carousel. Setting this will false will fetch all media immediately which may make the carousel experience smoother at a cost of (potentially) a substantial number of simultaneous media fetches on load. |
+All variables listed are under a `frigate:` section.
 
-#### Live Provider
+| Option | Default | Description |
+| - | - | - |
+| `camera_name` | Autodetected from `camera_entity` if that is specified. | The Frigate camera name to use when communicating with the Frigate server, e.g. for viewing clips/snapshots or the JSMPEG live view. To view the birdseye view set this to `birdseye` and use the `frigate-jsmpeg` live provider.|
+| `url` | | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. |
+| `label` | | A Frigate label / object filter used to filter events (clips & snapshots), e.g. 'person'.|
+| `zone` | | A Frigate zone used to filter events (clips & snapshots), e.g. 'front_door'.|
+| `client_id` | `frigate` | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://blakeblackshear.github.io/frigate/usage/home-assistant/#multiple-instance-support).|
+
+### View options
+
+All variables listed are under a `view:` section.
+
+| Option | Default | Description |
+| - | - | - |
+| `default` | `live` | The view to show in the card by default. See [views](#views) below.|
+| `timeout` | | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
+
+### Menu options
+
+All variables listed are under a `menu:` section.
+
+| Option | Default | Description |
+| - | - | - |
+| `mode` | `hidden-top` | The menu mode to show by default. See [menu modes](#menu-modes) below.|
+| `button_size` | `40px` | The size of the menu buttons (in CSS Units)[https://www.w3schools.com/cssref/css_units.asp].|
+| `buttons.{frigate, live, clips, snapshots, image, download, frigate_ui, fullscreen}` | `true`, except for `image` | Whether or not to show these builtin actions in the card menu. |
+
+### Live options
+
+All variables listed are under a `live:` section.
+
+| Option | Default | Description |
+| - | - | - |
+| `preload` | `false` | Whether or not to preload the live view. Preloading causes the live view to render in the background so it's instantly available when requested. This consumes additional network/CPU resources continually.|
+| `provider` | `frigate` | The means through which the live camera view is displayed. See [Live Provider](#live-provider) below.|
+| `webrtc.url` | | The RTSP url to pass to WebRTC. Specify this OR `webrtc.entity` (below).|
+| `webrtc.entity` | | The RTSP entity to pass WebRTC. Specify this OR `webrtc.url` (above). |
+| `webrtc.*`| | Any other options in a `webrtc:` YAML dictionary are silently passed through to WebRTC. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides.|
+
+#### Available Live Providers
 
 |Live Provider|Latency|Frame Rate|Installation|Description|
 | -- | -- | -- | -- | -- |
@@ -93,26 +122,33 @@ lovelace:
 |`frigate-jsmpeg`|Lower|Low|Builtin|Stream the JSMPEG stream from Frigate (proxied via the Frigate integration). See [note below on the required integration version](#jsmpeg-troubleshooting) for this live provider to function. This is the only live provider that can view the Frigate `birdseye` view.|
 |`webrtc`|Lowest|High|Separate installation required|Uses [WebRTC](https://github.com/AlexxIT/WebRTC) to stream live feed, requires manual extra setup, see [below](#webrtc).|
 
-### Appearance
+### Event Viewer options
 
-| Option           | Default | Description                                         |
-| ------------- | --------------------------------------------- | - |
-| `menu_mode` | `hidden-top` | The menu mode to show by default. See [menu modes](#menu-modes) below.|
-| `menu_buttons.{frigate, live, clips, snapshots, download, frigate_ui, fullscreen}` | `true` | Whether or not to show these builtin actions in the card menu. |
-| `controls.nextprev` | `thumbnails` | When viewing media, what kind of controls to show to move to the previous/next media item. Acceptable values: `thumbnails`, `chevrons`, `none` . |
-| `dimensions.aspect_ratio_mode` | `dynamic` | The aspect ratio mode to use. Acceptable values: `dynamic`, `static`, `unconstrained`. See [aspect ratios](#aspect-ratios) below.|
-| `dimensions.aspect_ratio` | `16:9` | The aspect ratio  to use. Acceptable values: `<W>:<H>` or `<W>/<H>`. See [aspect ratios](#aspect-ratios) below.|
-| `image` | [embedded image](https://www.flickr.com/photos/dianasch/47543120431) | A static image URL for use with the `image` [view](#views).|
+All variables listed are under a `event_viewer:` section.
 
-<a name="aspect-ratios"></a>
+| Option | Default | Description |
+| - | - | - |
+| `autoplay_clip` | `false` | Whether or not to autoplay clips in the 'clip' [view](#views). Clips manually chosen in the clips gallery will still autoplay.|
+| `lazy_load` | `true` | Whether or not to lazily load media in the event viewer carousel. Setting this will false will fetch all media immediately which may make the carousel experience smoother at a cost of (potentially) a substantial number of simultaneous media fetches on load. |
+| `controls.next_previous.style` | `thumbnails` | When viewing media, what kind of controls to show to move to the previous/next media item. Acceptable values: `thumbnails`, `chevrons`, `none` . |
+| `controls.next_previous.size` | `48px` | The size of the next/previous controls (in CSS Units)[https://www.w3schools.com/cssref/css_units.asp].|
 
-#### Aspect Ratio
+### Image options
 
-The card can show live cameras, stored events (clip or snapshot) and an event gallery (clips or snapshots). Of these [views](#views), the gallery views have no intrinsic aspect-ratio, whereas the other views have the aspect-ratio of the media.
+All variables listed are under a `image:` section.
 
-The card aspect ratio can be changed with the `dimensions.aspect_ratio_mode` and `dimensions.aspect_ratio` appearance options.
+| Option | Default | Description |
+| - | - | - |
+| `src` | [embedded image](https://www.flickr.com/photos/dianasch/47543120431) | A static image URL for use with the `image` [view](#views).|
 
-If no aspect ratio is specified or available, but one is needed then `16:9` will be used by default.
+### Dimension options
+
+All variables listed are under a `dimensions:` section.
+
+| Option | Default | Description |
+| - | - | - |
+| `aspect_ratio_mode` | `dynamic` | The aspect ratio mode to use. Acceptable values: `dynamic`, `static`, `unconstrained`. See [aspect ratios](#aspect-ratios) below.|
+| `aspect_ratio` | `16:9` | The aspect ratio  to use. Acceptable values: `<W>:<H>` or `<W>/<H>`. See [aspect ratios](#aspect-ratios) below.|
 
 #### `dimensions.aspect_ratio_mode`:
 
@@ -128,6 +164,22 @@ If no aspect ratio is specified or available, but one is needed then `16:9` will
 * `4 / 3` or `4:3`: Default fullscreen ratio.
 * `<W>/<H>` or `<W>:<H>`: Any arbitrary aspect-ratio.
 
+
+<a name="aspect-ratios"></a>
+
+#### Aspect Ratio
+
+The card can show live cameras, stored events (clip or snapshot) and an event
+gallery (clips or snapshots). Of these [views](#views), the gallery views have
+no intrinsic aspect-ratio, whereas the other views have the aspect-ratio of the
+media.
+
+The card aspect ratio can be changed with the `dimensions.aspect_ratio_mode` and
+`dimensions.aspect_ratio` options described above.
+
+If no aspect ratio is specified or available, but one is needed then `16:9` will
+be used by default.
+
 #### Example aspect ratio configuration
 
 Have the card aspect-ratio dynamically follow the last loaded media, but use `4:3` as the default when there is no such media:
@@ -138,19 +190,17 @@ dimensions:
   aspect_ratio: '4:3'
 ```
 
-<a name="advanced-options"></a>
+<a name="other-options"></a>
 
-### Advanced Options
+### Other Options
 
-| Option           | Default | Description                                         |
-| ------------- | - | --------------------------------------------- |
-| `label` | | A label used to filter events (clips & snapshots), e.g. 'person'.|
-| `zone` | | A zone used to filter events (clips & snapshots), e.g. 'front_door'.|
+| Option | Default | Description |
+| - | - | - |
 | `update_entities` | | A list of entity ids that should cause the whole card to re-render, this can be useful in the `clip` or `snapshot` mode to (for example) cause a motion sensor to trigger a card refresh. Configurable in YAML only. Entities used in picture elements / included in the menu do not need to be explicitly included here to be kept updated. |
 
 <a name="webrtc"></a>
 
-### WebRTC Options
+### Using WebRTC
 
 WebRTC support blends the use of the ultra-realtime [WebRTC live
 view](https://github.com/AlexxIT/WebRTC) with convenient access to Frigate
@@ -158,11 +208,6 @@ events/snapshots/UI. A perfect combination!
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/webrtc.png" alt="Live viewing" width="400px">
 
-| Option           | Default | Description                                         |
-| ------------- | - | -------------------------------------------- |
-| `webrtc.url` | | The RTSP url to pass to WebRTC. Specify this OR `webrtc.entity` (below).|
-| `webrtc.entity` | | The RTSP entity to pass WebRTC. Specify this OR `webrtc.url` (above). |
-| `webrtc.*`| | Any other options in a `webrtc:` YAML dictionary are silently passed through to WebRTC. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides.|
 
 **Note**: WebRTC must be installed and configured separately (see [details](https://github.com/AlexxIT/WebRTC)) before it can be used with this card.
 
@@ -180,8 +225,9 @@ specify the WebRTC source camera:
 
 ```yaml
 [rest of Frigate card configuration]
-webrtc:
-  entity: 'camera.front_door_rstp`
+live:
+  webrtc:
+    entity: 'camera.front_door_rstp`
 ```
 
 * OR manually entering the WebRTC camera URL parameter in the GUI card editor,
@@ -190,26 +236,12 @@ webrtc:
 
 ```yaml
 [rest of Frigate card configuration]
-webrtc:
-  url: 'rtsp://USERNAME:PASSWORD@CAMERA:554/RTSP_PATH'
+live:
+  webrtc:
+    url: 'rtsp://USERNAME:PASSWORD@CAMERA:554/RTSP_PATH'
 ```
 
 See [WebRTC configuration](https://github.com/AlexxIT/WebRTC#configuration) for full configuration options.
-
-#### Example
-
-This example allows access to the detection, recordings and snapshots switches
-from the menu. It also enables a different entity to trigger a card update (but
-without appearing in the menu).
-
-```yaml
-entities:
-  - entity: switch.front_door_recordings
-  - entity: switch.front_door_snapshots
-  - entity: switch.front_door_detect
-  - entity: binary_sensor.front_door_person_motion
-    show: false
-```
 
 ## Picture Elements / Menu customizations
 
@@ -436,7 +468,7 @@ update_entities:
   - binary_sensor.office_person_motion
 ```
 
-See the [advanced options](#advanced-options) above.
+See the [other options](#other-options) above.
 
 ### Getting from a snapshot to a clip
 
