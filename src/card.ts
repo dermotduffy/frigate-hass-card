@@ -20,7 +20,7 @@ import {
 import screenfull from 'screenfull';
 import { z } from 'zod';
 
-import { entitySchema, frigateCardConfigSchema, MenuInteraction } from './types.js';
+import { entitySchema, frigateCardConfigSchema, MenuInteraction, RawFrigateCardConfig } from './types.js';
 import type {
   BrowseMediaQueryParameters,
   Entity,
@@ -58,6 +58,7 @@ import './patches/ha-hls-player.js';
 import cardStyle from './scss/card.scss';
 import { ResolvedMediaCache } from './resolved-media.js';
 import { BrowseMediaUtil } from './browse-media-util.js';
+import { isConfigUpgradeable } from './config-mgmt.js';
 
 /** A note on media callbacks:
  *
@@ -401,19 +402,25 @@ export class FrigateCard extends LitElement {
    * Set the card configuration.
    * @param inputConfig The card configuration.
    */
-  public setConfig(inputConfig: FrigateCardConfig): void {
+  public setConfig(inputConfig: RawFrigateCardConfig): void {
     if (!inputConfig) {
-      throw new Error(localize('error.invalid_configuration:'));
+      throw new Error(localize('error.invalid_configuration'));
     }
 
+    const configUpgradeable = isConfigUpgradeable(inputConfig);
     const parseResult = frigateCardConfigSchema.safeParse(inputConfig);
     if (!parseResult.success) {
       const hint = this._getParseErrorPaths(parseResult.error);
+      let upgradeMessage = '';
+      if (configUpgradeable && getLovelace().mode !== 'yaml') {
+        upgradeMessage = `${localize('editor.upgrade_available_in_editor')}. `;
+      }      
       throw new Error(
+        upgradeMessage +
         `${localize('error.invalid_configuration')}: ` +
           (hint.length
             ? JSON.stringify(hint, null, ' ')
-            : localize('error.invalid_configuration_no_hint')),
+            : localize('error.invalid_configuration_no_hint'))
       );
     }
     const config = parseResult.data;

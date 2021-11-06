@@ -25,3 +25,15 @@
 ha-formfield {
   padding-bottom: 8px;
 }
+
+div.upgrade {
+  width: auto;
+  border: 1px dotted var(--primary-color);
+  margin: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+div.upgrade span {
+  padding: 10px;
+}

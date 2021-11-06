@@ -466,6 +466,7 @@ export const frigateCardConfigSchema = z.object({
   test_gui: z.boolean().optional(),
 });
 export type FrigateCardConfig = z.infer<typeof frigateCardConfigSchema>;
+export type RawFrigateCardConfig = Record<string, unknown>;
 
 export const frigateCardConfigDefaults = {
   frigate: frigateConfigDefault,
