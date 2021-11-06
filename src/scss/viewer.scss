@@ -1,6 +1,11 @@
+:host {
+  --video-max-height: none;
+}
+
 ha-hls-player {
   transform-style: preserve-3d;
 }
+
 img,video {
   width: 100%;
   height: 100%;

@@ -1,5 +1,5 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import type { ExtendedHomeAssistant, FrigateCardConfig, MediaShowInfo } from '../types.js';
+import type { ExtendedHomeAssistant, FrigateCardConfig, MediaShowInfo, WebRTCConfig } from '../types.js';
 import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
@@ -75,24 +75,24 @@ export class FrigateCardLive extends LitElement {
       return;
     }
 
-    return html` ${this.config.live_provider == 'frigate'
+    return html` ${this.config.live.provider == 'frigate'
       ? html` <frigate-card-live-frigate
           .hass=${this.hass}
           .cameraEntity=${this.config.camera_entity}
           @frigate-card:media-show=${this._mediaShowHandler}
         >
         </frigate-card-live-frigate>`
-      : this.config.live_provider == 'webrtc'
+      : this.config.live.provider == 'webrtc'
       ? html`<frigate-card-live-webrtc
           .hass=${this.hass}
-          .webRTCConfig=${this.config.webrtc || {}}
+          .webRTCConfig=${this.config.live.webrtc || {}}
           @frigate-card:media-show=${this._mediaShowHandler}
         >
         </frigate-card-live-webrtc>`
       : html` <frigate-card-live-jsmpeg
           .hass=${this.hass}
           .cameraName=${this.frigateCameraName}
-          .clientId=${this.config.frigate_client_id}
+          .clientId=${this.config.frigate.client_id}
           @frigate-card:media-show=${this._mediaShowHandler}
         >
         </frigate-card-live-jsmpeg>`}`;
@@ -152,7 +152,7 @@ export class FrigateCardLiveFrigate extends LitElement {
 @customElement('frigate-card-live-webrtc')
 export class FrigateCardLiveWebRTC extends LitElement {
   @property({ attribute: false })
-  protected webRTCConfig?: Record<string, unknown>;
+  protected webRTCConfig?: WebRTCConfig;
 
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
   protected _webRTCElement: HTMLElement | null = null;

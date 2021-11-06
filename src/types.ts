@@ -38,7 +38,7 @@ export type FrigateCardView =
   | typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED[number]
   | typeof FRIGATE_CARD_VIEWS_INTERNAL[number];
 
-export const FRIGATE_MENU_MODES = [
+const FRIGATE_MENU_MODES = [
   'none',
   'hidden-top',
   'hidden-left',
@@ -55,13 +55,8 @@ export const FRIGATE_MENU_MODES = [
   'above',
   'below',
 ] as const;
-export type FrigateMenuMode = typeof FRIGATE_MENU_MODES[number];
-
 export const NEXT_PREVIOUS_CONTROL_STYLES = ['none', 'thumbnails', 'chevrons'] as const;
-export type NextPreviousControlStyle = typeof NEXT_PREVIOUS_CONTROL_STYLES[number];
-
 export const LIVE_PROVIDERS = ['frigate', 'frigate-jsmpeg', 'webrtc'] as const;
-export type LiveProvider = typeof LIVE_PROVIDERS[number];
 
 /**
  * Action Types (for "Picture Elements" / Menu)
@@ -122,7 +117,7 @@ const elementsBaseSchema = z.object({
 });
 
 /**
- * Picture Element Types
+ * Picture Element Configuration.
  *
  * All picture element types are validated (not just the Frigate card custom
  * ones) as a convenience to present the user with a consistent error display
@@ -214,7 +209,7 @@ const customSchema = z
       if (!val.match(/^custom:(?!frigate-card).+/)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Frigate-card custom elements must match specific schemas",
+          message: 'Frigate-card custom elements must match specific schemas',
           fatal: true,
         });
       }
@@ -223,7 +218,7 @@ const customSchema = z
   .passthrough();
 
 /**
- * Custom Element Types
+ * Custom Element Types.
  */
 
 export const menuIconSchema = iconSchema.merge(
@@ -269,90 +264,215 @@ export type PictureElement = z.infer<typeof pictureElementSchema>;
 const pictureElementsSchema = pictureElementSchema.array().optional();
 export type PictureElements = z.infer<typeof pictureElementsSchema>;
 
+/**
+ * Frigate configuration section.
+ */
+const frigateConfigDefault = {
+  client_id: 'frigate' as const,
+};
+const frigateConfigDefaultSchema = z
+  .object({
+    // No URL validation to allow relative URLs within HA (e.g. addons).
+    url: z.string().optional(),
+    client_id: z.string().optional().default(frigateConfigDefault.client_id),
+    camera_name: z.string().optional(),
+    label: z.string().optional(),
+    zone: z.string().optional(),
+  })
+  .default(frigateConfigDefault);
+
+/**
+ * View configuration section.
+ */
+const viewConfigDefault = {
+  default: 'live' as const,
+  timeout: 180,
+};
+const viewConfigSchema = z
+  .object({
+    default: z
+      .enum(FRIGATE_CARD_VIEWS_USER_SPECIFIED)
+      .optional()
+      .default(viewConfigDefault.default),
+    timeout: z
+      .number()
+      .or(
+        z
+          .string()
+          .regex(/^\d+$/)
+          .transform((val) => Number(val)),
+      )
+      .optional()
+      .default(viewConfigDefault.timeout),
+  })
+  .default(viewConfigDefault);
+
+/**
+ * Image view configuration section.
+ */
+const imageConfigSchema = z
+  .object({
+    src: z.string().optional(),
+  })
+  .optional();
+export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
+
+/**
+ * Live view configuration section.
+ */
+const liveConfigDefault = {
+  provider: 'frigate' as const,
+  preload: false,
+};
+const webrtcConfigSchema = z
+  .object({
+    entity: z.string().optional(),
+    url: z.string().optional(),
+  })
+  .passthrough()
+  .optional();
+export type WebRTCConfig = z.infer<typeof webrtcConfigSchema>;
+
+const liveConfigSchema = z
+  .object({
+    provider: z.enum(LIVE_PROVIDERS).default(liveConfigDefault.provider),
+    preload: z.boolean().default(liveConfigDefault.preload),
+    webrtc: webrtcConfigSchema,
+  })
+  .default(liveConfigDefault);
+
+/**
+ * Menu configuration section.
+ */
+const menuConfigDefault = {
+  mode: 'hidden-top' as const,
+  buttons: {
+    frigate: true,
+    live: true,
+    clips: true,
+    snapshots: true,
+    image: false,
+    download: true,
+    frigate_ui: true,
+    fullscreen: true,
+  },
+  button_size: '40px',
+};
+const menuConfigSchema = z
+  .object({
+    mode: z.enum(FRIGATE_MENU_MODES).optional().default(menuConfigDefault.mode),
+    buttons: z
+      .object({
+        frigate: z.boolean().default(menuConfigDefault.buttons.frigate),
+        live: z.boolean().default(menuConfigDefault.buttons.live),
+        clips: z.boolean().default(menuConfigDefault.buttons.clips),
+        snapshots: z.boolean().default(menuConfigDefault.buttons.snapshots),
+        image: z.boolean().default(menuConfigDefault.buttons.image),
+        download: z.boolean().default(menuConfigDefault.buttons.download),
+        frigate_ui: z.boolean().default(menuConfigDefault.buttons.frigate_ui),
+        fullscreen: z.boolean().default(menuConfigDefault.buttons.fullscreen),
+      })
+      .default(menuConfigDefault.buttons),
+    button_size: z.string().default(menuConfigDefault.button_size),
+  })
+  .default(menuConfigDefault);
+export type MenuConfig = z.infer<typeof menuConfigSchema>;
+
+/**
+ * Event viewer configuration section (clip, snapshot, clip-specific, snapshot-specific).
+ */
+const viewerConfigDefault = {
+  autoplay_clip: false,
+  lazy_load: true,
+  controls: {
+    next_previous: {
+      size: '48px',
+      style: 'thumbnails' as const,
+    },
+  },
+};
+const nextPreviousControlConfigSchema = z
+  .object({
+    style: z
+      .enum(NEXT_PREVIOUS_CONTROL_STYLES)
+      .default(viewerConfigDefault.controls.next_previous.style),
+    size: z.string().default(viewerConfigDefault.controls.next_previous.size),
+  })
+  .default(viewerConfigDefault.controls.next_previous);
+export type NextPreviousControlConfig = z.infer<typeof nextPreviousControlConfigSchema>;
+
+const viewerConfigSchema = z
+  .object({
+    autoplay_clip: z.boolean().default(viewerConfigDefault.autoplay_clip),
+    lazy_load: z.boolean().default(viewerConfigDefault.lazy_load),
+    controls: z
+      .object({
+        next_previous: nextPreviousControlConfigSchema,
+      })
+      .default(viewerConfigDefault.controls),
+  })
+  .default(viewerConfigDefault);
+export type ViewerConfig = z.infer<typeof viewerConfigSchema>;
+
+/**
+ * Dimensions configuration section.
+ */
+const dimensionsConfigDefault = {
+  aspect_ratio_mode: 'dynamic' as const,
+  aspect_ratio: [16, 9],
+};
+const dimensionsConfigSchema = z
+  .object({
+    aspect_ratio_mode: z
+      .enum(['dynamic', 'static', 'unconstrained'])
+      .default(dimensionsConfigDefault.aspect_ratio_mode),
+    aspect_ratio: z
+      .number()
+      .array()
+      .length(2)
+      .or(
+        z
+          .string()
+          .regex(/^\s*\d+\s*[:\/]\s*\d+\s*$/)
+          .transform((input) => input.split(/[:\/]/).map((d) => Number(d))),
+      )
+      .default(dimensionsConfigDefault.aspect_ratio),
+  })
+  .default(dimensionsConfigDefault);
+
+/**
+ * Main card config.
+ */
 export const frigateCardConfigSchema = z.object({
   camera_entity: z.string().optional(),
 
-  // No URL validation to allow relative URLs within HA (e.g. addons).
-  frigate_url: z.string().optional(),
-  frigate_client_id: z.string().optional().default('frigate'),
-  frigate_camera_name: z.string().optional(),
-  view_default: z.enum(FRIGATE_CARD_VIEWS_USER_SPECIFIED).optional().default('live'),
-  view_timeout: z
-    .number()
-    .or(
-      z
-        .string()
-        .regex(/^\d+$/)
-        .transform((val) => Number(val)),
-    )
-    .optional()
-    .default(180),
-  live_provider: z.enum(LIVE_PROVIDERS).default('frigate'),
-  live_preload: z.boolean().default(false),
-  image: z.string().optional(),
-  webrtc: z
-    .object({
-      entity: z.string().optional(),
-      url: z.string().optional(),
-    })
-    .passthrough()
-    .optional(),
-  label: z.string().optional(),
-  zone: z.string().optional(),
-  autoplay_clip: z.boolean().default(false),
-  event_viewer: z
-    .object({
-      lazy_load: z.boolean().default(true),
-    })
-    .optional(),
-  menu_mode: z.enum(FRIGATE_MENU_MODES).optional().default('hidden-top'),
-  menu_buttons: z
-    .object({
-      frigate: z.boolean().default(true),
-      live: z.boolean().default(true),
-      clips: z.boolean().default(true),
-      snapshots: z.boolean().default(true),
-      image: z.boolean().default(false),
-      download: z.boolean().default(true),
-      frigate_ui: z.boolean().default(true),
-      fullscreen: z.boolean().default(true),
-    })
-    .optional(),
-  menu_button_size: z.string().default('40px'),
-  update_entities: z.string().array().optional(),
+  // Main configuration sections.
+  frigate: frigateConfigDefaultSchema,
+  view: viewConfigSchema,
+  menu: menuConfigSchema,
+  live: liveConfigSchema,
+  event_viewer: viewerConfigSchema,
+  image: imageConfigSchema,
   elements: pictureElementsSchema,
-  controls: z
-    .object({
-      nextprev: z.enum(NEXT_PREVIOUS_CONTROL_STYLES).default('thumbnails'),
-      nextprev_size: z.string().default('48px'),
-    })
-    .optional(),
-  dimensions: z
-    .object({
-      aspect_ratio_mode: z
-        .enum(['dynamic', 'static', 'unconstrained'])
-        .default('dynamic'),
-      aspect_ratio: z
-        .number()
-        .array()
-        .length(2)
-        .or(
-          z
-            .string()
-            .regex(/^\s*\d+\s*[:\/]\s*\d+\s*$/)
-            .transform((input) => input.split(/[:\/]/).map((d) => Number(d))),
-        )
-        .default([16, 9]),
-    })
-    .optional(),
+  dimensions: dimensionsConfigSchema,
+
+  // Entities that should trigger a card update.
+  update_entities: z.string().array().optional(),
 
   // Stock lovelace card config.
   type: z.string(),
-  show_warning: z.boolean().optional(),
-  show_error: z.boolean().optional(),
   test_gui: z.boolean().optional(),
 });
 export type FrigateCardConfig = z.infer<typeof frigateCardConfigSchema>;
+export type RawFrigateCardConfig = Record<string, unknown>;
+
+export const frigateCardConfigDefaults = {
+  frigate: frigateConfigDefault,
+  view: viewConfigDefault,
+  menu: menuConfigDefault,
+  live: liveConfigDefault,
+  event_viewer: viewerConfigDefault,
+};
 
 // Schema for card (non-user configured) menu icons.
 const internalMenuIconSchema = z.object({
@@ -404,8 +524,8 @@ export interface Message {
 }
 
 export interface MenuInteraction {
-  interaction: "hold" | "tap" | "double_tap",
-  button: MenuButton,
+  interaction: 'hold' | 'tap' | 'double_tap';
+  button: MenuButton;
 }
 
 /**

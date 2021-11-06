@@ -16,8 +16,8 @@ import { actionHandler } from '../action-handler-directive.js';
 
 import type {
   ExtendedHomeAssistant,
-  FrigateMenuMode,
   MenuButton,
+  MenuConfig,
   MenuInteraction,
 } from '../types.js';
 import { dispatchFrigateCardEvent, shouldUpdateBasedOnHass } from '../common.js';
@@ -30,10 +30,16 @@ export const MENU_HEIGHT = 46;
 @customElement('frigate-card-menu')
 export class FrigateCardMenu extends LitElement {
   @property({ attribute: false })
-  public hass!: HomeAssistant & ExtendedHomeAssistant;
+  public hass?: HomeAssistant & ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected menuMode: FrigateMenuMode = 'hidden-top';
+  set menuConfig(menuConfig: MenuConfig) {
+    this._menuConfig = menuConfig;
+    if (menuConfig) {
+      this.style.setProperty('--frigate-card-menu-button-size', menuConfig.button_size);
+    }
+  }
+  public _menuConfig?: MenuConfig;
 
   @property({ attribute: false })
   protected expand = false;
@@ -41,13 +47,8 @@ export class FrigateCardMenu extends LitElement {
   @property({ attribute: false })
   public buttons: MenuButton[] = [];
 
-  @property({ attribute: false })
-  set buttonSize(buttonSize: string) {
-    this.style.setProperty('--frigate-card-menu-button-size', buttonSize);
-  }
-
   protected _interactionHandler(ev: CustomEvent, button: MenuButton): void {
-    if (this.menuMode.startsWith('hidden-')) {
+    if (this._menuConfig?.mode.startsWith('hidden-')) {
       if (button.type == 'internal-menu-icon' && button.tap_action === 'frigate') {
         this.expand = !this.expand;
         return;
@@ -82,7 +83,7 @@ export class FrigateCardMenu extends LitElement {
   }
 
   // Render a menu button.
-  protected _renderButton(button: MenuButton): TemplateResult {
+  protected _renderButton(button: MenuButton): TemplateResult | void {
     let state: HassEntity | null = null;
     let emphasize = false;
     let title = button.title;
@@ -90,10 +91,13 @@ export class FrigateCardMenu extends LitElement {
     const style = ('style' in button ? button.style : {}) || {};
 
     if (button.type === 'custom:frigate-card-menu-state-icon') {
+      if (!this.hass) {
+        return;
+      }
       state = this.hass.states[button.entity];
       emphasize =
         !!state && button.state_color && ['on', 'active', 'home'].includes(state.state);
-      title = title ?? (state.attributes.friendly_name || button.entity);
+      title = title ?? (state?.attributes?.friendly_name || button.entity);
       icon = icon ?? stateIcon(state);
     } else if (button.type === 'internal-menu-icon') {
       emphasize = button.emphasize ?? false;
@@ -133,9 +137,9 @@ export class FrigateCardMenu extends LitElement {
   }
 
   // Render the Frigate menu button.
-  protected _renderFrigateButton(button: MenuButton): TemplateResult {
+  protected _renderFrigateButton(button: MenuButton): TemplateResult | void {
     const icon =
-      this.menuMode.startsWith('hidden-') && !this.expand
+      this._menuConfig?.mode.startsWith('hidden-') && !this.expand
         ? 'mdi:alpha-f-box-outline'
         : 'mdi:alpha-f-box';
 
@@ -143,7 +147,12 @@ export class FrigateCardMenu extends LitElement {
   }
 
   // Render the menu.
-  protected render(): TemplateResult {
+  protected render(): TemplateResult | void {
+    if (!this._menuConfig) {
+      return;
+    }
+    const mode = this._menuConfig.mode;
+
     const isFrigateButton = function (button: MenuButton): boolean {
       return button.type === 'internal-menu-icon' && button.tap_action === 'frigate';
     };
@@ -151,33 +160,29 @@ export class FrigateCardMenu extends LitElement {
     // If the menu is off, or if it's in hidden mode but there's no button to
     // unhide it, just show nothing.
     if (
-      this.menuMode == 'none' ||
-      (this.menuMode.startsWith('hidden-') && !this.buttons.find(isFrigateButton))
+      mode == 'none' ||
+      (mode.startsWith('hidden-') && !this.buttons.find(isFrigateButton))
     ) {
-      return html``;
+      return;
     }
 
     const classes = {
       'frigate-card-menu': true,
       'overlay-hidden':
-        this.menuMode.startsWith('hidden-') ||
-        this.menuMode.startsWith('overlay-') ||
-        this.menuMode.startsWith('hover-'),
+        mode.startsWith('hidden-') ||
+        mode.startsWith('overlay-') ||
+        mode.startsWith('hover-'),
       'expanded-horizontal':
-        (this.menuMode.startsWith('overlay-') ||
-          this.menuMode.startsWith('hover-') ||
-          this.expand) &&
-        (this.menuMode.endsWith('-top') || this.menuMode.endsWith('-bottom')),
+        (mode.startsWith('overlay-') || mode.startsWith('hover-') || this.expand) &&
+        (mode.endsWith('-top') || mode.endsWith('-bottom')),
       'expanded-vertical':
-        (this.menuMode.startsWith('overlay-') ||
-          this.menuMode.startsWith('hover-') ||
-          this.expand) &&
-        (this.menuMode.endsWith('-left') || this.menuMode.endsWith('-right')),
-      full: ['above', 'below'].includes(this.menuMode),
-      left: this.menuMode.endsWith('-left'),
-      right: this.menuMode.endsWith('-right'),
-      top: this.menuMode.endsWith('-top'),
-      bottom: this.menuMode.endsWith('-bottom'),
+        (mode.startsWith('overlay-') || mode.startsWith('hover-') || this.expand) &&
+        (mode.endsWith('-left') || mode.endsWith('-right')),
+      full: mode == 'above' || mode == 'below',
+      left: mode.endsWith('-left'),
+      right: mode.endsWith('-right'),
+      top: mode.endsWith('-top'),
+      bottom: mode.endsWith('-bottom'),
     };
 
     return html`

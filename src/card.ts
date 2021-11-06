@@ -20,7 +20,12 @@ import {
 import screenfull from 'screenfull';
 import { z } from 'zod';
 
-import { entitySchema, frigateCardConfigSchema, MenuInteraction } from './types.js';
+import {
+  entitySchema,
+  frigateCardConfigSchema,
+  MenuInteraction,
+  RawFrigateCardConfig,
+} from './types.js';
 import type {
   BrowseMediaQueryParameters,
   Entity,
@@ -58,6 +63,7 @@ import './patches/ha-hls-player.js';
 import cardStyle from './scss/card.scss';
 import { ResolvedMediaCache } from './resolved-media.js';
 import { BrowseMediaUtil } from './browse-media-util.js';
+import { copyConfig, isConfigUpgradeable, upgradeConfig } from './config-mgmt.js';
 
 /** A note on media callbacks:
  *
@@ -192,72 +198,72 @@ export class FrigateCard extends LitElement {
   protected _getMenuButtons(): MenuButton[] {
     const buttons: MenuButton[] = [];
 
-    if (this.config.menu_buttons?.frigate ?? true) {
+    if (this.config.menu.buttons.frigate) {
       buttons.push({
         type: 'internal-menu-icon',
         tap_action: 'frigate',
-        title: localize('menu.frigate'),
+        title: localize('config.menu.buttons.frigate'),
       });
     }
-    if (this.config.menu_buttons?.live ?? true) {
+    if (this.config.menu.buttons.live) {
       buttons.push({
         type: 'internal-menu-icon',
         tap_action: 'live',
-        title: localize('menu.live'),
+        title: localize('config.view.views.live'),
         icon: 'mdi:cctv',
         emphasize: this._view.is('live'),
       });
     }
-    if (this.config.menu_buttons?.clips ?? true) {
+    if (this.config.menu.buttons.clips) {
       buttons.push({
         type: 'internal-menu-icon',
         tap_action: 'clips',
         hold_action: 'clip',
-        title: localize('menu.clips'),
+        title: localize('config.view.views.clips'),
         icon: 'mdi:filmstrip',
         emphasize: this._view.is('clips'),
       });
     }
-    if (this.config.menu_buttons?.snapshots ?? true) {
+    if (this.config.menu.buttons.snapshots) {
       buttons.push({
         type: 'internal-menu-icon',
         tap_action: 'snapshots',
         hold_action: 'snapshot',
-        title: localize('menu.snapshots'),
+        title: localize('config.view.views.snapshots'),
         icon: 'mdi:camera',
         emphasize: this._view.is('snapshots'),
       });
     }
-    if (this.config.menu_buttons?.image ?? false) {
+    if (this.config.menu.buttons.image) {
       buttons.push({
         type: 'internal-menu-icon',
         tap_action: 'image',
-        title: localize('menu.image'),
+        title: localize('config.view.views.image'),
         icon: 'mdi:image',
         emphasize: this._view.is('image'),
       });
     }
-    if (this._view.isViewerView() && (this.config.menu_buttons?.download ?? true)) {
+    if (this.config.menu.buttons.download && this._view.isViewerView()) {
       buttons.push({
         type: 'internal-menu-icon',
         tap_action: 'download',
-        title: localize('menu.download'),
+        title: localize('config.menu.buttons.download'),
         icon: 'mdi:download',
       });
     }
-    if ((this.config.menu_buttons?.frigate_ui ?? true) && this.config.frigate_url) {
+    if (this.config.menu.buttons.frigate_ui && this.config.frigate.url) {
       buttons.push({
         type: 'internal-menu-icon',
         tap_action: 'frigate_ui',
-        title: localize('menu.frigate_ui'),
+        title: localize('config.menu.buttons.frigate_ui'),
         icon: 'mdi:web',
       });
     }
-    if ((this.config.menu_buttons?.fullscreen ?? true) && screenfull.isEnabled) {
+    if (this.config.menu.buttons.fullscreen && screenfull.isEnabled) {
       buttons.push({
         type: 'internal-menu-icon',
         tap_action: 'fullscreen',
-        title: localize('menu.fullscreen'),
+        title: localize('config.menu.buttons.fullscreen'),
         icon: screenfull.isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
       });
     }
@@ -300,8 +306,8 @@ export class FrigateCard extends LitElement {
     }
 
     // Option 1: Name specified in config -> done!
-    if (this.config.frigate_camera_name) {
-      return this.config.frigate_camera_name;
+    if (this.config.frigate.camera_name) {
+      return this.config.frigate.camera_name;
     }
 
     if (this.config.camera_entity) {
@@ -401,16 +407,22 @@ export class FrigateCard extends LitElement {
    * Set the card configuration.
    * @param inputConfig The card configuration.
    */
-  public setConfig(inputConfig: FrigateCardConfig): void {
+  public setConfig(inputConfig: RawFrigateCardConfig): void {
     if (!inputConfig) {
-      throw new Error(localize('error.invalid_configuration:'));
+      throw new Error(localize('error.invalid_configuration'));
     }
 
+    const configUpgradeable = isConfigUpgradeable(inputConfig);
     const parseResult = frigateCardConfigSchema.safeParse(inputConfig);
     if (!parseResult.success) {
       const hint = this._getParseErrorPaths(parseResult.error);
+      let upgradeMessage = '';
+      if (configUpgradeable && getLovelace().mode !== 'yaml') {
+        upgradeMessage = `${localize('error.upgrade_available')}. `;
+      }
       throw new Error(
-        `${localize('error.invalid_configuration')}: ` +
+        upgradeMessage +
+          `${localize('error.invalid_configuration')}: ` +
           (hint.length
             ? JSON.stringify(hint, null, ' ')
             : localize('error.invalid_configuration_no_hint')),
@@ -436,7 +448,7 @@ export class FrigateCard extends LitElement {
     this._message = null;
 
     if (view === undefined) {
-      this._view = new View({ view: this.config.view_default });
+      this._view = new View({ view: this.config.view.default });
     } else {
       this._view = view;
     }
@@ -505,7 +517,7 @@ export class FrigateCard extends LitElement {
     }
 
     const path =
-      `/api/frigate/${this.config.frigate_client_id}` +
+      `/api/frigate/${this.config.frigate.client_id}` +
       `/notifications/${event_id}/` +
       `${this._view.isClipRelatedView() ? 'clip.mp4' : 'snapshot.jpg'}` +
       `?download=true`;
@@ -595,22 +607,22 @@ export class FrigateCard extends LitElement {
    * @returns The URL or null if unavailable.
    */
   protected _getFrigateURLFromContext(): string | null {
-    if (!this.config.frigate_url) {
+    if (!this.config.frigate.url) {
       return null;
     }
     if (!this._frigateCameraName) {
-      return this.config.frigate_url;
+      return this.config.frigate.url;
     } else if (this._view.is('live')) {
-      return `${this.config.frigate_url}/cameras/${this._frigateCameraName}`;
+      return `${this.config.frigate.url}/cameras/${this._frigateCameraName}`;
     }
-    return `${this.config.frigate_url}/events?camera=${this._frigateCameraName}`;
+    return `${this.config.frigate.url}/events?camera=${this._frigateCameraName}`;
   }
 
   /**
    * Handle interaction with the card.
    */
   protected _interactionHandler(): void {
-    if (!this.config.view_timeout) {
+    if (!this.config.view.timeout) {
       return;
     }
     if (this._interactionTimerID) {
@@ -619,7 +631,7 @@ export class FrigateCard extends LitElement {
     this._interactionTimerID = window.setTimeout(() => {
       this._interactionTimerID = null;
       this._changeView();
-    }, this.config.view_timeout * 1000);
+    }, this.config.view.timeout * 1000);
   }
 
   /**
@@ -628,15 +640,14 @@ export class FrigateCard extends LitElement {
    */
   protected _renderMenu(): TemplateResult | void {
     const classes = {
-      'hover-menu': this.config.menu_mode.startsWith('hover-'),
+      'hover-menu': this.config.menu.mode.startsWith('hover-'),
     };
     return html`
       <frigate-card-menu
-        class="${classMap(classes)}"
         .hass=${this._hass}
-        .menuMode=${this.config.menu_mode}
+        .menuConfig=${this.config.menu}
         .buttons=${this._getMenuButtons()}
-        .buttonSize=${this.config.menu_button_size}
+        class="${classMap(classes)}"
         @frigate-card:menu-interaction=${this._menuInteractionHandler.bind(this)}
       ></frigate-card-menu>
     `;
@@ -655,10 +666,10 @@ export class FrigateCard extends LitElement {
     }
     return {
       mediaType: this._view.isClipRelatedView() ? 'clips' : 'snapshots',
-      clientId: this.config.frigate_client_id,
+      clientId: this.config.frigate.client_id,
       cameraName: this._frigateCameraName,
-      label: this.config.label,
-      zone: this.config.zone,
+      label: this.config.frigate.label,
+      zone: this.config.frigate.zone,
     };
   }
 
@@ -760,7 +771,7 @@ export class FrigateCard extends LitElement {
    * context.
    */
   protected _isAspectRatioEnforced(): boolean {
-    const aspect_ratio_mode = this.config.dimensions?.aspect_ratio_mode ?? 'dynamic';
+    const aspectRatioMode = this.config.dimensions.aspect_ratio_mode;
 
     // Do not artifically constrain aspect ratio if:
     // - It's fullscreen.
@@ -769,8 +780,8 @@ export class FrigateCard extends LitElement {
 
     return !(
       (screenfull.isEnabled && screenfull.isFullscreen) ||
-      aspect_ratio_mode == 'unconstrained' ||
-      (aspect_ratio_mode == 'dynamic' && this._view.isMediaView())
+      aspectRatioMode == 'unconstrained' ||
+      (aspectRatioMode == 'dynamic' && this._view.isMediaView())
     );
   }
 
@@ -784,14 +795,14 @@ export class FrigateCard extends LitElement {
       return null;
     }
 
-    const aspect_ratio_mode = this.config.dimensions?.aspect_ratio_mode ?? 'dynamic';
-    if (aspect_ratio_mode == 'dynamic' && this._mediaShowInfo) {
+    const aspectRatioMode = this.config.dimensions.aspect_ratio_mode;
+    if (aspectRatioMode == 'dynamic' && this._mediaShowInfo) {
       return (this._mediaShowInfo.height / this._mediaShowInfo.width) * 100;
     }
 
-    const default_aspect_ratio = this.config.dimensions?.aspect_ratio;
-    if (default_aspect_ratio) {
-      return (default_aspect_ratio[1] / default_aspect_ratio[0]) * 100;
+    const defaultAspectRatio = this.config.dimensions.aspect_ratio;
+    if (defaultAspectRatio) {
+      return (defaultAspectRatio[1] / defaultAspectRatio[0]) * 100;
     } else {
       return (9 / 16) * 100;
     }
@@ -801,13 +812,6 @@ export class FrigateCard extends LitElement {
    * Master render method for the card.
    */
   protected render(): TemplateResult | void {
-    if (this.config.show_warning) {
-      return this._showWarning(localize('common.show_warning'));
-    }
-    if (this.config.show_error) {
-      return this._showError(localize('common.show_error'));
-    }
-
     const padding = this._getAspectRatioPadding();
     const outerStyle = {},
       innerStyle = {};
@@ -836,7 +840,7 @@ export class FrigateCard extends LitElement {
         window.innerWidth / window.innerHeight
     ) {
       // If the menu is outside the media (i.e. above/below) allow space for it.
-      const allowance = ['above', 'below'].includes(this.config.menu_mode)
+      const allowance = ['above', 'below'].includes(this.config.menu.mode)
         ? MENU_HEIGHT
         : 0;
       innerStyle['max-width'] = `calc(${
@@ -850,7 +854,7 @@ export class FrigateCard extends LitElement {
     };
 
     return html` <ha-card @click=${this._interactionHandler}>
-      ${this.config.menu_mode == 'above' ? this._renderMenu() : ''}
+      ${this.config.menu.mode == 'above' ? this._renderMenu() : ''}
       <div class="container outer" style="${styleMap(outerStyle)}">
         <div class="${classMap(contentClasses)}" style="${styleMap(innerStyle)}">
           ${this._frigateCameraName == undefined
@@ -864,7 +868,7 @@ export class FrigateCard extends LitElement {
             : this._render()}
         </div>
       </div>
-      ${this.config.menu_mode != 'above' ? this._renderMenu() : ''}
+      ${this.config.menu.mode != 'above' ? this._renderMenu() : ''}
     </ha-card>`;
   }
 
@@ -891,16 +895,16 @@ export class FrigateCard extends LitElement {
       gallery: this._view.isGalleryView(),
     };
     const galleryClasses = {
-      hidden: this.config.live_preload && !this._view.isGalleryView(),
+      hidden: this.config.live.preload && !this._view.isGalleryView(),
     };
     const viewerClasses = {
-      hidden: this.config.live_preload && !this._view.isViewerView(),
+      hidden: this.config.live.preload && !this._view.isViewerView(),
     };
     const liveClasses = {
-      hidden: this.config.live_preload && this._view.view != 'live',
+      hidden: this.config.live.preload && this._view.view != 'live',
     };
     const imageClasses = {
-      hidden: this.config.live_preload && this._view.view != 'image',
+      hidden: this.config.live.preload && this._view.view != 'image',
     };
 
     return html`
@@ -908,7 +912,7 @@ export class FrigateCard extends LitElement {
         ${this._message ? renderMessage(this._message) : ``}
         ${!this._message && this._view.is('image')
           ? html` <frigate-card-image
-              .image=${this.config.image}
+              .imageConfig=${this.config.image}
               class="${classMap(imageClasses)}"
               @frigate-card:media-show=${this._mediaShowHandler}
               @frigate-card:message=${this._messageHandler}
@@ -931,11 +935,8 @@ export class FrigateCard extends LitElement {
               .hass=${this._hass}
               .view=${this._view}
               .browseMediaQueryParameters=${mediaQueryParameters}
-              .nextPreviousControlStyle=${this.config.controls?.nextprev ?? 'thumbnails'}
-              .nextPreviousControlSize=${this.config.controls?.nextprev_size}
-              .autoplayClip=${this.config.autoplay_clip}
+              .viewerConfig=${this.config.event_viewer}
               .resolvedMediaCache=${this._resolvedMediaCache}
-              .lazyLoad=${this.config.event_viewer?.lazy_load ?? true}
               class="${classMap(viewerClasses)}"
               @frigate-card:change-view=${this._changeViewHandler}
               @frigate-card:media-show=${this._mediaShowHandler}
@@ -947,14 +948,14 @@ export class FrigateCard extends LitElement {
           : ``}
         ${
           // Note the subtle difference in condition below vs the other views in order
-          // to always render the live view for live_preload mode.
-          (!this._message && this._view.is('live')) || this.config.live_preload
+          // to always render the live view for live.preload mode.
+          (!this._message && this._view.is('live')) || this.config.live.preload
             ? html`
                 <frigate-card-live
                   .hass=${this._hass}
                   .config=${this.config}
                   .frigateCameraName=${this._frigateCameraName}
-                  .preload=${this.config.live_preload && !this._view.is('live')}
+                  .preload=${this.config.live.preload && !this._view.is('live')}
                   class="${classMap(liveClasses)}"
                   @frigate-card:media-show=${this._mediaShowHandler}
                   @frigate-card:pause=${this._pauseHandler}
@@ -989,31 +990,6 @@ export class FrigateCard extends LitElement {
           : ``}
       </div>
     `;
-  }
-
-  /**
-   * Show a warning card.
-   * @param warning The warning message.
-   * @returns A rendered template.
-   */
-  private _showWarning(warning: string): TemplateResult {
-    return html` <hui-warning> ${warning} </hui-warning> `;
-  }
-
-  /**
-   * Show an error card.
-   * @param error The error message.
-   * @returns A rendered template.
-   */
-  private _showError(error: string): TemplateResult {
-    const errorCard = document.createElement('hui-error-card');
-    errorCard.setConfig({
-      type: 'error',
-      error,
-      origConfig: this.config,
-    });
-
-    return html` ${errorCard} `;
   }
 
   /**

@@ -3,17 +3,19 @@ import { customElement, property } from 'lit/decorators.js';
 
 import { dispatchMediaShowEvent } from '../common.js';
 
-import imageStyle from '../scss/image.scss';
+import type { ImageViewConfig } from '../types.js';
 import defaultImage from '../images/frigate-bird-in-sky.jpg'
+
+import imageStyle from '../scss/image.scss';
 
 @customElement('frigate-card-image')
 export class FrigateCardImage extends LitElement {
   @property({ attribute: false })
-  protected image?: string;
+  protected imageConfig?: ImageViewConfig;
 
   protected render(): TemplateResult | void {
     return html` <img
-      src=${this.image || defaultImage}
+      src=${this.imageConfig?.src || defaultImage}
       @load=${(e) => {
         dispatchMediaShowEvent(this, e);
       }}
