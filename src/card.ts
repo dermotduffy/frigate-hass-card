@@ -20,7 +20,12 @@ import {
 import screenfull from 'screenfull';
 import { z } from 'zod';
 
-import { entitySchema, frigateCardConfigSchema, MenuInteraction, RawFrigateCardConfig } from './types.js';
+import {
+  entitySchema,
+  frigateCardConfigSchema,
+  MenuInteraction,
+  RawFrigateCardConfig,
+} from './types.js';
 import type {
   BrowseMediaQueryParameters,
   Entity,
@@ -58,7 +63,7 @@ import './patches/ha-hls-player.js';
 import cardStyle from './scss/card.scss';
 import { ResolvedMediaCache } from './resolved-media.js';
 import { BrowseMediaUtil } from './browse-media-util.js';
-import { isConfigUpgradeable } from './config-mgmt.js';
+import { copyConfig, isConfigUpgradeable, upgradeConfig } from './config-mgmt.js';
 
 /** A note on media callbacks:
  *
@@ -413,14 +418,14 @@ export class FrigateCard extends LitElement {
       const hint = this._getParseErrorPaths(parseResult.error);
       let upgradeMessage = '';
       if (configUpgradeable && getLovelace().mode !== 'yaml') {
-        upgradeMessage = `${localize('editor.upgrade_available_in_editor')}. `;
-      }      
+        upgradeMessage = `${localize('error.upgrade_available')}. `;
+      }
       throw new Error(
         upgradeMessage +
-        `${localize('error.invalid_configuration')}: ` +
+          `${localize('error.invalid_configuration')}: ` +
           (hint.length
             ? JSON.stringify(hint, null, ' ')
-            : localize('error.invalid_configuration_no_hint'))
+            : localize('error.invalid_configuration_no_hint')),
       );
     }
     const config = parseResult.data;
@@ -807,13 +812,6 @@ export class FrigateCard extends LitElement {
    * Master render method for the card.
    */
   protected render(): TemplateResult | void {
-    if (this.config.show_warning) {
-      return this._showWarning(localize('common.show_warning'));
-    }
-    if (this.config.show_error) {
-      return this._showError(localize('common.show_error'));
-    }
-
     const padding = this._getAspectRatioPadding();
     const outerStyle = {},
       innerStyle = {};
@@ -992,31 +990,6 @@ export class FrigateCard extends LitElement {
           : ``}
       </div>
     `;
-  }
-
-  /**
-   * Show a warning card.
-   * @param warning The warning message.
-   * @returns A rendered template.
-   */
-  private _showWarning(warning: string): TemplateResult {
-    return html` <hui-warning> ${warning} </hui-warning> `;
-  }
-
-  /**
-   * Show an error card.
-   * @param error The error message.
-   * @returns A rendered template.
-   */
-  private _showError(error: string): TemplateResult {
-    const errorCard = document.createElement('hui-error-card');
-    errorCard.setConfig({
-      type: 'error',
-      error,
-      origConfig: this.config,
-    });
-
-    return html` ${errorCard} `;
   }
 
   /**

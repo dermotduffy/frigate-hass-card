@@ -461,8 +461,6 @@ export const frigateCardConfigSchema = z.object({
 
   // Stock lovelace card config.
   type: z.string(),
-  show_warning: z.boolean().optional(),
-  show_error: z.boolean().optional(),
   test_gui: z.boolean().optional(),
 });
 export type FrigateCardConfig = z.infer<typeof frigateCardConfigSchema>;
