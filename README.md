@@ -130,6 +130,7 @@ All variables listed are under a `event_viewer:` section.
 | - | - | - |
 | `autoplay_clip` | `false` | Whether or not to autoplay clips in the 'clip' [view](#views). Clips manually chosen in the clips gallery will still autoplay.|
 | `lazy_load` | `true` | Whether or not to lazily load media in the event viewer carousel. Setting this will false will fetch all media immediately which may make the carousel experience smoother at a cost of (potentially) a substantial number of simultaneous media fetches on load. |
+| `draggable` | `true` | Whether or not the event viewer carousel can be dragged left or right, via touch/swipe and mouse dragging. |
 | `controls.next_previous.style` | `thumbnails` | When viewing media, what kind of controls to show to move to the previous/next media item. Acceptable values: `thumbnails`, `chevrons`, `none` . |
 | `controls.next_previous.size` | `48px` | The size of the next/previous controls (in CSS Units)[https://www.w3schools.com/cssref/css_units.asp].|
 

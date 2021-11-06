@@ -585,6 +585,17 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   @change=${this._valueChangedHandler}
                 ></ha-switch>
               </ha-formfield>
+              <ha-formfield .label=${localize('config.event_viewer.draggable')}>
+                <ha-switch
+                  .checked=${getConfigValue(
+                    this._config,
+                    'event_viewer.draggable',
+                    defaults.event_viewer.draggable,
+                  )}
+                  .configValue=${'event_viewer.draggable'}
+                  @change=${this._valueChangedHandler}
+                ></ha-switch>
+              </ha-formfield>
               <ha-formfield .label=${localize('config.event_viewer.lazy_load')}>
                 <ha-switch
                   .checked=${getConfigValue(
