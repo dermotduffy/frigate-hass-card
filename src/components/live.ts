@@ -321,7 +321,11 @@ export class FrigateCardLiveJSMPEG extends LitElement {
       this._refreshPlayerTimerID = undefined;
     }
     if (this._jsmpegVideoPlayer) {
-      this._jsmpegVideoPlayer.destroy();
+      try {
+        this._jsmpegVideoPlayer.destroy();
+      } catch (err) {
+        // Pass.
+      }
       this._jsmpegVideoPlayer = undefined;
     }
     if (this._jsmpegCanvasElement) {
