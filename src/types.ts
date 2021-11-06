@@ -384,6 +384,7 @@ export type MenuConfig = z.infer<typeof menuConfigSchema>;
 const viewerConfigDefault = {
   autoplay_clip: false,
   lazy_load: true,
+  draggable: true,
   controls: {
     next_previous: {
       size: '48px',
@@ -405,6 +406,7 @@ const viewerConfigSchema = z
   .object({
     autoplay_clip: z.boolean().default(viewerConfigDefault.autoplay_clip),
     lazy_load: z.boolean().default(viewerConfigDefault.lazy_load),
+    draggable: z.boolean().default(viewerConfigDefault.draggable),
     controls: z
       .object({
         next_previous: nextPreviousControlConfigSchema,

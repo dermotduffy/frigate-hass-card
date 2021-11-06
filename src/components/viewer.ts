@@ -197,7 +197,7 @@ export class FrigateCardViewerCore extends LitElement {
       '.embla__viewport',
     ) as HTMLElement;
 
-    if (carouselNode) {
+    if (carouselNode && this.viewerConfig) {
       this._loadedCarousel = true;
 
       // Start the carousel on the selected child number.
@@ -209,6 +209,7 @@ export class FrigateCardViewerCore extends LitElement {
 
       this._carousel = EmblaCarousel(carouselNode, {
         startIndex: isNaN(startIndex) ? undefined : startIndex,
+        draggable: this.viewerConfig.draggable,
       });
       // Update views and dispatch media-show events based on slide selections.
       this._carousel.on('select', this._selectSlideSetViewHandler.bind(this));

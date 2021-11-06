@@ -31,6 +31,7 @@
     },
     "event_viewer": {
       "autoplay_clip": "Autoplay most recent clip (In 'clip' view)",
+      "draggable": "Event viewer can be dragged/swiped",
       "lazy_load": "Lazily load event media",
       "controls": {
         "next_previous": {
