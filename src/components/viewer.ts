@@ -39,7 +39,9 @@ import './next-prev-control.js';
 
 import viewerStyle from '../scss/viewer.scss';
 
-const IMG_EMPTY = 'data:,';
+const getEmptyImageSrc = (width: number, height: number) =>
+  `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"%3E%3C/svg%3E`;
+const IMG_EMPTY = getEmptyImageSrc(16, 9);
 
 @customElement('frigate-card-viewer')
 export class FrigateCardViewer extends LitElement {
@@ -171,9 +173,11 @@ export class FrigateCardViewerCore extends LitElement {
   // (Folders are not media items that can be rendered).
   protected _slideToChild: Record<number, number> = {};
 
-  // A "map" from slide number to MediaShowInfo object or null if the slide has
-  // been lazy loaded, but the MediaShowInfo object is not yet available.
-  protected _mediaShowInfo: Record<number, MediaShowInfo | null> = {};
+  // A "map" from slide number to MediaShowInfo object.
+  protected _mediaShowInfo: Record<number, MediaShowInfo> = {};
+
+  // Whether or not a given slide has been successfully lazily loaded.
+  protected _slideHasBeenLazyLoaded: Record<number, boolean> = {};
 
   /**
    * The updated lifecycle callback for this element.
@@ -414,16 +418,15 @@ export class FrigateCardViewerCore extends LitElement {
     }
 
     slidesToLoad.forEach((index) => {
-      // Only lazy loads slides that are not already loaded.
-      if (index in this._mediaShowInfo) {
+      // Only lazy load slides that are not already loaded.
+      if (this._slideHasBeenLazyLoaded[index]) {
         return;
       }
-      this._mediaShowInfo[index] = null;
-
+      this._slideHasBeenLazyLoaded[index] = true;
       const slide = slides[index];
 
       // Snapshots.
-      const img = slide.querySelector('img');
+      const img = slide.querySelector('img') as HTMLImageElement;
 
       // Frigate >= 0.9.0+ clips.
       const hls_player = slide.querySelector(
@@ -512,10 +515,7 @@ export class FrigateCardViewerCore extends LitElement {
 
     this._carousel.slidesInView(true).forEach((slideIndex) => {
       if (slideIndex in this._mediaShowInfo) {
-        const mediaShowInfo = this._mediaShowInfo[slideIndex];
-        if (mediaShowInfo) {
-          dispatchExistingMediaShowInfoAsEvent(this, mediaShowInfo);
-        }
+        dispatchExistingMediaShowInfoAsEvent(this, this._mediaShowInfo[slideIndex]);
       }
     });
   }
@@ -546,12 +546,38 @@ export class FrigateCardViewerCore extends LitElement {
     slideIndex: number,
     mediaShowInfo?: MediaShowInfo | null,
   ): void {
-    // isValidMediaShowInfo is used to weed out the initial load of the
-    // transparent 1x1 placeholders.
-    if (mediaShowInfo && isValidMediaShowInfo(mediaShowInfo)) {
+    // isValidMediaShowInfo is used to prevent saving media info that will be
+    // rejected upstream.
+    if (this.viewerConfig && mediaShowInfo && isValidMediaShowInfo(mediaShowInfo)) {
+      const firstMediaLoad = !Object.keys(this._mediaShowInfo).length;
       this._mediaShowInfo[slideIndex] = mediaShowInfo;
       if (this._carousel && this._carousel?.slidesInView(true).includes(slideIndex)) {
         dispatchExistingMediaShowInfoAsEvent(this, mediaShowInfo);
+      }
+      /**
+       * Images need a width/height from initial load, and browsers will assume
+       * that the aspect ratio of the initial dummy-image load will persist. In
+       * lazy-loading, this can cause a 1x1 pixel dummy image to cause the
+       * browser to assume all images will be square, so the whole carousel will
+       * have the wrong aspect-ratio until every single image has been lazily
+       * loaded. To avoid this, we use a 16:9 dummy image at first (most
+       * likely?) and once the first piece of real media has been loaded, all
+       * dummy images are replaced with dummy images that match the aspect ratio
+       * of the real image. It still might be wrong, but it's the best option
+       * available.
+       */
+      if (firstMediaLoad && this.viewerConfig.lazy_load) {
+        const replacementImageSrc = getEmptyImageSrc(
+          mediaShowInfo.width,
+          mediaShowInfo.height,
+        );
+
+        this.renderRoot.querySelectorAll('.embla__container img').forEach((img) => {
+          const imageElement: HTMLImageElement = img as HTMLImageElement;
+          if (imageElement.src === IMG_EMPTY) {
+            imageElement.src = replacementImageSrc
+          }
+        });
       }
     }
   }
@@ -567,7 +593,11 @@ export class FrigateCardViewerCore extends LitElement {
   ): TemplateResult | void {
     // media that can be expanded (folders) cannot be resolved to a single media
     // item, skip them.
-    if (!this.view || !this.viewerConfig || !BrowseMediaUtil.isTrueMedia(mediaToRender)) {
+    if (
+      !this.view ||
+      !this.viewerConfig ||
+      !BrowseMediaUtil.isTrueMedia(mediaToRender)
+    ) {
       return;
     }
 
@@ -638,8 +668,10 @@ export class FrigateCardViewerCore extends LitElement {
                 }
               }}
               @load="${(e: Event) => {
-                this._mediaShowInfoHandler(slideIndex, createMediaShowInfo(e));
-              }}"
+                if (this.viewerConfig && (!this.viewerConfig.lazy_load || this._slideHasBeenLazyLoaded[slideIndex])) {
+                  this._mediaShowInfoHandler(slideIndex, createMediaShowInfo(e));
+                }
+               }}"
             />`}
       </div>
     `;
