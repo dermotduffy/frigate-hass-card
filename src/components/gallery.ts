@@ -12,10 +12,7 @@ import type {
 } from '../types.js';
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import { View } from '../view.js';
-import {
-  dispatchErrorMessageEvent,
-  dispatchMessageEvent,
-} from '../common.js';
+import { dispatchErrorMessageEvent, dispatchMessageEvent } from '../common.js';
 import { localize } from '../localize/localize.js';
 import { renderProgressIndicator } from './message.js';
 
@@ -27,22 +24,93 @@ const DEFAULT_COLUMNS = 5;
 @customElement('frigate-card-gallery')
 export class FrigateCardGallery extends LitElement {
   @property({ attribute: false })
-  protected hass!: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: HomeAssistant & ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected view!: View;
+  protected view?: View;
 
   @property({ attribute: false })
   protected browseMediaQueryParameters?: BrowseMediaQueryParameters;
+
+  /**
+   * Master render method.
+   * @returns A rendered template.
+   */
+  protected render(): TemplateResult | void {
+    return html`${until(this._render(), renderProgressIndicator())}`;
+  }
+
+  /**
+   * Asyncronously render the element.
+   * @returns A rendered template.
+   */
+  protected async _render(): Promise<TemplateResult | void> {
+    if (
+      !this.hass ||
+      !this.view ||
+      !this.browseMediaQueryParameters ||
+      !(this.view.is('clips') || this.view.is('snapshots'))
+    ) {
+      return html``;
+    }
+
+    let parent: BrowseMediaSource | null;
+    try {
+      if (this.view.target) {
+        parent = await BrowseMediaUtil.browseMedia(
+          this.hass,
+          this.view.target.media_content_id,
+        );
+      } else {
+        parent = await BrowseMediaUtil.browseMediaQuery(
+          this.hass,
+          this.browseMediaQueryParameters,
+        );
+      }
+    } catch (e: any) {
+      return dispatchErrorMessageEvent(this, e.message);
+    }
+
+    if (
+      !parent ||
+      !parent.children ||
+      BrowseMediaUtil.getFirstTrueMediaChildIndex(parent) == null
+    ) {
+      return dispatchMessageEvent(
+        this,
+        this.view.is('clips')
+          ? localize('common.no_clips')
+          : localize('common.no_snapshots'),
+        this.view.is('clips') ? 'mdi:filmstrip-off' : 'mdi:camera-off',
+      );
+    }
+
+    this.view.target = parent;
+
+    return html` <frigate-card-gallery-core .hass=${this.hass} .view=${this.view}>
+    </frigate-card-gallery-core>`;
+  }
+
+  /**
+   * Get element styles.
+   */
+  static get styles(): CSSResultGroup {
+    return unsafeCSS(galleryStyle);
+  }
+}
+
+@customElement('frigate-card-gallery-core')
+export class FrigateCardGalleryCore extends LitElement {
+  @property({ attribute: false })
+  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+
+  @property({ attribute: false })
+  protected view?: View;
 
   protected _resizeObserver: ResizeObserver;
 
   @state()
   protected _columns = DEFAULT_COLUMNS;
-
-  protected _getMediaType(): 'clips' | 'snapshots' {
-    return this.view?.view == 'clips' ? 'clips' : 'snapshots';
-  }
 
   constructor() {
     super();
@@ -53,10 +121,12 @@ export class FrigateCardGallery extends LitElement {
     super.connectedCallback();
     this._resizeObserver?.observe(this);
   }
+
   disconnectedCallback(): void {
     this._resizeObserver.disconnect();
     super.disconnectedCallback();
   }
+
   protected _resizeHandler(): void {
     this._columns = Math.max(
       DEFAULT_COLUMNS,
@@ -65,33 +135,13 @@ export class FrigateCardGallery extends LitElement {
   }
 
   protected render(): TemplateResult | void {
-    return html`${until(this._render(), renderProgressIndicator())}`;
-  }
-
-  protected async _render(): Promise<TemplateResult | void> {
-    if (!this.browseMediaQueryParameters) {
+    if (
+      !this.view ||
+      !this.view.target ||
+      !this.view.target.children ||
+      !(this.view.is('clips') || this.view.is('snapshots'))
+    ) {
       return html``;
-    }
-
-    let parent: BrowseMediaSource | null;
-    try {
-      if (this.view.target) {
-        parent = await BrowseMediaUtil.browseMedia(this.hass, this.view.target.media_content_id);
-      } else {
-        parent = await BrowseMediaUtil.browseMediaQuery(this.hass, this.browseMediaQueryParameters);
-      }
-    } catch (e: any) {
-      return dispatchErrorMessageEvent(this, e.message);
-    }
-
-    if (!parent || !parent.children || BrowseMediaUtil.getFirstTrueMediaChildIndex(parent) == null) {
-      return dispatchMessageEvent(
-        this,
-        this._getMediaType() == 'clips'
-          ? localize('common.no_clips')
-          : localize('common.no_snapshots'),
-        this._getMediaType() == 'clips' ? 'mdi:filmstrip-off' : 'mdi:camera-off',
-      );
     }
 
     const styles = {
@@ -119,7 +169,7 @@ export class FrigateCardGallery extends LitElement {
             </div>
           </li>`
         : ''}
-      ${parent.children.map(
+      ${this.view.target.children.map(
         (child, index) =>
           html` <li class="mdc-image-list__item" style="${styleMap(styles)}">
             <div class="mdc-image-list__image-aspect-container">
@@ -127,11 +177,13 @@ export class FrigateCardGallery extends LitElement {
                 ? html`<div class="mdc-image-list__image">
                     <ha-card
                       @click=${() => {
-                        new View({
-                          view: this._getMediaType(),
-                          target: child,
-                          previous: this.view ?? undefined,
-                        }).dispatchChangeEvent(this);
+                        if (this.view) {
+                          new View({
+                            view: this.view.view,
+                            target: child,
+                            previous: this.view ?? undefined,
+                          }).dispatchChangeEvent(this);
+                        }
                       }}
                       outlined=""
                       class="frigate-card-gallery-folder"
@@ -145,12 +197,16 @@ export class FrigateCardGallery extends LitElement {
                     class="mdc-image-list__image"
                     src="${child.thumbnail}"
                     @click=${() => {
-                      new View({
-                        view: this._getMediaType() == 'clips' ? 'clip-specific' : 'snapshot-specific',
-                        target: parent ?? undefined,
-                        childIndex: index,
-                        previous: this.view ?? undefined,
-                      }).dispatchChangeEvent(this);
+                      if (this.view) {
+                        new View({
+                          view: this.view.is('clips')
+                            ? 'clip-specific'
+                            : 'snapshot-specific',
+                          target: this.view.target ?? undefined,
+                          childIndex: index,
+                          previous: this.view ?? undefined,
+                        }).dispatchChangeEvent(this);
+                      }
                     }}
                   />`
                 : ``}
