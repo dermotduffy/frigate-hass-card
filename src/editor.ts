@@ -16,6 +16,38 @@ import {
   trimConfig,
   upgradeConfig,
 } from './config-mgmt.js';
+import {
+  CONF_CAMERA_ENTITY,
+  CONF_DIMENSIONS_ASPECT_RATIO,
+  CONF_DIMENSIONS_ASPECT_RATIO_MODE,
+  CONF_EVENT_VIEWER_AUTOPLAY_CLIP,
+  CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
+  CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
+  CONF_EVENT_VIEWER_DRAGGABLE,
+  CONF_EVENT_VIEWER_LAZY_LOAD,
+  CONF_FRIGATE_CAMERA_NAME,
+  CONF_FRIGATE_CLIENT_ID,
+  CONF_FRIGATE_LABEL,
+  CONF_FRIGATE_URL,
+  CONF_FRIGATE_ZONE,
+  CONF_IMAGE_SRC,
+  CONF_LIVE_PRELOAD,
+  CONF_LIVE_PROVIDER,
+  CONF_LIVE_WEBRTC_ENTITY,
+  CONF_LIVE_WEBRTC_URL,
+  CONF_MENU_BUTTONS_CLIPS,
+  CONF_MENU_BUTTONS_FRIGATE,
+  CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD,
+  CONF_MENU_BUTTONS_FRIGATE_FULLSCREEN,
+  CONF_MENU_BUTTONS_FRIGATE_UI,
+  CONF_MENU_BUTTONS_IMAGE,
+  CONF_MENU_BUTTONS_LIVE,
+  CONF_MENU_BUTTONS_SNAPSHOTS,
+  CONF_MENU_BUTTON_SIZE,
+  CONF_MENU_MODE,
+  CONF_VIEW_DEFAULT,
+  CONF_VIEW_TIMEOUT,
+} from './const.js';
 
 interface EditorOptionsSet {
   icon: string;
@@ -138,9 +170,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     this._helpers.importMoreInfoControl('climate');
 
     const cameraEntities = this._getEntities('camera');
-    const webrtcCameraEntity = String(
-      getConfigValue(this._config, 'live.webrtc.entity', ''),
-    );
 
     const viewModes = {
       '': '',
@@ -236,14 +265,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html`
               <div class="values">
                 <paper-dropdown-menu
-                  label=${localize('config.camera_entity')}
+                  label=${localize(`config.${CONF_CAMERA_ENTITY}`)}
                   @value-changed=${this._valueChangedHandler}
-                  .configValue=${'camera_entity'}
+                  .configValue=${CONF_CAMERA_ENTITY}
                 >
                   <paper-listbox
                     slot="dropdown-content"
                     .selected=${cameraEntities.indexOf(
-                      String(getConfigValue(this._config, 'camera_entity', '')),
+                      String(getConfigValue(this._config, CONF_CAMERA_ENTITY, '')),
                     )}
                   >
                     ${cameraEntities.map((entity) => {
@@ -269,33 +298,33 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html`
               <div class="values">
                 <paper-input
-                  label=${localize('config.frigate.camera_name')}
-                  .value=${getConfigValue(this._config, 'frigate.camera_name', '')}
-                  .configValue=${'frigate.camera_name'}
+                  label=${localize(`config.${CONF_FRIGATE_CAMERA_NAME}`)}
+                  .value=${getConfigValue(this._config, CONF_FRIGATE_CAMERA_NAME, '')}
+                  .configValue=${CONF_FRIGATE_CAMERA_NAME}
                   @value-changed=${this._valueChangedHandler}
                 ></paper-input>
                 <paper-input
-                  label=${localize('config.frigate.url')}
-                  .value=${getConfigValue(this._config, 'frigate.url', '')}
-                  .configValue=${'frigate.url'}
+                  label=${localize(`config.${CONF_FRIGATE_URL}`)}
+                  .value=${getConfigValue(this._config, CONF_FRIGATE_URL, '')}
+                  .configValue=${CONF_FRIGATE_URL}
                   @value-changed=${this._valueChangedHandler}
                 ></paper-input>
                 <paper-input
-                  .label=${localize('config.frigate.label')}
-                  .value=${getConfigValue(this._config, 'frigate.label', '')}
-                  .configValue=${'frigate.label'}
+                  .label=${localize(`config.${CONF_FRIGATE_LABEL}`)}
+                  .value=${getConfigValue(this._config, CONF_FRIGATE_LABEL, '')}
+                  .configValue=${CONF_FRIGATE_LABEL}
                   @value-changed=${this._valueChangedHandler}
                 ></paper-input>
                 <paper-input
-                  .label=${localize('config.frigate.zone')}
-                  .value=${getConfigValue(this._config, 'frigate.zone', '')}
-                  .configValue=${'frigate.zone'}
+                  .label=${localize(`config.${CONF_FRIGATE_ZONE}`)}
+                  .value=${getConfigValue(this._config, CONF_FRIGATE_ZONE, '')}
+                  .configValue=${CONF_FRIGATE_ZONE}
                   @value-changed=${this._valueChangedHandler}
                 ></paper-input>
                 <paper-input
-                  label=${localize('config.frigate.client_id')}
-                  .value=${getConfigValue(this._config, 'frigate.client_id', '')}
-                  .configValue=${'frigate.client_id'}
+                  label=${localize(`config.${CONF_FRIGATE_CLIENT_ID}`)}
+                  .value=${getConfigValue(this._config, CONF_FRIGATE_CLIENT_ID, '')}
+                  .configValue=${CONF_FRIGATE_CLIENT_ID}
                   @value-changed=${this._valueChangedHandler}
                 ></paper-input>
               </div>
@@ -312,14 +341,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html`
               <div class="values">
                 <paper-dropdown-menu
-                  label=${localize('config.view.default')}
+                  label=${localize(`config.${CONF_VIEW_DEFAULT}`)}
                   @value-changed=${this._valueChangedHandler}
-                  .configValue=${'view.default'}
+                  .configValue=${CONF_VIEW_DEFAULT}
                 >
                   <paper-listbox
                     slot="dropdown-content"
                     .selected=${Object.keys(viewModes).indexOf(
-                      String(getConfigValue(this._config, 'view.default', '')),
+                      String(getConfigValue(this._config, CONF_VIEW_DEFAULT, '')),
                     )}
                   >
                     ${Object.keys(viewModes).map((key) => {
@@ -330,11 +359,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   </paper-listbox>
                 </paper-dropdown-menu>
                 <paper-input
-                  label=${localize('config.view.timeout')}
+                  label=${localize(`config.${CONF_VIEW_TIMEOUT}`)}
                   prevent-invalid-input
                   allowed-pattern="[0-9]"
-                  .value=${getConfigValue(this._config, 'view.timeout', '')}
-                  .configValue=${'view.timeout'}
+                  .value=${getConfigValue(this._config, CONF_VIEW_TIMEOUT, '')}
+                  .configValue=${CONF_VIEW_TIMEOUT}
                   @value-changed=${this._valueChangedHandler}
                 ></paper-input>
               </div>
@@ -351,14 +380,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html`
               <div class="values">
                 <paper-dropdown-menu
-                  .label=${localize('config.menu.mode')}
+                  .label=${localize(`config.${CONF_MENU_MODE}`)}
                   @value-changed=${this._valueChangedHandler}
-                  .configValue=${'menu.mode'}
+                  .configValue=${CONF_MENU_MODE}
                 >
                   <paper-listbox
                     slot="dropdown-content"
                     .selected=${Object.keys(menuModes).indexOf(
-                      String(getConfigValue(this._config, 'menu.mode', '')),
+                      String(getConfigValue(this._config, CONF_MENU_MODE, '')),
                     )}
                   >
                     ${Object.keys(menuModes).map((key) => {
@@ -369,23 +398,23 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   </paper-listbox>
                 </paper-dropdown-menu>
                 <paper-input
-                  label=${localize('config.menu.button_size')}
-                  .value=${getConfigValue(this._config, 'menu.button_size', '')}
-                  .configValue=${'menu.button_size'}
+                  label=${localize(`config.${CONF_MENU_BUTTON_SIZE}`)}
+                  .value=${getConfigValue(this._config, CONF_MENU_BUTTON_SIZE, '')}
+                  .configValue=${CONF_MENU_BUTTON_SIZE}
                   @value-changed=${this._valueChangedHandler}
                 ></paper-input>
                 <ha-formfield
                   .label=${localize('editor.show_button') +
                   ': ' +
-                  localize('config.menu.buttons.frigate')}
+                  localize(`config.${CONF_MENU_BUTTONS_FRIGATE}`)}
                 >
                   <ha-switch
                     .checked="${getConfigValue(
                       this._config,
-                      'menu.buttons.frigate',
+                      CONF_MENU_BUTTONS_FRIGATE,
                       defaults.menu.buttons.frigate,
                     )},"
-                    .configValue=${'menu.buttons.frigate'}
+                    .configValue=${CONF_MENU_BUTTONS_FRIGATE}
                     @change=${this._valueChangedHandler}
                   ></ha-switch>
                 </ha-formfield>
@@ -397,10 +426,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   <ha-switch
                     .checked=${getConfigValue(
                       this._config,
-                      'menu.buttons.live',
+                      CONF_MENU_BUTTONS_LIVE,
                       defaults.menu.buttons.live,
                     )}
-                    .configValue=${'menu.buttons.live'}
+                    .configValue=${CONF_MENU_BUTTONS_LIVE}
                     @change=${this._valueChangedHandler}
                   ></ha-switch>
                 </ha-formfield>
@@ -412,10 +441,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   <ha-switch
                     .checked=${getConfigValue(
                       this._config,
-                      'menu.buttons.clips',
+                      CONF_MENU_BUTTONS_CLIPS,
                       defaults.menu.buttons.clips,
                     )}
-                    .configValue=${'menu.buttons.clips'}
+                    .configValue=${CONF_MENU_BUTTONS_CLIPS}
                     @change=${this._valueChangedHandler}
                   ></ha-switch>
                 </ha-formfield>
@@ -427,10 +456,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   <ha-switch
                     .checked=${getConfigValue(
                       this._config,
-                      'menu.buttons.snapshots',
+                      CONF_MENU_BUTTONS_SNAPSHOTS,
                       defaults.menu.buttons.snapshots,
                     )}
-                    .configValue=${'menu.buttons.snapshots'}
+                    .configValue=${CONF_MENU_BUTTONS_SNAPSHOTS}
                     @change=${this._valueChangedHandler}
                   ></ha-switch>
                 </ha-formfield>
@@ -442,55 +471,55 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   <ha-switch
                     .checked=${getConfigValue(
                       this._config,
-                      'menu.buttons.image',
+                      CONF_MENU_BUTTONS_IMAGE,
                       defaults.menu.buttons.image,
                     )}
-                    .configValue=${'menu.buttons.image'}
+                    .configValue=${CONF_MENU_BUTTONS_IMAGE}
                     @change=${this._valueChangedHandler}
                   ></ha-switch>
                 </ha-formfield>
                 <ha-formfield
                   .label=${localize('editor.show_button') +
                   ': ' +
-                  localize('config.menu.buttons.download')}
+                  localize(`config.${CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD}`)}
                 >
                   <ha-switch
                     .checked=${getConfigValue(
                       this._config,
-                      'menu.buttons.download',
+                      CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD,
                       defaults.menu.buttons.download,
                     )}
-                    .configValue=${'menu.buttons.download'}
+                    .configValue=${CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD}
                     @change=${this._valueChangedHandler}
                   ></ha-switch>
                 </ha-formfield>
                 <ha-formfield
                   .label=${localize('editor.show_button') +
                   ': ' +
-                  localize('config.menu.buttons.frigate_ui')}
+                  localize(`config.${CONF_MENU_BUTTONS_FRIGATE_UI}`)}
                 >
                   <ha-switch
                     .checked=${getConfigValue(
                       this._config,
-                      'menu.buttons.frigate_ui',
+                      CONF_MENU_BUTTONS_FRIGATE_UI,
                       defaults.menu.buttons.frigate_ui,
                     )}
-                    .configValue=${'menu.buttons.frigate_ui'}
+                    .configValue=${CONF_MENU_BUTTONS_FRIGATE_UI}
                     @change=${this._valueChangedHandler}
                   ></ha-switch>
                 </ha-formfield>
                 <ha-formfield
                   .label=${localize('editor.show_button') +
                   ': ' +
-                  localize('config.menu.buttons.fullscreen')}
+                  localize(`config.${CONF_MENU_BUTTONS_FRIGATE_FULLSCREEN}`)}
                 >
                   <ha-switch
                     .checked=${getConfigValue(
                       this._config,
-                      'menu.buttons.fullscreen',
+                      CONF_MENU_BUTTONS_FRIGATE_FULLSCREEN,
                       defaults.menu.buttons.fullscreen,
                     )}
-                    .configValue=${'menu.buttons.fullscreen'}
+                    .configValue=${CONF_MENU_BUTTONS_FRIGATE_FULLSCREEN}
                     @change=${this._valueChangedHandler}
                   ></ha-switch>
                 </ha-formfield>
@@ -508,26 +537,26 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html`
               <div class="values">
                 <br />
-                <ha-formfield .label=${localize('config.live.preload')}>
+                <ha-formfield .label=${localize(`config.${CONF_LIVE_PRELOAD}`)}>
                   <ha-switch
                     .checked=${getConfigValue(
                       this._config,
-                      'live.preload',
+                      CONF_LIVE_PRELOAD,
                       defaults.live.preload,
                     )}
-                    .configValue=${'live.preload'}
+                    .configValue=${CONF_LIVE_PRELOAD}
                     @change=${this._valueChangedHandler}
                   ></ha-switch>
                 </ha-formfield>
                 <paper-dropdown-menu
-                  .label=${localize('config.live.provider')}
+                  .label=${localize(`config.${CONF_LIVE_PROVIDER}`)}
                   @value-changed=${this._valueChangedHandler}
-                  .configValue=${'live.provider'}
+                  .configValue=${CONF_LIVE_PROVIDER}
                 >
                   <paper-listbox
                     slot="dropdown-content"
                     .selected=${Object.keys(liveProviders).indexOf(
-                      String(getConfigValue(this._config, 'live.provider', '')),
+                      String(getConfigValue(this._config, CONF_LIVE_PROVIDER, '')),
                     )}
                   >
                     ${Object.keys(liveProviders).map((key) => {
@@ -538,13 +567,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   </paper-listbox>
                 </paper-dropdown-menu>
                 <paper-dropdown-menu
-                  .label=${localize('config.live.webrtc.entity')}
+                  .label=${localize(`config.${CONF_LIVE_WEBRTC_ENTITY}`)}
                   @value-changed=${this._valueChangedHandler}
-                  .configValue=${'live.webrtc.entity'}
+                  .configValue=${CONF_LIVE_WEBRTC_ENTITY}
                 >
                   <paper-listbox
                     slot="dropdown-content"
-                    .selected=${cameraEntities.indexOf(webrtcCameraEntity)}
+                    .selected=${cameraEntities.indexOf(
+                      String(getConfigValue(this._config, CONF_LIVE_WEBRTC_ENTITY, '')),
+                    )}
                   >
                     ${cameraEntities.map((entity) => {
                       return html` <paper-item>${entity}</paper-item> `;
@@ -552,9 +583,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   </paper-listbox>
                 </paper-dropdown-menu>
                 <paper-input
-                  label=${localize('config.live.webrtc.url')}
-                  .value=${getConfigValue(this._config, 'live.webrtc.url', '')}
-                  .configValue=${'live.webrtc.url'}
+                  label=${localize(`config.${CONF_LIVE_WEBRTC_URL}`)}
+                  .value=${getConfigValue(this._config, CONF_LIVE_WEBRTC_URL, '')}
+                  .configValue=${CONF_LIVE_WEBRTC_URL}
                   @value-changed=${this._valueChangedHandler}
                 ></paper-input>
               </div>
@@ -574,43 +605,47 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.event_viewer.show
           ? html` <div class="values">
               <br />
-              <ha-formfield .label=${localize('config.event_viewer.autoplay_clip')}>
+              <ha-formfield
+                .label=${localize(`config.${CONF_EVENT_VIEWER_AUTOPLAY_CLIP}`)}
+              >
                 <ha-switch
                   .checked=${getConfigValue(
                     this._config,
-                    'event_viewer.autoplay_clip',
+                    CONF_EVENT_VIEWER_AUTOPLAY_CLIP,
                     defaults.event_viewer.autoplay_clip,
                   )}
-                  .configValue=${'event_viewer.autoplay_clip'}
+                  .configValue=${CONF_EVENT_VIEWER_AUTOPLAY_CLIP}
                   @change=${this._valueChangedHandler}
                 ></ha-switch>
               </ha-formfield>
-              <ha-formfield .label=${localize('config.event_viewer.draggable')}>
+              <ha-formfield .label=${localize(`config.${CONF_EVENT_VIEWER_DRAGGABLE}`)}>
                 <ha-switch
                   .checked=${getConfigValue(
                     this._config,
-                    'event_viewer.draggable',
+                    CONF_EVENT_VIEWER_DRAGGABLE,
                     defaults.event_viewer.draggable,
                   )}
-                  .configValue=${'event_viewer.draggable'}
+                  .configValue=${CONF_EVENT_VIEWER_DRAGGABLE}
                   @change=${this._valueChangedHandler}
                 ></ha-switch>
               </ha-formfield>
-              <ha-formfield .label=${localize('config.event_viewer.lazy_load')}>
+              <ha-formfield .label=${localize(`config.${CONF_EVENT_VIEWER_LAZY_LOAD}`)}>
                 <ha-switch
                   .checked=${getConfigValue(
                     this._config,
-                    'event_viewer.lazy_load',
+                    CONF_EVENT_VIEWER_LAZY_LOAD,
                     defaults.event_viewer.lazy_load,
                   )}
-                  .configValue=${'event_viewer.lazy_load'}
+                  .configValue=${CONF_EVENT_VIEWER_LAZY_LOAD}
                   @change=${this._valueChangedHandler}
                 ></ha-switch>
               </ha-formfield>
               <paper-dropdown-menu
-                .label=${localize('config.event_viewer.controls.next_previous.style')}
+                .label=${localize(
+                  `config.${CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE}`,
+                )}
                 @value-changed=${this._valueChangedHandler}
-                .configValue=${'event_viewer.controls.next_previous.style'}
+                .configValue=${CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE}
               >
                 <paper-listbox
                   slot="dropdown-content"
@@ -618,7 +653,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     String(
                       getConfigValue(
                         this._config,
-                        'event_viewer.controls.next_previous.style',
+                        CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
                         '',
                       ),
                     ),
@@ -634,13 +669,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 </paper-listbox>
               </paper-dropdown-menu>
               <paper-input
-                label=${localize('config.event_viewer.controls.next_previous.size')}
+                label=${localize(`config.${CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE}`)}
                 .value=${getConfigValue(
                   this._config,
-                  'event_viewer.controls.next_previous.size',
+                  CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
                   '',
                 )}
-                .configValue=${'event_viewer.controls.next_previous.size'}
+                .configValue=${CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE}
                 @value-changed=${this._valueChangedHandler}
               ></paper-input>
             </div>`
@@ -659,10 +694,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.image.show
           ? html` <div class="values">
               <paper-input
-                label=${localize('config.image.src')}
+                label=${localize(`config.${CONF_IMAGE_SRC}`)}
                 prevent-invalid-input
-                .value=${getConfigValue(this._config, 'image.src', '')}
-                .configValue=${'image.src'}
+                .value=${getConfigValue(this._config, CONF_IMAGE_SRC, '')}
+                .configValue=${CONF_IMAGE_SRC}
                 @value-changed=${this._valueChangedHandler}
               ></paper-input>
             </div>`
@@ -681,15 +716,19 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.dimensions.show
           ? html` <div class="values">
               <paper-dropdown-menu
-                .label=${localize('config.dimensions.aspect_ratio_mode')}
+                .label=${localize(`config.${CONF_DIMENSIONS_ASPECT_RATIO_MODE}`)}
                 @value-changed=${this._valueChangedHandler}
-                .configValue=${'dimensions.aspect_ratio_mode'}
+                .configValue=${CONF_DIMENSIONS_ASPECT_RATIO_MODE}
               >
                 <paper-listbox
                   slot="dropdown-content"
                   .selected=${Object.keys(aspectRatioModes).indexOf(
                     String(
-                      getConfigValue(this._config, 'dimensions.aspect_ratio_mode', ''),
+                      getConfigValue(
+                        this._config,
+                        CONF_DIMENSIONS_ASPECT_RATIO_MODE,
+                        '',
+                      ),
                     ),
                   )}
                 >
@@ -701,10 +740,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 </paper-listbox>
               </paper-dropdown-menu>
               <paper-input
-                label=${localize('config.dimensions.aspect_ratio')}
+                label=${localize(`config.${CONF_DIMENSIONS_ASPECT_RATIO}`)}
                 prevent-invalid-input
-                .value=${getConfigValue(this._config, 'dimensions.aspect_ratio', '')}
-                .configValue=${'dimensions.aspect_ratio'}
+                .value=${getConfigValue(this._config, CONF_DIMENSIONS_ASPECT_RATIO, '')}
+                .configValue=${CONF_DIMENSIONS_ASPECT_RATIO}
                 @value-changed=${this._valueChangedHandler}
               ></paper-input>
             </div>`
@@ -760,7 +799,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   /**
    * Handle a changed option value.
    * @param ev Event triggering the change.
-   * @returns 
    */
   protected _valueChangedHandler(ev: {
     target: (EditorOptionTarget & HTMLElement) | null;
