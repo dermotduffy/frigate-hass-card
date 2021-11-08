@@ -1,5 +1,22 @@
 import delve from 'dlv';
 import { dset } from 'dset';
+import {
+  CONF_EVENT_VIEWER_AUTOPLAY_CLIP,
+  CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
+  CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
+  CONF_FRIGATE_CAMERA_NAME,
+  CONF_FRIGATE_CLIENT_ID,
+  CONF_FRIGATE_LABEL,
+  CONF_FRIGATE_URL,
+  CONF_FRIGATE_ZONE,
+  CONF_IMAGE_SRC,
+  CONF_LIVE_PRELOAD,
+  CONF_LIVE_PROVIDER,
+  CONF_MENU_BUTTON_SIZE,
+  CONF_MENU_MODE,
+  CONF_VIEW_DEFAULT,
+  CONF_VIEW_TIMEOUT,
+} from './const';
 import { RawFrigateCardConfig } from './types';
 
 /**
@@ -22,7 +39,11 @@ export const setConfigValue = (
  * @param key The key to the property to retrieve.
  * @returns The property or undefined if not found.
  */
-export const getConfigValue = (obj: RawFrigateCardConfig, key: string, def?: unknown): unknown => {
+export const getConfigValue = (
+  obj: RawFrigateCardConfig,
+  key: string,
+  def?: unknown,
+): unknown => {
   return delve(obj, key, def);
 };
 
@@ -93,7 +114,7 @@ export const trimConfig = function (obj: RawFrigateCardConfig): void {
  */
 export const copyConfig = function (obj: RawFrigateCardConfig): RawFrigateCardConfig {
   return JSON.parse(JSON.stringify(obj));
-}
+};
 
 /**
  * Determines if a property is not an object.
@@ -132,21 +153,21 @@ const upgradeMoveTo = function (
 
 const UPGRADES = [
   // v1.2.1 -> v2.0.0
-  upgradeMoveTo('frigate_url', 'frigate.url'),
-  upgradeMoveTo('frigate_client_id', 'frigate.client_id'),
-  upgradeMoveTo('frigate_camera_name', 'frigate.camera_name'),
-  upgradeMoveTo('label', 'frigate.label'),
-  upgradeMoveTo('zone', 'frigate.zone'),
-  upgradeMoveTo('view_default', 'view.default'),
-  upgradeMoveTo('view_timeout', 'view.timeout'),
-  upgradeMoveTo('live_provider', 'live.provider'),
-  upgradeMoveTo('live_preload', 'live.preload'),
+  upgradeMoveTo('frigate_url', CONF_FRIGATE_URL),
+  upgradeMoveTo('frigate_client_id', CONF_FRIGATE_CLIENT_ID),
+  upgradeMoveTo('frigate_camera_name', CONF_FRIGATE_CAMERA_NAME),
+  upgradeMoveTo('label', CONF_FRIGATE_LABEL),
+  upgradeMoveTo('zone', CONF_FRIGATE_ZONE),
+  upgradeMoveTo('view_default', CONF_VIEW_DEFAULT),
+  upgradeMoveTo('view_timeout', CONF_VIEW_TIMEOUT),
+  upgradeMoveTo('live_provider', CONF_LIVE_PROVIDER),
+  upgradeMoveTo('live_preload', CONF_LIVE_PRELOAD),
   upgradeMoveTo('webrtc', 'live.webrtc'),
-  upgradeMoveTo('autoplay_clip', 'event_viewer.autoplay_clip'),
-  upgradeMoveTo('controls.nextprev', 'event_viewer.controls.next_previous.style'),
-  upgradeMoveTo('controls.nextprev_size', 'event_viewer.controls.next_previous.size'),
-  upgradeMoveTo('menu_mode', 'menu.mode'),
+  upgradeMoveTo('autoplay_clip', CONF_EVENT_VIEWER_AUTOPLAY_CLIP),
+  upgradeMoveTo('controls.nextprev', CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE),
+  upgradeMoveTo('controls.nextprev_size', CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE),
+  upgradeMoveTo('menu_mode', CONF_MENU_MODE),
   upgradeMoveTo('menu_buttons', 'menu.buttons'),
-  upgradeMoveTo('menu_button_size', 'menu.button_size'),
-  upgradeMoveTo('image', 'image.src', isNotObject),
+  upgradeMoveTo('menu_button_size', CONF_MENU_BUTTON_SIZE),
+  upgradeMoveTo('image', CONF_IMAGE_SRC, isNotObject),
 ];
