@@ -10,7 +10,11 @@ import {
   MenuStateIcon,
   PictureElements,
 } from '../types.js';
-import { dispatchErrorMessageEvent, dispatchFrigateCardEvent } from '../common.js';
+import {
+  convertLovelaceEventToCardActionEvent,
+  dispatchErrorMessageEvent,
+  dispatchFrigateCardEvent,
+} from '../common.js';
 
 import elementsStyle from '../scss/elements.scss';
 import { localize } from '../localize/localize.js';
@@ -180,6 +184,7 @@ export class FrigateCardElements extends LitElement {
       .hass=${this._hass}
       .view=${this.view}
       .elements=${this.elements}
+      @ll-custom=${(ev: CustomEvent) => convertLovelaceEventToCardActionEvent(this, ev)}
     >
     </frigate-card-elements-core>`;
   }

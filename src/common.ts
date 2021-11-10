@@ -3,7 +3,10 @@ import { MessageBase } from 'home-assistant-js-websocket';
 import { HomeAssistant } from 'custom-card-helpers';
 import { localize } from './localize/localize.js';
 import {
+  ElementsActionType,
   ExtendedHomeAssistant,
+  FrigateCardCustomAction,
+  frigateCardCustomActionSchema,
   MediaShowInfo,
   Message,
   SignedPath,
@@ -91,7 +94,11 @@ export async function homeAssistantSignPath(
  * @param name The name of the Frigate card event to send.
  * @param detail An optional detail object to attach.
  */
-export function dispatchFrigateCardEvent<T>(element: HTMLElement, name: string, detail?: T): void {
+export function dispatchFrigateCardEvent<T>(
+  element: HTMLElement,
+  name: string,
+  detail?: T,
+): void {
   element.dispatchEvent(
     new CustomEvent<T>(`frigate-card:${name}`, {
       bubbles: true,
@@ -198,7 +205,7 @@ export function dispatchMessageEvent(
  * Dispatch an event with an error message to show to the user.
  * @param element The element to send the event.
  * @param message The message to show.
-  */
+ */
 export function dispatchErrorMessageEvent(element: HTMLElement, message: string): void {
   dispatchFrigateCardEvent<Message>(element, 'message', {
     message: message,
@@ -246,5 +253,34 @@ export function shouldUpdateBasedOnHass(
  * @returns True if the object is valid, false otherwise.
  */
 export function isValidMediaShowInfo(info: MediaShowInfo): boolean {
-  return info.height >= MEDIA_INFO_HEIGHT_CUTOFF && info.width >= MEDIA_INFO_WIDTH_CUTOFF;
+  return (
+    info.height >= MEDIA_INFO_HEIGHT_CUTOFF && info.width >= MEDIA_INFO_WIDTH_CUTOFF
+  );
+}
+
+export function convertActionToFrigateCardCustomAction(action: ElementsActionType): FrigateCardCustomAction | null {
+  // Parse a custom event as other things could generate ll-custom events that
+  // are not related to Frigate Card.
+  const parseResult = frigateCardCustomActionSchema.safeParse(action);
+  return parseResult.success ? parseResult.data : null;
+}
+
+export function createFrigateCardCustomAction(action: string): FrigateCardCustomAction {
+  return {
+    action: 'fire-dom-event',
+    frigate_card_action: action,
+  }
+}
+
+export function convertLovelaceEventToCardActionEvent(
+  node: HTMLElement,
+  ev: CustomEvent,
+): void {
+  const frigateCardAction = convertActionToFrigateCardCustomAction(ev.detail);
+  if (frigateCardAction) {
+    ev.stopPropagation();
+    dispatchFrigateCardEvent(node, 'card-action', {
+      action: frigateCardAction.frigate_card_action,
+    });
+  }
 }
