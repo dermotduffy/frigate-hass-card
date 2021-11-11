@@ -270,7 +270,7 @@ This card supports all [Picture Elements](https://www.home-assistant.io/lovelace
 
 <a name="frigate-card-conditional"></a>
 
-### `custom:frigate-card-conditional`
+#### `custom:frigate-card-conditional`
 
 Parameters for the `custom:frigate-card-conditional` element:
 
@@ -282,6 +282,23 @@ Parameters for the `custom:frigate-card-conditional` element:
 | `elements` | The elements to render. Can be any supported element, include additional condition or custom elements. |
 
 See the [PTZ example below](#frigate-card-conditional-example) for a real-world example.
+
+### Special Actions
+
+#### `custom:frigate-card-action`
+
+| Action name | Description |
+| - | - |
+| `custom:frigate-card-action` | Call a Frigate Card action. Acceptable values are `frigate`, `clip`, `clips`, `image`, `live`, `snapshot`, `snapshots`, `download`, `frigate_ui`, `fullscreen`.|
+
+| Value | Description |
+| - | - |
+| `frigate` | Show/hide the menu or trigger the default view. |
+| `clip`, `clips`, `image`, `live`, `snapshot`, `snapshots` | Trigger the named [view](#views).|
+|`download`|Download the displayed media.|
+|`frigate_ui`|Open the Frigate UI at the configured URL.|
+|`fullscreen`|Toggle fullscreen.| 
+
 ### Elements Examples
 
 #### Menu icons
@@ -438,6 +455,29 @@ elements:
             entity_id: camera.kitchen
             movement: right
 ```
+</details>
+
+#### Triggering card actions
+
+You can control the card itself with the `custom:frigate-card-action` action.
+
+<details>
+  <summary>Expand: Custom fullscreen button</summary>
+
+This example shows an icon that toggles the card fullscreen mode.
+
+```yaml
+elements:
+  - type: icon
+    icon: mdi:fullscreen
+    style:
+      left: 40px
+      top: 40px
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: fullscreen
+```
+
 </details>
 
 <a name="views"></a>
