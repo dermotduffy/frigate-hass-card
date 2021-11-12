@@ -1,5 +1,6 @@
 import {
   CallServiceActionConfig,
+  CustomActionConfig,
   LovelaceCard,
   LovelaceCardEditor,
   MoreInfoActionConfig,
@@ -99,12 +100,30 @@ const moreInfoActionSchema = schemaForType<MoreInfoActionConfig>()(
     action: z.literal('more-info'),
   }),
 );
+const customActionSchema = schemaForType<CustomActionConfig>()(
+  z.object({
+    action: z.literal('fire-dom-event'),
+  }),
+);
+export const frigateCardCustomActionSchema = customActionSchema.merge(
+  z.object({
+    // Syntactic sugar to avoid 'fire-dom-event' as part of an external API.
+    action: z
+      .literal('custom:frigate-card-action')
+      .transform((): 'fire-dom-event' => 'fire-dom-event')
+      .or(z.literal('fire-dom-event')),
+    frigate_card_action: z.string(),
+  }),
+);
+export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSchema>;
+
 const elementsActionSchema = z.union([
   toggleActionSchema,
   callServiceActionSchema,
   navigateActionSchema,
   urlActionSchema,
   moreInfoActionSchema,
+  frigateCardCustomActionSchema,
 ]);
 export type ElementsActionType = z.infer<typeof elementsActionSchema>;
 
@@ -244,8 +263,6 @@ const frigateConditionalSchema = z.object({
 });
 export type FrigateConditional = z.infer<typeof frigateConditionalSchema>;
 
-// 'internalMenuIconSchema' is excluded to disallow the user from manually
-// changing the internal menu buttons.
 const pictureElementSchema = z.union([
   menuStateIconSchema,
   menuIconSchema,
@@ -476,21 +493,7 @@ export const frigateCardConfigDefaults = {
   event_viewer: viewerConfigDefault,
 };
 
-// Schema for card (non-user configured) menu icons.
-const internalMenuIconSchema = z.object({
-  type: z.literal('internal-menu-icon'),
-  title: z.string(),
-  icon: z.string().optional(),
-  emphasize: z.boolean().default(false).optional(),
-  tap_action: z.string(),
-  hold_action: z.string().optional(),
-});
-
-const menuButtonSchema = z.union([
-  menuIconSchema,
-  menuStateIconSchema,
-  internalMenuIconSchema,
-]);
+const menuButtonSchema = z.union([menuIconSchema, menuStateIconSchema]);
 export type MenuButton = z.infer<typeof menuButtonSchema>;
 export interface ExtendedHomeAssistant {
   hassUrl(path?): string;
@@ -504,6 +507,15 @@ export interface BrowseMediaQueryParameters {
   zone?: string;
   before?: number;
   after?: number;
+}
+
+export interface GetFrigateCardMenuButtonParameters {
+  icon: string;
+  title: string;
+  tap_action: string;
+
+  hold_action?: string;
+  emphasize?: boolean;
 }
 
 export interface BrowseMediaNeighbors {
@@ -525,9 +537,8 @@ export interface Message {
   icon?: string;
 }
 
-export interface MenuInteraction {
-  interaction: 'hold' | 'tap' | 'double_tap';
-  button: MenuButton;
+export interface CardAction {
+  action: string;
 }
 
 /**

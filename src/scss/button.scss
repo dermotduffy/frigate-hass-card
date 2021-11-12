@@ -10,7 +10,3 @@ ha-icon-button.button {
   /* Buttons can always be clicked */
   pointer-events: auto;
 }
-
-ha-icon-button.button.emphasize {
-  color: var(--primary-color, white);
-}
