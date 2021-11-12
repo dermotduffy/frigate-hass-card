@@ -1,5 +1,6 @@
 import {
   CallServiceActionConfig,
+  CustomActionConfig,
   LovelaceCard,
   LovelaceCardEditor,
   MoreInfoActionConfig,
@@ -99,14 +100,21 @@ const moreInfoActionSchema = schemaForType<MoreInfoActionConfig>()(
     action: z.literal('more-info'),
   }),
 );
-const customActionSchema = z.object({
-  action: z.literal('fire-dom-event'),
-})
-export const frigateCardCustomActionSchema = customActionSchema.merge(z.object({
-  // Syntactic sugar to avoid 'fire-dom-event' as part of an external API.
-  action: z.literal('fire-dom-event').or(z.literal('custom:frigate-card-action').transform(() => 'fire-dom-event')),
-  frigate_card_action: z.string(),
-}))
+const customActionSchema = schemaForType<CustomActionConfig>()(
+  z.object({
+    action: z.literal('fire-dom-event'),
+  }),
+);
+export const frigateCardCustomActionSchema = customActionSchema.merge(
+  z.object({
+    // Syntactic sugar to avoid 'fire-dom-event' as part of an external API.
+    action: z
+      .literal('custom:frigate-card-action')
+      .transform((): 'fire-dom-event' => 'fire-dom-event')
+      .or(z.literal('fire-dom-event')),
+    frigate_card_action: z.string(),
+  }),
+);
 export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSchema>;
 
 const elementsActionSchema = z.union([
@@ -485,10 +493,7 @@ export const frigateCardConfigDefaults = {
   event_viewer: viewerConfigDefault,
 };
 
-const menuButtonSchema = z.union([
-  menuIconSchema,
-  menuStateIconSchema,
-]);
+const menuButtonSchema = z.union([menuIconSchema, menuStateIconSchema]);
 export type MenuButton = z.infer<typeof menuButtonSchema>;
 export interface ExtendedHomeAssistant {
   hassUrl(path?): string;
