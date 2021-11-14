@@ -258,6 +258,11 @@ export function isValidMediaShowInfo(info: MediaShowInfo): boolean {
   );
 }
 
+/**
+ * Convert a generic Action to a FrigateCardCustomAction if it parses correctly.
+ * @param action The generic action configuration.
+ * @returns A FrigateCardCustomAction or null if it cannot be converted.
+ */
 export function convertActionToFrigateCardCustomAction(
   action: ActionType,
 ): FrigateCardCustomAction | null {
@@ -267,6 +272,11 @@ export function convertActionToFrigateCardCustomAction(
   return parseResult.success ? parseResult.data : null;
 }
 
+/**
+ * Create a Frigate card custom action.
+ * @param action The Frigate card action string (e.g. 'fullscreen')
+ * @returns A FrigateCardCustomAction for that action string.
+ */
 export function createFrigateCardCustomAction(action: string): FrigateCardCustomAction {
   return {
     action: 'fire-dom-event',
@@ -274,6 +284,12 @@ export function createFrigateCardCustomAction(action: string): FrigateCardCustom
   };
 }
 
+/**
+ * Get an action configuration given a config and an interaction (e.g. 'tap').
+ * @param interaction The interaction: `tap`, `hold` or `double_tap`
+ * @param config The configuration containing multiple actions.
+ * @returns The relevant action configuration or null if none found.
+ */
 export function getActionConfigGivenAction(
   interaction?: string,
   config?: {

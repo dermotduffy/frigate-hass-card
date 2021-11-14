@@ -30,7 +30,9 @@ import menuStyle from '../scss/menu.scss';
 export const MENU_HEIGHT = 46;
 export const FRIGATE_BUTTON_MENU_ICON = 'frigate';
 
-// A menu for the Frigate card.
+/**
+ * A menu for the FrigateCard.
+ */
 @customElement('frigate-card-menu')
 export class FrigateCardMenu extends LitElement {
   @property({ attribute: false })
@@ -51,14 +53,23 @@ export class FrigateCardMenu extends LitElement {
   @property({ attribute: false })
   public buttons: MenuButton[] = [];
 
+  /**
+   * Handle an action on a menu button.
+   * @param ev The action event.
+   * @param button The button configuration.
+   */
   protected _actionHandler(ev: CustomEvent, button: MenuButton): void {
     if (!ev) {
       return;
     }
 
+    // These interactions should only be handled by the card, as nothing
+    // upstream has the user-provided configuration.
+    ev.stopPropagation();
+
     const interaction: string = ev.detail.action;
     const action = getActionConfigGivenAction(interaction, button);
-    if (!action) {
+    if (!action || !interaction) {
       return;
     }
 
@@ -81,7 +92,11 @@ export class FrigateCardMenu extends LitElement {
     handleAction(this, this.hass as HomeAssistant, button, interaction);
   }
 
-  // Determine whether the menu should be updated.
+  /**
+   * Determine whether the menu should be updated.
+   * @param changedProps The changed properties.
+   * @returns `true` if the menu should be updated, otherwise `false`.
+   */
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
 
@@ -100,13 +115,21 @@ export class FrigateCardMenu extends LitElement {
     return shouldUpdateBasedOnHass(this.hass, oldHass, entities);
   }
 
+  /**
+   * Get the style of emphasized menu items.
+   * @returns A StyleInfo.
+   */
   public static getEmphasizedStyle(): StyleInfo {
     return {
       color: 'var(--primary-color, white)',
     };
   }
 
-  // Render a menu button.
+  /**
+   * Render a button.
+   * @param button The button configuration to render.
+   * @returns A rendered template or void.
+   */
   protected _renderButton(button: MenuButton): TemplateResult | void {
     let state: HassEntity | null = null;
     let title = button.title;
@@ -163,7 +186,10 @@ export class FrigateCardMenu extends LitElement {
     </ha-icon-button>`;
   }
 
-  // Render the menu.
+  /**
+   * Render the menu.
+   * @returns A rendered template or void.
+   */
   protected render(): TemplateResult | void {
     if (!this._menuConfig) {
       return;
@@ -200,8 +226,10 @@ export class FrigateCardMenu extends LitElement {
     `;
   }
 
-  // Return compiled CSS styles (thus safe to use with unsafeCSS).
-  static get styles(): CSSResultGroup {
+  /**
+   * Get styles.
+   */
+   static get styles(): CSSResultGroup {
     return unsafeCSS(menuStyle);
   }
 }

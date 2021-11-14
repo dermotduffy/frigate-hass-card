@@ -126,7 +126,7 @@ All variables listed are under a `live:` section.
 
 ### Event Viewer options
 
-The `event_viewer` is used for viewing all `clip` and `snapshot` media, in a media carousel. All variables listed are under a `event_viewer:` section. 
+The `event_viewer` is used for viewing all `clip` and `snapshot` media, in a media carousel. All variables listed are under an `event_viewer:` section. 
 
 | Option | Default | Description |
 | - | - | - |
@@ -503,10 +503,10 @@ This card supports several different views:
 | Key           | Description                                         |
 | ------------- | --------------------------------------------- |
 |`live` (default)| Shows the live camera view, either the name Frigate view or [WebRTC](#webrtc) if configured.|
-|`snapshots`|Shows the snapshot gallery for this camera/zone/label.|
-|`snapshot`|Shows the most recent snapshot for this camera/zone/label. Can also be accessed by holding down the `snapshots` menu icon.|
-|`clips`|Shows the clip gallery for this camera/zone/label.|
-|`clip`|Shows the most recent clip for this camera/zone/label.  Can also be accessed by holding down the `clips` menu icon.|
+|`snapshots`|Shows an event gallery of snapshots for this camera/zone/label.|
+|`snapshot`|Shows an event viewer for the most recent snapshot for this camera/zone/label. Can also be accessed by holding down the `snapshots` menu icon.|
+|`clips`|Shows an event gallery of clips for this camera/zone/label.|
+|`clip`|Shows an event viewer for the most recent clip for this camera/zone/label. Can also be accessed by holding down the `clips` menu icon.|
 |`image`|Shows a static image specified by the `image` parameter, can be used as a discrete default view or a screensaver (via `view_timeout`).|
 
 ### Automatic updates in the `clip` or `snapshot` view
@@ -552,7 +552,15 @@ specific overriding the less specific (see example below).
 
 The format for actions is the standard Home Assistant [action
 format](https://www.home-assistant.io/lovelace/actions/#tap-action) as well as
-the custom [Frigate card action](#frigate-card-action) to trigger card changes.
+the custom [Frigate card action](#frigate-card-action) to trigger Frigate card
+changes.
+
+**Note:** The card itself obviously relies on human interactions to function
+(e.g. `tap` on the menu should activate that button, `tap` on a gallery thumbnail
+should open that piece of media, etc). These internal actions are executed
+_also_, which means that a card-wide `tap` action probably isn't that useful as
+it may be disorienting to the user and will trigger on all kinds of basic
+interaction on the card (e.g. tapping/clicking a menu button).
 
 ### Example
 

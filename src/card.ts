@@ -212,6 +212,11 @@ export class FrigateCard extends LitElement {
     } as FrigateCardConfig;
   }
 
+  /**
+   * Get a FrigateCard MenuButton given a set of parameters.
+   * @param params Menu button parameters.
+   * @returns A MenuButton.
+   */
   protected _getFrigateCardMenuButton(
     params: GetFrigateCardMenuButtonParameters,
   ): MenuButton {
@@ -598,10 +603,14 @@ export class FrigateCard extends LitElement {
 
   /**
    * Handle a request for a card action.
-   * @param action The action requested (e.g. clips, fullscreen)
+   * @param ev The action requested.
    */
-  protected _cardActionHandler(event: CustomEvent<ActionType>): void {
-    const frigateCardAction = convertActionToFrigateCardCustomAction(event.detail);
+  protected _cardActionHandler(ev: CustomEvent<ActionType>): void {
+    // These interactions should only be handled by the card, as nothing
+    // upstream has the user-provided configuration.
+    ev.stopPropagation();
+
+    const frigateCardAction = convertActionToFrigateCardCustomAction(ev.detail);
     if (!frigateCardAction) {
       return;
     }
@@ -670,6 +679,10 @@ export class FrigateCard extends LitElement {
     }, this.config.view.timeout * 1000);
   }
 
+  /**
+   * Handle an action called on an element.
+   * @param ev The actionHandler event.
+   */
   protected _actionHandler(
     ev: CustomEvent,
     config?: {
@@ -866,6 +879,10 @@ export class FrigateCard extends LitElement {
     }
   }
 
+  /**
+   * Merge card-wide and view-specific actions.
+   * @returns A combined set of action.
+   */
   protected _getMergedActions(): Actions {
     let specificActions: Actions | undefined = undefined;
 
