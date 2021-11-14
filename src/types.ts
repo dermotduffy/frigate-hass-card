@@ -267,11 +267,15 @@ export const menuStateIconSchema = stateIconSchema.merge(
 );
 export type MenuStateIcon = z.infer<typeof menuStateIconSchema>;
 
+const frigateCardConditionSchema = z.object({
+  view: z.string().array().optional(),
+  fullscreen: z.boolean().optional(),
+});
+export type FrigateCardCondition = z.infer<typeof frigateCardConditionSchema>;
+
 const frigateConditionalSchema = z.object({
   type: z.literal('custom:frigate-card-conditional'),
-  conditions: z.object({
-    view: z.string().array().optional(),
-  }),
+  conditions: frigateCardConditionSchema,
   elements: z.lazy(() => pictureElementsSchema),
 });
 export type FrigateConditional = z.infer<typeof frigateConditionalSchema>;
@@ -407,6 +411,7 @@ const menuConfigSchema = z
       })
       .default(menuConfigDefault.buttons),
     button_size: z.string().default(menuConfigDefault.button_size),
+    conditions: frigateCardConditionSchema.optional(),
   })
   .default(menuConfigDefault);
 export type MenuConfig = z.infer<typeof menuConfigSchema>;

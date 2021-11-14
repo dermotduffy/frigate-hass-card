@@ -26,6 +26,7 @@ import {
 } from '../common.js';
 
 import menuStyle from '../scss/menu.scss';
+import { ConditionState, evaluateCondition } from '../card-condition.js';
 
 export const MENU_HEIGHT = 46;
 export const FRIGATE_BUTTON_MENU_ICON = 'frigate';
@@ -52,6 +53,9 @@ export class FrigateCardMenu extends LitElement {
 
   @property({ attribute: false })
   public buttons: MenuButton[] = [];
+
+  @property({ attribute: false })
+  protected conditionState?: ConditionState;
 
   /**
    * Handle an action on a menu button.
@@ -196,7 +200,7 @@ export class FrigateCardMenu extends LitElement {
     }
     const mode = this._menuConfig.mode;
 
-    if (mode == 'none') {
+    if (mode == 'none' || !evaluateCondition(this._menuConfig.conditions, this.conditionState)) {
       return;
     }
 
