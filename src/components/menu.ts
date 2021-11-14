@@ -15,16 +15,13 @@ import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../action-handler-directive.js';
 
 import type {
-  CardAction,
-  ElementsActionType,
   ExtendedHomeAssistant,
   MenuButton,
   MenuConfig,
 } from '../types.js';
 import {
   convertActionToFrigateCardCustomAction,
-  convertLovelaceEventToCardActionEvent,
-  dispatchFrigateCardEvent,
+  getActionConfigGivenAction,
   shouldUpdateBasedOnHass,
 } from '../common.js';
 
@@ -54,21 +51,13 @@ export class FrigateCardMenu extends LitElement {
   @property({ attribute: false })
   public buttons: MenuButton[] = [];
 
-  protected _interactionHandler(ev: CustomEvent, button: MenuButton): void {
+  protected _actionHandler(ev: CustomEvent, button: MenuButton): void {
     if (!ev) {
       return;
     }
 
     const interaction: string = ev.detail.action;
-    let action: ElementsActionType | undefined;
-
-    if (interaction == 'tap') {
-      action = button.tap_action;
-    } else if (interaction == 'hold') {
-      action = button.hold_action;
-    } else if (interaction == 'double_tap') {
-      action = button.double_tap_action;
-    }
+    const action = getActionConfigGivenAction(interaction, button);
     if (!action) {
       return;
     }
@@ -76,29 +65,20 @@ export class FrigateCardMenu extends LitElement {
     // Determine if this action is a Frigate card action, if so handle it
     // internally.
     const frigateCardAction = convertActionToFrigateCardCustomAction(action);
-    if (frigateCardAction) {
-      if (frigateCardAction.frigate_card_action == 'frigate') {
-        // If the user presses the frigate button and it's a hide-away menu,
-        // then expand the menu and return.
-        if (this._menuConfig?.mode.startsWith('hidden-')) {
-          this.expand = !this.expand;
-          return;
-        }
-      }
-  
-      // Collapse menu after the user clicks on something.
-      this.expand = false;
-
-      dispatchFrigateCardEvent<CardAction>(this, 'card-action', {
-        action: frigateCardAction.frigate_card_action,
-      });
-    }
-
-    const node: HTMLElement | null = ev.currentTarget as HTMLElement | null;
-    if (node) {
-      handleAction(node, this.hass as HomeAssistant, button, interaction);
+    if (
+      frigateCardAction &&
+      frigateCardAction.frigate_card_action == 'frigate' &&
+      this._menuConfig?.mode.startsWith('hidden-')
+    ) {
+      // If the user presses the frigate button and it's a hide-away menu,
+      // then expand the menu and return.
+      this.expand = !this.expand;
       return;
     }
+
+    // Collapse menu after the user clicks on something.
+    this.expand = false;
+    handleAction(this, this.hass as HomeAssistant, button, interaction);
   }
 
   // Determine whether the menu should be updated.
@@ -173,8 +153,7 @@ export class FrigateCardMenu extends LitElement {
       icon=${icon || 'mdi:gesture-tap-button'}
       .label=${title || ''}
       title=${title || ''}
-      @action=${(ev) => this._interactionHandler(ev, button)}
-      @ll-custom=${(ev: CustomEvent) => convertLovelaceEventToCardActionEvent(this, ev)}
+      @action=${(ev) => this._actionHandler(ev, button)}
       .actionHandler=${actionHandler({
         hasHold: hasHold,
         hasDoubleClick: hasDoubleClick,

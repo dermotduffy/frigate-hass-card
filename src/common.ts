@@ -3,7 +3,7 @@ import { MessageBase } from 'home-assistant-js-websocket';
 import { HomeAssistant } from 'custom-card-helpers';
 import { localize } from './localize/localize.js';
 import {
-  ElementsActionType,
+  ActionType,
   ExtendedHomeAssistant,
   FrigateCardCustomAction,
   frigateCardCustomActionSchema,
@@ -258,7 +258,9 @@ export function isValidMediaShowInfo(info: MediaShowInfo): boolean {
   );
 }
 
-export function convertActionToFrigateCardCustomAction(action: ElementsActionType): FrigateCardCustomAction | null {
+export function convertActionToFrigateCardCustomAction(
+  action: ActionType,
+): FrigateCardCustomAction | null {
   // Parse a custom event as other things could generate ll-custom events that
   // are not related to Frigate Card.
   const parseResult = frigateCardCustomActionSchema.safeParse(action);
@@ -269,18 +271,26 @@ export function createFrigateCardCustomAction(action: string): FrigateCardCustom
   return {
     action: 'fire-dom-event',
     frigate_card_action: action,
-  }
+  };
 }
 
-export function convertLovelaceEventToCardActionEvent(
-  node: HTMLElement,
-  ev: CustomEvent,
-): void {
-  const frigateCardAction = convertActionToFrigateCardCustomAction(ev.detail);
-  if (frigateCardAction) {
-    ev.stopPropagation();
-    dispatchFrigateCardEvent(node, 'card-action', {
-      action: frigateCardAction.frigate_card_action,
-    });
+export function getActionConfigGivenAction(
+  interaction?: string,
+  config?: {
+    hold_action?: ActionType;
+    tap_action?: ActionType;
+    double_tap_action?: ActionType;
+  },
+): ActionType | null {
+  if (!interaction || !config) {
+    return null;
   }
+  if (interaction == 'tap' && config.tap_action) {
+    return config.tap_action;
+  } else if (interaction == 'hold' && config.hold_action) {
+    return config.hold_action;
+  } else if (interaction == 'double_tap' && config.double_tap_action) {
+    return config.double_tap_action;
+  }
+  return null;
 }
