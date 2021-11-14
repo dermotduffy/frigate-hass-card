@@ -117,7 +117,7 @@ export const frigateCardCustomActionSchema = customActionSchema.merge(
 );
 export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSchema>;
 
-const elementsActionSchema = z.union([
+const actionSchema = z.union([
   toggleActionSchema,
   callServiceActionSchema,
   navigateActionSchema,
@@ -125,15 +125,28 @@ const elementsActionSchema = z.union([
   moreInfoActionSchema,
   frigateCardCustomActionSchema,
 ]);
-export type ElementsActionType = z.infer<typeof elementsActionSchema>;
+export type ActionType = z.infer<typeof actionSchema>;
 
-const elementsBaseSchema = z.object({
-  style: z.object({}).passthrough().optional(),
-  title: z.string().nullable().optional(),
-  tap_action: elementsActionSchema.optional(),
-  hold_action: elementsActionSchema.optional(),
-  double_tap_action: elementsActionSchema.optional(),
+const actionBaseSchema = z.object({
+  tap_action: actionSchema.optional(),
+  hold_action: actionSchema.optional(),
+  double_tap_action: actionSchema.optional(),
+}).passthrough();
+export type Actions = z.infer<typeof actionBaseSchema>;
+
+const actionsSchema = z.object({
+  // Passthrough to allow (at least) entity/camera_image to go through. This
+  // card doesn't need these attributes, but handleAction() in
+  // custom_card_helpers may depending on how the action is configured.
+  actions: actionBaseSchema.optional(),
 });
+
+const elementsBaseSchema = actionBaseSchema.merge(
+  z.object({
+    style: z.object({}).passthrough().optional(),
+    title: z.string().nullable().optional(),
+  }),
+);
 
 /**
  * Picture Element Configuration.
@@ -322,6 +335,7 @@ const viewConfigSchema = z
       .optional()
       .default(viewConfigDefault.timeout),
   })
+  .merge(actionsSchema)
   .default(viewConfigDefault);
 
 /**
@@ -331,6 +345,7 @@ const imageConfigSchema = z
   .object({
     src: z.string().optional(),
   })
+  .merge(actionsSchema)
   .optional();
 export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
 
@@ -356,6 +371,7 @@ const liveConfigSchema = z
     preload: z.boolean().default(liveConfigDefault.preload),
     webrtc: webrtcConfigSchema,
   })
+  .merge(actionsSchema)
   .default(liveConfigDefault);
 
 /**
@@ -430,8 +446,15 @@ const viewerConfigSchema = z
       })
       .default(viewerConfigDefault.controls),
   })
+  .merge(actionsSchema)
   .default(viewerConfigDefault);
 export type ViewerConfig = z.infer<typeof viewerConfigSchema>;
+
+/**
+ * Event gallery configuration section (clips, snapshots).
+ */
+
+const galleryConfigSchema = actionsSchema.optional();
 
 /**
  * Dimensions configuration section.
@@ -471,6 +494,7 @@ export const frigateCardConfigSchema = z.object({
   menu: menuConfigSchema,
   live: liveConfigSchema,
   event_viewer: viewerConfigSchema,
+  event_gallery: galleryConfigSchema,
   image: imageConfigSchema,
   elements: pictureElementsSchema,
   dimensions: dimensionsConfigSchema,
@@ -535,10 +559,6 @@ export interface Message {
   message: string;
   type: 'error' | 'info';
   icon?: string;
-}
-
-export interface CardAction {
-  action: string;
 }
 
 /**

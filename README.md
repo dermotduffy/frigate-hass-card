@@ -91,6 +91,7 @@ All variables listed are under a `view:` section.
 | - | - | - |
 | `default` | `live` | The view to show in the card by default. See [views](#views) below.|
 | `timeout` | | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
+| `actions` | | Actions to use for all views, individual actions may be overriden by view-specific actions. See [actions](#actions) below.|
 
 ### Menu options
 
@@ -113,6 +114,7 @@ All variables listed are under a `live:` section.
 | `webrtc.url` | | The RTSP url to pass to WebRTC. Specify this OR `webrtc.entity` (below).|
 | `webrtc.entity` | | The RTSP entity to pass WebRTC. Specify this OR `webrtc.url` (above). |
 | `webrtc.*`| | Any other options in a `webrtc:` YAML dictionary are silently passed through to WebRTC. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides.|
+| `actions` | | Actions to use for the `live` view. See [actions](#actions) below.|
 
 #### Available Live Providers
 
@@ -124,7 +126,7 @@ All variables listed are under a `live:` section.
 
 ### Event Viewer options
 
-All variables listed are under a `event_viewer:` section.
+The `event_viewer` is used for viewing all `clip` and `snapshot` media, in a media carousel. All variables listed are under an `event_viewer:` section. 
 
 | Option | Default | Description |
 | - | - | - |
@@ -133,6 +135,15 @@ All variables listed are under a `event_viewer:` section.
 | `draggable` | `true` | Whether or not the event viewer carousel can be dragged left or right, via touch/swipe and mouse dragging. |
 | `controls.next_previous.style` | `thumbnails` | When viewing media, what kind of controls to show to move to the previous/next media item. Acceptable values: `thumbnails`, `chevrons`, `none` . |
 | `controls.next_previous.size` | `48px` | The size of the next/previous controls (in CSS Units)[https://www.w3schools.com/cssref/css_units.asp].|
+| `actions` | | Actions to use for all views that use the `event_viewer` (e.g. `clip`, `snapshot`). See [actions](#actions) below.|
+
+### Event Gallery options
+
+The `event_gallery` is used for providing an overview of all `clips` and `snapshots` in a thumbnail gallery. All variables listed are under a `event_gallery:` section. 
+
+| Option | Default | Description |
+| - | - | - |
+| `actions` | | Actions to use for all views that use the `event_gallery` (e.g. `clips`, `snapshots`). See [actions](#actions) below.|
 
 ### Image options
 
@@ -141,6 +152,7 @@ All variables listed are under a `image:` section.
 | Option | Default | Description |
 | - | - | - |
 | `src` | [embedded image](https://www.flickr.com/photos/dianasch/47543120431) | A static image URL for use with the `image` [view](#views).|
+| `actions` | | Actions to use for the `image` view. See [actions](#actions) below.|
 
 ### Dimension options
 
@@ -457,6 +469,8 @@ elements:
 ```
 </details>
 
+<a name="frigate-card-action"></a>
+
 #### Triggering card actions
 
 You can control the card itself with the `custom:frigate-card-action` action.
@@ -489,10 +503,10 @@ This card supports several different views:
 | Key           | Description                                         |
 | ------------- | --------------------------------------------- |
 |`live` (default)| Shows the live camera view, either the name Frigate view or [WebRTC](#webrtc) if configured.|
-|`snapshots`|Shows the snapshot gallery for this camera/zone/label.|
-|`snapshot`|Shows the most recent snapshot for this camera/zone/label. Can also be accessed by holding down the `snapshots` menu icon.|
-|`clips`|Shows the clip gallery for this camera/zone/label.|
-|`clip`|Shows the most recent clip for this camera/zone/label.  Can also be accessed by holding down the `clips` menu icon.|
+|`snapshots`|Shows an event gallery of snapshots for this camera/zone/label.|
+|`snapshot`|Shows an event viewer for the most recent snapshot for this camera/zone/label. Can also be accessed by holding down the `snapshots` menu icon.|
+|`clips`|Shows an event gallery of clips for this camera/zone/label.|
+|`clip`|Shows an event viewer for the most recent clip for this camera/zone/label. Can also be accessed by holding down the `clips` menu icon.|
 |`image`|Shows a static image specified by the `image` parameter, can be used as a discrete default view or a screensaver (via `view_timeout`).|
 
 ### Automatic updates in the `clip` or `snapshot` view
@@ -516,10 +530,57 @@ See the [other options](#other-options) above.
 Clicking on a snapshot will take the user to a clip that was taken at the ~same
 time as the snapshot (if any).
 
-### Getting event details
+<a name="actions"></a>
 
-More details about an event can be found by clicking the 'globe' icon in the
-menu, which takes the user to the Frigate page for that event.
+## Card & View Actions
+
+Actions may be attached to the card itself, to trigger action when the card
+experiences a `tap`, `double_tap` or `hold` event. These actions can be
+specified both for the overall card and for individual groups of view.
+
+| Configuration path | Views to which it refers |
+| - | - |
+| `view.actions` | All (may be overriden by the below) |
+| `event_viewer.actions` | `clip`, `snapshot` |
+| `event_gallery.actions` | `clips`, `snapshots` |
+| `live.actions` | `live` |
+| `image.actions` | `image` |
+
+If an action is configured for both the whole card (`view.actions`) and a more
+specific view (e.g. `live.actions`) then the actions are merged, with the more
+specific overriding the less specific (see example below).
+
+The format for actions is the standard Home Assistant [action
+format](https://www.home-assistant.io/lovelace/actions/#tap-action) as well as
+the custom [Frigate card action](#frigate-card-action) to trigger Frigate card
+changes.
+
+**Note:** The card itself obviously relies on human interactions to function
+(e.g. `tap` on the menu should activate that button, `tap` on a gallery thumbnail
+should open that piece of media, etc). These internal actions are executed
+_also_, which means that a card-wide `tap` action probably isn't that useful as
+it may be disorienting to the user and will trigger on all kinds of basic
+interaction on the card (e.g. tapping/clicking a menu button).
+
+### Example
+
+In this example, double clicking the card in any view will cause the card to go
+into fullscreen mode, **except** when the view is `live` in which case the
+office lights are toggled.
+
+```yaml
+view:
+  actions:
+    double_tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: fullscreen
+live:
+  provider: frigate-jsmpeg
+  actions:
+    entity: light.office_main_lights
+    double_tap_action:
+      action: toggle
+```
 
 ## Menu Modes
 
@@ -536,7 +597,7 @@ This card supports several menu configurations.
 
 <a name="yaml-examples"></a>
 
-### Example YAML Configuration
+## Example YAML Configuration
 
 A configuration that uses WebRTC for live:
 
@@ -558,7 +619,7 @@ A configuration that shows the latest clip on load, but does not automatically p
   view_default: clip
 ```
 
-### Screenshot: Snapshot / Clip Gallery
+## Screenshot: Snapshot / Clip Gallery
 
 Full viewing of clips:
 

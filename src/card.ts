@@ -12,19 +12,23 @@ import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { until } from 'lit/directives/until.js';
 import {
+  ActionConfig,
   HomeAssistant,
   LovelaceCardEditor,
   getLovelace,
+  handleAction,
+  hasAction,
 } from 'custom-card-helpers';
 import screenfull from 'screenfull';
 import { z } from 'zod';
 
 import {
-  CardAction,
-  entitySchema,
-  frigateCardConfigSchema,
+  ActionType,
   GetFrigateCardMenuButtonParameters,
   RawFrigateCardConfig,
+  entitySchema,
+  frigateCardConfigSchema,
+  Actions,
 } from './types.js';
 import type {
   BrowseMediaQueryParameters,
@@ -38,10 +42,16 @@ import type {
 
 import { CARD_VERSION, REPO_URL } from './const.js';
 import { FrigateCardElements } from './components/elements.js';
-import { FrigateCardMenu, FRIGATE_BUTTON_MENU_ICON, MENU_HEIGHT } from './components/menu.js';
+import {
+  FRIGATE_BUTTON_MENU_ICON,
+  MENU_HEIGHT,
+  FrigateCardMenu,
+} from './components/menu.js';
 import { View } from './view.js';
 import {
+  convertActionToFrigateCardCustomAction,
   createFrigateCardCustomAction,
+  getActionConfigGivenAction,
   homeAssistantSignPath,
   homeAssistantWSRequest,
   isValidMediaShowInfo,
@@ -65,14 +75,15 @@ import cardStyle from './scss/card.scss';
 import { ResolvedMediaCache } from './resolved-media.js';
 import { BrowseMediaUtil } from './browse-media-util.js';
 import { isConfigUpgradeable } from './config-mgmt.js';
+import { actionHandler } from './action-handler-directive.js';
 
 /** A note on media callbacks:
  *
- * We need media elements (e.g. <video>, <img> or <canvas>) to callback when:
+ * Media elements (e.g. <video>, <img> or <canvas>) need to callback when:
  *  - Metadata is loaded / dimensions are known (for aspect-ratio)
  *  - Media is playing / paused (to avoid reloading)
  *
- * There are a number of different approaches used to attach event handlers to
+ * A number of different approaches used to attach event handlers to
  * get these callbacks (which need to be attached directly to the media
  * elements, which may be 'buried' down the DOM):
  *  - Extend the `ha-hls-player` and `ha-camera-stream` to specify the required
@@ -81,6 +92,15 @@ import { isConfigUpgradeable } from './config-mgmt.js';
  *  - For non-Lit elements (e.g. WebRTC) query selecting after rendering.
  *  - Library provided hooks (e.g. JSMPEG)
  *  - Directly specifying hooks (e.g. for snapshot viewing with simple <img> tags)
+ */
+
+/** A note on action/menu/ll-custom events:
+ *
+ * The card supports actions being configured in a number of places (e.g. tap on an
+ * element, double_tap on a menu item, hold on the live view). These actions are
+ * handled by handleAction() from custom-card-helpers. For Frigate-card specific
+ * actions, handleAction() call will result in an ll-custom DOM event being
+ * fired, which needs to be caught at the card level to handle.
  */
 
 /* eslint no-console: 0 */
@@ -106,7 +126,7 @@ console.info(
 @customElement('frigate-card')
 export class FrigateCard extends LitElement {
   @property({ attribute: false })
-  protected _hass: (HomeAssistant & ExtendedHomeAssistant) | null = null;
+  protected _hass?: HomeAssistant & ExtendedHomeAssistant;
 
   @state()
   public config!: FrigateCardConfig;
@@ -192,6 +212,11 @@ export class FrigateCard extends LitElement {
     } as FrigateCardConfig;
   }
 
+  /**
+   * Get a FrigateCard MenuButton given a set of parameters.
+   * @param params Menu button parameters.
+   * @returns A MenuButton.
+   */
   protected _getFrigateCardMenuButton(
     params: GetFrigateCardMenuButtonParameters,
   ): MenuButton {
@@ -578,13 +603,18 @@ export class FrigateCard extends LitElement {
 
   /**
    * Handle a request for a card action.
-   * @param action The action requested (e.g. clips, fullscreen)
+   * @param ev The action requested.
    */
-  protected _cardActionHandler(event: CustomEvent<CardAction>): void {
-    const action = event.detail.action;
-    if (!action) {
+  protected _cardActionHandler(ev: CustomEvent<ActionType>): void {
+    // These interactions should only be handled by the card, as nothing
+    // upstream has the user-provided configuration.
+    ev.stopPropagation();
+
+    const frigateCardAction = convertActionToFrigateCardCustomAction(ev.detail);
+    if (!frigateCardAction) {
       return;
     }
+    const action = frigateCardAction.frigate_card_action;
 
     switch (action) {
       case 'frigate':
@@ -650,6 +680,33 @@ export class FrigateCard extends LitElement {
   }
 
   /**
+   * Handle an action called on an element.
+   * @param ev The actionHandler event.
+   */
+  protected _actionHandler(
+    ev: CustomEvent,
+    config?: {
+      hold_action?: ActionType;
+      tap_action?: ActionType;
+      double_tap_action?: ActionType;
+    },
+  ): void {
+    const interaction = ev.detail.action;
+    const node: HTMLElement | null = ev.currentTarget as HTMLElement | null;
+    if (
+      config &&
+      node &&
+      interaction &&
+      // Don't call handleAction() unless there is explicitly an action defined
+      // (as it uses a default that is unhelpful for views that have default
+      // tap/click actions).
+      getActionConfigGivenAction(interaction, config)
+    ) {
+      handleAction(node, this._hass as HomeAssistant, config, ev.detail.action);
+    }
+  }
+
+  /**
    * Render the card menu.
    * @returns A rendered template.
    */
@@ -663,7 +720,6 @@ export class FrigateCard extends LitElement {
         .menuConfig=${this.config.menu}
         .buttons=${this._getMenuButtons()}
         class="${classMap(classes)}"
-        @frigate-card:card-action=${this._cardActionHandler.bind(this)}
       ></frigate-card-menu>
     `;
   }
@@ -824,6 +880,25 @@ export class FrigateCard extends LitElement {
   }
 
   /**
+   * Merge card-wide and view-specific actions.
+   * @returns A combined set of action.
+   */
+  protected _getMergedActions(): Actions {
+    let specificActions: Actions | undefined = undefined;
+
+    if (this._view.is('live')) {
+      specificActions = this.config.live.actions;
+    } else if (this._view.isGalleryView()) {
+      specificActions = this.config.event_gallery?.actions; 
+    } else if (this._view.isViewerView()) {
+      specificActions = this.config.event_viewer.actions; 
+    } else if (this._view.is('image')) {
+      specificActions = this.config.image?.actions; 
+    }
+    return { ...this.config.view.actions, ...specificActions };
+  }
+
+  /**
    * Master render method for the card.
    */
   protected render(): TemplateResult | void {
@@ -868,7 +943,18 @@ export class FrigateCard extends LitElement {
       absolute: padding != null,
     };
 
-    return html` <ha-card @click=${this._interactionHandler}>
+    const actions = this._getMergedActions();
+
+    return html` <ha-card
+      @click=${this._interactionHandler}
+      .actionHandler=${actionHandler({
+        hasHold: hasAction(actions.hold_action),
+        hasDoubleClick: hasAction(actions.double_tap_action),
+      })}
+      @action=${(ev: CustomEvent) =>
+        this._actionHandler(ev, actions)}
+      @ll-custom=${this._cardActionHandler.bind(this)}
+    >
       ${this.config.menu.mode == 'above' ? this._renderMenu() : ''}
       <div class="container outer" style="${styleMap(outerStyle)}">
         <div class="${classMap(contentClasses)}" style="${styleMap(innerStyle)}">
@@ -999,7 +1085,6 @@ export class FrigateCard extends LitElement {
                   // 'frigate-card-elements' to re-render (by being a property).
                   e.view = this._view;
                 }}
-                @frigate-card:card-action=${this._cardActionHandler.bind(this)}
               >
               </frigate-card-elements>
             `
