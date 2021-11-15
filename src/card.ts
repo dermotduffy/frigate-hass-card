@@ -12,7 +12,6 @@ import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { until } from 'lit/directives/until.js';
 import {
-  ActionConfig,
   HomeAssistant,
   LovelaceCardEditor,
   getLovelace,
@@ -76,6 +75,7 @@ import { ResolvedMediaCache } from './resolved-media.js';
 import { BrowseMediaUtil } from './browse-media-util.js';
 import { isConfigUpgradeable } from './config-mgmt.js';
 import { actionHandler } from './action-handler-directive.js';
+import { ConditionState, conditionStateRequestHandler } from './card-condition.js';
 
 /** A note on media callbacks:
  *
@@ -135,6 +135,9 @@ export class FrigateCard extends LitElement {
 
   @property({ attribute: false })
   protected _view: View = new View();
+
+  @state()
+  protected _conditionState?: ConditionState;
 
   @query('frigate-card-menu')
   _menu!: FrigateCardMenu;
@@ -210,6 +213,16 @@ export class FrigateCard extends LitElement {
     return {
       camera_entity: cameraEntity,
     } as FrigateCardConfig;
+  }
+
+  /**
+   * Generate the state used to evaluate conditions.
+   */
+  protected _generateConditionState(): void {
+    this._conditionState = {
+      view: this._view,
+      fullscreen: screenfull.isEnabled && screenfull.isFullscreen,
+    };
   }
 
   /**
@@ -500,7 +513,7 @@ export class FrigateCard extends LitElement {
     this._changeView();
   }
 
-  protected _changeView(view?: View | undefined): void {
+  protected _changeView(view?: View): void {
     this._message = null;
 
     if (view === undefined) {
@@ -508,6 +521,7 @@ export class FrigateCard extends LitElement {
     } else {
       this._view = view;
     }
+    this._generateConditionState();
   }
 
   /**
@@ -719,6 +733,7 @@ export class FrigateCard extends LitElement {
         .hass=${this._hass}
         .menuConfig=${this.config.menu}
         .buttons=${this._getMenuButtons()}
+        .conditionState=${this._conditionState}
         class="${classMap(classes)}"
       ></frigate-card-menu>
     `;
@@ -811,6 +826,7 @@ export class FrigateCard extends LitElement {
    * Handler called when fullscreen is toggled.
    */
   protected _fullScreenHandler(): void {
+    this._generateConditionState();
     // Re-render after a change to fullscreen mode to take advantage of
     // the expanded screen real-estate (vs staying in aspect-ratio locked
     // modes).
@@ -889,11 +905,11 @@ export class FrigateCard extends LitElement {
     if (this._view.is('live')) {
       specificActions = this.config.live.actions;
     } else if (this._view.isGalleryView()) {
-      specificActions = this.config.event_gallery?.actions; 
+      specificActions = this.config.event_gallery?.actions;
     } else if (this._view.isViewerView()) {
-      specificActions = this.config.event_viewer.actions; 
+      specificActions = this.config.event_viewer.actions;
     } else if (this._view.is('image')) {
-      specificActions = this.config.image?.actions; 
+      specificActions = this.config.image?.actions;
     }
     return { ...this.config.view.actions, ...specificActions };
   }
@@ -951,8 +967,7 @@ export class FrigateCard extends LitElement {
         hasHold: hasAction(actions.hold_action),
         hasDoubleClick: hasAction(actions.double_tap_action),
       })}
-      @action=${(ev: CustomEvent) =>
-        this._actionHandler(ev, actions)}
+      @action=${(ev: CustomEvent) => this._actionHandler(ev, actions)}
       @ll-custom=${this._cardActionHandler.bind(this)}
     >
       ${this.config.menu.mode == 'above' ? this._renderMenu() : ''}
@@ -1072,7 +1087,7 @@ export class FrigateCard extends LitElement {
               <frigate-card-elements
                 .hass=${this._hass}
                 .elements=${this.config.elements}
-                .view=${this._view}
+                .conditionState=${this._conditionState}
                 @frigate-card:message=${this._messageHandler}
                 @frigate-card:menu-add=${(e) => {
                   this._addDynamicMenuButton(e.detail);
@@ -1080,10 +1095,8 @@ export class FrigateCard extends LitElement {
                 @frigate-card:menu-remove=${(e) => {
                   this._removeDynamicMenuButton(e.detail);
                 }}
-                @frigate-card:state-request=${(e) => {
-                  // State filled here must also trigger the
-                  // 'frigate-card-elements' to re-render (by being a property).
-                  e.view = this._view;
+                @frigate-card:condition-state-request=${(ev) => {
+                  conditionStateRequestHandler(ev, this._conditionState)
                 }}
               >
               </frigate-card-elements>

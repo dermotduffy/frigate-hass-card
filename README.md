@@ -102,6 +102,7 @@ All variables listed are under a `menu:` section.
 | `mode` | `hidden-top` | The menu mode to show by default. See [menu modes](#menu-modes) below.|
 | `button_size` | `40px` | The size of the menu buttons (in CSS Units)[https://www.w3schools.com/cssref/css_units.asp].|
 | `buttons.{frigate, live, clips, snapshots, image, download, frigate_ui, fullscreen}` | `true`, except for `image` | Whether or not to show these builtin actions in the card menu. |
+| `conditions` | | Condition(s) that must be met in order for the menu to be displayed. These conditions use the same format as the `custom:frigate-card-conditional` card (see [Possible conditions](#frigate-card-conditions) below). If conditions are specified but not met, then the menu is not rendered.|
 
 ### Live options
 
@@ -193,16 +194,6 @@ The card aspect ratio can be changed with the `dimensions.aspect_ratio_mode` and
 If no aspect ratio is specified or available, but one is needed then `16:9` will
 be used by default.
 
-#### Example aspect ratio configuration
-
-Have the card aspect-ratio dynamically follow the last loaded media, but use `4:3` as the default when there is no such media:
-
-```yaml
-dimensions:
-  aspect_ratio_mode: dynamic
-  aspect_ratio: '4:3'
-```
-
 <a name="other-options"></a>
 
 ### Other Options
@@ -289,9 +280,19 @@ Parameters for the `custom:frigate-card-conditional` element:
 | Parameter | Description |
 | ------------- | --------------------------------------------- |
 | `type` | Must be `custom:frigate-card-conditional`. |
-| `conditions` | A set of conditions that must evaluate to true in order for the elements to be rendered. |
-| `conditions.view` | A list of [views](#views) in which these elements should be rendered. |
-| `elements` | The elements to render. Can be any supported element, include additional condition or custom elements. |
+| `conditions` | A set of conditions that must evaluate to true in order for the elements to be rendered. See below. |
+ `elements` | The elements to render. Can be any supported element, include additional condition or custom elements. |
+
+<a name="frigate-card-conditions"></a>
+
+##### Frigate Card Conditions
+
+All variables listed are under a `conditions:` section. 
+
+| Condition | Description |
+| ------------- | --------------------------------------------- |
+| `view` | A list of [views](#views) in which these elements should be rendered. |
+| `fullscreen` | If `true` the elements are only rendered if the card is in fullscreen mode. If `false` the elements are only rendered if the card is **NOT** in fullscreen mode.|
 
 See the [PTZ example below](#frigate-card-conditional-example) for a real-world example.
 
@@ -311,188 +312,6 @@ See the [PTZ example below](#frigate-card-conditional-example) for a real-world 
 |`frigate_ui`|Open the Frigate UI at the configured URL.|
 |`fullscreen`|Toggle fullscreen.| 
 
-### Elements Examples
-
-#### Menu icons
-
-You can add custom icons to the menu with arbitrary actions.
-
-<details>
-  <summary>Expand: Custom menu icon</summary>
-
-This example adds an icon that navigates the browser to the releases page for this
-card:
-
-```yaml
-  - type: custom:frigate-card-menu-icon
-    icon: mdi:book
-    tap_action:
-      action: url
-      url_path: https://github.com/dermotduffy/frigate-hass-card/releases
-```
-</details>
-
-#### Menu state icons
-
-You can add custom state icons to the menu to show the state of an entity and complete arbitrary actions.
-
-<details>
-  <summary>Expand: Custom menu state icon</summary>
-
-This example adds an icon that represents the state of the
-`light.office_main_lights` entity, that toggles the light on double click.
-
-```yaml
-elements:
-  - type: custom:frigate-card-menu-state-icon
-    entity: light.office_main_lights
-    tap_action:
-      action: toggle
-```
-</details>
-
-#### State badges
-
-You can adds a state badge to the card showing arbitrary entity states.
-
-<details>
-  <summary>Expand: State badge</summary>
-
-This example adds a state badge showing the temperature and hides the label text:
-
-```yaml
-  - type: state-badge
-    entity: sensor.kitchen_temperature
-    style:
-      right: '-20px'
-      top: 100px
-      color: rgba(0,0,0,0)
-      opacity: 0.5
-```
-
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/picture_elements_temperature.png" alt="Picture elements temperature example" width="400px">
-</details>
-
-#### Conditional menu icons
-
-You can have icons conditionally added to the menu based on entity state.
-
-<details>
-  <summary>Expand: Conditional menu icons</summary>
-
-This example only adds the light entity to the menu if a light is on.
-
-```yaml
-  - type: conditional
-    conditions:
-      - entity: light.kitchen
-        state: 'on'
-    elements:
-      - type: custom:frigate-card-menu-state-icon
-        entity: light.kitchen
-        tap_action:
-          action: toggle
-```
-</details>
-
-<a name="frigate-card-conditional-example"></a>
-
-#### Restricting icons to certain views
-
-You can restrict icons to only show for certain [views](#views) using a
-`custom:frigate-card-conditional` element (e.g. PTZ controls)
-
-<details>
-  <summary>Expand: View-based conditions (e.g. PTZ controls)</summary>
-
-This example shows PTZ icons that call a PTZ service, but only in the `live` view.
-
-```yaml
-elements:
-  - type: custom:frigate-card-conditional
-    conditions:
-      view:
-        - live
-    elements:
-      - type: icon
-        icon: mdi:arrow-up
-        style:
-          background: rgba(255, 255, 255, 0.25)
-          border-radius: 5px
-          right: 25px
-          bottom: 50px
-        tap_action:
-          action: call-service
-          service: amcrest.ptz_control
-          service_data:
-            entity_id: camera.kitchen
-            movement: up
-      - type: icon
-        icon: mdi:arrow-down
-        style:
-          background: rgba(255, 255, 255, 0.25)
-          border-radius: 5px
-          right: 25px
-          bottom: 0px
-        tap_action:
-          action: call-service
-          service: amcrest.ptz_control
-          service_data:
-            entity_id: camera.kitchen
-            movement: down
-      - type: icon
-        icon: mdi:arrow-left
-        style:
-          background: rgba(255, 255, 255, 0.25)
-          border-radius: 5px
-          right: 50px
-          bottom: 25px
-        tap_action:
-          action: call-service
-          service: amcrest.ptz_control
-          service_data:
-            entity_id: camera.kitchen
-            movement: left
-      - type: icon
-        icon: mdi:arrow-right
-        style:
-          background: rgba(255, 255, 255, 0.25)
-          border-radius: 5px
-          right: 0px
-          bottom: 25px
-        tap_action:
-          action: call-service
-          service: amcrest.ptz_control
-          service_data:
-            entity_id: camera.kitchen
-            movement: right
-```
-</details>
-
-<a name="frigate-card-action"></a>
-
-#### Triggering card actions
-
-You can control the card itself with the `custom:frigate-card-action` action.
-
-<details>
-  <summary>Expand: Custom fullscreen button</summary>
-
-This example shows an icon that toggles the card fullscreen mode.
-
-```yaml
-elements:
-  - type: icon
-    icon: mdi:fullscreen
-    style:
-      left: 40px
-      top: 40px
-    tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: fullscreen
-```
-
-</details>
 
 <a name="views"></a>
 
@@ -562,25 +381,6 @@ _also_, which means that a card-wide `tap` action probably isn't that useful as
 it may be disorienting to the user and will trigger on all kinds of basic
 interaction on the card (e.g. tapping/clicking a menu button).
 
-### Example
-
-In this example, double clicking the card in any view will cause the card to go
-into fullscreen mode, **except** when the view is `live` in which case the
-office lights are toggled.
-
-```yaml
-view:
-  actions:
-    double_tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: fullscreen
-live:
-  provider: frigate-jsmpeg
-  actions:
-    entity: light.office_main_lights
-    double_tap_action:
-      action: toggle
-```
 
 ## Menu Modes
 
@@ -595,30 +395,6 @@ This card supports several menu configurations.
 |`below`| Render the menu below the card. The 'F' button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-below.png" alt="Menu below" width="400px"> |
 |`none`| No menu is shown. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-none.png" alt="No Menu" width="400px"> |
 
-<a name="yaml-examples"></a>
-
-## Example YAML Configuration
-
-A configuration that uses WebRTC for live:
-
-```yaml
-- type: 'custom:frigate-card'
-  camera_entity: camera.front_door
-  frigate_url: http://frigate
-  live_provider: webrtc
-  webrtc:
-    entity: camera.front_door_rtsp
-```
-
-A configuration that shows the latest clip on load, but does not automatically play it:
-
-```yaml
-- type: 'custom:frigate-card'
-  camera_entity: camera.front_door
-  frigate_url: http://frigate
-  view_default: clip
-```
-
 ## Screenshot: Snapshot / Clip Gallery
 
 Full viewing of clips:
@@ -630,6 +406,278 @@ Full viewing of clips:
 This card supports full editing via the Lovelace card editor. Additional arbitrary configuration for WebRTC may be specified in YAML mode.
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/editor.png" alt="Live viewing" width="400px">
+
+## Examples
+
+### WebRTC
+
+<details>
+  <summary>Expand: Basic WebRTC configuration</summary>
+
+```yaml
+type: 'custom:frigate-card'
+camera_entity: camera.front_door
+live:
+  provider: webrtc
+  webrtc:
+    entity: camera.front_door_rtsp
+```
+
+</details>
+
+### Static Aspect Ratios
+
+You can set a static aspect ratio.
+
+<details>
+  <summary>Expand: Static 4:3 aspect ratios</summary>
+
+```yaml
+[...]
+dimensions:
+  aspect_ratio_mode: dynamic
+  aspect_ratio: '4:3'
+```
+</details>
+
+### Adding Menu Icons
+
+You can add custom icons to the menu with arbitrary actions.
+
+<details>
+  <summary>Expand: Custom menu icon</summary>
+
+This example adds an icon that navigates the browser to the releases page for this
+card:
+
+```yaml
+[...]
+elements:
+  - type: custom:frigate-card-menu-icon
+    icon: mdi:book
+    tap_action:
+      action: url
+      url_path: https://github.com/dermotduffy/frigate-hass-card/releases
+```
+</details>
+
+### Adding Menu State Icons
+
+You can add custom state icons to the menu to show the state of an entity and complete arbitrary actions.
+
+<details>
+  <summary>Expand: Custom menu state icon</summary>
+
+This example adds an icon that represents the state of the
+`light.office_main_lights` entity, that toggles the light on double click.
+
+```yaml
+[...]
+elements:
+  - type: custom:frigate-card-menu-state-icon
+    entity: light.office_main_lights
+    tap_action:
+      action: toggle
+```
+</details>
+
+### Adding State Badges
+
+You can adds a state badge to the card showing arbitrary entity states.
+
+<details>
+  <summary>Expand: State badge</summary>
+
+This example adds a state badge showing the temperature and hides the label text:
+
+```yaml
+[...]
+elements:
+  - type: state-badge
+    entity: sensor.kitchen_temperature
+    style:
+      right: '-20px'
+      top: 100px
+      color: rgba(0,0,0,0)
+      opacity: 0.5
+```
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/picture_elements_temperature.png" alt="Picture elements temperature example" width="400px">
+</details>
+
+### Adding State Badges
+
+You can have icons conditionally added to the menu based on entity state.
+
+<details>
+  <summary>Expand: Conditional menu icons</summary>
+
+This example only adds the light entity to the menu if a light is on.
+
+```yaml
+[...]
+elements:
+  - type: conditional
+    conditions:
+      - entity: light.kitchen
+        state: 'on'
+    elements:
+      - type: custom:frigate-card-menu-state-icon
+        entity: light.kitchen
+        tap_action:
+          action: toggle
+```
+</details>
+
+<a name="frigate-card-conditional-example"></a>
+
+### Restricting icons to certain views
+
+You can restrict icons to only show for certain [views](#views) using a
+`custom:frigate-card-conditional` element (e.g. PTZ controls)
+
+<details>
+  <summary>Expand: View-based conditions (e.g. PTZ controls)</summary>
+
+This example shows PTZ icons that call a PTZ service, but only in the `live` view.
+
+```yaml
+[...]
+elements:
+  - type: custom:frigate-card-conditional
+    conditions:
+      view:
+        - live
+    elements:
+      - type: icon
+        icon: mdi:arrow-up
+        style:
+          background: rgba(255, 255, 255, 0.25)
+          border-radius: 5px
+          right: 25px
+          bottom: 50px
+        tap_action:
+          action: call-service
+          service: amcrest.ptz_control
+          service_data:
+            entity_id: camera.kitchen
+            movement: up
+      - type: icon
+        icon: mdi:arrow-down
+        style:
+          background: rgba(255, 255, 255, 0.25)
+          border-radius: 5px
+          right: 25px
+          bottom: 0px
+        tap_action:
+          action: call-service
+          service: amcrest.ptz_control
+          service_data:
+            entity_id: camera.kitchen
+            movement: down
+      - type: icon
+        icon: mdi:arrow-left
+        style:
+          background: rgba(255, 255, 255, 0.25)
+          border-radius: 5px
+          right: 50px
+          bottom: 25px
+        tap_action:
+          action: call-service
+          service: amcrest.ptz_control
+          service_data:
+            entity_id: camera.kitchen
+            movement: left
+      - type: icon
+        icon: mdi:arrow-right
+        style:
+          background: rgba(255, 255, 255, 0.25)
+          border-radius: 5px
+          right: 0px
+          bottom: 25px
+        tap_action:
+          action: call-service
+          service: amcrest.ptz_control
+          service_data:
+            entity_id: camera.kitchen
+            movement: right
+```
+</details>
+
+<a name="frigate-card-action"></a>
+
+### Triggering card actions
+
+You can control the card itself with the `custom:frigate-card-action` action.
+
+<details>
+  <summary>Expand: Custom fullscreen button</summary>
+
+This example shows an icon that toggles the card fullscreen mode.
+
+```yaml
+[...]
+elements:
+  - type: icon
+    icon: mdi:fullscreen
+    style:
+      left: 40px
+      top: 40px
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: fullscreen
+```
+</details>
+
+### Adding card-wide actions
+
+You can add actions to the card to be trigger on `tap`, `double_tap` or `hold`. See [actions](#actions) above.
+
+<details>
+  <summary>Expand: Adding a card-wide action</summary>
+
+In this example double clicking the card in any view will cause the card to go
+into fullscreen mode, **except** when the view is `live` in which case the
+office lights are toggled.
+
+```yaml
+[...]
+view:
+  actions:
+    double_tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: fullscreen
+live:
+  provider: frigate-jsmpeg
+  actions:
+    entity: light.office_main_lights
+    double_tap_action:
+      action: toggle
+```
+</details>
+
+### Hiding the menu in certain circumstances
+
+You can add conditions to the menu, which will hide the menu unless met.
+
+<details>
+  <summary>Expand: Hiding the menu</summary>
+
+This example hides the menu unless the card is in fullscreen mode, and uses a card-wide action to enable fullscreen mode on `double_tap`:
+
+```yaml
+[...]
+view:
+  actions:
+    double_tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: fullscreen
+menu:
+  conditions:
+    fullscreen: true
+```
+
+</details>
 
 ## Troubleshooting
 

@@ -17,7 +17,7 @@ import {
 
 import elementsStyle from '../scss/elements.scss';
 import { localize } from '../localize/localize.js';
-import { View } from '../view.js';
+import { ConditionState, fetchStateAndEvaluateCondition } from '../card-condition.js';
 
 /* A note on picture element rendering:
  *
@@ -59,12 +59,19 @@ class FrigateCardElementsCore extends LitElement {
   @property({ attribute: false })
   protected elements: PictureElements;
 
+  /**
+   * Need to ensure card re-renders when conditionState changes, hence having it
+   * as a property even though it is not currently directly used by this class.
+   */
   @property({ attribute: false })
-  protected view?: View;
+  protected conditionState?: ConditionState;
 
   protected _root: HTMLElement | null = null;
-  protected _hass!: HomeAssistant & ExtendedHomeAssistant;
+  protected _hass?: HomeAssistant & ExtendedHomeAssistant;
 
+  /**
+   * Set Home Assistant object.
+   */
   set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
     if (this._root) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -73,15 +80,21 @@ class FrigateCardElementsCore extends LitElement {
     this._hass = hass;
   }
 
-  // Transparent to elements.
+  /**
+   * Create a transparent render root.
+   */
   createRenderRoot(): LitElement {
     return this;
   }
 
+  /**
+   * Create the root node for our picture elements.
+   * @returns 
+   */
   protected _createRoot(): HTMLElement {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const elementConstructor = customElements.get('hui-conditional-element') as any;
-    if (!elementConstructor) {
+    if (!elementConstructor || !this._hass) {
       throw new Error(localize('error.could_not_render_elements'));
     }
 
@@ -101,6 +114,10 @@ class FrigateCardElementsCore extends LitElement {
     return element;
   }
 
+  /**
+   * Render the elements.
+   * @returns A rendered template or void.
+   */
   protected render(): TemplateResult | void {
     try {
       // Recreate the root on each render to ensure conditional ancestors
@@ -113,20 +130,25 @@ class FrigateCardElementsCore extends LitElement {
   }
 }
 
-// THe master <frigate-card-elements> class, handles event listeners and styles.
+/**
+ * The master <frigate-card-elements> class, handles event listeners and styles.
+ */
 @customElement('frigate-card-elements')
 export class FrigateCardElements extends LitElement {
   @property({ attribute: false })
   protected elements: PictureElements;
 
   @property({ attribute: false })
-  protected view!: View;
+  protected conditionState?: ConditionState;
 
-  protected _hass!: HomeAssistant & ExtendedHomeAssistant;
+  protected _hass?: HomeAssistant & ExtendedHomeAssistant;
 
   @query('frigate-card-elements-core')
   _core!: FrigateCardElementsCore;
 
+  /**
+   * Set the Home Assistant object.
+   */
   set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
     if (this._core) {
       this._core.hass = hass;
@@ -134,6 +156,10 @@ export class FrigateCardElements extends LitElement {
     this._hass = hass;
   }
 
+  /**
+   * Handle a picture element to be removed from the menu.
+   * @param ev The event.
+   */
   protected _menuRemoveHandler(ev: Event): void {
     // Re-dispatch event from this element (instead of the disconnected one, as
     // there is no parent of the disconnected element).
@@ -144,6 +170,10 @@ export class FrigateCardElements extends LitElement {
     );
   }
 
+  /**
+   * Handle a picture element to be added to the menu.
+   * @param ev The event.
+   */
   protected _menuAddHandler(ev: Event): void {
     ev = ev as CustomEvent<MenuButton>;
     const path = ev.composedPath();
@@ -165,6 +195,9 @@ export class FrigateCardElements extends LitElement {
     );
   }
 
+  /**
+   * Connected callback.
+   */
   connectedCallback(): void {
     super.connectedCallback();
 
@@ -173,40 +206,51 @@ export class FrigateCardElements extends LitElement {
     this.addEventListener('frigate-card:menu-add', this._menuAddHandler);
   }
 
+  /**
+   * Disconnected callback.
+   */
   disconnectedCallback(): void {
     this.removeEventListener('frigate-card:menu-add', this._menuAddHandler);
     super.disconnectedCallback();
   }
 
+  /**
+   * Render the template.
+   * @returns A rendered template.
+   */
   protected render(): TemplateResult {
     return html` <frigate-card-elements-core
       .hass=${this._hass}
-      .view=${this.view}
+      .conditionState=${this.conditionState}
       .elements=${this.elements}
     >
     </frigate-card-elements-core>`;
   }
 
+  /**
+   * Get styles.
+   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(elementsStyle);
   }
 }
 
-class StateRequestEvent extends Event {
-  public view: View | undefined;
-}
-
-// An element that can render others based on Frigate state (e.g. only show
-// overlays in particular views). This is the Frigate Card equivalent to the HA
-// conditional card.
+/**
+ * An element that can render others based on Frigate state (e.g. only show
+ * overlays in particular views). This is the Frigate Card equivalent to the HA
+ * conditional card.
+ */
 @customElement('frigate-card-conditional')
 export class FrigateCardElementsConditional extends LitElement {
-  protected _config: FrigateConditional | null = null;
-  protected _hass!: HomeAssistant & ExtendedHomeAssistant;
+  protected _config?: FrigateConditional;
+  protected _hass?: HomeAssistant & ExtendedHomeAssistant;
 
   @query('frigate-card-elements-core')
-  _core!: FrigateCardElementsCore;
+  _core?: FrigateCardElementsCore;
 
+  /**
+   * Set the Home Assistant object.
+   */
   set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
     if (this._core) {
       this._core.hass = hass;
@@ -214,22 +258,25 @@ export class FrigateCardElementsConditional extends LitElement {
     this._hass = hass;
   }
 
+  /**
+   * Set the card configuration.
+   * @param config The card configuration.
+   */
   public setConfig(config: FrigateConditional): void {
     this._config = config;
   }
 
-  // Transparent to elements.
+  /**
+   * Create a root into which to render. This card is "transparent".
+   * @returns 
+   */
   createRenderRoot(): LitElement {
     return this;
   }
 
-  protected evaluate(stateEvent: StateRequestEvent): boolean {
-    if (stateEvent.view && this._config.conditions.view) {
-      return this._config.conditions.view.includes(stateEvent.view.view);
-    }
-    return true;
-  }
-
+  /**
+   * Connected callback.
+   */
   connectedCallback(): void {
     super.connectedCallback();
 
@@ -239,27 +286,11 @@ export class FrigateCardElementsConditional extends LitElement {
     this.className = '';
   }
 
+  /**
+   * Render the card.
+   */
   protected render(): TemplateResult | void {
-    const stateEvent = new StateRequestEvent(`frigate-card:state-request`, {
-      bubbles: true,
-      composed: true,
-    });
-
-    /* Special note on what's going on here:
-     *
-     * Picture elements all are descendents of <frigate-card-elements>, but
-     * there may be arbitrary complexity and layers (that this card doesn't
-     * control) between that master element and this custom conditional element.
-     * This element needs Frigate card state to function (e.g. view), but
-     * there's no clean way to pass state from the rest of card down through
-     * these layers. Instead, we dispatch a "request for state"
-     * (StateRequestEvent) event upwards which is caught by the outer card and
-     * state added to the event object. Because event propagation is handled
-     * synchronously, the state will be added to the event before the flow
-     * proceeds.
-     */
-    this.dispatchEvent(stateEvent);
-    if (this.evaluate(stateEvent)) {
+    if (fetchStateAndEvaluateCondition(this, this._config.conditions)) {
       return html` <frigate-card-elements-core
         .hass=${this._hass}
         .elements=${this._config.elements}
@@ -274,10 +305,17 @@ export class FrigateCardElementsBaseMenuIcon<T> extends LitElement {
   @property({ attribute: false })
   protected _config: T | null = null;
 
+  /**
+   * Set the card config.
+   * @param config The configuration.
+   */
   public setConfig(config: T): void {
     this._config = config;
   }
 
+  /**
+   * Connected callback.
+   */
   connectedCallback(): void {
     super.connectedCallback();
     if (this._config) {
@@ -285,6 +323,9 @@ export class FrigateCardElementsBaseMenuIcon<T> extends LitElement {
     }
   }
 
+  /**
+   * Disconnected callback.
+   */
   disconnectedCallback(): void {
     if (this._config) {
       dispatchFrigateCardEvent<T>(this, 'menu-remove', this._config);
