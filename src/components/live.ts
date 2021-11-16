@@ -1,5 +1,11 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import type { ExtendedHomeAssistant, FrigateCardConfig, MediaShowInfo, WebRTCConfig } from '../types.js';
+import type {
+  ExtendedHomeAssistant,
+  FrigateCardConfig,
+  JSMPEGConfig,
+  MediaShowInfo,
+  WebRTCConfig,
+} from '../types.js';
 import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
@@ -93,6 +99,7 @@ export class FrigateCardLive extends LitElement {
           .hass=${this.hass}
           .cameraName=${this.frigateCameraName}
           .clientId=${this.config.frigate.client_id}
+          .jsmpegConfig=${this.config.live.jsmpeg}
           @frigate-card:media-show=${this._mediaShowHandler}
         >
         </frigate-card-live-jsmpeg>`}`;
@@ -242,6 +249,9 @@ export class FrigateCardLiveJSMPEG extends LitElement {
   @property({ attribute: false })
   protected clientId?: string;
 
+  @property({ attribute: false })
+  protected jsmpegConfig?: JSMPEGConfig;
+
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
   protected _jsmpegCanvasElement?: HTMLCanvasElement;
   protected _jsmpegVideoPlayer?: JSMpeg.VideoElement;
@@ -262,7 +272,8 @@ export class FrigateCardLiveJSMPEG extends LitElement {
       response = await homeAssistantSignPath(
         this.hass,
         `/api/frigate/${this.clientId}` + `/jsmpeg/${this.cameraName}`,
-        URL_SIGN_EXPIRY_SECONDS);
+        URL_SIGN_EXPIRY_SECONDS,
+      );
     } catch (err) {
       console.warn(err);
       return null;
@@ -279,11 +290,30 @@ export class FrigateCardLiveJSMPEG extends LitElement {
    */
   protected _createJSMPEGPlayer(): JSMpeg.VideoElement {
     let videoDecoded = false;
+
+    const jsmpegOptions = {
+      pauseWhenHidden: false,
+      protocols: [],
+      audio: false,
+      videoBufferSize: 1024 * 1024 * 4,
+      onVideoDecode: () => {
+        // This is the only callback that is called after the dimensions
+        // are available. It's called on every frame decode, so just
+        // ignore any subsequent calls.
+        if (!videoDecoded && this._jsmpegCanvasElement) {
+          videoDecoded = true;
+          dispatchMediaShowEvent(this, this._jsmpegCanvasElement);
+        }
+      },
+    };
+
+    // Override with user-specified options.
+    Object.assign(jsmpegOptions, this.jsmpegConfig?.options);
+
     return new JSMpeg.VideoElement(
       this,
       this._jsmpegURL,
       {
-        preserveDrawingBuffer: true,
         canvas: this._jsmpegCanvasElement,
         hooks: {
           play: () => {
@@ -294,21 +324,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
           },
         },
       },
-      {
-        pauseWhenHidden: false,
-        protocols: [],
-        audio: false,
-        videoBufferSize: 1024 * 1024 * 4,
-        onVideoDecode: () => {
-          // This is the only callback that is called after the dimensions
-          // are available. It's called on every frame decode, so just
-          // ignore any subsequent calls.
-          if (!videoDecoded && this._jsmpegCanvasElement) {
-            videoDecoded = true;
-            dispatchMediaShowEvent(this, this._jsmpegCanvasElement);
-          }
-        },
-      },
+      jsmpegOptions,
     );
   }
 

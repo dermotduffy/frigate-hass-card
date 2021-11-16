@@ -127,11 +127,13 @@ const actionSchema = z.union([
 ]);
 export type ActionType = z.infer<typeof actionSchema>;
 
-const actionBaseSchema = z.object({
-  tap_action: actionSchema.optional(),
-  hold_action: actionSchema.optional(),
-  double_tap_action: actionSchema.optional(),
-}).passthrough();
+const actionBaseSchema = z
+  .object({
+    tap_action: actionSchema.optional(),
+    hold_action: actionSchema.optional(),
+    double_tap_action: actionSchema.optional(),
+  })
+  .passthrough();
 export type Actions = z.infer<typeof actionBaseSchema>;
 
 const actionsSchema = z.object({
@@ -369,11 +371,35 @@ const webrtcConfigSchema = z
   .optional();
 export type WebRTCConfig = z.infer<typeof webrtcConfigSchema>;
 
+const jsmpegConfigSchema = z
+  .object({
+    options: z
+      .object({
+        // https://github.com/phoboslab/jsmpeg#usage
+        audio: z.boolean().optional(),
+        video: z.boolean().optional(),
+        pauseWhenHidden: z.boolean().optional(),
+        disableGl: z.boolean().optional(),
+        disableWebAssembly: z.boolean().optional(),
+        preserveDrawingBuffer: z.boolean().optional(),
+        progressive: z.boolean().optional(),
+        throttled: z.boolean().optional(),
+        chunkSize: z.number().optional(),
+        maxAudioLag: z.number().optional(),
+        videoBufferSize: z.number().optional(),
+        audioBufferSize: z.number().optional(),
+      })
+      .optional(),
+  })
+  .optional();
+export type JSMPEGConfig = z.infer<typeof jsmpegConfigSchema>;
+
 const liveConfigSchema = z
   .object({
     provider: z.enum(LIVE_PROVIDERS).default(liveConfigDefault.provider),
     preload: z.boolean().default(liveConfigDefault.preload),
     webrtc: webrtcConfigSchema,
+    jsmpeg: jsmpegConfigSchema,
   })
   .merge(actionsSchema)
   .default(liveConfigDefault);
