@@ -678,22 +678,6 @@ export class FrigateCard extends LitElement {
   }
 
   /**
-   * Handle interaction with the card.
-   */
-  protected _interactionHandler(): void {
-    if (!this.config.view.timeout) {
-      return;
-    }
-    if (this._interactionTimerID) {
-      window.clearTimeout(this._interactionTimerID);
-    }
-    this._interactionTimerID = window.setTimeout(() => {
-      this._interactionTimerID = null;
-      this._changeView();
-    }, this.config.view.timeout * 1000);
-  }
-
-  /**
    * Handle an action called on an element.
    * @param ev The actionHandler event.
    */
@@ -717,6 +701,16 @@ export class FrigateCard extends LitElement {
       getActionConfigGivenAction(interaction, config)
     ) {
       handleAction(node, this._hass as HomeAssistant, config, ev.detail.action);
+    }
+
+    if (this.config.view.timeout) {
+      if (this._interactionTimerID) {
+        window.clearTimeout(this._interactionTimerID);
+      }
+      this._interactionTimerID = window.setTimeout(() => {
+        this._interactionTimerID = null;
+        this._changeView();
+      }, this.config.view.timeout * 1000);
     }
   }
 
@@ -962,7 +956,6 @@ export class FrigateCard extends LitElement {
     const actions = this._getMergedActions();
 
     return html` <ha-card
-      @click=${this._interactionHandler}
       .actionHandler=${actionHandler({
         hasHold: hasAction(actions.hold_action),
         hasDoubleClick: hasAction(actions.double_tap_action),

@@ -38,6 +38,7 @@ import { renderProgressIndicator } from '../components/message.js';
 import './next-prev-control.js';
 
 import viewerStyle from '../scss/viewer.scss';
+import { actionHandler } from '../action-handler-directive.js';
 
 const getEmptyImageSrc = (width: number, height: number) =>
   `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"%3E%3C/svg%3E`;
@@ -485,7 +486,13 @@ export class FrigateCardViewerCore extends LitElement {
             .controlConfig=${this.viewerConfig?.controls.next_previous}
             .thumbnail=${neighbors.previous.thumbnail}
             .title=${neighbors.previous.title}
-            @click=${() => this._nextPreviousHandler('previous')}
+            .actionHandler=${actionHandler({
+              hasHold: false,
+              hasDoubleClick: false,
+            })}
+            @action=${() => {
+              this._nextPreviousHandler('previous');
+            }}
           ></frigate-card-next-previous-control>`
         : ``}
       <div class="embla">
@@ -499,7 +506,13 @@ export class FrigateCardViewerCore extends LitElement {
             .controlConfig=${this.viewerConfig?.controls.next_previous}
             .thumbnail=${neighbors.next.thumbnail}
             .title=${neighbors.next.title}
-            @click=${() => this._nextPreviousHandler('next')}
+            .actionHandler=${actionHandler({
+              hasHold: false,
+              hasDoubleClick: false,
+            })}
+            @action=${() => {
+              this._nextPreviousHandler('next');
+            }}
           ></frigate-card-next-previous-control>`
         : ``}
     </div>`;
@@ -575,7 +588,7 @@ export class FrigateCardViewerCore extends LitElement {
         this.renderRoot.querySelectorAll('.embla__container img').forEach((img) => {
           const imageElement: HTMLImageElement = img as HTMLImageElement;
           if (imageElement.src === IMG_EMPTY) {
-            imageElement.src = replacementImageSrc
+            imageElement.src = replacementImageSrc;
           }
         });
       }
@@ -658,7 +671,11 @@ export class FrigateCardViewerCore extends LitElement {
               src=${ifDefined(lazyLoad ? IMG_EMPTY : resolvedMedia.url)}
               data-src=${ifDefined(lazyLoad ? resolvedMedia.url : undefined)}
               title="${mediaToRender.title}"
-              @click=${() => {
+              .actionHandler=${actionHandler({
+                hasHold: false,
+                hasDoubleClick: false,
+              })}
+              @action=${() => {
                 if (this._carousel?.clickAllowed()) {
                   this._findRelatedClipView(mediaToRender).then((view) => {
                     if (view) {
@@ -668,10 +685,14 @@ export class FrigateCardViewerCore extends LitElement {
                 }
               }}
               @load="${(e: Event) => {
-                if (this.viewerConfig && (!this.viewerConfig.lazy_load || this._slideHasBeenLazyLoaded[slideIndex])) {
+                if (
+                  this.viewerConfig &&
+                  (!this.viewerConfig.lazy_load ||
+                    this._slideHasBeenLazyLoaded[slideIndex])
+                ) {
                   this._mediaShowInfoHandler(slideIndex, createMediaShowInfo(e));
                 }
-               }}"
+              }}"
             />`}
       </div>
     `;
