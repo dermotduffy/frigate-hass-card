@@ -122,7 +122,7 @@ All variables listed are under a `live:` section.
 
 |Live Provider|Latency|Frame Rate|Installation|Description|
 | -- | -- | -- | -- | -- |
-|`frigate`|High|High|Builtin|Use the built-in Home Assistant camera stream from Frigate (RTMP). The camera doesn't even need to be a Frigate camera! |
+|`frigate`|High|High|Builtin|Use the built-in Home Assistant camera stream from Frigate (RTMP). The camera doesn't even need to be a Frigate camera! Latency may be lowered through the use of [LL-HLS](https://www.home-assistant.io/integrations/stream/#ll-hls).|
 |`frigate-jsmpeg`|Lower|Low|Builtin|Stream the JSMPEG stream from Frigate (proxied via the Frigate integration). See [note below on the required integration version](#jsmpeg-troubleshooting) for this live provider to function. This is the only live provider that can view the Frigate `birdseye` view.|
 |`webrtc`|Lowest|High|Separate installation required|Uses [WebRTC](https://github.com/AlexxIT/WebRTC) to stream live feed, requires manual extra setup, see [below](#webrtc).|
 
