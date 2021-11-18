@@ -17,6 +17,7 @@ import { localize } from '../localize/localize.js';
 import { renderProgressIndicator } from './message.js';
 
 import galleryStyle from '../scss/gallery.scss';
+import { actionHandler } from '../action-handler-directive.js';
 
 const MAX_THUMBNAIL_WIDTH = 175;
 const DEFAULT_COLUMNS = 5;
@@ -155,7 +156,11 @@ export class FrigateCardGalleryCore extends LitElement {
             <div class="mdc-image-list__image-aspect-container">
               <div class="mdc-image-list__image">
                 <ha-card
-                  @click=${() => {
+                  .actionHandler=${actionHandler({
+                    hasHold: false,
+                    hasDoubleClick: false,
+                  })}
+                  @action=${() => {
                     if (this.view && this.view.previous) {
                       this.view.previous.dispatchChangeEvent(this);
                     }
@@ -176,7 +181,11 @@ export class FrigateCardGalleryCore extends LitElement {
               ${child.can_expand
                 ? html`<div class="mdc-image-list__image">
                     <ha-card
-                      @click=${() => {
+                      .actionHandler=${actionHandler({
+                        hasHold: false,
+                        hasDoubleClick: false,
+                      })}
+                      @action=${() => {
                         if (this.view) {
                           new View({
                             view: this.view.view,
@@ -196,7 +205,11 @@ export class FrigateCardGalleryCore extends LitElement {
                     title="${child.title}"
                     class="mdc-image-list__image"
                     src="${child.thumbnail}"
-                    @click=${() => {
+                    .actionHandler=${actionHandler({
+                      hasHold: false,
+                      hasDoubleClick: false,
+                    })}
+                    @action=${() => {
                       if (this.view) {
                         new View({
                           view: this.view.is('clips')
