@@ -3,6 +3,8 @@
 
 :host {
   display: block;
+  width: 100%;
+  height: 100%;
   overflow: auto;
   -ms-overflow-style: none; /* Hide scrollbar: IE and Edge */
   scrollbar-width: none;    /* Hide scrollbar: Firefox */

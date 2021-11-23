@@ -1,0 +1,89 @@
+:host {
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+  width: 100%;
+
+  --video-max-height: none;
+  --frigate-card-viewer-thumbnail-size: 100px;
+}
+
+img,video {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.embla, .embla-thumbnails {
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+// Master containers, thumbnails are a fixed size and the main viewer panel
+// should grow/shrink accordingly.
+.embla {
+  flex: 1;
+  min-height: 0;
+}
+.embla-thumbnails {
+  flex: 0 0 var(--frigate-card-viewer-thumbnail-size);
+  margin-top: 5px;
+  //margin-bottom: 5px;
+}
+
+.embla__container, .embla-thumbnails__container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+
+  user-select: none;
+  -webkit-touch-callout: none;
+  -khtml-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.embla__viewport, .embla-thumbnails__viewport {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.embla__viewport.is-draggable, .embla-thumbnails__viewport.is-draggable {
+  cursor: move;
+  cursor: grab;
+}
+.embla__viewport.is-dragging, .embla-thumbnails__viewport.is-dragging {
+  cursor: grabbing;
+}
+
+.embla__slide, .embla-thumbnails__slide {
+  position: relative;
+  height: 100%;
+  margin-right: 5px;
+  overflow: hidden;
+}
+.embla__slide {
+  flex: 0 0 100%;
+}
+.embla-thumbnails__slide {
+  flex: 0 0 var(--frigate-card-viewer-thumbnail-size);
+  border-radius: 5px;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+.embla-thumbnails__slide.main-carousel-selected {
+  opacity: 1.0;
+}
+
+.embla__slide img,video {
+  // Letterbox media. <frigate-card-ha-hls-player> has similar added directly in
+  // its element.
+  object-fit: contain;
+}
+
+frigate-card-ha-hls-player {
+  height: 100%;
+  width: 100%;
+  transform-style: preserve-3d;
+}
