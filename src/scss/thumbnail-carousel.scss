@@ -1,0 +1,14 @@
+.embla__slide {
+  flex: 0 0 var(--frigate-card-viewer-thumbnail-size);
+  opacity: 0.4;
+  transition: opacity 1s ease, transform 0.3s ease;
+}
+.embla__slide.slide-selected {
+  opacity: 1.0;
+}
+.embla__slide:hover {
+  transform: scale(1.1);
+}
+.embla__slide img {
+  border-radius: 5px;
+}

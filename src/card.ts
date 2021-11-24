@@ -43,7 +43,6 @@ import { CARD_VERSION, REPO_URL } from './const.js';
 import { FrigateCardElements } from './components/elements.js';
 import {
   FRIGATE_BUTTON_MENU_ICON,
-  MENU_HEIGHT,
   FrigateCardMenu,
 } from './components/menu.js';
 import { View } from './view.js';

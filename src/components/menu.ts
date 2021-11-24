@@ -28,7 +28,6 @@ import {
 import menuStyle from '../scss/menu.scss';
 import { ConditionState, evaluateCondition } from '../card-condition.js';
 
-export const MENU_HEIGHT = 46;
 export const FRIGATE_BUTTON_MENU_ICON = 'frigate';
 
 /**
