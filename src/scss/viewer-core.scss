@@ -4,75 +4,14 @@
 
   height: 100%;
   width: 100%;
-
-  --video-max-height: none;
-  --frigate-card-viewer-thumbnail-size: 100px;
 }
 
-img,video {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-.embla {
-  position: relative;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-// Master containers, thumbnails are a fixed size and the main viewer panel
-// should grow/shrink accordingly.
-.embla {
+frigate-card-media-carousel {
   flex: 1;
   min-height: 0;
 }
+
 frigate-card-thumbnail-carousel {
   flex: 0 0 var(--frigate-card-viewer-thumbnail-size);
   margin-top: 5px;
-}
-
-.embla__container {
-  display: flex;
-  width: 100%;
-  height: 100%;
-
-  user-select: none;
-  -webkit-touch-callout: none;
-  -khtml-user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.embla__viewport {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-.embla__viewport.is-draggable {
-  cursor: move;
-  cursor: grab;
-}
-.embla__viewport.is-dragging {
-  cursor: grabbing;
-}
-
-.embla__slide {
-  position: relative;
-  height: 100%;
-  margin-right: 5px;
-  overflow: hidden;
-}
-.embla__slide {
-  flex: 0 0 100%;
-}
-.embla__slide img,video {
-  // Letterbox media. <frigate-card-ha-hls-player> has similar added directly in
-  // its element.
-  object-fit: contain;
-}
-
-frigate-card-ha-hls-player {
-  height: 100%;
-  width: 100%;
-  transform-style: preserve-3d;
 }

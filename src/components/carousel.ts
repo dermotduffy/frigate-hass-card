@@ -32,6 +32,14 @@ export class FrigateCardCarousel extends LitElement {
   }
 
   /**
+   * Get the selected slide.
+   * @returns The slide index or undefined if the carousel is not loaded.
+   */
+  carouselSelected(): number | undefined {
+    return this._carousel?.selectedScrollSnap();
+  }
+
+  /**
    * The updated lifecycle callback for this element.
    * @param changedProperties The properties that were changed in this render.
    */
@@ -61,16 +69,14 @@ export class FrigateCardCarousel extends LitElement {
       '.embla__viewport',
     ) as HTMLElement;
 
-    if (carouselNode && !this._carousel) {
+    if (!this._carousel && carouselNode) {
       this._carousel = EmblaCarousel(carouselNode, this._options);
       this._carousel.on('init', () => dispatchFrigateCardEvent(this, 'carousel:init'));
-      this._carousel.on('resize', () =>
-        dispatchFrigateCardEvent(this, 'carousel:resize'),
-      );
       this._carousel.on('select', () => {
-        if (this._carousel) {
+        const selected = this.carouselSelected();
+        if (selected !== undefined) {
           dispatchFrigateCardEvent<CarouselSelect>(this, 'carousel:select', {
-            index: this._carousel.selectedScrollSnap(),
+            index: selected,
           });
         }
       });

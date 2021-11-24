@@ -14,7 +14,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   @property({ attribute: false })
   protected target?: BrowseMediaSource;
 
-  protected _tapSelected? = 0;
+  protected _tapSelected?;
 
   constructor() {
     super();

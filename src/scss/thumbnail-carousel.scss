@@ -1,3 +1,7 @@
+:host {
+  --frigate-card-viewer-thumbnail-size: 100px;
+}
+
 .embla__slide {
   flex: 0 0 var(--frigate-card-viewer-thumbnail-size);
   opacity: 0.4;
