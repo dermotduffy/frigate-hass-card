@@ -1,10 +1,4 @@
-import {
-  CSSResultGroup,
-  LitElement,
-  TemplateResult,
-  html,
-  unsafeCSS,
-} from 'lit';
+import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import { EmblaCarouselType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
@@ -181,11 +175,31 @@ export class FrigateCardViewerCore extends LitElement {
     }
   }
 
-  protected render(): TemplateResult | void {
-    if (!this.view) {
+  protected _renderThumbnails(): TemplateResult {
+    if (!this.view || !this.viewerConfig) {
       return html``;
     }
-    return html`
+
+    return html` <frigate-card-thumbnail-carousel
+      ${ref(this._thumbnailCarouselRef)}
+      .target=${this.view.target}
+      .config=${this.viewerConfig.controls.thumbnails}
+      @frigate-card:carousel:tap=${(ev: CustomEvent<CarouselTap>) => {
+        this._mediaCarouselRef.value?.carouselScrollTo(ev.detail.index);
+      }}
+      @frigate-card:carousel:init=${this._syncThumbnailCarousel.bind(this)}
+    >
+    </frigate-card-thumbnail-carousel>`;
+  }
+
+  protected render(): TemplateResult | void {
+    if (!this.view || !this.viewerConfig) {
+      return html``;
+    }
+    return html` ${this.viewerConfig &&
+      this.viewerConfig.controls.thumbnails.mode === 'above'
+        ? this._renderThumbnails()
+        : ''}
       <frigate-card-media-carousel
         ${ref(this._mediaCarouselRef)}
         .hass=${this.hass}
@@ -196,25 +210,18 @@ export class FrigateCardViewerCore extends LitElement {
         @frigate-card:carousel:select=${this._syncThumbnailCarousel.bind(this)}
       >
       </frigate-card-media-carousel>
-      <frigate-card-thumbnail-carousel
-        ${ref(this._thumbnailCarouselRef)}
-        .target=${this.view.target}
-        @frigate-card:carousel:tap=${(ev: CustomEvent<CarouselTap>) => {
-          this._mediaCarouselRef.value?.carouselScrollTo(ev.detail.index);
-        }}
-        @frigate-card:carousel:init=${this._syncThumbnailCarousel.bind(this)}
-      >
-      </frigate-card-thumbnail-carousel>`;
+      ${this.viewerConfig && this.viewerConfig.controls.thumbnails.mode === 'below'
+        ? this._renderThumbnails()
+        : ''}`;
   }
 
   /**
    * Get element styles.
    */
-   static get styles(): CSSResultGroup {
+  static get styles(): CSSResultGroup {
     return unsafeCSS(viewerCoreStyle);
   }
 }
-
 
 @customElement('frigate-card-media-carousel')
 export class FrigateCardMediaCarousel extends FrigateCardCarousel {
@@ -250,7 +257,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     if (this._carousel || !this.viewerConfig) {
       return;
     }
-  
+
     // Start the carousel on the selected child number.
     const startIndex = Number(
       Object.keys(this._slideToChild).find(
@@ -261,7 +268,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     this._options = {
       startIndex: isNaN(startIndex) ? undefined : startIndex,
       draggable: this.viewerConfig.draggable,
-    }
+    };
 
     super._loadCarousel();
 
@@ -533,40 +540,40 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     const neighbors = this._getMediaNeighbors();
 
     return html`<div class="embla">
-        ${neighbors && neighbors.previous
-          ? html`<frigate-card-next-previous-control
-              .direction=${'previous'}
-              .controlConfig=${this.viewerConfig?.controls.next_previous}
-              .thumbnail=${neighbors.previous.thumbnail}
-              .title=${neighbors.previous.title}
-              .actionHandler=${actionHandler({
-                hasHold: false,
-                hasDoubleClick: false,
-              })}
-              @action=${() => {
-                this._nextPreviousHandler('previous');
-              }}
-            ></frigate-card-next-previous-control>`
-          : ``}
-        <div class="embla__viewport">
-          <div class="embla__container">${slides}</div>
-        </div>
-        ${neighbors && neighbors.next
-          ? html`<frigate-card-next-previous-control
-              .direction=${'next'}
-              .controlConfig=${this.viewerConfig?.controls.next_previous}
-              .thumbnail=${neighbors.next.thumbnail}
-              .title=${neighbors.next.title}
-              .actionHandler=${actionHandler({
-                hasHold: false,
-                hasDoubleClick: false,
-              })}
-              @action=${() => {
-                this._nextPreviousHandler('next');
-              }}
-            ></frigate-card-next-previous-control>`
-          : ``}
-      </div>`;
+      ${neighbors && neighbors.previous
+        ? html`<frigate-card-next-previous-control
+            .direction=${'previous'}
+            .controlConfig=${this.viewerConfig?.controls.next_previous}
+            .thumbnail=${neighbors.previous.thumbnail}
+            .title=${neighbors.previous.title}
+            .actionHandler=${actionHandler({
+              hasHold: false,
+              hasDoubleClick: false,
+            })}
+            @action=${() => {
+              this._nextPreviousHandler('previous');
+            }}
+          ></frigate-card-next-previous-control>`
+        : ``}
+      <div class="embla__viewport">
+        <div class="embla__container">${slides}</div>
+      </div>
+      ${neighbors && neighbors.next
+        ? html`<frigate-card-next-previous-control
+            .direction=${'next'}
+            .controlConfig=${this.viewerConfig?.controls.next_previous}
+            .thumbnail=${neighbors.next.thumbnail}
+            .title=${neighbors.next.title}
+            .actionHandler=${actionHandler({
+              hasHold: false,
+              hasDoubleClick: false,
+            })}
+            @action=${() => {
+              this._nextPreviousHandler('next');
+            }}
+          ></frigate-card-next-previous-control>`
+        : ``}
+    </div>`;
   }
 
   /**

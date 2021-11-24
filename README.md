@@ -100,7 +100,7 @@ All variables listed are under a `menu:` section.
 | Option | Default | Description |
 | - | - | - |
 | `mode` | `hidden-top` | The menu mode to show by default. See [menu modes](#menu-modes) below.|
-| `button_size` | `40px` | The size of the menu buttons (in CSS Units)[https://www.w3schools.com/cssref/css_units.asp].|
+| `button_size` | `40px` | The size of the menu buttons [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
 | `buttons.{frigate, live, clips, snapshots, image, download, frigate_ui, fullscreen}` | `true`, except for `image` | Whether or not to show these builtin actions in the card menu. |
 | `conditions` | | Condition(s) that must be met in order for the menu to be displayed. These conditions use the same format as the `custom:frigate-card-conditional` card (see [Possible conditions](#frigate-card-conditions) below). If conditions are specified but not met, then the menu is not rendered.|
 
@@ -136,7 +136,9 @@ The `event_viewer` is used for viewing all `clip` and `snapshot` media, in a med
 | `lazy_load` | `true` | Whether or not to lazily load media in the event viewer carousel. Setting this will false will fetch all media immediately which may make the carousel experience smoother at a cost of (potentially) a substantial number of simultaneous media fetches on load. |
 | `draggable` | `true` | Whether or not the event viewer carousel can be dragged left or right, via touch/swipe and mouse dragging. |
 | `controls.next_previous.style` | `thumbnails` | When viewing media, what kind of controls to show to move to the previous/next media item. Acceptable values: `thumbnails`, `chevrons`, `none` . |
-| `controls.next_previous.size` | `48px` | The size of the next/previous controls (in CSS Units)[https://www.w3schools.com/cssref/css_units.asp].|
+| `controls.next_previous.size` | `48px` | The size of the next/previous controls [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
+| `controls.thumbnails.mode` | `below` | Whether to show the thumbnail carousel `below` the media, `above` the media or to hide it entirely (`none`).|
+| `controls.thumbnails.size` | `100px` | The size of the thumbnails in the thumbnail carousel [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
 | `actions` | | Actions to use for all views that use the `event_viewer` (e.g. `clip`, `snapshot`). See [actions](#actions) below.|
 
 ### Event Gallery options

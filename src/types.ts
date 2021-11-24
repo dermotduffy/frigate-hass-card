@@ -454,6 +454,10 @@ const viewerConfigDefault = {
       size: '48px',
       style: 'thumbnails' as const,
     },
+    thumbnails: {
+      size: '100px',
+      mode: 'below' as const,
+    },
   },
 };
 const nextPreviousControlConfigSchema = z
@@ -466,6 +470,16 @@ const nextPreviousControlConfigSchema = z
   .default(viewerConfigDefault.controls.next_previous);
 export type NextPreviousControlConfig = z.infer<typeof nextPreviousControlConfigSchema>;
 
+const thumbnailsControlConfigSchema = z
+  .object({
+    mode: z
+      .enum(['none', 'above', 'below'])
+      .default(viewerConfigDefault.controls.thumbnails.mode),
+    size: z.string().default(viewerConfigDefault.controls.thumbnails.size),
+  })
+  .default(viewerConfigDefault.controls.thumbnails);
+export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlConfigSchema>;
+
 const viewerConfigSchema = z
   .object({
     autoplay_clip: z.boolean().default(viewerConfigDefault.autoplay_clip),
@@ -474,6 +488,7 @@ const viewerConfigSchema = z
     controls: z
       .object({
         next_previous: nextPreviousControlConfigSchema,
+        thumbnails: thumbnailsControlConfigSchema,
       })
       .default(viewerConfigDefault.controls),
   })

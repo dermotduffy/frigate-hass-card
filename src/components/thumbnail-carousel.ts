@@ -2,7 +2,7 @@ import { BrowseMediaUtil } from '../browse-media-util.js';
 import { CSSResultGroup, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import type { BrowseMediaSource } from '../types.js';
+import type { BrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
 import { CarouselTap, FrigateCardCarousel } from './carousel.js';
 import { actionHandler } from '../action-handler-directive.js';
 import { dispatchFrigateCardEvent } from '../common.js';
@@ -15,6 +15,15 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   protected target?: BrowseMediaSource;
 
   protected _tapSelected?;
+
+  @property({ attribute: false })
+  set config(config: ThumbnailsControlConfig) {
+    this._config = config;
+    if (config) {
+      this.style.setProperty('--frigate-card-viewer-thumbnail-size', config.size);
+    }
+  }
+  public _config?: ThumbnailsControlConfig;
 
   constructor() {
     super();
@@ -34,12 +43,12 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
     }
 
     if (this._tapSelected !== undefined) {
-      this._carousel.slideNodes()[this._tapSelected].classList.remove("slide-selected");
+      this._carousel.slideNodes()[this._tapSelected].classList.remove('slide-selected');
     }
 
     super.carouselScrollTo(index);
 
-    this._carousel.slideNodes()[index].classList.add("slide-selected");
+    this._carousel.slideNodes()[index].classList.add('slide-selected');
     this._tapSelected = index;
   }
 
@@ -84,12 +93,12 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
       @action=${() => {
         if (this._carousel && this._carousel.clickAllowed()) {
           dispatchFrigateCardEvent<CarouselTap>(this, 'carousel:tap', {
-            index: slideIndex
+            index: slideIndex,
           });
         }
       }}
     >
-      <img src="${mediaToRender.thumbnail}" title="${mediaToRender.title}">
+      <img src="${mediaToRender.thumbnail}" title="${mediaToRender.title}" />
     </div>`;
   }
 
