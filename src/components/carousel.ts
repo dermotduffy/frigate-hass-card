@@ -10,9 +10,6 @@ import { dispatchFrigateCardEvent } from '../common';
 
 import carouselStyle from '../scss/carousel.scss';
 
-export interface CarouselTap {
-  index: number;
-}
 export interface CarouselSelect {
   index: number;
 }

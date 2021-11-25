@@ -1,0 +1,12 @@
+:host {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Don't drop shadow or have radius for nested webrtc card */
+webrtc-camera ha-card {
+  box-shadow: none;
+  border-radius: 0px;
+  background-color: var(--secondary-background-color, black);
+}

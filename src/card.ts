@@ -41,10 +41,7 @@ import type {
 
 import { CARD_VERSION, REPO_URL } from './const.js';
 import { FrigateCardElements } from './components/elements.js';
-import {
-  FRIGATE_BUTTON_MENU_ICON,
-  FrigateCardMenu,
-} from './components/menu.js';
+import { FRIGATE_BUTTON_MENU_ICON, FrigateCardMenu } from './components/menu.js';
 import { View } from './view.js';
 import {
   convertActionToFrigateCardCustomAction,
@@ -66,6 +63,7 @@ import './components/live.js';
 import './components/menu.js';
 import './components/message.js';
 import './components/viewer.js';
+import './components/thumbnail-carousel.js';
 import './patches/ha-camera-stream.js';
 import './patches/ha-hls-player.js';
 
@@ -736,15 +734,21 @@ export class FrigateCard extends LitElement {
    * Get the parameters to search for media related to the current view.
    * @returns A BrowseMediaQueryParameters object.
    */
-  protected _getBrowseMediaQueryParameters(): BrowseMediaQueryParameters | undefined {
+  protected _getBrowseMediaQueryParameters(
+    mediaType?: 'clips' | 'snapshots',
+  ): BrowseMediaQueryParameters | undefined {
     if (
       !this._frigateCameraName ||
-      !(this._view.isClipRelatedView() || this._view.isSnapshotRelatedView())
+      !(
+        this._view.isClipRelatedView() ||
+        this._view.isSnapshotRelatedView() ||
+        mediaType
+      )
     ) {
       return undefined;
     }
     return {
-      mediaType: this._view.isClipRelatedView() ? 'clips' : 'snapshots',
+      mediaType: mediaType || (this._view.isClipRelatedView() ? 'clips' : 'snapshots'),
       clientId: this.config.frigate.client_id,
       cameraName: this._frigateCameraName,
       label: this.config.frigate.label,
@@ -968,7 +972,6 @@ export class FrigateCard extends LitElement {
         true,
       );
     }
-    const mediaQueryParameters = this._getBrowseMediaQueryParameters();
 
     const pictureElementsClasses = {
       'picture-elements': true,
@@ -1003,7 +1006,7 @@ export class FrigateCard extends LitElement {
           ? html` <frigate-card-gallery
               .hass=${this._hass}
               .view=${this._view}
-              .browseMediaQueryParameters=${mediaQueryParameters}
+              .browseMediaQueryParameters=${this._getBrowseMediaQueryParameters()}
               class="${classMap(galleryClasses)}"
               @frigate-card:change-view=${this._changeViewHandler}
               @frigate-card:message=${this._messageHandler}
@@ -1014,7 +1017,7 @@ export class FrigateCard extends LitElement {
           ? html` <frigate-card-viewer
               .hass=${this._hass}
               .view=${this._view}
-              .browseMediaQueryParameters=${mediaQueryParameters}
+              .browseMediaQueryParameters=${this._getBrowseMediaQueryParameters()}
               .viewerConfig=${this.config.event_viewer}
               .resolvedMediaCache=${this._resolvedMediaCache}
               class="${classMap(viewerClasses)}"
@@ -1033,10 +1036,13 @@ export class FrigateCard extends LitElement {
             ? html`
                 <frigate-card-live
                   .hass=${this._hass}
+                  .browseMediaQueryParameters=${this._getBrowseMediaQueryParameters(
+                    this.config.live.controls.thumbnails.media,
+                  )}
                   .config=${this.config}
-                  .frigateCameraName=${this._frigateCameraName}
                   .preload=${this.config.live.preload && !this._view.is('live')}
                   class="${classMap(liveClasses)}"
+                  @frigate-card:change-view=${this._changeViewHandler}
                   @frigate-card:media-show=${this._mediaShowHandler}
                   @frigate-card:pause=${this._pauseHandler}
                   @frigate-card:play=${this._playHandler}
@@ -1060,7 +1066,7 @@ export class FrigateCard extends LitElement {
                   this._removeDynamicMenuButton(e.detail);
                 }}
                 @frigate-card:condition-state-request=${(ev) => {
-                  conditionStateRequestHandler(ev, this._conditionState)
+                  conditionStateRequestHandler(ev, this._conditionState);
                 }}
               >
               </frigate-card-elements>

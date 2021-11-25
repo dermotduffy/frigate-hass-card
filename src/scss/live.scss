@@ -1,21 +1,16 @@
 :host {
   width: 100%;
   height: 100%;
-  display: block;
-  
-  --video-max-height: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
-canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+frigate-card-live {
+  flex: 1;
+  min-height: 0;
 }
 
-/* Don't drop shadow or have radius for nested webrtc card */
-webrtc-camera ha-card {
-  box-shadow: none;
-  border-radius: 0px;
-  background-color: var(--secondary-background-color, black);
+frigate-card-thumbnail-carousel {
+  flex: 0 0 var(--frigate-card-carousel-thumbnail-size);
 }

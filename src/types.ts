@@ -356,11 +356,28 @@ const imageConfigSchema = z
 export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
 
 /**
+ * Thumbnail controls configuration section.
+ */
+
+// This type is not inferred from a schema since different (compatible) schemas
+// have different defaults.
+export type ThumbnailsControlConfig = {
+  mode: 'above' | 'below' | 'none';
+  size?: string;
+}
+
+/**
  * Live view configuration section.
  */
 const liveConfigDefault = {
   provider: 'frigate' as const,
   preload: false,
+  controls: {
+    thumbnails: {
+      mode: 'none' as const,
+      media: 'clips' as const,
+    },
+  },
 };
 const webrtcConfigSchema = z
   .object({
@@ -400,6 +417,19 @@ const liveConfigSchema = z
     preload: z.boolean().default(liveConfigDefault.preload),
     webrtc: webrtcConfigSchema,
     jsmpeg: jsmpegConfigSchema,
+    controls: z
+      .object({
+        thumbnails: z
+          .object({
+            media: z
+              .enum(['clips', 'snapshots'])
+              .default(liveConfigDefault.controls.thumbnails.media),
+            mode: z.enum(['none', 'above', 'below']).default(liveConfigDefault.controls.thumbnails.mode),
+            size: z.string().optional(),
+          })
+          .default(liveConfigDefault.controls.thumbnails),
+      })
+      .default(liveConfigDefault.controls),
   })
   .merge(actionsSchema)
   .default(liveConfigDefault);
@@ -455,7 +485,6 @@ const viewerConfigDefault = {
       style: 'thumbnails' as const,
     },
     thumbnails: {
-      size: '100px',
       mode: 'below' as const,
     },
   },
@@ -470,16 +499,6 @@ const nextPreviousControlConfigSchema = z
   .default(viewerConfigDefault.controls.next_previous);
 export type NextPreviousControlConfig = z.infer<typeof nextPreviousControlConfigSchema>;
 
-const thumbnailsControlConfigSchema = z
-  .object({
-    mode: z
-      .enum(['none', 'above', 'below'])
-      .default(viewerConfigDefault.controls.thumbnails.mode),
-    size: z.string().default(viewerConfigDefault.controls.thumbnails.size),
-  })
-  .default(viewerConfigDefault.controls.thumbnails);
-export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlConfigSchema>;
-
 const viewerConfigSchema = z
   .object({
     autoplay_clip: z.boolean().default(viewerConfigDefault.autoplay_clip),
@@ -488,7 +507,10 @@ const viewerConfigSchema = z
     controls: z
       .object({
         next_previous: nextPreviousControlConfigSchema,
-        thumbnails: thumbnailsControlConfigSchema,
+        thumbnails: z.object({
+          mode: z.enum(['none', 'above', 'below']).default(viewerConfigDefault.controls.thumbnails.mode),
+          size: z.string().optional(),
+        }).default(viewerConfigDefault.controls.thumbnails),
       })
       .default(viewerConfigDefault.controls),
   })

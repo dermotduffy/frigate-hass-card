@@ -1,29 +1,101 @@
 import { BrowseMediaUtil } from '../browse-media-util.js';
-import { CSSResultGroup, TemplateResult, html, unsafeCSS } from 'lit';
+import { CSSResultGroup, TemplateResult, html, unsafeCSS, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { until } from 'lit/directives/until';
 
-import type { BrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
-import { CarouselTap, FrigateCardCarousel } from './carousel.js';
+import type { BrowseMediaQueryParameters, BrowseMediaSource, ExtendedHomeAssistant, ThumbnailsControlConfig } from '../types.js';
+import { FrigateCardCarousel } from './carousel.js';
+import { HomeAssistant } from 'custom-card-helpers';
 import { actionHandler } from '../action-handler-directive.js';
-import { dispatchFrigateCardEvent } from '../common.js';
+import { dispatchErrorMessageEvent, dispatchFrigateCardEvent } from '../common.js';
+import { renderProgressIndicator } from './message.js';
 
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
 
+export interface ThumbnailCarouselTap {
+  slideIndex: number;
+  target: BrowseMediaSource;
+  childIndex: number;
+}
+
 @customElement('frigate-card-thumbnail-carousel')
-export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
+export class FrigateCardThumbnailCarousel extends LitElement {
+  @property({ attribute: false })
+  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+
+  @property({ attribute: false })
+  protected browseMediaQueryParameters?: BrowseMediaQueryParameters;
+
+  @property({ attribute: false })
+  protected config?: ThumbnailsControlConfig;
+
+  @property({ attribute: false })
+  protected highlightSelected = true;
+
+  /**
+   * Master render method.
+   * @returns A rendered template.
+   */
+   protected render(): TemplateResult | void {
+    return html`${until(this._render(), renderProgressIndicator())}`;
+  }
+
+  /**
+   * Asyncronously render the element.
+   * @returns A rendered template.
+   */
+   protected async _render(): Promise<TemplateResult | void> {
+    if (!this.hass || !this.browseMediaQueryParameters) {
+      return html``;
+    }
+
+    let parent: BrowseMediaSource | null = null;
+    try {
+      parent = await BrowseMediaUtil.browseMediaQuery(
+        this.hass,
+        this.browseMediaQueryParameters,
+      );
+    } catch (e) {
+      return dispatchErrorMessageEvent(this, (e as Error).message);
+    }
+    return html` <frigate-card-thumbnail-carousel-core
+      .target=${parent}
+      .config=${this.config}
+      .highlightSelected=${this.highlightSelected}
+    >
+    </frigate-card-thumbnail-carousel-core>`;
+  }
+
+  /**
+   * Get element styles.
+   */
+  // static get styles(): CSSResultGroup {
+  //   return unsafeCSS(viewerStyle);
+  // }
+}
+
+@customElement('frigate-card-thumbnail-carousel-core')
+export class FrigateCardThumbnailCarouselCore extends FrigateCardCarousel {
   @property({ attribute: false })
   protected target?: BrowseMediaSource;
 
   protected _tapSelected?;
 
   @property({ attribute: false })
-  set config(config: ThumbnailsControlConfig) {
-    this._config = config;
+  set config(config: ThumbnailsControlConfig | undefined) {
     if (config) {
-      this.style.setProperty('--frigate-card-viewer-thumbnail-size', config.size);
+      if (config && (config.size !== undefined && config.size != null)) {
+        this.style.setProperty('--frigate-card-carousel-thumbnail-size', config.size);
+      }
+      this._config = config;
     }
   }
   protected _config?: ThumbnailsControlConfig;
+
+  @property({ attribute: false })
+  set highlightSelected(value: boolean) {
+    this.style.setProperty('--frigate-card-carousel-thumbnail-opacity', value ? '0.6' : '1.0');
+  }
 
   constructor() {
     super();
@@ -63,7 +135,10 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
 
     const slides: TemplateResult[] = [];
     for (let i = 0; i < this.target.children.length; ++i) {
-      const thumbnail = this._renderThumbnail(this.target.children[i], slides.length);
+      const thumbnail = this._renderThumbnail(
+        this.target,
+        i,
+        slides.length);
       if (thumbnail) {
         slides.push(thumbnail);
       }
@@ -77,9 +152,15 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
    * @returns A template or void if the item could not be rendered.
    */
   protected _renderThumbnail(
-    mediaToRender: BrowseMediaSource,
+    parent: BrowseMediaSource,
+    childIndex: number,
     slideIndex: number,
   ): TemplateResult | void {
+    if (!parent.children || !parent.children.length) {
+      return;
+    }
+
+    const mediaToRender = parent.children[childIndex];
     if (!BrowseMediaUtil.isTrueMedia(mediaToRender) || !mediaToRender.thumbnail) {
       return;
     }
@@ -92,8 +173,10 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
       })}
       @action=${() => {
         if (this._carousel && this._carousel.clickAllowed()) {
-          dispatchFrigateCardEvent<CarouselTap>(this, 'carousel:tap', {
-            index: slideIndex,
+          dispatchFrigateCardEvent<ThumbnailCarouselTap>(this, 'carousel:tap', {
+            slideIndex: slideIndex,
+            target: parent,
+            childIndex: childIndex,
           });
         }
       }}

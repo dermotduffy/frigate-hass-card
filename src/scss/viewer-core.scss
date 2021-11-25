@@ -1,6 +1,7 @@
 :host {
   display: flex;
   flex-direction: column;
+  gap: 5px;
 
   height: 100%;
   width: 100%;
@@ -11,7 +12,6 @@ frigate-card-media-carousel {
   min-height: 0;
 }
 
-frigate-card-thumbnail-carousel {
-  flex: 0 0 var(--frigate-card-viewer-thumbnail-size);
-  margin-top: 5px;
+frigate-card-thumbnail-carousel-core {
+  flex: 0 0 var(--frigate-card-carousel-thumbnail-size);
 }

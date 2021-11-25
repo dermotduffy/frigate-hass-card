@@ -15,8 +15,8 @@ import type {
   MediaShowInfo,
   ViewerConfig,
 } from '../types.js';
-import { CarouselTap, FrigateCardCarousel } from './carousel.js';
-import { FrigateCardThumbnailCarousel } from './thumbnail-carousel.js';
+import { FrigateCardCarousel } from './carousel.js';
+import { FrigateCardThumbnailCarouselCore, ThumbnailCarouselTap } from './thumbnail-carousel.js';
 import { ResolvedMediaCache, ResolvedMediaUtil } from '../resolved-media.js';
 import { View } from '../view.js';
 import { actionHandler } from '../action-handler-directive.js';
@@ -33,7 +33,6 @@ import { localize } from '../localize/localize.js';
 import { renderProgressIndicator } from '../components/message.js';
 
 import './next-prev-control.js';
-import './thumbnail-carousel.js';
 
 import viewerStyle from '../scss/viewer.scss';
 import viewerCoreStyle from '../scss/viewer-core.scss';
@@ -166,7 +165,7 @@ export class FrigateCardViewerCore extends LitElement {
   protected resolvedMediaCache?: ResolvedMediaCache;
 
   protected _mediaCarouselRef: Ref<FrigateCardMediaCarousel> = createRef();
-  protected _thumbnailCarouselRef: Ref<FrigateCardThumbnailCarousel> = createRef();
+  protected _thumbnailCarouselRef: Ref<FrigateCardThumbnailCarouselCore> = createRef();
 
   protected _syncThumbnailCarousel(): void {
     const mediaSelected = this._mediaCarouselRef.value?.carouselSelected();
@@ -180,16 +179,16 @@ export class FrigateCardViewerCore extends LitElement {
       return html``;
     }
 
-    return html` <frigate-card-thumbnail-carousel
+    return html` <frigate-card-thumbnail-carousel-core
       ${ref(this._thumbnailCarouselRef)}
       .target=${this.view.target}
       .config=${this.viewerConfig.controls.thumbnails}
-      @frigate-card:carousel:tap=${(ev: CustomEvent<CarouselTap>) => {
-        this._mediaCarouselRef.value?.carouselScrollTo(ev.detail.index);
+      @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
+        this._mediaCarouselRef.value?.carouselScrollTo(ev.detail.slideIndex);
       }}
       @frigate-card:carousel:init=${this._syncThumbnailCarousel.bind(this)}
     >
-    </frigate-card-thumbnail-carousel>`;
+    </frigate-card-thumbnail-carousel-core>`;
   }
 
   protected render(): TemplateResult | void {

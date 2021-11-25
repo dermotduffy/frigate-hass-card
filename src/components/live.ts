@@ -1,5 +1,6 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import type {
+  BrowseMediaQueryParameters,
   ExtendedHomeAssistant,
   FrigateCardConfig,
   JSMPEGConfig,
@@ -25,6 +26,12 @@ import { renderProgressIndicator } from '../components/message.js';
 import JSMpeg from '@cycjimmy/jsmpeg-player';
 
 import liveStyle from '../scss/live.scss';
+import liveFrigateStyle from '../scss/live-frigate.scss';
+import liveJSMPEGStyle from '../scss/live-jsmpeg.scss';
+import liveWebRTCStyle from '../scss/live-webrtc.scss';
+
+import { View } from '../view.js';
+import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 
 // Number of seconds a signed URL is valid for.
 const URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -41,7 +48,7 @@ export class FrigateCardLive extends LitElement {
   protected config?: FrigateCardConfig;
 
   @property({ attribute: false })
-  protected frigateCameraName?: string;
+  protected browseMediaQueryParameters?: BrowseMediaQueryParameters;
 
   @property({ attribute: false })
   set preload(preload: boolean) {
@@ -73,6 +80,33 @@ export class FrigateCardLive extends LitElement {
   }
 
   /**
+   * Render thumbnails carousel.
+   * @returns A rendered template or void.
+   */
+  protected renderThumbnails(): TemplateResult | void {
+    if (!this.config) {
+      return;
+    }
+    return html` <frigate-card-thumbnail-carousel
+      .hass=${this.hass}
+      .browseMediaQueryParameters=${this.browseMediaQueryParameters}
+      .config=${this.config?.live.controls.thumbnails}
+      .highlightSelected=${false}
+      @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
+        const mediaType = this.browseMediaQueryParameters?.mediaType;
+        if (mediaType && ['snapshots', 'clips'].includes(mediaType)) {
+          new View({
+            view: mediaType === 'clips' ? 'clip-specific' : 'snapshot-specific',
+            target: ev.detail.target,
+            childIndex: ev.detail.childIndex,
+          }).dispatchChangeEvent(this);
+        }
+      }}
+    >
+    </frigate-card-thumbnail-carousel>`;
+  }
+
+  /**
    * Master render method.
    * @returns A rendered template.
    */
@@ -81,28 +115,36 @@ export class FrigateCardLive extends LitElement {
       return;
     }
 
-    return html` ${this.config.live.provider == 'frigate'
-      ? html` <frigate-card-live-frigate
-          .hass=${this.hass}
-          .cameraEntity=${this.config.camera_entity}
-          @frigate-card:media-show=${this._mediaShowHandler}
-        >
-        </frigate-card-live-frigate>`
-      : this.config.live.provider == 'webrtc'
-      ? html`<frigate-card-live-webrtc
-          .hass=${this.hass}
-          .webRTCConfig=${this.config.live.webrtc || {}}
-          @frigate-card:media-show=${this._mediaShowHandler}
-        >
-        </frigate-card-live-webrtc>`
-      : html` <frigate-card-live-jsmpeg
-          .hass=${this.hass}
-          .cameraName=${this.frigateCameraName}
-          .clientId=${this.config.frigate.client_id}
-          .jsmpegConfig=${this.config.live.jsmpeg}
-          @frigate-card:media-show=${this._mediaShowHandler}
-        >
-        </frigate-card-live-jsmpeg>`}`;
+    return html`
+      ${this.config.live.controls.thumbnails.mode === 'above'
+        ? this.renderThumbnails()
+        : ''}
+      ${this.config.live.provider == 'frigate'
+        ? html` <frigate-card-live-frigate
+            .hass=${this.hass}
+            .cameraEntity=${this.config.camera_entity}
+            @frigate-card:media-show=${this._mediaShowHandler}
+          >
+          </frigate-card-live-frigate>`
+        : this.config.live.provider == 'webrtc'
+        ? html`<frigate-card-live-webrtc
+            .hass=${this.hass}
+            .webRTCConfig=${this.config.live.webrtc || {}}
+            @frigate-card:media-show=${this._mediaShowHandler}
+          >
+          </frigate-card-live-webrtc>`
+        : html` <frigate-card-live-jsmpeg
+            .hass=${this.hass}
+            .cameraName=${this.browseMediaQueryParameters?.cameraName}
+            .clientId=${this.config.frigate.client_id}
+            .jsmpegConfig=${this.config.live.jsmpeg}
+            @frigate-card:media-show=${this._mediaShowHandler}
+          >
+          </frigate-card-live-jsmpeg>`}
+      ${this.config.live.controls.thumbnails.mode === 'below'
+        ? this.renderThumbnails()
+        : ''}
+    `;
   }
 
   /**
@@ -150,7 +192,7 @@ export class FrigateCardLiveFrigate extends LitElement {
    * Get styles.
    */
   static get styles(): CSSResultGroup {
-    return unsafeCSS(liveStyle);
+    return unsafeCSS(liveFrigateStyle);
   }
 }
 
@@ -237,7 +279,7 @@ export class FrigateCardLiveWebRTC extends LitElement {
    * Get styles.
    */
   static get styles(): CSSResultGroup {
-    return unsafeCSS(liveStyle);
+    return unsafeCSS(liveWebRTCStyle);
   }
 }
 
@@ -415,6 +457,6 @@ export class FrigateCardLiveJSMPEG extends LitElement {
    * Get styles.
    */
   static get styles(): CSSResultGroup {
-    return unsafeCSS(liveStyle);
+    return unsafeCSS(liveJSMPEGStyle);
   }
 }
