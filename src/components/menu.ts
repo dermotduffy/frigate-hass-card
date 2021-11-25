@@ -45,7 +45,7 @@ export class FrigateCardMenu extends LitElement {
       this.style.setProperty('--frigate-card-menu-button-size', menuConfig.button_size);
     }
   }
-  public _menuConfig?: MenuConfig;
+  protected _menuConfig?: MenuConfig;
 
   @property({ attribute: false })
   protected expand = false;

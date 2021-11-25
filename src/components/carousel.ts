@@ -1,8 +1,6 @@
 import {
   CSSResultGroup,
   LitElement,
-  TemplateResult,
-  html,
   unsafeCSS,
   PropertyValues,
 } from 'lit';
@@ -54,14 +52,6 @@ export class FrigateCardCarousel extends LitElement {
   }
 
   /**
-   * Get slides to include in the render.
-   * @returns The slides to include in the render.
-   */
-  protected _getSlides(): TemplateResult[] {
-    return [];
-  }
-
-  /**
    * Load the carousel with "slides".
    */
   protected _loadCarousel(): void {
@@ -81,23 +71,6 @@ export class FrigateCardCarousel extends LitElement {
         }
       });
     }
-  }
-
-  /**
-   * Render the element.
-   * @returns A template to display to the user.
-   */
-  protected render(): TemplateResult | void {
-    const slides = this._getSlides();
-    if (!slides) {
-      return;
-    }
-
-    return html` <div class="embla">
-      <div class="embla__viewport">
-        <div class="embla__container">${slides}</div>
-      </div>
-    </div>`;
   }
 
   /**

@@ -510,24 +510,21 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   }
 
   /**
-   * Render the element.
-   * @returns A template to display to the user.
+   * Get slides to include in the render.
+   * @returns The slides to include in the render.
    */
-  protected render(): TemplateResult | void {
+  protected _getSlides(): TemplateResult[] {
     if (
       !this.view ||
       !this.view.target ||
       !this.view.target.children ||
-      !this.view.target.children.length ||
-      this.view.childIndex === undefined ||
-      !this.resolvedMediaCache
+      !this.view.target.children.length
     ) {
-      return html``;
+      return [];
     }
 
-    const slides: TemplateResult[] = [];
     this._slideToChild = {};
-
+    const slides: TemplateResult[] = [];
     for (let i = 0; i < this.view.target.children?.length; ++i) {
       const slide = this._renderMediaItem(this.view.target.children[i], slides.length);
 
@@ -535,6 +532,18 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
         this._slideToChild[slides.length] = i;
         slides.push(slide);
       }
+    }
+    return slides;
+  }
+
+  /**
+   * Render the element.
+   * @returns A template to display to the user.
+   */
+  protected render(): TemplateResult | void {
+    const slides = this._getSlides();
+    if (!slides) {
+      return;
     }
 
     const neighbors = this._getMediaNeighbors();

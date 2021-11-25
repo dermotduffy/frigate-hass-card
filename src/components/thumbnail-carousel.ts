@@ -23,7 +23,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
       this.style.setProperty('--frigate-card-viewer-thumbnail-size', config.size);
     }
   }
-  public _config?: ThumbnailsControlConfig;
+  protected _config?: ThumbnailsControlConfig;
 
   constructor() {
     super();
@@ -99,6 +99,23 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
       }}
     >
       <img src="${mediaToRender.thumbnail}" title="${mediaToRender.title}" />
+    </div>`;
+  }
+
+  /**
+   * Render the element.
+   * @returns A template to display to the user.
+   */
+  protected render(): TemplateResult | void {
+    const slides = this._getSlides();
+    if (!slides || !this._config || this._config.mode == 'none') {
+      return;
+    }
+
+    return html` <div class="embla">
+      <div class="embla__viewport">
+        <div class="embla__container">${slides}</div>
+      </div>
     </div>`;
   }
 
