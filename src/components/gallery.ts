@@ -146,8 +146,8 @@ export class FrigateCardGalleryCore extends LitElement {
     }
 
     const styles = {
-      // Controls the number of columns in the gallery (allows for 1px gutter).
-      width: `calc(${100 / this._columns}% - 1.2px)`,
+      // Controls the number of columns in the gallery (allows for 5px gutter).
+      width: `calc(${100 / this._columns}% - 5.25px)`,
     };
 
     return html` <ul class="mdc-image-list frigate-card-gallery">
