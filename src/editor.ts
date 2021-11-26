@@ -23,6 +23,8 @@ import {
   CONF_EVENT_VIEWER_AUTOPLAY_CLIP,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
+  CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE,
+  CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE,
   CONF_EVENT_VIEWER_DRAGGABLE,
   CONF_EVENT_VIEWER_LAZY_LOAD,
   CONF_FRIGATE_CAMERA_NAME,
@@ -31,6 +33,9 @@ import {
   CONF_FRIGATE_URL,
   CONF_FRIGATE_ZONE,
   CONF_IMAGE_SRC,
+  CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
+  CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
+  CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
   CONF_LIVE_PRELOAD,
   CONF_LIVE_PROVIDER,
   CONF_LIVE_WEBRTC_ENTITY,
@@ -222,6 +227,19 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       static: localize('config.dimensions.aspect_ratio_modes.static'),
       unconstrained: localize('config.dimensions.aspect_ratio_modes.unconstrained'),
     };
+
+    const thumbnailModes = {
+      '': '',
+      none: localize('config.event_viewer.controls.thumbnails.modes.none'),
+      above: localize('config.event_viewer.controls.thumbnails.modes.above'),
+      below: localize('config.event_viewer.controls.thumbnails.modes.below'),
+    }
+
+    const thumbnailMedias = {
+      '': '',
+      clips: localize('config.live.controls.thumbnails.medias.clips'),
+      snapshots: localize('config.live.controls.thumbnails.medias.snapshots'),
+    }
 
     const defaults = frigateCardConfigDefaults;
 
@@ -588,6 +606,72 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   .configValue=${CONF_LIVE_WEBRTC_URL}
                   @value-changed=${this._valueChangedHandler}
                 ></paper-input>
+                <paper-dropdown-menu
+                .label=${localize(
+                  `config.${CONF_LIVE_CONTROLS_THUMBNAILS_MODE}`,
+                )}
+                @value-changed=${this._valueChangedHandler}
+                .configValue=${CONF_LIVE_CONTROLS_THUMBNAILS_MODE}
+              >
+                <paper-listbox
+                  slot="dropdown-content"
+                  .selected=${Object.keys(thumbnailModes).indexOf(
+                    String(
+                      getConfigValue(
+                        this._config,
+                        CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
+                        '',
+                      ),
+                    ),
+                  )}
+                >
+                  ${Object.keys(thumbnailModes).map((key) => {
+                    return html`
+                      <paper-item .label="${key}">
+                        ${thumbnailModes[key]}
+                      </paper-item>
+                    `;
+                  })}
+                </paper-listbox>
+              </paper-dropdown-menu>
+              <paper-dropdown-menu
+                .label=${localize(
+                  `config.${CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA}`,
+                )}
+                @value-changed=${this._valueChangedHandler}
+                .configValue=${CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA}
+              >
+                <paper-listbox
+                  slot="dropdown-content"
+                  .selected=${Object.keys(thumbnailMedias).indexOf(
+                    String(
+                      getConfigValue(
+                        this._config,
+                        CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
+                        '',
+                      ),
+                    ),
+                  )}
+                >
+                  ${Object.keys(thumbnailMedias).map((key) => {
+                    return html`
+                      <paper-item .label="${key}">
+                        ${thumbnailMedias[key]}
+                      </paper-item>
+                    `;
+                  })}
+                </paper-listbox>
+              </paper-dropdown-menu>
+              <paper-input
+                label=${localize(`config.${CONF_LIVE_CONTROLS_THUMBNAILS_SIZE}`)}
+                .value=${getConfigValue(
+                  this._config,
+                  CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
+                  '',
+                )}
+                .configValue=${CONF_LIVE_CONTROLS_THUMBNAILS_SIZE}
+                @value-changed=${this._valueChangedHandler}
+              ></paper-input>
               </div>
             `
           : ''}
@@ -676,6 +760,44 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   '',
                 )}
                 .configValue=${CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE}
+                @value-changed=${this._valueChangedHandler}
+              ></paper-input>
+              <paper-dropdown-menu
+                .label=${localize(
+                  `config.${CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE}`,
+                )}
+                @value-changed=${this._valueChangedHandler}
+                .configValue=${CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE}
+              >
+                <paper-listbox
+                  slot="dropdown-content"
+                  .selected=${Object.keys(thumbnailModes).indexOf(
+                    String(
+                      getConfigValue(
+                        this._config,
+                        CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE,
+                        '',
+                      ),
+                    ),
+                  )}
+                >
+                  ${Object.keys(thumbnailModes).map((key) => {
+                    return html`
+                      <paper-item .label="${key}">
+                        ${thumbnailModes[key]}
+                      </paper-item>
+                    `;
+                  })}
+                </paper-listbox>
+              </paper-dropdown-menu>
+              <paper-input
+                label=${localize(`config.${CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE}`)}
+                .value=${getConfigValue(
+                  this._config,
+                  CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE,
+                  '',
+                )}
+                .configValue=${CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE}
                 @value-changed=${this._valueChangedHandler}
               ></paper-input>
             </div>`

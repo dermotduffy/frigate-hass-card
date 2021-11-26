@@ -19,11 +19,22 @@ export const CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE =
   'event_viewer.controls.next_previous.style';
 export const CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE =
   'event_viewer.controls.next_previous.size';
+export const CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE =
+  'event_viewer.controls.thumbnails.mode';
+export const CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE =
+  'event_viewer.controls.thumbnails.size';
 
 export const CONF_LIVE_PRELOAD = 'live.preload';
 export const CONF_LIVE_PROVIDER = 'live.provider';
 export const CONF_LIVE_WEBRTC_ENTITY = 'live.webrtc.entity';
 export const CONF_LIVE_WEBRTC_URL = 'live.webrtc.url';
+
+export const CONF_LIVE_CONTROLS_THUMBNAILS_MODE =
+  'live.controls.thumbnails.mode';
+export const CONF_LIVE_CONTROLS_THUMBNAILS_SIZE =
+  'live.controls.thumbnails.size';
+  export const CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA =
+  'live.controls.thumbnails.media';
 
 export const CONF_IMAGE_SRC = 'image.src';
 
