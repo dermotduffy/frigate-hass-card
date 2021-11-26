@@ -356,11 +356,28 @@ const imageConfigSchema = z
 export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
 
 /**
+ * Thumbnail controls configuration section.
+ */
+
+// This type is not inferred from a schema since different (compatible) schemas
+// have different defaults.
+export type ThumbnailsControlConfig = {
+  mode: 'above' | 'below' | 'none';
+  size?: string;
+}
+
+/**
  * Live view configuration section.
  */
 const liveConfigDefault = {
   provider: 'frigate' as const,
   preload: false,
+  controls: {
+    thumbnails: {
+      mode: 'none' as const,
+      media: 'clips' as const,
+    },
+  },
 };
 const webrtcConfigSchema = z
   .object({
@@ -400,6 +417,19 @@ const liveConfigSchema = z
     preload: z.boolean().default(liveConfigDefault.preload),
     webrtc: webrtcConfigSchema,
     jsmpeg: jsmpegConfigSchema,
+    controls: z
+      .object({
+        thumbnails: z
+          .object({
+            media: z
+              .enum(['clips', 'snapshots'])
+              .default(liveConfigDefault.controls.thumbnails.media),
+            mode: z.enum(['none', 'above', 'below']).default(liveConfigDefault.controls.thumbnails.mode),
+            size: z.string().optional(),
+          })
+          .default(liveConfigDefault.controls.thumbnails),
+      })
+      .default(liveConfigDefault.controls),
   })
   .merge(actionsSchema)
   .default(liveConfigDefault);
@@ -454,6 +484,9 @@ const viewerConfigDefault = {
       size: '48px',
       style: 'thumbnails' as const,
     },
+    thumbnails: {
+      mode: 'below' as const,
+    },
   },
 };
 const nextPreviousControlConfigSchema = z
@@ -474,6 +507,10 @@ const viewerConfigSchema = z
     controls: z
       .object({
         next_previous: nextPreviousControlConfigSchema,
+        thumbnails: z.object({
+          mode: z.enum(['none', 'above', 'below']).default(viewerConfigDefault.controls.thumbnails.mode),
+          size: z.string().optional(),
+        }).default(viewerConfigDefault.controls.thumbnails),
       })
       .default(viewerConfigDefault.controls),
   })

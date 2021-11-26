@@ -9,7 +9,7 @@
 // available as compilation time.
 // ====================================================================
 
-import { TemplateResult, html } from 'lit';
+import { TemplateResult, css, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { dispatchMediaShowEvent } from '../common.js';
 
@@ -74,6 +74,17 @@ customElements.whenDefined('ha-camera-stream').then(() => {
             `
           : ''}
       `;
+    }
+
+    static get styles(): CSSResultGroup {
+      return [
+        super.styles,
+        css`
+          :host {
+            width: 100%;
+            height: 100%;
+          }`
+      ];
     }
   }
 });

@@ -47,7 +47,8 @@
 /* A relative div to place absolute picture elements onto */
 .picture-elements {
   position: relative;
-  width: inherit;
+  width: 100%;
+  height: 100%;
 }
 
 /* Enforce picture elements to only be the size of the card/fullscreen (and not
@@ -68,13 +69,6 @@ ha-card {
   background-color: var(--secondary-background-color, black);
 }
 
-frigate-card-gallery, frigate-card-viewer, frigate-card-live, frigate-card-message, frigate-card-error-message {
-  width: 100%;
-  display: block;
-}
-frigate-card-gallery {
-  height: 100%;
-}
 frigate-card-gallery.hidden,frigate-card-viewer.hidden,frigate-card-live.hidden  {
   display: none;
 }

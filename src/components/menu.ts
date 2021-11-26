@@ -28,7 +28,6 @@ import {
 import menuStyle from '../scss/menu.scss';
 import { ConditionState, evaluateCondition } from '../card-condition.js';
 
-export const MENU_HEIGHT = 46;
 export const FRIGATE_BUTTON_MENU_ICON = 'frigate';
 
 /**
@@ -46,7 +45,7 @@ export class FrigateCardMenu extends LitElement {
       this.style.setProperty('--frigate-card-menu-button-size', menuConfig.button_size);
     }
   }
-  public _menuConfig?: MenuConfig;
+  protected _menuConfig?: MenuConfig;
 
   @property({ attribute: false })
   protected expand = false;

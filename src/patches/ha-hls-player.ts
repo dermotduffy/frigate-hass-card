@@ -9,8 +9,9 @@
 // available as compilation time.
 // ====================================================================
 
-import { TemplateResult, html } from 'lit';
+import { TemplateResult, css, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
+
 import {
   dispatchMediaShowEvent,
   dispatchPauseEvent,
@@ -43,6 +44,23 @@ customElements.whenDefined('ha-hls-player').then(() => {
           @play=${() => dispatchPlayEvent(this)}
         ></video>
       `;
+    }
+
+    static get styles(): CSSResultGroup {
+      return [
+        super.styles,
+        css`
+          :host {
+            width: 100%;
+            height: 100%;
+          }
+          video {
+            object-fit: contain;
+            height: 100%;
+            width: 100%;
+          }
+        `
+      ]
     }
   }
 });

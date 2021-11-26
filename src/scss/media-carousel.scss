@@ -1,0 +1,13 @@
+:host {
+  --video-max-height: none;
+}
+
+.embla__slide {
+  flex: 0 0 100%;
+}
+
+frigate-card-ha-hls-player {
+  height: 100%;
+  width: 100%;
+  transform-style: preserve-3d;
+}

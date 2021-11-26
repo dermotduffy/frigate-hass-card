@@ -42,6 +42,15 @@
             "chevrons": "Chevrons",
             "none": "None"
           }
+        },
+        "thumbnails": {
+          "mode": "Event Viewer thumbnails mode",
+          "size": "Event Viewer thumbnails size (e.g. '100px')",
+          "modes": {
+            "below": "Thumbnails below the media",
+            "above": "Thumbnails above the media",
+            "none": "No thumbnails"
+          }
         }
       }
     },
@@ -56,6 +65,17 @@
       "webrtc": {
         "entity": "WebRTC Camera Entity (Not a Frigate camera)",
         "url": "WebRTC Camera URL"
+      },
+      "controls": {
+        "thumbnails": {
+          "mode": "Live thumbnails mode",
+          "size": "Live thumbnails size (e.g. '100px')",
+          "media": "Whether to show thumbnails of clips or snapshots",
+          "medias": {
+            "clips": "Clip thumbnails",
+            "snapshots": "Snapshot thumbnails"
+          }
+        }
       }
     },
     "image": {

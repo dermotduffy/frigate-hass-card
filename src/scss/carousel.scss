@@ -1,0 +1,55 @@
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+img,video {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.embla {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.embla__container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+
+  user-select: none;
+  -webkit-touch-callout: none;
+  -khtml-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.embla__viewport {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.embla__viewport.is-draggable {
+  cursor: move;
+  cursor: grab;
+}
+.embla__viewport.is-dragging {
+  cursor: grabbing;
+}
+
+.embla__slide {
+  position: relative;
+  height: 100%;
+  margin-right: 5px;
+  overflow: visible;
+}
+.embla__slide img,video {
+  // Letterbox media. <frigate-card-ha-hls-player> has similar added directly in
+  // its element.
+  object-fit: contain;
+}

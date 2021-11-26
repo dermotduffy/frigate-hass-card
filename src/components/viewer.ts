@@ -1,14 +1,8 @@
-import {
-  CSSResultGroup,
-  LitElement,
-  TemplateResult,
-  html,
-  unsafeCSS,
-  PropertyValues,
-} from 'lit';
+import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { BrowseMediaUtil } from '../browse-media-util.js';
-import EmblaCarousel, { EmblaCarouselType } from 'embla-carousel';
+import { EmblaCarouselType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
+import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit-html/directives/if-defined.js';
 import { until } from 'lit/directives/until.js';
@@ -21,8 +15,11 @@ import type {
   MediaShowInfo,
   ViewerConfig,
 } from '../types.js';
+import { FrigateCardCarousel } from './carousel.js';
+import { FrigateCardThumbnailCarouselCore, ThumbnailCarouselTap } from './thumbnail-carousel.js';
 import { ResolvedMediaCache, ResolvedMediaUtil } from '../resolved-media.js';
 import { View } from '../view.js';
+import { actionHandler } from '../action-handler-directive.js';
 import {
   createMediaShowInfo,
   dispatchErrorMessageEvent,
@@ -38,7 +35,8 @@ import { renderProgressIndicator } from '../components/message.js';
 import './next-prev-control.js';
 
 import viewerStyle from '../scss/viewer.scss';
-import { actionHandler } from '../action-handler-directive.js';
+import viewerCoreStyle from '../scss/viewer-core.scss';
+import mediaCarouselStyle from '../scss/media-carousel.scss';
 
 const getEmptyImageSrc = (width: number, height: number) =>
   `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"%3E%3C/svg%3E`;
@@ -166,9 +164,80 @@ export class FrigateCardViewerCore extends LitElement {
   @property({ attribute: false })
   protected resolvedMediaCache?: ResolvedMediaCache;
 
-  // Media carousel object.
-  protected _carousel?: EmblaCarouselType;
-  protected _loadedCarousel = false;
+  protected _mediaCarouselRef: Ref<FrigateCardMediaCarousel> = createRef();
+  protected _thumbnailCarouselRef: Ref<FrigateCardThumbnailCarouselCore> = createRef();
+
+  protected _syncThumbnailCarousel(): void {
+    const mediaSelected = this._mediaCarouselRef.value?.carouselSelected();
+    if (mediaSelected !== undefined) {
+      this._thumbnailCarouselRef.value?.carouselScrollTo(mediaSelected);
+    }
+  }
+
+  protected _renderThumbnails(): TemplateResult {
+    if (!this.view || !this.viewerConfig) {
+      return html``;
+    }
+
+    return html` <frigate-card-thumbnail-carousel-core
+      ${ref(this._thumbnailCarouselRef)}
+      .target=${this.view.target}
+      .config=${this.viewerConfig.controls.thumbnails}
+      @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
+        this._mediaCarouselRef.value?.carouselScrollTo(ev.detail.slideIndex);
+      }}
+      @frigate-card:carousel:init=${this._syncThumbnailCarousel.bind(this)}
+    >
+    </frigate-card-thumbnail-carousel-core>`;
+  }
+
+  protected render(): TemplateResult | void {
+    if (!this.view || !this.viewerConfig) {
+      return html``;
+    }
+    return html` ${this.viewerConfig &&
+      this.viewerConfig.controls.thumbnails.mode === 'above'
+        ? this._renderThumbnails()
+        : ''}
+      <frigate-card-media-carousel
+        ${ref(this._mediaCarouselRef)}
+        .hass=${this.hass}
+        .view=${this.view}
+        .viewerConfig=${this.viewerConfig}
+        .browseMediaQueryParameters=${this.browseMediaQueryParameters}
+        .resolvedMediaCache=${this.resolvedMediaCache}
+        @frigate-card:carousel:select=${this._syncThumbnailCarousel.bind(this)}
+      >
+      </frigate-card-media-carousel>
+      ${this.viewerConfig && this.viewerConfig.controls.thumbnails.mode === 'below'
+        ? this._renderThumbnails()
+        : ''}`;
+  }
+
+  /**
+   * Get element styles.
+   */
+  static get styles(): CSSResultGroup {
+    return unsafeCSS(viewerCoreStyle);
+  }
+}
+
+@customElement('frigate-card-media-carousel')
+export class FrigateCardMediaCarousel extends FrigateCardCarousel {
+  @property({ attribute: false })
+  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+
+  @property({ attribute: false })
+  protected view?: View;
+
+  @property({ attribute: false })
+  protected viewerConfig?: ViewerConfig;
+
+  @property({ attribute: false })
+  protected browseMediaQueryParameters?: BrowseMediaQueryParameters;
+
+  @property({ attribute: false })
+  protected resolvedMediaCache?: ResolvedMediaCache;
 
   // Mapping of slide # to BrowseMediaSource child #.
   // (Folders are not media items that can be rendered).
@@ -181,52 +250,41 @@ export class FrigateCardViewerCore extends LitElement {
   protected _slideHasBeenLazyLoaded: Record<number, boolean> = {};
 
   /**
-   * The updated lifecycle callback for this element.
-   * @param changedProperties The properties that were changed in this render.
-   */
-  updated(changedProperties: PropertyValues): void {
-    super.updated(changedProperties);
-
-    if (!this._loadedCarousel) {
-      this.updateComplete.then(() => {
-        this._loadCarousel();
-      });
-    }
-  }
-
-  /**
    * Load the carousel with "slides" (clips or snapshots).
    */
   protected _loadCarousel(): void {
-    const carouselNode = this.renderRoot.querySelector(
-      '.embla__viewport',
-    ) as HTMLElement;
-
-    if (carouselNode && this.viewerConfig) {
-      this._loadedCarousel = true;
-
-      // Start the carousel on the selected child number.
-      const startIndex = Number(
-        Object.keys(this._slideToChild).find(
-          (key) => this._slideToChild[key] === this.view?.childIndex,
-        ),
-      );
-
-      this._carousel = EmblaCarousel(carouselNode, {
-        startIndex: isNaN(startIndex) ? undefined : startIndex,
-        draggable: this.viewerConfig.draggable,
-      });
-      // Update views and dispatch media-show events based on slide selections.
-      this._carousel.on('select', this._selectSlideSetViewHandler.bind(this));
-      this._carousel.on('select', this._selectSlideMediaShowHandler.bind(this));
-
-      // Lazily load media that is displayed. These handlers are registered
-      // regardless of the value of this.lazyLoad to allow that value to change
-      // after the carousel has been initialized.
-      this._carousel.on('init', this._lazyLoadMediaHandler.bind(this));
-      this._carousel.on('select', this._lazyLoadMediaHandler.bind(this));
-      this._carousel.on('resize', this._lazyLoadMediaHandler.bind(this));
+    if (this._carousel || !this.viewerConfig) {
+      return;
     }
+
+    // Start the carousel on the selected child number.
+    const startIndex = Number(
+      Object.keys(this._slideToChild).find(
+        (key) => this._slideToChild[key] === this.view?.childIndex,
+      ),
+    );
+
+    this._options = {
+      startIndex: isNaN(startIndex) ? undefined : startIndex,
+      draggable: this.viewerConfig.draggable,
+    };
+
+    super._loadCarousel();
+
+    // Necessary because typescript local type narrowing is not paying attention
+    // to the side-effect of the call to super._loadCarousel().
+    const carousel = this._carousel as EmblaCarouselType | undefined;
+
+    // Update views and dispatch media-show events based on slide selections.
+    carousel?.on('select', this._selectSlideSetViewHandler.bind(this));
+    carousel?.on('select', this._selectSlideMediaShowHandler.bind(this));
+
+    // Lazily load media that is displayed. These handlers are registered
+    // regardless of the value of this.lazyLoad to allow that value to change
+    // after the carousel has been initialized.
+    carousel?.on('init', this._lazyLoadMediaHandler.bind(this));
+    carousel?.on('select', this._lazyLoadMediaHandler.bind(this));
+    carousel?.on('resize', this._lazyLoadMediaHandler.bind(this));
   }
 
   /**
@@ -451,35 +509,45 @@ export class FrigateCardViewerCore extends LitElement {
   }
 
   /**
-   * Render the element.
-   * @returns A template to display to the user.
+   * Get slides to include in the render.
+   * @returns The slides to include in the render.
    */
-  protected render(): TemplateResult | void {
+  protected _getSlides(): TemplateResult[] {
     if (
       !this.view ||
       !this.view.target ||
       !this.view.target.children ||
-      !this.view.target.children.length ||
-      this.view.childIndex === undefined ||
-      !this.resolvedMediaCache
+      !this.view.target.children.length
     ) {
-      return html``;
+      return [];
     }
 
-    const slides: TemplateResult[] = [];
     this._slideToChild = {};
-
+    const slides: TemplateResult[] = [];
     for (let i = 0; i < this.view.target.children?.length; ++i) {
       const slide = this._renderMediaItem(this.view.target.children[i], slides.length);
+
       if (slide) {
         this._slideToChild[slides.length] = i;
         slides.push(slide);
       }
     }
+    return slides;
+  }
+
+  /**
+   * Render the element.
+   * @returns A template to display to the user.
+   */
+  protected render(): TemplateResult | void {
+    const slides = this._getSlides();
+    if (!slides) {
+      return;
+    }
 
     const neighbors = this._getMediaNeighbors();
 
-    return html`<div class="container">
+    return html`<div class="embla">
       ${neighbors && neighbors.previous
         ? html`<frigate-card-next-previous-control
             .direction=${'previous'}
@@ -495,10 +563,8 @@ export class FrigateCardViewerCore extends LitElement {
             }}
           ></frigate-card-next-previous-control>`
         : ``}
-      <div class="embla">
-        <div class="embla__viewport">
-          <div class="embla__container">${slides}</div>
-        </div>
+      <div class="embla__viewport">
+        <div class="embla__container">${slides}</div>
       </div>
       ${neighbors && neighbors.next
         ? html`<frigate-card-next-previous-control
@@ -595,11 +661,6 @@ export class FrigateCardViewerCore extends LitElement {
     }
   }
 
-  /**
-   * Render a given media item.
-   * @param mediaToRender The media item to render.
-   * @returns A template or void if the item could not be rendered.
-   */
   protected _renderMediaItem(
     mediaToRender: BrowseMediaSource,
     slideIndex: number,
@@ -702,6 +763,6 @@ export class FrigateCardViewerCore extends LitElement {
    * Get element styles.
    */
   static get styles(): CSSResultGroup {
-    return unsafeCSS(viewerStyle);
+    return [super.styles, unsafeCSS(mediaCarouselStyle)];
   }
 }
