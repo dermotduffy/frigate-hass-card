@@ -65,13 +65,6 @@ export class FrigateCardThumbnailCarousel extends LitElement {
     >
     </frigate-card-thumbnail-carousel-core>`;
   }
-
-  /**
-   * Get element styles.
-   */
-  // static get styles(): CSSResultGroup {
-  //   return unsafeCSS(viewerStyle);
-  // }
 }
 
 @customElement('frigate-card-thumbnail-carousel-core')
@@ -84,7 +77,7 @@ export class FrigateCardThumbnailCarouselCore extends FrigateCardCarousel {
   @property({ attribute: false })
   set config(config: ThumbnailsControlConfig | undefined) {
     if (config) {
-      if (config && (config.size !== undefined && config.size != null)) {
+      if (config && (config.size !== undefined && config.size !== null)) {
         this.style.setProperty('--frigate-card-carousel-thumbnail-size', config.size);
       }
       this._config = config;
