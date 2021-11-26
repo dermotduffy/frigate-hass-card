@@ -131,7 +131,7 @@ export class FrigateCardGalleryCore extends LitElement {
   protected _resizeHandler(): void {
     this._columns = Math.max(
       DEFAULT_COLUMNS,
-      Math.floor(this.clientWidth / MAX_THUMBNAIL_WIDTH),
+      Math.ceil(this.clientWidth / MAX_THUMBNAIL_WIDTH),
     );
   }
 

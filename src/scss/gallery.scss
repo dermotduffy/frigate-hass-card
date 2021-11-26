@@ -23,7 +23,7 @@
 }
 
 .frigate-card-gallery .mdc-image-list__image {
-  transition: transform 0.3s ease;
+  transition: transform 0.3s linear;
 }
 .frigate-card-gallery .mdc-image-list__image:hover {
   transform: scale(1.05);

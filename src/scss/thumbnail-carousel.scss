@@ -6,7 +6,7 @@
 .embla__slide {
   flex: 0 0 var(--frigate-card-carousel-thumbnail-size);
   opacity: var(--frigate-card-carousel-thumbnail-opacity);
-  transition: opacity 0.6s ease, transform 0.3s ease;
+  transition: opacity 0.6s ease, transform 0.3s linear;
 }
 .embla__slide.slide-selected {
   opacity: 1.0;
