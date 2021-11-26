@@ -525,9 +525,13 @@ This card supports several menu configurations.
 
 ## Screenshot: Snapshot / Clip Gallery
 
-Full viewing of clips:
+### Full Viewing Of Events
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/gallery.png" alt="Gallery" width="400px">
+
+### Live Viewing With Thumbnail Carousel
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/live-thumbnails.gif" alt="Live view with event thumbnails" width="400px">
 
 ## Card Editing
 
