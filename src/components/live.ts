@@ -34,7 +34,6 @@ import liveFrigateStyle from '../scss/live-frigate.scss';
 import liveJSMPEGStyle from '../scss/live-jsmpeg.scss';
 import liveWebRTCStyle from '../scss/live-webrtc.scss';
 
-
 // Number of seconds a signed URL is valid for.
 const URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
 
@@ -104,10 +103,9 @@ export class FrigateCardLive extends LitElement {
         return dispatchErrorMessageEvent(this, (e as Error).message);
       }
 
-      if (BrowseMediaUtil.getFirstTrueMediaChildIndex(parent) != null)  {
+      if (BrowseMediaUtil.getFirstTrueMediaChildIndex(parent) != null) {
         return html` <frigate-card-thumbnail-carousel
-          .hass=${this.hass}
-          .browseMediaQueryParameters=${this.browseMediaQueryParameters}
+          .target=${parent}
           .config=${this.config?.live.controls.thumbnails}
           .highlightSelected=${false}
           @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
@@ -123,7 +121,7 @@ export class FrigateCardLive extends LitElement {
         >
         </frigate-card-thumbnail-carousel>`;
       }
-    }
+    };
 
     return html`${until(fetchThumbnailsThenRender(), renderProgressIndicator())}`;
   }

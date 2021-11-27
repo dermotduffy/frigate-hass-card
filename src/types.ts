@@ -359,12 +359,15 @@ export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
  * Thumbnail controls configuration section.
  */
 
-// This type is not inferred from a schema since different (compatible) schemas
-// have different defaults.
-export type ThumbnailsControlConfig = {
-  mode: 'above' | 'below' | 'none';
-  size?: string;
-}
+const thumbnailsControlDefault = {
+  mode: 'none' as const,
+};
+
+const thumbnailsControlSchema = z.object({
+  mode: z.enum(['none', 'above', 'below']).default(thumbnailsControlDefault.mode),
+  size: z.string().optional(),
+});
+export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlSchema>;
 
 /**
  * Live view configuration section.
@@ -374,7 +377,6 @@ const liveConfigDefault = {
   preload: false,
   controls: {
     thumbnails: {
-      mode: 'none' as const,
       media: 'clips' as const,
     },
   },
@@ -419,14 +421,14 @@ const liveConfigSchema = z
     jsmpeg: jsmpegConfigSchema,
     controls: z
       .object({
-        thumbnails: z
-          .object({
-            media: z
-              .enum(['clips', 'snapshots'])
-              .default(liveConfigDefault.controls.thumbnails.media),
-            mode: z.enum(['none', 'above', 'below']).default(liveConfigDefault.controls.thumbnails.mode),
-            size: z.string().optional(),
-          })
+        thumbnails: thumbnailsControlSchema
+          .merge(
+            z.object({
+              media: z
+                .enum(['clips', 'snapshots'])
+                .default(liveConfigDefault.controls.thumbnails.media),
+            }),
+          )
           .default(liveConfigDefault.controls.thumbnails),
       })
       .default(liveConfigDefault.controls),
@@ -485,18 +487,16 @@ const viewerConfigDefault = {
       style: 'thumbnails' as const,
     },
     thumbnails: {
-      mode: 'below' as const,
+      mode: 'none' as const,
     },
   },
 };
-const nextPreviousControlConfigSchema = z
-  .object({
-    style: z
-      .enum(NEXT_PREVIOUS_CONTROL_STYLES)
-      .default(viewerConfigDefault.controls.next_previous.style),
-    size: z.string().default(viewerConfigDefault.controls.next_previous.size),
-  })
-  .default(viewerConfigDefault.controls.next_previous);
+const nextPreviousControlConfigSchema = z.object({
+  style: z
+    .enum(NEXT_PREVIOUS_CONTROL_STYLES)
+    .default(viewerConfigDefault.controls.next_previous.style),
+  size: z.string().default(viewerConfigDefault.controls.next_previous.size),
+});
 export type NextPreviousControlConfig = z.infer<typeof nextPreviousControlConfigSchema>;
 
 const viewerConfigSchema = z
@@ -506,11 +506,12 @@ const viewerConfigSchema = z
     draggable: z.boolean().default(viewerConfigDefault.draggable),
     controls: z
       .object({
-        next_previous: nextPreviousControlConfigSchema,
-        thumbnails: z.object({
-          mode: z.enum(['none', 'above', 'below']).default(viewerConfigDefault.controls.thumbnails.mode),
-          size: z.string().optional(),
-        }).default(viewerConfigDefault.controls.thumbnails),
+        next_previous: nextPreviousControlConfigSchema.default(
+          viewerConfigDefault.controls.next_previous,
+        ),
+        thumbnails: thumbnailsControlSchema.default(
+          viewerConfigDefault.controls.thumbnails,
+        ),
       })
       .default(viewerConfigDefault.controls),
   })
