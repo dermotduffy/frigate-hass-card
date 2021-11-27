@@ -1,6 +1,7 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import type {
   BrowseMediaQueryParameters,
+  BrowseMediaSource,
   ExtendedHomeAssistant,
   FrigateCardConfig,
   JSMPEGConfig,
@@ -11,6 +12,9 @@ import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
 
+import { BrowseMediaUtil } from '../browse-media-util.js';
+import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
+import { View } from '../view.js';
 import { localize } from '../localize/localize.js';
 import {
   dispatchErrorMessageEvent,
@@ -30,8 +34,6 @@ import liveFrigateStyle from '../scss/live-frigate.scss';
 import liveJSMPEGStyle from '../scss/live-jsmpeg.scss';
 import liveWebRTCStyle from '../scss/live-webrtc.scss';
 
-import { View } from '../view.js';
-import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 
 // Number of seconds a signed URL is valid for.
 const URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -87,23 +89,43 @@ export class FrigateCardLive extends LitElement {
     if (!this.config) {
       return;
     }
-    return html` <frigate-card-thumbnail-carousel
-      .hass=${this.hass}
-      .browseMediaQueryParameters=${this.browseMediaQueryParameters}
-      .config=${this.config?.live.controls.thumbnails}
-      .highlightSelected=${false}
-      @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
-        const mediaType = this.browseMediaQueryParameters?.mediaType;
-        if (mediaType && ['snapshots', 'clips'].includes(mediaType)) {
-          new View({
-            view: mediaType === 'clips' ? 'clip-specific' : 'snapshot-specific',
-            target: ev.detail.target,
-            childIndex: ev.detail.childIndex,
-          }).dispatchChangeEvent(this);
-        }
-      }}
-    >
-    </frigate-card-thumbnail-carousel>`;
+
+    const fetchThumbnailsThenRender = async (): Promise<TemplateResult | void> => {
+      if (!this.hass || !this.browseMediaQueryParameters) {
+        return;
+      }
+      let parent: BrowseMediaSource | null;
+      try {
+        parent = await BrowseMediaUtil.browseMediaQuery(
+          this.hass,
+          this.browseMediaQueryParameters,
+        );
+      } catch (e) {
+        return dispatchErrorMessageEvent(this, (e as Error).message);
+      }
+
+      if (BrowseMediaUtil.getFirstTrueMediaChildIndex(parent) != null)  {
+        return html` <frigate-card-thumbnail-carousel
+          .hass=${this.hass}
+          .browseMediaQueryParameters=${this.browseMediaQueryParameters}
+          .config=${this.config?.live.controls.thumbnails}
+          .highlightSelected=${false}
+          @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
+            const mediaType = this.browseMediaQueryParameters?.mediaType;
+            if (mediaType && ['snapshots', 'clips'].includes(mediaType)) {
+              new View({
+                view: mediaType === 'clips' ? 'clip-specific' : 'snapshot-specific',
+                target: ev.detail.target,
+                childIndex: ev.detail.childIndex,
+              }).dispatchChangeEvent(this);
+            }
+          }}
+        >
+        </frigate-card-thumbnail-carousel>`;
+      }
+    }
+
+    return html`${until(fetchThumbnailsThenRender(), renderProgressIndicator())}`;
   }
 
   /**

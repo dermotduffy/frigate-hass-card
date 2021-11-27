@@ -67,8 +67,6 @@ export class BrowseMediaUtil {
     return index >= 0 ? index : null;
   }
   
-  // 
-
   /**
    * Browse Frigate media with a media content id. May throw.
    * @param hass The HomeAssistant object.
