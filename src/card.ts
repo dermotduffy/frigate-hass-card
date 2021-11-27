@@ -603,13 +603,23 @@ export class FrigateCard extends LitElement {
       return;
     }
 
-    // Use the HTML5 download attribute to prevent a new window from temporarily
-    // opening.
-    const link = document.createElement('a');
-    link.setAttribute('download', '');
-    link.href = response;
-    link.click();
-    link.remove();
+    if (navigator.userAgent.startsWith("Home Assistant/")) {
+      // Home Assistant companion apps cannot download files without opening a
+      // new browser window.
+      //
+      // User-agents are specified here:
+      //  - Android: https://github.com/home-assistant/android/blob/master/app/src/main/java/io/homeassistant/companion/android/webview/WebViewActivity.kt#L107
+      //  - iOS: https://github.com/home-assistant/iOS/blob/master/Sources/Shared/API/HAAPI.swift#L75
+      window.open(response, '_blank');
+    } else {
+      // Use the HTML5 download attribute to prevent a new window from
+      // temporarily opening.
+      const link = document.createElement('a');
+      link.setAttribute('download', '');
+      link.href = response;
+      link.click();
+      link.remove();
+    }{}
   }
 
   /**
