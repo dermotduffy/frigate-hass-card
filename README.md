@@ -52,6 +52,8 @@ lovelace:
 * Restart Home Assistant.
 * Add the new card to the Lovelace configuration!
 
+<a name="manual-installation"></a>
+
 ### Advanced Users: Manual Installation
 
 * Download the `frigate-hass-card.js` attachment of the desired [release](https://github.com/dermotduffy/frigate-hass-card/releases) to a location accessible by Home Assistant.
@@ -826,3 +828,25 @@ integration versions.
 Unfortunately, [iOS does not support the Javascript fullscreen
 API](https://caniuse.com/fullscreen). As a result, card-level fullscreen support
 for the iPhone is not currently possible.
+
+## Development
+
+### Building
+
+```sh
+$ git clone https://github.com/dermotduffy/frigate-hass-card
+$ cd frigate-hass-card
+$ npm install
+$ npm run build
+```
+
+Resultant build will be at `dist/frigate-hass-card.js`. This could be installed via the [manual installation instructions above](#manual-installation).
+
+### Releasing
+
+ 1. Merge a PR that contains only a `package.json` and `const.ts` version number bump (see [this example](https://github.com/dermotduffy/frigate-hass-card/commit/a854187d4a354f8841ad284d75b0afbed7b634c4)).
+ 1. Go to the [releases page](https://github.com/dermotduffy/frigate-hass-card/releases).
+ 1. A release draft will automatically have been created, click 'Edit'.
+ 1. Use the same version number for the release title and tag.
+ 1. Choose 'This is a pre-release' for a beta version.
+ 1. Hit 'Publish release'.
