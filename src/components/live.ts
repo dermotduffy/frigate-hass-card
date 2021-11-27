@@ -225,6 +225,7 @@ export class FrigateCardLiveWebRTC extends LitElement {
 
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
   protected _webRTCElement: HTMLElement | null = null;
+  protected _callbacksAdded = false;
 
   /**
    * Create the WebRTC element. May throw.
@@ -264,6 +265,10 @@ export class FrigateCardLiveWebRTC extends LitElement {
    * Updated lifecycle callback.
    */
   public updated(): void {
+    if (this._callbacksAdded) {
+      return;
+    }
+
     // Extract the video component after it has been rendered and generate the
     // media load event.
     this.updateComplete.then(() => {
@@ -291,6 +296,7 @@ export class FrigateCardLiveWebRTC extends LitElement {
           }
           dispatchPauseEvent(this);
         };
+        this._callbacksAdded = true;
       }
     });
   }
