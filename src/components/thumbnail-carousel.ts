@@ -1,14 +1,11 @@
 import { BrowseMediaUtil } from '../browse-media-util.js';
-import { CSSResultGroup, TemplateResult, html, unsafeCSS, LitElement } from 'lit';
+import { CSSResultGroup, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { until } from 'lit/directives/until';
 
-import type { BrowseMediaQueryParameters, BrowseMediaSource, ExtendedHomeAssistant, ThumbnailsControlConfig } from '../types.js';
+import type { BrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
 import { FrigateCardCarousel } from './carousel.js';
-import { HomeAssistant } from 'custom-card-helpers';
 import { actionHandler } from '../action-handler-directive.js';
-import { dispatchErrorMessageEvent, dispatchFrigateCardEvent } from '../common.js';
-import { renderProgressIndicator } from './message.js';
+import { dispatchFrigateCardEvent } from '../common.js';
 
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
 
@@ -19,56 +16,7 @@ export interface ThumbnailCarouselTap {
 }
 
 @customElement('frigate-card-thumbnail-carousel')
-export class FrigateCardThumbnailCarousel extends LitElement {
-  @property({ attribute: false })
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
-
-  @property({ attribute: false })
-  protected browseMediaQueryParameters?: BrowseMediaQueryParameters;
-
-  @property({ attribute: false })
-  protected config?: ThumbnailsControlConfig;
-
-  @property({ attribute: false })
-  protected highlightSelected = true;
-
-  /**
-   * Master render method.
-   * @returns A rendered template.
-   */
-   protected render(): TemplateResult | void {
-    return html`${until(this._render(), renderProgressIndicator())}`;
-  }
-
-  /**
-   * Asyncronously render the element.
-   * @returns A rendered template.
-   */
-   protected async _render(): Promise<TemplateResult | void> {
-    if (!this.hass || !this.browseMediaQueryParameters) {
-      return html``;
-    }
-
-    let parent: BrowseMediaSource | null = null;
-    try {
-      parent = await BrowseMediaUtil.browseMediaQuery(
-        this.hass,
-        this.browseMediaQueryParameters,
-      );
-    } catch (e) {
-      return dispatchErrorMessageEvent(this, (e as Error).message);
-    }
-    return html` <frigate-card-thumbnail-carousel-core
-      .target=${parent}
-      .config=${this.config}
-      .highlightSelected=${this.highlightSelected}
-    >
-    </frigate-card-thumbnail-carousel-core>`;
-  }
-}
-
-@customElement('frigate-card-thumbnail-carousel-core')
-export class FrigateCardThumbnailCarouselCore extends FrigateCardCarousel {
+export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   @property({ attribute: false })
   protected target?: BrowseMediaSource;
 
