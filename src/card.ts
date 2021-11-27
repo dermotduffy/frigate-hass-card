@@ -806,7 +806,7 @@ export class FrigateCard extends LitElement {
     }
     let requestRefresh = false;
     if (
-      this._isAspectRatioEnforced() &&
+      this._view.isGalleryView() &&
       (mediaShowInfo.width != this._mediaShowInfo?.width ||
         mediaShowInfo.height != this._mediaShowInfo?.height)
     ) {
