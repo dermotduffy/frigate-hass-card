@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 
 import { HomeAssistant, LovelaceCardEditor, fireEvent } from 'custom-card-helpers';
 import { localize } from './localize/localize.js';
@@ -179,13 +180,95 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         @click=${this._toggleOptionHandler}
         .optionSetName=${optionSetName}
       >
-          <div class="row">
-            <ha-icon .icon=${`mdi:${optionSet.icon}`}></ha-icon>
-            <div class="title">${optionSet.name}</div>
-          </div>
-          <div class="secondary">${optionSet.secondary}</div>
+        <div class="row">
+          <ha-icon .icon=${`mdi:${optionSet.icon}`}></ha-icon>
+          <div class="title">${optionSet.name}</div>
         </div>
+        <div class="secondary">${optionSet.secondary}</div>
+      </div>
     `;
+  }
+
+  /**
+   * Render a dropdown menu.
+   * @param configPath The configuration path to set/read.
+   * @param dropdown The downdown in an array or key/value dictionary.
+   * @returns A rendered template.
+   */
+  protected _renderDropdown(
+    configPath: string,
+    dropdown: string[] | Record<string, string>,
+  ): TemplateResult | void {
+    if (!this._config) {
+      return;
+    }
+    const keys = Array.isArray(dropdown) ? dropdown : Object.keys(dropdown);
+
+    return html`
+      <paper-dropdown-menu
+        .label=${localize(`config.${configPath}`)}
+        @value-changed=${this._valueChangedHandler}
+        .configValue=${configPath}
+      >
+        <paper-listbox
+          slot="dropdown-content"
+          .selected=${keys.indexOf(String(getConfigValue(this._config, configPath, '')))}
+        >
+          ${keys.map(
+            (key) => html` <paper-item .label="${key}">
+              ${Array.isArray(dropdown) ? key : dropdown[key]}
+            </paper-item>`,
+          )}
+        </paper-listbox>
+      </paper-dropdown-menu>
+    `;
+  }
+
+  /**
+   * Render a string input field.
+   * @param configPath The configuration path to set/read.
+   * @param allowedPattern An allowed input pattern.
+   * @returns A rendered template.
+   */
+  protected _renderStringInput(
+    configPath: string,
+    allowedPattern?: string,
+  ): TemplateResult | void {
+    if (!this._config) {
+      return;
+    }
+    return html` <paper-input
+      label=${localize(`config.${configPath}`)}
+      .value=${getConfigValue(this._config, configPath, '')}
+      .configValue=${configPath}
+      allowed-pattern=${ifDefined(allowedPattern ? allowedPattern : undefined)}
+      prevent-invalid-input=${ifDefined(allowedPattern)}
+      @value-changed=${this._valueChangedHandler}
+    ></paper-input>`;
+  }
+
+  /**
+   * Render a switch.
+   * @param configPath The configuration path to set/read.
+   * @param valueDefault The default switch value if unset.
+   * @param label An optional switch label.
+   * @returns A rendered template.
+   */
+  protected _renderSwitch(
+    configPath: string,
+    valueDefault: boolean,
+    label?: string,
+  ): TemplateResult | void {
+    if (!this._config) {
+      return;
+    }
+    return html` <ha-formfield .label=${label || localize(`config.${configPath}`)}>
+      <ha-switch
+        .checked="${getConfigValue(this._config, configPath, valueDefault)}"
+        .configValue=${configPath}
+        @change=${this._valueChangedHandler}
+      ></ha-switch>
+    </ha-formfield>`;
   }
 
   protected render(): TemplateResult | void {
@@ -256,15 +339,18 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       none: localize('config.event_viewer.controls.thumbnails.modes.none'),
       above: localize('config.event_viewer.controls.thumbnails.modes.above'),
       below: localize('config.event_viewer.controls.thumbnails.modes.below'),
-    }
+    };
 
     const thumbnailMedias = {
       '': '',
       clips: localize('config.live.controls.thumbnails.medias.clips'),
       snapshots: localize('config.live.controls.thumbnails.medias.snapshots'),
-    }
+    };
 
     const defaults = frigateCardConfigDefaults;
+
+    const getShowButtonLabel = (configPath: string) =>
+      localize('editor.show_button') + ': ' + localize(`config.${configPath}`);
 
     return html`
       ${this._configUpgradeable
@@ -295,22 +381,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.basic.show
           ? html`
               <div class="values">
-                <paper-dropdown-menu
-                  label=${localize(`config.${CONF_CAMERA_ENTITY}`)}
-                  @value-changed=${this._valueChangedHandler}
-                  .configValue=${CONF_CAMERA_ENTITY}
-                >
-                  <paper-listbox
-                    slot="dropdown-content"
-                    .selected=${cameraEntities.indexOf(
-                      String(getConfigValue(this._config, CONF_CAMERA_ENTITY, '')),
-                    )}
-                  >
-                    ${cameraEntities.map((entity) => {
-                      return html` <paper-item>${entity}</paper-item> `;
-                    })}
-                  </paper-listbox>
-                </paper-dropdown-menu>
+                ${this._renderDropdown(CONF_CAMERA_ENTITY, cameraEntities)}
               </div>
             `
           : ''}
@@ -318,36 +389,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.frigate.show
           ? html`
               <div class="values">
-                <paper-input
-                  label=${localize(`config.${CONF_FRIGATE_CAMERA_NAME}`)}
-                  .value=${getConfigValue(this._config, CONF_FRIGATE_CAMERA_NAME, '')}
-                  .configValue=${CONF_FRIGATE_CAMERA_NAME}
-                  @value-changed=${this._valueChangedHandler}
-                ></paper-input>
-                <paper-input
-                  label=${localize(`config.${CONF_FRIGATE_URL}`)}
-                  .value=${getConfigValue(this._config, CONF_FRIGATE_URL, '')}
-                  .configValue=${CONF_FRIGATE_URL}
-                  @value-changed=${this._valueChangedHandler}
-                ></paper-input>
-                <paper-input
-                  .label=${localize(`config.${CONF_FRIGATE_LABEL}`)}
-                  .value=${getConfigValue(this._config, CONF_FRIGATE_LABEL, '')}
-                  .configValue=${CONF_FRIGATE_LABEL}
-                  @value-changed=${this._valueChangedHandler}
-                ></paper-input>
-                <paper-input
-                  .label=${localize(`config.${CONF_FRIGATE_ZONE}`)}
-                  .value=${getConfigValue(this._config, CONF_FRIGATE_ZONE, '')}
-                  .configValue=${CONF_FRIGATE_ZONE}
-                  @value-changed=${this._valueChangedHandler}
-                ></paper-input>
-                <paper-input
-                  label=${localize(`config.${CONF_FRIGATE_CLIENT_ID}`)}
-                  .value=${getConfigValue(this._config, CONF_FRIGATE_CLIENT_ID, '')}
-                  .configValue=${CONF_FRIGATE_CLIENT_ID}
-                  @value-changed=${this._valueChangedHandler}
-                ></paper-input>
+                ${this._renderStringInput(CONF_FRIGATE_CAMERA_NAME)}
+                ${this._renderStringInput(CONF_FRIGATE_URL)}
+                ${this._renderStringInput(CONF_FRIGATE_LABEL)}
+                ${this._renderStringInput(CONF_FRIGATE_ZONE)}
+                ${this._renderStringInput(CONF_FRIGATE_CLIENT_ID)}
               </div>
             `
           : ''}
@@ -355,32 +401,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.view.show
           ? html`
               <div class="values">
-                <paper-dropdown-menu
-                  label=${localize(`config.${CONF_VIEW_DEFAULT}`)}
-                  @value-changed=${this._valueChangedHandler}
-                  .configValue=${CONF_VIEW_DEFAULT}
-                >
-                  <paper-listbox
-                    slot="dropdown-content"
-                    .selected=${Object.keys(viewModes).indexOf(
-                      String(getConfigValue(this._config, CONF_VIEW_DEFAULT, '')),
-                    )}
-                  >
-                    ${Object.keys(viewModes).map((key) => {
-                      return html`
-                        <paper-item .label="${key}"> ${viewModes[key]} </paper-item>
-                      `;
-                    })}
-                  </paper-listbox>
-                </paper-dropdown-menu>
-                <paper-input
-                  label=${localize(`config.${CONF_VIEW_TIMEOUT}`)}
-                  prevent-invalid-input
-                  allowed-pattern="[0-9]"
-                  .value=${getConfigValue(this._config, CONF_VIEW_TIMEOUT, '')}
-                  .configValue=${CONF_VIEW_TIMEOUT}
-                  @value-changed=${this._valueChangedHandler}
-                ></paper-input>
+                ${this._renderDropdown(CONF_VIEW_DEFAULT, viewModes)}
+                ${this._renderStringInput(CONF_VIEW_TIMEOUT, '[0-9]')}
               </div>
             `
           : ''}
@@ -388,150 +410,48 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.menu.show
           ? html`
               <div class="values">
-                <paper-dropdown-menu
-                  .label=${localize(`config.${CONF_MENU_MODE}`)}
-                  @value-changed=${this._valueChangedHandler}
-                  .configValue=${CONF_MENU_MODE}
-                >
-                  <paper-listbox
-                    slot="dropdown-content"
-                    .selected=${Object.keys(menuModes).indexOf(
-                      String(getConfigValue(this._config, CONF_MENU_MODE, '')),
-                    )}
-                  >
-                    ${Object.keys(menuModes).map((key) => {
-                      return html`
-                        <paper-item .label="${key}"> ${menuModes[key]} </paper-item>
-                      `;
-                    })}
-                  </paper-listbox>
-                </paper-dropdown-menu>
-                <paper-input
-                  label=${localize(`config.${CONF_MENU_BUTTON_SIZE}`)}
-                  .value=${getConfigValue(this._config, CONF_MENU_BUTTON_SIZE, '')}
-                  .configValue=${CONF_MENU_BUTTON_SIZE}
-                  @value-changed=${this._valueChangedHandler}
-                ></paper-input>
-                <ha-formfield
-                  .label=${localize('editor.show_button') +
-                  ': ' +
-                  localize(`config.${CONF_MENU_BUTTONS_FRIGATE}`)}
-                >
-                  <ha-switch
-                    .checked="${getConfigValue(
-                      this._config,
-                      CONF_MENU_BUTTONS_FRIGATE,
-                      defaults.menu.buttons.frigate,
-                    )},"
-                    .configValue=${CONF_MENU_BUTTONS_FRIGATE}
-                    @change=${this._valueChangedHandler}
-                  ></ha-switch>
-                </ha-formfield>
-                <ha-formfield
-                  .label=${localize('editor.show_button') +
-                  ': ' +
-                  localize('config.view.views.live')}
-                >
-                  <ha-switch
-                    .checked=${getConfigValue(
-                      this._config,
-                      CONF_MENU_BUTTONS_LIVE,
-                      defaults.menu.buttons.live,
-                    )}
-                    .configValue=${CONF_MENU_BUTTONS_LIVE}
-                    @change=${this._valueChangedHandler}
-                  ></ha-switch>
-                </ha-formfield>
-                <ha-formfield
-                  .label=${localize('editor.show_button') +
-                  ': ' +
-                  localize('config.view.views.clips')}
-                >
-                  <ha-switch
-                    .checked=${getConfigValue(
-                      this._config,
-                      CONF_MENU_BUTTONS_CLIPS,
-                      defaults.menu.buttons.clips,
-                    )}
-                    .configValue=${CONF_MENU_BUTTONS_CLIPS}
-                    @change=${this._valueChangedHandler}
-                  ></ha-switch>
-                </ha-formfield>
-                <ha-formfield
-                  .label=${localize('editor.show_button') +
-                  ': ' +
-                  localize('config.view.views.snapshots')}
-                >
-                  <ha-switch
-                    .checked=${getConfigValue(
-                      this._config,
-                      CONF_MENU_BUTTONS_SNAPSHOTS,
-                      defaults.menu.buttons.snapshots,
-                    )}
-                    .configValue=${CONF_MENU_BUTTONS_SNAPSHOTS}
-                    @change=${this._valueChangedHandler}
-                  ></ha-switch>
-                </ha-formfield>
-                <ha-formfield
-                  .label=${localize('editor.show_button') +
-                  ': ' +
-                  localize('config.view.views.image')}
-                >
-                  <ha-switch
-                    .checked=${getConfigValue(
-                      this._config,
-                      CONF_MENU_BUTTONS_IMAGE,
-                      defaults.menu.buttons.image,
-                    )}
-                    .configValue=${CONF_MENU_BUTTONS_IMAGE}
-                    @change=${this._valueChangedHandler}
-                  ></ha-switch>
-                </ha-formfield>
-                <ha-formfield
-                  .label=${localize('editor.show_button') +
-                  ': ' +
-                  localize(`config.${CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD}`)}
-                >
-                  <ha-switch
-                    .checked=${getConfigValue(
-                      this._config,
-                      CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD,
-                      defaults.menu.buttons.download,
-                    )}
-                    .configValue=${CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD}
-                    @change=${this._valueChangedHandler}
-                  ></ha-switch>
-                </ha-formfield>
-                <ha-formfield
-                  .label=${localize('editor.show_button') +
-                  ': ' +
-                  localize(`config.${CONF_MENU_BUTTONS_FRIGATE_UI}`)}
-                >
-                  <ha-switch
-                    .checked=${getConfigValue(
-                      this._config,
-                      CONF_MENU_BUTTONS_FRIGATE_UI,
-                      defaults.menu.buttons.frigate_ui,
-                    )}
-                    .configValue=${CONF_MENU_BUTTONS_FRIGATE_UI}
-                    @change=${this._valueChangedHandler}
-                  ></ha-switch>
-                </ha-formfield>
-                <ha-formfield
-                  .label=${localize('editor.show_button') +
-                  ': ' +
-                  localize(`config.${CONF_MENU_BUTTONS_FRIGATE_FULLSCREEN}`)}
-                >
-                  <ha-switch
-                    .checked=${getConfigValue(
-                      this._config,
-                      CONF_MENU_BUTTONS_FRIGATE_FULLSCREEN,
-                      defaults.menu.buttons.fullscreen,
-                    )}
-                    .configValue=${CONF_MENU_BUTTONS_FRIGATE_FULLSCREEN}
-                    @change=${this._valueChangedHandler}
-                  ></ha-switch>
-                </ha-formfield>
+                ${this._renderDropdown(CONF_MENU_MODE, menuModes)}
+                ${this._renderStringInput(CONF_MENU_BUTTON_SIZE)}
+                ${this._renderSwitch(
+                  CONF_MENU_BUTTONS_FRIGATE,
+                  defaults.menu.buttons.frigate,
+                  getShowButtonLabel(CONF_MENU_BUTTONS_FRIGATE),
+                )}
+                ${this._renderSwitch(
+                  CONF_MENU_BUTTONS_LIVE,
+                  defaults.menu.buttons.live,
+                  getShowButtonLabel('view.views.live'),
+                )}
+                ${this._renderSwitch(
+                  CONF_MENU_BUTTONS_CLIPS,
+                  defaults.menu.buttons.clips,
+                  getShowButtonLabel('view.views.clips'),
+                )}
+                ${this._renderSwitch(
+                  CONF_MENU_BUTTONS_SNAPSHOTS,
+                  defaults.menu.buttons.snapshots,
+                  getShowButtonLabel('view.views.snapshots'),
+                )}
+                ${this._renderSwitch(
+                  CONF_MENU_BUTTONS_IMAGE,
+                  defaults.menu.buttons.image,
+                  getShowButtonLabel('view.views.image'),
+                )}
+                ${this._renderSwitch(
+                  CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD,
+                  defaults.menu.buttons.download,
+                  getShowButtonLabel(CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD),
+                )}
+                ${this._renderSwitch(
+                  CONF_MENU_BUTTONS_FRIGATE_UI,
+                  defaults.menu.buttons.frigate_ui,
+                  getShowButtonLabel(CONF_MENU_BUTTONS_FRIGATE_UI),
+                )}
+                ${this._renderSwitch(
+                  CONF_MENU_BUTTONS_FRIGATE_FULLSCREEN,
+                  defaults.menu.buttons.fullscreen,
+                  getShowButtonLabel(CONF_MENU_BUTTONS_FRIGATE_FULLSCREEN),
+                )}
               </div>
             `
           : ''}
@@ -539,290 +459,61 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.live.show
           ? html`
               <div class="values">
-                <br />
-                <ha-formfield .label=${localize(`config.${CONF_LIVE_PRELOAD}`)}>
-                  <ha-switch
-                    .checked=${getConfigValue(
-                      this._config,
-                      CONF_LIVE_PRELOAD,
-                      defaults.live.preload,
-                    )}
-                    .configValue=${CONF_LIVE_PRELOAD}
-                    @change=${this._valueChangedHandler}
-                  ></ha-switch>
-                </ha-formfield>
-                <paper-dropdown-menu
-                  .label=${localize(`config.${CONF_LIVE_PROVIDER}`)}
-                  @value-changed=${this._valueChangedHandler}
-                  .configValue=${CONF_LIVE_PROVIDER}
-                >
-                  <paper-listbox
-                    slot="dropdown-content"
-                    .selected=${Object.keys(liveProviders).indexOf(
-                      String(getConfigValue(this._config, CONF_LIVE_PROVIDER, '')),
-                    )}
-                  >
-                    ${Object.keys(liveProviders).map((key) => {
-                      return html`
-                        <paper-item .label="${key}">${liveProviders[key]} </paper-item>
-                      `;
-                    })}
-                  </paper-listbox>
-                </paper-dropdown-menu>
-                <paper-dropdown-menu
-                  .label=${localize(`config.${CONF_LIVE_WEBRTC_ENTITY}`)}
-                  @value-changed=${this._valueChangedHandler}
-                  .configValue=${CONF_LIVE_WEBRTC_ENTITY}
-                >
-                  <paper-listbox
-                    slot="dropdown-content"
-                    .selected=${cameraEntities.indexOf(
-                      String(getConfigValue(this._config, CONF_LIVE_WEBRTC_ENTITY, '')),
-                    )}
-                  >
-                    ${cameraEntities.map((entity) => {
-                      return html` <paper-item>${entity}</paper-item> `;
-                    })}
-                  </paper-listbox>
-                </paper-dropdown-menu>
-                <paper-input
-                  label=${localize(`config.${CONF_LIVE_WEBRTC_URL}`)}
-                  .value=${getConfigValue(this._config, CONF_LIVE_WEBRTC_URL, '')}
-                  .configValue=${CONF_LIVE_WEBRTC_URL}
-                  @value-changed=${this._valueChangedHandler}
-                ></paper-input>
-                <paper-dropdown-menu
-                .label=${localize(
-                  `config.${CONF_LIVE_CONTROLS_THUMBNAILS_MODE}`,
+                ${this._renderSwitch(CONF_LIVE_PRELOAD, defaults.live.preload)}
+                ${this._renderDropdown(CONF_LIVE_PROVIDER, liveProviders)}
+                ${this._renderDropdown(CONF_LIVE_WEBRTC_ENTITY, cameraEntities)}
+                ${this._renderStringInput(CONF_LIVE_WEBRTC_URL)}
+                ${this._renderDropdown(
+                  CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
+                  thumbnailModes,
                 )}
-                @value-changed=${this._valueChangedHandler}
-                .configValue=${CONF_LIVE_CONTROLS_THUMBNAILS_MODE}
-              >
-                <paper-listbox
-                  slot="dropdown-content"
-                  .selected=${Object.keys(thumbnailModes).indexOf(
-                    String(
-                      getConfigValue(
-                        this._config,
-                        CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
-                        '',
-                      ),
-                    ),
-                  )}
-                >
-                  ${Object.keys(thumbnailModes).map((key) => {
-                    return html`
-                      <paper-item .label="${key}">
-                        ${thumbnailModes[key]}
-                      </paper-item>
-                    `;
-                  })}
-                </paper-listbox>
-              </paper-dropdown-menu>
-              <paper-dropdown-menu
-                .label=${localize(
-                  `config.${CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA}`,
+                ${this._renderDropdown(
+                  CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
+                  thumbnailMedias,
                 )}
-                @value-changed=${this._valueChangedHandler}
-                .configValue=${CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA}
-              >
-                <paper-listbox
-                  slot="dropdown-content"
-                  .selected=${Object.keys(thumbnailMedias).indexOf(
-                    String(
-                      getConfigValue(
-                        this._config,
-                        CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
-                        '',
-                      ),
-                    ),
-                  )}
-                >
-                  ${Object.keys(thumbnailMedias).map((key) => {
-                    return html`
-                      <paper-item .label="${key}">
-                        ${thumbnailMedias[key]}
-                      </paper-item>
-                    `;
-                  })}
-                </paper-listbox>
-              </paper-dropdown-menu>
-              <paper-input
-                label=${localize(`config.${CONF_LIVE_CONTROLS_THUMBNAILS_SIZE}`)}
-                .value=${getConfigValue(
-                  this._config,
-                  CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
-                  '',
-                )}
-                .configValue=${CONF_LIVE_CONTROLS_THUMBNAILS_SIZE}
-                @value-changed=${this._valueChangedHandler}
-              ></paper-input>
+                ${this._renderStringInput(CONF_LIVE_CONTROLS_THUMBNAILS_SIZE)}
               </div>
             `
           : ''}
         ${this._renderOptionSetHeader('event_viewer')}
         ${options.event_viewer.show
           ? html` <div class="values">
-              <br />
-              <ha-formfield
-                .label=${localize(`config.${CONF_EVENT_VIEWER_AUTOPLAY_CLIP}`)}
-              >
-                <ha-switch
-                  .checked=${getConfigValue(
-                    this._config,
-                    CONF_EVENT_VIEWER_AUTOPLAY_CLIP,
-                    defaults.event_viewer.autoplay_clip,
-                  )}
-                  .configValue=${CONF_EVENT_VIEWER_AUTOPLAY_CLIP}
-                  @change=${this._valueChangedHandler}
-                ></ha-switch>
-              </ha-formfield>
-              <ha-formfield .label=${localize(`config.${CONF_EVENT_VIEWER_DRAGGABLE}`)}>
-                <ha-switch
-                  .checked=${getConfigValue(
-                    this._config,
-                    CONF_EVENT_VIEWER_DRAGGABLE,
-                    defaults.event_viewer.draggable,
-                  )}
-                  .configValue=${CONF_EVENT_VIEWER_DRAGGABLE}
-                  @change=${this._valueChangedHandler}
-                ></ha-switch>
-              </ha-formfield>
-              <ha-formfield .label=${localize(`config.${CONF_EVENT_VIEWER_LAZY_LOAD}`)}>
-                <ha-switch
-                  .checked=${getConfigValue(
-                    this._config,
-                    CONF_EVENT_VIEWER_LAZY_LOAD,
-                    defaults.event_viewer.lazy_load,
-                  )}
-                  .configValue=${CONF_EVENT_VIEWER_LAZY_LOAD}
-                  @change=${this._valueChangedHandler}
-                ></ha-switch>
-              </ha-formfield>
-              <paper-dropdown-menu
-                .label=${localize(
-                  `config.${CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE}`,
-                )}
-                @value-changed=${this._valueChangedHandler}
-                .configValue=${CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE}
-              >
-                <paper-listbox
-                  slot="dropdown-content"
-                  .selected=${Object.keys(eventViewerNextPreviousControlStyles).indexOf(
-                    String(
-                      getConfigValue(
-                        this._config,
-                        CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
-                        '',
-                      ),
-                    ),
-                  )}
-                >
-                  ${Object.keys(eventViewerNextPreviousControlStyles).map((key) => {
-                    return html`
-                      <paper-item .label="${key}">
-                        ${eventViewerNextPreviousControlStyles[key]}
-                      </paper-item>
-                    `;
-                  })}
-                </paper-listbox>
-              </paper-dropdown-menu>
-              <paper-input
-                label=${localize(`config.${CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE}`)}
-                .value=${getConfigValue(
-                  this._config,
-                  CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
-                  '',
-                )}
-                .configValue=${CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE}
-                @value-changed=${this._valueChangedHandler}
-              ></paper-input>
-              <paper-dropdown-menu
-                .label=${localize(
-                  `config.${CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE}`,
-                )}
-                @value-changed=${this._valueChangedHandler}
-                .configValue=${CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE}
-              >
-                <paper-listbox
-                  slot="dropdown-content"
-                  .selected=${Object.keys(thumbnailModes).indexOf(
-                    String(
-                      getConfigValue(
-                        this._config,
-                        CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE,
-                        '',
-                      ),
-                    ),
-                  )}
-                >
-                  ${Object.keys(thumbnailModes).map((key) => {
-                    return html`
-                      <paper-item .label="${key}">
-                        ${thumbnailModes[key]}
-                      </paper-item>
-                    `;
-                  })}
-                </paper-listbox>
-              </paper-dropdown-menu>
-              <paper-input
-                label=${localize(`config.${CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE}`)}
-                .value=${getConfigValue(
-                  this._config,
-                  CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE,
-                  '',
-                )}
-                .configValue=${CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE}
-                @value-changed=${this._valueChangedHandler}
-              ></paper-input>
+              ${this._renderSwitch(
+                CONF_EVENT_VIEWER_AUTOPLAY_CLIP,
+                defaults.event_viewer.autoplay_clip,
+              )}
+              ${this._renderSwitch(
+                CONF_EVENT_VIEWER_DRAGGABLE,
+                defaults.event_viewer.draggable,
+              )}
+              ${this._renderSwitch(
+                CONF_EVENT_VIEWER_LAZY_LOAD,
+                defaults.event_viewer.lazy_load,
+              )}
+              ${this._renderDropdown(
+                CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
+                eventViewerNextPreviousControlStyles,
+              )}
+              ${this._renderStringInput(CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE)}
+              ${this._renderDropdown(
+                CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE,
+                thumbnailModes,
+              )}
+              ${this._renderStringInput(CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE)}
             </div>`
           : ''}
         ${this._renderOptionSetHeader('image')}
         ${options.image.show
-          ? html` <div class="values">
-              <paper-input
-                label=${localize(`config.${CONF_IMAGE_SRC}`)}
-                prevent-invalid-input
-                .value=${getConfigValue(this._config, CONF_IMAGE_SRC, '')}
-                .configValue=${CONF_IMAGE_SRC}
-                @value-changed=${this._valueChangedHandler}
-              ></paper-input>
-            </div>`
+          ? html` <div class="values">${this._renderStringInput(CONF_IMAGE_SRC)}</div>`
           : ''}
         ${this._renderOptionSetHeader('dimensions')}
         ${options.dimensions.show
           ? html` <div class="values">
-              <paper-dropdown-menu
-                .label=${localize(`config.${CONF_DIMENSIONS_ASPECT_RATIO_MODE}`)}
-                @value-changed=${this._valueChangedHandler}
-                .configValue=${CONF_DIMENSIONS_ASPECT_RATIO_MODE}
-              >
-                <paper-listbox
-                  slot="dropdown-content"
-                  .selected=${Object.keys(aspectRatioModes).indexOf(
-                    String(
-                      getConfigValue(
-                        this._config,
-                        CONF_DIMENSIONS_ASPECT_RATIO_MODE,
-                        '',
-                      ),
-                    ),
-                  )}
-                >
-                  ${Object.keys(aspectRatioModes).map((key) => {
-                    return html`
-                      <paper-item .label="${key}"> ${aspectRatioModes[key]} </paper-item>
-                    `;
-                  })}
-                </paper-listbox>
-              </paper-dropdown-menu>
-              <paper-input
-                label=${localize(`config.${CONF_DIMENSIONS_ASPECT_RATIO}`)}
-                prevent-invalid-input
-                .value=${getConfigValue(this._config, CONF_DIMENSIONS_ASPECT_RATIO, '')}
-                .configValue=${CONF_DIMENSIONS_ASPECT_RATIO}
-                @value-changed=${this._valueChangedHandler}
-              ></paper-input>
+              ${this._renderDropdown(
+                CONF_DIMENSIONS_ASPECT_RATIO_MODE,
+                aspectRatioModes,
+              )}
+              ${this._renderStringInput(CONF_DIMENSIONS_ASPECT_RATIO)}
             </div>`
           : ''}
       </div>
