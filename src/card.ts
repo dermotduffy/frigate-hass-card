@@ -619,7 +619,7 @@ export class FrigateCard extends LitElement {
       link.href = response;
       link.click();
       link.remove();
-    }{}
+    }
   }
 
   /**
