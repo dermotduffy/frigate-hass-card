@@ -4,7 +4,7 @@ import { EmblaCarouselType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { customElement, property } from 'lit/decorators.js';
-import { ifDefined } from 'lit-html/directives/if-defined.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { until } from 'lit/directives/until.js';
 
 import type {
