@@ -165,6 +165,29 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     return entities;
   }
 
+  /**
+   * Render an option set header
+   * @param optionSetName The name of the EditorOptionsSet.
+   * @returns A rendered template.
+   */
+  protected _renderOptionSetHeader(optionSetName: string): TemplateResult {
+    const optionSet = options[optionSetName];
+
+    return html`
+      <div
+        class="option"
+        @click=${this._toggleOptionHandler}
+        .optionSetName=${optionSetName}
+      >
+          <div class="row">
+            <ha-icon .icon=${`mdi:${optionSet.icon}`}></ha-icon>
+            <div class="title">${optionSet.name}</div>
+          </div>
+          <div class="secondary">${optionSet.secondary}</div>
+        </div>
+    `;
+  }
+
   protected render(): TemplateResult | void {
     if (!this.hass || !this._helpers || !this._config) {
       return html``;
@@ -268,17 +291,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             <br />`
         : html``}
       <div class="card-config">
-        <div
-          class="option"
-          @click=${this._toggleOptionHandler}
-          .optionSetName=${'basic'}
-        >
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.basic.icon}`}></ha-icon>
-            <div class="title">${options.basic.name}</div>
-          </div>
-          <div class="secondary">${options.basic.secondary}</div>
-        </div>
+        ${this._renderOptionSetHeader('basic')}
         ${options.basic.show
           ? html`
               <div class="values">
@@ -301,17 +314,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
             `
           : ''}
-        <div
-          class="option"
-          @click=${this._toggleOptionHandler}
-          .optionSetName=${'frigate'}
-        >
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.frigate.icon}`}></ha-icon>
-            <div class="title">${options.frigate.name}</div>
-          </div>
-          <div class="secondary">${options.frigate.secondary}</div>
-        </div>
+        ${this._renderOptionSetHeader('frigate')}
         ${options.frigate.show
           ? html`
               <div class="values">
@@ -348,13 +351,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
             `
           : ''}
-        <div class="option" @click=${this._toggleOptionHandler} .optionSetName=${'view'}>
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.view.icon}`}></ha-icon>
-            <div class="title">${options.view.name}</div>
-          </div>
-          <div class="secondary">${options.view.secondary}</div>
-        </div>
+        ${this._renderOptionSetHeader('view')}
         ${options.view.show
           ? html`
               <div class="values">
@@ -387,13 +384,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
             `
           : ''}
-        <div class="option" @click=${this._toggleOptionHandler} .optionSetName=${'menu'}>
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.menu.icon}`}></ha-icon>
-            <div class="title">${options.menu.name}</div>
-          </div>
-          <div class="secondary">${options.menu.secondary}</div>
-        </div>
+        ${this._renderOptionSetHeader('menu')}
         ${options.menu.show
           ? html`
               <div class="values">
@@ -544,13 +535,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
             `
           : ''}
-        <div class="option" @click=${this._toggleOptionHandler} .optionSetName=${'live'}>
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.live.icon}`}></ha-icon>
-            <div class="title">${options.live.name}</div>
-          </div>
-          <div class="secondary">${options.live.secondary}</div>
-        </div>
+        ${this._renderOptionSetHeader('live')}
         ${options.live.show
           ? html`
               <div class="values">
@@ -675,17 +660,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
             `
           : ''}
-        <div
-          class="option"
-          @click=${this._toggleOptionHandler}
-          .optionSetName=${'event_viewer'}
-        >
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.event_viewer.icon}`}></ha-icon>
-            <div class="title">${options.event_viewer.name}</div>
-          </div>
-          <div class="secondary">${options.event_viewer.secondary}</div>
-        </div>
+        ${this._renderOptionSetHeader('event_viewer')}
         ${options.event_viewer.show
           ? html` <div class="values">
               <br />
@@ -802,17 +777,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ></paper-input>
             </div>`
           : ''}
-        <div
-          class="option"
-          @click=${this._toggleOptionHandler}
-          .optionSetName=${'image'}
-        >
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.image.icon}`}></ha-icon>
-            <div class="title">${options.image.name}</div>
-          </div>
-          <div class="secondary">${options.image.secondary}</div>
-        </div>
+        ${this._renderOptionSetHeader('image')}
         ${options.image.show
           ? html` <div class="values">
               <paper-input
@@ -824,17 +789,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ></paper-input>
             </div>`
           : ''}
-        <div
-          class="option"
-          @click=${this._toggleOptionHandler}
-          .optionSetName=${'dimensions'}
-        >
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.dimensions.icon}`}></ha-icon>
-            <div class="title">${options.dimensions.name}</div>
-          </div>
-          <div class="secondary">${options.dimensions.secondary}</div>
-        </div>
+        ${this._renderOptionSetHeader('dimensions')}
         ${options.dimensions.show
           ? html` <div class="values">
               <paper-dropdown-menu
