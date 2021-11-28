@@ -53,6 +53,7 @@ import {
   CONF_MENU_MODE,
   CONF_VIEW_DEFAULT,
   CONF_VIEW_TIMEOUT,
+  CONF_VIEW_UPDATE_FORCE,
 } from './const.js';
 
 interface EditorOptionsSet {
@@ -403,6 +404,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               <div class="values">
                 ${this._renderDropdown(CONF_VIEW_DEFAULT, viewModes)}
                 ${this._renderStringInput(CONF_VIEW_TIMEOUT, '[0-9]')}
+                ${this._renderSwitch(
+                  CONF_VIEW_UPDATE_FORCE,
+                  defaults.view.update_force)}
               </div>
             `
           : ''}
