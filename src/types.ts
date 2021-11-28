@@ -323,6 +323,7 @@ const frigateConfigDefaultSchema = z
 const viewConfigDefault = {
   default: 'live' as const,
   timeout: 180,
+  update_force: false,
 };
 const viewConfigSchema = z
   .object({
@@ -340,6 +341,7 @@ const viewConfigSchema = z
       )
       .optional()
       .default(viewConfigDefault.timeout),
+    update_force: z.boolean().default(viewConfigDefault.update_force),
   })
   .merge(actionsSchema)
   .default(viewConfigDefault);

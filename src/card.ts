@@ -507,6 +507,10 @@ export class FrigateCard extends LitElement {
     if (this.config.camera_entity) {
       this._entitiesToMonitor.push(this.config.camera_entity);
     }
+    if (this.config.view.update_force) {
+      // If update force is enabled, start a timer right away.
+      this._resetInteractionTimer();
+    }
     this._changeView();
   }
 
@@ -538,7 +542,8 @@ export class FrigateCard extends LitElement {
     if (!this.config) {
       return false;
     }
-    if (changedProps.has('config')) {
+
+    if (changedProps.size > 1) {
       return true;
     }
 
@@ -550,7 +555,7 @@ export class FrigateCard extends LitElement {
       // are browsing the mini-gallery). Do not allow re-rendering from a Home
       // Assistant update if there's been recent interaction (e.g. clicks on the
       // card) or if there is media active playing.
-      if (this._interactionTimerID || this._mediaPlaying) {
+      if (!this.config.view.update_force && (this._interactionTimerID || this._mediaPlaying)) {
         return false;
       }
       return shouldUpdateBasedOnHass(this._hass, oldHass, this._entitiesToMonitor);
@@ -709,7 +714,10 @@ export class FrigateCard extends LitElement {
     ) {
       handleAction(node, this._hass as HomeAssistant, config, ev.detail.action);
     }
+    this._resetInteractionTimer();
+  }
 
+  protected _resetInteractionTimer(): void {
     if (this.config.view.timeout) {
       if (this._interactionTimerID) {
         window.clearTimeout(this._interactionTimerID);
@@ -717,6 +725,10 @@ export class FrigateCard extends LitElement {
       this._interactionTimerID = window.setTimeout(() => {
         this._interactionTimerID = null;
         this._changeView();
+        if (this.config.view.update_force) {
+          // If force is enabled, the timer just resets and starts over.
+          this._resetInteractionTimer();
+        }
       }, this.config.view.timeout * 1000);
     }
   }

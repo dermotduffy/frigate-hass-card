@@ -458,22 +458,6 @@ This card supports several different views:
 |`clip`|Shows an event viewer for the most recent clip for this camera/zone/label. Can also be accessed by holding down the `clips` menu icon.|
 |`image`|Shows a static image specified by the `image` parameter, can be used as a discrete default view or a screensaver (via `view_timeout`).|
 
-### Automatic Updates In The `clip` Or `snapshot` View
-
-Updates will occur whenever on every change of the state of the `camera_entity`
-or any entity configured under `update_entities`. In particular, if the desire is
-to have an auto-refreshing view of the most recent event, the `camera_entity`
-will not be sufficient alone since the Home Assistant state for Frigate camera
-entities does not change often. Instead, use the Frigate binary_sensor for that
-camera (or any other entity at your discretion) to trigger the update:
-
-```yaml
-update_entities:
-  - binary_sensor.office_person_motion
-```
-
-See the [other options](#other-options) above.
-
 ### Navigating From A Snapshot To A Clip
 
 Clicking on a snapshot will take the user to a clip that was taken at the ~same
@@ -812,6 +796,47 @@ menu:
 ```
 
 </details>
+
+## Card Refreshes / Updates
+
+Automated card refreshes / updates are minimized to avoid disruption to the
+user, in particular when media is playing. Three sets of flags govern when the
+card will automatically re-render in the absence of human interaction.
+
+The following table describes the behavior these 3 flags have.
+
+### Card Update Truth Table
+
+| `view.timeout` | `view.update_force` | `update_entities` & `camera_entity` | Behavior |
+| :-: | :-: | :-: | - |
+| Unset or `0` | *(Any value)* | Unset | Card will not automatically re-render. |
+| Unset or `0` | `false` | *(Any entity)* | Card will reload **current** view when entity state changes, unless media is playing. |
+| Unset or `0` | `true` | *(Any entity)* | Card will reload **current** view when entity state changes. |
+| `X` seconds | `false` | Unset | Card will reload **default** view `X` seconds after human interaction stops, unless media is playing. |
+| `X` seconds | `false` | *(Any entity)* | Card will reload **default** view `X` seconds after human interaction stops and reload the **current** view when entity state changes -- in both cases unless media is playing. |
+| `X` seconds | `true` | Unset | Card will reload **default** view every `X` seconds. |
+| `X` seconds | `true` | *(Any entity)* | Card will reload **default** view every `X` seconds and reload the **current** view when entity state changes.  |
+
+### Usecases For Automated Refreshes
+
+ * Refreshing the `live` thumbnails periodically.
+```yaml
+view:
+  default: live
+  timeout: 30
+  force: true
+```
+ * Using `clip` or `snapshot` as the default view (for the most recent clip or
+   snapshot respectively) and having the card automatically refresh (to fetch a
+   newer clip/snapshot) when an entity state changes. A Frigate `camera_entity`
+   is generally not sufficient for this since the Home Assistant state for
+   Frigate camera entities does not change often. Instead, use the Frigate
+   binary_sensor for that camera (or any other entity at your discretion) to
+   trigger the update:
+```yaml
+update_entities:
+  - binary_sensor.office_person_motion
+```
 
 ## Troubleshooting
 
