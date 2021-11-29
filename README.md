@@ -100,12 +100,13 @@ All configuration is under:
 view:
 ```
 
-
 | Option | Default | Description |
 | - | - | - |
 | `default` | `live` | The view to show in the card by default. See [views](#views) below.|
 | `timeout` | | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
 | `actions` | | Actions to use for all views, individual actions may be overriden by view-specific actions. See [actions](#actions) below.|
+| `update_force` | `false` | Whether card updates/refreshes should ignore playing media and human interaction. See [card updates](#card-updates) below for behavior and usecases.|
+| `update_entities` | | **YAML only**: A list of entity ids that should cause the whole card to re-render. Entities used in picture elements / included in the menu do not need to be explicitly included here to be kept updated. See [card updates](#card-updates) below for behavior and usecases.|
 
 ### Menu Options
 
@@ -323,14 +324,6 @@ The card aspect ratio can be changed with the `dimensions.aspect_ratio_mode` and
 
 If no aspect ratio is specified or available, but one is needed then `16:9` will
 be used by default.
-
-<a name="other-options"></a>
-
-### Other Options
-
-| Option | Default | Description |
-| - | - | - |
-| `update_entities` | | A list of entity ids that should cause the whole card to re-render, this can be useful in the `clip` or `snapshot` mode to (for example) cause a motion sensor to trigger a card refresh. Configurable in YAML only. Entities used in picture elements / included in the menu do not need to be explicitly included here to be kept updated. |
 
 <a name="webrtc"></a>
 
@@ -797,6 +790,8 @@ menu:
 
 </details>
 
+<a name="card-updates"></a>
+
 ## Card Refreshes / Updates
 
 Automated card refreshes / updates are minimized to avoid disruption to the
@@ -807,7 +802,7 @@ The following table describes the behavior these 3 flags have.
 
 ### Card Update Truth Table
 
-| `view.timeout` | `view.update_force` | `update_entities` & `camera_entity` | Behavior |
+| `view.timeout` | `view.update_force` | `view.update_entities` & `camera_entity` | Behavior |
 | :-: | :-: | :-: | - |
 | Unset or `0` | *(Any value)* | Unset | Card will not automatically re-render. |
 | Unset or `0` | `false` | *(Any entity)* | Card will reload **current** view when entity state changes, unless media is playing. |
@@ -834,8 +829,9 @@ view:
    binary_sensor for that camera (or any other entity at your discretion) to
    trigger the update:
 ```yaml
-update_entities:
-  - binary_sensor.office_person_motion
+view:
+  update_entities:
+    - binary_sensor.office_person_motion
 ```
 
 ## Troubleshooting
