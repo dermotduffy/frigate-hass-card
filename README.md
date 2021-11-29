@@ -134,8 +134,14 @@ menu:
 
 | Option | Default | Description |
 | - | - | - |
-| `{frigate, live, clips, snapshots, image, download, frigate_ui, fullscreen}` | `true`, except for `image` | Whether or not to show these builtin actions in the card menu. |
-
+| `frigate` | `true` | Whether to show the `Frigate` menu button: brings the user to the default configured view (`view.default`), or collapses/expands the menu if the `menu.mode` is `hidden-*` . |
+| `live` | `true` | Whether to show the `live` view menu button: brings the user to the `live` view. See [views](#views) below.|
+| `clips` | `true` | Whether to show the `clips` view menu button: brings the user to the `clips` view on tap and the most-recent `clip` view on hold. See [views](#views) below.|
+| `snapshots` | `true` | Whether to show the `snapshots` view menu button: brings the user to the `clips` view on tap and the most-recent `snapshot` view on hold. See [views](#views) below.|
+| `image` | `false` | Whether to show the `image` view menu button: brings the user to the static `image` view. See [views](#views) below.|
+| `download` | `true` | Whether to show the `download` menu button: allow direct download of the media being displayed.|
+| `frigate_ui` | `true` | Whether to show the `frigate_ui` menu button: brings the user to a context-appropriate page on the Frigate UI (e.g. the camera homepage). Will only appear if the `frigate.url` option is set.|
+| `fullscreen` | `true` | Whether to show the `fullscreen` menu button: expand the card to consume the fullscreen. |
 
 ### Live Options
 
