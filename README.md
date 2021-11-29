@@ -870,6 +870,27 @@ Unfortunately, [iOS does not support the Javascript fullscreen
 API](https://caniuse.com/fullscreen). As a result, card-level fullscreen support
 for the iPhone is not currently possible.
 
+### Android Will Not Render >4 JSMPEG Live Views
+
+Android Webview (as used by Android Chrome / Android Home Assistant Companion)
+appears to severely limit the number of simultaneous OpenGL contexts that can be
+opened. The JSMPEG player (that this card uses), consumes 1 OpenGL context per
+rendering.
+
+This limitation may be worked around (at a performance penalty) by disabling
+OpenGL for JSMPEG live views:
+
+```yaml
+live:
+  jsmpeg:
+    options:
+      disableGl: true
+```
+
+[This bug](https://github.com/dermotduffy/frigate-hass-card/issues/191) has some
+more discussion on this topic. New ideas to address this underlying limitation
+most welcome!
+
 ## Development
 
 ### Building
