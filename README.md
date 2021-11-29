@@ -32,7 +32,7 @@ A full-featured Frigate Lovelace card:
 * Theme friendly.
 * **Advanced**: Support for [WebRTC](https://github.com/AlexxIT/WebRTC) live viewing by embedding the WebRTC card.
 
-## Screenshots
+## Screenshots Below!
 
 See more [screenshots](#screenshots) below.
 
