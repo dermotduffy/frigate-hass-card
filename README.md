@@ -32,6 +32,10 @@ A full-featured Frigate Lovelace card:
 * Theme friendly.
 * **Advanced**: Support for [WebRTC](https://github.com/AlexxIT/WebRTC) live viewing by embedding the WebRTC card.
 
+## Screenshots
+
+See more [screenshots](#screenshots) below.
+
 ## Installation
 
 * Use [HACS](https://hacs.xyz/) to install the card:
@@ -508,7 +512,9 @@ This card supports several menu configurations.
 |`below`| Render the menu below the card. The 'F' button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-below.png" alt="Menu below" width="400px"> |
 |`none`| No menu is shown. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-none.png" alt="No Menu" width="400px"> |
 
-## Screenshot: Snapshot / Clip Gallery
+<a name="screenshots"></a>
+
+## Screenshots
 
 ### Full Viewing Of Events
 
@@ -522,15 +528,15 @@ This card supports several menu configurations.
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/viewer-thumbnails.gif" alt="Viewer with event thumbnails" width="400px">
 
+### Hover Menu / Thumbnail Next & Previous Controls
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/viewer-with-thumbnail-next-prev.gif" alt="Viewer with event thumbnails" width="400px">
+
 ## Card Editing
 
 This card supports full editing via the Lovelace card editor. Additional arbitrary configuration for WebRTC may be specified in YAML mode.
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/editor.png" alt="Live viewing" width="400px">
-
-### Hover Menu / Thumbnail Next & Previous Controls
-
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/viewer-with-thumbnail-next-prev.gif" alt="Viewer with event thumbnails" width="400px">
 
 ## Examples
 
