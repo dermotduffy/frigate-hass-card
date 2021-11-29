@@ -12,6 +12,7 @@ export const CONF_FRIGATE_ZONE = 'frigate.zone';
 export const CONF_VIEW_DEFAULT = 'view.default';
 export const CONF_VIEW_TIMEOUT = 'view.timeout';
 export const CONF_VIEW_UPDATE_FORCE = 'view.update_force';
+export const CONF_VIEW_UPDATE_ENTITIES = 'view.update_entities';
 
 export const CONF_EVENT_VIEWER_AUTOPLAY_CLIP = 'event_viewer.autoplay_clip';
 export const CONF_EVENT_VIEWER_DRAGGABLE = 'event_viewer.draggable';

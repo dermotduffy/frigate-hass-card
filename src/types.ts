@@ -342,6 +342,7 @@ const viewConfigSchema = z
       .optional()
       .default(viewConfigDefault.timeout),
     update_force: z.boolean().default(viewConfigDefault.update_force),
+    update_entities: z.string().array().optional(),
   })
   .merge(actionsSchema)
   .default(viewConfigDefault);
@@ -569,9 +570,6 @@ export const frigateCardConfigSchema = z.object({
   image: imageConfigSchema,
   elements: pictureElementsSchema,
   dimensions: dimensionsConfigSchema,
-
-  // Entities that should trigger a card update.
-  update_entities: z.string().array().optional(),
 
   // Stock lovelace card config.
   type: z.string(),

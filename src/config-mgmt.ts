@@ -16,6 +16,7 @@ import {
   CONF_MENU_MODE,
   CONF_VIEW_DEFAULT,
   CONF_VIEW_TIMEOUT,
+  CONF_VIEW_UPDATE_ENTITIES,
 } from './const';
 import { RawFrigateCardConfig } from './types';
 
@@ -170,4 +171,7 @@ const UPGRADES = [
   upgradeMoveTo('menu_buttons', 'menu.buttons'),
   upgradeMoveTo('menu_button_size', CONF_MENU_BUTTON_SIZE),
   upgradeMoveTo('image', CONF_IMAGE_SRC, isNotObject),
+
+  // v2.0.0 -> v2.1.0
+  upgradeMoveTo('update_entities', CONF_VIEW_UPDATE_ENTITIES),
 ];

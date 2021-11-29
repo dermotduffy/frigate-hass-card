@@ -503,7 +503,7 @@ export class FrigateCard extends LitElement {
     this._frigateCameraName = undefined;
     this.config = config;
 
-    this._entitiesToMonitor = this.config.update_entities || [];
+    this._entitiesToMonitor = this.config.view.update_entities || [];
     if (this.config.camera_entity) {
       this._entitiesToMonitor.push(this.config.camera_entity);
     }
