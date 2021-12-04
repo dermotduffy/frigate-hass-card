@@ -94,7 +94,7 @@ frigate:
 | `url` | | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. |
 | `label` | | A Frigate label / object filter used to filter events (clips & snapshots), e.g. 'person'.|
 | `zone` | | A Frigate zone used to filter events (clips & snapshots), e.g. 'front_door'.|
-| `client_id` | `frigate` | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://blakeblackshear.github.io/frigate/usage/home-assistant/#multiple-instance-support).|
+| `client_id` | `frigate` | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://docs.frigate.video/integrations/home-assistant/#multiple-instance-support).|
 
 ### View Options
 
