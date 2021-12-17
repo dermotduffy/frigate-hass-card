@@ -25,7 +25,7 @@ declare global {
 }
 
 class ActionHandler extends HTMLElement implements ActionHandler {
-  public holdTime = 400;
+  public holdTime = 500;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public ripple: any;
@@ -66,9 +66,11 @@ class ActionHandler extends HTMLElement implements ActionHandler {
       document.addEventListener(
         ev,
         () => {
-          clearTimeout(this.timer);
-          this.stopAnimation();
-          this.timer = undefined;
+          if (this.timer) {
+            this.stopAnimation();
+            clearTimeout(this.timer);
+            this.timer = undefined;
+          }
         },
         { passive: true },
       );
@@ -95,7 +97,6 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     });
 
     const start = (ev: Event): void => {
-      this.held = false;
       let x;
       let y;
       if ((ev as TouchEvent).touches) {
@@ -106,22 +107,29 @@ class ActionHandler extends HTMLElement implements ActionHandler {
         y = (ev as MouseEvent).pageY;
       }
 
-      this.timer = window.setTimeout(() => {
-        this.startAnimation(x, y);
-        this.held = true;
-      }, this.holdTime);
+      if (options.hasHold) {
+        this.held = false;
+        this.timer = window.setTimeout(() => {
+          this.startAnimation(x, y);
+          this.held = true;
+        }, this.holdTime);
+      }
     };
 
     const end = (ev: Event): void => {
-      // Prevent mouse event if touch event
-      ev.preventDefault();
-      if (['touchend', 'touchcancel'].includes(ev.type) && this.timer === undefined) {
+      if (['touchend', 'touchcancel'].includes(ev.type) 
+          // This action handler by default relies on synthetic click events for
+          // touch devices, in order to ensure that embedded cards (e.g. WebRTC)
+          // can use stock click handlers. The exception is for hold events.
+          && !(options.hasHold && this.held)) {
         return;
       }
-      clearTimeout(this.timer);
-      this.stopAnimation();
-      this.timer = undefined;
-      if (this.held) {
+      if (options.hasHold) {
+        clearTimeout(this.timer);
+        this.stopAnimation();
+        this.timer = undefined;
+      }
+      if (options.hasHold && this.held) {
         fireEvent(element, 'action', { action: 'hold' });
       } else if (options.hasDoubleClick) {
         if (
