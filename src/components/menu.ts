@@ -14,7 +14,10 @@ import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
 
 import { actionHandler } from '../action-handler-directive.js';
 
+import './submenu.js';
+
 import type {
+  Actions,
   ExtendedHomeAssistant,
   MenuButton,
   MenuConfig,
@@ -61,9 +64,20 @@ export class FrigateCardMenu extends LitElement {
    * @param ev The action event.
    * @param button The button configuration.
    */
-  protected _actionHandler(ev: CustomEvent, button: MenuButton): void {
+  protected _actionHandler(
+    ev: CustomEvent<{ action: string; config?: Actions }>,
+    config?: Actions,
+  ): void {
     if (!ev) {
       return;
+    }
+
+    // If the event itself contains a configuration then use that. This is
+    // useful in cases where the registration of the event handler does not have
+    // access to the actual desired configuration (e.g. action events generated
+    // by a submenu).
+    if (ev.detail.config) {
+      config = ev.detail.config;
     }
 
     // These interactions should only be handled by the card, as nothing
@@ -71,8 +85,8 @@ export class FrigateCardMenu extends LitElement {
     ev.stopPropagation();
 
     const interaction: string = ev.detail.action;
-    const action = getActionConfigGivenAction(interaction, button);
-    if (!action || !interaction) {
+    const action = getActionConfigGivenAction(interaction, config);
+    if (!config || !action || !interaction) {
       return;
     }
 
@@ -92,7 +106,7 @@ export class FrigateCardMenu extends LitElement {
 
     // Collapse menu after the user clicks on something.
     this.expand = false;
-    handleAction(this, this.hass as HomeAssistant, button, interaction);
+    handleAction(this, this.hass as HomeAssistant, config, interaction);
   }
 
   /**
@@ -134,10 +148,18 @@ export class FrigateCardMenu extends LitElement {
    * @returns A rendered template or void.
    */
   protected _renderButton(button: MenuButton): TemplateResult | void {
+    if (button.type == 'custom:frigate-card-menu-submenu') {
+      return html` <frigate-card-submenu
+        .submenu=${button}
+        @action=${this._actionHandler.bind(this)}
+      >
+      </frigate-card-submenu>`;
+    }
+
     let state: HassEntity | null = null;
     let title = button.title;
     let icon = button.icon;
-    let style = ('style' in button ? button.style : {}) || {};
+    let style = button.style || {};
 
     if (icon == FRIGATE_BUTTON_MENU_ICON) {
       icon =
@@ -199,7 +221,10 @@ export class FrigateCardMenu extends LitElement {
     }
     const mode = this._menuConfig.mode;
 
-    if (mode == 'none' || !evaluateCondition(this._menuConfig.conditions, this.conditionState)) {
+    if (
+      mode == 'none' ||
+      !evaluateCondition(this._menuConfig.conditions, this.conditionState)
+    ) {
       return;
     }
 
@@ -232,7 +257,7 @@ export class FrigateCardMenu extends LitElement {
   /**
    * Get styles.
    */
-   static get styles(): CSSResultGroup {
+  static get styles(): CSSResultGroup {
     return unsafeCSS(menuStyle);
   }
 }

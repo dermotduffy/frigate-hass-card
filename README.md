@@ -402,7 +402,21 @@ This card supports all [Picture Elements](https://www.home-assistant.io/lovelace
 | ------------- | --------------------------------------------- |
 | `custom:frigate-card-menu-icon` | Add an arbitrary icon to the Frigate Card menu. Configuration is ~identical to that of the [Picture Elements Icon](https://www.home-assistant.io/lovelace/picture-elements/#icon-element) except with a type name of `custom:frigate-card-menu-icon`.|
 | `custom:frigate-card-menu-state-icon` | Add a state icon to the Frigate Card menu that represents the state of a Home Assistant entity. Configuration is ~identical to that of the [Picture Elements State Icon](https://www.home-assistant.io/lovelace/picture-elements/#state-icon) except with a type name of `custom:frigate-card-menu-state-icon`.|
+| `custom:frigate-card-menu-submenu` | Add a configurable submenu dropdown. See [configuration below](#frigate-card-menu-submenu).|
 | `custom:frigate-card-conditional` | Restrict a set of elements to only render when the card is showing particular a particular [view](#views). See [configuration below](#frigate-card-conditional).|
+
+<a name="frigate-card-submenu"></a>
+
+#### `custom:frigate-card-menu-submenu`
+
+Parameters for the `custom:frigate-card-menu-submenu` element are identical to the parameters of the [stock Home Assistant Icon Element](https://www.home-assistant.io/lovelace/picture-elements/#icon-element) with the exception of these parameters which differ:
+
+| Parameter | Description |
+| - | - |
+| `type` | Must be `custom:frigate-card-menu-submenu`. |
+| `items` | A list of menu items. Each menu item in turn also follows the parameters the [stock Home Assistant Icon Element](https://www.home-assistant.io/lovelace/picture-elements/#icon-element). Typical usage would set the `title` parameter to control the text displayed for the menu item, the `icon` parameter to control the icon displayed for the menu item and one or more actions (e.g. `tap_action`, `double_tap_action` or `hold_action`) to configure the action to take. Unlike the stock Icon Element, the `icon` parameter is optional for individual menu items; if unspecified no icon is displayed for that menu item.|
+
+See the [Configuring a Submenu example](#configuring-a-submenu-example).
 
 <a name="frigate-card-conditional"></a>
 
@@ -538,6 +552,12 @@ This card supports full editing via the Lovelace card editor. Additional arbitra
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/editor.png" alt="Live viewing" width="400px">
 
+## Configurable Submenus
+
+This card supports fully configurable submenus.
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/submenu.gif" alt="Configurable submenus" width="400px">
+
 ## Examples
 
 ### WebRTC
@@ -614,7 +634,7 @@ elements:
 
 ### Adding State Badges
 
-You can adds a state badge to the card showing arbitrary entity states.
+You can add a state badge to the card showing arbitrary entity states.
 
 <details>
   <summary>Expand: State badge</summary>
@@ -806,6 +826,42 @@ view:
 menu:
   conditions:
     fullscreen: true
+```
+
+</details>
+
+<a name="configuring-a-submenu-example"></a>
+
+### Configuring a submenu
+
+You can add submenus to the menu -- buttons that when pressed reveal a dropdown submenu of configurable options.
+
+<details>
+  <summary>Expand: Adding a submenu</summary>
+
+This example shows a submenu that illustrates a variety of actions.
+
+```yaml
+[...]
+elements:
+  - type: custom:frigate-card-menu-submenu
+    icon: mdi:menu
+    items:
+      - title: Lights
+        icon: mdi:lightbulb
+        entity: light.office_main_lights
+        tap_action:
+          action: toggle
+      - title: Google
+        icon: mdi:google
+        tap_action:
+          action: url
+          url_path: https://www.google.com
+      - title: Fullscreen
+        icon: mdi:fullscreen
+        tap_action:
+          action: custom:frigate-card-action
+          frigate_card_action: fullscreen
 ```
 
 </details>
