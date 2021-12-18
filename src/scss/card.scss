@@ -61,7 +61,9 @@ ha-card {
   display: flex;
   flex-direction: column;
   margin: auto;
-  overflow: hidden;
+
+  // Some elements (such as menus) may need to extend beyond the card boundary.
+  overflow: visible;
   width: 100%;
   height: 100%;
   position: relative;

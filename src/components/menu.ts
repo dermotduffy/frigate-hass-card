@@ -14,7 +14,10 @@ import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
 
 import { actionHandler } from '../action-handler-directive.js';
 
+import './submenu.js';
+
 import type {
+  Actions,
   ExtendedHomeAssistant,
   MenuButton,
   MenuConfig,
@@ -61,9 +64,17 @@ export class FrigateCardMenu extends LitElement {
    * @param ev The action event.
    * @param button The button configuration.
    */
-  protected _actionHandler(ev: CustomEvent, button: MenuButton): void {
+  protected _actionHandler(ev: CustomEvent<{action: string, config?: Actions}>, config?: Actions): void {
     if (!ev) {
       return;
+    }
+
+    // If the event itself contains a configuration then use that. This is
+    // useful in cases where the registration of the event handler does not have
+    // access to the actual desired configuration (e.g. action events generated
+    // by a submenu).
+    if (ev.detail.config) {
+      config = ev.detail.config;
     }
 
     // These interactions should only be handled by the card, as nothing
@@ -71,8 +82,8 @@ export class FrigateCardMenu extends LitElement {
     ev.stopPropagation();
 
     const interaction: string = ev.detail.action;
-    const action = getActionConfigGivenAction(interaction, button);
-    if (!action || !interaction) {
+    const action = getActionConfigGivenAction(interaction, config);
+    if (!config || !action || !interaction) {
       return;
     }
 
@@ -92,7 +103,7 @@ export class FrigateCardMenu extends LitElement {
 
     // Collapse menu after the user clicks on something.
     this.expand = false;
-    handleAction(this, this.hass as HomeAssistant, button, interaction);
+    handleAction(this, this.hass as HomeAssistant, config, interaction);
   }
 
   /**
@@ -168,6 +179,15 @@ export class FrigateCardMenu extends LitElement {
     const classes = {
       button: true,
     };
+
+    if (button.type == 'custom:frigate-card-menu-submenu') {
+      return html`
+        <frigate-card-submenu
+          .submenu=${button}
+          @action=${this._actionHandler.bind(this)}
+        >
+        </frigate-card-submenu>`;
+    }
 
     // TODO: Upon a safe distance from the release of HA 2021.11 these
     // attributes can be removed from the <ha-icon-button>.

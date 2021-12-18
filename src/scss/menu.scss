@@ -8,35 +8,71 @@
 
 .frigate-card-menu {
   z-index: 1;
-  height: calc(var(--frigate-card-menu-button-size) + 6px);
-  overflow: hidden;
   /* Menu div itself does not handle click events. Without this, in overlay
      mode, the menu div prevents clicking on gallery items 'behind' the overlay.
      */
   pointer-events: none;
+
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 .frigate-card-menu.overlay-hidden {
   position: absolute;
+  overflow: hidden;
   width: calc(var(--frigate-card-menu-button-size) + 6px);
+  height: calc(var(--frigate-card-menu-button-size) + 6px);
 }
-.frigate-card-menu.overlay-hidden.left, .frigate-card-menu.overlay-hidden.top {
+.frigate-card-menu.overlay-hidden.left {
+  left: 0px;
+  top: 0px;
+
+  // Awful hack: Flexbox column wrapping doesn't work properly in most major
+  // browsers -- the element boundary does not expand to cover the full wrapped
+  // content as it should. This results in the wrapped 'content' appearing
+  // outside the element background (the linear gradient in this case). The
+  // workaround is to use flex row direction for both rows & columns, and use
+  // vertical-lr/vertical-rl as the writing mode for columns -- resetting
+  // writing-mode for descendant elements.
+  //
+  // For more information see the Chromium bug as an example:
+  // - https://bugs.chromium.org/p/chromium/issues/detail?id=507397
+  writing-mode: vertical-lr;
+}
+.frigate-card-menu.overlay-hidden.top {
   left: 0px;
   top: 0px;
 }
 .frigate-card-menu.overlay-hidden.right {
   right: 0px;
   top: 0px;
+
+  // See "Awful hack" above.
+  writing-mode: vertical-rl;
 }
+.frigate-card-menu.overlay-hidden.left > *,.frigate-card-menu.overlay-hidden.right > * {
+  // See "Awful hack" above.
+  writing-mode: horizontal-tb;
+} 
+
 .frigate-card-menu.overlay-hidden.bottom {
   left: 0px;
   bottom: 0px;
+
+  // If the menu has more content that allows, "wrap upwards" to keep the
+  // Frigate button in the same place.
+  flex-wrap: wrap-reverse;
 }
 .frigate-card-menu.overlay-hidden.expanded-horizontal {
   width: 100%;
+  height: auto;
+  overflow: visible;
   background: linear-gradient(90deg, rgba(0,0,0,0.3), rgba(0,0,0,0));
 }
 .frigate-card-menu.overlay-hidden.expanded-vertical {
   height: 100%;
+  width: auto;
+  overflow: visible;
   background: linear-gradient(180deg, rgba(0,0,0,0.3), rgba(0,0,0,0));
 }
 /* Full above/below menu */

@@ -1,0 +1,6 @@
+@use './button.scss';
+
+:host {
+  z-index: 20;
+  pointer-events: auto;
+}

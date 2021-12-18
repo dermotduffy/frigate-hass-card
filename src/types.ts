@@ -198,7 +198,7 @@ const serviceCallButtonSchema = elementsBaseSchema.merge(
   }),
 );
 
-// https://www.home-assistant.io/lovelace/picture-elements/#icon
+// https://www.home-assistant.io/lovelace/picture-elements/#icon-element
 const iconSchema = elementsBaseSchema.merge(
   z.object({
     type: z.literal('icon'),
@@ -269,6 +269,15 @@ export const menuStateIconSchema = stateIconSchema.merge(
 );
 export type MenuStateIcon = z.infer<typeof menuStateIconSchema>;
 
+export const menuSubmenuSchema = iconSchema.merge(
+  z.object({
+    type: z.literal('custom:frigate-card-menu-submenu'),
+    // Menu items don't strictly require their own icon.
+    items: iconSchema.omit({ type: true }).partial({ icon: true }).array(),
+  }),
+);
+export type MenuSubmenu = z.infer<typeof menuSubmenuSchema>;
+
 const frigateCardConditionSchema = z.object({
   view: z.string().array().optional(),
   fullscreen: z.boolean().optional(),
@@ -285,6 +294,7 @@ export type FrigateConditional = z.infer<typeof frigateConditionalSchema>;
 const pictureElementSchema = z.union([
   menuStateIconSchema,
   menuIconSchema,
+  menuSubmenuSchema,
   frigateConditionalSchema,
   stateBadgeIconSchema,
   stateIconSchema,
@@ -586,7 +596,11 @@ export const frigateCardConfigDefaults = {
   event_viewer: viewerConfigDefault,
 };
 
-const menuButtonSchema = z.union([menuIconSchema, menuStateIconSchema]);
+const menuButtonSchema = z.union([
+  menuIconSchema,
+  menuStateIconSchema,
+  menuSubmenuSchema,
+]);
 export type MenuButton = z.infer<typeof menuButtonSchema>;
 export interface ExtendedHomeAssistant {
   hassUrl(path?): string;
