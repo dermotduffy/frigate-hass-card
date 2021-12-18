@@ -6,6 +6,7 @@ import { MenuSubmenu } from '../types.js';
 
 import submenuStyle from '../scss/submenu.scss';
 import { hasAction } from 'custom-card-helpers';
+import { styleMap } from 'lit/directives/style-map';
 
 @customElement('frigate-card-submenu')
 export class FrigateCardSubmenu extends LitElement {
@@ -19,6 +20,7 @@ export class FrigateCardSubmenu extends LitElement {
     return html`
       <ha-button-menu corner="BOTTOM_LEFT">
         <ha-icon-button
+          style="${styleMap(this.submenu.style || {})}"
           class="button"
           slot="trigger"
           .label=${this.submenu.title || ''}
@@ -32,6 +34,7 @@ export class FrigateCardSubmenu extends LitElement {
         ${this.submenu.items.map(
           (item) => html`
             <mwc-list-item
+              style="${styleMap(item.style || {})}"
               graphic="icon"
               aria-label="${item.title || ''}"
               @action=${(ev) => {
@@ -45,7 +48,12 @@ export class FrigateCardSubmenu extends LitElement {
             >
               ${item.title || ''}
               ${item.icon
-                ? html` <ha-icon slot="graphic" icon="${item.icon}"> </ha-icon>`
+                ? html` <ha-icon
+                    style="${styleMap(item.style || {})}"
+                    slot="graphic"
+                    icon="${item.icon}"
+                  >
+                  </ha-icon>`
                 : ``}
             </mwc-list-item>
           `,

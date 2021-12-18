@@ -64,7 +64,10 @@ export class FrigateCardMenu extends LitElement {
    * @param ev The action event.
    * @param button The button configuration.
    */
-  protected _actionHandler(ev: CustomEvent<{action: string, config?: Actions}>, config?: Actions): void {
+  protected _actionHandler(
+    ev: CustomEvent<{ action: string; config?: Actions }>,
+    config?: Actions,
+  ): void {
     if (!ev) {
       return;
     }
@@ -145,10 +148,18 @@ export class FrigateCardMenu extends LitElement {
    * @returns A rendered template or void.
    */
   protected _renderButton(button: MenuButton): TemplateResult | void {
+    if (button.type == 'custom:frigate-card-menu-submenu') {
+      return html` <frigate-card-submenu
+        .submenu=${button}
+        @action=${this._actionHandler.bind(this)}
+      >
+      </frigate-card-submenu>`;
+    }
+
     let state: HassEntity | null = null;
     let title = button.title;
     let icon = button.icon;
-    let style = ('style' in button ? button.style : {}) || {};
+    let style = button.style || {};
 
     if (icon == FRIGATE_BUTTON_MENU_ICON) {
       icon =
@@ -180,15 +191,6 @@ export class FrigateCardMenu extends LitElement {
       button: true,
     };
 
-    if (button.type == 'custom:frigate-card-menu-submenu') {
-      return html`
-        <frigate-card-submenu
-          .submenu=${button}
-          @action=${this._actionHandler.bind(this)}
-        >
-        </frigate-card-submenu>`;
-    }
-
     // TODO: Upon a safe distance from the release of HA 2021.11 these
     // attributes can be removed from the <ha-icon-button>.
     // - icon (replaced with the embedded <ha-icon>)
@@ -219,7 +221,10 @@ export class FrigateCardMenu extends LitElement {
     }
     const mode = this._menuConfig.mode;
 
-    if (mode == 'none' || !evaluateCondition(this._menuConfig.conditions, this.conditionState)) {
+    if (
+      mode == 'none' ||
+      !evaluateCondition(this._menuConfig.conditions, this.conditionState)
+    ) {
       return;
     }
 
@@ -252,7 +257,7 @@ export class FrigateCardMenu extends LitElement {
   /**
    * Get styles.
    */
-   static get styles(): CSSResultGroup {
+  static get styles(): CSSResultGroup {
     return unsafeCSS(menuStyle);
   }
 }
