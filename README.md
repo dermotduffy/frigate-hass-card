@@ -634,7 +634,7 @@ elements:
 
 ### Adding State Badges
 
-You can adds a state badge to the card showing arbitrary entity states.
+You can add a state badge to the card showing arbitrary entity states.
 
 <details>
   <summary>Expand: State badge</summary>
@@ -834,7 +834,7 @@ menu:
 
 ### Configuring a submenu
 
-You can add submenu to the menu -- buttons that when pressed reveal a dropdown submenu of configurable options.
+You can add submenus to the menu -- buttons that when pressed reveal a dropdown submenu of configurable options.
 
 <details>
   <summary>Expand: Adding a submenu</summary>
@@ -865,8 +865,6 @@ elements:
 ```
 
 </details>
-
-
 
 <a name="card-updates"></a>
 
