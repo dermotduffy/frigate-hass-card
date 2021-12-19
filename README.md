@@ -414,7 +414,18 @@ Parameters for the `custom:frigate-card-menu-submenu` element are identical to t
 | Parameter | Description |
 | - | - |
 | `type` | Must be `custom:frigate-card-menu-submenu`. |
-| `items` | A list of menu items. Each menu item in turn also follows the parameters the [stock Home Assistant Icon Element](https://www.home-assistant.io/lovelace/picture-elements/#icon-element). Typical usage would set the `title` parameter to control the text displayed for the menu item, the `icon` parameter to control the icon displayed for the menu item and one or more actions (e.g. `tap_action`, `double_tap_action` or `hold_action`) to configure the action to take. Unlike the stock Icon Element, the `icon` parameter is optional for individual menu items; if unspecified no icon is displayed for that menu item.|
+| `items` | A list of menu items, as described below. | 
+
+##### Submenu Items
+
+| Parameter | Default | Description |
+| - | - | - |
+| `title` | | An optional title to display. |
+| `icon` | | An optional item icon to display. |
+| `entity` | | An optional Home Assistant entity from which title, icon and style can be automatically computed. |
+| `state_color` | `true` | Whether or not the title and icon should be stylized based on state. |
+| `style` | | Position and style the element using CSS. |
+| `tap_action`, `double_tap_action` or `hold_action` | | Standard [Home Assistant action configuration](https://www.home-assistant.io/lovelace/actions). |
 
 See the [Configuring a Submenu example](#configuring-a-submenu-example).
 

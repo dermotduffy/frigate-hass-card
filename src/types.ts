@@ -1,3 +1,4 @@
+import { StyleInfo } from 'lit/directives/style-map';
 import {
   CallServiceActionConfig,
   CustomActionConfig,
@@ -269,11 +270,19 @@ export const menuStateIconSchema = stateIconSchema.merge(
 );
 export type MenuStateIcon = z.infer<typeof menuStateIconSchema>;
 
+const menuSubmenuItemSchema = elementsBaseSchema.merge(
+  z.object({
+    entity: z.string().optional(),
+    icon: z.string().optional(),
+    state_color: z.boolean().default(true),
+  }),
+);
+export type MenuSubmenuItem = z.infer<typeof menuSubmenuItemSchema>;
+
 export const menuSubmenuSchema = iconSchema.merge(
   z.object({
     type: z.literal('custom:frigate-card-menu-submenu'),
-    // Menu items don't strictly require their own icon.
-    items: iconSchema.omit({ type: true }).partial({ icon: true }).array(),
+    items: menuSubmenuItemSchema.array(),
   }),
 );
 export type MenuSubmenu = z.infer<typeof menuSubmenuSchema>;
@@ -642,6 +651,14 @@ export interface Message {
   message: string;
   type: 'error' | 'info';
   icon?: string;
+}
+
+export interface StateParameters {
+  entity?: string;
+  icon?: string;
+  title?: string | null;
+  state_color?: boolean;
+  style?: StyleInfo;
 }
 
 /**

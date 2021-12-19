@@ -1,16 +1,14 @@
-import { HassEntity } from 'home-assistant-js-websocket';
-import { HomeAssistant, handleAction, hasAction, stateIcon } from 'custom-card-helpers';
+import { HomeAssistant, handleAction, hasAction } from 'custom-card-helpers';
 import {
   CSSResultGroup,
   LitElement,
   TemplateResult,
   html,
   unsafeCSS,
-  PropertyValues,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
-import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
+import { styleMap } from 'lit/directives/style-map.js';
 
 import { actionHandler } from '../action-handler-directive.js';
 
@@ -21,11 +19,12 @@ import type {
   ExtendedHomeAssistant,
   MenuButton,
   MenuConfig,
+  StateParameters,
 } from '../types.js';
 import {
   convertActionToFrigateCardCustomAction,
   getActionConfigGivenAction,
-  shouldUpdateBasedOnHass,
+  refreshDynamicStateParameters,
 } from '../common.js';
 
 import menuStyle from '../scss/menu.scss';
@@ -86,7 +85,7 @@ export class FrigateCardMenu extends LitElement {
 
     const interaction: string = ev.detail.action;
     const action = getActionConfigGivenAction(interaction, config);
-    if (!config || !action || !interaction) {
+    if (!config || !interaction) {
       return;
     }
 
@@ -110,39 +109,6 @@ export class FrigateCardMenu extends LitElement {
   }
 
   /**
-   * Determine whether the menu should be updated.
-   * @param changedProps The changed properties.
-   * @returns `true` if the menu should be updated, otherwise `false`.
-   */
-  protected shouldUpdate(changedProps: PropertyValues): boolean {
-    const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
-
-    if (changedProps.size > 1 || !oldHass) {
-      return true;
-    }
-
-    // Extract the entities the menu rendering depends on (if any).
-    const entities: string[] = [];
-    for (let i = 0; i < this.buttons.length; i++) {
-      const button = this.buttons[i];
-      if (button.type == 'custom:frigate-card-menu-state-icon') {
-        entities.push(button.entity);
-      }
-    }
-    return shouldUpdateBasedOnHass(this.hass, oldHass, entities);
-  }
-
-  /**
-   * Get the style of emphasized menu items.
-   * @returns A StyleInfo.
-   */
-  public static getEmphasizedStyle(): StyleInfo {
-    return {
-      color: 'var(--primary-color, white)',
-    };
-  }
-
-  /**
    * Render a button.
    * @param button The button configuration to render.
    * @returns A rendered template or void.
@@ -150,19 +116,17 @@ export class FrigateCardMenu extends LitElement {
   protected _renderButton(button: MenuButton): TemplateResult | void {
     if (button.type == 'custom:frigate-card-menu-submenu') {
       return html` <frigate-card-submenu
+        .hass=${this.hass}
         .submenu=${button}
         @action=${this._actionHandler.bind(this)}
       >
       </frigate-card-submenu>`;
     }
 
-    let state: HassEntity | null = null;
-    let title = button.title;
-    let icon = button.icon;
-    let style = button.style || {};
+    let stateParameters: StateParameters = {...button};
 
-    if (icon == FRIGATE_BUTTON_MENU_ICON) {
-      icon =
+    if (stateParameters.icon == FRIGATE_BUTTON_MENU_ICON) {
+      stateParameters.icon =
         this._menuConfig?.mode.startsWith('hidden-') && !this.expand
           ? 'mdi:alpha-f-box-outline'
           : 'mdi:alpha-f-box';
@@ -172,16 +136,7 @@ export class FrigateCardMenu extends LitElement {
       if (!this.hass) {
         return;
       }
-      state = this.hass.states[button.entity];
-      if (
-        !!state &&
-        button.state_color &&
-        ['on', 'active', 'home'].includes(state.state)
-      ) {
-        style = { ...style, ...FrigateCardMenu.getEmphasizedStyle() };
-      }
-      title = title ?? (state?.attributes?.friendly_name || button.entity);
-      icon = icon ?? stateIcon(state);
+      stateParameters = refreshDynamicStateParameters(this.hass, stateParameters);
     }
 
     const hasHold = hasAction(button.hold_action);
@@ -197,17 +152,17 @@ export class FrigateCardMenu extends LitElement {
     // - title (replaced with .label)
     return html` <ha-icon-button
       class="${classMap(classes)}"
-      style="${styleMap(style)}"
-      icon=${icon || 'mdi:gesture-tap-button'}
-      .label=${title || ''}
-      title=${title || ''}
+      style="${styleMap(stateParameters.style || {})}"
+      icon=${stateParameters.icon || 'mdi:gesture-tap-button'}
+      .label=${stateParameters.title || ''}
+      title=${stateParameters.title || ''}
       @action=${(ev) => this._actionHandler(ev, button)}
       .actionHandler=${actionHandler({
         hasHold: hasHold,
         hasDoubleClick: hasDoubleClick,
       })}
     >
-      <ha-icon icon="${icon || 'mdi:gesture-tap-button'}"></ha-icon>
+      <ha-icon icon="${stateParameters.icon || 'mdi:gesture-tap-button'}"></ha-icon>
     </ha-icon-button>`;
   }
 
