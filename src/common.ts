@@ -1,6 +1,8 @@
+import { HassEntity, MessageBase } from 'home-assistant-js-websocket';
+import { HomeAssistant, stateIcon } from 'custom-card-helpers';
+import { StyleInfo } from 'lit/directives/style-map';
 import { ZodSchema, z } from 'zod';
-import { MessageBase } from 'home-assistant-js-websocket';
-import { HomeAssistant } from 'custom-card-helpers';
+
 import { localize } from './localize/localize.js';
 import {
   ActionType,
@@ -11,6 +13,7 @@ import {
   Message,
   SignedPath,
   signedPathSchema,
+  StateParameters,
 } from './types.js';
 
 const MEDIA_INFO_HEIGHT_CUTOFF = 50;
@@ -264,8 +267,11 @@ export function isValidMediaShowInfo(info: MediaShowInfo): boolean {
  * @returns A FrigateCardCustomAction or null if it cannot be converted.
  */
 export function convertActionToFrigateCardCustomAction(
-  action: ActionType,
+  action: ActionType | null,
 ): FrigateCardCustomAction | null {
+  if (!action) {
+    return null;
+  }
   // Parse a custom event as other things could generate ll-custom events that
   // are not related to Frigate Card.
   const parseResult = frigateCardCustomActionSchema.safeParse(action);
@@ -309,4 +315,70 @@ export function getActionConfigGivenAction(
     return config.double_tap_action;
   }
   return null;
+}
+
+/**
+ * Calculate a style brightness from a hass state.
+ * Inspired by https://github.com/home-assistant/frontend/blob/7d5b5663123bb16d1da0c5bac3f2fc26d5f69ae8/src/panels/lovelace/cards/hui-button-card.ts#L296
+ * @param state The hass state object.
+ * @returns A CSS brightness string.
+ */
+function computeBrightnessFromState(state: HassEntity): string {
+  if (state.state === 'off' || !state.attributes.brightness) {
+    return '';
+  }
+  const brightness = state.attributes.brightness;
+  return `brightness(${(brightness + 245) / 5}%)`;
+}
+
+/**
+ * Calculate a style color from a hass state.
+ * Inspired by https://github.com/home-assistant/frontend/blob/7d5b5663123bb16d1da0c5bac3f2fc26d5f69ae8/src/panels/lovelace/cards/hui-button-card.ts#L304
+ * @param state The hass state object.
+ * @returns A CSS color string.
+ */
+function computeColorFromState(state: HassEntity): string {
+  if (state.state === 'off') {
+    return '';
+  }
+  return state.attributes.rgb_color
+    ? `rgb(${state.attributes.rgb_color.join(',')})`
+    : '';
+}
+
+/**
+ * Get the style of emphasized menu items.
+ * @returns A StyleInfo.
+ */
+function computeStyle(state: HassEntity): StyleInfo {
+  return {
+    color: computeColorFromState(state),
+    filter: computeBrightnessFromState(state),
+  };
+}
+
+/**
+ * Use Home Assistant state to refresh state parameters for an item to be rendered.
+ * @param hass Home Assistant object.
+ * @param params A StateParameters object to modify in place.
+ * @returns A StateParameters object updated based on HASS state.
+ */
+export function refreshDynamicStateParameters(
+  hass: HomeAssistant,
+  params: StateParameters,
+): StateParameters {
+  if (!params.entity) {
+    return params;
+  }
+  const state = hass.states[params.entity];
+  if (
+    !!state &&
+    !!params.state_color &&
+    ['on', 'active', 'home'].includes(state.state)
+  ) {
+    params.style = { ...computeStyle(state), ...params.style };
+  }
+  params.title = params.title ?? (state?.attributes?.friendly_name || params.entity);
+  params.icon = params.icon ?? stateIcon(state);
+  return params;
 }

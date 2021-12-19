@@ -9,7 +9,7 @@ import {
 } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
-import { styleMap } from 'lit/directives/style-map.js';
+import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
 import { until } from 'lit/directives/until.js';
 import {
   HomeAssistant,
@@ -223,6 +223,16 @@ export class FrigateCard extends LitElement {
   }
 
   /**
+   * Get the style of emphasized menu items.
+   * @returns A StyleInfo.
+   */
+  protected _getEmphasizedStyle(): StyleInfo {
+    return {
+      color: 'var(--primary-color, white)',
+    };
+  }
+
+  /**
    * Get a FrigateCard MenuButton given a set of parameters.
    * @param params Menu button parameters.
    * @returns A MenuButton.
@@ -234,7 +244,7 @@ export class FrigateCard extends LitElement {
       type: 'custom:frigate-card-menu-icon',
       title: params.title,
       icon: params.icon,
-      style: params.emphasize ? FrigateCardMenu.getEmphasizedStyle() : {},
+      style: params.emphasize ? this._getEmphasizedStyle() : {},
       tap_action: params.tap_action
         ? createFrigateCardCustomAction(params.tap_action)
         : undefined,
