@@ -7,6 +7,7 @@ import { localize } from './localize/localize.js';
 import {
   ActionType,
   ExtendedHomeAssistant,
+  FrigateCardAction,
   FrigateCardCustomAction,
   frigateCardCustomActionSchema,
   MediaShowInfo,
@@ -283,11 +284,23 @@ export function convertActionToFrigateCardCustomAction(
  * @param action The Frigate card action string (e.g. 'fullscreen')
  * @returns A FrigateCardCustomAction for that action string.
  */
-export function createFrigateCardCustomAction(action: string): FrigateCardCustomAction {
+export function createFrigateCardCustomAction(
+  action: FrigateCardAction,
+  camera?: string): FrigateCardCustomAction | undefined {
+  if (action == 'camera_select') {
+    if (!camera) {
+      return undefined;
+    }
+    return {
+      action: 'fire-dom-event',
+      frigate_card_action: action,
+      camera: camera,
+    }
+  }
   return {
     action: 'fire-dom-event',
     frigate_card_action: action,
-  };
+  }
 }
 
 /**

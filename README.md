@@ -139,6 +139,7 @@ menu:
 | Option | Default | Description |
 | - | - | - |
 | `frigate` | `true` | Whether to show the `Frigate` menu button: brings the user to the default configured view (`view.default`), or collapses/expands the menu if the `menu.mode` is `hidden-*` . |
+| `cameras` | `true` | Whether to show the camera selection submenu. Will only appear if multiple cameras are configured. |
 | `live` | `true` | Whether to show the `live` view menu button: brings the user to the `live` view. See [views](#views) below.|
 | `clips` | `true` | Whether to show the `clips` view menu button: brings the user to the `clips` view on tap and the most-recent `clip` view on hold. See [views](#views) below.|
 | `snapshots` | `true` | Whether to show the `snapshots` view menu button: brings the user to the `clips` view on tap and the most-recent `snapshot` view on hold. See [views](#views) below.|
@@ -889,7 +890,7 @@ The following table describes the behavior these 3 flags have.
 
 ### Card Update Truth Table
 
-| `view.timeout` | `view.update_force` | `view.update_entities` & `camera_entity` | Behavior |
+| `view.timeout` | `view.update_force` | `view.update_entities` | Behavior |
 | :-: | :-: | :-: | - |
 | Unset or `0` | *(Any value)* | Unset | Card will not automatically re-render. |
 | Unset or `0` | `false` | *(Any entity)* | Card will reload **current** view when entity state changes, unless media is playing. |
@@ -910,9 +911,7 @@ view:
 ```
  * Using `clip` or `snapshot` as the default view (for the most recent clip or
    snapshot respectively) and having the card automatically refresh (to fetch a
-   newer clip/snapshot) when an entity state changes. A Frigate `camera_entity`
-   is generally not sufficient for this since the Home Assistant state for
-   Frigate camera entities does not change often. Instead, use the Frigate
+   newer clip/snapshot) when an entity state changes. Use the Frigate
    binary_sensor for that camera (or any other entity at your discretion) to
    trigger the update:
 ```yaml

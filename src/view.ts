@@ -2,7 +2,8 @@ import type { BrowseMediaSource, FrigateCardView } from './types.js';
 import { dispatchFrigateCardEvent } from './common.js';
 
 export interface ViewParameters {
-  view?: FrigateCardView;
+  view: FrigateCardView;
+  camera: string;
   target?: BrowseMediaSource;
   childIndex?: number;
   previous?: View;
@@ -10,12 +11,14 @@ export interface ViewParameters {
 
 export class View {
   view: FrigateCardView;
+  camera: string;
   target?: BrowseMediaSource;
   childIndex?: number;
   previous?: View;
 
-  constructor(params?: ViewParameters) {
-    this.view = params?.view || 'live';
+  constructor(params: ViewParameters) {
+    this.view = params?.view;
+    this.camera = params?.camera;
     this.target = params?.target;
     this.childIndex = params?.childIndex;
     this.previous = params?.previous;

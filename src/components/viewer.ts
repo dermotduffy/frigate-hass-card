@@ -411,6 +411,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
       if (clipStartTime && clipStartTime === snapshotStartTime) {
         return new View({
           view: 'clip-specific',
+          camera: this.view.camera,
           target: clips,
           childIndex: i,
           previous: this.view,

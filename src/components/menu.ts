@@ -29,6 +29,7 @@ import {
 
 import menuStyle from '../scss/menu.scss';
 import { ConditionState, evaluateCondition } from '../card-condition.js';
+import { Corner } from '@material/mwc-menu';
 
 export const FRIGATE_BUTTON_MENU_ICON = 'frigate';
 
@@ -115,7 +116,15 @@ export class FrigateCardMenu extends LitElement {
    */
   protected _renderButton(button: MenuButton): TemplateResult | void {
     if (button.type == 'custom:frigate-card-menu-submenu') {
+      let corner: Corner | undefined;
+      if (this._menuConfig?.mode.endsWith("-left")) {
+        // Minor nicety: Start the menu to the right of the menu itself is on
+        // the left, otherwise use the default.
+        corner = "BOTTOM_RIGHT";
+      }
+
       return html` <frigate-card-submenu
+        .corner=${corner}
         .hass=${this.hass}
         .submenu=${button}
         @action=${this._actionHandler.bind(this)}

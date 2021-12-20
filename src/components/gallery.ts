@@ -189,6 +189,7 @@ export class FrigateCardGalleryCore extends LitElement {
                         if (this.view) {
                           new View({
                             view: this.view.view,
+                            camera: this.view.camera,
                             target: child,
                             previous: this.view ?? undefined,
                           }).dispatchChangeEvent(this);
@@ -215,6 +216,7 @@ export class FrigateCardGalleryCore extends LitElement {
                           view: this.view.is('clips')
                             ? 'clip-specific'
                             : 'snapshot-specific',
+                          camera: this.view.camera,
                           target: this.view.target ?? undefined,
                           childIndex: index,
                           previous: this.view ?? undefined,

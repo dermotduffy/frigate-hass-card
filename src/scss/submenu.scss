@@ -1,6 +1,9 @@
 @use './button.scss';
 
 :host {
-  z-index: 20;
   pointer-events: auto;
+}
+
+mwc-list-item {  
+  z-index: 20;
 }

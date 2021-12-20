@@ -106,16 +106,46 @@ const customActionSchema = schemaForType<CustomActionConfig>()(
     action: z.literal('fire-dom-event'),
   }),
 );
-export const frigateCardCustomActionSchema = customActionSchema.merge(
+const frigateCardCustomActionBaseSchema = customActionSchema.merge(
   z.object({
     // Syntactic sugar to avoid 'fire-dom-event' as part of an external API.
     action: z
       .literal('custom:frigate-card-action')
       .transform((): 'fire-dom-event' => 'fire-dom-event')
       .or(z.literal('fire-dom-event')),
-    frigate_card_action: z.string(),
   }),
 );
+
+const FRIGATE_CARD_GENERAL_ACTIONS = [
+  'frigate',
+  'clip',
+  'clips',
+  'image',
+  'live',
+  'snapshot',
+  'snapshots',
+  'download',
+  'frigate_ui',
+  'fullscreen',
+] as const;
+const FRIGATE_CARD_ACTIONS = [...FRIGATE_CARD_GENERAL_ACTIONS, 'camera_select'] as const;
+export type FrigateCardAction = typeof FRIGATE_CARD_ACTIONS[number];
+
+const frigateCardGeneralActionSchema = frigateCardCustomActionBaseSchema.merge(
+  z.object({
+    frigate_card_action: z.enum(FRIGATE_CARD_GENERAL_ACTIONS),
+  }),
+);
+const frigateCardCameraSelectActionSchema = frigateCardCustomActionBaseSchema.merge(
+  z.object({
+    frigate_card_action: z.literal('camera_select'),
+    camera: z.string(),
+  }),
+);
+export const frigateCardCustomActionSchema = z.union([
+  frigateCardGeneralActionSchema,
+  frigateCardCameraSelectActionSchema,
+]);
 export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSchema>;
 
 const actionSchema = z.union([
@@ -322,19 +352,28 @@ export type PictureElements = z.infer<typeof pictureElementsSchema>;
 /**
  * Frigate configuration section.
  */
-const frigateConfigDefault = {
+export const cameraConfigDefault = {
   client_id: 'frigate' as const,
 };
-const frigateConfigDefaultSchema = z
+const cameraConfigDefaultSchema = z
   .object({
     // No URL validation to allow relative URLs within HA (e.g. addons).
     url: z.string().optional(),
-    client_id: z.string().optional().default(frigateConfigDefault.client_id),
+    client_id: z.string().optional().default(cameraConfigDefault.client_id),
     camera_name: z.string().optional(),
     label: z.string().optional(),
     zone: z.string().optional(),
+    camera_entity: z.string().optional(),
+
+    // Used for presentation in the UI (autodetected from the entity if
+    // specified).
+    icon: z.string().optional(),
+    title: z.string().optional(),
+
+    id: z.string().optional(),
   })
-  .default(frigateConfigDefault);
+  .default(cameraConfigDefault);
+export type CameraConfig = z.infer<typeof cameraConfigDefaultSchema>;
 
 /**
  * View configuration section.
@@ -457,6 +496,7 @@ const liveConfigSchema = z
   })
   .merge(actionsSchema)
   .default(liveConfigDefault);
+export type LiveConfig = z.infer<typeof liveConfigSchema>;
 
 /**
  * Menu configuration section.
@@ -465,6 +505,7 @@ const menuConfigDefault = {
   mode: 'hidden-top' as const,
   buttons: {
     frigate: true,
+    cameras: true,
     live: true,
     clips: true,
     snapshots: true,
@@ -481,6 +522,7 @@ const menuConfigSchema = z
     buttons: z
       .object({
         frigate: z.boolean().default(menuConfigDefault.buttons.frigate),
+        cameras: z.boolean().default(menuConfigDefault.buttons.cameras),
         live: z.boolean().default(menuConfigDefault.buttons.live),
         clips: z.boolean().default(menuConfigDefault.buttons.clips),
         snapshots: z.boolean().default(menuConfigDefault.buttons.snapshots),
@@ -577,10 +619,8 @@ const dimensionsConfigSchema = z
  * Main card config.
  */
 export const frigateCardConfigSchema = z.object({
-  camera_entity: z.string().optional(),
-
   // Main configuration sections.
-  frigate: frigateConfigDefaultSchema,
+  camera: cameraConfigDefaultSchema.or(cameraConfigDefaultSchema.array().nonempty()),
   view: viewConfigSchema,
   menu: menuConfigSchema,
   live: liveConfigSchema,
@@ -598,7 +638,7 @@ export type FrigateCardConfig = z.infer<typeof frigateCardConfigSchema>;
 export type RawFrigateCardConfig = Record<string, unknown>;
 
 export const frigateCardConfigDefaults = {
-  frigate: frigateConfigDefault,
+  cameras: cameraConfigDefault,
   view: viewConfigDefault,
   menu: menuConfigDefault,
   live: liveConfigDefault,
@@ -628,9 +668,8 @@ export interface BrowseMediaQueryParameters {
 export interface GetFrigateCardMenuButtonParameters {
   icon: string;
   title: string;
-  tap_action: string;
-
-  hold_action?: string;
+  tap_action: FrigateCardAction;
+  hold_action?: FrigateCardAction;
   emphasize?: boolean;
 }
 

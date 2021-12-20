@@ -3,8 +3,9 @@ import type {
   BrowseMediaQueryParameters,
   BrowseMediaSource,
   ExtendedHomeAssistant,
-  FrigateCardConfig,
+  CameraConfig,
   JSMPEGConfig,
+  LiveConfig,
   MediaShowInfo,
   WebRTCConfig,
 } from '../types.js';
@@ -46,7 +47,13 @@ export class FrigateCardLive extends LitElement {
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected config?: FrigateCardConfig;
+  protected view?: View;
+
+  @property({ attribute: false })
+  protected cameraConfig?: CameraConfig;
+
+  @property({ attribute: false })
+  protected liveConfig?: LiveConfig;
 
   @property({ attribute: false })
   protected browseMediaQueryParameters?: BrowseMediaQueryParameters;
@@ -85,7 +92,7 @@ export class FrigateCardLive extends LitElement {
    * @returns A rendered template or void.
    */
   protected renderThumbnails(): TemplateResult | void {
-    if (!this.config) {
+    if (!this.liveConfig || !this.view) {
       return;
     }
 
@@ -106,13 +113,14 @@ export class FrigateCardLive extends LitElement {
       if (BrowseMediaUtil.getFirstTrueMediaChildIndex(parent) != null) {
         return html` <frigate-card-thumbnail-carousel
           .target=${parent}
-          .config=${this.config?.live.controls.thumbnails}
+          .config=${this.liveConfig?.controls.thumbnails}
           .highlightSelected=${false}
           @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
             const mediaType = this.browseMediaQueryParameters?.mediaType;
-            if (mediaType && ['snapshots', 'clips'].includes(mediaType)) {
+            if (mediaType && this.view && ['snapshots', 'clips'].includes(mediaType)) {
               new View({
                 view: mediaType === 'clips' ? 'clip-specific' : 'snapshot-specific',
+                camera: this.view.camera,
                 target: ev.detail.target,
                 childIndex: ev.detail.childIndex,
               }).dispatchChangeEvent(this);
@@ -131,37 +139,37 @@ export class FrigateCardLive extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.config) {
+    if (!this.hass || !this.liveConfig || !this.cameraConfig) {
       return;
     }
 
     return html`
-      ${this.config.live.controls.thumbnails.mode === 'above'
+      ${this.liveConfig.controls.thumbnails.mode === 'above'
         ? this.renderThumbnails()
         : ''}
-      ${this.config.live.provider == 'frigate'
+      ${this.liveConfig.provider == 'frigate'
         ? html` <frigate-card-live-frigate
             .hass=${this.hass}
-            .cameraEntity=${this.config.camera_entity}
+            .cameraEntity=${this.cameraConfig.camera_entity}
             @frigate-card:media-show=${this._mediaShowHandler}
           >
           </frigate-card-live-frigate>`
-        : this.config.live.provider == 'webrtc'
+        : this.liveConfig.provider == 'webrtc'
         ? html`<frigate-card-live-webrtc
             .hass=${this.hass}
-            .webRTCConfig=${this.config.live.webrtc || {}}
+            .webRTCConfig=${this.liveConfig.webrtc || {}}
             @frigate-card:media-show=${this._mediaShowHandler}
           >
           </frigate-card-live-webrtc>`
         : html` <frigate-card-live-jsmpeg
             .hass=${this.hass}
-            .cameraName=${this.browseMediaQueryParameters?.cameraName}
-            .clientId=${this.config.frigate.client_id}
-            .jsmpegConfig=${this.config.live.jsmpeg}
+            .cameraName=${this.cameraConfig.camera_name}
+            .clientId=${this.cameraConfig.client_id}
+            .jsmpegConfig=${this.liveConfig.jsmpeg}
             @frigate-card:media-show=${this._mediaShowHandler}
           >
           </frigate-card-live-jsmpeg>`}
-      ${this.config.live.controls.thumbnails.mode === 'below'
+      ${this.liveConfig.controls.thumbnails.mode === 'below'
         ? this.renderThumbnails()
         : ''}
     `;
@@ -320,10 +328,10 @@ export class FrigateCardLiveJSMPEG extends LitElement {
   @property({ attribute: false })
   protected jsmpegConfig?: JSMPEGConfig;
 
+  @property({ attribute: false })
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
   protected _jsmpegCanvasElement?: HTMLCanvasElement;
   protected _jsmpegVideoPlayer?: JSMpeg.VideoElement;
-  protected _jsmpegURL?: string | null;
   protected _refreshPlayerTimerID?: number;
 
   /**
@@ -356,7 +364,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
    * Create a JSMPEG player.
    * @returns A JSMPEG player.
    */
-  protected _createJSMPEGPlayer(): JSMpeg.VideoElement {
+  protected _createJSMPEGPlayer(url: string): JSMpeg.VideoElement {
     let videoDecoded = false;
 
     const jsmpegOptions = {
@@ -380,7 +388,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
 
     return new JSMpeg.VideoElement(
       this,
-      this._jsmpegURL,
+      url,
       {
         canvas: this._jsmpegCanvasElement,
         hooks: {
@@ -416,7 +424,6 @@ export class FrigateCardLiveJSMPEG extends LitElement {
       this._jsmpegCanvasElement.remove();
       this._jsmpegCanvasElement = undefined;
     }
-    this._jsmpegURL = undefined;
   }
 
   /**
@@ -448,35 +455,31 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     this._jsmpegCanvasElement = document.createElement('canvas');
     this._jsmpegCanvasElement.className = 'media';
 
-    this._jsmpegURL = await this._getURL();
-    if (this._jsmpegURL) {
-      this._jsmpegVideoPlayer = this._createJSMPEGPlayer();
+    const url = await this._getURL();
+    if (url) {
+      this._jsmpegVideoPlayer = this._createJSMPEGPlayer(url);
 
       this._refreshPlayerTimerID = window.setTimeout(() => {
-        this._refreshPlayer();
+        this.requestUpdate();
       }, (URL_SIGN_EXPIRY_SECONDS - URL_SIGN_REFRESH_THRESHOLD_SECONDS) * 1000);
+    } else {
+      dispatchErrorMessageEvent(this, localize('error.jsmpeg_no_sign'));
     }
-    this.requestUpdate();
   }
 
   /**
    * Master render method.
    */
   protected render(): TemplateResult | void {
-    if (
-      this._jsmpegURL === undefined ||
-      !this._jsmpegVideoPlayer ||
-      !this._jsmpegCanvasElement
-    ) {
-      return html`${until(this._refreshPlayer(), renderProgressIndicator())}`;
+    const _render = async (): Promise<TemplateResult | void> => {
+      await this._refreshPlayer();
+
+      if (!this._jsmpegVideoPlayer || !this._jsmpegCanvasElement) {
+        return dispatchErrorMessageEvent(this, localize('error.jsmpeg_no_player'));
+      }
+      return html`${this._jsmpegCanvasElement}`;
     }
-    if (!this._jsmpegURL) {
-      return dispatchErrorMessageEvent(this, localize('error.jsmpeg_no_sign'));
-    }
-    if (!this._jsmpegVideoPlayer || !this._jsmpegCanvasElement) {
-      return dispatchErrorMessageEvent(this, localize('error.jsmpeg_no_player'));
-    }
-    return html`${this._jsmpegCanvasElement}`;
+    return html`${until(_render(), renderProgressIndicator())}`;
   }
 
   /**
