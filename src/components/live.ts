@@ -214,6 +214,18 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   }
 
   /**
+   * Returns the number of slides to lazily load. 0 means all slides are lazy
+   * loaded, 1 means that 1 slide on each side of the currently selected slide
+   * should lazy load, etc. `null` means lazy loading is disabled and everything
+   * should load simultaneously.
+   * @returns
+   */
+  protected _getLazyLoadCount(): number | null {
+    // Defaults to fully-lazy loading.
+    return 0;
+  }
+
+  /**
    * Get slides to include in the render.
    * @returns The slides to include in the render.
    */
@@ -221,7 +233,9 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     if (!this.cameras) {
       return [];
     }
-    return Array.from(this.cameras.values()).map((cameraConfig, index) => this._renderLive(cameraConfig, index));
+    return Array.from(this.cameras.values()).map((cameraConfig, index) =>
+      this._renderLive(cameraConfig, index),
+    );
   }
 
   /**
@@ -236,16 +250,26 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     this.view.camera = Array.from(this.cameras.keys())[selectedSnap];
   }
 
-  protected _renderLive(
-    cameraConfig: CameraConfig,
-    slideIndex: number,
-  ): TemplateResult {
-    // TODO: Add lazy load
+  /**
+   * Lazy load a slide.
+   * @param _slide The slide to lazy load.
+   */
+  protected _lazyLoadSlide(slide: HTMLElement): void {
+    const liveProvider = slide.querySelector(
+      'frigate-card-live-provider',
+    ) as FrigateCardLiveProvider;
+    if (liveProvider) {
+      liveProvider.lazyLoad = false;
+    }
+  }
+
+  protected _renderLive(cameraConfig: CameraConfig, slideIndex: number): TemplateResult {
     return html` <div class="embla__slide">
       <frigate-card-live-provider
         .hass=${this.hass}
         .cameraConfig=${cameraConfig}
         .liveConfig=${this.liveConfig}
+        ?lazyLoad=${this._getLazyLoadCount() != null}
         @frigate-card:media-show=${(e: CustomEvent<MediaShowInfo>) =>
           this._mediaShowEventHandler(slideIndex, e)}
       >
@@ -313,12 +337,17 @@ export class FrigateCardLiveProvider extends LitElement {
   @property({ attribute: false })
   protected liveConfig?: LiveConfig;
 
+  // Whether or not to lazy load this slide. If `true`, no contents are rendered
+  // until this attribute is set to `false`.
+  @property({ attribute: true, type: Boolean })
+  public lazyLoad = false;
+
   /**
    * Master render method.
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.liveConfig || !this.cameraConfig) {
+    if (this.lazyLoad || !this.hass || !this.liveConfig || !this.cameraConfig) {
       return;
     }
 
