@@ -1,7 +1,8 @@
-// TODO controls
-// TODO media events
 // TODO lazy loading
+// TODO media events
 // TODO height adapting
+// TODO can height adapting remove need for 16x9 dummy in the media carousel?
+// TODO controls
 
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import type {
@@ -13,13 +14,13 @@ import type {
   MediaShowInfo,
   WebRTCConfig,
 } from '../types.js';
-import { EmblaCarouselType, EmblaOptionsType } from 'embla-carousel';
+import { EmblaOptionsType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
 
 import { BrowseMediaUtil } from '../browse-media-util.js';
-import { FrigateCardCarousel } from './carousel.js';
+import { FrigateCardMediaCarousel } from './media-carousel.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 import { View } from '../view.js';
 import { localize } from '../localize/localize.js';
@@ -40,7 +41,6 @@ import liveStyle from '../scss/live.scss';
 import liveFrigateStyle from '../scss/live-frigate.scss';
 import liveJSMPEGStyle from '../scss/live-jsmpeg.scss';
 import liveWebRTCStyle from '../scss/live-webrtc.scss';
-import mediaCarouselStyle from '../scss/media-carousel.scss';
 
 // Number of seconds a signed URL is valid for.
 const URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -184,7 +184,7 @@ export class FrigateCardLive extends LitElement {
 }
 
 @customElement('frigate-card-live-carousel')
-export class FrigateCardLiveCarousel extends FrigateCardCarousel {
+export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   @property({ attribute: false })
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
 
@@ -214,18 +214,6 @@ export class FrigateCardLiveCarousel extends FrigateCardCarousel {
   }
 
   /**
-   * Load the carousel.
-   */
-  protected _loadCarousel(): void {
-    super._loadCarousel();
-
-    // Necessary because typescript local type narrowing is not paying attention
-    // to the side-effect of the call to super._loadCarousel().
-    const carousel = this._carousel as EmblaCarouselType | undefined;
-    carousel?.on('select', this._selectSlideSetViewHandler.bind(this));
-  }
-
-  /**
    * Get slides to include in the render.
    * @returns The slides to include in the render.
    */
@@ -233,12 +221,12 @@ export class FrigateCardLiveCarousel extends FrigateCardCarousel {
     if (!this.cameras) {
       return [];
     }
-    return Array.from(this.cameras.values()).map(this._renderLive.bind(this));
+    return Array.from(this.cameras.values()).map((cameraConfig, index) => this._renderLive(cameraConfig, index));
   }
 
-  // /**
-  //  * Handle the user selecting a new slide in the carousel.
-  //  */
+  /**
+   * Handle the user selecting a new slide in the carousel.
+   */
   protected _selectSlideSetViewHandler(): void {
     if (!this._carousel || !this.view || !this.cameras) {
       return;
@@ -248,13 +236,18 @@ export class FrigateCardLiveCarousel extends FrigateCardCarousel {
     this.view.camera = Array.from(this.cameras.keys())[selectedSnap];
   }
 
-  protected _renderLive(cameraConfig: CameraConfig): TemplateResult {
+  protected _renderLive(
+    cameraConfig: CameraConfig,
+    slideIndex: number,
+  ): TemplateResult {
     // TODO: Add lazy load
     return html` <div class="embla__slide">
       <frigate-card-live-provider
         .hass=${this.hass}
         .cameraConfig=${cameraConfig}
         .liveConfig=${this.liveConfig}
+        @frigate-card:media-show=${(e: CustomEvent<MediaShowInfo>) =>
+          this._mediaShowEventHandler(slideIndex, e)}
       >
       </frigate-card-live-provider>
     </div>`;
@@ -306,13 +299,6 @@ export class FrigateCardLiveCarousel extends FrigateCardCarousel {
     //       }}
     //     ></frigate-card-next-previous-control>`
     //   : ``}
-  }
-
-  /**
-   * Get element styles.
-   */
-  static get styles(): CSSResultGroup {
-    return [super.styles, unsafeCSS(mediaCarouselStyle)];
   }
 }
 
