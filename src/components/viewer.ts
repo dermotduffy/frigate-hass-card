@@ -1,6 +1,6 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { BrowseMediaUtil } from '../browse-media-util.js';
-import { EmblaCarouselType } from 'embla-carousel';
+import { EmblaCarouselType, EmblaOptionsType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { customElement, property } from 'lit/decorators.js';
@@ -250,13 +250,10 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   protected _slideHasBeenLazyLoaded: Record<number, boolean> = {};
 
   /**
-   * Load the carousel with "slides" (clips or snapshots).
+   * Get the Embla options to use.
+   * @returns An EmblaOptionsType object or undefined for no options.
    */
-  protected _loadCarousel(): void {
-    if (this._carousel || !this.viewerConfig) {
-      return;
-    }
-
+   protected _getOptions(): EmblaOptionsType {
     // Start the carousel on the selected child number.
     const startIndex = Number(
       Object.keys(this._slideToChild).find(
@@ -264,11 +261,16 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
       ),
     );
 
-    this._options = {
+    return {
       startIndex: isNaN(startIndex) ? undefined : startIndex,
-      draggable: this.viewerConfig.draggable,
+      draggable: this.viewerConfig?.draggable,
     };
+  }
 
+  /**
+   * Load the carousel with "slides" (clips or snapshots).
+   */
+  protected _loadCarousel(): void {
     super._loadCarousel();
 
     // Necessary because typescript local type narrowing is not paying attention

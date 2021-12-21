@@ -885,36 +885,6 @@ export class FrigateCard extends LitElement {
   }
 
   /**
-   * Get the parameters to search for media related to the current view.
-   * @returns A BrowseMediaQueryParameters object.
-   */
-  protected _getBrowseMediaQueryParameters(
-    mediaType?: 'clips' | 'snapshots',
-  ): BrowseMediaQueryParameters | undefined {
-    const cameraConfig = this._getSelectedCameraConfig();
-
-    if (
-      !cameraConfig ||
-      !cameraConfig.camera_name ||
-      !this._view ||
-      !(
-        this._view.isClipRelatedView() ||
-        this._view.isSnapshotRelatedView() ||
-        mediaType
-      )
-    ) {
-      return undefined;
-    }
-    return {
-      mediaType: mediaType || (this._view.isClipRelatedView() ? 'clips' : 'snapshots'),
-      clientId: cameraConfig.client_id,
-      cameraName: cameraConfig.camera_name,
-      label: cameraConfig.label,
-      zone: cameraConfig.zone,
-    };
-  }
-
-  /**
    * Handler for media play event.
    */
   protected _playHandler(): void {
@@ -1158,7 +1128,10 @@ export class FrigateCard extends LitElement {
           ? html` <frigate-card-gallery
               .hass=${this._hass}
               .view=${this._view}
-              .browseMediaQueryParameters=${this._getBrowseMediaQueryParameters()}
+              .browseMediaQueryParameters=${BrowseMediaUtil.getBrowseMediaQueryParametersFromView(
+                this._view,
+                cameraConfig,
+              )}
               class="${classMap(galleryClasses)}"
               @frigate-card:change-view=${this._changeViewHandler}
               @frigate-card:message=${this._messageHandler}
@@ -1169,7 +1142,10 @@ export class FrigateCard extends LitElement {
           ? html` <frigate-card-viewer
               .hass=${this._hass}
               .view=${this._view}
-              .browseMediaQueryParameters=${this._getBrowseMediaQueryParameters()}
+              .browseMediaQueryParameters=${BrowseMediaUtil.getBrowseMediaQueryParametersFromView(
+                this._view,
+                cameraConfig,
+              )}
               .viewerConfig=${this.config.event_viewer}
               .resolvedMediaCache=${this._resolvedMediaCache}
               class="${classMap(viewerClasses)}"
@@ -1189,11 +1165,8 @@ export class FrigateCard extends LitElement {
                 <frigate-card-live
                   .hass=${this._hass}
                   .view=${this._view}
-                  .browseMediaQueryParameters=${this._getBrowseMediaQueryParameters(
-                    this.config.live.controls.thumbnails.media,
-                  )}
                   .liveConfig=${this.config.live}
-                  .cameraConfig=${cameraConfig}
+                  .cameras=${this._cameras}
                   .preload=${this.config.live.preload && !this._view.is('live')}
                   class="${classMap(liveClasses)}"
                   @frigate-card:change-view=${this._changeViewHandler}

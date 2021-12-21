@@ -1,5 +1,6 @@
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import { CSSResultGroup, TemplateResult, html, unsafeCSS } from 'lit';
+import { EmblaOptionsType } from 'embla-carousel';
 import { customElement, property } from 'lit/decorators.js';
 
 import type { BrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
@@ -38,9 +39,12 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
     this.style.setProperty('--frigate-card-carousel-thumbnail-opacity', value ? '0.6' : '1.0');
   }
 
-  constructor() {
-    super();
-    this._options = {
+  /**
+   * Get the Embla options to use.
+   * @returns An EmblaOptionsType object or undefined for no options.
+   */
+  protected _getOptions(): EmblaOptionsType {
+    return {
       containScroll: 'keepSnaps',
       dragFree: true,
     };
