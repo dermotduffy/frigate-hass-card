@@ -15,7 +15,7 @@ import type {
   MediaShowInfo,
   ViewerConfig,
 } from '../types.js';
-import { FrigateCardMediaCarousel } from './media-carousel.js';
+import { FrigateCardMediaCarousel, IMG_EMPTY } from './media-carousel.js';
 import { FrigateCardThumbnailCarousel, ThumbnailCarouselTap } from './thumbnail-carousel.js';
 import { ResolvedMediaCache, ResolvedMediaUtil } from '../resolved-media.js';
 import { View } from '../view.js';
@@ -34,10 +34,6 @@ import './next-prev-control.js';
 
 import viewerStyle from '../scss/viewer.scss';
 import viewerCoreStyle from '../scss/viewer-core.scss';
-
-const getEmptyImageSrc = (width: number, height: number) =>
-  `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"%3E%3C/svg%3E`;
-const IMG_EMPTY = getEmptyImageSrc(16, 9);
 
 @customElement('frigate-card-viewer')
 export class FrigateCardViewer extends LitElement {

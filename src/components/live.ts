@@ -1,8 +1,10 @@
-// TODO lazy loading
-// TODO media events
 // TODO height adapting
 // TODO can height adapting remove need for 16x9 dummy in the media carousel?
 // TODO controls
+// TODO lazy loading configuration
+// TODO editor
+// TODO readme
+// TODO search for TODOs
 
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import type {

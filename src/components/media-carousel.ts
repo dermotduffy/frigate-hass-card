@@ -13,10 +13,9 @@ import './next-prev-control.js';
 
 import mediaCarouselStyle from '../scss/media-carousel.scss';
 
-// TODO Remove this if not needed (and below)
-// const getEmptyImageSrc = (width: number, height: number) =>
-//   `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"%3E%3C/svg%3E`;
-// const IMG_EMPTY = getEmptyImageSrc(16, 9);
+const getEmptyImageSrc = (width: number, height: number) =>
+  `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"%3E%3C/svg%3E`;
+export const IMG_EMPTY = getEmptyImageSrc(16, 9);
 
 @customElement('frigate-card-media-carousel')
 export class FrigateCardMediaCarousel extends FrigateCardCarousel {
@@ -47,15 +46,46 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     // Necessary because typescript local type narrowing is not paying attention
     // to the side-effect of the call to super._loadCarousel().
     const carousel = this._carousel as EmblaCarouselType | undefined;
+
+    // Update the view object as the carousel is moved.
     carousel?.on('select', this._selectSlideSetViewHandler.bind(this));
 
+    // Dispatch MediaShow events as the carousel is moved.
     carousel?.on('init', this._selectSlideMediaShowHandler.bind(this));
     carousel?.on('select', this._selectSlideMediaShowHandler.bind(this));
 
+    // Adapt the height of the container to the media as the carousel is moved.
+    carousel?.on('init', this._adaptiveHeightHandler.bind(this));
+    carousel?.on('select', this._adaptiveHeightHandler.bind(this));
+    carousel?.on('resize', this._adaptiveHeightHandler.bind(this));
+    
     if (this._getLazyLoadCount() != null) {
+      // Load media as the carousel is moved (if lazy loading is in use).
       carousel?.on('init', this._lazyLoadMediaHandler.bind(this));
       carousel?.on('select', this._lazyLoadMediaHandler.bind(this));
       carousel?.on('resize', this._lazyLoadMediaHandler.bind(this));
+    }
+  }
+
+  /**
+   * Adapt the height of the container to the height of the media (for cases
+   * where the carousel has different media heights, e.g. live cameras with
+   * different aspect ratios).
+   */
+  protected _adaptiveHeightHandler(): void {
+    if (!this._carousel) {
+      return;
+    }
+    const slides = this._carousel.slideNodes();
+    const heights = this._carousel.slidesInView(true).map((index) => {
+      const firstChild = slides[index].querySelector("*");
+      return firstChild ? firstChild.getBoundingClientRect().height : 0;
+    })
+    const targetHeight = Math.max(...heights);
+    if (targetHeight > 0) {
+      this._carousel.containerNode().style.maxHeight = `${targetHeight}px`;
+    } else {
+      this._carousel.containerNode().style.removeProperty('max-height')
     }
   }
 
@@ -173,33 +203,40 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
       if (this._carousel && this._carousel?.slidesInView(true).includes(slideIndex)) {
         dispatchExistingMediaShowInfoAsEvent(this, mediaShowInfo);
       }
+
+      // After media has been loaded, the height of the container may need to be
+      // re-adjusted.
+      this._adaptiveHeightHandler();
       /**
        * Images need a width/height from initial load, and browsers will assume
        * that the aspect ratio of the initial dummy-image load will persist. In
        * lazy-loading, this can cause a 1x1 pixel dummy image to cause the
        * browser to assume all images will be square, so the whole carousel will
        * have the wrong aspect-ratio until every single image has been lazily
-       * loaded. To avoid this, we use a 16:9 dummy image at first (most
+       * loaded. Adaptive height helps in that the carousel gets resized on each
+       * img display to the correct size, but it still causes a minor noticeable
+       * flicker until the height change is complete.
+       * 
+       * To avoid this, we use a 16:9 dummy image at first (most
        * likely?) and once the first piece of real media has been loaded, all
        * dummy images are replaced with dummy images that match the aspect ratio
        * of the real image. It still might be wrong, but it's the best option
        * available.
        */
-      // TODO remove this
-      // const firstMediaLoad = !Object.keys(this._mediaShowInfo).length;
-      // if (firstMediaLoad && this.viewerConfig.lazy_load) {
-      //   const replacementImageSrc = getEmptyImageSrc(
-      //     mediaShowInfo.width,
-      //     mediaShowInfo.height,
-      //   );
+      const firstMediaLoad = !Object.keys(this._mediaShowInfo).length;
+      if (firstMediaLoad && this._getLazyLoadCount() != null) {
+        const replacementImageSrc = getEmptyImageSrc(
+          mediaShowInfo.width,
+          mediaShowInfo.height,
+        );
 
-      //   this.renderRoot.querySelectorAll('.embla__container img').forEach((img) => {
-      //     const imageElement: HTMLImageElement = img as HTMLImageElement;
-      //     if (imageElement.src === IMG_EMPTY) {
-      //       imageElement.src = replacementImageSrc;
-      //     }
-      //   });
-      // }
+        this.renderRoot.querySelectorAll('.embla__container img').forEach((img) => {
+          const imageElement = img as HTMLImageElement;
+          if (imageElement.src === IMG_EMPTY) {
+            imageElement.src = replacementImageSrc;
+          }
+        });
+      }
     }
   }
 
