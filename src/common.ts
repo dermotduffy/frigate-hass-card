@@ -6,6 +6,7 @@ import { ZodSchema, z } from 'zod';
 import { localize } from './localize/localize.js';
 import {
   ActionType,
+  CameraConfig,
   ExtendedHomeAssistant,
   FrigateCardAction,
   FrigateCardCustomAction,
@@ -394,4 +395,15 @@ export function refreshDynamicStateParameters(
   params.title = params.title ?? (state?.attributes?.friendly_name || params.entity);
   params.icon = params.icon ?? stateIcon(state);
   return params;
+}
+
+export function refreshCameraConfigDynamicParameters(
+  hass: HomeAssistant,
+  config: CameraConfig): CameraConfig {
+  if (hass && config.camera_entity) {
+    const state = hass.states[config.camera_entity];
+    config.title = config.title ?? (state?.attributes?.friendly_name || config.camera_entity);
+    config.icon = config.icon ?? stateIcon(state);
+  }
+  return config;
 }

@@ -36,7 +36,7 @@ import {
   dispatchPauseEvent,
   dispatchPlayEvent,
   homeAssistantSignPath,
-  refreshDynamicStateParameters,
+  refreshCameraConfigDynamicParameters,
 } from '../common.js';
 import { renderProgressIndicator } from '../components/message.js';
 
@@ -238,9 +238,13 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     if (!this.cameras) {
       return [];
     }
-    return Array.from(this.cameras.values()).map((cameraConfig, index) =>
-      this._renderLive(cameraConfig, index),
-    );
+    return Array.from(this.cameras.values()).map((cameraConfig, index) => {
+      let refreshedConfig = {...cameraConfig};
+      if (this.hass) {
+        refreshedConfig = refreshCameraConfigDynamicParameters(this.hass, refreshedConfig);
+      }
+      return this._renderLive(refreshedConfig, index)
+    });
   }
 
   /**
@@ -271,10 +275,11 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   protected _renderLive(cameraConfig: CameraConfig, slideIndex: number): TemplateResult {
     return html` <div class="embla__slide">
       <frigate-card-live-provider
+        .title=${cameraConfig.title ?? ''}
         .hass=${this.hass}
         .cameraConfig=${cameraConfig}
         .liveConfig=${this.liveConfig}
-        ?lazyLoad=${this._getLazyLoadCount() != null}
+        ?disabled=${this._getLazyLoadCount() != null}
         @frigate-card:media-show=${(e: CustomEvent<MediaShowInfo>) =>
           this._mediaShowEventHandler(slideIndex, e)}
       >
@@ -293,34 +298,18 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       return [null, null];
     }
 
-    const getDynamicParameters = (config: CameraConfig): CameraConfig | null => {
-      if (!this.hass) {
-        return null;
-      }
-      const stateParameters = refreshDynamicStateParameters(this.hass, {
-        entity: config.camera_entity,
-        title: config.title,
-        icon: config.icon,
-      });
-      return {
-        ...config,
-        title: stateParameters.title ?? undefined,
-        icon: stateParameters.icon,
-      };
-    };
-
     let prev: CameraConfig | null = null,
       next: CameraConfig | null = null;
     if (currentIndex > 0) {
       prev = this.cameras.get(keys[currentIndex - 1]) ?? null;
       if (prev) {
-        prev = getDynamicParameters(prev);
+        prev = refreshCameraConfigDynamicParameters(this.hass, {...prev});
       }
     }
     if (currentIndex + 1 < this.cameras.size) {
       next = this.cameras.get(keys[currentIndex + 1]) ?? null;
       if (next) {
-        next = getDynamicParameters(next);
+        next = refreshCameraConfigDynamicParameters(this.hass, {...next});
       }
     }
     return [prev, next];

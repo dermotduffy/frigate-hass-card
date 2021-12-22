@@ -8,9 +8,6 @@ import controlStyle from '../scss/next-previous-control.scss';
 
 @customElement('frigate-card-next-previous-control')
 export class FrigateCardNextPreviousControl extends LitElement {
-  @property({ attribute: true })
-  public title = '';
-
   @property({ attribute: false })
   public direction?: 'next' | 'previous';
 
