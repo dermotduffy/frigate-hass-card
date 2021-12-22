@@ -1,5 +1,6 @@
 import { CSSResultGroup, unsafeCSS } from 'lit';
 import { EmblaCarouselType } from 'embla-carousel';
+import { createRef, Ref } from 'lit/directives/ref';
 import { customElement } from 'lit/decorators.js';
 
 import { FrigateCardCarousel } from './carousel.js';
@@ -13,6 +14,8 @@ import './next-prev-control.js';
 
 import mediaCarouselStyle from '../scss/media-carousel.scss';
 
+import { FrigateCardNextPreviousControl } from './next-prev-control.js';
+
 const getEmptyImageSrc = (width: number, height: number) =>
   `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"%3E%3C/svg%3E`;
 export const IMG_EMPTY = getEmptyImageSrc(16, 9);
@@ -24,6 +27,9 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
 
   // Whether or not a given slide has been successfully lazily loaded.
   protected _slideHasBeenLazyLoaded: Record<number, boolean> = {};
+
+  protected _nextControlRef: Ref<FrigateCardNextPreviousControl> = createRef();
+  protected _previousControlRef: Ref<FrigateCardNextPreviousControl> = createRef();
 
   /**
    * Returns the number of slides to lazily load. 0 means all slides are lazy
@@ -49,6 +55,9 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
 
     // Update the view object as the carousel is moved.
     carousel?.on('select', this._selectSlideSetViewHandler.bind(this));
+
+    // Update the next/previous controls as the carousel is moved.
+    carousel?.on('select', this._selectSlideNextPreviousHandler.bind(this));
 
     // Dispatch MediaShow events as the carousel is moved.
     carousel?.on('init', this._selectSlideMediaShowHandler.bind(this));
@@ -93,6 +102,13 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
    * Handle the user selecting a new slide in the carousel.
    */
   protected _selectSlideSetViewHandler(): void {
+    // To be overridden in children.
+  }
+
+  /**
+   * Handle updating of the next/previous controls when the carousel is moved.
+   */
+  protected _selectSlideNextPreviousHandler(): void {
     // To be overridden in children.
   }
 

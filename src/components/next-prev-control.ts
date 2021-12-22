@@ -8,8 +8,11 @@ import controlStyle from '../scss/next-previous-control.scss';
 
 @customElement('frigate-card-next-previous-control')
 export class FrigateCardNextPreviousControl extends LitElement {
+  @property({ attribute: true })
+  public title = '';
+
   @property({ attribute: false })
-  protected direction?: 'next' | 'previous';
+  public direction?: 'next' | 'previous';
 
   @property({ attribute: false })
   set controlConfig(controlConfig: NextPreviousControlConfig | undefined) {
@@ -21,10 +24,13 @@ export class FrigateCardNextPreviousControl extends LitElement {
   protected _controlConfig?: NextPreviousControlConfig;
 
   @property({ attribute: false })
-  protected thumbnail?: string;
+  public thumbnail?: string;
+
+  @property({ attribute: true, type: Boolean })
+  public disabled = false;
 
   protected render(): TemplateResult {
-    if (!this._controlConfig || this._controlConfig.style == 'none') {
+    if (this.disabled || !this._controlConfig || this._controlConfig.style == 'none') {
       return html``;
     }
 

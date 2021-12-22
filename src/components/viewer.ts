@@ -16,6 +16,7 @@ import type {
   ViewerConfig,
 } from '../types.js';
 import { FrigateCardMediaCarousel, IMG_EMPTY } from './media-carousel.js';
+import { FrigateCardNextPreviousControl } from './next-prev-control.js';
 import { FrigateCardThumbnailCarousel, ThumbnailCarouselTap } from './thumbnail-carousel.js';
 import { ResolvedMediaCache, ResolvedMediaUtil } from '../resolved-media.js';
 import { View } from '../view.js';
@@ -437,6 +438,28 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   }
 
   /**
+   * Handle updating of the next/previous controls when the carousel is moved.
+   */
+  protected _selectSlideNextPreviousHandler(): void {
+    const updateNextPreviousControl = (control: FrigateCardNextPreviousControl, direction: 'previous' | 'next'): void => {
+      const neighbors = this._getMediaNeighbors();
+      const [prev, next] = [neighbors?.previous, neighbors?.next]
+      const target = direction == 'previous' ? prev : next;
+  
+      control.disabled = (target == null)
+      control.title = (target && target.title ? target.title : '')
+      control.thumbnail = (target && target.thumbnail ? target.thumbnail : undefined)
+    }
+
+    if (this._previousControlRef.value) {
+      updateNextPreviousControl(this._previousControlRef.value, 'previous');
+    }
+    if (this._nextControlRef.value) {
+      updateNextPreviousControl(this._nextControlRef.value, 'next');
+    }
+  }
+
+  /**
    * Get slides to include in the render.
    * @returns The slides to include in the render.
    */
@@ -474,41 +497,34 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     }
 
     const neighbors = this._getMediaNeighbors();
+    const [prev, next] = [neighbors?.previous, neighbors?.next]
 
     return html`<div class="embla">
-      ${neighbors && neighbors.previous
-        ? html`<frigate-card-next-previous-control
-            .direction=${'previous'}
-            .controlConfig=${this.viewerConfig?.controls.next_previous}
-            .thumbnail=${neighbors.previous.thumbnail}
-            .title=${neighbors.previous.title}
-            .actionHandler=${actionHandler({
-              hasHold: false,
-              hasDoubleClick: false,
-            })}
-            @action=${() => {
-              this._nextPreviousHandler('previous');
-            }}
-          ></frigate-card-next-previous-control>`
-        : ``}
+      <frigate-card-next-previous-control
+        ${ref(this._previousControlRef)}
+        .direction=${'previous'}
+        .controlConfig=${this.viewerConfig?.controls.next_previous}
+        .thumbnail=${prev && prev.thumbnail ? prev.thumbnail : undefined}
+        .title=${prev ? prev.title : ''}
+        ?disabled=${!prev}
+        @click=${() => {
+          this._nextPreviousHandler('previous');
+        }}
+      ></frigate-card-next-previous-control>
       <div class="embla__viewport">
         <div class="embla__container">${slides}</div>
       </div>
-      ${neighbors && neighbors.next
-        ? html`<frigate-card-next-previous-control
-            .direction=${'next'}
-            .controlConfig=${this.viewerConfig?.controls.next_previous}
-            .thumbnail=${neighbors.next.thumbnail}
-            .title=${neighbors.next.title}
-            .actionHandler=${actionHandler({
-              hasHold: false,
-              hasDoubleClick: false,
-            })}
-            @action=${() => {
-              this._nextPreviousHandler('next');
-            }}
-          ></frigate-card-next-previous-control>`
-        : ``}
+      <frigate-card-next-previous-control
+        ${ref(this._nextControlRef)}
+        .direction=${'next'}
+        .controlConfig=${this.viewerConfig?.controls.next_previous}
+        .thumbnail=${next && next.thumbnail ? next.thumbnail : undefined}
+        .title=${next ? next.title : ''}
+        ?disabled=${!next}
+        @click=${() => {
+          this._nextPreviousHandler('next');
+        }}
+      ></frigate-card-next-previous-control>
     </div>`;
   }
 

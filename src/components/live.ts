@@ -1,5 +1,4 @@
-// TODO height adapting
-// TODO can height adapting remove need for 16x9 dummy in the media carousel?
+// TODO title on hover over camera
 // TODO controls
 // TODO lazy loading configuration
 // TODO editor
@@ -15,14 +14,17 @@ import type {
   LiveConfig,
   MediaShowInfo,
   WebRTCConfig,
+  StateParameters,
 } from '../types.js';
 import { EmblaOptionsType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property } from 'lit/decorators.js';
+import { ref } from 'lit/directives/ref';
 import { until } from 'lit/directives/until.js';
 
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import { FrigateCardMediaCarousel } from './media-carousel.js';
+import { FrigateCardNextPreviousControl } from './next-prev-control.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 import { View } from '../view.js';
 import { localize } from '../localize/localize.js';
@@ -34,6 +36,7 @@ import {
   dispatchPauseEvent,
   dispatchPlayEvent,
   homeAssistantSignPath,
+  refreshDynamicStateParameters,
 } from '../common.js';
 import { renderProgressIndicator } from '../components/message.js';
 
@@ -166,7 +169,7 @@ export class FrigateCardLive extends LitElement {
         @frigate-card:media-show=${this._mediaShowHandler}
         @frigate-card:carousel:select=${() => {
           // Re-rendering the component will cause the thumbnails to be
-          // re-fetched.
+          // re-fetched (which is necessary because the camera has changed).
           this.requestUpdate();
         }}
       >
@@ -261,7 +264,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       'frigate-card-live-provider',
     ) as FrigateCardLiveProvider;
     if (liveProvider) {
-      liveProvider.lazyLoad = false;
+      liveProvider.disabled = false;
     }
   }
 
@@ -279,6 +282,70 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     </div>`;
   }
 
+  protected _getCameraNeighbors(): [StateParameters | null, StateParameters | null] {
+    if (!this.cameras || !this.view || !this.hass) {
+      return [null, null];
+    }
+    const keys = Array.from(this.cameras.keys());
+    const currentIndex = keys.indexOf(this.view.camera);
+
+    if (currentIndex < 0) {
+      return [null, null];
+    }
+
+    const getDynamicParameters = (config: CameraConfig): CameraConfig | null => {
+      if (!this.hass) {
+        return null;
+      }
+      const stateParameters = refreshDynamicStateParameters(this.hass, {
+        entity: config.camera_entity,
+        title: config.title,
+        icon: config.icon,
+      });
+      return {
+        ...config,
+        title: stateParameters.title ?? undefined,
+        icon: stateParameters.icon,
+      };
+    };
+
+    let prev: CameraConfig | null = null,
+      next: CameraConfig | null = null;
+    if (currentIndex > 0) {
+      prev = this.cameras.get(keys[currentIndex - 1]) ?? null;
+      if (prev) {
+        prev = getDynamicParameters(prev);
+      }
+    }
+    if (currentIndex + 1 < this.cameras.size) {
+      next = this.cameras.get(keys[currentIndex + 1]) ?? null;
+      if (next) {
+        next = getDynamicParameters(next);
+      }
+    }
+    return [prev, next];
+  }
+
+  /**
+   * Handle updating of the next/previous controls when the carousel is moved.
+   */
+   protected _selectSlideNextPreviousHandler(): void {
+    const updateNextPreviousControl = (control: FrigateCardNextPreviousControl, direction: 'previous' | 'next'): void => {
+      const [prev, next] = this._getCameraNeighbors();
+      const target = direction == 'previous' ? prev : next;
+  
+      control.disabled = (target == null)
+      control.title = (target && target.title ? target.title : '')
+    }
+
+    if (this._previousControlRef.value) {
+      updateNextPreviousControl(this._previousControlRef.value, 'previous');
+    }
+    if (this._nextControlRef.value) {
+      updateNextPreviousControl(this._nextControlRef.value, 'next');
+    }
+  }
+
   /**
    * Render the element.
    * @returns A template to display to the user.
@@ -289,42 +356,43 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       return;
     }
 
-    // ${neighbors && neighbors.previous
-    //   ? html`<frigate-card-next-previous-control
-    //       .direction=${'previous'}
-    //       .controlConfig=${this.viewerConfig?.controls.next_previous}
-    //       .thumbnail=${neighbors.previous.thumbnail}
-    //       .title=${neighbors.previous.title}
-    //       .actionHandler=${actionHandler({
-    //         hasHold: false,
-    //         hasDoubleClick: false,
-    //       })}
-    //       @action=${() => {
-    //         this._nextPreviousHandler('previous');
-    //       }}
-    //     ></frigate-card-next-previous-control>`
-    //   : ``}
+    const [prev, next] = this._getCameraNeighbors();
 
-    return html`<div class="embla">
-      <div class="embla__viewport">
-        <div class="embla__container">${slides}</div>
+    return html`
+      <div class="embla">
+        <frigate-card-next-previous-control
+          ${ref(this._previousControlRef)}
+          .direction=${'previous'}
+          .controlConfig=${{
+            style: 'chevrons',
+            size: '40px',
+          }}
+          .title=${prev && prev.title ? prev.title : ''}
+          ?disabled=${prev == null}
+          @click=${() => {
+            this._nextPreviousHandler('previous');
+          }}
+        >
+        </frigate-card-next-previous-control>
+        <div class="embla__viewport">
+          <div class="embla__container">${slides}</div>
+        </div>
+        <frigate-card-next-previous-control
+          ${ref(this._nextControlRef)}
+          .direction=${'next'}
+          .controlConfig=${{
+            style: 'chevrons',
+            size: '40px',
+          }}
+          .title=${next && next.title ? next.title : ''}
+          ?disabled=${next == null}
+          @click=${() => {
+            this._nextPreviousHandler('next');
+          }}
+        >
+        </frigate-card-next-previous-control>
       </div>
-    </div>`;
-    // ${neighbors && neighbors.next
-    //   ? html`<frigate-card-next-previous-control
-    //       .direction=${'next'}
-    //       .controlConfig=${this.viewerConfig?.controls.next_previous}
-    //       .thumbnail=${neighbors.next.thumbnail}
-    //       .title=${neighbors.next.title}
-    //       .actionHandler=${actionHandler({
-    //         hasHold: false,
-    //         hasDoubleClick: false,
-    //       })}
-    //       @action=${() => {
-    //         this._nextPreviousHandler('next');
-    //       }}
-    //     ></frigate-card-next-previous-control>`
-    //   : ``}
+    `;
   }
 }
 
@@ -339,17 +407,17 @@ export class FrigateCardLiveProvider extends LitElement {
   @property({ attribute: false })
   protected liveConfig?: LiveConfig;
 
-  // Whether or not to lazy load this slide. If `true`, no contents are rendered
-  // until this attribute is set to `false`.
+  // Whether or not to disable this entity. If `true`, no contents are rendered
+  // until this attribute is set to `false` (this is useful for lazy loading).
   @property({ attribute: true, type: Boolean })
-  public lazyLoad = false;
+  public disabled = false;
 
   /**
    * Master render method.
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (this.lazyLoad || !this.hass || !this.liveConfig || !this.cameraConfig) {
+    if (this.disabled || !this.hass || !this.liveConfig || !this.cameraConfig) {
       return;
     }
 
