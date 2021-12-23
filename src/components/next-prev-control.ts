@@ -23,6 +23,9 @@ export class FrigateCardNextPreviousControl extends LitElement {
   @property({ attribute: false })
   public thumbnail?: string;
 
+  @property({ attribute: false })
+  public icon?: string;
+
   @property({ attribute: true, type: Boolean })
   public disabled = false;
 
@@ -36,12 +39,20 @@ export class FrigateCardNextPreviousControl extends LitElement {
       previous: this.direction == 'previous',
       next: this.direction == 'next',
       thumbnails: this._controlConfig.style == 'thumbnails',
-      chevrons: this._controlConfig.style == 'chevrons',
-      button: this._controlConfig.style == 'chevrons',
+      icons: ['chevrons', 'icons'].includes(this._controlConfig.style),
+      button: ['chevrons', 'icons'].includes(this._controlConfig.style),
     };
 
-    if (this._controlConfig.style == 'chevrons') {
-      const icon = this.direction == 'previous' ? 'mdi:chevron-left' : 'mdi:chevron-right';
+    if (['chevrons', 'icons'].includes(this._controlConfig.style)) {
+      let icon: string;
+      if (this._controlConfig.style === 'chevrons') {
+       icon = this.direction == 'previous' ? 'mdi:chevron-left' : 'mdi:chevron-right';
+      } else {
+        if (!this.icon) {
+          return html``;
+        }
+        icon = this.icon
+      }
 
       // TODO: Upon a safe distance from the release of HA 2021.11 these
       // attributes can be removed from the <ha-icon-button>.

@@ -1,6 +1,3 @@
-// TODO title on hover over camera
-// TODO controls
-// TODO lazy loading configuration
 // TODO editor
 // TODO readme
 // TODO search for TODOs
@@ -214,7 +211,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
 
     return {
       startIndex: startIndex < 0 ? undefined : startIndex,
-      // TODO: draggable: this.viewerConfig.draggable,
+      draggable: this.liveConfig?.draggable,
     };
   }
 
@@ -227,7 +224,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
    */
   protected _getLazyLoadCount(): number | null {
     // Defaults to fully-lazy loading.
-    return 0;
+    return this.liveConfig?.lazy_load === false ? null : 0;
   }
 
   /**
@@ -239,11 +236,14 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       return [];
     }
     return Array.from(this.cameras.values()).map((cameraConfig, index) => {
-      let refreshedConfig = {...cameraConfig};
+      let refreshedConfig = { ...cameraConfig };
       if (this.hass) {
-        refreshedConfig = refreshCameraConfigDynamicParameters(this.hass, refreshedConfig);
+        refreshedConfig = refreshCameraConfigDynamicParameters(
+          this.hass,
+          refreshedConfig,
+        );
       }
-      return this._renderLive(refreshedConfig, index)
+      return this._renderLive(refreshedConfig, index);
     });
   }
 
@@ -303,13 +303,13 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     if (currentIndex > 0) {
       prev = this.cameras.get(keys[currentIndex - 1]) ?? null;
       if (prev) {
-        prev = refreshCameraConfigDynamicParameters(this.hass, {...prev});
+        prev = refreshCameraConfigDynamicParameters(this.hass, { ...prev });
       }
     }
     if (currentIndex + 1 < this.cameras.size) {
       next = this.cameras.get(keys[currentIndex + 1]) ?? null;
       if (next) {
-        next = refreshCameraConfigDynamicParameters(this.hass, {...next});
+        next = refreshCameraConfigDynamicParameters(this.hass, { ...next });
       }
     }
     return [prev, next];
@@ -318,14 +318,18 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   /**
    * Handle updating of the next/previous controls when the carousel is moved.
    */
-   protected _selectSlideNextPreviousHandler(): void {
-    const updateNextPreviousControl = (control: FrigateCardNextPreviousControl, direction: 'previous' | 'next'): void => {
+  protected _selectSlideNextPreviousHandler(): void {
+    const updateNextPreviousControl = (
+      control: FrigateCardNextPreviousControl,
+      direction: 'previous' | 'next',
+    ): void => {
       const [prev, next] = this._getCameraNeighbors();
       const target = direction == 'previous' ? prev : next;
-  
-      control.disabled = (target == null)
-      control.title = (target && target.title ? target.title : '')
-    }
+
+      control.disabled = target == null;
+      control.title = target && target.title ? target.title : '';
+      control.icon = target && target.icon ? target.icon : undefined;
+    };
 
     if (this._previousControlRef.value) {
       updateNextPreviousControl(this._previousControlRef.value, 'previous');
@@ -352,11 +356,9 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
         <frigate-card-next-previous-control
           ${ref(this._previousControlRef)}
           .direction=${'previous'}
-          .controlConfig=${{
-            style: 'chevrons',
-            size: '40px',
-          }}
+          .controlConfig=${this.liveConfig?.controls.next_previous}
           .title=${prev && prev.title ? prev.title : ''}
+          .icon=${prev && prev.icon ? prev.icon : undefined}
           ?disabled=${prev == null}
           @click=${() => {
             this._nextPreviousHandler('previous');
@@ -369,11 +371,9 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
         <frigate-card-next-previous-control
           ${ref(this._nextControlRef)}
           .direction=${'next'}
-          .controlConfig=${{
-            style: 'chevrons',
-            size: '40px',
-          }}
+          .controlConfig=${this.liveConfig?.controls.next_previous}
           .title=${next && next.title ? next.title : ''}
+          .icon=${next && next.icon ? next.icon : undefined}
           ?disabled=${next == null}
           @click=${() => {
             this._nextPreviousHandler('next');

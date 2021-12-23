@@ -256,6 +256,18 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   }
 
   /**
+   * Returns the number of slides to lazily load. 0 means all slides are lazy
+   * loaded, 1 means that 1 slide on each side of the currently selected slide
+   * should lazy load, etc. `null` means lazy loading is disabled and everything
+   * should load simultaneously.
+   * @returns
+   */
+   protected _getLazyLoadCount(): number | null {
+    // Defaults to fully-lazy loading.
+    return this.viewerConfig?.lazy_load === false ? null : 0;
+  }
+
+  /**
    * Get the previous and next true media items from the current view.
    * @returns A BrowseMediaNeighbors with indices and objects of true media
    * neighbors.
@@ -558,7 +570,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       autoplay = this.viewerConfig.autoplay_clip;
     }
 
-    const lazyLoad = this.viewerConfig.lazy_load;
+    const lazyLoad = (this._getLazyLoadCount() !== null);
 
     return html`
       <div class="embla__slide">
@@ -616,8 +628,9 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
               @load="${(e: Event) => {
                 if (
                   this.viewerConfig &&
-                  (!this.viewerConfig.lazy_load ||
-                    this._slideHasBeenLazyLoaded[slideIndex])
+                  // This handler will be called on the empty image, only call
+                  // the below when it's the 'real image'.
+                  (!lazyLoad || this._slideHasBeenLazyLoaded[slideIndex])
                 ) {
                   this._mediaLoadedHandler(slideIndex, createMediaShowInfo(e));
                 }

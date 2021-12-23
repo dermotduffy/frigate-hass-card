@@ -57,8 +57,7 @@ const FRIGATE_MENU_MODES = [
   'above',
   'below',
 ] as const;
-export const NEXT_PREVIOUS_CONTROL_STYLES = ['none', 'thumbnails', 'chevrons'] as const;
-export const LIVE_PROVIDERS = ['frigate', 'frigate-jsmpeg', 'webrtc'] as const;
+const LIVE_PROVIDERS = ['frigate', 'frigate-jsmpeg', 'webrtc'] as const;
 
 /**
  * Action Types (for "Picture Elements" / Menu)
@@ -431,12 +430,28 @@ const thumbnailsControlSchema = z.object({
 export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlSchema>;
 
 /**
+ * Next/Previous Control configuration section.
+ */
+
+const nextPreviousControlConfigSchema = z.object({
+  style: z.enum(['none', 'chevrons', 'icons', 'thumbnails']),
+  size: z.string(),
+});
+export type NextPreviousControlConfig = z.infer<typeof nextPreviousControlConfigSchema>;
+
+/**
  * Live view configuration section.
  */
 const liveConfigDefault = {
   provider: 'frigate' as const,
   preload: false,
+  lazy_load: true,
+  draggable: true,
   controls: {
+    next_previous: {
+      size: '48px',
+      style: 'chevrons' as const,
+    },
     thumbnails: {
       media: 'clips' as const,
     },
@@ -474,14 +489,28 @@ const jsmpegConfigSchema = z
   .optional();
 export type JSMPEGConfig = z.infer<typeof jsmpegConfigSchema>;
 
+const liveNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.merge(
+  z.object({
+    style: z
+      .enum(['none', 'chevrons', 'icons'])
+      .default(liveConfigDefault.controls.next_previous.style),
+    size: z.string().default(liveConfigDefault.controls.next_previous.size),
+}));
+export type LiveNextPreviousControlConfig = z.infer<typeof liveNextPreviousControlConfigSchema>;
+
 const liveConfigSchema = z
   .object({
     provider: z.enum(LIVE_PROVIDERS).default(liveConfigDefault.provider),
     preload: z.boolean().default(liveConfigDefault.preload),
     webrtc: webrtcConfigSchema,
     jsmpeg: jsmpegConfigSchema,
+    lazy_load: z.boolean().default(liveConfigDefault.lazy_load),
+    draggable: z.boolean().default(liveConfigDefault.draggable),
     controls: z
       .object({
+        next_previous: liveNextPreviousControlConfigSchema.default(
+          liveConfigDefault.controls.next_previous,
+        ),
         thumbnails: thumbnailsControlSchema
           .merge(
             z.object({
@@ -555,13 +584,14 @@ const viewerConfigDefault = {
     },
   },
 };
-const nextPreviousControlConfigSchema = z.object({
-  style: z
-    .enum(NEXT_PREVIOUS_CONTROL_STYLES)
-    .default(viewerConfigDefault.controls.next_previous.style),
-  size: z.string().default(viewerConfigDefault.controls.next_previous.size),
-});
-export type NextPreviousControlConfig = z.infer<typeof nextPreviousControlConfigSchema>;
+const viewerNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.merge(
+  z.object({
+    style: z
+      .enum(['none', 'thumbnails', 'chevrons'])
+      .default(viewerConfigDefault.controls.next_previous.style),
+    size: z.string().default(viewerConfigDefault.controls.next_previous.size),
+}));
+export type ViewerNextPreviousControlConfig = z.infer<typeof viewerNextPreviousControlConfigSchema>;
 
 const viewerConfigSchema = z
   .object({
@@ -570,7 +600,7 @@ const viewerConfigSchema = z
     draggable: z.boolean().default(viewerConfigDefault.draggable),
     controls: z
       .object({
-        next_previous: nextPreviousControlConfigSchema.default(
+        next_previous: viewerNextPreviousControlConfigSchema.default(
           viewerConfigDefault.controls.next_previous,
         ),
         thumbnails: thumbnailsControlSchema.default(
