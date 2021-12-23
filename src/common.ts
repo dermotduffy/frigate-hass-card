@@ -287,7 +287,8 @@ export function convertActionToFrigateCardCustomAction(
  */
 export function createFrigateCardCustomAction(
   action: FrigateCardAction,
-  camera?: string): FrigateCardCustomAction | undefined {
+  camera?: string,
+): FrigateCardCustomAction | undefined {
   if (action == 'camera_select') {
     if (!camera) {
       return undefined;
@@ -296,12 +297,12 @@ export function createFrigateCardCustomAction(
       action: 'fire-dom-event',
       frigate_card_action: action,
       camera: camera,
-    }
+    };
   }
   return {
     action: 'fire-dom-event',
     frigate_card_action: action,
-  }
+  };
 }
 
 /**
@@ -397,13 +398,24 @@ export function refreshDynamicStateParameters(
   return params;
 }
 
+function prettifyCameraName(input: string): string {
+  const words = input.split(/[_\s]+/);
+  return words
+    .map((word) => {
+      return word[0].toUpperCase() + word.substring(1);
+    })
+    .join(' ');
+}
+
 export function refreshCameraConfigDynamicParameters(
-  hass: HomeAssistant,
-  config: CameraConfig): CameraConfig {
-  if (hass && config.camera_entity) {
-    const state = hass.states[config.camera_entity];
-    config.title = config.title ?? (state?.attributes?.friendly_name || config.camera_entity);
-    config.icon = config.icon ?? stateIcon(state);
-  }
+  config: CameraConfig,
+  hass?: HomeAssistant,
+): CameraConfig {
+  const state =
+    hass && config.camera_entity ? hass.states[config.camera_entity] : undefined;
+  config.title =
+    config.title ??
+    (state?.attributes?.friendly_name || prettifyCameraName(config.camera_name || ''));
+  config.icon = config.icon ?? (state ? stateIcon(state) : 'mdi:video');
   return config;
 }

@@ -1,4 +1,8 @@
 // TODO editor
+// TODO webrtc entities in camera section?
+// TODO conditional elements based on camera name (requires event changed to propagate upwards)
+// TODO change url to frigate_url?
+// TODO Remove media load event warning
 // TODO readme
 // TODO search for TODOs
 
@@ -237,12 +241,10 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     }
     return Array.from(this.cameras.values()).map((cameraConfig, index) => {
       let refreshedConfig = { ...cameraConfig };
-      if (this.hass) {
-        refreshedConfig = refreshCameraConfigDynamicParameters(
-          this.hass,
-          refreshedConfig,
-        );
-      }
+      refreshedConfig = refreshCameraConfigDynamicParameters(
+        refreshedConfig,
+        this.hass,
+      );
       return this._renderLive(refreshedConfig, index);
     });
   }
@@ -303,13 +305,13 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     if (currentIndex > 0) {
       prev = this.cameras.get(keys[currentIndex - 1]) ?? null;
       if (prev) {
-        prev = refreshCameraConfigDynamicParameters(this.hass, { ...prev });
+        prev = refreshCameraConfigDynamicParameters({ ...prev }, this.hass);
       }
     }
     if (currentIndex + 1 < this.cameras.size) {
       next = this.cameras.get(keys[currentIndex + 1]) ?? null;
       if (next) {
-        next = refreshCameraConfigDynamicParameters(this.hass, { ...next });
+        next = refreshCameraConfigDynamicParameters({ ...next }, this.hass);
       }
     }
     return [prev, next];

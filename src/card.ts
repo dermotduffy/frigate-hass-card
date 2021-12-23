@@ -1,5 +1,3 @@
-// TODO change url to frigate_url?
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   CSSResultGroup,
@@ -33,7 +31,6 @@ import {
   CameraConfig,
 } from './types.js';
 import type {
-  BrowseMediaQueryParameters,
   Entity,
   ExtendedHomeAssistant,
   FrigateCardConfig,
@@ -53,6 +50,7 @@ import {
   homeAssistantSignPath,
   homeAssistantWSRequest,
   isValidMediaShowInfo,
+  refreshCameraConfigDynamicParameters,
   shouldUpdateBasedOnHass,
 } from './common.js';
 import { localize } from './localize/localize.js';
@@ -280,18 +278,24 @@ export class FrigateCard extends LitElement {
     }
 
     if (this.config.menu.buttons.cameras && this._cameras && this._cameras.size > 1) {
-      const menuItems = Array.from(this._cameras, ([camera, config]) => ({
-        icon: config.icon || 'mdi:cctv',
-        entity: config.camera_entity,
-        state_color: true,
-        title: config.title,
-        tap_action: createFrigateCardCustomAction('camera_select', camera),
-      }));
+      const menuItems = Array.from(this._cameras, ([camera, config]) => {
+        const dynamicConfig = refreshCameraConfigDynamicParameters(
+          { ...config },
+          this._hass,
+        );
+        return {
+          icon: dynamicConfig.icon || 'mdi:cctv',
+          entity: dynamicConfig.camera_entity,
+          state_color: true,
+          title: dynamicConfig.title,
+          tap_action: createFrigateCardCustomAction('camera_select', camera),
+        };
+      });
 
       buttons.push({
         type: 'custom:frigate-card-menu-submenu',
         title: localize('config.menu.buttons.cameras'),
-        icon: 'mdi:camera-switch',
+        icon: 'mdi:video-switch',
         items: menuItems,
       });
     }
@@ -399,8 +403,13 @@ export class FrigateCard extends LitElement {
   protected async _loadCameras(): Promise<void> {
     const cameras: Map<string, CameraConfig> = new Map();
 
-    const addCameraConfig = async (config: CameraConfig) => {
-      if (!config.camera_name && config.camera_entity) {
+    const addCameraConfig = async (id: string, config: CameraConfig) => {
+      if (!config.camera_name && (config.camera_entity || id.startsWith('camera.'))) {
+        if (!config.camera_entity) {
+          // If the camera_entity isn't explicitly set and the id looks like
+          // one, use that.
+          config.camera_entity = id;
+        }
         const resolvedName = await this._getFrigateCameraNameFromEntity(
           config.camera_entity,
         );
@@ -408,30 +417,17 @@ export class FrigateCard extends LitElement {
           config.camera_name = resolvedName;
         }
       }
-
-      if (config.camera_name) {
-        const id = config.id || config.camera_name;
-        if (cameras.has(id)) {
-          this._setMessageAndUpdate(
-            {
-              message: localize('error.duplicate_frigate_camera_name'),
-              type: 'error',
-            },
-            true,
-          );
-        } else {
-          cameras.set(config.id || config.camera_name, config);
-        }
+      if (!config.camera_name) {
+        config.camera_name = id;
       }
+      cameras.set(id, config);
     };
 
-    if (this.config.camera) {
-      if (Array.isArray(this.config.camera)) {
-        await Promise.all(this.config.camera.map(addCameraConfig.bind(this)));
-      } else {
-        await addCameraConfig(this.config.camera);
-      }
-    }
+    await Promise.all(
+      Object.keys(this.config.cameras).map((key) =>
+        addCameraConfig(key, this.config.cameras[key]),
+      ),
+    );
 
     if (!cameras.size) {
       return this._setMessageAndUpdate(
@@ -945,6 +941,8 @@ export class FrigateCard extends LitElement {
     if (requestRefresh) {
       this.requestUpdate();
     }
+    // TODO: Remove
+    console.info(`Showing media: ${JSON.stringify(mediaShowInfo)}`);
   }
 
   /**
