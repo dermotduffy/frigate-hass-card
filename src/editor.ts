@@ -604,7 +604,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     } else {
       setConfigValue(newConfig, key, value);
     }
-    trimConfig(newConfig);
     this._config = newConfig;
     fireEvent(this, 'config-changed', { config: this._config });
   }
