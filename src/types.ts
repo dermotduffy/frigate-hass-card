@@ -368,11 +368,11 @@ const cameraConfigDefaultSchema = z
     // specified).
     icon: z.string().optional(),
     title: z.string().optional(),
+
+    card_id: z.string().optional(),
   })
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigDefaultSchema>;
-
-const camerasConfigDefaultSchema = z.record(cameraConfigDefaultSchema);
 
 /**
  * View configuration section.
@@ -650,7 +650,7 @@ const dimensionsConfigSchema = z
  */
 export const frigateCardConfigSchema = z.object({
   // Main configuration sections.
-  cameras: camerasConfigDefaultSchema,
+  camera: cameraConfigDefaultSchema.array().nonempty(),
   view: viewConfigSchema,
   menu: menuConfigSchema,
   live: liveConfigSchema,

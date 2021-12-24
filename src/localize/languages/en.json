@@ -154,6 +154,7 @@
     "upgrade_available": "An automated card configuration upgrade is available, please visit the visual card editor",
     "missing_webrtc": "WebRTC component not found",
     "no_cameras": "No cameras found, you must configure at least one camera configured with a camera_entity or camera_name",
+    "duplicate_frigate_camera_name": "Duplicate Frigate camera name, use the 'id' parameter to uniquely identify them",
     "could_not_render_elements": "Could not render picture elements",
     "invalid_elements_config": "Invalid picture elements configuration",
     "jsmpeg_no_sign": "Could not retrieve or sign JSMPEG websocket path",

@@ -403,13 +403,8 @@ export class FrigateCard extends LitElement {
   protected async _loadCameras(): Promise<void> {
     const cameras: Map<string, CameraConfig> = new Map();
 
-    const addCameraConfig = async (id: string, config: CameraConfig) => {
-      if (!config.camera_name && (config.camera_entity || id.startsWith('camera.'))) {
-        if (!config.camera_entity) {
-          // If the camera_entity isn't explicitly set and the id looks like
-          // one, use that.
-          config.camera_entity = id;
-        }
+    const addCameraConfig = async (config: CameraConfig) => {
+      if (!config.camera_name && config.camera_entity) {
         const resolvedName = await this._getFrigateCameraNameFromEntity(
           config.camera_entity,
         );
@@ -417,17 +412,26 @@ export class FrigateCard extends LitElement {
           config.camera_name = resolvedName;
         }
       }
-      if (!config.camera_name) {
-        config.camera_name = id;
+
+      if (config.camera_name) {
+        const id = config.card_id || config.camera_entity || config.camera_name;
+        if (cameras.has(id)) {
+          this._setMessageAndUpdate(
+            {
+              message: localize('error.duplicate_frigate_camera_name'),
+              type: 'error',
+            },
+            true,
+          );
+        } else {
+          cameras.set(id, config);
+        }
       }
-      cameras.set(id, config);
     };
 
-    await Promise.all(
-      Object.keys(this.config.cameras).map((key) =>
-        addCameraConfig(key, this.config.cameras[key]),
-      ),
-    );
+    if (this.config.camera && Array.isArray(this.config.camera)) {
+        await Promise.all(this.config.camera.map(addCameraConfig.bind(this)));
+    }
 
     if (!cameras.size) {
       return this._setMessageAndUpdate(

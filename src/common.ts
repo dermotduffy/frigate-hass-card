@@ -287,8 +287,7 @@ export function convertActionToFrigateCardCustomAction(
  */
 export function createFrigateCardCustomAction(
   action: FrigateCardAction,
-  camera?: string,
-): FrigateCardCustomAction | undefined {
+  camera?: string): FrigateCardCustomAction | undefined {
   if (action == 'camera_select') {
     if (!camera) {
       return undefined;
@@ -297,12 +296,12 @@ export function createFrigateCardCustomAction(
       action: 'fire-dom-event',
       frigate_card_action: action,
       camera: camera,
-    };
+    }
   }
   return {
     action: 'fire-dom-event',
     frigate_card_action: action,
-  };
+  }
 }
 
 /**
