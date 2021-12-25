@@ -650,7 +650,7 @@ const dimensionsConfigSchema = z
  */
 export const frigateCardConfigSchema = z.object({
   // Main configuration sections.
-  camera: cameraConfigDefaultSchema.array().nonempty(),
+  cameras: cameraConfigDefaultSchema.array().nonempty(),
   view: viewConfigSchema,
   menu: menuConfigSchema,
   live: liveConfigSchema,
@@ -666,6 +666,7 @@ export const frigateCardConfigSchema = z.object({
 });
 export type FrigateCardConfig = z.infer<typeof frigateCardConfigSchema>;
 export type RawFrigateCardConfig = Record<string, unknown>;
+export type RawFrigateCardConfigArray = Record<string, unknown>[];
 
 export const frigateCardConfigDefaults = {
   cameras: cameraConfigDefault,

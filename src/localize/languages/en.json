@@ -9,9 +9,9 @@
     "no_clip": "No recent clip"
   },
   "config": {
-    "camera_entity": "Camera Entity",
-    "frigate": {
-      "camera_name": "Frigate camera name (Optional, autodetected from entity)",
+    "cameras": {
+      "camera_entity": "Camera Entity",
+      "camera_name": "Frigate camera name (Autodetected from entity)",
       "client_id": "Frigate client id (For >1 Frigate server)",
       "label": "Frigate label/object filter",
       "url": "Frigate server URL",
@@ -121,10 +121,8 @@
     }
   },
   "editor": {
-    "basic": "Basic",
-    "basic_secondary": "Options for most users",
-    "frigate": "Frigate",
-    "frigate_secondary": "Frigate server options",
+    "cameras": "Cameras",
+    "cameras_secondary": "What cameras to render on this card",
     "view": "View",
     "view_secondary": "What the card should show and how to show it",
     "menu": "Menu",
@@ -139,7 +137,11 @@
     "dimensions_secondary": "Dimensions & shape options",
     "show_button": "Show button",
     "upgrade": "Upgrade",
-    "upgrade_available": "An automatic card configuration upgrade is available"
+    "upgrade_available": "An automatic card configuration upgrade is available",
+    "delete": "Delete",
+    "move_up": "Move up",
+    "move_down": "Move down",
+    "add_new_camera": "Add new camera"
   },
   "error": {
     "empty_response": "Received empty response from Home Assistant for request",

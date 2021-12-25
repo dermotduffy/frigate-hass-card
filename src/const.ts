@@ -2,12 +2,13 @@ export const CARD_VERSION = '2.1.0';
 export const REPO_URL = 'https://github.com/dermotduffy/frigate-hass-card';
 export const TROUBLESHOOTING_URL = `${REPO_URL}#troubleshooting`;
 
-export const CONF_CAMERA_ENTITY = 'camera_entity';
-export const CONF_FRIGATE_CAMERA_NAME = 'frigate.camera_name';
-export const CONF_FRIGATE_CLIENT_ID = 'frigate.client_id';
-export const CONF_FRIGATE_LABEL = 'frigate.label';
-export const CONF_FRIGATE_URL = 'frigate.url';
-export const CONF_FRIGATE_ZONE = 'frigate.zone';
+export const CONF_CAMERAS = 'cameras';
+export const CONF_CAMERAS_ARRAY_CAMERA_ENTITY = 'cameras.#.camera_entity';
+export const CONF_CAMERAS_ARRAY_CAMERA_NAME = 'cameras.#.camera_name';
+export const CONF_CAMERAS_ARRAY_CLIENT_ID = 'cameras.#.client_id';
+export const CONF_CAMERAS_ARRAY_LABEL = 'cameras.#.label';
+export const CONF_CAMERAS_ARRAY_URL = 'cameras.#.url';
+export const CONF_CAMERAS_ARRAY_ZONE = 'cameras.#.zone';
 
 export const CONF_VIEW_DEFAULT = 'view.default';
 export const CONF_VIEW_TIMEOUT = 'view.timeout';

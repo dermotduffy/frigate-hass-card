@@ -287,7 +287,8 @@ export function convertActionToFrigateCardCustomAction(
  */
 export function createFrigateCardCustomAction(
   action: FrigateCardAction,
-  camera?: string): FrigateCardCustomAction | undefined {
+  camera?: string,
+): FrigateCardCustomAction | undefined {
   if (action == 'camera_select') {
     if (!camera) {
       return undefined;
@@ -296,12 +297,12 @@ export function createFrigateCardCustomAction(
       action: 'fire-dom-event',
       frigate_card_action: action,
       camera: camera,
-    }
+    };
   }
   return {
     action: 'fire-dom-event',
     frigate_card_action: action,
-  }
+  };
 }
 
 /**
@@ -417,4 +418,16 @@ export function refreshCameraConfigDynamicParameters(
     (state?.attributes?.friendly_name || prettifyCameraName(config.camera_name || ''));
   config.icon = config.icon ?? (state ? stateIcon(state) : 'mdi:video');
   return config;
+}
+
+/**
+ * Move an element within an array.
+ * @param target Target array.
+ * @param from From index.
+ * @param to To index.
+ */
+export function arrayMove(target: unknown[], from: number, to: number): void {
+  const element = target[from];
+  target.splice(from, 1);
+  target.splice(to, 0, element);
 }

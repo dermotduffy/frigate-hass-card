@@ -429,8 +429,8 @@ export class FrigateCard extends LitElement {
       }
     };
 
-    if (this.config.camera && Array.isArray(this.config.camera)) {
-        await Promise.all(this.config.camera.map(addCameraConfig.bind(this)));
+    if (this.config.cameras && Array.isArray(this.config.cameras)) {
+      await Promise.all(this.config.cameras.map(addCameraConfig.bind(this)));
     }
 
     if (!cameras.size) {
