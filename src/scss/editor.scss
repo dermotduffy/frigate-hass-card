@@ -20,7 +20,6 @@
   pointer-events: none;
 }
 .values {
-  margin-left: 30px;
   padding: 10px;
   background: var(--secondary-background-color);
   display: grid;
@@ -54,6 +53,7 @@ div.upgrade span {
 }
 .camera-header .new-camera {
   font-style: italic;
+  color: var(--secondary-text-color, 'black');
 }
 .cameras {
   margin: 5px 5px 10px 20px;

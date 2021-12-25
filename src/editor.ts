@@ -255,7 +255,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    */
   protected _renderCameraHeader(
     cameraIndex: number,
-    cameraConfig: RawFrigateCardConfig | undefined,
+    cameraConfig?: RawFrigateCardConfig,
     addNewCamera?: boolean,
   ): TemplateResult {
     return html`
@@ -275,11 +275,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 // starting with the most likely to be useful and working our
                 // ways towards the least useful.
                 html` <span>
-                  Camera:
                   ${cameraConfig?.title ||
-                  cameraConfig?.camera_entity ||
                   cameraConfig?.card_id ||
                   [
+                    cameraConfig?.camera_entity,
                     cameraConfig?.client_id,
                     cameraConfig?.camera_name,
                     cameraConfig?.label,
@@ -768,6 +767,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     }
     const key: string = target.configValue;
     if (!key) {
+      return;
+    }
+
+    if (getConfigValue(this._config, key) === value) {
       return;
     }
 
