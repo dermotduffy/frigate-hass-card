@@ -356,11 +356,10 @@ export type PictureElements = z.infer<typeof pictureElementsSchema>;
 export const cameraConfigDefault = {
   client_id: 'frigate' as const,
 };
-const webrtcCameraConfigSchema = z
- .object({
-   entity: z.string().optional(),
-   url: z.string().optional(),
- });
+const webrtcCameraConfigSchema = z.object({
+  entity: z.string().optional(),
+  url: z.string().optional(),
+});
 const cameraConfigDefaultSchema = z
   .object({
     // No URL validation to allow relative URLs within HA (e.g. Frigate addon).
@@ -502,8 +501,11 @@ const liveNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.merg
       .enum(['none', 'chevrons', 'icons'])
       .default(liveConfigDefault.controls.next_previous.style),
     size: z.string().default(liveConfigDefault.controls.next_previous.size),
-}));
-export type LiveNextPreviousControlConfig = z.infer<typeof liveNextPreviousControlConfigSchema>;
+  }),
+);
+export type LiveNextPreviousControlConfig = z.infer<
+  typeof liveNextPreviousControlConfigSchema
+>;
 
 const liveConfigSchema = z
   .object({
@@ -597,8 +599,11 @@ const viewerNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.me
       .enum(['none', 'thumbnails', 'chevrons'])
       .default(viewerConfigDefault.controls.next_previous.style),
     size: z.string().default(viewerConfigDefault.controls.next_previous.size),
-}));
-export type ViewerNextPreviousControlConfig = z.infer<typeof viewerNextPreviousControlConfigSchema>;
+  }),
+);
+export type ViewerNextPreviousControlConfig = z.infer<
+  typeof viewerNextPreviousControlConfigSchema
+>;
 
 const viewerConfigSchema = z
   .object({
