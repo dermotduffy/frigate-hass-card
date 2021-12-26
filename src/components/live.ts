@@ -1,4 +1,3 @@
-// TODO editor: fill in a new camera and keep focus
 // TODO editor: fill in a new camera then backspace it away
 // TODO editor: render correctly when name title is really long
 // TODO editor: should not be able to move up a new camera before it's not new.

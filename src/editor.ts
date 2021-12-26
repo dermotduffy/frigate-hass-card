@@ -418,7 +418,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       .configValue=${configPath}
       allowed-pattern=${ifDefined(allowedPattern ? allowedPattern : undefined)}
       prevent-invalid-input=${ifDefined(allowedPattern)}
-      @value-changed=${this._valueChangedHandler}
+      @change=${this._valueChangedHandler}
     ></paper-input>`;
   }
 
