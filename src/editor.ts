@@ -16,6 +16,7 @@ import {
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
   CONF_CAMERAS_ARRAY_CAMERA_NAME,
   CONF_CAMERAS_ARRAY_CLIENT_ID,
+  CONF_CAMERAS_ARRAY_ID,
   CONF_CAMERAS_ARRAY_LABEL,
   CONF_CAMERAS_ARRAY_URL,
   CONF_CAMERAS_ARRAY_ZONE,
@@ -280,7 +281,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               // ways towards the least useful.
               html` <span>
                 ${cameraConfig?.title ||
-                cameraConfig?.card_id ||
+                cameraConfig?.id ||
                 [
                   cameraConfig?.camera_entity
                     ? getEntityTitle(this.hass, String(cameraConfig.camera_entity))
@@ -407,6 +408,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             ${this._renderStringInput(getArrayPath(CONF_CAMERAS_ARRAY_LABEL))}
             ${this._renderStringInput(getArrayPath(CONF_CAMERAS_ARRAY_ZONE))}
             ${this._renderStringInput(getArrayPath(CONF_CAMERAS_ARRAY_CLIENT_ID))}
+            ${this._renderStringInput(getArrayPath(CONF_CAMERAS_ARRAY_ID))}
           </div>`
         : ``}
     `;

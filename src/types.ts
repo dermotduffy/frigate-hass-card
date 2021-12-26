@@ -369,7 +369,9 @@ const cameraConfigDefaultSchema = z
     icon: z.string().optional(),
     title: z.string().optional(),
 
-    card_id: z.string().optional(),
+    // Optional identifier to separate different camera configurations used in
+    // this card.
+    id: z.string().optional(),
   })
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigDefaultSchema>;

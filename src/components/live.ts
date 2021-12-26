@@ -1,5 +1,3 @@
-// TODO reconsider card_id, and using entity (which is unique) as that id
-// TODO rename card_id to id?
 // TODO webrtc entities in camera section?
 // TODO conditional elements based on camera name (requires event changed to propagate upwards)
 // TODO change url to frigate_url? Would need to also fix upgrade logic to refer to new name.

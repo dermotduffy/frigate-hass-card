@@ -13,6 +13,7 @@
       "camera_entity": "Camera Entity",
       "camera_name": "Frigate camera name (Autodetected from entity)",
       "client_id": "Frigate client id (For >1 Frigate server)",
+      "id": "Unique id for this camera in this card",
       "label": "Frigate label/object filter",
       "url": "Frigate server URL",
       "zone": "Frigate zone"
@@ -157,7 +158,7 @@
     "upgrade_available": "An automated card configuration upgrade is available, please visit the visual card editor",
     "missing_webrtc": "WebRTC component not found",
     "no_cameras": "No valid cameras found, you must configure at least one camera with either a camera_entity or camera_name",
-    "duplicate_frigate_camera_name": "Duplicate Frigate camera name, use the 'card_id' parameter to uniquely identify them",
+    "duplicate_camera_id": "Duplicate Frigate camera, use the 'id' parameter to uniquely identify cameras with the same 'camera_entity' or 'camera_name'",
     "could_not_render_elements": "Could not render picture elements",
     "invalid_elements_config": "Invalid picture elements configuration",
     "jsmpeg_no_sign": "Could not retrieve or sign JSMPEG websocket path",

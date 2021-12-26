@@ -415,10 +415,10 @@ export class FrigateCard extends LitElement {
       }
 
       if (config.camera_name) {
-        const id = config.card_id || config.camera_entity || config.camera_name;
+        const id = config.id || config.camera_entity || config.camera_name;
         if (cameras.has(id)) {
           this._setMessageAndUpdate({
-            message: localize('error.duplicate_frigate_camera_name'),
+            message: localize('error.duplicate_camera_id'),
             type: 'error',
           });
           errorFree = false;
