@@ -1,3 +1,4 @@
+// TODO double media load event for webrtc
 // TODO webrtc entities in camera section?
 // TODO conditional elements based on camera name (requires event changed to propagate upwards)
 // TODO Remove media load event warning
@@ -5,7 +6,7 @@
 // TODO search for TODOs
 
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import type {
+import {
   BrowseMediaSource,
   ExtendedHomeAssistant,
   CameraConfig,
@@ -14,6 +15,7 @@ import type {
   MediaShowInfo,
   WebRTCConfig,
   StateParameters,
+  FrigateCardError,
 } from '../types.js';
 import { EmblaOptionsType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
@@ -420,6 +422,7 @@ export class FrigateCardLiveProvider extends LitElement {
         : this.liveConfig.provider == 'webrtc'
         ? html`<frigate-card-live-webrtc
             .hass=${this.hass}
+            .cameraConfig=${this.cameraConfig}
             .webRTCConfig=${this.liveConfig.webrtc || {}}
           >
           </frigate-card-live-webrtc>`
@@ -482,23 +485,35 @@ export class FrigateCardLiveWebRTC extends LitElement {
   @property({ attribute: false })
   protected webRTCConfig?: WebRTCConfig;
 
+  @property({ attribute: false })
+  protected cameraConfig?: CameraConfig;
+
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
-  protected _webRTCElement: HTMLElement | null = null;
-  protected _callbacksAdded = false;
 
   /**
    * Create the WebRTC element. May throw.
    */
-  protected _createWebRTC(): TemplateResult | void {
+  protected _createWebRTC(): HTMLElement | undefined {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const webrtcElement = customElements.get('webrtc-camera') as any;
     if (webrtcElement) {
       const webrtc = new webrtcElement();
-      webrtc.setConfig(this.webRTCConfig);
+      const config = {...this.webRTCConfig};
+
+      // If the live WebRTC configuration does not specify a URL/entity to use,
+      // then take values from the camera configuration instead (if there are
+      // any).
+      if (!config.url) {
+        config.url = this.cameraConfig?.webrtc?.url;
+      }
+      if (!config.entity) {
+        config.entity = this.cameraConfig?.webrtc?.entity;
+      }
+      webrtc.setConfig(config);
       webrtc.hass = this.hass;
-      this._webRTCElement = webrtc;
+      return webrtc;
     } else {
-      throw new Error(localize('error.missing_webrtc'));
+      throw new FrigateCardError(localize('error.webrtc_missing'));
     }
   }
 
@@ -510,24 +525,23 @@ export class FrigateCardLiveWebRTC extends LitElement {
     if (!this.hass) {
       return;
     }
-    if (!this._webRTCElement) {
-      try {
-        this._createWebRTC();
-      } catch (e) {
-        return dispatchErrorMessageEvent(this, (e as Error).message);
-      }
+    let webrtcElement: HTMLElement | undefined;
+    try {
+      webrtcElement = this._createWebRTC();
+    } catch (e) {
+      return dispatchErrorMessageEvent(
+        this,
+        e instanceof FrigateCardError
+          ? (e as FrigateCardError).message
+          : localize('error.webrtc_reported_error') + ': ' + (e as Error).message);
     }
-    return html`${this._webRTCElement}`;
+    return html`${webrtcElement}`;
   }
 
   /**
    * Updated lifecycle callback.
    */
   public updated(): void {
-    if (this._callbacksAdded) {
-      return;
-    }
-
     // Extract the video component after it has been rendered and generate the
     // media load event.
     this.updateComplete.then(() => {
@@ -555,7 +569,6 @@ export class FrigateCardLiveWebRTC extends LitElement {
           }
           dispatchPauseEvent(this);
         };
-        this._callbacksAdded = true;
       }
     });
   }

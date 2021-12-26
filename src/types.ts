@@ -59,6 +59,8 @@ const FRIGATE_MENU_MODES = [
 ] as const;
 const LIVE_PROVIDERS = ['frigate', 'frigate-jsmpeg', 'webrtc'] as const;
 
+export class FrigateCardError extends Error {}
+
 /**
  * Action Types (for "Picture Elements" / Menu)
  */
@@ -349,11 +351,16 @@ const pictureElementsSchema = pictureElementSchema.array().optional();
 export type PictureElements = z.infer<typeof pictureElementsSchema>;
 
 /**
- * Frigate configuration section.
+ * Camera configuration section
  */
 export const cameraConfigDefault = {
   client_id: 'frigate' as const,
 };
+const webrtcCameraConfigSchema = z
+ .object({
+   entity: z.string().optional(),
+   url: z.string().optional(),
+ });
 const cameraConfigDefaultSchema = z
   .object({
     // No URL validation to allow relative URLs within HA (e.g. Frigate addon).
@@ -372,6 +379,9 @@ const cameraConfigDefaultSchema = z
     // Optional identifier to separate different camera configurations used in
     // this card.
     id: z.string().optional(),
+
+    // Camera identifiers for WebRTC.
+    webrtc: webrtcCameraConfigSchema.optional(),
   })
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigDefaultSchema>;
@@ -459,13 +469,8 @@ const liveConfigDefault = {
     },
   },
 };
-const webrtcConfigSchema = z
-  .object({
-    entity: z.string().optional(),
-    url: z.string().optional(),
-  })
-  .passthrough()
-  .optional();
+
+const webrtcConfigSchema = webrtcCameraConfigSchema.passthrough().optional();
 export type WebRTCConfig = z.infer<typeof webrtcConfigSchema>;
 
 const jsmpegConfigSchema = z
