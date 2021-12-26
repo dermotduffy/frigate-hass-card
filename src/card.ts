@@ -354,7 +354,7 @@ export class FrigateCard extends LitElement {
     }
 
     const cameraConfig = this._getSelectedCameraConfig();
-    if (this.config.menu.buttons.frigate_ui && cameraConfig && cameraConfig.url) {
+    if (this.config.menu.buttons.frigate_ui && cameraConfig && cameraConfig.frigate_url) {
       buttons.push(
         this._getFrigateCardMenuButton({
           tap_action: 'frigate_ui',
@@ -808,13 +808,13 @@ export class FrigateCard extends LitElement {
    */
   protected _getFrigateURLFromContext(): string | null {
     const cameraConfig = this._getSelectedCameraConfig();
-    if (!cameraConfig || !cameraConfig.url || !this._view) {
+    if (!cameraConfig || !cameraConfig.frigate_url || !this._view) {
       return null;
     }
     if (this._view.isViewerView() || this._view.isGalleryView()) {
-      return `${cameraConfig.url}/events?camera=${cameraConfig.camera_name}`;
+      return `${cameraConfig.frigate_url}/events?camera=${cameraConfig.camera_name}`;
     }
-    return `${cameraConfig.url}/cameras/${cameraConfig.camera_name}`;
+    return `${cameraConfig.frigate_url}/cameras/${cameraConfig.camera_name}`;
   }
 
   /**

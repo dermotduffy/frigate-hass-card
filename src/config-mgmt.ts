@@ -164,6 +164,16 @@ export const moveConfigValue = (
 };
 
 /**
+ * Given an array path, return a true path.
+ * @param path The array path (should have a '#').
+ * @param index The numeric array index to use.
+ * @returns The true config path.
+ */
+export const getArrayConfigPath = (path: string, index: number): string => {
+  return path.replace('#', index.toString());
+};
+
+/**
  * Upgrade by moving a property from one location to another.
  * @param oldPath The old property path.
  * @param newPath The new property path.
@@ -185,15 +195,17 @@ const upgradeMoveTo = function (
  * @param key A string key.
  * @returns A safe key.
  */
-// const sanitizeKeySegment = (key: string): string => {
-//   return key.replace(/\.+/g, '_');
-// }
-
 const upgradeToMultipleCameras = (): ((obj: RawFrigateCardConfig) => boolean) =>  {
   return function (obj: RawFrigateCardConfig): boolean {
     let modified = false;
 
-    const camera = {}
+    let cameras = getConfigValue(obj, CONF_CAMERAS) as RawFrigateCardConfigArray;
+    if (!Array.isArray(cameras)) {
+      // Note: This will replace `cameras` if it already exists and isn't an
+      // array.
+      cameras = []
+    }
+
     const imports = {
       'camera_entity': CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
       'frigate.camera_name': CONF_CAMERAS_ARRAY_CAMERA_NAME,
@@ -202,26 +214,15 @@ const upgradeToMultipleCameras = (): ((obj: RawFrigateCardConfig) => boolean) =>
       'frigate.url': CONF_CAMERAS_ARRAY_URL,
       'frigate.zone': CONF_CAMERAS_ARRAY_ZONE,
     }
+    const cameraIndex = cameras.length;
     Object.keys(imports).forEach((key) => {
       const oldValue = getConfigValue(obj, key);
       if (oldValue !== undefined) {
-        camera[imports[key]] = oldValue;
         deleteConfigValue(obj, key)
+        setConfigValue(obj, getArrayConfigPath(imports[key], cameraIndex), oldValue);
         modified = true;
       }
     })
-
-    if (modified) {
-      let cameras = getConfigValue(obj, CONF_CAMERAS) as RawFrigateCardConfigArray;
-      if (!Array.isArray(cameras)) {
-        // Note: This will replace `cameras` if it already exists and isn't an
-        // array.
-        cameras = []
-      }
-      cameras.push(camera);
-      setConfigValue(obj, CONF_CAMERAS, cameras)
-      trimConfig(obj);
-    }
     return modified;
   }
 }

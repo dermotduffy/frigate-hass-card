@@ -1,6 +1,5 @@
 // TODO webrtc entities in camera section?
 // TODO conditional elements based on camera name (requires event changed to propagate upwards)
-// TODO change url to frigate_url? Would need to also fix upgrade logic to refer to new name.
 // TODO Remove media load event warning
 // TODO readme
 // TODO search for TODOs

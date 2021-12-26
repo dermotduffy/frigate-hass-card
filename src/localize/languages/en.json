@@ -15,7 +15,7 @@
       "client_id": "Frigate client id (For >1 Frigate server)",
       "id": "Unique id for this camera in this card",
       "label": "Frigate label/object filter",
-      "url": "Frigate server URL",
+      "frigate_url": "Frigate server URL",
       "zone": "Frigate zone"
     },
     "view": {

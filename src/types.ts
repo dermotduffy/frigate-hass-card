@@ -356,8 +356,8 @@ export const cameraConfigDefault = {
 };
 const cameraConfigDefaultSchema = z
   .object({
-    // No URL validation to allow relative URLs within HA (e.g. addons).
-    url: z.string().optional(),
+    // No URL validation to allow relative URLs within HA (e.g. Frigate addon).
+    frigate_url: z.string().optional(),
     client_id: z.string().optional().default(cameraConfigDefault.client_id),
     camera_name: z.string().optional(),
     label: z.string().optional(),

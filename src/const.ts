@@ -7,7 +7,7 @@ export const CONF_CAMERAS_ARRAY_CAMERA_ENTITY = 'cameras.#.camera_entity';
 export const CONF_CAMERAS_ARRAY_CAMERA_NAME = 'cameras.#.camera_name';
 export const CONF_CAMERAS_ARRAY_CLIENT_ID = 'cameras.#.client_id';
 export const CONF_CAMERAS_ARRAY_LABEL = 'cameras.#.label';
-export const CONF_CAMERAS_ARRAY_URL = 'cameras.#.url';
+export const CONF_CAMERAS_ARRAY_URL = 'cameras.#.frigate_url';
 export const CONF_CAMERAS_ARRAY_ZONE = 'cameras.#.zone';
 export const CONF_CAMERAS_ARRAY_ID = 'cameras.#.id';
 

@@ -55,6 +55,7 @@ import { arrayMove, getEntityTitle, prettifyFrigateName } from './common.js';
 import {
   copyConfig,
   deleteConfigValue,
+  getArrayConfigPath,
   getConfigValue,
   isConfigUpgradeable,
   setConfigValue,
@@ -320,11 +321,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     cameraEntities: string[],
     addNewCamera?: boolean,
   ): TemplateResult | void {
-    // Get the config path for this camera (taking into account its camera index).
-    const getArrayPath = (path: string): string => {
-      return path.replace('#', cameraIndex.toString());
-    };
-
     // Make a new config and update the editor with changes on it,
     const modifyConfig = (func: (config: RawFrigateCardConfig) => boolean): void => {
       if (this._config) {
@@ -348,7 +344,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 !Array.isArray(this._config.cameras) ||
                 cameraIndex <= 0}
                 @click=${() =>
-                  !addNewCamera && modifyConfig((config: RawFrigateCardConfig): boolean => {
+                  !addNewCamera &&
+                  modifyConfig((config: RawFrigateCardConfig): boolean => {
                     if (Array.isArray(config.cameras) && cameraIndex > 0) {
                       arrayMove(config.cameras, cameraIndex, cameraIndex - 1);
                       this._expandedCameraIndex = cameraIndex - 1;
@@ -367,7 +364,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 !Array.isArray(this._config.cameras) ||
                 cameraIndex >= this._config.cameras.length - 1}
                 @click=${() =>
-                  !addNewCamera && modifyConfig((config: RawFrigateCardConfig): boolean => {
+                  !addNewCamera &&
+                  modifyConfig((config: RawFrigateCardConfig): boolean => {
                     if (
                       Array.isArray(config.cameras) &&
                       cameraIndex < config.cameras.length - 1
@@ -400,15 +398,27 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               </ha-icon-button>
             </div>
             ${this._renderDropdown(
-              getArrayPath(CONF_CAMERAS_ARRAY_CAMERA_ENTITY),
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_CAMERA_ENTITY, cameraIndex),
               cameraEntities,
             )}
-            ${this._renderStringInput(getArrayPath(CONF_CAMERAS_ARRAY_CAMERA_NAME))}
-            ${this._renderStringInput(getArrayPath(CONF_CAMERAS_ARRAY_URL))}
-            ${this._renderStringInput(getArrayPath(CONF_CAMERAS_ARRAY_LABEL))}
-            ${this._renderStringInput(getArrayPath(CONF_CAMERAS_ARRAY_ZONE))}
-            ${this._renderStringInput(getArrayPath(CONF_CAMERAS_ARRAY_CLIENT_ID))}
-            ${this._renderStringInput(getArrayPath(CONF_CAMERAS_ARRAY_ID))}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_CAMERA_NAME, cameraIndex),
+            )}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_URL, cameraIndex),
+            )}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_LABEL, cameraIndex),
+            )}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_ZONE, cameraIndex),
+            )}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_CLIENT_ID, cameraIndex),
+            )}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
+            )}
           </div>`
         : ``}
     `;
