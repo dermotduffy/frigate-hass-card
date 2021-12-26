@@ -16,6 +16,8 @@
       "id": "Unique id for this camera in this card",
       "label": "Frigate label/object filter",
       "frigate_url": "Frigate server URL",
+      "title": "Title for this camera (Autodetected from entity)",
+      "icon": "Icon for this camera (Autodetected from entity)",
       "zone": "Frigate zone"
     },
     "view": {

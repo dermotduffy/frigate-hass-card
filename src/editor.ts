@@ -16,8 +16,10 @@ import {
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
   CONF_CAMERAS_ARRAY_CAMERA_NAME,
   CONF_CAMERAS_ARRAY_CLIENT_ID,
+  CONF_CAMERAS_ARRAY_ICON,
   CONF_CAMERAS_ARRAY_ID,
   CONF_CAMERAS_ARRAY_LABEL,
+  CONF_CAMERAS_ARRAY_TITLE,
   CONF_CAMERAS_ARRAY_URL,
   CONF_CAMERAS_ARRAY_ZONE,
   CONF_DIMENSIONS_ASPECT_RATIO,
@@ -415,6 +417,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             )}
             ${this._renderStringInput(
               getArrayConfigPath(CONF_CAMERAS_ARRAY_CLIENT_ID, cameraIndex),
+            )}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_TITLE, cameraIndex),
+            )}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_ICON, cameraIndex),
             )}
             ${this._renderStringInput(
               getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
