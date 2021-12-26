@@ -12,6 +12,8 @@ export const CONF_CAMERAS_ARRAY_ZONE = 'cameras.#.zone';
 export const CONF_CAMERAS_ARRAY_ID = 'cameras.#.id';
 export const CONF_CAMERAS_ARRAY_TITLE = 'cameras.#.title';
 export const CONF_CAMERAS_ARRAY_ICON = 'cameras.#.icon';
+export const CONF_CAMERAS_ARRAY_WEBRTC_ENTITY = 'cameras.#.webrtc.entity';
+export const CONF_CAMERAS_ARRAY_WEBRTC_URL = 'cameras.#.webrtc.url';
 
 export const CONF_VIEW_DEFAULT = 'view.default';
 export const CONF_VIEW_TIMEOUT = 'view.timeout';

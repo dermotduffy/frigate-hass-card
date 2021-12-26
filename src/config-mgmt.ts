@@ -7,6 +7,8 @@ import {
   CONF_CAMERAS_ARRAY_CLIENT_ID,
   CONF_CAMERAS_ARRAY_LABEL,
   CONF_CAMERAS_ARRAY_URL,
+  CONF_CAMERAS_ARRAY_WEBRTC_ENTITY,
+  CONF_CAMERAS_ARRAY_WEBRTC_URL,
   CONF_CAMERAS_ARRAY_ZONE,
   CONF_EVENT_VIEWER_AUTOPLAY_CLIP,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
@@ -31,7 +33,7 @@ import { RawFrigateCardConfig, RawFrigateCardConfigArray } from './types';
 
 export const setConfigValue = (
   obj: RawFrigateCardConfig,
-  keys: string | (string|number)[],
+  keys: string | (string | number)[],
   value: unknown,
 ): void => {
   dset(obj, keys, value);
@@ -45,11 +47,11 @@ export const setConfigValue = (
  */
 export const getConfigValue = (
   obj: RawFrigateCardConfig,
-  keys: string | (string|number)[],
+  keys: string | (string | number)[],
   def?: unknown,
 ): unknown => {
   // Need to manually split the key apart to use delve array accesses by number.
-  if (typeof(keys) === 'string') {
+  if (typeof keys === 'string') {
     keys = keys.split('.');
   }
   return delve(obj, keys, def);
@@ -149,7 +151,7 @@ export const moveConfigValue = (
   obj: RawFrigateCardConfig,
   oldPath: string,
   newPath: string,
-  transform?: (valueIn: unknown) => (unknown),
+  transform?: (valueIn: unknown) => unknown,
 ): boolean => {
   let value = getConfigValue(obj, oldPath);
   if (transform) {
@@ -183,7 +185,7 @@ export const getArrayConfigPath = (path: string, index: number): string => {
 const upgradeMoveTo = function (
   oldPath: string,
   newPath: string,
-  transform?: (valueIn: unknown) => (unknown),
+  transform?: (valueIn: unknown) => unknown,
 ): (obj: RawFrigateCardConfig) => boolean {
   return function (obj: RawFrigateCardConfig): boolean {
     return moveConfigValue(obj, oldPath, newPath, transform);
@@ -195,37 +197,36 @@ const upgradeMoveTo = function (
  * @param key A string key.
  * @returns A safe key.
  */
-const upgradeToMultipleCameras = (): ((obj: RawFrigateCardConfig) => boolean) =>  {
+const upgradeToMultipleCameras = (): ((obj: RawFrigateCardConfig) => boolean) => {
   return function (obj: RawFrigateCardConfig): boolean {
     let modified = false;
+    const cameras = getConfigValue(obj, CONF_CAMERAS) as RawFrigateCardConfigArray;
 
-    let cameras = getConfigValue(obj, CONF_CAMERAS) as RawFrigateCardConfigArray;
-    if (!Array.isArray(cameras)) {
-      // Note: This will replace `cameras` if it already exists and isn't an
-      // array.
-      cameras = []
+    // Only do an upgrade if the cameras section does not exist.
+    if (cameras !== undefined) {
+      return false;
     }
 
     const imports = {
-      'camera_entity': CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
+      camera_entity: CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
       'frigate.camera_name': CONF_CAMERAS_ARRAY_CAMERA_NAME,
       'frigate.client_id': CONF_CAMERAS_ARRAY_CLIENT_ID,
       'frigate.label': CONF_CAMERAS_ARRAY_LABEL,
       'frigate.url': CONF_CAMERAS_ARRAY_URL,
       'frigate.zone': CONF_CAMERAS_ARRAY_ZONE,
-    }
-    const cameraIndex = cameras.length;
+      'live.webrtc.entity': CONF_CAMERAS_ARRAY_WEBRTC_ENTITY,
+      'live.webrtc.url': CONF_CAMERAS_ARRAY_WEBRTC_URL,
+    };
     Object.keys(imports).forEach((key) => {
-      const oldValue = getConfigValue(obj, key);
-      if (oldValue !== undefined) {
-        deleteConfigValue(obj, key)
-        setConfigValue(obj, getArrayConfigPath(imports[key], cameraIndex), oldValue);
-        modified = true;
-      }
-    })
+      modified = moveConfigValue(
+        obj,
+        key,
+        getArrayConfigPath(imports[key], 0),
+      ) || modified;
+    });
     return modified;
-  }
-}
+  };
+};
 
 const UPGRADES = [
   // v1.2.1 -> v2.0.0
