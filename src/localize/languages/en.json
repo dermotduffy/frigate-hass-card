@@ -141,7 +141,8 @@
     "delete": "Delete",
     "move_up": "Move up",
     "move_down": "Move down",
-    "add_new_camera": "Add new camera"
+    "add_new_camera": "Add new camera",
+    "camera": "Camera"
   },
   "error": {
     "empty_response": "Received empty response from Home Assistant for request",

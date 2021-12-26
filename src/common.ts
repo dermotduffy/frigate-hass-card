@@ -398,7 +398,15 @@ export function refreshDynamicStateParameters(
   return params;
 }
 
-function prettifyCameraName(input: string): string {
+/**
+ * Prettify a Frigate name by converting '_' to spaces and capitalizing words.
+ * @param input The input Frigate (camera/label/zone) name.
+ * @returns A prettified name.
+ */
+export function prettifyFrigateName(input?: string): string | undefined {
+  if (!input) {
+    return undefined;
+  }
   const words = input.split(/[_\s]+/);
   return words
     .map((word) => {
@@ -407,16 +415,43 @@ function prettifyCameraName(input: string): string {
     .join(' ');
 }
 
+/**
+ * Get the title of an entity.
+ * @param entity The entity id.
+ * @param hass The Home Assistant object.
+ * @returns The title or undefined.
+ */
+export function getEntityTitle(hass?: HomeAssistant, entity?: string): string | undefined {
+  return entity ? hass?.states[entity]?.attributes?.friendly_name : undefined;
+}
+
+/**
+ * Get the icon of an entity.
+ * @param entity The entity id.
+ * @param hass The Home Assistant object.
+ * @returns The icon or undefined.
+ */
+export function getEntityIcon(hass?: HomeAssistant, entity?: string): string | undefined {
+  return hass && entity ? stateIcon(hass.states[entity]) : undefined;
+}
+
+/**
+ * Refresh a camera config with the latest Home Assistant state.
+ * @param config The Camera config.
+ * @param hass The Home Assistant object.
+ * @returns A camera config modified in place.
+ */
 export function refreshCameraConfigDynamicParameters(
   config: CameraConfig,
   hass?: HomeAssistant,
 ): CameraConfig {
-  const state =
-    hass && config.camera_entity ? hass.states[config.camera_entity] : undefined;
   config.title =
-    config.title ??
-    (state?.attributes?.friendly_name || prettifyCameraName(config.camera_name || ''));
-  config.icon = config.icon ?? (state ? stateIcon(state) : 'mdi:video');
+    config.title ||
+    (config.camera_entity ? getEntityTitle(hass, config.camera_entity) : '') ||
+    (config.camera_name ? prettifyFrigateName(config.camera_name) : '');
+  config.icon = 
+    config.icon ||
+    (config.camera_entity ? getEntityIcon(hass, config.camera_entity) : 'mdi:video');
   return config;
 }
 

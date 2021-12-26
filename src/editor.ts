@@ -50,7 +50,7 @@ import {
   CONF_VIEW_TIMEOUT,
   CONF_VIEW_UPDATE_FORCE,
 } from './const.js';
-import { arrayMove } from './common.js';
+import { arrayMove, getEntityTitle, prettifyFrigateName } from './common.js';
 import {
   copyConfig,
   deleteConfigValue,
@@ -246,6 +246,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     `;
   }
 
+  // export function refreshCameraConfigDynamicParameters(
+  //   config: CameraConfig,
+  //   hass?: HomeAssistant,
+  // ): CameraConfig {
+
   /**
    * Render a camera header.
    * @param cameraIndex The index of the camera to edit/add.
@@ -278,15 +283,23 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   ${cameraConfig?.title ||
                   cameraConfig?.card_id ||
                   [
-                    cameraConfig?.camera_entity,
+                    cameraConfig?.camera_entity
+                      ? getEntityTitle(this.hass, String(cameraConfig.camera_entity))
+                      : '',
                     cameraConfig?.client_id,
-                    cameraConfig?.camera_name,
-                    cameraConfig?.label,
-                    cameraConfig?.zone,
+                    cameraConfig?.camera_name
+                      ? prettifyFrigateName(String(cameraConfig.camera_name))
+                      : '',
+                    cameraConfig?.label
+                      ? prettifyFrigateName(String(cameraConfig.label))
+                      : '',
+                    cameraConfig?.zone
+                      ? prettifyFrigateName(String(cameraConfig.zone))
+                      : '',
                   ]
                     .filter(Boolean)
                     .join(' / ') ||
-                  cameraIndex}
+                  localize('editor.camera') + ' #' + cameraIndex}
                 </span>`}
           </span>
         </div>
