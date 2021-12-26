@@ -41,10 +41,14 @@ div.upgrade span {
 }
 
 .camera-header {
+  display: flex;
   margin-top: 4px;
+
   cursor: pointer;
 }
 .camera-header * {
+  flex-basis: auto;
+
   // Only allow clicks on the outermost header.
   pointer-events: none;
 }

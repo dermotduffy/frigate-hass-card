@@ -269,40 +269,38 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         @click=${this._toggleCameraHandler}
         .cameraIndex=${cameraIndex}
       >
-        <div>
-          <ha-icon .icon=${addNewCamera ? 'mdi:video-plus' : 'mdi:video'}></ha-icon>
-          <span>
-            ${addNewCamera
-              ? html` <span class="new-camera">
-                  [${localize('editor.add_new_camera')}...]
-                </span>`
-              : // Attempt to render a recognizable name for the camera,
-                // starting with the most likely to be useful and working our
-                // ways towards the least useful.
-                html` <span>
-                  ${cameraConfig?.title ||
-                  cameraConfig?.card_id ||
-                  [
-                    cameraConfig?.camera_entity
-                      ? getEntityTitle(this.hass, String(cameraConfig.camera_entity))
-                      : '',
-                    cameraConfig?.client_id,
-                    cameraConfig?.camera_name
-                      ? prettifyFrigateName(String(cameraConfig.camera_name))
-                      : '',
-                    cameraConfig?.label
-                      ? prettifyFrigateName(String(cameraConfig.label))
-                      : '',
-                    cameraConfig?.zone
-                      ? prettifyFrigateName(String(cameraConfig.zone))
-                      : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' / ') ||
-                  localize('editor.camera') + ' #' + cameraIndex}
-                </span>`}
-          </span>
-        </div>
+        <ha-icon .icon=${addNewCamera ? 'mdi:video-plus' : 'mdi:video'}></ha-icon>
+        <span>
+          ${addNewCamera
+            ? html` <span class="new-camera">
+                [${localize('editor.add_new_camera')}...]
+              </span>`
+            : // Attempt to render a recognizable name for the camera,
+              // starting with the most likely to be useful and working our
+              // ways towards the least useful.
+              html` <span>
+                ${cameraConfig?.title ||
+                cameraConfig?.card_id ||
+                [
+                  cameraConfig?.camera_entity
+                    ? getEntityTitle(this.hass, String(cameraConfig.camera_entity))
+                    : '',
+                  cameraConfig?.client_id,
+                  cameraConfig?.camera_name
+                    ? prettifyFrigateName(String(cameraConfig.camera_name))
+                    : '',
+                  cameraConfig?.label
+                    ? prettifyFrigateName(String(cameraConfig.label))
+                    : '',
+                  cameraConfig?.zone
+                    ? prettifyFrigateName(String(cameraConfig.zone))
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join(' / ') ||
+                localize('editor.camera') + ' #' + cameraIndex}
+              </span>`}
+        </span>
       </div>
     `;
   }
