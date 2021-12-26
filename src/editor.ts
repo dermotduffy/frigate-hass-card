@@ -21,6 +21,8 @@ import {
   CONF_CAMERAS_ARRAY_LABEL,
   CONF_CAMERAS_ARRAY_TITLE,
   CONF_CAMERAS_ARRAY_URL,
+  CONF_CAMERAS_ARRAY_WEBRTC_ENTITY,
+  CONF_CAMERAS_ARRAY_WEBRTC_URL,
   CONF_CAMERAS_ARRAY_ZONE,
   CONF_DIMENSIONS_ASPECT_RATIO,
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
@@ -37,8 +39,6 @@ import {
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
   CONF_LIVE_PRELOAD,
   CONF_LIVE_PROVIDER,
-  CONF_LIVE_WEBRTC_ENTITY,
-  CONF_LIVE_WEBRTC_URL,
   CONF_MENU_BUTTONS_CLIPS,
   CONF_MENU_BUTTONS_FRIGATE,
   CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD,
@@ -427,6 +427,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             ${this._renderStringInput(
               getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
             )}
+            ${this._renderDropdown(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_ENTITY, cameraIndex),
+              cameraEntities)}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_URL, cameraIndex),
+            )}
           </div>`
         : ``}
     `;
@@ -664,8 +670,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               <div class="values">
                 ${this._renderSwitch(CONF_LIVE_PRELOAD, defaults.live.preload)}
                 ${this._renderDropdown(CONF_LIVE_PROVIDER, liveProviders)}
-                ${this._renderDropdown(CONF_LIVE_WEBRTC_ENTITY, cameraEntities)}
-                ${this._renderStringInput(CONF_LIVE_WEBRTC_URL)}
                 ${this._renderDropdown(
                   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
                   thumbnailModes,

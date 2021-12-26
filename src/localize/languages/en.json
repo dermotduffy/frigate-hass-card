@@ -18,7 +18,11 @@
       "frigate_url": "Frigate server URL",
       "title": "Title for this camera (Autodetected from entity)",
       "icon": "Icon for this camera (Autodetected from entity)",
-      "zone": "Frigate zone"
+      "zone": "Frigate zone",
+      "webrtc": {
+        "entity": "WebRTC Camera Entity (Not a Frigate camera)",
+        "url": "WebRTC Camera URL"
+      }
     },
     "view": {
       "default": "Default view",
@@ -65,10 +69,6 @@
         "frigate": "Frigate",
         "frigate-jsmpeg": "Frigate JSMpeg",
         "webrtc": "WebRTC"
-      },
-      "webrtc": {
-        "entity": "WebRTC Camera Entity (Not a Frigate camera)",
-        "url": "WebRTC Camera URL"
       },
       "controls": {
         "thumbnails": {
