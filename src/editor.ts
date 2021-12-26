@@ -342,11 +342,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               <ha-icon-button
                 class="button"
                 .label=${localize('editor.move_up')}
-                .disabled=${!this._config ||
+                .disabled=${addNewCamera ||
+                !this._config ||
                 !Array.isArray(this._config.cameras) ||
                 cameraIndex <= 0}
                 @click=${() =>
-                  modifyConfig((config: RawFrigateCardConfig): boolean => {
+                  !addNewCamera && modifyConfig((config: RawFrigateCardConfig): boolean => {
                     if (Array.isArray(config.cameras) && cameraIndex > 0) {
                       arrayMove(config.cameras, cameraIndex, cameraIndex - 1);
                       this._expandedCameraIndex = cameraIndex - 1;
@@ -360,11 +361,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               <ha-icon-button
                 class="button"
                 .label=${localize('editor.move_down')}
-                .disabled=${!this._config ||
+                .disabled=${addNewCamera ||
+                !this._config ||
                 !Array.isArray(this._config.cameras) ||
                 cameraIndex >= this._config.cameras.length - 1}
                 @click=${() =>
-                  modifyConfig((config: RawFrigateCardConfig): boolean => {
+                  !addNewCamera && modifyConfig((config: RawFrigateCardConfig): boolean => {
                     if (
                       Array.isArray(config.cameras) &&
                       cameraIndex < config.cameras.length - 1
