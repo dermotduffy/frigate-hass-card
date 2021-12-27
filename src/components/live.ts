@@ -1,3 +1,4 @@
+// TODO Live scrolling nav buttons disappearing
 // TODO conditional elements based on camera name (requires event changed to propagate upwards)
 // TODO _shouldInitCarousel on viewer carousel and thumbnail carousel.
 // TODO call change-event in viewer
@@ -9,7 +10,14 @@
 // TODO readme
 // TODO search for TODOs
 
-import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS, PropertyValues } from 'lit';
+import {
+  CSSResultGroup,
+  LitElement,
+  TemplateResult,
+  html,
+  unsafeCSS,
+  PropertyValues,
+} from 'lit';
 import {
   BrowseMediaSource,
   ExtendedHomeAssistant,
@@ -207,12 +215,11 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   @property({ attribute: false })
   protected liveConfig?: LiveConfig;
 
-
   /**
    * Whether or not the carousel should be (re-)initialized when the given
    * properties change.
    * @param changedProperties The properties that triggered the (re-)render.
-   * @returns 
+   * @returns Whether to re-initialize the carousel.
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected _shouldInitCarousel(changedProps: PropertyValues): boolean {
@@ -220,7 +227,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     // dimensions. Don't allow other properties to re-initialize the carousel as
     // it's a jarring experience to the user (and 'view' is itself set as a
     // result of a carousel move).
-    return (changedProps.has('cameras') || changedProps.has('liveConfig'));
+    return changedProps.has('cameras') || changedProps.has('liveConfig');
   }
 
   /**
@@ -341,7 +348,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       const target = direction == 'previous' ? prev : next;
 
       control.disabled = target == null;
-      control.title = getCameraTitle(this.hass, target)
+      control.title = getCameraTitle(this.hass, target);
       control.icon = getCameraIcon(this.hass, target);
     };
 
@@ -439,8 +446,7 @@ export class FrigateCardLiveProvider extends LitElement {
           </frigate-card-live-webrtc>`
         : html` <frigate-card-live-jsmpeg
             .hass=${this.hass}
-            .cameraName=${this.cameraConfig.camera_name}
-            .clientId=${this.cameraConfig.client_id}
+            .cameraConfig=${this.cameraConfig}
             .jsmpegConfig=${this.liveConfig.jsmpeg}
           >
           </frigate-card-live-jsmpeg>`}
@@ -509,7 +515,7 @@ export class FrigateCardLiveWebRTC extends LitElement {
     const webrtcElement = customElements.get('webrtc-camera') as any;
     if (webrtcElement) {
       const webrtc = new webrtcElement();
-      const config = {...this.webRTCConfig};
+      const config = { ...this.webRTCConfig };
 
       // If the live WebRTC configuration does not specify a URL/entity to use,
       // then take values from the camera configuration instead (if there are
@@ -544,7 +550,8 @@ export class FrigateCardLiveWebRTC extends LitElement {
         this,
         e instanceof FrigateCardError
           ? (e as FrigateCardError).message
-          : localize('error.webrtc_reported_error') + ': ' + (e as Error).message);
+          : localize('error.webrtc_reported_error') + ': ' + (e as Error).message,
+      );
     }
     return html`${webrtcElement}`;
   }
@@ -552,7 +559,7 @@ export class FrigateCardLiveWebRTC extends LitElement {
   /**
    * Updated lifecycle callback.
    */
-  public updated(changedProps: PropertyValues): void {
+  public updated(): void {
     // Extract the video component after it has been rendered and generate the
     // media load event.
     this.updateComplete.then(() => {
@@ -595,16 +602,13 @@ export class FrigateCardLiveWebRTC extends LitElement {
 @customElement('frigate-card-live-jsmpeg')
 export class FrigateCardLiveJSMPEG extends LitElement {
   @property({ attribute: false })
-  protected cameraName?: string;
-
-  @property({ attribute: false })
-  protected clientId?: string;
+  protected cameraConfig?: CameraConfig;
 
   @property({ attribute: false })
   protected jsmpegConfig?: JSMPEGConfig;
 
-  @property({ attribute: false })
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
+
   protected _jsmpegCanvasElement?: HTMLCanvasElement;
   protected _jsmpegVideoPlayer?: JSMpeg.VideoElement;
   protected _refreshPlayerTimerID?: number;
@@ -614,7 +618,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
    * @returns A URL or null.
    */
   protected async _getURL(): Promise<string | null> {
-    if (!this.hass || !this.clientId || !this.cameraName) {
+    if (!this.hass || !this.cameraConfig?.client_id || !this.cameraConfig?.camera_name) {
       return null;
     }
 
@@ -622,7 +626,8 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     try {
       response = await homeAssistantSignPath(
         this.hass,
-        `/api/frigate/${this.clientId}` + `/jsmpeg/${this.cameraName}`,
+        `/api/frigate/${this.cameraConfig.client_id}` +
+          `/jsmpeg/${this.cameraConfig.camera_name}`,
         URL_SIGN_EXPIRY_SECONDS,
       );
     } catch (err) {
