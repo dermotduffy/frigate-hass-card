@@ -4,6 +4,7 @@ import { View } from './view';
 export interface ConditionState {
   view?: View;
   fullscreen?: boolean;
+  camera?: string;
 }
 
 class ConditionStateRequestEvent extends Event {
@@ -20,6 +21,9 @@ export function evaluateCondition(
   }
   if (condition?.fullscreen !== undefined && state?.fullscreen !== undefined) {
     result &&= condition?.fullscreen == state?.fullscreen;
+  }
+  if (condition?.camera?.length && state?.camera) {
+    result &&= condition?.camera.includes(state?.camera);
   }
   return result;
 }

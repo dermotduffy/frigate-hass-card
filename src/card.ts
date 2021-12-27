@@ -47,10 +47,11 @@ import {
   convertActionToFrigateCardCustomAction,
   createFrigateCardCustomAction,
   getActionConfigGivenAction,
+  getCameraIcon,
+  getCameraTitle,
   homeAssistantSignPath,
   homeAssistantWSRequest,
   isValidMediaShowInfo,
-  refreshCameraConfigDynamicParameters,
   shouldUpdateBasedOnHass,
 } from './common.js';
 import { localize } from './localize/localize.js';
@@ -222,6 +223,7 @@ export class FrigateCard extends LitElement {
     this._conditionState = {
       view: this._view,
       fullscreen: screenfull.isEnabled && screenfull.isFullscreen,
+      camera: this._view?.camera,
     };
   }
 
@@ -279,15 +281,11 @@ export class FrigateCard extends LitElement {
 
     if (this.config.menu.buttons.cameras && this._cameras && this._cameras.size > 1) {
       const menuItems = Array.from(this._cameras, ([camera, config]) => {
-        const dynamicConfig = refreshCameraConfigDynamicParameters(
-          { ...config },
-          this._hass,
-        );
         return {
-          icon: dynamicConfig.icon || 'mdi:cctv',
-          entity: dynamicConfig.camera_entity,
+          icon: getCameraIcon(this._hass, config),
+          entity: config.camera_entity,
           state_color: true,
-          title: dynamicConfig.title,
+          title: getCameraTitle(this._hass, config),
           tap_action: createFrigateCardCustomAction('camera_select', camera),
         };
       });
@@ -602,6 +600,8 @@ export class FrigateCard extends LitElement {
   }
 
   protected _changeView(args?: { view?: View; resetMessage?: boolean }): void {
+    console.info(`Request to change view: ${JSON.stringify(args?.view)}`)
+
     if (args?.resetMessage ?? true) {
       this._message = null;
     }

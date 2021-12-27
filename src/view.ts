@@ -24,6 +24,16 @@ export class View {
     this.previous = params?.previous;
   }
 
+  public clone(): View {
+    return new View({
+      view: this.view,
+      camera: this.camera,
+      target: this.target,
+      childIndex: this.childIndex,
+      previous: this.previous
+    });
+  }
+
   public is(name: string): boolean {
     return this.view == name;
   }

@@ -44,13 +44,13 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   }
 
   /**
-   * Load the carousel with "slides" (clips or snapshots).
+   * Initializse the carousel with "slides" (clips or snapshots).
    */
-  protected _loadCarousel(): void {
-    super._loadCarousel();
+  protected _initCarousel(): void {
+    super._initCarousel();
 
     // Necessary because typescript local type narrowing is not paying attention
-    // to the side-effect of the call to super._loadCarousel().
+    // to the side-effect of the call to super._initCarousel().
     const carousel = this._carousel as EmblaCarouselType | undefined;
 
     // Update the view object as the carousel is moved.

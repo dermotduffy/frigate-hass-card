@@ -321,6 +321,7 @@ export type MenuSubmenu = z.infer<typeof menuSubmenuSchema>;
 const frigateCardConditionSchema = z.object({
   view: z.string().array().optional(),
   fullscreen: z.boolean().optional(),
+  camera: z.string().array().optional(),
 });
 export type FrigateCardCondition = z.infer<typeof frigateCardConditionSchema>;
 
@@ -678,7 +679,7 @@ export const frigateCardConfigSchema = z.object({
 });
 export type FrigateCardConfig = z.infer<typeof frigateCardConfigSchema>;
 export type RawFrigateCardConfig = Record<string, unknown>;
-export type RawFrigateCardConfigArray = Record<string, unknown>[];
+export type RawFrigateCardConfigArray = RawFrigateCardConfig[];
 
 export const frigateCardConfigDefaults = {
   cameras: cameraConfigDefault,

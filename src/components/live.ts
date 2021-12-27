@@ -1,11 +1,15 @@
-// TODO double media load event for webrtc
-// TODO webrtc entities in camera section?
 // TODO conditional elements based on camera name (requires event changed to propagate upwards)
-// TODO Remove media load event warning
+// TODO _shouldInitCarousel on viewer carousel and thumbnail carousel.
+// TODO call change-event in viewer
+// TODO editor for live lazy loading
+// TODO different live configs per camera
+// TODO verify preload behavior
+// TODO Remove media load event console message
+// TODO Remove view change console message
 // TODO readme
 // TODO search for TODOs
 
-import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
+import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS, PropertyValues } from 'lit';
 import {
   BrowseMediaSource,
   ExtendedHomeAssistant,
@@ -14,7 +18,6 @@ import {
   LiveConfig,
   MediaShowInfo,
   WebRTCConfig,
-  StateParameters,
   FrigateCardError,
 } from '../types.js';
 import { EmblaOptionsType } from 'embla-carousel';
@@ -36,8 +39,9 @@ import {
   dispatchMessageEvent,
   dispatchPauseEvent,
   dispatchPlayEvent,
+  getCameraIcon,
+  getCameraTitle,
   homeAssistantSignPath,
-  refreshCameraConfigDynamicParameters,
 } from '../common.js';
 import { renderProgressIndicator } from '../components/message.js';
 
@@ -203,6 +207,22 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   @property({ attribute: false })
   protected liveConfig?: LiveConfig;
 
+
+  /**
+   * Whether or not the carousel should be (re-)initialized when the given
+   * properties change.
+   * @param changedProperties The properties that triggered the (re-)render.
+   * @returns 
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected _shouldInitCarousel(changedProps: PropertyValues): boolean {
+    // These are the only properties that would cause new cameras or changed
+    // dimensions. Don't allow other properties to re-initialize the carousel as
+    // it's a jarring experience to the user (and 'view' is itself set as a
+    // result of a carousel move).
+    return (changedProps.has('cameras') || changedProps.has('liveConfig'));
+  }
+
   /**
    * Get the Embla options to use.
    * @returns An EmblaOptionsType object or undefined for no options.
@@ -240,12 +260,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       return [];
     }
     return Array.from(this.cameras.values()).map((cameraConfig, index) => {
-      let refreshedConfig = { ...cameraConfig };
-      refreshedConfig = refreshCameraConfigDynamicParameters(
-        refreshedConfig,
-        this.hass,
-      );
-      return this._renderLive(refreshedConfig, index);
+      return this._renderLive(cameraConfig, index);
     });
   }
 
@@ -258,7 +273,10 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     }
 
     const selectedSnap = this._carousel.selectedScrollSnap();
-    this.view.camera = Array.from(this.cameras.keys())[selectedSnap];
+    const newView = this.view.clone();
+    newView.camera = Array.from(this.cameras.keys())[selectedSnap];
+    newView.previous = this.view;
+    newView.dispatchChangeEvent(this);
   }
 
   /**
@@ -277,7 +295,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   protected _renderLive(cameraConfig: CameraConfig, slideIndex: number): TemplateResult {
     return html` <div class="embla__slide">
       <frigate-card-live-provider
-        .title=${cameraConfig.title ?? ''}
+        .title=${getCameraTitle(this.hass, cameraConfig)}
         .hass=${this.hass}
         .cameraConfig=${cameraConfig}
         .liveConfig=${this.liveConfig}
@@ -289,7 +307,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     </div>`;
   }
 
-  protected _getCameraNeighbors(): [StateParameters | null, StateParameters | null] {
+  protected _getCameraNeighbors(): [CameraConfig | null, CameraConfig | null] {
     if (!this.cameras || !this.view || !this.hass) {
       return [null, null];
     }
@@ -304,15 +322,9 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       next: CameraConfig | null = null;
     if (currentIndex > 0) {
       prev = this.cameras.get(keys[currentIndex - 1]) ?? null;
-      if (prev) {
-        prev = refreshCameraConfigDynamicParameters({ ...prev }, this.hass);
-      }
     }
     if (currentIndex + 1 < this.cameras.size) {
       next = this.cameras.get(keys[currentIndex + 1]) ?? null;
-      if (next) {
-        next = refreshCameraConfigDynamicParameters({ ...next }, this.hass);
-      }
     }
     return [prev, next];
   }
@@ -329,8 +341,8 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       const target = direction == 'previous' ? prev : next;
 
       control.disabled = target == null;
-      control.title = target && target.title ? target.title : '';
-      control.icon = target && target.icon ? target.icon : undefined;
+      control.title = getCameraTitle(this.hass, target)
+      control.icon = getCameraIcon(this.hass, target);
     };
 
     if (this._previousControlRef.value) {
@@ -352,15 +364,14 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     }
 
     const [prev, next] = this._getCameraNeighbors();
-
     return html`
       <div class="embla">
         <frigate-card-next-previous-control
           ${ref(this._previousControlRef)}
           .direction=${'previous'}
           .controlConfig=${this.liveConfig?.controls.next_previous}
-          .title=${prev && prev.title ? prev.title : ''}
-          .icon=${prev && prev.icon ? prev.icon : undefined}
+          .title=${getCameraTitle(this.hass, prev)}
+          .icon=${getCameraIcon(this.hass, prev)}
           ?disabled=${prev == null}
           @click=${() => {
             this._nextPreviousHandler('previous');
@@ -374,8 +385,8 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
           ${ref(this._nextControlRef)}
           .direction=${'next'}
           .controlConfig=${this.liveConfig?.controls.next_previous}
-          .title=${next && next.title ? next.title : ''}
-          .icon=${next && next.icon ? next.icon : undefined}
+          .title=${getCameraTitle(this.hass, next)}
+          .icon=${getCameraIcon(this.hass, next)}
           ?disabled=${next == null}
           @click=${() => {
             this._nextPreviousHandler('next');
@@ -423,7 +434,7 @@ export class FrigateCardLiveProvider extends LitElement {
         ? html`<frigate-card-live-webrtc
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
-            .webRTCConfig=${this.liveConfig.webrtc || {}}
+            .webRTCConfig=${this.liveConfig.webrtc}
           >
           </frigate-card-live-webrtc>`
         : html` <frigate-card-live-jsmpeg
@@ -541,7 +552,7 @@ export class FrigateCardLiveWebRTC extends LitElement {
   /**
    * Updated lifecycle callback.
    */
-  public updated(): void {
+  public updated(changedProps: PropertyValues): void {
     // Extract the video component after it has been rendered and generate the
     // media load event.
     this.updateComplete.then(() => {

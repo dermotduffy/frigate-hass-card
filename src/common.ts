@@ -421,7 +421,10 @@ export function prettifyFrigateName(input?: string): string | undefined {
  * @param hass The Home Assistant object.
  * @returns The title or undefined.
  */
-export function getEntityTitle(hass?: HomeAssistant, entity?: string): string | undefined {
+export function getEntityTitle(
+  hass?: HomeAssistant,
+  entity?: string,
+): string | undefined {
   return entity ? hass?.states[entity]?.attributes?.friendly_name : undefined;
 }
 
@@ -431,28 +434,42 @@ export function getEntityTitle(hass?: HomeAssistant, entity?: string): string | 
  * @param hass The Home Assistant object.
  * @returns The icon or undefined.
  */
-export function getEntityIcon(hass?: HomeAssistant, entity?: string): string | undefined {
+export function getEntityIcon(
+  hass?: HomeAssistant,
+  entity?: string,
+): string | undefined {
   return hass && entity ? stateIcon(hass.states[entity]) : undefined;
 }
 
 /**
- * Refresh a camera config with the latest Home Assistant state.
- * @param config The Camera config.
+ * Get a camera text title.
  * @param hass The Home Assistant object.
- * @returns A camera config modified in place.
+ * @param config The camera config.
+ * @returns A title string.
  */
-export function refreshCameraConfigDynamicParameters(
-  config: CameraConfig,
+export function getCameraTitle(
   hass?: HomeAssistant,
-): CameraConfig {
-  config.title =
-    config.title ||
-    (config.camera_entity ? getEntityTitle(hass, config.camera_entity) : '') ||
-    (config.camera_name ? prettifyFrigateName(config.camera_name) : '');
-  config.icon = 
-    config.icon ||
-    (config.camera_entity ? getEntityIcon(hass, config.camera_entity) : 'mdi:video');
-  return config;
+  config?: CameraConfig | null,
+): string {
+  return (
+    config?.title ||
+    (config?.camera_entity ? getEntityTitle(hass, config.camera_entity) : '') ||
+    (config?.camera_name ? prettifyFrigateName(config.camera_name) : '') ||
+    ''
+  );
+}
+
+/**
+ * Get a camera icon.
+ * @param hass The Home Assistant object.
+ * @param config The camera config.
+ * @returns An icon string.
+ */
+export function getCameraIcon(
+  hass?: HomeAssistant,
+  config?: CameraConfig | null,
+): string {
+  return config?.icon || getEntityIcon(hass, config?.camera_entity) || 'mdi:video';
 }
 
 /**

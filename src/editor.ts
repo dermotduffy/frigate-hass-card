@@ -250,11 +250,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     `;
   }
 
-  // export function refreshCameraConfigDynamicParameters(
-  //   config: CameraConfig,
-  //   hass?: HomeAssistant,
-  // ): CameraConfig {
-
   /**
    * Render a camera header.
    * @param cameraIndex The index of the camera to edit/add.

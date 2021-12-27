@@ -35,9 +35,22 @@ export class FrigateCardCarousel extends LitElement {
   updated(changedProperties: PropertyValues): void {
     super.updated(changedProperties);
 
-    this.updateComplete.then(() => {
-      this._loadCarousel();
-    });
+    if (this._shouldInitCarousel(changedProperties)) {
+      this.updateComplete.then(() => {
+        this._initCarousel();
+      });
+    }
+  }
+
+  /**
+   * Whether or not the carousel should be (re-)initialized when the given
+   * properties change.
+   * @param changedProperties The properties that triggered the (re-)render.
+   * @returns 
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected _shouldInitCarousel(_: PropertyValues): boolean {
+    return true;
   }
 
   /**
@@ -51,7 +64,7 @@ export class FrigateCardCarousel extends LitElement {
   /**
    * Load the carousel with "slides".
    */
-  protected _loadCarousel(): void {
+  protected _initCarousel(): void {
     const carouselNode = this.renderRoot.querySelector(
       '.embla__viewport',
     ) as HTMLElement;
