@@ -15,7 +15,7 @@ interface ActionHandler extends HTMLElement {
   bind(element: Element, options): void;
 }
 interface ActionHandlerElement extends HTMLElement {
-  actionHandler?: boolean;
+  actionHandlerOptions?: ActionHandlerOptions;
 }
 
 declare global {
@@ -25,7 +25,7 @@ declare global {
 }
 
 class ActionHandler extends HTMLElement implements ActionHandler {
-  public holdTime = 500;
+  public holdTime = 400;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public ripple: any;
@@ -78,10 +78,12 @@ class ActionHandler extends HTMLElement implements ActionHandler {
   }
 
   public bind(element: ActionHandlerElement, options): void {
-    if (element.actionHandler) {
+    if (element.actionHandlerOptions) {
+      // Reset the options on an existing actionHandler.
+      element.actionHandlerOptions = options;
       return;
     }
-    element.actionHandler = true;
+    element.actionHandlerOptions = options;
 
     element.addEventListener('contextmenu', (ev: Event) => {
       const e = ev || window.event;
@@ -97,6 +99,7 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     });
 
     const start = (ev: Event): void => {
+      const options = element.actionHandlerOptions;
       let x;
       let y;
       if ((ev as TouchEvent).touches) {
@@ -107,7 +110,7 @@ class ActionHandler extends HTMLElement implements ActionHandler {
         y = (ev as MouseEvent).pageY;
       }
 
-      if (options.hasHold) {
+      if (options?.hasHold) {
         this.held = false;
         this.timer = window.setTimeout(() => {
           this.startAnimation(x, y);
@@ -117,21 +120,22 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     };
 
     const end = (ev: Event): void => {
+      const options = element.actionHandlerOptions;
       if (['touchend', 'touchcancel'].includes(ev.type) 
           // This action handler by default relies on synthetic click events for
           // touch devices, in order to ensure that embedded cards (e.g. WebRTC)
           // can use stock click handlers. The exception is for hold events.
-          && !(options.hasHold && this.held)) {
+          && !(options?.hasHold && this.held)) {
         return;
       }
-      if (options.hasHold) {
+      if (options?.hasHold) {
         clearTimeout(this.timer);
         this.stopAnimation();
         this.timer = undefined;
       }
-      if (options.hasHold && this.held) {
+      if (options?.hasHold && this.held) {
         fireEvent(element, 'action', { action: 'hold' });
-      } else if (options.hasDoubleClick) {
+      } else if (options?.hasDoubleClick) {
         if (
           (ev.type === 'click' && (ev as MouseEvent).detail < 2) ||
           !this.dblClickTimeout
