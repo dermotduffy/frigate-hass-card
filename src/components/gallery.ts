@@ -214,8 +214,8 @@ export class FrigateCardGalleryCore extends LitElement {
                       if (this.view) {
                         new View({
                           view: this.view.is('clips')
-                            ? 'clip-specific'
-                            : 'snapshot-specific',
+                            ? 'clip'
+                            : 'snapshot',
                           camera: this.view.camera,
                           target: this.view.target ?? undefined,
                           childIndex: index,

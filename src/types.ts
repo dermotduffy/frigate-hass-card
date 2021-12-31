@@ -31,14 +31,7 @@ const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
   'image', // Static image.
 ] as const;
 
-const FRIGATE_CARD_VIEWS_INTERNAL = [
-  'clip-specific', // A specific clip.
-  'snapshot-specific', // A specific snapshot.
-] as const;
-
-export type FrigateCardView =
-  | typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED[number]
-  | typeof FRIGATE_CARD_VIEWS_INTERNAL[number];
+export type FrigateCardView = typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED[number];
 
 const FRIGATE_MENU_MODES = [
   'none',
@@ -578,7 +571,7 @@ const menuConfigSchema = z
 export type MenuConfig = z.infer<typeof menuConfigSchema>;
 
 /**
- * Event viewer configuration section (clip, snapshot, clip-specific, snapshot-specific).
+ * Event viewer configuration section (clip, snapshot).
  */
 const viewerConfigDefault = {
   autoplay_clip: false,

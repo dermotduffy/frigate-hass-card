@@ -1,5 +1,3 @@
-// TODO Live scrolling nav buttons disappearing
-// TODO can I do away with clip/snapshot-specific?
 // TODO Live carousel chevron/icons style
 // TODO call change-event in viewer
 // TODO editor for live lazy loading
@@ -146,7 +144,7 @@ export class FrigateCardLive extends LitElement {
             const mediaType = browseMediaParams.mediaType;
             if (mediaType && this.view && ['snapshots', 'clips'].includes(mediaType)) {
               new View({
-                view: mediaType === 'clips' ? 'clip-specific' : 'snapshot-specific',
+                view: mediaType === 'clips' ? 'clip' : 'snapshot',
                 camera: this.view.camera,
                 target: ev.detail.target,
                 childIndex: ev.detail.childIndex,

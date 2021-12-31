@@ -82,7 +82,7 @@ export class View {
    * Determine if a view is for the media viewer.
    */
   public isViewerView(): boolean {
-    return ['clip', 'clip-specific', 'snapshot', 'snapshot-specific'].includes(
+    return ['clip', 'snapshot'].includes(
       this.view,
     );
   }
@@ -91,14 +91,14 @@ export class View {
    * Determine if a view is related to a clip or clips.
    */
   public isClipRelatedView(): boolean {
-    return ['clip', 'clips', 'clip-specific'].includes(this.view);
+    return ['clip', 'clips'].includes(this.view);
   }
 
   /**
    * Determine if a view is related to a snapshot or snapshots.
    */
   public isSnapshotRelatedView(): boolean {
-    return ['snapshot', 'snapshots', 'snapshot-specific'].includes(this.view);
+    return ['snapshot', 'snapshots'].includes(this.view);
   }
 
   /**
