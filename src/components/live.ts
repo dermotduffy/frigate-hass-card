@@ -1,8 +1,7 @@
-// TODO Live carousel chevron/icons style
 // TODO call change-event in viewer
-// TODO editor for live lazy loading
 // TODO different live configs per camera
 // TODO verify preload behavior
+// TODO update_entities should reload view rather than be involved in rendering
 // TODO Remove media load event console message
 // TODO Remove view change console message
 // TODO readme

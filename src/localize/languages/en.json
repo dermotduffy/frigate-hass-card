@@ -39,12 +39,12 @@
     },
     "event_viewer": {
       "autoplay_clip": "Autoplay most recent clip (In 'clip' view)",
-      "draggable": "Event viewer can be dragged/swiped",
-      "lazy_load": "Lazily load event media",
+      "draggable": "Event Viewer can be dragged/swiped",
+      "lazy_load": "Event Viewer media is lazily loaded",
       "controls": {
         "next_previous": {
-          "style": "Event Viewer Next & Previous Control style",
-          "size": "Event Viewer Next & Previous Control size (e.g. '48px')",
+          "style": "Event Viewer next & previous control style",
+          "size": "Event Viewer next & previous control size (e.g. '48px')",
           "styles": {
             "thumbnails": "Thumbnails",
             "chevrons": "Chevrons",
@@ -70,7 +70,18 @@
         "frigate-jsmpeg": "Frigate JSMpeg",
         "webrtc": "WebRTC"
       },
+      "draggable": "Live cameras view can be dragged/swiped",
+      "lazy_load": "Live cameras are lazily loaded",
       "controls": {
+        "next_previous": {
+          "style": "Live view next & previous control style",
+          "size": "Live view next & previous control size (e.g. '48px')",
+          "styles": {
+            "chevrons": "Chevrons",
+            "icons": "Icons",
+            "none": "None"
+          }
+        },
         "thumbnails": {
           "mode": "Live thumbnails mode",
           "size": "Live thumbnails size (e.g. '100px')",

@@ -34,9 +34,13 @@ import {
   CONF_EVENT_VIEWER_DRAGGABLE,
   CONF_EVENT_VIEWER_LAZY_LOAD,
   CONF_IMAGE_SRC,
+  CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
+  CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
+  CONF_LIVE_DRAGGABLE,
+  CONF_LIVE_LAZY_LOAD,
   CONF_LIVE_PRELOAD,
   CONF_LIVE_PROVIDER,
   CONF_MENU_BUTTONS_CLIPS,
@@ -424,7 +428,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             )}
             ${this._renderDropdown(
               getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_ENTITY, cameraIndex),
-              cameraEntities)}
+              cameraEntities,
+            )}
             ${this._renderStringInput(
               getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_URL, cameraIndex),
             )}
@@ -539,6 +544,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       ),
       chevrons: localize('config.event_viewer.controls.next_previous.styles.chevrons'),
       none: localize('config.event_viewer.controls.next_previous.styles.none'),
+    };
+
+    const liveNextPreviousControlStyles = {
+      '': '',
+      chevrons: localize('config.live.controls.next_previous.styles.chevrons'),
+      icons: localize('config.live.controls.next_previous.styles.icons'),
+      none: localize('config.live.controls.next_previous.styles.none'),
     };
 
     const aspectRatioModes = {
@@ -665,6 +677,19 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               <div class="values">
                 ${this._renderSwitch(CONF_LIVE_PRELOAD, defaults.live.preload)}
                 ${this._renderDropdown(CONF_LIVE_PROVIDER, liveProviders)}
+                ${this._renderSwitch(
+                  CONF_LIVE_DRAGGABLE,
+                  defaults.live.draggable,
+                )}
+                ${this._renderSwitch(
+                  CONF_LIVE_LAZY_LOAD,
+                  defaults.live.lazy_load,
+                )}
+                ${this._renderDropdown(
+                  CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
+                  liveNextPreviousControlStyles,
+                )}
+                ${this._renderStringInput(CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE)}
                 ${this._renderDropdown(
                   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
                   thumbnailModes,
