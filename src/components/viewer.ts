@@ -33,9 +33,7 @@ import { View } from '../view.js';
 import {
   createMediaShowInfo,
   dispatchErrorMessageEvent,
-  dispatchMessageEvent,
 } from '../common.js';
-import { localize } from '../localize/localize.js';
 import { renderProgressIndicator } from '../components/message.js';
 
 import './next-prev-control.js';
@@ -61,44 +59,6 @@ export class FrigateCardViewer extends LitElement {
   protected resolvedMediaCache?: ResolvedMediaCache;
 
   /**
-   * Asyncronously render the element.
-   * @returns A rendered template.
-   */
-  protected async _fetchLatestMedia(): Promise<void> {
-    if (!this.view || !this.hass || !this.browseMediaQueryParameters) {
-      return;
-    }
-    let parent: BrowseMediaSource | null;
-    try {
-      parent = await BrowseMediaUtil.browseMediaQuery(
-        this.hass,
-        this.browseMediaQueryParameters,
-      );
-    } catch (e) {
-      return dispatchErrorMessageEvent(this, (e as Error).message);
-    }
-    const childIndex = BrowseMediaUtil.getFirstTrueMediaChildIndex(parent);
-    if (!parent || !parent.children || childIndex == null) {
-      return dispatchMessageEvent(
-        this,
-        this.browseMediaQueryParameters.mediaType == 'clips'
-          ? localize('common.no_clip')
-          : localize('common.no_snapshot'),
-        this.browseMediaQueryParameters.mediaType == 'clips'
-          ? 'mdi:filmstrip-off'
-          : 'mdi:camera-off',
-      );
-    }
-
-    this.view
-      .evolve({
-        target: parent,
-        childIndex: childIndex,
-      })
-      .dispatchChangeEvent(this);
-  }
-
-  /**
    * Master render method.
    * @returns A rendered template.
    */
@@ -108,7 +68,12 @@ export class FrigateCardViewer extends LitElement {
     }
 
     if (!this.view.target) {
-      this._fetchLatestMedia();
+      BrowseMediaUtil.fetchLatestMediaAndDispatchViewChange(
+        this,
+        this.hass,
+        this.view,
+        this.browseMediaQueryParameters,
+      );
       return renderProgressIndicator();
     }
 

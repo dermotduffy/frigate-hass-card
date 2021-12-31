@@ -1,16 +1,21 @@
+import { HomeAssistant } from 'custom-card-helpers';
+import dayjs from 'dayjs';
+import dayjs_custom_parse_format from 'dayjs/plugin/customParseFormat.js';
+
 import type {
   BrowseMediaQueryParameters,
   BrowseMediaSource,
   CameraConfig,
   ExtendedHomeAssistant,
 } from './types.js';
-import { HomeAssistant } from 'custom-card-helpers';
-import { homeAssistantWSRequest } from './common.js';
-import { browseMediaSourceSchema } from './types.js';
-
-import dayjs from 'dayjs';
-import dayjs_custom_parse_format from 'dayjs/plugin/customParseFormat.js';
 import { View } from './view.js';
+import { browseMediaSourceSchema } from './types.js';
+import {
+  dispatchErrorMessageEvent,
+  dispatchMessageEvent,
+  homeAssistantWSRequest,
+} from './common.js';
+import { localize } from './localize/localize.js';
 
 dayjs.extend(dayjs_custom_parse_format);
 
@@ -153,5 +158,78 @@ export class BrowseMediaUtil {
       view.isClipRelatedView() ? 'clips' : 'snapshots',
       cameraConfig,
     );
+  }
+
+  /**
+   * Fetch the latest media and dispatch a change view event to reflect the
+   * results. If no media is found a suitable message event will be triggered
+   * instead.
+   * @param node The HTMLElement to dispatch events from.
+   * @param hass The Home Assistant object.
+   * @param view The current view to evolve.
+   * @param browseMediaQueryParameters The media parameters to query with.
+   * @returns 
+   */
+  static async fetchLatestMediaAndDispatchViewChange(
+    node: HTMLElement,
+    hass: HomeAssistant & ExtendedHomeAssistant,
+    view: Readonly<View>,
+    browseMediaQueryParameters: BrowseMediaQueryParameters,
+  ): Promise<void> {
+    let parent: BrowseMediaSource | null;
+    try {
+      parent = await BrowseMediaUtil.browseMediaQuery(hass, browseMediaQueryParameters);
+    } catch (e) {
+      return dispatchErrorMessageEvent(node, (e as Error).message);
+    }
+    const childIndex = BrowseMediaUtil.getFirstTrueMediaChildIndex(parent);
+    if (!parent || !parent.children || childIndex == null) {
+      return dispatchMessageEvent(
+        node,
+        browseMediaQueryParameters.mediaType == 'clips'
+          ? localize('common.no_clip')
+          : localize('common.no_snapshot'),
+        browseMediaQueryParameters.mediaType == 'clips'
+          ? 'mdi:filmstrip-off'
+          : 'mdi:camera-off',
+      );
+    }
+
+    view
+      .evolve({
+        target: parent,
+        childIndex: childIndex,
+      })
+      .dispatchChangeEvent(node);
+  }
+
+  /**
+   * Fetch the media of a child BrowseMediaSource object and dispatch a change
+   * view event to reflect the results. 
+   * @param node The HTMLElement to dispatch events from.
+   * @param hass The Home Assistant object.
+   * @param view The current view to evolve.
+   * @param child The BrowseMediaSource child to query for.
+   * @returns 
+   */
+  static async fetchChildMediaAndDispatchViewChange(
+    node: HTMLElement,
+    hass: HomeAssistant & ExtendedHomeAssistant,
+    view: Readonly<View>,
+    child: Readonly<BrowseMediaSource>,
+  ): Promise<void> {
+    let parent: BrowseMediaSource;
+    try {
+      parent = await BrowseMediaUtil.browseMedia(hass, child.media_content_id);
+    } catch (e) {
+      return dispatchErrorMessageEvent(node, (e as Error).message);
+    }
+
+    view
+      .evolve({
+        target: parent,
+        previous: view,
+      })
+      .dispatchChangeEvent(node);
   }
 }

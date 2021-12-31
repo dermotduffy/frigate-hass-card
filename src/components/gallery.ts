@@ -3,21 +3,13 @@ import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit
 import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
-import { until } from 'lit/directives/until.js';
 
-import type {
-  BrowseMediaSource,
-  BrowseMediaQueryParameters,
-  ExtendedHomeAssistant,
-} from '../types.js';
+import type { BrowseMediaQueryParameters, ExtendedHomeAssistant } from '../types.js';
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import { View } from '../view.js';
-import { dispatchErrorMessageEvent, dispatchMessageEvent } from '../common.js';
-import { localize } from '../localize/localize.js';
 import { renderProgressIndicator } from './message.js';
 
 import galleryStyle from '../scss/gallery.scss';
-import { actionHandler } from '../action-handler-directive.js';
 
 const MAX_THUMBNAIL_WIDTH = 175;
 const DEFAULT_COLUMNS = 5;
@@ -28,7 +20,7 @@ export class FrigateCardGallery extends LitElement {
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected view?: View;
+  protected view?: Readonly<View>;
 
   @property({ attribute: false })
   protected browseMediaQueryParameters?: BrowseMediaQueryParameters;
@@ -38,58 +30,24 @@ export class FrigateCardGallery extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    return html`${until(this._render(), renderProgressIndicator())}`;
-  }
-
-  /**
-   * Asyncronously render the element.
-   * @returns A rendered template.
-   */
-  protected async _render(): Promise<TemplateResult | void> {
-    if (
-      !this.hass ||
-      !this.view ||
-      !this.browseMediaQueryParameters ||
-      !(this.view.is('clips') || this.view.is('snapshots'))
-    ) {
-      return html``;
+    if (!this.hass || !this.view || !this.browseMediaQueryParameters) {
+      return;
     }
 
-    let parent: BrowseMediaSource | null;
-    try {
-      if (this.view.target) {
-        parent = await BrowseMediaUtil.browseMedia(
-          this.hass,
-          this.view.target.media_content_id,
-        );
-      } else {
-        parent = await BrowseMediaUtil.browseMediaQuery(
-          this.hass,
-          this.browseMediaQueryParameters,
-        );
-      }
-    } catch (e: any) {
-      return dispatchErrorMessageEvent(this, e.message);
-    }
-
-    if (
-      !parent ||
-      !parent.children ||
-      BrowseMediaUtil.getFirstTrueMediaChildIndex(parent) == null
-    ) {
-      return dispatchMessageEvent(
+    if (!this.view.target) {
+      BrowseMediaUtil.fetchLatestMediaAndDispatchViewChange(
         this,
-        this.view.is('clips')
-          ? localize('common.no_clips')
-          : localize('common.no_snapshots'),
-        this.view.is('clips') ? 'mdi:filmstrip-off' : 'mdi:camera-off',
+        this.hass,
+        this.view,
+        this.browseMediaQueryParameters,
       );
+      return renderProgressIndicator();
     }
 
-    this.view.target = parent;
-
-    return html` <frigate-card-gallery-core .hass=${this.hass} .view=${this.view}>
-    </frigate-card-gallery-core>`;
+    return html`
+      <frigate-card-gallery-core .hass=${this.hass} .view=${this.view}>
+      </frigate-card-gallery-core>
+    `;
   }
 
   /**
@@ -106,7 +64,7 @@ export class FrigateCardGalleryCore extends LitElement {
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected view?: View;
+  protected view?: Readonly<View>;
 
   protected _resizeObserver: ResizeObserver;
 
@@ -137,6 +95,7 @@ export class FrigateCardGalleryCore extends LitElement {
 
   protected render(): TemplateResult | void {
     if (
+      !this.hass ||
       !this.view ||
       !this.view.target ||
       !this.view.target.children ||
@@ -156,11 +115,7 @@ export class FrigateCardGalleryCore extends LitElement {
             <div class="mdc-image-list__image-aspect-container">
               <div class="mdc-image-list__image">
                 <ha-card
-                  .actionHandler=${actionHandler({
-                    hasHold: false,
-                    hasDoubleClick: false,
-                  })}
-                  @action=${() => {
+                  @click=${() => {
                     if (this.view && this.view.previous) {
                       this.view.previous.dispatchChangeEvent(this);
                     }
@@ -181,18 +136,14 @@ export class FrigateCardGalleryCore extends LitElement {
               ${child.can_expand
                 ? html`<div class="mdc-image-list__image">
                     <ha-card
-                      .actionHandler=${actionHandler({
-                        hasHold: false,
-                        hasDoubleClick: false,
-                      })}
-                      @action=${() => {
-                        if (this.view) {
-                          new View({
-                            view: this.view.view,
-                            camera: this.view.camera,
-                            target: child,
-                            previous: this.view ?? undefined,
-                          }).dispatchChangeEvent(this);
+                      @click=${() => {
+                        if (this.hass && this.view) {
+                          BrowseMediaUtil.fetchChildMediaAndDispatchViewChange(
+                            this,
+                            this.hass,
+                            this.view,
+                            child,
+                          );
                         }
                       }}
                       outlined=""
@@ -206,21 +157,15 @@ export class FrigateCardGalleryCore extends LitElement {
                     title="${child.title}"
                     class="mdc-image-list__image"
                     src="${child.thumbnail}"
-                    .actionHandler=${actionHandler({
-                      hasHold: false,
-                      hasDoubleClick: false,
-                    })}
-                    @action=${() => {
+                    @click=${() => {
                       if (this.view) {
-                        new View({
-                          view: this.view.is('clips')
-                            ? 'clip'
-                            : 'snapshot',
-                          camera: this.view.camera,
-                          target: this.view.target ?? undefined,
-                          childIndex: index,
-                          previous: this.view ?? undefined,
-                        }).dispatchChangeEvent(this);
+                        this.view
+                          .evolve({
+                            view: this.view.is('clips') ? 'clip' : 'snapshot',
+                            childIndex: index,
+                            previous: this.view,
+                          })
+                          .dispatchChangeEvent(this);
                       }
                     }}
                   />`
