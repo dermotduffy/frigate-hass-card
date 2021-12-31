@@ -2,7 +2,7 @@ import type { FrigateCardCondition } from './types';
 import { View } from './view';
 
 export interface ConditionState {
-  view?: View;
+  view?: Readonly<View>;
   fullscreen?: boolean;
   camera?: string;
 }

@@ -1,7 +1,5 @@
-// TODO call change-event in viewer
-// TODO different live configs per camera
-// TODO verify preload behavior
 // TODO update_entities should reload view rather than be involved in rendering
+// TODO different live configs per camera
 // TODO Remove media load event console message
 // TODO Remove view change console message
 // TODO readme
@@ -27,7 +25,7 @@ import {
 } from '../types.js';
 import { EmblaOptionsType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { ref } from 'lit/directives/ref';
 import { until } from 'lit/directives/until.js';
 
@@ -77,7 +75,6 @@ export class FrigateCardLive extends LitElement {
   @property({ attribute: false })
   protected liveConfig?: LiveConfig;
 
-  @property({ attribute: false })
   set preload(preload: boolean) {
     this._preload = preload;
 
@@ -87,6 +84,7 @@ export class FrigateCardLive extends LitElement {
   }
 
   // Whether or not the live view is currently being preloaded.
+  @state()
   protected _preload?: boolean;
 
   // MediaShowInfo object from the underlying live object. In the case of
@@ -176,6 +174,7 @@ export class FrigateCardLive extends LitElement {
         .view=${this.view}
         .cameras=${this.cameras}
         .liveConfig=${this.liveConfig}
+        .preload=${this._preload}
         @frigate-card:media-show=${this._mediaShowHandler}
         @frigate-card:carousel:select=${() => {
           // Re-rendering the component will cause the thumbnails to be
@@ -212,6 +211,9 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   @property({ attribute: false })
   protected liveConfig?: LiveConfig;
 
+  @property({ attribute: false })
+  protected preload?: boolean;
+
   // Index between camera name and slide number.
   protected _cameraToSlide: Record<string, number> = {};
 
@@ -220,7 +222,13 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
    * @param changedProperties The properties that were changed in this render.
    */
   updated(changedProperties: PropertyValues): void {
-    if (changedProperties.has('cameras') || changedProperties.has('liveConfig')) {
+    if (
+      changedProperties.has('cameras') ||
+      changedProperties.has('liveConfig') ||
+      changedProperties.has('preload')
+    ) {
+      // All of these properties may fundamentally change the contents/size of
+      // the DOM, and the carousel should be reset when they change.
       this._destroyCarousel();
     }
 

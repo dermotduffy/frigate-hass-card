@@ -676,7 +676,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html`
               <div class="values">
                 ${this._renderSwitch(CONF_LIVE_PRELOAD, defaults.live.preload)}
-                ${this._renderDropdown(CONF_LIVE_PROVIDER, liveProviders)}
                 ${this._renderSwitch(
                   CONF_LIVE_DRAGGABLE,
                   defaults.live.draggable,
@@ -685,6 +684,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_LIVE_LAZY_LOAD,
                   defaults.live.lazy_load,
                 )}
+                ${this._renderDropdown(CONF_LIVE_PROVIDER, liveProviders)}
                 ${this._renderDropdown(
                   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
                   liveNextPreviousControlStyles,
