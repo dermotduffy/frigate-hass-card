@@ -709,7 +709,17 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
                 }
               }}
               @load="${(e: Event) => {
-                this._mediaLoadedHandler(slideIndex, createMediaShowInfo(e));
+                if (
+                  // This handler will be called on the empty image (including
+                  // an updated empty image that is the same dimensions large as
+                  // the previously fully loaded image -- see the note on dummy
+                  // images in media-carousel.ts). Here we need to only call the
+                  // media load handler on a 'real' load.
+                  !lazyLoad ||
+                  this._slideHasBeenLazyLoaded[slideIndex]
+                ) {
+                  this._mediaLoadedHandler(slideIndex, createMediaShowInfo(e));
+                }
               }}"
             />`}
       </div>

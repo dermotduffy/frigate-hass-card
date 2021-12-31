@@ -1,5 +1,4 @@
 // TODO Live scrolling nav buttons disappearing
-// TODO Media loading events appear wrong for snapshot viewer
 // TODO can I do away with clip/snapshot-specific?
 // TODO Live carousel chevron/icons style
 // TODO call change-event in viewer
