@@ -44,6 +44,29 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   }
 
   /**
+   * Determine if lazy loading is being used.
+   * @returns `true` is lazy loading is in use.
+   */
+  protected _isLazyLoading(): boolean {
+    return this._getLazyLoadCount() !== null;
+  }
+
+  protected _destroyCarousel(): void {
+    super._destroyCarousel();
+
+    // Notes on instance variables:
+    // * this._mediaShowInfo: This is set when the media in the DOM loads. If a
+    //   new View included the same media, the DOM would not change and so the
+    //   prior contents would still be valid and would not re-appear (as the
+    //   media would not reload) -- as such, leave this alone on carousel
+    //   destroy. New media in that slide will replace the prior contents on
+    //   load.
+    // * this._slideHasBeenLazyLoaded: This is a performance optimization and
+    //   can be safely reset.
+    this._slideHasBeenLazyLoaded = {};
+  }
+
+  /**
    * Initializse the carousel with "slides" (clips or snapshots).
    */
   protected _initCarousel(): void {
@@ -158,16 +181,17 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
         return;
       }
       this._slideHasBeenLazyLoaded[index] = true;
-      this._lazyLoadSlide(slides[index]);
+      this._lazyLoadSlide(index, slides[index]);
     });
   }
 
   /**
    * Lazy load a slide.
+   * @param _index The index of the slide to lazy load.
    * @param _slide The slide to lazy load.
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected _lazyLoadSlide(_slide: HTMLElement): void {
+  protected _lazyLoadSlide(_index: number, _slide: HTMLElement): void {
     // To be overridden in children.
   }
 
@@ -213,7 +237,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     mediaShowInfo?: MediaShowInfo | null,
   ): void {
     // isValidMediaShowInfo is used to prevent saving media info that will be
-    // rejected upstream.
+    // rejected upstream (empty 1x1 images will be rejected here).
     if (mediaShowInfo && isValidMediaShowInfo(mediaShowInfo)) {
       this._mediaShowInfo[slideIndex] = mediaShowInfo;
       if (this._carousel && this._carousel?.slidesInView(true).includes(slideIndex)) {

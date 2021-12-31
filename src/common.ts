@@ -42,7 +42,7 @@ export async function homeAssistantWSRequest<T>(
   hass: HomeAssistant & ExtendedHomeAssistant,
   schema: ZodSchema<T>,
   request: MessageBase,
-): Promise<T | null> {
+): Promise<T> {
   const response = await hass.callWS<T>(request);
 
   if (!response) {

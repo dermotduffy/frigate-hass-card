@@ -1,6 +1,7 @@
 // TODO Live scrolling nav buttons disappearing
-// TODO conditional elements based on camera name (requires event changed to propagate upwards)
-// TODO _shouldInitCarousel on viewer carousel and thumbnail carousel.
+// TODO Media loading events appear wrong for snapshot viewer
+// TODO can I do away with clip/snapshot-specific?
+// TODO Live carousel chevron/icons style
 // TODO call change-event in viewer
 // TODO editor for live lazy loading
 // TODO different live configs per camera
@@ -72,7 +73,7 @@ export class FrigateCardLive extends LitElement {
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected view?: View;
+  protected view?: Readonly<View>;
 
   @property({ attribute: false })
   protected cameras?: Map<string, CameraConfig>;
@@ -207,7 +208,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected view?: View;
+  protected view?: Readonly<View>;
 
   @property({ attribute: false })
   protected cameras?: Map<string, CameraConfig>;
@@ -215,19 +216,34 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   @property({ attribute: false })
   protected liveConfig?: LiveConfig;
 
+  // Index between camera name and slide number.
+  protected _cameraToSlide: Record<string, number> = {};
+
   /**
-   * Whether or not the carousel should be (re-)initialized when the given
-   * properties change.
-   * @param changedProperties The properties that triggered the (re-)render.
-   * @returns Whether to re-initialize the carousel.
+   * The updated lifecycle callback for this element.
+   * @param changedProperties The properties that were changed in this render.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected _shouldInitCarousel(changedProps: PropertyValues): boolean {
-    // These are the only properties that would cause new cameras or changed
-    // dimensions. Don't allow other properties to re-initialize the carousel as
-    // it's a jarring experience to the user (and 'view' is itself set as a
-    // result of a carousel move).
-    return changedProps.has('cameras') || changedProps.has('liveConfig');
+  updated(changedProperties: PropertyValues): void {
+    if (changedProperties.has('cameras') || changedProperties.has('liveConfig')) {
+      this._destroyCarousel();
+    }
+
+    if (changedProperties.has('view')) {
+      const oldView = changedProperties.get('view') as View | undefined;
+      if (
+        this._carousel &&
+        oldView &&
+        this.view?.camera &&
+        this.view?.camera != oldView.camera
+      ) {
+        const slide: number | undefined = this._cameraToSlide[this.view.camera];
+        if (slide !== undefined && slide !== this.carouselSelected()) {
+          this.carouselScrollTo(slide);
+        }
+      }
+    }
+
+    super.updated(changedProperties);
   }
 
   /**
@@ -260,15 +276,25 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
 
   /**
    * Get slides to include in the render.
-   * @returns The slides to include in the render.
+   * @returns The slides to include in the render and an index keyed by camera
+   * name to slide number.
    */
-  protected _getSlides(): TemplateResult[] {
+  protected _getSlides(): [TemplateResult[], Record<string, number>] {
     if (!this.cameras) {
-      return [];
+      return [[], {}];
     }
-    return Array.from(this.cameras.values()).map((cameraConfig, index) => {
-      return this._renderLive(cameraConfig, index);
-    });
+
+    const slides: TemplateResult[] = [];
+    const cameraToSlide: Record<string, number> = {};
+
+    for (const [key, value] of this.cameras) {
+      const slide = this._renderLive(value, slides.length);
+      if (slide) {
+        cameraToSlide[key] = slides.length;
+        slides.push(slide);
+      }
+    }
+    return [slides, cameraToSlide];
   }
 
   /**
@@ -280,17 +306,20 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     }
 
     const selectedSnap = this._carousel.selectedScrollSnap();
-    const newView = this.view.clone();
-    newView.camera = Array.from(this.cameras.keys())[selectedSnap];
-    newView.previous = this.view;
-    newView.dispatchChangeEvent(this);
+    this.view
+      .evolve({
+        camera: Array.from(this.cameras.keys())[selectedSnap],
+        previous: this.view,
+      })
+      .dispatchChangeEvent(this);
   }
 
   /**
    * Lazy load a slide.
-   * @param _slide The slide to lazy load.
+   * @param _index The slide number to lazy load.
+   * @param slide The slide to lazy load.
    */
-  protected _lazyLoadSlide(slide: HTMLElement): void {
+  protected _lazyLoadSlide(_index: number, slide: HTMLElement): void {
     const liveProvider = slide.querySelector(
       'frigate-card-live-provider',
     ) as FrigateCardLiveProvider;
@@ -306,7 +335,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
         .hass=${this.hass}
         .cameraConfig=${cameraConfig}
         .liveConfig=${this.liveConfig}
-        ?disabled=${this._getLazyLoadCount() != null}
+        ?disabled=${this._isLazyLoading()}
         @frigate-card:media-show=${(e: CustomEvent<MediaShowInfo>) =>
           this._mediaShowEventHandler(slideIndex, e)}
       >
@@ -365,7 +394,8 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
    * @returns A template to display to the user.
    */
   protected render(): TemplateResult | void {
-    const slides = this._getSlides();
+    const [slides, cameraToSlide] = this._getSlides();
+    this._cameraToSlide = cameraToSlide;
     if (!slides) {
       return;
     }

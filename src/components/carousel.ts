@@ -35,22 +35,11 @@ export class FrigateCardCarousel extends LitElement {
   updated(changedProperties: PropertyValues): void {
     super.updated(changedProperties);
 
-    if (this._shouldInitCarousel(changedProperties)) {
+    if (!this._carousel) {
       this.updateComplete.then(() => {
         this._initCarousel();
       });
     }
-  }
-
-  /**
-   * Whether or not the carousel should be (re-)initialized when the given
-   * properties change.
-   * @param changedProperties The properties that triggered the (re-)render.
-   * @returns 
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected _shouldInitCarousel(_: PropertyValues): boolean {
-    return true;
   }
 
   /**
@@ -59,6 +48,13 @@ export class FrigateCardCarousel extends LitElement {
    */
   protected _getOptions(): EmblaOptionsType | undefined {
     return undefined;
+  }
+
+  protected _destroyCarousel(): void {
+    if (this._carousel) {
+      this._carousel.destroy();
+    }
+    this._carousel = undefined;
   }
 
   /**
@@ -70,9 +66,6 @@ export class FrigateCardCarousel extends LitElement {
     ) as HTMLElement;
 
     if (carouselNode) {
-      if (this._carousel) {
-        this._carousel.destroy();
-      }
       this._carousel = EmblaCarousel(carouselNode, this._getOptions());
       this._carousel.on('init', () => dispatchFrigateCardEvent(this, 'carousel:init'));
       this._carousel.on('select', () => {

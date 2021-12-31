@@ -77,12 +77,9 @@ export class BrowseMediaUtil {
    * @returns A BrowseMediaSource object or null on malformed.
    */
   static async browseMedia(
-    hass: (HomeAssistant & ExtendedHomeAssistant) | null,
+    hass: HomeAssistant & ExtendedHomeAssistant,
     media_content_id: string,
-  ): Promise<BrowseMediaSource | null> {
-    if (!hass) {
-      return null;
-    }
+  ): Promise<BrowseMediaSource> {
     const request = {
       type: 'media_source/browse_media',
       media_content_id: media_content_id,
@@ -101,7 +98,7 @@ export class BrowseMediaUtil {
   static async browseMediaQuery(
     hass: HomeAssistant & ExtendedHomeAssistant,
     params: BrowseMediaQueryParameters,
-  ): Promise<BrowseMediaSource | null> {
+  ): Promise<BrowseMediaSource> {
     return this.browseMedia(
       hass,
       // Defined in:

@@ -600,7 +600,7 @@ export class FrigateCard extends LitElement {
   }
 
   protected _changeView(args?: { view?: View; resetMessage?: boolean }): void {
-    console.info(`Request to change view: ${JSON.stringify(args?.view)}`)
+    console.info(`Request to change view: ${JSON.stringify(args?.view?.view)}`)
 
     if (args?.resetMessage ?? true) {
       this._message = null;

@@ -1,12 +1,17 @@
 import type { BrowseMediaSource, FrigateCardView } from './types.js';
 import { dispatchFrigateCardEvent } from './common.js';
 
-export interface ViewParameters {
-  view: FrigateCardView;
-  camera: string;
+export interface ViewEvolveParameters {
+  view?: FrigateCardView;
+  camera?: string;
   target?: BrowseMediaSource;
   childIndex?: number;
   previous?: View;
+}
+
+export interface ViewParameters extends ViewEvolveParameters {
+  view: FrigateCardView;
+  camera: string;
 }
 
 export class View {
@@ -24,6 +29,9 @@ export class View {
     this.previous = params?.previous;
   }
 
+  /**
+   * Clone a view.
+   */
   public clone(): View {
     return new View({
       view: this.view,
@@ -34,6 +42,24 @@ export class View {
     });
   }
 
+  /**
+   * Evolve this view by changing parameters and returning a new view.
+   * @param params Parameters to change.
+   * @returns A new evolved view.
+   */
+  public evolve(params: ViewEvolveParameters): View {
+    return new View({
+      view: params.view ?? this.view,
+      camera: params.camera ?? this.camera,
+      target: params.target ?? this.target,
+      childIndex: params.childIndex ?? this.childIndex,
+      previous: params.previous ?? this.previous,
+    })
+  }
+
+  /**
+   * Determine if current view matches a named view.
+   */
   public is(name: string): boolean {
     return this.view == name;
   }
