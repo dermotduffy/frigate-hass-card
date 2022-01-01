@@ -147,10 +147,6 @@ export class FrigateCard extends LitElement {
   // Whether or not media is actively playing (live or clip).
   protected _mediaPlaying = false;
 
-  // A small cache to avoid needing to create a new list of entities every time
-  // a hass update arrives.
-  protected _entitiesToMonitor: string[] = [];
-
   // Information about the most recently loaded media item.
   protected _mediaShowInfo: MediaShowInfo | null = null;
 
@@ -352,7 +348,11 @@ export class FrigateCard extends LitElement {
     }
 
     const cameraConfig = this._getSelectedCameraConfig();
-    if (this.config.menu.buttons.frigate_ui && cameraConfig && cameraConfig.frigate_url) {
+    if (
+      this.config.menu.buttons.frigate_ui &&
+      cameraConfig &&
+      cameraConfig.frigate_url
+    ) {
       buttons.push(
         this._getFrigateCardMenuButton({
           tap_action: 'frigate_ui',
@@ -591,7 +591,6 @@ export class FrigateCard extends LitElement {
     this._cameras = undefined;
     this._view = undefined;
 
-    this._entitiesToMonitor = this.config.view.update_entities || [];
     if (this.config.view.update_force) {
       // If update force is enabled, start a timer right away.
       this._resetInteractionTimer();
@@ -600,7 +599,7 @@ export class FrigateCard extends LitElement {
   }
 
   protected _changeView(args?: { view?: View; resetMessage?: boolean }): void {
-    console.info(`Request to change view: ${JSON.stringify(args?.view?.view)}`)
+    console.info(`Request to change view: ${JSON.stringify(args?.view?.view)}`);
 
     if (args?.resetMessage ?? true) {
       this._message = null;
@@ -656,12 +655,22 @@ export class FrigateCard extends LitElement {
       // Assistant update if there's been recent interaction (e.g. clicks on the
       // card) or if there is media active playing.
       if (
-        !this.config.view.update_force &&
-        (this._interactionTimerID || this._mediaPlaying)
+        (this.config.view.update_force ||
+          !(this._interactionTimerID && this._mediaPlaying)) &&
+        shouldUpdateBasedOnHass(
+          this._hass,
+          oldHass,
+          this.config.view.update_entities || [],
+        )
       ) {
-        return false;
+        // If entities being monitored have changed then reset the view to the
+        // default and allow a re-render. Note that as per the Lit lifecycle,
+        // the setting of the view itself will not trigger an *additional*
+        // re-render here.
+        this._changeView();
+        return true;
       }
-      return shouldUpdateBasedOnHass(this._hass, oldHass, this._entitiesToMonitor);
+      return false;
     }
     return true;
   }
