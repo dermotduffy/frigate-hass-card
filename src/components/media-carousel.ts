@@ -87,9 +87,11 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     carousel?.on('select', this._selectSlideMediaShowHandler.bind(this));
 
     // Adapt the height of the container to the media as the carousel is moved.
-    carousel?.on('init', this._adaptiveHeightHandler.bind(this));
-    carousel?.on('select', this._adaptiveHeightHandler.bind(this));
-    carousel?.on('resize', this._adaptiveHeightHandler.bind(this));
+    carousel?.on('init', this._adaptiveHeightResizeHandler.bind(this));
+    carousel?.on('resize', this._adaptiveHeightResizeHandler.bind(this));
+    carousel?.on('init', this._adaptiveHeightSetHandler.bind(this));
+    carousel?.on('select', this._adaptiveHeightSetHandler.bind(this));
+    carousel?.on('resize', this._adaptiveHeightSetHandler.bind(this));
     
     if (this._getLazyLoadCount() != null) {
       // Load media as the carousel is moved (if lazy loading is in use).
@@ -100,11 +102,23 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   }
 
   /**
+   * Remove height restrictions on the media when the carousel is resized to let
+   * it naturally render.
+   * @returns 
+   */
+  protected _adaptiveHeightResizeHandler(): void {
+    if (!this._carousel) {
+      return;
+    }
+    this._carousel.containerNode().style.removeProperty('max-height')
+  }
+
+  /**
    * Adapt the height of the container to the height of the media (for cases
    * where the carousel has different media heights, e.g. live cameras with
    * different aspect ratios).
    */
-  protected _adaptiveHeightHandler(): void {
+  protected _adaptiveHeightSetHandler(): void {
     if (!this._carousel) {
       return;
     }
@@ -246,7 +260,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
 
       // After media has been loaded, the height of the container may need to be
       // re-adjusted.
-      this._adaptiveHeightHandler();
+      this._adaptiveHeightSetHandler();
       /**
        * Images need a width/height from initial load, and browsers will assume
        * that the aspect ratio of the initial dummy-image load will persist. In

@@ -141,7 +141,7 @@ export class FrigateCardLive extends LitElement {
       }
 
       if (BrowseMediaUtil.getFirstTrueMediaChildIndex(parent) != null) {
-        return html` <frigate-card-thumbnail-carousel
+        return html`<frigate-card-thumbnail-carousel
           .target=${parent}
           .view=${this.view}
           .config=${config.controls.thumbnails}
@@ -162,7 +162,10 @@ export class FrigateCardLive extends LitElement {
       }
     };
 
-    return html`${until(fetchThumbnailsThenRender(), renderProgressIndicator())}`;
+    // Don't render a progress indicator for live thumbnails, as it's jarring
+    // during live-carousel scrolling (the progress indicator repeatedly
+    // flashes). Just render nothing during loading.
+    return html`${until(fetchThumbnailsThenRender(), html``)}`;
   }
 
   /**
