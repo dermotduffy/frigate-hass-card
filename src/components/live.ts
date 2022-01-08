@@ -1,7 +1,7 @@
 // TODO different live configs per camera
 // TODO evaluate single override section instead of per-subcomponent
-// TODO Remove id as a concept for cameras and use an array instead?
 // TODO Convert menu condition to use overrides
+// TODO Fix overlapping menu icon issue.
 // TODO Remove media load event console message
 // TODO Remove view change console message
 // TODO readme
@@ -309,10 +309,10 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     const slides: TemplateResult[] = [];
     const cameraToSlide: Record<string, number> = {};
 
-    for (const [key, value] of this.cameras) {
-      const slide = this._renderLive(value, slides.length);
+    for (const [camera, cameraConfig] of this.cameras) {
+      const slide = this._renderLive(camera, cameraConfig, slides.length);
       if (slide) {
-        cameraToSlide[key] = slides.length;
+        cameraToSlide[camera] = slides.length;
         slides.push(slide);
       }
     }
@@ -351,6 +351,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   }
 
   protected _renderLive(
+    camera: string,
     cameraConfig: CameraConfig,
     slideIndex: number,
   ): TemplateResult | void {
@@ -362,7 +363,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     // <frigate-card-live-provider> is rendering right now.
     const conditionState = Object.assign({
       ...this.conditionState,
-      camera: cameraConfig,
+      camera: camera,
     });
 
     const config = getOverriddenConfig(this.liveConfig, conditionState) as LiveConfig;

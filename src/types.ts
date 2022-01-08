@@ -349,9 +349,7 @@ export type MenuSubmenu = z.infer<typeof menuSubmenuSchema>;
 const frigateCardConditionSchema = z.object({
   view: z.string().array().optional(),
   fullscreen: z.boolean().optional(),
-
-  // Allow matching any field of cameraConfig.
-  camera: z.record(z.any()),
+  camera: z.string().array().optional(),
 });
 export type FrigateCardCondition = z.infer<typeof frigateCardConditionSchema>;
 

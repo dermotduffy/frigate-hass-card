@@ -222,10 +222,9 @@ export class FrigateCard extends LitElement {
    */
   protected _generateConditionState(): void {
     this._conditionState = {
-      view: this._view,
+      view: this._view?.view,
       fullscreen: screenfull.isEnabled && screenfull.isFullscreen,
-      camera:
-        this._cameras && this._view ? this._cameras.get(this._view.camera) : undefined,
+      camera: this._view?.camera,
     };
   }
 

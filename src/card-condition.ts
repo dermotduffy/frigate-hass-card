@@ -1,16 +1,13 @@
 import type {
-  CameraConfig,
   FrigateCardCondition,
   RawFrigateCardConfig,
 } from './types';
 import { merge, cloneDeep } from 'lodash-es';
 
-import { View } from './view';
-
 export interface ConditionState {
-  view?: Readonly<View>;
+  view?: string;
   fullscreen?: boolean;
-  camera?: CameraConfig;
+  camera?: string;
 }
 
 class ConditionStateRequestEvent extends Event {
@@ -26,41 +23,14 @@ export function evaluateCondition(
   }
 
   let result = true;
-  if (condition?.view?.length && state.view) {
-    result &&= condition?.view.includes(state.view.view);
+  if (condition?.view?.length) {
+    result &&= !!state.view && condition.view.includes(state.view);
   }
-  if (condition?.fullscreen !== undefined && state.fullscreen !== undefined) {
-    result &&= condition?.fullscreen == state.fullscreen;
+  if (condition?.fullscreen !== undefined) {
+    result &&= state.fullscreen !== undefined && condition.fullscreen == state.fullscreen;
   }
-
-  const evaluateNested = (
-    input: Readonly<RawFrigateCardConfig>,
-    condition: Readonly<RawFrigateCardConfig>,
-  ): boolean => {
-    let result = true;
-
-    for (const key of Object.keys(condition)) {
-      if (typeof condition[key] === 'string') {
-        // If the test is a literal, it must exactly match.
-        result &&= input[key] === condition[key];
-      } else if (Array.isArray(condition[key])) {
-        // If the test is an array, it's a list of acceptable values.
-        result &&= (condition[key] as unknown[]).includes(input[key]);
-      } else if (typeof condition[key] === 'object' && typeof input[key] === 'object') {
-        // If the test is an object, recursively navigate downwards.
-        result &&= evaluateNested(
-          input[key] as RawFrigateCardConfig,
-          condition[key] as RawFrigateCardConfig,
-        );
-      } else if (input[key] === undefined) {
-        return false;
-      }
-    }
-    return result;
-  };
-
-  if (condition?.camera) {
-    result &&= state.camera ? evaluateNested(state.camera, condition.camera) : false;
+  if (condition?.camera?.length) {
+    result &&= !!state.camera && condition.camera.includes(state.camera);
   }
   return result;
 }
