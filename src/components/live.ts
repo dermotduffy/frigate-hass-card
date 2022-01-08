@@ -1,7 +1,5 @@
 // TODO different live configs per camera
-// TODO replace dset/dlv with lodash
 // TODO evaluate single override section instead of per-subcomponent
-// TODO fix adaptive height in fullscreen
 // TODO Remove id as a concept for cameras and use an array instead?
 // TODO Convert menu condition to use overrides
 // TODO Remove media load event console message

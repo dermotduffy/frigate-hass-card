@@ -1,5 +1,4 @@
-import delve from 'dlv';
-import { dset } from 'dset';
+import { get, set } from 'lodash-es';
 import {
   CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
@@ -36,7 +35,7 @@ export const setConfigValue = (
   keys: string | (string | number)[],
   value: unknown,
 ): void => {
-  dset(obj, keys, value);
+  set(obj, keys, value)
 };
 
 /**
@@ -50,11 +49,7 @@ export const getConfigValue = (
   keys: string | (string | number)[],
   def?: unknown,
 ): unknown => {
-  // Need to manually split the key apart to use delve array accesses by number.
-  if (typeof keys === 'string') {
-    keys = keys.split('.');
-  }
-  return delve(obj, keys, def);
+  return get(obj, keys, def);
 };
 
 /**
@@ -172,7 +167,7 @@ export const moveConfigValue = (
  * @returns The true config path.
  */
 export const getArrayConfigPath = (path: string, index: number): string => {
-  return path.replace('#', index.toString());
+  return path.replace('#', `[${index.toString()}]`);
 };
 
 /**

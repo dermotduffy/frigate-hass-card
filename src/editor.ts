@@ -211,10 +211,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    * @returns A localized label.
    */
   protected _getLabel(configPath: string): string {
-    // Strip out single number path components as they are array indicies.
+    // Strip out array indices from the path.
     const path = configPath
       .split('.')
-      .filter((e) => isNaN(Number(e)))
+      .filter((e) => !e.match(/^\[[0-9]+\]$/))
       .join('.');
     return localize(`config.${path}`);
   }
