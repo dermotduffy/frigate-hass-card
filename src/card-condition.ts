@@ -1,10 +1,16 @@
-import type { FrigateCardCondition } from './types';
+import type {
+  CameraConfig,
+  FrigateCardCondition,
+  RawFrigateCardConfig,
+} from './types';
+import { merge, cloneDeep } from 'lodash-es';
+
 import { View } from './view';
 
 export interface ConditionState {
   view?: Readonly<View>;
   fullscreen?: boolean;
-  camera?: string;
+  camera?: CameraConfig;
 }
 
 class ConditionStateRequestEvent extends Event {
@@ -12,18 +18,49 @@ class ConditionStateRequestEvent extends Event {
 }
 
 export function evaluateCondition(
-  condition?: FrigateCardCondition,
-  state?: ConditionState,
+  condition?: Readonly<FrigateCardCondition>,
+  state?: Readonly<ConditionState>,
 ): boolean {
+  if (!state) {
+    return false;
+  }
+
   let result = true;
-  if (condition?.view?.length && state?.view) {
-    result &&= condition?.view.includes(state?.view.view);
+  if (condition?.view?.length && state.view) {
+    result &&= condition?.view.includes(state.view.view);
   }
-  if (condition?.fullscreen !== undefined && state?.fullscreen !== undefined) {
-    result &&= condition?.fullscreen == state?.fullscreen;
+  if (condition?.fullscreen !== undefined && state.fullscreen !== undefined) {
+    result &&= condition?.fullscreen == state.fullscreen;
   }
-  if (condition?.camera?.length && state?.camera) {
-    result &&= condition?.camera.includes(state?.camera);
+
+  const evaluateNested = (
+    input: Readonly<RawFrigateCardConfig>,
+    condition: Readonly<RawFrigateCardConfig>,
+  ): boolean => {
+    let result = true;
+
+    for (const key of Object.keys(condition)) {
+      if (typeof condition[key] === 'string') {
+        // If the test is a literal, it must exactly match.
+        result &&= input[key] === condition[key];
+      } else if (Array.isArray(condition[key])) {
+        // If the test is an array, it's a list of acceptable values.
+        result &&= (condition[key] as unknown[]).includes(input[key]);
+      } else if (typeof condition[key] === 'object' && typeof input[key] === 'object') {
+        // If the test is an object, recursively navigate downwards.
+        result &&= evaluateNested(
+          input[key] as RawFrigateCardConfig,
+          condition[key] as RawFrigateCardConfig,
+        );
+      } else if (input[key] === undefined) {
+        return false;
+      }
+    }
+    return result;
+  };
+
+  if (condition?.camera) {
+    result &&= state.camera ? evaluateNested(state.camera, condition.camera) : false;
   }
   return result;
 }
@@ -69,4 +106,34 @@ export function conditionStateRequestHandler(
   conditionState?: ConditionState,
 ): void {
   ev.conditionState = conditionState;
+}
+
+type Overrides = {
+  conditions: FrigateCardCondition;
+  overrides: RawFrigateCardConfig;
+}[];
+
+export function getOverriddenConfig(
+  config: Readonly<RawFrigateCardConfig>,
+  conditionState?: Readonly<ConditionState>,
+  overrides?: Readonly<Overrides>,
+): RawFrigateCardConfig {
+  const overridesSource =
+    overrides || (config['overrides'] as Readonly<Overrides> | undefined);
+  if (!overridesSource) {
+    return config;
+  }
+
+  const output = cloneDeep(config);
+  let overridden = false;
+
+  for (const override of overridesSource) {
+    if (evaluateCondition(override.conditions, conditionState)) {
+      merge(output, override.overrides);
+      overridden = true;
+    }
+  }
+  // Attempt to return the same configuration object if it has not been
+  // overridden (to reduce re-renders for a configuration that has not changed).
+  return overridden ? output : config;
 }

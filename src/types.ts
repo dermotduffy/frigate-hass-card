@@ -277,6 +277,41 @@ const customSchema = z
   .passthrough();
 
 /**
+ * Camera configuration section
+ */
+export const cameraConfigDefault = {
+  client_id: 'frigate' as const,
+};
+const webrtcCameraConfigSchema = z.object({
+  entity: z.string().optional(),
+  url: z.string().optional(),
+});
+const cameraConfigSchema = z
+  .object({
+    // No URL validation to allow relative URLs within HA (e.g. Frigate addon).
+    frigate_url: z.string().optional(),
+    client_id: z.string().optional().default(cameraConfigDefault.client_id),
+    camera_name: z.string().optional(),
+    label: z.string().optional(),
+    zone: z.string().optional(),
+    camera_entity: z.string().optional(),
+
+    // Used for presentation in the UI (autodetected from the entity if
+    // specified).
+    icon: z.string().optional(),
+    title: z.string().optional(),
+
+    // Optional identifier to separate different camera configurations used in
+    // this card.
+    id: z.string().optional(),
+
+    // Camera identifiers for WebRTC.
+    webrtc: webrtcCameraConfigSchema.optional(),
+  })
+  .default(cameraConfigDefault);
+export type CameraConfig = z.infer<typeof cameraConfigSchema>;
+
+/**
  * Custom Element Types.
  */
 
@@ -314,7 +349,9 @@ export type MenuSubmenu = z.infer<typeof menuSubmenuSchema>;
 const frigateCardConditionSchema = z.object({
   view: z.string().array().optional(),
   fullscreen: z.boolean().optional(),
-  camera: z.string().array().optional(),
+
+  // Allow matching any field of cameraConfig.
+  camera: z.record(z.any()),
 });
 export type FrigateCardCondition = z.infer<typeof frigateCardConditionSchema>;
 
@@ -345,39 +382,16 @@ const pictureElementsSchema = pictureElementSchema.array().optional();
 export type PictureElements = z.infer<typeof pictureElementsSchema>;
 
 /**
- * Camera configuration section
+ * Configuration overrides
  */
-export const cameraConfigDefault = {
-  client_id: 'frigate' as const,
-};
-const webrtcCameraConfigSchema = z.object({
-  entity: z.string().optional(),
-  url: z.string().optional(),
-});
-const cameraConfigDefaultSchema = z
-  .object({
-    // No URL validation to allow relative URLs within HA (e.g. Frigate addon).
-    frigate_url: z.string().optional(),
-    client_id: z.string().optional().default(cameraConfigDefault.client_id),
-    camera_name: z.string().optional(),
-    label: z.string().optional(),
-    zone: z.string().optional(),
-    camera_entity: z.string().optional(),
-
-    // Used for presentation in the UI (autodetected from the entity if
-    // specified).
-    icon: z.string().optional(),
-    title: z.string().optional(),
-
-    // Optional identifier to separate different camera configurations used in
-    // this card.
-    id: z.string().optional(),
-
-    // Camera identifiers for WebRTC.
-    webrtc: webrtcCameraConfigSchema.optional(),
-  })
-  .default(cameraConfigDefault);
-export type CameraConfig = z.infer<typeof cameraConfigDefaultSchema>;
+ const overridesSchema = z
+ .object({
+   conditions: frigateCardConditionSchema,
+   overrides: z.record(z.unknown()),
+ })
+ .array()
+ .optional();
+export type Overrides = z.infer<typeof overridesSchema>;
 
 /**
  * View configuration section.
@@ -424,12 +438,8 @@ export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
  * Thumbnail controls configuration section.
  */
 
-const thumbnailsControlDefault = {
-  mode: 'none' as const,
-};
-
 const thumbnailsControlSchema = z.object({
-  mode: z.enum(['none', 'above', 'below']).default(thumbnailsControlDefault.mode),
+  mode: z.enum(['none', 'above', 'below']),
   size: z.string().optional(),
 });
 export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlSchema>;
@@ -459,6 +469,8 @@ const liveConfigDefault = {
     },
     thumbnails: {
       media: 'clips' as const,
+      size: '100px',
+      mode: 'none' as const,
     },
   },
 };
@@ -489,44 +501,77 @@ const jsmpegConfigSchema = z
   .optional();
 export type JSMPEGConfig = z.infer<typeof jsmpegConfigSchema>;
 
-const liveNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.merge(
-  z.object({
-    style: z
-      .enum(['none', 'chevrons', 'icons'])
-      .default(liveConfigDefault.controls.next_previous.style),
-    size: z.string().default(liveConfigDefault.controls.next_previous.size),
-  }),
-);
-export type LiveNextPreviousControlConfig = z.infer<
-  typeof liveNextPreviousControlConfigSchema
->;
+const liveNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.extend({
+  // Live cannot show thumbnails, remove that option.
+  style: z.enum(['none', 'chevrons', 'icons']),
+});
 
-const liveConfigSchema = z
+const liveOverridableConfigSchema = z
   .object({
-    provider: z.enum(LIVE_PROVIDERS).default(liveConfigDefault.provider),
-    preload: z.boolean().default(liveConfigDefault.preload),
+    provider: z.enum(LIVE_PROVIDERS).optional(),
     webrtc: webrtcConfigSchema,
     jsmpeg: jsmpegConfigSchema,
-    lazy_load: z.boolean().default(liveConfigDefault.lazy_load),
-    draggable: z.boolean().default(liveConfigDefault.draggable),
     controls: z
       .object({
-        next_previous: liveNextPreviousControlConfigSchema.default(
-          liveConfigDefault.controls.next_previous,
-        ),
+        next_previous: liveNextPreviousControlConfigSchema.optional(),
         thumbnails: thumbnailsControlSchema
           .merge(
             z.object({
-              media: z
-                .enum(['clips', 'snapshots'])
-                .default(liveConfigDefault.controls.thumbnails.media),
+              media: z.enum(['clips', 'snapshots']),
             }),
           )
+          .optional(),
+      })
+      .optional(),
+  })
+  .merge(actionsSchema);
+
+const liveConfigSchema = liveOverridableConfigSchema
+  .extend({
+    // Replace attributes from the overridable schema with those with defaults.
+    provider: liveOverridableConfigSchema.shape.provider.default(
+      liveConfigDefault.provider,
+    ),
+    controls: z
+      .object({
+        next_previous: liveNextPreviousControlConfigSchema
+          .extend({
+            size: liveNextPreviousControlConfigSchema.shape.size.default(
+              liveConfigDefault.controls.next_previous.size,
+            ),
+            style: liveNextPreviousControlConfigSchema.shape.style.default(
+              liveConfigDefault.controls.next_previous.style,
+            ),
+          })
+          .default(liveConfigDefault.controls.next_previous),
+        thumbnails: thumbnailsControlSchema
+          .extend({
+            mode: thumbnailsControlSchema.shape.mode.default(
+              liveConfigDefault.controls.thumbnails.mode,
+            ),
+            size: thumbnailsControlSchema.shape.size.default(
+              liveConfigDefault.controls.thumbnails.size,
+            ),
+            media: z
+              .enum(['clips', 'snapshots'])
+              .default(liveConfigDefault.controls.thumbnails.media),
+          })
           .default(liveConfigDefault.controls.thumbnails),
       })
       .default(liveConfigDefault.controls),
+
+    // Non-overrideable parameters.
+    preload: z.boolean().default(liveConfigDefault.preload),
+    lazy_load: z.boolean().default(liveConfigDefault.lazy_load),
+    draggable: z.boolean().default(liveConfigDefault.draggable),
+    overrides: z
+      .object({
+        conditions: frigateCardConditionSchema,
+        overrides: liveOverridableConfigSchema,
+      })
+      .array()
+      .optional(),
   })
-  .merge(actionsSchema)
   .default(liveConfigDefault);
 export type LiveConfig = z.infer<typeof liveConfigSchema>;
 
@@ -583,6 +628,7 @@ const viewerConfigDefault = {
       style: 'thumbnails' as const,
     },
     thumbnails: {
+      size: '100px',
       mode: 'none' as const,
     },
   },
@@ -609,9 +655,16 @@ const viewerConfigSchema = z
         next_previous: viewerNextPreviousControlConfigSchema.default(
           viewerConfigDefault.controls.next_previous,
         ),
-        thumbnails: thumbnailsControlSchema.default(
-          viewerConfigDefault.controls.thumbnails,
-        ),
+        thumbnails: thumbnailsControlSchema
+          .extend({
+            mode: thumbnailsControlSchema.shape.mode.default(
+              viewerConfigDefault.controls.thumbnails.mode,
+            ),
+            size: thumbnailsControlSchema.shape.size.default(
+              viewerConfigDefault.controls.thumbnails.size,
+            ),
+          })
+          .default(viewerConfigDefault.controls.thumbnails),
       })
       .default(viewerConfigDefault.controls),
   })
@@ -656,7 +709,7 @@ const dimensionsConfigSchema = z
  */
 export const frigateCardConfigSchema = z.object({
   // Main configuration sections.
-  cameras: cameraConfigDefaultSchema.array().nonempty(),
+  cameras: cameraConfigSchema.array().nonempty(),
   view: viewConfigSchema,
   menu: menuConfigSchema,
   live: liveConfigSchema,

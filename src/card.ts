@@ -22,13 +22,14 @@ import screenfull from 'screenfull';
 import { z } from 'zod';
 
 import {
+  Actions,
   ActionType,
+  CameraConfig,
   GetFrigateCardMenuButtonParameters,
+  LiveConfig,
   RawFrigateCardConfig,
   entitySchema,
   frigateCardConfigSchema,
-  Actions,
-  CameraConfig,
 } from './types.js';
 import type {
   Entity,
@@ -74,7 +75,11 @@ import { ResolvedMediaCache } from './resolved-media.js';
 import { BrowseMediaUtil } from './browse-media-util.js';
 import { isConfigUpgradeable } from './config-mgmt.js';
 import { actionHandler } from './action-handler-directive.js';
-import { ConditionState, conditionStateRequestHandler } from './card-condition.js';
+import {
+  ConditionState,
+  conditionStateRequestHandler,
+  getOverriddenConfig,
+} from './card-condition.js';
 
 /** A note on media callbacks:
  *
@@ -219,7 +224,8 @@ export class FrigateCard extends LitElement {
     this._conditionState = {
       view: this._view,
       fullscreen: screenfull.isEnabled && screenfull.isFullscreen,
-      camera: this._view?.camera,
+      camera:
+        this._cameras && this._view ? this._cameras.get(this._view.camera) : undefined,
     };
   }
 
@@ -1035,7 +1041,11 @@ export class FrigateCard extends LitElement {
     let specificActions: Actions | undefined = undefined;
 
     if (this._view?.is('live')) {
-      specificActions = this.config.live.actions;
+      const config = getOverriddenConfig(
+        this.config.live,
+        this._conditionState,
+      ) as LiveConfig;
+      specificActions = config.actions;
     } else if (this._view?.isGalleryView()) {
       specificActions = this.config.event_gallery?.actions;
     } else if (this._view?.isViewerView()) {
@@ -1198,6 +1208,7 @@ export class FrigateCard extends LitElement {
                 .hass=${this._hass}
                 .view=${this._view}
                 .liveConfig=${this.config.live}
+                .conditionState=${this._conditionState}
                 .cameras=${this._cameras}
                 .preload=${this.config.live.preload && !this._view.is('live')}
                 class="${classMap(liveClasses)}"

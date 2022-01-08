@@ -27,6 +27,7 @@
     "embla-carousel": "^5.0.1",
     "home-assistant-js-websocket": "^5.11.1",
     "lit": "^2.0.2",
+    "lodash-es": "^4.17.21",
     "quick-lru": "github:sindresorhus/quick-lru",
     "screenfull": "^5.1.0",
     "zod": "^3.11.6"
@@ -37,6 +38,7 @@
     "@babel/plugin-proposal-decorators": "^7.15.8",
     "@rollup/plugin-image": "^2.1.1",
     "@rollup/plugin-json": "^4.1.0",
+    "@types/lodash-es": "^4.17.5",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "eslint": "^7.32.0",

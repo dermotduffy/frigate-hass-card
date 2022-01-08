@@ -1,5 +1,5 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import { NextPreviousControlConfig } from '../types.js';
@@ -11,13 +11,14 @@ export class FrigateCardNextPreviousControl extends LitElement {
   @property({ attribute: false })
   public direction?: 'next' | 'previous';
 
-  @property({ attribute: false })
   set controlConfig(controlConfig: NextPreviousControlConfig | undefined) {
     if (controlConfig?.size) {
       this.style.setProperty('--frigate-card-next-prev-size', controlConfig.size);
     }
     this._controlConfig = controlConfig;
   }
+
+  @state()
   protected _controlConfig?: NextPreviousControlConfig;
 
   @property({ attribute: false })

@@ -193,7 +193,7 @@ const upgradeMoveTo = function (
 };
 
 /**
- * Sanitize a potentially-unsafe key segment.
+ * Upgrade from a singular camera model to multiple.
  * @param key A string key.
  * @returns A safe key.
  */

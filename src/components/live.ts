@@ -1,5 +1,9 @@
-// TODO update_entities should reload view rather than be involved in rendering
 // TODO different live configs per camera
+// TODO replace dset/dlv with lodash
+// TODO evaluate single override section instead of per-subcomponent
+// TODO fix adaptive height in fullscreen
+// TODO Remove id as a concept for cameras and use an array instead?
+// TODO Convert menu condition to use overrides
 // TODO Remove media load event console message
 // TODO Remove view change console message
 // TODO readme
@@ -26,10 +30,12 @@ import {
 import { EmblaOptionsType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property, state } from 'lit/decorators.js';
+import { isEqual } from 'lodash-es';
 import { ref } from 'lit/directives/ref';
 import { until } from 'lit/directives/until.js';
 
 import { BrowseMediaUtil } from '../browse-media-util.js';
+import { ConditionState, getOverriddenConfig } from '../card-condition.js';
 import { FrigateCardMediaCarousel } from './media-carousel.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
@@ -75,6 +81,9 @@ export class FrigateCardLive extends LitElement {
   @property({ attribute: false })
   protected liveConfig?: LiveConfig;
 
+  @property({ attribute: false })
+  protected conditionState?: ConditionState;
+
   set preload(preload: boolean) {
     this._preload = preload;
 
@@ -108,17 +117,17 @@ export class FrigateCardLive extends LitElement {
    * Render thumbnails carousel.
    * @returns A rendered template or void.
    */
-  protected renderThumbnails(): TemplateResult | void {
+  protected renderThumbnails(config: LiveConfig): TemplateResult | void {
     if (!this.liveConfig || !this.view) {
       return;
     }
 
     const fetchThumbnailsThenRender = async (): Promise<TemplateResult | void> => {
-      if (!this.hass || !this.cameras || !this.view || !this.liveConfig) {
+      if (!this.hass || !this.cameras || !this.view) {
         return;
       }
       const browseMediaParams = BrowseMediaUtil.getBrowseMediaQueryParameters(
-        this.liveConfig.controls.thumbnails.media,
+        config.controls.thumbnails.media,
         this.cameras.get(this.view.camera),
       );
       if (!browseMediaParams) {
@@ -135,7 +144,7 @@ export class FrigateCardLive extends LitElement {
         return html` <frigate-card-thumbnail-carousel
           .target=${parent}
           .view=${this.view}
-          .config=${this.liveConfig?.controls.thumbnails}
+          .config=${config.controls.thumbnails}
           .highlightSelected=${false}
           @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
             const mediaType = browseMediaParams.mediaType;
@@ -165,16 +174,23 @@ export class FrigateCardLive extends LitElement {
       return;
     }
 
+    const config = getOverriddenConfig(
+      this.liveConfig,
+      this.conditionState,
+    ) as LiveConfig;
+
+    // Note use of liveConfig and not config below -- the carousel will
+    // independently override the liveconfig to reflect the camera in the
+    // carousel (not necessarily the selected camera).
     return html`
-      ${this.liveConfig.controls.thumbnails.mode === 'above'
-        ? this.renderThumbnails()
-        : ''}
+      ${config.controls.thumbnails.mode === 'above' ? this.renderThumbnails(config) : ''}
       <frigate-card-live-carousel
         .hass=${this.hass}
         .view=${this.view}
         .cameras=${this.cameras}
         .liveConfig=${this.liveConfig}
         .preload=${this._preload}
+        .conditionState=${this.conditionState}
         @frigate-card:media-show=${this._mediaShowHandler}
         @frigate-card:carousel:select=${() => {
           // Re-rendering the component will cause the thumbnails to be
@@ -183,9 +199,7 @@ export class FrigateCardLive extends LitElement {
         }}
       >
       </frigate-card-live-carousel>
-      ${this.liveConfig.controls.thumbnails.mode === 'below'
-        ? this.renderThumbnails()
-        : ''}
+      ${config.controls.thumbnails.mode === 'below' ? this.renderThumbnails(config) : ''}
     `;
   }
 
@@ -213,6 +227,9 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
 
   @property({ attribute: false })
   protected preload?: boolean;
+
+  @property({ attribute: false })
+  protected conditionState?: ConditionState;
 
   // Index between camera name and slide number.
   protected _cameraToSlide: Record<string, number> = {};
@@ -332,13 +349,29 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     }
   }
 
-  protected _renderLive(cameraConfig: CameraConfig, slideIndex: number): TemplateResult {
+  protected _renderLive(
+    cameraConfig: CameraConfig,
+    slideIndex: number,
+  ): TemplateResult | void {
+    if (!this.liveConfig) {
+      return;
+    }
+    // The conditionState object contains the currently live camera, which (in
+    // the carousel for example) is not necessarily the live camera this
+    // <frigate-card-live-provider> is rendering right now.
+    const conditionState = Object.assign({
+      ...this.conditionState,
+      camera: cameraConfig,
+    });
+
+    const config = getOverriddenConfig(this.liveConfig, conditionState) as LiveConfig;
+
     return html` <div class="embla__slide">
       <frigate-card-live-provider
         .title=${getCameraTitle(this.hass, cameraConfig)}
         .hass=${this.hass}
         .cameraConfig=${cameraConfig}
-        .liveConfig=${this.liveConfig}
+        .liveConfig=${config}
         ?disabled=${this._isLazyLoading()}
         @frigate-card:media-show=${(e: CustomEvent<MediaShowInfo>) =>
           this._mediaShowEventHandler(slideIndex, e)}
@@ -400,9 +433,14 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   protected render(): TemplateResult | void {
     const [slides, cameraToSlide] = this._getSlides();
     this._cameraToSlide = cameraToSlide;
-    if (!slides) {
+    if (!slides || !this.liveConfig) {
       return;
     }
+
+    const config = getOverriddenConfig(
+      this.liveConfig,
+      this.conditionState,
+    ) as LiveConfig;
 
     const [prev, next] = this._getCameraNeighbors();
     return html`
@@ -410,7 +448,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
         <frigate-card-next-previous-control
           ${ref(this._previousControlRef)}
           .direction=${'previous'}
-          .controlConfig=${this.liveConfig?.controls.next_previous}
+          .controlConfig=${config.controls.next_previous}
           .title=${getCameraTitle(this.hass, prev)}
           .icon=${getCameraIcon(this.hass, prev)}
           ?disabled=${prev == null}
@@ -425,7 +463,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
         <frigate-card-next-previous-control
           ${ref(this._nextControlRef)}
           .direction=${'next'}
-          .controlConfig=${this.liveConfig?.controls.next_previous}
+          .controlConfig=${config.controls.next_previous}
           .title=${getCameraTitle(this.hass, next)}
           .icon=${getCameraIcon(this.hass, next)}
           ?disabled=${next == null}
@@ -533,7 +571,18 @@ export class FrigateCardLiveFrigate extends LitElement {
 //  - https://github.com/AlexxIT/WebRTC
 @customElement('frigate-card-live-webrtc')
 export class FrigateCardLiveWebRTC extends LitElement {
-  @property({ attribute: false })
+  @property({
+    attribute: false,
+
+    // Resetting the WebRTC/JSMPEG configuration is expensive as the connections
+    // need to be re-established. These configurations may be overridden which
+    // creates semantically equal configurations at different addresses --
+    // ensure LIT only considers the property as having changed if it's actually
+    // different.
+    hasChanged(n: WebRTCConfig, o: WebRTCConfig): boolean {
+      return !isEqual(n, o);
+    },
+  })
   protected webRTCConfig?: WebRTCConfig;
 
   @property({ attribute: false })
@@ -638,7 +687,13 @@ export class FrigateCardLiveJSMPEG extends LitElement {
   @property({ attribute: false })
   protected cameraConfig?: CameraConfig;
 
-  @property({ attribute: false })
+  @property({
+    attribute: false,
+    // See note under FrigateCardLiveWebRTC.
+    hasChanged(n: JSMPEGConfig, o: JSMPEGConfig): boolean {
+      return !isEqual(n, o);
+    },
+  })
   protected jsmpegConfig?: JSMPEGConfig;
 
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
