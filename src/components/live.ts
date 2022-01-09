@@ -24,6 +24,7 @@ import {
   MediaShowInfo,
   WebRTCConfig,
   FrigateCardError,
+  LiveOverrides,
 } from '../types.js';
 import { EmblaOptionsType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
@@ -78,6 +79,9 @@ export class FrigateCardLive extends LitElement {
 
   @property({ attribute: false })
   protected liveConfig?: LiveConfig;
+
+  @property({ attribute: false })
+  protected liveOverrides?: LiveOverrides;
 
   @property({ attribute: false })
   protected conditionState?: ConditionState;
@@ -177,6 +181,7 @@ export class FrigateCardLive extends LitElement {
 
     const config = getOverriddenConfig(
       this.liveConfig,
+      this.liveOverrides,
       this.conditionState,
     ) as LiveConfig;
 
@@ -192,6 +197,7 @@ export class FrigateCardLive extends LitElement {
         .liveConfig=${this.liveConfig}
         .preload=${this._preload}
         .conditionState=${this.conditionState}
+        .liveOverrides=${this.liveOverrides}
         @frigate-card:media-show=${this._mediaShowHandler}
         @frigate-card:carousel:select=${() => {
           // Re-rendering the component will cause the thumbnails to be
@@ -225,6 +231,9 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
 
   @property({ attribute: false })
   protected liveConfig?: LiveConfig;
+
+  @property({ attribute: false })
+  protected liveOverrides?: LiveOverrides;
 
   @property({ attribute: false })
   protected preload?: boolean;
@@ -366,7 +375,10 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       camera: camera,
     });
 
-    const config = getOverriddenConfig(this.liveConfig, conditionState) as LiveConfig;
+    const config = getOverriddenConfig(
+      this.liveConfig,
+      this.liveOverrides,
+      conditionState) as LiveConfig;
 
     return html` <div class="embla__slide">
       <frigate-card-live-provider
@@ -441,6 +453,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
 
     const config = getOverriddenConfig(
       this.liveConfig,
+      this.liveOverrides,
       this.conditionState,
     ) as LiveConfig;
 

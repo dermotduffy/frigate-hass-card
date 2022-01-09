@@ -380,18 +380,6 @@ const pictureElementsSchema = pictureElementSchema.array().optional();
 export type PictureElements = z.infer<typeof pictureElementsSchema>;
 
 /**
- * Configuration overrides
- */
- const overridesSchema = z
- .object({
-   conditions: frigateCardConditionSchema,
-   overrides: z.record(z.unknown()),
- })
- .array()
- .optional();
-export type Overrides = z.infer<typeof overridesSchema>;
-
-/**
  * View configuration section.
  */
 const viewConfigDefault = {
@@ -562,13 +550,6 @@ const liveConfigSchema = liveOverridableConfigSchema
     preload: z.boolean().default(liveConfigDefault.preload),
     lazy_load: z.boolean().default(liveConfigDefault.lazy_load),
     draggable: z.boolean().default(liveConfigDefault.draggable),
-    overrides: z
-      .object({
-        conditions: frigateCardConditionSchema,
-        overrides: liveOverridableConfigSchema,
-      })
-      .array()
-      .optional(),
   })
   .default(liveConfigDefault);
 export type LiveConfig = z.infer<typeof liveConfigSchema>;
@@ -703,6 +684,31 @@ const dimensionsConfigSchema = z
   .default(dimensionsConfigDefault);
 
 /**
+ * Configuration overrides
+ */
+const overrideConfigurationSchema = z.object({
+  live: liveOverridableConfigSchema.optional(),
+});
+export type OverrideConfigurationKey = keyof z.infer<typeof overrideConfigurationSchema>;
+
+const overridesSchema = z
+  .object({
+    conditions: frigateCardConditionSchema,
+    overrides: overrideConfigurationSchema,
+  })
+  .array()
+  .optional();
+
+const liveOverridesSchema = z
+  .object({
+    conditions: frigateCardConditionSchema,
+    overrides: liveOverridableConfigSchema,
+  })
+  .array()
+  .optional();
+export type LiveOverrides = z.infer<typeof liveOverridesSchema>;
+
+/**
  * Main card config.
  */
 export const frigateCardConfigSchema = z.object({
@@ -716,6 +722,9 @@ export const frigateCardConfigSchema = z.object({
   image: imageConfigSchema,
   elements: pictureElementsSchema,
   dimensions: dimensionsConfigSchema,
+
+  // Configuration overrides.
+  overrides: overridesSchema,
 
   // Stock lovelace card config.
   type: z.string(),

@@ -26,7 +26,6 @@ import {
   ActionType,
   CameraConfig,
   GetFrigateCardMenuButtonParameters,
-  LiveConfig,
   RawFrigateCardConfig,
   entitySchema,
   frigateCardConfigSchema,
@@ -79,6 +78,7 @@ import {
   ConditionState,
   conditionStateRequestHandler,
   getOverriddenConfig,
+  getOverridesByKey,
 } from './card-condition.js';
 
 /** A note on media callbacks:
@@ -134,6 +134,9 @@ export class FrigateCard extends LitElement {
 
   @state()
   public config!: FrigateCardConfig;
+
+  @state()
+  public _overriddenConfig?: FrigateCardConfig;
 
   protected _interactionTimerID: number | null = null;
 
@@ -226,6 +229,11 @@ export class FrigateCard extends LitElement {
       fullscreen: screenfull.isEnabled && screenfull.isFullscreen,
       camera: this._view?.camera,
     };
+
+    this._overriddenConfig = getOverriddenConfig(
+      this.config,
+      this.config.overrides,
+      this._conditionState) as FrigateCardConfig;
   }
 
   /**
@@ -1040,17 +1048,13 @@ export class FrigateCard extends LitElement {
     let specificActions: Actions | undefined = undefined;
 
     if (this._view?.is('live')) {
-      const config = getOverriddenConfig(
-        this.config.live,
-        this._conditionState,
-      ) as LiveConfig;
-      specificActions = config.actions;
+      specificActions = this._overriddenConfig?.live.actions;
     } else if (this._view?.isGalleryView()) {
-      specificActions = this.config.event_gallery?.actions;
+      specificActions = this._overriddenConfig?.event_gallery?.actions;
     } else if (this._view?.isViewerView()) {
-      specificActions = this.config.event_viewer.actions;
+      specificActions = this._overriddenConfig?.event_viewer.actions;
     } else if (this._view?.is('image')) {
-      specificActions = this.config.image?.actions;
+      specificActions = this._overriddenConfig?.image?.actions;
     }
     return { ...this.config.view.actions, ...specificActions };
   }
@@ -1208,6 +1212,7 @@ export class FrigateCard extends LitElement {
                 .view=${this._view}
                 .liveConfig=${this.config.live}
                 .conditionState=${this._conditionState}
+                .liveOverrides=${getOverridesByKey(this.config.overrides, 'live')}
                 .cameras=${this._cameras}
                 .preload=${this.config.live.preload && !this._view.is('live')}
                 class="${classMap(liveClasses)}"
