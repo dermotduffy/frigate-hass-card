@@ -6,7 +6,7 @@ import {
   html,
   unsafeCSS,
 } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
 
@@ -28,7 +28,6 @@ import {
 } from '../common.js';
 
 import menuStyle from '../scss/menu.scss';
-import { ConditionState, evaluateCondition } from '../card-condition.js';
 import { Corner } from '@material/mwc-menu';
 
 export const FRIGATE_BUTTON_MENU_ICON = 'frigate';
@@ -41,13 +40,13 @@ export class FrigateCardMenu extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant & ExtendedHomeAssistant;
 
-  @property({ attribute: false })
   set menuConfig(menuConfig: MenuConfig) {
     this._menuConfig = menuConfig;
     if (menuConfig) {
       this.style.setProperty('--frigate-card-menu-button-size', menuConfig.button_size);
     }
   }
+  @state()
   protected _menuConfig?: MenuConfig;
 
   @property({ attribute: false })
@@ -55,9 +54,6 @@ export class FrigateCardMenu extends LitElement {
 
   @property({ attribute: false })
   public buttons: MenuButton[] = [];
-
-  @property({ attribute: false })
-  protected conditionState?: ConditionState;
 
   /**
    * Handle an action on a menu button.
@@ -185,10 +181,7 @@ export class FrigateCardMenu extends LitElement {
     }
     const mode = this._menuConfig.mode;
 
-    if (
-      mode == 'none' ||
-      !evaluateCondition(this._menuConfig.conditions, this.conditionState)
-    ) {
+    if (mode == 'none') {
       return;
     }
 

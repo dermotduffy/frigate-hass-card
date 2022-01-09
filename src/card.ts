@@ -133,12 +133,10 @@ export class FrigateCard extends LitElement {
   protected _hass?: HomeAssistant & ExtendedHomeAssistant;
 
   @state()
-  public config!: FrigateCardConfig;
+  public _baseConfig!: FrigateCardConfig;
 
   @state()
   public _overriddenConfig?: FrigateCardConfig;
-
-  protected _interactionTimerID: number | null = null;
 
   @property({ attribute: false })
   protected _view?: View;
@@ -151,6 +149,9 @@ export class FrigateCard extends LitElement {
 
   @query('frigate-card-elements')
   _elements?: FrigateCardElements;
+
+  // Human interaction timer ID.
+  protected _interactionTimerID: number | null = null;
 
   // Whether or not media is actively playing (live or clip).
   protected _mediaPlaying = false;
@@ -231,9 +232,10 @@ export class FrigateCard extends LitElement {
     };
 
     this._overriddenConfig = getOverriddenConfig(
-      this.config,
-      this.config.overrides,
-      this._conditionState) as FrigateCardConfig;
+      this._baseConfig,
+      this._baseConfig.overrides,
+      this._conditionState,
+    ) as FrigateCardConfig;
   }
 
   /**
@@ -275,7 +277,7 @@ export class FrigateCard extends LitElement {
   protected _getMenuButtons(): MenuButton[] {
     const buttons: MenuButton[] = [];
 
-    if (this.config.menu.buttons.frigate) {
+    if (this._getConfig().menu.buttons.frigate) {
       buttons.push(
         this._getFrigateCardMenuButton({
           tap_action: 'frigate',
@@ -288,7 +290,11 @@ export class FrigateCard extends LitElement {
       );
     }
 
-    if (this.config.menu.buttons.cameras && this._cameras && this._cameras.size > 1) {
+    if (
+      this._getConfig().menu.buttons.cameras &&
+      this._cameras &&
+      this._cameras.size > 1
+    ) {
       const menuItems = Array.from(this._cameras, ([camera, config]) => {
         return {
           icon: getCameraIcon(this._hass, config),
@@ -307,7 +313,7 @@ export class FrigateCard extends LitElement {
       });
     }
 
-    if (this.config.menu.buttons.live) {
+    if (this._getConfig().menu.buttons.live) {
       buttons.push(
         this._getFrigateCardMenuButton({
           tap_action: 'live',
@@ -318,7 +324,7 @@ export class FrigateCard extends LitElement {
       );
     }
 
-    if (this.config.menu.buttons.clips) {
+    if (this._getConfig().menu.buttons.clips) {
       buttons.push(
         this._getFrigateCardMenuButton({
           tap_action: 'clips',
@@ -329,7 +335,7 @@ export class FrigateCard extends LitElement {
         }),
       );
     }
-    if (this.config.menu.buttons.snapshots) {
+    if (this._getConfig().menu.buttons.snapshots) {
       buttons.push(
         this._getFrigateCardMenuButton({
           tap_action: 'snapshots',
@@ -340,7 +346,7 @@ export class FrigateCard extends LitElement {
         }),
       );
     }
-    if (this.config.menu.buttons.image) {
+    if (this._getConfig().menu.buttons.image) {
       buttons.push(
         this._getFrigateCardMenuButton({
           tap_action: 'image',
@@ -350,7 +356,7 @@ export class FrigateCard extends LitElement {
         }),
       );
     }
-    if (this.config.menu.buttons.download && this._view?.isViewerView()) {
+    if (this._getConfig().menu.buttons.download && this._view?.isViewerView()) {
       buttons.push(
         this._getFrigateCardMenuButton({
           tap_action: 'download',
@@ -362,7 +368,7 @@ export class FrigateCard extends LitElement {
 
     const cameraConfig = this._getSelectedCameraConfig();
     if (
-      this.config.menu.buttons.frigate_ui &&
+      this._getConfig().menu.buttons.frigate_ui &&
       cameraConfig &&
       cameraConfig.frigate_url
     ) {
@@ -374,7 +380,7 @@ export class FrigateCard extends LitElement {
         }),
       );
     }
-    if (this.config.menu.buttons.fullscreen && screenfull.isEnabled) {
+    if (this._getConfig().menu.buttons.fullscreen && screenfull.isEnabled) {
       buttons.push(
         this._getFrigateCardMenuButton({
           tap_action: 'fullscreen',
@@ -439,8 +445,8 @@ export class FrigateCard extends LitElement {
       }
     };
 
-    if (this.config.cameras && Array.isArray(this.config.cameras)) {
-      await Promise.all(this.config.cameras.map(addCameraConfig.bind(this)));
+    if (this._getConfig().cameras && Array.isArray(this._getConfig().cameras)) {
+      await Promise.all(this._getConfig().cameras.map(addCameraConfig.bind(this)));
     }
 
     if (!cameras.size) {
@@ -600,15 +606,23 @@ export class FrigateCard extends LitElement {
       getLovelace().setEditMode(true);
     }
 
-    this.config = config;
+    this._baseConfig = config;
     this._cameras = undefined;
     this._view = undefined;
 
-    if (this.config.view.update_force) {
+    if (this._getConfig().view.update_force) {
       // If update force is enabled, start a timer right away.
       this._resetInteractionTimer();
     }
     this._changeView();
+  }
+
+  /**
+   * Card the card config, prioritizing the overriden config if present.
+   * @returns A FrigateCardConfig.
+   */
+  protected _getConfig(): FrigateCardConfig {
+    return this._overriddenConfig || this._baseConfig;
   }
 
   protected _changeView(args?: { view?: View; resetMessage?: boolean }): void {
@@ -626,7 +640,7 @@ export class FrigateCard extends LitElement {
 
       if (camera) {
         this._view = new View({
-          view: this.config.view.default,
+          view: this._getConfig().view.default,
           camera: camera,
         });
         this._generateConditionState();
@@ -651,10 +665,6 @@ export class FrigateCard extends LitElement {
    * @returns True if the card should be updated.
    */
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    if (!this.config) {
-      return false;
-    }
-
     if (changedProps.size > 1) {
       return true;
     }
@@ -668,12 +678,12 @@ export class FrigateCard extends LitElement {
       // Assistant update if there's been recent interaction (e.g. clicks on the
       // card) or if there is media active playing.
       if (
-        (this.config.view.update_force ||
+        (this._getConfig().view.update_force ||
           !(this._interactionTimerID && this._mediaPlaying)) &&
         shouldUpdateBasedOnHass(
           this._hass,
           oldHass,
-          this.config.view.update_entities || [],
+          this._getConfig().view.update_entities || [],
         )
       ) {
         // If entities being monitored have changed then reset the view to the
@@ -868,18 +878,18 @@ export class FrigateCard extends LitElement {
   }
 
   protected _resetInteractionTimer(): void {
-    if (this.config.view.timeout) {
+    if (this._getConfig().view.timeout) {
       if (this._interactionTimerID) {
         window.clearTimeout(this._interactionTimerID);
       }
       this._interactionTimerID = window.setTimeout(() => {
         this._interactionTimerID = null;
         this._changeView();
-        if (this.config.view.update_force) {
+        if (this._getConfig().view.update_force) {
           // If force is enabled, the timer just resets and starts over.
           this._resetInteractionTimer();
         }
-      }, this.config.view.timeout * 1000);
+      }, this._getConfig().view.timeout * 1000);
     }
   }
 
@@ -889,12 +899,12 @@ export class FrigateCard extends LitElement {
    */
   protected _renderMenu(): TemplateResult | void {
     const classes = {
-      'hover-menu': this.config.menu.mode.startsWith('hover-'),
+      'hover-menu': this._getConfig().menu.mode.startsWith('hover-'),
     };
     return html`
       <frigate-card-menu
         .hass=${this._hass}
-        .menuConfig=${this.config.menu}
+        .menuConfig=${this._getConfig().menu}
         .buttons=${this._getMenuButtons()}
         .conditionState=${this._conditionState}
         class="${classMap(classes)}"
@@ -1003,7 +1013,7 @@ export class FrigateCard extends LitElement {
    * context.
    */
   protected _isAspectRatioEnforced(): boolean {
-    const aspectRatioMode = this.config.dimensions.aspect_ratio_mode;
+    const aspectRatioMode = this._getConfig().dimensions.aspect_ratio_mode;
 
     // Do not artifically constrain aspect ratio if:
     // - It's fullscreen.
@@ -1027,12 +1037,12 @@ export class FrigateCard extends LitElement {
       return null;
     }
 
-    const aspectRatioMode = this.config.dimensions.aspect_ratio_mode;
+    const aspectRatioMode = this._getConfig().dimensions.aspect_ratio_mode;
     if (aspectRatioMode == 'dynamic' && this._mediaShowInfo) {
       return (this._mediaShowInfo.height / this._mediaShowInfo.width) * 100;
     }
 
-    const defaultAspectRatio = this.config.dimensions.aspect_ratio;
+    const defaultAspectRatio = this._getConfig().dimensions.aspect_ratio;
     if (defaultAspectRatio) {
       return (defaultAspectRatio[1] / defaultAspectRatio[0]) * 100;
     } else {
@@ -1048,15 +1058,15 @@ export class FrigateCard extends LitElement {
     let specificActions: Actions | undefined = undefined;
 
     if (this._view?.is('live')) {
-      specificActions = this._overriddenConfig?.live.actions;
+      specificActions = this._getConfig().live.actions;
     } else if (this._view?.isGalleryView()) {
-      specificActions = this._overriddenConfig?.event_gallery?.actions;
+      specificActions = this._getConfig().event_gallery?.actions;
     } else if (this._view?.isViewerView()) {
-      specificActions = this._overriddenConfig?.event_viewer.actions;
+      specificActions = this._getConfig().event_viewer.actions;
     } else if (this._view?.is('image')) {
-      specificActions = this._overriddenConfig?.image?.actions;
+      specificActions = this._getConfig().image?.actions;
     }
-    return { ...this.config.view.actions, ...specificActions };
+    return { ...this._getConfig().view.actions, ...specificActions };
   }
 
   /**
@@ -1096,16 +1106,16 @@ export class FrigateCard extends LitElement {
       @frigate-card:pause=${this._pauseHandler}
       @frigate-card:play=${this._playHandler}
     >
-      ${this.config.menu.mode == 'above' ? this._renderMenu() : ''}
+      ${this._getConfig().menu.mode == 'above' ? this._renderMenu() : ''}
       <div class="container outer" style="${styleMap(outerStyle)}">
         <div class="${classMap(contentClasses)}">
           <div class="${classMap(pictureElementsClasses)}">
-            ${this.config.elements
+            ${this._getConfig().elements
               ? // Always show elements to allow for custom menu items (etc.) to
                 // be present even if a particular view has an error.
                 html` <frigate-card-elements
                   .hass=${this._hass}
-                  .elements=${this.config.elements}
+                  .elements=${this._getConfig().elements}
                   .conditionState=${this._conditionState}
                   @frigate-card:menu-add=${(e) => {
                     this._addDynamicMenuButton(e.detail);
@@ -1141,7 +1151,7 @@ export class FrigateCard extends LitElement {
           </div>
         </div>
       </div>
-      ${this.config.menu.mode != 'above' ? this._renderMenu() : ''}
+      ${this._getConfig().menu.mode != 'above' ? this._renderMenu() : ''}
     </ha-card>`;
   }
 
@@ -1156,22 +1166,22 @@ export class FrigateCard extends LitElement {
     }
 
     const galleryClasses = {
-      hidden: this.config.live.preload && !this._view.isGalleryView(),
+      hidden: this._getConfig().live.preload && !this._view.isGalleryView(),
     };
     const viewerClasses = {
-      hidden: this.config.live.preload && !this._view.isViewerView(),
+      hidden: this._getConfig().live.preload && !this._view.isViewerView(),
     };
     const liveClasses = {
-      hidden: this.config.live.preload && this._view.view != 'live',
+      hidden: this._getConfig().live.preload && this._view.view != 'live',
     };
     const imageClasses = {
-      hidden: this.config.live.preload && this._view.view != 'image',
+      hidden: this._getConfig().live.preload && this._view.view != 'image',
     };
 
     return html`
       ${!this._message && this._view.is('image')
         ? html` <frigate-card-image
-            .imageConfig=${this.config.image}
+            .imageConfig=${this._getConfig().image}
             class="${classMap(imageClasses)}"
           >
           </frigate-card-image>`
@@ -1196,25 +1206,29 @@ export class FrigateCard extends LitElement {
               this._view,
               cameraConfig,
             )}
-            .viewerConfig=${this.config.event_viewer}
+            .viewerConfig=${this._getConfig().event_viewer}
             .resolvedMediaCache=${this._resolvedMediaCache}
             class="${classMap(viewerClasses)}"
           >
           </frigate-card-viewer>`
         : ``}
       ${
-        // Note the subtle difference in condition below vs the other views in order
+        // Note: Subtle difference in condition below vs the other views in order
         // to always render the live view for live.preload mode.
-        (!this._message && this._view.is('live')) || this.config.live.preload
+
+        // Note: <frigate-card-live> uses the baseConfig rather than the
+        // overriden config, as it does it's own overriding as part of the
+        // camera carousel.
+        (!this._message && this._view.is('live')) || this._getConfig().live.preload
           ? html`
               <frigate-card-live
                 .hass=${this._hass}
                 .view=${this._view}
-                .liveConfig=${this.config.live}
+                .liveConfig=${this._baseConfig.live}
                 .conditionState=${this._conditionState}
-                .liveOverrides=${getOverridesByKey(this.config.overrides, 'live')}
+                .liveOverrides=${getOverridesByKey(this._getConfig().overrides, 'live')}
                 .cameras=${this._cameras}
-                .preload=${this.config.live.preload && !this._view.is('live')}
+                .preload=${this._getConfig().live.preload && !this._view.is('live')}
                 class="${classMap(liveClasses)}"
               >
               </frigate-card-live>

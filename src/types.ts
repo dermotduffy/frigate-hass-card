@@ -572,9 +572,28 @@ const menuConfigDefault = {
   },
   button_size: '40px',
 };
-const menuConfigSchema = z
-  .object({
-    mode: z.enum(FRIGATE_MENU_MODES).optional().default(menuConfigDefault.mode),
+
+const menuOverridableConfigSchema = z.object({
+  mode: z.enum(FRIGATE_MENU_MODES).optional(),
+  buttons: z
+    .object({
+      frigate: z.boolean().optional(),
+      cameras: z.boolean().optional(),
+      live: z.boolean().optional(),
+      clips: z.boolean().optional(),
+      snapshots: z.boolean().optional(),
+      image: z.boolean().optional(),
+      download: z.boolean().optional(),
+      frigate_ui: z.boolean().optional(),
+      fullscreen: z.boolean().optional(),
+    })
+    .optional(),
+  button_size: z.string().optional(),
+});
+
+const menuConfigSchema = menuOverridableConfigSchema
+  .extend({
+    mode: menuOverridableConfigSchema.shape.mode.default(menuConfigDefault.mode),
     buttons: z
       .object({
         frigate: z.boolean().default(menuConfigDefault.buttons.frigate),
@@ -588,8 +607,9 @@ const menuConfigSchema = z
         fullscreen: z.boolean().default(menuConfigDefault.buttons.fullscreen),
       })
       .default(menuConfigDefault.buttons),
-    button_size: z.string().default(menuConfigDefault.button_size),
-    conditions: frigateCardConditionSchema.optional(),
+    button_size: menuOverridableConfigSchema.shape.button_size.default(
+      menuConfigDefault.button_size,
+    )
   })
   .default(menuConfigDefault);
 export type MenuConfig = z.infer<typeof menuConfigSchema>;
@@ -688,6 +708,7 @@ const dimensionsConfigSchema = z
  */
 const overrideConfigurationSchema = z.object({
   live: liveOverridableConfigSchema.optional(),
+  menu: menuOverridableConfigSchema.optional(),
 });
 export type OverrideConfigurationKey = keyof z.infer<typeof overrideConfigurationSchema>;
 
