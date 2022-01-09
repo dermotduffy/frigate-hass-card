@@ -1,6 +1,3 @@
-// TODO different live configs per camera
-// TODO evaluate single override section instead of per-subcomponent
-// TODO Convert menu condition to use overrides
 // TODO Fix overlapping menu icon issue.
 // TODO Remove media load event console message
 // TODO Remove view change console message
