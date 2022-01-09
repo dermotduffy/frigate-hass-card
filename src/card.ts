@@ -210,11 +210,11 @@ export class FrigateCard extends LitElement {
   ): FrigateCardConfig {
     const cameraEntity = entities.find((element) => element.startsWith('camera.'));
     return {
-      frigate: {
-        camera: {
+      cameras: [
+        {
           camera_entity: cameraEntity,
         },
-      },
+      ],
       // Need to use 'as unknown' to convince Typescript that this really isn't a
       // mistake, despite the miniscule size of the configuration vs the full type
       // description.
