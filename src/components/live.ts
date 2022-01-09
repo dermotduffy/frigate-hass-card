@@ -1,8 +1,4 @@
-// TODO Fix overlapping menu icon issue.
-// TODO Remove media load event console message
-// TODO Remove view change console message
 // TODO readme
-// TODO search for TODOs
 
 import {
   CSSResultGroup,

@@ -627,8 +627,6 @@ export class FrigateCard extends LitElement {
   }
 
   protected _changeView(args?: { view?: View; resetMessage?: boolean }): void {
-    console.info(`Request to change view: ${JSON.stringify(args?.view?.view)}`);
-
     if (args?.resetMessage ?? true) {
       this._message = null;
     }
@@ -974,8 +972,6 @@ export class FrigateCard extends LitElement {
     if (requestRefresh) {
       this.requestUpdate();
     }
-    // TODO: Remove
-    console.info(`Showing media: ${JSON.stringify(mediaShowInfo)}`);
   }
 
   /**
