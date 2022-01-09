@@ -31,6 +31,8 @@ export class FrigateCardSubmenu extends LitElement {
       <mwc-list-item
         style="${styleMap(stateParameters.style || {})}"
         graphic="icon"
+        ?selected=${item.selected}
+        ?activated=${item.selected}
         aria-label="${stateParameters.title || ''}"
         @action=${(ev) => {
           // Attach the action config so ascendants have access to it.

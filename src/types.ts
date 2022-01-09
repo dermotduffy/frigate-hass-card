@@ -334,6 +334,7 @@ const menuSubmenuItemSchema = elementsBaseSchema.merge(
     entity: z.string().optional(),
     icon: z.string().optional(),
     state_color: z.boolean().default(true),
+    selected: z.boolean().default(false),
   }),
 );
 export type MenuSubmenuItem = z.infer<typeof menuSubmenuItemSchema>;

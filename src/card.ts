@@ -301,6 +301,7 @@ export class FrigateCard extends LitElement {
           entity: config.camera_entity,
           state_color: true,
           title: getCameraTitle(this._hass, config),
+          selected: this._view?.camera === camera,
           tap_action: createFrigateCardCustomAction('camera_select', camera),
         };
       });
