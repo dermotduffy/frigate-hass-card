@@ -15,8 +15,10 @@ import {
   CONF_IMAGE_SRC,
   CONF_LIVE_PRELOAD,
   CONF_LIVE_PROVIDER,
+  CONF_MENU,
   CONF_MENU_BUTTON_SIZE,
   CONF_MENU_MODE,
+  CONF_OVERRIDES,
   CONF_VIEW_DEFAULT,
   CONF_VIEW_TIMEOUT,
   CONF_VIEW_UPDATE_ENTITIES,
@@ -223,6 +225,38 @@ const upgradeToMultipleCameras = (): ((obj: RawFrigateCardConfig) => boolean) =>
   };
 };
 
+/**
+ * Upgrade from a condition on the menu (to allow rendering) to a menu mode
+ * override instead.
+ * @param key A string key.
+ * @returns A safe key.
+ */
+ const updateMenuConditionToMenuOverride = (): ((obj: RawFrigateCardConfig) => boolean) => {
+  return function (obj: RawFrigateCardConfig): boolean {
+    const menuConditions = getConfigValue(obj, `${CONF_MENU}.conditions`) as RawFrigateCardConfig;
+
+    if (menuConditions === undefined) {
+      return false;
+    }
+
+    const overrides = getConfigValue(obj, `${CONF_OVERRIDES}`) as RawFrigateCardConfigArray || [];
+    setConfigValue(
+      obj,
+      `${CONF_OVERRIDES}.[${overrides.length}]`,
+      {
+        conditions: menuConditions,
+        overrides: {
+          menu: {
+            mode: 'none'
+          }
+        } 
+      }
+    );
+    deleteConfigValue(obj, `${CONF_MENU}.conditions`);
+    return true;
+  };
+};
+
 const UPGRADES = [
   // v1.2.1 -> v2.0.0
   upgradeMoveTo('frigate_url', 'frigate.url'),
@@ -248,4 +282,5 @@ const UPGRADES = [
 
   // v2.1.0 -> v3.0.0
   upgradeToMultipleCameras(),
+  updateMenuConditionToMenuOverride(),
 ];
