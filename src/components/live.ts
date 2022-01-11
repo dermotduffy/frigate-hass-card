@@ -1,4 +1,5 @@
-// TODO readme
+// TODO autodetect live provider from cameras configuration, or allow explicit setting.
+// TODO verify README links worked correctly (e.g. basic cameras configuration)
 
 import {
   CSSResultGroup,
@@ -371,7 +372,8 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     const config = getOverriddenConfig(
       this.liveConfig,
       this.liveOverrides,
-      conditionState) as LiveConfig;
+      conditionState,
+    ) as LiveConfig;
 
     return html` <div class="embla__slide">
       <frigate-card-live-provider
@@ -831,6 +833,13 @@ export class FrigateCardLiveJSMPEG extends LitElement {
 
     this._jsmpegCanvasElement = document.createElement('canvas');
     this._jsmpegCanvasElement.className = 'media';
+
+    if (!this.cameraConfig?.camera_name) {
+      return dispatchErrorMessageEvent(
+        this,
+        localize('error.no_camera_name') + `: ${JSON.stringify(this.cameraConfig)}`,
+      );
+    }
 
     const url = await this._getURL();
     if (url) {

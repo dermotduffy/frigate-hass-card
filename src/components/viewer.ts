@@ -18,6 +18,7 @@ import type {
   BrowseMediaNeighbors,
   BrowseMediaQueryParameters,
   BrowseMediaSource,
+  CameraConfig,
   ExtendedHomeAssistant,
   MediaShowInfo,
   ViewerConfig,
@@ -30,10 +31,7 @@ import {
 } from './thumbnail-carousel.js';
 import { ResolvedMediaCache, ResolvedMediaUtil } from '../resolved-media.js';
 import { View } from '../view.js';
-import {
-  createMediaShowInfo,
-  dispatchErrorMessageEvent,
-} from '../common.js';
+import { createMediaShowInfo, dispatchErrorMessageEvent } from '../common.js';
 import { renderProgressIndicator } from '../components/message.js';
 
 import './next-prev-control.js';
@@ -53,7 +51,7 @@ export class FrigateCardViewer extends LitElement {
   protected viewerConfig?: ViewerConfig;
 
   @property({ attribute: false })
-  protected browseMediaQueryParameters?: BrowseMediaQueryParameters;
+  protected cameraConfig?: CameraConfig;
 
   @property({ attribute: false })
   protected resolvedMediaCache?: ResolvedMediaCache;
@@ -63,7 +61,17 @@ export class FrigateCardViewer extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.view || !this.browseMediaQueryParameters) {
+    if (!this.hass || !this.view || !this.cameraConfig) {
+      return;
+    }
+
+    const browseMediaQueryParameters =
+      BrowseMediaUtil.getBrowseMediaQueryParametersOrDispatchError(
+        this,
+        this.view,
+        this.cameraConfig,
+      );
+    if (!browseMediaQueryParameters) {
       return;
     }
 
@@ -72,7 +80,7 @@ export class FrigateCardViewer extends LitElement {
         this,
         this.hass,
         this.view,
-        this.browseMediaQueryParameters,
+        browseMediaQueryParameters,
       );
       return renderProgressIndicator();
     }
@@ -82,7 +90,7 @@ export class FrigateCardViewer extends LitElement {
       .viewerConfig=${this.viewerConfig}
       .resolvedMediaCache=${this.resolvedMediaCache}
       .hass=${this.hass}
-      .browseMediaQueryParameters=${this.browseMediaQueryParameters}
+      .browseMediaQueryParameters=${browseMediaQueryParameters}
     >
     </frigate-card-viewer-core>`;
   }

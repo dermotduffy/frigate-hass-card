@@ -432,17 +432,23 @@ export class FrigateCard extends LitElement {
         }
       }
 
-      if (config.camera_name) {
-        const id = config.id || config.camera_entity || config.camera_name;
-        if (cameras.has(id)) {
-          this._setMessageAndUpdate({
-            message: localize('error.duplicate_camera_id'),
-            type: 'error',
-          });
-          errorFree = false;
-        } else {
-          cameras.set(id, config);
-        }
+      const id =
+        config.id || config.camera_entity || config.webrtc?.entity || config.camera_name;
+
+      if (!id) {
+        this._setMessageAndUpdate({
+          message: localize('error.no_camera_id') + `: ${JSON.stringify(config)}`,
+          type: 'error',
+        });
+        errorFree = false;
+      } else if (cameras.has(id)) {
+        this._setMessageAndUpdate({
+          message: localize('error.duplicate_camera_id') + `: ${JSON.stringify(config)}`,
+          type: 'error',
+        });
+        errorFree = false;
+      } else {
+        cameras.set(id, config);
       }
     };
 
@@ -504,11 +510,6 @@ export class FrigateCard extends LitElement {
       }
     } catch (e: any) {
       // Pass.
-    }
-
-    // Fallback: Guess from the entity_id.
-    if (entity.includes('.')) {
-      return entity.split('.', 2)[1];
     }
 
     return null;
@@ -842,6 +843,9 @@ export class FrigateCard extends LitElement {
     if (!cameraConfig || !cameraConfig.frigate_url || !this._view) {
       return null;
     }
+    if (!cameraConfig.camera_name) {
+      return cameraConfig.frigate_url;
+    }
     if (this._view.isViewerView() || this._view.isGalleryView()) {
       return `${cameraConfig.frigate_url}/events?camera=${cameraConfig.camera_name}`;
     }
@@ -1015,12 +1019,14 @@ export class FrigateCard extends LitElement {
     // Do not artifically constrain aspect ratio if:
     // - It's fullscreen.
     // - Aspect ratio enforcement is disabled.
-    // - Or aspect ratio enforcement is dynamic and it's a media view (i.e. not the gallery).
+    // - Aspect ratio enforcement is dynamic and it's a media view (i.e. not the gallery).
+    // - There is a message to display to the user.
 
     return !(
       (screenfull.isEnabled && screenfull.isFullscreen) ||
       aspectRatioMode == 'unconstrained' ||
-      (aspectRatioMode == 'dynamic' && this._view?.isMediaView())
+      (aspectRatioMode == 'dynamic' && this._view?.isMediaView() || 
+      this._message != null)
     );
   }
 
@@ -1187,10 +1193,7 @@ export class FrigateCard extends LitElement {
         ? html` <frigate-card-gallery
             .hass=${this._hass}
             .view=${this._view}
-            .browseMediaQueryParameters=${BrowseMediaUtil.getBrowseMediaQueryParametersFromView(
-              this._view,
-              cameraConfig,
-            )}
+            .cameraConfig=${cameraConfig}
             class="${classMap(galleryClasses)}"
           >
           </frigate-card-gallery>`
@@ -1199,10 +1202,7 @@ export class FrigateCard extends LitElement {
         ? html` <frigate-card-viewer
             .hass=${this._hass}
             .view=${this._view}
-            .browseMediaQueryParameters=${BrowseMediaUtil.getBrowseMediaQueryParametersFromView(
-              this._view,
-              cameraConfig,
-            )}
+            .cameraConfig=${cameraConfig}
             .viewerConfig=${this._getConfig().event_viewer}
             .resolvedMediaCache=${this._resolvedMediaCache}
             class="${classMap(viewerClasses)}"

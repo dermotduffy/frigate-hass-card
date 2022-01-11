@@ -4,7 +4,7 @@ import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 
-import type { BrowseMediaQueryParameters, ExtendedHomeAssistant } from '../types.js';
+import type { CameraConfig, ExtendedHomeAssistant } from '../types.js';
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import { View } from '../view.js';
 import { renderProgressIndicator } from './message.js';
@@ -23,23 +23,33 @@ export class FrigateCardGallery extends LitElement {
   protected view?: Readonly<View>;
 
   @property({ attribute: false })
-  protected browseMediaQueryParameters?: BrowseMediaQueryParameters;
+  protected cameraConfig?: CameraConfig;
 
   /**
    * Master render method.
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.view || !this.browseMediaQueryParameters) {
+    if (!this.hass || !this.view || !this.cameraConfig) {
       return;
     }
 
     if (!this.view.target) {
+      const browseMediaQueryParameters =
+        BrowseMediaUtil.getBrowseMediaQueryParametersOrDispatchError(
+          this,
+          this.view,
+          this.cameraConfig,
+        );
+      if (!browseMediaQueryParameters) {
+        return;
+      }
+
       BrowseMediaUtil.fetchLatestMediaAndDispatchViewChange(
         this,
         this.hass,
         this.view,
-        this.browseMediaQueryParameters,
+        browseMediaQueryParameters,
       );
       return renderProgressIndicator();
     }

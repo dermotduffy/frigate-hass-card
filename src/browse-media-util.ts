@@ -147,13 +147,25 @@ export class BrowseMediaUtil {
    * Get the parameters to search for media related to the current view.
    * @returns A BrowseMediaQueryParameters object.
    */
-  static getBrowseMediaQueryParametersFromView(
+  static getBrowseMediaQueryParametersOrDispatchError(
+    node: HTMLElement,
     view: View,
     cameraConfig: CameraConfig,
   ): BrowseMediaQueryParameters | undefined {
     if (!view.isClipRelatedView() && !view.isSnapshotRelatedView()) {
       return undefined;
     }
+
+    // Verify there is a camera name, otherwise getBrowseMediaQueryParameters()
+    // will return undefined.
+    if (!cameraConfig.camera_name) {
+      dispatchErrorMessageEvent(
+        node,
+        localize('error.no_camera_name') + `: ${JSON.stringify(cameraConfig)}`,
+      );
+      return undefined;
+    }
+
     return BrowseMediaUtil.getBrowseMediaQueryParameters(
       view.isClipRelatedView() ? 'clips' : 'snapshots',
       cameraConfig,
