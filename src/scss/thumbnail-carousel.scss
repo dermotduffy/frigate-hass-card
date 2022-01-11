@@ -21,4 +21,8 @@
   // should be clipped to fill the thumbnail div whilst maintaining
   // aspect-ratio.
   object-fit: cover;
+
+  // Restrict images to a maximum of thumbnail size.
+  max-width: var(--frigate-card-carousel-thumbnail-size);
+  max-height: var(--frigate-card-carousel-thumbnail-size);
 }
