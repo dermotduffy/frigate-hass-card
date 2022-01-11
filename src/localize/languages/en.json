@@ -66,6 +66,7 @@
       "preload": "Preload live view in the background",
       "provider": "Live view provider",
       "providers": {
+        "auto": "Automatic",
         "frigate": "Frigate",
         "frigate-jsmpeg": "Frigate JSMpeg",
         "webrtc": "WebRTC"

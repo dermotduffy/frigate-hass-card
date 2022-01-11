@@ -19,6 +19,8 @@ import {
   WebRTCConfig,
   FrigateCardError,
   LiveOverrides,
+  LiveProvider,
+  frigateCardConfigDefaults,
 } from '../types.js';
 import { EmblaOptionsType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
@@ -503,6 +505,20 @@ export class FrigateCardLiveProvider extends LitElement {
   @property({ attribute: true, type: Boolean })
   public disabled = false;
 
+  protected _getResolvedProvider(): LiveProvider {
+    if (this.liveConfig?.provider === 'auto') {
+      if (this.cameraConfig?.webrtc?.entity || this.cameraConfig?.webrtc?.url) {
+        return 'webrtc';
+      } else if (this.cameraConfig?.camera_entity) {
+        return 'frigate';
+      } else if (this.cameraConfig?.camera_name) {
+        return 'frigate-jsmpeg';
+      }
+      return frigateCardConfigDefaults.live.provider;
+    }
+    return this.liveConfig?.provider || frigateCardConfigDefaults.live.provider;
+  }
+
   /**
    * Master render method.
    * @returns A rendered template.
@@ -512,14 +528,16 @@ export class FrigateCardLiveProvider extends LitElement {
       return;
     }
 
+    const provider = this._getResolvedProvider();
+
     return html`
-      ${this.liveConfig.provider == 'frigate'
+      ${provider == 'frigate'
         ? html` <frigate-card-live-frigate
             .hass=${this.hass}
             .cameraEntity=${this.cameraConfig.camera_entity}
           >
           </frigate-card-live-frigate>`
-        : this.liveConfig.provider == 'webrtc'
+        : provider == 'webrtc'
         ? html`<frigate-card-live-webrtc
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}

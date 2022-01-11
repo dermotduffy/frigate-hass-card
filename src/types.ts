@@ -50,7 +50,8 @@ const FRIGATE_MENU_MODES = [
   'above',
   'below',
 ] as const;
-const LIVE_PROVIDERS = ['frigate', 'frigate-jsmpeg', 'webrtc'] as const;
+const LIVE_PROVIDERS = ['auto', 'frigate', 'frigate-jsmpeg', 'webrtc'] as const;
+export type LiveProvider = typeof LIVE_PROVIDERS[number];
 
 export class FrigateCardError extends Error {}
 
@@ -445,7 +446,7 @@ export type NextPreviousControlConfig = z.infer<typeof nextPreviousControlConfig
  * Live view configuration section.
  */
 const liveConfigDefault = {
-  provider: 'frigate' as const,
+  provider: 'auto' as const,
   preload: false,
   lazy_load: true,
   draggable: true,

@@ -532,6 +532,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
     const liveProviders = {
       '': '',
+      auto: localize('config.live.providers.auto'),
       frigate: localize('config.live.providers.frigate'),
       'frigate-jsmpeg': localize('config.live.providers.frigate-jsmpeg'),
       webrtc: localize('config.live.providers.webrtc'),
