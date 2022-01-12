@@ -1,4 +1,7 @@
 // TODO autodetect live provider from cameras configuration, or allow explicit setting.
+// TODO config-mgmt move for live provider
+// TODO unroll webrtc object in camera config for parity with live provider?
+// TODO order of cameras may not be being preserved.
 // TODO verify README links worked correctly (e.g. basic cameras configuration)
 
 import {
@@ -506,7 +509,7 @@ export class FrigateCardLiveProvider extends LitElement {
   public disabled = false;
 
   protected _getResolvedProvider(): LiveProvider {
-    if (this.liveConfig?.provider === 'auto') {
+    if (this.cameraConfig?.live_provider === 'auto') {
       if (this.cameraConfig?.webrtc?.entity || this.cameraConfig?.webrtc?.url) {
         return 'webrtc';
       } else if (this.cameraConfig?.camera_entity) {
@@ -514,9 +517,9 @@ export class FrigateCardLiveProvider extends LitElement {
       } else if (this.cameraConfig?.camera_name) {
         return 'frigate-jsmpeg';
       }
-      return frigateCardConfigDefaults.live.provider;
+      return frigateCardConfigDefaults.cameras.live_provider;
     }
-    return this.liveConfig?.provider || frigateCardConfigDefaults.live.provider;
+    return this.cameraConfig?.live_provider || frigateCardConfigDefaults.cameras.live_provider;
   }
 
   /**

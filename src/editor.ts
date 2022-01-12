@@ -19,6 +19,7 @@ import {
   CONF_CAMERAS_ARRAY_ICON,
   CONF_CAMERAS_ARRAY_ID,
   CONF_CAMERAS_ARRAY_LABEL,
+  CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
   CONF_CAMERAS_ARRAY_TITLE,
   CONF_CAMERAS_ARRAY_URL,
   CONF_CAMERAS_ARRAY_WEBRTC_ENTITY,
@@ -42,7 +43,6 @@ import {
   CONF_LIVE_DRAGGABLE,
   CONF_LIVE_LAZY_LOAD,
   CONF_LIVE_PRELOAD,
-  CONF_LIVE_PROVIDER,
   CONF_MENU_BUTTONS_CLIPS,
   CONF_MENU_BUTTONS_FRIGATE,
   CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD,
@@ -322,6 +322,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     cameraEntities: string[],
     addNewCamera?: boolean,
   ): TemplateResult | void {
+    const liveProviders = {
+      '': '',
+      auto: localize('config.cameras.live_providers.auto'),
+      frigate: localize('config.cameras.live_providers.frigate'),
+      'frigate-jsmpeg': localize('config.cameras.live_providers.frigate-jsmpeg'),
+      webrtc: localize('config.cameras.live_providers.webrtc'),
+    } as const;
+
     // Make a new config and update the editor with changes on it,
     const modifyConfig = (func: (config: RawFrigateCardConfig) => boolean): void => {
       if (this._config) {
@@ -405,6 +413,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             ${this._renderStringInput(
               getArrayConfigPath(CONF_CAMERAS_ARRAY_CAMERA_NAME, cameraIndex),
             )}
+            ${this._renderDropdown(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_LIVE_PROVIDER, cameraIndex),
+              liveProviders)}
             ${this._renderStringInput(
               getArrayConfigPath(CONF_CAMERAS_ARRAY_URL, cameraIndex),
             )}
@@ -528,14 +539,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       'hover-right': localize('config.menu.modes.hover-right'),
       above: localize('config.menu.modes.above'),
       below: localize('config.menu.modes.below'),
-    };
-
-    const liveProviders = {
-      '': '',
-      auto: localize('config.live.providers.auto'),
-      frigate: localize('config.live.providers.frigate'),
-      'frigate-jsmpeg': localize('config.live.providers.frigate-jsmpeg'),
-      webrtc: localize('config.live.providers.webrtc'),
     };
 
     const eventViewerNextPreviousControlStyles = {
@@ -685,7 +688,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_LIVE_LAZY_LOAD,
                   defaults.live.lazy_load,
                 )}
-                ${this._renderDropdown(CONF_LIVE_PROVIDER, liveProviders)}
                 ${this._renderDropdown(
                   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
                   liveNextPreviousControlStyles,

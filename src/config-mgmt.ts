@@ -5,6 +5,7 @@ import {
   CONF_CAMERAS_ARRAY_CAMERA_NAME,
   CONF_CAMERAS_ARRAY_CLIENT_ID,
   CONF_CAMERAS_ARRAY_LABEL,
+  CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
   CONF_CAMERAS_ARRAY_URL,
   CONF_CAMERAS_ARRAY_WEBRTC_ENTITY,
   CONF_CAMERAS_ARRAY_WEBRTC_URL,
@@ -14,7 +15,6 @@ import {
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_IMAGE_SRC,
   CONF_LIVE_PRELOAD,
-  CONF_LIVE_PROVIDER,
   CONF_MENU,
   CONF_MENU_BUTTON_SIZE,
   CONF_MENU_MODE,
@@ -37,7 +37,7 @@ export const setConfigValue = (
   keys: string | (string | number)[],
   value: unknown,
 ): void => {
-  set(obj, keys, value)
+  set(obj, keys, value);
 };
 
 /**
@@ -213,13 +213,11 @@ const upgradeToMultipleCameras = (): ((obj: RawFrigateCardConfig) => boolean) =>
       'frigate.zone': CONF_CAMERAS_ARRAY_ZONE,
       'live.webrtc.entity': CONF_CAMERAS_ARRAY_WEBRTC_ENTITY,
       'live.webrtc.url': CONF_CAMERAS_ARRAY_WEBRTC_URL,
+      'live.provider': CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
     };
     Object.keys(imports).forEach((key) => {
-      modified = moveConfigValue(
-        obj,
-        key,
-        getArrayConfigPath(imports[key], 0),
-      ) || modified;
+      modified =
+        moveConfigValue(obj, key, getArrayConfigPath(imports[key], 0)) || modified;
     });
     return modified;
   };
@@ -231,27 +229,29 @@ const upgradeToMultipleCameras = (): ((obj: RawFrigateCardConfig) => boolean) =>
  * @param key A string key.
  * @returns A safe key.
  */
- const updateMenuConditionToMenuOverride = (): ((obj: RawFrigateCardConfig) => boolean) => {
+const updateMenuConditionToMenuOverride = (): ((
+  obj: RawFrigateCardConfig,
+) => boolean) => {
   return function (obj: RawFrigateCardConfig): boolean {
-    const menuConditions = getConfigValue(obj, `${CONF_MENU}.conditions`) as RawFrigateCardConfig;
+    const menuConditions = getConfigValue(
+      obj,
+      `${CONF_MENU}.conditions`,
+    ) as RawFrigateCardConfig;
 
     if (menuConditions === undefined) {
       return false;
     }
 
-    const overrides = getConfigValue(obj, `${CONF_OVERRIDES}`) as RawFrigateCardConfigArray || [];
-    setConfigValue(
-      obj,
-      `${CONF_OVERRIDES}.[${overrides.length}]`,
-      {
-        conditions: menuConditions,
-        overrides: {
-          menu: {
-            mode: 'none'
-          }
-        } 
-      }
-    );
+    const overrides =
+      (getConfigValue(obj, `${CONF_OVERRIDES}`) as RawFrigateCardConfigArray) || [];
+    setConfigValue(obj, `${CONF_OVERRIDES}.[${overrides.length}]`, {
+      conditions: menuConditions,
+      overrides: {
+        menu: {
+          mode: 'none',
+        },
+      },
+    });
     deleteConfigValue(obj, `${CONF_MENU}.conditions`);
     return true;
   };
@@ -266,7 +266,7 @@ const UPGRADES = [
   upgradeMoveTo('zone', 'frigate.zone'),
   upgradeMoveTo('view_default', CONF_VIEW_DEFAULT),
   upgradeMoveTo('view_timeout', CONF_VIEW_TIMEOUT),
-  upgradeMoveTo('live_provider', CONF_LIVE_PROVIDER),
+  upgradeMoveTo('live_provider', 'live.provider'),
   upgradeMoveTo('live_preload', CONF_LIVE_PRELOAD),
   upgradeMoveTo('webrtc', 'live.webrtc'),
   upgradeMoveTo('autoplay_clip', CONF_EVENT_VIEWER_AUTOPLAY_CLIP),

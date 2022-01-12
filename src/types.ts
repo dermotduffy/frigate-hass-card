@@ -282,6 +282,7 @@ const customSchema = z
  */
 export const cameraConfigDefault = {
   client_id: 'frigate' as const,
+  live_provider: 'auto' as const,
 };
 const webrtcCameraConfigSchema = z.object({
   entity: z.string().optional(),
@@ -291,11 +292,12 @@ const cameraConfigSchema = z
   .object({
     // No URL validation to allow relative URLs within HA (e.g. Frigate addon).
     frigate_url: z.string().optional(),
-    client_id: z.string().optional().default(cameraConfigDefault.client_id),
+    client_id: z.string().default(cameraConfigDefault.client_id),
     camera_name: z.string().optional(),
     label: z.string().optional(),
     zone: z.string().optional(),
     camera_entity: z.string().optional(),
+    live_provider: z.enum(LIVE_PROVIDERS).default(cameraConfigDefault.live_provider),
 
     // Used for presentation in the UI (autodetected from the entity if
     // specified).
@@ -446,7 +448,6 @@ export type NextPreviousControlConfig = z.infer<typeof nextPreviousControlConfig
  * Live view configuration section.
  */
 const liveConfigDefault = {
-  provider: 'auto' as const,
   preload: false,
   lazy_load: true,
   draggable: true,
@@ -496,7 +497,6 @@ const liveNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.exte
 
 const liveOverridableConfigSchema = z
   .object({
-    provider: z.enum(LIVE_PROVIDERS).optional(),
     webrtc: webrtcConfigSchema,
     jsmpeg: jsmpegConfigSchema,
     controls: z
@@ -517,9 +517,6 @@ const liveOverridableConfigSchema = z
 const liveConfigSchema = liveOverridableConfigSchema
   .extend({
     // Replace attributes from the overridable schema with those with defaults.
-    provider: liveOverridableConfigSchema.shape.provider.default(
-      liveConfigDefault.provider,
-    ),
     controls: z
       .object({
         next_previous: liveNextPreviousControlConfigSchema

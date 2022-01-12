@@ -16,6 +16,7 @@ export const CONF_CAMERAS_ARRAY_ICON = `${CONF_CAMERAS}.#.icon` as const;
 export const CONF_CAMERAS_ARRAY_WEBRTC_ENTITY =
   `${CONF_CAMERAS}.#.webrtc.entity` as const;
 export const CONF_CAMERAS_ARRAY_WEBRTC_URL = `${CONF_CAMERAS}.#.webrtc.url` as const;
+export const CONF_CAMERAS_ARRAY_LIVE_PROVIDER = `${CONF_CAMERAS}.#.live_provider` as const;
 
 export const CONF_VIEW = 'view' as const;
 export const CONF_VIEW_DEFAULT = `${CONF_VIEW}.default` as const;
@@ -52,7 +53,6 @@ export const CONF_LIVE_DRAGGABLE = `${CONF_LIVE}.draggable` as const;
 export const CONF_LIVE_JSMPEG = `${CONF_LIVE}.jsmpeg` as const;
 export const CONF_LIVE_LAZY_LOAD = `${CONF_LIVE}.lazy_load` as const;
 export const CONF_LIVE_PRELOAD = `${CONF_LIVE}.preload` as const;
-export const CONF_LIVE_PROVIDER = `${CONF_LIVE}.provider` as const;
 export const CONF_LIVE_WEBRTC = `${CONF_LIVE}.webrtc` as const;
 export const CONF_LIVE_WEBRTC_ENTITY = `${CONF_LIVE_WEBRTC}.entity` as const;
 export const CONF_LIVE_WEBRTC_URL = `${CONF_LIVE_WEBRTC}.url` as const;
