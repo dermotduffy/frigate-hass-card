@@ -2,6 +2,7 @@
 // TODO config-mgmt move for live provider
 // TODO unroll webrtc object in camera config for parity with live provider?
 // TODO order of cameras may not be being preserved.
+// TODO the back-button issue raised on the PR
 // TODO verify README links worked correctly (e.g. basic cameras configuration)
 
 import {
