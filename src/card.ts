@@ -618,7 +618,7 @@ export class FrigateCard extends LitElement {
       return;
     }
 
-    if (navigator.userAgent.startsWith("Home Assistant/")) {
+    if (navigator.userAgent.startsWith("Home Assistant/") || navigator.userAgent.startsWith("HomeAssistant/")) {
       // Home Assistant companion apps cannot download files without opening a
       // new browser window.
       //
