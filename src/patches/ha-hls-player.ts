@@ -34,10 +34,6 @@ customElements.whenDefined('ha-hls-player').then(() => {
           ?playsinline=${this.playsInline}
           ?controls=${this.controls}
           @loadeddata=${(e) => {
-            // TODO: This block can be removed a safe distance from HA 2021.11.
-            if (typeof this._elementResized != 'undefined') {
-              this._elementResized();
-            }
             dispatchMediaShowEvent(this, e);
           }}
           @pause=${() => dispatchPauseEvent(this)}

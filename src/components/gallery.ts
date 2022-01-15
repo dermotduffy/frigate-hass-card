@@ -164,9 +164,10 @@ export class FrigateCardGalleryCore extends LitElement {
                   </div>`
                 : child.thumbnail
                 ? html`<img
-                    title="${child.title}"
+                    aria-label="${child.title}"
                     class="mdc-image-list__image"
                     src="${child.thumbnail}"
+                    title="${child.title}"
                     @click=${() => {
                       if (this.view) {
                         this.view

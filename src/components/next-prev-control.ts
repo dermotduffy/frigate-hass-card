@@ -30,6 +30,9 @@ export class FrigateCardNextPreviousControl extends LitElement {
   @property({ attribute: true, type: Boolean })
   public disabled = false;
 
+  // Label that is used for ARIA support and as tooltip.
+  @property() label = "";
+
   protected render(): TemplateResult {
     if (this.disabled || !this._controlConfig || this._controlConfig.style == 'none') {
       return html``;
@@ -55,15 +58,9 @@ export class FrigateCardNextPreviousControl extends LitElement {
         icon = this.icon
       }
 
-      // TODO: Upon a safe distance from the release of HA 2021.11 these
-      // attributes can be removed from the <ha-icon-button>.
-      // - icon (replaced with the embedded <ha-icon>)
-      // - title (replaced with .label)
       return html` <ha-icon-button
-        icon=${icon}
         class="${classMap(classes)}"
-        .label=${this.title}
-        title=${this.title}
+        .label=${this.label}
       >
         <ha-icon icon=${icon}></ha-icon>
       </ha-icon-button>`;
@@ -75,7 +72,8 @@ export class FrigateCardNextPreviousControl extends LitElement {
     return html`<img
       src="${this.thumbnail}"
       class="${classMap(classes)}"
-      title="${this.title}"
+      title="${this.label}"
+      aria-label="${this.label}"
     />`;
   }
 

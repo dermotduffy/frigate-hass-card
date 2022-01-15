@@ -601,7 +601,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
         .direction=${'previous'}
         .controlConfig=${this.viewerConfig?.controls.next_previous}
         .thumbnail=${prev && prev.thumbnail ? prev.thumbnail : undefined}
-        .title=${prev ? prev.title : ''}
+        .label=${prev ? prev.title : ''}
         ?disabled=${!prev}
         @click=${() => {
           this._nextPreviousHandler('previous');
@@ -615,7 +615,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
         .direction=${'next'}
         .controlConfig=${this.viewerConfig?.controls.next_previous}
         .thumbnail=${next && next.thumbnail ? next.thumbnail : undefined}
-        .title=${next ? next.title : ''}
+        .label=${next ? next.title : ''}
         ?disabled=${!next}
         @click=${() => {
           this._nextPreviousHandler('next');
@@ -657,19 +657,21 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       <div class="embla__slide">
         ${this.view.isClipRelatedView()
           ? html`<frigate-card-ha-hls-player
-              .hass=${this.hass}
-              url=${ifDefined(lazyLoad ? undefined : resolvedMedia?.url)}
-              title="${mediaToRender.title}"
-              muted
-              controls
-              playsinline
               allow-exoplayer
               ?autoplay="${autoplay}"
+              aria-label="${mediaToRender.title}"
+              controls
+              muted
+              playsinline
+              title="${mediaToRender.title}"
+              url=${ifDefined(lazyLoad ? undefined : resolvedMedia?.url)}
+              .hass=${this.hass}
               @frigate-card:media-show=${(e: CustomEvent<MediaShowInfo>) =>
                 this._mediaShowEventHandler(slideIndex, e)}
             >
             </frigate-card-ha-hls-player>`
           : html`<img
+              aria-label="${mediaToRender.title}"
               src=${ifDefined(lazyLoad ? IMG_EMPTY : resolvedMedia?.url)}
               title="${mediaToRender.title}"
               @click=${() => {

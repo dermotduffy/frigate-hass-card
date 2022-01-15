@@ -25,7 +25,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   @property({ attribute: false })
   set config(config: ThumbnailsControlConfig | undefined) {
     if (config) {
-      if (config && (config.size !== undefined && config.size !== null)) {
+      if (config && config.size !== undefined && config.size !== null) {
         this.style.setProperty('--frigate-card-carousel-thumbnail-size', config.size);
       }
       this._config = config;
@@ -35,7 +35,10 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
 
   @property({ attribute: false })
   set highlightSelected(value: boolean) {
-    this.style.setProperty('--frigate-card-carousel-thumbnail-opacity', value ? '0.6' : '1.0');
+    this.style.setProperty(
+      '--frigate-card-carousel-thumbnail-opacity',
+      value ? '0.6' : '1.0',
+    );
   }
 
   /**
@@ -79,10 +82,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
 
     const slides: TemplateResult[] = [];
     for (let i = 0; i < this.target.children.length; ++i) {
-      const thumbnail = this._renderThumbnail(
-        this.target,
-        i,
-        slides.length);
+      const thumbnail = this._renderThumbnail(this.target, i, slides.length);
       if (thumbnail) {
         slides.push(thumbnail);
       }
@@ -121,7 +121,11 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
         }
       }}
     >
-      <img src="${mediaToRender.thumbnail}" title="${mediaToRender.title}" />
+      <img
+        aria-label="${mediaToRender.title}"
+        src="${mediaToRender.thumbnail}"
+        title="${mediaToRender.title}"
+      />
     </div>`;
   }
 

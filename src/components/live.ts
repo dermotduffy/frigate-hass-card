@@ -1,3 +1,4 @@
+// TODO clip autoplay not working as expected
 // TODO verify README links worked correctly (e.g. basic cameras configuration)
 
 import {
@@ -388,11 +389,11 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
 
     return html` <div class="embla__slide">
       <frigate-card-live-provider
-        .title=${getCameraTitle(this.hass, cameraConfig)}
-        .hass=${this.hass}
-        .cameraConfig=${cameraConfig}
-        .liveConfig=${config}
         ?disabled=${this._isLazyLoading()}
+        .cameraConfig=${cameraConfig}
+        .label=${getCameraTitle(this.hass, cameraConfig)}
+        .liveConfig=${config}
+        .hass=${this.hass}
         @frigate-card:media-show=${(e: CustomEvent<MediaShowInfo>) =>
           this._mediaShowEventHandler(slideIndex, e)}
       >
@@ -470,7 +471,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
           ${ref(this._previousControlRef)}
           .direction=${'previous'}
           .controlConfig=${config.controls.next_previous}
-          .title=${getCameraTitle(this.hass, prev)}
+          .label=${getCameraTitle(this.hass, prev)}
           .icon=${getCameraIcon(this.hass, prev)}
           ?disabled=${prev == null}
           @click=${() => {
@@ -485,7 +486,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
           ${ref(this._nextControlRef)}
           .direction=${'next'}
           .controlConfig=${config.controls.next_previous}
-          .title=${getCameraTitle(this.hass, next)}
+          .label=${getCameraTitle(this.hass, next)}
           .icon=${getCameraIcon(this.hass, next)}
           ?disabled=${next == null}
           @click=${() => {
@@ -514,6 +515,10 @@ export class FrigateCardLiveProvider extends LitElement {
   @property({ attribute: true, type: Boolean })
   public disabled = false;
 
+  // Label that is used for ARIA support and as tooltip.
+  @property({ attribute: false })
+  public label = "";
+
   protected _getResolvedProvider(): LiveProvider {
     if (this.cameraConfig?.live_provider === 'auto') {
       if (this.cameraConfig?.webrtc?.entity || this.cameraConfig?.webrtc?.url) {
@@ -536,6 +541,10 @@ export class FrigateCardLiveProvider extends LitElement {
     if (this.disabled || !this.hass || !this.liveConfig || !this.cameraConfig) {
       return;
     }
+
+    // Set title and ariaLabel from the provided label property.
+    this.title = this.label;
+    this.ariaLabel = this.label;
 
     const provider = this._getResolvedProvider();
 

@@ -1,4 +1,4 @@
-import { HomeAssistant, handleAction, hasAction } from 'custom-card-helpers';
+import { HASSDomEvent, HomeAssistant, handleAction, hasAction } from 'custom-card-helpers';
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -65,7 +65,7 @@ export class FrigateCardMenu extends LitElement {
    * @param button The button configuration.
    */
   protected _actionHandler(
-    ev: CustomEvent<{ action: string; config?: Actions }>,
+    ev: HASSDomEvent<{ action: string; config?: Actions }>,
     config?: Actions,
   ): void {
     if (!ev) {
@@ -152,21 +152,15 @@ export class FrigateCardMenu extends LitElement {
       button: true,
     };
 
-    // TODO: Upon a safe distance from the release of HA 2021.11 these
-    // attributes can be removed from the <ha-icon-button>.
-    // - icon (replaced with the embedded <ha-icon>)
-    // - title (replaced with .label)
     return html` <ha-icon-button
       class="${classMap(classes)}"
       style="${styleMap(stateParameters.style || {})}"
-      icon=${stateParameters.icon || 'mdi:gesture-tap-button'}
-      .label=${stateParameters.title || ''}
-      title=${stateParameters.title || ''}
-      @action=${(ev) => this._actionHandler(ev, button)}
       .actionHandler=${actionHandler({
         hasHold: hasHold,
         hasDoubleClick: hasDoubleClick,
       })}
+      .label=${stateParameters.title || ''}
+      @action=${(ev) => this._actionHandler(ev, button)}
     >
       <ha-icon icon="${stateParameters.icon || 'mdi:gesture-tap-button'}"></ha-icon>
     </ha-icon-button>`;
