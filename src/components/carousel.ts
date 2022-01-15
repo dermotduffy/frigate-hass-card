@@ -58,7 +58,7 @@ export class FrigateCardCarousel extends LitElement {
   }
 
   /**
-   * Load the carousel with "slides".
+   * Initialize the carousel.
    */
   protected _initCarousel(): void {
     const carouselNode = this.renderRoot.querySelector(

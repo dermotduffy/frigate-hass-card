@@ -1,4 +1,4 @@
-// TODO clip autoplay not working as expected
+// TODO use the schema default remover code to simplify config schema
 // TODO verify README links worked correctly (e.g. basic cameras configuration)
 
 import {

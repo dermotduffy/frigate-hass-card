@@ -523,6 +523,37 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   }
 
   /**
+   * Play the clip being shown to the user (video player may already be loaded
+   * depending on the lazyload configuration).
+   */
+  protected _autoplayHandler(): void {
+    if (!this._carousel) {
+      return;
+    }
+    const nodes = this._carousel.slideNodes();
+    this._carousel.slidesInView(true).forEach((slide) => {
+      const player = nodes[slide].querySelector('frigate-card-ha-hls-player') as
+        | (HTMLElement & { play: () => void })
+        | undefined;
+      if (player) {
+        player.play();
+      }
+    });
+  }
+
+  /**
+   * Initialize the carousel.
+   */
+  protected _initCarousel(): void {
+    super._initCarousel();
+
+    if (this._carousel && this.viewerConfig && this.viewerConfig.autoplay_clip) {
+      this._carousel.on('init', this._autoplayHandler.bind(this));
+      this._carousel.on('select', this._autoplayHandler.bind(this));
+    }
+  }
+
+  /**
    * Get slides to include in the render.
    * @returns The slides to include in the render and an index keyed by slide
    * number that maps to child number.
@@ -643,22 +674,11 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       return;
     }
 
-    // In this block, no clip has been manually selected, so this is loading
-    // the most recent clip on card load. In this mode, autoplay of the clip
-    // may be disabled by configuration. If does not make sense to disable
-    // autoplay when the user has explicitly picked an event to play in the
-    // gallery.
-    let autoplay = true;
-    if (this.view.is('clip') || this.view.is('snapshot')) {
-      autoplay = this.viewerConfig.autoplay_clip;
-    }
-
     return html`
       <div class="embla__slide">
         ${this.view.isClipRelatedView()
           ? html`<frigate-card-ha-hls-player
               allow-exoplayer
-              ?autoplay="${autoplay}"
               aria-label="${mediaToRender.title}"
               controls
               muted

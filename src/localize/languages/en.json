@@ -45,7 +45,7 @@
       "update_force": "Force card updates (ignore media playing / interaction)"
     },
     "event_viewer": {
-      "autoplay_clip": "Autoplay most recent clip (In 'clip' view)",
+      "autoplay_clip": "Autoplay clips",
       "draggable": "Event Viewer can be dragged/swiped",
       "lazy_load": "Event Viewer media is lazily loaded in carousel",
       "controls": {

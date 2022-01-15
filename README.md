@@ -276,7 +276,7 @@ event_viewer:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `autoplay_clip` | `false` | :heavy_multiplication_x: | Whether or not to autoplay clips in the 'clip' [view](#views). Clips manually chosen in the clips gallery will still autoplay.|
+| `autoplay_clip` | `true` | :heavy_multiplication_x: | Whether or not to autoplay clips.|
 | `lazy_load` | `true` | :heavy_multiplication_x: | Whether or not to lazily load media in the event viewer carousel. Setting this will false will fetch all media immediately which may make the carousel experience smoother at a cost of (potentially) a substantial number of simultaneous media fetches on load. |
 | `draggable` | `true` | :heavy_multiplication_x: | Whether or not the event viewer carousel can be dragged left or right, via touch/swipe and mouse dragging. |
 | `controls` | | :heavy_multiplication_x: | Configuration for the event viewer. See below. |

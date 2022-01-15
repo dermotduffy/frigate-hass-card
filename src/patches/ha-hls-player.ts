@@ -10,6 +10,7 @@
 // ====================================================================
 
 import { TemplateResult, css, html } from 'lit';
+import { Ref, createRef, ref } from 'lit/directives/ref';
 import { customElement } from 'lit/decorators.js';
 
 import {
@@ -22,6 +23,17 @@ customElements.whenDefined('ha-hls-player').then(() => {
   @customElement('frigate-card-ha-hls-player')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   class FrigateCardHaHlsPlayer extends customElements.get('ha-hls-player') {
+    protected _videoRef: Ref<HTMLVideoElement> = createRef();
+
+    /**
+     * Play the video.
+     */
+    public play(): void {
+      if (this._videoRef.value) {
+        this._videoRef.value.play();
+      }
+    }
+
     // =====================================================================================
     // Minor modifications from:
     // - https://github.com/home-assistant/frontend/blob/dev/src/components/ha-hls-player.ts
@@ -29,6 +41,7 @@ customElements.whenDefined('ha-hls-player').then(() => {
     protected render(): TemplateResult {
       return html`
         <video
+          ${ref(this._videoRef)}
           ?autoplay=${this.autoPlay}
           .muted=${this.muted}
           ?playsinline=${this.playsInline}

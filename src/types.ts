@@ -617,7 +617,7 @@ export type MenuConfig = z.infer<typeof menuConfigSchema>;
  * Event viewer configuration section (clip, snapshot).
  */
 const viewerConfigDefault = {
-  autoplay_clip: false,
+  autoplay_clip: true,
   lazy_load: true,
   draggable: true,
   controls: {

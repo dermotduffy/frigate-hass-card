@@ -67,7 +67,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   }
 
   /**
-   * Initializse the carousel with "slides" (clips or snapshots).
+   * Initialize the carousel.
    */
   protected _initCarousel(): void {
     super._initCarousel();
