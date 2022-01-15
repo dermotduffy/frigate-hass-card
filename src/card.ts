@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   CSSResultGroup,
   LitElement,
@@ -114,8 +113,9 @@ console.info(
   'color: white; font-weight: bold; background: dimgray',
 );
 
-// This puts your card into the UI card picker dialog
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window as any).customCards = (window as any).customCards || [];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window as any).customCards.push({
   type: 'frigate-card',
   name: localize('common.frigate_card'),
@@ -508,7 +508,7 @@ export class FrigateCard extends LitElement {
           return match.groups['camera'];
         }
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       // Pass.
     }
 
@@ -1225,7 +1225,7 @@ export class FrigateCard extends LitElement {
                 .conditionState=${this._conditionState}
                 .liveOverrides=${getOverridesByKey(this._getConfig().overrides, 'live')}
                 .cameras=${this._cameras}
-                .preload=${this._getConfig().live.preload && !this._view.is('live')}
+                .preloaded=${this._getConfig().live.preload && !this._view.is('live')}
                 class="${classMap(liveClasses)}"
               >
               </frigate-card-live>

@@ -1,8 +1,3 @@
-// TODO autodetect live provider from cameras configuration, or allow explicit setting.
-// TODO config-mgmt move for live provider
-// TODO unroll webrtc object in camera config for parity with live provider?
-// TODO order of cameras may not be being preserved.
-// TODO the back-button issue raised on the PR
 // TODO verify README links worked correctly (e.g. basic cameras configuration)
 
 import {
@@ -86,17 +81,17 @@ export class FrigateCardLive extends LitElement {
   @property({ attribute: false })
   protected conditionState?: ConditionState;
 
-  set preload(preload: boolean) {
-    this._preload = preload;
+  set preloaded(preloaded: boolean) {
+    this._preloaded = preloaded;
 
-    if (!preload && this._savedMediaShowInfo) {
+    if (!preloaded && this._savedMediaShowInfo) {
       dispatchExistingMediaShowInfoAsEvent(this, this._savedMediaShowInfo);
     }
   }
 
   // Whether or not the live view is currently being preloaded.
   @state()
-  protected _preload?: boolean;
+  protected _preloaded?: boolean;
 
   // MediaShowInfo object from the underlying live object. In the case of
   // pre-loading it may be propagated upwards later.
@@ -108,7 +103,7 @@ export class FrigateCardLive extends LitElement {
    */
   protected _mediaShowHandler(e: CustomEvent<MediaShowInfo>): void {
     this._savedMediaShowInfo = e.detail;
-    if (this._preload) {
+    if (this._preloaded) {
       // If live is being pre-loaded, don't let the event propogate upwards yet
       // as the media is not really being shown.
       e.stopPropagation();
@@ -195,7 +190,7 @@ export class FrigateCardLive extends LitElement {
         .view=${this.view}
         .cameras=${this.cameras}
         .liveConfig=${this.liveConfig}
-        .preload=${this._preload}
+        .preloaded=${this._preloaded}
         .conditionState=${this.conditionState}
         .liveOverrides=${this.liveOverrides}
         @frigate-card:media-show=${this._mediaShowHandler}
@@ -203,6 +198,16 @@ export class FrigateCardLive extends LitElement {
           // Re-rendering the component will cause the thumbnails to be
           // re-fetched (which is necessary because the camera has changed).
           this.requestUpdate();
+        }}
+        @frigate-card:change-view=${(ev: CustomEvent) => {
+          if (this._preloaded) {
+            // Don't allow change-view events to propagate upwards if the card
+            // is only preloaded rather than being live displayed. These events
+            // could be triggered if the camera is switched and the carousel
+            // moves to focus on that camera -- as the card isn't actually being
+            // displayed, do not allow the view to actually be updated.
+            ev.stopPropagation();
+          }
         }}
       >
       </frigate-card-live-carousel>
@@ -236,7 +241,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   protected liveOverrides?: LiveOverrides;
 
   @property({ attribute: false })
-  protected preload?: boolean;
+  protected preloaded?: boolean;
 
   @property({ attribute: false })
   protected conditionState?: ConditionState;
@@ -252,7 +257,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     if (
       changedProperties.has('cameras') ||
       changedProperties.has('liveConfig') ||
-      changedProperties.has('preload')
+      changedProperties.has('preloaded')
     ) {
       // All of these properties may fundamentally change the contents/size of
       // the DOM, and the carousel should be reset when they change.
