@@ -1,4 +1,3 @@
-// TODO use the schema default remover code to simplify config schema
 // TODO in fullscreen mode on live view with mixed cameras, center video
 // TODO verify README links worked correctly (e.g. basic cameras configuration)
 
@@ -26,7 +25,6 @@ import {
 import { EmblaOptionsType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property, state } from 'lit/decorators.js';
-import { isEqual } from 'lodash-es';
 import { ref } from 'lit/directives/ref';
 import { until } from 'lit/directives/until.js';
 
@@ -38,6 +36,7 @@ import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 import { View } from '../view.js';
 import { localize } from '../localize/localize.js';
 import {
+  contentsChanged,
   dispatchErrorMessageEvent,
   dispatchExistingMediaShowInfoAsEvent,
   dispatchMediaShowEvent,
@@ -518,7 +517,7 @@ export class FrigateCardLiveProvider extends LitElement {
 
   // Label that is used for ARIA support and as tooltip.
   @property({ attribute: false })
-  public label = "";
+  public label = '';
 
   protected _getResolvedProvider(): LiveProvider {
     if (this.cameraConfig?.live_provider === 'auto') {
@@ -531,7 +530,9 @@ export class FrigateCardLiveProvider extends LitElement {
       }
       return frigateCardConfigDefaults.cameras.live_provider;
     }
-    return this.cameraConfig?.live_provider || frigateCardConfigDefaults.cameras.live_provider;
+    return (
+      this.cameraConfig?.live_provider || frigateCardConfigDefaults.cameras.live_provider
+    );
   }
 
   /**
@@ -618,18 +619,7 @@ export class FrigateCardLiveFrigate extends LitElement {
 //  - https://github.com/AlexxIT/WebRTC
 @customElement('frigate-card-live-webrtc')
 export class FrigateCardLiveWebRTC extends LitElement {
-  @property({
-    attribute: false,
-
-    // Resetting the WebRTC/JSMPEG configuration is expensive as the connections
-    // need to be re-established. These configurations may be overridden which
-    // creates semantically equal configurations at different addresses --
-    // ensure LIT only considers the property as having changed if it's actually
-    // different.
-    hasChanged(n: WebRTCConfig, o: WebRTCConfig): boolean {
-      return !isEqual(n, o);
-    },
-  })
+  @property({ attribute: false, hasChanged: contentsChanged })
   protected webRTCConfig?: WebRTCConfig;
 
   @property({ attribute: false })
@@ -734,13 +724,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
   @property({ attribute: false })
   protected cameraConfig?: CameraConfig;
 
-  @property({
-    attribute: false,
-    // See note under FrigateCardLiveWebRTC.
-    hasChanged(n: JSMPEGConfig, o: JSMPEGConfig): boolean {
-      return !isEqual(n, o);
-    },
-  })
+  @property({ attribute: false, hasChanged: contentsChanged })
   protected jsmpegConfig?: JSMPEGConfig;
 
   protected hass?: HomeAssistant & ExtendedHomeAssistant;

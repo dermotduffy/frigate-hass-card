@@ -43,6 +43,7 @@ import { FrigateCardElements } from './components/elements.js';
 import { FRIGATE_BUTTON_MENU_ICON, FrigateCardMenu } from './components/menu.js';
 import { View } from './view.js';
 import {
+  contentsChanged,
   convertActionToFrigateCardCustomAction,
   createFrigateCardCustomAction,
   getActionConfigGivenAction,
@@ -231,11 +232,17 @@ export class FrigateCard extends LitElement {
       camera: this._view?.camera,
     };
 
-    this._overriddenConfig = getOverriddenConfig(
+    const overriddenConfig = getOverriddenConfig(
       this._baseConfig,
       this._baseConfig.overrides,
       this._conditionState,
     ) as FrigateCardConfig;
+
+    // Save on Lit re-rendering costs by only updating the configuration if it
+    // actually changes.
+    if (contentsChanged(overriddenConfig, this._overriddenConfig)) {
+      this._overriddenConfig = overriddenConfig;
+    }
   }
 
   /**

@@ -31,7 +31,7 @@ import {
 } from './thumbnail-carousel.js';
 import { ResolvedMediaCache, ResolvedMediaUtil } from '../resolved-media.js';
 import { View } from '../view.js';
-import { createMediaShowInfo, dispatchErrorMessageEvent } from '../common.js';
+import { contentsChanged, createMediaShowInfo, dispatchErrorMessageEvent } from '../common.js';
 import { renderProgressIndicator } from '../components/message.js';
 
 import './next-prev-control.js';
@@ -111,7 +111,8 @@ export class FrigateCardViewerCore extends LitElement {
   @property({ attribute: false })
   protected view?: Readonly<View>;
 
-  @property({ attribute: false })
+  // See note on viewerConfig in <frigate-card-viewer-carousel>.
+  @property({ attribute: false, hasChanged: contentsChanged })
   protected viewerConfig?: ViewerConfig;
 
   @property({ attribute: false })
@@ -186,7 +187,12 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   @property({ attribute: false })
   protected view?: Readonly<View>;
 
-  @property({ attribute: false })
+  // Resetting the viewer configuration causes a full reset so ensure the config
+  // has actually changed with a full comparison (dynamic configuration
+  // overrides may causes changes elsewhere in the full card configuration that
+  // could lead to the address of the viewerConfig changing without it being
+  // semantically different).
+  @property({ attribute: false, hasChanged: contentsChanged })
   protected viewerConfig?: ViewerConfig;
 
   @property({ attribute: false })

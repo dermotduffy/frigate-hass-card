@@ -2,6 +2,7 @@ import { HassEntity, MessageBase } from 'home-assistant-js-websocket';
 import { HomeAssistant, stateIcon } from 'custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map';
 import { ZodSchema, z } from 'zod';
+import { isEqual } from 'lodash-es';
 
 import { localize } from './localize/localize.js';
 import {
@@ -482,4 +483,16 @@ export function arrayMove(target: unknown[], from: number, to: number): void {
   const element = target[from];
   target.splice(from, 1);
   target.splice(to, 0, element);
+}
+
+/**
+ * Determine if the contents of the n(ew) and o(ld) values have changed. For use
+ * in lit web components that may have a value that changes address but not
+ * contents -- and for which a re-render is expensive/jarring.
+ * @param n The new value.
+ * @param o The old value.
+ * @returns `true` is the contents have changed.
+ */
+export function contentsChanged(n: unknown, o: unknown): boolean {
+  return !isEqual(n, o);
 }
