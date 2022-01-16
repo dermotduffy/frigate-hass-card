@@ -11,6 +11,8 @@ import {
 } from 'custom-card-helpers';
 import { z } from 'zod';
 
+import { deepRemoveDefaults } from './zod-util';
+
 declare global {
   interface HTMLElementTagNameMap {
     'frigate-card-editor': LovelaceCardEditor;
@@ -101,15 +103,13 @@ const customActionSchema = schemaForType<CustomActionConfig>()(
     action: z.literal('fire-dom-event'),
   }),
 );
-const frigateCardCustomActionBaseSchema = customActionSchema.merge(
-  z.object({
-    // Syntactic sugar to avoid 'fire-dom-event' as part of an external API.
-    action: z
-      .literal('custom:frigate-card-action')
-      .transform((): 'fire-dom-event' => 'fire-dom-event')
-      .or(z.literal('fire-dom-event')),
-  }),
-);
+const frigateCardCustomActionBaseSchema = customActionSchema.extend({
+  // Syntactic sugar to avoid 'fire-dom-event' as part of an external API.
+  action: z
+    .literal('custom:frigate-card-action')
+    .transform((): 'fire-dom-event' => 'fire-dom-event')
+    .or(z.literal('fire-dom-event')),
+});
 
 const FRIGATE_CARD_GENERAL_ACTIONS = [
   'frigate',
@@ -126,17 +126,13 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
 const FRIGATE_CARD_ACTIONS = [...FRIGATE_CARD_GENERAL_ACTIONS, 'camera_select'] as const;
 export type FrigateCardAction = typeof FRIGATE_CARD_ACTIONS[number];
 
-const frigateCardGeneralActionSchema = frigateCardCustomActionBaseSchema.merge(
-  z.object({
-    frigate_card_action: z.enum(FRIGATE_CARD_GENERAL_ACTIONS),
-  }),
-);
-const frigateCardCameraSelectActionSchema = frigateCardCustomActionBaseSchema.merge(
-  z.object({
-    frigate_card_action: z.literal('camera_select'),
-    camera: z.string(),
-  }),
-);
+const frigateCardGeneralActionSchema = frigateCardCustomActionBaseSchema.extend({
+  frigate_card_action: z.enum(FRIGATE_CARD_GENERAL_ACTIONS),
+});
+const frigateCardCameraSelectActionSchema = frigateCardCustomActionBaseSchema.extend({
+  frigate_card_action: z.literal('camera_select'),
+  camera: z.string(),
+});
 export const frigateCardCustomActionSchema = z.union([
   frigateCardGeneralActionSchema,
   frigateCardCameraSelectActionSchema,
@@ -169,12 +165,10 @@ const actionsSchema = z.object({
   actions: actionBaseSchema.optional(),
 });
 
-const elementsBaseSchema = actionBaseSchema.merge(
-  z.object({
-    style: z.object({}).passthrough().optional(),
-    title: z.string().nullable().optional(),
-  }),
-);
+const elementsBaseSchema = actionBaseSchema.extend({
+  style: z.object({}).passthrough().optional(),
+  title: z.string().nullable().optional(),
+});
 
 /**
  * Picture Element Configuration.
@@ -185,68 +179,56 @@ const elementsBaseSchema = actionBaseSchema.merge(
  */
 
 // https://www.home-assistant.io/lovelace/picture-elements/#state-badge
-const stateBadgeIconSchema = elementsBaseSchema.merge(
-  z.object({
-    type: z.literal('state-badge'),
-    entity: z.string(),
-  }),
-);
+const stateBadgeIconSchema = elementsBaseSchema.extend({
+  type: z.literal('state-badge'),
+  entity: z.string(),
+});
 
 // https://www.home-assistant.io/lovelace/picture-elements/#state-icon
-const stateIconSchema = elementsBaseSchema.merge(
-  z.object({
-    type: z.literal('state-icon'),
-    entity: z.string(),
-    icon: z.string().optional(),
-    state_color: z.boolean().default(true),
-  }),
-);
+const stateIconSchema = elementsBaseSchema.extend({
+  type: z.literal('state-icon'),
+  entity: z.string(),
+  icon: z.string().optional(),
+  state_color: z.boolean().default(true),
+});
 
 // https://www.home-assistant.io/lovelace/picture-elements/#state-label
-const stateLabelSchema = elementsBaseSchema.merge(
-  z.object({
-    type: z.literal('state-label'),
-    entity: z.string(),
-    attribute: z.string().optional(),
-    prefix: z.string().optional(),
-    suffix: z.string().optional(),
-  }),
-);
+const stateLabelSchema = elementsBaseSchema.extend({
+  type: z.literal('state-label'),
+  entity: z.string(),
+  attribute: z.string().optional(),
+  prefix: z.string().optional(),
+  suffix: z.string().optional(),
+});
 
 // https://www.home-assistant.io/lovelace/picture-elements/#service-call-button
-const serviceCallButtonSchema = elementsBaseSchema.merge(
-  z.object({
-    type: z.literal('service-button'),
-    // Title is required for service button.
-    title: z.string(),
-    service: z.string(),
-    service_data: z.object({}).passthrough().optional(),
-  }),
-);
+const serviceCallButtonSchema = elementsBaseSchema.extend({
+  type: z.literal('service-button'),
+  // Title is required for service button.
+  title: z.string(),
+  service: z.string(),
+  service_data: z.object({}).passthrough().optional(),
+});
 
 // https://www.home-assistant.io/lovelace/picture-elements/#icon-element
-const iconSchema = elementsBaseSchema.merge(
-  z.object({
-    type: z.literal('icon'),
-    icon: z.string(),
-    entity: z.string().optional(),
-  }),
-);
+const iconSchema = elementsBaseSchema.extend({
+  type: z.literal('icon'),
+  icon: z.string(),
+  entity: z.string().optional(),
+});
 
 // https://www.home-assistant.io/lovelace/picture-elements/#image-element
-const imageSchema = elementsBaseSchema.merge(
-  z.object({
-    type: z.literal('image'),
-    entity: z.string().optional(),
-    image: z.string().optional(),
-    camera_image: z.string().optional(),
-    camera_view: z.string().optional(),
-    state_image: z.object({}).passthrough().optional(),
-    filter: z.string().optional(),
-    state_filter: z.object({}).passthrough().optional(),
-    aspect_ratio: z.string().optional(),
-  }),
-);
+const imageSchema = elementsBaseSchema.extend({
+  type: z.literal('image'),
+  entity: z.string().optional(),
+  image: z.string().optional(),
+  camera_image: z.string().optional(),
+  camera_view: z.string().optional(),
+  state_image: z.object({}).passthrough().optional(),
+  filter: z.string().optional(),
+  state_filter: z.object({}).passthrough().optional(),
+  aspect_ratio: z.string().optional(),
+});
 
 // https://www.home-assistant.io/lovelace/picture-elements/#image-element
 const conditionalSchema = z.object({
@@ -318,36 +300,28 @@ export type CameraConfig = z.infer<typeof cameraConfigSchema>;
  * Custom Element Types.
  */
 
-export const menuIconSchema = iconSchema.merge(
-  z.object({
-    type: z.literal('custom:frigate-card-menu-icon'),
-  }),
-);
+export const menuIconSchema = iconSchema.extend({
+  type: z.literal('custom:frigate-card-menu-icon'),
+});
 export type MenuIcon = z.infer<typeof menuIconSchema>;
 
-export const menuStateIconSchema = stateIconSchema.merge(
-  z.object({
-    type: z.literal('custom:frigate-card-menu-state-icon'),
-  }),
-);
+export const menuStateIconSchema = stateIconSchema.extend({
+  type: z.literal('custom:frigate-card-menu-state-icon'),
+});
 export type MenuStateIcon = z.infer<typeof menuStateIconSchema>;
 
-const menuSubmenuItemSchema = elementsBaseSchema.merge(
-  z.object({
-    entity: z.string().optional(),
-    icon: z.string().optional(),
-    state_color: z.boolean().default(true),
-    selected: z.boolean().default(false),
-  }),
-);
+const menuSubmenuItemSchema = elementsBaseSchema.extend({
+  entity: z.string().optional(),
+  icon: z.string().optional(),
+  state_color: z.boolean().default(true),
+  selected: z.boolean().default(false),
+});
 export type MenuSubmenuItem = z.infer<typeof menuSubmenuItemSchema>;
 
-export const menuSubmenuSchema = iconSchema.merge(
-  z.object({
-    type: z.literal('custom:frigate-card-menu-submenu'),
-    items: menuSubmenuItemSchema.array(),
-  }),
-);
+export const menuSubmenuSchema = iconSchema.extend({
+  type: z.literal('custom:frigate-card-menu-submenu'),
+  items: menuSubmenuItemSchema.array(),
+});
 export type MenuSubmenu = z.infer<typeof menuSubmenuSchema>;
 
 const frigateCardConditionSchema = z.object({
@@ -492,7 +466,24 @@ export type JSMPEGConfig = z.infer<typeof jsmpegConfigSchema>;
 
 const liveNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.extend({
   // Live cannot show thumbnails, remove that option.
-  style: z.enum(['none', 'chevrons', 'icons']),
+  style: z
+    .enum(['none', 'chevrons', 'icons'])
+    .default(liveConfigDefault.controls.next_previous.style),
+  size: nextPreviousControlConfigSchema.shape.size.default(
+    liveConfigDefault.controls.next_previous.size,
+  ),
+});
+
+const liveThumbnailControlConfigSchema = thumbnailsControlSchema.extend({
+  mode: thumbnailsControlSchema.shape.mode.default(
+    liveConfigDefault.controls.thumbnails.mode,
+  ),
+  size: thumbnailsControlSchema.shape.size.default(
+    liveConfigDefault.controls.thumbnails.size,
+  ),
+  media: z
+    .enum(['clips', 'snapshots'])
+    .default(liveConfigDefault.controls.thumbnails.media),
 });
 
 const liveOverridableConfigSchema = z
@@ -501,50 +492,19 @@ const liveOverridableConfigSchema = z
     jsmpeg: jsmpegConfigSchema,
     controls: z
       .object({
-        next_previous: liveNextPreviousControlConfigSchema.optional(),
-        thumbnails: thumbnailsControlSchema
-          .merge(
-            z.object({
-              media: z.enum(['clips', 'snapshots']),
-            }),
-          )
-          .optional(),
+        next_previous: liveNextPreviousControlConfigSchema.default(
+          liveConfigDefault.controls.next_previous,
+        ),
+        thumbnails: liveThumbnailControlConfigSchema.default(
+          liveConfigDefault.controls.thumbnails,
+        ),
       })
-      .optional(),
+      .default(liveConfigDefault.controls),
   })
   .merge(actionsSchema);
 
 const liveConfigSchema = liveOverridableConfigSchema
   .extend({
-    // Replace attributes from the overridable schema with those with defaults.
-    controls: z
-      .object({
-        next_previous: liveNextPreviousControlConfigSchema
-          .extend({
-            size: liveNextPreviousControlConfigSchema.shape.size.default(
-              liveConfigDefault.controls.next_previous.size,
-            ),
-            style: liveNextPreviousControlConfigSchema.shape.style.default(
-              liveConfigDefault.controls.next_previous.style,
-            ),
-          })
-          .default(liveConfigDefault.controls.next_previous),
-        thumbnails: thumbnailsControlSchema
-          .extend({
-            mode: thumbnailsControlSchema.shape.mode.default(
-              liveConfigDefault.controls.thumbnails.mode,
-            ),
-            size: thumbnailsControlSchema.shape.size.default(
-              liveConfigDefault.controls.thumbnails.size,
-            ),
-            media: z
-              .enum(['clips', 'snapshots'])
-              .default(liveConfigDefault.controls.thumbnails.media),
-          })
-          .default(liveConfigDefault.controls.thumbnails),
-      })
-      .default(liveConfigDefault.controls),
-
     // Non-overrideable parameters.
     preload: z.boolean().default(liveConfigDefault.preload),
     lazy_load: z.boolean().default(liveConfigDefault.lazy_load),
@@ -572,27 +532,9 @@ const menuConfigDefault = {
   button_size: '40px',
 };
 
-const menuOverridableConfigSchema = z.object({
-  mode: z.enum(FRIGATE_MENU_MODES).optional(),
-  buttons: z
-    .object({
-      frigate: z.boolean().optional(),
-      cameras: z.boolean().optional(),
-      live: z.boolean().optional(),
-      clips: z.boolean().optional(),
-      snapshots: z.boolean().optional(),
-      image: z.boolean().optional(),
-      download: z.boolean().optional(),
-      frigate_ui: z.boolean().optional(),
-      fullscreen: z.boolean().optional(),
-    })
-    .optional(),
-  button_size: z.string().optional(),
-});
-
-const menuConfigSchema = menuOverridableConfigSchema
-  .extend({
-    mode: menuOverridableConfigSchema.shape.mode.default(menuConfigDefault.mode),
+const menuConfigSchema = z
+  .object({
+    mode: z.enum(FRIGATE_MENU_MODES).default(menuConfigDefault.mode),
     buttons: z
       .object({
         frigate: z.boolean().default(menuConfigDefault.buttons.frigate),
@@ -606,9 +548,7 @@ const menuConfigSchema = menuOverridableConfigSchema
         fullscreen: z.boolean().default(menuConfigDefault.buttons.fullscreen),
       })
       .default(menuConfigDefault.buttons),
-    button_size: menuOverridableConfigSchema.shape.button_size.default(
-      menuConfigDefault.button_size,
-    )
+    button_size: z.string().default(menuConfigDefault.button_size),
   })
   .default(menuConfigDefault);
 export type MenuConfig = z.infer<typeof menuConfigSchema>;
@@ -631,14 +571,12 @@ const viewerConfigDefault = {
     },
   },
 };
-const viewerNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.merge(
-  z.object({
-    style: z
-      .enum(['none', 'thumbnails', 'chevrons'])
-      .default(viewerConfigDefault.controls.next_previous.style),
-    size: z.string().default(viewerConfigDefault.controls.next_previous.size),
-  }),
-);
+const viewerNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.extend({
+  style: z
+    .enum(['none', 'thumbnails', 'chevrons'])
+    .default(viewerConfigDefault.controls.next_previous.style),
+  size: z.string().default(viewerConfigDefault.controls.next_previous.size),
+});
 export type ViewerNextPreviousControlConfig = z.infer<
   typeof viewerNextPreviousControlConfigSchema
 >;
@@ -705,10 +643,13 @@ const dimensionsConfigSchema = z
 /**
  * Configuration overrides
  */
-const overrideConfigurationSchema = z.object({
-  live: liveOverridableConfigSchema.optional(),
-  menu: menuOverridableConfigSchema.optional(),
-});
+// Strip all defaults from the override schemas, to ensure values are only what
+// the user has specified. 
+const overrideConfigurationSchema =
+  z.object({
+    live: deepRemoveDefaults(liveOverridableConfigSchema).optional(),
+    menu: deepRemoveDefaults(menuConfigSchema).optional(),
+  });
 export type OverrideConfigurationKey = keyof z.infer<typeof overrideConfigurationSchema>;
 
 const overridesSchema = z

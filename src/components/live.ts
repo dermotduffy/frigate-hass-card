@@ -1,4 +1,5 @@
 // TODO use the schema default remover code to simplify config schema
+// TODO in fullscreen mode on live view with mixed cameras, center video
 // TODO verify README links worked correctly (e.g. basic cameras configuration)
 
 import {
