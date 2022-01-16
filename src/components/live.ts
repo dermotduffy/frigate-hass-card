@@ -1,6 +1,3 @@
-// TODO in fullscreen mode on live view with mixed cameras, center video
-// TODO verify README links worked correctly (e.g. basic cameras configuration)
-
 import {
   CSSResultGroup,
   LitElement,
