@@ -192,11 +192,6 @@ export class FrigateCardLive extends LitElement {
         .conditionState=${this.conditionState}
         .liveOverrides=${this.liveOverrides}
         @frigate-card:media-show=${this._mediaShowHandler}
-        @frigate-card:carousel:select=${() => {
-          // Re-rendering the component will cause the thumbnails to be
-          // re-fetched (which is necessary because the camera has changed).
-          this.requestUpdate();
-        }}
         @frigate-card:change-view=${(ev: CustomEvent) => {
           if (this._preloaded) {
             // Don't allow change-view events to propagate upwards if the card
