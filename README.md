@@ -1153,6 +1153,37 @@ live:
 more discussion on this topic. New ideas to address this underlying limitation
 most welcome!
 
+### Carousels with video players cannot be dragged in Firefox
+
+The Firefox video player swallows mouse interactions, so dragging is not
+possible in carousels that use the Firefox video player (e.g. `clips` carousel,
+or live views that use the `frigate` or `webrtc` provider). The next and
+previous buttons may be used to navigate in these instances.
+
+Dragging works as expected for snapshots, or for the `frigate-jsmpeg` provider.
+
+### Console shows 'Offset is out of bounds' / 'Out of bounds memory access'
+
+This is an issue with the JSMPEG live provider and cameras with high-resolutions
+/ high-bitrates. [This bug](https://github.com/dermotduffy/frigate-hass-card/issues/189) has much
+more discussion on this topic. Some users report success in disabling the WASM-option for JSMPEG like so:
+
+```yaml
+live:
+  jsmpeg:
+    options:
+      disableWebAssembly: true
+```
+
+Lowering the camera bitrate, and/or increasing the `videoBufferSize` for JSMPEG may also help:
+
+```yaml
+live:
+  jsmpeg:
+    options:
+      videoBufferSize: 41943040
+```
+
 ## Development
 
 ### Building
