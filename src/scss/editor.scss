@@ -1,3 +1,5 @@
+@use './button.scss';
+
 .option {
   padding: 4px 0px;
   cursor: pointer;
@@ -18,8 +20,7 @@
   pointer-events: none;
 }
 .values {
-  padding-left: 32px;
-  padding-top: 10px;
+  padding: 10px;
   background: var(--secondary-background-color);
   display: grid;
 }
@@ -37,4 +38,36 @@ div.upgrade {
 }
 div.upgrade span {
   padding: 10px;
+}
+
+.camera-header {
+  display: flex;
+  margin-top: 4px;
+
+  cursor: pointer;
+}
+.camera-header * {
+  flex-basis: auto;
+
+  // Only allow clicks on the outermost header.
+  pointer-events: none;
+}
+.camera-header ha-icon {
+  padding-right: 10px;
+}
+.camera-header .new-camera {
+  font-style: italic;
+  color: var(--secondary-text-color, 'black');
+}
+.cameras {
+  margin: 5px 5px 10px 20px;
+}
+.cameras .controls {
+  display: inline-block;
+  margin-left: auto;
+  margin-right: 0px;
+}
+.cameras .controls ha-icon-button.button {
+  --mdc-icon-button-size: 32px;
+  --mdc-icon-size: calc(var(--mdc-icon-button-size) / 2);
 }

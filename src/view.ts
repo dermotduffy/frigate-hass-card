@@ -1,26 +1,65 @@
 import type { BrowseMediaSource, FrigateCardView } from './types.js';
 import { dispatchFrigateCardEvent } from './common.js';
 
-export interface ViewParameters {
+export interface ViewEvolveParameters {
   view?: FrigateCardView;
+  camera?: string;
   target?: BrowseMediaSource;
   childIndex?: number;
   previous?: View;
 }
 
+export interface ViewParameters extends ViewEvolveParameters {
+  view: FrigateCardView;
+  camera: string;
+}
+
 export class View {
   view: FrigateCardView;
+  camera: string;
   target?: BrowseMediaSource;
   childIndex?: number;
   previous?: View;
 
-  constructor(params?: ViewParameters) {
-    this.view = params?.view || 'live';
+  constructor(params: ViewParameters) {
+    this.view = params?.view;
+    this.camera = params?.camera;
     this.target = params?.target;
     this.childIndex = params?.childIndex;
     this.previous = params?.previous;
   }
 
+  /**
+   * Clone a view.
+   */
+  public clone(): View {
+    return new View({
+      view: this.view,
+      camera: this.camera,
+      target: this.target,
+      childIndex: this.childIndex,
+      previous: this.previous
+    });
+  }
+
+  /**
+   * Evolve this view by changing parameters and returning a new view.
+   * @param params Parameters to change.
+   * @returns A new evolved view.
+   */
+  public evolve(params: ViewEvolveParameters): View {
+    return new View({
+      view: params.view ?? this.view,
+      camera: params.camera ?? this.camera,
+      target: params.target ?? this.target,
+      childIndex: params.childIndex ?? this.childIndex,
+      previous: params.previous ?? this.previous,
+    })
+  }
+
+  /**
+   * Determine if current view matches a named view.
+   */
   public is(name: string): boolean {
     return this.view == name;
   }
@@ -43,7 +82,7 @@ export class View {
    * Determine if a view is for the media viewer.
    */
   public isViewerView(): boolean {
-    return ['clip', 'clip-specific', 'snapshot', 'snapshot-specific'].includes(
+    return ['clip', 'snapshot'].includes(
       this.view,
     );
   }
@@ -52,14 +91,14 @@ export class View {
    * Determine if a view is related to a clip or clips.
    */
   public isClipRelatedView(): boolean {
-    return ['clip', 'clips', 'clip-specific'].includes(this.view);
+    return ['clip', 'clips'].includes(this.view);
   }
 
   /**
    * Determine if a view is related to a snapshot or snapshots.
    */
   public isSnapshotRelatedView(): boolean {
-    return ['snapshot', 'snapshots', 'snapshot-specific'].includes(this.view);
+    return ['snapshot', 'snapshots'].includes(this.view);
   }
 
   /**

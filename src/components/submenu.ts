@@ -8,6 +8,7 @@ import { actionHandler } from '../action-handler-directive.js';
 import { refreshDynamicStateParameters } from '../common.js';
 
 import submenuStyle from '../scss/submenu.scss';
+import type { Corner } from "@material/mwc-menu";
 
 @customElement('frigate-card-submenu')
 export class FrigateCardSubmenu extends LitElement {
@@ -16,6 +17,9 @@ export class FrigateCardSubmenu extends LitElement {
 
   @property({ attribute: false })
   public submenu?: MenuSubmenu;
+
+  @property({ attribute: false })
+  public corner?: Corner;
 
   protected _renderItem(item: MenuSubmenuItem): TemplateResult | void {
     if (!this.hass) {
@@ -27,6 +31,8 @@ export class FrigateCardSubmenu extends LitElement {
       <mwc-list-item
         style="${styleMap(stateParameters.style || {})}"
         graphic="icon"
+        ?selected=${item.selected}
+        ?activated=${item.selected}
         aria-label="${stateParameters.title || ''}"
         @action=${(ev) => {
           // Attach the action config so ascendants have access to it.
@@ -56,7 +62,9 @@ export class FrigateCardSubmenu extends LitElement {
     }
 
     return html`
-      <ha-button-menu corner="BOTTOM_LEFT">
+      <ha-button-menu
+        corner=${this.corner || "BOTTOM_LEFT"}
+      >
         <ha-icon-button
           style="${styleMap(this.submenu.style || {})}"
           class="button"

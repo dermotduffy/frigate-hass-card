@@ -1,7 +1,5 @@
 ha-icon-button.button {
-  z-index: 10;
   color: var(--secondary-color, white);
-  opacity: 0.8;
   background-color: rgba(0, 0, 0, 0.6);
   border-radius: 50%;
   padding: 0px;
@@ -9,4 +7,5 @@ ha-icon-button.button {
   --ha-icon-display: block;
   /* Buttons can always be clicked */
   pointer-events: auto;
+  opacity: 0.9;
 }

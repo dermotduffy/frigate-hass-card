@@ -1,10 +1,10 @@
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import { CSSResultGroup, TemplateResult, html, unsafeCSS } from 'lit';
+import { EmblaOptionsType } from 'embla-carousel';
 import { customElement, property } from 'lit/decorators.js';
 
 import type { BrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
 import { FrigateCardCarousel } from './carousel.js';
-import { actionHandler } from '../action-handler-directive.js';
 import { dispatchFrigateCardEvent } from '../common.js';
 
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
@@ -25,7 +25,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   @property({ attribute: false })
   set config(config: ThumbnailsControlConfig | undefined) {
     if (config) {
-      if (config && (config.size !== undefined && config.size !== null)) {
+      if (config && config.size !== undefined && config.size !== null) {
         this.style.setProperty('--frigate-card-carousel-thumbnail-size', config.size);
       }
       this._config = config;
@@ -35,12 +35,18 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
 
   @property({ attribute: false })
   set highlightSelected(value: boolean) {
-    this.style.setProperty('--frigate-card-carousel-thumbnail-opacity', value ? '0.6' : '1.0');
+    this.style.setProperty(
+      '--frigate-card-carousel-thumbnail-opacity',
+      value ? '0.6' : '1.0',
+    );
   }
 
-  constructor() {
-    super();
-    this._options = {
+  /**
+   * Get the Embla options to use.
+   * @returns An EmblaOptionsType object or undefined for no options.
+   */
+  protected _getOptions(): EmblaOptionsType {
+    return {
       containScroll: 'keepSnaps',
       dragFree: true,
     };
@@ -76,10 +82,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
 
     const slides: TemplateResult[] = [];
     for (let i = 0; i < this.target.children.length; ++i) {
-      const thumbnail = this._renderThumbnail(
-        this.target,
-        i,
-        slides.length);
+      const thumbnail = this._renderThumbnail(this.target, i, slides.length);
       if (thumbnail) {
         slides.push(thumbnail);
       }
@@ -108,11 +111,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
 
     return html`<div
       class="embla__slide"
-      .actionHandler=${actionHandler({
-        hasHold: false,
-        hasDoubleClick: false,
-      })}
-      @action=${() => {
+      @click=${() => {
         if (this._carousel && this._carousel.clickAllowed()) {
           dispatchFrigateCardEvent<ThumbnailCarouselTap>(this, 'carousel:tap', {
             slideIndex: slideIndex,
@@ -122,7 +121,11 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
         }
       }}
     >
-      <img src="${mediaToRender.thumbnail}" title="${mediaToRender.title}" />
+      <img
+        aria-label="${mediaToRender.title}"
+        src="${mediaToRender.thumbnail}"
+        title="${mediaToRender.title}"
+      />
     </div>`;
   }
 

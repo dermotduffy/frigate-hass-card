@@ -33,6 +33,11 @@ img,video {
   width: 100%;
   height: 100%;
   overflow: hidden;
+
+  // Center vertically in the viewport.
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .embla__viewport.is-draggable {
   cursor: move;

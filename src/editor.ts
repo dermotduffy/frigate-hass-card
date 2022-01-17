@@ -5,20 +5,26 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 
 import { HomeAssistant, LovelaceCardEditor, fireEvent } from 'custom-card-helpers';
 import { localize } from './localize/localize.js';
-import { frigateCardConfigDefaults, RawFrigateCardConfig } from './types.js';
+import {
+  frigateCardConfigDefaults,
+  RawFrigateCardConfig,
+  RawFrigateCardConfigArray,
+} from './types.js';
 
-import frigate_card_editor_style from './scss/editor.scss';
 import {
-  copyConfig,
-  deleteConfigValue,
-  getConfigValue,
-  isConfigUpgradeable,
-  setConfigValue,
-  trimConfig,
-  upgradeConfig,
-} from './config-mgmt.js';
-import {
-  CONF_CAMERA_ENTITY,
+  CONF_CAMERAS,
+  CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
+  CONF_CAMERAS_ARRAY_CAMERA_NAME,
+  CONF_CAMERAS_ARRAY_CLIENT_ID,
+  CONF_CAMERAS_ARRAY_ICON,
+  CONF_CAMERAS_ARRAY_ID,
+  CONF_CAMERAS_ARRAY_LABEL,
+  CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
+  CONF_CAMERAS_ARRAY_TITLE,
+  CONF_CAMERAS_ARRAY_URL,
+  CONF_CAMERAS_ARRAY_WEBRTC_ENTITY,
+  CONF_CAMERAS_ARRAY_WEBRTC_URL,
+  CONF_CAMERAS_ARRAY_ZONE,
   CONF_DIMENSIONS_ASPECT_RATIO,
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
   CONF_EVENT_VIEWER_AUTOPLAY_CLIP,
@@ -28,19 +34,15 @@ import {
   CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE,
   CONF_EVENT_VIEWER_DRAGGABLE,
   CONF_EVENT_VIEWER_LAZY_LOAD,
-  CONF_FRIGATE_CAMERA_NAME,
-  CONF_FRIGATE_CLIENT_ID,
-  CONF_FRIGATE_LABEL,
-  CONF_FRIGATE_URL,
-  CONF_FRIGATE_ZONE,
   CONF_IMAGE_SRC,
+  CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
+  CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
+  CONF_LIVE_DRAGGABLE,
+  CONF_LIVE_LAZY_LOAD,
   CONF_LIVE_PRELOAD,
-  CONF_LIVE_PROVIDER,
-  CONF_LIVE_WEBRTC_ENTITY,
-  CONF_LIVE_WEBRTC_URL,
   CONF_MENU_BUTTONS_CLIPS,
   CONF_MENU_BUTTONS_FRIGATE,
   CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD,
@@ -55,6 +57,18 @@ import {
   CONF_VIEW_TIMEOUT,
   CONF_VIEW_UPDATE_FORCE,
 } from './const.js';
+import { arrayMove, getEntityTitle, prettifyFrigateName } from './common.js';
+import {
+  copyConfig,
+  deleteConfigValue,
+  getArrayConfigPath,
+  getConfigValue,
+  isConfigUpgradeable,
+  setConfigValue,
+  upgradeConfig,
+} from './config-mgmt.js';
+
+import frigate_card_editor_style from './scss/editor.scss';
 
 interface EditorOptionsSet {
   icon: string;
@@ -66,10 +80,14 @@ interface EditorOptions {
   [setName: string]: EditorOptionsSet;
 }
 
-interface EditorOptionTarget {
+interface ConfigValueTarget {
   configValue: string;
   checked?: boolean;
   value?: string;
+}
+
+interface EditorCameraTarget {
+  cameraIndex: number;
 }
 
 interface EditorOptionSetTarget {
@@ -77,17 +95,11 @@ interface EditorOptionSetTarget {
 }
 
 const options: EditorOptions = {
-  basic: {
-    icon: 'cog',
-    name: localize('editor.basic'),
-    secondary: localize('editor.basic_secondary'),
+  cameras: {
+    icon: 'video',
+    name: localize('editor.cameras'),
+    secondary: localize('editor.cameras_secondary'),
     show: true,
-  },
-  frigate: {
-    icon: 'alpha-f-box',
-    name: localize('editor.frigate'),
-    secondary: localize('editor.frigate_secondary'),
-    show: false,
   },
   view: {
     icon: 'eye',
@@ -134,6 +146,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   @state() protected _helpers?: any;
   protected _initialized = false;
   protected _configUpgradeable = false;
+
+  @property({ attribute: false })
+  protected _expandedCameraIndex: number | null = null;
 
   public setConfig(config: RawFrigateCardConfig): void {
     // Note: This does not use Zod to parse the configuration, so it may be
@@ -191,6 +206,20 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   /**
+   * Get a localized help label for a given config path.
+   * @param configPath The config path.
+   * @returns A localized label.
+   */
+  protected _getLabel(configPath: string): string {
+    // Strip out array indices from the path.
+    const path = configPath
+      .split('.')
+      .filter((e) => !e.match(/^\[[0-9]+\]$/))
+      .join('.');
+    return localize(`config.${path}`);
+  }
+
+  /**
    * Render a dropdown menu.
    * @param configPath The configuration path to set/read.
    * @param dropdown The downdown in an array or key/value dictionary.
@@ -207,7 +236,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
     return html`
       <paper-dropdown-menu
-        .label=${localize(`config.${configPath}`)}
+        .label=${this._getLabel(configPath)}
         @value-changed=${this._valueChangedHandler}
         .configValue=${configPath}
       >
@@ -226,6 +255,201 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   /**
+   * Render a camera header.
+   * @param cameraIndex The index of the camera to edit/add.
+   * @param cameraConfig The configuration of the camera in question.
+   * @param addNewCamera Whether or not this is a header to add a new camera.
+   * @returns A rendered template.
+   */
+  protected _renderCameraHeader(
+    cameraIndex: number,
+    cameraConfig?: RawFrigateCardConfig,
+    addNewCamera?: boolean,
+  ): TemplateResult {
+    return html`
+      <div
+        class="camera-header"
+        @click=${this._toggleCameraHandler}
+        .cameraIndex=${cameraIndex}
+      >
+        <ha-icon .icon=${addNewCamera ? 'mdi:video-plus' : 'mdi:video'}></ha-icon>
+        <span>
+          ${addNewCamera
+            ? html` <span class="new-camera">
+                [${localize('editor.add_new_camera')}...]
+              </span>`
+            : // Attempt to render a recognizable name for the camera,
+              // starting with the most likely to be useful and working our
+              // ways towards the least useful.
+              html` <span>
+                ${cameraConfig?.title ||
+                cameraConfig?.id ||
+                [
+                  cameraConfig?.camera_entity
+                    ? getEntityTitle(this.hass, String(cameraConfig.camera_entity))
+                    : '',
+                  cameraConfig?.client_id,
+                  cameraConfig?.camera_name
+                    ? prettifyFrigateName(String(cameraConfig.camera_name))
+                    : '',
+                  cameraConfig?.label
+                    ? prettifyFrigateName(String(cameraConfig.label))
+                    : '',
+                  cameraConfig?.zone
+                    ? prettifyFrigateName(String(cameraConfig.zone))
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join(' / ') ||
+                localize('editor.camera') + ' #' + cameraIndex}
+              </span>`}
+        </span>
+      </div>
+    `;
+  }
+
+  /**
+   * Render a camera section.
+   * @param cameras The full array of cameras.
+   * @param cameraIndex The index (in the array) to render.
+   * @param cameraEntities The full list of camera entities.
+   * @param addNewCamera Whether or not this is a section to add a new non-existent camera.
+   * @returns A rendered template.
+   */
+  protected _renderCamera(
+    cameras: RawFrigateCardConfigArray,
+    cameraIndex: number,
+    cameraEntities: string[],
+    addNewCamera?: boolean,
+  ): TemplateResult | void {
+    const liveProviders = {
+      '': '',
+      auto: localize('config.cameras.live_providers.auto'),
+      frigate: localize('config.cameras.live_providers.frigate'),
+      'frigate-jsmpeg': localize('config.cameras.live_providers.frigate-jsmpeg'),
+      webrtc: localize('config.cameras.live_providers.webrtc'),
+    } as const;
+
+    // Make a new config and update the editor with changes on it,
+    const modifyConfig = (func: (config: RawFrigateCardConfig) => boolean): void => {
+      if (this._config) {
+        const newConfig = copyConfig(this._config);
+        if (func(newConfig)) {
+          this._updateConfig(newConfig);
+        }
+      }
+    };
+
+    return html`
+      ${this._renderCameraHeader(cameraIndex, cameras[cameraIndex], addNewCamera)}
+      ${this._expandedCameraIndex === cameraIndex
+        ? html` <div class="values">
+            <div class="controls">
+              <ha-icon-button
+                class="button"
+                .label=${localize('editor.move_up')}
+                .disabled=${addNewCamera ||
+                !this._config ||
+                !Array.isArray(this._config.cameras) ||
+                cameraIndex <= 0}
+                @click=${() =>
+                  !addNewCamera &&
+                  modifyConfig((config: RawFrigateCardConfig): boolean => {
+                    if (Array.isArray(config.cameras) && cameraIndex > 0) {
+                      arrayMove(config.cameras, cameraIndex, cameraIndex - 1);
+                      this._expandedCameraIndex = cameraIndex - 1;
+                      return true;
+                    }
+                    return false;
+                  })}
+              >
+                <ha-icon icon="mdi:arrow-up"></ha-icon>
+              </ha-icon-button>
+              <ha-icon-button
+                class="button"
+                .label=${localize('editor.move_down')}
+                .disabled=${addNewCamera ||
+                !this._config ||
+                !Array.isArray(this._config.cameras) ||
+                cameraIndex >= this._config.cameras.length - 1}
+                @click=${() =>
+                  !addNewCamera &&
+                  modifyConfig((config: RawFrigateCardConfig): boolean => {
+                    if (
+                      Array.isArray(config.cameras) &&
+                      cameraIndex < config.cameras.length - 1
+                    ) {
+                      arrayMove(config.cameras, cameraIndex, cameraIndex + 1);
+                      this._expandedCameraIndex = cameraIndex + 1;
+                      return true;
+                    }
+                    return false;
+                  })}
+              >
+                <ha-icon icon="mdi:arrow-down"></ha-icon>
+              </ha-icon-button>
+              <ha-icon-button
+                class="button"
+                .label=${localize('editor.delete')}
+                .disabled=${addNewCamera}
+                @click=${() => {
+                  modifyConfig((config: RawFrigateCardConfig): boolean => {
+                    if (Array.isArray(config.cameras)) {
+                      config.cameras.splice(cameraIndex, 1);
+                      this._expandedCameraIndex = null;
+                      return true;
+                    }
+                    return false;
+                  });
+                }}
+              >
+                <ha-icon icon="mdi:delete"></ha-icon>
+              </ha-icon-button>
+            </div>
+            ${this._renderDropdown(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_CAMERA_ENTITY, cameraIndex),
+              cameraEntities,
+            )}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_CAMERA_NAME, cameraIndex),
+            )}
+            ${this._renderDropdown(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_LIVE_PROVIDER, cameraIndex),
+              liveProviders)}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_URL, cameraIndex),
+            )}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_LABEL, cameraIndex),
+            )}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_ZONE, cameraIndex),
+            )}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_CLIENT_ID, cameraIndex),
+            )}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_TITLE, cameraIndex),
+            )}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_ICON, cameraIndex),
+            )}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
+            )}
+            ${this._renderDropdown(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_ENTITY, cameraIndex),
+              cameraEntities,
+            )}
+            ${this._renderStringInput(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_URL, cameraIndex),
+            )}
+          </div>`
+        : ``}
+    `;
+  }
+
+  /**
    * Render a string input field.
    * @param configPath The configuration path to set/read.
    * @param allowedPattern An allowed input pattern.
@@ -239,12 +463,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       return;
     }
     return html` <paper-input
-      label=${localize(`config.${configPath}`)}
+      label=${this._getLabel(configPath)}
       .value=${getConfigValue(this._config, configPath, '')}
       .configValue=${configPath}
       allowed-pattern=${ifDefined(allowedPattern ? allowedPattern : undefined)}
       prevent-invalid-input=${ifDefined(allowedPattern)}
-      @value-changed=${this._valueChangedHandler}
+      @change=${this._valueChangedHandler}
     ></paper-input>`;
   }
 
@@ -263,13 +487,18 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     if (!this._config) {
       return;
     }
-    return html` <ha-formfield .label=${label || localize(`config.${configPath}`)}>
+    return html` <ha-formfield .label=${label || this._getLabel(configPath)}>
       <ha-switch
         .checked="${getConfigValue(this._config, configPath, valueDefault)}"
         .configValue=${configPath}
         @change=${this._valueChangedHandler}
       ></ha-switch>
     </ha-formfield>`;
+  }
+
+  protected _updateConfig(config: RawFrigateCardConfig): void {
+    this._config = config;
+    fireEvent(this, 'config-changed', { config: this._config });
   }
 
   protected render(): TemplateResult | void {
@@ -312,13 +541,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       below: localize('config.menu.modes.below'),
     };
 
-    const liveProviders = {
-      '': '',
-      frigate: localize('config.live.providers.frigate'),
-      'frigate-jsmpeg': localize('config.live.providers.frigate-jsmpeg'),
-      webrtc: localize('config.live.providers.webrtc'),
-    };
-
     const eventViewerNextPreviousControlStyles = {
       '': '',
       thumbnails: localize(
@@ -326,6 +548,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       ),
       chevrons: localize('config.event_viewer.controls.next_previous.styles.chevrons'),
       none: localize('config.event_viewer.controls.next_previous.styles.none'),
+    };
+
+    const liveNextPreviousControlStyles = {
+      '': '',
+      chevrons: localize('config.live.controls.next_previous.styles.chevrons'),
+      icons: localize('config.live.controls.next_previous.styles.icons'),
+      none: localize('config.live.controls.next_previous.styles.none'),
     };
 
     const aspectRatioModes = {
@@ -353,6 +582,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     const getShowButtonLabel = (configPath: string) =>
       localize('editor.show_button') + ': ' + localize(`config.${configPath}`);
 
+    const cameras = (getConfigValue(this._config, CONF_CAMERAS) ||
+      []) as RawFrigateCardConfigArray;
+
     return html`
       ${this._configUpgradeable
         ? html` <div class="upgrade">
@@ -365,10 +597,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     if (this._config) {
                       const upgradedConfig = copyConfig(this._config);
                       upgradeConfig(upgradedConfig);
-                      this._config = upgradedConfig;
-
-                      fireEvent(this, 'config-changed', { config: this._config });
-                      this.requestUpdate();
+                      this._updateConfig(upgradedConfig);
                     }
                   }}
                 >
@@ -378,25 +607,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             <br />`
         : html``}
       <div class="card-config">
-        ${this._renderOptionSetHeader('basic')}
-        ${options.basic.show
-          ? html`
-              <div class="values">
-                ${this._renderDropdown(CONF_CAMERA_ENTITY, cameraEntities)}
-              </div>
-            `
-          : ''}
-        ${this._renderOptionSetHeader('frigate')}
-        ${options.frigate.show
-          ? html`
-              <div class="values">
-                ${this._renderStringInput(CONF_FRIGATE_CAMERA_NAME)}
-                ${this._renderStringInput(CONF_FRIGATE_URL)}
-                ${this._renderStringInput(CONF_FRIGATE_LABEL)}
-                ${this._renderStringInput(CONF_FRIGATE_ZONE)}
-                ${this._renderStringInput(CONF_FRIGATE_CLIENT_ID)}
-              </div>
-            `
+        ${this._renderOptionSetHeader('cameras')}
+        ${options.cameras.show
+          ? html` <div class="cameras">
+              ${cameras.map((_, index) =>
+                this._renderCamera(cameras, index, cameraEntities),
+              )}
+              ${this._renderCamera(cameras, cameras.length, cameraEntities, true)}
+            </div>`
           : ''}
         ${this._renderOptionSetHeader('view')}
         ${options.view.show
@@ -404,9 +622,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               <div class="values">
                 ${this._renderDropdown(CONF_VIEW_DEFAULT, viewModes)}
                 ${this._renderStringInput(CONF_VIEW_TIMEOUT, '[0-9]')}
-                ${this._renderSwitch(
-                  CONF_VIEW_UPDATE_FORCE,
-                  defaults.view.update_force)}
+                ${this._renderSwitch(CONF_VIEW_UPDATE_FORCE, defaults.view.update_force)}
               </div>
             `
           : ''}
@@ -464,9 +680,19 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html`
               <div class="values">
                 ${this._renderSwitch(CONF_LIVE_PRELOAD, defaults.live.preload)}
-                ${this._renderDropdown(CONF_LIVE_PROVIDER, liveProviders)}
-                ${this._renderDropdown(CONF_LIVE_WEBRTC_ENTITY, cameraEntities)}
-                ${this._renderStringInput(CONF_LIVE_WEBRTC_URL)}
+                ${this._renderSwitch(
+                  CONF_LIVE_DRAGGABLE,
+                  defaults.live.draggable,
+                )}
+                ${this._renderSwitch(
+                  CONF_LIVE_LAZY_LOAD,
+                  defaults.live.lazy_load,
+                )}
+                ${this._renderDropdown(
+                  CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
+                  liveNextPreviousControlStyles,
+                )}
+                ${this._renderStringInput(CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE)}
                 ${this._renderDropdown(
                   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
                   thumbnailModes,
@@ -542,6 +768,19 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   /**
+   * Display/hide a camera section.
+   * @param ev The event triggering the change.
+   */
+  protected _toggleCameraHandler(ev: { target: EditorCameraTarget | null }): void {
+    if (ev && ev.target) {
+      this._expandedCameraIndex =
+        this._expandedCameraIndex == ev.target.cameraIndex
+          ? null
+          : ev.target.cameraIndex;
+    }
+  }
+
+  /**
    * Handle a toggled set of options.
    * @param ev The event triggering the change.
    */
@@ -573,7 +812,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    * @param ev Event triggering the change.
    */
   protected _valueChangedHandler(ev: {
-    target: (EditorOptionTarget & HTMLElement) | null;
+    target: (ConfigValueTarget & HTMLElement) | null;
   }): void {
     const target = ev.target;
     if (!this._config || !this.hass || !target) {
@@ -591,22 +830,17 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       return;
     }
 
+    if (getConfigValue(this._config, key) === value) {
+      return;
+    }
+
     const newConfig = copyConfig(this._config);
     if (value === '' || typeof value === 'undefined') {
-      // Don't delete empty properties that are from a dropdown menu. An empty
-      // property in that context may just be a user-entered value that is not
-      // in the valid choices in the dropdown. This probably won't end well for
-      // the user anyway, but having the whole property deleted the moment they
-      // press a key is very jarring.
-      if (target.tagName != 'PAPER-DROPDOWN-MENU') {
-        deleteConfigValue(newConfig, key);
-      }
+      deleteConfigValue(newConfig, key);
     } else {
       setConfigValue(newConfig, key, value);
     }
-    trimConfig(newConfig);
-    this._config = newConfig;
-    fireEvent(this, 'config-changed', { config: this._config });
+    this._updateConfig(newConfig);
   }
 
   /**

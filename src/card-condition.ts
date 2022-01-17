@@ -1,9 +1,14 @@
-import type { FrigateCardCondition } from './types';
-import { View } from './view';
+import type {
+  FrigateCardCondition,
+  OverrideConfigurationKey,
+  RawFrigateCardConfig,
+} from './types';
+import { merge, cloneDeep } from 'lodash-es';
 
 export interface ConditionState {
-  view?: View;
+  view?: string;
   fullscreen?: boolean;
+  camera?: string;
 }
 
 class ConditionStateRequestEvent extends Event {
@@ -11,15 +16,23 @@ class ConditionStateRequestEvent extends Event {
 }
 
 export function evaluateCondition(
-  condition?: FrigateCardCondition,
-  state?: ConditionState,
+  condition?: Readonly<FrigateCardCondition>,
+  state?: Readonly<ConditionState>,
 ): boolean {
-  let result = true;
-  if (condition?.view?.length && state?.view) {
-    result &&= condition?.view.includes(state?.view.view);
+  if (!state) {
+    return false;
   }
-  if (condition?.fullscreen !== undefined && state?.fullscreen !== undefined) {
-    result &&= condition?.fullscreen == state?.fullscreen;
+
+  let result = true;
+  if (condition?.view?.length) {
+    result &&= !!state.view && condition.view.includes(state.view);
+  }
+  if (condition?.fullscreen !== undefined) {
+    result &&=
+      state.fullscreen !== undefined && condition.fullscreen == state.fullscreen;
+  }
+  if (condition?.camera?.length) {
+    result &&= !!state.camera && condition.camera.includes(state.camera);
   }
   return result;
 }
@@ -65,4 +78,43 @@ export function conditionStateRequestHandler(
   conditionState?: ConditionState,
 ): void {
   ev.conditionState = conditionState;
+}
+
+type RawOverrides = {
+  conditions: FrigateCardCondition;
+  overrides: RawFrigateCardConfig;
+}[];
+
+export function getOverriddenConfig(
+  config: Readonly<RawFrigateCardConfig>,
+  overrides: Readonly<RawOverrides> | undefined,
+  conditionState?: Readonly<ConditionState>,
+): RawFrigateCardConfig {
+  const output = cloneDeep(config);
+  let overridden = false;
+  if (overrides) {
+    for (const override of overrides) {
+      if (evaluateCondition(override.conditions, conditionState)) {
+        merge(output, override.overrides);
+        overridden = true;
+      }
+    }
+  }
+  // Attempt to return the same configuration object if it has not been
+  // overridden (to reduce re-renders for a configuration that has not changed).
+  return overridden ? output : config;
+}
+
+export function getOverridesByKey(
+  overrides: Readonly<RawOverrides> | undefined,
+  key: OverrideConfigurationKey,
+): RawOverrides {
+  return (
+    overrides
+      ?.filter((o) => key in o.overrides)
+      .map((o) => ({
+        conditions: o.conditions,
+        overrides: o.overrides[key] as RawFrigateCardConfig,
+      })) ?? []
+  );
 }

@@ -48,10 +48,6 @@ customElements.whenDefined('ha-camera-stream').then(() => {
           ? html`
               <img
                 @load=${(e) => {
-                  // TODO: This block can be removed a safe distance from HA 2021.11.
-                  if (typeof this._elementResized != 'undefined') {
-                    this._elementResized();
-                  }
                   dispatchMediaShowEvent(this, e);
                 }}
                 .src=${typeof this._connected == 'undefined' || this._connected

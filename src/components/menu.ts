@@ -1,12 +1,6 @@
-import { HomeAssistant, handleAction, hasAction } from 'custom-card-helpers';
-import {
-  CSSResultGroup,
-  LitElement,
-  TemplateResult,
-  html,
-  unsafeCSS,
-} from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { HASSDomEvent, HomeAssistant, handleAction, hasAction } from 'custom-card-helpers';
+import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
 
@@ -16,6 +10,7 @@ import './submenu.js';
 
 import type {
   Actions,
+  ActionType,
   ExtendedHomeAssistant,
   MenuButton,
   MenuConfig,
@@ -28,7 +23,7 @@ import {
 } from '../common.js';
 
 import menuStyle from '../scss/menu.scss';
-import { ConditionState, evaluateCondition } from '../card-condition.js';
+import { Corner } from '@material/mwc-menu';
 
 export const FRIGATE_BUTTON_MENU_ICON = 'frigate';
 
@@ -40,23 +35,29 @@ export class FrigateCardMenu extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant & ExtendedHomeAssistant;
 
-  @property({ attribute: false })
   set menuConfig(menuConfig: MenuConfig) {
+    this.expanded = !menuConfig?.mode.startsWith('hidden-');
+
     this._menuConfig = menuConfig;
     if (menuConfig) {
       this.style.setProperty('--frigate-card-menu-button-size', menuConfig.button_size);
     }
   }
+  @state()
   protected _menuConfig?: MenuConfig;
 
-  @property({ attribute: false })
-  protected expand = false;
+  @state()
+  protected expanded = false;
 
   @property({ attribute: false })
   public buttons: MenuButton[] = [];
 
-  @property({ attribute: false })
-  protected conditionState?: ConditionState;
+  protected _isFrigateCardAction(action: ActionType): boolean {
+    // Determine if this action is a Frigate card action, if so handle it
+    // internally.
+    const frigateCardAction = convertActionToFrigateCardCustomAction(action);
+    return !!frigateCardAction && frigateCardAction.frigate_card_action == 'frigate';
+  }
 
   /**
    * Handle an action on a menu button.
@@ -64,7 +65,7 @@ export class FrigateCardMenu extends LitElement {
    * @param button The button configuration.
    */
   protected _actionHandler(
-    ev: CustomEvent<{ action: string; config?: Actions }>,
+    ev: HASSDomEvent<{ action: string; config?: Actions }>,
     config?: Actions,
   ): void {
     if (!ev) {
@@ -89,22 +90,19 @@ export class FrigateCardMenu extends LitElement {
       return;
     }
 
-    // Determine if this action is a Frigate card action, if so handle it
-    // internally.
-    const frigateCardAction = convertActionToFrigateCardCustomAction(action);
     if (
-      frigateCardAction &&
-      frigateCardAction.frigate_card_action == 'frigate' &&
+      action &&
+      this._isFrigateCardAction(action) &&
       this._menuConfig?.mode.startsWith('hidden-')
     ) {
       // If the user presses the frigate button and it's a hide-away menu,
       // then expand the menu and return.
-      this.expand = !this.expand;
+      this.expanded = !this.expanded;
       return;
     }
 
     // Collapse menu after the user clicks on something.
-    this.expand = false;
+    this.expanded = false;
     handleAction(this, this.hass as HomeAssistant, config, interaction);
   }
 
@@ -115,7 +113,15 @@ export class FrigateCardMenu extends LitElement {
    */
   protected _renderButton(button: MenuButton): TemplateResult | void {
     if (button.type == 'custom:frigate-card-menu-submenu') {
+      let corner: Corner | undefined;
+      if (this._menuConfig?.mode.endsWith('-left')) {
+        // Minor nicety: Start the menu to the right of the menu itself is on
+        // the left, otherwise use the default.
+        corner = 'BOTTOM_RIGHT';
+      }
+
       return html` <frigate-card-submenu
+        .corner=${corner}
         .hass=${this.hass}
         .submenu=${button}
         @action=${this._actionHandler.bind(this)}
@@ -123,11 +129,11 @@ export class FrigateCardMenu extends LitElement {
       </frigate-card-submenu>`;
     }
 
-    let stateParameters: StateParameters = {...button};
+    let stateParameters: StateParameters = { ...button };
 
     if (stateParameters.icon == FRIGATE_BUTTON_MENU_ICON) {
       stateParameters.icon =
-        this._menuConfig?.mode.startsWith('hidden-') && !this.expand
+        this._menuConfig?.mode.startsWith('hidden-') && !this.expanded
           ? 'mdi:alpha-f-box-outline'
           : 'mdi:alpha-f-box';
     }
@@ -146,21 +152,15 @@ export class FrigateCardMenu extends LitElement {
       button: true,
     };
 
-    // TODO: Upon a safe distance from the release of HA 2021.11 these
-    // attributes can be removed from the <ha-icon-button>.
-    // - icon (replaced with the embedded <ha-icon>)
-    // - title (replaced with .label)
     return html` <ha-icon-button
       class="${classMap(classes)}"
       style="${styleMap(stateParameters.style || {})}"
-      icon=${stateParameters.icon || 'mdi:gesture-tap-button'}
-      .label=${stateParameters.title || ''}
-      title=${stateParameters.title || ''}
-      @action=${(ev) => this._actionHandler(ev, button)}
       .actionHandler=${actionHandler({
         hasHold: hasHold,
         hasDoubleClick: hasDoubleClick,
       })}
+      .label=${stateParameters.title || ''}
+      @action=${(ev) => this._actionHandler(ev, button)}
     >
       <ha-icon icon="${stateParameters.icon || 'mdi:gesture-tap-button'}"></ha-icon>
     </ha-icon-button>`;
@@ -176,10 +176,7 @@ export class FrigateCardMenu extends LitElement {
     }
     const mode = this._menuConfig.mode;
 
-    if (
-      mode == 'none' ||
-      !evaluateCondition(this._menuConfig.conditions, this.conditionState)
-    ) {
+    if (mode == 'none') {
       return;
     }
 
@@ -190,10 +187,14 @@ export class FrigateCardMenu extends LitElement {
         mode.startsWith('overlay-') ||
         mode.startsWith('hover-'),
       'expanded-horizontal':
-        (mode.startsWith('overlay-') || mode.startsWith('hover-') || this.expand) &&
+        (mode.startsWith('overlay-') ||
+          mode.startsWith('hover-') ||
+          (mode.startsWith('hidden-') && this.expanded)) &&
         (mode.endsWith('-top') || mode.endsWith('-bottom')),
       'expanded-vertical':
-        (mode.startsWith('overlay-') || mode.startsWith('hover-') || this.expand) &&
+        (mode.startsWith('overlay-') ||
+          mode.startsWith('hover-') ||
+          (mode.startsWith('hidden-') && this.expanded)) &&
         (mode.endsWith('-left') || mode.endsWith('-right')),
       full: mode == 'above' || mode == 'below',
       left: mode.endsWith('-left'),
@@ -202,9 +203,14 @@ export class FrigateCardMenu extends LitElement {
       bottom: mode.endsWith('-bottom'),
     };
 
+    // If the hidden menu isn't expanded, only show the Frigate button.
+    const buttons =
+      !mode.startsWith('hidden-') || this.expanded
+        ? this.buttons
+        : this.buttons.filter((button) => button.icon === FRIGATE_BUTTON_MENU_ICON);
     return html`
       <div class=${classMap(classes)}>
-        ${Array.from(this.buttons).map((button) => this._renderButton(button))}
+        ${buttons.map((button) => this._renderButton(button))}
       </div>
     `;
   }

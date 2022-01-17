@@ -2,11 +2,14 @@ import { HassEntity, MessageBase } from 'home-assistant-js-websocket';
 import { HomeAssistant, stateIcon } from 'custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map';
 import { ZodSchema, z } from 'zod';
+import { isEqual } from 'lodash-es';
 
 import { localize } from './localize/localize.js';
 import {
   ActionType,
+  CameraConfig,
   ExtendedHomeAssistant,
+  FrigateCardAction,
   FrigateCardCustomAction,
   frigateCardCustomActionSchema,
   MediaShowInfo,
@@ -40,7 +43,7 @@ export async function homeAssistantWSRequest<T>(
   hass: HomeAssistant & ExtendedHomeAssistant,
   schema: ZodSchema<T>,
   request: MessageBase,
-): Promise<T | null> {
+): Promise<T> {
   const response = await hass.callWS<T>(request);
 
   if (!response) {
@@ -283,7 +286,20 @@ export function convertActionToFrigateCardCustomAction(
  * @param action The Frigate card action string (e.g. 'fullscreen')
  * @returns A FrigateCardCustomAction for that action string.
  */
-export function createFrigateCardCustomAction(action: string): FrigateCardCustomAction {
+export function createFrigateCardCustomAction(
+  action: FrigateCardAction,
+  camera?: string,
+): FrigateCardCustomAction | undefined {
+  if (action == 'camera_select') {
+    if (!camera) {
+      return undefined;
+    }
+    return {
+      action: 'fire-dom-event',
+      frigate_card_action: action,
+      camera: camera,
+    };
+  }
   return {
     action: 'fire-dom-event',
     frigate_card_action: action,
@@ -381,4 +397,102 @@ export function refreshDynamicStateParameters(
   params.title = params.title ?? (state?.attributes?.friendly_name || params.entity);
   params.icon = params.icon ?? stateIcon(state);
   return params;
+}
+
+/**
+ * Prettify a Frigate name by converting '_' to spaces and capitalizing words.
+ * @param input The input Frigate (camera/label/zone) name.
+ * @returns A prettified name.
+ */
+export function prettifyFrigateName(input?: string): string | undefined {
+  if (!input) {
+    return undefined;
+  }
+  const words = input.split(/[_\s]+/);
+  return words
+    .map((word) => {
+      return word[0].toUpperCase() + word.substring(1);
+    })
+    .join(' ');
+}
+
+/**
+ * Get the title of an entity.
+ * @param entity The entity id.
+ * @param hass The Home Assistant object.
+ * @returns The title or undefined.
+ */
+export function getEntityTitle(
+  hass?: HomeAssistant,
+  entity?: string,
+): string | undefined {
+  return entity ? hass?.states[entity]?.attributes?.friendly_name : undefined;
+}
+
+/**
+ * Get the icon of an entity.
+ * @param entity The entity id.
+ * @param hass The Home Assistant object.
+ * @returns The icon or undefined.
+ */
+export function getEntityIcon(
+  hass?: HomeAssistant,
+  entity?: string,
+): string | undefined {
+  return hass && entity ? stateIcon(hass.states[entity]) : undefined;
+}
+
+/**
+ * Get a camera text title.
+ * @param hass The Home Assistant object.
+ * @param config The camera config.
+ * @returns A title string.
+ */
+export function getCameraTitle(
+  hass?: HomeAssistant,
+  config?: CameraConfig | null,
+): string {
+  return (
+    config?.title ||
+    (config?.camera_entity ? getEntityTitle(hass, config.camera_entity) : '') ||
+    (config?.camera_name ? prettifyFrigateName(config.camera_name) : '') ||
+    ''
+  );
+}
+
+/**
+ * Get a camera icon.
+ * @param hass The Home Assistant object.
+ * @param config The camera config.
+ * @returns An icon string.
+ */
+export function getCameraIcon(
+  hass?: HomeAssistant,
+  config?: CameraConfig | null,
+): string {
+  return config?.icon || getEntityIcon(hass, config?.camera_entity) || 'mdi:video';
+}
+
+/**
+ * Move an element within an array.
+ * @param target Target array.
+ * @param from From index.
+ * @param to To index.
+ */
+export function arrayMove(target: unknown[], from: number, to: number): void {
+  const element = target[from];
+  target.splice(from, 1);
+  target.splice(to, 0, element);
+}
+
+/**
+ * Determine if the contents of the n(ew) and o(ld) values have changed. For use
+ * in lit web components that may have a value that changes address but not
+ * contents -- and for which a re-render is expensive/jarring.
+ * @param n The new value.
+ * @param o The old value.
+ * @returns `true` is the contents have changed.
+ */
+export function contentsChanged(n: unknown, o: unknown): boolean {
+  return !isEqual(n, o);
 }

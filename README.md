@@ -19,13 +19,13 @@
 
 A full-featured Frigate Lovelace card:
 
-* Live viewing.
+* Live viewing of multiple cameras.
 * Clips and snapshot browsing via mini-gallery.
 * Automatic updating to continually show latest clip / snapshot.
 * Support for filtering events by zone and label.
 * Arbitrary entity access via menu (e.g. motion sensor access).
 * Fullscreen mode.
-* Carousel/Swipeable media & thumbnails.
+* Carousel/Swipeable media, thumbnails and cameras.
 * Direct media downloads.
 * Lovelace visual editing support.
 * Full [Picture Elements](https://www.home-assistant.io/lovelace/picture-elements/) support.
@@ -73,28 +73,56 @@ lovelace:
 
 ## Options
 
-### Basic Options
+At least 1 camera must be configured in the `cameras` options, but otherwise all configuration parameters are optional.
 
-| Option | Default | Description |
-| - | - | - |
-| `camera_entity` | | The optional Frigate camera entity to use in the `frigate` live provider view. Also used to automatically detect the value of `frigate.camera_name`.|
+### Camera Options
 
-### Frigate Server Options
+The `cameras` block configures a list of cameras the card should support, under:
 
-All configuration is under:
-
- ```yaml
-frigate:
+```yaml
+cameras:
+  - [...camera 1...]
+  - [...camera 2...]
 ```
 
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `camera_entity` | | :heavy_multiplication_x: | The Home Assistant camera entity to use with the `frigate` live provider view. Also used to automatically detect the name of the underlying Frigate camera, and the title/icon of the camera. |
+| `camera_name` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | The Frigate camera name to use when communicating with the Frigate server, e.g. for viewing clips/snapshots or the JSMPEG live view. To view the birdseye view set this to `birdseye` and use the `frigate-jsmpeg` live provider.|
+| `frigate_url` | | :heavy_multiplication_x: | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. |
+| `label` | | :heavy_multiplication_x: | A Frigate label / object filter used to filter events (clips & snapshots), e.g. 'person'.|
+| `zone` | | :heavy_multiplication_x: | A Frigate zone used to filter events (clips & snapshots), e.g. 'front_door'.|
+| `client_id` | `frigate` | :heavy_multiplication_x: | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://docs.frigate.video/integrations/home-assistant/#multiple-instance-support).|
+| `title` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | A friendly name for this camera to use in the card. |
+| `icon` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | The icon to use for this camera in the camera menu and in the next & previous controls when using the `icon` style. |
+| `webrtc` | | :heavy_multiplication_x: | The WebRTC entity/URL to use for this camera. See below. |
+| `id` | `camera_entity`, `webrtc.entity` or `camera_name` if set (in that preference order). | :heavy_multiplication_x: | An optional identifier to use throughout the card configuration to refer unambiguously to this camera. See [camera IDs](#camera-ids). |
 
-| Option | Default | Description |
-| - | - | - |
-| `camera_name` | Autodetected from `camera_entity` if that is specified. | The Frigate camera name to use when communicating with the Frigate server, e.g. for viewing clips/snapshots or the JSMPEG live view. To view the birdseye view set this to `birdseye` and use the `frigate-jsmpeg` live provider.|
-| `url` | | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. |
-| `label` | | A Frigate label / object filter used to filter events (clips & snapshots), e.g. 'person'.|
-| `zone` | | A Frigate zone used to filter events (clips & snapshots), e.g. 'front_door'.|
-| `client_id` | `frigate` | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://docs.frigate.video/integrations/home-assistant/#multiple-instance-support).|
+#### Camera WebRTC configuration
+
+The `webrtc` block configures only the entity/URL for this camera to be used with the WebRTC live provider. This configuration is included as part of a camera entry in the `cameras` array.
+
+```yaml
+cameras:
+ - webrtc:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `entity` | | :heavy_multiplication_x: | The RTSP entity to pass WebRTC for this camera. Specify this OR `url` (below). |
+| `url` | | :heavy_multiplication_x: | The RTSP url to pass to WebRTC. Specify this OR `entity` (above). |
+
+See [Using WebRTC](#webrtc) below for more details on how to use WebRTC with this card.
+
+<a name="camera-ids"></a>
+
+#### Camera IDs: Refering to cameras in card configuration
+
+Each camera configured in the card has a single identifier (`id`). For a given camera, this will be one of the camera {`id`, `camera_entity`, `webrtc.entity` or `camera_name`} parameters for that camera -- in that order of precedence. These ids may be used in conditions or custom actions to refer to a given camera unambiguously. |
+
+#### Example
+
+See [the basic cameras configuration example](#basic-cameras-configuration) below.
 
 ### View Options
 
@@ -104,13 +132,13 @@ All configuration is under:
 view:
 ```
 
-| Option | Default | Description |
-| - | - | - |
-| `default` | `live` | The view to show in the card by default. See [views](#views) below.|
-| `timeout` | | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
-| `actions` | | Actions to use for all views, individual actions may be overriden by view-specific actions. See [actions](#actions) below.|
-| `update_force` | `false` | Whether card updates/refreshes should ignore playing media and human interaction. See [card updates](#card-updates) below for behavior and usecases.|
-| `update_entities` | | **YAML only**: A list of entity ids that should cause the whole card to re-render. Entities used in picture elements / included in the menu do not need to be explicitly included here to be kept updated. See [card updates](#card-updates) below for behavior and usecases.|
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `default` | `live` | :heavy_multiplication_x: | The view to show in the card by default. See [views](#views) below.|
+| `timeout` | | :heavy_multiplication_x: | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
+| `actions` | | :heavy_multiplication_x: | Actions to use for all views, individual actions may be overriden by view-specific actions. See [actions](#actions) below.|
+| `update_force` | `false` | :heavy_multiplication_x: | Whether card updates/refreshes should ignore playing media and human interaction. See [card updates](#card-updates) below for behavior and usecases.|
+| `update_entities` | | :heavy_multiplication_x: | **YAML only**: A list of entity ids that should cause the view to reset to the default. See [card updates](#card-updates) below for behavior and usecases.|
 
 ### Menu Options
 
@@ -120,12 +148,11 @@ All configuration is under:
 menu:
 ```
 
-| Option | Default | Description |
-| - | - | - |
-| `mode` | `hidden-top` | The menu mode to show by default. See [menu modes](#menu-modes) below.|
-| `button_size` | `40px` | The size of the menu buttons [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
-| `buttons` | | Whether to show or hide built-in buttons. See below. |
-| `conditions` | | Condition(s) that must be met in order for the menu to be displayed. These conditions use the same format as the `custom:frigate-card-conditional` card (see [Possible conditions](#frigate-card-conditions) below). If conditions are specified but not met, then the menu is not rendered.|
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `mode` | `hidden-top` | :white_check_mark: | The menu mode to show by default. See [menu modes](#menu-modes) below.|
+| `button_size` | `40px` | :white_check_mark: | The size of the menu buttons [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
+| `buttons` | | :white_check_mark: | Whether to show or hide built-in buttons. See below. |
 
 #### Menu Options: Buttons
 
@@ -136,16 +163,17 @@ menu:
   buttons:
 ```
 
-| Option | Default | Description |
-| - | - | - |
-| `frigate` | `true` | Whether to show the `Frigate` menu button: brings the user to the default configured view (`view.default`), or collapses/expands the menu if the `menu.mode` is `hidden-*` . |
-| `live` | `true` | Whether to show the `live` view menu button: brings the user to the `live` view. See [views](#views) below.|
-| `clips` | `true` | Whether to show the `clips` view menu button: brings the user to the `clips` view on tap and the most-recent `clip` view on hold. See [views](#views) below.|
-| `snapshots` | `true` | Whether to show the `snapshots` view menu button: brings the user to the `clips` view on tap and the most-recent `snapshot` view on hold. See [views](#views) below.|
-| `image` | `false` | Whether to show the `image` view menu button: brings the user to the static `image` view. See [views](#views) below.|
-| `download` | `true` | Whether to show the `download` menu button: allow direct download of the media being displayed.|
-| `frigate_ui` | `true` | Whether to show the `frigate_ui` menu button: brings the user to a context-appropriate page on the Frigate UI (e.g. the camera homepage). Will only appear if the `frigate.url` option is set.|
-| `fullscreen` | `true` | Whether to show the `fullscreen` menu button: expand the card to consume the fullscreen. |
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `frigate` | `true` | :white_check_mark: | Whether to show the `Frigate` menu button: brings the user to the default configured view (`view.default`), or collapses/expands the menu if the `menu.mode` is `hidden-*` . |
+| `cameras` | `true` | :white_check_mark: | Whether to show the camera selection submenu. Will only appear if multiple cameras are configured. |
+| `live` | `true` | :white_check_mark: | Whether to show the `live` view menu button: brings the user to the `live` view. See [views](#views) below.|
+| `clips` | `true` | :white_check_mark: | Whether to show the `clips` view menu button: brings the user to the `clips` view on tap and the most-recent `clip` view on hold. See [views](#views) below.|
+| `snapshots` | `true` | :white_check_mark: | Whether to show the `snapshots` view menu button: brings the user to the `clips` view on tap and the most-recent `snapshot` view on hold. See [views](#views) below.|
+| `image` | `false` | :white_check_mark: | Whether to show the `image` view menu button: brings the user to the static `image` view. See [views](#views) below.|
+| `download` | `true` | :white_check_mark: | Whether to show the `download` menu button: allow direct download of the media being displayed.|
+| `frigate_ui` | `true` | :white_check_mark: | Whether to show the `frigate_ui` menu button: brings the user to a context-appropriate page on the Frigate UI (e.g. the camera homepage). Will only appear if the `frigate.url` option is set.|
+| `fullscreen` | `true` | :white_check_mark: | Whether to show the `fullscreen` menu button: expand the card to consume the fullscreen. |
 
 ### Live Options
 
@@ -155,14 +183,16 @@ All configuration is under:
 live:
 ```
 
-| Option | Default | Description |
-| - | - | - |
-| `preload` | `false` | Whether or not to preload the live view. Preloading causes the live view to render in the background so it's instantly available when requested. This consumes additional network/CPU resources continually.|
-| `provider` | `frigate` | The means through which the live camera view is displayed. See [Live Provider](#live-provider) below.|
-| `actions` | | Actions to use for the `live` view. See [actions](#actions) below.|
-| `controls` | | Configuration for the `live` view controls. See below. |
-| `jsmpeg` | | Configuration for the `frigate-jsmpeg` live provider. See below.|
-| `webrtc` | | Configuration for the `webrtc` live provider. See below.|
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `preload` | `false` | :heavy_multiplication_x: | Whether or not to preload the live view. Preloading causes the live view to render in the background regardless of what view is actually shown, so it's instantly available when requested. This consumes additional network/CPU resources continually. |
+| `lazy_load` | `true` | :heavy_multiplication_x: | Whether or not to lazily load camera views in the camera carousel. Setting this will `false` will cause all cameras to load simultaneously when the `live` carousel is opened (or cause all cameras to load continually if both `lazy_load` and `preload` are `true`). This will result in a smoother carousel experience at a cost of (potentially) a substantial amount of continually streamed data. |
+| `draggable` | `true` | :heavy_multiplication_x: | Whether or not the live carousel can be dragged left or right, via touch/swipe and mouse dragging. |
+| `provider` | `frigate` | :white_check_mark: | The means through which the live camera view is displayed. See [Live Provider](#live-provider) below.|
+| `actions` | | :white_check_mark: | Actions to use for the `live` view. See [actions](#actions) below.|
+| `controls` | | :white_check_mark: | Configuration for the `live` view controls. See below. |
+| `jsmpeg` | | :white_check_mark: | Configuration for the `frigate-jsmpeg` live provider. See below.|
+| `webrtc` | | :white_check_mark: | Configuration for the `webrtc` live provider. See below.|
 
 #### Available Live Providers
 
@@ -171,7 +201,6 @@ live:
 |`frigate`|High|High|Builtin|Use the built-in Home Assistant camera stream from Frigate (RTMP). The camera doesn't even need to be a Frigate camera! Latency may be lowered through the use of [LL-HLS](https://www.home-assistant.io/integrations/stream/#ll-hls).|
 |`frigate-jsmpeg`|Lower|Low|Builtin|Stream the JSMPEG stream from Frigate (proxied via the Frigate integration). See [note below on the required integration version](#jsmpeg-troubleshooting) for this live provider to function. This is the only live provider that can view the Frigate `birdseye` view.|
 |`webrtc`|Lowest|High|Separate installation required|Uses [WebRTC](https://github.com/AlexxIT/WebRTC) to stream live feed, requires manual extra setup, see [below](#webrtc).|
-
 
 #### Live Provider: JSMPEG Configuration
 
@@ -182,9 +211,11 @@ live:
   jsmpeg:
 ```
 
-| Option | Default | Description |
-| - | - | - |
-| `options` | | **Advanced users only**: Control the underlying [JSMPEG library options](https://github.com/phoboslab/jsmpeg#usage). Supports setting these JSMPEG options `{audio, video, pauseWhenHidden, disableGl, disableWebAssembly, preserveDrawingBuffer, progressive, throttled, chunkSize, maxAudioLag, videoBufferSize, audioBufferSize}`. This is not necessary for the vast majority of users: only set these flags if you know what you're doing, as you may entirely break video rendering in the card.|
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `options` | | :white_check_mark: | **Advanced users only**: Control the underlying [JSMPEG library options](https://github.com/phoboslab/jsmpeg#usage). Supports setting these JSMPEG options `{audio, video, pauseWhenHidden, disableGl, disableWebAssembly, preserveDrawingBuffer, progressive, throttled, chunkSize, maxAudioLag, videoBufferSize, audioBufferSize}`. This is not necessary for the vast majority of users: only set these flags if you know what you're doing, as you may entirely break video rendering in the card.|
+
+<a name="webrtc-live-configuration"></a>
 
 #### Live Provider: WebRTC Configuration
 
@@ -195,11 +226,11 @@ live:
   webrtc:
 ```
 
-| Option | Default | Description |
-| - | - | - |
-| `entity` | | The RTSP entity to pass WebRTC. Specify this OR `webrtc.url` (above). |
-| `url` | | The RTSP url to pass to WebRTC. Specify this OR `webrtc.entity` (below).|
-| `*`| | Any other options in the `webrtc:` YAML dictionary are silently passed through to WebRTC. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides.|
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `*`| | :white_check_mark: | Any options specified in the `webrtc:` YAML dictionary are silently passed through to WebRTC. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides. This implies that if `entity` or `url` are specified here they will override the matching named parameters under the per camera configuration. |
+
+See [Using WebRTC](#webrtc) below for more details on how to use WebRTC with this card.
 
 #### Live Controls: Thumbnails
 
@@ -211,11 +242,27 @@ live:
     thumbnails:
 ```
 
-| Option | Default | Description |
-| - | - | - |
-| `mode` | `none` | Whether to show the thumbnail carousel `below` the media, `above` the media or to hide it entirely (`none`).|
-| `size` | `100px` | The size of the thumbnails in the thumbnail carousel [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
-| `media` | `clips` | Whether to show `clips` or `snapshots` in the thumbnail carousel in the `live` view.|
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `mode` | `none` | :white_check_mark: | Whether to show the thumbnail carousel `below` the media, `above` the media or to hide it entirely (`none`).|
+| `size` | `100px` | :white_check_mark: | The size of the thumbnails in the thumbnail carousel [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
+| `media` | `clips` | :white_check_mark: | Whether to show `clips` or `snapshots` in the thumbnail carousel in the `live` view.|
+
+#### Live Controls: Next / Previous
+
+All configuration is under:
+
+```yaml
+live:
+  controls:
+    next_previous:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `style` | `chevrons` | :white_check_mark: | When viewing live cameras, what kind of controls to show to move to the previous/next camera. Acceptable values: `chevrons`, `icons`, `none` . |
+| `size` | `48px` | :white_check_mark: | The size of the next/previous controls [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
+
 
 ### Event Viewer Options
 
@@ -227,14 +274,13 @@ All configuration is under:
 event_viewer:
 ```
 
-
-| Option | Default | Description |
-| - | - | - |
-| `autoplay_clip` | `false` | Whether or not to autoplay clips in the 'clip' [view](#views). Clips manually chosen in the clips gallery will still autoplay.|
-| `lazy_load` | `true` | Whether or not to lazily load media in the event viewer carousel. Setting this will false will fetch all media immediately which may make the carousel experience smoother at a cost of (potentially) a substantial number of simultaneous media fetches on load. |
-| `draggable` | `true` | Whether or not the event viewer carousel can be dragged left or right, via touch/swipe and mouse dragging. |
-| `controls` | | Configuration for the event viewer. See below. |
-| `actions` | | Actions to use for all views that use the `event_viewer` (e.g. `clip`, `snapshot`). See [actions](#actions) below.|
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `autoplay_clip` | `true` | :heavy_multiplication_x: | Whether or not to autoplay clips.|
+| `lazy_load` | `true` | :heavy_multiplication_x: | Whether or not to lazily load media in the event viewer carousel. Setting this will false will fetch all media immediately which may make the carousel experience smoother at a cost of (potentially) a substantial number of simultaneous media fetches on load. |
+| `draggable` | `true` | :heavy_multiplication_x: | Whether or not the event viewer carousel can be dragged left or right, via touch/swipe and mouse dragging. |
+| `controls` | | :heavy_multiplication_x: | Configuration for the event viewer. See below. |
+| `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `event_viewer` (e.g. `clip`, `snapshot`). See [actions](#actions) below.|
 
 #### Event Viewer Controls: Next / Previous
 
@@ -246,10 +292,10 @@ event_viewer:
     next_previous:
 ```
 
-| Option | Default | Description |
-| - | - | - |
-| `style` | `thumbnails` | When viewing media, what kind of controls to show to move to the previous/next media item. Acceptable values: `thumbnails`, `chevrons`, `none` . |
-| `size` | `48px` | The size of the next/previous controls [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `style` | `thumbnails` | :heavy_multiplication_x: | When viewing media, what kind of controls to show to move to the previous/next media item. Acceptable values: `thumbnails`, `chevrons`, `none` . |
+| `size` | `48px` | :heavy_multiplication_x: | The size of the next/previous controls [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
 
 #### Event Viewer Controls: Thumbnails
 
@@ -261,10 +307,10 @@ event_viewer:
     thumbnails:
 ```
 
-| Option | Default | Description |
-| - | - | - |
-| `mode` | `none` | Whether to show the thumbnail carousel `below` the media, `above` the media or to hide it entirely (`none`).|
-| `size` | `100px` | The size of the thumbnails in the thumbnail carousel [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `mode` | `none` | :heavy_multiplication_x: | Whether to show the thumbnail carousel `below` the media, `above` the media or to hide it entirely (`none`).|
+| `size` | `100px` | :heavy_multiplication_x: | The size of the thumbnails in the thumbnail carousel [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
 
 ### Event Gallery Options
 
@@ -276,9 +322,9 @@ All configuration is under:
 event_gallery:
 ```
 
-| Option | Default | Description |
-| - | - | - |
-| `actions` | | Actions to use for all views that use the `event_gallery` (e.g. `clips`, `snapshots`). See [actions](#actions) below.|
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `event_gallery` (e.g. `clips`, `snapshots`). See [actions](#actions) below.|
 
 ### Image Options
 
@@ -288,10 +334,10 @@ All configuration is under:
 image:
 ```
 
-| Option | Default | Description |
-| - | - | - |
-| `src` | [embedded image](https://www.flickr.com/photos/dianasch/47543120431) | A static image URL for use with the `image` [view](#views).|
-| `actions` | | Actions to use for the `image` view. See [actions](#actions) below.|
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `src` | | :heavy_multiplication_x: | [embedded image](https://www.flickr.com/photos/dianasch/47543120431) | A static image URL for use with the `image` [view](#views).|
+| `actions` | | :heavy_multiplication_x: | Actions to use for the `image` view. See [actions](#actions) below.|
 
 ### Dimension Options
 
@@ -301,10 +347,10 @@ All configuration is under:
 dimensions:
 ```
 
-| Option | Default | Description |
-| - | - | - |
-| `aspect_ratio_mode` | `dynamic` | The aspect ratio mode to use. Acceptable values: `dynamic`, `static`, `unconstrained`. See [aspect ratios](#aspect-ratios) below.|
-| `aspect_ratio` | `16:9` | The aspect ratio  to use. Acceptable values: `<W>:<H>` or `<W>/<H>`. See [aspect ratios](#aspect-ratios) below.|
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `aspect_ratio_mode` | `dynamic` | :heavy_multiplication_x: | The aspect ratio mode to use. Acceptable values: `dynamic`, `static`, `unconstrained`. See [aspect ratios](#aspect-ratios) below.|
+| `aspect_ratio` | `16:9` | :heavy_multiplication_x: | The aspect ratio  to use. Acceptable values: `<W>:<H>` or `<W>/<H>`. See [aspect ratios](#aspect-ratios) below.|
 
 #### `dimensions.aspect_ratio_mode`:
 
@@ -337,6 +383,34 @@ be used by default.
 
 <a name="webrtc"></a>
 
+### Override Options
+
+All configuration is a list under:
+
+```yaml
+overrides:
+```
+
+Various parts of this configuration may conditionally (see [Frigate Card
+Conditions](#frigate-card-conditions)) be overridden, for example to use custom
+WebRTC paramters for a particular camera or to hide the menu in fullscreen mode.
+
+Not all configuration parameters are overriddable (only those with check marks
+in this documentation) -- some because it doesn't make sense for that parameter
+to vary, and many because of the extra complexity of supporting overriding given
+the lack of compelling usecases ([please request new overridable parameters
+here!](https://github.com/dermotduffy/frigate-hass-card/issues/new/choose)).
+
+Each entry under the top-level `overrides` configuration block should be a list
+item, that has both of the following parameters set:
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `conditions` | | :heavy_multiplication_x: | A set of conditions that must evaluate to `true` in order for the overrides to be applied. See [Frigate Card Conditions](#frigate-card-conditions). |
+| `overrides` | | :heavy_multiplication_x: |Configuration overrides to be applied. Any configuration parameter described in this documentation as 'Overridable' is supported. |
+
+
+
 ### Using WebRTC
 
 WebRTC support blends the use of the ultra-realtime [WebRTC live
@@ -345,40 +419,64 @@ events/snapshots/UI. A perfect combination!
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/webrtc.png" alt="Live viewing" width="400px">
 
-
 **Note**: WebRTC must be installed and configured separately (see [details](https://github.com/AlexxIT/WebRTC)) before it can be used with this card.
 
 #### Specifying The WebRTC Camera
 
 WebRTC does **not** support use of Frigate-provided camera entities, as it
-requires an RTSP stream which Frigate does not provide. There are two ways to
-specify the WebRTC source camera:
+requires an RTSP stream which Frigate does not currently provide. There are two
+ways to specify the WebRTC source camera:
 
 * Manual setup of separate RTSP camera entities in Home Assistant ([see
   example](https://www.home-assistant.io/integrations/generic/#live-stream)).
   These entities will then be available for selection in the GUI card editor for
-  the Frigate card under the WebRTC options, or can be manually specified with a
-  `webrtc.entity` option in the YAML configuration for this card:
+  the camera, or can be manually specified with a `webrtc.entity` option under
+  that particular cameras configuration:
 
 ```yaml
-[rest of Frigate card configuration]
-live:
-  webrtc:
-    entity: 'camera.front_door_rstp`
+cameras:
+ - webrtc:
+     entity: 'camera.front_door_rstp`
 ```
 
 * OR manually entering the WebRTC camera URL parameter in the GUI card editor,
   or configuring the `url` parameter as part of a manual Frigate card
-  configuration, like the following example:
+  configuration, as illustrated in the following example:
 
 ```yaml
-[rest of Frigate card configuration]
-live:
-  webrtc:
-    url: 'rtsp://USERNAME:PASSWORD@CAMERA:554/RTSP_PATH'
+cameras:
+ - webrtc:
+     url: 'rtsp://USERNAME:PASSWORD@CAMERA:554/RTSP_PATH'
 ```
 
-See [WebRTC configuration](https://github.com/AlexxIT/WebRTC#configuration) for full configuration options.
+Other WebRTC options may be specified under the `live` section, like so:
+
+```yaml
+live:
+  webrtc:
+    ui: true
+```
+
+See [the WebRTC live configuration](#webrtc-live-configuration) above, and the
+[external WebRTC configuration
+documentation](https://github.com/AlexxIT/WebRTC#configuration) for full
+configuration options that can be used here.
+
+<a name="frigate-card-conditions"></a>
+
+## Frigate Card Conditions
+
+Conditions are used to apply certain configuration depending on runtime evaluations. Conditions may be used in `elements` configuration (as part of a `custom:frigate-card-conditional` element) or the `overrides` configuration (see below for both).
+
+All variables listed are under a `conditions:` section. 
+
+| Condition | Description |
+| ------------- | --------------------------------------------- |
+| `view` | A list of [views](#views) in which this condition is satified (e.g. `clips`) |
+| `camera` | A list of camera ids in which this condition is satisfied. See [camera IDs](#camera-ids).|
+| `fullscreen` | If `true` the condition is satisfied if the card is in fullscreen mode. If `false` the condition is satisfied if the card is **NOT** in fullscreen mode.|
+
+See the [PTZ example below](#frigate-card-conditional-example) for a real-world example of how these conditions can be used.
 
 ## Picture Elements / Menu Customizations
 
@@ -421,9 +519,10 @@ Parameters for the `custom:frigate-card-menu-submenu` element are identical to t
 | Parameter | Default | Description |
 | - | - | - |
 | `title` | | An optional title to display. |
-| `icon` | | An optional item icon to display. |
+| `icon` | | An optional item icon to display, e.g. `mdi:car` |
 | `entity` | | An optional Home Assistant entity from which title, icon and style can be automatically computed. |
 | `state_color` | `true` | Whether or not the title and icon should be stylized based on state. |
+| `selected` | `false` | Whether or not to show this item as selected. |
 | `style` | | Position and style the element using CSS. |
 | `tap_action`, `double_tap_action` or `hold_action` | | Standard [Home Assistant action configuration](https://www.home-assistant.io/lovelace/actions). |
 
@@ -438,21 +537,8 @@ Parameters for the `custom:frigate-card-conditional` element:
 | Parameter | Description |
 | ------------- | --------------------------------------------- |
 | `type` | Must be `custom:frigate-card-conditional`. |
-| `conditions` | A set of conditions that must evaluate to true in order for the elements to be rendered. See below. |
  `elements` | The elements to render. Can be any supported element, include additional condition or custom elements. |
-
-<a name="frigate-card-conditions"></a>
-
-##### Frigate Card Conditions
-
-All variables listed are under a `conditions:` section. 
-
-| Condition | Description |
-| ------------- | --------------------------------------------- |
-| `view` | A list of [views](#views) in which these elements should be rendered. |
-| `fullscreen` | If `true` the elements are only rendered if the card is in fullscreen mode. If `false` the elements are only rendered if the card is **NOT** in fullscreen mode.|
-
-See the [PTZ example below](#frigate-card-conditional-example) for a real-world example.
+| `conditions` | A set of conditions that must evaluate to true in order for the elements to be rendered. See [Frigate Card Conditions](#frigate-card-conditions). |
 
 ### Special Actions
 
@@ -469,7 +555,7 @@ See the [PTZ example below](#frigate-card-conditional-example) for a real-world 
 |`download`|Download the displayed media.|
 |`frigate_ui`|Open the Frigate UI at the configured URL.|
 |`fullscreen`|Toggle fullscreen.| 
-
+|`camera_select`|Select a given camera. Takes a single additional `camera` parameter with the [camera ID](#camera-ids) of the camera to select.|
 
 <a name="views"></a>
 
@@ -541,6 +627,13 @@ This card supports several menu configurations.
 
 ## Screenshots
 
+### Live Viewing of Multiple Cameras
+
+Scroll through your live cameras, or choose from a menu. Seamlessly supports
+cameras of different dimensions, and custom submenus per camera.
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/camera-carousel.gif" alt="Gallery" width="400px">
+
 ### Full Viewing Of Events
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/gallery.png" alt="Gallery" width="400px">
@@ -557,19 +650,55 @@ This card supports several menu configurations.
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/viewer-with-thumbnail-next-prev.gif" alt="Viewer with event thumbnails" width="400px">
 
-## Card Editing
+### Card Editing
 
 This card supports full editing via the Lovelace card editor. Additional arbitrary configuration for WebRTC may be specified in YAML mode.
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/editor.png" alt="Live viewing" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/editor.gif" alt="Live viewing" width="400px">
 
-## Configurable Submenus
+### Configurable Submenus
 
 This card supports fully configurable submenus.
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/submenu.gif" alt="Configurable submenus" width="400px">
 
 ## Examples
+
+### Basic cameras configuration
+
+<details>
+  <summary>Expand: Basic cameras configuration</summary>
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.sitting_room
+  - camera_entity: camera.front_door
+```
+</details>
+
+
+<details>
+  <summary>Expand: Different providers for a single camera</summary>
+
+Cameras can be repeated with different providers (note the required use of `id`
+to provide a separate unambiguous way of referring to that camera, since the
+`camera_entity` is shared between the two cameras).
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.front_door
+    live_provider: frigate-jsmpeg
+    title: Front Door (JSMPEG)
+  - camera_entity: camera.front_door
+    live_provider: webrtc
+    title: Front Door (WebRTC)
+    webrtc:
+      entity: camera.front_door_rtsp
+    id: front-door-webrtc
+```
+</details>
 
 ### WebRTC
 
@@ -818,29 +947,6 @@ live:
 ```
 </details>
 
-### Hiding The Menu In Certain Circumstances
-
-You can add conditions to the menu, which will hide the menu unless met.
-
-<details>
-  <summary>Expand: Hiding the menu</summary>
-
-This example hides the menu unless the card is in fullscreen mode, and uses a card-wide action to enable fullscreen mode on `double_tap`:
-
-```yaml
-[...]
-view:
-  actions:
-    double_tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: fullscreen
-menu:
-  conditions:
-    fullscreen: true
-```
-
-</details>
-
 <a name="configuring-a-submenu-example"></a>
 
 ### Configuring a submenu
@@ -877,27 +983,118 @@ elements:
 
 </details>
 
+<details>
+  <summary>Expand: Custom submenus per camera</summary>
+
+This example shows submenus conditional on the camera selected.
+
+```yaml
+[...]
+elements:
+  - type: custom:frigate-card-conditional
+    conditions:
+      camera:
+        - camera.front_door
+    elements:
+      - type: custom:frigate-card-menu-submenu
+        icon: mdi:door
+        items:
+          - title: Front Door Lights
+            icon: mdi:lightbulb
+            entity: light.front_door_lights
+            tap_action:
+              action: toggle
+  - type: custom:frigate-card-conditional
+    conditions:
+      camera:
+        - camera.living_room
+    elements:
+      - type: custom:frigate-card-menu-submenu
+        icon: mdi:sofa
+        items:
+          - title: Living Room Lights
+            icon: mdi:lightbulb
+            entity: light.living_room_lights
+            tap_action:
+              action: toggle
+          - title: Living Room Lamp
+            icon: mdi:lightbulb
+            entity: light.living_room_lamp
+            tap_action:
+              action: toggle
+```
+
+</details>
+
+
+### Overriding card behavior
+
+You can override card configuration when certain [conditions](#frigate-card-conditions) are met.
+
+<details>
+  <summary>Expand: Hiding the menu in fullscreen mode</summary>
+
+This example disables the menu unless the card is in fullscreen mode, and uses a
+card-wide action to enable fullscreen mode on `double_tap`:
+
+```yaml
+view:
+  actions:
+    double_tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: fullscreen
+overrides:
+  - conditions:
+      fullscreen: true
+    overrides:
+      menu:
+        mode: none
+```
+
+</details>
+
+<details>
+  <summary>Expand: Enable WebRTC UI for a particular camera</summary>
+
+This example enables WebRTC UI mode for a particular camera.
+
+```yaml
+cameras:
+ - camera_entity: camera.office
+[...]
+overrides:
+  - conditions:
+      camera:
+        - camera.office
+    overrides:
+      live:
+        provider: webrtc
+        webrtc:
+          ui: true
+```
+
+</details>
+
 <a name="card-updates"></a>
 
-## Card Refreshes / Updates
+## Card Refreshes
 
-Automated card refreshes / updates are minimized to avoid disruption to the
-user, in particular when media is playing. Three sets of flags govern when the
-card will automatically re-render in the absence of human interaction.
+Three sets of flags govern when the card will automatically re-render in the
+absence of human interaction.
 
 The following table describes the behavior these 3 flags have.
 
 ### Card Update Truth Table
 
-| `view.timeout` | `view.update_force` | `view.update_entities` & `camera_entity` | Behavior |
+| `view.timeout` | `view.update_force` | `view.update_entities` | Behavior |
 | :-: | :-: | :-: | - |
-| Unset or `0` | *(Any value)* | Unset | Card will not automatically re-render. |
-| Unset or `0` | `false` | *(Any entity)* | Card will reload **current** view when entity state changes, unless media is playing. |
-| Unset or `0` | `true` | *(Any entity)* | Card will reload **current** view when entity state changes. |
-| `X` seconds | `false` | Unset | Card will reload **default** view `X` seconds after human interaction stops, unless media is playing. |
-| `X` seconds | `false` | *(Any entity)* | Card will reload **default** view `X` seconds after human interaction stops and reload the **current** view when entity state changes -- in both cases unless media is playing. |
-| `X` seconds | `true` | Unset | Card will reload **default** view every `X` seconds. |
-| `X` seconds | `true` | *(Any entity)* | Card will reload **default** view every `X` seconds and reload the **current** view when entity state changes.  |
+| Unset or `0` | *(Any value)* | Unset | Card will not automatically refresh. |
+| Unset or `0` | `false` | *(Any entity)* | Card will reload default view when entity state changes, unless media is playing. |
+| Unset or `0` | `true` | *(Any entity)* | Card will reload default view when entity state changes. |
+| `X` seconds | `false` | Unset | Card will reload default view `X` seconds after human interaction stops, unless media is playing. |
+| `X` seconds | `false` | *(Any entity)* | Card will reload default view `X` seconds after human interaction stops or when entity state changes -- in both cases unless media is playing. |
+| `X` seconds | `true` | Unset | Card will reload default view every `X` seconds. |
+| `X` seconds | `true` | *(Any entity)* | Card will reload default view every `X` seconds or when entity state changes. |
 
 ### Usecases For Automated Refreshes
 
@@ -910,9 +1107,7 @@ view:
 ```
  * Using `clip` or `snapshot` as the default view (for the most recent clip or
    snapshot respectively) and having the card automatically refresh (to fetch a
-   newer clip/snapshot) when an entity state changes. A Frigate `camera_entity`
-   is generally not sufficient for this since the Home Assistant state for
-   Frigate camera entities does not change often. Instead, use the Frigate
+   newer clip/snapshot) when an entity state changes. Use the Frigate
    binary_sensor for that camera (or any other entity at your discretion) to
    trigger the update:
 ```yaml

@@ -9,12 +9,26 @@
     "no_clip": "No recent clip"
   },
   "config": {
-    "camera_entity": "Camera Entity",
-    "frigate": {
-      "camera_name": "Frigate camera name (Optional, autodetected from entity)",
+    "cameras": {
+      "camera_entity": "Camera Entity",
+      "camera_name": "Frigate camera name (Autodetected from entity)",
       "client_id": "Frigate client id (For >1 Frigate server)",
+      "id": "Unique id for this camera in this card",
       "label": "Frigate label/object filter",
-      "url": "Frigate server URL",
+      "frigate_url": "Frigate server URL",
+      "title": "Title for this camera (Autodetected from entity)",
+      "icon": "Icon for this camera (Autodetected from entity)",
+      "live_provider": "Live view provider for this camera",
+      "live_providers": {
+        "auto": "Automatic",
+        "frigate": "Frigate",
+        "frigate-jsmpeg": "Frigate JSMpeg",
+        "webrtc": "WebRTC"
+      },
+      "webrtc": {
+        "entity": "WebRTC Camera Entity (Not a Frigate camera)",
+        "url": "WebRTC Camera URL"
+      },
       "zone": "Frigate zone"
     },
     "view": {
@@ -31,13 +45,13 @@
       "update_force": "Force card updates (ignore media playing / interaction)"
     },
     "event_viewer": {
-      "autoplay_clip": "Autoplay most recent clip (In 'clip' view)",
-      "draggable": "Event viewer can be dragged/swiped",
-      "lazy_load": "Lazily load event media",
+      "autoplay_clip": "Autoplay clips",
+      "draggable": "Event Viewer can be dragged/swiped",
+      "lazy_load": "Event Viewer media is lazily loaded in carousel",
       "controls": {
         "next_previous": {
-          "style": "Event Viewer Next & Previous Control style",
-          "size": "Event Viewer Next & Previous Control size (e.g. '48px')",
+          "style": "Event Viewer next & previous control style",
+          "size": "Event Viewer next & previous control size (e.g. '48px')",
           "styles": {
             "thumbnails": "Thumbnails",
             "chevrons": "Chevrons",
@@ -56,18 +70,19 @@
       }
     },
     "live": {
-      "preload": "Preload live view",
-      "provider": "Live view provider",
-      "providers": {
-        "frigate": "Frigate",
-        "frigate-jsmpeg": "Frigate JSMpeg",
-        "webrtc": "WebRTC"
-      },
-      "webrtc": {
-        "entity": "WebRTC Camera Entity (Not a Frigate camera)",
-        "url": "WebRTC Camera URL"
-      },
+      "preload": "Preload live view in the background",
+      "draggable": "Live cameras view can be dragged/swiped",
+      "lazy_load": "Live cameras are lazily loaded in carousel",
       "controls": {
+        "next_previous": {
+          "style": "Live view next & previous control style",
+          "size": "Live view next & previous control size (e.g. '48px')",
+          "styles": {
+            "chevrons": "Chevrons",
+            "icons": "Icons",
+            "none": "None"
+          }
+        },
         "thumbnails": {
           "mode": "Live thumbnails mode",
           "size": "Live thumbnails size (e.g. '100px')",
@@ -87,7 +102,8 @@
         "frigate": "Frigate menu / Default view",
         "frigate_ui": "Frigate user Interface",
         "fullscreen": "Fullscreen",
-        "download": "Download event media"
+        "download": "Download event media",
+        "cameras": "Select camera"
       },
       "mode": "Menu mode",
       "modes": {
@@ -120,10 +136,8 @@
     }
   },
   "editor": {
-    "basic": "Basic",
-    "basic_secondary": "Options for most users",
-    "frigate": "Frigate",
-    "frigate_secondary": "Frigate server options",
+    "cameras": "Cameras",
+    "cameras_secondary": "What cameras to render on this card",
     "view": "View",
     "view_secondary": "What the card should show and how to show it",
     "menu": "Menu",
@@ -138,7 +152,12 @@
     "dimensions_secondary": "Dimensions & shape options",
     "show_button": "Show button",
     "upgrade": "Upgrade",
-    "upgrade_available": "An automatic card configuration upgrade is available"
+    "upgrade_available": "An automatic card configuration upgrade is available",
+    "delete": "Delete",
+    "move_up": "Move up",
+    "move_down": "Move down",
+    "add_new_camera": "Add new camera",
+    "camera": "Camera"
   },
   "error": {
     "empty_response": "Received empty response from Home Assistant for request",
@@ -151,12 +170,16 @@
     "invalid_configuration": "Invalid configuration",
     "invalid_configuration_no_hint": "No location hint available (bad or missing type?)",
     "upgrade_available": "An automated card configuration upgrade is available, please visit the visual card editor",
-    "missing_webrtc": "WebRTC component not found",
-    "no_frigate_camera_name": "Cannot autodetect Frigate camera name, you need to either set camera_entity and / or frigate.camera_name",
+    "webrtc_missing": "WebRTC component not found",
+    "webrtc_reported_error": "WebRTC component reported an error",
+    "no_cameras": "No valid cameras found, you must configure at least one camera entry",
+    "no_camera_id": "Could not determine camera id for the following camera, may need to set 'id' parameter manually",
+    "duplicate_camera_id": "Duplicate Frigate camera id for the following camera, use the 'id' parameter to uniquely identify cameras",
     "could_not_render_elements": "Could not render picture elements",
     "invalid_elements_config": "Invalid picture elements configuration",
     "jsmpeg_no_sign": "Could not retrieve or sign JSMPEG websocket path",
     "jsmpeg_no_player": "Could not start JSMPEG player",
+    "no_camera_name": "Could not determine Frigate camera name for camera, please specify either 'camera_entity' or 'camera_name' for the following camera",
     "download_no_media": "No media to download",
     "download_no_event_id": "Could not extract Frigate event id from media",
     "download_sign_failed": "Could not sign media URL for download"
