@@ -630,7 +630,7 @@ This card supports several menu configurations.
 ### Live Viewing of Multiple Cameras
 
 Scroll through your live cameras, or choose from a menu. Seamlessly supports
-cameras of different dimensions.
+cameras of different dimensions, and custom submenus per camera.
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/camera-carousel.gif" alt="Gallery" width="400px">
 
@@ -674,6 +674,29 @@ type: custom:frigate-card
 cameras:
   - camera_entity: camera.sitting_room
   - camera_entity: camera.front_door
+```
+</details>
+
+
+<details>
+  <summary>Expand: Different providers for a single camera</summary>
+
+Cameras can be repeated with different providers (note the required use of `id`
+to provide a separate unambiguous way of referring to that camera, since the
+`camera_entity` is shared between the two cameras).
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.front_door
+    live_provider: frigate-jsmpeg
+    title: Front Door (JSMPEG)
+  - camera_entity: camera.front_door
+    live_provider: webrtc
+    title: Front Door (WebRTC)
+    webrtc:
+      entity: camera.front_door_rtsp
+    id: front-door-webrtc
 ```
 </details>
 
@@ -959,6 +982,50 @@ elements:
 ```
 
 </details>
+
+<details>
+  <summary>Expand: Custom submenus per camera</summary>
+
+This example shows submenus conditional on the camera selected.
+
+```yaml
+[...]
+elements:
+  - type: custom:frigate-card-conditional
+    conditions:
+      camera:
+        - camera.front_door
+    elements:
+      - type: custom:frigate-card-menu-submenu
+        icon: mdi:door
+        items:
+          - title: Front Door Lights
+            icon: mdi:lightbulb
+            entity: light.front_door_lights
+            tap_action:
+              action: toggle
+  - type: custom:frigate-card-conditional
+    conditions:
+      camera:
+        - camera.living_room
+    elements:
+      - type: custom:frigate-card-menu-submenu
+        icon: mdi:sofa
+        items:
+          - title: Living Room Lights
+            icon: mdi:lightbulb
+            entity: light.living_room_lights
+            tap_action:
+              action: toggle
+          - title: Living Room Lamp
+            icon: mdi:lightbulb
+            entity: light.living_room_lamp
+            tap_action:
+              action: toggle
+```
+
+</details>
+
 
 ### Overriding card behavior
 
