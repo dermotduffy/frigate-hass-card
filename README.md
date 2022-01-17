@@ -650,13 +650,13 @@ cameras of different dimensions.
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/viewer-with-thumbnail-next-prev.gif" alt="Viewer with event thumbnails" width="400px">
 
-## Card Editing
+### Card Editing
 
 This card supports full editing via the Lovelace card editor. Additional arbitrary configuration for WebRTC may be specified in YAML mode.
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/editor.gif" alt="Live viewing" width="400px">
 
-## Configurable Submenus
+### Configurable Submenus
 
 This card supports fully configurable submenus.
 
