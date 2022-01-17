@@ -132,6 +132,7 @@ export class FrigateCardLive extends LitElement {
       try {
         parent = await BrowseMediaUtil.browseMediaQuery(this.hass, browseMediaParams);
       } catch (e) {
+        console.info('thumb exception')
         return dispatchErrorMessageEvent(this, (e as Error).message);
       }
 

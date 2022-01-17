@@ -1032,8 +1032,8 @@ export class FrigateCard extends LitElement {
     return !(
       (screenfull.isEnabled && screenfull.isFullscreen) ||
       aspectRatioMode == 'unconstrained' ||
-      (aspectRatioMode == 'dynamic' && this._view?.isMediaView() || 
-      this._message != null)
+      (aspectRatioMode == 'dynamic' && this._view?.isMediaView()) ||
+      this._message != null
     );
   }
 
@@ -1175,25 +1175,16 @@ export class FrigateCard extends LitElement {
       return html``;
     }
 
-    const galleryClasses = {
-      hidden: this._getConfig().live.preload && !this._view.isGalleryView(),
-    };
-    const viewerClasses = {
-      hidden: this._getConfig().live.preload && !this._view.isViewerView(),
-    };
+    // Render but hide the live view if there's a message, or if it's preload
+    // mode and the view is not live.
     const liveClasses = {
-      hidden: this._getConfig().live.preload && this._view.view != 'live',
-    };
-    const imageClasses = {
-      hidden: this._getConfig().live.preload && this._view.view != 'image',
+      hidden:
+        !!this._message || (this._getConfig().live.preload && !this._view.is('live')),
     };
 
     return html`
       ${!this._message && this._view.is('image')
-        ? html` <frigate-card-image
-            .imageConfig=${this._getConfig().image}
-            class="${classMap(imageClasses)}"
-          >
+        ? html` <frigate-card-image .imageConfig=${this._getConfig().image}>
           </frigate-card-image>`
         : ``}
       ${!this._message && this._view.isGalleryView()
@@ -1201,7 +1192,6 @@ export class FrigateCard extends LitElement {
             .hass=${this._hass}
             .view=${this._view}
             .cameraConfig=${cameraConfig}
-            class="${classMap(galleryClasses)}"
           >
           </frigate-card-gallery>`
         : ``}
@@ -1212,7 +1202,6 @@ export class FrigateCard extends LitElement {
             .cameraConfig=${cameraConfig}
             .viewerConfig=${this._getConfig().event_viewer}
             .resolvedMediaCache=${this._resolvedMediaCache}
-            class="${classMap(viewerClasses)}"
           >
           </frigate-card-viewer>`
         : ``}
@@ -1223,7 +1212,7 @@ export class FrigateCard extends LitElement {
         // Note: <frigate-card-live> uses the baseConfig rather than the
         // overriden config, as it does it's own overriding as part of the
         // camera carousel.
-        (!this._message && this._view.is('live')) || this._getConfig().live.preload
+        this._getConfig().live.preload || (!this._message && this._view.is('live'))
           ? html`
               <frigate-card-live
                 .hass=${this._hass}

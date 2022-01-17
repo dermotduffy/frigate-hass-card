@@ -71,7 +71,8 @@ ha-card {
   background-color: var(--secondary-background-color, black);
 }
 
-frigate-card-gallery.hidden,frigate-card-viewer.hidden,frigate-card-live.hidden  {
+frigate-card-live.hidden  {
+  // Live view will be rendered but hidden for live preloading.
   display: none;
 }
 
