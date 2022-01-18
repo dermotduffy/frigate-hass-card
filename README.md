@@ -336,7 +336,7 @@ image:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `src` | | :heavy_multiplication_x: | [embedded image](https://www.flickr.com/photos/dianasch/47543120431) | A static image URL for use with the `image` [view](#views).|
+| `src` | | :heavy_multiplication_x: | [embedded image](https://www.flickr.com/photos/dianasch/47543120431) | A static image URL for use with the `image` [view](#views). Note that a `t=[timestsamp]` query parameter will be automatically added to this URL such that the image will not be cached by the browser. |
 | `actions` | | :heavy_multiplication_x: | Actions to use for the `image` view. See [actions](#actions) below.|
 
 ### Dimension Options
@@ -1073,6 +1073,24 @@ overrides:
           ui: true
 ```
 
+</details>
+
+### Refreshing a static image
+
+<details>
+  <summary>Expand: Auto-refreshing a static image</summary>
+
+This example fetches a static image every 10 seconds (in this case the latest image saved on the Frigate server for a given camera).
+
+```yaml
+[...]
+view:
+  default: image
+  timeout: 10
+  update_force: true
+image:
+  src: https://my-friage-server/api/living_room/latest.jpg
+```
 </details>
 
 <a name="card-updates"></a>
