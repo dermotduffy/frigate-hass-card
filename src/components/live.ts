@@ -754,46 +754,46 @@ export class FrigateCardLiveJSMPEG extends LitElement {
 
   /**
    * Create a JSMPEG player.
+   * @param url The URL for the player to connect to.
    * @returns A JSMPEG player.
    */
-  protected _createJSMPEGPlayer(url: string): JSMpeg.VideoElement {
-    let videoDecoded = false;
-
-    const jsmpegOptions = {
-      pauseWhenHidden: false,
-      protocols: [],
-      audio: false,
-      videoBufferSize: 1024 * 1024 * 4,
-      onVideoDecode: () => {
-        // This is the only callback that is called after the dimensions
-        // are available. It's called on every frame decode, so just
-        // ignore any subsequent calls.
-        if (!videoDecoded && this._jsmpegCanvasElement) {
-          videoDecoded = true;
-          dispatchMediaShowEvent(this, this._jsmpegCanvasElement);
-        }
-      },
-    };
-
-    // Override with user-specified options.
-    Object.assign(jsmpegOptions, this.jsmpegConfig?.options);
-
-    return new JSMpeg.VideoElement(
-      this,
-      url,
-      {
-        canvas: this._jsmpegCanvasElement,
-        hooks: {
-          play: () => {
-            dispatchPlayEvent(this);
-          },
-          pause: () => {
-            dispatchPauseEvent(this);
+  protected async _createJSMPEGPlayer(url: string): Promise<JSMpeg.VideoElement> {
+    return new Promise<JSMpeg.VideoElement>((resolve) => {
+      let videoDecoded = false;
+      const player = new JSMpeg.VideoElement(
+        this,
+        url,
+        {
+          canvas: this._jsmpegCanvasElement,
+          hooks: {
+            play: () => {
+              dispatchPlayEvent(this);
+            },
+            pause: () => {
+              dispatchPauseEvent(this);
+            },
           },
         },
-      },
-      jsmpegOptions,
-    );
+        {
+          pauseWhenHidden: false,
+          protocols: [],
+          audio: false,
+          videoBufferSize: 1024 * 1024 * 4,
+          // Override with user-specified options.
+          ...this.jsmpegConfig?.options,
+          onVideoDecode: () => {
+            // This is the only callback that is called after the dimensions
+            // are available. It's called on every frame decode, so just
+            // ignore any subsequent calls.
+            if (!videoDecoded && this._jsmpegCanvasElement) {
+              videoDecoded = true;
+              dispatchMediaShowEvent(this, this._jsmpegCanvasElement);
+              resolve(player);
+            }
+          },
+        },
+      );
+    });
   }
 
   /**
@@ -856,8 +856,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
 
     const url = await this._getURL();
     if (url) {
-      this._jsmpegVideoPlayer = this._createJSMPEGPlayer(url);
-
+      this._jsmpegVideoPlayer = await this._createJSMPEGPlayer(url);
       this._refreshPlayerTimerID = window.setTimeout(() => {
         this.requestUpdate();
       }, (URL_SIGN_EXPIRY_SECONDS - URL_SIGN_REFRESH_THRESHOLD_SECONDS) * 1000);

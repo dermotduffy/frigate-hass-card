@@ -92,7 +92,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     carousel?.on('init', this._adaptiveHeightSetHandler.bind(this));
     carousel?.on('select', this._adaptiveHeightSetHandler.bind(this));
     carousel?.on('resize', this._adaptiveHeightSetHandler.bind(this));
-    
+
     if (this._getLazyLoadCount() != null) {
       // Load media as the carousel is moved (if lazy loading is in use).
       carousel?.on('init', this._lazyLoadMediaHandler.bind(this));
@@ -104,13 +104,13 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   /**
    * Remove height restrictions on the media when the carousel is resized to let
    * it naturally render.
-   * @returns 
+   * @returns
    */
   protected _adaptiveHeightResizeHandler(): void {
     if (!this._carousel) {
       return;
     }
-    this._carousel.containerNode().style.removeProperty('max-height')
+    this._carousel.containerNode().style.removeProperty('max-height');
   }
 
   /**
@@ -119,20 +119,24 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
    * different aspect ratios).
    */
   protected _adaptiveHeightSetHandler(): void {
-    if (!this._carousel) {
-      return;
-    }
-    const slides = this._carousel.slideNodes();
-    const heights = this._carousel.slidesInView(true).map((index) => {
-      const firstChild = slides[index].querySelector("*");
-      return firstChild ? firstChild.getBoundingClientRect().height : 0;
-    })
-    const targetHeight = Math.max(...heights);
-    if (targetHeight > 0) {
-      this._carousel.containerNode().style.maxHeight = `${targetHeight}px`;
-    } else {
-      this._carousel.containerNode().style.removeProperty('max-height')
-    }
+    // Don't gather slide heights until the next browser re-paint to ensure the
+    // measured heights are correct on the media that has (potentially) just
+    // loaded.
+    window.requestAnimationFrame(() => {
+      if (!this._carousel) {
+        return;
+      }
+      const slides = this._carousel.slideNodes();
+      const heights = this._carousel.slidesInView(true).map((index) => {
+        return slides[index].getBoundingClientRect().height;
+      });
+      const targetHeight = Math.max(...heights);
+      if (targetHeight > 0) {
+        this._carousel.containerNode().style.maxHeight = `${targetHeight}px`;
+      } else {
+        this._carousel.containerNode().style.removeProperty('max-height');
+      }
+    });
   }
 
   /**
@@ -270,7 +274,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
        * loaded. Adaptive height helps in that the carousel gets resized on each
        * img display to the correct size, but it still causes a minor noticeable
        * flicker until the height change is complete.
-       * 
+       *
        * To avoid this, we use a 16:9 dummy image at first (most
        * likely?) and once the first piece of real media has been loaded, all
        * dummy images are replaced with dummy images that match the aspect ratio
