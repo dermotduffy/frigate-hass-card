@@ -1184,7 +1184,10 @@ export class FrigateCard extends LitElement {
 
     return html`
       ${!this._message && this._view.is('image')
-        ? html` <frigate-card-image .imageConfig=${this._getConfig().image}>
+        ? html` <frigate-card-image
+            .imageConfig=${this._getConfig().image}
+            .view=${this._view}
+          >
           </frigate-card-image>`
         : ``}
       ${!this._message && this._view.isGalleryView()

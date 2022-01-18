@@ -336,7 +336,7 @@ image:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `src` | | :heavy_multiplication_x: | [embedded image](https://www.flickr.com/photos/dianasch/47543120431) | A static image URL for use with the `image` [view](#views).|
+| `src` | | :heavy_multiplication_x: | [embedded image](https://www.flickr.com/photos/dianasch/47543120431) | A static image URL for use with the `image` [view](#views). Note that a `t=[timestsamp]` query parameter will be automatically added to this URL such that the image will not be cached by the browser. |
 | `actions` | | :heavy_multiplication_x: | Actions to use for the `image` view. See [actions](#actions) below.|
 
 ### Dimension Options
