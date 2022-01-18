@@ -1075,6 +1075,24 @@ overrides:
 
 </details>
 
+### Refreshing a static image
+
+<details>
+  <summary>Expand: Auto-refreshing a static image</summary>
+
+This example fetches a static image every 10 seconds (in this case the latest image saved on the Frigate server for a given camera).
+
+```yaml
+[...]
+view:
+  default: image
+  timeout: 10
+  update_force: true
+image:
+  src: https://my-friage-server/api/living_room/latest.jpg
+```
+</details>
+
 <a name="card-updates"></a>
 
 ## Card Refreshes
