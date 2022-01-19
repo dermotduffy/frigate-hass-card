@@ -617,7 +617,7 @@ const galleryConfigDefault = {
 
 const galleryConfigSchema = z
   .object({
-    min_columns: z.number().min(1).default(galleryConfigDefault.min_columns),
+    min_columns: z.number().min(1).max(10).default(galleryConfigDefault.min_columns),
   })
   .merge(actionsSchema)
   .default(galleryConfigDefault);
