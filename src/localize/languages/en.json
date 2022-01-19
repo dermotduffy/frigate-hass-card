@@ -44,6 +44,9 @@
       "timeout": "View timeout secs (before returning to default, 0=never)",
       "update_force": "Force card updates (ignore media playing / interaction)"
     },
+    "event_gallery": {
+      "min_columns": "Minimum number of columns"
+    },
     "event_viewer": {
       "autoplay_clip": "Autoplay clips",
       "draggable": "Event Viewer can be dragged/swiped",
@@ -144,8 +147,10 @@
     "menu_secondary": "Menu look & feel options",
     "live": "Live",
     "live_secondary": "Live camera view options",
+    "event_gallery": "Event gallery",
+    "event_gallery_secondary": "Snapshots & clips gallery options",
     "event_viewer": "Event viewer",
-    "event_viewer_secondary": "Snapshots & clips gallery options",
+    "event_viewer_secondary": "Snapshots & clips viewer options",
     "image": "Image",
     "image_secondary": "Static image view options",
     "dimensions": "Dimensions",

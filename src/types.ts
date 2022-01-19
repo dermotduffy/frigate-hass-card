@@ -611,8 +611,17 @@ export type ViewerConfig = z.infer<typeof viewerConfigSchema>;
 /**
  * Event gallery configuration section (clips, snapshots).
  */
+const galleryConfigDefault = {
+  min_columns: 5,
+};
 
-const galleryConfigSchema = actionsSchema.optional();
+const galleryConfigSchema = z
+  .object({
+    min_columns: z.number().min(1).default(galleryConfigDefault.min_columns),
+  })
+  .merge(actionsSchema)
+  .default(galleryConfigDefault);
+export type GalleryConfig = z.infer<typeof galleryConfigSchema>;
 
 /**
  * Dimensions configuration section.
@@ -644,12 +653,11 @@ const dimensionsConfigSchema = z
  * Configuration overrides
  */
 // Strip all defaults from the override schemas, to ensure values are only what
-// the user has specified. 
-const overrideConfigurationSchema =
-  z.object({
-    live: deepRemoveDefaults(liveOverridableConfigSchema).optional(),
-    menu: deepRemoveDefaults(menuConfigSchema).optional(),
-  });
+// the user has specified.
+const overrideConfigurationSchema = z.object({
+  live: deepRemoveDefaults(liveOverridableConfigSchema).optional(),
+  menu: deepRemoveDefaults(menuConfigSchema).optional(),
+});
 export type OverrideConfigurationKey = keyof z.infer<typeof overrideConfigurationSchema>;
 
 const overridesSchema = z
@@ -701,6 +709,7 @@ export const frigateCardConfigDefaults = {
   menu: menuConfigDefault,
   live: liveConfigDefault,
   event_viewer: viewerConfigDefault,
+  event_gallery: galleryConfigDefault,
 };
 
 const menuButtonSchema = z.union([
