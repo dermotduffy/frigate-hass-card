@@ -35,6 +35,7 @@ import {
   CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE,
   CONF_EVENT_VIEWER_DRAGGABLE,
   CONF_EVENT_VIEWER_LAZY_LOAD,
+  CONF_IMAGE_REFRESH_SECONDS,
   CONF_IMAGE_SRC,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
@@ -488,16 +489,18 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    */
   protected _renderStringInput(
     configPath: string,
-    allowedPattern?: string,
+    type?: 'text' | 'number',
   ): TemplateResult | void {
     if (!this._config) {
       return;
     }
+    const allowedPattern = type == 'number' ? '[0-9]' : undefined
     return html` <paper-input
       label=${this._getLabel(configPath)}
       .value=${getConfigValue(this._config, configPath, '')}
       .configValue=${configPath}
-      allowed-pattern=${ifDefined(allowedPattern ? allowedPattern : undefined)}
+      type=${type || 'text'}
+      allowed-pattern=${ifDefined(allowedPattern)}
       prevent-invalid-input=${ifDefined(allowedPattern)}
       @change=${this._valueChangedHandler}
     ></paper-input>`;
@@ -654,7 +657,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html`
               <div class="values">
                 ${this._renderDropdown(CONF_VIEW_DEFAULT, viewModes)}
-                ${this._renderStringInput(CONF_VIEW_TIMEOUT, '[0-9]')}
+                ${this._renderStringInput(CONF_VIEW_TIMEOUT, 'number')}
                 ${this._renderSwitch(CONF_VIEW_UPDATE_FORCE, defaults.view.update_force)}
               </div>
             `
@@ -779,7 +782,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           : ''}
         ${this._renderOptionSetHeader('image')}
         ${options.image.show
-          ? html` <div class="values">${this._renderStringInput(CONF_IMAGE_SRC)}</div>`
+          ? html` <div class="values">
+              ${this._renderStringInput(CONF_IMAGE_SRC)}
+              ${this._renderStringInput(CONF_IMAGE_REFRESH_SECONDS, 'number')}
+            </div>`
           : ''}
         ${this._renderOptionSetHeader('dimensions')}
         ${options.dimensions.show
@@ -869,6 +875,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       value = target.checked;
     } else if (typeof target.value === 'string') {
       value = target.value?.trim();
+      if (target['type'] === 'number') {
+        value = Number(value);
+      }
     } else {
       value = target.value;
     }

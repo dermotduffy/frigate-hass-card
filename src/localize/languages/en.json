@@ -98,7 +98,8 @@
       }
     },
     "image": {
-      "src": "Static image URL/data for image view"
+      "src": "Static image URL/data for image view",
+      "refresh_seconds": "Number of seconds after which to refresh"
     },
     "menu": {
       "buttons": {

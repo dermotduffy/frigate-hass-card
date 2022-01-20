@@ -390,12 +390,17 @@ const viewConfigSchema = z
 /**
  * Image view configuration section.
  */
+
+const imageConfigDefault = {
+  refresh_seconds: 0,
+};
 const imageConfigSchema = z
   .object({
     src: z.string().optional(),
+    refresh_seconds: z.number().min(0).default(imageConfigDefault.refresh_seconds)
   })
   .merge(actionsSchema)
-  .optional();
+  .default(imageConfigDefault);
 export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
 
 /**
@@ -710,6 +715,7 @@ export const frigateCardConfigDefaults = {
   live: liveConfigDefault,
   event_viewer: viewerConfigDefault,
   event_gallery: galleryConfigDefault,
+  image: imageConfigDefault,
 };
 
 const menuButtonSchema = z.union([
