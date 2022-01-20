@@ -888,7 +888,7 @@ export class FrigateCard extends LitElement {
   }
 
   protected _resetInteractionTimer(): void {
-    if (this._getConfig().view.timeout) {
+    if (this._getConfig().view.timeout_seconds) {
       if (this._interactionTimerID) {
         window.clearTimeout(this._interactionTimerID);
       }
@@ -899,7 +899,7 @@ export class FrigateCard extends LitElement {
           // If force is enabled, the timer just resets and starts over.
           this._resetInteractionTimer();
         }
-      }, this._getConfig().view.timeout * 1000);
+      }, this._getConfig().view.timeout_seconds * 1000);
     }
   }
 
