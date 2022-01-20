@@ -338,6 +338,7 @@ image:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `src` | | :heavy_multiplication_x: | [embedded image](https://www.flickr.com/photos/dianasch/47543120431) | A static image URL for use with the `image` [view](#views). Note that a `t=[timestsamp]` query parameter will be automatically added to this URL such that the image will not be cached by the browser. |
+| `refresh_seconds` | 0 | :heavy_multiplication_x: | The number of seconds after which to refresh the image. `0` implies no refreshing. |
 | `actions` | | :heavy_multiplication_x: | Actions to use for the `image` view. See [actions](#actions) below.|
 
 ### Dimension Options
@@ -1087,10 +1088,9 @@ This example fetches a static image every 10 seconds (in this case the latest im
 [...]
 view:
   default: image
-  timeout: 10
-  update_force: true
 image:
   src: https://my-friage-server/api/living_room/latest.jpg
+  refresh_seconds: 10
 ```
 </details>
 
