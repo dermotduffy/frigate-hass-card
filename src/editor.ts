@@ -27,6 +27,7 @@ import {
   CONF_CAMERAS_ARRAY_ZONE,
   CONF_DIMENSIONS_ASPECT_RATIO,
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
+  CONF_EVENT_GALLERY_MIN_COLUMNS,
   CONF_EVENT_VIEWER_AUTOPLAY_CLIP,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
@@ -123,6 +124,12 @@ const options: EditorOptions = {
     icon: 'filmstrip',
     name: localize('editor.event_viewer'),
     secondary: localize('editor.event_viewer_secondary'),
+    show: false,
+  },
+  event_gallery: {
+    icon: 'grid',
+    name: localize('editor.event_gallery'),
+    secondary: localize('editor.event_gallery_secondary'),
     show: false,
   },
   image: {
@@ -252,6 +259,30 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         </paper-listbox>
       </paper-dropdown-menu>
     `;
+  }
+
+  protected _renderSlider(
+    configPath: string,
+    valueDefault: number,
+    icon: string,
+    min: number,
+    max: number,
+  ): TemplateResult | void {
+    if (!this._config) {
+      return;
+    }
+    const value = Number(getConfigValue(this._config, configPath, valueDefault));
+    return html`<ha-labeled-slider
+      caption=${this._getLabel(configPath)}
+      icon=${icon}
+      max=${max}
+      min=${min}
+      ?pin=${true}
+      value=${isNaN(value) ? valueDefault : value}
+      @value-changed=${this._valueChangedHandler.bind(this)}
+      .configValue=${configPath}
+    >
+    </ha-labeled-slider>`;
   }
 
   /**
@@ -506,9 +537,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       return html``;
     }
 
-    // The climate more-info has ha-switch and paper-dropdown-menu elements that
-    // are lazy loaded unless explicitly loaded via climate here.
+    // The climate more-info loads ha-switch and paper-dropdown-menu.
     this._helpers.importMoreInfoControl('climate');
+
+    // The light more-info loads ha-labeled-slider.
+    this._helpers.importMoreInfoControl('light');
 
     const cameraEntities = this._getEntities('camera');
 
@@ -705,6 +738,18 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
             `
           : ''}
+        ${this._renderOptionSetHeader('event_gallery')}
+        ${options.event_gallery.show
+          ? html` <div class="values">
+              ${this._renderSlider(
+                CONF_EVENT_GALLERY_MIN_COLUMNS,
+                defaults.event_gallery.min_columns,
+                "mdi:view-column",
+                1,
+                10,
+              )}
+            </div>`
+          : ''}
         ${this._renderOptionSetHeader('event_viewer')}
         ${options.event_viewer.show
           ? html` <div class="values">
@@ -822,8 +867,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     let value;
     if ('checked' in target) {
       value = target.checked;
-    } else {
+    } else if (typeof target.value === 'string') {
       value = target.value?.trim();
+    } else {
+      value = target.value;
     }
     const key: string = target.configValue;
     if (!key) {

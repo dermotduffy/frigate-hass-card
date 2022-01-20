@@ -1195,6 +1195,7 @@ export class FrigateCard extends LitElement {
             .hass=${this._hass}
             .view=${this._view}
             .cameraConfig=${cameraConfig}
+            .galleryConfig=${this._getConfig().event_gallery}
           >
           </frigate-card-gallery>`
         : ``}

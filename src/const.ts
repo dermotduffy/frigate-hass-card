@@ -24,6 +24,9 @@ export const CONF_VIEW_TIMEOUT = `${CONF_VIEW}.timeout` as const;
 export const CONF_VIEW_UPDATE_FORCE = `${CONF_VIEW}.update_force` as const;
 export const CONF_VIEW_UPDATE_ENTITIES = `${CONF_VIEW}.update_entities` as const;
 
+export const CONF_EVENT_GALLERY = 'event_gallery' as const;
+export const CONF_EVENT_GALLERY_MIN_COLUMNS = `${CONF_EVENT_GALLERY}.min_columns` as const;
+
 export const CONF_EVENT_VIEWER = 'event_viewer' as const;
 export const CONF_EVENT_VIEWER_AUTOPLAY_CLIP =
   `${CONF_EVENT_VIEWER}.autoplay_clip` as const;
