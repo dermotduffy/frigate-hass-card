@@ -20,7 +20,7 @@ import {
   CONF_MENU_MODE,
   CONF_OVERRIDES,
   CONF_VIEW_DEFAULT,
-  CONF_VIEW_TIMEOUT,
+  CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_ENTITIES,
 } from './const';
 import { RawFrigateCardConfig, RawFrigateCardConfigArray } from './types';
@@ -129,11 +129,20 @@ export const copyConfig = function (obj: RawFrigateCardConfig): RawFrigateCardCo
 
 /**
  * Determines if a property is not an object.
- * @param value The property.
+ * @param value The value.
  * @returns `true` is the value is not an object.
  */
 const isNotObject = function (value: unknown) {
   return typeof value !== 'object' ? value : undefined;
+};
+
+/**
+ * Converts to a number or return undefined.
+ * @param value The value.
+ * @returns A number or undefined.
+ */
+const toNumberOrIgnore = function (value: unknown) {
+  return isNaN(value as number) ? undefined : Number(value)
 };
 
 /**
@@ -265,7 +274,7 @@ const UPGRADES = [
   upgradeMoveTo('label', 'frigate.label'),
   upgradeMoveTo('zone', 'frigate.zone'),
   upgradeMoveTo('view_default', CONF_VIEW_DEFAULT),
-  upgradeMoveTo('view_timeout', CONF_VIEW_TIMEOUT),
+  upgradeMoveTo('view_timeout', 'view.timeout'),
   upgradeMoveTo('live_provider', 'live.provider'),
   upgradeMoveTo('live_preload', CONF_LIVE_PRELOAD),
   upgradeMoveTo('webrtc', 'live.webrtc'),
@@ -283,4 +292,5 @@ const UPGRADES = [
   // v2.1.0 -> v3.0.0
   upgradeToMultipleCameras(),
   updateMenuConditionToMenuOverride(),
+  upgradeMoveTo('view.timeout', CONF_VIEW_TIMEOUT_SECONDS, toNumberOrIgnore),
 ];

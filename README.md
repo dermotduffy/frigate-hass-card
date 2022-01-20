@@ -135,7 +135,7 @@ view:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `default` | `live` | :heavy_multiplication_x: | The view to show in the card by default. See [views](#views) below.|
-| `timeout` | | :heavy_multiplication_x: | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
+| `timeout_seconds` | | :heavy_multiplication_x: | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
 | `actions` | | :heavy_multiplication_x: | Actions to use for all views, individual actions may be overriden by view-specific actions. See [actions](#actions) below.|
 | `update_force` | `false` | :heavy_multiplication_x: | Whether card updates/refreshes should ignore playing media and human interaction. See [card updates](#card-updates) below for behavior and usecases.|
 | `update_entities` | | :heavy_multiplication_x: | **YAML only**: A list of entity ids that should cause the view to reset to the default. See [card updates](#card-updates) below for behavior and usecases.|
@@ -572,7 +572,7 @@ This card supports several different views:
 |`snapshot`|Shows an event viewer for the most recent snapshot for this camera/zone/label. Can also be accessed by holding down the `snapshots` menu icon.|
 |`clips`|Shows an event gallery of clips for this camera/zone/label.|
 |`clip`|Shows an event viewer for the most recent clip for this camera/zone/label. Can also be accessed by holding down the `clips` menu icon.|
-|`image`|Shows a static image specified by the `image` parameter, can be used as a discrete default view or a screensaver (via `view_timeout`).|
+|`image`|Shows a static image specified by the `image` parameter, can be used as a discrete default view or a screensaver (via `view.timeout_seconds`).|
 
 ### Navigating From A Snapshot To A Clip
 
@@ -1105,7 +1105,7 @@ The following table describes the behavior these 3 flags have.
 
 ### Card Update Truth Table
 
-| `view.timeout` | `view.update_force` | `view.update_entities` | Behavior |
+| `view.timeout_seconds` | `view.update_force` | `view.update_entities` | Behavior |
 | :-: | :-: | :-: | - |
 | Unset or `0` | *(Any value)* | Unset | Card will not automatically refresh. |
 | Unset or `0` | `false` | *(Any entity)* | Card will reload default view when entity state changes, unless media is playing. |
@@ -1121,7 +1121,7 @@ The following table describes the behavior these 3 flags have.
 ```yaml
 view:
   default: live
-  timeout: 30
+  timeout_seconds: 30
   force: true
 ```
  * Using `clip` or `snapshot` as the default view (for the most recent clip or

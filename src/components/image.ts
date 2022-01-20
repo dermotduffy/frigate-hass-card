@@ -26,9 +26,9 @@ export class CachedValueController<T> implements ReactiveController {
   protected _timerID?: number;
 
   constructor(host: ReactiveControllerHost, timerSeconds: number, callback: () => T) {
-    (this._host = host).addController(this);
     this._timerSeconds = timerSeconds;
     this._callback = callback;
+    (this._host = host).addController(this);
   }
 
   public removeController(): void {

@@ -41,7 +41,7 @@
         "snapshots": "Snapshots gallery",
         "image": "Static image"
       },
-      "timeout": "View timeout secs (before returning to default, 0=never)",
+      "timeout_seconds": "View timeout seconds (before returning to default, 0=never)",
       "update_force": "Force card updates (ignore media playing / interaction)"
     },
     "event_gallery": {
@@ -99,7 +99,7 @@
     },
     "image": {
       "src": "Static image URL/data for image view",
-      "refresh_seconds": "Number of seconds after which to refresh"
+      "refresh_seconds": "Number of seconds after which to refresh (0=never)"
     },
     "menu": {
       "buttons": {
