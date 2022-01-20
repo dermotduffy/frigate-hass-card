@@ -56,7 +56,7 @@ import {
   CONF_MENU_BUTTON_SIZE,
   CONF_MENU_MODE,
   CONF_VIEW_DEFAULT,
-  CONF_VIEW_TIMEOUT,
+  CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_FORCE,
 } from './const.js';
 import { arrayMove, getEntityTitle, prettifyFrigateName } from './common.js';
@@ -657,7 +657,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html`
               <div class="values">
                 ${this._renderDropdown(CONF_VIEW_DEFAULT, viewModes)}
-                ${this._renderStringInput(CONF_VIEW_TIMEOUT, 'number')}
+                ${this._renderStringInput(CONF_VIEW_TIMEOUT_SECONDS, 'number')}
                 ${this._renderSwitch(CONF_VIEW_UPDATE_FORCE, defaults.view.update_force)}
               </div>
             `

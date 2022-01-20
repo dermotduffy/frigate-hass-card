@@ -371,16 +371,7 @@ const viewConfigSchema = z
       .enum(FRIGATE_CARD_VIEWS_USER_SPECIFIED)
       .optional()
       .default(viewConfigDefault.default),
-    timeout: z
-      .number()
-      .or(
-        z
-          .string()
-          .regex(/^\d+$/)
-          .transform((val) => Number(val)),
-      )
-      .optional()
-      .default(viewConfigDefault.timeout),
+    timeout_seconds: z.number().default(viewConfigDefault.timeout),
     update_force: z.boolean().default(viewConfigDefault.update_force),
     update_entities: z.string().array().optional(),
   })
