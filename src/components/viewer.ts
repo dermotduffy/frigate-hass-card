@@ -31,7 +31,11 @@ import {
 } from './thumbnail-carousel.js';
 import { ResolvedMediaCache, ResolvedMediaUtil } from '../resolved-media.js';
 import { View } from '../view.js';
-import { contentsChanged, createMediaShowInfo, dispatchErrorMessageEvent } from '../common.js';
+import {
+  contentsChanged,
+  createMediaShowInfo,
+  dispatchErrorMessageEvent,
+} from '../common.js';
 import { renderProgressIndicator } from '../components/message.js';
 
 import './next-prev-control.js';
@@ -235,17 +239,17 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
    * @param changedProperties The properties that were changed in this render.
    */
   updated(changedProperties: PropertyValues): void {
-    if (changedProperties.has('viewerConfig')) {
+    if (this._carousel && changedProperties.has('viewerConfig')) {
       this._destroyCarousel();
     }
 
-    if (changedProperties.has('view')) {
+    if (this._carousel && changedProperties.has('view')) {
       const oldView = changedProperties.get('view') as View | undefined;
       if (oldView) {
         if (oldView.target != this.view?.target) {
           // If the media target is different entirely, reset the carousel.
           this._destroyCarousel();
-        } else if (this._carousel && this.view?.childIndex != oldView.childIndex) {
+        } else if (this.view?.childIndex != oldView.childIndex) {
           const slide = this._getSlideForChild(this.view?.childIndex);
           if (slide !== undefined && slide !== this.carouselSelected()) {
             // If the media target is the same as already loaded, but isn't of
@@ -528,23 +532,55 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     }
   }
 
+  protected _playOrPauseClip(action: 'play' | 'pause', slide: HTMLElement): void {
+    const player = slide.querySelector('frigate-card-ha-hls-player') as
+      | (HTMLElement & { play: () => void; pause: () => void })
+      | undefined;
+    if (player) {
+      if (action === 'play') {
+        player.play();
+      } else if (action === 'pause') {
+        player.pause();
+      }
+    }
+  }
+
   /**
-   * Play the clip being shown to the user (video player may already be loaded
-   * depending on the lazyload configuration).
+   * Pause all clips.
    */
-  protected _autoplayHandler(): void {
+  protected _pauseAllHandler(): void {
+    if (this._carousel) {
+      this._carousel
+        .slideNodes()
+        .forEach((slide) => this._playOrPauseClip('pause', slide));
+    }
+  }
+
+  /**
+   * Play the clip being shown to the user and pause the prior.
+   */
+  protected _autoplayPauseHandler(pausePrevious: boolean): void {
     if (!this._carousel) {
       return;
     }
-    const nodes = this._carousel.slideNodes();
-    this._carousel.slidesInView(true).forEach((slide) => {
-      const player = nodes[slide].querySelector('frigate-card-ha-hls-player') as
-        | (HTMLElement & { play: () => void })
-        | undefined;
-      if (player) {
-        player.play();
-      }
-    });
+
+    const slides = this._carousel.slideNodes();
+
+    // Pause the previous/current slide.
+    if (pausePrevious) {
+      this._carousel
+        .slidesInView(false)
+        .forEach((slide) => {
+          this._playOrPauseClip('pause', slides[slide])
+        });
+    }
+
+    // Play the target slide.
+    this._carousel
+      .slidesInView(true)
+      .forEach((slide) => {
+        this._playOrPauseClip('play', slides[slide])
+      });
   }
 
   /**
@@ -554,8 +590,9 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     super._initCarousel();
 
     if (this._carousel && this.viewerConfig && this.viewerConfig.autoplay_clip) {
-      this._carousel.on('init', this._autoplayHandler.bind(this));
-      this._carousel.on('select', this._autoplayHandler.bind(this));
+      this._carousel.on('destroy', () => this._pauseAllHandler());
+      this._carousel.on('init', () => this._autoplayPauseHandler(false));
+      this._carousel.on('select', () => this._autoplayPauseHandler(true));
     }
   }
 

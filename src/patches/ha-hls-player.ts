@@ -29,9 +29,14 @@ customElements.whenDefined('ha-hls-player').then(() => {
      * Play the video.
      */
     public play(): void {
-      if (this._videoRef.value) {
-        this._videoRef.value.play();
-      }
+      this._videoRef.value?.play();
+    }
+
+    /**
+     * Pause the video.
+     */
+    public pause(): void {
+      this._videoRef.value?.pause();
     }
 
     // =====================================================================================
