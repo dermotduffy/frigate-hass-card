@@ -37,7 +37,10 @@ export class FrigateCardCarousel extends LitElement {
 
     if (!this._carousel) {
       this.updateComplete.then(() => {
-        this._initCarousel();
+        // Re-check for the carousel to prevent a double init.
+        if (!this._carousel) {
+          this._initCarousel();
+        }
       });
     }
   }
