@@ -1096,11 +1096,6 @@ export class FrigateCard extends LitElement {
       absolute: padding != null,
     };
 
-    const pictureElementsClasses = {
-      'picture-elements': true,
-      gallery: !!this._view?.isGalleryView(),
-    };
-
     const actions = this._getMergedActions();
 
     return html` <ha-card
@@ -1119,46 +1114,45 @@ export class FrigateCard extends LitElement {
       ${this._getConfig().menu.mode == 'above' ? this._renderMenu() : ''}
       <div class="container outer" style="${styleMap(outerStyle)}">
         <div class="${classMap(contentClasses)}">
-          <div class="${classMap(pictureElementsClasses)}">
-            ${this._getConfig().elements
-              ? // Always show elements to allow for custom menu items (etc.) to
-                // be present even if a particular view has an error.
-                html` <frigate-card-elements
-                  .hass=${this._hass}
-                  .elements=${this._getConfig().elements}
-                  .conditionState=${this._conditionState}
-                  @frigate-card:menu-add=${(e) => {
-                    this._addDynamicMenuButton(e.detail);
-                  }}
-                  @frigate-card:menu-remove=${(e) => {
-                    this._removeDynamicMenuButton(e.detail);
-                  }}
-                  @frigate-card:condition-state-request=${(ev) => {
-                    conditionStateRequestHandler(ev, this._conditionState);
-                  }}
-                >
-                </frigate-card-elements>`
-              : ``}
-            ${this._cameras === undefined
-              ? until(
-                  (async () => {
-                    await this._loadCameras();
-                    // Don't reset messages as errors may have been generated
-                    // during the camera load.
-                    this._changeView({ resetMessage: false });
-                    return this._render();
-                  })(),
-                  renderProgressIndicator(),
-                )
-              : // Always want to call render even if there's a message, to
-                // ensure live preload is always present (even if not displayed).
-                this._render()}
-            ${
-              // Keep message rendering to last to show messages that may have
-              // been generated during the render.
-              this._message ? renderMessage(this._message) : ''
-            }
-          </div>
+          ${this._cameras === undefined
+            ? until(
+                (async () => {
+                  await this._loadCameras();
+                  // Don't reset messages as errors may have been generated
+                  // during the camera load.
+                  this._changeView({ resetMessage: false });
+                  return this._render();
+                })(),
+                renderProgressIndicator(),
+              )
+            : // Always want to call render even if there's a message, to
+              // ensure live preload is always present (even if not displayed).
+              this._render()}
+          ${this._getConfig().elements
+            ? // Always show elements to allow for custom menu items (etc.) to
+              // be present even if a particular view has an error. Elements
+              // need to render after the main views so it can render 'on top'.
+              html` <frigate-card-elements
+                .hass=${this._hass}
+                .elements=${this._getConfig().elements}
+                .conditionState=${this._conditionState}
+                @frigate-card:menu-add=${(e) => {
+                  this._addDynamicMenuButton(e.detail);
+                }}
+                @frigate-card:menu-remove=${(e) => {
+                  this._removeDynamicMenuButton(e.detail);
+                }}
+                @frigate-card:condition-state-request=${(ev) => {
+                  conditionStateRequestHandler(ev, this._conditionState);
+                }}
+              >
+              </frigate-card-elements>`
+            : ``}
+          ${
+            // Keep message rendering to last to show messages that may have
+            // been generated during the render.
+            this._message ? renderMessage(this._message) : ''
+          }
         </div>
       </div>
       ${this._getConfig().menu.mode != 'above' ? this._renderMenu() : ''}

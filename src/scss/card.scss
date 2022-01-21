@@ -44,18 +44,6 @@
 .outer:hover + .hover-menu, .hover-menu:hover {
   opacity: 0.9;
 }
-/* A relative div to place absolute picture elements onto */
-.picture-elements {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-/* Enforce picture elements to only be the size of the card/fullscreen (and not
-larger) when in gallery mode so that the picture elements do not scroll. */
-.picture-elements.gallery {
-  height: 100%;
-}
 
 ha-card {
   display: flex;
