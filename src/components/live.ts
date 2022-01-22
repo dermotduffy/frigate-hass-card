@@ -19,16 +19,17 @@ import {
   LiveProvider,
   frigateCardConfigDefaults,
 } from '../types.js';
-import { EmblaOptionsType } from 'embla-carousel';
+import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
+import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import { customElement, property, state } from 'lit/decorators.js';
-import { ref } from 'lit/directives/ref';
 import { until } from 'lit/directives/until.js';
 
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import { ConditionState, getOverriddenConfig } from '../card-condition.js';
 import { FrigateCardMediaCarousel } from './media-carousel.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
+import { MediaAutoplay } from './embla-plugins/media-autoplay.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 import { View } from '../view.js';
 import { localize } from '../localize/localize.js';
@@ -292,6 +293,18 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   }
 
   /**
+   * Get the Embla plugins to use.
+   * @returns An EmblaOptionsType object or undefined for no options.
+   */
+  protected _getPlugins(): EmblaPluginType[] | undefined {
+    return [
+      MediaAutoplay({
+        playerSelector: 'frigate-card-live-provider',
+      }),
+    ];
+  }
+
+  /**
    * Returns the number of slides to lazily load. 0 means all slides are lazy
    * loaded, 1 means that 1 slide on each side of the currently selected slide
    * should lazy load, etc. `null` means lazy loading is disabled and everything
@@ -511,6 +524,24 @@ export class FrigateCardLiveProvider extends LitElement {
   @property({ attribute: false })
   public label = '';
 
+  protected _providerRef: Ref<
+    FrigateCardLiveFrigate | FrigateCardLiveJSMPEG | FrigateCardLiveWebRTC
+  > = createRef();
+
+  /**
+   * Play the video.
+   */
+  public play(): void {
+    this._providerRef.value?.play();
+  }
+
+  /**
+   * Pause the video.
+   */
+  public pause(): void {
+    this._providerRef.value?.pause();
+  }
+
   protected _getResolvedProvider(): LiveProvider {
     if (this.cameraConfig?.live_provider === 'auto') {
       if (this.cameraConfig?.webrtc?.entity || this.cameraConfig?.webrtc?.url) {
@@ -545,18 +576,21 @@ export class FrigateCardLiveProvider extends LitElement {
     return html`
       ${provider == 'frigate'
         ? html` <frigate-card-live-frigate
+            ${ref(this._providerRef)}
             .hass=${this.hass}
             .cameraEntity=${this.cameraConfig.camera_entity}
           >
           </frigate-card-live-frigate>`
         : provider == 'webrtc'
         ? html`<frigate-card-live-webrtc
+            ${ref(this._providerRef)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
             .webRTCConfig=${this.liveConfig.webrtc}
           >
           </frigate-card-live-webrtc>`
         : html` <frigate-card-live-jsmpeg
+            ${ref(this._providerRef)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
             .jsmpegConfig=${this.liveConfig.jsmpeg}
@@ -573,6 +607,22 @@ export class FrigateCardLiveFrigate extends LitElement {
 
   @property({ attribute: false })
   protected cameraEntity?: string;
+
+  protected _playerRef: Ref<FrigateCardLiveFrigate> = createRef();
+
+  /**
+   * Play the video.
+   */
+  public play(): void {
+    this._playerRef.value?.play();
+  }
+
+  /**
+   * Pause the video.
+   */
+  public pause(): void {
+    this._playerRef.value?.pause();
+  }
 
   /**
    * Master render method.
@@ -591,6 +641,7 @@ export class FrigateCardLiveFrigate extends LitElement {
       );
     }
     return html` <frigate-card-ha-camera-stream
+      ${ref(this._playerRef)}
       .hass=${this.hass}
       .stateObj=${this.hass.states[this.cameraEntity]}
       .controls=${true}
@@ -618,6 +669,28 @@ export class FrigateCardLiveWebRTC extends LitElement {
   protected cameraConfig?: CameraConfig;
 
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
+
+  /**
+   * Play the video.
+   */
+  public play(): void {
+    this._getPlayer()?.play();
+  }
+
+  /**
+   * Pause the video.
+   */
+  public pause(): void {
+    this._getPlayer()?.pause();
+  }
+
+  /**
+   * Get the underlying video player.
+   * @returns The player or `null` if not found.
+   */
+  protected _getPlayer(): HTMLVideoElement | null {
+    return this.renderRoot.querySelector('#video') as HTMLVideoElement | null;
+  }
 
   /**
    * Create the WebRTC element. May throw.
@@ -675,7 +748,7 @@ export class FrigateCardLiveWebRTC extends LitElement {
     // Extract the video component after it has been rendered and generate the
     // media load event.
     this.updateComplete.then(() => {
-      const video = this.renderRoot.querySelector('#video') as HTMLVideoElement;
+      const video = this._getPlayer();
       if (video) {
         const onloadedmetadata = video.onloadedmetadata;
         const onplay = video.onplay;
@@ -724,6 +797,20 @@ export class FrigateCardLiveJSMPEG extends LitElement {
   protected _jsmpegCanvasElement?: HTMLCanvasElement;
   protected _jsmpegVideoPlayer?: JSMpeg.VideoElement;
   protected _refreshPlayerTimerID?: number;
+
+  /**
+   * Play the video.
+   */
+  public play(): void {
+    this._jsmpegVideoPlayer?.play();
+  }
+
+  /**
+   * Pause the video.
+   */
+  public pause(): void {
+    this._jsmpegVideoPlayer?.stop();
+  }
 
   /**
    * Get a signed player URL.

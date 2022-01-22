@@ -9,6 +9,7 @@
 // available as compilation time.
 // ====================================================================
 
+import { Ref, createRef, ref } from 'lit/directives/ref';
 import { TemplateResult, css, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { dispatchMediaShowEvent } from '../common.js';
@@ -34,10 +35,31 @@ customElements.whenDefined('ha-camera-stream').then(() => {
   @customElement('frigate-card-ha-camera-stream')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   class FrigateCardHaCameraStream extends customElements.get('ha-camera-stream') {
+    protected _playerRef: Ref<HTMLElement> = createRef();
+
     // ========================================================================================
     // Minor modifications from:
     // - https://github.com/home-assistant/frontend/blob/dev/src/components/ha-camera-stream.ts
     // ========================================================================================
+
+    /**
+     * Play the video.
+     */
+     public play(): void {
+      this._playerRef.value?.play();
+    }
+
+    /**
+     * Pause the video.
+     */
+    public pause(): void {
+      this._playerRef.value?.pause();
+    }
+
+    /**
+     * Master render method.
+     * @returns A rendered template.
+     */
     protected render(): TemplateResult {
       if (!this.stateObj) {
         return html``;
@@ -59,6 +81,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
           : this._url
           ? html`
               <frigate-card-ha-hls-player
+                ${ref(this._playerRef)}
                 autoplay
                 playsinline
                 .allowExoPlayer=${this.allowExoPlayer}

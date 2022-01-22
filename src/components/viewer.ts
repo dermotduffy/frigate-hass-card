@@ -7,7 +7,7 @@ import {
   unsafeCSS,
 } from 'lit';
 import { BrowseMediaUtil } from '../browse-media-util.js';
-import { EmblaOptionsType } from 'embla-carousel';
+import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
 import { Task } from '@lit-labs/task';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
@@ -29,6 +29,7 @@ import {
   FrigateCardThumbnailCarousel,
   ThumbnailCarouselTap,
 } from './thumbnail-carousel.js';
+import { MediaAutoplay } from './embla-plugins/media-autoplay.js';
 import { ResolvedMediaCache, ResolvedMediaUtil } from '../resolved-media.js';
 import { View } from '../view.js';
 import {
@@ -294,6 +295,16 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   }
 
   /**
+   * Get the Embla plugins to use.
+   * @returns An EmblaOptionsType object or undefined for no options.
+   */
+   protected _getPlugins(): EmblaPluginType[] | undefined {
+    return [MediaAutoplay({ 
+      autoplay: this.viewerConfig?.autoplay_clip,
+      playerSelector: 'frigate-card-ha-hls-player' })];
+  }
+
+  /**
    * Returns the number of slides to lazily load. 0 means all slides are lazy
    * loaded, 1 means that 1 slide on each side of the currently selected slide
    * should lazy load, etc. `null` means lazy loading is disabled and everything
@@ -529,70 +540,6 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     }
     if (this._nextControlRef.value) {
       updateNextPreviousControl(this._nextControlRef.value, 'next');
-    }
-  }
-
-  protected _playOrPauseClip(action: 'play' | 'pause', slide: HTMLElement): void {
-    const player = slide.querySelector('frigate-card-ha-hls-player') as
-      | (HTMLElement & { play: () => void; pause: () => void })
-      | undefined;
-    if (player) {
-      if (action === 'play') {
-        player.play();
-      } else if (action === 'pause') {
-        player.pause();
-      }
-    }
-  }
-
-  /**
-   * Pause all clips.
-   */
-  protected _pauseAllHandler(): void {
-    if (this._carousel) {
-      this._carousel
-        .slideNodes()
-        .forEach((slide) => this._playOrPauseClip('pause', slide));
-    }
-  }
-
-  /**
-   * Play the clip being shown to the user and pause the prior.
-   */
-  protected _autoplayPauseHandler(pausePrevious: boolean): void {
-    if (!this._carousel) {
-      return;
-    }
-
-    const slides = this._carousel.slideNodes();
-
-    // Pause the previous/current slide.
-    if (pausePrevious) {
-      this._carousel
-        .slidesInView(false)
-        .forEach((slide) => {
-          this._playOrPauseClip('pause', slides[slide])
-        });
-    }
-
-    // Play the target slide.
-    this._carousel
-      .slidesInView(true)
-      .forEach((slide) => {
-        this._playOrPauseClip('play', slides[slide])
-      });
-  }
-
-  /**
-   * Initialize the carousel.
-   */
-  protected _initCarousel(): void {
-    super._initCarousel();
-
-    if (this._carousel && this.viewerConfig && this.viewerConfig.autoplay_clip) {
-      this._carousel.on('destroy', () => this._pauseAllHandler());
-      this._carousel.on('init', () => this._autoplayPauseHandler(false));
-      this._carousel.on('select', () => this._autoplayPauseHandler(true));
     }
   }
 

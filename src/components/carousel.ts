@@ -1,5 +1,5 @@
 import { CSSResultGroup, LitElement, unsafeCSS, PropertyValues } from 'lit';
-import EmblaCarousel, { EmblaCarouselType, EmblaOptionsType } from 'embla-carousel';
+import EmblaCarousel, { EmblaCarouselType, EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
 
 import { dispatchFrigateCardEvent } from '../common';
 
@@ -53,6 +53,14 @@ export class FrigateCardCarousel extends LitElement {
     return undefined;
   }
 
+  /**
+   * Get the Embla plugins to use.
+   * @returns An EmblaOptionsType object or undefined for no options.
+   */
+  protected _getPlugins(): EmblaPluginType[] | undefined {
+    return undefined;
+  }
+
   protected _destroyCarousel(): void {
     if (this._carousel) {
       this._carousel.destroy();
@@ -69,7 +77,7 @@ export class FrigateCardCarousel extends LitElement {
     ) as HTMLElement;
 
     if (carouselNode) {
-      this._carousel = EmblaCarousel(carouselNode, this._getOptions());
+      this._carousel = EmblaCarousel(carouselNode, this._getOptions(), this._getPlugins());
       this._carousel.on('init', () => dispatchFrigateCardEvent(this, 'carousel:init'));
       this._carousel.on('select', () => {
         const selected = this.carouselSelected();
