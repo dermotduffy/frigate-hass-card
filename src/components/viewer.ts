@@ -265,6 +265,16 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     super.updated(changedProperties);
   }
 
+  /**
+   * Play the media on the selected slide. May be overridden to control when
+   * autoplay should happen.
+   */
+  protected _autoplayHandler(): void {
+    if (this.viewerConfig?.autoplay_clip) {
+      super._autoplayHandler();
+    }
+  }
+
   protected _destroyCarousel(): void {
     super._destroyCarousel();
 
@@ -308,9 +318,15 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
             }),
           ]
         : []),
-      MediaAutoPlayPause({
-        playerSelector: 'frigate-card-ha-hls-player',
-      }),
+
+      // Don't need autoplay/pause for snapshots.
+      ...(this.view?.is('clip')
+        ? [
+            MediaAutoPlayPause({
+              playerSelector: 'frigate-card-ha-hls-player',
+            }),
+          ]
+        : []),
     ];
   }
 
@@ -699,7 +715,9 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
                   // images in media-carousel.ts). Here we need to only call the
                   // media load handler on a 'real' load.
                   !lazyLoad ||
-                  (this._plugins['Lazyload'] as LazyloadType | undefined)?.hasLazyloaded(slideIndex)
+                  (this._plugins['Lazyload'] as LazyloadType | undefined)?.hasLazyloaded(
+                    slideIndex,
+                  )
                 ) {
                   this._mediaLoadedHandler(slideIndex, createMediaShowInfo(e));
                 }

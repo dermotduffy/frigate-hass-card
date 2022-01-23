@@ -29,9 +29,10 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   protected _previousControlRef: Ref<FrigateCardNextPreviousControl> = createRef();
 
   /**
-   * Play the media on the selected slide.
+   * Play the media on the selected slide. May be overridden to control when
+   * autoplay should happen.
    */
-  protected _playSelectedMediaHandler(): void {
+  protected _autoplayHandler(): void {
     (this._plugins['MediaAutoPlayPause'] as MediaAutoPlayPauseType | undefined)?.play();
   }
 
@@ -40,7 +41,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
    */
   connectedCallback(): void {
     super.connectedCallback();
-    this.addEventListener('frigate-card:media-show', this._playSelectedMediaHandler);
+    this.addEventListener('frigate-card:media-show', this._autoplayHandler);
   }
 
   /**
@@ -48,7 +49,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
    */
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    this.removeEventListener('frigate-card:media-show', this._playSelectedMediaHandler);
+    this.removeEventListener('frigate-card:media-show', this._autoplayHandler);
   }
 
   protected _destroyCarousel(): void {

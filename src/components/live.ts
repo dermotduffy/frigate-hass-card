@@ -682,7 +682,7 @@ export class FrigateCardLiveWebRTC extends LitElement {
    * Play the video.
    */
   public play(): void {
-    this._getPlayer()?.play().catch((_) => {
+    this._getPlayer()?.play().catch(() => {
       // WebRTC appears to generate additional spurious load events, which may
       // result in loads after a play() call, which causes the browser to spam
       // the logs unless the promise rejection is handled here.
