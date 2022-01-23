@@ -42,6 +42,7 @@
         "image": "Static image"
       },
       "timeout_seconds": "View timeout seconds (before returning to default, 0=never)",
+      "update_cycle_camera": "Cycle through cameras when default view updates",
       "update_force": "Force card updates (ignore media playing / interaction)"
     },
     "event_gallery": {
