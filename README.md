@@ -139,6 +139,7 @@ view:
 | `actions` | | :heavy_multiplication_x: | Actions to use for all views, individual actions may be overriden by view-specific actions. See [actions](#actions) below.|
 | `update_force` | `false` | :heavy_multiplication_x: | Whether card updates/refreshes should ignore playing media and human interaction. See [card updates](#card-updates) below for behavior and usecases.|
 | `update_entities` | | :heavy_multiplication_x: | **YAML only**: A list of entity ids that should cause the view to reset to the default. See [card updates](#card-updates) below for behavior and usecases.|
+| `update_cycle_camera` | `false` | :heavy_multiplication_x: | When set to `true` the selected camera is cycled on each default view change. |
 
 ### Menu Options
 

@@ -641,8 +641,15 @@ export class FrigateCard extends LitElement {
 
     if (args?.view === undefined) {
       let camera = this._view?.camera;
-      if (!camera && this._cameras?.size) {
-        camera = this._cameras.keys().next().value;
+      if (this._cameras?.size) {
+        if (!camera) {
+          camera = this._cameras.keys().next().value;
+        } else if (this._getConfig().view.update_cycle_camera) {
+          const keys = Array.from(this._cameras.keys());
+          const currentIndex = keys.indexOf(camera);
+          const targetIndex = currentIndex + 1 >= keys.length ? 0 : currentIndex + 1;
+          camera = keys[targetIndex];
+        }
       }
 
       if (camera) {

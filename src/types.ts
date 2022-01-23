@@ -372,6 +372,7 @@ const viewConfigDefault = {
   default: 'live' as const,
   timeout: 180,
   update_force: false,
+  update_cycle_camera: false,
 };
 const viewConfigSchema = z
   .object({
@@ -381,6 +382,7 @@ const viewConfigSchema = z
       .default(viewConfigDefault.default),
     timeout_seconds: z.number().default(viewConfigDefault.timeout),
     update_force: z.boolean().default(viewConfigDefault.update_force),
+    update_cycle_camera: z.boolean().default(viewConfigDefault.update_cycle_camera),
     update_entities: z.string().array().optional(),
   })
   .merge(actionsSchema)

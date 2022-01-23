@@ -21,6 +21,7 @@ export const CONF_CAMERAS_ARRAY_LIVE_PROVIDER = `${CONF_CAMERAS}.#.live_provider
 export const CONF_VIEW = 'view' as const;
 export const CONF_VIEW_DEFAULT = `${CONF_VIEW}.default` as const;
 export const CONF_VIEW_TIMEOUT_SECONDS = `${CONF_VIEW}.timeout_seconds` as const;
+export const CONF_VIEW_UPDATE_CYCLE_CAMERA = `${CONF_VIEW}.update_cycle_camera` as const;
 export const CONF_VIEW_UPDATE_FORCE = `${CONF_VIEW}.update_force` as const;
 export const CONF_VIEW_UPDATE_ENTITIES = `${CONF_VIEW}.update_entities` as const;
 
