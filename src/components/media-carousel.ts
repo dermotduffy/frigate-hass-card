@@ -42,6 +42,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   connectedCallback(): void {
     super.connectedCallback();
     this.addEventListener('frigate-card:media-show', this._autoplayHandler);
+    this.addEventListener('frigate-card:media-show', this._adaptiveHeightHandler);
   }
 
   /**
@@ -50,6 +51,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   disconnectedCallback(): void {
     super.disconnectedCallback();
     this.removeEventListener('frigate-card:media-show', this._autoplayHandler);
+    this.removeEventListener('frigate-card:media-show', this._adaptiveHeightHandler);
   }
 
   protected _destroyCarousel(): void {
@@ -83,37 +85,16 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     // Dispatch MediaShow events as the carousel is moved.
     carousel?.on('init', this._selectSlideMediaShowHandler.bind(this));
     carousel?.on('select', this._selectSlideMediaShowHandler.bind(this));
-
-    // Adapt the height of the container to the media as the carousel is moved.
-    carousel?.on('init', this._adaptiveHeightResizeHandler.bind(this));
-    carousel?.on('resize', this._adaptiveHeightResizeHandler.bind(this));
-    carousel?.on('init', this._adaptiveHeightSetHandler.bind(this));
-    carousel?.on('select', this._adaptiveHeightSetHandler.bind(this));
-    carousel?.on('resize', this._adaptiveHeightSetHandler.bind(this));
   }
 
   /**
-   * Remove height restrictions on the media when the carousel is resized to let
-   * it naturally render.
-   * @returns
+   * Set the the height of the container on media load in case the dimensions
+   * have changed. This handler is not triggered from carousel events, as it's
+   * actually the media load/show that will change the dimensions, and that is
+   * async from carousel actions (e.g. lazy-loaded media).
    */
-  protected _adaptiveHeightResizeHandler(): void {
-    if (!this._carousel) {
-      return;
-    }
-    this._carousel.containerNode().style.removeProperty('max-height');
-  }
-
-  /**
-   * Adapt the height of the container to the height of the media (for cases
-   * where the carousel has different media heights, e.g. live cameras with
-   * different aspect ratios).
-   */
-  protected _adaptiveHeightSetHandler(): void {
-    // Don't gather slide heights until the next browser re-paint to ensure the
-    // measured heights are correct on the media that has (potentially) just
-    // loaded.
-    window.requestAnimationFrame(() => {
+   protected _adaptiveHeightHandler(): void {
+    const adaptCarouselHeight = (): void => {
       if (!this._carousel) {
         return;
       }
@@ -127,7 +108,27 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
       } else {
         this._carousel.containerNode().style.removeProperty('max-height');
       }
-    });
+    };
+
+    // Hack: This method attempts to measure the height of the slides in view in
+    // order to set the overall carousel height to match. This method is
+    // triggered from `frigate-card:media-show` events, which are usually in
+    // turn triggered from media/metadata load events from media players.
+    // Sufficient time needs to be allowed after these metadata load events to
+    // allow the browser to repaint the element heights, so that we can get the
+    // right values here. requestAnimationFrame() works well in most cases --
+    // except for (at least) the Home Assistant Android Companion app. For that
+    // case, waiting longer appears to make a difference and reliably gets the
+    // carousel to the correct height (the litmus test case is: In the Android
+    // app, choose a live view and while it's loading, click the fullscreen
+    // button. Without a short delay here, it will calculate the sizes relative
+    // to the pre-fullscreen height).
+    //
+    // As this call is cheap, we use both the requestAnimationFrame() and
+    // setTimeout() approaches in parallel to ensure immediate response in a
+    // browser, and slightly slower (but correct) response in the Companion app.
+    window.requestAnimationFrame(adaptCarouselHeight);
+    window.setTimeout(adaptCarouselHeight, 500);
   }
 
   /**
@@ -205,9 +206,6 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
         dispatchExistingMediaShowInfoAsEvent(this, mediaShowInfo);
       }
 
-      // After media has been loaded, the height of the container may need to be
-      // re-adjusted.
-      this._adaptiveHeightSetHandler();
       /**
        * Images need a width/height from initial load, and browsers will assume
        * that the aspect ratio of the initial dummy-image load will persist. In

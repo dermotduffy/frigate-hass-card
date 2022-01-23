@@ -1,5 +1,5 @@
 import { EmblaCarouselType, EmblaPluginType } from 'embla-carousel';
-import { FrigateCardMediaPlayer } from '../../types';
+import { FrigateCardMediaPlayer } from '../../types.js';
 
 export type MediaAutoPlayPauseOptionsType = {
   autoplay?: boolean;
