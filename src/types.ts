@@ -6,6 +6,7 @@ import {
   LovelaceCardEditor,
   MoreInfoActionConfig,
   NavigateActionConfig,
+  NoActionConfig,
   ToggleActionConfig,
   UrlActionConfig,
 } from 'custom-card-helpers';
@@ -103,6 +104,12 @@ const customActionSchema = schemaForType<CustomActionConfig>()(
     action: z.literal('fire-dom-event'),
   }),
 );
+const noActionSchema = schemaForType<NoActionConfig>()(
+  z.object({
+    action: z.literal('none'),
+  }),
+);
+
 const frigateCardCustomActionBaseSchema = customActionSchema.extend({
   // Syntactic sugar to avoid 'fire-dom-event' as part of an external API.
   action: z
@@ -145,6 +152,7 @@ const actionSchema = z.union([
   navigateActionSchema,
   urlActionSchema,
   moreInfoActionSchema,
+  noActionSchema,
   frigateCardCustomActionSchema,
 ]);
 export type ActionType = z.infer<typeof actionSchema>;
