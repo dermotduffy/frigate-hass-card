@@ -764,6 +764,11 @@ export interface StateParameters {
   style?: StyleInfo;
 }
 
+export interface FrigateCardMediaPlayer {
+  play(): void;
+  pause(): void;
+}
+
 /**
  * Home Assistant API types.
  */

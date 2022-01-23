@@ -7,7 +7,7 @@ import {
   unsafeCSS,
 } from 'lit';
 import { BrowseMediaUtil } from '../browse-media-util.js';
-import { EmblaOptionsType } from 'embla-carousel';
+import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
 import { Task } from '@lit-labs/task';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
@@ -29,6 +29,8 @@ import {
   FrigateCardThumbnailCarousel,
   ThumbnailCarouselTap,
 } from './thumbnail-carousel.js';
+import { MediaAutoPlayPause } from './embla-plugins/media-autoplay.js';
+import { Lazyload, LazyloadType } from './embla-plugins/lazyload.js';
 import { ResolvedMediaCache, ResolvedMediaUtil } from '../resolved-media.js';
 import { View } from '../view.js';
 import {
@@ -215,7 +217,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     async ([target]: (BrowseMediaSource | undefined)[]): Promise<void> => {
       for (
         let i = 0;
-        !this._isLazyLoading() &&
+        !this.viewerConfig?.lazy_load &&
         this.hass &&
         target &&
         target.children &&
@@ -263,6 +265,16 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     super.updated(changedProperties);
   }
 
+  /**
+   * Play the media on the selected slide. May be overridden to control when
+   * autoplay should happen.
+   */
+  protected _autoplayHandler(): void {
+    if (this.viewerConfig?.autoplay_clip) {
+      super._autoplayHandler();
+    }
+  }
+
   protected _destroyCarousel(): void {
     super._destroyCarousel();
 
@@ -294,15 +306,28 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   }
 
   /**
-   * Returns the number of slides to lazily load. 0 means all slides are lazy
-   * loaded, 1 means that 1 slide on each side of the currently selected slide
-   * should lazy load, etc. `null` means lazy loading is disabled and everything
-   * should load simultaneously.
-   * @returns
+   * Get the Embla plugins to use.
+   * @returns An EmblaOptionsType object or undefined for no options.
    */
-  protected _getLazyLoadCount(): number | null {
-    // Defaults to fully-lazy loading.
-    return this.viewerConfig?.lazy_load === false ? null : 0;
+  protected _getPlugins(): EmblaPluginType[] | undefined {
+    return [
+      ...(this.viewerConfig?.lazy_load
+        ? [
+            Lazyload({
+              lazyloadCallback: this._lazyLoadSlide.bind(this),
+            }),
+          ]
+        : []),
+
+      // Don't need autoplay/pause for snapshots.
+      ...(this.view?.is('clip')
+        ? [
+            MediaAutoPlayPause({
+              playerSelector: 'frigate-card-ha-hls-player',
+            }),
+          ]
+        : []),
+    ];
   }
 
   /**
@@ -532,70 +557,6 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     }
   }
 
-  protected _playOrPauseClip(action: 'play' | 'pause', slide: HTMLElement): void {
-    const player = slide.querySelector('frigate-card-ha-hls-player') as
-      | (HTMLElement & { play: () => void; pause: () => void })
-      | undefined;
-    if (player) {
-      if (action === 'play') {
-        player.play();
-      } else if (action === 'pause') {
-        player.pause();
-      }
-    }
-  }
-
-  /**
-   * Pause all clips.
-   */
-  protected _pauseAllHandler(): void {
-    if (this._carousel) {
-      this._carousel
-        .slideNodes()
-        .forEach((slide) => this._playOrPauseClip('pause', slide));
-    }
-  }
-
-  /**
-   * Play the clip being shown to the user and pause the prior.
-   */
-  protected _autoplayPauseHandler(pausePrevious: boolean): void {
-    if (!this._carousel) {
-      return;
-    }
-
-    const slides = this._carousel.slideNodes();
-
-    // Pause the previous/current slide.
-    if (pausePrevious) {
-      this._carousel
-        .slidesInView(false)
-        .forEach((slide) => {
-          this._playOrPauseClip('pause', slides[slide])
-        });
-    }
-
-    // Play the target slide.
-    this._carousel
-      .slidesInView(true)
-      .forEach((slide) => {
-        this._playOrPauseClip('play', slides[slide])
-      });
-  }
-
-  /**
-   * Initialize the carousel.
-   */
-  protected _initCarousel(): void {
-    super._initCarousel();
-
-    if (this._carousel && this.viewerConfig && this.viewerConfig.autoplay_clip) {
-      this._carousel.on('destroy', () => this._pauseAllHandler());
-      this._carousel.on('init', () => this._autoplayPauseHandler(false));
-      this._carousel.on('select', () => this._autoplayPauseHandler(true));
-    }
-  }
-
   /**
    * Get slides to include in the render.
    * @returns The slides to include in the render and an index keyed by slide
@@ -644,7 +605,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
 
     // If lazy loading is not enabled, wait for the media resolver task to
     // complete and show a progress indictator until this.
-    if (!this._isLazyLoading() && !this._isMediaFullyResolved()) {
+    if (!this.viewerConfig?.lazy_load && !this._isMediaFullyResolved()) {
       return html`${this._mediaResolutionTask.render({
         initial: () => renderProgressIndicator(),
         pending: () => renderProgressIndicator(),
@@ -711,7 +672,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       return;
     }
 
-    const lazyLoad = this._isLazyLoading();
+    const lazyLoad = this.viewerConfig.lazy_load;
     const resolvedMedia = this.resolvedMediaCache?.get(mediaToRender.media_content_id);
     if (!resolvedMedia && !lazyLoad) {
       return;
@@ -754,7 +715,9 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
                   // images in media-carousel.ts). Here we need to only call the
                   // media load handler on a 'real' load.
                   !lazyLoad ||
-                  this._slideHasBeenLazyLoaded[slideIndex]
+                  (this._plugins['Lazyload'] as LazyloadType | undefined)?.hasLazyloaded(
+                    slideIndex,
+                  )
                 ) {
                   this._mediaLoadedHandler(slideIndex, createMediaShowInfo(e));
                 }

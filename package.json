@@ -22,7 +22,7 @@
     "@material/rtl": "^13.0.0",
     "custom-card-helpers": "^1.8.0",
     "dayjs": "^1.10.7",
-    "embla-carousel": "^6.1.0",
+    "embla-carousel": "^6.1.1",
     "home-assistant-js-websocket": "^5.11.1",
     "lit": "^2.0.2",
     "lodash-es": "^4.17.21",
