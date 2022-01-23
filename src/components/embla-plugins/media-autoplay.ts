@@ -1,22 +1,26 @@
 import { EmblaCarouselType, EmblaPluginType } from 'embla-carousel';
 import { FrigateCardMediaPlayer } from '../../types';
 
-export type MediaAutoplayOptionsType = {
+export type MediaAutoPlayPauseOptionsType = {
   autoplay?: boolean;
   autopause?: boolean;
   playerSelector: string;
 };
 
-export const defaultOptions: Partial<MediaAutoplayOptionsType> = {
-  autoplay: true,
+export const defaultOptions: Partial<MediaAutoPlayPauseOptionsType> = {
+  // Frigate card media autoplays when the media loads, not necessarily when the
+  // slide is selected.
+  autoplay: false,
   autopause: true,
 };
 
-export type MediaAutoplayType = EmblaPluginType<MediaAutoplayOptionsType>;
+export type MediaAutoPlayPauseType = EmblaPluginType<MediaAutoPlayPauseOptionsType> & {
+  play: () => void;
+}
 
-export function MediaAutoplay(
-  userOptions?: MediaAutoplayOptionsType,
-): MediaAutoplayType {
+export function MediaAutoPlayPause(
+  userOptions?: MediaAutoPlayPauseOptionsType,
+): MediaAutoPlayPauseType {
   const options = Object.assign({}, defaultOptions, userOptions);
 
   let carousel: EmblaCarouselType;
@@ -31,12 +35,12 @@ export function MediaAutoplay(
 
     if (options.autopause) {
       carousel.on('destroy', pauseAllHandler);
-      carousel.on('select', autopausePreviousHandler);
+      carousel.on('select', pausePrevious);
     }
 
     if (options.autoplay) {
-      carousel.on('select', autoplayCurrentHandler);
-      carousel.on('init', autoplayCurrentHandler);
+      carousel.on('select', play);
+      carousel.on('init', play);
     }
   }
 
@@ -46,12 +50,12 @@ export function MediaAutoplay(
   function destroy(): void {
     if (options.autopause) {
       carousel.off('destroy', pauseAllHandler);
-      carousel.off('select', autopausePreviousHandler);
+      carousel.off('select', pausePrevious);
     }
 
     if (options.autoplay) {
-      carousel.off('select', autoplayCurrentHandler);
-      carousel.off('init', autoplayCurrentHandler);
+      carousel.off('select', play);
+      carousel.off('init', play);
     }
   }
 
@@ -60,8 +64,8 @@ export function MediaAutoplay(
    * @param slide
    * @returns A FrigateCardMediaPlayer object or `null`.
    */
-  function getPlayer(slide: HTMLElement): FrigateCardMediaPlayer | null {
-    return slide.querySelector(options.playerSelector) as FrigateCardMediaPlayer | null;
+  function getPlayer(slide: HTMLElement | undefined): FrigateCardMediaPlayer | null {
+    return slide?.querySelector(options.playerSelector) as FrigateCardMediaPlayer | null;
   }
 
   /**
@@ -74,22 +78,23 @@ export function MediaAutoplay(
   /**
    * Autoplay the current slide.
    */
-  function autoplayCurrentHandler(): void {
+  function play(): void {
     getPlayer(slides[carousel.selectedScrollSnap()])?.play();
   }
 
   /**
    * Autopause the previous slide.
    */
-  function autopausePreviousHandler(): void {
+  function pausePrevious(): void {
     getPlayer(slides[carousel.previousScrollSnap()])?.pause();
   }
 
-  const self: MediaAutoplayType = {
-    name: 'MediaAutoplay',
+  const self: MediaAutoPlayPauseType = {
+    name: 'MediaAutoPlayPause',
     options,
     init,
     destroy,
+    play,
   };
   return self;
 }

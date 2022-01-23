@@ -29,7 +29,8 @@ import { BrowseMediaUtil } from '../browse-media-util.js';
 import { ConditionState, getOverriddenConfig } from '../card-condition.js';
 import { FrigateCardMediaCarousel } from './media-carousel.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
-import { MediaAutoplay } from './embla-plugins/media-autoplay.js';
+import { Lazyload } from './embla-plugins/lazyload.js';
+import { MediaAutoPlayPause } from './embla-plugins/media-autoplay.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 import { View } from '../view.js';
 import { localize } from '../localize/localize.js';
@@ -298,7 +299,14 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
    */
   protected _getPlugins(): EmblaPluginType[] | undefined {
     return [
-      MediaAutoplay({
+      ...(this.liveConfig?.lazy_load
+        ? [
+            Lazyload({
+              lazyloadCallback: this._lazyLoadSlide.bind(this),
+            }),
+          ]
+        : []),
+      MediaAutoPlayPause({
         playerSelector: 'frigate-card-live-provider',
       }),
     ];
@@ -394,7 +402,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
 
     return html` <div class="embla__slide">
       <frigate-card-live-provider
-        ?disabled=${this._isLazyLoading()}
+        ?disabled=${this.liveConfig.lazy_load}
         .cameraConfig=${cameraConfig}
         .label=${getCameraTitle(this.hass, cameraConfig)}
         .liveConfig=${config}
@@ -674,7 +682,11 @@ export class FrigateCardLiveWebRTC extends LitElement {
    * Play the video.
    */
   public play(): void {
-    this._getPlayer()?.play();
+    this._getPlayer()?.play().catch((_) => {
+      // WebRTC appears to generate additional spurious load events, which may
+      // result in loads after a play() call, which causes the browser to spam
+      // the logs unless the promise rejection is handled here.
+    })
   }
 
   /**

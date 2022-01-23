@@ -15,6 +15,7 @@ import './next-prev-control.js';
 import mediaCarouselStyle from '../scss/media-carousel.scss';
 
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
+import { MediaAutoPlayPauseType } from './embla-plugins/media-autoplay.js';
 
 const getEmptyImageSrc = (width: number, height: number) =>
   `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"%3E%3C/svg%3E`;
@@ -24,31 +25,30 @@ export const IMG_EMPTY = getEmptyImageSrc(16, 9);
 export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   // A "map" from slide number to MediaShowInfo object.
   protected _mediaShowInfo: Record<number, MediaShowInfo> = {};
-
-  // Whether or not a given slide has been successfully lazily loaded.
-  protected _slideHasBeenLazyLoaded: Record<number, boolean> = {};
-
   protected _nextControlRef: Ref<FrigateCardNextPreviousControl> = createRef();
   protected _previousControlRef: Ref<FrigateCardNextPreviousControl> = createRef();
 
   /**
-   * Returns the number of slides to lazily load. 0 means all slides are lazy
-   * loaded, 1 means that 1 slide on each side of the currently selected slide
-   * should lazy load, etc. `null` means lazy loading is disabled and everything
-   * should load simultaneously.
-   * @returns
+   * Play the media on the selected slide.
    */
-  protected _getLazyLoadCount(): number | null {
-    // Defaults to fully-lazy loading.
-    return 0;
+  protected _playSelectedMediaHandler(): void {
+    (this._plugins['MediaAutoPlayPause'] as MediaAutoPlayPauseType | undefined)?.play();
   }
 
   /**
-   * Determine if lazy loading is being used.
-   * @returns `true` is lazy loading is in use.
+   * Component connected callback.
    */
-  protected _isLazyLoading(): boolean {
-    return this._getLazyLoadCount() !== null;
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.addEventListener('frigate-card:media-show', this._playSelectedMediaHandler);
+  }
+
+  /**
+   * Component disconnected callback.
+   */
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.removeEventListener('frigate-card:media-show', this._playSelectedMediaHandler);
   }
 
   protected _destroyCarousel(): void {
@@ -61,9 +61,6 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     //   media would not reload) -- as such, leave this alone on carousel
     //   destroy. New media in that slide will replace the prior contents on
     //   load.
-    // * this._slideHasBeenLazyLoaded: This is a performance optimization and
-    //   can be safely reset.
-    this._slideHasBeenLazyLoaded = {};
   }
 
   /**
@@ -92,13 +89,6 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     carousel?.on('init', this._adaptiveHeightSetHandler.bind(this));
     carousel?.on('select', this._adaptiveHeightSetHandler.bind(this));
     carousel?.on('resize', this._adaptiveHeightSetHandler.bind(this));
-
-    if (this._getLazyLoadCount() != null) {
-      // Load media as the carousel is moved (if lazy loading is in use).
-      carousel?.on('init', this._lazyLoadMediaHandler.bind(this));
-      carousel?.on('select', this._lazyLoadMediaHandler.bind(this));
-      carousel?.on('resize', this._lazyLoadMediaHandler.bind(this));
-    }
   }
 
   /**
@@ -163,54 +153,6 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     } else if (direction == 'next') {
       this._carousel?.scrollNext();
     }
-  }
-
-  /**
-   * Lazily load media in the carousel.
-   */
-  protected _lazyLoadMediaHandler(): void {
-    if (!this._carousel) {
-      return;
-    }
-    const lazyLoadCount = this._getLazyLoadCount();
-    if (lazyLoadCount === null) {
-      return;
-    }
-
-    const slides = this._carousel.slideNodes();
-    const slidesInView = this._carousel.slidesInView(true);
-    const slidesToLoad = new Set<number>();
-
-    const minSlide = Math.min(...slidesInView);
-    const maxSlide = Math.max(...slidesInView);
-
-    // Lazily load 'lazyLoadCount' slides on either side of the slides in view.
-    for (let i = 1; i <= lazyLoadCount && minSlide - i >= 0; i++) {
-      slidesToLoad.add(minSlide - i);
-    }
-    slidesInView.forEach((index) => slidesToLoad.add(index));
-    for (let i = 1; i <= lazyLoadCount && maxSlide + i < slides.length; i++) {
-      slidesToLoad.add(maxSlide + i);
-    }
-
-    slidesToLoad.forEach((index) => {
-      // Only lazy load slides that are not already loaded.
-      if (this._slideHasBeenLazyLoaded[index]) {
-        return;
-      }
-      this._slideHasBeenLazyLoaded[index] = true;
-      this._lazyLoadSlide(index, slides[index]);
-    });
-  }
-
-  /**
-   * Lazy load a slide.
-   * @param _index The index of the slide to lazy load.
-   * @param _slide The slide to lazy load.
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected _lazyLoadSlide(_index: number, _slide: HTMLElement): void {
-    // To be overridden in children.
   }
 
   /**
@@ -282,7 +224,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
        * available.
        */
       const firstMediaLoad = !Object.keys(this._mediaShowInfo).length;
-      if (firstMediaLoad && this._getLazyLoadCount() != null) {
+      if (firstMediaLoad) {
         const replacementImageSrc = getEmptyImageSrc(
           mediaShowInfo.width,
           mediaShowInfo.height,

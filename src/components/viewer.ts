@@ -29,7 +29,8 @@ import {
   FrigateCardThumbnailCarousel,
   ThumbnailCarouselTap,
 } from './thumbnail-carousel.js';
-import { MediaAutoplay } from './embla-plugins/media-autoplay.js';
+import { MediaAutoPlayPause } from './embla-plugins/media-autoplay.js';
+import { Lazyload, LazyloadType } from './embla-plugins/lazyload.js';
 import { ResolvedMediaCache, ResolvedMediaUtil } from '../resolved-media.js';
 import { View } from '../view.js';
 import {
@@ -216,7 +217,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     async ([target]: (BrowseMediaSource | undefined)[]): Promise<void> => {
       for (
         let i = 0;
-        !this._isLazyLoading() &&
+        !this.viewerConfig?.lazy_load &&
         this.hass &&
         target &&
         target.children &&
@@ -298,22 +299,19 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
    * Get the Embla plugins to use.
    * @returns An EmblaOptionsType object or undefined for no options.
    */
-   protected _getPlugins(): EmblaPluginType[] | undefined {
-    return [MediaAutoplay({ 
-      autoplay: this.viewerConfig?.autoplay_clip,
-      playerSelector: 'frigate-card-ha-hls-player' })];
-  }
-
-  /**
-   * Returns the number of slides to lazily load. 0 means all slides are lazy
-   * loaded, 1 means that 1 slide on each side of the currently selected slide
-   * should lazy load, etc. `null` means lazy loading is disabled and everything
-   * should load simultaneously.
-   * @returns
-   */
-  protected _getLazyLoadCount(): number | null {
-    // Defaults to fully-lazy loading.
-    return this.viewerConfig?.lazy_load === false ? null : 0;
+  protected _getPlugins(): EmblaPluginType[] | undefined {
+    return [
+      ...(this.viewerConfig?.lazy_load
+        ? [
+            Lazyload({
+              lazyloadCallback: this._lazyLoadSlide.bind(this),
+            }),
+          ]
+        : []),
+      MediaAutoPlayPause({
+        playerSelector: 'frigate-card-ha-hls-player',
+      }),
+    ];
   }
 
   /**
@@ -591,7 +589,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
 
     // If lazy loading is not enabled, wait for the media resolver task to
     // complete and show a progress indictator until this.
-    if (!this._isLazyLoading() && !this._isMediaFullyResolved()) {
+    if (!this.viewerConfig?.lazy_load && !this._isMediaFullyResolved()) {
       return html`${this._mediaResolutionTask.render({
         initial: () => renderProgressIndicator(),
         pending: () => renderProgressIndicator(),
@@ -658,7 +656,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       return;
     }
 
-    const lazyLoad = this._isLazyLoading();
+    const lazyLoad = this.viewerConfig.lazy_load;
     const resolvedMedia = this.resolvedMediaCache?.get(mediaToRender.media_content_id);
     if (!resolvedMedia && !lazyLoad) {
       return;
@@ -701,7 +699,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
                   // images in media-carousel.ts). Here we need to only call the
                   // media load handler on a 'real' load.
                   !lazyLoad ||
-                  this._slideHasBeenLazyLoaded[slideIndex]
+                  (this._plugins['Lazyload'] as LazyloadType | undefined)?.hasLazyloaded(slideIndex)
                 ) {
                   this._mediaLoadedHandler(slideIndex, createMediaShowInfo(e));
                 }
