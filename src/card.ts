@@ -151,11 +151,12 @@ export class FrigateCard extends LitElement {
   @query('frigate-card-elements')
   _elements?: FrigateCardElements;
 
-  // Human interaction timer ID.
+  // user interaction timer ("screensaver" functionality, return to default
+  // view after user interaction).
   protected _interactionTimerID: number | null = null;
 
-  // Whether or not media is actively playing (live or clip).
-  protected _mediaPlaying = false;
+  // Automated refreshes of the default view.
+  protected _updateTimerID: number | null = null;
 
   // Information about the most recently loaded media item.
   protected _mediaShowInfo: MediaShowInfo | null = null;
@@ -532,7 +533,7 @@ export class FrigateCard extends LitElement {
      * where the 'real' error is vs simply a union option not matching. This
      * function finds all ZodError "issues" that don't have an error with 'type'
      * in that object ('type' is the union discriminator for picture elements,
-     * the major union in the schema). An array of human-readable error
+     * the major union in the schema). An array of user-readable error
      * locations is returned, or an empty list if none is available. None being
      * available suggests the configuration has an error, but we can't tell
      * exactly why (or rather Zod simply says it doesn't match any of the
@@ -564,7 +565,7 @@ export class FrigateCard extends LitElement {
   }
 
   /**
-   * Convert an array of strings and indices into a more human readable string,
+   * Convert an array of strings and indices into a more user readable string,
    * e.g. [a, 1, b, 2] => 'a[1] -> b[2]'
    * @param path An array of strings and numbers.
    * @returns A single string.
@@ -619,10 +620,6 @@ export class FrigateCard extends LitElement {
     this._cameras = undefined;
     this._view = undefined;
 
-    if (this._getConfig().view.update_force) {
-      // If update force is enabled, start a timer right away.
-      this._resetInteractionTimer();
-    }
     this._changeView();
   }
 
@@ -640,6 +637,7 @@ export class FrigateCard extends LitElement {
     }
 
     if (args?.view === undefined) {
+      // Load the default view.
       let camera = this._view?.camera;
       if (this._cameras?.size) {
         if (!camera) {
@@ -658,6 +656,14 @@ export class FrigateCard extends LitElement {
           camera: camera,
         });
         this._generateConditionState();
+
+        // The default view has been loaded, so can abandon any running
+        // 'screensaver' timer.
+        this._clearInteractionTimer();
+
+        // Restart the update timer, so the default view is refreshed at a fixed
+        // interval from now (if so configured).
+        this._startUpdateTimer();
       }
     } else {
       this._view = args.view;
@@ -692,8 +698,7 @@ export class FrigateCard extends LitElement {
       // Assistant update if there's been recent interaction (e.g. clicks on the
       // card) or if there is media active playing.
       if (
-        (this._getConfig().view.update_force ||
-          !(this._interactionTimerID && this._mediaPlaying)) &&
+        this._isAutomatedViewUpdateAllowed() &&
         shouldUpdateBasedOnHass(
           this._hass,
           oldHass,
@@ -701,9 +706,8 @@ export class FrigateCard extends LitElement {
         )
       ) {
         // If entities being monitored have changed then reset the view to the
-        // default and allow a re-render. Note that as per the Lit lifecycle,
-        // the setting of the view itself will not trigger an *additional*
-        // re-render here.
+        // default. Note that as per the Lit lifecycle, the setting of the view
+        // itself will not trigger an *additional* re-render here.
         this._changeView();
         return true;
       }
@@ -891,23 +895,64 @@ export class FrigateCard extends LitElement {
     ) {
       handleAction(node, this._hass as HomeAssistant, config, ev.detail.action);
     }
-    this._resetInteractionTimer();
+
+    // Set the 'screensaver' timer.
+    this._startInteractionTimer();
   }
 
-  protected _resetInteractionTimer(): void {
+  /**
+   * Clear the user interaction ('screensaver') timer.
+   */
+  protected _clearInteractionTimer(): void {
+    if (this._interactionTimerID) {
+      window.clearTimeout(this._interactionTimerID);
+      this._interactionTimerID = null;
+    }
+  }
+
+  /**
+   * Start the user interaction ('screensaver') timer to reset the view to
+   * default `view.timeout_seconds` after user interaction.
+   */
+  protected _startInteractionTimer(): void {
+    this._clearInteractionTimer();
     if (this._getConfig().view.timeout_seconds) {
-      if (this._interactionTimerID) {
-        window.clearTimeout(this._interactionTimerID);
-      }
       this._interactionTimerID = window.setTimeout(() => {
-        this._interactionTimerID = null;
         this._changeView();
-        if (this._getConfig().view.update_force) {
-          // If force is enabled, the timer just resets and starts over.
-          this._resetInteractionTimer();
-        }
       }, this._getConfig().view.timeout_seconds * 1000);
     }
+  }
+
+  /**
+   * Set the update timer to trigger an update refresh every
+   * `view.update_seconds`.
+   */
+  protected _startUpdateTimer(): void {
+    if (this._updateTimerID) {
+      window.clearTimeout(this._updateTimerID);
+      this._updateTimerID = null;
+    }
+    if (this._getConfig().view.update_seconds) {
+      this._updateTimerID = window.setTimeout(() => {
+        if (this._isAutomatedViewUpdateAllowed()) {
+          this._changeView();
+        } else {
+          // Not allowed to update this time around, but try again at the next
+          // interval.
+          this._startUpdateTimer();
+        }
+      }, this._getConfig().view.update_seconds * 1000);
+    }
+  }
+
+  /**
+   * Determine if an automated view update is allowed.
+   * @returns `true` if it's allowed, `false` otherwise.
+   */
+  protected _isAutomatedViewUpdateAllowed(): boolean {
+    return (
+      this._getConfig().view.update_force || !this._interactionTimerID
+    );
   }
 
   /**
@@ -927,20 +972,6 @@ export class FrigateCard extends LitElement {
         class="${classMap(classes)}"
       ></frigate-card-menu>
     `;
-  }
-
-  /**
-   * Handler for media play event.
-   */
-  protected _playHandler(): void {
-    this._mediaPlaying = true;
-  }
-
-  /**
-   * Handler for media pause event.
-   */
-  protected _pauseHandler(): void {
-    this._mediaPlaying = false;
   }
 
   /**
@@ -1115,8 +1146,6 @@ export class FrigateCard extends LitElement {
       @frigate-card:message=${this._messageHandler}
       @frigate-card:change-view=${this._changeViewHandler}
       @frigate-card:media-show=${this._mediaShowHandler}
-      @frigate-card:pause=${this._pauseHandler}
-      @frigate-card:play=${this._playHandler}
     >
       ${this._getConfig().menu.mode == 'above' ? this._renderMenu() : ''}
       <div class="container outer" style="${styleMap(outerStyle)}">

@@ -135,12 +135,12 @@ view:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `default` | `live` | :heavy_multiplication_x: | The view to show in the card by default. See [views](#views) below.|
-| `timeout_seconds` | | :heavy_multiplication_x: | A numbers of seconds of inactivity after which the card will reset to the default configured view. Inactivity is defined as lack of interaction with the Frigate menu.|
-| `actions` | | :heavy_multiplication_x: | Actions to use for all views, individual actions may be overriden by view-specific actions. See [actions](#actions) below.|
-| `update_force` | `false` | :heavy_multiplication_x: | Whether card updates/refreshes should ignore playing media and human interaction. See [card updates](#card-updates) below for behavior and usecases.|
+| `timeout_seconds` | `300` | :heavy_multiplication_x: | A numbers of seconds of inactivity after user interaction, after which the card will reset to the default configured view (i.e. 'screensaver' functionality). Inactivity is defined as lack of mouse/touch interaction with the Frigate card. If the default view occurs sooner (e.g. via `update_seconds` or manually) the timer will be stopped. `0` means disable this functionality. |
+| `update_seconds` | `0` | :heavy_multiplication_x: | A number of seconds after which to automatically update/refresh the default view. See [card updates](#card-updates) below for behavior and usecases. If the default view occurs sooner (e.g. manually) the timer will start over. `0` disables this functionality.|
+| `update_force` | `false` | :heavy_multiplication_x: | Whether automated card updates/refreshes should ignore user interaction. See [card updates](#card-updates) below for behavior and usecases.|
 | `update_entities` | | :heavy_multiplication_x: | **YAML only**: A list of entity ids that should cause the view to reset to the default. See [card updates](#card-updates) below for behavior and usecases.|
 | `update_cycle_camera` | `false` | :heavy_multiplication_x: | When set to `true` the selected camera is cycled on each default view change. |
-
+| `actions` | | :heavy_multiplication_x: | Actions to use for all views, individual actions may be overriden by view-specific actions. See [actions](#actions) below.|
 ### Menu Options
 
 All configuration is under:
@@ -412,8 +412,6 @@ item, that has both of the following parameters set:
 | `conditions` | | :heavy_multiplication_x: | A set of conditions that must evaluate to `true` in order for the overrides to be applied. See [Frigate Card Conditions](#frigate-card-conditions). |
 | `overrides` | | :heavy_multiplication_x: |Configuration overrides to be applied. Any configuration parameter described in this documentation as 'Overridable' is supported. |
 
-
-
 ### Using WebRTC
 
 WebRTC support blends the use of the ultra-realtime [WebRTC live
@@ -605,7 +603,7 @@ format](https://www.home-assistant.io/lovelace/actions/#tap-action) as well as
 the custom [Frigate card action](#frigate-card-action) to trigger Frigate card
 changes.
 
-**Note:** The card itself obviously relies on human interactions to function
+**Note:** The card itself obviously relies on user interactions to function
 (e.g. `tap` on the menu should activate that button, `tap` on a gallery thumbnail
 should open that piece of media, etc). These internal actions are executed
 _also_, which means that a card-wide `tap` action probably isn't that useful as
@@ -1099,31 +1097,34 @@ image:
 
 ## Card Refreshes
 
-Three sets of flags govern when the card will automatically re-render in the
-absence of human interaction.
+Four sets of flags govern when the card will automatically refresh in the
+absence of user interaction.
 
-The following table describes the behavior these 3 flags have.
+The following table describes the behavior these flags have.
 
 ### Card Update Truth Table
 
-| `view.timeout_seconds` | `view.update_force` | `view.update_entities` | Behavior |
-| :-: | :-: | :-: | - |
-| Unset or `0` | *(Any value)* | Unset | Card will not automatically refresh. |
-| Unset or `0` | `false` | *(Any entity)* | Card will reload default view when entity state changes, unless media is playing. |
-| Unset or `0` | `true` | *(Any entity)* | Card will reload default view when entity state changes. |
-| `X` seconds | `false` | Unset | Card will reload default view `X` seconds after human interaction stops, unless media is playing. |
-| `X` seconds | `false` | *(Any entity)* | Card will reload default view `X` seconds after human interaction stops or when entity state changes -- in both cases unless media is playing. |
-| `X` seconds | `true` | Unset | Card will reload default view every `X` seconds. |
-| `X` seconds | `true` | *(Any entity)* | Card will reload default view every `X` seconds or when entity state changes. |
+| `view.update_seconds` | `view.timeout_seconds` | `view.update_force` | `view.update_entities` | Behavior |
+| :-: | :-: | :-: | :-: | - |
+| `0` | `0` | *(Any value)* | Unset | Card will not automatically refresh. |
+| `0` | `0` | *(Any value)* | *(Any entity)* | Card will reload default view when entity state changes. |
+| `0` | `X` seconds | *(Any value)* | Unset | Card will reload default view `X` seconds after user interaction stops. |
+| `0` | `X` seconds | `false` | *(Any entity)* | Card will reload default view `X` seconds after user interaction stops, or when entity state changes (as long as user interaction has not occurred in the last `X` seconds). |
+| `0` | `X` seconds | `true` | *(Any entity)* | Card will reload default view `X` seconds after user interaction stops or when entity state changes. |
+| `Y` seconds | `0` | *(Any value)* | Unset | Card will reload default view every `Y` seconds. |
+| `Y` seconds | `0` | *(Any value)* | *(Any entity)* | Card will reload default view every `Y` seconds, or whenever entity state changes. |
+| `Y` seconds | `X` seconds | `false` | Unset | Card will reload default view `X` seconds after user interaction stops, and every `Y` seconds (as long as there hasn't been user interaction in the last `X` seconds).  |
+| `Y` seconds | `X` seconds | `false` | *(Any entity)* | Card will reload default view `X` seconds after user interaction stops, and every `Y` seconds or whenever entity state changes (in both cases -- as long as there hasn't been user interaction in the last `X` seconds).  |
+| `Y` seconds | `X` seconds | `true` | Unset | Card will reload default view `X` seconds after user interaction stops, and every `Y` seconds.  |
+| `Y` seconds | `X` seconds | `true` | *(Any entity)* | Card will reload default view `X` seconds after user interaction stops, and every `Y` seconds or whenever entity state changes.  |
 
 ### Usecases For Automated Refreshes
 
- * Refreshing the `live` thumbnails periodically.
+ * Refreshing the `live` thumbnails every 30 seconds.
 ```yaml
 view:
   default: live
-  timeout_seconds: 30
-  force: true
+  update_seconds: 30
 ```
  * Using `clip` or `snapshot` as the default view (for the most recent clip or
    snapshot respectively) and having the card automatically refresh (to fetch a
@@ -1134,6 +1135,19 @@ view:
 view:
   update_entities:
     - binary_sensor.office_person_motion
+```
+ * Cycle the live view of the camera every 60 seconds
+```yaml
+view:
+  update_cycle_camera: true
+  update_seconds: 60
+```
+ * Return to the most recent clip of the default camera 30 seconds after user
+   interaction with the card stops.
+```yaml
+view:
+  default: clip
+  timeout_seconds: 30
 ```
 
 ## Troubleshooting
