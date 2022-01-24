@@ -151,8 +151,8 @@ export class FrigateCard extends LitElement {
   @query('frigate-card-elements')
   _elements?: FrigateCardElements;
 
-  // Human interaction timer ("screensaver" functionality, return to default
-  // view after human interaction).
+  // user interaction timer ("screensaver" functionality, return to default
+  // view after user interaction).
   protected _interactionTimerID: number | null = null;
 
   // Automated refreshes of the default view.
@@ -533,7 +533,7 @@ export class FrigateCard extends LitElement {
      * where the 'real' error is vs simply a union option not matching. This
      * function finds all ZodError "issues" that don't have an error with 'type'
      * in that object ('type' is the union discriminator for picture elements,
-     * the major union in the schema). An array of human-readable error
+     * the major union in the schema). An array of user-readable error
      * locations is returned, or an empty list if none is available. None being
      * available suggests the configuration has an error, but we can't tell
      * exactly why (or rather Zod simply says it doesn't match any of the
@@ -565,7 +565,7 @@ export class FrigateCard extends LitElement {
   }
 
   /**
-   * Convert an array of strings and indices into a more human readable string,
+   * Convert an array of strings and indices into a more user readable string,
    * e.g. [a, 1, b, 2] => 'a[1] -> b[2]'
    * @param path An array of strings and numbers.
    * @returns A single string.
@@ -901,7 +901,7 @@ export class FrigateCard extends LitElement {
   }
 
   /**
-   * Clear the human interaction ('screensaver') timer.
+   * Clear the user interaction ('screensaver') timer.
    */
   protected _clearInteractionTimer(): void {
     if (this._interactionTimerID) {
@@ -911,8 +911,8 @@ export class FrigateCard extends LitElement {
   }
 
   /**
-   * Start the human interaction ('screensaver') timer to reset the view to
-   * default `view.timeout_seconds` after human interaction.
+   * Start the user interaction ('screensaver') timer to reset the view to
+   * default `view.timeout_seconds` after user interaction.
    */
   protected _startInteractionTimer(): void {
     this._clearInteractionTimer();
