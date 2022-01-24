@@ -40,8 +40,6 @@ import {
   dispatchExistingMediaShowInfoAsEvent,
   dispatchMediaShowEvent,
   dispatchMessageEvent,
-  dispatchPauseEvent,
-  dispatchPlayEvent,
   getCameraIcon,
   getCameraTitle,
   homeAssistantSignPath,
@@ -701,7 +699,7 @@ export class FrigateCardLiveWebRTC extends LitElement {
    * @returns The player or `null` if not found.
    */
   protected _getPlayer(): HTMLVideoElement | null {
-    return this.renderRoot.querySelector('#video') as HTMLVideoElement | null;
+    return this.renderRoot?.querySelector('#video') as HTMLVideoElement | null;
   }
 
   /**
@@ -763,26 +761,12 @@ export class FrigateCardLiveWebRTC extends LitElement {
       const video = this._getPlayer();
       if (video) {
         const onloadedmetadata = video.onloadedmetadata;
-        const onplay = video.onplay;
-        const onpause = video.onpause;
 
         video.onloadedmetadata = (e) => {
           if (onloadedmetadata) {
             onloadedmetadata.call(video, e);
           }
           dispatchMediaShowEvent(this, video);
-        };
-        video.onplay = (e) => {
-          if (onplay) {
-            onplay.call(video, e);
-          }
-          dispatchPlayEvent(this);
-        };
-        video.onpause = (e) => {
-          if (onpause) {
-            onpause.call(video, e);
-          }
-          dispatchPauseEvent(this);
         };
       }
     });
@@ -864,14 +848,6 @@ export class FrigateCardLiveJSMPEG extends LitElement {
         url,
         {
           canvas: this._jsmpegCanvasElement,
-          hooks: {
-            play: () => {
-              dispatchPlayEvent(this);
-            },
-            pause: () => {
-              dispatchPauseEvent(this);
-            },
-          },
         },
         {
           pauseWhenHidden: false,

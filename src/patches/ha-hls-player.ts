@@ -12,12 +12,7 @@
 import { TemplateResult, css, html } from 'lit';
 import { Ref, createRef, ref } from 'lit/directives/ref';
 import { customElement } from 'lit/decorators.js';
-
-import {
-  dispatchMediaShowEvent,
-  dispatchPauseEvent,
-  dispatchPlayEvent,
-} from '../common.js';
+import { dispatchMediaShowEvent } from '../common.js';
 
 customElements.whenDefined('ha-hls-player').then(() => {
   @customElement('frigate-card-ha-hls-player')
@@ -54,8 +49,6 @@ customElements.whenDefined('ha-hls-player').then(() => {
           @loadeddata=${(e) => {
             dispatchMediaShowEvent(this, e);
           }}
-          @pause=${() => dispatchPauseEvent(this)}
-          @play=${() => dispatchPlayEvent(this)}
         ></video>
       `;
     }

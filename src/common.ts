@@ -115,22 +115,6 @@ export function dispatchFrigateCardEvent<T>(
 }
 
 /**
- * Dispatch a Frigate card play event.
- * @param element The element to send the event.
- */
-export function dispatchPlayEvent(element: HTMLElement): void {
-  dispatchFrigateCardEvent(element, 'play');
-}
-
-/**
- * Dispatch a Frigate card pause event.
- * @param element The element to send the event.
- */
-export function dispatchPauseEvent(element: HTMLElement): void {
-  dispatchFrigateCardEvent(element, 'pause');
-}
-
-/**
  * Create a MediaShowInfo object.
  * @param source An event or HTMLElement that should be used as a source.
  * @returns A new MediaShowInfo object or null if one could not be created.

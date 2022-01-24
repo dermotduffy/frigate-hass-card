@@ -370,7 +370,8 @@ export type PictureElements = z.infer<typeof pictureElementsSchema>;
  */
 const viewConfigDefault = {
   default: 'live' as const,
-  timeout: 180,
+  timeout_seconds: 300, 
+  update_seconds: 0,
   update_force: false,
   update_cycle_camera: false,
 };
@@ -380,7 +381,8 @@ const viewConfigSchema = z
       .enum(FRIGATE_CARD_VIEWS_USER_SPECIFIED)
       .optional()
       .default(viewConfigDefault.default),
-    timeout_seconds: z.number().default(viewConfigDefault.timeout),
+    timeout_seconds: z.number().default(viewConfigDefault.timeout_seconds),
+    update_seconds: z.number().default(viewConfigDefault.update_seconds),
     update_force: z.boolean().default(viewConfigDefault.update_force),
     update_cycle_camera: z.boolean().default(viewConfigDefault.update_cycle_camera),
     update_entities: z.string().array().optional(),
