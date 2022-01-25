@@ -15,6 +15,9 @@
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/image-view.png" alt="Frigate card example" width="400px">
 
+| ♥️ This card is under active development. Be sure to consult the documentation that matches the release of the card you're using. Latest stable release: [v2.1](https://github.com/dermotduffy/frigate-hass-card/blob/v2.1.0/README.md) |
+| - |
+
 # Frigate Lovelace Card
 
 A full-featured Frigate Lovelace card:
