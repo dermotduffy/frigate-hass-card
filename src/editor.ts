@@ -44,6 +44,7 @@ import {
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
   CONF_LIVE_DRAGGABLE,
   CONF_LIVE_LAZY_LOAD,
+  CONF_LIVE_LAZY_UNLOAD,
   CONF_LIVE_PRELOAD,
   CONF_MENU_BUTTONS_CLIPS,
   CONF_MENU_BUTTONS_FRIGATE,
@@ -727,6 +728,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderSwitch(
                   CONF_LIVE_LAZY_LOAD,
                   defaults.live.lazy_load,
+                )}
+                ${this._renderSwitch(
+                  CONF_LIVE_LAZY_UNLOAD,
+                  defaults.live.lazy_unload,
                 )}
                 ${this._renderDropdown(
                   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,

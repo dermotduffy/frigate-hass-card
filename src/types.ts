@@ -432,6 +432,7 @@ export type NextPreviousControlConfig = z.infer<typeof nextPreviousControlConfig
 const liveConfigDefault = {
   preload: false,
   lazy_load: true,
+  lazy_unload: false,
   draggable: true,
   controls: {
     next_previous: {
@@ -516,6 +517,7 @@ const liveConfigSchema = liveOverridableConfigSchema
     // Non-overrideable parameters.
     preload: z.boolean().default(liveConfigDefault.preload),
     lazy_load: z.boolean().default(liveConfigDefault.lazy_load),
+    lazy_unload: z.boolean().default(liveConfigDefault.lazy_unload),
     draggable: z.boolean().default(liveConfigDefault.draggable),
   })
   .default(liveConfigDefault);

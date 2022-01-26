@@ -1,12 +1,15 @@
-import { EmblaCarouselType, EmblaPluginType } from 'embla-carousel';
+import { EmblaCarouselType, EmblaEventType, EmblaPluginType } from 'embla-carousel';
 
 export type LazyloadOptionsType = {
-  count?: number;
-  lazyloadCallback: (index: number, slide: HTMLElement) => void;
+  // Number of slides to lazyload left/right of selected (0 == only selected slide).
+  lazyloadCount?: number;
+
+  lazyloadCallback?: (index: number, slide: HTMLElement) => void;
+  lazyunloadCallback?: (index: number, slide: HTMLElement) => void;
 };
 
 export const defaultOptions: Partial<LazyloadOptionsType> = {
-  count: 0,
+  lazyloadCount: 0,
 };
 
 export type LazyloadType = EmblaPluginType<LazyloadOptionsType> & {
@@ -20,6 +23,9 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
   let slides: HTMLElement[];
   const isSlideLazyloaded: Record<number, boolean> = {};
 
+  const loadEvents: EmblaEventType[] = ['init', 'select', 'resize'];
+  const unloadEvents: EmblaEventType[] = ['select'];
+
   /**
    * Initialize the plugin.
    */
@@ -27,18 +33,24 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
     carousel = embla;
     slides = carousel.slideNodes();
 
-    carousel.on('init', lazyLoadHandler);
-    carousel.on('select', lazyLoadHandler);
-    carousel.on('resize', lazyLoadHandler);
+    if (options.lazyloadCallback) {
+      loadEvents.forEach((evt) => carousel.on(evt, lazyloadHandler));
+    }
+    if (options.lazyunloadCallback) {
+      unloadEvents.forEach((evt) => carousel.on(evt, lazyunloadHandler));
+    }
   }
 
   /**
    * Destroy the plugin.
    */
   function destroy(): void {
-    carousel.off('init', lazyLoadHandler);
-    carousel.off('select', lazyLoadHandler);
-    carousel.off('resize', lazyLoadHandler);
+    if (options.lazyloadCallback) {
+      loadEvents.forEach((evt) => carousel.off(evt, lazyloadHandler));
+    }
+    if (options.lazyunloadCallback) {
+      unloadEvents.forEach((evt) => carousel.off(evt, lazyunloadHandler));
+    }
   }
 
   /**
@@ -53,21 +65,18 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
   /**
    * Lazily load media in the carousel.
    */
-  function lazyLoadHandler(): void {
-    const lazyLoadCount = options.count ?? 0;
-    const slidesInView = carousel.slidesInView(true);
+  function lazyloadHandler(): void {
+    const lazyLoadCount = options.lazyloadCount ?? 0;
+    const currentIndex = carousel.selectedScrollSnap();
     const slidesToLoad = new Set<number>();
 
-    const minSlide = Math.min(...slidesInView);
-    const maxSlide = Math.max(...slidesInView);
-
     // Lazily load 'count' slides on either side of the slides in view.
-    for (let i = 1; i <= lazyLoadCount && minSlide - i >= 0; i++) {
-      slidesToLoad.add(minSlide - i);
+    for (let i = 1; i <= lazyLoadCount && currentIndex - i >= 0; i++) {
+      slidesToLoad.add(currentIndex - i);
     }
-    slidesInView.forEach((index) => slidesToLoad.add(index));
-    for (let i = 1; i <= lazyLoadCount && maxSlide + i < slides.length; i++) {
-      slidesToLoad.add(maxSlide + i);
+    slidesToLoad.add(currentIndex);
+    for (let i = 1; i <= lazyLoadCount && currentIndex + i < slides.length; i++) {
+      slidesToLoad.add(currentIndex + i);
     }
 
     slidesToLoad.forEach((index) => {
@@ -75,11 +84,29 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
       if (isSlideLazyloaded[index]) {
         return;
       }
-      isSlideLazyloaded[index] = true;
-      options.lazyloadCallback(index, slides[index]);
+      if (options.lazyloadCallback) {
+        isSlideLazyloaded[index] = true;
+        options.lazyloadCallback(index, slides[index]);
+      }
     });
   }
 
+  /**
+   * Lazily unload media in the carousel.
+   */
+   function lazyunloadHandler(): void {
+    const index = carousel.previousScrollSnap();
+
+    // Only lazy unload slides that are loaded.
+    if (!isSlideLazyloaded[index]) {
+      return;
+    }
+    if (options.lazyunloadCallback) {
+      options.lazyunloadCallback(index, slides[index]);
+      isSlideLazyloaded[index] = false;
+    }
+  }
+  
   const self: LazyloadType = {
     name: 'Lazyload',
     options,

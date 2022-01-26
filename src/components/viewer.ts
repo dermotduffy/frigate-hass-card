@@ -311,14 +311,11 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
    */
   protected _getPlugins(): EmblaPluginType[] | undefined {
     return [
-      ...(this.viewerConfig?.lazy_load
-        ? [
-            Lazyload({
-              lazyloadCallback: this._lazyLoadSlide.bind(this),
-            }),
-          ]
-        : []),
-
+      Lazyload({
+        lazyloadCallback: this.viewerConfig?.lazy_load
+          ? this._lazyloadSlide.bind(this)
+          : undefined,
+      }),
       // Don't need autoplay/pause for snapshots.
       ...(this.view?.is('clip')
         ? [
@@ -493,7 +490,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
    * @param slide The slide to lazy load.
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected _lazyLoadSlide(index: number, slide: HTMLElement): void {
+  protected _lazyloadSlide(index: number, slide: HTMLElement): void {
     const childIndex: number | undefined = this._slideToChild[index];
 
     if (
