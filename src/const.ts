@@ -57,6 +57,7 @@ export const CONF_LIVE_CONTROLS_THUMBNAILS_SIZE =
 export const CONF_LIVE_DRAGGABLE = `${CONF_LIVE}.draggable` as const;
 export const CONF_LIVE_JSMPEG = `${CONF_LIVE}.jsmpeg` as const;
 export const CONF_LIVE_LAZY_LOAD = `${CONF_LIVE}.lazy_load` as const;
+export const CONF_LIVE_LAZY_UNLOAD = `${CONF_LIVE}.lazy_unload` as const;
 export const CONF_LIVE_PRELOAD = `${CONF_LIVE}.preload` as const;
 export const CONF_LIVE_WEBRTC = `${CONF_LIVE}.webrtc` as const;
 export const CONF_LIVE_WEBRTC_ENTITY = `${CONF_LIVE_WEBRTC}.entity` as const;

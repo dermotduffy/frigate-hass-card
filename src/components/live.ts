@@ -297,13 +297,14 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
    */
   protected _getPlugins(): EmblaPluginType[] | undefined {
     return [
-      ...(this.liveConfig?.lazy_load
-        ? [
-            Lazyload({
-              lazyloadCallback: this._lazyLoadSlide.bind(this),
-            }),
-          ]
-        : []),
+      Lazyload({
+        lazyloadCallback: this.liveConfig?.lazy_load
+          ? (...args) => this._lazyloadOrUnloadSlide('load', ...args)
+          : undefined,
+        lazyunloadCallback: this.liveConfig?.lazy_unload
+          ? (...args) => this._lazyloadOrUnloadSlide('unload', ...args)
+          : undefined,
+      }),
       MediaAutoPlayPause({
         playerSelector: 'frigate-card-live-provider',
       }),
@@ -367,12 +368,16 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
    * @param _index The slide number to lazy load.
    * @param slide The slide to lazy load.
    */
-  protected _lazyLoadSlide(_index: number, slide: HTMLElement): void {
+  protected _lazyloadOrUnloadSlide(
+    action: 'load' | 'unload',
+    _index: number,
+    slide: HTMLElement,
+  ): void {
     const liveProvider = slide.querySelector(
       'frigate-card-live-provider',
     ) as FrigateCardLiveProvider;
     if (liveProvider) {
-      liveProvider.disabled = false;
+      liveProvider.disabled = action == 'load' ? false : true;
     }
   }
 
@@ -680,11 +685,13 @@ export class FrigateCardLiveWebRTC extends LitElement {
    * Play the video.
    */
   public play(): void {
-    this._getPlayer()?.play().catch(() => {
-      // WebRTC appears to generate additional spurious load events, which may
-      // result in loads after a play() call, which causes the browser to spam
-      // the logs unless the promise rejection is handled here.
-    })
+    this._getPlayer()
+      ?.play()
+      .catch(() => {
+        // WebRTC appears to generate additional spurious load events, which may
+        // result in loads after a play() call, which causes the browser to spam
+        // the logs unless the promise rejection is handled here.
+      });
   }
 
   /**
