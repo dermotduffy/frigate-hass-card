@@ -14,7 +14,6 @@ import {
   HomeAssistant,
   LovelaceCardEditor,
   getLovelace,
-  handleAction,
   hasAction,
 } from 'custom-card-helpers';
 import screenfull from 'screenfull';
@@ -46,6 +45,7 @@ import {
   contentsChanged,
   convertActionToFrigateCardCustomAction,
   createFrigateCardCustomAction,
+  frigateCardHandleAction,
   getActionConfigGivenAction,
   getCameraIcon,
   getCameraTitle,
@@ -102,8 +102,8 @@ import {
  *
  * The card supports actions being configured in a number of places (e.g. tap on an
  * element, double_tap on a menu item, hold on the live view). These actions are
- * handled by handleAction() from custom-card-helpers. For Frigate-card specific
- * actions, handleAction() call will result in an ll-custom DOM event being
+ * handled frigateCardHandleAction(). For Frigate-card specific actions,
+ * frigateCardHandleAction() call will result in an ll-custom DOM event being
  * fired, which needs to be caught at the card level to handle.
  */
 
@@ -880,6 +880,8 @@ export class FrigateCard extends LitElement {
       hold_action?: ActionType;
       tap_action?: ActionType;
       double_tap_action?: ActionType;
+      start_tap_action?: ActionType;
+      end_tap_action?: ActionType;
     },
   ): void {
     const interaction = ev.detail.action;
@@ -888,12 +890,17 @@ export class FrigateCard extends LitElement {
       config &&
       node &&
       interaction &&
-      // Don't call handleAction() unless there is explicitly an action defined
-      // (as it uses a default that is unhelpful for views that have default
-      // tap/click actions).
+      // Don't call frigateCardHandleAction() unless there is explicitly an
+      // action defined (as it uses a default that is unhelpful for views that
+      // have default tap/click actions).
       getActionConfigGivenAction(interaction, config)
     ) {
-      handleAction(node, this._hass as HomeAssistant, config, ev.detail.action);
+      frigateCardHandleAction(
+        node,
+        this._hass as HomeAssistant,
+        config,
+        ev.detail.action,
+      );
     }
 
     // Set the 'screensaver' timer.
@@ -950,9 +957,7 @@ export class FrigateCard extends LitElement {
    * @returns `true` if it's allowed, `false` otherwise.
    */
   protected _isAutomatedViewUpdateAllowed(): boolean {
-    return (
-      this._getConfig().view.update_force || !this._interactionTimerID
-    );
+    return this._getConfig().view.update_force || !this._interactionTimerID;
   }
 
   /**

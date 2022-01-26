@@ -1,4 +1,4 @@
-import { HASSDomEvent, HomeAssistant, handleAction, hasAction } from 'custom-card-helpers';
+import { HASSDomEvent, HomeAssistant, hasAction } from 'custom-card-helpers';
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -18,6 +18,7 @@ import type {
 } from '../types.js';
 import {
   convertActionToFrigateCardCustomAction,
+  frigateCardHandleAction,
   getActionConfigGivenAction,
   refreshDynamicStateParameters,
 } from '../common.js';
@@ -103,7 +104,7 @@ export class FrigateCardMenu extends LitElement {
 
     // Collapse menu after the user clicks on something.
     this.expanded = false;
-    handleAction(this, this.hass as HomeAssistant, config, interaction);
+    frigateCardHandleAction(this, this.hass as HomeAssistant, config, interaction);
   }
 
   /**

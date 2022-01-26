@@ -1,5 +1,9 @@
 import { HassEntity, MessageBase } from 'home-assistant-js-websocket';
-import { HomeAssistant, stateIcon } from 'custom-card-helpers';
+import {
+  HomeAssistant,
+  handleActionConfig,
+  stateIcon,
+} from 'custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map';
 import { ZodSchema, z } from 'zod';
 import { isEqual } from 'lodash-es';
@@ -302,10 +306,12 @@ export function getActionConfigGivenAction(
     hold_action?: ActionType;
     tap_action?: ActionType;
     double_tap_action?: ActionType;
+    start_tap_action?: ActionType;
+    end_tap_action?: ActionType;
   },
-): ActionType | null {
+): ActionType | undefined {
   if (!interaction || !config) {
-    return null;
+    return undefined;
   }
   if (interaction == 'tap' && config.tap_action) {
     return config.tap_action;
@@ -313,8 +319,12 @@ export function getActionConfigGivenAction(
     return config.hold_action;
   } else if (interaction == 'double_tap' && config.double_tap_action) {
     return config.double_tap_action;
+  } else if (interaction == 'end_tap' && config.end_tap_action) {
+    return config.end_tap_action;
+  } else if (interaction == 'start_tap' && config.start_tap_action) {
+    return config.start_tap_action;
   }
-  return null;
+  return undefined;
 }
 
 /**
@@ -480,3 +490,29 @@ export function arrayMove(target: unknown[], from: number, to: number): void {
 export function contentsChanged(n: unknown, o: unknown): boolean {
   return !isEqual(n, o);
 }
+
+/**
+ * Frigate card custom version of handleAction
+ * (https://github.com/custom-cards/custom-card-helpers/blob/master/src/handle-action.ts)
+ * that handles the custom action events the card supports.
+ * @param node The node that fired the event.
+ * @param hass The Home Assistant object.
+ * @param config The multi-action configuration.
+ * @param action The action string (e.g. 'hold')
+ */
+export const frigateCardHandleAction = (
+  node: HTMLElement,
+  hass: HomeAssistant,
+  config: {
+    entity?: string;
+    camera_image?: string;
+    hold_action?: ActionType;
+    tap_action?: ActionType;
+    double_tap_action?: ActionType;
+    start_tap_action?: ActionType;
+    end_tap_action?: ActionType;
+  },
+  action: string,
+): void => {
+  handleActionConfig(node, hass, config, getActionConfigGivenAction(action, config));
+};
