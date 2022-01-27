@@ -117,6 +117,8 @@ class ActionHandler extends HTMLElement implements ActionHandler {
           this.held = true;
         }, this.holdTime);
       }
+
+      fireEvent(element, 'action', { action: 'start_tap' });
     };
 
     const end = (ev: Event): void => {
@@ -133,6 +135,9 @@ class ActionHandler extends HTMLElement implements ActionHandler {
         this.stopAnimation();
         this.timer = undefined;
       }
+
+      fireEvent(element, 'action', { action: 'end_tap' });
+
       if (options?.hasHold && this.held) {
         fireEvent(element, 'action', { action: 'hold' });
       } else if (options?.hasDoubleClick) {

@@ -162,14 +162,16 @@ const actionBaseSchema = z
     tap_action: actionSchema.optional(),
     hold_action: actionSchema.optional(),
     double_tap_action: actionSchema.optional(),
+    start_tap_action: actionSchema.optional(),
+    end_tap_action: actionSchema.optional(),
   })
+  // Passthrough to allow (at least) entity/camera_image to go through. This
+  // card doesn't need these attributes, but handleAction() in
+  // custom_card_helpers may depending on how the action is configured.
   .passthrough();
 export type Actions = z.infer<typeof actionBaseSchema>;
 
 const actionsSchema = z.object({
-  // Passthrough to allow (at least) entity/camera_image to go through. This
-  // card doesn't need these attributes, but handleAction() in
-  // custom_card_helpers may depending on how the action is configured.
   actions: actionBaseSchema.optional(),
 });
 
