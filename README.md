@@ -529,7 +529,7 @@ Parameters for the `custom:frigate-card-menu-submenu` element are identical to t
 | `state_color` | `true` | Whether or not the title and icon should be stylized based on state. |
 | `selected` | `false` | Whether or not to show this item as selected. |
 | `style` | | Position and style the element using CSS. |
-| `tap_action`, `double_tap_action` or `hold_action` | | Standard [Home Assistant action configuration](https://www.home-assistant.io/lovelace/actions). |
+| `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` | | Standard [Home Assistant action configuration](https://www.home-assistant.io/lovelace/actions). |
 
 See the [Configuring a Submenu example](#configuring-a-submenu-example).
 
@@ -587,8 +587,9 @@ time as the snapshot (if any).
 ## Card & View Actions
 
 Actions may be attached to the card itself, to trigger action when the card
-experiences a `tap`, `double_tap` or `hold` event. These actions can be
-specified both for the overall card and for individual groups of view.
+experiences a `tap`, `double_tap`, `hold`, `start_tap` or `end_tap` event. These
+actions can be specified both for the overall card and for individual groups of
+view.
 
 | Configuration path | Views to which it refers |
 | - | - |
@@ -614,6 +615,19 @@ _also_, which means that a card-wide `tap` action probably isn't that useful as
 it may be disorienting to the user and will trigger on all kinds of basic
 interaction on the card (e.g. tapping/clicking a menu button).
 
+### Special Custom Action Types: `start_tap` and `end_tap`
+
+The card has partial support for two special action types `start_tap` and
+`end_tap` which occur when a tap is started (e.g. mouse is pressed down /
+touch begins), and ended (e.g. mouse released / touch ends) respectively. This
+might be useful for PTZ cameras cameras to start/stop movement on touch.
+
+**Caveats**: This support is only partial. Stock [Home Assistant picture
+elements](https://www.home-assistant.io/lovelace/picture-elements/) do not
+support these actions when rendered onto the card, but Frigate card controls
+(e.g. card/view actions as described above, menu icons and submenus) do support
+them by default. Network latency may introduce unavoidable imprecision between
+`end_tap` and action actually occurring.
 
 ## Menu Modes
 
@@ -927,7 +941,7 @@ elements:
 
 ### Adding Card-wide Actions
 
-You can add actions to the card to be trigger on `tap`, `double_tap` or `hold`. See [actions](#actions) above.
+You can add actions to the card to be trigger on `tap`, `double_tap`, `hold`, `start_tap` or `end_tap`. See [actions](#actions) above.
 
 <details>
   <summary>Expand: Adding a card-wide action</summary>
