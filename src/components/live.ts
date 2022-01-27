@@ -857,7 +857,6 @@ export class FrigateCardLiveJSMPEG extends LitElement {
           canvas: this._jsmpegCanvasElement,
         },
         {
-          pauseWhenHidden: false,
           protocols: [],
           audio: false,
           videoBufferSize: 1024 * 1024 * 4,
