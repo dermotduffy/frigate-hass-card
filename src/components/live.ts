@@ -857,6 +857,9 @@ export class FrigateCardLiveJSMPEG extends LitElement {
           canvas: this._jsmpegCanvasElement,
         },
         {
+          // The media carousel automatically pauses when the browser tab is
+          // inactive, JSMPEG does not need to also do so independently.
+          pauseWhenHidden: false,
           protocols: [],
           audio: false,
           videoBufferSize: 1024 * 1024 * 4,
