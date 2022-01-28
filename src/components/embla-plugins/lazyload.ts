@@ -39,6 +39,7 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
     if (options.lazyunloadCallback) {
       unloadEvents.forEach((evt) => carousel.on(evt, lazyunloadHandler));
     }
+    document.addEventListener('visibilitychange', visibilityHandler);
   }
 
   /**
@@ -50,6 +51,18 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
     }
     if (options.lazyunloadCallback) {
       unloadEvents.forEach((evt) => carousel.off(evt, lazyunloadHandler));
+    }
+    document.removeEventListener('visibilitychange', visibilityHandler);
+  }
+
+  /**
+   * Handle document visibility changes.
+   */
+  function visibilityHandler(): void {
+    if (document.visibilityState == 'hidden' && lazyunloadHandler)  {
+      lazyunloadHandler();
+    } else if (document.visibilityState == 'visible' && lazyloadHandler)  {
+      lazyloadHandler();
     }
   }
 

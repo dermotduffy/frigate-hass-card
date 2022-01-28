@@ -2,17 +2,10 @@ import { EmblaCarouselType, EmblaPluginType } from 'embla-carousel';
 import { FrigateCardMediaPlayer } from '../../types.js';
 
 export type MediaAutoPlayPauseOptionsType = {
-  autoplay?: boolean;
-  autopause?: boolean;
   playerSelector: string;
 };
 
-export const defaultOptions: Partial<MediaAutoPlayPauseOptionsType> = {
-  // Frigate card media autoplays when the media loads, not necessarily when the
-  // slide is selected.
-  autoplay: false,
-  autopause: true,
-};
+export const defaultOptions: Partial<MediaAutoPlayPauseOptionsType> = {};
 
 export type MediaAutoPlayPauseType = EmblaPluginType<MediaAutoPlayPauseOptionsType> & {
   play: () => void;
@@ -33,29 +26,32 @@ export function MediaAutoPlayPause(
     carousel = embla;
     slides = carousel.slideNodes();
 
-    if (options.autopause) {
-      carousel.on('destroy', pauseAllHandler);
-      carousel.on('select', pausePrevious);
-    }
+    // Frigate card media autoplays when the media loads not necessarily when the
+    // slide is selected, so only pause based on carousel events.
+    carousel.on('destroy', pauseAllHandler);
+    carousel.on('select', pausePrevious);
 
-    if (options.autoplay) {
-      carousel.on('select', play);
-      carousel.on('init', play);
-    }
+    document.addEventListener('visibilitychange', visibilityHandler);
   }
 
   /**
    * Destroy the plugin.
    */
   function destroy(): void {
-    if (options.autopause) {
-      carousel.off('destroy', pauseAllHandler);
-      carousel.off('select', pausePrevious);
-    }
+    carousel.off('destroy', pauseAllHandler);
+    carousel.off('select', pausePrevious);
 
-    if (options.autoplay) {
-      carousel.off('select', play);
-      carousel.off('init', play);
+    document.removeEventListener('visibilitychange', visibilityHandler);
+  }
+
+  /**
+   * Handle document visibility changes.
+   */
+   function visibilityHandler(): void {
+    if (document.visibilityState == 'hidden') {
+      pause();
+    } else if (document.visibilityState == 'visible') {
+      play();
     }
   }
 
@@ -83,9 +79,16 @@ export function MediaAutoPlayPause(
   }
 
   /**
+   * Autopause the current slide.
+   */
+   function pause(): void {
+    getPlayer(slides[carousel.selectedScrollSnap()])?.pause();
+  }
+
+  /**
    * Autopause the previous slide.
    */
-  function pausePrevious(): void {
+   function pausePrevious(): void {
     getPlayer(slides[carousel.previousScrollSnap()])?.pause();
   }
 
