@@ -1,7 +1,8 @@
 import { EmblaCarouselType, EmblaEventType, EmblaPluginType } from 'embla-carousel';
 
 export type LazyloadOptionsType = {
-  // Number of slides to lazyload left/right of selected (0 == only selected slide).
+  // Number of slides to lazyload left/right of selected (0 == only selected
+  // slide).
   lazyloadCount?: number;
 
   lazyloadCallback?: (index: number, slide: HTMLElement) => void;
@@ -59,9 +60,9 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
    * Handle document visibility changes.
    */
   function visibilityHandler(): void {
-    if (document.visibilityState == 'hidden' && lazyunloadHandler)  {
+    if (document.visibilityState == 'hidden' && lazyunloadHandler) {
       lazyunloadHandler();
-    } else if (document.visibilityState == 'visible' && lazyloadHandler)  {
+    } else if (document.visibilityState == 'visible' && lazyloadHandler) {
       lazyloadHandler();
     }
   }
@@ -107,10 +108,10 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
   /**
    * Lazily unload media in the carousel.
    */
-   function lazyunloadHandler(): void {
+  function lazyunloadHandler(): void {
     const index = carousel.previousScrollSnap();
 
-    // Only lazy unload slides that are loaded.
+    // Only lazy unload slides that are lazy loaded.
     if (!isSlideLazyloaded[index]) {
       return;
     }
@@ -119,7 +120,7 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
       isSlideLazyloaded[index] = false;
     }
   }
-  
+
   const self: LazyloadType = {
     name: 'Lazyload',
     options,
