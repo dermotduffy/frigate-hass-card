@@ -15,7 +15,7 @@
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/image-view.png" alt="Frigate card example" width="400px">
 
-| ♥️ This card is under active development. Be sure to consult the documentation that matches the release of the card you're using. Latest stable release: [v2.1](https://github.com/dermotduffy/frigate-hass-card/blob/v2.1.0/README.md) |
+| ♥️ This card is under active development. Be sure to consult the documentation that matches the release of the card you're using, rather than the documentation at head. README for latest stable release: [v2.1](https://github.com/dermotduffy/frigate-hass-card/blob/v2.1.0/README.md) ♥️ |
 | - |
 
 # Frigate Lovelace Card
@@ -1122,7 +1122,7 @@ The following table describes the behavior these flags have.
 
 ### Card Update Truth Table
 
-| `view.update_seconds` | `view.timeout_seconds` | `view.update_force` | `view.update_entities` | Behavior |
+| `view . update_seconds` | `view . timeout_seconds` | `view . update_force` | `view . update_entities` | Behavior |
 | :-: | :-: | :-: | :-: | - |
 | `0` | `0` | *(Any value)* | Unset | Card will not automatically refresh. |
 | `0` | `0` | *(Any value)* | *(Any entity)* | Card will reload default view when entity state changes. |
