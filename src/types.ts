@@ -669,6 +669,7 @@ const dimensionsConfigSchema = z
 const overrideConfigurationSchema = z.object({
   live: deepRemoveDefaults(liveOverridableConfigSchema).optional(),
   menu: deepRemoveDefaults(menuConfigSchema).optional(),
+  image: deepRemoveDefaults(imageConfigSchema).optional(),
 });
 export type OverrideConfigurationKey = keyof z.infer<typeof overrideConfigurationSchema>;
 
