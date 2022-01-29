@@ -22,9 +22,7 @@ export class FrigateCardMessage extends LitElement {
       <span>
         <ha-icon icon="${icon}"> </ha-icon>
       </span>
-      <span>
-        ${this.message ? html`${this.message}` : ''}
-      </span>
+      <span> ${this.message ? html`${this.message}` : ''} </span>
     </div>`;
   }
 
@@ -50,9 +48,15 @@ export class FrigateCardErrorMessage extends LitElement {
 
 @customElement('frigate-card-progress-indicator')
 export class FrigateCardProgressIndicator extends LitElement {
+  @property({ attribute: false })
+  protected message = '';
+
   protected render(): TemplateResult {
-    return html` <div class="message">
-      <ha-circular-progress active="true" size="large"> </ha-circular-progress>
+    return html` <div class="message vertical">
+      <span>
+        <ha-circular-progress active="true" size="large"> </ha-circular-progress>
+      </span>
+      ${this.message ? html`<span>${this.message}</span>` : html``}
     </div>`;
   }
 
@@ -75,6 +79,9 @@ export function renderMessage(message: Message): TemplateResult {
   return html``;
 }
 
-export function renderProgressIndicator(): TemplateResult {
-  return html` <frigate-card-progress-indicator> </frigate-card-progress-indicator> `;
+export function renderProgressIndicator(message?: string): TemplateResult {
+  return html`
+    <frigate-card-progress-indicator .message=${message || ''}>
+    </frigate-card-progress-indicator>
+  `;
 }

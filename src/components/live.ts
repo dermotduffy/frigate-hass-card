@@ -22,6 +22,7 @@ import {
 import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
 import { Ref, createRef, ref } from 'lit/directives/ref.js';
+import { Task } from '@lit-labs/task';
 import { customElement, property, state } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
 
@@ -681,6 +682,9 @@ export class FrigateCardLiveWebRTC extends LitElement {
 
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
 
+  // A task to await the load of the WebRTC component.
+  protected _webrtcTask = new Task(this, this._getWebRTCElement, () => [1]);
+
   /**
    * Play the video.
    */
@@ -709,14 +713,22 @@ export class FrigateCardLiveWebRTC extends LitElement {
     return this.renderRoot?.querySelector('#video') as HTMLVideoElement | null;
   }
 
+  protected async _getWebRTCElement(): Promise<CustomElementConstructor | undefined> {
+    await customElements.whenDefined('webrtc-camera');
+    return customElements.get('webrtc-camera');
+  }
+
   /**
    * Create the WebRTC element. May throw.
    */
   protected _createWebRTC(): HTMLElement | undefined {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const webrtcElement = customElements.get('webrtc-camera') as any;
-    if (webrtcElement) {
-      const webrtc = new webrtcElement();
+    const webrtcElement = this._webrtcTask.value;
+    if (webrtcElement && this.hass) {
+      const webrtc = new webrtcElement() as HTMLElement & {
+        hass: HomeAssistant;
+        setConfig: (config: Record<string, unknown>) => void;
+      };
       const config = { ...this.webRTCConfig };
 
       // If the live WebRTC configuration does not specify a URL/entity to use,
@@ -731,9 +743,8 @@ export class FrigateCardLiveWebRTC extends LitElement {
       webrtc.setConfig(config);
       webrtc.hass = this.hass;
       return webrtc;
-    } else {
-      throw new FrigateCardError(localize('error.webrtc_missing'));
     }
+    return undefined;
   }
 
   /**
@@ -741,21 +752,30 @@ export class FrigateCardLiveWebRTC extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass) {
-      return;
-    }
-    let webrtcElement: HTMLElement | undefined;
-    try {
-      webrtcElement = this._createWebRTC();
-    } catch (e) {
-      return dispatchErrorMessageEvent(
-        this,
-        e instanceof FrigateCardError
-          ? (e as FrigateCardError).message
-          : localize('error.webrtc_reported_error') + ': ' + (e as Error).message,
-      );
-    }
-    return html`${webrtcElement}`;
+    const render = (): TemplateResult | void => {
+      let webrtcElement: HTMLElement | undefined;
+      try {
+        webrtcElement = this._createWebRTC();
+      } catch (e) {
+        return dispatchErrorMessageEvent(
+          this,
+          e instanceof FrigateCardError
+            ? (e as FrigateCardError).message
+            : localize('error.webrtc_reported_error') + ': ' + (e as Error).message,
+        );
+      }
+      return html`${webrtcElement}`;
+    };
+
+    // Use a task to allow us to asynchronously wait for the WebRTC card to
+    // load, but yet still have the card load be followed by the updated()
+    // lifecycle callback (unlike just using `until`).
+    return html`${this._webrtcTask.render({
+      initial: () => renderProgressIndicator(localize('error.webrtc_waiting')),
+      pending: () => renderProgressIndicator(localize('error.webrtc_waiting')),
+      error: (e: unknown) => dispatchErrorMessageEvent(this, (e as Error).message),
+      complete: () => render(),
+    })}`;
   }
 
   /**

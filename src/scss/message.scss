@@ -13,6 +13,10 @@
   padding: 10%;
 }
 
+.vertical {
+  flex-direction: column;
+}
+
 .message a {
   color: var(--primary-text-color, white);
 }
