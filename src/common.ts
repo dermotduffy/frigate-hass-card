@@ -514,5 +514,9 @@ export const frigateCardHandleAction = (
   },
   action: string,
 ): void => {
-  handleActionConfig(node, hass, config, getActionConfigGivenAction(action, config));
+  const actionConfig = getActionConfigGivenAction(action, config);
+  if (actionConfig || action == 'tap') {
+    // Only allow a tap action to use a default non-config (the more-info config).
+    handleActionConfig(node, hass, config, actionConfig);
+  }
 };
