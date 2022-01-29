@@ -81,7 +81,7 @@ export class FrigateCardMenu extends LitElement {
       config = ev.detail.config;
     }
 
-    // These interactions should only be handled by the card, as nothing
+    // These interactions should only be handled by the menu, as nothing
     // upstream has the user-provided configuration.
     ev.stopPropagation();
 
