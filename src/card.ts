@@ -10,11 +10,7 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
 import { until } from 'lit/directives/until.js';
-import {
-  HomeAssistant,
-  LovelaceCardEditor,
-  getLovelace,
-} from 'custom-card-helpers';
+import { HomeAssistant, LovelaceCardEditor, getLovelace } from 'custom-card-helpers';
 import screenfull from 'screenfull';
 import { z } from 'zod';
 
@@ -22,6 +18,7 @@ import {
   Actions,
   ActionType,
   CameraConfig,
+  FrigateCardView,
   RawFrigateCardConfig,
   entitySchema,
   frigateCardConfigSchema,
@@ -826,7 +823,9 @@ export class FrigateCard extends LitElement {
         if (this._cameras?.has(camera) && this._view) {
           this._changeView({
             view: new View({
-              view: this._view.view,
+              view: this._getConfig().view.camera_select === 'current'
+                ? this._view.view
+                : this._getConfig().view.camera_select as FrigateCardView,
               camera: camera,
             }),
           });

@@ -19,6 +19,7 @@ export const CONF_CAMERAS_ARRAY_WEBRTC_URL = `${CONF_CAMERAS}.#.webrtc.url` as c
 export const CONF_CAMERAS_ARRAY_LIVE_PROVIDER = `${CONF_CAMERAS}.#.live_provider` as const;
 
 export const CONF_VIEW = 'view' as const;
+export const CONF_VIEW_CAMERA_SELECT = `${CONF_VIEW}.camera_select` as const;
 export const CONF_VIEW_DEFAULT = `${CONF_VIEW}.default` as const;
 export const CONF_VIEW_TIMEOUT_SECONDS = `${CONF_VIEW}.timeout_seconds` as const;
 export const CONF_VIEW_UPDATE_CYCLE_CAMERA = `${CONF_VIEW}.update_cycle_camera` as const;

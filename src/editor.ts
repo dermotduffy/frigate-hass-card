@@ -56,6 +56,7 @@ import {
   CONF_MENU_BUTTONS_SNAPSHOTS,
   CONF_MENU_BUTTON_SIZE,
   CONF_MENU_MODE,
+  CONF_VIEW_CAMERA_SELECT,
   CONF_VIEW_DEFAULT,
   CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_CYCLE_CAMERA,
@@ -238,12 +239,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    */
   protected _renderDropdown(
     configPath: string,
-    dropdown: string[] | Record<string, string>,
+    dropdown: string[] | Map<string, string>,
   ): TemplateResult | void {
     if (!this._config) {
       return;
     }
-    const keys = Array.isArray(dropdown) ? dropdown : Object.keys(dropdown);
+    const keys = Array.isArray(dropdown) ? dropdown : [...dropdown.keys()];
 
     return html`
       <paper-dropdown-menu
@@ -257,7 +258,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         >
           ${keys.map(
             (key) => html` <paper-item .label="${key}">
-              ${Array.isArray(dropdown) ? key : dropdown[key]}
+              ${Array.isArray(dropdown) ? key : dropdown.get(key)}
             </paper-item>`,
           )}
         </paper-listbox>
@@ -357,13 +358,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     cameraEntities: string[],
     addNewCamera?: boolean,
   ): TemplateResult | void {
-    const liveProviders = {
-      '': '',
-      auto: localize('config.cameras.live_providers.auto'),
-      frigate: localize('config.cameras.live_providers.frigate'),
-      'frigate-jsmpeg': localize('config.cameras.live_providers.frigate-jsmpeg'),
-      webrtc: localize('config.cameras.live_providers.webrtc'),
-    } as const;
+    const liveProviders = new Map([
+      ['', ''],
+      ['auto', localize('config.cameras.live_providers.auto')],
+      ['frigate', localize('config.cameras.live_providers.frigate')],
+      ['frigate-jsmpeg', localize('config.cameras.live_providers.frigate-jsmpeg')],
+      ['webrtc', localize('config.cameras.live_providers.webrtc')],
+    ]);
 
     // Make a new config and update the editor with changes on it,
     const modifyConfig = (func: (config: RawFrigateCardConfig) => boolean): void => {
@@ -450,7 +451,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             )}
             ${this._renderDropdown(
               getArrayConfigPath(CONF_CAMERAS_ARRAY_LIVE_PROVIDER, cameraIndex),
-              liveProviders)}
+              liveProviders,
+            )}
             ${this._renderStringInput(
               getArrayConfigPath(CONF_CAMERAS_ARRAY_URL, cameraIndex),
             )}
@@ -497,7 +499,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     if (!this._config) {
       return;
     }
-    const allowedPattern = type == 'number' ? '[0-9]' : undefined
+    const allowedPattern = type == 'number' ? '[0-9]' : undefined;
     return html` <paper-input
       label=${this._getLabel(configPath)}
       .value=${getConfigValue(this._config, configPath, '')}
@@ -551,70 +553,77 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
     const cameraEntities = this._getEntities('camera');
 
-    const viewModes = {
-      '': '',
-      live: localize('config.view.views.live'),
-      clips: localize('config.view.views.clips'),
-      snapshots: localize('config.view.views.snapshots'),
-      clip: localize('config.view.views.clip'),
-      snapshot: localize('config.view.views.snapshot'),
-      image: localize('config.view.views.image'),
-    };
+    const viewModes = new Map([
+      ['', ''],
+      ['live', localize('config.view.views.live')],
+      ['clips', localize('config.view.views.clips')],
+      ['snapshots', localize('config.view.views.snapshots')],
+      ['clip', localize('config.view.views.clip')],
+      ['snapshot', localize('config.view.views.snapshot')],
+      ['image', localize('config.view.views.image')],
+    ]);
 
-    const menuModes = {
-      '': '',
-      none: localize('config.menu.modes.none'),
-      'hidden-top': localize('config.menu.modes.hidden-top'),
-      'hidden-left': localize('config.menu.modes.hidden-left'),
-      'hidden-bottom': localize('config.menu.modes.hidden-bottom'),
-      'hidden-right': localize('config.menu.modes.hidden-right'),
-      'overlay-top': localize('config.menu.modes.overlay-top'),
-      'overlay-left': localize('config.menu.modes.overlay-left'),
-      'overlay-bottom': localize('config.menu.modes.overlay-bottom'),
-      'overlay-right': localize('config.menu.modes.overlay-right'),
-      'hover-top': localize('config.menu.modes.hover-top'),
-      'hover-left': localize('config.menu.modes.hover-left'),
-      'hover-bottom': localize('config.menu.modes.hover-bottom'),
-      'hover-right': localize('config.menu.modes.hover-right'),
-      above: localize('config.menu.modes.above'),
-      below: localize('config.menu.modes.below'),
-    };
+    const cameraSelectViewModes = new Map(viewModes);
+    cameraSelectViewModes.set('current', localize('config.view.views.current'));
 
-    const eventViewerNextPreviousControlStyles = {
-      '': '',
-      thumbnails: localize(
-        'config.event_viewer.controls.next_previous.styles.thumbnails',
-      ),
-      chevrons: localize('config.event_viewer.controls.next_previous.styles.chevrons'),
-      none: localize('config.event_viewer.controls.next_previous.styles.none'),
-    };
+    const menuModes = new Map([
+      ['', ''],
+      ['none', localize('config.menu.modes.none')],
+      ['hidden-top', localize('config.menu.modes.hidden-top')],
+      ['hidden-left', localize('config.menu.modes.hidden-left')],
+      ['hidden-bottom', localize('config.menu.modes.hidden-bottom')],
+      ['hidden-right', localize('config.menu.modes.hidden-right')],
+      ['overlay-top', localize('config.menu.modes.overlay-top')],
+      ['overlay-left', localize('config.menu.modes.overlay-left')],
+      ['overlay-bottom', localize('config.menu.modes.overlay-bottom')],
+      ['overlay-right', localize('config.menu.modes.overlay-right')],
+      ['hover-top', localize('config.menu.modes.hover-top')],
+      ['hover-left', localize('config.menu.modes.hover-left')],
+      ['hover-bottom', localize('config.menu.modes.hover-bottom')],
+      ['hover-right', localize('config.menu.modes.hover-right')],
+      ['above', localize('config.menu.modes.above')],
+      ['below', localize('config.menu.modes.below')],
+    ]);
 
-    const liveNextPreviousControlStyles = {
-      '': '',
-      chevrons: localize('config.live.controls.next_previous.styles.chevrons'),
-      icons: localize('config.live.controls.next_previous.styles.icons'),
-      none: localize('config.live.controls.next_previous.styles.none'),
-    };
+    const eventViewerNextPreviousControlStyles = new Map([
+      ['', ''],
+      [
+        'thumbnails',
+        localize('config.event_viewer.controls.next_previous.styles.thumbnails'),
+      ],
+      [
+        'chevrons',
+        localize('config.event_viewer.controls.next_previous.styles.chevrons'),
+      ],
+      ['none', localize('config.event_viewer.controls.next_previous.styles.none')],
+    ]);
 
-    const aspectRatioModes = {
-      '': '',
-      dynamic: localize('config.dimensions.aspect_ratio_modes.dynamic'),
-      static: localize('config.dimensions.aspect_ratio_modes.static'),
-      unconstrained: localize('config.dimensions.aspect_ratio_modes.unconstrained'),
-    };
+    const liveNextPreviousControlStyles = new Map([
+      ['', ''],
+      ['chevrons', localize('config.live.controls.next_previous.styles.chevrons')],
+      ['icons', localize('config.live.controls.next_previous.styles.icons')],
+      ['none', localize('config.live.controls.next_previous.styles.none')],
+    ]);
 
-    const thumbnailModes = {
-      '': '',
-      none: localize('config.event_viewer.controls.thumbnails.modes.none'),
-      above: localize('config.event_viewer.controls.thumbnails.modes.above'),
-      below: localize('config.event_viewer.controls.thumbnails.modes.below'),
-    };
+    const aspectRatioModes = new Map([
+      ['', ''],
+      ['dynamic', localize('config.dimensions.aspect_ratio_modes.dynamic')],
+      ['static', localize('config.dimensions.aspect_ratio_modes.static')],
+      ['unconstrained', localize('config.dimensions.aspect_ratio_modes.unconstrained')],
+    ]);
 
-    const thumbnailMedias = {
-      '': '',
-      clips: localize('config.live.controls.thumbnails.medias.clips'),
-      snapshots: localize('config.live.controls.thumbnails.medias.snapshots'),
-    };
+    const thumbnailModes = new Map([
+      ['', ''],
+      ['none', localize('config.event_viewer.controls.thumbnails.modes.none')],
+      ['above', localize('config.event_viewer.controls.thumbnails.modes.above')],
+      ['below', localize('config.event_viewer.controls.thumbnails.modes.below')],
+    ]);
+
+    const thumbnailMedias = new Map([
+      ['', ''],
+      ['clips', localize('config.live.controls.thumbnails.medias.clips')],
+      ['snapshots', localize('config.live.controls.thumbnails.medias.snapshots')],
+    ]);
 
     const defaults = frigateCardConfigDefaults;
 
@@ -660,10 +669,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html`
               <div class="values">
                 ${this._renderDropdown(CONF_VIEW_DEFAULT, viewModes)}
+                ${this._renderDropdown(CONF_VIEW_CAMERA_SELECT, cameraSelectViewModes)}
                 ${this._renderStringInput(CONF_VIEW_TIMEOUT_SECONDS, 'number')}
                 ${this._renderStringInput(CONF_VIEW_UPDATE_SECONDS, 'number')}
                 ${this._renderSwitch(CONF_VIEW_UPDATE_FORCE, defaults.view.update_force)}
-                ${this._renderSwitch(CONF_VIEW_UPDATE_CYCLE_CAMERA, defaults.view.update_cycle_camera)}
+                ${this._renderSwitch(
+                  CONF_VIEW_UPDATE_CYCLE_CAMERA,
+                  defaults.view.update_cycle_camera,
+                )}
               </div>
             `
           : ''}
@@ -721,18 +734,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html`
               <div class="values">
                 ${this._renderSwitch(CONF_LIVE_PRELOAD, defaults.live.preload)}
-                ${this._renderSwitch(
-                  CONF_LIVE_DRAGGABLE,
-                  defaults.live.draggable,
-                )}
-                ${this._renderSwitch(
-                  CONF_LIVE_LAZY_LOAD,
-                  defaults.live.lazy_load,
-                )}
-                ${this._renderSwitch(
-                  CONF_LIVE_LAZY_UNLOAD,
-                  defaults.live.lazy_unload,
-                )}
+                ${this._renderSwitch(CONF_LIVE_DRAGGABLE, defaults.live.draggable)}
+                ${this._renderSwitch(CONF_LIVE_LAZY_LOAD, defaults.live.lazy_load)}
+                ${this._renderSwitch(CONF_LIVE_LAZY_UNLOAD, defaults.live.lazy_unload)}
                 ${this._renderDropdown(
                   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
                   liveNextPreviousControlStyles,
@@ -756,7 +760,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderSlider(
                 CONF_EVENT_GALLERY_MIN_COLUMNS,
                 defaults.event_gallery.min_columns,
-                "mdi:view-column",
+                'mdi:view-column',
                 1,
                 10,
               )}
