@@ -1,4 +1,4 @@
-import { HASSDomEvent, HomeAssistant, hasAction } from 'custom-card-helpers';
+import { HASSDomEvent, HomeAssistant } from 'custom-card-helpers';
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -9,7 +9,7 @@ import { actionHandler } from '../action-handler-directive.js';
 import './submenu.js';
 
 import type {
-  Actions,
+  ActionsConfig,
   ActionType,
   ExtendedHomeAssistant,
   MenuButton,
@@ -18,7 +18,8 @@ import type {
 } from '../types.js';
 import {
   convertActionToFrigateCardCustomAction,
-  frigateCardHandleAction,
+  frigateCardHandleActionConfig,
+  frigateCardHasAction,
   getActionConfigGivenAction,
   refreshDynamicStateParameters,
 } from '../common.js';
@@ -37,8 +38,6 @@ export class FrigateCardMenu extends LitElement {
   public hass?: HomeAssistant & ExtendedHomeAssistant;
 
   set menuConfig(menuConfig: MenuConfig) {
-    this.expanded = !menuConfig?.mode.startsWith('hidden-');
-
     this._menuConfig = menuConfig;
     if (menuConfig) {
       this.style.setProperty('--frigate-card-menu-button-size', menuConfig.button_size);
@@ -53,11 +52,36 @@ export class FrigateCardMenu extends LitElement {
   @property({ attribute: false })
   public buttons: MenuButton[] = [];
 
-  protected _isFrigateCardAction(action: ActionType): boolean {
+  /**
+   * Determine if a given menu configuration is a hiding menu.
+   * @param menuConfig The menu configuration.
+   * @returns `true` if the menu is hiding, `false` otherwise.
+   */
+  static isHidingMenu(menuConfig: MenuConfig | undefined): boolean {
+    return menuConfig?.mode.startsWith('hidden-') ?? false;
+  }
+
+  /**
+   * Determine if a given menu configuration is a hiding menu (internal version).
+   * @returns `true` if the menu is hiding, `false` otherwise.
+   */
+  protected _isHidingMenu(): boolean {
+    return FrigateCardMenu.isHidingMenu(this._menuConfig);
+  }
+
+  /**
+   * Determine if a given action is intended to toggle the menu.
+   * @param action The action to check.
+   * @returns `true` if the action toggles the menu, `false` otherwise.
+   */
+  protected _isMenuToggleAction(action: ActionType | undefined): boolean {
     // Determine if this action is a Frigate card action, if so handle it
     // internally.
+    if (!action) {
+      return false;
+    }
     const frigateCardAction = convertActionToFrigateCardCustomAction(action);
-    return !!frigateCardAction && frigateCardAction.frigate_card_action == 'frigate';
+    return !!frigateCardAction && frigateCardAction.frigate_card_action == 'menu_toggle';
   }
 
   /**
@@ -66,8 +90,8 @@ export class FrigateCardMenu extends LitElement {
    * @param button The button configuration.
    */
   protected _actionHandler(
-    ev: HASSDomEvent<{ action: string; config?: Actions }>,
-    config?: Actions,
+    ev: HASSDomEvent<{ action: string; config?: ActionsConfig }>,
+    config?: ActionsConfig,
   ): void {
     if (!ev) {
       return;
@@ -86,25 +110,56 @@ export class FrigateCardMenu extends LitElement {
     ev.stopPropagation();
 
     const interaction: string = ev.detail.action;
-    const action = getActionConfigGivenAction(interaction, config);
+    let action = getActionConfigGivenAction(interaction, config);
     if (!config || !interaction) {
       return;
     }
 
-    if (
-      action &&
-      this._isFrigateCardAction(action) &&
-      this._menuConfig?.mode.startsWith('hidden-')
-    ) {
-      // If the user presses the frigate button and it's a hide-away menu,
-      // then expand the menu and return.
-      this.expanded = !this.expanded;
-      return;
+    let tookAction = false;
+    let menuToggle = false;
+
+    if (Array.isArray(action)) {
+      // Case 1: An array of actions.
+      // Strip out actions that toggle the menu.
+      const actionCount = action.length;
+      action = action.filter((item) => !this._isMenuToggleAction(item));
+      if (action.length != actionCount) {
+        menuToggle = true;
+      }
+
+      // If there are still actions left, handle them as usual.
+      if (action.length) {
+        tookAction = frigateCardHandleActionConfig(
+          this,
+          this.hass as HomeAssistant,
+          config,
+          interaction,
+          action,
+        );
+      }
+    } else {
+      // Case 2: Either a specific action, or no action at all (i.e. default
+      // action for `tap`).
+      if (this._isMenuToggleAction(action)) {
+        menuToggle = true;
+      } else {
+        tookAction = frigateCardHandleActionConfig(
+          this,
+          this.hass as HomeAssistant,
+          config,
+          interaction,
+          action,
+        );
+      }
     }
 
-    // Collapse menu after the user clicks on something.
-    this.expanded = false;
-    frigateCardHandleAction(this, this.hass as HomeAssistant, config, interaction);
+    if (this._isHidingMenu()) {
+      if (menuToggle) {
+        this.expanded = !this.expanded;
+      } else if (tookAction) {
+        this.expanded = false;
+      }
+    }
   }
 
   /**
@@ -146,8 +201,8 @@ export class FrigateCardMenu extends LitElement {
       stateParameters = refreshDynamicStateParameters(this.hass, stateParameters);
     }
 
-    const hasHold = hasAction(button.hold_action);
-    const hasDoubleClick = hasAction(button.double_tap_action);
+    const hasHold = frigateCardHasAction(button.hold_action);
+    const hasDoubleClick = frigateCardHasAction(button.double_tap_action);
 
     const classes = {
       button: true,

@@ -14,7 +14,6 @@ import {
   HomeAssistant,
   LovelaceCardEditor,
   getLovelace,
-  hasAction,
 } from 'custom-card-helpers';
 import screenfull from 'screenfull';
 import { z } from 'zod';
@@ -23,10 +22,10 @@ import {
   Actions,
   ActionType,
   CameraConfig,
-  GetFrigateCardMenuButtonParameters,
   RawFrigateCardConfig,
   entitySchema,
   frigateCardConfigSchema,
+  FrigateCardCustomAction,
 } from './types.js';
 import type {
   Entity,
@@ -46,6 +45,7 @@ import {
   convertActionToFrigateCardCustomAction,
   createFrigateCardCustomAction,
   frigateCardHandleAction,
+  frigateCardHasAction,
   getActionConfigGivenAction,
   getCameraIcon,
   getCameraTitle,
@@ -257,28 +257,6 @@ export class FrigateCard extends LitElement {
   }
 
   /**
-   * Get a FrigateCard MenuButton given a set of parameters.
-   * @param params Menu button parameters.
-   * @returns A MenuButton.
-   */
-  protected _getFrigateCardMenuButton(
-    params: GetFrigateCardMenuButtonParameters,
-  ): MenuButton {
-    return {
-      type: 'custom:frigate-card-menu-icon',
-      title: params.title,
-      icon: params.icon,
-      style: params.emphasize ? this._getEmphasizedStyle() : {},
-      tap_action: params.tap_action
-        ? createFrigateCardCustomAction(params.tap_action)
-        : undefined,
-      hold_action: params.hold_action
-        ? createFrigateCardCustomAction(params.hold_action)
-        : undefined,
-    };
-  }
-
-  /**
    * Get the menu buttons to display.
    * @returns An array of menu buttons.
    */
@@ -286,16 +264,17 @@ export class FrigateCard extends LitElement {
     const buttons: MenuButton[] = [];
 
     if (this._getConfig().menu.buttons.frigate) {
-      buttons.push(
-        this._getFrigateCardMenuButton({
-          tap_action: 'frigate',
-          // Use a magic icon value that the menu will use to render the icon as
-          // it deems appropriate (certain menu configurations change the menu
-          // icon for the 'Frigate' button).
-          icon: FRIGATE_BUTTON_MENU_ICON,
-          title: localize('config.menu.buttons.frigate'),
-        }),
-      );
+      buttons.push({
+        type: 'custom:frigate-card-menu-icon',
+        title: localize('config.menu.buttons.frigate'),
+        // Use a magic icon value that the menu will use to render the icon as
+        // it deems appropriate (certain menu configurations change the menu
+        // icon for the 'Frigate' button).
+        icon: FRIGATE_BUTTON_MENU_ICON,
+        tap_action: FrigateCardMenu.isHidingMenu(this._getConfig().menu)
+          ? (createFrigateCardCustomAction('menu_toggle') as FrigateCardCustomAction)
+          : (createFrigateCardCustomAction('default') as FrigateCardCustomAction),
+      });
     }
 
     if (
@@ -323,56 +302,58 @@ export class FrigateCard extends LitElement {
     }
 
     if (this._getConfig().menu.buttons.live) {
-      buttons.push(
-        this._getFrigateCardMenuButton({
-          tap_action: 'live',
-          title: localize('config.view.views.live'),
-          icon: 'mdi:cctv',
-          emphasize: this._view?.is('live'),
-        }),
-      );
+      buttons.push({
+        type: 'custom:frigate-card-menu-icon',
+        title: localize('config.view.views.live'),
+        icon: 'mdi:cctv',
+        style: this._view?.is('live') ? this._getEmphasizedStyle() : {},
+        tap_action: createFrigateCardCustomAction('live') as FrigateCardCustomAction,
+      });
     }
 
     if (this._getConfig().menu.buttons.clips) {
-      buttons.push(
-        this._getFrigateCardMenuButton({
-          tap_action: 'clips',
-          hold_action: 'clip',
-          title: localize('config.view.views.clips'),
-          icon: 'mdi:filmstrip',
-          emphasize: this._view?.is('clips'),
-        }),
-      );
+      buttons.push({
+        type: 'custom:frigate-card-menu-icon',
+        title: localize('config.view.views.clips'),
+        icon: 'mdi:filmstrip',
+        style: this._view?.is('clips') ? this._getEmphasizedStyle() : {},
+        tap_action: createFrigateCardCustomAction('clips') as FrigateCardCustomAction,
+        hold_action: createFrigateCardCustomAction('clip') as FrigateCardCustomAction,
+      });
     }
+
     if (this._getConfig().menu.buttons.snapshots) {
-      buttons.push(
-        this._getFrigateCardMenuButton({
-          tap_action: 'snapshots',
-          hold_action: 'snapshot',
-          title: localize('config.view.views.snapshots'),
-          icon: 'mdi:camera',
-          emphasize: this._view?.is('snapshots'),
-        }),
-      );
+      buttons.push({
+        type: 'custom:frigate-card-menu-icon',
+        title: localize('config.view.views.snapshots'),
+        icon: 'mdi:camera',
+        style: this._view?.is('snapshots') ? this._getEmphasizedStyle() : {},
+        tap_action: createFrigateCardCustomAction(
+          'snapshots',
+        ) as FrigateCardCustomAction,
+        hold_action: createFrigateCardCustomAction(
+          'snapshot',
+        ) as FrigateCardCustomAction,
+      });
     }
+
     if (this._getConfig().menu.buttons.image) {
-      buttons.push(
-        this._getFrigateCardMenuButton({
-          tap_action: 'image',
-          title: localize('config.view.views.image'),
-          icon: 'mdi:image',
-          emphasize: this._view?.is('image'),
-        }),
-      );
+      buttons.push({
+        type: 'custom:frigate-card-menu-icon',
+        title: localize('config.view.views.image'),
+        icon: 'mdi:image',
+        style: this._view?.is('image') ? this._getEmphasizedStyle() : {},
+        tap_action: createFrigateCardCustomAction('image') as FrigateCardCustomAction,
+      });
     }
+
     if (this._getConfig().menu.buttons.download && this._view?.isViewerView()) {
-      buttons.push(
-        this._getFrigateCardMenuButton({
-          tap_action: 'download',
-          title: localize('config.menu.buttons.download'),
-          icon: 'mdi:download',
-        }),
-      );
+      buttons.push({
+        type: 'custom:frigate-card-menu-icon',
+        title: localize('config.menu.buttons.download'),
+        icon: 'mdi:download',
+        tap_action: createFrigateCardCustomAction('download') as FrigateCardCustomAction,
+      });
     }
 
     const cameraConfig = this._getSelectedCameraConfig();
@@ -381,22 +362,26 @@ export class FrigateCard extends LitElement {
       cameraConfig &&
       cameraConfig.frigate_url
     ) {
-      buttons.push(
-        this._getFrigateCardMenuButton({
-          tap_action: 'frigate_ui',
-          title: localize('config.menu.buttons.frigate_ui'),
-          icon: 'mdi:web',
-        }),
-      );
+      buttons.push({
+        type: 'custom:frigate-card-menu-icon',
+        title: localize('config.menu.buttons.frigate_ui'),
+        icon: 'mdi:web',
+        tap_action: createFrigateCardCustomAction(
+          'frigate_ui',
+        ) as FrigateCardCustomAction,
+      });
     }
+
     if (this._getConfig().menu.buttons.fullscreen && screenfull.isEnabled) {
-      buttons.push(
-        this._getFrigateCardMenuButton({
-          tap_action: 'fullscreen',
-          title: localize('config.menu.buttons.fullscreen'),
-          icon: screenfull.isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
-        }),
-      );
+      buttons.push({
+        type: 'custom:frigate-card-menu-icon',
+        title: localize('config.menu.buttons.fullscreen'),
+        icon: screenfull.isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
+        tap_action: createFrigateCardCustomAction(
+          'fullscreen',
+        ) as FrigateCardCustomAction,
+        style: screenfull.isFullscreen ? this._getEmphasizedStyle() : {},
+      });
     }
     return buttons.concat(this._dynamicMenuButtons);
   }
@@ -804,7 +789,7 @@ export class FrigateCard extends LitElement {
     const action = frigateCardAction.frigate_card_action;
 
     switch (action) {
-      case 'frigate':
+      case 'default':
         this._changeView();
         break;
       case 'clip':
@@ -874,16 +859,7 @@ export class FrigateCard extends LitElement {
    * Handle an action called on an element.
    * @param ev The actionHandler event.
    */
-  protected _actionHandler(
-    ev: CustomEvent,
-    config?: {
-      hold_action?: ActionType;
-      tap_action?: ActionType;
-      double_tap_action?: ActionType;
-      start_tap_action?: ActionType;
-      end_tap_action?: ActionType;
-    },
-  ): void {
+  protected _actionHandler(ev: CustomEvent, config?: Actions): void {
     const interaction = ev.detail.action;
     const node: HTMLElement | null = ev.currentTarget as HTMLElement | null;
     if (
@@ -1143,8 +1119,8 @@ export class FrigateCard extends LitElement {
 
     return html` <ha-card
       .actionHandler=${actionHandler({
-        hasHold: hasAction(actions.hold_action),
-        hasDoubleClick: hasAction(actions.double_tap_action),
+        hasHold: frigateCardHasAction(actions.hold_action),
+        hasDoubleClick: frigateCardHasAction(actions.double_tap_action),
       })}
       @action=${(ev: CustomEvent) => this._actionHandler(ev, actions)}
       @ll-custom=${this._cardActionHandler.bind(this)}
