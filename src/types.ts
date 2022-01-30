@@ -377,7 +377,8 @@ export type PictureElements = z.infer<typeof pictureElementsSchema>;
  */
 const viewConfigDefault = {
   default: 'live' as const,
-  timeout_seconds: 300, 
+  camera_select: 'current' as const,
+  timeout_seconds: 300,
   update_seconds: 0,
   update_force: false,
   update_cycle_camera: false,
@@ -386,8 +387,10 @@ const viewConfigSchema = z
   .object({
     default: z
       .enum(FRIGATE_CARD_VIEWS_USER_SPECIFIED)
-      .optional()
       .default(viewConfigDefault.default),
+    camera_select: z
+      .enum([...FRIGATE_CARD_VIEWS_USER_SPECIFIED, 'current'])
+      .default(viewConfigDefault.camera_select),
     timeout_seconds: z.number().default(viewConfigDefault.timeout_seconds),
     update_seconds: z.number().default(viewConfigDefault.update_seconds),
     update_force: z.boolean().default(viewConfigDefault.update_force),
@@ -407,7 +410,7 @@ const imageConfigDefault = {
 const imageConfigSchema = z
   .object({
     src: z.string().optional(),
-    refresh_seconds: z.number().min(0).default(imageConfigDefault.refresh_seconds)
+    refresh_seconds: z.number().min(0).default(imageConfigDefault.refresh_seconds),
   })
   .merge(actionsSchema)
   .default(imageConfigDefault);

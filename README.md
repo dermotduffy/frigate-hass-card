@@ -138,6 +138,7 @@ view:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `default` | `live` | :heavy_multiplication_x: | The view to show in the card by default. See [views](#views) below.|
+| `camera_select` | `current` | :heavy_multiplication_x: | The view to show when a new camera is selected (e.g. in the camera menu). If `current` the view is unchanged when a new camera is selected. Other acceptable values may be seen at [views](#views) below.|
 | `timeout_seconds` | `300` | :heavy_multiplication_x: | A numbers of seconds of inactivity after user interaction, after which the card will reset to the default configured view (i.e. 'screensaver' functionality). Inactivity is defined as lack of mouse/touch interaction with the Frigate card. If the default view occurs sooner (e.g. via `update_seconds` or manually) the timer will be stopped. `0` means disable this functionality. |
 | `update_seconds` | `0` | :heavy_multiplication_x: | A number of seconds after which to automatically update/refresh the default view. See [card updates](#card-updates) below for behavior and usecases. If the default view occurs sooner (e.g. manually) the timer will start over. `0` disables this functionality.|
 | `update_force` | `false` | :heavy_multiplication_x: | Whether automated card updates/refreshes should ignore user interaction. See [card updates](#card-updates) below for behavior and usecases.|
@@ -564,7 +565,7 @@ Parameters for the `custom:frigate-card-conditional` element:
 |`download`|Download the displayed media.|
 |`frigate_ui`|Open the Frigate UI at the configured URL.|
 |`fullscreen`|Toggle fullscreen.| 
-|`camera_select`|Select a given camera. Takes a single additional `camera` parameter with the [camera ID](#camera-ids) of the camera to select.|
+|`camera_select`|Select a given camera. Takes a single additional `camera` parameter with the [camera ID](#camera-ids) of the camera to select. Respects the value of `view.camera_select` to choose the appropriate view on the new camera.|
 |`menu_toggle` | Show/hide the menu (for `hidden-*` mode menus). |
 
 <a name="views"></a>
