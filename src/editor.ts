@@ -162,6 +162,77 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   @property({ attribute: false })
   protected _expandedCameraIndex: number | null = null;
 
+  protected _viewModes = new Map([
+    ['', ''],
+    ['live', localize('config.view.views.live')],
+    ['clips', localize('config.view.views.clips')],
+    ['snapshots', localize('config.view.views.snapshots')],
+    ['clip', localize('config.view.views.clip')],
+    ['snapshot', localize('config.view.views.snapshot')],
+    ['image', localize('config.view.views.image')],
+  ]);
+
+  protected _cameraSelectViewModes = new Map([
+    ...this._viewModes,
+    ['current', localize('config.view.views.current')],
+  ]);
+
+  protected _menuModes = new Map([
+    ['', ''],
+    ['none', localize('config.menu.modes.none')],
+    ['hidden-top', localize('config.menu.modes.hidden-top')],
+    ['hidden-left', localize('config.menu.modes.hidden-left')],
+    ['hidden-bottom', localize('config.menu.modes.hidden-bottom')],
+    ['hidden-right', localize('config.menu.modes.hidden-right')],
+    ['overlay-top', localize('config.menu.modes.overlay-top')],
+    ['overlay-left', localize('config.menu.modes.overlay-left')],
+    ['overlay-bottom', localize('config.menu.modes.overlay-bottom')],
+    ['overlay-right', localize('config.menu.modes.overlay-right')],
+    ['hover-top', localize('config.menu.modes.hover-top')],
+    ['hover-left', localize('config.menu.modes.hover-left')],
+    ['hover-bottom', localize('config.menu.modes.hover-bottom')],
+    ['hover-right', localize('config.menu.modes.hover-right')],
+    ['above', localize('config.menu.modes.above')],
+    ['below', localize('config.menu.modes.below')],
+  ]);
+
+  protected _eventViewerNextPreviousControlStyles = new Map([
+    ['', ''],
+    [
+      'thumbnails',
+      localize('config.event_viewer.controls.next_previous.styles.thumbnails'),
+    ],
+    ['chevrons', localize('config.event_viewer.controls.next_previous.styles.chevrons')],
+    ['none', localize('config.event_viewer.controls.next_previous.styles.none')],
+  ]);
+
+  protected _liveNextPreviousControlStyles = new Map([
+    ['', ''],
+    ['chevrons', localize('config.live.controls.next_previous.styles.chevrons')],
+    ['icons', localize('config.live.controls.next_previous.styles.icons')],
+    ['none', localize('config.live.controls.next_previous.styles.none')],
+  ]);
+
+  protected _aspectRatioModes = new Map([
+    ['', ''],
+    ['dynamic', localize('config.dimensions.aspect_ratio_modes.dynamic')],
+    ['static', localize('config.dimensions.aspect_ratio_modes.static')],
+    ['unconstrained', localize('config.dimensions.aspect_ratio_modes.unconstrained')],
+  ]);
+
+  protected _thumbnailModes = new Map([
+    ['', ''],
+    ['none', localize('config.event_viewer.controls.thumbnails.modes.none')],
+    ['above', localize('config.event_viewer.controls.thumbnails.modes.above')],
+    ['below', localize('config.event_viewer.controls.thumbnails.modes.below')],
+  ]);
+
+  protected _thumbnailMedias = new Map([
+    ['', ''],
+    ['clips', localize('config.live.controls.thumbnails.medias.clips')],
+    ['snapshots', localize('config.live.controls.thumbnails.medias.snapshots')],
+  ]);
+
   public setConfig(config: RawFrigateCardConfig): void {
     // Note: This does not use Zod to parse the configuration, so it may be
     // partially or completely invalid. It's more useful to have a partially
@@ -552,79 +623,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     this._helpers.importMoreInfoControl('light');
 
     const cameraEntities = this._getEntities('camera');
-
-    const viewModes = new Map([
-      ['', ''],
-      ['live', localize('config.view.views.live')],
-      ['clips', localize('config.view.views.clips')],
-      ['snapshots', localize('config.view.views.snapshots')],
-      ['clip', localize('config.view.views.clip')],
-      ['snapshot', localize('config.view.views.snapshot')],
-      ['image', localize('config.view.views.image')],
-    ]);
-
-    const cameraSelectViewModes = new Map(viewModes);
-    cameraSelectViewModes.set('current', localize('config.view.views.current'));
-
-    const menuModes = new Map([
-      ['', ''],
-      ['none', localize('config.menu.modes.none')],
-      ['hidden-top', localize('config.menu.modes.hidden-top')],
-      ['hidden-left', localize('config.menu.modes.hidden-left')],
-      ['hidden-bottom', localize('config.menu.modes.hidden-bottom')],
-      ['hidden-right', localize('config.menu.modes.hidden-right')],
-      ['overlay-top', localize('config.menu.modes.overlay-top')],
-      ['overlay-left', localize('config.menu.modes.overlay-left')],
-      ['overlay-bottom', localize('config.menu.modes.overlay-bottom')],
-      ['overlay-right', localize('config.menu.modes.overlay-right')],
-      ['hover-top', localize('config.menu.modes.hover-top')],
-      ['hover-left', localize('config.menu.modes.hover-left')],
-      ['hover-bottom', localize('config.menu.modes.hover-bottom')],
-      ['hover-right', localize('config.menu.modes.hover-right')],
-      ['above', localize('config.menu.modes.above')],
-      ['below', localize('config.menu.modes.below')],
-    ]);
-
-    const eventViewerNextPreviousControlStyles = new Map([
-      ['', ''],
-      [
-        'thumbnails',
-        localize('config.event_viewer.controls.next_previous.styles.thumbnails'),
-      ],
-      [
-        'chevrons',
-        localize('config.event_viewer.controls.next_previous.styles.chevrons'),
-      ],
-      ['none', localize('config.event_viewer.controls.next_previous.styles.none')],
-    ]);
-
-    const liveNextPreviousControlStyles = new Map([
-      ['', ''],
-      ['chevrons', localize('config.live.controls.next_previous.styles.chevrons')],
-      ['icons', localize('config.live.controls.next_previous.styles.icons')],
-      ['none', localize('config.live.controls.next_previous.styles.none')],
-    ]);
-
-    const aspectRatioModes = new Map([
-      ['', ''],
-      ['dynamic', localize('config.dimensions.aspect_ratio_modes.dynamic')],
-      ['static', localize('config.dimensions.aspect_ratio_modes.static')],
-      ['unconstrained', localize('config.dimensions.aspect_ratio_modes.unconstrained')],
-    ]);
-
-    const thumbnailModes = new Map([
-      ['', ''],
-      ['none', localize('config.event_viewer.controls.thumbnails.modes.none')],
-      ['above', localize('config.event_viewer.controls.thumbnails.modes.above')],
-      ['below', localize('config.event_viewer.controls.thumbnails.modes.below')],
-    ]);
-
-    const thumbnailMedias = new Map([
-      ['', ''],
-      ['clips', localize('config.live.controls.thumbnails.medias.clips')],
-      ['snapshots', localize('config.live.controls.thumbnails.medias.snapshots')],
-    ]);
-
     const defaults = frigateCardConfigDefaults;
 
     const getShowButtonLabel = (configPath: string) =>
@@ -668,8 +666,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.view.show
           ? html`
               <div class="values">
-                ${this._renderDropdown(CONF_VIEW_DEFAULT, viewModes)}
-                ${this._renderDropdown(CONF_VIEW_CAMERA_SELECT, cameraSelectViewModes)}
+                ${this._renderDropdown(CONF_VIEW_DEFAULT, this._viewModes)}
+                ${this._renderDropdown(
+                  CONF_VIEW_CAMERA_SELECT,
+                  this._cameraSelectViewModes,
+                )}
                 ${this._renderStringInput(CONF_VIEW_TIMEOUT_SECONDS, 'number')}
                 ${this._renderStringInput(CONF_VIEW_UPDATE_SECONDS, 'number')}
                 ${this._renderSwitch(CONF_VIEW_UPDATE_FORCE, defaults.view.update_force)}
@@ -684,7 +685,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.menu.show
           ? html`
               <div class="values">
-                ${this._renderDropdown(CONF_MENU_MODE, menuModes)}
+                ${this._renderDropdown(CONF_MENU_MODE, this._menuModes)}
                 ${this._renderStringInput(CONF_MENU_BUTTON_SIZE)}
                 ${this._renderSwitch(
                   CONF_MENU_BUTTONS_FRIGATE,
@@ -739,16 +740,16 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderSwitch(CONF_LIVE_LAZY_UNLOAD, defaults.live.lazy_unload)}
                 ${this._renderDropdown(
                   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
-                  liveNextPreviousControlStyles,
+                  this._liveNextPreviousControlStyles,
                 )}
                 ${this._renderStringInput(CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE)}
                 ${this._renderDropdown(
                   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
-                  thumbnailModes,
+                  this._thumbnailModes,
                 )}
                 ${this._renderDropdown(
                   CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
-                  thumbnailMedias,
+                  this._thumbnailMedias,
                 )}
                 ${this._renderStringInput(CONF_LIVE_CONTROLS_THUMBNAILS_SIZE)}
               </div>
@@ -783,12 +784,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               )}
               ${this._renderDropdown(
                 CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
-                eventViewerNextPreviousControlStyles,
+                this._eventViewerNextPreviousControlStyles,
               )}
               ${this._renderStringInput(CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE)}
               ${this._renderDropdown(
                 CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE,
-                thumbnailModes,
+                this._thumbnailModes,
               )}
               ${this._renderStringInput(CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE)}
             </div>`
@@ -805,7 +806,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html` <div class="values">
               ${this._renderDropdown(
                 CONF_DIMENSIONS_ASPECT_RATIO_MODE,
-                aspectRatioModes,
+                this._aspectRatioModes,
               )}
               ${this._renderStringInput(CONF_DIMENSIONS_ASPECT_RATIO)}
             </div>`
