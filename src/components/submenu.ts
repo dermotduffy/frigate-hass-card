@@ -1,11 +1,11 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators';
-import { hasAction, HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from 'custom-card-helpers';
 import { styleMap } from 'lit/directives/style-map';
 
 import { ExtendedHomeAssistant, MenuSubmenu, MenuSubmenuItem } from '../types.js';
 import { actionHandler } from '../action-handler-directive.js';
-import { refreshDynamicStateParameters } from '../common.js';
+import { frigateCardHasAction, refreshDynamicStateParameters } from '../common.js';
 
 import submenuStyle from '../scss/submenu.scss';
 import type { Corner } from "@material/mwc-menu";
@@ -39,8 +39,8 @@ export class FrigateCardSubmenu extends LitElement {
           ev.detail.config = item;
         }}
         .actionHandler=${actionHandler({
-          hasHold: hasAction(item.hold_action),
-          hasDoubleClick: hasAction(item.double_tap_action),
+          hasHold: frigateCardHasAction(item.hold_action),
+          hasDoubleClick: frigateCardHasAction(item.double_tap_action),
         })}
       >
         ${stateParameters.title || ''}
@@ -71,8 +71,8 @@ export class FrigateCardSubmenu extends LitElement {
           slot="trigger"
           .label=${this.submenu.title || ''}
           .actionHandler=${actionHandler({
-            hasHold: hasAction(this.submenu.hold_action),
-            hasDoubleClick: hasAction(this.submenu.double_tap_action),
+            hasHold: frigateCardHasAction(this.submenu.hold_action),
+            hasDoubleClick: frigateCardHasAction(this.submenu.double_tap_action),
           })}
         >
           <ha-icon icon="${this.submenu.icon}"></ha-icon>

@@ -119,7 +119,7 @@ const frigateCardCustomActionBaseSchema = customActionSchema.extend({
 });
 
 const FRIGATE_CARD_GENERAL_ACTIONS = [
-  'frigate',
+  'default',
   'clip',
   'clips',
   'image',
@@ -129,6 +129,7 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'download',
   'frigate_ui',
   'fullscreen',
+  'menu_toggle',
 ] as const;
 const FRIGATE_CARD_ACTIONS = [...FRIGATE_CARD_GENERAL_ACTIONS, 'camera_select'] as const;
 export type FrigateCardAction = typeof FRIGATE_CARD_ACTIONS[number];
@@ -159,17 +160,21 @@ export type ActionType = z.infer<typeof actionSchema>;
 
 const actionBaseSchema = z
   .object({
-    tap_action: actionSchema.optional(),
-    hold_action: actionSchema.optional(),
-    double_tap_action: actionSchema.optional(),
-    start_tap_action: actionSchema.optional(),
-    end_tap_action: actionSchema.optional(),
+    tap_action: actionSchema.or(actionSchema.array()).optional(),
+    hold_action: actionSchema.or(actionSchema.array()).optional(),
+    double_tap_action: actionSchema.or(actionSchema.array()).optional(),
+    start_tap_action: actionSchema.or(actionSchema.array()).optional(),
+    end_tap_action: actionSchema.or(actionSchema.array()).optional(),
   })
   // Passthrough to allow (at least) entity/camera_image to go through. This
   // card doesn't need these attributes, but handleAction() in
   // custom_card_helpers may depending on how the action is configured.
   .passthrough();
 export type Actions = z.infer<typeof actionBaseSchema>;
+export type ActionsConfig = Actions & {
+  camera_image?: string;
+  entity?: string;
+};
 
 const actionsSchema = z.object({
   actions: actionBaseSchema.optional(),
@@ -744,14 +749,6 @@ export interface BrowseMediaQueryParameters {
   zone?: string;
   before?: number;
   after?: number;
-}
-
-export interface GetFrigateCardMenuButtonParameters {
-  icon: string;
-  title: string;
-  tap_action: FrigateCardAction;
-  hold_action?: FrigateCardAction;
-  emphasize?: boolean;
 }
 
 export interface BrowseMediaNeighbors {

@@ -1,15 +1,13 @@
 import { HassEntity, MessageBase } from 'home-assistant-js-websocket';
-import {
-  HomeAssistant,
-  handleActionConfig,
-  stateIcon,
-} from 'custom-card-helpers';
+import { HomeAssistant, handleActionConfig, hasAction, stateIcon } from 'custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map';
 import { ZodSchema, z } from 'zod';
 import { isEqual } from 'lodash-es';
 
 import { localize } from './localize/localize.js';
 import {
+  Actions,
+  ActionsConfig,
   ActionType,
   CameraConfig,
   ExtendedHomeAssistant,
@@ -302,14 +300,8 @@ export function createFrigateCardCustomAction(
  */
 export function getActionConfigGivenAction(
   interaction?: string,
-  config?: {
-    hold_action?: ActionType;
-    tap_action?: ActionType;
-    double_tap_action?: ActionType;
-    start_tap_action?: ActionType;
-    end_tap_action?: ActionType;
-  },
-): ActionType | undefined {
+  config?: Actions,
+): ActionType | ActionType[] | undefined {
   if (!interaction || !config) {
     return undefined;
   }
@@ -499,24 +491,63 @@ export function contentsChanged(n: unknown, o: unknown): boolean {
  * @param hass The Home Assistant object.
  * @param config The multi-action configuration.
  * @param action The action string (e.g. 'hold')
+ * @returns Whether or not an action was executed.
  */
 export const frigateCardHandleAction = (
   node: HTMLElement,
   hass: HomeAssistant,
+  config: ActionsConfig,
+  action: string,
+): boolean => {
+  return frigateCardHandleActionConfig(
+    node,
+    hass,
+    config,
+    action,
+    getActionConfigGivenAction(action, config),
+  );
+};
+
+/**
+ * Handle an ActionConfig or array of ActionConfigs.
+ * @param node The node that fired the event.
+ * @param hass The Home Assistant object.
+ * @param actionConfig A single action config, array of action configs or
+ * undefined for the default action config for 'tap'.
+ * @param action The action string (e.g. 'hold')
+ * @returns Whether or not an action was executed.
+ */
+export const frigateCardHandleActionConfig = (
+  node: HTMLElement,
+  hass: HomeAssistant,
   config: {
-    entity?: string;
     camera_image?: string;
-    hold_action?: ActionType;
-    tap_action?: ActionType;
-    double_tap_action?: ActionType;
-    start_tap_action?: ActionType;
-    end_tap_action?: ActionType;
+    entity?: string;
   },
   action: string,
-): void => {
-  const actionConfig = getActionConfigGivenAction(action, config);
+  actionConfig: ActionType | ActionType[] | undefined,
+): boolean => {
   if (actionConfig || action == 'tap') {
     // Only allow a tap action to use a default non-config (the more-info config).
-    handleActionConfig(node, hass, config, actionConfig);
+    if (Array.isArray(actionConfig)) {
+      actionConfig.forEach((action) => handleActionConfig(node, hass, config, action));
+    } else {
+      handleActionConfig(node, hass, config, actionConfig);
+    }
+    return true;
   }
+  return false;
 };
+
+/**
+ * Determine if an action config has a real action. A modified version of
+ * custom-card-helpers hasAction to also work with arrays of action configs.
+ * @param config The action config in question.
+ * @returns `true` if there's a real action defined, `false` otherwise.
+ */
+export const frigateCardHasAction = (config?: ActionType | ActionType[] | undefined): boolean => {
+  if (Array.isArray(config)) {
+    return !!config.find((item) => hasAction(item));
+  }
+  return hasAction(config);
+}

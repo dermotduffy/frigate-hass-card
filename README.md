@@ -497,6 +497,10 @@ See the [action
 documentation](https://www.home-assistant.io/lovelace/actions/#hold-action) for
 more information on the action options available.
 
+**Note**: The Frigate Card allows either a single action (as in stock Home
+Assistant) or list of actions to be defined for each class of user interaction
+(e.g. `tap`, `double_tap`, `hold`, etc). See [an example of multiple actions](#example-multiple-actions).
+
 ### Special Elements
 
 This card supports all [Picture Elements](https://www.home-assistant.io/lovelace/picture-elements/#icon-element) using the same syntax. The card also supports a handful of custom special elements to add special Frigate card functionality.
@@ -551,16 +555,17 @@ Parameters for the `custom:frigate-card-conditional` element:
 
 | Action name | Description |
 | - | - |
-| `custom:frigate-card-action` | Call a Frigate Card action. Acceptable values are `frigate`, `clip`, `clips`, `image`, `live`, `snapshot`, `snapshots`, `download`, `frigate_ui`, `fullscreen`.|
+| `custom:frigate-card-action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `snapshot`, `snapshots`, `download`, `frigate_ui`, `fullscreen`, `camera_select`, `menu_toggle`.|
 
 | Value | Description |
 | - | - |
-| `frigate` | Show/hide the menu or trigger the default view. |
+| `default` | Trigger the default view. |
 | `clip`, `clips`, `image`, `live`, `snapshot`, `snapshots` | Trigger the named [view](#views).|
 |`download`|Download the displayed media.|
 |`frigate_ui`|Open the Frigate UI at the configured URL.|
 |`fullscreen`|Toggle fullscreen.| 
 |`camera_select`|Select a given camera. Takes a single additional `camera` parameter with the [camera ID](#camera-ids) of the camera to select.|
+|`menu_toggle` | Show/hide the menu (for `hidden-*` mode menus). |
 
 <a name="views"></a>
 
@@ -1108,6 +1113,29 @@ view:
 image:
   src: https://my-friage-server/api/living_room/latest.jpg
   refresh_seconds: 10
+```
+</details>
+
+<a name="example-multiple-actions"></a>
+
+### Defining multiple actions for Elements
+
+<details>
+  <summary>Expand: Changing camera and view simultaneously</summary>
+
+This example shows how to configure multiple actions for a single Frigate card user interaction, in this case both selecting a different camera and changing the view on `tap`.
+
+```yaml
+[...]
+elements:
+  - type: custom:frigate-card-menu-icon
+    icon: mdi:chair-rolling
+    tap_action:
+      - action: custom:frigate-card-action
+        frigate_card_action: camera_select
+        camera: camera.office
+      - action: custom:frigate-card-action
+        frigate_card_action: live
 ```
 </details>
 
