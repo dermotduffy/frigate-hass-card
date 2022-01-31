@@ -437,6 +437,21 @@ const nextPreviousControlConfigSchema = z.object({
 export type NextPreviousControlConfig = z.infer<typeof nextPreviousControlConfigSchema>;
 
 /**
+ * Title Control configuration section.
+ */
+const titleControlConfigSchema = z.object({
+  mode: z.enum([
+    'none',
+    'popup-top-right',
+    'popup-top-left',
+    'popup-bottom-right',
+    'popup-bottom-left',
+  ]),
+  duration_seconds: z.number().min(0),
+});
+export type TitleControlConfig = z.infer<typeof titleControlConfigSchema>;
+
+/**
  * Live view configuration section.
  */
 const liveConfigDefault = {
@@ -453,6 +468,10 @@ const liveConfigDefault = {
       media: 'clips' as const,
       size: '100px',
       mode: 'none' as const,
+    },
+    title: {
+      mode: 'popup-bottom-right' as const,
+      duration_seconds: 2,
     },
   },
 };
@@ -483,40 +502,47 @@ const jsmpegConfigSchema = z
   .optional();
 export type JSMPEGConfig = z.infer<typeof jsmpegConfigSchema>;
 
-const liveNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.extend({
-  // Live cannot show thumbnails, remove that option.
-  style: z
-    .enum(['none', 'chevrons', 'icons'])
-    .default(liveConfigDefault.controls.next_previous.style),
-  size: nextPreviousControlConfigSchema.shape.size.default(
-    liveConfigDefault.controls.next_previous.size,
-  ),
-});
-
-const liveThumbnailControlConfigSchema = thumbnailsControlSchema.extend({
-  mode: thumbnailsControlSchema.shape.mode.default(
-    liveConfigDefault.controls.thumbnails.mode,
-  ),
-  size: thumbnailsControlSchema.shape.size.default(
-    liveConfigDefault.controls.thumbnails.size,
-  ),
-  media: z
-    .enum(['clips', 'snapshots'])
-    .default(liveConfigDefault.controls.thumbnails.media),
-});
-
 const liveOverridableConfigSchema = z
   .object({
     webrtc: webrtcConfigSchema,
     jsmpeg: jsmpegConfigSchema,
     controls: z
       .object({
-        next_previous: liveNextPreviousControlConfigSchema.default(
-          liveConfigDefault.controls.next_previous,
-        ),
-        thumbnails: liveThumbnailControlConfigSchema.default(
-          liveConfigDefault.controls.thumbnails,
-        ),
+        next_previous: nextPreviousControlConfigSchema
+          .extend({
+            // Live cannot show thumbnails, remove that option.
+            style: z
+              .enum(['none', 'chevrons', 'icons'])
+              .default(liveConfigDefault.controls.next_previous.style),
+            size: nextPreviousControlConfigSchema.shape.size.default(
+              liveConfigDefault.controls.next_previous.size,
+            ),
+          })
+          .default(liveConfigDefault.controls.next_previous),
+        thumbnails: thumbnailsControlSchema
+          .extend({
+            mode: thumbnailsControlSchema.shape.mode.default(
+              liveConfigDefault.controls.thumbnails.mode,
+            ),
+            size: thumbnailsControlSchema.shape.size.default(
+              liveConfigDefault.controls.thumbnails.size,
+            ),
+            media: z
+              .enum(['clips', 'snapshots'])
+              .default(liveConfigDefault.controls.thumbnails.media),
+          })
+
+          .default(liveConfigDefault.controls.thumbnails),
+        title: titleControlConfigSchema
+          .extend({
+            mode: titleControlConfigSchema.shape.mode.default(
+              liveConfigDefault.controls.title.mode,
+            ),
+            duration_seconds: titleControlConfigSchema.shape.duration_seconds.default(
+              liveConfigDefault.controls.title.duration_seconds,
+            ),
+          })
+          .default(liveConfigDefault.controls.title),
       })
       .default(liveConfigDefault.controls),
   })
@@ -589,6 +615,10 @@ const viewerConfigDefault = {
       size: '100px',
       mode: 'none' as const,
     },
+    title: {
+      mode: 'popup-bottom-right' as const,
+      duration_seconds: 2,
+    },
   },
 };
 const viewerNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.extend({
@@ -621,6 +651,16 @@ const viewerConfigSchema = z
             ),
           })
           .default(viewerConfigDefault.controls.thumbnails),
+        title: titleControlConfigSchema
+          .extend({
+            mode: titleControlConfigSchema.shape.mode.default(
+              viewerConfigDefault.controls.title.mode,
+            ),
+            duration_seconds: titleControlConfigSchema.shape.duration_seconds.default(
+              viewerConfigDefault.controls.title.duration_seconds,
+            ),
+          })
+          .default(viewerConfigDefault.controls.title),
       })
       .default(viewerConfigDefault.controls),
   })

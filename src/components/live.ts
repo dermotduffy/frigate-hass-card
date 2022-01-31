@@ -21,6 +21,7 @@ import {
 } from '../types.js';
 import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
+import JSMpeg from '@cycjimmy/jsmpeg-player';
 import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import { Task } from '@lit-labs/task';
 import { customElement, property, state } from 'lit/decorators.js';
@@ -47,7 +48,8 @@ import {
 } from '../common.js';
 import { renderProgressIndicator } from '../components/message.js';
 
-import JSMpeg from '@cycjimmy/jsmpeg-player';
+import './next-prev-control.js';
+import './title-control.js';
 
 import liveStyle from '../scss/live.scss';
 import liveFrigateStyle from '../scss/live-frigate.scss';
@@ -471,7 +473,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   protected render(): TemplateResult | void {
     const [slides, cameraToSlide] = this._getSlides();
     this._cameraToSlide = cameraToSlide;
-    if (!slides || !this.liveConfig) {
+    if (!slides || !this.liveConfig || !this.cameras || !this.view) {
       return;
     }
 
@@ -482,6 +484,8 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     ) as LiveConfig;
 
     const [prev, next] = this._getCameraNeighbors();
+    const title = getCameraTitle(this.hass, this.cameras.get(this.view.camera));
+
     return html`
       <div class="embla">
         <frigate-card-next-previous-control
@@ -512,6 +516,15 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
         >
         </frigate-card-next-previous-control>
       </div>
+      <frigate-card-title-control
+        ${ref(this._titleControlRef)}
+        .config=${config.controls.title}
+        .text="${title 
+          ? `${localize('common.live')}: ${title}`
+          : ''}"
+        .fitInto=${this as HTMLElement}
+      >
+      </frigate-card-title-control>
     `;
   }
 }
