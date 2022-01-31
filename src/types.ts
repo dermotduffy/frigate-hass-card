@@ -531,7 +531,6 @@ const liveOverridableConfigSchema = z
               .enum(['clips', 'snapshots'])
               .default(liveConfigDefault.controls.thumbnails.media),
           })
-
           .default(liveConfigDefault.controls.thumbnails),
         title: titleControlConfigSchema
           .extend({
