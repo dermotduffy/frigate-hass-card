@@ -515,12 +515,14 @@ All variables listed are under a `conditions:` section.
 
 See the [PTZ example below](#frigate-card-conditional-example) for a real-world example of how these conditions can be used.
 
+<a name="frigate-card-elements"></a>
+
 ## Picture Elements / Menu Customizations
 
 This card supports the [Picture Elements configuration
 syntax](https://www.home-assistant.io/lovelace/picture-elements/) to seamlessly
 allow the user to add custom elements to the card, which may be configured to
-perform a variety of actions on `tap`, `double_tap` and `hold`.
+perform a variety of actions on interaction (see [actions](#actions) below).
 
 In the card YAML configuration, elements may be manually added under an
 `elements` key.
@@ -535,7 +537,10 @@ Assistant) or list of actions to be defined for each class of user interaction
 
 ### Special Elements
 
-This card supports all [Picture Elements](https://www.home-assistant.io/lovelace/picture-elements/#icon-element) using the same syntax. The card also supports a handful of custom special elements to add special Frigate card functionality.
+This card supports all [Picture
+Elements](https://www.home-assistant.io/lovelace/picture-elements/#icon-element)
+using compatible syntax. The card also supports a handful of custom special
+elements to add special Frigate card functionality.
 
 | Element name | Description                                         |
 | ------------- | --------------------------------------------- |
@@ -565,7 +570,7 @@ Parameters for the `custom:frigate-card-menu-submenu` element are identical to t
 | `state_color` | `true` | Whether or not the title and icon should be stylized based on state. |
 | `selected` | `false` | Whether or not to show this item as selected. |
 | `style` | | Position and style the element using CSS. |
-| `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` | | Standard [Home Assistant action configuration](https://www.home-assistant.io/lovelace/actions). |
+| `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` | | [Home Assistant action configuration](https://www.home-assistant.io/lovelace/actions) including the extended functionality described under [actions](#actions). |
 
 See the [Configuring a Submenu example](#configuring-a-submenu-example).
 
@@ -621,7 +626,48 @@ time as the snapshot (if any).
 
 <a name="actions"></a>
 
-## Card & View Actions
+## Actions
+
+### Introduction to Actions
+
+Actions are pre-configured activities that can be triggered in response to a
+variety of circumstances (e.g. tapping on a menu icon, double tapping on a
+[picture element](#frigate-card-elements) or holding the mouse/tap down on a
+particular [view](#views)).
+
+### Configuring Actions
+
+The format for actions is the standard Home Assistant [action
+format](https://www.home-assistant.io/lovelace/actions/#tap-action), with the
+exception of differences called out below.
+
+### Differences in actions between Frigate Card and Home Assistant 
+
+Both the Home Assistant frontend and the Frigate card cooperate to provide
+action functionality. In general, the Frigate Card functionality is a superset
+of that offered by stock Home Assistant.
+
+Stock action functionality is used for Stock [Home Assistant picture
+elements](https://www.home-assistant.io/lovelace/picture-elements/). Extended
+Frigate card behavior covers all other interactions on the Frigate card (e.g.
+menu icon elements, submenus and actions on the card or views).
+
+#### Custom action types: `start_tap` and `end_tap`
+
+The card has partial support for two special action types `start_tap` and
+`end_tap` which occur when a tap is started (e.g. mouse is pressed down /
+touch begins), and ended (e.g. mouse released / touch ends) respectively. This
+might be useful for PTZ cameras cameras to start/stop movement on touch. Network
+latency may introduce unavoidable imprecision between `end_tap` and action
+actually occurring.
+
+#### Multiple actions
+
+Extended Frigate card behavior supports a list of actions which will be handled,
+in addition to using a singular action. See [an example of multiple
+actions](#example-multiple-actions) below.
+
+### Card & View Actions
 
 Actions may be attached to the card itself, to trigger action when the card
 experiences a `tap`, `double_tap`, `hold`, `start_tap` or `end_tap` event. These
@@ -640,31 +686,12 @@ If an action is configured for both the whole card (`view.actions`) and a more
 specific view (e.g. `live.actions`) then the actions are merged, with the more
 specific overriding the less specific (see example below).
 
-The format for actions is the standard Home Assistant [action
-format](https://www.home-assistant.io/lovelace/actions/#tap-action) as well as
-the custom [Frigate card action](#frigate-card-action) to trigger Frigate card
-changes.
-
-**Note:** The card itself obviously relies on user interactions to function
-(e.g. `tap` on the menu should activate that button, `tap` on a gallery thumbnail
-should open that piece of media, etc). These internal actions are executed
-_also_, which means that a card-wide `tap` action probably isn't that useful as
-it may be disorienting to the user and will trigger on all kinds of basic
-interaction on the card (e.g. tapping/clicking a menu button).
-
-### Special Custom Action Types: `start_tap` and `end_tap`
-
-The card has partial support for two special action types `start_tap` and
-`end_tap` which occur when a tap is started (e.g. mouse is pressed down /
-touch begins), and ended (e.g. mouse released / touch ends) respectively. This
-might be useful for PTZ cameras cameras to start/stop movement on touch.
-
-**Caveats**: This support is only partial. Stock [Home Assistant picture
-elements](https://www.home-assistant.io/lovelace/picture-elements/) do not
-support these actions when rendered onto the card, but Frigate card controls
-(e.g. card/view actions as described above, menu icons and submenus) do support
-them by default. Network latency may introduce unavoidable imprecision between
-`end_tap` and action actually occurring.
+**Note:** The card itself relies on user interactions to function (e.g. `tap` on
+the menu should activate that button, `tap` on a gallery thumbnail should open
+that piece of media, etc). These internal actions are executed _also_, which
+means that a card-wide `tap` action probably isn't that useful as it may be
+disorienting to the user and will trigger on all kinds of basic interaction on
+the card (e.g. tapping/clicking a menu button).
 
 ## Menu Modes
 
@@ -1155,7 +1182,7 @@ image:
 <details>
   <summary>Expand: Changing camera and view simultaneously</summary>
 
-This example shows how to configure multiple actions for a single Frigate card user interaction, in this case both selecting a different camera and changing the view on `tap`.
+This example shows how to configure multiple actions for a single Frigate card user interaction, in this case both selecting a different camera and changing the view on `tap`. Note that multiple actions are not supported on stock Picture Elements, see [actions](#actions) for more information.
 
 ```yaml
 [...]

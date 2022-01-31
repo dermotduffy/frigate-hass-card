@@ -818,6 +818,12 @@ export class FrigateCard extends LitElement {
           screenfull.toggle(this);
         }
         break;
+      case 'menu_toggle':
+        // This is a rare code path: this would only be used if someone has a
+        // menu toggle action configured outside of the menu itself (e.g.
+        // picture elements).
+        this._menu.toggleMenu();
+        break;
       case 'camera_select':
         const camera = frigateCardAction.camera;
         if (this._cameras?.has(camera) && this._view) {

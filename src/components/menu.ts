@@ -62,6 +62,15 @@ export class FrigateCardMenu extends LitElement {
   }
 
   /**
+   * Toggle the menu. Has no action if menu is not hiding/expandable.
+   */
+  public toggleMenu(): void {
+    if (this._isHidingMenu()) {
+      this.expanded = !this.expanded;
+    }
+  }
+
+  /**
    * Determine if a given menu configuration is a hiding menu (internal version).
    * @returns `true` if the menu is hiding, `false` otherwise.
    */
