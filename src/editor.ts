@@ -33,6 +33,8 @@ import {
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE,
   CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE,
+  CONF_EVENT_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
+  CONF_EVENT_VIEWER_CONTROLS_TITLE_MODE,
   CONF_EVENT_VIEWER_DRAGGABLE,
   CONF_EVENT_VIEWER_LAZY_LOAD,
   CONF_IMAGE_REFRESH_SECONDS,
@@ -42,6 +44,8 @@ import {
   CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
+  CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
+  CONF_LIVE_CONTROLS_TITLE_MODE,
   CONF_LIVE_DRAGGABLE,
   CONF_LIVE_LAZY_LOAD,
   CONF_LIVE_LAZY_UNLOAD,
@@ -231,6 +235,21 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     ['', ''],
     ['clips', localize('config.live.controls.thumbnails.medias.clips')],
     ['snapshots', localize('config.live.controls.thumbnails.medias.snapshots')],
+  ]);
+
+  protected _titleModes = new Map([
+    ['', ''],
+    ['none', localize('config.event_viewer.controls.title.modes.none')],
+    ['popup-top-left', localize('config.event_viewer.controls.title.modes.popup-top-left')],
+    ['popup-top-right', localize('config.event_viewer.controls.title.modes.popup-top-right')],
+    [
+      'popup-bottom-left',
+      localize('config.event_viewer.controls.title.modes.popup-bottom-left'),
+    ],
+    [
+      'popup-bottom-right',
+      localize('config.event_viewer.controls.title.modes.popup-bottom-right'),
+    ],
   ]);
 
   public setConfig(config: RawFrigateCardConfig): void {
@@ -752,6 +771,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   this._thumbnailMedias,
                 )}
                 ${this._renderStringInput(CONF_LIVE_CONTROLS_THUMBNAILS_SIZE)}
+                ${this._renderDropdown(
+                CONF_LIVE_CONTROLS_TITLE_MODE,
+                this._titleModes,
+              )}
+              ${this._renderStringInput(
+                CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
+                'number',
+              )}
               </div>
             `
           : ''}
@@ -792,6 +819,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 this._thumbnailModes,
               )}
               ${this._renderStringInput(CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE)}
+              ${this._renderDropdown(
+                CONF_EVENT_VIEWER_CONTROLS_TITLE_MODE,
+                this._titleModes,
+              )}
+              ${this._renderStringInput(
+                CONF_EVENT_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
+                'number',
+              )}
             </div>`
           : ''}
         ${this._renderOptionSetHeader('image')}
@@ -889,7 +924,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       value = target.checked;
     } else if (typeof target.value === 'string') {
       value = target.value?.trim();
-      if (target['type'] === 'number') {
+      if (target['type'] === 'number' && value != '') {
         value = Number(value);
       }
     } else {

@@ -15,6 +15,7 @@ import './next-prev-control.js';
 import mediaCarouselStyle from '../scss/media-carousel.scss';
 
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
+import { FrigateCardTitleControl } from './title-control.js';
 import { MediaAutoPlayPauseType } from './embla-plugins/media-autoplay.js';
 
 const getEmptyImageSrc = (width: number, height: number) =>
@@ -27,7 +28,8 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   protected _mediaShowInfo: Record<number, MediaShowInfo> = {};
   protected _nextControlRef: Ref<FrigateCardNextPreviousControl> = createRef();
   protected _previousControlRef: Ref<FrigateCardNextPreviousControl> = createRef();
-
+  protected _titleControlRef: Ref<FrigateCardTitleControl> = createRef();
+  protected _titleTimerID: number | null = null;
   /**
    * Play the media on the selected slide. May be overridden to control when
    * autoplay should happen.
@@ -37,12 +39,39 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   }
 
   /**
+   * Show the media title after the media loads.
+   */
+  protected _titleHandler(): void {
+    const show = () => {
+      this._titleTimerID = null;
+      this._titleControlRef.value?.show();
+    };
+
+    if (this._titleTimerID) {
+      window.clearTimeout(this._titleTimerID);
+    }
+    if (this._titleControlRef.value?.isVisible()) {
+      // If it's already visible, update it immediately (but also update it
+      // after the timer expires to ensure it re-positions if necessary, see
+      // comment below).
+      show();
+    }
+
+    // Allow a brief pause after the media loads, but before the title is
+    // displayed. This allows for a pleasant appearance/disappear of the title,
+    // and allows for the browser to finish rendering the carousel (inc.
+    // adaptive height which has `0.5s ease`, see `media-carousel.scss`).
+    this._titleTimerID = window.setTimeout(show, 0.5 * 1000);
+  }
+
+  /**
    * Component connected callback.
    */
   connectedCallback(): void {
     super.connectedCallback();
     this.addEventListener('frigate-card:media-show', this._autoplayHandler);
     this.addEventListener('frigate-card:media-show', this._adaptiveHeightHandler);
+    this.addEventListener('frigate-card:media-show', this._titleHandler);
   }
 
   /**
@@ -52,6 +81,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     super.disconnectedCallback();
     this.removeEventListener('frigate-card:media-show', this._autoplayHandler);
     this.removeEventListener('frigate-card:media-show', this._adaptiveHeightHandler);
+    this.removeEventListener('frigate-card:media-show', this._titleHandler);
   }
 
   protected _destroyCarousel(): void {
@@ -93,7 +123,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
    * actually the media load/show that will change the dimensions, and that is
    * async from carousel actions (e.g. lazy-loaded media).
    */
-   protected _adaptiveHeightHandler(): void {
+  protected _adaptiveHeightHandler(): void {
     const adaptCarouselHeight = (): void => {
       if (!this._carousel) {
         return;

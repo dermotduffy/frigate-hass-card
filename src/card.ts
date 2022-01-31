@@ -143,10 +143,10 @@ export class FrigateCard extends LitElement {
   protected _conditionState?: ConditionState;
 
   @query('frigate-card-menu')
-  _menu!: FrigateCardMenu;
+  protected _menu!: FrigateCardMenu;
 
   @query('frigate-card-elements')
-  _elements?: FrigateCardElements;
+  protected _elements?: FrigateCardElements;
 
   // user interaction timer ("screensaver" functionality, return to default
   // view after user interaction).

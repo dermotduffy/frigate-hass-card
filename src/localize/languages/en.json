@@ -6,7 +6,8 @@
     "no_snapshots": "No snapshots",
     "no_clips": "No clips",
     "no_snapshot": "No recent snapshot",
-    "no_clip": "No recent clip"
+    "no_clip": "No recent clip",
+    "live": "Live"
   },
   "config": {
     "cameras": {
@@ -73,6 +74,17 @@
             "above": "Thumbnails above the media",
             "none": "No thumbnails"
           }
+        },
+        "title": {
+          "mode": "Event Viewer media title display mode",
+          "modes": {
+            "none": "No title display",
+            "popup-top-left": "Popup on the top left",
+            "popup-top-right": "Popup on the top right",
+            "popup-bottom-left": "Popup on the bottom left",
+            "popup-bottom-right": "Popup on the bottom right"
+          },
+          "duration_seconds": "Seconds to display popup title in Event Viewer (0=forever)"
         }
       }
     },
@@ -99,6 +111,10 @@
             "clips": "Clip thumbnails",
             "snapshots": "Snapshot thumbnails"
           }
+        },
+        "title": {
+          "mode": "Live media title display mode",
+          "duration_seconds": "Seconds to display popup title in Live view (0=forever)"
         }
       }
     },

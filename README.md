@@ -269,6 +269,22 @@ live:
 | `style` | `chevrons` | :white_check_mark: | When viewing live cameras, what kind of controls to show to move to the previous/next camera. Acceptable values: `chevrons`, `icons`, `none` . |
 | `size` | `48px` | :white_check_mark: | The size of the next/previous controls [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
 
+<a name="live-controls-title"></a>
+
+#### Live Controls: Title
+
+All configuration is under:
+
+```yaml
+live:
+  controls:
+    title:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `mode` | `popup-bottom-right` | :white_check_mark: | How to display the live camera title. Acceptable values: `none`, `popup-top-left`, `popup-top-right`, `popup-bottom-left`, `popup-bottom-right` . |
+| `duration_seconds` | `2` | :white_check_mark: | The number of seconds to display the title popup. `0` implies forever.|
 
 ### Event Viewer Options
 
@@ -317,6 +333,21 @@ event_viewer:
 | - | - | - | - |
 | `mode` | `none` | :heavy_multiplication_x: | Whether to show the thumbnail carousel `below` the media, `above` the media or to hide it entirely (`none`).|
 | `size` | `100px` | :heavy_multiplication_x: | The size of the thumbnails in the thumbnail carousel [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
+
+#### Event Viewer Controls: Title
+
+All configuration is under:
+
+```yaml
+event_viewer:
+  controls:
+    title:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `mode` | `popup-bottom-right` | :heavy_multiplication_x: | How to display the event viewer media title. Acceptable values: `none`, `popup-top-left`, `popup-top-right`, `popup-bottom-left`, `popup-bottom-right` . |
+| `duration_seconds` | `2` | :heavy_multiplication_x: | The number of seconds to display the title popup. `0` implies forever.|
 
 ### Event Gallery Options
 

@@ -1,0 +1,8 @@
+:host {
+  --paper-toast-background-color: rgba(0,0,0,0.6);
+  --paper-toast-color: white;
+}
+
+paper-toast {
+  max-width: unset;
+}

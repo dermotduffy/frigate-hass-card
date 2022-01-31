@@ -41,6 +41,7 @@ import {
 import { renderProgressIndicator } from '../components/message.js';
 
 import './next-prev-control.js';
+import './title-control.js';
 
 import viewerStyle from '../scss/viewer.scss';
 import viewerCoreStyle from '../scss/viewer-core.scss';
@@ -628,32 +629,41 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     const [prev, next] = [neighbors?.previous, neighbors?.next];
 
     return html`<div class="embla">
-      <frigate-card-next-previous-control
-        ${ref(this._previousControlRef)}
-        .direction=${'previous'}
-        .controlConfig=${this.viewerConfig?.controls.next_previous}
-        .thumbnail=${prev && prev.thumbnail ? prev.thumbnail : undefined}
-        .label=${prev ? prev.title : ''}
-        ?disabled=${!prev}
-        @click=${() => {
-          this._nextPreviousHandler('previous');
-        }}
-      ></frigate-card-next-previous-control>
-      <div class="embla__viewport">
-        <div class="embla__container">${slides}</div>
+        <frigate-card-next-previous-control
+          ${ref(this._previousControlRef)}
+          .direction=${'previous'}
+          .controlConfig=${this.viewerConfig?.controls.next_previous}
+          .thumbnail=${prev && prev.thumbnail ? prev.thumbnail : undefined}
+          .label=${prev ? prev.title : ''}
+          ?disabled=${!prev}
+          @click=${() => {
+            this._nextPreviousHandler('previous');
+          }}
+        ></frigate-card-next-previous-control>
+        <div class="embla__viewport">
+          <div class="embla__container">${slides}</div>
+        </div>
+        <frigate-card-next-previous-control
+          ${ref(this._nextControlRef)}
+          .direction=${'next'}
+          .controlConfig=${this.viewerConfig?.controls.next_previous}
+          .thumbnail=${next && next.thumbnail ? next.thumbnail : undefined}
+          .label=${next ? next.title : ''}
+          ?disabled=${!next}
+          @click=${() => {
+            this._nextPreviousHandler('next');
+          }}
+        ></frigate-card-next-previous-control>
       </div>
-      <frigate-card-next-previous-control
-        ${ref(this._nextControlRef)}
-        .direction=${'next'}
-        .controlConfig=${this.viewerConfig?.controls.next_previous}
-        .thumbnail=${next && next.thumbnail ? next.thumbnail : undefined}
-        .label=${next ? next.title : ''}
-        ?disabled=${!next}
-        @click=${() => {
-          this._nextPreviousHandler('next');
-        }}
-      ></frigate-card-next-previous-control>
-    </div>`;
+      ${this.view?.media
+        ? html` <frigate-card-title-control
+            ${ref(this._titleControlRef)}
+            .config=${this.viewerConfig?.controls.title}
+            .text="${this.view.media.title}"
+            .fitInto=${this as HTMLElement}
+          >
+          </frigate-card-title-control>`
+        : ``} `;
   }
 
   protected _renderMediaItem(

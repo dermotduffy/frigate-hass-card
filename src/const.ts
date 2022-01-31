@@ -43,6 +43,10 @@ export const CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE =
   `${CONF_EVENT_VIEWER}.controls.thumbnails.mode` as const;
 export const CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_EVENT_VIEWER}.controls.thumbnails.size` as const;
+export const CONF_EVENT_VIEWER_CONTROLS_TITLE_MODE =
+  `${CONF_EVENT_VIEWER}.controls.title.mode` as const;
+export const CONF_EVENT_VIEWER_CONTROLS_TITLE_DURATION_SECONDS =
+  `${CONF_EVENT_VIEWER}.controls.title.duration_seconds` as const;
 
 export const CONF_LIVE = 'live' as const;
 export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE =
@@ -55,6 +59,10 @@ export const CONF_LIVE_CONTROLS_THUMBNAILS_MODE =
   `${CONF_LIVE}.controls.thumbnails.mode` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_LIVE}.controls.thumbnails.size` as const;
+export const CONF_LIVE_CONTROLS_TITLE_MODE =
+  `${CONF_LIVE}.controls.title.mode` as const;
+export const CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS =
+  `${CONF_LIVE}.controls.title.duration_seconds` as const;
 export const CONF_LIVE_DRAGGABLE = `${CONF_LIVE}.draggable` as const;
 export const CONF_LIVE_JSMPEG = `${CONF_LIVE}.jsmpeg` as const;
 export const CONF_LIVE_LAZY_LOAD = `${CONF_LIVE}.lazy_load` as const;
