@@ -633,7 +633,7 @@ time as the snapshot (if any).
 Actions are pre-configured activities that can be triggered in response to a
 variety of circumstances (e.g. tapping on a menu icon, double tapping on a
 [picture element](#frigate-card-elements) or holding the mouse/tap down on a
-particular [view](#views).
+particular [view](#views)).
 
 ### Configuring Actions
 
