@@ -16,7 +16,7 @@ import mediaCarouselStyle from '../scss/media-carousel.scss';
 
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
 import { FrigateCardTitleControl } from './title-control.js';
-import { MediaAutoPlayPauseType } from './embla-plugins/media-autoplay.js';
+import { AutoMediaPluginType } from './embla-plugins/automedia.js';
 
 const getEmptyImageSrc = (width: number, height: number) =>
   `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"%3E%3C/svg%3E`;
@@ -35,7 +35,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
    * autoplay should happen.
    */
   protected _autoplayHandler(): void {
-    (this._plugins['MediaAutoPlayPause'] as MediaAutoPlayPauseType | undefined)?.play();
+    (this._plugins['MediaAutoPlayPause'] as AutoMediaPluginType | undefined)?.play();
   }
 
   /**

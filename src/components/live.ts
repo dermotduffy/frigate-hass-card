@@ -27,12 +27,12 @@ import { Task } from '@lit-labs/task';
 import { customElement, property, state } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
 
+import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import { ConditionState, getOverriddenConfig } from '../card-condition.js';
 import { FrigateCardMediaCarousel } from './media-carousel.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
 import { Lazyload } from './embla-plugins/lazyload.js';
-import { MediaAutoPlayPause } from './embla-plugins/media-autoplay.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 import { View } from '../view.js';
 import { localize } from '../localize/localize.js';
@@ -308,7 +308,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
           ? (...args) => this._lazyloadOrUnloadSlide('unload', ...args)
           : undefined,
       }),
-      MediaAutoPlayPause({
+      AutoMediaPlugin({
         playerSelector: 'frigate-card-live-provider',
       }),
     ];
