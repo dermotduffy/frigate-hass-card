@@ -14,6 +14,7 @@ import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 
+import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import type {
   BrowseMediaNeighbors,
   BrowseMediaQueryParameters,
@@ -29,7 +30,6 @@ import {
   FrigateCardThumbnailCarousel,
   ThumbnailCarouselTap,
 } from './thumbnail-carousel.js';
-import { MediaAutoPlayPause } from './embla-plugins/media-autoplay.js';
 import { Lazyload, LazyloadType } from './embla-plugins/lazyload.js';
 import { ResolvedMediaCache, ResolvedMediaUtil } from '../resolved-media.js';
 import { View } from '../view.js';
@@ -320,8 +320,9 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       // Don't need autoplay/pause for snapshots.
       ...(this.view?.is('clip')
         ? [
-            MediaAutoPlayPause({
+            AutoMediaPlugin({
               playerSelector: 'frigate-card-ha-hls-player',
+              autoplayWhenVisible: !!this.viewerConfig?.autoplay_clip,
             }),
           ]
         : []),

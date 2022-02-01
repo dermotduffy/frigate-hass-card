@@ -1,19 +1,27 @@
 import { EmblaCarouselType, EmblaPluginType } from 'embla-carousel';
 import { FrigateCardMediaPlayer } from '../../types.js';
 
-export type MediaAutoPlayPauseOptionsType = {
+export type AutoMediaPluginOptionsType = {
   playerSelector: string;
+  autoplayWhenVisible?: boolean;
 };
 
-export const defaultOptions: Partial<MediaAutoPlayPauseOptionsType> = {};
+export const defaultOptions: Partial<AutoMediaPluginOptionsType> = {
+  autoplayWhenVisible: true,
+};
 
-export type MediaAutoPlayPauseType = EmblaPluginType<MediaAutoPlayPauseOptionsType> & {
+export type AutoMediaPluginType = EmblaPluginType<AutoMediaPluginOptionsType> & {
   play: () => void;
 }
 
-export function MediaAutoPlayPause(
-  userOptions?: MediaAutoPlayPauseOptionsType,
-): MediaAutoPlayPauseType {
+/**
+ * An Embla plugin to take automated actions on media (e.g. pause, unmute, etc).
+ * @param userOptions 
+ * @returns 
+ */
+export function AutoMediaPlugin(
+  userOptions?: AutoMediaPluginOptionsType,
+): AutoMediaPluginType {
   const options = Object.assign({}, defaultOptions, userOptions);
 
   let carousel: EmblaCarouselType;
@@ -50,7 +58,7 @@ export function MediaAutoPlayPause(
    function visibilityHandler(): void {
     if (document.visibilityState == 'hidden') {
       pause();
-    } else if (document.visibilityState == 'visible') {
+    } else if (document.visibilityState == 'visible' && options.autoplayWhenVisible) {
       play();
     }
   }
@@ -65,7 +73,7 @@ export function MediaAutoPlayPause(
   }
 
   /**
-   * Pause all clips.
+   * Pause all slides.
    */
   function pauseAllHandler(): void {
     slides.forEach((slide) => getPlayer(slide)?.pause());
@@ -88,12 +96,12 @@ export function MediaAutoPlayPause(
   /**
    * Autopause the previous slide.
    */
-   function pausePrevious(): void {
+  function pausePrevious(): void {
     getPlayer(slides[carousel.previousScrollSnap()])?.pause();
   }
 
-  const self: MediaAutoPlayPauseType = {
-    name: 'MediaAutoPlayPause',
+  const self: AutoMediaPluginType = {
+    name: 'AutoMediaPlugin',
     options,
     init,
     destroy,
