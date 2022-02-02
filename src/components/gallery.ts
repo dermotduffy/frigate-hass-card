@@ -105,7 +105,7 @@ export class FrigateCardGalleryCore extends LitElement {
    */
   connectedCallback(): void {
     super.connectedCallback();
-    this._resizeObserver?.observe(this);
+    this._resizeObserver.observe(this);
   }
 
   /**

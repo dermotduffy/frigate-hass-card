@@ -30,6 +30,16 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   protected _titleControlRef: Ref<FrigateCardTitleControl> = createRef();
   protected _titleTimerID: number | null = null;
 
+  // This carousel may be resized by Lovelace resizes, window resizes,
+  // fullscreen, etc. Always call the adaptive height handler when the size
+  // changes.
+  protected _resizeObserver: ResizeObserver;
+
+  constructor() {
+    super();
+    this._resizeObserver = new ResizeObserver(this._adaptiveHeightHandler.bind(this));
+  }
+
   /**
    * Play the media on the selected slide. May be overridden to control when
    * autoplay should happen.
@@ -42,7 +52,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
    * Unmute the media on the selected slide. May be overridden to control when
    * autoplay should happen.
    */
-   protected _autoUnmuteHandler(): void {
+  protected _autoUnmuteHandler(): void {
     (this._plugins['AutoMediaPlugin'] as AutoMediaPluginType | undefined)?.unmute();
   }
 
@@ -81,6 +91,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     this.addEventListener('frigate-card:media-show', this._autoUnmuteHandler);
     this.addEventListener('frigate-card:media-show', this._adaptiveHeightHandler);
     this.addEventListener('frigate-card:media-show', this._titleHandler);
+    this._resizeObserver.observe(this);
   }
 
   /**
@@ -92,6 +103,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     this.removeEventListener('frigate-card:media-show', this._autoUnmuteHandler);
     this.removeEventListener('frigate-card:media-show', this._adaptiveHeightHandler);
     this.removeEventListener('frigate-card:media-show', this._titleHandler);
+    this._resizeObserver.disconnect();
   }
 
   protected _destroyCarousel(): void {
@@ -138,37 +150,25 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
       if (!this._carousel) {
         return;
       }
-      const slide = this._carousel?.selectedScrollSnap()
+      const slide = this._carousel?.selectedScrollSnap();
       if (slide !== undefined) {
+        this._carousel.containerNode().style.removeProperty('max-height');
         const slides = this._carousel.slideNodes();
         const height = slides[slide].getBoundingClientRect().height;
         if (height > 0) {
           this._carousel.containerNode().style.maxHeight = `${height}px`;
-        } else {
-          this._carousel.containerNode().style.removeProperty('max-height');
         }
       }
     };
 
-    // Hack: This method attempts to measure the height of the slides in view in
+    // Hack: This method attempts to measure the height of the selected slide in
     // order to set the overall carousel height to match. This method is
     // triggered from `frigate-card:media-show` events, which are usually in
     // turn triggered from media/metadata load events from media players.
     // Sufficient time needs to be allowed after these metadata load events to
     // allow the browser to repaint the element heights, so that we can get the
-    // right values here. requestAnimationFrame() works well in most cases --
-    // except for (at least) the Home Assistant Android Companion app. For that
-    // case, waiting longer appears to make a difference and reliably gets the
-    // carousel to the correct height (the litmus test case is: In the Android
-    // app, choose a live view and while it's loading, click the fullscreen
-    // button. Without a short delay here, it will calculate the sizes relative
-    // to the pre-fullscreen height).
-    //
-    // As this call is cheap, we use both the requestAnimationFrame() and
-    // setTimeout() approaches in parallel to ensure immediate response in a
-    // browser, and slightly slower (but correct) response in the Companion app.
+    // right values here. requestAnimationFrame() works well for this.
     window.requestAnimationFrame(adaptCarouselHeight);
-    window.setTimeout(adaptCarouselHeight, 500);
   }
 
   /**
