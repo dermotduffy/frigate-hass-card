@@ -16,7 +16,8 @@ export const CONF_CAMERAS_ARRAY_ICON = `${CONF_CAMERAS}.#.icon` as const;
 export const CONF_CAMERAS_ARRAY_WEBRTC_ENTITY =
   `${CONF_CAMERAS}.#.webrtc.entity` as const;
 export const CONF_CAMERAS_ARRAY_WEBRTC_URL = `${CONF_CAMERAS}.#.webrtc.url` as const;
-export const CONF_CAMERAS_ARRAY_LIVE_PROVIDER = `${CONF_CAMERAS}.#.live_provider` as const;
+export const CONF_CAMERAS_ARRAY_LIVE_PROVIDER =
+  `${CONF_CAMERAS}.#.live_provider` as const;
 
 export const CONF_VIEW = 'view' as const;
 export const CONF_VIEW_CAMERA_SELECT = `${CONF_VIEW}.camera_select` as const;
@@ -28,11 +29,11 @@ export const CONF_VIEW_UPDATE_ENTITIES = `${CONF_VIEW}.update_entities` as const
 export const CONF_VIEW_UPDATE_SECONDS = `${CONF_VIEW}.update_seconds` as const;
 
 export const CONF_EVENT_GALLERY = 'event_gallery' as const;
-export const CONF_EVENT_GALLERY_MIN_COLUMNS = `${CONF_EVENT_GALLERY}.min_columns` as const;
+export const CONF_EVENT_GALLERY_MIN_COLUMNS =
+  `${CONF_EVENT_GALLERY}.min_columns` as const;
 
 export const CONF_EVENT_VIEWER = 'event_viewer' as const;
-export const CONF_EVENT_VIEWER_AUTOPLAY_CLIP =
-  `${CONF_EVENT_VIEWER}.autoplay_clip` as const;
+export const CONF_EVENT_VIEWER_AUTO_PLAY = `${CONF_EVENT_VIEWER}.auto_play` as const;
 export const CONF_EVENT_VIEWER_AUTO_UNMUTE = `${CONF_EVENT_VIEWER}.auto_unmute` as const;
 export const CONF_EVENT_VIEWER_DRAGGABLE = `${CONF_EVENT_VIEWER}.draggable` as const;
 export const CONF_EVENT_VIEWER_LAZY_LOAD = `${CONF_EVENT_VIEWER}.lazy_load` as const;
@@ -61,8 +62,7 @@ export const CONF_LIVE_CONTROLS_THUMBNAILS_MODE =
   `${CONF_LIVE}.controls.thumbnails.mode` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_LIVE}.controls.thumbnails.size` as const;
-export const CONF_LIVE_CONTROLS_TITLE_MODE =
-  `${CONF_LIVE}.controls.title.mode` as const;
+export const CONF_LIVE_CONTROLS_TITLE_MODE = `${CONF_LIVE}.controls.title.mode` as const;
 export const CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS =
   `${CONF_LIVE}.controls.title.duration_seconds` as const;
 export const CONF_LIVE_DRAGGABLE = `${CONF_LIVE}.draggable` as const;

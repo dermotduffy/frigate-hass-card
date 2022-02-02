@@ -53,7 +53,7 @@
       "min_columns": "Minimum number of columns"
     },
     "event_viewer": {
-      "autoplay_clip": "Autoplay clips",
+      "auto_play": "Automatically play media",
       "auto_unmute": "Automatically unmute media",
       "draggable": "Event Viewer can be dragged/swiped",
       "lazy_load": "Event Viewer media is lazily loaded in carousel",

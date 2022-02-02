@@ -10,7 +10,7 @@ import {
   CONF_CAMERAS_ARRAY_WEBRTC_ENTITY,
   CONF_CAMERAS_ARRAY_WEBRTC_URL,
   CONF_CAMERAS_ARRAY_ZONE,
-  CONF_EVENT_VIEWER_AUTOPLAY_CLIP,
+  CONF_EVENT_VIEWER_AUTO_PLAY,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_IMAGE_SRC,
@@ -278,7 +278,7 @@ const UPGRADES = [
   upgradeMoveTo('live_provider', 'live.provider'),
   upgradeMoveTo('live_preload', CONF_LIVE_PRELOAD),
   upgradeMoveTo('webrtc', 'live.webrtc'),
-  upgradeMoveTo('autoplay_clip', CONF_EVENT_VIEWER_AUTOPLAY_CLIP),
+  upgradeMoveTo('autoplay_clip', "event_viewer.autoplay_clip"),
   upgradeMoveTo('controls.nextprev', CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE),
   upgradeMoveTo('controls.nextprev_size', CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE),
   upgradeMoveTo('menu_mode', CONF_MENU_MODE),
@@ -293,4 +293,5 @@ const UPGRADES = [
   upgradeToMultipleCameras(),
   updateMenuConditionToMenuOverride(),
   upgradeMoveTo('view.timeout', CONF_VIEW_TIMEOUT_SECONDS, toNumberOrIgnore),
+  upgradeMoveTo('event_viewer.autoplay_clip', CONF_EVENT_VIEWER_AUTO_PLAY),
 ];

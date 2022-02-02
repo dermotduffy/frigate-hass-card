@@ -604,7 +604,7 @@ export type MenuConfig = z.infer<typeof menuConfigSchema>;
  * Event viewer configuration section (clip, snapshot).
  */
 const viewerConfigDefault = {
-  autoplay_clip: true,
+  auto_play: true,
   auto_unmute: false,
   lazy_load: true,
   draggable: true,
@@ -635,7 +635,7 @@ export type ViewerNextPreviousControlConfig = z.infer<
 
 const viewerConfigSchema = z
   .object({
-    autoplay_clip: z.boolean().default(viewerConfigDefault.autoplay_clip),
+    auto_play: z.boolean().default(viewerConfigDefault.auto_play),
     auto_unmute: z.boolean().default(viewerConfigDefault.auto_unmute),
     lazy_load: z.boolean().default(viewerConfigDefault.lazy_load),
     draggable: z.boolean().default(viewerConfigDefault.draggable),
