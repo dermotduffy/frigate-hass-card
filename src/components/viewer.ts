@@ -270,7 +270,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
    * Play the media on the selected slide.
    */
   protected _autoPlayHandler(): void {
-    if (this.viewerConfig?.autoplay_clip) {
+    if (this.viewerConfig?.auto_play) {
       super._autoPlayHandler();
     }
   }
@@ -330,7 +330,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
         ? [
             AutoMediaPlugin({
               playerSelector: 'frigate-card-ha-hls-player',
-              autoPlayWhenVisible: !!this.viewerConfig?.autoplay_clip,
+              autoPlayWhenVisible: !!this.viewerConfig?.auto_play,
               autoUnmuteWhenVisible: !!this.viewerConfig?.auto_unmute,
             }),
           ]

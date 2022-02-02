@@ -28,7 +28,7 @@ import {
   CONF_DIMENSIONS_ASPECT_RATIO,
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
   CONF_EVENT_GALLERY_MIN_COLUMNS,
-  CONF_EVENT_VIEWER_AUTOPLAY_CLIP,
+  CONF_EVENT_VIEWER_AUTO_PLAY,
   CONF_EVENT_VIEWER_AUTO_UNMUTE,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
@@ -804,8 +804,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.event_viewer.show
           ? html` <div class="values">
               ${this._renderSwitch(
-                CONF_EVENT_VIEWER_AUTOPLAY_CLIP,
-                defaults.event_viewer.autoplay_clip,
+                CONF_EVENT_VIEWER_AUTO_PLAY,
+                defaults.event_viewer.auto_play,
               )}
               ${this._renderSwitch(
                 CONF_EVENT_VIEWER_AUTO_UNMUTE,
