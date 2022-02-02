@@ -34,6 +34,20 @@ customElements.whenDefined('ha-hls-player').then(() => {
       this._videoRef.value?.pause();
     }
 
+    /**
+     * Mute the video.
+     */
+    public mute(): void {
+      this.muted = true;
+    }
+
+    /**
+     * Unmute the video.
+     */
+    public unmute(): void {
+      this.muted = false;
+    }
+
     // =====================================================================================
     // Minor modifications from:
     // - https://github.com/home-assistant/frontend/blob/dev/src/components/ha-hls-player.ts
@@ -42,7 +56,6 @@ customElements.whenDefined('ha-hls-player').then(() => {
       return html`
         <video
           ${ref(this._videoRef)}
-          ?autoplay=${this.autoPlay}
           .muted=${this.muted}
           ?playsinline=${this.playsInline}
           ?controls=${this.controls}

@@ -3,7 +3,10 @@ import { EmblaCarouselType } from 'embla-carousel';
 import { createRef, Ref } from 'lit/directives/ref';
 import { customElement } from 'lit/decorators.js';
 
+import { AutoMediaPluginType } from './embla-plugins/automedia.js';
 import { FrigateCardCarousel } from './carousel.js';
+import { FrigateCardNextPreviousControl } from './next-prev-control.js';
+import { FrigateCardTitleControl } from './title-control.js';
 import type { MediaShowInfo } from '../types.js';
 import {
   dispatchExistingMediaShowInfoAsEvent,
@@ -13,10 +16,6 @@ import {
 import './next-prev-control.js';
 
 import mediaCarouselStyle from '../scss/media-carousel.scss';
-
-import { FrigateCardNextPreviousControl } from './next-prev-control.js';
-import { FrigateCardTitleControl } from './title-control.js';
-import { AutoMediaPluginType } from './embla-plugins/automedia.js';
 
 const getEmptyImageSrc = (width: number, height: number) =>
   `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"%3E%3C/svg%3E`;
@@ -30,12 +29,21 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   protected _previousControlRef: Ref<FrigateCardNextPreviousControl> = createRef();
   protected _titleControlRef: Ref<FrigateCardTitleControl> = createRef();
   protected _titleTimerID: number | null = null;
+
   /**
    * Play the media on the selected slide. May be overridden to control when
    * autoplay should happen.
    */
-  protected _autoplayHandler(): void {
-    (this._plugins['MediaAutoPlayPause'] as AutoMediaPluginType | undefined)?.play();
+  protected _autoPlayHandler(): void {
+    (this._plugins['AutoMediaPlugin'] as AutoMediaPluginType | undefined)?.play();
+  }
+
+  /**
+   * Unmute the media on the selected slide. May be overridden to control when
+   * autoplay should happen.
+   */
+   protected _autoUnmuteHandler(): void {
+    (this._plugins['AutoMediaPlugin'] as AutoMediaPluginType | undefined)?.unmute();
   }
 
   /**
@@ -69,7 +77,8 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
    */
   connectedCallback(): void {
     super.connectedCallback();
-    this.addEventListener('frigate-card:media-show', this._autoplayHandler);
+    this.addEventListener('frigate-card:media-show', this._autoPlayHandler);
+    this.addEventListener('frigate-card:media-show', this._autoUnmuteHandler);
     this.addEventListener('frigate-card:media-show', this._adaptiveHeightHandler);
     this.addEventListener('frigate-card:media-show', this._titleHandler);
   }
@@ -79,7 +88,8 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
    */
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    this.removeEventListener('frigate-card:media-show', this._autoplayHandler);
+    this.removeEventListener('frigate-card:media-show', this._autoPlayHandler);
+    this.removeEventListener('frigate-card:media-show', this._autoUnmuteHandler);
     this.removeEventListener('frigate-card:media-show', this._adaptiveHeightHandler);
     this.removeEventListener('frigate-card:media-show', this._titleHandler);
   }
@@ -128,15 +138,15 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
       if (!this._carousel) {
         return;
       }
-      const slides = this._carousel.slideNodes();
-      const heights = this._carousel.slidesInView(true).map((index) => {
-        return slides[index].getBoundingClientRect().height;
-      });
-      const targetHeight = Math.max(...heights);
-      if (targetHeight > 0) {
-        this._carousel.containerNode().style.maxHeight = `${targetHeight}px`;
-      } else {
-        this._carousel.containerNode().style.removeProperty('max-height');
+      const slide = this._carousel?.selectedScrollSnap()
+      if (slide !== undefined) {
+        const slides = this._carousel.slideNodes();
+        const height = slides[slide].getBoundingClientRect().height;
+        if (height > 0) {
+          this._carousel.containerNode().style.maxHeight = `${height}px`;
+        } else {
+          this._carousel.containerNode().style.removeProperty('max-height');
+        }
       }
     };
 
@@ -195,11 +205,10 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
       return;
     }
 
-    this._carousel.slidesInView(true).forEach((slideIndex) => {
-      if (slideIndex in this._mediaShowInfo) {
-        dispatchExistingMediaShowInfoAsEvent(this, this._mediaShowInfo[slideIndex]);
-      }
-    });
+    const slideIndex = this._carousel.selectedScrollSnap();
+    if (slideIndex in this._mediaShowInfo) {
+      dispatchExistingMediaShowInfoAsEvent(this, this._mediaShowInfo[slideIndex]);
+    }
   }
 
   /**
@@ -232,7 +241,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     // rejected upstream (empty 1x1 images will be rejected here).
     if (mediaShowInfo && isValidMediaShowInfo(mediaShowInfo)) {
       this._mediaShowInfo[slideIndex] = mediaShowInfo;
-      if (this._carousel && this._carousel?.slidesInView(true).includes(slideIndex)) {
+      if (this._carousel && this._carousel?.selectedScrollSnap() == slideIndex) {
         dispatchExistingMediaShowInfoAsEvent(this, mediaShowInfo);
       }
 

@@ -15,6 +15,7 @@ import {
   MediaShowInfo,
   WebRTCConfig,
   FrigateCardError,
+  FrigateCardMediaPlayer,
   LiveOverrides,
   LiveProvider,
   frigateCardConfigDefaults,
@@ -27,7 +28,7 @@ import { Task } from '@lit-labs/task';
 import { customElement, property, state } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
 
-import { AutoMediaPlugin } from './embla-plugins/automedia.js';
+import { AutoMediaPlugin, AutoMediaPluginType } from './embla-plugins/automedia.js';
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import { ConditionState, getOverriddenConfig } from '../card-condition.js';
 import { FrigateCardMediaCarousel } from './media-carousel.js';
@@ -105,7 +106,7 @@ export class FrigateCardLive extends LitElement {
   protected _mediaShowHandler(e: CustomEvent<MediaShowInfo>): void {
     this._savedMediaShowInfo = e.detail;
     if (this._preloaded) {
-      // If live is being pre-loaded, don't let the event propogate upwards yet
+      // If live is being pre-loaded, don't let the event propagate upwards yet
       // as the media is not really being shown.
       e.stopPropagation();
     }
@@ -251,14 +252,15 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
    */
   updated(changedProperties: PropertyValues): void {
     if (
-      changedProperties.has('cameras') ||
-      changedProperties.has('liveConfig') ||
-      changedProperties.has('preloaded')
+      this._carousel &&
+      (changedProperties.has('cameras') || changedProperties.has('liveConfig'))
     ) {
       // All of these properties may fundamentally change the contents/size of
       // the DOM, and the carousel should be reset when they change.
       this._destroyCarousel();
     }
+
+    super.updated(changedProperties);
 
     if (changedProperties.has('view')) {
       const oldView = changedProperties.get('view') as View | undefined;
@@ -275,7 +277,22 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       }
     }
 
-    super.updated(changedProperties);
+    if (changedProperties.has('preloaded')) {
+      const automedia = this._plugins['AutoMediaPlugin'] as
+        | AutoMediaPluginType
+        | undefined;
+      if (automedia) {
+        // If this has changed to preloaded then pause & mute, otherwise play
+        // and potentially unmute (depending on configuration).
+        if (this.preloaded) {
+          automedia.pause();
+          automedia.mute();
+        } else {
+          automedia.play();
+          this._autoUnmuteHandler();
+        }
+      }
+    }
   }
 
   /**
@@ -310,8 +327,18 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       }),
       AutoMediaPlugin({
         playerSelector: 'frigate-card-live-provider',
+        autoUnmuteWhenVisible: !!this.liveConfig?.auto_unmute,
       }),
     ];
+  }
+
+  /**
+   * Unmute the media on the selected slide.
+   */
+  protected _autoUnmuteHandler(): void {
+    if (this.liveConfig?.auto_unmute) {
+      super._autoUnmuteHandler();
+    }
   }
 
   /**
@@ -519,9 +546,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       <frigate-card-title-control
         ${ref(this._titleControlRef)}
         .config=${config.controls.title}
-        .text="${title 
-          ? `${localize('common.live')}: ${title}`
-          : ''}"
+        .text="${title ? `${localize('common.live')}: ${title}` : ''}"
         .fitInto=${this as HTMLElement}
       >
       </frigate-card-title-control>
@@ -549,9 +574,7 @@ export class FrigateCardLiveProvider extends LitElement {
   @property({ attribute: false })
   public label = '';
 
-  protected _providerRef: Ref<
-    FrigateCardLiveFrigate | FrigateCardLiveJSMPEG | FrigateCardLiveWebRTC
-  > = createRef();
+  protected _providerRef: Ref<Element & FrigateCardMediaPlayer> = createRef();
 
   /**
    * Play the video.
@@ -565,6 +588,20 @@ export class FrigateCardLiveProvider extends LitElement {
    */
   public pause(): void {
     this._providerRef.value?.pause();
+  }
+
+  /**
+   * Mute the video.
+   */
+  public mute(): void {
+    this._providerRef.value?.mute();
+  }
+
+  /**
+   * Unmute the video.
+   */
+  public unmute(): void {
+    this._providerRef.value?.unmute();
   }
 
   protected _getResolvedProvider(): LiveProvider {
@@ -650,6 +687,20 @@ export class FrigateCardLiveFrigate extends LitElement {
   }
 
   /**
+   * Mute the video.
+   */
+  public mute(): void {
+    this._playerRef.value?.mute();
+  }
+
+  /**
+   * Unmute the video.
+   */
+  public unmute(): void {
+    this._playerRef.value?.unmute();
+  }
+
+  /**
    * Master render method.
    * @returns A rendered template.
    */
@@ -716,6 +767,26 @@ export class FrigateCardLiveWebRTC extends LitElement {
    */
   public pause(): void {
     this._getPlayer()?.pause();
+  }
+
+  /**
+   * Mute the video.
+   */
+  public mute(): void {
+    const player = this._getPlayer();
+    if (player) {
+      player.muted = true;
+    }
+  }
+
+  /**
+   * Unmute the video.
+   */
+  public unmute(): void {
+    const player = this._getPlayer();
+    if (player) {
+      player.muted = false;
+    }
   }
 
   /**
@@ -846,6 +917,28 @@ export class FrigateCardLiveJSMPEG extends LitElement {
    */
   public pause(): void {
     this._jsmpegVideoPlayer?.stop();
+  }
+
+  /**
+   * Mute the video (included for completeness, JSMPEG live disables audio as
+   * Frigate does not encode it).
+   */
+  public mute(): void {
+    const player = this._jsmpegVideoPlayer?.player;
+    if (player) {
+      player.volume = 0;
+    }
+  }
+
+  /**
+   * Unmute the video (included for completeness, JSMPEG live disables audio as
+   * Frigate does not encode it).
+   */
+  public unmute(): void {
+    const player = this._jsmpegVideoPlayer?.player;
+    if (player) {
+      player.volume = 1;
+    }
   }
 
   /**
