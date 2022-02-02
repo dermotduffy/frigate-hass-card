@@ -505,7 +505,6 @@ export type JSMPEGConfig = z.infer<typeof jsmpegConfigSchema>;
 
 const liveOverridableConfigSchema = z
   .object({
-    auto_unmute: z.boolean().default(liveConfigDefault.auto_unmute),
     webrtc: webrtcConfigSchema,
     jsmpeg: jsmpegConfigSchema,
     controls: z
@@ -552,6 +551,7 @@ const liveOverridableConfigSchema = z
 const liveConfigSchema = liveOverridableConfigSchema
   .extend({
     // Non-overrideable parameters.
+    auto_unmute: z.boolean().default(liveConfigDefault.auto_unmute),
     preload: z.boolean().default(liveConfigDefault.preload),
     lazy_load: z.boolean().default(liveConfigDefault.lazy_load),
     lazy_unload: z.boolean().default(liveConfigDefault.lazy_unload),
@@ -605,7 +605,7 @@ export type MenuConfig = z.infer<typeof menuConfigSchema>;
  */
 const viewerConfigDefault = {
   autoplay_clip: true,
-  auto_unmute: true,
+  auto_unmute: false,
   lazy_load: true,
   draggable: true,
   controls: {
