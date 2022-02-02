@@ -54,6 +54,7 @@
     },
     "event_viewer": {
       "autoplay_clip": "Autoplay clips",
+      "auto_unmute": "Automatically unmute media",
       "draggable": "Event Viewer can be dragged/swiped",
       "lazy_load": "Event Viewer media is lazily loaded in carousel",
       "controls": {
@@ -93,6 +94,7 @@
       "draggable": "Live cameras view can be dragged/swiped",
       "lazy_load": "Live cameras are lazily loaded",
       "lazy_unload": "Live cameras are lazily unloaded",
+      "auto_unmute": "Automatically unmute live cameras",
       "controls": {
         "next_previous": {
           "style": "Live view next & previous control style",

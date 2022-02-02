@@ -3,15 +3,20 @@ import { FrigateCardMediaPlayer } from '../../types.js';
 
 export type AutoMediaPluginOptionsType = {
   playerSelector: string;
-  autoplayWhenVisible?: boolean;
+  autoPlayWhenVisible?: boolean;
+  autoUnmuteWhenVisible?: boolean;
 };
 
 export const defaultOptions: Partial<AutoMediaPluginOptionsType> = {
-  autoplayWhenVisible: true,
+  autoPlayWhenVisible: true,
+  autoUnmuteWhenVisible: true,
 };
 
 export type AutoMediaPluginType = EmblaPluginType<AutoMediaPluginOptionsType> & {
   play: () => void;
+  pause: () => void;
+  mute: () => void;
+  unmute: () => void;
 }
 
 /**
@@ -35,9 +40,12 @@ export function AutoMediaPlugin(
     slides = carousel.slideNodes();
 
     // Frigate card media autoplays when the media loads not necessarily when the
-    // slide is selected, so only pause based on carousel events.
-    carousel.on('destroy', pauseAllHandler);
+    // slide is selected, so only pause (and not play/unmute) based on carousel
+    // events.
+    carousel.on('destroy', pause);
     carousel.on('select', pausePrevious);
+    carousel.on('destroy', mute);
+    carousel.on('select', mutePrevious);
 
     document.addEventListener('visibilitychange', visibilityHandler);
   }
@@ -46,8 +54,10 @@ export function AutoMediaPlugin(
    * Destroy the plugin.
    */
   function destroy(): void {
-    carousel.off('destroy', pauseAllHandler);
+    carousel.off('destroy', pause);
     carousel.off('select', pausePrevious);
+    carousel.off('destroy', mute);
+    carousel.off('select', mutePrevious);
 
     document.removeEventListener('visibilitychange', visibilityHandler);
   }
@@ -58,8 +68,14 @@ export function AutoMediaPlugin(
    function visibilityHandler(): void {
     if (document.visibilityState == 'hidden') {
       pause();
-    } else if (document.visibilityState == 'visible' && options.autoplayWhenVisible) {
-      play();
+      mute();
+    } else if (document.visibilityState == 'visible') {
+      if (options.autoPlayWhenVisible) {
+        play();
+      } 
+      if (options.autoUnmuteWhenVisible) {
+        unmute();
+      }
     }
   }
 
@@ -73,31 +89,45 @@ export function AutoMediaPlugin(
   }
 
   /**
-   * Pause all slides.
-   */
-  function pauseAllHandler(): void {
-    slides.forEach((slide) => getPlayer(slide)?.pause());
-  }
-
-  /**
-   * Autoplay the current slide.
+   * Play the current slide.
    */
   function play(): void {
     getPlayer(slides[carousel.selectedScrollSnap()])?.play();
   }
 
   /**
-   * Autopause the current slide.
+   * Pause the current slide.
    */
-   function pause(): void {
+  function pause(): void {
     getPlayer(slides[carousel.selectedScrollSnap()])?.pause();
   }
 
   /**
-   * Autopause the previous slide.
+   * Pause the previous slide.
    */
   function pausePrevious(): void {
     getPlayer(slides[carousel.previousScrollSnap()])?.pause();
+  }
+
+  /**
+   * Unmute the current slide.
+   */
+  function unmute(): void {
+    getPlayer(slides[carousel.selectedScrollSnap()])?.unmute();
+  }
+
+  /**
+   * Mute the current slide.
+   */
+  function mute(): void {
+    getPlayer(slides[carousel.selectedScrollSnap()])?.mute();
+  }
+
+  /**
+   * Mute the previous slide.
+   */
+   function mutePrevious(): void {
+    getPlayer(slides[carousel.previousScrollSnap()])?.mute();
   }
 
   const self: AutoMediaPluginType = {
@@ -106,6 +136,9 @@ export function AutoMediaPlugin(
     init,
     destroy,
     play,
+    pause,
+    mute,
+    unmute,
   };
   return self;
 }

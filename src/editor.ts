@@ -29,6 +29,7 @@ import {
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
   CONF_EVENT_GALLERY_MIN_COLUMNS,
   CONF_EVENT_VIEWER_AUTOPLAY_CLIP,
+  CONF_EVENT_VIEWER_AUTO_UNMUTE,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE,
@@ -39,6 +40,7 @@ import {
   CONF_EVENT_VIEWER_LAZY_LOAD,
   CONF_IMAGE_REFRESH_SECONDS,
   CONF_IMAGE_SRC,
+  CONF_LIVE_AUTO_UNMUTE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
@@ -240,8 +242,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   protected _titleModes = new Map([
     ['', ''],
     ['none', localize('config.event_viewer.controls.title.modes.none')],
-    ['popup-top-left', localize('config.event_viewer.controls.title.modes.popup-top-left')],
-    ['popup-top-right', localize('config.event_viewer.controls.title.modes.popup-top-right')],
+    [
+      'popup-top-left',
+      localize('config.event_viewer.controls.title.modes.popup-top-left'),
+    ],
+    [
+      'popup-top-right',
+      localize('config.event_viewer.controls.title.modes.popup-top-right'),
+    ],
     [
       'popup-bottom-left',
       localize('config.event_viewer.controls.title.modes.popup-bottom-left'),
@@ -757,6 +765,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderSwitch(CONF_LIVE_DRAGGABLE, defaults.live.draggable)}
                 ${this._renderSwitch(CONF_LIVE_LAZY_LOAD, defaults.live.lazy_load)}
                 ${this._renderSwitch(CONF_LIVE_LAZY_UNLOAD, defaults.live.lazy_unload)}
+                ${this._renderSwitch(CONF_LIVE_AUTO_UNMUTE, defaults.live.auto_unmute)}
                 ${this._renderDropdown(
                   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
                   this._liveNextPreviousControlStyles,
@@ -771,14 +780,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   this._thumbnailMedias,
                 )}
                 ${this._renderStringInput(CONF_LIVE_CONTROLS_THUMBNAILS_SIZE)}
-                ${this._renderDropdown(
-                CONF_LIVE_CONTROLS_TITLE_MODE,
-                this._titleModes,
-              )}
-              ${this._renderStringInput(
-                CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
-                'number',
-              )}
+                ${this._renderDropdown(CONF_LIVE_CONTROLS_TITLE_MODE, this._titleModes)}
+                ${this._renderStringInput(
+                  CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
+                  'number',
+                )}
               </div>
             `
           : ''}
@@ -800,6 +806,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderSwitch(
                 CONF_EVENT_VIEWER_AUTOPLAY_CLIP,
                 defaults.event_viewer.autoplay_clip,
+              )}
+              ${this._renderSwitch(
+                CONF_EVENT_VIEWER_AUTO_UNMUTE,
+                defaults.event_viewer.auto_unmute,
               )}
               ${this._renderSwitch(
                 CONF_EVENT_VIEWER_DRAGGABLE,

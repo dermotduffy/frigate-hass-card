@@ -267,12 +267,20 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   }
 
   /**
-   * Play the media on the selected slide. May be overridden to control when
-   * autoplay should happen.
+   * Play the media on the selected slide.
    */
-  protected _autoplayHandler(): void {
+  protected _autoPlayHandler(): void {
     if (this.viewerConfig?.autoplay_clip) {
-      super._autoplayHandler();
+      super._autoPlayHandler();
+    }
+  }
+
+  /**
+   * Unmute the media on the selected slide.
+   */
+   protected _autoUnmuteHandler(): void {
+    if (this.viewerConfig?.auto_unmute) {
+      super._autoUnmuteHandler();
     }
   }
 
@@ -322,7 +330,8 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
         ? [
             AutoMediaPlugin({
               playerSelector: 'frigate-card-ha-hls-player',
-              autoplayWhenVisible: !!this.viewerConfig?.autoplay_clip,
+              autoPlayWhenVisible: !!this.viewerConfig?.autoplay_clip,
+              autoUnmuteWhenVisible: !!this.viewerConfig?.auto_unmute,
             }),
           ]
         : []),

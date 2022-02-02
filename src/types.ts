@@ -455,6 +455,7 @@ export type TitleControlConfig = z.infer<typeof titleControlConfigSchema>;
  * Live view configuration section.
  */
 const liveConfigDefault = {
+  auto_unmute: false,
   preload: false,
   lazy_load: true,
   lazy_unload: false,
@@ -504,6 +505,7 @@ export type JSMPEGConfig = z.infer<typeof jsmpegConfigSchema>;
 
 const liveOverridableConfigSchema = z
   .object({
+    auto_unmute: z.boolean().default(liveConfigDefault.auto_unmute),
     webrtc: webrtcConfigSchema,
     jsmpeg: jsmpegConfigSchema,
     controls: z
@@ -603,6 +605,7 @@ export type MenuConfig = z.infer<typeof menuConfigSchema>;
  */
 const viewerConfigDefault = {
   autoplay_clip: true,
+  auto_unmute: true,
   lazy_load: true,
   draggable: true,
   controls: {
@@ -633,6 +636,7 @@ export type ViewerNextPreviousControlConfig = z.infer<
 const viewerConfigSchema = z
   .object({
     autoplay_clip: z.boolean().default(viewerConfigDefault.autoplay_clip),
+    auto_unmute: z.boolean().default(viewerConfigDefault.auto_unmute),
     lazy_load: z.boolean().default(viewerConfigDefault.lazy_load),
     draggable: z.boolean().default(viewerConfigDefault.draggable),
     controls: z
@@ -823,6 +827,8 @@ export interface StateParameters {
 export interface FrigateCardMediaPlayer {
   play(): void;
   pause(): void;
+  mute(): void;
+  unmute(): void;
 }
 
 /**

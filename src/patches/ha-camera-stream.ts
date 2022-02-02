@@ -57,6 +57,20 @@ customElements.whenDefined('ha-camera-stream').then(() => {
     }
 
     /**
+     * Mute the video.
+     */
+     public mute(): void {
+      this.muted = true;
+    }
+
+    /**
+     * Unmute the video.
+     */
+    public unmute(): void {
+      this.muted = false;
+    }
+
+    /**
      * Master render method.
      * @returns A rendered template.
      */
@@ -82,7 +96,6 @@ customElements.whenDefined('ha-camera-stream').then(() => {
           ? html`
               <frigate-card-ha-hls-player
                 ${ref(this._playerRef)}
-                autoplay
                 playsinline
                 .allowExoPlayer=${this.allowExoPlayer}
                 .muted=${this.muted}
