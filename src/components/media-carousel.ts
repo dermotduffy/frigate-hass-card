@@ -39,7 +39,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   }
 
   /**
-   * Play the media on the selected slide. May be overridden to control when
+   * Unmute the media on the selected slide. May be overridden to control when
    * autoplay should happen.
    */
    protected _autoUnmuteHandler(): void {
