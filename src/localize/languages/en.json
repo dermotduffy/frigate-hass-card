@@ -160,6 +160,9 @@
         "dynamic": "Aspect ratio adjusts to media",
         "static": "Static aspect ratio"
       }
+    },
+    "overrides": {
+      "info": "This card configuration has manually specified overrides configured which may override values shown in the visual editor, please consult the code editor to view/modify these overrides"
     }
   },
   "editor": {
@@ -186,7 +189,9 @@
     "move_up": "Move up",
     "move_down": "Move down",
     "add_new_camera": "Add new camera",
-    "camera": "Camera"
+    "camera": "Camera",
+    "overrides": "Overrides are active",
+    "overrides_secondary": "Dynamic configuration overrides detected"
   },
   "error": {
     "empty_response": "Received empty response from Home Assistant for request",
