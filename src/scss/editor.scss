@@ -1,8 +1,11 @@
 @use './button.scss';
 
 .option {
-  padding: 4px 0px;
+  padding: 4px 4px;
   cursor: pointer;
+}
+.option.option-overrides .title {
+  color: var(--warning-color);
 }
 .row {
   display: flex;
@@ -70,4 +73,7 @@ div.upgrade span {
 .cameras .controls ha-icon-button.button {
   --mdc-icon-button-size: 32px;
   --mdc-icon-size: calc(var(--mdc-icon-button-size) / 2);
+}
+span.info {
+  padding: 4px;
 }

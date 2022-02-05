@@ -155,6 +155,12 @@ const options: EditorOptions = {
     secondary: localize('editor.dimensions_secondary'),
     show: false,
   },
+  overrides: {
+    icon: 'file-replace',
+    name: localize('editor.overrides'),
+    secondary: localize('editor.overrides_secondary'),
+    show: false,
+  },
 };
 
 @customElement('frigate-card-editor')
@@ -302,7 +308,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
     return html`
       <div
-        class="option"
+        class="option option-${optionSetName}"
         @click=${this._toggleOptionHandler}
         .optionSetName=${optionSetName}
       >
@@ -364,6 +370,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     `;
   }
 
+  /**
+   * Render a number slider.
+   * @param configPath Configuration path of the variable.
+   * @param valueDefault The default value.
+   * @param icon The icon to use on the slider.
+   * @param min The minimum value.
+   * @param max The maximum value.
+   * @returns A rendered template.
+   */
   protected _renderSlider(
     configPath: string,
     valueDefault: number,
@@ -386,6 +401,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       .configValue=${configPath}
     >
     </ha-labeled-slider>`;
+  }
+
+  /**
+   * Render a simple text info box.
+   * @param info The string to display.
+   * @returns A rendered template.
+   */
+  protected _renderInfo(info: string): TemplateResult {
+    return html` <span class="info">${info}</span>`;
   }
 
   /**
@@ -856,6 +880,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderStringInput(CONF_DIMENSIONS_ASPECT_RATIO)}
             </div>`
           : ''}
+        ${this._config['overrides'] !== undefined
+          ? html` ${this._renderOptionSetHeader('overrides')}
+            ${options.overrides.show
+              ? html` <div class="values">
+                  ${this._renderInfo(localize('config.overrides.info'))}
+                </div>`
+              : ''}`
+          : html``}
       </div>
     `;
   }
