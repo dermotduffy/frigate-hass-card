@@ -2,11 +2,6 @@
   --video-max-height: none;
 }
 
-.embla__container {
-  // To support adaptive height animations.
-  transition: max-height 0.5s ease;
-}
-
 .embla__slide {
   flex: 0 0 100%;
 }
