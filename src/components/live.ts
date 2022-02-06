@@ -474,7 +474,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     const keys = Array.from(this.cameras.keys());
     const currentIndex = keys.indexOf(this.view.camera);
 
-    if (currentIndex < 0) {
+    if (currentIndex < 0 || this.cameras.size <= 1) {
       return [null, null];
     }
 
