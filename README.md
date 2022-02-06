@@ -300,7 +300,7 @@ event_viewer:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `auto_play` | `true` | :heavy_multiplication_x: | Whether or not to autoplay clips.|
-| `auto_unmute` | `false` | :heavy_multiplication_x: | Whether or not to automatically unmute clips.|
+| `auto_unmute` | `false` | :heavy_multiplication_x: | Whether or not to automatically unmute clips. Note that some browsers will not allow automated unmute until the user has interacted with the page in some way -- if the user has not then the browser may pause the media instead. |
 | `lazy_load` | `true` | :heavy_multiplication_x: | Whether or not to lazily load media in the event viewer carousel. Setting this will false will fetch all media immediately which may make the carousel experience smoother at a cost of (potentially) a substantial number of simultaneous media fetches on load. |
 | `draggable` | `true` | :heavy_multiplication_x: | Whether or not the event viewer carousel can be dragged left or right, via touch/swipe and mouse dragging. |
 | `controls` | | :heavy_multiplication_x: | Configuration for the event viewer. See below. |
