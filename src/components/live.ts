@@ -34,7 +34,10 @@ import { BrowseMediaUtil } from '../browse-media-util.js';
 import { ConditionState, getOverriddenConfig } from '../card-condition.js';
 import { FrigateCardMediaCarousel } from './media-carousel.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
-import { FrigateCardThumbnailCarousel, ThumbnailCarouselTap } from './thumbnail-carousel.js';
+import {
+  FrigateCardThumbnailCarousel,
+  ThumbnailCarouselTap,
+} from './thumbnail-carousel.js';
 import { Lazyload } from './embla-plugins/lazyload.js';
 import { View } from '../view.js';
 import { localize } from '../localize/localize.js';
@@ -174,10 +177,10 @@ export class FrigateCardLive extends LitElement {
     // up/down as the thumbnails disappear and re-appear. Instead, if there was
     // previously a thumbnail carousel rendered, use a filler that is the same
     // size until it is replaced with a real carousel (or empty, if no carousel
-    // is rendered for the next camera).    
+    // is rendered for the next camera).
     return html`${until(
       fetchThumbnailsThenRender(),
-      this._thumbnailCarousel 
+      this._thumbnailCarousel
         ? html` <div style="${styleMap(fillerStyle)}"></div>`
         : html``,
     )}`;
@@ -324,6 +327,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     return {
       startIndex: startIndex < 0 ? undefined : startIndex,
       draggable: this.liveConfig?.draggable,
+      loop: true,
     };
   }
 
@@ -474,14 +478,14 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       return [null, null];
     }
 
-    let prev: CameraConfig | null = null,
-      next: CameraConfig | null = null;
-    if (currentIndex > 0) {
-      prev = this.cameras.get(keys[currentIndex - 1]) ?? null;
-    }
-    if (currentIndex + 1 < this.cameras.size) {
-      next = this.cameras.get(keys[currentIndex + 1]) ?? null;
-    }
+    const prev =
+      this.cameras.get(
+        keys[currentIndex > 0 ? currentIndex - 1 : this.cameras.size - 1],
+      ) ?? null;
+    const next =
+      this.cameras.get(
+        keys[currentIndex + 1 < this.cameras.size ? currentIndex + 1 : 0],
+      ) ?? null;
     return [prev, next];
   }
 
