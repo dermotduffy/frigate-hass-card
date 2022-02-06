@@ -1204,10 +1204,10 @@ elements:
 
 ### Using `card-mod` to style the card
 
-Frigate card allows the use of
+This card allows the use of
 [card-mod](https://github.com/thomasloven/lovelace-card-mod) to style arbitrary
 card contents. `card-mod` can be complex to use and relies on the underlying
-"internal" DOM structure to style elements -- as such, while its use is possible
+internal DOM structure to style elements -- as such, while its use is possible
 it's not officially supported and no attempt is made to preserve backwards
 compatability of the internal DOM between any versions. It'll look good, but you're on your own!
 
