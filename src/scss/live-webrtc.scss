@@ -9,4 +9,7 @@ webrtc-camera ha-card {
   box-shadow: none;
   border-radius: 0px;
   background-color: black;
+
+  // To get the WebRTC player to line up correctly in Safari.
+  margin: 0px;
 }
