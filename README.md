@@ -1202,6 +1202,37 @@ elements:
 
 <a name="card-updates"></a>
 
+### Using `card-mod` to style the card
+
+Frigate card allows the use of
+[card-mod](https://github.com/thomasloven/lovelace-card-mod) to style arbitrary
+card contents. `card-mod` can be complex to use and relies on the underlying
+"internal" DOM structure to style elements -- as such, while its use is possible
+it's not officially supported and no attempt is made to preserve backwards
+compatability of the internal DOM between any versions. It'll look good, but you're on your own!
+
+<details>
+  <summary>Expand: Use card-mod to style a Picture elements label</summary>
+
+This example changes the color and removes the padding around a [Picture
+Elements state
+label](https://www.home-assistant.io/lovelace/picture-elements/#state-label).
+
+```yaml
+[...]
+card_mod:
+  style:
+    frigate-card-elements $:
+      hui-state-label-element $: |
+        div {
+          padding: 0px !important;
+          color: blue;
+        }
+```
+</details>
+
+<a name="card-updates"></a>
+
 ## Card Refreshes
 
 Four sets of flags govern when the card will automatically refresh in the

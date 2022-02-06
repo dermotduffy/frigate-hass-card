@@ -759,6 +759,9 @@ export const frigateCardConfigSchema = z.object({
   // Configuration overrides.
   overrides: overridesSchema,
 
+  // Support for card_mod (https://github.com/thomasloven/lovelace-card-mod).
+  card_mod: z.unknown(),
+
   // Stock lovelace card config.
   type: z.string(),
   test_gui: z.boolean().optional(),

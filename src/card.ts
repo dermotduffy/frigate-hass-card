@@ -130,11 +130,15 @@ export class FrigateCard extends LitElement {
   @property({ attribute: false })
   protected _hass?: HomeAssistant & ExtendedHomeAssistant;
 
+  // The main base configuration object. For most usecases use getConfig() to
+  // get the correct configuration (which will return overrides as appropriate).
+  // This variable must be called `_config` or `config` to be compatible with
+  // card-mod.
   @state()
-  public _baseConfig!: FrigateCardConfig;
+  protected _config!: FrigateCardConfig;
 
   @state()
-  public _overriddenConfig?: FrigateCardConfig;
+  protected _overriddenConfig?: FrigateCardConfig;
 
   @property({ attribute: false })
   protected _view?: View;
@@ -231,8 +235,8 @@ export class FrigateCard extends LitElement {
     };
 
     const overriddenConfig = getOverriddenConfig(
-      this._baseConfig,
-      this._baseConfig.overrides,
+      this._config,
+      this._config.overrides,
       this._conditionState,
     ) as FrigateCardConfig;
 
@@ -598,7 +602,7 @@ export class FrigateCard extends LitElement {
       getLovelace().setEditMode(true);
     }
 
-    this._baseConfig = config;
+    this._config = config;
     this._cameras = undefined;
     this._view = undefined;
 
@@ -610,7 +614,7 @@ export class FrigateCard extends LitElement {
    * @returns A FrigateCardConfig.
    */
   protected _getConfig(): FrigateCardConfig {
-    return this._overriddenConfig || this._baseConfig;
+    return this._overriddenConfig || this._config;
   }
 
   protected _changeView(args?: { view?: View; resetMessage?: boolean }): void {
@@ -1229,15 +1233,15 @@ export class FrigateCard extends LitElement {
         // Note: Subtle difference in condition below vs the other views in order
         // to always render the live view for live.preload mode.
 
-        // Note: <frigate-card-live> uses the baseConfig rather than the
-        // overriden config, as it does it's own overriding as part of the
-        // camera carousel.
+        // Note: <frigate-card-live> uses the underlying _config rather than the
+        // overriden config (via getConfig), as it does it's own overriding as
+        // part of the camera carousel.
         this._getConfig().live.preload || (!this._message && this._view.is('live'))
           ? html`
               <frigate-card-live
                 .hass=${this._hass}
                 .view=${this._view}
-                .liveConfig=${this._baseConfig.live}
+                .liveConfig=${this._config.live}
                 .conditionState=${this._conditionState}
                 .liveOverrides=${getOverridesByKey(this._getConfig().overrides, 'live')}
                 .cameras=${this._cameras}
