@@ -65,6 +65,7 @@ import './components/viewer.js';
 import './components/thumbnail-carousel.js';
 import './patches/ha-camera-stream.js';
 import './patches/ha-hls-player.js';
+import './patches/ha-web-rtc-player.ts';
 
 import cardStyle from './scss/card.scss';
 import { ResolvedMediaCache } from './resolved-media.js';

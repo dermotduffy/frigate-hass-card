@@ -32,6 +32,9 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       ? computeObjectId(stateObj.entity_id).replace(/_/g, ' ')
       : stateObj.attributes.friendly_name || '';
 
+  const STREAM_TYPE_HLS = 'hls';
+  const STREAM_TYPE_WEB_RTC = 'web_rtc';
+
   @customElement('frigate-card-ha-camera-stream')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   class FrigateCardHaCameraStream extends customElements.get('ha-camera-stream') {
@@ -45,7 +48,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
     /**
      * Play the video.
      */
-     public play(): void {
+    public play(): void {
       this._playerRef.value?.play();
     }
 
@@ -59,7 +62,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
     /**
      * Mute the video.
      */
-     public mute(): void {
+    public mute(): void {
       this.muted = true;
     }
 
@@ -79,33 +82,41 @@ customElements.whenDefined('ha-camera-stream').then(() => {
         return html``;
       }
 
-      return html`
-        ${this._shouldRenderMJPEG
-          ? html`
-              <img
-                @load=${(e) => {
-                  dispatchMediaShowEvent(this, e);
-                }}
-                .src=${typeof this._connected == 'undefined' || this._connected
-                  ? computeMJPEGStreamUrl(this.stateObj)
-                  : ''}
-                .alt=${`Preview of the ${computeStateName(this.stateObj)} camera.`}
-              />
-            `
-          : this._url
-          ? html`
-              <frigate-card-ha-hls-player
-                ${ref(this._playerRef)}
-                playsinline
-                .allowExoPlayer=${this.allowExoPlayer}
-                .muted=${this.muted}
-                .controls=${this.controls}
-                .hass=${this.hass}
-                .url=${this._url}
-              ></frigate-card-ha-hls-player>
-            `
-          : ''}
-      `;
+      if (this._shouldRenderMJPEG) {
+        return html`
+          <img
+            @load=${(e) => {
+              dispatchMediaShowEvent(this, e);
+            }}
+            .src=${typeof this._connected == 'undefined' || this._connected
+              ? computeMJPEGStreamUrl(this.stateObj)
+              : ''}
+            .alt=${`Preview of the ${computeStateName(this.stateObj)} camera.`}
+          />
+        `;
+      }
+      if (this.stateObj.attributes.frontend_stream_type === STREAM_TYPE_HLS) {
+        return this._url
+          ? html` <frigate-card-ha-hls-player
+              ${ref(this._playerRef)}
+              playsinline
+              .allowExoPlayer=${this.allowExoPlayer}
+              .muted=${this.muted}
+              .controls=${this.controls}
+              .hass=${this.hass}
+              .url=${this._url}
+            ></frigate-card-ha-hls-player>`
+          : html``;
+      }
+      if (this.stateObj.attributes.frontend_stream_type === STREAM_TYPE_WEB_RTC) {
+        return html`<frigate-card-ha-web-rtc-player
+          playsinline
+          .muted=${this.muted}
+          .controls=${this.controls}
+          .hass=${this.hass}
+          .entityid=${this.stateObj.entity_id}
+        ></frigate-card-ha-web-rtc-player>`;
+      }
     }
 
     static get styles(): CSSResultGroup {
@@ -115,7 +126,8 @@ customElements.whenDefined('ha-camera-stream').then(() => {
           :host {
             width: 100%;
             height: 100%;
-          }`
+          }
+        `,
       ];
     }
   }
