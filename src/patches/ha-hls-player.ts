@@ -12,7 +12,7 @@
 import { TemplateResult, css, html } from 'lit';
 import { Ref, createRef, ref } from 'lit/directives/ref';
 import { customElement } from 'lit/decorators.js';
-import { dispatchMediaShowEvent } from '../common.js';
+import { dispatchErrorMessageEvent, dispatchMediaShowEvent } from '../common.js';
 
 customElements.whenDefined('ha-hls-player').then(() => {
   @customElement('frigate-card-ha-hls-player')
@@ -53,9 +53,15 @@ customElements.whenDefined('ha-hls-player').then(() => {
     // - https://github.com/home-assistant/frontend/blob/dev/src/components/ha-hls-player.ts
     // =====================================================================================
     protected render(): TemplateResult {
+      if (this._error) {
+        // Use native Frigate card error handling, and attach the entityid to
+        // clarify which camera the error refers to.
+        return dispatchErrorMessageEvent(this, this._error);
+      }
       return html`
         <video
           ${ref(this._videoRef)}
+          ?autoplay=${this.autoPlay}
           .muted=${this.muted}
           ?playsinline=${this.playsInline}
           ?controls=${this.controls}

@@ -99,6 +99,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
         return this._url
           ? html` <frigate-card-ha-hls-player
               ${ref(this._playerRef)}
+              ?autoplay=${false}
               playsinline
               .allowExoPlayer=${this.allowExoPlayer}
               .muted=${this.muted}
@@ -110,6 +111,8 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       }
       if (this.stateObj.attributes.frontend_stream_type === STREAM_TYPE_WEB_RTC) {
         return html`<frigate-card-ha-web-rtc-player
+          ${ref(this._playerRef)}
+          ?autoplay=${false}
           playsinline
           .muted=${this.muted}
           .controls=${this.controls}

@@ -701,6 +701,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
           ? html`<frigate-card-ha-hls-player
               allow-exoplayer
               aria-label="${mediaToRender.title}"
+              ?autoplay=${false}
               controls
               muted
               playsinline
