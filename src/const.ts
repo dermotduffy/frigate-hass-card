@@ -37,6 +37,8 @@ export const CONF_EVENT_VIEWER_AUTO_PLAY = `${CONF_EVENT_VIEWER}.auto_play` as c
 export const CONF_EVENT_VIEWER_AUTO_UNMUTE = `${CONF_EVENT_VIEWER}.auto_unmute` as const;
 export const CONF_EVENT_VIEWER_DRAGGABLE = `${CONF_EVENT_VIEWER}.draggable` as const;
 export const CONF_EVENT_VIEWER_LAZY_LOAD = `${CONF_EVENT_VIEWER}.lazy_load` as const;
+export const CONF_EVENT_VIEWER_TRANSITION_EFFECT =
+  `${CONF_EVENT_VIEWER}.transition_effect` as const;
 export const CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE =
   `${CONF_EVENT_VIEWER}.controls.next_previous.style` as const;
 export const CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE =
@@ -70,6 +72,7 @@ export const CONF_LIVE_JSMPEG = `${CONF_LIVE}.jsmpeg` as const;
 export const CONF_LIVE_LAZY_LOAD = `${CONF_LIVE}.lazy_load` as const;
 export const CONF_LIVE_LAZY_UNLOAD = `${CONF_LIVE}.lazy_unload` as const;
 export const CONF_LIVE_PRELOAD = `${CONF_LIVE}.preload` as const;
+export const CONF_LIVE_TRANSITION_EFFECT = `${CONF_LIVE}.transition_effect` as const;
 export const CONF_LIVE_WEBRTC = `${CONF_LIVE}.webrtc` as const;
 export const CONF_LIVE_WEBRTC_ENTITY = `${CONF_LIVE_WEBRTC}.entity` as const;
 export const CONF_LIVE_WEBRTC_URL = `${CONF_LIVE_WEBRTC}.url` as const;

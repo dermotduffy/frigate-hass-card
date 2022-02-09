@@ -57,6 +57,11 @@
       "auto_unmute": "Automatically unmute media",
       "draggable": "Event Viewer can be dragged/swiped",
       "lazy_load": "Event Viewer media is lazily loaded in carousel",
+      "transition_effect": "Event Viewer transition effect",
+      "transition_effects": {
+        "none": "No transition",
+        "slide": "Slide transition"
+      },
       "controls": {
         "next_previous": {
           "style": "Event Viewer next & previous control style",
@@ -95,6 +100,7 @@
       "lazy_load": "Live cameras are lazily loaded",
       "lazy_unload": "Live cameras are lazily unloaded",
       "auto_unmute": "Automatically unmute live cameras",
+      "transition_effect": "Live camera transition effect",
       "controls": {
         "next_previous": {
           "style": "Live view next & previous control style",
