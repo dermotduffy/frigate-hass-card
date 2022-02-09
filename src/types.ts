@@ -437,6 +437,12 @@ const nextPreviousControlConfigSchema = z.object({
 export type NextPreviousControlConfig = z.infer<typeof nextPreviousControlConfigSchema>;
 
 /**
+ * Carousel transition effect configuration.
+ */
+const transitionEffectConfigSchema = z.enum(['none', 'slide']);
+export type TransitionEffect = z.infer<typeof transitionEffectConfigSchema>;
+
+/**
  * Title Control configuration section.
  */
 const titleControlConfigSchema = z.object({
@@ -460,6 +466,7 @@ const liveConfigDefault = {
   lazy_load: true,
   lazy_unload: false,
   draggable: true,
+  transition_effect: 'slide' as const,
   controls: {
     next_previous: {
       size: '48px',
@@ -556,6 +563,7 @@ const liveConfigSchema = liveOverridableConfigSchema
     lazy_load: z.boolean().default(liveConfigDefault.lazy_load),
     lazy_unload: z.boolean().default(liveConfigDefault.lazy_unload),
     draggable: z.boolean().default(liveConfigDefault.draggable),
+    transition_effect: transitionEffectConfigSchema.default(liveConfigDefault.transition_effect),
   })
   .default(liveConfigDefault);
 export type LiveConfig = z.infer<typeof liveConfigSchema>;
@@ -608,6 +616,7 @@ const viewerConfigDefault = {
   auto_unmute: false,
   lazy_load: true,
   draggable: true,
+  transition_effect: 'slide' as const,
   controls: {
     next_previous: {
       size: '48px',
@@ -639,6 +648,7 @@ const viewerConfigSchema = z
     auto_unmute: z.boolean().default(viewerConfigDefault.auto_unmute),
     lazy_load: z.boolean().default(viewerConfigDefault.lazy_load),
     draggable: z.boolean().default(viewerConfigDefault.draggable),
+    transition_effect: transitionEffectConfigSchema.default(viewerConfigDefault.transition_effect),
     controls: z
       .object({
         next_previous: viewerNextPreviousControlConfigSchema.default(

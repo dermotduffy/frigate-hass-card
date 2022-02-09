@@ -18,6 +18,7 @@ import {
   FrigateCardMediaPlayer,
   LiveOverrides,
   LiveProvider,
+  TransitionEffect,
   frigateCardConfigDefaults,
 } from '../types.js';
 import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
@@ -312,6 +313,14 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
         }
       }
     }
+  }
+
+  /**
+   * Get the transition effect to use.
+   * @returns An TransitionEffect object.
+   */
+  protected _getTransitionEffect(): TransitionEffect | undefined {
+    return this.liveConfig?.transition_effect;
   }
 
   /**

@@ -38,6 +38,7 @@ import {
   CONF_EVENT_VIEWER_CONTROLS_TITLE_MODE,
   CONF_EVENT_VIEWER_DRAGGABLE,
   CONF_EVENT_VIEWER_LAZY_LOAD,
+  CONF_EVENT_VIEWER_TRANSITION_EFFECT,
   CONF_IMAGE_REFRESH_SECONDS,
   CONF_IMAGE_SRC,
   CONF_LIVE_AUTO_UNMUTE,
@@ -52,6 +53,7 @@ import {
   CONF_LIVE_LAZY_LOAD,
   CONF_LIVE_LAZY_UNLOAD,
   CONF_LIVE_PRELOAD,
+  CONF_LIVE_TRANSITION_EFFECT,
   CONF_MENU_BUTTONS_CLIPS,
   CONF_MENU_BUTTONS_FRIGATE,
   CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD,
@@ -264,6 +266,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       'popup-bottom-right',
       localize('config.event_viewer.controls.title.modes.popup-bottom-right'),
     ],
+  ]);
+
+  protected _transitionEffects = new Map([
+    ['', ''],
+    ['none', localize('config.event_viewer.transition_effects.none')],
+    ['slide', localize('config.event_viewer.transition_effects.slide')],
   ]);
 
   public setConfig(config: RawFrigateCardConfig): void {
@@ -809,6 +817,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
                   'number',
                 )}
+                ${this._renderDropdown(
+                  CONF_LIVE_TRANSITION_EFFECT,
+                  this._transitionEffects,
+                )}
               </div>
             `
           : ''}
@@ -860,6 +872,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderStringInput(
                 CONF_EVENT_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
                 'number',
+              )}
+              ${this._renderDropdown(
+                CONF_EVENT_VIEWER_TRANSITION_EFFECT,
+                this._transitionEffects,
               )}
             </div>`
           : ''}

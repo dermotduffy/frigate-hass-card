@@ -22,6 +22,7 @@ import type {
   CameraConfig,
   ExtendedHomeAssistant,
   MediaShowInfo,
+  TransitionEffect,
   ViewerConfig,
 } from '../types.js';
 import { FrigateCardMediaCarousel, IMG_EMPTY } from './media-carousel.js';
@@ -300,6 +301,14 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       (key) => this._slideToChild[key] === childIndex,
     );
     return slideIndex !== undefined ? Number(slideIndex) : undefined;
+  }
+
+  /**
+   * Get the transition effect to use.
+   * @returns An TransitionEffect object.
+   */
+   protected _getTransitionEffect(): TransitionEffect | undefined {
+    return this.viewerConfig?.transition_effect;
   }
 
   /**

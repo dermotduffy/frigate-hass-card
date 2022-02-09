@@ -5,6 +5,7 @@ import EmblaCarousel, {
   EmblaPluginType,
 } from 'embla-carousel';
 
+import { TransitionEffect } from '../types';
 import { dispatchFrigateCardEvent } from '../common';
 
 import carouselStyle from '../scss/carousel.scss';
@@ -22,7 +23,7 @@ export class FrigateCardCarousel extends LitElement {
    * @param index Slide number.
    */
   carouselScrollTo(index: number): void {
-    this._carousel?.scrollTo(index);
+    this._carousel?.scrollTo(index, this._getTransitionEffect() === 'none');
   }
 
   /**
@@ -48,6 +49,14 @@ export class FrigateCardCarousel extends LitElement {
         }
       });
     }
+  }
+
+  /**
+   * Get the transition effect to use.
+   * @returns An TransitionEffect object.
+   */
+  protected _getTransitionEffect(): TransitionEffect | undefined {
+    return 'slide';
   }
 
   /**
