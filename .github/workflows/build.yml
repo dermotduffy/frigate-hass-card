@@ -15,7 +15,7 @@ jobs:
     name: Test build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2.4.0
       - name: Build
         run: |
           npm install
