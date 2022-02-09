@@ -1338,7 +1338,7 @@ Dragging works as expected for snapshots, or for the `frigate-jsmpeg` provider.
 
 ### `double_tap` does not work for [card-wide actions](#actions) on Android
 
-The Android video player swallows `double_tap` mouse interactions in order to
+The Android video player swallows `double_tap` interactions in order to
 rewind or fast-forward. Workarounds:
 
 * Use `hold` instead of `double_tap` for your card-wide action.
