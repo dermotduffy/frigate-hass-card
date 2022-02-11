@@ -7,9 +7,6 @@ import type {
 } from 'custom-card-helpers/dist/types.d.js';
 import { fireEvent } from 'custom-card-helpers';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || (navigator as any).msMaxTouchPoints > 0;
-
 interface ActionHandler extends HTMLElement {
   holdTime: number;
   bind(element: Element, options): void;
@@ -27,32 +24,13 @@ declare global {
 class ActionHandler extends HTMLElement implements ActionHandler {
   public holdTime = 400;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public ripple: any;
-
   protected timer?: number;
 
   protected held = false;
 
   private dblClickTimeout?: number;
 
-  constructor() {
-    super();
-    this.ripple = document.createElement('mwc-ripple');
-  }
-
   public connectedCallback(): void {
-    Object.assign(this.style, {
-      position: 'absolute',
-      width: isTouch ? '100px' : '50px',
-      height: isTouch ? '100px' : '50px',
-      transform: 'translate(-50%, -50%)',
-      pointerEvents: 'none',
-      zIndex: '999',
-    });
-
-    this.appendChild(this.ripple);
-    this.ripple.primary = true;
 
     [
       'touchcancel',
@@ -67,7 +45,6 @@ class ActionHandler extends HTMLElement implements ActionHandler {
         ev,
         () => {
           if (this.timer) {
-            this.stopAnimation();
             clearTimeout(this.timer);
             this.timer = undefined;
           }
@@ -98,22 +75,12 @@ class ActionHandler extends HTMLElement implements ActionHandler {
       return false;
     });
 
-    const start = (ev: Event): void => {
+    const start = (): void => {
       const options = element.actionHandlerOptions;
-      let x;
-      let y;
-      if ((ev as TouchEvent).touches) {
-        x = (ev as TouchEvent).touches[0].pageX;
-        y = (ev as TouchEvent).touches[0].pageY;
-      } else {
-        x = (ev as MouseEvent).pageX;
-        y = (ev as MouseEvent).pageY;
-      }
 
       if (options?.hasHold) {
         this.held = false;
         this.timer = window.setTimeout(() => {
-          this.startAnimation(x, y);
           this.held = true;
         }, this.holdTime);
       }
@@ -132,7 +99,6 @@ class ActionHandler extends HTMLElement implements ActionHandler {
       }
       if (options?.hasHold) {
         clearTimeout(this.timer);
-        this.stopAnimation();
         this.timer = undefined;
       }
 
@@ -174,23 +140,6 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     element.addEventListener('click', end);
 
     element.addEventListener('keyup', handleEnter);
-  }
-
-  private startAnimation(x: number, y: number): void {
-    Object.assign(this.style, {
-      left: `${x}px`,
-      top: `${y}px`,
-      display: null,
-    });
-    this.ripple.disabled = false;
-    this.ripple.active = true;
-    this.ripple.unbounded = true;
-  }
-
-  private stopAnimation(): void {
-    this.ripple.active = false;
-    this.ripple.disabled = true;
-    this.style.display = 'none';
   }
 }
 
