@@ -1,5 +1,10 @@
 import { HassEntity, MessageBase } from 'home-assistant-js-websocket';
-import { HomeAssistant, handleActionConfig, hasAction, stateIcon } from 'custom-card-helpers';
+import {
+  HomeAssistant,
+  handleActionConfig,
+  hasAction,
+  stateIcon,
+} from 'custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map';
 import { ZodSchema, z } from 'zod';
 import { isEqual } from 'lodash-es';
@@ -360,6 +365,23 @@ function computeStyle(state: HassEntity): StyleInfo {
 }
 
 /**
+ * Determine the string state of a given stateObj.
+ * From: https://github.com/home-assistant/frontend/blob/dev/src/common/entity/compute_active_state.ts
+ * @param stateObj The HassEntity object from `hass.states`.
+ * @returns A string state, e.g. 'on'.
+ */
+export const computeActiveState = (stateObj: HassEntity): string => {
+  const domain = stateObj.entity_id.split('.')[0];
+  let state = stateObj.state;
+
+  if (domain === 'climate') {
+    state = stateObj.attributes.hvac_action;
+  }
+
+  return state;
+};
+
+/**
  * Use Home Assistant state to refresh state parameters for an item to be rendered.
  * @param hass Home Assistant object.
  * @param params A StateParameters object to modify in place.
@@ -373,11 +395,7 @@ export function refreshDynamicStateParameters(
     return params;
   }
   const state = hass.states[params.entity];
-  if (
-    !!state &&
-    !!params.state_color &&
-    ['on', 'active', 'home'].includes(state.state)
-  ) {
+  if (!!state && !!params.state_color) {
     params.style = { ...computeStyle(state), ...params.style };
   }
   params.title = params.title ?? (state?.attributes?.friendly_name || params.entity);
@@ -545,9 +563,11 @@ export const frigateCardHandleActionConfig = (
  * @param config The action config in question.
  * @returns `true` if there's a real action defined, `false` otherwise.
  */
-export const frigateCardHasAction = (config?: ActionType | ActionType[] | undefined): boolean => {
+export const frigateCardHasAction = (
+  config?: ActionType | ActionType[] | undefined,
+): boolean => {
   if (Array.isArray(config)) {
     return !!config.find((item) => hasAction(item));
   }
   return hasAction(config);
-}
+};
