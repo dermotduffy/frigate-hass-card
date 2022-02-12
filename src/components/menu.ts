@@ -1,7 +1,8 @@
-import { HASSDomEvent, HomeAssistant } from 'custom-card-helpers';
+import { computeStateDomain, HASSDomEvent, HomeAssistant } from 'custom-card-helpers';
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { ifDefined } from 'lit/directives/if-defined';
 import { styleMap } from 'lit/directives/style-map.js';
 
 import { actionHandler } from '../action-handler-directive.js';
@@ -17,6 +18,7 @@ import type {
   StateParameters,
 } from '../types.js';
 import {
+  computeActiveState,
   convertActionToFrigateCardCustomAction,
   frigateCardHandleActionConfig,
   frigateCardHasAction,
@@ -218,10 +220,7 @@ export class FrigateCardMenu extends LitElement {
     const svgPath =
       stateParameters.icon === FRIGATE_BUTTON_MENU_ICON ? FRIGATE_ICON_FILLED : '';
 
-    if (button.type === 'custom:frigate-card-menu-state-icon') {
-      if (!this.hass) {
-        return;
-      }
+    if (this.hass && button.type === 'custom:frigate-card-menu-state-icon') {
       stateParameters = refreshDynamicStateParameters(this.hass, stateParameters);
     }
 
@@ -232,7 +231,28 @@ export class FrigateCardMenu extends LitElement {
       button: true,
     };
 
+    const stateObj = stateParameters.entity ? this.hass?.states[stateParameters.entity] : undefined;
+    const domain = stateObj ? computeStateDomain(stateObj) : undefined;
+
+    // =====================================================================================
+    // For `data-domain` and `data-state`, see: See
+    // https://github.com/home-assistant/frontend/blob/dev/src/components/entity/state-badge.ts#L54
+    // =====================================================================================
+    // Buttons are styled in a few ways (in order of precedence):
+    //
+    // - User provided style
+    // - Color/Brightness styling for the `light` domain (calculated in
+    //   `refreshDynamicStateParameters`)
+    // - Static styling based on domain (`data-domain`) and state
+    //   (`data-state`). This looks up a CSS style in `menu.scss`.
+
     return html` <ha-icon-button
+      data-domain=${ifDefined(
+        stateParameters.state_color || (domain === "light" && stateParameters.state_color !== false)
+          ? domain
+          : undefined
+      )}
+      data-state=${stateObj ? computeActiveState(stateObj) : ""}
       class="${classMap(classes)}"
       style="${styleMap(stateParameters.style || {})}"
       .actionHandler=${actionHandler({
