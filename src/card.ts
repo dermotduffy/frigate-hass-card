@@ -313,7 +313,11 @@ export class FrigateCard extends LitElement {
       });
     }
 
-    if (this._getConfig().menu.buttons.clips) {
+    const cameraConfig = this._getSelectedCameraConfig();
+
+    // Don't show `clips` button if there's no `camera_name` (e.g. non-Frigate
+    // cameras).
+    if (this._getConfig().menu.buttons.clips && cameraConfig?.camera_name) {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.view.views.clips'),
@@ -324,7 +328,9 @@ export class FrigateCard extends LitElement {
       });
     }
 
-    if (this._getConfig().menu.buttons.snapshots) {
+    // Don't show `snapshots` button if there's no `camera_name` (e.g. non-Frigate
+    // cameras).
+    if (this._getConfig().menu.buttons.snapshots && cameraConfig?.camera_name) {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.view.views.snapshots'),
@@ -358,12 +364,7 @@ export class FrigateCard extends LitElement {
       });
     }
 
-    const cameraConfig = this._getSelectedCameraConfig();
-    if (
-      this._getConfig().menu.buttons.frigate_ui &&
-      cameraConfig &&
-      cameraConfig.frigate_url
-    ) {
+    if (this._getConfig().menu.buttons.frigate_ui && cameraConfig?.frigate_url) {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.menu.buttons.frigate_ui'),
@@ -834,9 +835,10 @@ export class FrigateCard extends LitElement {
         if (this._cameras?.has(camera) && this._view) {
           this._changeView({
             view: new View({
-              view: this._getConfig().view.camera_select === 'current'
-                ? this._view.view
-                : this._getConfig().view.camera_select as FrigateCardView,
+              view:
+                this._getConfig().view.camera_select === 'current'
+                  ? this._view.view
+                  : (this._getConfig().view.camera_select as FrigateCardView),
               camera: camera,
             }),
           });
