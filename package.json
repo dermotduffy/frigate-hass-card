@@ -27,7 +27,7 @@
     "lit": "^2.0.2",
     "lodash-es": "^4.17.21",
     "quick-lru": "github:sindresorhus/quick-lru",
-    "screenfull": "^5.1.0",
+    "screenfull": "^6.0.1",
     "zod": "^3.11.6"
   },
   "devDependencies": {
