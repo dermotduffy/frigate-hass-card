@@ -477,13 +477,6 @@
   dependencies:
     tslib "^2.1.0"
 
-"@material/feature-targeting@^12.0.0":
-  version "12.0.0"
-  resolved "https://registry.yarnpkg.com/@material/feature-targeting/-/feature-targeting-12.0.0.tgz#ae3f6b04f7c5262ce991bfb3fc3226564b196686"
-  integrity sha512-BbdYzZmGg886X3gvKPxfM5etNwhmKR4PT33NRc7PTKivCHitre8zjgb7kKW1vRLV4YnB54sp9L7tr/QcbbbXGg==
-  dependencies:
-    tslib "^2.1.0"
-
 "@material/feature-targeting@^13.0.0":
   version "13.0.0"
   resolved "https://registry.yarnpkg.com/@material/feature-targeting/-/feature-targeting-13.0.0.tgz#7bc7840b40930b6831101a22882acdd0329591c0"
@@ -491,15 +484,15 @@
   dependencies:
     tslib "^2.1.0"
 
-"@material/image-list@^12.0.0":
-  version "12.0.0"
-  resolved "https://registry.yarnpkg.com/@material/image-list/-/image-list-12.0.0.tgz#4a949431a35c5096b48029f35bb48c8c05a1ae36"
-  integrity sha512-njtPGXP5GjpLsQsU+/BWRerkAGXEWrp39ioBGBHp+pD+JvCvxLQoRwsWWLPKLJtk5RrbI4U64d9UTbMHm/a1NA==
+"@material/image-list@^13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@material/image-list/-/image-list-13.0.0.tgz#8a1da68ebd53ff0123f071c49691ffde4c369fca"
+  integrity sha512-D78QKpK5JmO6zrbsSYt1YfRlkqzzduDTe6BstS0efUFS1CA11hrqwQFoMaR1L1dw2U3CQ/CP22bBMSZVV9aU6A==
   dependencies:
-    "@material/feature-targeting" "^12.0.0"
-    "@material/shape" "^12.0.0"
-    "@material/theme" "^12.0.0"
-    "@material/typography" "^12.0.0"
+    "@material/feature-targeting" "^13.0.0"
+    "@material/shape" "^13.0.0"
+    "@material/theme" "^13.0.0"
+    "@material/typography" "^13.0.0"
     tslib "^2.1.0"
 
 "@material/list@14.0.0-canary.261f2db59.0", "@material/list@=14.0.0-canary.261f2db59.0":
@@ -656,14 +649,6 @@
     "@material/theme" "14.0.0-canary.261f2db59.0"
     tslib "^2.1.0"
 
-"@material/rtl@^12.0.0":
-  version "12.0.0"
-  resolved "https://registry.yarnpkg.com/@material/rtl/-/rtl-12.0.0.tgz#f095701fe78306ab637d70ce0e45fd691486d765"
-  integrity sha512-JmFyyWr2GFa1ODSsq0jaImj6NprDpts3L3riyvsTQVnJDDKyJwYkyjFbssuIqB9wO3IfVPj5JyTKNoTLraW7dA==
-  dependencies:
-    "@material/theme" "^12.0.0"
-    tslib "^2.1.0"
-
 "@material/rtl@^13.0.0":
   version "13.0.0"
   resolved "https://registry.yarnpkg.com/@material/rtl/-/rtl-13.0.0.tgz#c8dbdc2b63d122450ff456572d08a9f5639704ab"
@@ -682,14 +667,14 @@
     "@material/theme" "14.0.0-canary.261f2db59.0"
     tslib "^2.1.0"
 
-"@material/shape@^12.0.0":
-  version "12.0.0"
-  resolved "https://registry.yarnpkg.com/@material/shape/-/shape-12.0.0.tgz#903cd4d38fc98f7c0435322261351f387e258850"
-  integrity sha512-0mvRUPq2esbyivJl3NMdYtHTFOV7EOU+Tob2Y6F2sQ+PJJYpONfEHRo8nakN7fDM3aNSuQUdhG3nbwJghAN1IA==
+"@material/shape@^13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@material/shape/-/shape-13.0.0.tgz#42751ceb4c709c87026f14340aed1831106fdfda"
+  integrity sha512-exk96+iCjzCujk3aSrvIMhmW773s1Tc0h+MbQKbt6Iv3nHJCyLSiRbxclCHXWHrVwG/9KZRkrt/g2qk7P3VRBg==
   dependencies:
-    "@material/feature-targeting" "^12.0.0"
-    "@material/rtl" "^12.0.0"
-    "@material/theme" "^12.0.0"
+    "@material/feature-targeting" "^13.0.0"
+    "@material/rtl" "^13.0.0"
+    "@material/theme" "^13.0.0"
     tslib "^2.1.0"
 
 "@material/theme@14.0.0-canary.261f2db59.0", "@material/theme@=14.0.0-canary.261f2db59.0":
@@ -698,14 +683,6 @@
   integrity sha512-bUqyFT0QF8Nxx02fekt3CXIfC9DEPOPdo2hjgdtvhrNP+vftbkI2tKZ5/uRUnVA+zqQAOyIl5z6FOMg4fyemCA==
   dependencies:
     "@material/feature-targeting" "14.0.0-canary.261f2db59.0"
-    tslib "^2.1.0"
-
-"@material/theme@^12.0.0":
-  version "12.0.0"
-  resolved "https://registry.yarnpkg.com/@material/theme/-/theme-12.0.0.tgz#51c11892fd8e6fa244d2b14a8432d14146f1cc68"
-  integrity sha512-E9gFLpOcwtJ2GiPg8S4w+9eaqFNgLO67Yyftcu1XgswAHBFiI7qAHTDYH21H4W88RKlf3sTNyHtzigbTenPUNg==
-  dependencies:
-    "@material/feature-targeting" "^12.0.0"
     tslib "^2.1.0"
 
 "@material/theme@^13.0.0":
@@ -735,13 +712,13 @@
     "@material/theme" "14.0.0-canary.261f2db59.0"
     tslib "^2.1.0"
 
-"@material/typography@^12.0.0":
-  version "12.0.0"
-  resolved "https://registry.yarnpkg.com/@material/typography/-/typography-12.0.0.tgz#9c14c82872e5fb02d485f387ca0b7aa310ad78da"
-  integrity sha512-NIAczsiUueV445+686qdVQC0QohIJDIOyVWbdNKnhkUmo23FcINLEcDMAtpvS0CJyqSHm8uWq1R585Wbx2kvdQ==
+"@material/typography@^13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@material/typography/-/typography-13.0.0.tgz#da40615bddea8c56496a89b3a6f8f71c1fccce96"
+  integrity sha512-UfaK4vT3LmGiiySf2RVIrf7fJZa6EJadFwo4YUMJx9bvUMRlBm1oI8Vo9fYpKdLfuSTeA+2BlgbwYVObj3laFw==
   dependencies:
-    "@material/feature-targeting" "^12.0.0"
-    "@material/theme" "^12.0.0"
+    "@material/feature-targeting" "^13.0.0"
+    "@material/theme" "^13.0.0"
     tslib "^2.1.0"
 
 "@nodelib/fs.scandir@2.1.5":
