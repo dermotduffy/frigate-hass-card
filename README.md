@@ -1336,6 +1336,15 @@ previous buttons may be used to navigate in these instances.
 
 Dragging works as expected for snapshots, or for the `frigate-jsmpeg` provider.
 
+### `double_tap` does not work for [card-wide actions](#actions) on Android
+
+The Android video player swallows `double_tap` interactions in order to
+rewind or fast-forward. Workarounds:
+
+* Use `hold` instead of `double_tap` for your card-wide action.
+* Use a [Frigate Card Element](#frigate-card-elements) or menu icon to trigger
+  the action instead.
+
 ### Console shows 'Offset is out of bounds' / 'Out of bounds memory access'
 
 This is an issue with the JSMPEG live provider and cameras with high-resolutions
