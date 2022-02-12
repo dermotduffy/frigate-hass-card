@@ -173,8 +173,8 @@ menu:
 | `frigate` | `true` | :white_check_mark: | Whether to show the `Frigate` menu button: brings the user to the default configured view (`view.default`), or collapses/expands the menu if the `menu.mode` is `hidden-*` . |
 | `cameras` | `true` | :white_check_mark: | Whether to show the camera selection submenu. Will only appear if multiple cameras are configured. |
 | `live` | `true` | :white_check_mark: | Whether to show the `live` view menu button: brings the user to the `live` view. See [views](#views) below.|
-| `clips` | `true` | :white_check_mark: | Whether to show the `clips` view menu button: brings the user to the `clips` view on tap and the most-recent `clip` view on hold. See [views](#views) below.|
-| `snapshots` | `true` | :white_check_mark: | Whether to show the `snapshots` view menu button: brings the user to the `clips` view on tap and the most-recent `snapshot` view on hold. See [views](#views) below.|
+| `clips` | `true` | :white_check_mark: | Whether to show the `clips` view menu button: brings the user to the `clips` view on tap and the most-recent `clip` view on hold. See [views](#views) below. This button will never be shown if the `camera_name` for the selected camera is not auto-detected/specified (e.g. non-Frigate cameras).|
+| `snapshots` | `true` | :white_check_mark: | Whether to show the `snapshots` view menu button: brings the user to the `clips` view on tap and the most-recent `snapshot` view on hold. See [views](#views) below. This button will never be shown if the `camera_name` for the selected camera is not auto-detected/specified (e.g. non-Frigate cameras).|
 | `image` | `false` | :white_check_mark: | Whether to show the `image` view menu button: brings the user to the static `image` view. See [views](#views) below.|
 | `download` | `true` | :white_check_mark: | Whether to show the `download` menu button: allow direct download of the media being displayed.|
 | `frigate_ui` | `true` | :white_check_mark: | Whether to show the `frigate_ui` menu button: brings the user to a context-appropriate page on the Frigate UI (e.g. the camera homepage). Will only appear if the `frigate.url` option is set.|
