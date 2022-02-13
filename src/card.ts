@@ -35,6 +35,7 @@ import type {
 
 import { CARD_VERSION, REPO_URL } from './const.js';
 import { FrigateCardElements } from './components/elements.js';
+import { FrigateCardImage } from './components/image.js';
 import { FRIGATE_BUTTON_MENU_ICON, FrigateCardMenu } from './components/menu.js';
 import { View } from './view.js';
 import {
@@ -153,6 +154,9 @@ export class FrigateCard extends LitElement {
   @query('frigate-card-elements')
   protected _elements?: FrigateCardElements;
 
+  @query('frigate-card-image')
+  protected _image?: FrigateCardImage;
+
   // user interaction timer ("screensaver" functionality, return to default
   // view after user interaction).
   protected _interactionTimerID: number | null = null;
@@ -181,8 +185,8 @@ export class FrigateCard extends LitElement {
   set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
     this._hass = hass;
 
-    // Manually set hass in the menu & elements. This is to allow these to
-    // update, without necessarily re-rendering the entire card (re-rendering
+    // Manually set hass in the menu, elements and image. This is to allow these
+    // to update, without necessarily re-rendering the entire card (re-rendering
     // interrupts clip playing).
     if (this._hass) {
       if (this._menu) {
@@ -190,6 +194,9 @@ export class FrigateCard extends LitElement {
       }
       if (this._elements) {
         this._elements.hass = this._hass;
+      }
+      if (this._image) {
+        this._image.hass = this._hass;
       }
     }
   }
@@ -1210,6 +1217,8 @@ export class FrigateCard extends LitElement {
         ? html` <frigate-card-image
             .imageConfig=${this._getConfig().image}
             .view=${this._view}
+            .hass=${this._hass}
+            .cameraConfig=${cameraConfig}
           >
           </frigate-card-image>`
         : ``}

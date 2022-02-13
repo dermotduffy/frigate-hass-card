@@ -11,7 +11,7 @@ import {
   CONF_EVENT_VIEWER_AUTO_PLAY,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
-  CONF_IMAGE_SRC,
+  CONF_IMAGE_URL,
   CONF_LIVE_PRELOAD,
   CONF_LIVE_WEBRTC_CARD,
   CONF_MENU,
@@ -317,7 +317,7 @@ const upgradeToMultipleCameras = (): ((obj: RawFrigateCardConfig) => boolean) =>
  * @param key A string key.
  * @returns A safe key.
  */
-const updateMenuConditionToMenuOverride = (): ((
+const upgradeMenuConditionToMenuOverride = (): ((
   obj: RawFrigateCardConfig,
 ) => boolean) => {
   return function (obj: RawFrigateCardConfig): boolean {
@@ -363,14 +363,14 @@ const UPGRADES = [
   upgradeMoveTo('menu_mode', CONF_MENU_MODE),
   upgradeMoveTo('menu_buttons', 'menu.buttons'),
   upgradeMoveTo('menu_button_size', CONF_MENU_BUTTON_SIZE),
-  upgradeMoveTo('image', CONF_IMAGE_SRC, isNotObject),
+  upgradeMoveTo('image', 'image.src', isNotObject),
 
   // v2.0.0 -> v2.1.0
   upgradeMoveTo('update_entities', CONF_VIEW_UPDATE_ENTITIES),
 
   // v2.1.0 -> v3.0.0-rc.1
   upgradeToMultipleCameras(),
-  updateMenuConditionToMenuOverride(),
+  upgradeMenuConditionToMenuOverride(),
   upgradeMoveTo('view.timeout', CONF_VIEW_TIMEOUT_SECONDS, toNumberOrIgnore),
   upgradeMoveTo('event_viewer.autoplay_clip', CONF_EVENT_VIEWER_AUTO_PLAY),
 
@@ -383,4 +383,5 @@ const UPGRADES = [
   ),
   upgradeArrayValue(CONF_CAMERAS, upgradeMoveTo('webrtc', 'webrtc_card')),
   upgradeMoveToWithOverrides('live.webrtc', CONF_LIVE_WEBRTC_CARD),
+  upgradeMoveToWithOverrides('image.src', CONF_IMAGE_URL),
 ];

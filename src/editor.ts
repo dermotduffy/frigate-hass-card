@@ -39,8 +39,9 @@ import {
   CONF_EVENT_VIEWER_DRAGGABLE,
   CONF_EVENT_VIEWER_LAZY_LOAD,
   CONF_EVENT_VIEWER_TRANSITION_EFFECT,
+  CONF_IMAGE_MODE,
   CONF_IMAGE_REFRESH_SECONDS,
-  CONF_IMAGE_SRC,
+  CONF_IMAGE_URL,
   CONF_LIVE_AUTO_UNMUTE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
@@ -272,6 +273,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     ['', ''],
     ['none', localize('config.event_viewer.transition_effects.none')],
     ['slide', localize('config.event_viewer.transition_effects.slide')],
+  ]);
+
+  protected _imageModes = new Map([
+    ['', ''],
+    ['camera', localize('config.image.modes.camera')],
+    ['screensaver', localize('config.image.modes.screensaver')],
+    ['url', localize('config.image.modes.url')],
   ]);
 
   public setConfig(config: RawFrigateCardConfig): void {
@@ -882,7 +890,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${this._renderOptionSetHeader('image')}
         ${options.image.show
           ? html` <div class="values">
-              ${this._renderStringInput(CONF_IMAGE_SRC)}
+              ${this._renderDropdown(
+                CONF_IMAGE_MODE,
+                this._imageModes,
+              )}
+              ${this._renderStringInput(CONF_IMAGE_URL)}
               ${this._renderStringInput(CONF_IMAGE_REFRESH_SECONDS, 'number')}
             </div>`
           : ''}
