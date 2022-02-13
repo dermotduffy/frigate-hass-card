@@ -7,14 +7,13 @@ import {
   CONF_CAMERAS_ARRAY_LABEL,
   CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
   CONF_CAMERAS_ARRAY_URL,
-  CONF_CAMERAS_ARRAY_WEBRTC_ENTITY,
-  CONF_CAMERAS_ARRAY_WEBRTC_URL,
   CONF_CAMERAS_ARRAY_ZONE,
   CONF_EVENT_VIEWER_AUTO_PLAY,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_IMAGE_SRC,
   CONF_LIVE_PRELOAD,
+  CONF_LIVE_WEBRTC_CARD,
   CONF_MENU,
   CONF_MENU_BUTTON_SIZE,
   CONF_MENU_MODE,
@@ -142,7 +141,7 @@ const isNotObject = function (value: unknown) {
  * @returns A number or undefined.
  */
 const toNumberOrIgnore = function (value: unknown) {
-  return isNaN(value as number) ? undefined : Number(value)
+  return isNaN(value as number) ? undefined : Number(value);
 };
 
 /**
@@ -199,6 +198,86 @@ const upgradeMoveTo = function (
 };
 
 /**
+ * Upgrade a property by changing it if it is present.
+ * @param path The property path.
+ * @param transform A callback that transforms the old value to the new value,
+ * if undefined is returned the property is removed.
+ * @returns `true` if the configuration was modified.
+ */
+const upgradeChangeIfPresent = function (
+  path: string,
+  transform: (valueIn: unknown) => unknown,
+): (obj: RawFrigateCardConfig) => boolean {
+  return function (obj: RawFrigateCardConfig): boolean {
+    const oldValue = getConfigValue(obj, path);
+    if (oldValue !== undefined) {
+      const newValue = transform(oldValue);
+      if (newValue === undefined) {
+        deleteConfigValue(obj, path);
+        return true;
+      } else if (newValue !== oldValue) {
+        setConfigValue(obj, path, newValue);
+        return true;
+      }
+    }
+    return false;
+  };
+};
+
+/**
+ * Upgrade by moving a property from one location to another, and moving a
+ * property specified in a top-level overrides object.
+ * @param oldPath The old property path.
+ * @param newPath The new property path.
+ * @param transform An optional transform for the value.
+ * @returns A function that returns `true` if the configuration was modified.
+ */
+const upgradeMoveToWithOverrides = function (
+  oldPath: string,
+  newPath: string,
+  transform?: (valueIn: unknown) => unknown,
+): (obj: RawFrigateCardConfig) => boolean {
+  return function (obj: RawFrigateCardConfig): boolean {
+    let modified = upgradeMoveTo(oldPath, newPath, transform)(obj);
+    modified =
+      upgradeArrayValue(
+        CONF_OVERRIDES,
+        upgradeMoveTo(oldPath, newPath, transform),
+        (obj) => obj.overrides as RawFrigateCardConfig | undefined,
+      )(obj) || modified;
+    return modified;
+  };
+};
+
+/**
+ * Given a path to an array, apply an upgrade to each object in the array.
+ * @param arrayPath The path to the array to upgrade.
+ * @param upgrade A function that applies an upgrade to an object.
+ * @param getObject A optional function that takes an item in the array and
+ * returns the object to modify within it.
+ * @returns A function that returns `true` if the configuration was modified.
+ */
+const upgradeArrayValue = function (
+  arrayPath: string,
+  upgrade: (obj: RawFrigateCardConfig) => boolean,
+  getObject?: (obj: RawFrigateCardConfig) => RawFrigateCardConfig | undefined,
+): (obj: RawFrigateCardConfig) => boolean {
+  return function (obj: RawFrigateCardConfig): boolean {
+    let modified = false;
+    const array = getConfigValue(obj, arrayPath);
+    if (Array.isArray(array)) {
+      array.forEach((item) => {
+        const object = getObject ? getObject(item) : item;
+        if (object && typeof object === 'object') {
+          modified = upgrade(object) || modified;
+        }
+      });
+    }
+    return modified;
+  };
+};
+
+/**
  * Upgrade from a singular camera model to multiple.
  * @param key A string key.
  * @returns A safe key.
@@ -220,8 +299,8 @@ const upgradeToMultipleCameras = (): ((obj: RawFrigateCardConfig) => boolean) =>
       'frigate.label': CONF_CAMERAS_ARRAY_LABEL,
       'frigate.url': CONF_CAMERAS_ARRAY_URL,
       'frigate.zone': CONF_CAMERAS_ARRAY_ZONE,
-      'live.webrtc.entity': CONF_CAMERAS_ARRAY_WEBRTC_ENTITY,
-      'live.webrtc.url': CONF_CAMERAS_ARRAY_WEBRTC_URL,
+      'live.webrtc.entity': `cameras.#.webrtc.entity`,
+      'live.webrtc.url': `cameras.#.webrtc.url`,
       'live.provider': CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
     };
     Object.keys(imports).forEach((key) => {
@@ -278,7 +357,7 @@ const UPGRADES = [
   upgradeMoveTo('live_provider', 'live.provider'),
   upgradeMoveTo('live_preload', CONF_LIVE_PRELOAD),
   upgradeMoveTo('webrtc', 'live.webrtc'),
-  upgradeMoveTo('autoplay_clip', "event_viewer.autoplay_clip"),
+  upgradeMoveTo('autoplay_clip', 'event_viewer.autoplay_clip'),
   upgradeMoveTo('controls.nextprev', CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE),
   upgradeMoveTo('controls.nextprev_size', CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE),
   upgradeMoveTo('menu_mode', CONF_MENU_MODE),
@@ -289,9 +368,17 @@ const UPGRADES = [
   // v2.0.0 -> v2.1.0
   upgradeMoveTo('update_entities', CONF_VIEW_UPDATE_ENTITIES),
 
-  // v2.1.0 -> v3.0.0
+  // v2.1.0 -> v3.0.0-rc.1
   upgradeToMultipleCameras(),
   updateMenuConditionToMenuOverride(),
   upgradeMoveTo('view.timeout', CONF_VIEW_TIMEOUT_SECONDS, toNumberOrIgnore),
   upgradeMoveTo('event_viewer.autoplay_clip', CONF_EVENT_VIEWER_AUTO_PLAY),
+
+  // v3.0.0-rc.1 -> v3.0.0-rc.2
+  upgradeArrayValue(
+    CONF_CAMERAS,
+    upgradeChangeIfPresent('live_provider', (val) => (val === 'frigate' ? 'ha' : val)),
+  ),
+  upgradeArrayValue(CONF_CAMERAS, upgradeMoveTo('webrtc', 'webrtc_card')),
+  upgradeMoveToWithOverrides('live.webrtc', CONF_LIVE_WEBRTC_CARD),
 ];

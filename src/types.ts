@@ -53,7 +53,7 @@ const FRIGATE_MENU_MODES = [
   'above',
   'below',
 ] as const;
-const LIVE_PROVIDERS = ['auto', 'frigate', 'frigate-jsmpeg', 'webrtc'] as const;
+const LIVE_PROVIDERS = ['auto', 'ha', 'frigate-jsmpeg', 'webrtc-card'] as const;
 export type LiveProvider = typeof LIVE_PROVIDERS[number];
 
 export class FrigateCardError extends Error {}
@@ -281,7 +281,7 @@ export const cameraConfigDefault = {
   client_id: 'frigate' as const,
   live_provider: 'auto' as const,
 };
-const webrtcCameraConfigSchema = z.object({
+const webrtcCardCameraConfigSchema = z.object({
   entity: z.string().optional(),
   url: z.string().optional(),
 });
@@ -306,7 +306,7 @@ const cameraConfigSchema = z
     id: z.string().optional(),
 
     // Camera identifiers for WebRTC.
-    webrtc: webrtcCameraConfigSchema.optional(),
+    webrtc_card: webrtcCardCameraConfigSchema.optional(),
   })
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigSchema>;
@@ -484,8 +484,8 @@ const liveConfigDefault = {
   },
 };
 
-const webrtcConfigSchema = webrtcCameraConfigSchema.passthrough().optional();
-export type WebRTCConfig = z.infer<typeof webrtcConfigSchema>;
+const webrtcCardConfigSchema = webrtcCardCameraConfigSchema.passthrough().optional();
+export type WebRTCCardConfig = z.infer<typeof webrtcCardConfigSchema>;
 
 const jsmpegConfigSchema = z
   .object({
@@ -512,7 +512,7 @@ export type JSMPEGConfig = z.infer<typeof jsmpegConfigSchema>;
 
 const liveOverridableConfigSchema = z
   .object({
-    webrtc: webrtcConfigSchema,
+    webrtc_card: webrtcCardConfigSchema,
     jsmpeg: jsmpegConfigSchema,
     controls: z
       .object({
