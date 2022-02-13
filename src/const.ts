@@ -76,8 +76,9 @@ export const CONF_LIVE_TRANSITION_EFFECT = `${CONF_LIVE}.transition_effect` as c
 export const CONF_LIVE_WEBRTC_CARD = `${CONF_LIVE}.webrtc_card` as const;
 
 export const CONF_IMAGE = 'image' as const;
+export const CONF_IMAGE_MODE = `${CONF_IMAGE}.mode` as const;
 export const CONF_IMAGE_REFRESH_SECONDS = `${CONF_IMAGE}.refresh_seconds` as const;
-export const CONF_IMAGE_SRC = `${CONF_IMAGE}.src` as const;
+export const CONF_IMAGE_URL = `${CONF_IMAGE}.url` as const;
 
 export const CONF_MENU = 'menu' as const;
 export const CONF_MENU_BUTTONS_FRIGATE = `${CONF_MENU}.buttons.frigate` as const;

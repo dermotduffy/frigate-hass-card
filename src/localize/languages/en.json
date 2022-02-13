@@ -127,7 +127,13 @@
       }
     },
     "image": {
-      "src": "Static image URL/data for image view",
+      "mode": "Image view mode",
+      "modes": {
+        "screensaver": "Embedded Frigate logo",
+        "url": "Arbitrary image specified by URL",
+        "camera": "Home Assistant camera snapshot of camera entity"
+      },
+      "url": "Static image URL for image view",
       "refresh_seconds": "Number of seconds after which to refresh (0=never)"
     },
     "menu": {

@@ -404,12 +404,19 @@ const viewConfigSchema = z
  * Image view configuration section.
  */
 
+export const IMAGE_MODES = [
+  'screensaver',
+  'camera',
+  'url',
+] as const;
 const imageConfigDefault = {
+  mode: 'url' as const,
   refresh_seconds: 0,
 };
 const imageConfigSchema = z
   .object({
-    src: z.string().optional(),
+    mode: z.enum(IMAGE_MODES).default(imageConfigDefault.mode),
+    url: z.string().optional(),
     refresh_seconds: z.number().min(0).default(imageConfigDefault.refresh_seconds),
   })
   .merge(actionsSchema)
