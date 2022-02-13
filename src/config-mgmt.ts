@@ -377,7 +377,9 @@ const UPGRADES = [
   // v3.0.0-rc.1 -> v3.0.0-rc.2
   upgradeArrayValue(
     CONF_CAMERAS,
-    upgradeChangeIfPresent('live_provider', (val) => (val === 'frigate' ? 'ha' : val)),
+    upgradeChangeIfPresent('live_provider', (val) =>
+      val === 'frigate' ? 'ha' : val === 'webrtc' ? 'webrtc-card' : val,
+    ),
   ),
   upgradeArrayValue(CONF_CAMERAS, upgradeMoveTo('webrtc', 'webrtc_card')),
   upgradeMoveToWithOverrides('live.webrtc', CONF_LIVE_WEBRTC_CARD),
