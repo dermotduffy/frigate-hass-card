@@ -22,13 +22,13 @@
       "live_provider": "Provedor de visualização ao vivo para esta câmera",
       "live_providers": {
         "auto": "Automatico",
-        "frigate": "Frigate",
+        "ha": "Home Assistant (ou seja HLS, LL-HLS, WebRTC nativo)",
         "frigate-jsmpeg": "Frigate JSMpeg",
-        "webrtc": "WebRTC"
+        "webrtc-card": "Cartão WebRTC (ou seja Cartão WebRTC da AlexxIT)"
       },
-      "webrtc": {
-        "entity": "Entidade de câmera WebRTC (não é uma câmera Frigate)",
-        "url": "URL de câmera WebRTC"
+      "webrtc_card": {
+        "entity": "Entidade de câmera de cartão WebRTC (não é uma câmera Frigate)",
+        "url": "URL de câmera de cartão WebRTC"
       },
       "zone": "Zona Frigate"
     },
@@ -127,7 +127,13 @@
       }
     },
     "image": {
-      "src": "URL/dados da imagem estática para visualização de imagem",
+      "mode": "Modo de visualização de imagem",
+      "modes": {
+        "screensaver": "Logo Frigate embutido",
+        "url": "Imagem arbitrária especificada por URL",
+        "camera": "Instantâneo da câmera do Home Assistant da entidade da câmera"
+      },
+      "url": "Imagem arbitrária especificada por URL",
       "refresh_seconds": "Número de segundos após o qual atualizar (0 = nunca)"
     },
     "menu": {
@@ -210,8 +216,8 @@
     "invalid_configuration": "Configuração inválida",
     "invalid_configuration_no_hint": "Nenhuma dica de local disponível (tipo incorreto ou ausente?)",
     "upgrade_available": "Uma atualização de configuração de cartão automatizada está disponível, visite o editor de cartão visual",
-    "webrtc_reported_error": "O componente WebRTC relatou um erro",
-    "webrtc_waiting": "Aguardando o carregamento do cartão WebRTC ...",
+    "webrtc_card_reported_error": "O componente WebRTC relatou um erro",
+    "webrtc_card_waiting": "Aguardando o carregamento do cartão WebRTC ...",
     "no_cameras": "Nenhuma câmera válida encontrada, você deve configurar pelo menos uma entrada de câmera",
     "no_camera_id": "Não foi possível determinar o ID da câmera para a câmera a seguir, pode ser necessário definir o parâmetro 'id' manualmente",
     "duplicate_camera_id": "Duplique o ID da câmera Frigate para a câmera a seguir, use o parâmetro 'id' para identificar exclusivamente as câmeras",
