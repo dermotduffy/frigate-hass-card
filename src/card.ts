@@ -429,7 +429,7 @@ export class FrigateCard extends LitElement {
       }
 
       const id =
-        config.id || config.camera_entity || config.webrtc?.entity || config.camera_name;
+        config.id || config.camera_entity || config.webrtc_card?.entity || config.camera_name;
 
       if (!id) {
         this._setMessageAndUpdate({

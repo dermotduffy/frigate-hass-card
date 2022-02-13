@@ -13,7 +13,7 @@ import {
   JSMPEGConfig,
   LiveConfig,
   MediaShowInfo,
-  WebRTCConfig,
+  WebRTCCardConfig,
   FrigateCardError,
   FrigateCardMediaPlayer,
   LiveOverrides,
@@ -635,10 +635,13 @@ export class FrigateCardLiveProvider extends LitElement {
 
   protected _getResolvedProvider(): LiveProvider {
     if (this.cameraConfig?.live_provider === 'auto') {
-      if (this.cameraConfig?.webrtc?.entity || this.cameraConfig?.webrtc?.url) {
-        return 'webrtc';
+      if (
+        this.cameraConfig?.webrtc_card?.entity ||
+        this.cameraConfig?.webrtc_card?.url
+      ) {
+        return 'webrtc-card';
       } else if (this.cameraConfig?.camera_entity) {
-        return 'frigate';
+        return 'ha';
       } else if (this.cameraConfig?.camera_name) {
         return 'frigate-jsmpeg';
       }
@@ -665,21 +668,21 @@ export class FrigateCardLiveProvider extends LitElement {
     const provider = this._getResolvedProvider();
 
     return html`
-      ${provider == 'frigate'
-        ? html` <frigate-card-live-frigate
+      ${provider == 'ha'
+        ? html` <frigate-card-live-ha
             ${ref(this._providerRef)}
             .hass=${this.hass}
             .cameraEntity=${this.cameraConfig.camera_entity}
           >
-          </frigate-card-live-frigate>`
-        : provider == 'webrtc'
-        ? html`<frigate-card-live-webrtc
+          </frigate-card-live-ha>`
+        : provider == 'webrtc-card'
+        ? html`<frigate-card-live-webrtc-card
             ${ref(this._providerRef)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
-            .webRTCConfig=${this.liveConfig.webrtc}
+            .webRTCConfig=${this.liveConfig.webrtc_card}
           >
-          </frigate-card-live-webrtc>`
+          </frigate-card-live-webrtc-card>`
         : html` <frigate-card-live-jsmpeg
             ${ref(this._providerRef)}
             .hass=${this.hass}
@@ -691,7 +694,7 @@ export class FrigateCardLiveProvider extends LitElement {
   }
 }
 
-@customElement('frigate-card-live-frigate')
+@customElement('frigate-card-live-ha')
 export class FrigateCardLiveFrigate extends LitElement {
   @property({ attribute: false })
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
@@ -763,12 +766,12 @@ export class FrigateCardLiveFrigate extends LitElement {
   }
 }
 
-// Create a wrapper for the WebRTC element
+// Create a wrapper for AlexxIT's WebRTC card
 //  - https://github.com/AlexxIT/WebRTC
-@customElement('frigate-card-live-webrtc')
-export class FrigateCardLiveWebRTC extends LitElement {
+@customElement('frigate-card-live-webrtc-card')
+export class FrigateCardLiveWebRTCCard extends LitElement {
   @property({ attribute: false, hasChanged: contentsChanged })
-  protected webRTCConfig?: WebRTCConfig;
+  protected webRTCConfig?: WebRTCCardConfig;
 
   @property({ attribute: false })
   protected cameraConfig?: CameraConfig;
@@ -776,7 +779,7 @@ export class FrigateCardLiveWebRTC extends LitElement {
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
 
   // A task to await the load of the WebRTC component.
-  protected _webrtcTask = new Task(this, this._getWebRTCElement, () => [1]);
+  protected _webrtcTask = new Task(this, this._getWebRTCCardElement, () => [1]);
 
   /**
    * Play the video.
@@ -826,7 +829,9 @@ export class FrigateCardLiveWebRTC extends LitElement {
     return this.renderRoot?.querySelector('#video') as HTMLVideoElement | null;
   }
 
-  protected async _getWebRTCElement(): Promise<CustomElementConstructor | undefined> {
+  protected async _getWebRTCCardElement(): Promise<
+    CustomElementConstructor | undefined
+  > {
     await customElements.whenDefined('webrtc-camera');
     return customElements.get('webrtc-camera');
   }
@@ -848,10 +853,10 @@ export class FrigateCardLiveWebRTC extends LitElement {
       // then take values from the camera configuration instead (if there are
       // any).
       if (!config.url) {
-        config.url = this.cameraConfig?.webrtc?.url;
+        config.url = this.cameraConfig?.webrtc_card?.url;
       }
       if (!config.entity) {
-        config.entity = this.cameraConfig?.webrtc?.entity;
+        config.entity = this.cameraConfig?.webrtc_card?.entity;
       }
       webrtc.setConfig(config);
       webrtc.hass = this.hass;
@@ -874,7 +879,7 @@ export class FrigateCardLiveWebRTC extends LitElement {
           this,
           e instanceof FrigateCardError
             ? (e as FrigateCardError).message
-            : localize('error.webrtc_reported_error') + ': ' + (e as Error).message,
+            : localize('error.webrtc_card_reported_error') + ': ' + (e as Error).message,
         );
       }
       return html`${webrtcElement}`;
@@ -884,8 +889,8 @@ export class FrigateCardLiveWebRTC extends LitElement {
     // load, but yet still have the card load be followed by the updated()
     // lifecycle callback (unlike just using `until`).
     return html`${this._webrtcTask.render({
-      initial: () => renderProgressIndicator(localize('error.webrtc_waiting')),
-      pending: () => renderProgressIndicator(localize('error.webrtc_waiting')),
+      initial: () => renderProgressIndicator(localize('error.webrtc_card_waiting')),
+      pending: () => renderProgressIndicator(localize('error.webrtc_card_waiting')),
       error: (e: unknown) => dispatchErrorMessageEvent(this, (e as Error).message),
       complete: () => render(),
     })}`;

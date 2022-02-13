@@ -22,8 +22,8 @@ import {
   CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
   CONF_CAMERAS_ARRAY_TITLE,
   CONF_CAMERAS_ARRAY_URL,
-  CONF_CAMERAS_ARRAY_WEBRTC_ENTITY,
-  CONF_CAMERAS_ARRAY_WEBRTC_URL,
+  CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY,
+  CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL,
   CONF_CAMERAS_ARRAY_ZONE,
   CONF_DIMENSIONS_ASPECT_RATIO,
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
@@ -491,9 +491,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     const liveProviders = new Map([
       ['', ''],
       ['auto', localize('config.cameras.live_providers.auto')],
-      ['frigate', localize('config.cameras.live_providers.frigate')],
+      ['ha', localize('config.cameras.live_providers.ha')],
       ['frigate-jsmpeg', localize('config.cameras.live_providers.frigate-jsmpeg')],
-      ['webrtc', localize('config.cameras.live_providers.webrtc')],
+      ['webrtc-card', localize('config.cameras.live_providers.webrtc-card')],
     ]);
 
     // Make a new config and update the editor with changes on it,
@@ -605,11 +605,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
             )}
             ${this._renderDropdown(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_ENTITY, cameraIndex),
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY, cameraIndex),
               cameraEntities,
             )}
             ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_URL, cameraIndex),
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
             )}
           </div>`
         : ``}

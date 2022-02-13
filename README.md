@@ -33,7 +33,6 @@ A full-featured Frigate Lovelace card:
 * Lovelace visual editing support.
 * Full [Picture Elements](https://www.home-assistant.io/lovelace/picture-elements/) support.
 * Theme friendly.
-* **Advanced**: Support for [WebRTC](https://github.com/AlexxIT/WebRTC) live viewing by embedding the WebRTC card.
 
 ## Screenshots Below!
 
@@ -92,36 +91,49 @@ cameras:
 | - | - | - | - |
 | `camera_entity` | | :heavy_multiplication_x: | The Home Assistant camera entity to use with the `frigate` live provider view. Also used to automatically detect the name of the underlying Frigate camera, and the title/icon of the camera. |
 | `camera_name` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | The Frigate camera name to use when communicating with the Frigate server, e.g. for viewing clips/snapshots or the JSMPEG live view. To view the birdseye view set this to `birdseye` and use the `frigate-jsmpeg` live provider.|
+| `live_provider` | `auto` | :heavy_multiplication_x: | The choice of live stream provider. See [Live Providers](#live-providers) below.|
 | `frigate_url` | | :heavy_multiplication_x: | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. |
 | `label` | | :heavy_multiplication_x: | A Frigate label / object filter used to filter events (clips & snapshots), e.g. 'person'.|
 | `zone` | | :heavy_multiplication_x: | A Frigate zone used to filter events (clips & snapshots), e.g. 'front_door'.|
 | `client_id` | `frigate` | :heavy_multiplication_x: | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://docs.frigate.video/integrations/home-assistant/#multiple-instance-support).|
 | `title` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | A friendly name for this camera to use in the card. |
 | `icon` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | The icon to use for this camera in the camera menu and in the next & previous controls when using the `icon` style. |
-| `webrtc` | | :heavy_multiplication_x: | The WebRTC entity/URL to use for this camera. See below. |
-| `id` | `camera_entity`, `webrtc.entity` or `camera_name` if set (in that preference order). | :heavy_multiplication_x: | An optional identifier to use throughout the card configuration to refer unambiguously to this camera. See [camera IDs](#camera-ids). |
+| `webrtc_card` | | :heavy_multiplication_x: | The WebRTC entity/URL to use for this camera with the `webrtc-card` live provider. See below. |
+| `id` | `camera_entity`, `webrtc_card.entity` or `camera_name` if set (in that preference order). | :heavy_multiplication_x: | An optional identifier to use throughout the card configuration to refer unambiguously to this camera. See [camera IDs](#camera-ids). |
 
-#### Camera WebRTC configuration
+<a name="live-providers"></a>
 
-The `webrtc` block configures only the entity/URL for this camera to be used with the WebRTC live provider. This configuration is included as part of a camera entry in the `cameras` array.
+#### Available Live Providers
+
+|Live Provider|Latency|Frame Rate|Installation|Description|
+| -- | -- | -- | -- | -- |
+|`ha` (default HA configuration)|Poor|High|Builtin|Use the built-in Home Assistant camera stream. The camera doesn't even need to be a Frigate camera! |
+|`ha` (when configured with LL-HLS)|Better|High|Builtin|Use the built-in Home Assistant camera streams -- can be configured to use an [LL-HLS](https://www.home-assistant.io/integrations/stream/#ll-hls) feed for lower latency.|
+|`ha` (Native WebRTC)|Best|High|Builtin|Use the built-in Home Assistant camera streams -- can be configured to use [native WebRTC](https://www.home-assistant.io/integrations/rtsp_to_webrtc/) offering a very low-latency feed direct to your browser.|
+|`frigate-jsmpeg`|Better|Low|Builtin|Stream the JSMPEG stream from Frigate (proxied via the Frigate integration). See [note below on the required integration version](#jsmpeg-troubleshooting) for this live provider to function. This is the only live provider that can view the Frigate `birdseye` view.|
+|`webrtc-card`|Best|High|Separate installation required|Embed's [AlexxIT's WebRTC Card](https://github.com/AlexxIT/WebRTC) to stream live feed, requires manual extra setup, see [below](#webrtc). Not to be confused with native Home Assistant WebRTC (use `ha` provider above).|
+
+#### Camera WebRTC Card configuration
+
+The `webrtc_card` block configures only the entity/URL for this camera to be used with the WebRTC Card live provider. This configuration is included as part of a camera entry in the `cameras` array.
 
 ```yaml
 cameras:
- - webrtc:
+ - webrtc_card:
 ```
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `entity` | | :heavy_multiplication_x: | The RTSP entity to pass WebRTC for this camera. Specify this OR `url` (below). |
-| `url` | | :heavy_multiplication_x: | The RTSP url to pass to WebRTC. Specify this OR `entity` (above). |
+| `entity` | | :heavy_multiplication_x: | The RTSP entity to pass to the WebRTC Card for this camera. Specify this OR `url` (below). |
+| `url` | | :heavy_multiplication_x: | The RTSP url to pass to the WebRTC Card. Specify this OR `entity` (above). |
 
-See [Using WebRTC](#webrtc) below for more details on how to use WebRTC with this card.
+See [Using the WebRTC Card](#webrtc) below for more details on how to use the WebRTC Card live provider.
 
 <a name="camera-ids"></a>
 
 #### Camera IDs: Refering to cameras in card configuration
 
-Each camera configured in the card has a single identifier (`id`). For a given camera, this will be one of the camera {`id`, `camera_entity`, `webrtc.entity` or `camera_name`} parameters for that camera -- in that order of precedence. These ids may be used in conditions or custom actions to refer to a given camera unambiguously. |
+Each camera configured in the card has a single identifier (`id`). For a given camera, this will be one of the camera {`id`, `camera_entity`, `webrtc_card.entity` or `camera_name`} parameters for that camera -- in that order of precedence. These ids may be used in conditions or custom actions to refer to a given camera unambiguously. |
 
 #### Example
 
@@ -196,19 +208,10 @@ live:
 | `lazy_unload` | `false` | :heavy_multiplication_x: | Whether or not to lazily **un**load lazyily-loaded cameras in the camera carousel, or just leave the camera paused. Setting this to `true` will cause cameras to be entirely unloaded when they are no longer visible (either because the carousel has scrolled past them, or because the document has been marked hidden/inactive by the browser). This will cause a reloading delay on revisiting that camera in the carousel but will save the streaming network resources that are otherwise consumed. This option has no effect if `lazy_load` is false. |
 | `draggable` | `true` | :heavy_multiplication_x: | Whether or not the live carousel can be dragged left or right, via touch/swipe and mouse dragging. |
 | `transition_effect` | `slide` | :heavy_multiplication_x: | Effect to apply as a transition between live cameras. Accepted values: `slide` or `none`. |
-| `provider` | `frigate` | :white_check_mark: | The means through which the live camera view is displayed. See [Live Provider](#live-provider) below.|
 | `actions` | | :white_check_mark: | Actions to use for the `live` view. See [actions](#actions) below.|
 | `controls` | | :white_check_mark: | Configuration for the `live` view controls. See below. |
 | `jsmpeg` | | :white_check_mark: | Configuration for the `frigate-jsmpeg` live provider. See below.|
-| `webrtc` | | :white_check_mark: | Configuration for the `webrtc` live provider. See below.|
-
-#### Available Live Providers
-
-|Live Provider|Latency|Frame Rate|Installation|Description|
-| -- | -- | -- | -- | -- |
-|`frigate`|High|High|Builtin|Use the built-in Home Assistant camera stream from Frigate (RTMP). The camera doesn't even need to be a Frigate camera! Latency may be lowered through the use of [LL-HLS](https://www.home-assistant.io/integrations/stream/#ll-hls).|
-|`frigate-jsmpeg`|Lower|Low|Builtin|Stream the JSMPEG stream from Frigate (proxied via the Frigate integration). See [note below on the required integration version](#jsmpeg-troubleshooting) for this live provider to function. This is the only live provider that can view the Frigate `birdseye` view.|
-|`webrtc`|Lowest|High|Separate installation required|Uses [WebRTC](https://github.com/AlexxIT/WebRTC) to stream live feed, requires manual extra setup, see [below](#webrtc).|
+| `webrtc_card` | | :white_check_mark: | Configuration for the `webrtc-card` live provider. See below.|
 
 #### Live Provider: JSMPEG Configuration
 
@@ -225,20 +228,20 @@ live:
 
 <a name="webrtc-live-configuration"></a>
 
-#### Live Provider: WebRTC Configuration
+#### Live Provider: WebRTC Card Configuration
 
 All configuration is under:
 
 ```yaml
 live:
-  webrtc:
+  webrtc_card:
 ```
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `*`| | :white_check_mark: | Any options specified in the `webrtc:` YAML dictionary are silently passed through to WebRTC. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides. This implies that if `entity` or `url` are specified here they will override the matching named parameters under the per camera configuration. |
+| `*`| | :white_check_mark: | Any options specified in the `webrtc_card:` YAML dictionary are silently passed through to the AlexxIT's WebRTC Card. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides. This implies that if `entity` or `url` are specified here they will override the matching named parameters under the per camera configuration. |
 
-See [Using WebRTC](#webrtc) below for more details on how to use WebRTC with this card.
+See [Using WebRTC Card](#webrtc) below for more details on how to embed AlexxIT's WebRTC Card with the Frigate Card.
 
 #### Live Controls: Thumbnails
 
@@ -424,8 +427,6 @@ The card aspect ratio can be changed with the `dimensions.aspect_ratio_mode` and
 If no aspect ratio is specified or available, but one is needed then `16:9` will
 be used by default.
 
-<a name="webrtc"></a>
-
 ### Override Options
 
 All configuration is a list under:
@@ -436,7 +437,7 @@ overrides:
 
 Various parts of this configuration may conditionally (see [Frigate Card
 Conditions](#frigate-card-conditions)) be overridden, for example to use custom
-WebRTC paramters for a particular camera or to hide the menu in fullscreen mode.
+WebRTC parameters for a particular camera or to hide the menu in fullscreen mode.
 
 Not all configuration parameters are overriddable (only those with check marks
 in this documentation) -- some because it doesn't make sense for that parameter
@@ -452,54 +453,56 @@ item, that has both of the following parameters set:
 | `conditions` | | :heavy_multiplication_x: | A set of conditions that must evaluate to `true` in order for the overrides to be applied. See [Frigate Card Conditions](#frigate-card-conditions). |
 | `overrides` | | :heavy_multiplication_x: |Configuration overrides to be applied. Any configuration parameter described in this documentation as 'Overridable' is supported. |
 
-### Using WebRTC
+<a name="webrtc"></a>
 
-WebRTC support blends the use of the ultra-realtime [WebRTC live
+### Using AlexxIT's WebRTC Card
+
+WebRTC Card support blends the use of the ultra-realtime [WebRTC card live
 view](https://github.com/AlexxIT/WebRTC) with convenient access to Frigate
 events/snapshots/UI. A perfect combination!
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/webrtc.png" alt="Live viewing" width="400px">
 
-**Note**: WebRTC must be installed and configured separately (see [details](https://github.com/AlexxIT/WebRTC)) before it can be used with this card.
+**Note**: AlexxIT's WebRTC Integration/Card must be installed and configured separately (see [details](https://github.com/AlexxIT/WebRTC)) before it can be used with this card.
 
-#### Specifying The WebRTC Camera
+#### Specifying The WebRTC Card Camera
 
-WebRTC does **not** support use of Frigate-provided camera entities, as it
-requires an RTSP stream which Frigate does not currently provide. There are two
-ways to specify the WebRTC source camera:
+The WebRTC Card live provider does **not** support use of Frigate-provided
+camera entities, as it requires an RTSP stream which Frigate does not currently
+provide. There are two ways to specify the WebRTC Card source camera:
 
 * Manual setup of separate RTSP camera entities in Home Assistant ([see
   example](https://www.home-assistant.io/integrations/generic/#live-stream)).
   These entities will then be available for selection in the GUI card editor for
-  the camera, or can be manually specified with a `webrtc.entity` option under
+  the camera, or can be manually specified with a `webrtc_card.entity` option under
   that particular cameras configuration:
 
 ```yaml
 cameras:
- - webrtc:
+ - webrtc_card:
      entity: 'camera.front_door_rstp`
 ```
 
-* OR manually entering the WebRTC camera URL parameter in the GUI card editor,
-  or configuring the `url` parameter as part of a manual Frigate card
+* OR manually entering the WebRTC Card camera URL parameter in the GUI card
+  editor, or configuring the `url` parameter as part of a manual Frigate card
   configuration, as illustrated in the following example:
 
 ```yaml
 cameras:
- - webrtc:
+ - webrtc_card:
      url: 'rtsp://USERNAME:PASSWORD@CAMERA:554/RTSP_PATH'
 ```
 
-Other WebRTC options may be specified under the `live` section, like so:
+Other WebRTC Card options may be specified under the `live` section, like so:
 
 ```yaml
 live:
-  webrtc:
+  webrtc_card:
     ui: true
 ```
 
-See [the WebRTC live configuration](#webrtc-live-configuration) above, and the
-[external WebRTC configuration
+See [the WebRTC Card live configuration](#webrtc-live-configuration) above, and the
+[external WebRTC Card configuration
 documentation](https://github.com/AlexxIT/WebRTC#configuration) for full
 configuration options that can be used here.
 
@@ -616,7 +619,7 @@ This card supports several different views:
 
 | Key           | Description                                         |
 | ------------- | --------------------------------------------- |
-|`live` (default)| Shows the live camera view, either the name Frigate view or [WebRTC](#webrtc) if configured.|
+|`live` (default)| Shows the live camera view with the configured live provider.|
 |`snapshots`|Shows an event gallery of snapshots for this camera/zone/label.|
 |`snapshot`|Shows an event viewer for the most recent snapshot for this camera/zone/label. Can also be accessed by holding down the `snapshots` menu icon.|
 |`clips`|Shows an event gallery of clips for this camera/zone/label.|
@@ -739,7 +742,7 @@ cameras of different dimensions, and custom submenus per camera.
 
 ### Card Editing
 
-This card supports full editing via the Lovelace card editor. Additional arbitrary configuration for WebRTC may be specified in YAML mode.
+This card supports full editing via the Lovelace card editor. Additional arbitrary configuration for WebRTC Card may be specified in YAML mode.
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/editor.gif" alt="Live viewing" width="400px">
 
@@ -779,27 +782,32 @@ cameras:
     live_provider: frigate-jsmpeg
     title: Front Door (JSMPEG)
   - camera_entity: camera.front_door
-    live_provider: webrtc
+    live_provider: webrtc-card
     title: Front Door (WebRTC)
-    webrtc:
+    webrtc_card:
       entity: camera.front_door_rtsp
     id: front-door-webrtc
 ```
 </details>
 
-### WebRTC
+### WebRTC Card Provider
 
 <details>
-  <summary>Expand: Basic WebRTC configuration</summary>
+  <summary>Expand: Basic WebRTC Card configuration with UI enabled</summary>
 
 ```yaml
-type: 'custom:frigate-card'
-camera_entity: camera.front_door
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.front_door
+    live_provider: webrtc-card
+    title: Front Door
+    webrtc_card:
+      entity: camera.front_door_rtsp
 live:
-  provider: webrtc
-  webrtc:
-    entity: camera.front_door_rtsp
+  webrtc_card:
+    ui: true
 ```
+</details>
 
 </details>
 
@@ -1026,7 +1034,6 @@ view:
       action: custom:frigate-card-action
       frigate_card_action: fullscreen
 live:
-  provider: frigate-jsmpeg
   actions:
     entity: light.office_main_lights
     double_tap_action:
@@ -1141,13 +1148,15 @@ overrides:
 </details>
 
 <details>
-  <summary>Expand: Enable WebRTC UI for a particular camera</summary>
+  <summary>Expand: Enable WebRTC Card UI only for a selected camera</summary>
 
-This example enables WebRTC UI mode for a particular camera.
+This example enables WebRTC Card UI mode for a particular camera.
 
 ```yaml
 cameras:
  - camera_entity: camera.office
+   live_provider: webrtc-card
+ - camera_entity: camera.a-different-camera
 [...]
 overrides:
   - conditions:
@@ -1155,8 +1164,7 @@ overrides:
         - camera.office
     overrides:
       live:
-        provider: webrtc
-        webrtc:
+        webrtc_card:
           ui: true
 ```
 
@@ -1331,7 +1339,7 @@ most welcome!
 
 The Firefox video player swallows mouse interactions, so dragging is not
 possible in carousels that use the Firefox video player (e.g. `clips` carousel,
-or live views that use the `frigate` or `webrtc` provider). The next and
+or live views that use the `frigate` or `webrtc-card` provider). The next and
 previous buttons may be used to navigate in these instances.
 
 Dragging works as expected for snapshots, or for the `frigate-jsmpeg` provider.
