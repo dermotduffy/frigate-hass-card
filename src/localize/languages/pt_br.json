@@ -24,7 +24,7 @@
         "auto": "Automatico",
         "ha": "Home Assistant (ou seja HLS, LL-HLS, WebRTC nativo)",
         "frigate-jsmpeg": "Frigate JSMpeg",
-        "webrtc-card": "Cartão WebRTC (ou seja Cartão WebRTC da AlexxIT)"
+        "webrtc-card": "Cartão WebRTC (de @AlexxIT)"
       },
       "webrtc_card": {
         "entity": "Entidade de câmera de cartão WebRTC (não é uma câmera Frigate)",
