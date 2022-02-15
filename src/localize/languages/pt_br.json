@@ -216,7 +216,7 @@
     "invalid_configuration": "Configuração inválida",
     "invalid_configuration_no_hint": "Nenhuma dica de local disponível (tipo incorreto ou ausente?)",
     "upgrade_available": "Uma atualização de configuração de cartão automatizada está disponível, visite o editor de cartão visual",
-    "webrtc_card_reported_error": "O componente WebRTC relatou um erro",
+    "webrtc_card_reported_error": "O cartão WebRTC relatou um erro",
     "webrtc_card_waiting": "Aguardando o carregamento do cartão WebRTC ...",
     "no_cameras": "Nenhuma câmera válida encontrada, você deve configurar pelo menos uma entrada de câmera",
     "no_camera_id": "Não foi possível determinar o ID da câmera para a câmera a seguir, pode ser necessário definir o parâmetro 'id' manualmente",
