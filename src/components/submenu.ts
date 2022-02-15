@@ -64,6 +64,12 @@ export class FrigateCardSubmenu extends LitElement {
     return html`
       <ha-button-menu
         corner=${this.corner || "BOTTOM_LEFT"}
+        @closed=${
+          // Prevent the submenu closing from closing anything upstream (e.g.
+          // selecting a submenu in the editor dialog should not close the
+          // editor, see https://github.com/dermotduffy/frigate-hass-card/issues/377).
+          (ev) => ev.stopPropagation()
+        }
       >
         <ha-icon-button
           style="${styleMap(this.submenu.style || {})}"
