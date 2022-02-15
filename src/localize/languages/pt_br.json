@@ -131,7 +131,7 @@
       "modes": {
         "screensaver": "Logo Frigate embutido",
         "url": "Imagem arbitrária especificada por URL",
-        "camera": "Instantâneo da câmera do Home Assistant da entidade da câmera"
+        "camera": "Instantâneo da câmera do Home Assistant, da entidade de câmera"
       },
       "url": "Imagem arbitrária especificada por URL",
       "refresh_seconds": "Número de segundos após o qual atualizar (0 = nunca)"
