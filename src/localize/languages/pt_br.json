@@ -22,7 +22,7 @@
       "live_provider": "Provedor de visualização ao vivo para esta câmera",
       "live_providers": {
         "auto": "Automatico",
-        "ha": "Home Assistant (ou seja HLS, LL-HLS, WebRTC nativo)",
+        "ha": "Home Assistant (HLS, LL-HLS ou WebRTC nativo)",
         "frigate-jsmpeg": "Frigate JSMpeg",
         "webrtc-card": "Cartão WebRTC (de @AlexxIT)"
       },
