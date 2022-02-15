@@ -215,7 +215,7 @@
     "no_live_camera": "O parâmetro camera_entity deve ser definido e válido para este provedor ativo",
     "invalid_configuration": "Configuração inválida",
     "invalid_configuration_no_hint": "Nenhuma dica de local disponível (tipo incorreto ou ausente?)",
-    "upgrade_available": "Uma atualização de configuração de cartão automatizada está disponível, visite o editor de cartão visual",
+    "upgrade_available": "Uma atualização automatizada da configuração do cartão está disponível, visite o editor visual do cartão",
     "webrtc_card_reported_error": "O cartão WebRTC relatou um erro",
     "webrtc_card_waiting": "Aguardando o cartão WebRTC carregar ...",
     "no_cameras": "Nenhuma câmera válida encontrada, você deve configurar pelo menos uma câmera",
