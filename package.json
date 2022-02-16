@@ -24,7 +24,7 @@
     "dayjs": "^1.10.7",
     "embla-carousel": "^6.1.1",
     "home-assistant-js-websocket": "^6.0.1",
-    "lit": "^2.0.2",
+    "lit": "^2.1.4",
     "lodash-es": "^4.17.21",
     "quick-lru": "github:sindresorhus/quick-lru",
     "screenfull": "^6.0.1",
