@@ -323,8 +323,8 @@ export class FrigateCard extends LitElement {
     const cameraConfig = this._getSelectedCameraConfig();
 
     // Don't show `clips` button if there's no `camera_name` (e.g. non-Frigate
-    // cameras).
-    if (this._getConfig().menu.buttons.clips && cameraConfig?.camera_name) {
+    // cameras), or is birdseye.
+    if (this._getConfig().menu.buttons.clips && cameraConfig?.camera_name && cameraConfig?.camera_name !== 'birdseye') {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.view.views.clips'),
@@ -336,8 +336,8 @@ export class FrigateCard extends LitElement {
     }
 
     // Don't show `snapshots` button if there's no `camera_name` (e.g. non-Frigate
-    // cameras).
-    if (this._getConfig().menu.buttons.snapshots && cameraConfig?.camera_name) {
+    // cameras), or is birdseye.
+    if (this._getConfig().menu.buttons.snapshots && cameraConfig?.camera_name && cameraConfig?.camera_name !== 'birdseye') {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.view.views.snapshots'),
