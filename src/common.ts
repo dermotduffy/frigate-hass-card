@@ -1,6 +1,7 @@
 import { HassEntity, MessageBase } from 'home-assistant-js-websocket';
 import {
   HomeAssistant,
+  computeStateDomain,
   handleActionConfig,
   hasAction,
   stateIcon,
@@ -400,6 +401,13 @@ export function refreshDynamicStateParameters(
   }
   params.title = params.title ?? (state?.attributes?.friendly_name || params.entity);
   params.icon = params.icon ?? stateIcon(state);
+
+  const domain = state ? computeStateDomain(state) : undefined;
+  params.data_domain =
+    params.state_color || (domain === 'light' && params.state_color !== false)
+      ? domain
+      : undefined;
+  params.data_state = computeActiveState(state);
   return params;
 }
 
