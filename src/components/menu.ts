@@ -231,9 +231,6 @@ export class FrigateCardMenu extends LitElement {
       button: true,
     };
 
-    const stateObj = stateParameters.entity ? this.hass?.states[stateParameters.entity] : undefined;
-    const domain = stateObj ? computeStateDomain(stateObj) : undefined;
-
     // =====================================================================================
     // For `data-domain` and `data-state`, see: See
     // https://github.com/home-assistant/frontend/blob/dev/src/components/entity/state-badge.ts#L54
@@ -247,12 +244,8 @@ export class FrigateCardMenu extends LitElement {
     //   (`data-state`). This looks up a CSS style in `menu.scss`.
 
     return html` <ha-icon-button
-      data-domain=${ifDefined(
-        stateParameters.state_color || (domain === "light" && stateParameters.state_color !== false)
-          ? domain
-          : undefined
-      )}
-      data-state=${stateObj ? computeActiveState(stateObj) : ""}
+      data-domain=${ifDefined(stateParameters.data_domain)}
+      data-state=${ifDefined(stateParameters.data_state)}
       class="${classMap(classes)}"
       style="${styleMap(stateParameters.style || {})}"
       .actionHandler=${actionHandler({

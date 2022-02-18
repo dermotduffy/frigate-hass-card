@@ -1,11 +1,12 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators';
-import { HomeAssistant } from 'custom-card-helpers';
+import { computeActiveState, frigateCardHasAction, refreshDynamicStateParameters } from '../common.js';
+import { computeStateDomain, HomeAssistant } from 'custom-card-helpers';
+import { ifDefined } from 'lit/directives/if-defined';
 import { styleMap } from 'lit/directives/style-map';
 
 import { ExtendedHomeAssistant, MenuSubmenu, MenuSubmenuItem } from '../types.js';
 import { actionHandler } from '../action-handler-directive.js';
-import { frigateCardHasAction, refreshDynamicStateParameters } from '../common.js';
 
 import submenuStyle from '../scss/submenu.scss';
 import type { Corner } from "@material/mwc-menu";
@@ -46,6 +47,8 @@ export class FrigateCardSubmenu extends LitElement {
         ${stateParameters.title || ''}
         ${stateParameters.icon
           ? html` <ha-icon
+              data-domain=${ifDefined(stateParameters.data_domain)}
+              data-state=${ifDefined(stateParameters.data_state)}
               style="${styleMap(stateParameters.style || {})}"
               slot="graphic"
               icon="${stateParameters.icon}"

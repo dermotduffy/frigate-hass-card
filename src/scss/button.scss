@@ -8,67 +8,12 @@ ha-icon-button.button {
   /* Buttons can always be clicked */
   pointer-events: auto;
   opacity: 0.9;
-
 }
+
 // =====================================================================================
 // From: https://github.com/home-assistant/frontend/blob/dev/src/common/style/icon_color_css.ts
-// Modified for `ha-icon-button` instead of `ha-state-icon`.
+// Modified version for ha-icon and ha-icon-button.
 // =====================================================================================
-ha-icon-button[data-domain="alert"][data-state="on"],
-ha-icon-button[data-domain="automation"][data-state="on"],
-ha-icon-button[data-domain="binary_sensor"][data-state="on"],
-ha-icon-button[data-domain="calendar"][data-state="on"],
-ha-icon-button[data-domain="camera"][data-state="streaming"],
-ha-icon-button[data-domain="cover"][data-state="open"],
-ha-icon-button[data-domain="fan"][data-state="on"],
-ha-icon-button[data-domain="humidifier"][data-state="on"],
-ha-icon-button[data-domain="light"][data-state="on"],
-ha-icon-button[data-domain="input_boolean"][data-state="on"],
-ha-icon-button[data-domain="lock"][data-state="unlocked"],
-ha-icon-button[data-domain="media_player"][data-state="on"],
-ha-icon-button[data-domain="media_player"][data-state="paused"],
-ha-icon-button[data-domain="media_player"][data-state="playing"],
-ha-icon-button[data-domain="script"][data-state="on"],
-ha-icon-button[data-domain="sun"][data-state="above_horizon"],
-ha-icon-button[data-domain="switch"][data-state="on"],
-ha-icon-button[data-domain="timer"][data-state="active"],
-ha-icon-button[data-domain="vacuum"][data-state="cleaning"],
-ha-icon-button[data-domain="group"][data-state="on"],
-ha-icon-button[data-domain="group"][data-state="home"],
-ha-icon-button[data-domain="group"][data-state="open"],
-ha-icon-button[data-domain="group"][data-state="locked"],
-ha-icon-button[data-domain="group"][data-state="problem"] {
-  color: var(--paper-item-icon-active-color, #fdd835);
-}
-
-ha-icon-button[data-domain="climate"][data-state="cooling"] {
-  color: var(--cool-color, var(--state-climate-cool-color));
-}
-
-ha-icon-button[data-domain="climate"][data-state="heating"] {
-  color: var(--heat-color, var(--state-climate-heat-color));
-}
-
-ha-icon-button[data-domain="climate"][data-state="drying"] {
-  color: var(--dry-color, var(--state-climate-dry-color));
-}
-
-ha-icon-button[data-domain="alarm_control_panel"] {
-  color: var(--alarm-color-armed, var(--label-badge-red));
-}
-ha-icon-button[data-domain="alarm_control_panel"][data-state="disarmed"] {
-  color: var(--alarm-color-disarmed, var(--label-badge-green));
-}
-ha-icon-button[data-domain="alarm_control_panel"][data-state="pending"],
-ha-icon-button[data-domain="alarm_control_panel"][data-state="arming"] {
-  color: var(--alarm-color-pending, var(--label-badge-yellow));
-  animation: pulse 1s infinite;
-}
-ha-icon-button[data-domain="alarm_control_panel"][data-state="triggered"] {
-  color: var(--alarm-color-triggered, var(--label-badge-red));
-  animation: pulse 1s infinite;
-}
-
 @keyframes pulse {
   0% {
     opacity: 1;
@@ -81,12 +26,72 @@ ha-icon-button[data-domain="alarm_control_panel"][data-state="triggered"] {
   }
 }
 
-ha-icon-button[data-domain="plant"][data-state="problem"],
-ha-icon-button[data-domain="zwave"][data-state="dead"] {
-  color: var(--state-icon-error-color);
+@mixin state-icon($element) {
+  #{$element}[data-domain="alert"][data-state="on"],
+  #{$element}[data-domain="automation"][data-state="on"],
+  #{$element}[data-domain="binary_sensor"][data-state="on"],
+  #{$element}[data-domain="calendar"][data-state="on"],
+  #{$element}[data-domain="camera"][data-state="streaming"],
+  #{$element}[data-domain="cover"][data-state="open"],
+  #{$element}[data-domain="fan"][data-state="on"],
+  #{$element}[data-domain="humidifier"][data-state="on"],
+  #{$element}[data-domain="light"][data-state="on"],
+  #{$element}[data-domain="input_boolean"][data-state="on"],
+  #{$element}[data-domain="lock"][data-state="unlocked"],
+  #{$element}[data-domain="media_player"][data-state="on"],
+  #{$element}[data-domain="media_player"][data-state="paused"],
+  #{$element}[data-domain="media_player"][data-state="playing"],
+  #{$element}[data-domain="script"][data-state="on"],
+  #{$element}[data-domain="sun"][data-state="above_horizon"],
+  #{$element}[data-domain="switch"][data-state="on"],
+  #{$element}[data-domain="timer"][data-state="active"],
+  #{$element}[data-domain="vacuum"][data-state="cleaning"],
+  #{$element}[data-domain="group"][data-state="on"],
+  #{$element}[data-domain="group"][data-state="home"],
+  #{$element}[data-domain="group"][data-state="open"],
+  #{$element}[data-domain="group"][data-state="locked"],
+  #{$element}[data-domain="group"][data-state="problem"] {
+    color: var(--paper-item-icon-active-color, #fdd835);
+  }
+
+  #{$element}[data-domain="climate"][data-state="cooling"] {
+    color: var(--cool-color, var(--state-climate-cool-color));
+  }
+
+  #{$element}[data-domain="climate"][data-state="heating"] {
+    color: var(--heat-color, var(--state-climate-heat-color));
+  }
+
+  #{$element}[data-domain="climate"][data-state="drying"] {
+    color: var(--dry-color, var(--state-climate-dry-color));
+  }
+
+  #{$element}[data-domain="alarm_control_panel"] {
+    color: var(--alarm-color-armed, var(--label-badge-red));
+  }
+  #{$element}[data-domain="alarm_control_panel"][data-state="disarmed"] {
+    color: var(--alarm-color-disarmed, var(--label-badge-green));
+  }
+  #{$element}[data-domain="alarm_control_panel"][data-state="pending"],
+  #{$element}[data-domain="alarm_control_panel"][data-state="arming"] {
+    color: var(--alarm-color-pending, var(--label-badge-yellow));
+    animation: pulse 1s infinite;
+  }
+  #{$element}[data-domain="alarm_control_panel"][data-state="triggered"] {
+    color: var(--alarm-color-triggered, var(--label-badge-red));
+    animation: pulse 1s infinite;
+  }
+
+  #{$element}[data-domain="plant"][data-state="problem"],
+  #{$element}[data-domain="zwave"][data-state="dead"] {
+    color: var(--state-icon-error-color);
+  }
+
+  /* Color the icon if unavailable */
+  #{$element}[data-state="unavailable"] {
+    color: var(--state-unavailable-color);
+  }
 }
 
-/* Color the icon if unavailable */
-ha-icon-button[data-state="unavailable"] {
-  color: var(--state-unavailable-color);
-}
+@include state-icon("ha-icon");
+@include state-icon("ha-icon-button");

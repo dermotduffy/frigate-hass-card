@@ -842,6 +842,8 @@ export interface StateParameters {
   title?: string | null;
   state_color?: boolean;
   style?: StyleInfo;
+  data_domain?: string;
+  data_state?: string;
 }
 
 export interface FrigateCardMediaPlayer {
