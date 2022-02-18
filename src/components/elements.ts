@@ -137,25 +137,16 @@ class FrigateCardElementsCore extends LitElement {
 @customElement('frigate-card-elements')
 export class FrigateCardElements extends LitElement {
   @property({ attribute: false })
+  public hass?: HomeAssistant & ExtendedHomeAssistant;
+
+  @property({ attribute: false })
   protected elements: PictureElements;
 
   @property({ attribute: false })
   protected conditionState?: ConditionState;
 
-  protected _hass?: HomeAssistant & ExtendedHomeAssistant;
-
   @query('frigate-card-elements-core')
   _core!: FrigateCardElementsCore;
-
-  /**
-   * Set the Home Assistant object.
-   */
-  set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
-    if (this._core) {
-      this._core.hass = hass;
-    }
-    this._hass = hass;
-  }
 
   /**
    * Handle a picture element to be removed from the menu.
@@ -221,7 +212,7 @@ export class FrigateCardElements extends LitElement {
    */
   protected render(): TemplateResult {
     return html` <frigate-card-elements-core
-      .hass=${this._hass}
+      .hass=${this.hass}
       .conditionState=${this.conditionState}
       .elements=${this.elements}
     >
