@@ -614,8 +614,8 @@ export class FrigateCard extends LitElement {
     this._config = config;
     this._cameras = undefined;
     this._view = undefined;
-
-    this._changeView();
+    this._message = null;
+    this._generateConditionState();
   }
 
   /**
