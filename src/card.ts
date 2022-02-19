@@ -677,11 +677,6 @@ export class FrigateCard extends LitElement {
     this._changeView({ view: e.detail });
   }
 
-  protected updated(changedProps: PropertyValues): void {
-    super.updated(changedProps);
-    console.info('master updated');
-  }
-
   /**
    * Determine whether the card should be updated.
    * @param changedProps The changed properties if any.
