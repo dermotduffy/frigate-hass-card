@@ -384,7 +384,7 @@ image:
 | - | - | - | - |
 | `mode` | `url` | :white_check_mark: | Mode of the the `image` [view](#views). Value must be one of `url` (to fetch an arbitrary image URL), `camera` (to show a still of the currently selected camera using either `camera_entity` or `webrtc_card.entity` in that order of precedence), or `screensaver` (to show an [embedded stock Frigate card logo](https://github.com/dermotduffy/frigate-hass-card/blob/main/src/images/frigate-bird-in-sky.jpg)). In either `url` or `camera` mode, the `screensaver` content is used as a fallback if a URL is not specified or cannot be derived. |
 | `url` | | :white_check_mark: |  A static image URL to be used when the `mode` is set to `url`. Note that a `_t=[timestsamp]` query parameter will be automatically added to all URLs such that the image will not be cached by the browser.|
-| `refresh_seconds` | 0 | :white_check_mark: | The number of seconds after which to refresh the image. `0` implies no refreshing. |
+| `refresh_seconds` | 0 | :white_check_mark: | The image will be refreshed at least every `refresh_seconds` (it may refresh more frequently, e.g. whenever Home Assistant updates its camera security token). `0` implies no refreshing. |
 | `actions` | | :white_check_mark: | Actions to use for the `image` view. See [actions](#actions) below.|
 
 ### Dimension Options
