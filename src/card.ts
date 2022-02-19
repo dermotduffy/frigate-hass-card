@@ -324,7 +324,11 @@ export class FrigateCard extends LitElement {
 
     // Don't show `clips` button if there's no `camera_name` (e.g. non-Frigate
     // cameras), or is birdseye.
-    if (this._getConfig().menu.buttons.clips && cameraConfig?.camera_name && cameraConfig?.camera_name !== 'birdseye') {
+    if (
+      this._getConfig().menu.buttons.clips &&
+      cameraConfig?.camera_name &&
+      cameraConfig?.camera_name !== 'birdseye'
+    ) {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.view.views.clips'),
@@ -337,7 +341,11 @@ export class FrigateCard extends LitElement {
 
     // Don't show `snapshots` button if there's no `camera_name` (e.g. non-Frigate
     // cameras), or is birdseye.
-    if (this._getConfig().menu.buttons.snapshots && cameraConfig?.camera_name && cameraConfig?.camera_name !== 'birdseye') {
+    if (
+      this._getConfig().menu.buttons.snapshots &&
+      cameraConfig?.camera_name &&
+      cameraConfig?.camera_name !== 'birdseye'
+    ) {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.view.views.snapshots'),
@@ -436,7 +444,7 @@ export class FrigateCard extends LitElement {
       }
 
       const id =
-          config.id ||
+        config.id ||
         config.camera_entity ||
         config.webrtc_card?.entity ||
         config.camera_name;
@@ -678,12 +686,14 @@ export class FrigateCard extends LitElement {
   }
 
   /**
-   * Determine whether the card should be updated.
+   * Determine whether the element should be updated.
    * @param changedProps The changed properties if any.
-   * @returns True if the card should be updated.
+   * @returns `true` if the element should be updated.
    */
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     const oldHass = changedProps.get('_hass') as HomeAssistant | undefined;
+    let shouldUpdate = !oldHass || changedProps.size != 1;
+
     if (oldHass) {
       // Home Assistant pumps a lot of updates through. Re-rendering the card is
       // necessary at times (e.g. to update the 'clip' view as new clips
@@ -703,19 +713,16 @@ export class FrigateCard extends LitElement {
         // default. Note that as per the Lit lifecycle, the setting of the view
         // itself will not trigger an *additional* re-render here.
         this._changeView();
-        return true;
-      } else if (
-        shouldUpdateBasedOnHass(
+        shouldUpdate ||= true;
+      } else {
+        shouldUpdate ||= shouldUpdateBasedOnHass(
           this._hass,
           oldHass,
           this._getConfig().view.render_entities || [],
-        )
-      ) {
-        return true;
+        );
       }
-      return false;
     }
-    return true;
+    return shouldUpdate;
   }
 
   /**
