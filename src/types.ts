@@ -396,6 +396,7 @@ const viewConfigSchema = z
     update_force: z.boolean().default(viewConfigDefault.update_force),
     update_cycle_camera: z.boolean().default(viewConfigDefault.update_cycle_camera),
     update_entities: z.string().array().optional(),
+    render_entities: z.string().array().optional(),
   })
   .merge(actionsSchema)
   .default(viewConfigDefault);

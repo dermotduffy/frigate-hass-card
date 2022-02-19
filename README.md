@@ -156,6 +156,7 @@ view:
 | `update_force` | `false` | :heavy_multiplication_x: | Whether automated card updates/refreshes should ignore user interaction. See [card updates](#card-updates) below for behavior and usecases.|
 | `update_entities` | | :heavy_multiplication_x: | **YAML only**: A list of entity ids that should cause the view to reset to the default. See [card updates](#card-updates) below for behavior and usecases.|
 | `update_cycle_camera` | `false` | :heavy_multiplication_x: | When set to `true` the selected camera is cycled on each default view change. |
+| `render_entities` | | :heavy_multiplication_x: | **YAML only**: A list of entity ids that should cause the card to re-render 'in-place'. The view/camera is not changed. `update_*` flags to not pertain/relate to the behavior of this flag. This should **very** rarely be needed, but could be useful if the card is both setting and changing HA state of the same object as could be the case for some complex `card_mod` scenarios ([example](https://github.com/dermotduffy/frigate-hass-card/issues/343)). |
 | `actions` | | :heavy_multiplication_x: | Actions to use for all views, individual actions may be overriden by view-specific actions. See [actions](#actions) below.|
 ### Menu Options
 

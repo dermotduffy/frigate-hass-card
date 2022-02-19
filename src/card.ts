@@ -436,7 +436,10 @@ export class FrigateCard extends LitElement {
       }
 
       const id =
-        config.id || config.camera_entity || config.webrtc_card?.entity || config.camera_name;
+          config.id ||
+        config.camera_entity ||
+        config.webrtc_card?.entity ||
+        config.camera_name;
 
       if (!id) {
         this._setMessageAndUpdate({
@@ -680,10 +683,6 @@ export class FrigateCard extends LitElement {
    * @returns True if the card should be updated.
    */
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    if (changedProps.size > 1) {
-      return true;
-    }
-
     const oldHass = changedProps.get('_hass') as HomeAssistant | undefined;
     if (oldHass) {
       // Home Assistant pumps a lot of updates through. Re-rendering the card is
@@ -704,6 +703,14 @@ export class FrigateCard extends LitElement {
         // default. Note that as per the Lit lifecycle, the setting of the view
         // itself will not trigger an *additional* re-render here.
         this._changeView();
+        return true;
+      } else if (
+        shouldUpdateBasedOnHass(
+          this._hass,
+          oldHass,
+          this._getConfig().view.render_entities || [],
+        )
+      ) {
         return true;
       }
       return false;
@@ -1121,6 +1128,10 @@ export class FrigateCard extends LitElement {
    * Master render method for the card.
    */
   protected render(): TemplateResult | void {
+    if (!this._hass) {
+      return;
+    }
+
     const padding = this._getAspectRatioPadding();
     const outerStyle = {};
 
@@ -1146,6 +1157,7 @@ export class FrigateCard extends LitElement {
       @frigate-card:message=${this._messageHandler}
       @frigate-card:change-view=${this._changeViewHandler}
       @frigate-card:media-show=${this._mediaShowHandler}
+      @frigate-card:render=${() => this.requestUpdate()}
     >
       ${this._getConfig().menu.mode == 'above' ? this._renderMenu() : ''}
       <div class="container outer" style="${styleMap(outerStyle)}">

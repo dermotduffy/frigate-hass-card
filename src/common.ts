@@ -223,10 +223,7 @@ export function shouldUpdateBasedOnHass(
   oldHass: HomeAssistant | undefined | null,
   entities: string[] | null,
 ): boolean {
-  if (!newHass || !entities) {
-    return false;
-  }
-  if (!entities.length) {
+  if (!newHass || !entities || !entities.length) {
     return false;
   }
 
