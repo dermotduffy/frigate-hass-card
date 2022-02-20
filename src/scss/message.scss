@@ -4,13 +4,26 @@
   display: block;
 }
 
-.message {
+div.wrapper {
   height: 100%;
+}
+
+div.message {
   display: flex;
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
   padding: 10%;
+  height: 100%;
+}
+
+div.message div.contents {
+  padding: 10px;
+  height: 100%;
+}
+
+div.message div.icon {
+  padding: 10px;
 }
 
 .vertical {
@@ -19,9 +32,9 @@
 
 .message a {
   color: var(--primary-text-color, white);
+  word-break: break-word;
 }
 
-span {
-  padding: 10px;
-  word-break: break-word;
+.message pre {
+  margin-top: 20px;
 }

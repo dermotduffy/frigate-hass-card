@@ -672,7 +672,7 @@ export class FrigateCardLiveProvider extends LitElement {
         ? html` <frigate-card-live-ha
             ${ref(this._providerRef)}
             .hass=${this.hass}
-            .cameraEntity=${this.cameraConfig.camera_entity}
+            .cameraConfig=${this.cameraConfig}
           >
           </frigate-card-live-ha>`
         : provider == 'webrtc-card'
@@ -700,7 +700,7 @@ export class FrigateCardLiveFrigate extends LitElement {
   protected hass?: HomeAssistant & ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected cameraEntity?: string;
+  protected cameraConfig?: CameraConfig;
 
   protected _playerRef: Ref<FrigateCardLiveFrigate> = createRef();
 
@@ -741,17 +741,27 @@ export class FrigateCardLiveFrigate extends LitElement {
       return;
     }
 
-    if (!this.cameraEntity || !(this.cameraEntity in this.hass.states)) {
-      return dispatchMessageEvent(
+    if (!this.cameraConfig?.camera_entity) {
+      return dispatchErrorMessageEvent(
         this,
         localize('error.no_live_camera'),
-        'mdi:camera-off',
+        this.cameraConfig,
       );
     }
+
+    const stateObj = this.hass.states[this.cameraConfig.camera_entity];
+    if (!stateObj || stateObj.state === 'unavailable') {
+      return dispatchErrorMessageEvent(
+        this,
+        localize('error.live_camera_unavailable'),
+        this.cameraConfig,
+      );
+    }
+
     return html` <frigate-card-ha-camera-stream
       ${ref(this._playerRef)}
       .hass=${this.hass}
-      .stateObj=${this.hass.states[this.cameraEntity]}
+      .stateObj=${stateObj}
       .controls=${true}
       .muted=${true}
     >

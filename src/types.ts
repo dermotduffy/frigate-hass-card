@@ -835,6 +835,7 @@ export interface Message {
   message: string;
   type: 'error' | 'info';
   icon?: string;
+  context?: unknown;
 }
 
 export interface StateParameters {

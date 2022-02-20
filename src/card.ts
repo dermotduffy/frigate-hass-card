@@ -451,14 +451,16 @@ export class FrigateCard extends LitElement {
 
       if (!id) {
         this._setMessageAndUpdate({
-          message: localize('error.no_camera_id') + `: ${JSON.stringify(config)}`,
+          message: localize('error.no_camera_id'),
           type: 'error',
+          context: config,
         });
         errorFree = false;
       } else if (cameras.has(id)) {
         this._setMessageAndUpdate({
-          message: localize('error.duplicate_camera_id') + `: ${JSON.stringify(config)}`,
+          message: localize('error.duplicate_camera_id'),
           type: 'error',
+          context: config,
         });
         errorFree = false;
       } else {
