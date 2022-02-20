@@ -1,7 +1,7 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property } from 'lit/decorators';
-import { computeActiveState, frigateCardHasAction, refreshDynamicStateParameters } from '../common.js';
-import { computeStateDomain, HomeAssistant } from 'custom-card-helpers';
+import { frigateCardHasAction, refreshDynamicStateParameters } from '../common.js';
 import { ifDefined } from 'lit/directives/if-defined';
 import { styleMap } from 'lit/directives/style-map';
 

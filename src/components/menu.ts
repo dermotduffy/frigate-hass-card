@@ -1,5 +1,5 @@
-import { computeStateDomain, HASSDomEvent, HomeAssistant } from 'custom-card-helpers';
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
+import { HASSDomEvent, HomeAssistant } from 'custom-card-helpers';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined';
@@ -18,7 +18,6 @@ import type {
   StateParameters,
 } from '../types.js';
 import {
-  computeActiveState,
   convertActionToFrigateCardCustomAction,
   frigateCardHandleActionConfig,
   frigateCardHasAction,

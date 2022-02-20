@@ -213,6 +213,7 @@
     "troubleshooting": "Verifique a solução de problemas",
     "could_not_resolve": "Não foi possível resolver o URL de mídia",
     "no_live_camera": "O parâmetro camera_entity deve ser definido e válido para este provedor ativo",
+    "live_camera_unavailable": "camera_entity configurada não está disponível",
     "invalid_configuration": "Configuração inválida",
     "invalid_configuration_no_hint": "Nenhuma dica de local disponível (tipo incorreto ou ausente?)",
     "upgrade_available": "Uma atualização automatizada da configuração do cartão está disponível, visite o editor visual do cartão",

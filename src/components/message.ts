@@ -13,17 +13,26 @@ export class FrigateCardMessage extends LitElement {
   protected message = '';
 
   @property({ attribute: false })
-  protected icon?;
+  protected context?: unknown;
+
+  @property({ attribute: false })
+  protected icon?: string;
 
   // Render the menu.
   protected render(): TemplateResult {
     const icon = this.icon ? this.icon : 'mdi:information-outline';
-    return html` <div class="message">
-      <span>
-        <ha-icon icon="${icon}"> </ha-icon>
-      </span>
-      <span> ${this.message ? html`${this.message}` : ''} </span>
-    </div>`;
+    return html`
+      <div class="wrapper">
+        <div class="message">
+          <div class="icon">
+            <ha-icon icon="${icon}"> </ha-icon>
+          </div>
+          <div class="contents">
+            <span> ${this.message ? html`${this.message}` : ''} </span>
+            ${this.context ? html`<pre>${JSON.stringify(this.context, null, 2)}</pre>` : ''}
+          </div>
+        </div>
+      </div>`;
   }
 
   static get styles(): CSSResultGroup {
@@ -34,15 +43,23 @@ export class FrigateCardMessage extends LitElement {
 @customElement('frigate-card-error-message')
 export class FrigateCardErrorMessage extends LitElement {
   @property({ attribute: false })
-  protected error = '';
+  protected message?: Message;
 
-  protected render(): TemplateResult {
+  protected render(): TemplateResult | void {
+    if (!this.message) {
+      return;
+    }
     return html` <frigate-card-message
-      .message=${html` ${this.error}.
+      .message=${html` ${this.message.message}.
         <a href="${TROUBLESHOOTING_URL}"> ${localize('error.troubleshooting')}</a>.`}
       .icon=${'mdi:alert-circle'}
+      .context=${this.message.context}
     >
     </frigate-card-message>`;
+  }
+
+  static get styles(): CSSResultGroup {
+    return unsafeCSS(messageStyle);
   }
 }
 
@@ -68,12 +85,13 @@ export class FrigateCardProgressIndicator extends LitElement {
 export function renderMessage(message: Message): TemplateResult {
   if (message.type == 'error') {
     return html` <frigate-card-error-message
-      .error=${message.message}
+      .message=${message}
     ></frigate-card-error-message>`;
   } else if (message.type == 'info') {
     return html` <frigate-card-message
       .message=${message.message}
       .icon=${message.icon}
+      .context=${message.context}
     ></frigate-card-message>`;
   }
   return html``;

@@ -191,11 +191,13 @@ export function dispatchMessageEvent(
   element: HTMLElement,
   message: string,
   icon?: string,
+  context?: unknown,
 ): void {
   dispatchFrigateCardEvent<Message>(element, 'message', {
     message: message,
     type: 'info',
     icon: icon,
+    context: context,
   });
 }
 
@@ -204,10 +206,15 @@ export function dispatchMessageEvent(
  * @param element The element to send the event.
  * @param message The message to show.
  */
-export function dispatchErrorMessageEvent(element: HTMLElement, message: string): void {
+export function dispatchErrorMessageEvent(
+  element: HTMLElement,
+  message: string,
+  context?: unknown,
+): void {
   dispatchFrigateCardEvent<Message>(element, 'message', {
     message: message,
     type: 'error',
+    context: context,
   });
 }
 
