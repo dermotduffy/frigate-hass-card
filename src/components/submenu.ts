@@ -62,14 +62,14 @@ export class FrigateCardSubmenu extends LitElement {
   }
 
   /**
-   * Get the HUI root element for this Lovelace dashboard.
-   * @returns The HUI Root element or null if not found.
+   * Get the fixed root element in which fixed elements are positioned against.
+   * @returns The fixed root element or null if not found.
    */
-  protected getHUIRoot(): Element | null {
+  protected _getFixedRoot(): HTMLElement | null {
     let n = this as Node | null;
     while (n) {
-      if (n.nodeType === Node.ELEMENT_NODE && (n as Element).tagName === 'HUI-VIEW') {
-        return n as Element;
+      if (n.nodeType === Node.ELEMENT_NODE && (n as Element).tagName === 'HA-APP-LAYOUT') {
+        return n as HTMLElement;
       }
       n = n.parentNode
         ? n.parentNode
@@ -102,16 +102,19 @@ export class FrigateCardSubmenu extends LitElement {
             // When in fixed mode, the menu anchoring refuses to get the
             // placement correct -- it's always off by exactly the dimensions of
             // the sidebar/header. To work around this we iterate up the DOM to
-            // find the main view (excl. the sidebar) and subtract those
+            // find the main root (excl. the sidebar) and subtract those
             // dimensions off wherever the menu believes it should render.
             this._menu.anchor = this;
-            const root = this.getHUIRoot();
+            const root = this._getFixedRoot();
             if (root) {
               const rootPosition = root.getBoundingClientRect();
-              this._menu.x = -rootPosition.left;
-              this._menu.y = -rootPosition.top + this.clientHeight;
-              this._menu.show();
+              this._menu.x = -rootPosition.x;
+              this._menu.y = -rootPosition.y;
+            } else {
+              this._menu.x = 0;
+              this._menu.y = 0;
             }
+            this._menu.show();
           }
         }}
       >
