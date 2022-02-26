@@ -1,5 +1,8 @@
 :host {
   display: block;
+
+  // Anchor absolutes to the outer part of the card.
+  position: relative;
 }
 
 .container {
@@ -10,11 +13,6 @@
   margin: auto;
   display: flex;
   justify-content: center;
-
-  // Need to apply the border radius on the container level, as the ha-card has
-  // overflow visible in order to allow a submenu to extend beyond the card
-  // boundary.
-  border-radius: var(--ha-card-border-radius, 4px);
 }
 
 .frigate-card-contents {
@@ -44,29 +42,29 @@
 }
 
 /* The 'hover' menu mode is styling applied outside of the menu itself */
-.hover-menu {
+frigate-card-menu[data-mode^=hover-] {
   z-index: 1;
-  transition: all 0.5s ease;
+  transition: opacity 0.5s ease;
 }
-.outer + .hover-menu {
+
+.outer + frigate-card-menu[data-mode^=hover-] {
   opacity: 0.0;
 }
-.outer:hover + .hover-menu, .hover-menu:hover {
-  opacity: 0.9;
+.outer:hover + frigate-card-menu[data-mode^=hover-], frigate-card-menu[data-mode^=hover-]:hover {
+  opacity: 1.0;
 }
 
 ha-card {
   display: flex;
   flex-direction: column;
   margin: auto;
-
-  // Some elements (such as menus) may need to extend beyond the card boundary.
-  overflow: visible;
+  overflow: hidden;
   width: 100%;
   height: 100%;
-  position: relative;
+  position: static;
   color: var(--secondary-text-color, white);
   background-color: var(--secondary-background-color, black);
+  border-radius: var(--ha-card-border-radius, 4px);
 }
 
 frigate-card-live.hidden  {
@@ -93,6 +91,6 @@ frigate-card-live.hidden  {
 :host(:-moz-full-screen) ha-card {
   @include fullscreen-ha-card;
 }
-:host(:-webkit-full-screen) ha-card {
+:host(:-ms-fullscreen) ha-card {
   @include fullscreen-ha-card;
 }

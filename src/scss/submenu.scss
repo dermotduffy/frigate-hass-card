@@ -7,3 +7,7 @@
 mwc-list-item {  
   z-index: 20;
 }
+
+mwc-list-item[disabled] {
+ color: var(--disabled-text-color);
+}

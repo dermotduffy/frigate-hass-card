@@ -976,16 +976,12 @@ export class FrigateCard extends LitElement {
    * @returns A rendered template.
    */
   protected _renderMenu(): TemplateResult | void {
-    const classes = {
-      'hover-menu': this._getConfig().menu.mode.startsWith('hover-'),
-    };
     return html`
       <frigate-card-menu
         .hass=${this._hass}
         .menuConfig=${this._getConfig().menu}
         .buttons=${this._getMenuButtons()}
         .conditionState=${this._conditionState}
-        class="${classMap(classes)}"
       ></frigate-card-menu>
     `;
   }
