@@ -4,25 +4,22 @@
   --frigate-card-menu-button-size: 40px;
   --mdc-icon-button-size: var(--frigate-card-menu-button-size);
   --mdc-icon-size: calc(var(--mdc-icon-button-size) / 2);
- }
 
-.frigate-card-menu {
-  /* Menu div itself does not handle click events. Without this, in overlay
-     mode, the menu div prevents clicking on gallery items 'behind' the overlay.
-     */
+  // Menu itself does not handle click events. Without this, in overlay mode the
+  // menu component prevents clicking on gallery items 'behind' the overlay.
   pointer-events: none;
 
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
 }
-.frigate-card-menu.overlay-hidden {
-  position: absolute;
-  overflow: hidden;
-  width: calc(var(--frigate-card-menu-button-size) + 6px);
-  height: calc(var(--frigate-card-menu-button-size) + 6px);
+
+:host([data-mode="above"]),:host([data-mode="below"]) {
+  width: 100%;
+  background: var(--secondary-background-color);
 }
-.frigate-card-menu.overlay-hidden.left {
+
+:host([data-mode$="-left"]) {
   left: 0px;
   top: 0px;
 
@@ -38,23 +35,21 @@
   // - https://bugs.chromium.org/p/chromium/issues/detail?id=507397
   writing-mode: vertical-lr;
 }
-.frigate-card-menu.overlay-hidden.top {
-  left: 0px;
-  top: 0px;
-}
-.frigate-card-menu.overlay-hidden.right {
+
+:host([data-mode$="-right"]) {
   right: 0px;
   top: 0px;
 
   // See "Awful hack" above.
   writing-mode: vertical-rl;
 }
-.frigate-card-menu.overlay-hidden.left > *,.frigate-card-menu.overlay-hidden.right > * {
-  // See "Awful hack" above.
-  writing-mode: horizontal-tb;
-} 
 
-.frigate-card-menu.overlay-hidden.bottom {
+:host([data-mode$="-top"]) {
+  left: 0px;
+  top: 0px;
+}
+
+:host([data-mode$="-bottom"]) {
   left: 0px;
   bottom: 0px;
 
@@ -62,20 +57,44 @@
   // Frigate button in the same place.
   flex-wrap: wrap-reverse;
 }
-.frigate-card-menu.overlay-hidden.expanded-horizontal {
+
+:host([data-mode^="overlay-"]),:host([data-mode^="hover-"]),:host([data-mode^="hidden-"]) {
+  position: absolute;
+  overflow: hidden;
+  width: calc(var(--frigate-card-menu-button-size) + 6px);
+  height: calc(var(--frigate-card-menu-button-size) + 6px);
+}
+
+:host([data-mode="overlay-top"]),
+:host([data-mode="overlay-bottom"]),
+:host([data-mode="hover-top"]),
+:host([data-mode="hover-bottom"]),
+:host([data-mode="hidden-top"][expanded]),
+:host([data-mode="hidden-bottom"][expanded]) {
   width: 100%;
   height: auto;
   overflow: visible;
   background: linear-gradient(90deg, rgba(0,0,0,0.3), rgba(0,0,0,0));
 }
-.frigate-card-menu.overlay-hidden.expanded-vertical {
+
+:host([data-mode="overlay-left"]),
+:host([data-mode="overlay-right"]),
+:host([data-mode="hover-left"]),
+:host([data-mode="hover-right"]),
+:host([data-mode="hidden-left"][expanded]),
+:host([data-mode="hidden-right"][expanded]) {
   height: 100%;
   width: auto;
   overflow: visible;
   background: linear-gradient(180deg, rgba(0,0,0,0.3), rgba(0,0,0,0));
 }
-/* Full above/below menu */
-.frigate-card-menu.full {
-  width: 100%;
-  background: var(--secondary-background-color);
+
+:host([data-mode="overlay-left"]) > *,
+:host([data-mode="hover-left"]) > *,
+:host([data-mode="hidden-left"]) > *,
+:host([data-mode="overlay-right"]) > *,
+:host([data-mode="hover-right"]) > *,
+:host([data-mode="hidden-right"]) > * {
+  // See "Awful hack" above.
+  writing-mode: horizontal-tb;
 }

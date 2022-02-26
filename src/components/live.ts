@@ -47,7 +47,6 @@ import {
   dispatchErrorMessageEvent,
   dispatchExistingMediaShowInfoAsEvent,
   dispatchMediaShowEvent,
-  dispatchMessageEvent,
   getCameraIcon,
   getCameraTitle,
   homeAssistantSignPath,
