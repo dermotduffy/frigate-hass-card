@@ -862,7 +862,7 @@ export interface FrigateCardMediaPlayer {
 // Recursive type, cannot use type interference:
 // See: https://github.com/colinhacks/zod#recursive-types
 //
-// Server side data-type defined here: https://github.com/home-assistant/core/blob/dev/homeassistant/components/media_player/__init__.py
+// Server side data-type defined here: https://github.com/home-assistant/core/blob/dev/homeassistant/components/media_player/browse_media.py#L46
 export interface BrowseMediaSource {
   title: string;
   media_class: string;
@@ -870,7 +870,7 @@ export interface BrowseMediaSource {
   media_content_id: string;
   can_play: boolean;
   can_expand: boolean;
-  children_media_class: string | null;
+  children_media_class?: string | null;
   thumbnail: string | null;
   children?: BrowseMediaSource[] | null;
 }
@@ -883,7 +883,7 @@ export const browseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.lazy(()
     media_content_id: z.string(),
     can_play: z.boolean(),
     can_expand: z.boolean(),
-    children_media_class: z.string().nullable(),
+    children_media_class: z.string().nullable().optional(),
     thumbnail: z.string().nullable(),
     children: z.array(browseMediaSourceSchema).nullable().optional(),
   }),
