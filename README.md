@@ -697,10 +697,11 @@ specific overriding the less specific (see example below).
 
 **Note:** The card itself relies on user interactions to function (e.g. `tap` on
 the menu should activate that button, `tap` on a gallery thumbnail should open
-that piece of media, etc). These internal actions are executed _also_, which
-means that a card-wide `tap` action probably isn't that useful as it may be
-disorienting to the user and will trigger on all kinds of basic interaction on
-the card (e.g. tapping/clicking a menu button).
+that piece of media, etc). Efforts are taken to de-duplicate interactions (e.g.
+card-wide actions will not be activated through interaction with menu buttons,
+next/previous controls, thumbnails, etc), but in some cases this is not possible
+(e.g. embedded WebRTC card controls) -- in these cases duplicate actions may
+occur with certain configurations (e.g. `tap`).
 
 ## Menu Modes
 

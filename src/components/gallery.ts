@@ -13,6 +13,7 @@ import {
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import { View } from '../view.js';
 import { renderProgressIndicator } from './message.js';
+import { stopEventFromActivatingCardWideActions } from '../common.js';
 
 import galleryStyle from '../scss/gallery.scss';
 
@@ -161,10 +162,11 @@ export class FrigateCardGalleryCore extends LitElement {
             <div class="mdc-image-list__image-aspect-container">
               <div class="mdc-image-list__image">
                 <ha-card
-                  @click=${() => {
+                  @click=${(ev) => {
                     if (this.view && this.view.previous) {
                       this.view.previous.dispatchChangeEvent(this);
                     }
+                    stopEventFromActivatingCardWideActions(ev);
                   }}
                   outlined=""
                   class="frigate-card-gallery-folder"
@@ -182,7 +184,7 @@ export class FrigateCardGalleryCore extends LitElement {
               ${child.can_expand
                 ? html`<div class="mdc-image-list__image">
                     <ha-card
-                      @click=${() => {
+                      @click=${(ev) => {
                         if (this.hass && this.view) {
                           BrowseMediaUtil.fetchChildMediaAndDispatchViewChange(
                             this,
@@ -191,6 +193,7 @@ export class FrigateCardGalleryCore extends LitElement {
                             child,
                           );
                         }
+                        stopEventFromActivatingCardWideActions(ev);
                       }}
                       outlined=""
                       class="frigate-card-gallery-folder"
@@ -204,7 +207,7 @@ export class FrigateCardGalleryCore extends LitElement {
                     class="mdc-image-list__image"
                     src="${child.thumbnail}"
                     title="${child.title}"
-                    @click=${() => {
+                    @click=${(ev) => {
                       if (this.view) {
                         this.view
                           .evolve({
@@ -214,6 +217,7 @@ export class FrigateCardGalleryCore extends LitElement {
                           })
                           .dispatchChangeEvent(this);
                       }
+                      stopEventFromActivatingCardWideActions(ev);
                     }}
                   />`
                 : ``}
