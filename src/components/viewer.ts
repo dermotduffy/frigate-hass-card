@@ -38,6 +38,7 @@ import {
   contentsChanged,
   createMediaShowInfo,
   dispatchErrorMessageEvent,
+  stopEventFromActivatingCardWideActions,
 } from '../common.js';
 import { renderProgressIndicator } from '../components/message.js';
 
@@ -655,8 +656,9 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
           .thumbnail=${prev && prev.thumbnail ? prev.thumbnail : undefined}
           .label=${prev ? prev.title : ''}
           ?disabled=${!prev}
-          @click=${() => {
+          @click=${(ev) => {
             this._nextPreviousHandler('previous');
+            stopEventFromActivatingCardWideActions(ev);
           }}
         ></frigate-card-next-previous-control>
         <div class="embla__viewport">
@@ -669,8 +671,9 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
           .thumbnail=${next && next.thumbnail ? next.thumbnail : undefined}
           .label=${next ? next.title : ''}
           ?disabled=${!next}
-          @click=${() => {
+          @click=${(ev) => {
             this._nextPreviousHandler('next');
+            stopEventFromActivatingCardWideActions(ev);
           }}
         ></frigate-card-next-previous-control>
       </div>

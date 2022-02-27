@@ -50,6 +50,7 @@ import {
   getCameraIcon,
   getCameraTitle,
   homeAssistantSignPath,
+  stopEventFromActivatingCardWideActions,
 } from '../common.js';
 import { renderProgressIndicator } from '../components/message.js';
 
@@ -550,8 +551,9 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
           .label=${getCameraTitle(this.hass, prev)}
           .icon=${getCameraIcon(this.hass, prev)}
           ?disabled=${prev == null}
-          @click=${() => {
+          @click=${(ev) => {
             this._nextPreviousHandler('previous');
+            stopEventFromActivatingCardWideActions(ev);
           }}
         >
         </frigate-card-next-previous-control>
@@ -565,8 +567,9 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
           .label=${getCameraTitle(this.hass, next)}
           .icon=${getCameraIcon(this.hass, next)}
           ?disabled=${next == null}
-          @click=${() => {
+          @click=${(ev) => {
             this._nextPreviousHandler('next');
+            stopEventFromActivatingCardWideActions(ev);
           }}
         >
         </frigate-card-next-previous-control>

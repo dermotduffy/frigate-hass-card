@@ -2,7 +2,11 @@ import type { Corner, Menu } from '@material/mwc-menu';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property, query } from 'lit/decorators';
-import { frigateCardHasAction, refreshDynamicStateParameters } from '../common.js';
+import {
+  frigateCardHasAction,
+  refreshDynamicStateParameters,
+  stopEventFromActivatingCardWideActions,
+} from '../common.js';
 import { ifDefined } from 'lit/directives/if-defined';
 import { styleMap } from 'lit/directives/style-map';
 
@@ -68,7 +72,10 @@ export class FrigateCardSubmenu extends LitElement {
   protected _getFixedRoot(): HTMLElement | null {
     let n = this as Node | null;
     while (n) {
-      if (n.nodeType === Node.ELEMENT_NODE && (n as Element).tagName === 'HA-APP-LAYOUT') {
+      if (
+        n.nodeType === Node.ELEMENT_NODE &&
+        (n as Element).tagName === 'HA-APP-LAYOUT'
+      ) {
         return n as HTMLElement;
       }
       n = n.parentNode
@@ -93,7 +100,7 @@ export class FrigateCardSubmenu extends LitElement {
           hasHold: frigateCardHasAction(this.submenu.hold_action),
           hasDoubleClick: frigateCardHasAction(this.submenu.double_tap_action),
         })}
-        @click=${() => {
+        @click=${(ev) => {
           if (this._menu) {
             // Hack: This insanity is brought about by lack of MWCMenu playing
             // nicely with the Home Assistant view/sidepanel. The menu must be
@@ -116,12 +123,13 @@ export class FrigateCardSubmenu extends LitElement {
             }
             this._menu.show();
           }
+          stopEventFromActivatingCardWideActions(ev);
         }}
       >
         <ha-icon icon="${this.submenu.icon}"></ha-icon>
       </ha-icon-button>
       <mwc-menu
-        .corner=${this.corner || "BOTTOM_LEFT"}
+        .corner=${this.corner || 'BOTTOM_LEFT'}
         fixed
         @closed=${
           // Prevent the submenu closing from closing anything upstream (e.g.

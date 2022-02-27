@@ -583,3 +583,10 @@ export const frigateCardHasAction = (
   }
   return hasAction(config);
 };
+
+/**
+ * Stop an event from activating card wide actions.
+ */
+export const stopEventFromActivatingCardWideActions = (ev: Event): void => {
+  ev.stopPropagation();
+}

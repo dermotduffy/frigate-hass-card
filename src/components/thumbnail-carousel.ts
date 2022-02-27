@@ -5,7 +5,7 @@ import { customElement, property } from 'lit/decorators.js';
 
 import type { BrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
 import { FrigateCardCarousel } from './carousel.js';
-import { dispatchFrigateCardEvent } from '../common.js';
+import { dispatchFrigateCardEvent, stopEventFromActivatingCardWideActions } from '../common.js';
 
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
 
@@ -111,7 +111,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
 
     return html`<div
       class="embla__slide"
-      @click=${() => {
+      @click=${(ev) => {
         if (this._carousel && this._carousel.clickAllowed()) {
           dispatchFrigateCardEvent<ThumbnailCarouselTap>(this, 'carousel:tap', {
             slideIndex: slideIndex,
@@ -119,6 +119,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
             childIndex: childIndex,
           });
         }
+        stopEventFromActivatingCardWideActions(ev);
       }}
     >
       <img
