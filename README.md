@@ -1377,6 +1377,12 @@ live:
       videoBufferSize: 41943040
 ```
 
+### Home Assistant iOS App not updating after card version change
+
+Try resetting the app frontend cache:
+
+* `Configuration -> Companion App -> Debugging -> Reset frontend cache`
+
 ## Development
 
 ### Building
