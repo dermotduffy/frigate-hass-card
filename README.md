@@ -1379,10 +1379,9 @@ live:
 
 ### Home Assistant iOS App not updating after card version change
 
-Try reseting the app frontend cache:
+Try resetting the app frontend cache:
 
-* Navigate to 'iOS app settings' in the app.
-* Choose 'Reset frontend cache'.
+* `Configuration -> Companion App -> Debugging -> Reset frontend cache`
 
 ## Development
 
