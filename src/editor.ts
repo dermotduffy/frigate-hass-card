@@ -446,14 +446,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    */
   protected _renderNumberInput(
     configPath: string,
-    valueDefault: number,
     min?: number,
     max?: number,
   ): TemplateResult | void {
     if (!this._config) {
       return;
     }
-    const value = Number(getConfigValue(this._config, configPath, valueDefault));
+    const value = getConfigValue(this._config, configPath);
     const mode = max === undefined ? 'box' : 'slider';
 
     return html`
@@ -461,7 +460,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         .hass=${this.hass}
         .selector=${{ number: { min: min || 0, max: max, mode: mode } }}
         .label=${this._getLabel(configPath)}
-        .value=${isNaN(value) ? valueDefault : value}
+        .value=${value}
         .required=${false}
         @value-changed=${(ev) => this._valueChangedHandler(configPath, ev)}
       >
@@ -757,15 +756,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       return html``;
     }
 
-    // The picture-glance editor loads the ha-selectors.
-    // See: https://github.com/thomasloven/hass-config/wiki/PreLoading-Lovelace-Elements
-    const pictureGlance = this._helpers.createCardElement({
-      type: 'picture-glance',
-      entities: [],
-      camera_image: 'dummy-to-load-components',
-    });
-    pictureGlance.constructor.getConfigElement();
-
     const defaults = frigateCardConfigDefaults;
 
     const getShowButtonLabel = (configPath: string) =>
@@ -812,14 +802,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_VIEW_CAMERA_SELECT,
                   this._cameraSelectViewModes,
                 )}
-                ${this._renderNumberInput(
-                  CONF_VIEW_TIMEOUT_SECONDS,
-                  defaults.view.timeout_seconds,
-                )}
-                ${this._renderNumberInput(
-                  CONF_VIEW_UPDATE_SECONDS,
-                  defaults.view.update_seconds,
-                )}
+                ${this._renderNumberInput(CONF_VIEW_TIMEOUT_SECONDS)}
+                ${this._renderNumberInput(CONF_VIEW_UPDATE_SECONDS)}
                 ${this._renderSwitch(CONF_VIEW_UPDATE_FORCE, defaults.view.update_force)}
                 ${this._renderSwitch(
                   CONF_VIEW_UPDATE_CYCLE_CAMERA,
@@ -906,7 +890,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 )}
                 ${this._renderNumberInput(
                   CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
-                  defaults.live.controls.title.duration_seconds,
                   0,
                   60,
                 )}
@@ -920,12 +903,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${this._renderOptionSetHeader('event_gallery')}
         ${options.event_gallery.show
           ? html` <div class="values">
-              ${this._renderNumberInput(
-                CONF_EVENT_GALLERY_MIN_COLUMNS,
-                defaults.event_gallery.min_columns,
-                1,
-                10,
-              )}
+              ${this._renderNumberInput(CONF_EVENT_GALLERY_MIN_COLUMNS, 1, 10)}
             </div>`
           : ''}
         ${this._renderOptionSetHeader('event_viewer')}
@@ -963,7 +941,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               )}
               ${this._renderNumberInput(
                 CONF_EVENT_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
-                defaults.event_viewer.controls.title.duration_seconds,
                 0,
                 60,
               )}
@@ -978,10 +955,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html` <div class="values">
               ${this._renderOptionSelector(CONF_IMAGE_MODE, this._imageModes)}
               ${this._renderStringInput(CONF_IMAGE_URL)}
-              ${this._renderNumberInput(
-                CONF_IMAGE_REFRESH_SECONDS,
-                defaults.image.refresh_seconds,
-              )}
+              ${this._renderNumberInput(CONF_IMAGE_REFRESH_SECONDS)}
             </div>`
           : ''}
         ${this._renderOptionSetHeader('dimensions')}
@@ -1013,7 +987,20 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     if (this.hass === undefined) return;
     if (this._config === undefined) return;
     if (this._helpers === undefined) return;
-    this._initialized = true;
+
+    (async (): Promise<void> => {
+      // The picture-glance editor loads the ha-selectors.
+      // See: https://github.com/thomasloven/hass-config/wiki/PreLoading-Lovelace-Elements
+      const pictureGlance = await this._helpers.createCardElement({
+        type: 'picture-glance',
+        entities: [],
+        camera_image: 'dummy-to-load-editor-components',
+      });
+      if (pictureGlance.constructor.getConfigElement) {
+        await pictureGlance.constructor.getConfigElement();
+        this._initialized = true;
+      }
+    })();
   }
 
   /**

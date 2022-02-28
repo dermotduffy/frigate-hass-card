@@ -79,10 +79,11 @@ At least 1 camera must be configured in the `cameras` options, but otherwise all
 
 ### Camera Options
 
-The `cameras` block configures a list of cameras the card should support, under:
+The `cameras` block configures a list of cameras the card should support. The first listed camera is the default. Camera configuration is under:
 
 ```yaml
 cameras:
+  - [...camera 0 (default camera)...]
   - [...camera 1...]
   - [...camera 2...]
 ```
@@ -149,7 +150,7 @@ view:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `default` | `live` | :heavy_multiplication_x: | The view to show in the card by default. See [views](#views) below.|
+| `default` | `live` | :heavy_multiplication_x: | The view to show in the card by default. The default camera is the first one listed. See [views](#views) below.|
 | `camera_select` | `current` | :heavy_multiplication_x: | The view to show when a new camera is selected (e.g. in the camera menu). If `current` the view is unchanged when a new camera is selected. Other acceptable values may be seen at [views](#views) below.|
 | `timeout_seconds` | `300` | :heavy_multiplication_x: | A numbers of seconds of inactivity after user interaction, after which the card will reset to the default configured view (i.e. 'screensaver' functionality). Inactivity is defined as lack of mouse/touch interaction with the Frigate card. If the default view occurs sooner (e.g. via `update_seconds` or manually) the timer will be stopped. `0` means disable this functionality. |
 | `update_seconds` | `0` | :heavy_multiplication_x: | A number of seconds after which to automatically update/refresh the default view. See [card updates](#card-updates) below for behavior and usecases. If the default view occurs sooner (e.g. manually) the timer will start over. `0` disables this functionality.|
@@ -1258,16 +1259,16 @@ The following table describes the behavior these flags have.
 | `view . update_seconds` | `view . timeout_seconds` | `view . update_force` | `view . update_entities` | Behavior |
 | :-: | :-: | :-: | :-: | - |
 | `0` | `0` | *(Any value)* | Unset | Card will not automatically refresh. |
-| `0` | `0` | *(Any value)* | *(Any entity)* | Card will reload default view when entity state changes. |
-| `0` | `X` seconds | *(Any value)* | Unset | Card will reload default view `X` seconds after user interaction stops. |
-| `0` | `X` seconds | `false` | *(Any entity)* | Card will reload default view `X` seconds after user interaction stops, or when entity state changes (as long as user interaction has not occurred in the last `X` seconds). |
-| `0` | `X` seconds | `true` | *(Any entity)* | Card will reload default view `X` seconds after user interaction stops or when entity state changes. |
-| `Y` seconds | `0` | *(Any value)* | Unset | Card will reload default view every `Y` seconds. |
-| `Y` seconds | `0` | *(Any value)* | *(Any entity)* | Card will reload default view every `Y` seconds, or whenever entity state changes. |
-| `Y` seconds | `X` seconds | `false` | Unset | Card will reload default view `X` seconds after user interaction stops, and every `Y` seconds (as long as there hasn't been user interaction in the last `X` seconds).  |
-| `Y` seconds | `X` seconds | `false` | *(Any entity)* | Card will reload default view `X` seconds after user interaction stops, and every `Y` seconds or whenever entity state changes (in both cases -- as long as there hasn't been user interaction in the last `X` seconds).  |
-| `Y` seconds | `X` seconds | `true` | Unset | Card will reload default view `X` seconds after user interaction stops, and every `Y` seconds.  |
-| `Y` seconds | `X` seconds | `true` | *(Any entity)* | Card will reload default view `X` seconds after user interaction stops, and every `Y` seconds or whenever entity state changes.  |
+| `0` | `0` | *(Any value)* | *(Any entity)* | Card will reload default view & camera when entity state changes. |
+| `0` | `X` seconds | *(Any value)* | Unset | Card will reload default view & camera `X` seconds after user interaction stops. |
+| `0` | `X` seconds | `false` | *(Any entity)* | Card will reload default view & camera `X` seconds after user interaction stops, or when entity state changes (as long as user interaction has not occurred in the last `X` seconds). |
+| `0` | `X` seconds | `true` | *(Any entity)* | Card will reload default view & camera `X` seconds after user interaction stops or when entity state changes. |
+| `Y` seconds | `0` | *(Any value)* | Unset | Card will reload default view & camera every `Y` seconds. |
+| `Y` seconds | `0` | *(Any value)* | *(Any entity)* | Card will reload default view & camera every `Y` seconds, or whenever entity state changes. |
+| `Y` seconds | `X` seconds | `false` | Unset | Card will reload default view & camera `X` seconds after user interaction stops, and every `Y` seconds (as long as there hasn't been user interaction in the last `X` seconds).  |
+| `Y` seconds | `X` seconds | `false` | *(Any entity)* | Card will reload default view & camera `X` seconds after user interaction stops, and every `Y` seconds or whenever entity state changes (in both cases -- as long as there hasn't been user interaction in the last `X` seconds).  |
+| `Y` seconds | `X` seconds | `true` | Unset | Card will reload default view & camera `X` seconds after user interaction stops, and every `Y` seconds.  |
+| `Y` seconds | `X` seconds | `true` | *(Any entity)* | Card will reload default view & camera `X` seconds after user interaction stops, and every `Y` seconds or whenever entity state changes.  |
 
 ### Usecases For Automated Refreshes
 
