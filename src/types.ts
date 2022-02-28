@@ -147,6 +147,8 @@ export const frigateCardCustomActionSchema = z.union([
 ]);
 export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSchema>;
 
+// Cannot use discriminatedUnion since frigateCardCustomActionSchema uses a
+// transform on the discriminated union key.
 const actionSchema = z.union([
   toggleActionSchema,
   callServiceActionSchema,
@@ -353,7 +355,7 @@ const frigateConditionalSchema = z.object({
 });
 export type FrigateConditional = z.infer<typeof frigateConditionalSchema>;
 
-const pictureElementSchema = z.union([
+const pictureElementSchema = z.discriminatedUnion("type", [
   menuStateIconSchema,
   menuIconSchema,
   menuSubmenuSchema,
@@ -798,7 +800,7 @@ export const frigateCardConfigDefaults = {
   image: imageConfigDefault,
 };
 
-const menuButtonSchema = z.union([
+const menuButtonSchema = z.discriminatedUnion("type", [
   menuIconSchema,
   menuStateIconSchema,
   menuSubmenuSchema,
