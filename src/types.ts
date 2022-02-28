@@ -461,7 +461,7 @@ const titleControlConfigSchema = z.object({
     'popup-bottom-right',
     'popup-bottom-left',
   ]),
-  duration_seconds: z.number().min(0),
+  duration_seconds: z.number().min(0).max(60),
 });
 export type TitleControlConfig = z.infer<typeof titleControlConfigSchema>;
 
