@@ -90,7 +90,7 @@
             "popup-bottom-left": "Popup on the bottom left",
             "popup-bottom-right": "Popup on the bottom right"
           },
-          "duration_seconds": "Seconds to display popup title in Event Viewer (0=forever)"
+          "duration_seconds": "Seconds to display popup title (0=forever)"
         }
       }
     },
@@ -122,7 +122,7 @@
         },
         "title": {
           "mode": "Live media title display mode",
-          "duration_seconds": "Seconds to display popup title in Live view (0=forever)"
+          "duration_seconds": "Seconds to display popup title (0=forever)"
         }
       }
     },
