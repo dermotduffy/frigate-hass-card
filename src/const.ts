@@ -1,4 +1,4 @@
-export const CARD_VERSION = '3.0.0-rc.1' as const;
+export const CARD_VERSION = '3.0.0-rc.2' as const;
 export const REPO_URL = 'https://github.com/dermotduffy/frigate-hass-card' as const;
 export const TROUBLESHOOTING_URL = `${REPO_URL}#troubleshooting` as const;
 
