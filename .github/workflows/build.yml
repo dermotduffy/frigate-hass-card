@@ -29,3 +29,9 @@ jobs:
           # Don't attempt to load into HACS (as it loads the release, not the
           # build).
           ignore: "hacs"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: frigate-hass-card
+          path: dist/frigate-hass-card.js
