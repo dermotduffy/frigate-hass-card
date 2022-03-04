@@ -411,7 +411,9 @@ export function refreshDynamicStateParameters(
     params.state_color || (domain === 'light' && params.state_color !== false)
       ? domain
       : undefined;
-  params.data_state = computeActiveState(state);
+  if (state) {
+    params.data_state = computeActiveState(state);
+  }
   return params;
 }
 
