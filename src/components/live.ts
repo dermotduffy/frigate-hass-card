@@ -1035,8 +1035,14 @@ export class FrigateCardLiveJSMPEG extends LitElement {
           protocols: [],
           audio: false,
           videoBufferSize: 1024 * 1024 * 4,
+
           // Override with user-specified options.
           ...this.jsmpegConfig?.options,
+
+          // Don't allow the player to internally reconnect, as it may re-use a
+          // URL with a (newly) invalid signature, e.g. during a Home Assistant
+          // restart.
+          reconnectInterval: 0,
           onVideoDecode: () => {
             // This is the only callback that is called after the dimensions
             // are available. It's called on every frame decode, so just
