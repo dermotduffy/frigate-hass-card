@@ -233,18 +233,15 @@ export function shouldUpdateBasedOnHass(
   if (!newHass || !entities || !entities.length) {
     return false;
   }
+  if (!oldHass) {
+    return true;
+  }
 
-  if (oldHass) {
-    for (let i = 0; i < entities.length; i++) {
-      const entity = entities[i];
-      if (!entity) {
-        continue;
-      }
-      if (oldHass.states[entity] !== newHass.states[entity]) {
-        return true;
-      }
+  for (let i = 0; i < entities.length; i++) {
+    const entity = entities[i];
+    if (entity && oldHass.states[entity] !== newHass.states[entity]) {
+      return true;
     }
-    return false;
   }
   return false;
 }
@@ -591,4 +588,4 @@ export const frigateCardHasAction = (
  */
 export const stopEventFromActivatingCardWideActions = (ev: Event): void => {
   ev.stopPropagation();
-}
+};

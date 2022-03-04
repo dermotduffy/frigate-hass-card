@@ -7,7 +7,7 @@ import {
   unsafeCSS,
 } from 'lit';
 import { HomeAssistant } from 'custom-card-helpers';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 
 import { CachedValueController } from '../cached-value-controller.js';
 import { CameraConfig, ImageViewConfig } from '../types.js';
@@ -16,6 +16,9 @@ import { dispatchMediaShowEvent, shouldUpdateBasedOnHass } from '../common.js';
 import defaultImage from '../images/frigate-bird-in-sky.jpg';
 
 import imageStyle from '../scss/image.scss';
+
+// See: https://github.com/home-assistant/core/blob/dev/homeassistant/components/camera/__init__.py#L101
+const HASS_REJECTION_CUTOFF_MS = 5 * 60 * 1000;
 
 @customElement('frigate-card-image')
 export class FrigateCardImage extends LitElement {
@@ -30,6 +33,9 @@ export class FrigateCardImage extends LitElement {
 
   @state()
   protected _imageConfig?: ImageViewConfig;
+
+  @query('img')
+  protected _image?: HTMLImageElement;
 
   protected _cachedValueController?: CachedValueController<string>;
 
@@ -46,6 +52,7 @@ export class FrigateCardImage extends LitElement {
       this._imageConfig.refresh_seconds,
       this._getImageSource.bind(this),
     );
+    this._cachedValueController.startTimer();
   }
 
   /**
@@ -62,21 +69,41 @@ export class FrigateCardImage extends LitElement {
    * @returns `true` if the element should be updated.
    */
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
-    let shouldUpdate = !oldHass || changedProps.size != 1;
-
-    // Image needs to update if the image view is in camera mode and the camera
-    // entity changes, as this could be a security token change.
-    if (oldHass && this._imageConfig?.mode === 'camera') {
-      const cameraEntity = this._getCameraEntity();
-      if (
-        shouldUpdateBasedOnHass(this.hass, oldHass, cameraEntity ? [cameraEntity] : [])
-      ) {
-        shouldUpdate ||= true;
-        this._cachedValueController?.updateValue();
-      }
+    if (!this.hass) {
+      return false;
     }
-    return shouldUpdate;
+
+    // If camera mode is enabled, reject all updates if hass is older than
+    // HASS_REJECTION_CUTOFF_MS. By using an older hass (even if it is not the
+    // property being updated), we run the risk that the JS has an old access
+    // token for the camera, and that results in a notification on the HA UI
+    // about a failed login. See
+    // https://github.com/dermotduffy/frigate-hass-card/issues/398 .
+    const cameraEntity = this._getCameraEntity();
+    const state = cameraEntity ? this.hass.states[cameraEntity] : undefined;
+    if (
+      this._imageConfig?.mode === 'camera' &&
+      state &&
+      Date.now() - Date.parse(state.last_updated) >=
+      HASS_REJECTION_CUTOFF_MS
+    ) {
+      return false;
+    }
+
+    if (changedProps.has('hass') &&
+        changedProps.size == 1 &&
+        this._imageConfig?.mode === 'camera' &&
+        cameraEntity) {
+      if (shouldUpdateBasedOnHass(this.hass, changedProps.get('hass'), [cameraEntity])) {
+        // Image needs to update if the image view is in camera mode and the camera
+        // entity changes, as this could be a security token change.
+        this._cachedValueController?.updateValue();
+        this._cachedValueController?.startTimer();
+        return true;
+      }
+      return false;
+    }
+    return true;
   }
 
   /**

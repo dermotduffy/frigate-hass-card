@@ -1,8 +1,7 @@
 import { ReactiveController, ReactiveControllerHost } from 'lit';
 
 export class CachedValueController<T> implements ReactiveController {
-  public value?: T;
-
+  protected _value?: T;
   protected _host: ReactiveControllerHost;
   protected _timerSeconds: number;
   protected _callback: () => T;
@@ -22,37 +21,43 @@ export class CachedValueController<T> implements ReactiveController {
   }
 
   /**
+   * Get the value.
+   */
+  get value(): T | undefined {
+    return this._value;
+  }
+
+  /**
    * Update the cached value (and reset the timer).
    */
   public updateValue(): void {
-    this.value = this._callback();
-    this._setTimer();
+    this._value = this._callback();
   }
 
   /**
-   * Update the value and render it.
+   * Clear the cached value.
    */
-  protected _updateValueAndRender(): void {
-    this.updateValue();
-    this._host.requestUpdate();
+  public clearValue(): void {
+    this._value = undefined;
   }
 
   /**
-   * Remove the timer.
+   * Disable the timer.
    */
-  protected _removeTimer(): void {
+  public stopTimer(): void {
     clearInterval(this._timerID);
     this._timerID = undefined;
   }
 
   /**
-   * Set the timer.
+   * Enable the timer. Repeated calls will have no effect.
    */
-   protected _setTimer(): void {
-    clearInterval(this._timerID);
+  public startTimer(): void {
+    this.stopTimer();
     if (this._timerSeconds > 0) {
       this._timerID = window.setInterval(() => {
-          this._updateValueAndRender();
+        this.updateValue();
+        this._host.requestUpdate();
       }, this._timerSeconds * 1000);
     }
   }
@@ -61,13 +66,15 @@ export class CachedValueController<T> implements ReactiveController {
    * Host has connected to the cache.
    */
   hostConnected(): void {
-    this._updateValueAndRender();
+    this.updateValue();
+    this.startTimer();
+    this._host.requestUpdate();
   }
 
   /**
    * Host has disconnected from the cache.
    */
   hostDisconnected(): void {
-    this._removeTimer();
+    this.stopTimer();
   }
 }
