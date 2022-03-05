@@ -355,7 +355,9 @@ const frigateConditionalSchema = z.object({
 });
 export type FrigateConditional = z.infer<typeof frigateConditionalSchema>;
 
-const pictureElementSchema = z.discriminatedUnion("type", [
+// Cannot use discriminatedUnion since customSchema uses a superRefine, which
+// causes false rejections.
+const pictureElementSchema = z.union([
   menuStateIconSchema,
   menuIconSchema,
   menuSubmenuSchema,
