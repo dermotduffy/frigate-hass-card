@@ -38,7 +38,7 @@ export class FrigateCardImage extends LitElement {
   protected _image?: HTMLImageElement;
 
   protected _cachedValueController?: CachedValueController<string>;
-
+  protected _boundVisibilityHandler = this._visibilityHandler.bind(this);
   /**
    * Set the image configuration.
    */
@@ -52,7 +52,6 @@ export class FrigateCardImage extends LitElement {
       this._imageConfig.refresh_seconds,
       this._getImageSource.bind(this),
     );
-    this._cachedValueController.startTimer();
   }
 
   /**
@@ -69,7 +68,7 @@ export class FrigateCardImage extends LitElement {
    * @returns `true` if the element should be updated.
    */
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    if (!this.hass) {
+    if (!this.hass || document.visibilityState !== 'visible') {
       return false;
     }
 
@@ -95,15 +94,70 @@ export class FrigateCardImage extends LitElement {
         this._imageConfig?.mode === 'camera' &&
         cameraEntity) {
       if (shouldUpdateBasedOnHass(this.hass, changedProps.get('hass'), [cameraEntity])) {
-        // Image needs to update if the image view is in camera mode and the camera
-        // entity changes, as this could be a security token change.
-        this._cachedValueController?.updateValue();
-        this._cachedValueController?.startTimer();
+        // If the state of the camera entity has changed, remove the cached
+        // value (will be re-calculated in willUpdate). This is important to
+        // ensure a changed access token is immediately used.
+        this._cachedValueController?.clearValue();
         return true;
       }
       return false;
     }
     return true;
+  }
+
+
+  
+  /**
+   * Ensure there is a cached value before an update.
+   * @param _changedProps The changed properties
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected willUpdate(_changedProps: PropertyValues): void {
+    if (!this._cachedValueController?.value) {
+      this._cachedValueController?.updateValue();
+    }
+  }
+
+  /**
+   * Component connected callback.
+   */
+  connectedCallback(): void {
+    super.connectedCallback();
+    document.addEventListener('visibilitychange', this._boundVisibilityHandler);
+  }
+
+  /**
+   * Component disconnected callback.
+   */
+  disconnectedCallback(): void {
+    document.removeEventListener('visibilitychange', this._boundVisibilityHandler);
+    super.disconnectedCallback();
+  }
+
+  /**
+   * Handle document visibility changes.
+   */
+  protected _visibilityHandler(): void {
+    if (!this._image) {
+      return;
+    }
+    if (document.visibilityState === 'hidden') {
+      // Set the image to default when the document is hidden. This is to avoid
+      // some browsers (e.g. Firefox) eagerly re-loading the old image when the
+      // document regains visibility -- for some images (e.g. camera mode) the
+      // image may be using an old-expired token and re-use prior to
+      // re-generation of a new URL would generate an unauthorized request
+      // (401), see:
+      // https://github.com/dermotduffy/frigate-hass-card/issues/398
+      this._cachedValueController?.clearValue();
+      this._image.src = defaultImage;
+    } else {
+      // If the document is freshly re-visible, immediately re-render it to
+      // restore the image src. If the HASS object is old (i.e. browser tab was
+      // inactive for some time) this update request may be (correctly)
+      // rejected.
+      this.requestUpdate();
+    }
   }
 
   /**
