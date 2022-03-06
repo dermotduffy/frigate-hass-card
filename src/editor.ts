@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { ifDefined } from 'lit/directives/if-defined.js';
 
 import { HomeAssistant, LovelaceCardEditor, fireEvent } from 'custom-card-helpers';
 import { localize } from './localize/localize.js';
@@ -93,12 +92,6 @@ interface EditorOptionsSet {
 }
 interface EditorOptions {
   [setName: string]: EditorOptionsSet;
-}
-
-interface ConfigValueTarget {
-  configValue: string;
-  checked?: boolean;
-  value?: string;
 }
 
 interface EditorCameraTarget {
