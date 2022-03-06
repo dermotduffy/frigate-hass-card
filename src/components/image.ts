@@ -73,26 +73,28 @@ export class FrigateCardImage extends LitElement {
     }
 
     // If camera mode is enabled, reject all updates if hass is older than
-    // HASS_REJECTION_CUTOFF_MS. By using an older hass (even if it is not the
-    // property being updated), we run the risk that the JS has an old access
-    // token for the camera, and that results in a notification on the HA UI
-    // about a failed login. See
+    // HASS_REJECTION_CUTOFF_MS or if HASS is not currently connected. By using
+    // an older hass (even if it is not the property being updated), we run the
+    // risk that the JS has an old access token for the camera, and that results
+    // in a notification on the HA UI about a failed login. See
     // https://github.com/dermotduffy/frigate-hass-card/issues/398 .
     const cameraEntity = this._getCameraEntity();
     const state = cameraEntity ? this.hass.states[cameraEntity] : undefined;
     if (
       this._imageConfig?.mode === 'camera' &&
-      state &&
-      Date.now() - Date.parse(state.last_updated) >=
-      HASS_REJECTION_CUTOFF_MS
+      (!this.hass.connected ||
+        !state ||
+        Date.now() - Date.parse(state.last_updated) >= HASS_REJECTION_CUTOFF_MS)
     ) {
       return false;
     }
 
-    if (changedProps.has('hass') &&
-        changedProps.size == 1 &&
-        this._imageConfig?.mode === 'camera' &&
-        cameraEntity) {
+    if (
+      changedProps.has('hass') &&
+      changedProps.size == 1 &&
+      this._imageConfig?.mode === 'camera' &&
+      cameraEntity
+    ) {
       if (shouldUpdateBasedOnHass(this.hass, changedProps.get('hass'), [cameraEntity])) {
         // If the state of the camera entity has changed, remove the cached
         // value (will be re-calculated in willUpdate). This is important to
@@ -105,8 +107,6 @@ export class FrigateCardImage extends LitElement {
     return true;
   }
 
-
-  
   /**
    * Ensure there is a cached value before an update.
    * @param _changedProps The changed properties
