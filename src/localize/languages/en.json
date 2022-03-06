@@ -214,6 +214,7 @@
     "could_not_resolve": "Could not resolve media URL",
     "no_live_camera": "The camera_entity parameter must be set and valid for this live provider",
     "live_camera_unavailable": "The configured camera_entity is unavailable",
+    "image_load_error": "The image could not be loaded",
     "invalid_configuration": "Invalid configuration",
     "invalid_configuration_no_hint": "No location hint available (bad or missing type?)",
     "upgrade_available": "An automated card configuration upgrade is available, please visit the visual card editor",

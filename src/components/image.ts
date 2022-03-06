@@ -12,7 +12,13 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { CachedValueController } from '../cached-value-controller.js';
 import { CameraConfig, ImageViewConfig } from '../types.js';
 import { View } from '../view.js';
-import { dispatchMediaShowEvent, shouldUpdateBasedOnHass } from '../common.js';
+import {
+  dispatchErrorMessageEvent,
+  dispatchMediaShowEvent,
+  shouldUpdateBasedOnHass,
+} from '../common.js';
+import { localize } from '../localize/localize.js';
+
 import defaultImage from '../images/frigate-bird-in-sky.jpg';
 
 import imageStyle from '../scss/image.scss';
@@ -150,7 +156,7 @@ export class FrigateCardImage extends LitElement {
       // (401), see:
       // https://github.com/dermotduffy/frigate-hass-card/issues/398
       this._cachedValueController?.clearValue();
-      this._image.src = defaultImage;
+      this._forceStockImage();
     } else {
       // If the document is freshly re-visible, immediately re-render it to
       // restore the image src. If the HASS object is old (i.e. browser tab was
@@ -186,13 +192,37 @@ export class FrigateCardImage extends LitElement {
     return defaultImage;
   }
 
+  /**
+   * Force the img element to the stock image.
+   */
+  protected _forceStockImage(): void {
+    if (this._image) {
+      this._image.src = defaultImage;
+    }
+  }
+
   protected render(): TemplateResult | void {
     const src = this._cachedValueController?.value;
     return src
       ? html` <img
           src=${src}
-          @load=${(e) => {
-            dispatchMediaShowEvent(this, e);
+          @load=${(ev) => {
+            dispatchMediaShowEvent(this, ev);
+          }}
+          @error=${() => {
+            if (this._imageConfig?.mode === 'camera') {
+              // In camera mode, the user has likely not made an error, but HA
+              // may be unavailble, so show the stock image.
+              this._forceStockImage();
+            } else if (this._imageConfig?.mode === 'url') {
+              // In url mode, the user likely specified a URL that cannot be
+              // resolved. Show an error message.
+              dispatchErrorMessageEvent(
+                this,
+                localize('error.image_load_error'),
+                this._imageConfig,
+              );
+            }
           }}
         />`
       : html``;
