@@ -28,7 +28,7 @@ import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import { Task } from '@lit-labs/task';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
-import { styleMap } from 'lit/directives/style-map';
+import { styleMap } from 'lit/directives/style-map.js';
 
 import { AutoMediaPlugin, AutoMediaPluginType } from './embla-plugins/automedia.js';
 import { BrowseMediaUtil } from '../browse-media-util.js';

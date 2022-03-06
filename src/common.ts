@@ -6,7 +6,7 @@ import {
   hasAction,
   stateIcon,
 } from 'custom-card-helpers';
-import { StyleInfo } from 'lit/directives/style-map';
+import { StyleInfo } from 'lit/directives/style-map.js';
 import { ZodSchema, z } from 'zod';
 import { isEqual } from 'lodash-es';
 

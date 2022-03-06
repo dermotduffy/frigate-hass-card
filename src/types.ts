@@ -1,4 +1,4 @@
-import { StyleInfo } from 'lit/directives/style-map';
+import { StyleInfo } from 'lit/directives/style-map.js';
 import {
   CallServiceActionConfig,
   CustomActionConfig,

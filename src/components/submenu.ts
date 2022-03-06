@@ -1,14 +1,14 @@
 import type { Corner, Menu } from '@material/mwc-menu';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { HomeAssistant } from 'custom-card-helpers';
-import { customElement, property, query } from 'lit/decorators';
+import { customElement, property, query } from 'lit/decorators.js';
 import {
   frigateCardHasAction,
   refreshDynamicStateParameters,
   stopEventFromActivatingCardWideActions,
 } from '../common.js';
-import { ifDefined } from 'lit/directives/if-defined';
-import { styleMap } from 'lit/directives/style-map';
+import { ifDefined } from 'lit/directives/if-defined.js';
+import { styleMap } from 'lit/directives/style-map.js';
 
 import { ExtendedHomeAssistant, MenuSubmenu, MenuSubmenuItem } from '../types.js';
 import { actionHandler } from '../action-handler-directive.js';

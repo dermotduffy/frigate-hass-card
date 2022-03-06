@@ -10,7 +10,7 @@
 // ====================================================================
 
 import { TemplateResult, css, html } from 'lit';
-import { Ref, createRef, ref } from 'lit/directives/ref';
+import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import { customElement } from 'lit/decorators.js';
 import { dispatchErrorMessageEvent, dispatchMediaShowEvent } from '../common.js';
 
