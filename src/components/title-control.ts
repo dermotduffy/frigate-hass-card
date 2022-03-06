@@ -1,5 +1,5 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import { createRef, ref, Ref } from 'lit/directives/ref';
+import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { customElement, property } from 'lit/decorators.js';
 
 import { TitleControlConfig } from '../types.js';

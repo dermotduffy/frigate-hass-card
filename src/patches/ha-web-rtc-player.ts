@@ -9,7 +9,7 @@
 // available as compilation time.
 // ====================================================================
 
-import { Ref, createRef, ref } from 'lit/directives/ref';
+import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import { TemplateResult, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { dispatchErrorMessageEvent, dispatchMediaShowEvent } from '../common.js';

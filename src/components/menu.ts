@@ -2,7 +2,7 @@ import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit
 import { HASSDomEvent, HomeAssistant } from 'custom-card-helpers';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
-import { ifDefined } from 'lit/directives/if-defined';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { styleMap } from 'lit/directives/style-map.js';
 
 import { actionHandler } from '../action-handler-directive.js';

@@ -1,6 +1,6 @@
 import { CSSResultGroup, unsafeCSS } from 'lit';
 import { EmblaCarouselType } from 'embla-carousel';
-import { createRef, Ref } from 'lit/directives/ref';
+import { createRef, Ref } from 'lit/directives/ref.js';
 import { customElement } from 'lit/decorators.js';
 
 import { AutoMediaPluginType } from './embla-plugins/automedia.js';
