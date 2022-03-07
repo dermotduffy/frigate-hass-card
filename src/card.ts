@@ -746,7 +746,7 @@ export class FrigateCard extends LitElement {
       });
       return;
     }
-    const event_id = BrowseMediaUtil.extractEventID(this._view.media);
+    const event_id = BrowseMediaUtil.getEventID(this._view.media);
     if (!event_id) {
       this._setMessageAndUpdate({
         message: localize('error.download_no_event_id'),

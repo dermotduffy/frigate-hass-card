@@ -22,34 +22,20 @@ dayjs.extend(dayjs_custom_parse_format);
 export class BrowseMediaUtil {
   /**
    * Return the Frigate event_id given a FrigateBrowseMediaSource object.
-   * @param media The event to extract the id from.
+   * @param media The event to get the id from.
    * @returns The `event_id` or `null` if not successfully parsed.
    */
-  static extractEventID(media: FrigateBrowseMediaSource): string | null {
-    const result = media.media_content_id.match(
-      /^media-source:\/\/frigate\/.*\/(?<id>[.0-9]+-[a-zA-Z0-9]+)$/,
-    );
-    return result && result.groups ? result.groups['id'] : null;
+  static getEventID(media: FrigateBrowseMediaSource): string | null {
+    return media.frigate?.event.id ?? null;
   }
 
   /**
    * Return the event start time given a FrigateBrowseMediaSource object.
-   * @param browseMedia The media object to extract the start time from.
+   * @param browseMedia The media object to get the start time from.
    * @returns The start time in unix/epoch time, or null if it cannot be determined.
    */
-  static extractEventStartTime(browseMedia: FrigateBrowseMediaSource): number | null {
-    // Example: 2021-08-27 20:57:22 [10s, Person 76%]
-    const result = browseMedia.title.match(/^(?<iso_datetime>.+) \[/);
-    if (result && result.groups) {
-      const iso_datetime_str = result.groups['iso_datetime'];
-      if (iso_datetime_str) {
-        const iso_datetime = dayjs(iso_datetime_str, 'YYYY-MM-DD HH:mm:ss', true);
-        if (iso_datetime.isValid()) {
-          return iso_datetime.unix();
-        }
-      }
-    }
-    return null;
+  static getEventStartTime(media: FrigateBrowseMediaSource): number | null {
+    return media.frigate?.event.start_time ?? null;
   }
 
   /**
@@ -116,8 +102,8 @@ export class BrowseMediaUtil {
         'event-search',
         params.mediaType,
         '', // Name/Title to render (not necessary here)
-        params.after ? String(params.after) : '',
-        params.before ? String(params.before) : '',
+        params.after ? String(Math.floor(params.after)) : '',
+        params.before ? String(Math.ceil(params.before)) : '',
         params.cameraName,
         params.label,
         params.zone,
