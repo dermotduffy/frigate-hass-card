@@ -1,7 +1,19 @@
-@use "vis-timeline/dist/vis-timeline-graph2d.css";
+@use 'vis-timeline/dist/vis-timeline-graph2d.css';
 
 :host {
   width: 100%;
   height: 100%;
   display: block;
+}
+
+.vis-item {
+  border-color: var(--primary-color);
+}
+
+.vis-item.vis-box {
+  border-style: hidden;
+}
+
+.vis-item .vis-item-content {
+  padding: 0px;
 }
