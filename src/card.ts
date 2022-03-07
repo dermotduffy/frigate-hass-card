@@ -64,6 +64,7 @@ import './components/menu.js';
 import './components/message.js';
 import './components/viewer.js';
 import './components/thumbnail-carousel.js';
+import './components/timeline.js';
 import './patches/ha-camera-stream.js';
 import './patches/ha-hls-player.js';
 import './patches/ha-web-rtc-player.ts';
@@ -1259,6 +1260,14 @@ export class FrigateCard extends LitElement {
             .resolvedMediaCache=${this._resolvedMediaCache}
           >
           </frigate-card-viewer>`
+        : ``}
+      ${!this._message && this._view.is('timeline')
+        ? html` <frigate-card-timeline
+            .hass=${this._hass}
+            .view=${this._view}
+            .cameraConfig=${cameraConfig}
+          >
+          </frigate-card-timeline>`
         : ``}
       ${
         // Note: Subtle difference in condition below vs the other views in order

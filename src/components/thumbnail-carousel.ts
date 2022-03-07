@@ -3,7 +3,7 @@ import { CSSResultGroup, TemplateResult, html, unsafeCSS } from 'lit';
 import { EmblaOptionsType } from 'embla-carousel';
 import { customElement, property } from 'lit/decorators.js';
 
-import type { BrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
+import type { FrigateBrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
 import { FrigateCardCarousel } from './carousel.js';
 import { dispatchFrigateCardEvent, stopEventFromActivatingCardWideActions } from '../common.js';
 
@@ -11,14 +11,14 @@ import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
 
 export interface ThumbnailCarouselTap {
   slideIndex: number;
-  target: BrowseMediaSource;
+  target: FrigateBrowseMediaSource;
   childIndex: number;
 }
 
 @customElement('frigate-card-thumbnail-carousel')
 export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   @property({ attribute: false })
-  protected target?: BrowseMediaSource;
+  protected target?: FrigateBrowseMediaSource;
 
   protected _tapSelected?;
 
@@ -96,7 +96,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
    * @returns A template or void if the item could not be rendered.
    */
   protected _renderThumbnail(
-    parent: BrowseMediaSource,
+    parent: FrigateBrowseMediaSource,
     childIndex: number,
     slideIndex: number,
   ): TemplateResult | void {

@@ -1,10 +1,10 @@
-import type { BrowseMediaSource, FrigateCardView } from './types.js';
+import type { FrigateBrowseMediaSource, FrigateCardView } from './types.js';
 import { dispatchFrigateCardEvent } from './common.js';
 
 export interface ViewEvolveParameters {
   view?: FrigateCardView;
   camera?: string;
-  target?: BrowseMediaSource;
+  target?: FrigateBrowseMediaSource;
   childIndex?: number;
   previous?: View;
 }
@@ -17,7 +17,7 @@ export interface ViewParameters extends ViewEvolveParameters {
 export class View {
   view: FrigateCardView;
   camera: string;
-  target?: BrowseMediaSource;
+  target?: FrigateBrowseMediaSource;
   childIndex?: number;
   previous?: View;
 
@@ -91,7 +91,8 @@ export class View {
    * Determine if a view is related to a clip or clips.
    */
   public isClipRelatedView(): boolean {
-    return ['clip', 'clips'].includes(this.view);
+    // TODO HACK HACK HACK 
+    return ['clip', 'clips', 'timeline'].includes(this.view);
   }
 
   /**
@@ -104,7 +105,7 @@ export class View {
   /**
    *  Get the media item that should be played.
    **/
-  get media(): BrowseMediaSource | undefined {
+  get media(): FrigateBrowseMediaSource | undefined {
     if (this.target) {
       if (this.target.children && this.childIndex !== undefined) {
         return this.target.children[this.childIndex];

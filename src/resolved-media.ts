@@ -1,8 +1,8 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { homeAssistantWSRequest } from './common.js';
 import {
-  BrowseMediaSource,
   ExtendedHomeAssistant,
+  FrigateBrowseMediaSource,
   ResolvedMedia,
   resolvedMediaSchema,
 } from './types.js';
@@ -39,7 +39,7 @@ export class ResolvedMediaCache {
 export class ResolvedMediaUtil {
   static async resolveMedia(
     hass: HomeAssistant & ExtendedHomeAssistant,
-    mediaSource?: BrowseMediaSource,
+    mediaSource?: FrigateBrowseMediaSource,
     cache?: ResolvedMediaCache,
   ): Promise<ResolvedMedia | null> {
     if (!mediaSource) {

@@ -26,12 +26,13 @@ declare global {
  */
 
 const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
-  'live', // Live view.
-  'clip', // Most recent clip.
-  'clips', // Clips gallery.
+  'live',     // Live view.
+  'clip',     // Most recent clip.
+  'clips',    // Clips gallery.
   'snapshot', // Most recent snapshot.
-  'snapshots', // Snapshots gallery.
-  'image', // Static image.
+  'snapshots',// Snapshots gallery.
+  'image',    // Static image.
+  'timeline', // Event timeline.
 ] as const;
 
 export type FrigateCardView = typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED[number];
@@ -409,11 +410,7 @@ const viewConfigSchema = z
  * Image view configuration section.
  */
 
-export const IMAGE_MODES = [
-  'screensaver',
-  'camera',
-  'url',
-] as const;
+export const IMAGE_MODES = ['screensaver', 'camera', 'url'] as const;
 const imageConfigDefault = {
   mode: 'url' as const,
   refresh_seconds: 0,
@@ -575,7 +572,9 @@ const liveConfigSchema = liveOverridableConfigSchema
     lazy_load: z.boolean().default(liveConfigDefault.lazy_load),
     lazy_unload: z.boolean().default(liveConfigDefault.lazy_unload),
     draggable: z.boolean().default(liveConfigDefault.draggable),
-    transition_effect: transitionEffectConfigSchema.default(liveConfigDefault.transition_effect),
+    transition_effect: transitionEffectConfigSchema.default(
+      liveConfigDefault.transition_effect,
+    ),
   })
   .default(liveConfigDefault);
 export type LiveConfig = z.infer<typeof liveConfigSchema>;
@@ -660,7 +659,9 @@ const viewerConfigSchema = z
     auto_unmute: z.boolean().default(viewerConfigDefault.auto_unmute),
     lazy_load: z.boolean().default(viewerConfigDefault.lazy_load),
     draggable: z.boolean().default(viewerConfigDefault.draggable),
-    transition_effect: transitionEffectConfigSchema.default(viewerConfigDefault.transition_effect),
+    transition_effect: transitionEffectConfigSchema.default(
+      viewerConfigDefault.transition_effect,
+    ),
     controls: z
       .object({
         next_previous: viewerNextPreviousControlConfigSchema.default(
@@ -802,7 +803,7 @@ export const frigateCardConfigDefaults = {
   image: imageConfigDefault,
 };
 
-const menuButtonSchema = z.discriminatedUnion("type", [
+const menuButtonSchema = z.discriminatedUnion('type', [
   menuIconSchema,
   menuStateIconSchema,
   menuSubmenuSchema,
@@ -823,10 +824,10 @@ export interface BrowseMediaQueryParameters {
 }
 
 export interface BrowseMediaNeighbors {
-  previous: BrowseMediaSource | null;
+  previous: FrigateBrowseMediaSource | null;
   previousIndex: number | null;
 
-  next: BrowseMediaSource | null;
+  next: FrigateBrowseMediaSource | null;
   nextIndex: number | null;
 }
 
@@ -867,7 +868,7 @@ export interface FrigateCardMediaPlayer {
 // See: https://github.com/colinhacks/zod#recursive-types
 //
 // Server side data-type defined here: https://github.com/home-assistant/core/blob/dev/homeassistant/components/media_player/browse_media.py#L46
-export interface BrowseMediaSource {
+interface BrowseMediaSource {
   title: string;
   media_class: string;
   media_content_type: string;
@@ -879,18 +880,51 @@ export interface BrowseMediaSource {
   children?: BrowseMediaSource[] | null;
 }
 
-export const browseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.lazy(() =>
-  z.object({
-    title: z.string(),
-    media_class: z.string(),
-    media_content_type: z.string(),
-    media_content_id: z.string(),
-    can_play: z.boolean(),
-    can_expand: z.boolean(),
-    children_media_class: z.string().nullable().optional(),
-    thumbnail: z.string().nullable(),
-    children: z.array(browseMediaSourceSchema).nullable().optional(),
-  }),
+export interface FrigateBrowseMediaSource extends BrowseMediaSource {
+  children?: FrigateBrowseMediaSource[] | null;
+  frigate?: {
+    event: {
+      camera: string;
+      end_time: number;
+      false_positive: boolean;
+      has_clip: boolean;
+      has_snapshot: boolean;
+      id: string;
+      label: string;
+      start_time: number;
+      top_score: number;
+      zones: string[];
+    };
+  };
+}
+
+export const frigateBrowseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.lazy(
+  () =>
+    z.object({
+      title: z.string(),
+      media_class: z.string(),
+      media_content_type: z.string(),
+      media_content_id: z.string(),
+      can_play: z.boolean(),
+      can_expand: z.boolean(),
+      children_media_class: z.string().nullable().optional(),
+      thumbnail: z.string().nullable(),
+      children: z.array(frigateBrowseMediaSourceSchema).nullable().optional(),
+      frigate: z.object({
+        event: z.object({
+          camera: z.string(),
+          end_time: z.number().nullable(),
+          false_positive: z.boolean(),
+          has_clip: z.boolean(),
+          has_snapshot: z.boolean(),
+          id: z.string(),
+          label: z.string(),
+          start_time: z.number(),
+          top_score: z.number(),
+          zones: z.string().array(),
+        }),
+      }).optional(),
+    }),
 );
 
 // Server side data-type defined here: https://github.com/home-assistant/core/blob/dev/homeassistant/components/media_source/models.py

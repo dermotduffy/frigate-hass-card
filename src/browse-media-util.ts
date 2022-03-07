@@ -4,12 +4,12 @@ import dayjs_custom_parse_format from 'dayjs/plugin/customParseFormat.js';
 
 import type {
   BrowseMediaQueryParameters,
-  BrowseMediaSource,
+  FrigateBrowseMediaSource,
   CameraConfig,
   ExtendedHomeAssistant,
 } from './types.js';
 import { View } from './view.js';
-import { browseMediaSourceSchema } from './types.js';
+import { frigateBrowseMediaSourceSchema } from './types.js';
 import {
   dispatchErrorMessageEvent,
   dispatchMessageEvent,
@@ -21,11 +21,11 @@ dayjs.extend(dayjs_custom_parse_format);
 
 export class BrowseMediaUtil {
   /**
-   * Return the Frigate event_id given a BrowseMediaSource object.
+   * Return the Frigate event_id given a FrigateBrowseMediaSource object.
    * @param media The event to extract the id from.
    * @returns The `event_id` or `null` if not successfully parsed.
    */
-  static extractEventID(media: BrowseMediaSource): string | null {
+  static extractEventID(media: FrigateBrowseMediaSource): string | null {
     const result = media.media_content_id.match(
       /^media-source:\/\/frigate\/.*\/(?<id>[.0-9]+-[a-zA-Z0-9]+)$/,
     );
@@ -33,11 +33,11 @@ export class BrowseMediaUtil {
   }
 
   /**
-   * Return the event start time given a BrowseMediaSource object.
+   * Return the event start time given a FrigateBrowseMediaSource object.
    * @param browseMedia The media object to extract the start time from.
    * @returns The start time in unix/epoch time, or null if it cannot be determined.
    */
-  static extractEventStartTime(browseMedia: BrowseMediaSource): number | null {
+  static extractEventStartTime(browseMedia: FrigateBrowseMediaSource): number | null {
     // Example: 2021-08-27 20:57:22 [10s, Person 76%]
     const result = browseMedia.title.match(/^(?<iso_datetime>.+) \[/);
     if (result && result.groups) {
@@ -53,21 +53,23 @@ export class BrowseMediaUtil {
   }
 
   /**
-   * Determine if a BrowseMediaSource object is truly a media item (vs a folder).
+   * Determine if a FrigateBrowseMediaSource object is truly a media item (vs a folder).
    * @param media The media object.
    * @returns `true` if it's truly a media item, `false` otherwise.
    */
-  static isTrueMedia(media: BrowseMediaSource): boolean {
+  static isTrueMedia(media: FrigateBrowseMediaSource): boolean {
     return !media.can_expand;
   }
 
   /**
-   * From a BrowseMediaSource item extract the first true media item from the
+   * From a FrigateBrowseMediaSource item extract the first true media item from the
    * children (i.e. a clip/snapshot, not a folder).
    * @param media The media object with children.
    * @returns The first true media item found.
    */
-  static getFirstTrueMediaChildIndex(media: BrowseMediaSource | null): number | null {
+  static getFirstTrueMediaChildIndex(
+    media: FrigateBrowseMediaSource | null,
+  ): number | null {
     if (!media || !media.children) {
       return null;
     }
@@ -79,17 +81,17 @@ export class BrowseMediaUtil {
    * Browse Frigate media with a media content id. May throw.
    * @param hass The HomeAssistant object.
    * @param media_content_id The media content id to browse.
-   * @returns A BrowseMediaSource object or null on malformed.
+   * @returns A FrigateBrowseMediaSource object or null on malformed.
    */
   static async browseMedia(
     hass: HomeAssistant & ExtendedHomeAssistant,
     media_content_id: string,
-  ): Promise<BrowseMediaSource> {
+  ): Promise<FrigateBrowseMediaSource> {
     const request = {
       type: 'media_source/browse_media',
       media_content_id: media_content_id,
     };
-    return homeAssistantWSRequest(hass, browseMediaSourceSchema, request);
+    return homeAssistantWSRequest(hass, frigateBrowseMediaSourceSchema, request);
   }
 
   // Browse Frigate media with query parameters.
@@ -98,12 +100,12 @@ export class BrowseMediaUtil {
    * Browse Frigate media with a media query. May throw.
    * @param hass The HomeAssistant object.
    * @param params The search parameters to use to search for media.
-   * @returns A BrowseMediaSource object or null on malformed.
+   * @returns A FrigateBrowseMediaSource object or null on malformed.
    */
   static async browseMediaQuery(
     hass: HomeAssistant & ExtendedHomeAssistant,
     params: BrowseMediaQueryParameters,
-  ): Promise<BrowseMediaSource> {
+  ): Promise<FrigateBrowseMediaSource> {
     return this.browseMedia(
       hass,
       // Defined in:
@@ -180,7 +182,7 @@ export class BrowseMediaUtil {
    * @param hass The Home Assistant object.
    * @param view The current view to evolve.
    * @param browseMediaQueryParameters The media parameters to query with.
-   * @returns 
+   * @returns
    */
   static async fetchLatestMediaAndDispatchViewChange(
     node: HTMLElement,
@@ -188,7 +190,7 @@ export class BrowseMediaUtil {
     view: Readonly<View>,
     browseMediaQueryParameters: BrowseMediaQueryParameters,
   ): Promise<void> {
-    let parent: BrowseMediaSource | null;
+    let parent: FrigateBrowseMediaSource | null;
     try {
       parent = await BrowseMediaUtil.browseMediaQuery(hass, browseMediaQueryParameters);
     } catch (e) {
@@ -216,21 +218,21 @@ export class BrowseMediaUtil {
   }
 
   /**
-   * Fetch the media of a child BrowseMediaSource object and dispatch a change
-   * view event to reflect the results. 
+   * Fetch the media of a child FrigateBrowseMediaSource object and dispatch a change
+   * view event to reflect the results.
    * @param node The HTMLElement to dispatch events from.
    * @param hass The Home Assistant object.
    * @param view The current view to evolve.
-   * @param child The BrowseMediaSource child to query for.
-   * @returns 
+   * @param child The FrigateBrowseMediaSource child to query for.
+   * @returns
    */
   static async fetchChildMediaAndDispatchViewChange(
     node: HTMLElement,
     hass: HomeAssistant & ExtendedHomeAssistant,
     view: Readonly<View>,
-    child: Readonly<BrowseMediaSource>,
+    child: Readonly<FrigateBrowseMediaSource>,
   ): Promise<void> {
-    let parent: BrowseMediaSource;
+    let parent: FrigateBrowseMediaSource;
     try {
       parent = await BrowseMediaUtil.browseMedia(hass, child.media_content_id);
     } catch (e) {
