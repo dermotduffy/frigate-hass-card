@@ -7,7 +7,7 @@ import {
   PropertyValues,
 } from 'lit';
 import {
-  BrowseMediaSource,
+  FrigateBrowseMediaSource,
   ExtendedHomeAssistant,
   CameraConfig,
   JSMPEGConfig,
@@ -140,7 +140,7 @@ export class FrigateCardLive extends LitElement {
       if (!browseMediaParams) {
         return;
       }
-      let parent: BrowseMediaSource | null;
+      let parent: FrigateBrowseMediaSource | null;
       try {
         parent = await BrowseMediaUtil.browseMediaQuery(this.hass, browseMediaParams);
       } catch (e) {

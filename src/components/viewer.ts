@@ -18,7 +18,7 @@ import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import type {
   BrowseMediaNeighbors,
   BrowseMediaQueryParameters,
-  BrowseMediaSource,
+  FrigateBrowseMediaSource,
   CameraConfig,
   ExtendedHomeAssistant,
   MediaShowInfo,
@@ -210,14 +210,17 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   @property({ attribute: false })
   protected resolvedMediaCache?: ResolvedMediaCache;
 
-  // Mapping of slide # to BrowseMediaSource child #.
+  // Mapping of slide # to FrigateBrowseMediaSource child #.
   // (Folders are not media items that can be rendered).
   protected _slideToChild: Record<number, number> = {};
 
   // A task to resolve target media if lazy loading is disabled.
-  protected _mediaResolutionTask = new Task<[BrowseMediaSource | undefined], void>(
+  protected _mediaResolutionTask = new Task<
+    [FrigateBrowseMediaSource | undefined],
+    void
+  >(
     this,
-    async ([target]: (BrowseMediaSource | undefined)[]): Promise<void> => {
+    async ([target]: (FrigateBrowseMediaSource | undefined)[]): Promise<void> => {
       for (
         let i = 0;
         !this.viewerConfig?.lazy_load &&
@@ -280,7 +283,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   /**
    * Unmute the media on the selected slide.
    */
-   protected _autoUnmuteHandler(): void {
+  protected _autoUnmuteHandler(): void {
     if (this.viewerConfig?.auto_unmute) {
       super._autoUnmuteHandler();
     }
@@ -308,7 +311,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
    * Get the transition effect to use.
    * @returns An TransitionEffect object.
    */
-   protected _getTransitionEffect(): TransitionEffect | undefined {
+  protected _getTransitionEffect(): TransitionEffect | undefined {
     return this.viewerConfig?.transition_effect;
   }
 
@@ -398,7 +401,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
    * @returns The view that would show the matching clip.
    */
   protected async _findRelatedClipView(
-    snapshot: BrowseMediaSource,
+    snapshot: FrigateBrowseMediaSource,
   ): Promise<View | null> {
     if (
       !this.hass ||
@@ -445,7 +448,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       return null;
     }
 
-    let clips: BrowseMediaSource | null;
+    let clips: FrigateBrowseMediaSource | null;
 
     try {
       clips = await BrowseMediaUtil.browseMediaQuery(this.hass, {
@@ -689,7 +692,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   }
 
   protected _renderMediaItem(
-    mediaToRender: BrowseMediaSource,
+    mediaToRender: FrigateBrowseMediaSource,
     slideIndex: number,
   ): TemplateResult | void {
     // Skip folders as they cannot be rendered by this viewer.
