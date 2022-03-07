@@ -414,7 +414,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       return null;
     }
 
-    const snapshotStartTime = BrowseMediaUtil.extractEventStartTime(snapshot);
+    const snapshotStartTime = BrowseMediaUtil.getEventStartTime(snapshot);
     if (!snapshotStartTime) {
       return null;
     }
@@ -435,7 +435,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       if (!BrowseMediaUtil.isTrueMedia(child)) {
         continue;
       }
-      const startTime = BrowseMediaUtil.extractEventStartTime(child);
+      const startTime = BrowseMediaUtil.getEventStartTime(child);
 
       if (startTime && (earliest === null || startTime < earliest)) {
         earliest = startTime;
@@ -471,7 +471,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       if (!BrowseMediaUtil.isTrueMedia(child)) {
         continue;
       }
-      const clipStartTime = BrowseMediaUtil.extractEventStartTime(child);
+      const clipStartTime = BrowseMediaUtil.getEventStartTime(child);
       if (clipStartTime && clipStartTime === snapshotStartTime) {
         return new View({
           view: 'clip',
