@@ -371,6 +371,16 @@ export class FrigateCard extends LitElement {
       });
     }
 
+    if (this._getConfig().menu.buttons.timeline) {
+      buttons.push({
+        type: 'custom:frigate-card-menu-icon',
+        title: localize('config.view.views.timeline'),
+        icon: 'mdi:chart-gantt',
+        style: this._view?.is('timeline') ? this._getEmphasizedStyle() : {},
+        tap_action: createFrigateCardCustomAction('timeline') as FrigateCardCustomAction,
+      });
+    }
+
     if (this._getConfig().menu.buttons.download && this._view?.isViewerView()) {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
@@ -649,8 +659,7 @@ export class FrigateCard extends LitElement {
       // Load the default view.
       let camera;
       if (this._cameras?.size) {
-        if (this._view?.camera &&
-          this._getConfig().view.update_cycle_camera) {
+        if (this._view?.camera && this._getConfig().view.update_cycle_camera) {
           const keys = Array.from(this._cameras.keys());
           const currentIndex = keys.indexOf(this._view.camera);
           const targetIndex = currentIndex + 1 >= keys.length ? 0 : currentIndex + 1;
@@ -827,6 +836,7 @@ export class FrigateCard extends LitElement {
       case 'live':
       case 'snapshot':
       case 'snapshots':
+      case 'timeline':
         if (this._view) {
           this._changeView({
             view: new View({
