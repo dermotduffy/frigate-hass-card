@@ -176,11 +176,17 @@ export class FrigateCardTimeline extends LitElement {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected updated(_changedProperties: PropertyValues): void {
-    // Configuration for the Timeline
+    // Configuration for the Timeline, see:
+    // https://visjs.github.io/vis-timeline/docs/timeline/#Configuration_Options
     const options = {
+      cluster: {
+        showStipes: true,
+        maxItems: 3,
+      },
       minHeight: '300px',
+      maxHeight: '300px',
       margin: {
-        item: 75 + 10,
+        item: 50,
         axis: 75 + 10,
       },
       xss: {
@@ -188,13 +194,14 @@ export class FrigateCardTimeline extends LitElement {
         filterOptions: {
           whiteList: {
             'frigate-card-timeline-event': ['thumbnail', 'label', 'media_id'],
+            'div': ['title'],
           },
         },
       },
     };
 
     // Create a Timeline
-    if (this._timelineRef.value && !this._timeline) {
+    if (this._timelineRef.value) {
       this._timeline = new Timeline(
         this._timelineRef.value,
         this._buildDataset(),

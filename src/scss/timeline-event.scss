@@ -7,10 +7,10 @@
 img {
   width: 75px;
   height: 75px;
-  box-shadow: 0px 0px 20px 5px var(--primary-background-color);
   display: block;
   border-radius: 5px;
   transition: transform 0.2s linear;
+  border: 1px solid black;
 }
 
 img:hover {
