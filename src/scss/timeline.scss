@@ -6,6 +6,14 @@
   display: block;
 }
 
+div.timeline {
+  height: 100%;
+}
+
+.vis-timeline {
+  border: hidden;
+}
+
 .vis-item {
   border-color: var(--primary-color);
   background: none;
