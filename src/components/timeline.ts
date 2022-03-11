@@ -8,14 +8,14 @@ import {
 } from 'lit';
 import { DataSet } from 'vis-data/esnext';
 import { HomeAssistant } from 'custom-card-helpers';
-import { Timeline } from 'vis-timeline/esnext';
-import { customElement, property } from 'lit/decorators.js';
+import { Timeline, TimelineOptions } from 'vis-timeline/esnext';
+import { customElement, property, state } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref';
 
 import { BrowseMediaUtil } from '../browse-media-util';
 import { CameraConfig, ExtendedHomeAssistant, FrigateBrowseMediaSource } from '../types';
 import { View } from '../view';
-import { dispatchFrigateCardEvent } from '../common.js';
+import { contentsChanged, dispatchFrigateCardEvent } from '../common.js';
 import { renderProgressIndicator } from './message';
 
 import timelineStyle from '../scss/timeline.scss';
@@ -72,9 +72,20 @@ export class FrigateCardTimeline extends LitElement {
   @property({ attribute: false })
   protected cameraConfig?: CameraConfig;
 
+  @state({ hasChanged: contentsChanged })
+  protected _timelineOptions?: TimelineOptions;
+
   protected _timelineRef: Ref<HTMLElement> = createRef();
   protected _timeline?: Timeline;
   protected _boundTimelineSelectHandler = this._timelineSelectHandler.bind(this);
+
+  protected _resizeObserver: ResizeObserver;
+
+  constructor() {
+    super();
+    this._resizeObserver = new ResizeObserver(this._setOptions.bind(this));
+    this._setOptions();
+  }
 
   /**
    * Master render method.
@@ -104,7 +115,7 @@ export class FrigateCardTimeline extends LitElement {
       );
       return renderProgressIndicator();
     }
-    return html` <div id="timeline" ${ref(this._timelineRef)}></div>`;
+    return html` <div class="timeline" ${ref(this._timelineRef)}></div>`;
   }
 
   /**
@@ -116,6 +127,7 @@ export class FrigateCardTimeline extends LitElement {
       'frigate-card:timeline-select',
       this._boundTimelineSelectHandler,
     );
+    this._resizeObserver.observe(this);
   }
 
   /**
@@ -126,9 +138,14 @@ export class FrigateCardTimeline extends LitElement {
       'frigate-card:timeline-select',
       this._boundTimelineSelectHandler,
     );
+    this._resizeObserver.disconnect();
     super.disconnectedCallback();
   }
 
+  /**
+   * Called when an item on the timeline is selected.
+   * @param ev The click event.
+   */
   protected _timelineSelectHandler(ev: Event): void {
     const id = (ev as CustomEvent<string>).detail;
     const index =
@@ -144,6 +161,11 @@ export class FrigateCardTimeline extends LitElement {
     }
   }
 
+  /**
+   * Build the content of a single event on the timeline.
+   * @param source The FrigateBrowseMediaSource object for this event.
+   * @returns A string to include on the timeline.
+   */
   protected _buildEventContent(source: FrigateBrowseMediaSource): string {
     return `
       <frigate-card-timeline-event
@@ -154,6 +176,10 @@ export class FrigateCardTimeline extends LitElement {
       </frigate-card-timeline-event>`;
   }
 
+  /**
+   * Build the visjs dataset to render on the timeline.
+   * @returns The dataset.
+   */
   protected _buildDataset(): DataSet<FrigateCardTimelineData> {
     const items: FrigateCardTimelineData[] = [];
 
@@ -174,17 +200,19 @@ export class FrigateCardTimeline extends LitElement {
     return new DataSet(items);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected updated(_changedProperties: PropertyValues): void {
+  /**
+   * Handle timeline resize.
+   */
+  protected _setOptions(): void {
     // Configuration for the Timeline, see:
     // https://visjs.github.io/vis-timeline/docs/timeline/#Configuration_Options
-    const options = {
+    this._timelineOptions = {
       cluster: {
         showStipes: true,
         maxItems: 3,
       },
-      minHeight: '300px',
-      maxHeight: '300px',
+      minHeight: '100%',
+      maxHeight: '100%',
       margin: {
         item: 50,
         axis: 75 + 10,
@@ -194,22 +222,34 @@ export class FrigateCardTimeline extends LitElement {
         filterOptions: {
           whiteList: {
             'frigate-card-timeline-event': ['thumbnail', 'label', 'media_id'],
-            'div': ['title'],
+            div: ['title'],
           },
         },
       },
     };
+  }
 
-    // Create a Timeline
+  /**
+   * Called when the component is updated.
+   * @param changedProps The changed properties if any.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected updated(_changedProperties: PropertyValues): void {
     if (this._timelineRef.value) {
+      if (this._timeline) {
+        this._timeline.destroy();
+      }
       this._timeline = new Timeline(
         this._timelineRef.value,
         this._buildDataset(),
-        options,
+        this._timelineOptions,
       );
     }
   }
 
+  /**
+   * Return compiled CSS styles.
+   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(timelineStyle);
   }
