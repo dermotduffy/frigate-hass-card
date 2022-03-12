@@ -1051,7 +1051,7 @@ export class FrigateCard extends LitElement {
   /**
    * Handler called when fullscreen is toggled.
    */
-  protected _fullScreenHandler(): void {
+  protected _fullscreenHandler(): void {
     this._generateConditionState();
     // Re-render after a change to fullscreen mode to take advantage of
     // the expanded screen real-estate (vs staying in aspect-ratio locked
@@ -1065,7 +1065,7 @@ export class FrigateCard extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     if (screenfull.isEnabled) {
-      screenfull.on('change', this._fullScreenHandler.bind(this));
+      screenfull.on('change', this._fullscreenHandler.bind(this));
     }
   }
 
@@ -1074,7 +1074,7 @@ export class FrigateCard extends LitElement {
    */
   disconnectedCallback(): void {
     if (screenfull.isEnabled) {
-      screenfull.off('change', this._fullScreenHandler.bind(this));
+      screenfull.off('change', this._fullscreenHandler.bind(this));
     }
     super.disconnectedCallback();
   }
