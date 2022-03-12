@@ -48,6 +48,7 @@
     "eslint-plugin-import": "^2.24.2",
     "eslint-plugin-prettier": "^4.0.0",
     "npm-check-updates": "^12.5.2",
+    "patch-package": "^6.4.7",
     "prettier": "^2.4.1",
     "rollup": "^2.69.0",
     "rollup-plugin-serve": "^1.1.0",
@@ -61,6 +62,7 @@
     "start": "rollup -c rollup.config.dev.js --watch",
     "build": "npm run lint && npm run rollup",
     "lint": "eslint 'src/**/*.ts'",
-    "rollup": "rollup -c"
+    "rollup": "rollup -c",
+    "prepare": "patch-package"
   }
 }
