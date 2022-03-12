@@ -26,13 +26,13 @@ declare global {
  */
 
 const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
-  'live',     // Live view.
-  'clip',     // Most recent clip.
-  'clips',    // Clips gallery.
-  'snapshot', // Most recent snapshot.
-  'snapshots',// Snapshots gallery.
-  'image',    // Static image.
-  'timeline', // Event timeline.
+  'live',
+  'clip',
+  'clips',
+  'snapshot',
+  'snapshots',
+  'image',
+  'timeline',
 ] as const;
 
 export type FrigateCardView = typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED[number];
@@ -58,6 +58,9 @@ const LIVE_PROVIDERS = ['auto', 'ha', 'frigate-jsmpeg', 'webrtc-card'] as const;
 export type LiveProvider = typeof LIVE_PROVIDERS[number];
 
 export class FrigateCardError extends Error {}
+
+// The maximum width thumbnail Frigate returns
+export const THUMBNAIL_WIDTH_MAX = 175;
 
 /**
  * Action Types (for "Picture Elements" / Menu)
@@ -739,6 +742,45 @@ const dimensionsConfigSchema = z
   .default(dimensionsConfigDefault);
 
 /**
+ * Timeline configuration section.
+ */
+const timelineConfigDefault = {
+  controls: {
+    thumbnails: {
+      size_pixels: 75,
+      overlap_pixels: 25,
+      clustering_threshold: 3,
+    },
+  },
+};
+const timelineConfigSchema = z
+  .object({
+    controls: z
+      .object({
+        thumbnails: z
+          .object({
+            size_pixels: z
+              .number()
+              .min(50)
+              .max(THUMBNAIL_WIDTH_MAX)
+              .default(timelineConfigDefault.controls.thumbnails.size_pixels),
+            overlap_pixels: z
+              .number()
+              .min(0)
+              .max(THUMBNAIL_WIDTH_MAX)
+              .default(timelineConfigDefault.controls.thumbnails.overlap_pixels),
+            clustering_threshold: z
+              .number()
+              .default(timelineConfigDefault.controls.thumbnails.clustering_threshold),
+          })
+          .default(timelineConfigDefault.controls.thumbnails),
+      })
+      .default(timelineConfigDefault.controls),
+  })
+  .default(timelineConfigDefault);
+export type TimelineConfig = z.infer<typeof timelineConfigSchema>;
+
+/**
  * Configuration overrides
  */
 // Strip all defaults from the override schemas, to ensure values are only what
@@ -781,6 +823,7 @@ export const frigateCardConfigSchema = z.object({
   image: imageConfigSchema,
   elements: pictureElementsSchema,
   dimensions: dimensionsConfigSchema,
+  timeline: timelineConfigSchema,
 
   // Configuration overrides.
   overrides: overridesSchema,
@@ -804,6 +847,7 @@ export const frigateCardConfigDefaults = {
   event_viewer: viewerConfigDefault,
   event_gallery: galleryConfigDefault,
   image: imageConfigDefault,
+  timeline: timelineConfigDefault,
 };
 
 const menuButtonSchema = z.discriminatedUnion('type', [
@@ -913,20 +957,22 @@ export const frigateBrowseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.
       children_media_class: z.string().nullable().optional(),
       thumbnail: z.string().nullable(),
       children: z.array(frigateBrowseMediaSourceSchema).nullable().optional(),
-      frigate: z.object({
-        event: z.object({
-          camera: z.string(),
-          end_time: z.number().nullable(),
-          false_positive: z.boolean(),
-          has_clip: z.boolean(),
-          has_snapshot: z.boolean(),
-          id: z.string(),
-          label: z.string(),
-          start_time: z.number(),
-          top_score: z.number(),
-          zones: z.string().array(),
-        }),
-      }).optional(),
+      frigate: z
+        .object({
+          event: z.object({
+            camera: z.string(),
+            end_time: z.number().nullable(),
+            false_positive: z.boolean(),
+            has_clip: z.boolean(),
+            has_snapshot: z.boolean(),
+            id: z.string(),
+            label: z.string(),
+            start_time: z.number(),
+            top_score: z.number(),
+            zones: z.string().array(),
+          }),
+        })
+        .optional(),
     }),
 );
 

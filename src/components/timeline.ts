@@ -8,12 +8,18 @@ import {
 } from 'lit';
 import { DataSet } from 'vis-data/esnext';
 import { HomeAssistant } from 'custom-card-helpers';
-import { Timeline, TimelineOptions } from 'vis-timeline/esnext';
+import { Timeline, TimelineOptions, TimelineOptionsCluster } from 'vis-timeline/esnext';
 import { customElement, property, state } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref';
 
 import { BrowseMediaUtil } from '../browse-media-util';
-import { CameraConfig, ExtendedHomeAssistant, FrigateBrowseMediaSource } from '../types';
+import {
+  CameraConfig,
+  ExtendedHomeAssistant,
+  FrigateBrowseMediaSource,
+  TimelineConfig,
+  frigateCardConfigDefaults,
+} from '../types';
 import { View } from '../view';
 import { contentsChanged, dispatchFrigateCardEvent } from '../common.js';
 import { renderProgressIndicator } from './message';
@@ -37,6 +43,23 @@ export class FrigateCardTimelineEvent extends LitElement {
 
   @property({ attribute: true })
   protected label?: string;
+
+  @property({ attribute: true, type: Number })
+  protected thumbnail_size?: number;
+
+  /**
+   * Ensure there is a cached value before an update.
+   * @param _changedProps The changed properties
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected willUpdate(_changedProps: PropertyValues): void {
+    if (this.thumbnail_size !== undefined) {
+      this.style.setProperty(
+        '--frigate-card-timeline-thumbnail-size',
+        `${this.thumbnail_size}px`,
+      );
+    }
+  }
 
   protected render(): TemplateResult | void {
     if (!this.thumbnail) {
@@ -72,20 +95,23 @@ export class FrigateCardTimeline extends LitElement {
   @property({ attribute: false })
   protected cameraConfig?: CameraConfig;
 
+  /**
+   * Set the Home Assistant object.
+   */
+  set timelineConfig(timelineConfig: TimelineConfig) {
+    this._timelineConfig = timelineConfig;
+    this._setOptions();
+  }
+
+  @state()
+  protected _timelineConfig?: TimelineConfig;
+
   @state({ hasChanged: contentsChanged })
   protected _timelineOptions?: TimelineOptions;
 
   protected _timelineRef: Ref<HTMLElement> = createRef();
   protected _timeline?: Timeline;
   protected _boundTimelineSelectHandler = this._timelineSelectHandler.bind(this);
-
-  protected _resizeObserver: ResizeObserver;
-
-  constructor() {
-    super();
-    this._resizeObserver = new ResizeObserver(this._setOptions.bind(this));
-    this._setOptions();
-  }
 
   /**
    * Master render method.
@@ -127,7 +153,6 @@ export class FrigateCardTimeline extends LitElement {
       'frigate-card:timeline-select',
       this._boundTimelineSelectHandler,
     );
-    this._resizeObserver.observe(this);
   }
 
   /**
@@ -138,7 +163,6 @@ export class FrigateCardTimeline extends LitElement {
       'frigate-card:timeline-select',
       this._boundTimelineSelectHandler,
     );
-    this._resizeObserver.disconnect();
     super.disconnectedCallback();
   }
 
@@ -172,6 +196,10 @@ export class FrigateCardTimeline extends LitElement {
         media_id=${source.media_content_id}
         thumbnail="${source.thumbnail}"
         label="${source.title}"
+        thumbnail_size="${
+          this._timelineConfig?.controls.thumbnails.size_pixels ??
+          frigateCardConfigDefaults.timeline.controls.thumbnails.size_pixels
+        }"
       >
       </frigate-card-timeline-event>`;
   }
@@ -204,24 +232,48 @@ export class FrigateCardTimeline extends LitElement {
    * Handle timeline resize.
    */
   protected _setOptions(): void {
+    if (!this._timelineConfig) {
+      return;
+    }
+
+    const thumbnailConfig =
+      this._timelineConfig?.controls.thumbnails ??
+      frigateCardConfigDefaults.timeline.controls.thumbnails;
+    const gap = 5;
+
     // Configuration for the Timeline, see:
     // https://visjs.github.io/vis-timeline/docs/timeline/#Configuration_Options
     this._timelineOptions = {
-      cluster: {
-        showStipes: true,
-        maxItems: 3,
-      },
+      cluster: thumbnailConfig.clustering_threshold > 0
+        ? {
+            showStipes: true,
+            // It would be better to automatically calculate `maxItems` from the
+            // rendered height of the timeline (or group within the timeline) so
+            // as to not waste vertical space (e.g. after the user changes to
+            // fullscreen mode). Unfortunately this is not easy to do, as we
+            // don't know the height of the timeline until after it renders --
+            // and if we adjust `maxItems` then we can get into an infinite
+            // resize loop. Adjusting the `maxItems` of a timeline, after it's
+            // created, also does not appear to work as expected.
+            maxItems: thumbnailConfig.clustering_threshold,
+          }
+        : false as TimelineOptionsCluster,
       minHeight: '100%',
       maxHeight: '100%',
       margin: {
-        item: 50,
-        axis: 75 + 10,
+        item: thumbnailConfig.size_pixels - thumbnailConfig.overlap_pixels + gap,
+        axis: thumbnailConfig.size_pixels + gap,
       },
       xss: {
         disabled: false,
         filterOptions: {
           whiteList: {
-            'frigate-card-timeline-event': ['thumbnail', 'label', 'media_id'],
+            'frigate-card-timeline-event': [
+              'thumbnail',
+              'label',
+              'media_id',
+              'thumbnail_size',
+            ],
             div: ['title'],
           },
         },
@@ -234,7 +286,9 @@ export class FrigateCardTimeline extends LitElement {
    * @param changedProps The changed properties if any.
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected updated(_changedProperties: PropertyValues): void {
+  protected updated(changedProperties: PropertyValues): void {
+    super.updated(changedProperties);
+
     if (this._timelineRef.value) {
       if (this._timeline) {
         this._timeline.destroy();

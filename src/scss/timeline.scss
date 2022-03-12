@@ -4,10 +4,16 @@
   width: 100%;
   height: 100%;
   display: block;
+  background-color: var(--card-background-color);
+  padding-bottom: 5px;
 }
 
 div.timeline {
   height: 100%;
+}
+
+.vis-text {
+  color: var(--primary-text-color) !important;
 }
 
 .vis-timeline {
@@ -20,6 +26,7 @@ div.timeline {
 }
 
 .vis-item:hover {
+  // Float icons upwards when the user hovers over them.
   z-index: 2;
 }
 
