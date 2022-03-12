@@ -8,6 +8,7 @@ import {
   CameraConfig,
   ExtendedHomeAssistant,
   GalleryConfig,
+  THUMBNAIL_WIDTH_MAX,
   frigateCardConfigDefaults,
 } from '../types.js';
 import { BrowseMediaUtil } from '../browse-media-util.js';
@@ -16,8 +17,6 @@ import { renderProgressIndicator } from './message.js';
 import { stopEventFromActivatingCardWideActions } from '../common.js';
 
 import galleryStyle from '../scss/gallery.scss';
-
-const MAX_THUMBNAIL_WIDTH = 175;
 
 @customElement('frigate-card-gallery')
 export class FrigateCardGallery extends LitElement {
@@ -124,7 +123,7 @@ export class FrigateCardGalleryCore extends LitElement {
     this._columns = Math.max(
       this.galleryConfig?.min_columns ??
         frigateCardConfigDefaults.event_gallery.min_columns,
-      Math.ceil(this.clientWidth / MAX_THUMBNAIL_WIDTH),
+      Math.ceil(this.clientWidth / THUMBNAIL_WIDTH_MAX),
     );
   }
 
