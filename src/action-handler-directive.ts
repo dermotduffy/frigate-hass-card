@@ -18,13 +18,17 @@ interface ActionHandler extends HTMLElement {
   bind(element: Element, options): void;
 }
 interface ActionHandlerElement extends HTMLElement {
-  actionHandlerOptions?: ActionHandlerOptions;
+  actionHandlerOptions?: FrigateCardActionHandlerOptions;
 }
 
 declare global {
   interface HASSDomEvents {
     action: ActionHandlerDetail;
   }
+}
+
+interface FrigateCardActionHandlerOptions extends ActionHandlerOptions {
+  allowPropagation?: boolean;
 }
 
 class ActionHandler extends HTMLElement implements ActionHandler {
@@ -94,10 +98,12 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     };
 
     const end = (ev: Event): void => {
-      // This will ensure only 1 actionHandler is invoked for a given interaction.
-      stopEventFromActivatingCardWideActions(ev);
-
       const options = element.actionHandlerOptions;
+      if (!options?.allowPropagation) {
+        // This will ensure only 1 actionHandler is invoked for a given interaction.
+        stopEventFromActivatingCardWideActions(ev);
+      }
+
       if (
         ['touchend', 'touchcancel'].includes(ev.type) &&
         // This action handler by default relies on synthetic click events for
@@ -169,7 +175,7 @@ const getActionHandler = (): ActionHandler => {
 
 export const actionHandlerBind = (
   element: ActionHandlerElement,
-  options?: ActionHandlerOptions,
+  options?: FrigateCardActionHandlerOptions,
 ): void => {
   const actionhandler: ActionHandler = getActionHandler();
   if (!actionhandler) {
@@ -186,6 +192,6 @@ export const actionHandler = directive(
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
-    render(_options?: ActionHandlerOptions) {}
+    render(_options?: FrigateCardActionHandlerOptions) {}
   },
 );

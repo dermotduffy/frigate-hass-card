@@ -13,6 +13,11 @@
   margin: auto;
   display: flex;
   justify-content: center;
+
+  // Need to apply the border radius on the container level, as the ha-card has
+  // overflow visible in order to allow a submenu to extend beyond the card
+  // boundary.
+  border-radius: var(--ha-card-border-radius, 4px);
 }
 
 .frigate-card-contents {
@@ -58,7 +63,9 @@ ha-card {
   display: flex;
   flex-direction: column;
   margin: auto;
-  overflow: hidden;
+
+  // Some elements (such as submenus) may need to extend beyond the card boundary.
+  overflow: visible;
   width: 100%;
   height: 100%;
   position: static;
