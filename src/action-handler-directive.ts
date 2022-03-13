@@ -18,13 +18,17 @@ interface ActionHandler extends HTMLElement {
   bind(element: Element, options): void;
 }
 interface ActionHandlerElement extends HTMLElement {
-  actionHandlerOptions?: ActionHandlerOptions;
+  actionHandlerOptions?: FrigateCardActionHandlerOptions;
 }
 
 declare global {
   interface HASSDomEvents {
     action: ActionHandlerDetail;
   }
+}
+
+interface FrigateCardActionHandlerOptions extends ActionHandlerOptions {
+  allowPropagation?: boolean;
 }
 
 class ActionHandler extends HTMLElement implements ActionHandler {
@@ -171,7 +175,7 @@ const getActionHandler = (): ActionHandler => {
 
 export const actionHandlerBind = (
   element: ActionHandlerElement,
-  options?: ActionHandlerOptions,
+  options?: FrigateCardActionHandlerOptions,
 ): void => {
   const actionhandler: ActionHandler = getActionHandler();
   if (!actionhandler) {
@@ -188,6 +192,6 @@ export const actionHandler = directive(
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
-    render(_options?: ActionHandlerOptions) {}
+    render(_options?: FrigateCardActionHandlerOptions) {}
   },
 );
