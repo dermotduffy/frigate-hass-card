@@ -1158,10 +1158,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
 class JSMpegCustomSource extends JSMpeg.Source['WebSocket'] {
   frigateCardLivePlayer: FrigateCardLiveJSMPEG;
 
-  constructor(
-    url: string,
-    options: JSMpeg.Source['WebSocket']['options'] = {}
-  ) {
+  constructor(url: string, options: JSMpeg.Source['WebSocket']['options'] = {}) {
     super(url, options);
     this.frigateCardLivePlayer = options.frigateCardLivePlayer;
   }
