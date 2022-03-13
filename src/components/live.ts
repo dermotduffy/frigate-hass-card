@@ -1176,6 +1176,8 @@ class JSMpegCustomSource extends JSMpeg.Source['WebSocket'] {
       ) {
         console.warn('JSMpeg: Out of bounds error. Reloading...');
         this.frigateCardLivePlayer.refreshPlayer();
+      } else {
+        throw error;
       }
     }
   }
