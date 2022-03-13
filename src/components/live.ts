@@ -1039,6 +1039,9 @@ export class FrigateCardLiveJSMPEG extends LitElement {
           // Override with user-specified options.
           ...this.jsmpegConfig?.options,
 
+          frigatePlayer: this,
+          source: JSMpegCustomSource,
+
           // Don't allow the player to internally reconnect, as it may re-use a
           // URL with a (newly) invalid signature, e.g. during a Home Assistant
           // restart.
@@ -1103,7 +1106,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
   /**
    * Refresh the JSMPEG player.
    */
-  protected async _refreshPlayer(): Promise<void> {
+  async _refreshPlayer(): Promise<void> {
     this._resetPlayer();
 
     this._jsmpegCanvasElement = document.createElement('canvas');
@@ -1147,5 +1150,31 @@ export class FrigateCardLiveJSMPEG extends LitElement {
    */
   static get styles(): CSSResultGroup {
     return unsafeCSS(liveJSMPEGStyle);
+  }
+}
+
+class JSMpegCustomSource extends JSMpeg.Source['WebSocket'] {
+  frigatePlayer: FrigateCardLiveJSMPEG;
+
+  constructor(
+    url: string,
+    options: JSMpeg.Source['WebSocket']['options'] = {}
+  ) {
+    super(url, options);
+    this.frigatePlayer = options.frigatePlayer;
+  }
+
+  onMessage(ev): void {
+    try {
+      super.onMessage(ev);
+    } catch (error) {
+      if (
+        error instanceof WebAssembly.RuntimeError &&
+        error.message.indexOf('out of bounds') !== -1
+      ) {
+        console.warn('JSMpeg: Out of bounds error. Reloading...');
+        this.frigatePlayer._refreshPlayer();
+      }
+    }
   }
 }
