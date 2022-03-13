@@ -1348,6 +1348,17 @@ previous buttons may be used to navigate in these instances.
 
 Dragging works as expected for snapshots, or for the `frigate-jsmpeg` provider.
 
+### Progress bar cannot be dragged in Safari
+
+Dragging the Safari video controls "progress bar" conflicts with carousel "dragging", meaning the video controls progress bar cannot be moved left or right. Turning off carousel dragging (and using next/previous controls) will return full video controls in Safari:
+
+```yaml
+live:
+  draggable: false
+event_viewer:
+  draggable: false
+```
+
 ### `double_tap` does not work for [card-wide actions](#actions) on Android
 
 The Android video player swallows `double_tap` interactions in order to
