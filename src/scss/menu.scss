@@ -18,6 +18,14 @@
   width: 100%;
   background: var(--secondary-background-color);
 }
+:host([data-mode="above"]) {
+  border-top-left-radius: var(--ha-card-border-radius, 4px);
+  border-top-right-radius: var(--ha-card-border-radius, 4px);
+}
+:host([data-mode="below"]) {
+  border-bottom-left-radius: var(--ha-card-border-radius, 4px);
+  border-bottom-right-radius: var(--ha-card-border-radius, 4px);
+}
 
 :host([data-mode$="-left"]) {
   left: 0px;

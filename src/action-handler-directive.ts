@@ -94,10 +94,12 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     };
 
     const end = (ev: Event): void => {
-      // This will ensure only 1 actionHandler is invoked for a given interaction.
-      stopEventFromActivatingCardWideActions(ev);
-
       const options = element.actionHandlerOptions;
+      if (!options?.allowPropagation) {
+        // This will ensure only 1 actionHandler is invoked for a given interaction.
+        stopEventFromActivatingCardWideActions(ev);
+      }
+
       if (
         ['touchend', 'touchcancel'].includes(ev.type) &&
         // This action handler by default relies on synthetic click events for
