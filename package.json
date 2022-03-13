@@ -49,7 +49,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "npm-check-updates": "^12.5.2",
     "prettier": "^2.4.1",
-    "rollup": "^2.69.0",
+    "rollup": "^2.70.0",
     "rollup-plugin-serve": "^1.1.0",
     "rollup-plugin-styles": "^4.0.0",
     "rollup-plugin-terser": "^7.0.2",
