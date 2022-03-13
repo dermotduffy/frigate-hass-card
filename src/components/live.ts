@@ -1039,9 +1039,8 @@ export class FrigateCardLiveJSMPEG extends LitElement {
           // Override with user-specified options.
           ...this.jsmpegConfig?.options,
 
-          // Share the player instance and use a custom source class so that we
-          // can detect known errors and refresh the card if necessary.
-          frigateCardLivePlayer: this,
+          // Use a custom source class so that we can detect known errors and
+          // perform any necessary actions.
           source: JSMpegCustomSource,
 
           // Don't allow the player to internally reconnect, as it may re-use a
@@ -1108,7 +1107,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
   /**
    * Refresh the JSMPEG player.
    */
-  async refreshPlayer(): Promise<void> {
+  protected async _refreshPlayer(): Promise<void> {
     this._resetPlayer();
 
     this._jsmpegCanvasElement = document.createElement('canvas');
@@ -1137,7 +1136,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
    */
   protected render(): TemplateResult | void {
     const _render = async (): Promise<TemplateResult | void> => {
-      await this.refreshPlayer();
+      await this._refreshPlayer();
 
       if (!this._jsmpegVideoPlayer || !this._jsmpegCanvasElement) {
         return dispatchErrorMessageEvent(this, localize('error.jsmpeg_no_player'));
@@ -1156,11 +1155,10 @@ export class FrigateCardLiveJSMPEG extends LitElement {
 }
 
 class JSMpegCustomSource extends JSMpeg.Source['WebSocket'] {
-  frigateCardLivePlayer: FrigateCardLiveJSMPEG;
+  frigateCardReloadingLock = false;
 
   constructor(url: string, options: JSMpeg.Source['WebSocket']['options'] = {}) {
     super(url, options);
-    this.frigateCardLivePlayer = options.frigateCardLivePlayer;
   }
 
   onMessage(ev): void {
@@ -1171,8 +1169,11 @@ class JSMpegCustomSource extends JSMpeg.Source['WebSocket'] {
         error instanceof WebAssembly.RuntimeError &&
         error.message.indexOf('out of bounds') !== -1
       ) {
-        console.warn('JSMpeg: Out of bounds error. Reloading...');
-        this.frigateCardLivePlayer.refreshPlayer();
+        if (!this.frigateCardReloadingLock) {
+          this.frigateCardReloadingLock = true;
+          console.warn('JSMpeg: Out of bounds error. Reloading...');
+          document.location.reload();
+        }
       } else {
         throw error;
       }
