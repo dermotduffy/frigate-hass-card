@@ -1039,7 +1039,9 @@ export class FrigateCardLiveJSMPEG extends LitElement {
           // Override with user-specified options.
           ...this.jsmpegConfig?.options,
 
-          frigatePlayer: this,
+          // Share the player instance and use a custom source class so that we
+          // can detect known errors and refresh the card if necessary.
+          frigateCardLivePlayer: this,
           source: JSMpegCustomSource,
 
           // Don't allow the player to internally reconnect, as it may re-use a
@@ -1106,7 +1108,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
   /**
    * Refresh the JSMPEG player.
    */
-  async _refreshPlayer(): Promise<void> {
+  async refreshPlayer(): Promise<void> {
     this._resetPlayer();
 
     this._jsmpegCanvasElement = document.createElement('canvas');
@@ -1135,7 +1137,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
    */
   protected render(): TemplateResult | void {
     const _render = async (): Promise<TemplateResult | void> => {
-      await this._refreshPlayer();
+      await this.refreshPlayer();
 
       if (!this._jsmpegVideoPlayer || !this._jsmpegCanvasElement) {
         return dispatchErrorMessageEvent(this, localize('error.jsmpeg_no_player'));
@@ -1154,14 +1156,14 @@ export class FrigateCardLiveJSMPEG extends LitElement {
 }
 
 class JSMpegCustomSource extends JSMpeg.Source['WebSocket'] {
-  frigatePlayer: FrigateCardLiveJSMPEG;
+  frigateCardLivePlayer: FrigateCardLiveJSMPEG;
 
   constructor(
     url: string,
     options: JSMpeg.Source['WebSocket']['options'] = {}
   ) {
     super(url, options);
-    this.frigatePlayer = options.frigatePlayer;
+    this.frigateCardLivePlayer = options.frigateCardLivePlayer;
   }
 
   onMessage(ev): void {
@@ -1173,7 +1175,7 @@ class JSMpegCustomSource extends JSMpeg.Source['WebSocket'] {
         error.message.indexOf('out of bounds') !== -1
       ) {
         console.warn('JSMpeg: Out of bounds error. Reloading...');
-        this.frigatePlayer._refreshPlayer();
+        this.frigateCardLivePlayer.refreshPlayer();
       }
     }
   }
