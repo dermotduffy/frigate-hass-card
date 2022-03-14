@@ -15,7 +15,7 @@
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/image-view.png" alt="Frigate card example" width="400px">
 
-| ♥️ This card is under active development. Be sure to consult the documentation that matches the release of the card you're using, rather than the documentation at head. README for latest stable release: [v2.1](https://github.com/dermotduffy/frigate-hass-card/blob/v2.1.0/README.md) |
+| ♥️ This card is under active development. Be sure to consult the documentation that matches the release of the card you're using, rather than the documentation at head. README for latest stable release: [v3.0](https://github.com/dermotduffy/frigate-hass-card/blob/v3.0.0/README.md) |
 | - |
 
 # Frigate Lovelace Card
@@ -1347,6 +1347,17 @@ or live views that use the `frigate` or `webrtc-card` provider). The next and
 previous buttons may be used to navigate in these instances.
 
 Dragging works as expected for snapshots, or for the `frigate-jsmpeg` provider.
+
+### Progress bar cannot be dragged in Safari
+
+Dragging the Safari video controls "progress bar" conflicts with carousel "dragging", meaning the video controls progress bar cannot be moved left or right. Turning off carousel dragging (and using next/previous controls) will return full video controls in Safari:
+
+```yaml
+live:
+  draggable: false
+event_viewer:
+  draggable: false
+```
 
 ### `double_tap` does not work for [card-wide actions](#actions) on Android
 
