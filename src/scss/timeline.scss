@@ -52,6 +52,20 @@ div.timeline {
   box-shadow: 0px 0px 5px 1px var(--primary-color);
 }
 
+.vis-time-axis .vis-grid.vis-minor {
+  border-color: var(--secondary-color);
+}
+
+.vis-time-axis .vis-grid.vis-major {
+  border-color: var(--secondary-color);
+}
+
+.vis-label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 div.vis-tooltip {
   padding: 0px;
   background-color: unset;
