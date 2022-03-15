@@ -868,6 +868,7 @@ export interface BrowseMediaQueryParameters {
   zone?: string;
   before?: number;
   after?: number;
+  unlimited?: boolean;
 }
 
 export interface BrowseMediaNeighbors {

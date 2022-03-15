@@ -101,7 +101,9 @@ export class BrowseMediaUtil {
         params.clientId,
         'event-search',
         params.mediaType,
-        '', // Name/Title to render (not necessary here)
+
+        // If the name field ends in '.all' the integration will return up to 10K events.
+        params.unlimited ? '.all' : '',
         params.after ? String(Math.floor(params.after)) : '',
         params.before ? String(Math.ceil(params.before)) : '',
         params.cameraName,

@@ -4,17 +4,13 @@
   height: 100%;
 
   --frigate-card-timeline-thumbnail-size: 75px;
+
+  border-radius: 5px;
+  overflow: hidden;
 }
 
 img {
   width: var(--frigate-card-timeline-thumbnail-size);
   height: var(--frigate-card-timeline-thumbnail-size);
   display: block;
-  border-radius: 5px;
-  transition: transform 0.2s linear;
-  border: 1px solid black;
-}
-
-img:hover {
-  transform: scale(1.04);
 }

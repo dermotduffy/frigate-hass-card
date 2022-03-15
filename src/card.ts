@@ -1276,6 +1276,7 @@ export class FrigateCard extends LitElement {
             .hass=${this._hass}
             .view=${this._view}
             .cameraConfig=${cameraConfig}
+            .cameras=${this._cameras}
             .timelineConfig=${this._getConfig().timeline}
           >
           </frigate-card-timeline>`
