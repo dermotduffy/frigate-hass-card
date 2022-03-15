@@ -17,7 +17,7 @@
   "dependencies": {
     "@cycjimmy/jsmpeg-player": "^5.0.1",
     "@egjs/hammerjs": "^2.0.17",
-    "@lit-labs/task": "^1.0.0",
+    "@lit-labs/task": "^1.1.1",
     "@material/image-list": "^13.0.0",
     "@material/mwc-menu": "^0.25.3",
     "@material/rtl": "^13.0.0",

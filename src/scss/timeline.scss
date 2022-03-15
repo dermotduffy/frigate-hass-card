@@ -17,12 +17,19 @@ div.timeline {
 }
 
 .vis-timeline {
-  border: hidden;
+  border: none;
+}
+
+.vis-labelset .vis-label {
+  // Group labels.
+  color: var(--primary-text-color);
 }
 
 .vis-item {
   border-color: var(--primary-color);
   background: none;
+  color: var(--primary-text-color);
+  background-color: var(--primary-color);
 }
 
 .vis-item:hover {
@@ -31,7 +38,7 @@ div.timeline {
 }
 
 .vis-item.vis-box {
-  border-style: hidden;
+  border: none;
 }
 
 .vis-item .vis-item-content {
@@ -39,13 +46,14 @@ div.timeline {
 }
 
 .vis-item.vis-cluster {
-  width: 30px;
-  height: 30px;
   border-style: dotted;
-  border-radius: 50%;
-  padding: 5px;
-
   color: var(--primary-text-color);
   background-color: var(--primary-background-color);
-  box-shadow: 0px 0px 20px 5px var(--primary-color);
+  box-shadow: 0px 0px 5px 1px var(--primary-color);
+}
+
+div.vis-tooltip {
+  padding: 0px;
+  background-color: unset;
+  border: none;
 }
