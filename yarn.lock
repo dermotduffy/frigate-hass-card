@@ -268,20 +268,20 @@
     "@babel/helper-validator-identifier" "^7.16.7"
     to-fast-properties "^2.0.0"
 
-"@cycjimmy/awesome-js-funcs@^2.3.0":
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/@cycjimmy/awesome-js-funcs/-/awesome-js-funcs-2.7.0.tgz#df8c5675f9c4c80b070c7d0660b6953acf9d92e5"
-  integrity sha512-LVYZLY3cAKc3j8L9TJy+I2CwWyPTPxjJ2wJsr2VSxiP+PGdKxI2GAH4s8maynkIWq0/QyGUFi5yoyBk1+aLntQ==
+"@cycjimmy/awesome-js-funcs@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@cycjimmy/awesome-js-funcs/-/awesome-js-funcs-3.1.0.tgz#1cc2e55101aea4a0e752c7da2cf027884473676c"
+  integrity sha512-FT+V5fSZoPAdEAo34FJFy5+DfhdoQ+s6cOmghjAUQzluM7NlUkPKUSFy5fzJHVJD2dofy8v2k3IIfgUXNiG2yw==
 
-"@cycjimmy/jsmpeg-player@^5.0.1":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@cycjimmy/jsmpeg-player/-/jsmpeg-player-5.0.1.tgz#f29ca77641af518498df1fca91bfacb1101032d8"
-  integrity sha512-x2kCCEfmXinebXC3d8XBJmOeFP+Jw0f4peT2rAmNvhggP1hYPvACP2ioobxeZvp255rPQTt/RPNi9y2SJ5ATMQ==
+"@cycjimmy/jsmpeg-player@^5.1.1":
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/@cycjimmy/jsmpeg-player/-/jsmpeg-player-5.1.1.tgz#21ac4cc9b36527a17ba27271bd3610eebe20999b"
+  integrity sha512-laMBuYW4GI/GPySSnhHo59fjvWMeawvj6Y3lC29gPYDNhTrfNKA0Llp5fGBXHYbiUBptglcjxgZApEsD7PfMqQ==
   dependencies:
-    "@cycjimmy/awesome-js-funcs" "^2.3.0"
-    "@cycjimmy/sass-lib" "^1.0.3"
+    "@cycjimmy/awesome-js-funcs" "^3.1.0"
+    "@cycjimmy/sass-lib" "^1.1.0"
 
-"@cycjimmy/sass-lib@^1.0.3":
+"@cycjimmy/sass-lib@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@cycjimmy/sass-lib/-/sass-lib-1.1.0.tgz#94c5d454d7ca67f5c09a924f7f26a9f180461072"
   integrity sha512-eMN9QMtiPfiDqdJvE8agBOR53lGJXkz2pOy8lhttsuOBzfmf3gs10Uf0ogX/rjt3U7//ZSqKckRT/br1S2uZ6A==
@@ -1618,10 +1618,10 @@ custom-card-helpers@^1.8.0:
     superstruct "^0.15.3"
     typescript "^4.5.4"
 
-dayjs@^1.10.8:
-  version "1.10.8"
-  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.10.8.tgz#267df4bc6276fcb33c04a6735287e3f429abec41"
-  integrity sha512-wbNwDfBHHur9UOzNUjeKUOJ0fCb0a52Wx0xInmQ7Y8FstyajiV1NmK1e00cxsr9YrE9r7yAChE0VvpuY5Rnlow==
+dayjs@^1.11.0:
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.0.tgz#009bf7ef2e2ea2d5db2e6583d2d39a4b5061e805"
+  integrity sha512-JLC809s6Y948/FuCZPm5IX8rRhQwOiyMb2TfVVQEixG7P8Lm/gt5S7yoQZmC8x1UehI9Pb7sksEt4xx14m+7Ug==
 
 debug@4, debug@^4.1.0, debug@^4.1.1, debug@^4.3.1, debug@^4.3.2:
   version "4.3.3"
@@ -2390,10 +2390,10 @@ has@^1.0.3:
   dependencies:
     function-bind "^1.1.1"
 
-home-assistant-js-websocket@^6.0.1:
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/home-assistant-js-websocket/-/home-assistant-js-websocket-6.0.1.tgz#0f1c17cd6b62a97115093084d08f25d42bfd6887"
-  integrity sha512-UL3CQDq5W2YRfTRGJcSfvwz70qeoTbZi3PcF4qdkmx17oKGo+20ozmY6wAjxWPbvLw1yOW/eNbASMLilxt5JOQ==
+home-assistant-js-websocket@^6.0.1, home-assistant-js-websocket@^6.1.1:
+  version "6.1.1"
+  resolved "https://registry.yarnpkg.com/home-assistant-js-websocket/-/home-assistant-js-websocket-6.1.1.tgz#87ba846753c4fb58a2e5ace6bb15a82689fd0735"
+  integrity sha512-TnZFzF4mn5F/v0XKUTK2GMQXrn/+eQpgaSDSELl6U0HSwSbFwRhGWLz330YT+hiKMspDflamsye//RPL+zwhDw==
 
 hosted-git-info@^4.0.1, hosted-git-info@^4.1.0:
   version "4.1.0"
