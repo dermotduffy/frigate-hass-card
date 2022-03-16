@@ -268,20 +268,20 @@
     "@babel/helper-validator-identifier" "^7.16.7"
     to-fast-properties "^2.0.0"
 
-"@cycjimmy/awesome-js-funcs@^2.3.0":
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/@cycjimmy/awesome-js-funcs/-/awesome-js-funcs-2.7.0.tgz#df8c5675f9c4c80b070c7d0660b6953acf9d92e5"
-  integrity sha512-LVYZLY3cAKc3j8L9TJy+I2CwWyPTPxjJ2wJsr2VSxiP+PGdKxI2GAH4s8maynkIWq0/QyGUFi5yoyBk1+aLntQ==
+"@cycjimmy/awesome-js-funcs@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@cycjimmy/awesome-js-funcs/-/awesome-js-funcs-3.1.0.tgz#1cc2e55101aea4a0e752c7da2cf027884473676c"
+  integrity sha512-FT+V5fSZoPAdEAo34FJFy5+DfhdoQ+s6cOmghjAUQzluM7NlUkPKUSFy5fzJHVJD2dofy8v2k3IIfgUXNiG2yw==
 
-"@cycjimmy/jsmpeg-player@^5.0.1":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@cycjimmy/jsmpeg-player/-/jsmpeg-player-5.0.1.tgz#f29ca77641af518498df1fca91bfacb1101032d8"
-  integrity sha512-x2kCCEfmXinebXC3d8XBJmOeFP+Jw0f4peT2rAmNvhggP1hYPvACP2ioobxeZvp255rPQTt/RPNi9y2SJ5ATMQ==
+"@cycjimmy/jsmpeg-player@^5.1.1":
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/@cycjimmy/jsmpeg-player/-/jsmpeg-player-5.1.1.tgz#21ac4cc9b36527a17ba27271bd3610eebe20999b"
+  integrity sha512-laMBuYW4GI/GPySSnhHo59fjvWMeawvj6Y3lC29gPYDNhTrfNKA0Llp5fGBXHYbiUBptglcjxgZApEsD7PfMqQ==
   dependencies:
-    "@cycjimmy/awesome-js-funcs" "^2.3.0"
-    "@cycjimmy/sass-lib" "^1.0.3"
+    "@cycjimmy/awesome-js-funcs" "^3.1.0"
+    "@cycjimmy/sass-lib" "^1.1.0"
 
-"@cycjimmy/sass-lib@^1.0.3":
+"@cycjimmy/sass-lib@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@cycjimmy/sass-lib/-/sass-lib-1.1.0.tgz#94c5d454d7ca67f5c09a924f7f26a9f180461072"
   integrity sha512-eMN9QMtiPfiDqdJvE8agBOR53lGJXkz2pOy8lhttsuOBzfmf3gs10Uf0ogX/rjt3U7//ZSqKckRT/br1S2uZ6A==

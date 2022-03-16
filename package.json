@@ -15,7 +15,7 @@
   "author": "Dermot Duffy <dermot.duffy@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@cycjimmy/jsmpeg-player": "^5.0.1",
+    "@cycjimmy/jsmpeg-player": "^5.1.1",
     "@lit-labs/task": "^1.0.0",
     "@material/image-list": "^13.0.0",
     "@material/mwc-menu": "^0.25.3",
