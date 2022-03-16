@@ -47,7 +47,7 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.24.2",
     "eslint-plugin-prettier": "^4.0.0",
-    "npm-check-updates": "^12.5.2",
+    "npm-check-updates": "^12.5.3",
     "prettier": "^2.4.1",
     "rollup": "^2.70.1",
     "rollup-plugin-serve": "^1.1.0",
