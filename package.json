@@ -21,7 +21,7 @@
     "@material/mwc-menu": "^0.25.3",
     "@material/rtl": "^13.0.0",
     "custom-card-helpers": "^1.8.0",
-    "dayjs": "^1.10.8",
+    "dayjs": "^1.11.0",
     "embla-carousel": "^6.1.1",
     "home-assistant-js-websocket": "^6.1.1",
     "lit": "^2.2.0",
