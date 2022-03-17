@@ -912,6 +912,10 @@ export interface FrigateCardMediaPlayer {
  * Home Assistant API types.
  */
 
+export const MEDIA_CLASS_PLAYLIST = "playlist" as const;
+export const MEDIA_CLASS_VIDEO = "video" as const;
+export const MEDIA_TYPE_VIDEO = "video" as const;
+
 // Recursive type, cannot use type interference:
 // See: https://github.com/colinhacks/zod#recursive-types
 //

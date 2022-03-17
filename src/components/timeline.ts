@@ -22,6 +22,9 @@ import {
   CameraConfig,
   ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
+  MEDIA_CLASS_PLAYLIST,
+  MEDIA_TYPE_VIDEO,
+  MEDIA_CLASS_VIDEO,
   TimelineConfig,
   frigateCardConfigDefaults,
 } from '../types';
@@ -44,6 +47,8 @@ interface FrigateCardTimelineData {
   id: string;
   content: string;
   start: number;
+  end?: number;
+  source: FrigateBrowseMediaSource;
 }
 
 @customElement('frigate-card-timeline-event')
@@ -133,6 +138,7 @@ class TimelineEventManager {
           content: this._contentCallback?.(child) ?? '',
           title: this._tooltipCallback?.(child) ?? '',
           start: child.frigate.event.start_time * 1000,
+          source: child,
         };
         if (child.frigate.event.end_time) {
           item['end'] = child.frigate.event.end_time * 1000;
@@ -294,11 +300,55 @@ export class FrigateCardTimeline extends LitElement {
    * @returns
    */
   protected _timelineSelectHandler(data: { items: string[]; event: Event }): void {
-    if (data.items.length <= 0) {
+    if (data.items.length <= 0 || !this._timeline) {
       return;
     }
 
-    // TODO: Make a parent, attach a select bunch of children to it and evolve the view.
+    const timelineWindow = this._timeline.getWindow();
+    const start = timelineWindow.start.getTime();
+    const end = timelineWindow.end.getTime();
+
+    const children: FrigateBrowseMediaSource[] = [];
+    let childIndex: number | null = null;
+
+    // Fetch all the events that match the extent of the visible window (cannot
+    // use getVisibleItems() since it does not return clustered items).
+    this._events.dataset
+      .get({
+        filter: (item) =>
+          (item.start >= start && item.start <= end) ||
+          (item.start <= start && !!item.end && item.end >= end),
+      })
+      .forEach((item) => {
+        if (item.source.can_play) {
+          if ((item.id = data.items[0])) {
+            childIndex = children.length;
+          }
+          children.push(item.source);
+        }
+      });
+
+    if (!children.length) {
+      return;
+    }
+
+    this.view
+      ?.evolve({
+        target: {
+          title: `Timeline ${start} - ${end}`,
+          media_class: MEDIA_CLASS_PLAYLIST,
+          media_content_type: MEDIA_TYPE_VIDEO,
+          media_content_id: '',
+          can_play: false,
+          can_expand: true,
+          children_media_class: MEDIA_CLASS_VIDEO,
+          thumbnail: null,
+          children: children,
+        },
+        childIndex: childIndex ?? 0,
+        view: 'clip',
+      })
+      .dispatchChangeEvent(this);
   }
 
   /**
