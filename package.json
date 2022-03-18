@@ -23,7 +23,7 @@
     "custom-card-helpers": "^1.8.0",
     "dayjs": "^1.11.0",
     "embla-carousel": "^6.1.1",
-    "home-assistant-js-websocket": "^6.1.1",
+    "home-assistant-js-websocket": "^7.0.1",
     "lit": "^2.2.1",
     "lodash-es": "^4.17.21",
     "quick-lru": "^6.1.0",
