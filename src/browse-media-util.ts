@@ -1,6 +1,4 @@
 import { HomeAssistant } from 'custom-card-helpers';
-import dayjs from 'dayjs';
-import dayjs_custom_parse_format from 'dayjs/plugin/customParseFormat.js';
 
 import type {
   BrowseMediaQueryParameters,
@@ -16,8 +14,6 @@ import {
   homeAssistantWSRequest,
 } from './common.js';
 import { localize } from './localize/localize.js';
-
-dayjs.extend(dayjs_custom_parse_format);
 
 export class BrowseMediaUtil {
   /**
