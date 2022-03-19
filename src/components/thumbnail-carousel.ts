@@ -1,11 +1,14 @@
 import { BrowseMediaUtil } from '../browse-media-util.js';
-import { CSSResultGroup, TemplateResult, html, unsafeCSS } from 'lit';
+import { CSSResultGroup, TemplateResult, html, unsafeCSS, PropertyValues } from 'lit';
 import { EmblaOptionsType } from 'embla-carousel';
 import { customElement, property } from 'lit/decorators.js';
 
 import type { FrigateBrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
 import { FrigateCardCarousel } from './carousel.js';
-import { dispatchFrigateCardEvent, stopEventFromActivatingCardWideActions } from '../common.js';
+import {
+  dispatchFrigateCardEvent,
+  stopEventFromActivatingCardWideActions,
+} from '../common.js';
 
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
 
@@ -18,7 +21,7 @@ export interface ThumbnailCarouselTap {
 @customElement('frigate-card-thumbnail-carousel')
 export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   @property({ attribute: false })
-  protected target?: FrigateBrowseMediaSource;
+  public target?: FrigateBrowseMediaSource;
 
   protected _tapSelected?;
 
@@ -88,6 +91,17 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
       }
     }
     return slides;
+  }
+
+  /**
+   * The updated lifecycle callback for this element.
+   * @param changedProperties The properties that were changed in this render.
+   */
+  updated(changedProperties: PropertyValues): void {
+    if (this._carousel && changedProperties.has('target')) {
+      this._destroyCarousel();
+    }
+    super.updated(changedProperties);
   }
 
   /**

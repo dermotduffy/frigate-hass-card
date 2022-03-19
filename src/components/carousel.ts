@@ -1,4 +1,6 @@
 import { CSSResultGroup, LitElement, unsafeCSS, PropertyValues } from 'lit';
+import { property } from 'lit/decorators.js';
+
 import EmblaCarousel, {
   EmblaCarouselType,
   EmblaOptionsType,
@@ -15,6 +17,9 @@ export interface CarouselSelect {
 }
 
 export class FrigateCardCarousel extends LitElement {
+  @property({ attribute: true, reflect: true })
+  public direction: 'vertical' | 'horizontal' = 'horizontal';
+
   protected _carousel?: EmblaCarouselType;
   protected _plugins: Record<string, EmblaPluginType> = {};
 
@@ -98,7 +103,13 @@ export class FrigateCardCarousel extends LitElement {
         return acc;
       }, {});
 
-      this._carousel = EmblaCarousel(carouselNode, this._getOptions(), plugins);
+      this._carousel = EmblaCarousel(
+        carouselNode,
+        {
+          axis: this.direction == 'horizontal' ? 'x' : 'y',
+          ...this._getOptions()
+        },
+        plugins);
       this._carousel.on('init', () => dispatchFrigateCardEvent(this, 'carousel:init'));
       this._carousel.on('select', () => {
         const selected = this.carouselSelected();

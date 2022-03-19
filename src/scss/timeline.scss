@@ -6,6 +6,9 @@
   display: block;
   background-color: var(--card-background-color);
   padding-bottom: 5px;
+
+  // So that absolute sidedrawer is relative to this host.
+  position: relative;
 }
 
 div.timeline {
