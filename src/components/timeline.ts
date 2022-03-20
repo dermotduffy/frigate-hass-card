@@ -14,6 +14,7 @@ import {
   TimelineOptions,
   TimelineOptionsCluster,
 } from 'vis-timeline/esnext';
+import { classMap } from 'lit/directives/class-map.js';
 import { customElement, property, state } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 
@@ -22,12 +23,18 @@ import {
   CameraConfig,
   ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
+  ThumbnailsControlConfig,
   MEDIA_CLASS_PLAYLIST,
   MEDIA_TYPE_VIDEO,
   MEDIA_CLASS_VIDEO,
   TimelineConfig,
   frigateCardConfigDefaults,
 } from '../types';
+import { FrigateCardDrawer } from './drawer';
+import {
+  FrigateCardThumbnailCarousel,
+  ThumbnailCarouselTap,
+} from './thumbnail-carousel';
 import { View } from '../view';
 import {
   contentsChanged,
@@ -38,6 +45,8 @@ import {
 
 import timelineStyle from '../scss/timeline.scss';
 import timelineEventStyle from '../scss/timeline-event.scss';
+
+import './drawer.js';
 
 interface FrigateCardGroupData {
   id: string;
@@ -217,7 +226,9 @@ export class FrigateCardTimeline extends LitElement {
   @state({ hasChanged: contentsChanged })
   protected _timelineOptions?: TimelineOptions;
 
+  protected _drawerRef: Ref<FrigateCardDrawer> = createRef();
   protected _timelineRef: Ref<HTMLElement> = createRef();
+  protected _thumbnailsRef: Ref<FrigateCardThumbnailCarousel> = createRef();
   protected _timeline?: Timeline;
 
   protected _events = new TimelineEventManager({
@@ -251,7 +262,41 @@ export class FrigateCardTimeline extends LitElement {
     if (!this.hass || !this.view) {
       return;
     }
-    return html` <div class="timeline" ${ref(this._timelineRef)}></div>`;
+
+    const config: ThumbnailsControlConfig = {
+      mode: 'above',
+    };
+
+    // TODO move to configuration later.
+    const drawerLocation: "left" | "right" = "left" as const;
+
+    const timelineClasses = {
+      "timeline": true,
+      "left-margin": drawerLocation == "left",
+      //"right-margin": drawerLocation == "right",
+    }
+
+    return html` <frigate-card-drawer location="${drawerLocation}" ${ref(this._drawerRef)}>
+        <frigate-card-thumbnail-carousel
+          ${ref(this._thumbnailsRef)}
+          direction="vertical"
+          .config=${config}
+          .highlightSelected=${true}
+          @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
+            if (ev.detail.target && ev.detail.childIndex) {
+              this.view
+                ?.evolve({
+                  target: ev.detail.target,
+                  childIndex: ev.detail.childIndex,
+                  view: 'clip',
+                })
+                .dispatchChangeEvent(this);
+            }
+          }}
+        >
+        </frigate-card-thumbnail-carousel>
+      </frigate-card-drawer>
+      <div class="${classMap(timelineClasses)}" ${ref(this._timelineRef)}></div>`;
   }
 
   /**
@@ -290,7 +335,9 @@ export class FrigateCardTimeline extends LitElement {
         this.cameras,
         properties.start,
         properties.end,
-      );
+      ).then(() => {
+        this._updateThumbnails();
+      })
     }
   }
 
@@ -299,10 +346,20 @@ export class FrigateCardTimeline extends LitElement {
    * @param data The data about the selection.
    * @returns
    */
-  protected _timelineSelectHandler(data: { items: string[]; event: Event }): void {
-    if (data.items.length <= 0 || !this._timeline) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected _timelineSelectHandler(_data: { items: string[]; event: Event }): void {
+    this._updateThumbnails();
+    if (this._drawerRef.value) {
+      this._drawerRef.value.open = true;
+    }
+  }
+
+  protected _updateThumbnails(): void {
+    if (!this._timeline) {
       return;
     }
+
+    const selected = this._timeline?.getSelection();
 
     const timelineWindow = this._timeline.getWindow();
     const start = timelineWindow.start.getTime();
@@ -316,12 +373,17 @@ export class FrigateCardTimeline extends LitElement {
     this._events.dataset
       .get({
         filter: (item) =>
+          // Start within the window.
           (item.start >= start && item.start <= end) ||
+          // End within the window.
+          (!!item.end && item.end >= start && item.end <= end) ||
+          // Item lifetime extends past the window
           (item.start <= start && !!item.end && item.end >= end),
+        order: 'start',
       })
       .forEach((item) => {
         if (item.source.can_play) {
-          if ((item.id = data.items[0])) {
+          if (childIndex === null && selected.includes(item.id)) {
             childIndex = children.length;
           }
           children.push(item.source);
@@ -332,23 +394,24 @@ export class FrigateCardTimeline extends LitElement {
       return;
     }
 
-    this.view
-      ?.evolve({
-        target: {
-          title: `Timeline ${start} - ${end}`,
-          media_class: MEDIA_CLASS_PLAYLIST,
-          media_content_type: MEDIA_TYPE_VIDEO,
-          media_content_id: '',
-          can_play: false,
-          can_expand: true,
-          children_media_class: MEDIA_CLASS_VIDEO,
-          thumbnail: null,
-          children: children,
-        },
-        childIndex: childIndex ?? 0,
-        view: 'clip',
-      })
-      .dispatchChangeEvent(this);
+    const target = {
+      title: `Timeline ${start} - ${end}`,
+      media_class: MEDIA_CLASS_PLAYLIST,
+      media_content_type: MEDIA_TYPE_VIDEO,
+      media_content_id: '',
+      can_play: false,
+      can_expand: true,
+      children_media_class: MEDIA_CLASS_VIDEO,
+      thumbnail: null,
+      children: children,
+    };
+
+    if (this._drawerRef.value) {
+      if (this._thumbnailsRef.value) {
+        this._thumbnailsRef.value.target = target;
+        this._thumbnailsRef.value.selected = childIndex ?? undefined;
+      }
+    }
   }
 
   /**
@@ -384,6 +447,7 @@ export class FrigateCardTimeline extends LitElement {
       cluster:
         thumbnailConfig.clustering_threshold > 0
           ? {
+              fitOnDoubleClick: true,
               showStipes: true,
               // It would be better to automatically calculate `maxItems` from the
               // rendered height of the timeline (or group within the timeline) so
@@ -404,6 +468,7 @@ export class FrigateCardTimeline extends LitElement {
       },
       zoomMax: 31 * 24 * 60 * 60 * 1000,
       zoomMin: 1 * 1000,
+      selectable: true,
       start: this._getYesterday(),
       end: this._getToday(),
       groupHeightMode: 'fixed',

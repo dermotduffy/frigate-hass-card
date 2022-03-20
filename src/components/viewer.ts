@@ -135,8 +135,8 @@ export class FrigateCardViewerCore extends LitElement {
 
   protected _syncThumbnailCarousel(): void {
     const mediaSelected = this._viewerCarouselRef.value?.carouselSelected();
-    if (mediaSelected !== undefined) {
-      this._thumbnailCarouselRef.value?.carouselScrollTo(mediaSelected);
+    if (mediaSelected !== undefined && this._thumbnailCarouselRef.value) {
+      this._thumbnailCarouselRef.value.selected = mediaSelected;
     }
   }
 

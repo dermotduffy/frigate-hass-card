@@ -1,34 +1,43 @@
 :host {
-    // Drawer width sizes to contents.
-    width: unset;
-};
-
-#d, #fs {
-    // Override width/height to be 100% instead of 100v[wh].
-    height: 100%;
-
-    // Position absolutely.
-    position: absolute;
-}
-
-:host([location=right]) #d {
-    // Position to the right.
-    left: unset;
-    right: 0;
-    transform: translateX(100%);
-};
-
-:host([location=right][open]) #d  {
-    transform: none;
-    box-shadow: 0px 0px 25px 0px rgba(0, 0, 0, 0.5);
+  // Drawer width sizes to contents.
+  width: unset;
 }
 
 #fs {
-    width: 100%;
-    inset: 0;
+  // Hide the freespace screen.
+  display: none;
+  width: 100%;
+  inset: 0;
+}
+
+#d,
+#fs {
+  // Override width/height to be 100% instead of 100v[wh].
+  height: 100%;
+
+  // Position absolutely.
+  position: absolute;
+}
+
+#d {
+  // Adding for control, may not need this?
+  overflow: visible;
+  visibility: visible;
+}
+
+:host([location='right']) #d {
+  // Position to the right.
+  left: unset;
+  right: 0;
+  transform: translateX(100%);
+}
+
+:host([location='right'][open]) #d {
+  transform: none;
+  box-shadow: 0px 0px 25px 0px rgba(0, 0, 0, 0.5);
 }
 
 #ifs {
-    // Override width/height to be 100% instead of 100v[wh].
-    height: 100%;
-};
+  // Override width/height to be 100% instead of 100v[wh].
+  height: 100%;
+}

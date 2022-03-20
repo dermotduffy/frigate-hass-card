@@ -1,3 +1,49 @@
+$drawer-icon-size: 20px;
+$drawer-padding-extend: 20px;
+
 side-drawer {
-    background-color: var(--card-background-color);
+  background-color: var(--card-background-color);
+}
+
+div.control-surround {
+  position: absolute;
+  bottom: 50%;
+  z-index: 0;
+  padding-top: $drawer-padding-extend;
+  padding-bottom: $drawer-padding-extend;
+}
+:host([location='left']) div.control-surround {
+  @if $drawer-icon-size < 32 {
+    // Ensure the clickable area is at least 32px wide.
+    padding-right: calc(32px - $drawer-icon-size);
+  }
+  left: 100%;
+}
+:host([location='right']) div.control-surround {
+  @if $drawer-icon-size < 32 {
+    // See note above.
+    padding-left: calc(32px - $drawer-icon-size);
+  }
+  right: 100%;
+}
+
+ha-icon.control {
+  color: var(--secondary-color, white);
+  background-color: rgba(0, 0, 0, 0.6);
+  opacity: 0.6;
+  pointer-events: all;
+
+  --mdc-icon-size: #{$drawer-icon-size};
+  padding-top: $drawer-padding-extend;
+  padding-bottom: $drawer-padding-extend;
+}
+
+:host([location='left']) ha-icon.control {
+  border-top-right-radius: $drawer-icon-size;
+  border-bottom-right-radius: $drawer-icon-size;
+}
+
+:host([location='right']) ha-icon.control {
+  border-top-left-radius: $drawer-icon-size;
+  border-bottom-left-radius: $drawer-icon-size;
 }

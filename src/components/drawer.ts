@@ -18,6 +18,9 @@ export class FrigateCardDrawer extends LitElement {
   @property({ attribute: true, reflect: true })
   public location: 'left' | 'right' = 'left';
 
+  @property({ attribute: true, reflect: true, type: Boolean })
+  public control = true;
+
   /**
    * Set the timeline configuration.
    */
@@ -52,9 +55,27 @@ export class FrigateCardDrawer extends LitElement {
   }
 
   protected render(): TemplateResult {
-    return html` <side-drawer location="${this.location}" ${ref(this._drawerRef)}>
-      <slot></slot>
-    </side-drawer>`;
+    return html`
+      <side-drawer location="${this.location}" ${ref(this._drawerRef)}>
+        ${this.control
+          ? html`
+              <div
+                class="control-surround"
+                @click=${() => {
+                  this.open = !this.open;
+                }}
+              >
+                <ha-icon
+                  class="control"
+                  icon="${this.open ? 'mdi:menu' : 'mdi:menu-open'}"
+                >
+                </ha-icon>
+              </div>
+            `
+          : ''}
+        <slot></slot>
+      </side-drawer>
+    `;
   }
 
   static get styles(): CSSResultGroup {

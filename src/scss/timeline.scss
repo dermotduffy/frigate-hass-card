@@ -1,4 +1,5 @@
 @use 'vis-timeline/dist/vis-timeline-graph2d.css';
+@use 'drawer';
 
 :host {
   width: 100%;
@@ -13,6 +14,14 @@
 
 div.timeline {
   height: 100%;
+}
+div.timeline.left-margin {
+  // Clearance for the drawer button.
+  margin-left: drawer.$drawer-icon-size;
+}
+div.timeline.right-margin {
+  // Clearance for the drawer button.
+  margin-right: drawer.$drawer-icon-size;
 }
 
 .vis-text {
