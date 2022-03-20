@@ -946,6 +946,7 @@ export interface FrigateBrowseMediaSource extends BrowseMediaSource {
       start_time: number;
       top_score: number;
       zones: string[];
+      retain_indefinitely: boolean;
     };
   };
 }
@@ -975,6 +976,7 @@ export const frigateBrowseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.
             start_time: z.number(),
             top_score: z.number(),
             zones: z.string().array(),
+            retain_indefinitely: z.boolean(),
           }),
         })
         .optional(),

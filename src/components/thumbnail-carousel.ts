@@ -109,25 +109,52 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
       return;
     }
 
-    return html`<div
-      class="embla__slide"
-      @click=${(ev) => {
-        if (this._carousel && this._carousel.clickAllowed()) {
-          dispatchFrigateCardEvent<ThumbnailCarouselTap>(this, 'carousel:tap', {
-            slideIndex: slideIndex,
-            target: parent,
-            childIndex: childIndex,
-          });
-        }
-        stopEventFromActivatingCardWideActions(ev);
-      }}
-    >
-      <img
-        aria-label="${mediaToRender.title}"
-        src="${mediaToRender.thumbnail}"
-        title="${mediaToRender.title}"
-      />
-    </div>`;
+    console.log("Checking for retain: " + mediaToRender?.frigate?.event?.retain_indefinitely)
+    if (mediaToRender.frigate?.event?.retain_indefinitely == true) {
+      return html`<div
+        class="embla__slide"
+        @click=${(ev) => {
+          if (this._carousel && this._carousel.clickAllowed()) {
+            dispatchFrigateCardEvent<ThumbnailCarouselTap>(this, 'carousel:tap', {
+              slideIndex: slideIndex,
+              target: parent,
+              childIndex: childIndex,
+            });
+          }
+          stopEventFromActivatingCardWideActions(ev);
+        }}
+      >
+        <img
+          aria-label="${mediaToRender.title}"
+          src="${mediaToRender.thumbnail}"
+          title="${mediaToRender.title}"
+        />
+        <ha-icon
+          class="favorite"
+          icon="mdi:star"
+        />
+      </div>`;
+    } else {
+      return html`<div
+        class="embla__slide"
+        @click=${(ev) => {
+          if (this._carousel && this._carousel.clickAllowed()) {
+            dispatchFrigateCardEvent<ThumbnailCarouselTap>(this, 'carousel:tap', {
+              slideIndex: slideIndex,
+              target: parent,
+              childIndex: childIndex,
+            });
+          }
+          stopEventFromActivatingCardWideActions(ev);
+        }}
+      >
+        <img
+          aria-label="${mediaToRender.title}"
+          src="${mediaToRender.thumbnail}"
+          title="${mediaToRender.title}"
+        />
+      </div>`;
+    }
   }
 
   /**
