@@ -1,0 +1,65 @@
+:host {
+  display: flex;
+  flex-direction: row;
+
+  --frigate-card-thumbnail-size: 100px;
+}
+
+:host([details]) {
+  border: 1px solid var(--primary-color);
+  border-radius: 5px;
+  padding: 2px;
+}
+
+img {
+  border-radius: 5px;
+
+  // Not 'contain' as some thumbnails may vary in aspect-ratio slightly and
+  // should be clipped to fill the thumbnail div whilst maintaining
+  // aspect-ratio.
+  object-fit: cover;
+
+  // Restrict images to a maximum of thumbnail size.
+  max-width: var(--frigate-card-thumbnail-size);
+  max-height: var(--frigate-card-thumbnail-size);
+
+  transition: transform 0.2s linear;
+}
+img:hover {
+  transform: scale(1.04);
+}
+
+div.details {
+  display: flex;
+
+  width: 200px;
+  margin-left: 5px;
+  padding: 8px;
+  color: var(--primary-text-color);
+}
+div.details div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+div.details div.left {
+  flex: 1;
+}
+
+div.larger {
+  font-size: 1.5rem;
+}
+
+span.heading {
+  font-weight: bold;
+}
+
+.favorite {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  height: 24px;
+  width: 24px;
+  top: 12%;
+  left: 90%;
+  color: yellow;
+}

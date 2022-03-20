@@ -932,22 +932,24 @@ interface BrowseMediaSource {
   children?: BrowseMediaSource[] | null;
 }
 
+export interface FrigateEvent {
+  camera: string;
+  end_time?: number;
+  false_positive: boolean;
+  has_clip: boolean;
+  has_snapshot: boolean;
+  id: string;
+  label: string;
+  start_time: number;
+  top_score: number;
+  zones: string[];
+  retain_indefinitely: boolean;
+}
+
 export interface FrigateBrowseMediaSource extends BrowseMediaSource {
   children?: FrigateBrowseMediaSource[] | null;
   frigate?: {
-    event: {
-      camera: string;
-      end_time: number;
-      false_positive: boolean;
-      has_clip: boolean;
-      has_snapshot: boolean;
-      id: string;
-      label: string;
-      start_time: number;
-      top_score: number;
-      zones: string[];
-      retain_indefinitely: boolean;
-    };
+    event: FrigateEvent,
   };
 }
 

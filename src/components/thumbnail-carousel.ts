@@ -3,6 +3,7 @@ import { CSSResultGroup, TemplateResult, html, unsafeCSS, PropertyValues } from 
 import { EmblaOptionsType } from 'embla-carousel';
 import { classMap } from 'lit/directives/class-map.js';
 import { customElement, property } from 'lit/decorators.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 
 import type { FrigateBrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
 import { FrigateCardCarousel } from './carousel.js';
@@ -11,6 +12,8 @@ import {
   dispatchFrigateCardEvent,
   stopEventFromActivatingCardWideActions,
 } from '../common.js';
+
+import "./thumbnail.js";
 
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
 
@@ -29,18 +32,10 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   public selected?: number | null;
 
   @property({ attribute: false })
-  set config(config: ThumbnailsControlConfig | undefined) {
-    if (config) {
-      if (config && config.size !== undefined && config.size !== null) {
-        this.style.setProperty('--frigate-card-carousel-thumbnail-size', config.size);
-      }
-      this._config = config;
-    }
-  }
-  protected _config?: ThumbnailsControlConfig;
+  public config?: ThumbnailsControlConfig;
 
   @property({ attribute: false })
-  set highlightSelected(value: boolean) {
+  set highlight_selected(value: boolean) {
     this.style.setProperty(
       '--frigate-card-carousel-thumbnail-opacity',
       value ? '0.6' : '1.0',
@@ -113,39 +108,33 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
     }
 
     const mediaToRender = parent.children[childIndex];
-    if (!BrowseMediaUtil.isTrueMedia(mediaToRender) || !mediaToRender.thumbnail) {
+    if (!BrowseMediaUtil.isTrueMedia(mediaToRender)) {
       return;
     }
 
     const classes = {
-      'embla__slide': true,
+      embla__slide: true,
       'slide-selected': this.selected == childIndex,
     };
 
-    return html`<div
-      class="${classMap(classes)}"
-      @click=${(ev) => {
-        if (this._carousel && this._carousel.clickAllowed()) {
-          dispatchFrigateCardEvent<ThumbnailCarouselTap>(this, 'carousel:tap', {
-            slideIndex: slideIndex,
-            target: parent,
-            childIndex: childIndex,
-          });
-        }
-        stopEventFromActivatingCardWideActions(ev);
-      }}
-    >
-      <img
-        aria-label="${mediaToRender.title}"
-        src="${mediaToRender.thumbnail}"
-        title="${mediaToRender.title}"
-      />
-      ${mediaToRender?.frigate?.event?.retain_indefinitely ? html`
-        <ha-icon
-          class="favorite"
-          icon="mdi:star"
-        />` : ``}
-    </div>`;
+    return html`
+      <frigate-card-thumbnail
+        .media=${mediaToRender}
+        details
+        thumbnail_size=${ifDefined(this.config?.size)}
+        class="${classMap(classes)}"
+        @click=${(ev) => {
+          if (this._carousel && this._carousel.clickAllowed()) {
+            dispatchFrigateCardEvent<ThumbnailCarouselTap>(this, 'carousel:tap', {
+              slideIndex: slideIndex,
+              target: parent,
+              childIndex: childIndex,
+            });
+          }
+          stopEventFromActivatingCardWideActions(ev);
+        }}
+      >
+      </frigate-card-thumbnail>`;
   }
 
   /**
@@ -154,7 +143,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
    */
   protected render(): TemplateResult | void {
     const slides = this._getSlides();
-    if (!slides || !this._config || this._config.mode == 'none') {
+    if (!slides || !this.config || this.config.mode == 'none') {
       return;
     }
 

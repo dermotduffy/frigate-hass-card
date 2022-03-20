@@ -152,7 +152,7 @@ export class FrigateCardLive extends LitElement {
           .target=${parent}
           .view=${this.view}
           .config=${config.controls.thumbnails}
-          .highlightSelected=${false}
+          .highlight_selected=${false}
           @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
             const mediaType = browseMediaParams.mediaType;
             if (mediaType && this.view && ['snapshots', 'clips'].includes(mediaType)) {

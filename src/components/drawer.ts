@@ -67,7 +67,7 @@ export class FrigateCardDrawer extends LitElement {
               >
                 <ha-icon
                   class="control"
-                  icon="${this.open ? 'mdi:menu' : 'mdi:menu-open'}"
+                  icon="${this.open ? 'mdi:menu-open' : 'mdi:menu'}"
                 >
                 </ha-icon>
               </div>

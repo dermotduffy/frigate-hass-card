@@ -281,7 +281,7 @@ export class FrigateCardTimeline extends LitElement {
           ${ref(this._thumbnailsRef)}
           direction="vertical"
           .config=${config}
-          .highlightSelected=${true}
+          .highlight_selected=${true}
           @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
             if (ev.detail.target && ev.detail.childIndex) {
               this.view

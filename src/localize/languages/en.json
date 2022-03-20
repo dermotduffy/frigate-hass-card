@@ -206,6 +206,11 @@
     "overrides": "Overrides are active",
     "overrides_secondary": "Dynamic configuration overrides detected"
   },
+  "event": {
+    "start": "Start",
+    "duration": "Duration",
+    "in_progress": "In Progress"
+  },
   "error": {
     "empty_response": "Received empty response from Home Assistant for request",
     "invalid_response": "Received invalid response from Home Assistant for request",
