@@ -7,6 +7,8 @@
   flex: 0 0 var(--frigate-card-carousel-thumbnail-size);
   opacity: var(--frigate-card-carousel-thumbnail-opacity);
   transition: opacity 0.6s ease, transform 0.2s linear;
+  position: relative;
+  display: inline-block;
 }
 .embla__slide.slide-selected {
   opacity: 1.0;
@@ -28,9 +30,10 @@
 }
 .favorite {
   position: absolute;
-  height: 30px;
-  width: 30px;
-  top: 8;
-  right: 8;
+  transform: translate(-50%, -50%);
+  height: 24px;
+  width: 24px;
+  top: 12%;
+  left: 90%;
   color: yellow;
 }
