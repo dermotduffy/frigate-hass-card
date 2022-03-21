@@ -1,8 +1,15 @@
+@use './favorite.scss';
+
 :host {
   display: flex;
   flex-direction: row;
 
   --frigate-card-thumbnail-size: 100px;
+
+  // Do not let the contain expand to fill more height than the height of the
+  // thumbnail. Without this the thumbnail carousel will allow the thumbnail to
+  // expand to the full height of the viewport on a vertical carousel.
+  max-height: var(--frigate-card-thumbnail-size);
 }
 
 :host([details]) {
@@ -53,14 +60,3 @@ div.larger {
 span.heading {
   font-weight: bold;
 }
-
-@mixin thumbnail-favorite() {
-  ha-icon.favorite {
-    position: absolute;
-    color: var(--primary-color);
-    padding: 2px;
-    @content;
-  } 
-}
-
-@include thumbnail-favorite()

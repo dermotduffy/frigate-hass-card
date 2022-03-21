@@ -1,6 +1,6 @@
 @use '@material/image-list/mdc-image-list';
 @use '@material/image-list';
-@use 'thumbnail';
+@use './favorite.scss';
 
 :host {
   display: block;
@@ -50,6 +50,6 @@ ha-card.frigate-card-gallery-folder {
   line-height: 1;
 }
 
-@include thumbnail.thumbnail-favorite() {
+ha-icon.favorite {
   opacity: 0.8;
-} ;
+}

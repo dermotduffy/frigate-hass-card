@@ -1,16 +1,15 @@
-import { CSSResult, TemplateResult, html, unsafeCSS } from 'lit';
+import { CSSResult, TemplateResult, html, unsafeCSS, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { format, fromUnixTime } from 'date-fns';
 
 import type { FrigateBrowseMediaSource } from '../types.js';
-import { FrigateCardCarousel } from './carousel.js';
 import { getEventDurationString, prettifyFrigateName } from '../common.js';
 import { localize } from '../localize/localize.js';
 
 import thumbnailStyle from '../scss/thumbnail.scss';
 
 @customElement('frigate-card-thumbnail')
-export class FrigateCardThumbnail extends FrigateCardCarousel {
+export class FrigateCardThumbnail extends LitElement {
   @property({ attribute: false })
   public media?: FrigateBrowseMediaSource;
 
