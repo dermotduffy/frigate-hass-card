@@ -32,6 +32,7 @@ import {
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE,
+  CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE,
   CONF_EVENT_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
   CONF_EVENT_VIEWER_CONTROLS_TITLE_MODE,
@@ -46,6 +47,7 @@ import {
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
+  CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
   CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
   CONF_LIVE_CONTROLS_TITLE_MODE,
@@ -881,6 +883,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_LIVE_CONTROLS_TITLE_MODE,
                   this._titleModes,
                 )}
+                ${this._renderSwitch(
+                  CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+                  defaults.live.controls.thumbnails.show_details,
+                )}
                 ${this._renderNumberInput(
                   CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
                   0,
@@ -928,6 +934,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 this._thumbnailModes,
               )}
               ${this._renderStringInput(CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE)}
+              ${this._renderSwitch(
+                CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+                defaults.event_viewer.controls.thumbnails.show_details,
+              )}
               ${this._renderOptionSelector(
                 CONF_EVENT_VIEWER_CONTROLS_TITLE_MODE,
                 this._titleModes,

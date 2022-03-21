@@ -120,7 +120,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
     return html`
       <frigate-card-thumbnail
         .media=${mediaToRender}
-        details
+        ?details=${this.config?.show_details}
         thumbnail_size=${ifDefined(this.config?.size)}
         class="${classMap(classes)}"
         @click=${(ev) => {

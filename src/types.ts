@@ -436,6 +436,7 @@ export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
 const thumbnailsControlSchema = z.object({
   mode: z.enum(['none', 'above', 'below']),
   size: z.string().optional(),
+  show_details: z.boolean().optional(),
 });
 export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlSchema>;
 
@@ -488,6 +489,7 @@ const liveConfigDefault = {
     thumbnails: {
       media: 'clips' as const,
       size: '100px',
+      show_details: false,
       mode: 'none' as const,
     },
     title: {
@@ -547,6 +549,9 @@ const liveOverridableConfigSchema = z
             ),
             size: thumbnailsControlSchema.shape.size.default(
               liveConfigDefault.controls.thumbnails.size,
+            ),
+            show_details: thumbnailsControlSchema.shape.show_details.default(
+              liveConfigDefault.controls.thumbnails.show_details,
             ),
             media: z
               .enum(['clips', 'snapshots'])
@@ -642,6 +647,7 @@ const viewerConfigDefault = {
     thumbnails: {
       size: '100px',
       mode: 'none' as const,
+      show_details: false,
     },
     title: {
       mode: 'popup-bottom-right' as const,
@@ -654,6 +660,7 @@ const viewerNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.ex
     .enum(['none', 'thumbnails', 'chevrons'])
     .default(viewerConfigDefault.controls.next_previous.style),
   size: z.string().default(viewerConfigDefault.controls.next_previous.size),
+
 });
 export type ViewerNextPreviousControlConfig = z.infer<
   typeof viewerNextPreviousControlConfigSchema
@@ -680,6 +687,9 @@ const viewerConfigSchema = z
             ),
             size: thumbnailsControlSchema.shape.size.default(
               viewerConfigDefault.controls.thumbnails.size,
+            ),
+            show_details: thumbnailsControlSchema.shape.show_details.default(
+              viewerConfigDefault.controls.thumbnails.show_details,
             ),
           })
           .default(viewerConfigDefault.controls.thumbnails),

@@ -76,6 +76,7 @@
         "thumbnails": {
           "mode": "Event Viewer thumbnails mode",
           "size": "Event Viewer thumbnails size (e.g. '100px')",
+          "show_details": "Show event details with thumbnails",
           "modes": {
             "below": "Thumbnails below the media",
             "above": "Thumbnails above the media",
@@ -115,6 +116,7 @@
         "thumbnails": {
           "mode": "Live thumbnails mode",
           "size": "Live thumbnails size (e.g. '100px')",
+          "show_details": "Show event details with thumbnails",
           "media": "Whether to show thumbnails of clips or snapshots",
           "medias": {
             "clips": "Clip thumbnails",

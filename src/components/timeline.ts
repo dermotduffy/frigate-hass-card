@@ -265,6 +265,7 @@ export class FrigateCardTimeline extends LitElement {
 
     const config: ThumbnailsControlConfig = {
       mode: 'above',
+      show_details: true,
     };
 
     // TODO move to configuration later.
