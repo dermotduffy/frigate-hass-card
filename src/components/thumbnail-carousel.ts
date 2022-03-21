@@ -44,7 +44,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   set highlight_selected(value: boolean) {
     this.style.setProperty(
       '--frigate-card-carousel-thumbnail-opacity',
-      value ? '0.6' : '1.0',
+      value ? '0.4' : '1.0',
     );
   }
 

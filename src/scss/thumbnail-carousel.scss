@@ -1,5 +1,9 @@
 :host {
   --frigate-card-carousel-thumbnail-opacity: 0.8;
+
+  // In fullscreen mode, without explicitly setting the height to auto Chrome
+  // will construct a stylesheet with 100% height.
+  height: auto;
 }
 
 .embla__slide {
