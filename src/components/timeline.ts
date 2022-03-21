@@ -174,52 +174,64 @@ export class FrigateCardTimeline extends LitElement {
   protected _thumbnailsRef: Ref<FrigateCardThumbnailCarousel> = createRef();
   protected _timeline?: Timeline;
 
-  protected _events = new TimelineEventManager()
+  protected _events = new TimelineEventManager();
 
   /**
    * Master render method.
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.view) {
+    if (!this.hass || !this.view || !this._timelineConfig) {
       return;
     }
 
-    const config: ThumbnailsControlConfig = {
-      mode: 'above',
-      show_details: true,
-    };
+    const thumbnailsConfig = this._timelineConfig.controls.thumbnails;
 
-    // TODO move to configuration later.
-    const drawerLocation: "left" | "right" = "left" as const;
+    const drawer = ['left', 'right'].includes(thumbnailsConfig.mode)
+      ? (thumbnailsConfig.mode as 'left' | 'right')
+      : null;
 
     const timelineClasses = {
-      "timeline": true,
-      "left-margin": drawerLocation == "left",
-      //"right-margin": drawerLocation == "right",
-    }
+      timeline: true,
+      'left-margin': drawer === 'left',
+      'right-margin': drawer === 'right',
+    };
 
-    return html` <frigate-card-drawer location="${drawerLocation}" ${ref(this._drawerRef)}>
-        <frigate-card-thumbnail-carousel
-          ${ref(this._thumbnailsRef)}
-          direction="vertical"
-          .config=${config}
-          .highlight_selected=${true}
-          @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
-            if (ev.detail.target && ev.detail.childIndex) {
-              this.view
-                ?.evolve({
-                  target: ev.detail.target,
-                  childIndex: ev.detail.childIndex,
-                  view: 'clip',
-                })
-                .dispatchChangeEvent(this);
-            }
-          }}
-        >
-        </frigate-card-thumbnail-carousel>
-      </frigate-card-drawer>
-      <div class="${classMap(timelineClasses)}" ${ref(this._timelineRef)}></div>`;
+    const renderThumbnails = (): TemplateResult => {
+      const renderCarousel = (): TemplateResult => {
+        return html`
+          <frigate-card-thumbnail-carousel
+            ${ref(this._thumbnailsRef)}
+            .config=${thumbnailsConfig}
+            .highlight_selected=${true}
+            @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
+              if (ev.detail.target && ev.detail.childIndex) {
+                this.view
+                  ?.evolve({
+                    target: ev.detail.target,
+                    childIndex: ev.detail.childIndex,
+                    view: 'clip',
+                  })
+                  .dispatchChangeEvent(this);
+              }
+            }}
+          >
+          </frigate-card-thumbnail-carousel>
+        `;
+      };
+
+      return drawer
+        ? html`<frigate-card-drawer location="${drawer}" ${ref(this._drawerRef)}>
+            ${renderCarousel()}
+          </frigate-card-drawer>`
+        : renderCarousel();
+    };
+
+    return html`
+      ${thumbnailsConfig.mode === 'above' ? renderThumbnails() : ''}
+      <div class="${classMap(timelineClasses)}" ${ref(this._timelineRef)}></div>
+      ${thumbnailsConfig.mode !== 'above' ? renderThumbnails() : ''}
+    `;
   }
 
   /**
@@ -252,15 +264,11 @@ export class FrigateCardTimeline extends LitElement {
       // fetched PLUS events that did not previously have an end_time. That's
       // not trivial to implement, and it's not yet clear it's worth the extra
       // complexity.
-      this._events.fetchEvents(
-        this,
-        this.hass,
-        this.cameras,
-        properties.start,
-        properties.end,
-      ).then(() => {
-        this._updateThumbnails();
-      })
+      this._events
+        .fetchEvents(this, this.hass, this.cameras, properties.start, properties.end)
+        .then(() => {
+          this._updateThumbnails();
+        });
     }
   }
 
@@ -329,11 +337,9 @@ export class FrigateCardTimeline extends LitElement {
       children: children,
     };
 
-    if (this._drawerRef.value) {
-      if (this._thumbnailsRef.value) {
-        this._thumbnailsRef.value.target = target;
-        this._thumbnailsRef.value.selected = childIndex ?? undefined;
-      }
+    if (this._thumbnailsRef.value) {
+      this._thumbnailsRef.value.target = target;
+      this._thumbnailsRef.value.selected = childIndex ?? undefined;
     }
   }
 
@@ -360,17 +366,12 @@ export class FrigateCardTimeline extends LitElement {
       return;
     }
 
-    const thumbnailConfig =
-      this._timelineConfig?.controls.thumbnails ??
-      frigateCardConfigDefaults.timeline.controls.thumbnails;
-
     // Configuration for the Timeline, see:
     // https://visjs.github.io/vis-timeline/docs/timeline/#Configuration_Options
     this._timelineOptions = {
       cluster:
-        thumbnailConfig.clustering_threshold > 0
+        this._timelineConfig.clustering_threshold > 0
           ? {
-              fitOnDoubleClick: true,
               showStipes: true,
               // It would be better to automatically calculate `maxItems` from the
               // rendered height of the timeline (or group within the timeline) so
@@ -380,15 +381,11 @@ export class FrigateCardTimeline extends LitElement {
               // and if we adjust `maxItems` then we can get into an infinite
               // resize loop. Adjusting the `maxItems` of a timeline, after it's
               // created, also does not appear to work as expected.
-              maxItems: thumbnailConfig.clustering_threshold,
+              maxItems: this._timelineConfig.clustering_threshold,
             }
           : (false as TimelineOptionsCluster),
       minHeight: '100%',
       maxHeight: '100%',
-      tooltip: {
-        followMouse: true,
-        overflowMethod: 'cap',
-      },
       zoomMax: 31 * 24 * 60 * 60 * 1000,
       zoomMin: 1 * 1000,
       selectable: true,

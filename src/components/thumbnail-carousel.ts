@@ -2,7 +2,7 @@ import { BrowseMediaUtil } from '../browse-media-util.js';
 import { CSSResultGroup, TemplateResult, html, unsafeCSS, PropertyValues } from 'lit';
 import { EmblaOptionsType } from 'embla-carousel';
 import { classMap } from 'lit/directives/class-map.js';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 
 import type { FrigateBrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
@@ -32,7 +32,13 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   public selected?: number | null;
 
   @property({ attribute: false })
-  public config?: ThumbnailsControlConfig;
+  set config(config: ThumbnailsControlConfig) {
+    this.direction = ['left', 'right'].includes(config.mode) ? 'vertical' : 'horizontal';
+    this._config = config;
+  }
+
+  @state()
+  protected _config?: ThumbnailsControlConfig;
 
   @property({ attribute: false })
   set highlight_selected(value: boolean) {
@@ -120,8 +126,8 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
     return html`
       <frigate-card-thumbnail
         .media=${mediaToRender}
-        ?details=${this.config?.show_details}
-        thumbnail_size=${ifDefined(this.config?.size)}
+        ?details=${this._config?.show_details}
+        thumbnail_size=${ifDefined(this._config?.size)}
         class="${classMap(classes)}"
         @click=${(ev) => {
           if (this._carousel && this._carousel.clickAllowed()) {
@@ -143,7 +149,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
    */
   protected render(): TemplateResult | void {
     const slides = this._getSlides();
-    if (!slides || !this.config || this.config.mode == 'none') {
+    if (!slides || !this._config || this._config.mode == 'none') {
       return;
     }
 

@@ -29,6 +29,8 @@ img {
   // Restrict images to a maximum of thumbnail size.
   max-width: var(--frigate-card-thumbnail-size);
   max-height: var(--frigate-card-thumbnail-size);
+  min-width: var(--frigate-card-thumbnail-size);
+  min-height: var(--frigate-card-thumbnail-size);
 
   transition: transform 0.2s linear;
 }

@@ -434,7 +434,7 @@ export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
  */
 
 const thumbnailsControlSchema = z.object({
-  mode: z.enum(['none', 'above', 'below']),
+  mode: z.enum(['none', 'above', 'below', 'left', 'right']),
   size: z.string().optional(),
   show_details: z.boolean().optional(),
 });
@@ -660,7 +660,6 @@ const viewerNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.ex
     .enum(['none', 'thumbnails', 'chevrons'])
     .default(viewerConfigDefault.controls.next_previous.style),
   size: z.string().default(viewerConfigDefault.controls.next_previous.size),
-
 });
 export type ViewerNextPreviousControlConfig = z.infer<
   typeof viewerNextPreviousControlConfigSchema
@@ -755,33 +754,31 @@ const dimensionsConfigSchema = z
  * Timeline configuration section.
  */
 const timelineConfigDefault = {
+  clustering_threshold: 3,
   controls: {
     thumbnails: {
-      size_pixels: 75,
-      overlap_pixels: 25,
-      clustering_threshold: 3,
+      mode: 'left' as const,
+      size: '100px' as const,
+      show_details: true,
     },
   },
 };
 const timelineConfigSchema = z
   .object({
+    clustering_threshold: z.number().default(timelineConfigDefault.clustering_threshold),
     controls: z
       .object({
-        thumbnails: z
-          .object({
-            size_pixels: z
-              .number()
-              .min(50)
-              .max(THUMBNAIL_WIDTH_MAX)
-              .default(timelineConfigDefault.controls.thumbnails.size_pixels),
-            overlap_pixels: z
-              .number()
-              .min(0)
-              .max(THUMBNAIL_WIDTH_MAX)
-              .default(timelineConfigDefault.controls.thumbnails.overlap_pixels),
-            clustering_threshold: z
-              .number()
-              .default(timelineConfigDefault.controls.thumbnails.clustering_threshold),
+        thumbnails: thumbnailsControlSchema
+          .extend({
+            mode: thumbnailsControlSchema.shape.mode.default(
+              timelineConfigDefault.controls.thumbnails.mode,
+            ),
+            size: thumbnailsControlSchema.shape.size.default(
+              timelineConfigDefault.controls.thumbnails.size,
+            ),
+            show_details: thumbnailsControlSchema.shape.show_details.default(
+              timelineConfigDefault.controls.thumbnails.show_details,
+            ),
           })
           .default(timelineConfigDefault.controls.thumbnails),
       })
@@ -922,9 +919,9 @@ export interface FrigateCardMediaPlayer {
  * Home Assistant API types.
  */
 
-export const MEDIA_CLASS_PLAYLIST = "playlist" as const;
-export const MEDIA_CLASS_VIDEO = "video" as const;
-export const MEDIA_TYPE_VIDEO = "video" as const;
+export const MEDIA_CLASS_PLAYLIST = 'playlist' as const;
+export const MEDIA_CLASS_VIDEO = 'video' as const;
+export const MEDIA_TYPE_VIDEO = 'video' as const;
 
 // Recursive type, cannot use type interference:
 // See: https://github.com/colinhacks/zod#recursive-types
@@ -959,7 +956,7 @@ export interface FrigateEvent {
 export interface FrigateBrowseMediaSource extends BrowseMediaSource {
   children?: FrigateBrowseMediaSource[] | null;
   frigate?: {
-    event: FrigateEvent,
+    event: FrigateEvent;
   };
 }
 

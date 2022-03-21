@@ -17,11 +17,11 @@ div.timeline {
 }
 div.timeline.left-margin {
   // Clearance for the drawer button.
-  margin-left: drawer.$drawer-icon-size;
+  margin-left: calc(drawer.$drawer-icon-size + 1px);
 }
 div.timeline.right-margin {
   // Clearance for the drawer button.
-  margin-right: drawer.$drawer-icon-size;
+  margin-right: calc(drawer.$drawer-icon-size + 1px);
 }
 
 .vis-text {
