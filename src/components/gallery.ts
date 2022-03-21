@@ -13,6 +13,7 @@ import {
 } from '../types.js';
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import { View } from '../view.js';
+import { localize } from '../localize/localize.js';
 import { renderProgressIndicator } from './message.js';
 import { stopEventFromActivatingCardWideActions } from '../common.js';
 
@@ -221,6 +222,7 @@ export class FrigateCardGalleryCore extends LitElement {
                   />${child.frigate?.event?.retain_indefinitely ? html`<ha-icon
                       class="favorite"
                       icon="mdi:star"
+                      title=${localize('event.retain_indefinitely')}
                       />` : ``}`
                 : ``}
             </div>

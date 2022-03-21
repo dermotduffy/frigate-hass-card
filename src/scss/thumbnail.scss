@@ -54,12 +54,13 @@ span.heading {
   font-weight: bold;
 }
 
-.favorite {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  height: 24px;
-  width: 24px;
-  top: 12%;
-  left: 90%;
-  color: yellow;
+@mixin thumbnail-favorite() {
+  ha-icon.favorite {
+    position: absolute;
+    color: var(--primary-color);
+    padding: 2px;
+    @content;
+  } 
 }
+
+@include thumbnail-favorite()

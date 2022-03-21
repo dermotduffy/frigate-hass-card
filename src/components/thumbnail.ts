@@ -38,7 +38,11 @@ export class FrigateCardThumbnail extends FrigateCardCarousel {
         title="${this.media.title}"
       />
       ${event?.retain_indefinitely
-        ? html` <ha-icon class="favorite" icon="mdi:star" />`
+        ? html` <ha-icon
+            class="favorite"
+            icon="mdi:star"
+            title=${localize('event.retain_indefinitely')}
+          />`
         : ``}
       ${this.details && event
         ? html` <div class="details">

@@ -211,7 +211,8 @@
   "event": {
     "start": "Start",
     "duration": "Duration",
-    "in_progress": "In Progress"
+    "in_progress": "In Progress",
+    "retain_indefinitely": "Event will be indefinitely retained"
   },
   "error": {
     "empty_response": "Received empty response from Home Assistant for request",

@@ -38,6 +38,12 @@ ha-icon.control {
   padding-bottom: $drawer-padding-extend;
 }
 
+:host([open]) ha-icon.control {
+  // When the drawer is open make the button to close it more prominent.
+  opacity: 1;
+  background-color: black;
+}
+
 :host([location='left']) ha-icon.control {
   border-top-right-radius: $drawer-icon-size;
   border-bottom-right-radius: $drawer-icon-size;

@@ -953,7 +953,7 @@ export interface FrigateEvent {
   start_time: number;
   top_score: number;
   zones: string[];
-  retain_indefinitely: boolean;
+  retain_indefinitely?: boolean;
 }
 
 export interface FrigateBrowseMediaSource extends BrowseMediaSource {
@@ -988,7 +988,7 @@ export const frigateBrowseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.
             start_time: z.number(),
             top_score: z.number(),
             zones: z.string().array(),
-            retain_indefinitely: z.boolean(),
+            retain_indefinitely: z.boolean().optional(),
           }),
         })
         .optional(),
