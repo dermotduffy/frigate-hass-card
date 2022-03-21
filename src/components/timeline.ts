@@ -39,12 +39,10 @@ import { View } from '../view';
 import {
   contentsChanged,
   dispatchErrorMessageEvent,
-  dispatchFrigateCardEvent,
   getCameraTitle,
 } from '../common.js';
 
 import timelineStyle from '../scss/timeline.scss';
-import timelineEventStyle from '../scss/timeline-event.scss';
 
 import './drawer.js';
 
@@ -60,69 +58,15 @@ interface FrigateCardTimelineData {
   source: FrigateBrowseMediaSource;
 }
 
-@customElement('frigate-card-timeline-event')
-export class FrigateCardTimelineEvent extends LitElement {
-  @property({ attribute: true })
-  protected media_id?: string;
-
-  @property({ attribute: true })
-  protected thumbnail?: string;
-
-  @property({ attribute: true })
-  protected label?: string;
-
-  @property({ attribute: true, type: Number })
-  protected thumbnail_size?: number;
-
-  /**
-   * Ensure there is a cached value before an update.
-   * @param _changedProps The changed properties
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected willUpdate(_changedProps: PropertyValues): void {
-    if (this.thumbnail_size !== undefined) {
-      this.style.setProperty(
-        '--frigate-card-timeline-thumbnail-size',
-        `${this.thumbnail_size}px`,
-      );
-    }
-  }
-
-  protected render(): TemplateResult | void {
-    if (!this.thumbnail) {
-      return;
-    }
-
-    return html`<img
-      @click=${() => {
-        // The view is not accessible from here, since this element is created
-        // from a string (see _buildEventContent below), so instead we emit an
-        // intermediate event that is caught by the timeline.
-        dispatchFrigateCardEvent(this, 'timeline-select', this.media_id);
-      }}
-      src="${this.thumbnail}"
-      title="${this.label || ''}"
-      aria-label="${this.label || ''}"
-    />`;
-  }
-
-  static get styles(): CSSResultGroup {
-    return unsafeCSS(timelineEventStyle);
-  }
-}
-
 class TimelineEventManager {
   protected _dataset = new DataSet<FrigateCardTimelineData>();
 
   protected _contentCallback?: (FrigateBrowseMediaSource) => string;
-  protected _tooltipCallback?: (FrigateBrowseMediaSource) => string;
 
-  constructor(params: {
+  constructor(params?: {
     contentCallback?: (source: FrigateBrowseMediaSource) => string;
-    tooltipCallback?: (source: FrigateBrowseMediaSource) => string;
   }) {
-    this._contentCallback = params.contentCallback;
-    this._tooltipCallback = params.tooltipCallback;
+    this._contentCallback = params?.contentCallback;
   }
 
   get dataset(): DataSet<FrigateCardTimelineData> {
@@ -145,7 +89,6 @@ class TimelineEventManager {
           id: child.media_content_id,
           group: camera,
           content: this._contentCallback?.(child) ?? '',
-          title: this._tooltipCallback?.(child) ?? '',
           start: child.frigate.event.start_time * 1000,
           source: child,
         };
@@ -231,28 +174,7 @@ export class FrigateCardTimeline extends LitElement {
   protected _thumbnailsRef: Ref<FrigateCardThumbnailCarousel> = createRef();
   protected _timeline?: Timeline;
 
-  protected _events = new TimelineEventManager({
-    tooltipCallback: this._generateTooltip.bind(this),
-  });
-
-  /**
-   * Build the content of a single event on the timeline.
-   * @param source The FrigateBrowseMediaSource object for this event.
-   * @returns A string to include on the timeline.
-   */
-  protected _generateTooltip(source: FrigateBrowseMediaSource): string {
-    return `
-      <frigate-card-timeline-event
-        media_id=${source.media_content_id}
-        thumbnail="${source.thumbnail}"
-        label="${source.title}"
-        thumbnail_size="${
-          this._timelineConfig?.controls.thumbnails.size_pixels ??
-          frigateCardConfigDefaults.timeline.controls.thumbnails.size_pixels
-        }"
-      >
-      </frigate-card-timeline-event>`;
-  }
+  protected _events = new TimelineEventManager()
 
   /**
    * Master render method.

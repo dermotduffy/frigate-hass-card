@@ -36,6 +36,8 @@ ha-icon.control {
   --mdc-icon-size: #{$drawer-icon-size};
   padding-top: $drawer-padding-extend;
   padding-bottom: $drawer-padding-extend;
+
+  transition: opacity 1s ease;
 }
 
 :host([open]) ha-icon.control {
