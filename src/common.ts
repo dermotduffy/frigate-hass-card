@@ -611,7 +611,7 @@ export function getEventDurationString(event: FrigateEvent): string {
   const end = fromUnixTime(event.end_time);
   const hours = differenceInHours(end, start);
   const minutes = differenceInMinutes(end, start) - hours * 60;
-  const seconds = differenceInSeconds(end, start) - hours * 60 - minutes * 60;
+  const seconds = differenceInSeconds(end, start) - hours * 60 * 60 - minutes * 60;
   let duration = '';
 
   if (hours) {
