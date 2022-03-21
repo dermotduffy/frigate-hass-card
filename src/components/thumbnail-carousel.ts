@@ -127,6 +127,11 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
         src="${mediaToRender.thumbnail}"
         title="${mediaToRender.title}"
       />
+      ${mediaToRender?.frigate?.event?.retain_indefinitely ? html`
+        <ha-icon
+          class="favorite"
+          icon="mdi:star"
+        />` : ``}
     </div>`;
   }
 

@@ -218,7 +218,10 @@ export class FrigateCardGalleryCore extends LitElement {
                       }
                       stopEventFromActivatingCardWideActions(ev);
                     }}
-                  />`
+                  />${child.frigate?.event?.retain_indefinitely ? html`<ha-icon
+                      class="favorite"
+                      icon="mdi:star"
+                      />` : ``}`
                 : ``}
             </div>
           </li>`,

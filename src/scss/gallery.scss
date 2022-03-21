@@ -44,3 +44,12 @@ ha-card.frigate-card-gallery-folder {
   height: 100%;
   line-height: 1;
 }
+.favorite {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  height: 24px;
+  width: 24px;
+  top: 10%;
+  left: 90%;
+  color: yellow;
+}

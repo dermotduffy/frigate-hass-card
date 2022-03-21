@@ -26,3 +26,12 @@
   max-width: var(--frigate-card-carousel-thumbnail-size);
   max-height: var(--frigate-card-carousel-thumbnail-size);
 }
+.favorite {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  height: 24px;
+  width: 24px;
+  top: 12%;
+  left: 90%;
+  color: yellow;
+}
