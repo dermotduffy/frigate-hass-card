@@ -2356,10 +2356,15 @@ has@^1.0.3:
   dependencies:
     function-bind "^1.1.1"
 
-home-assistant-js-websocket@^6.0.1, home-assistant-js-websocket@^6.1.1:
+home-assistant-js-websocket@^6.0.1:
   version "6.1.1"
   resolved "https://registry.yarnpkg.com/home-assistant-js-websocket/-/home-assistant-js-websocket-6.1.1.tgz#87ba846753c4fb58a2e5ace6bb15a82689fd0735"
   integrity sha512-TnZFzF4mn5F/v0XKUTK2GMQXrn/+eQpgaSDSELl6U0HSwSbFwRhGWLz330YT+hiKMspDflamsye//RPL+zwhDw==
+
+home-assistant-js-websocket@^7.0.2:
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/home-assistant-js-websocket/-/home-assistant-js-websocket-7.0.2.tgz#7bb3cacdddf78e8112dbbad0f0b7b3860f22f54e"
+  integrity sha512-4/Z67UXayxnCMKQoA4rP8+1p/THS3o59I5+iFIAYO2dc0fS0Heigj3XaNp3WLh7PeIlBXuXy5NJ5PLKHCZ9X2w==
 
 hosted-git-info@^4.0.1, hosted-git-info@^4.1.0:
   version "4.1.0"
