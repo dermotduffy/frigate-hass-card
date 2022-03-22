@@ -344,8 +344,9 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
    * Get the Embla plugins to use.
    * @returns An EmblaOptionsType object or undefined for no options.
    */
-  protected _getPlugins(): EmblaPluginType[] | undefined {
+  protected _getPlugins(): EmblaPluginType[] {
     return [
+      ...super._getPlugins(),
       Lazyload({
         lazyloadCallback: this.liveConfig?.lazy_load
           ? (...args) => this._lazyloadOrUnloadSlide('load', ...args)

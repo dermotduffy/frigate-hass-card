@@ -4,16 +4,19 @@
 :host {
   width: 100%;
   height: 100%;
-  display: block;
   background-color: var(--card-background-color);
   padding-bottom: 5px;
+
+  // Share the screen space with thumbnails that may be above/below.
+  display: flex;
+  flex-direction: column;
 
   // So that absolute sidedrawer is relative to this host.
   position: relative;
 }
 
 div.timeline {
-  height: 100%;
+  flex: 1;
 }
 div.timeline.left-margin {
   // Clearance for the drawer button.

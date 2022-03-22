@@ -331,8 +331,9 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
    * Get the Embla plugins to use.
    * @returns An EmblaOptionsType object or undefined for no options.
    */
-  protected _getPlugins(): EmblaPluginType[] | undefined {
+  protected _getPlugins(): EmblaPluginType[] {
     return [
+      ...super._getPlugins(),
       Lazyload({
         lazyloadCallback: this.viewerConfig?.lazy_load
           ? this._lazyloadSlide.bind(this)
