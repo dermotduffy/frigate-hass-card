@@ -21,23 +21,11 @@ export class FrigateCardDrawer extends LitElement {
   @property({ attribute: true, reflect: true, type: Boolean })
   public control = true;
 
-  /**
-   * Set the timeline configuration.
-   */
   @property({ type: Boolean, reflect: true, attribute: true })
-  set open(open: boolean) {
-    if (this._drawerRef.value) {
-      const old = this._drawerRef.value.open;
-      this._drawerRef.value.open = open;
-      this.requestUpdate('open', old);
-    }
-  }
+  public open = false;
 
-  get open(): boolean {
-    return this._drawerRef.value?.open ?? false;
-  }
-
-  protected _drawerRef: Ref<HTMLElement & { open: boolean }> = createRef();
+  protected _refDrawer: Ref<HTMLElement & { open: boolean }> = createRef();
+  protected _refSlot: Ref<HTMLSlotElement> = createRef();
 
   /**
    * Called on the first update.
@@ -51,12 +39,25 @@ export class FrigateCardDrawer extends LitElement {
     // override the style to customize the drawer to be absolute within the div.
     const style = document.createElement('style');
     style.innerHTML = drawerInjectStyle;
-    this._drawerRef.value?.shadowRoot?.appendChild(style);
+    this._refDrawer.value?.shadowRoot?.appendChild(style);
+  }
+
+  protected _slotChanged(): void {
+    const elements = this._refSlot.value?.assignedElements({ flatten: true });
+    if (elements && elements.length && this._refDrawer.value) {
+      // Hide the drawer unless there is content.
+      this._refDrawer.value.hidden = false;
+    }
   }
 
   protected render(): TemplateResult {
     return html`
-      <side-drawer location="${this.location}" ${ref(this._drawerRef)}>
+      <side-drawer
+        ${ref(this._refDrawer)}
+        ?hidden=${true}
+        location="${this.location}"
+        ?open=${this.open}
+      >
         ${this.control
           ? html`
               <div
@@ -73,7 +74,7 @@ export class FrigateCardDrawer extends LitElement {
               </div>
             `
           : ''}
-        <slot></slot>
+        <slot ${ref(this._refSlot)} @slotchange=${this._slotChanged}></slot>
       </side-drawer>
     `;
   }

@@ -1,0 +1,17 @@
+:host {
+  width: 100%;
+  height: 100%;
+
+  // Share the screen space with thumbnails that may be above/below.
+  display: flex;
+  flex-direction: column;
+
+  // So the drawer is relative to this host.
+  position: relative;
+}
+
+::slotted:not([name]) {
+  // Expand the main body to fill available content not otherwise used by the
+  // surround.
+  flex: 1;
+}

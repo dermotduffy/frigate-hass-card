@@ -115,11 +115,11 @@ export async function homeAssistantSignPath(
  * @param detail An optional detail object to attach.
  */
 export function dispatchFrigateCardEvent<T>(
-  element: HTMLElement,
+  target: EventTarget,
   name: string,
   detail?: T,
 ): void {
-  element.dispatchEvent(
+  target.dispatchEvent(
     new CustomEvent<T>(`frigate-card:${name}`, {
       bubbles: true,
       composed: true,

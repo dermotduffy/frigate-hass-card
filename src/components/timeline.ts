@@ -23,28 +23,23 @@ import {
   CameraConfig,
   ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
-  ThumbnailsControlConfig,
   MEDIA_CLASS_PLAYLIST,
   MEDIA_TYPE_VIDEO,
   MEDIA_CLASS_VIDEO,
   TimelineConfig,
-  frigateCardConfigDefaults,
 } from '../types';
-import { FrigateCardDrawer } from './drawer';
-import {
-  FrigateCardThumbnailCarousel,
-  ThumbnailCarouselTap,
-} from './thumbnail-carousel';
 import { View } from '../view';
 import {
   contentsChanged,
   dispatchErrorMessageEvent,
+  dispatchFrigateCardEvent,
   getCameraTitle,
 } from '../common.js';
 
+import timelineCoreStyle from '../scss/timeline-core.scss';
 import timelineStyle from '../scss/timeline.scss';
 
-import './drawer.js';
+import './surround-thumbnails.js';
 
 interface FrigateCardGroupData {
   id: string;
@@ -155,6 +150,53 @@ export class FrigateCardTimeline extends LitElement {
   @property({ attribute: false })
   protected cameras?: Map<string, CameraConfig>;
 
+  @property({ attribute: false })
+  protected timelineConfig?: TimelineConfig;
+
+  /**
+   * Master render method.
+   * @returns A rendered template.
+   */
+  protected render(): TemplateResult | void {
+    if (!this.timelineConfig) {
+      return html``;
+    }
+
+    return html` <frigate-card-surround-thumbnails
+      .hass=${this.hass}
+      .view=${this.view}
+      .config=${this.timelineConfig.controls.thumbnails}
+      .targetView=${'clip'}
+    >
+      <frigate-card-timeline-core
+        .hass=${this.hass}
+        .view=${this.view}
+        .cameras=${this.cameras}
+        .timelineConfig=${this.timelineConfig}
+      >
+      </frigate-card-timeline-core>
+    </frigate-card-surround-thumbnails>`;
+  }
+
+  /**
+   * Return compiled CSS styles.
+   */
+  static get styles(): CSSResultGroup {
+    return unsafeCSS(timelineStyle);
+  }
+}
+
+@customElement('frigate-card-timeline-core')
+export class FrigateCardTimelineCore extends LitElement {
+  @property({ attribute: false })
+  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+
+  @property({ attribute: false })
+  protected view?: Readonly<View>;
+
+  @property({ attribute: false })
+  protected cameras?: Map<string, CameraConfig>;
+
   /**
    * Set the timeline configuration.
    */
@@ -169,9 +211,7 @@ export class FrigateCardTimeline extends LitElement {
   @state({ hasChanged: contentsChanged })
   protected _timelineOptions?: TimelineOptions;
 
-  protected _drawerRef: Ref<FrigateCardDrawer> = createRef();
   protected _timelineRef: Ref<HTMLElement> = createRef();
-  protected _thumbnailsRef: Ref<FrigateCardThumbnailCarousel> = createRef();
   protected _timeline?: Timeline;
 
   protected _events = new TimelineEventManager();
@@ -186,68 +226,22 @@ export class FrigateCardTimeline extends LitElement {
     }
 
     const thumbnailsConfig = this._timelineConfig.controls.thumbnails;
-
-    const drawer = ['left', 'right'].includes(thumbnailsConfig.mode)
-      ? (thumbnailsConfig.mode as 'left' | 'right')
-      : null;
-
     const timelineClasses = {
       timeline: true,
-      'left-margin': drawer === 'left',
-      'right-margin': drawer === 'right',
+      'left-margin': thumbnailsConfig.mode === 'left',
+      'right-margin': thumbnailsConfig.mode === 'right',
     };
 
-    const renderThumbnails = (): TemplateResult => {
-      const renderCarousel = (): TemplateResult => {
-        return html`
-          <frigate-card-thumbnail-carousel
-            ${ref(this._thumbnailsRef)}
-            .config=${thumbnailsConfig}
-            .highlight_selected=${true}
-            @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
-              if (ev.detail.target && ev.detail.childIndex) {
-                this.view
-                  ?.evolve({
-                    target: ev.detail.target,
-                    childIndex: ev.detail.childIndex,
-                    view: 'clip',
-                  })
-                  .dispatchChangeEvent(this);
-              }
-            }}
-          >
-          </frigate-card-thumbnail-carousel>
-        `;
-      };
-
-      return drawer
-        ? html`<frigate-card-drawer location="${drawer}" ${ref(this._drawerRef)}>
-            ${renderCarousel()}
-          </frigate-card-drawer>`
-        : renderCarousel();
-    };
-
-    return html`
-      ${thumbnailsConfig.mode === 'above' ? renderThumbnails() : ''}
-      <div class="${classMap(timelineClasses)}" ${ref(this._timelineRef)}></div>
-      ${thumbnailsConfig.mode !== 'above' ? renderThumbnails() : ''}
-    `;
+    return html`<div
+      class="${classMap(timelineClasses)}"
+      ${ref(this._timelineRef)}
+    ></div>`;
   }
 
   /**
-   * Component connected callback.
+   * Handle a range change in the timeline.
+   * @param properties vis.js provided range information.
    */
-  connectedCallback(): void {
-    super.connectedCallback();
-  }
-
-  /**
-   * Component disconnected callback.
-   */
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-  }
-
   protected _timelineRangeHandler(properties: {
     start: Date;
     end: Date;
@@ -274,15 +268,13 @@ export class FrigateCardTimeline extends LitElement {
 
   /**
    * Called when an object on the timeline is selected.
-   * @param data The data about the selection.
+   * @param _data The data about the selection.
    * @returns
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected _timelineSelectHandler(_data: { items: string[]; event: Event }): void {
     this._updateThumbnails();
-    if (this._drawerRef.value) {
-      this._drawerRef.value.open = true;
-    }
+    dispatchFrigateCardEvent(this, 'thumbnails:open');
   }
 
   protected _updateThumbnails(): void {
@@ -337,10 +329,10 @@ export class FrigateCardTimeline extends LitElement {
       children: children,
     };
 
-    if (this._thumbnailsRef.value) {
-      this._thumbnailsRef.value.target = target;
-      this._thumbnailsRef.value.selected = childIndex ?? undefined;
-    }
+    dispatchFrigateCardEvent(this, 'thumbnails:set', {
+      target: target,
+      childIndex: childIndex ?? undefined,
+    });
   }
 
   /**
@@ -463,7 +455,7 @@ export class FrigateCardTimeline extends LitElement {
 
   /**
    * Called when the component is updated.
-   * @param changedProps The changed properties if any.
+   * @param changedProperties The changed properties if any.
    */
   protected updated(changedProperties: PropertyValues): void {
     super.updated(changedProperties);
@@ -489,6 +481,6 @@ export class FrigateCardTimeline extends LitElement {
    * Return compiled CSS styles.
    */
   static get styles(): CSSResultGroup {
-    return unsafeCSS(timelineStyle);
+    return unsafeCSS(timelineCoreStyle);
   }
 }
