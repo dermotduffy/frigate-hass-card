@@ -23,17 +23,15 @@ img,video {
   width: 100%;
   height: 100%;
 
-  flex-direction: column;
-
   user-select: none;
   -webkit-touch-callout: none;
   -khtml-user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
-:host([direction="vertical"]) .embla__container {
+:host([direction=vertical]) .embla__container {
   flex-direction: column;
 }
-:host([direction="horizontal"]) .embla__container {
+:host([direction=horizontal]) .embla__container {
   flex-direction: row;
 }
 
@@ -60,10 +58,10 @@ img,video {
   height: 100%;
   overflow: visible;
 }
-:host([direction="vertical"]) .embla__slide {
+:host([direction=vertical]) .embla__slide {
   margin-bottom: 5px;
 }
-:host([direction="horizontal"]) .embla__slide {
+:host([direction=horizontal]) .embla__slide {
   margin-right: 5px;
 }
 .embla__slide img,video {

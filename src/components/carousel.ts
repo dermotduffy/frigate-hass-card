@@ -6,7 +6,7 @@ import EmblaCarousel, {
   EmblaOptionsType,
   EmblaPluginType,
 } from 'embla-carousel';
-import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures'
+import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
 
 import { TransitionEffect } from '../types';
 import { dispatchFrigateCardEvent } from '../common';
@@ -78,11 +78,13 @@ export class FrigateCardCarousel extends LitElement {
    * @returns An EmblaOptionsType object or undefined for no options.
    */
   protected _getPlugins(): EmblaPluginType[] {
-    return [WheelGesturesPlugin({
-      // Whether the carousel is vertical or horizontal, interpret y-axis wheel
-      // gestures as scrolling for the carousel.
-      forceWheelAxis: 'y',
-    })];
+    return [
+      WheelGesturesPlugin({
+        // Whether the carousel is vertical or horizontal, interpret y-axis wheel
+        // gestures as scrolling for the carousel.
+        forceWheelAxis: 'y',
+      }),
+    ];
   }
 
   protected _destroyCarousel(): void {
@@ -112,9 +114,10 @@ export class FrigateCardCarousel extends LitElement {
         carouselNode,
         {
           axis: this.direction == 'horizontal' ? 'x' : 'y',
-          ...this._getOptions()
+          ...this._getOptions(),
         },
-        plugins);
+        plugins,
+      );
       this._carousel.on('init', () => dispatchFrigateCardEvent(this, 'carousel:init'));
       this._carousel.on('select', () => {
         const selected = this.carouselSelected();

@@ -1,20 +1,20 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { HomeAssistant } from 'custom-card-helpers';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
-import { customElement, property } from 'lit/decorators.js';
+import { Task } from '@lit-labs/task';
+import { customElement, property, state } from 'lit/decorators.js';
 
+import { BrowseMediaUtil } from '../browse-media-util.js';
 import {
+  BrowseMediaQueryParameters,
   ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
   FrigateCardView,
   ThumbnailsControlConfig,
 } from '../types.js';
-import {
-  FrigateCardThumbnailCarousel,
-  ThumbnailCarouselTap,
-} from './thumbnail-carousel.js';
+
+import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 import { View } from '../view.js';
-import { dispatchFrigateCardEvent } from '../common.js';
+import { dispatchErrorMessageEvent, dispatchFrigateCardEvent } from '../common.js';
 
 import './surround.js';
 
@@ -39,7 +39,48 @@ export class FrigateCardSurround extends LitElement {
   @property({ attribute: false })
   protected targetView?: FrigateCardView;
 
-  protected _refThumbnails: Ref<FrigateCardThumbnailCarousel> = createRef();
+  @property({ attribute: false })
+  protected browseMediaParams?: BrowseMediaQueryParameters;
+
+  @state()
+  protected _thumbnailTarget?: FrigateBrowseMediaSource;
+
+  @state()
+  protected _thumbnailSelected?: number | null;
+
+  // A task to await the load of the WebRTC component.
+  protected _browseTask = new Task(this, this._fetchMedia.bind(this), () => [
+    this.hass,
+    this.browseMediaParams,
+  ]);
+
+  /**
+   * Fetch thumbnail media.
+   * @param param Task parameters.
+   * @returns
+   */
+  protected async _fetchMedia([hass, browseMediaParams]: (
+    | (HomeAssistant & ExtendedHomeAssistant)
+    | BrowseMediaQueryParameters
+    | undefined
+  )[]): Promise<void> {
+    hass = hass as HomeAssistant & ExtendedHomeAssistant;
+    browseMediaParams = browseMediaParams as BrowseMediaQueryParameters;
+
+    if (!hass || !browseMediaParams) {
+      return;
+    }
+    let parent: FrigateBrowseMediaSource | null;
+    try {
+      parent = await BrowseMediaUtil.browseMediaQuery(hass, browseMediaParams);
+    } catch (e) {
+      return dispatchErrorMessageEvent(this, (e as Error).message);
+    }
+    if (BrowseMediaUtil.getFirstTrueMediaChildIndex(parent) != null) {
+      this._thumbnailTarget = parent;
+      this._thumbnailSelected = null;
+    }
+  }
 
   /**
    * Master render method.
@@ -52,10 +93,8 @@ export class FrigateCardSurround extends LitElement {
 
     return html` <frigate-card-surround
       @frigate-card:thumbnails:set=${(ev: CustomEvent<FrigateCardThumbnailsSet>) => {
-        if (this._refThumbnails.value) {
-          this._refThumbnails.value.target = ev.detail.target;
-          this._refThumbnails.value.selected = ev.detail.childIndex ?? undefined;
-        }
+        this._thumbnailTarget = ev.detail.target;
+        this._thumbnailSelected = ev.detail.childIndex;
       }}
       @frigate-card:thumbnails:open=${(ev: CustomEvent) => {
         if (this.config && ['left', 'right'].includes(this.config.mode)) {
@@ -73,19 +112,17 @@ export class FrigateCardSurround extends LitElement {
       ${this.config?.mode !== 'none'
         ? html` <frigate-card-thumbnail-carousel
             slot=${this.config.mode}
-            ${ref(this._refThumbnails)}
             .config=${this.config}
-            .highlight_selected=${true}
+            .target=${this._thumbnailTarget}
+            .selected=${this._thumbnailSelected ?? null}
             @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
-              if (ev.detail.target && ev.detail.childIndex) {
-                this.view
-                  ?.evolve({
-                    ...(this.targetView && { view: this.targetView }),
-                    target: ev.detail.target,
-                    childIndex: ev.detail.childIndex,
-                  })
-                  .dispatchChangeEvent(this);
-              }
+              this.view
+                ?.evolve({
+                  ...(this.targetView && { view: this.targetView }),
+                  target: ev.detail.target,
+                  childIndex: ev.detail.childIndex,
+                })
+                .dispatchChangeEvent(this);
             }}
           >
           </frigate-card-thumbnail-carousel>`

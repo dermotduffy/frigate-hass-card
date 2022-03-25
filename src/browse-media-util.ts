@@ -116,9 +116,9 @@ export class BrowseMediaUtil {
   static getBrowseMediaQueryParameters(
     mediaType: 'clips' | 'snapshots',
     cameraConfig?: CameraConfig,
-  ): BrowseMediaQueryParameters | undefined {
+  ): BrowseMediaQueryParameters | null {
     if (!cameraConfig || !cameraConfig.camera_name) {
-      return undefined;
+      return null;
     }
     return {
       mediaType: mediaType,
@@ -137,9 +137,9 @@ export class BrowseMediaUtil {
     node: HTMLElement,
     view: View,
     cameraConfig: CameraConfig,
-  ): BrowseMediaQueryParameters | undefined {
+  ): BrowseMediaQueryParameters | null {
     if (!view.isClipRelatedView() && !view.isSnapshotRelatedView()) {
-      return undefined;
+      return null;
     }
 
     // Verify there is a camera name, otherwise getBrowseMediaQueryParameters()
@@ -149,7 +149,7 @@ export class BrowseMediaUtil {
         node,
         localize('error.no_camera_name') + `: ${JSON.stringify(cameraConfig)}`,
       );
-      return undefined;
+      return null;
     }
 
     return BrowseMediaUtil.getBrowseMediaQueryParameters(
