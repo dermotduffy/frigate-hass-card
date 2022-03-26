@@ -8,6 +8,10 @@
 
   // Set the drawer relative to this host.
   position: relative;
+
+  // Hide any content outside the main pane (e.g. side drawers) to ensure the
+  // user cannot scroll across to the drawers without opening them.
+  overflow: hidden;
 }
 
 ::slotted:not([name]) {

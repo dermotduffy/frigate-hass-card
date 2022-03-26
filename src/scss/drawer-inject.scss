@@ -20,19 +20,19 @@
 }
 
 #d {
-  // Adding for control, may not need this?
+  // Need to allow drawer controls to be visible.
   overflow: visible;
   visibility: visible;
 }
 
-:host([location='right']) #d {
+:host([location=right]) #d {
   // Position to the right.
   left: unset;
   right: 0;
   transform: translateX(100%);
 }
 
-:host([location='right'][open]) #d {
+:host([location=right][open]) #d {
   transform: none;
   box-shadow: 0px 0px 25px 0px black;
 }
