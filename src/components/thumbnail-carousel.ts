@@ -124,11 +124,11 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
     }
     super.updated(changedProperties);
 
-    if (changedProperties.has('selected')) {
+    if (changedProperties.has('_selected')) {
       this.updateComplete.then(() => {
         if (this._carousel) {
-          if (this.selected !== undefined && this.selected !== null) {
-            this.carouselScrollTo(this.selected);
+          if (this._selected !== undefined && this._selected !== null) {
+            this.carouselScrollTo(this._selected);
           }
         }
       });
@@ -156,7 +156,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
 
     const classes = {
       embla__slide: true,
-      'slide-selected': this.selected === childIndex,
+      'slide-selected': this._selected === childIndex,
     };
 
     return html` <frigate-card-thumbnail

@@ -21,7 +21,7 @@ import './surround.js';
 import surroundThumbnailsStyle from '../scss/surround.scss';
 
 interface FrigateCardThumbnailsSet {
-  target: FrigateBrowseMediaSource;
+  target?: FrigateBrowseMediaSource;
   childIndex?: number;
 }
 
@@ -93,7 +93,9 @@ export class FrigateCardSurround extends LitElement {
 
     return html` <frigate-card-surround
       @frigate-card:thumbnails:set=${(ev: CustomEvent<FrigateCardThumbnailsSet>) => {
-        this._thumbnailTarget = ev.detail.target;
+        if (ev.detail.target) {
+          this._thumbnailTarget = ev.detail.target;
+        }
         this._thumbnailSelected = ev.detail.childIndex;
       }}
       @frigate-card:thumbnails:open=${(ev: CustomEvent) => {
@@ -113,8 +115,8 @@ export class FrigateCardSurround extends LitElement {
         ? html` <frigate-card-thumbnail-carousel
             slot=${this.config.mode}
             .config=${this.config}
-            .target=${this._thumbnailTarget}
-            .selected=${this._thumbnailSelected ?? null}
+            .target=${this._thumbnailTarget ?? this.view.target}
+            .selected=${this._thumbnailSelected ?? this.view.childIndex ?? null}
             @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
               this.view
                 ?.evolve({
