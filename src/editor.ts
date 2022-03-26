@@ -262,6 +262,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       value: 'below',
       label: localize('config.event_viewer.controls.thumbnails.modes.below'),
     },
+    {
+      value: 'left',
+      label: localize('config.event_viewer.controls.thumbnails.modes.left'),
+    },
+    {
+      value: 'right',
+      label: localize('config.event_viewer.controls.thumbnails.modes.right'),
+    },
   ];
 
   protected _thumbnailMedias = [
