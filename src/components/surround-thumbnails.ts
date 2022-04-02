@@ -20,11 +20,6 @@ import './surround.js';
 
 import surroundThumbnailsStyle from '../scss/surround.scss';
 
-interface FrigateCardThumbnailsSet {
-  target?: FrigateBrowseMediaSource;
-  childIndex?: number;
-}
-
 @customElement('frigate-card-surround-thumbnails')
 export class FrigateCardSurround extends LitElement {
   @property({ attribute: false })
@@ -42,15 +37,10 @@ export class FrigateCardSurround extends LitElement {
   @property({ attribute: false })
   protected browseMediaParams?: BrowseMediaQueryParameters;
 
-  @state()
-  protected _thumbnailTarget?: FrigateBrowseMediaSource;
-
-  @state()
-  protected _thumbnailSelected?: number | null;
-
   // A task to await the load of the WebRTC component.
   protected _browseTask = new Task(this, this._fetchMedia.bind(this), () => [
     this.hass,
+    this.view,
     this.browseMediaParams,
   ]);
 
@@ -59,15 +49,17 @@ export class FrigateCardSurround extends LitElement {
    * @param param Task parameters.
    * @returns
    */
-  protected async _fetchMedia([hass, browseMediaParams]: (
+  protected async _fetchMedia([hass, view, browseMediaParams]: (
     | (HomeAssistant & ExtendedHomeAssistant)
+    | Readonly<View>
     | BrowseMediaQueryParameters
     | undefined
   )[]): Promise<void> {
     hass = hass as HomeAssistant & ExtendedHomeAssistant;
+    view = view as Readonly<View>;
     browseMediaParams = browseMediaParams as BrowseMediaQueryParameters;
 
-    if (!hass || !browseMediaParams) {
+    if (!hass || !view || !browseMediaParams) {
       return;
     }
     let parent: FrigateBrowseMediaSource | null;
@@ -77,8 +69,13 @@ export class FrigateCardSurround extends LitElement {
       return dispatchErrorMessageEvent(this, (e as Error).message);
     }
     if (BrowseMediaUtil.getFirstTrueMediaChildIndex(parent) != null) {
-      this._thumbnailTarget = parent;
-      this._thumbnailSelected = null;
+      this.view
+        ?.evolve({
+          ...(this.targetView && { view: this.targetView }),
+          target: parent,
+          childIndex: undefined,
+        })
+        .dispatchChangeEvent(this);
     }
   }
 
@@ -92,12 +89,6 @@ export class FrigateCardSurround extends LitElement {
     }
 
     return html` <frigate-card-surround
-      @frigate-card:thumbnails:set=${(ev: CustomEvent<FrigateCardThumbnailsSet>) => {
-        if (ev.detail.target) {
-          this._thumbnailTarget = ev.detail.target;
-        }
-        this._thumbnailSelected = ev.detail.childIndex;
-      }}
       @frigate-card:thumbnails:open=${(ev: CustomEvent) => {
         if (this.config && ['left', 'right'].includes(this.config.mode)) {
           // Protects encapsulation: Catches the request to view thumbnails and
@@ -110,13 +101,23 @@ export class FrigateCardSurround extends LitElement {
           });
         }
       }}
+      @frigate-card:change-view=${(ev) => {
+        // Close the drawer if the carousel or thumbnail requests a view change
+        // (e.g. playing the clip, or viewing something on the timeline).
+        if (this.config && ['left', 'right'].includes(this.config.mode)) {
+          dispatchFrigateCardEvent(ev.composedPath()[0], 'drawer:close', {
+            drawer: this.config.mode,
+          });
+        }
+      }}
     >
       ${this.config?.mode !== 'none'
         ? html` <frigate-card-thumbnail-carousel
             slot=${this.config.mode}
             .config=${this.config}
-            .target=${this._thumbnailTarget ?? this.view.target}
-            .selected=${this._thumbnailSelected ?? this.view.childIndex ?? null}
+            .view=${this.view}
+            .target=${this.view.target}
+            .selected=${this.view.childIndex ?? null}
             @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
               this.view
                 ?.evolve({

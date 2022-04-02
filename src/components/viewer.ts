@@ -95,6 +95,7 @@ export class FrigateCardViewer extends LitElement {
       .hass=${this.hass}
       .view=${this.view}
       .config=${this.viewerConfig.controls.thumbnails}
+      .browseMediaParams=${browseMediaQueryParameters}
     >
       <frigate-card-viewer-carousel
         .hass=${this.hass}
@@ -102,13 +103,6 @@ export class FrigateCardViewer extends LitElement {
         .viewerConfig=${this.viewerConfig}
         .browseMediaQueryParameters=${browseMediaQueryParameters}
         .resolvedMediaCache=${this.resolvedMediaCache}
-        @frigate-card:carousel:select=${(ev: CustomEvent<CarouselSelect>) => {
-          // When a slide is selected in the viewer carousel, send a new event
-          // from the same source asking for the thumbnails to be updated.
-          dispatchFrigateCardEvent(ev.composedPath()[0], 'thumbnails:set', {
-            childIndex: ev.detail.index,
-          });
-        }}
       >
       </frigate-card-viewer-carousel>
     </frigate-card-surround-thumbnails>`;

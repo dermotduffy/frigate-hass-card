@@ -213,8 +213,11 @@
   "event": {
     "start": "Start",
     "duration": "Duration",
-    "in_progress": "In Progress",
-    "retain_indefinitely": "Event will be indefinitely retained"
+    "in_progress": "In Progress"
+  },
+  "thumbnail": {
+    "retain_indefinitely": "Event will be indefinitely retained",
+    "timeline": "See event in timeline"
   },
   "error": {
     "empty_response": "Received empty response from Home Assistant for request",

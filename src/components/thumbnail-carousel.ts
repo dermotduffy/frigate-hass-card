@@ -4,9 +4,14 @@ import { EmblaOptionsType } from 'embla-carousel';
 import { classMap } from 'lit/directives/class-map.js';
 import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
+import { isEqual } from 'lodash-es';
 
-import type { FrigateBrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
+import type {
+  FrigateBrowseMediaSource,
+  ThumbnailsControlConfig,
+} from '../types.js';
 import { FrigateCardCarousel } from './carousel.js';
+import { View } from '../view.js';
 import {
   contentsChanged,
   dispatchFrigateCardEvent,
@@ -25,6 +30,11 @@ export interface ThumbnailCarouselTap {
 
 @customElement('frigate-card-thumbnail-carousel')
 export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
+  @property({ attribute: false })
+  protected view?: Readonly<View>;
+
+  // Use contentsChanged here to avoid the carousel rebuilding and resetting in
+  // front of the user, unless the contents have actually changed.
   @property({ attribute: false, hasChanged: contentsChanged })
   public target?: FrigateBrowseMediaSource;
 
@@ -62,7 +72,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   /**
    * Handle gallery resize.
    */
-   protected _resizeHandler(): void {
+  protected _resizeHandler(): void {
     if (this._carousel) {
       this._carousel.reInit();
     }
@@ -71,7 +81,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   /**
    * Component connected callback.
    */
-   connectedCallback(): void {
+  connectedCallback(): void {
     super.connectedCallback();
     this._resizeObserver.observe(this);
   }
@@ -145,12 +155,11 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
     childIndex: number,
     slideIndex: number,
   ): TemplateResult | void {
-    if (!parent.children || !parent.children.length) {
-      return;
-    }
-
-    const mediaToRender = parent.children[childIndex];
-    if (!BrowseMediaUtil.isTrueMedia(mediaToRender)) {
+    if (
+      !parent.children ||
+      !parent.children.length ||
+      !BrowseMediaUtil.isTrueMedia(parent.children[childIndex])
+    ) {
       return;
     }
 
@@ -160,7 +169,9 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
     };
 
     return html` <frigate-card-thumbnail
-      .media=${mediaToRender}
+      .view=${this.view}
+      .target=${parent}
+      .childIndex=${childIndex}
       ?details=${this._config?.show_details}
       thumbnail_size=${ifDefined(this._config?.size)}
       class="${classMap(classes)}"

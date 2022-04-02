@@ -16,14 +16,15 @@ interface FrigateCardDrawerOpen {
 export class FrigateCardSurround extends LitElement {
   protected _refDrawerLeft: Ref<FrigateCardDrawer> = createRef();
   protected _refDrawerRight: Ref<FrigateCardDrawer> = createRef();
-  protected _boundDrawerOpenHandler = this._drawerOpen.bind(this);
+  protected _boundDrawerHandler = this._drawerHandler.bind(this);
 
   /**
    * Component connected callback.
    */
   connectedCallback(): void {
     super.connectedCallback();
-    this.addEventListener('frigate-card:drawer:open', this._boundDrawerOpenHandler);
+    this.addEventListener('frigate-card:drawer:open', this._boundDrawerHandler);
+    this.addEventListener('frigate-card:drawer:close', this._boundDrawerHandler);
   }
 
   /**
@@ -31,15 +32,17 @@ export class FrigateCardSurround extends LitElement {
    */
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    this.removeEventListener('frigate-card:drawer:open', this._boundDrawerOpenHandler);
+    this.removeEventListener('frigate-card:drawer:open', this._boundDrawerHandler);
+    this.removeEventListener('frigate-card:drawer:close', this._boundDrawerHandler);
   }
 
-  protected _drawerOpen(ev: Event) {
+  protected _drawerHandler(ev: Event) {
     const drawer = (ev as CustomEvent<FrigateCardDrawerOpen>).detail.drawer;
+    const open = ev.type.endsWith(':open');
     if (drawer === 'left' && this._refDrawerLeft.value) {
-      this._refDrawerLeft.value.open = true;
+      this._refDrawerLeft.value.open = open;
     } else if (drawer === 'right' && this._refDrawerRight.value) {
-      this._refDrawerRight.value.open = true;
+      this._refDrawerRight.value.open = open;
     }
   }
 

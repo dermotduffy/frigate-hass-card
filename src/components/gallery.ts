@@ -222,7 +222,7 @@ export class FrigateCardGalleryCore extends LitElement {
                   />${child.frigate?.event?.retain_indefinitely ? html`<ha-icon
                       class="favorite"
                       icon="mdi:star"
-                      title=${localize('event.retain_indefinitely')}
+                      title=${localize('thumbnail.retain_indefinitely')}
                       />` : ``}`
                 : ``}
             </div>

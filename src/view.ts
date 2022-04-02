@@ -1,12 +1,16 @@
 import type { FrigateBrowseMediaSource, FrigateCardView } from './types.js';
 import { dispatchFrigateCardEvent } from './common.js';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ViewContext {}
+
 export interface ViewEvolveParameters {
   view?: FrigateCardView;
   camera?: string;
   target?: FrigateBrowseMediaSource;
   childIndex?: number;
   previous?: View;
+  context?: ViewContext;
 }
 
 export interface ViewParameters extends ViewEvolveParameters {
@@ -20,6 +24,7 @@ export class View {
   target?: FrigateBrowseMediaSource;
   childIndex?: number;
   previous?: View;
+  context?: ViewContext;
 
   constructor(params: ViewParameters) {
     this.view = params?.view;
@@ -27,6 +32,7 @@ export class View {
     this.target = params?.target;
     this.childIndex = params?.childIndex;
     this.previous = params?.previous;
+    this.context = params?.context;
   }
 
   /**
@@ -38,7 +44,8 @@ export class View {
       camera: this.camera,
       target: this.target,
       childIndex: this.childIndex,
-      previous: this.previous
+      previous: this.previous,
+      context: this.context,
     });
   }
 
@@ -54,7 +61,8 @@ export class View {
       target: params.target ?? this.target,
       childIndex: params.childIndex ?? this.childIndex,
       previous: params.previous ?? this.previous,
-    })
+      context: params.context ?? this.context,
+    });
   }
 
   /**
@@ -82,16 +90,14 @@ export class View {
    * Determine if a view is for the media viewer.
    */
   public isViewerView(): boolean {
-    return ['clip', 'snapshot'].includes(
-      this.view,
-    );
+    return ['clip', 'snapshot'].includes(this.view);
   }
 
   /**
    * Determine if a view is related to a clip or clips.
    */
   public isClipRelatedView(): boolean {
-    // TODO HACK HACK HACK 
+    // TODO HACK HACK HACK
     return ['clip', 'clips', 'timeline'].includes(this.view);
   }
 

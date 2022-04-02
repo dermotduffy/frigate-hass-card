@@ -3,7 +3,12 @@ import { customElement, property } from 'lit/decorators.js';
 import { format, fromUnixTime } from 'date-fns';
 
 import type { FrigateBrowseMediaSource } from '../types.js';
-import { getEventDurationString, prettifyFrigateName } from '../common.js';
+import { View } from '../view.js';
+import {
+  getEventDurationString,
+  prettifyFrigateName,
+  stopEventFromActivatingCardWideActions,
+} from '../common.js';
 import { localize } from '../localize/localize.js';
 
 import thumbnailStyle from '../scss/thumbnail.scss';
@@ -11,7 +16,13 @@ import thumbnailStyle from '../scss/thumbnail.scss';
 @customElement('frigate-card-thumbnail')
 export class FrigateCardThumbnail extends LitElement {
   @property({ attribute: false })
-  public media?: FrigateBrowseMediaSource;
+  protected view?: Readonly<View>;
+
+  @property({ attribute: false })
+  public target?: FrigateBrowseMediaSource;
+
+  @property({ attribute: false })
+  public childIndex?: number;
 
   @property({ attribute: true, type: Boolean, reflect: true })
   public details = false;
@@ -26,21 +37,25 @@ export class FrigateCardThumbnail extends LitElement {
    * @returns A template to display to the user.
    */
   protected render(): TemplateResult | void {
-    if (!this.media || !this.media.thumbnail) {
+    if (!this.target || !this.target.children || !this.childIndex) {
       return;
     }
-    const event = this.media.frigate?.event;
-    return html`
-      <img
-        aria-label="${this.media.title}"
-        src="${this.media.thumbnail}"
-        title="${this.media.title}"
+    const media = this.target.children[this.childIndex];
+    if (!media.thumbnail) {
+      return;
+    }
+
+    const event = media.frigate?.event;
+    return html` <img
+        aria-label="${media.title}"
+        src="${media.thumbnail}"
+        title="${media.title}"
       />
       ${event?.retain_indefinitely
         ? html` <ha-icon
             class="favorite"
             icon="mdi:star"
-            title=${localize('event.retain_indefinitely')}
+            title=${localize('thumbnail.retain_indefinitely')}
           />`
         : ``}
       ${this.details && event
@@ -65,7 +80,21 @@ export class FrigateCardThumbnail extends LitElement {
             </div>
           </div>`
         : html``}
-    `;
+      <ha-icon
+        class="timeline"
+        icon="mdi:target"
+        title=${localize('thumbnail.timeline')}
+        @click=${(ev: Event) => {
+          stopEventFromActivatingCardWideActions(ev);
+          this.view
+            ?.evolve({
+              view: 'timeline',
+              target: this.target,
+              childIndex: this.childIndex,
+            })
+            .dispatchChangeEvent(this);
+        }}
+      ></ha-icon>`;
   }
 
   /**
