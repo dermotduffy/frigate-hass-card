@@ -102,6 +102,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
     return {
       containScroll: 'keepSnaps',
       dragFree: true,
+      startIndex: this._selected ?? 0,
     };
   }
 
@@ -138,6 +139,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
       this.updateComplete.then(() => {
         if (this._carousel) {
           if (this._selected !== undefined && this._selected !== null) {
+            console.info('thumbnail carousel scroll to')
             this.carouselScrollTo(this._selected);
           }
         }

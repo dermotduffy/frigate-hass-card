@@ -164,11 +164,11 @@ class TimelineEventManager {
     start: Date,
     end: Date,
   ): Promise<boolean> {
-    if (!this.hasCoverage(start, end)) {
-      await this._fetchEvents(element, hass, cameras, start, end);
-      return true;
+    if (this.hasCoverage(start, end)) {
+      return false;
     }
-    return false;
+    await this._fetchEvents(element, hass, cameras, start, end);
+    return true;
   }
 
   /**
@@ -580,13 +580,17 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     const [eventWindowStart, eventWindowEnd] = this._getStartEndFromEvent(event);
-    await this._events.fetchEventsIfNecessary(
-      this,
-      this.hass,
-      this.cameras,
-      eventWindowStart,
-      eventWindowEnd,
-    );
+    if (
+      await this._events.fetchEventsIfNecessary(
+        this,
+        this.hass,
+        this.cameras,
+        eventWindowStart,
+        eventWindowEnd,
+      )
+    ) {
+      this._generateThumbnails();
+    }
 
     const eventStart = new Date(event.start_time * 1000);
     const eventEnd = event.end_time ? new Date(event.end_time * 1000) : 0;

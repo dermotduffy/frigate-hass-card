@@ -101,15 +101,6 @@ export class FrigateCardSurround extends LitElement {
           });
         }
       }}
-      @frigate-card:change-view=${(ev) => {
-        // Close the drawer if the carousel or thumbnail requests a view change
-        // (e.g. playing the clip, or viewing something on the timeline).
-        if (this.config && ['left', 'right'].includes(this.config.mode)) {
-          dispatchFrigateCardEvent(ev.composedPath()[0], 'drawer:close', {
-            drawer: this.config.mode,
-          });
-        }
-      }}
     >
       ${this.config?.mode !== 'none'
         ? html` <frigate-card-thumbnail-carousel
@@ -118,6 +109,15 @@ export class FrigateCardSurround extends LitElement {
             .view=${this.view}
             .target=${this.view.target}
             .selected=${this.view.childIndex ?? null}
+            @frigate-card:change-view=${(ev) => {
+              // Close the drawer if the carousel or thumbnail requests a view change
+              // (e.g. playing the clip, or viewing something on the timeline).
+              if (this.config && ['left', 'right'].includes(this.config.mode)) {
+                dispatchFrigateCardEvent(ev.composedPath()[0], 'drawer:close', {
+                  drawer: this.config.mode,
+                });
+              }
+            }}
             @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
               this.view
                 ?.evolve({

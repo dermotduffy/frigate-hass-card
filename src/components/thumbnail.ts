@@ -37,7 +37,7 @@ export class FrigateCardThumbnail extends LitElement {
    * @returns A template to display to the user.
    */
   protected render(): TemplateResult | void {
-    if (!this.target || !this.target.children || !this.childIndex) {
+    if (!this.target || !this.target.children || this.childIndex === undefined) {
       return;
     }
     const media = this.target.children[this.childIndex];
