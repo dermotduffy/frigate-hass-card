@@ -604,11 +604,13 @@ export class FrigateCardTimelineCore extends LitElement {
       ? (this.view.context as TimelineViewContext)
       : undefined;
 
-    if (context && !isEqual(context.window, timelineWindow)) {
+    if (context?.window) {
       console.info(
         `Setting window from context (${context.window.start} -> ${context.window.end}`,
       );
-      this._timeline.setWindow(context.window.start, context.window.end);
+      if (!isEqual(context.window, timelineWindow)) {
+        this._timeline.setWindow(context.window.start, context.window.end);
+      }
     } else if (
       eventStart < timelineWindow.start ||
       eventStart > timelineWindow.end ||
