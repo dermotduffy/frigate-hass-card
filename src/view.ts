@@ -83,22 +83,21 @@ export class View {
    * Determine if a view is of a piece of media (i.e. not the gallery).
    */
   public isMediaView(): boolean {
-    return !this.isGalleryView();
+    return this.isViewerView() || this.is('live');
   }
 
   /**
    * Determine if a view is for the media viewer.
    */
   public isViewerView(): boolean {
-    return ['clip', 'snapshot'].includes(this.view);
+    return ['clip', 'snapshot', 'event'].includes(this.view);
   }
 
   /**
    * Determine if a view is related to a clip or clips.
    */
   public isClipRelatedView(): boolean {
-    // TODO HACK HACK HACK
-    return ['clip', 'clips', 'timeline'].includes(this.view);
+    return ['clip', 'clips'].includes(this.view);
   }
 
   /**

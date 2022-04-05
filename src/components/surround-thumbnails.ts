@@ -1,7 +1,7 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { HomeAssistant } from 'custom-card-helpers';
 import { Task } from '@lit-labs/task';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import {
@@ -45,7 +45,8 @@ export class FrigateCardSurround extends LitElement {
   ]);
 
   /**
-   * Fetch thumbnail media.
+   * Fetch thumbnail media when a target is not specified in the view (e.g. for
+   * the live view).
    * @param param Task parameters.
    * @returns
    */
@@ -121,7 +122,7 @@ export class FrigateCardSurround extends LitElement {
             @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
               this.view
                 ?.evolve({
-                  ...(this.targetView && { view: this.targetView }),
+                  view: this.targetView || 'event',
                   target: ev.detail.target,
                   childIndex: ev.detail.childIndex,
                 })

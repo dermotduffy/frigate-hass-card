@@ -1089,13 +1089,15 @@ export class FrigateCard extends LitElement {
     // Do not artifically constrain aspect ratio if:
     // - It's fullscreen.
     // - Aspect ratio enforcement is disabled.
-    // - Aspect ratio enforcement is dynamic and it's a media view (i.e. not the gallery).
+    // - Aspect ratio enforcement is dynamic and it's a media view (i.e. not the
+    //   gallery) or timeline.
     // - There is a message to display to the user.
 
     return !(
       (screenfull.isEnabled && screenfull.isFullscreen) ||
       aspectRatioMode == 'unconstrained' ||
-      (aspectRatioMode == 'dynamic' && this._view?.isMediaView()) ||
+      (aspectRatioMode == 'dynamic' &&
+        (this._view?.isMediaView() || this._view?.is('timeline'))) ||
       this._message != null
     );
   }

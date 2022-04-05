@@ -35,7 +35,14 @@ const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
   'timeline',
 ] as const;
 
-export type FrigateCardView = typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED[number];
+const FRIGATE_CARD_VIEWS = [
+  ...FRIGATE_CARD_VIEWS_USER_SPECIFIED,
+
+  // Event: A clip or snapshot (timeline may produce mixed media lists).
+  'event',
+] as const;
+
+export type FrigateCardView = typeof FRIGATE_CARD_VIEWS[number];
 
 const FRIGATE_MENU_MODES = [
   'none',
@@ -755,6 +762,7 @@ const dimensionsConfigSchema = z
  */
 const timelineConfigDefault = {
   clustering_threshold: 3,
+  media: 'all' as const,
   controls: {
     thumbnails: {
       mode: 'left' as const,
@@ -766,6 +774,7 @@ const timelineConfigDefault = {
 const timelineConfigSchema = z
   .object({
     clustering_threshold: z.number().default(timelineConfigDefault.clustering_threshold),
+    media: z.enum(['all', 'clips', 'snapshots']).default(timelineConfigDefault.media),
     controls: z
       .object({
         thumbnails: thumbnailsControlSchema
@@ -867,8 +876,8 @@ export interface ExtendedHomeAssistant {
   hassUrl(path?): string;
 }
 
-export interface BrowseMediaQueryParameters {
-  mediaType: 'clips' | 'snapshots';
+export interface BrowseMediaQueryParametersBase {
+  mediaType?: 'clips' | 'snapshots';
   clientId: string;
   cameraName: string;
   label?: string;
@@ -876,6 +885,10 @@ export interface BrowseMediaQueryParameters {
   before?: number;
   after?: number;
   unlimited?: boolean;
+}
+
+export interface BrowseMediaQueryParameters extends BrowseMediaQueryParametersBase {
+  mediaType: 'clips' | 'snapshots';
 }
 
 export interface BrowseMediaNeighbors {
@@ -920,8 +933,7 @@ export interface FrigateCardMediaPlayer {
  */
 
 export const MEDIA_CLASS_PLAYLIST = 'playlist' as const;
-export const MEDIA_CLASS_VIDEO = 'video' as const;
-export const MEDIA_TYPE_VIDEO = 'video' as const;
+export const MEDIA_TYPE_PLAYLIST = 'playlist' as const;
 
 // Recursive type, cannot use type interference:
 // See: https://github.com/colinhacks/zod#recursive-types

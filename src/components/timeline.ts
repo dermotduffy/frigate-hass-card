@@ -1,5 +1,4 @@
 // TODO: Clips vs snapshots: Should be able to navigate from snapshots view and it should just work.
-// TODO: Remove HACK in view.ts on clips
 // TODO: Hover over an event should show something useful.
 // TODO: Periodically refetch events.
 // TODO: Search for TODOs and logging statements.
@@ -16,7 +15,6 @@ import {
 import { DataSet } from 'vis-data/esnext';
 import {
   DataGroupCollectionType,
-  IdType,
   Timeline,
   TimelineItem,
   TimelineOptions,
@@ -36,8 +34,7 @@ import {
   ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
   MEDIA_CLASS_PLAYLIST,
-  MEDIA_TYPE_VIDEO,
-  MEDIA_CLASS_VIDEO,
+  MEDIA_TYPE_PLAYLIST,
   TimelineConfig,
   FrigateEvent,
 } from '../types';
@@ -58,7 +55,9 @@ interface FrigateCardGroupData {
   content: string;
 }
 interface FrigateCardTimelineItem extends TimelineItem {
-  source: FrigateBrowseMediaSource;
+  event: FrigateEvent;
+  clip?: FrigateBrowseMediaSource;
+  snapshot?: FrigateBrowseMediaSource;
 }
 
 interface TimelineViewContext extends ViewContext {
@@ -114,19 +113,28 @@ class TimelineEventManager {
   protected _addMediaSource(camera: string, target: FrigateBrowseMediaSource): void {
     const items: FrigateCardTimelineItem[] = [];
     target.children?.forEach((child) => {
-      if (child.frigate) {
-        const item = {
-          id: child.media_content_id,
-          group: camera,
-          content: this._contentCallback?.(child) ?? '',
-          start: child.frigate.event.start_time * 1000,
-          source: child,
-        };
-        if (child.frigate.event.end_time) {
-          item['end'] = child.frigate.event.end_time * 1000;
+      const event = child.frigate?.event;
+      if (event && ['video', 'image'].includes(child.media_content_type)) {
+        let item = this._dataset.get(event.id);
+        if (!item) {
+          item = {
+            id: event.id,
+            group: camera,
+            content: this._contentCallback?.(child) ?? '',
+            start: event.start_time * 1000,
+            event: event,
+          };
+        }
+        if (event.end_time) {
+          item['end'] = event.end_time * 1000;
           item['type'] = 'range';
         } else {
           item['type'] = 'point';
+        }
+        if (child.media_content_type === 'video') {
+          item['clip'] = child;
+        } else if (child.media_content_type === 'image') {
+          item['snapshot'] = child;
         }
         items.push(item);
       }
@@ -161,13 +169,14 @@ class TimelineEventManager {
     element: HTMLElement,
     hass: HomeAssistant & ExtendedHomeAssistant,
     cameras: Map<string, CameraConfig>,
+    media: 'all' | 'clips' | 'snapshots',
     start: Date,
     end: Date,
   ): Promise<boolean> {
     if (this.hasCoverage(start, end)) {
       return false;
     }
-    await this._fetchEvents(element, hass, cameras, start, end);
+    await this._fetchEvents(element, hass, cameras, media, start, end);
     return true;
   }
 
@@ -183,6 +192,7 @@ class TimelineEventManager {
     element: HTMLElement,
     hass: HomeAssistant & ExtendedHomeAssistant,
     cameras: Map<string, CameraConfig>,
+    media: 'all' | 'clips' | 'snapshots',
     start: Date,
     end: Date,
   ): Promise<void> {
@@ -193,24 +203,25 @@ class TimelineEventManager {
       this._dateEnd = end;
     }
 
-    const fetchCameraEvents = async (camera: string): Promise<void> => {
+    const fetchCameraEvents = async (
+      camera: string,
+      mediaType: 'clips' | 'snapshots',
+    ): Promise<void> => {
       const cameraConfig = cameras.get(camera);
       if (!cameraConfig || !this._dateStart || !this._dateEnd) {
         return;
       }
-      const browseMediaQueryParameters = BrowseMediaUtil.getBrowseMediaQueryParameters(
-        'clips',
+      const browseMediaQueryParametersBase = BrowseMediaUtil.getBrowseMediaQueryParametersBase(
         cameraConfig,
       );
-      if (!browseMediaQueryParameters) {
+      if (!browseMediaQueryParametersBase) {
         return;
       }
-
       try {
         this._addMediaSource(
           camera,
           await BrowseMediaUtil.browseMediaQuery(hass, {
-            ...browseMediaQueryParameters,
+            ...browseMediaQueryParametersBase,
 
             // Events are always fetched for the maximum extent of the managed
             // range. This is because events may change at any point in time
@@ -218,6 +229,7 @@ class TimelineEventManager {
             before: this._dateEnd.getTime() / 1000,
             after: this._dateStart.getTime() / 1000,
             unlimited: true,
+            mediaType: mediaType,
           }),
         );
       } catch (e) {
@@ -225,7 +237,15 @@ class TimelineEventManager {
       }
     };
 
-    await Promise.all(Array.from(cameras.keys()).map(fetchCameraEvents.bind(this)));
+    const promises: Promise<void>[] = [];
+    (media === 'all' ? ['clips', 'snapshots'] : [media]).forEach((mediaType) =>
+      promises.push(
+        ...Array.from(cameras.keys()).map((camera) =>
+          fetchCameraEvents(camera, mediaType as 'clips' | 'snapshots'),
+        ),
+      ),
+    );
+    await Promise.all(promises);
   }
 }
 
@@ -256,7 +276,6 @@ export class FrigateCardTimeline extends LitElement {
       .hass=${this.hass}
       .view=${this.view}
       .config=${this.timelineConfig.controls.thumbnails}
-      .targetView=${'clip'}
     >
       <frigate-card-timeline-core
         .hass=${this.hass}
@@ -330,12 +349,13 @@ export class FrigateCardTimelineCore extends LitElement {
     console.info(
       `Range changed: ${properties.start} -> ${properties.end} [${this._events.dataset.length}]`,
     );
-    if (this.hass && this.cameras && this._timeline) {
+    if (this.hass && this.cameras && this._timeline && this.timelineConfig) {
       this._events
         .fetchEventsIfNecessary(
           this,
           this.hass,
           this.cameras,
+          this.timelineConfig.media,
           properties.start,
           properties.end,
         )
@@ -367,7 +387,9 @@ export class FrigateCardTimelineCore extends LitElement {
     if (!this._thumbnails || !this._thumbnails.children || data.items.length <= 0) {
       return;
     }
-    const childIndex = this._findThumbnailIndex(data.items[0]);
+    const childIndex = this._thumbnails.children.findIndex(
+      (child) => child.frigate?.event.id === data.items[0],
+    );
     if (childIndex >= 0) {
       this.view
         ?.evolve({
@@ -380,19 +402,6 @@ export class FrigateCardTimelineCore extends LitElement {
   }
 
   /**
-   * Find the index of the given item in the thumbnails.
-   * @param id
-   * @returns The index of the item, or -1 if not found.
-   */
-  public _findThumbnailIndex(id: IdType | IdType[]): number {
-    if (!this._thumbnails || !this._thumbnails.children) {
-      return -1;
-    }
-    id = Array.isArray(id) ? id[0] : id;
-    return this._thumbnails.children.findIndex((child) => child.media_content_id === id);
-  }
-
-  /**
    * Regenerate the thumbnails from the timeline events.
    * @returns
    */
@@ -401,10 +410,33 @@ export class FrigateCardTimelineCore extends LitElement {
       return;
     }
 
-    const children: FrigateBrowseMediaSource[] = this._events.dataset
-      .get()
-      .filter((item) => BrowseMediaUtil.isTrueMedia(item.source))
-      .map((item) => item.source);
+    const selected = this._timeline.getSelection();
+    let childIndex = -1;
+    const children: FrigateBrowseMediaSource[] = [];
+    this._events.dataset.get().forEach((item) => {
+      if (this.timelineConfig) {
+        let added = false;
+        if (
+          item.clip &&
+          ['all', 'clips'].includes(this.timelineConfig.media) &&
+          BrowseMediaUtil.isTrueMedia(item.clip)
+        ) {
+          added = true;
+          children.push(item.clip);
+        } else if (
+          item.snapshot &&
+          ['all', 'snapshots'].includes(this.timelineConfig.media) &&
+          BrowseMediaUtil.isTrueMedia(item.snapshot)
+        ) {
+          added = true
+          children.push(item.snapshot);
+        }
+
+        if (added && selected.includes(item.event.id)) {
+          childIndex = children.length-1;
+        }
+      }
+    });
     if (!children.length) {
       return;
     }
@@ -412,17 +444,16 @@ export class FrigateCardTimelineCore extends LitElement {
     const target = {
       title: `Timeline events`,
       media_class: MEDIA_CLASS_PLAYLIST,
-      media_content_type: MEDIA_TYPE_VIDEO,
+      media_content_type: MEDIA_TYPE_PLAYLIST,
       media_content_id: '',
       can_play: false,
       can_expand: true,
-      children_media_class: MEDIA_CLASS_VIDEO,
+      children_media_class: MEDIA_CLASS_PLAYLIST,
       thumbnail: null,
       children: children,
     };
 
     this._thumbnails = target;
-    const childIndex = this._findThumbnailIndex(this._timeline.getSelection());
 
     // Update the thumbnail carousel with the regenerated thumbnails.
     this.view
@@ -523,11 +554,11 @@ export class FrigateCardTimelineCore extends LitElement {
               // different object types together (e.g. person and car).
               return (
                 !!first.id &&
-                first.id !== this.view?.media?.media_content_id &&
+                first.id !== this.view?.media?.frigate?.event?.id &&
                 !!second.id &&
-                second.id != this.view?.media?.media_content_id &&
-                (<FrigateCardTimelineItem>first).source.frigate?.event.label ===
-                  (<FrigateCardTimelineItem>second).source.frigate?.event.label
+                second.id != this.view?.media?.frigate?.event?.id &&
+                (<FrigateCardTimelineItem>first).event.label ===
+                  (<FrigateCardTimelineItem>second).event.label
               );
             },
           }
@@ -573,9 +604,15 @@ export class FrigateCardTimelineCore extends LitElement {
    */
   protected async _updateTimelineFromView(): Promise<void> {
     const event = this.view?.media?.frigate?.event;
-    const id = this.view?.media?.media_content_id;
 
-    if (!this.hass || !this.cameras || !this.view || !event || !id || !this._timeline) {
+    if (
+      !this.hass ||
+      !this.cameras ||
+      !this.view ||
+      !event ||
+      !this._timeline ||
+      !this.timelineConfig
+    ) {
       return;
     }
 
@@ -585,6 +622,7 @@ export class FrigateCardTimelineCore extends LitElement {
         this,
         this.hass,
         this.cameras,
+        this.timelineConfig.media,
         eventWindowStart,
         eventWindowEnd,
       )
@@ -595,7 +633,7 @@ export class FrigateCardTimelineCore extends LitElement {
     const eventStart = new Date(event.start_time * 1000);
     const eventEnd = event.end_time ? new Date(event.end_time * 1000) : 0;
 
-    this._timeline.setSelection([id], {
+    this._timeline.setSelection([event.id], {
       focus: false,
       animation: {
         animation: false,
@@ -628,7 +666,7 @@ export class FrigateCardTimelineCore extends LitElement {
       // Hack: Clustering may not update unless the dataset changes, artifically
       // update the dataset to ensure the newly selected item cannot be included
       // in a cluster.
-      const item = this._events.dataset.get(id);
+      const item = this._events.dataset.get(event.id);
       if (item) {
         this._events.dataset.updateOnly(item);
       }

@@ -7,7 +7,6 @@ import {
   PropertyValues,
 } from 'lit';
 import {
-  FrigateBrowseMediaSource,
   ExtendedHomeAssistant,
   CameraConfig,
   JSMPEGConfig,
@@ -20,25 +19,21 @@ import {
   LiveProvider,
   TransitionEffect,
   frigateCardConfigDefaults,
+  BrowseMediaQueryParameters,
 } from '../types.js';
 import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
 import JSMpeg from '@cycjimmy/jsmpeg-player';
 import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import { Task } from '@lit-labs/task';
-import { customElement, property, query, state } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
-import { styleMap } from 'lit/directives/style-map.js';
 
 import { AutoMediaPlugin, AutoMediaPluginType } from './embla-plugins/automedia.js';
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import { ConditionState, getOverriddenConfig } from '../card-condition.js';
 import { FrigateCardMediaCarousel } from './media-carousel.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
-import {
-  FrigateCardThumbnailCarousel,
-  ThumbnailCarouselTap,
-} from './thumbnail-carousel.js';
 import { Lazyload } from './embla-plugins/lazyload.js';
 import { View } from '../view.js';
 import { localize } from '../localize/localize.js';
@@ -104,9 +99,6 @@ export class FrigateCardLive extends LitElement {
   // pre-loading it may be propagated upwards later.
   protected _savedMediaShowInfo?: MediaShowInfo;
 
-  @query('frigate-card-thumbnail-carousel')
-  protected _thumbnailCarousel?: FrigateCardThumbnailCarousel;
-
   /**
    * Handler for media show events that special cases preloaded live views.
    * @param e The media show event.
@@ -135,12 +127,15 @@ export class FrigateCardLive extends LitElement {
       this.conditionState,
     ) as LiveConfig;
 
-    const browseMediaParams = BrowseMediaUtil.getBrowseMediaQueryParameters(
-      config.controls.thumbnails.media,
+    const browseMediaParamsBase = BrowseMediaUtil.getBrowseMediaQueryParametersBase(
       this.cameras.get(this.view.camera),
     );
-    if (!browseMediaParams) {
+    if (!browseMediaParamsBase) {
       return;
+    }
+    const browseMediaParams: BrowseMediaQueryParameters = {
+      ...browseMediaParamsBase,
+      mediaType: config.controls.thumbnails.media,
     }
 
     // Note use of liveConfig and not config below -- the carousel will
@@ -150,7 +145,6 @@ export class FrigateCardLive extends LitElement {
       .hass=${this.hass}
       .view=${this.view}
       .config=${config.controls.thumbnails}
-      .targetView=${config.controls.thumbnails.media == 'clips' ? 'clip' : 'snapshot'}
       .browseMediaParams=${browseMediaParams}
     >
       <frigate-card-live-carousel

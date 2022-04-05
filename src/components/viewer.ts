@@ -10,14 +10,14 @@ import { BrowseMediaUtil } from '../browse-media-util.js';
 import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
 import { Task } from '@lit-labs/task';
-import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
+import { ref } from 'lit/directives/ref.js';
 
 import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import type {
   BrowseMediaNeighbors,
-  BrowseMediaQueryParameters,
+  BrowseMediaQueryParametersBase,
   FrigateBrowseMediaSource,
   CameraConfig,
   ExtendedHomeAssistant,
@@ -25,7 +25,6 @@ import type {
   TransitionEffect,
   ViewerConfig,
 } from '../types.js';
-import { CarouselSelect } from './carousel.js';
 import { FrigateCardMediaCarousel, IMG_EMPTY } from './media-carousel.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
 import { Lazyload, LazyloadType } from './embla-plugins/lazyload.js';
@@ -35,7 +34,6 @@ import {
   contentsChanged,
   createMediaShowInfo,
   dispatchErrorMessageEvent,
-  dispatchFrigateCardEvent,
   stopEventFromActivatingCardWideActions,
 } from '../common.js';
 import { renderProgressIndicator } from '../components/message.js';
@@ -71,17 +69,21 @@ export class FrigateCardViewer extends LitElement {
       return;
     }
 
-    const browseMediaQueryParameters =
-      BrowseMediaUtil.getBrowseMediaQueryParametersOrDispatchError(
+    const browseMediaQueryParametersBase =
+      BrowseMediaUtil.getBrowseMediaQueryParametersBaseOrDispatchError(
         this,
-        this.view,
         this.cameraConfig,
       );
-    if (!browseMediaQueryParameters) {
-      return;
-    }
 
     if (!this.view.target) {
+      const browseMediaQueryParameters = BrowseMediaUtil.setMediaTypeFromView(
+        browseMediaQueryParametersBase,
+        this.view,
+      );
+      if (!browseMediaQueryParameters) {
+        return;
+      }
+
       BrowseMediaUtil.fetchLatestMediaAndDispatchViewChange(
         this,
         this.hass,
@@ -95,13 +97,12 @@ export class FrigateCardViewer extends LitElement {
       .hass=${this.hass}
       .view=${this.view}
       .config=${this.viewerConfig.controls.thumbnails}
-      .browseMediaParams=${browseMediaQueryParameters}
     >
       <frigate-card-viewer-carousel
         .hass=${this.hass}
         .view=${this.view}
         .viewerConfig=${this.viewerConfig}
-        .browseMediaQueryParameters=${browseMediaQueryParameters}
+        .browseMediaQueryParametersBase=${browseMediaQueryParametersBase}
         .resolvedMediaCache=${this.resolvedMediaCache}
       >
       </frigate-card-viewer-carousel>
@@ -133,7 +134,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   protected viewerConfig?: ViewerConfig;
 
   @property({ attribute: false })
-  protected browseMediaQueryParameters?: BrowseMediaQueryParameters;
+  protected browseMediaQueryParametersBase?: BrowseMediaQueryParametersBase;
 
   @property({ attribute: false })
   protected resolvedMediaCache?: ResolvedMediaCache;
@@ -267,16 +268,11 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
           ? this._lazyloadSlide.bind(this)
           : undefined,
       }),
-      // Don't need autoplay/pause for snapshots.
-      ...(this.view?.is('clip')
-        ? [
-            AutoMediaPlugin({
-              playerSelector: 'frigate-card-ha-hls-player',
-              autoPlayWhenVisible: !!this.viewerConfig?.auto_play,
-              autoUnmuteWhenVisible: !!this.viewerConfig?.auto_unmute,
-            }),
-          ]
-        : []),
+      AutoMediaPlugin({
+        playerSelector: 'frigate-card-ha-hls-player',
+        autoPlayWhenVisible: !!this.viewerConfig?.auto_play,
+        autoUnmuteWhenVisible: !!this.viewerConfig?.auto_unmute,
+      }),
     ];
   }
 
@@ -338,7 +334,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       !this.view.target ||
       !this.view.target.children ||
       !this.view.target.children.length ||
-      !this.browseMediaQueryParameters
+      !this.browseMediaQueryParametersBase
     ) {
       return null;
     }
@@ -381,7 +377,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
 
     try {
       clips = await BrowseMediaUtil.browseMediaQuery(this.hass, {
-        ...this.browseMediaQueryParameters,
+        ...this.browseMediaQueryParametersBase,
         mediaType: 'clips',
         before: latest,
         after: earliest,
@@ -628,7 +624,8 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     if (
       !this.view ||
       !this.viewerConfig ||
-      !BrowseMediaUtil.isTrueMedia(mediaToRender)
+      !BrowseMediaUtil.isTrueMedia(mediaToRender) ||
+      !['video', 'image'].includes(mediaToRender.media_content_type)
     ) {
       return;
     }
@@ -641,7 +638,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
 
     return html`
       <div class="embla__slide">
-        ${this.view.isClipRelatedView()
+        ${mediaToRender.media_content_type === 'video'
           ? html`<frigate-card-ha-hls-player
               allow-exoplayer
               aria-label="${mediaToRender.title}"
