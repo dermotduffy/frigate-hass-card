@@ -130,6 +130,18 @@ export class FrigateCardGalleryCore extends LitElement {
   }
 
   /**
+   * Determine whether the back arrow should be displayed.
+   * @returns `true` if the back arrow should be displayed, `false` otherwise.
+   */
+  protected _showBackArrow(): boolean {
+    return (
+      !!this.view?.previous &&
+      !!this.view.previous.target &&
+      this.view.previous.view === this.view.view
+    );
+  }
+
+  /**
    * Master render method.
    * @returns A rendered template.
    */
@@ -158,7 +170,7 @@ export class FrigateCardGalleryCore extends LitElement {
     };
 
     return html` <ul class="mdc-image-list frigate-card-gallery">
-      ${this.view && this.view.previous
+      ${this._showBackArrow()
         ? html`<li class="mdc-image-list__item" style="${styleMap(itemStyle)}">
             <div class="mdc-image-list__image-aspect-container">
               <div class="mdc-image-list__image">

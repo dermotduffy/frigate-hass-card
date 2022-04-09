@@ -1,4 +1,3 @@
-// TODO: Hover over an event should show something useful.
 // TODO: Periodically refetch events.
 // TODO: Editor support for timeline (incl. in views).
 // TODO: Make thumbnail controls optional (in all places that use thumbnails).

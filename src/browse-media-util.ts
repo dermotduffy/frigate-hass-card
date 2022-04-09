@@ -239,7 +239,6 @@ export class BrowseMediaUtil {
     view
       .evolve({
         target: parent,
-        previous: view,
       })
       .dispatchChangeEvent(node);
   }
