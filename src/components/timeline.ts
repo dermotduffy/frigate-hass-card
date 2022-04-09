@@ -1,5 +1,7 @@
 // TODO: Hover over an event should show something useful.
 // TODO: Periodically refetch events.
+// TODO: Editor support for timeline (incl. in views).
+// TODO: Make thumbnail controls optional (in all places that use thumbnails).
 // TODO: Search for TODOs and logging statements.
 
 import {
@@ -74,11 +76,14 @@ class TimelineEventManager {
   // The latest date managed.
   protected _dateEnd?: Date;
   protected _contentCallback?: (source: FrigateBrowseMediaSource) => string;
+  protected _tooltipCallback?: (source: FrigateBrowseMediaSource) => string;
 
   constructor(params?: {
     contentCallback?: (source: FrigateBrowseMediaSource) => string;
+    tooltipCallback?: (source: FrigateBrowseMediaSource) => string;
   }) {
     this._contentCallback = params?.contentCallback;
+    this._tooltipCallback = params?.tooltipCallback;
   }
 
   /**
@@ -119,6 +124,7 @@ class TimelineEventManager {
             id: event.id,
             group: camera,
             content: this._contentCallback?.(child) ?? '',
+            title: this._tooltipCallback?.(child) ?? '',
             start: event.start_time * 1000,
             event: event,
           };
@@ -306,10 +312,40 @@ export class FrigateCardTimelineCore extends LitElement {
   @property({ attribute: false })
   protected timelineConfig?: TimelineConfig;
 
-  protected _events = new TimelineEventManager();
+  protected _events = new TimelineEventManager({
+    tooltipCallback: this._getTooltip.bind(this),
+  });
   protected _refTimeline: Ref<HTMLElement> = createRef();
   protected _thumbnails?: FrigateBrowseMediaSource;
   protected _timeline?: Timeline;
+
+  /**
+   * Get a tooltip for a given timeline event.
+   * @param source The FrigateBrowseMediaSource in question.
+   * @returns The tooltip as a string to render.
+   */
+  protected _getTooltip(source: FrigateBrowseMediaSource): string {
+    const thumbnailSizeAttr = this.timelineConfig
+      ? `thumbnail_size="${this.timelineConfig.controls.thumbnails.size}"`
+      : '';
+    const eventAttr = source.frigate?.event
+      ? `event='${JSON.stringify(source.frigate.event)}'`
+      : '';
+    console.info(eventAttr);
+
+    // Cannot use Lit data-bindings as visjs requires a string for tooltips.
+    // Note that changes to attributes here must be mirrored in the xss
+    // whitelist in `_getOptions()` .
+    return `
+      <frigate-card-thumbnail
+        details
+        thumbnail="${source.thumbnail}"
+        label="${source.title}"
+        ${eventAttr}
+        ${thumbnailSizeAttr}
+      >
+      </frigate-card-thumbnail>`;
+  }
 
   /**
    * Master render method.
@@ -575,14 +611,19 @@ export class FrigateCardTimelineCore extends LitElement {
       start: start,
       end: end,
       groupHeightMode: 'fixed',
+      tooltip: {
+        followMouse: true,
+        overflowMethod: 'cap',
+      },
       xss: {
         disabled: false,
         filterOptions: {
           whiteList: {
-            'frigate-card-timeline-event': [
+            'frigate-card-thumbnail': [
+              'details',
               'thumbnail',
               'label',
-              'media_id',
+              'event',
               'thumbnail_size',
             ],
             div: ['title'],

@@ -179,6 +179,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
       .target=${parent}
       .childIndex=${childIndex}
       ?details=${this._config?.show_details}
+      ?controls=${true}
       thumbnail_size=${ifDefined(this._config?.size)}
       class="${classMap(classes)}"
       @click=${(ev) => {

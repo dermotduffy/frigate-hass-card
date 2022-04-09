@@ -16,6 +16,10 @@
   border: 1px solid var(--primary-color);
   border-radius: var(--ha-card-border-radius, 4px);
   padding: 2px;
+
+  // When details are enabled, use a background color so that the details have
+  // contrast with the background.
+  background-color: var(--primary-background-color, black);
 }
 
 img {

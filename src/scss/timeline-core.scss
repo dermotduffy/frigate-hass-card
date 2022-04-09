@@ -85,4 +85,7 @@ div.vis-tooltip {
   padding: 0px;
   background-color: unset;
   border: none;
+
+  // Use browser default font-family for tooltips.
+  font-family: unset;
 }
