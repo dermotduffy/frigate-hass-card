@@ -75,6 +75,11 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   protected _resizeHandler(): void {
     if (this._carousel) {
       this._carousel.reInit();
+      // Reinit will cause the scroll position to reset, so re-scroll to the
+      // correct location.
+      if (this._selected !== undefined && this._selected !== null) {
+        this.carouselScrollTo(this._selected);
+      }
     }
   }
 
@@ -102,7 +107,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
     return {
       containScroll: 'keepSnaps',
       dragFree: true,
-      startIndex: this._selected ?? 0,
+      startIndex: this._selected ?? undefined,
     };
   }
 
@@ -139,7 +144,6 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
       this.updateComplete.then(() => {
         if (this._carousel) {
           if (this._selected !== undefined && this._selected !== null) {
-            console.info('thumbnail carousel scroll to')
             this.carouselScrollTo(this._selected);
           }
         }
