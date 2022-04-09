@@ -7,10 +7,10 @@ export interface ViewContext {}
 export interface ViewEvolveParameters {
   view?: FrigateCardView;
   camera?: string;
-  target?: FrigateBrowseMediaSource;
-  childIndex?: number;
-  previous?: View;
-  context?: ViewContext;
+  target?: FrigateBrowseMediaSource | null;
+  childIndex?: number | null;
+  previous?: View | null;
+  context?: ViewContext | null;
 }
 
 export interface ViewParameters extends ViewEvolveParameters {
@@ -21,18 +21,18 @@ export interface ViewParameters extends ViewEvolveParameters {
 export class View {
   view: FrigateCardView;
   camera: string;
-  target?: FrigateBrowseMediaSource;
-  childIndex?: number;
-  previous?: View;
-  context?: ViewContext;
+  target: FrigateBrowseMediaSource | null;
+  childIndex: number | null;
+  previous: View | null;
+  context: ViewContext | null;
 
   constructor(params: ViewParameters) {
-    this.view = params?.view;
-    this.camera = params?.camera;
-    this.target = params?.target;
-    this.childIndex = params?.childIndex;
-    this.previous = params?.previous;
-    this.context = params?.context;
+    this.view = params.view;
+    this.camera = params.camera;
+    this.target = params.target ?? null;
+    this.childIndex = params.childIndex ?? null;
+    this.previous = params.previous ?? null;
+    this.context = params.context ?? null;
   }
 
   /**
@@ -56,12 +56,15 @@ export class View {
    */
   public evolve(params: ViewEvolveParameters): View {
     return new View({
-      view: params.view ?? this.view,
-      camera: params.camera ?? this.camera,
-      target: params.target ?? this.target,
-      childIndex: params.childIndex ?? this.childIndex,
-      previous: params.previous ?? this.previous,
-      context: params.context ?? this.context,
+      view: params.view !== undefined ? params.view : this.view,
+      camera: params.camera !== undefined ? params.camera : this.camera,
+      target: params.target !== undefined ? params.target : this.target,
+      childIndex: params.childIndex !== undefined ? params.childIndex : this.childIndex,
+      context: params.context !== undefined ? params.context : this.context,
+      
+      // Special case: Set the previous to this of the evolved view (rather than
+      // the previous of this).
+      previous: params.previous !== undefined ? params.previous : this,
     });
   }
 
@@ -110,14 +113,13 @@ export class View {
   /**
    *  Get the media item that should be played.
    **/
-  get media(): FrigateBrowseMediaSource | undefined {
+  get media(): FrigateBrowseMediaSource | null {
     if (this.target) {
-      if (this.target.children && this.childIndex !== undefined) {
-        return this.target.children[this.childIndex];
+      if (this.target.children && this.childIndex !== null) {
+        return this.target.children[this.childIndex] ?? null;
       }
-      return this.target;
     }
-    return undefined;
+    return null;
   }
 
   /**

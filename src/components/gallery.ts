@@ -214,7 +214,6 @@ export class FrigateCardGalleryCore extends LitElement {
                             .evolve({
                               view: this.view.is('clips') ? 'clip' : 'snapshot',
                               childIndex: index,
-                              previous: this.view,
                             })
                             .dispatchChangeEvent(this);
                         }

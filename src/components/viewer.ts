@@ -145,11 +145,11 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
 
   // A task to resolve target media if lazy loading is disabled.
   protected _mediaResolutionTask = new Task<
-    [FrigateBrowseMediaSource | undefined],
+    [FrigateBrowseMediaSource | null | undefined],
     void
   >(
     this,
-    async ([target]: (FrigateBrowseMediaSource | undefined)[]): Promise<void> => {
+    async ([target]: (FrigateBrowseMediaSource | null | undefined)[]): Promise<void> => {
       for (
         let i = 0;
         !this.viewerConfig?.lazy_load &&
@@ -183,12 +183,12 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     if (this._carousel && changedProperties.has('view')) {
       const oldView = changedProperties.get('view') as View | undefined;
       if (oldView) {
-        if (oldView.target != this.view?.target) {
+        if (oldView.target !== this.view?.target) {
           // If the media target is different entirely, reset the carousel.
           this._destroyCarousel();
-        } else if (this.view?.childIndex != oldView.childIndex) {
-          const slide = this._getSlideForChild(this.view?.childIndex);
-          if (slide !== undefined && slide !== this.carouselSelected()) {
+        } else if (this.view.childIndex != oldView.childIndex) {
+          const slide = this._getSlideForChild(this.view.childIndex);
+          if (slide !== null && slide !== this.carouselSelected()) {
             // If the media target is the same as already loaded, but isn't of
             // the selected slide, scroll to that slide.
             this.carouselScrollTo(slide);
@@ -226,14 +226,19 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     //   need to be destroyed here.
   }
 
-  protected _getSlideForChild(childIndex: number | undefined): number | undefined {
-    if (childIndex === undefined) {
-      return undefined;
+  /**
+   * Get the slide number given a media child number.
+   * @param childIndex The child index (relative to `view.target`)
+   * @returns A number or null if the child is not found.
+   */
+  protected _getSlideForChild(childIndex: number | null | undefined): number | null {
+    if (childIndex === undefined || childIndex === null) {
+      return null;
     }
     const slideIndex = Object.keys(this._slideToChild).find(
       (key) => this._slideToChild[key] === childIndex,
     );
-    return slideIndex !== undefined ? Number(slideIndex) : undefined;
+    return slideIndex !== undefined ? Number(slideIndex) : null;
   }
 
   /**
@@ -251,7 +256,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   protected _getOptions(): EmblaOptionsType {
     return {
       // Start the carousel on the selected child number.
-      startIndex: this._getSlideForChild(this.view?.childIndex),
+      startIndex: this._getSlideForChild(this.view?.childIndex) ?? undefined,
       draggable: this.viewerConfig?.draggable,
     };
   }
@@ -286,7 +291,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       !this.view ||
       !this.view.target ||
       !this.view.target.children ||
-      this.view.childIndex === undefined
+      this.view.childIndex === null
     ) {
       return null;
     }
@@ -398,12 +403,10 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       }
       const clipStartTime = BrowseMediaUtil.getEventStartTime(child);
       if (clipStartTime && clipStartTime === snapshotStartTime) {
-        return new View({
+        return this.view.evolve({
           view: 'clip',
-          camera: this.view.camera,
           target: clips,
           childIndex: i,
-          previous: this.view,
         });
       }
     }
@@ -426,7 +429,6 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
         this.view
           .evolve({
             childIndex: childIndex,
-            previous: this.view,
           })
           .dispatchChangeEvent(this);
       }
@@ -443,7 +445,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     const childIndex: number | undefined = this._slideToChild[index];
 
     if (
-      childIndex == undefined ||
+      childIndex === undefined ||
       !this.hass ||
       !this.view ||
       !this.view.target ||

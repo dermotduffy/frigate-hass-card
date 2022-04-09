@@ -1,8 +1,6 @@
-// TODO: Clips vs snapshots: Should be able to navigate from snapshots view and it should just work.
 // TODO: Hover over an event should show something useful.
 // TODO: Periodically refetch events.
 // TODO: Search for TODOs and logging statements.
-// TODO: Allow download of selected event in timeline.
 
 import {
   CSSResultGroup,
@@ -211,9 +209,8 @@ class TimelineEventManager {
       if (!cameraConfig || !this._dateStart || !this._dateEnd) {
         return;
       }
-      const browseMediaQueryParametersBase = BrowseMediaUtil.getBrowseMediaQueryParametersBase(
-        cameraConfig,
-      );
+      const browseMediaQueryParametersBase =
+        BrowseMediaUtil.getBrowseMediaQueryParametersBase(cameraConfig);
       if (!browseMediaQueryParametersBase) {
         return;
       }
@@ -384,20 +381,27 @@ export class FrigateCardTimelineCore extends LitElement {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected _timelineSelectHandler(data: { items: string[]; event: Event }): void {
-    if (!this._thumbnails || !this._thumbnails.children || data.items.length <= 0) {
+    if (!this._thumbnails || !this._thumbnails.children) {
       return;
     }
-    const childIndex = this._thumbnails.children.findIndex(
-      (child) => child.frigate?.event.id === data.items[0],
-    );
-    if (childIndex >= 0) {
-      this.view
-        ?.evolve({
-          target: this._thumbnails,
-          childIndex: childIndex,
-        })
-        .dispatchChangeEvent(this);
+
+    const childIndex = data.items.length
+      ? this._thumbnails.children.findIndex(
+          (child) => child.frigate?.event.id === data.items[0],
+        )
+      : null;
+
+    this.view
+      ?.evolve({
+        target: this._thumbnails,
+        childIndex: childIndex,
+      })
+      .dispatchChangeEvent(this);
+
+    if (childIndex !== null && childIndex >= 0) {
       dispatchFrigateCardEvent(this, 'thumbnails:open');
+    } else {
+      dispatchFrigateCardEvent(this, 'thumbnails:close');
     }
   }
 
@@ -428,12 +432,12 @@ export class FrigateCardTimelineCore extends LitElement {
           ['all', 'snapshots'].includes(this.timelineConfig.media) &&
           BrowseMediaUtil.isTrueMedia(item.snapshot)
         ) {
-          added = true
+          added = true;
           children.push(item.snapshot);
         }
 
         if (added && selected.includes(item.event.id)) {
-          childIndex = children.length-1;
+          childIndex = children.length - 1;
         }
       }
     });
@@ -459,7 +463,7 @@ export class FrigateCardTimelineCore extends LitElement {
     this.view
       ?.evolve({
         target: this._thumbnails,
-        childIndex: childIndex < 0 ? undefined : childIndex,
+        childIndex: childIndex < 0 ? null : childIndex,
       })
       .dispatchChangeEvent(this);
   }
@@ -642,9 +646,7 @@ export class FrigateCardTimelineCore extends LitElement {
     });
 
     const timelineWindow = this._timeline.getWindow();
-    const context = this.view.context
-      ? (this.view.context as TimelineViewContext)
-      : undefined;
+    const context = this.view.context as TimelineViewContext | null;
 
     if (context?.window) {
       console.info(

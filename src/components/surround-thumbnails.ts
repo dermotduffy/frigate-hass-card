@@ -60,7 +60,7 @@ export class FrigateCardSurround extends LitElement {
     view = view as Readonly<View>;
     browseMediaParams = browseMediaParams as BrowseMediaQueryParameters;
 
-    if (!hass || !view || !browseMediaParams) {
+    if (!hass || !view || view.target || !browseMediaParams) {
       return;
     }
     let parent: FrigateBrowseMediaSource | null;
@@ -74,10 +74,18 @@ export class FrigateCardSurround extends LitElement {
         ?.evolve({
           ...(this.targetView && { view: this.targetView }),
           target: parent,
-          childIndex: undefined,
+          childIndex: null,
         })
         .dispatchChangeEvent(this);
     }
+  }
+
+  /**
+   * Determine if a drawer is being used.
+   * @returns `true` if a drawer is used, `false` otherwise.
+   */
+  protected _hasDrawer(): boolean {
+    return !!this.config && ['left', 'right'].includes(this.config.mode);
   }
 
   /**
@@ -89,19 +97,22 @@ export class FrigateCardSurround extends LitElement {
       return;
     }
 
+    const changeDrawer = (ev: CustomEvent, action: 'open' | 'close') => {
+      // The event catch/re-dispatch below protect encapsulation: Catches the
+      // request to view thumbnails and re-dispatches a request to open the drawer
+      // (if the thumbnails are in a drawer). The new event needs to be dispatched
+      // from the origin of the inbound event, so it can be handled by
+      // <frigate-card-surround> .
+      if (this.config && this._hasDrawer()) {
+        dispatchFrigateCardEvent(ev.composedPath()[0], 'drawer:' + action, {
+          drawer: this.config.mode,
+        });
+      }
+    };
+
     return html` <frigate-card-surround
-      @frigate-card:thumbnails:open=${(ev: CustomEvent) => {
-        if (this.config && ['left', 'right'].includes(this.config.mode)) {
-          // Protects encapsulation: Catches the request to view thumbnails and
-          // re-dispatches a request to open the drawer (if the thumbnails are
-          // in a drawer). The new event needs to be dispatched from the origin
-          // of the inbound event, so it can be handled by
-          // <frigate-card-surround> .
-          dispatchFrigateCardEvent(ev.composedPath()[0], 'drawer:open', {
-            drawer: this.config.mode,
-          });
-        }
-      }}
+      @frigate-card:thumbnails:open=${(ev: CustomEvent) => changeDrawer(ev, 'open')}
+      @frigate-card:thumbnails:close=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
     >
       ${this.config?.mode !== 'none'
         ? html` <frigate-card-thumbnail-carousel
@@ -109,16 +120,8 @@ export class FrigateCardSurround extends LitElement {
             .config=${this.config}
             .view=${this.view}
             .target=${this.view.target}
-            .selected=${this.view.childIndex ?? null}
-            @frigate-card:change-view=${(ev) => {
-              // Close the drawer if the carousel or thumbnail requests a view change
-              // (e.g. playing the clip, or viewing something on the timeline).
-              if (this.config && ['left', 'right'].includes(this.config.mode)) {
-                dispatchFrigateCardEvent(ev.composedPath()[0], 'drawer:close', {
-                  drawer: this.config.mode,
-                });
-              }
-            }}
+            .selected=${this.view.childIndex}
+            @frigate-card:change-view=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
             @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
               this.view
                 ?.evolve({

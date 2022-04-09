@@ -357,7 +357,10 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     this.view
       .evolve({
         camera: Array.from(this.cameras.keys())[selectedSnap],
-        previous: this.view,
+
+        // Reset the target so thumbnails will be re-fetched.
+        target: null,
+        childIndex: null,
       })
       .dispatchChangeEvent(this);
   }

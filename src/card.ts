@@ -381,7 +381,11 @@ export class FrigateCard extends LitElement {
       });
     }
 
-    if (this._getConfig().menu.buttons.download && this._view?.isViewerView()) {
+    if (
+      this._getConfig().menu.buttons.download &&
+      (this._view?.isViewerView() || this._view?.is('timeline') &&
+      !!this._view?.media)
+    ) {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.menu.buttons.download'),
@@ -743,7 +747,7 @@ export class FrigateCard extends LitElement {
    * Download media being displayed in the viewer.
    */
   protected async _downloadViewerMedia(): Promise<void> {
-    if (!this._hass || !this._view?.isViewerView()) {
+    if (!this._hass || !(this._view?.isViewerView() || this._view?.is('timeline'))) {
       // Should not occur.
       return;
     }

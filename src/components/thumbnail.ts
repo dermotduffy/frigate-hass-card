@@ -90,7 +90,7 @@ export class FrigateCardThumbnail extends LitElement {
             ?.evolve({
               view: 'timeline',
               target: this.target,
-              childIndex: this.childIndex,
+              childIndex: this.childIndex ?? null,
               context: {},
             })
             .dispatchChangeEvent(this);

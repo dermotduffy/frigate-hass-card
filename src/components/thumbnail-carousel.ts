@@ -36,7 +36,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   // Use contentsChanged here to avoid the carousel rebuilding and resetting in
   // front of the user, unless the contents have actually changed.
   @property({ attribute: false, hasChanged: contentsChanged })
-  public target?: FrigateBrowseMediaSource;
+  public target?: FrigateBrowseMediaSource | null;
 
   // Thumbnail carousels can expand (e.g. drawer-based carousels after the main
   // media loads). The carousel must be re-initialized in these cases, or the
