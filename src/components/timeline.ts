@@ -49,6 +49,8 @@ import timelineStyle from '../scss/timeline.scss';
 
 import './surround-thumbnails.js';
 
+const TIMELINE_EVENT_MANAGER_MAX_AGE_SECONDS = 10;
+
 interface FrigateCardGroupData {
   id: string;
   content: string;
@@ -63,6 +65,8 @@ interface TimelineViewContext extends ViewContext {
   window: TimelineWindow;
 }
 
+type TimelineMediaType = 'all' | 'clips' | 'snapshots';
+
 /**
  * A manager to maintain/fetch timeline events.
  */
@@ -74,6 +78,14 @@ class TimelineEventManager {
 
   // The latest date managed.
   protected _dateEnd?: Date;
+
+  // The last fetch date.
+  protected _dateFetch?: Date;
+
+  // The maximum allowable age of fetch data (will not fetch more frequently
+  // than this).
+  protected _maxAgeSeconds: number = TIMELINE_EVENT_MANAGER_MAX_AGE_SECONDS;
+
   protected _contentCallback?: (source: FrigateBrowseMediaSource) => string;
   protected _tooltipCallback?: (source: FrigateBrowseMediaSource) => string;
 
@@ -152,11 +164,48 @@ class TimelineEventManager {
    * @returns
    */
   public hasCoverage(start: Date, end?: Date): boolean {
-    return (
-      !!this._dateStart &&
-      start >= this._dateStart &&
-      (!end || (!!this._dateEnd && end <= this._dateEnd))
-    );
+    const now = new Date().getTime();
+
+    // Never fetched: no coverage.
+    if (!this._dateFetch || !this._dateStart || !this._dateEnd) {
+      return false;
+    }
+
+    // If the most recent fetch is older than maxAgeSeconds: no coverage.
+    if (
+      this._maxAgeSeconds &&
+      now - this._dateFetch.getTime() > this._maxAgeSeconds * 1000
+    ) {
+      return false;
+    }
+
+    // If the most requested data is earlier than the earliest stored: no
+    // coverage.
+    if (start < this._dateStart) {
+      return false;
+    }
+
+    // If there's no end time specified: there IS coverage.
+    if (!end) {
+      return true;
+    }
+    // If the requested end time is older than the oldest requested: there IS
+    // coverage.
+    if (end.getTime() < this._dateEnd.getTime()) {
+      return true;
+    }
+    // If there's no maxAgeSeconds specified: no coverage.
+    if (!this._maxAgeSeconds) {
+      return false;
+    }
+    // If the requested end time is beyond `_maxAgeSeconds` of now: no coverage.
+    if (now - end.getTime() > this._maxAgeSeconds * 1000) {
+      return false;
+    }
+
+    // End time is within `_maxAgeSeconds` of the latest data: there IS
+    // coverage.
+    return end.getTime() - this._maxAgeSeconds * 1000 <= this._dateEnd.getTime();
   }
 
   /**
@@ -172,7 +221,7 @@ class TimelineEventManager {
     element: HTMLElement,
     hass: HomeAssistant & ExtendedHomeAssistant,
     cameras: Map<string, CameraConfig>,
-    media: 'all' | 'clips' | 'snapshots',
+    media: TimelineMediaType,
     start: Date,
     end: Date,
   ): Promise<boolean> {
@@ -195,16 +244,20 @@ class TimelineEventManager {
     element: HTMLElement,
     hass: HomeAssistant & ExtendedHomeAssistant,
     cameras: Map<string, CameraConfig>,
-    media: 'all' | 'clips' | 'snapshots',
-    start: Date,
-    end: Date,
+    media: TimelineMediaType,
+    start?: Date,
+    end?: Date,
   ): Promise<void> {
-    if (!this._dateStart || start < this._dateStart) {
+    if (!this._dateStart || (start && start < this._dateStart)) {
       this._dateStart = start;
     }
-    if (!this._dateEnd || end > this._dateEnd) {
+    if (!this._dateEnd || (end && end > this._dateEnd)) {
       this._dateEnd = end;
     }
+    if (!this._dateStart || !this._dateEnd) {
+      return;
+    }
+    this._dateFetch = new Date();
 
     const fetchCameraEvents = async (
       camera: string,
@@ -330,7 +383,6 @@ export class FrigateCardTimelineCore extends LitElement {
     const eventAttr = source.frigate?.event
       ? `event='${JSON.stringify(source.frigate.event)}'`
       : '';
-    console.info(eventAttr);
 
     // Cannot use Lit data-bindings as visjs requires a string for tooltips.
     // Note that changes to attributes here must be mirrored in the xss
@@ -378,6 +430,9 @@ export class FrigateCardTimelineCore extends LitElement {
     byUser: boolean;
     event: Event;
   }): void {
+    if (!properties.byUser) {
+      return;
+    }
     console.info(
       `Range changed: ${properties.start} -> ${properties.end} [${this._events.dataset.length}]`,
     );
@@ -492,15 +547,17 @@ export class FrigateCardTimelineCore extends LitElement {
       children: children,
     };
 
-    this._thumbnails = target;
+    if (!isEqual(target, this._thumbnails)) {
+      this._thumbnails = target;
 
-    // Update the thumbnail carousel with the regenerated thumbnails.
-    this.view
-      ?.evolve({
-        target: this._thumbnails,
-        childIndex: childIndex < 0 ? null : childIndex,
-      })
-      .dispatchChangeEvent(this);
+      // Update the thumbnail carousel with the regenerated thumbnails.
+      this.view
+        ?.evolve({
+          target: this._thumbnails,
+          childIndex: childIndex < 0 ? null : childIndex,
+        })
+        .dispatchChangeEvent(this);
+    }
   }
 
   /**
@@ -647,46 +704,46 @@ export class FrigateCardTimelineCore extends LitElement {
    * Update the timeline from the view object.
    */
   protected async _updateTimelineFromView(): Promise<void> {
-    const event = this.view?.media?.frigate?.event;
-
     if (
       !this.hass ||
       !this.cameras ||
       !this.view ||
-      !event ||
       !this._timeline ||
       !this.timelineConfig
     ) {
       return;
     }
 
-    const [eventWindowStart, eventWindowEnd] = this._getStartEndFromEvent(event);
+    const event = this.view?.media?.frigate?.event;
+    const [windowStart, windowEnd] = event
+      ? this._getStartEndFromEvent(event)
+      : this._getStartEnd();
+
     if (
       await this._events.fetchEventsIfNecessary(
         this,
         this.hass,
         this.cameras,
         this.timelineConfig.media,
-        eventWindowStart,
-        eventWindowEnd,
+        windowStart,
+        windowEnd,
       )
     ) {
       this._generateThumbnails();
     }
 
-    const eventStart = new Date(event.start_time * 1000);
-    const eventEnd = event.end_time ? new Date(event.end_time * 1000) : 0;
+    if (event) {
+      this._timeline.setSelection([event.id], {
+        focus: false,
+        animation: {
+          animation: false,
+          zoom: false,
+        },
+      });
+    }
 
-    this._timeline.setSelection([event.id], {
-      focus: false,
-      animation: {
-        animation: false,
-        zoom: false,
-      },
-    });
-
-    const timelineWindow = this._timeline.getWindow();
     const context = this.view.context as TimelineViewContext | null;
+    const timelineWindow = this._timeline.getWindow();
 
     if (context?.window) {
       console.info(
@@ -695,23 +752,31 @@ export class FrigateCardTimelineCore extends LitElement {
       if (!isEqual(context.window, timelineWindow)) {
         this._timeline.setWindow(context.window.start, context.window.end);
       }
-    } else if (
-      eventStart < timelineWindow.start ||
-      eventStart > timelineWindow.end ||
-      (eventEnd && (eventEnd < timelineWindow.start || eventEnd > timelineWindow.end))
-    ) {
-      console.info(`Setting window from event ${eventWindowStart} -> ${eventWindowEnd}`);
-      this._timeline.setWindow(eventWindowStart, eventWindowEnd);
-    }
+    } else if (event) {
+      const eventStart = new Date(event.start_time * 1000);
+      const eventEnd = event.end_time ? new Date(event.end_time * 1000) : 0;
 
-    if (this._isClustering()) {
-      // Hack: Clustering may not update unless the dataset changes, artifically
-      // update the dataset to ensure the newly selected item cannot be included
-      // in a cluster.
-      const item = this._events.dataset.get(event.id);
-      if (item) {
-        this._events.dataset.updateOnly(item);
+      if (
+        eventStart < timelineWindow.start ||
+        eventStart > timelineWindow.end ||
+        (eventEnd && (eventEnd < timelineWindow.start || eventEnd > timelineWindow.end))
+      ) {
+        console.info(`Setting window from event ${windowStart} -> ${windowEnd}`);
+        this._timeline.setWindow(windowStart, windowEnd);
       }
+
+      if (this._isClustering()) {
+        // Hack: Clustering may not update unless the dataset changes, artifically
+        // update the dataset to ensure the newly selected item cannot be included
+        // in a cluster.
+        const item = this._events.dataset.get(event.id);
+        if (item) {
+          this._events.dataset.updateOnly(item);
+        }
+      }
+    } else {
+      console.info(`Setting window from live ${windowStart} -> ${windowEnd}`);
+      this._timeline.setWindow(windowStart, windowEnd);
     }
   }
 
