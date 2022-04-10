@@ -66,6 +66,10 @@ interface TimelineViewContext extends ViewContext {
 
 type TimelineMediaType = 'all' | 'clips' | 'snapshots';
 
+const isHoverableDevice = window.matchMedia(
+  '(hover: hover) and (pointer: fine)'
+)
+
 /**
  * A manager to maintain/fetch timeline events.
  */
@@ -375,6 +379,12 @@ export class FrigateCardTimelineCore extends LitElement {
    * @returns The tooltip as a string to render.
    */
   protected _getTooltip(source: FrigateBrowseMediaSource): string {
+    if (!isHoverableDevice.matches) {
+      // Don't display tooltips on touch devices, they just get in the way of
+      // the drawer.
+      return '';
+    }
+
     const thumbnailSizeAttr = this.timelineConfig
       ? `thumbnail_size="${this.timelineConfig.controls.thumbnails.size}"`
       : '';
