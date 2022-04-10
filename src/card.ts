@@ -6,12 +6,13 @@ import {
   html,
   unsafeCSS,
 } from 'lit';
+import { HomeAssistant, LovelaceCardEditor, getLovelace } from 'custom-card-helpers';
+import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
-import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
-import { until } from 'lit/directives/until.js';
-import { HomeAssistant, LovelaceCardEditor, getLovelace } from 'custom-card-helpers';
 import screenfull from 'screenfull';
+import { throttle } from 'lodash-es';
+import { until } from 'lit/directives/until.js';
 import { z } from 'zod';
 
 import {
@@ -179,6 +180,10 @@ export class FrigateCard extends LitElement {
 
   // A cache of resolved media URLs/mimetypes for use in the whole card.
   protected _resolvedMediaCache = new ResolvedMediaCache();
+
+  // The mouse handler may be called continually, throttle it to at most once
+  // per second for performance reasons.
+  protected _boundMouseHandler = throttle(this._mouseHandler.bind(this), 1 * 1000);
 
   /**
    * Set the Home Assistant object.
@@ -383,8 +388,7 @@ export class FrigateCard extends LitElement {
 
     if (
       this._getConfig().menu.buttons.download &&
-      (this._view?.isViewerView() || this._view?.is('timeline') &&
-      !!this._view?.media)
+      (this._view?.isViewerView() || (this._view?.is('timeline') && !!this._view?.media))
     ) {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
@@ -936,6 +940,13 @@ export class FrigateCard extends LitElement {
   }
 
   /**
+   * Handle mouse movements.
+   */
+  protected _mouseHandler(): void {
+    this._startInteractionTimer();
+  }
+
+  /**
    * Clear the user interaction ('screensaver') timer.
    */
   protected _clearInteractionTimer(): void {
@@ -1071,6 +1082,7 @@ export class FrigateCard extends LitElement {
     if (screenfull.isEnabled) {
       screenfull.on('change', this._fullscreenHandler.bind(this));
     }
+    this.addEventListener('mousemove', this._boundMouseHandler);
   }
 
   /**
@@ -1080,6 +1092,7 @@ export class FrigateCard extends LitElement {
     if (screenfull.isEnabled) {
       screenfull.off('change', this._fullscreenHandler.bind(this));
     }
+    this.removeEventListener('mousemove', this._boundMouseHandler);
     super.disconnectedCallback();
   }
 

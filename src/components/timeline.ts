@@ -1,4 +1,3 @@
-// TODO: Periodically refetch events.
 // TODO: Editor support for timeline (incl. in views).
 // TODO: Make thumbnail controls optional (in all places that use thumbnails).
 // TODO: Search for TODOs and logging statements.
@@ -507,7 +506,7 @@ export class FrigateCardTimelineCore extends LitElement {
     const selected = this._timeline.getSelection();
     let childIndex = -1;
     const children: FrigateBrowseMediaSource[] = [];
-    this._events.dataset.get().forEach((item) => {
+    this._events.dataset.get({order: 'start'}).forEach((item) => {
       if (this.timelineConfig) {
         let added = false;
         if (
@@ -732,15 +731,13 @@ export class FrigateCardTimelineCore extends LitElement {
       this._generateThumbnails();
     }
 
-    if (event) {
-      this._timeline.setSelection([event.id], {
-        focus: false,
-        animation: {
-          animation: false,
-          zoom: false,
-        },
-      });
-    }
+    this._timeline.setSelection(event ? [event.id] : [], {
+      focus: false,
+      animation: {
+        animation: false,
+        zoom: false,
+      },
+    });
 
     const context = this.view.context as TimelineViewContext | null;
     const timelineWindow = this._timeline.getWindow();
