@@ -260,6 +260,7 @@ live:
 | `mode` | `none` | :white_check_mark: | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).|
 | `size` | `100px` | :white_check_mark: | The size of the thumbnails in the thumbnail carousel [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
 | `show_details` | `false` | :white_check_mark: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
+| `show_controls` | `true` | :white_check_mark: | Whether to show event controls (e.g. timeline icon, favorite icon) alongside the thumbnail.|
 | `media` | `clips` | :white_check_mark: | Whether to show `clips` or `snapshots` in the thumbnail carousel in the `live` view.|
 
 #### Live Controls: Next / Previous
@@ -311,7 +312,7 @@ event_viewer:
 | `lazy_load` | `true` | :heavy_multiplication_x: | Whether or not to lazily load media in the event viewer carousel. Setting this will false will fetch all media immediately which may make the carousel experience smoother at a cost of (potentially) a substantial number of simultaneous media fetches on load. |
 | `draggable` | `true` | :heavy_multiplication_x: | Whether or not the event viewer carousel can be dragged left or right, via touch/swipe and mouse dragging. |
 | `transition_effect` | `slide` | :heavy_multiplication_x: | Effect to apply as a transition between event media. Accepted values: `slide` or `none`. |
-| `controls` | | :heavy_multiplication_x: | Configuration for the event viewer. See below. |
+| `controls` | | :heavy_multiplication_x: | Configuration for the event viewer controls. See below. |
 | `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `event_viewer` (e.g. `clip`, `snapshot`). See [actions](#actions) below.|
 
 #### Event Viewer Controls: Next / Previous
@@ -344,6 +345,7 @@ event_viewer:
 | `mode` | `none` | :heavy_multiplication_x: | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).|
 | `size` | `100px` | :heavy_multiplication_x: | The size of the thumbnails in the thumbnail carousel [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
 | `show_details` | `false` | :heavy_multiplication_x: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
+| `show_controls` | `true` | :heavy_multiplication_x: | Whether to show event controls (e.g. timeline icon, favorite icon) alongside the thumbnail.|
 
 #### Event Viewer Controls: Title
 
@@ -389,6 +391,40 @@ image:
 | `url` | | :white_check_mark: |  A static image URL to be used when the `mode` is set to `url`. Note that a `_t=[timestsamp]` query parameter will be automatically added to all URLs such that the image will not be cached by the browser.|
 | `refresh_seconds` | 0 | :white_check_mark: | The image will be refreshed at least every `refresh_seconds` (it may refresh more frequently, e.g. whenever Home Assistant updates its camera security token). `0` implies no refreshing. |
 | `actions` | | :white_check_mark: | Actions to use for the `image` view. See [actions](#actions) below.|
+
+### Timeline Options
+
+The `timeline` is used to show the timing sequence of events across cameras.
+
+All configuration is under:
+
+```yaml
+timeline:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `clustering_threshold` | `3` | :heavy_multiplication_x: | The number of overlapping events to allow prior to clustering/grouping them. Higher numbers cause clustering to happen less frequently. `0` disables clustering entirely.|
+| `media` | `all` | :heavy_multiplication_x: | Whether to show only events with `clips`, events with `snapshots` or `all` events. When `all` is used, `clips` are favored for events that have both a clip and a snapshot.|
+| `controls` | | :heavy_multiplication_x: | Configuration for the timeline controls. See below.|
+| `actions` | | :heavy_multiplication_x: | Actions to use for the `timeline` views. See [actions](#actions) below.|
+
+#### Timeline Controls: Thumbnails
+
+All configuration is under:
+
+```yaml
+timeline:
+  controls:
+    thumbnails:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `mode` | `none` | :heavy_multiplication_x: | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).|
+| `size` | `100px` | :heavy_multiplication_x: | The size of the thumbnails in the thumbnail carousel [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
+| `show_details` | `false` | :heavy_multiplication_x: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
+| `show_controls` | `true` | :heavy_multiplication_x: | Whether to show event controls (e.g. timeline icon, favorite icon) alongside the thumbnail.|
 
 ### Dimension Options
 

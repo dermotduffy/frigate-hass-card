@@ -172,7 +172,7 @@
       "button_size": "Menu button size (e.g. '40px')"
     },
     "timeline": {
-      "clustering_threshold": "The count of events at which they are clustered",
+      "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",
       "media": "The media the timeline displays",
       "medias": {
         "all": "All media types",
