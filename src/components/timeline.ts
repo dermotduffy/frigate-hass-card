@@ -367,7 +367,6 @@ export class FrigateCardTimelineCore extends LitElement {
     tooltipCallback: this._getTooltip.bind(this),
   });
   protected _refTimeline: Ref<HTMLElement> = createRef();
-  protected _thumbnails?: FrigateBrowseMediaSource;
   protected _timeline?: Timeline;
 
   /**
@@ -445,14 +444,13 @@ export class FrigateCardTimelineCore extends LitElement {
           properties.start,
           properties.end,
         )
-        .then((fetched: boolean) => {
-          if (fetched) {
-            this._generateThumbnails();
-          }
+        .then(() => {
+          this._generateThumbnails();
         });
 
       // Update the view to ensure that future view changes do not cause a
       // scroll.
+      console.info('=========> Evolve view from Range');
       this.view
         ?.evolve({
           context: {
@@ -470,19 +468,18 @@ export class FrigateCardTimelineCore extends LitElement {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected _timelineSelectHandler(data: { items: string[]; event: Event }): void {
-    if (!this._thumbnails || !this._thumbnails.children) {
+    if (!this.view?.target || !this.view?.target.children) {
       return;
     }
 
     const childIndex = data.items.length
-      ? this._thumbnails.children.findIndex(
+      ? this.view.target.children.findIndex(
           (child) => child.frigate?.event.id === data.items[0],
         )
       : null;
-
+    console.info('=========> Evolve view from select');
     this.view
       ?.evolve({
-        target: this._thumbnails,
         childIndex: childIndex,
       })
       .dispatchChangeEvent(this);
@@ -546,13 +543,12 @@ export class FrigateCardTimelineCore extends LitElement {
       children: children,
     };
 
-    if (!isEqual(target, this._thumbnails)) {
-      this._thumbnails = target;
-
+    if (!isEqual(target, this.view?.target)) {
       // Update the thumbnail carousel with the regenerated thumbnails.
+      console.info('=========> Evolve view from thumbnails');
       this.view
         ?.evolve({
-          target: this._thumbnails,
+          target: target,
           childIndex: childIndex < 0 ? null : childIndex,
         })
         .dispatchChangeEvent(this);
@@ -718,18 +714,15 @@ export class FrigateCardTimelineCore extends LitElement {
       ? this._getStartEndFromEvent(event)
       : this._getStartEnd();
 
-    if (
-      await this._events.fetchEventsIfNecessary(
-        this,
-        this.hass,
-        this.cameras,
-        this.timelineConfig.media,
-        windowStart,
-        windowEnd,
-      )
-    ) {
-      this._generateThumbnails();
-    }
+    await this._events.fetchEventsIfNecessary(
+      this,
+      this.hass,
+      this.cameras,
+      this.timelineConfig.media,
+      windowStart,
+      windowEnd,
+    )
+    this._generateThumbnails();
 
     this._timeline.setSelection(event ? [event.id] : [], {
       focus: false,
@@ -783,6 +776,7 @@ export class FrigateCardTimelineCore extends LitElement {
    */
   protected updated(changedProperties: PropertyValues): void {
     super.updated(changedProperties);
+    console.info(changedProperties);
 
     if (changedProperties.has('cameras')) {
       this._events.clear();

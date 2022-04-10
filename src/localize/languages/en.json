@@ -169,6 +169,22 @@
       },
       "button_size": "Menu button size (e.g. '40px')"
     },
+    "timeline": {
+      "clustering_threshold": "The count of events at which they are clustered",
+      "media": "The media the timeline displays",
+      "medias": {
+        "all": "All media types",
+        "clips": "Clips",
+        "snapshots": "Snapshots"
+      },
+      "controls": {
+        "thumbnails": {
+          "mode": "Timeline thumbnails mode",
+          "size": "Timeline thumbnails size (e.g. '100px')",
+          "show_details": "Show event details with thumbnails"
+        }
+      }
+    },
     "dimensions": {
       "aspect_ratio": "Default aspect ratio (e.g. '16:9')",
       "aspect_ratio_mode": "Aspect ratio mode",
@@ -208,7 +224,9 @@
     "add_new_camera": "Add new camera",
     "camera": "Camera",
     "overrides": "Overrides are active",
-    "overrides_secondary": "Dynamic configuration overrides detected"
+    "overrides_secondary": "Dynamic configuration overrides detected",
+    "timeline": "Timeline",
+    "timeline_secondary": "Event timeline options"
   },
   "event": {
     "start": "Start",

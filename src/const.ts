@@ -84,6 +84,13 @@ export const CONF_IMAGE_MODE = `${CONF_IMAGE}.mode` as const;
 export const CONF_IMAGE_REFRESH_SECONDS = `${CONF_IMAGE}.refresh_seconds` as const;
 export const CONF_IMAGE_URL = `${CONF_IMAGE}.url` as const;
 
+export const CONF_TIMELINE = 'timeline' as const;
+export const CONF_TIMELINE_CLUSTERING_THRESHOLD = `${CONF_TIMELINE}.clustering_threshold` as const;
+export const CONF_TIMELINE_MEDIA = `${CONF_TIMELINE}.media` as const;
+export const CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE = `${CONF_TIMELINE}.controls.thumbnails.mode` as const;
+export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE = `${CONF_TIMELINE}.controls.thumbnails.size` as const;
+export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS = `${CONF_TIMELINE}.controls.thumbnails.show_details` as const;
+
 export const CONF_MENU = 'menu' as const;
 export const CONF_MENU_BUTTONS_FRIGATE = `${CONF_MENU}.buttons.frigate` as const;
 export const CONF_MENU_BUTTONS_FRIGATE_UI = `${CONF_MENU}.buttons.frigate_ui` as const;

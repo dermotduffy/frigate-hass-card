@@ -66,6 +66,11 @@ import {
   CONF_MENU_BUTTONS_SNAPSHOTS,
   CONF_MENU_BUTTON_SIZE,
   CONF_MENU_MODE,
+  CONF_TIMELINE_CLUSTERING_THRESHOLD,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
+  CONF_TIMELINE_MEDIA,
   CONF_VIEW_CAMERA_SELECT,
   CONF_VIEW_DEFAULT,
   CONF_VIEW_TIMEOUT_SECONDS,
@@ -145,6 +150,12 @@ const options: EditorOptions = {
     icon: 'image',
     name: localize('editor.image'),
     secondary: localize('editor.image_secondary'),
+    show: false,
+  },
+  timeline: {
+    icon: 'chart-gantt',
+    name: localize('editor.timeline'),
+    secondary: localize('editor.timeline_secondary'),
     show: false,
   },
   dimensions: {
@@ -313,6 +324,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'camera', label: localize('config.image.modes.camera') },
     { value: 'screensaver', label: localize('config.image.modes.screensaver') },
     { value: 'url', label: localize('config.image.modes.url') },
+  ];
+
+  protected _timelineMediaTypes = [
+    { value: '', label: '' },
+    { value: 'all', label: localize('config.timeline.medias.all') },
+    { value: 'clips', label: localize('config.timeline.medias.clips') },
+    { value: 'snapshots', label: localize('config.timeline.medias.snapshots') },
   ];
 
   public setConfig(config: RawFrigateCardConfig): void {
@@ -967,6 +985,22 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderOptionSelector(CONF_IMAGE_MODE, this._imageModes)}
               ${this._renderStringInput(CONF_IMAGE_URL)}
               ${this._renderNumberInput(CONF_IMAGE_REFRESH_SECONDS)}
+            </div>`
+          : ''}
+        ${this._renderOptionSetHeader('timeline')}
+        ${options.timeline.show
+          ? html` <div class="values">
+              ${this._renderNumberInput(CONF_TIMELINE_CLUSTERING_THRESHOLD)}
+              ${this._renderOptionSelector(CONF_TIMELINE_MEDIA, this._timelineMediaTypes)}
+              ${this._renderOptionSelector(
+                CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
+                this._thumbnailModes,
+              )}
+              ${this._renderStringInput(CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE)}
+              ${this._renderSwitch(
+                CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+                defaults.event_viewer.controls.thumbnails.show_details,
+              )}
             </div>`
           : ''}
         ${this._renderOptionSetHeader('dimensions')}
