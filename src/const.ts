@@ -47,6 +47,8 @@ export const CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE =
   `${CONF_EVENT_VIEWER}.controls.thumbnails.mode` as const;
 export const CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS =
 `${CONF_EVENT_VIEWER}.controls.thumbnails.show_details` as const;
+export const CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_CONTROLS =
+`${CONF_EVENT_VIEWER}.controls.thumbnails.show_controls` as const;
 export const CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_EVENT_VIEWER}.controls.thumbnails.size` as const;
 export const CONF_EVENT_VIEWER_CONTROLS_TITLE_MODE =
@@ -68,6 +70,8 @@ export const CONF_LIVE_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_LIVE}.controls.thumbnails.size` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS =
 `${CONF_LIVE}.controls.thumbnails.show_details` as const;
+export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_CONTROLS =
+`${CONF_LIVE}.controls.thumbnails.show_controls` as const;
 export const CONF_LIVE_CONTROLS_TITLE_MODE = `${CONF_LIVE}.controls.title.mode` as const;
 export const CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS =
   `${CONF_LIVE}.controls.title.duration_seconds` as const;
@@ -90,6 +94,8 @@ export const CONF_TIMELINE_MEDIA = `${CONF_TIMELINE}.media` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE = `${CONF_TIMELINE}.controls.thumbnails.mode` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE = `${CONF_TIMELINE}.controls.thumbnails.size` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS = `${CONF_TIMELINE}.controls.thumbnails.show_details` as const;
+export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_CONTROLS =
+`${CONF_TIMELINE}.controls.thumbnails.show_controls` as const;
 
 export const CONF_MENU = 'menu' as const;
 export const CONF_MENU_BUTTONS_FRIGATE = `${CONF_MENU}.buttons.frigate` as const;

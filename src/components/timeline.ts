@@ -1,5 +1,3 @@
-// TODO: Editor support for timeline (incl. in views).
-// TODO: Make thumbnail controls optional (in all places that use thumbnails).
 // TODO: Search for TODOs and logging statements.
 
 import {
@@ -66,9 +64,7 @@ interface TimelineViewContext extends ViewContext {
 
 type TimelineMediaType = 'all' | 'clips' | 'snapshots';
 
-const isHoverableDevice = window.matchMedia(
-  '(hover: hover) and (pointer: fine)'
-)
+const isHoverableDevice = window.matchMedia('(hover: hover) and (pointer: fine)');
 
 /**
  * A manager to maintain/fetch timeline events.
@@ -391,13 +387,16 @@ export class FrigateCardTimelineCore extends LitElement {
     const eventAttr = source.frigate?.event
       ? `event='${JSON.stringify(source.frigate.event)}'`
       : '';
+    const detailsAttr = this.timelineConfig?.controls.thumbnails.show_details
+      ? 'details'
+      : '';
 
     // Cannot use Lit data-bindings as visjs requires a string for tooltips.
     // Note that changes to attributes here must be mirrored in the xss
     // whitelist in `_getOptions()` .
     return `
       <frigate-card-thumbnail
-        details
+        ${detailsAttr}
         thumbnail="${source.thumbnail}"
         label="${source.title}"
         ${eventAttr}
@@ -513,7 +512,7 @@ export class FrigateCardTimelineCore extends LitElement {
     const selected = this._timeline.getSelection();
     let childIndex = -1;
     const children: FrigateBrowseMediaSource[] = [];
-    this._events.dataset.get({order: 'start'}).forEach((item) => {
+    this._events.dataset.get({ order: 'start' }).forEach((item) => {
       if (this.timelineConfig) {
         let added = false;
         if (
@@ -731,7 +730,7 @@ export class FrigateCardTimelineCore extends LitElement {
       this.timelineConfig.media,
       windowStart,
       windowEnd,
-    )
+    );
     this._generateThumbnails();
 
     this._timeline.setSelection(event ? [event.id] : [], {

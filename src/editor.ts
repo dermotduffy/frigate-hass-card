@@ -32,6 +32,7 @@ import {
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE,
+  CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
   CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE,
   CONF_EVENT_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
@@ -47,6 +48,7 @@ import {
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
+  CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
   CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
@@ -68,6 +70,7 @@ import {
   CONF_MENU_MODE,
   CONF_TIMELINE_CLUSTERING_THRESHOLD,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
   CONF_TIMELINE_MEDIA,
@@ -191,6 +194,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'clip', label: localize('config.view.views.clip') },
     { value: 'snapshot', label: localize('config.view.views.snapshot') },
     { value: 'image', label: localize('config.view.views.image') },
+    { value: 'timeline', label: localize('config.view.views.timeline') },
   ];
 
   protected _cameraSelectViewModes = [
@@ -913,6 +917,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
                   defaults.live.controls.thumbnails.show_details,
                 )}
+                ${this._renderSwitch(
+                  CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
+                  defaults.live.controls.thumbnails.show_controls,
+                )}
                 ${this._renderNumberInput(
                   CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
                   0,
@@ -964,6 +972,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
                 defaults.event_viewer.controls.thumbnails.show_details,
               )}
+              ${this._renderSwitch(
+                CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
+                defaults.event_viewer.controls.thumbnails.show_controls,
+              )}
               ${this._renderOptionSelector(
                 CONF_EVENT_VIEWER_CONTROLS_TITLE_MODE,
                 this._titleModes,
@@ -999,7 +1011,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderStringInput(CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE)}
               ${this._renderSwitch(
                 CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-                defaults.event_viewer.controls.thumbnails.show_details,
+                defaults.timeline.controls.thumbnails.show_details,
+              )}
+              ${this._renderSwitch(
+                CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
+                defaults.timeline.controls.thumbnails.show_controls,
               )}
             </div>`
           : ''}
