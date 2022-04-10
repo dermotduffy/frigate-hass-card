@@ -806,6 +806,7 @@ const timelineConfigSchema = z
       })
       .default(timelineConfigDefault.controls),
   })
+  .merge(actionsSchema)
   .default(timelineConfigDefault);
 export type TimelineConfig = z.infer<typeof timelineConfigSchema>;
 

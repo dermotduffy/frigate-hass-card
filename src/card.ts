@@ -1157,6 +1157,8 @@ export class FrigateCard extends LitElement {
       specificActions = this._getConfig().event_viewer.actions;
     } else if (this._view?.is('image')) {
       specificActions = this._getConfig().image?.actions;
+    } else if (this._view?.is('timeline')) {
+      specificActions = this._getConfig().timeline?.actions;
     }
     return { ...this._getConfig().view.actions, ...specificActions };
   }

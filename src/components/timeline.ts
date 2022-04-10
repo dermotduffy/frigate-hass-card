@@ -13,6 +13,7 @@ import { DataSet } from 'vis-data/esnext';
 import {
   DataGroupCollectionType,
   Timeline,
+  TimelineEventPropertiesResult,
   TimelineItem,
   TimelineOptions,
   TimelineOptionsCluster,
@@ -40,6 +41,7 @@ import {
   dispatchErrorMessageEvent,
   dispatchFrigateCardEvent,
   getCameraTitle,
+  stopEventFromActivatingCardWideActions,
 } from '../common.js';
 
 import timelineCoreStyle from '../scss/timeline-core.scss';
@@ -428,6 +430,14 @@ export class FrigateCardTimelineCore extends LitElement {
     ></div>`;
   }
 
+  protected _timelineClickHandler(properties: TimelineEventPropertiesResult): void {
+    if (properties.what === 'item') {
+      // Prevent interaction with items on the timeline from activating card
+      // wide actions.
+      stopEventFromActivatingCardWideActions(properties.event);
+    }
+  }
+
   /**
    * Handle a range change in the timeline.
    * @param properties vis.js provided range information.
@@ -807,6 +817,8 @@ export class FrigateCardTimelineCore extends LitElement {
         );
         this._timeline.on('select', this._timelineSelectHandler.bind(this));
         this._timeline.on('rangechanged', this._timelineRangeHandler.bind(this));
+        this._timeline.on('click', this._timelineClickHandler.bind(this));
+        this._timeline.on('doubleclick', this._timelineClickHandler.bind(this));
       }
     }
 
