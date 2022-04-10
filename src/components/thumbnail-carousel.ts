@@ -107,7 +107,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
     return {
       containScroll: 'keepSnaps',
       dragFree: true,
-      startIndex: this._selected ?? undefined,
+      startIndex: this._selected ?? 0,
     };
   }
 
