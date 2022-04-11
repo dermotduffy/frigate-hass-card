@@ -521,10 +521,26 @@ export class FrigateCardTimelineCore extends LitElement {
       return;
     }
 
+    /**
+     * Sort the timeline items most recent to least recent.
+     * @param a The first item.
+     * @param b The second item.
+     * @returns -1, 0, 1 (standard array sort function configuration).
+     */
+    const sortEvent = (a: FrigateCardTimelineItem, b: FrigateCardTimelineItem): number => {
+      if (a.start < b.start) {
+        return 1;
+      }
+      if (a.start > b.start) {
+        return -1;
+      }
+      return 0;
+    }
+
     const selected = this._timeline.getSelection();
     let childIndex = -1;
     const children: FrigateBrowseMediaSource[] = [];
-    this._events.dataset.get({ order: 'start' }).forEach((item) => {
+    this._events.dataset.get({ order: sortEvent }).forEach((item) => {
       if (this.timelineConfig) {
         let added = false;
         if (
