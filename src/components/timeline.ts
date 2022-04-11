@@ -58,8 +58,7 @@ interface FrigateCardGroupData {
 }
 interface FrigateCardTimelineItem extends TimelineItem {
   event: FrigateEvent;
-  clip?: FrigateBrowseMediaSource;
-  snapshot?: FrigateBrowseMediaSource;
+  source?: FrigateBrowseMediaSource;
 }
 
 interface TimelineViewContext extends ViewContext {
@@ -127,11 +126,19 @@ class TimelineEventManager {
    * @param camera The id the camera this object is from.
    * @param target The FrigateBrowseMediaSource to add.
    */
-  protected _addMediaSource(camera: string, target: FrigateBrowseMediaSource): void {
+  protected _addMediaSource(
+    camera: string,
+    mediaPriority: TimelineMediaType,
+    target: FrigateBrowseMediaSource,
+  ): void {
     const items: FrigateCardTimelineItem[] = [];
     target.children?.forEach((child) => {
       const event = child.frigate?.event;
-      if (event && ['video', 'image'].includes(child.media_content_type)) {
+      if (
+        event &&
+        BrowseMediaUtil.isTrueMedia(child) &&
+        ['video', 'image'].includes(child.media_content_type)
+      ) {
         let item = this._dataset.get(event.id);
         if (!item) {
           item = {
@@ -143,16 +150,20 @@ class TimelineEventManager {
             event: event,
           };
         }
+        if (
+          (child.media_content_type === 'video' &&
+            ['all', 'clips'].includes(mediaPriority)) ||
+          (!item.source &&
+            child.media_content_type === 'image' &&
+            ['all', 'snapshots'].includes(mediaPriority))
+        ) {
+          item.source = child;
+        }
         if (event.end_time) {
           item['end'] = event.end_time * 1000;
           item['type'] = 'range';
         } else {
           item['type'] = 'point';
-        }
-        if (child.media_content_type === 'video') {
-          item['clip'] = child;
-        } else if (child.media_content_type === 'image') {
-          item['snapshot'] = child;
         }
         items.push(item);
       }
@@ -264,7 +275,7 @@ class TimelineEventManager {
 
     const fetchCameraEvents = async (
       camera: string,
-      mediaType: 'clips' | 'snapshots',
+      fetchMedia: 'clips' | 'snapshots',
     ): Promise<void> => {
       const cameraConfig = cameras.get(camera);
       if (!cameraConfig || !this._dateStart || !this._dateEnd) {
@@ -278,6 +289,7 @@ class TimelineEventManager {
       try {
         this._addMediaSource(
           camera,
+          media,
           await BrowseMediaUtil.browseMediaQuery(hass, {
             ...browseMediaQueryParametersBase,
 
@@ -287,7 +299,7 @@ class TimelineEventManager {
             before: this._dateEnd.getTime() / 1000,
             after: this._dateStart.getTime() / 1000,
             unlimited: true,
-            mediaType: mediaType,
+            mediaType: fetchMedia,
           }),
         );
       } catch (e) {
@@ -527,7 +539,10 @@ export class FrigateCardTimelineCore extends LitElement {
      * @param b The second item.
      * @returns -1, 0, 1 (standard array sort function configuration).
      */
-    const sortEvent = (a: FrigateCardTimelineItem, b: FrigateCardTimelineItem): number => {
+    const sortEvent = (
+      a: FrigateCardTimelineItem,
+      b: FrigateCardTimelineItem,
+    ): number => {
       if (a.start < b.start) {
         return 1;
       }
@@ -535,31 +550,15 @@ export class FrigateCardTimelineCore extends LitElement {
         return -1;
       }
       return 0;
-    }
+    };
 
     const selected = this._timeline.getSelection();
     let childIndex = -1;
     const children: FrigateBrowseMediaSource[] = [];
     this._events.dataset.get({ order: sortEvent }).forEach((item) => {
-      if (this.timelineConfig) {
-        let added = false;
-        if (
-          item.clip &&
-          ['all', 'clips'].includes(this.timelineConfig.media) &&
-          BrowseMediaUtil.isTrueMedia(item.clip)
-        ) {
-          added = true;
-          children.push(item.clip);
-        } else if (
-          item.snapshot &&
-          ['all', 'snapshots'].includes(this.timelineConfig.media) &&
-          BrowseMediaUtil.isTrueMedia(item.snapshot)
-        ) {
-          added = true;
-          children.push(item.snapshot);
-        }
-
-        if (added && selected.includes(item.event.id)) {
+      if (item.source) {
+        children.push(item.source);
+        if (selected.includes(item.event.id)) {
           childIndex = children.length - 1;
         }
       }
@@ -619,24 +618,24 @@ export class FrigateCardTimelineCore extends LitElement {
         // If the event is larger than the configured window, only show the most
         // recent portion of the event that fits in the window.
         return [
-          sub(fromUnixTime(event.end_time), {seconds: windowSeconds}),
-          fromUnixTime(event.end_time)
+          sub(fromUnixTime(event.end_time), { seconds: windowSeconds }),
+          fromUnixTime(event.end_time),
         ];
       } else {
         // If the event is shorter than the configured window, center the event
         // in the window.
         const gap = windowSeconds - (event.end_time - event.start_time);
         return [
-          sub(fromUnixTime(event.start_time), {seconds: gap / 2}),
-          add(fromUnixTime(event.end_time), {seconds: gap / 2}),
-        ]
+          sub(fromUnixTime(event.start_time), { seconds: gap / 2 }),
+          add(fromUnixTime(event.end_time), { seconds: gap / 2 }),
+        ];
       }
     }
     // If there's no end-time yet, place the start-time in the center of the
     // time window.
     return [
-      sub(fromUnixTime(event.start_time), {seconds: windowSeconds / 2}),
-      add(fromUnixTime(event.start_time), {seconds: windowSeconds / 2}),
+      sub(fromUnixTime(event.start_time), { seconds: windowSeconds / 2 }),
+      add(fromUnixTime(event.start_time), { seconds: windowSeconds / 2 }),
     ];
   }
 
@@ -644,7 +643,10 @@ export class FrigateCardTimelineCore extends LitElement {
    * Get the configured window length in seconds.
    */
   protected _getConfiguredWindowSeconds(): number {
-    return this.timelineConfig?.window_seconds ?? frigateCardConfigDefaults.timeline.window_seconds;
+    return (
+      this.timelineConfig?.window_seconds ??
+      frigateCardConfigDefaults.timeline.window_seconds
+    );
   }
 
   /**
@@ -658,7 +660,7 @@ export class FrigateCardTimelineCore extends LitElement {
     }
     const end = new Date();
     const start = sub(end, {
-      seconds: this._getConfiguredWindowSeconds()
+      seconds: this._getConfiguredWindowSeconds(),
     });
     return [start, end];
   }
