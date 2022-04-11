@@ -1,4 +1,4 @@
-// TODO: Card actions for timeline
+// TODO: Save memory usage by saving thumbnails once.
 // TODO: Search for TODOs and logging statements.
 
 import {
@@ -35,6 +35,7 @@ import {
   MEDIA_TYPE_PLAYLIST,
   TimelineConfig,
   FrigateEvent,
+  frigateCardConfigDefaults,
 } from '../types';
 import { View, ViewContext } from '../view';
 import {
@@ -596,16 +597,38 @@ export class FrigateCardTimelineCore extends LitElement {
    * @returns A tuple of start/end date.
    */
   protected _getStartEndFromEvent(event: FrigateEvent): [Date, Date] {
-    const one_hour = { hours: 1 };
-    const start = sub(fromUnixTime(event.start_time), one_hour);
-    let end: Date;
-
+    const windowSeconds = this._getConfiguredWindowSeconds();
     if (event.end_time) {
-      end = add(fromUnixTime(event.end_time), one_hour);
-    } else {
-      end = add(start, one_hour);
+      if (event.end_time - event.start_time > windowSeconds) {
+        // If the event is larger than the configured window, only show the most
+        // recent portion of the event that fits in the window.
+        return [
+          sub(fromUnixTime(event.end_time), {seconds: windowSeconds}),
+          fromUnixTime(event.end_time)
+        ];
+      } else {
+        // If the event is shorter than the configured window, center the event
+        // in the window.
+        const gap = windowSeconds - (event.end_time - event.start_time);
+        return [
+          sub(fromUnixTime(event.start_time), {seconds: gap / 2}),
+          add(fromUnixTime(event.end_time), {seconds: gap / 2}),
+        ]
+      }
     }
-    return [start, end];
+    // If there's no end-time yet, place the start-time in the center of the
+    // time window.
+    return [
+      sub(fromUnixTime(event.start_time), {seconds: windowSeconds / 2}),
+      add(fromUnixTime(event.start_time), {seconds: windowSeconds / 2}),
+    ];
+  }
+
+  /**
+   * Get the configured window length in seconds.
+   */
+  protected _getConfiguredWindowSeconds(): number {
+    return this.timelineConfig?.window_seconds ?? frigateCardConfigDefaults.timeline.window_seconds;
   }
 
   /**
@@ -617,9 +640,10 @@ export class FrigateCardTimelineCore extends LitElement {
     if (event) {
       return this._getStartEndFromEvent(event);
     }
-    const one_hour = { hours: 1 };
     const end = new Date();
-    const start = sub(end, one_hour);
+    const start = sub(end, {
+      seconds: this._getConfiguredWindowSeconds()
+    });
     return [start, end];
   }
 
@@ -649,7 +673,6 @@ export class FrigateCardTimelineCore extends LitElement {
     return {
       cluster: this._isClustering()
         ? {
-            showStipes: true,
             // It would be better to automatically calculate `maxItems` from the
             // rendered height of the timeline (or group within the timeline) so
             // as to not waste vertical space (e.g. after the user changes to
@@ -676,7 +699,7 @@ export class FrigateCardTimelineCore extends LitElement {
         : (false as TimelineOptionsCluster),
       minHeight: '100%',
       maxHeight: '100%',
-      zoomMax: 31 * 24 * 60 * 60 * 1000,
+      zoomMax: 1 * 24 * 60 * 60 * 1000,
       zoomMin: 1 * 1000,
       selectable: true,
       start: start,
@@ -742,7 +765,6 @@ export class FrigateCardTimelineCore extends LitElement {
       windowStart,
       windowEnd,
     );
-    this._generateThumbnails();
 
     this._timeline.setSelection(event ? [event.id] : [], {
       focus: false,
@@ -751,6 +773,10 @@ export class FrigateCardTimelineCore extends LitElement {
         zoom: false,
       },
     });
+
+    // Regenerate the thumbnails after the selection, to allow the new selection
+    // to be in the generated view.
+    this._generateThumbnails();
 
     const context = this.view.context as TimelineViewContext | null;
     const timelineWindow = this._timeline.getWindow();
@@ -807,7 +833,7 @@ export class FrigateCardTimelineCore extends LitElement {
     const options = this._getOptions();
     if (changedProperties.has('timelineConfig') && this._refTimeline.value && options) {
       if (this._timeline) {
-        // TODO this._timeline.setOptions(options);
+        this._timeline.setOptions(options);
       } else {
         this._timeline = new Timeline(
           this._refTimeline.value,

@@ -89,6 +89,7 @@ export const CONF_IMAGE_REFRESH_SECONDS = `${CONF_IMAGE}.refresh_seconds` as con
 export const CONF_IMAGE_URL = `${CONF_IMAGE}.url` as const;
 
 export const CONF_TIMELINE = 'timeline' as const;
+export const CONF_TIMELINE_WINDOW_SECONDS = `${CONF_TIMELINE}.window_seconds` as const;
 export const CONF_TIMELINE_CLUSTERING_THRESHOLD = `${CONF_TIMELINE}.clustering_threshold` as const;
 export const CONF_TIMELINE_MEDIA = `${CONF_TIMELINE}.media` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE = `${CONF_TIMELINE}.controls.thumbnails.mode` as const;

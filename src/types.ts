@@ -772,6 +772,7 @@ const dimensionsConfigSchema = z
 const timelineConfigDefault = {
   clustering_threshold: 3,
   media: 'all' as const,
+  window_seconds: 60 * 60,
   controls: {
     thumbnails: {
       mode: 'left' as const,
@@ -783,8 +784,20 @@ const timelineConfigDefault = {
 };
 const timelineConfigSchema = z
   .object({
-    clustering_threshold: z.number().default(timelineConfigDefault.clustering_threshold),
-    media: z.enum(['all', 'clips', 'snapshots']).default(timelineConfigDefault.media),
+    clustering_threshold: z
+      .number()
+      .optional()
+      .default(timelineConfigDefault.clustering_threshold),
+    media: z
+      .enum(['all', 'clips', 'snapshots'])
+      .optional()
+      .default(timelineConfigDefault.media),
+    window_seconds: z
+      .number()
+      .min(1 * 60)
+      .max(24 * 60 * 60)
+      .optional()
+      .default(timelineConfigDefault.window_seconds),
     controls: z
       .object({
         thumbnails: thumbnailsControlSchema

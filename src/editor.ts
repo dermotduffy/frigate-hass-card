@@ -74,6 +74,7 @@ import {
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
   CONF_TIMELINE_MEDIA,
+  CONF_TIMELINE_WINDOW_SECONDS,
   CONF_VIEW_CAMERA_SELECT,
   CONF_VIEW_DEFAULT,
   CONF_VIEW_TIMEOUT_SECONDS,
@@ -1002,6 +1003,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${this._renderOptionSetHeader('timeline')}
         ${options.timeline.show
           ? html` <div class="values">
+              ${this._renderNumberInput(CONF_TIMELINE_WINDOW_SECONDS)}
               ${this._renderNumberInput(CONF_TIMELINE_CLUSTERING_THRESHOLD)}
               ${this._renderOptionSelector(CONF_TIMELINE_MEDIA, this._timelineMediaTypes)}
               ${this._renderOptionSelector(

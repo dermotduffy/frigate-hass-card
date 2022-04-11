@@ -404,6 +404,7 @@ timeline:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
+| `window_seconds` | `3600` | :heavy_multiplication_x: | The length of the default timeline in seconds. By default, 1 hour (`3600` seconds) is shown in the timeline. |
 | `clustering_threshold` | `3` | :heavy_multiplication_x: | The number of overlapping events to allow prior to clustering/grouping them. Higher numbers cause clustering to happen less frequently. `0` disables clustering entirely.|
 | `media` | `all` | :heavy_multiplication_x: | Whether to show only events with `clips`, events with `snapshots` or `all` events. When `all` is used, `clips` are favored for events that have both a clip and a snapshot.|
 | `controls` | | :heavy_multiplication_x: | Configuration for the timeline controls. See below.|

@@ -172,6 +172,7 @@
       "button_size": "Menu button size (e.g. '40px')"
     },
     "timeline": {
+      "window_seconds": "The default length of the timeline view in seconds",
       "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",
       "media": "The media the timeline displays",
       "medias": {
