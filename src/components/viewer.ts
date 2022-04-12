@@ -256,7 +256,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   protected _getOptions(): EmblaOptionsType {
     return {
       // Start the carousel on the selected child number.
-      startIndex: this._getSlideForChild(this.view?.childIndex) ?? undefined,
+      startIndex: this._getSlideForChild(this.view?.childIndex) ?? 0,
       draggable: this.viewerConfig?.draggable,
     };
   }

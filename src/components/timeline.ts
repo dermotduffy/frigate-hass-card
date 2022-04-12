@@ -849,6 +849,12 @@ export class FrigateCardTimelineCore extends LitElement {
     }
   }
 
+  /**
+   * Generate the context for timeline views.
+   * @param addWindow Whether or not to include the timeline window. If `false`
+   * the window is preserved if it is already in the context.
+   * @returns The TimelineViewContext object.
+   */
   protected _generateViewContext(addWindow: boolean): TimelineViewContext {
     const currentContext = this.view?.context as TimelineViewContext | undefined;
     const newContext: TimelineViewContext = {};
