@@ -1,4 +1,3 @@
-// TODO: Save memory usage by saving thumbnails once.
 // TODO: Search for TODOs and logging statements.
 
 import {
@@ -62,7 +61,11 @@ interface FrigateCardTimelineItem extends TimelineItem {
 }
 
 interface TimelineViewContext extends ViewContext {
-  window: TimelineWindow;
+  // The selected timeline window.
+  window?: TimelineWindow;
+
+  // The date of the last event fetch.
+  dateFetch?: Date;
 }
 
 type TimelineMediaType = 'all' | 'clips' | 'snapshots';
@@ -97,6 +100,11 @@ class TimelineEventManager {
   }) {
     this._contentCallback = params?.contentCallback;
     this._tooltipCallback = params?.tooltipCallback;
+  }
+
+  // Get the last event fetch date.
+  get lastFetchDate(): Date | null {
+    return this._dateFetch ?? null;
   }
 
   /**
@@ -478,19 +486,20 @@ export class FrigateCardTimelineCore extends LitElement {
           properties.end,
         )
         .then(() => {
-          this._generateThumbnails();
+          if (this._timeline) {
+            const thumbnails = this._generateThumbnails();
+            // Update the view to reflect the new thumbnails and manually set
+            // timeline window.
+            console.info('=========> Evolve view from Range');
+            this.view
+              ?.evolve({
+                target: thumbnails?.target ?? null,
+                childIndex: thumbnails?.childIndex ?? null,
+                context: this._generateViewContext(true),
+              })
+              .dispatchChangeEvent(this);
+          }
         });
-
-      // Update the view to ensure that future view changes do not cause a
-      // scroll.
-      console.info('=========> Evolve view from Range');
-      this.view
-        ?.evolve({
-          context: {
-            window: this._timeline.getWindow(),
-          },
-        })
-        .dispatchChangeEvent(this);
     }
   }
 
@@ -526,11 +535,16 @@ export class FrigateCardTimelineCore extends LitElement {
 
   /**
    * Regenerate the thumbnails from the timeline events.
-   * @returns
+   * @returns An object with two keys, or null on error. The keys are `target`
+   * containing all the thumbnails, and `childIndex` to refer to the currently
+   * selected thumbnail.
    */
-  protected _generateThumbnails(): void {
+  protected _generateThumbnails(): {
+    target: FrigateBrowseMediaSource;
+    childIndex: number | null;
+  } | null {
     if (!this._timeline) {
-      return;
+      return null;
     }
 
     /**
@@ -564,7 +578,7 @@ export class FrigateCardTimelineCore extends LitElement {
       }
     });
     if (!children.length) {
-      return;
+      return null;
     }
 
     const target = {
@@ -579,16 +593,10 @@ export class FrigateCardTimelineCore extends LitElement {
       children: children,
     };
 
-    if (!isEqual(target, this.view?.target)) {
-      // Update the thumbnail carousel with the regenerated thumbnails.
-      console.info('=========> Evolve view from thumbnails');
-      this.view
-        ?.evolve({
-          target: target,
-          childIndex: childIndex < 0 ? null : childIndex,
-        })
-        .dispatchChangeEvent(this);
-    }
+    return {
+      target: target,
+      childIndex: childIndex < 0 ? null : childIndex,
+    };
   }
 
   /**
@@ -794,8 +802,6 @@ export class FrigateCardTimelineCore extends LitElement {
 
     // Regenerate the thumbnails after the selection, to allow the new selection
     // to be in the generated view.
-    this._generateThumbnails();
-
     const context = this.view.context as TimelineViewContext | null;
     const timelineWindow = this._timeline.getWindow();
 
@@ -832,6 +838,43 @@ export class FrigateCardTimelineCore extends LitElement {
       console.info(`Setting window from live ${windowStart} -> ${windowEnd}`);
       this._timeline.setWindow(windowStart, windowEnd);
     }
+
+    // Compare last date of fetch with that of inbound view to avoid a loop.
+    // Without this comparison it would be:
+    //
+    // Timeline receives a new `view`
+    //  -> Events fetched
+    //    -> Thumbnails generated
+    //      -> New view dispatched (to load thumbnails into outer carousel).
+    //  -> New view received ... [loop]
+    const currentContext = this.view.context as TimelineViewContext | null;
+    if (currentContext?.dateFetch !== this._events.lastFetchDate) {
+      const thumbnails = this._generateThumbnails();
+      console.info('=========> Evolve view from thumbnails');
+
+      this.view
+        ?.evolve({
+          target: thumbnails?.target ?? null,
+          childIndex: thumbnails?.childIndex ?? null,
+          context: this._generateViewContext(false),
+        })
+        .dispatchChangeEvent(this);
+    }
+  }
+
+  protected _generateViewContext(addWindow: boolean): TimelineViewContext {
+    const currentContext = this.view?.context as TimelineViewContext | undefined;
+    const newContext: TimelineViewContext = {};
+    if (addWindow && this._timeline) {
+      newContext.window = this._timeline.getWindow();
+    } else if (currentContext?.window) {
+      newContext.window = currentContext.window;
+    }
+    if (this._events.lastFetchDate) {
+      newContext.dateFetch = this._events.lastFetchDate;
+    }
+    console.info(`returning ${JSON.stringify(newContext)}`);
+    return newContext || null;
   }
 
   /**
