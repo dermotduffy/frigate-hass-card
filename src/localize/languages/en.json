@@ -76,9 +76,13 @@
         "thumbnails": {
           "mode": "Event Viewer thumbnails mode",
           "size": "Event Viewer thumbnails size (e.g. '100px')",
+          "show_details": "Show event details with thumbnails",
+          "show_controls": "Show event controls with thumbnails",
           "modes": {
             "below": "Thumbnails below the media",
             "above": "Thumbnails above the media",
+            "left": "Thumbnails in a drawer left of the media",
+            "right": "Thumbnails in a drawer right of the media",
             "none": "No thumbnails"
           }
         },
@@ -115,6 +119,8 @@
         "thumbnails": {
           "mode": "Live thumbnails mode",
           "size": "Live thumbnails size (e.g. '100px')",
+          "show_details": "Show event details with thumbnails",
+          "show_controls": "Show event controls with thumbnails",
           "media": "Whether to show thumbnails of clips or snapshots",
           "medias": {
             "clips": "Clip thumbnails",
@@ -165,6 +171,24 @@
       },
       "button_size": "Menu button size (e.g. '40px')"
     },
+    "timeline": {
+      "window_seconds": "The default length of the timeline view in seconds",
+      "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",
+      "media": "The media the timeline displays",
+      "medias": {
+        "all": "All media types",
+        "clips": "Clips",
+        "snapshots": "Snapshots"
+      },
+      "controls": {
+        "thumbnails": {
+          "mode": "Timeline thumbnails mode",
+          "size": "Timeline thumbnails size (e.g. '100px')",
+          "show_details": "Show event details with thumbnails",
+          "show_controls": "Show event controls with thumbnails"
+        }
+      }
+    },
     "dimensions": {
       "aspect_ratio": "Default aspect ratio (e.g. '16:9')",
       "aspect_ratio_mode": "Aspect ratio mode",
@@ -204,7 +228,18 @@
     "add_new_camera": "Add new camera",
     "camera": "Camera",
     "overrides": "Overrides are active",
-    "overrides_secondary": "Dynamic configuration overrides detected"
+    "overrides_secondary": "Dynamic configuration overrides detected",
+    "timeline": "Timeline",
+    "timeline_secondary": "Event timeline options"
+  },
+  "event": {
+    "start": "Start",
+    "duration": "Duration",
+    "in_progress": "In Progress"
+  },
+  "thumbnail": {
+    "retain_indefinitely": "Event will be indefinitely retained",
+    "timeline": "See event in timeline"
   },
   "error": {
     "empty_response": "Received empty response from Home Assistant for request",

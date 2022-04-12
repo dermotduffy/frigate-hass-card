@@ -7,7 +7,6 @@ import {
   PropertyValues,
 } from 'lit';
 import {
-  FrigateBrowseMediaSource,
   ExtendedHomeAssistant,
   CameraConfig,
   JSMPEGConfig,
@@ -20,25 +19,21 @@ import {
   LiveProvider,
   TransitionEffect,
   frigateCardConfigDefaults,
+  BrowseMediaQueryParameters,
 } from '../types.js';
 import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
 import JSMpeg from '@cycjimmy/jsmpeg-player';
 import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import { Task } from '@lit-labs/task';
-import { customElement, property, query, state } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
-import { styleMap } from 'lit/directives/style-map.js';
 
 import { AutoMediaPlugin, AutoMediaPluginType } from './embla-plugins/automedia.js';
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import { ConditionState, getOverriddenConfig } from '../card-condition.js';
 import { FrigateCardMediaCarousel } from './media-carousel.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
-import {
-  FrigateCardThumbnailCarousel,
-  ThumbnailCarouselTap,
-} from './thumbnail-carousel.js';
 import { Lazyload } from './embla-plugins/lazyload.js';
 import { View } from '../view.js';
 import { localize } from '../localize/localize.js';
@@ -104,9 +99,6 @@ export class FrigateCardLive extends LitElement {
   // pre-loading it may be propagated upwards later.
   protected _savedMediaShowInfo?: MediaShowInfo;
 
-  @query('frigate-card-thumbnail-carousel')
-  protected _thumbnailCarousel?: FrigateCardThumbnailCarousel;
-
   /**
    * Handler for media show events that special cases preloaded live views.
    * @param e The media show event.
@@ -121,78 +113,11 @@ export class FrigateCardLive extends LitElement {
   }
 
   /**
-   * Render thumbnails carousel.
-   * @returns A rendered template or void.
-   */
-  protected renderThumbnails(config: LiveConfig): TemplateResult | void {
-    if (!this.liveConfig || !this.view) {
-      return;
-    }
-
-    const fetchThumbnailsThenRender = async (): Promise<TemplateResult | void> => {
-      if (!this.hass || !this.cameras || !this.view) {
-        return;
-      }
-      const browseMediaParams = BrowseMediaUtil.getBrowseMediaQueryParameters(
-        config.controls.thumbnails.media,
-        this.cameras.get(this.view.camera),
-      );
-      if (!browseMediaParams) {
-        return;
-      }
-      let parent: FrigateBrowseMediaSource | null;
-      try {
-        parent = await BrowseMediaUtil.browseMediaQuery(this.hass, browseMediaParams);
-      } catch (e) {
-        return dispatchErrorMessageEvent(this, (e as Error).message);
-      }
-
-      if (BrowseMediaUtil.getFirstTrueMediaChildIndex(parent) != null) {
-        return html`<frigate-card-thumbnail-carousel
-          .target=${parent}
-          .view=${this.view}
-          .config=${config.controls.thumbnails}
-          .highlightSelected=${false}
-          @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
-            const mediaType = browseMediaParams.mediaType;
-            if (mediaType && this.view && ['snapshots', 'clips'].includes(mediaType)) {
-              new View({
-                view: mediaType === 'clips' ? 'clip' : 'snapshot',
-                camera: this.view.camera,
-                target: ev.detail.target,
-                childIndex: ev.detail.childIndex,
-              }).dispatchChangeEvent(this);
-            }
-          }}
-        >
-        </frigate-card-thumbnail-carousel>`;
-      }
-    };
-
-    const fillerStyle = {
-      height: config.controls.thumbnails.size,
-    };
-
-    // As the live carousel moves, thumbnails are re-fetched. This is an async
-    // request, so it can jarring to the user to have the main camera view nudge
-    // up/down as the thumbnails disappear and re-appear. Instead, if there was
-    // previously a thumbnail carousel rendered, use a filler that is the same
-    // size until it is replaced with a real carousel (or empty, if no carousel
-    // is rendered for the next camera).
-    return html`${until(
-      fetchThumbnailsThenRender(),
-      this._thumbnailCarousel
-        ? html` <div style="${styleMap(fillerStyle)}"></div>`
-        : html``,
-    )}`;
-  }
-
-  /**
    * Master render method.
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.liveConfig || !this.cameras) {
+    if (!this.hass || !this.liveConfig || !this.cameras || !this.view) {
       return;
     }
 
@@ -202,11 +127,26 @@ export class FrigateCardLive extends LitElement {
       this.conditionState,
     ) as LiveConfig;
 
+    const browseMediaParamsBase = BrowseMediaUtil.getBrowseMediaQueryParametersBase(
+      this.cameras.get(this.view.camera),
+    );
+    if (!browseMediaParamsBase) {
+      return;
+    }
+    const browseMediaParams: BrowseMediaQueryParameters = {
+      ...browseMediaParamsBase,
+      mediaType: config.controls.thumbnails.media,
+    }
+
     // Note use of liveConfig and not config below -- the carousel will
     // independently override the liveconfig to reflect the camera in the
     // carousel (not necessarily the selected camera).
-    return html`
-      ${config.controls.thumbnails.mode === 'above' ? this.renderThumbnails(config) : ''}
+    return html` <frigate-card-surround-thumbnails
+      .hass=${this.hass}
+      .view=${this.view}
+      .config=${config.controls.thumbnails}
+      .browseMediaParams=${browseMediaParams}
+    >
       <frigate-card-live-carousel
         .hass=${this.hass}
         .view=${this.view}
@@ -228,8 +168,7 @@ export class FrigateCardLive extends LitElement {
         }}
       >
       </frigate-card-live-carousel>
-      ${config.controls.thumbnails.mode === 'below' ? this.renderThumbnails(config) : ''}
-    `;
+    </frigate-card-surround-thumbnails>`;
   }
 
   /**
@@ -344,8 +283,9 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
    * Get the Embla plugins to use.
    * @returns An EmblaOptionsType object or undefined for no options.
    */
-  protected _getPlugins(): EmblaPluginType[] | undefined {
+  protected _getPlugins(): EmblaPluginType[] {
     return [
+      ...super._getPlugins(),
       Lazyload({
         lazyloadCallback: this.liveConfig?.lazy_load
           ? (...args) => this._lazyloadOrUnloadSlide('load', ...args)
@@ -417,7 +357,10 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     this.view
       .evolve({
         camera: Array.from(this.cameras.keys())[selectedSnap],
-        previous: this.view,
+
+        // Reset the target so thumbnails will be re-fetched.
+        target: null,
+        childIndex: null,
       })
       .dispatchChangeEvent(this);
   }

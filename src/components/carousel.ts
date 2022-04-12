@@ -1,9 +1,12 @@
 import { CSSResultGroup, LitElement, unsafeCSS, PropertyValues } from 'lit';
+import { property } from 'lit/decorators.js';
+
 import EmblaCarousel, {
   EmblaCarouselType,
   EmblaOptionsType,
   EmblaPluginType,
 } from 'embla-carousel';
+import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
 
 import { TransitionEffect } from '../types';
 import { dispatchFrigateCardEvent } from '../common';
@@ -15,6 +18,9 @@ export interface CarouselSelect {
 }
 
 export class FrigateCardCarousel extends LitElement {
+  @property({ attribute: true, reflect: true })
+  public direction: 'vertical' | 'horizontal' = 'horizontal';
+
   protected _carousel?: EmblaCarouselType;
   protected _plugins: Record<string, EmblaPluginType> = {};
 
@@ -71,8 +77,14 @@ export class FrigateCardCarousel extends LitElement {
    * Get the Embla plugins to use.
    * @returns An EmblaOptionsType object or undefined for no options.
    */
-  protected _getPlugins(): EmblaPluginType[] | undefined {
-    return undefined;
+  protected _getPlugins(): EmblaPluginType[] {
+    return [
+      WheelGesturesPlugin({
+        // Whether the carousel is vertical or horizontal, interpret y-axis wheel
+        // gestures as scrolling for the carousel.
+        forceWheelAxis: 'y',
+      }),
+    ];
   }
 
   protected _destroyCarousel(): void {
@@ -98,7 +110,14 @@ export class FrigateCardCarousel extends LitElement {
         return acc;
       }, {});
 
-      this._carousel = EmblaCarousel(carouselNode, this._getOptions(), plugins);
+      this._carousel = EmblaCarousel(
+        carouselNode,
+        {
+          axis: this.direction == 'horizontal' ? 'x' : 'y',
+          ...this._getOptions(),
+        },
+        plugins,
+      );
       this._carousel.on('init', () => dispatchFrigateCardEvent(this, 'carousel:init'));
       this._carousel.on('select', () => {
         const selected = this.carouselSelected();

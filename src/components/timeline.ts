@@ -7,15 +7,21 @@ import {
   PropertyValues,
 } from 'lit';
 import { DataSet } from 'vis-data/esnext';
-import { HomeAssistant } from 'custom-card-helpers';
 import {
   DataGroupCollectionType,
   Timeline,
+  TimelineEventPropertiesResult,
+  TimelineItem,
   TimelineOptions,
   TimelineOptionsCluster,
+  TimelineWindow,
 } from 'vis-timeline/esnext';
-import { customElement, property, state } from 'lit/decorators.js';
+import { HomeAssistant } from 'custom-card-helpers';
+import { classMap } from 'lit/directives/class-map.js';
+import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { add, fromUnixTime, sub } from 'date-fns';
+import { isEqual } from 'lodash-es';
 
 import { BrowseMediaUtil } from '../browse-media-util';
 import {
@@ -23,125 +29,144 @@ import {
   ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
   MEDIA_CLASS_PLAYLIST,
-  MEDIA_TYPE_VIDEO,
-  MEDIA_CLASS_VIDEO,
+  MEDIA_TYPE_PLAYLIST,
   TimelineConfig,
+  FrigateEvent,
   frigateCardConfigDefaults,
 } from '../types';
-import { View } from '../view';
+import { View, ViewContext } from '../view';
 import {
-  contentsChanged,
   dispatchErrorMessageEvent,
   dispatchFrigateCardEvent,
   getCameraTitle,
+  stopEventFromActivatingCardWideActions,
 } from '../common.js';
 
+import timelineCoreStyle from '../scss/timeline-core.scss';
 import timelineStyle from '../scss/timeline.scss';
-import timelineEventStyle from '../scss/timeline-event.scss';
+
+import './surround-thumbnails.js';
+
+const TIMELINE_EVENT_MANAGER_MAX_AGE_SECONDS = 10;
 
 interface FrigateCardGroupData {
   id: string;
   content: string;
 }
-interface FrigateCardTimelineData {
-  id: string;
-  content: string;
-  start: number;
-  end?: number;
-  source: FrigateBrowseMediaSource;
+interface FrigateCardTimelineItem extends TimelineItem {
+  event: FrigateEvent;
+  source?: FrigateBrowseMediaSource;
 }
 
-@customElement('frigate-card-timeline-event')
-export class FrigateCardTimelineEvent extends LitElement {
-  @property({ attribute: true })
-  protected media_id?: string;
+interface TimelineViewContext extends ViewContext {
+  // The selected timeline window.
+  window?: TimelineWindow;
 
-  @property({ attribute: true })
-  protected thumbnail?: string;
-
-  @property({ attribute: true })
-  protected label?: string;
-
-  @property({ attribute: true, type: Number })
-  protected thumbnail_size?: number;
-
-  /**
-   * Ensure there is a cached value before an update.
-   * @param _changedProps The changed properties
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected willUpdate(_changedProps: PropertyValues): void {
-    if (this.thumbnail_size !== undefined) {
-      this.style.setProperty(
-        '--frigate-card-timeline-thumbnail-size',
-        `${this.thumbnail_size}px`,
-      );
-    }
-  }
-
-  protected render(): TemplateResult | void {
-    if (!this.thumbnail) {
-      return;
-    }
-
-    return html`<img
-      @click=${() => {
-        // The view is not accessible from here, since this element is created
-        // from a string (see _buildEventContent below), so instead we emit an
-        // intermediate event that is caught by the timeline.
-        dispatchFrigateCardEvent(this, 'timeline-select', this.media_id);
-      }}
-      src="${this.thumbnail}"
-      title="${this.label || ''}"
-      aria-label="${this.label || ''}"
-    />`;
-  }
-
-  static get styles(): CSSResultGroup {
-    return unsafeCSS(timelineEventStyle);
-  }
+  // The date of the last event fetch.
+  dateFetch?: Date;
 }
 
+type TimelineMediaType = 'all' | 'clips' | 'snapshots';
+
+const isHoverableDevice = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+/**
+ * A manager to maintain/fetch timeline events.
+ */
 class TimelineEventManager {
-  protected _dataset = new DataSet<FrigateCardTimelineData>();
+  protected _dataset = new DataSet<FrigateCardTimelineItem>();
 
-  protected _contentCallback?: (FrigateBrowseMediaSource) => string;
-  protected _tooltipCallback?: (FrigateBrowseMediaSource) => string;
+  // The earliest date managed.
+  protected _dateStart?: Date;
 
-  constructor(params: {
+  // The latest date managed.
+  protected _dateEnd?: Date;
+
+  // The last fetch date.
+  protected _dateFetch?: Date;
+
+  // The maximum allowable age of fetch data (will not fetch more frequently
+  // than this).
+  protected _maxAgeSeconds: number = TIMELINE_EVENT_MANAGER_MAX_AGE_SECONDS;
+
+  protected _contentCallback?: (source: FrigateBrowseMediaSource) => string;
+  protected _tooltipCallback?: (source: FrigateBrowseMediaSource) => string;
+
+  constructor(params?: {
     contentCallback?: (source: FrigateBrowseMediaSource) => string;
     tooltipCallback?: (source: FrigateBrowseMediaSource) => string;
   }) {
-    this._contentCallback = params.contentCallback;
-    this._tooltipCallback = params.tooltipCallback;
+    this._contentCallback = params?.contentCallback;
+    this._tooltipCallback = params?.tooltipCallback;
   }
 
-  get dataset(): DataSet<FrigateCardTimelineData> {
+  // Get the last event fetch date.
+  get lastFetchDate(): Date | null {
+    return this._dateFetch ?? null;
+  }
+
+  /**
+   * Retrieve the underlying dataset.
+   */
+  get dataset(): DataSet<FrigateCardTimelineItem> {
     return this._dataset;
   }
 
+  /**
+   * Determine if the dataset is empty.
+   * @returns
+   */
   public isEmpty(): boolean {
     return this._dataset.length === 0;
   }
 
+  /**
+   * Clear the dataset.
+   */
   public clear(): void {
     this._dataset.clear();
   }
 
-  protected _addMediaSource(camera: string, target: FrigateBrowseMediaSource): void {
-    const items: FrigateCardTimelineData[] = [];
+  /**
+   * Add a FrigateBrowseMediaSource object to the managed timeline.
+   * @param camera The id the camera this object is from.
+   * @param target The FrigateBrowseMediaSource to add.
+   */
+  protected _addMediaSource(
+    camera: string,
+    mediaPriority: TimelineMediaType,
+    target: FrigateBrowseMediaSource,
+  ): void {
+    const items: FrigateCardTimelineItem[] = [];
     target.children?.forEach((child) => {
-      if (child.frigate) {
-        const item = {
-          id: child.media_content_id,
-          group: camera,
-          content: this._contentCallback?.(child) ?? '',
-          title: this._tooltipCallback?.(child) ?? '',
-          start: child.frigate.event.start_time * 1000,
-          source: child,
-        };
-        if (child.frigate.event.end_time) {
-          item['end'] = child.frigate.event.end_time * 1000;
+      const event = child.frigate?.event;
+      if (
+        event &&
+        BrowseMediaUtil.isTrueMedia(child) &&
+        ['video', 'image'].includes(child.media_content_type)
+      ) {
+        let item = this._dataset.get(event.id);
+        if (!item) {
+          item = {
+            id: event.id,
+            group: camera,
+            content: this._contentCallback?.(child) ?? '',
+            title: this._tooltipCallback?.(child) ?? '',
+            start: event.start_time * 1000,
+            event: event,
+          };
+        }
+        if (
+          (child.media_content_type === 'video' &&
+            ['all', 'clips'].includes(mediaPriority)) ||
+          (!item.source &&
+            child.media_content_type === 'image' &&
+            ['all', 'snapshots'].includes(mediaPriority))
+        ) {
+          item.source = child;
+        }
+        if (event.end_time) {
+          item['end'] = event.end_time * 1000;
           item['type'] = 'range';
         } else {
           item['type'] = 'point';
@@ -152,43 +177,151 @@ class TimelineEventManager {
     this._dataset.update(items);
   }
 
-  public async fetchEvents(
-    node: HTMLElement,
+  /**
+   * Determine if the timeline has coverage for a given range of dates.
+   * @param start The start of the date range.
+   * @param end An optional end of the date range.
+   * @returns
+   */
+  public hasCoverage(start: Date, end?: Date): boolean {
+    const now = new Date().getTime();
+
+    // Never fetched: no coverage.
+    if (!this._dateFetch || !this._dateStart || !this._dateEnd) {
+      return false;
+    }
+
+    // If the most recent fetch is older than maxAgeSeconds: no coverage.
+    if (
+      this._maxAgeSeconds &&
+      now - this._dateFetch.getTime() > this._maxAgeSeconds * 1000
+    ) {
+      return false;
+    }
+
+    // If the most requested data is earlier than the earliest stored: no
+    // coverage.
+    if (start < this._dateStart) {
+      return false;
+    }
+
+    // If there's no end time specified: there IS coverage.
+    if (!end) {
+      return true;
+    }
+    // If the requested end time is older than the oldest requested: there IS
+    // coverage.
+    if (end.getTime() < this._dateEnd.getTime()) {
+      return true;
+    }
+    // If there's no maxAgeSeconds specified: no coverage.
+    if (!this._maxAgeSeconds) {
+      return false;
+    }
+    // If the requested end time is beyond `_maxAgeSeconds` of now: no coverage.
+    if (now - end.getTime() > this._maxAgeSeconds * 1000) {
+      return false;
+    }
+
+    // End time is within `_maxAgeSeconds` of the latest data: there IS
+    // coverage.
+    return end.getTime() - this._maxAgeSeconds * 1000 <= this._dateEnd.getTime();
+  }
+
+  /**
+   * Fetch events if no coverage in given range.
+   * @param element The element to send error events from.
+   * @param hass The HomeAssistant object.
+   * @param cameras The cameras map.
+   * @param start Fetch events that start later than this date.
+   * @param end Fetch events that start earlier than this date.
+   * @returns `true` if events were fetched, `false` otherwise.
+   */
+  public async fetchEventsIfNecessary(
+    element: HTMLElement,
     hass: HomeAssistant & ExtendedHomeAssistant,
     cameras: Map<string, CameraConfig>,
+    media: TimelineMediaType,
     start: Date,
     end: Date,
+  ): Promise<boolean> {
+    if (this.hasCoverage(start, end)) {
+      return false;
+    }
+    await this._fetchEvents(element, hass, cameras, media, start, end);
+    return true;
+  }
+
+  /**
+   * Fetch events for the timeline.
+   * @param element The element to send error events from.
+   * @param hass The HomeAssistant object.
+   * @param cameras The cameras map.
+   * @param start Fetch events that start later than this date.
+   * @param end Fetch events that start earlier than this date.
+   */
+  protected async _fetchEvents(
+    element: HTMLElement,
+    hass: HomeAssistant & ExtendedHomeAssistant,
+    cameras: Map<string, CameraConfig>,
+    media: TimelineMediaType,
+    start?: Date,
+    end?: Date,
   ): Promise<void> {
-    console.info(`fetchEvents: ${start} -> ${end}`);
+    if (!this._dateStart || (start && start < this._dateStart)) {
+      this._dateStart = start;
+    }
+    if (!this._dateEnd || (end && end > this._dateEnd)) {
+      this._dateEnd = end;
+    }
+    if (!this._dateStart || !this._dateEnd) {
+      return;
+    }
+    this._dateFetch = new Date();
 
-    // const output = new Map<string, FrigateBrowseMediaSource>();
-    const fetchCameraEvents = async (camera: string): Promise<void> => {
+    const fetchCameraEvents = async (
+      camera: string,
+      fetchMedia: 'clips' | 'snapshots',
+    ): Promise<void> => {
       const cameraConfig = cameras.get(camera);
-      if (!cameraConfig) {
+      if (!cameraConfig || !this._dateStart || !this._dateEnd) {
         return;
       }
-      const browseMediaQueryParameters = BrowseMediaUtil.getBrowseMediaQueryParameters(
-        'clips',
-        cameraConfig,
-      );
-      if (!browseMediaQueryParameters) {
+      const browseMediaQueryParametersBase =
+        BrowseMediaUtil.getBrowseMediaQueryParametersBase(cameraConfig);
+      if (!browseMediaQueryParametersBase) {
         return;
       }
-
       try {
         this._addMediaSource(
           camera,
+          media,
           await BrowseMediaUtil.browseMediaQuery(hass, {
-            ...browseMediaQueryParameters,
+            ...browseMediaQueryParametersBase,
+
+            // Events are always fetched for the maximum extent of the managed
+            // range. This is because events may change at any point in time
+            // (e.g. a long-running event that ends).
+            before: this._dateEnd.getTime() / 1000,
+            after: this._dateStart.getTime() / 1000,
             unlimited: true,
+            mediaType: fetchMedia,
           }),
         );
       } catch (e) {
-        return dispatchErrorMessageEvent(node, (e as Error).message);
+        return dispatchErrorMessageEvent(element, (e as Error).message);
       }
     };
 
-    await Promise.all(Array.from(cameras.keys()).map(fetchCameraEvents.bind(this)));
+    const promises: Promise<void>[] = [];
+    (media === 'all' ? ['clips', 'snapshots'] : [media]).forEach((mediaType) =>
+      promises.push(
+        ...Array.from(cameras.keys()).map((camera) =>
+          fetchCameraEvents(camera, mediaType as 'clips' | 'snapshots'),
+        ),
+      ),
+    );
+    await Promise.all(promises);
   }
 }
 
@@ -203,44 +336,95 @@ export class FrigateCardTimeline extends LitElement {
   @property({ attribute: false })
   protected cameras?: Map<string, CameraConfig>;
 
+  @property({ attribute: false })
+  protected timelineConfig?: TimelineConfig;
+
   /**
-   * Set the timeline configuration.
+   * Master render method.
+   * @returns A rendered template.
    */
-  set timelineConfig(timelineConfig: TimelineConfig) {
-    this._timelineConfig = timelineConfig;
-    this._setOptions();
+  protected render(): TemplateResult | void {
+    if (!this.timelineConfig) {
+      return html``;
+    }
+
+    return html` <frigate-card-surround-thumbnails
+      .hass=${this.hass}
+      .view=${this.view}
+      .config=${this.timelineConfig.controls.thumbnails}
+    >
+      <frigate-card-timeline-core
+        .hass=${this.hass}
+        .view=${this.view}
+        .cameras=${this.cameras}
+        .timelineConfig=${this.timelineConfig}
+      >
+      </frigate-card-timeline-core>
+    </frigate-card-surround-thumbnails>`;
   }
 
-  @state()
-  protected _timelineConfig?: TimelineConfig;
+  /**
+   * Return compiled CSS styles.
+   */
+  static get styles(): CSSResultGroup {
+    return unsafeCSS(timelineStyle);
+  }
+}
 
-  @state({ hasChanged: contentsChanged })
-  protected _timelineOptions?: TimelineOptions;
+@customElement('frigate-card-timeline-core')
+export class FrigateCardTimelineCore extends LitElement {
+  @property({ attribute: false })
+  protected hass?: HomeAssistant & ExtendedHomeAssistant;
 
-  protected _timelineRef: Ref<HTMLElement> = createRef();
-  protected _timeline?: Timeline;
+  @property({ attribute: false })
+  protected view?: Readonly<View>;
+
+  @property({ attribute: false })
+  protected cameras?: Map<string, CameraConfig>;
+
+  @property({ attribute: false })
+  protected timelineConfig?: TimelineConfig;
 
   protected _events = new TimelineEventManager({
-    tooltipCallback: this._generateTooltip.bind(this),
+    tooltipCallback: this._getTooltip.bind(this),
   });
+  protected _refTimeline: Ref<HTMLElement> = createRef();
+  protected _timeline?: Timeline;
 
   /**
-   * Build the content of a single event on the timeline.
-   * @param source The FrigateBrowseMediaSource object for this event.
-   * @returns A string to include on the timeline.
+   * Get a tooltip for a given timeline event.
+   * @param source The FrigateBrowseMediaSource in question.
+   * @returns The tooltip as a string to render.
    */
-  protected _generateTooltip(source: FrigateBrowseMediaSource): string {
+  protected _getTooltip(source: FrigateBrowseMediaSource): string {
+    if (!isHoverableDevice.matches) {
+      // Don't display tooltips on touch devices, they just get in the way of
+      // the drawer.
+      return '';
+    }
+
+    const thumbnailSizeAttr = this.timelineConfig
+      ? `thumbnail_size="${this.timelineConfig.controls.thumbnails.size}"`
+      : '';
+    const eventAttr = source.frigate?.event
+      ? `event='${JSON.stringify(source.frigate.event)}'`
+      : '';
+    const detailsAttr = this.timelineConfig?.controls.thumbnails.show_details
+      ? 'details'
+      : '';
+
+    // Cannot use Lit data-bindings as visjs requires a string for tooltips.
+    // Note that changes to attributes here must be mirrored in the xss
+    // whitelist in `_getOptions()` .
     return `
-      <frigate-card-timeline-event
-        media_id=${source.media_content_id}
+      <frigate-card-thumbnail
+        ${detailsAttr}
         thumbnail="${source.thumbnail}"
         label="${source.title}"
-        thumbnail_size="${
-          this._timelineConfig?.controls.thumbnails.size_pixels ??
-          frigateCardConfigDefaults.timeline.controls.thumbnails.size_pixels
-        }"
+        ${eventAttr}
+        ${thumbnailSizeAttr}
       >
-      </frigate-card-timeline-event>`;
+      </frigate-card-thumbnail>`;
   }
 
   /**
@@ -248,49 +432,68 @@ export class FrigateCardTimeline extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.view) {
+    if (!this.hass || !this.view || !this.timelineConfig) {
       return;
     }
-    return html` <div class="timeline" ${ref(this._timelineRef)}></div>`;
+
+    const thumbnailsConfig = this.timelineConfig.controls.thumbnails;
+    const timelineClasses = {
+      timeline: true,
+      'left-margin': thumbnailsConfig.mode === 'left',
+      'right-margin': thumbnailsConfig.mode === 'right',
+    };
+
+    return html`<div
+      class="${classMap(timelineClasses)}"
+      ${ref(this._refTimeline)}
+    ></div>`;
+  }
+
+  protected _timelineClickHandler(properties: TimelineEventPropertiesResult): void {
+    if (properties.what === 'item') {
+      // Prevent interaction with items on the timeline from activating card
+      // wide actions.
+      stopEventFromActivatingCardWideActions(properties.event);
+    }
   }
 
   /**
-   * Component connected callback.
+   * Handle a range change in the timeline.
+   * @param properties vis.js provided range information.
    */
-  connectedCallback(): void {
-    super.connectedCallback();
-  }
-
-  /**
-   * Component disconnected callback.
-   */
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-  }
-
   protected _timelineRangeHandler(properties: {
     start: Date;
     end: Date;
     byUser: boolean;
     event: Event;
   }): void {
-    console.info(
-      `Range changed: ${properties.start} -> ${properties.end} [${this._events.dataset.length}]`,
-    );
-    if (this.hass && this.cameras) {
-      // This is not performant in that it refetches all events in the time
-      // range, when some/all may already be fetched. A more optimal approach
-      // would be to only fetch events in time windows that haven't already been
-      // fetched PLUS events that did not previously have an end_time. That's
-      // not trivial to implement, and it's not yet clear it's worth the extra
-      // complexity.
-      this._events.fetchEvents(
-        this,
-        this.hass,
-        this.cameras,
-        properties.start,
-        properties.end,
-      );
+    if (!properties.byUser) {
+      return;
+    }
+    if (this.hass && this.cameras && this._timeline && this.timelineConfig) {
+      this._events
+        .fetchEventsIfNecessary(
+          this,
+          this.hass,
+          this.cameras,
+          this.timelineConfig.media,
+          properties.start,
+          properties.end,
+        )
+        .then(() => {
+          if (this._timeline) {
+            const thumbnails = this._generateThumbnails();
+            // Update the view to reflect the new thumbnails and the timeline
+            // window in the context.
+            this.view
+              ?.evolve({
+                target: thumbnails?.target ?? null,
+                childIndex: thumbnails?.childIndex ?? null,
+                context: this._generateViewContext(true),
+              })
+              .dispatchChangeEvent(this);
+          }
+        });
     }
   }
 
@@ -299,56 +502,95 @@ export class FrigateCardTimeline extends LitElement {
    * @param data The data about the selection.
    * @returns
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected _timelineSelectHandler(data: { items: string[]; event: Event }): void {
-    if (data.items.length <= 0 || !this._timeline) {
+    if (!this.view?.target || !this.view?.target.children) {
       return;
     }
 
-    const timelineWindow = this._timeline.getWindow();
-    const start = timelineWindow.start.getTime();
-    const end = timelineWindow.end.getTime();
-
-    const children: FrigateBrowseMediaSource[] = [];
-    let childIndex: number | null = null;
-
-    // Fetch all the events that match the extent of the visible window (cannot
-    // use getVisibleItems() since it does not return clustered items).
-    this._events.dataset
-      .get({
-        filter: (item) =>
-          (item.start >= start && item.start <= end) ||
-          (item.start <= start && !!item.end && item.end >= end),
-      })
-      .forEach((item) => {
-        if (item.source.can_play) {
-          if ((item.id = data.items[0])) {
-            childIndex = children.length;
-          }
-          children.push(item.source);
-        }
-      });
-
-    if (!children.length) {
-      return;
-    }
+    const childIndex = data.items.length
+      ? this.view.target.children.findIndex(
+          (child) => child.frigate?.event.id === data.items[0],
+        )
+      : null;
 
     this.view
       ?.evolve({
-        target: {
-          title: `Timeline ${start} - ${end}`,
-          media_class: MEDIA_CLASS_PLAYLIST,
-          media_content_type: MEDIA_TYPE_VIDEO,
-          media_content_id: '',
-          can_play: false,
-          can_expand: true,
-          children_media_class: MEDIA_CLASS_VIDEO,
-          thumbnail: null,
-          children: children,
-        },
-        childIndex: childIndex ?? 0,
-        view: 'clip',
+        childIndex: childIndex,
       })
       .dispatchChangeEvent(this);
+
+    if (childIndex !== null && childIndex >= 0) {
+      dispatchFrigateCardEvent(this, 'thumbnails:open');
+    } else {
+      dispatchFrigateCardEvent(this, 'thumbnails:close');
+    }
+  }
+
+  /**
+   * Regenerate the thumbnails from the timeline events.
+   * @returns An object with two keys, or null on error. The keys are `target`
+   * containing all the thumbnails, and `childIndex` to refer to the currently
+   * selected thumbnail.
+   */
+  protected _generateThumbnails(): {
+    target: FrigateBrowseMediaSource;
+    childIndex: number | null;
+  } | null {
+    if (!this._timeline) {
+      return null;
+    }
+
+    /**
+     * Sort the timeline items most recent to least recent.
+     * @param a The first item.
+     * @param b The second item.
+     * @returns -1, 0, 1 (standard array sort function configuration).
+     */
+    const sortEvent = (
+      a: FrigateCardTimelineItem,
+      b: FrigateCardTimelineItem,
+    ): number => {
+      if (a.start < b.start) {
+        return 1;
+      }
+      if (a.start > b.start) {
+        return -1;
+      }
+      return 0;
+    };
+
+    const selected = this._timeline.getSelection();
+    let childIndex = -1;
+    const children: FrigateBrowseMediaSource[] = [];
+    this._events.dataset.get({ order: sortEvent }).forEach((item) => {
+      if (item.source) {
+        children.push(item.source);
+        if (selected.includes(item.event.id)) {
+          childIndex = children.length - 1;
+        }
+      }
+    });
+    if (!children.length) {
+      return null;
+    }
+
+    const target = {
+      title: `Timeline events`,
+      media_class: MEDIA_CLASS_PLAYLIST,
+      media_content_type: MEDIA_TYPE_PLAYLIST,
+      media_content_id: '',
+      can_play: false,
+      can_expand: true,
+      children_media_class: MEDIA_CLASS_PLAYLIST,
+      thumbnail: null,
+      children: children,
+    };
+
+    return {
+      target: target,
+      childIndex: childIndex < 0 ? null : childIndex,
+    };
   }
 
   /**
@@ -367,54 +609,135 @@ export class FrigateCardTimeline extends LitElement {
   }
 
   /**
+   * Given an event get an appropriate start/end time window around the event.
+   * @param event The FrigateEvent to consider.
+   * @returns A tuple of start/end date.
+   */
+  protected _getStartEndFromEvent(event: FrigateEvent): [Date, Date] {
+    const windowSeconds = this._getConfiguredWindowSeconds();
+    if (event.end_time) {
+      if (event.end_time - event.start_time > windowSeconds) {
+        // If the event is larger than the configured window, only show the most
+        // recent portion of the event that fits in the window.
+        return [
+          sub(fromUnixTime(event.end_time), { seconds: windowSeconds }),
+          fromUnixTime(event.end_time),
+        ];
+      } else {
+        // If the event is shorter than the configured window, center the event
+        // in the window.
+        const gap = windowSeconds - (event.end_time - event.start_time);
+        return [
+          sub(fromUnixTime(event.start_time), { seconds: gap / 2 }),
+          add(fromUnixTime(event.end_time), { seconds: gap / 2 }),
+        ];
+      }
+    }
+    // If there's no end-time yet, place the start-time in the center of the
+    // time window.
+    return [
+      sub(fromUnixTime(event.start_time), { seconds: windowSeconds / 2 }),
+      add(fromUnixTime(event.start_time), { seconds: windowSeconds / 2 }),
+    ];
+  }
+
+  /**
+   * Get the configured window length in seconds.
+   */
+  protected _getConfiguredWindowSeconds(): number {
+    return (
+      this.timelineConfig?.window_seconds ??
+      frigateCardConfigDefaults.timeline.window_seconds
+    );
+  }
+
+  /**
+   * Get desired timeline start/end time.
+   * @returns A tuple of start/end date.
+   */
+  protected _getStartEnd(): [Date, Date] {
+    const event = this.view?.target?.frigate?.event;
+    if (event) {
+      return this._getStartEndFromEvent(event);
+    }
+    const end = new Date();
+    const start = sub(end, {
+      seconds: this._getConfiguredWindowSeconds(),
+    });
+    return [start, end];
+  }
+
+  /**
+   * Determine if the timeline should use clustering.
+   * @returns `true` if the timeline should cluster, `false` otherwise.
+   */
+  protected _isClustering(): boolean {
+    return (
+      !!this.timelineConfig?.clustering_threshold &&
+      this.timelineConfig.clustering_threshold > 0
+    );
+  }
+
+  /**
    * Handle timeline resize.
    */
-  protected _setOptions(): void {
-    if (!this._timelineConfig) {
+  protected _getOptions(): TimelineOptions | void {
+    if (!this.timelineConfig) {
       return;
     }
 
-    const thumbnailConfig =
-      this._timelineConfig?.controls.thumbnails ??
-      frigateCardConfigDefaults.timeline.controls.thumbnails;
+    const [start, end] = this._getStartEnd();
 
     // Configuration for the Timeline, see:
     // https://visjs.github.io/vis-timeline/docs/timeline/#Configuration_Options
-    this._timelineOptions = {
-      cluster:
-        thumbnailConfig.clustering_threshold > 0
-          ? {
-              showStipes: true,
-              // It would be better to automatically calculate `maxItems` from the
-              // rendered height of the timeline (or group within the timeline) so
-              // as to not waste vertical space (e.g. after the user changes to
-              // fullscreen mode). Unfortunately this is not easy to do, as we
-              // don't know the height of the timeline until after it renders --
-              // and if we adjust `maxItems` then we can get into an infinite
-              // resize loop. Adjusting the `maxItems` of a timeline, after it's
-              // created, also does not appear to work as expected.
-              maxItems: thumbnailConfig.clustering_threshold,
-            }
-          : (false as TimelineOptionsCluster),
+    return {
+      cluster: this._isClustering()
+        ? {
+            // It would be better to automatically calculate `maxItems` from the
+            // rendered height of the timeline (or group within the timeline) so
+            // as to not waste vertical space (e.g. after the user changes to
+            // fullscreen mode). Unfortunately this is not easy to do, as we
+            // don't know the height of the timeline until after it renders --
+            // and if we adjust `maxItems` then we can get into an infinite
+            // resize loop. Adjusting the `maxItems` of a timeline, after it's
+            // created, also does not appear to work as expected.
+            maxItems: this.timelineConfig.clustering_threshold,
+
+            clusterCriteria: (first: TimelineItem, second: TimelineItem): boolean => {
+              // Never include the target media in a cluster, and never group
+              // different object types together (e.g. person and car).
+              return (
+                !!first.id &&
+                first.id !== this.view?.media?.frigate?.event?.id &&
+                !!second.id &&
+                second.id != this.view?.media?.frigate?.event?.id &&
+                (<FrigateCardTimelineItem>first).event.label ===
+                  (<FrigateCardTimelineItem>second).event.label
+              );
+            },
+          }
+        : (false as TimelineOptionsCluster),
       minHeight: '100%',
       maxHeight: '100%',
+      zoomMax: 1 * 24 * 60 * 60 * 1000,
+      zoomMin: 1 * 1000,
+      selectable: true,
+      start: start,
+      end: end,
+      groupHeightMode: 'fixed',
       tooltip: {
         followMouse: true,
         overflowMethod: 'cap',
       },
-      zoomMax: 31 * 24 * 60 * 60 * 1000,
-      zoomMin: 1 * 1000,
-      start: this._getYesterday(),
-      end: this._getToday(),
-      groupHeightMode: 'fixed',
       xss: {
         disabled: false,
         filterOptions: {
           whiteList: {
-            'frigate-card-timeline-event': [
+            'frigate-card-thumbnail': [
+              'details',
               'thumbnail',
               'label',
-              'media_id',
+              'event',
               'thumbnail_size',
             ],
             div: ['title'],
@@ -423,24 +746,6 @@ export class FrigateCardTimeline extends LitElement {
         },
       },
     };
-  }
-
-  /**
-   * Get today date object.
-   * @returns A date object for today.
-   */
-  protected _getToday(): Date {
-    return new Date();
-  }
-
-  /**
-   * Get yesterday date object.
-   * @returns A date object for yesterday.
-   */
-  protected _getYesterday(): Date {
-    const yesterday = new Date();
-    yesterday.setDate(this._getToday().getDate() - 1);
-    return yesterday;
   }
 
   /**
@@ -454,49 +759,149 @@ export class FrigateCardTimeline extends LitElement {
   }
 
   /**
-   * Called on the first update.
-   * @param changedProps The changed properties.
+   * Update the timeline from the view object.
    */
-  protected firstUpdated(changedProps: PropertyValues): void {
-    super.firstUpdated(changedProps);
-
-    if (changedProps.has('cameras')) {
-      this._events.clear();
+  protected async _updateTimelineFromView(): Promise<void> {
+    if (
+      !this.hass ||
+      !this.cameras ||
+      !this.view ||
+      !this._timeline ||
+      !this.timelineConfig
+    ) {
+      return;
     }
 
-    if (this._events.isEmpty() && this.hass && this.cameras) {
-      // Fetch an initial 1-day worth of events.
-      this._events.fetchEvents(
-        this,
-        this.hass,
-        this.cameras,
-        this._getToday(),
-        this._getYesterday(),
-      );
+    const event = this.view?.media?.frigate?.event;
+    const [windowStart, windowEnd] = event
+      ? this._getStartEndFromEvent(event)
+      : this._getStartEnd();
+
+    await this._events.fetchEventsIfNecessary(
+      this,
+      this.hass,
+      this.cameras,
+      this.timelineConfig.media,
+      windowStart,
+      windowEnd,
+    );
+
+    this._timeline.setSelection(event ? [event.id] : [], {
+      focus: false,
+      animation: {
+        animation: false,
+        zoom: false,
+      },
+    });
+
+    // Regenerate the thumbnails after the selection, to allow the new selection
+    // to be in the generated view.
+    const context = this.view.context as TimelineViewContext | null;
+    const timelineWindow = this._timeline.getWindow();
+
+    if (context?.window) {
+      if (!isEqual(context.window, timelineWindow)) {
+        this._timeline.setWindow(context.window.start, context.window.end);
+      }
+    } else if (event) {
+      const eventStart = new Date(event.start_time * 1000);
+      const eventEnd = event.end_time ? new Date(event.end_time * 1000) : 0;
+
+      if (
+        eventStart < timelineWindow.start ||
+        eventStart > timelineWindow.end ||
+        (eventEnd && (eventEnd < timelineWindow.start || eventEnd > timelineWindow.end))
+      ) {
+        this._timeline.setWindow(windowStart, windowEnd);
+      }
+
+      if (this._isClustering()) {
+        // Hack: Clustering may not update unless the dataset changes, artifically
+        // update the dataset to ensure the newly selected item cannot be included
+        // in a cluster.
+        const item = this._events.dataset.get(event.id);
+        if (item) {
+          this._events.dataset.updateOnly(item);
+        }
+      }
+    } else {
+      this._timeline.setWindow(windowStart, windowEnd);
+    }
+
+    // Compare last date of fetch with that of inbound view to avoid a loop.
+    // Without this comparison it would be:
+    //
+    // Timeline receives a new `view`
+    //  -> Events fetched
+    //    -> Thumbnails generated
+    //      -> New view dispatched (to load thumbnails into outer carousel).
+    //  -> New view received ... [loop]
+    const currentContext = this.view.context as TimelineViewContext | null;
+    if (currentContext?.dateFetch !== this._events.lastFetchDate) {
+      const thumbnails = this._generateThumbnails();
+      this.view
+        ?.evolve({
+          target: thumbnails?.target ?? null,
+          childIndex: thumbnails?.childIndex ?? null,
+          context: this._generateViewContext(false),
+        })
+        .dispatchChangeEvent(this);
     }
   }
 
   /**
+   * Generate the context for timeline views.
+   * @param addWindow Whether or not to include the timeline window. If `false`
+   * the window is preserved if it is already in the context.
+   * @returns The TimelineViewContext object.
+   */
+  protected _generateViewContext(addWindow: boolean): TimelineViewContext {
+    const currentContext = this.view?.context as TimelineViewContext | undefined;
+    const newContext: TimelineViewContext = {};
+    if (addWindow && this._timeline) {
+      newContext.window = this._timeline.getWindow();
+    } else if (currentContext?.window) {
+      newContext.window = currentContext.window;
+    }
+    if (this._events.lastFetchDate) {
+      newContext.dateFetch = this._events.lastFetchDate;
+    }
+    return newContext || null;
+  }
+
+  /**
    * Called when the component is updated.
-   * @param changedProps The changed properties if any.
+   * @param changedProperties The changed properties if any.
    */
   protected updated(changedProperties: PropertyValues): void {
     super.updated(changedProperties);
 
-    if (this._timelineRef.value) {
-      if (this._timeline) {
-        this._timeline.destroy();
-        this._timeline = undefined;
-      }
+    if (changedProperties.has('cameras')) {
+      this._events.clear();
+      this._timeline?.destroy();
+      this._timeline = undefined;
+    }
 
-      this._timeline = new Timeline(
-        this._timelineRef.value,
-        this._events.dataset,
-        this._getGroups(),
-        this._timelineOptions,
-      );
-      this._timeline.on('select', this._timelineSelectHandler.bind(this));
-      this._timeline.on('rangechanged', this._timelineRangeHandler.bind(this));
+    const options = this._getOptions();
+    if (changedProperties.has('timelineConfig') && this._refTimeline.value && options) {
+      if (this._timeline) {
+        this._timeline.setOptions(options);
+      } else {
+        this._timeline = new Timeline(
+          this._refTimeline.value,
+          this._events.dataset,
+          this._getGroups(),
+          options,
+        );
+        this._timeline.on('select', this._timelineSelectHandler.bind(this));
+        this._timeline.on('rangechanged', this._timelineRangeHandler.bind(this));
+        this._timeline.on('click', this._timelineClickHandler.bind(this));
+        this._timeline.on('doubleclick', this._timelineClickHandler.bind(this));
+      }
+    }
+
+    if (changedProperties.has('view')) {
+      this._updateTimelineFromView();
     }
   }
 
@@ -504,6 +909,6 @@ export class FrigateCardTimeline extends LitElement {
    * Return compiled CSS styles.
    */
   static get styles(): CSSResultGroup {
-    return unsafeCSS(timelineStyle);
+    return unsafeCSS(timelineCoreStyle);
   }
 }

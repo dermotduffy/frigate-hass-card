@@ -32,6 +32,8 @@ import {
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE,
+  CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
+  CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE,
   CONF_EVENT_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
   CONF_EVENT_VIEWER_CONTROLS_TITLE_MODE,
@@ -46,6 +48,8 @@ import {
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
+  CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
+  CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
   CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
   CONF_LIVE_CONTROLS_TITLE_MODE,
@@ -64,6 +68,13 @@ import {
   CONF_MENU_BUTTONS_SNAPSHOTS,
   CONF_MENU_BUTTON_SIZE,
   CONF_MENU_MODE,
+  CONF_TIMELINE_CLUSTERING_THRESHOLD,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
+  CONF_TIMELINE_MEDIA,
+  CONF_TIMELINE_WINDOW_SECONDS,
   CONF_VIEW_CAMERA_SELECT,
   CONF_VIEW_DEFAULT,
   CONF_VIEW_TIMEOUT_SECONDS,
@@ -145,6 +156,12 @@ const options: EditorOptions = {
     secondary: localize('editor.image_secondary'),
     show: false,
   },
+  timeline: {
+    icon: 'chart-gantt',
+    name: localize('editor.timeline'),
+    secondary: localize('editor.timeline_secondary'),
+    show: false,
+  },
   dimensions: {
     icon: 'aspect-ratio',
     name: localize('editor.dimensions'),
@@ -178,6 +195,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'clip', label: localize('config.view.views.clip') },
     { value: 'snapshot', label: localize('config.view.views.snapshot') },
     { value: 'image', label: localize('config.view.views.image') },
+    { value: 'timeline', label: localize('config.view.views.timeline') },
   ];
 
   protected _cameraSelectViewModes = [
@@ -260,6 +278,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       value: 'below',
       label: localize('config.event_viewer.controls.thumbnails.modes.below'),
     },
+    {
+      value: 'left',
+      label: localize('config.event_viewer.controls.thumbnails.modes.left'),
+    },
+    {
+      value: 'right',
+      label: localize('config.event_viewer.controls.thumbnails.modes.right'),
+    },
   ];
 
   protected _thumbnailMedias = [
@@ -303,6 +329,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'camera', label: localize('config.image.modes.camera') },
     { value: 'screensaver', label: localize('config.image.modes.screensaver') },
     { value: 'url', label: localize('config.image.modes.url') },
+  ];
+
+  protected _timelineMediaTypes = [
+    { value: '', label: '' },
+    { value: 'all', label: localize('config.timeline.medias.all') },
+    { value: 'clips', label: localize('config.timeline.medias.clips') },
+    { value: 'snapshots', label: localize('config.timeline.medias.snapshots') },
   ];
 
   public setConfig(config: RawFrigateCardConfig): void {
@@ -881,6 +914,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_LIVE_CONTROLS_TITLE_MODE,
                   this._titleModes,
                 )}
+                ${this._renderSwitch(
+                  CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+                  defaults.live.controls.thumbnails.show_details,
+                )}
+                ${this._renderSwitch(
+                  CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
+                  defaults.live.controls.thumbnails.show_controls,
+                )}
                 ${this._renderNumberInput(
                   CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
                   0,
@@ -928,6 +969,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 this._thumbnailModes,
               )}
               ${this._renderStringInput(CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE)}
+              ${this._renderSwitch(
+                CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+                defaults.event_viewer.controls.thumbnails.show_details,
+              )}
+              ${this._renderSwitch(
+                CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
+                defaults.event_viewer.controls.thumbnails.show_controls,
+              )}
               ${this._renderOptionSelector(
                 CONF_EVENT_VIEWER_CONTROLS_TITLE_MODE,
                 this._titleModes,
@@ -949,6 +998,27 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderOptionSelector(CONF_IMAGE_MODE, this._imageModes)}
               ${this._renderStringInput(CONF_IMAGE_URL)}
               ${this._renderNumberInput(CONF_IMAGE_REFRESH_SECONDS)}
+            </div>`
+          : ''}
+        ${this._renderOptionSetHeader('timeline')}
+        ${options.timeline.show
+          ? html` <div class="values">
+              ${this._renderNumberInput(CONF_TIMELINE_WINDOW_SECONDS)}
+              ${this._renderNumberInput(CONF_TIMELINE_CLUSTERING_THRESHOLD)}
+              ${this._renderOptionSelector(CONF_TIMELINE_MEDIA, this._timelineMediaTypes)}
+              ${this._renderOptionSelector(
+                CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
+                this._thumbnailModes,
+              )}
+              ${this._renderStringInput(CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE)}
+              ${this._renderSwitch(
+                CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+                defaults.timeline.controls.thumbnails.show_details,
+              )}
+              ${this._renderSwitch(
+                CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
+                defaults.timeline.controls.thumbnails.show_controls,
+              )}
             </div>`
           : ''}
         ${this._renderOptionSetHeader('dimensions')}

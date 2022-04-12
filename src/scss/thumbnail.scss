@@ -1,0 +1,68 @@
+@use './favorite.scss';
+
+:host {
+  display: flex;
+  flex-direction: row;
+
+  --frigate-card-thumbnail-size: 100px;
+
+  // Do not let the contain expand to fill more height than the height of the
+  // thumbnail. Without this the thumbnail carousel will allow the thumbnail to
+  // expand to the full height of the viewport on a vertical carousel.
+  max-height: var(--frigate-card-thumbnail-size);
+}
+
+:host([details]) {
+  border: 1px solid var(--primary-color);
+  border-radius: var(--ha-card-border-radius, 4px);
+  padding: 2px;
+
+  // When details are enabled, use a background color so that the details have
+  // contrast with the background.
+  background-color: var(--primary-background-color, black);
+}
+
+img {
+  border-radius: var(--ha-card-border-radius, 4px);
+
+  // Not 'contain' as some thumbnails may vary in aspect-ratio slightly and
+  // should be clipped to fill the thumbnail div whilst maintaining
+  // aspect-ratio.
+  object-fit: cover;
+
+  // Restrict images to a maximum of thumbnail size.
+  max-width: var(--frigate-card-thumbnail-size);
+  max-height: var(--frigate-card-thumbnail-size);
+  min-width: var(--frigate-card-thumbnail-size);
+  min-height: var(--frigate-card-thumbnail-size);
+
+  transition: transform 0.2s linear;
+}
+img:hover {
+  transform: scale(1.04);
+}
+
+div.details {
+  display: flex;
+
+  width: 200px;
+  margin-left: 5px;
+  padding: 8px;
+  color: var(--primary-text-color);
+}
+div.details div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+div.details div.left {
+  flex: 1;
+}
+
+div.larger {
+  font-size: 1.5rem;
+}
+
+span.heading {
+  font-weight: bold;
+}

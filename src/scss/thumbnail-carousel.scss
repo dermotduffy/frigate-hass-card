@@ -1,37 +1,21 @@
 :host {
-  --frigate-card-carousel-thumbnail-size: 100px;
-  --frigate-card-carousel-thumbnail-opacity: 0.6;
+  --frigate-card-carousel-thumbnail-opacity: 1.0;
+}
+
+:host([direction=vertical]) {
+  height: 100%;
+}
+:host([direction=horizontal]) {
+  // In fullscreen mode, without explicitly setting the height to auto Chrome
+  // will construct a stylesheet with 100% height.
+  height: auto;
 }
 
 .embla__slide {
-  flex: 0 0 var(--frigate-card-carousel-thumbnail-size);
+  flex: 0 0 auto;
   opacity: var(--frigate-card-carousel-thumbnail-opacity);
-  transition: opacity 0.6s ease, transform 0.2s linear;
+  transition: opacity 0.6s ease;
 }
 .embla__slide.slide-selected {
   opacity: 1.0;
-}
-.embla__slide:hover {
-  transform: scale(1.04);
-}
-.embla__slide img {
-  border-radius: 5px;
-
-  // Not 'contain' as some thumbnails may vary in aspect-ratio slightly and
-  // should be clipped to fill the thumbnail div whilst maintaining
-  // aspect-ratio.
-  object-fit: cover;
-
-  // Restrict images to a maximum of thumbnail size.
-  max-width: var(--frigate-card-carousel-thumbnail-size);
-  max-height: var(--frigate-card-carousel-thumbnail-size);
-}
-.favorite {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  height: 24px;
-  width: 24px;
-  top: 12%;
-  left: 90%;
-  color: yellow;
 }

@@ -1,6 +1,7 @@
 import { HomeAssistant } from 'custom-card-helpers';
 
 import type {
+  BrowseMediaQueryParametersBase,
   BrowseMediaQueryParameters,
   FrigateBrowseMediaSource,
   CameraConfig,
@@ -39,8 +40,8 @@ export class BrowseMediaUtil {
    * @param media The media object.
    * @returns `true` if it's truly a media item, `false` otherwise.
    */
-  static isTrueMedia(media: FrigateBrowseMediaSource): boolean {
-    return !media.can_expand;
+  static isTrueMedia(media?: FrigateBrowseMediaSource): boolean {
+    return !!media && !media.can_expand;
   }
 
   /**
@@ -113,15 +114,13 @@ export class BrowseMediaUtil {
    * Get the parameters to search for media.
    * @returns A BrowseMediaQueryParameters object.
    */
-  static getBrowseMediaQueryParameters(
-    mediaType: 'clips' | 'snapshots',
+  static getBrowseMediaQueryParametersBase(
     cameraConfig?: CameraConfig,
-  ): BrowseMediaQueryParameters | undefined {
+  ): BrowseMediaQueryParametersBase | null {
     if (!cameraConfig || !cameraConfig.camera_name) {
-      return undefined;
+      return null;
     }
     return {
-      mediaType: mediaType,
       clientId: cameraConfig.client_id,
       cameraName: cameraConfig.camera_name,
       label: cameraConfig.label,
@@ -130,32 +129,46 @@ export class BrowseMediaUtil {
   }
 
   /**
+   * Set the mediaType parameter from the current view.
+   * @param browseMediaQueryParametersBase The base media query parameters object.
+   * @param view The current view.
+   * @returns A fully populated BrowseMediaQueryParameters or null.
+   */
+  static setMediaTypeFromView(
+    browseMediaQueryParametersBase: BrowseMediaQueryParametersBase | null,
+    view: View,
+  ): BrowseMediaQueryParameters | null {
+    if (
+      !browseMediaQueryParametersBase ||
+      !(view.isClipRelatedView() || view.isSnapshotRelatedView())
+    ) {
+      return null;
+    }
+    return {
+      ...browseMediaQueryParametersBase,
+      mediaType: view.isClipRelatedView() ? 'clips' : 'snapshots',
+    };
+  }
+
+  /**
    * Get the parameters to search for media related to the current view.
    * @returns A BrowseMediaQueryParameters object.
    */
-  static getBrowseMediaQueryParametersOrDispatchError(
+  static getBrowseMediaQueryParametersBaseOrDispatchError(
     node: HTMLElement,
-    view: View,
     cameraConfig: CameraConfig,
-  ): BrowseMediaQueryParameters | undefined {
-    if (!view.isClipRelatedView() && !view.isSnapshotRelatedView()) {
-      return undefined;
-    }
-
-    // Verify there is a camera name, otherwise getBrowseMediaQueryParameters()
+  ): BrowseMediaQueryParametersBase | null {
+    // Verify there is a camera name, otherwise getBrowseMediaQueryParametersBase()
     // will return undefined.
     if (!cameraConfig.camera_name) {
       dispatchErrorMessageEvent(
         node,
         localize('error.no_camera_name') + `: ${JSON.stringify(cameraConfig)}`,
       );
-      return undefined;
+      return null;
     }
 
-    return BrowseMediaUtil.getBrowseMediaQueryParameters(
-      view.isClipRelatedView() ? 'clips' : 'snapshots',
-      cameraConfig,
-    );
+    return BrowseMediaUtil.getBrowseMediaQueryParametersBase(cameraConfig);
   }
 
   /**
@@ -226,7 +239,6 @@ export class BrowseMediaUtil {
     view
       .evolve({
         target: parent,
-        previous: view,
       })
       .dispatchChangeEvent(node);
   }

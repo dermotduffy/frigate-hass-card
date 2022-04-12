@@ -1,12 +1,16 @@
 import type { FrigateBrowseMediaSource, FrigateCardView } from './types.js';
 import { dispatchFrigateCardEvent } from './common.js';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ViewContext {}
+
 export interface ViewEvolveParameters {
   view?: FrigateCardView;
   camera?: string;
-  target?: FrigateBrowseMediaSource;
-  childIndex?: number;
-  previous?: View;
+  target?: FrigateBrowseMediaSource | null;
+  childIndex?: number | null;
+  previous?: View | null;
+  context?: ViewContext | null;
 }
 
 export interface ViewParameters extends ViewEvolveParameters {
@@ -17,16 +21,18 @@ export interface ViewParameters extends ViewEvolveParameters {
 export class View {
   view: FrigateCardView;
   camera: string;
-  target?: FrigateBrowseMediaSource;
-  childIndex?: number;
-  previous?: View;
+  target: FrigateBrowseMediaSource | null;
+  childIndex: number | null;
+  previous: View | null;
+  context: ViewContext | null;
 
   constructor(params: ViewParameters) {
-    this.view = params?.view;
-    this.camera = params?.camera;
-    this.target = params?.target;
-    this.childIndex = params?.childIndex;
-    this.previous = params?.previous;
+    this.view = params.view;
+    this.camera = params.camera;
+    this.target = params.target ?? null;
+    this.childIndex = params.childIndex ?? null;
+    this.previous = params.previous ?? null;
+    this.context = params.context ?? null;
   }
 
   /**
@@ -38,7 +44,8 @@ export class View {
       camera: this.camera,
       target: this.target,
       childIndex: this.childIndex,
-      previous: this.previous
+      previous: this.previous,
+      context: this.context,
     });
   }
 
@@ -49,12 +56,16 @@ export class View {
    */
   public evolve(params: ViewEvolveParameters): View {
     return new View({
-      view: params.view ?? this.view,
-      camera: params.camera ?? this.camera,
-      target: params.target ?? this.target,
-      childIndex: params.childIndex ?? this.childIndex,
-      previous: params.previous ?? this.previous,
-    })
+      view: params.view !== undefined ? params.view : this.view,
+      camera: params.camera !== undefined ? params.camera : this.camera,
+      target: params.target !== undefined ? params.target : this.target,
+      childIndex: params.childIndex !== undefined ? params.childIndex : this.childIndex,
+      context: params.context !== undefined ? params.context : this.context,
+      
+      // Special case: Set the previous to this of the evolved view (rather than
+      // the previous of this).
+      previous: params.previous !== undefined ? params.previous : this,
+    });
   }
 
   /**
@@ -75,24 +86,21 @@ export class View {
    * Determine if a view is of a piece of media (i.e. not the gallery).
    */
   public isMediaView(): boolean {
-    return !this.isGalleryView();
+    return this.isViewerView() || this.is('live');
   }
 
   /**
    * Determine if a view is for the media viewer.
    */
   public isViewerView(): boolean {
-    return ['clip', 'snapshot'].includes(
-      this.view,
-    );
+    return ['clip', 'snapshot', 'event'].includes(this.view);
   }
 
   /**
    * Determine if a view is related to a clip or clips.
    */
   public isClipRelatedView(): boolean {
-    // TODO HACK HACK HACK 
-    return ['clip', 'clips', 'timeline'].includes(this.view);
+    return ['clip', 'clips'].includes(this.view);
   }
 
   /**
@@ -105,14 +113,13 @@ export class View {
   /**
    *  Get the media item that should be played.
    **/
-  get media(): FrigateBrowseMediaSource | undefined {
+  get media(): FrigateBrowseMediaSource | null {
     if (this.target) {
-      if (this.target.children && this.childIndex !== undefined) {
-        return this.target.children[this.childIndex];
+      if (this.target.children && this.childIndex !== null) {
+        return this.target.children[this.childIndex] ?? null;
       }
-      return this.target;
     }
-    return undefined;
+    return null;
   }
 
   /**

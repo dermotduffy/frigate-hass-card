@@ -10,14 +10,14 @@ import { BrowseMediaUtil } from '../browse-media-util.js';
 import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
 import { Task } from '@lit-labs/task';
-import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
+import { ref } from 'lit/directives/ref.js';
 
 import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import type {
   BrowseMediaNeighbors,
-  BrowseMediaQueryParameters,
+  BrowseMediaQueryParametersBase,
   FrigateBrowseMediaSource,
   CameraConfig,
   ExtendedHomeAssistant,
@@ -27,10 +27,6 @@ import type {
 } from '../types.js';
 import { FrigateCardMediaCarousel, IMG_EMPTY } from './media-carousel.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
-import {
-  FrigateCardThumbnailCarousel,
-  ThumbnailCarouselTap,
-} from './thumbnail-carousel.js';
 import { Lazyload, LazyloadType } from './embla-plugins/lazyload.js';
 import { ResolvedMediaCache, ResolvedMediaUtil } from '../resolved-media.js';
 import { View } from '../view.js';
@@ -46,7 +42,6 @@ import './next-prev-control.js';
 import './title-control.js';
 
 import viewerStyle from '../scss/viewer.scss';
-import viewerCoreStyle from '../scss/viewer-core.scss';
 
 @customElement('frigate-card-viewer')
 export class FrigateCardViewer extends LitElement {
@@ -70,21 +65,25 @@ export class FrigateCardViewer extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.view || !this.cameraConfig) {
+    if (!this.hass || !this.view || !this.cameraConfig || !this.viewerConfig) {
       return;
     }
 
-    const browseMediaQueryParameters =
-      BrowseMediaUtil.getBrowseMediaQueryParametersOrDispatchError(
+    const browseMediaQueryParametersBase =
+      BrowseMediaUtil.getBrowseMediaQueryParametersBaseOrDispatchError(
         this,
-        this.view,
         this.cameraConfig,
       );
-    if (!browseMediaQueryParameters) {
-      return;
-    }
 
     if (!this.view.target) {
+      const browseMediaQueryParameters = BrowseMediaUtil.setMediaTypeFromView(
+        browseMediaQueryParametersBase,
+        this.view,
+      );
+      if (!browseMediaQueryParameters) {
+        return;
+      }
+
       BrowseMediaUtil.fetchLatestMediaAndDispatchViewChange(
         this,
         this.hass,
@@ -94,14 +93,20 @@ export class FrigateCardViewer extends LitElement {
       return renderProgressIndicator();
     }
 
-    return html` <frigate-card-viewer-core
-      .view=${this.view}
-      .viewerConfig=${this.viewerConfig}
-      .resolvedMediaCache=${this.resolvedMediaCache}
+    return html` <frigate-card-surround-thumbnails
       .hass=${this.hass}
-      .browseMediaQueryParameters=${browseMediaQueryParameters}
+      .view=${this.view}
+      .config=${this.viewerConfig.controls.thumbnails}
     >
-    </frigate-card-viewer-core>`;
+      <frigate-card-viewer-carousel
+        .hass=${this.hass}
+        .view=${this.view}
+        .viewerConfig=${this.viewerConfig}
+        .browseMediaQueryParametersBase=${browseMediaQueryParametersBase}
+        .resolvedMediaCache=${this.resolvedMediaCache}
+      >
+      </frigate-card-viewer-carousel>
+    </frigate-card-surround-thumbnails>`;
   }
 
   /**
@@ -109,82 +114,6 @@ export class FrigateCardViewer extends LitElement {
    */
   static get styles(): CSSResultGroup {
     return unsafeCSS(viewerStyle);
-  }
-}
-
-@customElement('frigate-card-viewer-core')
-export class FrigateCardViewerCore extends LitElement {
-  @property({ attribute: false })
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
-
-  @property({ attribute: false })
-  protected view?: Readonly<View>;
-
-  // See note on viewerConfig in <frigate-card-viewer-carousel>.
-  @property({ attribute: false, hasChanged: contentsChanged })
-  protected viewerConfig?: ViewerConfig;
-
-  @property({ attribute: false })
-  protected browseMediaQueryParameters?: BrowseMediaQueryParameters;
-
-  @property({ attribute: false })
-  protected resolvedMediaCache?: ResolvedMediaCache;
-
-  protected _viewerCarouselRef: Ref<FrigateCardViewerCarousel> = createRef();
-  protected _thumbnailCarouselRef: Ref<FrigateCardThumbnailCarousel> = createRef();
-
-  protected _syncThumbnailCarousel(): void {
-    const mediaSelected = this._viewerCarouselRef.value?.carouselSelected();
-    if (mediaSelected !== undefined) {
-      this._thumbnailCarouselRef.value?.carouselScrollTo(mediaSelected);
-    }
-  }
-
-  protected _renderThumbnails(): TemplateResult {
-    if (!this.view || !this.viewerConfig) {
-      return html``;
-    }
-
-    return html` <frigate-card-thumbnail-carousel
-      ${ref(this._thumbnailCarouselRef)}
-      .target=${this.view.target}
-      .config=${this.viewerConfig.controls.thumbnails}
-      @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
-        this._viewerCarouselRef.value?.carouselScrollTo(ev.detail.slideIndex);
-      }}
-      @frigate-card:carousel:init=${this._syncThumbnailCarousel.bind(this)}
-    >
-    </frigate-card-thumbnail-carousel>`;
-  }
-
-  protected render(): TemplateResult | void {
-    if (!this.view || !this.viewerConfig) {
-      return html``;
-    }
-    return html` ${this.viewerConfig &&
-      this.viewerConfig.controls.thumbnails.mode === 'above'
-        ? this._renderThumbnails()
-        : ''}
-      <frigate-card-viewer-carousel
-        ${ref(this._viewerCarouselRef)}
-        .hass=${this.hass}
-        .view=${this.view}
-        .viewerConfig=${this.viewerConfig}
-        .browseMediaQueryParameters=${this.browseMediaQueryParameters}
-        .resolvedMediaCache=${this.resolvedMediaCache}
-        @frigate-card:carousel:select=${this._syncThumbnailCarousel.bind(this)}
-      >
-      </frigate-card-viewer-carousel>
-      ${this.viewerConfig && this.viewerConfig.controls.thumbnails.mode === 'below'
-        ? this._renderThumbnails()
-        : ''}`;
-  }
-
-  /**
-   * Get element styles.
-   */
-  static get styles(): CSSResultGroup {
-    return unsafeCSS(viewerCoreStyle);
   }
 }
 
@@ -205,7 +134,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   protected viewerConfig?: ViewerConfig;
 
   @property({ attribute: false })
-  protected browseMediaQueryParameters?: BrowseMediaQueryParameters;
+  protected browseMediaQueryParametersBase?: BrowseMediaQueryParametersBase;
 
   @property({ attribute: false })
   protected resolvedMediaCache?: ResolvedMediaCache;
@@ -216,11 +145,11 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
 
   // A task to resolve target media if lazy loading is disabled.
   protected _mediaResolutionTask = new Task<
-    [FrigateBrowseMediaSource | undefined],
+    [FrigateBrowseMediaSource | null | undefined],
     void
   >(
     this,
-    async ([target]: (FrigateBrowseMediaSource | undefined)[]): Promise<void> => {
+    async ([target]: (FrigateBrowseMediaSource | null | undefined)[]): Promise<void> => {
       for (
         let i = 0;
         !this.viewerConfig?.lazy_load &&
@@ -254,12 +183,12 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     if (this._carousel && changedProperties.has('view')) {
       const oldView = changedProperties.get('view') as View | undefined;
       if (oldView) {
-        if (oldView.target != this.view?.target) {
+        if (oldView.target !== this.view?.target) {
           // If the media target is different entirely, reset the carousel.
           this._destroyCarousel();
-        } else if (this.view?.childIndex != oldView.childIndex) {
-          const slide = this._getSlideForChild(this.view?.childIndex);
-          if (slide !== undefined && slide !== this.carouselSelected()) {
+        } else if (this.view.childIndex != oldView.childIndex) {
+          const slide = this._getSlideForChild(this.view.childIndex);
+          if (slide !== null && slide !== this.carouselSelected()) {
             // If the media target is the same as already loaded, but isn't of
             // the selected slide, scroll to that slide.
             this.carouselScrollTo(slide);
@@ -297,14 +226,19 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     //   need to be destroyed here.
   }
 
-  protected _getSlideForChild(childIndex: number | undefined): number | undefined {
-    if (childIndex === undefined) {
-      return undefined;
+  /**
+   * Get the slide number given a media child number.
+   * @param childIndex The child index (relative to `view.target`)
+   * @returns A number or null if the child is not found.
+   */
+  protected _getSlideForChild(childIndex: number | null | undefined): number | null {
+    if (childIndex === undefined || childIndex === null) {
+      return null;
     }
     const slideIndex = Object.keys(this._slideToChild).find(
       (key) => this._slideToChild[key] === childIndex,
     );
-    return slideIndex !== undefined ? Number(slideIndex) : undefined;
+    return slideIndex !== undefined ? Number(slideIndex) : null;
   }
 
   /**
@@ -322,7 +256,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   protected _getOptions(): EmblaOptionsType {
     return {
       // Start the carousel on the selected child number.
-      startIndex: this._getSlideForChild(this.view?.childIndex),
+      startIndex: this._getSlideForChild(this.view?.childIndex) ?? 0,
       draggable: this.viewerConfig?.draggable,
     };
   }
@@ -331,23 +265,19 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
    * Get the Embla plugins to use.
    * @returns An EmblaOptionsType object or undefined for no options.
    */
-  protected _getPlugins(): EmblaPluginType[] | undefined {
+  protected _getPlugins(): EmblaPluginType[] {
     return [
+      ...super._getPlugins(),
       Lazyload({
         lazyloadCallback: this.viewerConfig?.lazy_load
           ? this._lazyloadSlide.bind(this)
           : undefined,
       }),
-      // Don't need autoplay/pause for snapshots.
-      ...(this.view?.is('clip')
-        ? [
-            AutoMediaPlugin({
-              playerSelector: 'frigate-card-ha-hls-player',
-              autoPlayWhenVisible: !!this.viewerConfig?.auto_play,
-              autoUnmuteWhenVisible: !!this.viewerConfig?.auto_unmute,
-            }),
-          ]
-        : []),
+      AutoMediaPlugin({
+        playerSelector: 'frigate-card-ha-hls-player',
+        autoPlayWhenVisible: !!this.viewerConfig?.auto_play,
+        autoUnmuteWhenVisible: !!this.viewerConfig?.auto_unmute,
+      }),
     ];
   }
 
@@ -361,7 +291,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       !this.view ||
       !this.view.target ||
       !this.view.target.children ||
-      this.view.childIndex === undefined
+      this.view.childIndex === null
     ) {
       return null;
     }
@@ -409,7 +339,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       !this.view.target ||
       !this.view.target.children ||
       !this.view.target.children.length ||
-      !this.browseMediaQueryParameters
+      !this.browseMediaQueryParametersBase
     ) {
       return null;
     }
@@ -452,7 +382,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
 
     try {
       clips = await BrowseMediaUtil.browseMediaQuery(this.hass, {
-        ...this.browseMediaQueryParameters,
+        ...this.browseMediaQueryParametersBase,
         mediaType: 'clips',
         before: latest,
         after: earliest,
@@ -473,12 +403,10 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       }
       const clipStartTime = BrowseMediaUtil.getEventStartTime(child);
       if (clipStartTime && clipStartTime === snapshotStartTime) {
-        return new View({
+        return this.view.evolve({
           view: 'clip',
-          camera: this.view.camera,
           target: clips,
           childIndex: i,
-          previous: this.view,
         });
       }
     }
@@ -501,7 +429,6 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
         this.view
           .evolve({
             childIndex: childIndex,
-            previous: this.view,
           })
           .dispatchChangeEvent(this);
       }
@@ -518,7 +445,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     const childIndex: number | undefined = this._slideToChild[index];
 
     if (
-      childIndex == undefined ||
+      childIndex === undefined ||
       !this.hass ||
       !this.view ||
       !this.view.target ||
@@ -699,7 +626,8 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     if (
       !this.view ||
       !this.viewerConfig ||
-      !BrowseMediaUtil.isTrueMedia(mediaToRender)
+      !BrowseMediaUtil.isTrueMedia(mediaToRender) ||
+      !['video', 'image'].includes(mediaToRender.media_content_type)
     ) {
       return;
     }
@@ -712,7 +640,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
 
     return html`
       <div class="embla__slide">
-        ${this.view.isClipRelatedView()
+        ${mediaToRender.media_content_type === 'video'
           ? html`<frigate-card-ha-hls-player
               allow-exoplayer
               aria-label="${mediaToRender.title}"

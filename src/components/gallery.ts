@@ -13,6 +13,7 @@ import {
 } from '../types.js';
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import { View } from '../view.js';
+import { localize } from '../localize/localize.js';
 import { renderProgressIndicator } from './message.js';
 import { stopEventFromActivatingCardWideActions } from '../common.js';
 
@@ -37,17 +38,18 @@ export class FrigateCardGallery extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.view || !this.cameraConfig) {
+    if (!this.hass || !this.view || !this.cameraConfig || !this.view.isGalleryView()) {
       return;
     }
 
     if (!this.view.target) {
-      const browseMediaQueryParameters =
-        BrowseMediaUtil.getBrowseMediaQueryParametersOrDispatchError(
+      const browseMediaQueryParameters = BrowseMediaUtil.setMediaTypeFromView(
+        BrowseMediaUtil.getBrowseMediaQueryParametersBaseOrDispatchError(
           this,
-          this.view,
           this.cameraConfig,
-        );
+        ),
+        this.view,
+      );
       if (!browseMediaQueryParameters) {
         return;
       }
@@ -128,6 +130,18 @@ export class FrigateCardGalleryCore extends LitElement {
   }
 
   /**
+   * Determine whether the back arrow should be displayed.
+   * @returns `true` if the back arrow should be displayed, `false` otherwise.
+   */
+  protected _showBackArrow(): boolean {
+    return (
+      !!this.view?.previous &&
+      !!this.view.previous.target &&
+      this.view.previous.view === this.view.view
+    );
+  }
+
+  /**
    * Master render method.
    * @returns A rendered template.
    */
@@ -156,7 +170,7 @@ export class FrigateCardGalleryCore extends LitElement {
     };
 
     return html` <ul class="mdc-image-list frigate-card-gallery">
-      ${this.view && this.view.previous
+      ${this._showBackArrow()
         ? html`<li class="mdc-image-list__item" style="${styleMap(itemStyle)}">
             <div class="mdc-image-list__image-aspect-container">
               <div class="mdc-image-list__image">
@@ -202,26 +216,28 @@ export class FrigateCardGalleryCore extends LitElement {
                   </div>`
                 : child.thumbnail
                 ? html`<img
-                    aria-label="${child.title}"
-                    class="mdc-image-list__image"
-                    src="${child.thumbnail}"
-                    title="${child.title}"
-                    @click=${(ev) => {
-                      if (this.view) {
-                        this.view
-                          .evolve({
-                            view: this.view.is('clips') ? 'clip' : 'snapshot',
-                            childIndex: index,
-                            previous: this.view,
-                          })
-                          .dispatchChangeEvent(this);
-                      }
-                      stopEventFromActivatingCardWideActions(ev);
-                    }}
-                  />${child.frigate?.event?.retain_indefinitely ? html`<ha-icon
-                      class="favorite"
-                      icon="mdi:star"
-                      />` : ``}`
+                      aria-label="${child.title}"
+                      class="mdc-image-list__image"
+                      src="${child.thumbnail}"
+                      title="${child.title}"
+                      @click=${(ev: Event) => {
+                        if (this.view) {
+                          this.view
+                            .evolve({
+                              view: this.view.is('clips') ? 'clip' : 'snapshot',
+                              childIndex: index,
+                            })
+                            .dispatchChangeEvent(this);
+                        }
+                        stopEventFromActivatingCardWideActions(ev);
+                      }}
+                    />${child.frigate?.event?.retain_indefinitely
+                      ? html`<ha-icon
+                          class="favorite"
+                          icon="mdi:star"
+                          title=${localize('thumbnail.retain_indefinitely')}
+                        />`
+                      : ``}`
                 : ``}
             </div>
           </li>`,

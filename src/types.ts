@@ -35,7 +35,14 @@ const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
   'timeline',
 ] as const;
 
-export type FrigateCardView = typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED[number];
+const FRIGATE_CARD_VIEWS = [
+  ...FRIGATE_CARD_VIEWS_USER_SPECIFIED,
+
+  // Event: A clip or snapshot (timeline may produce mixed media lists).
+  'event',
+] as const;
+
+export type FrigateCardView = typeof FRIGATE_CARD_VIEWS[number];
 
 const FRIGATE_MENU_MODES = [
   'none',
@@ -335,8 +342,8 @@ export type MenuStateIcon = z.infer<typeof menuStateIconSchema>;
 const menuSubmenuItemSchema = elementsBaseSchema.extend({
   entity: z.string().optional(),
   icon: z.string().optional(),
-  state_color: z.boolean().default(true),
-  selected: z.boolean().default(false),
+  state_color: z.boolean().default(true).optional(),
+  selected: z.boolean().default(false).optional(),
 });
 export type MenuSubmenuItem = z.infer<typeof menuSubmenuItemSchema>;
 
@@ -434,8 +441,10 @@ export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
  */
 
 const thumbnailsControlSchema = z.object({
-  mode: z.enum(['none', 'above', 'below']),
+  mode: z.enum(['none', 'above', 'below', 'left', 'right']),
   size: z.string().optional(),
+  show_details: z.boolean().optional(),
+  show_controls: z.boolean().optional(),
 });
 export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlSchema>;
 
@@ -488,6 +497,8 @@ const liveConfigDefault = {
     thumbnails: {
       media: 'clips' as const,
       size: '100px',
+      show_details: false,
+      show_controls: true,
       mode: 'none' as const,
     },
     title: {
@@ -547,6 +558,12 @@ const liveOverridableConfigSchema = z
             ),
             size: thumbnailsControlSchema.shape.size.default(
               liveConfigDefault.controls.thumbnails.size,
+            ),
+            show_details: thumbnailsControlSchema.shape.show_details.default(
+              liveConfigDefault.controls.thumbnails.show_details,
+            ),
+            show_controls: thumbnailsControlSchema.shape.show_controls.default(
+              liveConfigDefault.controls.thumbnails.show_controls,
             ),
             media: z
               .enum(['clips', 'snapshots'])
@@ -642,6 +659,8 @@ const viewerConfigDefault = {
     thumbnails: {
       size: '100px',
       mode: 'none' as const,
+      show_details: false,
+      show_controls: true,
     },
     title: {
       mode: 'popup-bottom-right' as const,
@@ -680,6 +699,12 @@ const viewerConfigSchema = z
             ),
             size: thumbnailsControlSchema.shape.size.default(
               viewerConfigDefault.controls.thumbnails.size,
+            ),
+            show_details: thumbnailsControlSchema.shape.show_details.default(
+              viewerConfigDefault.controls.thumbnails.show_details,
+            ),
+            show_controls: thumbnailsControlSchema.shape.show_controls.default(
+              viewerConfigDefault.controls.thumbnails.show_controls,
             ),
           })
           .default(viewerConfigDefault.controls.thumbnails),
@@ -745,38 +770,56 @@ const dimensionsConfigSchema = z
  * Timeline configuration section.
  */
 const timelineConfigDefault = {
+  clustering_threshold: 3,
+  media: 'all' as const,
+  window_seconds: 60 * 60,
   controls: {
     thumbnails: {
-      size_pixels: 75,
-      overlap_pixels: 25,
-      clustering_threshold: 3,
+      mode: 'left' as const,
+      size: '100px' as const,
+      show_details: true,
+      show_controls: true,
     },
   },
 };
 const timelineConfigSchema = z
   .object({
+    clustering_threshold: z
+      .number()
+      .optional()
+      .default(timelineConfigDefault.clustering_threshold),
+    media: z
+      .enum(['all', 'clips', 'snapshots'])
+      .optional()
+      .default(timelineConfigDefault.media),
+    window_seconds: z
+      .number()
+      .min(1 * 60)
+      .max(24 * 60 * 60)
+      .optional()
+      .default(timelineConfigDefault.window_seconds),
     controls: z
       .object({
-        thumbnails: z
-          .object({
-            size_pixels: z
-              .number()
-              .min(50)
-              .max(THUMBNAIL_WIDTH_MAX)
-              .default(timelineConfigDefault.controls.thumbnails.size_pixels),
-            overlap_pixels: z
-              .number()
-              .min(0)
-              .max(THUMBNAIL_WIDTH_MAX)
-              .default(timelineConfigDefault.controls.thumbnails.overlap_pixels),
-            clustering_threshold: z
-              .number()
-              .default(timelineConfigDefault.controls.thumbnails.clustering_threshold),
+        thumbnails: thumbnailsControlSchema
+          .extend({
+            mode: thumbnailsControlSchema.shape.mode.default(
+              timelineConfigDefault.controls.thumbnails.mode,
+            ),
+            size: thumbnailsControlSchema.shape.size.default(
+              timelineConfigDefault.controls.thumbnails.size,
+            ),
+            show_details: thumbnailsControlSchema.shape.show_details.default(
+              timelineConfigDefault.controls.thumbnails.show_details,
+            ),
+            show_controls: thumbnailsControlSchema.shape.show_controls.default(
+              timelineConfigDefault.controls.thumbnails.show_controls,
+            ),
           })
           .default(timelineConfigDefault.controls.thumbnails),
       })
       .default(timelineConfigDefault.controls),
   })
+  .merge(actionsSchema)
   .default(timelineConfigDefault);
 export type TimelineConfig = z.infer<typeof timelineConfigSchema>;
 
@@ -860,8 +903,8 @@ export interface ExtendedHomeAssistant {
   hassUrl(path?): string;
 }
 
-export interface BrowseMediaQueryParameters {
-  mediaType: 'clips' | 'snapshots';
+export interface BrowseMediaQueryParametersBase {
+  mediaType?: 'clips' | 'snapshots';
   clientId: string;
   cameraName: string;
   label?: string;
@@ -869,6 +912,10 @@ export interface BrowseMediaQueryParameters {
   before?: number;
   after?: number;
   unlimited?: boolean;
+}
+
+export interface BrowseMediaQueryParameters extends BrowseMediaQueryParametersBase {
+  mediaType: 'clips' | 'snapshots';
 }
 
 export interface BrowseMediaNeighbors {
@@ -912,9 +959,8 @@ export interface FrigateCardMediaPlayer {
  * Home Assistant API types.
  */
 
-export const MEDIA_CLASS_PLAYLIST = "playlist" as const;
-export const MEDIA_CLASS_VIDEO = "video" as const;
-export const MEDIA_TYPE_VIDEO = "video" as const;
+export const MEDIA_CLASS_PLAYLIST = 'playlist' as const;
+export const MEDIA_TYPE_PLAYLIST = 'playlist' as const;
 
 // Recursive type, cannot use type interference:
 // See: https://github.com/colinhacks/zod#recursive-types
@@ -932,22 +978,24 @@ interface BrowseMediaSource {
   children?: BrowseMediaSource[] | null;
 }
 
+export interface FrigateEvent {
+  camera: string;
+  end_time?: number;
+  false_positive: boolean;
+  has_clip: boolean;
+  has_snapshot: boolean;
+  id: string;
+  label: string;
+  start_time: number;
+  top_score: number;
+  zones: string[];
+  retain_indefinitely?: boolean;
+}
+
 export interface FrigateBrowseMediaSource extends BrowseMediaSource {
   children?: FrigateBrowseMediaSource[] | null;
   frigate?: {
-    event: {
-      camera: string;
-      end_time: number;
-      false_positive: boolean;
-      has_clip: boolean;
-      has_snapshot: boolean;
-      id: string;
-      label: string;
-      start_time: number;
-      top_score: number;
-      zones: string[];
-      retain_indefinitely: boolean;
-    };
+    event: FrigateEvent;
   };
 }
 
@@ -976,7 +1024,7 @@ export const frigateBrowseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.
             start_time: z.number(),
             top_score: z.number(),
             zones: z.string().array(),
-            retain_indefinitely: z.boolean(),
+            retain_indefinitely: z.boolean().optional(),
           }),
         })
         .optional(),
