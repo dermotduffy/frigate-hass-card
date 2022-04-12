@@ -78,8 +78,6 @@ export class FrigateCardThumbnail extends LitElement {
       return;
     }
 
-    console.info;
-
     return html` <img
         aria-label="${label ?? ''}"
         src="${thumbnail}"

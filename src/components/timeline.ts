@@ -1,5 +1,3 @@
-// TODO: Search for TODOs and logging statements.
-
 import {
   CSSResultGroup,
   LitElement,
@@ -472,9 +470,6 @@ export class FrigateCardTimelineCore extends LitElement {
     if (!properties.byUser) {
       return;
     }
-    console.info(
-      `Range changed: ${properties.start} -> ${properties.end} [${this._events.dataset.length}]`,
-    );
     if (this.hass && this.cameras && this._timeline && this.timelineConfig) {
       this._events
         .fetchEventsIfNecessary(
@@ -488,9 +483,8 @@ export class FrigateCardTimelineCore extends LitElement {
         .then(() => {
           if (this._timeline) {
             const thumbnails = this._generateThumbnails();
-            // Update the view to reflect the new thumbnails and manually set
-            // timeline window.
-            console.info('=========> Evolve view from Range');
+            // Update the view to reflect the new thumbnails and the timeline
+            // window in the context.
             this.view
               ?.evolve({
                 target: thumbnails?.target ?? null,
@@ -519,7 +513,7 @@ export class FrigateCardTimelineCore extends LitElement {
           (child) => child.frigate?.event.id === data.items[0],
         )
       : null;
-    console.info('=========> Evolve view from select');
+
     this.view
       ?.evolve({
         childIndex: childIndex,
@@ -806,9 +800,6 @@ export class FrigateCardTimelineCore extends LitElement {
     const timelineWindow = this._timeline.getWindow();
 
     if (context?.window) {
-      console.info(
-        `Setting window from context (${context.window.start} -> ${context.window.end}`,
-      );
       if (!isEqual(context.window, timelineWindow)) {
         this._timeline.setWindow(context.window.start, context.window.end);
       }
@@ -821,7 +812,6 @@ export class FrigateCardTimelineCore extends LitElement {
         eventStart > timelineWindow.end ||
         (eventEnd && (eventEnd < timelineWindow.start || eventEnd > timelineWindow.end))
       ) {
-        console.info(`Setting window from event ${windowStart} -> ${windowEnd}`);
         this._timeline.setWindow(windowStart, windowEnd);
       }
 
@@ -835,7 +825,6 @@ export class FrigateCardTimelineCore extends LitElement {
         }
       }
     } else {
-      console.info(`Setting window from live ${windowStart} -> ${windowEnd}`);
       this._timeline.setWindow(windowStart, windowEnd);
     }
 
@@ -850,8 +839,6 @@ export class FrigateCardTimelineCore extends LitElement {
     const currentContext = this.view.context as TimelineViewContext | null;
     if (currentContext?.dateFetch !== this._events.lastFetchDate) {
       const thumbnails = this._generateThumbnails();
-      console.info('=========> Evolve view from thumbnails');
-
       this.view
         ?.evolve({
           target: thumbnails?.target ?? null,
@@ -873,7 +860,6 @@ export class FrigateCardTimelineCore extends LitElement {
     if (this._events.lastFetchDate) {
       newContext.dateFetch = this._events.lastFetchDate;
     }
-    console.info(`returning ${JSON.stringify(newContext)}`);
     return newContext || null;
   }
 
@@ -883,7 +869,6 @@ export class FrigateCardTimelineCore extends LitElement {
    */
   protected updated(changedProperties: PropertyValues): void {
     super.updated(changedProperties);
-    console.info(changedProperties);
 
     if (changedProperties.has('cameras')) {
       this._events.clear();
