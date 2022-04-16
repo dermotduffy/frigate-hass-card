@@ -1,15 +1,12 @@
-@use './favorite.scss';
-
 :host {
   display: flex;
   flex-direction: row;
+  box-sizing: border-box;
 
-  --frigate-card-thumbnail-size: 100px;
+  // Ensure control icons are relative to the thumbnail.
+  position: relative;
 
-  // Do not let the contain expand to fill more height than the height of the
-  // thumbnail. Without this the thumbnail carousel will allow the thumbnail to
-  // expand to the full height of the viewport on a vertical carousel.
-  max-height: var(--frigate-card-thumbnail-size);
+  --frigate-card-max-thumbnail-size: 175px;
 }
 
 :host([details]) {
@@ -31,10 +28,10 @@ img {
   object-fit: cover;
 
   // Restrict images to a maximum of thumbnail size.
-  max-width: var(--frigate-card-thumbnail-size);
-  max-height: var(--frigate-card-thumbnail-size);
-  min-width: var(--frigate-card-thumbnail-size);
-  min-height: var(--frigate-card-thumbnail-size);
+  aspect-ratio: 1 / 1;
+
+  max-width: var(--frigate-card-max-thumbnail-size);
+  max-height: var(--frigate-card-max-thumbnail-size);
 
   transition: transform 0.2s linear;
 }
@@ -42,27 +39,18 @@ img:hover {
   transform: scale(1.04);
 }
 
-div.details {
-  display: flex;
-
-  width: 200px;
-  margin-left: 5px;
-  padding: 8px;
-  color: var(--primary-text-color);
-}
-div.details div {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-div.details div.left {
-  flex: 1;
+ha-icon.favorite {
+  position: absolute;
+  color: gold;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  opacity: 0.8;
 }
 
-div.larger {
-  font-size: 1.5rem;
-}
-
-span.heading {
-  font-weight: bold;
+ha-icon.timeline {
+  position: absolute;
+  color: var(--primary-color);
+  right: 0px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
 }

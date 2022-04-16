@@ -235,7 +235,8 @@
   "event": {
     "start": "Start",
     "duration": "Duration",
-    "in_progress": "In Progress"
+    "in_progress": "In Progress",
+    "score": "Score"
   },
   "thumbnail": {
     "retain_indefinitely": "Event will be indefinitely retained",
