@@ -1,6 +1,5 @@
 // TODO: Add details & controls & size support
-// TODO: Remove mini support if it's not actually needed?
-// TODO: automatic upgrade for thumbnail sizes in px
+// TODO: automatic upgrade for thumbnail sizes in px and menu buttons in px
 // TODO: automatic remove of min_columns
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

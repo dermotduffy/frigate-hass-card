@@ -5,9 +5,11 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant, LovelaceCardEditor, fireEvent } from 'custom-card-helpers';
 import { localize } from './localize/localize.js';
 import {
-  frigateCardConfigDefaults,
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
+  THUMBNAIL_WIDTH_MAX,
+  THUMBNAIL_WIDTH_MIN,
+  frigateCardConfigDefaults,
 } from './types.js';
 
 import {
@@ -843,7 +845,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html`
               <div class="values">
                 ${this._renderOptionSelector(CONF_MENU_MODE, this._menuModes)}
-                ${this._renderStringInput(CONF_MENU_BUTTON_SIZE)}
+                ${this._renderNumberInput(CONF_MENU_BUTTON_SIZE)}
                 ${this._renderSwitch(
                   CONF_MENU_BUTTONS_FRIGATE,
                   defaults.menu.buttons.frigate,
@@ -900,7 +902,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
                   this._liveNextPreviousControlStyles,
                 )}
-                ${this._renderStringInput(CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE)}
+                ${this._renderNumberInput(CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE)}
                 ${this._renderOptionSelector(
                   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
                   this._thumbnailModes,
@@ -909,7 +911,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
                   this._thumbnailMedias,
                 )}
-                ${this._renderStringInput(CONF_LIVE_CONTROLS_THUMBNAILS_SIZE)}
+                ${this._renderNumberInput(
+                  CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
+                  THUMBNAIL_WIDTH_MIN,
+                  THUMBNAIL_WIDTH_MAX,
+                )}
                 ${this._renderOptionSelector(
                   CONF_LIVE_CONTROLS_TITLE_MODE,
                   this._titleModes,
@@ -963,12 +969,16 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
                 this._eventViewerNextPreviousControlStyles,
               )}
-              ${this._renderStringInput(CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE)}
+              ${this._renderNumberInput(CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE)}
               ${this._renderOptionSelector(
                 CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE,
                 this._thumbnailModes,
               )}
-              ${this._renderStringInput(CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE)}
+              ${this._renderNumberInput(
+                CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE,
+                THUMBNAIL_WIDTH_MIN,
+                THUMBNAIL_WIDTH_MAX,
+              )}
               ${this._renderSwitch(
                 CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
                 defaults.event_viewer.controls.thumbnails.show_details,
@@ -1005,12 +1015,19 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html` <div class="values">
               ${this._renderNumberInput(CONF_TIMELINE_WINDOW_SECONDS)}
               ${this._renderNumberInput(CONF_TIMELINE_CLUSTERING_THRESHOLD)}
-              ${this._renderOptionSelector(CONF_TIMELINE_MEDIA, this._timelineMediaTypes)}
+              ${this._renderOptionSelector(
+                CONF_TIMELINE_MEDIA,
+                this._timelineMediaTypes,
+              )}
               ${this._renderOptionSelector(
                 CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
                 this._thumbnailModes,
               )}
-              ${this._renderStringInput(CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE)}
+              ${this._renderNumberInput(
+                CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
+                THUMBNAIL_WIDTH_MIN,
+                THUMBNAIL_WIDTH_MAX,
+              )}
               ${this._renderSwitch(
                 CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
                 defaults.timeline.controls.thumbnails.show_details,

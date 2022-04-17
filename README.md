@@ -170,7 +170,7 @@ menu:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `mode` | `hidden-top` | :white_check_mark: | The menu mode to show by default. See [menu modes](#menu-modes) below.|
-| `button_size` | `40px` | :white_check_mark: | The size of the menu buttons [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
+| `button_size` | 40 | :white_check_mark: | The size of the menu buttons in pixels.|
 | `buttons` | | :white_check_mark: | Whether to show or hide built-in buttons. See below. |
 
 #### Menu Options: Buttons
@@ -258,7 +258,7 @@ live:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `mode` | `none` | :white_check_mark: | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).|
-| `size` | `100px` | :white_check_mark: | The size of the thumbnails in the thumbnail carousel [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
+| `size` | 100 | :white_check_mark: | The size of the thumbnails in the thumbnail carousel in pixels.|
 | `show_details` | `false` | :white_check_mark: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
 | `show_controls` | `true` | :white_check_mark: | Whether to show event controls (e.g. timeline icon, favorite icon) alongside the thumbnail.|
 | `media` | `clips` | :white_check_mark: | Whether to show `clips` or `snapshots` in the thumbnail carousel in the `live` view.|
@@ -276,7 +276,7 @@ live:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `style` | `chevrons` | :white_check_mark: | When viewing live cameras, what kind of controls to show to move to the previous/next camera. Acceptable values: `chevrons`, `icons`, `none` . |
-| `size` | `48px` | :white_check_mark: | The size of the next/previous controls [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
+| `size` | 48 | :white_check_mark: | The size of the next/previous controls in pixels.|
 
 <a name="live-controls-title"></a>
 
@@ -328,7 +328,7 @@ event_viewer:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `style` | `thumbnails` | :heavy_multiplication_x: | When viewing media, what kind of controls to show to move to the previous/next media item. Acceptable values: `thumbnails`, `chevrons`, `none` . |
-| `size` | `48px` | :heavy_multiplication_x: | The size of the next/previous controls [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
+| `size` | 48 | :heavy_multiplication_x: | The size of the next/previous controls in pixels.|
 
 #### Event Viewer Controls: Thumbnails
 
@@ -343,7 +343,7 @@ event_viewer:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `mode` | `none` | :heavy_multiplication_x: | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).|
-| `size` | `100px` | :heavy_multiplication_x: | The size of the thumbnails in the thumbnail carousel [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
+| `size` | 100 | :heavy_multiplication_x: | The size of the thumbnails in the thumbnail carousel pixels.|
 | `show_details` | `false` | :heavy_multiplication_x: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
 | `show_controls` | `true` | :heavy_multiplication_x: | Whether to show event controls (e.g. timeline icon, favorite icon) alongside the thumbnail.|
 
@@ -423,7 +423,7 @@ timeline:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `mode` | `none` | :heavy_multiplication_x: | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).|
-| `size` | `100px` | :heavy_multiplication_x: | The size of the thumbnails in the thumbnail carousel [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
+| `size` | 100 | :heavy_multiplication_x: | The size of the thumbnails in the thumbnail carousel in pixels.|
 | `show_details` | `false` | :heavy_multiplication_x: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
 | `show_controls` | `true` | :heavy_multiplication_x: | Whether to show event controls (e.g. timeline icon, favorite icon) alongside the thumbnail.|
 

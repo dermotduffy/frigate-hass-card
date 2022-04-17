@@ -30,20 +30,16 @@ export class FrigateCardThumbnailDetails extends LitElement {
     return html`<div class="left">
         <div class="larger">${prettifyFrigateName(this.event.label)}</div>
         <div>
-          <span>
             <span class="heading">${localize('event.start')}:</span>
-            ${format(fromUnixTime(this.event.start_time), 'HH:mm:ss')}
-          </span>
+            <span>${format(fromUnixTime(this.event.start_time), 'HH:mm:ss')}</span>
         </div>
         <div>
-          <span>
             <span class="heading">${localize('event.duration')}:</span>
-            ${getEventDurationString(this.event)}
-          </span>
+            <span>${getEventDurationString(this.event)}</span>
         </div>
       </div>
       <div class="right">
-        <div class="larger">${score}</div>
+        <span class="larger">${score}</span>
       </div>`;
   }
 

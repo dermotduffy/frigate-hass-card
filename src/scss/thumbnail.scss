@@ -1,3 +1,5 @@
+@use "const.scss";
+
 :host {
   display: flex;
   flex-direction: row;
@@ -5,8 +7,6 @@
 
   // Ensure control icons are relative to the thumbnail.
   position: relative;
-
-  --frigate-card-max-thumbnail-size: 175px;
 }
 
 :host([details]) {
@@ -29,9 +29,10 @@ img {
 
   // Restrict images to a maximum of thumbnail size.
   aspect-ratio: 1 / 1;
+  height: 100%;
 
-  max-width: var(--frigate-card-max-thumbnail-size);
-  max-height: var(--frigate-card-max-thumbnail-size);
+  max-width: var(--frigate-card-thumbnail-size-max);
+  max-height: var(--frigate-card-thumbnail-size-max);
 
   transition: transform 0.2s linear;
 }

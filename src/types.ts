@@ -16,6 +16,7 @@ import { deepRemoveDefaults } from './zod-util';
 
 // The maximum width thumbnail Frigate returns
 export const THUMBNAIL_WIDTH_MAX = 175;
+export const THUMBNAIL_WIDTH_MIN = 75;
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -442,7 +443,7 @@ export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
 
 const thumbnailsControlSchema = z.object({
   mode: z.enum(['none', 'above', 'below', 'left', 'right']),
-  size: z.number().min(1).max(THUMBNAIL_WIDTH_MAX).optional(),
+  size: z.number().min(THUMBNAIL_WIDTH_MIN).max(THUMBNAIL_WIDTH_MAX).optional(),
   show_details: z.boolean().optional(),
   show_controls: z.boolean().optional(),
 });
@@ -617,7 +618,7 @@ const menuConfigDefault = {
     frigate_ui: true,
     fullscreen: true,
   },
-  button_size: '40px',
+  button_size: 40,
 };
 
 const menuConfigSchema = z
@@ -637,7 +638,7 @@ const menuConfigSchema = z
         fullscreen: z.boolean().default(menuConfigDefault.buttons.fullscreen),
       })
       .default(menuConfigDefault.buttons),
-    button_size: z.string().default(menuConfigDefault.button_size),
+    button_size: z.number().min(1).default(menuConfigDefault.button_size),
   })
   .default(menuConfigDefault);
 export type MenuConfig = z.infer<typeof menuConfigSchema>;

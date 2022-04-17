@@ -1,3 +1,5 @@
+@use "const.scss";
+
 :host {
   --frigate-card-carousel-thumbnail-opacity: 1.0;
 }
@@ -18,4 +20,13 @@
 }
 .embla__slide.slide-selected {
   opacity: 1.0;
+}
+
+frigate-card-thumbnail[details] {
+  width: var(--frigate-card-thumbnail-details-width);
+  height: var(--frigate-card-thumbnail-size);
+}
+frigate-card-thumbnail:not([details]) {
+  width: var(--frigate-card-thumbnail-size);
+  height: var(--frigate-card-thumbnail-size);
 }

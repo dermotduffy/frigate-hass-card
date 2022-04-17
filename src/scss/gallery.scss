@@ -1,3 +1,5 @@
+@use "const.scss";
+
 :host {
   width: 100%;
   height: 100%;
@@ -11,7 +13,6 @@
 
   --frigate-card-gallery-gap: 3px;
   --frigate-card-gallery-columns: 4;
-  --frigate-card-thumbnail-size: 100px;
 
   display: grid;
   grid-template-columns: repeat(var(--frigate-card-gallery-columns), minmax(0, 1fr));
