@@ -374,7 +374,9 @@ event_gallery:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `min_columns` | `5` | :heavy_multiplication_x: | The minimum number of columns to show in the gallery -- smaller values will render fewer but larger thumbnail columns. Thumbnails will never be stretched beyond their intrinsic size (typically `175px`). All available space (in normal mode, or fullscreen mode) will be occupied by the gallery, so more columns than `min_columns` will often be rendered if space allows for more full-sized thumbnails. For normal sized Lovelace cards (`492px` wide), this typically means there'll never be fewer than 3 columns rendered (as otherwise the thumbnails would need to stretch beyond their actual size). Must be `1 <= x <= 10`. |
+| `size` | 100 | :heavy_multiplication_x: | The size of the thumbnails in the event gallery in pixels.|
+| `show_details` | `false` | :heavy_multiplication_x: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
+| `show_controls` | `true` | :heavy_multiplication_x: | Whether to show event controls (e.g. timeline icon, favorite icon) alongside the thumbnail.|
 | `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `event_gallery` (e.g. `clips`, `snapshots`). See [actions](#actions) below.|
 
 ### Image Options

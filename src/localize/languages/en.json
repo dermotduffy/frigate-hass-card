@@ -51,7 +51,13 @@
       "update_seconds": "Refresh default view every X seconds (0=never)"
     },
     "event_gallery": {
-      "min_columns": "Minimum number of columns"
+      "controls": {
+        "thumbnails": {
+          "size": "Event Gallery thumbnails size in pixels",
+          "show_details": "Show event details with thumbnails",
+          "show_controls": "Show event controls with thumbnails"
+        }
+      }
     },
     "event_viewer": {
       "auto_play": "Automatically play media",

@@ -28,7 +28,9 @@ import {
   CONF_CAMERAS_ARRAY_ZONE,
   CONF_DIMENSIONS_ASPECT_RATIO,
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
-  CONF_EVENT_GALLERY_MIN_COLUMNS,
+  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
+  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE,
   CONF_EVENT_VIEWER_AUTO_PLAY,
   CONF_EVENT_VIEWER_AUTO_UNMUTE,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
@@ -943,7 +945,19 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${this._renderOptionSetHeader('event_gallery')}
         ${options.event_gallery.show
           ? html` <div class="values">
-              ${this._renderNumberInput(CONF_EVENT_GALLERY_MIN_COLUMNS, 1, 10)}
+              ${this._renderNumberInput(
+                CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE,
+                THUMBNAIL_WIDTH_MIN,
+                THUMBNAIL_WIDTH_MAX,
+              )}
+              ${this._renderSwitch(
+                CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+                defaults.event_viewer.controls.thumbnails.show_details,
+              )}
+              ${this._renderSwitch(
+                CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
+                defaults.event_viewer.controls.thumbnails.show_controls,
+              )}
             </div>`
           : ''}
         ${this._renderOptionSetHeader('event_viewer')}

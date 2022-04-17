@@ -29,8 +29,12 @@ export const CONF_VIEW_UPDATE_ENTITIES = `${CONF_VIEW}.update_entities` as const
 export const CONF_VIEW_UPDATE_SECONDS = `${CONF_VIEW}.update_seconds` as const;
 
 export const CONF_EVENT_GALLERY = 'event_gallery' as const;
-export const CONF_EVENT_GALLERY_MIN_COLUMNS =
-  `${CONF_EVENT_GALLERY}.min_columns` as const;
+export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS =
+`${CONF_EVENT_GALLERY}.controls.thumbnails.show_details` as const;
+export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_CONTROLS =
+`${CONF_EVENT_GALLERY}.controls.thumbnails.show_controls` as const;
+export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE =
+  `${CONF_EVENT_GALLERY}.controls.thumbnails.size` as const;
 
 export const CONF_EVENT_VIEWER = 'event_viewer' as const;
 export const CONF_EVENT_VIEWER_AUTO_PLAY = `${CONF_EVENT_VIEWER}.auto_play` as const;
