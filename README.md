@@ -825,7 +825,7 @@ You can set a static aspect ratio.
 ```yaml
 [...]
 dimensions:
-  aspect_ratio_mode: dynamic
+  aspect_ratio_mode: static
   aspect_ratio: '4:3'
 ```
 </details>
