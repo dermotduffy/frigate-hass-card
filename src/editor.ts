@@ -5,6 +5,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant, LovelaceCardEditor, fireEvent } from 'custom-card-helpers';
 import { localize } from './localize/localize.js';
 import {
+  BUTTON_SIZE_MIN,
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
@@ -847,7 +848,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html`
               <div class="values">
                 ${this._renderOptionSelector(CONF_MENU_MODE, this._menuModes)}
-                ${this._renderNumberInput(CONF_MENU_BUTTON_SIZE)}
+                ${this._renderNumberInput(CONF_MENU_BUTTON_SIZE, BUTTON_SIZE_MIN)}
                 ${this._renderSwitch(
                   CONF_MENU_BUTTONS_FRIGATE,
                   defaults.menu.buttons.frigate,
@@ -904,7 +905,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
                   this._liveNextPreviousControlStyles,
                 )}
-                ${this._renderNumberInput(CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE)}
+                ${this._renderNumberInput(
+                  CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
+                  BUTTON_SIZE_MIN,
+                )}
                 ${this._renderOptionSelector(
                   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
                   this._thumbnailModes,
@@ -983,7 +987,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
                 this._eventViewerNextPreviousControlStyles,
               )}
-              ${this._renderNumberInput(CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE)}
+              ${this._renderNumberInput(
+                CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
+                BUTTON_SIZE_MIN,
+              )}
               ${this._renderOptionSelector(
                 CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE,
                 this._thumbnailModes,

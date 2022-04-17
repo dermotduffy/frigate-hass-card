@@ -14,7 +14,10 @@ import { z } from 'zod';
 
 import { deepRemoveDefaults } from './zod-util';
 
-// The maximum width thumbnail Frigate returns
+// The min allowed size of buttons.
+export const BUTTON_SIZE_MIN = 20;
+
+// The min/max width thumbnail (Frigate returns a maximum of 175px).
 export const THUMBNAIL_WIDTH_MAX = 175;
 export const THUMBNAIL_WIDTH_MIN = 75;
 
@@ -455,7 +458,7 @@ export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlSchema>;
 
 const nextPreviousControlConfigSchema = z.object({
   style: z.enum(['none', 'chevrons', 'icons', 'thumbnails']),
-  size: z.number().min(1),
+  size: z.number().min(BUTTON_SIZE_MIN),
 });
 export type NextPreviousControlConfig = z.infer<typeof nextPreviousControlConfigSchema>;
 
@@ -638,7 +641,7 @@ const menuConfigSchema = z
         fullscreen: z.boolean().default(menuConfigDefault.buttons.fullscreen),
       })
       .default(menuConfigDefault.buttons),
-    button_size: z.number().min(1).default(menuConfigDefault.button_size),
+    button_size: z.number().min(BUTTON_SIZE_MIN).default(menuConfigDefault.button_size),
   })
   .default(menuConfigDefault);
 export type MenuConfig = z.infer<typeof menuConfigSchema>;
