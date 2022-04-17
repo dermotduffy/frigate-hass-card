@@ -1,5 +1,3 @@
-// TODO: automatic remove of min_columns
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   CSSResultGroup,

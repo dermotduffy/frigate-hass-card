@@ -174,6 +174,12 @@ const createRangedTransform = function (
   };
 };
 
+/**
+ * Convert a value from 'XXpx' to XX (as a number).
+ * @param value Incoming value.
+ * @returns A number, null if the property should be deleted or undefined if it
+ * should be ignored.
+ */
 const toPixelsOrDelete = function (value: unknown): number | null | undefined {
   // Ignore the value if it's a number.
   if (typeof value === 'number') {
@@ -188,6 +194,16 @@ const toPixelsOrDelete = function (value: unknown): number | null | undefined {
   value = value.replace(/px$/i, '');
   return isNaN(value as number) ? null : Number(value);
 };
+
+/**
+ * Request a property be deleted.
+ * @param _value Inbound value (not required).
+ * @returns `null` to request the property be deleted.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const deleteProperty = function (_value: unknown): number | null | undefined {
+  return null;
+}
 
 /**
  * Move a property from one location to another.
@@ -444,5 +460,9 @@ const UPGRADES = [
   upgradeWithOverrides(
     CONF_MENU_BUTTON_SIZE,
     createRangedTransform(toPixelsOrDelete, BUTTON_SIZE_MIN),
+  ),
+  upgradeWithOverrides(
+    'event_gallery.min_columns',
+    deleteProperty
   ),
 ];
