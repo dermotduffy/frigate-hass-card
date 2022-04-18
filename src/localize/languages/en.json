@@ -34,6 +34,12 @@
     },
     "view": {
       "camera_select": "View for newly selected cameras",
+      "dark_mode": "Dark mode",
+      "dark_modes": {
+        "on": "On",
+        "off": "Off",
+        "auto": "Auto"
+      },
       "default": "Default view",
       "views": {
         "live": "Live view",
