@@ -7,6 +7,7 @@ import {
   MoreInfoActionConfig,
   NavigateActionConfig,
   NoActionConfig,
+  Themes,
   ToggleActionConfig,
   UrlActionConfig,
 } from 'custom-card-helpers';
@@ -402,6 +403,7 @@ const viewConfigDefault = {
   update_seconds: 0,
   update_force: false,
   update_cycle_camera: false,
+  dark_mode: 'off' as const,
 };
 const viewConfigSchema = z
   .object({
@@ -417,6 +419,7 @@ const viewConfigSchema = z
     update_cycle_camera: z.boolean().default(viewConfigDefault.update_cycle_camera),
     update_entities: z.string().array().optional(),
     render_entities: z.string().array().optional(),
+    dark_mode: z.enum(['on', 'off', 'auto']).optional(),
   })
   .merge(actionsSchema)
   .default(viewConfigDefault);
@@ -931,6 +934,9 @@ const menuButtonSchema = z.discriminatedUnion('type', [
 export type MenuButton = z.infer<typeof menuButtonSchema>;
 export interface ExtendedHomeAssistant {
   hassUrl(path?): string;
+  themes: Themes & {
+    darkMode?: boolean
+  };
 }
 
 export interface BrowseMediaQueryParametersBase {

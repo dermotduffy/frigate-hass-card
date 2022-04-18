@@ -5,6 +5,10 @@
   position: relative;
 }
 
+:host([dark]) {
+  filter: brightness(50%);
+}
+
 .container {
   position: relative;
   overflow: auto;
