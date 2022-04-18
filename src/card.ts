@@ -193,7 +193,7 @@ export class FrigateCard extends LitElement {
 
     // Manually set hass in the menu, elements and image. This is to allow these
     // to update, without necessarily re-rendering the entire card (re-rendering
-    // interrupts clip playing).
+    // is expensive).
     if (this._hass) {
       if (this._menu) {
         this._menu.hass = this._hass;
@@ -205,6 +205,9 @@ export class FrigateCard extends LitElement {
         this._image.hass = this._hass;
       }
     }
+
+    // Dark mode may depend on HASS.
+    this._setLightOrDarkMode();
   }
 
   /**
@@ -648,6 +651,7 @@ export class FrigateCard extends LitElement {
     this._view = undefined;
     this._message = null;
     this._generateConditionState();
+    this._setLightOrDarkMode();
   }
 
   /**
@@ -685,10 +689,6 @@ export class FrigateCard extends LitElement {
         });
         this._generateConditionState();
 
-        // The default view has been loaded, so can abandon any running
-        // 'screensaver' timer.
-        this._clearInteractionTimer();
-
         // Restart the update timer, so the default view is refreshed at a fixed
         // interval from now (if so configured).
         this._startUpdateTimer();
@@ -696,6 +696,22 @@ export class FrigateCard extends LitElement {
     } else {
       this._view = args.view;
       this._generateConditionState();
+    }
+  }
+
+  /**
+   * Set the light or dark mode.
+   */
+  protected _setLightOrDarkMode(): void {
+    const needDarkMode =
+      this._config.view.dark_mode === 'on' ||
+      (this._config.view.dark_mode === 'auto' &&
+        (!this._interactionTimerID || this._hass?.themes.darkMode));
+
+    if (needDarkMode) {
+      this.setAttribute('dark', '');
+    } else {
+      this.removeAttribute('dark');
     }
   }
 
@@ -965,8 +981,11 @@ export class FrigateCard extends LitElement {
     if (this._getConfig().view.timeout_seconds) {
       this._interactionTimerID = window.setTimeout(() => {
         this._changeView();
+        this._clearInteractionTimer();
+        this._setLightOrDarkMode();
       }, this._getConfig().view.timeout_seconds * 1000);
     }
+    this._setLightOrDarkMode();
   }
 
   /**

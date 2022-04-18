@@ -81,6 +81,7 @@ import {
   CONF_TIMELINE_MEDIA,
   CONF_TIMELINE_WINDOW_SECONDS,
   CONF_VIEW_CAMERA_SELECT,
+  CONF_VIEW_DARK_MODE,
   CONF_VIEW_DEFAULT,
   CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_CYCLE_CAMERA,
@@ -341,6 +342,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'all', label: localize('config.timeline.medias.all') },
     { value: 'clips', label: localize('config.timeline.medias.clips') },
     { value: 'snapshots', label: localize('config.timeline.medias.snapshots') },
+  ];
+
+  protected _darkModes = [
+    { value: '', label: '' },
+    { value: 'on', label: localize('config.view.dark_modes.on') },
+    { value: 'off', label: localize('config.view.dark_modes.off') },
+    { value: 'auto', label: localize('config.view.dark_modes.auto') },
   ];
 
   public setConfig(config: RawFrigateCardConfig): void {
@@ -832,6 +840,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderOptionSelector(
                   CONF_VIEW_CAMERA_SELECT,
                   this._cameraSelectViewModes,
+                )}
+                ${this._renderOptionSelector(
+                  CONF_VIEW_DARK_MODE,
+                  this._darkModes,
                 )}
                 ${this._renderNumberInput(CONF_VIEW_TIMEOUT_SECONDS)}
                 ${this._renderNumberInput(CONF_VIEW_UPDATE_SECONDS)}
