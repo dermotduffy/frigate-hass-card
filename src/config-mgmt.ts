@@ -1,4 +1,4 @@
-import { get, set } from 'lodash-es';
+import { get, isEqual, set } from 'lodash-es';
 import {
   CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
@@ -11,7 +11,10 @@ import {
   CONF_EVENT_VIEWER_AUTO_PLAY,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
+  CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE,
   CONF_IMAGE_URL,
+  CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
+  CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
   CONF_LIVE_PRELOAD,
   CONF_LIVE_WEBRTC_CARD,
   CONF_MENU,
@@ -22,7 +25,13 @@ import {
   CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_ENTITIES,
 } from './const';
-import { RawFrigateCardConfig, RawFrigateCardConfigArray } from './types';
+import {
+  BUTTON_SIZE_MIN,
+  RawFrigateCardConfig,
+  RawFrigateCardConfigArray,
+  THUMBNAIL_WIDTH_MAX,
+  THUMBNAIL_WIDTH_MIN,
+} from './types';
 
 /**
  * Set a configuration value.
@@ -131,7 +140,7 @@ export const copyConfig = function (obj: RawFrigateCardConfig): RawFrigateCardCo
  * @param value The value.
  * @returns `true` is the value is not an object.
  */
-const isNotObject = function (value: unknown) {
+const isNotObject = function (value: unknown): unknown | undefined {
   return typeof value !== 'object' ? value : undefined;
 };
 
@@ -140,9 +149,61 @@ const isNotObject = function (value: unknown) {
  * @param value The value.
  * @returns A number or undefined.
  */
-const toNumberOrIgnore = function (value: unknown) {
+const toNumberOrIgnore = function (value: unknown): number | undefined {
   return isNaN(value as number) ? undefined : Number(value);
 };
+
+/**
+ * Create a transform that will cap a numeric value.
+ * @param value The value.
+ * @returns A number or null.
+ */
+const createRangedTransform = function (
+  transform: (value: unknown) => unknown,
+  min?: number,
+  max?: number,
+): (valueIn: unknown) => unknown {
+  return (value: unknown): unknown => {
+    let transformed = transform(value);
+    if (typeof transformed !== 'number') {
+      return transformed;
+    }
+    transformed = min ? Math.max(min, transformed as number) : transformed;
+    transformed = max ? Math.min(max, transformed as number) : transformed;
+    return transformed;
+  };
+};
+
+/**
+ * Convert a value from 'XXpx' to XX (as a number).
+ * @param value Incoming value.
+ * @returns A number, null if the property should be deleted or undefined if it
+ * should be ignored.
+ */
+const toPixelsOrDelete = function (value: unknown): number | null | undefined {
+  // Ignore the value if it's a number.
+  if (typeof value === 'number') {
+    return undefined;
+  }
+  // Delete the value if it's not a string.
+  if (typeof value !== 'string') {
+    return null;
+  }
+  // Remove 'px' and return the number, unless it's an invalid number -- then
+  // delete it.
+  value = value.replace(/px$/i, '');
+  return isNaN(value as number) ? null : Number(value);
+};
+
+/**
+ * Request a property be deleted.
+ * @param _value Inbound value (not required).
+ * @returns `null` to request the property be deleted.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const deleteProperty = function (_value: unknown): number | null | undefined {
+  return null;
+}
 
 /**
  * Move a property from one location to another.
@@ -158,13 +219,21 @@ export const moveConfigValue = (
   newPath: string,
   transform?: (valueIn: unknown) => unknown,
 ): boolean => {
-  let value = getConfigValue(obj, oldPath);
-  if (transform) {
-    value = transform(value);
+  const inValue = getConfigValue(obj, oldPath);
+  if (inValue === undefined) {
+    return false;
   }
-  if (typeof value !== 'undefined') {
+  const outValue = transform ? transform(inValue) : inValue;
+  if (oldPath === newPath && isEqual(inValue, outValue)) {
+    return false;
+  }
+  if (outValue === null) {
     deleteConfigValue(obj, oldPath);
-    setConfigValue(obj, newPath, value);
+    return true;
+  }
+  if (outValue !== undefined) {
+    deleteConfigValue(obj, oldPath);
+    setConfigValue(obj, newPath, outValue);
     return true;
   }
   return false;
@@ -198,33 +267,6 @@ const upgradeMoveTo = function (
 };
 
 /**
- * Upgrade a property by changing it if it is present.
- * @param path The property path.
- * @param transform A callback that transforms the old value to the new value,
- * if undefined is returned the property is removed.
- * @returns `true` if the configuration was modified.
- */
-const upgradeChangeIfPresent = function (
-  path: string,
-  transform: (valueIn: unknown) => unknown,
-): (obj: RawFrigateCardConfig) => boolean {
-  return function (obj: RawFrigateCardConfig): boolean {
-    const oldValue = getConfigValue(obj, path);
-    if (oldValue !== undefined) {
-      const newValue = transform(oldValue);
-      if (newValue === undefined) {
-        deleteConfigValue(obj, path);
-        return true;
-      } else if (newValue !== oldValue) {
-        setConfigValue(obj, path, newValue);
-        return true;
-      }
-    }
-    return false;
-  };
-};
-
-/**
  * Upgrade by moving a property from one location to another, and moving a
  * property specified in a top-level overrides object.
  * @param oldPath The old property path.
@@ -247,6 +289,19 @@ const upgradeMoveToWithOverrides = function (
       )(obj) || modified;
     return modified;
   };
+};
+
+/**
+ * Upgrade a property in place with overrides.
+ * @param path The old property path.
+ * @param transform An optional transform for the value.
+ * @returns A function that returns `true` if the configuration was modified.
+ */
+const upgradeWithOverrides = function (
+  path: string,
+  transform?: (valueIn: unknown) => unknown,
+): (obj: RawFrigateCardConfig) => boolean {
+  return upgradeMoveToWithOverrides(path, path, transform);
 };
 
 /**
@@ -377,11 +432,37 @@ const UPGRADES = [
   // v3.0.0-rc.1 -> v3.0.0-rc.2
   upgradeArrayValue(
     CONF_CAMERAS,
-    upgradeChangeIfPresent('live_provider', (val) =>
+    upgradeWithOverrides('live_provider', (val) =>
       val === 'frigate' ? 'ha' : val === 'webrtc' ? 'webrtc-card' : val,
     ),
   ),
   upgradeArrayValue(CONF_CAMERAS, upgradeMoveTo('webrtc', 'webrtc_card')),
   upgradeMoveToWithOverrides('live.webrtc', CONF_LIVE_WEBRTC_CARD),
   upgradeMoveToWithOverrides('image.src', CONF_IMAGE_URL),
+
+  // v3.0.0 -> v4.0.0-rc.1
+  upgradeWithOverrides(
+    CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
+    createRangedTransform(toPixelsOrDelete, THUMBNAIL_WIDTH_MIN, THUMBNAIL_WIDTH_MAX),
+  ),
+  upgradeWithOverrides(
+    CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE,
+    createRangedTransform(toPixelsOrDelete, THUMBNAIL_WIDTH_MIN, THUMBNAIL_WIDTH_MAX),
+  ),
+  upgradeWithOverrides(
+    CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
+    createRangedTransform(toPixelsOrDelete, BUTTON_SIZE_MIN),
+  ),
+  upgradeWithOverrides(
+    CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
+    createRangedTransform(toPixelsOrDelete, BUTTON_SIZE_MIN),
+  ),
+  upgradeWithOverrides(
+    CONF_MENU_BUTTON_SIZE,
+    createRangedTransform(toPixelsOrDelete, BUTTON_SIZE_MIN),
+  ),
+  upgradeWithOverrides(
+    'event_gallery.min_columns',
+    deleteProperty
+  ),
 ];

@@ -60,7 +60,10 @@ export class FrigateCardMenu extends LitElement {
   set menuConfig(menuConfig: MenuConfig) {
     this._menuConfig = menuConfig;
     if (menuConfig) {
-      this.style.setProperty('--frigate-card-menu-button-size', menuConfig.button_size);
+      this.style.setProperty(
+        '--frigate-card-menu-button-size',
+        `${menuConfig.button_size}px`,
+      );
     }
     // Store the menu mode as an attribute (used for CSS attribute selectors).
     this.setAttribute('data-mode', menuConfig.mode);

@@ -12,6 +12,44 @@ import {
 import { localize } from '../localize/localize.js';
 
 import thumbnailStyle from '../scss/thumbnail.scss';
+import thumbnailDetailsStyle from '../scss/thumbnail-details.scss';
+
+// The minimum width of a thumbnail with details enabled.
+export const THUMBNAIL_DETAILS_WIDTH_MIN = 300;
+
+@customElement('frigate-card-thumbnail-details')
+export class FrigateCardThumbnailDetails extends LitElement {
+  @property({ attribute: false })
+  public event?: FrigateEvent;
+
+  protected render(): TemplateResult | void {
+    if (!this.event) {
+      return;
+    }
+    const score = (this.event.top_score * 100).toFixed(2) + '%';
+    return html`<div class="left">
+        <div class="larger">${prettifyFrigateName(this.event.label)}</div>
+        <div>
+            <span class="heading">${localize('event.start')}:</span>
+            <span>${format(fromUnixTime(this.event.start_time), 'HH:mm:ss')}</span>
+        </div>
+        <div>
+            <span class="heading">${localize('event.duration')}:</span>
+            <span>${getEventDurationString(this.event)}</span>
+        </div>
+      </div>
+      <div class="right">
+        <span class="larger">${score}</span>
+      </div>`;
+  }
+
+  /**
+   * Get element styles.
+   */
+  static get styles(): CSSResult {
+    return unsafeCSS(thumbnailDetailsStyle);
+  }
+}
 
 @customElement('frigate-card-thumbnail')
 export class FrigateCardThumbnail extends LitElement {
@@ -21,9 +59,9 @@ export class FrigateCardThumbnail extends LitElement {
   @property({ attribute: true, type: Boolean })
   public controls = false;
 
-  @property({ attribute: true })
-  set thumbnail_size(size: string) {
-    this.style.setProperty('--frigate-card-thumbnail-size', String(size));
+  @property({ attribute: true, type: Number })
+  set thumbnail_size(size: number) {
+    this.style.setProperty('--frigate-card-thumbnail-size', `${size}px`);
   }
 
   // ============================
@@ -33,7 +71,7 @@ export class FrigateCardThumbnail extends LitElement {
   protected view?: Readonly<View>;
 
   @property({ attribute: false })
-  public target?: FrigateBrowseMediaSource;
+  public target?: FrigateBrowseMediaSource | null;
 
   @property({ attribute: false })
   public childIndex?: number;
@@ -91,26 +129,9 @@ export class FrigateCardThumbnail extends LitElement {
           />`
         : ``}
       ${this.details && event
-        ? html` <div class="details">
-            <div class="left">
-              <div class="larger">${prettifyFrigateName(event.label)}</div>
-              <div>
-                <span>
-                  <span class="heading">${localize('event.start')}:</span>
-                  ${format(fromUnixTime(event.start_time), 'HH:mm:ss')}
-                </span>
-              </div>
-              <div>
-                <span>
-                  <span class="heading">${localize('event.duration')}:</span>
-                  ${getEventDurationString(event)}
-                </span>
-              </div>
-            </div>
-            <div class="right">
-              <div class="larger">${(event.top_score * 100).toFixed(2) + '%'}</div>
-            </div>
-          </div>`
+        ? html`<frigate-card-thumbnail-details
+            .event=${event}
+          ></frigate-card-thumbnail-details>`
         : html``}
       ${this.controls
         ? html`<ha-icon

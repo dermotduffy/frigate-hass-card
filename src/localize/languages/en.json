@@ -51,7 +51,13 @@
       "update_seconds": "Refresh default view every X seconds (0=never)"
     },
     "event_gallery": {
-      "min_columns": "Minimum number of columns"
+      "controls": {
+        "thumbnails": {
+          "size": "Event Gallery thumbnails size in pixels",
+          "show_details": "Show event details with thumbnails",
+          "show_controls": "Show event controls with thumbnails"
+        }
+      }
     },
     "event_viewer": {
       "auto_play": "Automatically play media",
@@ -66,7 +72,7 @@
       "controls": {
         "next_previous": {
           "style": "Event Viewer next & previous control style",
-          "size": "Event Viewer next & previous control size (e.g. '48px')",
+          "size": "Event Viewer next & previous control size in pixels",
           "styles": {
             "thumbnails": "Thumbnails",
             "chevrons": "Chevrons",
@@ -75,7 +81,7 @@
         },
         "thumbnails": {
           "mode": "Event Viewer thumbnails mode",
-          "size": "Event Viewer thumbnails size (e.g. '100px')",
+          "size": "Event Viewer thumbnails size in pixels",
           "show_details": "Show event details with thumbnails",
           "show_controls": "Show event controls with thumbnails",
           "modes": {
@@ -109,7 +115,7 @@
       "controls": {
         "next_previous": {
           "style": "Live view next & previous control style",
-          "size": "Live view next & previous control size (e.g. '48px')",
+          "size": "Live view next & previous control size in pixels",
           "styles": {
             "chevrons": "Chevrons",
             "icons": "Icons",
@@ -118,7 +124,7 @@
         },
         "thumbnails": {
           "mode": "Live thumbnails mode",
-          "size": "Live thumbnails size (e.g. '100px')",
+          "size": "Live thumbnails size in pixels",
           "show_details": "Show event details with thumbnails",
           "show_controls": "Show event controls with thumbnails",
           "media": "Whether to show thumbnails of clips or snapshots",
@@ -169,7 +175,7 @@
         "above": "Above",
         "below": "Below"
       },
-      "button_size": "Menu button size (e.g. '40px')"
+      "button_size": "Menu button size in pixels"
     },
     "timeline": {
       "window_seconds": "The default length of the timeline view in seconds",
@@ -183,7 +189,7 @@
       "controls": {
         "thumbnails": {
           "mode": "Timeline thumbnails mode",
-          "size": "Timeline thumbnails size (e.g. '100px')",
+          "size": "Timeline thumbnails size in pixels",
           "show_details": "Show event details with thumbnails",
           "show_controls": "Show event controls with thumbnails"
         }
@@ -235,7 +241,8 @@
   "event": {
     "start": "Start",
     "duration": "Duration",
-    "in_progress": "In Progress"
+    "in_progress": "In Progress",
+    "score": "Score"
   },
   "thumbnail": {
     "retain_indefinitely": "Event will be indefinitely retained",

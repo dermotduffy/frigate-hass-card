@@ -13,7 +13,7 @@ export class FrigateCardNextPreviousControl extends LitElement {
 
   set controlConfig(controlConfig: NextPreviousControlConfig | undefined) {
     if (controlConfig?.size) {
-      this.style.setProperty('--frigate-card-next-prev-size', controlConfig.size);
+      this.style.setProperty('--frigate-card-next-prev-size', `${controlConfig.size}px`);
     }
     this._controlConfig = controlConfig;
   }
@@ -31,7 +31,7 @@ export class FrigateCardNextPreviousControl extends LitElement {
   public disabled = false;
 
   // Label that is used for ARIA support and as tooltip.
-  @property() label = "";
+  @property() label = '';
 
   protected render(): TemplateResult {
     if (this.disabled || !this._controlConfig || this._controlConfig.style == 'none') {
@@ -50,18 +50,15 @@ export class FrigateCardNextPreviousControl extends LitElement {
     if (['chevrons', 'icons'].includes(this._controlConfig.style)) {
       let icon: string;
       if (this._controlConfig.style === 'chevrons') {
-       icon = this.direction == 'previous' ? 'mdi:chevron-left' : 'mdi:chevron-right';
+        icon = this.direction == 'previous' ? 'mdi:chevron-left' : 'mdi:chevron-right';
       } else {
         if (!this.icon) {
           return html``;
         }
-        icon = this.icon
+        icon = this.icon;
       }
 
-      return html` <ha-icon-button
-        class="${classMap(classes)}"
-        .label=${this.label}
-      >
+      return html` <ha-icon-button class="${classMap(classes)}" .label=${this.label}>
         <ha-icon icon=${icon}></ha-icon>
       </ha-icon-button>`;
     }

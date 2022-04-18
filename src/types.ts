@@ -14,6 +14,13 @@ import { z } from 'zod';
 
 import { deepRemoveDefaults } from './zod-util';
 
+// The min allowed size of buttons.
+export const BUTTON_SIZE_MIN = 20;
+
+// The min/max width thumbnail (Frigate returns a maximum of 175px).
+export const THUMBNAIL_WIDTH_MAX = 175;
+export const THUMBNAIL_WIDTH_MIN = 75;
+
 declare global {
   interface HTMLElementTagNameMap {
     'frigate-card-editor': LovelaceCardEditor;
@@ -65,9 +72,6 @@ const LIVE_PROVIDERS = ['auto', 'ha', 'frigate-jsmpeg', 'webrtc-card'] as const;
 export type LiveProvider = typeof LIVE_PROVIDERS[number];
 
 export class FrigateCardError extends Error {}
-
-// The maximum width thumbnail Frigate returns
-export const THUMBNAIL_WIDTH_MAX = 175;
 
 /**
  * Action Types (for "Picture Elements" / Menu)
@@ -442,7 +446,7 @@ export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
 
 const thumbnailsControlSchema = z.object({
   mode: z.enum(['none', 'above', 'below', 'left', 'right']),
-  size: z.string().optional(),
+  size: z.number().min(THUMBNAIL_WIDTH_MIN).max(THUMBNAIL_WIDTH_MAX).optional(),
   show_details: z.boolean().optional(),
   show_controls: z.boolean().optional(),
 });
@@ -454,7 +458,7 @@ export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlSchema>;
 
 const nextPreviousControlConfigSchema = z.object({
   style: z.enum(['none', 'chevrons', 'icons', 'thumbnails']),
-  size: z.string(),
+  size: z.number().min(BUTTON_SIZE_MIN),
 });
 export type NextPreviousControlConfig = z.infer<typeof nextPreviousControlConfigSchema>;
 
@@ -491,12 +495,12 @@ const liveConfigDefault = {
   transition_effect: 'slide' as const,
   controls: {
     next_previous: {
-      size: '48px',
+      size: 48,
       style: 'chevrons' as const,
     },
     thumbnails: {
       media: 'clips' as const,
-      size: '100px',
+      size: 100,
       show_details: false,
       show_controls: true,
       mode: 'none' as const,
@@ -617,7 +621,7 @@ const menuConfigDefault = {
     frigate_ui: true,
     fullscreen: true,
   },
-  button_size: '40px',
+  button_size: 40,
 };
 
 const menuConfigSchema = z
@@ -637,7 +641,7 @@ const menuConfigSchema = z
         fullscreen: z.boolean().default(menuConfigDefault.buttons.fullscreen),
       })
       .default(menuConfigDefault.buttons),
-    button_size: z.string().default(menuConfigDefault.button_size),
+    button_size: z.number().min(BUTTON_SIZE_MIN).default(menuConfigDefault.button_size),
   })
   .default(menuConfigDefault);
 export type MenuConfig = z.infer<typeof menuConfigSchema>;
@@ -653,11 +657,11 @@ const viewerConfigDefault = {
   transition_effect: 'slide' as const,
   controls: {
     next_previous: {
-      size: '48px',
+      size: 48,
       style: 'thumbnails' as const,
     },
     thumbnails: {
-      size: '100px',
+      size: 100,
       mode: 'none' as const,
       show_details: false,
       show_controls: true,
@@ -672,7 +676,9 @@ const viewerNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.ex
   style: z
     .enum(['none', 'thumbnails', 'chevrons'])
     .default(viewerConfigDefault.controls.next_previous.style),
-  size: z.string().default(viewerConfigDefault.controls.next_previous.size),
+  size: nextPreviousControlConfigSchema.shape.size.default(
+    viewerConfigDefault.controls.next_previous.size,
+  ),
 });
 export type ViewerNextPreviousControlConfig = z.infer<
   typeof viewerNextPreviousControlConfigSchema
@@ -729,12 +735,36 @@ export type ViewerConfig = z.infer<typeof viewerConfigSchema>;
  * Event gallery configuration section (clips, snapshots).
  */
 const galleryConfigDefault = {
-  min_columns: 5,
+  controls: {
+    thumbnails: {
+      size: 100,
+      show_details: false,
+      show_controls: false,
+    },
+  },
 };
 
 const galleryConfigSchema = z
   .object({
-    min_columns: z.number().min(1).max(10).default(galleryConfigDefault.min_columns),
+    controls: z
+      .object({
+        thumbnails: thumbnailsControlSchema
+          // Gallery shows thumbnails "centrally" so no need for the mode.
+          .omit({ mode: true })
+          .extend({
+            size: thumbnailsControlSchema.shape.size.default(
+              galleryConfigDefault.controls.thumbnails.size,
+            ),
+            show_details: thumbnailsControlSchema.shape.show_details.default(
+              galleryConfigDefault.controls.thumbnails.show_details,
+            ),
+            show_controls: thumbnailsControlSchema.shape.show_controls.default(
+              galleryConfigDefault.controls.thumbnails.show_controls,
+            ),
+          })
+          .default(galleryConfigDefault.controls.thumbnails),
+      })
+      .default(galleryConfigDefault.controls),
   })
   .merge(actionsSchema)
   .default(galleryConfigDefault);
@@ -776,7 +806,7 @@ const timelineConfigDefault = {
   controls: {
     thumbnails: {
       mode: 'left' as const,
-      size: '100px' as const,
+      size: 100,
       show_details: true,
       show_controls: true,
     },
