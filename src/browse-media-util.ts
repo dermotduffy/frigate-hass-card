@@ -5,7 +5,6 @@ import type {
   BrowseMediaQueryParameters,
   FrigateBrowseMediaSource,
   CameraConfig,
-  ExtendedHomeAssistant,
 } from './types.js';
 import { View } from './view.js';
 import { frigateBrowseMediaSourceSchema } from './types.js';
@@ -67,7 +66,7 @@ export class BrowseMediaUtil {
    * @returns A FrigateBrowseMediaSource object or null on malformed.
    */
   static async browseMedia(
-    hass: HomeAssistant & ExtendedHomeAssistant,
+    hass: HomeAssistant,
     media_content_id: string,
   ): Promise<FrigateBrowseMediaSource> {
     const request = {
@@ -86,7 +85,7 @@ export class BrowseMediaUtil {
    * @returns A FrigateBrowseMediaSource object or null on malformed.
    */
   static async browseMediaQuery(
-    hass: HomeAssistant & ExtendedHomeAssistant,
+    hass: HomeAssistant,
     params: BrowseMediaQueryParameters,
   ): Promise<FrigateBrowseMediaSource> {
     return this.browseMedia(
@@ -183,7 +182,7 @@ export class BrowseMediaUtil {
    */
   static async fetchLatestMediaAndDispatchViewChange(
     node: HTMLElement,
-    hass: HomeAssistant & ExtendedHomeAssistant,
+    hass: HomeAssistant,
     view: Readonly<View>,
     browseMediaQueryParameters: BrowseMediaQueryParameters,
   ): Promise<void> {
@@ -225,7 +224,7 @@ export class BrowseMediaUtil {
    */
   static async fetchChildMediaAndDispatchViewChange(
     node: HTMLElement,
-    hass: HomeAssistant & ExtendedHomeAssistant,
+    hass: HomeAssistant,
     view: Readonly<View>,
     child: Readonly<FrigateBrowseMediaSource>,
   ): Promise<void> {

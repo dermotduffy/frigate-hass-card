@@ -2,6 +2,7 @@ import { StyleInfo } from 'lit/directives/style-map.js';
 import {
   CallServiceActionConfig,
   CustomActionConfig,
+  HomeAssistant,
   LovelaceCard,
   LovelaceCardEditor,
   MoreInfoActionConfig,
@@ -932,7 +933,7 @@ const menuButtonSchema = z.discriminatedUnion('type', [
   menuSubmenuSchema,
 ]);
 export type MenuButton = z.infer<typeof menuButtonSchema>;
-export interface ExtendedHomeAssistant {
+export interface ExtendedHomeAssistant extends HomeAssistant {
   hassUrl(path?): string;
   themes: Themes & {
     darkMode?: boolean

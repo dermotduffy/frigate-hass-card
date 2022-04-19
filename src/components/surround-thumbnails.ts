@@ -6,7 +6,6 @@ import { customElement, property } from 'lit/decorators.js';
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import {
   BrowseMediaQueryParameters,
-  ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
   FrigateCardView,
   ThumbnailsControlConfig,
@@ -23,7 +22,7 @@ import surroundThumbnailsStyle from '../scss/surround.scss';
 @customElement('frigate-card-surround-thumbnails')
 export class FrigateCardSurround extends LitElement {
   @property({ attribute: false })
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: HomeAssistant;
 
   @property({ attribute: false })
   protected view?: Readonly<View>;
@@ -51,12 +50,12 @@ export class FrigateCardSurround extends LitElement {
    * @returns
    */
   protected async _fetchMedia([hass, view, browseMediaParams]: (
-    | (HomeAssistant & ExtendedHomeAssistant)
+    | HomeAssistant
     | Readonly<View>
     | BrowseMediaQueryParameters
     | undefined
   )[]): Promise<void> {
-    hass = hass as HomeAssistant & ExtendedHomeAssistant;
+    hass = hass as HomeAssistant;
     view = view as Readonly<View>;
     browseMediaParams = browseMediaParams as BrowseMediaQueryParameters;
 

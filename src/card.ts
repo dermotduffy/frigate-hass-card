@@ -132,7 +132,7 @@ console.info(
 @customElement('frigate-card')
 export class FrigateCard extends LitElement {
   @property({ attribute: false })
-  protected _hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected _hass?: ExtendedHomeAssistant;
 
   // The main base configuration object. For most usecases use getConfig() to
   // get the correct configuration (which will return overrides as appropriate).
@@ -188,7 +188,7 @@ export class FrigateCard extends LitElement {
   /**
    * Set the Home Assistant object.
    */
-  set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
+  set hass(hass: ExtendedHomeAssistant) {
     this._hass = hass;
 
     // Manually set hass in the menu, elements and image. This is to allow these

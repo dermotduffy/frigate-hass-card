@@ -10,7 +10,7 @@ import {
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { styleMap } from 'lit/directives/style-map.js';
 
-import { ExtendedHomeAssistant, MenuSubmenu, MenuSubmenuItem } from '../types.js';
+import { MenuSubmenu, MenuSubmenuItem } from '../types.js';
 import { actionHandler } from '../action-handler-directive.js';
 
 import submenuStyle from '../scss/submenu.scss';
@@ -18,7 +18,7 @@ import submenuStyle from '../scss/submenu.scss';
 @customElement('frigate-card-submenu')
 export class FrigateCardSubmenu extends LitElement {
   @property({ attribute: false })
-  public hass?: HomeAssistant & ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public submenu?: MenuSubmenu;
