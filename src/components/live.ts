@@ -66,7 +66,7 @@ const URL_SIGN_REFRESH_THRESHOLD_SECONDS = 1 * 60 * 60;
 @customElement('frigate-card-live')
 export class FrigateCardLive extends LitElement {
   @property({ attribute: false })
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
   protected view?: Readonly<View>;
@@ -182,7 +182,7 @@ export class FrigateCardLive extends LitElement {
 @customElement('frigate-card-live-carousel')
 export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   @property({ attribute: false })
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
   protected view?: Readonly<View>;
@@ -531,7 +531,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
 @customElement('frigate-card-live-provider')
 export class FrigateCardLiveProvider extends LitElement {
   @property({ attribute: false })
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
   protected cameraConfig?: CameraConfig;
@@ -642,7 +642,7 @@ export class FrigateCardLiveProvider extends LitElement {
 @customElement('frigate-card-live-ha')
 export class FrigateCardLiveFrigate extends LitElement {
   @property({ attribute: false })
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: HomeAssistant;
 
   @property({ attribute: false })
   protected cameraConfig?: CameraConfig;
@@ -731,7 +731,7 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
   @property({ attribute: false })
   protected cameraConfig?: CameraConfig;
 
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: HomeAssistant;
 
   // A task to await the load of the WebRTC component.
   protected _webrtcTask = new Task(this, this._getWebRTCCardElement, () => [1]);
@@ -888,7 +888,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
   @property({ attribute: false, hasChanged: contentsChanged })
   protected jsmpegConfig?: JSMPEGConfig;
 
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: ExtendedHomeAssistant;
 
   protected _jsmpegCanvasElement?: HTMLCanvasElement;
   protected _jsmpegVideoPlayer?: JSMpeg.VideoElement;

@@ -68,12 +68,12 @@ class FrigateCardElementsCore extends LitElement {
   protected conditionState?: ConditionState;
 
   protected _root: HTMLElement | null = null;
-  protected _hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected _hass?: HomeAssistant;
 
   /**
    * Set Home Assistant object.
    */
-  set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
+  set hass(hass: HomeAssistant) {
     if (this._root) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (this._root as any).hass = hass;
@@ -137,7 +137,7 @@ class FrigateCardElementsCore extends LitElement {
 @customElement('frigate-card-elements')
 export class FrigateCardElements extends LitElement {
   @property({ attribute: false })
-  public hass?: HomeAssistant & ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   protected elements: PictureElements;
@@ -235,7 +235,7 @@ export class FrigateCardElements extends LitElement {
 @customElement('frigate-card-conditional')
 export class FrigateCardElementsConditional extends LitElement {
   protected _config?: FrigateConditional;
-  protected _hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected _hass?: HomeAssistant;
 
   @query('frigate-card-elements-core')
   _core?: FrigateCardElementsCore;
@@ -243,7 +243,7 @@ export class FrigateCardElementsConditional extends LitElement {
   /**
    * Set the Home Assistant object.
    */
-  set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
+  set hass(hass: HomeAssistant) {
     if (this._core) {
       this._core.hass = hass;
     }

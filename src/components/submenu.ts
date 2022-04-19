@@ -18,7 +18,7 @@ import submenuStyle from '../scss/submenu.scss';
 @customElement('frigate-card-submenu')
 export class FrigateCardSubmenu extends LitElement {
   @property({ attribute: false })
-  public hass?: HomeAssistant & ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public submenu?: MenuSubmenu;

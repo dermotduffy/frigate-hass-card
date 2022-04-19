@@ -239,7 +239,7 @@ class TimelineEventManager {
    */
   public async fetchEventsIfNecessary(
     element: HTMLElement,
-    hass: HomeAssistant & ExtendedHomeAssistant,
+    hass: HomeAssistant,
     cameras: Map<string, CameraConfig>,
     media: TimelineMediaType,
     start: Date,
@@ -262,7 +262,7 @@ class TimelineEventManager {
    */
   protected async _fetchEvents(
     element: HTMLElement,
-    hass: HomeAssistant & ExtendedHomeAssistant,
+    hass: HomeAssistant,
     cameras: Map<string, CameraConfig>,
     media: TimelineMediaType,
     start?: Date,
@@ -328,7 +328,7 @@ class TimelineEventManager {
 @customElement('frigate-card-timeline')
 export class FrigateCardTimeline extends LitElement {
   @property({ attribute: false })
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: HomeAssistant;
 
   @property({ attribute: false })
   protected view?: Readonly<View>;
@@ -374,7 +374,7 @@ export class FrigateCardTimeline extends LitElement {
 @customElement('frigate-card-timeline-core')
 export class FrigateCardTimelineCore extends LitElement {
   @property({ attribute: false })
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: HomeAssistant;
 
   @property({ attribute: false })
   protected view?: Readonly<View>;

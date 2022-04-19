@@ -46,7 +46,7 @@ import viewerStyle from '../scss/viewer.scss';
 @customElement('frigate-card-viewer')
 export class FrigateCardViewer extends LitElement {
   @property({ attribute: false })
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: HomeAssistant;
 
   @property({ attribute: false })
   protected view?: Readonly<View>;
@@ -120,7 +120,7 @@ export class FrigateCardViewer extends LitElement {
 @customElement('frigate-card-viewer-carousel')
 export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   @property({ attribute: false })
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: HomeAssistant;
 
   @property({ attribute: false })
   protected view?: Readonly<View>;

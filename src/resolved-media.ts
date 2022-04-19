@@ -38,7 +38,7 @@ export class ResolvedMediaCache {
 
 export class ResolvedMediaUtil {
   static async resolveMedia(
-    hass: HomeAssistant & ExtendedHomeAssistant,
+    hass: HomeAssistant,
     mediaSource?: FrigateBrowseMediaSource,
     cache?: ResolvedMediaCache,
   ): Promise<ResolvedMedia | null> {

@@ -30,7 +30,7 @@ import galleryStyle from '../scss/gallery.scss';
 @customElement('frigate-card-gallery')
 export class FrigateCardGallery extends LitElement {
   @property({ attribute: false })
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: HomeAssistant;
 
   @property({ attribute: false })
   protected view?: Readonly<View>;
@@ -98,7 +98,7 @@ export class FrigateCardGallery extends LitElement {
 @customElement('frigate-card-gallery-core')
 export class FrigateCardGalleryCore extends LitElement {
   @property({ attribute: false })
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected hass?: HomeAssistant;
 
   @property({ attribute: false })
   protected view?: Readonly<View>;

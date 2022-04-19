@@ -55,7 +55,7 @@ export const FRIGATE_ICON_FILLED =
 @customElement('frigate-card-menu')
 export class FrigateCardMenu extends LitElement {
   @property({ attribute: false })
-  public hass?: HomeAssistant & ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   set menuConfig(menuConfig: MenuConfig) {
     this._menuConfig = menuConfig;

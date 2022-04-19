@@ -54,7 +54,7 @@ export function getParseErrorKeys<T>(error: z.ZodError<T>): string[] {
  * @returns The parsed valid response or null on malformed.
  */
 export async function homeAssistantWSRequest<T>(
-  hass: HomeAssistant & ExtendedHomeAssistant,
+  hass: HomeAssistant,
   schema: ZodSchema<T>,
   request: MessageBase,
 ): Promise<T> {
@@ -88,7 +88,7 @@ export async function homeAssistantWSRequest<T>(
  * @returns The signed URL, or null if the response was malformed.
  */
 export async function homeAssistantSignPath(
-  hass: HomeAssistant & ExtendedHomeAssistant,
+  hass: ExtendedHomeAssistant,
   path: string,
   expires?: number,
 ): Promise<string | null> {
