@@ -7,7 +7,8 @@ import {
   unsafeCSS,
 } from 'lit';
 import { HomeAssistant } from 'custom-card-helpers';
-import { customElement, property, query, state } from 'lit/decorators.js';
+import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { customElement, property, state } from 'lit/decorators.js';
 
 import { CachedValueController } from '../cached-value-controller.js';
 import { CameraConfig, ImageViewConfig } from '../types.js';
@@ -40,8 +41,7 @@ export class FrigateCardImage extends LitElement {
   @state()
   protected _imageConfig?: ImageViewConfig;
 
-  @query('img')
-  protected _image?: HTMLImageElement;
+  protected _refImage: Ref<HTMLImageElement> = createRef() ;
 
   protected _cachedValueController?: CachedValueController<string>;
   protected _boundVisibilityHandler = this._visibilityHandler.bind(this);
@@ -144,7 +144,7 @@ export class FrigateCardImage extends LitElement {
    * Handle document visibility changes.
    */
   protected _visibilityHandler(): void {
-    if (!this._image) {
+    if (!this._refImage.value) {
       return;
     }
     if (document.visibilityState === 'hidden') {
@@ -196,8 +196,8 @@ export class FrigateCardImage extends LitElement {
    * Force the img element to the stock image.
    */
   protected _forceStockImage(): void {
-    if (this._image) {
-      this._image.src = defaultImage;
+    if (this._refImage.value) {
+      this._refImage.value.src = defaultImage;
     }
   }
 
@@ -205,6 +205,7 @@ export class FrigateCardImage extends LitElement {
     const src = this._cachedValueController?.value;
     return src
       ? html` <img
+          ${ref(this._refImage)}
           src=${src}
           @load=${(ev) => {
             dispatchMediaShowEvent(this, ev);

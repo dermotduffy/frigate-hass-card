@@ -10,6 +10,7 @@ import { HomeAssistant, LovelaceCardEditor, getLovelace } from 'custom-card-help
 import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import screenfull from 'screenfull';
 import { throttle } from 'lodash-es';
 import { until } from 'lit/directives/until.js';
@@ -150,14 +151,9 @@ export class FrigateCard extends LitElement {
   @state()
   protected _conditionState?: ConditionState;
 
-  @query('frigate-card-menu')
-  protected _menu!: FrigateCardMenu;
-
-  @query('frigate-card-elements')
-  protected _elements?: FrigateCardElements;
-
-  @query('frigate-card-image')
-  protected _image?: FrigateCardImage;
+  protected _refMenu: Ref<FrigateCardMenu> = createRef();
+  protected _refElements: Ref<FrigateCardElements> = createRef();
+  protected _refImage: Ref<FrigateCardImage> = createRef();
 
   // user interaction timer ("screensaver" functionality, return to default
   // view after user interaction).
@@ -195,14 +191,14 @@ export class FrigateCard extends LitElement {
     // to update, without necessarily re-rendering the entire card (re-rendering
     // is expensive).
     if (this._hass) {
-      if (this._menu) {
-        this._menu.hass = this._hass;
+      if (this._refMenu.value) {
+        this._refMenu.value.hass = this._hass;
       }
-      if (this._elements) {
-        this._elements.hass = this._hass;
+      if (this._refElements.value) {
+        this._refElements.value.hass = this._hass;
       }
-      if (this._image) {
-        this._image.hass = this._hass;
+      if (this._refImage.value) {
+        this._refImage.value.hass = this._hass;
       }
     }
 
@@ -434,7 +430,9 @@ export class FrigateCard extends LitElement {
     if (!this._dynamicMenuButtons.includes(button)) {
       this._dynamicMenuButtons = [...this._dynamicMenuButtons, button];
     }
-    this._menu.buttons = this._getMenuButtons();
+    if (this._refMenu.value) {
+      this._refMenu.value.buttons = this._getMenuButtons();
+    }
   }
 
   /**
@@ -445,7 +443,9 @@ export class FrigateCard extends LitElement {
     this._dynamicMenuButtons = this._dynamicMenuButtons.filter(
       (button) => button != target,
     );
-    this._menu.buttons = this._getMenuButtons();
+    if (this._refMenu.value) {
+      this._refMenu.value.buttons = this._getMenuButtons();
+    }
   }
 
   /**
@@ -888,7 +888,7 @@ export class FrigateCard extends LitElement {
         // This is a rare code path: this would only be used if someone has a
         // menu toggle action configured outside of the menu itself (e.g.
         // picture elements).
-        this._menu.toggleMenu();
+        this._refMenu.value?.toggleMenu();
         break;
       case 'camera_select':
         const camera = frigateCardAction.camera;
@@ -1025,6 +1025,7 @@ export class FrigateCard extends LitElement {
   protected _renderMenu(): TemplateResult | void {
     return html`
       <frigate-card-menu
+        ${ref(this._refMenu)}
         .hass=${this._hass}
         .menuConfig=${this._getConfig().menu}
         .buttons=${this._getMenuButtons()}
@@ -1239,6 +1240,7 @@ export class FrigateCard extends LitElement {
               // be present even if a particular view has an error. Elements
               // need to render after the main views so it can render 'on top'.
               html` <frigate-card-elements
+                ${ref(this._refElements)}
                 .hass=${this._hass}
                 .elements=${this._getConfig().elements}
                 .conditionState=${this._conditionState}
@@ -1285,6 +1287,7 @@ export class FrigateCard extends LitElement {
     return html`
       ${!this._message && this._view.is('image')
         ? html` <frigate-card-image
+            ${ref(this._refImage)}
             .imageConfig=${this._getConfig().image}
             .view=${this._view}
             .hass=${this._hass}
