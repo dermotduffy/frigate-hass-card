@@ -1,6 +1,7 @@
 import { LitElement, TemplateResult, html, CSSResultGroup, unsafeCSS } from 'lit';
 import { HomeAssistant } from 'custom-card-helpers';
-import { customElement, property, query } from 'lit/decorators.js';
+import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { customElement, property } from 'lit/decorators.js';
 
 import {
   FrigateConditional,
@@ -144,9 +145,6 @@ export class FrigateCardElements extends LitElement {
   @property({ attribute: false })
   protected conditionState?: ConditionState;
 
-  @query('frigate-card-elements-core')
-  _core!: FrigateCardElementsCore;
-
   /**
    * Handle a picture element to be removed from the menu.
    * @param ev The event.
@@ -235,16 +233,14 @@ export class FrigateCardElements extends LitElement {
 export class FrigateCardElementsConditional extends LitElement {
   protected _config?: FrigateConditional;
   protected _hass?: HomeAssistant;
-
-  @query('frigate-card-elements-core')
-  _core?: FrigateCardElementsCore;
+  protected _refCore: Ref<FrigateCardElementsCore> = createRef() ;
 
   /**
    * Set the Home Assistant object.
    */
   set hass(hass: HomeAssistant) {
-    if (this._core) {
-      this._core.hass = hass;
+    if (this._refCore.value) {
+      this._refCore.value.hass = hass;
     }
     this._hass = hass;
   }
@@ -283,6 +279,7 @@ export class FrigateCardElementsConditional extends LitElement {
   protected render(): TemplateResult | void {
     if (fetchStateAndEvaluateCondition(this, this._config.conditions)) {
       return html` <frigate-card-elements-core
+        ${ref(this._refCore)}
         .hass=${this._hass}
         .elements=${this._config.elements}
       >
