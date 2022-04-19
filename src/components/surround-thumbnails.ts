@@ -6,7 +6,6 @@ import { customElement, property } from 'lit/decorators.js';
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import {
   BrowseMediaQueryParameters,
-  ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
   FrigateCardView,
   ThumbnailsControlConfig,

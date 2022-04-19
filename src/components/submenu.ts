@@ -10,7 +10,7 @@ import {
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { styleMap } from 'lit/directives/style-map.js';
 
-import { ExtendedHomeAssistant, MenuSubmenu, MenuSubmenuItem } from '../types.js';
+import { MenuSubmenu, MenuSubmenuItem } from '../types.js';
 import { actionHandler } from '../action-handler-directive.js';
 
 import submenuStyle from '../scss/submenu.scss';

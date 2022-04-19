@@ -1,7 +1,6 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { homeAssistantWSRequest } from './common.js';
 import {
-  ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
   ResolvedMedia,
   resolvedMediaSchema,

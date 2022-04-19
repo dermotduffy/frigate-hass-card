@@ -12,7 +12,6 @@ import './submenu.js';
 import type {
   ActionsConfig,
   ActionType,
-  ExtendedHomeAssistant,
   MenuButton,
   MenuConfig,
   StateParameters,

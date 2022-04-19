@@ -13,7 +13,6 @@ import { customElement, property } from 'lit/decorators.js';
 
 import {
   CameraConfig,
-  ExtendedHomeAssistant,
   GalleryConfig,
   frigateCardConfigDefaults,
 } from '../types.js';

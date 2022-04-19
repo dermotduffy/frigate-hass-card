@@ -3,7 +3,6 @@ import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property, query } from 'lit/decorators.js';
 
 import {
-  ExtendedHomeAssistant,
   FrigateConditional,
   MenuButton,
   MenuIcon,

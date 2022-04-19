@@ -26,7 +26,6 @@ import { isEqual } from 'lodash-es';
 import { BrowseMediaUtil } from '../browse-media-util';
 import {
   CameraConfig,
-  ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
   MEDIA_CLASS_PLAYLIST,
   MEDIA_TYPE_PLAYLIST,

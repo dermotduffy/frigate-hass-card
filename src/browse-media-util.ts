@@ -5,7 +5,6 @@ import type {
   BrowseMediaQueryParameters,
   FrigateBrowseMediaSource,
   CameraConfig,
-  ExtendedHomeAssistant,
 } from './types.js';
 import { View } from './view.js';
 import { frigateBrowseMediaSourceSchema } from './types.js';

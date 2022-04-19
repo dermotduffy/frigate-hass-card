@@ -20,7 +20,6 @@ import type {
   BrowseMediaQueryParametersBase,
   FrigateBrowseMediaSource,
   CameraConfig,
-  ExtendedHomeAssistant,
   MediaShowInfo,
   TransitionEffect,
   ViewerConfig,
