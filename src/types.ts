@@ -327,6 +327,9 @@ const cameraConfigSchema = z
 
     // Camera identifiers for WebRTC.
     webrtc_card: webrtcCardCameraConfigSchema.optional(),
+
+    // Set of cameras IDs upon which this camera depends.
+    dependent_cameras: z.string().array().optional(),
   })
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigSchema>;
@@ -936,11 +939,14 @@ export type MenuButton = z.infer<typeof menuButtonSchema>;
 export interface ExtendedHomeAssistant extends HomeAssistant {
   hassUrl(path?): string;
   themes: Themes & {
-    darkMode?: boolean
+    darkMode?: boolean;
   };
 }
 
-export interface BrowseMediaQueryParametersBase {
+export interface BrowseMediaQueryParameters {
+  // ========================================
+  // Parameters used to construct media query
+  // ========================================
   mediaType?: 'clips' | 'snapshots';
   clientId: string;
   cameraName: string;
@@ -949,10 +955,17 @@ export interface BrowseMediaQueryParametersBase {
   before?: number;
   after?: number;
   unlimited?: boolean;
-}
 
-export interface BrowseMediaQueryParameters extends BrowseMediaQueryParametersBase {
-  mediaType: 'clips' | 'snapshots';
+  // ========================================
+  // Parameters used to differentiate results
+  // ========================================
+  // Optional title to be used for separating results when merging multiple
+  // sets of results. See `mergeFrigateBrowseMediaSources()` .
+  title?: string;
+
+  // Optional camera-id to which this query is associated. May be used to map
+  // results to a particular camera within the card.
+  cameraID?: string;
 }
 
 export interface BrowseMediaNeighbors {

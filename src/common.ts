@@ -477,6 +477,7 @@ export function getCameraTitle(
     config?.title ||
     (config?.camera_entity ? getEntityTitle(hass, config.camera_entity) : '') ||
     (config?.camera_name ? prettifyFrigateName(config.camera_name) : '') ||
+    config?.id ||
     ''
   );
 }
