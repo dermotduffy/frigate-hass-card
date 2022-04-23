@@ -8,7 +8,7 @@ import {
 } from 'lit';
 import { HomeAssistant, LovelaceCardEditor, getLovelace } from 'custom-card-helpers';
 import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
-import { customElement, property, query, state } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import screenfull from 'screenfull';
@@ -35,7 +35,7 @@ import type {
   Message,
 } from './types.js';
 
-import { CARD_VERSION, REPO_URL } from './const.js';
+import { CAMERA_BIRDSEYE, CARD_VERSION, REPO_URL } from './const.js';
 import { FrigateCardElements } from './components/elements.js';
 import { FrigateCardImage } from './components/image.js';
 import { FRIGATE_BUTTON_MENU_ICON, FrigateCardMenu } from './components/menu.js';
@@ -48,6 +48,7 @@ import {
   frigateCardHasAction,
   getActionConfigGivenAction,
   getCameraIcon,
+  getCameraID,
   getCameraTitle,
   homeAssistantSignPath,
   homeAssistantWSRequest,
@@ -328,11 +329,12 @@ export class FrigateCard extends LitElement {
     const cameraConfig = this._getSelectedCameraConfig();
 
     // Don't show `clips` button if there's no `camera_name` (e.g. non-Frigate
-    // cameras), or is birdseye.
+    // cameras), or is birdseye (unless there are dependent cameras).
     if (
       this._getConfig().menu.buttons.clips &&
       cameraConfig?.camera_name &&
-      cameraConfig?.camera_name !== 'birdseye'
+      (cameraConfig?.camera_name !== CAMERA_BIRDSEYE ||
+        cameraConfig?.dependent_cameras?.length)
     ) {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
@@ -345,11 +347,12 @@ export class FrigateCard extends LitElement {
     }
 
     // Don't show `snapshots` button if there's no `camera_name` (e.g. non-Frigate
-    // cameras), or is birdseye.
+    // cameras), or is birdseye (unless there are dependent cameras).
     if (
       this._getConfig().menu.buttons.snapshots &&
       cameraConfig?.camera_name &&
-      cameraConfig?.camera_name !== 'birdseye'
+      (cameraConfig?.camera_name !== CAMERA_BIRDSEYE ||
+        cameraConfig?.dependent_cameras?.length)
     ) {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
@@ -465,12 +468,7 @@ export class FrigateCard extends LitElement {
         }
       }
 
-      const id =
-        config.id ||
-        config.camera_entity ||
-        config.webrtc_card?.entity ||
-        config.camera_name;
-
+      const id = getCameraID(config);
       if (!id) {
         this._setMessageAndUpdate({
           message: localize('error.no_camera_id'),
@@ -1299,7 +1297,7 @@ export class FrigateCard extends LitElement {
         ? html` <frigate-card-gallery
             .hass=${this._hass}
             .view=${this._view}
-            .cameraConfig=${cameraConfig}
+            .cameras=${this._cameras}
             .galleryConfig=${this._getConfig().event_gallery}
           >
           </frigate-card-gallery>`
@@ -1308,7 +1306,7 @@ export class FrigateCard extends LitElement {
         ? html` <frigate-card-viewer
             .hass=${this._hass}
             .view=${this._view}
-            .cameraConfig=${cameraConfig}
+            .cameras=${this._cameras}
             .viewerConfig=${this._getConfig().event_viewer}
             .resolvedMediaCache=${this._resolvedMediaCache}
           >

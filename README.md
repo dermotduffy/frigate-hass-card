@@ -101,6 +101,7 @@ cameras:
 | `icon` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | The icon to use for this camera in the camera menu and in the next & previous controls when using the `icon` style. |
 | `webrtc_card` | | :heavy_multiplication_x: | The WebRTC entity/URL to use for this camera with the `webrtc-card` live provider. See below. |
 | `id` | `camera_entity`, `webrtc_card.entity` or `camera_name` if set (in that preference order). | :heavy_multiplication_x: | An optional identifier to use throughout the card configuration to refer unambiguously to this camera. See [camera IDs](#camera-ids). |
+| `dependent_cameras` | | :heavy_multiplication_x: | An optional array of other camera identifiers (see [camera IDs](#camera-ids)). If specified the card will fetch events for this camera and *also* recursively events for the named `dependent_cameras`. All `dependent_cameras` must themselves be a configured camera in the card. This can be useful to group events for cameras that are close together, or to show events for the `birdseye` camera that otherwise would not have events itself.|
 
 <a name="live-providers"></a>
 
@@ -1284,6 +1285,27 @@ card_mod:
           padding: 0px !important;
           color: blue;
         }
+```
+</details>
+
+### Using a dependent camera
+
+`dependent_cameras` allows events for other cameras to be shown along with the currently selected camera. For example, this can be used to show events with the `birdseye` camera (since it will not have events of its own).
+
+<details>
+  <summary>Expand: Using dependent cameras with birdseye</summary>
+
+This example shows events for two other cameras when `birdseye` is selected.
+
+```yaml
+[...]
+cameras:
+  - camera_entity: camera.kitchen
+  - camera_entity: camera.sitting_room
+  - camera_name: birdseye
+    dependent_cameras:
+      - camera.kitchen
+      - camera.sitting_room
 ```
 </details>
 

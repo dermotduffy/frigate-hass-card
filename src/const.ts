@@ -1,4 +1,6 @@
 export const CARD_VERSION = '3.0.0' as const;
+
+export const CAMERA_BIRDSEYE = 'birdseye' as const;
 export const REPO_URL = 'https://github.com/dermotduffy/frigate-hass-card' as const;
 export const TROUBLESHOOTING_URL = `${REPO_URL}#troubleshooting` as const;
 
@@ -18,6 +20,8 @@ export const CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY =
 export const CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL = `${CONF_CAMERAS}.#.webrtc_card.url` as const;
 export const CONF_CAMERAS_ARRAY_LIVE_PROVIDER =
   `${CONF_CAMERAS}.#.live_provider` as const;
+export const CONF_CAMERAS_ARRAY_DEPENDENT_CAMERAS =
+  `${CONF_CAMERAS}.#.dependent_cameras` as const;
 
 export const CONF_VIEW = 'view' as const;
 export const CONF_VIEW_CAMERA_SELECT = `${CONF_VIEW}.camera_select` as const;

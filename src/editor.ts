@@ -18,6 +18,7 @@ import {
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
   CONF_CAMERAS_ARRAY_CAMERA_NAME,
   CONF_CAMERAS_ARRAY_CLIENT_ID,
+  CONF_CAMERAS_ARRAY_DEPENDENT_CAMERAS,
   CONF_CAMERAS_ARRAY_ICON,
   CONF_CAMERAS_ARRAY_ID,
   CONF_CAMERAS_ARRAY_LABEL,
@@ -88,7 +89,11 @@ import {
   CONF_VIEW_UPDATE_FORCE,
   CONF_VIEW_UPDATE_SECONDS,
 } from './const.js';
-import { arrayMove, getEntityTitle, prettifyFrigateName } from './common.js';
+import {
+  arrayMove,
+  getCameraID,
+  getCameraTitle,
+} from './common.js';
 import {
   copyConfig,
   deleteConfigValue,
@@ -117,6 +122,11 @@ interface EditorCameraTarget {
 
 interface EditorOptionSetTarget {
   optionSetName: string;
+}
+
+interface EditorSelectOption {
+  value: string;
+  label: string;
 }
 
 const options: EditorOptions = {
@@ -193,7 +203,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   @property({ attribute: false })
   protected _expandedCameraIndex: number | null = null;
 
-  protected _viewModes = [
+  protected _viewModes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'live', label: localize('config.view.views.live') },
     { value: 'clips', label: localize('config.view.views.clips') },
@@ -204,12 +214,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'timeline', label: localize('config.view.views.timeline') },
   ];
 
-  protected _cameraSelectViewModes = [
+  protected _cameraSelectViewModes: EditorSelectOption[] = [
     ...this._viewModes,
     { value: 'current', label: localize('config.view.views.current') },
   ];
 
-  protected _menuModes = [
+  protected _menuModes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'none', label: localize('config.menu.modes.none') },
     { value: 'hidden-top', label: localize('config.menu.modes.hidden-top') },
@@ -228,7 +238,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'below', label: localize('config.menu.modes.below') },
   ];
 
-  protected _eventViewerNextPreviousControlStyles = [
+  protected _eventViewerNextPreviousControlStyles: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'thumbnails',
@@ -244,7 +254,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     },
   ];
 
-  protected _liveNextPreviousControlStyles = [
+  protected _liveNextPreviousControlStyles: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'chevrons',
@@ -257,7 +267,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'none', label: localize('config.live.controls.next_previous.styles.none') },
   ];
 
-  protected _aspectRatioModes = [
+  protected _aspectRatioModes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'dynamic',
@@ -270,7 +280,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     },
   ];
 
-  protected _thumbnailModes = [
+  protected _thumbnailModes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'none',
@@ -294,7 +304,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     },
   ];
 
-  protected _thumbnailMedias = [
+  protected _thumbnailMedias: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'clips', label: localize('config.live.controls.thumbnails.medias.clips') },
     {
@@ -303,7 +313,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     },
   ];
 
-  protected _titleModes = [
+  protected _titleModes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'none', label: localize('config.event_viewer.controls.title.modes.none') },
     {
@@ -324,27 +334,27 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     },
   ];
 
-  protected _transitionEffects = [
+  protected _transitionEffects: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'none', label: localize('config.event_viewer.transition_effects.none') },
     { value: 'slide', label: localize('config.event_viewer.transition_effects.slide') },
   ];
 
-  protected _imageModes = [
+  protected _imageModes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'camera', label: localize('config.image.modes.camera') },
     { value: 'screensaver', label: localize('config.image.modes.screensaver') },
     { value: 'url', label: localize('config.image.modes.url') },
   ];
 
-  protected _timelineMediaTypes = [
+  protected _timelineMediaTypes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'all', label: localize('config.timeline.medias.all') },
     { value: 'clips', label: localize('config.timeline.medias.clips') },
     { value: 'snapshots', label: localize('config.timeline.medias.snapshots') },
   ];
 
-  protected _darkModes = [
+  protected _darkModes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'on', label: localize('config.view.dark_modes.on') },
     { value: 'off', label: localize('config.view.dark_modes.off') },
@@ -456,6 +466,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   protected _renderOptionSelector(
     configPath: string,
     options: string[] | { value: string; label: string }[],
+    multiple?: boolean,
   ): TemplateResult | void {
     if (!this._config) {
       return;
@@ -464,7 +475,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     return html`
       <ha-selector
         .hass=${this.hass}
-        .selector=${{ select: { options: options } }}
+        .selector=${{
+          select: { mode: 'dropdown', multiple: !!multiple, options: options },
+        }}
         .label=${this._getLabel(configPath)}
         .value=${getConfigValue(this._config, configPath, '')}
         .required=${false}
@@ -517,6 +530,22 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   /**
+   * Get an editor title for the camera.
+   * @param cameraIndex The index of the camera in the cameras array.
+   * @param cameraConfig The raw camera configuration object.
+   * @returns A string title.
+   */
+  protected _getEditorCameraTitle(
+    cameraIndex: number,
+    cameraConfig: RawFrigateCardConfig,
+  ): string {
+    return (
+      getCameraTitle(this.hass, cameraConfig) ||
+      localize('editor.camera') + ' #' + cameraIndex
+    );
+  }
+
+  /**
    * Render a camera header.
    * @param cameraIndex The index of the camera to edit/add.
    * @param cameraConfig The configuration of the camera in question.
@@ -540,31 +569,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             ? html` <span class="new-camera">
                 [${localize('editor.add_new_camera')}...]
               </span>`
-            : // Attempt to render a recognizable name for the camera,
-              // starting with the most likely to be useful and working our
-              // ways towards the least useful.
-              html` <span>
-                ${cameraConfig?.title ||
-                cameraConfig?.id ||
-                [
-                  cameraConfig?.camera_entity
-                    ? getEntityTitle(this.hass, String(cameraConfig.camera_entity))
-                    : '',
-                  cameraConfig?.client_id,
-                  cameraConfig?.camera_name
-                    ? prettifyFrigateName(String(cameraConfig.camera_name))
-                    : '',
-                  cameraConfig?.label
-                    ? prettifyFrigateName(String(cameraConfig.label))
-                    : '',
-                  cameraConfig?.zone
-                    ? prettifyFrigateName(String(cameraConfig.zone))
-                    : '',
-                ]
-                  .filter(Boolean)
-                  .join(' / ') ||
-                localize('editor.camera') + ' #' + cameraIndex}
-              </span>`}
+            : html`<span
+                >${this._getEditorCameraTitle(cameraIndex, cameraConfig || {})}</span
+              >`}
         </span>
       </div>
     `;
@@ -582,7 +589,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     cameraIndex: number,
     addNewCamera?: boolean,
   ): TemplateResult | void {
-    const liveProviders = [
+    const liveProviders: EditorSelectOption[] = [
       { value: '', label: '' },
       { value: 'auto', label: localize('config.cameras.live_providers.auto') },
       { value: 'ha', label: localize('config.cameras.live_providers.ha') },
@@ -595,6 +602,16 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         label: localize('config.cameras.live_providers.webrtc-card'),
       },
     ];
+
+    const dependentCameras: EditorSelectOption[] = [];
+    cameras.forEach((camera, index) => {
+      if (index !== cameraIndex) {
+        dependentCameras.push({
+          value: getCameraID(camera),
+          label: this._getEditorCameraTitle(index, camera),
+        });
+      }
+    });
 
     // Make a new config and update the editor with changes on it,
     const modifyConfig = (func: (config: RawFrigateCardConfig) => boolean): void => {
@@ -710,6 +727,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             )}
             ${this._renderStringInput(
               getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
+            )}
+            ${this._renderOptionSelector(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_DEPENDENT_CAMERAS, cameraIndex),
+              dependentCameras,
+              true,
             )}
           </div>`
         : ``}
@@ -841,10 +863,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_VIEW_CAMERA_SELECT,
                   this._cameraSelectViewModes,
                 )}
-                ${this._renderOptionSelector(
-                  CONF_VIEW_DARK_MODE,
-                  this._darkModes,
-                )}
+                ${this._renderOptionSelector(CONF_VIEW_DARK_MODE, this._darkModes)}
                 ${this._renderNumberInput(CONF_VIEW_TIMEOUT_SECONDS)}
                 ${this._renderNumberInput(CONF_VIEW_UPDATE_SECONDS)}
                 ${this._renderSwitch(CONF_VIEW_UPDATE_FORCE, defaults.view.update_force)}

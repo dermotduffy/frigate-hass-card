@@ -25,14 +25,14 @@ import { isEqual } from 'lodash-es';
 
 import { BrowseMediaUtil } from '../browse-media-util';
 import {
+  BrowseMediaQueryParameters,
   CameraConfig,
   FrigateBrowseMediaSource,
-  MEDIA_CLASS_PLAYLIST,
-  MEDIA_TYPE_PLAYLIST,
   TimelineConfig,
   FrigateEvent,
   frigateCardConfigDefaults,
 } from '../types';
+import { CAMERA_BIRDSEYE } from '../const';
 import { View, ViewContext } from '../view';
 import {
   dispatchErrorMessageEvent,
@@ -278,49 +278,51 @@ class TimelineEventManager {
     }
     this._dateFetch = new Date();
 
-    const fetchCameraEvents = async (
-      camera: string,
-      fetchMedia: 'clips' | 'snapshots',
-    ): Promise<void> => {
-      const cameraConfig = cameras.get(camera);
-      if (!cameraConfig || !this._dateStart || !this._dateEnd) {
-        return;
-      }
-      const browseMediaQueryParametersBase =
-        BrowseMediaUtil.getBrowseMediaQueryParametersBase(cameraConfig);
-      if (!browseMediaQueryParametersBase) {
-        return;
-      }
-      try {
-        this._addMediaSource(
-          camera,
-          media,
-          await BrowseMediaUtil.browseMediaQuery(hass, {
-            ...browseMediaQueryParametersBase,
+    const params: BrowseMediaQueryParameters[] = [];
+    cameras.forEach((cameraConfig, cameraID) => {
+      (media === 'all' ? ['clips', 'snapshots'] : [media]).forEach((mediaType) => {
+        if (
+          this._dateEnd &&
+          this._dateStart &&
+          cameraConfig.camera_name !== CAMERA_BIRDSEYE
+        ) {
+          const param = BrowseMediaUtil.getBrowseMediaQueryParameters(
+            hass,
+            cameraID,
+            cameraConfig,
+            {
+              // Events are always fetched for the maximum extent of the managed
+              // range. This is because events may change at any point in time
+              // (e.g. a long-running event that ends).
+              before: this._dateEnd.getTime() / 1000,
+              after: this._dateStart.getTime() / 1000,
+              unlimited: true,
+              mediaType: mediaType as 'clips' | 'snapshots',
+            },
+          );
+          if (param) {
+            params.push(param);
+          }
+        }
+      });
+    });
 
-            // Events are always fetched for the maximum extent of the managed
-            // range. This is because events may change at any point in time
-            // (e.g. a long-running event that ends).
-            before: this._dateEnd.getTime() / 1000,
-            after: this._dateStart.getTime() / 1000,
-            unlimited: true,
-            mediaType: fetchMedia,
-          }),
-        );
-      } catch (e) {
-        return dispatchErrorMessageEvent(element, (e as Error).message);
-      }
-    };
+    if (!params.length) {
+      return;
+    }
 
-    const promises: Promise<void>[] = [];
-    (media === 'all' ? ['clips', 'snapshots'] : [media]).forEach((mediaType) =>
-      promises.push(
-        ...Array.from(cameras.keys()).map((camera) =>
-          fetchCameraEvents(camera, mediaType as 'clips' | 'snapshots'),
-        ),
-      ),
-    );
-    await Promise.all(promises);
+    let results: Map<BrowseMediaQueryParameters, FrigateBrowseMediaSource>;
+    try {
+      results = await BrowseMediaUtil.multipleBrowseMediaQuery(hass, params);
+    } catch (e) {
+      return dispatchErrorMessageEvent(element, (e as Error).message);
+    }
+
+    for (const [query, result] of results.entries()) {
+      if (query.cameraID) {
+        this._addMediaSource(query.cameraID, media, result);
+      }
+    }
   }
 }
 
@@ -574,18 +576,10 @@ export class FrigateCardTimelineCore extends LitElement {
       return null;
     }
 
-    const target = {
-      title: `Timeline events`,
-      media_class: MEDIA_CLASS_PLAYLIST,
-      media_content_type: MEDIA_TYPE_PLAYLIST,
-      media_content_id: '',
-      can_play: false,
-      can_expand: true,
-      children_media_class: MEDIA_CLASS_PLAYLIST,
-      thumbnail: null,
-      children: children,
-    };
-
+    const target = BrowseMediaUtil.createEventParentForChildren(
+      'Timeline events',
+      children,
+    );
     return {
       target: target,
       childIndex: childIndex < 0 ? null : childIndex,
@@ -599,10 +593,12 @@ export class FrigateCardTimelineCore extends LitElement {
   protected _getGroups(): DataGroupCollectionType {
     const groups: FrigateCardGroupData[] = [];
     this.cameras?.forEach((cameraConfig, camera) => {
-      groups.push({
-        id: camera,
-        content: getCameraTitle(this.hass, cameraConfig),
-      });
+      if (cameraConfig.camera_name !== CAMERA_BIRDSEYE) {
+        groups.push({
+          id: camera,
+          content: getCameraTitle(this.hass, cameraConfig),
+        });
+      }
     });
     return new DataSet(groups);
   }

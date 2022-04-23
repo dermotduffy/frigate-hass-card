@@ -28,6 +28,7 @@ import {
   FrigateEvent,
   MediaShowInfo,
   Message,
+  RawFrigateCardConfig,
   SignedPath,
   signedPathSchema,
   StateParameters,
@@ -464,19 +465,52 @@ export function getEntityIcon(
 }
 
 /**
+ * Get a camera id.
+ * @param config The camera config (either parsed or raw).
+ * @returns A camera id.
+ */
+export function getCameraID(
+  config?: CameraConfig | RawFrigateCardConfig | null,
+): string {
+  return (
+    (typeof config?.id === 'string' && config.id) ||
+    (typeof config?.camera_entity === 'string' && config.camera_entity) ||
+    (typeof config?.webrtc_card === 'object' &&
+      config.webrtc_card &&
+      typeof config.webrtc_card['entity'] === 'string' &&
+      config.webrtc_card['entity']) ||
+    (typeof config?.camera_name === 'string' && config.camera_name) ||
+    ''
+  );
+}
+
+/**
  * Get a camera text title.
  * @param hass The Home Assistant object.
- * @param config The camera config.
+ * @param config The camera config (either parsed or raw).
  * @returns A title string.
  */
 export function getCameraTitle(
   hass?: HomeAssistant,
-  config?: CameraConfig | null,
+  config?: CameraConfig | RawFrigateCardConfig | null,
 ): string {
+  // Attempt to render a recognizable name for the camera,
+  // starting with the most likely to be useful and working our
+  // ways towards the least useful. Extra type checking here since this is also
+  // used on raw configuration in the editor.
   return (
-    config?.title ||
-    (config?.camera_entity ? getEntityTitle(hass, config.camera_entity) : '') ||
-    (config?.camera_name ? prettifyFrigateName(config.camera_name) : '') ||
+    (typeof config?.title === 'string' && config.title) ||
+    (typeof config?.camera_entity === 'string'
+      ? getEntityTitle(hass, config.camera_entity)
+      : '') ||
+    (typeof config?.webrtc_card === 'object' &&
+      config.webrtc_card &&
+      typeof config.webrtc_card['entity'] === 'string' &&
+      config.webrtc_card['entity']) ||
+    (typeof config?.camera_name === 'string'
+      ? prettifyFrigateName(config.camera_name)
+      : '') ||
+    (typeof config?.id === 'string' && config.id) ||
     ''
   );
 }

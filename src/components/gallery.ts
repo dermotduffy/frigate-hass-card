@@ -11,11 +11,7 @@ import {
 import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property } from 'lit/decorators.js';
 
-import {
-  CameraConfig,
-  GalleryConfig,
-  frigateCardConfigDefaults,
-} from '../types.js';
+import { CameraConfig, GalleryConfig, frigateCardConfigDefaults } from '../types.js';
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import { View } from '../view.js';
 import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
@@ -35,28 +31,37 @@ export class FrigateCardGallery extends LitElement {
   protected view?: Readonly<View>;
 
   @property({ attribute: false })
-  protected cameraConfig?: CameraConfig;
+  protected galleryConfig?: GalleryConfig;
 
   @property({ attribute: false })
-  protected galleryConfig?: GalleryConfig;
+  protected cameras?: Map<string, CameraConfig>;
 
   /**
    * Master render method.
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.view || !this.cameraConfig || !this.view.isGalleryView()) {
+    const mediaType = this.view?.getMediaType();
+    if (
+      !this.hass ||
+      !this.view ||
+      !this.cameras ||
+      !this.view.isGalleryView() ||
+      !mediaType
+    ) {
       return;
     }
 
     if (!this.view.target) {
-      const browseMediaQueryParameters = BrowseMediaUtil.setMediaTypeFromView(
-        BrowseMediaUtil.getBrowseMediaQueryParametersBaseOrDispatchError(
+      const browseMediaQueryParameters =
+        BrowseMediaUtil.getFullDependentBrowseMediaQueryParametersOrDispatchError(
           this,
-          this.cameraConfig,
-        ),
-        this.view,
-      );
+          this.hass,
+          this.cameras,
+          this.view.camera,
+          mediaType,
+        );
+
       if (!browseMediaQueryParameters) {
         return;
       }

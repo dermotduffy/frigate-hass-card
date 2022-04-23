@@ -14,6 +14,7 @@
       "camera_entity": "Camera Entity",
       "camera_name": "Frigate camera name (Autodetected from entity)",
       "client_id": "Frigate client id (For >1 Frigate server)",
+      "dependent_cameras": "Dependent cameras to also show events for",
       "id": "Unique id for this camera in this card",
       "label": "Frigate label/object filter",
       "frigate_url": "Frigate server URL",
@@ -276,7 +277,7 @@
     "invalid_elements_config": "Invalid picture elements configuration",
     "jsmpeg_no_sign": "Could not retrieve or sign JSMPEG websocket path",
     "jsmpeg_no_player": "Could not start JSMPEG player",
-    "no_camera_name": "Could not determine Frigate camera name for camera, please specify either 'camera_entity' or 'camera_name' for the following camera",
+    "no_camera_name": "Could not determine a Frigate camera name for camera (or one of its dependents), please specify either 'camera_entity' or 'camera_name'",
     "download_no_media": "No media to download",
     "download_no_event_id": "Could not extract Frigate event id from media",
     "download_sign_failed": "Could not sign media URL for download"

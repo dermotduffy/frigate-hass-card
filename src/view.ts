@@ -61,7 +61,7 @@ export class View {
       target: params.target !== undefined ? params.target : this.target,
       childIndex: params.childIndex !== undefined ? params.childIndex : this.childIndex,
       context: params.context !== undefined ? params.context : this.context,
-      
+
       // Special case: Set the previous to this of the evolved view (rather than
       // the previous of this).
       previous: params.previous !== undefined ? params.previous : this,
@@ -108,6 +108,18 @@ export class View {
    */
   public isSnapshotRelatedView(): boolean {
     return ['snapshot', 'snapshots'].includes(this.view);
+  }
+
+  /**
+   * Get the media type for this view if available.
+   * @returns Whether the media is `clips` or `snapshots` or unknown (`null`)
+   */
+  public getMediaType(): 'clips' | 'snapshots' | null {
+    return this.isClipRelatedView()
+      ? 'clips'
+      : this.isSnapshotRelatedView()
+      ? 'snapshots'
+      : null;
   }
 
   /**

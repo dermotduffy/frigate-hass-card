@@ -17,7 +17,7 @@ import { ref } from 'lit/directives/ref.js';
 import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import type {
   BrowseMediaNeighbors,
-  BrowseMediaQueryParametersBase,
+  BrowseMediaQueryParameters,
   FrigateBrowseMediaSource,
   CameraConfig,
   MediaShowInfo,
@@ -54,7 +54,7 @@ export class FrigateCardViewer extends LitElement {
   protected viewerConfig?: ViewerConfig;
 
   @property({ attribute: false })
-  protected cameraConfig?: CameraConfig;
+  protected cameras?: Map<string, CameraConfig>;
 
   @property({ attribute: false })
   protected resolvedMediaCache?: ResolvedMediaCache;
@@ -64,22 +64,25 @@ export class FrigateCardViewer extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.view || !this.cameraConfig || !this.viewerConfig) {
+    if (!this.hass || !this.view || !this.cameras || !this.viewerConfig) {
       return;
     }
 
-    const browseMediaQueryParametersBase =
-      BrowseMediaUtil.getBrowseMediaQueryParametersBaseOrDispatchError(
+    const browseMediaQueryParameters =
+      BrowseMediaUtil.getFullDependentBrowseMediaQueryParametersOrDispatchError(
         this,
-        this.cameraConfig,
+        this.hass,
+        this.cameras,
+        this.view.camera,
       );
 
     if (!this.view.target) {
-      const browseMediaQueryParameters = BrowseMediaUtil.setMediaTypeFromView(
-        browseMediaQueryParametersBase,
-        this.view,
-      );
-      if (!browseMediaQueryParameters) {
+      // If the target is not specified, the view must tell us which mediaType
+      // to search for. When the target *is* specified, the view is not required
+      // to indicate the media type (e.g. the mixed 'events' view from the
+      // timeline).
+      const mediaType = this.view.getMediaType();
+      if (!browseMediaQueryParameters || !mediaType) {
         return;
       }
 
@@ -87,7 +90,10 @@ export class FrigateCardViewer extends LitElement {
         this,
         this.hass,
         this.view,
-        browseMediaQueryParameters,
+        BrowseMediaUtil.overrideMultiBrowseMediaQueryParameters(
+          browseMediaQueryParameters,
+          { mediaType: mediaType },
+        ),
       );
       return renderProgressIndicator();
     }
@@ -101,7 +107,7 @@ export class FrigateCardViewer extends LitElement {
         .hass=${this.hass}
         .view=${this.view}
         .viewerConfig=${this.viewerConfig}
-        .browseMediaQueryParametersBase=${browseMediaQueryParametersBase}
+        .browseMediaQueryParameters=${browseMediaQueryParameters}
         .resolvedMediaCache=${this.resolvedMediaCache}
       >
       </frigate-card-viewer-carousel>
@@ -133,7 +139,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   protected viewerConfig?: ViewerConfig;
 
   @property({ attribute: false })
-  protected browseMediaQueryParametersBase?: BrowseMediaQueryParametersBase;
+  protected browseMediaQueryParameters?: BrowseMediaQueryParameters[] | null;
 
   @property({ attribute: false })
   protected resolvedMediaCache?: ResolvedMediaCache;
@@ -338,7 +344,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       !this.view.target ||
       !this.view.target.children ||
       !this.view.target.children.length ||
-      !this.browseMediaQueryParametersBase
+      !this.browseMediaQueryParameters
     ) {
       return null;
     }
@@ -379,13 +385,17 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
 
     let clips: FrigateBrowseMediaSource | null;
 
-    try {
-      clips = await BrowseMediaUtil.browseMediaQuery(this.hass, {
-        ...this.browseMediaQueryParametersBase,
+    const params = BrowseMediaUtil.overrideMultiBrowseMediaQueryParameters(
+      this.browseMediaQueryParameters,
+      {
         mediaType: 'clips',
         before: latest,
         after: earliest,
-      });
+      },
+    );
+
+    try {
+      clips = await BrowseMediaUtil.multipleBrowseMediaQueryMerged(this.hass, params);
     } catch (e) {
       // This is best effort.
       return null;

@@ -19,7 +19,6 @@ import {
   LiveProvider,
   TransitionEffect,
   frigateCardConfigDefaults,
-  BrowseMediaQueryParameters,
 } from '../types.js';
 import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
 import { HomeAssistant } from 'custom-card-helpers';
@@ -127,15 +126,17 @@ export class FrigateCardLive extends LitElement {
       this.conditionState,
     ) as LiveConfig;
 
-    const browseMediaParamsBase = BrowseMediaUtil.getBrowseMediaQueryParametersBase(
-      this.cameras.get(this.view.camera),
-    );
-    if (!browseMediaParamsBase) {
+    const browseMediaParams =
+      BrowseMediaUtil.getFullDependentBrowseMediaQueryParametersOrDispatchError(
+        this,
+        this.hass,
+        this.cameras,
+        this.view.camera,
+        config.controls.thumbnails.media,
+      );
+
+    if (!browseMediaParams) {
       return;
-    }
-    const browseMediaParams: BrowseMediaQueryParameters = {
-      ...browseMediaParamsBase,
-      mediaType: config.controls.thumbnails.media,
     }
 
     // Note use of liveConfig and not config below -- the carousel will

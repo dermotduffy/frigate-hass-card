@@ -34,7 +34,9 @@ export class FrigateCardSurround extends LitElement {
   protected targetView?: FrigateCardView;
 
   @property({ attribute: false })
-  protected browseMediaParams?: BrowseMediaQueryParameters;
+  protected browseMediaParams?:
+    | BrowseMediaQueryParameters
+    | BrowseMediaQueryParameters[];
 
   // A task to await the load of the WebRTC component.
   protected _browseTask = new Task(this, this._fetchMedia.bind(this), () => [
@@ -53,22 +55,25 @@ export class FrigateCardSurround extends LitElement {
     | HomeAssistant
     | Readonly<View>
     | BrowseMediaQueryParameters
+    | BrowseMediaQueryParameters[]
     | undefined
   )[]): Promise<void> {
     hass = hass as HomeAssistant;
     view = view as Readonly<View>;
-    browseMediaParams = browseMediaParams as BrowseMediaQueryParameters;
+    browseMediaParams = browseMediaParams as
+      | BrowseMediaQueryParameters
+      | BrowseMediaQueryParameters[];
 
     if (!hass || !view || view.target || !browseMediaParams) {
       return;
     }
     let parent: FrigateBrowseMediaSource | null;
     try {
-      parent = await BrowseMediaUtil.browseMediaQuery(hass, browseMediaParams);
+      parent = await BrowseMediaUtil.multipleBrowseMediaQueryMerged(hass, browseMediaParams);
     } catch (e) {
       return dispatchErrorMessageEvent(this, (e as Error).message);
     }
-    if (BrowseMediaUtil.getFirstTrueMediaChildIndex(parent) != null) {
+    if (BrowseMediaUtil.getFirstTrueMediaChildIndex(parent) !== null) {
       this.view
         ?.evolve({
           ...(this.targetView && { view: this.targetView }),

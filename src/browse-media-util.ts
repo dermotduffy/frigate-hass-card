@@ -1,16 +1,18 @@
 import { HomeAssistant } from 'custom-card-helpers';
 
-import type {
-  BrowseMediaQueryParametersBase,
+import {
   BrowseMediaQueryParameters,
   FrigateBrowseMediaSource,
   CameraConfig,
+  MEDIA_CLASS_PLAYLIST,
+  MEDIA_TYPE_PLAYLIST,
 } from './types.js';
 import { View } from './view.js';
 import { frigateBrowseMediaSourceSchema } from './types.js';
 import {
   dispatchErrorMessageEvent,
   dispatchMessageEvent,
+  getCameraTitle,
   homeAssistantWSRequest,
 } from './common.js';
 import { localize } from './localize/localize.js';
@@ -73,10 +75,8 @@ export class BrowseMediaUtil {
       type: 'media_source/browse_media',
       media_content_id: media_content_id,
     };
-    return homeAssistantWSRequest(hass, frigateBrowseMediaSourceSchema, request);
+    return await homeAssistantWSRequest(hass, frigateBrowseMediaSourceSchema, request);
   }
-
-  // Browse Frigate media with query parameters.
 
   /**
    * Browse Frigate media with a media query. May throw.
@@ -110,12 +110,99 @@ export class BrowseMediaUtil {
   }
 
   /**
+   * Browse multiple Frigate media queries. May throw.
+   * @param hass The HomeAssistant object.
+   * @param params An array of search parameters to use to search for media.
+   * @returns A map of FrigateBrowseMediaSource object or null on malformed.
+   */
+  static async multipleBrowseMediaQuery(
+    hass: HomeAssistant,
+    params: BrowseMediaQueryParameters | BrowseMediaQueryParameters[],
+  ): Promise<Map<BrowseMediaQueryParameters, FrigateBrowseMediaSource>> {
+    params = Array.isArray(params) ? params : [params];
+    const output: Map<BrowseMediaQueryParameters, FrigateBrowseMediaSource> = new Map();
+    await Promise.all(
+      params.map(async (param: BrowseMediaQueryParameters): Promise<void> => {
+        output.set(param, await this.browseMediaQuery(hass, param));
+      }),
+    );
+    return output;
+  }
+
+  /**
+   * Browse multiple Frigate media queries, then merged them. May throw.
+   * @param hass The HomeAssistant object.
+   * @param params An array of search parameters to use to search for media.
+   * @returns A single FrigateBrowseMediaSource object or null on malformed.
+   */
+  static async multipleBrowseMediaQueryMerged(
+    hass: HomeAssistant,
+    params: BrowseMediaQueryParameters | BrowseMediaQueryParameters[],
+  ): Promise<FrigateBrowseMediaSource> {
+    return this.mergeFrigateBrowseMediaSources(
+      await this.multipleBrowseMediaQuery(hass, params),
+    );
+  }
+
+  /**
+   * Merge multiple FrigateBrowseMediaSource into a single. Note that this may
+   * use information from the query to differentiate results that may otherwise
+   * be identical.
+   * @param input A map of query -> result.
+   * @returns A single FrigateBrowseMediaSource object.
+   */
+  static mergeFrigateBrowseMediaSources(
+    input: Map<BrowseMediaQueryParameters, FrigateBrowseMediaSource>,
+  ): FrigateBrowseMediaSource {
+    const children: FrigateBrowseMediaSource[] = [];
+
+    for (const [query, result] of input.entries()) {
+      for (const child of result.children || []) {
+        if (this.isTrueMedia(child)) {
+          children.push(child);
+        } else {
+          if (query.title) {
+            children.push({ ...child, title: `[${query.title}] ${child.title}` });
+          } else {
+            children.push(child);
+          }
+        }
+      }
+    }
+
+    const eventSort = (
+      a: FrigateBrowseMediaSource,
+      b: FrigateBrowseMediaSource,
+    ): number => {
+      if (
+        !a.frigate?.event ||
+        (b.frigate?.event && b.frigate.event.start_time > a.frigate.event.start_time)
+      ) {
+        return 1;
+      }
+
+      if (
+        !b.frigate?.event ||
+        (a.frigate?.event && b.frigate.event.start_time < a.frigate.event.start_time)
+      ) {
+        return -1;
+      }
+      return 0;
+    };
+
+    return this.createEventParentForChildren('Merged events', children.sort(eventSort));
+  }
+
+  /**
    * Get the parameters to search for media.
    * @returns A BrowseMediaQueryParameters object.
    */
-  static getBrowseMediaQueryParametersBase(
+  static getBrowseMediaQueryParameters(
+    hass: HomeAssistant,
+    cameraID: string,
     cameraConfig?: CameraConfig,
-  ): BrowseMediaQueryParametersBase | null {
+    overrides?: Partial<BrowseMediaQueryParameters>,
+  ): BrowseMediaQueryParameters | null {
     if (!cameraConfig || !cameraConfig.camera_name) {
       return null;
     }
@@ -124,84 +211,143 @@ export class BrowseMediaUtil {
       cameraName: cameraConfig.camera_name,
       label: cameraConfig.label,
       zone: cameraConfig.zone,
+      title: getCameraTitle(hass, cameraConfig),
+      cameraID: cameraID,
+      ...overrides,
     };
   }
 
   /**
-   * Set the mediaType parameter from the current view.
-   * @param browseMediaQueryParametersBase The base media query parameters object.
-   * @param view The current view.
-   * @returns A fully populated BrowseMediaQueryParameters or null.
+   * Apply overrides to multiple query parameters.
+   * @param parameters An array of query parameters.
+   * @param overrides The overrides to apply.
+   * @returns The override query parameters.
    */
-  static setMediaTypeFromView(
-    browseMediaQueryParametersBase: BrowseMediaQueryParametersBase | null,
-    view: View,
-  ): BrowseMediaQueryParameters | null {
-    if (
-      !browseMediaQueryParametersBase ||
-      !(view.isClipRelatedView() || view.isSnapshotRelatedView())
-    ) {
-      return null;
+  static overrideMultiBrowseMediaQueryParameters(
+    parameters: BrowseMediaQueryParameters[],
+    overrides: Partial<BrowseMediaQueryParameters>,
+  ): BrowseMediaQueryParameters[] {
+    const output: BrowseMediaQueryParameters[] = [];
+    parameters.forEach((param) => {
+      output.push({ ...param, ...overrides });
+    });
+    return output;
+  }
+
+  /**
+   * Get BrowseMediaQueryParameters for a camera (including its dependencies).
+   * @param hass Home Assistant object.
+   * @param cameras Cameras map.
+   * @param camera Name of the current camera.
+   * @param mediaType Optional media type to include in the parameters.
+   * @returns An array of query parameters.
+   */
+  static getFullDependentBrowseMediaQueryParameters(
+    hass: HomeAssistant,
+    cameras: Map<string, CameraConfig>,
+    camera: string,
+    mediaType?: 'clips' | 'snapshots',
+  ): BrowseMediaQueryParameters[] | null {
+    const cameraIDs: Set<string> = new Set();
+    const getDependentCameras = (camera: string): void => {
+      const cameraConfig = cameras.get(camera);
+      if (cameraConfig) {
+        cameraIDs.add(camera);
+        for (const eventCameraID of cameraConfig.dependent_cameras || []) {
+          if (!cameraIDs.has(eventCameraID)) {
+            getDependentCameras(eventCameraID);
+          }
+        }
+      }
+    };
+    getDependentCameras(camera);
+
+    const params: BrowseMediaQueryParameters[] = [];
+    for (const cameraID of cameraIDs) {
+      const param = BrowseMediaUtil.getBrowseMediaQueryParameters(
+        hass,
+        cameraID,
+        cameras.get(cameraID),
+        mediaType ? { mediaType: mediaType } : {},
+      );
+      // Fail on a single bad camera, as it's almost certainly a user error that
+      // should be fixed rather than hidden.
+      if (!param) {
+        return null;
+      }
+      params.push(param);
     }
-    return {
-      ...browseMediaQueryParametersBase,
-      mediaType: view.isClipRelatedView() ? 'clips' : 'snapshots',
-    };
+    return params.length ? params : null;
   }
 
   /**
-   * Get the parameters to search for media related to the current view.
-   * @returns A BrowseMediaQueryParameters object.
+   * Get BrowseMediaQueryParameters for a camera (including its dependencies) or dispatch an error.
+   * @param element The element from which to dispatch the error.
+   * @param hass Home Assistant object.
+   * @param cameras Cameras map.
+   * @param camera Name of the current camera.
+   * @param mediaType Optional media type to include in the parameters.
+   * @returns An array of query parameters.
    */
-  static getBrowseMediaQueryParametersBaseOrDispatchError(
-    node: HTMLElement,
-    cameraConfig: CameraConfig,
-  ): BrowseMediaQueryParametersBase | null {
-    // Verify there is a camera name, otherwise getBrowseMediaQueryParametersBase()
-    // will return undefined.
-    if (!cameraConfig.camera_name) {
+  static getFullDependentBrowseMediaQueryParametersOrDispatchError(
+    element: HTMLElement,
+    hass: HomeAssistant,
+    cameras: Map<string, CameraConfig>,
+    camera: string,
+    mediaType?: 'clips' | 'snapshots',
+  ): BrowseMediaQueryParameters[] | null {
+    const params = this.getFullDependentBrowseMediaQueryParameters(
+      hass,
+      cameras,
+      camera,
+      mediaType,
+    );
+    if (!params) {
       dispatchErrorMessageEvent(
-        node,
-        localize('error.no_camera_name') + `: ${JSON.stringify(cameraConfig)}`,
+        element,
+        localize('error.no_camera_name'),
+        cameras.get(camera),
       );
       return null;
     }
-
-    return BrowseMediaUtil.getBrowseMediaQueryParametersBase(cameraConfig);
+    return params;
   }
 
   /**
    * Fetch the latest media and dispatch a change view event to reflect the
    * results. If no media is found a suitable message event will be triggered
    * instead.
-   * @param node The HTMLElement to dispatch events from.
+   * @param element The HTMLElement to dispatch events from.
    * @param hass The Home Assistant object.
    * @param view The current view to evolve.
    * @param browseMediaQueryParameters The media parameters to query with.
    * @returns
    */
   static async fetchLatestMediaAndDispatchViewChange(
-    node: HTMLElement,
+    element: HTMLElement,
     hass: HomeAssistant,
     view: Readonly<View>,
-    browseMediaQueryParameters: BrowseMediaQueryParameters,
+    browseMediaQueryParameters:
+      | BrowseMediaQueryParameters
+      | BrowseMediaQueryParameters[],
   ): Promise<void> {
     let parent: FrigateBrowseMediaSource | null;
     try {
-      parent = await BrowseMediaUtil.browseMediaQuery(hass, browseMediaQueryParameters);
+      parent = await BrowseMediaUtil.multipleBrowseMediaQueryMerged(
+        hass,
+        browseMediaQueryParameters,
+      );
     } catch (e) {
-      return dispatchErrorMessageEvent(node, (e as Error).message);
+      return dispatchErrorMessageEvent(element, (e as Error).message);
     }
     const childIndex = BrowseMediaUtil.getFirstTrueMediaChildIndex(parent);
     if (!parent || !parent.children || childIndex == null) {
       return dispatchMessageEvent(
-        node,
-        browseMediaQueryParameters.mediaType == 'clips'
+        element,
+        view.isClipRelatedView()
           ? localize('common.no_clip')
           : localize('common.no_snapshot'),
-        browseMediaQueryParameters.mediaType == 'clips'
-          ? 'mdi:filmstrip-off'
-          : 'mdi:camera-off',
+        view.isClipRelatedView() ? 'mdi:filmstrip-off' : 'mdi:camera-off',
       );
     }
 
@@ -210,7 +356,7 @@ export class BrowseMediaUtil {
         target: parent,
         childIndex: childIndex,
       })
-      .dispatchChangeEvent(node);
+      .dispatchChangeEvent(element);
   }
 
   /**
@@ -223,7 +369,7 @@ export class BrowseMediaUtil {
    * @returns
    */
   static async fetchChildMediaAndDispatchViewChange(
-    node: HTMLElement,
+    element: HTMLElement,
     hass: HomeAssistant,
     view: Readonly<View>,
     child: Readonly<FrigateBrowseMediaSource>,
@@ -232,13 +378,36 @@ export class BrowseMediaUtil {
     try {
       parent = await BrowseMediaUtil.browseMedia(hass, child.media_content_id);
     } catch (e) {
-      return dispatchErrorMessageEvent(node, (e as Error).message);
+      return dispatchErrorMessageEvent(element, (e as Error).message);
     }
 
     view
       .evolve({
         target: parent,
       })
-      .dispatchChangeEvent(node);
+      .dispatchChangeEvent(element);
+  }
+
+  /**
+   * Given an array of media children, create a parent for them.
+   * @param title The title to use for the parent.
+   * @param children The children media items.
+   * @returns A single parent containing the children.
+   */
+  static createEventParentForChildren(
+    title: string,
+    children: FrigateBrowseMediaSource[],
+  ): FrigateBrowseMediaSource {
+    return {
+      title: title,
+      media_class: MEDIA_CLASS_PLAYLIST,
+      media_content_type: MEDIA_TYPE_PLAYLIST,
+      media_content_id: '',
+      can_play: false,
+      can_expand: true,
+      children_media_class: MEDIA_CLASS_PLAYLIST,
+      thumbnail: null,
+      children: children,
+    };
   }
 }
