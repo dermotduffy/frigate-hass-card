@@ -6,7 +6,6 @@ import { HomeAssistant, LovelaceCardEditor, fireEvent } from 'custom-card-helper
 import { localize } from './localize/localize.js';
 import {
   BUTTON_SIZE_MIN,
-  CameraConfig,
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
@@ -94,8 +93,6 @@ import {
   arrayMove,
   getCameraID,
   getCameraTitle,
-  getEntityTitle,
-  prettifyFrigateName,
 } from './common.js';
 import {
   copyConfig,
