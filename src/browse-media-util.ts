@@ -176,14 +176,14 @@ export class BrowseMediaUtil {
     ): number => {
       if (
         !a.frigate?.event ||
-        (b.frigate?.event && b.frigate.event.start_time < a.frigate.event.start_time)
+        (b.frigate?.event && b.frigate.event.start_time > a.frigate.event.start_time)
       ) {
         return 1;
       }
 
       if (
         !b.frigate?.event ||
-        (a.frigate?.event && b.frigate.event.start_time > a.frigate.event.start_time)
+        (a.frigate?.event && b.frigate.event.start_time < a.frigate.event.start_time)
       ) {
         return -1;
       }

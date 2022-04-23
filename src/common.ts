@@ -497,20 +497,10 @@ export function getCameraTitle(
   // used on raw configuration in the editor.
   return (
     (typeof config?.title === 'string' && config.title) ||
+    (typeof config?.camera_entity === 'string' ? getEntityTitle(hass, config.camera_entity) : '') ||
+    (typeof config?.webrtc_card === 'object' &&  config.webrtc_card && typeof config.webrtc_card['entity'] === 'string' && config.webrtc_card['entity']) ||
+    (typeof config?.camera_name === 'string' ? prettifyFrigateName(config.camera_name) : '') ||
     (typeof config?.id === 'string' && config.id) ||
-    [
-      typeof config?.camera_entity === 'string'
-        ? getEntityTitle(hass, config.camera_entity)
-        : '',
-      typeof config?.client_id === 'string' ? config.client_id : '',
-      typeof config?.camera_name === 'string'
-        ? prettifyFrigateName(config.camera_name)
-        : '',
-      typeof config?.label === 'string' ? prettifyFrigateName(config.label) : '',
-      typeof config?.zone === 'string' ? prettifyFrigateName(config.zone) : '',
-    ]
-      .filter(Boolean)
-      .join(' / ') ||
     ''
   );
 }
