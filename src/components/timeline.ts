@@ -280,7 +280,11 @@ class TimelineEventManager {
     const params: BrowseMediaQueryParameters[] = [];
     cameras.forEach((cameraConfig, cameraID) => {
       (media === 'all' ? ['clips', 'snapshots'] : [media]).forEach((mediaType) => {
-        if (this._dateEnd && this._dateStart) {
+        if (
+          this._dateEnd &&
+          this._dateStart &&
+          cameraConfig.camera_name !== 'birdseye'
+        ) {
           const param = BrowseMediaUtil.getBrowseMediaQueryParameters(
             hass,
             cameraID,
@@ -588,10 +592,12 @@ export class FrigateCardTimelineCore extends LitElement {
   protected _getGroups(): DataGroupCollectionType {
     const groups: FrigateCardGroupData[] = [];
     this.cameras?.forEach((cameraConfig, camera) => {
-      groups.push({
-        id: camera,
-        content: getCameraTitle(this.hass, cameraConfig),
-      });
+      if (cameraConfig.camera_name !== 'birdseye') {
+        groups.push({
+          id: camera,
+          content: getCameraTitle(this.hass, cameraConfig),
+        });
+      }
     });
     return new DataSet(groups);
   }
