@@ -77,7 +77,12 @@ export class FrigateCardViewer extends LitElement {
       );
 
     if (!this.view.target) {
-      if (!browseMediaQueryParameters) {
+      // If the target is not specified, the view must tell us which mediaType
+      // to search for. When the target *is* specified, the view is not required
+      // to indicate the media type (e.g. the mixed 'events' view from the
+      // timeline).
+      const mediaType = this.view.getMediaType();
+      if (!browseMediaQueryParameters || !mediaType) {
         return;
       }
 
@@ -85,7 +90,10 @@ export class FrigateCardViewer extends LitElement {
         this,
         this.hass,
         this.view,
-        browseMediaQueryParameters,
+        BrowseMediaUtil.overrideMultiBrowseMediaQueryParameters(
+          browseMediaQueryParameters,
+          { mediaType: mediaType },
+        ),
       );
       return renderProgressIndicator();
     }

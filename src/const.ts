@@ -1,4 +1,6 @@
 export const CARD_VERSION = '3.0.0' as const;
+
+export const CAMERA_BIRDSEYE = 'birdseye' as const;
 export const REPO_URL = 'https://github.com/dermotduffy/frigate-hass-card' as const;
 export const TROUBLESHOOTING_URL = `${REPO_URL}#troubleshooting` as const;
 

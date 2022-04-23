@@ -32,6 +32,7 @@ import {
   FrigateEvent,
   frigateCardConfigDefaults,
 } from '../types';
+import { CAMERA_BIRDSEYE } from '../const';
 import { View, ViewContext } from '../view';
 import {
   dispatchErrorMessageEvent,
@@ -283,7 +284,7 @@ class TimelineEventManager {
         if (
           this._dateEnd &&
           this._dateStart &&
-          cameraConfig.camera_name !== 'birdseye'
+          cameraConfig.camera_name !== CAMERA_BIRDSEYE
         ) {
           const param = BrowseMediaUtil.getBrowseMediaQueryParameters(
             hass,
@@ -592,7 +593,7 @@ export class FrigateCardTimelineCore extends LitElement {
   protected _getGroups(): DataGroupCollectionType {
     const groups: FrigateCardGroupData[] = [];
     this.cameras?.forEach((cameraConfig, camera) => {
-      if (cameraConfig.camera_name !== 'birdseye') {
+      if (cameraConfig.camera_name !== CAMERA_BIRDSEYE) {
         groups.push({
           id: camera,
           content: getCameraTitle(this.hass, cameraConfig),

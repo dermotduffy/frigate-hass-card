@@ -35,7 +35,7 @@ import type {
   Message,
 } from './types.js';
 
-import { CARD_VERSION, REPO_URL } from './const.js';
+import { CAMERA_BIRDSEYE, CARD_VERSION, REPO_URL } from './const.js';
 import { FrigateCardElements } from './components/elements.js';
 import { FrigateCardImage } from './components/image.js';
 import { FRIGATE_BUTTON_MENU_ICON, FrigateCardMenu } from './components/menu.js';
@@ -333,7 +333,7 @@ export class FrigateCard extends LitElement {
     if (
       this._getConfig().menu.buttons.clips &&
       cameraConfig?.camera_name &&
-      (cameraConfig?.camera_name !== 'birdseye' ||
+      (cameraConfig?.camera_name !== CAMERA_BIRDSEYE ||
         cameraConfig?.dependent_cameras?.length)
     ) {
       buttons.push({
@@ -351,7 +351,7 @@ export class FrigateCard extends LitElement {
     if (
       this._getConfig().menu.buttons.snapshots &&
       cameraConfig?.camera_name &&
-      (cameraConfig?.camera_name !== 'birdseye' ||
+      (cameraConfig?.camera_name !== CAMERA_BIRDSEYE ||
         cameraConfig?.dependent_cameras?.length)
     ) {
       buttons.push({
