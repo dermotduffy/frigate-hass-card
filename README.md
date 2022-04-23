@@ -1288,6 +1288,27 @@ card_mod:
 ```
 </details>
 
+### Using a dependent camera
+
+`dependent_cameras` allows events for other cameras to be shown along with the currently selected camera. For example, this can be used to show events with the `birdseye` camera (since it will not have events of its own).
+
+<details>
+  <summary>Expand: Using dependent cameras with birdseye</summary>
+
+This example shows events for two other cameras when `birdseye` is selected.
+
+```yaml
+[...]
+cameras:
+  - camera_entity: camera.kitchen
+  - camera_entity: camera.sitting_room
+  - camera_name: birdseye
+    dependent_cameras:
+      - camera.kitchen
+      - camera.sitting_room
+```
+</details>
+
 <a name="card-updates"></a>
 
 ## Card Refreshes
