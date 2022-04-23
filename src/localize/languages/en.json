@@ -14,6 +14,7 @@
       "camera_entity": "Camera Entity",
       "camera_name": "Frigate camera name (Autodetected from entity)",
       "client_id": "Frigate client id (For >1 Frigate server)",
+      "dependent_cameras": "Dependent cameras to also show events for",
       "id": "Unique id for this camera in this card",
       "label": "Frigate label/object filter",
       "frigate_url": "Frigate server URL",

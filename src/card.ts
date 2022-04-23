@@ -48,6 +48,7 @@ import {
   frigateCardHasAction,
   getActionConfigGivenAction,
   getCameraIcon,
+  getCameraID,
   getCameraTitle,
   homeAssistantSignPath,
   homeAssistantWSRequest,
@@ -467,12 +468,7 @@ export class FrigateCard extends LitElement {
         }
       }
 
-      const id =
-        config.id ||
-        config.camera_entity ||
-        config.webrtc_card?.entity ||
-        config.camera_name;
-
+      const id = getCameraID(config);
       if (!id) {
         this._setMessageAndUpdate({
           message: localize('error.no_camera_id'),

@@ -28,10 +28,6 @@
   display: grid;
   margin-bottom: 10px;
 }
-ha-formfield {
-  padding-bottom: 8px;
-}
-
 div.upgrade {
   width: auto;
   border: 1px dotted var(--primary-color);
@@ -78,4 +74,9 @@ div.upgrade span {
 }
 span.info {
   padding: 4px;
+}
+
+ha-selector {
+  padding: 10px;
+  border: 1px solid var(--divider-color);
 }
