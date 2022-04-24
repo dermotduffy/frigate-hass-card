@@ -28,19 +28,23 @@
 }
 
 :host([data-position='top']),
-:host([data-alignment='top']) {
+:host([data-position='left'][data-alignment='top']),
+:host([data-position='right'][data-alignment='top']) {
   top: 0px;
 }
 :host([data-position='bottom']),
-:host([data-alignment='bottom']) {
+:host([data-position='left'][data-alignment='bottom']),
+:host([data-position='right'][data-alignment='bottom']) {
   bottom: 0px;
 }
 :host([data-position='left']),
-:host([data-alignment='left']) {
+:host([data-position='top'][data-alignment='left']),
+:host([data-position='bottom'][data-alignment='left']) {
   left: 0px;
 }
 :host([data-position='right']),
-:host([data-alignment='right']) {
+:host([data-position='top'][data-alignment='right']),
+:host([data-position='bottom'][data-alignment='right']) {
   right: 0px;
 }
 
