@@ -64,8 +64,11 @@ export class FrigateCardMenu extends LitElement {
         `${menuConfig.button_size}px`,
       );
     }
-    // Store the menu mode as an attribute (used for CSS attribute selectors).
-    this.setAttribute('data-mode', menuConfig.mode);
+    // Store the menu style, position and alignment as attributes (used for
+    // styling).
+    this.setAttribute('data-style', menuConfig.style);
+    this.setAttribute('data-position', menuConfig.position);
+    this.setAttribute('data-alignment', menuConfig.alignment);
   }
   @state()
   protected _menuConfig?: MenuConfig;
@@ -82,7 +85,7 @@ export class FrigateCardMenu extends LitElement {
    * @returns `true` if the menu is hiding, `false` otherwise.
    */
   static isHidingMenu(menuConfig: MenuConfig | undefined): boolean {
-    return menuConfig?.mode.startsWith('hidden-') ?? false;
+    return menuConfig?.style === 'hidden' ?? false;
   }
 
   /**
@@ -265,15 +268,14 @@ export class FrigateCardMenu extends LitElement {
     if (!this._menuConfig) {
       return;
     }
-    const mode = this._menuConfig.mode;
-
-    if (mode == 'none') {
+    const style = this._menuConfig.style;
+    if (style === 'none') {
       return;
     }
 
     // If the hidden menu isn't expanded, only show the Frigate button.
     const buttons =
-      !mode.startsWith('hidden-') || this.expanded
+      style !== 'hidden' || this.expanded
         ? this.buttons
         : this.buttons.filter((button) => button.icon === FRIGATE_BUTTON_MENU_ICON);
     return html` ${buttons.map((button) => this._renderButton(button))} `;

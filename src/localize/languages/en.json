@@ -164,23 +164,27 @@
         "download": "Download event media",
         "cameras": "Select camera"
       },
-      "mode": "Menu mode",
-      "modes": {
+      "style": "Menu style",
+      "styles": {
         "none": "No menu",
-        "hidden-top": "Hidden top",
-        "hidden-left": "Hidden left",
-        "hidden-bottom": "Hidden bottom",
-        "hidden-right": "Hidden right",
-        "overlay-top": "Overlay top",
-        "overlay-left": "Overlay left",
-        "overlay-bottom": "Overlay bottom",
-        "overlay-right": "Overlay right",
-        "hover-top": "Hover top",
-        "hover-left": "Hover left",
-        "hover-bottom": "Hover bottom",
-        "hover-right": "Hover right",
-        "above": "Above",
-        "below": "Below"
+        "hidden": "Hidden menu",
+        "overlay": "Overlay menu",
+        "hover": "Hover menu",
+        "outside": "Outside menu"
+      },
+      "position": "Menu position",
+      "positions": {
+        "left": "Positioned on the left",
+        "right": "Positioned on the right",
+        "top": "Positioned on the top",
+        "bottom": "Positioned on the bottom"
+      },
+      "alignment": "Menu alignment",
+      "alignments": {
+        "left": "Aligned to the left",
+        "right": "Aligned to the right",
+        "top": "Aligned to the top",
+        "bottom": "Aligned to the bottom"
       },
       "button_size": "Menu button size in pixels"
     },

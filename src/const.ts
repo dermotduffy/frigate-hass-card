@@ -108,6 +108,9 @@ export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_CONTROLS =
 `${CONF_TIMELINE}.controls.thumbnails.show_controls` as const;
 
 export const CONF_MENU = 'menu' as const;
+export const CONF_MENU_ALIGNMENT = `${CONF_MENU}.alignment` as const;
+export const CONF_MENU_POSITION = `${CONF_MENU}.position` as const;
+export const CONF_MENU_STYLE = `${CONF_MENU}.style` as const;
 export const CONF_MENU_BUTTONS_FRIGATE = `${CONF_MENU}.buttons.frigate` as const;
 export const CONF_MENU_BUTTONS_FRIGATE_UI = `${CONF_MENU}.buttons.frigate_ui` as const;
 export const CONF_MENU_BUTTONS_FRIGATE_FULLSCREEN =
@@ -119,7 +122,6 @@ export const CONF_MENU_BUTTONS_CLIPS = `${CONF_MENU}.buttons.clips` as const;
 export const CONF_MENU_BUTTONS_SNAPSHOTS = `${CONF_MENU}.buttons.snapshots` as const;
 export const CONF_MENU_BUTTONS_IMAGE = `${CONF_MENU}.buttons.image` as const;
 export const CONF_MENU_BUTTON_SIZE = `${CONF_MENU}.button_size` as const;
-export const CONF_MENU_MODE = `${CONF_MENU}.mode` as const;
 
 export const CONF_DIMENSIONS = 'dimensions' as const;
 export const CONF_DIMENSIONS_ASPECT_RATIO = `${CONF_DIMENSIONS}.aspect_ratio` as const;
