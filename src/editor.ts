@@ -64,6 +64,7 @@ import {
   CONF_LIVE_LAZY_UNLOAD,
   CONF_LIVE_PRELOAD,
   CONF_LIVE_TRANSITION_EFFECT,
+  CONF_MENU_ALIGNMENT,
   CONF_MENU_BUTTONS_CLIPS,
   CONF_MENU_BUTTONS_FRIGATE,
   CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD,
@@ -73,7 +74,8 @@ import {
   CONF_MENU_BUTTONS_LIVE,
   CONF_MENU_BUTTONS_SNAPSHOTS,
   CONF_MENU_BUTTON_SIZE,
-  CONF_MENU_MODE,
+  CONF_MENU_POSITION,
+  CONF_MENU_STYLE,
   CONF_TIMELINE_CLUSTERING_THRESHOLD,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
@@ -89,11 +91,7 @@ import {
   CONF_VIEW_UPDATE_FORCE,
   CONF_VIEW_UPDATE_SECONDS,
 } from './const.js';
-import {
-  arrayMove,
-  getCameraID,
-  getCameraTitle,
-} from './common.js';
+import { arrayMove, getCameraID, getCameraTitle } from './common.js';
 import {
   copyConfig,
   deleteConfigValue,
@@ -219,23 +217,29 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'current', label: localize('config.view.views.current') },
   ];
 
-  protected _menuModes: EditorSelectOption[] = [
+  protected _menuStyles: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'none', label: localize('config.menu.modes.none') },
-    { value: 'hidden-top', label: localize('config.menu.modes.hidden-top') },
-    { value: 'hidden-left', label: localize('config.menu.modes.hidden-left') },
-    { value: 'hidden-bottom', label: localize('config.menu.modes.hidden-bottom') },
-    { value: 'hidden-right', label: localize('config.menu.modes.hidden-right') },
-    { value: 'overlay-top', label: localize('config.menu.modes.overlay-top') },
-    { value: 'overlay-left', label: localize('config.menu.modes.overlay-left') },
-    { value: 'overlay-bottom', label: localize('config.menu.modes.overlay-bottom') },
-    { value: 'overlay-right', label: localize('config.menu.modes.overlay-right') },
-    { value: 'hover-top', label: localize('config.menu.modes.hover-top') },
-    { value: 'hover-left', label: localize('config.menu.modes.hover-left') },
-    { value: 'hover-bottom', label: localize('config.menu.modes.hover-bottom') },
-    { value: 'hover-right', label: localize('config.menu.modes.hover-right') },
-    { value: 'above', label: localize('config.menu.modes.above') },
-    { value: 'below', label: localize('config.menu.modes.below') },
+    { value: 'none', label: localize('config.menu.styles.none') },
+    { value: 'hidden', label: localize('config.menu.styles.hidden') },
+    { value: 'overlay', label: localize('config.menu.styles.overlay') },
+    { value: 'hover', label: localize('config.menu.styles.hover') },
+    { value: 'outside', label: localize('config.menu.styles.outside') },
+  ];
+
+  protected _menuPositions: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'left', label: localize('config.menu.positions.left') },
+    { value: 'right', label: localize('config.menu.positions.right') },
+    { value: 'top', label: localize('config.menu.positions.top') },
+    { value: 'bottom', label: localize('config.menu.positions.bottom') },
+  ];
+
+  protected _menuAlignments: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'left', label: localize('config.menu.alignments.left') },
+    { value: 'right', label: localize('config.menu.alignments.right') },
+    { value: 'top', label: localize('config.menu.alignments.top') },
+    { value: 'bottom', label: localize('config.menu.alignments.bottom') },
   ];
 
   protected _eventViewerNextPreviousControlStyles: EditorSelectOption[] = [
@@ -878,7 +882,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.menu.show
           ? html`
               <div class="values">
-                ${this._renderOptionSelector(CONF_MENU_MODE, this._menuModes)}
+                ${this._renderOptionSelector(CONF_MENU_STYLE, this._menuStyles)}
+                ${this._renderOptionSelector(CONF_MENU_POSITION, this._menuPositions)}
+                ${this._renderOptionSelector(CONF_MENU_ALIGNMENT, this._menuAlignments)}
                 ${this._renderNumberInput(CONF_MENU_BUTTON_SIZE, BUTTON_SIZE_MIN)}
                 ${this._renderSwitch(
                   CONF_MENU_BUTTONS_FRIGATE,

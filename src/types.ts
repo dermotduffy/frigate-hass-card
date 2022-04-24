@@ -53,23 +53,21 @@ const FRIGATE_CARD_VIEWS = [
 
 export type FrigateCardView = typeof FRIGATE_CARD_VIEWS[number];
 
-const FRIGATE_MENU_MODES = [
+const FRIGATE_MENU_STYLES = [
   'none',
-  'hidden-top',
-  'hidden-left',
-  'hidden-bottom',
-  'hidden-right',
-  'overlay-top',
-  'overlay-left',
-  'overlay-bottom',
-  'overlay-right',
-  'hover-top',
-  'hover-left',
-  'hover-bottom',
-  'hover-right',
-  'above',
-  'below',
+  'hidden',
+  'overlay',
+  'hover',
+  'outside',
 ] as const;
+const FRIGATE_MENU_POSITIONS = [
+  'left',
+  'right',
+  'top',
+  'bottom',
+] as const;
+const FRIGATE_MENU_ALIGNMENTS = FRIGATE_MENU_POSITIONS;
+
 const LIVE_PROVIDERS = ['auto', 'ha', 'frigate-jsmpeg', 'webrtc-card'] as const;
 export type LiveProvider = typeof LIVE_PROVIDERS[number];
 
@@ -615,7 +613,9 @@ export type LiveConfig = z.infer<typeof liveConfigSchema>;
  * Menu configuration section.
  */
 const menuConfigDefault = {
-  mode: 'hidden-top' as const,
+  style: 'hidden' as const,
+  position: 'top' as const,
+  alignment: 'left' as const,
   buttons: {
     frigate: true,
     cameras: true,
@@ -633,7 +633,9 @@ const menuConfigDefault = {
 
 const menuConfigSchema = z
   .object({
-    mode: z.enum(FRIGATE_MENU_MODES).default(menuConfigDefault.mode),
+    style: z.enum(FRIGATE_MENU_STYLES).default(menuConfigDefault.style),
+    position: z.enum(FRIGATE_MENU_POSITIONS).default(menuConfigDefault.position),
+    alignment: z.enum(FRIGATE_MENU_ALIGNMENTS).default(menuConfigDefault.alignment),
     buttons: z
       .object({
         frigate: z.boolean().default(menuConfigDefault.buttons.frigate),

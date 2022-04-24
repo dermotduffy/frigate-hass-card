@@ -171,7 +171,9 @@ menu:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `mode` | `hidden-top` | :white_check_mark: | The menu mode to show by default. See [menu modes](#menu-modes) below.|
+| `style` | `hidden` | :white_check_mark: | The menu style to show by default, one of `none`, `hidden`, `hover`, `overlay`, or `outside`. See [menu styles](#menu-styles) below.|
+| `position` | `top` | :white_check_mark: | Whether to show the menu on the `left`, `right`, `top` or `bottom` side of the card.|
+| `alignment` | `left` | :white_check_mark: | Whether to align the menu buttons to the `left`, `right`, `top` or `bottom` of the menu. Some selections may have no effect depending on the value of `position` (e.g. it doesn't make sense to `left` align icons on a menu with `position` to the `left`).|
 | `button_size` | 40 | :white_check_mark: | The size of the menu buttons in pixels. Must be >= `20`.|
 | `buttons` | | :white_check_mark: | Whether to show or hide built-in buttons. See below. |
 
@@ -186,7 +188,7 @@ menu:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `frigate` | `true` | :white_check_mark: | Whether to show the `Frigate` menu button: brings the user to the default configured view (`view.default`), or collapses/expands the menu if the `menu.mode` is `hidden-*` . |
+| `frigate` | `true` | :white_check_mark: | Whether to show the `Frigate` menu button: brings the user to the default configured view (`view.default`), or collapses/expands the menu if the `menu.style` is `hidden` . |
 | `cameras` | `true` | :white_check_mark: | Whether to show the camera selection submenu. Will only appear if multiple cameras are configured. |
 | `live` | `true` | :white_check_mark: | Whether to show the `live` view menu button: brings the user to the `live` view. See [views](#views) below.|
 | `clips` | `true` | :white_check_mark: | Whether to show the `clips` view menu button: brings the user to the `clips` view on tap and the most-recent `clip` view on hold. See [views](#views) below. This button will never be shown if the `camera_name` for the selected camera is not auto-detected/specified (e.g. non-Frigate cameras), or if the `camera_name` is `birdseye`.|
@@ -655,7 +657,7 @@ Parameters for the `custom:frigate-card-conditional` element:
 |`frigate_ui`|Open the Frigate UI at the configured URL.|
 |`fullscreen`|Toggle fullscreen.| 
 |`camera_select`|Select a given camera. Takes a single additional `camera` parameter with the [camera ID](#camera-ids) of the camera to select. Respects the value of `view.camera_select` to choose the appropriate view on the new camera.|
-|`menu_toggle` | Show/hide the menu (for `hidden-*` mode menus). |
+|`menu_toggle` | Show/hide the menu (for the `hidden` mode style). |
 
 <a name="views"></a>
 
@@ -747,17 +749,16 @@ next/previous controls, thumbnails, etc), but in some cases this is not possible
 (e.g. embedded WebRTC card controls) -- in these cases duplicate actions may
 occur with certain configurations (e.g. `tap`).
 
-## Menu Modes
+## Menu Styles
 
-This card supports several menu configurations.
+This card supports several menu styles.
 
 | Key           | Description                                         | Screenshot |
 | ------------- | --------------------------------------------- | - |
-|`hidden-{top,bottom,right,left}`  [default: `hidden-top`]| Hide the menu by default, expandable upon clicking the Frigate button. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-hidden.png" alt="Menu hidden" width="400px"> |
-|`overlay-{top,bottom,right,left}`| Overlay the menu over the card contents. The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-overlay.png" alt="Menu overlaid" width="400px"> |
-|`hover-{top,bottom,right,left}`| Overlay the menu over the card contents when the mouse is over the card / touch on the card, otherwise it is not shown. The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-overlay.png" alt="Menu overlaid" width="400px"> |
-|`above`| Render the menu above the card. The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-above.png" alt="Menu above" width="400px"> |
-|`below`| Render the menu below the card. The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-below.png" alt="Menu below" width="400px"> |
+|`hidden`| Hide the menu by default, expandable upon clicking the Frigate button. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-hidden.png" alt="Menu hidden" width="400px"> |
+|`overlay`| Overlay the menu over the card contents. The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-overlay.png" alt="Menu overlaid" width="400px"> |
+|`hover`| Overlay the menu over the card contents when the mouse is over the card / touch on the card, otherwise it is not shown. The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-overlay.png" alt="Menu overlaid" width="400px"> |
+|`outside`| Render the menu outside the card (i.e. above it if `position` is `top`, or below it if `position` is `bottom`). The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-above.png" alt="Menu above" width="400px"> |
 |`none`| No menu is shown. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-none.png" alt="No Menu" width="400px"> |
 
 <a name="screenshots"></a>
@@ -1189,7 +1190,7 @@ overrides:
       fullscreen: true
     overrides:
       menu:
-        mode: none
+        style: none
 ```
 
 </details>

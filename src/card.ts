@@ -1203,6 +1203,9 @@ export class FrigateCard extends LitElement {
     };
 
     const actions = this._getMergedActions();
+    const renderMenuAbove =
+      this._getConfig().menu.style === 'outside' &&
+      this._getConfig().menu.position === 'top';
 
     return html` <ha-card
       .actionHandler=${actionHandler({
@@ -1216,7 +1219,7 @@ export class FrigateCard extends LitElement {
       @frigate-card:media-show=${this._mediaShowHandler}
       @frigate-card:render=${() => this.requestUpdate()}
     >
-      ${this._getConfig().menu.mode == 'above' ? this._renderMenu() : ''}
+      ${renderMenuAbove ? this._renderMenu() : ''}
       <div class="container outer" style="${styleMap(outerStyle)}">
         <div class="${classMap(contentClasses)}">
           ${this._cameras === undefined
@@ -1261,7 +1264,7 @@ export class FrigateCard extends LitElement {
           }
         </div>
       </div>
-      ${this._getConfig().menu.mode != 'above' ? this._renderMenu() : ''}
+      ${!renderMenuAbove ? this._renderMenu() : ''}
     </ha-card>`;
   }
 

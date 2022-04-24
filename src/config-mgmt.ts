@@ -19,7 +19,8 @@ import {
   CONF_LIVE_WEBRTC_CARD,
   CONF_MENU,
   CONF_MENU_BUTTON_SIZE,
-  CONF_MENU_MODE,
+  CONF_MENU_POSITION,
+  CONF_MENU_STYLE,
   CONF_OVERRIDES,
   CONF_VIEW_DEFAULT,
   CONF_VIEW_TIMEOUT_SECONDS,
@@ -203,7 +204,7 @@ const toPixelsOrDelete = function (value: unknown): number | null | undefined {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const deleteProperty = function (_value: unknown): number | null | undefined {
   return null;
-}
+};
 
 /**
  * Move a property from one location to another.
@@ -218,6 +219,7 @@ export const moveConfigValue = (
   oldPath: string,
   newPath: string,
   transform?: (valueIn: unknown) => unknown,
+  keepOriginal?: boolean,
 ): boolean => {
   const inValue = getConfigValue(obj, oldPath);
   if (inValue === undefined) {
@@ -228,11 +230,16 @@ export const moveConfigValue = (
     return false;
   }
   if (outValue === null) {
-    deleteConfigValue(obj, oldPath);
-    return true;
+    if (!keepOriginal) {
+      deleteConfigValue(obj, oldPath);
+      return true;
+    }
+    return false;
   }
   if (outValue !== undefined) {
-    deleteConfigValue(obj, oldPath);
+    if (!keepOriginal) {
+      deleteConfigValue(obj, oldPath);
+    }
     setConfigValue(obj, newPath, outValue);
     return true;
   }
@@ -260,9 +267,10 @@ const upgradeMoveTo = function (
   oldPath: string,
   newPath: string,
   transform?: (valueIn: unknown) => unknown,
+  keepOriginal?: boolean,
 ): (obj: RawFrigateCardConfig) => boolean {
   return function (obj: RawFrigateCardConfig): boolean {
-    return moveConfigValue(obj, oldPath, newPath, transform);
+    return moveConfigValue(obj, oldPath, newPath, transform, keepOriginal);
   };
 };
 
@@ -278,13 +286,14 @@ const upgradeMoveToWithOverrides = function (
   oldPath: string,
   newPath: string,
   transform?: (valueIn: unknown) => unknown,
+  keepOriginal?: boolean,
 ): (obj: RawFrigateCardConfig) => boolean {
   return function (obj: RawFrigateCardConfig): boolean {
-    let modified = upgradeMoveTo(oldPath, newPath, transform)(obj);
+    let modified = upgradeMoveTo(oldPath, newPath, transform, keepOriginal)(obj);
     modified =
       upgradeArrayValue(
         CONF_OVERRIDES,
-        upgradeMoveTo(oldPath, newPath, transform),
+        upgradeMoveTo(oldPath, newPath, transform, keepOriginal),
         (obj) => obj.overrides as RawFrigateCardConfig | undefined,
       )(obj) || modified;
     return modified;
@@ -334,8 +343,7 @@ const upgradeArrayValue = function (
 
 /**
  * Upgrade from a singular camera model to multiple.
- * @param key A string key.
- * @returns A safe key.
+ * @returns An upgrade function.
  */
 const upgradeToMultipleCameras = (): ((obj: RawFrigateCardConfig) => boolean) => {
   return function (obj: RawFrigateCardConfig): boolean {
@@ -363,6 +371,74 @@ const upgradeToMultipleCameras = (): ((obj: RawFrigateCardConfig) => boolean) =>
         moveConfigValue(obj, key, getArrayConfigPath(imports[key], 0)) || modified;
     });
     return modified;
+  };
+};
+
+/**
+ * Upgrade from a menu-mode to a style & position.
+ * @returns An upgrade function.
+ */
+const upgradeMenuModeToStyleAndPosition = (): ((
+  obj: RawFrigateCardConfig,
+) => boolean) => {
+  return function (obj: RawFrigateCardConfig): boolean {
+    let modified = false;
+
+    // Change the 'start' of the mode into a style.
+    modified =
+      upgradeMoveToWithOverrides(
+        'menu.mode',
+        CONF_MENU_STYLE,
+        (mode: unknown): string | undefined => {
+          if (typeof mode === 'string') {
+            const result = mode.match(/^(hover|hidden|overlay|above|below|none)/);
+            if (result) {
+              switch (result[1]) {
+                case 'hover':
+                case 'hidden':
+                case 'overlay':
+                case 'none':
+                  return result[1];
+                case 'above':
+                case 'below':
+                  return 'outside';
+              }
+            }
+          }
+          return undefined;
+        },
+        true,
+      )(obj) || modified;
+
+    // Change the 'end' of the mode into a position.
+    modified =
+      upgradeMoveToWithOverrides(
+        'menu.mode',
+        CONF_MENU_POSITION,
+        (mode: unknown): string | undefined => {
+          if (typeof mode === 'string') {
+            const result = mode.match(/(above|below|left|right|top|bottom)$/);
+            if (result) {
+              switch (result[1]) {
+                case 'left':
+                case 'right':
+                case 'top':
+                case 'bottom':
+                  return result[1];
+                case 'above':
+                  return 'top';
+                case 'below':
+                  return 'bottom';
+              }
+            }
+          }
+          return undefined;
+        },
+        true,
+      )(obj) || modified;
+
+    // Delete the old `menu.mode` .
+    return upgradeWithOverrides('menu.mode', deleteProperty)(obj) || modified;
   };
 };
 
@@ -415,7 +491,7 @@ const UPGRADES = [
   upgradeMoveTo('autoplay_clip', 'event_viewer.autoplay_clip'),
   upgradeMoveTo('controls.nextprev', CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE),
   upgradeMoveTo('controls.nextprev_size', CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE),
-  upgradeMoveTo('menu_mode', CONF_MENU_MODE),
+  upgradeMoveTo('menu_mode', 'menu.mode'),
   upgradeMoveTo('menu_buttons', 'menu.buttons'),
   upgradeMoveTo('menu_button_size', CONF_MENU_BUTTON_SIZE),
   upgradeMoveTo('image', 'image.src', isNotObject),
@@ -461,8 +537,6 @@ const UPGRADES = [
     CONF_MENU_BUTTON_SIZE,
     createRangedTransform(toPixelsOrDelete, BUTTON_SIZE_MIN),
   ),
-  upgradeWithOverrides(
-    'event_gallery.min_columns',
-    deleteProperty
-  ),
+  upgradeWithOverrides('event_gallery.min_columns', deleteProperty),
+  upgradeMenuModeToStyleAndPosition(),
 ];
