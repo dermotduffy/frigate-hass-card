@@ -53,20 +53,12 @@ const FRIGATE_CARD_VIEWS = [
 
 export type FrigateCardView = typeof FRIGATE_CARD_VIEWS[number];
 
-const FRIGATE_MENU_STYLES = [
-  'none',
-  'hidden',
-  'overlay',
-  'hover',
-  'outside',
-] as const;
-const FRIGATE_MENU_POSITIONS = [
-  'left',
-  'right',
-  'top',
-  'bottom',
-] as const;
+const FRIGATE_MENU_STYLES = ['none', 'hidden', 'overlay', 'hover', 'outside'] as const;
+const FRIGATE_MENU_POSITIONS = ['left', 'right', 'top', 'bottom'] as const;
 const FRIGATE_MENU_ALIGNMENTS = FRIGATE_MENU_POSITIONS;
+
+export const FRIGATE_MENU_PRIORITY_DEFAULT = 50;
+export const FRIGATE_MENU_PRIORITY_MAX = 100;
 
 const LIVE_PROVIDERS = ['auto', 'ha', 'frigate-jsmpeg', 'webrtc-card'] as const;
 export type LiveProvider = typeof LIVE_PROVIDERS[number];
@@ -336,14 +328,23 @@ export type CameraConfig = z.infer<typeof cameraConfigSchema>;
  * Custom Element Types.
  */
 
-export const menuIconSchema = iconSchema.extend({
-  type: z.literal('custom:frigate-card-menu-icon'),
+const menuBaseSchema = z.object({
+  priority: z.number().optional(),
+  alignment: z.enum(["near", "far"]).optional(),
 });
+
+export const menuIconSchema = iconSchema
+  .extend({
+    type: z.literal('custom:frigate-card-menu-icon'),
+  })
+  .merge(menuBaseSchema);
 export type MenuIcon = z.infer<typeof menuIconSchema>;
 
-export const menuStateIconSchema = stateIconSchema.extend({
-  type: z.literal('custom:frigate-card-menu-state-icon'),
-});
+export const menuStateIconSchema = stateIconSchema
+  .extend({
+    type: z.literal('custom:frigate-card-menu-state-icon'),
+  })
+  .merge(menuBaseSchema);
 export type MenuStateIcon = z.infer<typeof menuStateIconSchema>;
 
 const menuSubmenuItemSchema = elementsBaseSchema.extend({
@@ -354,11 +355,14 @@ const menuSubmenuItemSchema = elementsBaseSchema.extend({
 });
 export type MenuSubmenuItem = z.infer<typeof menuSubmenuItemSchema>;
 
-export const menuSubmenuSchema = iconSchema.extend({
-  type: z.literal('custom:frigate-card-menu-submenu'),
-  items: menuSubmenuItemSchema.array(),
-});
+export const menuSubmenuSchema = iconSchema
+  .extend({
+    type: z.literal('custom:frigate-card-menu-submenu'),
+    items: menuSubmenuItemSchema.array(),
+  })
+  .merge(menuBaseSchema);
 export type MenuSubmenu = z.infer<typeof menuSubmenuSchema>;
+export type MenuItem = MenuIcon | MenuStateIcon | MenuSubmenu;
 
 const frigateCardConditionSchema = z.object({
   view: z.string().array().optional(),
@@ -617,16 +621,16 @@ const menuConfigDefault = {
   position: 'top' as const,
   alignment: 'left' as const,
   buttons: {
-    frigate: true,
-    cameras: true,
-    live: true,
-    clips: true,
-    snapshots: true,
-    image: false,
-    timeline: true,
-    download: true,
-    frigate_ui: true,
-    fullscreen: true,
+    frigate: FRIGATE_MENU_PRIORITY_DEFAULT,
+    cameras: FRIGATE_MENU_PRIORITY_DEFAULT,
+    live: FRIGATE_MENU_PRIORITY_DEFAULT,
+    clips: FRIGATE_MENU_PRIORITY_DEFAULT,
+    snapshots: FRIGATE_MENU_PRIORITY_DEFAULT,
+    image: 0,
+    timeline: FRIGATE_MENU_PRIORITY_DEFAULT,
+    download: FRIGATE_MENU_PRIORITY_DEFAULT,
+    frigate_ui: FRIGATE_MENU_PRIORITY_DEFAULT,
+    fullscreen: FRIGATE_MENU_PRIORITY_DEFAULT,
   },
   button_size: 40,
 };
@@ -638,16 +642,56 @@ const menuConfigSchema = z
     alignment: z.enum(FRIGATE_MENU_ALIGNMENTS).default(menuConfigDefault.alignment),
     buttons: z
       .object({
-        frigate: z.boolean().default(menuConfigDefault.buttons.frigate),
-        cameras: z.boolean().default(menuConfigDefault.buttons.cameras),
-        live: z.boolean().default(menuConfigDefault.buttons.live),
-        clips: z.boolean().default(menuConfigDefault.buttons.clips),
-        snapshots: z.boolean().default(menuConfigDefault.buttons.snapshots),
-        image: z.boolean().default(menuConfigDefault.buttons.image),
-        timeline: z.boolean().default(menuConfigDefault.buttons.timeline),
-        download: z.boolean().default(menuConfigDefault.buttons.download),
-        frigate_ui: z.boolean().default(menuConfigDefault.buttons.frigate_ui),
-        fullscreen: z.boolean().default(menuConfigDefault.buttons.fullscreen),
+        frigate: z
+          .number()
+          .min(0)
+          .max(FRIGATE_MENU_PRIORITY_MAX)
+          .default(menuConfigDefault.buttons.frigate),
+        cameras: z
+          .number()
+          .min(0)
+          .max(FRIGATE_MENU_PRIORITY_MAX)
+          .default(menuConfigDefault.buttons.cameras),
+        live: z
+          .number()
+          .min(0)
+          .max(FRIGATE_MENU_PRIORITY_MAX)
+          .default(menuConfigDefault.buttons.live),
+        clips: z
+          .number()
+          .min(0)
+          .max(FRIGATE_MENU_PRIORITY_MAX)
+          .default(menuConfigDefault.buttons.clips),
+        snapshots: z
+          .number()
+          .min(0)
+          .max(FRIGATE_MENU_PRIORITY_MAX)
+          .default(menuConfigDefault.buttons.snapshots),
+        image: z
+          .number()
+          .min(0)
+          .max(FRIGATE_MENU_PRIORITY_MAX)
+          .default(menuConfigDefault.buttons.image),
+        timeline: z
+          .number()
+          .min(0)
+          .max(FRIGATE_MENU_PRIORITY_MAX)
+          .default(menuConfigDefault.buttons.timeline),
+        download: z
+          .number()
+          .min(0)
+          .max(FRIGATE_MENU_PRIORITY_MAX)
+          .default(menuConfigDefault.buttons.download),
+        frigate_ui: z
+          .number()
+          .min(0)
+          .max(FRIGATE_MENU_PRIORITY_MAX)
+          .default(menuConfigDefault.buttons.frigate_ui),
+        fullscreen: z
+          .number()
+          .min(0)
+          .max(FRIGATE_MENU_PRIORITY_MAX)
+          .default(menuConfigDefault.buttons.fullscreen),
       })
       .default(menuConfigDefault.buttons),
     button_size: z.number().min(BUTTON_SIZE_MIN).default(menuConfigDefault.button_size),

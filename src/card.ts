@@ -285,6 +285,7 @@ export class FrigateCard extends LitElement {
         // Use a magic icon value that the menu will use to render the icon as
         // it deems appropriate (certain menu configurations change the menu
         // icon for the 'Frigate' button).
+        priority: this._getConfig().menu.buttons.frigate,
         icon: FRIGATE_BUTTON_MENU_ICON,
         tap_action: FrigateCardMenu.isHidingMenu(this._getConfig().menu)
           ? (createFrigateCardCustomAction('menu_toggle') as FrigateCardCustomAction)
@@ -311,6 +312,7 @@ export class FrigateCard extends LitElement {
       buttons.push({
         type: 'custom:frigate-card-menu-submenu',
         title: localize('config.menu.buttons.cameras'),
+        priority: this._getConfig().menu.buttons.cameras,
         icon: 'mdi:video-switch',
         items: menuItems,
       });
@@ -320,6 +322,7 @@ export class FrigateCard extends LitElement {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.view.views.live'),
+        priority: this._getConfig().menu.buttons.live,
         icon: 'mdi:cctv',
         style: this._view?.is('live') ? this._getEmphasizedStyle() : {},
         tap_action: createFrigateCardCustomAction('live') as FrigateCardCustomAction,
@@ -339,6 +342,7 @@ export class FrigateCard extends LitElement {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.view.views.clips'),
+        priority: this._getConfig().menu.buttons.clips,
         icon: 'mdi:filmstrip',
         style: this._view?.is('clips') ? this._getEmphasizedStyle() : {},
         tap_action: createFrigateCardCustomAction('clips') as FrigateCardCustomAction,
@@ -357,6 +361,7 @@ export class FrigateCard extends LitElement {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.view.views.snapshots'),
+        priority: this._getConfig().menu.buttons.snapshots,
         icon: 'mdi:camera',
         style: this._view?.is('snapshots') ? this._getEmphasizedStyle() : {},
         tap_action: createFrigateCardCustomAction(
@@ -372,6 +377,7 @@ export class FrigateCard extends LitElement {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.view.views.image'),
+        priority: this._getConfig().menu.buttons.image,
         icon: 'mdi:image',
         style: this._view?.is('image') ? this._getEmphasizedStyle() : {},
         tap_action: createFrigateCardCustomAction('image') as FrigateCardCustomAction,
@@ -382,6 +388,7 @@ export class FrigateCard extends LitElement {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.view.views.timeline'),
+        priority: this._getConfig().menu.buttons.timeline,
         icon: 'mdi:chart-gantt',
         style: this._view?.is('timeline') ? this._getEmphasizedStyle() : {},
         tap_action: createFrigateCardCustomAction('timeline') as FrigateCardCustomAction,
@@ -395,6 +402,7 @@ export class FrigateCard extends LitElement {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.menu.buttons.download'),
+        priority: this._getConfig().menu.buttons.download,
         icon: 'mdi:download',
         tap_action: createFrigateCardCustomAction('download') as FrigateCardCustomAction,
       });
@@ -404,6 +412,7 @@ export class FrigateCard extends LitElement {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.menu.buttons.frigate_ui'),
+        priority: this._getConfig().menu.buttons.frigate_ui,
         icon: 'mdi:web',
         tap_action: createFrigateCardCustomAction(
           'frigate_ui',
@@ -415,6 +424,7 @@ export class FrigateCard extends LitElement {
       buttons.push({
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.menu.buttons.fullscreen'),
+        priority: this._getConfig().menu.buttons.fullscreen,
         icon: screenfull.isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
         tap_action: createFrigateCardCustomAction(
           'fullscreen',
@@ -489,7 +499,11 @@ export class FrigateCard extends LitElement {
     };
 
     if (this._getConfig().cameras && Array.isArray(this._getConfig().cameras)) {
-      await Promise.all(this._getConfig().cameras.map(addCameraConfig.bind(this)));
+      // Cameras are loaded sequentially rather than in parallel to preserve the
+      // order of the input camera array.
+      for (const camera of this._getConfig().cameras) {
+        await addCameraConfig(camera);
+      }
     }
 
     if (!cameras.size) {

@@ -6,6 +6,7 @@ import { HomeAssistant, LovelaceCardEditor, fireEvent } from 'custom-card-helper
 import { localize } from './localize/localize.js';
 import {
   BUTTON_SIZE_MIN,
+  FRIGATE_MENU_PRIORITY_MAX,
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
@@ -67,9 +68,9 @@ import {
   CONF_MENU_ALIGNMENT,
   CONF_MENU_BUTTONS_CLIPS,
   CONF_MENU_BUTTONS_FRIGATE,
-  CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD,
-  CONF_MENU_BUTTONS_FRIGATE_FULLSCREEN,
+  CONF_MENU_BUTTONS_DOWNLOAD,
   CONF_MENU_BUTTONS_FRIGATE_UI,
+  CONF_MENU_BUTTONS_FULLSCREEN,
   CONF_MENU_BUTTONS_IMAGE,
   CONF_MENU_BUTTONS_LIVE,
   CONF_MENU_BUTTONS_SNAPSHOTS,
@@ -886,45 +887,45 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderOptionSelector(CONF_MENU_POSITION, this._menuPositions)}
                 ${this._renderOptionSelector(CONF_MENU_ALIGNMENT, this._menuAlignments)}
                 ${this._renderNumberInput(CONF_MENU_BUTTON_SIZE, BUTTON_SIZE_MIN)}
-                ${this._renderSwitch(
+                ${this._renderNumberInput(
                   CONF_MENU_BUTTONS_FRIGATE,
-                  defaults.menu.buttons.frigate,
-                  getShowButtonLabel(CONF_MENU_BUTTONS_FRIGATE),
+                  0,
+                  FRIGATE_MENU_PRIORITY_MAX,
                 )}
-                ${this._renderSwitch(
+                ${this._renderNumberInput(
                   CONF_MENU_BUTTONS_LIVE,
-                  defaults.menu.buttons.live,
-                  getShowButtonLabel('view.views.live'),
+                  0,
+                  FRIGATE_MENU_PRIORITY_MAX,
                 )}
-                ${this._renderSwitch(
+                ${this._renderNumberInput(
                   CONF_MENU_BUTTONS_CLIPS,
-                  defaults.menu.buttons.clips,
-                  getShowButtonLabel('view.views.clips'),
+                  0,
+                  FRIGATE_MENU_PRIORITY_MAX,
                 )}
-                ${this._renderSwitch(
+                ${this._renderNumberInput(
                   CONF_MENU_BUTTONS_SNAPSHOTS,
-                  defaults.menu.buttons.snapshots,
-                  getShowButtonLabel('view.views.snapshots'),
+                  0,
+                  FRIGATE_MENU_PRIORITY_MAX,
                 )}
-                ${this._renderSwitch(
+                ${this._renderNumberInput(
                   CONF_MENU_BUTTONS_IMAGE,
-                  defaults.menu.buttons.image,
-                  getShowButtonLabel('view.views.image'),
+                  0,
+                  FRIGATE_MENU_PRIORITY_MAX,
                 )}
-                ${this._renderSwitch(
-                  CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD,
-                  defaults.menu.buttons.download,
-                  getShowButtonLabel(CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD),
+                ${this._renderNumberInput(
+                  CONF_MENU_BUTTONS_DOWNLOAD,
+                  0,
+                  FRIGATE_MENU_PRIORITY_MAX,
                 )}
-                ${this._renderSwitch(
+                ${this._renderNumberInput(
                   CONF_MENU_BUTTONS_FRIGATE_UI,
-                  defaults.menu.buttons.frigate_ui,
-                  getShowButtonLabel(CONF_MENU_BUTTONS_FRIGATE_UI),
+                  0,
+                  FRIGATE_MENU_PRIORITY_MAX,
                 )}
-                ${this._renderSwitch(
-                  CONF_MENU_BUTTONS_FRIGATE_FULLSCREEN,
-                  defaults.menu.buttons.fullscreen,
-                  getShowButtonLabel(CONF_MENU_BUTTONS_FRIGATE_FULLSCREEN),
+                ${this._renderNumberInput(
+                  CONF_MENU_BUTTONS_FULLSCREEN,
+                  0,
+                  FRIGATE_MENU_PRIORITY_MAX,
                 )}
               </div>
             `

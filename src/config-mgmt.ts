@@ -18,6 +18,15 @@ import {
   CONF_LIVE_PRELOAD,
   CONF_LIVE_WEBRTC_CARD,
   CONF_MENU,
+  CONF_MENU_BUTTONS_FRIGATE,
+  CONF_MENU_BUTTONS_CAMERAS,
+  CONF_MENU_BUTTONS_LIVE,
+  CONF_MENU_BUTTONS_CLIPS,
+  CONF_MENU_BUTTONS_SNAPSHOTS,
+  CONF_MENU_BUTTONS_IMAGE,
+  CONF_MENU_BUTTONS_DOWNLOAD,
+  CONF_MENU_BUTTONS_FRIGATE_UI,
+  CONF_MENU_BUTTONS_FULLSCREEN,
   CONF_MENU_BUTTON_SIZE,
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
@@ -28,6 +37,7 @@ import {
 } from './const';
 import {
   BUTTON_SIZE_MIN,
+  FRIGATE_MENU_PRIORITY_DEFAULT,
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
@@ -476,6 +486,21 @@ const upgradeMenuConditionToMenuOverride = (): ((
   };
 };
 
+/**
+ * Transform a menu button from a boolean to a priority.
+ * @param value The boolean true/false for show/hide the switch.
+ * @returns A priority value.
+ */
+const menuButtonToPriority = function (value: unknown): number | null | undefined {
+  if (typeof value === 'number') {
+    return undefined;
+  }
+  if (typeof value !== 'boolean') {
+    return null;
+  }
+  return value ? FRIGATE_MENU_PRIORITY_DEFAULT : 0;
+};
+
 const UPGRADES = [
   // v1.2.1 -> v2.0.0
   upgradeMoveTo('frigate_url', 'frigate.url'),
@@ -539,4 +564,14 @@ const UPGRADES = [
   ),
   upgradeWithOverrides('event_gallery.min_columns', deleteProperty),
   upgradeMenuModeToStyleAndPosition(),
+
+  upgradeWithOverrides(CONF_MENU_BUTTONS_FRIGATE, menuButtonToPriority),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_CAMERAS, menuButtonToPriority),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_LIVE, menuButtonToPriority),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_CLIPS, menuButtonToPriority),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_SNAPSHOTS, menuButtonToPriority),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_IMAGE, menuButtonToPriority),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_DOWNLOAD, menuButtonToPriority),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_FRIGATE_UI, menuButtonToPriority),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_FULLSCREEN, menuButtonToPriority),
 ];

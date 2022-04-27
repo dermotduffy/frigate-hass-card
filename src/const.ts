@@ -17,7 +17,8 @@ export const CONF_CAMERAS_ARRAY_TITLE = `${CONF_CAMERAS}.#.title` as const;
 export const CONF_CAMERAS_ARRAY_ICON = `${CONF_CAMERAS}.#.icon` as const;
 export const CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY =
   `${CONF_CAMERAS}.#.webrtc_card.entity` as const;
-export const CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL = `${CONF_CAMERAS}.#.webrtc_card.url` as const;
+export const CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL =
+  `${CONF_CAMERAS}.#.webrtc_card.url` as const;
 export const CONF_CAMERAS_ARRAY_LIVE_PROVIDER =
   `${CONF_CAMERAS}.#.live_provider` as const;
 export const CONF_CAMERAS_ARRAY_DEPENDENT_CAMERAS =
@@ -35,9 +36,9 @@ export const CONF_VIEW_UPDATE_SECONDS = `${CONF_VIEW}.update_seconds` as const;
 
 export const CONF_EVENT_GALLERY = 'event_gallery' as const;
 export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS =
-`${CONF_EVENT_GALLERY}.controls.thumbnails.show_details` as const;
+  `${CONF_EVENT_GALLERY}.controls.thumbnails.show_details` as const;
 export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_CONTROLS =
-`${CONF_EVENT_GALLERY}.controls.thumbnails.show_controls` as const;
+  `${CONF_EVENT_GALLERY}.controls.thumbnails.show_controls` as const;
 export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_EVENT_GALLERY}.controls.thumbnails.size` as const;
 
@@ -55,9 +56,9 @@ export const CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE =
 export const CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE =
   `${CONF_EVENT_VIEWER}.controls.thumbnails.mode` as const;
 export const CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS =
-`${CONF_EVENT_VIEWER}.controls.thumbnails.show_details` as const;
+  `${CONF_EVENT_VIEWER}.controls.thumbnails.show_details` as const;
 export const CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_CONTROLS =
-`${CONF_EVENT_VIEWER}.controls.thumbnails.show_controls` as const;
+  `${CONF_EVENT_VIEWER}.controls.thumbnails.show_controls` as const;
 export const CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_EVENT_VIEWER}.controls.thumbnails.size` as const;
 export const CONF_EVENT_VIEWER_CONTROLS_TITLE_MODE =
@@ -78,9 +79,9 @@ export const CONF_LIVE_CONTROLS_THUMBNAILS_MODE =
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_LIVE}.controls.thumbnails.size` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS =
-`${CONF_LIVE}.controls.thumbnails.show_details` as const;
+  `${CONF_LIVE}.controls.thumbnails.show_details` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_CONTROLS =
-`${CONF_LIVE}.controls.thumbnails.show_controls` as const;
+  `${CONF_LIVE}.controls.thumbnails.show_controls` as const;
 export const CONF_LIVE_CONTROLS_TITLE_MODE = `${CONF_LIVE}.controls.title.mode` as const;
 export const CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS =
   `${CONF_LIVE}.controls.title.duration_seconds` as const;
@@ -99,29 +100,33 @@ export const CONF_IMAGE_URL = `${CONF_IMAGE}.url` as const;
 
 export const CONF_TIMELINE = 'timeline' as const;
 export const CONF_TIMELINE_WINDOW_SECONDS = `${CONF_TIMELINE}.window_seconds` as const;
-export const CONF_TIMELINE_CLUSTERING_THRESHOLD = `${CONF_TIMELINE}.clustering_threshold` as const;
+export const CONF_TIMELINE_CLUSTERING_THRESHOLD =
+  `${CONF_TIMELINE}.clustering_threshold` as const;
 export const CONF_TIMELINE_MEDIA = `${CONF_TIMELINE}.media` as const;
-export const CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE = `${CONF_TIMELINE}.controls.thumbnails.mode` as const;
-export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE = `${CONF_TIMELINE}.controls.thumbnails.size` as const;
-export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS = `${CONF_TIMELINE}.controls.thumbnails.show_details` as const;
+export const CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE =
+  `${CONF_TIMELINE}.controls.thumbnails.mode` as const;
+export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE =
+  `${CONF_TIMELINE}.controls.thumbnails.size` as const;
+export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS =
+  `${CONF_TIMELINE}.controls.thumbnails.show_details` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_CONTROLS =
-`${CONF_TIMELINE}.controls.thumbnails.show_controls` as const;
+  `${CONF_TIMELINE}.controls.thumbnails.show_controls` as const;
 
 export const CONF_MENU = 'menu' as const;
 export const CONF_MENU_ALIGNMENT = `${CONF_MENU}.alignment` as const;
 export const CONF_MENU_POSITION = `${CONF_MENU}.position` as const;
 export const CONF_MENU_STYLE = `${CONF_MENU}.style` as const;
+export const CONF_MENU_BUTTON_SIZE = `${CONF_MENU}.button_size` as const;
+export const CONF_MENU_BUTTONS_CAMERAS = `${CONF_MENU}.buttons.cameras` as const;
+export const CONF_MENU_BUTTONS_CLIPS = `${CONF_MENU}.buttons.clips` as const;
+export const CONF_MENU_BUTTONS_DOWNLOAD = `${CONF_MENU}.buttons.download` as const;
 export const CONF_MENU_BUTTONS_FRIGATE = `${CONF_MENU}.buttons.frigate` as const;
 export const CONF_MENU_BUTTONS_FRIGATE_UI = `${CONF_MENU}.buttons.frigate_ui` as const;
-export const CONF_MENU_BUTTONS_FRIGATE_FULLSCREEN =
-  `${CONF_MENU}.buttons.fullscreen` as const;
-export const CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD =
-  `${CONF_MENU}.buttons.download` as const;
-export const CONF_MENU_BUTTONS_LIVE = `${CONF_MENU}.buttons.live` as const;
-export const CONF_MENU_BUTTONS_CLIPS = `${CONF_MENU}.buttons.clips` as const;
-export const CONF_MENU_BUTTONS_SNAPSHOTS = `${CONF_MENU}.buttons.snapshots` as const;
+export const CONF_MENU_BUTTONS_FULLSCREEN = `${CONF_MENU}.buttons.fullscreen` as const;
 export const CONF_MENU_BUTTONS_IMAGE = `${CONF_MENU}.buttons.image` as const;
-export const CONF_MENU_BUTTON_SIZE = `${CONF_MENU}.button_size` as const;
+export const CONF_MENU_BUTTONS_LIVE = `${CONF_MENU}.buttons.live` as const;
+
+export const CONF_MENU_BUTTONS_SNAPSHOTS = `${CONF_MENU}.buttons.snapshots` as const;
 
 export const CONF_DIMENSIONS = 'dimensions' as const;
 export const CONF_DIMENSIONS_ASPECT_RATIO = `${CONF_DIMENSIONS}.aspect_ratio` as const;
