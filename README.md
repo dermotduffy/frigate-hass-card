@@ -184,19 +184,31 @@ All configuration is under:
 ```yaml
 menu:
   buttons:
+    [button]:
 ```
+
+##### Buttons
+
+| Option | Overridable | Description |
+| - | - | - |
+| `frigate` | :white_check_mark: | The `Frigate` menu button: brings the user to the default configured view (`view.default`), or collapses/expands the menu if the `menu.style` is `hidden` . |
+| `cameras` | :white_check_mark: | The camera selection submenu. Will only appear if multiple cameras are configured. |
+| `live` | :white_check_mark: | The `live` view menu button: brings the user to the `live` view. See [views](#views) below.|
+| `clips` | :white_check_mark: | The `clips` view menu button: brings the user to the `clips` view on tap and the most-recent `clip` view on hold. See [views](#views) below. This button will never be shown if the `camera_name` for the selected camera is not auto-detected/specified (e.g. non-Frigate cameras), or if the `camera_name` is `birdseye`.|
+| `snapshots` | :white_check_mark: | The `snapshots` view menu button: brings the user to the `clips` view on tap and the most-recent `snapshot` view on hold. See [views](#views) below. This button will never be shown if the `camera_name` for the selected camera is not auto-detected/specified (e.g. non-Frigate cameras), or if the `camera_name` is `birdseye`.|
+| `image` | :white_check_mark: | The `image` view menu button: brings the user to the static `image` view. See [views](#views) below.|
+| `download` | :white_check_mark: | The `download` menu button: allow direct download of the media being displayed.|
+| `frigate_ui` | :white_check_mark: | The `frigate_ui` menu button: brings the user to a context-appropriate page on the Frigate UI (e.g. the camera homepage). Will only appear if the `frigate.url` option is set.|
+| `fullscreen` | :white_check_mark: | The `fullscreen` menu button: expand the card to consume the fullscreen. |
+
+##### Configuration on each button
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `frigate` | `true` | :white_check_mark: | Whether to show the `Frigate` menu button: brings the user to the default configured view (`view.default`), or collapses/expands the menu if the `menu.style` is `hidden` . |
-| `cameras` | `true` | :white_check_mark: | Whether to show the camera selection submenu. Will only appear if multiple cameras are configured. |
-| `live` | `true` | :white_check_mark: | Whether to show the `live` view menu button: brings the user to the `live` view. See [views](#views) below.|
-| `clips` | `true` | :white_check_mark: | Whether to show the `clips` view menu button: brings the user to the `clips` view on tap and the most-recent `clip` view on hold. See [views](#views) below. This button will never be shown if the `camera_name` for the selected camera is not auto-detected/specified (e.g. non-Frigate cameras), or if the `camera_name` is `birdseye`.|
-| `snapshots` | `true` | :white_check_mark: | Whether to show the `snapshots` view menu button: brings the user to the `clips` view on tap and the most-recent `snapshot` view on hold. See [views](#views) below. This button will never be shown if the `camera_name` for the selected camera is not auto-detected/specified (e.g. non-Frigate cameras), or if the `camera_name` is `birdseye`.|
-| `image` | `false` | :white_check_mark: | Whether to show the `image` view menu button: brings the user to the static `image` view. See [views](#views) below.|
-| `download` | `true` | :white_check_mark: | Whether to show the `download` menu button: allow direct download of the media being displayed.|
-| `frigate_ui` | `true` | :white_check_mark: | Whether to show the `frigate_ui` menu button: brings the user to a context-appropriate page on the Frigate UI (e.g. the camera homepage). Will only appear if the `frigate.url` option is set.|
-| `fullscreen` | `true` | :white_check_mark: | Whether to show the `fullscreen` menu button: expand the card to consume the fullscreen. |
+| `enabled` | `true` for all buttons except `image` | :white_check_mark: | Whether or not to show the button. |
+| `priority` | `50` | :white_check_mark: | The button priority. Higher priority buttons are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`, when the menu alignment is `left`). Minimum `0`, maximum `100`.|
+| `icon` | | :white_check_mark: | An icon to overriding the default for that button, e.g. `mdi:camera-front`. |
+| `alignment` | `matching` | :white_check_mark: | Whether this button should have an alignment that is `matching` the menu alignment or `opposing` the menu. Can be used to create two separate groups of buttons on the menu. `priority` orders buttons within a given `alignment`. |
 
 ### Live Options
 
@@ -1286,6 +1298,26 @@ card_mod:
           padding: 0px !important;
           color: blue;
         }
+```
+</details>
+
+### Overriding default menu behavior
+
+<details>
+  <summary>Expand: Overriding default menu behavior</summary>
+
+This example moves the fullscreen button into its own group aligned to the `left`, enables the `image` button and orders it furthest to the `right`.
+
+```yaml
+[...]
+menu:
+  alignment: right
+  buttons:
+    image:
+      enabled: true
+      priority: 100
+    fullscreen:
+      alignment: opposing
 ```
 </details>
 
