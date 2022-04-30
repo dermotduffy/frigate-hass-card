@@ -1,6 +1,7 @@
 import { StyleInfo } from 'lit/directives/style-map.js';
 import {
   CallServiceActionConfig,
+  ConfirmationRestrictionConfig,
   CustomActionConfig,
   HomeAssistant,
   LovelaceCard,
@@ -68,7 +69,6 @@ export class FrigateCardError extends Error {}
 /**
  * Action Types (for "Picture Elements" / Menu)
  */
-
 // Declare schemas to existing types:
 // - https://github.com/colinhacks/zod/issues/372#issuecomment-826380330
 const schemaForType =
@@ -77,47 +77,87 @@ const schemaForType =
   <S extends z.ZodType<T, any, any>>(arg: S) => {
     return arg;
   };
-const toggleActionSchema = schemaForType<ToggleActionConfig>()(
-  z.object({
+
+// https://www.home-assistant.io/dashboards/actions/#options-for-confirmation
+const actionBaseSchema = z.object({
+  confirmation: z
+    .boolean()
+    .or(
+      z.object({
+        text: z.string().optional(),
+        exemptions: z
+          .object({
+            user: z.string(),
+          })
+          .array()
+          .optional(),
+      }),
+    )
+    .optional(),
+});
+
+// HA accepts either a boolean or a ConfirmationRestrictionConfig object.
+// `custom-card-helpers` currently only supports the latter. For maximum
+// compatibility, this card supports what HA supports.
+export interface ExtendedConfirmationRestrictionConfig {
+  confirmation?: boolean | ConfirmationRestrictionConfig;
+}
+
+const toggleActionSchema = schemaForType<
+  ToggleActionConfig & ExtendedConfirmationRestrictionConfig
+>()(
+  actionBaseSchema.extend({
     action: z.literal('toggle'),
   }),
 );
-const callServiceActionSchema = schemaForType<CallServiceActionConfig>()(
-  z.object({
+const callServiceActionSchema = schemaForType<
+  CallServiceActionConfig & ExtendedConfirmationRestrictionConfig
+>()(
+  actionBaseSchema.extend({
     action: z.literal('call-service'),
     service: z.string(),
     service_data: z.object({}).passthrough().optional(),
   }),
 );
-const navigateActionSchema = schemaForType<NavigateActionConfig>()(
-  z.object({
+const navigateActionSchema = schemaForType<
+  NavigateActionConfig & ExtendedConfirmationRestrictionConfig
+>()(
+  actionBaseSchema.extend({
     action: z.literal('navigate'),
     navigation_path: z.string(),
   }),
 );
-const urlActionSchema = schemaForType<UrlActionConfig>()(
-  z.object({
+const urlActionSchema = schemaForType<
+  UrlActionConfig & ExtendedConfirmationRestrictionConfig
+>()(
+  actionBaseSchema.extend({
     action: z.literal('url'),
     url_path: z.string(),
   }),
 );
-const moreInfoActionSchema = schemaForType<MoreInfoActionConfig>()(
-  z.object({
+const moreInfoActionSchema = schemaForType<
+  MoreInfoActionConfig & ExtendedConfirmationRestrictionConfig
+>()(
+  actionBaseSchema.extend({
     action: z.literal('more-info'),
   }),
 );
-const customActionSchema = schemaForType<CustomActionConfig>()(
-  z.object({
+const customActionSchema = schemaForType<
+  CustomActionConfig & ExtendedConfirmationRestrictionConfig
+>()(
+  actionBaseSchema.extend({
     action: z.literal('fire-dom-event'),
   }),
 );
-const noActionSchema = schemaForType<NoActionConfig>()(
-  z.object({
+const noActionSchema = schemaForType<
+  NoActionConfig & ExtendedConfirmationRestrictionConfig
+>()(
+  actionBaseSchema.extend({
     action: z.literal('none'),
   }),
 );
 
-const frigateCardCustomActionBaseSchema = customActionSchema.extend({
+const frigateCardCustomactionsBaseSchema = customActionSchema.extend({
   // Syntactic sugar to avoid 'fire-dom-event' as part of an external API.
   action: z
     .literal('custom:frigate-card-action')
@@ -142,10 +182,10 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
 const FRIGATE_CARD_ACTIONS = [...FRIGATE_CARD_GENERAL_ACTIONS, 'camera_select'] as const;
 export type FrigateCardAction = typeof FRIGATE_CARD_ACTIONS[number];
 
-const frigateCardGeneralActionSchema = frigateCardCustomActionBaseSchema.extend({
+const frigateCardGeneralActionSchema = frigateCardCustomactionsBaseSchema.extend({
   frigate_card_action: z.enum(FRIGATE_CARD_GENERAL_ACTIONS),
 });
-const frigateCardCameraSelectActionSchema = frigateCardCustomActionBaseSchema.extend({
+const frigateCardCameraSelectActionSchema = frigateCardCustomactionsBaseSchema.extend({
   frigate_card_action: z.literal('camera_select'),
   camera: z.string(),
 });
@@ -168,7 +208,7 @@ const actionSchema = z.union([
 ]);
 export type ActionType = z.infer<typeof actionSchema>;
 
-const actionBaseSchema = z
+const actionsBaseSchema = z
   .object({
     tap_action: actionSchema.or(actionSchema.array()).optional(),
     hold_action: actionSchema.or(actionSchema.array()).optional(),
@@ -180,17 +220,17 @@ const actionBaseSchema = z
   // card doesn't need these attributes, but handleAction() in
   // custom_card_helpers may depending on how the action is configured.
   .passthrough();
-export type Actions = z.infer<typeof actionBaseSchema>;
+export type Actions = z.infer<typeof actionsBaseSchema>;
 export type ActionsConfig = Actions & {
   camera_image?: string;
   entity?: string;
 };
 
 const actionsSchema = z.object({
-  actions: actionBaseSchema.optional(),
+  actions: actionsBaseSchema.optional(),
 });
 
-const elementsBaseSchema = actionBaseSchema.extend({
+const elementsBaseSchema = actionsBaseSchema.extend({
   style: z.object({}).passthrough().optional(),
   title: z.string().nullable().optional(),
 });

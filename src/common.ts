@@ -5,6 +5,7 @@ import {
   handleActionConfig,
   hasAction,
   stateIcon,
+  ActionConfig,
 } from 'custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map.js';
 import { ZodSchema, z } from 'zod';
@@ -596,12 +597,19 @@ export const frigateCardHandleActionConfig = (
   action: string,
   actionConfig: ActionType | ActionType[] | undefined,
 ): boolean => {
+  // Only allow a tap action to use a default non-config (the more-info config).
   if (actionConfig || action == 'tap') {
-    // Only allow a tap action to use a default non-config (the more-info config).
+    // ActionConfig vs ActionType:
+    // There is a slight typing (but not functional) difference between
+    // ActionType in this card and ActionConfig in `custom-card-helpers`. See
+    // `ExtendedConfirmationRestrictionConfig` in `types.ts` for the source and
+    // reason behind this difference.
     if (Array.isArray(actionConfig)) {
-      actionConfig.forEach((action) => handleActionConfig(node, hass, config, action));
+      actionConfig.forEach((action) =>
+        handleActionConfig(node, hass, config, action as ActionConfig | undefined),
+      );
     } else {
-      handleActionConfig(node, hass, config, actionConfig);
+      handleActionConfig(node, hass, config, actionConfig as ActionConfig | undefined);
     }
     return true;
   }
@@ -617,10 +625,12 @@ export const frigateCardHandleActionConfig = (
 export const frigateCardHasAction = (
   config?: ActionType | ActionType[] | undefined,
 ): boolean => {
+  // See note above on 'ActionConfig vs ActionType' for why this cast is
+  // necessary and harmless.
   if (Array.isArray(config)) {
-    return !!config.find((item) => hasAction(item));
+    return !!config.find((item) => hasAction(item as ActionConfig | undefined));
   }
-  return hasAction(config);
+  return hasAction(config as ActionConfig | undefined);
 };
 
 /**
