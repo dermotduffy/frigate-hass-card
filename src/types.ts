@@ -34,7 +34,7 @@ declare global {
  * Internal types.
  */
 
-const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
+export const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
   'live',
   'clip',
   'clips',

@@ -21,10 +21,11 @@ import {
   ActionType,
   CameraConfig,
   FrigateCardView,
+  FrigateCardCustomAction,
+  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
   RawFrigateCardConfig,
   entitySchema,
   frigateCardConfigSchema,
-  FrigateCardCustomAction,
 } from './types.js';
 import type {
   Entity,
@@ -272,6 +273,48 @@ export class FrigateCard extends LitElement {
   }
 
   /**
+   * Given a button determine if the style should be emphasized by examining all
+   * of the actions sequentially.
+   * @param button The button to examine.
+   * @returns A StyleInfo object.
+   */
+  protected _getStyleFromActions(button: MenuButton): StyleInfo {
+    for (const actionSet of [
+      button.tap_action,
+      button.double_tap_action,
+      button.hold_action,
+      button.start_tap_action,
+      button.end_tap_action,
+    ]) {
+      const actions = Array.isArray(actionSet) ? actionSet : [actionSet];
+      for (const action of actions) {
+        // All frigate card actions will have action of 'fire-dom-event' and
+        // styling only applies to those.
+        if (!action || action.action !== 'fire-dom-event') {
+          continue;
+        }
+        if (
+          FRIGATE_CARD_VIEWS_USER_SPECIFIED.some(
+            (view) =>
+              view === action?.frigate_card_action &&
+              this._view?.is(action.frigate_card_action),
+          ) ||
+          (action?.frigate_card_action === 'default' &&
+            this._view?.is(this._getConfig().view.default)) ||
+          (action?.frigate_card_action === 'fullscreen' &&
+            screenfull.isEnabled &&
+            screenfull.isFullscreen) ||
+          (action?.frigate_card_action === 'camera_select' &&
+            this._view?.camera === action.camera)
+        ) {
+          return this._getEmphasizedStyle();
+        }
+      }
+    }
+    return {};
+  }
+
+  /**
    * Get the menu buttons to display.
    * @returns An array of menu buttons.
    */
@@ -417,7 +460,13 @@ export class FrigateCard extends LitElement {
         style: screenfull.isFullscreen ? this._getEmphasizedStyle() : {},
       });
     }
-    return buttons.concat(this._dynamicMenuButtons);
+
+    const styledDynamicButtons = this._dynamicMenuButtons.map((button) => ({
+      style: this._getStyleFromActions(button),
+      ...button,
+    }));
+
+    return buttons.concat(styledDynamicButtons);
   }
 
   /**
