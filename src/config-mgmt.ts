@@ -18,6 +18,15 @@ import {
   CONF_LIVE_PRELOAD,
   CONF_LIVE_WEBRTC_CARD,
   CONF_MENU,
+  CONF_MENU_BUTTONS_FRIGATE,
+  CONF_MENU_BUTTONS_CAMERAS,
+  CONF_MENU_BUTTONS_LIVE,
+  CONF_MENU_BUTTONS_CLIPS,
+  CONF_MENU_BUTTONS_SNAPSHOTS,
+  CONF_MENU_BUTTONS_IMAGE,
+  CONF_MENU_BUTTONS_DOWNLOAD,
+  CONF_MENU_BUTTONS_FRIGATE_UI,
+  CONF_MENU_BUTTONS_FULLSCREEN,
   CONF_MENU_BUTTON_SIZE,
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
@@ -476,6 +485,24 @@ const upgradeMenuConditionToMenuOverride = (): ((
   };
 };
 
+/**
+ * Transform a menu button from a boolean to a priority.
+ * @param value The boolean true/false for show/hide the switch.
+ * @returns A priority value.
+ */
+const menuButtonBooleanToObject = function (
+  value: unknown,
+): { enabled: boolean } | null | undefined {
+  if (typeof value === 'object') {
+    return undefined;
+  }
+  // If it's not a boolean, or it's just true, remove it.
+  if (typeof value !== 'boolean' || value) {
+    return null;
+  }
+  return { enabled: value };
+};
+
 const UPGRADES = [
   // v1.2.1 -> v2.0.0
   upgradeMoveTo('frigate_url', 'frigate.url'),
@@ -539,4 +566,13 @@ const UPGRADES = [
   ),
   upgradeWithOverrides('event_gallery.min_columns', deleteProperty),
   upgradeMenuModeToStyleAndPosition(),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_FRIGATE, menuButtonBooleanToObject),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_CAMERAS, menuButtonBooleanToObject),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_LIVE, menuButtonBooleanToObject),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_CLIPS, menuButtonBooleanToObject),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_SNAPSHOTS, menuButtonBooleanToObject),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_IMAGE, menuButtonBooleanToObject),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_DOWNLOAD, menuButtonBooleanToObject),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_FRIGATE_UI, menuButtonBooleanToObject),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_FULLSCREEN, menuButtonBooleanToObject),
 ];

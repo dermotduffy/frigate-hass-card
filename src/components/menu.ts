@@ -1,4 +1,11 @@
-import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
+import {
+  CSSResultGroup,
+  LitElement,
+  TemplateResult,
+  html,
+  unsafeCSS,
+  PropertyValues,
+} from 'lit';
 import { HASSDomEvent, HomeAssistant } from 'custom-card-helpers';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -14,6 +21,7 @@ import type {
   ActionType,
   MenuButton,
   MenuConfig,
+  MenuItem,
   StateParameters,
 } from '../types.js';
 import {
@@ -199,11 +207,51 @@ export class FrigateCardMenu extends LitElement {
   }
 
   /**
+   * Ensure menu buttons are sorted before the render.
+   * @param changedProps The changed properties
+   */
+  protected willUpdate(changedProps: PropertyValues): void {
+    const style = this._menuConfig?.style;
+    const sortButtons = (a: MenuItem, b: MenuItem): number => {
+      // If the menu is hidden, the Frigate button must come first.
+      if (style === 'hidden') {
+        if (a.icon === FRIGATE_BUTTON_MENU_ICON) {
+          return -1;
+        } else if (b.icon === FRIGATE_BUTTON_MENU_ICON) {
+          return 1;
+        }
+      }
+
+      // Otherwise sort by priority.
+      if (
+        a.priority === undefined ||
+        (b.priority !== undefined && b.priority > a.priority)
+      ) {
+        return 1;
+      }
+      if (
+        b.priority === undefined ||
+        (a.priority !== undefined && b.priority < a.priority)
+      ) {
+        return -1;
+      }
+      return 0;
+    };
+
+    if (changedProps.has('_menuConfig') || changedProps.has('buttons')) {
+      this.buttons.sort(sortButtons);
+    }
+  }
+
+  /**
    * Render a button.
    * @param button The button configuration to render.
    * @returns A rendered template or void.
    */
   protected _renderButton(button: MenuButton): TemplateResult | void {
+    if (button.enabled === false) {
+      return;
+    }
     if (button.type == 'custom:frigate-card-menu-submenu') {
       return html` <frigate-card-submenu
         .hass=${this.hass}
@@ -274,11 +322,31 @@ export class FrigateCardMenu extends LitElement {
     }
 
     // If the hidden menu isn't expanded, only show the Frigate button.
-    const buttons =
+    const matchingButtons =
       style !== 'hidden' || this.expanded
-        ? this.buttons
+        ? this.buttons.filter(
+            (button) => !button.alignment || button.alignment === 'matching',
+          )
         : this.buttons.filter((button) => button.icon === FRIGATE_BUTTON_MENU_ICON);
-    return html` ${buttons.map((button) => this._renderButton(button))} `;
+
+    const opposingButtons =
+      style !== 'hidden' || this.expanded
+        ? this.buttons.filter((button) => button.alignment === 'opposing')
+        : [];
+
+    const matchingStyle = {
+      flex: String(matchingButtons.length),
+    };
+    const opposingStyle = {
+      flex: String(opposingButtons.length),
+    };
+
+    return html` <div class="matching" style="${styleMap(matchingStyle)}">
+        ${matchingButtons.map((button) => this._renderButton(button))}
+      </div>
+      <div class="opposing" style="${styleMap(opposingStyle)}">
+        ${opposingButtons.map((button) => this._renderButton(button))}
+      </div>`;
   }
 
   /**

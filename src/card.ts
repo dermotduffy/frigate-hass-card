@@ -278,25 +278,19 @@ export class FrigateCard extends LitElement {
   protected _getMenuButtons(): MenuButton[] {
     const buttons: MenuButton[] = [];
 
-    if (this._getConfig().menu.buttons.frigate) {
-      buttons.push({
-        type: 'custom:frigate-card-menu-icon',
-        title: localize('config.menu.buttons.frigate'),
-        // Use a magic icon value that the menu will use to render the icon as
-        // it deems appropriate (certain menu configurations change the menu
-        // icon for the 'Frigate' button).
-        icon: FRIGATE_BUTTON_MENU_ICON,
-        tap_action: FrigateCardMenu.isHidingMenu(this._getConfig().menu)
-          ? (createFrigateCardCustomAction('menu_toggle') as FrigateCardCustomAction)
-          : (createFrigateCardCustomAction('default') as FrigateCardCustomAction),
-      });
-    }
+    buttons.push({
+      // Use a magic icon value that the menu will use to render the custom
+      // Frigate icon.
+      icon: FRIGATE_BUTTON_MENU_ICON,
+      ...this._getConfig().menu.buttons.frigate,
+      type: 'custom:frigate-card-menu-icon',
+      title: localize('config.menu.buttons.frigate'),
+      tap_action: FrigateCardMenu.isHidingMenu(this._getConfig().menu)
+        ? (createFrigateCardCustomAction('menu_toggle') as FrigateCardCustomAction)
+        : (createFrigateCardCustomAction('default') as FrigateCardCustomAction),
+    });
 
-    if (
-      this._getConfig().menu.buttons.cameras &&
-      this._cameras &&
-      this._cameras.size > 1
-    ) {
+    if (this._cameras && this._cameras.size > 1) {
       const menuItems = Array.from(this._cameras, ([camera, config]) => {
         return {
           icon: getCameraIcon(this._hass, config),
@@ -309,37 +303,37 @@ export class FrigateCard extends LitElement {
       });
 
       buttons.push({
+        icon: 'mdi:video-switch',
+        ...this._getConfig().menu.buttons.cameras,
         type: 'custom:frigate-card-menu-submenu',
         title: localize('config.menu.buttons.cameras'),
-        icon: 'mdi:video-switch',
         items: menuItems,
       });
     }
 
-    if (this._getConfig().menu.buttons.live) {
-      buttons.push({
-        type: 'custom:frigate-card-menu-icon',
-        title: localize('config.view.views.live'),
-        icon: 'mdi:cctv',
-        style: this._view?.is('live') ? this._getEmphasizedStyle() : {},
-        tap_action: createFrigateCardCustomAction('live') as FrigateCardCustomAction,
-      });
-    }
+    buttons.push({
+      icon: 'mdi:cctv',
+      ...this._getConfig().menu.buttons.live,
+      type: 'custom:frigate-card-menu-icon',
+      title: localize('config.view.views.live'),
+      style: this._view?.is('live') ? this._getEmphasizedStyle() : {},
+      tap_action: createFrigateCardCustomAction('live') as FrigateCardCustomAction,
+    });
 
     const cameraConfig = this._getSelectedCameraConfig();
 
     // Don't show `clips` button if there's no `camera_name` (e.g. non-Frigate
     // cameras), or is birdseye (unless there are dependent cameras).
     if (
-      this._getConfig().menu.buttons.clips &&
       cameraConfig?.camera_name &&
       (cameraConfig?.camera_name !== CAMERA_BIRDSEYE ||
         cameraConfig?.dependent_cameras?.length)
     ) {
       buttons.push({
+        icon: 'mdi:filmstrip',
+        ...this._getConfig().menu.buttons.clips,
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.view.views.clips'),
-        icon: 'mdi:filmstrip',
         style: this._view?.is('clips') ? this._getEmphasizedStyle() : {},
         tap_action: createFrigateCardCustomAction('clips') as FrigateCardCustomAction,
         hold_action: createFrigateCardCustomAction('clip') as FrigateCardCustomAction,
@@ -349,15 +343,15 @@ export class FrigateCard extends LitElement {
     // Don't show `snapshots` button if there's no `camera_name` (e.g. non-Frigate
     // cameras), or is birdseye (unless there are dependent cameras).
     if (
-      this._getConfig().menu.buttons.snapshots &&
       cameraConfig?.camera_name &&
       (cameraConfig?.camera_name !== CAMERA_BIRDSEYE ||
         cameraConfig?.dependent_cameras?.length)
     ) {
       buttons.push({
+        icon: 'mdi:camera',
+        ...this._getConfig().menu.buttons.snapshots,
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.view.views.snapshots'),
-        icon: 'mdi:camera',
         style: this._view?.is('snapshots') ? this._getEmphasizedStyle() : {},
         tap_action: createFrigateCardCustomAction(
           'snapshots',
@@ -368,54 +362,55 @@ export class FrigateCard extends LitElement {
       });
     }
 
-    if (this._getConfig().menu.buttons.image) {
-      buttons.push({
-        type: 'custom:frigate-card-menu-icon',
-        title: localize('config.view.views.image'),
-        icon: 'mdi:image',
-        style: this._view?.is('image') ? this._getEmphasizedStyle() : {},
-        tap_action: createFrigateCardCustomAction('image') as FrigateCardCustomAction,
-      });
-    }
+    buttons.push({
+      icon: 'mdi:image',
+      ...this._getConfig().menu.buttons.image,
+      type: 'custom:frigate-card-menu-icon',
+      title: localize('config.view.views.image'),
+      style: this._view?.is('image') ? this._getEmphasizedStyle() : {},
+      tap_action: createFrigateCardCustomAction('image') as FrigateCardCustomAction,
+    });
 
-    if (this._getConfig().menu.buttons.timeline) {
-      buttons.push({
-        type: 'custom:frigate-card-menu-icon',
-        title: localize('config.view.views.timeline'),
-        icon: 'mdi:chart-gantt',
-        style: this._view?.is('timeline') ? this._getEmphasizedStyle() : {},
-        tap_action: createFrigateCardCustomAction('timeline') as FrigateCardCustomAction,
-      });
-    }
+    buttons.push({
+      icon: 'mdi:chart-gantt',
+      ...this._getConfig().menu.buttons.timeline,
+      type: 'custom:frigate-card-menu-icon',
+      title: localize('config.view.views.timeline'),
+      style: this._view?.is('timeline') ? this._getEmphasizedStyle() : {},
+      tap_action: createFrigateCardCustomAction('timeline') as FrigateCardCustomAction,
+    });
 
     if (
-      this._getConfig().menu.buttons.download &&
-      (this._view?.isViewerView() || (this._view?.is('timeline') && !!this._view?.media))
+      this._view?.isViewerView() ||
+      (this._view?.is('timeline') && !!this._view?.media)
     ) {
       buttons.push({
+        icon: 'mdi:download',
+        ...this._getConfig().menu.buttons.download,
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.menu.buttons.download'),
-        icon: 'mdi:download',
         tap_action: createFrigateCardCustomAction('download') as FrigateCardCustomAction,
       });
     }
 
-    if (this._getConfig().menu.buttons.frigate_ui && cameraConfig?.frigate_url) {
+    if (cameraConfig?.frigate_url) {
       buttons.push({
+        icon: 'mdi:web',
+        ...this._getConfig().menu.buttons.frigate_ui,
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.menu.buttons.frigate_ui'),
-        icon: 'mdi:web',
         tap_action: createFrigateCardCustomAction(
           'frigate_ui',
         ) as FrigateCardCustomAction,
       });
     }
 
-    if (this._getConfig().menu.buttons.fullscreen && screenfull.isEnabled) {
+    if (screenfull.isEnabled) {
       buttons.push({
+        icon: screenfull.isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
+        ...this._getConfig().menu.buttons.fullscreen,
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.menu.buttons.fullscreen'),
-        icon: screenfull.isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
         tap_action: createFrigateCardCustomAction(
           'fullscreen',
         ) as FrigateCardCustomAction,
@@ -489,7 +484,11 @@ export class FrigateCard extends LitElement {
     };
 
     if (this._getConfig().cameras && Array.isArray(this._getConfig().cameras)) {
-      await Promise.all(this._getConfig().cameras.map(addCameraConfig.bind(this)));
+      // Cameras are loaded sequentially rather than in parallel to preserve the
+      // order of the input camera array.
+      for (const camera of this._getConfig().cameras) {
+        await addCameraConfig(camera);
+      }
     }
 
     if (!cameras.size) {

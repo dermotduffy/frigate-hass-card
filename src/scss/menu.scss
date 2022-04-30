@@ -11,44 +11,78 @@
 
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+  justify-content: space-between;
 }
+
+/***********************************
+ * Aligned divs: matching & opposing
+ ***********************************/
+
+div.matching,
+div.opposing {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  align-items: flex-start;
+
+  // Allow the divs to be resized.
+  min-width: 0px;
+  min-height: 0px;
+}
+div.matching {
+  justify-content: flex-start;
+}
+div.opposing {
+  justify-content: flex-end;
+}
+
+/********************
+ * Outside menu style
+ ********************/
 
 :host([data-style='outside']) {
   width: 100%;
   background: var(--secondary-background-color);
 }
-:host([data-mode='outside'][data-position='top']) {
+:host([data-style='outside'][data-position='top']) {
   border-top-left-radius: var(--ha-card-border-radius, 4px);
   border-top-right-radius: var(--ha-card-border-radius, 4px);
 }
-:host([data-mode='outside'][data-position='below']) {
+:host([data-style='outside']:not([data-position='top'])) {
   border-bottom-left-radius: var(--ha-card-border-radius, 4px);
   border-bottom-right-radius: var(--ha-card-border-radius, 4px);
 }
 
-:host([data-position='top']),
-:host([data-position='left'][data-alignment='top']),
-:host([data-position='right'][data-alignment='top']) {
+/**************************************
+ * Positioning for absolute menu styles
+ **************************************/
+
+:host(:not([data-style='outside'])[data-position='top']),
+:host(:not([data-style='outside'])[data-position='left'][data-alignment='top']),
+:host(:not([data-style='outside'])[data-position='right'][data-alignment='top']) {
   top: 0px;
 }
-:host([data-position='bottom']),
-:host([data-position='left'][data-alignment='bottom']),
-:host([data-position='right'][data-alignment='bottom']) {
+:host(:not([data-style='outside'])[data-position='bottom']),
+:host(:not([data-style='outside'])[data-position='left'][data-alignment='bottom']),
+:host(:not([data-style='outside'])[data-position='right'][data-alignment='bottom']) {
   bottom: 0px;
 }
-:host([data-position='left']),
-:host([data-position='top'][data-alignment='left']),
-:host([data-position='bottom'][data-alignment='left']) {
+:host(:not([data-style='outside'])[data-position='left']),
+:host(:not([data-style='outside'])[data-position='top'][data-alignment='left']),
+:host(:not([data-style='outside'])[data-position='bottom'][data-alignment='left']) {
   left: 0px;
 }
-:host([data-position='right']),
-:host([data-position='top'][data-alignment='right']),
-:host([data-position='bottom'][data-alignment='right']) {
+:host(:not([data-style='outside'])[data-position='right']),
+:host(:not([data-style='outside'])[data-position='top'][data-alignment='right']),
+:host(:not([data-style='outside'])[data-position='bottom'][data-alignment='right']) {
   right: 0px;
 }
 
-:host([data-position='left']) {
+/********************************************************
+ * Hack: Ensure host & div expand for column flex layouts
+ ********************************************************/
+
+:host(:not([data-style='outside'])[data-position='left']) {
   // Awful hack: Flexbox column wrapping doesn't work properly in most major
   // browsers -- the element boundary does not expand to cover the full wrapped
   // content as it should. This results in the wrapped 'content' appearing
@@ -61,23 +95,50 @@
   // - https://bugs.chromium.org/p/chromium/issues/detail?id=507397
   writing-mode: vertical-lr;
 }
-:host([data-position='right']) {
+:host(:not([data-style='outside'])[data-position='right']) {
   // See "Awful hack" above.
   writing-mode: vertical-rl;
 }
+:host(:not([data-style='outside'])[data-style='overlay'][data-position='left']) div > *,
+:host(:not([data-style='outside'])[data-style='overlay'][data-position='right']) div > *,
+:host(:not([data-style='outside'])[data-style='hover'][data-position='left']) div > *,
+:host(:not([data-style='outside'])[data-style='hover'][data-position='right']) div > *,
+:host(:not([data-style='outside'])[data-style='hidden'][data-position='left']) div > *,
+:host(:not([data-style='outside'])[data-style='hidden'][data-position='right']) div > * {
+  // See "Awful hack" above. Note that this "cancelation" of writing mode only
+  // affects from beyond the divs, i.e. the writing mode hack applies to host
+  // and divs both.
+  writing-mode: horizontal-tb;
+}
 
-:host([data-position='left'][data-alignment='bottom']),
-:host([data-position='right'][data-alignment='bottom']),
-:host([data-position='top'][data-alignment='right']),
-:host([data-position='bottom'][data-alignment='right']) {
+/**********************
+ * "Reverse" alignments
+ **********************/
+
+:host(:not([data-style='outside'])[data-position='left'][data-alignment='bottom']),
+:host(:not([data-style='outside'])[data-position='right'][data-alignment='bottom']),
+:host(:not([data-style='outside'])[data-position='top'][data-alignment='right']),
+:host(:not([data-style='outside'])[data-position='bottom'][data-alignment='right']),
+:host(:not([data-style='outside'])[data-position='left'][data-alignment='bottom']) div,
+:host(:not([data-style='outside'])[data-position='right'][data-alignment='bottom']) div,
+:host(:not([data-style='outside'])[data-position='top'][data-alignment='right']) div,
+:host(:not([data-style='outside'])[data-position='bottom'][data-alignment='right']) div {
   flex-direction: row-reverse;
 }
 
-:host([data-position='bottom']) {
+/****************************
+ * Wrap upwards on the bottom
+ ****************************/
+
+:host(:not([data-style='outside'])[data-position='bottom']) div {
   // If the menu has more content that allows, "wrap upwards" to keep the
   // Frigate button in the same place.
   flex-wrap: wrap-reverse;
 }
+
+/********************************************
+ * Positioning for absolute based menu styles
+ ********************************************/
 
 :host([data-style='overlay']),
 :host([data-style='hover']),
@@ -110,14 +171,4 @@
   width: auto;
   overflow: visible;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0));
-}
-
-:host([data-style='overlay'][data-position='left']) > *,
-:host([data-style='overlay'][data-position='right']) > *,
-:host([data-style='hover'][data-position='left']) > *,
-:host([data-style='hover'][data-position='right']) > *,
-:host([data-style='hidden'][data-position='left']) > *,
-:host([data-style='hidden'][data-position='right']) > * {
-  // See "Awful hack" above.
-  writing-mode: horizontal-tb;
 }
