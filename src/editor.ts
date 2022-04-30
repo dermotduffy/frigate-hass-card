@@ -66,14 +66,7 @@ import {
   CONF_LIVE_PRELOAD,
   CONF_LIVE_TRANSITION_EFFECT,
   CONF_MENU_ALIGNMENT,
-  CONF_MENU_BUTTONS_CLIPS,
-  CONF_MENU_BUTTONS_FRIGATE,
-  CONF_MENU_BUTTONS_DOWNLOAD,
-  CONF_MENU_BUTTONS_FRIGATE_UI,
-  CONF_MENU_BUTTONS_FULLSCREEN,
-  CONF_MENU_BUTTONS_IMAGE,
-  CONF_MENU_BUTTONS_LIVE,
-  CONF_MENU_BUTTONS_SNAPSHOTS,
+  CONF_MENU_BUTTONS,
   CONF_MENU_BUTTON_SIZE,
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
@@ -105,22 +98,17 @@ import {
 
 import frigate_card_editor_style from './scss/editor.scss';
 
+const MENU_BUTTONS = 'buttons';
+const MENU_CAMERAS = 'cameras';
+const MENU_OPTIONS = 'options';
+
 interface EditorOptionsSet {
   icon: string;
   name: string;
   secondary: string;
-  show: boolean;
 }
 interface EditorOptions {
   [setName: string]: EditorOptionsSet;
-}
-
-interface EditorCameraTarget {
-  cameraIndex: number;
-}
-
-interface EditorOptionSetTarget {
-  optionSetName: string;
 }
 
 interface EditorSelectOption {
@@ -128,66 +116,61 @@ interface EditorSelectOption {
   label: string;
 }
 
+interface EditorMenuTarget {
+  domain: string;
+  key: string | number;
+}
+
 const options: EditorOptions = {
   cameras: {
     icon: 'video',
     name: localize('editor.cameras'),
     secondary: localize('editor.cameras_secondary'),
-    show: true,
   },
   view: {
     icon: 'eye',
     name: localize('editor.view'),
     secondary: localize('editor.view_secondary'),
-    show: false,
   },
   menu: {
     icon: 'menu',
     name: localize('editor.menu'),
     secondary: localize('editor.menu_secondary'),
-    show: false,
   },
   live: {
     icon: 'cctv',
     name: localize('editor.live'),
     secondary: localize('editor.live_secondary'),
-    show: false,
   },
   event_viewer: {
     icon: 'filmstrip',
     name: localize('editor.event_viewer'),
     secondary: localize('editor.event_viewer_secondary'),
-    show: false,
   },
   event_gallery: {
     icon: 'grid',
     name: localize('editor.event_gallery'),
     secondary: localize('editor.event_gallery_secondary'),
-    show: false,
   },
   image: {
     icon: 'image',
     name: localize('editor.image'),
     secondary: localize('editor.image_secondary'),
-    show: false,
   },
   timeline: {
     icon: 'chart-gantt',
     name: localize('editor.timeline'),
     secondary: localize('editor.timeline_secondary'),
-    show: false,
   },
   dimensions: {
     icon: 'aspect-ratio',
     name: localize('editor.dimensions'),
     secondary: localize('editor.dimensions_secondary'),
-    show: false,
   },
   overrides: {
     icon: 'file-replace',
     name: localize('editor.overrides'),
     secondary: localize('editor.overrides_secondary'),
-    show: false,
   },
 };
 
@@ -200,7 +183,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   protected _configUpgradeable = false;
 
   @property({ attribute: false })
-  protected _expandedCameraIndex: number | null = null;
+  protected _expandedMenus: Record<string, string | number> = {};
 
   protected _viewModes: EditorSelectOption[] = [
     { value: '', label: '' },
@@ -409,8 +392,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     return html`
       <div
         class="option option-${optionSetName}"
-        @click=${this._toggleOptionHandler}
-        .optionSetName=${optionSetName}
+        @click=${this._toggleMenu}
+        .domain=${'options'}
+        .key=${optionSetName}
       >
         <div class="row">
           <ha-icon .icon=${`mdi:${optionSet.icon}`}></ha-icon>
@@ -466,12 +450,16 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    * Render an option/"select" selector.
    * @param configPath The configuration path to set/read.
    * @param options The options to show in the selector.
+   * @param params Option parameters to control the selector.
    * @returns A rendered template.
    */
   protected _renderOptionSelector(
     configPath: string,
     options: string[] | { value: string; label: string }[],
-    multiple?: boolean,
+    params?: {
+      multiple?: boolean;
+      label?: string;
+    },
   ): TemplateResult | void {
     if (!this._config) {
       return;
@@ -481,9 +469,40 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       <ha-selector
         .hass=${this.hass}
         .selector=${{
-          select: { mode: 'dropdown', multiple: !!multiple, options: options },
+          select: { mode: 'dropdown', multiple: !!params?.multiple, options: options },
         }}
-        .label=${this._getLabel(configPath)}
+        .label=${params?.label || this._getLabel(configPath)}
+        .value=${getConfigValue(this._config, configPath, '')}
+        .required=${false}
+        @value-changed=${(ev) => this._valueChangedHandler(configPath, ev)}
+      >
+      </ha-selector>
+    `;
+  }
+
+  /**
+   * Render an icon selector.
+   * @param configPath The configuration path to set/read.
+   * @param params Optional parameters to control the selector.
+   * @returns A rendered template.
+   */
+  protected _renderIconSelector(
+    configPath: string,
+    params?: {
+      label?: string;
+    },
+  ): TemplateResult | void {
+    if (!this._config) {
+      return;
+    }
+
+    return html`
+      <ha-selector
+        .hass=${this.hass}
+        .selector=${{
+          icon: {},
+        }}
+        .label=${params?.label || this._getLabel(configPath)}
         .value=${getConfigValue(this._config, configPath, '')}
         .required=${false}
         @value-changed=${(ev) => this._valueChangedHandler(configPath, ev)}
@@ -495,29 +514,30 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   /**
    * Render a number slider.
    * @param configPath Configuration path of the variable.
-   * @param valueDefault The default value.
-   * @param icon The icon to use on the slider.
-   * @param min The minimum value.
-   * @param max The maximum value.
+   * @param params Optional parameters to control the selector.
    * @returns A rendered template.
    */
   protected _renderNumberInput(
     configPath: string,
-    min?: number,
-    max?: number,
+    params?: {
+      min?: number;
+      max?: number;
+      label?: string;
+      default?: number;
+    },
   ): TemplateResult | void {
     if (!this._config) {
       return;
     }
     const value = getConfigValue(this._config, configPath);
-    const mode = max === undefined ? 'box' : 'slider';
+    const mode = params?.max === undefined ? 'box' : 'slider';
 
     return html`
       <ha-selector
         .hass=${this.hass}
-        .selector=${{ number: { min: min || 0, max: max, mode: mode } }}
-        .label=${this._getLabel(configPath)}
-        .value=${value}
+        .selector=${{ number: { min: params?.min || 0, max: params?.max, mode: mode } }}
+        .label=${params?.label || this._getLabel(configPath)}
+        .value=${value ?? params?.default}
         .required=${false}
         @value-changed=${(ev) => this._valueChangedHandler(configPath, ev)}
       >
@@ -551,6 +571,62 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   /**
+   * Render an editor menu for the card menu buttons.
+   * @param button The name of the button.
+   * @returns A rendered template.
+   */
+  protected _renderMenuButton(button: string): TemplateResult {
+    const menuButtonAlignments: EditorSelectOption[] = [
+      { value: '', label: '' },
+      { value: 'matching', label: localize('config.menu.buttons.alignments.matching') },
+      { value: 'opposing', label: localize('config.menu.buttons.alignments.opposing') },
+    ];
+
+    return html`
+      <div
+        class="submenu-header"
+        @click=${this._toggleMenu}
+        .domain=${MENU_BUTTONS}
+        .key=${button}
+      >
+        <ha-icon .icon=${'mdi:gesture-tap-button'}></ha-icon>
+        <span
+          >${localize('editor.button') +
+          ': ' +
+          localize(`config.${CONF_MENU_BUTTONS}.${button}`)}</span
+        >
+      </div>
+
+      ${this._expandedMenus[MENU_BUTTONS] === button
+        ? html` <div class="values">
+            ${this._renderSwitch(
+              `${CONF_MENU_BUTTONS}.${button}.enabled`,
+              frigateCardConfigDefaults.menu.buttons[button]?.enabled ?? true,
+              {
+                label: localize('config.menu.buttons.enabled'),
+              },
+            )}
+            ${this._renderOptionSelector(
+              `${CONF_MENU_BUTTONS}.${button}.alignment`,
+              menuButtonAlignments,
+              {
+                label: localize('config.menu.buttons.alignment'),
+              },
+            )}
+            ${this._renderNumberInput(`${CONF_MENU_BUTTONS}.${button}.priority`, {
+              max: FRIGATE_MENU_PRIORITY_MAX,
+              default: frigateCardConfigDefaults.menu.buttons[button]?.priority,
+              label: localize('config.menu.buttons.priority'),
+            })}
+            ${this._renderIconSelector(`${CONF_MENU_BUTTONS}.${button}.icon`, {
+              label: localize('config.menu.buttons.icon'),
+            })}
+          </div>`
+        : ''}
+    `;
+  }
+
+  /**
    * Render a camera header.
    * @param cameraIndex The index of the camera to edit/add.
    * @param cameraConfig The configuration of the camera in question.
@@ -564,9 +640,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   ): TemplateResult {
     return html`
       <div
-        class="camera-header"
-        @click=${this._toggleCameraHandler}
-        .cameraIndex=${cameraIndex}
+        class="submenu-header"
+        @click=${this._toggleMenu}
+        .domain=${MENU_CAMERAS}
+        .key=${cameraIndex}
       >
         <ha-icon .icon=${addNewCamera ? 'mdi:video-plus' : 'mdi:video'}></ha-icon>
         <span>
@@ -630,7 +707,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
     return html`
       ${this._renderCameraHeader(cameraIndex, cameras[cameraIndex], addNewCamera)}
-      ${this._expandedCameraIndex === cameraIndex
+      ${this._expandedMenus[MENU_CAMERAS] === cameraIndex
         ? html` <div class="values">
             <div class="controls">
               <ha-icon-button
@@ -645,7 +722,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   modifyConfig((config: RawFrigateCardConfig): boolean => {
                     if (Array.isArray(config.cameras) && cameraIndex > 0) {
                       arrayMove(config.cameras, cameraIndex, cameraIndex - 1);
-                      this._expandedCameraIndex = cameraIndex - 1;
+                      this._openMenu(MENU_CAMERAS, cameraIndex - 1);
                       return true;
                     }
                     return false;
@@ -668,7 +745,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       cameraIndex < config.cameras.length - 1
                     ) {
                       arrayMove(config.cameras, cameraIndex, cameraIndex + 1);
-                      this._expandedCameraIndex = cameraIndex + 1;
+                      this._openMenu(MENU_CAMERAS, cameraIndex + 1);
                       return true;
                     }
                     return false;
@@ -684,7 +761,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   modifyConfig((config: RawFrigateCardConfig): boolean => {
                     if (Array.isArray(config.cameras)) {
                       config.cameras.splice(cameraIndex, 1);
-                      this._expandedCameraIndex = null;
+                      this._closeMenu(MENU_CAMERAS);
                       return true;
                     }
                     return false;
@@ -736,7 +813,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             ${this._renderOptionSelector(
               getArrayConfigPath(CONF_CAMERAS_ARRAY_DEPENDENT_CAMERAS, cameraIndex),
               dependentCameras,
-              true,
+              {
+                multiple: true,
+              },
             )}
           </div>`
         : ``}
@@ -787,13 +866,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    * Render a boolean selector.
    * @param configPath The configuration path to set/read.
    * @param valueDefault The default switch value if unset.
-   * @param label An optional switch label.
+   * @param params Optional parameters to control the selector.
    * @returns A rendered template.
    */
   protected _renderSwitch(
     configPath: string,
     valueDefault: boolean,
-    label?: string,
+    params?: {
+      label?: string;
+    },
   ): TemplateResult | void {
     if (!this._config) {
       return;
@@ -803,7 +884,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       <ha-selector
         .hass=${this.hass}
         .selector=${{ boolean: {} }}
-        .label=${label || this._getLabel(configPath)}
+        .label=${params?.label || this._getLabel(configPath)}
         .value=${getConfigValue(this._config, configPath, valueDefault)}
         .required=${false}
         @value-changed=${(ev) => this._valueChangedHandler(configPath, ev)}
@@ -823,9 +904,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     }
 
     const defaults = frigateCardConfigDefaults;
-
-    const getShowButtonLabel = (configPath: string) =>
-      localize('editor.show_button') + ': ' + localize(`config.${configPath}`);
 
     const cameras = (getConfigValue(this._config, CONF_CAMERAS) ||
       []) as RawFrigateCardConfigArray;
@@ -853,14 +931,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         : html``}
       <div class="card-config">
         ${this._renderOptionSetHeader('cameras')}
-        ${options.cameras.show
-          ? html` <div class="cameras">
+        ${this._expandedMenus[MENU_OPTIONS] === 'cameras'
+          ? html` <div class="submenu">
               ${cameras.map((_, index) => this._renderCamera(cameras, index))}
               ${this._renderCamera(cameras, cameras.length, true)}
             </div>`
           : ''}
         ${this._renderOptionSetHeader('view')}
-        ${options.view.show
+        ${this._expandedMenus[MENU_OPTIONS] === 'view'
           ? html`
               <div class="values">
                 ${this._renderOptionSelector(CONF_VIEW_DEFAULT, this._viewModes)}
@@ -880,58 +958,32 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             `
           : ''}
         ${this._renderOptionSetHeader('menu')}
-        ${options.menu.show
+        ${this._expandedMenus[MENU_OPTIONS] === 'menu'
           ? html`
               <div class="values">
                 ${this._renderOptionSelector(CONF_MENU_STYLE, this._menuStyles)}
                 ${this._renderOptionSelector(CONF_MENU_POSITION, this._menuPositions)}
                 ${this._renderOptionSelector(CONF_MENU_ALIGNMENT, this._menuAlignments)}
-                ${this._renderNumberInput(CONF_MENU_BUTTON_SIZE, BUTTON_SIZE_MIN)}
-                ${this._renderNumberInput(
-                  CONF_MENU_BUTTONS_FRIGATE,
-                  0,
-                  FRIGATE_MENU_PRIORITY_MAX,
-                )}
-                ${this._renderNumberInput(
-                  CONF_MENU_BUTTONS_LIVE,
-                  0,
-                  FRIGATE_MENU_PRIORITY_MAX,
-                )}
-                ${this._renderNumberInput(
-                  CONF_MENU_BUTTONS_CLIPS,
-                  0,
-                  FRIGATE_MENU_PRIORITY_MAX,
-                )}
-                ${this._renderNumberInput(
-                  CONF_MENU_BUTTONS_SNAPSHOTS,
-                  0,
-                  FRIGATE_MENU_PRIORITY_MAX,
-                )}
-                ${this._renderNumberInput(
-                  CONF_MENU_BUTTONS_IMAGE,
-                  0,
-                  FRIGATE_MENU_PRIORITY_MAX,
-                )}
-                ${this._renderNumberInput(
-                  CONF_MENU_BUTTONS_DOWNLOAD,
-                  0,
-                  FRIGATE_MENU_PRIORITY_MAX,
-                )}
-                ${this._renderNumberInput(
-                  CONF_MENU_BUTTONS_FRIGATE_UI,
-                  0,
-                  FRIGATE_MENU_PRIORITY_MAX,
-                )}
-                ${this._renderNumberInput(
-                  CONF_MENU_BUTTONS_FULLSCREEN,
-                  0,
-                  FRIGATE_MENU_PRIORITY_MAX,
-                )}
+                ${this._renderNumberInput(CONF_MENU_BUTTON_SIZE, {
+                  min: BUTTON_SIZE_MIN,
+                })}
+              </div>
+              <div class="submenu">
+                ${this._renderMenuButton('frigate')}
+                ${this._renderMenuButton('live')}
+                ${this._renderMenuButton('clips')}
+                ${this._renderMenuButton('snapshots')}
+                ${this._renderMenuButton('image')}
+                ${this._renderMenuButton('download')}
+                ${this._renderMenuButton('frigate_ui')}
+                ${this._renderMenuButton('fullscreen')}
+                ${this._renderMenuButton('timeline')}
+              </div>
               </div>
             `
           : ''}
         ${this._renderOptionSetHeader('live')}
-        ${options.live.show
+        ${this._expandedMenus[MENU_OPTIONS] === 'live'
           ? html`
               <div class="values">
                 ${this._renderSwitch(CONF_LIVE_PRELOAD, defaults.live.preload)}
@@ -943,10 +995,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
                   this._liveNextPreviousControlStyles,
                 )}
-                ${this._renderNumberInput(
-                  CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
-                  BUTTON_SIZE_MIN,
-                )}
+                ${this._renderNumberInput(CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE, {
+                  min: BUTTON_SIZE_MIN,
+                })}
                 ${this._renderOptionSelector(
                   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
                   this._thumbnailModes,
@@ -955,11 +1006,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
                   this._thumbnailMedias,
                 )}
-                ${this._renderNumberInput(
-                  CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
-                  THUMBNAIL_WIDTH_MIN,
-                  THUMBNAIL_WIDTH_MAX,
-                )}
+                ${this._renderNumberInput(CONF_LIVE_CONTROLS_THUMBNAILS_SIZE, {
+                  min: THUMBNAIL_WIDTH_MIN,
+                  max: THUMBNAIL_WIDTH_MAX,
+                })}
                 ${this._renderOptionSelector(
                   CONF_LIVE_CONTROLS_TITLE_MODE,
                   this._titleModes,
@@ -972,11 +1022,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
                   defaults.live.controls.thumbnails.show_controls,
                 )}
-                ${this._renderNumberInput(
-                  CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
-                  0,
-                  60,
-                )}
+                ${this._renderNumberInput(CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS, {
+                  min: 0,
+                  max: 60,
+                })}
                 ${this._renderOptionSelector(
                   CONF_LIVE_TRANSITION_EFFECT,
                   this._transitionEffects,
@@ -985,13 +1034,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             `
           : ''}
         ${this._renderOptionSetHeader('event_gallery')}
-        ${options.event_gallery.show
+        ${this._expandedMenus[MENU_OPTIONS] === 'event_gallery'
           ? html` <div class="values">
-              ${this._renderNumberInput(
-                CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE,
-                THUMBNAIL_WIDTH_MIN,
-                THUMBNAIL_WIDTH_MAX,
-              )}
+              ${this._renderNumberInput(CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE, {
+                min: THUMBNAIL_WIDTH_MIN,
+                max: THUMBNAIL_WIDTH_MAX,
+              })}
               ${this._renderSwitch(
                 CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
                 defaults.event_viewer.controls.thumbnails.show_details,
@@ -1003,7 +1051,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             </div>`
           : ''}
         ${this._renderOptionSetHeader('event_viewer')}
-        ${options.event_viewer.show
+        ${this._expandedMenus[MENU_OPTIONS] === 'event_viewer'
           ? html` <div class="values">
               ${this._renderSwitch(
                 CONF_EVENT_VIEWER_AUTO_PLAY,
@@ -1025,19 +1073,17 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
                 this._eventViewerNextPreviousControlStyles,
               )}
-              ${this._renderNumberInput(
-                CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
-                BUTTON_SIZE_MIN,
-              )}
+              ${this._renderNumberInput(CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE, {
+                min: BUTTON_SIZE_MIN,
+              })}
               ${this._renderOptionSelector(
                 CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE,
                 this._thumbnailModes,
               )}
-              ${this._renderNumberInput(
-                CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE,
-                THUMBNAIL_WIDTH_MIN,
-                THUMBNAIL_WIDTH_MAX,
-              )}
+              ${this._renderNumberInput(CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE, {
+                min: THUMBNAIL_WIDTH_MIN,
+                max: THUMBNAIL_WIDTH_MAX,
+              })}
               ${this._renderSwitch(
                 CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
                 defaults.event_viewer.controls.thumbnails.show_details,
@@ -1052,8 +1098,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               )}
               ${this._renderNumberInput(
                 CONF_EVENT_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
-                0,
-                60,
+                { min: 0, max: 60 },
               )}
               ${this._renderOptionSelector(
                 CONF_EVENT_VIEWER_TRANSITION_EFFECT,
@@ -1062,7 +1107,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             </div>`
           : ''}
         ${this._renderOptionSetHeader('image')}
-        ${options.image.show
+        ${this._expandedMenus[MENU_OPTIONS] === 'image'
           ? html` <div class="values">
               ${this._renderOptionSelector(CONF_IMAGE_MODE, this._imageModes)}
               ${this._renderStringInput(CONF_IMAGE_URL)}
@@ -1070,7 +1115,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             </div>`
           : ''}
         ${this._renderOptionSetHeader('timeline')}
-        ${options.timeline.show
+        ${this._expandedMenus[MENU_OPTIONS] === 'timeline'
           ? html` <div class="values">
               ${this._renderNumberInput(CONF_TIMELINE_WINDOW_SECONDS)}
               ${this._renderNumberInput(CONF_TIMELINE_CLUSTERING_THRESHOLD)}
@@ -1082,11 +1127,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
                 this._thumbnailModes,
               )}
-              ${this._renderNumberInput(
-                CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
-                THUMBNAIL_WIDTH_MIN,
-                THUMBNAIL_WIDTH_MAX,
-              )}
+              ${this._renderNumberInput(CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE, {
+                min: THUMBNAIL_WIDTH_MIN,
+                max: THUMBNAIL_WIDTH_MAX,
+              })}
               ${this._renderSwitch(
                 CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
                 defaults.timeline.controls.thumbnails.show_details,
@@ -1098,7 +1142,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             </div>`
           : ''}
         ${this._renderOptionSetHeader('dimensions')}
-        ${options.dimensions.show
+        ${this._expandedMenus[MENU_OPTIONS] === 'dimensions'
           ? html` <div class="values">
               ${this._renderOptionSelector(
                 CONF_DIMENSIONS_ASPECT_RATIO_MODE,
@@ -1109,7 +1153,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           : ''}
         ${this._config['overrides'] !== undefined
           ? html` ${this._renderOptionSetHeader('overrides')}
-            ${options.overrides.show
+            ${this._expandedMenus[MENU_OPTIONS] === 'overrides'
               ? html` <div class="values">
                   ${this._renderInfo(localize('config.overrides.info'))}
                 </div>`
@@ -1150,42 +1194,38 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   /**
-   * Display/hide a camera section.
-   * @param ev The event triggering the change.
+   * Close the editor menu with the given domain.
+   * @param targetDomain The menu domain to close.
    */
-  protected _toggleCameraHandler(ev: { target: EditorCameraTarget | null }): void {
-    if (ev && ev.target) {
-      this._expandedCameraIndex =
-        this._expandedCameraIndex == ev.target.cameraIndex
-          ? null
-          : ev.target.cameraIndex;
-    }
+  protected _closeMenu(targetDomain: string) {
+    delete this._expandedMenus[targetDomain];
+    this.requestUpdate();
   }
 
   /**
-   * Handle a toggled set of options.
-   * @param ev The event triggering the change.
+   * Open an editor menu.
+   * @param targetDomain The menu domain to open.
+   * @param key The menu object key to open.
    */
-  protected _toggleOptionHandler(ev: { target: EditorOptionSetTarget | null }): void {
-    this._toggleOptionSet(ev, options);
+  protected _openMenu(targetDomain: string, key: number | string) {
+    this._expandedMenus[targetDomain] = key;
+    this.requestUpdate();
   }
 
   /**
-   * Toggle display of a set of options (e.g. 'Live')
-   * @param ev The event triggering the change.
-   * @param options The EditorOptions object.
+   * Toggle an editor menu.
+   * @param ev An event.
    */
-  protected _toggleOptionSet(
-    ev: { target: EditorOptionSetTarget | null },
-    options: EditorOptions,
-  ): void {
+  protected _toggleMenu(ev: { target: EditorMenuTarget | null }): void {
     if (ev && ev.target) {
-      const show = !options[ev.target.optionSetName].show;
-      for (const [key] of Object.entries(options)) {
-        options[key].show = false;
+      const domain = ev.target.domain;
+      const key = ev.target.key;
+
+      if (this._expandedMenus[domain] == key) {
+        this._closeMenu(domain);
+      } else {
+        this._openMenu(domain, key);
       }
-      options[ev.target.optionSetName].show = show;
-      this.requestUpdate();
     }
   }
 

@@ -37,7 +37,6 @@ import {
 } from './const';
 import {
   BUTTON_SIZE_MIN,
-  FRIGATE_MENU_PRIORITY_DEFAULT,
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
@@ -491,14 +490,17 @@ const upgradeMenuConditionToMenuOverride = (): ((
  * @param value The boolean true/false for show/hide the switch.
  * @returns A priority value.
  */
-const menuButtonToPriority = function (value: unknown): number | null | undefined {
-  if (typeof value === 'number') {
+const menuButtonBooleanToObject = function (
+  value: unknown,
+): { enabled: boolean } | null | undefined {
+  if (typeof value === 'object') {
     return undefined;
   }
-  if (typeof value !== 'boolean') {
+  // If it's not a boolean, or it's just true, remove it.
+  if (typeof value !== 'boolean' || value) {
     return null;
   }
-  return value ? FRIGATE_MENU_PRIORITY_DEFAULT : 0;
+  return { enabled: value };
 };
 
 const UPGRADES = [
@@ -564,14 +566,13 @@ const UPGRADES = [
   ),
   upgradeWithOverrides('event_gallery.min_columns', deleteProperty),
   upgradeMenuModeToStyleAndPosition(),
-
-  upgradeWithOverrides(CONF_MENU_BUTTONS_FRIGATE, menuButtonToPriority),
-  upgradeWithOverrides(CONF_MENU_BUTTONS_CAMERAS, menuButtonToPriority),
-  upgradeWithOverrides(CONF_MENU_BUTTONS_LIVE, menuButtonToPriority),
-  upgradeWithOverrides(CONF_MENU_BUTTONS_CLIPS, menuButtonToPriority),
-  upgradeWithOverrides(CONF_MENU_BUTTONS_SNAPSHOTS, menuButtonToPriority),
-  upgradeWithOverrides(CONF_MENU_BUTTONS_IMAGE, menuButtonToPriority),
-  upgradeWithOverrides(CONF_MENU_BUTTONS_DOWNLOAD, menuButtonToPriority),
-  upgradeWithOverrides(CONF_MENU_BUTTONS_FRIGATE_UI, menuButtonToPriority),
-  upgradeWithOverrides(CONF_MENU_BUTTONS_FULLSCREEN, menuButtonToPriority),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_FRIGATE, menuButtonBooleanToObject),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_CAMERAS, menuButtonBooleanToObject),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_LIVE, menuButtonBooleanToObject),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_CLIPS, menuButtonBooleanToObject),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_SNAPSHOTS, menuButtonBooleanToObject),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_IMAGE, menuButtonBooleanToObject),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_DOWNLOAD, menuButtonBooleanToObject),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_FRIGATE_UI, menuButtonBooleanToObject),
+  upgradeWithOverrides(CONF_MENU_BUTTONS_FULLSCREEN, menuButtonBooleanToObject),
 ];

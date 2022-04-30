@@ -222,24 +222,6 @@ export class FrigateCardMenu extends LitElement {
         }
       }
 
-      // TODO below might be removable?
-
-      // If the alignments are different, sort 'opposite' alignments later.
-      if (a.alignment !== b.alignment) {
-        if (
-          (a.alignment === undefined || a.alignment === 'near') &&
-          b.alignment === 'far'
-        ) {
-          return -1;
-        }
-        if (
-          (b.alignment === undefined || b.alignment === 'near') &&
-          a.alignment === 'far'
-        ) {
-          return 1;
-        }
-      }
-
       // Otherwise sort by priority.
       if (
         a.priority === undefined ||
@@ -267,6 +249,9 @@ export class FrigateCardMenu extends LitElement {
    * @returns A rendered template or void.
    */
   protected _renderButton(button: MenuButton): TemplateResult | void {
+    if (button.enabled === false) {
+      return;
+    }
     if (button.type == 'custom:frigate-card-menu-submenu') {
       return html` <frigate-card-submenu
         .hass=${this.hass}
@@ -337,30 +322,30 @@ export class FrigateCardMenu extends LitElement {
     }
 
     // If the hidden menu isn't expanded, only show the Frigate button.
-    const nearButtons =
+    const matchingButtons =
       style !== 'hidden' || this.expanded
         ? this.buttons.filter(
-            (button) => !button.alignment || button.alignment === 'near',
+            (button) => !button.alignment || button.alignment === 'matching',
           )
         : this.buttons.filter((button) => button.icon === FRIGATE_BUTTON_MENU_ICON);
 
-    const farButtons =
+    const opposingButtons =
       style !== 'hidden' || this.expanded
-        ? this.buttons.filter((button) => button.alignment === 'far')
+        ? this.buttons.filter((button) => button.alignment === 'opposing')
         : [];
 
-    const nearStyle = {
-      flex: String(nearButtons.length),
+    const matchingStyle = {
+      flex: String(matchingButtons.length),
     };
-    const farStyle = {
-      flex: String(farButtons.length),
+    const opposingStyle = {
+      flex: String(opposingButtons.length),
     };
 
-    return html` <div class="near" style="${styleMap(nearStyle)}">
-        ${nearButtons.map((button) => this._renderButton(button))}
+    return html` <div class="matching" style="${styleMap(matchingStyle)}">
+        ${matchingButtons.map((button) => this._renderButton(button))}
       </div>
-      <div class="far" style="${styleMap(farStyle)}">
-        ${farButtons.map((button) => this._renderButton(button))}
+      <div class="opposing" style="${styleMap(opposingStyle)}">
+        ${opposingButtons.map((button) => this._renderButton(button))}
       </div>`;
   }
 

@@ -327,20 +327,25 @@ export type CameraConfig = z.infer<typeof cameraConfigSchema>;
 /**
  * Custom Element Types.
  */
-
 const menuBaseSchema = z.object({
-  priority: z.number().optional(),
-  alignment: z.enum(["near", "far"]).optional(),
+  enabled: z.boolean().default(true).optional(),
+  priority: z
+    .number()
+    .min(0)
+    .max(FRIGATE_MENU_PRIORITY_MAX)
+    .default(FRIGATE_MENU_PRIORITY_DEFAULT)
+    .optional(),
+  alignment: z.enum(['matching', 'opposing']).default('matching').optional(),
+  icon: z.string().optional(),
 });
 
-export const menuIconSchema = iconSchema
-  .extend({
-    type: z.literal('custom:frigate-card-menu-icon'),
-  })
-  .merge(menuBaseSchema);
+export const menuIconSchema = menuBaseSchema.merge(iconSchema).extend({
+  type: z.literal('custom:frigate-card-menu-icon'),
+});
 export type MenuIcon = z.infer<typeof menuIconSchema>;
 
-export const menuStateIconSchema = stateIconSchema
+export const menuStateIconSchema = menuBaseSchema
+  .merge(stateIconSchema)
   .extend({
     type: z.literal('custom:frigate-card-menu-state-icon'),
   })
@@ -355,12 +360,10 @@ const menuSubmenuItemSchema = elementsBaseSchema.extend({
 });
 export type MenuSubmenuItem = z.infer<typeof menuSubmenuItemSchema>;
 
-export const menuSubmenuSchema = iconSchema
-  .extend({
-    type: z.literal('custom:frigate-card-menu-submenu'),
-    items: menuSubmenuItemSchema.array(),
-  })
-  .merge(menuBaseSchema);
+export const menuSubmenuSchema = menuBaseSchema.merge(iconSchema).extend({
+  type: z.literal('custom:frigate-card-menu-submenu'),
+  items: menuSubmenuItemSchema.array(),
+});
 export type MenuSubmenu = z.infer<typeof menuSubmenuSchema>;
 export type MenuItem = MenuIcon | MenuStateIcon | MenuSubmenu;
 
@@ -616,24 +619,43 @@ export type LiveConfig = z.infer<typeof liveConfigSchema>;
 /**
  * Menu configuration section.
  */
+
+const visibleButtonDefault = {
+  priority: FRIGATE_MENU_PRIORITY_DEFAULT,
+  enabled: true,
+};
+const hiddenButtonDefault = {
+  priority: FRIGATE_MENU_PRIORITY_DEFAULT,
+  enabled: false,
+};
+
 const menuConfigDefault = {
   style: 'hidden' as const,
   position: 'top' as const,
   alignment: 'left' as const,
   buttons: {
-    frigate: FRIGATE_MENU_PRIORITY_DEFAULT,
-    cameras: FRIGATE_MENU_PRIORITY_DEFAULT,
-    live: FRIGATE_MENU_PRIORITY_DEFAULT,
-    clips: FRIGATE_MENU_PRIORITY_DEFAULT,
-    snapshots: FRIGATE_MENU_PRIORITY_DEFAULT,
-    image: 0,
-    timeline: FRIGATE_MENU_PRIORITY_DEFAULT,
-    download: FRIGATE_MENU_PRIORITY_DEFAULT,
-    frigate_ui: FRIGATE_MENU_PRIORITY_DEFAULT,
-    fullscreen: FRIGATE_MENU_PRIORITY_DEFAULT,
+    frigate: visibleButtonDefault,
+    cameras: visibleButtonDefault,
+    live: visibleButtonDefault,
+    clips: visibleButtonDefault,
+    snapshots: visibleButtonDefault,
+    image: hiddenButtonDefault,
+    timeline: visibleButtonDefault,
+    download: visibleButtonDefault,
+    frigate_ui: visibleButtonDefault,
+    fullscreen: visibleButtonDefault,
   },
   button_size: 40,
 };
+
+const visibleButtonSchema = menuBaseSchema.extend({
+  enabled: menuBaseSchema.shape.enabled.default(visibleButtonDefault.enabled),
+  priority: menuBaseSchema.shape.priority.default(visibleButtonDefault.priority),
+});
+const hiddenButtonSchema = menuBaseSchema.extend({
+  enabled: menuBaseSchema.shape.enabled.default(hiddenButtonDefault.enabled),
+  priority: menuBaseSchema.shape.priority.default(hiddenButtonDefault.priority),
+});
 
 const menuConfigSchema = z
   .object({
@@ -642,56 +664,16 @@ const menuConfigSchema = z
     alignment: z.enum(FRIGATE_MENU_ALIGNMENTS).default(menuConfigDefault.alignment),
     buttons: z
       .object({
-        frigate: z
-          .number()
-          .min(0)
-          .max(FRIGATE_MENU_PRIORITY_MAX)
-          .default(menuConfigDefault.buttons.frigate),
-        cameras: z
-          .number()
-          .min(0)
-          .max(FRIGATE_MENU_PRIORITY_MAX)
-          .default(menuConfigDefault.buttons.cameras),
-        live: z
-          .number()
-          .min(0)
-          .max(FRIGATE_MENU_PRIORITY_MAX)
-          .default(menuConfigDefault.buttons.live),
-        clips: z
-          .number()
-          .min(0)
-          .max(FRIGATE_MENU_PRIORITY_MAX)
-          .default(menuConfigDefault.buttons.clips),
-        snapshots: z
-          .number()
-          .min(0)
-          .max(FRIGATE_MENU_PRIORITY_MAX)
-          .default(menuConfigDefault.buttons.snapshots),
-        image: z
-          .number()
-          .min(0)
-          .max(FRIGATE_MENU_PRIORITY_MAX)
-          .default(menuConfigDefault.buttons.image),
-        timeline: z
-          .number()
-          .min(0)
-          .max(FRIGATE_MENU_PRIORITY_MAX)
-          .default(menuConfigDefault.buttons.timeline),
-        download: z
-          .number()
-          .min(0)
-          .max(FRIGATE_MENU_PRIORITY_MAX)
-          .default(menuConfigDefault.buttons.download),
-        frigate_ui: z
-          .number()
-          .min(0)
-          .max(FRIGATE_MENU_PRIORITY_MAX)
-          .default(menuConfigDefault.buttons.frigate_ui),
-        fullscreen: z
-          .number()
-          .min(0)
-          .max(FRIGATE_MENU_PRIORITY_MAX)
-          .default(menuConfigDefault.buttons.fullscreen),
+        frigate: visibleButtonSchema.default(menuConfigDefault.buttons.frigate),
+        cameras: visibleButtonSchema.default(menuConfigDefault.buttons.cameras),
+        live: visibleButtonSchema.default(menuConfigDefault.buttons.live),
+        clips: visibleButtonSchema.default(menuConfigDefault.buttons.clips),
+        snapshots: visibleButtonSchema.default(menuConfigDefault.buttons.snapshots),
+        image: hiddenButtonSchema.default(menuConfigDefault.buttons.image),
+        timeline: visibleButtonSchema.default(menuConfigDefault.buttons.timeline),
+        download: visibleButtonSchema.default(menuConfigDefault.buttons.download),
+        frigate_ui: visibleButtonSchema.default(menuConfigDefault.buttons.frigate_ui),
+        fullscreen: visibleButtonSchema.default(menuConfigDefault.buttons.fullscreen),
       })
       .default(menuConfigDefault.buttons),
     button_size: z.number().min(BUTTON_SIZE_MIN).default(menuConfigDefault.button_size),

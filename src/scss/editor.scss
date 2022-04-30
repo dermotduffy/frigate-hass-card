@@ -40,35 +40,35 @@ div.upgrade span {
   padding: 10px;
 }
 
-.camera-header {
+.submenu-header {
   display: flex;
   margin-top: 4px;
 
   cursor: pointer;
 }
-.camera-header * {
+.submenu-header * {
   flex-basis: auto;
 
-  // Only allow clicks on the outermost header.
+  // Only allow clicks on the header.
   pointer-events: none;
 }
-.camera-header ha-icon {
+.submenu-header ha-icon {
   padding-right: 10px;
 }
-.camera-header .new-camera {
+.submenu-header .new-camera {
   font-style: italic;
   color: var(--secondary-text-color, 'black');
 }
-.cameras {
+.submenu {
   margin: 5px 5px 10px 20px;
 }
-.cameras .controls {
+.submenu .controls {
   display: inline-block;
   margin-left: auto;
   margin-right: 0px;
   margin-bottom: 5px;
 }
-.cameras .controls ha-icon-button.button {
+.submenu .controls ha-icon-button.button {
   --mdc-icon-button-size: 32px;
   --mdc-icon-size: calc(var(--mdc-icon-button-size) / 2);
 }

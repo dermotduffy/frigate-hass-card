@@ -14,24 +14,25 @@
   justify-content: space-between;
 }
 
-/**************************
- * Aligned divs: near & far
- **************************/
+/***********************************
+ * Aligned divs: matching & opposing
+ ***********************************/
 
-div.near,
-div.far {
+div.matching,
+div.opposing {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
+  align-items: flex-start;
 
   // Allow the divs to be resized.
   min-width: 0px;
   min-height: 0px;
 }
-div.near {
+div.matching {
   justify-content: flex-start;
 }
-div.far {
+div.opposing {
   justify-content: flex-end;
 }
 

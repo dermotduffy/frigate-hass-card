@@ -159,10 +159,22 @@
     "menu": {
       "buttons": {
         "frigate": "Frigate menu / Default view",
-        "frigate_ui": "Frigate user Interface",
+        "live": "Live",
+        "clips": "Clips",
+        "snapshots": "Snapshots",
+        "image": "Image",
+        "download": "Download",
+        "frigate_ui": "Frigate user interface",
         "fullscreen": "Fullscreen",
-        "download": "Download event media",
-        "cameras": "Select camera"
+        "timeline": "Timeline",
+        "icon": "Icon",
+        "priority": "Priority",
+        "alignment": "Button alignment",
+        "alignments": {
+          "matching": "Matching the menu alignment",
+          "opposing": "Opposing the menu alignment"
+        },
+        "enabled": "Button enabled"
       },
       "style": "Menu style",
       "styles": {
@@ -236,7 +248,7 @@
     "image_secondary": "Static image view options",
     "dimensions": "Dimensions",
     "dimensions_secondary": "Dimensions & shape options",
-    "show_button": "Show button",
+    "button": "Button",
     "upgrade": "Upgrade",
     "upgrade_available": "An automatic card configuration upgrade is available",
     "delete": "Delete",
