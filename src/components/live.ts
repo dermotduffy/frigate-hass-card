@@ -395,10 +395,10 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     // The conditionState object contains the currently live camera, which (in
     // the carousel for example) is not necessarily the live camera this
     // <frigate-card-live-provider> is rendering right now.
-    const conditionState = Object.assign({
+    const conditionState = {
       ...this.conditionState,
       camera: camera,
-    });
+    };
 
     const config = getOverriddenConfig(
       this.liveConfig,

@@ -4,11 +4,13 @@ import type {
   RawFrigateCardConfig,
 } from './types';
 import { merge, cloneDeep } from 'lodash-es';
+import { HassEntities } from 'home-assistant-js-websocket';
 
 export interface ConditionState {
   view?: string;
   fullscreen?: boolean;
   camera?: string;
+  state?: HassEntities;
 }
 
 class ConditionStateRequestEvent extends Event {
@@ -34,6 +36,18 @@ export function evaluateCondition(
   if (condition?.camera?.length) {
     result &&= !!state.camera && condition.camera.includes(state.camera);
   }
+  if (condition?.state?.length) {
+    for (const stateTest of condition?.state) {
+      result &&=
+        !!state.state &&
+        ((!stateTest.state && !stateTest.state_not) ||
+          (stateTest.entity in state.state &&
+            (!stateTest.state ||
+              state.state[stateTest.entity].state === stateTest.state) &&
+            (!stateTest.state_not ||
+              state.state[stateTest.entity].state !== stateTest.state_not)));
+    }
+  }
   return result;
 }
 
@@ -42,7 +56,7 @@ export function evaluateCondition(
  * @returns A boolean indicating whether the condition is met.
  */
 export function fetchStateAndEvaluateCondition(
-  node: HTMLElement,
+  element: HTMLElement,
   condition?: FrigateCardCondition,
 ): boolean {
   if (!condition) {
@@ -69,7 +83,7 @@ export function fetchStateAndEvaluateCondition(
    * synchronously, the state will be added to the event before the flow
    * proceeds.
    */
-  node.dispatchEvent(stateEvent);
+  element.dispatchEvent(stateEvent);
   return evaluateCondition(condition, stateEvent.conditionState);
 }
 
