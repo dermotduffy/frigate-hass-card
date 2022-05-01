@@ -151,16 +151,16 @@ view:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `default` | `live` | :heavy_multiplication_x: | The view to show in the card by default. The default camera is the first one listed. See [views](#views) below.|
-| `camera_select` | `current` | :heavy_multiplication_x: | The view to show when a new camera is selected (e.g. in the camera menu). If `current` the view is unchanged when a new camera is selected. Other acceptable values may be seen at [views](#views) below.|
-| `dark_mode` | `off` | :heavy_multiplication_x: | Whether or not to turn dark mode `on`, `off` or `auto` to automatically turn on if the card `timeout_seconds` has expired (i.e. card has been left unattended for that period of time) or if dark mode is enabled in the HA profile theme setting. Dark mode dims the brightness by `50%`.|
-| `timeout_seconds` | `300` | :heavy_multiplication_x: | A numbers of seconds of inactivity after user interaction, after which the card will reset to the default configured view (i.e. 'screensaver' functionality). Inactivity is defined as lack of mouse/touch interaction with the Frigate card. If the default view occurs sooner (e.g. via `update_seconds` or manually) the timer will be stopped. `0` means disable this functionality. |
-| `update_seconds` | `0` | :heavy_multiplication_x: | A number of seconds after which to automatically update/refresh the default view. See [card updates](#card-updates) below for behavior and usecases. If the default view occurs sooner (e.g. manually) the timer will start over. `0` disables this functionality.|
-| `update_force` | `false` | :heavy_multiplication_x: | Whether automated card updates/refreshes should ignore user interaction. See [card updates](#card-updates) below for behavior and usecases.|
-| `update_entities` | | :heavy_multiplication_x: | **YAML only**: A list of entity ids that should cause the view to reset to the default. See [card updates](#card-updates) below for behavior and usecases.|
-| `update_cycle_camera` | `false` | :heavy_multiplication_x: | When set to `true` the selected camera is cycled on each default view change. |
-| `render_entities` | | :heavy_multiplication_x: | **YAML only**: A list of entity ids that should cause the card to re-render 'in-place'. The view/camera is not changed. `update_*` flags do not pertain/relate to the behavior of this flag. This should **very** rarely be needed, but could be useful if the card is both setting and changing HA state of the same object as could be the case for some complex `card_mod` scenarios ([example](https://github.com/dermotduffy/frigate-hass-card/issues/343)). |
-| `actions` | | :heavy_multiplication_x: | Actions to use for all views, individual actions may be overriden by view-specific actions. See [actions](#actions) below.|
+| `default` | `live` | :white_check_mark: | The view to show in the card by default. The default camera is the first one listed. See [views](#views) below.|
+| `camera_select` | `current` | :white_check_mark: | The view to show when a new camera is selected (e.g. in the camera menu). If `current` the view is unchanged when a new camera is selected. Other acceptable values may be seen at [views](#views) below.|
+| `dark_mode` | `off` | :white_check_mark: | Whether or not to turn dark mode `on`, `off` or `auto` to automatically turn on if the card `timeout_seconds` has expired (i.e. card has been left unattended for that period of time) or if dark mode is enabled in the HA profile theme setting. Dark mode dims the brightness by `50%`.|
+| `timeout_seconds` | `300` | :white_check_mark: | A numbers of seconds of inactivity after user interaction, after which the card will reset to the default configured view (i.e. 'screensaver' functionality). Inactivity is defined as lack of mouse/touch interaction with the Frigate card. If the default view occurs sooner (e.g. via `update_seconds` or manually) the timer will be stopped. `0` means disable this functionality. |
+| `update_seconds` | `0` | :white_check_mark: | A number of seconds after which to automatically update/refresh the default view. See [card updates](#card-updates) below for behavior and usecases. If the default view occurs sooner (e.g. manually) the timer will start over. `0` disables this functionality.|
+| `update_force` | `false` | :white_check_mark: | Whether automated card updates/refreshes should ignore user interaction. See [card updates](#card-updates) below for behavior and usecases.|
+| `update_entities` | | :white_check_mark: | **YAML only**: A list of entity ids that should cause the view to reset to the default. See [card updates](#card-updates) below for behavior and usecases.|
+| `update_cycle_camera` | `false` | :white_check_mark: | When set to `true` the selected camera is cycled on each default view change. |
+| `render_entities` | | :white_check_mark: | **YAML only**: A list of entity ids that should cause the card to re-render 'in-place'. The view/camera is not changed. `update_*` flags do not pertain/relate to the behavior of this flag. This should **very** rarely be needed, but could be useful if the card is both setting and changing HA state of the same object as could be the case for some complex `card_mod` scenarios ([example](https://github.com/dermotduffy/frigate-hass-card/issues/343)). |
+| `actions` | | :white_check_mark: | Actions to use for all views, individual actions may be overriden by view-specific actions. See [actions](#actions) below.|
 ### Menu Options
 
 All configuration is under:
@@ -1267,6 +1267,39 @@ overrides:
         position: bottom
 ```
 </details>
+
+
+<a name="frigate-card-menu-override-example"></a>
+
+<details>
+  <summary>Expand: Change the default view based on HA state</summary>
+
+This example changes the default card view from `live` to `image` depending on
+the value of the `binary_sensor.alarm_armed` sensor. Note that the override
+alone will only change the _default_ when the card next is requested to change
+to the default view. By also including the `update_entities` parameter, we ask
+the card to trigger a card update based on that entity -- which causes it to use
+the new overriden default immediately. Alternatives to trigger the card to
+change view but without `update_entities` would just be having an
+`update_seconds` parameter which reloads the default view that many seconds
+after user interaction stops.
+
+```yaml
+view:
+  default: live
+  update_entities:
+    - binary_sensor.alarm_armed
+overrides:
+  - conditions:
+      state:
+        - entity: binary_sensor.alarm_armed
+          state: 'off'
+    overrides:
+      view:
+        default: image
+```
+</details>
+
 
 ### Refreshing a static image
 
