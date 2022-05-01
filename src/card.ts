@@ -697,6 +697,7 @@ export class FrigateCard extends LitElement {
     }
 
     this._config = config;
+    this._overriddenConfig = undefined;
     this._cameras = undefined;
     this._view = undefined;
     this._message = null;
@@ -754,8 +755,8 @@ export class FrigateCard extends LitElement {
    */
   protected _setLightOrDarkMode(): void {
     const needDarkMode =
-      this._config.view.dark_mode === 'on' ||
-      (this._config.view.dark_mode === 'auto' &&
+      this._getConfig().view.dark_mode === 'on' ||
+      (this._getConfig().view.dark_mode === 'auto' &&
         (!this._interactionTimerID || this._hass?.themes.darkMode));
 
     if (needDarkMode) {
