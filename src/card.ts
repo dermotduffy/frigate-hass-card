@@ -204,6 +204,9 @@ export class FrigateCard extends LitElement {
       }
     }
 
+    // HA entity state is part of the condition state.
+    this._generateConditionState();
+
     // Dark mode may depend on HASS.
     this._setLightOrDarkMode();
   }
@@ -247,6 +250,7 @@ export class FrigateCard extends LitElement {
       view: this._view?.view,
       fullscreen: screenfull.isEnabled && screenfull.isFullscreen,
       camera: this._view?.camera,
+      state: this._hass?.states,
     };
 
     const overriddenConfig = getOverriddenConfig(
@@ -1075,7 +1079,6 @@ export class FrigateCard extends LitElement {
         .hass=${this._hass}
         .menuConfig=${this._getConfig().menu}
         .buttons=${this._getMenuButtons()}
-        .conditionState=${this._conditionState}
       ></frigate-card-menu>
     `;
   }

@@ -579,8 +579,29 @@ All variables listed are under a `conditions:` section.
 | `view` | A list of [views](#views) in which this condition is satified (e.g. `clips`) |
 | `camera` | A list of camera ids in which this condition is satisfied. See [camera IDs](#camera-ids).|
 | `fullscreen` | If `true` the condition is satisfied if the card is in fullscreen mode. If `false` the condition is satisfied if the card is **NOT** in fullscreen mode.|
+| `state` | A list of state conditions to compare with Home Assistant state. See below. |
 
 See the [PTZ example below](#frigate-card-conditional-example) for a real-world example of how these conditions can be used.
+
+### State Conditions
+
+```yaml
+- conditions:
+    state:
+      - [entries]
+```
+
+The Frigate Card Condition can compare HA state against fixed string values. This is the same as the Home Assistant [Conditional Element](https://www.home-assistant.io/dashboards/picture-elements/#conditional-element) condition, but can be used outside of a Picture Element context (e.g. card configuration overrides).
+
+If multiple entries are provided, the results are `AND`ed.
+
+| Parameter | Description |
+| - | - |
+| `entity` | The entity ID to check the state for |
+| `state` | Condition will be met if state is equal to this optional string. |
+| `state_not` | Condition will be met if state is unequal to this optional string. |
+
+See the [Menu override example below](#frigate-card-menu-override-example) for an illustration.
 
 <a name="frigate-card-elements"></a>
 
@@ -1228,6 +1249,23 @@ overrides:
           ui: true
 ```
 
+</details>
+
+<a name="frigate-card-menu-override-example"></a>
+
+<details>
+  <summary>Expand: Change the menu position based on HA state</summary>
+
+```yaml
+overrides:
+  - conditions:
+      state:
+        - entity: light.office_lights
+          state: 'on'
+    overrides:
+      menu:
+        position: bottom
+```
 </details>
 
 ### Refreshing a static image

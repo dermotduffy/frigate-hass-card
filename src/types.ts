@@ -295,16 +295,20 @@ const imageSchema = elementsBaseSchema.extend({
   aspect_ratio: z.string().optional(),
 });
 
+// This state condition is used both for the Picture elements conditional
+// schema, and also in frigateCardConditionSchema.
+const stateConditions = z
+  .object({
+    entity: z.string(),
+    state: z.string().optional(),
+    state_not: z.string().optional(),
+  })
+  .array();
+
 // https://www.home-assistant.io/lovelace/picture-elements/#image-element
 const conditionalSchema = z.object({
   type: z.literal('conditional'),
-  conditions: z
-    .object({
-      entity: z.string(),
-      state: z.string().optional(),
-      state_not: z.string().optional(),
-    })
-    .array(),
+  conditions: stateConditions,
   elements: z.lazy(() => pictureElementsSchema),
 });
 
@@ -411,6 +415,7 @@ const frigateCardConditionSchema = z.object({
   view: z.string().array().optional(),
   fullscreen: z.boolean().optional(),
   camera: z.string().array().optional(),
+  state: stateConditions.optional(),
 });
 export type FrigateCardCondition = z.infer<typeof frigateCardConditionSchema>;
 
