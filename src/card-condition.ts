@@ -3,8 +3,8 @@ import type {
   OverrideConfigurationKey,
   RawFrigateCardConfig,
 } from './types';
-import { merge, cloneDeep } from 'lodash-es';
 import { HassEntities } from 'home-assistant-js-websocket';
+import { cloneDeep, merge } from 'lodash-es';
 
 export interface ConditionState {
   view?: string;

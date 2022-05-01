@@ -57,7 +57,7 @@ interface HuiConditionalElement extends HTMLElement {
 // A small wrapper around a HA conditional element used to render a set of
 // picture elements.
 @customElement('frigate-card-elements-core')
-class FrigateCardElementsCore extends LitElement {
+export class FrigateCardElementsCore extends LitElement {
   @property({ attribute: false })
   protected elements: PictureElements;
 
