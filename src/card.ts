@@ -204,6 +204,7 @@ export class FrigateCard extends LitElement {
       }
     }
 
+    // HA entity state is part of the condition state.
     this._generateConditionState();
 
     // Dark mode may depend on HASS.
