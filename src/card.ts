@@ -945,17 +945,21 @@ export class FrigateCard extends LitElement {
 
     let media_content_id: string;
     let media_content_type: string;
-    let thumbnail: string | null = null;
-    const cameraEntity = this._getSelectedCameraConfig()?.camera_entity ?? null;
+    const extra = {};
+    const cameraConfig = this._getSelectedCameraConfig();
+    const cameraEntity = cameraConfig?.camera_entity ?? null;
 
     if (this._view?.isViewerView() && this._view.media) {
       media_content_id = this._view.media.media_content_id;
       media_content_type = this._view.media.media_content_type;
-      thumbnail = this._view.media.thumbnail;
+      extra['thumb'] = this._view.media.thumbnail;
+      extra['title'] = this._view.media.title;
     } else if (this._view?.is('live') && cameraEntity) {
       if (this._hass?.states && cameraEntity in this._hass.states) {
-        thumbnail = this._hass.states[cameraEntity].attributes.entity_picture ?? null;
+        extra['thumb'] =
+          this._hass.states[cameraEntity].attributes.entity_picture ?? null;
       }
+      extra['title'] = getCameraTitle(this._hass, cameraConfig);
       media_content_id = `media-source://camera/${cameraEntity}`;
       media_content_type = 'application/vnd.apple.mpegurl';
     } else {
@@ -967,7 +971,7 @@ export class FrigateCard extends LitElement {
         entity_id: mediaPlayer,
         media_content_id: media_content_id,
         media_content_type: media_content_type,
-        extra: thumbnail ? { thumb: thumbnail } : {},
+        extra: extra,
       });
     } else if (action === 'stop') {
       this._hass?.callService('media_player', 'media_stop', {
