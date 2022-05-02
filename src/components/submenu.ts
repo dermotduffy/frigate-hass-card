@@ -36,8 +36,10 @@ export class FrigateCardSubmenu extends LitElement {
       <mwc-list-item
         style="${styleMap(stateParameters.style || {})}"
         graphic="icon"
+        ?twoline=${!!item.subtitle}
         ?selected=${item.selected}
         ?activated=${item.selected}
+        ?disabled=${!!item.disabled}
         aria-label="${stateParameters.title || ''}"
         @action=${(ev) => {
           // Attach the action config so ascendants have access to it.
@@ -48,7 +50,10 @@ export class FrigateCardSubmenu extends LitElement {
           hasDoubleClick: frigateCardHasAction(item.double_tap_action),
         })}
       >
-        ${stateParameters.title || ''}
+        <span>${stateParameters.title || ''}</span>
+        ${item.subtitle
+          ? html`<span slot="secondary">${item.subtitle}</span>`
+          : ''}
         ${stateParameters.icon
           ? html` <ha-icon
               data-domain=${ifDefined(stateParameters.data_domain)}

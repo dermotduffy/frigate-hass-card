@@ -179,7 +179,11 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'fullscreen',
   'menu_toggle',
 ] as const;
-const FRIGATE_CARD_ACTIONS = [...FRIGATE_CARD_GENERAL_ACTIONS, 'camera_select'] as const;
+const FRIGATE_CARD_ACTIONS = [
+  ...FRIGATE_CARD_GENERAL_ACTIONS,
+  'camera_select',
+  'media_player',
+] as const;
 export type FrigateCardAction = typeof FRIGATE_CARD_ACTIONS[number];
 
 const frigateCardGeneralActionSchema = frigateCardCustomactionsBaseSchema.extend({
@@ -189,9 +193,16 @@ const frigateCardCameraSelectActionSchema = frigateCardCustomactionsBaseSchema.e
   frigate_card_action: z.literal('camera_select'),
   camera: z.string(),
 });
+const frigateCarMediaPlayerPlayActionSchema = frigateCardCustomactionsBaseSchema.extend({
+  frigate_card_action: z.literal('media_player'),
+  media_player: z.string(),
+  media_player_action: z.enum(['play', 'stop']),
+});
+
 export const frigateCardCustomActionSchema = z.union([
   frigateCardGeneralActionSchema,
   frigateCardCameraSelectActionSchema,
+  frigateCarMediaPlayerPlayActionSchema,
 ]);
 export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSchema>;
 
@@ -401,6 +412,8 @@ const menuSubmenuItemSchema = elementsBaseSchema.extend({
   icon: z.string().optional(),
   state_color: z.boolean().default(true).optional(),
   selected: z.boolean().default(false).optional(),
+  subtitle: z.string().optional(),
+  disabled: z.boolean().optional(),
 });
 export type MenuSubmenuItem = z.infer<typeof menuSubmenuItemSchema>;
 
@@ -689,6 +702,7 @@ const menuConfigDefault = {
     download: visibleButtonDefault,
     frigate_ui: visibleButtonDefault,
     fullscreen: visibleButtonDefault,
+    media_player: visibleButtonDefault,
   },
   button_size: 40,
 };
@@ -719,6 +733,9 @@ const menuConfigSchema = z
         download: visibleButtonSchema.default(menuConfigDefault.buttons.download),
         frigate_ui: visibleButtonSchema.default(menuConfigDefault.buttons.frigate_ui),
         fullscreen: visibleButtonSchema.default(menuConfigDefault.buttons.fullscreen),
+        media_player: visibleButtonSchema.default(
+          menuConfigDefault.buttons.media_player,
+        ),
       })
       .default(menuConfigDefault.buttons),
     button_size: z.number().min(BUTTON_SIZE_MIN).default(menuConfigDefault.button_size),

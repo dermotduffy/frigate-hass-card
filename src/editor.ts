@@ -978,6 +978,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderMenuButton('frigate_ui')}
                 ${this._renderMenuButton('fullscreen')}
                 ${this._renderMenuButton('timeline')}
+                ${this._renderMenuButton('media_player')}
               </div>
               </div>
             `

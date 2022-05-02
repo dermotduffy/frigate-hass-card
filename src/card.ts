@@ -51,6 +51,8 @@ import {
   getCameraIcon,
   getCameraID,
   getCameraTitle,
+  getEntityIcon,
+  getEntityTitle,
   homeAssistantSignPath,
   homeAssistantWSRequest,
   isValidMediaShowInfo,
@@ -345,7 +347,7 @@ export class FrigateCard extends LitElement {
           state_color: true,
           title: getCameraTitle(this._hass, config),
           selected: this._view?.camera === camera,
-          tap_action: createFrigateCardCustomAction('camera_select', camera),
+          tap_action: createFrigateCardCustomAction('camera_select', { camera: camera }),
         };
       });
 
@@ -462,6 +464,44 @@ export class FrigateCard extends LitElement {
           'fullscreen',
         ) as FrigateCardCustomAction,
         style: screenfull.isFullscreen ? this._getEmphasizedStyle() : {},
+      });
+    }
+
+    const mediaPlayers = Object.keys(this._hass?.states || {}).filter((entity) =>
+      entity.startsWith('media_player.'),
+    );
+    if (
+      mediaPlayers.length &&
+      (this._view?.isViewerView() ||
+        (this._view?.is('live') && cameraConfig?.camera_entity))
+    ) {
+      const mediaPlayerItems = mediaPlayers.map((playerEntityID) => {
+        const title = getEntityTitle(this._hass, playerEntityID) || playerEntityID;
+        const state = this._hass?.states[playerEntityID];
+        return {
+          icon: getEntityIcon(this._hass, playerEntityID) || 'mdi:cast',
+          entity: playerEntityID,
+          state_color: false,
+          title: title,
+          subtitle: title === playerEntityID ? undefined : playerEntityID,
+          disabled: !state || state.state === 'unavailable',
+          tap_action: createFrigateCardCustomAction('media_player', {
+            media_player: playerEntityID,
+            media_player_action: 'play',
+          }),
+          hold_action: createFrigateCardCustomAction('media_player', {
+            media_player: playerEntityID,
+            media_player_action: 'stop',
+          }),
+        };
+      });
+
+      buttons.push({
+        icon: 'mdi:cast',
+        ...this._getConfig().menu.buttons.media_player,
+        type: 'custom:frigate-card-menu-submenu',
+        title: localize('config.menu.buttons.media_player'),
+        items: mediaPlayerItems,
       });
     }
 
@@ -887,6 +927,51 @@ export class FrigateCard extends LitElement {
   }
 
   /**
+   * Take a media player action.
+   * @param mediaPlayer The entity ID of the media player.
+   * @param action The action to take (currently only 'play' is supported).
+   * @returns
+   */
+  protected _mediaPlayerAction(mediaPlayer: string, action: 'play' | 'stop'): void {
+    if (!['play', 'stop'].includes(action)) {
+      return;
+    }
+
+    let media_content_id: string;
+    let media_content_type: string;
+    let thumbnail: string | null = null;
+    const cameraEntity = this._getSelectedCameraConfig()?.camera_entity ?? null;
+
+    if (this._view?.isViewerView() && this._view.media) {
+      media_content_id = this._view.media.media_content_id;
+      media_content_type = this._view.media.media_content_type;
+      thumbnail = this._view.media.thumbnail;
+    } else if (this._view?.is('live') && cameraEntity) {
+      if (this._hass?.states && cameraEntity in this._hass.states) {
+        thumbnail = this._hass.states[cameraEntity].attributes.entity_picture ?? null;
+      }
+      media_content_id = `media-source://camera/${cameraEntity}`;
+      media_content_type = 'application/vnd.apple.mpegurl';
+    } else {
+      return;
+    }
+
+    if (action === 'play') {
+      this._hass?.callService('media_player', 'play_media', {
+        entity_id: mediaPlayer,
+        media_content_id: media_content_id,
+        media_content_type: media_content_type,
+        extra: thumbnail ? { thumb: thumbnail } : {},
+      });
+    } else if (action === 'stop') {
+      console.info('stopping');
+      this._hass?.callService('media_player', 'media_stop', {
+        entity_id: mediaPlayer,
+      });
+    }
+  }
+
+  /**
    * Handle a request for a card action.
    * @param ev The action requested.
    */
@@ -954,6 +1039,12 @@ export class FrigateCard extends LitElement {
             }),
           });
         }
+        break;
+      case 'media_player':
+        this._mediaPlayerAction(
+          frigateCardAction.media_player,
+          frigateCardAction.media_player_action,
+        );
         break;
       default:
         console.warn(`Frigate card received unknown card action: ${action}`);

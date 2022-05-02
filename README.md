@@ -200,6 +200,8 @@ menu:
 | `download` | :white_check_mark: | The `download` menu button: allow direct download of the media being displayed.|
 | `frigate_ui` | :white_check_mark: | The `frigate_ui` menu button: brings the user to a context-appropriate page on the Frigate UI (e.g. the camera homepage). Will only appear if the `frigate.url` option is set.|
 | `fullscreen` | :white_check_mark: | The `fullscreen` menu button: expand the card to consume the fullscreen. |
+| `timeline` | :white_check_mark: | The `timeline` menu button: show the event timeline. |
+| `media_player` | :white_check_mark: | The `media_player` menu button: sends the visible media to a remote media player. Supports Frigate clips, snapshots and live camera (only for cameras that specify a `camera_entity` and only using the default HA stream (equivalent to the `ha` live provider). `jsmpeg` or `webrtc-card` are not supported, although live can still be played as long as `camera_entity` is specified. In the player list, a `tap` will send the media to the player, a `hold` will stop the media on the player. |
 
 ##### Configuration on each button
 
@@ -680,7 +682,7 @@ Parameters for the `custom:frigate-card-conditional` element:
 
 | Action name | Description |
 | - | - |
-| `custom:frigate-card-action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `snapshot`, `snapshots`, `download`, `frigate_ui`, `fullscreen`, `camera_select`, `menu_toggle`.|
+| `custom:frigate-card-action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `snapshot`, `snapshots`, `download`, `frigate_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`.|
 
 | Value | Description |
 | - | - |
@@ -691,6 +693,8 @@ Parameters for the `custom:frigate-card-conditional` element:
 |`fullscreen`|Toggle fullscreen.| 
 |`camera_select`|Select a given camera. Takes a single additional `camera` parameter with the [camera ID](#camera-ids) of the camera to select. Respects the value of `view.camera_select` to choose the appropriate view on the new camera.|
 |`menu_toggle` | Show/hide the menu (for the `hidden` mode style). |
+|`media_player`| Perform a media player action. Takes a `media_player` parameter with the entity ID of the media_player on which to perform the action, and a `media_player_action` parameter which should be either `play` or `stop` to play or stop the media in question. |
+
 
 <a name="views"></a>
 
