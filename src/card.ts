@@ -341,13 +341,16 @@ export class FrigateCard extends LitElement {
 
     if (this._cameras && this._cameras.size > 1) {
       const menuItems = Array.from(this._cameras, ([camera, config]) => {
+        const action = createFrigateCardCustomAction('camera_select', {
+          camera: camera,
+        });
         return {
           icon: getCameraIcon(this._hass, config),
           entity: config.camera_entity,
           state_color: true,
           title: getCameraTitle(this._hass, config),
           selected: this._view?.camera === camera,
-          tap_action: createFrigateCardCustomAction('camera_select', { camera: camera }),
+          ...(action && { tap_action: action }),
         };
       });
 
@@ -478,6 +481,15 @@ export class FrigateCard extends LitElement {
       const mediaPlayerItems = mediaPlayers.map((playerEntityID) => {
         const title = getEntityTitle(this._hass, playerEntityID) || playerEntityID;
         const state = this._hass?.states[playerEntityID];
+        const playAction = createFrigateCardCustomAction('media_player', {
+          media_player: playerEntityID,
+          media_player_action: 'play',
+        });
+        const stopAction = createFrigateCardCustomAction('media_player', {
+          media_player: playerEntityID,
+          media_player_action: 'stop',
+        });
+
         return {
           icon: getEntityIcon(this._hass, playerEntityID) || 'mdi:cast',
           entity: playerEntityID,
@@ -485,14 +497,8 @@ export class FrigateCard extends LitElement {
           title: title,
           subtitle: title === playerEntityID ? undefined : playerEntityID,
           disabled: !state || state.state === 'unavailable',
-          tap_action: createFrigateCardCustomAction('media_player', {
-            media_player: playerEntityID,
-            media_player_action: 'play',
-          }),
-          hold_action: createFrigateCardCustomAction('media_player', {
-            media_player: playerEntityID,
-            media_player_action: 'stop',
-          }),
+          ...(playAction && { tap_action: playAction }),
+          ...(stopAction && { hold_action: stopAction }),
         };
       });
 
