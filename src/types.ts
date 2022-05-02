@@ -193,7 +193,7 @@ const frigateCardCameraSelectActionSchema = frigateCardCustomactionsBaseSchema.e
   frigate_card_action: z.literal('camera_select'),
   camera: z.string(),
 });
-const frigateCarMediaPlayerPlayActionSchema = frigateCardCustomactionsBaseSchema.extend({
+const frigateCarMediaPlayerActionSchema = frigateCardCustomactionsBaseSchema.extend({
   frigate_card_action: z.literal('media_player'),
   media_player: z.string(),
   media_player_action: z.enum(['play', 'stop']),
@@ -202,7 +202,7 @@ const frigateCarMediaPlayerPlayActionSchema = frigateCardCustomactionsBaseSchema
 export const frigateCardCustomActionSchema = z.union([
   frigateCardGeneralActionSchema,
   frigateCardCameraSelectActionSchema,
-  frigateCarMediaPlayerPlayActionSchema,
+  frigateCarMediaPlayerActionSchema,
 ]);
 export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSchema>;
 

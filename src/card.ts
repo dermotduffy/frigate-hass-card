@@ -964,7 +964,6 @@ export class FrigateCard extends LitElement {
         extra: thumbnail ? { thumb: thumbnail } : {},
       });
     } else if (action === 'stop') {
-      console.info('stopping');
       this._hass?.callService('media_player', 'media_stop', {
         entity_id: mediaPlayer,
       });
