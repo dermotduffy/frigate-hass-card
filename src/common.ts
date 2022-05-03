@@ -285,20 +285,35 @@ export function convertActionToFrigateCardCustomAction(
 /**
  * Create a Frigate card custom action.
  * @param action The Frigate card action string (e.g. 'fullscreen')
- * @returns A FrigateCardCustomAction for that action string.
+ * @returns A FrigateCardCustomAction for that action string or null.
  */
 export function createFrigateCardCustomAction(
   action: FrigateCardAction,
-  camera?: string,
-): FrigateCardCustomAction | undefined {
-  if (action == 'camera_select') {
-    if (!camera) {
-      return undefined;
+  args?: {
+    camera?: string,
+    media_player?: string,
+    media_player_action?: 'play' | 'stop',
+  }
+): FrigateCardCustomAction | null {
+  if (action === 'camera_select') {
+    if (!args?.camera) {
+      return null;
     }
     return {
       action: 'fire-dom-event',
       frigate_card_action: action,
-      camera: camera,
+      camera: args.camera as string,
+    };
+  }
+  if (action === 'media_player') {
+    if (!args?.media_player || !args.media_player_action) {
+      return null;
+    }
+    return {
+      action: 'fire-dom-event',
+      frigate_card_action: action,
+      media_player: args.media_player,
+      media_player_action: args.media_player_action,
     };
   }
   return {

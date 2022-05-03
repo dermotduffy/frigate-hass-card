@@ -51,6 +51,8 @@ import {
   getCameraIcon,
   getCameraID,
   getCameraTitle,
+  getEntityIcon,
+  getEntityTitle,
   homeAssistantSignPath,
   homeAssistantWSRequest,
   isValidMediaShowInfo,
@@ -339,13 +341,16 @@ export class FrigateCard extends LitElement {
 
     if (this._cameras && this._cameras.size > 1) {
       const menuItems = Array.from(this._cameras, ([camera, config]) => {
+        const action = createFrigateCardCustomAction('camera_select', {
+          camera: camera,
+        });
         return {
           icon: getCameraIcon(this._hass, config),
           entity: config.camera_entity,
           state_color: true,
           title: getCameraTitle(this._hass, config),
           selected: this._view?.camera === camera,
-          tap_action: createFrigateCardCustomAction('camera_select', camera),
+          ...(action && { tap_action: action }),
         };
       });
 
@@ -462,6 +467,47 @@ export class FrigateCard extends LitElement {
           'fullscreen',
         ) as FrigateCardCustomAction,
         style: screenfull.isFullscreen ? this._getEmphasizedStyle() : {},
+      });
+    }
+
+    const mediaPlayers = Object.keys(this._hass?.states || {}).filter((entity) =>
+      entity.startsWith('media_player.'),
+    );
+    if (
+      mediaPlayers.length &&
+      (this._view?.isViewerView() ||
+        (this._view?.is('live') && cameraConfig?.camera_entity))
+    ) {
+      const mediaPlayerItems = mediaPlayers.map((playerEntityID) => {
+        const title = getEntityTitle(this._hass, playerEntityID) || playerEntityID;
+        const state = this._hass?.states[playerEntityID];
+        const playAction = createFrigateCardCustomAction('media_player', {
+          media_player: playerEntityID,
+          media_player_action: 'play',
+        });
+        const stopAction = createFrigateCardCustomAction('media_player', {
+          media_player: playerEntityID,
+          media_player_action: 'stop',
+        });
+
+        return {
+          icon: getEntityIcon(this._hass, playerEntityID) || 'mdi:cast',
+          entity: playerEntityID,
+          state_color: false,
+          title: title,
+          subtitle: title === playerEntityID ? undefined : playerEntityID,
+          disabled: !state || state.state === 'unavailable',
+          ...(playAction && { tap_action: playAction }),
+          ...(stopAction && { hold_action: stopAction }),
+        };
+      });
+
+      buttons.push({
+        icon: 'mdi:cast',
+        ...this._getConfig().menu.buttons.media_player,
+        type: 'custom:frigate-card-menu-submenu',
+        title: localize('config.menu.buttons.media_player'),
+        items: mediaPlayerItems,
       });
     }
 
@@ -887,6 +933,54 @@ export class FrigateCard extends LitElement {
   }
 
   /**
+   * Take a media player action.
+   * @param mediaPlayer The entity ID of the media player.
+   * @param action The action to take (currently only 'play' is supported).
+   * @returns
+   */
+  protected _mediaPlayerAction(mediaPlayer: string, action: 'play' | 'stop'): void {
+    if (!['play', 'stop'].includes(action)) {
+      return;
+    }
+
+    let media_content_id: string;
+    let media_content_type: string;
+    const extra = {};
+    const cameraConfig = this._getSelectedCameraConfig();
+    const cameraEntity = cameraConfig?.camera_entity ?? null;
+
+    if (this._view?.isViewerView() && this._view.media) {
+      media_content_id = this._view.media.media_content_id;
+      media_content_type = this._view.media.media_content_type;
+      extra['thumb'] = this._view.media.thumbnail;
+      extra['title'] = this._view.media.title;
+    } else if (this._view?.is('live') && cameraEntity) {
+      if (this._hass?.states && cameraEntity in this._hass.states) {
+        extra['thumb'] =
+          this._hass.states[cameraEntity].attributes.entity_picture ?? null;
+      }
+      extra['title'] = getCameraTitle(this._hass, cameraConfig);
+      media_content_id = `media-source://camera/${cameraEntity}`;
+      media_content_type = 'application/vnd.apple.mpegurl';
+    } else {
+      return;
+    }
+
+    if (action === 'play') {
+      this._hass?.callService('media_player', 'play_media', {
+        entity_id: mediaPlayer,
+        media_content_id: media_content_id,
+        media_content_type: media_content_type,
+        extra: extra,
+      });
+    } else if (action === 'stop') {
+      this._hass?.callService('media_player', 'media_stop', {
+        entity_id: mediaPlayer,
+      });
+    }
+  }
+
+  /**
    * Handle a request for a card action.
    * @param ev The action requested.
    */
@@ -954,6 +1048,12 @@ export class FrigateCard extends LitElement {
             }),
           });
         }
+        break;
+      case 'media_player':
+        this._mediaPlayerAction(
+          frigateCardAction.media_player,
+          frigateCardAction.media_player_action,
+        );
         break;
       default:
         console.warn(`Frigate card received unknown card action: ${action}`);
