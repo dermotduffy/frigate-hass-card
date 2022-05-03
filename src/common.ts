@@ -4,7 +4,6 @@ import {
   computeStateDomain,
   handleActionConfig,
   hasAction,
-  stateIcon,
   ActionConfig,
 } from 'custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map.js';
@@ -34,6 +33,7 @@ import {
   signedPathSchema,
   StateParameters,
 } from './types.js';
+import { stateIcon } from './icons/state-icon.js'
 
 const MEDIA_INFO_HEIGHT_CUTOFF = 50;
 const MEDIA_INFO_WIDTH_CUTOFF = MEDIA_INFO_HEIGHT_CUTOFF;
@@ -476,8 +476,8 @@ export function getEntityTitle(
 export function getEntityIcon(
   hass?: HomeAssistant,
   entity?: string,
-): string | undefined {
-  return hass && entity ? stateIcon(hass.states[entity]) : undefined;
+): string {
+  return stateIcon(entity ? hass?.states[entity] : null);
 }
 
 /**
