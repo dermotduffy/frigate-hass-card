@@ -160,7 +160,7 @@
       "buttons": {
         "frigate": "Frigate menu / Default view",
         "live": "Live",
-        "media_player": "Media Player",
+        "media_player": "Send to media player",
         "clips": "Clips",
         "snapshots": "Snapshots",
         "image": "Image",
