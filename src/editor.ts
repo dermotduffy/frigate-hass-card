@@ -349,6 +349,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'auto', label: localize('config.view.dark_modes.auto') },
   ];
 
+  protected _lazyUnloadConditions: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'all', label: localize('config.live.lazy_unload_conditions.all') },
+    { value: 'unselected', label: localize('config.live.lazy_unload_conditions.unselected') },
+    { value: 'hidden', label: localize('config.live.lazy_unload_conditions.hidden') },
+    { value: 'never', label: localize('config.live.lazy_unload_conditions.never') },
+  ];
+
   public setConfig(config: RawFrigateCardConfig): void {
     // Note: This does not use Zod to parse the configuration, so it may be
     // partially or completely invalid. It's more useful to have a partially
@@ -990,7 +998,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderSwitch(CONF_LIVE_PRELOAD, defaults.live.preload)}
                 ${this._renderSwitch(CONF_LIVE_DRAGGABLE, defaults.live.draggable)}
                 ${this._renderSwitch(CONF_LIVE_LAZY_LOAD, defaults.live.lazy_load)}
-                ${this._renderSwitch(CONF_LIVE_LAZY_UNLOAD, defaults.live.lazy_unload)}
+                ${this._renderOptionSelector(
+                  CONF_LIVE_LAZY_UNLOAD,
+                  this._lazyUnloadConditions,
+                )}
                 ${this._renderSwitch(CONF_LIVE_AUTO_UNMUTE, defaults.live.auto_unmute)}
                 ${this._renderOptionSelector(
                   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,

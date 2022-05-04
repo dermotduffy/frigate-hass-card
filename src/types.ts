@@ -64,6 +64,9 @@ export const FRIGATE_MENU_PRIORITY_MAX = 100;
 const LIVE_PROVIDERS = ['auto', 'ha', 'frigate-jsmpeg', 'webrtc-card'] as const;
 export type LiveProvider = typeof LIVE_PROVIDERS[number];
 
+const LAZY_UNLOAD_CONDITIONS = ['all', 'unselected', 'hidden', 'never'] as const;
+export type LazyUnloadCondition = typeof LAZY_UNLOAD_CONDITIONS[number];
+
 export class FrigateCardError extends Error {}
 
 /**
@@ -560,7 +563,7 @@ const liveConfigDefault = {
   auto_unmute: false,
   preload: false,
   lazy_load: true,
-  lazy_unload: false,
+  lazy_unload: 'never' as const,
   draggable: true,
   transition_effect: 'slide' as const,
   controls: {
@@ -665,7 +668,7 @@ const liveConfigSchema = liveOverridableConfigSchema
     auto_unmute: z.boolean().default(liveConfigDefault.auto_unmute),
     preload: z.boolean().default(liveConfigDefault.preload),
     lazy_load: z.boolean().default(liveConfigDefault.lazy_load),
-    lazy_unload: z.boolean().default(liveConfigDefault.lazy_unload),
+    lazy_unload: z.enum(LAZY_UNLOAD_CONDITIONS).default(liveConfigDefault.lazy_unload),
     draggable: z.boolean().default(liveConfigDefault.draggable),
     transition_effect: transitionEffectConfigSchema.default(
       liveConfigDefault.transition_effect,

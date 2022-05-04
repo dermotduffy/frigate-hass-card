@@ -288,12 +288,14 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     return [
       ...super._getPlugins(),
       Lazyload({
-        lazyloadCallback: this.liveConfig?.lazy_load
-          ? (...args) => this._lazyloadOrUnloadSlide('load', ...args)
-          : undefined,
-        lazyunloadCallback: this.liveConfig?.lazy_unload
-          ? (...args) => this._lazyloadOrUnloadSlide('unload', ...args)
-          : undefined,
+        ...(this.liveConfig?.lazy_load && {
+          lazyLoadCallback: (index, slide) =>
+            this._lazyloadOrUnloadSlide('load', index, slide),
+        }),
+
+        lazyUnloadCondition: this.liveConfig?.lazy_unload,
+        lazyUnloadCallback: (index, slide) =>
+          this._lazyloadOrUnloadSlide('unload', index, slide),
       }),
       AutoMediaPlugin({
         playerSelector: 'frigate-card-live-provider',
@@ -380,7 +382,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       'frigate-card-live-provider',
     ) as FrigateCardLiveProvider;
     if (liveProvider) {
-      liveProvider.disabled = action == 'load' ? false : true;
+      liveProvider.disabled = action !== 'load';
     }
   }
 
@@ -795,7 +797,7 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
   /**
    * Create the WebRTC element. May throw.
    */
-  protected _createWebRTC(): HTMLElement | undefined {
+  protected _createWebRTC(): HTMLElement | null {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const webrtcElement = this._webrtcTask.value;
     if (webrtcElement && this.hass) {
@@ -818,7 +820,7 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
       webrtc.hass = this.hass;
       return webrtc;
     }
-    return undefined;
+    return null;
   }
 
   /**
@@ -827,7 +829,7 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
    */
   protected render(): TemplateResult | void {
     const render = (): TemplateResult | void => {
-      let webrtcElement: HTMLElement | undefined;
+      let webrtcElement: HTMLElement | null;
       try {
         webrtcElement = this._createWebRTC();
       } catch (e) {
@@ -973,7 +975,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
           canvas: this._jsmpegCanvasElement,
         },
         {
-          // The media carousel automatically pauses when the browser tab is
+          // The media carousel may automatically pause when the browser tab is
           // inactive, JSMPEG does not need to also do so independently.
           pauseWhenHidden: false,
           protocols: [],

@@ -1,16 +1,18 @@
 import { EmblaCarouselType, EmblaEventType, EmblaPluginType } from 'embla-carousel';
+import { LazyUnloadCondition } from '../../types';
 
 export type LazyloadOptionsType = {
   // Number of slides to lazyload left/right of selected (0 == only selected
   // slide).
-  lazyloadCount?: number;
+  lazyLoadCount?: number;
+  lazyUnloadCondition?: LazyUnloadCondition;
 
-  lazyloadCallback?: (index: number, slide: HTMLElement) => void;
-  lazyunloadCallback?: (index: number, slide: HTMLElement) => void;
+  lazyLoadCallback?: (index: number, slide: HTMLElement) => void;
+  lazyUnloadCallback?: (index: number, slide: HTMLElement) => void;
 };
 
 export const defaultOptions: Partial<LazyloadOptionsType> = {
-  lazyloadCount: 0,
+  lazyLoadCount: 0,
 };
 
 export type LazyloadType = EmblaPluginType<LazyloadOptionsType> & {
@@ -22,7 +24,7 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
 
   let carousel: EmblaCarouselType;
   let slides: HTMLElement[];
-  const isSlideLazyloaded: Record<number, boolean> = {};
+  const lazyLoadedSlides: Set<number> = new Set();
 
   const loadEvents: EmblaEventType[] = ['init', 'select', 'resize'];
   const unloadEvents: EmblaEventType[] = ['select'];
@@ -34,11 +36,15 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
     carousel = embla;
     slides = carousel.slideNodes();
 
-    if (options.lazyloadCallback) {
-      loadEvents.forEach((evt) => carousel.on(evt, lazyloadHandler));
+    if (options.lazyLoadCallback) {
+      loadEvents.forEach((evt) => carousel.on(evt, lazyLoadHandler));
     }
-    if (options.lazyunloadCallback) {
-      unloadEvents.forEach((evt) => carousel.on(evt, lazyunloadHandler));
+    if (
+      options.lazyUnloadCallback &&
+      options.lazyUnloadCondition &&
+      ['all', 'unselected'].includes(options.lazyUnloadCondition)
+    ) {
+      unloadEvents.forEach((evt) => carousel.on(evt, lazyUnloadPreviousHandler));
     }
     document.addEventListener('visibilitychange', visibilityHandler);
   }
@@ -47,11 +53,11 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
    * Destroy the plugin.
    */
   function destroy(): void {
-    if (options.lazyloadCallback) {
-      loadEvents.forEach((evt) => carousel.off(evt, lazyloadHandler));
+    if (options.lazyLoadCallback) {
+      loadEvents.forEach((evt) => carousel.off(evt, lazyLoadHandler));
     }
-    if (options.lazyunloadCallback) {
-      unloadEvents.forEach((evt) => carousel.off(evt, lazyunloadHandler));
+    if (options.lazyUnloadCallback) {
+      unloadEvents.forEach((evt) => carousel.off(evt, lazyUnloadPreviousHandler));
     }
     document.removeEventListener('visibilitychange', visibilityHandler);
   }
@@ -60,10 +66,15 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
    * Handle document visibility changes.
    */
   function visibilityHandler(): void {
-    if (document.visibilityState == 'hidden' && lazyunloadHandler) {
-      lazyunloadHandler();
-    } else if (document.visibilityState == 'visible' && lazyloadHandler) {
-      lazyloadHandler();
+    if (
+      document.visibilityState === 'hidden' &&
+      options.lazyUnloadCallback &&
+      options.lazyUnloadCondition &&
+      ['all', 'hidden'].includes(options.lazyUnloadCondition)
+    ) {
+      lazyUnloadAllHandler();
+    } else if (document.visibilityState === 'visible' && options.lazyLoadCallback) {
+      lazyLoadHandler();
     }
   }
 
@@ -73,14 +84,14 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
    * @returns `true` if the slide has been lazily loaded.
    */
   function hasLazyloaded(index: number): boolean {
-    return !!isSlideLazyloaded[index];
+    return lazyLoadedSlides.has(index);
   }
 
   /**
    * Lazily load media in the carousel.
    */
-  function lazyloadHandler(): void {
-    const lazyLoadCount = options.lazyloadCount ?? 0;
+  function lazyLoadHandler(): void {
+    const lazyLoadCount = options.lazyLoadCount ?? 0;
     const currentIndex = carousel.selectedScrollSnap();
     const slidesToLoad = new Set<number>();
 
@@ -94,30 +105,34 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
     }
 
     slidesToLoad.forEach((index) => {
-      // Only lazy load slides that are not already loaded.
-      if (isSlideLazyloaded[index]) {
-        return;
-      }
-      if (options.lazyloadCallback) {
-        isSlideLazyloaded[index] = true;
-        options.lazyloadCallback(index, slides[index]);
+      if (!hasLazyloaded(index) && options.lazyLoadCallback) {
+        lazyLoadedSlides.add(index);
+        options.lazyLoadCallback(index, slides[index]);
       }
     });
   }
 
   /**
-   * Lazily unload media in the carousel.
+   * Lazily unload all media in the carousel.
    */
-  function lazyunloadHandler(): void {
+  function lazyUnloadAllHandler(): void {
+    lazyLoadedSlides.forEach((index) => {
+      if (options.lazyUnloadCallback) {
+        options.lazyUnloadCallback(index, slides[index]);
+        lazyLoadedSlides.delete(index);
+      }
+    });
+  }
+
+  /**
+   * Lazily unload the previously selected media in the carousel.
+   */
+  function lazyUnloadPreviousHandler(): void {
     const index = carousel.previousScrollSnap();
 
-    // Only lazy unload slides that are lazy loaded.
-    if (!isSlideLazyloaded[index]) {
-      return;
-    }
-    if (options.lazyunloadCallback) {
-      options.lazyunloadCallback(index, slides[index]);
-      isSlideLazyloaded[index] = false;
+    if (hasLazyloaded(index) && options.lazyUnloadCallback) {
+      options.lazyUnloadCallback(index, slides[index]);
+      lazyLoadedSlides.delete(index);
     }
   }
 

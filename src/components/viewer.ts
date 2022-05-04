@@ -274,9 +274,9 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     return [
       ...super._getPlugins(),
       Lazyload({
-        lazyloadCallback: this.viewerConfig?.lazy_load
-          ? this._lazyloadSlide.bind(this)
-          : undefined,
+        ...(this.viewerConfig?.lazy_load && {
+          lazyLoadCallback: this._lazyloadSlide.bind(this),
+        }),
       }),
       AutoMediaPlugin({
         playerSelector: 'frigate-card-ha-hls-player',

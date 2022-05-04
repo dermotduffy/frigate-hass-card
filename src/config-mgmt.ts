@@ -15,6 +15,7 @@ import {
   CONF_IMAGE_URL,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
+  CONF_LIVE_LAZY_UNLOAD,
   CONF_LIVE_PRELOAD,
   CONF_LIVE_WEBRTC_CARD,
   CONF_MENU,
@@ -323,6 +324,19 @@ const upgradeWithOverrides = function (
 };
 
 /**
+ * Upgrade a property in place without overrides.
+ * @param path The old property path.
+ * @param transform An optional transform for the value.
+ * @returns A function that returns `true` if the configuration was modified.
+ */
+const upgrade = function (
+  path: string,
+  transform?: (valueIn: unknown) => unknown,
+): (obj: RawFrigateCardConfig) => boolean {
+  return upgradeMoveTo(path, path, transform);
+};
+
+/**
  * Given a path to an array, apply an upgrade to each object in the array.
  * @param arrayPath The path to the array to upgrade.
  * @param upgrade A function that applies an upgrade to an object.
@@ -575,4 +589,7 @@ const UPGRADES = [
   upgradeWithOverrides(CONF_MENU_BUTTONS_DOWNLOAD, menuButtonBooleanToObject),
   upgradeWithOverrides(CONF_MENU_BUTTONS_FRIGATE_UI, menuButtonBooleanToObject),
   upgradeWithOverrides(CONF_MENU_BUTTONS_FULLSCREEN, menuButtonBooleanToObject),
+  upgrade(CONF_LIVE_LAZY_UNLOAD, (val) =>
+    typeof val === 'boolean' ? (val ? 'all' : 'never') : undefined,
+  ),
 ];
