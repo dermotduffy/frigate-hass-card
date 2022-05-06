@@ -282,6 +282,9 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
         playerSelector: 'frigate-card-ha-hls-player',
         autoPlayWhenVisible: !!this.viewerConfig?.auto_play,
         autoUnmuteWhenVisible: !!this.viewerConfig?.auto_unmute,
+        ...(this.viewerConfig?.auto_pause && {
+          autoPauseCondition: this.viewerConfig.auto_pause,
+        }),
       }),
     ];
   }

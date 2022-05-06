@@ -300,6 +300,9 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       AutoMediaPlugin({
         playerSelector: 'frigate-card-live-provider',
         autoUnmuteWhenVisible: !!this.liveConfig?.auto_unmute,
+        ...(this.liveConfig?.auto_pause && {
+          autoPauseCondition: this.liveConfig.auto_pause,
+        }),
       }),
     ];
   }

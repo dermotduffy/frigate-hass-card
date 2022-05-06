@@ -33,6 +33,14 @@
       },
       "zone": "Frigate zone"
     },
+    "common": {
+      "media_action_conditions": {
+        "all": "All opportunities",
+        "unselected": "On unselection",
+        "hidden": "On browser/tab hiding",
+        "never": "Never"
+      }
+    },
     "view": {
       "camera_select": "View for newly selected cameras",
       "dark_mode": "Dark mode",
@@ -68,6 +76,7 @@
     },
     "event_viewer": {
       "auto_play": "Automatically play media",
+      "auto_pause": "Automatically pause media",
       "auto_unmute": "Automatically unmute media",
       "draggable": "Event Viewer can be dragged/swiped",
       "lazy_load": "Event Viewer media is lazily loaded in carousel",
@@ -117,12 +126,7 @@
       "draggable": "Live cameras view can be dragged/swiped",
       "lazy_load": "Live cameras are lazily loaded",
       "lazy_unload": "Live cameras are lazily unloaded",
-      "lazy_unload_conditions": {
-        "all": "All opportunities",
-        "unselected": "On unselection",
-        "hidden": "On browser/tab hiding",
-        "never": "Never"
-      },
+      "auto_pause": "Automatically pause live cameras",
       "auto_unmute": "Automatically unmute live cameras",
       "transition_effect": "Live camera transition effect",
       "controls": {

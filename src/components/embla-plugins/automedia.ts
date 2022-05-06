@@ -1,10 +1,11 @@
 import { EmblaCarouselType, EmblaPluginType } from 'embla-carousel';
-import { FrigateCardMediaPlayer } from '../../types.js';
+import { AutoPauseCondition, FrigateCardMediaPlayer } from '../../types.js';
 
 export type AutoMediaPluginOptionsType = {
   playerSelector: string;
   autoPlayWhenVisible?: boolean;
   autoUnmuteWhenVisible?: boolean;
+  autoPauseCondition?: AutoPauseCondition;
 };
 
 export const defaultOptions: Partial<AutoMediaPluginOptionsType> = {
@@ -17,12 +18,12 @@ export type AutoMediaPluginType = EmblaPluginType<AutoMediaPluginOptionsType> & 
   pause: () => void;
   mute: () => void;
   unmute: () => void;
-}
+};
 
 /**
  * An Embla plugin to take automated actions on media (e.g. pause, unmute, etc).
- * @param userOptions 
- * @returns 
+ * @param userOptions
+ * @returns
  */
 export function AutoMediaPlugin(
   userOptions?: AutoMediaPluginOptionsType,
@@ -43,7 +44,12 @@ export function AutoMediaPlugin(
     // slide is selected, so only pause (and not play/unmute) based on carousel
     // events.
     carousel.on('destroy', pause);
-    carousel.on('select', pausePrevious);
+    if (
+      options.autoPauseCondition &&
+      ['all', 'unselected'].includes(options.autoPauseCondition)
+    ) {
+      carousel.on('select', pausePrevious);
+    }
     carousel.on('destroy', mute);
     carousel.on('select', mutePrevious);
 
@@ -55,7 +61,12 @@ export function AutoMediaPlugin(
    */
   function destroy(): void {
     carousel.off('destroy', pause);
-    carousel.off('select', pausePrevious);
+    if (
+      options.autoPauseCondition &&
+      ['all', 'unselected'].includes(options.autoPauseCondition)
+    ) {
+      carousel.off('select', pausePrevious);
+    }
     carousel.off('destroy', mute);
     carousel.off('select', mutePrevious);
 
@@ -65,14 +76,19 @@ export function AutoMediaPlugin(
   /**
    * Handle document visibility changes.
    */
-   function visibilityHandler(): void {
+  function visibilityHandler(): void {
     if (document.visibilityState == 'hidden') {
-      pause();
+      if (
+        options.autoPauseCondition &&
+        ['all', 'hidden'].includes(options.autoPauseCondition)
+      ) {
+        pauseAll();
+      }
       mute();
     } else if (document.visibilityState == 'visible') {
       if (options.autoPlayWhenVisible) {
         play();
-      } 
+      }
       if (options.autoUnmuteWhenVisible) {
         unmute();
       }
@@ -110,6 +126,15 @@ export function AutoMediaPlugin(
   }
 
   /**
+   * Pause the previous slide.
+   */
+  function pauseAll(): void {
+    for (const slide of slides) {
+      getPlayer(slide)?.pause();
+    }
+  }
+
+  /**
    * Unmute the current slide.
    */
   function unmute(): void {
@@ -126,7 +151,7 @@ export function AutoMediaPlugin(
   /**
    * Mute the previous slide.
    */
-   function mutePrevious(): void {
+  function mutePrevious(): void {
     getPlayer(slides[carousel.previousScrollSnap()])?.mute();
   }
 

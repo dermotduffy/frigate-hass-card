@@ -43,6 +43,7 @@ export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_EVENT_GALLERY}.controls.thumbnails.size` as const;
 
 export const CONF_EVENT_VIEWER = 'event_viewer' as const;
+export const CONF_EVENT_VIEWER_AUTO_PAUSE = `${CONF_EVENT_VIEWER}.auto_pause` as const;
 export const CONF_EVENT_VIEWER_AUTO_PLAY = `${CONF_EVENT_VIEWER}.auto_play` as const;
 export const CONF_EVENT_VIEWER_AUTO_UNMUTE = `${CONF_EVENT_VIEWER}.auto_unmute` as const;
 export const CONF_EVENT_VIEWER_DRAGGABLE = `${CONF_EVENT_VIEWER}.draggable` as const;
@@ -67,6 +68,7 @@ export const CONF_EVENT_VIEWER_CONTROLS_TITLE_DURATION_SECONDS =
   `${CONF_EVENT_VIEWER}.controls.title.duration_seconds` as const;
 
 export const CONF_LIVE = 'live' as const;
+export const CONF_LIVE_AUTO_PAUSE = `${CONF_LIVE}.auto_pause` as const;
 export const CONF_LIVE_AUTO_UNMUTE = `${CONF_LIVE}.auto_unmute` as const;
 export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE =
   `${CONF_LIVE}.controls.next_previous.style` as const;
