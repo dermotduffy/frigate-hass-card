@@ -7,6 +7,7 @@ import serve from 'rollup-plugin-serve';
 import json from '@rollup/plugin-json';
 import styles from 'rollup-plugin-styles';
 import image from '@rollup/plugin-image';
+import replace from '@rollup/plugin-replace';
 
 const dev = process.env.ROLLUP_WATCH;
 
@@ -42,6 +43,9 @@ const plugins = [
   babel({
     babelHelpers: 'bundled',
     exclude: 'node_modules/**',
+  }),
+  replace({
+    'process.env.NODE_ENV': JSON.stringify(dev ? 'development' : 'production'),
   }),
   dev && serve(serveopts),
   !dev && terser(),
