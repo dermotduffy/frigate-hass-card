@@ -34,6 +34,7 @@ import {
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE,
+  CONF_EVENT_VIEWER_AUTO_MUTE,
   CONF_EVENT_VIEWER_AUTO_PAUSE,
   CONF_EVENT_VIEWER_AUTO_PLAY,
   CONF_EVENT_VIEWER_AUTO_UNMUTE,
@@ -51,6 +52,7 @@ import {
   CONF_IMAGE_MODE,
   CONF_IMAGE_REFRESH_SECONDS,
   CONF_IMAGE_URL,
+  CONF_LIVE_AUTO_MUTE,
   CONF_LIVE_AUTO_PAUSE,
   CONF_LIVE_AUTO_UNMUTE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
@@ -1010,6 +1012,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_LIVE_AUTO_PAUSE,
                   this._mediaActionConditions,
                 )}
+                ${this._renderOptionSelector(
+                  CONF_LIVE_AUTO_MUTE,
+                  this._mediaActionConditions,
+                )}
                 ${this._renderSwitch(CONF_LIVE_AUTO_UNMUTE, defaults.live.auto_unmute)}
                 ${this._renderOptionSelector(
                   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
@@ -1077,13 +1083,17 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 CONF_EVENT_VIEWER_AUTO_PLAY,
                 defaults.event_viewer.auto_play,
               )}
-              ${this._renderSwitch(
-                CONF_EVENT_VIEWER_AUTO_UNMUTE,
-                defaults.event_viewer.auto_unmute,
-              )}
               ${this._renderOptionSelector(
                 CONF_EVENT_VIEWER_AUTO_PAUSE,
                 this._mediaActionConditions,
+              )}
+              ${this._renderOptionSelector(
+                CONF_EVENT_VIEWER_AUTO_MUTE,
+                this._mediaActionConditions,
+              )}
+              ${this._renderSwitch(
+                CONF_EVENT_VIEWER_AUTO_UNMUTE,
+                defaults.event_viewer.auto_unmute,
               )}
               ${this._renderSwitch(
                 CONF_EVENT_VIEWER_DRAGGABLE,

@@ -63,14 +63,14 @@ customElements.whenDefined('ha-camera-stream').then(() => {
      * Mute the video.
      */
     public mute(): void {
-      this.muted = true;
+      this._playerRef.value?.mute();
     }
 
     /**
      * Unmute the video.
      */
     public unmute(): void {
-      this.muted = false;
+      this._playerRef.value?.unmute();
     }
 
     /**

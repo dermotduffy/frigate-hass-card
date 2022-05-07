@@ -38,14 +38,21 @@ customElements.whenDefined('ha-hls-player').then(() => {
      * Mute the video.
      */
     public mute(): void {
-      this.muted = true;
+      // The muted property is only for the initial muted state. Must explicitly
+      // set the muted on the video player to make the change dynamic.
+      if (this._videoRef.value) {
+        this._videoRef.value.muted = true;
+      }
     }
 
     /**
      * Unmute the video.
      */
     public unmute(): void {
-      this.muted = false;
+      // See note in mute().
+      if (this._videoRef.value) {
+        this._videoRef.value.muted = false;
+      }
     }
 
     // =====================================================================================
@@ -54,8 +61,7 @@ customElements.whenDefined('ha-hls-player').then(() => {
     // =====================================================================================
     protected render(): TemplateResult {
       if (this._error) {
-        // Use native Frigate card error handling, and attach the entityid to
-        // clarify which camera the error refers to.
+        // Use native Frigate card error handling.
         return dispatchErrorMessageEvent(this, this._error);
       }
       return html`

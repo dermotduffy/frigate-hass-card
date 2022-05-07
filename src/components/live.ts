@@ -303,6 +303,9 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
         ...(this.liveConfig?.auto_pause && {
           autoPauseCondition: this.liveConfig.auto_pause,
         }),
+        ...(this.liveConfig?.auto_mute && {
+          autoMuteCondition: this.liveConfig.auto_mute,
+        }),
       }),
     ];
   }

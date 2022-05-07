@@ -66,6 +66,7 @@ export type LiveProvider = typeof LIVE_PROVIDERS[number];
 
 const MEDIA_ACTION_CONDITIONS = ['all', 'unselected', 'hidden', 'never'] as const;
 export type LazyUnloadCondition = typeof MEDIA_ACTION_CONDITIONS[number];
+export type AutoMuteCondition = typeof MEDIA_ACTION_CONDITIONS[number];
 export type AutoPauseCondition = typeof MEDIA_ACTION_CONDITIONS[number];
 
 export class FrigateCardError extends Error {}
@@ -562,6 +563,7 @@ export type TitleControlConfig = z.infer<typeof titleControlConfigSchema>;
  */
 const liveConfigDefault = {
   auto_pause: 'all' as const,
+  auto_mute: 'all' as const,
   auto_unmute: false,
   preload: false,
   lazy_load: true,
@@ -668,6 +670,7 @@ const liveConfigSchema = liveOverridableConfigSchema
   .extend({
     // Non-overrideable parameters.
     auto_pause: z.enum(MEDIA_ACTION_CONDITIONS).default(liveConfigDefault.auto_pause),
+    auto_mute: z.enum(MEDIA_ACTION_CONDITIONS).default(liveConfigDefault.auto_mute),
     auto_unmute: z.boolean().default(liveConfigDefault.auto_unmute),
     preload: z.boolean().default(liveConfigDefault.preload),
     lazy_load: z.boolean().default(liveConfigDefault.lazy_load),
@@ -755,6 +758,7 @@ export type MenuConfig = z.infer<typeof menuConfigSchema>;
 const viewerConfigDefault = {
   auto_pause: 'all' as const,
   auto_play: true,
+  auto_mute: 'all' as const,
   auto_unmute: false,
   lazy_load: true,
   draggable: true,
@@ -792,6 +796,7 @@ const viewerConfigSchema = z
   .object({
     auto_pause: z.enum(MEDIA_ACTION_CONDITIONS).default(viewerConfigDefault.auto_pause),
     auto_play: z.boolean().default(viewerConfigDefault.auto_play),
+    auto_mute: z.enum(MEDIA_ACTION_CONDITIONS).default(viewerConfigDefault.auto_mute),
     auto_unmute: z.boolean().default(viewerConfigDefault.auto_unmute),
     lazy_load: z.boolean().default(viewerConfigDefault.lazy_load),
     draggable: z.boolean().default(viewerConfigDefault.draggable),

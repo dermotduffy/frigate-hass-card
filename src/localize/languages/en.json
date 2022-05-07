@@ -77,6 +77,7 @@
     "event_viewer": {
       "auto_play": "Automatically play media",
       "auto_pause": "Automatically pause media",
+      "auto_mute": "Automatically mute media",
       "auto_unmute": "Automatically unmute media",
       "draggable": "Event Viewer can be dragged/swiped",
       "lazy_load": "Event Viewer media is lazily loaded in carousel",
@@ -127,6 +128,7 @@
       "lazy_load": "Live cameras are lazily loaded",
       "lazy_unload": "Live cameras are lazily unloaded",
       "auto_pause": "Automatically pause live cameras",
+      "auto_mute": "Automatically mute live cameras",
       "auto_unmute": "Automatically unmute live cameras",
       "transition_effect": "Live camera transition effect",
       "controls": {

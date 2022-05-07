@@ -285,6 +285,9 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
         ...(this.viewerConfig?.auto_pause && {
           autoPauseCondition: this.viewerConfig.auto_pause,
         }),
+        ...(this.viewerConfig?.auto_mute && {
+          autoMuteCondition: this.viewerConfig.auto_mute,
+        }),
       }),
     ];
   }
