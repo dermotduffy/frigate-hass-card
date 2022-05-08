@@ -299,22 +299,42 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       }),
       AutoMediaPlugin({
         playerSelector: 'frigate-card-live-provider',
-        autoUnmuteWhenVisible: !!this.liveConfig?.auto_unmute,
+        ...(this.liveConfig?.auto_play && {
+          autoPlayCondition: this.liveConfig.auto_play,
+        }),
         ...(this.liveConfig?.auto_pause && {
           autoPauseCondition: this.liveConfig.auto_pause,
         }),
         ...(this.liveConfig?.auto_mute && {
           autoMuteCondition: this.liveConfig.auto_mute,
         }),
+        ...(this.liveConfig?.auto_unmute && {
+          autoUnmuteCondition: this.liveConfig.auto_unmute,
+        }),
       }),
     ];
   }
 
   /**
-   * Unmute the media on the selected slide.
+   * Play the media on the loaded slide.
    */
-  protected _autoUnmuteHandler(): void {
-    if (this.liveConfig?.auto_unmute) {
+  protected _autoPlayHandler(): void {
+    if (
+      this.liveConfig?.auto_play &&
+      ['all', 'selected'].includes(this.liveConfig.auto_play)
+    ) {
+      super._autoPlayHandler();
+    }
+  }
+
+  /**
+   * Unmute the media on the loaded slide.
+   */
+   protected _autoUnmuteHandler(): void {
+    if (
+      this.liveConfig?.auto_unmute &&
+      ['all', 'selected'].includes(this.liveConfig.auto_unmute)
+    ) {
       super._autoUnmuteHandler();
     }
   }
@@ -984,6 +1004,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
           // The media carousel may automatically pause when the browser tab is
           // inactive, JSMPEG does not need to also do so independently.
           pauseWhenHidden: false,
+          autoplay: false,
           protocols: [],
           audio: false,
           videoBufferSize: 1024 * 1024 * 4,

@@ -54,6 +54,7 @@ import {
   CONF_IMAGE_URL,
   CONF_LIVE_AUTO_MUTE,
   CONF_LIVE_AUTO_PAUSE,
+  CONF_LIVE_AUTO_PLAY,
   CONF_LIVE_AUTO_UNMUTE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
@@ -353,7 +354,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'auto', label: localize('config.view.dark_modes.auto') },
   ];
 
-  protected _mediaActionConditions: EditorSelectOption[] = [
+  protected _mediaActionNegativeConditions: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'all', label: localize('config.common.media_action_conditions.all') },
     {
@@ -361,6 +362,20 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       label: localize('config.common.media_action_conditions.unselected'),
     },
     { value: 'hidden', label: localize('config.common.media_action_conditions.hidden') },
+    { value: 'never', label: localize('config.common.media_action_conditions.never') },
+  ];
+
+  protected _mediaActionPositiveConditions: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'all', label: localize('config.common.media_action_conditions.all') },
+    {
+      value: 'selected',
+      label: localize('config.common.media_action_conditions.selected'),
+    },
+    {
+      value: 'visible',
+      label: localize('config.common.media_action_conditions.visible'),
+    },
     { value: 'never', label: localize('config.common.media_action_conditions.never') },
   ];
 
@@ -1006,17 +1021,24 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderSwitch(CONF_LIVE_LAZY_LOAD, defaults.live.lazy_load)}
                 ${this._renderOptionSelector(
                   CONF_LIVE_LAZY_UNLOAD,
-                  this._mediaActionConditions,
+                  this._mediaActionNegativeConditions,
+                )}
+                ${this._renderOptionSelector(
+                  CONF_LIVE_AUTO_PLAY,
+                  this._mediaActionPositiveConditions,
                 )}
                 ${this._renderOptionSelector(
                   CONF_LIVE_AUTO_PAUSE,
-                  this._mediaActionConditions,
+                  this._mediaActionNegativeConditions,
                 )}
                 ${this._renderOptionSelector(
                   CONF_LIVE_AUTO_MUTE,
-                  this._mediaActionConditions,
+                  this._mediaActionNegativeConditions,
                 )}
-                ${this._renderSwitch(CONF_LIVE_AUTO_UNMUTE, defaults.live.auto_unmute)}
+                ${this._renderOptionSelector(
+                  CONF_LIVE_AUTO_UNMUTE,
+                  this._mediaActionPositiveConditions,
+                )}
                 ${this._renderOptionSelector(
                   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
                   this._liveNextPreviousControlStyles,
@@ -1079,21 +1101,21 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${this._renderOptionSetHeader('event_viewer')}
         ${this._expandedMenus[MENU_OPTIONS] === 'event_viewer'
           ? html` <div class="values">
-              ${this._renderSwitch(
+              ${this._renderOptionSelector(
                 CONF_EVENT_VIEWER_AUTO_PLAY,
-                defaults.event_viewer.auto_play,
+                this._mediaActionPositiveConditions,
               )}
               ${this._renderOptionSelector(
                 CONF_EVENT_VIEWER_AUTO_PAUSE,
-                this._mediaActionConditions,
+                this._mediaActionNegativeConditions,
               )}
               ${this._renderOptionSelector(
                 CONF_EVENT_VIEWER_AUTO_MUTE,
-                this._mediaActionConditions,
+                this._mediaActionNegativeConditions,
               )}
-              ${this._renderSwitch(
+              ${this._renderOptionSelector(
                 CONF_EVENT_VIEWER_AUTO_UNMUTE,
-                defaults.event_viewer.auto_unmute,
+                this._mediaActionPositiveConditions,
               )}
               ${this._renderSwitch(
                 CONF_EVENT_VIEWER_DRAGGABLE,

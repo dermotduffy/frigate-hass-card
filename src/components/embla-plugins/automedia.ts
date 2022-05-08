@@ -1,18 +1,25 @@
 import { EmblaCarouselType, EmblaPluginType } from 'embla-carousel';
-import { AutoMuteCondition, AutoPauseCondition, FrigateCardMediaPlayer } from '../../types.js';
+import {
+  AutoMuteCondition,
+  AutoPauseCondition,
+  AutoPlayCondition,
+  AutoUnmuteCondition,
+  FrigateCardMediaPlayer,
+} from '../../types.js';
 
 export type AutoMediaPluginOptionsType = {
   playerSelector: string;
-  autoPlayWhenVisible?: boolean;
-  autoUnmuteWhenVisible?: boolean;
+
+  // Note: Neither play nor unmute will activate on selection. The caller is
+  // expected to call the methods manually when the media is actually loaded
+  // (not just the slide shown).
+  autoPlayCondition?: AutoPlayCondition;
+  autoUnmuteCondition?: AutoUnmuteCondition;
   autoPauseCondition?: AutoPauseCondition;
   autoMuteCondition?: AutoMuteCondition;
 };
 
-export const defaultOptions: Partial<AutoMediaPluginOptionsType> = {
-  autoPlayWhenVisible: true,
-  autoUnmuteWhenVisible: true,
-};
+export const defaultOptions: Partial<AutoMediaPluginOptionsType> = {};
 
 export type AutoMediaPluginType = EmblaPluginType<AutoMediaPluginOptionsType> & {
   play: () => void;
@@ -102,10 +109,16 @@ export function AutoMediaPlugin(
         muteAll();
       }
     } else if (document.visibilityState == 'visible') {
-      if (options.autoPlayWhenVisible) {
+      if (
+        options.autoPlayCondition &&
+        ['all', 'visible'].includes(options.autoPlayCondition)
+      ) {
         play();
       }
-      if (options.autoUnmuteWhenVisible) {
+      if (
+        options.autoUnmuteCondition &&
+        ['all', 'visible'].includes(options.autoUnmuteCondition)
+      ) {
         unmute();
       }
     }
@@ -174,7 +187,7 @@ export function AutoMediaPlugin(
   /**
    * Mute all slides.
    */
-   function muteAll(): void {
+  function muteAll(): void {
     for (const slide of slides) {
       getPlayer(slide)?.mute();
     }

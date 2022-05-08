@@ -35,6 +35,8 @@ import {
   CONF_VIEW_DEFAULT,
   CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_ENTITIES,
+  CONF_LIVE_AUTO_UNMUTE,
+  CONF_EVENT_VIEWER_AUTO_UNMUTE,
 } from './const';
 import {
   BUTTON_SIZE_MIN,
@@ -590,6 +592,15 @@ const UPGRADES = [
   upgradeWithOverrides(CONF_MENU_BUTTONS_FRIGATE_UI, menuButtonBooleanToObject),
   upgradeWithOverrides(CONF_MENU_BUTTONS_FULLSCREEN, menuButtonBooleanToObject),
   upgrade(CONF_LIVE_LAZY_UNLOAD, (val) =>
+    typeof val === 'boolean' ? (val ? 'all' : 'never') : undefined,
+  ),
+  upgrade(CONF_LIVE_AUTO_UNMUTE, (val) =>
+    typeof val === 'boolean' ? (val ? 'all' : 'never') : undefined,
+  ),
+  upgrade(CONF_EVENT_VIEWER_AUTO_PLAY, (val) =>
+    typeof val === 'boolean' ? (val ? 'all' : 'never') : undefined,
+  ),
+  upgrade(CONF_EVENT_VIEWER_AUTO_UNMUTE, (val) =>
     typeof val === 'boolean' ? (val ? 'all' : 'never') : undefined,
   ),
 ];

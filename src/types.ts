@@ -64,10 +64,24 @@ export const FRIGATE_MENU_PRIORITY_MAX = 100;
 const LIVE_PROVIDERS = ['auto', 'ha', 'frigate-jsmpeg', 'webrtc-card'] as const;
 export type LiveProvider = typeof LIVE_PROVIDERS[number];
 
-const MEDIA_ACTION_CONDITIONS = ['all', 'unselected', 'hidden', 'never'] as const;
-export type LazyUnloadCondition = typeof MEDIA_ACTION_CONDITIONS[number];
-export type AutoMuteCondition = typeof MEDIA_ACTION_CONDITIONS[number];
-export type AutoPauseCondition = typeof MEDIA_ACTION_CONDITIONS[number];
+const MEDIA_ACTION_NEGATIVE_CONDITIONS = [
+  'all',
+  'unselected',
+  'hidden',
+  'never',
+] as const;
+export type LazyUnloadCondition = typeof MEDIA_ACTION_NEGATIVE_CONDITIONS[number];
+export type AutoMuteCondition = typeof MEDIA_ACTION_NEGATIVE_CONDITIONS[number];
+export type AutoPauseCondition = typeof MEDIA_ACTION_NEGATIVE_CONDITIONS[number];
+
+const MEDIA_ACTION_POSITIVE_CONDITIONS = [
+  'all',
+  'selected',
+  'visible',
+  'never',
+] as const;
+export type AutoUnmuteCondition = typeof MEDIA_ACTION_POSITIVE_CONDITIONS[number];
+export type AutoPlayCondition = typeof MEDIA_ACTION_POSITIVE_CONDITIONS[number];
 
 export class FrigateCardError extends Error {}
 
@@ -562,9 +576,10 @@ export type TitleControlConfig = z.infer<typeof titleControlConfigSchema>;
  * Live view configuration section.
  */
 const liveConfigDefault = {
-  auto_pause: 'all' as const,
+  auto_play: 'all' as const,
+  auto_pause: 'never' as const,
   auto_mute: 'all' as const,
-  auto_unmute: false,
+  auto_unmute: 'never' as const,
   preload: false,
   lazy_load: true,
   lazy_unload: 'never' as const,
@@ -669,12 +684,23 @@ const liveOverridableConfigSchema = z
 const liveConfigSchema = liveOverridableConfigSchema
   .extend({
     // Non-overrideable parameters.
-    auto_pause: z.enum(MEDIA_ACTION_CONDITIONS).default(liveConfigDefault.auto_pause),
-    auto_mute: z.enum(MEDIA_ACTION_CONDITIONS).default(liveConfigDefault.auto_mute),
-    auto_unmute: z.boolean().default(liveConfigDefault.auto_unmute),
+    auto_play: z
+      .enum(MEDIA_ACTION_POSITIVE_CONDITIONS)
+      .default(liveConfigDefault.auto_play),
+    auto_pause: z
+      .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
+      .default(liveConfigDefault.auto_pause),
+    auto_mute: z
+      .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
+      .default(liveConfigDefault.auto_mute),
+    auto_unmute: z
+      .enum(MEDIA_ACTION_POSITIVE_CONDITIONS)
+      .default(liveConfigDefault.auto_unmute),
     preload: z.boolean().default(liveConfigDefault.preload),
     lazy_load: z.boolean().default(liveConfigDefault.lazy_load),
-    lazy_unload: z.enum(MEDIA_ACTION_CONDITIONS).default(liveConfigDefault.lazy_unload),
+    lazy_unload: z
+      .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
+      .default(liveConfigDefault.lazy_unload),
     draggable: z.boolean().default(liveConfigDefault.draggable),
     transition_effect: transitionEffectConfigSchema.default(
       liveConfigDefault.transition_effect,
@@ -756,10 +782,10 @@ export type MenuConfig = z.infer<typeof menuConfigSchema>;
  * Event viewer configuration section (clip, snapshot).
  */
 const viewerConfigDefault = {
+  auto_play: 'all' as const,
   auto_pause: 'all' as const,
-  auto_play: true,
   auto_mute: 'all' as const,
-  auto_unmute: false,
+  auto_unmute: 'never' as const,
   lazy_load: true,
   draggable: true,
   transition_effect: 'slide' as const,
@@ -794,10 +820,18 @@ export type ViewerNextPreviousControlConfig = z.infer<
 
 const viewerConfigSchema = z
   .object({
-    auto_pause: z.enum(MEDIA_ACTION_CONDITIONS).default(viewerConfigDefault.auto_pause),
-    auto_play: z.boolean().default(viewerConfigDefault.auto_play),
-    auto_mute: z.enum(MEDIA_ACTION_CONDITIONS).default(viewerConfigDefault.auto_mute),
-    auto_unmute: z.boolean().default(viewerConfigDefault.auto_unmute),
+    auto_play: z
+      .enum(MEDIA_ACTION_POSITIVE_CONDITIONS)
+      .default(viewerConfigDefault.auto_play),
+    auto_pause: z
+      .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
+      .default(viewerConfigDefault.auto_pause),
+    auto_mute: z
+      .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
+      .default(viewerConfigDefault.auto_mute),
+    auto_unmute: z
+      .enum(MEDIA_ACTION_POSITIVE_CONDITIONS)
+      .default(viewerConfigDefault.auto_unmute),
     lazy_load: z.boolean().default(viewerConfigDefault.lazy_load),
     draggable: z.boolean().default(viewerConfigDefault.draggable),
     transition_effect: transitionEffectConfigSchema.default(
