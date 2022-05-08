@@ -206,23 +206,32 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   }
 
   /**
-   * Play the media on the selected slide.
+   * Play the media on the loaded slide.
    */
-  protected _autoPlayHandler(): void {
-    if (this.viewerConfig?.auto_play) {
+   protected _autoPlayHandler(): void {
+    if (
+      this.viewerConfig?.auto_play &&
+      ['all', 'selected'].includes(this.viewerConfig.auto_play)
+    ) {
       super._autoPlayHandler();
     }
   }
 
   /**
-   * Unmute the media on the selected slide.
+   * Unmute the media on the loaded slide.
    */
   protected _autoUnmuteHandler(): void {
-    if (this.viewerConfig?.auto_unmute) {
+    if (
+      this.viewerConfig?.auto_unmute &&
+      ['all', 'selected'].includes(this.viewerConfig.auto_unmute)
+    ) {
       super._autoUnmuteHandler();
     }
   }
 
+  /**
+   * Destroy the carousel.
+   */
   protected _destroyCarousel(): void {
     super._destroyCarousel();
 
@@ -280,8 +289,18 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       }),
       AutoMediaPlugin({
         playerSelector: 'frigate-card-ha-hls-player',
-        autoPlayWhenVisible: !!this.viewerConfig?.auto_play,
-        autoUnmuteWhenVisible: !!this.viewerConfig?.auto_unmute,
+        ...(this.viewerConfig?.auto_play && {
+          autoPlayCondition: this.viewerConfig.auto_play,
+        }),
+        ...(this.viewerConfig?.auto_pause && {
+          autoPauseCondition: this.viewerConfig.auto_pause,
+        }),
+        ...(this.viewerConfig?.auto_mute && {
+          autoMuteCondition: this.viewerConfig.auto_mute,
+        }),
+        ...(this.viewerConfig?.auto_unmute && {
+          autoUnmuteCondition: this.viewerConfig.auto_unmute,
+        }),
       }),
     ];
   }

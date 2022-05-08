@@ -242,13 +242,23 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
         | AutoMediaPluginType
         | undefined;
       if (automedia) {
-        // If this has changed to preloaded then pause & mute, otherwise play
-        // and potentially unmute (depending on configuration).
+        // If this has changed to preloaded (i.e. is now loaded but in the
+        // background) take the appropriate play/pause/mute/unmute actions.
         if (this.preloaded) {
-          automedia.pause();
-          automedia.mute();
+          if (
+            this.liveConfig?.auto_pause &&
+            ['all', 'unselected'].includes(this.liveConfig.auto_pause)
+          ) {
+            automedia.pause();
+          }
+          if (
+            this.liveConfig?.auto_mute &&
+            ['all', 'unselected'].includes(this.liveConfig.auto_mute)
+          ) {
+            automedia.mute();
+          }
         } else {
-          automedia.play();
+          this._autoPlayHandler();
           this._autoUnmuteHandler();
         }
       }
@@ -299,16 +309,42 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       }),
       AutoMediaPlugin({
         playerSelector: 'frigate-card-live-provider',
-        autoUnmuteWhenVisible: !!this.liveConfig?.auto_unmute,
+        ...(this.liveConfig?.auto_play && {
+          autoPlayCondition: this.liveConfig.auto_play,
+        }),
+        ...(this.liveConfig?.auto_pause && {
+          autoPauseCondition: this.liveConfig.auto_pause,
+        }),
+        ...(this.liveConfig?.auto_mute && {
+          autoMuteCondition: this.liveConfig.auto_mute,
+        }),
+        ...(this.liveConfig?.auto_unmute && {
+          autoUnmuteCondition: this.liveConfig.auto_unmute,
+        }),
       }),
     ];
   }
 
   /**
-   * Unmute the media on the selected slide.
+   * Play the media on the loaded slide.
+   */
+  protected _autoPlayHandler(): void {
+    if (
+      this.liveConfig?.auto_play &&
+      ['all', 'selected'].includes(this.liveConfig.auto_play)
+    ) {
+      super._autoPlayHandler();
+    }
+  }
+
+  /**
+   * Unmute the media on the loaded slide.
    */
   protected _autoUnmuteHandler(): void {
-    if (this.liveConfig?.auto_unmute) {
+    if (
+      this.liveConfig?.auto_unmute &&
+      ['all', 'selected'].includes(this.liveConfig.auto_unmute)
+    ) {
       super._autoUnmuteHandler();
     }
   }
@@ -978,6 +1014,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
           // The media carousel may automatically pause when the browser tab is
           // inactive, JSMPEG does not need to also do so independently.
           pauseWhenHidden: false,
+          autoplay: false,
           protocols: [],
           audio: false,
           videoBufferSize: 1024 * 1024 * 4,

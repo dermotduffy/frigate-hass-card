@@ -1,28 +1,38 @@
 import { EmblaCarouselType, EmblaPluginType } from 'embla-carousel';
-import { FrigateCardMediaPlayer } from '../../types.js';
+import {
+  AutoMuteCondition,
+  AutoPauseCondition,
+  AutoPlayCondition,
+  AutoUnmuteCondition,
+  FrigateCardMediaPlayer,
+} from '../../types.js';
 
 export type AutoMediaPluginOptionsType = {
   playerSelector: string;
-  autoPlayWhenVisible?: boolean;
-  autoUnmuteWhenVisible?: boolean;
+
+  // Note: Neither play nor unmute will activate on selection. The caller is
+  // expected to call the `play()` or `unmute()` methods manually when the media
+  // is actually loaded (and not just when the slide is visible -- the browser
+  // cannot play media that is not actually loaded yet, e.g. lazy loading).
+  autoPlayCondition?: AutoPlayCondition;
+  autoUnmuteCondition?: AutoUnmuteCondition;
+  autoPauseCondition?: AutoPauseCondition;
+  autoMuteCondition?: AutoMuteCondition;
 };
 
-export const defaultOptions: Partial<AutoMediaPluginOptionsType> = {
-  autoPlayWhenVisible: true,
-  autoUnmuteWhenVisible: true,
-};
+export const defaultOptions: Partial<AutoMediaPluginOptionsType> = {};
 
 export type AutoMediaPluginType = EmblaPluginType<AutoMediaPluginOptionsType> & {
   play: () => void;
   pause: () => void;
   mute: () => void;
   unmute: () => void;
-}
+};
 
 /**
  * An Embla plugin to take automated actions on media (e.g. pause, unmute, etc).
- * @param userOptions 
- * @returns 
+ * @param userOptions
+ * @returns
  */
 export function AutoMediaPlugin(
   userOptions?: AutoMediaPluginOptionsType,
@@ -43,9 +53,19 @@ export function AutoMediaPlugin(
     // slide is selected, so only pause (and not play/unmute) based on carousel
     // events.
     carousel.on('destroy', pause);
-    carousel.on('select', pausePrevious);
+    if (
+      options.autoPauseCondition &&
+      ['all', 'unselected'].includes(options.autoPauseCondition)
+    ) {
+      carousel.on('select', pausePrevious);
+    }
     carousel.on('destroy', mute);
-    carousel.on('select', mutePrevious);
+    if (
+      options.autoMuteCondition &&
+      ['all', 'unselected'].includes(options.autoMuteCondition)
+    ) {
+      carousel.on('select', mutePrevious);
+    }
 
     document.addEventListener('visibilitychange', visibilityHandler);
   }
@@ -55,9 +75,19 @@ export function AutoMediaPlugin(
    */
   function destroy(): void {
     carousel.off('destroy', pause);
-    carousel.off('select', pausePrevious);
+    if (
+      options.autoPauseCondition &&
+      ['all', 'unselected'].includes(options.autoPauseCondition)
+    ) {
+      carousel.off('select', pausePrevious);
+    }
     carousel.off('destroy', mute);
-    carousel.off('select', mutePrevious);
+    if (
+      options.autoMuteCondition &&
+      ['all', 'unselected'].includes(options.autoMuteCondition)
+    ) {
+      carousel.off('select', mutePrevious);
+    }
 
     document.removeEventListener('visibilitychange', visibilityHandler);
   }
@@ -65,15 +95,31 @@ export function AutoMediaPlugin(
   /**
    * Handle document visibility changes.
    */
-   function visibilityHandler(): void {
+  function visibilityHandler(): void {
     if (document.visibilityState == 'hidden') {
-      pause();
-      mute();
+      if (
+        options.autoPauseCondition &&
+        ['all', 'hidden'].includes(options.autoPauseCondition)
+      ) {
+        pauseAll();
+      }
+      if (
+        options.autoMuteCondition &&
+        ['all', 'hidden'].includes(options.autoMuteCondition)
+      ) {
+        muteAll();
+      }
     } else if (document.visibilityState == 'visible') {
-      if (options.autoPlayWhenVisible) {
+      if (
+        options.autoPlayCondition &&
+        ['all', 'visible'].includes(options.autoPlayCondition)
+      ) {
         play();
-      } 
-      if (options.autoUnmuteWhenVisible) {
+      }
+      if (
+        options.autoUnmuteCondition &&
+        ['all', 'visible'].includes(options.autoUnmuteCondition)
+      ) {
         unmute();
       }
     }
@@ -110,6 +156,15 @@ export function AutoMediaPlugin(
   }
 
   /**
+   * Pause all slides.
+   */
+  function pauseAll(): void {
+    for (const slide of slides) {
+      getPlayer(slide)?.pause();
+    }
+  }
+
+  /**
    * Unmute the current slide.
    */
   function unmute(): void {
@@ -126,8 +181,17 @@ export function AutoMediaPlugin(
   /**
    * Mute the previous slide.
    */
-   function mutePrevious(): void {
+  function mutePrevious(): void {
     getPlayer(slides[carousel.previousScrollSnap()])?.mute();
+  }
+
+  /**
+   * Mute all slides.
+   */
+  function muteAll(): void {
+    for (const slide of slides) {
+      getPlayer(slide)?.mute();
+    }
   }
 
   const self: AutoMediaPluginType = {

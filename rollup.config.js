@@ -9,7 +9,7 @@ import styles from 'rollup-plugin-styles';
 import image from '@rollup/plugin-image';
 import replace from '@rollup/plugin-replace';
 
-const dev = process.env.ROLLUP_WATCH;
+const dev = process.env.ROLLUP_WATCH === 'true' || process.env.ROLLUP_WATCH === '1';
 
 const serveopts = {
   contentBase: ['./dist'],
@@ -45,7 +45,10 @@ const plugins = [
     exclude: 'node_modules/**',
   }),
   replace({
-    'process.env.NODE_ENV': JSON.stringify(dev ? 'development' : 'production'),
+    preventAssignment: true,
+    values: {
+      'process.env.NODE_ENV': JSON.stringify(dev ? 'development' : 'production'),
+    }
   }),
   dev && serve(serveopts),
   !dev && terser(),
