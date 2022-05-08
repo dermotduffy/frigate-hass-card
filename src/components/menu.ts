@@ -252,13 +252,20 @@ export class FrigateCardMenu extends LitElement {
     if (button.enabled === false) {
       return;
     }
-    if (button.type == 'custom:frigate-card-menu-submenu') {
+    if (button.type === 'custom:frigate-card-menu-submenu') {
       return html` <frigate-card-submenu
         .hass=${this.hass}
         .submenu=${button}
         @action=${this._actionHandler.bind(this)}
       >
       </frigate-card-submenu>`;
+    } else if (button.type === 'custom:frigate-card-menu-submenu-select') {
+      return html` <frigate-card-submenu-select
+        .hass=${this.hass}
+        .submenuSelect=${button}
+        @action=${this._actionHandler.bind(this)}
+      >
+      </frigate-card-submenu-select>`;
     }
 
     let stateParameters: StateParameters = { ...button };

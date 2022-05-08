@@ -655,6 +655,8 @@ Parameters for the `custom:frigate-card-menu-submenu` element are identical to t
 | `type` | Must be `custom:frigate-card-menu-submenu`. |
 | `items` | A list of menu items, as described below. | 
 
+<a name="frigate-card-submenu-items"></a>
+
 ##### Submenu Items
 
 | Parameter | Default | Description |
@@ -668,6 +670,19 @@ Parameters for the `custom:frigate-card-menu-submenu` element are identical to t
 | `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` | | [Home Assistant action configuration](https://www.home-assistant.io/lovelace/actions) including the extended functionality described under [actions](#actions). |
 
 See the [Configuring a Submenu example](#configuring-a-submenu-example).
+
+#### `custom:frigate-card-menu-submenu-select`
+
+This element allows you to easily convert a [Home Assistant Select Entity](https://www.home-assistant.io/integrations/select/) or [Home Assistant Input Select Entity](https://www.home-assistant.io/integrations/input_select/) (an entity either starting with `select` or `input_select`) into an overridable submenu. This *could* be done by hand using a regular submenu (above) -- this element is a convenience.
+
+Parameters for the `custom:frigate-card-menu-submenu-select` element are identical to the parameters of the [stock Home Assistant State Icon Element](https://www.home-assistant.io/dashboards/picture-elements/#state-icon) with the exception of these parameters which differ:
+
+| Parameter | Description |
+| - | - |
+| `type` | Must be `custom:frigate-card-menu-submenu-select`. |
+| `options` | An optional dictionary of overrides keyed by the option name that the given select entity supports. These options can be used to set or override submenu item parameters on a per-option basis. The format is as described in [Submenu Items](#frigate-card-submenu-items) above.| 
+
+See the [Configuring a Select Submenu example](#configuring-a-select-submenu-example).
 
 <a name="frigate-card-conditional"></a>
 
@@ -1210,6 +1225,55 @@ elements:
 
 </details>
 
+<a name="configuring-a-select-submenu-example"></a>
+
+### Configuring a `select` submenu
+
+You can easily add a submenu to the menu based on a `select` or `input_select` entity. 
+
+<details>
+  <summary>Expand: Adding a select submenu</summary>
+
+This example imagines the user has an `input_select` entity configured in their Home Assistant configuration like so:
+
+```yaml
+input_select:
+  kitchen_scene:
+    name: Kitchen Scene Select
+    options:
+      - scene.kitchen_cooking_scene
+      - scene.kitchen_tv_scene
+    icon: mdi:lightbulb
+```
+
+The following will convert this entity into a submenu:
+
+```yaml
+[...]
+elements:
+  - type: custom:frigate-card-menu-submenu-select
+    icon: mdi:lamps
+    entity: input_select.kitchen_scene
+```
+
+To override 1 or more individual options (e.g. to set custom icons and titles)
+
+```yaml
+[...]
+elements:
+  - type: custom:frigate-card-menu-submenu-select
+    icon: mdi:lamps
+    entity: input_select.kitchen_scene
+    options:
+      scene.kitchen_cooking_scene:
+        icon: mdi:chef-hat
+        title: Cooking time!
+      scene.kitchen_dining_scene:
+        icon: mdi:television
+        title: TV!
+```
+
+</details>
 
 ### Overriding card behavior
 
