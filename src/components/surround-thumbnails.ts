@@ -79,6 +79,9 @@ export class FrigateCardSurround extends LitElement {
           ...(this.targetView && { view: this.targetView }),
           target: parent,
           childIndex: null,
+
+          // Don't carry over history of this 'empty' view.
+          previous: null,
         })
         .dispatchChangeEvent(this);
     }

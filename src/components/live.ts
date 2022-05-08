@@ -242,13 +242,23 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
         | AutoMediaPluginType
         | undefined;
       if (automedia) {
-        // If this has changed to preloaded then pause & mute, otherwise play
-        // and potentially unmute (depending on configuration).
+        // If this has changed to preloaded (i.e. is now loaded but in the
+        // background) take the appropriate play/pause/mute/unmute actions.
         if (this.preloaded) {
-          automedia.pause();
-          automedia.mute();
+          if (
+            this.liveConfig?.auto_pause &&
+            ['all', 'unselected'].includes(this.liveConfig.auto_pause)
+          ) {
+            automedia.pause();
+          }
+          if (
+            this.liveConfig?.auto_mute &&
+            ['all', 'unselected'].includes(this.liveConfig.auto_mute)
+          ) {
+            automedia.mute();
+          }
         } else {
-          automedia.play();
+          this._autoPlayHandler();
           this._autoUnmuteHandler();
         }
       }
@@ -330,7 +340,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   /**
    * Unmute the media on the loaded slide.
    */
-   protected _autoUnmuteHandler(): void {
+  protected _autoUnmuteHandler(): void {
     if (
       this.liveConfig?.auto_unmute &&
       ['all', 'selected'].includes(this.liveConfig.auto_unmute)
