@@ -432,7 +432,7 @@ const menuSubmenuItemSchema = elementsBaseSchema.extend({
   state_color: z.boolean().default(true).optional(),
   selected: z.boolean().default(false).optional(),
   subtitle: z.string().optional(),
-  disabled: z.boolean().optional(),
+  enabled: z.boolean().default(true).optional(),
 });
 export type MenuSubmenuItem = z.infer<typeof menuSubmenuItemSchema>;
 
