@@ -49,7 +49,7 @@ export class FrigateCardSubmenu extends LitElement {
         ?twoline=${!!item.subtitle}
         ?selected=${item.selected}
         ?activated=${item.selected}
-        ?disabled=${!!item.disabled}
+        ?disabled=${item.enabled === false}
         aria-label="${stateParameters.title || ''}"
         @action=${(ev) => {
           // Attach the action config so ascendants have access to it.

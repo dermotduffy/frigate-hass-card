@@ -666,6 +666,7 @@ Parameters for the `custom:frigate-card-menu-submenu` element are identical to t
 | `entity` | | An optional Home Assistant entity from which title, icon and style can be automatically computed. |
 | `state_color` | `true` | Whether or not the title and icon should be stylized based on state. |
 | `selected` | `false` | Whether or not to show this item as selected. |
+| `enabled` | `true` | Whether or not to show this item as enabled / selectable. |
 | `style` | | Position and style the element using CSS. |
 | `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` | | [Home Assistant action configuration](https://www.home-assistant.io/lovelace/actions) including the extended functionality described under [actions](#actions). |
 
