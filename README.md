@@ -1252,7 +1252,6 @@ The following will convert this entity into a submenu:
 [...]
 elements:
   - type: custom:frigate-card-menu-submenu-select
-    icon: mdi:lamps
     entity: input_select.kitchen_scene
 ```
 
@@ -1268,11 +1267,10 @@ elements:
       scene.kitchen_cooking_scene:
         icon: mdi:chef-hat
         title: Cooking time!
-      scene.kitchen_dining_scene:
+      scene.kitchen_tv_scene:
         icon: mdi:television
         title: TV!
 ```
-
 </details>
 
 ### Overriding card behavior

@@ -131,6 +131,11 @@ export class FrigateCardSubmenuSelect extends LitElement {
 
   protected _generatedSubmenu?: MenuSubmenu;
 
+  /**
+   * Called to determine if the update should proceed.
+   * @param changedProps
+   * @returns `true` if the update should proceed, `false` otherwise.
+   */
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     // No need to update the submenu unless the select entity has changed.
     const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
@@ -142,6 +147,9 @@ export class FrigateCardSubmenuSelect extends LitElement {
     );
   }
 
+  /**
+   * Called when the render function will be called.
+   */
   protected willUpdate(): void {
     if (!this.submenuSelect || !this.hass) {
       return;
@@ -161,15 +169,17 @@ export class FrigateCardSubmenuSelect extends LitElement {
 
       // Pull out the dynamic properties (like icon, and title) from the state.
       ...refreshDynamicStateParameters(this.hass, this.submenuSelect),
-      
+
       // Override it with anything explicitly set in the submenuSelect.
       ...this.submenuSelect,
 
       type: 'custom:frigate-card-menu-submenu',
       items: [],
-    }
+    };
 
-    // Remove the options parameter which is unused/unsupported in submenu.
+    // For cleanliness remove the options parameter which is unused by the
+    // submenu rendering itself (above). It is only in this method to populate
+    // the items correctly (below).
     delete submenu['options'];
 
     for (const option of options) {
