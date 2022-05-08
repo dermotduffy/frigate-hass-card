@@ -1,4 +1,4 @@
-import { get, isEqual, set } from 'lodash-es';
+import { cloneDeep, get, isEqual, set } from 'lodash-es';
 import {
   CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
@@ -145,7 +145,7 @@ export const trimConfig = function (obj: RawFrigateCardConfig): boolean {
  * @returns A new deeply-copied configuration.
  */
 export const copyConfig = function (obj: RawFrigateCardConfig): RawFrigateCardConfig {
-  return JSON.parse(JSON.stringify(obj));
+  return cloneDeep(obj);
 };
 
 /**
