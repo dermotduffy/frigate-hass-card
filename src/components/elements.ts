@@ -9,6 +9,7 @@ import {
   MenuStateIcon,
   PictureElements,
   MenuSubmenu,
+  MenuSubmenuSelect,
 } from '../types.js';
 import { dispatchErrorMessageEvent, dispatchFrigateCardEvent } from '../common.js';
 
@@ -331,3 +332,6 @@ export class FrigateCardElementsMenuStateIcon extends FrigateCardElementsBaseMen
 
 @customElement('frigate-card-menu-submenu')
 export class FrigateCardElementsMenuSubmenu extends FrigateCardElementsBaseMenuIcon<MenuSubmenu> {}
+
+@customElement('frigate-card-menu-submenu-select')
+export class FrigateCardElementsMenuSubmenuSelect extends FrigateCardElementsBaseMenuIcon<MenuSubmenuSelect> {}

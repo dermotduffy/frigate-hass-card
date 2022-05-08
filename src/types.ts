@@ -436,12 +436,19 @@ const menuSubmenuItemSchema = elementsBaseSchema.extend({
 });
 export type MenuSubmenuItem = z.infer<typeof menuSubmenuItemSchema>;
 
-export const menuSubmenuSchema = menuBaseSchema.merge(iconSchema).extend({
+const menuSubmenuSchema = menuBaseSchema.merge(iconSchema).extend({
   type: z.literal('custom:frigate-card-menu-submenu'),
   items: menuSubmenuItemSchema.array(),
 });
 export type MenuSubmenu = z.infer<typeof menuSubmenuSchema>;
-export type MenuItem = MenuIcon | MenuStateIcon | MenuSubmenu;
+
+const menuSubmenuSelectSchema = menuBaseSchema.merge(stateIconSchema).extend({
+  type: z.literal('custom:frigate-card-menu-submenu-select'),
+  options: z.record(menuSubmenuItemSchema).optional(),
+});
+export type MenuSubmenuSelect = z.infer<typeof menuSubmenuSelectSchema>;
+
+export type MenuItem = MenuIcon | MenuStateIcon | MenuSubmenu | MenuSubmenuSelect;
 
 const frigateCardConditionSchema = z.object({
   view: z.string().array().optional(),
@@ -464,6 +471,7 @@ const pictureElementSchema = z.union([
   menuStateIconSchema,
   menuIconSchema,
   menuSubmenuSchema,
+  menuSubmenuSelectSchema,
   frigateConditionalSchema,
   stateBadgeIconSchema,
   stateIconSchema,
@@ -1072,6 +1080,7 @@ const menuButtonSchema = z.discriminatedUnion('type', [
   menuIconSchema,
   menuStateIconSchema,
   menuSubmenuSchema,
+  menuSubmenuSelectSchema,
 ]);
 export type MenuButton = z.infer<typeof menuButtonSchema>;
 export interface ExtendedHomeAssistant extends HomeAssistant {
