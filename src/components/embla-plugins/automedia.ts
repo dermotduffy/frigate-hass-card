@@ -11,8 +11,9 @@ export type AutoMediaPluginOptionsType = {
   playerSelector: string;
 
   // Note: Neither play nor unmute will activate on selection. The caller is
-  // expected to call the methods manually when the media is actually loaded
-  // (not just the slide shown).
+  // expected to call the `play()` or `unmute()` methods manually when the media
+  // is actually loaded (and not just when the slide is visible -- the browser
+  // cannot play media that is not actually loaded yet, e.g. lazy loading).
   autoPlayCondition?: AutoPlayCondition;
   autoUnmuteCondition?: AutoUnmuteCondition;
   autoPauseCondition?: AutoPauseCondition;
