@@ -62,8 +62,7 @@ frigate-card-menu[data-style='hover'] {
 .outer + frigate-card-menu[data-style='hover'] {
   opacity: 0;
 }
-.outer:hover + frigate-card-menu[data-style='hover'],
-frigate-card-menu[data-mode='hover']:hover {
+frigate-card-menu[data-style='hover']:hover {
   opacity: 1;
 }
 
