@@ -92,7 +92,7 @@ cameras:
   - [...camera 2...]
 ```
 
-See the [fully expanded cameras configuration example](#config-expanded-cameras) for how these paramters are structured.
+See the [fully expanded cameras configuration example](#config-expanded-cameras) for how these parameters are structured.
 
 
 | Option | Default | Overridable | Description |
@@ -156,7 +156,7 @@ All configuration is under:
 view:
 ```
 
-See the [fully expanded view configuration example](#config-expanded-view) for how these paramters are structured.
+See the [fully expanded view configuration example](#config-expanded-view) for how these parameters are structured.
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
@@ -178,7 +178,7 @@ All configuration is under:
 menu:
 ```
 
-See the [fully expanded menu configuration example](#config-expanded-menu) for how these paramters are structured.
+See the [fully expanded menu configuration example](#config-expanded-menu) for how these parameters are structured.
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
@@ -231,7 +231,7 @@ All configuration is under:
 live:
 ```
 
-See the [fully expanded live configuration example](#config-expanded-live) for how these paramters are structured.
+See the [fully expanded live configuration example](#config-expanded-live) for how these parameters are structured.
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
@@ -339,7 +339,7 @@ All configuration is under:
 event_viewer:
 ```
 
-See the [fully expanded event viewer configuration example](#config-expanded-event-viewer) for how these paramters are structured.
+See the [fully expanded event viewer configuration example](#config-expanded-event-viewer) for how these parameters are structured.
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
@@ -410,7 +410,7 @@ All configuration is under:
 event_gallery:
 ```
 
-See the [fully expanded event gallery configuration example](#config-expanded-event-gallery) for how these paramters are structured.
+See the [fully expanded event gallery configuration example](#config-expanded-event-gallery) for how these parameters are structured.
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
@@ -427,7 +427,7 @@ All configuration is under:
 image:
 ```
 
-See the [fully expanded image configuration example](#config-expanded-image) for how these paramters are structured.
+See the [fully expanded image configuration example](#config-expanded-image) for how these parameters are structured.
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
@@ -446,7 +446,7 @@ All configuration is under:
 timeline:
 ```
 
-See the [fully expanded timeline configuration example](#config-expanded-timeline) for how these paramters are structured.
+See the [fully expanded timeline configuration example](#config-expanded-timeline) for how these parameters are structured.
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
@@ -481,7 +481,7 @@ All configuration is under:
 dimensions:
 ```
 
-See the [fully expanded dimensions configuration example](#config-expanded-dimensions) for how these paramters are structured.
+See the [fully expanded dimensions configuration example](#config-expanded-dimensions) for how these parameters are structured.
 
 
 | Option | Default | Overridable | Description |
@@ -526,7 +526,7 @@ All configuration is a list under:
 overrides:
 ```
 
-See the [fully expanded overrides configuration example](#config-expanded-overrides) for how these paramters are structured.
+See the [fully expanded overrides configuration example](#config-expanded-overrides) for how these parameters are structured.
 
 Various parts of this configuration may conditionally (see [Frigate Card
 Conditions](#frigate-card-conditions)) be overridden, for example to use custom
@@ -651,7 +651,7 @@ All configuration is under:
 elements:
 ```
 
-See the [fully expanded elements configuration example](#config-expanded-elements) for how these paramters are structured.
+See the [fully expanded elements configuration example](#config-expanded-elements) for how these parameters are structured.
 
 **Note**: The Frigate Card allows either a single action (as in stock Home
 Assistant) or list of actions to be defined for each class of user interaction
@@ -895,7 +895,7 @@ This card supports fully configurable submenus.
 
 ### Illustrative Expanded Configuration Reference
 
-**<font color="red">Caution</font>**: Just copying this full reference into your configuration will cause you a significant maintenance burden. Don't do it! Please only specify what you need as defaults can / do change continually as this card develops. Almost all the values shown here are the defaults (except in cases where is no default for illustrative purposes).
+**<font color="red">Caution</font>**: Just copying this full reference into your configuration will cause you a significant maintenance burden. Don't do it! Please only specify what you need as defaults can / do change continually as this card develops. Almost all the values shown here are the defaults (except in cases where is no default, parameters are added here for illustrative purposes).
 
 <a name="config-expanded-cameras"></a>
 
@@ -1091,6 +1091,7 @@ live:
       mode: popup-bottom-right
       duration_seconds: 2
   actions:
+    entity: light.office_main_lights
     tap_action:
       action: none
     hold_action:
@@ -1134,6 +1135,7 @@ event_viewer:
       mode: popup-bottom-right
       duration_seconds: 2
   actions:
+    entity: light.office_main_lights
     tap_action:
       action: none
     hold_action:
@@ -1162,6 +1164,7 @@ event_gallery:
       show_details: false
       show_controls: false
   actions:
+    entity: light.office_main_lights
     tap_action:
       action: none
     hold_action:
@@ -1187,6 +1190,7 @@ image:
   mode: url
   refresh_seconds: 0
   actions:
+    entity: light.office_main_lights
     tap_action:
       action: none
     hold_action:
@@ -1541,6 +1545,18 @@ timeline:
       size: 100
       show_details: true
       show_controls: true
+  actions:
+    entity: light.office_main_lights
+    tap_action:
+      action: none
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    start_tap_action:
+      action: none
+    end_tap_action:
+      action: none
 ```
 </details>
 
@@ -1554,7 +1570,7 @@ Reference: [Override Options](#overrides-options).
 Overrides allow overriding certain (many) configuration parameters when a given
 condition is met. The below is a fully expanded set of those overridable
 parameters. This is really just repeating the above expansions of the relevant
-sections, rather than indicating new or different paramters, i.e. this
+sections, rather than indicating new or different parameters, i.e. this
 repetition is included for illustrative purposes of what is overridable.
 
 ```yaml
@@ -1601,6 +1617,7 @@ overrides:
             mode: popup-bottom-right
             duration_seconds: 2
         actions:
+          entity: light.office_main_lights
           tap_action:
             action: none
           hold_action:
@@ -1680,6 +1697,7 @@ overrides:
         mode: url
         refresh_seconds: 0
         actions:
+          entity: light.office_main_lights
           tap_action:
             action: none
           hold_action:
@@ -1703,6 +1721,7 @@ overrides:
           - switch.render_card
         dark_mode: 'off'
         actions:
+          entity: light.office_main_lights
           tap_action:
             action: none
           hold_action:
@@ -1714,6 +1733,7 @@ overrides:
           end_tap_action:
             action: none
 ```
+</details>
 
 ### Basic cameras configuration
 
