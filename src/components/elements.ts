@@ -1,4 +1,11 @@
-import { LitElement, TemplateResult, html, CSSResultGroup, unsafeCSS } from 'lit';
+import {
+  LitElement,
+  TemplateResult,
+  html,
+  CSSResultGroup,
+  unsafeCSS,
+  PropertyValues,
+} from 'lit';
 import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property } from 'lit/decorators.js';
 
@@ -110,12 +117,12 @@ export class FrigateCardElementsCore extends LitElement {
   /**
    * Create the root as necessary prior to rendering.
    */
-  protected willUpdate(): void {
+  protected willUpdate(changedProps: PropertyValues): void {
     try {
-      // The root is only created once, to avoid the elements being continually
-      // re-created & destroyed (for some elements, e.g. image, this would
-      // otherwise cause serious flickering).
-      if (!this._root) {
+      // The root is only created once per elements configuration change, to
+      // avoid the elements being continually re-created & destroyed (for some
+      // elements, e.g. image, recreation causes a flicker).
+      if (this.elements && (!this._root || changedProps.has('elements'))) {
         this._root = this._createRoot();
       }
     } catch (e) {
