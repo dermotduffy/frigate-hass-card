@@ -36,7 +36,7 @@ import type {
   Message,
 } from './types.js';
 
-import { CAMERA_BIRDSEYE, CARD_VERSION, REPO_URL } from './const.js';
+import { CAMERA_BIRDSEYE, CARD_VERSION, MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA, REPO_URL } from './const.js';
 import { FrigateCardElements } from './components/elements.js';
 import { FrigateCardImage } from './components/image.js';
 import { FRIGATE_BUTTON_MENU_ICON, FrigateCardMenu } from './components/menu.js';
@@ -475,10 +475,7 @@ export class FrigateCard extends LitElement {
       if (entity.startsWith('media_player.')) {
         const stateObj = this._hass?.states[entity];
 
-        // Taken from https://github.dev/home-assistant/frontend/blob/b5861869e39290fd2e15737e89571dfc543b3ad3/src/data/media-player.ts#L93
-        const SUPPORT_BROWSE_MEDIA = 131072;
-
-        if (stateObj && supportsFeature(stateObj, SUPPORT_BROWSE_MEDIA)) {
+        if (stateObj && supportsFeature(stateObj, MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA)) {
           return true;
         }
       }
