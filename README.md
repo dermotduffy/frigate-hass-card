@@ -895,7 +895,7 @@ This card supports fully configurable submenus.
 
 ### Illustrative Expanded Configuration Reference
 
-**<font color="red">Caution</font>**: Just copying this full reference into your configuration will cause you a significant maintenance burden. Don't do it! Please only specify what you need as defaults can / do change continually as this card develops. Almost all the values shown here are the defaults (except in cases where is no default, parameters are added here for illustrative purposes).
+**Caution**: 🚩 Just copying this full reference into your configuration will cause you a significant maintenance burden. Don't do it! Please only specify what you need as defaults can / do change continually as this card develops. Almost all the values shown here are the defaults (except in cases where is no default, parameters are added here for illustrative purposes).
 
 <a name="config-expanded-cameras"></a>
 
@@ -1508,7 +1508,7 @@ elements:
     tap_action:
       action: custom:frigate-card-action
       frigate_card_action: media_player
-      media_player: media_player.nesthub50be
+      media_player: media_player.nesthub
       media_player_action: stop
 ```
 </details>
