@@ -86,6 +86,7 @@ import {
   getOverriddenConfig,
   getOverridesByKey,
 } from './card-condition.js';
+import { supportsFeature } from './icons/update.js';
 
 /** A note on media callbacks:
  *
@@ -470,9 +471,21 @@ export class FrigateCard extends LitElement {
       });
     }
 
-    const mediaPlayers = Object.keys(this._hass?.states || {}).filter((entity) =>
-      entity.startsWith('media_player.'),
-    );
+    const isValidMediaPlayer = (entity: string): boolean => {
+      if (entity.startsWith('media_player.')) {
+        const stateObj = this._hass?.states[entity];
+
+        // Taken from https://github.dev/home-assistant/frontend/blob/b5861869e39290fd2e15737e89571dfc543b3ad3/src/data/media-player.ts#L93
+        const SUPPORT_BROWSE_MEDIA = 131072;
+
+        if (stateObj && supportsFeature(stateObj, SUPPORT_BROWSE_MEDIA)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    const mediaPlayers = Object.keys(this._hass?.states || {}).filter(isValidMediaPlayer);
     if (
       mediaPlayers.length &&
       (this._view?.isViewerView() ||
