@@ -177,9 +177,9 @@ const noActionSchema = schemaForType<
 );
 
 const frigateCardCustomactionsBaseSchema = customActionSchema.extend({
-  // Syntactic sugar to avoid 'fire-dom-event' as part of an external API.
   action: z
     .literal('custom:frigate-card-action')
+    // Syntactic sugar to avoid 'fire-dom-event' as part of an external API.
     .transform((): 'fire-dom-event' => 'fire-dom-event')
     .or(z.literal('fire-dom-event')),
 });
