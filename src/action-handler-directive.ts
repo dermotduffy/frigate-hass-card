@@ -152,8 +152,10 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     element.addEventListener('touchcancel', end);
 
     element.addEventListener('mousedown', start, { passive: true });
-    element.addEventListener('pointerdown', start, { passive: true });
     element.addEventListener('click', end);
+
+    // For the timeline which generates native pointer events.
+    element.addEventListener('pointerdown', start, { passive: true });
 
     element.addEventListener('keyup', handleEnter);
   }
