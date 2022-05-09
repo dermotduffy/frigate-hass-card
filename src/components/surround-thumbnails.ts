@@ -33,16 +33,18 @@ export class FrigateCardSurround extends LitElement {
   @property({ attribute: false })
   protected targetView?: FrigateCardView;
 
+  @property({ attribute: true, type: Boolean })
+  protected fetch?: boolean;
+
   @property({ attribute: false })
   protected browseMediaParams?:
     | BrowseMediaQueryParameters
     | BrowseMediaQueryParameters[];
 
-  // A task to await the load of the WebRTC component.
   protected _browseTask = new Task(this, this._fetchMedia.bind(this), () => [
-    this.hass,
     this.view,
     this.browseMediaParams,
+    this.fetch,
   ]);
 
   /**
@@ -51,25 +53,25 @@ export class FrigateCardSurround extends LitElement {
    * @param param Task parameters.
    * @returns
    */
-  protected async _fetchMedia([hass, view, browseMediaParams]: (
-    | HomeAssistant
+  protected async _fetchMedia([view, browseMediaParams, fetch]: (
     | Readonly<View>
     | BrowseMediaQueryParameters
     | BrowseMediaQueryParameters[]
+    | boolean
     | undefined
   )[]): Promise<void> {
-    hass = hass as HomeAssistant;
     view = view as Readonly<View>;
     browseMediaParams = browseMediaParams as
       | BrowseMediaQueryParameters
       | BrowseMediaQueryParameters[];
+    fetch = fetch as boolean;
 
-    if (!hass || !view || view.target || !browseMediaParams) {
+    if (!fetch || !this.hass || !view || view.target || !browseMediaParams) {
       return;
     }
     let parent: FrigateBrowseMediaSource | null;
     try {
-      parent = await BrowseMediaUtil.multipleBrowseMediaQueryMerged(hass, browseMediaParams);
+      parent = await BrowseMediaUtil.multipleBrowseMediaQueryMerged(this.hass, browseMediaParams);
     } catch (e) {
       return dispatchErrorMessageEvent(this, (e as Error).message);
     }

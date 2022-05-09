@@ -139,14 +139,18 @@ export class FrigateCardLive extends LitElement {
       return;
     }
 
-    // Note use of liveConfig and not config below -- the carousel will
-    // independently override the liveconfig to reflect the camera in the
-    // carousel (not necessarily the selected camera).
+    // Notes:
+    // - See use of liveConfig and not config below -- the carousel will
+    //   independently override the liveConfig to reflect the camera in the
+    //   carousel (not necessarily the selected camera).
+    // - Fetching of thumbnails is disabled as long as live view is the
+    //   background (preloaded) rather than foreground (not preloaded).
     return html` <frigate-card-surround-thumbnails
       .hass=${this.hass}
       .view=${this.view}
       .config=${config.controls.thumbnails}
       .browseMediaParams=${browseMediaParams}
+      ?fetch=${!this._preloaded}
     >
       <frigate-card-live-carousel
         .hass=${this.hass}
