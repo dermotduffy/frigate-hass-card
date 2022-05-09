@@ -140,3 +140,6 @@ export const CONF_DIMENSIONS_ASPECT_RATIO_MODE =
   `${CONF_DIMENSIONS}.aspect_ratio_mode` as const;
 
 export const CONF_OVERRIDES = 'overrides' as const;
+
+// Taken from https://github.dev/home-assistant/frontend/blob/b5861869e39290fd2e15737e89571dfc543b3ad3/src/data/media-player.ts#L93
+export const MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA = 131072;

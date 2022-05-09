@@ -36,7 +36,7 @@ import type {
   Message,
 } from './types.js';
 
-import { CAMERA_BIRDSEYE, CARD_VERSION, REPO_URL } from './const.js';
+import { CAMERA_BIRDSEYE, CARD_VERSION, MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA, REPO_URL } from './const.js';
 import { FrigateCardElements } from './components/elements.js';
 import { FrigateCardImage } from './components/image.js';
 import { FRIGATE_BUTTON_MENU_ICON, FrigateCardMenu } from './components/menu.js';
@@ -86,6 +86,7 @@ import {
   getOverriddenConfig,
   getOverridesByKey,
 } from './card-condition.js';
+import { supportsFeature } from './icons/update.js';
 
 /** A note on media callbacks:
  *
@@ -470,9 +471,18 @@ export class FrigateCard extends LitElement {
       });
     }
 
-    const mediaPlayers = Object.keys(this._hass?.states || {}).filter((entity) =>
-      entity.startsWith('media_player.'),
-    );
+    const isValidMediaPlayer = (entity: string): boolean => {
+      if (entity.startsWith('media_player.')) {
+        const stateObj = this._hass?.states[entity];
+
+        if (stateObj && supportsFeature(stateObj, MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    const mediaPlayers = Object.keys(this._hass?.states || {}).filter(isValidMediaPlayer);
     if (
       mediaPlayers.length &&
       (this._view?.isViewerView() ||
