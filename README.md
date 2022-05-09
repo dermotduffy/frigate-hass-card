@@ -40,7 +40,9 @@ See more [screenshots](#screenshots) below.
 
 ## Installation
 
-* Use [HACS](https://hacs.xyz/) to install the card:
+* [HACS](https://hacs.xyz/) is **highly** recommended to install the card -- it works for all Home Assistant variants. If you don't have [HACS](https://hacs.xyz/) installed, start there -- then come back to these instructions.
+
+* Find the card in HACS:
 
 ```
 Home Assistant > HACS > Frontend > "Explore & Add Integrations" > Frigate Card
@@ -62,6 +64,8 @@ lovelace:
 
 ### Advanced Users: Manual Installation
 
+**Note:** This is very rarely needed unless you are developing the card. Please consider HACS (above)!
+
 * Download the `frigate-hass-card.js` attachment of the desired [release](https://github.com/dermotduffy/frigate-hass-card/releases) to a location accessible by Home Assistant.
 * Add the location as a Lovelace resource via the UI, or via [YAML configuration](https://www.home-assistant.io/lovelace/dashboards/#resources)) such as:
 
@@ -73,9 +77,9 @@ lovelace:
      type: module
 ```
 
-## Options
+## Configuration
 
-At least 1 camera must be configured in the `cameras` options, but otherwise all configuration parameters are optional.
+At least 1 camera must be configured in the `cameras` section, but otherwise all configuration parameters are optional.
 
 ### Camera Options
 
@@ -87,6 +91,9 @@ cameras:
   - [...camera 1...]
   - [...camera 2...]
 ```
+
+See the [fully expanded cameras configuration example](#config-expanded-cameras) for how these parameters are structured.
+
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
@@ -149,6 +156,8 @@ All configuration is under:
 view:
 ```
 
+See the [fully expanded view configuration example](#config-expanded-view) for how these parameters are structured.
+
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `default` | `live` | :white_check_mark: | The view to show in the card by default. The default camera is the first one listed. See [views](#views) below.|
@@ -168,6 +177,8 @@ All configuration is under:
  ```yaml
 menu:
 ```
+
+See the [fully expanded menu configuration example](#config-expanded-menu) for how these parameters are structured.
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
@@ -219,6 +230,8 @@ All configuration is under:
  ```yaml
 live:
 ```
+
+See the [fully expanded live configuration example](#config-expanded-live) for how these parameters are structured.
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
@@ -326,6 +339,8 @@ All configuration is under:
 event_viewer:
 ```
 
+See the [fully expanded event viewer configuration example](#config-expanded-event-viewer) for how these parameters are structured.
+
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `auto_play` | `all` | :heavy_multiplication_x: | Whether to automatically play events. `never` will never automatically play, `selected` will automatically play when an event is selected in the carousel, `visible` will automatically play when the browser/tab becomes visible or `all` on any opportunity to automatically play (i.e. either case).|
@@ -395,6 +410,8 @@ All configuration is under:
 event_gallery:
 ```
 
+See the [fully expanded event gallery configuration example](#config-expanded-event-gallery) for how these parameters are structured.
+
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `size` | 100 | :heavy_multiplication_x: | The size of the thumbnails in the event gallery in pixels. Must be >= `75` and <= `175`.|
@@ -409,6 +426,8 @@ All configuration is under:
 ```yaml
 image:
 ```
+
+See the [fully expanded image configuration example](#config-expanded-image) for how these parameters are structured.
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
@@ -426,6 +445,8 @@ All configuration is under:
 ```yaml
 timeline:
 ```
+
+See the [fully expanded timeline configuration example](#config-expanded-timeline) for how these parameters are structured.
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
@@ -452,13 +473,16 @@ timeline:
 | `show_details` | `false` | :heavy_multiplication_x: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
 | `show_controls` | `true` | :heavy_multiplication_x: | Whether to show event controls (e.g. timeline icon, favorite icon) alongside the thumbnail.|
 
-### Dimension Options
+### Dimensions Options
 
 All configuration is under:
 
 ```yaml
 dimensions:
 ```
+
+See the [fully expanded dimensions configuration example](#config-expanded-dimensions) for how these parameters are structured.
+
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
@@ -494,13 +518,15 @@ The card aspect ratio can be changed with the `dimensions.aspect_ratio_mode` and
 If no aspect ratio is specified or available, but one is needed then `16:9` will
 be used by default.
 
-### Override Options
+### Overrides Options
 
 All configuration is a list under:
 
 ```yaml
 overrides:
 ```
+
+See the [fully expanded overrides configuration example](#config-expanded-overrides) for how these parameters are structured.
 
 Various parts of this configuration may conditionally (see [Frigate Card
 Conditions](#frigate-card-conditions)) be overridden, for example to use custom
@@ -617,14 +643,15 @@ See the [Menu override example below](#frigate-card-menu-override-example) for a
 This card supports the [Picture Elements configuration
 syntax](https://www.home-assistant.io/lovelace/picture-elements/) to seamlessly
 allow the user to add custom elements to the card, which may be configured to
-perform a variety of actions on interaction (see [actions](#actions) below).
+perform a variety of actions on interaction (see [actions](#actions) below). The configuration is fairly versatile and can be simple, or very complex depending on the desires of the user.
 
-In the card YAML configuration, elements may be manually added under an
-`elements` key.
+All configuration is under:
 
-See the [action
-documentation](https://www.home-assistant.io/lovelace/actions/#hold-action) for
-more information on the action options available.
+```yaml
+elements:
+```
+
+See the [fully expanded elements configuration example](#config-expanded-elements) for how these parameters are structured.
 
 **Note**: The Frigate Card allows either a single action (as in stock Home
 Assistant) or list of actions to be defined for each class of user interaction
@@ -642,6 +669,7 @@ elements to add special Frigate card functionality.
 | `custom:frigate-card-menu-icon` | Add an arbitrary icon to the Frigate Card menu. Configuration is ~identical to that of the [Picture Elements Icon](https://www.home-assistant.io/lovelace/picture-elements/#icon-element) except with a type name of `custom:frigate-card-menu-icon`.|
 | `custom:frigate-card-menu-state-icon` | Add a state icon to the Frigate Card menu that represents the state of a Home Assistant entity. Configuration is ~identical to that of the [Picture Elements State Icon](https://www.home-assistant.io/lovelace/picture-elements/#state-icon) except with a type name of `custom:frigate-card-menu-state-icon`.|
 | `custom:frigate-card-menu-submenu` | Add a configurable submenu dropdown. See [configuration below](#frigate-card-menu-submenu).|
+| `custom:frigate-card-menu-submenu-select` | Add a submenu based on a `select` or `input_select`. See [configuration below](#frigate-card-submenu-select).|
 | `custom:frigate-card-conditional` | Restrict a set of elements to only render when the card is showing particular a particular [view](#views). See [configuration below](#frigate-card-conditional).|
 
 <a name="frigate-card-submenu"></a>
@@ -672,6 +700,8 @@ Parameters for the `custom:frigate-card-menu-submenu` element are identical to t
 
 See the [Configuring a Submenu example](#configuring-a-submenu-example).
 
+<a name="frigate-card-submenu-select"></a>
+
 #### `custom:frigate-card-menu-submenu-select`
 
 This element allows you to easily convert a [Home Assistant Select Entity](https://www.home-assistant.io/integrations/select/) or [Home Assistant Input Select Entity](https://www.home-assistant.io/integrations/input_select/) (an entity either starting with `select` or `input_select`) into an overridable submenu. This *could* be done by hand using a regular submenu (above) -- this element is a convenience.
@@ -701,9 +731,12 @@ Parameters for the `custom:frigate-card-conditional` element:
 
 #### `custom:frigate-card-action`
 
-| Action name | Description |
-| - | - |
-| `custom:frigate-card-action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `snapshot`, `snapshots`, `download`, `frigate_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`.|
+| Parameter | Description |
+| - | - | 
+| `action` | Must be `custom:frigate-card-action`. |
+| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `snapshot`, `snapshots`, `download`, `timeline`, `frigate_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`.|
+
+##### Command descriptions
 
 | Value | Description |
 | - | - |
@@ -859,6 +892,848 @@ This card supports fully configurable submenus.
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/submenu.gif" alt="Configurable submenus" width="400px">
 
 ## Examples
+
+### Illustrative Expanded Configuration Reference
+
+**<font color="red">Caution</font>**: Just copying this full reference into your configuration will cause you a significant maintenance burden. Don't do it! Please only specify what you need as defaults can / do change continually as this card develops. Almost all the values shown here are the defaults (except in cases where is no default, parameters are added here for illustrative purposes).
+
+<a name="config-expanded-cameras"></a>
+
+<details>
+  <summary>Expand: Cameras section</summary>
+
+Reference: [Camera Options](#camera-options).
+
+```yaml
+cameras:
+  - frigate_url: http://my.frigate.local
+    client_id: frigate
+    camera_name: front_door
+    label: person
+    zone: steps
+    camera_entity: camera.front_Door
+    live_provider: ha
+    # Show events for camera-2 when this camera is viewed.
+    dependent_cameras:
+      - camera-2
+  - frigate_url: http://my-other.frigate.local
+    client_id: frigate-other
+    camera_name: entrance
+    label: car
+    zone: driveway
+    camera_entity: camera.entrance
+    live_provider: webrtc-card
+    icon: 'mdi:car'
+    title: 'Front entrance'
+    # Custom identifier for the camera to refer to it above.
+    id: 'camera-2'
+    webrtc_card:
+      entity: camera.entrance_rtsp
+      url: 'rtsp://username:password@camera:554/av_stream/ch0'
+```
+</details>
+
+<a name="config-expanded-view"></a>
+
+<details>
+  <summary>Expand: View section</summary>
+
+Reference: [View Options](#view-options).
+
+```yaml
+view:
+  default: live
+  camera_select: current
+  timeout_seconds: 300
+  update_seconds: 0
+  update_force: false
+  update_cycle_camera: false
+  update_entities:
+    - binary_sensor.my_motion_sensor
+  render_entities:
+    - switch.render_card
+  dark_mode: 'off'
+  actions:
+    entity: light.office_main_lights
+    tap_action:
+      action: none
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    start_tap_action:
+      action: none
+    end_tap_action:
+      action: none
+```
+</details>
+
+<a name="config-expanded-menu"></a>
+
+<details>
+  <summary>Expand: Menu section</summary>
+
+Reference: [Menu Options](#menu-options).
+
+```yaml
+menu:
+  style: hidden
+  position: top
+  alignment: left
+  buttons:
+    frigate:
+      priority: 50
+      enabled: true
+      alignment: matching
+      # Default icon is an internal coded Frigate icon. Note
+      # absence of 'mdi' here (mdi has no Frigate icon).
+      icon: frigate
+    cameras:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:video-switch
+    live:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:cctv
+    clips:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:filmstrip
+    snapshots:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:camera
+    image:
+      priority: 50
+      enabled: false
+      alignment: matching
+      icon: mdi:image
+    timeline:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:chart-gantt
+    download:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:download
+    frigate_ui:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:web
+    fullscreen:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:fullscreen
+    media_player:
+      priority: 50
+      enabled: false
+      alignment: matching
+      icon: mdi:cast
+  button_size: 40
+```
+</details>
+
+<a name="config-expanded-live"></a>
+
+<details>
+  <summary>Expand: Live section</summary>
+
+Reference: [Live Options](#live-options).
+
+```yaml
+live:
+  auto_play: all
+  auto_pause: never
+  auto_mute: all
+  auto_unmute: never
+  preload: false
+  lazy_load: true
+  lazy_unload: never
+  draggable: true
+  transition_effect: slide
+  webrtc_card:
+    # Arbitrary WebRTC Card options, see https://github.com/AlexxIT/WebRTC#configuration .
+    ui: true
+  jsmpeg:
+    options:
+      audio: false
+      video: true
+      pauseWhenHidden: false
+      disableGl: false
+      disableWebAssembly: false
+      preserveDrawingBuffer: false
+      progressive: true
+      throttled: true
+      chunkSize: 1048576
+      maxAudioLag: 10
+      videoBufferSize: 524288
+      audioBufferSize: 131072
+  controls:
+    next_previous:
+      style: chevrons
+      size: 48
+    thumbnails:
+      media: clips
+      size: 100
+      show_details: false
+      show_controls: false
+      mode: none
+    title:
+      mode: popup-bottom-right
+      duration_seconds: 2
+  actions:
+    entity: light.office_main_lights
+    tap_action:
+      action: none
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    start_tap_action:
+      action: none
+    end_tap_action:
+      action: none
+  
+```
+</details>
+
+<a name="config-expanded-event-viewer"></a>
+
+<details>
+  <summary>Expand: Event Viewer section</summary>
+
+Reference: [Event Viewer Options](#event-viewer-options).
+
+```yaml
+event_viewer:
+  auto_play: all
+  auto_pause: all
+  auto_mute: all
+  auto_unmute: never
+  lazy_load: true
+  draggable: true
+  transition_effect: slide
+  controls:
+    next_previous:
+      size: 48
+      style: thumbnails
+    thumbnails:
+      size: 100
+      mode: none
+      show_details: false
+      show_controls: true
+    title:
+      mode: popup-bottom-right
+      duration_seconds: 2
+  actions:
+    entity: light.office_main_lights
+    tap_action:
+      action: none
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    start_tap_action:
+      action: none
+    end_tap_action:
+      action: none
+```
+</details>
+
+<a name="config-expanded-event-gallery"></a>
+
+<details>
+  <summary>Expand: Event Gallery section</summary>
+
+Reference: [Event Gallery Options](#event-gallery-options).
+
+```yaml
+event_gallery:
+  controls:
+    thumbnails:
+      size: 100
+      show_details: false
+      show_controls: false
+  actions:
+    entity: light.office_main_lights
+    tap_action:
+      action: none
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    start_tap_action:
+      action: none
+    end_tap_action:
+      action: none
+```
+</details>
+
+<a name="config-expanded-image"></a>
+
+<details>
+  <summary>Expand: Image section</summary>
+
+Reference: [Image Options](#image-options).
+
+```yaml
+image:
+  mode: url
+  refresh_seconds: 0
+  actions:
+    entity: light.office_main_lights
+    tap_action:
+      action: none
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    start_tap_action:
+      action: none
+    end_tap_action:
+      action: none
+```
+</details>
+
+<a name="config-expanded-elements"></a>
+
+<details>
+  <summary>Expand: Elements section (stock Home Assistant elements)</summary>
+
+Reference: [Home Assistant Picture Elements](https://www.home-assistant.io/dashboards/picture-elements/)
+
+Actions are omitted for simplicity, see the next section for action examples.
+
+```yaml
+elements:
+  - type: state-badge
+    entity: sensor.kitchen_dining_multisensor_air_temperature
+    style:
+      left: 100px
+      top: 50px
+    title: "Temperature"
+  - type: state-icon
+    entity: light.office_main_lights
+    icon: mdi:lamp
+    state_color: true
+    style:
+      left: 100px
+      top: 100px
+  - type: state-label
+    entity: sensor.kitchen_motion_sensor_battery
+    attribute: battery_voltage
+    prefix: Volts
+    title: Battery Voltage
+    style:
+      left: 100px
+      top: 150px
+  - type: state-label
+    entity: sensor.kitchen_motion_sensor_battery
+    attribute: battery_voltage
+    prefix: 'Volts: '
+    title: Battery Voltage
+    style:
+      background-color: black
+      left: 100px
+      top: 200px
+  - type: service-button
+    title: Light on
+    service: homeassistant.turn_on
+    service_data:
+      entity: light.office_main_lights
+    style:
+      left: 100px
+      top: 250px
+  - type: icon
+    icon: mdi:cow
+    title: Moo
+    style:
+      left: 100px
+      top: 300px
+  - type: image
+    entity: light.office_main_lights
+    title: Image   
+    state_image:
+      on: "https://picsum.photos/id/1003/1181/1772"
+      off: "https://picsum.photos/id/102/4320/3240"
+    state_filter:
+      "on": brightness(110%) saturate(1.2)
+      "off": brightness(50%) hue-rotate(45deg)
+    style:
+      left: 100px
+      top: 350px
+      height: 50px
+      width: 100px
+  - type: conditional
+    conditions:
+      - entity: light.office_main_lights
+        state: on
+        state_not: off
+    elements:
+    - type: icon
+      icon: mdi:dog
+      title: Woof
+      style:
+        left: 100px
+        top: 400px
+```
+</details>
+
+<details>
+  <summary>Expand: Elements section (stock Home Assistant actions)</summary>
+
+Reference: [Home Assistant Actions](https://www.home-assistant.io/dashboards/actions/), [Frigate Card Actions](#actions).
+
+```yaml
+elements:
+  - type: icon
+    icon: mdi:numeric-1-box
+    title: More info action
+    style:
+      left: 200px
+      top: 50px
+    entity: light.office_main_lights
+    tap_action:
+      action: more-info
+  - type: icon
+    icon: mdi:numeric-2-box
+    title: Toggle action
+    style:
+      left: 200px
+      top: 100px
+    entity: light.office_main_lights
+    tap_action:
+      action: toggle
+  - type: icon
+    icon: mdi:numeric-3-box
+    title: Call Service action
+    style:
+      left: 200px
+      top: 150px
+    tap_action:
+      action: call-service
+      service: homeassistant.toggle
+      service_data:
+        entity_id: light.office_main_lights
+  - type: icon
+    icon: mdi:numeric-4-box
+    title: Navigate action
+    style:
+      left: 200px
+      top: 200px
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace/2
+  - type: icon
+    icon: mdi:numeric-5-box
+    title: URL action
+    style:
+      left: 200px
+      top: 250px
+    tap_action:
+      action: url
+      url_path: https://www.home-assistant.io/
+  - type: icon
+    icon: mdi:numeric-6-box
+    title: None action
+    style:
+      left: 200px
+      top: 300px
+    tap_action:
+      action: none
+```
+</details>
+
+<details>
+  <summary>Expand: Elements section (custom elements)</summary>
+
+Reference: [Custom Frigate Card Elements](#special-elements)
+
+```yaml
+elements:
+  - type: custom:frigate-card-menu-icon	
+    icon: mdi:car
+    title: Vroom
+  - type: custom:frigate-card-menu-state-icon	
+    entity: light.office_main_lights
+    title: Office lights
+    icon: mdi:chair-rolling
+    state_color: true
+  - type: custom:frigate-card-menu-submenu
+    icon: mdi:menu
+    items:
+      - title: Lights
+        icon: mdi:lightbulb
+        entity: light.office_main_lights
+        tap_action:
+          action: toggle
+      - title: Google
+        icon: mdi:google
+        enabled: false
+        tap_action:
+          action: url
+          url_path: https://www.google.com
+  - type: custom:frigate-card-menu-submenu-select
+    icon: mdi:lamps
+    entity: input_select.kitchen_scene
+    options:
+      scene.kitchen_cooking_scene:
+        icon: mdi:chef-hat
+        title: Cooking time!
+      scene.kitchen_tv_scene:
+        icon: mdi:television
+        title: TV!
+    # Show a pig icon if the card is in the live view, in fullscreen mode and light.office_main_lights is on.
+  - type: custom:frigate-card-conditional
+    elements:
+      - type: icon
+        icon: mdi:pig
+        title: Oink
+        style:
+          left: 300px
+          top: 100px
+    conditions:
+      view:
+        - live
+      fullscreen: true
+      camera:
+        - camera.front_door
+      state:
+        - entity: light.office_main_lights
+          state: on
+          state_not: off
+```
+</details>
+
+<details>
+  <summary>Expand: Elements section (custom actions)</summary>
+
+Reference: [Custom Frigate Card Actions](#special-actions)
+
+```yaml
+elements:
+  - type: custom:frigate-card-menu-icon	
+    icon: mdi:alpha-a-circle
+    title: Show default view
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: default
+  - type: custom:frigate-card-menu-icon	
+    icon: mdi:alpha-b-circle
+    title: Show most recent clip
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: clip
+  - type: custom:frigate-card-menu-icon	
+    icon: mdi:alpha-c-circle
+    title: Show clips
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: clips
+  - type: custom:frigate-card-menu-icon	
+    icon: mdi:alpha-d-circle
+    title: Show image view
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: image
+  - type: custom:frigate-card-menu-icon	
+    icon: mdi:alpha-e-circle
+    title: Show live view
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: live
+  - type: custom:frigate-card-menu-icon	
+    icon: mdi:alpha-f-circle
+    title: Show most recent snapshot
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: snapshot
+  - type: custom:frigate-card-menu-icon	
+    icon: mdi:alpha-g-circle
+    title: Show snapshots
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: snapshots
+  - type: custom:frigate-card-menu-icon	
+    icon: mdi:alpha-h-circle
+    title: Download media
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: download
+  - type: custom:frigate-card-menu-icon	
+    icon: mdi:alpha-i-circle
+    title: Open Frigate UI
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: frigate_ui
+  - type: custom:frigate-card-menu-icon	
+    icon: mdi:alpha-j-circle
+    title: Change to fullscreen
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: fullscreen
+  - type: custom:frigate-card-menu-icon	
+    icon: mdi:alpha-k-circle
+    title: Toggle hidden menu
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: menu_toggle
+  - type: custom:frigate-card-menu-icon	
+    icon: mdi:alpha-l-circle
+    title: Select Front Door
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: camera_select
+      camera: camera.front_door
+  - type: custom:frigate-card-menu-icon	
+    icon: mdi:alpha-m-circle
+    title: Media player play
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: media_player
+      media_player: media_player.nesthub50be
+      media_player_action: play
+  - type: custom:frigate-card-menu-icon	
+    icon: mdi:alpha-n-circle
+    title: Media player stop
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: media_player
+      media_player: media_player.nesthub50be
+      media_player_action: stop
+```
+</details>
+
+<a name="config-expanded-dimensions"></a>
+
+<details>
+  <summary>Expand: Dimensions section</summary>
+
+Reference: [Dimension Options](#dimensions-options).
+
+```yaml
+dimensions:
+  aspect_ratio_mode: dynamic
+  aspect_ratio: 16:9
+```
+</details>
+
+<a name="config-expanded-timeline"></a>
+
+<details>
+  <summary>Expand: Timeline section</summary>
+
+Reference: [Timeline Options](#timeline-options).
+
+```yaml
+timeline:
+  clustering_threshold: 3
+  media: all
+  window_seconds: 3600
+  controls:
+    thumbnails:
+      mode: left
+      size: 100
+      show_details: true
+      show_controls: true
+  actions:
+    entity: light.office_main_lights
+    tap_action:
+      action: none
+    hold_action:
+      action: none
+    double_tap_action:
+      action: none
+    start_tap_action:
+      action: none
+    end_tap_action:
+      action: none
+```
+</details>
+
+<a name="config-expanded-overrides"></a>
+
+<details>
+  <summary>Expand: Overrides section</summary>
+
+Reference: [Override Options](#overrides-options).
+
+Overrides allow overriding certain (many) configuration parameters when a given
+condition is met. The below is a fully expanded set of those overridable
+parameters. This is really just repeating the above expansions of the relevant
+sections, rather than indicating new or different parameters, i.e. this
+repetition is included for illustrative purposes of what is overridable.
+
+```yaml
+overrides:
+  - conditions:
+      view:
+        - live
+      fullscreen: true
+      camera:
+        - camera.front_door
+      state:
+        - entity: light.office_main_lights
+          state: on
+          state_not: off
+    overrides:
+      live:
+        webrtc_card:
+          ui: true
+        jsmpeg:
+          options:
+            audio: false
+            video: true
+            pauseWhenHidden: false
+            disableGl: false
+            disableWebAssembly: false
+            preserveDrawingBuffer: false
+            progressive: true
+            throttled: true
+            chunkSize: 1048576
+            maxAudioLag: 10
+            videoBufferSize: 524288
+            audioBufferSize: 131072
+        controls:
+          next_previous:
+            style: chevrons
+            size: 48
+          thumbnails:
+            media: clips
+            size: 100
+            show_details: false
+            show_controls: false
+            mode: none
+          title:
+            mode: popup-bottom-right
+            duration_seconds: 2
+        actions:
+          entity: light.office_main_lights
+          tap_action:
+            action: none
+          hold_action:
+            action: none
+          double_tap_action:
+            action: none
+          start_tap_action:
+            action: none
+          end_tap_action:
+            action: none
+      menu:
+        style: hidden
+        position: top
+        alignment: left
+        buttons:
+          frigate:
+            priority: 50
+            enabled: true
+            alignment: matching
+            # Default icon is an internal coded Frigate icon. Note
+            # absence of 'mdi' here (mdi has no Frigate icon).
+            icon: frigate
+          cameras:
+            priority: 50
+            enabled: true
+            alignment: matching
+            icon: mdi:video-switch
+          live:
+            priority: 50
+            enabled: true
+            alignment: matching
+            icon: mdi:cctv
+          clips:
+            priority: 50
+            enabled: true
+            alignment: matching
+            icon: mdi:filmstrip
+          snapshots:
+            priority: 50
+            enabled: true
+            alignment: matching
+            icon: mdi:camera
+          image:
+            priority: 50
+            # Disable the image button.
+            enabled: false
+            alignment: matching
+            icon: mdi:image
+          timeline:
+            # Ensure the timeline button is ordered earlier.
+            priority: 100
+            enabled: true
+            alignment: matching
+            icon: mdi:chart-gantt
+          download:
+            priority: 50
+            enabled: true
+            alignment: matching
+            icon: mdi:download
+          frigate_ui:
+            priority: 50
+            enabled: true
+            alignment: matching
+            icon: mdi:web
+          fullscreen:
+            priority: 50
+            enabled: true
+            alignment: matching
+            icon: mdi:fullscreen
+          media_player:
+            priority: 50
+            enabled: false
+            alignment: matching
+            icon: mdi:cast
+        button_size: 40
+      image:
+        mode: url
+        refresh_seconds: 0
+        actions:
+          entity: light.office_main_lights
+          tap_action:
+            action: none
+          hold_action:
+            action: none
+          double_tap_action:
+            action: none
+          start_tap_action:
+            action: none
+          end_tap_action:
+            action: none
+      view:
+        default: live
+        camera_select: current
+        timeout_seconds: 300
+        update_seconds: 0
+        update_force: false
+        update_cycle_camera: false
+        update_entities:
+          - binary_sensor.my_motion_sensor
+        render_entities:
+          - switch.render_card
+        dark_mode: 'off'
+        actions:
+          entity: light.office_main_lights
+          tap_action:
+            action: none
+          hold_action:
+            action: toggle
+          double_tap_action:
+            action: none
+          start_tap_action:
+            action: none
+          end_tap_action:
+            action: none
+```
+</details>
 
 ### Basic cameras configuration
 
