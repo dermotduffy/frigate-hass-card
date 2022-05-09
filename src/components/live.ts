@@ -126,18 +126,15 @@ export class FrigateCardLive extends LitElement {
       this.conditionState,
     ) as LiveConfig;
 
-    const browseMediaParams =
-      BrowseMediaUtil.getFullDependentBrowseMediaQueryParametersOrDispatchError(
-        this,
-        this.hass,
-        this.cameras,
-        this.view.camera,
-        config.controls.thumbnails.media,
-      );
-
-    if (!browseMediaParams) {
-      return;
-    }
+    // Does not use getFullDependentBrowseMediaQueryParametersOrDispatchError to
+    // ensure that non-Frigate cameras will work in live view (they will not
+    // have a Frigate camera name).
+    const browseMediaParams = BrowseMediaUtil.getFullDependentBrowseMediaQueryParameters(
+      this.hass,
+      this.cameras,
+      this.view.camera,
+      config.controls.thumbnails.media,
+    );
 
     // Notes:
     // - See use of liveConfig and not config below -- the carousel will
