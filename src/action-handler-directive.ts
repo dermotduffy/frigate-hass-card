@@ -142,10 +142,9 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     };
 
     const handleEnter = (ev: KeyboardEvent): void => {
-      if (ev.keyCode !== 13) {
-        return;
+      if (ev.key === 'Enter') {
+        end(ev);
       }
-      end(ev);
     };
 
     element.addEventListener('touchstart', start, { passive: true });
