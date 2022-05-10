@@ -21,6 +21,7 @@ import {
   ActionsConfig,
   ActionType,
   CameraConfig,
+  CardHelpers,
   ExtendedHomeAssistant,
   FrigateCardAction,
   FrigateCardCustomAction,
@@ -33,7 +34,7 @@ import {
   signedPathSchema,
   StateParameters,
 } from './types.js';
-import { stateIcon } from './icons/state-icon.js'
+import { stateIcon } from './icons/state-icon.js';
 
 const MEDIA_INFO_HEIGHT_CUTOFF = 50;
 const MEDIA_INFO_WIDTH_CUTOFF = MEDIA_INFO_HEIGHT_CUTOFF;
@@ -290,10 +291,10 @@ export function convertActionToFrigateCardCustomAction(
 export function createFrigateCardCustomAction(
   action: FrigateCardAction,
   args?: {
-    camera?: string,
-    media_player?: string,
-    media_player_action?: 'play' | 'stop',
-  }
+    camera?: string;
+    media_player?: string;
+    media_player_action?: 'play' | 'stop';
+  },
 ): FrigateCardCustomAction | null {
   if (action === 'camera_select') {
     if (!args?.camera) {
@@ -473,10 +474,7 @@ export function getEntityTitle(
  * @param hass The Home Assistant object.
  * @returns The icon or undefined.
  */
-export function getEntityIcon(
-  hass?: HomeAssistant,
-  entity?: string,
-): string {
+export function getEntityIcon(hass?: HomeAssistant, entity?: string): string {
   return stateIcon(entity ? hass?.states[entity] : null);
 }
 
@@ -682,3 +680,46 @@ export function getEventDurationString(event: FrigateEvent): string {
   duration += `${seconds}s`;
   return duration;
 }
+
+/**
+ * Side loads the HA elements this card needs. This trickery is unfortunate
+ * necessary, see:
+ *  - https://github.com/thomasloven/hass-config/wiki/PreLoading-Lovelace-Elements
+ * @returns `true` if the load is successful, `false` otherwise.
+ */
+export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
+  const neededElements = [
+    'ha-selector',
+    'ha-menu-button',
+    'ha-camera-stream',
+    'ha-hls-player',
+    'ha-web-rtc-player',
+    'ha-icon',
+    'ha-circular-progress',
+    'ha-icon-button',
+    'ha-card',
+    'ha-svg-icon',
+    'ha-button-menu',
+  ];
+
+  if (neededElements.every((element) => customElements.get(element))) {
+    return true;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const helpers: CardHelpers = await (window as any).loadCardHelpers();
+
+  // The picture-glance editor loads everything this card needs. In particular:
+  //
+  // See: https://github.com/thomasloven/hass-config/wiki/PreLoading-Lovelace-Elements
+  const pictureGlance = await helpers.createCardElement({
+    type: 'picture-glance',
+    entities: [],
+    camera_image: 'dummy-to-load-editor-components',
+  });
+  if (pictureGlance.constructor.getConfigElement) {
+    await pictureGlance.constructor.getConfigElement();
+    return true;
+  }
+  return false;
+};

@@ -5,6 +5,7 @@ import {
   CustomActionConfig,
   HomeAssistant,
   LovelaceCard,
+  LovelaceCardConfig,
   LovelaceCardEditor,
   MoreInfoActionConfig,
   NavigateActionConfig,
@@ -1150,6 +1151,14 @@ export interface FrigateCardMediaPlayer {
   pause(): void;
   mute(): void;
   unmute(): void;
+}
+
+export interface CardHelpers {
+  createCardElement(config: LovelaceCardConfig): Promise<{
+    constructor: {
+      getConfigElement(): HTMLElement
+    };
+  }>;
 }
 
 /**

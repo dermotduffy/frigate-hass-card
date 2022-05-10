@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
@@ -90,7 +89,12 @@ import {
   CONF_VIEW_UPDATE_FORCE,
   CONF_VIEW_UPDATE_SECONDS,
 } from './const.js';
-import { arrayMove, getCameraID, getCameraTitle } from './common.js';
+import {
+  arrayMove,
+  getCameraID,
+  getCameraTitle,
+  sideLoadHomeAssistantElements,
+} from './common.js';
 import {
   copyConfig,
   deleteConfigValue,
@@ -183,7 +187,6 @@ const options: EditorOptions = {
 export class FrigateCardEditor extends LitElement implements LovelaceCardEditor {
   @property({ attribute: false }) public hass?: HomeAssistant;
   @state() protected _config?: RawFrigateCardConfig;
-  @state() protected _helpers?: any;
   protected _initialized = false;
   protected _configUpgradeable = false;
 
@@ -386,15 +389,19 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     // such, RawFrigateCardConfig is used as the type.
     this._config = config;
     this._configUpgradeable = isConfigUpgradeable(config);
-    this.loadCardHelpers();
   }
 
-  protected shouldUpdate(): boolean {
+  /**
+   * Called before each update.
+   */
+  protected willUpdate(): void {
     if (!this._initialized) {
-      this._initialize();
+      sideLoadHomeAssistantElements().then((success) => {
+        if (success) {
+          this._initialized = true;
+        }
+      });
     }
-
-    return true;
   }
 
   protected _getEntities(domain: string): string[] {
@@ -929,7 +936,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   protected render(): TemplateResult | void {
-    if (!this.hass || !this._helpers || !this._config) {
+    if (!this.hass || !this._config) {
       return html``;
     }
 
@@ -1217,36 +1224,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           : html``}
       </div>
     `;
-  }
-
-  /**
-   * Verify editor is initialized.
-   */
-  protected _initialize(): void {
-    if (this.hass === undefined) return;
-    if (this._config === undefined) return;
-    if (this._helpers === undefined) return;
-
-    (async (): Promise<void> => {
-      // The picture-glance editor loads the ha-selectors.
-      // See: https://github.com/thomasloven/hass-config/wiki/PreLoading-Lovelace-Elements
-      const pictureGlance = await this._helpers.createCardElement({
-        type: 'picture-glance',
-        entities: [],
-        camera_image: 'dummy-to-load-editor-components',
-      });
-      if (pictureGlance.constructor.getConfigElement) {
-        await pictureGlance.constructor.getConfigElement();
-        this._initialized = true;
-      }
-    })();
-  }
-
-  /**
-   * Load card helpers.
-   */
-  protected async loadCardHelpers(): Promise<void> {
-    this._helpers = await (window as any).loadCardHelpers();
   }
 
   /**

@@ -57,6 +57,7 @@ import {
   homeAssistantWSRequest,
   isValidMediaShowInfo,
   shouldUpdateBasedOnHass,
+  sideLoadHomeAssistantElements,
 } from './common.js';
 import { localize } from './localize/localize.js';
 import { renderMessage, renderProgressIndicator } from './components/message.js';
@@ -185,6 +186,9 @@ export class FrigateCard extends LitElement {
   // The mouse handler may be called continually, throttle it to at most once
   // per second for performance reasons.
   protected _boundMouseHandler = throttle(this._mouseHandler.bind(this), 1 * 1000);
+
+  // Whether the card has been successfully initialized.
+  protected _initialized = false;
 
   /**
    * Set the Home Assistant object.
@@ -828,6 +832,19 @@ export class FrigateCard extends LitElement {
    */
   protected _changeViewHandler(e: CustomEvent<View>): void {
     this._changeView({ view: e.detail });
+  }
+
+  /**
+   * Called before each update.
+   */
+  protected willUpdate(): void {
+    if (!this._initialized) {
+      sideLoadHomeAssistantElements().then((success) => {
+        if (success) {
+          this._initialized = true;
+        }
+      })
+    }
   }
 
   /**
