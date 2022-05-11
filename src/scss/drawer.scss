@@ -27,6 +27,12 @@ div.control-surround {
   }
   right: 100%;
 }
+:host([empty]), :host([empty]) > * {
+  visibility: hidden;
+}
+:host(:not([empty])), :host(:not([empty])) > * {
+  visibility: visible;
+}
 
 ha-icon.control {
   color: var(--secondary-color, white);

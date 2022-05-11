@@ -22,7 +22,6 @@
 #d {
   // Need to allow drawer controls to be visible.
   overflow: visible;
-  visibility: visible;
 }
 
 :host([location=right]) #d {

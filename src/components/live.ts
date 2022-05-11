@@ -512,7 +512,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   protected render(): TemplateResult | void {
     const [slides, cameraToSlide] = this._getSlides();
     this._cameraToSlide = cameraToSlide;
-    if (!slides || !this.liveConfig || !this.cameras || !this.view) {
+    if (!slides.length || !this.liveConfig || !this.cameras || !this.view) {
       return;
     }
 

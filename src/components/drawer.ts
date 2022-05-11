@@ -24,8 +24,17 @@ export class FrigateCardDrawer extends LitElement {
   @property({ type: Boolean, reflect: true, attribute: true })
   public open = false;
 
+  // The 'empty' attribute is used in the styling to change the drawer
+  // visibility and that of all descendants if there is no content. Styling is
+  // used rather than display or hidden in order to ensure the contents continue
+  // to have a measurable size.
+  @property({ type: Boolean, reflect: true, attribute: true })
+  public empty = true;
+
   protected _refDrawer: Ref<HTMLElement & { open: boolean }> = createRef();
   protected _refSlot: Ref<HTMLSlotElement> = createRef();
+
+  protected _resizeObserver = new ResizeObserver(() => this._hideDrawerIfNecessary());
 
   /**
    * Called on the first update.
@@ -42,19 +51,45 @@ export class FrigateCardDrawer extends LitElement {
     this._refDrawer.value?.shadowRoot?.appendChild(style);
   }
 
+  /**
+   * Called when the slotted children in the drawer change.
+   */
   protected _slotChanged(): void {
     const elements = this._refSlot.value?.assignedElements({ flatten: true });
-    if (elements && elements.length && this._refDrawer.value) {
-      // Hide the drawer unless there is content.
-      this._refDrawer.value.hidden = false;
+
+    // Watch all slot children for size changes.
+    this._resizeObserver.disconnect();
+    for (const element of elements ?? []) {
+      this._resizeObserver.observe(element);
     }
+    this._hideDrawerIfNecessary();
+  }
+
+  /**
+   * Hide the drawer if there is nothing to show.
+   * @returns
+   */
+  protected _hideDrawerIfNecessary(): void {
+    if (!this._refDrawer.value) {
+      return;
+    }
+
+    const elements = this._refSlot.value?.assignedElements({ flatten: true });
+    this.empty =
+      !elements ||
+      !elements.length ||
+      // If the element has the special attribute 'empty' also hide it, this is
+      // used to hide carousels that have no actual contents.
+      elements.every((element) => {
+        const box = element.getBoundingClientRect();
+        return !box.width || !box.height;
+      });
   }
 
   protected render(): TemplateResult {
     return html`
       <side-drawer
         ${ref(this._refDrawer)}
-        ?hidden=${true}
         location="${this.location}"
         ?open=${this.open}
       >
