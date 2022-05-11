@@ -8,7 +8,6 @@ import {
 } from 'lit';
 import { BrowseMediaUtil } from '../browse-media-util.js';
 import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
-import { HomeAssistant } from 'custom-card-helpers';
 import { Task } from '@lit-labs/task';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
@@ -18,8 +17,9 @@ import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import type {
   BrowseMediaNeighbors,
   BrowseMediaQueryParameters,
-  FrigateBrowseMediaSource,
   CameraConfig,
+  ExtendedHomeAssistant,
+  FrigateBrowseMediaSource,
   MediaShowInfo,
   TransitionEffect,
   ViewerConfig,
@@ -45,7 +45,7 @@ import viewerStyle from '../scss/viewer.scss';
 @customElement('frigate-card-viewer')
 export class FrigateCardViewer extends LitElement {
   @property({ attribute: false })
-  protected hass?: HomeAssistant;
+  protected hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
   protected view?: Readonly<View>;
@@ -125,7 +125,7 @@ export class FrigateCardViewer extends LitElement {
 @customElement('frigate-card-viewer-carousel')
 export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   @property({ attribute: false })
-  protected hass?: HomeAssistant;
+  protected hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
   protected view?: Readonly<View>;
@@ -208,7 +208,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   /**
    * Play the media on the loaded slide.
    */
-   protected _autoPlayHandler(): void {
+  protected _autoPlayHandler(): void {
     if (
       this.viewerConfig?.auto_play &&
       ['all', 'selected'].includes(this.viewerConfig.auto_play)
@@ -464,6 +464,18 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   }
 
   /**
+   * Ensure media URLs use the correct HA URL (relevant for Chromecast where the
+   * default location will be the Chromecast receiver, not HA).
+   * @param url The media URL
+   */
+  protected _canonicalizeHAURL(url?: string): string | undefined {
+    if (this.hass && url && url.startsWith('/')) {
+      return this.hass.hassUrl(url);
+    }
+    return url;
+  }
+
+  /**
    * Lazy load a slide.
    * @param index The index of the slide to lazy load.
    * @param slide The slide to lazy load.
@@ -501,9 +513,9 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       ) as HTMLElement & { url: string };
 
       if (img) {
-        img.src = resolvedMedia.url;
+        img.src = this._canonicalizeHAURL(resolvedMedia.url) || '';
       } else if (hls_player) {
-        hls_player.url = resolvedMedia.url;
+        hls_player.url = this._canonicalizeHAURL(resolvedMedia.url) || '';
       }
     });
   }
@@ -652,6 +664,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   ): TemplateResult | void {
     // Skip folders as they cannot be rendered by this viewer.
     if (
+      !this.hass ||
       !this.view ||
       !this.viewerConfig ||
       !BrowseMediaUtil.isTrueMedia(mediaToRender) ||
@@ -677,7 +690,9 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
               muted
               playsinline
               title="${mediaToRender.title}"
-              url=${ifDefined(lazyLoad ? undefined : resolvedMedia?.url)}
+              url=${ifDefined(
+                lazyLoad ? undefined : this._canonicalizeHAURL(resolvedMedia?.url),
+              )}
               .hass=${this.hass}
               @frigate-card:media-show=${(e: CustomEvent<MediaShowInfo>) =>
                 this._mediaShowEventHandler(slideIndex, e)}
@@ -685,7 +700,9 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
             </frigate-card-ha-hls-player>`
           : html`<img
               aria-label="${mediaToRender.title}"
-              src=${ifDefined(lazyLoad ? IMG_EMPTY : resolvedMedia?.url)}
+              src=${ifDefined(
+                lazyLoad ? IMG_EMPTY : this._canonicalizeHAURL(resolvedMedia?.url),
+              )}
               title="${mediaToRender.title}"
               @click=${() => {
                 if (this._carousel?.clickAllowed()) {
