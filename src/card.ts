@@ -36,7 +36,12 @@ import type {
   Message,
 } from './types.js';
 
-import { CAMERA_BIRDSEYE, CARD_VERSION, MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA, REPO_URL } from './const.js';
+import {
+  CAMERA_BIRDSEYE,
+  CARD_VERSION,
+  MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
+  REPO_URL,
+} from './const.js';
 import { FrigateCardElements } from './components/elements.js';
 import { FrigateCardImage } from './components/image.js';
 import { FRIGATE_BUTTON_MENU_ICON, FrigateCardMenu } from './components/menu.js';
@@ -428,14 +433,23 @@ export class FrigateCard extends LitElement {
       tap_action: createFrigateCardCustomAction('image') as FrigateCardCustomAction,
     });
 
-    buttons.push({
-      icon: 'mdi:chart-gantt',
-      ...this._getConfig().menu.buttons.timeline,
-      type: 'custom:frigate-card-menu-icon',
-      title: localize('config.view.views.timeline'),
-      style: this._view?.is('timeline') ? this._getEmphasizedStyle() : {},
-      tap_action: createFrigateCardCustomAction('timeline') as FrigateCardCustomAction,
-    });
+    // Don't show the timeline button unless there's at least one non-birdseye
+    // camera with a Frigate camera name.
+    if (
+      this._cameras &&
+      [...this._cameras.values()].some(
+        (config) => config.camera_name && config.camera_name !== CAMERA_BIRDSEYE,
+      )
+    ) {
+      buttons.push({
+        icon: 'mdi:chart-gantt',
+        ...this._getConfig().menu.buttons.timeline,
+        type: 'custom:frigate-card-menu-icon',
+        title: localize('config.view.views.timeline'),
+        style: this._view?.is('timeline') ? this._getEmphasizedStyle() : {},
+        tap_action: createFrigateCardCustomAction('timeline') as FrigateCardCustomAction,
+      });
+    }
 
     if (
       this._view?.isViewerView() ||
@@ -484,9 +498,11 @@ export class FrigateCard extends LitElement {
         }
       }
       return false;
-    }
+    };
 
-    const mediaPlayers = Object.keys(this._hass?.states || {}).filter(isValidMediaPlayer);
+    const mediaPlayers = Object.keys(this._hass?.states || {}).filter(
+      isValidMediaPlayer,
+    );
     if (
       mediaPlayers.length &&
       (this._view?.isViewerView() ||
@@ -843,7 +859,7 @@ export class FrigateCard extends LitElement {
         if (success) {
           this._initialized = true;
         }
-      })
+      });
     }
   }
 
