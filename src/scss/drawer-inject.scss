@@ -22,6 +22,9 @@
 #d {
   // Need to allow drawer controls to be visible.
   overflow: visible;
+
+  // Don't let the drawer exceed 90% of the full width of the relative parent.
+  max-width: 90%;
 }
 
 :host([location=right]) #d {
