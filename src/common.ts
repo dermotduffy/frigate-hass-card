@@ -709,9 +709,7 @@ export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const helpers: CardHelpers = await (window as any).loadCardHelpers();
 
-  // The picture-glance editor loads everything this card needs. In particular:
-  //
-  // See: https://github.com/thomasloven/hass-config/wiki/PreLoading-Lovelace-Elements
+  // The picture-glance editor loads everything this card needs.
   const pictureGlance = await helpers.createCardElement({
     type: 'picture-glance',
     entities: [],
