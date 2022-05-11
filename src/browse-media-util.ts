@@ -161,7 +161,9 @@ export class BrowseMediaUtil {
         if (this.isTrueMedia(child)) {
           children.push(child);
         } else {
-          if (query.title) {
+          // If there are multiple inputs, separate the folder names with the
+          // query title (if available).
+          if (query.title && input.size > 1) {
             children.push({ ...child, title: `[${query.title}] ${child.title}` });
           } else {
             children.push(child);
