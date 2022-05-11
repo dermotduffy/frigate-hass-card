@@ -37,9 +37,11 @@ import { View, ViewContext } from '../view';
 import {
   dispatchErrorMessageEvent,
   dispatchFrigateCardEvent,
+  dispatchMessageEvent,
   getCameraTitle,
   stopEventFromActivatingCardWideActions,
 } from '../common.js';
+import { localize } from '../localize/localize';
 
 import timelineCoreStyle from '../scss/timeline-core.scss';
 import timelineStyle from '../scss/timeline.scss';
@@ -593,7 +595,7 @@ export class FrigateCardTimelineCore extends LitElement {
   protected _getGroups(): DataGroupCollectionType {
     const groups: FrigateCardGroupData[] = [];
     this.cameras?.forEach((cameraConfig, camera) => {
-      if (cameraConfig.camera_name !== CAMERA_BIRDSEYE) {
+      if (cameraConfig.camera_name && cameraConfig.camera_name !== CAMERA_BIRDSEYE) {
         groups.push({
           id: camera,
           content: getCameraTitle(this.hass, cameraConfig),
@@ -882,10 +884,21 @@ export class FrigateCardTimelineCore extends LitElement {
       if (this._timeline) {
         this._timeline.setOptions(options);
       } else {
+        // Don't show an empty timeline, show a message instead.
+        const groups = this._getGroups();
+        if (!groups.length) {
+          dispatchMessageEvent(
+            this,
+            localize('error.timeline_no_cameras'),
+            'mdi:chart-gantt',
+          );
+          return;
+        }
+
         this._timeline = new Timeline(
           this._refTimeline.value,
           this._events.dataset,
-          this._getGroups(),
+          groups,
           options,
         );
         this._timeline.on('select', this._timelineSelectHandler.bind(this));
