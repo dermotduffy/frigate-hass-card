@@ -599,7 +599,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   protected _render(): TemplateResult | void {
     const [slides, slideToChild] = this._getSlides();
     this._slideToChild = slideToChild;
-    if (!slides) {
+    if (!slides.length) {
       return;
     }
 

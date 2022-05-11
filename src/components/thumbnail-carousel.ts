@@ -5,10 +5,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 
-import type {
-  FrigateBrowseMediaSource,
-  ThumbnailsControlConfig,
-} from '../types.js';
+import type { FrigateBrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
 import { FrigateCardCarousel } from './carousel.js';
 import { View } from '../view.js';
 import {
@@ -201,7 +198,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
    */
   protected render(): TemplateResult | void {
     const slides = this._getSlides();
-    if (!slides || !this._config || this._config.mode == 'none') {
+    if (!slides.length || !this._config || this._config.mode == 'none') {
       return;
     }
 
