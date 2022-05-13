@@ -117,12 +117,12 @@ div.opposing {
 
 :host(:not([data-style='outside'])[data-position='left'][data-alignment='bottom']),
 :host(:not([data-style='outside'])[data-position='right'][data-alignment='bottom']),
-:host(:not([data-style='outside'])[data-position='top'][data-alignment='right']),
-:host(:not([data-style='outside'])[data-position='bottom'][data-alignment='right']),
+:host([data-position='top'][data-alignment='right']),
+:host([data-position='bottom'][data-alignment='right']),
 :host(:not([data-style='outside'])[data-position='left'][data-alignment='bottom']) div,
 :host(:not([data-style='outside'])[data-position='right'][data-alignment='bottom']) div,
-:host(:not([data-style='outside'])[data-position='top'][data-alignment='right']) div,
-:host(:not([data-style='outside'])[data-position='bottom'][data-alignment='right']) div {
+:host([data-position='top'][data-alignment='right']) div,
+:host([data-position='bottom'][data-alignment='right']) div {
   flex-direction: row-reverse;
 }
 

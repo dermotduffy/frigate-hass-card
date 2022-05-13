@@ -183,7 +183,7 @@ See the [fully expanded menu configuration example](#config-expanded-menu) for h
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `style` | `hidden` | :white_check_mark: | The menu style to show by default, one of `none`, `hidden`, `hover`, `overlay`, or `outside`. See [menu styles](#menu-styles) below.|
-| `position` | `top` | :white_check_mark: | Whether to show the menu on the `left`, `right`, `top` or `bottom` side of the card.|
+| `position` | `top` | :white_check_mark: | Whether to show the menu on the `left`, `right`, `top` or `bottom` side of the card. Note that for the `outside` style only the `top` and `bottom` positions have an effect.|
 | `alignment` | `left` | :white_check_mark: | Whether to align the menu buttons to the `left`, `right`, `top` or `bottom` of the menu. Some selections may have no effect depending on the value of `position` (e.g. it doesn't make sense to `left` align icons on a menu with `position` to the `left`).|
 | `button_size` | 40 | :white_check_mark: | The size of the menu buttons in pixels. Must be >= `20`.|
 | `buttons` | | :white_check_mark: | Whether to show or hide built-in buttons. See below. |
