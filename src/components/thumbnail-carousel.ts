@@ -7,7 +7,7 @@ import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
 import type { FrigateBrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
-import { BrowseMediaUtil } from '../utils/ha/browse-media.js';
+import { isTrueMedia } from '../utils/ha/browse-media';
 import { View } from '../view.js';
 import { FrigateCardCarousel } from './carousel.js';
 import './thumbnail.js';
@@ -154,7 +154,7 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
     if (
       !parent.children ||
       !parent.children.length ||
-      !BrowseMediaUtil.isTrueMedia(parent.children[childIndex])
+      !isTrueMedia(parent.children[childIndex])
     ) {
       return;
     }

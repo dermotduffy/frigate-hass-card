@@ -1,9 +1,9 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import QuickLRU from 'quick-lru';
 import {
-    FrigateBrowseMediaSource,
-    ResolvedMedia,
-    resolvedMediaSchema
+  FrigateBrowseMediaSource,
+  ResolvedMedia,
+  resolvedMediaSchema
 } from '../types.js';
 import { homeAssistantWSRequest } from './ha';
 
@@ -34,31 +34,25 @@ export class ResolvedMediaCache {
   }
 }
 
-export class ResolvedMediaUtil {
-  static async resolveMedia(
-    hass: HomeAssistant,
-    mediaSource?: FrigateBrowseMediaSource,
-    cache?: ResolvedMediaCache,
-  ): Promise<ResolvedMedia | null> {
-    if (!mediaSource) {
-      return null;
-    }
-    const cachedValue = cache ? cache.get(mediaSource.media_content_id) : undefined;
-    if (cachedValue) {
-      return cachedValue;
-    }
-    const request = {
-      type: 'media_source/resolve_media',
-      media_content_id: mediaSource.media_content_id,
-    };
-    const resolvedMedia = await homeAssistantWSRequest(
-      hass,
-      resolvedMediaSchema,
-      request,
-    );
-    if (cache && resolvedMedia) {
-      cache.set(mediaSource.media_content_id, resolvedMedia);
-    }
-    return resolvedMedia;
+export const resolveMedia = async (
+  hass: HomeAssistant,
+  mediaSource?: FrigateBrowseMediaSource,
+  cache?: ResolvedMediaCache,
+): Promise<ResolvedMedia | null> => {
+  if (!mediaSource) {
+    return null;
   }
-}
+  const cachedValue = cache ? cache.get(mediaSource.media_content_id) : undefined;
+  if (cachedValue) {
+    return cachedValue;
+  }
+  const request = {
+    type: 'media_source/resolve_media',
+    media_content_id: mediaSource.media_content_id,
+  };
+  const resolvedMedia = await homeAssistantWSRequest(hass, resolvedMediaSchema, request);
+  if (cache && resolvedMedia) {
+    cache.set(mediaSource.media_content_id, resolvedMedia);
+  }
+  return resolvedMedia;
+};

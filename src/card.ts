@@ -84,7 +84,7 @@ import {
   shouldUpdateBasedOnHass,
   sideLoadHomeAssistantElements
 } from './utils/ha';
-import { BrowseMediaUtil } from './utils/ha/browse-media.js';
+import { getEventID } from './utils/ha/browse-media.js';
 import { supportsFeature } from './utils/ha/update.js';
 import { isValidMediaShowInfo } from './utils/media-info.js';
 import { ResolvedMediaCache } from './utils/resolved-media.js';
@@ -915,7 +915,7 @@ export class FrigateCard extends LitElement {
       });
       return;
     }
-    const event_id = BrowseMediaUtil.getEventID(this._view.media);
+    const event_id = getEventID(this._view.media);
     if (!event_id) {
       this._setMessageAndUpdate({
         message: localize('error.download_no_event_id'),

@@ -10,7 +10,10 @@ import {
   ThumbnailsControlConfig
 } from '../types.js';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
-import { BrowseMediaUtil } from '../utils/ha/browse-media.js';
+import {
+  getFirstTrueMediaChildIndex,
+  multipleBrowseMediaQueryMerged
+} from '../utils/ha/browse-media';
 import { View } from '../view.js';
 import { dispatchErrorMessageEvent } from './message.js';
 import './surround.js';
@@ -68,14 +71,11 @@ export class FrigateCardSurround extends LitElement {
     }
     let parent: FrigateBrowseMediaSource | null;
     try {
-      parent = await BrowseMediaUtil.multipleBrowseMediaQueryMerged(
-        this.hass,
-        browseMediaParams,
-      );
+      parent = await multipleBrowseMediaQueryMerged(this.hass, browseMediaParams);
     } catch (e) {
       return dispatchErrorMessageEvent(this, (e as Error).message);
     }
-    if (BrowseMediaUtil.getFirstTrueMediaChildIndex(parent) !== null) {
+    if (getFirstTrueMediaChildIndex(parent) !== null) {
       this.view
         ?.evolve({
           ...(this.targetView && { view: this.targetView }),

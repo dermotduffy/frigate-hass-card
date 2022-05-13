@@ -13,7 +13,11 @@ import { customElement, property } from 'lit/decorators.js';
 import galleryStyle from '../scss/gallery.scss';
 import { CameraConfig, frigateCardConfigDefaults, GalleryConfig } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
-import { BrowseMediaUtil } from '../utils/ha/browse-media.js';
+import {
+  fetchChildMediaAndDispatchViewChange,
+  fetchLatestMediaAndDispatchViewChange,
+  getFullDependentBrowseMediaQueryParametersOrDispatchError
+} from '../utils/ha/browse-media';
 import { View } from '../view.js';
 import { renderProgressIndicator } from './message.js';
 import './thumbnail.js';
@@ -51,7 +55,7 @@ export class FrigateCardGallery extends LitElement {
 
     if (!this.view.target) {
       const browseMediaQueryParameters =
-        BrowseMediaUtil.getFullDependentBrowseMediaQueryParametersOrDispatchError(
+        getFullDependentBrowseMediaQueryParametersOrDispatchError(
           this,
           this.hass,
           this.cameras,
@@ -63,7 +67,7 @@ export class FrigateCardGallery extends LitElement {
         return;
       }
 
-      BrowseMediaUtil.fetchLatestMediaAndDispatchViewChange(
+      fetchLatestMediaAndDispatchViewChange(
         this,
         this.hass,
         this.view,
@@ -216,7 +220,7 @@ export class FrigateCardGalleryCore extends LitElement {
                   <ha-card
                     @click=${(ev) => {
                       if (this.hass && this.view) {
-                        BrowseMediaUtil.fetchChildMediaAndDispatchViewChange(
+                        fetchChildMediaAndDispatchViewChange(
                           this,
                           this.hass,
                           this.view,

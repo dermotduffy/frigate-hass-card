@@ -28,9 +28,16 @@ import type {
 } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { contentsChanged } from '../utils/basic.js';
-import { BrowseMediaUtil } from '../utils/ha/browse-media.js';
+import {
+  fetchLatestMediaAndDispatchViewChange,
+  getEventStartTime,
+  getFullDependentBrowseMediaQueryParametersOrDispatchError,
+  isTrueMedia,
+  multipleBrowseMediaQueryMerged,
+  overrideMultiBrowseMediaQueryParameters
+} from '../utils/ha/browse-media.js';
 import { createMediaShowInfo } from '../utils/media-info.js';
-import { ResolvedMediaCache, ResolvedMediaUtil } from '../utils/resolved-media.js';
+import { ResolvedMediaCache, resolveMedia } from '../utils/resolved-media.js';
 import { View } from '../view.js';
 import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import { Lazyload, LazyloadType } from './embla-plugins/lazyload.js';
@@ -66,7 +73,7 @@ export class FrigateCardViewer extends LitElement {
     }
 
     const browseMediaQueryParameters =
-      BrowseMediaUtil.getFullDependentBrowseMediaQueryParametersOrDispatchError(
+      getFullDependentBrowseMediaQueryParametersOrDispatchError(
         this,
         this.hass,
         this.cameras,
@@ -83,14 +90,13 @@ export class FrigateCardViewer extends LitElement {
         return;
       }
 
-      BrowseMediaUtil.fetchLatestMediaAndDispatchViewChange(
+      fetchLatestMediaAndDispatchViewChange(
         this,
         this.hass,
         this.view,
-        BrowseMediaUtil.overrideMultiBrowseMediaQueryParameters(
-          browseMediaQueryParameters,
-          { mediaType: mediaType },
-        ),
+        overrideMultiBrowseMediaQueryParameters(browseMediaQueryParameters, {
+          mediaType: mediaType,
+        }),
       );
       return renderProgressIndicator();
     }
@@ -161,8 +167,8 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
         i < (target.children || []).length;
         ++i
       ) {
-        if (BrowseMediaUtil.isTrueMedia(target.children[i])) {
-          await ResolvedMediaUtil.resolveMedia(
+        if (isTrueMedia(target.children[i])) {
+          await resolveMedia(
             this.hass,
             target.children[i],
             this.resolvedMediaCache,
@@ -321,7 +327,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     let prevIndex: number | null = null;
     for (let i = this.view.childIndex - 1; i >= 0; i--) {
       const media = this.view.target.children[i];
-      if (media && BrowseMediaUtil.isTrueMedia(media)) {
+      if (media && isTrueMedia(media)) {
         prevIndex = i;
         break;
       }
@@ -331,7 +337,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     let nextIndex: number | null = null;
     for (let i = this.view.childIndex + 1; i < this.view.target.children.length; i++) {
       const media = this.view.target.children[i];
-      if (media && BrowseMediaUtil.isTrueMedia(media)) {
+      if (media && isTrueMedia(media)) {
         nextIndex = i;
         break;
       }
@@ -365,7 +371,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       return null;
     }
 
-    const snapshotStartTime = BrowseMediaUtil.getEventStartTime(snapshot);
+    const snapshotStartTime = getEventStartTime(snapshot);
     if (!snapshotStartTime) {
       return null;
     }
@@ -383,10 +389,10 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     let latest: number | null = null;
     for (let i = 0; i < this.view.target.children.length; i++) {
       const child = this.view.target.children[i];
-      if (!BrowseMediaUtil.isTrueMedia(child)) {
+      if (!isTrueMedia(child)) {
         continue;
       }
-      const startTime = BrowseMediaUtil.getEventStartTime(child);
+      const startTime = getEventStartTime(child);
 
       if (startTime && (earliest === null || startTime < earliest)) {
         earliest = startTime;
@@ -401,7 +407,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
 
     let clips: FrigateBrowseMediaSource | null;
 
-    const params = BrowseMediaUtil.overrideMultiBrowseMediaQueryParameters(
+    const params = overrideMultiBrowseMediaQueryParameters(
       this.browseMediaQueryParameters,
       {
         mediaType: 'clips',
@@ -411,7 +417,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     );
 
     try {
-      clips = await BrowseMediaUtil.multipleBrowseMediaQueryMerged(this.hass, params);
+      clips = await multipleBrowseMediaQueryMerged(this.hass, params);
     } catch (e) {
       // This is best effort.
       return null;
@@ -423,10 +429,10 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
 
     for (let i = 0; i < clips.children.length; i++) {
       const child = clips.children[i];
-      if (!BrowseMediaUtil.isTrueMedia(child)) {
+      if (!isTrueMedia(child)) {
         continue;
       }
-      const clipStartTime = BrowseMediaUtil.getEventStartTime(child);
+      const clipStartTime = getEventStartTime(child);
       if (clipStartTime && clipStartTime === snapshotStartTime) {
         return this.view.evolve({
           view: 'clip',
@@ -487,12 +493,12 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       !this.view ||
       !this.view.target ||
       !this.view.target.children ||
-      !BrowseMediaUtil.isTrueMedia(this.view.target.children[childIndex])
+      !isTrueMedia(this.view.target.children[childIndex])
     ) {
       return;
     }
 
-    ResolvedMediaUtil.resolveMedia(
+    resolveMedia(
       this.hass,
       this.view.target.children[childIndex],
       this.resolvedMediaCache,
@@ -664,7 +670,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       !this.hass ||
       !this.view ||
       !this.viewerConfig ||
-      !BrowseMediaUtil.isTrueMedia(mediaToRender) ||
+      !isTrueMedia(mediaToRender) ||
       !['video', 'image'].includes(mediaToRender.media_content_type)
     ) {
       return;

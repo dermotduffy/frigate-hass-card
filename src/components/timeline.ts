@@ -37,7 +37,12 @@ import {
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
 import { getCameraTitle } from '../utils/camera.js';
-import { BrowseMediaUtil } from '../utils/ha/browse-media.js';
+import {
+  createEventParentForChildren,
+  getBrowseMediaQueryParameters,
+  isTrueMedia,
+  multipleBrowseMediaQuery
+} from '../utils/ha/browse-media';
 import { View, ViewContext } from '../view';
 import { dispatchErrorMessageEvent, dispatchMessageEvent } from './message.js';
 import './surround-thumbnails.js';
@@ -137,7 +142,7 @@ class TimelineEventManager {
       const event = child.frigate?.event;
       if (
         event &&
-        BrowseMediaUtil.isTrueMedia(child) &&
+        isTrueMedia(child) &&
         ['video', 'image'].includes(child.media_content_type)
       ) {
         let item = this._dataset.get(event.id);
@@ -282,20 +287,15 @@ class TimelineEventManager {
           this._dateStart &&
           cameraConfig.camera_name !== CAMERA_BIRDSEYE
         ) {
-          const param = BrowseMediaUtil.getBrowseMediaQueryParameters(
-            hass,
-            cameraID,
-            cameraConfig,
-            {
-              // Events are always fetched for the maximum extent of the managed
-              // range. This is because events may change at any point in time
-              // (e.g. a long-running event that ends).
-              before: this._dateEnd.getTime() / 1000,
-              after: this._dateStart.getTime() / 1000,
-              unlimited: true,
-              mediaType: mediaType as 'clips' | 'snapshots',
-            },
-          );
+          const param = getBrowseMediaQueryParameters(hass, cameraID, cameraConfig, {
+            // Events are always fetched for the maximum extent of the managed
+            // range. This is because events may change at any point in time
+            // (e.g. a long-running event that ends).
+            before: this._dateEnd.getTime() / 1000,
+            after: this._dateStart.getTime() / 1000,
+            unlimited: true,
+            mediaType: mediaType as 'clips' | 'snapshots',
+          });
           if (param) {
             params.push(param);
           }
@@ -309,7 +309,7 @@ class TimelineEventManager {
 
     let results: Map<BrowseMediaQueryParameters, FrigateBrowseMediaSource>;
     try {
-      results = await BrowseMediaUtil.multipleBrowseMediaQuery(hass, params);
+      results = await multipleBrowseMediaQuery(hass, params);
     } catch (e) {
       return dispatchErrorMessageEvent(element, (e as Error).message);
     }
@@ -572,10 +572,7 @@ export class FrigateCardTimelineCore extends LitElement {
       return null;
     }
 
-    const target = BrowseMediaUtil.createEventParentForChildren(
-      'Timeline events',
-      children,
-    );
+    const target = createEventParentForChildren('Timeline events', children);
     return {
       target: target,
       childIndex: childIndex < 0 ? null : childIndex,

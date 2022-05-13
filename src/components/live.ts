@@ -38,7 +38,7 @@ import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { contentsChanged } from '../utils/basic.js';
 import { getCameraIcon, getCameraTitle } from '../utils/camera.js';
 import { homeAssistantSignPath } from '../utils/ha';
-import { BrowseMediaUtil } from '../utils/ha/browse-media.js';
+import { getFullDependentBrowseMediaQueryParameters } from '../utils/ha/browse-media.js';
 import {
   dispatchExistingMediaShowInfoAsEvent,
   dispatchMediaShowEvent
@@ -125,7 +125,7 @@ export class FrigateCardLive extends LitElement {
     // Does not use getFullDependentBrowseMediaQueryParametersOrDispatchError to
     // ensure that non-Frigate cameras will work in live view (they will not
     // have a Frigate camera name).
-    const browseMediaParams = BrowseMediaUtil.getFullDependentBrowseMediaQueryParameters(
+    const browseMediaParams = getFullDependentBrowseMediaQueryParameters(
       this.hass,
       this.cameras,
       this.view.camera,
