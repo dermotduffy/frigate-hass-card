@@ -9,11 +9,11 @@
 // available as compilation time.
 // ====================================================================
 
-import { TemplateResult, html } from 'lit';
+import { html, TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
-
-import { dispatchErrorMessageEvent, dispatchMediaShowEvent } from '../common.js';
+import { dispatchErrorMessageEvent } from '../components/message.js';
+import { dispatchMediaShowEvent } from '../utils/media-info.js';
 
 customElements.whenDefined('ha-web-rtc-player').then(() => {
   @customElement('frigate-card-ha-web-rtc-player')

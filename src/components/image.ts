@@ -1,28 +1,23 @@
+import { HomeAssistant } from 'custom-card-helpers';
 import {
   CSSResultGroup,
+  html,
   LitElement,
   PropertyValues,
   TemplateResult,
-  html,
-  unsafeCSS,
+  unsafeCSS
 } from 'lit';
-import { HomeAssistant } from 'custom-card-helpers';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { customElement, property, state } from 'lit/decorators.js';
-
+import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { CachedValueController } from '../cached-value-controller.js';
-import { CameraConfig, ImageViewConfig } from '../types.js';
-import { View } from '../view.js';
-import {
-  dispatchErrorMessageEvent,
-  dispatchMediaShowEvent,
-  shouldUpdateBasedOnHass,
-} from '../common.js';
-import { localize } from '../localize/localize.js';
-
 import defaultImage from '../images/frigate-bird-in-sky.jpg';
-
+import { localize } from '../localize/localize.js';
 import imageStyle from '../scss/image.scss';
+import { CameraConfig, ImageViewConfig } from '../types.js';
+import { shouldUpdateBasedOnHass } from '../utils/ha';
+import { dispatchMediaShowEvent } from '../utils/media-info.js';
+import { View } from '../view.js';
+import { dispatchErrorMessageEvent } from './message.js';
 
 // See: https://github.com/home-assistant/core/blob/dev/homeassistant/components/camera/__init__.py#L101
 const HASS_REJECTION_CUTOFF_MS = 5 * 60 * 1000;
@@ -41,7 +36,7 @@ export class FrigateCardImage extends LitElement {
   @state()
   protected _imageConfig?: ImageViewConfig;
 
-  protected _refImage: Ref<HTMLImageElement> = createRef() ;
+  protected _refImage: Ref<HTMLImageElement> = createRef();
 
   protected _cachedValueController?: CachedValueController<string>;
   protected _boundVisibilityHandler = this._visibilityHandler.bind(this);

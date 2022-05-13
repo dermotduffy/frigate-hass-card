@@ -9,12 +9,11 @@
 // available as compilation time.
 // ====================================================================
 
-import { TemplateResult, css, html } from 'lit';
+import { css, html, TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
-
 import { FrigateCardMediaPlayer } from '../types.js';
-import { dispatchMediaShowEvent } from '../common.js';
+import { dispatchMediaShowEvent } from '../utils/media-info.js';
 
 customElements.whenDefined('ha-camera-stream').then(() => {
   // ========================================================================================

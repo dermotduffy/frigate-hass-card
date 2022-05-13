@@ -1,26 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { HomeAssistant } from 'custom-card-helpers';
 import {
+  css,
   CSSResultGroup,
+  html,
   LitElement,
   PropertyValues,
   TemplateResult,
-  css,
-  html,
-  unsafeCSS,
+  unsafeCSS
 } from 'lit';
-import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property } from 'lit/decorators.js';
-
-import { CameraConfig, GalleryConfig, frigateCardConfigDefaults } from '../types.js';
-import { BrowseMediaUtil } from '../browse-media-util.js';
-import { View } from '../view.js';
-import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
-import { renderProgressIndicator } from './message.js';
-import { stopEventFromActivatingCardWideActions } from '../common.js';
-
-import './thumbnail.js';
-
 import galleryStyle from '../scss/gallery.scss';
+import { CameraConfig, frigateCardConfigDefaults, GalleryConfig } from '../types.js';
+import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
+import { BrowseMediaUtil } from '../utils/ha/browse-media.js';
+import { View } from '../view.js';
+import { renderProgressIndicator } from './message.js';
+import './thumbnail.js';
+import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
 
 @customElement('frigate-card-gallery')
 export class FrigateCardGallery extends LitElement {

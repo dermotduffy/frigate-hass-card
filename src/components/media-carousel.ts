@@ -1,21 +1,18 @@
-import { CSSResultGroup, unsafeCSS } from 'lit';
 import { EmblaCarouselType } from 'embla-carousel';
-import { createRef, Ref } from 'lit/directives/ref.js';
+import { CSSResultGroup, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
-
-import { AutoMediaPluginType } from './embla-plugins/automedia.js';
-import { FrigateCardCarousel } from './carousel.js';
-import { FrigateCardNextPreviousControl } from './next-prev-control.js';
-import { FrigateCardTitleControl } from './title-control.js';
+import { createRef, Ref } from 'lit/directives/ref.js';
+import mediaCarouselStyle from '../scss/media-carousel.scss';
 import type { MediaShowInfo } from '../types.js';
 import {
   dispatchExistingMediaShowInfoAsEvent,
-  isValidMediaShowInfo,
-} from '../common.js';
-
+  isValidMediaShowInfo
+} from '../utils/media-info.js';
+import { FrigateCardCarousel } from './carousel.js';
+import { AutoMediaPluginType } from './embla-plugins/automedia.js';
 import './next-prev-control.js';
-
-import mediaCarouselStyle from '../scss/media-carousel.scss';
+import { FrigateCardNextPreviousControl } from './next-prev-control.js';
+import { FrigateCardTitleControl } from './title-control.js';
 
 const getEmptyImageSrc = (width: number, height: number) =>
   `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"%3E%3C/svg%3E`;

@@ -1,22 +1,16 @@
-import { BrowseMediaUtil } from '../browse-media-util.js';
-import { CSSResultGroup, TemplateResult, html, unsafeCSS, PropertyValues } from 'lit';
 import { EmblaOptionsType } from 'embla-carousel';
-import { classMap } from 'lit/directives/class-map.js';
+import { CSSResultGroup, html, PropertyValues, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
-
-import type { FrigateBrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
-import { FrigateCardCarousel } from './carousel.js';
-import { View } from '../view.js';
-import {
-  contentsChanged,
-  dispatchFrigateCardEvent,
-  stopEventFromActivatingCardWideActions,
-} from '../common.js';
-
-import './thumbnail.js';
-
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
+import type { FrigateBrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
+import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
+import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
+import { BrowseMediaUtil } from '../utils/ha/browse-media.js';
+import { View } from '../view.js';
+import { FrigateCardCarousel } from './carousel.js';
+import './thumbnail.js';
 
 export interface ThumbnailCarouselTap {
   slideIndex: number;

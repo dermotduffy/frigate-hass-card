@@ -1,38 +1,34 @@
+import { HASSDomEvent, HomeAssistant } from 'custom-card-helpers';
 import {
   CSSResultGroup,
-  LitElement,
-  TemplateResult,
   html,
-  unsafeCSS,
+  LitElement,
   PropertyValues,
+  TemplateResult,
+  unsafeCSS
 } from 'lit';
-import { HASSDomEvent, HomeAssistant } from 'custom-card-helpers';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { styleMap } from 'lit/directives/style-map.js';
-
 import { actionHandler } from '../action-handler-directive.js';
-
-import './submenu.js';
-
+import menuStyle from '../scss/menu.scss';
 import type {
   ActionsConfig,
   ActionType,
   MenuButton,
   MenuConfig,
   MenuItem,
-  StateParameters,
+  StateParameters
 } from '../types.js';
 import {
   convertActionToFrigateCardCustomAction,
   frigateCardHandleActionConfig,
   frigateCardHasAction,
-  getActionConfigGivenAction,
-  refreshDynamicStateParameters,
-} from '../common.js';
-
-import menuStyle from '../scss/menu.scss';
+  getActionConfigGivenAction
+} from '../utils/action.js';
+import { refreshDynamicStateParameters } from '../utils/ha';
+import './submenu.js';
 
 export const FRIGATE_BUTTON_MENU_ICON = 'frigate';
 export const FRIGATE_ICON_FILLED =

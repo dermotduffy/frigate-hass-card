@@ -1,29 +1,25 @@
 import type { Corner } from '@material/mwc-menu';
+import { HomeAssistant } from 'custom-card-helpers';
 import {
   CSSResultGroup,
   html,
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS,
+  unsafeCSS
 } from 'lit';
-import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property } from 'lit/decorators.js';
-
-import {
-  frigateCardHasAction,
-  refreshDynamicStateParameters,
-  shouldUpdateBasedOnHass,
-  stopEventFromActivatingCardWideActions,
-} from '../common.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { styleMap } from 'lit/directives/style-map.js';
-
-import { MenuSubmenu, MenuSubmenuItem, MenuSubmenuSelect } from '../types.js';
 import { actionHandler } from '../action-handler-directive.js';
-import { domainIcon } from '../icons/domain-icon.js';
-
 import submenuStyle from '../scss/submenu.scss';
+import { MenuSubmenu, MenuSubmenuItem, MenuSubmenuSelect } from '../types.js';
+import {
+  frigateCardHasAction,
+  stopEventFromActivatingCardWideActions
+} from '../utils/action.js';
+import { refreshDynamicStateParameters, shouldUpdateBasedOnHass } from '../utils/ha';
+import { domainIcon } from '../utils/icons/domain-icon.js';
 
 @customElement('frigate-card-submenu')
 export class FrigateCardSubmenu extends LitElement {

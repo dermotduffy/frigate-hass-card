@@ -1,21 +1,20 @@
 import { HomeAssistant } from 'custom-card-helpers';
-
+import { homeAssistantWSRequest } from '.';
 import {
-  BrowseMediaQueryParameters,
-  FrigateBrowseMediaSource,
-  CameraConfig,
-  MEDIA_CLASS_PLAYLIST,
-  MEDIA_TYPE_PLAYLIST,
-} from './types.js';
-import { View } from './view.js';
-import { frigateBrowseMediaSourceSchema } from './types.js';
+    dispatchErrorMessageEvent,
+    dispatchMessageEvent
+} from '../../components/message.js';
+import { localize } from '../../localize/localize.js';
 import {
-  dispatchErrorMessageEvent,
-  dispatchMessageEvent,
-  getCameraTitle,
-  homeAssistantWSRequest,
-} from './common.js';
-import { localize } from './localize/localize.js';
+    BrowseMediaQueryParameters,
+    CameraConfig,
+    FrigateBrowseMediaSource,
+    frigateBrowseMediaSourceSchema,
+    MEDIA_CLASS_PLAYLIST,
+    MEDIA_TYPE_PLAYLIST
+} from '../../types.js';
+import { View } from '../../view.js';
+import { getCameraTitle } from '../camera.js';
 
 export class BrowseMediaUtil {
   /**

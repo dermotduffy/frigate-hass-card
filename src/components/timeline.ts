@@ -1,11 +1,17 @@
+import { HomeAssistant } from 'custom-card-helpers';
+import { add, fromUnixTime, sub } from 'date-fns';
 import {
   CSSResultGroup,
-  LitElement,
-  TemplateResult,
   html,
-  unsafeCSS,
+  LitElement,
   PropertyValues,
+  TemplateResult,
+  unsafeCSS
 } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
+import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { isEqual } from 'lodash-es';
 import { DataSet } from 'vis-data/esnext';
 import {
   DataGroupCollectionType,
@@ -14,38 +20,26 @@ import {
   TimelineItem,
   TimelineOptions,
   TimelineOptionsCluster,
-  TimelineWindow,
+  TimelineWindow
 } from 'vis-timeline/esnext';
-import { HomeAssistant } from 'custom-card-helpers';
-import { classMap } from 'lit/directives/class-map.js';
-import { customElement, property } from 'lit/decorators.js';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
-import { add, fromUnixTime, sub } from 'date-fns';
-import { isEqual } from 'lodash-es';
-
-import { BrowseMediaUtil } from '../browse-media-util';
+import { CAMERA_BIRDSEYE } from '../const';
+import { localize } from '../localize/localize';
+import timelineCoreStyle from '../scss/timeline-core.scss';
+import timelineStyle from '../scss/timeline.scss';
 import {
   BrowseMediaQueryParameters,
   CameraConfig,
   FrigateBrowseMediaSource,
-  TimelineConfig,
-  FrigateEvent,
   frigateCardConfigDefaults,
+  FrigateEvent,
+  TimelineConfig
 } from '../types';
-import { CAMERA_BIRDSEYE } from '../const';
+import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
+import { dispatchFrigateCardEvent } from '../utils/basic.js';
+import { getCameraTitle } from '../utils/camera.js';
+import { BrowseMediaUtil } from '../utils/ha/browse-media.js';
 import { View, ViewContext } from '../view';
-import {
-  dispatchErrorMessageEvent,
-  dispatchFrigateCardEvent,
-  dispatchMessageEvent,
-  getCameraTitle,
-  stopEventFromActivatingCardWideActions,
-} from '../common.js';
-import { localize } from '../localize/localize';
-
-import timelineCoreStyle from '../scss/timeline-core.scss';
-import timelineStyle from '../scss/timeline.scss';
-
+import { dispatchErrorMessageEvent, dispatchMessageEvent } from './message.js';
 import './surround-thumbnails.js';
 
 const TIMELINE_EVENT_MANAGER_MAX_AGE_SECONDS = 10;

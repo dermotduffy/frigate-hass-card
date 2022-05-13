@@ -1,18 +1,15 @@
-import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
+import { fireEvent, HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
+import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-
-import { HomeAssistant, LovelaceCardEditor, fireEvent } from 'custom-card-helpers';
-import { localize } from './localize/localize.js';
 import {
-  BUTTON_SIZE_MIN,
-  FRIGATE_MENU_PRIORITY_MAX,
-  RawFrigateCardConfig,
-  RawFrigateCardConfigArray,
-  THUMBNAIL_WIDTH_MAX,
-  THUMBNAIL_WIDTH_MIN,
-  frigateCardConfigDefaults,
-} from './types.js';
-
+  copyConfig,
+  deleteConfigValue,
+  getArrayConfigPath,
+  getConfigValue,
+  isConfigUpgradeable,
+  setConfigValue,
+  upgradeConfig,
+} from './config-mgmt.js';
 import {
   CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
@@ -89,23 +86,20 @@ import {
   CONF_VIEW_UPDATE_FORCE,
   CONF_VIEW_UPDATE_SECONDS,
 } from './const.js';
-import {
-  arrayMove,
-  getCameraID,
-  getCameraTitle,
-  sideLoadHomeAssistantElements,
-} from './common.js';
-import {
-  copyConfig,
-  deleteConfigValue,
-  getArrayConfigPath,
-  getConfigValue,
-  isConfigUpgradeable,
-  setConfigValue,
-  upgradeConfig,
-} from './config-mgmt.js';
-
+import { localize } from './localize/localize.js';
 import frigate_card_editor_style from './scss/editor.scss';
+import {
+  BUTTON_SIZE_MIN,
+  frigateCardConfigDefaults,
+  FRIGATE_MENU_PRIORITY_MAX,
+  RawFrigateCardConfig,
+  RawFrigateCardConfigArray,
+  THUMBNAIL_WIDTH_MAX,
+  THUMBNAIL_WIDTH_MIN,
+} from './types.js';
+import { arrayMove } from './utils/basic.js';
+import { getCameraID, getCameraTitle } from './utils/camera.js';
+import { sideLoadHomeAssistantElements } from './utils/ha';
 
 const MENU_BUTTONS = 'buttons';
 const MENU_CAMERAS = 'cameras';
@@ -1006,12 +1000,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 })}
               </div>
               <div class="submenu">
-                ${this._renderMenuButton('frigate')}
-                ${this._renderMenuButton('live')}
-                ${this._renderMenuButton('clips')}
-                ${this._renderMenuButton('snapshots')}
-                ${this._renderMenuButton('image')}
-                ${this._renderMenuButton('download')}
+                ${this._renderMenuButton('frigate')} ${this._renderMenuButton('live')}
+                ${this._renderMenuButton('clips')} ${this._renderMenuButton('snapshots')}
+                ${this._renderMenuButton('image')} ${this._renderMenuButton('download')}
                 ${this._renderMenuButton('frigate_ui')}
                 ${this._renderMenuButton('fullscreen')}
                 ${this._renderMenuButton('timeline')}

@@ -1,23 +1,20 @@
-import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import { HomeAssistant } from 'custom-card-helpers';
 import { Task } from '@lit-labs/task';
+import { HomeAssistant } from 'custom-card-helpers';
+import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-
-import { BrowseMediaUtil } from '../browse-media-util.js';
+import surroundThumbnailsStyle from '../scss/surround.scss';
 import {
   BrowseMediaQueryParameters,
   FrigateBrowseMediaSource,
   FrigateCardView,
-  ThumbnailsControlConfig,
+  ThumbnailsControlConfig
 } from '../types.js';
-
-import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
+import { dispatchFrigateCardEvent } from '../utils/basic.js';
+import { BrowseMediaUtil } from '../utils/ha/browse-media.js';
 import { View } from '../view.js';
-import { dispatchErrorMessageEvent, dispatchFrigateCardEvent } from '../common.js';
-
+import { dispatchErrorMessageEvent } from './message.js';
 import './surround.js';
-
-import surroundThumbnailsStyle from '../scss/surround.scss';
+import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 
 @customElement('frigate-card-surround-thumbnails')
 export class FrigateCardSurround extends LitElement {
@@ -71,7 +68,10 @@ export class FrigateCardSurround extends LitElement {
     }
     let parent: FrigateBrowseMediaSource | null;
     try {
-      parent = await BrowseMediaUtil.multipleBrowseMediaQueryMerged(this.hass, browseMediaParams);
+      parent = await BrowseMediaUtil.multipleBrowseMediaQueryMerged(
+        this.hass,
+        browseMediaParams,
+      );
     } catch (e) {
       return dispatchErrorMessageEvent(this, (e as Error).message);
     }

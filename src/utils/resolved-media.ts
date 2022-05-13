@@ -1,25 +1,24 @@
 import { HomeAssistant } from 'custom-card-helpers';
-import { homeAssistantWSRequest } from './common.js';
-import {
-  FrigateBrowseMediaSource,
-  ResolvedMedia,
-  resolvedMediaSchema,
-} from './types.js';
 import QuickLRU from 'quick-lru';
+import {
+    FrigateBrowseMediaSource,
+    ResolvedMedia,
+    resolvedMediaSchema
+} from '../types.js';
+import { homeAssistantWSRequest } from './ha';
 
 // It's important the cache size be at least as large as the largest likely
 // media query or media items will from a given query will be evicted for other
 // items in the same query (which would result in only partial results being
 // returned to the user).
-// Note: Each entry is about 400 bytes. 
-
-const RESOLVED_MEDIA_CACHE_SIZE = 1000; 
+// Note: Each entry is about 400 bytes.
+const RESOLVED_MEDIA_CACHE_SIZE = 1000;
 
 export class ResolvedMediaCache {
   protected _cache: QuickLRU<string, ResolvedMedia>;
 
   constructor() {
-    this._cache = new QuickLRU({maxSize: RESOLVED_MEDIA_CACHE_SIZE});
+    this._cache = new QuickLRU({ maxSize: RESOLVED_MEDIA_CACHE_SIZE });
   }
 
   public has(id: string): boolean {

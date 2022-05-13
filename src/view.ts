@@ -1,5 +1,5 @@
 import type { FrigateBrowseMediaSource, FrigateCardView } from './types.js';
-import { dispatchFrigateCardEvent } from './common.js';
+import { dispatchFrigateCardEvent } from './utils/basic.js';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ViewContext {}
