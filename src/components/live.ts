@@ -1,60 +1,56 @@
+import JSMpeg from '@cycjimmy/jsmpeg-player';
+import { Task } from '@lit-labs/task';
+import { HomeAssistant } from 'custom-card-helpers';
+import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
 import {
   CSSResultGroup,
-  LitElement,
-  TemplateResult,
   html,
-  unsafeCSS,
+  LitElement,
   PropertyValues,
+  TemplateResult,
+  unsafeCSS
 } from 'lit';
-import {
-  ExtendedHomeAssistant,
-  CameraConfig,
-  JSMPEGConfig,
-  LiveConfig,
-  MediaShowInfo,
-  WebRTCCardConfig,
-  FrigateCardError,
-  FrigateCardMediaPlayer,
-  LiveOverrides,
-  LiveProvider,
-  TransitionEffect,
-  frigateCardConfigDefaults,
-} from '../types.js';
-import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
-import { HomeAssistant } from 'custom-card-helpers';
-import JSMpeg from '@cycjimmy/jsmpeg-player';
-import { Ref, createRef, ref } from 'lit/directives/ref.js';
-import { Task } from '@lit-labs/task';
 import { customElement, property, state } from 'lit/decorators.js';
+import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { until } from 'lit/directives/until.js';
-
-import { AutoMediaPlugin, AutoMediaPluginType } from './embla-plugins/automedia.js';
-import { BrowseMediaUtil } from '../browse-media-util.js';
 import { ConditionState, getOverriddenConfig } from '../card-condition.js';
-import { FrigateCardMediaCarousel } from './media-carousel.js';
-import { FrigateCardNextPreviousControl } from './next-prev-control.js';
-import { Lazyload } from './embla-plugins/lazyload.js';
-import { View } from '../view.js';
-import { localize } from '../localize/localize.js';
-import {
-  contentsChanged,
-  dispatchErrorMessageEvent,
-  dispatchExistingMediaShowInfoAsEvent,
-  dispatchMediaShowEvent,
-  getCameraIcon,
-  getCameraTitle,
-  homeAssistantSignPath,
-  stopEventFromActivatingCardWideActions,
-} from '../common.js';
 import { renderProgressIndicator } from '../components/message.js';
-
-import './next-prev-control.js';
-import './title-control.js';
-
-import liveStyle from '../scss/live.scss';
+import { localize } from '../localize/localize.js';
 import liveFrigateStyle from '../scss/live-frigate.scss';
 import liveJSMPEGStyle from '../scss/live-jsmpeg.scss';
 import liveWebRTCStyle from '../scss/live-webrtc.scss';
+import liveStyle from '../scss/live.scss';
+import {
+  CameraConfig,
+  ExtendedHomeAssistant,
+  frigateCardConfigDefaults,
+  FrigateCardError,
+  FrigateCardMediaPlayer,
+  JSMPEGConfig,
+  LiveConfig,
+  LiveOverrides,
+  LiveProvider,
+  MediaShowInfo,
+  TransitionEffect,
+  WebRTCCardConfig
+} from '../types.js';
+import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
+import { contentsChanged } from '../utils/basic.js';
+import { getCameraIcon, getCameraTitle } from '../utils/camera.js';
+import { homeAssistantSignPath } from '../utils/ha';
+import { getFullDependentBrowseMediaQueryParameters } from '../utils/ha/browse-media.js';
+import {
+  dispatchExistingMediaShowInfoAsEvent,
+  dispatchMediaShowEvent
+} from '../utils/media-info.js';
+import { View } from '../view.js';
+import { AutoMediaPlugin, AutoMediaPluginType } from './embla-plugins/automedia.js';
+import { Lazyload } from './embla-plugins/lazyload.js';
+import { FrigateCardMediaCarousel } from './media-carousel.js';
+import { dispatchErrorMessageEvent } from './message.js';
+import './next-prev-control.js';
+import { FrigateCardNextPreviousControl } from './next-prev-control.js';
+import './title-control.js';
 
 // Number of seconds a signed URL is valid for.
 const URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -129,7 +125,7 @@ export class FrigateCardLive extends LitElement {
     // Does not use getFullDependentBrowseMediaQueryParametersOrDispatchError to
     // ensure that non-Frigate cameras will work in live view (they will not
     // have a Frigate camera name).
-    const browseMediaParams = BrowseMediaUtil.getFullDependentBrowseMediaQueryParameters(
+    const browseMediaParams = getFullDependentBrowseMediaQueryParameters(
       this.hass,
       this.cameras,
       this.view.camera,

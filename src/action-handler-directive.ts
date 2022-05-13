@@ -1,17 +1,16 @@
+import { fireEvent } from 'custom-card-helpers';
+import type {
+  ActionHandlerDetail,
+  ActionHandlerOptions
+} from 'custom-card-helpers/dist/types.d.js';
 import { noChange } from 'lit';
 import {
   AttributePart,
   directive,
   Directive,
-  DirectiveParameters,
+  DirectiveParameters
 } from 'lit/directive.js';
-
-import type {
-  ActionHandlerDetail,
-  ActionHandlerOptions,
-} from 'custom-card-helpers/dist/types.d.js';
-import { fireEvent } from 'custom-card-helpers';
-import { stopEventFromActivatingCardWideActions } from './common';
+import { stopEventFromActivatingCardWideActions } from './utils/action.js';
 
 interface ActionHandler extends HTMLElement {
   holdTime: number;

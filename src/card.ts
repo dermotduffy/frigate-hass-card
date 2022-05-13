@@ -1,98 +1,94 @@
+import { getLovelace, HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
 import {
   CSSResultGroup,
+  html,
   LitElement,
   PropertyValues,
   TemplateResult,
-  html,
-  unsafeCSS,
+  unsafeCSS
 } from 'lit';
-import { HomeAssistant, LovelaceCardEditor, getLovelace } from 'custom-card-helpers';
-import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
-import screenfull from 'screenfull';
-import { throttle } from 'lodash-es';
+import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
 import { until } from 'lit/directives/until.js';
+import { throttle } from 'lodash-es';
+import screenfull from 'screenfull';
 import { z } from 'zod';
-
+import { actionHandler } from './action-handler-directive.js';
 import {
-  Actions,
-  ActionType,
-  CameraConfig,
-  FrigateCardView,
-  FrigateCardCustomAction,
-  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
-  RawFrigateCardConfig,
-  entitySchema,
-  frigateCardConfigSchema,
-} from './types.js';
+  ConditionState,
+  conditionStateRequestHandler,
+  getOverriddenConfig,
+  getOverridesByKey
+} from './card-condition.js';
+import './components/elements.js';
+import { FrigateCardElements } from './components/elements.js';
+import './components/gallery.js';
+import './components/image.js';
+import { FrigateCardImage } from './components/image.js';
+import './components/live.js';
+import './components/menu.js';
+import { FrigateCardMenu, FRIGATE_BUTTON_MENU_ICON } from './components/menu.js';
+import './components/message.js';
+import { renderMessage, renderProgressIndicator } from './components/message.js';
+import './components/thumbnail-carousel.js';
+import './components/timeline.js';
+import './components/viewer.js';
+import { isConfigUpgradeable } from './config-mgmt.js';
+import {
+  CAMERA_BIRDSEYE,
+  CARD_VERSION,
+  MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
+  REPO_URL
+} from './const.js';
+import './editor.js';
+import { localize } from './localize/localize.js';
+import './patches/ha-camera-stream.js';
+import './patches/ha-hls-player.js';
+import './patches/ha-web-rtc-player.ts';
+import cardStyle from './scss/card.scss';
 import type {
   Entity,
   ExtendedHomeAssistant,
   FrigateCardConfig,
   MediaShowInfo,
   MenuButton,
-  Message,
+  Message
 } from './types.js';
-
 import {
-  CAMERA_BIRDSEYE,
-  CARD_VERSION,
-  MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
-  REPO_URL,
-} from './const.js';
-import { FrigateCardElements } from './components/elements.js';
-import { FrigateCardImage } from './components/image.js';
-import { FRIGATE_BUTTON_MENU_ICON, FrigateCardMenu } from './components/menu.js';
-import { View } from './view.js';
+  Actions,
+  ActionType,
+  CameraConfig,
+  entitySchema,
+  frigateCardConfigSchema,
+  FrigateCardCustomAction,
+  FrigateCardView,
+  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
+  RawFrigateCardConfig
+} from './types.js';
 import {
-  contentsChanged,
   convertActionToFrigateCardCustomAction,
   createFrigateCardCustomAction,
   frigateCardHandleAction,
   frigateCardHasAction,
-  getActionConfigGivenAction,
-  getCameraIcon,
-  getCameraID,
-  getCameraTitle,
+  getActionConfigGivenAction
+} from './utils/action.js';
+import { contentsChanged } from './utils/basic.js';
+import { getCameraIcon, getCameraID, getCameraTitle } from './utils/camera.js';
+import {
   getEntityIcon,
   getEntityTitle,
   homeAssistantSignPath,
   homeAssistantWSRequest,
-  isValidMediaShowInfo,
   shouldUpdateBasedOnHass,
-  sideLoadHomeAssistantElements,
-} from './common.js';
-import { localize } from './localize/localize.js';
-import { renderMessage, renderProgressIndicator } from './components/message.js';
-
-import './editor.js';
-import './components/elements.js';
-import './components/gallery.js';
-import './components/image.js';
-import './components/live.js';
-import './components/menu.js';
-import './components/message.js';
-import './components/viewer.js';
-import './components/thumbnail-carousel.js';
-import './components/timeline.js';
-import './patches/ha-camera-stream.js';
-import './patches/ha-hls-player.js';
-import './patches/ha-web-rtc-player.ts';
-
-import cardStyle from './scss/card.scss';
-import { ResolvedMediaCache } from './resolved-media.js';
-import { BrowseMediaUtil } from './browse-media-util.js';
-import { isConfigUpgradeable } from './config-mgmt.js';
-import { actionHandler } from './action-handler-directive.js';
-import {
-  ConditionState,
-  conditionStateRequestHandler,
-  getOverriddenConfig,
-  getOverridesByKey,
-} from './card-condition.js';
-import { supportsFeature } from './icons/update.js';
+  sideLoadHomeAssistantElements
+} from './utils/ha';
+import { getEventID } from './utils/ha/browse-media.js';
+import { supportsFeature } from './utils/ha/update.js';
+import { isValidMediaShowInfo } from './utils/media-info.js';
+import { ResolvedMediaCache } from './utils/resolved-media.js';
+import { View } from './view.js';
 
 /** A note on media callbacks:
  *
@@ -919,7 +915,7 @@ export class FrigateCard extends LitElement {
       });
       return;
     }
-    const event_id = BrowseMediaUtil.getEventID(this._view.media);
+    const event_id = getEventID(this._view.media);
     if (!event_id) {
       this._setMessageAndUpdate({
         message: localize('error.download_no_event_id'),

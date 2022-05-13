@@ -1,26 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { HomeAssistant } from 'custom-card-helpers';
 import {
+  css,
   CSSResultGroup,
+  html,
   LitElement,
   PropertyValues,
   TemplateResult,
-  css,
-  html,
-  unsafeCSS,
+  unsafeCSS
 } from 'lit';
-import { HomeAssistant } from 'custom-card-helpers';
 import { customElement, property } from 'lit/decorators.js';
-
-import { CameraConfig, GalleryConfig, frigateCardConfigDefaults } from '../types.js';
-import { BrowseMediaUtil } from '../browse-media-util.js';
-import { View } from '../view.js';
-import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
-import { renderProgressIndicator } from './message.js';
-import { stopEventFromActivatingCardWideActions } from '../common.js';
-
-import './thumbnail.js';
-
 import galleryStyle from '../scss/gallery.scss';
+import { CameraConfig, frigateCardConfigDefaults, GalleryConfig } from '../types.js';
+import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
+import {
+  fetchChildMediaAndDispatchViewChange,
+  fetchLatestMediaAndDispatchViewChange,
+  getFullDependentBrowseMediaQueryParametersOrDispatchError
+} from '../utils/ha/browse-media';
+import { View } from '../view.js';
+import { renderProgressIndicator } from './message.js';
+import './thumbnail.js';
+import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
 
 @customElement('frigate-card-gallery')
 export class FrigateCardGallery extends LitElement {
@@ -54,7 +55,7 @@ export class FrigateCardGallery extends LitElement {
 
     if (!this.view.target) {
       const browseMediaQueryParameters =
-        BrowseMediaUtil.getFullDependentBrowseMediaQueryParametersOrDispatchError(
+        getFullDependentBrowseMediaQueryParametersOrDispatchError(
           this,
           this.hass,
           this.cameras,
@@ -66,7 +67,7 @@ export class FrigateCardGallery extends LitElement {
         return;
       }
 
-      BrowseMediaUtil.fetchLatestMediaAndDispatchViewChange(
+      fetchLatestMediaAndDispatchViewChange(
         this,
         this.hass,
         this.view,
@@ -219,7 +220,7 @@ export class FrigateCardGalleryCore extends LitElement {
                   <ha-card
                     @click=${(ev) => {
                       if (this.hass && this.view) {
-                        BrowseMediaUtil.fetchChildMediaAndDispatchViewChange(
+                        fetchChildMediaAndDispatchViewChange(
                           this,
                           this.hass,
                           this.view,

@@ -46,3 +46,13 @@ export function deepRemoveDefaults<T extends z.ZodTypeAny>(schema: T): any {
   }
   return schema;
 }
+
+/**
+ * Get the keys that didn't parse from a ZodError.
+ * @param error The zoderror to extract the keys from.
+ * @returns An array of error keys.
+ */
+export function getParseErrorKeys<T>(error: z.ZodError<T>): string[] {
+  const errors = error.format();
+  return Object.keys(errors).filter((v) => !v.startsWith('_'));
+}

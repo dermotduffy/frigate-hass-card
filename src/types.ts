@@ -1,4 +1,3 @@
-import { StyleInfo } from 'lit/directives/style-map.js';
 import {
   CallServiceActionConfig,
   ConfirmationRestrictionConfig,
@@ -12,11 +11,11 @@ import {
   NoActionConfig,
   Themes,
   ToggleActionConfig,
-  UrlActionConfig,
+  UrlActionConfig
 } from 'custom-card-helpers';
+import { StyleInfo } from 'lit/directives/style-map.js';
 import { z } from 'zod';
-
-import { deepRemoveDefaults } from './zod-util';
+import { deepRemoveDefaults } from './utils/zod.js';
 
 // The min allowed size of buttons.
 export const BUTTON_SIZE_MIN = 20;
@@ -1156,7 +1155,7 @@ export interface FrigateCardMediaPlayer {
 export interface CardHelpers {
   createCardElement(config: LovelaceCardConfig): Promise<{
     constructor: {
-      getConfigElement(): HTMLElement
+      getConfigElement(): HTMLElement;
     };
   }>;
 }

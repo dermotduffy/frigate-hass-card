@@ -1,18 +1,14 @@
-import { CSSResult, TemplateResult, html, unsafeCSS, LitElement } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
 import { format, fromUnixTime } from 'date-fns';
-
-import type { FrigateBrowseMediaSource, FrigateEvent } from '../types.js';
-import { View } from '../view.js';
-import {
-  getEventDurationString,
-  prettifyFrigateName,
-  stopEventFromActivatingCardWideActions,
-} from '../common.js';
+import { CSSResult, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 import { localize } from '../localize/localize.js';
-
-import thumbnailStyle from '../scss/thumbnail.scss';
 import thumbnailDetailsStyle from '../scss/thumbnail-details.scss';
+import thumbnailStyle from '../scss/thumbnail.scss';
+import type { FrigateBrowseMediaSource, FrigateEvent } from '../types.js';
+import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
+import { prettifyTitle } from '../utils/basic.js';
+import { getEventDurationString } from '../utils/ha/browse-media.js';
+import { View } from '../view.js';
 
 // The minimum width of a thumbnail with details enabled.
 export const THUMBNAIL_DETAILS_WIDTH_MIN = 300;
@@ -28,14 +24,14 @@ export class FrigateCardThumbnailDetails extends LitElement {
     }
     const score = (this.event.top_score * 100).toFixed(2) + '%';
     return html`<div class="left">
-        <div class="larger">${prettifyFrigateName(this.event.label)}</div>
+        <div class="larger">${prettifyTitle(this.event.label)}</div>
         <div>
-            <span class="heading">${localize('event.start')}:</span>
-            <span>${format(fromUnixTime(this.event.start_time), 'HH:mm:ss')}</span>
+          <span class="heading">${localize('event.start')}:</span>
+          <span>${format(fromUnixTime(this.event.start_time), 'HH:mm:ss')}</span>
         </div>
         <div>
-            <span class="heading">${localize('event.duration')}:</span>
-            <span>${getEventDurationString(this.event)}</span>
+          <span class="heading">${localize('event.duration')}:</span>
+          <span>${getEventDurationString(this.event)}</span>
         </div>
       </div>
       <div class="right">
