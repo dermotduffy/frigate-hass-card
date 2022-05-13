@@ -7,7 +7,7 @@ import thumbnailStyle from '../scss/thumbnail.scss';
 import type { FrigateBrowseMediaSource, FrigateEvent } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { prettifyTitle } from '../utils/basic.js';
-import { getEventDurationString } from '../utils/frigate.js';
+import { getEventDurationString } from '../utils/ha/browse-media.js';
 import { View } from '../view.js';
 
 // The minimum width of a thumbnail with details enabled.
