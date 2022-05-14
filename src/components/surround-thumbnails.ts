@@ -1,6 +1,12 @@
-import { Task } from '@lit-labs/task';
 import { HomeAssistant } from 'custom-card-helpers';
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  CSSResultGroup,
+  html,
+  LitElement,
+  PropertyValues,
+  TemplateResult,
+  unsafeCSS
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import surroundThumbnailsStyle from '../scss/surround.scss';
 import {
@@ -9,7 +15,7 @@ import {
   FrigateCardView,
   ThumbnailsControlConfig
 } from '../types.js';
-import { dispatchFrigateCardEvent } from '../utils/basic.js';
+import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
 import {
   getFirstTrueMediaChildIndex,
   multipleBrowseMediaQueryMerged
@@ -36,16 +42,10 @@ export class FrigateCardSurround extends LitElement {
   @property({ attribute: true, type: Boolean })
   protected fetch?: boolean;
 
-  @property({ attribute: false })
+  @property({ attribute: false, hasChanged: contentsChanged })
   protected browseMediaParams?:
     | BrowseMediaQueryParameters
     | BrowseMediaQueryParameters[];
-
-  protected _browseTask = new Task(this, this._fetchMedia.bind(this), () => [
-    this.view,
-    this.browseMediaParams,
-    this.fetch,
-  ]);
 
   /**
    * Fetch thumbnail media when a target is not specified in the view (e.g. for
@@ -53,25 +53,21 @@ export class FrigateCardSurround extends LitElement {
    * @param param Task parameters.
    * @returns
    */
-  protected async _fetchMedia([view, browseMediaParams, fetch]: (
-    | Readonly<View>
-    | BrowseMediaQueryParameters
-    | BrowseMediaQueryParameters[]
-    | boolean
-    | undefined
-  )[]): Promise<void> {
-    view = view as Readonly<View>;
-    browseMediaParams = browseMediaParams as
-      | BrowseMediaQueryParameters
-      | BrowseMediaQueryParameters[];
-    fetch = fetch as boolean;
-
-    if (!fetch || !this.hass || !view || view.target || !browseMediaParams) {
+  protected async _fetchMedia(): Promise<void> {
+    if (
+      !fetch ||
+      !this.hass ||
+      !this.view ||
+      !this.config ||
+      this.config.mode === 'none' ||
+      this.view.target ||
+      !this.browseMediaParams
+    ) {
       return;
     }
     let parent: FrigateBrowseMediaSource | null;
     try {
-      parent = await multipleBrowseMediaQueryMerged(this.hass, browseMediaParams);
+      parent = await multipleBrowseMediaQueryMerged(this.hass, this.browseMediaParams);
     } catch (e) {
       return dispatchErrorMessageEvent(this, (e as Error).message);
     }
@@ -95,6 +91,22 @@ export class FrigateCardSurround extends LitElement {
    */
   protected _hasDrawer(): boolean {
     return !!this.config && ['left', 'right'].includes(this.config.mode);
+  }
+
+  /**
+   * Called before each update.
+   */
+  protected willUpdate(changedProperties: PropertyValues): void {
+    // Once the component will certainly update, dispatch a media request. Only
+    // do so if properties relevant to the request have changed (as per their
+    // hasChanged).
+    if (
+      ['view', 'targetView', 'fetch', 'browseMediaParams'].some((prop) =>
+        changedProperties.has(prop),
+      )
+    ) {
+      this._fetchMedia();
+    }
   }
 
   /**
@@ -123,7 +135,7 @@ export class FrigateCardSurround extends LitElement {
       @frigate-card:thumbnails:open=${(ev: CustomEvent) => changeDrawer(ev, 'open')}
       @frigate-card:thumbnails:close=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
     >
-      ${this.config?.mode !== 'none'
+      ${this.config && this.config.mode !== 'none'
         ? html` <frigate-card-thumbnail-carousel
             slot=${this.config.mode}
             .config=${this.config}
