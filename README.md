@@ -48,6 +48,11 @@ See more [screenshots](#screenshots) below.
 Home Assistant > HACS > Frontend > "Explore & Add Integrations" > Frigate Card
 ```
 
+* Click `Download this repository with HACS`.
+
+#### Lovelace YAML users
+If Lovelace is in YAML mode then there's an additional step required to load the resource into your browser. (This mode is not the default -- you would see`mode: yaml` under `lovelace:` in your `configuration.yaml` if this applies  to you), 
+
 * Add the following to `configuration.yaml` (note that `/hacsfiles/` is just an [optimized equivalent](https://hacs.xyz/docs/categories/plugins#custom-view-hacsfiles) of `/local/community/` that HACS natively supports):
 
 ```yaml
