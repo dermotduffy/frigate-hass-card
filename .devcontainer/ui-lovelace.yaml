@@ -1,7 +1,6 @@
-resources:
-  - url: http://127.0.0.1:5000/frigate-card.js
-    type: module
 views:
   - cards:
       - type: custom:frigate-card
         name: Frigate Card Development
+        cameras:
+          - camera_entity: camera.demo_camera

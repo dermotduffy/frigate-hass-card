@@ -73,8 +73,8 @@
     "typescript": "^4.6.2"
   },
   "scripts": {
-    "start": "rollup -c rollup.config.dev.js --watch",
-    "build": "npm run lint && npm run rollup",
+    "start": "rollup -c --watch",
+    "build": "yarn run lint && yarn run rollup",
     "lint": "eslint 'src/**/*.ts'",
     "rollup": "rollup -c"
   }
