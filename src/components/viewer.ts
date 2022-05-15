@@ -274,7 +274,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     return {
       // Start the carousel on the selected child number.
       startIndex: this._getSlideForChild(this.view?.childIndex) ?? 0,
-      draggable: this.viewerConfig?.draggable,
+      draggable: this.viewerConfig?.draggable ?? true,
     };
   }
 
