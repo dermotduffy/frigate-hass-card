@@ -187,9 +187,9 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
    * @param direction The direction requested, previous or next.
    */
   protected _nextPreviousHandler(direction: 'previous' | 'next'): void {
-    if (direction == 'previous') {
+    if (direction === 'previous') {
       this._carousel?.scrollPrev(this._getTransitionEffect() === 'none');
-    } else if (direction == 'next') {
+    } else if (direction === 'next') {
       this._carousel?.scrollNext(this._getTransitionEffect() === 'none');
     }
   }
@@ -237,40 +237,16 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     // isValidMediaShowInfo is used to prevent saving media info that will be
     // rejected upstream (empty 1x1 images will be rejected here).
     if (mediaShowInfo && isValidMediaShowInfo(mediaShowInfo)) {
-      this._mediaShowInfo[slideIndex] = mediaShowInfo;
-      if (this._carousel && this._carousel?.selectedScrollSnap() == slideIndex) {
-        dispatchExistingMediaShowInfoAsEvent(this, mediaShowInfo);
+      if (!Object.keys(this._mediaShowInfo).length) {
+        // The carousel will be malformed on Safari unless we re-init the
+        // carousel after the first media load. The original options are
+        // included here, although this should not be necessary (without
+        // including them, Safari ends up not having a looping live carousel).
+        this._carousel?.reInit(this._getOptions());
       }
-
-      /**
-       * Images need a width/height from initial load, and browsers will assume
-       * that the aspect ratio of the initial dummy-image load will persist. In
-       * lazy-loading, this can cause a 1x1 pixel dummy image to cause the
-       * browser to assume all images will be square, so the whole carousel will
-       * have the wrong aspect-ratio until every single image has been lazily
-       * loaded. Adaptive height helps in that the carousel gets resized on each
-       * img display to the correct size, but it still causes a minor noticeable
-       * flicker until the height change is complete.
-       *
-       * To avoid this, we use a 16:9 dummy image at first (most
-       * likely?) and once the first piece of real media has been loaded, all
-       * dummy images are replaced with dummy images that match the aspect ratio
-       * of the real image. It still might be wrong, but it's the best option
-       * available.
-       */
-      const firstMediaLoad = !Object.keys(this._mediaShowInfo).length;
-      if (firstMediaLoad) {
-        const replacementImageSrc = getEmptyImageSrc(
-          mediaShowInfo.width,
-          mediaShowInfo.height,
-        );
-
-        this.renderRoot.querySelectorAll('.embla__container img').forEach((img) => {
-          const imageElement = img as HTMLImageElement;
-          if (imageElement.src === IMG_EMPTY) {
-            imageElement.src = replacementImageSrc;
-          }
-        });
+      this._mediaShowInfo[slideIndex] = mediaShowInfo;
+      if (this._carousel && this._carousel?.selectedScrollSnap() === slideIndex) {
+        dispatchExistingMediaShowInfoAsEvent(this, mediaShowInfo);
       }
     }
   }

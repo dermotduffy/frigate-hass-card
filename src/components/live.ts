@@ -72,7 +72,7 @@ export class FrigateCardLive extends LitElement {
   @property({ attribute: false })
   protected liveConfig?: LiveConfig;
 
-  @property({ attribute: false })
+  @property({ attribute: false, hasChanged: contentsChanged })
   protected liveOverrides?: LiveOverrides;
 
   @property({ attribute: false })
@@ -191,7 +191,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   @property({ attribute: false })
   protected liveConfig?: LiveConfig;
 
-  @property({ attribute: false })
+  @property({ attribute: false, hasChanged: contentsChanged })
   protected liveOverrides?: LiveOverrides;
 
   @property({ attribute: false })
@@ -275,13 +275,11 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
    * @returns An EmblaOptionsType object or undefined for no options.
    */
   protected _getOptions(): EmblaOptionsType {
-    let startIndex = -1;
-    if (this.cameras && this.view) {
-      startIndex = Array.from(this.cameras.keys()).indexOf(this.view.camera);
-    }
-
     return {
-      startIndex: startIndex < 0 ? undefined : startIndex,
+      startIndex:
+        this.cameras && this.view
+          ? Math.max(0, Array.from(this.cameras.keys()).indexOf(this.view.camera))
+          : 0,
       draggable: this.liveConfig?.draggable,
       loop: true,
     };
