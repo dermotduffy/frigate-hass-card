@@ -8,7 +8,7 @@ import {
   getConfigValue,
   isConfigUpgradeable,
   setConfigValue,
-  upgradeConfig,
+  upgradeConfig
 } from './config-mgmt.js';
 import {
   CONF_CAMERAS,
@@ -84,7 +84,7 @@ import {
   CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_CYCLE_CAMERA,
   CONF_VIEW_UPDATE_FORCE,
-  CONF_VIEW_UPDATE_SECONDS,
+  CONF_VIEW_UPDATE_SECONDS
 } from './const.js';
 import { localize } from './localize/localize.js';
 import frigate_card_editor_style from './scss/editor.scss';
@@ -95,7 +95,7 @@ import {
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
-  THUMBNAIL_WIDTH_MIN,
+  THUMBNAIL_WIDTH_MIN
 } from './types.js';
 import { arrayMove } from './utils/basic.js';
 import { getCameraID, getCameraTitle } from './utils/camera.js';
@@ -1000,9 +1000,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 })}
               </div>
               <div class="submenu">
-                ${this._renderMenuButton('frigate')} ${this._renderMenuButton('live')}
-                ${this._renderMenuButton('clips')} ${this._renderMenuButton('snapshots')}
-                ${this._renderMenuButton('image')} ${this._renderMenuButton('download')}
+                ${this._renderMenuButton('frigate') /* */}
+                ${this._renderMenuButton('cameras') /* */}
+                ${this._renderMenuButton('live') /* */}
+                ${this._renderMenuButton('clips') /* */}
+                ${this._renderMenuButton('snapshots')}
+                ${this._renderMenuButton('image') /* */}
+                ${this._renderMenuButton('download')}
                 ${this._renderMenuButton('frigate_ui')}
                 ${this._renderMenuButton('fullscreen')}
                 ${this._renderMenuButton('timeline')}
