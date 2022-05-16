@@ -1081,10 +1081,16 @@ export class FrigateCard extends LitElement {
             view: new View({
               view:
                 this._getConfig().view.camera_select === 'current'
-                  ? // Always go to live view when switching to a non-Frigate camera
+                  ? // When switching to a Frigate camera,
                     this._cameras?.get(camera)?.camera_name
+                    ? // always retain the current view.
+                      this._view.view
+                    : // But when switching to a non-Frigate camera,
+                    // only retain the current view if it's supported
+                    ['timeline', 'image', 'live'].includes(this._view.view)
                     ? this._view.view
-                    : 'live'
+                    : // And fallback to the live view otherwise.
+                      'live'
                   : (this._getConfig().view.camera_select as FrigateCardView),
               camera: camera,
             }),
