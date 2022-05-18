@@ -394,6 +394,10 @@ const cameraConfigSchema = z
 
     // Set of cameras IDs upon which this camera depends.
     dependent_cameras: z.string().array().optional(),
+
+    trigger_by_motion: z.boolean().optional(),
+    trigger_by_occupancy: z.boolean().optional(),
+    trigger_by_entities: z.string().array().optional(),
   })
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigSchema>;
@@ -498,6 +502,11 @@ const viewConfigDefault = {
   update_force: false,
   update_cycle_camera: false,
   dark_mode: 'off' as const,
+  scan: {
+    enabled: false,
+    trigger_min_seconds: 20,
+    trigger_show_border: true,
+  }
 };
 const viewConfigSchema = z
   .object({
@@ -514,6 +523,11 @@ const viewConfigSchema = z
     update_entities: z.string().array().optional(),
     render_entities: z.string().array().optional(),
     dark_mode: z.enum(['on', 'off', 'auto']).optional(),
+    scan: z.object({
+      enabled: z.boolean().default(viewConfigDefault.scan.enabled),
+      trigger_min_seconds: z.number().default(viewConfigDefault.scan.trigger_min_seconds),
+      trigger_show_border: z.boolean().default(viewConfigDefault.scan.trigger_show_border),
+    }).default(viewConfigDefault.scan)
   })
   .merge(actionsSchema)
   .default(viewConfigDefault);

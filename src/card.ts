@@ -79,9 +79,11 @@ import { getCameraIcon, getCameraID, getCameraTitle } from './utils/camera.js';
 import {
   getEntityIcon,
   getEntityTitle,
+  getHassDifferences,
   homeAssistantSignPath,
   homeAssistantWSRequest,
-  shouldUpdateBasedOnHass,
+  isHassDifferent,
+  isTriggeredState,
   sideLoadHomeAssistantElements
 } from './utils/ha';
 import { getEventID } from './utils/ha/browse-media.js';
@@ -169,6 +171,9 @@ export class FrigateCard extends LitElement {
   // Automated refreshes of the default view.
   protected _updateTimerID: number | null = null;
 
+  // Untrigger timer.
+  protected _untriggerTimerID: number | null = null;
+
   // Information about the most recently loaded media item.
   protected _mediaShowInfo: MediaShowInfo | null = null;
 
@@ -190,6 +195,10 @@ export class FrigateCard extends LitElement {
 
   // Whether the card has been successfully initialized.
   protected _initialized = false;
+
+  @state()
+  protected _triggered: Date | null = null;
+  protected _triggers: Map<string, Date> = new Map();
 
   /**
    * Set the Home Assistant object.
@@ -488,7 +497,6 @@ export class FrigateCard extends LitElement {
     const isValidMediaPlayer = (entity: string): boolean => {
       if (entity.startsWith('media_player.')) {
         const stateObj = this._hass?.states[entity];
-
         if (stateObj && supportsFeature(stateObj, MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA)) {
           return true;
         }
@@ -775,6 +783,7 @@ export class FrigateCard extends LitElement {
     this._message = null;
     this._generateConditionState();
     this._setLightOrDarkMode();
+    this._triggered = null;
   }
 
   /**
@@ -850,6 +859,7 @@ export class FrigateCard extends LitElement {
    * Called before each update.
    */
   protected willUpdate(): void {
+    // Side load the necessary elements if not already initialized.
     if (!this._initialized) {
       sideLoadHomeAssistantElements().then((success) => {
         if (success) {
@@ -857,6 +867,96 @@ export class FrigateCard extends LitElement {
         }
       });
     }
+  }
+
+  /**
+   * Determine if a camera has been triggered.
+   * @param oldHass The old HA object.
+   * @returns A boolean indicating whether the camera was changed.
+   */
+  protected _updateTriggeredCameras(oldHass: HomeAssistant): boolean {
+    if (!this._view) {
+      return false;
+    }
+
+    const now = new Date();
+    let changedCamera = false;
+    let untriggerCard = true;
+
+    for (const [camera, config] of this._cameras?.entries() ?? []) {
+      const triggerEntities = config?.trigger_by_entities ?? [];
+      const diffs = getHassDifferences(this._hass, oldHass, triggerEntities, {
+        stateOnly: true,
+      });
+      const shouldTrigger = diffs.some((diff) => isTriggeredState(diff.newState));
+      const shouldUntrigger = triggerEntities.every(
+        (entity) => !isTriggeredState(this._hass?.states[entity]),
+      );
+
+      const priorTrigger = this._triggers.get(camera);
+      if (shouldTrigger) {
+        if (
+          !priorTrigger ||
+          (now.getTime() - priorTrigger.getTime()) / 1000 >
+            this._getConfig().view.scan.trigger_min_seconds
+        ) {
+          this._clearUntriggerTimer();
+          this._triggers.set(camera, new Date());
+          if (this._isAutomatedViewUpdateAllowed()) {
+            if (!changedCamera) {
+              this._changeView({ view: this._view.evolve({ camera: camera }) });
+              changedCamera = true;
+              if (!this._triggered) {
+                this._triggered = now;
+              }
+            }
+          }
+        }
+      }
+      untriggerCard &&= shouldUntrigger;
+    }
+
+    if (this._triggered && untriggerCard && !this._untriggerTimerID) {
+      this._untriggerTimerID = window.setInterval(
+        this._untriggerTimerHandler.bind(this),
+        Math.max(
+          0,
+          this._getConfig().view.scan.trigger_min_seconds * 1000 -
+            (now.getTime() - this._triggered.getTime()),
+        ),
+      );
+    }
+
+    return changedCamera;
+  }
+
+  /**
+   * Reset the untrigger timer.
+   */
+  protected _clearUntriggerTimer() {
+    if (this._untriggerTimerID) {
+      window.clearTimeout(this._untriggerTimerID);
+      this._untriggerTimerID = null;
+    }
+  }
+
+  /**
+   * Untrigger the card.
+   */
+  protected _untrigger(): void {
+    this._clearUntriggerTimer();
+    this._triggered = null;
+  }
+
+  /**
+   * Handler for the untrigger timer.
+   */
+  protected _untriggerTimerHandler(): void {
+    this._untrigger();
+
+    // Change back to the default view if the untrigger is
+    // timer-based/automated.
+    this._changeView();
   }
 
   /**
@@ -875,9 +975,11 @@ export class FrigateCard extends LitElement {
       // are browsing the mini-gallery). Do not allow re-rendering from a Home
       // Assistant update if there's been recent interaction (e.g. clicks on the
       // card) or if there is media active playing.
-      if (
+      if (this._updateTriggeredCameras(oldHass)) {
+        shouldUpdate ||= true;
+      } else if (
         this._isAutomatedViewUpdateAllowed() &&
-        shouldUpdateBasedOnHass(
+        isHassDifferent(
           this._hass,
           oldHass,
           this._getConfig().view.update_entities || [],
@@ -889,7 +991,7 @@ export class FrigateCard extends LitElement {
         this._changeView();
         shouldUpdate ||= true;
       } else {
-        shouldUpdate ||= shouldUpdateBasedOnHass(
+        shouldUpdate ||= isHassDifferent(
           this._hass,
           oldHass,
           this._getConfig().view.render_entities || [],
@@ -1168,6 +1270,10 @@ export class FrigateCard extends LitElement {
    */
   protected _startInteractionTimer(): void {
     this._clearInteractionTimer();
+
+    // Interactions reset the trigger state.
+    this._untrigger();
+
     if (this._getConfig().view.timeout_seconds) {
       this._interactionTimerID = window.setTimeout(() => {
         this._changeView();
@@ -1189,7 +1295,7 @@ export class FrigateCard extends LitElement {
     }
     if (this._getConfig().view.update_seconds) {
       this._updateTimerID = window.setTimeout(() => {
-        if (this._isAutomatedViewUpdateAllowed()) {
+        if (!this._triggered && this._isAutomatedViewUpdateAllowed()) {
           this._changeView();
         } else {
           // Not allowed to update this time around, but try again at the next
@@ -1391,6 +1497,7 @@ export class FrigateCard extends LitElement {
     const contentClasses = {
       'frigate-card-contents': true,
       absolute: padding != null,
+      triggered: !!this._triggered && this._getConfig().view.scan.trigger_show_border,
     };
 
     const actions = this._getMergedActions();

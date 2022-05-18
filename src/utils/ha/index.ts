@@ -75,32 +75,75 @@ export async function homeAssistantSignPath(
   return hass.hassUrl(response.path);
 }
 
+interface HassStateDifference {
+  entity: string;
+  oldState?: HassEntity;
+  newState: HassEntity;
+}
+
 /**
- * Determine whether the card should be updated based on Home Assistant changes.
+ * Get the difference between two hass objects.
  * @param newHass The new HA object.
  * @param oldHass The old HA object.
  * @param entities The entities to examine for changes.
- * @returns A boolean indicating whether or not to allow an update.
+ * @param options An options object. stateOnly: whether or not to compare state
+ * strings only, firstOnly: whether or not to get the first difference only.
+ * @returns An array of HassStateDifference objects.
  */
-export function shouldUpdateBasedOnHass(
+export function getHassDifferences(
   newHass: HomeAssistant | undefined | null,
   oldHass: HomeAssistant | undefined | null,
   entities: string[] | null,
-): boolean {
+  options?: {
+    firstOnly?: boolean;
+    stateOnly?: boolean;
+  },
+): HassStateDifference[] {
   if (!newHass || !entities || !entities.length) {
-    return false;
-  }
-  if (!oldHass) {
-    return true;
+    return [];
   }
 
-  for (let i = 0; i < entities.length; i++) {
-    const entity = entities[i];
-    if (entity && oldHass.states[entity] !== newHass.states[entity]) {
-      return true;
+  const differences: HassStateDifference[] = [];
+  for (const entity of entities) {
+    const oldState = oldHass?.states[entity];
+    const newState = newHass.states[entity];
+    if (
+      (options?.stateOnly && oldState?.state !== newState.state) ||
+      (!options?.stateOnly && oldState !== newState)
+    ) {
+      differences.push({
+        entity: entity,
+        oldState: oldState,
+        newState: newState,
+      });
+      if (options?.firstOnly) {
+        break;
+      }
     }
   }
-  return false;
+  return differences;
+}
+
+/**
+ * Determine if two hass objects are different for a list of entities.
+ * @param newHass The new HA object.
+ * @param oldHass The old HA object.
+ * @param entities The entities to examine for changes.
+ * @param options An options object. stateOnly: whether or not to compare state strings only.
+ * @returns An array of HassStateDifference objects.
+ */
+export function isHassDifferent(
+  newHass: HomeAssistant | undefined | null,
+  oldHass: HomeAssistant | undefined | null,
+  entities: string[] | null,
+  options?: {
+    stateOnly?: boolean;
+  },
+): boolean {
+  return !!getHassDifferences(newHass, oldHass, entities, {
+    ...options,
+    firstOnly: true,
+  }).length;
 }
 
 /**
@@ -253,4 +296,13 @@ export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
     return true;
   }
   return false;
+};
+
+/**
+ * Determine if a given state qualifies as 'triggered'.
+ * @param state The HASSEntity.
+ * @returns `true` if triggered, `false` otherwise.
+ */
+export const isTriggeredState = (state?: HassEntity): boolean => {
+  return !!state && ['on', 'open'].includes(state.state);
 };
