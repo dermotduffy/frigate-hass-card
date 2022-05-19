@@ -4,11 +4,11 @@ import { StyleInfo } from 'lit/directives/style-map.js';
 import { ZodSchema } from 'zod';
 import { localize } from '../../localize/localize.js';
 import {
-    CardHelpers,
-    ExtendedHomeAssistant,
-    SignedPath,
-    signedPathSchema,
-    StateParameters
+  CardHelpers,
+  ExtendedHomeAssistant,
+  SignedPath,
+  signedPathSchema,
+  StateParameters
 } from '../../types.js';
 import { stateIcon } from '../icons/state-icon.js';
 import { getParseErrorKeys } from '../zod.js';
