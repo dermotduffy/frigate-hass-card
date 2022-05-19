@@ -81,6 +81,10 @@ import {
   CONF_VIEW_CAMERA_SELECT,
   CONF_VIEW_DARK_MODE,
   CONF_VIEW_DEFAULT,
+  CONF_VIEW_SCAN,
+  CONF_VIEW_SCAN_ENABLED,
+  CONF_VIEW_SCAN_TRIGGER_MIN_SECONDS,
+  CONF_VIEW_SCAN_TRIGGER_SHOW_BORDER,
   CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_CYCLE_CAMERA,
   CONF_VIEW_UPDATE_FORCE,
@@ -104,6 +108,7 @@ import { sideLoadHomeAssistantElements } from './utils/ha';
 const MENU_BUTTONS = 'buttons';
 const MENU_CAMERAS = 'cameras';
 const MENU_OPTIONS = 'options';
+const MENU_VIEW_SCAN = 'scan';
 
 interface EditorOptionsSet {
   icon: string;
@@ -601,6 +606,44 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     );
   }
 
+  protected _renderViewScanMenu(): TemplateResult {
+    return html`
+      <div
+        class="submenu-header"
+        @click=${this._toggleMenu}
+        .domain=${MENU_VIEW_SCAN}
+        .key=${true}
+      >
+        <ha-icon .icon=${'mdi:target-account'}></ha-icon>
+        <span
+          >${localize(`config.${CONF_VIEW_SCAN}.scan_mode`)}</span
+        >
+      </div>
+      ${this._expandedMenus[MENU_VIEW_SCAN]
+        ? html` <div class="values">
+            ${this._renderSwitch(
+              CONF_VIEW_SCAN_ENABLED,
+              frigateCardConfigDefaults.view.scan.enabled ?? true,
+              {
+                label: localize('config.view.scan.enabled'),
+              },
+            )}
+            ${this._renderSwitch(
+              CONF_VIEW_SCAN_TRIGGER_SHOW_BORDER,
+              frigateCardConfigDefaults.view.scan.trigger_show_border ?? true,
+              {
+                label: localize('config.view.scan.trigger_show_border'),
+              },
+            )}
+            ${this._renderNumberInput(CONF_VIEW_SCAN_TRIGGER_MIN_SECONDS, {
+              default: frigateCardConfigDefaults.view.scan.trigger_min_seconds,
+              label: localize('config.view.scan.trigger_min_seconds'),
+            })}
+          </div>`
+        : ''}
+    `;
+  }
+
   /**
    * Render an editor menu for the card menu buttons.
    * @param button The name of the button.
@@ -985,6 +1028,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_VIEW_UPDATE_CYCLE_CAMERA,
                   defaults.view.update_cycle_camera,
                 )}
+                ${this._renderViewScanMenu()}
               </div>
             `
           : ''}

@@ -33,6 +33,10 @@ export const CONF_VIEW_UPDATE_CYCLE_CAMERA = `${CONF_VIEW}.update_cycle_camera` 
 export const CONF_VIEW_UPDATE_FORCE = `${CONF_VIEW}.update_force` as const;
 export const CONF_VIEW_UPDATE_ENTITIES = `${CONF_VIEW}.update_entities` as const;
 export const CONF_VIEW_UPDATE_SECONDS = `${CONF_VIEW}.update_seconds` as const;
+export const CONF_VIEW_SCAN = `${CONF_VIEW}.scan` as const;
+export const CONF_VIEW_SCAN_ENABLED = `${CONF_VIEW_SCAN}.enabled` as const;
+export const CONF_VIEW_SCAN_TRIGGER_MIN_SECONDS = `${CONF_VIEW_SCAN}.trigger_min_seconds` as const;
+export const CONF_VIEW_SCAN_TRIGGER_SHOW_BORDER = `${CONF_VIEW_SCAN}.trigger_show_border` as const;
 
 export const CONF_EVENT_GALLERY = 'event_gallery' as const;
 export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS =
