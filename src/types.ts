@@ -1221,7 +1221,7 @@ export const frigateBrowseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.
           event: z.object({
             camera: z.string(),
             end_time: z.number().nullable(),
-            false_positive: z.boolean(),
+            false_positive: z.boolean().nullable(),
             has_clip: z.boolean(),
             has_snapshot: z.boolean(),
             id: z.string(),
