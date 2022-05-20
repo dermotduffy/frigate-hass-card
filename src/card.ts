@@ -1494,10 +1494,15 @@ export class FrigateCard extends LitElement {
       outerStyle['padding-top'] = `${padding}%`;
     }
 
+    const outerClasses = {
+      container: true,
+      outer: true,
+      triggered: !!this._triggered && this._getConfig().view.scan.trigger_show_border,
+    }
+
     const contentClasses = {
       'frigate-card-contents': true,
       absolute: padding != null,
-      triggered: !!this._triggered && this._getConfig().view.scan.trigger_show_border,
     };
 
     const actions = this._getMergedActions();
@@ -1518,7 +1523,7 @@ export class FrigateCard extends LitElement {
       @frigate-card:render=${() => this.requestUpdate()}
     >
       ${renderMenuAbove ? this._renderMenu() : ''}
-      <div class="container outer" style="${styleMap(outerStyle)}">
+      <div class="${classMap(outerClasses)}" style="${styleMap(outerStyle)}">
         <div class="${classMap(contentClasses)}">
           ${this._cameras === undefined
             ? until(

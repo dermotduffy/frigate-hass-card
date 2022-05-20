@@ -105,10 +105,10 @@ export function getHassDifferences(
 
   const differences: HassStateDifference[] = [];
   for (const entity of entities) {
-    const oldState = oldHass?.states[entity];
-    const newState = newHass.states[entity];
+    const oldState: HassEntity | undefined = oldHass?.states[entity];
+    const newState: HassEntity | undefined = newHass.states[entity];
     if (
-      (options?.stateOnly && oldState?.state !== newState.state) ||
+      (options?.stateOnly && oldState?.state !== newState?.state) ||
       (!options?.stateOnly && oldState !== newState)
     ) {
       differences.push({
