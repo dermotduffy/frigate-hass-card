@@ -27,6 +27,9 @@
         "frigate-jsmpeg": "Frigate JSMpeg",
         "webrtc-card": "WebRTC Card (i.e. AlexxIT's WebRTC Card)"
       },
+      "trigger_by_entities": "Trigger from other entities",
+      "trigger_by_motion": "Trigger by auto-detecting the motion sensor",
+      "trigger_by_occupancy": "Trigger by auto-detecting the occupancy sensor",
       "webrtc_card": {
         "entity": "WebRTC Card Camera Entity (Not a Frigate camera)",
         "url": "WebRTC Card Camera URL"

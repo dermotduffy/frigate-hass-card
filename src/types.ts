@@ -364,6 +364,9 @@ const customSchema = z
 export const cameraConfigDefault = {
   client_id: 'frigate' as const,
   live_provider: 'auto' as const,
+  trigger_by_motion: true,
+  trigger_by_occupancy: true,
+  trigger_by_entities: [],
 };
 const webrtcCardCameraConfigSchema = z.object({
   entity: z.string().optional(),
@@ -395,9 +398,9 @@ const cameraConfigSchema = z
     // Set of cameras IDs upon which this camera depends.
     dependent_cameras: z.string().array().optional(),
 
-    trigger_by_motion: z.boolean().optional(),
-    trigger_by_occupancy: z.boolean().optional(),
-    trigger_by_entities: z.string().array().optional(),
+    trigger_by_motion: z.boolean().default(cameraConfigDefault.trigger_by_motion),
+    trigger_by_occupancy: z.boolean().default(cameraConfigDefault.trigger_by_occupancy),
+    trigger_by_entities: z.string().array().default(cameraConfigDefault.trigger_by_entities),
   })
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigSchema>;
@@ -1263,8 +1266,18 @@ export const signedPathSchema = z.object({
 export type SignedPath = z.infer<typeof signedPathSchema>;
 
 export const entitySchema = z.object({
+  config_entry_id: z.string().nullable(),
+  disabled_by: z.string().nullable(),
   entity_id: z.string(),
-  unique_id: z.string(),
   platform: z.string(),
 });
 export type Entity = z.infer<typeof entitySchema>;
+
+export const extendedEntitySchema = entitySchema.extend({
+  // Extended entity results.
+  unique_id: z.string().optional(),
+})
+export type ExtendedEntity = z.infer<typeof extendedEntitySchema>;
+
+export const entityListSchema = entitySchema.array();
+export type EntityList = z.infer<typeof entityListSchema>;

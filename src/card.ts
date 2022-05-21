@@ -48,23 +48,21 @@ import './patches/ha-camera-stream.js';
 import './patches/ha-hls-player.js';
 import './patches/ha-web-rtc-player.ts';
 import cardStyle from './scss/card.scss';
-import type {
-  Entity,
-  ExtendedHomeAssistant,
-  FrigateCardConfig,
-  MediaShowInfo,
-  MenuButton,
-  Message
-} from './types.js';
 import {
   Actions,
   ActionType,
   CameraConfig,
-  entitySchema,
+  EntityList,
+  ExtendedEntity,
+  ExtendedHomeAssistant,
+  FrigateCardConfig,
   frigateCardConfigSchema,
   FrigateCardCustomAction,
   FrigateCardView,
   FRIGATE_CARD_VIEWS_USER_SPECIFIED,
+  MediaShowInfo,
+  MenuButton,
+  Message,
   RawFrigateCardConfig
 } from './types.js';
 import {
@@ -81,15 +79,20 @@ import {
   getEntityTitle,
   getHassDifferences,
   homeAssistantSignPath,
-  homeAssistantWSRequest,
   isHassDifferent,
   isTriggeredState,
   sideLoadHomeAssistantElements
 } from './utils/ha';
 import { getEventID } from './utils/ha/browse-media.js';
+import {
+  ExtendedEntityCache,
+  getAllEntities,
+  getExtendedEntities,
+  getExtendedEntity
+} from './utils/ha/entity-registry.js';
+import { ResolvedMediaCache } from './utils/ha/resolved-media.js';
 import { supportsFeature } from './utils/ha/update.js';
 import { isValidMediaShowInfo } from './utils/media-info.js';
-import { ResolvedMediaCache } from './utils/resolved-media.js';
 import { View } from './view.js';
 
 /** A note on media callbacks:
@@ -580,21 +583,141 @@ export class FrigateCard extends LitElement {
   }
 
   /**
+   * Get the motion sensor entity for a given camera.
+   * @param cache The ExtendedEntityCache of entity registry information.
+   * @param cameraConfig The camera config in question.
+   * @returns The entity id of the motion sensor or null.
+   */
+  protected _getMotionSensor(
+    cache: ExtendedEntityCache,
+    cameraConfig: CameraConfig,
+  ): string | null {
+    if (cameraConfig.camera_name) {
+      return (
+        cache.getMatch(
+          (ent) =>
+            !!ent.unique_id?.match(
+              new RegExp(
+                `:motion_sensor:${cameraConfig.zone || cameraConfig.camera_name}`,
+              ),
+            ),
+        )?.entity_id ?? null
+      );
+    }
+    return null;
+  }
+
+  /**
+   * Get the occupancy sensor entity for a given camera.
+   * @param cache The ExtendedEntityCache of entity registry information.
+   * @param cameraConfig The camera config in question.
+   * @returns The entity id of the occupancy sensor or null.
+   */
+  protected _getOccupancySensor(
+    cache: ExtendedEntityCache,
+    cameraConfig: CameraConfig,
+  ): string | null {
+    if (cameraConfig.camera_name) {
+      return (
+        cache.getMatch(
+          (ent) =>
+            !!ent.unique_id?.match(
+              new RegExp(
+                `:occupancy_sensor:${cameraConfig.zone || cameraConfig.camera_name}_${
+                  cameraConfig.label || 'all'
+                }`,
+              ),
+            ),
+        )?.entity_id ?? null
+      );
+    }
+    return null;
+  }
+
+  /**
    * Fully load the configured cameras.
    */
   protected async _loadCameras(): Promise<void> {
+    if (!this._hass) {
+      return;
+    }
+
+    const cache = new ExtendedEntityCache();
+    let entityList: EntityList | undefined;
+    try {
+      entityList = await getAllEntities(this._hass);
+    } catch (e) {
+      console.error(e, (e as Error).stack);
+    }
+
     const cameras: Map<string, CameraConfig> = new Map();
     let errorFree = true;
 
     const addCameraConfig = async (config: CameraConfig) => {
-      if (!config.camera_name && config.camera_entity) {
-        const resolvedName = await this._getFrigateCameraNameFromEntity(
-          config.camera_entity,
-        );
+      if (!this._hass) {
+        return;
+      }
+
+      let entity: ExtendedEntity | null = null;
+      if (config.camera_entity) {
+        try {
+          entity = await getExtendedEntity(this._hass, config.camera_entity, cache);
+        } catch (e) {
+          console.error(e, (e as Error).stack);
+        }
+      }
+
+      if (!config.camera_name && entity) {
+        const resolvedName = this._getFrigateCameraNameFromEntity(entity);
         if (resolvedName) {
           config.camera_name = resolvedName;
         }
       }
+
+      if (entity && entityList) {
+        // Try to find the correct entities for the motion & occupancy sensors.
+        // We know they are binary_sensors, and that they'll have the same
+        // config entry ID as the camera. Searching via unique_id ensures this
+        // search still works if the user renames the entity_id.
+        const binarySensorEntities = entityList.filter(
+          (ent) =>
+            ent.config_entry_id === entity?.config_entry_id &&
+            !ent.disabled_by &&
+            ent.entity_id.startsWith('binary_sensor.'),
+        );
+
+        try {
+          await getExtendedEntities(
+            this._hass,
+            binarySensorEntities.map((ent) => ent.entity_id),
+            cache,
+          );
+        } catch(e) {
+          console.error(e, (e as Error).stack);
+        }
+
+        if (config.trigger_by_motion) {
+          const motionEntity = this._getMotionSensor(cache, config);
+          if (motionEntity) {
+            config.trigger_by_entities.push(motionEntity);
+          }
+        }
+
+        if (config.trigger_by_occupancy) {
+          const occupancyEntity = this._getOccupancySensor(cache, config);
+          if (occupancyEntity) {
+            config.trigger_by_entities.push(occupancyEntity);
+          }
+        }
+
+        // TODO: Remove this auto-detection information.
+        console.info(
+          `Trigger entities sensor for ${entity.entity_id} are ${JSON.stringify(
+            config.trigger_by_entities,
+          )}`,
+        );
+      }
+      config.trigger_by_entities = [...new Set(config.trigger_by_entities)];
 
       const id = getCameraID(config);
       if (!id) {
@@ -649,37 +772,16 @@ export class FrigateCard extends LitElement {
   }
 
   /**
-   * Get the Frigate camera name from an entity name.
+   * Get the Frigate camera name from an entity.
    * @returns The Frigate camera name or null if unavailable.
    */
-  protected async _getFrigateCameraNameFromEntity(
-    entity: string,
-  ): Promise<string | null> {
-    if (!this._hass) {
-      return null;
-    }
-
-    // Find entity unique_id in registry.
-    const request = {
-      type: 'config/entity_registry/get',
-      entity_id: entity,
-    };
-    try {
-      const entityResult = await homeAssistantWSRequest<Entity>(
-        this._hass,
-        entitySchema,
-        request,
-      );
-      if (entityResult && entityResult.platform == 'frigate') {
-        const match = entityResult.unique_id.match(/:camera:(?<camera>[^:]+)$/);
-        if (match && match.groups) {
-          return match.groups['camera'];
-        }
+  protected _getFrigateCameraNameFromEntity(entity: ExtendedEntity): string | null {
+    if (entity.unique_id && entity.platform === 'frigate') {
+      const match = entity.unique_id.match(/:camera:(?<camera>[^:]+)$/);
+      if (match && match.groups) {
+        return match.groups['camera'];
       }
-    } catch (e: unknown) {
-      // Pass.
     }
-
     return null;
   }
 
@@ -1498,7 +1600,7 @@ export class FrigateCard extends LitElement {
       container: true,
       outer: true,
       triggered: !!this._triggered && this._getConfig().view.scan.trigger_show_border,
-    }
+    };
 
     const contentClasses = {
       'frigate-card-contents': true,

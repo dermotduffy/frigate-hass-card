@@ -23,6 +23,12 @@ export const CONF_CAMERAS_ARRAY_LIVE_PROVIDER =
   `${CONF_CAMERAS}.#.live_provider` as const;
 export const CONF_CAMERAS_ARRAY_DEPENDENT_CAMERAS =
   `${CONF_CAMERAS}.#.dependent_cameras` as const;
+export const CONF_CAMERAS_ARRAY_TRIGGER_BY_MOTION =
+  `${CONF_CAMERAS}.#.trigger_by_motion` as const;
+export const CONF_CAMERAS_ARRAY_TRIGGER_BY_OCCUPANCY =
+  `${CONF_CAMERAS}.#.trigger_by_occupancy` as const;
+export const CONF_CAMERAS_ARRAY_TRIGGER_BY_ENTITIES =
+  `${CONF_CAMERAS}.#.trigger_by_entities` as const;
 
 export const CONF_VIEW = 'view' as const;
 export const CONF_VIEW_CAMERA_SELECT = `${CONF_VIEW}.camera_select` as const;
@@ -35,8 +41,10 @@ export const CONF_VIEW_UPDATE_ENTITIES = `${CONF_VIEW}.update_entities` as const
 export const CONF_VIEW_UPDATE_SECONDS = `${CONF_VIEW}.update_seconds` as const;
 export const CONF_VIEW_SCAN = `${CONF_VIEW}.scan` as const;
 export const CONF_VIEW_SCAN_ENABLED = `${CONF_VIEW_SCAN}.enabled` as const;
-export const CONF_VIEW_SCAN_TRIGGER_MIN_SECONDS = `${CONF_VIEW_SCAN}.trigger_min_seconds` as const;
-export const CONF_VIEW_SCAN_TRIGGER_SHOW_BORDER = `${CONF_VIEW_SCAN}.trigger_show_border` as const;
+export const CONF_VIEW_SCAN_TRIGGER_MIN_SECONDS =
+  `${CONF_VIEW_SCAN}.trigger_min_seconds` as const;
+export const CONF_VIEW_SCAN_TRIGGER_SHOW_BORDER =
+  `${CONF_VIEW_SCAN}.trigger_show_border` as const;
 
 export const CONF_EVENT_GALLERY = 'event_gallery' as const;
 export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS =

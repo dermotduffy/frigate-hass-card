@@ -4,8 +4,7 @@ import { StyleInfo } from 'lit/directives/style-map.js';
 import { ZodSchema } from 'zod';
 import { localize } from '../../localize/localize.js';
 import {
-  CardHelpers,
-  ExtendedHomeAssistant,
+  CardHelpers, ExtendedHomeAssistant,
   SignedPath,
   signedPathSchema,
   StateParameters
@@ -306,3 +305,20 @@ export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
 export const isTriggeredState = (state?: HassEntity): boolean => {
   return !!state && ['on', 'open'].includes(state.state);
 };
+
+/**
+ * Get entities from the HASS object.
+ * @param hass 
+ * @param domain 
+ * @returns 
+ */
+export const getEntitiesFromHASS = (hass: HomeAssistant, domain?: string): string[] => {
+  if (!hass) {
+    return [];
+  }
+  const entities = Object.keys(hass.states).filter(
+    (eid) => !domain || eid.substr(0, eid.indexOf('.')) === domain,
+  );
+  entities.sort();
+  return entities;
+}

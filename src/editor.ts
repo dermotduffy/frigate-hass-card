@@ -21,6 +21,9 @@ import {
   CONF_CAMERAS_ARRAY_LABEL,
   CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
   CONF_CAMERAS_ARRAY_TITLE,
+  CONF_CAMERAS_ARRAY_TRIGGER_BY_ENTITIES,
+  CONF_CAMERAS_ARRAY_TRIGGER_BY_MOTION,
+  CONF_CAMERAS_ARRAY_TRIGGER_BY_OCCUPANCY,
   CONF_CAMERAS_ARRAY_URL,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL,
@@ -103,7 +106,7 @@ import {
 } from './types.js';
 import { arrayMove } from './utils/basic.js';
 import { getCameraID, getCameraTitle } from './utils/camera.js';
-import { sideLoadHomeAssistantElements } from './utils/ha';
+import { getEntitiesFromHASS, sideLoadHomeAssistantElements } from './utils/ha';
 
 const MENU_BUTTONS = 'buttons';
 const MENU_CAMERAS = 'cameras';
@@ -403,20 +406,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     }
   }
 
-  protected _getEntities(domain: string): string[] {
-    if (!this.hass) {
-      return [];
-    }
-    const entities = Object.keys(this.hass.states).filter(
-      (eid) => eid.substr(0, eid.indexOf('.')) === domain,
-    );
-    entities.sort();
-
-    // Add a blank entry to unset a selection.
-    entities.unshift('');
-    return entities;
-  }
-
   /**
    * Render an option set header
    * @param optionSetName The name of the EditorOptionsSet.
@@ -615,9 +604,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         .key=${true}
       >
         <ha-icon .icon=${'mdi:target-account'}></ha-icon>
-        <span
-          >${localize(`config.${CONF_VIEW_SCAN}.scan_mode`)}</span
-        >
+        <span>${localize(`config.${CONF_VIEW_SCAN}.scan_mode`)}</span>
       </div>
       ${this._expandedMenus[MENU_VIEW_SCAN]
         ? html` <div class="values">
@@ -743,6 +730,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   protected _renderCamera(
     cameras: RawFrigateCardConfigArray,
     cameraIndex: number,
+    entities: string[],
     addNewCamera?: boolean,
   ): TemplateResult | void {
     const liveProviders: EditorSelectOption[] = [
@@ -891,6 +879,21 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 multiple: true,
               },
             )}
+            ${this._renderSwitch(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGER_BY_OCCUPANCY, cameraIndex),
+              frigateCardConfigDefaults.cameras.trigger_by_occupancy,
+            )}
+            ${this._renderSwitch(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGER_BY_MOTION, cameraIndex),
+              frigateCardConfigDefaults.cameras.trigger_by_motion,
+            )}
+            ${this._renderOptionSelector(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGER_BY_ENTITIES, cameraIndex),
+              entities,
+              {
+                multiple: true,
+              },
+            )}
           </div>`
         : ``}
     `;
@@ -978,7 +981,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     }
 
     const defaults = frigateCardConfigDefaults;
-
+    const entities = getEntitiesFromHASS(this.hass);
     const cameras = (getConfigValue(this._config, CONF_CAMERAS) ||
       []) as RawFrigateCardConfigArray;
 
@@ -1007,8 +1010,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${this._renderOptionSetHeader('cameras')}
         ${this._expandedMenus[MENU_OPTIONS] === 'cameras'
           ? html` <div class="submenu">
-              ${cameras.map((_, index) => this._renderCamera(cameras, index))}
-              ${this._renderCamera(cameras, cameras.length, true)}
+              ${cameras.map((_, index) => this._renderCamera(cameras, index, entities))}
+              ${this._renderCamera(cameras, cameras.length, entities, true)}
             </div>`
           : ''}
         ${this._renderOptionSetHeader('view')}
