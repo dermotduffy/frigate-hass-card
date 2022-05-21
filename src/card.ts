@@ -174,9 +174,6 @@ export class FrigateCard extends LitElement {
   // Automated refreshes of the default view.
   protected _updateTimerID: number | null = null;
 
-  // Untrigger timer.
-  protected _untriggerTimerID: number | null = null;
-
   // Information about the most recently loaded media item.
   protected _mediaShowInfo: MediaShowInfo | null = null;
 
@@ -200,7 +197,6 @@ export class FrigateCard extends LitElement {
   protected _initialized = false;
 
   @state()
-  protected _triggered: Date | null = null;
   protected _triggers: Map<string, Date> = new Map();
 
   /**
@@ -692,7 +688,7 @@ export class FrigateCard extends LitElement {
             binarySensorEntities.map((ent) => ent.entity_id),
             cache,
           );
-        } catch(e) {
+        } catch (e) {
           console.error(e, (e as Error).stack);
         }
 
@@ -885,7 +881,7 @@ export class FrigateCard extends LitElement {
     this._message = null;
     this._generateConditionState();
     this._setLightOrDarkMode();
-    this._triggered = null;
+    this._untrigger();
   }
 
   /**
@@ -983,7 +979,7 @@ export class FrigateCard extends LitElement {
 
     const now = new Date();
     let changedCamera = false;
-    let untriggerCard = true;
+    let triggerChanges = false;
 
     for (const [camera, config] of this._cameras?.entries() ?? []) {
       const triggerEntities = config?.trigger_by_entities ?? [];
@@ -995,70 +991,42 @@ export class FrigateCard extends LitElement {
         (entity) => !isTriggeredState(this._hass?.states[entity]),
       );
 
-      const priorTrigger = this._triggers.get(camera);
       if (shouldTrigger) {
-        if (
-          !priorTrigger ||
-          (now.getTime() - priorTrigger.getTime()) / 1000 >
-            this._getConfig().view.scan.trigger_min_seconds
-        ) {
-          this._clearUntriggerTimer();
-          this._triggers.set(camera, new Date());
-          if (this._isAutomatedViewUpdateAllowed()) {
-            if (!changedCamera) {
-              this._changeView({ view: this._view.evolve({ camera: camera }) });
-              changedCamera = true;
-              if (!this._triggered) {
-                this._triggered = now;
-              }
-            }
+        this._triggers.set(camera, now);
+        triggerChanges = true;
+      } else if (shouldUntrigger) {
+        this._triggers.delete(camera);
+        triggerChanges = true;
+      }
+    }
+
+    if (triggerChanges && this._isAutomatedViewUpdateAllowed(true)) {
+      if (!this._triggers.size) {
+        this._changeView();
+        changedCamera = true;
+      } else {
+        let targetCamera: string | null = null;
+        let targetCameraDate: Date | null = null;
+        for (const [camera, date] of this._triggers.entries()) {
+          if (!targetCamera || !targetCameraDate || date > targetCameraDate) {
+            targetCamera = camera;
+            targetCameraDate = date;
           }
         }
+        if (targetCamera) {
+          this._changeView({ view: this._view.evolve({ camera: targetCamera }) });
+          changedCamera = true;
+        }
       }
-      untriggerCard &&= shouldUntrigger;
     }
-
-    if (this._triggered && untriggerCard && !this._untriggerTimerID) {
-      this._untriggerTimerID = window.setInterval(
-        this._untriggerTimerHandler.bind(this),
-        Math.max(
-          0,
-          this._getConfig().view.scan.trigger_min_seconds * 1000 -
-            (now.getTime() - this._triggered.getTime()),
-        ),
-      );
-    }
-
     return changedCamera;
-  }
-
-  /**
-   * Reset the untrigger timer.
-   */
-  protected _clearUntriggerTimer() {
-    if (this._untriggerTimerID) {
-      window.clearTimeout(this._untriggerTimerID);
-      this._untriggerTimerID = null;
-    }
   }
 
   /**
    * Untrigger the card.
    */
   protected _untrigger(): void {
-    this._clearUntriggerTimer();
-    this._triggered = null;
-  }
-
-  /**
-   * Handler for the untrigger timer.
-   */
-  protected _untriggerTimerHandler(): void {
-    this._untrigger();
-
-    // Change back to the default view if the untrigger is
-    // timer-based/automated.
-    this._changeView();
+    this._triggers.clear();
   }
 
   /**
@@ -1378,9 +1346,11 @@ export class FrigateCard extends LitElement {
 
     if (this._getConfig().view.timeout_seconds) {
       this._interactionTimerID = window.setTimeout(() => {
-        this._changeView();
         this._clearInteractionTimer();
-        this._setLightOrDarkMode();
+        if (this._isAutomatedViewUpdateAllowed()) {
+          this._changeView();
+          this._setLightOrDarkMode();
+        }
       }, this._getConfig().view.timeout_seconds * 1000);
     }
     this._setLightOrDarkMode();
@@ -1397,7 +1367,7 @@ export class FrigateCard extends LitElement {
     }
     if (this._getConfig().view.update_seconds) {
       this._updateTimerID = window.setTimeout(() => {
-        if (!this._triggered && this._isAutomatedViewUpdateAllowed()) {
+        if (this._isAutomatedViewUpdateAllowed()) {
           this._changeView();
         } else {
           // Not allowed to update this time around, but try again at the next
@@ -1412,8 +1382,11 @@ export class FrigateCard extends LitElement {
    * Determine if an automated view update is allowed.
    * @returns `true` if it's allowed, `false` otherwise.
    */
-  protected _isAutomatedViewUpdateAllowed(): boolean {
-    return this._getConfig().view.update_force || !this._interactionTimerID;
+  protected _isAutomatedViewUpdateAllowed(ignoreTriggers?: boolean): boolean {
+    return (
+      (ignoreTriggers || !this._triggers.size) &&
+      (this._getConfig().view.update_force || !this._interactionTimerID)
+    );
   }
 
   /**
@@ -1599,7 +1572,8 @@ export class FrigateCard extends LitElement {
     const outerClasses = {
       container: true,
       outer: true,
-      triggered: !!this._triggered && this._getConfig().view.scan.trigger_show_border,
+      triggered:
+        !!this._triggers.size && this._getConfig().view.scan.trigger_show_border,
     };
 
     const contentClasses = {
