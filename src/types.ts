@@ -507,7 +507,6 @@ const viewConfigDefault = {
   dark_mode: 'off' as const,
   scan: {
     enabled: false,
-    trigger_min_seconds: 20,
     trigger_show_border: true,
   }
 };
@@ -528,7 +527,6 @@ const viewConfigSchema = z
     dark_mode: z.enum(['on', 'off', 'auto']).optional(),
     scan: z.object({
       enabled: z.boolean().default(viewConfigDefault.scan.enabled),
-      trigger_min_seconds: z.number().default(viewConfigDefault.scan.trigger_min_seconds),
       trigger_show_border: z.boolean().default(viewConfigDefault.scan.trigger_show_border),
     }).default(viewConfigDefault.scan)
   })

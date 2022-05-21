@@ -72,7 +72,6 @@
       "scan": {
         "scan_mode": "Scan mode",
         "enabled": "Scan mode enabled",
-        "trigger_min_seconds": "Minimum seconds to trigger for",
         "trigger_show_border": "Show pulsing border when triggered"
       }
     },

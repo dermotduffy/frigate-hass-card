@@ -86,7 +86,6 @@ import {
   CONF_VIEW_DEFAULT,
   CONF_VIEW_SCAN,
   CONF_VIEW_SCAN_ENABLED,
-  CONF_VIEW_SCAN_TRIGGER_MIN_SECONDS,
   CONF_VIEW_SCAN_TRIGGER_SHOW_BORDER,
   CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_CYCLE_CAMERA,
@@ -622,10 +621,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 label: localize('config.view.scan.trigger_show_border'),
               },
             )}
-            ${this._renderNumberInput(CONF_VIEW_SCAN_TRIGGER_MIN_SECONDS, {
-              default: frigateCardConfigDefaults.view.scan.trigger_min_seconds,
-              label: localize('config.view.scan.trigger_min_seconds'),
-            })}
           </div>`
         : ''}
     `;
