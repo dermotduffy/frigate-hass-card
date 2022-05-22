@@ -704,13 +704,6 @@ export class FrigateCard extends LitElement {
             config.trigger_by_entities.push(occupancyEntity);
           }
         }
-
-        // TODO: Remove this auto-detection information.
-        console.info(
-          `Trigger entities sensor for ${entity.entity_id} are ${JSON.stringify(
-            config.trigger_by_entities,
-          )}`,
-        );
       }
       config.trigger_by_entities = [...new Set(config.trigger_by_entities)];
 
