@@ -114,9 +114,9 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 | `webrtc_card` | | :heavy_multiplication_x: | The WebRTC entity/URL to use for this camera with the `webrtc-card` live provider. See below. |
 | `id` | `camera_entity`, `webrtc_card.entity` or `camera_name` if set (in that preference order). | :heavy_multiplication_x: | An optional identifier to use throughout the card configuration to refer unambiguously to this camera. See [camera IDs](#camera-ids). |
 | `dependent_cameras` | | :heavy_multiplication_x: | An optional array of other camera identifiers (see [camera IDs](#camera-ids)). If specified the card will fetch events for this camera and *also* recursively events for the named `dependent_cameras`. All `dependent_cameras` must themselves be a configured camera in the card. This can be useful to group events for cameras that are close together, or to show events for the `birdseye` camera that otherwise would not have events itself.|
-| `trigger_by_motion` | `false` | :heavy_multiplication_x: | Whether to not to trigger the camera (see [scan mode](#scan-mode)) by automatically detecting and using the motion `binary_sensor` for this camera. This autodetection only works for Frigate cameras, and only when the motion `binary_sensor` entity has been enabled in Home Assistant.|
-| `trigger_by_occupancy` | `true` | :heavy_multiplication_x: | Whether to not to trigger the camera (see [scan mode](#scan-mode)) by automatically detecting and using the occupancy `binary_sensor` for this camera. This autodetection only works for Frigate cameras, and only when the occupancy `binary_sensor` entity has been enabled in Home Assistant.|
-| `trigger_by_entities` | | :heavy_multiplication_x: | Whether to not to trigger the camera (see [scan mode](#scan-mode)) when the state of any Home Assistant entity becomes active (i.e. state becomes `on` or `open`). This works for Frigate or non-Frigate cameras.|
+| `trigger_by_motion` | `false` | :heavy_multiplication_x: | Whether to not to trigger the camera (used to trigger [scan mode](#scan-mode) or reseting the default view) by automatically detecting and using the motion `binary_sensor` for this camera. This autodetection only works for Frigate cameras, and only when the motion `binary_sensor` entity has been enabled in Home Assistant.|
+| `trigger_by_occupancy` | `true` | :heavy_multiplication_x: | Whether to not to trigger the camera (used to trigger [scan mode](#scan-mode) or reseting the default view) by automatically detecting and using the occupancy `binary_sensor` for this camera. This autodetection only works for Frigate cameras, and only when the occupancy `binary_sensor` entity has been enabled in Home Assistant.|
+| `trigger_by_entities` | | :heavy_multiplication_x: | Whether to not to trigger the camera (used to trigger [scan mode](#scan-mode) or reseting the default view) when the state of any Home Assistant entity becomes active (i.e. state becomes `on` or `open`). This works for Frigate or non-Frigate cameras.|
 
 <a name="live-providers"></a>
 
@@ -174,7 +174,7 @@ See the [fully expanded view configuration example](#config-expanded-view) for h
 | `timeout_seconds` | `300` | :white_check_mark: | A numbers of seconds of inactivity after user interaction, after which the card will reset to the default configured view (i.e. 'screensaver' functionality). Inactivity is defined as lack of mouse/touch interaction with the Frigate card. If the default view occurs sooner (e.g. via `update_seconds` or manually) the timer will be stopped. `0` means disable this functionality. |
 | `update_seconds` | `0` | :white_check_mark: | A number of seconds after which to automatically update/refresh the default view. See [card updates](#card-updates) below for behavior and usecases. If the default view occurs sooner (e.g. manually) the timer will start over. `0` disables this functionality.|
 | `update_force` | `false` | :white_check_mark: | Whether automated card updates/refreshes should ignore user interaction. See [card updates](#card-updates) below for behavior and usecases.|
-| `update_entities` | | :white_check_mark: | **YAML only**: A list of entity ids that should cause the view to reset to the default. See [card updates](#card-updates) below for behavior and usecases.|
+| `update_entities` | | :white_check_mark: | **YAML only**: A card-wide list of entities that should cause the view to reset to the default (if the entity only pertains to a particular camera use `trigger_by_entities` for the selected camera instead)  See [card updates](#card-updates) below for behavior and usecases.|
 | `update_cycle_camera` | `false` | :white_check_mark: | When set to `true` the selected camera is cycled on each default view change. |
 | `render_entities` | | :white_check_mark: | **YAML only**: A list of entity ids that should cause the card to re-render 'in-place'. The view/camera is not changed. `update_*` flags do not pertain/relate to the behavior of this flag. This should **very** rarely be needed, but could be useful if the card is both setting and changing HA state of the same object as could be the case for some complex `card_mod` scenarios ([example](https://github.com/dermotduffy/frigate-hass-card/issues/343)). |
 | `scan` | | :white_check_mark: | Configuration for [scan mode](#scan-mode). |
@@ -191,7 +191,7 @@ view:
   scan:
 ```
 
-Scan mode allows the card to automatically "follow the action". In this mode the card will automatically select a camera to view when it is triggered (as defined by your camera configuration, see `trigger_by_motion`, `trigger_by_occupancy` and `trigger_by_entities` parameters). When the camera untriggers, the camera selection will return to the next most recently triggered camera (as long as it is still triggered) -- if there are no triggered cameras remaining, the camera will return to the default. Triggering is only allowed when there is no ongoing human interaction with the card -- interaction will automatically untrigger it and further triggering will not occur until after the card has been unattended for `view.timeout_seconds`. 
+Scan mode allows the card to automatically "follow the action". In this mode the card will automatically select a camera in the `live` view when it is triggered (as defined by your camera configuration, see `trigger_by_motion`, `trigger_by_occupancy` and `trigger_by_entities` parameters). When the camera untriggers, the camera selection will return to the next most recently triggered camera (as long as it is still triggered) -- if there are no triggered cameras remaining, the camera will return to the default. Triggering is only allowed when there is no ongoing human interaction with the card -- interaction will automatically untrigger it and further triggering will not occur until after the card has been unattended for `view.timeout_seconds`. 
 
 Scan mode tracks Home Assistant state changes -- when the card is first started, it takes a positive change in state to trigger (i.e. an already occupied room will not trigger it, but a newly occupied room would trigger it).
 
@@ -2270,7 +2270,7 @@ the card to trigger a card update based on that entity -- which causes it to use
 the new overriden default immediately. Alternatives to trigger the card to
 change view but without `update_entities` would just be having an
 `update_seconds` parameter which reloads the default view that many seconds
-after user interaction stops.
+after user interaction stops or through the use of the `trigger_by_entities` option for a given camera.
 
 ```yaml
 view:
@@ -2438,7 +2438,9 @@ The following table describes the behavior these flags have.
 
 Note that no (other) automated updates are permitted when [scan mode](#scan-mode) is being triggered.
 
-| `view . update_seconds` | `view . timeout_seconds` | `view . update_force` | `view . update_entities` | Behavior |
+In the below "Trigger Entities" refers to the combination of `view.update_entities` and the `trigger_by_entities` for the currently selected camera (which in turn will also include the occupancy and motion sensor entities for Frigate cameras if `trigger_by_occupancy` and `trigger_by_motion` options are enabled).
+
+| `view . update_seconds` | `view . timeout_seconds` | `view . update_force` | Trigger Entities | Behavior |
 | :-: | :-: | :-: | :-: | - |
 | `0` | `0` | *(Any value)* | Unset | Card will not automatically refresh. |
 | `0` | `0` | *(Any value)* | *(Any entity)* | Card will reload default view & camera when entity state changes. |
@@ -2462,13 +2464,11 @@ view:
 ```
  * Using `clip` or `snapshot` as the default view (for the most recent clip or
    snapshot respectively) and having the card automatically refresh (to fetch a
-   newer clip/snapshot) when an entity state changes. Use the Frigate
-   binary_sensor for that camera (or any other entity at your discretion) to
-   trigger the update:
+   newer clip/snapshot) on motion.
 ```yaml
-view:
-  update_entities:
-    - binary_sensor.office_person_motion
+cameras:
+  - entity: camera.office
+    trigger_by_motion: true
 ```
  * Cycle the live view of the camera every 60 seconds
 ```yaml

@@ -86,7 +86,7 @@ import {
   CONF_VIEW_DEFAULT,
   CONF_VIEW_SCAN,
   CONF_VIEW_SCAN_ENABLED,
-  CONF_VIEW_SCAN_TRIGGER_SHOW_BORDER,
+  CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
   CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_CYCLE_CAMERA,
   CONF_VIEW_UPDATE_FORCE,
@@ -611,14 +611,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               CONF_VIEW_SCAN_ENABLED,
               frigateCardConfigDefaults.view.scan.enabled ?? true,
               {
-                label: localize('config.view.scan.enabled'),
+                label: localize(`config.${CONF_VIEW_SCAN_ENABLED}`),
               },
             )}
             ${this._renderSwitch(
-              CONF_VIEW_SCAN_TRIGGER_SHOW_BORDER,
-              frigateCardConfigDefaults.view.scan.trigger_show_border ?? true,
+              CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
+              frigateCardConfigDefaults.view.scan.show_trigger_status ?? true,
               {
-                label: localize('config.view.scan.trigger_show_border'),
+                label: localize(`config.${CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS}`),
               },
             )}
           </div>`

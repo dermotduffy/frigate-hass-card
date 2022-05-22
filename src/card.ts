@@ -991,11 +991,12 @@ export class FrigateCard extends LitElement {
         (entity) => !isTriggeredState(this._hass?.states[entity]),
       );
       if (shouldTrigger) {
-        this._triggers.set(camera, now)
+        this._triggers.set(camera, now);
       } else if (shouldUntrigger && this._triggers.has(camera)) {
         this._triggers.delete(camera);
       }
-      triggerChanges ||= (!isTriggered && shouldTrigger) || (isTriggered && !this._triggers.size);
+      triggerChanges ||=
+        (!isTriggered && shouldTrigger) || (isTriggered && !this._triggers.size);
     }
 
     if (triggerChanges && this._isAutomatedViewUpdateAllowed(true)) {
@@ -1012,7 +1013,9 @@ export class FrigateCard extends LitElement {
           }
         }
         if (targetCamera) {
-          this._changeView({ view: this._view.evolve({ camera: targetCamera }) });
+          this._changeView(
+            { view: new View({ view: 'live', camera: targetCamera }) }
+          );
           changedCamera = true;
         }
       }
@@ -1037,21 +1040,21 @@ export class FrigateCard extends LitElement {
     let shouldUpdate = !oldHass || changedProps.size != 1;
 
     if (oldHass) {
-      // Home Assistant pumps a lot of updates through. Re-rendering the card is
-      // necessary at times (e.g. to update the 'clip' view as new clips
-      // arrive), but also is a jarring experience for the user (e.g. if they
-      // are browsing the mini-gallery). Do not allow re-rendering from a Home
-      // Assistant update if there's been recent interaction (e.g. clicks on the
-      // card) or if there is media active playing.
-      if (this._updateTriggeredCameras(oldHass)) {
+      const selectedCamera = this._getSelectedCameraConfig();
+      if (this._getConfig().view.scan.enabled && this._updateTriggeredCameras(oldHass)) {
         shouldUpdate ||= true;
       } else if (
+        // Home Assistant pumps a lot of updates through. Re-rendering the card is
+        // necessary at times (e.g. to update the 'clip' view as new clips
+        // arrive), but also is a jarring experience for the user (e.g. if they
+        // are browsing the mini-gallery). Do not allow re-rendering from a Home
+        // Assistant update if there's been recent interaction (e.g. clicks on the
+        // card) or if there is media active playing.
         this._isAutomatedViewUpdateAllowed() &&
-        isHassDifferent(
-          this._hass,
-          oldHass,
-          this._getConfig().view.update_entities || [],
-        )
+        isHassDifferent(this._hass, oldHass, [
+          ...(this._getConfig().view.update_entities || []),
+          ...(selectedCamera?.trigger_by_entities || []),
+        ])
       ) {
         // If entities being monitored have changed then reset the view to the
         // default. Note that as per the Lit lifecycle, the setting of the view
