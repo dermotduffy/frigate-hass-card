@@ -1571,7 +1571,7 @@ export class FrigateCard extends LitElement {
       container: true,
       outer: true,
       triggered:
-        !!this._triggers.size && this._getConfig().view.scan.trigger_show_border,
+        !!this._triggers.size && this._getConfig().view.scan.show_trigger_status,
     };
 
     const contentClasses = {

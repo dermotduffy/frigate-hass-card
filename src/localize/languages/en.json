@@ -72,7 +72,7 @@
       "scan": {
         "scan_mode": "Scan mode",
         "enabled": "Scan mode enabled",
-        "trigger_show_border": "Show pulsing border when triggered"
+        "show_trigger_status": "Show pulsing border when triggered"
       }
     },
     "event_gallery": {

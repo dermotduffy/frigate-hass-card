@@ -364,7 +364,7 @@ const customSchema = z
 export const cameraConfigDefault = {
   client_id: 'frigate' as const,
   live_provider: 'auto' as const,
-  trigger_by_motion: true,
+  trigger_by_motion: false,
   trigger_by_occupancy: true,
   trigger_by_entities: [],
 };
@@ -507,7 +507,7 @@ const viewConfigDefault = {
   dark_mode: 'off' as const,
   scan: {
     enabled: false,
-    trigger_show_border: true,
+    show_trigger_status: true,
   }
 };
 const viewConfigSchema = z
@@ -527,7 +527,7 @@ const viewConfigSchema = z
     dark_mode: z.enum(['on', 'off', 'auto']).optional(),
     scan: z.object({
       enabled: z.boolean().default(viewConfigDefault.scan.enabled),
-      trigger_show_border: z.boolean().default(viewConfigDefault.scan.trigger_show_border),
+      show_trigger_status: z.boolean().default(viewConfigDefault.scan.show_trigger_status),
     }).default(viewConfigDefault.scan)
   })
   .merge(actionsSchema)
