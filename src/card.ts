@@ -196,7 +196,6 @@ export class FrigateCard extends LitElement {
   // Whether the card has been successfully initialized.
   protected _initialized = false;
 
-  @state()
   protected _triggers: Map<string, Date> = new Map();
 
   /**
@@ -980,6 +979,7 @@ export class FrigateCard extends LitElement {
     const now = new Date();
     let changedCamera = false;
     let triggerChanges = false;
+    const isTriggered = !!this._triggers.size;
 
     for (const [camera, config] of this._cameras?.entries() ?? []) {
       const triggerEntities = config?.trigger_by_entities ?? [];
@@ -990,14 +990,12 @@ export class FrigateCard extends LitElement {
       const shouldUntrigger = triggerEntities.every(
         (entity) => !isTriggeredState(this._hass?.states[entity]),
       );
-
       if (shouldTrigger) {
-        this._triggers.set(camera, now);
-        triggerChanges = true;
-      } else if (shouldUntrigger) {
+        this._triggers.set(camera, now)
+      } else if (shouldUntrigger && this._triggers.has(camera)) {
         this._triggers.delete(camera);
-        triggerChanges = true;
       }
+      triggerChanges ||= (!isTriggered && shouldTrigger) || (isTriggered && !this._triggers.size);
     }
 
     if (triggerChanges && this._isAutomatedViewUpdateAllowed(true)) {
