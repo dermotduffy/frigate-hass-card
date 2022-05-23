@@ -1,11 +1,11 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import QuickLRU from 'quick-lru';
+import { homeAssistantWSRequest } from '.';
 import {
-  FrigateBrowseMediaSource,
-  ResolvedMedia,
-  resolvedMediaSchema
-} from '../types.js';
-import { homeAssistantWSRequest } from './ha';
+    FrigateBrowseMediaSource,
+    ResolvedMedia,
+    resolvedMediaSchema
+} from '../../types.js';
 
 // It's important the cache size be at least as large as the largest likely
 // media query or media items will from a given query will be evicted for other
@@ -21,19 +21,42 @@ export class ResolvedMediaCache {
     this._cache = new QuickLRU({ maxSize: RESOLVED_MEDIA_CACHE_SIZE });
   }
 
+  /**
+   * Determine if the cache has a given id.
+   * @param id
+   * @returns `true` if the id is in the cache, `false` otherwise.
+   */
   public has(id: string): boolean {
     return this._cache.has(id);
   }
 
+
+  /**
+   * Get resolved media information given an id.
+   * @param id The id.
+   * @returns The `ResolvedMedia` for this id.
+   */
   public get(id: string): ResolvedMedia | undefined {
     return this._cache.get(id);
   }
 
+  /**
+   * Add a given ResolvedMedia to the cache.
+   * @param id The id for the object.
+   * @param resolvedMedia The `ResolvedMedia` object.
+   */
   public set(id: string, resolvedMedia: ResolvedMedia): void {
     this._cache.set(id, resolvedMedia);
   }
 }
 
+/**
+ * Resolve a given media source item.
+ * @param hass The Home Assistant object.
+ * @param mediaSource The media source object.
+ * @param cache An optional ResolvedMediaCache object.
+ * @returns 
+ */
 export const resolveMedia = async (
   hass: HomeAssistant,
   mediaSource?: FrigateBrowseMediaSource,

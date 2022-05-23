@@ -48,23 +48,21 @@ import './patches/ha-camera-stream.js';
 import './patches/ha-hls-player.js';
 import './patches/ha-web-rtc-player.ts';
 import cardStyle from './scss/card.scss';
-import type {
-  Entity,
-  ExtendedHomeAssistant,
-  FrigateCardConfig,
-  MediaShowInfo,
-  MenuButton,
-  Message
-} from './types.js';
 import {
   Actions,
   ActionType,
   CameraConfig,
-  entitySchema,
+  EntityList,
+  ExtendedEntity,
+  ExtendedHomeAssistant,
+  FrigateCardConfig,
   frigateCardConfigSchema,
   FrigateCardCustomAction,
   FrigateCardView,
   FRIGATE_CARD_VIEWS_USER_SPECIFIED,
+  MediaShowInfo,
+  MenuButton,
+  Message,
   RawFrigateCardConfig
 } from './types.js';
 import {
@@ -79,15 +77,22 @@ import { getCameraIcon, getCameraID, getCameraTitle } from './utils/camera.js';
 import {
   getEntityIcon,
   getEntityTitle,
+  getHassDifferences,
   homeAssistantSignPath,
-  homeAssistantWSRequest,
-  shouldUpdateBasedOnHass,
+  isHassDifferent,
+  isTriggeredState,
   sideLoadHomeAssistantElements
 } from './utils/ha';
 import { getEventID } from './utils/ha/browse-media.js';
+import {
+  ExtendedEntityCache,
+  getAllEntities,
+  getExtendedEntities,
+  getExtendedEntity
+} from './utils/ha/entity-registry.js';
+import { ResolvedMediaCache } from './utils/ha/resolved-media.js';
 import { supportsFeature } from './utils/ha/update.js';
 import { isValidMediaShowInfo } from './utils/media-info.js';
-import { ResolvedMediaCache } from './utils/resolved-media.js';
 import { View } from './view.js';
 
 /** A note on media callbacks:
@@ -190,6 +195,8 @@ export class FrigateCard extends LitElement {
 
   // Whether the card has been successfully initialized.
   protected _initialized = false;
+
+  protected _triggers: Map<string, Date> = new Map();
 
   /**
    * Set the Home Assistant object.
@@ -488,7 +495,6 @@ export class FrigateCard extends LitElement {
     const isValidMediaPlayer = (entity: string): boolean => {
       if (entity.startsWith('media_player.')) {
         const stateObj = this._hass?.states[entity];
-
         if (stateObj && supportsFeature(stateObj, MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA)) {
           return true;
         }
@@ -572,21 +578,134 @@ export class FrigateCard extends LitElement {
   }
 
   /**
+   * Get the motion sensor entity for a given camera.
+   * @param cache The ExtendedEntityCache of entity registry information.
+   * @param cameraConfig The camera config in question.
+   * @returns The entity id of the motion sensor or null.
+   */
+  protected _getMotionSensor(
+    cache: ExtendedEntityCache,
+    cameraConfig: CameraConfig,
+  ): string | null {
+    if (cameraConfig.camera_name) {
+      return (
+        cache.getMatch(
+          (ent) =>
+            !!ent.unique_id?.match(
+              new RegExp(
+                `:motion_sensor:${cameraConfig.zone || cameraConfig.camera_name}`,
+              ),
+            ),
+        )?.entity_id ?? null
+      );
+    }
+    return null;
+  }
+
+  /**
+   * Get the occupancy sensor entity for a given camera.
+   * @param cache The ExtendedEntityCache of entity registry information.
+   * @param cameraConfig The camera config in question.
+   * @returns The entity id of the occupancy sensor or null.
+   */
+  protected _getOccupancySensor(
+    cache: ExtendedEntityCache,
+    cameraConfig: CameraConfig,
+  ): string | null {
+    if (cameraConfig.camera_name) {
+      return (
+        cache.getMatch(
+          (ent) =>
+            !!ent.unique_id?.match(
+              new RegExp(
+                `:occupancy_sensor:${cameraConfig.zone || cameraConfig.camera_name}_${
+                  cameraConfig.label || 'all'
+                }`,
+              ),
+            ),
+        )?.entity_id ?? null
+      );
+    }
+    return null;
+  }
+
+  /**
    * Fully load the configured cameras.
    */
   protected async _loadCameras(): Promise<void> {
+    if (!this._hass) {
+      return;
+    }
+
+    const cache = new ExtendedEntityCache();
+    let entityList: EntityList | undefined;
+    try {
+      entityList = await getAllEntities(this._hass);
+    } catch (e) {
+      console.error(e, (e as Error).stack);
+    }
+
     const cameras: Map<string, CameraConfig> = new Map();
     let errorFree = true;
 
     const addCameraConfig = async (config: CameraConfig) => {
-      if (!config.camera_name && config.camera_entity) {
-        const resolvedName = await this._getFrigateCameraNameFromEntity(
-          config.camera_entity,
-        );
+      if (!this._hass) {
+        return;
+      }
+
+      let entity: ExtendedEntity | null = null;
+      if (config.camera_entity) {
+        try {
+          entity = await getExtendedEntity(this._hass, config.camera_entity, cache);
+        } catch (e) {
+          console.error(e, (e as Error).stack);
+        }
+      }
+
+      if (!config.camera_name && entity) {
+        const resolvedName = this._getFrigateCameraNameFromEntity(entity);
         if (resolvedName) {
           config.camera_name = resolvedName;
         }
       }
+
+      if (entity && entityList) {
+        // Try to find the correct entities for the motion & occupancy sensors.
+        // We know they are binary_sensors, and that they'll have the same
+        // config entry ID as the camera. Searching via unique_id ensures this
+        // search still works if the user renames the entity_id.
+        const binarySensorEntities = entityList.filter(
+          (ent) =>
+            ent.config_entry_id === entity?.config_entry_id &&
+            !ent.disabled_by &&
+            ent.entity_id.startsWith('binary_sensor.'),
+        );
+
+        try {
+          await getExtendedEntities(
+            this._hass,
+            binarySensorEntities.map((ent) => ent.entity_id),
+            cache,
+          );
+        } catch (e) {
+          console.error(e, (e as Error).stack);
+        }
+
+        if (config.trigger_by_motion) {
+          const motionEntity = this._getMotionSensor(cache, config);
+          if (motionEntity) {
+            config.trigger_by_entities.push(motionEntity);
+          }
+        }
+
+        if (config.trigger_by_occupancy) {
+          const occupancyEntity = this._getOccupancySensor(cache, config);
+          if (occupancyEntity) {
+            config.trigger_by_entities.push(occupancyEntity);
+          }
+        }
+      }
+      config.trigger_by_entities = [...new Set(config.trigger_by_entities)];
 
       const id = getCameraID(config);
       if (!id) {
@@ -641,37 +760,16 @@ export class FrigateCard extends LitElement {
   }
 
   /**
-   * Get the Frigate camera name from an entity name.
+   * Get the Frigate camera name from an entity.
    * @returns The Frigate camera name or null if unavailable.
    */
-  protected async _getFrigateCameraNameFromEntity(
-    entity: string,
-  ): Promise<string | null> {
-    if (!this._hass) {
-      return null;
-    }
-
-    // Find entity unique_id in registry.
-    const request = {
-      type: 'config/entity_registry/get',
-      entity_id: entity,
-    };
-    try {
-      const entityResult = await homeAssistantWSRequest<Entity>(
-        this._hass,
-        entitySchema,
-        request,
-      );
-      if (entityResult && entityResult.platform == 'frigate') {
-        const match = entityResult.unique_id.match(/:camera:(?<camera>[^:]+)$/);
-        if (match && match.groups) {
-          return match.groups['camera'];
-        }
+  protected _getFrigateCameraNameFromEntity(entity: ExtendedEntity): string | null {
+    if (entity.unique_id && entity.platform === 'frigate') {
+      const match = entity.unique_id.match(/:camera:(?<camera>[^:]+)$/);
+      if (match && match.groups) {
+        return match.groups['camera'];
       }
-    } catch (e: unknown) {
-      // Pass.
     }
-
     return null;
   }
 
@@ -775,6 +873,7 @@ export class FrigateCard extends LitElement {
     this._message = null;
     this._generateConditionState();
     this._setLightOrDarkMode();
+    this._untrigger();
   }
 
   /**
@@ -850,6 +949,7 @@ export class FrigateCard extends LitElement {
    * Called before each update.
    */
   protected willUpdate(): void {
+    // Side load the necessary elements if not already initialized.
     if (!this._initialized) {
       sideLoadHomeAssistantElements().then((success) => {
         if (success) {
@@ -857,6 +957,72 @@ export class FrigateCard extends LitElement {
         }
       });
     }
+  }
+
+  /**
+   * Get the most recent triggered camera.
+   */
+  protected _getMostRecentTrigger(): string | null {
+    const sorted = (
+      [...this._triggers.entries()].sort(
+        (a: [string, Date], b: [string, Date]) => b[1].getTime() - a[1].getTime(),
+      )
+    );
+    return sorted.length ? sorted[0][0] : null;
+  }
+
+  /**
+   * Determine if a camera has been triggered.
+   * @param oldHass The old HA object.
+   * @returns A boolean indicating whether the camera was changed.
+   */
+  protected _updateTriggeredCameras(oldHass: HomeAssistant): boolean {
+    if (!this._view) {
+      return false;
+    }
+
+    const now = new Date();
+    let changedCamera = false;
+    let triggerChanges = false;
+
+    for (const [camera, config] of this._cameras?.entries() ?? []) {
+      const triggerEntities = config?.trigger_by_entities ?? [];
+      const diffs = getHassDifferences(this._hass, oldHass, triggerEntities, {
+        stateOnly: true,
+      });
+      const shouldTrigger = diffs.some((diff) => isTriggeredState(diff.newState));
+      const shouldUntrigger = triggerEntities.every(
+        (entity) => !isTriggeredState(this._hass?.states[entity]),
+      );
+      if (shouldTrigger) {
+        this._triggers.set(camera, now);
+        triggerChanges = true;
+      } else if (shouldUntrigger && this._triggers.has(camera)) {
+        this._triggers.delete(camera);
+        triggerChanges = true;
+      }
+    }
+
+    if (triggerChanges && this._isAutomatedViewUpdateAllowed(true)) {
+      if (!this._triggers.size) {
+        this._changeView();
+        changedCamera = true;
+      } else {
+        const targetCamera = this._getMostRecentTrigger();
+        if (targetCamera && (this._view.camera !== targetCamera || !this._view.is('live'))) {
+          this._changeView({ view: new View({ view: 'live', camera: targetCamera }) });
+          changedCamera = true;
+        }
+      }
+    }
+    return changedCamera;
+  }
+
+  /**
+   * Untrigger the card.
+   */
+  protected _untrigger(): void {
+    this._triggers.clear();
   }
 
   /**
@@ -869,19 +1035,21 @@ export class FrigateCard extends LitElement {
     let shouldUpdate = !oldHass || changedProps.size != 1;
 
     if (oldHass) {
-      // Home Assistant pumps a lot of updates through. Re-rendering the card is
-      // necessary at times (e.g. to update the 'clip' view as new clips
-      // arrive), but also is a jarring experience for the user (e.g. if they
-      // are browsing the mini-gallery). Do not allow re-rendering from a Home
-      // Assistant update if there's been recent interaction (e.g. clicks on the
-      // card) or if there is media active playing.
-      if (
+      const selectedCamera = this._getSelectedCameraConfig();
+      if (this._getConfig().view.scan.enabled && this._updateTriggeredCameras(oldHass)) {
+        shouldUpdate ||= true;
+      } else if (
+        // Home Assistant pumps a lot of updates through. Re-rendering the card is
+        // necessary at times (e.g. to update the 'clip' view as new clips
+        // arrive), but also is a jarring experience for the user (e.g. if they
+        // are browsing the mini-gallery). Do not allow re-rendering from a Home
+        // Assistant update if there's been recent interaction (e.g. clicks on the
+        // card) or if there is media active playing.
         this._isAutomatedViewUpdateAllowed() &&
-        shouldUpdateBasedOnHass(
-          this._hass,
-          oldHass,
-          this._getConfig().view.update_entities || [],
-        )
+        isHassDifferent(this._hass, oldHass, [
+          ...(this._getConfig().view.update_entities || []),
+          ...(selectedCamera?.trigger_by_entities || []),
+        ])
       ) {
         // If entities being monitored have changed then reset the view to the
         // default. Note that as per the Lit lifecycle, the setting of the view
@@ -889,7 +1057,7 @@ export class FrigateCard extends LitElement {
         this._changeView();
         shouldUpdate ||= true;
       } else {
-        shouldUpdate ||= shouldUpdateBasedOnHass(
+        shouldUpdate ||= isHassDifferent(
           this._hass,
           oldHass,
           this._getConfig().view.render_entities || [],
@@ -1168,11 +1336,17 @@ export class FrigateCard extends LitElement {
    */
   protected _startInteractionTimer(): void {
     this._clearInteractionTimer();
+
+    // Interactions reset the trigger state.
+    this._untrigger();
+
     if (this._getConfig().view.timeout_seconds) {
       this._interactionTimerID = window.setTimeout(() => {
-        this._changeView();
         this._clearInteractionTimer();
-        this._setLightOrDarkMode();
+        if (this._isAutomatedViewUpdateAllowed()) {
+          this._changeView();
+          this._setLightOrDarkMode();
+        }
       }, this._getConfig().view.timeout_seconds * 1000);
     }
     this._setLightOrDarkMode();
@@ -1204,8 +1378,11 @@ export class FrigateCard extends LitElement {
    * Determine if an automated view update is allowed.
    * @returns `true` if it's allowed, `false` otherwise.
    */
-  protected _isAutomatedViewUpdateAllowed(): boolean {
-    return this._getConfig().view.update_force || !this._interactionTimerID;
+  protected _isAutomatedViewUpdateAllowed(ignoreTriggers?: boolean): boolean {
+    return (
+      (ignoreTriggers || !this._triggers.size) &&
+      (this._getConfig().view.update_force || !this._interactionTimerID)
+    );
   }
 
   /**
@@ -1388,6 +1565,13 @@ export class FrigateCard extends LitElement {
       outerStyle['padding-top'] = `${padding}%`;
     }
 
+    const outerClasses = {
+      container: true,
+      outer: true,
+      triggered:
+        !!this._triggers.size && this._getConfig().view.scan.show_trigger_status,
+    };
+
     const contentClasses = {
       'frigate-card-contents': true,
       absolute: padding != null,
@@ -1411,7 +1595,7 @@ export class FrigateCard extends LitElement {
       @frigate-card:render=${() => this.requestUpdate()}
     >
       ${renderMenuAbove ? this._renderMenu() : ''}
-      <div class="container outer" style="${styleMap(outerStyle)}">
+      <div class="${classMap(outerClasses)}" style="${styleMap(outerStyle)}">
         <div class="${classMap(contentClasses)}">
           ${this._cameras === undefined
             ? until(

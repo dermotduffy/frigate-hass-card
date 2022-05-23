@@ -1,11 +1,11 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import {
-  CSSResultGroup,
-  html,
-  LitElement,
-  PropertyValues,
-  TemplateResult,
-  unsafeCSS
+    CSSResultGroup,
+    html,
+    LitElement,
+    PropertyValues,
+    TemplateResult,
+    unsafeCSS
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
@@ -14,7 +14,7 @@ import defaultImage from '../images/frigate-bird-in-sky.jpg';
 import { localize } from '../localize/localize.js';
 import imageStyle from '../scss/image.scss';
 import { CameraConfig, ImageViewConfig } from '../types.js';
-import { shouldUpdateBasedOnHass } from '../utils/ha';
+import { isHassDifferent } from '../utils/ha';
 import { dispatchMediaShowEvent } from '../utils/media-info.js';
 import { View } from '../view.js';
 import { dispatchErrorMessageEvent } from './message.js';
@@ -96,7 +96,7 @@ export class FrigateCardImage extends LitElement {
       this._imageConfig?.mode === 'camera' &&
       cameraEntity
     ) {
-      if (shouldUpdateBasedOnHass(this.hass, changedProps.get('hass'), [cameraEntity])) {
+      if (isHassDifferent(this.hass, changedProps.get('hass'), [cameraEntity])) {
         // If the state of the camera entity has changed, remove the cached
         // value (will be re-calculated in willUpdate). This is important to
         // ensure a changed access token is immediately used.

@@ -23,6 +23,20 @@
   // boundary.
   border-radius: var(--ha-card-border-radius, 4px);
 }
+.container.triggered {
+  @keyframes warning-pulse {
+    0% {
+      border: solid 1px rgba(0,0,0,0);
+    }
+    50% {
+      border: solid 1px var(--warning-color);
+    }
+    100% {
+      border: solid 1px rgba(0,0,0,0);
+    }
+  }
+  animation: warning-pulse 5s infinite;  
+}
 
 .frigate-card-contents {
   width: inherit;
@@ -32,6 +46,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
+  // Include the borders in the sizing (to keep the triggered warning pulse
+  // visible in fullscreen).
+  box-sizing: border-box;
 
   // Hide scrollbar: Firefox
   scrollbar-width: none;
