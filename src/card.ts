@@ -960,6 +960,18 @@ export class FrigateCard extends LitElement {
   }
 
   /**
+   * Get the most recent triggered camera.
+   */
+  protected _getMostRecentTrigger(): string | null {
+    const sorted = (
+      [...this._triggers.entries()].sort(
+        (a: [string, Date], b: [string, Date]) => b[1].getTime() - a[1].getTime(),
+      )
+    );
+    return sorted.length ? sorted[0][0] : null;
+  }
+
+  /**
    * Determine if a camera has been triggered.
    * @param oldHass The old HA object.
    * @returns A boolean indicating whether the camera was changed.
@@ -972,7 +984,6 @@ export class FrigateCard extends LitElement {
     const now = new Date();
     let changedCamera = false;
     let triggerChanges = false;
-    const isTriggered = !!this._triggers.size;
 
     for (const [camera, config] of this._cameras?.entries() ?? []) {
       const triggerEntities = config?.trigger_by_entities ?? [];
@@ -985,11 +996,11 @@ export class FrigateCard extends LitElement {
       );
       if (shouldTrigger) {
         this._triggers.set(camera, now);
+        triggerChanges = true;
       } else if (shouldUntrigger && this._triggers.has(camera)) {
         this._triggers.delete(camera);
+        triggerChanges = true;
       }
-      triggerChanges ||=
-        (!isTriggered && shouldTrigger) || (isTriggered && !this._triggers.size);
     }
 
     if (triggerChanges && this._isAutomatedViewUpdateAllowed(true)) {
@@ -997,18 +1008,9 @@ export class FrigateCard extends LitElement {
         this._changeView();
         changedCamera = true;
       } else {
-        let targetCamera: string | null = null;
-        let targetCameraDate: Date | null = null;
-        for (const [camera, date] of this._triggers.entries()) {
-          if (!targetCamera || !targetCameraDate || date > targetCameraDate) {
-            targetCamera = camera;
-            targetCameraDate = date;
-          }
-        }
-        if (targetCamera) {
-          this._changeView(
-            { view: new View({ view: 'live', camera: targetCamera }) }
-          );
+        const targetCamera = this._getMostRecentTrigger();
+        if (targetCamera && (this._view.camera !== targetCamera || !this._view.is('live'))) {
+          this._changeView({ view: new View({ view: 'live', camera: targetCamera }) });
           changedCamera = true;
         }
       }
