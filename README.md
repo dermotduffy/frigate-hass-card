@@ -951,6 +951,14 @@ View events in the timeline.
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/timeline.gif" alt="Event Timeline" width="400px">
 
+<a name="screenshots-card-casting"></a>
+
+### Card Casting
+
+A dashboard with the card can be cast onto a suitable device (such as the Nest Hub shown below).
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/card-on-nest-hub.jpg" alt="Card on Nest Hub" width="400px">
+
 ## Examples
 
 ### Illustrative Expanded Configuration Reference
@@ -2513,6 +2521,33 @@ view:
   default: clip
   timeout_seconds: 30
 ```
+
+### Casting the Card
+
+This card can be (Chrome) casted to a device (such as a [Nest Hub](https://store.google.com/us/product/nest_hub_2nd_gen)) through the use of [Home Assistant Cast](https://cast.home-assistant.io/).
+
+#### Limitations
+
+Casting Home Assistant dashboards comes with a number of caveats:
+
+* Home Assistant Casting does not support the HA `streaming` component ([source](https://cast.home-assistant.io/faq.html)). This means clips playing and the `ha` live provider can not work. Other live providers such as `jsmpeg` and `webrtc-card` function correctly.
+* The Javascript fullscreen API does not work (so the fullscreen button does not work, but see below for an equivalent).
+
+#### Recommended configuration for a Nest Hub
+
+Using a `panel` dashboard with the following base configuration will result in the card consuming the entire device screen:
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.front_door
+    live_provider: frigate-jsmpeg
+dimensions:
+  aspect_ratio: 1024:600
+  aspect_ratio_mode: static
+```
+
+See [screenshot above](#screenshots-card-casting).
 
 ## Troubleshooting
 
