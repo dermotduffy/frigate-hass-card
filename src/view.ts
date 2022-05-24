@@ -36,6 +36,15 @@ export class View {
   }
 
   /**
+   * Determines whether a view is supported on non-Frigate cameras.
+   * @param view The view to determine support for.
+   * @returns Whether the view is supported by non-Frigate cameras.
+   */
+  public static supportsNonFrigateCameras(view: FrigateCardView): boolean {
+    return ['timeline', 'image', 'live'].includes(view);
+  }
+
+  /**
    * Clone a view.
    */
   public clone(): View {

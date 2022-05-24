@@ -1246,21 +1246,19 @@ export class FrigateCard extends LitElement {
       case 'camera_select':
         const camera = frigateCardAction.camera;
         if (this._cameras?.has(camera) && this._view) {
+          let targetView =
+            this._getConfig().view.camera_select === 'current'
+              ? this._view.view
+              : (this._getConfig().view.camera_select as FrigateCardView);
+          // Fallback to supported views for non-Frigate cameras.
+          if (!this._cameras?.get(camera)?.camera_name) {
+            targetView = View.supportsNonFrigateCameras(targetView)
+              ? targetView
+              : 'live';
+          }
           this._changeView({
             view: new View({
-              view:
-                this._getConfig().view.camera_select === 'current'
-                  ? // When switching to a Frigate camera,
-                    this._cameras?.get(camera)?.camera_name
-                    ? // always retain the current view.
-                      this._view.view
-                    : // But when switching to a non-Frigate camera,
-                    // only retain the current view if it's supported
-                    ['timeline', 'image', 'live'].includes(this._view.view)
-                    ? this._view.view
-                    : // And fallback to the live view otherwise.
-                      'live'
-                  : (this._getConfig().view.camera_select as FrigateCardView),
+              view: targetView,
               camera: camera,
             }),
           });
