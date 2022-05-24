@@ -37,7 +37,7 @@ import {
   overrideMultiBrowseMediaQueryParameters
 } from '../utils/ha/browse-media.js';
 import { createMediaShowInfo } from '../utils/media-info.js';
-import { ResolvedMediaCache, resolveMedia } from '../utils/resolved-media.js';
+import { ResolvedMediaCache, resolveMedia } from '../utils/ha/resolved-media.js';
 import { View } from '../view.js';
 import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import { Lazyload, LazyloadType } from './embla-plugins/lazyload.js';

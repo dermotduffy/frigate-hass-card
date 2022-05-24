@@ -1090,7 +1090,8 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     if (!this.cameraConfig?.camera_name) {
       return dispatchErrorMessageEvent(
         this,
-        localize('error.no_camera_name') + `: ${JSON.stringify(this.cameraConfig)}`,
+        localize('error.no_camera_name'),
+        this.cameraConfig,
       );
     }
 

@@ -27,6 +27,9 @@
         "frigate-jsmpeg": "Frigate JSMpeg",
         "webrtc-card": "WebRTC Card (i.e. AlexxIT's WebRTC Card)"
       },
+      "trigger_by_entities": "Trigger from other entities",
+      "trigger_by_motion": "Trigger by auto-detecting the motion sensor",
+      "trigger_by_occupancy": "Trigger by auto-detecting the occupancy sensor",
       "webrtc_card": {
         "entity": "WebRTC Card Camera Entity (Not a Frigate camera)",
         "url": "WebRTC Card Camera URL"
@@ -65,7 +68,12 @@
       "timeout_seconds": "Reset to default view X seconds after user action (0=never)",
       "update_cycle_camera": "Cycle through cameras when default view updates",
       "update_force": "Force card updates (ignore user interaction)",
-      "update_seconds": "Refresh default view every X seconds (0=never)"
+      "update_seconds": "Refresh default view every X seconds (0=never)",
+      "scan": {
+        "scan_mode": "Scan mode",
+        "enabled": "Scan mode enabled",
+        "show_trigger_status": "Show pulsing border when triggered"
+      }
     },
     "event_gallery": {
       "controls": {
