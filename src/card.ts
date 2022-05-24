@@ -963,10 +963,8 @@ export class FrigateCard extends LitElement {
    * Get the most recent triggered camera.
    */
   protected _getMostRecentTrigger(): string | null {
-    const sorted = (
-      [...this._triggers.entries()].sort(
-        (a: [string, Date], b: [string, Date]) => b[1].getTime() - a[1].getTime(),
-      )
+    const sorted = [...this._triggers.entries()].sort(
+      (a: [string, Date], b: [string, Date]) => b[1].getTime() - a[1].getTime(),
     );
     return sorted.length ? sorted[0][0] : null;
   }
@@ -1009,7 +1007,10 @@ export class FrigateCard extends LitElement {
         changedCamera = true;
       } else {
         const targetCamera = this._getMostRecentTrigger();
-        if (targetCamera && (this._view.camera !== targetCamera || !this._view.is('live'))) {
+        if (
+          targetCamera &&
+          (this._view.camera !== targetCamera || !this._view.is('live'))
+        ) {
           this._changeView({ view: new View({ view: 'live', camera: targetCamera }) });
           changedCamera = true;
         }
@@ -1510,21 +1511,21 @@ export class FrigateCard extends LitElement {
    * required).
    * @returns A padding percentage.
    */
-  protected _getAspectRatioPadding(): number | null {
+  protected _getAspectRatioStyle(): string {
     if (!this._isAspectRatioEnforced()) {
-      return null;
+      return 'auto';
     }
 
     const aspectRatioMode = this._getConfig().dimensions.aspect_ratio_mode;
     if (aspectRatioMode == 'dynamic' && this._mediaShowInfo) {
-      return (this._mediaShowInfo.height / this._mediaShowInfo.width) * 100;
+      return `${this._mediaShowInfo.width} / ${this._mediaShowInfo.height}`;
     }
 
     const defaultAspectRatio = this._getConfig().dimensions.aspect_ratio;
     if (defaultAspectRatio) {
-      return (defaultAspectRatio[1] / defaultAspectRatio[0]) * 100;
+      return `${defaultAspectRatio[0]} / ${defaultAspectRatio[1]}`;
     } else {
-      return (9 / 16) * 100;
+      return '16 / 9';
     }
   }
 
@@ -1557,24 +1558,13 @@ export class FrigateCard extends LitElement {
       return;
     }
 
-    const padding = this._getAspectRatioPadding();
-    const outerStyle = {};
-
-    // Padding to force a particular aspect ratio.
-    if (padding != null) {
-      outerStyle['padding-top'] = `${padding}%`;
-    }
-
-    const outerClasses = {
-      container: true,
-      outer: true,
+    const cardStyle = {
+      'aspect-ratio': this._getAspectRatioStyle(),
+    };
+    const mainClasses = {
+      main: true,
       triggered:
         !!this._triggers.size && this._getConfig().view.scan.show_trigger_status,
-    };
-
-    const contentClasses = {
-      'frigate-card-contents': true,
-      absolute: padding != null,
     };
 
     const actions = this._getMergedActions();
@@ -1587,6 +1577,7 @@ export class FrigateCard extends LitElement {
         hasHold: frigateCardHasAction(actions.hold_action),
         hasDoubleClick: frigateCardHasAction(actions.double_tap_action),
       })}
+      style="${styleMap(cardStyle)}"
       @action=${(ev: CustomEvent) => this._actionHandler(ev, actions)}
       @ll-custom=${this._cardActionHandler.bind(this)}
       @frigate-card:message=${this._messageHandler}
@@ -1595,49 +1586,47 @@ export class FrigateCard extends LitElement {
       @frigate-card:render=${() => this.requestUpdate()}
     >
       ${renderMenuAbove ? this._renderMenu() : ''}
-      <div class="${classMap(outerClasses)}" style="${styleMap(outerStyle)}">
-        <div class="${classMap(contentClasses)}">
-          ${this._cameras === undefined
-            ? until(
-                (async () => {
-                  await this._loadCameras();
-                  // Don't reset messages as errors may have been generated
-                  // during the camera load.
-                  this._changeView({ resetMessage: false });
-                  return this._render();
-                })(),
-                renderProgressIndicator(),
-              )
-            : // Always want to call render even if there's a message, to
-              // ensure live preload is always present (even if not displayed).
-              this._render()}
-          ${this._getConfig().elements
-            ? // Always show elements to allow for custom menu items (etc.) to
-              // be present even if a particular view has an error. Elements
-              // need to render after the main views so it can render 'on top'.
-              html` <frigate-card-elements
-                ${ref(this._refElements)}
-                .hass=${this._hass}
-                .elements=${this._getConfig().elements}
-                .conditionState=${this._conditionState}
-                @frigate-card:menu-add=${(e) => {
-                  this._addDynamicMenuButton(e.detail);
-                }}
-                @frigate-card:menu-remove=${(e) => {
-                  this._removeDynamicMenuButton(e.detail);
-                }}
-                @frigate-card:condition-state-request=${(ev) => {
-                  conditionStateRequestHandler(ev, this._conditionState);
-                }}
-              >
-              </frigate-card-elements>`
-            : ``}
-          ${
-            // Keep message rendering to last to show messages that may have
-            // been generated during the render.
-            this._message ? renderMessage(this._message) : ''
-          }
-        </div>
+      <div class="${classMap(mainClasses)}">
+        ${this._cameras === undefined
+          ? until(
+              (async () => {
+                await this._loadCameras();
+                // Don't reset messages as errors may have been generated
+                // during the camera load.
+                this._changeView({ resetMessage: false });
+                return this._render();
+              })(),
+              renderProgressIndicator(),
+            )
+          : // Always want to call render even if there's a message, to
+            // ensure live preload is always present (even if not displayed).
+            this._render()}
+        ${this._getConfig().elements
+          ? // Always show elements to allow for custom menu items (etc.) to
+            // be present even if a particular view has an error. Elements
+            // need to render after the main views so it can render 'on top'.
+            html` <frigate-card-elements
+              ${ref(this._refElements)}
+              .hass=${this._hass}
+              .elements=${this._getConfig().elements}
+              .conditionState=${this._conditionState}
+              @frigate-card:menu-add=${(e) => {
+                this._addDynamicMenuButton(e.detail);
+              }}
+              @frigate-card:menu-remove=${(e) => {
+                this._removeDynamicMenuButton(e.detail);
+              }}
+              @frigate-card:condition-state-request=${(ev) => {
+                conditionStateRequestHandler(ev, this._conditionState);
+              }}
+            >
+            </frigate-card-elements>`
+          : ``}
+        ${
+          // Keep message rendering to last to show messages that may have
+          // been generated during the render.
+          this._message ? renderMessage(this._message) : ''
+        }
       </div>
       ${!renderMenuAbove ? this._renderMenu() : ''}
     </ha-card>`;
