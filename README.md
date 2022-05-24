@@ -921,6 +921,36 @@ This card supports fully configurable submenus.
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/submenu.gif" alt="Configurable submenus" width="400px">
 
+### Select Entity Submenus
+
+Automatically generate submenus from `select` entities.
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/submenu-select.gif" alt="Select based submenus" width="400px">
+
+### Cast media from the card
+
+Cast media from the card to a local player.
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/cast-your-events.gif" alt="Cast media" width="400px">
+
+### Scan Mode
+
+Automatically choose the camera with the action!
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/scan-mode.gif" alt="Cast media" width="400px">
+
+### Thumbnail Drawers
+
+View thumbnails in side-drawers.
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/thumbnails-in-drawer.gif" alt="Thumbnail drawers" width="400px">
+
+### Event Timeline
+
+View events in the timeline.
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/timeline.gif" alt="Event Timeline" width="400px">
+
 ## Examples
 
 ### Illustrative Expanded Configuration Reference
