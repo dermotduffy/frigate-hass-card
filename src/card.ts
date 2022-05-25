@@ -5,7 +5,7 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS
+  unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -20,7 +20,7 @@ import {
   ConditionState,
   conditionStateRequestHandler,
   getOverriddenConfig,
-  getOverridesByKey
+  getOverridesByKey,
 } from './card-condition.js';
 import './components/elements.js';
 import { FrigateCardElements } from './components/elements.js';
@@ -40,7 +40,7 @@ import {
   CAMERA_BIRDSEYE,
   CARD_VERSION,
   MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
-  REPO_URL
+  REPO_URL,
 } from './const.js';
 import './editor.js';
 import { localize } from './localize/localize.js';
@@ -63,14 +63,14 @@ import {
   MediaShowInfo,
   MenuButton,
   Message,
-  RawFrigateCardConfig
+  RawFrigateCardConfig,
 } from './types.js';
 import {
   convertActionToFrigateCardCustomAction,
   createFrigateCardCustomAction,
   frigateCardHandleAction,
   frigateCardHasAction,
-  getActionConfigGivenAction
+  getActionConfigGivenAction,
 } from './utils/action.js';
 import { contentsChanged } from './utils/basic.js';
 import { getCameraIcon, getCameraID, getCameraTitle } from './utils/camera.js';
@@ -81,14 +81,14 @@ import {
   homeAssistantSignPath,
   isHassDifferent,
   isTriggeredState,
-  sideLoadHomeAssistantElements
+  sideLoadHomeAssistantElements,
 } from './utils/ha';
 import { getEventID } from './utils/ha/browse-media.js';
 import {
   ExtendedEntityCache,
   getAllEntities,
   getExtendedEntities,
-  getExtendedEntity
+  getExtendedEntity,
 } from './utils/ha/entity-registry.js';
 import { ResolvedMediaCache } from './utils/ha/resolved-media.js';
 import { supportsFeature } from './utils/ha/update.js';
@@ -1246,12 +1246,16 @@ export class FrigateCard extends LitElement {
       case 'camera_select':
         const camera = frigateCardAction.camera;
         if (this._cameras?.has(camera) && this._view) {
+          const targetView =
+            this._getConfig().view.camera_select === 'current'
+              ? this._view.view
+              : (this._getConfig().view.camera_select as FrigateCardView);
           this._changeView({
             view: new View({
-              view:
-                this._getConfig().view.camera_select === 'current'
-                  ? this._view.view
-                  : (this._getConfig().view.camera_select as FrigateCardView),
+              view: this._cameras?.get(camera)?.camera_name
+                ? targetView
+                : // Fallback to supported views for non-Frigate cameras.
+                  View.selectBestViewForNonFrigateCameras(targetView),
               camera: camera,
             }),
           });

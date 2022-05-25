@@ -36,6 +36,15 @@ export class View {
   }
 
   /**
+   * Selects the best view for a non-Frigate camera.
+   * @param view The wanted view.
+   * @returns The closest view supported by the non-Frigate camera.
+   */
+  public static selectBestViewForNonFrigateCameras(view: FrigateCardView) {
+    return ['timeline', 'image'].includes(view) ? view : 'live';
+  }
+
+  /**
    * Clone a view.
    */
   public clone(): View {
