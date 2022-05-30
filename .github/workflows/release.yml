@@ -30,6 +30,6 @@ jobs:
           overwrite: true
 
       - name: HACS release validation
-        uses: "hacs/action@21.12.1"
+        uses: "hacs/action@22.5.0"
         with:
           category: "plugin"
