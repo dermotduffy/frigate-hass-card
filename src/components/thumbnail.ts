@@ -9,7 +9,7 @@ import thumbnailStyle from '../scss/thumbnail.scss';
 import type {
   FrigateBrowseMediaSource,
   FrigateEvent,
-  FrigateRecording,
+  FrigateRecording
 } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { prettifyTitle } from '../utils/basic.js';
@@ -102,6 +102,12 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
     }
     return html`<div class="left">
         <div class="larger">${prettifyTitle(this.recording.camera) || ''}</div>
+        ${this.recording.seek_time
+          ? html` <div>
+              <span class="heading">${localize('recording.seek')}</span>
+              <span>${format(fromUnixTime(this.recording.seek_time), 'HH:mm:ss')}</span>
+            </div>`
+          : html``}
       </div>
       <div class="right">
         <span class="larger">${this.recording.events}</span>

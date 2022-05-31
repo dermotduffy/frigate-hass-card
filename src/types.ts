@@ -1246,9 +1246,11 @@ export interface FrigateRecording {
   end_time: number;
   events: number;
 
-  // The number of seconds at which this recording should be initially played
-  // from.
-  play_time?: number;
+  // Specifies the point at which this recording should be played, the
+  // seek_time is the date of the desired play point, and seek_seconds is the
+  // number of seconds to seek to reach that point.
+  seek_time?: number;
+  seek_seconds?: number;
 }
 
 export interface FrigateBrowseMediaSource extends BrowseMediaSource {

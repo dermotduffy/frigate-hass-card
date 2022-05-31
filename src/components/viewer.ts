@@ -684,14 +684,14 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
     super._selectSlideMediaShowHandler();
 
     // If this is a recording and play is desired to be started from a
-    // particular point, seek to that point.
-    if (this.view?.media?.frigate?.recording?.play_time) {
-      const player = this._getPlayer();
-      if (player) {
-        player.seek(this.view.media.frigate.recording.play_time);
-        // TODO: Fix this bug.
-        console.info(`Seeking on ${this.view.media.media_content_id}`);
-      }
+    // particular point, seek to that point. Use the media off the slide itself
+    // -- when the slide is changed, the media show event may be dispatched
+    // before this.view has been updated to reflect the new selection.
+    const player = this._getPlayer() as FrigateCardMediaPlayer & {
+      media?: FrigateBrowseMediaSource;
+    };
+    if (player && player.media && player.media.frigate?.recording?.seek_seconds) {
+      player.seek(player.media.frigate.recording.seek_seconds);
     }
   }
 
@@ -716,6 +716,8 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       return;
     }
 
+    // The media is attached to the player as '.media' which is used in
+    // `_selectSlideMediaShowHandler` (and not used by the player itself).
     return html`
       <div class="embla__slide">
         ${mediaToRender.media_content_type === 'video'
@@ -730,6 +732,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
               url=${ifDefined(
                 lazyLoad ? undefined : this._canonicalizeHAURL(resolvedMedia?.url),
               )}
+              .media=${mediaToRender}
               .hass=${this.hass}
               @frigate-card:media-show=${(e: CustomEvent<MediaShowInfo>) =>
                 this._mediaShowEventHandler(slideIndex, e)}

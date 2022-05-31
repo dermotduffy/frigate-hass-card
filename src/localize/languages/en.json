@@ -295,7 +295,8 @@
     "score": "Score"
   },
   "recording": { 
-    "events": "Events"
+    "events": "Events",
+    "seek": "Seek"
   },
   "thumbnail": {
     "retain_indefinitely": "Event will be indefinitely retained",

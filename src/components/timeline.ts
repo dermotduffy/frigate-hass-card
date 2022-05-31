@@ -1,5 +1,3 @@
-// TODO: In viewer, the seek is being applied to the 2nd media. Change away from play_time?
-
 import { HomeAssistant } from 'custom-card-helpers';
 import {
   add,
@@ -550,7 +548,7 @@ export class FrigateCardTimelineCore extends LitElement {
    * provided segments to reach the target time provided.
    * @param time Target time.
    * @param segments A RecordingSegments object.
-   * @returns 
+   * @returns
    */
   protected _getSeekTime(time: Date, segments: RecordingSegments): number | null {
     if (!segments.length) {
@@ -578,7 +576,7 @@ export class FrigateCardTimelineCore extends LitElement {
    * @param time The target time for the recordings.
    * @param onlyMatchingHour If `true` only shows the hour matching the target
    * for the provided cameras, otherwise shows all hours.
-   * @returns 
+   * @returns
    */
   protected _createRecordingChildren(
     results: Map<string, CameraRecordings>,
@@ -637,7 +635,10 @@ export class FrigateCardTimelineCore extends LitElement {
                     start_time: getUnixTime(startHour),
                     end_time: getUnixTime(endHour),
                     events: hourData.events,
-                    ...(isMatchingHour && { play_time: seekSeconds }),
+                    ...(isMatchingHour && {
+                      seek_seconds: seekSeconds,
+                      seek_time: time.getTime() / 1000,
+                    }),
                   },
                 },
               ),
@@ -714,7 +715,7 @@ export class FrigateCardTimelineCore extends LitElement {
 
   /**
    * Called whenever the range is in the process of being changed.
-   * @param properties 
+   * @param properties
    */
   protected _timelineRangeChangeHandler(
     properties: TimelineEventPropertiesResult,
