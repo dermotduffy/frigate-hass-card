@@ -7,17 +7,17 @@
   height: 100%;
   aspect-ratio: 1 / 1;
   overflow: hidden;
-
   max-width: var(--frigate-card-thumbnail-size-max);
   max-height: var(--frigate-card-thumbnail-size-max);
+  padding: 10px;
 
   border: 1px solid rgba(255,255,255,0.3);
   border-radius: var(--ha-card-border-radius, 4px);
   box-sizing: border-box;
 
-  transition: transform 0.2s linear;
+  color: var(--primary-text-color);
 
-  padding: 10px;
+  transition: transform 0.2s linear;
 }
 
 :host(:hover) {
