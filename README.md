@@ -483,6 +483,7 @@ See the [fully expanded timeline configuration example](#config-expanded-timelin
 | `window_seconds` | `3600` | :heavy_multiplication_x: | The length of the default timeline in seconds. By default, 1 hour (`3600` seconds) is shown in the timeline. |
 | `clustering_threshold` | `3` | :heavy_multiplication_x: | The number of overlapping events to allow prior to clustering/grouping them. Higher numbers cause clustering to happen less frequently. `0` disables clustering entirely.|
 | `media` | `all` | :heavy_multiplication_x: | Whether to show only events with `clips`, events with `snapshots` or `all` events. When `all` is used, `clips` are favored for events that have both a clip and a snapshot.|
+| `show_recordings` | `true` | :heavy_multiplication_x: | Whether to show recordings on the timeline (specifically: which hours have any recorded content).|
 | `controls` | | :heavy_multiplication_x: | Configuration for the timeline controls. See below.|
 | `actions` | | :heavy_multiplication_x: | Actions to use for the `timeline` views. See [actions](#actions) below.|
 
@@ -1617,6 +1618,7 @@ Reference: [Timeline Options](#timeline-options).
 timeline:
   clustering_threshold: 3
   media: all
+  show_recordings: true
   window_seconds: 3600
   controls:
     thumbnails:

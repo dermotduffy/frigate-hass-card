@@ -59,6 +59,15 @@ customElements.whenDefined('ha-hls-player').then(() => {
       }
     }
 
+    /**
+     * Seek the video.
+     */
+    public seek(seconds: number): void {
+      if (this._video) {
+        this._video.currentTime = seconds;
+      }
+    }
+
     // =====================================================================================
     // Minor modifications from:
     // - https://github.com/home-assistant/frontend/blob/dev/src/components/ha-hls-player.ts

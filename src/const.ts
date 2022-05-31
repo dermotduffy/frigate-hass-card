@@ -118,6 +118,7 @@ export const CONF_TIMELINE_WINDOW_SECONDS = `${CONF_TIMELINE}.window_seconds` as
 export const CONF_TIMELINE_CLUSTERING_THRESHOLD =
   `${CONF_TIMELINE}.clustering_threshold` as const;
 export const CONF_TIMELINE_MEDIA = `${CONF_TIMELINE}.media` as const;
+export const CONF_TIMELINE_SHOW_RECORDINGS = `${CONF_TIMELINE}.show_recordings` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE =
   `${CONF_TIMELINE}.controls.thumbnails.mode` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE =

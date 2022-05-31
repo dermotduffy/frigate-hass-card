@@ -83,7 +83,14 @@ const MEDIA_ACTION_POSITIVE_CONDITIONS = [
 export type AutoUnmuteCondition = typeof MEDIA_ACTION_POSITIVE_CONDITIONS[number];
 export type AutoPlayCondition = typeof MEDIA_ACTION_POSITIVE_CONDITIONS[number];
 
-export class FrigateCardError extends Error {}
+export class FrigateCardError extends Error {
+  context?: unknown;
+
+  constructor(message: string, context?: unknown) {
+    super(message);
+    this.context = context;
+  }
+}
 
 /**
  * Action Types (for "Picture Elements" / Menu)
@@ -400,7 +407,10 @@ const cameraConfigSchema = z
 
     trigger_by_motion: z.boolean().default(cameraConfigDefault.trigger_by_motion),
     trigger_by_occupancy: z.boolean().default(cameraConfigDefault.trigger_by_occupancy),
-    trigger_by_entities: z.string().array().default(cameraConfigDefault.trigger_by_entities),
+    trigger_by_entities: z
+      .string()
+      .array()
+      .default(cameraConfigDefault.trigger_by_entities),
   })
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigSchema>;
@@ -508,7 +518,7 @@ const viewConfigDefault = {
   scan: {
     enabled: false,
     show_trigger_status: true,
-  }
+  },
 };
 const viewConfigSchema = z
   .object({
@@ -525,10 +535,14 @@ const viewConfigSchema = z
     update_entities: z.string().array().optional(),
     render_entities: z.string().array().optional(),
     dark_mode: z.enum(['on', 'off', 'auto']).optional(),
-    scan: z.object({
-      enabled: z.boolean().default(viewConfigDefault.scan.enabled),
-      show_trigger_status: z.boolean().default(viewConfigDefault.scan.show_trigger_status),
-    }).default(viewConfigDefault.scan)
+    scan: z
+      .object({
+        enabled: z.boolean().default(viewConfigDefault.scan.enabled),
+        show_trigger_status: z
+          .boolean()
+          .default(viewConfigDefault.scan.show_trigger_status),
+      })
+      .default(viewConfigDefault.scan),
   })
   .merge(actionsSchema)
   .default(viewConfigDefault);
@@ -970,6 +984,7 @@ const timelineConfigDefault = {
   clustering_threshold: 3,
   media: 'all' as const,
   window_seconds: 60 * 60,
+  show_recordings: true,
   controls: {
     thumbnails: {
       mode: 'left' as const,
@@ -995,6 +1010,7 @@ const timelineConfigSchema = z
       .max(24 * 60 * 60)
       .optional()
       .default(timelineConfigDefault.window_seconds),
+    show_recordings: z.boolean().optional().default(timelineConfigDefault.show_recordings),
     controls: z
       .object({
         thumbnails: thumbnailsControlSchema
@@ -1130,6 +1146,15 @@ export interface BrowseMediaQueryParameters {
   cameraID?: string;
 }
 
+export interface BrowseRecordingQueryParameters {
+  clientId: string;
+  cameraName: string;
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+}
+
 export interface BrowseMediaNeighbors {
   previous: FrigateBrowseMediaSource | null;
   previousIndex: number | null;
@@ -1165,6 +1190,7 @@ export interface FrigateCardMediaPlayer {
   pause(): void;
   mute(): void;
   unmute(): void;
+  seek(seconds: number): void;
 }
 
 export interface CardHelpers {
@@ -1180,7 +1206,9 @@ export interface CardHelpers {
  */
 
 export const MEDIA_CLASS_PLAYLIST = 'playlist' as const;
+export const MEDIA_CLASS_VIDEO = 'video' as const;
 export const MEDIA_TYPE_PLAYLIST = 'playlist' as const;
+export const MEDIA_TYPE_VIDEO = 'video' as const;
 
 // Recursive type, cannot use type interference:
 // See: https://github.com/colinhacks/zod#recursive-types
@@ -1212,10 +1240,22 @@ export interface FrigateEvent {
   retain_indefinitely?: boolean;
 }
 
+export interface FrigateRecording {
+  camera: string;
+  start_time: number;
+  end_time: number;
+  events: number;
+
+  // The number of seconds at which this recording should be initially played
+  // from.
+  play_time?: number;
+}
+
 export interface FrigateBrowseMediaSource extends BrowseMediaSource {
   children?: FrigateBrowseMediaSource[] | null;
   frigate?: {
-    event: FrigateEvent;
+    event?: FrigateEvent;
+    recording?: FrigateRecording;
   };
 }
 
@@ -1274,7 +1314,7 @@ export type Entity = z.infer<typeof entitySchema>;
 export const extendedEntitySchema = entitySchema.extend({
   // Extended entity results.
   unique_id: z.string().optional(),
-})
+});
 export type ExtendedEntity = z.infer<typeof extendedEntitySchema>;
 
 export const entityListSchema = entitySchema.array();

@@ -46,10 +46,18 @@ div.timeline.right-margin {
   color: var(--primary-text-color);
   background-color: var(--primary-color);
 }
+.vis-item.vis-background {
+  background-color: rgba(255, 255, 255, 0.1);
+}
 
-.vis-item:hover {
-  // Float icons upwards when the user hovers over them.
-  z-index: 2;
+.vis-item:not(.vis-background) {
+  cursor: pointer;
+}
+.vis-item.vis-background, .vis-labelset, .vis-time-axis {
+  cursor: crosshair;
+}
+.vis-item:active {
+  cursor: unset;
 }
 
 .vis-item.vis-box {

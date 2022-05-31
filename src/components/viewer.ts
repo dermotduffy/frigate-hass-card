@@ -22,6 +22,7 @@ import type {
   CameraConfig,
   ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
+  FrigateCardMediaPlayer,
   MediaShowInfo,
   TransitionEffect,
   ViewerConfig
@@ -36,8 +37,8 @@ import {
   multipleBrowseMediaQueryMerged,
   overrideMultiBrowseMediaQueryParameters
 } from '../utils/ha/browse-media.js';
-import { createMediaShowInfo } from '../utils/media-info.js';
 import { ResolvedMediaCache, resolveMedia } from '../utils/ha/resolved-media.js';
+import { createMediaShowInfo } from '../utils/media-info.js';
 import { View } from '../view.js';
 import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import { Lazyload, LazyloadType } from './embla-plugins/lazyload.js';
@@ -125,6 +126,8 @@ export class FrigateCardViewer extends LitElement {
   }
 }
 
+const FRIGATE_CARD_HLS_SELECTOR = 'frigate-card-ha-hls-player';
+
 @customElement('frigate-card-viewer-carousel')
 export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   @property({ attribute: false })
@@ -168,11 +171,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
         ++i
       ) {
         if (isTrueMedia(target.children[i])) {
-          await resolveMedia(
-            this.hass,
-            target.children[i],
-            this.resolvedMediaCache,
-          );
+          await resolveMedia(this.hass, target.children[i], this.resolvedMediaCache);
         }
       }
     },
@@ -279,6 +278,23 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   }
 
   /**
+   * The the HLS player on a slide (or current slide if not provided.)
+   * @param slide An optional slide.
+   * @returns The FrigateCardMediaPlayer or null if not found.
+   */
+  protected _getPlayer(slide?: HTMLElement): FrigateCardMediaPlayer | null {
+    if (this._carousel) {
+      if (!slide) {
+        slide = this._carousel.slideNodes()[this._carousel.selectedScrollSnap()];
+      }
+      return slide?.querySelector(
+        FRIGATE_CARD_HLS_SELECTOR,
+      ) as FrigateCardMediaPlayer | null;
+    }
+    return null;
+  }
+
+  /**
    * Get the Embla plugins to use.
    * @returns An EmblaOptionsType object or undefined for no options.
    */
@@ -291,7 +307,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
         }),
       }),
       AutoMediaPlugin({
-        playerSelector: 'frigate-card-ha-hls-player',
+        playerSelector: FRIGATE_CARD_HLS_SELECTOR,
         ...(this.viewerConfig?.auto_play && {
           autoPlayCondition: this.viewerConfig.auto_play,
         }),
@@ -511,9 +527,9 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       const img = slide.querySelector('img') as HTMLImageElement;
 
       // Frigate >= 0.9.0+ clips.
-      const hls_player = slide.querySelector(
-        'frigate-card-ha-hls-player',
-      ) as HTMLElement & { url: string };
+      const hls_player = this._getPlayer(slide) as FrigateCardMediaPlayer & {
+        url: string;
+      };
 
       if (img) {
         img.src = this._canonicalizeHAURL(resolvedMedia.url) || '';
@@ -659,6 +675,24 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
           >
           </frigate-card-title-control>`
         : ``} `;
+  }
+
+  /**
+   * Fire a media show event when a slide is selected.
+   */
+  protected _selectSlideMediaShowHandler(): void {
+    super._selectSlideMediaShowHandler();
+
+    // If this is a recording and play is desired to be started from a
+    // particular point, seek to that point.
+    if (this.view?.media?.frigate?.recording?.play_time) {
+      const player = this._getPlayer();
+      if (player) {
+        player.seek(this.view.media.frigate.recording.play_time);
+        // TODO: Fix this bug.
+        console.info(`Seeking on ${this.view.media.media_content_id}`);
+      }
+    }
   }
 
   protected _renderMediaItem(

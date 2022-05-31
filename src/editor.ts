@@ -80,6 +80,7 @@ import {
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
   CONF_TIMELINE_MEDIA,
+  CONF_TIMELINE_SHOW_RECORDINGS,
   CONF_TIMELINE_WINDOW_SECONDS,
   CONF_VIEW_CAMERA_SELECT,
   CONF_VIEW_DARK_MODE,
@@ -1222,6 +1223,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderOptionSelector(
                 CONF_TIMELINE_MEDIA,
                 this._timelineMediaTypes,
+              )}
+              ${this._renderSwitch(
+                CONF_TIMELINE_SHOW_RECORDINGS,
+                defaults.timeline.show_recordings,
               )}
               ${this._renderOptionSelector(
                 CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,

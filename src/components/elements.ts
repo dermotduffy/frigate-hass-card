@@ -12,6 +12,7 @@ import { ConditionState, fetchStateAndEvaluateCondition } from '../card-conditio
 import { localize } from '../localize/localize.js';
 import elementsStyle from '../scss/elements.scss';
 import {
+  FrigateCardError,
   FrigateConditional,
   MenuButton,
   MenuIcon,
@@ -21,7 +22,7 @@ import {
   PictureElements
 } from '../types.js';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
-import { dispatchErrorMessageEvent } from './message.js';
+import { dispatchFrigateCardErrorEvent } from './message.js';
 
 /* A note on picture element rendering:
  *
@@ -108,7 +109,7 @@ export class FrigateCardElementsCore extends LitElement {
       element.setConfig(config);
     } catch (e) {
       console.error(e, (e as Error).stack);
-      throw new Error(localize('error.invalid_elements_config'));
+      throw new FrigateCardError(localize('error.invalid_elements_config'));
     }
     return element;
   }
@@ -125,7 +126,7 @@ export class FrigateCardElementsCore extends LitElement {
         this._root = this._createRoot();
       }
     } catch (e) {
-      return dispatchErrorMessageEvent(this, (e as Error).message);
+      return dispatchFrigateCardErrorEvent(this, e as FrigateCardError);
     }
   }
 

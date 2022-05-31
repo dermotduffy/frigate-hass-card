@@ -7,7 +7,8 @@
     "no_clips": "No clips",
     "no_snapshot": "No recent snapshot",
     "no_clip": "No recent clip",
-    "live": "Live"
+    "live": "Live",
+    "recordings": "Recordings"
   },
   "config": {
     "cameras": {
@@ -109,8 +110,8 @@
         "thumbnails": {
           "mode": "Event Viewer thumbnails mode",
           "size": "Event Viewer thumbnails size in pixels",
-          "show_details": "Show event details with thumbnails",
-          "show_controls": "Show event controls with thumbnails",
+          "show_details": "Show details with thumbnails",
+          "show_controls": "Show controls with thumbnails",
           "modes": {
             "below": "Thumbnails below the media",
             "above": "Thumbnails above the media",
@@ -229,6 +230,7 @@
       "window_seconds": "The default length of the timeline view in seconds",
       "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",
       "media": "The media the timeline displays",
+      "show_recordings": "Show recordings",
       "medias": {
         "all": "All media types",
         "clips": "Clips",
@@ -292,13 +294,20 @@
     "in_progress": "In Progress",
     "score": "Score"
   },
+  "recording": { 
+    "events": "Events"
+  },
   "thumbnail": {
     "retain_indefinitely": "Event will be indefinitely retained",
-    "timeline": "See event in timeline"
+    "timeline": "See event in timeline",
+    "no_thumbnail": "No thumbnail available"
   },
   "error": {
+    "undecodable_response": "Could not decode response from Home Assistant for request",
     "empty_response": "Received empty response from Home Assistant for request",
     "invalid_response": "Received invalid response from Home Assistant for request",
+    "failed_response": "Failed to receive response from Home Assistant for request",
+    "failed_sign": "Could not sign Home Assistant URL",
     "invalid_keys": "Invalid keys",
     "unknown": "Unknown error",
     "troubleshooting": "Check troubleshooting",

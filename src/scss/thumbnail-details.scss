@@ -8,10 +8,14 @@
   column-gap: 5%;
 }
 
-div.right, div.left {
+div.right,
+div.left {
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+div.right {
+  align-items: center;
 }
 
 div.left {
@@ -36,6 +40,7 @@ span.heading {
   font-weight: bold;
 }
 
-.larger {
+div.larger,
+span.larger {
   font-size: 1.5rem;
 }

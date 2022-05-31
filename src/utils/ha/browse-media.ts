@@ -8,15 +8,23 @@ import {
 import { homeAssistantWSRequest } from '.';
 import {
   dispatchErrorMessageEvent,
+  dispatchFrigateCardErrorEvent,
   dispatchMessageEvent
 } from '../../components/message.js';
 import { localize } from '../../localize/localize.js';
 import {
   BrowseMediaQueryParameters,
+  BrowseRecordingQueryParameters,
   CameraConfig,
   FrigateBrowseMediaSource,
-  frigateBrowseMediaSourceSchema, FrigateEvent, MEDIA_CLASS_PLAYLIST,
-  MEDIA_TYPE_PLAYLIST
+  frigateBrowseMediaSourceSchema,
+  FrigateCardError,
+  FrigateEvent,
+  FrigateRecording,
+  MEDIA_CLASS_PLAYLIST,
+  MEDIA_CLASS_VIDEO,
+  MEDIA_TYPE_PLAYLIST,
+  MEDIA_TYPE_VIDEO
 } from '../../types.js';
 import { View } from '../../view.js';
 import { getCameraTitle } from '../camera.js';
@@ -27,7 +35,7 @@ import { getCameraTitle } from '../camera.js';
  * @returns The `event_id` or `null` if not successfully parsed.
  */
 export const getEventID = (media: FrigateBrowseMediaSource): string | null => {
-  return media.frigate?.event.id ?? null;
+  return media.frigate?.event?.id ?? null;
 };
 
 /**
@@ -36,7 +44,7 @@ export const getEventID = (media: FrigateBrowseMediaSource): string | null => {
  * @returns The start time in unix/epoch time, or null if it cannot be determined.
  */
 export const getEventStartTime = (media: FrigateBrowseMediaSource): number | null => {
-  return media.frigate?.event.start_time ?? null;
+  return media.frigate?.event?.start_time ?? null;
 };
 
 /**
@@ -336,7 +344,7 @@ export const fetchLatestMediaAndDispatchViewChange = async (
   try {
     parent = await multipleBrowseMediaQueryMerged(hass, browseMediaQueryParameters);
   } catch (e) {
-    return dispatchErrorMessageEvent(element, (e as Error).message);
+    return dispatchFrigateCardErrorEvent(element, e as FrigateCardError);
   }
   const childIndex = getFirstTrueMediaChildIndex(parent);
   if (!parent || !parent.children || childIndex == null) {
@@ -376,7 +384,7 @@ export const fetchChildMediaAndDispatchViewChange = async (
   try {
     parent = await browseMedia(hass, child.media_content_id);
   } catch (e) {
-    return dispatchErrorMessageEvent(element, (e as Error).message);
+    return dispatchFrigateCardErrorEvent(element, e as FrigateCardError);
   }
 
   view
@@ -410,6 +418,38 @@ export const createEventParentForChildren = (
 };
 
 /**
+ * Given a media video child with a given media_content_id.
+ * @param title The title to use for the child.
+ * @param media_con
+ * @param children The children media items.
+ * @returns A single parent containing the children.
+ */
+export const createVideoChild = (
+  title: string,
+  mediaContentID: string,
+  options?: {
+    thumbnail?: string;
+    recording?: FrigateRecording;
+  },
+): FrigateBrowseMediaSource => {
+  return {
+    title: title,
+    media_class: MEDIA_CLASS_VIDEO,
+    media_content_type: MEDIA_TYPE_VIDEO,
+    media_content_id: mediaContentID,
+    can_play: true,
+    can_expand: false,
+    thumbnail: options?.thumbnail ?? null,
+    children: null,
+    ...(options?.recording && {
+      frigate: {
+        recording: options.recording,
+      },
+    }),
+  };
+};
+
+/**
  * Convenience function to convert a timestamp to hours, minutes and seconds
  * string. Heavily inspired by, and returning the same format as, the Frigate
  * UI: https://github.com/blakeblackshear/frigate/blob/master/web/src/components/RecordingPlaylist.jsx#L97
@@ -436,3 +476,23 @@ export function getEventDurationString(event: FrigateEvent): string {
   duration += `${seconds}s`;
   return duration;
 }
+
+/**
+ * Generate a recording identifier.
+ * @param hass The HomeAssistant object.
+ * @param params The recording parameters to use in the identifer.
+ * @returns A recording identifier.
+ */
+export const generateRecordingIdentifier = (
+  params: BrowseRecordingQueryParameters,
+): string => {
+  return [
+    'media-source://frigate',
+    params.clientId,
+    'recordings',
+    `${params.year}-${String(params.month).padStart(2, '0')}`,
+    String(params.day).padStart(2, '0'),
+    String(params.hour).padStart(2, '0'),
+    params.cameraName,
+  ].join('/');
+};

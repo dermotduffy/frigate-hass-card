@@ -3,7 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { TROUBLESHOOTING_URL } from '../const.js';
 import { localize } from '../localize/localize.js';
 import messageStyle from '../scss/message.scss';
-import { Message } from '../types.js';
+import { FrigateCardError, Message } from '../types.js';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
 
 @customElement('frigate-card-message')
@@ -138,5 +138,21 @@ export function dispatchErrorMessageEvent(
     message: message,
     type: 'error',
     context: context,
+  });
+}
+
+/**
+ * Dispatch an event with an error message to show to the user.
+ * @param element The element to send the event.
+ * @param message The message to show.
+ */
+export function dispatchFrigateCardErrorEvent(
+  element: HTMLElement,
+  error: FrigateCardError
+): void {
+  dispatchFrigateCardEvent<Message>(element, 'message', {
+    message: error.message,
+    type: 'error',
+    context: error.context || ''
   });
 }

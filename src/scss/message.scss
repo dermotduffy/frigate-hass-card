@@ -2,6 +2,11 @@
   height: 100%;
   width: 100%;
   display: block;
+
+  // Ensure error messages are selectable.
+  user-select: text;
+  // Safari only has prefixed support.
+  -webkit-user-select: text;
 }
 
 div.wrapper {
@@ -20,6 +25,7 @@ div.message {
 div.message div.contents {
   padding: 10px;
   height: 100%;
+  max-width: 100%;
 }
 
 div.message div.icon {
@@ -37,4 +43,6 @@ div.message div.icon {
 
 .message pre {
   margin-top: 20px;
+  white-space: pre-wrap;
+  word-break: break-all;
 }

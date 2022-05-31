@@ -975,7 +975,7 @@ export class FrigateCard extends LitElement {
    * @returns A boolean indicating whether the camera was changed.
    */
   protected _updateTriggeredCameras(oldHass: HomeAssistant): boolean {
-    if (!this._view) {
+    if (!this._view || !this._isAutomatedViewUpdateAllowed(true)) {
       return false;
     }
 
@@ -1001,7 +1001,7 @@ export class FrigateCard extends LitElement {
       }
     }
 
-    if (triggerChanges && this._isAutomatedViewUpdateAllowed(true)) {
+    if (triggerChanges) {
       if (!this._triggers.size) {
         this._changeView();
         changedCamera = true;
