@@ -11,7 +11,8 @@
   max-height: var(--frigate-card-thumbnail-size-max);
   padding: 10px;
 
-  border: 1px solid rgba(255,255,255,0.3);
+  border: 1px solid var(--secondary-color);
+  background-color: var(--secondary-background-color);
   border-radius: var(--ha-card-border-radius, 4px);
   box-sizing: border-box;
 
