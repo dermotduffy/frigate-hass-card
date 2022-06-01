@@ -44,12 +44,25 @@ div.opposing {
   width: 100%;
   background: var(--secondary-background-color);
 }
-:host([data-style='outside'][data-position='top']) {
+
+/************************************
+ * Match menu rounded corners to card
+ ************************************/
+
+:host([data-position='top']),
+:host([data-position='left']) {
   border-top-left-radius: var(--ha-card-border-radius, 4px);
+}
+:host([data-position='top']),
+:host([data-position='right']) {
   border-top-right-radius: var(--ha-card-border-radius, 4px);
 }
-:host([data-style='outside']:not([data-position='top'])) {
+:host([data-position='bottom']),
+:host([data-position='left']) {
   border-bottom-left-radius: var(--ha-card-border-radius, 4px);
+}
+:host([data-position='bottom']),
+:host([data-position='right']) {
   border-bottom-right-radius: var(--ha-card-border-radius, 4px);
 }
 
