@@ -583,9 +583,11 @@ export class FrigateCardTimelineCore extends LitElement {
     const children: FrigateBrowseMediaSource[] = [];
     const processedCameras: Set<string> = new Set();
 
-    for (const [camera, recording] of results.entries()) {
+    // Get results in the order the cameras are specified in the configuration.
+    for (const camera of (this.cameras?.keys() || [])) {
+      const recording = results.get(camera);
       const config = this.cameras?.get(camera);
-      if (!config?.camera_name) {
+      if (!recording || !config?.camera_name) {
         continue;
       }
 

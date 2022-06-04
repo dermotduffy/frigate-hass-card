@@ -956,6 +956,24 @@ View events in the timeline.
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/timeline.gif" alt="Event Timeline" width="400px">
 
+### Single Camera Recordings
+
+View recordings for a camera across time:
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/recording-seek.gif" alt="Recording for single camera" width="400px">
+
+### Multiple Camera Recordings
+
+View recordings for multiple cameras at a given time:
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/recording-seek-all-cameras.gif" alt="Recording for multiple cameras" width="400px">
+
+### Dark Mode
+
+Dim the card when not used.
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/dark-mode.gif" alt="Card dark mode" width="400px">
+
 <a name="screenshots-card-casting"></a>
 
 ### Card Casting
