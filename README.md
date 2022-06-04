@@ -2583,6 +2583,14 @@ You must be using a version of the [Frigate integration](https://github.com/blak
 to use JSMPEG proxying. The `frigate-jsmpeg` live provider will not work with earlier
 integration versions.
 
+
+### Timeline shows error message
+
+If the timeline shows a message such as `Failed to receive response from Home
+Assistant for request.` make sure you are running a version of the [Frigate
+integration](https://github.com/blakeblackshear/frigate-hass-integration) >=
+3.0.0.
+
 ### Fullscreen Button Does Not Appear On iPhone
 
 Unfortunately, [iOS does not support the Javascript fullscreen
