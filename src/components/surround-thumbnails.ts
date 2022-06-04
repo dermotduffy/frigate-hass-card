@@ -145,6 +145,8 @@ export class FrigateCardSurround extends LitElement {
             .selected=${this.view.childIndex}
             @frigate-card:change-view=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
             @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
+              // Send the view change from the source of the tap event, so the
+              // view change will be caught by the handler above (to close the drawer).
               this.view
                 ?.evolve({
                   view: this.targetView || 'event',
@@ -152,7 +154,7 @@ export class FrigateCardSurround extends LitElement {
                   childIndex: ev.detail.childIndex,
                   context: null,
                 })
-                .dispatchChangeEvent(this);
+                .dispatchChangeEvent(ev.composedPath()[0]);
             }}
           >
           </frigate-card-thumbnail-carousel>`

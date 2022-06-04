@@ -145,9 +145,9 @@ export class View {
 
   /**
    * Dispatch an event to request a view change.
-   * @param node The element dispatching the event.
+   * @param target The target dispatching the event.
    */
-  public dispatchChangeEvent(node: HTMLElement): void {
-    dispatchFrigateCardEvent(node, 'change-view', this);
+  public dispatchChangeEvent(target: EventTarget): void {
+    dispatchFrigateCardEvent(target, 'change-view', this);
   }
 }
