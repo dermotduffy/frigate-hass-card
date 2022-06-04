@@ -52,7 +52,7 @@
     "event_gallery": {
       "min_columns": "Número mínimo de colunas"
     },
-    "event_viewer": {
+    "media_viewer": {
       "auto_play": "Reproduzir mídia automaticamente",
       "auto_unmute": "Ativar mídia automaticamente",
       "draggable": "Visualizador de eventos pode ser arrastado/deslizado",
@@ -188,8 +188,8 @@
     "live_secondary": "Opções de visualização da câmera ao vivo",
     "event_gallery": "Galeria de eventos",
     "event_gallery_secondary": "Opções da galeria de Snapshots e clipes",
-    "event_viewer": "Visualizador de eventos",
-    "event_viewer_secondary": "Opções do visualizador de Snapshots e clipes",
+    "media_viewer": "Visualizador de eventos",
+    "media_viewer_secondary": "Opções do visualizador de Snapshots e clipes",
     "image": "Imagem",
     "image_secondary": "Opções de visualização de imagem estática",
     "dimensions": "Dimensões",

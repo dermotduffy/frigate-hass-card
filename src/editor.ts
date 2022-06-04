@@ -32,23 +32,7 @@ import {
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE,
-  CONF_EVENT_VIEWER_AUTO_MUTE,
-  CONF_EVENT_VIEWER_AUTO_PAUSE,
-  CONF_EVENT_VIEWER_AUTO_PLAY,
-  CONF_EVENT_VIEWER_AUTO_UNMUTE,
-  CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
-  CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
-  CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE,
-  CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
-  CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-  CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE,
-  CONF_EVENT_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
-  CONF_EVENT_VIEWER_CONTROLS_TITLE_MODE,
-  CONF_EVENT_VIEWER_DRAGGABLE,
-  CONF_EVENT_VIEWER_LAZY_LOAD,
-  CONF_EVENT_VIEWER_TRANSITION_EFFECT,
-  CONF_IMAGE_MODE,
+  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE, CONF_IMAGE_MODE,
   CONF_IMAGE_REFRESH_SECONDS,
   CONF_IMAGE_URL,
   CONF_LIVE_AUTO_MUTE,
@@ -68,8 +52,21 @@ import {
   CONF_LIVE_LAZY_LOAD,
   CONF_LIVE_LAZY_UNLOAD,
   CONF_LIVE_PRELOAD,
-  CONF_LIVE_TRANSITION_EFFECT,
-  CONF_MENU_ALIGNMENT,
+  CONF_LIVE_TRANSITION_EFFECT, CONF_MEDIA_VIEWER_AUTO_MUTE,
+  CONF_MEDIA_VIEWER_AUTO_PAUSE,
+  CONF_MEDIA_VIEWER_AUTO_PLAY,
+  CONF_MEDIA_VIEWER_AUTO_UNMUTE,
+  CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
+  CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
+  CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
+  CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
+  CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+  CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE,
+  CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
+  CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE,
+  CONF_MEDIA_VIEWER_DRAGGABLE,
+  CONF_MEDIA_VIEWER_LAZY_LOAD,
+  CONF_MEDIA_VIEWER_TRANSITION_EFFECT, CONF_MENU_ALIGNMENT,
   CONF_MENU_BUTTONS,
   CONF_MENU_BUTTON_SIZE,
   CONF_MENU_POSITION,
@@ -153,10 +150,10 @@ const options: EditorOptions = {
     name: localize('editor.live'),
     secondary: localize('editor.live_secondary'),
   },
-  event_viewer: {
+  media_viewer: {
     icon: 'filmstrip',
-    name: localize('editor.event_viewer'),
-    secondary: localize('editor.event_viewer_secondary'),
+    name: localize('editor.media_viewer'),
+    secondary: localize('editor.media_viewer_secondary'),
   },
   event_gallery: {
     icon: 'grid',
@@ -240,15 +237,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: '', label: '' },
     {
       value: 'thumbnails',
-      label: localize('config.event_viewer.controls.next_previous.styles.thumbnails'),
+      label: localize('config.media_viewer.controls.next_previous.styles.thumbnails'),
     },
     {
       value: 'chevrons',
-      label: localize('config.event_viewer.controls.next_previous.styles.chevrons'),
+      label: localize('config.media_viewer.controls.next_previous.styles.chevrons'),
     },
     {
       value: 'none',
-      label: localize('config.event_viewer.controls.next_previous.styles.none'),
+      label: localize('config.media_viewer.controls.next_previous.styles.none'),
     },
   ];
 
@@ -282,23 +279,23 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: '', label: '' },
     {
       value: 'none',
-      label: localize('config.event_viewer.controls.thumbnails.modes.none'),
+      label: localize('config.media_viewer.controls.thumbnails.modes.none'),
     },
     {
       value: 'above',
-      label: localize('config.event_viewer.controls.thumbnails.modes.above'),
+      label: localize('config.media_viewer.controls.thumbnails.modes.above'),
     },
     {
       value: 'below',
-      label: localize('config.event_viewer.controls.thumbnails.modes.below'),
+      label: localize('config.media_viewer.controls.thumbnails.modes.below'),
     },
     {
       value: 'left',
-      label: localize('config.event_viewer.controls.thumbnails.modes.left'),
+      label: localize('config.media_viewer.controls.thumbnails.modes.left'),
     },
     {
       value: 'right',
-      label: localize('config.event_viewer.controls.thumbnails.modes.right'),
+      label: localize('config.media_viewer.controls.thumbnails.modes.right'),
     },
   ];
 
@@ -313,29 +310,29 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
   protected _titleModes: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'none', label: localize('config.event_viewer.controls.title.modes.none') },
+    { value: 'none', label: localize('config.media_viewer.controls.title.modes.none') },
     {
       value: 'popup-top-left',
-      label: localize('config.event_viewer.controls.title.modes.popup-top-left'),
+      label: localize('config.media_viewer.controls.title.modes.popup-top-left'),
     },
     {
       value: 'popup-top-right',
-      label: localize('config.event_viewer.controls.title.modes.popup-top-right'),
+      label: localize('config.media_viewer.controls.title.modes.popup-top-right'),
     },
     {
       value: 'popup-bottom-left',
-      label: localize('config.event_viewer.controls.title.modes.popup-bottom-left'),
+      label: localize('config.media_viewer.controls.title.modes.popup-bottom-left'),
     },
     {
       value: 'popup-bottom-right',
-      label: localize('config.event_viewer.controls.title.modes.popup-bottom-right'),
+      label: localize('config.media_viewer.controls.title.modes.popup-bottom-right'),
     },
   ];
 
   protected _transitionEffects: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'none', label: localize('config.event_viewer.transition_effects.none') },
-    { value: 'slide', label: localize('config.event_viewer.transition_effects.slide') },
+    { value: 'none', label: localize('config.media_viewer.transition_effects.none') },
+    { value: 'slide', label: localize('config.media_viewer.transition_effects.slide') },
   ];
 
   protected _imageModes: EditorSelectOption[] = [
@@ -1135,74 +1132,74 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               })}
               ${this._renderSwitch(
                 CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-                defaults.event_viewer.controls.thumbnails.show_details,
+                defaults.media_viewer.controls.thumbnails.show_details,
               )}
               ${this._renderSwitch(
                 CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
-                defaults.event_viewer.controls.thumbnails.show_controls,
+                defaults.media_viewer.controls.thumbnails.show_controls,
               )}
             </div>`
           : ''}
-        ${this._renderOptionSetHeader('event_viewer')}
-        ${this._expandedMenus[MENU_OPTIONS] === 'event_viewer'
+        ${this._renderOptionSetHeader('media_viewer')}
+        ${this._expandedMenus[MENU_OPTIONS] === 'media_viewer'
           ? html` <div class="values">
               ${this._renderOptionSelector(
-                CONF_EVENT_VIEWER_AUTO_PLAY,
+                CONF_MEDIA_VIEWER_AUTO_PLAY,
                 this._mediaActionPositiveConditions,
               )}
               ${this._renderOptionSelector(
-                CONF_EVENT_VIEWER_AUTO_PAUSE,
+                CONF_MEDIA_VIEWER_AUTO_PAUSE,
                 this._mediaActionNegativeConditions,
               )}
               ${this._renderOptionSelector(
-                CONF_EVENT_VIEWER_AUTO_MUTE,
+                CONF_MEDIA_VIEWER_AUTO_MUTE,
                 this._mediaActionNegativeConditions,
               )}
               ${this._renderOptionSelector(
-                CONF_EVENT_VIEWER_AUTO_UNMUTE,
+                CONF_MEDIA_VIEWER_AUTO_UNMUTE,
                 this._mediaActionPositiveConditions,
               )}
               ${this._renderSwitch(
-                CONF_EVENT_VIEWER_DRAGGABLE,
-                defaults.event_viewer.draggable,
+                CONF_MEDIA_VIEWER_DRAGGABLE,
+                defaults.media_viewer.draggable,
               )}
               ${this._renderSwitch(
-                CONF_EVENT_VIEWER_LAZY_LOAD,
-                defaults.event_viewer.lazy_load,
+                CONF_MEDIA_VIEWER_LAZY_LOAD,
+                defaults.media_viewer.lazy_load,
               )}
               ${this._renderOptionSelector(
-                CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
+                CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
                 this._eventViewerNextPreviousControlStyles,
               )}
-              ${this._renderNumberInput(CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE, {
+              ${this._renderNumberInput(CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE, {
                 min: BUTTON_SIZE_MIN,
               })}
               ${this._renderOptionSelector(
-                CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE,
+                CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
                 this._thumbnailModes,
               )}
-              ${this._renderNumberInput(CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE, {
+              ${this._renderNumberInput(CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE, {
                 min: THUMBNAIL_WIDTH_MIN,
                 max: THUMBNAIL_WIDTH_MAX,
               })}
               ${this._renderSwitch(
-                CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-                defaults.event_viewer.controls.thumbnails.show_details,
+                CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+                defaults.media_viewer.controls.thumbnails.show_details,
               )}
               ${this._renderSwitch(
-                CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
-                defaults.event_viewer.controls.thumbnails.show_controls,
+                CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
+                defaults.media_viewer.controls.thumbnails.show_controls,
               )}
               ${this._renderOptionSelector(
-                CONF_EVENT_VIEWER_CONTROLS_TITLE_MODE,
+                CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE,
                 this._titleModes,
               )}
               ${this._renderNumberInput(
-                CONF_EVENT_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
+                CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
                 { min: 0, max: 60 },
               )}
               ${this._renderOptionSelector(
-                CONF_EVENT_VIEWER_TRANSITION_EFFECT,
+                CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
                 this._transitionEffects,
               )}
             </div>`

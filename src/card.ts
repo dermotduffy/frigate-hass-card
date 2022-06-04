@@ -5,7 +5,7 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS,
+  unsafeCSS
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -20,7 +20,7 @@ import {
   ConditionState,
   conditionStateRequestHandler,
   getOverriddenConfig,
-  getOverridesByKey,
+  getOverridesByKey
 } from './card-condition.js';
 import './components/elements.js';
 import { FrigateCardElements } from './components/elements.js';
@@ -40,7 +40,7 @@ import {
   CAMERA_BIRDSEYE,
   CARD_VERSION,
   MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
-  REPO_URL,
+  REPO_URL
 } from './const.js';
 import './editor.js';
 import { localize } from './localize/localize.js';
@@ -63,14 +63,14 @@ import {
   MediaShowInfo,
   MenuButton,
   Message,
-  RawFrigateCardConfig,
+  RawFrigateCardConfig
 } from './types.js';
 import {
   convertActionToFrigateCardCustomAction,
   createFrigateCardCustomAction,
   frigateCardHandleAction,
   frigateCardHasAction,
-  getActionConfigGivenAction,
+  getActionConfigGivenAction
 } from './utils/action.js';
 import { contentsChanged } from './utils/basic.js';
 import { getCameraIcon, getCameraID, getCameraTitle } from './utils/camera.js';
@@ -81,14 +81,14 @@ import {
   homeAssistantSignPath,
   isHassDifferent,
   isTriggeredState,
-  sideLoadHomeAssistantElements,
+  sideLoadHomeAssistantElements
 } from './utils/ha';
 import { getEventID } from './utils/ha/browse-media.js';
 import {
   ExtendedEntityCache,
   getAllEntities,
   getExtendedEntities,
-  getExtendedEntity,
+  getExtendedEntity
 } from './utils/ha/entity-registry.js';
 import { ResolvedMediaCache } from './utils/ha/resolved-media.js';
 import { supportsFeature } from './utils/ha/update.js';
@@ -1545,7 +1545,7 @@ export class FrigateCard extends LitElement {
     } else if (this._view?.isGalleryView()) {
       specificActions = this._getConfig().event_gallery?.actions;
     } else if (this._view?.isViewerView()) {
-      specificActions = this._getConfig().event_viewer.actions;
+      specificActions = this._getConfig().media_viewer.actions;
     } else if (this._view?.is('image')) {
       specificActions = this._getConfig().image?.actions;
     } else if (this._view?.is('timeline')) {
@@ -1678,7 +1678,7 @@ export class FrigateCard extends LitElement {
             .hass=${this._hass}
             .view=${this._view}
             .cameras=${this._cameras}
-            .viewerConfig=${this._getConfig().event_viewer}
+            .viewerConfig=${this._getConfig().media_viewer}
             .resolvedMediaCache=${this._resolvedMediaCache}
           >
           </frigate-card-viewer>`

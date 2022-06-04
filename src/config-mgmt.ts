@@ -8,42 +8,38 @@ import {
   CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
   CONF_CAMERAS_ARRAY_URL,
   CONF_CAMERAS_ARRAY_ZONE,
-  CONF_EVENT_VIEWER_AUTO_PLAY,
-  CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
-  CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
-  CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE,
   CONF_IMAGE_URL,
+  CONF_LIVE_AUTO_UNMUTE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
   CONF_LIVE_LAZY_UNLOAD,
   CONF_LIVE_PRELOAD,
   CONF_LIVE_WEBRTC_CARD,
+  CONF_MEDIA_VIEWER,
   CONF_MENU,
-  CONF_MENU_BUTTONS_FRIGATE,
   CONF_MENU_BUTTONS_CAMERAS,
-  CONF_MENU_BUTTONS_LIVE,
   CONF_MENU_BUTTONS_CLIPS,
-  CONF_MENU_BUTTONS_SNAPSHOTS,
-  CONF_MENU_BUTTONS_IMAGE,
   CONF_MENU_BUTTONS_DOWNLOAD,
+  CONF_MENU_BUTTONS_FRIGATE,
   CONF_MENU_BUTTONS_FRIGATE_UI,
   CONF_MENU_BUTTONS_FULLSCREEN,
+  CONF_MENU_BUTTONS_IMAGE,
+  CONF_MENU_BUTTONS_LIVE,
+  CONF_MENU_BUTTONS_SNAPSHOTS,
   CONF_MENU_BUTTON_SIZE,
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
   CONF_OVERRIDES,
   CONF_VIEW_DEFAULT,
   CONF_VIEW_TIMEOUT_SECONDS,
-  CONF_VIEW_UPDATE_ENTITIES,
-  CONF_LIVE_AUTO_UNMUTE,
-  CONF_EVENT_VIEWER_AUTO_UNMUTE,
+  CONF_VIEW_UPDATE_ENTITIES
 } from './const';
 import {
   BUTTON_SIZE_MIN,
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
-  THUMBNAIL_WIDTH_MIN,
+  THUMBNAIL_WIDTH_MIN
 } from './types';
 
 /**
@@ -532,8 +528,8 @@ const UPGRADES = [
   upgradeMoveTo('live_preload', CONF_LIVE_PRELOAD),
   upgradeMoveTo('webrtc', 'live.webrtc'),
   upgradeMoveTo('autoplay_clip', 'event_viewer.autoplay_clip'),
-  upgradeMoveTo('controls.nextprev', CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE),
-  upgradeMoveTo('controls.nextprev_size', CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE),
+  upgradeMoveTo('controls.nextprev', 'event_viewer.controls.next_previous.style'),
+  upgradeMoveTo('controls.nextprev_size', 'event_viewer.controls.next_previous.size'),
   upgradeMoveTo('menu_mode', 'menu.mode'),
   upgradeMoveTo('menu_buttons', 'menu.buttons'),
   upgradeMoveTo('menu_button_size', CONF_MENU_BUTTON_SIZE),
@@ -546,7 +542,7 @@ const UPGRADES = [
   upgradeToMultipleCameras(),
   upgradeMenuConditionToMenuOverride(),
   upgradeMoveTo('view.timeout', CONF_VIEW_TIMEOUT_SECONDS, toNumberOrIgnore),
-  upgradeMoveTo('event_viewer.autoplay_clip', CONF_EVENT_VIEWER_AUTO_PLAY),
+  upgradeMoveTo('event_viewer.autoplay_clip', 'event_viewer.auto_play'),
 
   // v3.0.0-rc.1 -> v3.0.0-rc.2
   upgradeArrayValue(
@@ -565,7 +561,7 @@ const UPGRADES = [
     createRangedTransform(toPixelsOrDelete, THUMBNAIL_WIDTH_MIN, THUMBNAIL_WIDTH_MAX),
   ),
   upgradeWithOverrides(
-    CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE,
+    'event_viewer.controls.thumbnails.size',
     createRangedTransform(toPixelsOrDelete, THUMBNAIL_WIDTH_MIN, THUMBNAIL_WIDTH_MAX),
   ),
   upgradeWithOverrides(
@@ -573,7 +569,7 @@ const UPGRADES = [
     createRangedTransform(toPixelsOrDelete, BUTTON_SIZE_MIN),
   ),
   upgradeWithOverrides(
-    CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
+    'event_viewer.controls.next_previous.size',
     createRangedTransform(toPixelsOrDelete, BUTTON_SIZE_MIN),
   ),
   upgradeWithOverrides(
@@ -597,10 +593,11 @@ const UPGRADES = [
   upgrade(CONF_LIVE_AUTO_UNMUTE, (val) =>
     typeof val === 'boolean' ? (val ? 'all' : 'never') : undefined,
   ),
-  upgrade(CONF_EVENT_VIEWER_AUTO_PLAY, (val) =>
+  upgrade('event_viewer.auto_play', (val) =>
     typeof val === 'boolean' ? (val ? 'all' : 'never') : undefined,
   ),
-  upgrade(CONF_EVENT_VIEWER_AUTO_UNMUTE, (val) =>
+  upgrade('event_viewer.auto_unmute', (val) =>
     typeof val === 'boolean' ? (val ? 'all' : 'never') : undefined,
   ),
+  upgradeMoveToWithOverrides('event_viewer', CONF_MEDIA_VIEWER),
 ];

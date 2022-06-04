@@ -149,7 +149,7 @@ export class FrigateCardSurround extends LitElement {
               // view change will be caught by the handler above (to close the drawer).
               this.view
                 ?.evolve({
-                  view: this.targetView || 'event',
+                  view: this.targetView || 'media',
                   target: ev.detail.target,
                   childIndex: ev.detail.childIndex,
                   context: null,

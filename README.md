@@ -359,17 +359,17 @@ live:
 | `mode` | `popup-bottom-right` | :white_check_mark: | How to display the live camera title. Acceptable values: `none`, `popup-top-left`, `popup-top-right`, `popup-bottom-left`, `popup-bottom-right` . |
 | `duration_seconds` | `2` | :white_check_mark: | The number of seconds to display the title popup. `0` implies forever.|
 
-### Event Viewer Options
+### Media Viewer Options
 
-The `event_viewer` is used for viewing all `clip` and `snapshot` media, in a media carousel.
+The `media_viewer` is used for viewing all `clip`, `snapshot` or recording media, in a media carousel.
 
 All configuration is under:
 
 ```yaml
-event_viewer:
+media_viewer:
 ```
 
-See the [fully expanded event viewer configuration example](#config-expanded-event-viewer) for how these parameters are structured.
+See the [fully expanded Media viewer configuration example](#config-expanded-media-viewer) for how these parameters are structured.
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
@@ -377,18 +377,18 @@ See the [fully expanded event viewer configuration example](#config-expanded-eve
 | `auto_pause` | `all` | :heavy_multiplication_x: | Whether to automatically pause events. `never` will never automatically pause, `unselected` will automatically pause when an event is unselected in the carousel, `hidden` will automatically pause when the browser/tab becomes hidden or `all` on any opportunity to automatically pause (i.e. either case).|
 | `auto_mute` | `all` | :heavy_multiplication_x: | Whether to automatically mute events. `never` will never automatically mute, `unselected` will automatically mute when an event is unselected in the carousel, `hidden` will automatically mute when the browser/tab becomes hidden or `all` on any opportunity to automatically mute (i.e. either case).|
 | `auto_unmute` | `never` | :heavy_multiplication_x: | Whether to automatically unmute events. `never` will never automatically unmute, `selected` will automatically unmute when an event is selected in the carousel, `visible` will automatically unmute when the browser/tab becomes visible or `all` on any opportunity to automatically unmute (i.e. either case). Note that some browsers will not allow automated unmute until the user has interacted with the page in some way -- if the user has not then the browser may pause the media instead.|
-| `lazy_load` | `true` | :heavy_multiplication_x: | Whether or not to lazily load media in the event viewer carousel. Setting this will false will fetch all media immediately which may make the carousel experience smoother at a cost of (potentially) a substantial number of simultaneous media fetches on load. |
-| `draggable` | `true` | :heavy_multiplication_x: | Whether or not the event viewer carousel can be dragged left or right, via touch/swipe and mouse dragging. |
+| `lazy_load` | `true` | :heavy_multiplication_x: | Whether or not to lazily load media in the Media viewer carousel. Setting this will false will fetch all media immediately which may make the carousel experience smoother at a cost of (potentially) a substantial number of simultaneous media fetches on load. |
+| `draggable` | `true` | :heavy_multiplication_x: | Whether or not the Media viewer carousel can be dragged left or right, via touch/swipe and mouse dragging. |
 | `transition_effect` | `slide` | :heavy_multiplication_x: | Effect to apply as a transition between event media. Accepted values: `slide` or `none`. |
-| `controls` | | :heavy_multiplication_x: | Configuration for the event viewer controls. See below. |
-| `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `event_viewer` (e.g. `clip`, `snapshot`). See [actions](#actions) below.|
+| `controls` | | :heavy_multiplication_x: | Configuration for the Media viewer controls. See below. |
+| `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `media_viewer` (e.g. `clip`, `snapshot`). See [actions](#actions) below.|
 
-#### Event Viewer Controls: Next / Previous
+#### Media Viewer Controls: Next / Previous
 
 All configuration is under:
 
 ```yaml
-event_viewer:
+media_viewer:
   controls:
     next_previous:
 ```
@@ -398,12 +398,12 @@ event_viewer:
 | `style` | `thumbnails` | :heavy_multiplication_x: | When viewing media, what kind of controls to show to move to the previous/next media item. Acceptable values: `thumbnails`, `chevrons`, `none` . |
 | `size` | 48 | :heavy_multiplication_x: | The size of the next/previous controls in pixels. Must be >= `20`.|
 
-#### Event Viewer Controls: Thumbnails
+#### Media Viewer Controls: Thumbnails
 
 All configuration is under:
 
 ```yaml
-event_viewer:
+media_viewer:
   controls:
     thumbnails:
 ```
@@ -415,19 +415,19 @@ event_viewer:
 | `show_details` | `false` | :heavy_multiplication_x: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
 | `show_controls` | `true` | :heavy_multiplication_x: | Whether to show event controls (e.g. timeline icon, favorite icon) alongside the thumbnail.|
 
-#### Event Viewer Controls: Title
+#### Media Viewer Controls: Title
 
 All configuration is under:
 
 ```yaml
-event_viewer:
+media_viewer:
   controls:
     title:
 ```
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `mode` | `popup-bottom-right` | :heavy_multiplication_x: | How to display the event viewer media title. Acceptable values: `none`, `popup-top-left`, `popup-top-right`, `popup-bottom-left`, `popup-bottom-right` . |
+| `mode` | `popup-bottom-right` | :heavy_multiplication_x: | How to display the Media viewer media title. Acceptable values: `none`, `popup-top-left`, `popup-top-right`, `popup-bottom-left`, `popup-bottom-right` . |
 | `duration_seconds` | `2` | :heavy_multiplication_x: | The number of seconds to display the title popup. `0` implies forever.|
 
 ### Event Gallery Options
@@ -791,9 +791,9 @@ This card supports several different views:
 | ------------- | --------------------------------------------- |
 |`live` (default)| Shows the live camera view with the configured live provider.|
 |`snapshots`|Shows an event gallery of snapshots for this camera/zone/label.|
-|`snapshot`|Shows an event viewer for the most recent snapshot for this camera/zone/label. Can also be accessed by holding down the `snapshots` menu icon.|
+|`snapshot`|Shows a Media viewer for the most recent snapshot for this camera/zone/label. Can also be accessed by holding down the `snapshots` menu icon.|
 |`clips`|Shows an event gallery of clips for this camera/zone/label.|
-|`clip`|Shows an event viewer for the most recent clip for this camera/zone/label. Can also be accessed by holding down the `clips` menu icon.|
+|`clip`|Shows a Media viewer for the most recent clip for this camera/zone/label. Can also be accessed by holding down the `clips` menu icon.|
 |`image`|Shows a static image specified by the `image` parameter, can be used as a discrete default view or a screensaver (via `view.timeout_seconds`).|
 
 ### Navigating From A Snapshot To A Clip
@@ -854,7 +854,7 @@ view.
 | Configuration path | Views to which it refers |
 | - | - |
 | `view.actions` | All (may be overriden by the below) |
-| `event_viewer.actions` | `clip`, `snapshot` |
+| `media_viewer.actions` | `clip`, `snapshot` |
 | `event_gallery.actions` | `clips`, `snapshots` |
 | `live.actions` | `live` |
 | `image.actions` | `image` |
@@ -1186,15 +1186,15 @@ live:
 ```
 </details>
 
-<a name="config-expanded-event-viewer"></a>
+<a name="config-expanded-media-viewer"></a>
 
 <details>
-  <summary>Expand: Event Viewer section</summary>
+  <summary>Expand: Media Viewer section</summary>
 
-Reference: [Event Viewer Options](#event-viewer-options).
+Reference: [Media Viewer Options](#event-viewer-options).
 
 ```yaml
-event_viewer:
+media_viewer:
   auto_play: all
   auto_pause: all
   auto_mute: all
@@ -2604,7 +2604,7 @@ Dragging the Safari video controls "progress bar" conflicts with carousel "dragg
 ```yaml
 live:
   draggable: false
-event_viewer:
+media_viewer:
   draggable: false
 ```
 

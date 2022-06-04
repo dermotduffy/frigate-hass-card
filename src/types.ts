@@ -48,8 +48,8 @@ export const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
 const FRIGATE_CARD_VIEWS = [
   ...FRIGATE_CARD_VIEWS_USER_SPECIFIED,
 
-  // Event: A clip or snapshot (timeline may produce mixed media lists).
-  'event',
+  // Media: A generic piece of media (could be clip, snapshot, recording).
+  'media',
 ] as const;
 
 export type FrigateCardView = typeof FRIGATE_CARD_VIEWS[number];
@@ -1075,7 +1075,7 @@ export const frigateCardConfigSchema = z.object({
   view: viewConfigSchema,
   menu: menuConfigSchema,
   live: liveConfigSchema,
-  event_viewer: viewerConfigSchema,
+  media_viewer: viewerConfigSchema,
   event_gallery: galleryConfigSchema,
   image: imageConfigSchema,
   elements: pictureElementsSchema,
@@ -1101,7 +1101,7 @@ export const frigateCardConfigDefaults = {
   view: viewConfigDefault,
   menu: menuConfigDefault,
   live: liveConfigDefault,
-  event_viewer: viewerConfigDefault,
+  media_viewer: viewerConfigDefault,
   event_gallery: galleryConfigDefault,
   image: imageConfigDefault,
   timeline: timelineConfigDefault,

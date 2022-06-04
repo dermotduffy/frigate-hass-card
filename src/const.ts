@@ -52,31 +52,31 @@ export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_CONTROLS =
 export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_EVENT_GALLERY}.controls.thumbnails.size` as const;
 
-export const CONF_EVENT_VIEWER = 'event_viewer' as const;
-export const CONF_EVENT_VIEWER_AUTO_PLAY = `${CONF_EVENT_VIEWER}.auto_play` as const;
-export const CONF_EVENT_VIEWER_AUTO_PAUSE = `${CONF_EVENT_VIEWER}.auto_pause` as const;
-export const CONF_EVENT_VIEWER_AUTO_MUTE = `${CONF_EVENT_VIEWER}.auto_mute` as const;
-export const CONF_EVENT_VIEWER_AUTO_UNMUTE = `${CONF_EVENT_VIEWER}.auto_unmute` as const;
-export const CONF_EVENT_VIEWER_DRAGGABLE = `${CONF_EVENT_VIEWER}.draggable` as const;
-export const CONF_EVENT_VIEWER_LAZY_LOAD = `${CONF_EVENT_VIEWER}.lazy_load` as const;
-export const CONF_EVENT_VIEWER_TRANSITION_EFFECT =
-  `${CONF_EVENT_VIEWER}.transition_effect` as const;
-export const CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE =
-  `${CONF_EVENT_VIEWER}.controls.next_previous.style` as const;
-export const CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE =
-  `${CONF_EVENT_VIEWER}.controls.next_previous.size` as const;
-export const CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE =
-  `${CONF_EVENT_VIEWER}.controls.thumbnails.mode` as const;
-export const CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS =
-  `${CONF_EVENT_VIEWER}.controls.thumbnails.show_details` as const;
-export const CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SHOW_CONTROLS =
-  `${CONF_EVENT_VIEWER}.controls.thumbnails.show_controls` as const;
-export const CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE =
-  `${CONF_EVENT_VIEWER}.controls.thumbnails.size` as const;
-export const CONF_EVENT_VIEWER_CONTROLS_TITLE_MODE =
-  `${CONF_EVENT_VIEWER}.controls.title.mode` as const;
-export const CONF_EVENT_VIEWER_CONTROLS_TITLE_DURATION_SECONDS =
-  `${CONF_EVENT_VIEWER}.controls.title.duration_seconds` as const;
+export const CONF_MEDIA_VIEWER = 'media_viewer' as const;
+export const CONF_MEDIA_VIEWER_AUTO_PLAY = `${CONF_MEDIA_VIEWER}.auto_play` as const;
+export const CONF_MEDIA_VIEWER_AUTO_PAUSE = `${CONF_MEDIA_VIEWER}.auto_pause` as const;
+export const CONF_MEDIA_VIEWER_AUTO_MUTE = `${CONF_MEDIA_VIEWER}.auto_mute` as const;
+export const CONF_MEDIA_VIEWER_AUTO_UNMUTE = `${CONF_MEDIA_VIEWER}.auto_unmute` as const;
+export const CONF_MEDIA_VIEWER_DRAGGABLE = `${CONF_MEDIA_VIEWER}.draggable` as const;
+export const CONF_MEDIA_VIEWER_LAZY_LOAD = `${CONF_MEDIA_VIEWER}.lazy_load` as const;
+export const CONF_MEDIA_VIEWER_TRANSITION_EFFECT =
+  `${CONF_MEDIA_VIEWER}.transition_effect` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE =
+  `${CONF_MEDIA_VIEWER}.controls.next_previous.style` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE =
+  `${CONF_MEDIA_VIEWER}.controls.next_previous.size` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE =
+  `${CONF_MEDIA_VIEWER}.controls.thumbnails.mode` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS =
+  `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_details` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_CONTROLS =
+  `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_controls` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE =
+  `${CONF_MEDIA_VIEWER}.controls.thumbnails.size` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE =
+  `${CONF_MEDIA_VIEWER}.controls.title.mode` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS =
+  `${CONF_MEDIA_VIEWER}.controls.title.duration_seconds` as const;
 
 export const CONF_LIVE = 'live' as const;
 export const CONF_LIVE_AUTO_PLAY = `${CONF_LIVE}.auto_play` as const;

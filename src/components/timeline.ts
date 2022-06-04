@@ -703,7 +703,7 @@ export class FrigateCardTimelineCore extends LitElement {
 
     this.view
       ?.evolve({
-        view: 'event',
+        view: 'media',
         target: createEventParentForChildren(localize('common.recordings'), children),
         childIndex: childIndex,
       })

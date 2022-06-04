@@ -102,7 +102,7 @@ export class View {
    * Determine if a view is for the media viewer.
    */
   public isViewerView(): boolean {
-    return ['clip', 'snapshot', 'event'].includes(this.view);
+    return ['clip', 'snapshot', 'media'].includes(this.view);
   }
 
   /**
