@@ -24,7 +24,7 @@ img, ha-icon {
 
 ha-icon {
   --mdc-icon-size: 50%;
-
+  color: var(--primary-text-color);
   display: flex;
   justify-content: center;
   align-items: center;
