@@ -269,13 +269,14 @@ class TimelineDataManager {
     end: Date,
     recordings?: boolean,
   ): Promise<boolean> {
+    // Cannot fetch the future, always clip the end date to now so as to avoid
+    // checking for coverage that could not possibly exist yet.
     const now = new Date();
+    end = end > now ? now : end;
+
     if (this.hasCoverage(now, start, end)) {
       return false;
     }
-
-    // Cannot fetch the future.
-    end = end > now ? now : end;
 
     if (!this._dateStart || start < this._dateStart) {
       this._dateStart = start;
@@ -1013,12 +1014,7 @@ export class FrigateCardTimelineCore extends LitElement {
         disabled: false,
         filterOptions: {
           whiteList: {
-            'frigate-card-thumbnail': [
-              'details',
-              'thumbnail',
-              'label',
-              'event',
-            ],
+            'frigate-card-thumbnail': ['details', 'thumbnail', 'label', 'event'],
             div: ['title'],
             span: ['style'],
           },
@@ -1115,7 +1111,7 @@ export class FrigateCardTimelineCore extends LitElement {
     //      -> New view dispatched (to load thumbnails into outer carousel).
     //  -> New view received ... [loop]
     const currentContext = this.view.context as TimelineViewContext | null;
-    if (currentContext?.dateFetch !== this._data.lastFetchDate) {
+    if (!isEqual(currentContext?.dateFetch, this._data.lastFetchDate)) {
       const thumbnails = this._generateThumbnails();
       this.view
         ?.evolve({
@@ -1151,7 +1147,7 @@ export class FrigateCardTimelineCore extends LitElement {
    * Called when an update will occur.
    * @param changedProps The changed properties
    */
-   protected willUpdate(changedProps: PropertyValues): void {
+  protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('timelineConfig')) {
       if (this.timelineConfig?.controls.thumbnails.size) {
         this.style.setProperty(
