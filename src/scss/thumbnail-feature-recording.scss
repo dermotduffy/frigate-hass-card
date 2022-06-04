@@ -4,11 +4,10 @@
   justify-content: center;
   align-items: center;
 
-  height: 100%;
   aspect-ratio: 1 / 1;
   overflow: hidden;
-  max-width: var(--frigate-card-thumbnail-size-max);
-  max-height: var(--frigate-card-thumbnail-size-max);
+  max-width: var(--frigate-card-thumbnail-size);
+  max-height: var(--frigate-card-thumbnail-size);
   padding: 10px;
 
   border: 1px solid var(--secondary-color);

@@ -11,7 +11,12 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import galleryStyle from '../scss/gallery.scss';
-import { CameraConfig, frigateCardConfigDefaults, GalleryConfig } from '../types.js';
+import {
+  CameraConfig,
+  frigateCardConfigDefaults,
+  GalleryConfig,
+  THUMBNAIL_WIDTH_MAX
+} from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import {
   fetchChildMediaAndDispatchViewChange,
@@ -135,20 +140,28 @@ export class FrigateCardGalleryCore extends LitElement {
   }
 
   /**
-   * Handle gallery resize.
+   * Set gallery columns.
    */
-  protected _resizeHandler(): void {
+  protected _setColumnCount(): void {
     const thumbnailSize =
       this.galleryConfig?.controls.thumbnails.size ??
       frigateCardConfigDefaults.event_gallery.controls.thumbnails.size;
-    this.style.setProperty(
-      '--frigate-card-gallery-columns',
-      String(
-        !this.galleryConfig?.controls.thumbnails.show_details
-          ? Math.round(this.clientWidth / thumbnailSize)
-          : Math.max(1, Math.floor(this.clientWidth / THUMBNAIL_DETAILS_WIDTH_MIN)),
-      ),
-    );
+    const columns = this.galleryConfig?.controls.thumbnails.show_details
+      ? Math.max(1, Math.floor(this.clientWidth / THUMBNAIL_DETAILS_WIDTH_MIN))
+      : Math.max(
+          1,
+          Math.ceil(this.clientWidth / THUMBNAIL_WIDTH_MAX),
+          Math.ceil(this.clientWidth / thumbnailSize),
+        );
+
+    this.style.setProperty('--frigate-card-gallery-columns', String(columns));
+  }
+
+  /**
+   * Handle gallery resize.
+   */
+  protected _resizeHandler(): void {
+    this._setColumnCount();
   }
 
   /**
@@ -174,6 +187,7 @@ export class FrigateCardGalleryCore extends LitElement {
       } else {
         this.removeAttribute('details');
       }
+      this._setColumnCount();
       if (this.galleryConfig?.controls.thumbnails.size) {
         this.style.setProperty(
           '--frigate-card-thumbnail-size',
@@ -230,7 +244,6 @@ export class FrigateCardGalleryCore extends LitElement {
                       stopEventFromActivatingCardWideActions(ev);
                     }}
                     outlined=""
-                    class="foo"
                   >
                     <div>${child.title}</div>
                   </ha-card>

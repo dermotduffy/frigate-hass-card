@@ -1,5 +1,6 @@
 @use 'vis-timeline/dist/vis-timeline-graph2d.css';
 @use 'drawer';
+@use 'const.scss';
 
 :host {
   width: 100%;
@@ -13,6 +14,14 @@
 
   // So that absolute sidedrawer is relative to this host.
   position: relative;
+}
+
+frigate-card-thumbnail {
+  height: var(--frigate-card-thumbnail-size);
+  width: var(--frigate-card-thumbnail-size);
+}
+frigate-card-thumbnail[details] {
+  width: var(--frigate-card-thumbnail-details-width);
 }
 
 div.timeline {

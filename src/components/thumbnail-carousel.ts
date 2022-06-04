@@ -2,7 +2,6 @@ import { EmblaOptionsType } from 'embla-carousel';
 import { CSSResultGroup, html, PropertyValues, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
-import { ifDefined } from 'lit/directives/if-defined.js';
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
 import type { FrigateBrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
@@ -121,6 +120,21 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   }
 
   /**
+   * Called when an update will occur.
+   * @param changedProps The changed properties
+   */
+  protected willUpdate(changedProps: PropertyValues): void {
+    if (changedProps.has('_config')) {
+      if (this._config?.size) {
+        this.style.setProperty(
+          '--frigate-card-thumbnail-size',
+          `${this._config.size}px`,
+        );
+      }
+    }
+  }
+
+  /**
    * The updated lifecycle callback for this element.
    * @param changedProperties The properties that were changed in this render.
    */
@@ -170,7 +184,6 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
       .childIndex=${childIndex}
       ?details=${this._config?.show_details}
       ?controls=${this._config?.show_controls}
-      thumbnail_size=${ifDefined(this._config?.size)}
       class="${classMap(classes)}"
       @click=${(ev) => {
         if (this._carousel && this._carousel.clickAllowed()) {

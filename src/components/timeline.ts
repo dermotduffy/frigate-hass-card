@@ -497,9 +497,6 @@ export class FrigateCardTimelineCore extends LitElement {
       return '';
     }
 
-    const thumbnailSizeAttr = this.timelineConfig
-      ? `thumbnail_size="${this.timelineConfig.controls.thumbnails.size}"`
-      : '';
     const eventAttr = source.frigate?.event
       ? `event='${JSON.stringify(source.frigate.event)}'`
       : '';
@@ -516,7 +513,6 @@ export class FrigateCardTimelineCore extends LitElement {
         thumbnail="${source.thumbnail}"
         label="${source.title}"
         ${eventAttr}
-        ${thumbnailSizeAttr}
       >
       </frigate-card-thumbnail>`;
   }
@@ -1022,7 +1018,6 @@ export class FrigateCardTimelineCore extends LitElement {
               'thumbnail',
               'label',
               'event',
-              'thumbnail_size',
             ],
             div: ['title'],
             span: ['style'],
@@ -1150,6 +1145,21 @@ export class FrigateCardTimelineCore extends LitElement {
       newContext.dateFetch = this._data.lastFetchDate;
     }
     return newContext || null;
+  }
+
+  /**
+   * Called when an update will occur.
+   * @param changedProps The changed properties
+   */
+   protected willUpdate(changedProps: PropertyValues): void {
+    if (changedProps.has('timelineConfig')) {
+      if (this.timelineConfig?.controls.thumbnails.size) {
+        this.style.setProperty(
+          '--frigate-card-thumbnail-size',
+          `${this.timelineConfig.controls.thumbnails.size}px`,
+        );
+      }
+    }
   }
 
   /**

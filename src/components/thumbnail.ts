@@ -128,11 +128,6 @@ export class FrigateCardThumbnail extends LitElement {
   @property({ attribute: true, type: Boolean })
   public controls = false;
 
-  @property({ attribute: true, type: Number })
-  set thumbnail_size(size: number) {
-    this.style.setProperty('--frigate-card-thumbnail-size', `${size}px`);
-  }
-
   // ============================
   // Data-binding based interface
   // ============================

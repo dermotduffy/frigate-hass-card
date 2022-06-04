@@ -1,23 +1,23 @@
 :host {
   display: block;
-  height: 100%;
+  max-width: var(--frigate-card-thumbnail-size);
+  max-height: var(--frigate-card-thumbnail-size);
   overflow: hidden;
+
+  // Restrict images to a maximum of thumbnail size.
+  aspect-ratio: 1 / 1;
 }
 
 img, ha-icon {
   border-radius: var(--ha-card-border-radius, 4px);
 
-  max-width: var(--frigate-card-thumbnail-size-max);
-  max-height: var(--frigate-card-thumbnail-size-max);
+  width: 100%;
+  height: 100%;
 
   // Not 'contain' as some thumbnails may vary in aspect-ratio slightly and
   // should be clipped to fill the thumbnail div whilst maintaining
   // aspect-ratio.
   object-fit: cover;
-
-  // Restrict images to a maximum of thumbnail size.
-  aspect-ratio: 1 / 1;
-  height: 100%;
 
   transition: transform 0.2s linear;
 }
