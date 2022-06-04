@@ -468,7 +468,11 @@ See the [fully expanded image configuration example](#config-expanded-image) for
 
 ### Timeline Options
 
-The `timeline` is used to show the timing sequence of events across cameras.
+The `timeline` is used to show the timing sequence of events and recordings across cameras. You can interact with the timeline in a number of ways:
+
+* Clicking on an event will take you to the media viewer for that event.
+* Clicking on the "background", or a camera title, will take you to the recordings for that camera (seeking to the clicked time).
+* Clicking on the time axis will take you to recordings for all cameras (seeking to the clicked time).
 
 All configuration is under:
 
