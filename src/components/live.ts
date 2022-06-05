@@ -2,6 +2,7 @@ import JSMpeg from '@cycjimmy/jsmpeg-player';
 import { Task } from '@lit-labs/task';
 import { HomeAssistant } from 'custom-card-helpers';
 import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
+import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
 import {
   CSSResultGroup,
   html,
@@ -287,11 +288,21 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
 
   /**
    * Get the Embla plugins to use.
-   * @returns An EmblaOptionsType object or undefined for no options.
+   * @returns A list of EmblaOptionsTypes.
    */
   protected _getPlugins(): EmblaPluginType[] {
     return [
       ...super._getPlugins(),
+      // Only enable wheel plugin if there is more than one camera.
+      ...(this.cameras && this.cameras.size > 1
+        ? [
+            WheelGesturesPlugin({
+              // Whether the carousel is vertical or horizontal, interpret y-axis wheel
+              // gestures as scrolling for the carousel.
+              forceWheelAxis: 'y',
+            }),
+          ]
+        : []),
       Lazyload({
         ...(this.liveConfig?.lazy_load && {
           lazyLoadCallback: (index, slide) =>
@@ -893,7 +904,7 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
           e instanceof FrigateCardError
             ? e.message
             : localize('error.webrtc_card_reported_error') + ': ' + (e as Error).message,
-          (e as FrigateCardError).context
+          (e as FrigateCardError).context,
         );
       }
       return html`${webrtcElement}`;

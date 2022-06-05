@@ -1,4 +1,5 @@
-import { EmblaOptionsType } from 'embla-carousel';
+import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
+import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
 import { CSSResultGroup, html, PropertyValues, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -98,6 +99,22 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
       dragFree: true,
       startIndex: this._selected ?? 0,
     };
+  }
+
+  /**
+   * Get the Embla plugins to use.
+   * @returns A list of EmblaOptionsTypes.
+   */
+  protected _getPlugins(): EmblaPluginType[] {
+    return [
+      ...super._getPlugins(),
+      // Only enable wheel plugin if there is more than one camera.
+      WheelGesturesPlugin({
+        // Whether the carousel is vertical or horizontal, interpret y-axis wheel
+        // gestures as scrolling for the carousel.
+        forceWheelAxis: 'y',
+      }),
+    ];
   }
 
   /**

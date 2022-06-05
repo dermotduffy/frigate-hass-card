@@ -3,7 +3,6 @@ import EmblaCarousel, {
   EmblaOptionsType,
   EmblaPluginType
 } from 'embla-carousel';
-import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
 import { CSSResultGroup, LitElement, PropertyValues, unsafeCSS } from 'lit';
 import { property } from 'lit/decorators.js';
 import carouselStyle from '../scss/carousel.scss';
@@ -72,16 +71,10 @@ export class FrigateCardCarousel extends LitElement {
 
   /**
    * Get the Embla plugins to use.
-   * @returns An EmblaOptionsType object or undefined for no options.
+   * @returns A list of EmblaOptionsTypes.
    */
   protected _getPlugins(): EmblaPluginType[] {
-    return [
-      WheelGesturesPlugin({
-        // Whether the carousel is vertical or horizontal, interpret y-axis wheel
-        // gestures as scrolling for the carousel.
-        forceWheelAxis: 'y',
-      }),
-    ];
+    return [];
   }
 
   protected _destroyCarousel(): void {
