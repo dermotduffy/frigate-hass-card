@@ -1,17 +1,16 @@
 import {
   CSSResultGroup,
-  LitElement,
-  TemplateResult,
   html,
-  unsafeCSS,
+  LitElement,
   PropertyValues,
+  TemplateResult,
+  unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import 'side-drawer';
-
-import drawerStyle from '../scss/drawer.scss';
 import drawerInjectStyle from '../scss/drawer-inject.scss';
+import drawerStyle from '../scss/drawer.scss';
 
 @customElement('frigate-card-drawer')
 export class FrigateCardDrawer extends LitElement {
@@ -92,6 +91,11 @@ export class FrigateCardDrawer extends LitElement {
         ${ref(this._refDrawer)}
         location="${this.location}"
         ?open=${this.open}
+        @mouseleave=${() => {
+          if (this.open) {
+            this.open = false;
+          }
+        }}
       >
         ${this.control
           ? html`
@@ -104,6 +108,11 @@ export class FrigateCardDrawer extends LitElement {
                 <ha-icon
                   class="control"
                   icon="${this.open ? 'mdi:menu-open' : 'mdi:menu'}"
+                  @mouseenter=${() => {
+                    if (!this.open) {
+                      this.open = true;
+                    }
+                  }}
                 >
                 </ha-icon>
               </div>
