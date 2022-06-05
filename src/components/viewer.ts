@@ -1,5 +1,6 @@
 import { Task } from '@lit-labs/task';
 import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
+import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
 import {
   CSSResultGroup,
   html,
@@ -296,11 +297,24 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
 
   /**
    * Get the Embla plugins to use.
-   * @returns An EmblaOptionsType object or undefined for no options.
+   * @returns A list of EmblaOptionsTypes.
    */
   protected _getPlugins(): EmblaPluginType[] {
     return [
       ...super._getPlugins(),
+      // Only enable wheel plugin if there is more than one media item.
+      ...(this.view &&
+      this.view.target &&
+      this.view.target.children &&
+      this.view.target.children.length > 1
+        ? [
+            WheelGesturesPlugin({
+              // Whether the carousel is vertical or horizontal, interpret y-axis wheel
+              // gestures as scrolling for the carousel.
+              forceWheelAxis: 'y',
+            }),
+          ]
+        : []),
       Lazyload({
         ...(this.viewerConfig?.lazy_load && {
           lazyLoadCallback: this._lazyloadSlide.bind(this),
