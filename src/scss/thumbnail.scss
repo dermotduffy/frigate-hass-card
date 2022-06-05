@@ -1,5 +1,3 @@
-@use "const.scss";
-
 :host {
   display: flex;
   flex-direction: row;
@@ -7,6 +5,11 @@
 
   // Ensure control icons are relative to the thumbnail.
   position: relative;
+  overflow: hidden;
+}
+
+:host(:not([details])) {
+  aspect-ratio: 1 / 1;
 }
 
 :host([details]) {
@@ -19,39 +22,21 @@
   background-color: var(--primary-background-color, black);
 }
 
-img {
-  border-radius: var(--ha-card-border-radius, 4px);
-
-  // Not 'contain' as some thumbnails may vary in aspect-ratio slightly and
-  // should be clipped to fill the thumbnail div whilst maintaining
-  // aspect-ratio.
-  object-fit: cover;
-
-  // Restrict images to a maximum of thumbnail size.
-  aspect-ratio: 1 / 1;
-  height: 100%;
-
-  max-width: var(--frigate-card-thumbnail-size-max);
-  max-height: var(--frigate-card-thumbnail-size-max);
-
-  transition: transform 0.2s linear;
-}
-img:hover {
-  transform: scale(1.04);
+ha-icon {
+  position: absolute;
+  border-radius: 50%;
 }
 
 ha-icon.favorite {
-  position: absolute;
   color: gold;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 50%;
   opacity: 0.8;
 }
 
 ha-icon.timeline {
-  position: absolute;
   color: var(--primary-color);
   right: 0px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 50%;
+}
+
+frigate-card-thumbnail-details-event, frigate-card-thumbnail-details-recording {
+  flex: 1;
 }

@@ -7,7 +7,8 @@
     "no_clips": "No clips",
     "no_snapshot": "No recent snapshot",
     "no_clip": "No recent clip",
-    "live": "Live"
+    "live": "Live",
+    "recordings": "Recordings"
   },
   "config": {
     "cameras": {
@@ -84,22 +85,22 @@
         }
       }
     },
-    "event_viewer": {
+    "media_viewer": {
       "auto_play": "Automatically play media",
       "auto_pause": "Automatically pause media",
       "auto_mute": "Automatically mute media",
       "auto_unmute": "Automatically unmute media",
-      "draggable": "Event Viewer can be dragged/swiped",
-      "lazy_load": "Event Viewer media is lazily loaded in carousel",
-      "transition_effect": "Event Viewer transition effect",
+      "draggable": "Media Viewer can be dragged/swiped",
+      "lazy_load": "Media Viewer media is lazily loaded in carousel",
+      "transition_effect": "Media Viewer transition effect",
       "transition_effects": {
         "none": "No transition",
         "slide": "Slide transition"
       },
       "controls": {
         "next_previous": {
-          "style": "Event Viewer next & previous control style",
-          "size": "Event Viewer next & previous control size in pixels",
+          "style": "Media Viewer next & previous control style",
+          "size": "Media Viewer next & previous control size in pixels",
           "styles": {
             "thumbnails": "Thumbnails",
             "chevrons": "Chevrons",
@@ -107,10 +108,10 @@
           }
         },
         "thumbnails": {
-          "mode": "Event Viewer thumbnails mode",
-          "size": "Event Viewer thumbnails size in pixels",
-          "show_details": "Show event details with thumbnails",
-          "show_controls": "Show event controls with thumbnails",
+          "mode": "Media Viewer thumbnails mode",
+          "size": "Media Viewer thumbnails size in pixels",
+          "show_details": "Show details with thumbnails",
+          "show_controls": "Show controls with thumbnails",
           "modes": {
             "below": "Thumbnails below the media",
             "above": "Thumbnails above the media",
@@ -120,7 +121,7 @@
           }
         },
         "title": {
-          "mode": "Event Viewer media title display mode",
+          "mode": "Media Viewer media title display mode",
           "modes": {
             "none": "No title display",
             "popup-top-left": "Popup on the top left",
@@ -229,6 +230,7 @@
       "window_seconds": "The default length of the timeline view in seconds",
       "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",
       "media": "The media the timeline displays",
+      "show_recordings": "Show recordings",
       "medias": {
         "all": "All media types",
         "clips": "Clips",
@@ -267,8 +269,8 @@
     "live_secondary": "Live camera view options",
     "event_gallery": "Event gallery",
     "event_gallery_secondary": "Snapshots & clips gallery options",
-    "event_viewer": "Event viewer",
-    "event_viewer_secondary": "Snapshots & clips viewer options",
+    "media_viewer": "Media viewer",
+    "media_viewer_secondary": "Viewer for static media (clips, snapshots or recordings)",
     "image": "Image",
     "image_secondary": "Static image view options",
     "dimensions": "Dimensions",
@@ -292,13 +294,21 @@
     "in_progress": "In Progress",
     "score": "Score"
   },
+  "recording": { 
+    "events": "Events",
+    "seek": "Seek"
+  },
   "thumbnail": {
     "retain_indefinitely": "Event will be indefinitely retained",
-    "timeline": "See event in timeline"
+    "timeline": "See event in timeline",
+    "no_thumbnail": "No thumbnail available"
   },
   "error": {
+    "undecodable_response": "Could not decode response from Home Assistant for request",
     "empty_response": "Received empty response from Home Assistant for request",
     "invalid_response": "Received invalid response from Home Assistant for request",
+    "failed_response": "Failed to receive response from Home Assistant for request",
+    "failed_sign": "Could not sign Home Assistant URL",
     "invalid_keys": "Invalid keys",
     "unknown": "Unknown error",
     "troubleshooting": "Check troubleshooting",

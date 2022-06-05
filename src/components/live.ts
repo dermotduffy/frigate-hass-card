@@ -612,6 +612,13 @@ export class FrigateCardLiveProvider extends LitElement {
     this._providerRef.value?.unmute();
   }
 
+  /**
+   * Seek the video.
+   */
+  public seek(seconds: number): void {
+    this._providerRef.value?.seek(seconds);
+  }
+
   protected _getResolvedProvider(): LiveProvider {
     if (this.cameraConfig?.live_provider === 'auto') {
       if (
@@ -709,6 +716,13 @@ export class FrigateCardLiveFrigate extends LitElement {
    */
   public unmute(): void {
     this._playerRef.value?.unmute();
+  }
+
+  /**
+   * Seek the video.
+   */
+  public seek(seconds: number): void {
+    this._playerRef.value?.seek(seconds);
   }
 
   /**
@@ -811,6 +825,16 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
   }
 
   /**
+   * Seek the video.
+   */
+  public seek(seconds: number): void {
+    const player = this._getPlayer();
+    if (player) {
+      player.currentTime = seconds;
+    }
+  }
+
+  /**
    * Get the underlying video player.
    * @returns The player or `null` if not found.
    */
@@ -867,8 +891,9 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
         return dispatchErrorMessageEvent(
           this,
           e instanceof FrigateCardError
-            ? (e as FrigateCardError).message
+            ? e.message
             : localize('error.webrtc_card_reported_error') + ': ' + (e as Error).message,
+          (e as FrigateCardError).context
         );
       }
       return html`${webrtcElement}`;
@@ -962,6 +987,14 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     if (player) {
       player.volume = 1;
     }
+  }
+
+  /**
+   * Seek the video (unsupported).
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public seek(_seconds: number): void {
+    // JSMPEG does not support seeking.
   }
 
   /**

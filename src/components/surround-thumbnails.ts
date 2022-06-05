@@ -12,6 +12,7 @@ import surroundThumbnailsStyle from '../scss/surround.scss';
 import {
   BrowseMediaQueryParameters,
   FrigateBrowseMediaSource,
+  FrigateCardError,
   FrigateCardView,
   ThumbnailsControlConfig
 } from '../types.js';
@@ -21,7 +22,7 @@ import {
   multipleBrowseMediaQueryMerged
 } from '../utils/ha/browse-media';
 import { View } from '../view.js';
-import { dispatchErrorMessageEvent } from './message.js';
+import { dispatchFrigateCardErrorEvent } from './message.js';
 import './surround.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 
@@ -69,7 +70,7 @@ export class FrigateCardSurround extends LitElement {
     try {
       parent = await multipleBrowseMediaQueryMerged(this.hass, this.browseMediaParams);
     } catch (e) {
-      return dispatchErrorMessageEvent(this, (e as Error).message);
+      return dispatchFrigateCardErrorEvent(this, e as FrigateCardError);
     }
     if (getFirstTrueMediaChildIndex(parent) !== null) {
       this.view
@@ -144,13 +145,16 @@ export class FrigateCardSurround extends LitElement {
             .selected=${this.view.childIndex}
             @frigate-card:change-view=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
             @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
+              // Send the view change from the source of the tap event, so the
+              // view change will be caught by the handler above (to close the drawer).
               this.view
                 ?.evolve({
-                  view: this.targetView || 'event',
+                  view: this.targetView || 'media',
                   target: ev.detail.target,
                   childIndex: ev.detail.childIndex,
+                  context: null,
                 })
-                .dispatchChangeEvent(this);
+                .dispatchChangeEvent(ev.composedPath()[0]);
             }}
           >
           </frigate-card-thumbnail-carousel>`

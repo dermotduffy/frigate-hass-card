@@ -4,7 +4,9 @@ import { StyleInfo } from 'lit/directives/style-map.js';
 import { ZodSchema } from 'zod';
 import { localize } from '../../localize/localize.js';
 import {
-  CardHelpers, ExtendedHomeAssistant,
+  CardHelpers,
+  ExtendedHomeAssistant,
+  FrigateCardError,
   SignedPath,
   signedPathSchema,
   StateParameters
@@ -36,12 +38,16 @@ export async function homeAssistantWSRequest<T>(
   const parseResult = schema.safeParse(response);
   if (!parseResult.success) {
     const keys = getParseErrorKeys<T>(parseResult.error);
-    const error_message =
-      `${localize('error.invalid_response')}: ${JSON.stringify(request)}. ` +
-      localize('error.invalid_keys') +
-      `: '${keys}'`;
-    console.warn(error_message);
-    throw new Error(error_message);
+    const error_message = localize('error.invalid_response');
+    console.warn(
+      `${error_message}: ${JSON.stringify(request)}. ${localize(
+        'error.invalid_keys',
+      )}: ${keys}`,
+    );
+    throw new FrigateCardError(error_message, {
+      request: request,
+      invalid_keys: keys,
+    });
   }
   return parseResult.data;
 }
@@ -72,6 +78,70 @@ export async function homeAssistantSignPath(
     return null;
   }
   return hass.hassUrl(response.path);
+}
+
+/**
+ * Make a HomeAssistant HTTP request. May throw.
+ * @param hass The HomeAssistant object to send the request with.
+ * @param schema The expected Zod schema of the response.
+ * @param request The request to make.
+ * @returns The parsed valid response or null on malformed.
+ */
+export async function homeAssistantHTTPRequest<T>(
+  hass: ExtendedHomeAssistant,
+  schema: ZodSchema<T>,
+  url: string,
+  params?: URLSearchParams,
+): Promise<T> {
+  let signResponse: string | null | undefined;
+  try {
+    signResponse = await homeAssistantSignPath(hass, url);
+  } catch (e) {
+    console.warn(e);
+  }
+
+  if (!signResponse) {
+    throw new FrigateCardError(localize('error.failed_sign'), {
+      url: url.toString(),
+    });
+  }
+
+  const signedURL = new URL(signResponse);
+
+  if (params) {
+    for (const [key, value] of params.entries()) {
+      signedURL.searchParams.append(key, value);
+    }
+  }
+
+  const response = await fetch(signedURL.toString());
+  if (!response.ok) {
+    throw new FrigateCardError(localize('error.failed_response'), {
+      url: signedURL.toString(),
+      status: response.status,
+      statusText: response.statusText,
+    });
+  }
+
+  let raw_json;
+  try {
+    raw_json = await response.json();
+  } catch (e) {
+    console.warn(e);
+    throw new FrigateCardError(localize('error.undecodable_response'), {
+      url: signedURL.toString(),
+    });
+  }
+
+  try {
+    return schema.parse(raw_json);
+  } catch (e) {
+    console.warn(e);
+    throw new FrigateCardError(localize('error.invalid_response'), {
+      url: signedURL.toString(),
+      response: raw_json,
+    });
+  }
 }
 
 interface HassStateDifference {
@@ -308,9 +378,9 @@ export const isTriggeredState = (state?: HassEntity): boolean => {
 
 /**
  * Get entities from the HASS object.
- * @param hass 
- * @param domain 
- * @returns 
+ * @param hass
+ * @param domain
+ * @returns A list of entities ids.
  */
 export const getEntitiesFromHASS = (hass: HomeAssistant, domain?: string): string[] => {
   if (!hass) {
@@ -321,4 +391,4 @@ export const getEntitiesFromHASS = (hass: HomeAssistant, domain?: string): strin
   );
   entities.sort();
   return entities;
-}
+};

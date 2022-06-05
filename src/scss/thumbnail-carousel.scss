@@ -1,13 +1,13 @@
-@use "const.scss";
+@use 'const.scss';
 
 :host {
-  --frigate-card-carousel-thumbnail-opacity: 1.0;
+  --frigate-card-carousel-thumbnail-opacity: 1;
 }
 
-:host([direction=vertical]) {
+:host([direction='vertical']) {
   height: 100%;
 }
-:host([direction=horizontal]) {
+:host([direction='horizontal']) {
   // In fullscreen mode, without explicitly setting the height to auto Chrome
   // will construct a stylesheet with 100% height.
   height: auto;
@@ -19,14 +19,13 @@
   transition: opacity 0.6s ease;
 }
 .embla__slide.slide-selected {
-  opacity: 1.0;
+  opacity: 1;
 }
 
-frigate-card-thumbnail[details] {
-  width: var(--frigate-card-thumbnail-details-width);
-  height: var(--frigate-card-thumbnail-size);
-}
-frigate-card-thumbnail:not([details]) {
+frigate-card-thumbnail {
   width: var(--frigate-card-thumbnail-size);
   height: var(--frigate-card-thumbnail-size);
+}
+frigate-card-thumbnail[details] {
+  width: var(--frigate-card-thumbnail-details-width);
 }

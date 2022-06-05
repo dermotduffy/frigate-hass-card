@@ -78,6 +78,13 @@ customElements.whenDefined('ha-camera-stream').then(() => {
     }
 
     /**
+     * Seek the video (unsupported).
+     */
+    public seek(seconds: number): void {
+      this._player?.seek(seconds);
+    }
+
+    /**
      * Master render method.
      * @returns A rendered template.
      */
