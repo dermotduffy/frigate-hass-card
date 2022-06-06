@@ -1,12 +1,5 @@
 import { getLovelace, HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
-import {
-  CSSResultGroup,
-  html,
-  LitElement,
-  PropertyValues,
-  TemplateResult,
-  unsafeCSS
-} from 'lit';
+import { CSSResultGroup, html, LitElement, PropertyValues, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
@@ -197,6 +190,7 @@ export class FrigateCard extends LitElement {
   protected _initialized = false;
 
   protected _triggers: Map<string, Date> = new Map();
+  protected _untriggerTimerID: number | null = null;
 
   /**
    * Set the Home Assistant object.
@@ -1003,8 +997,7 @@ export class FrigateCard extends LitElement {
 
     if (triggerChanges) {
       if (!this._triggers.size) {
-        this._changeView();
-        changedCamera = true;
+        this._startUntriggerTimer();
       } else {
         const targetCamera = this._getMostRecentTrigger();
         if (
@@ -1020,10 +1013,46 @@ export class FrigateCard extends LitElement {
   }
 
   /**
+   * Determine if the scan mode is currently triggered.
+   * @returns 
+   */
+  protected _isTriggered(): boolean {
+    return !!this._triggers.size || !!this._untriggerTimerID;
+  }
+
+  /**
    * Untrigger the card.
    */
   protected _untrigger(): void {
     this._triggers.clear();
+    this._clearUntriggerTimer();
+  }
+
+  /**
+   * Start the untrigger timer.
+   */
+  protected _startUntriggerTimer(): void {
+    this._clearUntriggerTimer();
+
+    this._untriggerTimerID = window.setTimeout(() => {
+      this._untrigger();
+      if (
+        this._isAutomatedViewUpdateAllowed() &&
+        this._getConfig().view.scan.untrigger_reset
+      ) {
+        this._changeView();
+      }
+    }, this._getConfig().view.scan.untrigger_seconds * 1000);
+  }
+
+  /**
+   * Clear the user interaction ('screensaver') timer.
+   */
+  protected _clearUntriggerTimer(): void {
+    if (this._untriggerTimerID) {
+      window.clearTimeout(this._untriggerTimerID);
+      this._untriggerTimerID = null;
+    }
   }
 
   /**
@@ -1385,7 +1414,7 @@ export class FrigateCard extends LitElement {
    */
   protected _isAutomatedViewUpdateAllowed(ignoreTriggers?: boolean): boolean {
     return (
-      (ignoreTriggers || !this._triggers.size) &&
+      (ignoreTriggers || !this._isTriggered()) &&
       (this._getConfig().view.update_force || !this._interactionTimerID)
     );
   }
@@ -1568,7 +1597,7 @@ export class FrigateCard extends LitElement {
     const mainClasses = {
       main: true,
       triggered:
-        !!this._triggers.size && this._getConfig().view.scan.show_trigger_status,
+        !!this._isTriggered() && this._getConfig().view.scan.show_trigger_status,
     };
 
     const actions = this._getMergedActions();

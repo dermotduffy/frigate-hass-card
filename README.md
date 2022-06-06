@@ -191,14 +191,20 @@ view:
   scan:
 ```
 
-Scan mode allows the card to automatically "follow the action". In this mode the card will automatically select a camera in the `live` view when it is triggered (as defined by your camera configuration, see `trigger_by_motion`, `trigger_by_occupancy` and `trigger_by_entities` parameters). When the camera untriggers, the camera selection will return to the next most recently triggered camera (as long as it is still triggered) -- if there are no triggered cameras remaining, the camera will return to the default. Triggering is only allowed when there is no ongoing human interaction with the card -- interaction will automatically untrigger it and further triggering will not occur until after the card has been unattended for `view.timeout_seconds`. 
+Scan mode allows the card to automatically "follow the action". In this mode the card will automatically select a camera in the `live` view when an entity changes to an active state (specifically `on` or `open`). The entities considered are defined by your camera configuration (see `trigger_by_motion`, `trigger_by_occupancy` and `trigger_by_entities` parameters). An untrigger is defined as the state for all the configured entities returning to inactive (i.e. not `on` or `open`), with an optional number of seconds to wait prior to the untriggering (see `untrigger_seconds`).
 
-Scan mode tracks Home Assistant state changes -- when the card is first started, it takes a positive change in state to trigger (i.e. an already occupied room will not trigger it, but a newly occupied room would trigger it).
+When the camera untriggers, the view will either remain as-is (if `untrigger_reset` is `false`) and the card return to normal operation, or reset to the default view (if `untrigger_reset` is `true` -- the default).
+
+Triggering is only allowed when there is no ongoing human interaction with the card -- interaction will automatically untrigger and further triggering will not occur until after the card has been unattended for `view.timeout_seconds`. 
+
+Scan mode tracks Home Assistant state *changes* -- when the card is first started, it takes an active change in state to trigger (i.e. an already occupied room will not trigger it, but a newly occupied room will).
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `enabled` | `false` | :white_check_mark: | Whether to enable scan mode. |
 | `show_trigger_status` | `true` | :white_check_mark: | Whether or not the card should show a visual indication that it is triggered (a pulsing border around the card edge). |
+| `untrigger_reset` | `true` | :white_check_mark: | Whether or not to reset the view to the default after untriggering. |
+| `untrigger_seconds` | `0` | :white_check_mark: | The number of seconds to wait after all entities are inactive before untriggering. |
 
 ### Menu Options
 
@@ -1055,6 +1061,8 @@ view:
   scan:
     enabled: false
     show_trigger_status: true
+    untrigger_reset: true
+    untrigger_seconds: 0
   actions:
     entity: light.office_main_lights
     tap_action:
