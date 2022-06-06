@@ -634,9 +634,9 @@ const liveConfigDefault = {
     thumbnails: {
       media: 'clips' as const,
       size: 100,
-      show_details: false,
+      show_details: true,
       show_controls: true,
-      mode: 'none' as const,
+      mode: 'left' as const,
     },
     title: {
       mode: 'popup-bottom-right' as const,
@@ -837,9 +837,9 @@ const viewerConfigDefault = {
     },
     thumbnails: {
       size: 100,
-      mode: 'none' as const,
-      show_details: false,
+      show_details: true,
       show_controls: true,
+      mode: 'left' as const,
     },
     title: {
       mode: 'popup-bottom-right' as const,
