@@ -32,7 +32,7 @@ ha-card {
   opacity: 0.7;
   color: var(--primary-text-color, white);
   border: 2px ridge var(--primary-text-color, black);
-  border-radius: 5px;
+  border-radius: var(--ha-card-border-radius, 4px);
   background-color: var(--primary-background-color, black);
   padding: 10px;
   line-height: 1;
