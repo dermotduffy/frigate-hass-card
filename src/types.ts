@@ -518,6 +518,8 @@ const viewConfigDefault = {
   scan: {
     enabled: false,
     show_trigger_status: true,
+    untrigger_seconds: 0,
+    untrigger_reset: true,
   },
 };
 const viewConfigSchema = z
@@ -541,6 +543,8 @@ const viewConfigSchema = z
         show_trigger_status: z
           .boolean()
           .default(viewConfigDefault.scan.show_trigger_status),
+        untrigger_seconds: z.number().default(viewConfigDefault.scan.untrigger_seconds),
+        untrigger_reset: z.boolean().default(viewConfigDefault.scan.untrigger_reset),
       })
       .default(viewConfigDefault.scan),
   })

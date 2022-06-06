@@ -73,7 +73,9 @@
       "scan": {
         "scan_mode": "Scan mode",
         "enabled": "Scan mode enabled",
-        "show_trigger_status": "Show pulsing border when triggered"
+        "show_trigger_status": "Show pulsing border when triggered",
+        "untrigger_reset": "Reset the view to default after untrigger",
+        "untrigger_seconds": "Seconds after inactive state change to untrigger"
       }
     },
     "event_gallery": {

@@ -43,6 +43,10 @@ export const CONF_VIEW_SCAN = `${CONF_VIEW}.scan` as const;
 export const CONF_VIEW_SCAN_ENABLED = `${CONF_VIEW_SCAN}.enabled` as const;
 export const CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS =
   `${CONF_VIEW_SCAN}.show_trigger_status` as const;
+export const CONF_VIEW_SCAN_UNTRIGGER_RESET =
+  `${CONF_VIEW_SCAN}.untrigger_reset` as const;
+export const CONF_VIEW_SCAN_UNTRIGGER_SECONDS =
+  `${CONF_VIEW_SCAN}.untrigger_seconds` as const;
 
 export const CONF_EVENT_GALLERY = 'event_gallery' as const;
 export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS =

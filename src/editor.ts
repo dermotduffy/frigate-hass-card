@@ -32,7 +32,8 @@ import {
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE, CONF_IMAGE_MODE,
+  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE,
+  CONF_IMAGE_MODE,
   CONF_IMAGE_REFRESH_SECONDS,
   CONF_IMAGE_URL,
   CONF_LIVE_AUTO_MUTE,
@@ -52,7 +53,8 @@ import {
   CONF_LIVE_LAZY_LOAD,
   CONF_LIVE_LAZY_UNLOAD,
   CONF_LIVE_PRELOAD,
-  CONF_LIVE_TRANSITION_EFFECT, CONF_MEDIA_VIEWER_AUTO_MUTE,
+  CONF_LIVE_TRANSITION_EFFECT,
+  CONF_MEDIA_VIEWER_AUTO_MUTE,
   CONF_MEDIA_VIEWER_AUTO_PAUSE,
   CONF_MEDIA_VIEWER_AUTO_PLAY,
   CONF_MEDIA_VIEWER_AUTO_UNMUTE,
@@ -66,7 +68,8 @@ import {
   CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE,
   CONF_MEDIA_VIEWER_DRAGGABLE,
   CONF_MEDIA_VIEWER_LAZY_LOAD,
-  CONF_MEDIA_VIEWER_TRANSITION_EFFECT, CONF_MENU_ALIGNMENT,
+  CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
+  CONF_MENU_ALIGNMENT,
   CONF_MENU_BUTTONS,
   CONF_MENU_BUTTON_SIZE,
   CONF_MENU_POSITION,
@@ -85,6 +88,8 @@ import {
   CONF_VIEW_SCAN,
   CONF_VIEW_SCAN_ENABLED,
   CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
+  CONF_VIEW_SCAN_UNTRIGGER_RESET,
+  CONF_VIEW_SCAN_UNTRIGGER_SECONDS,
   CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_CYCLE_CAMERA,
   CONF_VIEW_UPDATE_FORCE,
@@ -607,18 +612,25 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ? html` <div class="values">
             ${this._renderSwitch(
               CONF_VIEW_SCAN_ENABLED,
-              frigateCardConfigDefaults.view.scan.enabled ?? true,
+              frigateCardConfigDefaults.view.scan.enabled,
               {
                 label: localize(`config.${CONF_VIEW_SCAN_ENABLED}`),
               },
             )}
             ${this._renderSwitch(
               CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
-              frigateCardConfigDefaults.view.scan.show_trigger_status ?? true,
+              frigateCardConfigDefaults.view.scan.show_trigger_status,
               {
                 label: localize(`config.${CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS}`),
               },
             )}
+            ${this._renderSwitch(
+              CONF_VIEW_SCAN_UNTRIGGER_RESET,
+              frigateCardConfigDefaults.view.scan.untrigger_reset,
+            )}
+            ${this._renderNumberInput(CONF_VIEW_SCAN_UNTRIGGER_SECONDS, {
+              default: frigateCardConfigDefaults.view.scan.untrigger_seconds,
+            })}
           </div>`
         : ''}
     `;
