@@ -2597,7 +2597,7 @@ integration versions.
 If the timeline shows a message such as `Failed to receive response from Home
 Assistant for request.` make sure you are running a version of the [Frigate
 integration](https://github.com/blakeblackshear/frigate-hass-integration) >=
-3.0.0.
+3.0.0-rc.1.
 
 ### Fullscreen Button Does Not Appear On iPhone
 
