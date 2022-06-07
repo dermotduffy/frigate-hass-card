@@ -111,7 +111,7 @@ export function renderProgressIndicator(message?: string): TemplateResult {
  * @param icon An optional icon to attach to the message.
  */
 export function dispatchMessageEvent(
-  element: HTMLElement,
+  element: EventTarget,
   message: string,
   icon?: string,
   context?: unknown,
@@ -130,7 +130,7 @@ export function dispatchMessageEvent(
  * @param message The message to show.
  */
 export function dispatchErrorMessageEvent(
-  element: HTMLElement,
+  element: EventTarget,
   message: string,
   context?: unknown,
 ): void {
@@ -147,7 +147,7 @@ export function dispatchErrorMessageEvent(
  * @param message The message to show.
  */
 export function dispatchFrigateCardErrorEvent(
-  element: HTMLElement,
+  element: EventTarget,
   error: FrigateCardError
 ): void {
   dispatchFrigateCardEvent<Message>(element, 'message', {

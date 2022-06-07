@@ -204,6 +204,7 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'frigate_ui',
   'fullscreen',
   'menu_toggle',
+  'diagnostics',
 ] as const;
 const FRIGATE_CARD_ACTIONS = [
   ...FRIGATE_CARD_GENERAL_ACTIONS,

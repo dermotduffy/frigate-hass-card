@@ -306,6 +306,7 @@
     "no_thumbnail": "No thumbnail available"
   },
   "error": {
+    "diagnostics": "Card diagnostics. Please review for confidential information prior to sharing",
     "undecodable_response": "Could not decode response from Home Assistant for request",
     "empty_response": "Received empty response from Home Assistant for request",
     "invalid_response": "Received invalid response from Home Assistant for request",

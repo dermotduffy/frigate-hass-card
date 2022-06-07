@@ -1,5 +1,10 @@
 import { getLovelace, HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
-import { CSSResultGroup, html, LitElement, PropertyValues, TemplateResult, unsafeCSS } from 'lit';
+import {
+  CSSResultGroup,
+  html,
+  LitElement,
+  PropertyValues, TemplateResult, unsafeCSS
+} from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
@@ -77,6 +82,7 @@ import {
   sideLoadHomeAssistantElements
 } from './utils/ha';
 import { getEventID } from './utils/ha/browse-media.js';
+import { DeviceList, getAllDevices } from './utils/ha/device-registry.js';
 import {
   ExtendedEntityCache,
   getAllEntities,
@@ -146,6 +152,7 @@ export class FrigateCard extends LitElement {
   // card-mod.
   @state()
   protected _config!: FrigateCardConfig;
+  protected _rawConfig?: RawFrigateCardConfig;
 
   @state()
   protected _overriddenConfig?: FrigateCardConfig;
@@ -344,6 +351,9 @@ export class FrigateCard extends LitElement {
       tap_action: FrigateCardMenu.isHidingMenu(this._getConfig().menu)
         ? (createFrigateCardCustomAction('menu_toggle') as FrigateCardCustomAction)
         : (createFrigateCardCustomAction('default') as FrigateCardCustomAction),
+      hold_action: createFrigateCardCustomAction(
+        'diagnostics',
+      ) as FrigateCardCustomAction,
     });
 
     if (this._cameras && this._cameras.size > 1) {
@@ -860,6 +870,7 @@ export class FrigateCard extends LitElement {
       getLovelace().setEditMode(true);
     }
 
+    this._rawConfig = inputConfig;
     this._config = config;
     this._overriddenConfig = undefined;
     this._cameras = undefined;
@@ -1014,7 +1025,7 @@ export class FrigateCard extends LitElement {
 
   /**
    * Determine if the scan mode is currently triggered.
-   * @returns 
+   * @returns
    */
   protected _isTriggered(): boolean {
     return !!this._triggers.size || !!this._untriggerTimerID;
@@ -1296,8 +1307,51 @@ export class FrigateCard extends LitElement {
           frigateCardAction.media_player_action,
         );
         break;
+      case 'diagnostics':
+        this._diagnostics();
+        break;
       default:
         console.warn(`Frigate card received unknown card action: ${action}`);
+    }
+  }
+
+  /**
+   * Generate diagnostics for issue reports.
+   */
+  protected async _diagnostics(): Promise<void> {
+    if (this._hass) {
+      let devices: DeviceList = [];
+      try {
+        devices = await getAllDevices(this._hass);
+      } catch (e) {
+        // Pass. This is optional.
+      }
+
+      // Get the Frigate devices in order to extract the Frigate integration and
+      // server version numbers.
+      const frigateDevices = devices.filter(
+        (device) => device.manufacturer === 'Frigate',
+      );
+      const frigateVersionMap: Map<string, string> = new Map();
+      frigateDevices.forEach((device) => {
+        device.config_entries.forEach((configEntry) => {
+          if (device.model) {
+            frigateVersionMap.set(configEntry, device.model);
+          }
+        });
+      });
+
+      this._setMessageAndUpdate({
+        message: localize('error.diagnostics'),
+        type: 'info',
+        icon: 'mdi:information',
+        context: {
+          ha_version: this._hass.config.version,
+          card_version: CARD_VERSION,
+          frigate_version: Object.fromEntries(frigateVersionMap),
+          ...(this._rawConfig && { config: this._rawConfig }),
+        },
+      });
     }
   }
 
