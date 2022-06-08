@@ -17,7 +17,7 @@
   "dependencies": {
     "@cycjimmy/jsmpeg-player": "^5.1.1",
     "@lit-labs/task": "^1.0.0",
-    "@material/image-list": "^13.0.0",
+    "@material/image-list": "^14.0.0",
     "@material/mwc-menu": "^0.25.3",
     "@material/rtl": "^13.0.0",
     "custom-card-helpers": "^1.8.0",
