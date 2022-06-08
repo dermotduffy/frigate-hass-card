@@ -77,8 +77,6 @@ export class FrigateCardDrawer extends LitElement {
     this.empty =
       !elements ||
       !elements.length ||
-      // If the element has the special attribute 'empty' also hide it, this is
-      // used to hide carousels that have no actual contents.
       elements.every((element) => {
         const box = element.getBoundingClientRect();
         return !box.width || !box.height;
