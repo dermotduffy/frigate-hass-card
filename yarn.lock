@@ -268,23 +268,10 @@
     "@babel/helper-validator-identifier" "^7.16.7"
     to-fast-properties "^2.0.0"
 
-"@cycjimmy/awesome-js-funcs@^3.1.0":
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@cycjimmy/awesome-js-funcs/-/awesome-js-funcs-3.1.0.tgz#1cc2e55101aea4a0e752c7da2cf027884473676c"
-  integrity sha512-FT+V5fSZoPAdEAo34FJFy5+DfhdoQ+s6cOmghjAUQzluM7NlUkPKUSFy5fzJHVJD2dofy8v2k3IIfgUXNiG2yw==
-
-"@cycjimmy/jsmpeg-player@^5.1.1":
-  version "5.1.1"
-  resolved "https://registry.yarnpkg.com/@cycjimmy/jsmpeg-player/-/jsmpeg-player-5.1.1.tgz#21ac4cc9b36527a17ba27271bd3610eebe20999b"
-  integrity sha512-laMBuYW4GI/GPySSnhHo59fjvWMeawvj6Y3lC29gPYDNhTrfNKA0Llp5fGBXHYbiUBptglcjxgZApEsD7PfMqQ==
-  dependencies:
-    "@cycjimmy/awesome-js-funcs" "^3.1.0"
-    "@cycjimmy/sass-lib" "^1.1.0"
-
-"@cycjimmy/sass-lib@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@cycjimmy/sass-lib/-/sass-lib-1.1.0.tgz#94c5d454d7ca67f5c09a924f7f26a9f180461072"
-  integrity sha512-eMN9QMtiPfiDqdJvE8agBOR53lGJXkz2pOy8lhttsuOBzfmf3gs10Uf0ogX/rjt3U7//ZSqKckRT/br1S2uZ6A==
+"@cycjimmy/jsmpeg-player@^6.0.2":
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/@cycjimmy/jsmpeg-player/-/jsmpeg-player-6.0.2.tgz#2530a405102d4fd4d1f5632569bde4029b1ff853"
+  integrity sha512-+j/lpvla5ozehGPOBc1y/zEZ41JX4xiItiw+3PYVKUkl8ryL3lsgaA4MbtuP4FnKRW04qtM+whJ+4eXtptM43w==
 
 "@eslint/eslintrc@^1.2.1":
   version "1.2.1"
