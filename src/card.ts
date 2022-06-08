@@ -537,7 +537,6 @@ export class FrigateCard extends LitElement {
           entity: playerEntityID,
           state_color: false,
           title: title,
-          subtitle: undefined,
           disabled: !state || state.state === 'unavailable',
           ...(playAction && { tap_action: playAction }),
           ...(stopAction && { hold_action: stopAction }),
