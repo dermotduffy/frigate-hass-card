@@ -2696,8 +2696,8 @@ This could be for any number of reasons. Chromecast devices can be quite picky o
 ```sh
 $ git clone https://github.com/dermotduffy/frigate-hass-card
 $ cd frigate-hass-card
-$ npm install
-$ npm run build
+$ yarn install
+$ yarn run build
 ```
 
 Resultant build will be at `dist/frigate-hass-card.js`. This could be installed via the [manual installation instructions above](#manual-installation).

@@ -15,8 +15,8 @@ jobs:
       # Build
       - name: Build the file
         run: |
-          npm install
-          npm run build
+          yarn install
+          yarn run build
 
       # Upload build file to the releas as an asset.
       - name: Upload zip to release
