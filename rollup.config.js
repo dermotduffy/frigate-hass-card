@@ -70,7 +70,7 @@ const config = {
     file: 'dist/frigate-hass-card.js',
     format: 'es',
   },
-  plugins: [...plugins],
+  plugins: plugins,
   // These two files use this at the toplevel, which causes rollup warning
   // spam on build: `this` has been rewritten to `undefined`
   moduleContext: {
