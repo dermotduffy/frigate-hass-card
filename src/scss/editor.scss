@@ -44,7 +44,7 @@ div.upgrade span {
 
   cursor: pointer;
 }
-.submenu-header.selected {
+.submenu.selected .submenu-header {
   background-color: var(--primary-color);
   color: var(--primary-text-color);
 }
@@ -58,7 +58,7 @@ div.upgrade span {
 .submenu-header .new-camera {
   font-style: italic;
 }
-.submenu-header:not(.selected) .new-camera {
+.submenu:not(.selected) .submenu-header .new-camera {
   color: var(--secondary-text-color, 'black');
 }
 

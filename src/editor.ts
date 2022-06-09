@@ -9,7 +9,7 @@ import {
   getConfigValue,
   isConfigUpgradeable,
   setConfigValue,
-  upgradeConfig,
+  upgradeConfig
 } from './config-mgmt.js';
 import {
   CONF_CAMERAS,
@@ -94,7 +94,7 @@ import {
   CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_CYCLE_CAMERA,
   CONF_VIEW_UPDATE_FORCE,
-  CONF_VIEW_UPDATE_SECONDS,
+  CONF_VIEW_UPDATE_SECONDS
 } from './const.js';
 import { localize } from './localize/localize.js';
 import frigate_card_editor_style from './scss/editor.scss';
@@ -105,7 +105,7 @@ import {
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
-  THUMBNAIL_WIDTH_MIN,
+  THUMBNAIL_WIDTH_MIN
 } from './types.js';
 import { arrayMove } from './utils/basic.js';
 import { getCameraID, getCameraTitle } from './utils/camera.js';
@@ -599,19 +599,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   protected _renderViewScanMenu(): TemplateResult {
-    const selected = !!this._expandedMenus[MENU_VIEW_SCAN];
     const submenuClasses = {
       submenu: true,
-      selected: selected,
-    };
-    const headerClasses = {
-      'submenu-header': true,
-      selected: selected,
+      selected: !!this._expandedMenus[MENU_VIEW_SCAN],
     };
     return html`
       <div class="${classMap(submenuClasses)}">
         <div
-          class="${classMap(headerClasses)}"
+          class="submenu-header"
           @click=${this._toggleMenu}
           .domain=${MENU_VIEW_SCAN}
           .key=${true}
@@ -659,20 +654,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       { value: 'matching', label: localize('config.menu.buttons.alignments.matching') },
       { value: 'opposing', label: localize('config.menu.buttons.alignments.opposing') },
     ];
-    const selected = this._expandedMenus[MENU_BUTTONS] === button;
     const submenuClasses = {
       submenu: true,
-      selected: selected,
-    };
-    const headerClasses = {
-      'submenu-header': true,
-      selected: selected,
+      selected: this._expandedMenus[MENU_BUTTONS] === button,
     };
 
     return html`
       <div class="${classMap(submenuClasses)}">
         <div
-          class="${classMap(headerClasses)}"
+          class="submenu-header"
           @click=${this._toggleMenu}
           .domain=${MENU_BUTTONS}
           .key=${button}
@@ -762,20 +752,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       }
     };
 
-    const selected = this._expandedMenus[MENU_CAMERAS] === cameraIndex;
     const submenuClasses = {
       submenu: true,
-      selected: selected,
-    };
-    const headerClasses = {
-      'submenu-header': true,
-      selected: selected,
+      selected: this._expandedMenus[MENU_CAMERAS] === cameraIndex,
     };
 
     return html`
       <div class="${classMap(submenuClasses)}">
         <div
-          class="${classMap(headerClasses)}"
+          class="submenu-header"
           @click=${this._toggleMenu}
           .domain=${MENU_CAMERAS}
           .key=${cameraIndex}
