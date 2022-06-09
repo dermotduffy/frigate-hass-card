@@ -23,6 +23,8 @@ export const CONF_CAMERAS_ARRAY_LIVE_PROVIDER =
   `${CONF_CAMERAS}.#.live_provider` as const;
 export const CONF_CAMERAS_ARRAY_DEPENDENT_CAMERAS =
   `${CONF_CAMERAS}.#.dependent_cameras` as const;
+  export const CONF_CAMERAS_ARRAY_DEPENDENT_CAMERAS_ALL =
+  `${CONF_CAMERAS}.#.dependent_cameras_all` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGER_BY_MOTION =
   `${CONF_CAMERAS}.#.trigger_by_motion` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGER_BY_OCCUPANCY =

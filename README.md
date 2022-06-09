@@ -114,6 +114,7 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 | `webrtc_card` | | :heavy_multiplication_x: | The WebRTC entity/URL to use for this camera with the `webrtc-card` live provider. See below. |
 | `id` | `camera_entity`, `webrtc_card.entity` or `camera_name` if set (in that preference order). | :heavy_multiplication_x: | An optional identifier to use throughout the card configuration to refer unambiguously to this camera. See [camera IDs](#camera-ids). |
 | `dependent_cameras` | | :heavy_multiplication_x: | An optional array of other camera identifiers (see [camera IDs](#camera-ids)). If specified the card will fetch events for this camera and *also* recursively events for the named `dependent_cameras`. All `dependent_cameras` must themselves be a configured camera in the card. This can be useful to group events for cameras that are close together, or to show events for the `birdseye` camera that otherwise would not have events itself.|
+| `dependent_cameras_all` | `false` | :heavy_multiplication_x: | Shortcut to specify all other cameras as dependent cameras (see `dependent_cameras` above).|
 | `trigger_by_motion` | `false` | :heavy_multiplication_x: | Whether to not to trigger the camera (used to trigger [scan mode](#scan-mode) or reseting the default view) by automatically detecting and using the motion `binary_sensor` for this camera. This autodetection only works for Frigate cameras, and only when the motion `binary_sensor` entity has been enabled in Home Assistant.|
 | `trigger_by_occupancy` | `true` | :heavy_multiplication_x: | Whether to not to trigger the camera (used to trigger [scan mode](#scan-mode) or reseting the default view) by automatically detecting and using the occupancy `binary_sensor` for this camera. This autodetection only works for Frigate cameras, and only when the occupancy `binary_sensor` entity has been enabled in Home Assistant.|
 | `trigger_by_entities` | | :heavy_multiplication_x: | Whether to not to trigger the camera (used to trigger [scan mode](#scan-mode) or reseting the default view) when the state of any Home Assistant entity becomes active (i.e. state becomes `on` or `open`). This works for Frigate or non-Frigate cameras.|
@@ -1013,6 +1014,7 @@ cameras:
     # Show events for camera-2 when this camera is viewed.
     dependent_cameras:
       - camera-2
+    dependent_cameras_all: false
     trigger_by_motion: false
     trigger_by_occupancy: true
     trigger_by_entities:
@@ -1035,6 +1037,7 @@ cameras:
     trigger_by_occupancy: true
     trigger_by_entities:
       - binary_sensor.entrance_sensor
+    dependent_cameras_all: false
 ```
 </details>
 
