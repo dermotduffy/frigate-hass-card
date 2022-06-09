@@ -1,6 +1,7 @@
 import { fireEvent, HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
 import {
   copyConfig,
   deleteConfigValue,
@@ -8,7 +9,7 @@ import {
   getConfigValue,
   isConfigUpgradeable,
   setConfigValue,
-  upgradeConfig
+  upgradeConfig,
 } from './config-mgmt.js';
 import {
   CONF_CAMERAS,
@@ -93,7 +94,7 @@ import {
   CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_CYCLE_CAMERA,
   CONF_VIEW_UPDATE_FORCE,
-  CONF_VIEW_UPDATE_SECONDS
+  CONF_VIEW_UPDATE_SECONDS,
 } from './const.js';
 import { localize } from './localize/localize.js';
 import frigate_card_editor_style from './scss/editor.scss';
@@ -104,7 +105,7 @@ import {
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
-  THUMBNAIL_WIDTH_MIN
+  THUMBNAIL_WIDTH_MIN,
 } from './types.js';
 import { arrayMove } from './utils/basic.js';
 import { getCameraID, getCameraTitle } from './utils/camera.js';
@@ -598,41 +599,52 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   protected _renderViewScanMenu(): TemplateResult {
+    const selected = !!this._expandedMenus[MENU_VIEW_SCAN];
+    const submenuClasses = {
+      submenu: true,
+      selected: selected,
+    };
+    const headerClasses = {
+      'submenu-header': true,
+      selected: selected,
+    };
     return html`
-      <div
-        class="submenu-header"
-        @click=${this._toggleMenu}
-        .domain=${MENU_VIEW_SCAN}
-        .key=${true}
-      >
-        <ha-icon .icon=${'mdi:target-account'}></ha-icon>
-        <span>${localize(`config.${CONF_VIEW_SCAN}.scan_mode`)}</span>
+      <div class="${classMap(submenuClasses)}">
+        <div
+          class="${classMap(headerClasses)}"
+          @click=${this._toggleMenu}
+          .domain=${MENU_VIEW_SCAN}
+          .key=${true}
+        >
+          <ha-icon .icon=${'mdi:target-account'}></ha-icon>
+          <span>${localize(`config.${CONF_VIEW_SCAN}.scan_mode`)}</span>
+        </div>
+        ${this._expandedMenus[MENU_VIEW_SCAN]
+          ? html` <div class="values">
+              ${this._renderSwitch(
+                CONF_VIEW_SCAN_ENABLED,
+                frigateCardConfigDefaults.view.scan.enabled,
+                {
+                  label: localize(`config.${CONF_VIEW_SCAN_ENABLED}`),
+                },
+              )}
+              ${this._renderSwitch(
+                CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
+                frigateCardConfigDefaults.view.scan.show_trigger_status,
+                {
+                  label: localize(`config.${CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS}`),
+                },
+              )}
+              ${this._renderSwitch(
+                CONF_VIEW_SCAN_UNTRIGGER_RESET,
+                frigateCardConfigDefaults.view.scan.untrigger_reset,
+              )}
+              ${this._renderNumberInput(CONF_VIEW_SCAN_UNTRIGGER_SECONDS, {
+                default: frigateCardConfigDefaults.view.scan.untrigger_seconds,
+              })}
+            </div>`
+          : ''}
       </div>
-      ${this._expandedMenus[MENU_VIEW_SCAN]
-        ? html` <div class="values">
-            ${this._renderSwitch(
-              CONF_VIEW_SCAN_ENABLED,
-              frigateCardConfigDefaults.view.scan.enabled,
-              {
-                label: localize(`config.${CONF_VIEW_SCAN_ENABLED}`),
-              },
-            )}
-            ${this._renderSwitch(
-              CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
-              frigateCardConfigDefaults.view.scan.show_trigger_status,
-              {
-                label: localize(`config.${CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS}`),
-              },
-            )}
-            ${this._renderSwitch(
-              CONF_VIEW_SCAN_UNTRIGGER_RESET,
-              frigateCardConfigDefaults.view.scan.untrigger_reset,
-            )}
-            ${this._renderNumberInput(CONF_VIEW_SCAN_UNTRIGGER_SECONDS, {
-              default: frigateCardConfigDefaults.view.scan.untrigger_seconds,
-            })}
-          </div>`
-        : ''}
     `;
   }
 
@@ -647,80 +659,58 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       { value: 'matching', label: localize('config.menu.buttons.alignments.matching') },
       { value: 'opposing', label: localize('config.menu.buttons.alignments.opposing') },
     ];
+    const selected = this._expandedMenus[MENU_BUTTONS] === button;
+    const submenuClasses = {
+      submenu: true,
+      selected: selected,
+    };
+    const headerClasses = {
+      'submenu-header': true,
+      selected: selected,
+    };
 
     return html`
-      <div
-        class="submenu-header"
-        @click=${this._toggleMenu}
-        .domain=${MENU_BUTTONS}
-        .key=${button}
-      >
-        <ha-icon .icon=${'mdi:gesture-tap-button'}></ha-icon>
-        <span
-          >${localize('editor.button') +
-          ': ' +
-          localize(`config.${CONF_MENU_BUTTONS}.${button}`)}</span
+      <div class="${classMap(submenuClasses)}">
+        <div
+          class="${classMap(headerClasses)}"
+          @click=${this._toggleMenu}
+          .domain=${MENU_BUTTONS}
+          .key=${button}
         >
-      </div>
+          <ha-icon .icon=${'mdi:gesture-tap-button'}></ha-icon>
+          <span
+            >${localize('editor.button') +
+            ': ' +
+            localize(`config.${CONF_MENU_BUTTONS}.${button}`)}</span
+          >
+        </div>
 
-      ${this._expandedMenus[MENU_BUTTONS] === button
-        ? html` <div class="values">
-            ${this._renderSwitch(
-              `${CONF_MENU_BUTTONS}.${button}.enabled`,
-              frigateCardConfigDefaults.menu.buttons[button]?.enabled ?? true,
-              {
-                label: localize('config.menu.buttons.enabled'),
-              },
-            )}
-            ${this._renderOptionSelector(
-              `${CONF_MENU_BUTTONS}.${button}.alignment`,
-              menuButtonAlignments,
-              {
-                label: localize('config.menu.buttons.alignment'),
-              },
-            )}
-            ${this._renderNumberInput(`${CONF_MENU_BUTTONS}.${button}.priority`, {
-              max: FRIGATE_MENU_PRIORITY_MAX,
-              default: frigateCardConfigDefaults.menu.buttons[button]?.priority,
-              label: localize('config.menu.buttons.priority'),
-            })}
-            ${this._renderIconSelector(`${CONF_MENU_BUTTONS}.${button}.icon`, {
-              label: localize('config.menu.buttons.icon'),
-            })}
-          </div>`
-        : ''}
-    `;
-  }
-
-  /**
-   * Render a camera header.
-   * @param cameraIndex The index of the camera to edit/add.
-   * @param cameraConfig The configuration of the camera in question.
-   * @param addNewCamera Whether or not this is a header to add a new camera.
-   * @returns A rendered template.
-   */
-  protected _renderCameraHeader(
-    cameraIndex: number,
-    cameraConfig?: RawFrigateCardConfig,
-    addNewCamera?: boolean,
-  ): TemplateResult {
-    return html`
-      <div
-        class="submenu-header"
-        @click=${this._toggleMenu}
-        .domain=${MENU_CAMERAS}
-        .key=${cameraIndex}
-      >
-        <ha-icon .icon=${addNewCamera ? 'mdi:video-plus' : 'mdi:video'}></ha-icon>
-        <span>
-          ${addNewCamera
-            ? html` <span class="new-camera">
-                [${localize('editor.add_new_camera')}...]
-              </span>`
-            : html`<span
-                >${this._getEditorCameraTitle(cameraIndex, cameraConfig || {})}</span
-              >`}
-        </span>
+        ${this._expandedMenus[MENU_BUTTONS] === button
+          ? html` <div class="values">
+              ${this._renderSwitch(
+                `${CONF_MENU_BUTTONS}.${button}.enabled`,
+                frigateCardConfigDefaults.menu.buttons[button]?.enabled ?? true,
+                {
+                  label: localize('config.menu.buttons.enabled'),
+                },
+              )}
+              ${this._renderOptionSelector(
+                `${CONF_MENU_BUTTONS}.${button}.alignment`,
+                menuButtonAlignments,
+                {
+                  label: localize('config.menu.buttons.alignment'),
+                },
+              )}
+              ${this._renderNumberInput(`${CONF_MENU_BUTTONS}.${button}.priority`, {
+                max: FRIGATE_MENU_PRIORITY_MAX,
+                default: frigateCardConfigDefaults.menu.buttons[button]?.priority,
+                label: localize('config.menu.buttons.priority'),
+              })}
+              ${this._renderIconSelector(`${CONF_MENU_BUTTONS}.${button}.icon`, {
+                label: localize('config.menu.buttons.icon'),
+              })}
+            </div>`
+          : ''}
       </div>
     `;
   }
@@ -772,135 +762,166 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       }
     };
 
+    const selected = this._expandedMenus[MENU_CAMERAS] === cameraIndex;
+    const submenuClasses = {
+      submenu: true,
+      selected: selected,
+    };
+    const headerClasses = {
+      'submenu-header': true,
+      selected: selected,
+    };
+
     return html`
-      ${this._renderCameraHeader(cameraIndex, cameras[cameraIndex], addNewCamera)}
-      ${this._expandedMenus[MENU_CAMERAS] === cameraIndex
-        ? html` <div class="values">
-            <div class="controls">
-              <ha-icon-button
-                class="button"
-                .label=${localize('editor.move_up')}
-                .disabled=${addNewCamera ||
-                !this._config ||
-                !Array.isArray(this._config.cameras) ||
-                cameraIndex <= 0}
-                @click=${() =>
-                  !addNewCamera &&
-                  modifyConfig((config: RawFrigateCardConfig): boolean => {
-                    if (Array.isArray(config.cameras) && cameraIndex > 0) {
-                      arrayMove(config.cameras, cameraIndex, cameraIndex - 1);
-                      this._openMenu(MENU_CAMERAS, cameraIndex - 1);
-                      return true;
-                    }
-                    return false;
-                  })}
-              >
-                <ha-icon icon="mdi:arrow-up"></ha-icon>
-              </ha-icon-button>
-              <ha-icon-button
-                class="button"
-                .label=${localize('editor.move_down')}
-                .disabled=${addNewCamera ||
-                !this._config ||
-                !Array.isArray(this._config.cameras) ||
-                cameraIndex >= this._config.cameras.length - 1}
-                @click=${() =>
-                  !addNewCamera &&
-                  modifyConfig((config: RawFrigateCardConfig): boolean => {
-                    if (
-                      Array.isArray(config.cameras) &&
-                      cameraIndex < config.cameras.length - 1
-                    ) {
-                      arrayMove(config.cameras, cameraIndex, cameraIndex + 1);
-                      this._openMenu(MENU_CAMERAS, cameraIndex + 1);
-                      return true;
-                    }
-                    return false;
-                  })}
-              >
-                <ha-icon icon="mdi:arrow-down"></ha-icon>
-              </ha-icon-button>
-              <ha-icon-button
-                class="button"
-                .label=${localize('editor.delete')}
-                .disabled=${addNewCamera}
-                @click=${() => {
-                  modifyConfig((config: RawFrigateCardConfig): boolean => {
-                    if (Array.isArray(config.cameras)) {
-                      config.cameras.splice(cameraIndex, 1);
-                      this._closeMenu(MENU_CAMERAS);
-                      return true;
-                    }
-                    return false;
-                  });
-                }}
-              >
-                <ha-icon icon="mdi:delete"></ha-icon>
-              </ha-icon-button>
-            </div>
-            ${this._renderEntitySelector(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_CAMERA_ENTITY, cameraIndex),
-              'camera',
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_CAMERA_NAME, cameraIndex),
-            )}
-            ${this._renderOptionSelector(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_LIVE_PROVIDER, cameraIndex),
-              liveProviders,
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_URL, cameraIndex),
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_LABEL, cameraIndex),
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_ZONE, cameraIndex),
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_CLIENT_ID, cameraIndex),
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_TITLE, cameraIndex),
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_ICON, cameraIndex),
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
-            )}
-            ${this._renderEntitySelector(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY, cameraIndex),
-              'camera',
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
-            )}
-            ${this._renderOptionSelector(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_DEPENDENT_CAMERAS, cameraIndex),
-              dependentCameras,
-              {
-                multiple: true,
-              },
-            )}
-            ${this._renderSwitch(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGER_BY_OCCUPANCY, cameraIndex),
-              frigateCardConfigDefaults.cameras.trigger_by_occupancy,
-            )}
-            ${this._renderSwitch(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGER_BY_MOTION, cameraIndex),
-              frigateCardConfigDefaults.cameras.trigger_by_motion,
-            )}
-            ${this._renderOptionSelector(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGER_BY_ENTITIES, cameraIndex),
-              entities,
-              {
-                multiple: true,
-              },
-            )}
-          </div>`
-        : ``}
+      <div class="${classMap(submenuClasses)}">
+        <div
+          class="${classMap(headerClasses)}"
+          @click=${this._toggleMenu}
+          .domain=${MENU_CAMERAS}
+          .key=${cameraIndex}
+        >
+          <ha-icon .icon=${addNewCamera ? 'mdi:video-plus' : 'mdi:video'}></ha-icon>
+          <span>
+            ${addNewCamera
+              ? html` <span class="new-camera">
+                  [${localize('editor.add_new_camera')}...]
+                </span>`
+              : html`<span
+                  >${this._getEditorCameraTitle(
+                    cameraIndex,
+                    cameras[cameraIndex] || {},
+                  )}</span
+                >`}
+          </span>
+        </div>
+        ${this._expandedMenus[MENU_CAMERAS] === cameraIndex
+          ? html` <div class="values">
+              <div class="controls">
+                <ha-icon-button
+                  class="button"
+                  .label=${localize('editor.move_up')}
+                  .disabled=${addNewCamera ||
+                  !this._config ||
+                  !Array.isArray(this._config.cameras) ||
+                  cameraIndex <= 0}
+                  @click=${() =>
+                    !addNewCamera &&
+                    modifyConfig((config: RawFrigateCardConfig): boolean => {
+                      if (Array.isArray(config.cameras) && cameraIndex > 0) {
+                        arrayMove(config.cameras, cameraIndex, cameraIndex - 1);
+                        this._openMenu(MENU_CAMERAS, cameraIndex - 1);
+                        return true;
+                      }
+                      return false;
+                    })}
+                >
+                  <ha-icon icon="mdi:arrow-up"></ha-icon>
+                </ha-icon-button>
+                <ha-icon-button
+                  class="button"
+                  .label=${localize('editor.move_down')}
+                  .disabled=${addNewCamera ||
+                  !this._config ||
+                  !Array.isArray(this._config.cameras) ||
+                  cameraIndex >= this._config.cameras.length - 1}
+                  @click=${() =>
+                    !addNewCamera &&
+                    modifyConfig((config: RawFrigateCardConfig): boolean => {
+                      if (
+                        Array.isArray(config.cameras) &&
+                        cameraIndex < config.cameras.length - 1
+                      ) {
+                        arrayMove(config.cameras, cameraIndex, cameraIndex + 1);
+                        this._openMenu(MENU_CAMERAS, cameraIndex + 1);
+                        return true;
+                      }
+                      return false;
+                    })}
+                >
+                  <ha-icon icon="mdi:arrow-down"></ha-icon>
+                </ha-icon-button>
+                <ha-icon-button
+                  class="button"
+                  .label=${localize('editor.delete')}
+                  .disabled=${addNewCamera}
+                  @click=${() => {
+                    modifyConfig((config: RawFrigateCardConfig): boolean => {
+                      if (Array.isArray(config.cameras)) {
+                        config.cameras.splice(cameraIndex, 1);
+                        this._closeMenu(MENU_CAMERAS);
+                        return true;
+                      }
+                      return false;
+                    });
+                  }}
+                >
+                  <ha-icon icon="mdi:delete"></ha-icon>
+                </ha-icon-button>
+              </div>
+              ${this._renderEntitySelector(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_CAMERA_ENTITY, cameraIndex),
+                'camera',
+              )}
+              ${this._renderStringInput(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_CAMERA_NAME, cameraIndex),
+              )}
+              ${this._renderOptionSelector(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_LIVE_PROVIDER, cameraIndex),
+                liveProviders,
+              )}
+              ${this._renderStringInput(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_URL, cameraIndex),
+              )}
+              ${this._renderStringInput(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_LABEL, cameraIndex),
+              )}
+              ${this._renderStringInput(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_ZONE, cameraIndex),
+              )}
+              ${this._renderStringInput(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_CLIENT_ID, cameraIndex),
+              )}
+              ${this._renderStringInput(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_TITLE, cameraIndex),
+              )}
+              ${this._renderStringInput(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_ICON, cameraIndex),
+              )}
+              ${this._renderStringInput(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
+              )}
+              ${this._renderEntitySelector(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY, cameraIndex),
+                'camera',
+              )}
+              ${this._renderStringInput(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
+              )}
+              ${this._renderOptionSelector(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_DEPENDENT_CAMERAS, cameraIndex),
+                dependentCameras,
+                {
+                  multiple: true,
+                },
+              )}
+              ${this._renderSwitch(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGER_BY_OCCUPANCY, cameraIndex),
+                frigateCardConfigDefaults.cameras.trigger_by_occupancy,
+              )}
+              ${this._renderSwitch(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGER_BY_MOTION, cameraIndex),
+                frigateCardConfigDefaults.cameras.trigger_by_motion,
+              )}
+              ${this._renderOptionSelector(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGER_BY_ENTITIES, cameraIndex),
+                entities,
+                {
+                  multiple: true,
+                },
+              )}
+            </div>`
+          : ``}
+      </div>
     `;
   }
 
@@ -1014,10 +1035,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       <div class="card-config">
         ${this._renderOptionSetHeader('cameras')}
         ${this._expandedMenus[MENU_OPTIONS] === 'cameras'
-          ? html` <div class="submenu">
+          ? html`
               ${cameras.map((_, index) => this._renderCamera(cameras, index, entities))}
               ${this._renderCamera(cameras, cameras.length, entities, true)}
-            </div>`
+            `
           : ''}
         ${this._renderOptionSetHeader('view')}
         ${this._expandedMenus[MENU_OPTIONS] === 'view'
@@ -1051,19 +1072,17 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   min: BUTTON_SIZE_MIN,
                 })}
               </div>
-              <div class="submenu">
-                ${this._renderMenuButton('frigate') /* */}
-                ${this._renderMenuButton('cameras') /* */}
-                ${this._renderMenuButton('live') /* */}
-                ${this._renderMenuButton('clips') /* */}
-                ${this._renderMenuButton('snapshots')}
-                ${this._renderMenuButton('image') /* */}
-                ${this._renderMenuButton('download')}
-                ${this._renderMenuButton('frigate_ui')}
-                ${this._renderMenuButton('fullscreen')}
-                ${this._renderMenuButton('timeline')}
-                ${this._renderMenuButton('media_player')}
-              </div>
+              ${this._renderMenuButton('frigate') /* */}
+              ${this._renderMenuButton('cameras') /* */}
+              ${this._renderMenuButton('live') /* */}
+              ${this._renderMenuButton('clips') /* */}
+              ${this._renderMenuButton('snapshots')}
+              ${this._renderMenuButton('image') /* */}
+              ${this._renderMenuButton('download')}
+              ${this._renderMenuButton('frigate_ui')}
+              ${this._renderMenuButton('fullscreen')}
+              ${this._renderMenuButton('timeline')}
+              ${this._renderMenuButton('media_player')}
             `
           : ''}
         ${this._renderOptionSetHeader('live')}
@@ -1305,7 +1324,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       const domain = ev.target.domain;
       const key = ev.target.key;
 
-      if (this._expandedMenus[domain] == key) {
+      if (this._expandedMenus[domain] === key) {
         this._closeMenu(domain);
       } else {
         this._openMenu(domain, key);

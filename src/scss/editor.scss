@@ -23,10 +23,8 @@
   pointer-events: none;
 }
 .values {
-  padding: 10px;
   background: var(--secondary-background-color);
   display: grid;
-  margin-bottom: 10px;
 }
 div.upgrade {
   width: auto;
@@ -42,26 +40,39 @@ div.upgrade span {
 
 .submenu-header {
   display: flex;
-  margin-top: 10px;
+  padding: 10px;
 
   cursor: pointer;
 }
+.submenu-header.selected {
+  background-color: var(--primary-color);
+  color: var(--primary-text-color);
+}
+
 .submenu-header * {
   flex-basis: auto;
 
   // Only allow clicks on the header.
   pointer-events: none;
 }
-.submenu-header ha-icon {
-  padding-right: 10px;
-}
 .submenu-header .new-camera {
   font-style: italic;
+}
+.submenu-header:not(.selected) .new-camera {
   color: var(--secondary-text-color, 'black');
 }
-.submenu {
-  margin: 5px 5px 10px 20px;
+
+.submenu-header ha-icon {
+  padding-right: 15px;
 }
+
+.submenu {
+  border: 1px solid var(--divider-color);
+}
+.submenu.selected {
+  border: 1px solid var(--primary-color);
+}
+
 .submenu .controls {
   display: inline-block;
   margin-left: auto;
