@@ -44,7 +44,7 @@ div.upgrade span {
 
   cursor: pointer;
 }
-.submenu.selected .submenu-header {
+.submenu.selected > .submenu-header {
   background-color: var(--primary-color);
   color: var(--primary-text-color);
 }
@@ -58,7 +58,7 @@ div.upgrade span {
 .submenu-header .new-camera {
   font-style: italic;
 }
-.submenu:not(.selected) .submenu-header .new-camera {
+.submenu:not(.selected) > .submenu-header .new-camera {
   color: var(--secondary-text-color, 'black');
 }
 
@@ -71,6 +71,17 @@ div.upgrade span {
 }
 .submenu.selected {
   border: 1px solid var(--primary-color);
+}
+
+// Nested menus should shrink width.
+.submenu .submenu {
+  width: calc(100% - 10px * 2);
+  margin: auto;
+  margin-bottom: 10px;
+
+}
+.submenu :not(.submenu.selected) {
+  border: none;
 }
 
 .submenu .controls {

@@ -702,21 +702,21 @@ export class FrigateCard extends LitElement {
           console.error(e, (e as Error).stack);
         }
 
-        if (config.trigger_by_motion) {
+        if (config.triggers.motion) {
           const motionEntity = this._getMotionSensor(cache, config);
           if (motionEntity) {
-            config.trigger_by_entities.push(motionEntity);
+            config.triggers.entities.push(motionEntity);
           }
         }
 
-        if (config.trigger_by_occupancy) {
+        if (config.triggers.occupancy) {
           const occupancyEntity = this._getOccupancySensor(cache, config);
           if (occupancyEntity) {
-            config.trigger_by_entities.push(occupancyEntity);
+            config.triggers.entities.push(occupancyEntity);
           }
         }
       }
-      config.trigger_by_entities = [...new Set(config.trigger_by_entities)];
+      config.triggers.entities = [...new Set(config.triggers.entities)];
 
       const id = getCameraID(config);
       if (!id) {
@@ -996,7 +996,7 @@ export class FrigateCard extends LitElement {
     let triggerChanges = false;
 
     for (const [camera, config] of this._cameras?.entries() ?? []) {
-      const triggerEntities = config?.trigger_by_entities ?? [];
+      const triggerEntities = config.triggers.entities ?? [];
       const diffs = getHassDifferences(this._hass, oldHass, triggerEntities, {
         stateOnly: true,
       });
@@ -1096,7 +1096,7 @@ export class FrigateCard extends LitElement {
         this._isAutomatedViewUpdateAllowed() &&
         isHassDifferent(this._hass, oldHass, [
           ...(this._getConfig().view.update_entities || []),
-          ...(selectedCamera?.trigger_by_entities || []),
+          ...(selectedCamera?.triggers.entities || []),
         ])
       ) {
         // If entities being monitored have changed then reset the view to the

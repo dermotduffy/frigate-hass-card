@@ -16,6 +16,7 @@
       "camera_name": "Frigate camera name (Autodetected from entity)",
       "client_id": "Frigate client id (For >1 Frigate server)",
       "dependencies": {
+        "options": "Dependency Options",
         "cameras": "Show events for specific cameras with this camera",
         "all_cameras": "Show events for all cameras with this camera"
       },
@@ -31,10 +32,14 @@
         "frigate-jsmpeg": "Frigate JSMpeg",
         "webrtc-card": "WebRTC Card (i.e. AlexxIT's WebRTC Card)"
       },
-      "trigger_by_entities": "Trigger from other entities",
-      "trigger_by_motion": "Trigger by auto-detecting the motion sensor",
-      "trigger_by_occupancy": "Trigger by auto-detecting the occupancy sensor",
+      "triggers": {
+        "options": "Trigger Options",
+        "entities": "Trigger from other entities",
+        "motion": "Trigger by auto-detecting the motion sensor",
+        "occupancy": "Trigger by auto-detecting the occupancy sensor"
+      },
       "webrtc_card": {
+        "options": "WebRTC Card Options",
         "entity": "WebRTC Card Camera Entity (Not a Frigate camera)",
         "url": "WebRTC Card Camera URL"
       },

@@ -25,12 +25,12 @@ export const CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS =
   `${CONF_CAMERAS}.#.dependencies.cameras` as const;
   export const CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS =
   `${CONF_CAMERAS}.#.dependencies.all_cameras` as const;
-export const CONF_CAMERAS_ARRAY_TRIGGER_BY_MOTION =
-  `${CONF_CAMERAS}.#.trigger_by_motion` as const;
-export const CONF_CAMERAS_ARRAY_TRIGGER_BY_OCCUPANCY =
-  `${CONF_CAMERAS}.#.trigger_by_occupancy` as const;
-export const CONF_CAMERAS_ARRAY_TRIGGER_BY_ENTITIES =
-  `${CONF_CAMERAS}.#.trigger_by_entities` as const;
+export const CONF_CAMERAS_ARRAY_TRIGGERS_MOTION =
+  `${CONF_CAMERAS}.#.triggers.motion` as const;
+export const CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY =
+  `${CONF_CAMERAS}.#.triggers.occupancy` as const;
+export const CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES =
+  `${CONF_CAMERAS}.#.triggers.entities` as const;
 
 export const CONF_VIEW = 'view' as const;
 export const CONF_VIEW_CAMERA_SELECT = `${CONF_VIEW}.camera_select` as const;

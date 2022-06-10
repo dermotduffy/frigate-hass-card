@@ -23,9 +23,9 @@ import {
   CONF_CAMERAS_ARRAY_LABEL,
   CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
   CONF_CAMERAS_ARRAY_TITLE,
-  CONF_CAMERAS_ARRAY_TRIGGER_BY_ENTITIES,
-  CONF_CAMERAS_ARRAY_TRIGGER_BY_MOTION,
-  CONF_CAMERAS_ARRAY_TRIGGER_BY_OCCUPANCY,
+  CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES,
+  CONF_CAMERAS_ARRAY_TRIGGERS_MOTION,
+  CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY,
   CONF_CAMERAS_ARRAY_URL,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL,
@@ -114,6 +114,9 @@ import { getEntitiesFromHASS, sideLoadHomeAssistantElements } from './utils/ha';
 
 const MENU_BUTTONS = 'buttons';
 const MENU_CAMERAS = 'cameras';
+const MENU_CAMERAS_DEPENDENCIES = 'cameras.dependencies';
+const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
+const MENU_CAMERAS_WEBRTC = 'cameras.webrtc';
 const MENU_OPTIONS = 'options';
 const MENU_VIEW_SCAN = 'scan';
 
@@ -707,6 +710,46 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   /**
+   * Put a given rendered template into a submenu.
+   * @param domain The submenu domain.
+   * @param key The submenu key.
+   * @param icon The icon for the submenu.
+   * @param labelPath The path to the label to localize.
+   * @param template The template to put in the submenu.
+   * @returns
+   */
+  protected _putInSubmenu(
+    domain: string,
+    key: unknown,
+    icon: string,
+    labelPath: string,
+    template: TemplateResult,
+  ): TemplateResult {
+    const submenuClasses = {
+      submenu: true,
+      selected: this._expandedMenus[domain] === key,
+    };
+
+    return html` <div class="${classMap(submenuClasses)}">
+      <div
+        class="submenu-header"
+        @click=${this._toggleMenu}
+        .domain=${domain}
+        .key=${key}
+      >
+        <ha-icon .icon=${icon}></ha-icon>
+          <span>${localize(labelPath)}</span>
+        </div>
+        ${
+          this._expandedMenus[domain] === key
+            ? html`<div class="values">${template}</div>`
+            : ''
+        }
+      </div>
+    </div>`;
+  }
+
+  /**
    * Render a camera section.
    * @param cameras The full array of cameras.
    * @param cameraIndex The index (in the array) to render.
@@ -876,41 +919,62 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderStringInput(
                 getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
               )}
-              ${this._renderEntitySelector(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY, cameraIndex),
-                'camera',
+              ${this._putInSubmenu(
+                MENU_CAMERAS_WEBRTC,
+                cameraIndex,
+                'mdi:webrtc',
+                'config.cameras.webrtc_card.options',
+                html`${this._renderEntitySelector(
+                  getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY, cameraIndex),
+                  'camera',
+                )}
+                ${this._renderStringInput(
+                  getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
+                )}`,
               )}
-              ${this._renderStringInput(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
+              ${this._putInSubmenu(
+                MENU_CAMERAS_DEPENDENCIES,
+                cameraIndex,
+                'mdi:graph',
+                'config.cameras.dependencies.options',
+                html` ${this._renderSwitch(
+                  getArrayConfigPath(
+                    CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS,
+                    cameraIndex,
+                  ),
+                  frigateCardConfigDefaults.cameras.dependencies.all_cameras,
+                )}
+                ${this._renderOptionSelector(
+                  getArrayConfigPath(
+                    CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS,
+                    cameraIndex,
+                  ),
+                  dependentCameras,
+                  {
+                    multiple: true,
+                  },
+                )}`,
               )}
-              ${this._renderSwitch(
-                getArrayConfigPath(
-                  CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS,
-                  cameraIndex,
-                ),
-                frigateCardConfigDefaults.cameras.dependencies.all_cameras,
-              )}
-              ${this._renderOptionSelector(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS, cameraIndex),
-                dependentCameras,
-                {
-                  multiple: true,
-                },
-              )}
-              ${this._renderSwitch(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGER_BY_OCCUPANCY, cameraIndex),
-                frigateCardConfigDefaults.cameras.trigger_by_occupancy,
-              )}
-              ${this._renderSwitch(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGER_BY_MOTION, cameraIndex),
-                frigateCardConfigDefaults.cameras.trigger_by_motion,
-              )}
-              ${this._renderOptionSelector(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGER_BY_ENTITIES, cameraIndex),
-                entities,
-                {
-                  multiple: true,
-                },
+              ${this._putInSubmenu(
+                MENU_CAMERAS_TRIGGERS,
+                cameraIndex,
+                'mdi:magnify-scan',
+                'config.cameras.triggers.options',
+                html` ${this._renderSwitch(
+                  getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY, cameraIndex),
+                  frigateCardConfigDefaults.cameras.triggers.occupancy,
+                )}
+                ${this._renderSwitch(
+                  getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_MOTION, cameraIndex),
+                  frigateCardConfigDefaults.cameras.triggers.motion,
+                )}
+                ${this._renderOptionSelector(
+                  getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES, cameraIndex),
+                  entities,
+                  {
+                    multiple: true,
+                  },
+                )}`,
               )}
             </div>`
           : ``}
