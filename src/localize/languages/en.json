@@ -91,6 +91,7 @@
     },
     "event_gallery": {
       "controls": {
+        "options":"Event Gallery Controls",
         "thumbnails": {
           "size": "Event Gallery thumbnails size in pixels",
           "show_details": "Show event details with thumbnails",
@@ -111,6 +112,7 @@
         "slide": "Slide transition"
       },
       "controls": {
+        "options":"Media Viewer Controls",
         "next_previous": {
           "style": "Media Viewer next & previous control style",
           "size": "Media Viewer next & previous control size in pixels",
@@ -157,6 +159,7 @@
       "auto_unmute": "Automatically unmute live cameras",
       "transition_effect": "Live camera transition effect",
       "controls": {
+        "options":"Live Controls",
         "next_previous": {
           "style": "Live view next & previous control style",
           "size": "Live view next & previous control size in pixels",
@@ -250,6 +253,7 @@
         "snapshots": "Snapshots"
       },
       "controls": {
+        "options":"Timeline Controls",
         "thumbnails": {
           "mode": "Timeline thumbnails mode",
           "size": "Timeline thumbnails size in pixels",
