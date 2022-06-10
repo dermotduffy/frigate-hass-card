@@ -12,6 +12,9 @@ import replace from '@rollup/plugin-replace';
 const watch = process.env.ROLLUP_WATCH === 'true' || process.env.ROLLUP_WATCH === '1';
 const dev = watch || process.env.DEV === 'true' || process.env.DEV === '1';
 
+/**
+ * @type {import('rollup-plugin-serve').ServeOptions}
+ */
 const serveopts = {
   contentBase: ['./dist'],
   host: '0.0.0.0',
@@ -22,6 +25,9 @@ const serveopts = {
   },
 };
 
+/**
+ * @type {import('rollup').RollupOptions['plugins']}
+ */
 const plugins = [
   styles({
     modules: false,
@@ -49,25 +55,28 @@ const plugins = [
     preventAssignment: true,
     values: {
       'process.env.NODE_ENV': JSON.stringify(dev ? 'development' : 'production'),
-    }
+    },
   }),
   watch && serve(serveopts),
   !dev && terser(),
 ];
 
-export default [
-  {
-    input: 'src/card.ts',
-    output: {
-      file: 'dist/frigate-hass-card.js',
-      format: 'es',
-    },
-    plugins: [...plugins],
-    // These two files use this at the toplevel, which causes rollup warning
-    // spam on build: `this` has been rewritten to `undefined`
-    moduleContext: {
-      './node_modules/@formatjs/intl-utils/lib/src/diff.js': 'window',
-      './node_modules/@formatjs/intl-utils/lib/src/resolve-locale.js': 'window',
-    },
+/**
+ * @type {import('rollup').RollupOptions}
+ */
+const config = {
+  input: 'src/card.ts',
+  output: {
+    file: 'dist/frigate-hass-card.js',
+    format: 'es',
   },
-];
+  plugins: plugins,
+  // These two files use this at the toplevel, which causes rollup warning
+  // spam on build: `this` has been rewritten to `undefined`
+  moduleContext: {
+    './node_modules/@formatjs/intl-utils/lib/src/diff.js': 'window',
+    './node_modules/@formatjs/intl-utils/lib/src/resolve-locale.js': 'window',
+  },
+};
+
+export default config;
