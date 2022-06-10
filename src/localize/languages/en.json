@@ -13,18 +13,22 @@
   "config": {
     "cameras": {
       "camera_entity": "Camera Entity",
-      "camera_name": "Frigate camera name (Autodetected from entity)",
-      "client_id": "Frigate client id (For >1 Frigate server)",
+      "icon": "Icon for this camera (Autodetected from entity)",
+      "id": "Unique id for this camera in this card",
+      "title": "Title for this camera (Autodetected from entity)",
       "dependencies": {
         "options": "Dependency Options",
         "cameras": "Show events for specific cameras with this camera",
         "all_cameras": "Show events for all cameras with this camera"
       },
-      "id": "Unique id for this camera in this card",
-      "label": "Frigate label/object filter",
-      "frigate_url": "Frigate server URL",
-      "title": "Title for this camera (Autodetected from entity)",
-      "icon": "Icon for this camera (Autodetected from entity)",
+      "frigate": {
+        "options": "Frigate Options",
+        "camera_name": "Frigate camera name (Autodetected from entity)",
+        "client_id": "Frigate client id (For >1 Frigate server)",
+        "label": "Frigate label/object filter",
+        "url": "Frigate server URL",
+        "zone": "Frigate zone"
+      },
       "live_provider": "Live view provider for this camera",
       "live_providers": {
         "auto": "Automatic",
@@ -42,8 +46,7 @@
         "options": "WebRTC Card Options",
         "entity": "WebRTC Card Camera Entity (Not a Frigate camera)",
         "url": "WebRTC Card Camera URL"
-      },
-      "zone": "Frigate zone"
+      }
     },
     "common": {
       "media_action_conditions": {

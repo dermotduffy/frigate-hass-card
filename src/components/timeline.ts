@@ -324,12 +324,16 @@ class TimelineDataManager {
       camera: string,
       config: CameraConfig,
     ): Promise<void> => {
-      if (!config.camera_name) {
+      if (!config.frigate.camera_name) {
         return;
       }
       let summary: RecordingSummary;
       try {
-        summary = await getRecordingsSummary(hass, config.client_id, config.camera_name);
+        summary = await getRecordingsSummary(
+          hass,
+          config.frigate.client_id,
+          config.frigate.camera_name,
+        );
       } catch (e) {
         return dispatchFrigateCardErrorEvent(element, e as FrigateCardError);
       }
@@ -382,7 +386,7 @@ class TimelineDataManager {
     const params: BrowseMediaQueryParameters[] = [];
     cameras.forEach((cameraConfig, cameraID) => {
       (media === 'all' ? ['clips', 'snapshots'] : [media]).forEach((mediaType) => {
-        if (cameraConfig.camera_name !== CAMERA_BIRDSEYE) {
+        if (cameraConfig.frigate.camera_name !== CAMERA_BIRDSEYE) {
           const param = getBrowseMediaQueryParameters(hass, cameraID, cameraConfig, {
             before: end.getTime() / 1000,
             after: start.getTime() / 1000,
@@ -584,10 +588,10 @@ export class FrigateCardTimelineCore extends LitElement {
     const processedCameras: Set<string> = new Set();
 
     // Get results in the order the cameras are specified in the configuration.
-    for (const camera of (this.cameras?.keys() || [])) {
+    for (const camera of this.cameras?.keys() || []) {
       const recording = results.get(camera);
       const config = this.cameras?.get(camera);
-      if (!recording || !config?.camera_name) {
+      if (!recording || !config?.frigate.camera_name) {
         continue;
       }
 
@@ -595,7 +599,7 @@ export class FrigateCardTimelineCore extends LitElement {
       // Zones on that same camera do not get separate recordings. The card may
       // have multiple instances of the same camera for different zoness, so
       // need to enforce uniqueness here.
-      const uniqueID = `${config.client_id}/${config.camera_name}`;
+      const uniqueID = `${config.frigate.client_id}/${config.frigate.camera_name}`;
       if (processedCameras.has(uniqueID)) {
         continue;
       }
@@ -616,21 +620,21 @@ export class FrigateCardTimelineCore extends LitElement {
           if (!onlyMatchingHour || isMatchingHour) {
             children.push(
               createVideoChild(
-                `${prettifyTitle(config.camera_name)} ${format(
+                `${prettifyTitle(config.frigate.camera_name)} ${format(
                   hour,
                   'yyyy-MM-dd HH:mm',
                 )}`,
                 generateRecordingIdentifier({
-                  clientId: config.client_id,
+                  clientId: config.frigate.client_id,
                   year: dayData.day.getFullYear(),
                   month: dayData.day.getMonth() + 1,
                   day: dayData.day.getDate(),
                   hour: hourData.hour,
-                  cameraName: config.camera_name,
+                  cameraName: config.frigate.camera_name,
                 }),
                 {
                   recording: {
-                    camera: config.camera_name,
+                    camera: config.frigate.camera_name,
                     start_time: getUnixTime(startHour),
                     end_time: getUnixTime(endHour),
                     events: hourData.events,
@@ -665,7 +669,7 @@ export class FrigateCardTimelineCore extends LitElement {
     const results: Map<string, CameraRecordings> = new Map();
 
     const fetch = async (camera: string, config?: CameraConfig): Promise<void> => {
-      if (!config || !config.camera_name || !this.hass) {
+      if (!config || !config.frigate.camera_name || !this.hass) {
         return;
       }
 
@@ -673,12 +677,16 @@ export class FrigateCardTimelineCore extends LitElement {
         const cameraResults = await Promise.all([
           getRecordingSegments(
             this.hass,
-            config.client_id,
-            config.camera_name,
+            config.frigate.client_id,
+            config.frigate.camera_name,
             before,
             after,
           ),
-          getRecordingsSummary(this.hass, config.client_id, config.camera_name),
+          getRecordingsSummary(
+            this.hass,
+            config.frigate.client_id,
+            config.frigate.camera_name,
+          ),
         ]);
         results.set(camera, { segments: cameraResults[0], summary: cameraResults[1] });
       } catch (e) {}
@@ -879,7 +887,10 @@ export class FrigateCardTimelineCore extends LitElement {
   protected _getGroups(): DataGroupCollectionType {
     const groups: FrigateCardGroupData[] = [];
     this.cameras?.forEach((cameraConfig, camera) => {
-      if (cameraConfig.camera_name && cameraConfig.camera_name !== CAMERA_BIRDSEYE) {
+      if (
+        cameraConfig.frigate.camera_name &&
+        cameraConfig.frigate.camera_name !== CAMERA_BIRDSEYE
+      ) {
         groups.push({
           id: camera,
           content: getCameraTitle(this.hass, cameraConfig),

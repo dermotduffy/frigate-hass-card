@@ -7,11 +7,11 @@ export const TROUBLESHOOTING_URL = `${REPO_URL}#troubleshooting` as const;
 export const CONF_CAMERAS = 'cameras' as const;
 export const CONF_CAMERAS_ARRAY_CAMERA_ENTITY =
   `${CONF_CAMERAS}.#.camera_entity` as const;
-export const CONF_CAMERAS_ARRAY_CAMERA_NAME = `${CONF_CAMERAS}.#.camera_name` as const;
-export const CONF_CAMERAS_ARRAY_CLIENT_ID = `${CONF_CAMERAS}.#.client_id` as const;
-export const CONF_CAMERAS_ARRAY_LABEL = `${CONF_CAMERAS}.#.label` as const;
-export const CONF_CAMERAS_ARRAY_URL = `${CONF_CAMERAS}.#.frigate_url` as const;
-export const CONF_CAMERAS_ARRAY_ZONE = `${CONF_CAMERAS}.#.zone` as const;
+export const CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME = `${CONF_CAMERAS}.#.frigate.camera_name` as const;
+export const CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID = `${CONF_CAMERAS}.#.frigate.client_id` as const;
+export const CONF_CAMERAS_ARRAY_FRIGATE_LABEL = `${CONF_CAMERAS}.#.frigate.label` as const;
+export const CONF_CAMERAS_ARRAY_FRIGATE_URL = `${CONF_CAMERAS}.#.frigate.url` as const;
+export const CONF_CAMERAS_ARRAY_FRIGATE_ZONE = `${CONF_CAMERAS}.#.frigate.zone` as const;
 export const CONF_CAMERAS_ARRAY_ID = `${CONF_CAMERAS}.#.id` as const;
 export const CONF_CAMERAS_ARRAY_TITLE = `${CONF_CAMERAS}.#.title` as const;
 export const CONF_CAMERAS_ARRAY_ICON = `${CONF_CAMERAS}.#.icon` as const;

@@ -103,18 +103,14 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `camera_entity` | | :heavy_multiplication_x: | The Home Assistant camera entity to use with the `frigate` live provider view. Also used to automatically detect the name of the underlying Frigate camera, and the title/icon of the camera. |
-| `camera_name` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | The Frigate camera name to use when communicating with the Frigate server, e.g. for viewing clips/snapshots or the JSMPEG live view. To view the birdseye view set this to `birdseye` and use the `frigate-jsmpeg` live provider.|
 | `live_provider` | `auto` | :heavy_multiplication_x: | The choice of live stream provider. See [Live Providers](#live-providers) below.|
-| `frigate_url` | | :heavy_multiplication_x: | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. |
-| `label` | | :heavy_multiplication_x: | A Frigate label / object filter used to filter events (clips & snapshots), e.g. 'person'.|
-| `zone` | | :heavy_multiplication_x: | A Frigate zone used to filter events (clips & snapshots), e.g. 'front_door'.|
-| `client_id` | `frigate` | :heavy_multiplication_x: | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://docs.frigate.video/integrations/home-assistant/#multiple-instance-support).|
 | `title` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | A friendly name for this camera to use in the card. |
 | `icon` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | The icon to use for this camera in the camera menu and in the next & previous controls when using the `icon` style. |
-| `webrtc_card` | | :heavy_multiplication_x: | The WebRTC entity/URL to use for this camera with the `webrtc-card` live provider. See below. |
-| `id` | `camera_entity`, `webrtc_card.entity` or `camera_name` if set (in that preference order). | :heavy_multiplication_x: | An optional identifier to use throughout the card configuration to refer unambiguously to this camera. See [camera IDs](#camera-ids). |
-| `dependencies` | | :heavy_multiplication_x: | Other cameras that this camera should depend upon. See [camera dependencies](#camera-dependency-configuration) below. |
+| `id` | `camera_entity`, `webrtc_card.entity` or `frigate.camera_name` if set (in that preference order). | :heavy_multiplication_x: | An optional identifier to use throughout the card configuration to refer unambiguously to this camera. See [camera IDs](#camera-ids). |
+| `frigate` | | :heavy_multiplication_x: | Options for a Frigate camera. See [Frigate configuration](#camera-frigate-configuration) below. |
+| `dependencies` | | :heavy_multiplication_x: | Other cameras that this camera should depend upon. See [camera dependencies](#camera-dependencies-configuration) below. |
 | `triggers` | | :heavy_multiplication_x: | Define what should cause this camera to update/trigger. See [camera triggers](#camera-trigger-configuration) below. |
+| `webrtc_card` | | :heavy_multiplication_x: | The WebRTC entity/URL to use for this camera with the `webrtc-card` live provider. See below. |
 
 <a name="live-providers"></a>
 
@@ -127,6 +123,26 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 |`ha` (Native WebRTC)|Best|High|Builtin|Use the built-in Home Assistant camera streams -- can be configured to use [native WebRTC](https://www.home-assistant.io/integrations/rtsp_to_webrtc/) offering a very low-latency feed direct to your browser.|
 |`frigate-jsmpeg`|Better|Low|Builtin|Stream the JSMPEG stream from Frigate (proxied via the Frigate integration). See [note below on the required integration version](#jsmpeg-troubleshooting) for this live provider to function. This is the only live provider that can view the Frigate `birdseye` view.|
 |`webrtc-card`|Best|High|Separate installation required|Embed's [AlexxIT's WebRTC Card](https://github.com/AlexxIT/WebRTC) to stream live feed, requires manual extra setup, see [below](#webrtc). Not to be confused with native Home Assistant WebRTC (use `ha` provider above).|
+
+
+<a name="camera-frigate-configuration"></a>
+
+#### Camera Frigate configuration
+
+The `frigate` block configures options for a Frigate camera. This configuration is included as part of a camera entry in the `cameras` array.
+
+```yaml
+cameras:
+ - frigate:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `camera_name` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | The Frigate camera name to use when communicating with the Frigate server, e.g. for viewing clips/snapshots or the JSMPEG live view. To view the birdseye view set this to `birdseye` and use the `frigate-jsmpeg` live provider.|
+| `url` | | :heavy_multiplication_x: | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. All other communication with Frigate goes via Home Assistant. |
+| `label` | | :heavy_multiplication_x: | A Frigate label / object filter used to filter events (clips & snapshots), e.g. `person`.|
+| `zone` | | :heavy_multiplication_x: | A Frigate zone used to filter events (clips & snapshots), e.g. `front_door`.|
+| `client_id` | `frigate` | :heavy_multiplication_x: | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://docs.frigate.video/integrations/home-assistant/#multiple-instance-support).|
 
 #### Camera WebRTC Card configuration
 
@@ -144,7 +160,7 @@ cameras:
 
 See [Using the WebRTC Card](#webrtc) below for more details on how to use the WebRTC Card live provider.
 
-<a name="camera-dependencies"></a>
+<a name="camera-dependencies-configuration"></a>
 
 #### Camera Dependency Configuration
 
@@ -160,7 +176,7 @@ cameras:
 | `cameras` | | :heavy_multiplication_x: | An optional array of other camera identifiers (see [camera IDs](#camera-ids)). If specified the card will fetch events for this camera and *also* recursively events for the named cameras. All dependent cameras must themselves be a configured camera in the card. This can be useful to group events for cameras that are close together, to always have clips/snapshots show fully merged events across all cameras or to show events for the `birdseye` camera that otherwise would not have events itself.|
 | `all_cameras` | `false` | :heavy_multiplication_x: | Shortcut to specify all other cameras as dependent cameras.|
 
-<a name="camera-triggers"></a>
+<a name="camera-triggers-configuration"></a>
 
 #### Camera Trigger Configuration
 
@@ -181,7 +197,7 @@ cameras:
 
 #### Camera IDs: Refering to cameras in card configuration
 
-Each camera configured in the card has a single identifier (`id`). For a given camera, this will be one of the camera {`id`, `camera_entity`, `webrtc_card.entity` or `camera_name`} parameters for that camera -- in that order of precedence. These ids may be used in conditions, dependencies or custom actions to refer to a given camera unambiguously. |
+Each camera configured in the card has a single identifier (`id`). For a given camera, this will be one of the camera {`id`, `camera_entity`, `webrtc_card.entity` or `frigate.camera_name`} parameters for that camera -- in that order of precedence. These ids may be used in conditions, dependencies or custom actions to refer to a given camera unambiguously. |
 
 #### Example
 
@@ -205,7 +221,7 @@ See the [fully expanded view configuration example](#config-expanded-view) for h
 | `timeout_seconds` | `300` | :white_check_mark: | A numbers of seconds of inactivity after user interaction, after which the card will reset to the default configured view (i.e. 'screensaver' functionality). Inactivity is defined as lack of mouse/touch interaction with the Frigate card. If the default view occurs sooner (e.g. via `update_seconds` or manually) the timer will be stopped. `0` means disable this functionality. |
 | `update_seconds` | `0` | :white_check_mark: | A number of seconds after which to automatically update/refresh the default view. See [card updates](#card-updates) below for behavior and usecases. If the default view occurs sooner (e.g. manually) the timer will start over. `0` disables this functionality.|
 | `update_force` | `false` | :white_check_mark: | Whether automated card updates/refreshes should ignore user interaction. See [card updates](#card-updates) below for behavior and usecases.|
-| `update_entities` | | :white_check_mark: | **YAML only**: A card-wide list of entities that should cause the view to reset to the default (if the entity only pertains to a particular camera use `triggers` for the selected camera instead, see [Trigger Configuration](#camera-triggers)). See [card updates](#card-updates) below for behavior and usecases.|
+| `update_entities` | | :white_check_mark: | **YAML only**: A card-wide list of entities that should cause the view to reset to the default (if the entity only pertains to a particular camera use `triggers` for the selected camera instead, see [Trigger Configuration](#camera-triggers-configuration)). See [card updates](#card-updates) below for behavior and usecases.|
 | `update_cycle_camera` | `false` | :white_check_mark: | When set to `true` the selected camera is cycled on each default view change. |
 | `render_entities` | | :white_check_mark: | **YAML only**: A list of entity ids that should cause the card to re-render 'in-place'. The view/camera is not changed. `update_*` flags do not pertain/relate to the behavior of this flag. This should **very** rarely be needed, but could be useful if the card is both setting and changing HA state of the same object as could be the case for some complex `card_mod` scenarios ([example](https://github.com/dermotduffy/frigate-hass-card/issues/343)). |
 | `scan` | | :white_check_mark: | Configuration for [scan mode](#scan-mode). |
@@ -272,8 +288,8 @@ menu:
 | `frigate` | :white_check_mark: | The `Frigate` menu button: brings the user to the default configured view (`view.default`), or collapses/expands the menu if the `menu.style` is `hidden` . |
 | `cameras` | :white_check_mark: | The camera selection submenu. Will only appear if multiple cameras are configured. |
 | `live` | :white_check_mark: | The `live` view menu button: brings the user to the `live` view. See [views](#views) below.|
-| `clips` | :white_check_mark: | The `clips` view menu button: brings the user to the `clips` view on tap and the most-recent `clip` view on hold. See [views](#views) below. This button will never be shown if the `camera_name` for the selected camera is not auto-detected/specified (e.g. non-Frigate cameras), or if the `camera_name` is `birdseye`.|
-| `snapshots` | :white_check_mark: | The `snapshots` view menu button: brings the user to the `clips` view on tap and the most-recent `snapshot` view on hold. See [views](#views) below. This button will never be shown if the `camera_name` for the selected camera is not auto-detected/specified (e.g. non-Frigate cameras), or if the `camera_name` is `birdseye`.|
+| `clips` | :white_check_mark: | The `clips` view menu button: brings the user to the `clips` view on tap and the most-recent `clip` view on hold. See [views](#views) below. This button will never be shown if the `frigate.camera_name` for the selected camera is not auto-detected/specified (e.g. non-Frigate cameras), or if the `frigate.camera_name` is `birdseye`.|
+| `snapshots` | :white_check_mark: | The `snapshots` view menu button: brings the user to the `clips` view on tap and the most-recent `snapshot` view on hold. See [views](#views) below. This button will never be shown if the `frigate.camera_name` for the selected camera is not auto-detected/specified (e.g. non-Frigate cameras), or if the `frigate.camera_name` is `birdseye`.|
 | `image` | :white_check_mark: | The `image` view menu button: brings the user to the static `image` view. See [views](#views) below.|
 | `download` | :white_check_mark: | The `download` menu button: allow direct download of the media being displayed.|
 | `frigate_ui` | :white_check_mark: | The `frigate_ui` menu button: brings the user to a context-appropriate page on the Frigate UI (e.g. the camera homepage). Will only appear if the `frigate.url` option is set.|
@@ -1039,13 +1055,14 @@ Reference: [Camera Options](#camera-options).
 
 ```yaml
 cameras:
-  - frigate_url: http://my.frigate.local
-    client_id: frigate
-    camera_name: front_door
-    label: person
-    zone: steps
-    camera_entity: camera.front_Door
+  - camera_entity: camera.front_Door
     live_provider: ha
+    frigate:
+      url: http://my.frigate.local
+      client_id: frigate
+      camera_name: front_door
+      label: person
+      zone: steps
     # Show events for camera-2 when this camera is viewed.
     dependencies:
       all_cameras: false
@@ -1056,13 +1073,14 @@ cameras:
       occupancy: true
       entities:
         - binary_sensor.front_door_sensor
-  - frigate_url: http://my-other.frigate.local
-    client_id: frigate-other
-    camera_name: entrance
-    label: car
-    zone: driveway
-    camera_entity: camera.entrance
+  - camera_entity: camera.entrance
     live_provider: webrtc-card
+    frigate:
+      url: http://my-other.frigate.local
+      client_id: frigate-other
+      camera_name: entrance
+      label: car
+      zone: driveway
     icon: 'mdi:car'
     title: 'Front entrance'
     # Custom identifier for the camera to refer to it above.
@@ -2383,7 +2401,7 @@ the new overriden default immediately. Alternatives to trigger the card to
 change view but without `update_entities` would just be having an
 `update_seconds` parameter which reloads the default view that many seconds
 after user interaction stops or through the use of the `triggers` option for a
-given camera (see [Trigger Configuration](#camera-triggers)).
+given camera (see [Trigger Configuration](#camera-triggers-configuration)).
 
 ```yaml
 view:
@@ -2525,7 +2543,8 @@ This example shows events for all other cameras when `birdseye` is selected. Thi
 cameras:
   - camera_entity: camera.kitchen
   - camera_entity: camera.sitting_room
-  - camera_name: birdseye
+  - frigate:
+      camera_name: birdseye
     dependencies:
       all_cameras: true
 ```
@@ -2569,7 +2588,7 @@ The following table describes the behavior these flags have.
 
 Note that no (other) automated updates are permitted when [scan mode](#scan-mode) is being triggered.
 
-In the below "Trigger Entities" refers to the combination of `view.update_entities` and the `triggers.entities` for the currently selected camera (which in turn will also include the occupancy and motion sensor entities for Frigate cameras if `triggers.occupancy` and `triggers.motion` options are enabled, see [Trigger Configuration](#camera-triggers)).
+In the below "Trigger Entities" refers to the combination of `view.update_entities` and the `triggers.entities` for the currently selected camera (which in turn will also include the occupancy and motion sensor entities for Frigate cameras if `triggers.occupancy` and `triggers.motion` options are enabled, see [Trigger Configuration](#camera-triggers-configuration)).
 
 | `view . update_seconds` | `view . timeout_seconds` | `view . update_force` | Trigger Entities | Behavior |
 | :-: | :-: | :-: | :-: | - |

@@ -370,8 +370,10 @@ const customSchema = z
  * Camera configuration section
  */
 export const cameraConfigDefault = {
-  client_id: 'frigate' as const,
   live_provider: 'auto' as const,
+  frigate: {
+    client_id: 'frigate' as const,
+  },
   dependencies: {
     all_cameras: false,
     cameras: [],
@@ -388,12 +390,6 @@ const webrtcCardCameraConfigSchema = z.object({
 });
 const cameraConfigSchema = z
   .object({
-    // No URL validation to allow relative URLs within HA (e.g. Frigate addon).
-    frigate_url: z.string().optional(),
-    client_id: z.string().default(cameraConfigDefault.client_id),
-    camera_name: z.string().optional(),
-    label: z.string().optional(),
-    zone: z.string().optional(),
     camera_entity: z.string().optional(),
     live_provider: z.enum(LIVE_PROVIDERS).default(cameraConfigDefault.live_provider),
 
@@ -405,6 +401,15 @@ const cameraConfigSchema = z
     // Optional identifier to separate different camera configurations used in
     // this card.
     id: z.string().optional(),
+    
+    frigate: z.object({
+      // No URL validation to allow relative URLs within HA (e.g. Frigate addon).
+      url: z.string().optional(),
+      client_id: z.string().default(cameraConfigDefault.frigate.client_id),
+      camera_name: z.string().optional(),
+      label: z.string().optional(),
+      zone: z.string().optional(),
+    }).default(cameraConfigDefault.frigate),
 
     // Camera identifiers for WebRTC.
     webrtc_card: webrtcCardCameraConfigSchema.optional(),

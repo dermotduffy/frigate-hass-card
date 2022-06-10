@@ -18,7 +18,10 @@ export function getCameraID(
       config.webrtc_card &&
       typeof config.webrtc_card['entity'] === 'string' &&
       config.webrtc_card['entity']) ||
-    (typeof config?.camera_name === 'string' && config.camera_name) ||
+    (typeof config?.frigate === 'object' &&
+      config.frigate &&
+      typeof config?.frigate['camera_name'] === 'string' &&
+      config.frigate['camera_name']) ||
     ''
   );
 }
@@ -46,7 +49,12 @@ export function getCameraTitle(
       config.webrtc_card &&
       typeof config.webrtc_card['entity'] === 'string' &&
       config.webrtc_card['entity']) ||
-    (typeof config?.camera_name === 'string' ? prettifyTitle(config.camera_name) : '') ||
+    (typeof config?.frigate === 'object' &&
+    config.frigate &&
+    typeof config?.frigate['camera_name'] === 'string' &&
+    config.frigate['camera_name']
+      ? prettifyTitle(config.frigate['camera_name'])
+      : '') ||
     (typeof config?.id === 'string' && config.id) ||
     ''
   );
