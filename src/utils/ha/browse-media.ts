@@ -264,7 +264,14 @@ export const getFullDependentBrowseMediaQueryParameters = (
     const cameraConfig = cameras.get(camera);
     if (cameraConfig) {
       cameraIDs.add(camera);
-      for (const eventCameraID of cameraConfig.dependent_cameras || []) {
+      const dependentCameras: Set<string> = new Set();
+      (cameraConfig.dependencies.cameras || []).forEach((item) =>
+        dependentCameras.add(item),
+      );
+      if (cameraConfig.dependencies.all_cameras) {
+        cameras.forEach((_, key) => dependentCameras.add(key));
+      }
+      for (const eventCameraID of dependentCameras) {
         if (!cameraIDs.has(eventCameraID)) {
           getDependentCameras(eventCameraID);
         }
@@ -281,12 +288,9 @@ export const getFullDependentBrowseMediaQueryParameters = (
       cameras.get(cameraID),
       mediaType ? { mediaType: mediaType } : {},
     );
-    // Fail on a single bad camera, as it's almost certainly a user error that
-    // should be fixed rather than hidden.
-    if (!param) {
-      return null;
+    if (param) {
+      params.push(param);
     }
-    params.push(param);
   }
   return params.length ? params : null;
 };

@@ -21,8 +21,10 @@ export const CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL =
   `${CONF_CAMERAS}.#.webrtc_card.url` as const;
 export const CONF_CAMERAS_ARRAY_LIVE_PROVIDER =
   `${CONF_CAMERAS}.#.live_provider` as const;
-export const CONF_CAMERAS_ARRAY_DEPENDENT_CAMERAS =
-  `${CONF_CAMERAS}.#.dependent_cameras` as const;
+export const CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS =
+  `${CONF_CAMERAS}.#.dependencies.cameras` as const;
+  export const CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS =
+  `${CONF_CAMERAS}.#.dependencies.all_cameras` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGER_BY_MOTION =
   `${CONF_CAMERAS}.#.trigger_by_motion` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGER_BY_OCCUPANCY =

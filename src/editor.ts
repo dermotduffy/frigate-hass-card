@@ -16,7 +16,8 @@ import {
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
   CONF_CAMERAS_ARRAY_CAMERA_NAME,
   CONF_CAMERAS_ARRAY_CLIENT_ID,
-  CONF_CAMERAS_ARRAY_DEPENDENT_CAMERAS,
+  CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS,
+  CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS,
   CONF_CAMERAS_ARRAY_ICON,
   CONF_CAMERAS_ARRAY_ID,
   CONF_CAMERAS_ARRAY_LABEL,
@@ -882,8 +883,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderStringInput(
                 getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
               )}
+              ${this._renderSwitch(
+                getArrayConfigPath(
+                  CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS,
+                  cameraIndex,
+                ),
+                frigateCardConfigDefaults.cameras.dependencies.all_cameras,
+              )}
               ${this._renderOptionSelector(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_DEPENDENT_CAMERAS, cameraIndex),
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS, cameraIndex),
                 dependentCameras,
                 {
                   multiple: true,
