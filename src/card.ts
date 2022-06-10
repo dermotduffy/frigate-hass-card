@@ -398,8 +398,8 @@ export class FrigateCard extends LitElement {
     if (
       cameraConfig?.camera_name &&
       (cameraConfig?.camera_name !== CAMERA_BIRDSEYE ||
-        cameraConfig?.dependent_cameras?.length ||
-        cameraConfig?.dependent_cameras_all)
+        cameraConfig.dependencies.cameras.length ||
+        cameraConfig.dependencies.all_cameras)
     ) {
       buttons.push({
         icon: 'mdi:filmstrip',
@@ -417,8 +417,8 @@ export class FrigateCard extends LitElement {
     if (
       cameraConfig?.camera_name &&
       (cameraConfig?.camera_name !== CAMERA_BIRDSEYE ||
-        cameraConfig?.dependent_cameras?.length ||
-        cameraConfig?.dependent_cameras_all)
+        cameraConfig?.dependencies.cameras.length ||
+        cameraConfig?.dependencies.all_cameras)
     ) {
       buttons.push({
         icon: 'mdi:camera',

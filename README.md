@@ -2495,7 +2495,7 @@ cameras:
 <details>
   <summary>Expand: Using all dependent cameras with birdseye</summary>
 
-This example shows events for all other cameras when `birdseye` is selected. This is just a shortcut to naming all other cameras.
+This example shows events for all other cameras when `birdseye` is selected. This is just a shortcut for naming all other cameras.
 
 ```yaml
 [...]
