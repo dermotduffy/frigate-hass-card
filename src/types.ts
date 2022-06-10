@@ -372,12 +372,14 @@ const customSchema = z
 export const cameraConfigDefault = {
   client_id: 'frigate' as const,
   live_provider: 'auto' as const,
-  trigger_by_motion: false,
-  trigger_by_occupancy: true,
-  trigger_by_entities: [],
   dependencies: {
     all_cameras: false,
     cameras: [],
+  },
+  triggers: {
+    motion: false,
+    occupancy: true,
+    entities: [],
   },
 };
 const webrtcCardCameraConfigSchema = z.object({
@@ -414,12 +416,14 @@ const cameraConfigSchema = z
       })
       .default(cameraConfigDefault.dependencies),
 
-    trigger_by_motion: z.boolean().default(cameraConfigDefault.trigger_by_motion),
-    trigger_by_occupancy: z.boolean().default(cameraConfigDefault.trigger_by_occupancy),
-    trigger_by_entities: z
-      .string()
-      .array()
-      .default(cameraConfigDefault.trigger_by_entities),
+    triggers: z.object({
+      motion: z.boolean().default(cameraConfigDefault.triggers.motion),
+      occupancy: z.boolean().default(cameraConfigDefault.triggers.occupancy),
+      entities: z
+        .string()
+        .array()
+        .default(cameraConfigDefault.triggers.entities),
+    }).default(cameraConfigDefault.triggers),
   })
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigSchema>;
