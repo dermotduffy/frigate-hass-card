@@ -729,6 +729,11 @@ elements to add special Frigate card functionality.
 | `custom:frigate-card-menu-submenu-select` | Add a submenu based on a `select` or `input_select`. See [configuration below](#frigate-card-submenu-select).|
 | `custom:frigate-card-conditional` | Restrict a set of elements to only render when the card is showing particular a particular [view](#views). See [configuration below](#frigate-card-conditional).|
 
+
+**Note**: ℹ️ Manual positioning of custom menu icons or submenus via the `style`
+parameter is not supported as the menu buttons displayed are context sensitive
+so manual positioning by the user is not feasible.
+
 <a name="frigate-card-submenu"></a>
 
 #### `custom:frigate-card-menu-submenu`
