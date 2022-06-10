@@ -265,10 +265,10 @@ export const getFullDependentBrowseMediaQueryParameters = (
     if (cameraConfig) {
       cameraIDs.add(camera);
       const dependentCameras: Set<string> = new Set();
-      (cameraConfig.dependent_cameras || []).forEach((item) =>
+      (cameraConfig.dependencies.cameras || []).forEach((item) =>
         dependentCameras.add(item),
       );
-      if (cameraConfig.dependent_cameras_all) {
+      if (cameraConfig.dependencies.all_cameras) {
         cameras.forEach((_, key) => dependentCameras.add(key));
       }
       for (const eventCameraID of dependentCameras) {

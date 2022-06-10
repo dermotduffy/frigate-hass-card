@@ -375,7 +375,10 @@ export const cameraConfigDefault = {
   trigger_by_motion: false,
   trigger_by_occupancy: true,
   trigger_by_entities: [],
-  dependent_cameras_all: false,
+  dependencies: {
+    all_cameras: false,
+    cameras: [],
+  },
 };
 const webrtcCardCameraConfigSchema = z.object({
   entity: z.string().optional(),
@@ -404,11 +407,12 @@ const cameraConfigSchema = z
     // Camera identifiers for WebRTC.
     webrtc_card: webrtcCardCameraConfigSchema.optional(),
 
-    // Set of cameras IDs upon which this camera depends.
-    dependent_cameras: z.string().array().optional(),
-    dependent_cameras_all: z
-      .boolean()
-      .default(cameraConfigDefault.dependent_cameras_all),
+    dependencies: z
+      .object({
+        all_cameras: z.boolean().default(cameraConfigDefault.dependencies.all_cameras),
+        cameras: z.string().array().default(cameraConfigDefault.dependencies.cameras),
+      })
+      .default(cameraConfigDefault.dependencies),
 
     trigger_by_motion: z.boolean().default(cameraConfigDefault.trigger_by_motion),
     trigger_by_occupancy: z.boolean().default(cameraConfigDefault.trigger_by_occupancy),

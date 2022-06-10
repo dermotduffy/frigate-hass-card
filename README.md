@@ -113,8 +113,7 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 | `icon` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | The icon to use for this camera in the camera menu and in the next & previous controls when using the `icon` style. |
 | `webrtc_card` | | :heavy_multiplication_x: | The WebRTC entity/URL to use for this camera with the `webrtc-card` live provider. See below. |
 | `id` | `camera_entity`, `webrtc_card.entity` or `camera_name` if set (in that preference order). | :heavy_multiplication_x: | An optional identifier to use throughout the card configuration to refer unambiguously to this camera. See [camera IDs](#camera-ids). |
-| `dependent_cameras` | | :heavy_multiplication_x: | An optional array of other camera identifiers (see [camera IDs](#camera-ids)). If specified the card will fetch events for this camera and *also* recursively events for the named `dependent_cameras`. All `dependent_cameras` must themselves be a configured camera in the card. This can be useful to group events for cameras that are close together, or to show events for the `birdseye` camera that otherwise would not have events itself.|
-| `dependent_cameras_all` | `false` | :heavy_multiplication_x: | Shortcut to specify all other cameras as dependent cameras (see `dependent_cameras` above).|
+| `dependencies` | | :heavy_multiplication_x: | Other cameras that this camera should depend upon. See [camera dependencies](#camera-dependency-configuration) below. |
 | `trigger_by_motion` | `false` | :heavy_multiplication_x: | Whether to not to trigger the camera (used to trigger [scan mode](#scan-mode) or reseting the default view) by automatically detecting and using the motion `binary_sensor` for this camera. This autodetection only works for Frigate cameras, and only when the motion `binary_sensor` entity has been enabled in Home Assistant.|
 | `trigger_by_occupancy` | `true` | :heavy_multiplication_x: | Whether to not to trigger the camera (used to trigger [scan mode](#scan-mode) or reseting the default view) by automatically detecting and using the occupancy `binary_sensor` for this camera. This autodetection only works for Frigate cameras, and only when the occupancy `binary_sensor` entity has been enabled in Home Assistant.|
 | `trigger_by_entities` | | :heavy_multiplication_x: | Whether to not to trigger the camera (used to trigger [scan mode](#scan-mode) or reseting the default view) when the state of any Home Assistant entity becomes active (i.e. state becomes `on` or `open`). This works for Frigate or non-Frigate cameras.|
@@ -147,11 +146,27 @@ cameras:
 
 See [Using the WebRTC Card](#webrtc) below for more details on how to use the WebRTC Card live provider.
 
+<a name="camera-dependencies"></a>
+
+#### Camera Dependency Configuration
+
+The `dependencies` block configures other cameras as dependents of this camera. Dependent cameras have their events fetched and merged with this camera. Configuration is under:
+
+```yaml
+cameras:
+ - dependencies:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `cameras` | | :heavy_multiplication_x: | An optional array of other camera identifiers (see [camera IDs](#camera-ids)). If specified the card will fetch events for this camera and *also* recursively events for the named cameras. All dependent cameras must themselves be a configured camera in the card. This can be useful to group events for cameras that are close together, to always have clips/snapshots show fully merged events across all cameras or to show events for the `birdseye` camera that otherwise would not have events itself.|
+| `all_cameras` | `false` | :heavy_multiplication_x: | Shortcut to specify all other cameras as dependent cameras.|
+
 <a name="camera-ids"></a>
 
 #### Camera IDs: Refering to cameras in card configuration
 
-Each camera configured in the card has a single identifier (`id`). For a given camera, this will be one of the camera {`id`, `camera_entity`, `webrtc_card.entity` or `camera_name`} parameters for that camera -- in that order of precedence. These ids may be used in conditions or custom actions to refer to a given camera unambiguously. |
+Each camera configured in the card has a single identifier (`id`). For a given camera, this will be one of the camera {`id`, `camera_entity`, `webrtc_card.entity` or `camera_name`} parameters for that camera -- in that order of precedence. These ids may be used in conditions, dependencies or custom actions to refer to a given camera unambiguously. |
 
 #### Example
 
@@ -1012,9 +1027,10 @@ cameras:
     camera_entity: camera.front_Door
     live_provider: ha
     # Show events for camera-2 when this camera is viewed.
-    dependent_cameras:
-      - camera-2
-    dependent_cameras_all: false
+    dependencies:
+      all_cameras: false
+      cameras:
+        - camera-2
     trigger_by_motion: false
     trigger_by_occupancy: true
     trigger_by_entities:
@@ -1037,7 +1053,8 @@ cameras:
     trigger_by_occupancy: true
     trigger_by_entities:
       - binary_sensor.entrance_sensor
-    dependent_cameras_all: false
+    dependencies:
+      all_cameras: false
 ```
 </details>
 
@@ -2455,7 +2472,7 @@ menu:
 
 ### Using a dependent camera
 
-`dependent_cameras` allows events for other cameras to be shown along with the currently selected camera. For example, this can be used to show events with the `birdseye` camera (since it will not have events of its own).
+`dependencies.cameras` allows events for other cameras to be shown along with the currently selected camera. For example, this can be used to show events with the `birdseye` camera (since it will not have events of its own).
 
 <details>
   <summary>Expand: Using dependent cameras with birdseye</summary>
@@ -2468,9 +2485,26 @@ cameras:
   - camera_entity: camera.kitchen
   - camera_entity: camera.sitting_room
   - camera_name: birdseye
-    dependent_cameras:
-      - camera.kitchen
-      - camera.sitting_room
+    dependencies:
+      cameras:
+        - camera.kitchen
+        - camera.sitting_room
+```
+</details>
+
+<details>
+  <summary>Expand: Using all dependent cameras with birdseye</summary>
+
+This example shows events for all other cameras when `birdseye` is selected. This is just a shortcut to naming all other cameras.
+
+```yaml
+[...]
+cameras:
+  - camera_entity: camera.kitchen
+  - camera_entity: camera.sitting_room
+  - camera_name: birdseye
+    dependencies:
+      all_cameras: true
 ```
 </details>
 
