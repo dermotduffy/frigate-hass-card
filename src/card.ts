@@ -396,8 +396,8 @@ export class FrigateCard extends LitElement {
     // Don't show `clips` button if there's no `camera_name` (e.g. non-Frigate
     // cameras), or is birdseye (unless there are dependent cameras).
     if (
-      cameraConfig?.camera_name &&
-      (cameraConfig?.camera_name !== CAMERA_BIRDSEYE ||
+      cameraConfig?.frigate.camera_name &&
+      (cameraConfig?.frigate.camera_name !== CAMERA_BIRDSEYE ||
         cameraConfig.dependencies.cameras.length ||
         cameraConfig.dependencies.all_cameras)
     ) {
@@ -415,8 +415,8 @@ export class FrigateCard extends LitElement {
     // Don't show `snapshots` button if there's no `camera_name` (e.g. non-Frigate
     // cameras), or is birdseye (unless there are dependent cameras).
     if (
-      cameraConfig?.camera_name &&
-      (cameraConfig?.camera_name !== CAMERA_BIRDSEYE ||
+      cameraConfig?.frigate.camera_name &&
+      (cameraConfig?.frigate.camera_name !== CAMERA_BIRDSEYE ||
         cameraConfig?.dependencies.cameras.length ||
         cameraConfig?.dependencies.all_cameras)
     ) {
@@ -449,7 +449,8 @@ export class FrigateCard extends LitElement {
     if (
       this._cameras &&
       [...this._cameras.values()].some(
-        (config) => config.camera_name && config.camera_name !== CAMERA_BIRDSEYE,
+        (config) =>
+          config.frigate.camera_name && config.frigate.camera_name !== CAMERA_BIRDSEYE,
       )
     ) {
       buttons.push({
@@ -475,7 +476,7 @@ export class FrigateCard extends LitElement {
       });
     }
 
-    if (cameraConfig?.frigate_url) {
+    if (cameraConfig?.frigate.url) {
       buttons.push({
         icon: 'mdi:web',
         ...this._getConfig().menu.buttons.frigate_ui,
@@ -598,13 +599,15 @@ export class FrigateCard extends LitElement {
     cache: ExtendedEntityCache,
     cameraConfig: CameraConfig,
   ): string | null {
-    if (cameraConfig.camera_name) {
+    if (cameraConfig.frigate.camera_name) {
       return (
         cache.getMatch(
           (ent) =>
             !!ent.unique_id?.match(
               new RegExp(
-                `:motion_sensor:${cameraConfig.zone || cameraConfig.camera_name}`,
+                `:motion_sensor:${
+                  cameraConfig.frigate.zone || cameraConfig.frigate.camera_name
+                }`,
               ),
             ),
         )?.entity_id ?? null
@@ -623,15 +626,15 @@ export class FrigateCard extends LitElement {
     cache: ExtendedEntityCache,
     cameraConfig: CameraConfig,
   ): string | null {
-    if (cameraConfig.camera_name) {
+    if (cameraConfig.frigate.camera_name) {
       return (
         cache.getMatch(
           (ent) =>
             !!ent.unique_id?.match(
               new RegExp(
-                `:occupancy_sensor:${cameraConfig.zone || cameraConfig.camera_name}_${
-                  cameraConfig.label || 'all'
-                }`,
+                `:occupancy_sensor:${
+                  cameraConfig.frigate.zone || cameraConfig.frigate.camera_name
+                }_${cameraConfig.frigate.label || 'all'}`,
               ),
             ),
         )?.entity_id ?? null
@@ -673,10 +676,10 @@ export class FrigateCard extends LitElement {
         }
       }
 
-      if (!config.camera_name && entity) {
+      if (!config.frigate.camera_name && entity) {
         const resolvedName = this._getFrigateCameraNameFromEntity(entity);
         if (resolvedName) {
-          config.camera_name = resolvedName;
+          config.frigate.camera_name = resolvedName;
         }
       }
 
@@ -1146,7 +1149,7 @@ export class FrigateCard extends LitElement {
     }
 
     const path =
-      `/api/frigate/${cameraConfig.client_id}` +
+      `/api/frigate/${cameraConfig.frigate.client_id}` +
       `/notifications/${event_id}/` +
       `${this._view.isClipRelatedView() ? 'clip.mp4' : 'snapshot.jpg'}` +
       `?download=true`;
@@ -1299,7 +1302,7 @@ export class FrigateCard extends LitElement {
               : (this._getConfig().view.camera_select as FrigateCardView);
           this._changeView({
             view: new View({
-              view: this._cameras?.get(camera)?.camera_name
+              view: this._cameras?.get(camera)?.frigate.camera_name
                 ? targetView
                 : // Fallback to supported views for non-Frigate cameras.
                   View.selectBestViewForNonFrigateCameras(targetView),
@@ -1368,16 +1371,16 @@ export class FrigateCard extends LitElement {
    */
   protected _getFrigateURLFromContext(): string | null {
     const cameraConfig = this._getSelectedCameraConfig();
-    if (!cameraConfig || !cameraConfig.frigate_url || !this._view) {
+    if (!cameraConfig || !cameraConfig.frigate.url || !this._view) {
       return null;
     }
-    if (!cameraConfig.camera_name) {
-      return cameraConfig.frigate_url;
+    if (!cameraConfig.frigate.camera_name) {
+      return cameraConfig.frigate.url;
     }
     if (this._view.isViewerView() || this._view.isGalleryView()) {
-      return `${cameraConfig.frigate_url}/events?camera=${cameraConfig.camera_name}`;
+      return `${cameraConfig.frigate.url}/events?camera=${cameraConfig.frigate.camera_name}`;
     }
-    return `${cameraConfig.frigate_url}/cameras/${cameraConfig.camera_name}`;
+    return `${cameraConfig.frigate.url}/cameras/${cameraConfig.frigate.camera_name}`;
   }
 
   /**

@@ -62,7 +62,8 @@ div.upgrade span {
   color: var(--secondary-text-color, 'black');
 }
 
-.submenu-header ha-icon {
+.submenu-header ha-icon,
+.submenu-header ha-svg-icon {
   padding-right: 15px;
 }
 
@@ -78,7 +79,6 @@ div.upgrade span {
   width: calc(100% - 10px * 2);
   margin: auto;
   margin-bottom: 10px;
-
 }
 .submenu :not(.submenu.selected) {
   border: none;

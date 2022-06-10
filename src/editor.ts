@@ -14,22 +14,22 @@ import {
 import {
   CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
-  CONF_CAMERAS_ARRAY_CAMERA_NAME,
-  CONF_CAMERAS_ARRAY_CLIENT_ID,
   CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS,
   CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS,
+  CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME,
+  CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID,
+  CONF_CAMERAS_ARRAY_FRIGATE_LABEL,
+  CONF_CAMERAS_ARRAY_FRIGATE_URL,
+  CONF_CAMERAS_ARRAY_FRIGATE_ZONE,
   CONF_CAMERAS_ARRAY_ICON,
   CONF_CAMERAS_ARRAY_ID,
-  CONF_CAMERAS_ARRAY_LABEL,
   CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
   CONF_CAMERAS_ARRAY_TITLE,
   CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES,
   CONF_CAMERAS_ARRAY_TRIGGERS_MOTION,
   CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY,
-  CONF_CAMERAS_ARRAY_URL,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL,
-  CONF_CAMERAS_ARRAY_ZONE,
   CONF_DIMENSIONS_ASPECT_RATIO,
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
@@ -110,11 +110,13 @@ import {
 } from './types.js';
 import { arrayMove } from './utils/basic.js';
 import { getCameraID, getCameraTitle } from './utils/camera.js';
+import { FRIGATE_ICON_SVG_PATH } from './utils/frigate.js';
 import { getEntitiesFromHASS, sideLoadHomeAssistantElements } from './utils/ha';
 
 const MENU_BUTTONS = 'buttons';
 const MENU_CAMERAS = 'cameras';
 const MENU_CAMERAS_DEPENDENCIES = 'cameras.dependencies';
+const MENU_CAMERAS_FRIGATE = 'cameras.frigate';
 const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
 const MENU_CAMERAS_WEBRTC = 'cameras.webrtc';
 const MENU_OPTIONS = 'options';
@@ -721,8 +723,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   protected _putInSubmenu(
     domain: string,
     key: unknown,
-    icon: string,
     labelPath: string,
+    icon: {
+      name?: string;
+      path?: string;
+    },
     template: TemplateResult,
   ): TemplateResult {
     const submenuClasses = {
@@ -737,15 +742,16 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         .domain=${domain}
         .key=${key}
       >
-        <ha-icon .icon=${icon}></ha-icon>
-          <span>${localize(labelPath)}</span>
-        </div>
-        ${
-          this._expandedMenus[domain] === key
-            ? html`<div class="values">${template}</div>`
-            : ''
-        }
+        ${icon.name
+          ? html` <ha-icon .icon=${icon.name}></ha-icon> `
+          : icon.path
+          ? html` <ha-svg-icon .path="${icon.path}"></ha-svg-icon> `
+          : ``}
+        <span>${localize(labelPath)}</span>
       </div>
+      ${this._expandedMenus[domain] === key
+        ? html`<div class="values">${template}</div>`
+        : ''}
     </div>`;
   }
 
@@ -891,52 +897,56 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 getArrayConfigPath(CONF_CAMERAS_ARRAY_CAMERA_ENTITY, cameraIndex),
                 'camera',
               )}
-              ${this._renderStringInput(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_CAMERA_NAME, cameraIndex),
-              )}
               ${this._renderOptionSelector(
                 getArrayConfigPath(CONF_CAMERAS_ARRAY_LIVE_PROVIDER, cameraIndex),
                 liveProviders,
               )}
               ${this._renderStringInput(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_URL, cameraIndex),
-              )}
-              ${this._renderStringInput(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_LABEL, cameraIndex),
-              )}
-              ${this._renderStringInput(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_ZONE, cameraIndex),
-              )}
-              ${this._renderStringInput(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_CLIENT_ID, cameraIndex),
-              )}
-              ${this._renderStringInput(
                 getArrayConfigPath(CONF_CAMERAS_ARRAY_TITLE, cameraIndex),
               )}
-              ${this._renderStringInput(
+              ${this._renderIconSelector(
                 getArrayConfigPath(CONF_CAMERAS_ARRAY_ICON, cameraIndex),
+                {
+                  label: localize('config.cameras.icon'),
+                },
               )}
               ${this._renderStringInput(
                 getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
               )}
               ${this._putInSubmenu(
-                MENU_CAMERAS_WEBRTC,
+                MENU_CAMERAS_FRIGATE,
                 cameraIndex,
-                'mdi:webrtc',
-                'config.cameras.webrtc_card.options',
-                html`${this._renderEntitySelector(
-                  getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY, cameraIndex),
-                  'camera',
-                )}
-                ${this._renderStringInput(
-                  getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
-                )}`,
+                'config.cameras.frigate.options',
+                { path: FRIGATE_ICON_SVG_PATH },
+                html`
+                  ${this._renderStringInput(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME,
+                      cameraIndex,
+                    ),
+                  )}
+                  ${this._renderStringInput(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_URL, cameraIndex),
+                  )}
+                  ${this._renderStringInput(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_LABEL, cameraIndex),
+                  )}
+                  ${this._renderStringInput(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_ZONE, cameraIndex),
+                  )}
+                  ${this._renderStringInput(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID,
+                      cameraIndex,
+                    ),
+                  )}
+                `,
               )}
               ${this._putInSubmenu(
                 MENU_CAMERAS_DEPENDENCIES,
                 cameraIndex,
-                'mdi:graph',
                 'config.cameras.dependencies.options',
+                { name: 'mdi:graph' },
                 html` ${this._renderSwitch(
                   getArrayConfigPath(
                     CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS,
@@ -958,8 +968,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._putInSubmenu(
                 MENU_CAMERAS_TRIGGERS,
                 cameraIndex,
-                'mdi:magnify-scan',
                 'config.cameras.triggers.options',
+                { name: 'mdi:magnify-scan' },
                 html` ${this._renderSwitch(
                   getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY, cameraIndex),
                   frigateCardConfigDefaults.cameras.triggers.occupancy,
@@ -974,6 +984,19 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   {
                     multiple: true,
                   },
+                )}`,
+              )}
+              ${this._putInSubmenu(
+                MENU_CAMERAS_WEBRTC,
+                cameraIndex,
+                'config.cameras.webrtc_card.options',
+                { name: 'mdi:webrtc' },
+                html`${this._renderEntitySelector(
+                  getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY, cameraIndex),
+                  'camera',
+                )}
+                ${this._renderStringInput(
+                  getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
                 )}`,
               )}
             </div>`

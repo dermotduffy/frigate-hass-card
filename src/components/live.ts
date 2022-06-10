@@ -639,7 +639,7 @@ export class FrigateCardLiveProvider extends LitElement {
         return 'webrtc-card';
       } else if (this.cameraConfig?.camera_entity) {
         return 'ha';
-      } else if (this.cameraConfig?.camera_name) {
+      } else if (this.cameraConfig?.frigate.camera_name) {
         return 'frigate-jsmpeg';
       }
       return frigateCardConfigDefaults.cameras.live_provider;
@@ -1013,7 +1013,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
    * @returns A URL or null.
    */
   protected async _getURL(): Promise<string | null> {
-    if (!this.hass || !this.cameraConfig?.client_id || !this.cameraConfig?.camera_name) {
+    if (!this.hass || !this.cameraConfig?.frigate.client_id || !this.cameraConfig?.frigate.camera_name) {
       return null;
     }
 
@@ -1021,8 +1021,8 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     try {
       response = await homeAssistantSignPath(
         this.hass,
-        `/api/frigate/${this.cameraConfig.client_id}` +
-          `/jsmpeg/${this.cameraConfig.camera_name}`,
+        `/api/frigate/${this.cameraConfig.frigate.client_id}` +
+          `/jsmpeg/${this.cameraConfig.frigate.camera_name}`,
         URL_SIGN_EXPIRY_SECONDS,
       );
     } catch (err) {
@@ -1131,7 +1131,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     this._jsmpegCanvasElement = document.createElement('canvas');
     this._jsmpegCanvasElement.className = 'media';
 
-    if (!this.cameraConfig?.camera_name) {
+    if (!this.cameraConfig?.frigate.camera_name) {
       return dispatchErrorMessageEvent(
         this,
         localize('error.no_camera_name'),

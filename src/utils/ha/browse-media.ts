@@ -214,14 +214,14 @@ export const getBrowseMediaQueryParameters = (
   cameraConfig?: CameraConfig,
   overrides?: Partial<BrowseMediaQueryParameters>,
 ): BrowseMediaQueryParameters | null => {
-  if (!cameraConfig || !cameraConfig.camera_name) {
+  if (!cameraConfig || !cameraConfig.frigate.camera_name) {
     return null;
   }
   return {
-    clientId: cameraConfig.client_id,
-    cameraName: cameraConfig.camera_name,
-    label: cameraConfig.label,
-    zone: cameraConfig.zone,
+    clientId: cameraConfig.frigate.client_id,
+    cameraName: cameraConfig.frigate.camera_name,
+    label: cameraConfig.frigate.label,
+    zone: cameraConfig.frigate.zone,
     title: getCameraTitle(hass, cameraConfig),
     cameraID: cameraID,
     ...overrides,
