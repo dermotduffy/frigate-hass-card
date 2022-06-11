@@ -738,16 +738,16 @@ export class FrigateCardTimelineCore extends LitElement {
    * @param properties The properties of the timeline click event.
    */
   protected _timelineClickHandler(properties: TimelineEventPropertiesResult): void {
-    if (properties.what && ['item', 'background'].includes(properties.what)) {
-      // Prevent interaction with items on the timeline from activating card
-      // wide actions.
+    if (properties.what === 'item') {
       stopEventFromActivatingCardWideActions(properties.event);
     }
 
-    if (!this._wasDragged && properties.what) {
+    if (!this._wasDragged && properties.what && this.timelineConfig?.show_recordings) {
       if (['background', 'group-label'].includes(properties.what)) {
+        stopEventFromActivatingCardWideActions(properties.event);
         this._changeViewToRecording(properties.time, String(properties.group));
       } else if (properties.what === 'axis') {
+        stopEventFromActivatingCardWideActions(properties.event);
         this._changeViewToRecording(properties.time);
       }
     }
@@ -1167,6 +1167,11 @@ export class FrigateCardTimelineCore extends LitElement {
           '--frigate-card-thumbnail-size',
           `${this.timelineConfig.controls.thumbnails.size}px`,
         );
+      }
+      if (this.timelineConfig?.show_recordings) {
+        this.setAttribute('recordings', '');
+      } else {
+        this.removeAttribute('recordings');
       }
     }
   }

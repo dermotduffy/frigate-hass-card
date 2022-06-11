@@ -63,7 +63,9 @@ div.timeline.right-margin {
 .vis-item:not(.vis-background) {
   cursor: pointer;
 }
-.vis-item.vis-background, .vis-labelset, .vis-time-axis {
+:host([recordings]) .vis-item.vis-background,
+:host([recordings]) .vis-labelset,
+:host([recordings]) .vis-time-axis {
   cursor: crosshair;
 }
 .vis-item:active {
@@ -93,7 +95,8 @@ div.timeline.right-margin {
 .vis-text.vis-minor, .vis-label {
   transition: background-color 0.5s ease-out;
 }
-.vis-text.vis-minor:hover, .vis-label:hover {
+:host([recordings]) .vis-text.vis-minor:hover,
+:host([recordings]) .vis-label:hover {
   background-color: var(--primary-color);
 }
 
