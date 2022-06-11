@@ -503,8 +503,8 @@ const menuButtonBooleanToObject = function (
   if (typeof value === 'object') {
     return undefined;
   }
-  // If it's not a boolean, or it's just true, remove it.
-  if (typeof value !== 'boolean' || value) {
+  // If it's not a boolean remove it.
+  if (typeof value !== 'boolean') {
     return null;
   }
   return { enabled: value };
