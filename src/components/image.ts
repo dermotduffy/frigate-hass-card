@@ -1,13 +1,13 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import {
-    CSSResultGroup,
-    html,
-    LitElement,
-    PropertyValues,
-    TemplateResult,
-    unsafeCSS
+  CSSResultGroup,
+  html,
+  LitElement,
+  PropertyValues,
+  TemplateResult,
+  unsafeCSS
 } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { CachedValueController } from '../cached-value-controller.js';
 import defaultImage from '../images/frigate-bird-in-sky.jpg';
@@ -33,27 +33,13 @@ export class FrigateCardImage extends LitElement {
   @property({ attribute: false })
   protected cameraConfig?: CameraConfig;
 
-  @state()
-  protected _imageConfig?: ImageViewConfig;
+  @property({ attribute: false })
+  protected imageConfig?: ImageViewConfig;
 
   protected _refImage: Ref<HTMLImageElement> = createRef();
 
   protected _cachedValueController?: CachedValueController<string>;
   protected _boundVisibilityHandler = this._visibilityHandler.bind(this);
-  /**
-   * Set the image configuration.
-   */
-  set imageConfig(imageConfig: ImageViewConfig) {
-    this._imageConfig = imageConfig;
-    if (this._cachedValueController) {
-      this._cachedValueController.removeController();
-    }
-    this._cachedValueController = new CachedValueController(
-      this,
-      this._imageConfig.refresh_seconds,
-      this._getImageSource.bind(this),
-    );
-  }
 
   /**
    * Get the camera entity for the current camera configuration.
@@ -82,7 +68,7 @@ export class FrigateCardImage extends LitElement {
     const cameraEntity = this._getCameraEntity();
     const state = cameraEntity ? this.hass.states[cameraEntity] : undefined;
     if (
-      this._imageConfig?.mode === 'camera' &&
+      this.imageConfig?.mode === 'camera' &&
       (!this.hass.connected ||
         !state ||
         Date.now() - Date.parse(state.last_updated) >= HASS_REJECTION_CUTOFF_MS)
@@ -93,7 +79,7 @@ export class FrigateCardImage extends LitElement {
     if (
       changedProps.has('hass') &&
       changedProps.size == 1 &&
-      this._imageConfig?.mode === 'camera' &&
+      this.imageConfig?.mode === 'camera' &&
       cameraEntity
     ) {
       if (isHassDifferent(this.hass, changedProps.get('hass'), [cameraEntity])) {
@@ -113,7 +99,25 @@ export class FrigateCardImage extends LitElement {
    * @param _changedProps The changed properties
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected willUpdate(_changedProps: PropertyValues): void {
+  protected willUpdate(changedProps: PropertyValues): void {
+    if (changedProps.has('imageConfig')) {
+      if (this._cachedValueController) {
+        this._cachedValueController.removeController();
+      }
+      if (this.imageConfig) {
+        this._cachedValueController = new CachedValueController(
+          this,
+          this.imageConfig.refresh_seconds,
+          this._getImageSource.bind(this),
+        );
+      }
+    }
+
+    // If the camera changed, immediately discard the old value.
+    if (changedProps.has('cameraConfig')) {
+      this._cachedValueController?.clearValue();
+    }
+
     if (!this._cachedValueController?.value) {
       this._cachedValueController?.updateValue();
     }
@@ -173,9 +177,9 @@ export class FrigateCardImage extends LitElement {
   }
 
   protected _getImageSource(): string {
-    if (this._imageConfig?.mode === 'url' && this._imageConfig?.url) {
-      return this._buildImageURL(this._imageConfig.url);
-    } else if (this.hass && this._imageConfig?.mode === 'camera') {
+    if (this.imageConfig?.mode === 'url' && this.imageConfig?.url) {
+      return this._buildImageURL(this.imageConfig.url);
+    } else if (this.hass && this.imageConfig?.mode === 'camera') {
       const entity = this._getCameraEntity();
       if (entity) {
         const state = this.hass.states[entity];
@@ -206,17 +210,17 @@ export class FrigateCardImage extends LitElement {
             dispatchMediaShowEvent(this, ev);
           }}
           @error=${() => {
-            if (this._imageConfig?.mode === 'camera') {
+            if (this.imageConfig?.mode === 'camera') {
               // In camera mode, the user has likely not made an error, but HA
               // may be unavailble, so show the stock image.
               this._forceStockImage();
-            } else if (this._imageConfig?.mode === 'url') {
+            } else if (this.imageConfig?.mode === 'url') {
               // In url mode, the user likely specified a URL that cannot be
               // resolved. Show an error message.
               dispatchErrorMessageEvent(
                 this,
                 localize('error.image_load_error'),
-                this._imageConfig,
+                this.imageConfig,
               );
             }
           }}
