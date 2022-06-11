@@ -1694,7 +1694,7 @@ export class FrigateCard extends LitElement {
     >
       ${renderMenuAbove ? this._renderMenu() : ''}
       <div class="${classMap(mainClasses)}">
-        ${this._cameras === undefined
+        ${this._cameras === undefined && !this._message
           ? until(
               (async () => {
                 await this._loadCameras();
