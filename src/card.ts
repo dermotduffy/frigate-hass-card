@@ -61,6 +61,8 @@ import {
   FrigateCardView,
   FRIGATE_CARD_VIEWS_USER_SPECIFIED,
   MediaShowInfo,
+  MEDIA_TYPE_IMAGE,
+  MEDIA_TYPE_VIDEO,
   MenuButton,
   Message,
   RawFrigateCardConfig
@@ -1127,7 +1129,11 @@ export class FrigateCard extends LitElement {
       return;
     }
 
-    if (!this._view.media) {
+    if (
+      !this._view.media ||
+      (this._view.media.media_content_type !== MEDIA_TYPE_VIDEO &&
+        this._view.media.media_content_type !== MEDIA_TYPE_IMAGE)
+    ) {
       this._setMessageAndUpdate({
         message: localize('error.download_no_media'),
         type: 'error',
@@ -1151,7 +1157,11 @@ export class FrigateCard extends LitElement {
     const path =
       `/api/frigate/${cameraConfig.frigate.client_id}` +
       `/notifications/${event_id}/` +
-      `${this._view.isClipRelatedView() ? 'clip.mp4' : 'snapshot.jpg'}` +
+      `${
+        this._view.media.media_content_type === MEDIA_TYPE_VIDEO
+          ? 'clip.mp4'
+          : 'snapshot.jpg'
+      }` +
       `?download=true`;
     let response: string | null | undefined;
     try {
