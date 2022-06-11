@@ -108,7 +108,7 @@ export class FrigateCardElementsCore extends LitElement {
     try {
       element.setConfig(config);
     } catch (e) {
-      console.error(e, (e as Error).stack);
+      console.error(e);
       throw new FrigateCardError(localize('error.invalid_elements_config'));
     }
     return element;

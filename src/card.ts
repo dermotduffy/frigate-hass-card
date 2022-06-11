@@ -658,7 +658,7 @@ export class FrigateCard extends LitElement {
     try {
       entityList = await getAllEntities(this._hass);
     } catch (e) {
-      console.error(e, (e as Error).stack);
+      console.error(e);
     }
 
     const cameras: Map<string, CameraConfig> = new Map();
@@ -674,7 +674,7 @@ export class FrigateCard extends LitElement {
         try {
           entity = await getExtendedEntity(this._hass, config.camera_entity, cache);
         } catch (e) {
-          console.error(e, (e as Error).stack);
+          console.error(e);
         }
       }
 
@@ -704,7 +704,7 @@ export class FrigateCard extends LitElement {
             cache,
           );
         } catch (e) {
-          console.error(e, (e as Error).stack);
+          console.error(e);
         }
 
         if (config.triggers.motion) {
@@ -1167,7 +1167,7 @@ export class FrigateCard extends LitElement {
     try {
       response = await homeAssistantSignPath(this._hass, path);
     } catch (e) {
-      console.error(e, (e as Error).stack);
+      console.error(e);
     }
 
     if (!response) {
@@ -1608,7 +1608,7 @@ export class FrigateCard extends LitElement {
       (screenfull.isEnabled && screenfull.isFullscreen) ||
       aspectRatioMode == 'unconstrained' ||
       (aspectRatioMode == 'dynamic' &&
-        (this._view?.isMediaView() || this._view?.is('timeline'))) ||
+        (this._view?.isAnyMediaView() || this._view?.is('timeline'))) ||
       this._message != null
     );
   }
