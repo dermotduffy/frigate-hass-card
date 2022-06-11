@@ -25,7 +25,6 @@
 .values {
   background: var(--secondary-background-color);
   display: grid;
-  margin-bottom: 10px;
 }
 div.upgrade {
   width: auto;
@@ -78,7 +77,8 @@ div.upgrade span {
 // Nested menus should shrink width.
 .submenu .submenu {
   width: calc(100% - 10px * 2);
-  margin: auto;
+  margin-left: auto;
+  margin-right: auto;
   margin-bottom: 10px;
 }
 .submenu :not(.submenu.selected) {
