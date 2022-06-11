@@ -1233,6 +1233,7 @@ export interface CardHelpers {
 export const MEDIA_CLASS_PLAYLIST = 'playlist' as const;
 export const MEDIA_CLASS_VIDEO = 'video' as const;
 export const MEDIA_TYPE_PLAYLIST = 'playlist' as const;
+export const MEDIA_TYPE_IMAGE = 'image' as const;
 export const MEDIA_TYPE_VIDEO = 'video' as const;
 
 // Recursive type, cannot use type interference:
