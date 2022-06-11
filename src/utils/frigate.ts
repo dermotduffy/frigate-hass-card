@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ExtendedHomeAssistant } from '../types';
+import { CameraConfig, ExtendedHomeAssistant } from '../types';
 import { homeAssistantHTTPRequest } from './ha';
 
 export const FRIGATE_ICON_SVG_PATH =
@@ -94,4 +94,28 @@ export const getRecordingSegments = async (
       after: String(after.getTime() / 1000),
     }),
   );
+};
+
+/**
+ * Get an id that unique identifies a particular camera (not zone, object, etc)
+ * within a particular Frigate instance. ID will not (necessarily) be unique
+ * within the card.
+ * @param cameraConfig The camera config.
+ */
+export const getUniqueFrigateCameraID = (config: CameraConfig): string => {
+  return [config.frigate.client_id, config.frigate.camera_name].join('/');
+};
+
+/**
+ * Get an id that unique identifies a source of Frigate events. ID will not
+ * (necessarily) be unique within the card.
+ * @param cameraConfig The camera config.
+ */
+export const getUniqueFrigateCameraEventsID = (config: CameraConfig): string => {
+  return [
+    config.frigate.client_id,
+    config.frigate.camera_name,
+    config.frigate.label,
+    config.frigate.zone,
+  ].join('/');
 };
