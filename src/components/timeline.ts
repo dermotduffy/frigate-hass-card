@@ -50,6 +50,8 @@ import { getCameraTitle } from '../utils/camera.js';
 import {
   getRecordingSegments,
   getRecordingsSummary,
+  getUniqueFrigateCameraEventsID,
+  getUniqueFrigateCameraID,
   RecordingSegments,
   RecordingSummary
 } from '../utils/frigate';
@@ -597,9 +599,9 @@ export class FrigateCardTimelineCore extends LitElement {
 
       // There is a single set of recordings for a given Frigate camera name.
       // Zones on that same camera do not get separate recordings. The card may
-      // have multiple instances of the same camera for different zoness, so
+      // have multiple instances of the same camera for different zones, so
       // need to enforce uniqueness here.
-      const uniqueID = `${config.frigate.client_id}/${config.frigate.camera_name}`;
+      const uniqueID = getUniqueFrigateCameraID(config);
       if (processedCameras.has(uniqueID)) {
         continue;
       }
@@ -886,11 +888,16 @@ export class FrigateCardTimelineCore extends LitElement {
    */
   protected _getGroups(): DataGroupCollectionType {
     const groups: FrigateCardGroupData[] = [];
+    const processedCameras: Set<string> = new Set();
+
     this.cameras?.forEach((cameraConfig, camera) => {
+      const frigateCameraID = getUniqueFrigateCameraEventsID(cameraConfig);
       if (
         cameraConfig.frigate.camera_name &&
-        cameraConfig.frigate.camera_name !== CAMERA_BIRDSEYE
+        cameraConfig.frigate.camera_name !== CAMERA_BIRDSEYE &&
+        !processedCameras.has(frigateCameraID)
       ) {
+        processedCameras.add(frigateCameraID);
         groups.push({
           id: camera,
           content: getCameraTitle(this.hass, cameraConfig),
