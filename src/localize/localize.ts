@@ -7,7 +7,7 @@ const languages: any = {
   pt_BR: pt_BR,
 };
 
-export function localize(string: string, search = '', replace = ''): string {
+export function getLanguage(): string {
   const canonicalizeLanguage = (language?: string | null): string | null => {
     if (!language) {
       return null;
@@ -16,7 +16,7 @@ export function localize(string: string, search = '', replace = ''): string {
   };
 
   // Try the HA language first...
-  let lang;
+  let lang: string | null = null;
   const HALanguage = localStorage.getItem('selectedLanguage');
   if (HALanguage) {
     const selectedLanguage = canonicalizeLanguage(JSON.parse(HALanguage));
@@ -34,9 +34,11 @@ export function localize(string: string, search = '', replace = ''): string {
       }
     }
   }
+  return lang || 'en';
+}
 
-  // Default to English is there's still no language setting.
-  lang = lang || 'en';
+export function localize(string: string, search = '', replace = ''): string {
+  const lang = getLanguage();
   let translated: string;
 
   try {

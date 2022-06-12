@@ -43,7 +43,7 @@ import {
   REPO_URL
 } from './const.js';
 import './editor.js';
-import { localize } from './localize/localize.js';
+import { getLanguage, localize } from './localize/localize.js';
 import './patches/ha-camera-stream.js';
 import './patches/ha-hls-player.js';
 import './patches/ha-web-rtc-player.ts';
@@ -1369,6 +1369,7 @@ export class FrigateCard extends LitElement {
           ha_version: this._hass.config.version,
           card_version: CARD_VERSION,
           frigate_version: Object.fromEntries(frigateVersionMap),
+          lang: getLanguage(),
           ...(this._rawConfig && { config: this._rawConfig }),
         },
       });
