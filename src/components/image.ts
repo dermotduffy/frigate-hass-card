@@ -155,7 +155,7 @@ export class FrigateCardImage extends LitElement {
       // (401), see:
       // https://github.com/dermotduffy/frigate-hass-card/issues/398
       this._cachedValueController?.clearValue();
-      this._forceStockImage();
+      this._forceSafeImage();
     } else {
       // If the document is freshly re-visible, immediately re-render it to
       // restore the image src. If the HASS object is old (i.e. browser tab was
@@ -192,11 +192,11 @@ export class FrigateCardImage extends LitElement {
   }
 
   /**
-   * Force the img element to the stock image.
+   * Force the img element to a safe image.
    */
-  protected _forceStockImage(): void {
+  protected _forceSafeImage(stockOnly?: boolean): void {
     if (this._refImage.value) {
-      this._refImage.value.src = defaultImage;
+      this._refImage.value.src = (!stockOnly && this.imageConfig?.url) ? this.imageConfig.url : defaultImage;
     }
   }
 
@@ -212,8 +212,10 @@ export class FrigateCardImage extends LitElement {
           @error=${() => {
             if (this.imageConfig?.mode === 'camera') {
               // In camera mode, the user has likely not made an error, but HA
-              // may be unavailble, so show the stock image.
-              this._forceStockImage();
+              // may be unavailble, so show the stock image. Don't let the URL
+              // override the stock image in this case, as this could create an
+              // error loop.
+              this._forceSafeImage(true)
             } else if (this.imageConfig?.mode === 'url') {
               // In url mode, the user likely specified a URL that cannot be
               // resolved. Show an error message.
