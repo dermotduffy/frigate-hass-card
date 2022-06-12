@@ -1306,10 +1306,11 @@ export class FrigateCard extends LitElement {
       case 'camera_select':
         const camera = frigateCardAction.camera;
         if (this._cameras?.has(camera) && this._view) {
-          const targetView =
+          const targetView = View.selectBestViewForUserSpecified(
             this._getConfig().view.camera_select === 'current'
               ? this._view.view
-              : (this._getConfig().view.camera_select as FrigateCardView);
+              : (this._getConfig().view.camera_select as FrigateCardView),
+          );
           this._changeView({
             view: new View({
               view: this._cameras?.get(camera)?.frigate.camera_name

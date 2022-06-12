@@ -53,6 +53,8 @@ const FRIGATE_CARD_VIEWS = [
 ] as const;
 
 export type FrigateCardView = typeof FRIGATE_CARD_VIEWS[number];
+export type FrigateCardUserSpecifiedView = typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED[number];
+export const FRIGATE_CARD_VIEW_DEFAULT = 'live' as const;
 
 const FRIGATE_MENU_STYLES = ['none', 'hidden', 'overlay', 'hover', 'outside'] as const;
 const FRIGATE_MENU_POSITIONS = ['left', 'right', 'top', 'bottom'] as const;
@@ -526,7 +528,7 @@ export type PictureElements = z.infer<typeof pictureElementsSchema>;
  * View configuration section.
  */
 const viewConfigDefault = {
-  default: 'live' as const,
+  default: FRIGATE_CARD_VIEW_DEFAULT,
   camera_select: 'current' as const,
   timeout_seconds: 300,
   update_seconds: 0,
