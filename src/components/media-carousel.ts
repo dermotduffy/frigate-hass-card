@@ -18,6 +18,21 @@ const getEmptyImageSrc = (width: number, height: number) =>
   `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"%3E%3C/svg%3E`;
 export const IMG_EMPTY = getEmptyImageSrc(16, 9);
 
+/**
+ * A note on carousel reinitialization:
+ * - The carousel needs to be reinitialized when slide sizes change, and slide
+ *   sizes change when content is loaded (lazily or otherwise). Reinitializing
+ *   the carousel when it's moving causes a jarring 'reset', so complexity is
+ *   required here to reinitialize only when the carousel is stable (including
+ *   on first media load, which may be after first carousel initialization).
+ * - When the carousel is dragged, it can be reinitialized via the settle event.
+ * - On very first load, or when the user has configured no slide transition
+ *   effect it can be reinitialized on the media load itself as long as
+ *   clickAllowed() confirms the carousel is otherwise stable.
+ * - Example bug when this reinitialization is not performed:
+ *   https://github.com/dermotduffy/frigate-hass-card/issues/651
+ */
+
 @customElement('frigate-card-media-carousel')
 export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   // A "map" from slide number to MediaShowInfo object.
@@ -26,6 +41,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   protected _previousControlRef: Ref<FrigateCardNextPreviousControl> = createRef();
   protected _titleControlRef: Ref<FrigateCardTitleControl> = createRef();
   protected _titleTimerID: number | null = null;
+  protected _needReInit = false;
 
   // This carousel may be resized by Lovelace resizes, window resizes,
   // fullscreen, etc. Always call the adaptive height handler when the size
@@ -134,6 +150,22 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     // Dispatch MediaShow events as the carousel is moved.
     carousel?.on('init', this._selectSlideMediaShowHandler.bind(this));
     carousel?.on('select', this._selectSlideMediaShowHandler.bind(this));
+
+    carousel?.on('settle', this._reinitIfNecessary.bind(this));
+  }
+
+  /**
+   * Reinitialize the carousel if necessary. See 'A note on carousel
+   * reinitialization' above.
+   */
+  protected _reinitIfNecessary(): void {
+    if (this._needReInit) {
+      //The original options are included here, although this should not be
+      // necessary (without including them, Safari ends up not having a looping
+      // live carousel).
+      this._carousel?.reInit(this._getOptions());
+      this._needReInit = false;
+    }
   }
 
   /**
@@ -237,12 +269,14 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     // isValidMediaShowInfo is used to prevent saving media info that will be
     // rejected upstream (empty 1x1 images will be rejected here).
     if (mediaShowInfo && isValidMediaShowInfo(mediaShowInfo)) {
-      if (!Object.keys(this._mediaShowInfo).length) {
-        // The carousel will be malformed on Safari unless we re-init the
-        // carousel after the first media load. The original options are
-        // included here, although this should not be necessary (without
-        // including them, Safari ends up not having a looping live carousel).
-        this._carousel?.reInit(this._getOptions());
+      // If this is the first media load for this slide, the carousel needs to
+      // reinitialized as the slide size has changed. See 'A note on carousel
+      // reinitialization' above.
+      if (!(slideIndex in this._mediaShowInfo)) {
+        this._needReInit = true;
+        if (this._carousel?.clickAllowed()) {
+          this._reinitIfNecessary();
+        }
       }
       this._mediaShowInfo[slideIndex] = mediaShowInfo;
       if (this._carousel && this._carousel?.selectedScrollSnap() === slideIndex) {
