@@ -1368,6 +1368,8 @@ export class FrigateCard extends LitElement {
         context: {
           ha_version: this._hass.config.version,
           card_version: CARD_VERSION,
+          browser: navigator.userAgent,
+          date: new Date(),
           frigate_version: Object.fromEntries(frigateVersionMap),
           lang: getLanguage(),
           ...(this._rawConfig && { config: this._rawConfig }),
@@ -1643,7 +1645,7 @@ export class FrigateCard extends LitElement {
    */
   protected _getMergedActions(): Actions {
     let specificActions: Actions | undefined = undefined;
-
+  
     if (this._view?.is('live')) {
       specificActions = this._getConfig().live.actions;
     } else if (this._view?.isGalleryView()) {
