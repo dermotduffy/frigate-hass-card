@@ -1645,7 +1645,7 @@ export class FrigateCard extends LitElement {
    */
   protected _getMergedActions(): Actions {
     let specificActions: Actions | undefined = undefined;
-  
+
     if (this._view?.is('live')) {
       specificActions = this._getConfig().live.actions;
     } else if (this._view?.isGalleryView()) {
