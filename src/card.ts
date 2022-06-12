@@ -1368,6 +1368,8 @@ export class FrigateCard extends LitElement {
         context: {
           ha_version: this._hass.config.version,
           card_version: CARD_VERSION,
+          browser: navigator.userAgent,
+          date: new Date(),
           frigate_version: Object.fromEntries(frigateVersionMap),
           lang: getLanguage(),
           ...(this._rawConfig && { config: this._rawConfig }),
