@@ -160,7 +160,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
    */
   protected _reinitIfNecessary(): void {
     if (this._needReInit) {
-      //The original options are included here, although this should not be
+      // The original options are included here, although this should not be
       // necessary (without including them, Safari ends up not having a looping
       // live carousel).
       this._carousel?.reInit(this._getOptions());
