@@ -1,4 +1,10 @@
-import type { FrigateBrowseMediaSource, FrigateCardView } from './types.js';
+import {
+  FrigateBrowseMediaSource,
+  FrigateCardUserSpecifiedView,
+  FrigateCardView,
+  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
+  FRIGATE_CARD_VIEW_DEFAULT
+} from './types.js';
 import { dispatchFrigateCardEvent } from './utils/basic.js';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -41,7 +47,20 @@ export class View {
    * @returns The closest view supported by the non-Frigate camera.
    */
   public static selectBestViewForNonFrigateCameras(view: FrigateCardView) {
-    return ['timeline', 'image'].includes(view) ? view : 'live';
+    return ['timeline', 'image'].includes(view) ? view : FRIGATE_CARD_VIEW_DEFAULT;
+  }
+
+  /**
+   * Selects the best view for a user specified view.
+   * @param view The wanted view.
+   * @returns The closest view supported that is user changeable.
+   */
+  public static selectBestViewForUserSpecified(view: FrigateCardView) {
+    return FRIGATE_CARD_VIEWS_USER_SPECIFIED.includes(
+      view as FrigateCardUserSpecifiedView,
+    )
+      ? view
+      : FRIGATE_CARD_VIEW_DEFAULT;
   }
 
   /**
