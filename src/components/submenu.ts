@@ -1,12 +1,12 @@
 import type { Corner } from '@material/mwc-menu';
 import { HomeAssistant } from 'custom-card-helpers';
 import {
-    CSSResultGroup,
-    html,
-    LitElement,
-    PropertyValues,
-    TemplateResult,
-    unsafeCSS
+  CSSResultGroup,
+  html,
+  LitElement,
+  PropertyValues,
+  TemplateResult,
+  unsafeCSS
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
@@ -15,8 +15,8 @@ import { actionHandler } from '../action-handler-directive.js';
 import submenuStyle from '../scss/submenu.scss';
 import { MenuSubmenu, MenuSubmenuItem, MenuSubmenuSelect } from '../types.js';
 import {
-    frigateCardHasAction,
-    stopEventFromActivatingCardWideActions
+  frigateCardHasAction,
+  stopEventFromActivatingCardWideActions
 } from '../utils/action.js';
 import { isHassDifferent, refreshDynamicStateParameters } from '../utils/ha';
 import { domainIcon } from '../utils/icons/domain-icon.js';
@@ -138,8 +138,7 @@ export class FrigateCardSubmenuSelect extends LitElement {
     return (
       changedProps.size != 1 ||
       !this.submenuSelect ||
-      (!!oldHass &&
-        isHassDifferent(this.hass, oldHass, [this.submenuSelect.entity]))
+      (!!oldHass && isHassDifferent(this.hass, oldHass, [this.submenuSelect.entity]))
     );
   }
 
@@ -187,7 +186,9 @@ export class FrigateCardSubmenuSelect extends LitElement {
           )
         : option;
       submenu.items.push({
+        state_color: true,
         selected: stateObj.state === option,
+        enabled: true,
         title: title || option,
         ...((entity.startsWith('select.') || entity.startsWith('input_select.')) && {
           tap_action: {
