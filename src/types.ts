@@ -466,10 +466,10 @@ export type MenuStateIcon = z.infer<typeof menuStateIconSchema>;
 const menuSubmenuItemSchema = elementsBaseSchema.extend({
   entity: z.string().optional(),
   icon: z.string().optional(),
-  state_color: z.boolean().default(true).optional(),
-  selected: z.boolean().default(false).optional(),
+  state_color: z.boolean().default(true),
+  selected: z.boolean().default(false),
   subtitle: z.string().optional(),
-  enabled: z.boolean().default(true).optional(),
+  enabled: z.boolean().default(true),
 });
 export type MenuSubmenuItem = z.infer<typeof menuSubmenuItemSchema>;
 

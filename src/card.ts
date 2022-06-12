@@ -366,6 +366,7 @@ export class FrigateCard extends LitElement {
           camera: camera,
         });
         return {
+          enabled: true,
           icon: getCameraIcon(this._hass, config),
           entity: config.camera_entity,
           state_color: true,
@@ -538,6 +539,8 @@ export class FrigateCard extends LitElement {
         });
 
         return {
+          enabled: true,
+          selected: false,
           icon: getEntityIcon(this._hass, playerEntityID) || 'mdi:cast',
           entity: playerEntityID,
           state_color: false,
