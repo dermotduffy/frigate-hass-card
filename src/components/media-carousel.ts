@@ -31,10 +31,14 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   // fullscreen, etc. Always call the adaptive height handler when the size
   // changes.
   protected _resizeObserver: ResizeObserver;
+  protected _intersectionObserver: IntersectionObserver;
 
   constructor() {
     super();
     this._resizeObserver = new ResizeObserver(this._adaptiveHeightHandler.bind(this));
+    this._intersectionObserver = new IntersectionObserver(
+      this._intersectionHandler.bind(this),
+    );
   }
 
   /**
@@ -89,6 +93,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     this.addEventListener('frigate-card:media-show', this._adaptiveHeightHandler);
     this.addEventListener('frigate-card:media-show', this._titleHandler);
     this._resizeObserver.observe(this);
+    this._intersectionObserver.observe(this);
   }
 
   /**
@@ -101,6 +106,39 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     this.removeEventListener('frigate-card:media-show', this._adaptiveHeightHandler);
     this.removeEventListener('frigate-card:media-show', this._titleHandler);
     this._resizeObserver.disconnect();
+    this._intersectionObserver.disconnect();
+  }
+
+  /**
+   * Called when the carousel intersects with the viewport.
+   * @param entries The IntersectionObserverEntry entries (should be only 1).
+   */
+  protected _intersectionHandler(entries: IntersectionObserverEntry[]): void {
+    /**
+     * - If the DOM that contains this carousel changes such that it causes
+     *   slides to entirely appear/disappear (e.g. `display: none` or hidden),
+     *   then the displayed slide sizes will significantly change and the
+     *   carousel will need to be reinitialized. Without this, odd bugs may
+     *   occur for some users in some circumstances causing the carousel to
+     *   appear 'stuck'.
+     * - Example bug when this reinitialization is not performed:
+     *   https://github.com/dermotduffy/frigate-hass-card/issues/651
+     */
+
+    const reInit = (): void => {
+      this._carousel?.reInit();
+    };
+
+    if (entries.some((entry) => entry.isIntersecting)) {
+      // For performance, run the reinit in idle cycles if the browser supports
+      // it, but only give it 400ms before running as it may otherwise be
+      // noticeable to the user.
+      if (window.requestIdleCallback !== undefined) {
+        window.requestIdleCallback(reInit, { timeout: 400 });
+      } else {
+        reInit();
+      }
+    }
   }
 
   protected _destroyCarousel(): void {
@@ -237,13 +275,6 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     // isValidMediaShowInfo is used to prevent saving media info that will be
     // rejected upstream (empty 1x1 images will be rejected here).
     if (mediaShowInfo && isValidMediaShowInfo(mediaShowInfo)) {
-      if (!Object.keys(this._mediaShowInfo).length) {
-        // The carousel will be malformed on Safari unless we re-init the
-        // carousel after the first media load. The original options are
-        // included here, although this should not be necessary (without
-        // including them, Safari ends up not having a looping live carousel).
-        this._carousel?.reInit(this._getOptions());
-      }
       this._mediaShowInfo[slideIndex] = mediaShowInfo;
       if (this._carousel && this._carousel?.selectedScrollSnap() === slideIndex) {
         dispatchExistingMediaShowInfoAsEvent(this, mediaShowInfo);
