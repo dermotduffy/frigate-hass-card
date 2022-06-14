@@ -907,6 +907,12 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
           (e as FrigateCardError).context,
         );
       }
+      if (webrtcElement) {
+        // Set the id to ensure that the relevant CSS styles will have
+        // sufficient specifity to overcome some styles that are otherwise
+        // applied to <ha-card> in Safari.
+        webrtcElement.id = "webrtc";
+      }
       return html`${webrtcElement}`;
     };
 
