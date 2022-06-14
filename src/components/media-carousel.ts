@@ -26,7 +26,6 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   protected _previousControlRef: Ref<FrigateCardNextPreviousControl> = createRef();
   protected _titleControlRef: Ref<FrigateCardTitleControl> = createRef();
   protected _titleTimerID: number | null = null;
-  protected _needReInit = false;
 
   // This carousel may be resized by Lovelace resizes, window resizes,
   // fullscreen, etc. Always call the adaptive height handler when the size
@@ -126,7 +125,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
      *   https://github.com/dermotduffy/frigate-hass-card/issues/651
      */
 
-    const reinit = (): void => {
+    const reInit = (): void => {
       this._carousel?.reInit();
     };
 
@@ -135,9 +134,9 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
       // it, but only give it 400ms before running as it may otherwise be
       // noticeable to the user.
       if (window.requestIdleCallback !== undefined) {
-        window.requestIdleCallback(reinit, { timeout: 400 });
+        window.requestIdleCallback(reInit, { timeout: 400 });
       } else {
-        reinit();
+        reInit();
       }
     }
   }
