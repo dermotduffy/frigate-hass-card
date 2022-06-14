@@ -5,7 +5,7 @@
 }
 
 /* Don't drop shadow or have radius for nested webrtc card */
-webrtc-camera ha-card {
+#webrtc ha-card {
   box-shadow: none;
   border-radius: 0px;
   background-color: black;
