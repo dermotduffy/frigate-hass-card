@@ -1,4 +1,5 @@
 import { HomeAssistant } from 'custom-card-helpers';
+import { HassEntity } from 'home-assistant-js-websocket';
 import {
   CSSResultGroup,
   html,
@@ -45,8 +46,11 @@ export class FrigateCardImage extends LitElement {
    * Get the camera entity for the current camera configuration.
    * @returns The entity or undefined if no camera entity is available.
    */
-  protected _getCameraEntity(): string | undefined {
-    return this.cameraConfig?.camera_entity || this.cameraConfig?.webrtc_card?.entity;
+  protected _getCameraEntity(): string | null {
+    return (
+      (this.cameraConfig?.camera_entity || this.cameraConfig?.webrtc_card?.entity) ??
+      null
+    );
   }
 
   /**
@@ -59,23 +63,7 @@ export class FrigateCardImage extends LitElement {
       return false;
     }
 
-    // If camera mode is enabled, reject all updates if hass is older than
-    // HASS_REJECTION_CUTOFF_MS or if HASS is not currently connected. By using
-    // an older hass (even if it is not the property being updated), we run the
-    // risk that the JS has an old access token for the camera, and that results
-    // in a notification on the HA UI about a failed login. See
-    // https://github.com/dermotduffy/frigate-hass-card/issues/398 .
     const cameraEntity = this._getCameraEntity();
-    const state = cameraEntity ? this.hass.states[cameraEntity] : undefined;
-    if (
-      this.imageConfig?.mode === 'camera' &&
-      (!this.hass.connected ||
-        !state ||
-        Date.now() - Date.parse(state.last_updated) >= HASS_REJECTION_CUTOFF_MS)
-    ) {
-      return false;
-    }
-
     if (
       changedProps.has('hass') &&
       changedProps.size == 1 &&
@@ -113,14 +101,42 @@ export class FrigateCardImage extends LitElement {
       }
     }
 
-    // If the camera changed, immediately discard the old value.
-    if (changedProps.has('cameraConfig')) {
+    // If the camera or view changed, immediately discard the old value (view to
+    // allow pressing of the image button to fetch a fresh image). Likewise, if
+    // the state is not acceptable, discard the old value (to allow a stock or
+    // backup image to be displayed).
+    if (
+      changedProps.has('cameraConfig') ||
+      changedProps.has('view') ||
+      (this.imageConfig?.mode === 'camera' &&
+        !this._getAcceptableState(this._getCameraEntity()))
+    ) {
       this._cachedValueController?.clearValue();
     }
 
     if (!this._cachedValueController?.value) {
       this._cachedValueController?.updateValue();
     }
+  }
+
+  /**
+   * Determine if a given entity is acceptable as the basis for an image render
+   * (detects old or disconnected states). Using an old state is problematic as
+   * it runs the risk that the JS has an old access token for the camera, and
+   * that results in a notification on the HA UI about a failed login. See:
+   * https://github.com/dermotduffy/frigate-hass-card/issues/398 .
+   * @param entity The entity.
+   * @returns The state or null if not acceptable.
+   */
+  protected _getAcceptableState(entity: string | null): HassEntity | null {
+    const state = (entity ? this.hass?.states[entity] : null) ?? null;
+
+    return !!this.hass &&
+      this.hass.connected &&
+      !!state &&
+      Date.now() - Date.parse(state.last_updated) < HASS_REJECTION_CUTOFF_MS
+      ? state
+      : null;
   }
 
   /**
@@ -177,16 +193,14 @@ export class FrigateCardImage extends LitElement {
   }
 
   protected _getImageSource(): string {
-    if (this.imageConfig?.mode === 'url' && this.imageConfig?.url) {
-      return this._buildImageURL(this.imageConfig.url);
-    } else if (this.hass && this.imageConfig?.mode === 'camera') {
-      const entity = this._getCameraEntity();
-      if (entity) {
-        const state = this.hass.states[entity];
-        if (state && state.attributes.entity_picture) {
-          return this._buildImageURL(state.attributes.entity_picture);
-        }
+    if (this.hass && this.imageConfig?.mode === 'camera') {
+      const state = this._getAcceptableState(this._getCameraEntity());
+      if (state?.attributes.entity_picture) {
+        return this._buildImageURL(state.attributes.entity_picture);
       }
+    }
+    if (this.imageConfig?.mode !== 'screensaver' && this.imageConfig?.url) {
+      return this._buildImageURL(this.imageConfig.url);
     }
     return defaultImage;
   }
@@ -196,7 +210,8 @@ export class FrigateCardImage extends LitElement {
    */
   protected _forceSafeImage(stockOnly?: boolean): void {
     if (this._refImage.value) {
-      this._refImage.value.src = (!stockOnly && this.imageConfig?.url) ? this.imageConfig.url : defaultImage;
+      this._refImage.value.src =
+        !stockOnly && this.imageConfig?.url ? this.imageConfig.url : defaultImage;
     }
   }
 
@@ -214,8 +229,8 @@ export class FrigateCardImage extends LitElement {
               // In camera mode, the user has likely not made an error, but HA
               // may be unavailble, so show the stock image. Don't let the URL
               // override the stock image in this case, as this could create an
-              // error loop.
-              this._forceSafeImage(true)
+              // error loop if that URL subsequently failed to load.
+              this._forceSafeImage(true);
             } else if (this.imageConfig?.mode === 'url') {
               // In url mode, the user likely specified a URL that cannot be
               // resolved. Show an error message.
