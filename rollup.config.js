@@ -69,6 +69,9 @@ const config = {
   output: {
     file: 'dist/frigate-hass-card.js',
     format: 'es',
+    ...(dev && {
+      sourcemap: true,
+    }),
   },
   plugins: plugins,
   // These two files use this at the toplevel, which causes rollup warning
