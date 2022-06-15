@@ -62,6 +62,9 @@ const URL_SIGN_REFRESH_THRESHOLD_SECONDS = 1 * 60 * 60;
 @customElement('frigate-card-live')
 export class FrigateCardLive extends LitElement {
   @property({ attribute: false })
+  public conditionState?: ConditionState;
+
+  @property({ attribute: false })
   protected hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
@@ -75,9 +78,6 @@ export class FrigateCardLive extends LitElement {
 
   @property({ attribute: false, hasChanged: contentsChanged })
   protected liveOverrides?: LiveOverrides;
-
-  @property({ attribute: false })
-  protected conditionState?: ConditionState;
 
   set preloaded(preloaded: boolean) {
     this._preloaded = preloaded;

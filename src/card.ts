@@ -28,6 +28,7 @@ import './components/gallery.js';
 import './components/image.js';
 import { FrigateCardImage } from './components/image.js';
 import './components/live.js';
+import { FrigateCardLive } from './components/live.js';
 import './components/menu.js';
 import { FrigateCardMenu, FRIGATE_BUTTON_MENU_ICON } from './components/menu.js';
 import './components/message.js';
@@ -164,12 +165,12 @@ export class FrigateCard extends LitElement {
   @property({ attribute: false })
   protected _view?: View;
 
-  @state()
   protected _conditionState?: ConditionState;
 
   protected _refMenu: Ref<FrigateCardMenu> = createRef();
   protected _refElements: Ref<FrigateCardElements> = createRef();
   protected _refImage: Ref<FrigateCardImage> = createRef();
+  protected _refLive: Ref<FrigateCardLive> = createRef();
 
   // user interaction timer ("screensaver" functionality, return to default
   // view after user interaction).
@@ -272,6 +273,17 @@ export class FrigateCard extends LitElement {
       camera: this._view?.camera,
       state: this._hass?.states,
     };
+
+    // Update the components that need the new condition state. Passed directly
+    // to them to avoid the performance hit of a entire card re-render (esp.
+    // when using card-mod).
+    // https://github.com/dermotduffy/frigate-hass-card/issues/678
+    if (this._refLive.value) {
+      this._refLive.value.conditionState = this._conditionState;
+    }
+    if (this._refElements.value) {
+      this._refElements.value.conditionState = this._conditionState;
+    }
 
     const overriddenConfig = getOverriddenConfig(
       this._config,
@@ -1813,6 +1825,7 @@ export class FrigateCard extends LitElement {
         this._getConfig().live.preload || (!this._message && this._view.is('live'))
           ? html`
               <frigate-card-live
+                ${ref(this._refLive)}
                 .hass=${this._hass}
                 .view=${this._view}
                 .liveConfig=${this._config.live}

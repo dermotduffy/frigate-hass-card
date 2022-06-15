@@ -156,10 +156,10 @@ export class FrigateCardElements extends LitElement {
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  protected elements: PictureElements;
+  public conditionState?: ConditionState;
 
   @property({ attribute: false })
-  protected conditionState?: ConditionState;
+  protected elements: PictureElements;
 
   protected _boundMenuRemoveHandler = this._menuRemoveHandler.bind(this);
 
