@@ -1,0 +1,15 @@
+views:
+  - cards:
+      - type: custom:frigate-card
+        name: Frigate Card with Frigate Camera
+        cameras:
+          - camera_entity: camera.demo
+            live_provider: frigate-jsmpeg
+            id: camera_demo_jsmpeg
+          - camera_entity: camera.demo
+            live_provider: ha
+            id: camera_demo_ha
+      - type: custom:frigate-card
+        name: Frigate Card with non-Frigate Camera
+        cameras:
+          - camera_entity: camera.demo_camera
