@@ -1,355 +1,355 @@
 {
   "common": {
-    "version": "Version",
     "frigate_card": "Frigate card",
     "frigate_card_description": "A Lovelace card for use with Frigate",
-    "no_snapshots": "No snapshots",
+    "live": "Live",
+    "no_clip": "No recent clip",
     "no_clips": "No clips",
     "no_snapshot": "No recent snapshot",
-    "no_clip": "No recent clip",
-    "live": "Live",
-    "recordings": "Recordings"
+    "no_snapshots": "No snapshots",
+    "recordings": "Recordings",
+    "version": "Version"
   },
   "config": {
     "cameras": {
       "camera_entity": "Camera Entity",
-      "icon": "Icon for this camera (Autodetected from entity)",
-      "id": "Unique id for this camera in this card",
-      "title": "Title for this camera (Autodetected from entity)",
       "dependencies": {
-        "options": "Dependency Options",
+        "all_cameras": "Show events for all cameras with this camera",
         "cameras": "Show events for specific cameras with this camera",
-        "all_cameras": "Show events for all cameras with this camera"
+        "options": "Dependency Options"
       },
       "frigate": {
-        "options": "Frigate Options",
         "camera_name": "Frigate camera name (Autodetected from entity)",
         "client_id": "Frigate client id (For >1 Frigate server)",
         "label": "Frigate label/object filter",
+        "options": "Frigate Options",
         "url": "Frigate server URL",
         "zone": "Frigate zone"
       },
+      "icon": "Icon for this camera (Autodetected from entity)",
+      "id": "Unique id for this camera in this card",
       "live_provider": "Live view provider for this camera",
       "live_providers": {
         "auto": "Automatic",
-        "ha": "Home Assistant (i.e. HLS, LL-HLS, WebRTC native)",
         "frigate-jsmpeg": "Frigate JSMpeg",
+        "ha": "Home Assistant (i.e. HLS, LL-HLS, WebRTC native)",
         "webrtc-card": "WebRTC Card (i.e. AlexxIT's WebRTC Card)"
       },
+      "title": "Title for this camera (Autodetected from entity)",
       "triggers": {
-        "options": "Trigger Options",
         "entities": "Trigger from other entities",
         "motion": "Trigger by auto-detecting the motion sensor",
-        "occupancy": "Trigger by auto-detecting the occupancy sensor"
+        "occupancy": "Trigger by auto-detecting the occupancy sensor",
+        "options": "Trigger Options"
       },
       "webrtc_card": {
-        "options": "WebRTC Card Options",
         "entity": "WebRTC Card Camera Entity (Not a Frigate camera)",
+        "options": "WebRTC Card Options",
         "url": "WebRTC Card Camera URL"
       }
     },
     "common": {
       "media_action_conditions": {
         "all": "All opportunities",
-        "unselected": "On unselection",
-        "selected": "On selection",
         "hidden": "On browser/tab hiding",
-        "visible": "On browser/tab visibility",
-        "never": "Never"
-      }
-    },
-    "view": {
-      "camera_select": "View for newly selected cameras",
-      "dark_mode": "Dark mode",
-      "dark_modes": {
-        "on": "On",
-        "off": "Off",
-        "auto": "Auto"
-      },
-      "default": "Default view",
-      "views": {
-        "live": "Live view",
-        "clip": "Most recent clip",
-        "clips": "Clips gallery",
-        "snapshot": "Most recent snapshot",
-        "snapshots": "Snapshots gallery",
-        "image": "Static image",
-        "current": "Current view",
-        "timeline": "Timeline view"
-      },
-      "timeout_seconds": "Reset to default view X seconds after user action (0=never)",
-      "update_cycle_camera": "Cycle through cameras when default view updates",
-      "update_force": "Force card updates (ignore user interaction)",
-      "update_seconds": "Refresh default view every X seconds (0=never)",
-      "scan": {
-        "scan_mode": "Scan mode",
-        "enabled": "Scan mode enabled",
-        "show_trigger_status": "Show pulsing border when triggered",
-        "untrigger_reset": "Reset the view to default after untrigger",
-        "untrigger_seconds": "Seconds after inactive state change to untrigger"
-      }
-    },
-    "event_gallery": {
-      "controls": {
-        "options":"Event Gallery Controls",
-        "thumbnails": {
-          "size": "Event Gallery thumbnails size in pixels",
-          "show_details": "Show event details with thumbnails",
-          "show_controls": "Show event controls with thumbnails"
-        }
-      }
-    },
-    "media_viewer": {
-      "auto_play": "Automatically play media",
-      "auto_pause": "Automatically pause media",
-      "auto_mute": "Automatically mute media",
-      "auto_unmute": "Automatically unmute media",
-      "draggable": "Media Viewer can be dragged/swiped",
-      "lazy_load": "Media Viewer media is lazily loaded in carousel",
-      "transition_effect": "Media Viewer transition effect",
-      "transition_effects": {
-        "none": "No transition",
-        "slide": "Slide transition"
-      },
-      "controls": {
-        "options":"Media Viewer Controls",
-        "next_previous": {
-          "style": "Media Viewer next & previous control style",
-          "size": "Media Viewer next & previous control size in pixels",
-          "styles": {
-            "thumbnails": "Thumbnails",
-            "chevrons": "Chevrons",
-            "none": "None"
-          }
-        },
-        "thumbnails": {
-          "mode": "Media Viewer thumbnails mode",
-          "size": "Media Viewer thumbnails size in pixels",
-          "show_details": "Show details with thumbnails",
-          "show_controls": "Show controls with thumbnails",
-          "modes": {
-            "below": "Thumbnails below the media",
-            "above": "Thumbnails above the media",
-            "left": "Thumbnails in a drawer left of the media",
-            "right": "Thumbnails in a drawer right of the media",
-            "none": "No thumbnails"
-          }
-        },
-        "title": {
-          "mode": "Media Viewer media title display mode",
-          "modes": {
-            "none": "No title display",
-            "popup-top-left": "Popup on the top left",
-            "popup-top-right": "Popup on the top right",
-            "popup-bottom-left": "Popup on the bottom left",
-            "popup-bottom-right": "Popup on the bottom right"
-          },
-          "duration_seconds": "Seconds to display popup title (0=forever)"
-        }
-      }
-    },
-    "live": {
-      "preload": "Preload live view in the background",
-      "draggable": "Live cameras view can be dragged/swiped",
-      "lazy_load": "Live cameras are lazily loaded",
-      "lazy_unload": "Live cameras are lazily unloaded",
-      "auto_play": "Automatically play live cameras",
-      "auto_pause": "Automatically pause live cameras",
-      "auto_mute": "Automatically mute live cameras",
-      "auto_unmute": "Automatically unmute live cameras",
-      "transition_effect": "Live camera transition effect",
-      "controls": {
-        "options":"Live Controls",
-        "next_previous": {
-          "style": "Live view next & previous control style",
-          "size": "Live view next & previous control size in pixels",
-          "styles": {
-            "chevrons": "Chevrons",
-            "icons": "Icons",
-            "none": "None"
-          }
-        },
-        "thumbnails": {
-          "mode": "Live thumbnails mode",
-          "size": "Live thumbnails size in pixels",
-          "show_details": "Show event details with thumbnails",
-          "show_controls": "Show event controls with thumbnails",
-          "media": "Whether to show thumbnails of clips or snapshots",
-          "medias": {
-            "clips": "Clip thumbnails",
-            "snapshots": "Snapshot thumbnails"
-          }
-        },
-        "title": {
-          "mode": "Live media title display mode",
-          "duration_seconds": "Seconds to display popup title (0=forever)"
-        }
-      }
-    },
-    "image": {
-      "mode": "Image view mode",
-      "modes": {
-        "screensaver": "Embedded Frigate logo",
-        "url": "Arbitrary image specified by URL",
-        "camera": "Home Assistant camera snapshot of camera entity"
-      },
-      "url": "Static image URL for image view",
-      "refresh_seconds": "Number of seconds after which to refresh (0=never)"
-    },
-    "menu": {
-      "buttons": {
-        "frigate": "Frigate menu / Default view",
-        "cameras": "Cameras",
-        "live": "Live",
-        "media_player": "Send to media player",
-        "clips": "Clips",
-        "snapshots": "Snapshots",
-        "image": "Image",
-        "download": "Download",
-        "frigate_ui": "Frigate user interface",
-        "fullscreen": "Fullscreen",
-        "timeline": "Timeline",
-        "icon": "Icon",
-        "priority": "Priority",
-        "alignment": "Button alignment",
-        "alignments": {
-          "matching": "Matching the menu alignment",
-          "opposing": "Opposing the menu alignment"
-        },
-        "enabled": "Button enabled"
-      },
-      "style": "Menu style",
-      "styles": {
-        "none": "No menu",
-        "hidden": "Hidden menu",
-        "overlay": "Overlay menu",
-        "hover": "Hover menu",
-        "outside": "Outside menu"
-      },
-      "position": "Menu position",
-      "positions": {
-        "left": "Positioned on the left",
-        "right": "Positioned on the right",
-        "top": "Positioned on the top",
-        "bottom": "Positioned on the bottom"
-      },
-      "alignment": "Menu alignment",
-      "alignments": {
-        "left": "Aligned to the left",
-        "right": "Aligned to the right",
-        "top": "Aligned to the top",
-        "bottom": "Aligned to the bottom"
-      },
-      "button_size": "Menu button size in pixels"
-    },
-    "timeline": {
-      "window_seconds": "The default length of the timeline view in seconds",
-      "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",
-      "media": "The media the timeline displays",
-      "show_recordings": "Show recordings",
-      "medias": {
-        "all": "All media types",
-        "clips": "Clips",
-        "snapshots": "Snapshots"
-      },
-      "controls": {
-        "options":"Timeline Controls",
-        "thumbnails": {
-          "mode": "Timeline thumbnails mode",
-          "size": "Timeline thumbnails size in pixels",
-          "show_details": "Show event details with thumbnails",
-          "show_controls": "Show event controls with thumbnails"
-        }
+        "never": "Never",
+        "selected": "On selection",
+        "unselected": "On unselection",
+        "visible": "On browser/tab visibility"
       }
     },
     "dimensions": {
       "aspect_ratio": "Default aspect ratio (e.g. '16:9')",
       "aspect_ratio_mode": "Aspect ratio mode",
       "aspect_ratio_modes": {
-        "unconstrained": "Unconstrained aspect ratio",
         "dynamic": "Aspect ratio adjusts to media",
-        "static": "Static aspect ratio"
+        "static": "Static aspect ratio",
+        "unconstrained": "Unconstrained aspect ratio"
+      }
+    },
+    "event_gallery": {
+      "controls": {
+        "options": "Event Gallery Controls",
+        "thumbnails": {
+          "show_controls": "Show event controls with thumbnails",
+          "show_details": "Show event details with thumbnails",
+          "size": "Event Gallery thumbnails size in pixels"
+        }
+      }
+    },
+    "image": {
+      "mode": "Image view mode",
+      "modes": {
+        "camera": "Home Assistant camera snapshot of camera entity",
+        "screensaver": "Embedded Frigate logo",
+        "url": "Arbitrary image specified by URL"
+      },
+      "refresh_seconds": "Number of seconds after which to refresh (0=never)",
+      "url": "Static image URL for image view"
+    },
+    "live": {
+      "auto_mute": "Automatically mute live cameras",
+      "auto_pause": "Automatically pause live cameras",
+      "auto_play": "Automatically play live cameras",
+      "auto_unmute": "Automatically unmute live cameras",
+      "controls": {
+        "next_previous": {
+          "size": "Live view next & previous control size in pixels",
+          "style": "Live view next & previous control style",
+          "styles": {
+            "chevrons": "Chevrons",
+            "icons": "Icons",
+            "none": "None"
+          }
+        },
+        "options": "Live Controls",
+        "thumbnails": {
+          "media": "Whether to show thumbnails of clips or snapshots",
+          "medias": {
+            "clips": "Clip thumbnails",
+            "snapshots": "Snapshot thumbnails"
+          },
+          "mode": "Live thumbnails mode",
+          "show_controls": "Show event controls with thumbnails",
+          "show_details": "Show event details with thumbnails",
+          "size": "Live thumbnails size in pixels"
+        },
+        "title": {
+          "duration_seconds": "Seconds to display popup title (0=forever)",
+          "mode": "Live media title display mode"
+        }
+      },
+      "draggable": "Live cameras view can be dragged/swiped",
+      "lazy_load": "Live cameras are lazily loaded",
+      "lazy_unload": "Live cameras are lazily unloaded",
+      "preload": "Preload live view in the background",
+      "transition_effect": "Live camera transition effect"
+    },
+    "media_viewer": {
+      "auto_mute": "Automatically mute media",
+      "auto_pause": "Automatically pause media",
+      "auto_play": "Automatically play media",
+      "auto_unmute": "Automatically unmute media",
+      "controls": {
+        "next_previous": {
+          "size": "Media Viewer next & previous control size in pixels",
+          "style": "Media Viewer next & previous control style",
+          "styles": {
+            "chevrons": "Chevrons",
+            "none": "None",
+            "thumbnails": "Thumbnails"
+          }
+        },
+        "options": "Media Viewer Controls",
+        "thumbnails": {
+          "mode": "Media Viewer thumbnails mode",
+          "modes": {
+            "above": "Thumbnails above the media",
+            "below": "Thumbnails below the media",
+            "left": "Thumbnails in a drawer left of the media",
+            "none": "No thumbnails",
+            "right": "Thumbnails in a drawer right of the media"
+          },
+          "show_controls": "Show controls with thumbnails",
+          "show_details": "Show details with thumbnails",
+          "size": "Media Viewer thumbnails size in pixels"
+        },
+        "title": {
+          "duration_seconds": "Seconds to display popup title (0=forever)",
+          "mode": "Media Viewer media title display mode",
+          "modes": {
+            "none": "No title display",
+            "popup-bottom-left": "Popup on the bottom left",
+            "popup-bottom-right": "Popup on the bottom right",
+            "popup-top-left": "Popup on the top left",
+            "popup-top-right": "Popup on the top right"
+          }
+        }
+      },
+      "draggable": "Media Viewer can be dragged/swiped",
+      "lazy_load": "Media Viewer media is lazily loaded in carousel",
+      "transition_effect": "Media Viewer transition effect",
+      "transition_effects": {
+        "none": "No transition",
+        "slide": "Slide transition"
+      }
+    },
+    "menu": {
+      "alignment": "Menu alignment",
+      "alignments": {
+        "bottom": "Aligned to the bottom",
+        "left": "Aligned to the left",
+        "right": "Aligned to the right",
+        "top": "Aligned to the top"
+      },
+      "button_size": "Menu button size in pixels",
+      "buttons": {
+        "alignment": "Button alignment",
+        "alignments": {
+          "matching": "Matching the menu alignment",
+          "opposing": "Opposing the menu alignment"
+        },
+        "cameras": "Cameras",
+        "clips": "Clips",
+        "download": "Download",
+        "enabled": "Button enabled",
+        "frigate": "Frigate menu / Default view",
+        "frigate_ui": "Frigate user interface",
+        "fullscreen": "Fullscreen",
+        "icon": "Icon",
+        "image": "Image",
+        "live": "Live",
+        "media_player": "Send to media player",
+        "priority": "Priority",
+        "snapshots": "Snapshots",
+        "timeline": "Timeline"
+      },
+      "position": "Menu position",
+      "positions": {
+        "bottom": "Positioned on the bottom",
+        "left": "Positioned on the left",
+        "right": "Positioned on the right",
+        "top": "Positioned on the top"
+      },
+      "style": "Menu style",
+      "styles": {
+        "hidden": "Hidden menu",
+        "hover": "Hover menu",
+        "none": "No menu",
+        "outside": "Outside menu",
+        "overlay": "Overlay menu"
       }
     },
     "overrides": {
       "info": "This card configuration has manually specified overrides configured which may override values shown in the visual editor, please consult the code editor to view/modify these overrides"
+    },
+    "timeline": {
+      "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",
+      "controls": {
+        "options": "Timeline Controls",
+        "thumbnails": {
+          "mode": "Timeline thumbnails mode",
+          "show_controls": "Show event controls with thumbnails",
+          "show_details": "Show event details with thumbnails",
+          "size": "Timeline thumbnails size in pixels"
+        }
+      },
+      "media": "The media the timeline displays",
+      "medias": {
+        "all": "All media types",
+        "clips": "Clips",
+        "snapshots": "Snapshots"
+      },
+      "show_recordings": "Show recordings",
+      "window_seconds": "The default length of the timeline view in seconds"
+    },
+    "view": {
+      "camera_select": "View for newly selected cameras",
+      "dark_mode": "Dark mode",
+      "dark_modes": {
+        "auto": "Auto",
+        "off": "Off",
+        "on": "On"
+      },
+      "default": "Default view",
+      "scan": {
+        "enabled": "Scan mode enabled",
+        "scan_mode": "Scan mode",
+        "show_trigger_status": "Show pulsing border when triggered",
+        "untrigger_reset": "Reset the view to default after untrigger",
+        "untrigger_seconds": "Seconds after inactive state change to untrigger"
+      },
+      "timeout_seconds": "Reset to default view X seconds after user action (0=never)",
+      "update_cycle_camera": "Cycle through cameras when default view updates",
+      "update_force": "Force card updates (ignore user interaction)",
+      "update_seconds": "Refresh default view every X seconds (0=never)",
+      "views": {
+        "clip": "Most recent clip",
+        "clips": "Clips gallery",
+        "current": "Current view",
+        "image": "Static image",
+        "live": "Live view",
+        "snapshot": "Most recent snapshot",
+        "snapshots": "Snapshots gallery",
+        "timeline": "Timeline view"
+      }
     }
   },
   "editor": {
+    "add_new_camera": "Add new camera",
+    "button": "Button",
+    "camera": "Camera",
     "cameras": "Cameras",
     "cameras_secondary": "What cameras to render on this card",
-    "view": "View",
-    "view_secondary": "What the card should show and how to show it",
-    "menu": "Menu",
-    "menu_secondary": "Menu look & feel options",
-    "live": "Live",
-    "live_secondary": "Live camera view options",
-    "event_gallery": "Event gallery",
-    "event_gallery_secondary": "Snapshots & clips gallery options",
-    "media_viewer": "Media viewer",
-    "media_viewer_secondary": "Viewer for static media (clips, snapshots or recordings)",
-    "image": "Image",
-    "image_secondary": "Static image view options",
+    "delete": "Delete",
     "dimensions": "Dimensions",
     "dimensions_secondary": "Dimensions & shape options",
-    "button": "Button",
-    "upgrade": "Upgrade",
-    "upgrade_available": "An automatic card configuration upgrade is available",
-    "delete": "Delete",
-    "move_up": "Move up",
+    "event_gallery": "Event gallery",
+    "event_gallery_secondary": "Snapshots & clips gallery options",
+    "image": "Image",
+    "image_secondary": "Static image view options",
+    "live": "Live",
+    "live_secondary": "Live camera view options",
+    "media_viewer": "Media viewer",
+    "media_viewer_secondary": "Viewer for static media (clips, snapshots or recordings)",
+    "menu": "Menu",
+    "menu_secondary": "Menu look & feel options",
     "move_down": "Move down",
-    "add_new_camera": "Add new camera",
-    "camera": "Camera",
+    "move_up": "Move up",
     "overrides": "Overrides are active",
     "overrides_secondary": "Dynamic configuration overrides detected",
     "timeline": "Timeline",
-    "timeline_secondary": "Event timeline options"
+    "timeline_secondary": "Event timeline options",
+    "upgrade": "Upgrade",
+    "upgrade_available": "An automatic card configuration upgrade is available",
+    "view": "View",
+    "view_secondary": "What the card should show and how to show it"
+  },
+  "error": {
+    "could_not_render_elements": "Could not render picture elements",
+    "could_not_resolve": "Could not resolve media URL",
+    "diagnostics": "Card diagnostics. Please review for confidential information prior to sharing",
+    "download_no_event_id": "Could not extract Frigate event id from media",
+    "download_no_media": "No media to download",
+    "download_sign_failed": "Could not sign media URL for download",
+    "duplicate_camera_id": "Duplicate Frigate camera id for the following camera, use the 'id' parameter to uniquely identify cameras",
+    "empty_response": "Received empty response from Home Assistant for request",
+    "failed_response": "Failed to receive response from Home Assistant for request",
+    "failed_sign": "Could not sign Home Assistant URL",
+    "image_load_error": "The image could not be loaded",
+    "invalid_configuration": "Invalid configuration",
+    "invalid_configuration_no_hint": "No location hint available (bad or missing type?)",
+    "invalid_elements_config": "Invalid picture elements configuration",
+    "invalid_keys": "Invalid keys",
+    "invalid_response": "Received invalid response from Home Assistant for request",
+    "jsmpeg_no_player": "Could not start JSMPEG player",
+    "jsmpeg_no_sign": "Could not retrieve or sign JSMPEG websocket path",
+    "live_camera_unavailable": "The configured camera_entity is unavailable",
+    "no_camera_id": "Could not determine camera id for the following camera, may need to set 'id' parameter manually",
+    "no_camera_name": "Could not determine a Frigate camera name for camera (or one of its dependents), please specify either 'camera_entity' or 'camera_name'",
+    "no_cameras": "No valid cameras found, you must configure at least one camera entry",
+    "no_live_camera": "The camera_entity parameter must be set and valid for this live provider",
+    "timeline_no_cameras": "No Frigate cameras to show in timeline",
+    "troubleshooting": "Check troubleshooting",
+    "undecodable_response": "Could not decode response from Home Assistant for request",
+    "unknown": "Unknown error",
+    "upgrade_available": "An automated card configuration upgrade is available, please visit the visual card editor",
+    "webrtc_card_reported_error": "WebRTC Card reported an error",
+    "webrtc_card_waiting": "Waiting for WebRTC Card to load ..."
   },
   "event": {
-    "start": "Start",
     "duration": "Duration",
     "in_progress": "In Progress",
-    "score": "Score"
+    "score": "Score",
+    "start": "Start"
   },
-  "recording": { 
+  "recording": {
     "events": "Events",
     "seek": "Seek"
   },
   "thumbnail": {
+    "no_thumbnail": "No thumbnail available",
     "retain_indefinitely": "Event will be indefinitely retained",
-    "timeline": "See event in timeline",
-    "no_thumbnail": "No thumbnail available"
-  },
-  "error": {
-    "diagnostics": "Card diagnostics. Please review for confidential information prior to sharing",
-    "undecodable_response": "Could not decode response from Home Assistant for request",
-    "empty_response": "Received empty response from Home Assistant for request",
-    "invalid_response": "Received invalid response from Home Assistant for request",
-    "failed_response": "Failed to receive response from Home Assistant for request",
-    "failed_sign": "Could not sign Home Assistant URL",
-    "invalid_keys": "Invalid keys",
-    "unknown": "Unknown error",
-    "troubleshooting": "Check troubleshooting",
-    "could_not_resolve": "Could not resolve media URL",
-    "no_live_camera": "The camera_entity parameter must be set and valid for this live provider",
-    "live_camera_unavailable": "The configured camera_entity is unavailable",
-    "image_load_error": "The image could not be loaded",
-    "invalid_configuration": "Invalid configuration",
-    "invalid_configuration_no_hint": "No location hint available (bad or missing type?)",
-    "upgrade_available": "An automated card configuration upgrade is available, please visit the visual card editor",
-    "webrtc_card_reported_error": "WebRTC Card reported an error",
-    "webrtc_card_waiting": "Waiting for WebRTC Card to load ...",
-    "no_cameras": "No valid cameras found, you must configure at least one camera entry",
-    "no_camera_id": "Could not determine camera id for the following camera, may need to set 'id' parameter manually",
-    "duplicate_camera_id": "Duplicate Frigate camera id for the following camera, use the 'id' parameter to uniquely identify cameras",
-    "could_not_render_elements": "Could not render picture elements",
-    "invalid_elements_config": "Invalid picture elements configuration",
-    "jsmpeg_no_sign": "Could not retrieve or sign JSMPEG websocket path",
-    "jsmpeg_no_player": "Could not start JSMPEG player",
-    "no_camera_name": "Could not determine a Frigate camera name for camera (or one of its dependents), please specify either 'camera_entity' or 'camera_name'",
-    "download_no_media": "No media to download",
-    "download_no_event_id": "Could not extract Frigate event id from media",
-    "download_sign_failed": "Could not sign media URL for download",
-    "timeline_no_cameras": "No Frigate cameras to show in timeline"
+    "timeline": "See event in timeline"
   }
 }
