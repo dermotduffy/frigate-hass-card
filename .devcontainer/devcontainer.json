@@ -1,8 +1,8 @@
 // See https://aka.ms/vscode-remote/devcontainer.json for format details.
 {
-  "dockerComposeFile": "docker-compose.yml",
+  "dockerComposeFile": "../docker-compose.yml",
   "service": "dev",
-  "workspaceFolder": "/workspace",
+  "workspaceFolder": "${localWorkspaceFolder}",
   "shutdownAction": "stopCompose",
   "portsAttributes": {
     "41000": {
@@ -10,7 +10,7 @@
       "onAutoForward": "silent"
     }
   },
-  "initializeCommand": "git submodule update --init",
+  "initializeCommand": ".devcontainer/initialize.sh",
   "postCreateCommand": "yarn install",
   "extensions": [
     "github.vscode-pull-request-github",
@@ -21,7 +21,8 @@
     "runem.lit-plugin",
     "davidanson.vscode-markdownlint",
     "redhat.vscode-yaml",
-    "lokalise.i18n-ally"
+    "lokalise.i18n-ally",
+    "ms-azuretools.vscode-docker"
   ],
   "settings": {
     "files.eol": "\n",
