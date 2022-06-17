@@ -12,11 +12,7 @@
   "config": {
     "cameras": {
       "camera_entity": "Entidade da Câmera",
-      "camera_name": "Nome da câmera do Frigate (detectado automaticamente pela entidade)",
-      "client_id": "ID de cliente do Frigate (para >1 servidor da Frigate)",
       "id": "ID exclusivo para esta câmera nesse cartão",
-      "label": "Filtro de rótulo/objeto do Frigate",
-      "frigate_url": "URL do servidor Frigate",
       "title": "Título para esta câmera (detectado automaticamente pela entidade)",
       "icon": "Ícone para esta câmera (detectado automaticamente pela entidade)",
       "live_provider": "Provedor de visualização ao vivo para esta câmera",
@@ -29,8 +25,7 @@
       "webrtc_card": {
         "entity": "Entidade de câmera de cartão WebRTC (não é uma câmera Frigate)",
         "url": "URL da câmera do cartão WebRTC"
-      },
-      "zone": "Zona Frigate"
+      }
     },
     "view": {
       "camera_select": "Visualização de câmeras recém-selecionadas",
@@ -49,9 +44,7 @@
       "update_force": "Forçar atualizações do cartão (ignore a interação do usuário)",
       "update_seconds": "Atualize a visualização padrão a cada X segundos (0 = nunca)"
     },
-    "event_gallery": {
-      "min_columns": "Número mínimo de colunas"
-    },
+    "event_gallery": {},
     "media_viewer": {
       "auto_play": "Reproduzir mídia automaticamente",
       "auto_unmute": "Ativar mídia automaticamente",
@@ -144,24 +137,7 @@
         "download": "Baixe a mídia do evento",
         "cameras": "Selecionar câmera"
       },
-      "mode": "Modo do menu",
-      "modes": {
-        "none": "Sem menu",
-        "hidden-top": "Ocultar parte superior",
-        "hidden-left": "Ocultar esquerda",
-        "hidden-bottom": "Ocultar parte inferior",
-        "hidden-right": "Ocultar direita",
-        "overlay-top": "Sobreposição da parte superior",
-        "overlay-left": "Sobreposição esquerda",
-        "overlay-bottom": "Sobreposição da parte inferior",
-        "overlay-right": "Sobreposição direita",
-        "hover-top": "Passar para cima",
-        "hover-left": "Passar para esquerda",
-        "hover-bottom": "Passar para baixo",
-        "hover-right": "Passar para direita",
-        "above": "Acima",
-        "below": "Abaixo"
-      },
+      "modes": {},
       "button_size": "Tamanho do botão de menu (e.g. '40px')"
     },
     "dimensions": {
@@ -194,7 +170,6 @@
     "image_secondary": "Opções de visualização de imagem estática",
     "dimensions": "Dimensões",
     "dimensions_secondary": "Dimensões e opções de forma",
-    "show_button": "Mostrar botão",
     "upgrade": "Upgrade",
     "upgrade_available": "Um upgrade automático da configuração de cartão está disponível",
     "delete": "Excluir",
