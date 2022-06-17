@@ -1,6 +1,0 @@
-views:
-  - cards:
-      - type: custom:frigate-card
-        name: Frigate Card Development
-        cameras:
-          - camera_entity: camera.demo_camera

@@ -1,0 +1,4 @@
+[submodule "frigate-hass-integration"]
+	path = .devcontainer/frigate-hass-integration
+	url = https://github.com/blakeblackshear/frigate-hass-integration
+	branch = master

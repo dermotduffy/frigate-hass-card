@@ -21,32 +21,6 @@
         }
       },
       "isBackground": true
-    },
-    {
-      "label": "Home Assistant",
-      "type": "shell",
-      "command": "container start",
-      "problemMatcher": {
-        "pattern": [
-          {
-            "regexp": ".",
-            "file": 1,
-            "location": 2,
-            "message": 3
-          }
-        ],
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": ".",
-          "endsPattern": "."
-        }
-      },
-      "isBackground": true
-    },
-    {
-      "label": "Rollup & Home Assistant",
-      "dependsOn": ["Rollup", "Home Assistant"],
-      "problemMatcher": []
     }
   ]
 }

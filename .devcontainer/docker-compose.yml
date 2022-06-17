@@ -1,0 +1,27 @@
+---
+version: '3'
+services:
+  dev:
+    user: node
+    image: mcr.microsoft.com/vscode/devcontainers/javascript-node:0-16
+    ports:
+      # Rollup
+      - 41000:41000
+    volumes:
+      - ..:/workspace:cached
+    command: [sleep, infinity]
+  hass:
+    extends:
+      file: ./frigate-hass-integration/docker-compose.yml
+      service: hass
+    volumes:
+      - ./config/ui-lovelace.yaml:/config/ui-lovelace.yaml:ro
+      - ./config/configuration.yaml:/config/configuration.yaml:ro
+  frigate:
+    extends:
+      file: ./frigate-hass-integration/docker-compose.yml
+      service: frigate
+  mqtt:
+    extends:
+      file: ./frigate-hass-integration/docker-compose.yml
+      service: mqtt

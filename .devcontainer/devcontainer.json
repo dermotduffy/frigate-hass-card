@@ -1,17 +1,16 @@
 // See https://aka.ms/vscode-remote/devcontainer.json for format details.
 {
-  "image": "ghcr.io/ludeeus/devcontainer/generic:latest",
-  "forwardPorts": [5000, 8123],
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "dev",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
   "portsAttributes": {
-    "5000": {
+    "41000": {
       "label": "Rollup",
       "onAutoForward": "silent"
-    },
-    "8123": {
-      "label": "Home Assistant",
-      "onAutoForward": "notify"
     }
   },
+  "initializeCommand": "git submodule update --init",
   "postCreateCommand": "yarn install",
   "extensions": [
     "github.vscode-pull-request-github",
