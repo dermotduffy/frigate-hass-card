@@ -1,12 +1,52 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "npm",
-			"script": "start",
-			"problemMatcher": [],
-			"label": "npm: start",
-			"detail": "rollup -c --watch"
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Rollup",
+      "type": "npm",
+      "script": "start",
+      "problemMatcher": {
+        "pattern": [
+          {
+            "regexp": ".",
+            "file": 1,
+            "location": 2,
+            "message": 3
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^bundles",
+          "endsPattern": "^created"
+        }
+      },
+      "isBackground": true
+    },
+    {
+      "label": "Home Assistant",
+      "type": "shell",
+      "command": "container start",
+      "problemMatcher": {
+        "pattern": [
+          {
+            "regexp": ".",
+            "file": 1,
+            "location": 2,
+            "message": 3
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "."
+        }
+      },
+      "isBackground": true
+    },
+    {
+      "label": "Rollup & Home Assistant",
+      "dependsOn": ["Rollup", "Home Assistant"],
+      "problemMatcher": []
+    }
+  ]
 }
