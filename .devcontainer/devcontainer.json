@@ -5,7 +5,7 @@
   "workspaceFolder": "/workspace",
   "shutdownAction": "stopCompose",
   "portsAttributes": {
-    "5001": {
+    "41000": {
       "label": "Rollup",
       "onAutoForward": "silent"
     }

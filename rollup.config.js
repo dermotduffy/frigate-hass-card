@@ -18,7 +18,7 @@ const dev = watch || process.env.DEV === 'true' || process.env.DEV === '1';
 const serveopts = {
   contentBase: ['./dist'],
   host: '0.0.0.0',
-  port: 5001,
+  port: 41000,
   allowCrossOrigin: true,
   headers: {
     'Access-Control-Allow-Origin': '*',
