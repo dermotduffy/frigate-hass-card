@@ -2793,7 +2793,6 @@ You can use the [VS Code Remote - Containers](https://code.visualstudio.com/docs
 2. Open VS Code on it
 3. Reopen the folder in the Dev Container
 4. Once done, press `F5` to start debugging
-   >**NOTE**: Use `admin`/`admin` to log into Home Assistant.
 
 Ideally, everything should be working without any additional configuration.
 
