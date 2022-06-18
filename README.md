@@ -2789,7 +2789,7 @@ Resultant build will be at `dist/frigate-hass-card.js`. This could be installed 
 
 You can use the [VS Code Remote - Containers](https://code.visualstudio.com/docs/remote/containers) extension to speed up the development environment creation. Simply:
 
-1. Clone the repository in your machine
+1. Clone the repository to your machine
 2. Open VS Code on it
 3. Reopen the folder in the Dev Container
 4. Once done, press `F5` to start debugging
