@@ -15,8 +15,8 @@ services:
       file: ./frigate-hass-integration/docker-compose.yml
       service: hass
     volumes:
-      - ./config/ui-lovelace.yaml:/config/ui-lovelace.yaml:ro
-      - ./config/configuration.yaml:/config/configuration.yaml:ro
+      - ./config/.storage/lovelace_resources:/config/preconfig/.storage/lovelace_resources
+      - ./config/.storage/lovelace:/config/preconfig/.storage/lovelace
   frigate:
     extends:
       file: ./frigate-hass-integration/docker-compose.yml
