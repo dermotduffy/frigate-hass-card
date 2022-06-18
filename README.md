@@ -2790,9 +2790,9 @@ Resultant build will be at `dist/frigate-hass-card.js`. This could be installed 
 You can use the [VS Code Remote - Containers](https://code.visualstudio.com/docs/remote/containers) extension to speed up the development environment creation. Simply:
 
 1. Clone the repository to your machine
-2. Open VS Code on it
-3. Reopen the folder in the Dev Container
-4. Once done, press `F5` to start debugging
+1. Open VS Code on it
+1. Reopen the folder in the Dev Container
+1. Once done, press `F5` to start debugging
 
 Ideally, everything should be working without any additional configuration.
 
@@ -2804,13 +2804,22 @@ Under the hoods, the dev container setup takes care of bringing up:
 
 As docker-compose containers.
 
-* The Frigate Home Assistant Integration is registerd as a `git submodule` at `.devcontainer/frigate-hass-integration`, and VS Code will initialize/clone as well for you.
+* The Frigate Home Assistant Integration is registered as a `git submodule` at `.devcontainer/frigate-hass-integration`, and VS Code will initialize/clone it for you before opening the dev container.
+
+Some environment variables are supported in a `.env` file:
+
+* `FRIGATE_VERSION`: The version of Frigate to use. Defaults to the latest stable version.
+* `HA_VERSION`: The version of Home Assistant to use. Defaults to the latest stable version.
+
+> **NOTE**: When not specifying any version, it's recommended that you `docker-compose pull` the stack from time to time to ensure you have the latest versions of the images.
+
+The Home Assistant container will get preconfigured during first initialization, therefore, if you changed the Home Assistant configuration, you will need to remove the HA container and start another.
 
 ### Releasing
 
- 1. Merge a PR that contains only a `package.json` and `const.ts` version number bump (see [this example](https://github.com/dermotduffy/frigate-hass-card/commit/a854187d4a354f8841ad284d75b0afbed7b634c4)).
- 1. Go to the [releases page](https://github.com/dermotduffy/frigate-hass-card/releases).
- 1. A release draft will automatically have been created, click 'Edit'.
- 1. Use the same version number for the release title and tag.
- 1. Choose 'This is a pre-release' for a beta version.
- 1. Hit 'Publish release'.
+1. Merge a PR that contains only a `package.json` and `const.ts` version number bump (see [this example](https://github.com/dermotduffy/frigate-hass-card/commit/a854187d4a354f8841ad284d75b0afbed7b634c4)).
+1. Go to the [releases page](https://github.com/dermotduffy/frigate-hass-card/releases).
+1. A release draft will automatically have been created, click 'Edit'.
+1. Use the same version number for the release title and tag.
+1. Choose 'This is a pre-release' for a beta version.
+1. Hit 'Publish release'.
