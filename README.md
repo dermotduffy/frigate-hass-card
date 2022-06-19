@@ -2736,28 +2736,6 @@ rewind or fast-forward. Workarounds:
 * Use a [Frigate Card Element](#frigate-card-elements) or menu icon to trigger
   the action instead.
 
-### Console shows 'Offset is out of bounds' / 'Out of bounds memory access'
-
-This is an issue with the JSMPEG live provider and cameras with high-resolutions
-/ high-bitrates. [This bug](https://github.com/dermotduffy/frigate-hass-card/issues/189) has much
-more discussion on this topic. Some users report success in disabling the WASM-option for JSMPEG like so:
-
-```yaml
-live:
-  jsmpeg:
-    options:
-      disableWebAssembly: true
-```
-
-Lowering the camera bitrate, and/or increasing the `videoBufferSize` for JSMPEG may also help:
-
-```yaml
-live:
-  jsmpeg:
-    options:
-      videoBufferSize: 41943040
-```
-
 ### Home Assistant iOS App not updating after card version change
 
 Try resetting the app frontend cache:
