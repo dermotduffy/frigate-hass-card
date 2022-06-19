@@ -472,7 +472,7 @@ export type MenuSubmenu = z.infer<typeof menuSubmenuSchema>;
 
 const menuSubmenuSelectSchema = menuBaseSchema.merge(stateIconSchema).extend({
   type: z.literal('custom:frigate-card-menu-submenu-select'),
-  options: z.record(menuSubmenuItemSchema).optional(),
+  options: z.record(menuSubmenuItemSchema.deepPartial()).optional(),
 });
 export type MenuSubmenuSelect = z.infer<typeof menuSubmenuSelectSchema>;
 
