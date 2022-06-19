@@ -1,0 +1,29 @@
+---
+version: '3'
+services:
+  dev:
+    user: node
+    init: true
+    build: .devcontainer
+    ports:
+      # Rollup
+      - 41000:41000
+    env_file:
+      - .env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker-host.sock
+      - .:${LOCAL_WORKSPACE_FOLDER}:cached
+  hass:
+    extends:
+      file: .devcontainer/frigate-hass-integration/docker-compose.yml
+      service: hass
+    volumes:
+      - .devcontainer/preconfig:/preconfig.d/02-card:ro
+  frigate:
+    extends:
+      file: .devcontainer/frigate-hass-integration/docker-compose.yml
+      service: frigate
+  mqtt:
+    extends:
+      file: .devcontainer/frigate-hass-integration/docker-compose.yml
+      service: mqtt
