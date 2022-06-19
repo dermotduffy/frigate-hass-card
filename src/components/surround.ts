@@ -69,3 +69,9 @@ export class FrigateCardSurround extends LitElement {
     return unsafeCSS(surroundStyle);
   }
 }
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-surround": FrigateCardSurround
+	}
+}

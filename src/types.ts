@@ -3,9 +3,7 @@ import {
   ConfirmationRestrictionConfig,
   CustomActionConfig,
   HomeAssistant,
-  LovelaceCard,
   LovelaceCardConfig,
-  LovelaceCardEditor,
   MoreInfoActionConfig,
   NavigateActionConfig,
   NoActionConfig,
@@ -23,13 +21,6 @@ export const BUTTON_SIZE_MIN = 20;
 // The min/max width thumbnail (Frigate returns a maximum of 175px).
 export const THUMBNAIL_WIDTH_MAX = 175;
 export const THUMBNAIL_WIDTH_MIN = 75;
-
-declare global {
-  interface HTMLElementTagNameMap {
-    'frigate-card-editor': LovelaceCardEditor;
-    'hui-error-card': LovelaceCard;
-  }
-}
 
 /**
  * Internal types.

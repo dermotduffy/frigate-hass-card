@@ -1,4 +1,3 @@
-import type { Corner } from '@material/mwc-menu';
 import { HomeAssistant } from 'custom-card-helpers';
 import {
   CSSResultGroup,
@@ -6,17 +5,22 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS
+  unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../action-handler-directive.js';
 import submenuStyle from '../scss/submenu.scss';
-import { MenuSubmenu, MenuSubmenuItem, MenuSubmenuSelect } from '../types.js';
+import {
+  MenuSubmenu,
+  MenuSubmenuItem,
+  MenuSubmenuSelect,
+  StateParameters,
+} from '../types.js';
 import {
   frigateCardHasAction,
-  stopEventFromActivatingCardWideActions
+  stopEventFromActivatingCardWideActions,
 } from '../utils/action.js';
 import { isHassDifferent, refreshDynamicStateParameters } from '../utils/ha';
 import { domainIcon } from '../utils/icons/domain-icon.js';
@@ -29,14 +33,24 @@ export class FrigateCardSubmenu extends LitElement {
   @property({ attribute: false })
   public submenu?: MenuSubmenu;
 
-  @property({ attribute: false })
-  public corner?: Corner;
-
   protected _renderItem(item: MenuSubmenuItem): TemplateResult | void {
     if (!this.hass) {
       return;
     }
     const stateParameters = refreshDynamicStateParameters(this.hass, { ...item });
+    const getIcon = (stateParameters: StateParameters): TemplateResult => {
+      if (stateParameters.icon) {
+        return html` <ha-icon
+          style="${styleMap(stateParameters.style || {})}"
+          data-domain=${ifDefined(stateParameters.data_domain)}
+          data-state=${ifDefined(stateParameters.data_state)}
+          slot="graphic"
+          icon="${stateParameters.icon || ''}"
+        >
+        </ha-icon>`;
+      }
+      return html``;
+    };
 
     return html`
       <mwc-list-item
@@ -58,16 +72,7 @@ export class FrigateCardSubmenu extends LitElement {
       >
         <span>${stateParameters.title || ''}</span>
         ${item.subtitle ? html`<span slot="secondary">${item.subtitle}</span>` : ''}
-        ${stateParameters.icon
-          ? html` <ha-icon
-              data-domain=${ifDefined(stateParameters.data_domain)}
-              data-state=${ifDefined(stateParameters.data_state)}
-              style="${styleMap(stateParameters.style || {})}"
-              slot="graphic"
-              icon="${stateParameters.icon}"
-            >
-            </ha-icon>`
-          : ``}
+        ${getIcon(stateParameters)}
       </mwc-list-item>
     `;
   }
@@ -78,7 +83,7 @@ export class FrigateCardSubmenu extends LitElement {
     }
     return html`
       <ha-button-menu
-        corner=${this.corner || 'BOTTOM_LEFT'}
+        corner=${'BOTTOM_LEFT'}
         @closed=${
           // Prevent the submenu closing from closing anything upstream (e.g.
           // selecting a submenu in the editor dialog should not close the
@@ -121,9 +126,6 @@ export class FrigateCardSubmenuSelect extends LitElement {
 
   @property({ attribute: false })
   public submenuSelect?: MenuSubmenuSelect;
-
-  @property({ attribute: false })
-  public corner?: Corner;
 
   protected _generatedSubmenu?: MenuSubmenu;
 
@@ -213,8 +215,14 @@ export class FrigateCardSubmenuSelect extends LitElement {
   protected render(): TemplateResult {
     return html` <frigate-card-submenu
       .hass=${this.hass}
-      .corner=${this.corner}
       .submenu=${this._generatedSubmenu}
     ></frigate-card-submenu>`;
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'frigate-card-submenu': FrigateCardSubmenu;
+    'frigate-card-submenu-select': FrigateCardSubmenuSelect;
   }
 }

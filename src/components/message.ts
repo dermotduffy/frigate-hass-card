@@ -1,4 +1,10 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  CSSResultGroup,
+  html,
+  LitElement,
+  TemplateResult,
+  unsafeCSS,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { TROUBLESHOOTING_URL } from '../const.js';
 import { localize } from '../localize/localize.js';
@@ -9,13 +15,13 @@ import { dispatchFrigateCardEvent } from '../utils/basic.js';
 @customElement('frigate-card-message')
 export class FrigateCardMessage extends LitElement {
   @property({ attribute: false })
-  protected message = '';
+  public message: string | TemplateResult<1> = '';
 
   @property({ attribute: false })
-  protected context?: unknown;
+  public context?: unknown;
 
   @property({ attribute: false })
-  protected icon?: string;
+  public icon?: string;
 
   // Render the menu.
   protected render(): TemplateResult {
@@ -43,7 +49,7 @@ export class FrigateCardMessage extends LitElement {
 @customElement('frigate-card-error-message')
 export class FrigateCardErrorMessage extends LitElement {
   @property({ attribute: false })
-  protected message?: Message;
+  public message?: Message;
 
   protected render(): TemplateResult | void {
     if (!this.message) {
@@ -66,7 +72,7 @@ export class FrigateCardErrorMessage extends LitElement {
 @customElement('frigate-card-progress-indicator')
 export class FrigateCardProgressIndicator extends LitElement {
   @property({ attribute: false })
-  protected message = '';
+  public message: string | TemplateResult = '';
 
   protected render(): TemplateResult {
     return html` <div class="message vertical">
@@ -148,11 +154,19 @@ export function dispatchErrorMessageEvent(
  */
 export function dispatchFrigateCardErrorEvent(
   element: EventTarget,
-  error: FrigateCardError
+  error: FrigateCardError,
 ): void {
   dispatchFrigateCardEvent<Message>(element, 'message', {
     message: error.message,
     type: 'error',
-    context: error.context || ''
+    context: error.context || '',
   });
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+		"frigate-card-progress-indicator": FrigateCardProgressIndicator
+    'frigate-card-error-message': FrigateCardErrorMessage;
+    'frigate-card-message': FrigateCardMessage;
+  }
 }

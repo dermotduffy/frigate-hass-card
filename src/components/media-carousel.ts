@@ -289,3 +289,9 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
     return [super.styles, unsafeCSS(mediaCarouselStyle)];
   }
 }
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-media-carousel": FrigateCardMediaCarousel
+	}
+}

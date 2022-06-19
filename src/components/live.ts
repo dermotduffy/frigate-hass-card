@@ -52,6 +52,8 @@ import { dispatchErrorMessageEvent } from './message.js';
 import './next-prev-control.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
 import './title-control.js';
+import "./surround-thumbnails";
+import "../patches/ha-camera-stream";
 
 // Number of seconds a signed URL is valid for.
 const URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -65,19 +67,19 @@ export class FrigateCardLive extends LitElement {
   public conditionState?: ConditionState;
 
   @property({ attribute: false })
-  protected hass?: ExtendedHomeAssistant;
+  public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected view?: Readonly<View>;
+  public view?: Readonly<View>;
 
   @property({ attribute: false })
-  protected cameras?: Map<string, CameraConfig>;
+  public cameras?: Map<string, CameraConfig>;
 
   @property({ attribute: false })
-  protected liveConfig?: LiveConfig;
+  public liveConfig?: LiveConfig;
 
   @property({ attribute: false, hasChanged: contentsChanged })
-  protected liveOverrides?: LiveOverrides;
+  public liveOverrides?: LiveOverrides;
 
   set preloaded(preloaded: boolean) {
     this._preloaded = preloaded;
@@ -143,7 +145,7 @@ export class FrigateCardLive extends LitElement {
       .hass=${this.hass}
       .view=${this.view}
       .config=${config.controls.thumbnails}
-      .browseMediaParams=${browseMediaParams}
+      .browseMediaParams=${browseMediaParams ?? undefined}
       ?fetch=${!this._preloaded}
     >
       <frigate-card-live-carousel
@@ -181,25 +183,25 @@ export class FrigateCardLive extends LitElement {
 @customElement('frigate-card-live-carousel')
 export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   @property({ attribute: false })
-  protected hass?: ExtendedHomeAssistant;
+  public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected view?: Readonly<View>;
+  public view?: Readonly<View>;
 
   @property({ attribute: false })
-  protected cameras?: Map<string, CameraConfig>;
+  public cameras?: Map<string, CameraConfig>;
 
   @property({ attribute: false })
-  protected liveConfig?: LiveConfig;
+  public liveConfig?: LiveConfig;
 
   @property({ attribute: false, hasChanged: contentsChanged })
-  protected liveOverrides?: LiveOverrides;
+  public liveOverrides?: LiveOverrides;
 
   @property({ attribute: false })
-  protected preloaded?: boolean;
+  public preloaded?: boolean;
 
   @property({ attribute: false })
-  protected conditionState?: ConditionState;
+  public conditionState?: ConditionState;
 
   // Index between camera name and slide number.
   protected _cameraToSlide: Record<string, number> = {};
@@ -576,13 +578,13 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
 @customElement('frigate-card-live-provider')
 export class FrigateCardLiveProvider extends LitElement {
   @property({ attribute: false })
-  protected hass?: ExtendedHomeAssistant;
+  public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected cameraConfig?: CameraConfig;
+  public cameraConfig?: CameraConfig;
 
   @property({ attribute: false })
-  protected liveConfig?: LiveConfig;
+  public liveConfig?: LiveConfig;
 
   // Whether or not to disable this entity. If `true`, no contents are rendered
   // until this attribute is set to `false` (this is useful for lazy loading).
@@ -694,10 +696,10 @@ export class FrigateCardLiveProvider extends LitElement {
 @customElement('frigate-card-live-ha')
 export class FrigateCardLiveFrigate extends LitElement {
   @property({ attribute: false })
-  protected hass?: HomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  protected cameraConfig?: CameraConfig;
+  public cameraConfig?: CameraConfig;
 
   protected _playerRef: Ref<FrigateCardLiveFrigate> = createRef();
 
@@ -785,10 +787,10 @@ export class FrigateCardLiveFrigate extends LitElement {
 @customElement('frigate-card-live-webrtc-card')
 export class FrigateCardLiveWebRTCCard extends LitElement {
   @property({ attribute: false, hasChanged: contentsChanged })
-  protected webRTCConfig?: WebRTCCardConfig;
+  public webRTCConfig?: WebRTCCardConfig;
 
   @property({ attribute: false })
-  protected cameraConfig?: CameraConfig;
+  public cameraConfig?: CameraConfig;
 
   protected hass?: HomeAssistant;
 
@@ -959,10 +961,10 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
 @customElement('frigate-card-live-jsmpeg')
 export class FrigateCardLiveJSMPEG extends LitElement {
   @property({ attribute: false })
-  protected cameraConfig?: CameraConfig;
+  public cameraConfig?: CameraConfig;
 
   @property({ attribute: false, hasChanged: contentsChanged })
-  protected jsmpegConfig?: JSMPEGConfig;
+  public jsmpegConfig?: JSMPEGConfig;
 
   protected hass?: ExtendedHomeAssistant;
 
@@ -1177,4 +1179,15 @@ export class FrigateCardLiveJSMPEG extends LitElement {
   static get styles(): CSSResultGroup {
     return unsafeCSS(liveJSMPEGStyle);
   }
+}
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-live-jsmpeg": FrigateCardLiveJSMPEG
+		"frigate-card-live-webrtc-card": FrigateCardLiveWebRTCCard
+		"frigate-card-live-ha": FrigateCardLiveFrigate
+		"frigate-card-live-provider": FrigateCardLiveProvider
+		"frigate-card-live-carousel": FrigateCardLiveCarousel
+		"frigate-card-live": FrigateCardLive
+	}
 }

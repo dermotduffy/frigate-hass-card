@@ -21,7 +21,7 @@ export interface ThumbnailCarouselTap {
 @customElement('frigate-card-thumbnail-carousel')
 export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   @property({ attribute: false })
-  protected view?: Readonly<View>;
+  public view?: Readonly<View>;
 
   // Use contentsChanged here to avoid the carousel rebuilding and resetting in
   // front of the user, unless the contents have actually changed.
@@ -239,4 +239,10 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   static get styles(): CSSResultGroup {
     return [super.styles, unsafeCSS(thumbnailCarouselStyle)];
   }
+}
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-thumbnail-carousel": FrigateCardThumbnailCarousel
+	}
 }

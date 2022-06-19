@@ -9,6 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import 'side-drawer';
+import { SideDrawer } from 'side-drawer';
 import drawerInjectStyle from '../scss/drawer-inject.scss';
 import drawerStyle from '../scss/drawer.scss';
 
@@ -124,4 +125,11 @@ export class FrigateCardDrawer extends LitElement {
   static get styles(): CSSResultGroup {
     return unsafeCSS(drawerStyle);
   }
+}
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-drawer": FrigateCardDrawer
+    "side-drawer": SideDrawer,
+	}
 }

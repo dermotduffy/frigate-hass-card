@@ -424,16 +424,16 @@ class TimelineDataManager {
 @customElement('frigate-card-timeline')
 export class FrigateCardTimeline extends LitElement {
   @property({ attribute: false })
-  protected hass?: ExtendedHomeAssistant;
+  public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected view?: Readonly<View>;
+  public view?: Readonly<View>;
 
   @property({ attribute: false })
-  protected cameras?: Map<string, CameraConfig>;
+  public cameras?: Map<string, CameraConfig>;
 
   @property({ attribute: false })
-  protected timelineConfig?: TimelineConfig;
+  public timelineConfig?: TimelineConfig;
 
   /**
    * Master render method.
@@ -470,16 +470,16 @@ export class FrigateCardTimeline extends LitElement {
 @customElement('frigate-card-timeline-core')
 export class FrigateCardTimelineCore extends LitElement {
   @property({ attribute: false })
-  protected hass?: ExtendedHomeAssistant;
+  public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected view?: Readonly<View>;
+  public view?: Readonly<View>;
 
   @property({ attribute: false })
-  protected cameras?: Map<string, CameraConfig>;
+  public cameras?: Map<string, CameraConfig>;
 
   @property({ attribute: false })
-  protected timelineConfig?: TimelineConfig;
+  public timelineConfig?: TimelineConfig;
 
   protected _data = new TimelineDataManager({
     tooltipCallback: this._getTooltip.bind(this),
@@ -1236,4 +1236,11 @@ export class FrigateCardTimelineCore extends LitElement {
   static get styles(): CSSResultGroup {
     return unsafeCSS(timelineCoreStyle);
   }
+}
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-timeline-core": FrigateCardTimelineCore
+		"frigate-card-timeline": FrigateCardTimeline
+	}
 }

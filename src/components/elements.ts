@@ -7,7 +7,7 @@ import {
   TemplateResult,
   unsafeCSS
 } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { ConditionState, fetchStateAndEvaluateCondition } from '../card-condition.js';
 import { localize } from '../localize/localize.js';
 import elementsStyle from '../scss/elements.scss';
@@ -67,19 +67,19 @@ interface HuiConditionalElement extends HTMLElement {
 @customElement('frigate-card-elements-core')
 export class FrigateCardElementsCore extends LitElement {
   @property({ attribute: false })
-  protected elements: PictureElements;
+  public elements: PictureElements;
 
   /**
    * Need to ensure card re-renders when conditionState changes, hence having it
    * as a property even though it is not currently directly used by this class.
    */
   @property({ attribute: false })
-  protected conditionState?: ConditionState;
+  public conditionState?: ConditionState;
 
   protected _root: HuiConditionalElement | null = null;
 
   @property({ attribute: false })
-  protected hass?: HomeAssistant;
+  public hass?: HomeAssistant;
 
   /**
    * Create a transparent render root.
@@ -159,7 +159,7 @@ export class FrigateCardElements extends LitElement {
   public conditionState?: ConditionState;
 
   @property({ attribute: false })
-  protected elements: PictureElements;
+  public elements: PictureElements;
 
   protected _boundMenuRemoveHandler = this._menuRemoveHandler.bind(this);
 
@@ -253,7 +253,7 @@ export class FrigateCardElementsConditional extends LitElement {
   // elements), the hass object is used as the (only) trigger for condition
   // re-fetch even if hass itself has not changed.
   @property({ attribute: false, hasChanged: () => true })
-  protected hass?: HomeAssistant;
+  public hass?: HomeAssistant;
 
   /**
    * Set the card configuration.
@@ -299,7 +299,7 @@ export class FrigateCardElementsConditional extends LitElement {
 
 // A base class for rendering menu icons / menu state icons.
 export class FrigateCardElementsBaseMenuIcon<T> extends LitElement {
-  @property({ attribute: false })
+  @state()
   protected _config: T | null = null;
 
   /**
@@ -342,3 +342,15 @@ export class FrigateCardElementsMenuSubmenu extends FrigateCardElementsBaseMenuI
 
 @customElement('frigate-card-menu-submenu-select')
 export class FrigateCardElementsMenuSubmenuSelect extends FrigateCardElementsBaseMenuIcon<MenuSubmenuSelect> {}
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-conditional": FrigateCardElementsConditional
+		"frigate-card-elements": FrigateCardElements
+		"frigate-card-menu-submenu-select": FrigateCardElementsMenuSubmenuSelect
+		"frigate-card-menu-submenu": FrigateCardElementsMenuSubmenu
+		"frigate-card-menu-state-icon": FrigateCardElementsMenuStateIcon
+		"frigate-card-menu-icon": FrigateCardElementsMenuIcon
+		"frigate-card-elements-core": FrigateCardElementsCore
+	}
+}

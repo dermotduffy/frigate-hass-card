@@ -109,3 +109,9 @@ customElements.whenDefined('ha-hls-player').then(() => {
     }
   }
 });
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-ha-hls-player": FrigateCardHaHlsPlayer
+	}
+}

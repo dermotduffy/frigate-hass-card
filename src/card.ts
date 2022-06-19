@@ -7,7 +7,7 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
@@ -148,7 +148,7 @@ console.info(
  */
 @customElement('frigate-card')
 export class FrigateCard extends LitElement {
-  @property({ attribute: false })
+  @state()
   protected _hass?: ExtendedHomeAssistant;
 
   // The main base configuration object. For most usecases use getConfig() to
@@ -162,7 +162,7 @@ export class FrigateCard extends LitElement {
   @state()
   protected _overriddenConfig?: FrigateCardConfig;
 
-  @property({ attribute: false })
+  @state()
   protected _view?: View;
 
   protected _conditionState?: ConditionState;
@@ -1857,4 +1857,10 @@ export class FrigateCard extends LitElement {
     }
     return 6;
   }
+}
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card": FrigateCard
+	}
 }

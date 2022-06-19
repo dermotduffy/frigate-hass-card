@@ -41,6 +41,9 @@ export class FrigateCardMenu extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
+  @property({ attribute: true, type: Boolean, reflect: true })
+  public expanded = false;
+
   set menuConfig(menuConfig: MenuConfig) {
     this._menuConfig = menuConfig;
     if (menuConfig) {
@@ -57,9 +60,6 @@ export class FrigateCardMenu extends LitElement {
   }
   @state()
   protected _menuConfig?: MenuConfig;
-
-  @property({ attribute: true, type: Boolean, reflect: true })
-  protected expanded = false;
 
   @property({ attribute: false })
   public buttons: MenuButton[] = [];
@@ -339,4 +339,10 @@ export class FrigateCardMenu extends LitElement {
   static get styles(): CSSResultGroup {
     return unsafeCSS(menuStyle);
   }
+}
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-menu": FrigateCardMenu
+	}
 }

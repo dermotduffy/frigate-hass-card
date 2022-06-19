@@ -10,7 +10,7 @@ echo "Writing ${wanted_line} to ${file}" >&2
 if [[ -f "${file}" ]] && grep --quiet "^${wanted_line_key}=" "${file}"; then
     sed --in-place "s,^${wanted_line_key}=.*,${wanted_line}," "${file}"
 else
-    echo "${wanted_line}" >"${file}"
+    echo "${wanted_line}" >>"${file}"
 fi
 
 set -x

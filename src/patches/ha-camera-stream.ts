@@ -14,6 +14,8 @@ import { customElement } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
 import { FrigateCardMediaPlayer } from '../types.js';
 import { dispatchMediaShowEvent } from '../utils/media-info.js';
+import "./ha-hls-player";
+import "./ha-web-rtc-player";
 
 customElements.whenDefined('ha-camera-stream').then(() => {
   // ========================================================================================
@@ -151,3 +153,9 @@ customElements.whenDefined('ha-camera-stream').then(() => {
     }
   }
 });
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-ha-camera-stream": FrigateCardHaCameraStream
+	}
+}
