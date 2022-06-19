@@ -31,16 +31,16 @@ import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
 @customElement('frigate-card-gallery')
 export class FrigateCardGallery extends LitElement {
   @property({ attribute: false })
-  protected hass?: HomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  protected view?: Readonly<View>;
+  public view?: Readonly<View>;
 
   @property({ attribute: false })
-  protected galleryConfig?: GalleryConfig;
+  public galleryConfig?: GalleryConfig;
 
   @property({ attribute: false })
-  protected cameras?: Map<string, CameraConfig>;
+  public cameras?: Map<string, CameraConfig>;
 
   /**
    * Master render method.
@@ -108,13 +108,13 @@ export class FrigateCardGallery extends LitElement {
 @customElement('frigate-card-gallery-core')
 export class FrigateCardGalleryCore extends LitElement {
   @property({ attribute: false })
-  protected hass?: HomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  protected view?: Readonly<View>;
+  public view?: Readonly<View>;
 
   @property({ attribute: false })
-  protected galleryConfig?: GalleryConfig;
+  public galleryConfig?: GalleryConfig;
 
   protected _resizeObserver: ResizeObserver;
 
@@ -280,4 +280,11 @@ export class FrigateCardGalleryCore extends LitElement {
   static get styles(): CSSResultGroup {
     return unsafeCSS(galleryStyle);
   }
+}
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-gallery-core": FrigateCardGalleryCore
+		"frigate-card-gallery": FrigateCardGallery
+	}
 }

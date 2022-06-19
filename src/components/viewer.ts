@@ -47,23 +47,25 @@ import { FrigateCardMediaCarousel, IMG_EMPTY } from './media-carousel.js';
 import './next-prev-control.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
 import './title-control.js';
+import "../patches/ha-hls-player";
+import "./surround-thumbnails";
 
 @customElement('frigate-card-viewer')
 export class FrigateCardViewer extends LitElement {
   @property({ attribute: false })
-  protected hass?: ExtendedHomeAssistant;
+  public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected view?: Readonly<View>;
+  public view?: Readonly<View>;
 
   @property({ attribute: false })
-  protected viewerConfig?: ViewerConfig;
+  public viewerConfig?: ViewerConfig;
 
   @property({ attribute: false })
-  protected cameras?: Map<string, CameraConfig>;
+  public cameras?: Map<string, CameraConfig>;
 
   @property({ attribute: false })
-  protected resolvedMediaCache?: ResolvedMediaCache;
+  public resolvedMediaCache?: ResolvedMediaCache;
 
   /**
    * Master render method.
@@ -132,10 +134,10 @@ const FRIGATE_CARD_HLS_SELECTOR = 'frigate-card-ha-hls-player';
 @customElement('frigate-card-viewer-carousel')
 export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   @property({ attribute: false })
-  protected hass?: ExtendedHomeAssistant;
+  public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected view?: Readonly<View>;
+  public view?: Readonly<View>;
 
   // Resetting the viewer configuration causes a full reset so ensure the config
   // has actually changed with a full comparison (dynamic configuration
@@ -143,13 +145,13 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
   // could lead to the address of the viewerConfig changing without it being
   // semantically different).
   @property({ attribute: false, hasChanged: contentsChanged })
-  protected viewerConfig?: ViewerConfig;
+  public viewerConfig?: ViewerConfig;
 
   @property({ attribute: false })
-  protected browseMediaQueryParameters?: BrowseMediaQueryParameters[] | null;
+  public browseMediaQueryParameters?: BrowseMediaQueryParameters[] | null;
 
   @property({ attribute: false })
-  protected resolvedMediaCache?: ResolvedMediaCache;
+  public resolvedMediaCache?: ResolvedMediaCache;
 
   // Mapping of slide # to FrigateBrowseMediaSource child #.
   // (Folders are not media items that can be rendered).
@@ -786,4 +788,11 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       </div>
     `;
   }
+}
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-viewer-carousel": FrigateCardViewerCarousel
+		"frigate-card-viewer": FrigateCardViewer
+	}
 }

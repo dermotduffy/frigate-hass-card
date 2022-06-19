@@ -78,3 +78,9 @@ export class FrigateCardNextPreviousControl extends LitElement {
     return unsafeCSS(controlStyle);
   }
 }
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-next-previous-control": FrigateCardNextPreviousControl
+	}
+}

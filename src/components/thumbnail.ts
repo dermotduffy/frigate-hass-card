@@ -132,7 +132,7 @@ export class FrigateCardThumbnail extends LitElement {
   // Data-binding based interface
   // ============================
   @property({ attribute: false })
-  protected view?: Readonly<View>;
+  public view?: Readonly<View>;
 
   @property({ attribute: false })
   public target?: FrigateBrowseMediaSource | null;
@@ -252,4 +252,14 @@ export class FrigateCardThumbnail extends LitElement {
   static get styles(): CSSResult {
     return unsafeCSS(thumbnailStyle);
   }
+}
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-thumbnail": FrigateCardThumbnail
+		"frigate-card-thumbnail-details-recording": FrigateCardThumbnailDetailsRecording
+		"frigate-card-thumbnail-details-event": FrigateCardThumbnailDetailsEvent
+		"frigate-card-thumbnail-feature-recording": FrigateCardThumbnailFeatureRecording
+		"frigate-card-thumbnail-feature-event": FrigateCardThumbnailFeatureEvent
+	}
 }

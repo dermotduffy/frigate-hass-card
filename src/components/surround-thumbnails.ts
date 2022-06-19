@@ -5,7 +5,7 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS
+  unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import surroundThumbnailsStyle from '../scss/surround.scss';
@@ -14,12 +14,12 @@ import {
   FrigateBrowseMediaSource,
   FrigateCardError,
   FrigateCardView,
-  ThumbnailsControlConfig
+  ThumbnailsControlConfig,
 } from '../types.js';
 import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
 import {
   getFirstTrueMediaChildIndex,
-  multipleBrowseMediaQueryMerged
+  multipleBrowseMediaQueryMerged,
 } from '../utils/ha/browse-media';
 import { View } from '../view.js';
 import { dispatchFrigateCardErrorEvent } from './message.js';
@@ -29,24 +29,22 @@ import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 @customElement('frigate-card-surround-thumbnails')
 export class FrigateCardSurround extends LitElement {
   @property({ attribute: false })
-  protected hass?: HomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  protected view?: Readonly<View>;
+  public view?: Readonly<View>;
 
   @property({ attribute: false })
-  protected config?: ThumbnailsControlConfig;
+  public config?: ThumbnailsControlConfig;
 
   @property({ attribute: false })
-  protected targetView?: FrigateCardView;
+  public targetView?: FrigateCardView;
 
   @property({ attribute: true, type: Boolean })
-  protected fetch?: boolean;
+  public fetch?: boolean;
 
   @property({ attribute: false, hasChanged: contentsChanged })
-  protected browseMediaParams?:
-    | BrowseMediaQueryParameters
-    | BrowseMediaQueryParameters[];
+  public browseMediaParams?: BrowseMediaQueryParameters | BrowseMediaQueryParameters[];
 
   /**
    * Fetch thumbnail media when a target is not specified in the view (e.g. for
@@ -168,5 +166,11 @@ export class FrigateCardSurround extends LitElement {
    */
   static get styles(): CSSResultGroup {
     return unsafeCSS(surroundThumbnailsStyle);
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'frigate-card-surround-thumbnails': FrigateCardSurround;
   }
 }

@@ -93,3 +93,9 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
     }
   }
 });
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'frigate-card-ha-web-rtc-player': FrigateCardHaWebRtcPlayer;
+  }
+}

@@ -29,13 +29,13 @@ export class FrigateCardImage extends LitElement {
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  protected view?: Readonly<View>;
+  public view?: Readonly<View>;
 
   @property({ attribute: false })
-  protected cameraConfig?: CameraConfig;
+  public cameraConfig?: CameraConfig;
 
   @property({ attribute: false })
-  protected imageConfig?: ImageViewConfig;
+  public imageConfig?: ImageViewConfig;
 
   protected _refImage: Ref<HTMLImageElement> = createRef();
 
@@ -248,4 +248,10 @@ export class FrigateCardImage extends LitElement {
   static get styles(): CSSResultGroup {
     return unsafeCSS(imageStyle);
   }
+}
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-image": FrigateCardImage
+	}
 }

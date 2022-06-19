@@ -205,7 +205,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   protected _initialized = false;
   protected _configUpgradeable = false;
 
-  @property({ attribute: false })
+  @state()
   protected _expandedMenus: Record<string, string | number> = {};
 
   protected _viewModes: EditorSelectOption[] = [
@@ -1488,4 +1488,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   static get styles(): CSSResultGroup {
     return unsafeCSS(frigate_card_editor_style);
   }
+}
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-editor": FrigateCardEditor
+	}
 }

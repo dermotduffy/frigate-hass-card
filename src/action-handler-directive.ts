@@ -1,14 +1,14 @@
 import { fireEvent } from 'custom-card-helpers';
 import type {
   ActionHandlerDetail,
-  ActionHandlerOptions
+  ActionHandlerOptions,
 } from 'custom-card-helpers/dist/types.d.js';
 import { noChange } from 'lit';
 import {
   AttributePart,
   directive,
   Directive,
-  DirectiveParameters
+  DirectiveParameters,
 } from 'lit/directive.js';
 import { stopEventFromActivatingCardWideActions } from './utils/action.js';
 
@@ -18,12 +18,6 @@ interface ActionHandler extends HTMLElement {
 }
 interface ActionHandlerElement extends HTMLElement {
   actionHandlerOptions?: FrigateCardActionHandlerOptions;
-}
-
-declare global {
-  interface HASSDomEvents {
-    action: ActionHandlerDetail;
-  }
 }
 
 interface FrigateCardActionHandlerOptions extends ActionHandlerOptions {
@@ -196,3 +190,12 @@ export const actionHandler = directive(
     render(_options?: FrigateCardActionHandlerOptions) {}
   },
 );
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'action-handler-frigate-card': ActionHandler;
+  }
+  interface HASSDomEvents {
+    action: ActionHandlerDetail;
+  }
+}
