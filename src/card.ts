@@ -688,9 +688,7 @@ export class FrigateCard extends LitElement {
       if (config.camera_entity) {
         try {
           entity = await getExtendedEntity(this._hass, config.camera_entity, cache);
-        } catch (e) {
-          console.error(e);
-        }
+        } catch (e) {}
       }
 
       if (!config.frigate.camera_name && entity) {
