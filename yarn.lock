@@ -2695,6 +2695,13 @@ rimraf@^3.0.2:
   dependencies:
     glob "^7.1.3"
 
+rollup-plugin-git-info@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/rollup-plugin-git-info/-/rollup-plugin-git-info-1.0.0.tgz#f6d9f474718d9453eeb5049772a24ca4b9ac310e"
+  integrity sha512-AL2jzfDvOLze+Sakz3yuQjq9wY/wIj3j49yYnhuXtr6qP4qKzD039haPFa8uaLb0rzDBj2P5S8fWvJyYeIjOVw==
+  dependencies:
+    "@rollup/plugin-json" "^4.1.0"
+
 rollup-plugin-serve@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/rollup-plugin-serve/-/rollup-plugin-serve-1.1.0.tgz#0654a57021a21b903340c69940f7463706e8288d"

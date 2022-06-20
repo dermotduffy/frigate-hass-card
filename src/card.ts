@@ -39,7 +39,6 @@ import './components/viewer.js';
 import { isConfigUpgradeable } from './config-mgmt.js';
 import {
   CAMERA_BIRDSEYE,
-  CARD_VERSION,
   MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
   REPO_URL,
 } from './const.js';
@@ -98,6 +97,7 @@ import { ResolvedMediaCache } from './utils/ha/resolved-media.js';
 import { supportsFeature } from './utils/ha/update.js';
 import { isValidMediaShowInfo } from './utils/media-info.js';
 import { View } from './view.js';
+import pkg from '../package.json';
 
 /** A note on media callbacks:
  *
@@ -127,7 +127,7 @@ import { View } from './view.js';
 
 /* eslint no-console: 0 */
 console.info(
-  `%c  FRIGATE-HASS-CARD \n%c  ${localize('common.version')} ${CARD_VERSION}    `,
+  `%c FRIGATE-HASS-CARD \n%c  ${localize('common.version')} ${pkg.version}    `,
   'color: pink; font-weight: bold; background: black',
   'color: white; font-weight: bold; background: dimgray',
 );
@@ -1385,11 +1385,16 @@ export class FrigateCard extends LitElement {
         icon: 'mdi:information',
         context: {
           ha_version: this._hass.config.version,
-          card_version: CARD_VERSION,
+          card_version: pkg.version,
           browser: navigator.userAgent,
           date: new Date(),
           frigate_version: Object.fromEntries(frigateVersionMap),
           lang: getLanguage(),
+          git: {
+            ...(pkg['gitVersion'] && { build_version: pkg['gitVersion'] }),
+            ...(pkg['buildDate'] && { build_date: pkg['buildDate'] }),
+            ...(pkg['gitDate'] && { commit_date: pkg['gitDate'] }),
+          },
           ...(this._rawConfig && { config: this._rawConfig }),
         },
       });
