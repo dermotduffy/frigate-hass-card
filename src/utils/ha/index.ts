@@ -9,7 +9,7 @@ import {
   FrigateCardError,
   SignedPath,
   signedPathSchema,
-  StateParameters
+  StateParameters,
 } from '../../types.js';
 import { stateIcon } from '../icons/state-icon.js';
 import { getParseErrorKeys } from '../zod.js';
@@ -26,27 +26,30 @@ export async function homeAssistantWSRequest<T>(
   schema: ZodSchema<T>,
   request: MessageBase,
 ): Promise<T> {
-  const response = await hass.callWS<T>(request);
+  let response;
+  try {
+    response = await hass.callWS<T>(request);
+  } catch (e) {
+    if (!(e instanceof Error)) {
+      throw new FrigateCardError(localize('error.failed_response'), {
+        request: request,
+        response: e,
+      });
+    }
+    throw e;
+  }
 
   if (!response) {
-    const error_message = `${localize('error.empty_response')}: ${JSON.stringify(
-      request,
-    )}`;
-    console.warn(error_message);
-    throw new Error(error_message);
+    throw new FrigateCardError(localize('error.empty_response'), {
+      request: request,
+    });
   }
   const parseResult = schema.safeParse(response);
   if (!parseResult.success) {
-    const keys = getParseErrorKeys<T>(parseResult.error);
-    const error_message = localize('error.invalid_response');
-    console.warn(
-      `${error_message}: ${JSON.stringify(request)}. ${localize(
-        'error.invalid_keys',
-      )}: ${keys}`,
-    );
-    throw new FrigateCardError(error_message, {
+    throw new FrigateCardError(localize('error.invalid_response'), {
       request: request,
-      invalid_keys: keys,
+      response: response,
+      invalid_keys: getParseErrorKeys<T>(parseResult.error),
     });
   }
   return parseResult.data;
@@ -96,9 +99,7 @@ export async function homeAssistantHTTPRequest<T>(
   let signResponse: string | null | undefined;
   try {
     signResponse = await homeAssistantSignPath(hass, url);
-  } catch (e) {
-    console.warn(e);
-  }
+  } catch (e) {}
 
   if (!signResponse) {
     throw new FrigateCardError(localize('error.failed_sign'), {
@@ -127,21 +128,20 @@ export async function homeAssistantHTTPRequest<T>(
   try {
     raw_json = await response.json();
   } catch (e) {
-    console.warn(e);
     throw new FrigateCardError(localize('error.undecodable_response'), {
       url: signedURL.toString(),
     });
   }
 
-  try {
-    return schema.parse(raw_json);
-  } catch (e) {
-    console.warn(e);
+  const parseResult = schema.safeParse(raw_json);
+  if (!parseResult.success) {
     throw new FrigateCardError(localize('error.invalid_response'), {
       url: signedURL.toString(),
-      response: raw_json,
+      raw_json: raw_json,
+      invalid_keys: getParseErrorKeys<T>(parseResult.error),
     });
   }
+  return parseResult.data;
 }
 
 interface HassStateDifference {

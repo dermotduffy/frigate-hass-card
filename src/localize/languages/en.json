@@ -320,7 +320,6 @@
     "invalid_configuration": "Invalid configuration",
     "invalid_configuration_no_hint": "No location hint available (bad or missing type?)",
     "invalid_elements_config": "Invalid picture elements configuration",
-    "invalid_keys": "Invalid keys",
     "invalid_response": "Received invalid response from Home Assistant for request",
     "jsmpeg_no_player": "Could not start JSMPEG player",
     "jsmpeg_no_sign": "Could not retrieve or sign JSMPEG websocket path",

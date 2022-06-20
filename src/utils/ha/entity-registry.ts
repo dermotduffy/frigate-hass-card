@@ -5,7 +5,7 @@ import {
   EntityList,
   entityListSchema,
   ExtendedEntity,
-  extendedEntitySchema
+  extendedEntitySchema,
 } from '../../types.js';
 
 export class ExtendedEntityCache {
@@ -78,7 +78,7 @@ export const getExtendedEntity = async (
 };
 
 /**
- * Get the extended entity information for an array of entities.
+ * Get the extended entity information for an array of entities. May throw.
  * @param hass The Home Assistant object.
  * @param entities An array of entity ids.
  * @param cache An optional ExtendedEntityCache.
@@ -98,7 +98,7 @@ export const getExtendedEntities = async (
 };
 
 /**
- * Get a list of all entities from the entity registry.
+ * Get a list of all entities from the entity registry. May throw.
  * @param hass The Home Assistant object.
  * @returns An entity list object.
  */

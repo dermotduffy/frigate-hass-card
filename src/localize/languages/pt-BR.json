@@ -322,7 +322,6 @@
     "invalid_configuration": "Configuração inválida",
     "invalid_configuration_no_hint": "Nenhuma dica de local disponível (tipo incorreto ou ausente?)",
     "invalid_elements_config": "Configuração de elementos de imagem inválida",
-    "invalid_keys": "Chaves inválidas",
     "invalid_response": "Resposta inválida recebida do Home Assistant para a solicitação",
     "jsmpeg_no_player": "Não foi possível iniciar o player JSMPEG",
     "jsmpeg_no_sign": "Não foi possível recuperar ou assinar o caminho do websocket JSMPEG",

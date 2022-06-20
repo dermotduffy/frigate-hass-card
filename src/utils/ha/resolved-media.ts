@@ -2,10 +2,11 @@ import { HomeAssistant } from 'custom-card-helpers';
 import QuickLRU from 'quick-lru';
 import { homeAssistantWSRequest } from '.';
 import {
-    FrigateBrowseMediaSource,
-    ResolvedMedia,
-    resolvedMediaSchema
+  FrigateBrowseMediaSource,
+  ResolvedMedia,
+  resolvedMediaSchema,
 } from '../../types.js';
+import { errorToConsole } from '../basic';
 
 // It's important the cache size be at least as large as the largest likely
 // media query or media items will from a given query will be evicted for other
@@ -29,7 +30,6 @@ export class ResolvedMediaCache {
   public has(id: string): boolean {
     return this._cache.has(id);
   }
-
 
   /**
    * Get resolved media information given an id.
@@ -55,7 +55,7 @@ export class ResolvedMediaCache {
  * @param hass The Home Assistant object.
  * @param mediaSource The media source object.
  * @param cache An optional ResolvedMediaCache object.
- * @returns 
+ * @returns The resolved media or `null`.
  */
 export const resolveMedia = async (
   hass: HomeAssistant,
@@ -73,7 +73,12 @@ export const resolveMedia = async (
     type: 'media_source/resolve_media',
     media_content_id: mediaSource.media_content_id,
   };
-  const resolvedMedia = await homeAssistantWSRequest(hass, resolvedMediaSchema, request);
+  let resolvedMedia: ResolvedMedia | null = null;
+  try {
+    resolvedMedia = await homeAssistantWSRequest(hass, resolvedMediaSchema, request);
+  } catch (e) {
+    errorToConsole(e as Error);
+  }
   if (cache && resolvedMedia) {
     cache.set(mediaSource.media_content_id, resolvedMedia);
   }

@@ -6,7 +6,7 @@ import {
   fromUnixTime,
   getUnixTime,
   startOfHour,
-  sub
+  sub,
 } from 'date-fns';
 import {
   CSSResultGroup,
@@ -14,7 +14,7 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS
+  unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -28,7 +28,7 @@ import {
   TimelineItem,
   TimelineOptions,
   TimelineOptionsCluster,
-  TimelineWindow
+  TimelineWindow,
 } from 'vis-timeline/esnext';
 import { CAMERA_BIRDSEYE } from '../const';
 import { localize } from '../localize/localize';
@@ -42,10 +42,10 @@ import {
   frigateCardConfigDefaults,
   FrigateCardError,
   FrigateEvent,
-  TimelineConfig
+  TimelineConfig,
 } from '../types';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
-import { dispatchFrigateCardEvent, prettifyTitle } from '../utils/basic';
+import { dispatchFrigateCardEvent, errorToConsole, prettifyTitle } from '../utils/basic';
 import { getCameraTitle } from '../utils/camera.js';
 import {
   getRecordingSegments,
@@ -53,7 +53,7 @@ import {
   getUniqueFrigateCameraEventsID,
   getUniqueFrigateCameraID,
   RecordingSegments,
-  RecordingSummary
+  RecordingSummary,
 } from '../utils/frigate';
 import {
   createEventParentForChildren,
@@ -61,7 +61,7 @@ import {
   generateRecordingIdentifier,
   getBrowseMediaQueryParameters,
   isTrueMedia,
-  multipleBrowseMediaQuery
+  multipleBrowseMediaQuery,
 } from '../utils/ha/browse-media';
 import { View, ViewContext } from '../view';
 import { dispatchFrigateCardErrorEvent, dispatchMessageEvent } from './message.js';
@@ -300,7 +300,7 @@ class TimelineDataManager {
         this._dateStart,
         this._dateEnd,
       ),
-      ...(recordings ? [this._fetchRecordings(element, hass, cameras)] : []),
+      ...(recordings ? [this._fetchRecordings(hass, cameras)] : []),
     ]);
 
     return true;
@@ -315,7 +315,6 @@ class TimelineDataManager {
    * @param end Fetch events that start earlier than this date.
    */
   protected async _fetchRecordings(
-    element: HTMLElement,
     hass: ExtendedHomeAssistant,
     cameras: Map<string, CameraConfig>,
   ): Promise<void> {
@@ -329,7 +328,7 @@ class TimelineDataManager {
       if (!config.frigate.camera_name) {
         return;
       }
-      let summary: RecordingSummary;
+      let summary: RecordingSummary = [];
       try {
         summary = await getRecordingsSummary(
           hass,
@@ -337,7 +336,9 @@ class TimelineDataManager {
           config.frigate.camera_name,
         );
       } catch (e) {
-        return dispatchFrigateCardErrorEvent(element, e as FrigateCardError);
+        // Recording failure should not disrupt the rest of the timeline
+        // experience.
+        errorToConsole(e as Error);
       }
 
       for (const dayData of summary) {
@@ -691,7 +692,9 @@ export class FrigateCardTimelineCore extends LitElement {
           ),
         ]);
         results.set(camera, { segments: cameraResults[0], summary: cameraResults[1] });
-      } catch (e) {}
+      } catch (e) {
+        errorToConsole(e as Error);
+      }
     };
     const cameras = camera ? [camera] : [...(this.cameras?.keys() ?? [])];
     await Promise.all(cameras.map((camera) => fetch(camera, this.cameras?.get(camera))));
@@ -1239,8 +1242,8 @@ export class FrigateCardTimelineCore extends LitElement {
 }
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card-timeline-core": FrigateCardTimelineCore
-		"frigate-card-timeline": FrigateCardTimeline
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card-timeline-core': FrigateCardTimelineCore;
+    'frigate-card-timeline': FrigateCardTimeline;
+  }
 }

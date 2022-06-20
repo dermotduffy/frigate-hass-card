@@ -9,7 +9,7 @@ import {
   NoActionConfig,
   Themes,
   ToggleActionConfig,
-  UrlActionConfig
+  UrlActionConfig,
 } from 'custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map.js';
 import { z } from 'zod';
@@ -44,7 +44,8 @@ const FRIGATE_CARD_VIEWS = [
 ] as const;
 
 export type FrigateCardView = typeof FRIGATE_CARD_VIEWS[number];
-export type FrigateCardUserSpecifiedView = typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED[number];
+export type FrigateCardUserSpecifiedView =
+  typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED[number];
 export const FRIGATE_CARD_VIEW_DEFAULT = 'live' as const;
 
 const FRIGATE_MENU_STYLES = ['none', 'hidden', 'overlay', 'hover', 'outside'] as const;
@@ -394,15 +395,17 @@ const cameraConfigSchema = z
     // Optional identifier to separate different camera configurations used in
     // this card.
     id: z.string().optional(),
-    
-    frigate: z.object({
-      // No URL validation to allow relative URLs within HA (e.g. Frigate addon).
-      url: z.string().optional(),
-      client_id: z.string().default(cameraConfigDefault.frigate.client_id),
-      camera_name: z.string().optional(),
-      label: z.string().optional(),
-      zone: z.string().optional(),
-    }).default(cameraConfigDefault.frigate),
+
+    frigate: z
+      .object({
+        // No URL validation to allow relative URLs within HA (e.g. Frigate addon).
+        url: z.string().optional(),
+        client_id: z.string().default(cameraConfigDefault.frigate.client_id),
+        camera_name: z.string().optional(),
+        label: z.string().optional(),
+        zone: z.string().optional(),
+      })
+      .default(cameraConfigDefault.frigate),
 
     // Camera identifiers for WebRTC.
     webrtc_card: webrtcCardCameraConfigSchema.optional(),
@@ -414,14 +417,13 @@ const cameraConfigSchema = z
       })
       .default(cameraConfigDefault.dependencies),
 
-    triggers: z.object({
-      motion: z.boolean().default(cameraConfigDefault.triggers.motion),
-      occupancy: z.boolean().default(cameraConfigDefault.triggers.occupancy),
-      entities: z
-        .string()
-        .array()
-        .default(cameraConfigDefault.triggers.entities),
-    }).default(cameraConfigDefault.triggers),
+    triggers: z
+      .object({
+        motion: z.boolean().default(cameraConfigDefault.triggers.motion),
+        occupancy: z.boolean().default(cameraConfigDefault.triggers.occupancy),
+        entities: z.string().array().default(cameraConfigDefault.triggers.entities),
+      })
+      .default(cameraConfigDefault.triggers),
   })
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigSchema>;

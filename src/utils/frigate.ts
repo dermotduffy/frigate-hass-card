@@ -51,7 +51,7 @@ const recordingSegmentsSchema = recordingSegmentSchema.array();
 export type RecordingSegments = z.infer<typeof recordingSegmentsSchema>;
 
 /**
- * Get the recordings summary.
+ * Get the recordings summary. May throw.
  * @param hass The Home Assistant object.
  * @param client_id The Frigate client_id.
  * @param camera_name The Frigate camera name.
@@ -70,7 +70,7 @@ export const getRecordingsSummary = async (
 };
 
 /**
- * Get the recording segments..
+ * Get the recording segments. May throw.
  * @param hass The Home Assistant object.
  * @param client_id The Frigate client_id.
  * @param camera_name The Frigate camera name.
