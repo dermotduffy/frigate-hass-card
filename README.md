@@ -2772,9 +2772,7 @@ You can use the [VS Code Remote - Containers](https://code.visualstudio.com/docs
 1. Reopen the folder in the Dev Container
 1. Once done, press `F5` to start debugging
 
-Ideally, everything should be working without any additional configuration.
-
-Under the hoods, the dev container setup takes care of bringing up:
+Everything should just work without any additional configuration. Under the hood, the dev container setup takes care of bringing up:
 
 * Home Assistant (port `48123:8123`)
 * Frigate (ports `45000:5000`, `41935:1935`)
