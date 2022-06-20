@@ -743,7 +743,7 @@ export class FrigateCardTimelineCore extends LitElement {
    * @param properties The properties of the timeline click event.
    */
   protected _timelineClickHandler(properties: TimelineEventPropertiesResult): void {
-    if (properties.what === 'item') {
+    if (properties.what === 'item' || this._wasDragged) {
       stopEventFromActivatingCardWideActions(properties.event);
     }
 
