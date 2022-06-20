@@ -1,5 +1,3 @@
-export const CARD_VERSION = '4.0.0-rc.1' as const;
-
 export const CAMERA_BIRDSEYE = 'birdseye' as const;
 export const REPO_URL = 'https://github.com/dermotduffy/frigate-hass-card' as const;
 export const TROUBLESHOOTING_URL = `${REPO_URL}#troubleshooting` as const;
@@ -7,9 +5,12 @@ export const TROUBLESHOOTING_URL = `${REPO_URL}#troubleshooting` as const;
 export const CONF_CAMERAS = 'cameras' as const;
 export const CONF_CAMERAS_ARRAY_CAMERA_ENTITY =
   `${CONF_CAMERAS}.#.camera_entity` as const;
-export const CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME = `${CONF_CAMERAS}.#.frigate.camera_name` as const;
-export const CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID = `${CONF_CAMERAS}.#.frigate.client_id` as const;
-export const CONF_CAMERAS_ARRAY_FRIGATE_LABEL = `${CONF_CAMERAS}.#.frigate.label` as const;
+export const CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME =
+  `${CONF_CAMERAS}.#.frigate.camera_name` as const;
+export const CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID =
+  `${CONF_CAMERAS}.#.frigate.client_id` as const;
+export const CONF_CAMERAS_ARRAY_FRIGATE_LABEL =
+  `${CONF_CAMERAS}.#.frigate.label` as const;
 export const CONF_CAMERAS_ARRAY_FRIGATE_URL = `${CONF_CAMERAS}.#.frigate.url` as const;
 export const CONF_CAMERAS_ARRAY_FRIGATE_ZONE = `${CONF_CAMERAS}.#.frigate.zone` as const;
 export const CONF_CAMERAS_ARRAY_ID = `${CONF_CAMERAS}.#.id` as const;
@@ -23,7 +24,7 @@ export const CONF_CAMERAS_ARRAY_LIVE_PROVIDER =
   `${CONF_CAMERAS}.#.live_provider` as const;
 export const CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS =
   `${CONF_CAMERAS}.#.dependencies.cameras` as const;
-  export const CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS =
+export const CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS =
   `${CONF_CAMERAS}.#.dependencies.all_cameras` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGERS_MOTION =
   `${CONF_CAMERAS}.#.triggers.motion` as const;
