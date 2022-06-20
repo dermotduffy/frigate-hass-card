@@ -1,6 +1,7 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import {
   add,
+  differenceInSeconds,
   endOfHour,
   format,
   fromUnixTime,
@@ -761,6 +762,17 @@ export class FrigateCardTimelineCore extends LitElement {
   }
 
   /**
+   * Get a broader prefetch window from a start and end basis.
+   * @param start The earlier date.
+   * @param end The later date.
+   * @returns An object with a `start` and `end` key to prefetch.
+   */
+  protected _getPrefetchWindow(start: Date, end: Date): [Date, Date] {
+    const delta = differenceInSeconds(end, start);
+    return [sub(start, { seconds: delta }), add(end, { seconds: delta })];
+  }
+
+  /**
    * Handle a range change in the timeline.
    * @param properties vis.js provided range information.
    */
@@ -774,14 +786,18 @@ export class FrigateCardTimelineCore extends LitElement {
       return;
     }
     if (this.hass && this.cameras && this._timeline && this.timelineConfig) {
+      const [prefetchStart, prefetchEnd] = this._getPrefetchWindow(
+        properties.start,
+        properties.end,
+      );
       this._data
         .fetchIfNecessary(
           this,
           this.hass,
           this.cameras,
           this.timelineConfig.media,
-          properties.start,
-          properties.end,
+          prefetchStart,
+          prefetchEnd,
           this.timelineConfig.show_recordings,
         )
         .then(() => {
@@ -1069,13 +1085,14 @@ export class FrigateCardTimelineCore extends LitElement {
       ? this._getStartEndFromEvent(event)
       : this._getStartEnd();
 
+    const [prefetchStart, prefetchEnd] = this._getPrefetchWindow(windowStart, windowEnd);
     await this._data.fetchIfNecessary(
       this,
       this.hass,
       this.cameras,
       this.timelineConfig.media,
-      windowStart,
-      windowEnd,
+      prefetchStart,
+      prefetchEnd,
       this.timelineConfig.show_recordings,
     );
 
