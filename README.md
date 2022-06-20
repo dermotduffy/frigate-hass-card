@@ -51,7 +51,7 @@ Home Assistant > HACS > Frontend > "Explore & Add Integrations" > Frigate Card
 * Click `Download this repository with HACS`.
 
 #### Lovelace YAML users
-If Lovelace is in YAML mode then there's an additional step required to load the resource into your browser. (This mode is not the default -- you would see`mode: yaml` under `lovelace:` in your `configuration.yaml` if this applies  to you), 
+If Lovelace is in YAML mode then there's an additional step required to load the resource into your browser. (This mode is not the default -- you would see`mode: yaml` under `lovelace:` in your `configuration.yaml` if this applies  to you),
 
 * Add the following to `configuration.yaml` (note that `/hacsfiles/` is just an [optimized equivalent](https://hacs.xyz/docs/categories/plugins#custom-view-hacsfiles) of `/local/community/` that HACS natively supports):
 
@@ -242,7 +242,7 @@ Scan mode allows the card to automatically "follow the action". In this mode the
 
 When the camera untriggers, the view will either remain as-is (if `untrigger_reset` is `false`) and the card return to normal operation, or reset to the default view (if `untrigger_reset` is `true` -- the default).
 
-Triggering is only allowed when there is no ongoing human interaction with the card -- interaction will automatically untrigger and further triggering will not occur until after the card has been unattended for `view.timeout_seconds`. 
+Triggering is only allowed when there is no ongoing human interaction with the card -- interaction will automatically untrigger and further triggering will not occur until after the card has been unattended for `view.timeout_seconds`.
 
 Scan mode tracks Home Assistant state *changes* -- when the card is first started, it takes an active change in state to trigger (i.e. an already occupied room will not trigger it, but a newly occupied room will).
 
@@ -693,7 +693,7 @@ configuration options that can be used here.
 
 Conditions are used to apply certain configuration depending on runtime evaluations. Conditions may be used in `elements` configuration (as part of a `custom:frigate-card-conditional` element) or the `overrides` configuration (see below for both).
 
-All variables listed are under a `conditions:` section. 
+All variables listed are under a `conditions:` section.
 
 | Condition | Description |
 | ------------- | --------------------------------------------- |
@@ -774,7 +774,7 @@ Parameters for the `custom:frigate-card-menu-submenu` element are identical to t
 | Parameter | Description |
 | - | - |
 | `type` | Must be `custom:frigate-card-menu-submenu`. |
-| `items` | A list of menu items, as described below. | 
+| `items` | A list of menu items, as described below. |
 
 <a name="frigate-card-submenu-items"></a>
 
@@ -804,7 +804,7 @@ Parameters for the `custom:frigate-card-menu-submenu-select` element are identic
 | Parameter | Description |
 | - | - |
 | `type` | Must be `custom:frigate-card-menu-submenu-select`. |
-| `options` | An optional dictionary of overrides keyed by the option name that the given select entity supports. These options can be used to set or override submenu item parameters on a per-option basis. The format is as described in [Submenu Items](#frigate-card-submenu-items) above.| 
+| `options` | An optional dictionary of overrides keyed by the option name that the given select entity supports. These options can be used to set or override submenu item parameters on a per-option basis. The format is as described in [Submenu Items](#frigate-card-submenu-items) above.|
 
 See the [Configuring a Select Submenu example](#configuring-a-select-submenu-example).
 
@@ -825,7 +825,7 @@ Parameters for the `custom:frigate-card-conditional` element:
 #### `custom:frigate-card-action`
 
 | Parameter | Description |
-| - | - | 
+| - | - |
 | `action` | Must be `custom:frigate-card-action`. |
 | `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `snapshot`, `snapshots`, `download`, `timeline`, `frigate_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`.|
 
@@ -837,7 +837,7 @@ Parameters for the `custom:frigate-card-conditional` element:
 | `clip`, `clips`, `image`, `live`, `snapshot`, `snapshots` | Trigger the named [view](#views).|
 |`download`|Download the displayed media.|
 |`frigate_ui`|Open the Frigate UI at the configured URL.|
-|`fullscreen`|Toggle fullscreen.| 
+|`fullscreen`|Toggle fullscreen.|
 |`camera_select`|Select a given camera. Takes a single additional `camera` parameter with the [camera ID](#camera-ids) of the camera to select. Respects the value of `view.camera_select` to choose the appropriate view on the new camera.|
 |`menu_toggle` | Show/hide the menu (for the `hidden` mode style). |
 |`media_player`| Perform a media player action. Takes a `media_player` parameter with the entity ID of the media_player on which to perform the action, and a `media_player_action` parameter which should be either `play` or `stop` to play or stop the media in question. |
@@ -880,7 +880,7 @@ The format for actions is the standard Home Assistant [action
 format](https://www.home-assistant.io/lovelace/actions/#tap-action), with the
 exception of differences called out below.
 
-### Differences in actions between Frigate Card and Home Assistant 
+### Differences in actions between Frigate Card and Home Assistant
 
 Both the Home Assistant frontend and the Frigate card cooperate to provide
 action functionality. In general, the Frigate Card functionality is a superset
@@ -1272,7 +1272,7 @@ live:
       action: none
     end_tap_action:
       action: none
-  
+
 ```
 </details>
 
@@ -1431,7 +1431,7 @@ elements:
       top: 300px
   - type: image
     entity: light.office_main_lights
-    title: Image   
+    title: Image
     state_image:
       on: "https://picsum.photos/id/1003/1181/1772"
       off: "https://picsum.photos/id/102/4320/3240"
@@ -1530,10 +1530,10 @@ Reference: [Custom Frigate Card Elements](#special-elements)
 
 ```yaml
 elements:
-  - type: custom:frigate-card-menu-icon	
+  - type: custom:frigate-card-menu-icon
     icon: mdi:car
     title: Vroom
-  - type: custom:frigate-card-menu-state-icon	
+  - type: custom:frigate-card-menu-state-icon
     entity: light.office_main_lights
     title: Office lights
     icon: mdi:chair-rolling
@@ -1591,80 +1591,80 @@ Reference: [Custom Frigate Card Actions](#special-actions)
 
 ```yaml
 elements:
-  - type: custom:frigate-card-menu-icon	
+  - type: custom:frigate-card-menu-icon
     icon: mdi:alpha-a-circle
     title: Show default view
     tap_action:
       action: custom:frigate-card-action
       frigate_card_action: default
-  - type: custom:frigate-card-menu-icon	
+  - type: custom:frigate-card-menu-icon
     icon: mdi:alpha-b-circle
     title: Show most recent clip
     tap_action:
       action: custom:frigate-card-action
       frigate_card_action: clip
-  - type: custom:frigate-card-menu-icon	
+  - type: custom:frigate-card-menu-icon
     icon: mdi:alpha-c-circle
     title: Show clips
     tap_action:
       action: custom:frigate-card-action
       frigate_card_action: clips
-  - type: custom:frigate-card-menu-icon	
+  - type: custom:frigate-card-menu-icon
     icon: mdi:alpha-d-circle
     title: Show image view
     tap_action:
       action: custom:frigate-card-action
       frigate_card_action: image
-  - type: custom:frigate-card-menu-icon	
+  - type: custom:frigate-card-menu-icon
     icon: mdi:alpha-e-circle
     title: Show live view
     tap_action:
       action: custom:frigate-card-action
       frigate_card_action: live
-  - type: custom:frigate-card-menu-icon	
+  - type: custom:frigate-card-menu-icon
     icon: mdi:alpha-f-circle
     title: Show most recent snapshot
     tap_action:
       action: custom:frigate-card-action
       frigate_card_action: snapshot
-  - type: custom:frigate-card-menu-icon	
+  - type: custom:frigate-card-menu-icon
     icon: mdi:alpha-g-circle
     title: Show snapshots
     tap_action:
       action: custom:frigate-card-action
       frigate_card_action: snapshots
-  - type: custom:frigate-card-menu-icon	
+  - type: custom:frigate-card-menu-icon
     icon: mdi:alpha-h-circle
     title: Download media
     tap_action:
       action: custom:frigate-card-action
       frigate_card_action: download
-  - type: custom:frigate-card-menu-icon	
+  - type: custom:frigate-card-menu-icon
     icon: mdi:alpha-i-circle
     title: Open Frigate UI
     tap_action:
       action: custom:frigate-card-action
       frigate_card_action: frigate_ui
-  - type: custom:frigate-card-menu-icon	
+  - type: custom:frigate-card-menu-icon
     icon: mdi:alpha-j-circle
     title: Change to fullscreen
     tap_action:
       action: custom:frigate-card-action
       frigate_card_action: fullscreen
-  - type: custom:frigate-card-menu-icon	
+  - type: custom:frigate-card-menu-icon
     icon: mdi:alpha-k-circle
     title: Toggle hidden menu
     tap_action:
       action: custom:frigate-card-action
       frigate_card_action: menu_toggle
-  - type: custom:frigate-card-menu-icon	
+  - type: custom:frigate-card-menu-icon
     icon: mdi:alpha-l-circle
     title: Select Front Door
     tap_action:
       action: custom:frigate-card-action
       frigate_card_action: camera_select
       camera: camera.front_door
-  - type: custom:frigate-card-menu-icon	
+  - type: custom:frigate-card-menu-icon
     icon: mdi:alpha-m-circle
     title: Media player play
     tap_action:
@@ -1672,7 +1672,7 @@ elements:
       frigate_card_action: media_player
       media_player: media_player.nesthub50be
       media_player_action: play
-  - type: custom:frigate-card-menu-icon	
+  - type: custom:frigate-card-menu-icon
     icon: mdi:alpha-n-circle
     title: Media player stop
     tap_action:
@@ -2276,7 +2276,7 @@ elements:
 
 ### Configuring a `select` submenu
 
-You can easily add a submenu to the menu based on a `select` or `input_select` entity. 
+You can easily add a submenu to the menu based on a `select` or `input_select` entity.
 
 <details>
   <summary>Expand: Adding a select submenu</summary>
@@ -2736,28 +2736,6 @@ rewind or fast-forward. Workarounds:
 * Use a [Frigate Card Element](#frigate-card-elements) or menu icon to trigger
   the action instead.
 
-### Console shows 'Offset is out of bounds' / 'Out of bounds memory access'
-
-This is an issue with the JSMPEG live provider and cameras with high-resolutions
-/ high-bitrates. [This bug](https://github.com/dermotduffy/frigate-hass-card/issues/189) has much
-more discussion on this topic. Some users report success in disabling the WASM-option for JSMPEG like so:
-
-```yaml
-live:
-  jsmpeg:
-    options:
-      disableWebAssembly: true
-```
-
-Lowering the camera bitrate, and/or increasing the `videoBufferSize` for JSMPEG may also help:
-
-```yaml
-live:
-  jsmpeg:
-    options:
-      videoBufferSize: 41943040
-```
-
 ### Home Assistant iOS App not updating after card version change
 
 Try resetting the app frontend cache:
@@ -2783,11 +2761,41 @@ $ yarn run build
 
 Resultant build will be at `dist/frigate-hass-card.js`. This could be installed via the [manual installation instructions above](#manual-installation).
 
+### Dev Container
+
+[![Open in Remote - Containers](https://img.shields.io/static/v1?label=Remote%20-%20Containers&message=Open&color=blue&logo=visualstudiocode&style=flat-square)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/dermotduffy/frigate-hass-card)
+
+You can use the [VS Code Remote - Containers](https://code.visualstudio.com/docs/remote/containers) extension to speed up the development environment creation. Simply:
+
+1. Clone the repository to your machine
+1. Open VS Code on it
+1. Reopen the folder in the Dev Container
+1. Once done, press `F5` to start debugging
+
+Everything should just work without any additional configuration. Under the hood, the dev container setup takes care of bringing up:
+
+* Home Assistant (port `48123:8123`)
+* Frigate (ports `45000:5000`, `41935:1935`)
+* MQTT (port `41883:1883`)
+
+As docker-compose containers.
+
+* The Frigate Home Assistant Integration is registered as a `git submodule` at `.devcontainer/frigate-hass-integration`, and VS Code will initialize/clone it for you before opening the dev container.
+
+Some environment variables are supported in a `.env` file:
+
+* `FRIGATE_VERSION`: The version of Frigate to use. Defaults to the latest stable version.
+* `HA_VERSION`: The version of Home Assistant to use. Defaults to the latest stable version.
+
+> **NOTE**: When not specifying any version, it's recommended that you `docker-compose pull` the stack from time to time to ensure you have the latest versions of the images.
+
+The Home Assistant container will get preconfigured during first initialization, therefore, if you changed the Home Assistant configuration, you will need to remove the HA container and start another.
+
 ### Releasing
 
- 1. Merge a PR that contains only a `package.json` and `const.ts` version number bump (see [this example](https://github.com/dermotduffy/frigate-hass-card/commit/a854187d4a354f8841ad284d75b0afbed7b634c4)).
- 1. Go to the [releases page](https://github.com/dermotduffy/frigate-hass-card/releases).
- 1. A release draft will automatically have been created, click 'Edit'.
- 1. Use the same version number for the release title and tag.
- 1. Choose 'This is a pre-release' for a beta version.
- 1. Hit 'Publish release'.
+1. Merge a PR that contains only a `package.json` and `const.ts` version number bump (see [this example](https://github.com/dermotduffy/frigate-hass-card/commit/a854187d4a354f8841ad284d75b0afbed7b634c4)).
+1. Go to the [releases page](https://github.com/dermotduffy/frigate-hass-card/releases).
+1. A release draft will automatically have been created, click 'Edit'.
+1. Use the same version number for the release title and tag.
+1. Choose 'This is a pre-release' for a beta version.
+1. Hit 'Publish release'.
