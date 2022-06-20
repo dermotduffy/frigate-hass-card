@@ -9,7 +9,7 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS
+  unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
@@ -33,16 +33,16 @@ import {
   LiveProvider,
   MediaShowInfo,
   TransitionEffect,
-  WebRTCCardConfig
+  WebRTCCardConfig,
 } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
-import { contentsChanged } from '../utils/basic.js';
+import { contentsChanged, errorToConsole } from '../utils/basic.js';
 import { getCameraIcon, getCameraTitle } from '../utils/camera.js';
 import { homeAssistantSignPath } from '../utils/ha';
 import { getFullDependentBrowseMediaQueryParameters } from '../utils/ha/browse-media.js';
 import {
   dispatchExistingMediaShowInfoAsEvent,
-  dispatchMediaShowEvent
+  dispatchMediaShowEvent,
 } from '../utils/media-info.js';
 import { View } from '../view.js';
 import { AutoMediaPlugin, AutoMediaPluginType } from './embla-plugins/automedia.js';
@@ -52,8 +52,8 @@ import { dispatchErrorMessageEvent } from './message.js';
 import './next-prev-control.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
 import './title-control.js';
-import "./surround-thumbnails";
-import "../patches/ha-camera-stream";
+import './surround-thumbnails';
+import '../patches/ha-camera-stream';
 
 // Number of seconds a signed URL is valid for.
 const URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -913,7 +913,7 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
         // Set the id to ensure that the relevant CSS styles will have
         // sufficient specifity to overcome some styles that are otherwise
         // applied to <ha-card> in Safari.
-        webrtcElement.id = "webrtc";
+        webrtcElement.id = 'webrtc';
       }
       return html`${webrtcElement}`;
     };
@@ -1021,7 +1021,11 @@ export class FrigateCardLiveJSMPEG extends LitElement {
    * @returns A URL or null.
    */
   protected async _getURL(): Promise<string | null> {
-    if (!this.hass || !this.cameraConfig?.frigate.client_id || !this.cameraConfig?.frigate.camera_name) {
+    if (
+      !this.hass ||
+      !this.cameraConfig?.frigate.client_id ||
+      !this.cameraConfig?.frigate.camera_name
+    ) {
       return null;
     }
 
@@ -1033,8 +1037,8 @@ export class FrigateCardLiveJSMPEG extends LitElement {
           `/jsmpeg/${this.cameraConfig.frigate.camera_name}`,
         URL_SIGN_EXPIRY_SECONDS,
       );
-    } catch (err) {
-      console.warn(err);
+    } catch (e) {
+      errorToConsole(e as Error);
       return null;
     }
     if (!response) {
@@ -1182,12 +1186,12 @@ export class FrigateCardLiveJSMPEG extends LitElement {
 }
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card-live-jsmpeg": FrigateCardLiveJSMPEG
-		"frigate-card-live-webrtc-card": FrigateCardLiveWebRTCCard
-		"frigate-card-live-ha": FrigateCardLiveFrigate
-		"frigate-card-live-provider": FrigateCardLiveProvider
-		"frigate-card-live-carousel": FrigateCardLiveCarousel
-		"frigate-card-live": FrigateCardLive
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card-live-jsmpeg': FrigateCardLiveJSMPEG;
+    'frigate-card-live-webrtc-card': FrigateCardLiveWebRTCCard;
+    'frigate-card-live-ha': FrigateCardLiveFrigate;
+    'frigate-card-live-provider': FrigateCardLiveProvider;
+    'frigate-card-live-carousel': FrigateCardLiveCarousel;
+    'frigate-card-live': FrigateCardLive;
+  }
 }

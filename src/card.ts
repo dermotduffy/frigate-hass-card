@@ -75,7 +75,7 @@ import {
   frigateCardHasAction,
   getActionConfigGivenAction,
 } from './utils/action.js';
-import { contentsChanged } from './utils/basic.js';
+import { contentsChanged, errorToConsole } from './utils/basic.js';
 import { getCameraIcon, getCameraID, getCameraTitle } from './utils/camera.js';
 import {
   getEntityIcon,
@@ -673,7 +673,7 @@ export class FrigateCard extends LitElement {
     try {
       entityList = await getAllEntities(this._hass);
     } catch (e) {
-      console.error(e);
+      errorToConsole(e as Error);
     }
 
     const cameras: Map<string, CameraConfig> = new Map();
@@ -688,7 +688,11 @@ export class FrigateCard extends LitElement {
       if (config.camera_entity) {
         try {
           entity = await getExtendedEntity(this._hass, config.camera_entity, cache);
-        } catch (e) {}
+        } catch (e) {
+          // Silently ignore errors here, as non-Frigate camera entities may not
+          // necessarily have a registry entry and otherwise this would cause
+          // log spam for those cases.
+        }
       }
 
       if (!config.frigate.camera_name && entity) {
@@ -717,7 +721,7 @@ export class FrigateCard extends LitElement {
             cache,
           );
         } catch (e) {
-          console.error(e);
+          errorToConsole(e as Error);
         }
 
         if (config.triggers.motion) {
@@ -1180,7 +1184,7 @@ export class FrigateCard extends LitElement {
     try {
       response = await homeAssistantSignPath(this._hass, path);
     } catch (e) {
-      console.error(e);
+      errorToConsole(e as Error);
     }
 
     if (!response) {
@@ -1860,7 +1864,7 @@ export class FrigateCard extends LitElement {
 }
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card": FrigateCard
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card': FrigateCard;
+  }
 }

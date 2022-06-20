@@ -1,4 +1,5 @@
 import { isEqual } from 'lodash-es';
+import { FrigateCardError } from '../types';
 
 /**
  * Dispatch a Frigate Card event.
@@ -59,4 +60,20 @@ export function arrayMove(target: unknown[], from: number, to: number): void {
  */
 export function contentsChanged(n: unknown, o: unknown): boolean {
   return !isEqual(n, o);
+}
+
+/**
+ * Log an error as a warning to the console.
+ * @param e The Error object.
+ * @param func The Console func to call.
+ */
+export function errorToConsole(e: Error, func?: CallableFunction): void {
+  if (!func) {
+    func = console.warn;
+  }
+  if (e instanceof FrigateCardError && e.context) {
+    func(e, e.context);
+  } else {
+    func(e);
+  }
 }
