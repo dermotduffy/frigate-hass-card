@@ -1106,8 +1106,26 @@ export class FrigateCard extends LitElement {
 
     if (oldHass) {
       const selectedCamera = this._getSelectedCameraConfig();
-      if (this._getConfig().view.scan.enabled && this._updateTriggeredCameras(oldHass)) {
-        shouldUpdate ||= true;
+      if (oldHass.connected !== !!this._hass?.connected) {
+        if (!this._hass?.connected) {
+          this._setMessageAndUpdate(
+            {
+              message: localize('error.reconnecting'),
+              icon: 'mdi:lan-disconnect',
+              type: 'info',
+              dotdotdot: true,
+            },
+            true,
+          );
+        } else {
+          this._changeView();
+        }
+        shouldUpdate = true;
+      } else if (
+        this._getConfig().view.scan.enabled &&
+        this._updateTriggeredCameras(oldHass)
+      ) {
+        shouldUpdate = true;
       } else if (
         // Home Assistant pumps a lot of updates through. Re-rendering the card is
         // necessary at times (e.g. to update the 'clip' view as new clips
@@ -1125,7 +1143,7 @@ export class FrigateCard extends LitElement {
         // default. Note that as per the Lit lifecycle, the setting of the view
         // itself will not trigger an *additional* re-render here.
         this._changeView();
-        shouldUpdate ||= true;
+        shouldUpdate = true;
       } else {
         shouldUpdate ||= isHassDifferent(
           this._hass,

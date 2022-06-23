@@ -1,10 +1,4 @@
-import {
-  CSSResultGroup,
-  html,
-  LitElement,
-  TemplateResult,
-  unsafeCSS,
-} from 'lit';
+import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { TROUBLESHOOTING_URL } from '../const.js';
 import { localize } from '../localize/localize.js';
@@ -23,6 +17,9 @@ export class FrigateCardMessage extends LitElement {
   @property({ attribute: false })
   public icon?: string;
 
+  @property({ attribute: true, type: Boolean })
+  public dotdotdot?: boolean;
+
   // Render the menu.
   protected render(): TemplateResult {
     const icon = this.icon ? this.icon : 'mdi:information-outline';
@@ -33,6 +30,7 @@ export class FrigateCardMessage extends LitElement {
         </div>
         <div class="contents">
           <span> ${this.message ? html`${this.message}` : ''} </span>
+          ${this.dotdotdot ? html`<span class="dotdotdot"></span>` : ``}
           ${this.context
             ? html`<pre>${JSON.stringify(this.context, null, 2)}</pre>`
             : ''}
@@ -60,6 +58,7 @@ export class FrigateCardErrorMessage extends LitElement {
         <a href="${TROUBLESHOOTING_URL}"> ${localize('error.troubleshooting')}</a>.`}
       .icon=${'mdi:alert-circle'}
       .context=${this.message.context}
+      .dotdotdot=${this.message.dotdotdot}
     >
     </frigate-card-message>`;
   }
@@ -89,15 +88,16 @@ export class FrigateCardProgressIndicator extends LitElement {
 }
 
 export function renderMessage(message: Message): TemplateResult {
-  if (message.type == 'error') {
+  if (message.type === 'error') {
     return html` <frigate-card-error-message
       .message=${message}
     ></frigate-card-error-message>`;
-  } else if (message.type == 'info') {
+  } else if (message.type === 'info') {
     return html` <frigate-card-message
       .message=${message.message}
       .icon=${message.icon}
       .context=${message.context}
+      .dotdotdot=${message.dotdotdot}
     ></frigate-card-message>`;
   }
   return html``;
@@ -165,7 +165,7 @@ export function dispatchFrigateCardErrorEvent(
 
 declare global {
   interface HTMLElementTagNameMap {
-		"frigate-card-progress-indicator": FrigateCardProgressIndicator
+    'frigate-card-progress-indicator': FrigateCardProgressIndicator;
     'frigate-card-error-message': FrigateCardErrorMessage;
     'frigate-card-message': FrigateCardMessage;
   }

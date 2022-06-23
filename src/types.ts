@@ -1193,6 +1193,7 @@ export interface Message {
   type: 'error' | 'info';
   icon?: string;
   context?: unknown;
+  dotdotdot?: boolean;
 }
 
 export interface StateParameters {
