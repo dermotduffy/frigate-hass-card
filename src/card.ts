@@ -1104,27 +1104,31 @@ export class FrigateCard extends LitElement {
     const oldHass = changedProps.get('_hass') as HomeAssistant | undefined;
     let shouldUpdate = !oldHass || changedProps.size != 1;
 
+    // If this is the first HA state and it is disconnected, or there's been a
+    // change in connection state, then show the reconnection message.
+    if (
+      (!oldHass && !this._hass?.connected) ||
+      (!!oldHass && oldHass.connected !== !!this._hass?.connected)
+    ) {
+      if (!this._hass?.connected) {
+        this._setMessageAndUpdate(
+          {
+            message: localize('error.reconnecting'),
+            icon: 'mdi:lan-disconnect',
+            type: 'info',
+            dotdotdot: true,
+          },
+          true,
+        );
+      } else {
+        this._changeView();
+      }
+      return true;
+    }
+
     if (oldHass) {
       const selectedCamera = this._getSelectedCameraConfig();
-      if (oldHass.connected !== !!this._hass?.connected) {
-        if (!this._hass?.connected) {
-          this._setMessageAndUpdate(
-            {
-              message: localize('error.reconnecting'),
-              icon: 'mdi:lan-disconnect',
-              type: 'info',
-              dotdotdot: true,
-            },
-            true,
-          );
-        } else {
-          this._changeView();
-        }
-        shouldUpdate = true;
-      } else if (
-        this._getConfig().view.scan.enabled &&
-        this._updateTriggeredCameras(oldHass)
-      ) {
+      if (this._getConfig().view.scan.enabled && this._updateTriggeredCameras(oldHass)) {
         shouldUpdate = true;
       } else if (
         // Home Assistant pumps a lot of updates through. Re-rendering the card is
