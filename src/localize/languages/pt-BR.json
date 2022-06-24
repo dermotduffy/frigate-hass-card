@@ -330,7 +330,7 @@
     "no_camera_name": "Não foi possível determinar o nome da câmera da Frigate, especifique 'camera_entity' ou 'camera_name' para a câmera a seguir",
     "no_cameras": "Nenhuma câmera válida encontrada, você deve configurar pelo menos uma câmera",
     "no_live_camera": "O parâmetro camera_entity deve ser definido e válido para este provedor ativo",
-    "reconnecting": "",
+    "reconnecting": "Reconectando",
     "timeline_no_cameras": "Nenhuma câmera do Frigate para mostrar na linha do tempo",
     "troubleshooting": "Verifique a solução de problemas",
     "undecodable_response": "Não foi possível decodificar a resposta do Home Assistant para solicitação",
