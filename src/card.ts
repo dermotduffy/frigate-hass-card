@@ -128,7 +128,10 @@ import pkg from '../package.json';
 
 /* eslint no-console: 0 */
 console.info(
-  `%c FRIGATE-HASS-CARD \n%c  ${localize('common.version')} ${pkg.version}    `,
+  `%c FRIGATE-HASS-CARD \n` +
+  `%c ${localize('common.version')} ` +
+  `${pkg.version} ` +
+  `${process.env.NODE_ENV === 'development' ? `(${pkg['buildDate']})` : ''}`,
   'color: pink; font-weight: bold; background: black',
   'color: white; font-weight: bold; background: dimgray',
 );
@@ -1692,8 +1695,17 @@ export class FrigateCard extends LitElement {
    * @returns A combined set of action.
    */
   protected _getMergedActions(): Actions {
-    let specificActions: Actions | undefined = undefined;
+    if (this._view?.is('timeline')) {
+      // Timeline does not support actions as it is not possible to prevent
+      // touch actions on the timeline surface from triggering card-wide actions
+      // inappropriately, whilst also maintaining touch interaction with the
+      // timeline itself (and almost the entire timeline surface can be
+      // interacted with). This causes duplicate/inappropriate card-wide actions
+      // on touch surfaces.
+      return {};
+    }
 
+    let specificActions: Actions | undefined = undefined;
     if (this._view?.is('live')) {
       specificActions = this._getConfig().live.actions;
     } else if (this._view?.isGalleryView()) {
@@ -1702,8 +1714,6 @@ export class FrigateCard extends LitElement {
       specificActions = this._getConfig().media_viewer.actions;
     } else if (this._view?.is('image')) {
       specificActions = this._getConfig().image?.actions;
-    } else if (this._view?.is('timeline')) {
-      specificActions = this._getConfig().timeline?.actions;
     }
     return { ...this._getConfig().view.actions, ...specificActions };
   }
