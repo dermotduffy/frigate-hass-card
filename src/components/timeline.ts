@@ -490,9 +490,9 @@ export class FrigateCardTimelineCore extends LitElement {
   protected _timeline?: Timeline;
 
   // Need a way to separate when a user clicks (to pan the timeline) vs when a
-  // user clicks (to choose a recording (non-event) to play). On pan,
-  // _wasDragged will be set to true, and the click subsequently ignored.
-  protected _wasDragged = false;
+  // user clicks (to choose a recording (non-event) to play).
+  protected _pointerHeld = false;
+  protected _ignoreClick = false;
 
   /**
    * Get a tooltip for a given timeline event.
@@ -733,9 +733,9 @@ export class FrigateCardTimelineCore extends LitElement {
   protected _timelineRangeChangeHandler(
     properties: TimelineEventPropertiesResult,
   ): void {
-    if (properties.event) {
-      // When a human changes the range, an event will be set.
-      this._wasDragged = true;
+    if (properties.event && this._pointerHeld) {
+      // An event will have been set when it's a human changes the range, 
+      this._ignoreClick = true;
     }
   }
 
@@ -744,11 +744,14 @@ export class FrigateCardTimelineCore extends LitElement {
    * @param properties The properties of the timeline click event.
    */
   protected _timelineClickHandler(properties: TimelineEventPropertiesResult): void {
-    if (properties.what === 'item' || this._wasDragged) {
+    // Calls to stopEventFromActivatingCardWideActions() are included for
+    // completeness. Timeline does not support card-wide events and they are
+    // disabled in card.ts in `_getMergedActions`.
+    if (properties.what === 'item' || this._ignoreClick) {
       stopEventFromActivatingCardWideActions(properties.event);
     }
 
-    if (!this._wasDragged && properties.what && this.timelineConfig?.show_recordings) {
+    if (!this._ignoreClick && properties.what && this.timelineConfig?.show_recordings) {
       if (['background', 'group-label'].includes(properties.what)) {
         stopEventFromActivatingCardWideActions(properties.event);
         this._changeViewToRecording(properties.time, String(properties.group));
@@ -758,7 +761,7 @@ export class FrigateCardTimelineCore extends LitElement {
       }
     }
 
-    this._wasDragged = false;
+    this._ignoreClick = false;
   }
 
   /**
@@ -1245,6 +1248,17 @@ export class FrigateCardTimelineCore extends LitElement {
         this._timeline.on('rangechanged', this._timelineRangeHandler.bind(this));
         this._timeline.on('click', this._timelineClickHandler.bind(this));
         this._timeline.on('rangechange', this._timelineRangeChangeHandler.bind(this));
+
+        // This complexity exists to ensure we can tell between a click that
+        // causes the timeline zoom/range to change, and a 'static' click on the
+        // // timeline (which may need to trigger a card wide event).
+        this._timeline.on('mouseDown', () => {
+          this._pointerHeld = true;
+          this._ignoreClick = false;
+        })
+        this._timeline.on('mouseUp', () => {
+          this._pointerHeld = false;
+        })
       }
     }
 

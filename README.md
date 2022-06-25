@@ -542,7 +542,6 @@ See the [fully expanded timeline configuration example](#config-expanded-timelin
 | `media` | `all` | :heavy_multiplication_x: | Whether to show only events with `clips`, events with `snapshots` or `all` events. When `all` is used, `clips` are favored for events that have both a clip and a snapshot.|
 | `show_recordings` | `true` | :heavy_multiplication_x: | Whether to show recordings on the timeline (specifically: which hours have any recorded content).|
 | `controls` | | :heavy_multiplication_x: | Configuration for the timeline controls. See below.|
-| `actions` | | :heavy_multiplication_x: | Actions to use for the `timeline` views. See [actions](#actions) below.|
 
 #### Timeline Controls: Thumbnails
 
@@ -932,6 +931,8 @@ card-wide actions will not be activated through interaction with menu buttons,
 next/previous controls, thumbnails, etc), but in some cases this is not possible
 (e.g. embedded WebRTC card controls) -- in these cases duplicate actions may
 occur with certain configurations (e.g. `tap`).
+
+**Note:** Card-wide actions are not supported on the timeline view.
 
 ## Menu Styles
 
@@ -1716,18 +1717,6 @@ timeline:
       size: 100
       show_details: true
       show_controls: true
-  actions:
-    entity: light.office_main_lights
-    tap_action:
-      action: none
-    hold_action:
-      action: none
-    double_tap_action:
-      action: none
-    start_tap_action:
-      action: none
-    end_tap_action:
-      action: none
 ```
 </details>
 
