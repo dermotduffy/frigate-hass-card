@@ -24,6 +24,9 @@ div.main {
   // boundary.
   border-radius: var(--ha-card-border-radius, 4px);
 
+  // Necessary to get Safari to show border-radius correctly.
+  transform: translateZ(0);
+
   // Include the borders in the sizing (to keep the triggered warning pulse
   // visible in fullscreen).
   box-sizing: border-box;
@@ -78,7 +81,6 @@ ha-card {
   position: static;
   color: var(--secondary-text-color, white);
   background-color: var(--secondary-background-color, black);
-  border-radius: var(--ha-card-border-radius, 4px);
 }
 
 frigate-card-live.hidden {
