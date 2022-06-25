@@ -1759,27 +1759,6 @@ export class FrigateCard extends LitElement {
           : // Always want to call render even if there's a message, to
             // ensure live preload is always present (even if not displayed).
             this._render()}
-        ${this._getConfig().elements
-          ? // Always show elements to allow for custom menu items (etc.) to
-            // be present even if a particular view has an error. Elements
-            // need to render after the main views so it can render 'on top'.
-            html` <frigate-card-elements
-              ${ref(this._refElements)}
-              .hass=${this._hass}
-              .elements=${this._getConfig().elements}
-              .conditionState=${this._conditionState}
-              @frigate-card:menu-add=${(e) => {
-                this._addDynamicMenuButton(e.detail);
-              }}
-              @frigate-card:menu-remove=${(e) => {
-                this._removeDynamicMenuButton(e.detail);
-              }}
-              @frigate-card:condition-state-request=${(ev) => {
-                conditionStateRequestHandler(ev, this._conditionState);
-              }}
-            >
-            </frigate-card-elements>`
-          : ``}
         ${
           // Keep message rendering to last to show messages that may have
           // been generated during the render.
@@ -1871,6 +1850,26 @@ export class FrigateCard extends LitElement {
             `
           : ``
       }
+      ${!this._message && this._getConfig().elements
+          // Elements need to render after the main views so it can render 'on
+          // top'.
+          ? html` <frigate-card-elements
+            ${ref(this._refElements)}
+            .hass=${this._hass}
+            .elements=${this._getConfig().elements}
+            .conditionState=${this._conditionState}
+            @frigate-card:menu-add=${(e) => {
+              this._addDynamicMenuButton(e.detail);
+            }}
+            @frigate-card:menu-remove=${(e) => {
+              this._removeDynamicMenuButton(e.detail);
+            }}
+            @frigate-card:condition-state-request=${(ev) => {
+              conditionStateRequestHandler(ev, this._conditionState);
+            }}
+          >
+          </frigate-card-elements>`
+        : ``}
     `;
   }
 
