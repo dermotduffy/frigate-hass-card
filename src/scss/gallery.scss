@@ -23,7 +23,7 @@
   display: none;
 }
 
-ha-card {
+:host ha-card {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -38,13 +38,23 @@ ha-card {
   line-height: 1;
   overflow: hidden;
 
+  // Some themes override these values (with high CSS specificity) which is
+  // intended for full cards rather than internal ones. Since we use multiple of
+  // these for folders, we cannot use an ID and need to resort to !important.
+  margin: 0px !important;
+  box-shadow: none !important;
+
   transition: transform 0.2s linear;
 }
 ha-card:hover {
-  transform: scale(1.04)
+  transform: scale(1.04);
 }
 
-ha-card, frigate-card-thumbnail {
+ha-card,
+frigate-card-thumbnail {
   height: 100%;
   max-height: var(--frigate-card-thumbnail-size);
+}
+frigate-card-thumbnail:not([details]) {
+  width: 100%;
 }

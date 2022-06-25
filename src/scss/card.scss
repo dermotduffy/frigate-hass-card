@@ -97,19 +97,24 @@ frigate-card-live.hidden {
 
   // Hide corners on Safari fullscreen.
   border-radius: 0px;
+
+  // Theme styles may set these which is not helpful in fullscreen mode, reset
+  // them.
+  box-shadow: none;
   margin: 0;
 }
-:host(:fullscreen) ha-card {
+
+// Need to use an id selector here to overcome theme styling that may
+// incorrectly apply to ha-card style.
+:host(:fullscreen) #ha-card {
   @include fullscreen-ha-card;
 }
-// Need to use an id selector here to overcome card styling that is incorrectly
-// shown in Safari that causes the wrong margin to apply in fullscreen mode.
 :host(:-webkit-full-screen) #ha-card {
   @include fullscreen-ha-card;
 }
-:host(:-moz-full-screen) ha-card {
+:host(:-moz-full-screen) #ha-card {
   @include fullscreen-ha-card;
 }
-:host(:-ms-fullscreen) ha-card {
+:host(:-ms-fullscreen) #ha-card {
   @include fullscreen-ha-card;
 }
