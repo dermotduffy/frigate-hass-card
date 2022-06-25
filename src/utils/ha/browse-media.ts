@@ -3,13 +3,13 @@ import {
   differenceInHours,
   differenceInMinutes,
   differenceInSeconds,
-  fromUnixTime
+  fromUnixTime,
 } from 'date-fns';
 import { homeAssistantWSRequest } from '.';
 import {
   dispatchErrorMessageEvent,
   dispatchFrigateCardErrorEvent,
-  dispatchMessageEvent
+  dispatchMessageEvent,
 } from '../../components/message.js';
 import { localize } from '../../localize/localize.js';
 import {
@@ -24,7 +24,7 @@ import {
   MEDIA_CLASS_PLAYLIST,
   MEDIA_CLASS_VIDEO,
   MEDIA_TYPE_PLAYLIST,
-  MEDIA_TYPE_VIDEO
+  MEDIA_TYPE_VIDEO,
 } from '../../types.js';
 import { View } from '../../view.js';
 import { getCameraTitle } from '../camera.js';
@@ -318,11 +318,9 @@ export const getFullDependentBrowseMediaQueryParametersOrDispatchError = (
     mediaType,
   );
   if (!params) {
-    dispatchErrorMessageEvent(
-      element,
-      localize('error.no_camera_name'),
-      cameras.get(camera),
-    );
+    dispatchErrorMessageEvent(element, localize('error.no_camera_name'), {
+      context: cameras.get(camera),
+    });
     return null;
   }
   return params;
@@ -357,7 +355,10 @@ export const fetchLatestMediaAndDispatchViewChange = async (
       view.isClipRelatedView()
         ? localize('common.no_clip')
         : localize('common.no_snapshot'),
-      view.isClipRelatedView() ? 'mdi:filmstrip-off' : 'mdi:camera-off',
+      'info',
+      {
+        icon: view.isClipRelatedView() ? 'mdi:filmstrip-off' : 'mdi:camera-off',
+      },
     );
   }
 

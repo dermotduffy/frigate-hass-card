@@ -25,8 +25,11 @@ div.message {
 }
 
 div.message div.contents {
+  display: flex;
+  flex-direction: column;
   padding: 10px;
-  height: 100%;
+  margin-top: auto;
+  margin-bottom: auto;
   max-width: 100%;
 }
 
@@ -49,7 +52,7 @@ div.message div.icon {
   word-break: break-all;
 }
 
-.dotdotdot:before {
+.dotdotdot:after {
   @keyframes dots {
     0%,
     20% {

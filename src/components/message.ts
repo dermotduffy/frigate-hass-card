@@ -1,9 +1,10 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
 import { TROUBLESHOOTING_URL } from '../const.js';
 import { localize } from '../localize/localize.js';
 import messageStyle from '../scss/message.scss';
-import { FrigateCardError, Message } from '../types.js';
+import { FrigateCardError, Message, MessageType } from '../types.js';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
 
 @customElement('frigate-card-message')
@@ -23,14 +24,18 @@ export class FrigateCardMessage extends LitElement {
   // Render the menu.
   protected render(): TemplateResult {
     const icon = this.icon ? this.icon : 'mdi:information-outline';
+    const classes = {
+      dotdotdot: !!this.dotdotdot,
+    };
     return html` <div class="wrapper">
       <div class="message">
         <div class="icon">
           <ha-icon icon="${icon}"> </ha-icon>
         </div>
         <div class="contents">
-          <span> ${this.message ? html`${this.message}` : ''} </span>
-          ${this.dotdotdot ? html`<span class="dotdotdot"></span>` : ``}
+          <span class="${classMap(classes)}">
+            ${this.message ? html`${this.message}` : ''}
+          </span>
           ${this.context
             ? html`<pre>${JSON.stringify(this.context, null, 2)}</pre>`
             : ''}
@@ -92,7 +97,7 @@ export function renderMessage(message: Message): TemplateResult {
     return html` <frigate-card-error-message
       .message=${message}
     ></frigate-card-error-message>`;
-  } else if (message.type === 'info') {
+  } else {
     return html` <frigate-card-message
       .message=${message.message}
       .icon=${message.icon}
@@ -114,19 +119,22 @@ export function renderProgressIndicator(message?: string): TemplateResult {
  * Dispatch an event with a message to show to the user.
  * @param element The element to send the event.
  * @param message The message to show.
- * @param icon An optional icon to attach to the message.
+ * @param options Optional icon and context to include.
  */
 export function dispatchMessageEvent(
   element: EventTarget,
   message: string,
-  icon?: string,
-  context?: unknown,
+  type: MessageType,
+  options?: {
+    icon?: string;
+    context?: unknown;
+  },
 ): void {
   dispatchFrigateCardEvent<Message>(element, 'message', {
     message: message,
-    type: 'info',
-    icon: icon,
-    context: context,
+    type: type,
+    icon: options?.icon,
+    context: options?.context,
   });
 }
 
@@ -134,16 +142,17 @@ export function dispatchMessageEvent(
  * Dispatch an event with an error message to show to the user.
  * @param element The element to send the event.
  * @param message The message to show.
+ * @param options Optional context to include.
  */
 export function dispatchErrorMessageEvent(
   element: EventTarget,
   message: string,
-  context?: unknown,
+  options?: {
+    context?: unknown;
+  },
 ): void {
-  dispatchFrigateCardEvent<Message>(element, 'message', {
-    message: message,
-    type: 'error',
-    context: context,
+  dispatchMessageEvent(element, message, 'error', {
+    context: options?.context,
   });
 }
 
@@ -156,11 +165,7 @@ export function dispatchFrigateCardErrorEvent(
   element: EventTarget,
   error: FrigateCardError,
 ): void {
-  dispatchFrigateCardEvent<Message>(element, 'message', {
-    message: error.message,
-    type: 'error',
-    context: error.context || '',
-  });
+  dispatchErrorMessageEvent(element, error.message, { context: error.context });
 }
 
 declare global {

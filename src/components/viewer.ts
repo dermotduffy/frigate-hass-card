@@ -13,7 +13,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { ref } from 'lit/directives/ref.js';
 import {
-  dispatchErrorMessageEvent,
+  dispatchFrigateCardErrorEvent,
   renderProgressIndicator
 } from '../components/message.js';
 import viewerStyle from '../scss/viewer.scss';
@@ -632,7 +632,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
       return html`${this._mediaResolutionTask.render({
         initial: () => renderProgressIndicator(),
         pending: () => renderProgressIndicator(),
-        error: (e: unknown) => dispatchErrorMessageEvent(this, (e as Error).message),
+        error: (e: unknown) => dispatchFrigateCardErrorEvent(this, e as Error),
         complete: () => this._render(),
       })}`;
     }
