@@ -1068,8 +1068,13 @@ export class FrigateCard extends LitElement {
    * Untrigger the card.
    */
   protected _untrigger(): void {
+    const wasTriggered = this._isTriggered();
     this._triggers.clear();
     this._clearUntriggerTimer();
+
+    if (wasTriggered) {
+      this.requestUpdate();
+    }
   }
 
   /**
