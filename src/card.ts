@@ -129,9 +129,9 @@ import pkg from '../package.json';
 /* eslint no-console: 0 */
 console.info(
   `%c FRIGATE-HASS-CARD \n` +
-  `%c ${localize('common.version')} ` +
-  `${pkg.version} ` +
-  `${process.env.NODE_ENV === 'development' ? `(${pkg['buildDate']})` : ''}`,
+    `%c ${localize('common.version')} ` +
+    `${pkg.version} ` +
+    `${process.env.NODE_ENV === 'development' ? `(${pkg['buildDate']})` : ''}`,
   'color: pink; font-weight: bold; background: black',
   'color: white; font-weight: bold; background: dimgray',
 );
@@ -483,8 +483,8 @@ export class FrigateCard extends LitElement {
     }
 
     if (
-      this._view?.isViewerView() ||
-      (this._view?.is('timeline') && !!this._view?.media)
+      !this._isBeingCasted() &&
+      (this._view?.isViewerView() || (this._view?.is('timeline') && !!this._view?.media))
     ) {
       buttons.push({
         icon: 'mdi:download',
@@ -507,7 +507,7 @@ export class FrigateCard extends LitElement {
       });
     }
 
-    if (screenfull.isEnabled) {
+    if (screenfull.isEnabled && !this._isBeingCasted()) {
       buttons.push({
         icon: screenfull.isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
         ...this._getConfig().menu.buttons.fullscreen,
@@ -1647,6 +1647,14 @@ export class FrigateCard extends LitElement {
   }
 
   /**
+   * Determine if the card is currently being casted.
+   * @returns
+   */
+  protected _isBeingCasted(): boolean {
+    return !!navigator.userAgent.match(/CrKey\//);
+  }
+
+  /**
    * Determine if the aspect ratio should be enforced given the current view and
    * context.
    */
@@ -1861,9 +1869,9 @@ export class FrigateCard extends LitElement {
           : ``
       }
       ${!this._message && this._getConfig().elements
-          // Elements need to render after the main views so it can render 'on
+        ? // Elements need to render after the main views so it can render 'on
           // top'.
-          ? html` <frigate-card-elements
+          html` <frigate-card-elements
             ${ref(this._refElements)}
             .hass=${this._hass}
             .elements=${this._getConfig().elements}
