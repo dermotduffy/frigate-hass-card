@@ -54,6 +54,14 @@ div.timeline.right-margin {
   background: none;
   color: var(--primary-text-color);
   background-color: var(--primary-color);
+
+  transition: background-color ease-in-out 1s, border-color ease-in-out 1s,
+    box-shadow ease-in-out 1s;
+}
+.vis-item.vis-selected {
+  border-color: var(--accent-color);
+  background-color: var(--accent-color);
+  box-shadow: 0px 0px 5px 1px var(--primary-color);
 }
 .vis-item.vis-background {
   background-color: var(--primary-color);
@@ -92,7 +100,8 @@ div.timeline.right-margin {
 }
 
 // Give an indication that the user can interact with the axes.
-.vis-text.vis-minor, .vis-label {
+.vis-text.vis-minor,
+.vis-label {
   transition: background-color 0.5s ease-out;
 }
 :host([recordings]) .vis-text.vis-minor:hover,
