@@ -1696,7 +1696,12 @@ export class FrigateCard extends LitElement {
    */
   protected _getMergedActions(): Actions {
     if (this._view?.is('timeline')) {
-      // Timeline does not support actions.
+      // Timeline does not support actions as it is not possible to prevent
+      // touch actions on the timeline surface from triggering card-wide actions
+      // inappropriately, whilst also maintaining touch interaction with the
+      // timeline itself (and almost the entire timeline surface can be
+      // interacted with). This causes duplicate/inappropriate card-wide actions
+      // on touch surfaces.
       return {};
     }
 
