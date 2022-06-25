@@ -1227,7 +1227,10 @@ export class FrigateCardTimelineCore extends LitElement {
           dispatchMessageEvent(
             this,
             localize('error.timeline_no_cameras'),
-            'mdi:chart-gantt',
+            'info',
+            {
+              icon: 'mdi:chart-gantt',
+            }
           );
           return;
         }

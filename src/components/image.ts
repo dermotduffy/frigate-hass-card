@@ -237,7 +237,7 @@ export class FrigateCardImage extends LitElement {
               dispatchErrorMessageEvent(
                 this,
                 localize('error.image_load_error'),
-                this.imageConfig,
+                { context: this.imageConfig },
               );
             }
           }}

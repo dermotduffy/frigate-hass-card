@@ -63,6 +63,7 @@ import {
   MediaShowInfo,
   MEDIA_TYPE_IMAGE,
   MEDIA_TYPE_VIDEO,
+  MESSAGE_TYPE_PRIORITIES,
   MenuButton,
   Message,
   RawFrigateCardConfig,
@@ -1115,7 +1116,7 @@ export class FrigateCard extends LitElement {
           {
             message: localize('error.reconnecting'),
             icon: 'mdi:lan-disconnect',
-            type: 'info',
+            type: 'connection',
             dotdotdot: true,
           },
           true,
@@ -1403,7 +1404,7 @@ export class FrigateCard extends LitElement {
 
       this._setMessageAndUpdate({
         message: localize('error.diagnostics'),
-        type: 'info',
+        type: 'diagnostics',
         icon: 'mdi:information',
         context: {
           ha_version: this._hass.config.version,
@@ -1562,8 +1563,12 @@ export class FrigateCard extends LitElement {
    * @param skipUpdate If true an update request is skipped.
    */
   protected _setMessageAndUpdate(message: Message, skipUpdate?: boolean): void {
-    // Register the first message, or prioritize errors if there's pre-render competition.
-    if (!this._message || (message.type == 'error' && this._message.type != 'error')) {
+    const currentPriority = this._message
+      ? MESSAGE_TYPE_PRIORITIES[this._message.type] ?? 0
+      : 0;
+    const newPriority = MESSAGE_TYPE_PRIORITIES[message.type] ?? 0;
+
+    if (!this._message || newPriority >= currentPriority) {
       this._message = message;
       if (!skipUpdate) {
         this.requestUpdate();
@@ -1650,14 +1655,12 @@ export class FrigateCard extends LitElement {
     // - Aspect ratio enforcement is disabled.
     // - Aspect ratio enforcement is dynamic and it's a media view (i.e. not the
     //   gallery) or timeline.
-    // - There is a message to display to the user.
 
     return !(
       (screenfull.isEnabled && screenfull.isFullscreen) ||
       aspectRatioMode == 'unconstrained' ||
       (aspectRatioMode == 'dynamic' &&
-        (this._view?.isAnyMediaView() || this._view?.is('timeline'))) ||
-      this._message != null
+        (this._view?.isAnyMediaView() || this._view?.is('timeline')))
     );
   }
 

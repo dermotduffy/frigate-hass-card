@@ -1188,9 +1188,18 @@ export interface MediaShowInfo {
   height: number;
 }
 
+export const MESSAGE_TYPE_PRIORITIES = {
+  info: 10,
+  error: 20,
+  connection: 30,
+  diagnostics: 40,
+}
+
+export type MessageType = 'info' | 'error' | 'connection' | 'diagnostics';
+
 export interface Message {
   message: string;
-  type: 'error' | 'info';
+  type: MessageType,
   icon?: string;
   context?: unknown;
   dotdotdot?: boolean;

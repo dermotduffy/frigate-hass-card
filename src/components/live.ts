@@ -15,7 +15,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { until } from 'lit/directives/until.js';
 import { ConditionState, getOverriddenConfig } from '../card-condition.js';
-import { renderProgressIndicator } from '../components/message.js';
+import { dispatchFrigateCardErrorEvent, renderProgressIndicator } from '../components/message.js';
 import { localize } from '../localize/localize.js';
 import liveFrigateStyle from '../scss/live-frigate.scss';
 import liveJSMPEGStyle from '../scss/live-jsmpeg.scss';
@@ -751,7 +751,7 @@ export class FrigateCardLiveFrigate extends LitElement {
       return dispatchErrorMessageEvent(
         this,
         localize('error.no_live_camera'),
-        this.cameraConfig,
+        { context: this.cameraConfig },
       );
     }
 
@@ -760,7 +760,7 @@ export class FrigateCardLiveFrigate extends LitElement {
       return dispatchErrorMessageEvent(
         this,
         localize('error.live_camera_unavailable'),
-        this.cameraConfig,
+        { context: this.cameraConfig },
       );
     }
 
@@ -906,7 +906,7 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
           e instanceof FrigateCardError
             ? e.message
             : localize('error.webrtc_card_reported_error') + ': ' + (e as Error).message,
-          (e as FrigateCardError).context,
+          { context: (e as FrigateCardError).context },
         );
       }
       if (webrtcElement) {
@@ -924,7 +924,7 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
     return html`${this._webrtcTask.render({
       initial: () => renderProgressIndicator(localize('error.webrtc_card_waiting')),
       pending: () => renderProgressIndicator(localize('error.webrtc_card_waiting')),
-      error: (e: unknown) => dispatchErrorMessageEvent(this, (e as Error).message),
+      error: (e: unknown) => dispatchFrigateCardErrorEvent(this, e as Error),
       complete: () => render(),
     })}`;
   }
@@ -1147,7 +1147,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
       return dispatchErrorMessageEvent(
         this,
         localize('error.no_camera_name'),
-        this.cameraConfig,
+        { context: this.cameraConfig },
       );
     }
 
