@@ -1089,7 +1089,7 @@ export class FrigateCardTimelineCore extends LitElement {
       : this._getStartEnd();
 
     const [prefetchStart, prefetchEnd] = this._getPrefetchWindow(windowStart, windowEnd);
-    await this._data.fetchIfNecessary(
+    const fetched = await this._data.fetchIfNecessary(
       this,
       this.hass,
       this.cameras,
@@ -1145,16 +1145,17 @@ export class FrigateCardTimelineCore extends LitElement {
       this._timeline.setWindow(windowStart, windowEnd);
     }
 
-    // Compare last date of fetch with that of inbound view to avoid a loop.
-    // Without this comparison it would be:
+    // Only generate thumbnails if an actual fetch occurred, to avoid getting
+    // stuck in a loop (the subsequent fetches will not actually fetch since the
+    // data will have been cached).
     //
     // Timeline receives a new `view`
     //  -> Events fetched
     //    -> Thumbnails generated
     //      -> New view dispatched (to load thumbnails into outer carousel).
     //  -> New view received ... [loop]
-    const currentContext = this.view.context as TimelineViewContext | null;
-    if (!isEqual(currentContext?.dateFetch, this._data.lastFetchDate)) {
+
+    if (fetched) {
       const thumbnails = this._generateThumbnails();
       this.view
         ?.evolve({

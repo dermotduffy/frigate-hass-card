@@ -57,10 +57,6 @@ div.main::-webkit-scrollbar {
 frigate-card-menu[data-style='hover'] {
   z-index: 1;
   transition: opacity 0.5s ease;
-
-  // In hover mode, the full menu is responsive to the pointer (prevents the
-  // hover menu from disappearing when the cursor is between buttons).
-  pointer-events: all;
 }
 
 .main + frigate-card-menu[data-style='hover'] {
@@ -99,11 +95,14 @@ frigate-card-live.hidden {
 
   // Hide corners on Safari fullscreen.
   border-radius: 0px;
+  margin: 0;
 }
 :host(:fullscreen) ha-card {
   @include fullscreen-ha-card;
 }
-:host(:-webkit-full-screen) ha-card {
+// Need to use an id selector here to overcome card styling that is incorrectly
+// shown in Safari that causes the wrong margin to apply in fullscreen mode.
+:host(:-webkit-full-screen) #ha-card {
   @include fullscreen-ha-card;
 }
 :host(:-moz-full-screen) ha-card {

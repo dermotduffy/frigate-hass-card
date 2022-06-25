@@ -1749,6 +1749,7 @@ export class FrigateCard extends LitElement {
       this._getConfig().menu.position === 'top';
 
     return html` <ha-card
+      id="ha-card"
       .actionHandler=${actionHandler({
         hasHold: frigateCardHasAction(actions.hold_action),
         hasDoubleClick: frigateCardHasAction(actions.double_tap_action),
