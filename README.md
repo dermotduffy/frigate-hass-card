@@ -932,7 +932,8 @@ next/previous controls, thumbnails, etc), but in some cases this is not possible
 (e.g. embedded WebRTC card controls) -- in these cases duplicate actions may
 occur with certain configurations (e.g. `tap`).
 
-**Note:** Card-wide actions are not supported on the timeline view.
+**Note:** Card-wide actions are not supported on the timeline view, nor when a
+info/error message is being displayed.
 
 ## Menu Styles
 
