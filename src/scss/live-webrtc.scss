@@ -7,7 +7,7 @@
 /* Don't drop shadow or have radius for nested webrtc card */
 #webrtc ha-card {
   border-radius: 0px;
-  background-color: black;
+  background-color: unset;
 
   // To get the WebRTC player to line up correctly with some themes.
   margin: 0px;

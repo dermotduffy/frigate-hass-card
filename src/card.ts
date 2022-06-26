@@ -172,6 +172,7 @@ export class FrigateCard extends LitElement {
   protected _conditionState?: ConditionState;
 
   protected _refMenu: Ref<FrigateCardMenu> = createRef();
+  protected _refMain: Ref<HTMLElement> = createRef();
   protected _refElements: Ref<FrigateCardElements> = createRef();
   protected _refImage: Ref<FrigateCardImage> = createRef();
   protected _refLive: Ref<FrigateCardLive> = createRef();
@@ -927,7 +928,7 @@ export class FrigateCard extends LitElement {
       this._message = null;
     }
 
-    if (args?.view === undefined) {
+    if (!args?.view) {
       // Load the default view.
       let camera;
       if (this._cameras?.size) {
@@ -948,6 +949,7 @@ export class FrigateCard extends LitElement {
           camera: camera,
         });
         this._generateConditionState();
+        this._resetMainScroll();
 
         // Restart the update timer, so the default view is refreshed at a fixed
         // interval from now (if so configured).
@@ -956,6 +958,7 @@ export class FrigateCard extends LitElement {
     } else {
       this._view = args.view;
       this._generateConditionState();
+      this._resetMainScroll();
     }
   }
 
@@ -1580,8 +1583,19 @@ export class FrigateCard extends LitElement {
       this._message = message;
       if (!skipUpdate) {
         this.requestUpdate();
+        this._resetMainScroll();
       }
     }
+  }
+
+  /**
+   * Reset the scroll of the main pane to the top (example usecase: scrolling
+   * half way down the gallery, then viewing diagnostics should result in
+   * diagnostics starting at the top).
+   */
+  protected _resetMainScroll(): void {
+    // Reset the scroll on the main div to the top.
+    this._refMain.value?.scroll({top: 0});
   }
 
   /**
@@ -1768,7 +1782,10 @@ export class FrigateCard extends LitElement {
       @frigate-card:render=${() => this.requestUpdate()}
     >
       ${renderMenuAbove ? this._renderMenu() : ''}
-      <div class="${classMap(mainClasses)}">
+      <div 
+        ${ref(this._refMain)}
+        class="${classMap(mainClasses)}"
+      >
         ${this._cameras === undefined && !this._message
           ? until(
               (async () => {
