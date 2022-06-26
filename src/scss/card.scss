@@ -3,6 +3,10 @@
 
   // Anchor absolutes to the outermost part of the card.
   position: relative;
+
+  // Different browsers use different colors as their fullscreen background,
+  // this ensures the same experience across all browsers.
+  background-color: var(--card-background-color);
 }
 
 :host([dark]) {
