@@ -126,7 +126,9 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
      */
 
     const reInit = (): void => {
-      this._carousel?.reInit();
+      // Safari appears to not loop the carousel unless the options are passed
+      // back in during re-initialization.
+      this._carousel?.reInit(this._getOptions());
     };
 
     if (entries.some((entry) => entry.isIntersecting)) {
@@ -226,8 +228,10 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
    */
   protected _nextPreviousHandler(direction: 'previous' | 'next'): void {
     if (direction === 'previous') {
+      console.info("scrolling previous", this._carousel?.canScrollPrev());
       this._carousel?.scrollPrev(this._getTransitionEffect() === 'none');
     } else if (direction === 'next') {
+      console.info("scrolling next");
       this._carousel?.scrollNext(this._getTransitionEffect() === 'none');
     }
   }
