@@ -18,8 +18,6 @@ img, ha-icon {
   // should be clipped to fill the thumbnail div whilst maintaining
   // aspect-ratio.
   object-fit: cover;
-
-  transition: transform 0.2s linear;
 }
 
 ha-icon {
@@ -30,8 +28,4 @@ ha-icon {
   align-items: center;
   border: 1px solid rgba(255,255,255,0.3);
   box-sizing: border-box;
-}
-
-img:hover {
-  transform: scale(1.04);
 }

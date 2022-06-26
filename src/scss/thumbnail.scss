@@ -6,6 +6,8 @@
   // Ensure control icons are relative to the thumbnail.
   position: relative;
   overflow: hidden;
+
+  transition: transform 0.2s linear;
 }
 
 :host(:not([details])) {
@@ -20,6 +22,10 @@
   // When details are enabled, use a background color so that the details have
   // contrast with the background.
   background-color: var(--primary-background-color, black);
+}
+
+:host(:hover) {
+  transform: scale(1.04);
 }
 
 ha-icon {
