@@ -16,7 +16,6 @@ div.main {
   height: 100%;
   margin: auto;
   display: flex;
-  align-items: center;
   justify-content: center;
 
   // Need to apply the border radius on the container level, as the ha-card has
@@ -80,7 +79,11 @@ ha-card {
   height: 100%;
   position: static;
   color: var(--secondary-text-color, white);
-  background-color: var(--secondary-background-color, black);
+
+  // The primary border-radius used is the div.main, since this one has overflow
+  // explicitly visible this is only useful for keeping the background-color
+  // within the radius.
+  border-radius: var(--ha-card-border-radius, 4px);
 }
 
 frigate-card-live.hidden {
@@ -88,17 +91,18 @@ frigate-card-live.hidden {
   display: none;
 }
 
+/************
+ * Fullscreen
+ *************/
+
 // Browsers will reject invalid whole CSS selectors if one selector is bad, so
 // need to use mixin here instead of just comma-separated selectors.
 //  - Related: https://stackoverflow.com/questions/16982449/why-isnt-it-possible-to-combine-vendor-specific-pseudo-elements-classes-into-on
 @mixin fullscreen-ha-card {
-  // Make the background black, to give it the expected fullscreen feel.
-  background-color: black;
-
   // Hide corners on Safari fullscreen.
   border-radius: 0px;
 
-  // Theme styles may set these which is not helpful in fullscreen mode, reset
+  // Theme styles may set these which are not helpful in fullscreen mode, reset
   // them.
   box-shadow: none;
   margin: 0;
@@ -112,9 +116,17 @@ frigate-card-live.hidden {
 :host(:-webkit-full-screen) #ha-card {
   @include fullscreen-ha-card;
 }
-:host(:-moz-full-screen) #ha-card {
-  @include fullscreen-ha-card;
+
+@mixin fullscreen-no-rounded-corners {
+  // Hide corners on Safari fullscreen.
+  border-radius: 0px;
 }
-:host(:-ms-fullscreen) #ha-card {
-  @include fullscreen-ha-card;
+
+:host(:fullscreen) div.main,
+:host(:fullscreen) frigate-card-menu {
+  @include fullscreen-no-rounded-corners;
+}
+:host(:-webkit-full-screen) div.main,
+:host(:-webkit-full-screen) frigate-card-menu {
+  @include fullscreen-no-rounded-corners;
 }
