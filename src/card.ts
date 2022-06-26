@@ -1789,6 +1789,26 @@ export class FrigateCard extends LitElement {
           this._message ? renderMessage(this._message) : ''
         }
       </div>
+      ${!this._message && this._getConfig().elements
+        ? // Elements need to render after the main views so it can render 'on
+          // top'.
+          html` <frigate-card-elements
+            ${ref(this._refElements)}
+            .hass=${this._hass}
+            .elements=${this._getConfig().elements}
+            .conditionState=${this._conditionState}
+            @frigate-card:menu-add=${(e) => {
+              this._addDynamicMenuButton(e.detail);
+            }}
+            @frigate-card:menu-remove=${(e) => {
+              this._removeDynamicMenuButton(e.detail);
+            }}
+            @frigate-card:condition-state-request=${(ev) => {
+              conditionStateRequestHandler(ev, this._conditionState);
+            }}
+          >
+          </frigate-card-elements>`
+        : ``}
       ${!renderMenuAbove ? this._renderMenu() : ''}
     </ha-card>`;
   }
@@ -1874,26 +1894,6 @@ export class FrigateCard extends LitElement {
             `
           : ``
       }
-      ${!this._message && this._getConfig().elements
-        ? // Elements need to render after the main views so it can render 'on
-          // top'.
-          html` <frigate-card-elements
-            ${ref(this._refElements)}
-            .hass=${this._hass}
-            .elements=${this._getConfig().elements}
-            .conditionState=${this._conditionState}
-            @frigate-card:menu-add=${(e) => {
-              this._addDynamicMenuButton(e.detail);
-            }}
-            @frigate-card:menu-remove=${(e) => {
-              this._removeDynamicMenuButton(e.detail);
-            }}
-            @frigate-card:condition-state-request=${(ev) => {
-              conditionStateRequestHandler(ev, this._conditionState);
-            }}
-          >
-          </frigate-card-elements>`
-        : ``}
     `;
   }
 
