@@ -16,12 +16,6 @@
   box-sizing: border-box;
 
   color: var(--primary-text-color);
-
-  transition: transform 0.2s linear;
-}
-
-:host(:hover) {
-  transform: scale(1.04);
 }
 
 div {

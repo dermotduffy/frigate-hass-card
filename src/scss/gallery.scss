@@ -30,7 +30,7 @@
   box-sizing: border-box;
   text-align: center;
   color: var(--primary-text-color, white);
-  border: 2px ridge var(--primary-text-color, black);
+  border: 1px solid var(--primary-color);
   border-radius: var(--ha-card-border-radius, 4px);
 
   // Folder background color should match the thumbnail element background
