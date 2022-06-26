@@ -228,10 +228,8 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
    */
   protected _nextPreviousHandler(direction: 'previous' | 'next'): void {
     if (direction === 'previous') {
-      console.info("scrolling previous", this._carousel?.canScrollPrev());
       this._carousel?.scrollPrev(this._getTransitionEffect() === 'none');
     } else if (direction === 'next') {
-      console.info("scrolling next");
       this._carousel?.scrollNext(this._getTransitionEffect() === 'none');
     }
   }
