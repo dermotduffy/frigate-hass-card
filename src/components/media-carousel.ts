@@ -126,7 +126,9 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
      */
 
     const reInit = (): void => {
-      this._carousel?.reInit();
+      // Safari appears to not loop the carousel unless the options are passed
+      // back in during re-initialization.
+      this._carousel?.reInit(this._getOptions());
     };
 
     if (entries.some((entry) => entry.isIntersecting)) {
