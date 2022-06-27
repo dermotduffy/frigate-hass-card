@@ -2654,6 +2654,12 @@ See [screenshot above](#screenshots-card-casting).
 
 ## Troubleshooting
 
+<a name="v4-troubleshooting"></a>
+
+### v4 doesn't show recordings / clips
+
+You must be using a version of the [Frigate integration](https://github.com/blakeblackshear/frigate-hass-integration) >= 3.0.0-rc.2 to see recordings. Using an older version of the integration may also show blank thumbnails in the events viewer. Please upgrade your integration accordingly.
+
 <a name="jsmpeg-troubleshooting"></a>
 
 ### JSMPEG Live Camera Only Shows A 'spinner'
