@@ -1767,6 +1767,9 @@ export class FrigateCard extends LitElement {
       this._getConfig().menu.style === 'outside' &&
       this._getConfig().menu.position === 'top';
 
+    // Caution: Keep the main div and the menu next to one another in order to
+    // ensure the hover menu styling continues to work.
+
     return html` <ha-card
       id="ha-card"
       .actionHandler=${actionHandler({
@@ -1806,6 +1809,7 @@ export class FrigateCard extends LitElement {
           this._message ? renderMessage(this._message) : ''
         }
       </div>
+      ${!renderMenuAbove ? this._renderMenu() : ''}
       ${!this._message && this._getConfig().elements
         ? // Elements need to render after the main views so it can render 'on
           // top'.
@@ -1826,7 +1830,6 @@ export class FrigateCard extends LitElement {
           >
           </frigate-card-elements>`
         : ``}
-      ${!renderMenuAbove ? this._renderMenu() : ''}
     </ha-card>`;
   }
 
