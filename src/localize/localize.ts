@@ -47,7 +47,7 @@ export function localize(string: string, search = '', replace = ''): string {
     translated = string.split('.').reduce((o, i) => o[i], languages['en']);
   }
 
-  if (translated === undefined) {
+  if (!translated) {
     translated = string.split('.').reduce((o, i) => o[i], languages['en']);
   }
 

@@ -1,6 +1,8 @@
+import { HomeAssistant } from 'custom-card-helpers';
 import { z } from 'zod';
-import { CameraConfig, ExtendedHomeAssistant } from '../types';
-import { homeAssistantHTTPRequest } from './ha';
+import { localize } from '../localize/localize';
+import { CameraConfig, ExtendedHomeAssistant, FrigateCardError } from '../types';
+import { homeAssistantHTTPRequest, homeAssistantWSRequest } from './ha';
 
 export const FRIGATE_ICON_SVG_PATH =
   'm 4.8759466,22.743573 c 0.0866,0.69274 0.811811,1.16359 0.37885,1.27183 ' +
@@ -50,6 +52,12 @@ const recordingSegmentSchema = z.object({
 const recordingSegmentsSchema = recordingSegmentSchema.array();
 export type RecordingSegments = z.infer<typeof recordingSegmentsSchema>;
 
+const retainResultSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+});
+export type RetainResult = z.infer<typeof retainResultSchema>;
+
 /**
  * Get the recordings summary. May throw.
  * @param hass The Home Assistant object.
@@ -95,6 +103,38 @@ export const getRecordingSegments = async (
     }),
   );
 };
+
+/**
+ * Request that Frigate retain an event. May throw.
+ * @param hass The HomeAssistant object.
+ * @param client_id The Frigate client_id.
+ * @param eventID The event ID to retain.
+ * @param retain `true` to retain or `false` to unretain.
+ */
+export async function retainEvent(
+  hass: HomeAssistant,
+  client_id: string,
+  eventID: string,
+  retain: boolean,
+): Promise<void> {
+  const retainRequest = {
+    type: 'frigate/event/retain',
+    instance_id: client_id,
+    event_id: eventID,
+    retain: retain,
+  };
+  const response = await homeAssistantWSRequest<RetainResult>(
+    hass,
+    retainResultSchema,
+    retainRequest,
+  );
+  if (!response.success) {
+    throw new FrigateCardError(localize('error.failed_retain'), {
+      request: retainRequest,
+      response: response,
+    });
+  }
+}
 
 /**
  * Get an id that unique identifies a particular camera (not zone, object, etc)

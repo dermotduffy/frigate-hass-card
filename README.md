@@ -1042,6 +1042,13 @@ A dashboard with the card can be cast onto a suitable device (such as the Nest H
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/card-on-nest-hub.jpg" alt="Card on Nest Hub" width="400px">
 
+### Event starring
+
+Retain interesting Frigate events forever:
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/star.gif" alt="Retain events" width="400px">
+
+
 ## Examples
 
 ### Illustrative Expanded Configuration Reference

@@ -1,10 +1,11 @@
+import { HomeAssistant } from 'custom-card-helpers';
 import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
 import { CSSResultGroup, html, PropertyValues, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
-import type { FrigateBrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
+import type { CameraConfig, FrigateBrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
 import { isTrueMedia } from '../utils/ha/browse-media';
@@ -21,12 +22,18 @@ export interface ThumbnailCarouselTap {
 @customElement('frigate-card-thumbnail-carousel')
 export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   @property({ attribute: false })
+  public hass?: HomeAssistant;
+
+  @property({ attribute: false })
   public view?: Readonly<View>;
 
   // Use contentsChanged here to avoid the carousel rebuilding and resetting in
   // front of the user, unless the contents have actually changed.
   @property({ attribute: false, hasChanged: contentsChanged })
   public target?: FrigateBrowseMediaSource | null;
+
+  @property({ attribute: false })
+  public cameras?: Map<string, CameraConfig>;
 
   // Thumbnail carousels can expand (e.g. drawer-based carousels after the main
   // media loads). The carousel must be re-initialized in these cases, or the
@@ -195,10 +202,13 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
       'slide-selected': this._selected === childIndex,
     };
 
+    const cameraConfig = this.view?.camera ? this.cameras?.get(this.view.camera) : null;
     return html` <frigate-card-thumbnail
+      .hass=${this.hass}
       .view=${this.view}
       .target=${parent}
       .childIndex=${childIndex}
+      .clientID=${cameraConfig?.frigate.client_id}
       ?details=${this._config?.show_details}
       ?controls=${this._config?.show_controls}
       class="${classMap(classes)}"

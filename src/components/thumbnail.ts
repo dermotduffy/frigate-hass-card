@@ -1,6 +1,8 @@
+import { HomeAssistant } from 'custom-card-helpers';
 import { format, fromUnixTime } from 'date-fns';
 import { CSSResult, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
 import { localize } from '../localize/localize.js';
 import thumbnailDetailsStyle from '../scss/thumbnail-details.scss';
 import thumbnailFeatureEventStyle from '../scss/thumbnail-feature-event.scss';
@@ -9,10 +11,11 @@ import thumbnailStyle from '../scss/thumbnail.scss';
 import type {
   FrigateBrowseMediaSource,
   FrigateEvent,
-  FrigateRecording
+  FrigateRecording,
 } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
-import { prettifyTitle } from '../utils/basic.js';
+import { errorToConsole, prettifyTitle } from '../utils/basic.js';
+import { retainEvent } from '../utils/frigate.js';
 import { getEventDurationString } from '../utils/ha/browse-media.js';
 import { View } from '../view.js';
 
@@ -152,6 +155,15 @@ export class FrigateCardThumbnail extends LitElement {
   @property({ attribute: true })
   public event?: string;
 
+  // ================================
+  // Optional parameters for controls
+  // ================================
+  @property({ attribute: false })
+  public hass?: HomeAssistant;
+
+  @property({ attribute: false })
+  public clientID?: string;
+
   /**
    * Render the element.
    * @returns A template to display to the user.
@@ -182,6 +194,11 @@ export class FrigateCardThumbnail extends LitElement {
       return;
     }
 
+    const starClasses = {
+      star: true,
+      starred: !!event?.retain_indefinitely,
+    };
+
     return html` ${event
       ? html`<frigate-card-thumbnail-feature-event
           aria-label="${label ?? ''}"
@@ -194,11 +211,31 @@ export class FrigateCardThumbnail extends LitElement {
           title="${label ?? ''}"
           .date=${recording ? fromUnixTime(recording.start_time) : undefined}
         ></frigate-card-thumbnail-feature-recording>`}
-    ${this.controls && event?.retain_indefinitely
+    ${this.controls && this.hass && this.clientID
       ? html` <ha-icon
-            class="favorite"
-            icon="mdi:star"
+            class="${classMap(starClasses)}"
+            icon=${event?.retain_indefinitely ? 'mdi:star' : 'mdi:star-outline'}
             title=${localize('thumbnail.retain_indefinitely')}
+            @click=${(ev: Event) => {
+              stopEventFromActivatingCardWideActions(ev);
+              if (event && this.hass && this.clientID) {
+                retainEvent(
+                  this.hass,
+                  this.clientID,
+                  event.id,
+                  !event.retain_indefinitely,
+                )
+                  .then(() => {
+                    if (event) {
+                      event.retain_indefinitely = !event.retain_indefinitely;
+                      this.requestUpdate();
+                    }
+                  })
+                  .catch((e) => {
+                    errorToConsole(e);
+                  });
+              }
+            }}
           /></ha-icon>`
       : ``}
     ${this.details && event
@@ -255,11 +292,11 @@ export class FrigateCardThumbnail extends LitElement {
 }
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card-thumbnail": FrigateCardThumbnail
-		"frigate-card-thumbnail-details-recording": FrigateCardThumbnailDetailsRecording
-		"frigate-card-thumbnail-details-event": FrigateCardThumbnailDetailsEvent
-		"frigate-card-thumbnail-feature-recording": FrigateCardThumbnailFeatureRecording
-		"frigate-card-thumbnail-feature-event": FrigateCardThumbnailFeatureEvent
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card-thumbnail': FrigateCardThumbnail;
+    'frigate-card-thumbnail-details-recording': FrigateCardThumbnailDetailsRecording;
+    'frigate-card-thumbnail-details-event': FrigateCardThumbnailDetailsEvent;
+    'frigate-card-thumbnail-feature-recording': FrigateCardThumbnailFeatureRecording;
+    'frigate-card-thumbnail-feature-event': FrigateCardThumbnailFeatureEvent;
+  }
 }

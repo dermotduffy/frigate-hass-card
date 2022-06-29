@@ -315,6 +315,7 @@
     "duplicate_camera_id": "Duplicate Frigate camera id for the following camera, use the 'id' parameter to uniquely identify cameras",
     "empty_response": "Received empty response from Home Assistant for request",
     "failed_response": "Failed to receive response from Home Assistant for request",
+    "failed_retain": "Could not retain event",
     "failed_sign": "Could not sign Home Assistant URL",
     "image_load_error": "The image could not be loaded",
     "invalid_configuration": "Invalid configuration",

@@ -450,6 +450,7 @@ export class FrigateCardTimeline extends LitElement {
       .hass=${this.hass}
       .view=${this.view}
       .config=${this.timelineConfig.controls.thumbnails}
+      .cameras=${this.cameras}
     >
       <frigate-card-timeline-core
         .hass=${this.hass}

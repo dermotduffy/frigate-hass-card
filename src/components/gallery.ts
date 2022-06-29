@@ -86,6 +86,7 @@ export class FrigateCardGallery extends LitElement {
         .hass=${this.hass}
         .view=${this.view}
         .galleryConfig=${this.galleryConfig}
+        .cameras=${this.cameras}
       >
       </frigate-card-gallery-core>
     `;
@@ -115,6 +116,9 @@ export class FrigateCardGalleryCore extends LitElement {
 
   @property({ attribute: false })
   public galleryConfig?: GalleryConfig;
+
+  @property({ attribute: false })
+  public cameras?: Map<string, CameraConfig>;
 
   protected _resizeObserver: ResizeObserver;
 
@@ -207,11 +211,13 @@ export class FrigateCardGalleryCore extends LitElement {
       !this.view ||
       !this.view.target ||
       !this.view.target.children ||
-      !(this.view.is('clips') || this.view.is('snapshots'))
+      !(this.view.is('clips') || this.view.is('snapshots')) ||
+      !this.cameras
     ) {
       return html``;
     }
 
+    const cameraConfig = this.cameras.get(this.view.camera);
     return html`
       ${this._showBackArrow()
         ? html` <ha-card
@@ -253,6 +259,8 @@ export class FrigateCardGalleryCore extends LitElement {
                   .view=${this.view}
                   .target=${this.view?.target ?? null}
                   .childIndex=${index}
+                  .hass=${this.hass}
+                  .clientID=${cameraConfig?.frigate.client_id}
                   ?details=${!!this.galleryConfig?.controls.thumbnails.show_details}
                   ?controls=${!!this.galleryConfig?.controls.thumbnails.show_controls}
                   @click=${(ev: Event) => {

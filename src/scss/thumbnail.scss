@@ -31,16 +31,27 @@
 ha-icon {
   position: absolute;
   border-radius: 50%;
-  opacity: 0.8;
+  opacity: 0.5;
+  color: var(--primary-color);
+  top: 3px;
+
+  cursor: pointer;
+
+  transition: opacity 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+ha-icon:hover {
+  opacity: 1.0;
 }
 
-ha-icon.favorite {
+ha-icon.star {
+  left: 3px;
+}
+ha-icon.star.starred {
   color: gold;
 }
 
 ha-icon.timeline {
-  color: var(--primary-color);
-  right: 0px;
+  right: 3px;
 }
 
 frigate-card-thumbnail-details-event, frigate-card-thumbnail-details-recording {

@@ -317,6 +317,7 @@
     "duplicate_camera_id": "Duplique o ID da câmera Frigate para a câmera a seguir, use o parâmetro 'id' para identificar exclusivamente as câmeras",
     "empty_response": "Sem resposta do Home Assistant para a solicitação",
     "failed_response": "Falha ao receber resposta do Home Assistant para solicitação",
+    "failed_retain": "",
     "failed_sign": "Não foi possível assinar a URL do Home Assistant",
     "image_load_error": "A imagem não pôde ser carregada",
     "invalid_configuration": "Configuração inválida",

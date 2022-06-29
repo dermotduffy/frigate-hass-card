@@ -109,6 +109,7 @@ export class FrigateCardViewer extends LitElement {
       .hass=${this.hass}
       .view=${this.view}
       .config=${this.viewerConfig.controls.thumbnails}
+      .cameras=${this.cameras}
     >
       <frigate-card-viewer-carousel
         .hass=${this.hass}

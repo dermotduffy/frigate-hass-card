@@ -146,6 +146,7 @@ export class FrigateCardLive extends LitElement {
       .view=${this.view}
       .config=${config.controls.thumbnails}
       .browseMediaParams=${browseMediaParams ?? undefined}
+      .cameras=${this.cameras}
       ?fetch=${!this._preloaded}
     >
       <frigate-card-live-carousel

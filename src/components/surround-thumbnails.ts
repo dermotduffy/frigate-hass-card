@@ -11,6 +11,7 @@ import { customElement, property } from 'lit/decorators.js';
 import surroundThumbnailsStyle from '../scss/surround.scss';
 import {
   BrowseMediaQueryParameters,
+  CameraConfig,
   FrigateBrowseMediaSource,
   FrigateCardError,
   FrigateCardView,
@@ -45,6 +46,9 @@ export class FrigateCardSurround extends LitElement {
 
   @property({ attribute: false, hasChanged: contentsChanged })
   public browseMediaParams?: BrowseMediaQueryParameters | BrowseMediaQueryParameters[];
+
+  @property({ attribute: false })
+  public cameras?: Map<string, CameraConfig>;
 
   /**
    * Fetch thumbnail media when a target is not specified in the view (e.g. for
@@ -137,10 +141,12 @@ export class FrigateCardSurround extends LitElement {
       ${this.config && this.config.mode !== 'none'
         ? html` <frigate-card-thumbnail-carousel
             slot=${this.config.mode}
+            .hass=${this.hass}
             .config=${this.config}
             .view=${this.view}
             .target=${this.view.target}
             .selected=${this.view.childIndex}
+            .cameras=${this.cameras}
             @frigate-card:change-view=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
             @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
               // Send the view change from the source of the tap event, so the
