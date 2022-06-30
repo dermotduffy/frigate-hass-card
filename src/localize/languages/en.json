@@ -332,7 +332,6 @@
     "reconnecting": "Reconnecting",
     "timeline_no_cameras": "No Frigate cameras to show in timeline",
     "troubleshooting": "Check troubleshooting",
-    "undecodable_response": "Could not decode response from Home Assistant for request",
     "unknown": "Unknown error",
     "upgrade_available": "An automated card configuration upgrade is available, please visit the visual card editor",
     "webrtc_card_reported_error": "WebRTC Card reported an error",

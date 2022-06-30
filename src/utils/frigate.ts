@@ -2,7 +2,7 @@ import { HomeAssistant } from 'custom-card-helpers';
 import { z } from 'zod';
 import { localize } from '../localize/localize';
 import { CameraConfig, ExtendedHomeAssistant, FrigateCardError } from '../types';
-import { homeAssistantHTTPRequest, homeAssistantWSRequest } from './ha';
+import { homeAssistantWSRequest } from './ha';
 
 export const FRIGATE_ICON_SVG_PATH =
   'm 4.8759466,22.743573 c 0.0866,0.69274 0.811811,1.16359 0.37885,1.27183 ' +
@@ -70,10 +70,14 @@ export const getRecordingsSummary = async (
   client_id: string,
   camera_name: string,
 ): Promise<RecordingSummary> => {
-  return await homeAssistantHTTPRequest(
+  return await homeAssistantWSRequest(
     hass,
     recordingSummarySchema,
-    `/api/frigate/${client_id}/${camera_name}/recordings/summary`,
+    {
+      type: "frigate/recordings/summary",
+      instance_id: client_id,
+      camera: camera_name
+    }
   );
 };
 
@@ -93,14 +97,16 @@ export const getRecordingSegments = async (
   before: Date,
   after: Date,
 ): Promise<RecordingSegments> => {
-  return await homeAssistantHTTPRequest(
+  return await homeAssistantWSRequest(
     hass,
     recordingSegmentsSchema,
-    `/api/frigate/${client_id}/${camera_name}/recordings`,
-    new URLSearchParams({
-      before: String(before.getTime() / 1000),
-      after: String(after.getTime() / 1000),
-    }),
+    {
+      type: "frigate/recordings/get",
+      instance_id: client_id,
+      camera: camera_name,
+      before: Math.floor(before.getTime() / 1000),
+      after: Math.ceil(after.getTime() / 1000),
+    }
   );
 };
 
