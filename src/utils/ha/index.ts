@@ -83,67 +83,6 @@ export async function homeAssistantSignPath(
   return hass.hassUrl(response.path);
 }
 
-/**
- * Make a HomeAssistant HTTP request. May throw.
- * @param hass The HomeAssistant object to send the request with.
- * @param schema The expected Zod schema of the response.
- * @param request The request to make.
- * @returns The parsed valid response or null on malformed.
- */
-export async function homeAssistantHTTPRequest<T>(
-  hass: ExtendedHomeAssistant,
-  schema: ZodSchema<T>,
-  url: string,
-  params?: URLSearchParams,
-): Promise<T> {
-  let signResponse: string | null | undefined;
-  try {
-    signResponse = await homeAssistantSignPath(hass, url);
-  } catch (e) {}
-
-  if (!signResponse) {
-    throw new FrigateCardError(localize('error.failed_sign'), {
-      url: url.toString(),
-    });
-  }
-
-  const signedURL = new URL(signResponse);
-
-  if (params) {
-    for (const [key, value] of params.entries()) {
-      signedURL.searchParams.append(key, value);
-    }
-  }
-
-  const response = await fetch(signedURL.toString());
-  if (!response.ok) {
-    throw new FrigateCardError(localize('error.failed_response'), {
-      url: signedURL.toString(),
-      status: response.status,
-      statusText: response.statusText,
-    });
-  }
-
-  let raw_json;
-  try {
-    raw_json = await response.json();
-  } catch (e) {
-    throw new FrigateCardError(localize('error.undecodable_response'), {
-      url: signedURL.toString(),
-    });
-  }
-
-  const parseResult = schema.safeParse(raw_json);
-  if (!parseResult.success) {
-    throw new FrigateCardError(localize('error.invalid_response'), {
-      url: signedURL.toString(),
-      raw_json: raw_json,
-      invalid_keys: getParseErrorKeys<T>(parseResult.error),
-    });
-  }
-  return parseResult.data;
-}
-
 interface HassStateDifference {
   entity: string;
   oldState?: HassEntity;
