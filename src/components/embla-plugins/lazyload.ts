@@ -1,7 +1,9 @@
-import { EmblaCarouselType, EmblaEventType, EmblaPluginType } from 'embla-carousel';
+import { CreateOptionsType } from 'embla-carousel/components/Options';
+import { CreatePluginType } from 'embla-carousel/components/Plugins';
+import EmblaCarousel, { EmblaCarouselType, EmblaEventType } from 'embla-carousel';
 import { LazyUnloadCondition } from '../../types';
 
-export type LazyloadOptionsType = {
+export type LazyloadOptionsType = CreateOptionsType<{
   // Number of slides to lazyload left/right of selected (0 == only selected
   // slide).
   lazyLoadCount?: number;
@@ -9,18 +11,25 @@ export type LazyloadOptionsType = {
 
   lazyLoadCallback?: (index: number, slide: HTMLElement) => void;
   lazyUnloadCallback?: (index: number, slide: HTMLElement) => void;
-};
+}>;
 
-export const defaultOptions: Partial<LazyloadOptionsType> = {
+export const defaultOptions: LazyloadOptionsType = {
+  active: true,
+  breakpoints: {},
   lazyLoadCount: 0,
 };
 
-export type LazyloadType = EmblaPluginType<LazyloadOptionsType> & {
-  hasLazyloaded: (index: number) => boolean;
-};
+export type LazyloadType = CreatePluginType<
+  {
+    hasLazyloaded(index: number): boolean;
+  },
+  LazyloadOptionsType
+>;
 
 export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
-  const options = Object.assign({}, defaultOptions, userOptions);
+  const optionsHandler = EmblaCarousel.optionsHandler();
+  const optionsBase = optionsHandler.merge(defaultOptions, Lazyload.globalOptions);
+  let options: LazyloadType['options'];
 
   let carousel: EmblaCarouselType;
   let slides: HTMLElement[];
@@ -34,6 +43,7 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
    */
   function init(embla: EmblaCarouselType): void {
     carousel = embla;
+    options = optionsHandler.atMedia(self.options);
     slides = carousel.slideNodes();
 
     if (options.lazyLoadCallback) {
@@ -138,10 +148,12 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
 
   const self: LazyloadType = {
     name: 'Lazyload',
-    options,
+    options: optionsHandler.merge(optionsBase, userOptions),
     init,
     destroy,
     hasLazyloaded,
   };
   return self;
 }
+
+Lazyload.globalOptions = <LazyloadOptionsType | undefined>undefined;

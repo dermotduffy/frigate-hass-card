@@ -1162,10 +1162,10 @@ embla-carousel-wheel-gestures@^2.1.1:
   dependencies:
     wheel-gestures "^2.2.5"
 
-embla-carousel@^6.2.0:
-  version "6.2.0"
-  resolved "https://registry.yarnpkg.com/embla-carousel/-/embla-carousel-6.2.0.tgz#c16b18abe50e05ccd03d0b8d0b738f6a87aea1e0"
-  integrity sha512-dSNsiQ7nmSQJZgbYfZCLdzrnznHwpaAcdJFcMRKgm/pjH1doOgxmfsvlMy4VfO4J11hLz8jm/W8WxSSDqfuu4w==
+embla-carousel@^7.0.0-rc01:
+  version "7.0.0-rc01"
+  resolved "https://registry.yarnpkg.com/embla-carousel/-/embla-carousel-7.0.0-rc01.tgz#7c9adfd7302b85c2de9354b7ef6343f16a696eb7"
+  integrity sha512-IBTSKcPw7u9K0zoLvsnWYsijKsI0msFqzNp6ASIthTXiMZNJNGQt8k0ax7KqUVinDZeNM07WPWqYsjrvUM/Epw==
 
 emojis-list@^3.0.0:
   version "3.0.0"
