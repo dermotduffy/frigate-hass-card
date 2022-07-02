@@ -211,7 +211,7 @@ export class FrigateCardThumbnail extends LitElement {
           title="${label ?? ''}"
           .date=${recording ? fromUnixTime(recording.start_time) : undefined}
         ></frigate-card-thumbnail-feature-recording>`}
-    ${this.controls && this.hass && this.clientID
+    ${this.controls && event && this.hass && this.clientID
       ? html` <ha-icon
             class="${classMap(starClasses)}"
             icon=${event?.retain_indefinitely ? 'mdi:star' : 'mdi:star-outline'}
