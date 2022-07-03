@@ -71,7 +71,8 @@
       "controls": {
         "options": "Controles da Galeria de Eventos",
         "thumbnails": {
-          "show_controls": "Mostrar controles de eventos com miniaturas",
+          "show_favorite_control": "",
+          "show_timeline_control": "",
           "show_details": "Mostrar detalhes do evento com miniaturas",
           "size": "Tamanho das miniaturas da Galeria de eventos em pixels"
         }
@@ -110,7 +111,8 @@
             "snapshots": "Miniaturas de Snapshots"
           },
           "mode": "Miniaturas do modo ao vivo",
-          "show_controls": "Mostrar controles de eventos com miniaturas",
+          "show_favorite_control": "",
+          "show_timeline_control": "",
           "show_details": "Mostrar detalhes do evento com miniaturas",
           "size": "Tamanho das miniaturas ao vivo (e.g. '100px')"
         },
@@ -150,7 +152,8 @@
             "none": "Sem miniaturas",
             "right": "Miniaturas em uma gaveta à direita da mídia"
           },
-          "show_controls": "Mostrar controles com miniaturas",
+          "show_favorite_control": "",
+          "show_timeline_control": "",
           "show_details": "Mostrar detalhes com miniaturas",
           "size": "Tamanho das miniaturas do Visualizador de eventos (por exemplo, '100px')"
         },
@@ -231,7 +234,8 @@
         "options": "Controles de linha do tempo",
         "thumbnails": {
           "mode": "Modo de miniaturas da linha do tempo",
-          "show_controls": "Mostrar controles de eventos com miniaturas",
+          "show_favorite_control": "",
+          "show_timeline_control": "",
           "show_details": "Mostrar detalhes do evento com miniaturas",
           "size": "Tamanho das miniaturas da linha do tempo em pixels"
         }

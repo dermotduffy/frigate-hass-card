@@ -54,8 +54,10 @@ export const CONF_VIEW_SCAN_UNTRIGGER_SECONDS =
 export const CONF_EVENT_GALLERY = 'event_gallery' as const;
 export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS =
   `${CONF_EVENT_GALLERY}.controls.thumbnails.show_details` as const;
-export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_CONTROLS =
-  `${CONF_EVENT_GALLERY}.controls.thumbnails.show_controls` as const;
+export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
+  `${CONF_EVENT_GALLERY}.controls.thumbnails.show_favorite_control` as const;
+export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
+  `${CONF_EVENT_GALLERY}.controls.thumbnails.show_timeline_control` as const;
 export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_EVENT_GALLERY}.controls.thumbnails.size` as const;
 
@@ -76,8 +78,10 @@ export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.mode` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_details` as const;
-export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_CONTROLS =
-  `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_controls` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
+  `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_favorite_control` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
+  `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_timeline_control` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.size` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE =
@@ -102,8 +106,10 @@ export const CONF_LIVE_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_LIVE}.controls.thumbnails.size` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS =
   `${CONF_LIVE}.controls.thumbnails.show_details` as const;
-export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_CONTROLS =
-  `${CONF_LIVE}.controls.thumbnails.show_controls` as const;
+export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
+  `${CONF_LIVE}.controls.thumbnails.show_favorite_control` as const;
+export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
+  `${CONF_LIVE}.controls.thumbnails.show_timeline_control` as const;
 export const CONF_LIVE_CONTROLS_TITLE_MODE = `${CONF_LIVE}.controls.title.mode` as const;
 export const CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS =
   `${CONF_LIVE}.controls.title.duration_seconds` as const;
@@ -132,8 +138,10 @@ export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_TIMELINE}.controls.thumbnails.size` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS =
   `${CONF_TIMELINE}.controls.thumbnails.show_details` as const;
-export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_CONTROLS =
-  `${CONF_TIMELINE}.controls.thumbnails.show_controls` as const;
+export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
+  `${CONF_TIMELINE}.controls.thumbnails.show_favorite_control` as const;
+export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
+  `${CONF_TIMELINE}.controls.thumbnails.show_timeline_control` as const;
 
 export const CONF_MENU = 'menu' as const;
 export const CONF_MENU_ALIGNMENT = `${CONF_MENU}.alignment` as const;

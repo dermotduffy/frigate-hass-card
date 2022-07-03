@@ -377,7 +377,8 @@ live:
 | `mode` | `none` | :white_check_mark: | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).|
 | `size` | 100 | :white_check_mark: | The size of the thumbnails in the thumbnail carousel in pixels. Must be >= `75` and <= `175`. |
 | `show_details` | `false` | :white_check_mark: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
-| `show_controls` | `true` | :white_check_mark: | Whether to show event controls (e.g. timeline icon, favorite icon) alongside the thumbnail.|
+| `show_favorite_control` | `true` | :white_check_mark: | Whether to show the favorite ('star') control on each thumbnail.|
+| `show_timeline_control` | `true` | :white_check_mark: | Whether to show the timeline ('target') control on each thumbnail.|
 | `media` | `clips` | :white_check_mark: | Whether to show `clips` or `snapshots` in the thumbnail carousel in the `live` view.|
 
 #### Live Controls: Next / Previous
@@ -466,7 +467,8 @@ media_viewer:
 | `mode` | `none` | :heavy_multiplication_x: | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).|
 | `size` | 100 | :heavy_multiplication_x: | The size of the thumbnails in the thumbnail carousel pixels. Must be >= `75` and <= `175`.|
 | `show_details` | `false` | :heavy_multiplication_x: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
-| `show_controls` | `true` | :heavy_multiplication_x: | Whether to show event controls (e.g. timeline icon, favorite icon) alongside the thumbnail.|
+| `show_favorite_control` | `true` | :white_check_mark: | Whether to show the favorite ('star') control on each thumbnail.|
+| `show_timeline_control` | `true` | :white_check_mark: | Whether to show the timeline ('target') control on each thumbnail.|
 
 #### Media Viewer Controls: Title
 
@@ -499,7 +501,8 @@ See the [fully expanded event gallery configuration example](#config-expanded-ev
 | - | - | - | - |
 | `size` | 100 | :heavy_multiplication_x: | The size of the thumbnails in the event gallery in pixels. Must be >= `75` and <= `175`.|
 | `show_details` | `false` | :heavy_multiplication_x: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
-| `show_controls` | `true` | :heavy_multiplication_x: | Whether to show event controls (e.g. timeline icon, favorite icon) alongside the thumbnail.|
+| `show_favorite_control` | `true` | :white_check_mark: | Whether to show the favorite ('star') control on each thumbnail.|
+| `show_timeline_control` | `true` | :white_check_mark: | Whether to show the timeline ('target') control on each thumbnail.|
 | `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `event_gallery` (e.g. `clips`, `snapshots`). See [actions](#actions) below.|
 
 ### Image Options
@@ -558,7 +561,8 @@ timeline:
 | `mode` | `none` | :heavy_multiplication_x: | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).|
 | `size` | 100 | :heavy_multiplication_x: | The size of the thumbnails in the thumbnail carousel in pixels. Must be >= `75` and <= `175`.|
 | `show_details` | `false` | :heavy_multiplication_x: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
-| `show_controls` | `true` | :heavy_multiplication_x: | Whether to show event controls (e.g. timeline icon, favorite icon) alongside the thumbnail.|
+| `show_favorite_control` | `true` | :white_check_mark: | Whether to show the favorite ('star') control on each thumbnail.|
+| `show_timeline_control` | `true` | :white_check_mark: | Whether to show the timeline ('target') control on each thumbnail.|
 
 ### Dimensions Options
 
@@ -1264,7 +1268,8 @@ live:
       media: clips
       size: 100
       show_details: false
-      show_controls: false
+      show_favorite_control: true
+      show_timeline_control: true
       mode: none
     title:
       mode: popup-bottom-right
@@ -1309,7 +1314,8 @@ media_viewer:
       size: 100
       mode: none
       show_details: false
-      show_controls: true
+      show_favorite_control: true
+      show_timeline_control: true
     title:
       mode: popup-bottom-right
       duration_seconds: 2
@@ -1341,7 +1347,8 @@ event_gallery:
     thumbnails:
       size: 100
       show_details: false
-      show_controls: false
+      show_favorite_control: true
+      show_timeline_control: true
   actions:
     entity: light.office_main_lights
     tap_action:
@@ -1724,7 +1731,8 @@ timeline:
       mode: left
       size: 100
       show_details: true
-      show_controls: true
+      show_favorite_control: true
+      show_timeline_control: true
 ```
 </details>
 
@@ -1779,7 +1787,8 @@ overrides:
             media: clips
             size: 100
             show_details: false
-            show_controls: false
+            show_favorite_control: true
+            show_timeline_control: true
             mode: none
           title:
             mode: popup-bottom-right

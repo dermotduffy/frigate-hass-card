@@ -32,8 +32,9 @@ import {
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL,
   CONF_DIMENSIONS_ASPECT_RATIO,
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
-  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE,
   CONF_IMAGE_MODE,
   CONF_IMAGE_REFRESH_SECONDS,
@@ -46,8 +47,9 @@ import {
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
-  CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+  CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+  CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
   CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
   CONF_LIVE_CONTROLS_TITLE_MODE,
@@ -63,8 +65,9 @@ import {
   CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
-  CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+  CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+  CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE,
   CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
   CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE,
@@ -78,8 +81,9 @@ import {
   CONF_MENU_STYLE,
   CONF_TIMELINE_CLUSTERING_THRESHOLD,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
-  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
   CONF_TIMELINE_MEDIA,
   CONF_TIMELINE_SHOW_RECORDINGS,
@@ -1233,8 +1237,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       defaults.live.controls.thumbnails.show_details,
                     )}
                     ${this._renderSwitch(
-                      CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
-                      defaults.live.controls.thumbnails.show_controls,
+                      CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+                      defaults.live.controls.thumbnails.show_favorite_control,
+                    )}
+                    ${this._renderSwitch(
+                      CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                      defaults.live.controls.thumbnails.show_timeline_control,
                     )}
                     ${this._renderNumberInput(
                       CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
@@ -1268,8 +1276,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   defaults.media_viewer.controls.thumbnails.show_details,
                 )}
                 ${this._renderSwitch(
-                  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
-                  defaults.media_viewer.controls.thumbnails.show_controls,
+                  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+                  defaults.media_viewer.controls.thumbnails.show_favorite_control,
+                )}
+                ${this._renderSwitch(
+                  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                  defaults.media_viewer.controls.thumbnails.show_timeline_control,
                 )}`,
               )}
             </div>`
@@ -1333,8 +1345,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   defaults.media_viewer.controls.thumbnails.show_details,
                 )}
                 ${this._renderSwitch(
-                  CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
-                  defaults.media_viewer.controls.thumbnails.show_controls,
+                  CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+                  defaults.media_viewer.controls.thumbnails.show_favorite_control,
+                )}
+                ${this._renderSwitch(
+                  CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                  defaults.media_viewer.controls.thumbnails.show_timeline_control,
                 )}
                 ${this._renderOptionSelector(
                   CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE,
@@ -1386,8 +1402,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   defaults.timeline.controls.thumbnails.show_details,
                 )}
                 ${this._renderSwitch(
-                  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_CONTROLS,
-                  defaults.timeline.controls.thumbnails.show_controls,
+                  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+                  defaults.timeline.controls.thumbnails.show_favorite_control,
+                )}
+                ${this._renderSwitch(
+                  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                  defaults.timeline.controls.thumbnails.show_timeline_control,
                 )}`,
               )}
             </div>`

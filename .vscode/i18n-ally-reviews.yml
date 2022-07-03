@@ -8,3 +8,59 @@ reviews:
           source: en
           text: Não foi possível reter o evento
           time: '2022-06-28T05:18:48.431Z'
+  config.event_gallery.controls.thumbnails.show_favorite_control:
+    locales:
+      pt-BR:
+        translation_candidate:
+          source: en
+          text: Mostrar controle favorito em miniaturas
+          time: '2022-07-03T15:12:24.848Z'
+  config.event_gallery.controls.thumbnails.show_timeline_control:
+    locales:
+      pt-BR:
+        translation_candidate:
+          source: en
+          text: Mostrar controle da linha do tempo nas miniaturas
+          time: '2022-07-03T15:12:32.656Z'
+  config.live.controls.thumbnails.show_favorite_control:
+    locales:
+      pt-BR:
+        translation_candidate:
+          source: en
+          text: Mostrar controle favorito em miniaturas
+          time: '2022-07-03T15:13:49.466Z'
+  config.live.controls.thumbnails.show_timeline_control:
+    locales:
+      pt-BR:
+        translation_candidate:
+          source: en
+          text: Mostrar controle da linha do tempo nas miniaturas
+          time: '2022-07-03T15:13:52.295Z'
+  config.media_viewer.controls.thumbnails.show_favorite_control:
+    locales:
+      pt-BR:
+        translation_candidate:
+          source: en
+          text: Mostrar controle favorito em miniaturas
+          time: '2022-07-03T15:13:54.711Z'
+  config.media_viewer.controls.thumbnails.show_timeline_control:
+    locales:
+      pt-BR:
+        translation_candidate:
+          source: en
+          text: Mostrar controle da linha do tempo nas miniaturas
+          time: '2022-07-03T15:13:57.530Z'
+  config.timeline.controls.thumbnails.show_favorite_control:
+    locales:
+      pt-BR:
+        translation_candidate:
+          source: en
+          text: Mostrar controle favorito em miniaturas
+          time: '2022-07-03T15:13:59.666Z'
+  config.timeline.controls.thumbnails.show_timeline_control:
+    locales:
+      pt-BR:
+        translation_candidate:
+          source: en
+          text: Mostrar controle da linha do tempo nas miniaturas
+          time: '2022-07-03T15:14:01.927Z'

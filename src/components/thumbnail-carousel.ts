@@ -210,7 +210,8 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
       .childIndex=${childIndex}
       .clientID=${cameraConfig?.frigate.client_id}
       ?details=${this._config?.show_details}
-      ?controls=${this._config?.show_controls}
+      ?show_favorite_control=${this._config?.show_favorite_control}
+      ?show_timeline_control=${this._config?.show_timeline_control}
       class="${classMap(classes)}"
       @click=${(ev) => {
         if (this._carousel && this._carousel.clickAllowed()) {
