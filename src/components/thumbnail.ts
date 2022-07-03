@@ -129,7 +129,10 @@ export class FrigateCardThumbnail extends LitElement {
   public details = false;
 
   @property({ attribute: true, type: Boolean })
-  public controls = false;
+  public show_favorite_control = false;
+
+  @property({ attribute: true, type: Boolean })
+  public show_timeline_control = false;
 
   // ============================
   // Data-binding based interface
@@ -211,7 +214,7 @@ export class FrigateCardThumbnail extends LitElement {
           title="${label ?? ''}"
           .date=${recording ? fromUnixTime(recording.start_time) : undefined}
         ></frigate-card-thumbnail-feature-recording>`}
-    ${this.controls && event && this.hass && this.clientID
+    ${this.show_favorite_control && event && this.hass && this.clientID
       ? html` <ha-icon
             class="${classMap(starClasses)}"
             icon=${event?.retain_indefinitely ? 'mdi:star' : 'mdi:star-outline'}
@@ -247,7 +250,7 @@ export class FrigateCardThumbnail extends LitElement {
           .recording=${recording ?? undefined}
         ></frigate-card-thumbnail-details-recording>`
       : html``}
-    ${this.controls
+    ${this.show_timeline_control
       ? html`<ha-icon
           class="timeline"
           icon="mdi:target"

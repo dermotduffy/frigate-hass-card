@@ -591,7 +591,8 @@ const thumbnailsControlSchema = z.object({
   mode: z.enum(['none', 'above', 'below', 'left', 'right']),
   size: z.number().min(THUMBNAIL_WIDTH_MIN).max(THUMBNAIL_WIDTH_MAX).optional(),
   show_details: z.boolean().optional(),
-  show_controls: z.boolean().optional(),
+  show_favorite_control: z.boolean().optional(),
+  show_timeline_control: z.boolean().optional(),
 });
 export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlSchema>;
 
@@ -648,7 +649,8 @@ const liveConfigDefault = {
       media: 'clips' as const,
       size: 100,
       show_details: true,
-      show_controls: true,
+      show_favorite_control: true,
+      show_timeline_control: true,
       mode: 'left' as const,
     },
     title: {
@@ -712,8 +714,11 @@ const liveOverridableConfigSchema = z
             show_details: thumbnailsControlSchema.shape.show_details.default(
               liveConfigDefault.controls.thumbnails.show_details,
             ),
-            show_controls: thumbnailsControlSchema.shape.show_controls.default(
-              liveConfigDefault.controls.thumbnails.show_controls,
+            show_favorite_control: thumbnailsControlSchema.shape.show_favorite_control.default(
+              liveConfigDefault.controls.thumbnails.show_favorite_control,
+            ),
+            show_timeline_control: thumbnailsControlSchema.shape.show_timeline_control.default(
+              liveConfigDefault.controls.thumbnails.show_timeline_control,
             ),
             media: z
               .enum(['clips', 'snapshots'])
@@ -851,7 +856,8 @@ const viewerConfigDefault = {
     thumbnails: {
       size: 100,
       show_details: true,
-      show_controls: true,
+      show_favorite_control: true,
+      show_timeline_control: true,
       mode: 'left' as const,
     },
     title: {
@@ -907,8 +913,11 @@ const viewerConfigSchema = z
             show_details: thumbnailsControlSchema.shape.show_details.default(
               viewerConfigDefault.controls.thumbnails.show_details,
             ),
-            show_controls: thumbnailsControlSchema.shape.show_controls.default(
-              viewerConfigDefault.controls.thumbnails.show_controls,
+            show_favorite_control: thumbnailsControlSchema.shape.show_favorite_control.default(
+              viewerConfigDefault.controls.thumbnails.show_favorite_control,
+            ),
+            show_timeline_control: thumbnailsControlSchema.shape.show_timeline_control.default(
+              viewerConfigDefault.controls.thumbnails.show_timeline_control,
             ),
           })
           .default(viewerConfigDefault.controls.thumbnails),
@@ -937,7 +946,8 @@ const galleryConfigDefault = {
     thumbnails: {
       size: 100,
       show_details: false,
-      show_controls: false,
+      show_favorite_control: true,
+      show_timeline_control: true,
     },
   },
 };
@@ -956,8 +966,11 @@ const galleryConfigSchema = z
             show_details: thumbnailsControlSchema.shape.show_details.default(
               galleryConfigDefault.controls.thumbnails.show_details,
             ),
-            show_controls: thumbnailsControlSchema.shape.show_controls.default(
-              galleryConfigDefault.controls.thumbnails.show_controls,
+            show_favorite_control: thumbnailsControlSchema.shape.show_favorite_control.default(
+              galleryConfigDefault.controls.thumbnails.show_favorite_control,
+            ),
+            show_timeline_control: thumbnailsControlSchema.shape.show_timeline_control.default(
+              galleryConfigDefault.controls.thumbnails.show_timeline_control,
             ),
           })
           .default(galleryConfigDefault.controls.thumbnails),
@@ -1007,7 +1020,8 @@ const timelineConfigDefault = {
       mode: 'left' as const,
       size: 100,
       show_details: true,
-      show_controls: true,
+      show_favorite_control: true,
+      show_timeline_control: true,
     },
   },
 };
@@ -1044,8 +1058,11 @@ const timelineConfigSchema = z
             show_details: thumbnailsControlSchema.shape.show_details.default(
               timelineConfigDefault.controls.thumbnails.show_details,
             ),
-            show_controls: thumbnailsControlSchema.shape.show_controls.default(
-              timelineConfigDefault.controls.thumbnails.show_controls,
+            show_favorite_control: thumbnailsControlSchema.shape.show_favorite_control.default(
+              timelineConfigDefault.controls.thumbnails.show_favorite_control,
+            ),
+            show_timeline_control: thumbnailsControlSchema.shape.show_timeline_control.default(
+              timelineConfigDefault.controls.thumbnails.show_timeline_control,
             ),
           })
           .default(timelineConfigDefault.controls.thumbnails),

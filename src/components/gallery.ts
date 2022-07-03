@@ -7,7 +7,7 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS
+  unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import galleryStyle from '../scss/gallery.scss';
@@ -15,13 +15,13 @@ import {
   CameraConfig,
   frigateCardConfigDefaults,
   GalleryConfig,
-  THUMBNAIL_WIDTH_MAX
+  THUMBNAIL_WIDTH_MAX,
 } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import {
   fetchChildMediaAndDispatchViewChange,
   fetchLatestMediaAndDispatchViewChange,
-  getFullDependentBrowseMediaQueryParametersOrDispatchError
+  getFullDependentBrowseMediaQueryParametersOrDispatchError,
 } from '../utils/ha/browse-media';
 import { View } from '../view.js';
 import { renderProgressIndicator } from './message.js';
@@ -262,7 +262,10 @@ export class FrigateCardGalleryCore extends LitElement {
                   .hass=${this.hass}
                   .clientID=${cameraConfig?.frigate.client_id}
                   ?details=${!!this.galleryConfig?.controls.thumbnails.show_details}
-                  ?controls=${!!this.galleryConfig?.controls.thumbnails.show_controls}
+                  ?show_favorite_control=${!!this.galleryConfig?.controls.thumbnails
+                    .show_favorite_control}
+                  ?show_timeline_control=${!!this.galleryConfig?.controls.thumbnails
+                    .show_timeline_control}
                   @click=${(ev: Event) => {
                     if (this.view) {
                       this.view
@@ -291,8 +294,8 @@ export class FrigateCardGalleryCore extends LitElement {
 }
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card-gallery-core": FrigateCardGalleryCore
-		"frigate-card-gallery": FrigateCardGallery
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card-gallery-core': FrigateCardGalleryCore;
+    'frigate-card-gallery': FrigateCardGallery;
+  }
 }

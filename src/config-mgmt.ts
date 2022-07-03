@@ -27,14 +27,14 @@ import {
   CONF_OVERRIDES,
   CONF_VIEW_DEFAULT,
   CONF_VIEW_TIMEOUT_SECONDS,
-  CONF_VIEW_UPDATE_ENTITIES
+  CONF_VIEW_UPDATE_ENTITIES,
 } from './const';
 import {
   BUTTON_SIZE_MIN,
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
-  THUMBNAIL_WIDTH_MIN
+  THUMBNAIL_WIDTH_MIN,
 } from './types';
 
 /**
@@ -221,26 +221,28 @@ export const moveConfigValue = (
   obj: RawFrigateCardConfig,
   oldPath: string,
   newPath: string,
-  transform?: (valueIn: unknown) => unknown,
-  keepOriginal?: boolean,
+  options?: {
+    transform?: (valueIn: unknown) => unknown;
+    keepOriginal?: boolean;
+  },
 ): boolean => {
   const inValue = getConfigValue(obj, oldPath);
   if (inValue === undefined) {
     return false;
   }
-  const outValue = transform ? transform(inValue) : inValue;
+  const outValue = options?.transform ? options.transform(inValue) : inValue;
   if (oldPath === newPath && isEqual(inValue, outValue)) {
     return false;
   }
   if (outValue === null) {
-    if (!keepOriginal) {
+    if (!options?.keepOriginal) {
       deleteConfigValue(obj, oldPath);
       return true;
     }
     return false;
   }
   if (outValue !== undefined) {
-    if (!keepOriginal) {
+    if (!options?.keepOriginal) {
       deleteConfigValue(obj, oldPath);
     }
     setConfigValue(obj, newPath, outValue);
@@ -269,11 +271,13 @@ export const getArrayConfigPath = (path: string, index: number): string => {
 const upgradeMoveTo = function (
   oldPath: string,
   newPath: string,
-  transform?: (valueIn: unknown) => unknown,
-  keepOriginal?: boolean,
+  options?: {
+    transform?: (valueIn: unknown) => unknown;
+    keepOriginal?: boolean;
+  },
 ): (obj: RawFrigateCardConfig) => boolean {
   return function (obj: RawFrigateCardConfig): boolean {
-    return moveConfigValue(obj, oldPath, newPath, transform, keepOriginal);
+    return moveConfigValue(obj, oldPath, newPath, options);
   };
 };
 
@@ -288,15 +292,17 @@ const upgradeMoveTo = function (
 const upgradeMoveToWithOverrides = function (
   oldPath: string,
   newPath: string,
-  transform?: (valueIn: unknown) => unknown,
-  keepOriginal?: boolean,
+  options?: {
+    transform?: (valueIn: unknown) => unknown;
+    keepOriginal?: boolean;
+  },
 ): (obj: RawFrigateCardConfig) => boolean {
   return function (obj: RawFrigateCardConfig): boolean {
-    let modified = upgradeMoveTo(oldPath, newPath, transform, keepOriginal)(obj);
+    let modified = upgradeMoveTo(oldPath, newPath, options)(obj);
     modified =
       upgradeArrayValue(
         CONF_OVERRIDES,
-        upgradeMoveTo(oldPath, newPath, transform, keepOriginal),
+        upgradeMoveTo(oldPath, newPath, options),
         (obj) => obj.overrides as RawFrigateCardConfig | undefined,
       )(obj) || modified;
     return modified;
@@ -311,9 +317,9 @@ const upgradeMoveToWithOverrides = function (
  */
 const upgradeWithOverrides = function (
   path: string,
-  transform?: (valueIn: unknown) => unknown,
+  transform: (valueIn: unknown) => unknown,
 ): (obj: RawFrigateCardConfig) => boolean {
-  return upgradeMoveToWithOverrides(path, path, transform);
+  return upgradeMoveToWithOverrides(path, path, { transform: transform });
 };
 
 /**
@@ -324,9 +330,9 @@ const upgradeWithOverrides = function (
  */
 const upgrade = function (
   path: string,
-  transform?: (valueIn: unknown) => unknown,
+  transform: (valueIn: unknown) => unknown,
 ): (obj: RawFrigateCardConfig) => boolean {
-  return upgradeMoveTo(path, path, transform);
+  return upgradeMoveTo(path, path, { transform: transform });
 };
 
 /**
@@ -402,10 +408,8 @@ const upgradeMenuModeToStyleAndPosition = (): ((
 
     // Change the 'start' of the mode into a style.
     modified =
-      upgradeMoveToWithOverrides(
-        'menu.mode',
-        CONF_MENU_STYLE,
-        (mode: unknown): string | undefined => {
+      upgradeMoveToWithOverrides('menu.mode', CONF_MENU_STYLE, {
+        transform: (mode: unknown): string | undefined => {
           if (typeof mode === 'string') {
             const result = mode.match(/^(hover|hidden|overlay|above|below|none)/);
             if (result) {
@@ -423,15 +427,13 @@ const upgradeMenuModeToStyleAndPosition = (): ((
           }
           return undefined;
         },
-        true,
-      )(obj) || modified;
+        keepOriginal: true,
+      })(obj) || modified;
 
     // Change the 'end' of the mode into a position.
     modified =
-      upgradeMoveToWithOverrides(
-        'menu.mode',
-        CONF_MENU_POSITION,
-        (mode: unknown): string | undefined => {
+      upgradeMoveToWithOverrides('menu.mode', CONF_MENU_POSITION, {
+        transform: (mode: unknown): string | undefined => {
           if (typeof mode === 'string') {
             const result = mode.match(/(above|below|left|right|top|bottom)$/);
             if (result) {
@@ -450,8 +452,8 @@ const upgradeMenuModeToStyleAndPosition = (): ((
           }
           return undefined;
         },
-        true,
-      )(obj) || modified;
+        keepOriginal: true,
+      })(obj) || modified;
 
     // Delete the old `menu.mode` .
     return upgradeWithOverrides('menu.mode', deleteProperty)(obj) || modified;
@@ -510,6 +512,38 @@ const menuButtonBooleanToObject = function (
   return { enabled: value };
 };
 
+/**
+ * Upgrade from a show_controls key to individual favorite/timeline keys.
+ * @returns An upgrade function.
+ */
+const upgradeThumbnailShowControlsToIndividualControls = (
+  thumbnailsBasePath: string,
+): ((obj: RawFrigateCardConfig) => boolean) => {
+  const thumbnailsShowControlsPath = `${thumbnailsBasePath}.show_controls`;
+
+  return function (obj: RawFrigateCardConfig): boolean {
+    let modified = false;
+    modified =
+      upgradeMoveToWithOverrides(
+        thumbnailsShowControlsPath,
+        `${thumbnailsBasePath}.show_favorite_control`,
+        { keepOriginal: true },
+      )(obj) || modified;
+
+    modified =
+      upgradeMoveToWithOverrides(
+        thumbnailsShowControlsPath,
+        `${thumbnailsBasePath}.show_timeline_control`,
+        { keepOriginal: true },
+      )(obj) || modified;
+
+    // Delete the old `show_controls`.
+    return (
+      upgradeWithOverrides(thumbnailsShowControlsPath, deleteProperty)(obj) || modified
+    );
+  };
+};
+
 const UPGRADES = [
   // v1.2.1 -> v2.0.0
   upgradeMoveTo('frigate_url', 'frigate.url'),
@@ -528,7 +562,7 @@ const UPGRADES = [
   upgradeMoveTo('menu_mode', 'menu.mode'),
   upgradeMoveTo('menu_buttons', 'menu.buttons'),
   upgradeMoveTo('menu_button_size', CONF_MENU_BUTTON_SIZE),
-  upgradeMoveTo('image', 'image.src', isNotObject),
+  upgradeMoveTo('image', 'image.src', { transform: isNotObject }),
 
   // v2.0.0 -> v2.1.0
   upgradeMoveTo('update_entities', CONF_VIEW_UPDATE_ENTITIES),
@@ -536,7 +570,9 @@ const UPGRADES = [
   // v2.1.0 -> v3.0.0-rc.1
   upgradeToMultipleCameras(),
   upgradeMenuConditionToMenuOverride(),
-  upgradeMoveTo('view.timeout', CONF_VIEW_TIMEOUT_SECONDS, toNumberOrIgnore),
+  upgradeMoveTo('view.timeout', CONF_VIEW_TIMEOUT_SECONDS, {
+    transform: toNumberOrIgnore,
+  }),
   upgradeMoveTo('event_viewer.autoplay_clip', 'event_viewer.auto_play'),
 
   // v3.0.0-rc.1 -> v3.0.0-rc.2
@@ -600,4 +636,10 @@ const UPGRADES = [
   upgradeArrayValue(CONF_CAMERAS, upgradeMoveTo('label', 'frigate.label')),
   upgradeArrayValue(CONF_CAMERAS, upgradeMoveTo('frigate_url', 'frigate.url')),
   upgradeArrayValue(CONF_CAMERAS, upgradeMoveTo('zone', 'frigate.zone')),
+
+  // v4.0.0-rc.1 -> v4.0.0-rc.3
+  upgradeThumbnailShowControlsToIndividualControls('event_gallery.controls.thumbnails'),
+  upgradeThumbnailShowControlsToIndividualControls('media_viewer.controls.thumbnails'),
+  upgradeThumbnailShowControlsToIndividualControls('live.controls.thumbnails'),
+  upgradeThumbnailShowControlsToIndividualControls('timeline.controls.thumbnails'),
 ];
