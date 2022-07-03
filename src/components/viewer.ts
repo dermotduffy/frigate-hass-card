@@ -7,14 +7,14 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS
+  unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { ref } from 'lit/directives/ref.js';
 import {
   dispatchFrigateCardErrorEvent,
-  renderProgressIndicator
+  renderProgressIndicator,
 } from '../components/message.js';
 import viewerStyle from '../scss/viewer.scss';
 import type {
@@ -26,7 +26,7 @@ import type {
   FrigateCardMediaPlayer,
   MediaShowInfo,
   TransitionEffect,
-  ViewerConfig
+  ViewerConfig,
 } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { contentsChanged } from '../utils/basic.js';
@@ -36,19 +36,19 @@ import {
   getFullDependentBrowseMediaQueryParametersOrDispatchError,
   isTrueMedia,
   multipleBrowseMediaQueryMerged,
-  overrideMultiBrowseMediaQueryParameters
+  overrideMultiBrowseMediaQueryParameters,
 } from '../utils/ha/browse-media.js';
 import { ResolvedMediaCache, resolveMedia } from '../utils/ha/resolved-media.js';
 import { createMediaShowInfo } from '../utils/media-info.js';
 import { View } from '../view.js';
 import { AutoMediaPlugin } from './embla-plugins/automedia.js';
-import { Lazyload, LazyloadType } from './embla-plugins/lazyload.js';
+import { Lazyload } from './embla-plugins/lazyload.js';
 import { FrigateCardMediaCarousel, IMG_EMPTY } from './media-carousel.js';
 import './next-prev-control.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
 import './title-control.js';
-import "../patches/ha-hls-player";
-import "./surround-thumbnails";
+import '../patches/ha-hls-player';
+import './surround-thumbnails';
 
 @customElement('frigate-card-viewer')
 export class FrigateCardViewer extends LitElement {
@@ -778,9 +778,7 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
                   // images in media-carousel.ts). Here we need to only call the
                   // media load handler on a 'real' load.
                   !lazyLoad ||
-                  (this._plugins['Lazyload'] as LazyloadType | undefined)?.hasLazyloaded(
-                    slideIndex,
-                  )
+                  this._getLazyLoadPlugin()?.hasLazyloaded(slideIndex)
                 ) {
                   this._mediaLoadedHandler(slideIndex, createMediaShowInfo(e));
                 }
@@ -792,8 +790,8 @@ export class FrigateCardViewerCarousel extends FrigateCardMediaCarousel {
 }
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card-viewer-carousel": FrigateCardViewerCarousel
-		"frigate-card-viewer": FrigateCardViewer
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card-viewer-carousel': FrigateCardViewerCarousel;
+    'frigate-card-viewer': FrigateCardViewer;
+  }
 }

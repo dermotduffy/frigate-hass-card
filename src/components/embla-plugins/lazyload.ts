@@ -3,7 +3,7 @@ import { CreatePluginType } from 'embla-carousel/components/Plugins';
 import EmblaCarousel, { EmblaCarouselType, EmblaEventType } from 'embla-carousel';
 import { LazyUnloadCondition } from '../../types';
 
-export type LazyloadOptionsType = CreateOptionsType<{
+export type OptionsType = CreateOptionsType<{
   // Number of slides to lazyload left/right of selected (0 == only selected
   // slide).
   lazyLoadCount?: number;
@@ -13,11 +13,13 @@ export type LazyloadOptionsType = CreateOptionsType<{
   lazyUnloadCallback?: (index: number, slide: HTMLElement) => void;
 }>;
 
-export const defaultOptions: LazyloadOptionsType = {
+export const defaultOptions: OptionsType = {
   active: true,
   breakpoints: {},
   lazyLoadCount: 0,
 };
+
+export type LazyloadOptionsType = Partial<OptionsType>
 
 export type LazyloadType = CreatePluginType<
   {
@@ -147,7 +149,7 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
   }
 
   const self: LazyloadType = {
-    name: 'Lazyload',
+    name: 'lazyload',
     options: optionsHandler.merge(optionsBase, userOptions),
     init,
     destroy,

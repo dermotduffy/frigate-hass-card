@@ -9,7 +9,7 @@ import {
   FrigateCardMediaPlayer,
 } from '../../types.js';
 
-export type AutoMediaPluginOptionsType = CreateOptionsType<{
+type OptionsType = CreateOptionsType<{
   playerSelector?: string;
 
   // Note: Neither play nor unmute will activate on selection. The caller is
@@ -22,19 +22,21 @@ export type AutoMediaPluginOptionsType = CreateOptionsType<{
   autoMuteCondition?: AutoMuteCondition;
 }>;
 
-export const defaultOptions: AutoMediaPluginOptionsType = {
+const defaultOptions: OptionsType = {
   active: true,
   breakpoints: {},
 };
 
-export type AutoMediaPluginType = CreatePluginType<
+export type AutoMediaOptionsType = Partial<OptionsType>
+
+export type AutoMediaType = CreatePluginType<
   {
     play: () => void;
     pause: () => void;
     mute: () => void;
     unmute: () => void;
   },
-  AutoMediaPluginOptionsType
+  AutoMediaOptionsType
 >;
 
 /**
@@ -43,15 +45,15 @@ export type AutoMediaPluginType = CreatePluginType<
  * @returns
  */
 export function AutoMediaPlugin(
-  userOptions?: AutoMediaPluginOptionsType,
-): AutoMediaPluginType {
+  userOptions?: AutoMediaOptionsType,
+): AutoMediaType {
   const optionsHandler = EmblaCarousel.optionsHandler();
   const optionsBase = optionsHandler.merge(
     defaultOptions,
     AutoMediaPlugin.globalOptions,
   );
 
-  let options: AutoMediaPluginType['options'];
+  let options: AutoMediaType['options'];
   let carousel: EmblaCarouselType;
   let slides: HTMLElement[];
 
@@ -210,8 +212,8 @@ export function AutoMediaPlugin(
     }
   }
 
-  const self: AutoMediaPluginType = {
-    name: 'AutoMediaPlugin',
+  const self: AutoMediaType = {
+    name: 'autoMedia',
     options: optionsHandler.merge(optionsBase, userOptions),
     init,
     destroy,
@@ -223,4 +225,4 @@ export function AutoMediaPlugin(
   return self;
 }
 
-AutoMediaPlugin.globalOptions = <AutoMediaPluginOptionsType | undefined>undefined;
+AutoMediaPlugin.globalOptions = <AutoMediaOptionsType | undefined>undefined;

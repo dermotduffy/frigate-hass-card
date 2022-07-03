@@ -9,7 +9,8 @@ import {
   isValidMediaShowInfo
 } from '../utils/media-info.js';
 import { FrigateCardCarousel } from './carousel.js';
-import { AutoMediaPluginType } from './embla-plugins/automedia.js';
+import { AutoMediaType } from './embla-plugins/automedia.js';
+import { LazyloadType } from './embla-plugins/lazyload';
 import './next-prev-control.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
 import { FrigateCardTitleControl } from './title-control.js';
@@ -42,11 +43,27 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   }
 
   /**
+   * Get the AutoMedia plugin (if any).
+   * @returns The plugin or `null`.
+   */
+  protected _getAutoMediaPlugin(): AutoMediaType | null {
+    return this._carousel?.plugins()['autoMedia'] ?? null;
+  }
+
+  /**
+   * Get the LazyLoad plugin (if any).
+   * @returns The plugin or `null`.
+   */
+  protected _getLazyLoadPlugin(): LazyloadType | null {
+    return this._carousel?.plugins()['lazyload'] ?? null;
+  }
+
+  /**
    * Play the media on the selected slide. May be overridden to control when
    * autoplay should happen.
    */
   protected _autoPlayHandler(): void {
-    (this._plugins['AutoMediaPlugin'] as AutoMediaPluginType | undefined)?.play();
+    this._getAutoMediaPlugin()?.play();
   }
 
   /**
@@ -54,7 +71,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
    * autoplay should happen.
    */
   protected _autoUnmuteHandler(): void {
-    (this._plugins['AutoMediaPlugin'] as AutoMediaPluginType | undefined)?.unmute();
+    this._getAutoMediaPlugin()?.unmute();
   }
 
   /**

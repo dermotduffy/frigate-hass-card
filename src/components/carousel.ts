@@ -18,7 +18,6 @@ export class FrigateCardCarousel extends LitElement {
   public direction: 'vertical' | 'horizontal' = 'horizontal';
 
   protected _carousel?: EmblaCarouselType;
-  protected _plugins: Record<string, EmblaPluginType> = {};
 
   /**
    * Scroll to a particular slide.
@@ -81,7 +80,6 @@ export class FrigateCardCarousel extends LitElement {
     if (this._carousel) {
       this._carousel.destroy();
     }
-    this._plugins = {};
     this._carousel = undefined;
   }
 
@@ -94,19 +92,13 @@ export class FrigateCardCarousel extends LitElement {
     ) as HTMLElement;
 
     if (carouselNode) {
-      const plugins = this._getPlugins() ?? [];
-      this._plugins = plugins.reduce((acc, cur) => {
-        acc[cur.name] = cur;
-        return acc;
-      }, {});
-
       this._carousel = EmblaCarousel(
         carouselNode,
         {
           axis: this.direction == 'horizontal' ? 'x' : 'y',
           ...this._getOptions(),
         },
-        plugins,
+        this._getPlugins() ?? [],
       );
       this._carousel.on('init', () => dispatchFrigateCardEvent(this, 'carousel:init'));
       this._carousel.on('select', () => {

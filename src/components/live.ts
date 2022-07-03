@@ -45,7 +45,7 @@ import {
   dispatchMediaShowEvent,
 } from '../utils/media-info.js';
 import { View } from '../view.js';
-import { AutoMediaPlugin, AutoMediaPluginType } from './embla-plugins/automedia.js';
+import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import { Lazyload } from './embla-plugins/lazyload.js';
 import { FrigateCardMediaCarousel } from './media-carousel.js';
 import { dispatchErrorMessageEvent } from './message.js';
@@ -239,9 +239,7 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     }
 
     if (changedProperties.has('preloaded')) {
-      const automedia = this._plugins['AutoMediaPlugin'] as
-        | AutoMediaPluginType
-        | undefined;
+      const automedia = this._getAutoMediaPlugin();
       if (automedia) {
         // If this has changed to preloaded (i.e. is now loaded but in the
         // background) take the appropriate play/pause/mute/unmute actions.
