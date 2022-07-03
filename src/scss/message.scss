@@ -1,7 +1,9 @@
 :host {
   min-height: 100%;
   width: 100%;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 
   // Ensure error messages are selectable.
   user-select: text;
@@ -30,7 +32,7 @@ div.message div.contents {
   padding: 10px;
   margin-top: auto;
   margin-bottom: auto;
-  max-width: 100%;
+  min-width: 0;
 }
 
 div.message div.icon {
