@@ -72,7 +72,7 @@
         "options": "Controles da Galeria de Eventos",
         "thumbnails": {
           "show_details": "Mostrar detalhes do evento com miniaturas",
-          "show_favorite_control": "Mostrar controle de favorito em miniaturas",
+          "show_favorite_control": "Mostrar controle de favorito nas miniaturas",
           "show_timeline_control": "Mostrar controle da linha do tempo nas miniaturas",
           "size": "Tamanho das miniaturas da Galeria de eventos em pixels"
         }
@@ -112,7 +112,7 @@
           },
           "mode": "Miniaturas do modo ao vivo",
           "show_details": "Mostrar detalhes do evento com miniaturas",
-          "show_favorite_control": "Mostrar controle de favorito em miniaturas",
+          "show_favorite_control": "Mostrar controle de favorito nas miniaturas",
           "show_timeline_control": "Mostrar controle da linha do tempo nas miniaturas",
           "size": "Tamanho das miniaturas ao vivo (e.g. '100px')"
         },
@@ -153,7 +153,7 @@
             "right": "Miniaturas em uma gaveta à direita da mídia"
           },
           "show_details": "Mostrar detalhes com miniaturas",
-          "show_favorite_control": "Mostrar controle de favorito em miniaturas",
+          "show_favorite_control": "Mostrar controle de favorito nas miniaturas",
           "show_timeline_control": "Mostrar controle da linha do tempo nas miniaturas",
           "size": "Tamanho das miniaturas do Visualizador de eventos (por exemplo, '100px')"
         },
@@ -234,7 +234,7 @@
         "thumbnails": {
           "mode": "Modo de miniaturas da linha do tempo",
           "show_details": "Mostrar detalhes do evento com miniaturas",
-          "show_favorite_control": "Mostrar controle de favorito em miniaturas",
+          "show_favorite_control": "Mostrar controle de favorito nas miniaturas",
           "show_timeline_control": "Mostrar controle da linha do tempo nas miniaturas",
           "size": "Tamanho das miniaturas da linha do tempo em pixels"
         }
