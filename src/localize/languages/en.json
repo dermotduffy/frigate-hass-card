@@ -71,9 +71,9 @@
       "controls": {
         "options": "Event Gallery Controls",
         "thumbnails": {
+          "show_details": "Show event details with thumbnails",
           "show_favorite_control": "Show favorite control on thumbnails",
           "show_timeline_control": "Show timeline control on thumbnails",
-          "show_details": "Show event details with thumbnails",
           "size": "Event Gallery thumbnails size in pixels"
         }
       }
@@ -111,9 +111,9 @@
             "snapshots": "Snapshot thumbnails"
           },
           "mode": "Live thumbnails mode",
+          "show_details": "Show event details with thumbnails",
           "show_favorite_control": "Show favorite control on thumbnails",
           "show_timeline_control": "Show timeline control on thumbnails",
-          "show_details": "Show event details with thumbnails",
           "size": "Live thumbnails size in pixels"
         },
         "title": {
@@ -152,9 +152,9 @@
             "none": "No thumbnails",
             "right": "Thumbnails in a drawer right of the media"
           },
+          "show_details": "Show details with thumbnails",
           "show_favorite_control": "Show favorite control on thumbnails",
           "show_timeline_control": "Show timeline control on thumbnails",
-          "show_details": "Show details with thumbnails",
           "size": "Media Viewer thumbnails size in pixels"
         },
         "title": {
@@ -232,9 +232,9 @@
         "options": "Timeline Controls",
         "thumbnails": {
           "mode": "Timeline thumbnails mode",
+          "show_details": "Show event details with thumbnails",
           "show_favorite_control": "Show favorite control on thumbnails",
           "show_timeline_control": "Show timeline control on thumbnails",
-          "show_details": "Show event details with thumbnails",
           "size": "Timeline thumbnails size in pixels"
         }
       },
