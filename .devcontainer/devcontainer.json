@@ -8,8 +8,17 @@
     "41000": {
       "label": "Rollup",
       "onAutoForward": "silent"
+    },
+    "hass:8123": {
+      "label": "Home Assistant",
+      "onAutoForward": "silent"
+    },
+    "frigate:5000": {
+      "label": "Frigate",
+      "onAutoForward": "silent"
     }
   },
+  "forwardPorts": ["hass:8123", "frigate:5000"],
   "initializeCommand": ".devcontainer/initialize.sh",
   "postCreateCommand": "yarn install",
   "extensions": [

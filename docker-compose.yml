@@ -5,9 +5,6 @@ services:
     user: node
     init: true
     build: .devcontainer
-    ports:
-      # Rollup
-      - 41000:41000
     env_file:
       - .env
     volumes:
