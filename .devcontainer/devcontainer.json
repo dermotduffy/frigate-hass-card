@@ -5,11 +5,20 @@
   "workspaceFolder": "${localWorkspaceFolder}",
   "shutdownAction": "stopCompose",
   "portsAttributes": {
-    "41000": {
+    "1000": {
       "label": "Rollup",
+      "onAutoForward": "silent"
+    },
+    "hass:8123": {
+      "label": "Home Assistant",
+      "onAutoForward": "silent"
+    },
+    "frigate:5000": {
+      "label": "Frigate",
       "onAutoForward": "silent"
     }
   },
+  "forwardPorts": [1000, "hass:8123", "frigate:5000"],
   "initializeCommand": ".devcontainer/initialize.sh",
   "postCreateCommand": "yarn install",
   "extensions": [
