@@ -56,6 +56,12 @@ export class FrigateCardThumbnailCarousel extends LitElement {
   // dynamic sizing fails (and users can scroll past the end of the carousel).
   protected _resizeObserver: ResizeObserver;
 
+  @property({ attribute: false })
+  public config?: ThumbnailsControlConfig;
+
+  @state()
+  protected _selected: number | null = null;
+
   constructor() {
     super();
     this._resizeObserver = new ResizeObserver(this._resizeHandler.bind(this));
@@ -64,17 +70,11 @@ export class FrigateCardThumbnailCarousel extends LitElement {
   @property({ attribute: false })
   set selected(selected: number | null) {
     this._selected = selected;
-    if (selected !== null) {
-      // If there is a selection, 'dim' all the other slides.
-      this.style.setProperty('--frigate-card-carousel-thumbnail-opacity', '0.4');
-    }
+    this.style.setProperty(
+      '--frigate-card-carousel-thumbnail-opacity',
+      selected === null ? '1.0' : '0.4',
+    );
   }
-
-  @property({ attribute: false })
-  public config?: ThumbnailsControlConfig;
-
-  @state()
-  protected _selected?: number | null;
 
   /**
    * Handle gallery resize.
@@ -84,7 +84,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
 
     // Reinit will cause the scroll position to reset, so re-scroll to the
     // correct location.
-    if (this._selected !== undefined && this._selected !== null) {
+    if (this._selected !== null) {
       this._refCarousel.value?.carouselScrollTo(this._selected);
     }
   }
@@ -178,7 +178,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
 
     if (changedProperties.has('_selected')) {
       this.updateComplete.then(() => {
-        if (this._selected !== undefined && this._selected !== null) {
+        if (this._selected !== null) {
           this._refCarousel.value?.carouselScrollTo(this._selected);
         }
       });
