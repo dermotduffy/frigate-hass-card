@@ -2676,6 +2676,10 @@ See [screenshot above](#screenshots-card-casting).
 
 You must be using a version of the [Frigate integration](https://github.com/blakeblackshear/frigate-hass-integration) >= 3.0.0-rc.2 to see recordings. Using an older version of the integration may also show blank thumbnails in the events viewer. Please upgrade your integration accordingly.
 
+### Chrome autoplays when a tab becomes visible again
+
+Even if `live.auto_play` or `media_viewer.auto_play` is set to `never`, Chrome itself will still auto play a video that was previously playing prior to the tab being hidden, once that tab is visible again. This behavior cannot be influenced by the card. Other browsers (e.g. Firefox, Safari) do not exhibit this behavior.
+
 <a name="jsmpeg-troubleshooting"></a>
 
 ### JSMPEG Live Camera Only Shows A 'spinner'

@@ -19,7 +19,7 @@ export const defaultOptions: OptionsType = {
   lazyLoadCount: 0,
 };
 
-export type LazyloadOptionsType = Partial<OptionsType>
+export type LazyloadOptionsType = Partial<OptionsType>;
 
 export type LazyloadType = CreatePluginType<
   {
@@ -27,6 +27,12 @@ export type LazyloadType = CreatePluginType<
   },
   LazyloadOptionsType
 >;
+
+declare module 'embla-carousel/components/Plugins' {
+  interface EmblaPluginsType {
+    lazyload?: LazyloadType;
+  }
+}
 
 export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
   const optionsHandler = EmblaCarousel.optionsHandler();

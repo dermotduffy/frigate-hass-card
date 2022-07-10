@@ -15,12 +15,16 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { until } from 'lit/directives/until.js';
 import { ConditionState, getOverriddenConfig } from '../card-condition.js';
-import { dispatchFrigateCardErrorEvent, renderProgressIndicator } from '../components/message.js';
+import {
+  dispatchFrigateCardErrorEvent,
+  renderProgressIndicator,
+} from '../components/message.js';
 import { localize } from '../localize/localize.js';
 import liveFrigateStyle from '../scss/live-frigate.scss';
 import liveJSMPEGStyle from '../scss/live-jsmpeg.scss';
 import liveWebRTCStyle from '../scss/live-webrtc.scss';
 import liveStyle from '../scss/live.scss';
+import liveCarouselStyle from '../scss/live-carousel.scss';
 import {
   CameraConfig,
   ExtendedHomeAssistant,
@@ -47,10 +51,9 @@ import {
 import { View } from '../view.js';
 import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import { Lazyload } from './embla-plugins/lazyload.js';
-import { FrigateCardMediaCarousel } from './media-carousel.js';
+import { FrigateCardMediaCarousel, wrapMediaShowEventForCarousel } from './media-carousel.js';
 import { dispatchErrorMessageEvent } from './message.js';
 import './next-prev-control.js';
-import { FrigateCardNextPreviousControl } from './next-prev-control.js';
 import './title-control.js';
 import './surround-thumbnails';
 import '../patches/ha-camera-stream';
@@ -182,7 +185,7 @@ export class FrigateCardLive extends LitElement {
 }
 
 @customElement('frigate-card-live-carousel')
-export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
+export class FrigateCardLiveCarousel extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -206,40 +209,39 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
 
   // Index between camera name and slide number.
   protected _cameraToSlide: Record<string, number> = {};
+  protected _refMediaCarousel: Ref<FrigateCardMediaCarousel> = createRef();
 
   /**
    * The updated lifecycle callback for this element.
    * @param changedProperties The properties that were changed in this render.
    */
   updated(changedProperties: PropertyValues): void {
-    if (
-      this._carousel &&
-      (changedProperties.has('cameras') || changedProperties.has('liveConfig'))
-    ) {
-      // All of these properties may fundamentally change the contents/size of
-      // the DOM, and the carousel should be reset when they change.
-      this._destroyCarousel();
-    }
-
     super.updated(changedProperties);
+
+    const frigateCardMediaCarousel = this._refMediaCarousel.value;
+    const frigateCardCarousel = frigateCardMediaCarousel?.frigateCardCarousel();
 
     if (changedProperties.has('view')) {
       const oldView = changedProperties.get('view') as View | undefined;
       if (
-        this._carousel &&
+        frigateCardCarousel &&
         oldView &&
         this.view?.camera &&
         this.view?.camera != oldView.camera
       ) {
         const slide: number | undefined = this._cameraToSlide[this.view.camera];
-        if (slide !== undefined && slide !== this.carouselSelected()) {
-          this.carouselScrollTo(slide);
+        if (slide !== undefined && slide !== frigateCardCarousel.carouselSelected()) {
+          frigateCardCarousel.carouselScrollTo(slide);
         }
       }
     }
 
-    if (changedProperties.has('preloaded')) {
-      const automedia = this._getAutoMediaPlugin();
+    if (
+      frigateCardMediaCarousel &&
+      frigateCardCarousel &&
+      changedProperties.has('preloaded')
+    ) {
+      const automedia = frigateCardCarousel.getCarouselPlugins()?.autoMedia;
       if (automedia) {
         // If this has changed to preloaded (i.e. is now loaded but in the
         // background) take the appropriate play/pause/mute/unmute actions.
@@ -257,8 +259,8 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
             automedia.mute();
           }
         } else {
-          this._autoPlayHandler();
-          this._autoUnmuteHandler();
+          frigateCardMediaCarousel.autoPlay();
+          frigateCardMediaCarousel.autoUnmute();
         }
       }
     }
@@ -268,8 +270,11 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
    * Get the transition effect to use.
    * @returns An TransitionEffect object.
    */
-  protected _getTransitionEffect(): TransitionEffect | undefined {
-    return this.liveConfig?.transition_effect;
+  protected _getTransitionEffect(): TransitionEffect {
+    return (
+      this.liveConfig?.transition_effect ??
+      frigateCardConfigDefaults.live.transition_effect
+    );
   }
 
   /**
@@ -293,7 +298,6 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
    */
   protected _getPlugins(): EmblaPluginType[] {
     return [
-      ...super._getPlugins(),
       // Only enable wheel plugin if there is more than one camera.
       ...(this.cameras && this.cameras.size > 1
         ? [
@@ -314,6 +318,8 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
         lazyUnloadCallback: (index, slide) =>
           this._lazyloadOrUnloadSlide('unload', index, slide),
       }),
+
+      // TODO: AutoMediaPlugin could be moved to MediaCarousel.
       AutoMediaPlugin({
         playerSelector: 'frigate-card-live-provider',
         ...(this.liveConfig?.auto_play && {
@@ -330,30 +336,6 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
         }),
       }),
     ];
-  }
-
-  /**
-   * Play the media on the loaded slide.
-   */
-  protected _autoPlayHandler(): void {
-    if (
-      this.liveConfig?.auto_play &&
-      ['all', 'selected'].includes(this.liveConfig.auto_play)
-    ) {
-      super._autoPlayHandler();
-    }
-  }
-
-  /**
-   * Unmute the media on the loaded slide.
-   */
-  protected _autoUnmuteHandler(): void {
-    if (
-      this.liveConfig?.auto_unmute &&
-      ['all', 'selected'].includes(this.liveConfig.auto_unmute)
-    ) {
-      super._autoUnmuteHandler();
-    }
   }
 
   /**
@@ -394,15 +376,17 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   /**
    * Handle the user selecting a new slide in the carousel.
    */
-  protected _selectSlideSetViewHandler(): void {
-    if (!this._carousel || !this.view || !this.cameras) {
+  protected _setViewHandler(): void {
+    const selectedCameraIndex = this._refMediaCarousel.value
+      ?.frigateCardCarousel()
+      ?.carouselSelected();
+    if (selectedCameraIndex === undefined || !this.view || !this.cameras) {
       return;
     }
 
-    const selectedSnap = this._carousel.selectedScrollSnap();
     this.view
       .evolve({
-        camera: Array.from(this.cameras.keys())[selectedSnap],
+        camera: Array.from(this.cameras.keys())[selectedCameraIndex],
 
         // Reset the target so thumbnails will be re-fetched.
         target: null,
@@ -419,9 +403,13 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   protected _lazyloadOrUnloadSlide(
     action: 'load' | 'unload',
     _index: number,
-    slide: HTMLElement,
+    slide: Element,
   ): void {
-    const liveProvider = slide.querySelector(
+    if (slide instanceof HTMLSlotElement) {
+      slide = slide.assignedElements({flatten: true})[0];
+    }
+
+    const liveProvider = slide?.querySelector(
       'frigate-card-live-provider',
     ) as FrigateCardLiveProvider;
     if (liveProvider) {
@@ -451,18 +439,21 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
       conditionState,
     ) as LiveConfig;
 
-    return html` <div class="embla__slide">
-      <frigate-card-live-provider
-        ?disabled=${this.liveConfig.lazy_load}
-        .cameraConfig=${cameraConfig}
-        .label=${getCameraTitle(this.hass, cameraConfig)}
-        .liveConfig=${config}
-        .hass=${this.hass}
-        @frigate-card:media-show=${(e: CustomEvent<MediaShowInfo>) =>
-          this._mediaShowEventHandler(slideIndex, e)}
-      >
-      </frigate-card-live-provider>
-    </div>`;
+    return html`
+      <div class="embla__slide">
+        <frigate-card-live-provider
+          ?disabled=${this.liveConfig.lazy_load}
+          .cameraConfig=${cameraConfig}
+          .label=${getCameraTitle(this.hass, cameraConfig)}
+          .liveConfig=${config}
+          .hass=${this.hass}
+          @frigate-card:media-show=${(e: CustomEvent<MediaShowInfo>) => {
+            wrapMediaShowEventForCarousel(slideIndex, e)
+          }}
+        >
+        </frigate-card-live-provider>
+      </div>
+    `;
   }
 
   protected _getCameraNeighbors(): [CameraConfig | null, CameraConfig | null] {
@@ -488,30 +479,6 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
   }
 
   /**
-   * Handle updating of the next/previous controls when the carousel is moved.
-   */
-  protected _selectSlideNextPreviousHandler(): void {
-    const updateNextPreviousControl = (
-      control: FrigateCardNextPreviousControl,
-      direction: 'previous' | 'next',
-    ): void => {
-      const [prev, next] = this._getCameraNeighbors();
-      const target = direction == 'previous' ? prev : next;
-
-      control.disabled = target == null;
-      control.title = getCameraTitle(this.hass, target);
-      control.icon = getCameraIcon(this.hass, target);
-    };
-
-    if (this._previousControlRef.value) {
-      updateNextPreviousControl(this._previousControlRef.value, 'previous');
-    }
-    if (this._nextControlRef.value) {
-      updateNextPreviousControl(this._nextControlRef.value, 'next');
-    }
-  }
-
-  /**
    * Render the element.
    * @returns A template to display to the user.
    */
@@ -532,45 +499,57 @@ export class FrigateCardLiveCarousel extends FrigateCardMediaCarousel {
     const title = getCameraTitle(this.hass, this.cameras.get(this.view.camera));
 
     return html`
-      <div class="embla">
+      <frigate-card-media-carousel
+        ${ref(this._refMediaCarousel)}
+        .carouselOptions=${this._getOptions()}
+        .carouselPlugins=${this._getPlugins()}
+        .autoPlayCondition=${this.liveConfig.auto_play}
+        .autoPauseCondition=${this.liveConfig.auto_pause}
+        .autoMuteCondition=${this.liveConfig.auto_mute}
+        .autoUnmuteCondition=${this.liveConfig.auto_unmute}
+        .label="${title ? `${localize('common.live')}: ${title}` : ''}"
+        .titlePopupConfig=${config.controls.title}
+        transitionEffect=${this._getTransitionEffect()}
+        @frigate-card:carousel:select=${this._setViewHandler.bind(this)}
+      >
         <frigate-card-next-previous-control
-          ${ref(this._previousControlRef)}
+          slot="previous"
           .direction=${'previous'}
           .controlConfig=${config.controls.next_previous}
           .label=${getCameraTitle(this.hass, prev)}
           .icon=${getCameraIcon(this.hass, prev)}
           ?disabled=${prev == null}
           @click=${(ev) => {
-            this._nextPreviousHandler('previous');
+            this._refMediaCarousel.value
+              ?.frigateCardCarousel()
+              ?.carouselScrollPrevious();
             stopEventFromActivatingCardWideActions(ev);
           }}
         >
         </frigate-card-next-previous-control>
-        <div class="embla__viewport">
-          <div class="embla__container">${slides}</div>
-        </div>
+        ${slides}
         <frigate-card-next-previous-control
-          ${ref(this._nextControlRef)}
+          slot="next"
           .direction=${'next'}
           .controlConfig=${config.controls.next_previous}
           .label=${getCameraTitle(this.hass, next)}
           .icon=${getCameraIcon(this.hass, next)}
           ?disabled=${next == null}
           @click=${(ev) => {
-            this._nextPreviousHandler('next');
+            this._refMediaCarousel.value?.frigateCardCarousel()?.carouselScrollNext();
             stopEventFromActivatingCardWideActions(ev);
           }}
         >
         </frigate-card-next-previous-control>
-      </div>
-      <frigate-card-title-control
-        ${ref(this._titleControlRef)}
-        .config=${config.controls.title}
-        .text="${title ? `${localize('common.live')}: ${title}` : ''}"
-        .fitInto=${this as HTMLElement}
-      >
-      </frigate-card-title-control>
+      </frigate-card-media-carousel>
     `;
+  }
+
+  /**
+   * Get styles.
+   */
+   static get styles(): CSSResultGroup {
+    return unsafeCSS(liveCarouselStyle);
   }
 }
 
@@ -747,20 +726,16 @@ export class FrigateCardLiveFrigate extends LitElement {
     }
 
     if (!this.cameraConfig?.camera_entity) {
-      return dispatchErrorMessageEvent(
-        this,
-        localize('error.no_live_camera'),
-        { context: this.cameraConfig },
-      );
+      return dispatchErrorMessageEvent(this, localize('error.no_live_camera'), {
+        context: this.cameraConfig,
+      });
     }
 
     const stateObj = this.hass.states[this.cameraConfig.camera_entity];
     if (!stateObj || stateObj.state === 'unavailable') {
-      return dispatchErrorMessageEvent(
-        this,
-        localize('error.live_camera_unavailable'),
-        { context: this.cameraConfig },
-      );
+      return dispatchErrorMessageEvent(this, localize('error.live_camera_unavailable'), {
+        context: this.cameraConfig,
+      });
     }
 
     return html` <frigate-card-ha-camera-stream
@@ -1143,11 +1118,9 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     this._jsmpegCanvasElement.className = 'media';
 
     if (!this.cameraConfig?.frigate.camera_name) {
-      return dispatchErrorMessageEvent(
-        this,
-        localize('error.no_camera_name'),
-        { context: this.cameraConfig },
-      );
+      return dispatchErrorMessageEvent(this, localize('error.no_camera_name'), {
+        context: this.cameraConfig,
+      });
     }
 
     const url = await this._getURL();

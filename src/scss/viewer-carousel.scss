@@ -1,0 +1,14 @@
+.embla__slide {
+  height: 100%;
+  flex: 0 0 100%;
+}
+
+.embla__slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  // Letterbox media. <frigate-card-ha-hls-player> has similar added directly in
+  // its element.
+  object-fit: contain;
+}

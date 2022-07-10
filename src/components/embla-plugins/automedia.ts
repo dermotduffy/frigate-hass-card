@@ -39,6 +39,12 @@ export type AutoMediaType = CreatePluginType<
   AutoMediaOptionsType
 >;
 
+declare module 'embla-carousel/components/Plugins' {
+  interface EmblaPluginsType {
+    autoMedia?: AutoMediaType
+  }
+}
+
 /**
  * An Embla plugin to take automated actions on media (e.g. pause, unmute, etc).
  * @param userOptions
@@ -112,7 +118,7 @@ export function AutoMediaPlugin(
    * Handle document visibility changes.
    */
   function visibilityHandler(): void {
-    if (document.visibilityState == 'hidden') {
+    if (document.visibilityState === 'hidden') {
       if (
         options.autoPauseCondition &&
         ['all', 'hidden'].includes(options.autoPauseCondition)
@@ -125,7 +131,7 @@ export function AutoMediaPlugin(
       ) {
         muteAll();
       }
-    } else if (document.visibilityState == 'visible') {
+    } else if (document.visibilityState === 'visible') {
       if (
         options.autoPlayCondition &&
         ['all', 'visible'].includes(options.autoPlayCondition)

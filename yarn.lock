@@ -1155,17 +1155,17 @@ electron-to-chromium@^1.4.147:
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.161.tgz#49cb5b35385bfee6cc439d0a04fbba7a7a7f08a1"
   integrity sha512-sTjBRhqh6wFodzZtc5Iu8/R95OkwaPNn7tj/TaDU5nu/5EFiQDtADGAXdR4tJcTEHlYfJpHqigzJqHvPgehP8A==
 
-embla-carousel-wheel-gestures@^2.1.1:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/embla-carousel-wheel-gestures/-/embla-carousel-wheel-gestures-2.2.0.tgz#04ee1cfafe0667a5b96d16341642b3124fe8894e"
-  integrity sha512-IoRGblg8QWrIgZEW0NbDcIl2fO++BLFf6197k2JNair3pfbyiMYtva6rROgeRiI0sIj2kFwlSEgudTy5f8TzNQ==
+embla-carousel-wheel-gestures@^3.0.0-rc01:
+  version "3.0.0-rc01"
+  resolved "https://registry.yarnpkg.com/embla-carousel-wheel-gestures/-/embla-carousel-wheel-gestures-3.0.0-rc01.tgz#70f88d6ee755817270ca26514d06b7c08c12977d"
+  integrity sha512-h6E1/AwGKEwro8pey6KeOnt/UMvSaCwJKxaA+sz4OERPLmVL06oejVJ2kMjL06y9WaxZ8TqKWR7m0HlbsI9F5A==
   dependencies:
     wheel-gestures "^2.2.5"
 
-embla-carousel@^7.0.0-rc01:
-  version "7.0.0-rc01"
-  resolved "https://registry.yarnpkg.com/embla-carousel/-/embla-carousel-7.0.0-rc01.tgz#7c9adfd7302b85c2de9354b7ef6343f16a696eb7"
-  integrity sha512-IBTSKcPw7u9K0zoLvsnWYsijKsI0msFqzNp6ASIthTXiMZNJNGQt8k0ax7KqUVinDZeNM07WPWqYsjrvUM/Epw==
+embla-carousel@^7.0.0-rc04:
+  version "7.0.0-rc04"
+  resolved "https://registry.yarnpkg.com/embla-carousel/-/embla-carousel-7.0.0-rc04.tgz#bd9c15da7740660b46232fba720b0c38043b667f"
+  integrity sha512-vhzwCEdEqwS5c6jlfPHy/X1uUkwf9AvMma8KWNbmTgB3NUNN9hoqiyTdrpraMtPU5MzlxpZipln74ZwDK4v63g==
 
 emojis-list@^3.0.0:
   version "3.0.0"
