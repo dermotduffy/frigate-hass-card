@@ -58,7 +58,7 @@ export class FrigateCardSurround extends LitElement {
    */
   protected async _fetchMedia(): Promise<void> {
     if (
-      !fetch ||
+      !this.fetch ||
       !this.hass ||
       !this.view ||
       !this.config ||
