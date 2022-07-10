@@ -217,7 +217,7 @@ export class FrigateCardCarousel extends LitElement {
       ${showPrevious ? html`<slot name="previous"></slot>` : ``}
       <div class="embla__viewport">
         <div class="embla__container">
-          <slot ${ref(this._refSlot)} @slotchange=${this._slotChanged}></slot>
+          <slot ${ref(this._refSlot)} @slotchange=${this._slotChanged.bind(this)}></slot>
         </div>
       </div>
       ${showNext ? html`<slot name="next"></slot>` : ``}
