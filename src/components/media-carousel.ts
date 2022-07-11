@@ -269,6 +269,10 @@ export class FrigateCardMediaCarousel extends LitElement {
      */
 
     const reInit = (): void => {
+      // In some cases the carousel may need its height adjusted after the DOM is
+      // newly visible (e.g. a smaller camera live in preload mode, that becomes
+      // visible after switching from a larger camera snapshot).
+      this._adaptiveHeightHandler();
       this.frigateCardCarousel()?.carouselReInit();
     };
 
