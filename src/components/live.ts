@@ -1,7 +1,7 @@
 import JSMpeg from '@cycjimmy/jsmpeg-player';
 import { Task } from '@lit-labs/task';
 import { HomeAssistant } from 'custom-card-helpers';
-import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
+import { EmblaOptionsType } from 'embla-carousel';
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
 import {
   CSSResultGroup,
@@ -13,6 +13,7 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
+import { guard } from 'lit/directives/guard.js';
 import { until } from 'lit/directives/until.js';
 import { ConditionState, getOverriddenConfig } from '../card-condition.js';
 import {
@@ -51,12 +52,16 @@ import {
 import { View } from '../view.js';
 import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import { Lazyload } from './embla-plugins/lazyload.js';
-import { FrigateCardMediaCarousel, wrapMediaShowEventForCarousel } from './media-carousel.js';
+import {
+  FrigateCardMediaCarousel,
+  wrapMediaShowEventForCarousel,
+} from './media-carousel.js';
 import { dispatchErrorMessageEvent } from './message.js';
 import './next-prev-control.js';
 import './title-control.js';
 import './surround-thumbnails';
 import '../patches/ha-camera-stream';
+import { EmblaCarouselPlugins } from './carousel.js';
 
 // Number of seconds a signed URL is valid for.
 const URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -241,27 +246,14 @@ export class FrigateCardLiveCarousel extends LitElement {
       frigateCardCarousel &&
       changedProperties.has('preloaded')
     ) {
-      const automedia = frigateCardCarousel.getCarouselPlugins()?.autoMedia;
-      if (automedia) {
-        // If this has changed to preloaded (i.e. is now loaded but in the
-        // background) take the appropriate play/pause/mute/unmute actions.
-        if (this.preloaded) {
-          if (
-            this.liveConfig?.auto_pause &&
-            ['all', 'unselected'].includes(this.liveConfig.auto_pause)
-          ) {
-            automedia.pause();
-          }
-          if (
-            this.liveConfig?.auto_mute &&
-            ['all', 'unselected'].includes(this.liveConfig.auto_mute)
-          ) {
-            automedia.mute();
-          }
-        } else {
-          frigateCardMediaCarousel.autoPlay();
-          frigateCardMediaCarousel.autoUnmute();
-        }
+      // If this has changed to preloaded (i.e. is now loaded but in the
+      // background) take the appropriate play/pause/mute/unmute actions.
+      if (this.preloaded) {
+        frigateCardMediaCarousel.autoPause();
+        frigateCardMediaCarousel.autoMute();
+      } else {
+        frigateCardMediaCarousel.autoPlay();
+        frigateCardMediaCarousel.autoUnmute();
       }
     }
   }
@@ -296,7 +288,7 @@ export class FrigateCardLiveCarousel extends LitElement {
    * Get the Embla plugins to use.
    * @returns A list of EmblaOptionsTypes.
    */
-  protected _getPlugins(): EmblaPluginType[] {
+  protected _getPlugins(): EmblaCarouselPlugins {
     return [
       // Only enable wheel plugin if there is more than one camera.
       ...(this.cameras && this.cameras.size > 1
@@ -406,7 +398,7 @@ export class FrigateCardLiveCarousel extends LitElement {
     slide: Element,
   ): void {
     if (slide instanceof HTMLSlotElement) {
-      slide = slide.assignedElements({flatten: true})[0];
+      slide = slide.assignedElements({ flatten: true })[0];
     }
 
     const liveProvider = slide?.querySelector(
@@ -448,7 +440,7 @@ export class FrigateCardLiveCarousel extends LitElement {
           .liveConfig=${config}
           .hass=${this.hass}
           @frigate-card:media-show=${(e: CustomEvent<MediaShowInfo>) => {
-            wrapMediaShowEventForCarousel(slideIndex, e)
+            wrapMediaShowEventForCarousel(slideIndex, e);
           }}
         >
         </frigate-card-live-provider>
@@ -498,15 +490,20 @@ export class FrigateCardLiveCarousel extends LitElement {
     const [prev, next] = this._getCameraNeighbors();
     const title = getCameraTitle(this.hass, this.cameras.get(this.view.camera));
 
+    // guard() is used below to avoid reseting the carousel unless the
+    // options/plugins actually change.
+
     return html`
       <frigate-card-media-carousel
         ${ref(this._refMediaCarousel)}
-        .carouselOptions=${this._getOptions()}
-        .carouselPlugins=${this._getPlugins()}
-        .autoPlayCondition=${this.liveConfig.auto_play}
-        .autoPauseCondition=${this.liveConfig.auto_pause}
-        .autoMuteCondition=${this.liveConfig.auto_mute}
-        .autoUnmuteCondition=${this.liveConfig.auto_unmute}
+        .carouselOptions=${guard(
+          [this.cameras, this.liveConfig],
+          this._getOptions.bind(this),
+        )}
+        .carouselPlugins=${guard(
+          [this.cameras, this.liveConfig],
+          this._getPlugins.bind(this),
+        ) as EmblaCarouselPlugins}
         .label="${title ? `${localize('common.live')}: ${title}` : ''}"
         .titlePopupConfig=${config.controls.title}
         transitionEffect=${this._getTransitionEffect()}
@@ -548,7 +545,7 @@ export class FrigateCardLiveCarousel extends LitElement {
   /**
    * Get styles.
    */
-   static get styles(): CSSResultGroup {
+  static get styles(): CSSResultGroup {
     return unsafeCSS(liveCarouselStyle);
   }
 }

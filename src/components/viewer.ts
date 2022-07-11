@@ -9,6 +9,7 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
+import { guard } from 'lit/directives/guard.js';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
@@ -54,6 +55,7 @@ import './next-prev-control.js';
 import './title-control.js';
 import '../patches/ha-hls-player';
 import './surround-thumbnails';
+import { EmblaCarouselPlugins } from './carousel.js';
 
 @customElement('frigate-card-viewer')
 export class FrigateCardViewer extends LitElement {
@@ -603,14 +605,16 @@ export class FrigateCardViewerCarousel extends LitElement {
     const neighbors = this._getMediaNeighbors();
     const [prev, next] = [neighbors?.previous, neighbors?.next];
 
+    // guard() is used below to avoid reseting the carousel unless the
+    // options/plugins actually change.
+
     return html` <frigate-card-media-carousel
       ${ref(this._refMediaCarousel)}
-      .carouselOptions=${this._getOptions()}
-      .carouselPlugins=${this._getPlugins()}
-      .autoPlayCondition=${this.viewerConfig?.auto_play}
-      .autoPauseCondition=${this.viewerConfig?.auto_pause}
-      .autoMuteCondition=${this.viewerConfig?.auto_mute}
-      .autoUnmuteCondition=${this.viewerConfig?.auto_unmute}
+      .carouselOptions=${guard([this.viewerConfig], this._getOptions.bind(this))}
+      .carouselPlugins=${guard(
+        [this.viewerConfig, this.view?.target?.children?.length],
+        this._getPlugins.bind(this),
+      ) as EmblaCarouselPlugins}
       .label="${this.view.media.title}"
       .titlePopupConfig=${this.viewerConfig?.controls.title}
       transitionEffect=${this._getTransitionEffect()}

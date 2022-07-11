@@ -66,6 +66,21 @@ export class FrigateCardCarousel extends LitElement {
   }
 
   /**
+   * Destroy the carousel if certain properties change.
+   * @param changedProps The changed properties
+   */
+  protected willUpdate(changedProps: PropertyValues): void {
+    const destroyProperties = [
+      'direction',
+      'carouselOptions',
+      'carouselOptions',
+    ] as const;
+    if (destroyProperties.some((prop) => changedProps.has(prop))) {
+      this._destroyCarousel();
+    }
+  }
+
+  /**
    * Scroll to a particular slide.
    * @param index Slide number.
    */
@@ -193,6 +208,10 @@ export class FrigateCardCarousel extends LitElement {
             index: selected,
           });
         }
+
+        // Make sure every select causes a refresh to allow for re-paint of the
+        // next/previous controls.
+        this.requestUpdate();
       });
     }
   }

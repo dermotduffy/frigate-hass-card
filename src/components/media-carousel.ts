@@ -1,17 +1,12 @@
 // TODO: Use the auto-height plugin instead of adaptive height
 
 import { EmblaOptionsType } from 'embla-carousel';
-import { EmblaPluginsType } from 'embla-carousel/components/Plugins';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import mediaCarouselStyle from '../scss/media-carousel.scss';
 import type {
-  AutoMuteCondition,
-  AutoPauseCondition,
-  AutoPlayCondition,
-  AutoUnmuteCondition,
   MediaShowInfo,
   NextPreviousControlConfig,
   TitleControlConfig,
@@ -106,18 +101,6 @@ export class FrigateCardMediaCarousel extends LitElement {
   @property({ attribute: false })
   public titlePopupConfig?: TitleControlConfig;
 
-  @property({ attribute: false })
-  public autoPlayCondition?: AutoPlayCondition;
-
-  @property({ attribute: false })
-  public autoUnmuteCondition?: AutoUnmuteCondition;
-
-  @property({ attribute: false })
-  public autoPauseCondition?: AutoPauseCondition;
-
-  @property({ attribute: false })
-  public autoMuteCondition?: AutoMuteCondition;
-
   // A "map" from slide number to MediaShowInfo object.
   protected _mediaShowInfo: Record<number, MediaShowInfo> = {};
   protected _nextControlRef: Ref<FrigateCardNextPreviousControl> = createRef();
@@ -126,9 +109,9 @@ export class FrigateCardMediaCarousel extends LitElement {
   protected _titleTimerID: number | null = null;
 
   protected _boundAutoPlayHandler = this.autoPlay.bind(this);
-  protected _boundAutoPauseHandler = this.autoPause.bind(this);
-  protected _boundAutoMuteHandler = this.autoMute.bind(this);
   protected _boundAutoUnmuteHandler = this.autoUnmute.bind(this);
+  protected _boundAdaptiveHeightHandler = this._adaptiveHeightHandler.bind(this);
+  protected _boundTitleHandler = this._titleHandler.bind(this);
 
   // This carousel may be resized by Lovelace resizes, window resizes,
   // fullscreen, etc. Always call the adaptive height handler when the size
@@ -165,7 +148,11 @@ export class FrigateCardMediaCarousel extends LitElement {
    * Play the media on the selected slide.
    */
   public autoPlay(): void {
-    if (this.autoPlayCondition && ['all', 'selected'].includes(this.autoPlayCondition)) {
+    const automediaOptions = this._getAutoMediaPlugin()?.options;
+    if (
+      automediaOptions?.autoPlayCondition &&
+      ['all', 'selected'].includes(automediaOptions?.autoPlayCondition)
+    ) {
       this._getAutoMediaPlugin()?.play();
     }
   }
@@ -174,9 +161,10 @@ export class FrigateCardMediaCarousel extends LitElement {
    * Pause the media on the selected slide.
    */
   public autoPause(): void {
+    const automediaOptions = this._getAutoMediaPlugin()?.options;
     if (
-      this.autoPauseCondition &&
-      ['all', 'selected'].includes(this.autoPauseCondition)
+      automediaOptions?.autoPauseCondition &&
+      ['all', 'selected'].includes(automediaOptions.autoPauseCondition)
     ) {
       this._getAutoMediaPlugin()?.pause();
     }
@@ -186,9 +174,10 @@ export class FrigateCardMediaCarousel extends LitElement {
    * Unmute the media on the selected slide.
    */
   public autoUnmute(): void {
+    const automediaOptions = this._getAutoMediaPlugin()?.options;
     if (
-      this.autoUnmuteCondition &&
-      ['all', 'selected'].includes(this.autoUnmuteCondition)
+      automediaOptions?.autoUnmuteCondition &&
+      ['all', 'selected'].includes(automediaOptions?.autoUnmuteCondition)
     ) {
       this._getAutoMediaPlugin()?.unmute();
     }
@@ -198,7 +187,11 @@ export class FrigateCardMediaCarousel extends LitElement {
    * Mute the media on the selected slide.
    */
   public autoMute(): void {
-    if (this.autoMuteCondition && ['all', 'selected'].includes(this.autoMuteCondition)) {
+    const automediaOptions = this._getAutoMediaPlugin()?.options;
+    if (
+      automediaOptions?.autoMuteCondition &&
+      ['all', 'selected'].includes(automediaOptions?.autoMuteCondition)
+    ) {
       this._getAutoMediaPlugin()?.mute();
     }
   }
@@ -233,10 +226,11 @@ export class FrigateCardMediaCarousel extends LitElement {
    */
   connectedCallback(): void {
     super.connectedCallback();
-    this.addEventListener('frigate-card:media-show', this.autoPlay);
-    this.addEventListener('frigate-card:media-show', this.autoUnmute);
-    this.addEventListener('frigate-card:media-show', this._adaptiveHeightHandler);
-    this.addEventListener('frigate-card:media-show', this._titleHandler);
+
+    this.addEventListener('frigate-card:media-show', this._boundAutoPlayHandler);
+    this.addEventListener('frigate-card:media-show', this._boundAutoUnmuteHandler);
+    this.addEventListener('frigate-card:media-show', this._boundAdaptiveHeightHandler);
+    this.addEventListener('frigate-card:media-show', this._boundTitleHandler);
     this._resizeObserver.observe(this);
     this._intersectionObserver.observe(this);
   }
@@ -245,13 +239,17 @@ export class FrigateCardMediaCarousel extends LitElement {
    * Component disconnected callback.
    */
   disconnectedCallback(): void {
-    super.disconnectedCallback();
-    this.removeEventListener('frigate-card:media-show', this.autoPlay);
-    this.removeEventListener('frigate-card:media-show', this.autoUnmute);
-    this.removeEventListener('frigate-card:media-show', this._adaptiveHeightHandler);
-    this.removeEventListener('frigate-card:media-show', this._titleHandler);
+    this.removeEventListener('frigate-card:media-show', this._boundAutoPlayHandler);
+    this.removeEventListener('frigate-card:media-show', this._boundAutoUnmuteHandler);
+    this.removeEventListener(
+      'frigate-card:media-show',
+      this._boundAdaptiveHeightHandler,
+    );
+    this.removeEventListener('frigate-card:media-show', this._boundTitleHandler);
     this._resizeObserver.disconnect();
     this._intersectionObserver.disconnect();
+
+    super.disconnectedCallback();
   }
 
   /**
