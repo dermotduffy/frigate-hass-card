@@ -489,8 +489,15 @@ export class FrigateCardLiveCarousel extends LitElement {
     const [prev, next] = this._getCameraNeighbors();
     const title = getCameraTitle(this.hass, this.cameras.get(this.view.camera));
 
-    // guard() is used below to avoid reseting the carousel unless the
-    // options/plugins actually change.
+    // Notes on the below:
+    // - guard() is used to avoid reseting the carousel unless the
+    //   options/plugins actually change.
+    // - the 'carousel:settle' event is listened for (instead of
+    //   'carousel:select') to only trigger the view change (which subsequently
+    //   fetches thumbnails) after the carousel has stopped moving. This gives a
+    //   much smoother carousel experience since network fetches are not at the
+    //   same time as carousel movement (at a cost of fetching thumbnails a
+    //   little later).
 
     return html`
       <frigate-card-media-carousel
@@ -506,8 +513,8 @@ export class FrigateCardLiveCarousel extends LitElement {
         .label="${title ? `${localize('common.live')}: ${title}` : ''}"
         .titlePopupConfig=${config.controls.title}
         transitionEffect=${this._getTransitionEffect()}
-        @frigate-card:carousel:select=${this._setViewHandler.bind(this)}
-      >
+        @frigate-card:carousel:settle=${this._setViewHandler.bind(this)}
+      > 
         <frigate-card-next-previous-control
           slot="previous"
           .direction=${'previous'}

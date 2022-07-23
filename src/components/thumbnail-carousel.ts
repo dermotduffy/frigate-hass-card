@@ -62,6 +62,15 @@ export class FrigateCardThumbnailCarousel extends LitElement {
   @state()
   protected _selected: number | null = null;
 
+  protected _carouselOptions?: EmblaOptionsType;
+  protected _carouselPlugins: EmblaPluginType[] = [
+    WheelGesturesPlugin({
+      // Whether the carousel is vertical or horizontal, interpret y-axis wheel
+      // gestures as scrolling for the carousel.
+      forceWheelAxis: 'y',
+    }),
+  ];
+
   constructor() {
     super();
     this._resizeObserver = new ResizeObserver(this._resizeHandler.bind(this));
@@ -110,22 +119,6 @@ export class FrigateCardThumbnailCarousel extends LitElement {
       startIndex: this._selected ?? 0,
     };
   }
-
-  /**
-   * Get the Embla plugins to use.
-   * @returns A list of EmblaOptionsTypes.
-   */
-  protected _getPlugins(): EmblaPluginType[] {
-    return [
-      // Only enable wheel plugin if there is more than one camera.
-      WheelGesturesPlugin({
-        // Whether the carousel is vertical or horizontal, interpret y-axis wheel
-        // gestures as scrolling for the carousel.
-        forceWheelAxis: 'y',
-      }),
-    ];
-  }
-
   /**
    * Get slides to include in the render.
    * @returns The slides to include in the render.
@@ -160,6 +153,14 @@ export class FrigateCardThumbnailCarousel extends LitElement {
       } else {
         this.removeAttribute('direction');
       }
+    }
+
+    if (!this._carouselOptions) {
+      // Want to set the initial carousel options just before the first render
+      // in order to get the startIndex correct in the options. It is not safe
+      // to rely on carouselScrollTo() post update, since the nested carousel
+      // may not yet be actual rendered/created.
+      this._carouselOptions = this._getOptions();
     }
   }
 
@@ -257,8 +258,8 @@ export class FrigateCardThumbnailCarousel extends LitElement {
     return html`<frigate-card-carousel
       ${ref(this._refCarousel)}
       direction=${ifDefined(this._getDirection())}
-      .carouselOptions=${this._getOptions()}
-      .carouselPlugins=${this._getPlugins()}
+      .carouselOptions=${this._carouselOptions}
+      .carouselPlugins=${this._carouselPlugins}
     >
       ${slides}
     </frigate-card-carousel>`;

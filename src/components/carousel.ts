@@ -87,7 +87,7 @@ export class FrigateCardCarousel extends LitElement {
     const destroyProperties = [
       'direction',
       'carouselOptions',
-      'carouselOptions',
+      'carouselPlugins',
     ] as const;
     if (destroyProperties.some((prop) => changedProps.has(prop))) {
       this._destroyCarousel();
@@ -255,10 +255,19 @@ export class FrigateCardCarousel extends LitElement {
         this._scrolling = true;
       });
       this._carousel.on('settle', () => {
+        // Reinitialize the carousel if a request to reinitialize was made
+        // during scrolling (instead the request is handled after the scrolling
+        // has settled).
         this._scrolling = false;
         if (this._reInitOnSettle) {
           this._reInitOnSettle = false;
           this._carouselReInitInPlace();
+        }
+      })
+      this._carousel.on('settle', () => {
+        const selected = this.getCarouselSelected();
+        if (selected) {
+          dispatchFrigateCardEvent<CarouselSelect>(this, 'carousel:settle', selected);
         }
       });
     }

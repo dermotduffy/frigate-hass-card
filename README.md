@@ -566,6 +566,11 @@ timeline:
 
 ### Dimensions Options
 
+These options control the aspect-ratio of the entire card to make placement in
+Home Assistant dashboards more stable. Aspect ratio configuration applies once
+to the entire card (including the menu, thumbnails, etc), not just to displayed
+media.
+
 All configuration is under:
 
 ```yaml

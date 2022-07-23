@@ -608,8 +608,9 @@ export class FrigateCardViewerCarousel extends LitElement {
     const neighbors = this._getMediaNeighbors();
     const [prev, next] = [neighbors?.previous, neighbors?.next];
 
-    // guard() is used below to avoid reseting the carousel unless the
-    // options/plugins actually change.
+    // Notes on the below:
+    // - guard() is used to avoid reseting the carousel unless the
+    //   options/plugins actually change.
 
     return html` <frigate-card-media-carousel
       ${ref(this._refMediaCarousel)}
