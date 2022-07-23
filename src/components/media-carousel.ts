@@ -1,5 +1,3 @@
-// TODO: Use the auto-height plugin instead of adaptive height
-
 import { EmblaOptionsType } from 'embla-carousel';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
@@ -110,7 +108,8 @@ export class FrigateCardMediaCarousel extends LitElement {
 
   protected _boundAutoPlayHandler = this.autoPlay.bind(this);
   protected _boundAutoUnmuteHandler = this.autoUnmute.bind(this);
-  protected _boundAdaptiveHeightHandler = this._adaptHeightToMedia.bind(this);
+  protected _boundAdaptContainerHeightToSlide =
+    this._adaptContainerHeightToSlide.bind(this);
   protected _boundTitleHandler = this._titleHandler.bind(this);
 
   // This carousel may be resized by Lovelace resizes, window resizes,
@@ -128,7 +127,9 @@ export class FrigateCardMediaCarousel extends LitElement {
     // resize or fullscreen change) and changes in the selected slide itself
     // (e.g. changing from a progress indicator to a loaded media).
     this._resizeObserver = new ResizeObserver(this._reInitAndAdjustHeight.bind(this));
-    this._slideResizeObserver = new ResizeObserver(this._reInitAndAdjustHeight.bind(this));
+    this._slideResizeObserver = new ResizeObserver(
+      this._reInitAndAdjustHeight.bind(this),
+    );
     this._intersectionObserver = new IntersectionObserver(
       this._intersectionHandler.bind(this),
     );
@@ -234,7 +235,10 @@ export class FrigateCardMediaCarousel extends LitElement {
 
     this.addEventListener('frigate-card:media-show', this._boundAutoPlayHandler);
     this.addEventListener('frigate-card:media-show', this._boundAutoUnmuteHandler);
-    this.addEventListener('frigate-card:media-show', this._boundAdaptiveHeightHandler);
+    this.addEventListener(
+      'frigate-card:media-show',
+      this._boundAdaptContainerHeightToSlide,
+    );
     this.addEventListener('frigate-card:media-show', this._boundTitleHandler);
     this._resizeObserver.observe(this);
     this._intersectionObserver.observe(this);
@@ -248,7 +252,7 @@ export class FrigateCardMediaCarousel extends LitElement {
     this.removeEventListener('frigate-card:media-show', this._boundAutoUnmuteHandler);
     this.removeEventListener(
       'frigate-card:media-show',
-      this._boundAdaptiveHeightHandler,
+      this._boundAdaptContainerHeightToSlide,
     );
     this.removeEventListener('frigate-card:media-show', this._boundTitleHandler);
     this._resizeObserver.disconnect();
@@ -262,7 +266,7 @@ export class FrigateCardMediaCarousel extends LitElement {
    */
   protected _reInitAndAdjustHeight(): void {
     this.frigateCardCarousel()?.carouselReInitWhenSafe();
-    this._adaptHeightToMedia();
+    this._adaptContainerHeightToSlide();
   }
 
   /**
@@ -294,7 +298,7 @@ export class FrigateCardMediaCarousel extends LitElement {
    * This component does not use the stock Embla auto-height plugin as it
    * resizes the container on selection rather than media load.
    */
-  protected _adaptHeightToMedia(): void {
+  protected _adaptContainerHeightToSlide(): void {
     const adaptCarouselHeight = (): void => {
       const selected = this.frigateCardCarousel()?.getCarouselSelected();
       if (selected) {
