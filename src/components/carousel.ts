@@ -122,12 +122,13 @@ export class FrigateCardCarousel extends LitElement {
    */
   public getCarouselSelected(): CarouselSelect | null {
     const index = this._carousel?.selectedScrollSnap();
-    const element = index !== undefined ? (this._carousel?.slideNodes()[index] ?? null) : null;
+    const element =
+      index !== undefined ? this._carousel?.slideNodes()[index] ?? null : null;
     if (index !== undefined && element) {
       return {
         index: index,
         element: element,
-      }
+      };
     }
     return null;
   }
@@ -150,10 +151,11 @@ export class FrigateCardCarousel extends LitElement {
    * ReInit the carousel.
    */
   protected _carouselReInit(options?: EmblaOptionsType): void {
+    // Allow the browser a moment to paint components that are inflight, to
+    // ensure accurate measurements are taken during the carousel
+    // reinitialization.
     window.requestAnimationFrame(() => {
-      // Safari appears to not loop the carousel unless the options are passed
-      // back in during re-initialization.
-      this._carousel?.reInit({ ...this.carouselOptions, ...options });
+      this._carousel?.reInit({ ...options });
     });
   }
   /**
@@ -162,13 +164,9 @@ export class FrigateCardCarousel extends LitElement {
   protected _carouselReInitInPlaceInternal(): void {
     const selected = this.getCarouselSelected();
 
-    // Safari appears to not loop the carousel unless the options are passed
-    // back in during re-initialization.
-    const options = {
-      ...this.carouselOptions,
+    this._carouselReInit({
       ...(selected && { startIndex: selected.index }),
-    };
-    this._carouselReInit(options);
+    });
   }
 
   /**
@@ -263,7 +261,7 @@ export class FrigateCardCarousel extends LitElement {
           this._reInitOnSettle = false;
           this._carouselReInitInPlace();
         }
-      })
+      });
       this._carousel.on('settle', () => {
         const selected = this.getCarouselSelected();
         if (selected) {
