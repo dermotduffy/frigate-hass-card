@@ -86,7 +86,6 @@ export class FrigateCardImage extends LitElement {
    * Ensure there is a cached value before an update.
    * @param _changedProps The changed properties
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('imageConfig')) {
       if (this._cachedValueController) {

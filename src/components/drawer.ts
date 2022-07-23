@@ -117,7 +117,7 @@ export class FrigateCardDrawer extends LitElement {
               </div>
             `
           : ''}
-        <slot ${ref(this._refSlot)} @slotchange=${this._slotChanged}></slot>
+        <slot ${ref(this._refSlot)} @slotchange=${this._slotChanged.bind(this)}></slot>
       </side-drawer>
     `;
   }

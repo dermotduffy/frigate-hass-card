@@ -35,7 +35,7 @@ export class FrigateCardSurround extends LitElement {
   @property({ attribute: false })
   public view?: Readonly<View>;
 
-  @property({ attribute: false })
+  @property({ attribute: false, hasChanged: contentsChanged })
   public config?: ThumbnailsControlConfig;
 
   @property({ attribute: false })
@@ -58,7 +58,7 @@ export class FrigateCardSurround extends LitElement {
    */
   protected async _fetchMedia(): Promise<void> {
     if (
-      !fetch ||
+      !this.fetch ||
       !this.hass ||
       !this.view ||
       !this.config ||
@@ -148,7 +148,7 @@ export class FrigateCardSurround extends LitElement {
             .selected=${this.view.childIndex}
             .cameras=${this.cameras}
             @frigate-card:change-view=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
-            @frigate-card:carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
+            @frigate-card:thumbnail-carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
               // Send the view change from the source of the tap event, so the
               // view change will be caught by the handler above (to close the drawer).
               this.view

@@ -3,6 +3,10 @@
   overflow: hidden;
 }
 
+img {
+  display: block;
+}
+
 img,
 ha-icon {
   border-radius: var(--ha-card-border-radius, 4px);

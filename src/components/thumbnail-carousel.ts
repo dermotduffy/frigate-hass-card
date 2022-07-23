@@ -1,17 +1,31 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
-import { CSSResultGroup, html, PropertyValues, TemplateResult, unsafeCSS } from 'lit';
+import {
+  CSSResultGroup,
+  html,
+  LitElement,
+  PropertyValues,
+  TemplateResult,
+  unsafeCSS,
+} from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
-import type { CameraConfig, FrigateBrowseMediaSource, ThumbnailsControlConfig } from '../types.js';
+import {
+  CameraConfig,
+  FrigateBrowseMediaSource,
+  ThumbnailsControlConfig,
+} from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
 import { isTrueMedia } from '../utils/ha/browse-media';
 import { View } from '../view.js';
 import { FrigateCardCarousel } from './carousel.js';
 import './thumbnail.js';
+import './carousel.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 
 export interface ThumbnailCarouselTap {
   slideIndex: number;
@@ -20,7 +34,7 @@ export interface ThumbnailCarouselTap {
 }
 
 @customElement('frigate-card-thumbnail-carousel')
-export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
+export class FrigateCardThumbnailCarousel extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
@@ -35,10 +49,27 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   @property({ attribute: false })
   public cameras?: Map<string, CameraConfig>;
 
+  protected _refCarousel: Ref<FrigateCardCarousel> = createRef();
+
   // Thumbnail carousels can expand (e.g. drawer-based carousels after the main
   // media loads). The carousel must be re-initialized in these cases, or the
   // dynamic sizing fails (and users can scroll past the end of the carousel).
   protected _resizeObserver: ResizeObserver;
+
+  @property({ attribute: false })
+  public config?: ThumbnailsControlConfig;
+
+  @state()
+  protected _selected: number | null = null;
+
+  protected _carouselOptions?: EmblaOptionsType;
+  protected _carouselPlugins: EmblaPluginType[] = [
+    WheelGesturesPlugin({
+      // Whether the carousel is vertical or horizontal, interpret y-axis wheel
+      // gestures as scrolling for the carousel.
+      forceWheelAxis: 'y',
+    }),
+  ];
 
   constructor() {
     super();
@@ -48,36 +79,17 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   @property({ attribute: false })
   set selected(selected: number | null) {
     this._selected = selected;
-    if (selected !== null) {
-      // If there is a selection, 'dim' all the other slides.
-      this.style.setProperty('--frigate-card-carousel-thumbnail-opacity', '0.4');
-    }
+    this.style.setProperty(
+      '--frigate-card-carousel-thumbnail-opacity',
+      selected === null ? '1.0' : '0.4',
+    );
   }
-
-  @property({ attribute: false })
-  set config(config: ThumbnailsControlConfig) {
-    this.direction = ['left', 'right'].includes(config.mode) ? 'vertical' : 'horizontal';
-    this._config = config;
-  }
-
-  @state()
-  protected _config?: ThumbnailsControlConfig;
-
-  @state()
-  protected _selected?: number | null;
 
   /**
    * Handle gallery resize.
    */
   protected _resizeHandler(): void {
-    if (this._carousel) {
-      this._carousel.reInit();
-      // Reinit will cause the scroll position to reset, so re-scroll to the
-      // correct location.
-      if (this._selected !== undefined && this._selected !== null) {
-        this.carouselScrollTo(this._selected);
-      }
-    }
+    this._refCarousel.value?.carouselReInitWhenSafe();
   }
 
   /**
@@ -107,23 +119,6 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
       startIndex: this._selected ?? 0,
     };
   }
-
-  /**
-   * Get the Embla plugins to use.
-   * @returns A list of EmblaOptionsTypes.
-   */
-  protected _getPlugins(): EmblaPluginType[] {
-    return [
-      ...super._getPlugins(),
-      // Only enable wheel plugin if there is more than one camera.
-      WheelGesturesPlugin({
-        // Whether the carousel is vertical or horizontal, interpret y-axis wheel
-        // gestures as scrolling for the carousel.
-        forceWheelAxis: 'y',
-      }),
-    ];
-  }
-
   /**
    * Get slides to include in the render.
    * @returns The slides to include in the render.
@@ -148,13 +143,24 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
    * @param changedProps The changed properties
    */
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('_config')) {
-      if (this._config?.size) {
-        this.style.setProperty(
-          '--frigate-card-thumbnail-size',
-          `${this._config.size}px`,
-        );
+    if (changedProps.has('config')) {
+      if (this.config?.size) {
+        this.style.setProperty('--frigate-card-thumbnail-size', `${this.config.size}px`);
       }
+      const direction = this._getDirection();
+      if (direction) {
+        this.setAttribute('direction', direction);
+      } else {
+        this.removeAttribute('direction');
+      }
+    }
+
+    if (!this._carouselOptions) {
+      // Want to set the initial carousel options just before the first render
+      // in order to get the startIndex correct in the options. It is not safe
+      // to rely on carouselScrollTo() post update, since the nested carousel
+      // may not yet be actual rendered/created.
+      this._carouselOptions = this._getOptions();
     }
   }
 
@@ -163,17 +169,12 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
    * @param changedProperties The properties that were changed in this render.
    */
   updated(changedProperties: PropertyValues): void {
-    if (changedProperties.has('target')) {
-      this._destroyCarousel();
-    }
     super.updated(changedProperties);
 
     if (changedProperties.has('_selected')) {
       this.updateComplete.then(() => {
-        if (this._carousel) {
-          if (this._selected !== undefined && this._selected !== null) {
-            this.carouselScrollTo(this._selected);
-          }
+        if (this._selected !== null) {
+          this._refCarousel.value?.carouselScrollTo(this._selected);
         }
       });
     }
@@ -209,17 +210,21 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
       .target=${parent}
       .childIndex=${childIndex}
       .clientID=${cameraConfig?.frigate.client_id}
-      ?details=${this._config?.show_details}
-      ?show_favorite_control=${this._config?.show_favorite_control}
-      ?show_timeline_control=${this._config?.show_timeline_control}
+      ?details=${this.config?.show_details}
+      ?show_favorite_control=${this.config?.show_favorite_control}
+      ?show_timeline_control=${this.config?.show_timeline_control}
       class="${classMap(classes)}"
       @click=${(ev) => {
-        if (this._carousel && this._carousel.clickAllowed()) {
-          dispatchFrigateCardEvent<ThumbnailCarouselTap>(this, 'carousel:tap', {
-            slideIndex: slideIndex,
-            target: parent,
-            childIndex: childIndex,
-          });
+        if (this._refCarousel.value?.carouselClickAllowed()) {
+          dispatchFrigateCardEvent<ThumbnailCarouselTap>(
+            this,
+            'thumbnail-carousel:tap',
+            {
+              slideIndex: slideIndex,
+              target: parent,
+              childIndex: childIndex,
+            },
+          );
         }
         stopEventFromActivatingCardWideActions(ev);
       }}
@@ -228,32 +233,48 @@ export class FrigateCardThumbnailCarousel extends FrigateCardCarousel {
   }
 
   /**
+   * Get the direction of the thumbnail carousel.
+   * @returns `vertical`, `horizontal` or undefined.
+   */
+  protected _getDirection(): 'horizontal' | 'vertical' | undefined {
+    if (this.config?.mode === 'left' || this.config?.mode === 'right') {
+      return 'vertical';
+    } else if (this.config?.mode === 'above' || this.config?.mode === 'below') {
+      return 'horizontal';
+    }
+    return undefined;
+  }
+
+  /**
    * Render the element.
    * @returns A template to display to the user.
    */
   protected render(): TemplateResult | void {
     const slides = this._getSlides();
-    if (!slides.length || !this._config || this._config.mode == 'none') {
+    if (!slides.length || !this.config || this.config.mode === 'none') {
       return;
     }
 
-    return html` <div class="embla">
-      <div class="embla__viewport">
-        <div class="embla__container">${slides}</div>
-      </div>
-    </div>`;
+    return html`<frigate-card-carousel
+      ${ref(this._refCarousel)}
+      direction=${ifDefined(this._getDirection())}
+      .carouselOptions=${this._carouselOptions}
+      .carouselPlugins=${this._carouselPlugins}
+    >
+      ${slides}
+    </frigate-card-carousel>`;
   }
 
   /**
    * Get element styles.
    */
   static get styles(): CSSResultGroup {
-    return [super.styles, unsafeCSS(thumbnailCarouselStyle)];
+    return unsafeCSS(thumbnailCarouselStyle);
   }
 }
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card-thumbnail-carousel": FrigateCardThumbnailCarousel
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card-thumbnail-carousel': FrigateCardThumbnailCarousel;
+  }
 }

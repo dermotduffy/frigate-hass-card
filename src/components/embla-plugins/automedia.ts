@@ -1,4 +1,6 @@
-import { EmblaCarouselType, EmblaPluginType } from 'embla-carousel';
+import EmblaCarousel, { EmblaCarouselType } from 'embla-carousel';
+import { CreateOptionsType } from 'embla-carousel/components/Options.js';
+import { CreatePluginType } from 'embla-carousel/components/Plugins.js';
 import {
   AutoMuteCondition,
   AutoPauseCondition,
@@ -7,8 +9,8 @@ import {
   FrigateCardMediaPlayer,
 } from '../../types.js';
 
-export type AutoMediaPluginOptionsType = {
-  playerSelector: string;
+type OptionsType = CreateOptionsType<{
+  playerSelector?: string;
 
   // Note: Neither play nor unmute will activate on selection. The caller is
   // expected to call the `play()` or `unmute()` methods manually when the media
@@ -18,16 +20,30 @@ export type AutoMediaPluginOptionsType = {
   autoUnmuteCondition?: AutoUnmuteCondition;
   autoPauseCondition?: AutoPauseCondition;
   autoMuteCondition?: AutoMuteCondition;
+}>;
+
+const defaultOptions: OptionsType = {
+  active: true,
+  breakpoints: {},
 };
 
-export const defaultOptions: Partial<AutoMediaPluginOptionsType> = {};
+export type AutoMediaOptionsType = Partial<OptionsType>
 
-export type AutoMediaPluginType = EmblaPluginType<AutoMediaPluginOptionsType> & {
-  play: () => void;
-  pause: () => void;
-  mute: () => void;
-  unmute: () => void;
-};
+export type AutoMediaType = CreatePluginType<
+  {
+    play: () => void;
+    pause: () => void;
+    mute: () => void;
+    unmute: () => void;
+  },
+  AutoMediaOptionsType
+>;
+
+declare module 'embla-carousel/components/Plugins' {
+  interface EmblaPluginsType {
+    autoMedia?: AutoMediaType
+  }
+}
 
 /**
  * An Embla plugin to take automated actions on media (e.g. pause, unmute, etc).
@@ -35,10 +51,15 @@ export type AutoMediaPluginType = EmblaPluginType<AutoMediaPluginOptionsType> & 
  * @returns
  */
 export function AutoMediaPlugin(
-  userOptions?: AutoMediaPluginOptionsType,
-): AutoMediaPluginType {
-  const options = Object.assign({}, defaultOptions, userOptions);
+  userOptions?: AutoMediaOptionsType,
+): AutoMediaType {
+  const optionsHandler = EmblaCarousel.optionsHandler();
+  const optionsBase = optionsHandler.merge(
+    defaultOptions,
+    AutoMediaPlugin.globalOptions,
+  );
 
+  let options: AutoMediaType['options'];
   let carousel: EmblaCarouselType;
   let slides: HTMLElement[];
 
@@ -47,6 +68,7 @@ export function AutoMediaPlugin(
    */
   function init(embla: EmblaCarouselType): void {
     carousel = embla;
+    options = optionsHandler.atMedia(self.options);
     slides = carousel.slideNodes();
 
     // Frigate card media autoplays when the media loads not necessarily when the
@@ -96,7 +118,7 @@ export function AutoMediaPlugin(
    * Handle document visibility changes.
    */
   function visibilityHandler(): void {
-    if (document.visibilityState == 'hidden') {
+    if (document.visibilityState === 'hidden') {
       if (
         options.autoPauseCondition &&
         ['all', 'hidden'].includes(options.autoPauseCondition)
@@ -109,7 +131,7 @@ export function AutoMediaPlugin(
       ) {
         muteAll();
       }
-    } else if (document.visibilityState == 'visible') {
+    } else if (document.visibilityState === 'visible') {
       if (
         options.autoPlayCondition &&
         ['all', 'visible'].includes(options.autoPlayCondition)
@@ -131,7 +153,9 @@ export function AutoMediaPlugin(
    * @returns A FrigateCardMediaPlayer object or `null`.
    */
   function getPlayer(slide: HTMLElement | undefined): FrigateCardMediaPlayer | null {
-    return slide?.querySelector(options.playerSelector) as FrigateCardMediaPlayer | null;
+    return options.playerSelector
+      ? (slide?.querySelector(options.playerSelector) as FrigateCardMediaPlayer | null)
+      : null;
   }
 
   /**
@@ -194,9 +218,9 @@ export function AutoMediaPlugin(
     }
   }
 
-  const self: AutoMediaPluginType = {
-    name: 'AutoMediaPlugin',
-    options,
+  const self: AutoMediaType = {
+    name: 'autoMedia',
+    options: optionsHandler.merge(optionsBase, userOptions),
     init,
     destroy,
     play,
@@ -206,3 +230,5 @@ export function AutoMediaPlugin(
   };
   return self;
 }
+
+AutoMediaPlugin.globalOptions = <AutoMediaOptionsType | undefined>undefined;
