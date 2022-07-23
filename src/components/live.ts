@@ -235,7 +235,7 @@ export class FrigateCardLiveCarousel extends LitElement {
         this.view?.camera != oldView.camera
       ) {
         const slide: number | undefined = this._cameraToSlide[this.view.camera];
-        if (slide !== undefined && slide !== frigateCardCarousel.carouselSelected()) {
+        if (slide !== undefined && slide !== frigateCardCarousel.getCarouselSelected()?.index) {
           frigateCardCarousel.carouselScrollTo(slide);
         }
       }
@@ -310,8 +310,6 @@ export class FrigateCardLiveCarousel extends LitElement {
         lazyUnloadCallback: (index, slide) =>
           this._lazyloadOrUnloadSlide('unload', index, slide),
       }),
-
-      // TODO: AutoMediaPlugin could be moved to MediaCarousel.
       AutoMediaPlugin({
         playerSelector: 'frigate-card-live-provider',
         ...(this.liveConfig?.auto_play && {
@@ -371,7 +369,8 @@ export class FrigateCardLiveCarousel extends LitElement {
   protected _setViewHandler(): void {
     const selectedCameraIndex = this._refMediaCarousel.value
       ?.frigateCardCarousel()
-      ?.carouselSelected();
+      ?.getCarouselSelected()
+      ?.index;
     if (selectedCameraIndex === undefined || !this.view || !this.cameras) {
       return;
     }

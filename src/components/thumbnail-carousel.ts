@@ -80,13 +80,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
    * Handle gallery resize.
    */
   protected _resizeHandler(): void {
-    this._refCarousel.value?.carouselReInit();
-
-    // Reinit will cause the scroll position to reset, so re-scroll to the
-    // correct location.
-    if (this._selected !== null) {
-      this._refCarousel.value?.carouselScrollTo(this._selected);
-    }
+    this._refCarousel.value?.carouselReInitWhenSafe();
   }
 
   /**

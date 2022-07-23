@@ -206,7 +206,10 @@ export class FrigateCardViewerCarousel extends LitElement {
           this.view.childIndex != oldView.childIndex
         ) {
           const slide = this._getSlideForChild(this.view.childIndex);
-          if (slide !== null && slide !== frigateCardCarousel.carouselSelected()) {
+          if (
+            slide !== null &&
+            slide !== frigateCardCarousel.getCarouselSelected()?.index
+          ) {
             // If the media target is the same as already loaded, but isn't of
             // the selected slide, scroll to that slide.
             frigateCardCarousel.carouselScrollTo(slide);
@@ -265,7 +268,7 @@ export class FrigateCardViewerCarousel extends LitElement {
     if (!slide) {
       slide = this._refMediaCarousel.value
         ?.frigateCardCarousel()
-        ?.carouselSelectedElement();
+        ?.getCarouselSelected()?.element;
     }
 
     return (
@@ -462,7 +465,7 @@ export class FrigateCardViewerCarousel extends LitElement {
     // Update the childIndex in the view.
     const selected = this._refMediaCarousel.value
       .frigateCardCarousel()
-      ?.carouselSelected();
+      ?.getCarouselSelected()?.index;
     if (selected !== undefined) {
       const childIndex = this._slideToChild[selected];
       if (childIndex !== undefined) {

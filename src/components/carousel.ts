@@ -15,12 +15,14 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { throttle } from 'lodash-es';
 import carouselStyle from '../scss/carousel.scss';
 import { TransitionEffect } from '../types';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
 
 export interface CarouselSelect {
   index: number;
+  element: HTMLElement;
 }
 
 export type EmblaCarouselPlugins = CreatePluginType<
@@ -45,6 +47,18 @@ export class FrigateCardCarousel extends LitElement {
   protected _refSlot: Ref<HTMLSlotElement> = createRef();
 
   protected _carousel?: EmblaCarouselType;
+
+  // Whether the carousel is actively scrolling.
+  protected _scrolling = false;
+
+  // Whether to reinit the carousel when it settles.
+  protected _reInitOnSettle = false;
+
+  protected _carouselReInitInPlace = throttle(
+    this._carouselReInitInPlaceInternal.bind(this),
+    500,
+    { trailing: true },
+  );
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -104,20 +118,16 @@ export class FrigateCardCarousel extends LitElement {
 
   /**
    * Get the selected slide.
-   * @returns The slide index or undefined if the carousel is not loaded.
+   * @returns A CarouselSelect object (index & element).
    */
-  public carouselSelected(): number | undefined {
-    return this._carousel?.selectedScrollSnap();
-  }
-
-  /**
-   * Get the selected node.
-   * @returns The slide index or undefined if the carousel is not loaded.
-   */
-  public carouselSelectedElement(): HTMLElement | null {
-    const selected = this._carousel?.selectedScrollSnap();
-    if (selected !== undefined) {
-      return this._carousel?.slideNodes()[selected] ?? null;
+  public getCarouselSelected(): CarouselSelect | null {
+    const index = this._carousel?.selectedScrollSnap();
+    const element = index !== undefined ? (this._carousel?.slideNodes()[index] ?? null) : null;
+    if (index !== undefined && element) {
+      return {
+        index: index,
+        element: element,
+      }
     }
     return null;
   }
@@ -139,10 +149,38 @@ export class FrigateCardCarousel extends LitElement {
   /**
    * ReInit the carousel.
    */
-  public carouselReInit(): void {
+  protected _carouselReInit(options?: EmblaOptionsType): void {
+    window.requestAnimationFrame(() => {
+      // Safari appears to not loop the carousel unless the options are passed
+      // back in during re-initialization.
+      this._carousel?.reInit({ ...this.carouselOptions, ...options });
+    });
+  }
+  /**
+   * ReInit the carousel but stay on the current slide.
+   */
+  protected _carouselReInitInPlaceInternal(): void {
+    const selected = this.getCarouselSelected();
+
     // Safari appears to not loop the carousel unless the options are passed
     // back in during re-initialization.
-    return this._carousel?.reInit(this.carouselOptions);
+    const options = {
+      ...this.carouselOptions,
+      ...(selected && { startIndex: selected.index }),
+    };
+    this._carouselReInit(options);
+  }
+
+  /**
+   * ReInit the carousel when it is safe to do so without disturbing the
+   * appearance (i.e. cutting off a scroll in progress).
+   */
+  public carouselReInitWhenSafe(): void {
+    if (this._scrolling) {
+      this._reInitOnSettle = true;
+    } else {
+      this._carouselReInitInPlace();
+    }
   }
 
   /**
@@ -196,22 +234,32 @@ export class FrigateCardCarousel extends LitElement {
         nodes,
         {
           axis: this.direction == 'horizontal' ? 'x' : 'y',
+          speed: 20,
           ...this.carouselOptions,
         },
         this.carouselPlugins,
       );
       this._carousel.on('init', () => dispatchFrigateCardEvent(this, 'carousel:init'));
       this._carousel.on('select', () => {
-        const selected = this.carouselSelected();
-        if (selected !== undefined) {
-          dispatchFrigateCardEvent<CarouselSelect>(this, 'carousel:select', {
-            index: selected,
-          });
+        const selected = this.getCarouselSelected();
+        if (selected) {
+          dispatchFrigateCardEvent<CarouselSelect>(this, 'carousel:select', selected);
         }
 
         // Make sure every select causes a refresh to allow for re-paint of the
         // next/previous controls.
         this.requestUpdate();
+      });
+
+      this._carousel.on('scroll', () => {
+        this._scrolling = true;
+      });
+      this._carousel.on('settle', () => {
+        this._scrolling = false;
+        if (this._reInitOnSettle) {
+          this._reInitOnSettle = false;
+          this._carouselReInitInPlace();
+        }
       });
     }
   }
