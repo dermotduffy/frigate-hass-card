@@ -35,7 +35,7 @@ export class FrigateCardSurround extends LitElement {
   @property({ attribute: false })
   public view?: Readonly<View>;
 
-  @property({ attribute: false })
+  @property({ attribute: false, hasChanged: contentsChanged })
   public config?: ThumbnailsControlConfig;
 
   @property({ attribute: false })
