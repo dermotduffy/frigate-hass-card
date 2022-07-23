@@ -5,7 +5,7 @@
   "workspaceFolder": "${localWorkspaceFolder}",
   "shutdownAction": "stopCompose",
   "portsAttributes": {
-    "1000": {
+    "10001": {
       "label": "Rollup",
       "onAutoForward": "silent"
     },
@@ -18,7 +18,7 @@
       "onAutoForward": "silent"
     }
   },
-  "forwardPorts": [1000, "hass:8123", "frigate:5000"],
+  "forwardPorts": [10001, "hass:8123", "frigate:5000"],
   "initializeCommand": ".devcontainer/initialize.sh",
   "postCreateCommand": "yarn install",
   "extensions": [
