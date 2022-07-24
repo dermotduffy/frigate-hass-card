@@ -331,22 +331,23 @@ export class FrigateCard extends LitElement {
       for (const action of actions) {
         // All frigate card actions will have action of 'fire-dom-event' and
         // styling only applies to those.
-        if (!action || action.action !== 'fire-dom-event') {
+        if (!action || action.action !== 'fire-dom-event' || !('frigate_card_action' in action)) {
           continue;
         }
+        const frigateCardAction = action as FrigateCardCustomAction;
         if (
           FRIGATE_CARD_VIEWS_USER_SPECIFIED.some(
             (view) =>
-              view === action?.frigate_card_action &&
-              this._view?.is(action.frigate_card_action),
+              view === frigateCardAction.frigate_card_action &&
+              this._view?.is(frigateCardAction.frigate_card_action),
           ) ||
-          (action?.frigate_card_action === 'default' &&
+          (frigateCardAction.frigate_card_action === 'default' &&
             this._view?.is(this._getConfig().view.default)) ||
-          (action?.frigate_card_action === 'fullscreen' &&
+          (frigateCardAction.frigate_card_action === 'fullscreen' &&
             screenfull.isEnabled &&
             screenfull.isFullscreen) ||
-          (action?.frigate_card_action === 'camera_select' &&
-            this._view?.camera === action.camera)
+          (frigateCardAction.frigate_card_action === 'camera_select' &&
+            this._view?.camera === frigateCardAction.camera)
         ) {
           return this._getEmphasizedStyle();
         }
@@ -1304,10 +1305,6 @@ export class FrigateCard extends LitElement {
    * @param ev The action requested.
    */
   protected _cardActionHandler(ev: CustomEvent<ActionType>): void {
-    // These interactions should only be handled by the card, as nothing
-    // upstream has the user-provided configuration.
-    ev.stopPropagation();
-
     const frigateCardAction = convertActionToFrigateCardCustomAction(ev.detail);
     if (!frigateCardAction) {
       return;
