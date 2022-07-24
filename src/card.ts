@@ -1756,8 +1756,7 @@ export class FrigateCard extends LitElement {
     const cardStyle = {
       'aspect-ratio': this._getAspectRatioStyle(),
     };
-    const mainClasses = {
-      main: true,
+    const cardClasses = {
       triggered:
         !!this._isTriggered() && this._getConfig().view.scan.show_trigger_status,
     };
@@ -1776,6 +1775,7 @@ export class FrigateCard extends LitElement {
         hasHold: frigateCardHasAction(actions.hold_action),
         hasDoubleClick: frigateCardHasAction(actions.double_tap_action),
       })}
+      class="${classMap(cardClasses)}"
       style="${styleMap(cardStyle)}"
       @action=${(ev: CustomEvent) => this._actionHandler(ev, actions)}
       @ll-custom=${this._cardActionHandler.bind(this)}
@@ -1787,7 +1787,7 @@ export class FrigateCard extends LitElement {
       ${renderMenuAbove ? this._renderMenu() : ''}
       <div 
         ${ref(this._refMain)}
-        class="${classMap(mainClasses)}"
+        class="main"
       >
         ${this._cameras === undefined && !this._message
           ? until(
