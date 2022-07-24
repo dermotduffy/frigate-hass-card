@@ -1541,6 +1541,15 @@ elements:
       top: 300px
     tap_action:
       action: none
+  - type: icon
+    icon: mdi:numeric-7-box
+    title: Custom action
+    style:
+      left: 200px
+      top: 350px
+    tap_action:
+      action: fire-dom-event
+      key: value
 ```
 </details>
 
