@@ -167,7 +167,7 @@ const customActionSchema = schemaForType<
 >()(
   actionBaseSchema.extend({
     action: z.literal('fire-dom-event'),
-  }),
+  }).passthrough(),
 );
 const noActionSchema = schemaForType<
   NoActionConfig & ExtendedConfirmationRestrictionConfig
@@ -236,6 +236,7 @@ const actionSchema = z.union([
   urlActionSchema,
   moreInfoActionSchema,
   noActionSchema,
+  customActionSchema,
   frigateCardCustomActionSchema,
 ]);
 export type ActionType = z.infer<typeof actionSchema>;

@@ -2787,7 +2787,7 @@ This could be for any number of reasons. Chromecast devices can be quite picky o
 
 **NOTE**: In particular, for Frigate to support casting of clips, the default ffmpeg settings for Frigate must be modified, i.e. Frigate does not encode clips in a Chromecast compatible format out of the box (specifically: audio must be enabled in the AAC codec, whether your camera supports audio or not). See the [Frigate Home Assistant documentation](https://docs.frigate.video/integrations/home-assistant) or [this issue](https://github.com/blakeblackshear/frigate/issues/3175) for more.
 
-### Javascript console shows `[Violation] Added non-passive event listener to a scroll-blocking 'touchstart' event`
+### Javascript console shows `[Violation] Added non-passive event listener to a scroll-blocking [...] event`
 
 This card heavily uses [Embla Carousel](https://www.embla-carousel.com/) -- a light-weight performant carousel library -- to show media. This carousel library uses non-passive event-listeners in a considered and performant way, but one that still causes occasional and unhelpful Chrome warnings. These warnings can be safely ignored in this instance, and cannot easily be fixed in the underlying library as it heavily relies on non-passive event listeners ([see this bug comment for explanation](https://github.com/davidjerleke/embla-carousel/issues/62#issuecomment-628569509)).
 
