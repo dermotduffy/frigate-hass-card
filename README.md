@@ -2650,6 +2650,14 @@ view:
 
 This card can be (Chrome) casted to a device (such as a [Nest Hub](https://store.google.com/us/product/nest_hub_2nd_gen)) through the use of [Home Assistant Cast](https://cast.home-assistant.io/).
 
+#### Instructions to Cast
+
+* Visit [Home Assistant Cast](https://cast.home-assistant.io/) and click `Start Casting`
+* Enter your Home Assistant URL, and authorize your account.
+* Click `Start Casting` and choose the device to cast to from the browser menu.
+* Choose which view/dashboard to display.
+* If successful, the view will be cast to the device.
+
 #### Limitations
 
 Casting Home Assistant dashboards comes with a number of caveats:
@@ -2748,6 +2756,16 @@ media_viewer:
   draggable: false
 ```
 
+### `webrtc_card` unloads in the background
+
+[AlexxIT's WebRTC Card](https://github.com/AlexxIT/WebRTC) which is embedded by the `webrtc_card` live provider internally disconnects the stream when the browser tab is changed (regardless of any Frigate card configuration settings, e.g. `lazy_unload`). To allow the stream to continue running in the background, pass the `background` argument to the `webrtc_card` live provider as shown below. This effectively allows the Frigate card to decide whether or not to unload the stream.
+
+```yaml
+live:
+  webrtc_card:
+    background: true
+```
+
 ### `double_tap` does not work for [card-wide actions](#actions) on Android
 
 The Android video player swallows `double_tap` interactions in order to
@@ -2768,6 +2786,10 @@ Try resetting the app frontend cache:
 This could be for any number of reasons. Chromecast devices can be quite picky on network, DNS and certificate issues, as well as audio and video codecs. Check your Home Assistant log as there may be more information in there.
 
 **NOTE**: In particular, for Frigate to support casting of clips, the default ffmpeg settings for Frigate must be modified, i.e. Frigate does not encode clips in a Chromecast compatible format out of the box (specifically: audio must be enabled in the AAC codec, whether your camera supports audio or not). See the [Frigate Home Assistant documentation](https://docs.frigate.video/integrations/home-assistant) or [this issue](https://github.com/blakeblackshear/frigate/issues/3175) for more.
+
+### Javascript console shows `[Violation] Added non-passive event listener to a scroll-blocking 'touchstart' event`
+
+This card heavily uses [Embla Carousel](https://www.embla-carousel.com/) -- a light-weight performant carousel library -- to show media. This carousel library uses non-passive event-listeners in a considered and performant way, but one that still causes occasional and unhelpful Chrome warnings. These warnings can be safely ignored in this instance, and cannot easily be fixed in the underlying library as it heavily relies on non-passive event listeners ([see this bug comment for explanation](https://github.com/davidjerleke/embla-carousel/issues/62#issuecomment-628569509)).
 
 ## Development
 
