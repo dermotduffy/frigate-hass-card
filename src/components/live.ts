@@ -14,10 +14,12 @@ import {
 import { customElement, property, state } from 'lit/decorators.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { guard } from 'lit/directives/guard.js';
+import { keyed } from 'lit/directives/keyed.js';
 import { until } from 'lit/directives/until.js';
 import { ConditionState, getOverriddenConfig } from '../card-condition.js';
 import {
   dispatchFrigateCardErrorEvent,
+  dispatchMessageEvent,
   renderProgressIndicator,
 } from '../components/message.js';
 import { localize } from '../localize/localize.js';
@@ -37,6 +39,7 @@ import {
   LiveOverrides,
   LiveProvider,
   MediaShowInfo,
+  Message,
   TransitionEffect,
   WebRTCCardConfig,
 } from '../types.js';
@@ -89,33 +92,66 @@ export class FrigateCardLive extends LitElement {
   @property({ attribute: false, hasChanged: contentsChanged })
   public liveOverrides?: LiveOverrides;
 
-  set preloaded(preloaded: boolean) {
-    this._preloaded = preloaded;
+  // Whether or not the live view is currently in the background (i.e. preloaded
+  // but not visible)
+  @state()
+  protected _inBackground?: boolean = true;
 
-    if (!preloaded && this._savedMediaShowInfo) {
+  // Intersection handler is used to detect when the live view flips between
+  // foreground and background (in preload mode).
+  protected _intersectionObserver: IntersectionObserver;
+
+  // MediaShowInfo object and message from the underlying live object. In the
+  // case of pre-loading these may be propagated upwards later.
+  protected _savedMediaShowInfo: MediaShowInfo | null = null;
+  protected _messageReceivedPostRender = false;
+  protected _renderKey = 0;
+
+  constructor() {
+    super();
+    this._intersectionObserver = new IntersectionObserver(
+      this._intersectionHandler.bind(this),
+    );
+  }
+
+  /**
+   * Called when the live view intersects with the viewport.
+   * @param entries The IntersectionObserverEntry entries (should be only 1).
+   */
+  protected _intersectionHandler(entries: IntersectionObserverEntry[]): void {
+    this._inBackground = entries.every((entry) => !entry.isIntersecting);
+
+    if (
+      !this._inBackground &&
+      !this._messageReceivedPostRender &&
+      this._savedMediaShowInfo
+    ) {
+      // If this isn't being rendered in the background, the last render did not
+      // generate a message and there's a saved MediaInfo, dispatch it upwards.
       dispatchExistingMediaShowInfoAsEvent(this, this._savedMediaShowInfo);
+    }
+
+    // Trigger a re-render which may be necessary if the prior render resulted
+    // in a message.
+    if (this._messageReceivedPostRender && !this._inBackground) {
+      this.requestUpdate();
     }
   }
 
-  // Whether or not the live view is currently being preloaded.
-  @state()
-  protected _preloaded?: boolean;
-
-  // MediaShowInfo object from the underlying live object. In the case of
-  // pre-loading it may be propagated upwards later.
-  protected _savedMediaShowInfo?: MediaShowInfo;
+  /**
+   * Component connected callback.
+   */
+  connectedCallback(): void {
+    this._intersectionObserver.observe(this);
+    super.connectedCallback();
+  }
 
   /**
-   * Handler for media show events that special cases preloaded live views.
-   * @param e The media show event.
+   * Component disconnected callback.
    */
-  protected _mediaShowHandler(e: CustomEvent<MediaShowInfo>): void {
-    this._savedMediaShowInfo = e.detail;
-    if (this._preloaded) {
-      // If live is being pre-loaded, don't let the event propagate upwards yet
-      // as the media is not really being shown.
-      e.stopPropagation();
-    }
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this._intersectionObserver.disconnect();
   }
 
   /**
@@ -148,37 +184,55 @@ export class FrigateCardLive extends LitElement {
     //   independently override the liveConfig to reflect the camera in the
     //   carousel (not necessarily the selected camera).
     // - Fetching of thumbnails is disabled as long as live view is the
-    //   background (preloaded) rather than foreground (not preloaded).
-    return html` <frigate-card-surround-thumbnails
-      .hass=${this.hass}
-      .view=${this.view}
-      .config=${config.controls.thumbnails}
-      .browseMediaParams=${browseMediaParams ?? undefined}
-      .cameras=${this.cameras}
-      ?fetch=${!this._preloaded}
-    >
-      <frigate-card-live-carousel
+    //   background.
+    // - Various events are captured to prevent them propagating upwards if the
+    //   card is in the background.
+    // - The entire returned template is keyed to allow for the whole template
+    //   to be re-rendered in certain circumstances (specifically: if a message
+    //   is received when the card is in the background).
+    const result = html`${keyed(
+      this._renderKey,
+      html`<frigate-card-surround-thumbnails
         .hass=${this.hass}
         .view=${this.view}
+        .config=${config.controls.thumbnails}
+        .browseMediaParams=${browseMediaParams ?? undefined}
         .cameras=${this.cameras}
-        .liveConfig=${this.liveConfig}
-        .preloaded=${this._preloaded}
-        .conditionState=${this.conditionState}
-        .liveOverrides=${this.liveOverrides}
-        @frigate-card:media-show=${this._mediaShowHandler}
-        @frigate-card:change-view=${(ev: CustomEvent) => {
-          if (this._preloaded) {
-            // Don't allow change-view events to propagate upwards if the card
-            // is only preloaded rather than being live displayed. These events
-            // could be triggered if the camera is switched and the carousel
-            // moves to focus on that camera -- as the card isn't actually being
-            // displayed, do not allow the view to actually be updated.
+        ?fetch=${!this._inBackground}
+        @frigate-card:message=${(ev: CustomEvent<Message>) => {
+          this._renderKey++;
+          this._messageReceivedPostRender = true;
+          if (this._inBackground) {
+            ev.stopPropagation();
+          }
+        }}
+        @frigate-card:media-show=${(ev: CustomEvent<MediaShowInfo>) => {
+          this._savedMediaShowInfo = ev.detail;
+          if (this._inBackground) {
+            ev.stopPropagation();
+          }
+        }}
+        @frigate-card:change-view=${(ev: CustomEvent<View>) => {
+          if (this._inBackground) {
             ev.stopPropagation();
           }
         }}
       >
-      </frigate-card-live-carousel>
-    </frigate-card-surround-thumbnails>`;
+        <frigate-card-live-carousel
+          .hass=${this.hass}
+          .view=${this.view}
+          .cameras=${this.cameras}
+          .liveConfig=${this.liveConfig}
+          .inBackground=${this._inBackground}
+          .conditionState=${this.conditionState}
+          .liveOverrides=${this.liveOverrides}
+        >
+        </frigate-card-live-carousel>
+      </frigate-card-surround-thumbnails>`,
+    )}`;
+
+    this._messageReceivedPostRender = false;
+    return result;
   }
 
   /**
@@ -207,7 +261,7 @@ export class FrigateCardLiveCarousel extends LitElement {
   public liveOverrides?: LiveOverrides;
 
   @property({ attribute: false })
-  public preloaded?: boolean;
+  public inBackground?: boolean;
 
   @property({ attribute: false })
   public conditionState?: ConditionState;
@@ -235,7 +289,10 @@ export class FrigateCardLiveCarousel extends LitElement {
         this.view?.camera != oldView.camera
       ) {
         const slide: number | undefined = this._cameraToSlide[this.view.camera];
-        if (slide !== undefined && slide !== frigateCardCarousel.getCarouselSelected()?.index) {
+        if (
+          slide !== undefined &&
+          slide !== frigateCardCarousel.getCarouselSelected()?.index
+        ) {
           frigateCardCarousel.carouselScrollTo(slide);
         }
       }
@@ -244,11 +301,11 @@ export class FrigateCardLiveCarousel extends LitElement {
     if (
       frigateCardMediaCarousel &&
       frigateCardCarousel &&
-      changedProperties.has('preloaded')
+      changedProperties.has('inBackground')
     ) {
-      // If this has changed to preloaded (i.e. is now loaded but in the
-      // background) take the appropriate play/pause/mute/unmute actions.
-      if (this.preloaded) {
+      // If this has changed to be in the background (i.e. preloaded but not
+      // visible) take the appropriate play/pause/mute/unmute actions.
+      if (this.inBackground) {
         frigateCardMediaCarousel.autoPause();
         frigateCardMediaCarousel.autoMute();
       } else {
@@ -369,8 +426,7 @@ export class FrigateCardLiveCarousel extends LitElement {
   protected _setViewHandler(): void {
     const selectedCameraIndex = this._refMediaCarousel.value
       ?.frigateCardCarousel()
-      ?.getCarouselSelected()
-      ?.index;
+      ?.getCarouselSelected()?.index;
     if (selectedCameraIndex === undefined || !this.view || !this.cameras) {
       return;
     }
@@ -514,7 +570,7 @@ export class FrigateCardLiveCarousel extends LitElement {
         .titlePopupConfig=${config.controls.title}
         transitionEffect=${this._getTransitionEffect()}
         @frigate-card:carousel:settle=${this._setViewHandler.bind(this)}
-      > 
+      >
         <frigate-card-next-previous-control
           slot="previous"
           .direction=${'previous'}
@@ -735,10 +791,23 @@ export class FrigateCardLiveFrigate extends LitElement {
     }
 
     const stateObj = this.hass.states[this.cameraConfig.camera_entity];
-    if (!stateObj || stateObj.state === 'unavailable') {
-      return dispatchErrorMessageEvent(this, localize('error.live_camera_unavailable'), {
+    if (!stateObj) {
+      return dispatchErrorMessageEvent(this, localize('error.live_camera_not_found'), {
         context: this.cameraConfig,
       });
+    }
+
+    if (stateObj.state === 'unavailable') {
+      // Don't treat state unavailability as an error per se.
+      return dispatchMessageEvent(
+        this,
+        localize('error.live_camera_unavailable'),
+        'info',
+        {
+          icon: 'mdi:connection',
+          context: getCameraTitle(this.hass, this.cameraConfig),
+        },
+      );
     }
 
     return html` <frigate-card-ha-camera-stream
