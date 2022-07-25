@@ -9,6 +9,7 @@ import {
   unsafeCSS
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { live } from 'lit/directives/live.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { CachedValueController } from '../cached-value-controller.js';
 import defaultImage from '../images/frigate-bird-in-sky.jpg';
@@ -216,11 +217,13 @@ export class FrigateCardImage extends LitElement {
 
   protected render(): TemplateResult | void {
     const src = this._cachedValueController?.value;
+    // Note the use of live() below to ensure the update will restore the image
+    // src if it's been changed via _forceSafeImage().
     return src
       ? html` <img
           ${ref(this._refImage)}
-          src=${src}
-          @load=${(ev) => {
+          src=${live(src)}
+          @load=${(ev: Event) => {
             dispatchMediaShowEvent(this, ev);
           }}
           @error=${() => {
