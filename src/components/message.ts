@@ -34,9 +34,13 @@ export class FrigateCardMessage extends LitElement {
         </div>
         <div class="contents">
           <span class="${classMap(classes)}">
-            ${this.message ? html`${this.message}` : ''}
+            ${this.message
+              ? html`${this.message}${this.context && typeof this.context === 'string'
+                  ? ': ' + this.context
+                  : ''}`
+              : ''}
           </span>
-          ${this.context
+          ${this.context && typeof this.context !== 'string'
             ? html`<pre>${JSON.stringify(this.context, null, 2)}</pre>`
             : ''}
         </div>

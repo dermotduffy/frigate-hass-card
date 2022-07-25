@@ -1904,7 +1904,6 @@ export class FrigateCard extends LitElement {
                 .conditionState=${this._conditionState}
                 .liveOverrides=${getOverridesByKey(this._getConfig().overrides, 'live')}
                 .cameras=${this._cameras}
-                .preloaded=${this._getConfig().live.preload && !this._view.is('live')}
                 class="${classMap(liveClasses)}"
               >
               </frigate-card-live>
