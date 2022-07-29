@@ -44,6 +44,12 @@ export class FrigateCardCarousel extends LitElement {
   @property({ attribute: true })
   public transitionEffect?: TransitionEffect;
 
+  // An override to the startIndex, used to preserve the current carousel
+  // position after the carousel is destroyed (so it can be restored if
+  // recreated).
+  // See: https://github.com/dermotduffy/frigate-hass-card/issues/775
+  protected _savedStartIndex: number | null = null;
+
   protected _refSlot: Ref<HTMLSlotElement> = createRef();
 
   protected _carousel?: EmblaCarouselType;
@@ -75,7 +81,7 @@ export class FrigateCardCarousel extends LitElement {
     // Destroy the carousel when the component is disconnected, which forces the
     // plugins (which may have registered event handlers) to also be destroyed.
     // The carousel will automatically reconstruct if the component is re-rendered.
-    this._destroyCarousel();
+    this._destroyCarousel({ savePosition: true });
     super.disconnectedCallback();
   }
 
@@ -90,7 +96,7 @@ export class FrigateCardCarousel extends LitElement {
       'carouselPlugins',
     ] as const;
     if (destroyProperties.some((prop) => changedProps.has(prop))) {
-      this._destroyCarousel();
+      this._destroyCarousel({ savePosition: true });
     }
   }
 
@@ -196,16 +202,18 @@ export class FrigateCardCarousel extends LitElement {
     super.updated(changedProperties);
 
     if (!this._carousel) {
-      this.updateComplete.then(() => {
-        // Re-check for the carousel to prevent a double init.
-        if (!this._carousel) {
-          this._initCarousel();
-        }
-      });
+      this._initCarousel();
     }
   }
 
-  protected _destroyCarousel(): void {
+  /**
+   * Destroy the carousel.
+   * @param options If `savePosition` is set the existing carousel position
+   * will be saved so it can be restored if the carousel is recreated.
+   */
+  protected _destroyCarousel(options?: { savePosition: boolean }): void {
+    this._savedStartIndex =
+      (options?.savePosition ? this._carousel?.selectedScrollSnap() : null) ?? null;
     if (this._carousel) {
       this._carousel.destroy();
     }
@@ -234,6 +242,7 @@ export class FrigateCardCarousel extends LitElement {
           axis: this.direction == 'horizontal' ? 'x' : 'y',
           speed: 20,
           ...this.carouselOptions,
+          ...(this._savedStartIndex && { startIndex: this._savedStartIndex }),
         },
         this.carouselPlugins,
       );
@@ -276,8 +285,11 @@ export class FrigateCardCarousel extends LitElement {
    */
   protected _slotChanged(): void {
     // Cannot just re-init, because the slide elements themselves may have
-    // changed, and only a carousel init can pass in new (slotted) children.
-    this._destroyCarousel();
+    // changed, and only a carousel init can pass in new (slotted) children. If
+    // the slides themselves change, any position the user has set is assumed to
+    // be abandoned and so the startIndex is reset to whatever the carousel was
+    // originally configured with.
+    this._destroyCarousel({ savePosition: false });
     this.requestUpdate();
   }
 

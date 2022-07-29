@@ -284,9 +284,8 @@ export class FrigateCardLiveCarousel extends LitElement {
       const oldView = changedProperties.get('view') as View | undefined;
       if (
         frigateCardCarousel &&
-        oldView &&
         this.view?.camera &&
-        this.view?.camera != oldView.camera
+        (!oldView || this.view?.camera !== oldView.camera)
       ) {
         const slide: number | undefined = this._cameraToSlide[this.view.camera];
         if (
