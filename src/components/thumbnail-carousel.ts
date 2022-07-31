@@ -1,4 +1,3 @@
-import { HomeAssistant } from 'custom-card-helpers';
 import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
 import {
@@ -15,6 +14,7 @@ import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
 import {
   CameraConfig,
+  ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
   ThumbnailsControlConfig,
 } from '../types.js';
@@ -36,7 +36,7 @@ export interface ThumbnailCarouselTap {
 @customElement('frigate-card-thumbnail-carousel')
 export class FrigateCardThumbnailCarousel extends LitElement {
   @property({ attribute: false })
-  public hass?: HomeAssistant;
+  public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
   public view?: Readonly<View>;
