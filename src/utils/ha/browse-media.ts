@@ -5,7 +5,7 @@ import {
   differenceInSeconds,
   fromUnixTime,
 } from 'date-fns';
-import { homeAssistantWSRequest } from '.';
+import { homeAssistantSignPath, homeAssistantWSRequest } from '.';
 import {
   dispatchErrorMessageEvent,
   dispatchFrigateCardErrorEvent,
@@ -16,6 +16,7 @@ import {
   BrowseMediaQueryParameters,
   BrowseRecordingQueryParameters,
   CameraConfig,
+  ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
   frigateBrowseMediaSourceSchema,
   FrigateCardError,
@@ -79,14 +80,28 @@ export const getFirstTrueMediaChildIndex = (
  * @returns A FrigateBrowseMediaSource object or null on malformed.
  */
 export const browseMedia = async (
-  hass: HomeAssistant,
+  hass: ExtendedHomeAssistant,
   media_content_id: string,
 ): Promise<FrigateBrowseMediaSource> => {
   const request = {
     type: 'media_source/browse_media',
     media_content_id: media_content_id,
   };
-  return await homeAssistantWSRequest(hass, frigateBrowseMediaSourceSchema, request);
+  const root = await homeAssistantWSRequest<FrigateBrowseMediaSource>(hass, frigateBrowseMediaSourceSchema, request);
+  const signPromises: Promise<void>[] = [];
+  const signSource = async (src: FrigateBrowseMediaSource) => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    src.thumbnail = await homeAssistantSignPath(hass, src.thumbnail!);
+  }
+  const signSourceandTraverse = async (parent: FrigateBrowseMediaSource) => {
+    if (parent.thumbnail) {
+      signPromises.push(signSource(parent));
+    }
+    parent.children?.forEach((child) => signSourceandTraverse(child));
+  }
+  signSourceandTraverse(root);
+  await Promise.all(signPromises);
+  return root;
 };
 
 /**
@@ -96,7 +111,7 @@ export const browseMedia = async (
  * @returns A FrigateBrowseMediaSource object or null on malformed.
  */
 export const browseMediaQuery = async (
-  hass: HomeAssistant,
+  hass: ExtendedHomeAssistant,
   params: BrowseMediaQueryParameters,
 ): Promise<FrigateBrowseMediaSource> => {
   return browseMedia(
@@ -127,7 +142,7 @@ export const browseMediaQuery = async (
  * @returns A map of FrigateBrowseMediaSource object or null on malformed.
  */
 export const multipleBrowseMediaQuery = async (
-  hass: HomeAssistant,
+  hass: ExtendedHomeAssistant,
   params: BrowseMediaQueryParameters | BrowseMediaQueryParameters[],
 ): Promise<Map<BrowseMediaQueryParameters, FrigateBrowseMediaSource>> => {
   params = Array.isArray(params) ? params : [params];
@@ -147,7 +162,7 @@ export const multipleBrowseMediaQuery = async (
  * @returns A single FrigateBrowseMediaSource object or null on malformed.
  */
 export const multipleBrowseMediaQueryMerged = async (
-  hass: HomeAssistant,
+  hass: ExtendedHomeAssistant,
   params: BrowseMediaQueryParameters | BrowseMediaQueryParameters[],
 ): Promise<FrigateBrowseMediaSource> => {
   return mergeFrigateBrowseMediaSources(await multipleBrowseMediaQuery(hass, params));
@@ -338,7 +353,7 @@ export const getFullDependentBrowseMediaQueryParametersOrDispatchError = (
  */
 export const fetchLatestMediaAndDispatchViewChange = async (
   element: HTMLElement,
-  hass: HomeAssistant,
+  hass: ExtendedHomeAssistant,
   view: Readonly<View>,
   browseMediaQueryParameters: BrowseMediaQueryParameters | BrowseMediaQueryParameters[],
 ): Promise<void> => {
@@ -381,7 +396,7 @@ export const fetchLatestMediaAndDispatchViewChange = async (
  */
 export const fetchChildMediaAndDispatchViewChange = async (
   element: HTMLElement,
-  hass: HomeAssistant,
+  hass: ExtendedHomeAssistant,
   view: Readonly<View>,
   child: Readonly<FrigateBrowseMediaSource>,
 ): Promise<void> => {

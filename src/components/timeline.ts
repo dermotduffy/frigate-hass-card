@@ -1,4 +1,3 @@
-import { HomeAssistant } from 'custom-card-helpers';
 import {
   add,
   differenceInSeconds,
@@ -381,7 +380,7 @@ class TimelineDataManager {
    */
   protected async _fetchEvents(
     element: HTMLElement,
-    hass: HomeAssistant,
+    hass: ExtendedHomeAssistant,
     cameras: Map<string, CameraConfig>,
     media: TimelineMediaType,
     start: Date,
@@ -735,7 +734,7 @@ export class FrigateCardTimelineCore extends LitElement {
     properties: TimelineEventPropertiesResult,
   ): void {
     if (properties.event && this._pointerHeld) {
-      // An event will have been set when it's a human changes the range, 
+      // An event will have been set when it's a human changes the range,
       this._ignoreClick = true;
     }
   }
