@@ -40,8 +40,6 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
     (): [boolean, string | undefined] => [!!this.hass, this.thumbnail],
   );
 
-  public count = 0;
-
   /**
    * Sign a thumbnail URL if necessary. May throw.
    * @param param0 A list of lit-task dependencies.
