@@ -49,7 +49,6 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
     boolean,
     string | undefined,
   ]): Promise<string | null> {
-    this.count++;
     if (!haveHASS || !this.hass || !thumbnail) {
       return null;
     }
