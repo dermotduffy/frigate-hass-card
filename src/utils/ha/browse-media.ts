@@ -89,17 +89,21 @@ export const browseMedia = async (
   };
   const root = await homeAssistantWSRequest<FrigateBrowseMediaSource>(hass, frigateBrowseMediaSourceSchema, request);
   const signPromises: Promise<void>[] = [];
-  const signSource = async (src: FrigateBrowseMediaSource) => {
+  const embedThumbnail = async (src: FrigateBrowseMediaSource) => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    src.thumbnail = await homeAssistantSignPath(hass, src.thumbnail!);
+    src.thumbnail = await (homeAssistantSignPath(hass, src.thumbnail!).then(async (signedURL) => {
+      return signedURL ? fetch(signedURL)
+        .then((response) => response.blob())
+        .then((blob) => { return URL.createObjectURL(blob); }) : ""
+    }));
   }
-  const signSourceandTraverse = async (parent: FrigateBrowseMediaSource) => {
+  const embedThumbnailandTraverse = async (parent: FrigateBrowseMediaSource) => {
     if (parent.thumbnail) {
-      signPromises.push(signSource(parent));
+      signPromises.push(embedThumbnail(parent));
     }
-    parent.children?.forEach((child) => signSourceandTraverse(child));
+    parent.children?.forEach((child) => embedThumbnailandTraverse(child));
   }
-  signSourceandTraverse(root);
+  embedThumbnailandTraverse(root);
   await Promise.all(signPromises);
   return root;
 };
