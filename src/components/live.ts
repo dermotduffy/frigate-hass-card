@@ -139,6 +139,19 @@ export class FrigateCardLive extends LitElement {
   }
 
   /**
+   * Determine whether the element should be updated.
+   * @param _changedProps The changed properties if any.
+   * @returns `true` if the element should be updated.
+   */  
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected shouldUpdate(_changedProps: PropertyValues): boolean {
+    // Don't process updates if it's in the background and a message was
+    // received (otherwise an error message thrown by the background live
+    // component may continually be re-spammed hitting performance).
+    return !this._inBackground || !this._messageReceivedPostRender;
+  }
+
+  /**
    * Component connected callback.
    */
   connectedCallback(): void {
