@@ -1286,6 +1286,7 @@ export interface FrigateEvent {
   top_score: number;
   zones: string[];
   retain_indefinitely?: boolean;
+  signed_thumbnail_url?: string;
 }
 
 export interface FrigateRecording {
@@ -1335,6 +1336,7 @@ export const frigateBrowseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.
             top_score: z.number(),
             zones: z.string().array(),
             retain_indefinitely: z.boolean().optional(),
+            signed_thumbnail_url: z.string().optional(),
           }),
         })
         .optional(),
