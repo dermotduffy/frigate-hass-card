@@ -96,10 +96,7 @@ interface CameraRecordings {
   summary: RecordingSummary;
 }
 
-// An event used to fetch the HASS object. See "Special note" below.
-class HASSRequestEvent extends Event {
-  public hass?: ExtendedHomeAssistant;
-}
+const isHoverableDevice = window.matchMedia('(hover: hover) and (pointer: fine)');
 
 /**
  * A manager to maintain/fetch timeline events.
@@ -119,6 +116,17 @@ class TimelineDataManager {
   // The maximum allowable age of fetch data (will not fetch more frequently
   // than this).
   protected _maxAgeSeconds: number = TIMELINE_DATA_MANAGER_MAX_AGE_SECONDS;
+
+  protected _contentCallback?: (source: FrigateBrowseMediaSource) => string;
+  protected _tooltipCallback?: (source: FrigateBrowseMediaSource) => string;
+
+  constructor(params?: {
+    contentCallback?: (source: FrigateBrowseMediaSource) => string;
+    tooltipCallback?: (source: FrigateBrowseMediaSource) => string;
+  }) {
+    this._contentCallback = params?.contentCallback;
+    this._tooltipCallback = params?.tooltipCallback;
+  }
 
   // Get the last event fetch date.
   get lastFetchDate(): Date | null {
@@ -170,7 +178,8 @@ class TimelineDataManager {
           item = {
             id: event.id,
             group: camera,
-            content: '',
+            content: this._contentCallback?.(child) ?? '',
+            title: this._tooltipCallback?.(child) ?? '',
             start: event.start_time * 1000,
             event: event,
           };
@@ -414,62 +423,6 @@ class TimelineDataManager {
   }
 }
 
-/**
- * A simgple thumbnail wrapper class for use in the timeline where LIT data
- * bindings are not available.
- */
-@customElement('frigate-card-timeline-thumbnail')
-export class FrigateCardTimelineThumbnail extends LitElement {
-  @property({ attribute: true })
-  public thumbnail?: string;
-
-  @property({ attribute: true, type: Boolean })
-  public details = false;
-
-  @property({ attribute: true })
-  public event?: string;
-
-  @property({ attribute: true })
-  public label?: string;
-
-  /**
-   * Master render method.
-   * @returns A rendered template.
-   */
-  protected render(): TemplateResult | void {
-    // Don't display tooltips on touch devices, they just get in the way of
-    // the drawer.
-    if (!this.thumbnail || !this.event) {
-      return html``;
-    }
-
-    /* Special note on what's going on here:
-     *
-     * This component does not have access to HASS, as there's no way to pass it
-     * in via the string-based tooltip that timeline supports. Instead dispatch
-     * an event to request HASS which the timeline adds to the event object
-     * before execution continues.
-     */
-    const hassRequest = new HASSRequestEvent(`frigate-card:timeline:hass-request`, {
-      composed: true,
-      bubbles: true,
-    });
-    this.dispatchEvent(hassRequest);
-    if (!hassRequest.hass) {
-      return html``;
-    }
-
-    return html` <frigate-card-thumbnail
-      .hass=${hassRequest.hass}
-      .event=${JSON.parse(this.event)}
-      .label=${this.label}
-      .thumbnail=${this.thumbnail}
-      ?details=${this.details}
-    >
-    </frigate-card-thumbnail>`;
-  }
-}
-
 @customElement('frigate-card-timeline')
 export class FrigateCardTimeline extends LitElement {
   @property({ attribute: false })
@@ -531,8 +484,9 @@ export class FrigateCardTimelineCore extends LitElement {
   @property({ attribute: false })
   public timelineConfig?: TimelineConfig;
 
-  protected _data = new TimelineDataManager();
-
+  protected _data = new TimelineDataManager({
+    tooltipCallback: this._getTooltip.bind(this),
+  });
   protected _refTimeline: Ref<HTMLElement> = createRef();
   protected _timeline?: Timeline;
 
@@ -541,18 +495,13 @@ export class FrigateCardTimelineCore extends LitElement {
   protected _pointerHeld = false;
   protected _ignoreClick = false;
 
-  protected static _isHoverableDevice = window.matchMedia(
-    '(hover: hover) and (pointer: fine)',
-  ).matches;
-
   /**
    * Get a tooltip for a given timeline event.
    * @param source The FrigateBrowseMediaSource in question.
    * @returns The tooltip as a string to render.
    */
-  protected _getTooltip(item: TimelineItem): string {
-    const source = (<FrigateCardTimelineItem>item).source;
-    if (!FrigateCardTimelineCore._isHoverableDevice || !source) {
+  protected _getTooltip(source: FrigateBrowseMediaSource): string {
+    if (!isHoverableDevice.matches) {
       // Don't display tooltips on touch devices, they just get in the way of
       // the drawer.
       return '';
@@ -569,13 +518,13 @@ export class FrigateCardTimelineCore extends LitElement {
     // Note that changes to attributes here must be mirrored in the xss
     // whitelist in `_getOptions()` .
     return `
-      <frigate-card-timeline-thumbnail
-        thumbnail="${source.thumbnail}"
+      <frigate-card-thumbnail
         ${detailsAttr}
-        ${eventAttr}
+        thumbnail="${source.thumbnail}"
         label="${source.title}"
+        ${eventAttr}
       >
-      </frigate-card-timeline-thumbnail>`;
+      </frigate-card-thumbnail>`;
   }
 
   /**
@@ -595,9 +544,6 @@ export class FrigateCardTimelineCore extends LitElement {
     };
 
     return html`<div
-      @frigate-card:timeline:hass-request=${(request: HASSRequestEvent) => {
-        request.hass = this.hass;
-      }}
       class="${classMap(timelineClasses)}"
       ${ref(this._refTimeline)}
     ></div>`;
@@ -789,7 +735,7 @@ export class FrigateCardTimelineCore extends LitElement {
     properties: TimelineEventPropertiesResult,
   ): void {
     if (properties.event && this._pointerHeld) {
-      // An event will have been set when it's a human changes the range.
+      // An event will have been set when it's a human changes the range, 
       this._ignoreClick = true;
     }
   }
@@ -1106,18 +1052,12 @@ export class FrigateCardTimelineCore extends LitElement {
       tooltip: {
         followMouse: true,
         overflowMethod: 'cap',
-        template: this._getTooltip.bind(this),
       },
       xss: {
         disabled: false,
         filterOptions: {
           whiteList: {
-            'frigate-card-timeline-thumbnail': [
-              'details',
-              'thumbnail',
-              'label',
-              'event',
-            ],
+            'frigate-card-thumbnail': ['details', 'thumbnail', 'label', 'event'],
             div: ['title'],
             span: ['style'],
           },
@@ -1289,9 +1229,14 @@ export class FrigateCardTimelineCore extends LitElement {
         // Don't show an empty timeline, show a message instead.
         const groups = this._getGroups();
         if (!groups.length) {
-          dispatchMessageEvent(this, localize('error.timeline_no_cameras'), 'info', {
-            icon: 'mdi:chart-gantt',
-          });
+          dispatchMessageEvent(
+            this,
+            localize('error.timeline_no_cameras'),
+            'info',
+            {
+              icon: 'mdi:chart-gantt',
+            }
+          );
           return;
         }
 
@@ -1312,10 +1257,10 @@ export class FrigateCardTimelineCore extends LitElement {
         this._timeline.on('mouseDown', () => {
           this._pointerHeld = true;
           this._ignoreClick = false;
-        });
+        })
         this._timeline.on('mouseUp', () => {
           this._pointerHeld = false;
-        });
+        })
       }
     }
 
@@ -1334,7 +1279,6 @@ export class FrigateCardTimelineCore extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-timeline-thumbnail': FrigateCardTimelineThumbnail;
     'frigate-card-timeline-core': FrigateCardTimelineCore;
     'frigate-card-timeline': FrigateCardTimeline;
   }

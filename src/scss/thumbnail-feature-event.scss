@@ -8,8 +8,7 @@ img {
 }
 
 img,
-ha-icon,
-frigate-card-progress-indicator {
+ha-icon {
   border-radius: var(--ha-card-border-radius, 4px);
 
   max-width: var(--frigate-card-thumbnail-size);

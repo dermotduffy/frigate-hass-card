@@ -1,4 +1,4 @@
-import { Task } from '@lit-labs/task/task.js';
+import { HomeAssistant } from 'custom-card-helpers';
 import { format, fromUnixTime } from 'date-fns';
 import { CSSResult, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
@@ -9,7 +9,6 @@ import thumbnailFeatureEventStyle from '../scss/thumbnail-feature-event.scss';
 import thumbnailFeatureRecordingStyle from '../scss/thumbnail-feature-recording.scss';
 import thumbnailStyle from '../scss/thumbnail.scss';
 import type {
-  ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
   FrigateEvent,
   FrigateRecording,
@@ -18,9 +17,7 @@ import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { errorToConsole, prettifyTitle } from '../utils/basic.js';
 import { retainEvent } from '../utils/frigate.js';
 import { getEventDurationString } from '../utils/ha/browse-media.js';
-import { homeAssistantSignPath } from '../utils/ha/index.js';
 import { View } from '../view.js';
-import { dispatchFrigateCardErrorEvent, renderProgressIndicator } from './message.js';
 
 // The minimum width of a thumbnail with details enabled.
 export const THUMBNAIL_DETAILS_WIDTH_MIN = 300;
@@ -30,48 +27,10 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
   @property({ attribute: false })
   public thumbnail?: string;
 
-  @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
-
-  protected _signThumbnailTask = new Task(
-    this,
-    this._signThumbnail.bind(this),
-    // Do not re-run the task if hass changes, unless it was previously undefined.
-    (): [boolean, string | undefined] => [!!this.hass, this.thumbnail],
-  );
-
-  /**
-   * Sign a thumbnail URL if necessary. May throw.
-   * @param param0 A list of lit-task dependencies.
-   * @returns A signed URL or null.
-   */
-  protected async _signThumbnail([haveHASS, thumbnail]: [
-    boolean,
-    string | undefined,
-  ]): Promise<string | null> {
-    if (!haveHASS || !this.hass || !thumbnail) {
-      return null;
-    }
-    if (this.thumbnail?.startsWith('data:')) {
-      return this.thumbnail;
-    }
-    return await homeAssistantSignPath(this.hass, thumbnail);
-  }
-
   protected render(): TemplateResult | void {
     return html`
       ${this.thumbnail
-        ? html` ${this._signThumbnailTask.render({
-            initial: () => renderProgressIndicator(),
-            pending: () => renderProgressIndicator(),
-            error: (e: unknown) => {
-              errorToConsole(e as Error);
-              dispatchFrigateCardErrorEvent(this, e as Error);
-            },
-            complete: (signedThumbnail: string | null) => {
-              return signedThumbnail ? html`<img src="${signedThumbnail}" />` : html``;
-            },
-          })}`
+        ? html`<img src="${this.thumbnail}" />`
         : html`<ha-icon
             icon="mdi:image-off"
             title=${localize('thumbnail.no_thumbnail')}
@@ -175,35 +134,35 @@ export class FrigateCardThumbnail extends LitElement {
   @property({ attribute: true, type: Boolean })
   public show_timeline_control = false;
 
-  // ======================
-  // Target-based interface
-  // ======================
+  // ============================
+  // Data-binding based interface
+  // ============================
+  @property({ attribute: false })
+  public view?: Readonly<View>;
+
   @property({ attribute: false })
   public target?: FrigateBrowseMediaSource | null;
 
   @property({ attribute: false })
   public childIndex?: number;
 
-  // ===================================================
-  // Raw interface (can override target-based interface)
-  // ===================================================
+  // =============================================================
+  // Overrides that can be used if data bindings are not available
+  // =============================================================
   @property({ attribute: true })
   public thumbnail?: string;
 
   @property({ attribute: true })
   public label?: string;
 
-  @property({ attribute: false })
-  public event?: FrigateEvent;
+  @property({ attribute: true })
+  public event?: string;
 
   // ================================
   // Optional parameters for controls
   // ================================
   @property({ attribute: false })
-  public view?: Readonly<View>;
-
-  @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public clientID?: string;
@@ -229,7 +188,7 @@ export class FrigateCardThumbnail extends LitElement {
 
     // Always give the overrides preference (if specified).
     if (this.event) {
-      event = this.event;
+      event = JSON.parse(this.event);
     }
     thumbnail = this.thumbnail ? this.thumbnail : thumbnail;
     label = this.label ? this.label : label;
@@ -247,7 +206,6 @@ export class FrigateCardThumbnail extends LitElement {
       ? html`<frigate-card-thumbnail-feature-event
           aria-label="${label ?? ''}"
           title="${label ?? ''}"
-          .hass=${this.hass}
           .thumbnail=${thumbnail ?? undefined}
           .label=${label ?? undefined}
         ></frigate-card-thumbnail-feature-event>`

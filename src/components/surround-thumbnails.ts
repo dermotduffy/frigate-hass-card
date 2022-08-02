@@ -1,3 +1,4 @@
+import { HomeAssistant } from 'custom-card-helpers';
 import {
   CSSResultGroup,
   html,
@@ -11,7 +12,6 @@ import surroundThumbnailsStyle from '../scss/surround.scss';
 import {
   BrowseMediaQueryParameters,
   CameraConfig,
-  ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
   FrigateCardError,
   FrigateCardView,
@@ -30,7 +30,7 @@ import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 @customElement('frigate-card-surround-thumbnails')
 export class FrigateCardSurround extends LitElement {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public view?: Readonly<View>;

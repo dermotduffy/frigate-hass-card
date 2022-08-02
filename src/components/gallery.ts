@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { HomeAssistant } from 'custom-card-helpers';
 import {
   css,
   CSSResultGroup,
@@ -12,7 +13,6 @@ import { customElement, property } from 'lit/decorators.js';
 import galleryStyle from '../scss/gallery.scss';
 import {
   CameraConfig,
-  ExtendedHomeAssistant,
   frigateCardConfigDefaults,
   GalleryConfig,
   THUMBNAIL_WIDTH_MAX,
@@ -31,7 +31,7 @@ import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
 @customElement('frigate-card-gallery')
 export class FrigateCardGallery extends LitElement {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public view?: Readonly<View>;
@@ -109,7 +109,7 @@ export class FrigateCardGallery extends LitElement {
 @customElement('frigate-card-gallery-core')
 export class FrigateCardGalleryCore extends LitElement {
   @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public view?: Readonly<View>;
