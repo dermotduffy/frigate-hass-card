@@ -1,0 +1,235 @@
+{
+  "common": {
+    "version": "Versione",
+    "frigate_card": "Frigate card",
+    "frigate_card_description": "Una card Lovelace per l'uso con Frigate",
+    "no_snapshots": "Nessuna istantanea",
+    "no_clips": "Nessun clip",
+    "no_snapshot": "Nessuna istantanea recente",
+    "no_clip": "Nessuna clip recente",
+    "live": "Live"
+  },
+  "config": {
+    "cameras": {
+      "camera_entity": "Entità della telecamera",
+      "camera_name": "Nome della telecamera frigate (autoidentificato dall'entità)",
+      "client_id": "ID client Frigate (per > 1 Frigate server)",
+      "id": "ID univoco per questa telecamera in questa carta",
+      "label": "Filtro etichetta/oggetto Frigate",
+      "frigate_url": "Frigate URL del server",
+      "title": "Titolo per questa telecamera (autoidentificato dall'entità)",
+      "icon": "Icona per questa telecamera (autoidentificato dall'entità)",
+      "live_provider": "Provider di visualizzazione dal vivo per questa telecamera",
+      "live_providers": {
+        "auto": "Automatica",
+        "ha": "Home Assistant (ovvero HLS, LL-HLS, WebRTC nativo)",
+        "frigate-jsmpeg": "Frigate JSMpeg",
+        "webrtc-card": "Scheda WebRTC (ovvero la scheda WebRTC di Alexxit)"
+      },
+      "webrtc_card": {
+        "entity": "Entità della telecamera della scheda WebRTC (non una telecamera Frigate)",
+        "url": "URL della telecamera della scheda WebRTC"
+      },
+      "zone": "Frigate zona"
+    },
+    "view": {
+      "camera_select": "Visualizza per le fotocamere appena selezionate",
+      "default": "Visualizzazione predefinita",
+      "views": {
+        "live": "Dal vivo",
+        "clip": "Clip più recente",
+        "clips": "Galleria delle clip",
+        "snapshot": "Snapshot più recente",
+        "snapshots": "Galleria delle istantanee",
+        "image": "Immagine statica",
+        "current": "Vista corrente"
+      },
+      "timeout_seconds": "Ripristina la vista predefinita x secondi dopo l'azione dell'utente (0 = mai)",
+      "update_cycle_camera": "Scorri le telecamere quando si aggiorna la visualizzazione predefinita",
+      "update_force": "Aggiornamenti della scheda forza (ignora l'interazione dell'utente)",
+      "update_seconds": "Aggiorna la visualizzazione predefinita ogni x secondi (0 = mai)"
+    },
+    "event_gallery": {
+      "min_columns": "Numero minimo di colonne"
+    },
+    "event_viewer": {
+      "auto_play": "Riproduci automaticamente i contenuti multimediali",
+      "auto_unmute": "Riattiva automaticamente i contenuti multimediali",
+      "draggable": "Il Visualizzatore eventi può essere trascinato oppure puoi scorrere",
+      "lazy_load": "Il supporto del Visualizzatore eventi viene caricato pigramente nel carosello",
+      "transition_effect": "Effetto di transizione del visualizzatore di eventi",
+      "transition_effects": {
+        "none": "Nessuna transizione",
+        "slide": "Transizione diapositiva"
+      },
+      "controls": {
+        "next_previous": {
+          "style": "Visualizzatore eventi successivo e stile di controllo precedente",
+          "size": "Dimensioni del controllo successivo e precedente del visualizzatore eventi (ad es. '48px')",
+          "styles": {
+            "thumbnails": "Miniature",
+            "chevrons": "Chevrons",
+            "none": "Nessuno"
+          }
+        },
+        "thumbnails": {
+          "mode": "Modalità miniature visualizzatore eventi",
+          "size": "Dimensioni delle miniature del visualizzatore eventi (ad es. '100px')",
+          "modes": {
+            "below": "Miniature sotto i media",
+            "above": "Miniature sopra i media",
+            "none": "Nessuna miniatura"
+          }
+        },
+        "title": {
+          "mode": "Modalità di visualizzazione del titolo multimediale del visualizzatore eventi",
+          "modes": {
+            "none": "Nessun display del titolo",
+            "popup-top-left": "Popup in alto a sinistra",
+            "popup-top-right": "Popup in alto a destra",
+            "popup-bottom-left": "Popup in basso a sinistra",
+            "popup-bottom-right": "Popup in basso a destra"
+          },
+          "duration_seconds": "Secondi per visualizzare il titolo popup (0 = per sempre)"
+        }
+      }
+    },
+    "live": {
+      "preload": "Precarica la visualizzazione live in background",
+      "draggable": "Il Visualizzatore eventi può essere trascinato oppure puoi scorrere",
+      "lazy_load": "Le telecamere live vengono caricate pigramente",
+      "lazy_unload": "Le telecamere live vengono scaricate pigramente",
+      "auto_unmute": "Riattiva automaticamente l'audio delle telecamere live",
+      "transition_effect": "Effetto di transizione della fotocamera dal vivo",
+      "controls": {
+        "next_previous": {
+          "style": "Stile di controllo successivo e precedente della vista dal vivo",
+          "size": "Dimensioni del controllo successivo e precedente della vista dal vivo (ad es. '48px')",
+          "styles": {
+            "chevrons": "chevrons",
+            "icons": "Icone",
+            "none": "Nessuno"
+          }
+        },
+        "thumbnails": {
+          "mode": "Modalità di miniatura dal vivo",
+          "size": "Dimensione delle miniature dal vivo (ad es. '100px')",
+          "media": "Se mostrare miniature di clip o istantanee",
+          "medias": {
+            "clips": "Miniature di clip",
+            "snapshots": "Miniature istantanee"
+          }
+        },
+        "title": {
+          "mode": "Modalità di visualizzazione del titolo multimediale dal vivo",
+          "duration_seconds": "Secondi per visualizzare il titolo popup (0 = per sempre)"
+        }
+      }
+    },
+    "image": {
+      "mode": "Modalità Visualizza immagine",
+      "modes": {
+        "screensaver": "Logo Frigate incorporato",
+        "url": "Immagine arbitraria specificata dall'URL",
+        "camera": "Istantanea della telecamera di Home Assistant dell'entità telecamera"
+      },
+      "url": "URL di immagine statica per la vista dell'immagine",
+      "refresh_seconds": "Numero di secondi dopo i quali aggiornare (0 = mai)"
+    },
+    "menu": {
+      "buttons": {
+        "frigate": "Frigate menu / Default view",
+        "frigate_ui": "Interfaccia utente Frigate",
+        "fullscreen": "A schermo intero",
+        "download": "Scarica Media eventi",
+        "cameras": "Seleziona la telecamera"
+      },
+      "mode": "Modalità menu",
+      "modes": {
+        "none": "No menu",
+        "hidden-top": "Top nascosto",
+        "hidden-left": "Nascosto a sinistra",
+        "hidden-bottom": "Fondo nascosto",
+        "hidden-right": "A destra nascosta",
+        "overlay-top": "Parte superiore sovrapposta",
+        "overlay-left": "Parte sinistra sovrapposta",
+        "overlay-bottom": "Parte inferiore sovrapposta",
+        "overlay-right": "Parte destra sovrapposta",
+        "hover-top": "Passa il mouse in alto",
+        "hover-left": "Passa il mouse a sinistra",
+        "hover-bottom": "Passa il mouse in basso",
+        "hover-right": "Passa il mouse a destra",
+        "above": "Sopra",
+        "below": "Sotto"
+      },
+      "button_size": "Dimensione del pulsante menu (ad es. '40px')"
+    },
+    "dimensions": {
+      "aspect_ratio": "Proporzioni predefinite (ad es. '16:9')",
+      "aspect_ratio_mode": "Modalità proporzioni",
+      "aspect_ratio_modes": {
+        "unconstrained": "Proporzioni non vincolate",
+        "dynamic": "Le proporzioni si adattano ai media",
+        "static": "Proporzioni statiche"
+      }
+    },
+    "overrides": {
+      "info": "Questa configurazione della scheda ha specificato manualmente le sostituzioni configurate che possono sostituire i valori mostrati nell'editor visivo, consultare l'editor di codice per visualizzare/modificare queste sostituzioni"
+    }
+  },
+  "editor": {
+    "cameras": "Telecamere",
+    "cameras_secondary": "Quali telecamere possono eseguire il rendering su questa scheda",
+    "view": "Visualizzazione",
+    "view_secondary": "Cosa dovrebbe mostrare la carta e come mostrarlo",
+    "menu": "Menù",
+    "menu_secondary": "Opzioni di aspetto e funzionalità del menu",
+    "live": "Live",
+    "live_secondary": "Opzioni di visualizzazione in tempo reale della telecamera",
+    "event_gallery": "Galleria degli eventi",
+    "event_gallery_secondary": "Opzioni della galleria di istantanee e clips",
+    "event_viewer": "Visualizzatore eventi",
+    "event_viewer_secondary": "Opzioni di visualizzatore di istantanee e clips",
+    "image": "Immagine",
+    "image_secondary": "Opzioni di visualizzazione dell'immagine statica",
+    "dimensions": "Dimensioni",
+    "dimensions_secondary": "Dimensioni e opzioni di forma",
+    "show_button": "Mostra pulsante",
+    "upgrade": "Aggiornamento",
+    "upgrade_available": "È disponibile un aggiornamento della configurazione della scheda automatica",
+    "delete": "Elimina",
+    "move_up": "Andare avanti",
+    "move_down": "Abbassati",
+    "add_new_camera": "Aggiungi nuova telecamera",
+    "camera": "Telecamera",
+    "overrides": "La sovrascrittura è attiva",
+    "overrides_secondary": "Rilevate sovrascritture della configurazione dinamica"
+  },
+  "error": {
+    "empty_response": "Ricevuta risposta vuota da Home Assistant per la richiesta",
+    "invalid_response": "Ricevuto risposta non valida da Home Assistant per la richiesta",
+    "invalid_keys": "Tasti non validi",
+    "unknown": "Errore sconosciuto",
+    "troubleshooting": "Controllare la risoluzione dei problemi",
+    "could_not_resolve": "Impossibile risolvere l'URL dei media",
+    "no_live_camera": "Il parametro fotocamera_enty deve essere impostato e valido per questo provider live",
+    "live_camera_unavailable": "La fotocamera configurata non è disponibile",
+    "image_load_error": "L'immagine non poteva essere caricata",
+    "invalid_configuration": "Configurazione non valida",
+    "invalid_configuration_no_hint": "Nessun suggerimento sulla posizione disponibile (tipo errato o mancante?)",
+    "upgrade_available": "È disponibile un aggiornamento di configurazione della scheda automatizzato, visitare l'editor di schede visive",
+    "webrtc_card_reported_error": "La scheda WebRTC ha riportato un errore",
+    "webrtc_card_waiting": "Aspettando che la scheda WebRTC si carichi ...",
+    "no_cameras": "Nessuna telecamera valida trovata, è necessario configurare almeno una voce della telecamera",
+    "no_camera_id": "Impossibile determinare l'ID della telecamera per la seguente telecamera, potrebbe essere necessario impostare manualmente il parametro 'ID'",
+    "duplicate_camera_id": "Duplicato ID fotocamera Frigate Per la seguente telecamera, utilizzare il parametro 'ID' per identificare in modo univoco le telecamere",
+    "could_not_render_elements": "Impossibile rendere gli elementi dell'immagine",
+    "invalid_elements_config": "Configurazione degli elementi di immagine non valida",
+    "jsmpeg_no_sign": "Impossibile recuperare o firmare il percorso WebSocket JSMPEG",
+    "jsmpeg_no_player": "Impossibile avviare JSMPEG Player",
+    "no_camera_name": "Impossibile determinare il nome della fotocamera frigate per la fotocamera, si prega di specificare 'fotocamera_enty' o 'fotocamera_name' per la seguente fotocamera",
+    "download_no_media": "Nessun supporto da scaricare",
+    "download_no_event_id": "Impossibile estrarre l'ID evento della frigate dai media",
+    "download_sign_failed": "Impossibile firmare URL multimediale per il download"
+  }
+}
