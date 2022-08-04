@@ -86,7 +86,23 @@ export const browseMedia = async (
     type: 'media_source/browse_media',
     media_content_id: media_content_id,
   };
-  return await homeAssistantWSRequest(hass, frigateBrowseMediaSourceSchema, request);
+  const root = await homeAssistantWSRequest<FrigateBrowseMediaSource>(hass, frigateBrowseMediaSourceSchema, request);
+  const embedPromises: Promise<void>[] = [];
+  const embedThumbnail = async (src: FrigateBrowseMediaSource) => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    src.thumbnail = await hass.fetchWithAuth(src.thumbnail!)
+        .then((response) => response.blob())
+        .then((blob) => { return URL.createObjectURL(blob); });
+  }
+  const embedThumbnailandTraverse = async (parent: FrigateBrowseMediaSource) => {
+    if (parent.thumbnail) {
+      embedPromises.push(embedThumbnail(parent));
+    }
+    parent.children?.forEach((child) => embedThumbnailandTraverse(child));
+  }
+  embedThumbnailandTraverse(root);
+  await Promise.all(embedPromises);
+  return root;
 };
 
 /**
