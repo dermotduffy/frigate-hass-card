@@ -91,14 +91,14 @@ export const browseMedia = async (
   const embedThumbnail = async (src: FrigateBrowseMediaSource) => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     src.thumbnail = await hass.fetchWithAuth(src.thumbnail!)
-        .then((response) => response.blob())
-        .then((blob) => { return URL.createObjectURL(blob); });
+        .then(response => response.blob())
+        .then(blob => URL.createObjectURL(blob));
   }
   const embedThumbnailandTraverse = async (parent: FrigateBrowseMediaSource) => {
     if (parent.thumbnail) {
       embedPromises.push(embedThumbnail(parent));
     }
-    parent.children?.forEach((child) => embedThumbnailandTraverse(child));
+    parent.children?.forEach(child => embedThumbnailandTraverse(child));
   }
   embedThumbnailandTraverse(root);
   await Promise.all(embedPromises);
