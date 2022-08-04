@@ -54,10 +54,20 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
     if (this.thumbnail?.startsWith('data:')) {
       return this.thumbnail;
     }
-    return await this.hass
-      .fetchWithAuth(thumbnail)
-      .then((response) => response.blob())
-      .then((blob) => URL.createObjectURL(blob));
+    return new Promise((resolve, reject) => {
+      //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.hass!.fetchWithAuth(thumbnail)
+        .then((response) => response.blob())
+        .then((blob) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result;
+            resolve(typeof result === 'string' ? result : null);
+          };
+          reader.onerror = (e) => reject(e);
+          reader.readAsDataURL(blob);
+        });
+    });
   }
 
   protected render(): TemplateResult | void {
