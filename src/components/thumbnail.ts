@@ -18,7 +18,6 @@ import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { errorToConsole, prettifyTitle } from '../utils/basic.js';
 import { retainEvent } from '../utils/frigate.js';
 import { getEventDurationString } from '../utils/ha/browse-media.js';
-import { homeAssistantSignPath } from '../utils/ha/index.js';
 import { View } from '../view.js';
 import { dispatchFrigateCardErrorEvent, renderProgressIndicator } from './message.js';
 
@@ -33,9 +32,9 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
-  protected _signThumbnailTask = new Task(
+  protected _embedThumbnailTask = new Task(
     this,
-    this._signThumbnail.bind(this),
+    this._embedThumbnail.bind(this),
     // Do not re-run the task if hass changes, unless it was previously undefined.
     (): [boolean, string | undefined] => [!!this.hass, this.thumbnail],
   );
@@ -45,7 +44,7 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
    * @param param0 A list of lit-task dependencies.
    * @returns A signed URL or null.
    */
-  protected async _signThumbnail([haveHASS, thumbnail]: [
+  protected async _embedThumbnail([haveHASS, thumbnail]: [
     boolean,
     string | undefined,
   ]): Promise<string | null> {
@@ -55,21 +54,44 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
     if (this.thumbnail?.startsWith('data:')) {
       return this.thumbnail;
     }
-    return await homeAssistantSignPath(this.hass, thumbnail);
+    return new Promise((resolve, reject) => {
+      if (!this.hass) {
+        reject();
+        return;
+      }
+      this.hass
+        .fetchWithAuth(thumbnail)
+        // Since we are fetching with an authorization header, we cannot just put the
+        // URL directly into the document; we need to embed the image. We could do this
+        // using blob URLs, but then we would need to keep track of them in order to
+        // release them properly. Instead, we embed the thumbnail using base64.
+        .then((response) => response.blob())
+        .then((blob) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result;
+            resolve(typeof result === 'string' ? result : null);
+          };
+          reader.onerror = (e) => reject(e);
+          reader.readAsDataURL(blob);
+        });
+    });
   }
 
   protected render(): TemplateResult | void {
     return html`
       ${this.thumbnail
-        ? html` ${this._signThumbnailTask.render({
+        ? html` ${this._embedThumbnailTask.render({
             initial: () => renderProgressIndicator(),
             pending: () => renderProgressIndicator(),
             error: (e: unknown) => {
               errorToConsole(e as Error);
               dispatchFrigateCardErrorEvent(this, e as Error);
             },
-            complete: (signedThumbnail: string | null) => {
-              return signedThumbnail ? html`<img src="${signedThumbnail}" />` : html``;
+            complete: (embeddedThumbnail: string | null) => {
+              return embeddedThumbnail
+                ? html`<img src="${embeddedThumbnail}" />`
+                : html``;
             },
           })}`
         : html`<ha-icon
