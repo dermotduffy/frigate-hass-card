@@ -56,6 +56,7 @@ import './title-control.js';
 import '../patches/ha-hls-player';
 import './surround-thumbnails';
 import { EmblaCarouselPlugins } from './carousel.js';
+import { renderTask } from '../utils/task.js';
 
 @customElement('frigate-card-viewer')
 export class FrigateCardViewer extends LitElement {
@@ -584,12 +585,7 @@ export class FrigateCardViewerCarousel extends LitElement {
     // If lazy loading is not enabled, wait for the media resolver task to
     // complete and show a progress indictator until this.
     if (!this.viewerConfig?.lazy_load && !this._isMediaFullyResolved()) {
-      return html`${this._mediaResolutionTask.render({
-        initial: () => renderProgressIndicator(),
-        pending: () => renderProgressIndicator(),
-        error: (e: unknown) => dispatchFrigateCardErrorEvent(this, e as Error),
-        complete: () => this._render(),
-      })}`;
+      return renderTask(this, this._mediaResolutionTask, this._render.bind(this));
     }
     return this._render();
   }

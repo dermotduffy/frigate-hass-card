@@ -42,6 +42,8 @@ export const fetchThumbnail = async (
   });
 };
 
+type FetchThumbnailTaskArgs = [boolean, string | undefined];
+
 /**
  * Create a Lit task to fetch a thumbnail.
  * @param host The Lit Element.
@@ -53,10 +55,10 @@ export const createFetchThumbnailTask = (
   host: ReactiveControllerHost,
   getHASS: () => HomeAssistant | undefined,
   getThumbnailURL: () => string | undefined,
-): Task => {
+): Task<FetchThumbnailTaskArgs, string | null> => {
   return new Task(
     host,
-    async ([haveHASS, thumbnailURL]: [boolean, string | undefined]): Promise<
+    async ([haveHASS, thumbnailURL]: FetchThumbnailTaskArgs): Promise<
       string | null
     > => {
       const hass = getHASS();
@@ -66,6 +68,6 @@ export const createFetchThumbnailTask = (
       return fetchThumbnail(hass, thumbnailURL);
     },
     // Do not re-run the task if hass changes, unless it was previously undefined.
-    (): [boolean, string | undefined] => [!!getHASS(), getThumbnailURL()],
+    (): FetchThumbnailTaskArgs => [!!getHASS(), getThumbnailURL()],
   );
 };
