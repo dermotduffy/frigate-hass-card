@@ -5,6 +5,10 @@ import { classMap } from 'lit/directives/class-map.js';
 import { NextPreviousControlConfig } from '../types.js';
 
 import controlStyle from '../scss/next-previous-control.scss';
+import { createFetchThumbnailTask } from '../utils/thumbnail.js';
+import { HomeAssistant } from 'custom-card-helpers';
+import { dispatchFrigateCardErrorEvent } from './message.js';
+import { errorToConsole } from '../utils/basic.js';
 
 @customElement('frigate-card-next-previous-control')
 export class FrigateCardNextPreviousControl extends LitElement {
@@ -17,6 +21,9 @@ export class FrigateCardNextPreviousControl extends LitElement {
     }
     this._controlConfig = controlConfig;
   }
+
+  @property({ attribute: false })
+  public hass?: HomeAssistant;
 
   @state()
   protected _controlConfig?: NextPreviousControlConfig;
@@ -32,6 +39,12 @@ export class FrigateCardNextPreviousControl extends LitElement {
 
   // Label that is used for ARIA support and as tooltip.
   @property() label = '';
+
+  protected _embedThumbnailTask = createFetchThumbnailTask(
+    this,
+    () => this.hass,
+    () => this.thumbnail,
+  );
 
   protected render(): TemplateResult {
     if (this.disabled || !this._controlConfig || this._controlConfig.style == 'none') {
@@ -66,12 +79,30 @@ export class FrigateCardNextPreviousControl extends LitElement {
     if (!this.thumbnail) {
       return html``;
     }
-    return html`<img
-      src="${this.thumbnail}"
-      class="${classMap(classes)}"
-      title="${this.label}"
-      aria-label="${this.label}"
-    />`;
+
+    const renderControlInProgress = (): TemplateResult => {
+      // Just render an 'empty' thumbnail control until the thumbnail loads.
+      return html`<div class=${classMap(classes)}></div>`;
+    };
+
+    return html`${this._embedThumbnailTask.render({
+      initial: () => renderControlInProgress(),
+      pending: () => renderControlInProgress(),
+      error: (e: unknown) => {
+        errorToConsole(e as Error);
+        dispatchFrigateCardErrorEvent(this, e as Error);
+      },
+      complete: (embeddedThumbnail: string | null) => {
+        return embeddedThumbnail
+          ? html`<img
+              src="${embeddedThumbnail}"
+              class="${classMap(classes)}"
+              title="${this.label}"
+              aria-label="${this.label}"
+            />`
+          : html``;
+      },
+    })}`;
   }
 
   static get styles(): CSSResultGroup {
@@ -80,7 +111,7 @@ export class FrigateCardNextPreviousControl extends LitElement {
 }
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card-next-previous-control": FrigateCardNextPreviousControl
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card-next-previous-control': FrigateCardNextPreviousControl;
+  }
 }

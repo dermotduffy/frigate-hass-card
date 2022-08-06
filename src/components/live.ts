@@ -585,6 +585,7 @@ export class FrigateCardLiveCarousel extends LitElement {
       >
         <frigate-card-next-previous-control
           slot="previous"
+          .hass=${this.hass}
           .direction=${'previous'}
           .controlConfig=${config.controls.next_previous}
           .label=${getCameraTitle(this.hass, prev)}
@@ -601,6 +602,7 @@ export class FrigateCardLiveCarousel extends LitElement {
         ${slides}
         <frigate-card-next-previous-control
           slot="next"
+          .hass=${this.hass}
           .direction=${'next'}
           .controlConfig=${config.controls.next_previous}
           .label=${getCameraTitle(this.hass, next)}
