@@ -1,4 +1,3 @@
-import { Task } from '@lit-labs/task/task.js';
 import { format, fromUnixTime } from 'date-fns';
 import { CSSResult, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
@@ -18,6 +17,7 @@ import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { errorToConsole, prettifyTitle } from '../utils/basic.js';
 import { retainEvent } from '../utils/frigate.js';
 import { getEventDurationString } from '../utils/ha/browse-media.js';
+import { createFetchThumbnailTask } from '../utils/thumbnail.js';
 import { View } from '../view.js';
 import { dispatchFrigateCardErrorEvent, renderProgressIndicator } from './message.js';
 
@@ -32,51 +32,11 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
-  protected _embedThumbnailTask = new Task(
+  protected _embedThumbnailTask = createFetchThumbnailTask(
     this,
-    this._embedThumbnail.bind(this),
-    // Do not re-run the task if hass changes, unless it was previously undefined.
-    (): [boolean, string | undefined] => [!!this.hass, this.thumbnail],
+    () => this.hass,
+    () => this.thumbnail,
   );
-
-  /**
-   * Sign a thumbnail URL if necessary. May throw.
-   * @param param0 A list of lit-task dependencies.
-   * @returns A signed URL or null.
-   */
-  protected async _embedThumbnail([haveHASS, thumbnail]: [
-    boolean,
-    string | undefined,
-  ]): Promise<string | null> {
-    if (!haveHASS || !this.hass || !thumbnail) {
-      return null;
-    }
-    if (this.thumbnail?.startsWith('data:')) {
-      return this.thumbnail;
-    }
-    return new Promise((resolve, reject) => {
-      if (!this.hass) {
-        reject();
-        return;
-      }
-      this.hass
-        .fetchWithAuth(thumbnail)
-        // Since we are fetching with an authorization header, we cannot just put the
-        // URL directly into the document; we need to embed the image. We could do this
-        // using blob URLs, but then we would need to keep track of them in order to
-        // release them properly. Instead, we embed the thumbnail using base64.
-        .then((response) => response.blob())
-        .then((blob) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const result = reader.result;
-            resolve(typeof result === 'string' ? result : null);
-          };
-          reader.onerror = (e) => reject(e);
-          reader.readAsDataURL(blob);
-        });
-    });
-  }
 
   protected render(): TemplateResult | void {
     return html`

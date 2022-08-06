@@ -627,6 +627,7 @@ export class FrigateCardViewerCarousel extends LitElement {
     >
       <frigate-card-next-previous-control
         slot="previous"
+        .hass=${this.hass}
         .direction=${'previous'}
         .controlConfig=${this.viewerConfig?.controls.next_previous}
         .thumbnail=${prev && prev.thumbnail ? prev.thumbnail : undefined}
@@ -640,6 +641,7 @@ export class FrigateCardViewerCarousel extends LitElement {
       ${slides}
       <frigate-card-next-previous-control
         slot="next"
+        .hass=${this.hass}
         .direction=${'next'}
         .controlConfig=${this.viewerConfig?.controls.next_previous}
         .thumbnail=${next && next.thumbnail ? next.thumbnail : undefined}
