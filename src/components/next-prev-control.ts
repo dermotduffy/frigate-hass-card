@@ -7,8 +7,7 @@ import { NextPreviousControlConfig } from '../types.js';
 import controlStyle from '../scss/next-previous-control.scss';
 import { createFetchThumbnailTask } from '../utils/thumbnail.js';
 import { HomeAssistant } from 'custom-card-helpers';
-import { dispatchFrigateCardErrorEvent } from './message.js';
-import { errorToConsole } from '../utils/basic.js';
+import { renderTask } from '../utils/task.js';
 
 @customElement('frigate-card-next-previous-control')
 export class FrigateCardNextPreviousControl extends LitElement {
@@ -80,29 +79,20 @@ export class FrigateCardNextPreviousControl extends LitElement {
       return html``;
     }
 
-    const renderControlInProgress = (): TemplateResult => {
-      // Just render an 'empty' thumbnail control until the thumbnail loads.
-      return html`<div class=${classMap(classes)}></div>`;
-    };
-
-    return html`${this._embedThumbnailTask.render({
-      initial: () => renderControlInProgress(),
-      pending: () => renderControlInProgress(),
-      error: (e: unknown) => {
-        errorToConsole(e as Error);
-        dispatchFrigateCardErrorEvent(this, e as Error);
-      },
-      complete: (embeddedThumbnail: string | null) => {
-        return embeddedThumbnail
+    return renderTask(
+      this,
+      this._embedThumbnailTask,
+      (embeddedThumbnail: string | null) =>
+        embeddedThumbnail
           ? html`<img
               src="${embeddedThumbnail}"
               class="${classMap(classes)}"
               title="${this.label}"
               aria-label="${this.label}"
             />`
-          : html``;
-      },
-    })}`;
+          : html``,
+      () => html`<div class=${classMap(classes)}></div>`,
+    );
   }
 
   static get styles(): CSSResultGroup {

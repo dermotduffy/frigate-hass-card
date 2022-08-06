@@ -65,6 +65,7 @@ import './title-control.js';
 import './surround-thumbnails';
 import '../patches/ha-camera-stream';
 import { EmblaCarouselPlugins } from './carousel.js';
+import { renderTask } from '../utils/task.js';
 
 // Number of seconds a signed URL is valid for.
 const URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -142,7 +143,7 @@ export class FrigateCardLive extends LitElement {
    * Determine whether the element should be updated.
    * @param _changedProps The changed properties if any.
    * @returns `true` if the element should be updated.
-   */  
+   */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected shouldUpdate(_changedProps: PropertyValues): boolean {
     // Don't process updates if it's in the background and a message was
@@ -981,12 +982,9 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
     // Use a task to allow us to asynchronously wait for the WebRTC card to
     // load, but yet still have the card load be followed by the updated()
     // lifecycle callback (unlike just using `until`).
-    return html`${this._webrtcTask.render({
-      initial: () => renderProgressIndicator(localize('error.webrtc_card_waiting')),
-      pending: () => renderProgressIndicator(localize('error.webrtc_card_waiting')),
-      error: (e: unknown) => dispatchFrigateCardErrorEvent(this, e as Error),
-      complete: () => render(),
-    })}`;
+    return renderTask(this, this._webrtcTask, render, () =>
+      renderProgressIndicator(localize('error.webrtc_card_waiting')),
+    );
   }
 
   /**

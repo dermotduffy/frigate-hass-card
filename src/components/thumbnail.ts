@@ -17,9 +17,9 @@ import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { errorToConsole, prettifyTitle } from '../utils/basic.js';
 import { retainEvent } from '../utils/frigate.js';
 import { getEventDurationString } from '../utils/ha/browse-media.js';
+import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask } from '../utils/thumbnail.js';
 import { View } from '../view.js';
-import { dispatchFrigateCardErrorEvent, renderProgressIndicator } from './message.js';
 
 // The minimum width of a thumbnail with details enabled.
 export const THUMBNAIL_DETAILS_WIDTH_MIN = 300;
@@ -41,19 +41,14 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
   protected render(): TemplateResult | void {
     return html`
       ${this.thumbnail
-        ? html` ${this._embedThumbnailTask.render({
-            initial: () => renderProgressIndicator(),
-            pending: () => renderProgressIndicator(),
-            error: (e: unknown) => {
-              errorToConsole(e as Error);
-              dispatchFrigateCardErrorEvent(this, e as Error);
-            },
-            complete: (embeddedThumbnail: string | null) => {
-              return embeddedThumbnail
+        ? renderTask(
+            this,
+            this._embedThumbnailTask,
+            (embeddedThumbnail: string | null) =>
+              embeddedThumbnail
                 ? html`<img src="${embeddedThumbnail}" />`
-                : html``;
-            },
-          })}`
+                : html``
+          )
         : html`<ha-icon
             icon="mdi:image-off"
             title=${localize('thumbnail.no_thumbnail')}
