@@ -83,11 +83,11 @@ interface FrigateCardTimelineItem extends TimelineItem {
 }
 
 interface TimelineViewContext {
-   // The selected timeline window.
-   window?: TimelineWindow;
+  // The selected timeline window.
+  window?: TimelineWindow;
 
-   // The date of the last event fetch.
-   dateFetch?: Date;
+  // The date of the last event fetch.
+  dateFetch?: Date;
 }
 
 declare module 'view' {
