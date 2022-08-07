@@ -21,6 +21,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { isEqual } from 'lodash-es';
+import { ViewContext } from 'view';
 import { DataSet } from 'vis-data/esnext';
 import {
   DataGroupCollectionType,
@@ -64,7 +65,7 @@ import {
   isTrueMedia,
   multipleBrowseMediaQuery,
 } from '../utils/ha/browse-media';
-import { View, ViewContext } from '../view';
+import { View } from '../view';
 import { dispatchFrigateCardErrorEvent, dispatchMessageEvent } from './message.js';
 import './surround-thumbnails.js';
 
@@ -81,12 +82,18 @@ interface FrigateCardTimelineItem extends TimelineItem {
   source?: FrigateBrowseMediaSource;
 }
 
-interface TimelineViewContext extends ViewContext {
-  // The selected timeline window.
-  window?: TimelineWindow;
+interface TimelineViewContext {
+   // The selected timeline window.
+   window?: TimelineWindow;
 
-  // The date of the last event fetch.
-  dateFetch?: Date;
+   // The date of the last event fetch.
+   dateFetch?: Date;
+}
+
+declare module 'view' {
+  interface ViewContext {
+    timeline?: TimelineViewContext;
+  }
 }
 
 type TimelineMediaType = 'all' | 'clips' | 'snapshots';
@@ -867,8 +874,8 @@ export class FrigateCardTimelineCore extends LitElement {
               ?.evolve({
                 target: thumbnails?.target ?? null,
                 childIndex: thumbnails?.childIndex ?? null,
-                context: this._generateViewContext(true),
               })
+              .mergeInContext(this._generateTimelineContext(true))
               .dispatchChangeEvent(this);
           }
         });
@@ -1174,7 +1181,7 @@ export class FrigateCardTimelineCore extends LitElement {
 
     // Regenerate the thumbnails after the selection, to allow the new selection
     // to be in the generated view.
-    const context = this.view.context as TimelineViewContext | null;
+    const context = this.view.context?.timeline;
     const timelineWindow = this._timeline.getWindow();
 
     if (context?.window) {
@@ -1222,8 +1229,8 @@ export class FrigateCardTimelineCore extends LitElement {
         ?.evolve({
           target: thumbnails?.target ?? null,
           childIndex: thumbnails?.childIndex ?? null,
-          context: this._generateViewContext(false),
         })
+        .mergeInContext(this._generateTimelineContext(false))
         .dispatchChangeEvent(this);
     }
   }
@@ -1234,9 +1241,10 @@ export class FrigateCardTimelineCore extends LitElement {
    * the window is preserved if it is already in the context.
    * @returns The TimelineViewContext object.
    */
-  protected _generateViewContext(addWindow: boolean): TimelineViewContext {
-    const currentContext = this.view?.context as TimelineViewContext | undefined;
-    const newContext: TimelineViewContext = {};
+  protected _generateTimelineContext(addWindow: boolean): ViewContext {
+    const currentContext = this.view?.context?.timeline;
+    const newContext: TimelineViewContext = {}
+
     if (addWindow && this._timeline) {
       newContext.window = this._timeline.getWindow();
     } else if (currentContext?.window) {
@@ -1245,7 +1253,7 @@ export class FrigateCardTimelineCore extends LitElement {
     if (this._data.lastFetchDate) {
       newContext.dateFetch = this._data.lastFetchDate;
     }
-    return newContext || null;
+    return Object.keys(newContext) ? {timeline: newContext} : {};
   }
 
   /**

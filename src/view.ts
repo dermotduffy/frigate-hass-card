@@ -1,14 +1,12 @@
+import { ViewContext } from 'view';
 import {
   FrigateBrowseMediaSource,
   FrigateCardUserSpecifiedView,
   FrigateCardView,
   FRIGATE_CARD_VIEWS_USER_SPECIFIED,
-  FRIGATE_CARD_VIEW_DEFAULT
+  FRIGATE_CARD_VIEW_DEFAULT,
 } from './types.js';
 import { dispatchFrigateCardEvent } from './utils/basic.js';
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ViewContext {}
 
 export interface ViewEvolveParameters {
   view?: FrigateCardView;
@@ -64,6 +62,26 @@ export class View {
   }
 
   /**
+   * Detect if a view change represents a major "media change" for the given
+   * view.
+   * @param prev The previous view.
+   * @param curr The current view.
+   * @returns True if the view change is a real media change.
+   */
+  public static isMediaChange(prev?: View, curr?: View): boolean {
+    return (
+      !prev ||
+      !curr ||
+      prev.view !== curr.view ||
+      prev.camera !== curr.camera ||
+      // When in the live view, the target/childIndex are the events that
+      // happened in the past -- not reflective of the actual live media viewer.
+      (curr.view !== 'live' &&
+        (prev.target !== curr.target || prev.childIndex !== curr.childIndex))
+    );
+  }
+
+  /**
    * Clone a view.
    */
   public clone(): View {
@@ -94,6 +112,28 @@ export class View {
       // the previous of this).
       previous: params.previous !== undefined ? params.previous : this,
     });
+  }
+
+  /**
+   * Merge view contexts.
+   * @param context The context to merge in.
+   * @returns This view.
+   */
+  public mergeInContext(context: ViewContext): View {
+    this.context = { ...this.context, ...context };
+    return this;
+  }
+
+  /**
+   * Remove a context key.
+   * @param key The key to remove.
+   * @returns This view.
+   */
+  public removeContext(key: keyof ViewContext): View {
+    if (this.context) {
+      delete(this.context[key]);
+    }
+    return this;
   }
 
   /**
@@ -168,6 +208,18 @@ export class View {
    * @param target The target dispatching the event.
    */
   public dispatchChangeEvent(target: EventTarget): void {
-    dispatchFrigateCardEvent(target, 'change-view', this);
+    dispatchFrigateCardEvent(target, 'view:change', this);
   }
 }
+
+/**
+ * Dispatch an event to change the view context.
+ * @param target The EventTarget to send the event from.
+ * @param context The context to change.
+ */
+export const dispatchViewContextChangeEvent = (
+  target: EventTarget,
+  context: ViewContext,
+): void => {
+  dispatchFrigateCardEvent(target, 'view:change-context', context);
+};

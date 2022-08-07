@@ -618,7 +618,7 @@ export class FrigateCardViewerCarousel extends LitElement {
       .label="${this.view.media.title}"
       .titlePopupConfig=${this.viewerConfig?.controls.title}
       transitionEffect=${this._getTransitionEffect()}
-      @frigate-card:carousel:select=${this._setViewHandler.bind(this)}
+      @frigate-card:media-carousel:select=${this._setViewHandler.bind(this)}
       @frigate-card:media-show=${this._recordingSeekHandler.bind(this)}
     >
       <frigate-card-next-previous-control
