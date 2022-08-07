@@ -282,8 +282,8 @@ export class FrigateCardThumbnail extends LitElement {
                   view: 'timeline',
                   target: this.target,
                   childIndex: this.childIndex ?? null,
-                  context: {},
                 })
+                .removeContext('timeline')
                 .dispatchChangeEvent(this);
             } else if (recording) {
               this.view
@@ -291,7 +291,9 @@ export class FrigateCardThumbnail extends LitElement {
                   view: 'timeline',
                   target: null,
                   childIndex: null,
-                  context: {
+                })
+                .mergeInContext({
+                  timeline: {
                     window: {
                       start: fromUnixTime(recording.start_time),
                       end: fromUnixTime(recording.end_time),

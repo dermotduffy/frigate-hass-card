@@ -99,6 +99,7 @@ import { supportsFeature } from './utils/ha/update.js';
 import { isValidMediaShowInfo } from './utils/media-info.js';
 import { View } from './view.js';
 import pkg from '../package.json';
+import { ViewContext } from 'view';
 
 /** A note on media callbacks:
  *
@@ -184,8 +185,9 @@ export class FrigateCard extends LitElement {
   // Automated refreshes of the default view.
   protected _updateTimerID: number | null = null;
 
-  // Information about the most recently loaded media item.
-  protected _mediaShowInfo: MediaShowInfo | null = null;
+  // Information about loaded media items.
+  protected _currentMediaShowInfo: MediaShowInfo | null = null;
+  protected _lastValidMediaShowInfo: MediaShowInfo | null = null;
 
   // Array of dynamic menu buttons to be added to menu.
   protected _dynamicMenuButtons: MenuButton[] = [];
@@ -277,6 +279,7 @@ export class FrigateCard extends LitElement {
       fullscreen: screenfull.isEnabled && screenfull.isFullscreen,
       camera: this._view?.camera,
       state: this._hass?.states,
+      mediaLoaded: !!this._currentMediaShowInfo,
     };
 
     // Update the components that need the new condition state. Passed directly
@@ -331,7 +334,11 @@ export class FrigateCard extends LitElement {
       for (const action of actions) {
         // All frigate card actions will have action of 'fire-dom-event' and
         // styling only applies to those.
-        if (!action || action.action !== 'fire-dom-event' || !('frigate_card_action' in action)) {
+        if (
+          !action ||
+          action.action !== 'fire-dom-event' ||
+          !('frigate_card_action' in action)
+        ) {
           continue;
         }
         const frigateCardAction = action as FrigateCardCustomAction;
@@ -925,6 +932,15 @@ export class FrigateCard extends LitElement {
   }
 
   protected _changeView(args?: { view?: View; resetMessage?: boolean }): void {
+    const changeView = (view: View): void => {
+      if (View.isMediaChange(this._view, view)) {
+        this._currentMediaShowInfo = null;
+      }
+      this._view = view;
+      this._generateConditionState();
+      this._resetMainScroll();
+    };
+
     if (args?.resetMessage ?? true) {
       this._message = null;
     }
@@ -945,21 +961,19 @@ export class FrigateCard extends LitElement {
       }
 
       if (camera) {
-        this._view = new View({
-          view: this._getConfig().view.default,
-          camera: camera,
-        });
-        this._generateConditionState();
-        this._resetMainScroll();
+        changeView(
+          new View({
+            view: this._getConfig().view.default,
+            camera: camera,
+          }),
+        );
 
         // Restart the update timer, so the default view is refreshed at a fixed
         // interval from now (if so configured).
         this._startUpdateTimer();
       }
     } else {
-      this._view = args.view;
-      this._generateConditionState();
-      this._resetMainScroll();
+      changeView(args.view);
     }
   }
 
@@ -987,6 +1001,15 @@ export class FrigateCard extends LitElement {
     this._changeView({ view: e.detail });
   }
 
+  /**
+   * Add view context to the current view.
+   * @param ev A ViewContext event.
+   */
+  protected _addViewContextHandler(ev: CustomEvent<ViewContext>): void {
+    this._changeView({
+      view: this._view?.clone().mergeInContext(ev.detail),
+    });
+  }
   /**
    * Called before each update.
    */
@@ -1592,7 +1615,7 @@ export class FrigateCard extends LitElement {
    */
   protected _resetMainScroll(): void {
     // Reset the scroll on the main div to the top.
-    this._refMain.value?.scroll({top: 0});
+    this._refMain.value?.scroll({ top: 0 });
   }
 
   /**
@@ -1614,19 +1637,12 @@ export class FrigateCard extends LitElement {
     if (!isValidMediaShowInfo(mediaShowInfo)) {
       return;
     }
-    let requestRefresh = false;
-    if (
-      this._view?.isGalleryView() &&
-      (mediaShowInfo.width != this._mediaShowInfo?.width ||
-        mediaShowInfo.height != this._mediaShowInfo?.height)
-    ) {
-      requestRefresh = true;
-    }
 
-    this._mediaShowInfo = mediaShowInfo;
-    if (requestRefresh) {
-      this.requestUpdate();
-    }
+    this._lastValidMediaShowInfo = this._currentMediaShowInfo = mediaShowInfo;
+
+    // An update may be required to draw elements.
+    this._generateConditionState();
+    this.requestUpdate();
   }
 
   /**
@@ -1702,8 +1718,8 @@ export class FrigateCard extends LitElement {
     }
 
     const aspectRatioMode = this._getConfig().dimensions.aspect_ratio_mode;
-    if (aspectRatioMode == 'dynamic' && this._mediaShowInfo) {
-      return `${this._mediaShowInfo.width} / ${this._mediaShowInfo.height}`;
+    if (aspectRatioMode == 'dynamic' && this._lastValidMediaShowInfo) {
+      return `${this._lastValidMediaShowInfo.width} / ${this._lastValidMediaShowInfo.height}`;
     }
 
     const defaultAspectRatio = this._getConfig().dimensions.aspect_ratio;
@@ -1776,16 +1792,14 @@ export class FrigateCard extends LitElement {
       style="${styleMap(cardStyle)}"
       @action=${(ev: CustomEvent) => this._actionHandler(ev, actions)}
       @ll-custom=${this._cardActionHandler.bind(this)}
-      @frigate-card:message=${this._messageHandler}
-      @frigate-card:change-view=${this._changeViewHandler}
+      @frigate-card:message=${this._messageHandler.bind(this)}
+      @frigate-card:view:change=${this._changeViewHandler.bind(this)}
+      @frigate-card:view:change-context=${this._addViewContextHandler.bind(this)}
       @frigate-card:media-show=${this._mediaShowHandler}
       @frigate-card:render=${() => this.requestUpdate()}
     >
       ${renderMenuAbove ? this._renderMenu() : ''}
-      <div 
-        ${ref(this._refMain)}
-        class="main"
-      >
+      <div ${ref(this._refMain)} class="main">
         ${this._cameras === undefined && !this._message
           ? until(
               (async () => {
@@ -1807,7 +1821,7 @@ export class FrigateCard extends LitElement {
         }
       </div>
       ${!renderMenuAbove ? this._renderMenu() : ''}
-      ${!this._message && this._getConfig().elements
+      ${this._getConfig().elements
         ? // Elements need to render after the main views so it can render 'on
           // top'.
           html` <frigate-card-elements
@@ -1925,8 +1939,8 @@ export class FrigateCard extends LitElement {
    * @returns The Lovelace card size in units of 50px.
    */
   public getCardSize(): number {
-    if (this._mediaShowInfo) {
-      return this._mediaShowInfo.height / 50;
+    if (this._lastValidMediaShowInfo) {
+      return this._lastValidMediaShowInfo.height / 50;
     }
     return 6;
   }

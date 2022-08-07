@@ -363,6 +363,16 @@ export class FrigateCardMediaCarousel extends LitElement {
         @frigate-card:carousel:select=${(ev: CustomEvent<CarouselSelect>) => {
           this._slideResizeObserver.disconnect();
           this._slideResizeObserver.observe(ev.detail.element);
+
+          // Pass up the media-carousel select event first to allow parents to
+          // initialize/reset before the media info is dispatched.
+          dispatchFrigateCardEvent<CarouselSelect>(
+            this,
+            'media-carousel:select',
+            ev.detail,
+          );
+
+          // Dispatch media info.
           this._dispatchMediaShowInfo();
         }}
         @frigate-card:carousel:media-show=${this._storeMediaShowInfo.bind(this)}

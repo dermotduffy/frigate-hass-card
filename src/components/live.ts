@@ -44,7 +44,10 @@ import {
   WebRTCCardConfig,
 } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
-import { contentsChanged, errorToConsole } from '../utils/basic.js';
+import {
+  contentsChanged,
+  errorToConsole,
+} from '../utils/basic.js';
 import { getCameraIcon, getCameraTitle } from '../utils/camera.js';
 import { homeAssistantSignPath } from '../utils/ha';
 import { getFullDependentBrowseMediaQueryParameters } from '../utils/ha/browse-media.js';
@@ -52,7 +55,7 @@ import {
   dispatchExistingMediaShowInfoAsEvent,
   dispatchMediaShowEvent,
 } from '../utils/media-info.js';
-import { View } from '../view.js';
+import { dispatchViewContextChangeEvent, View } from '../view.js';
 import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import { Lazyload } from './embla-plugins/lazyload.js';
 import {
@@ -226,7 +229,7 @@ export class FrigateCardLive extends LitElement {
             ev.stopPropagation();
           }
         }}
-        @frigate-card:change-view=${(ev: CustomEvent<View>) => {
+        @frigate-card:view:change=${(ev: CustomEvent<View>) => {
           if (this._inBackground) {
             ev.stopPropagation();
           }
@@ -448,10 +451,13 @@ export class FrigateCardLiveCarousel extends LitElement {
       .evolve({
         camera: Array.from(this.cameras.keys())[selectedCameraIndex],
 
-        // Reset the target so thumbnails will be re-fetched.
+        // Reset the target.
         target: null,
         childIndex: null,
       })
+      // Don't yet fetch thumbnails (they will be fetched when the carousel
+      // settles).
+      .mergeInContext({ thumbnails: { fetch: false } })
       .dispatchChangeEvent(this);
   }
 
@@ -582,7 +588,11 @@ export class FrigateCardLiveCarousel extends LitElement {
         .label="${title ? `${localize('common.live')}: ${title}` : ''}"
         .titlePopupConfig=${config.controls.title}
         transitionEffect=${this._getTransitionEffect()}
-        @frigate-card:carousel:settle=${this._setViewHandler.bind(this)}
+        @frigate-card:media-carousel:select=${this._setViewHandler.bind(this)}
+        @frigate-card:carousel:settle=${() => {
+          // Fetch the thumbnails after the carousel has settled.
+          dispatchViewContextChangeEvent(this, { thumbnails: { fetch: true }});
+        }}
       >
         <frigate-card-next-previous-control
           slot="previous"

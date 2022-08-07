@@ -27,6 +27,17 @@ import { dispatchFrigateCardErrorEvent } from './message.js';
 import './surround.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 
+interface ThumbnailViewContext {
+  // Whetherr or not to fetch thumbnails.
+  fetch?: boolean;
+}
+
+declare module 'view' {
+  interface ViewContext {
+    thumbnails?: ThumbnailViewContext;
+  }
+}
+
 @customElement('frigate-card-surround-thumbnails')
 export class FrigateCardSurround extends LitElement {
   @property({ attribute: false })
@@ -64,7 +75,8 @@ export class FrigateCardSurround extends LitElement {
       !this.config ||
       this.config.mode === 'none' ||
       this.view.target ||
-      !this.browseMediaParams
+      !this.browseMediaParams ||
+      !(this.view.context?.thumbnails?.fetch ?? true)
     ) {
       return;
     }
@@ -147,7 +159,7 @@ export class FrigateCardSurround extends LitElement {
             .target=${this.view.target}
             .selected=${this.view.childIndex}
             .cameras=${this.cameras}
-            @frigate-card:change-view=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
+            @frigate-card:view:change=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
             @frigate-card:thumbnail-carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
               // Send the view change from the source of the tap event, so the
               // view change will be caught by the handler above (to close the drawer).

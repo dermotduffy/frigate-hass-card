@@ -485,6 +485,7 @@ const frigateCardConditionSchema = z.object({
   view: z.string().array().optional(),
   fullscreen: z.boolean().optional(),
   camera: z.string().array().optional(),
+  mediaLoaded: z.boolean().optional(),
   state: stateConditions.optional(),
 });
 export type FrigateCardCondition = z.infer<typeof frigateCardConditionSchema>;
