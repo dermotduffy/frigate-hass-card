@@ -125,6 +125,7 @@
       "lazy_load": "As câmeras ao vivo são carregadas lentamente",
       "lazy_unload": "As câmeras ao vivo são descarregadas preguiçosamente",
       "preload": "Pré-carregar a visualização ao vivo em segundo plano",
+      "show_image_during_load": "",
       "transition_effect": "Efeito de transição de câmera ao vivo"
     },
     "media_viewer": {

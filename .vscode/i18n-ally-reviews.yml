@@ -15,3 +15,17 @@ reviews:
           source: en
           text: Câmera indisponível
           time: '2022-07-24T05:34:22.088Z'
+  config.live.show_image_during_load:
+    locales:
+      it:
+        translation_candidate:
+          source: en
+          text: Mostra l'immagine fissa durante il caricamento del live streaming
+          time: '2022-08-07T23:00:31.001Z'
+      pt-BR:
+        translation_candidate:
+          source: en
+          text: >-
+            Mostrar imagem estática enquanto a transmissão ao vivo está
+            carregando
+          time: '2022-08-07T23:00:35.117Z'

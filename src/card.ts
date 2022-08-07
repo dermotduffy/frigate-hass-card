@@ -1010,6 +1010,7 @@ export class FrigateCard extends LitElement {
       view: this._view?.clone().mergeInContext(ev.detail),
     });
   }
+
   /**
    * Called before each update.
    */
@@ -1795,7 +1796,7 @@ export class FrigateCard extends LitElement {
       @frigate-card:message=${this._messageHandler.bind(this)}
       @frigate-card:view:change=${this._changeViewHandler.bind(this)}
       @frigate-card:view:change-context=${this._addViewContextHandler.bind(this)}
-      @frigate-card:media-show=${this._mediaShowHandler}
+      @frigate-card:media-show=${this._mediaShowHandler.bind(this)}
       @frigate-card:render=${() => this.requestUpdate()}
     >
       ${renderMenuAbove ? this._renderMenu() : ''}
