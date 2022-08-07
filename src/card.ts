@@ -279,6 +279,7 @@ export class FrigateCard extends LitElement {
       fullscreen: screenfull.isEnabled && screenfull.isFullscreen,
       camera: this._view?.camera,
       state: this._hass?.states,
+      mediaLoaded: !!this._currentMediaShowInfo,
     };
 
     // Update the components that need the new condition state. Passed directly
@@ -1640,6 +1641,7 @@ export class FrigateCard extends LitElement {
     this._lastValidMediaShowInfo = this._currentMediaShowInfo = mediaShowInfo;
 
     // An update may be required to draw elements.
+    this._generateConditionState();
     this.requestUpdate();
   }
 
@@ -1819,12 +1821,9 @@ export class FrigateCard extends LitElement {
         }
       </div>
       ${!renderMenuAbove ? this._renderMenu() : ''}
-      ${!this._message &&
-      (!this._view?.isAnyMediaView() || this._currentMediaShowInfo) &&
-      this._getConfig().elements
+      ${this._getConfig().elements
         ? // Elements need to render after the main views so it can render 'on
-          // top', but only if the view is a non-media view or the media is
-          // already loaded.
+          // top'.
           html` <frigate-card-elements
             ${ref(this._refElements)}
             .hass=${this._hass}

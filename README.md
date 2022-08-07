@@ -709,6 +709,7 @@ All variables listed are under a `conditions:` section.
 | `camera` | A list of camera ids in which this condition is satisfied. See [camera IDs](#camera-ids).|
 | `fullscreen` | If `true` the condition is satisfied if the card is in fullscreen mode. If `false` the condition is satisfied if the card is **NOT** in fullscreen mode.|
 | `state` | A list of state conditions to compare with Home Assistant state. See below. |
+| `mediaLoaded` | If `true` the condition is satisfied if there is media load**ED** (not load**ING**) in the card (e.g. a clip, snapshot or live view). This may be used to hide controls during media loading or when a message (not media) is being displayed. Note that if `true` this condition will never be satisfied for views that do not themselves load media directly (e.g. gallery).|
 
 See the [PTZ example below](#frigate-card-conditional-example) for a real-world example of how these conditions can be used.
 
@@ -1592,7 +1593,7 @@ elements:
       scene.kitchen_tv_scene:
         icon: mdi:television
         title: TV!
-    # Show a pig icon if the card is in the live view, in fullscreen mode and light.office_main_lights is on.
+    # Show a pig icon if the card is in the live view, in fullscreen mode, light.office_main_lights is on and the media has been loaded.
   - type: custom:frigate-card-conditional
     elements:
       - type: icon
@@ -1611,6 +1612,7 @@ elements:
         - entity: light.office_main_lights
           state: on
           state_not: off
+      mediaLoaded: true
 ```
 </details>
 
