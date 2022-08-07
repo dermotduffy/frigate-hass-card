@@ -119,6 +119,7 @@ export const CONF_LIVE_LAZY_LOAD = `${CONF_LIVE}.lazy_load` as const;
 export const CONF_LIVE_LAZY_UNLOAD = `${CONF_LIVE}.lazy_unload` as const;
 export const CONF_LIVE_PRELOAD = `${CONF_LIVE}.preload` as const;
 export const CONF_LIVE_TRANSITION_EFFECT = `${CONF_LIVE}.transition_effect` as const;
+export const CONF_LIVE_SHOW_IMAGE_DURING_LOAD = `${CONF_LIVE}.show_image_during_load` as const;
 export const CONF_LIVE_WEBRTC_CARD = `${CONF_LIVE}.webrtc_card` as const;
 
 export const CONF_IMAGE = 'image' as const;

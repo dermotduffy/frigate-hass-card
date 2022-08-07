@@ -17,17 +17,14 @@ import { guard } from 'lit/directives/guard.js';
 import { keyed } from 'lit/directives/keyed.js';
 import { until } from 'lit/directives/until.js';
 import { ConditionState, getOverriddenConfig } from '../card-condition.js';
-import {
-  dispatchFrigateCardErrorEvent,
-  dispatchMessageEvent,
-  renderProgressIndicator,
-} from '../components/message.js';
+import { dispatchMessageEvent, renderProgressIndicator } from '../components/message.js';
 import { localize } from '../localize/localize.js';
 import liveFrigateStyle from '../scss/live-frigate.scss';
 import liveJSMPEGStyle from '../scss/live-jsmpeg.scss';
 import liveWebRTCStyle from '../scss/live-webrtc.scss';
 import liveStyle from '../scss/live.scss';
 import liveCarouselStyle from '../scss/live-carousel.scss';
+import liveProviderStyle from '../scss/live-provider.scss';
 import {
   CameraConfig,
   ExtendedHomeAssistant,
@@ -44,10 +41,7 @@ import {
   WebRTCCardConfig,
 } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
-import {
-  contentsChanged,
-  errorToConsole,
-} from '../utils/basic.js';
+import { contentsChanged, errorToConsole } from '../utils/basic.js';
 import { getCameraIcon, getCameraTitle } from '../utils/camera.js';
 import { homeAssistantSignPath } from '../utils/ha';
 import { getFullDependentBrowseMediaQueryParameters } from '../utils/ha/browse-media.js';
@@ -69,6 +63,8 @@ import './surround-thumbnails';
 import '../patches/ha-camera-stream';
 import { EmblaCarouselPlugins } from './carousel.js';
 import { renderTask } from '../utils/task.js';
+import { classMap } from 'lit/directives/class-map.js';
+import './image';
 
 // Number of seconds a signed URL is valid for.
 const URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -591,7 +587,7 @@ export class FrigateCardLiveCarousel extends LitElement {
         @frigate-card:media-carousel:select=${this._setViewHandler.bind(this)}
         @frigate-card:carousel:settle=${() => {
           // Fetch the thumbnails after the carousel has settled.
-          dispatchViewContextChangeEvent(this, { thumbnails: { fetch: true }});
+          dispatchViewContextChangeEvent(this, { thumbnails: { fetch: true } });
         }}
       >
         <frigate-card-next-previous-control
@@ -657,6 +653,9 @@ export class FrigateCardLiveProvider extends LitElement {
   @property({ attribute: false })
   public label = '';
 
+  @state()
+  protected _isVideoMediaLoaded = false;
+
   protected _providerRef: Ref<Element & FrigateCardMediaPlayer> = createRef();
 
   /**
@@ -694,7 +693,11 @@ export class FrigateCardLiveProvider extends LitElement {
     this._providerRef.value?.seek(seconds);
   }
 
-  protected _getResolvedProvider(): LiveProvider {
+  /**
+   * Get the fully resolved live provider.
+   * @returns A live provider (that is not 'auto').
+   */
+  protected _getResolvedProvider(): Omit<LiveProvider, 'auto'> {
     if (this.cameraConfig?.live_provider === 'auto') {
       if (
         this.cameraConfig?.webrtc_card?.entity ||
@@ -714,6 +717,35 @@ export class FrigateCardLiveProvider extends LitElement {
   }
 
   /**
+   * Determine if a camera image should be shown in lieu of the real stream
+   * whilst loading.
+   * @returns`true` if an image should be shown.
+   */
+  protected _shouldShowImageDuringLoading(): boolean {
+    return (
+      !!this.cameraConfig?.camera_entity &&
+      !!this.hass &&
+      !!this.liveConfig?.show_image_during_load
+    );
+  }
+
+  /**
+   * Record that video media is being shown.
+   */
+  protected _videoMediaShowHandler(): void {
+    this._isVideoMediaLoaded = true;
+  }
+
+  /**
+   * Called before each update.
+   */
+  protected willUpdate(): void {
+    if (this.disabled) {
+      this._isVideoMediaLoaded = false;
+    }
+  }
+
+  /**
    * Master render method.
    * @returns A rendered template.
    */
@@ -727,31 +759,59 @@ export class FrigateCardLiveProvider extends LitElement {
     this.ariaLabel = this.label;
 
     const provider = this._getResolvedProvider();
+    const showImage = !this._isVideoMediaLoaded && this._shouldShowImageDuringLoading();
+    const providerClasses = {
+      hidden: showImage,
+    };
 
     return html`
-      ${provider == 'ha'
-        ? html` <frigate-card-live-ha
-            ${ref(this._providerRef)}
+      ${showImage
+        ? html`<frigate-card-image
+            .imageConfig=${{
+              mode: 'camera' as const,
+              refresh_seconds: 1,
+            }}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
           >
+          </frigate-card-image>`
+        : html``}
+      ${provider === 'ha'
+        ? html` <frigate-card-live-ha
+            ${ref(this._providerRef)}
+            class=${classMap(providerClasses)}
+            .hass=${this.hass}
+            .cameraConfig=${this.cameraConfig}
+            @frigate-card:media-show=${this._videoMediaShowHandler.bind(this)}
+          >
           </frigate-card-live-ha>`
-        : provider == 'webrtc-card'
+        : provider === 'webrtc-card'
         ? html`<frigate-card-live-webrtc-card
             ${ref(this._providerRef)}
+            class=${classMap(providerClasses)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
             .webRTCConfig=${this.liveConfig.webrtc_card}
+            @frigate-card:media-show=${this._videoMediaShowHandler.bind(this)}
           >
           </frigate-card-live-webrtc-card>`
         : html` <frigate-card-live-jsmpeg
             ${ref(this._providerRef)}
+            class=${classMap(providerClasses)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
             .jsmpegConfig=${this.liveConfig.jsmpeg}
+            @frigate-card:media-show=${this._videoMediaShowHandler.bind(this)}
           >
           </frigate-card-live-jsmpeg>`}
     `;
+  }
+
+  /**
+   * Get styles.
+   */
+  static get styles(): CSSResultGroup {
+    return unsafeCSS(liveProviderStyle);
   }
 }
 
@@ -1006,11 +1066,11 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
     this.updateComplete.then(() => {
       const video = this._getPlayer();
       if (video) {
-        const onloadedmetadata = video.onloadedmetadata;
+        const onloadeddata = video.onloadeddata;
 
-        video.onloadedmetadata = (e) => {
-          if (onloadedmetadata) {
-            onloadedmetadata.call(video, e);
+        video.onloadeddata = (e) => {
+          if (onloadeddata) {
+            onloadeddata.call(video, e);
           }
           dispatchMediaShowEvent(this, video);
         };

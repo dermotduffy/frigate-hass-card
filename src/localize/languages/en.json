@@ -125,6 +125,7 @@
       "lazy_load": "Live cameras are lazily loaded",
       "lazy_unload": "Live cameras are lazily unloaded",
       "preload": "Preload live view in the background",
+      "show_image_during_load": "Show still image while the live stream is loading",
       "transition_effect": "Live camera transition effect"
     },
     "media_viewer": {

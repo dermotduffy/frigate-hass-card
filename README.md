@@ -327,6 +327,7 @@ See the [fully expanded live configuration example](#config-expanded-live) for h
 | `lazy_unload` | `never` | :heavy_multiplication_x: | When to lazily **un**load lazyily-loaded cameras. `never` will never lazily-unload, `unselected` will lazy-unload a camera when it is unselected in the carousel, `hidden` will lazy-unload all cameras when the browser/tab becomes hidden or `all` on any opportunity to lazily unload (i.e. either case). This will cause a reloading delay on revisiting that camera in the carousel but will save the streaming network resources that are otherwise consumed. This option has no effect if `lazy_load` is false. Some live providers (e.g. `webrtc-card`) implement their own lazy unloading independently which may occur regardless of the value of this setting.|
 | `draggable` | `true` | :heavy_multiplication_x: | Whether or not the live carousel can be dragged left or right, via touch/swipe and mouse dragging. |
 | `transition_effect` | `slide` | :heavy_multiplication_x: | Effect to apply as a transition between live cameras. Accepted values: `slide` or `none`. |
+| `show_image_during_load` | `true` | :white_check_mark: | If `true`, during the initial stream load, a still image will be shown instead of the loading video stream. This still image will auto-refresh every 1 second and will be replaced with the live stream once loaded. |
 | `actions` | | :white_check_mark: | Actions to use for the `live` view. See [actions](#actions) below.|
 | `controls` | | :white_check_mark: | Configuration for the `live` view controls. See below. |
 | `jsmpeg` | | :white_check_mark: | Configuration for the `frigate-jsmpeg` live provider. See below.|
@@ -2703,6 +2704,10 @@ You must be using a version of the [Frigate integration](https://github.com/blak
 ### Chrome autoplays when a tab becomes visible again
 
 Even if `live.auto_play` or `media_viewer.auto_play` is set to `never`, Chrome itself will still auto play a video that was previously playing prior to the tab being hidden, once that tab is visible again. This behavior cannot be influenced by the card. Other browsers (e.g. Firefox, Safari) do not exhibit this behavior.
+
+### The `live` view just shows a blank white image during loading
+
+For some slowly loading cameras, for which [Home Assistant stream preloading](https://www.home-assistant.io/integrations/camera/) is not enabled, Home Assistant may return a blank white image when asked for a still. These stills are used during initial Frigate card load of the `live` view if the `live.show_image_during_load` option is enabled. Disabling this option should show the default media loading controls (e.g. a spinner or empty video player) instead of the blank white image.
 
 <a name="jsmpeg-troubleshooting"></a>
 

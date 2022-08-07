@@ -9,7 +9,7 @@ import {
   getConfigValue,
   isConfigUpgradeable,
   setConfigValue,
-  upgradeConfig
+  upgradeConfig,
 } from './config-mgmt.js';
 import {
   CONF_CAMERAS,
@@ -57,6 +57,7 @@ import {
   CONF_LIVE_LAZY_LOAD,
   CONF_LIVE_LAZY_UNLOAD,
   CONF_LIVE_PRELOAD,
+  CONF_LIVE_SHOW_IMAGE_DURING_LOAD,
   CONF_LIVE_TRANSITION_EFFECT,
   CONF_MEDIA_VIEWER_AUTO_MUTE,
   CONF_MEDIA_VIEWER_AUTO_PAUSE,
@@ -99,7 +100,7 @@ import {
   CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_CYCLE_CAMERA,
   CONF_VIEW_UPDATE_FORCE,
-  CONF_VIEW_UPDATE_SECONDS
+  CONF_VIEW_UPDATE_SECONDS,
 } from './const.js';
 import { localize } from './localize/localize.js';
 import frigate_card_editor_style from './scss/editor.scss';
@@ -110,7 +111,7 @@ import {
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
-  THUMBNAIL_WIDTH_MIN
+  THUMBNAIL_WIDTH_MIN,
 } from './types.js';
 import { arrayMove } from './utils/basic.js';
 import { getCameraID, getCameraTitle } from './utils/camera.js';
@@ -1203,6 +1204,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_LIVE_TRANSITION_EFFECT,
                   this._transitionEffects,
                 )}
+                ${this._renderSwitch(
+                  CONF_LIVE_SHOW_IMAGE_DURING_LOAD,
+                  defaults.live.show_image_during_load,
+                )}
                 ${this._putInSubmenu(
                   MENU_LIVE_CONTROLS,
                   true,
@@ -1511,7 +1516,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 }
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card-editor": FrigateCardEditor
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card-editor': FrigateCardEditor;
+  }
 }

@@ -642,6 +642,7 @@ const liveConfigDefault = {
   lazy_unload: 'never' as const,
   draggable: true,
   transition_effect: 'slide' as const,
+  show_image_during_load: true,
   controls: {
     next_previous: {
       size: 48,
@@ -739,6 +740,7 @@ const liveOverridableConfigSchema = z
           .default(liveConfigDefault.controls.title),
       })
       .default(liveConfigDefault.controls),
+    show_image_during_load: z.boolean().default(liveConfigDefault.show_image_during_load),
   })
   .merge(actionsSchema);
 
