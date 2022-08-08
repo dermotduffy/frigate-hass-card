@@ -25,6 +25,7 @@ export async function homeAssistantWSRequest<T>(
   hass: HomeAssistant,
   schema: ZodSchema<T>,
   request: MessageBase,
+  passthrough = false,
 ): Promise<T> {
   let response;
   try {
@@ -44,7 +45,11 @@ export async function homeAssistantWSRequest<T>(
       request: request,
     });
   }
-  const parseResult = schema.safeParse(response);
+  // Some endpoints on the integration pass through JSON directly from Frigate
+  // These end up wrapped in a string and must be unwrapped first
+  const parseResult = passthrough
+    ? schema.safeParse(JSON.parse(response))
+    : schema.safeParse(response);
   if (!parseResult.success) {
     throw new FrigateCardError(localize('error.invalid_response'), {
       request: request,
