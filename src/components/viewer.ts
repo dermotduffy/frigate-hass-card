@@ -13,10 +13,7 @@ import { guard } from 'lit/directives/guard.js';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
-import {
-  dispatchFrigateCardErrorEvent,
-  renderProgressIndicator,
-} from '../components/message.js';
+import { renderProgressIndicator } from '../components/message.js';
 import viewerStyle from '../scss/viewer.scss';
 import viewerCarouselStyle from '../scss/viewer-carousel.scss';
 import {
@@ -27,7 +24,7 @@ import {
   FrigateBrowseMediaSource,
   frigateCardConfigDefaults,
   FrigateCardMediaPlayer,
-  MediaShowInfo,
+  MediaLoadedInfo,
   TransitionEffect,
   ViewerConfig,
 } from '../types.js';
@@ -48,8 +45,8 @@ import { Lazyload } from './embla-plugins/lazyload.js';
 import {
   FrigateCardMediaCarousel,
   IMG_EMPTY,
-  wrapMediaLoadEventForCarousel,
-  wrapMediaShowEventForCarousel,
+  wrapRawMediaLoadedEventForCarousel,
+  wrapMediaLoadedEventForCarousel,
 } from './media-carousel.js';
 import './next-prev-control.js';
 import './title-control.js';
@@ -619,7 +616,7 @@ export class FrigateCardViewerCarousel extends LitElement {
       .titlePopupConfig=${this.viewerConfig?.controls.title}
       transitionEffect=${this._getTransitionEffect()}
       @frigate-card:media-carousel:select=${this._setViewHandler.bind(this)}
-      @frigate-card:media-show=${this._recordingSeekHandler.bind(this)}
+      @frigate-card:media:loaded=${this._recordingSeekHandler.bind(this)}
     >
       <frigate-card-next-previous-control
         slot="previous"
@@ -706,8 +703,8 @@ export class FrigateCardViewerCarousel extends LitElement {
               )}
               .media=${mediaToRender}
               .hass=${this.hass}
-              @frigate-card:media-show=${(e: CustomEvent<MediaShowInfo>) => {
-                wrapMediaShowEventForCarousel(slideIndex, e);
+              @frigate-card:media:loaded=${(e: CustomEvent<MediaLoadedInfo>) => {
+                wrapMediaLoadedEventForCarousel(slideIndex, e);
               }}
             >
             </frigate-card-ha-hls-player>`
@@ -743,7 +740,7 @@ export class FrigateCardViewerCarousel extends LitElement {
                   !lazyLoad ||
                   lazyloadPlugin?.hasLazyloaded(slideIndex)
                 ) {
-                  wrapMediaLoadEventForCarousel(slideIndex, e);
+                  wrapRawMediaLoadedEventForCarousel(slideIndex, e);
                 }
               }}"
             />`}

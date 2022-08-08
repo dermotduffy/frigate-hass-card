@@ -152,7 +152,7 @@ export class View {
 
   /**
    * Determine if a view is of a piece of media (including the media viewer,
-   * live view, image view -- anything that can create a MediaShowInfo event).
+   * live view, image view -- anything that can create a MediaLoadedInfo event).
    */
   public isAnyMediaView(): boolean {
     return this.isViewerView() || this.is('live') || this.is('image');

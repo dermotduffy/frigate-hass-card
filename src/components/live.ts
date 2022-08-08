@@ -35,7 +35,7 @@ import {
   LiveConfig,
   LiveOverrides,
   LiveProvider,
-  MediaShowInfo,
+  MediaLoadedInfo,
   Message,
   TransitionEffect,
   WebRTCCardConfig,
@@ -46,15 +46,17 @@ import { getCameraIcon, getCameraTitle } from '../utils/camera.js';
 import { homeAssistantSignPath } from '../utils/ha';
 import { getFullDependentBrowseMediaQueryParameters } from '../utils/ha/browse-media.js';
 import {
-  dispatchExistingMediaShowInfoAsEvent,
+  dispatchExistingMediaLoadedInfoAsEvent,
   dispatchMediaShowEvent,
+  dispatchMediaUnloadedEvent,
 } from '../utils/media-info.js';
 import { dispatchViewContextChangeEvent, View } from '../view.js';
 import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import { Lazyload } from './embla-plugins/lazyload.js';
 import {
   FrigateCardMediaCarousel,
-  wrapMediaShowEventForCarousel,
+  wrapMediaLoadedEventForCarousel,
+  wrapMediaUnloadedEventForCarousel,
 } from './media-carousel.js';
 import { dispatchErrorMessageEvent } from './message.js';
 import './next-prev-control.js';
@@ -101,9 +103,9 @@ export class FrigateCardLive extends LitElement {
   // foreground and background (in preload mode).
   protected _intersectionObserver: IntersectionObserver;
 
-  // MediaShowInfo object and message from the underlying live object. In the
+  // MediaLoadedInfo object and message from the underlying live object. In the
   // case of pre-loading these may be propagated upwards later.
-  protected _savedMediaShowInfo: MediaShowInfo | null = null;
+  protected _savedMediaLoadedInfo: MediaLoadedInfo | null = null;
   protected _messageReceivedPostRender = false;
   protected _renderKey = 0;
 
@@ -124,11 +126,11 @@ export class FrigateCardLive extends LitElement {
     if (
       !this._inBackground &&
       !this._messageReceivedPostRender &&
-      this._savedMediaShowInfo
+      this._savedMediaLoadedInfo
     ) {
       // If this isn't being rendered in the background, the last render did not
       // generate a message and there's a saved MediaInfo, dispatch it upwards.
-      dispatchExistingMediaShowInfoAsEvent(this, this._savedMediaShowInfo);
+      dispatchExistingMediaLoadedInfoAsEvent(this, this._savedMediaLoadedInfo);
     }
 
     // Trigger a re-render which may be necessary if the prior render resulted
@@ -219,8 +221,8 @@ export class FrigateCardLive extends LitElement {
             ev.stopPropagation();
           }
         }}
-        @frigate-card:media-show=${(ev: CustomEvent<MediaShowInfo>) => {
-          this._savedMediaShowInfo = ev.detail;
+        @frigate-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
+          this._savedMediaLoadedInfo = ev.detail;
           if (this._inBackground) {
             ev.stopPropagation();
           }
@@ -509,8 +511,11 @@ export class FrigateCardLiveCarousel extends LitElement {
           .label=${getCameraTitle(this.hass, cameraConfig)}
           .liveConfig=${config}
           .hass=${this.hass}
-          @frigate-card:media-show=${(e: CustomEvent<MediaShowInfo>) => {
-            wrapMediaShowEventForCarousel(slideIndex, e);
+          @frigate-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
+            wrapMediaLoadedEventForCarousel(slideIndex, ev);
+          }}
+          @frigate-card:media:unloaded=${(ev: CustomEvent<void>) => {
+            wrapMediaUnloadedEventForCarousel(slideIndex, ev);
           }}
         >
         </frigate-card-live-provider>
@@ -739,9 +744,12 @@ export class FrigateCardLiveProvider extends LitElement {
   /**
    * Called before each update.
    */
-  protected willUpdate(): void {
-    if (this.disabled) {
-      this._isVideoMediaLoaded = false;
+  protected willUpdate(changedProps: PropertyValues): void {
+    if (changedProps.has('disabled')) {
+      if (this.disabled) {
+        this._isVideoMediaLoaded = false;
+        dispatchMediaUnloadedEvent(this);
+      }
     }
   }
 
@@ -782,7 +790,7 @@ export class FrigateCardLiveProvider extends LitElement {
             class=${classMap(providerClasses)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
-            @frigate-card:media-show=${this._videoMediaShowHandler.bind(this)}
+            @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >
           </frigate-card-live-ha>`
         : provider === 'webrtc-card'
@@ -792,7 +800,7 @@ export class FrigateCardLiveProvider extends LitElement {
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
             .webRTCConfig=${this.liveConfig.webrtc_card}
-            @frigate-card:media-show=${this._videoMediaShowHandler.bind(this)}
+            @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >
           </frigate-card-live-webrtc-card>`
         : html` <frigate-card-live-jsmpeg
@@ -801,7 +809,7 @@ export class FrigateCardLiveProvider extends LitElement {
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
             .jsmpegConfig=${this.liveConfig.jsmpeg}
-            @frigate-card:media-show=${this._videoMediaShowHandler.bind(this)}
+            @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >
           </frigate-card-live-jsmpeg>`}
     `;
