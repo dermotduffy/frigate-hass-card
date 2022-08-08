@@ -60,7 +60,7 @@ import {
   FrigateCardCustomAction,
   FrigateCardView,
   FRIGATE_CARD_VIEWS_USER_SPECIFIED,
-  MediaShowInfo,
+  MediaLoadedInfo,
   MEDIA_TYPE_IMAGE,
   MEDIA_TYPE_VIDEO,
   MESSAGE_TYPE_PRIORITIES,
@@ -96,7 +96,7 @@ import {
 } from './utils/ha/entity-registry.js';
 import { ResolvedMediaCache } from './utils/ha/resolved-media.js';
 import { supportsFeature } from './utils/ha/update.js';
-import { isValidMediaShowInfo } from './utils/media-info.js';
+import { isValidMediaLoadedInfo } from './utils/media-info.js';
 import { View } from './view.js';
 import pkg from '../package.json';
 import { ViewContext } from 'view';
@@ -186,8 +186,8 @@ export class FrigateCard extends LitElement {
   protected _updateTimerID: number | null = null;
 
   // Information about loaded media items.
-  protected _currentMediaShowInfo: MediaShowInfo | null = null;
-  protected _lastValidMediaShowInfo: MediaShowInfo | null = null;
+  protected _currentMediaLoadedInfo: MediaLoadedInfo | null = null;
+  protected _lastValidMediaLoadedInfo: MediaLoadedInfo | null = null;
 
   // Array of dynamic menu buttons to be added to menu.
   protected _dynamicMenuButtons: MenuButton[] = [];
@@ -279,7 +279,7 @@ export class FrigateCard extends LitElement {
       fullscreen: screenfull.isEnabled && screenfull.isFullscreen,
       camera: this._view?.camera,
       state: this._hass?.states,
-      mediaLoaded: !!this._currentMediaShowInfo,
+      mediaLoaded: !!this._currentMediaLoadedInfo,
     };
 
     // Update the components that need the new condition state. Passed directly
@@ -934,7 +934,7 @@ export class FrigateCard extends LitElement {
   protected _changeView(args?: { view?: View; resetMessage?: boolean }): void {
     const changeView = (view: View): void => {
       if (View.isMediaChange(this._view, view)) {
-        this._currentMediaShowInfo = null;
+        this._currentMediaLoadedInfo = null;
       }
       this._view = view;
       this._generateConditionState();
@@ -1629,17 +1629,17 @@ export class FrigateCard extends LitElement {
 
   /**
    * Handle a new piece of media being shown.
-   * @param e Event with MediaShowInfo details for the media.
+   * @param ev Event with MediaLoadedInfo details for the media.
    */
-  protected _mediaShowHandler(e: CustomEvent<MediaShowInfo>): void {
-    const mediaShowInfo = e.detail;
+  protected _mediaLoadedHandler(ev: CustomEvent<MediaLoadedInfo>): void {
+    const mediaLoadedInfo = ev.detail;
     // In Safari, with WebRTC, 0x0 is occasionally returned during loading,
     // so treat anything less than a safety cutoff as bogus.
-    if (!isValidMediaShowInfo(mediaShowInfo)) {
+    if (!isValidMediaLoadedInfo(mediaLoadedInfo)) {
       return;
     }
 
-    this._lastValidMediaShowInfo = this._currentMediaShowInfo = mediaShowInfo;
+    this._lastValidMediaLoadedInfo = this._currentMediaLoadedInfo = mediaLoadedInfo;
 
     // An update may be required to draw elements.
     this._generateConditionState();
@@ -1719,8 +1719,8 @@ export class FrigateCard extends LitElement {
     }
 
     const aspectRatioMode = this._getConfig().dimensions.aspect_ratio_mode;
-    if (aspectRatioMode == 'dynamic' && this._lastValidMediaShowInfo) {
-      return `${this._lastValidMediaShowInfo.width} / ${this._lastValidMediaShowInfo.height}`;
+    if (aspectRatioMode == 'dynamic' && this._lastValidMediaLoadedInfo) {
+      return `${this._lastValidMediaLoadedInfo.width} / ${this._lastValidMediaLoadedInfo.height}`;
     }
 
     const defaultAspectRatio = this._getConfig().dimensions.aspect_ratio;
@@ -1796,7 +1796,7 @@ export class FrigateCard extends LitElement {
       @frigate-card:message=${this._messageHandler.bind(this)}
       @frigate-card:view:change=${this._changeViewHandler.bind(this)}
       @frigate-card:view:change-context=${this._addViewContextHandler.bind(this)}
-      @frigate-card:media-show=${this._mediaShowHandler.bind(this)}
+      @frigate-card:media:loaded=${this._mediaLoadedHandler.bind(this)}
       @frigate-card:render=${() => this.requestUpdate()}
     >
       ${renderMenuAbove ? this._renderMenu() : ''}
@@ -1940,8 +1940,8 @@ export class FrigateCard extends LitElement {
    * @returns The Lovelace card size in units of 50px.
    */
   public getCardSize(): number {
-    if (this._lastValidMediaShowInfo) {
-      return this._lastValidMediaShowInfo.height / 50;
+    if (this._lastValidMediaLoadedInfo) {
+      return this._lastValidMediaLoadedInfo.height / 50;
     }
     return 6;
   }

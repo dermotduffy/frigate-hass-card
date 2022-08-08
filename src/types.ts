@@ -1203,7 +1203,7 @@ export interface BrowseMediaNeighbors {
   nextIndex: number | null;
 }
 
-export interface MediaShowInfo {
+export interface MediaLoadedInfo {
   width: number;
   height: number;
 }
