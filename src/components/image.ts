@@ -145,12 +145,14 @@ export class FrigateCardImage extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     document.addEventListener('visibilitychange', this._boundVisibilityHandler);
+    this._cachedValueController?.startTimer();
   }
 
   /**
    * Component disconnected callback.
    */
   disconnectedCallback(): void {
+    this._cachedValueController?.stopTimer();
     document.removeEventListener('visibilitychange', this._boundVisibilityHandler);
     super.disconnectedCallback();
   }
@@ -170,6 +172,7 @@ export class FrigateCardImage extends LitElement {
       // re-generation of a new URL would generate an unauthorized request
       // (401), see:
       // https://github.com/dermotduffy/frigate-hass-card/issues/398
+      this._cachedValueController?.stopTimer();
       this._cachedValueController?.clearValue();
       this._forceSafeImage();
     } else {
@@ -177,6 +180,7 @@ export class FrigateCardImage extends LitElement {
       // restore the image src. If the HASS object is old (i.e. browser tab was
       // inactive for some time) this update request may be (correctly)
       // rejected.
+      this._cachedValueController?.startTimer();
       this.requestUpdate();
     }
   }
