@@ -332,6 +332,7 @@ See the [fully expanded live configuration example](#config-expanded-live) for h
 | `controls` | | :white_check_mark: | Configuration for the `live` view controls. See below. |
 | `jsmpeg` | | :white_check_mark: | Configuration for the `frigate-jsmpeg` live provider. See below.|
 | `webrtc_card` | | :white_check_mark: | Configuration for the `webrtc-card` live provider. See below.|
+| `layout` | | :white_check_mark: | See [media layout](#media-layout) below.|
 
 #### Live Provider: JSMPEG Configuration
 
@@ -437,6 +438,7 @@ See the [fully expanded Media viewer configuration example](#config-expanded-med
 | `transition_effect` | `slide` | :heavy_multiplication_x: | Effect to apply as a transition between event media. Accepted values: `slide` or `none`. |
 | `controls` | | :heavy_multiplication_x: | Configuration for the Media viewer controls. See below. |
 | `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `media_viewer` (e.g. `clip`, `snapshot`). See [actions](#actions) below.|
+| `layout` | | :white_check_mark: | See [media layout](#media-layout) below.|
 
 #### Media Viewer Controls: Next / Previous
 
@@ -468,8 +470,8 @@ media_viewer:
 | `mode` | `none` | :heavy_multiplication_x: | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).|
 | `size` | 100 | :heavy_multiplication_x: | The size of the thumbnails in the thumbnail carousel pixels. Must be >= `75` and <= `175`.|
 | `show_details` | `false` | :heavy_multiplication_x: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
-| `show_favorite_control` | `true` | :white_check_mark: | Whether to show the favorite ('star') control on each thumbnail.|
-| `show_timeline_control` | `true` | :white_check_mark: | Whether to show the timeline ('target') control on each thumbnail.|
+| `show_favorite_control` | `true` | :heavy_multiplication_x: | Whether to show the favorite ('star') control on each thumbnail.|
+| `show_timeline_control` | `true` | :heavy_multiplication_x: | Whether to show the timeline ('target') control on each thumbnail.|
 
 #### Media Viewer Controls: Title
 
@@ -502,8 +504,8 @@ See the [fully expanded event gallery configuration example](#config-expanded-ev
 | - | - | - | - |
 | `size` | 100 | :heavy_multiplication_x: | The size of the thumbnails in the event gallery in pixels. Must be >= `75` and <= `175`.|
 | `show_details` | `false` | :heavy_multiplication_x: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
-| `show_favorite_control` | `true` | :white_check_mark: | Whether to show the favorite ('star') control on each thumbnail.|
-| `show_timeline_control` | `true` | :white_check_mark: | Whether to show the timeline ('target') control on each thumbnail.|
+| `show_favorite_control` | `true` | :heavy_multiplication_x: | Whether to show the favorite ('star') control on each thumbnail.|
+| `show_timeline_control` | `true` | :heavy_multiplication_x: | Whether to show the timeline ('target') control on each thumbnail.|
 | `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `event_gallery` (e.g. `clips`, `snapshots`). See [actions](#actions) below.|
 
 ### Image Options
@@ -565,6 +567,8 @@ timeline:
 | `show_favorite_control` | `true` | :white_check_mark: | Whether to show the favorite ('star') control on each thumbnail.|
 | `show_timeline_control` | `true` | :white_check_mark: | Whether to show the timeline ('target') control on each thumbnail.|
 
+<a name="dimensions"></a>
+
 ### Dimensions Options
 
 These options control the aspect-ratio of the entire card to make placement in
@@ -583,8 +587,8 @@ See the [fully expanded dimensions configuration example](#config-expanded-dimen
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `aspect_ratio_mode` | `dynamic` | :heavy_multiplication_x: | The aspect ratio mode to use. Acceptable values: `dynamic`, `static`, `unconstrained`. See [aspect ratios](#aspect-ratios) below.|
-| `aspect_ratio` | `16:9` | :heavy_multiplication_x: | The aspect ratio  to use. Acceptable values: `<W>:<H>` or `<W>/<H>`. See [aspect ratios](#aspect-ratios) below.|
+| `aspect_ratio_mode` | `dynamic` | :white_check_mark: | The aspect ratio mode to use. Acceptable values: `dynamic`, `static`, `unconstrained`. See [aspect ratios](#aspect-ratios) below.|
+| `aspect_ratio` | `16:9` | :white_check_mark: | The aspect ratio  to use. Acceptable values: `<W>:<H>` or `<W>/<H>`. See [aspect ratios](#aspect-ratios) below.|
 
 #### `dimensions.aspect_ratio_mode`:
 
@@ -615,6 +619,8 @@ The card aspect ratio can be changed with the `dimensions.aspect_ratio_mode` and
 If no aspect ratio is specified or available, but one is needed then `16:9` will
 be used by default.
 
+<a name="overrides"></a>
+
 ### Overrides Options
 
 All configuration is a list under:
@@ -642,6 +648,34 @@ item, that has both of the following parameters set:
 | - | - | - | - |
 | `conditions` | | :heavy_multiplication_x: | A set of conditions that must evaluate to `true` in order for the overrides to be applied. See [Frigate Card Conditions](#frigate-card-conditions). |
 | `overrides` | | :heavy_multiplication_x: |Configuration overrides to be applied. Any configuration parameter described in this documentation as 'Overridable' is supported. |
+
+<a name="media-layout"></a>
+
+### Media Layout
+
+The `live`, `media_viewer` and `image` sections all support `layout` option which is used to control the fit and position of the media _within_ the card dimensions (in order to control the card dimensions themselves see [the dimensions parameter](#dimensions) ).
+
+As the default card behavior is for the card to always expand to fit the media, these options only make sense if `dimensions.aspect_ratio_mode` is set to `static`.
+
+All configuration is under:
+
+```yaml
+live:
+  layout:
+image:
+  layout:
+media_viewer:
+  layout:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `fit` | `contain` | :white_check_mark: | If `contain`, the media is contained within the card and letterboxed if necessary. If `cover`, the media is expanded proportionally (i.e. maintaining the media aspect ratio) until the card is fully covered. If `fill`, the media is stretched to fill the card (i.e. ignoring the media aspect ratio). See [CSS object-fit](https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit) for technical details and a visualization. |
+| `position` | | :white_check_mark: | A dictionary that contains an `x` and `y` percentage (`0` - `100`) to control the position of the media when the fit is `cover`. This can be effectively used to "pan" the media around. At any given time, only one of `x` and `y` will have an effect, depending on whether media width is larger than the card width (in which case `x` controls the position) or the media height is larger than the card height (in which case `y` controls the position). A value of `0` means maximally to the left or top of the media, a value of `100` means maximally to the right or bottom of the media. See [CSS object-position](https://developer.mozilla.org/en-US/docs/Web/CSS/object-position) for technical details and a visualization. |
+
+If multiple cameras are configured in the card, use [overrides](#overrides) to configure different values per camera.
+
+See [media layout examples](#media-layout-examples).
 
 <a name="webrtc"></a>
 
@@ -1281,6 +1315,11 @@ live:
     title:
       mode: popup-bottom-right
       duration_seconds: 2
+  layout:
+    fit: contain
+    position:
+      x: 50
+      y: 50
   actions:
     entity: light.office_main_lights
     tap_action:
@@ -1326,6 +1365,11 @@ media_viewer:
     title:
       mode: popup-bottom-right
       duration_seconds: 2
+  layout:
+    fit: contain
+    position:
+      x: 50
+      y: 50
   actions:
     entity: light.office_main_lights
     tap_action:
@@ -1382,6 +1426,11 @@ Reference: [Image Options](#image-options).
 image:
   mode: url
   refresh_seconds: 0
+  layout:
+    fit: contain
+    position:
+      x: 50
+      y: 50
   actions:
     entity: light.office_main_lights
     tap_action:
@@ -2597,6 +2646,95 @@ view:
     trigger_show_border: true
 ```
 </details>
+
+<a name="media-layout-examples"></a>
+
+### Changing the Media Layout
+
+Change how the media fits and is positioned within the card dimensions.
+
+<details>
+  <summary>Expand: Stretching an image</summary>
+
+Stretch the stock Frigate card image into a 4:4 square.
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.landing
+view:
+  default: image
+dimensions:
+  aspect_ratio_mode: static
+  aspect_ratio: '4:4'
+image:
+  layout:
+    fit: fill
+```
+</details>
+
+<details>
+  <summary>Expand: Convert a landscape camera to a portrait live view</summary>
+
+Take the left-hand side (position with x == `0` and use that as the basis of a `9:16` (i.e. portrait) live view.
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.landing
+dimensions:
+  aspect_ratio_mode: static
+  aspect_ratio: '9:16'
+live:
+  layout:
+    fit: cover
+    position:
+      x: 0
+```
+</details>
+
+<details>
+  <summary>Expand: Complex example to vary the media layouts for different cameras</summary>
+
+Configure three cameras (all natively landscape): the first uses automatic expansion of dimensions (the default), the second uses a portrait (`9:16`) card focused on the left side (`x` == `0`) of the media, the third uses a portrait (`9:16`) card focused on the right side (`x` == `100`) of the media.
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.landing
+  - camera_entity: camera.living_room
+  - camera_entity: camera.sitting_room
+overrides:
+  - conditions:
+      camera:
+        - camera.living_room
+        - camera.sitting_room
+    overrides:
+      dimensions:
+        aspect_ratio_mode: static
+        aspect_ratio: '9:16'
+      live:
+        layout:
+          fit: cover
+  - conditions:
+      camera:
+        - camera.living_room
+    overrides:
+      live:
+        layout:
+          position:
+            x: 0
+  - conditions:
+      camera:
+        - camera.sitting_room
+    overrides:
+      live:
+        layout:
+          position:
+            x: 100
+```
+</details>
+
 
 <a name="card-updates"></a>
 

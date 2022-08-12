@@ -54,6 +54,7 @@ import '../patches/ha-hls-player';
 import './surround-thumbnails';
 import { EmblaCarouselPlugins } from './carousel.js';
 import { renderTask } from '../utils/task.js';
+import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
 
 @customElement('frigate-card-viewer')
 export class FrigateCardViewer extends LitElement {
@@ -574,6 +575,16 @@ export class FrigateCardViewerCarousel extends LitElement {
   }
 
   /**
+   * Called when an update will occur.
+   * @param changedProps The changed properties
+   */
+  protected willUpdate(changedProps: PropertyValues): void {
+    if (changedProps.has('viewerConfig')) {
+      updateElementStyleFromMediaLayoutConfig(this, this.viewerConfig?.layout);
+    }
+  }
+
+  /**
    * Render the element, resolving the media first if necessary.
    */
   protected render(): TemplateResult | void {
@@ -664,6 +675,12 @@ export class FrigateCardViewerCarousel extends LitElement {
     }
   }
 
+  /**
+   * Render a single media item in the viewer carousel.
+   * @param mediaToRender The FrigateBrowseMediaSource to render.
+   * @param slideIndex The index of the slide to render.
+   * @returns A rendered template.
+   */
   protected _renderMediaItem(
     mediaToRender: FrigateBrowseMediaSource,
     slideIndex: number,

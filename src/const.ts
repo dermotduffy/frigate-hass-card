@@ -88,6 +88,11 @@ export const CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE =
   `${CONF_MEDIA_VIEWER}.controls.title.mode` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS =
   `${CONF_MEDIA_VIEWER}.controls.title.duration_seconds` as const;
+export const CONF_MEDIA_VIEWER_LAYOUT_FIT = `${CONF_MEDIA_VIEWER}.layout.fit` as const;
+export const CONF_MEDIA_VIEWER_LAYOUT_POSITION_X =
+  `${CONF_MEDIA_VIEWER}.layout.position.x` as const;
+export const CONF_MEDIA_VIEWER_LAYOUT_POSITION_Y =
+  `${CONF_MEDIA_VIEWER}.layout.position.y` as const;
 
 export const CONF_LIVE = 'live' as const;
 export const CONF_LIVE_AUTO_PLAY = `${CONF_LIVE}.auto_play` as const;
@@ -113,16 +118,23 @@ export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
 export const CONF_LIVE_CONTROLS_TITLE_MODE = `${CONF_LIVE}.controls.title.mode` as const;
 export const CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS =
   `${CONF_LIVE}.controls.title.duration_seconds` as const;
+export const CONF_LIVE_LAYOUT_FIT = `${CONF_LIVE}.layout.fit` as const;
+export const CONF_LIVE_LAYOUT_POSITION_X = `${CONF_LIVE}.layout.position.x` as const;
+export const CONF_LIVE_LAYOUT_POSITION_Y = `${CONF_LIVE}.layout.position.y` as const;
 export const CONF_LIVE_DRAGGABLE = `${CONF_LIVE}.draggable` as const;
 export const CONF_LIVE_JSMPEG = `${CONF_LIVE}.jsmpeg` as const;
 export const CONF_LIVE_LAZY_LOAD = `${CONF_LIVE}.lazy_load` as const;
 export const CONF_LIVE_LAZY_UNLOAD = `${CONF_LIVE}.lazy_unload` as const;
 export const CONF_LIVE_PRELOAD = `${CONF_LIVE}.preload` as const;
 export const CONF_LIVE_TRANSITION_EFFECT = `${CONF_LIVE}.transition_effect` as const;
-export const CONF_LIVE_SHOW_IMAGE_DURING_LOAD = `${CONF_LIVE}.show_image_during_load` as const;
+export const CONF_LIVE_SHOW_IMAGE_DURING_LOAD =
+  `${CONF_LIVE}.show_image_during_load` as const;
 export const CONF_LIVE_WEBRTC_CARD = `${CONF_LIVE}.webrtc_card` as const;
 
 export const CONF_IMAGE = 'image' as const;
+export const CONF_IMAGE_LAYOUT_FIT = `${CONF_IMAGE}.layout.fit` as const;
+export const CONF_IMAGE_LAYOUT_POSITION_X = `${CONF_IMAGE}.layout.position.x` as const;
+export const CONF_IMAGE_LAYOUT_POSITION_Y = `${CONF_IMAGE}.layout.position.y` as const;
 export const CONF_IMAGE_MODE = `${CONF_IMAGE}.mode` as const;
 export const CONF_IMAGE_REFRESH_SECONDS = `${CONF_IMAGE}.refresh_seconds` as const;
 export const CONF_IMAGE_URL = `${CONF_IMAGE}.url` as const;

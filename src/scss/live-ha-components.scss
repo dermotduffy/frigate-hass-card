@@ -1,0 +1,5 @@
+@use 'media-layout.scss'; 
+
+img, video {
+  @include media-layout.media-layout();
+}

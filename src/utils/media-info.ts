@@ -43,7 +43,7 @@ export function createMediaLoadedInfo(
  * @param element The element to send the event.
  * @param source An event or HTMLElement that should be used as a source.
  */
-export function dispatchMediaShowEvent(
+export function dispatchMediaLoadedEvent(
   element: HTMLElement,
   source: Event | HTMLElement,
 ): void {

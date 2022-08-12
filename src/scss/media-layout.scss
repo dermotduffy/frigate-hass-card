@@ -1,0 +1,5 @@
+@mixin media-layout {
+  object-fit: var(--frigate-card-media-layout-fit, contain);
+  object-position: var(--frigate-card-media-layout-position-x, 50%)
+    var(--frigate-card-media-layout-position-y, 50%);
+}

@@ -47,7 +47,7 @@ import { homeAssistantSignPath } from '../utils/ha';
 import { getFullDependentBrowseMediaQueryParameters } from '../utils/ha/browse-media.js';
 import {
   dispatchExistingMediaLoadedInfoAsEvent,
-  dispatchMediaShowEvent,
+  dispatchMediaLoadedEvent,
   dispatchMediaUnloadedEvent,
 } from '../utils/media-info.js';
 import { dispatchViewContextChangeEvent, View } from '../view.js';
@@ -67,6 +67,7 @@ import { EmblaCarouselPlugins } from './carousel.js';
 import { renderTask } from '../utils/task.js';
 import { classMap } from 'lit/directives/class-map.js';
 import './image';
+import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
 
 // Number of seconds a signed URL is valid for.
 const URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -751,6 +752,9 @@ export class FrigateCardLiveProvider extends LitElement {
         dispatchMediaUnloadedEvent(this);
       }
     }
+    if (changedProps.has('liveConfig')) {
+      updateElementStyleFromMediaLayoutConfig(this, this.liveConfig?.layout);
+    }
   }
 
   /**
@@ -1080,7 +1084,7 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
           if (onloadeddata) {
             onloadeddata.call(video, e);
           }
-          dispatchMediaShowEvent(this, video);
+          dispatchMediaLoadedEvent(this, video);
         };
       }
     });
@@ -1219,7 +1223,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
             // ignore any subsequent calls.
             if (!videoDecoded && this._jsmpegCanvasElement) {
               videoDecoded = true;
-              dispatchMediaShowEvent(this, this._jsmpegCanvasElement);
+              dispatchMediaLoadedEvent(this, this._jsmpegCanvasElement);
               resolve(player);
             }
           },

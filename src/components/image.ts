@@ -17,7 +17,8 @@ import { localize } from '../localize/localize.js';
 import imageStyle from '../scss/image.scss';
 import { CameraConfig, ImageViewConfig } from '../types.js';
 import { isHassDifferent } from '../utils/ha';
-import { dispatchMediaShowEvent } from '../utils/media-info.js';
+import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
+import { dispatchMediaLoadedEvent } from '../utils/media-info.js';
 import { View } from '../view.js';
 import { dispatchErrorMessageEvent } from './message.js';
 
@@ -99,6 +100,7 @@ export class FrigateCardImage extends LitElement {
           this._getImageSource.bind(this),
         );
       }
+      updateElementStyleFromMediaLayoutConfig(this, this.imageConfig?.layout);
     }
 
     // If the camera or view changed, immediately discard the old value (view to
@@ -228,7 +230,7 @@ export class FrigateCardImage extends LitElement {
           ${ref(this._refImage)}
           src=${live(src)}
           @load=${(ev: Event) => {
-            dispatchMediaShowEvent(this, ev);
+            dispatchMediaLoadedEvent(this, ev);
           }}
           @error=${() => {
             if (this.imageConfig?.mode === 'camera') {
