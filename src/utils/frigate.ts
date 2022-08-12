@@ -77,7 +77,8 @@ export const getRecordingsSummary = async (
       type: "frigate/recordings/summary",
       instance_id: client_id,
       camera: camera_name
-    }
+    },
+    true,
   );
 };
 
@@ -106,7 +107,8 @@ export const getRecordingSegments = async (
       camera: camera_name,
       before: Math.floor(before.getTime() / 1000),
       after: Math.ceil(after.getTime() / 1000),
-    }
+    },
+    true,
   );
 };
 
@@ -133,6 +135,7 @@ export async function retainEvent(
     hass,
     retainResultSchema,
     retainRequest,
+    true,
   );
   if (!response.success) {
     throw new FrigateCardError(localize('error.failed_retain'), {
