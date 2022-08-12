@@ -1,6 +1,9 @@
+@use 'media-layout.scss';
+
 img {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: scale-down;
+
+  @include media-layout.media-layout();
 }

@@ -26,6 +26,11 @@
   background: var(--secondary-background-color);
   display: grid;
 }
+// Space submenus from the next top-level options.
+.values + .option,
+.submenu + .option {
+  margin-top: 10px;
+}
 div.upgrade {
   width: auto;
   border: 1px dotted var(--primary-color);

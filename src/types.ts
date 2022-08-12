@@ -165,9 +165,11 @@ const moreInfoActionSchema = schemaForType<
 const customActionSchema = schemaForType<
   CustomActionConfig & ExtendedConfirmationRestrictionConfig
 >()(
-  actionBaseSchema.extend({
-    action: z.literal('fire-dom-event'),
-  }).passthrough(),
+  actionBaseSchema
+    .extend({
+      action: z.literal('fire-dom-event'),
+    })
+    .passthrough(),
 );
 const noActionSchema = schemaForType<
   NoActionConfig & ExtendedConfirmationRestrictionConfig
@@ -520,6 +522,18 @@ const pictureElementsSchema = pictureElementSchema.array().optional();
 export type PictureElements = z.infer<typeof pictureElementsSchema>;
 
 /**
+ * Media layout configuration section.
+ */
+const mediaLayoutConfigSchema = z.object({
+  fit: z.enum(['contain', 'cover', 'fill']).optional(),
+  position: z.object({
+    x: z.number().min(0).max(100).optional(),
+    y: z.number().min(0).max(100).optional(),
+  }).optional(),
+});
+export type MediaLayoutConfig = z.infer<typeof mediaLayoutConfigSchema>;
+
+/**
  * View configuration section.
  */
 const viewConfigDefault = {
@@ -580,6 +594,7 @@ const imageConfigSchema = z
     mode: z.enum(IMAGE_MODES).default(imageConfigDefault.mode),
     url: z.string().optional(),
     refresh_seconds: z.number().min(0).default(imageConfigDefault.refresh_seconds),
+    layout: mediaLayoutConfigSchema.optional(),
   })
   .merge(actionsSchema)
   .default(imageConfigDefault);
@@ -717,12 +732,14 @@ const liveOverridableConfigSchema = z
             show_details: thumbnailsControlSchema.shape.show_details.default(
               liveConfigDefault.controls.thumbnails.show_details,
             ),
-            show_favorite_control: thumbnailsControlSchema.shape.show_favorite_control.default(
-              liveConfigDefault.controls.thumbnails.show_favorite_control,
-            ),
-            show_timeline_control: thumbnailsControlSchema.shape.show_timeline_control.default(
-              liveConfigDefault.controls.thumbnails.show_timeline_control,
-            ),
+            show_favorite_control:
+              thumbnailsControlSchema.shape.show_favorite_control.default(
+                liveConfigDefault.controls.thumbnails.show_favorite_control,
+              ),
+            show_timeline_control:
+              thumbnailsControlSchema.shape.show_timeline_control.default(
+                liveConfigDefault.controls.thumbnails.show_timeline_control,
+              ),
             media: z
               .enum(['clips', 'snapshots'])
               .default(liveConfigDefault.controls.thumbnails.media),
@@ -740,7 +757,10 @@ const liveOverridableConfigSchema = z
           .default(liveConfigDefault.controls.title),
       })
       .default(liveConfigDefault.controls),
-    show_image_during_load: z.boolean().default(liveConfigDefault.show_image_during_load),
+    show_image_during_load: z
+      .boolean()
+      .default(liveConfigDefault.show_image_during_load),
+    layout: mediaLayoutConfigSchema.optional(),
   })
   .merge(actionsSchema);
 
@@ -917,12 +937,14 @@ const viewerConfigSchema = z
             show_details: thumbnailsControlSchema.shape.show_details.default(
               viewerConfigDefault.controls.thumbnails.show_details,
             ),
-            show_favorite_control: thumbnailsControlSchema.shape.show_favorite_control.default(
-              viewerConfigDefault.controls.thumbnails.show_favorite_control,
-            ),
-            show_timeline_control: thumbnailsControlSchema.shape.show_timeline_control.default(
-              viewerConfigDefault.controls.thumbnails.show_timeline_control,
-            ),
+            show_favorite_control:
+              thumbnailsControlSchema.shape.show_favorite_control.default(
+                viewerConfigDefault.controls.thumbnails.show_favorite_control,
+              ),
+            show_timeline_control:
+              thumbnailsControlSchema.shape.show_timeline_control.default(
+                viewerConfigDefault.controls.thumbnails.show_timeline_control,
+              ),
           })
           .default(viewerConfigDefault.controls.thumbnails),
         title: titleControlConfigSchema
@@ -937,6 +959,7 @@ const viewerConfigSchema = z
           .default(viewerConfigDefault.controls.title),
       })
       .default(viewerConfigDefault.controls),
+    layout: mediaLayoutConfigSchema.optional(),
   })
   .merge(actionsSchema)
   .default(viewerConfigDefault);
@@ -970,12 +993,14 @@ const galleryConfigSchema = z
             show_details: thumbnailsControlSchema.shape.show_details.default(
               galleryConfigDefault.controls.thumbnails.show_details,
             ),
-            show_favorite_control: thumbnailsControlSchema.shape.show_favorite_control.default(
-              galleryConfigDefault.controls.thumbnails.show_favorite_control,
-            ),
-            show_timeline_control: thumbnailsControlSchema.shape.show_timeline_control.default(
-              galleryConfigDefault.controls.thumbnails.show_timeline_control,
-            ),
+            show_favorite_control:
+              thumbnailsControlSchema.shape.show_favorite_control.default(
+                galleryConfigDefault.controls.thumbnails.show_favorite_control,
+              ),
+            show_timeline_control:
+              thumbnailsControlSchema.shape.show_timeline_control.default(
+                galleryConfigDefault.controls.thumbnails.show_timeline_control,
+              ),
           })
           .default(galleryConfigDefault.controls.thumbnails),
       })
@@ -1062,12 +1087,14 @@ const timelineConfigSchema = z
             show_details: thumbnailsControlSchema.shape.show_details.default(
               timelineConfigDefault.controls.thumbnails.show_details,
             ),
-            show_favorite_control: thumbnailsControlSchema.shape.show_favorite_control.default(
-              timelineConfigDefault.controls.thumbnails.show_favorite_control,
-            ),
-            show_timeline_control: thumbnailsControlSchema.shape.show_timeline_control.default(
-              timelineConfigDefault.controls.thumbnails.show_timeline_control,
-            ),
+            show_favorite_control:
+              thumbnailsControlSchema.shape.show_favorite_control.default(
+                timelineConfigDefault.controls.thumbnails.show_favorite_control,
+              ),
+            show_timeline_control:
+              thumbnailsControlSchema.shape.show_timeline_control.default(
+                timelineConfigDefault.controls.thumbnails.show_timeline_control,
+              ),
           })
           .default(timelineConfigDefault.controls.thumbnails),
       })
@@ -1086,6 +1113,7 @@ const overrideConfigurationSchema = z.object({
   menu: deepRemoveDefaults(menuConfigSchema).optional(),
   image: deepRemoveDefaults(imageConfigSchema).optional(),
   view: deepRemoveDefaults(viewConfigSchema).optional(),
+  dimensions: deepRemoveDefaults(dimensionsConfigSchema).optional(),
 });
 export type OverrideConfigurationKey = keyof z.infer<typeof overrideConfigurationSchema>;
 
@@ -1213,13 +1241,13 @@ export const MESSAGE_TYPE_PRIORITIES = {
   error: 20,
   connection: 30,
   diagnostics: 40,
-}
+};
 
 export type MessageType = 'info' | 'error' | 'connection' | 'diagnostics';
 
 export interface Message {
   message: string;
-  type: MessageType,
+  type: MessageType;
   icon?: string;
   context?: unknown;
   dotdotdot?: boolean;

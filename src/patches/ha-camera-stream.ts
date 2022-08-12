@@ -9,13 +9,14 @@
 // available as compilation time.
 // ====================================================================
 
-import { css, html, TemplateResult } from 'lit';
+import { css, CSSResultGroup, html, unsafeCSS, TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
 import { FrigateCardMediaPlayer } from '../types.js';
-import { dispatchMediaShowEvent } from '../utils/media-info.js';
-import "./ha-hls-player";
-import "./ha-web-rtc-player";
+import { dispatchMediaLoadedEvent } from '../utils/media-info.js';
+import './ha-hls-player';
+import './ha-web-rtc-player';
+import liveHAComponentsStyle from '../scss/live-ha-components.scss';
 
 customElements.whenDefined('ha-camera-stream').then(() => {
   // ========================================================================================
@@ -98,8 +99,8 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       if (this._shouldRenderMJPEG) {
         return html`
           <img
-            @load=${(e) => {
-              dispatchMediaShowEvent(this, e);
+            @load=${(ev: Event) => {
+              dispatchMediaLoadedEvent(this, ev);
             }}
             .src=${typeof this._connected == 'undefined' || this._connected
               ? computeMJPEGStreamUrl(this.stateObj)
@@ -138,6 +139,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
     static get styles(): CSSResultGroup {
       return [
         super.styles,
+        unsafeCSS(liveHAComponentsStyle),
         css`
           :host {
             width: 100%;
@@ -146,7 +148,6 @@ customElements.whenDefined('ha-camera-stream').then(() => {
           img {
             width: 100%;
             height: 100%;
-            object-fit: contain;
           }
         `,
       ];
@@ -155,7 +156,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
 });
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card-ha-camera-stream": FrigateCardHaCameraStream
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card-ha-camera-stream': FrigateCardHaCameraStream;
+  }
 }

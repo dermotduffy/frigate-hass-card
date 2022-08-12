@@ -9,11 +9,12 @@
 // available as compilation time.
 // ====================================================================
 
-import { html, TemplateResult } from 'lit';
+import { css, CSSResultGroup, html, unsafeCSS, TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
 import { dispatchErrorMessageEvent } from '../components/message.js';
-import { dispatchMediaShowEvent } from '../utils/media-info.js';
+import { dispatchMediaLoadedEvent } from '../utils/media-info.js';
+import liveHAComponentsStyle from '../scss/live-ha-components.scss';
 
 customElements.whenDefined('ha-web-rtc-player').then(() => {
   @customElement('frigate-card-ha-web-rtc-player')
@@ -86,10 +87,27 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
           ?playsinline=${this.playsInline}
           ?controls=${this.controls}
           @loadeddata=${(e) => {
-            dispatchMediaShowEvent(this, e);
+            dispatchMediaLoadedEvent(this, e);
           }}
         ></video>
       `;
+    }
+
+    static get styles(): CSSResultGroup {
+      return [
+        super.styles,
+        unsafeCSS(liveHAComponentsStyle),
+        css`
+          :host {
+            width: 100%;
+            height: 100%;
+          }
+          video {
+            width: 100%;
+            height: 100%;
+          }
+        `,
+      ];
     }
   }
 });

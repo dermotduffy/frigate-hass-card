@@ -56,6 +56,18 @@
         "selected": "On selection",
         "unselected": "On unselection",
         "visible": "On browser/tab visibility"
+      },
+      "layout": {
+        "fit": "Layout fit",
+        "fits": {
+          "cover": "Media expands proportionally to cover the card",
+          "contain": "Media is contained/letterboxed",
+          "fill": "Media is stretched to fill the card"
+        },
+        "position": {
+          "x": "Horizontal placement percentage",
+          "y": "Vertical placement percentage"
+        }
       }
     },
     "dimensions": {
@@ -79,6 +91,7 @@
       }
     },
     "image": {
+      "layout": "Image Layout",
       "mode": "Image view mode",
       "modes": {
         "camera": "Home Assistant camera snapshot of camera entity",
@@ -122,6 +135,7 @@
         }
       },
       "draggable": "Live cameras view can be dragged/swiped",
+      "layout": "Live Layout",
       "lazy_load": "Live cameras are lazily loaded",
       "lazy_unload": "Live cameras are lazily unloaded",
       "preload": "Preload live view in the background",
@@ -172,6 +186,7 @@
       },
       "draggable": "Media Viewer can be dragged/swiped",
       "lazy_load": "Media Viewer media is lazily loaded in carousel",
+      "layout": "Media Viewer Layout",
       "transition_effect": "Media Viewer transition effect",
       "transition_effects": {
         "none": "No transition",

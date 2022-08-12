@@ -1,3 +1,5 @@
+@use 'media-layout.scss';
+
 .embla__slide {
   height: 100%;
   flex: 0 0 100%;
@@ -8,7 +10,5 @@
   width: 100%;
   height: 100%;
 
-  // Letterbox media. <frigate-card-ha-hls-player> has similar added directly in
-  // its element.
-  object-fit: contain;
+  @include media-layout.media-layout();
 }
