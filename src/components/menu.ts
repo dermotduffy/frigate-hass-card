@@ -5,7 +5,7 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS
+  unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -19,17 +19,18 @@ import type {
   MenuButton,
   MenuConfig,
   MenuItem,
-  StateParameters
+  StateParameters,
 } from '../types.js';
 import {
   convertActionToFrigateCardCustomAction,
   frigateCardHandleActionConfig,
   frigateCardHasAction,
-  getActionConfigGivenAction
+  getActionConfigGivenAction,
 } from '../utils/action.js';
 import { FRIGATE_ICON_SVG_PATH } from '../utils/frigate.js';
 import { refreshDynamicStateParameters } from '../utils/ha';
 import './submenu.js';
+import './hover-styler.js';
 
 export const FRIGATE_BUTTON_MENU_ICON = 'frigate';
 
@@ -272,24 +273,28 @@ export class FrigateCardMenu extends LitElement {
     // - Static styling based on domain (`data-domain`) and state
     //   (`data-state`). This looks up a CSS style in `menu.scss`.
 
-    return html` <ha-icon-button
-      data-domain=${ifDefined(stateParameters.data_domain)}
-      data-state=${ifDefined(stateParameters.data_state)}
-      class="${classMap(classes)}"
-      style="${styleMap(stateParameters.style || {})}"
-      .actionHandler=${actionHandler({
-        hasHold: hasHold,
-        hasDoubleClick: hasDoubleClick,
-      })}
-      .label=${stateParameters.title || ''}
-      @action=${(ev) => this._actionHandler(ev, button)}
+    return html` <frigate-card-hover-styler
+      .nonHoverStyle=${stateParameters['style']}
+      .hoverStyle=${stateParameters['style:hover']}
     >
-      ${svgPath
-        ? html`<ha-svg-icon .path="${svgPath}"></ha-svg-icon>`
-        : html`<ha-icon
-            icon="${stateParameters.icon || 'mdi:gesture-tap-button'}"
-          ></ha-icon>`}
-    </ha-icon-button>`;
+      <ha-icon-button
+        data-domain=${ifDefined(stateParameters.data_domain)}
+        data-state=${ifDefined(stateParameters.data_state)}
+        class="${classMap(classes)}"
+        .actionHandler=${actionHandler({
+          hasHold: hasHold,
+          hasDoubleClick: hasDoubleClick,
+        })}
+        .label=${stateParameters.title || ''}
+        @action=${(ev) => this._actionHandler(ev, button)}
+      >
+        ${svgPath
+          ? html`<ha-svg-icon .path="${svgPath}"></ha-svg-icon>`
+          : html`<ha-icon
+              icon="${stateParameters.icon || 'mdi:gesture-tap-button'}"
+            ></ha-icon>`}
+      </ha-icon-button>
+    </frigate-card-hover-styler>`;
   }
 
   /**
@@ -342,7 +347,7 @@ export class FrigateCardMenu extends LitElement {
 }
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card-menu": FrigateCardMenu
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card-menu': FrigateCardMenu;
+  }
 }

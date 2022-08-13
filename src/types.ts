@@ -267,6 +267,7 @@ const actionsSchema = z.object({
 
 const elementsBaseSchema = actionsBaseSchema.extend({
   style: z.object({}).passthrough().optional(),
+  'style:hover': z.object({}).passthrough().optional(),
   title: z.string().nullable().optional(),
 });
 
@@ -1259,6 +1260,7 @@ export interface StateParameters {
   title?: string | null;
   state_color?: boolean;
   style?: StyleInfo;
+  'style:hover'?: StyleInfo;
   data_domain?: string;
   data_state?: string;
 }
