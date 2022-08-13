@@ -13,6 +13,7 @@ import { SideDrawer } from 'side-drawer';
 import drawerInjectStyle from '../scss/drawer-inject.scss';
 import drawerStyle from '../scss/drawer.scss';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
+import { isHoverableDevice } from '../utils/basic';
 
 @customElement('frigate-card-drawer')
 export class FrigateCardDrawer extends LitElement {
@@ -36,6 +37,8 @@ export class FrigateCardDrawer extends LitElement {
   protected _refSlot: Ref<HTMLSlotElement> = createRef();
 
   protected _resizeObserver = new ResizeObserver(() => this._hideDrawerIfNecessary());
+
+  protected readonly _isHoverableDevice = isHoverableDevice();
 
   /**
    * Called on the first update.
@@ -110,7 +113,11 @@ export class FrigateCardDrawer extends LitElement {
                   class="control"
                   icon="${this.open ? 'mdi:menu-open' : 'mdi:menu'}"
                   @mouseenter=${() => {
-                    if (!this.open) {
+                    // Only open the drawer on mousenter when the device
+                    // supports hover (otherwise iOS may end up passing on
+                    // subsequent click events to a different element, see:
+                    // https://github.com/dermotduffy/frigate-hass-card/issues/801
+                    if (this._isHoverableDevice && !this.open) {
                       this.open = true;
                     }
                   }}
@@ -130,8 +137,8 @@ export class FrigateCardDrawer extends LitElement {
 }
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card-drawer": FrigateCardDrawer
-    "side-drawer": SideDrawer,
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card-drawer': FrigateCardDrawer;
+    'side-drawer': SideDrawer;
+  }
 }

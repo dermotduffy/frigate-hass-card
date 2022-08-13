@@ -77,3 +77,11 @@ export function errorToConsole(e: Error, func?: CallableFunction): void {
     func(e);
   }
 }
+
+/**
+ * Determine if the device supports hovering.
+ * @returns `true` if the device supports hovering, `false` otherwise.
+ */
+export const isHoverableDevice = (): boolean => window.matchMedia(
+  '(hover: hover) and (pointer: fine)',
+).matches;
