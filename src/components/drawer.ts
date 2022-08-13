@@ -12,6 +12,7 @@ import 'side-drawer';
 import { SideDrawer } from 'side-drawer';
 import drawerInjectStyle from '../scss/drawer-inject.scss';
 import drawerStyle from '../scss/drawer.scss';
+import { stopEventFromActivatingCardWideActions } from '../utils/action';
 
 @customElement('frigate-card-drawer')
 export class FrigateCardDrawer extends LitElement {
@@ -100,7 +101,8 @@ export class FrigateCardDrawer extends LitElement {
           ? html`
               <div
                 class="control-surround"
-                @click=${() => {
+                @click=${(ev: Event) => {
+                  stopEventFromActivatingCardWideActions(ev);
                   this.open = !this.open;
                 }}
               >
