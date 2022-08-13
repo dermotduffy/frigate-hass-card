@@ -47,7 +47,7 @@ import {
   TimelineConfig,
 } from '../types';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
-import { dispatchFrigateCardEvent, errorToConsole, prettifyTitle } from '../utils/basic';
+import { dispatchFrigateCardEvent, errorToConsole, isHoverableDevice, prettifyTitle } from '../utils/basic';
 import { getCameraTitle } from '../utils/camera.js';
 import {
   getRecordingSegments,
@@ -548,9 +548,7 @@ export class FrigateCardTimelineCore extends LitElement {
   protected _pointerHeld = false;
   protected _ignoreClick = false;
 
-  protected static _isHoverableDevice = window.matchMedia(
-    '(hover: hover) and (pointer: fine)',
-  ).matches;
+  protected readonly _isHoverableDevice = isHoverableDevice();
 
   /**
    * Get a tooltip for a given timeline event.
@@ -559,7 +557,7 @@ export class FrigateCardTimelineCore extends LitElement {
    */
   protected _getTooltip(item: TimelineItem): string {
     const source = (<FrigateCardTimelineItem>item).source;
-    if (!FrigateCardTimelineCore._isHoverableDevice || !source) {
+    if (!this._isHoverableDevice || !source) {
       // Don't display tooltips on touch devices, they just get in the way of
       // the drawer.
       return '';
