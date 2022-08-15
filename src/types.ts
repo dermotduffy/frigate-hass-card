@@ -267,7 +267,6 @@ const actionsSchema = z.object({
 
 const elementsBaseSchema = actionsBaseSchema.extend({
   style: z.object({}).passthrough().optional(),
-  'style:hover': z.object({}).passthrough().optional(),
   title: z.string().nullable().optional(),
 });
 
@@ -447,12 +446,20 @@ const menuBaseSchema = z.object({
   icon: z.string().optional(),
 });
 
-export const menuIconSchema = menuBaseSchema.merge(iconSchema).extend({
-  type: z.literal('custom:frigate-card-menu-icon'),
+const frigateCardVisualBaseSchema = z.object({
+  'style:hover': z.object({}).passthrough().optional(),
 });
+
+export const menuIconSchema = menuBaseSchema
+  .merge(frigateCardVisualBaseSchema)
+  .merge(iconSchema)
+  .extend({
+    type: z.literal('custom:frigate-card-menu-icon'),
+  });
 export type MenuIcon = z.infer<typeof menuIconSchema>;
 
 export const menuStateIconSchema = menuBaseSchema
+  .merge(frigateCardVisualBaseSchema)
   .merge(stateIconSchema)
   .extend({
     type: z.literal('custom:frigate-card-menu-state-icon'),
@@ -460,26 +467,34 @@ export const menuStateIconSchema = menuBaseSchema
   .merge(menuBaseSchema);
 export type MenuStateIcon = z.infer<typeof menuStateIconSchema>;
 
-const menuSubmenuItemSchema = elementsBaseSchema.extend({
-  entity: z.string().optional(),
-  icon: z.string().optional(),
-  state_color: z.boolean().default(true),
-  selected: z.boolean().default(false),
-  subtitle: z.string().optional(),
-  enabled: z.boolean().default(true),
-});
+const menuSubmenuItemSchema = elementsBaseSchema
+  .merge(frigateCardVisualBaseSchema)
+  .extend({
+    entity: z.string().optional(),
+    icon: z.string().optional(),
+    state_color: z.boolean().default(true),
+    selected: z.boolean().default(false),
+    subtitle: z.string().optional(),
+    enabled: z.boolean().default(true),
+  });
 export type MenuSubmenuItem = z.infer<typeof menuSubmenuItemSchema>;
 
-const menuSubmenuSchema = menuBaseSchema.merge(iconSchema).extend({
-  type: z.literal('custom:frigate-card-menu-submenu'),
-  items: menuSubmenuItemSchema.array(),
-});
+const menuSubmenuSchema = menuBaseSchema
+  .merge(frigateCardVisualBaseSchema)
+  .merge(iconSchema)
+  .extend({
+    type: z.literal('custom:frigate-card-menu-submenu'),
+    items: menuSubmenuItemSchema.array(),
+  });
 export type MenuSubmenu = z.infer<typeof menuSubmenuSchema>;
 
-const menuSubmenuSelectSchema = menuBaseSchema.merge(stateIconSchema).extend({
-  type: z.literal('custom:frigate-card-menu-submenu-select'),
-  options: z.record(menuSubmenuItemSchema.deepPartial()).optional(),
-});
+const menuSubmenuSelectSchema = menuBaseSchema
+  .merge(frigateCardVisualBaseSchema)
+  .merge(stateIconSchema)
+  .extend({
+    type: z.literal('custom:frigate-card-menu-submenu-select'),
+    options: z.record(menuSubmenuItemSchema.deepPartial()).optional(),
+  });
 export type MenuSubmenuSelect = z.infer<typeof menuSubmenuSelectSchema>;
 
 export type MenuItem = MenuIcon | MenuStateIcon | MenuSubmenu | MenuSubmenuSelect;
@@ -527,10 +542,12 @@ export type PictureElements = z.infer<typeof pictureElementsSchema>;
  */
 const mediaLayoutConfigSchema = z.object({
   fit: z.enum(['contain', 'cover', 'fill']).optional(),
-  position: z.object({
-    x: z.number().min(0).max(100).optional(),
-    y: z.number().min(0).max(100).optional(),
-  }).optional(),
+  position: z
+    .object({
+      x: z.number().min(0).max(100).optional(),
+      y: z.number().min(0).max(100).optional(),
+    })
+    .optional(),
 });
 export type MediaLayoutConfig = z.infer<typeof mediaLayoutConfigSchema>;
 

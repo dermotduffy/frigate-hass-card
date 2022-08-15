@@ -274,7 +274,7 @@ export class FrigateCardMenu extends LitElement {
     //   (`data-state`). This looks up a CSS style in `menu.scss`.
 
     return html` <frigate-card-hover-styler
-      .nonHoverStyle=${stateParameters['style']}
+      .baseStyle=${stateParameters['style']}
       .hoverStyle=${stateParameters['style:hover']}
     >
       <ha-icon-button

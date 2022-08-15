@@ -9,7 +9,6 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../action-handler-directive.js';
 import submenuStyle from '../scss/submenu.scss';
 import {
@@ -24,6 +23,7 @@ import {
 } from '../utils/action.js';
 import { isHassDifferent, refreshDynamicStateParameters } from '../utils/ha';
 import { domainIcon } from '../utils/icons/domain-icon.js';
+import './hover-styler.js';
 
 @customElement('frigate-card-submenu')
 export class FrigateCardSubmenu extends LitElement {
@@ -41,7 +41,6 @@ export class FrigateCardSubmenu extends LitElement {
     const getIcon = (stateParameters: StateParameters): TemplateResult => {
       if (stateParameters.icon) {
         return html` <ha-icon
-          style="${styleMap(stateParameters.style || {})}"
           data-domain=${ifDefined(stateParameters.data_domain)}
           data-state=${ifDefined(stateParameters.data_state)}
           slot="graphic"
@@ -53,27 +52,32 @@ export class FrigateCardSubmenu extends LitElement {
     };
 
     return html`
-      <mwc-list-item
-        style="${styleMap(stateParameters.style || {})}"
-        graphic=${ifDefined(stateParameters.icon ? 'icon' : undefined)}
-        ?twoline=${!!item.subtitle}
-        ?selected=${item.selected}
-        ?activated=${item.selected}
-        ?disabled=${item.enabled === false}
-        aria-label="${stateParameters.title || ''}"
-        @action=${(ev) => {
-          // Attach the action config so ascendants have access to it.
-          ev.detail.config = item;
-        }}
-        .actionHandler=${actionHandler({
-          hasHold: frigateCardHasAction(item.hold_action),
-          hasDoubleClick: frigateCardHasAction(item.double_tap_action),
-        })}
+      <frigate-card-hover-styler
+        .baseStyle=${stateParameters.style}
+        .hoverStyle=${stateParameters['style:hover']}
+        .selector=${'mwc-list-item *'}
       >
-        <span>${stateParameters.title || ''}</span>
-        ${item.subtitle ? html`<span slot="secondary">${item.subtitle}</span>` : ''}
-        ${getIcon(stateParameters)}
-      </mwc-list-item>
+        <mwc-list-item
+          graphic=${ifDefined(stateParameters.icon ? 'icon' : undefined)}
+          ?twoline=${!!item.subtitle}
+          ?selected=${item.selected}
+          ?activated=${item.selected}
+          ?disabled=${item.enabled === false}
+          aria-label="${stateParameters.title || ''}"
+          @action=${(ev) => {
+            // Attach the action config so ascendants have access to it.
+            ev.detail.config = item;
+          }}
+          .actionHandler=${actionHandler({
+            hasHold: frigateCardHasAction(item.hold_action),
+            hasDoubleClick: frigateCardHasAction(item.double_tap_action),
+          })}
+        >
+          <span>${stateParameters.title || ''}</span>
+          ${item.subtitle ? html`<span slot="secondary">${item.subtitle}</span>` : ''}
+          ${getIcon(stateParameters)}
+        </mwc-list-item>
+      </frigate-card-hover-styler>
     `;
   }
 
@@ -92,23 +96,27 @@ export class FrigateCardSubmenu extends LitElement {
         }
         @click=${(ev) => stopEventFromActivatingCardWideActions(ev)}
       >
-        <ha-icon-button
-          style="${styleMap(this.submenu.style || {})}"
-          class="button"
+        <frigate-card-hover-styler
+          .baseStyle=${this.submenu.style}
+          .hoverStyle=${this.submenu['style:hover']}
           slot="trigger"
-          .label=${this.submenu.title || ''}
-          .actionHandler=${actionHandler({
-            // Need to allow event to propagate upwards, as it's caught by the
-            // <ha-button-menu> trigger slot to open/close the menu. Further
-            // propagation is forbidden by the @click handler on
-            // <ha-button-menu>.
-            allowPropagation: true,
-            hasHold: frigateCardHasAction(this.submenu.hold_action),
-            hasDoubleClick: frigateCardHasAction(this.submenu.double_tap_action),
-          })}
         >
-          <ha-icon icon="${this.submenu.icon}"></ha-icon>
-        </ha-icon-button>
+          <ha-icon-button
+            class="button"
+            .label=${this.submenu.title || ''}
+            .actionHandler=${actionHandler({
+              // Need to allow event to propagate upwards, as it's caught by the
+              // <ha-button-menu> trigger slot to open/close the menu. Further
+              // propagation is forbidden by the @click handler on
+              // <ha-button-menu>.
+              allowPropagation: true,
+              hasHold: frigateCardHasAction(this.submenu.hold_action),
+              hasDoubleClick: frigateCardHasAction(this.submenu.double_tap_action),
+            })}
+          >
+            <ha-icon icon="${this.submenu.icon}"></ha-icon>
+          </ha-icon-button>
+        </frigate-card-hover-styler>
         ${this.submenu.items.map(this._renderItem.bind(this))}
       </ha-button-menu>
     `;

@@ -211,6 +211,11 @@ export class FrigateCard extends LitElement {
   protected _triggers: Map<string, Date> = new Map();
   protected _untriggerTimerID: number | null = null;
 
+  // The style of emphasized menu items.
+  protected static _emphasizedButtonStyle: StyleInfo = {
+    color: 'var(--primary-color, white)',
+  };
+
   /**
    * Set the Home Assistant object.
    */
@@ -307,16 +312,6 @@ export class FrigateCard extends LitElement {
   }
 
   /**
-   * Get the style of emphasized menu items.
-   * @returns A StyleInfo.
-   */
-  protected _getEmphasizedStyle(): StyleInfo {
-    return {
-      color: 'var(--primary-color, white)',
-    };
-  }
-
-  /**
    * Given a button determine if the style should be emphasized by examining all
    * of the actions sequentially.
    * @param button The button to examine.
@@ -356,7 +351,7 @@ export class FrigateCard extends LitElement {
           (frigateCardAction.frigate_card_action === 'camera_select' &&
             this._view?.camera === frigateCardAction.camera)
         ) {
-          return this._getEmphasizedStyle();
+          return FrigateCard._emphasizedButtonStyle;
         }
       }
     }
@@ -415,7 +410,7 @@ export class FrigateCard extends LitElement {
       ...this._getConfig().menu.buttons.live,
       type: 'custom:frigate-card-menu-icon',
       title: localize('config.view.views.live'),
-      style: this._view?.is('live') ? this._getEmphasizedStyle() : {},
+      style: this._view?.is('live') ? FrigateCard._emphasizedButtonStyle : {},
       tap_action: createFrigateCardCustomAction('live') as FrigateCardCustomAction,
     });
 
@@ -434,7 +429,7 @@ export class FrigateCard extends LitElement {
         ...this._getConfig().menu.buttons.clips,
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.view.views.clips'),
-        style: this._view?.is('clips') ? this._getEmphasizedStyle() : {},
+        style: this._view?.is('clips') ? FrigateCard._emphasizedButtonStyle : {},
         tap_action: createFrigateCardCustomAction('clips') as FrigateCardCustomAction,
         hold_action: createFrigateCardCustomAction('clip') as FrigateCardCustomAction,
       });
@@ -453,7 +448,7 @@ export class FrigateCard extends LitElement {
         ...this._getConfig().menu.buttons.snapshots,
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.view.views.snapshots'),
-        style: this._view?.is('snapshots') ? this._getEmphasizedStyle() : {},
+        style: this._view?.is('snapshots') ? FrigateCard._emphasizedButtonStyle : {},
         tap_action: createFrigateCardCustomAction(
           'snapshots',
         ) as FrigateCardCustomAction,
@@ -468,7 +463,7 @@ export class FrigateCard extends LitElement {
       ...this._getConfig().menu.buttons.image,
       type: 'custom:frigate-card-menu-icon',
       title: localize('config.view.views.image'),
-      style: this._view?.is('image') ? this._getEmphasizedStyle() : {},
+      style: this._view?.is('image') ? FrigateCard._emphasizedButtonStyle : {},
       tap_action: createFrigateCardCustomAction('image') as FrigateCardCustomAction,
     });
 
@@ -486,7 +481,7 @@ export class FrigateCard extends LitElement {
         ...this._getConfig().menu.buttons.timeline,
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.view.views.timeline'),
-        style: this._view?.is('timeline') ? this._getEmphasizedStyle() : {},
+        style: this._view?.is('timeline') ? FrigateCard._emphasizedButtonStyle : {},
         tap_action: createFrigateCardCustomAction('timeline') as FrigateCardCustomAction,
       });
     }
@@ -525,7 +520,7 @@ export class FrigateCard extends LitElement {
         tap_action: createFrigateCardCustomAction(
           'fullscreen',
         ) as FrigateCardCustomAction,
-        style: screenfull.isFullscreen ? this._getEmphasizedStyle() : {},
+        style: screenfull.isFullscreen ? FrigateCard._emphasizedButtonStyle : {},
       });
     }
 

@@ -8,6 +8,12 @@ ha-icon-button.button {
   /* Buttons can always be clicked */
   pointer-events: auto;
   opacity: 0.9;
+
+  transition: opacity 0.2s linear;
+}
+
+ha-icon-button.button:hover {
+  opacity: 1.0;
 }
 
 // =====================================================================================

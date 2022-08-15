@@ -798,16 +798,39 @@ elements to add special Frigate card functionality.
 
 | Element name | Description                                         |
 | ------------- | --------------------------------------------- |
-| `custom:frigate-card-menu-icon` | Add an arbitrary icon to the Frigate Card menu. Configuration is ~identical to that of the [Picture Elements Icon](https://www.home-assistant.io/lovelace/picture-elements/#icon-element) except with a type name of `custom:frigate-card-menu-icon`.|
-| `custom:frigate-card-menu-state-icon` | Add a state icon to the Frigate Card menu that represents the state of a Home Assistant entity. Configuration is ~identical to that of the [Picture Elements State Icon](https://www.home-assistant.io/lovelace/picture-elements/#state-icon) except with a type name of `custom:frigate-card-menu-state-icon`.|
+| `custom:frigate-card-menu-icon` | Add an arbitrary icon to the Frigate Card menu. See [configuration below](#frigate-card-menu-icon). |
+| `custom:frigate-card-menu-state-icon` | Add a state icon to the Frigate Card menu that represents the state of a Home Assistant entity. See [configuration below](#frigate-card-menu-state-icon). |
 | `custom:frigate-card-menu-submenu` | Add a configurable submenu dropdown. See [configuration below](#frigate-card-menu-submenu).|
 | `custom:frigate-card-menu-submenu-select` | Add a submenu based on a `select` or `input_select`. See [configuration below](#frigate-card-submenu-select).|
 | `custom:frigate-card-conditional` | Restrict a set of elements to only render when the card is showing particular a particular [view](#views). See [configuration below](#frigate-card-conditional).|
 
-
 **Note**: ℹ️ Manual positioning of custom menu icons or submenus via the `style`
 parameter is not supported as the menu buttons displayed are context sensitive
 so manual positioning by the user is not feasible.
+
+**Note**: ℹ️ Support for special style on hover (`style:hover`) is only possible on the certain custom Frigate elements (and specifically not on stock picture elements, which are rendered by the Home Assistant frontend code).
+
+<a name="frigate-card-menu-icon"></a>
+
+#### `custom:frigate-card-menu-icon`
+
+Parameters for the `custom:frigate-card-menu-icon` element are identical to the parameters of the [stock Home Assistant Icon Element](https://www.home-assistant.io/lovelace/picture-elements/#icon-element) with the exception of these parameters which differ:
+
+| Parameter | Description |
+| - | - |
+| `type` | Must be `custom:frigate-card-menu-icon`. |
+| `style:hover` | Position and style the element during hover using CSS. |
+
+<a name="frigate-card-menu-state-icon"></a>
+
+#### `custom:frigate-card-menu-state-icon`
+
+Parameters for the `custom:frigate-card-menu-icon` element are identical to the parameters of the [stock Home Assistant State Icon Element](https://www.home-assistant.io/lovelace/picture-elements/#state-icon) with the exception of these parameters which differ:
+
+| Parameter | Description |
+| - | - |
+| `type` | Must be `custom:frigate-card-menu-state-icon`. |
+| `style:hover` | Position and style the element during hover using CSS. |
 
 <a name="frigate-card-submenu"></a>
 
@@ -818,6 +841,7 @@ Parameters for the `custom:frigate-card-menu-submenu` element are identical to t
 | Parameter | Description |
 | - | - |
 | `type` | Must be `custom:frigate-card-menu-submenu`. |
+| `style:hover` | Position and style the element during hover using CSS. |
 | `items` | A list of menu items, as described below. |
 
 <a name="frigate-card-submenu-items"></a>
@@ -833,6 +857,7 @@ Parameters for the `custom:frigate-card-menu-submenu` element are identical to t
 | `selected` | `false` | Whether or not to show this item as selected. |
 | `enabled` | `true` | Whether or not to show this item as enabled / selectable. |
 | `style` | | Position and style the element using CSS. |
+| `style:hover` | | Position and style the element during hover using CSS. |
 | `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` | | [Home Assistant action configuration](https://www.home-assistant.io/lovelace/actions) including the extended functionality described under [actions](#actions). |
 
 See the [Configuring a Submenu example](#configuring-a-submenu-example).
@@ -848,6 +873,7 @@ Parameters for the `custom:frigate-card-menu-submenu-select` element are identic
 | Parameter | Description |
 | - | - |
 | `type` | Must be `custom:frigate-card-menu-submenu-select`. |
+| `style:hover` | Position and style the element during hover using CSS. |
 | `options` | An optional dictionary of overrides keyed by the option name that the given select entity supports. These options can be used to set or override submenu item parameters on a per-option basis. The format is as described in [Submenu Items](#frigate-card-submenu-items) above.|
 
 See the [Configuring a Select Submenu example](#configuring-a-select-submenu-example).
@@ -885,7 +911,6 @@ Parameters for the `custom:frigate-card-conditional` element:
 |`camera_select`|Select a given camera. Takes a single additional `camera` parameter with the [camera ID](#camera-ids) of the camera to select. Respects the value of `view.camera_select` to choose the appropriate view on the new camera.|
 |`menu_toggle` | Show/hide the menu (for the `hidden` mode style). |
 |`media_player`| Perform a media player action. Takes a `media_player` parameter with the entity ID of the media_player on which to perform the action, and a `media_player_action` parameter which should be either `play` or `stop` to play or stop the media in question. |
-
 
 <a name="views"></a>
 
@@ -1614,35 +1639,67 @@ elements:
   - type: custom:frigate-card-menu-icon
     icon: mdi:car
     title: Vroom
+    style:
+      color: white
+    style:hover:
+      color: red
   - type: custom:frigate-card-menu-state-icon
     entity: light.office_main_lights
     title: Office lights
     icon: mdi:chair-rolling
     state_color: true
+    style:
+      color: white
+    style:hover:
+      color: red
   - type: custom:frigate-card-menu-submenu
     icon: mdi:menu
+    style:
+      color: white
+    style:hover:
+      color: red
     items:
       - title: Lights
         icon: mdi:lightbulb
         entity: light.office_main_lights
         tap_action:
           action: toggle
+        style:
+          color: white
+        style:hover:
+          color: red
       - title: Google
         icon: mdi:google
         enabled: false
         tap_action:
           action: url
           url_path: https://www.google.com
+        style:
+          color: white
+        style:hover:
+          color: red
   - type: custom:frigate-card-menu-submenu-select
     icon: mdi:lamps
     entity: input_select.kitchen_scene
+    style:
+      color: white
+    style:hover:
+      color: red
     options:
       scene.kitchen_cooking_scene:
         icon: mdi:chef-hat
         title: Cooking time!
+        style:
+          color: white
+        style:hover:
+          color: red
       scene.kitchen_tv_scene:
         icon: mdi:television
         title: TV!
+        style:
+          color: white
+        style:hover:
+          color: red
     # Show a pig icon if the card is in the live view, in fullscreen mode, light.office_main_lights is on and the media has been loaded.
   - type: custom:frigate-card-conditional
     elements:
