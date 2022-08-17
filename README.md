@@ -873,7 +873,7 @@ Parameters for the `custom:frigate-card-ptz` element:
 | ------------- | - | -------------------------------------------- |
 | `type` | | Must be `custom:frigate-card-ptz`. |
 | `style` | `translate(-50%, -50%)` | Position and style the element using CSS. See [Picture Element styling](https://www.home-assistant.io/dashboards/picture-elements/#how-to-use-the-style-object). |
-| `mode` | `vertical` | Whether to show a `vertical` or `horizontal` PTZ control. |
+| `orientation` | `vertical` | Whether to show a `vertical` or `horizontal` PTZ control. |
 | `actions_left`, `actions_right`, `actions_up`, `actions_down`, `actions_zoom_in`, `actions_zoom_out`, `actions_home` | The [Home Assistant actions](https://www.home-assistant.io/dashboards/actions/) to call when this icon is interacted with. |
 | `data_left`, `data_right`, `data_up`, `data_down`, `data_zoom_in`, `data_zoom_out`, `data_home` | Shorthand for a `tap_action` that calls the `service` with the data provided in this argument. Internally, this is just translated into the longer-form `actions_[button]`. If both `actions_X` and `data_X` are specified, `actions_X` takes priority. This is compatible with [AlexxIT's WebRTC Card PTZ configuration](https://github.com/AlexxIT/WebRTC/wiki/PTZ-Config-Examples). |
 | `service` | | An optional Home Assistant service to call when the `data_` parameters are used. |
@@ -1679,7 +1679,7 @@ elements:
       mediaLoaded: true
     # Full form PTZ actions (only left button shown).
   - type: custom:frigate-card-ptz
-    mode: vertical
+    orientation: vertical
     style:
       transform: none
       right: 20px
@@ -1693,7 +1693,7 @@ elements:
           cmd: left 
     # Equivalent short form PTZ actions (only left button shown)
   - type: custom:frigate-card-ptz
-    mode: vertical
+    orientation: vertical
     style:
       transform: none
       right: 20px
@@ -2590,7 +2590,7 @@ elements:
         - image
     elements:
       - type: custom:frigate-card-ptz
-        mode: horizontal
+        orientation: horizontal
         style:
           transform: none
           right: 20px
