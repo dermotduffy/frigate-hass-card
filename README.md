@@ -803,6 +803,7 @@ elements to add special Frigate card functionality.
 | `custom:frigate-card-menu-submenu` | Add a configurable submenu dropdown. See [configuration below](#frigate-card-menu-submenu).|
 | `custom:frigate-card-menu-submenu-select` | Add a submenu based on a `select` or `input_select`. See [configuration below](#frigate-card-submenu-select).|
 | `custom:frigate-card-conditional` | Restrict a set of elements to only render when the card is showing particular a particular [view](#views). See [configuration below](#frigate-card-conditional).|
+| `custom:frigate-card-ptz` | Add a PTZ (Pan Tilt Zoom) controller overlay. See [configuration below](#frigate-card-ptz).|
 
 
 **Note**: ℹ️ Manual positioning of custom menu icons or submenus via the `style`
@@ -863,6 +864,19 @@ Parameters for the `custom:frigate-card-conditional` element:
 | `type` | Must be `custom:frigate-card-conditional`. |
  `elements` | The elements to render. Can be any supported element, include additional condition or custom elements. |
 | `conditions` | A set of conditions that must evaluate to true in order for the elements to be rendered. See [Frigate Card Conditions](#frigate-card-conditions). |
+
+#### `custom:frigate-card-ptz`
+
+Parameters for the `custom:frigate-card-ptz` element:
+
+| Parameter | Default | Description |
+| ------------- | - | -------------------------------------------- |
+| `type` | | Must be `custom:frigate-card-ptz`. |
+| `style` | `translate(-50%, -50%)` | Position and style the element using CSS. See [Picture Element styling](https://www.home-assistant.io/dashboards/picture-elements/#how-to-use-the-style-object). |
+| `mode` | `vertical` | Whether to show a `vertical` or `horizontal` PTZ control. |
+| `actions_left`, `actions_right`, `actions_up`, `actions_down`, `actions_zoom_in`, `actions_zoom_out`, `actions_home` | The [Home Assistant actions](https://www.home-assistant.io/dashboards/actions/) to call when this icon is interacted with. |
+| `data_left`, `data_right`, `data_up`, `data_down`, `data_zoom_in`, `data_zoom_out`, `data_home` | Shorthand for a `tap_action` that calls the `service` with the data provided in this argument. Internally, this is just translated into the longer-form `actions_[button]`. If both `actions_X` and `data_X` are specified, `actions_X` takes priority. This is compatible with [AlexxIT's WebRTC Card PTZ configuration](https://github.com/AlexxIT/WebRTC/wiki/PTZ-Config-Examples). |
+| `service` | | An optional Home Assistant service to call when the `data_` parameters are used. |
 
 ### Special Actions
 
@@ -1663,6 +1677,31 @@ elements:
           state: on
           state_not: off
       mediaLoaded: true
+    # Full form PTZ actions (only left button shown).
+  - type: custom:frigate-card-ptz
+    mode: vertical
+    style:
+      transform: none
+      right: 20px
+      top: 180px
+    actions_left:
+      tap_action:
+        action: call-service
+        service: sonoff.send_command
+        service_data:
+          device: '048123'
+          cmd: left 
+    # Equivalent short form PTZ actions (only left button shown)
+  - type: custom:frigate-card-ptz
+    mode: vertical
+    style:
+      transform: none
+      right: 20px
+      top: 180px
+    service: sonoff.send_command
+    data_left:
+      device: '048123'
+      cmd: left
 ```
 </details>
 
@@ -2147,7 +2186,7 @@ You can restrict icons to only show for certain [views](#views) using a
 `custom:frigate-card-conditional` element (e.g. PTZ controls)
 
 <details>
-  <summary>Expand: View-based conditions (e.g. PTZ controls)</summary>
+  <summary>Expand: View-based conditions (e.g. custom PTZ controls)</summary>
 
 This example shows PTZ icons that call a PTZ service, but only in the `live` view.
 
@@ -2491,7 +2530,6 @@ overrides:
 ```
 </details>
 
-
 ### Refreshing a static image
 
 <details>
@@ -2529,6 +2567,47 @@ elements:
         camera: camera.office
       - action: custom:frigate-card-action
         frigate_card_action: live
+```
+</details>
+
+### Using a PTZ picture element
+
+The card supports a custom PTZ element (`custom:frigate-card-ptz`) to conveniently control pan, tilt and zoom for cameras.
+
+<details>
+  <summary>Expand: Using the native PTZ picture element</summary>
+
+This example shows the native PTZ element when the `live` or `image` view is displayed and the stream (media) has loaded.
+
+```yaml
+[...]
+elements:
+  - type: custom:frigate-card-conditional
+    conditions:
+      mediaLoaded: true
+      view:
+        - live
+        - image
+    elements:
+      - type: custom:frigate-card-ptz
+        mode: horizontal
+        style:
+          transform: none
+          right: 20px
+          top: 180px
+        service: sonoff.send_command
+        data_left:
+          device: '048123'
+          cmd: left
+        data_right:
+          device: '048123'
+          cmd: right
+        data_up:
+          device: '048123'
+          cmd: up
+        data_down:
+          device: '048123'
+          cmd: down
 ```
 </details>
 

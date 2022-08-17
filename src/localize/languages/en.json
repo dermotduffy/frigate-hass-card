@@ -372,5 +372,16 @@
     "no_thumbnail": "No thumbnail available",
     "retain_indefinitely": "Event will be indefinitely retained",
     "timeline": "See event in timeline"
+  },
+  "elements": {
+    "ptz": {
+      "up": "Up",
+      "down": "Down",
+      "left": "Left",
+      "right": "Right",
+      "zoom_in": "Zoom In",
+      "zoom_out": "Zoom Out",
+      "home": "Home"
+    }
   }
 }
