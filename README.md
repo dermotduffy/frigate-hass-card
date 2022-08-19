@@ -258,7 +258,7 @@ live:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `mode` | `none` | :white_check_mark: | Whether to show the thumbnail carousel `below` the media, `above` the media or to hide it entirely (`none`).|
-| `size` | `100px` | :white_check_mark: | The size of the thumbnails in the thumbnail carousel [in CSS Units](https://www.w3schools.com/cssref/css_units.asp).|
+| `size` | `100px` | :white_check_mark: | The size of the thumbnails in the thumbnail carousel [in CSS Units](https://www.scaler.com/topics/css/css-units/).|
 | `media` | `clips` | :white_check_mark: | Whether to show `clips` or `snapshots` in the thumbnail carousel in the `live` view.|
 
 #### Live Controls: Next / Previous
