@@ -1199,7 +1199,7 @@ export class FrigateCard extends LitElement {
   /**
    * Download media being displayed in the viewer.
    */
-  protected async _downloadViewerMedia(): Promise<void> {
+  protected _downloadViewerMedia(): void {
     if (!this._hass || !(this._view?.isViewerView() || this._view?.is('timeline'))) {
       // Should not occur.
       return;
@@ -1239,19 +1239,26 @@ export class FrigateCard extends LitElement {
           : 'snapshot.jpg'
       }` +
       `?download=true`;
-    let response: string | null | undefined;
-    try {
-      response = await homeAssistantSignPath(this._hass, path);
-    } catch (e) {
-      errorToConsole(e as Error);
-    }
 
-    if (!response) {
-      this._setMessageAndUpdate({
-        message: localize('error.download_sign_failed'),
-        type: 'error',
-      });
-      return;
+    const signPath = async (): Promise<string | null> => {
+      if (!this._hass) {
+        return null;
+      }
+      let response: string | null = null;
+      try {
+        response = await homeAssistantSignPath(this._hass, path);
+      } catch (e) {
+        errorToConsole(e as Error);
+      }
+
+      if (!response) {
+        this._setMessageAndUpdate({
+          message: localize('error.download_sign_failed'),
+          type: 'error',
+        });
+        return null;
+      }
+      return response;
     }
 
     if (
@@ -1264,15 +1271,30 @@ export class FrigateCard extends LitElement {
       // User-agents are specified here:
       //  - Android: https://github.com/home-assistant/android/blob/master/app/src/main/java/io/homeassistant/companion/android/webview/WebViewActivity.kt#L107
       //  - iOS: https://github.com/home-assistant/iOS/blob/master/Sources/Shared/API/HAAPI.swift#L75
-      window.open(response, '_blank');
+
+      // In iOS the companion app is not allowed to open new windows in an async
+      // context, so open the window first then set the location thereafter.
+      // https://github.com/dermotduffy/frigate-hass-card/issues/808
+      const newWindow = window.open();
+      signPath().then((response) => {
+        if (newWindow && response) {
+          newWindow.location = response;
+        } else {
+          newWindow?.close();
+        }
+      });
     } else {
-      // Use the HTML5 download attribute to prevent a new window from
-      // temporarily opening.
-      const link = document.createElement('a');
-      link.setAttribute('download', '');
-      link.href = response;
-      link.click();
-      link.remove();
+      signPath().then((response) => {
+        if (response) {
+          // Use the HTML5 download attribute to prevent a new window from
+          // temporarily opening.
+          const link = document.createElement('a');
+          link.setAttribute('download', '');
+          link.href = response;
+          link.click();
+          link.remove();
+        }
+      });
     }
   }
 
