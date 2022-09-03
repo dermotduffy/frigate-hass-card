@@ -746,7 +746,7 @@ All variables listed are under a `conditions:` section.
 | `state` | A list of state conditions to compare with Home Assistant state. See below. |
 | `mediaLoaded` | If `true` the condition is satisfied if there is media load**ED** (not load**ING**) in the card (e.g. a clip, snapshot or live view). This may be used to hide controls during media loading or when a message (not media) is being displayed. Note that if `true` this condition will never be satisfied for views that do not themselves load media directly (e.g. gallery).|
 
-See the [PTZ example below](#frigate-card-conditional-example) for a real-world example of how these conditions can be used.
+See the [example below](#frigate-card-conditional-example) for a real-world example of how these conditions can be used.
 
 ### State Conditions
 
@@ -1682,8 +1682,8 @@ elements:
     orientation: vertical
     style:
       transform: none
-      right: 20px
-      top: 180px
+      right: 5%
+      top: 50%
     actions_left:
       tap_action:
         action: call-service
@@ -2183,12 +2183,12 @@ elements:
 ### Restricting Icons To Certain Views
 
 You can restrict icons to only show for certain [views](#views) using a
-`custom:frigate-card-conditional` element (e.g. PTZ controls)
+`custom:frigate-card-conditional` element
 
 <details>
-  <summary>Expand: View-based conditions (e.g. custom PTZ controls)</summary>
+  <summary>Expand: View-based conditions</summary>
 
-This example shows PTZ icons that call a PTZ service, but only in the `live` view.
+This example shows a car icon that calls a service but only in the `live` view.
 
 ```yaml
 [...]
@@ -2199,7 +2199,7 @@ elements:
         - live
     elements:
       - type: icon
-        icon: mdi:arrow-up
+        icon: mdi:car
         style:
           background: rgba(255, 255, 255, 0.25)
           border-radius: 5px
@@ -2211,45 +2211,6 @@ elements:
           service_data:
             entity_id: camera.kitchen
             movement: up
-      - type: icon
-        icon: mdi:arrow-down
-        style:
-          background: rgba(255, 255, 255, 0.25)
-          border-radius: 5px
-          right: 25px
-          bottom: 0px
-        tap_action:
-          action: call-service
-          service: amcrest.ptz_control
-          service_data:
-            entity_id: camera.kitchen
-            movement: down
-      - type: icon
-        icon: mdi:arrow-left
-        style:
-          background: rgba(255, 255, 255, 0.25)
-          border-radius: 5px
-          right: 50px
-          bottom: 25px
-        tap_action:
-          action: call-service
-          service: amcrest.ptz_control
-          service_data:
-            entity_id: camera.kitchen
-            movement: left
-      - type: icon
-        icon: mdi:arrow-right
-        style:
-          background: rgba(255, 255, 255, 0.25)
-          border-radius: 5px
-          right: 0px
-          bottom: 25px
-        tap_action:
-          action: call-service
-          service: amcrest.ptz_control
-          service_data:
-            entity_id: camera.kitchen
-            movement: right
 ```
 </details>
 
