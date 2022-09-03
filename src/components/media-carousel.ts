@@ -293,6 +293,7 @@ export class FrigateCardMediaCarousel extends LitElement {
     this._resizeObserver.disconnect();
     this._intersectionObserver.disconnect();
 
+    this._mediaLoadedInfo = {};
     super.disconnectedCallback();
   }
 

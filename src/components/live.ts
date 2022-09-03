@@ -106,7 +106,7 @@ export class FrigateCardLive extends LitElement {
 
   // MediaLoadedInfo object and message from the underlying live object. In the
   // case of pre-loading these may be propagated upwards later.
-  protected _savedMediaLoadedInfo: MediaLoadedInfo | null = null;
+  protected _backgroundMediaLoadedInfo: MediaLoadedInfo | null = null;
   protected _messageReceivedPostRender = false;
   protected _renderKey = 0;
 
@@ -127,11 +127,12 @@ export class FrigateCardLive extends LitElement {
     if (
       !this._inBackground &&
       !this._messageReceivedPostRender &&
-      this._savedMediaLoadedInfo
+      this._backgroundMediaLoadedInfo
     ) {
       // If this isn't being rendered in the background, the last render did not
       // generate a message and there's a saved MediaInfo, dispatch it upwards.
-      dispatchExistingMediaLoadedInfoAsEvent(this, this._savedMediaLoadedInfo);
+      dispatchExistingMediaLoadedInfoAsEvent(this, this._backgroundMediaLoadedInfo);
+      this._backgroundMediaLoadedInfo = null;
     }
 
     // Trigger a re-render which may be necessary if the prior render resulted
@@ -223,8 +224,8 @@ export class FrigateCardLive extends LitElement {
           }
         }}
         @frigate-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
-          this._savedMediaLoadedInfo = ev.detail;
           if (this._inBackground) {
+            this._backgroundMediaLoadedInfo = ev.detail;
             ev.stopPropagation();
           }
         }}
@@ -733,6 +734,13 @@ export class FrigateCardLiveProvider extends LitElement {
       !!this.hass &&
       !!this.liveConfig?.show_image_during_load
     );
+  }
+
+  /**
+   * Component disconnected callback.
+   */
+  disconnectedCallback(): void {
+    this._isVideoMediaLoaded = false;
   }
 
   /**

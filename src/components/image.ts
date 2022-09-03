@@ -21,8 +21,9 @@ import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.j
 import { dispatchMediaLoadedEvent } from '../utils/media-info.js';
 import { View } from '../view.js';
 import { dispatchErrorMessageEvent } from './message.js';
+import { contentsChanged } from '../utils/basic.js';
 
-// See: https://github.com/home-assistant/core/blob/dev/homeassistant/components/camera/__init__.py#L101
+// See TOKEN_CHANGE_INTERVAL in https://github.com/home-assistant/core/blob/dev/homeassistant/components/camera/__init__.py .
 const HASS_REJECTION_CUTOFF_MS = 5 * 60 * 1000;
 
 @customElement('frigate-card-image')
@@ -36,7 +37,10 @@ export class FrigateCardImage extends LitElement {
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
 
-  @property({ attribute: false })
+  // Using contentsChanged to ensure overridden configs (e.g. when the
+  // 'show_image_during_load' option is true for live views, an overridden
+  // config may be used here).
+  @property({ attribute: false, hasChanged: contentsChanged })
   public imageConfig?: ImageViewConfig;
 
   protected _refImage: Ref<HTMLImageElement> = createRef();
