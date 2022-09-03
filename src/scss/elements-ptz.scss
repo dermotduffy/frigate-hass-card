@@ -1,0 +1,135 @@
+// Modified from / inspired by:
+// https://github.com/AlexxIT/WebRTC/blob/master/custom_components/webrtc/www/webrtc-camera.js
+:host {
+  position: relative;
+
+  width: fit-content;
+  height: fit-content;
+
+  --frigate-card-ptz-icon-size: 24px;
+}
+
+/*****************
+ * Main Containers
+ *****************/
+.ptz {
+  display: flex;
+  gap: 10px;
+
+  color: var(--light-primary-color);
+  opacity: 0.4;
+
+  transition: opacity 0.3s ease-in-out;
+}
+
+:host([data-orientation='vertical']) .ptz {
+  flex-direction: column;
+}
+:host([data-orientation='horizontal']) .ptz {
+  flex-direction: row;
+}
+
+.ptz:hover {
+  opacity: 1;
+}
+
+:host([data-orientation='vertical']) .ptz div {
+  width: calc(var(--frigate-card-ptz-icon-size) * 3);
+}
+:host([data-orientation='horizontal']) .ptz div {
+  height: calc(var(--frigate-card-ptz-icon-size) * 3);
+}
+
+.ptz-move,
+.ptz-zoom,
+.ptz-home {
+  position: relative;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.ptz-move {
+  height: calc(var(--frigate-card-ptz-icon-size) * 3);
+  width: calc(var(--frigate-card-ptz-icon-size) * 3);
+
+  border-radius: 50%;
+}
+
+:host([data-orientation='horizontal']) .ptz .ptz-zoom,
+:host([data-orientation='horizontal']) .ptz .ptz-home {
+  width: calc(var(--frigate-card-ptz-icon-size) * 1.5);
+}
+:host([data-orientation='vertical']) .ptz .ptz-zoom,
+:host([data-orientation='vertical']) .ptz .ptz-home {
+  height: calc(var(--frigate-card-ptz-icon-size) * 1.5);
+}
+
+.ptz-zoom,
+.ptz-home {
+  border-radius: var(--ha-card-border-radius, 4px);
+}
+
+/***********
+ * PTZ Icons
+ ***********/
+ha-icon {
+  position: absolute;
+  --mdc-icon-size: var(--frigate-card-ptz-icon-size);
+}
+ha-icon:not(.disabled) {
+  cursor: pointer;
+}
+.disabled {
+  color: var(--disabled-text-color);
+}
+.up {
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.down {
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.left {
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.right {
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+:host([data-orientation='vertical']) .zoom_in {
+  right: 5px;
+  top: 50%;
+}
+:host([data-orientation='vertical']) .zoom_out {
+  left: 5px;
+  top: 50%;
+}
+:host([data-orientation='horizontal']) .zoom_in {
+  left: 50%;
+  top: 5px;
+}
+:host([data-orientation='horizontal']) .zoom_out {
+  left: 50%;
+  bottom: 5px;
+}
+
+:host([data-orientation='vertical']) .zoom_in,
+:host([data-orientation='vertical']) .zoom_out {
+  transform: translateY(-50%);
+}
+:host([data-orientation='horizontal']) .zoom_in,
+:host([data-orientation='horizontal']) .zoom_out {
+  transform: translateX(-50%);
+}
+
+.home {
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+}

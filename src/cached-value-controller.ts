@@ -17,6 +17,7 @@ export class CachedValueController<T> implements ReactiveController {
    * Remove the controller for the host.
    */
   public removeController(): void {
+    this.stopTimer();
     this._host.removeController(this);
   }
 

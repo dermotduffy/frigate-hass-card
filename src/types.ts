@@ -499,6 +499,47 @@ const frigateConditionalSchema = z.object({
 });
 export type FrigateConditional = z.infer<typeof frigateConditionalSchema>;
 
+const frigateCardPTZSchema = z.preprocess(
+  // To avoid lots of YAML duplication, provide an easy way to just specify the
+  // service data as actions for each PTZ icon, and it will be preprocessed into
+  // the full form. This also provides compatability with the AlexIT/WebRTC PTZ
+  // configuration.
+  (data) => {
+    if (!data || typeof data !== 'object' || !data['service']) {
+      return data;
+    }
+    const out = { ...data };
+    ['left', 'right', 'up', 'down', 'zoom_in', 'zoom_out', 'home'].forEach((name) => {
+      if (`data_${name}` in data && !(`actions_${name}` in data)) {
+        out[`actions_${name}`] = {
+          tap_action: {
+            action: 'call-service',
+            service: data['service'],
+            service_data: data[`data_${name}`],
+          },
+        };
+        delete out[`data_${name}`];
+      }
+    });
+    return out;
+  },
+  z.object({
+    type: z.literal('custom:frigate-card-ptz'),
+    style: z.object({}).passthrough().optional(),
+    orientation: z.enum(['vertical', 'horizontal']).default('vertical').optional(),
+    service: z.string().optional(),
+    actions_left: actionsBaseSchema.optional(),
+    actions_right: actionsBaseSchema.optional(),
+    actions_up: actionsBaseSchema.optional(),
+    actions_down: actionsBaseSchema.optional(),
+    actions_zoom_in: actionsBaseSchema.optional(),
+    actions_zoom_out: actionsBaseSchema.optional(),
+    actions_home: actionsBaseSchema.optional(),
+  }),
+);
+
+export type FrigateCardPTZConfig = z.infer<typeof frigateCardPTZSchema>;
+
 // Cannot use discriminatedUnion since customSchema uses a superRefine, which
 // causes false rejections.
 const pictureElementSchema = z.union([
@@ -507,6 +548,7 @@ const pictureElementSchema = z.union([
   menuSubmenuSchema,
   menuSubmenuSelectSchema,
   frigateConditionalSchema,
+  frigateCardPTZSchema,
   stateBadgeIconSchema,
   stateIconSchema,
   stateLabelSchema,

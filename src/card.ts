@@ -1602,6 +1602,10 @@ export class FrigateCard extends LitElement {
 
     if (!this._message || newPriority >= currentPriority) {
       this._message = message;
+
+      // When a message is displayed it is effectively unloading the media.
+      this._mediaUnloadedHandler();
+
       if (!skipUpdate) {
         this.requestUpdate();
         this._resetMainScroll();
@@ -1647,6 +1651,14 @@ export class FrigateCard extends LitElement {
   }
 
   /**
+   * Unload a media item.
+   */
+  protected _mediaUnloadedHandler(): void {
+    this._currentMediaLoadedInfo = null;
+    this._generateConditionState();
+  }
+
+  /**
    * Handler called when fullscreen is toggled.
    */
   protected _fullscreenHandler(): void {
@@ -1672,6 +1684,9 @@ export class FrigateCard extends LitElement {
    * Component disconnected callback.
    */
   disconnectedCallback(): void {
+    // When the dashboard 'tab' is changed, the media is effectively unloaded.
+    this._mediaUnloadedHandler();
+    
     if (screenfull.isEnabled) {
       screenfull.off('change', this._fullscreenHandler.bind(this));
     }
@@ -1797,6 +1812,7 @@ export class FrigateCard extends LitElement {
       @frigate-card:view:change=${this._changeViewHandler.bind(this)}
       @frigate-card:view:change-context=${this._addViewContextHandler.bind(this)}
       @frigate-card:media:loaded=${this._mediaLoadedHandler.bind(this)}
+      @frigate-card:media:unloaded=${this._mediaUnloadedHandler.bind(this)}
       @frigate-card:render=${() => this.requestUpdate()}
     >
       ${renderMenuAbove ? this._renderMenu() : ''}
