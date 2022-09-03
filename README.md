@@ -1107,6 +1107,23 @@ Retain interesting Frigate events forever:
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/star.gif" alt="Retain events" width="400px">
 
+### PTZ Control
+
+Control a PTZ camera:
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/native-ptz.gif" alt="PTZ Control" width="400px">
+
+### Media Layout
+
+Pan around a large camera view to only show part of the video feed in the card at a different aspect ratio:
+
+#### Before
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/media-layout-a.png" alt="Media Layout A" width="400px">
+
+#### After
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/media-layout-b.png" alt="Media Layout B" width="400px">
 
 ## Examples
 
