@@ -7,6 +7,10 @@
   // Different browsers use different colors as their fullscreen background,
   // this ensures the same experience across all browsers.
   background-color: var(--card-background-color);
+
+  // The primary border-radius used is the div.main. This is only useful for
+  // keeping the background-color within the radius.
+  border-radius: var(--ha-card-border-radius, 4px);
 }
 
 :host([dark]) {
@@ -21,11 +25,6 @@ div.main {
   margin: auto;
   display: flex;
   justify-content: center;
-
-  // Need to apply the border radius on the container level, as the ha-card has
-  // overflow visible in order to allow a submenu to extend beyond the card
-  // boundary.
-  border-radius: var(--ha-card-border-radius, 4px);
 
   // Necessary to get Safari to show border-radius correctly.
   transform: translateZ(0);
@@ -43,6 +42,20 @@ div.main {
 /* Hide scrollbar for Chrome, Safari and Opera */
 div.main::-webkit-scrollbar {
   display: none;
+}
+
+// Need to apply the border radius on the container level, as the ha-card has
+// overflow visible in order to allow a submenu to extend beyond the card
+// boundary. Need to be able to selectively curve top or bottom depending on
+// whether the outside menu is being shown. There's no way to select 'preceding
+// element' in CSS, so this must be implemented in JS.
+div.main.curve-top {
+  border-top-left-radius: var(--ha-card-border-radius, 4px);
+  border-top-right-radius: var(--ha-card-border-radius, 4px);
+}
+div.main.curve-bottom {
+  border-bottom-left-radius: var(--ha-card-border-radius, 4px);
+  border-bottom-right-radius: var(--ha-card-border-radius, 4px);
 }
 
 /* The 'hover' menu mode is styling applied outside of the menu itself */
@@ -69,11 +82,6 @@ ha-card {
   height: 100%;
   position: static;
   color: var(--secondary-text-color, white);
-
-  // The primary border-radius used is the div.main, since this one has overflow
-  // explicitly visible this is only useful for keeping the background-color
-  // within the radius.
-  border-radius: var(--ha-card-border-radius, 4px);
 }
 ha-card.triggered {
   @keyframes warning-pulse {
