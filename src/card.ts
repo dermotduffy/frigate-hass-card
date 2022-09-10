@@ -1686,7 +1686,7 @@ export class FrigateCard extends LitElement {
   disconnectedCallback(): void {
     // When the dashboard 'tab' is changed, the media is effectively unloaded.
     this._mediaUnloadedHandler();
-    
+
     if (screenfull.isEnabled) {
       screenfull.off('change', this._fullscreenHandler.bind(this));
     }
@@ -1790,6 +1790,16 @@ export class FrigateCard extends LitElement {
         !!this._isTriggered() && this._getConfig().view.scan.show_trigger_status,
     };
 
+    const mainClasses = {
+      main: true,
+      'curve-top':
+        this._getConfig().menu.style !== 'outside' ||
+        this._getConfig().menu.position !== 'top',
+      'curve-bottom':
+        this._getConfig().menu.style !== 'outside' ||
+        this._getConfig().menu.position === 'top',
+    };
+
     const actions = this._getMergedActions();
     const renderMenuAbove =
       this._getConfig().menu.style === 'outside' &&
@@ -1816,7 +1826,7 @@ export class FrigateCard extends LitElement {
       @frigate-card:render=${() => this.requestUpdate()}
     >
       ${renderMenuAbove ? this._renderMenu() : ''}
-      <div ${ref(this._refMain)} class="main">
+      <div ${ref(this._refMain)} class="${classMap(mainClasses)}">
         ${this._cameras === undefined && !this._message
           ? until(
               (async () => {
