@@ -303,6 +303,9 @@ export class FrigateCardThumbnail extends LitElement {
                 .removeContext('timeline')
                 .dispatchChangeEvent(this);
             } else if (recording) {
+              // Specifically reset the media target/childIndex, as we cannot
+              // 'select' an hour in the timeline rather we set the window to
+              // matching values.
               this.view
                 ?.evolve({
                   view: 'timeline',

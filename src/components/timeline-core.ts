@@ -40,6 +40,7 @@ import {
   FrigateBrowseMediaSource,
   frigateCardConfigDefaults,
   FrigateEvent,
+  FrigateRecording,
   TimelineCoreConfig,
 } from '../types';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
@@ -65,7 +66,7 @@ import {
 } from '../utils/timeline-data-manager';
 import { View } from '../view';
 import { dispatchMessageEvent } from './message.js';
-import "./thumbnail.js";
+import './thumbnail.js';
 
 interface FrigateCardGroupData {
   id: string;
@@ -557,7 +558,7 @@ export class FrigateCardTimelineCore extends LitElement {
             childIndex: childIndex,
           }),
         })
-        .mergeInContext({ ...this._generateTimelineContext(true), ...context })
+        .mergeInContext({ ...this._generateTimelineContext(), ...context })
         .dispatchChangeEvent(this);
     }
   }
@@ -567,7 +568,7 @@ export class FrigateCardTimelineCore extends LitElement {
    * seek times into each media item).
    * @param children The media children.
    * @param targetTime The target time.
-   * @returns 
+   * @returns The ViewContext.
    */
   protected _generateMediaViewerContextForChildren(
     children: FrigateBrowseMediaSource[],
@@ -696,9 +697,9 @@ export class FrigateCardTimelineCore extends LitElement {
             childIndex = thumbnails.childIndex;
             if (thumbnails.target?.children?.length) {
               context = this._generateMediaViewerContextForChildren(
-                  thumbnails.target.children,
-                  properties.time,
-                );
+                thumbnails.target.children,
+                properties.time,
+              );
             }
           }
         } else {
@@ -771,7 +772,7 @@ export class FrigateCardTimelineCore extends LitElement {
                 target: thumbnails?.target ?? null,
                 childIndex: thumbnails?.childIndex ?? null,
               })
-              .mergeInContext(this._generateTimelineContext(true))
+              .mergeInContext(this._generateTimelineContext())
               .dispatchChangeEvent(this);
           }
         });
@@ -872,6 +873,15 @@ export class FrigateCardTimelineCore extends LitElement {
       sub(fromUnixTime(event.start_time), { seconds: windowSeconds / 2 }),
       add(fromUnixTime(event.start_time), { seconds: windowSeconds / 2 }),
     ];
+  }
+
+  /**
+   * Given a recording get the start/end window.
+   * @param recording The FrigateRecording to consider.
+   * @returns A tuple of start/end date.
+   */
+  protected _getStartEndFromRecording(recording: FrigateRecording): [Date, Date] {
+    return [fromUnixTime(recording.start_time), fromUnixTime(recording.end_time)];
   }
 
   /**
@@ -1004,8 +1014,12 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     const event = this.view?.media?.frigate?.event;
+    const recording = this.view?.media?.frigate?.recording;
+
     const [windowStart, windowEnd] = event
       ? this._getStartEndFromEvent(event)
+      : recording
+      ? this._getStartEndFromRecording(recording)
       : this._getStartEnd();
 
     let fetched = false;
@@ -1042,31 +1056,38 @@ export class FrigateCardTimelineCore extends LitElement {
       this.timelineDataManager?.rewriteItem(event.id);
     }
 
+    let contextWindow: TimelineWindow | null = null;
     if (!this._pointerHeld) {
       // Regenerate the thumbnails after the selection, to allow the new selection
       // to be in the generated view.
       const context = this.view.context?.timeline;
       const timelineWindow = this._timeline.getWindow();
 
-      if (context?.window) {
-        if (!isEqual(context.window, timelineWindow)) {
-          this._timeline.setWindow(context.window.start, context.window.end);
-        }
-      } else if (event) {
-        const eventStart = new Date(event.start_time * 1000);
-        const eventEnd = event.end_time ? new Date(event.end_time * 1000) : 0;
+      // If there's a set context window, always move to it.
+      if (context?.window && !isEqual(context.window, timelineWindow)) {
+        contextWindow = {start: context.window.start, end: context.window.end};
+      } else if (event || recording) {
+        const source = event ?? recording as FrigateEvent | FrigateRecording;
+        const start = fromUnixTime(source.start_time);
+        const end = source.end_time ? fromUnixTime(source.end_time) : 0;
 
+        // If there's an event or recording outside the current window, move to it.
         if (
-          eventStart < timelineWindow.start ||
-          eventStart > timelineWindow.end ||
-          (eventEnd &&
-            (eventEnd < timelineWindow.start || eventEnd > timelineWindow.end))
+          start < timelineWindow.start ||
+          start > timelineWindow.end ||
+          (end &&
+            (end < timelineWindow.start || end > timelineWindow.end))
         ) {
-          this._timeline.setWindow(windowStart, windowEnd);
+          contextWindow = {start: windowStart, end: windowEnd};
         }
       } else {
-        this._timeline.setWindow(windowStart, windowEnd);
+        // Otherwise just the default window.
+        contextWindow = {start: windowStart, end: windowEnd};
       }
+    }
+
+    if (contextWindow) {
+      this._timeline.setWindow(contextWindow.start, contextWindow.end);
     }
 
     // Only generate thumbnails if an actual fetch occurred, to avoid getting
@@ -1078,15 +1099,17 @@ export class FrigateCardTimelineCore extends LitElement {
     //    -> Thumbnails generated
     //      -> New view dispatched (to load thumbnails into outer carousel).
     //  -> New view received ... [loop]
-
-    if ((fetched || !this.view.context?.timeline?.generatedThumbnails) && !this.mini) {
+    //
+    // Also don't generate thumbnails in mini-timelines (they will already have
+    // been generated), or if the media child is a recording.
+    if ((fetched || !this.view.context?.timeline?.generatedThumbnails) && !this.mini && !recording) {
       const thumbnails = this._generateThumbnails();
       this.view
         ?.evolve({
           target: thumbnails?.target ?? null,
           childIndex: thumbnails?.childIndex ?? null,
         })
-        .mergeInContext(this._generateTimelineContext(false))
+        .mergeInContext(this._generateTimelineContext(contextWindow))
         .dispatchChangeEvent(this);
     }
   }
@@ -1097,16 +1120,12 @@ export class FrigateCardTimelineCore extends LitElement {
    * the window is preserved if it is already in the context.
    * @returns The TimelineViewContext object.
    */
-  protected _generateTimelineContext(addWindow: boolean): ViewContext {
-    const currentContext = this.view?.context?.timeline;
+  protected _generateTimelineContext(window?: TimelineWindow | null): ViewContext {
     const newContext: TimelineViewContext = {
       generatedThumbnails: true,
     };
-
-    if (addWindow && this._timeline) {
-      newContext.window = this._timeline.getWindow();
-    } else if (currentContext?.window) {
-      newContext.window = currentContext.window;
+    if (this._timeline) {
+      newContext.window = window ? window : this._timeline.getWindow();
     }
     if (this.timelineDataManager?.lastFetchDate) {
       newContext.dateFetch = this.timelineDataManager.lastFetchDate;

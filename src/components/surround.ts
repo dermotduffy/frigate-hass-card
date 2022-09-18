@@ -175,19 +175,20 @@ export class FrigateCardSurround extends LitElement {
             ) => {
               const child: FrigateBrowseMediaSource | null =
                 ev.detail.target?.children?.[ev.detail.childIndex] ?? null;
-              // Send the view change from the source of the tap event, so the
-              // view change will be caught by the handler above (to close the drawer).
               if (child) {
                 this.view
                   ?.evolve({
                     view: this.view.is('recording') ? 'recording' : 'media',
                     target: ev.detail.target,
                     childIndex: ev.detail.childIndex,
-                    context: null,
-                    ...(child?.frigate?.cameraID && {
-                      camera: child?.frigate?.cameraID,
+                    ...(child.frigate?.cameraID && {
+                      camera: child.frigate?.cameraID,
                     }),
                   })
+                  .removeContext('timeline')
+                  // Send the view change from the source of the tap event, so
+                  // the view change will be caught by the handler above (to
+                  // close the drawer).
                   .dispatchChangeEvent(ev.composedPath()[0]);
               }
             }}
