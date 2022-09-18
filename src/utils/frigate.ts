@@ -1,7 +1,7 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { z } from 'zod';
 import { localize } from '../localize/localize';
-import { CameraConfig, ExtendedHomeAssistant, FrigateCardError } from '../types';
+import { ExtendedHomeAssistant, FrigateCardError } from '../types';
 import { homeAssistantWSRequest } from './ha';
 
 export const FRIGATE_ICON_SVG_PATH =

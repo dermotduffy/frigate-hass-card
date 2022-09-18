@@ -1,5 +1,5 @@
 import './surround.js';
-import './timeline';
+import './timeline-core.js';
 
 import {
   CSSResultGroup,
@@ -43,7 +43,7 @@ declare module 'view' {
 }
 
 @customElement('frigate-card-surround-thumbnails')
-export class FrigateCardSurround extends LitElement {
+export class FrigateCardSurroundThumbnails extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -222,6 +222,6 @@ export class FrigateCardSurround extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-surround-thumbnails': FrigateCardSurround;
+    'frigate-card-surround-thumbnails': FrigateCardSurroundThumbnails;
   }
 }
