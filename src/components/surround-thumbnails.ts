@@ -1,3 +1,6 @@
+import './surround.js';
+import './timeline';
+
 import {
   CSSResultGroup,
   html,
@@ -7,6 +10,7 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+
 import surroundThumbnailsStyle from '../scss/surround.scss';
 import {
   BrowseMediaQueryParameters,
@@ -14,7 +18,7 @@ import {
   ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
   FrigateCardError,
-  FrigateCardView,
+  MiniTimelineControlConfig,
   ThumbnailsControlConfig,
 } from '../types.js';
 import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
@@ -22,9 +26,9 @@ import {
   getFirstTrueMediaChildIndex,
   multipleBrowseMediaQueryMerged,
 } from '../utils/ha/browse-media';
+import { TimelineDataManager } from '../utils/timeline-data-manager';
 import { View } from '../view.js';
 import { dispatchFrigateCardErrorEvent } from './message.js';
-import './surround.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 
 interface ThumbnailViewContext {
@@ -47,19 +51,22 @@ export class FrigateCardSurround extends LitElement {
   public view?: Readonly<View>;
 
   @property({ attribute: false, hasChanged: contentsChanged })
-  public config?: ThumbnailsControlConfig;
+  public thumbnailConfig?: ThumbnailsControlConfig;
+
+  @property({ attribute: false, hasChanged: contentsChanged })
+  public timelineConfig?: MiniTimelineControlConfig;
 
   @property({ attribute: false })
-  public targetView?: FrigateCardView;
-
-  @property({ attribute: true, type: Boolean })
-  public fetch?: boolean;
+  public inBackground?: boolean;
 
   @property({ attribute: false, hasChanged: contentsChanged })
   public browseMediaParams?: BrowseMediaQueryParameters | BrowseMediaQueryParameters[];
 
   @property({ attribute: false })
   public cameras?: Map<string, CameraConfig>;
+
+  @property({ attribute: false })
+  public timelineDataManager?: TimelineDataManager;
 
   /**
    * Fetch thumbnail media when a target is not specified in the view (e.g. for
@@ -69,11 +76,11 @@ export class FrigateCardSurround extends LitElement {
    */
   protected async _fetchMedia(): Promise<void> {
     if (
-      !this.fetch ||
+      this.inBackground ||
       !this.hass ||
       !this.view ||
-      !this.config ||
-      this.config.mode === 'none' ||
+      !this.thumbnailConfig ||
+      this.thumbnailConfig.mode === 'none' ||
       this.view.target ||
       !this.browseMediaParams ||
       !(this.view.context?.thumbnails?.fetch ?? true)
@@ -89,7 +96,6 @@ export class FrigateCardSurround extends LitElement {
     if (getFirstTrueMediaChildIndex(parent) !== null) {
       this.view
         ?.evolve({
-          ...(this.targetView && { view: this.targetView }),
           target: parent,
           childIndex: null,
 
@@ -105,7 +111,9 @@ export class FrigateCardSurround extends LitElement {
    * @returns `true` if a drawer is used, `false` otherwise.
    */
   protected _hasDrawer(): boolean {
-    return !!this.config && ['left', 'right'].includes(this.config.mode);
+    return (
+      !!this.thumbnailConfig && ['left', 'right'].includes(this.thumbnailConfig.mode)
+    );
   }
 
   /**
@@ -116,7 +124,7 @@ export class FrigateCardSurround extends LitElement {
     // do so if properties relevant to the request have changed (as per their
     // hasChanged).
     if (
-      ['view', 'targetView', 'fetch', 'browseMediaParams'].some((prop) =>
+      ['view', 'fetch', 'browseMediaParams', 'inBackground'].some((prop) =>
         changedProperties.has(prop),
       )
     ) {
@@ -129,7 +137,7 @@ export class FrigateCardSurround extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.view || !this.config) {
+    if (!this.hass || !this.view || !this.thumbnailConfig) {
       return;
     }
 
@@ -139,9 +147,9 @@ export class FrigateCardSurround extends LitElement {
       // (if the thumbnails are in a drawer). The new event needs to be dispatched
       // from the origin of the inbound event, so it can be handled by
       // <frigate-card-surround> .
-      if (this.config && this._hasDrawer()) {
+      if (this.thumbnailConfig && this._hasDrawer()) {
         dispatchFrigateCardEvent(ev.composedPath()[0], 'drawer:' + action, {
-          drawer: this.config.mode,
+          drawer: this.thumbnailConfig.mode,
         });
       }
     };
@@ -150,30 +158,55 @@ export class FrigateCardSurround extends LitElement {
       @frigate-card:thumbnails:open=${(ev: CustomEvent) => changeDrawer(ev, 'open')}
       @frigate-card:thumbnails:close=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
     >
-      ${this.config && this.config.mode !== 'none'
+      ${this.thumbnailConfig &&
+      this.thumbnailConfig.mode !== 'none' &&
+      !this.inBackground
         ? html` <frigate-card-thumbnail-carousel
-            slot=${this.config.mode}
+            slot=${this.thumbnailConfig.mode}
             .hass=${this.hass}
-            .config=${this.config}
+            .config=${this.thumbnailConfig}
             .view=${this.view}
             .target=${this.view.target}
             .selected=${this.view.childIndex}
             .cameras=${this.cameras}
             @frigate-card:view:change=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
-            @frigate-card:thumbnail-carousel:tap=${(ev: CustomEvent<ThumbnailCarouselTap>) => {
+            @frigate-card:thumbnail-carousel:tap=${(
+              ev: CustomEvent<ThumbnailCarouselTap>,
+            ) => {
+              const child: FrigateBrowseMediaSource | null =
+                ev.detail.target?.children?.[ev.detail.childIndex] ?? null;
               // Send the view change from the source of the tap event, so the
               // view change will be caught by the handler above (to close the drawer).
-              this.view
-                ?.evolve({
-                  view: this.targetView || 'media',
-                  target: ev.detail.target,
-                  childIndex: ev.detail.childIndex,
-                  context: null,
-                })
-                .dispatchChangeEvent(ev.composedPath()[0]);
+              if (child) {
+                this.view
+                  ?.evolve({
+                    view: this.view.is('recording') ? 'recording' : 'media',
+                    target: ev.detail.target,
+                    childIndex: ev.detail.childIndex,
+                    context: null,
+                    ...(child?.frigate?.cameraID && {
+                      camera: child?.frigate?.cameraID,
+                    }),
+                  })
+                  .dispatchChangeEvent(ev.composedPath()[0]);
+              }
             }}
           >
           </frigate-card-thumbnail-carousel>`
+        : ''}
+      ${this.timelineConfig && !this.inBackground
+        ? html` <frigate-card-timeline-core
+            slot=${this.timelineConfig.mode}
+            .hass=${this.hass}
+            .view=${this.view}
+            .cameras=${this.cameras}
+            .mini=${true}
+            .timelineConfig=${this.timelineConfig}
+            .thumbnailDetails=${this.thumbnailConfig?.show_details}
+            .thumbnailSize=${this.thumbnailConfig?.size}
+            .timelineDataManager=${this.timelineDataManager}
+          >
+          </frigate-card-timeline-core>`
         : ''}
       <slot></slot>
     </frigate-card-surround>`;

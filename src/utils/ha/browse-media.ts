@@ -27,7 +27,7 @@ import {
   MEDIA_TYPE_VIDEO,
 } from '../../types.js';
 import { View } from '../../view.js';
-import { getCameraTitle } from '../camera.js';
+import { getAllDependentCameras, getCameraTitle } from '../camera.js';
 
 /**
  * Return the Frigate event_id given a FrigateBrowseMediaSource object.
@@ -78,7 +78,7 @@ export const getFirstTrueMediaChildIndex = (
  * @param media_content_id The media content id to browse.
  * @returns A FrigateBrowseMediaSource object or null on malformed.
  */
-export const browseMedia = async (
+const browseMedia = async (
   hass: HomeAssistant,
   media_content_id: string,
 ): Promise<FrigateBrowseMediaSource> => {
@@ -95,11 +95,11 @@ export const browseMedia = async (
  * @param params The search parameters to use to search for media.
  * @returns A FrigateBrowseMediaSource object or null on malformed.
  */
-export const browseMediaQuery = async (
+const browseMediaQuery = async (
   hass: HomeAssistant,
   params: BrowseMediaQueryParameters,
 ): Promise<FrigateBrowseMediaSource> => {
-  return browseMedia(
+  const result = await browseMedia(
     hass,
     // Defined in:
     // https://github.com/blakeblackshear/frigate-hass-integration/blob/master/custom_components/frigate/media_source.py
@@ -118,6 +118,14 @@ export const browseMediaQuery = async (
       params.zone,
     ].join('/'),
   );
+  // If a cameraID was specified, imprint each child with that id for
+  // traceability.
+  if (params.cameraID) {
+    result.children?.forEach((child: FrigateBrowseMediaSource) => {
+      (child.frigate ??= {}).cameraID = params.cameraID;
+    })
+  }
+  return result;
 };
 
 /**
@@ -259,27 +267,7 @@ export const getFullDependentBrowseMediaQueryParameters = (
   camera: string,
   mediaType?: 'clips' | 'snapshots',
 ): BrowseMediaQueryParameters[] | null => {
-  const cameraIDs: Set<string> = new Set();
-  const getDependentCameras = (camera: string): void => {
-    const cameraConfig = cameras.get(camera);
-    if (cameraConfig) {
-      cameraIDs.add(camera);
-      const dependentCameras: Set<string> = new Set();
-      (cameraConfig.dependencies.cameras || []).forEach((item) =>
-        dependentCameras.add(item),
-      );
-      if (cameraConfig.dependencies.all_cameras) {
-        cameras.forEach((_, key) => dependentCameras.add(key));
-      }
-      for (const eventCameraID of dependentCameras) {
-        if (!cameraIDs.has(eventCameraID)) {
-          getDependentCameras(eventCameraID);
-        }
-      }
-    }
-  };
-  getDependentCameras(camera);
-
+  const cameraIDs = getAllDependentCameras(cameras, camera);
   const params: BrowseMediaQueryParameters[] = [];
   for (const cameraID of cameraIDs) {
     const param = getBrowseMediaQueryParameters(
@@ -435,9 +423,10 @@ export const createVideoChild = (
   options?: {
     thumbnail?: string;
     recording?: FrigateRecording;
+    cameraID?: string,
   },
 ): FrigateBrowseMediaSource => {
-  return {
+  const result: FrigateBrowseMediaSource = {
     title: title,
     media_class: MEDIA_CLASS_VIDEO,
     media_content_type: MEDIA_TYPE_VIDEO,
@@ -445,13 +434,18 @@ export const createVideoChild = (
     can_play: true,
     can_expand: false,
     thumbnail: options?.thumbnail ?? null,
-    children: null,
-    ...(options?.recording && {
-      frigate: {
-        recording: options.recording,
-      },
-    }),
-  };
+    children: null
+  }
+  if (options?.recording || options?.cameraID) {
+    result.frigate = {}
+    if (options?.recording) {
+      result.frigate.recording = options.recording;
+    }
+    if (options?.cameraID) {
+      result.frigate.cameraID = options.cameraID;
+    }
+  }
+  return result;
 };
 
 /**

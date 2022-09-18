@@ -25,6 +25,8 @@ customElements.whenDefined('ha-hls-player').then(() => {
     @query('#video')
     protected _video: HTMLVideoElement;
 
+    protected _controlsVisibilityTimerID: number | null = null;
+
     /**
      * Play the video.
      */
@@ -65,7 +67,20 @@ customElements.whenDefined('ha-hls-player').then(() => {
      */
     public seek(seconds: number): void {
       if (this._video) {
+        // Hide the controls while programatically seeking, and make them
+        // visible again a short time after the last seek (controls are annoying
+        // during timeline seeking)
+        this._video.controls = false;
+
         this._video.currentTime = seconds;
+
+        if (this._controlsVisibilityTimerID !== null) {
+          window.clearTimeout(this._controlsVisibilityTimerID);
+        }
+        this._controlsVisibilityTimerID = window.setTimeout(() => {
+          this._video.controls = true;
+          this._controlsVisibilityTimerID = null;
+        }, 1000);
       }
     }
 
@@ -112,7 +127,7 @@ customElements.whenDefined('ha-hls-player').then(() => {
 });
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card-ha-hls-player": FrigateCardHaHlsPlayer
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card-ha-hls-player': FrigateCardHaHlsPlayer;
+  }
 }

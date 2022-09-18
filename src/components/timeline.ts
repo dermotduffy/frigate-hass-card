@@ -1,4 +1,12 @@
-import { HomeAssistant } from 'custom-card-helpers';
+// TODO: When a media viewer is first loaded the selected child won't work (because the underlying carousel has not yet rendered)
+// TODO: rename surround to surround basic and this file to surround?
+// TODO: get rid of circular dependency: src/components/surround-thumbnails.ts -> src/components/timeline.ts -> src/components/surround-thumbnails.ts
+// TODO: thumbnails in drawers don't work.
+// TODO: delete segments if not in summary? is this actually necessary? could it create gaps in data? better off stopping access via summary?
+// TODO: support filtering created dataviews by recordings or mediatype (so storage )
+// TODO: dataview refresh instead of rewriteitem?
+// TODO: Make minitimeline configurable in the editor
+
 import {
   add,
   differenceInSeconds,
@@ -17,14 +25,14 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
-import { classMap } from 'lit/directives/class-map.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
-import { isEqual } from 'lodash-es';
+import { isEqual, throttle } from 'lodash-es';
 import { ViewContext } from 'view';
-import { DataSet } from 'vis-data/esnext';
+import { DataView, DataSet } from 'vis-data/esnext';
 import {
   DataGroupCollectionType,
+  IdType,
   Timeline,
   TimelineEventPropertiesResult,
   TimelineItem,
@@ -37,49 +45,47 @@ import { localize } from '../localize/localize';
 import timelineCoreStyle from '../scss/timeline-core.scss';
 import timelineStyle from '../scss/timeline.scss';
 import {
-  BrowseMediaQueryParameters,
   CameraConfig,
   ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
   frigateCardConfigDefaults,
-  FrigateCardError,
   FrigateEvent,
   TimelineConfig,
+  TimelineCoreConfig,
 } from '../types';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
-import { dispatchFrigateCardEvent, errorToConsole, isHoverableDevice, prettifyTitle } from '../utils/basic';
-import { getCameraTitle } from '../utils/camera.js';
 import {
-  getRecordingSegments,
-  getRecordingsSummary,
-  getUniqueFrigateCameraEventsID,
-  getUniqueFrigateCameraID,
-  RecordingSegments,
-  RecordingSummary,
-} from '../utils/frigate';
+  contentsChanged,
+  dispatchFrigateCardEvent,
+  isHoverableDevice,
+  prettifyTitle,
+} from '../utils/basic';
+import { getAllDependentCameras, getCameraTitle } from '../utils/camera.js';
+
 import {
   createEventParentForChildren,
   createVideoChild,
   generateRecordingIdentifier,
-  getBrowseMediaQueryParameters,
-  isTrueMedia,
-  multipleBrowseMediaQuery,
 } from '../utils/ha/browse-media';
+import {
+  FrigateCardTimelineItem,
+  RecordingSegmentsItem,
+  sortSegmentsOldestToYoungest,
+  sortTimelineItemsYoungestToOldest,
+  TimelineDataManager,
+} from '../utils/timeline-data-manager';
 import { View } from '../view';
-import { dispatchFrigateCardErrorEvent, dispatchMessageEvent } from './message.js';
+import { dispatchMessageEvent } from './message.js';
 import './surround-thumbnails.js';
-
-const TIMELINE_DATA_MANAGER_MAX_AGE_SECONDS = 10;
 
 interface FrigateCardGroupData {
   id: string;
   content: string;
 }
-interface FrigateCardTimelineItem extends TimelineItem {
-  start: number;
-  end?: number;
-  event?: FrigateEvent;
-  source?: FrigateBrowseMediaSource;
+
+interface TimelineRangeChange extends TimelineWindow {
+  event: Event & { additionalEvent: string };
+  byUser: boolean;
 }
 
 interface TimelineViewContext {
@@ -88,6 +94,9 @@ interface TimelineViewContext {
 
   // The date of the last event fetch.
   dateFetch?: Date;
+
+  // Whether or not thumbnails were generated.
+  generatedThumbnails?: boolean;
 }
 
 declare module 'view' {
@@ -96,330 +105,12 @@ declare module 'view' {
   }
 }
 
-type TimelineMediaType = 'all' | 'clips' | 'snapshots';
-
-interface CameraRecordings {
-  segments: RecordingSegments;
-  summary: RecordingSummary;
-}
-
 // An event used to fetch the HASS object. See "Special note" below.
 class HASSRequestEvent extends Event {
   public hass?: ExtendedHomeAssistant;
 }
 
-/**
- * A manager to maintain/fetch timeline events.
- */
-class TimelineDataManager {
-  protected _dataset = new DataSet<FrigateCardTimelineItem>();
-
-  // The earliest date managed.
-  protected _dateStart?: Date;
-
-  // The latest date managed.
-  protected _dateEnd?: Date;
-
-  // The last fetch date.
-  protected _dateFetch?: Date;
-
-  // The maximum allowable age of fetch data (will not fetch more frequently
-  // than this).
-  protected _maxAgeSeconds: number = TIMELINE_DATA_MANAGER_MAX_AGE_SECONDS;
-
-  // Get the last event fetch date.
-  get lastFetchDate(): Date | null {
-    return this._dateFetch ?? null;
-  }
-
-  /**
-   * Retrieve the underlying dataset.
-   */
-  get dataset(): DataSet<FrigateCardTimelineItem> {
-    return this._dataset;
-  }
-
-  /**
-   * Determine if the dataset is empty.
-   * @returns
-   */
-  public isEmpty(): boolean {
-    return this._dataset.length === 0;
-  }
-
-  /**
-   * Clear the dataset.
-   */
-  public clear(): void {
-    this._dataset.clear();
-  }
-
-  /**
-   * Add a FrigateBrowseMediaSource object to the managed timeline.
-   * @param camera The id the camera this object is from.
-   * @param target The FrigateBrowseMediaSource to add.
-   */
-  protected _addMediaSource(
-    camera: string,
-    mediaPriority: TimelineMediaType,
-    target: FrigateBrowseMediaSource,
-  ): void {
-    const items: FrigateCardTimelineItem[] = [];
-    target.children?.forEach((child) => {
-      const event = child.frigate?.event;
-      if (
-        event &&
-        isTrueMedia(child) &&
-        ['video', 'image'].includes(child.media_content_type)
-      ) {
-        let item = this._dataset.get(event.id);
-        if (!item) {
-          item = {
-            id: event.id,
-            group: camera,
-            content: '',
-            start: event.start_time * 1000,
-            event: event,
-          };
-        }
-        if (
-          (child.media_content_type === 'video' &&
-            ['all', 'clips'].includes(mediaPriority)) ||
-          (!item.source &&
-            child.media_content_type === 'image' &&
-            ['all', 'snapshots'].includes(mediaPriority))
-        ) {
-          item.source = child;
-        }
-        if (event.end_time) {
-          item['end'] = event.end_time * 1000;
-          item['type'] = 'range';
-        } else {
-          item['type'] = 'point';
-        }
-        items.push(item);
-      }
-    });
-    this._dataset.update(items);
-  }
-
-  /**
-   * Determine if the timeline has coverage for a given range of dates.
-   * @param start The start of the date range.
-   * @param end An optional end of the date range.
-   * @returns
-   */
-  public hasCoverage(now: Date, start: Date, end?: Date): boolean {
-    // Never fetched: no coverage.
-    if (!this._dateFetch || !this._dateStart || !this._dateEnd) {
-      return false;
-    }
-
-    // If the most recent fetch is older than maxAgeSeconds: no coverage.
-    if (
-      this._maxAgeSeconds &&
-      now.getTime() - this._dateFetch.getTime() > this._maxAgeSeconds * 1000
-    ) {
-      return false;
-    }
-
-    // If the most requested data is earlier than the earliest stored: no
-    // coverage.
-    if (start < this._dateStart) {
-      return false;
-    }
-
-    // If there's no end time specified: there IS coverage.
-    if (!end) {
-      return true;
-    }
-    // If the requested end time is older than the oldest requested: there IS
-    // coverage.
-    if (end.getTime() < this._dateEnd.getTime()) {
-      return true;
-    }
-    // If there's no maxAgeSeconds specified: no coverage.
-    if (!this._maxAgeSeconds) {
-      return false;
-    }
-    // If the requested end time is beyond `_maxAgeSeconds` of now: no coverage.
-    if (now.getTime() - end.getTime() > this._maxAgeSeconds * 1000) {
-      return false;
-    }
-
-    // End time is within `_maxAgeSeconds` of the latest data: there IS
-    // coverage.
-    return end.getTime() - this._maxAgeSeconds * 1000 <= this._dateEnd.getTime();
-  }
-
-  /**
-   * Fetch events if no coverage in given range.
-   * @param element The element to send error events from.
-   * @param hass The HomeAssistant object.
-   * @param cameras The cameras map.
-   * @param start Fetch events that start later than this date.
-   * @param end Fetch events that start earlier than this date.
-   * @returns `true` if events were fetched, `false` otherwise.
-   */
-  public async fetchIfNecessary(
-    element: HTMLElement,
-    hass: ExtendedHomeAssistant,
-    cameras: Map<string, CameraConfig>,
-    eventMedia: TimelineMediaType,
-    start: Date,
-    end: Date,
-    recordings?: boolean,
-  ): Promise<boolean> {
-    // Cannot fetch the future, always clip the end date to now so as to avoid
-    // checking for coverage that could not possibly exist yet.
-    const now = new Date();
-    end = end > now ? now : end;
-
-    if (this.hasCoverage(now, start, end)) {
-      return false;
-    }
-
-    if (!this._dateStart || start < this._dateStart) {
-      this._dateStart = start;
-    }
-    if (!this._dateEnd || end > this._dateEnd) {
-      this._dateEnd = end;
-    }
-    this._dateFetch = new Date();
-
-    await Promise.all([
-      // Events are always fetched for the maximum extent of the managed
-      // range. This is because events may change at any point in time
-      // (e.g. a long-running event that ends).
-      this._fetchEvents(
-        element,
-        hass,
-        cameras,
-        eventMedia,
-        this._dateStart,
-        this._dateEnd,
-      ),
-      ...(recordings ? [this._fetchRecordings(hass, cameras)] : []),
-    ]);
-
-    return true;
-  }
-
-  /**
-   * Fetch recording hours for the timeline.
-   * @param element The element to send error events from.
-   * @param hass The HomeAssistant object.
-   * @param cameras The cameras map.
-   * @param start Fetch events that start later than this date.
-   * @param end Fetch events that start earlier than this date.
-   */
-  protected async _fetchRecordings(
-    hass: ExtendedHomeAssistant,
-    cameras: Map<string, CameraConfig>,
-  ): Promise<void> {
-    const items: FrigateCardTimelineItem[] = [];
-    const now = new Date();
-
-    const storeRecordings = async (
-      camera: string,
-      config: CameraConfig,
-    ): Promise<void> => {
-      if (!config.frigate.camera_name) {
-        return;
-      }
-      let summary: RecordingSummary = [];
-      try {
-        summary = await getRecordingsSummary(
-          hass,
-          config.frigate.client_id,
-          config.frigate.camera_name,
-        );
-      } catch (e) {
-        // Recording failure should not disrupt the rest of the timeline
-        // experience.
-        errorToConsole(e as Error);
-      }
-
-      for (const dayData of summary) {
-        for (const hourData of dayData.hours) {
-          const hour = add(dayData.day, { hours: hourData.hour });
-          const endHour = endOfHour(hour);
-          items.push({
-            id: `recording-${camera}-${format(hour, 'yyyy-MM-dd-HH')}`,
-            group: camera,
-            start: getUnixTime(startOfHour(hour)) * 1000,
-
-            // Don't let the recordings show off into the future (even though it
-            // is intended to be indicative of any recordings within that hour
-            // -- it still looks strange!)
-            end: (endHour > now ? getUnixTime(now) : getUnixTime(endHour)) * 1000,
-            type: 'background',
-            content: '',
-          });
-        }
-      }
-    };
-
-    await Promise.all(
-      Array.from(cameras.entries()).map(([camera, config]: [string, CameraConfig]) =>
-        storeRecordings(camera, config),
-      ),
-    );
-
-    this._dataset.update(items);
-  }
-
-  /**
-   * Fetch events for the timeline.
-   * @param element The element to send error events from.
-   * @param hass The HomeAssistant object.
-   * @param cameras The cameras map.
-   * @param start Fetch events that start later than this date.
-   * @param end Fetch events that start earlier than this date.
-   */
-  protected async _fetchEvents(
-    element: HTMLElement,
-    hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
-    media: TimelineMediaType,
-    start: Date,
-    end: Date,
-  ): Promise<void> {
-    const params: BrowseMediaQueryParameters[] = [];
-    cameras.forEach((cameraConfig, cameraID) => {
-      (media === 'all' ? ['clips', 'snapshots'] : [media]).forEach((mediaType) => {
-        if (cameraConfig.frigate.camera_name !== CAMERA_BIRDSEYE) {
-          const param = getBrowseMediaQueryParameters(hass, cameraID, cameraConfig, {
-            before: end.getTime() / 1000,
-            after: start.getTime() / 1000,
-            unlimited: true,
-            mediaType: mediaType as 'clips' | 'snapshots',
-          });
-          if (param) {
-            params.push(param);
-          }
-        }
-      });
-    });
-
-    if (!params.length) {
-      return;
-    }
-
-    let results: Map<BrowseMediaQueryParameters, FrigateBrowseMediaSource>;
-    try {
-      results = await multipleBrowseMediaQuery(hass, params);
-    } catch (e) {
-      return dispatchFrigateCardErrorEvent(element, e as FrigateCardError);
-    }
-
-    for (const [query, result] of results.entries()) {
-      if (query.cameraID) {
-        this._addMediaSource(query.cameraID, media, result);
-      }
-    }
-  }
-}
+const TIMELINE_TARGET_BAR_ID = 'target_bar';
 
 /**
  * A simgple thumbnail wrapper class for use in the timeline where LIT data
@@ -491,6 +182,9 @@ export class FrigateCardTimeline extends LitElement {
   @property({ attribute: false })
   public timelineConfig?: TimelineConfig;
 
+  @property({ attribute: false })
+  public timelineDataManager?: TimelineDataManager;
+
   /**
    * Master render method.
    * @returns A rendered template.
@@ -503,7 +197,7 @@ export class FrigateCardTimeline extends LitElement {
     return html` <frigate-card-surround-thumbnails
       .hass=${this.hass}
       .view=${this.view}
-      .config=${this.timelineConfig.controls.thumbnails}
+      .thumbnailConfig=${this.timelineConfig.controls.thumbnails}
       .cameras=${this.cameras}
     >
       <frigate-card-timeline-core
@@ -511,6 +205,9 @@ export class FrigateCardTimeline extends LitElement {
         .view=${this.view}
         .cameras=${this.cameras}
         .timelineConfig=${this.timelineConfig}
+        .thumbnailDetails=${this.timelineConfig.controls.thumbnails.show_details}
+        .thumbnailSize=${this.timelineConfig.controls.thumbnails.size}
+        .timelineDataManager=${this.timelineDataManager}
       >
       </frigate-card-timeline-core>
     </frigate-card-surround-thumbnails>`;
@@ -535,20 +232,45 @@ export class FrigateCardTimelineCore extends LitElement {
   @property({ attribute: false })
   public cameras?: Map<string, CameraConfig>;
 
+  @property({ attribute: false, hasChanged: contentsChanged })
+  public timelineConfig?: TimelineCoreConfig;
+
+  @property({ attribute: true, type: Boolean })
+  public thumbnailDetails? = false;
+
   @property({ attribute: false })
-  public timelineConfig?: TimelineConfig;
+  public thumbnailSize?: number;
 
-  protected _data = new TimelineDataManager();
+  // Whether or not this is a mini-timeline for a different view (e.g. media
+  // viewer).
+  @property({ attribute: true, type: Boolean, reflect: true })
+  public mini = false;
 
+  @property({ attribute: false })
+  public timelineDataManager?: TimelineDataManager;
+
+  @state()
+  protected _locked = false;
+
+  protected _targetBarVisible = false;
   protected _refTimeline: Ref<HTMLElement> = createRef();
   protected _timeline?: Timeline;
+  protected _dataview?: DataView<FrigateCardTimelineItem>;
 
   // Need a way to separate when a user clicks (to pan the timeline) vs when a
   // user clicks (to choose a recording (non-event) to play).
-  protected _pointerHeld = false;
+  protected _pointerHeld:
+    | (TimelineEventPropertiesResult & { window?: TimelineWindow })
+    | null = null;
   protected _ignoreClick = false;
 
   protected readonly _isHoverableDevice = isHoverableDevice();
+
+  // Range changes are volumonous: throttle the calls on seeking.
+  protected _throttledSetViewDuringRangeChange = throttle(
+    this._setViewDuringRangeChange.bind(this),
+    1000 / 10,
+  );
 
   /**
    * Get a tooltip for a given timeline event.
@@ -566,9 +288,7 @@ export class FrigateCardTimelineCore extends LitElement {
     const eventAttr = source.frigate?.event
       ? `event='${JSON.stringify(source.frigate.event)}'`
       : '';
-    const detailsAttr = this.timelineConfig?.controls.thumbnails.show_details
-      ? 'details'
-      : '';
+    const detailsAttr = this.thumbnailDetails ? 'details' : '';
 
     // Cannot use Lit data-bindings as visjs requires a string for tooltips.
     // Note that changes to attributes here must be mirrored in the xss
@@ -591,97 +311,80 @@ export class FrigateCardTimelineCore extends LitElement {
     if (!this.hass || !this.view || !this.timelineConfig) {
       return;
     }
-
-    const thumbnailsConfig = this.timelineConfig.controls.thumbnails;
-    const timelineClasses = {
-      timeline: true,
-      'left-margin': thumbnailsConfig.mode === 'left',
-      'right-margin': thumbnailsConfig.mode === 'right',
-    };
-
     return html`<div
       @frigate-card:timeline:hass-request=${(request: HASSRequestEvent) => {
         request.hass = this.hass;
       }}
-      class="${classMap(timelineClasses)}"
+      class="timeline"
       ${ref(this._refTimeline)}
-    ></div>`;
+    >
+      <ha-icon
+        class="lock"
+        .icon=${`mdi:${this._locked ? 'lock' : 'lock-open-variant'}`}
+        @click=${() => {
+          this._locked = !this._locked;
+        }}
+        aria-label="${this._locked
+          ? localize('timeline.unlock')
+          : localize('timeline.lock')}"
+        title="${this._locked ? localize('timeline.unlock') : localize('timeline.lock')}"
+      >
+      </ha-icon>
+    </div>`;
   }
 
   /**
-   * Get the number of seconds to seek into a video stream consisting of the
-   * provided segments to reach the target time provided.
-   * @param time Target time.
-   * @param segments A RecordingSegments object.
-   * @returns
+   * Get all the keys of the cameras in scope for this timeline.
+   * @returns A set of camera ids (may be empty).
    */
-  protected _getSeekTime(time: Date, segments: RecordingSegments): number | null {
-    if (!segments.length) {
-      return null;
+  protected _getTimelineCameraIDs(): Set<string> {
+    if (!this.mini || !this.cameras) {
+      return this._getAllCameraIDs();
     }
-    const target = getUnixTime(time);
-    const hourStart = getUnixTime(startOfHour(time));
-    let seekSeconds = 0;
+    return getAllDependentCameras(this.cameras, this.view?.camera);
+  }
 
-    // Inspired by: https://github.com/blakeblackshear/frigate/blob/release-0.11.0/web/src/routes/Recording.jsx#L27
-    for (const segment of segments) {
-      if (segment.start_time > target) {
-        break;
-      }
-      const start = segment.start_time < hourStart ? hourStart : segment.start_time;
-      const end = segment.end_time > target ? target : segment.end_time;
-      seekSeconds += end - start;
-    }
-    return seekSeconds;
+  /**
+   * Get all the keys of all cameras.
+   * @returns A set of camera ids (may be empty).
+   */
+  protected _getAllCameraIDs(): Set<string> {
+    return new Set(this.cameras?.keys());
   }
 
   /**
    * Create recording objects.
-   * @param results A map of camera ID to a CameraRecordings object.
    * @param time The target time for the recordings.
-   * @param onlyMatchingHour If `true` only shows the hour matching the target
+   * @param cameraIDs The camera IDs to create recordings for.
+   * @param onlyShowMatchingHour If `true` only shows the hour matching the target
    * for the provided cameras, otherwise shows all hours.
    * @returns
    */
   protected _createRecordingChildren(
-    results: Map<string, CameraRecordings>,
     time: Date,
-    onlyMatchingHour: boolean,
+    cameraIDs: Set<string>,
+    onlyShowMatchingHour: boolean,
   ): FrigateBrowseMediaSource[] {
     const children: FrigateBrowseMediaSource[] = [];
-    const processedCameras: Set<string> = new Set();
 
-    // Get results in the order the cameras are specified in the configuration.
-    for (const camera of this.cameras?.keys() || []) {
-      const recording = results.get(camera);
-      const config = this.cameras?.get(camera);
-      if (!recording || !config?.frigate.camera_name) {
+    for (const cameraID of cameraIDs) {
+      const config = this.cameras?.get(cameraID);
+      const recordingSummary =
+        this.timelineDataManager?.getRecordingSummaryForCamera(cameraID);
+      if (!config?.frigate.camera_name || !recordingSummary) {
         continue;
       }
 
-      // There is a single set of recordings for a given Frigate camera name.
-      // Zones on that same camera do not get separate recordings. The card may
-      // have multiple instances of the same camera for different zones, so
-      // need to enforce uniqueness here.
-      const uniqueID = getUniqueFrigateCameraID(config);
-      if (processedCameras.has(uniqueID)) {
-        continue;
-      }
-      processedCameras.add(uniqueID);
-
-      const seekSeconds = this._getSeekTime(time, recording.segments);
-      if (seekSeconds === null) {
-        continue;
-      }
-
-      for (const dayData of recording.summary) {
+      for (const dayData of recordingSummary) {
         for (const hourData of dayData.hours) {
           const hour = add(dayData.day, { hours: hourData.hour });
           const startHour = startOfHour(hour);
           const endHour = endOfHour(hour);
           const isMatchingHour = time >= startHour && time <= endHour;
 
-          if (!onlyMatchingHour || isMatchingHour) {
+          // If asked to only provide recordings for a given camera show all
+          // hours, otherwise only show the matching hour from all cameras.
+          if (!onlyShowMatchingHour || isMatchingHour) {
             children.push(
               createVideoChild(
                 `${prettifyTitle(config.frigate.camera_name)} ${format(
@@ -702,11 +405,8 @@ export class FrigateCardTimelineCore extends LitElement {
                     start_time: getUnixTime(startHour),
                     end_time: getUnixTime(endHour),
                     events: hourData.events,
-                    ...(isMatchingHour && {
-                      seek_seconds: seekSeconds,
-                      seek_time: time.getTime() / 1000,
-                    }),
                   },
+                  cameraID: cameraID,
                 },
               ),
             );
@@ -719,84 +419,295 @@ export class FrigateCardTimelineCore extends LitElement {
 
   /**
    * Change the view to a recording.
-   * @param time The time of the recording to show.
-   * @param camera An optional camera to show a recording of, otherwise all
+   * @param targetTime The time of the recording to show.
+   * @param cameraID An optional camera to show a recording of, otherwise all
    * cameras are shown at the given time.
    */
-  protected async _changeViewToRecording(time: Date, camera?: string): Promise<void> {
-    if (!this.hass) {
+  protected async _changeViewToRecording(
+    targetTime: Date,
+    cameraID?: string,
+  ): Promise<void> {
+    if (!this.hass || !this.timelineConfig || !this.cameras) {
       return;
     }
 
-    const before = endOfHour(time);
-    const after = startOfHour(time);
-    const results: Map<string, CameraRecordings> = new Map();
-
-    const fetch = async (camera: string, config?: CameraConfig): Promise<void> => {
-      if (!config || !config.frigate.camera_name || !this.hass) {
-        return;
-      }
-
-      try {
-        const cameraResults = await Promise.all([
-          getRecordingSegments(
-            this.hass,
-            config.frigate.client_id,
-            config.frigate.camera_name,
-            before,
-            after,
-          ),
-          getRecordingsSummary(
-            this.hass,
-            config.frigate.client_id,
-            config.frigate.camera_name,
-          ),
-        ]);
-        results.set(camera, { segments: cameraResults[0], summary: cameraResults[1] });
-      } catch (e) {
-        errorToConsole(e as Error);
-      }
-    };
-    const cameras = camera ? [camera] : [...(this.cameras?.keys() ?? [])];
-    await Promise.all(cameras.map((camera) => fetch(camera, this.cameras?.get(camera))));
-
-    const children = this._createRecordingChildren(results, time, !camera);
+    const cameraIDs = cameraID ? new Set([cameraID]) : this._getAllCameraIDs();
+    const children = this._createRecordingChildren(targetTime, cameraIDs, !cameraID);
     if (!children.length) {
       return;
     }
+    const viewerContext = this._generateMediaViewerContextForChildren(
+      children,
+      targetTime,
+    );
+    const childIndex = this._findChildIndex(
+      children,
+      startOfHour(targetTime),
+      cameraIDs,
+    );
+    const child = childIndex !== null ? children[childIndex] : null;
 
-    let childIndex = 0;
-    if (camera) {
-      childIndex = children.findIndex(
-        (child) =>
-          child.frigate?.recording &&
-          child.frigate.recording.start_time * 1000 === after.getTime(),
-      );
-      if (childIndex < 0) {
-        return;
+    if (childIndex !== null && child !== null) {
+      this.view
+        ?.evolve({
+          view: 'recording',
+          target: createEventParentForChildren(localize('common.recordings'), children),
+          childIndex: childIndex,
+          ...(child.frigate?.cameraID && { camera: child.frigate?.cameraID }),
+        })
+        .mergeInContext(viewerContext)
+        .dispatchChangeEvent(this);
+    }
+  }
+
+  /**
+   * Find the relevant recording child given a date target.
+   * @param children The FrigateBrowseMediaSource[] children. Must be sorted
+   * most recent first.
+   * @param targetTime The target time used to find the relevant child.
+   * @param cameraIDs The camera IDs to search for.
+   * @param refPoint Whether to find based on the start or end of the
+   * event/recording. If not specified, the first match is returned rather than
+   * the best match.
+   * @returns The childindex or null if no matching child is found.
+   */
+  protected _findChildIndex(
+    children: FrigateBrowseMediaSource[],
+    targetTime: Date,
+    cameraIDs: Set<string>,
+    refPoint?: 'start' | 'end',
+  ): number | null {
+    let bestMatch:
+      | {
+          index: number;
+          delta: number;
+        }
+      | undefined;
+
+    for (let i = 0; i < children.length; ++i) {
+      const child = children[i];
+      if (child.frigate?.cameraID && cameraIDs.has(child.frigate.cameraID)) {
+        const source = child.frigate.event ?? child.frigate.recording;
+        if (!source?.start_time || !source?.end_time) {
+          continue;
+        }
+        const startTime = fromUnixTime(source.start_time);
+        const endTime = fromUnixTime(source.end_time);
+
+        if (startTime <= targetTime && endTime >= targetTime) {
+          if (!refPoint) {
+            return i;
+          }
+          const delta =
+            refPoint === 'end'
+              ? endTime.getTime() - targetTime.getTime()
+              : targetTime.getTime() - startTime.getTime();
+          if (!bestMatch || delta < bestMatch.delta) {
+            bestMatch = { index: i, delta: delta };
+          }
+        }
       }
     }
-
-    this.view
-      ?.evolve({
-        view: 'media',
-        target: createEventParentForChildren(localize('common.recordings'), children),
-        childIndex: childIndex,
-      })
-      .dispatchChangeEvent(this);
+    return bestMatch ? bestMatch.index : null;
   }
 
   /**
    * Called whenever the range is in the process of being changed.
    * @param properties
    */
-  protected _timelineRangeChangeHandler(
-    properties: TimelineEventPropertiesResult,
-  ): void {
-    if (properties.event && this._pointerHeld) {
-      // An event will have been set when it's a human changes the range.
-      this._ignoreClick = true;
+  protected _timelineRangeChangeHandler(properties: TimelineRangeChange): void {
+    if (this._timeline && properties.byUser) {
+      if (this._pointerHeld) {
+        this._ignoreClick = true;
+      }
+
+      const targetTime = this._pointerHeld?.window
+        ? add(properties.start, {
+            seconds:
+              (this._pointerHeld.time.getTime() -
+                this._pointerHeld.window.start.getTime()) /
+              1000,
+          })
+        : properties.end;
+
+      if (this._pointerHeld) {
+        this._setTargetBarAppropriately(targetTime);
+      }
+
+      this._throttledSetViewDuringRangeChange(targetTime, properties);
     }
+  }
+
+  /**
+   * Set the target bar at a given time.
+   * @param targetTime
+   */
+  protected _setTargetBarAppropriately(targetTime: Date): void {
+    if (!this._timeline) {
+      return;
+    }
+
+    const targetBarOn =
+      !this._locked ||
+      (!this.view?.is('timeline') &&
+        this._timeline.getSelection().some((id) => {
+          const item = this._dataview?.get(id);
+          return (
+            item &&
+            item.start &&
+            item.end &&
+            targetTime.getTime() >= item.start &&
+            targetTime.getTime() <= item.end
+          );
+        }));
+
+    if (targetBarOn) {
+      if (!this._targetBarVisible) {
+        this._timeline?.addCustomTime(targetTime, TIMELINE_TARGET_BAR_ID);
+        this._targetBarVisible = true;
+      } else {
+        this._timeline?.setCustomTime(targetTime, TIMELINE_TARGET_BAR_ID);
+      }
+    } else {
+      this._removeTargetBar();
+    }
+  }
+
+  /**
+   * Remove the target bar.
+   */
+  protected _removeTargetBar(): void {
+    if (this._targetBarVisible) {
+      this._timeline?.removeCustomTime(TIMELINE_TARGET_BAR_ID);
+      this._targetBarVisible = false;
+    }
+  }
+
+  /**
+   * Set the view during a range change.
+   * @param targetTime The target time.
+   * @param properties The range change properties.
+   * @returns
+   */
+  protected _setViewDuringRangeChange(
+    targetTime: Date,
+    properties: TimelineRangeChange,
+  ): void {
+    if (!this._timeline || !this.view || !this.view.target?.children?.length) {
+      return;
+    }
+
+    const canSeek = !!this.view?.isViewerView();
+    const context = canSeek
+      ? this._generateMediaViewerContextForChildren(
+          this.view.target.children,
+          targetTime,
+        )
+      : null;
+
+    const childIndex = this._locked
+      ? null
+      : this._findChildIndex(
+          this.view.target.children,
+          targetTime,
+          this._getTimelineCameraIDs(),
+          properties.event.additionalEvent === 'panright' ? 'end' : 'start',
+        );
+
+    if (canSeek || (childIndex !== null && childIndex !== this.view.childIndex)) {
+      this.view
+        .evolve({
+          ...(childIndex !== null && {
+            childIndex: childIndex,
+          }),
+        })
+        .mergeInContext({ ...this._generateTimelineContext(true), ...context })
+        .dispatchChangeEvent(this);
+    }
+  }
+
+  /**
+   * Generate the media view context for a set of media children (used to set
+   * seek times into each media item).
+   * @param children The media children.
+   * @param targetTime The target time.
+   * @returns 
+   */
+  protected _generateMediaViewerContextForChildren(
+    children: FrigateBrowseMediaSource[],
+    targetTime: Date,
+  ): ViewContext {
+    if (!this.timelineDataManager) {
+      return {};
+    }
+    const seek = new Map();
+    const segmentsDataset = this.timelineDataManager.recordingSegments;
+    const hourStart = startOfHour(targetTime);
+
+    children.forEach((child, index) => {
+      const source = child.frigate?.recording ?? child.frigate?.event;
+      if (source && source.end_time && child.frigate?.cameraID) {
+        const start = source.start_time * 1000;
+        const end = source.end_time * 1000;
+        let seekSeconds: number | null = null;
+
+        if (targetTime.getTime() >= start && targetTime.getTime() <= end) {
+          const segments = segmentsDataset.get({
+            filter: (segment) =>
+              segment.cameraID === child.frigate?.cameraID &&
+              segment.start >= start &&
+              segment.end <= end,
+            order: sortSegmentsOldestToYoungest,
+          });
+          seekSeconds = this._getSeekTimeInSegments(
+            // Recordings start from the top of the hour.
+            child.frigate.recording ? hourStart : fromUnixTime(source.start_time),
+            targetTime,
+            segments,
+          );
+        }
+
+        if (seekSeconds !== null) {
+          seek.set(index, {
+            seekSeconds: seekSeconds,
+            seekTime: targetTime.getTime() / 1000,
+          });
+        }
+      }
+    });
+    return seek.size > 0 ? { mediaViewer: { seek: seek } } : {};
+  }
+
+  /**
+   * Get the number of seconds to seek into a video stream consisting of the
+   * provided segments to reach the target time provided.
+   * @param startTime The earliest allowable time to seek from.
+   * @param targetTime Target time.
+   * @param segments An array of segments dataset items. Must be sorted from oldest to youngest.
+   * @returns
+   */
+  protected _getSeekTimeInSegments(
+    startTime: Date,
+    targetTime: Date,
+    segments: RecordingSegmentsItem[],
+  ): number | null {
+    if (!segments.length) {
+      return null;
+    }
+    let seekMilliseconds = 0;
+
+    // Inspired by: https://github.com/blakeblackshear/frigate/blob/release-0.11.0/web/src/routes/Recording.jsx#L27
+    for (const segment of segments) {
+      if (segment.start > targetTime.getTime()) {
+        break;
+      }
+      const start =
+        segment.start < startTime.getTime() ? startTime.getTime() : segment.start;
+      const end =
+        segment.end > targetTime.getTime() ? targetTime.getTime() : segment.end;
+      seekMilliseconds += end - start;
+    }
+    return seekMilliseconds / 1000;
   }
 
   /**
@@ -811,13 +722,67 @@ export class FrigateCardTimelineCore extends LitElement {
       stopEventFromActivatingCardWideActions(properties.event);
     }
 
-    if (!this._ignoreClick && properties.what && this.timelineConfig?.show_recordings) {
-      if (['background', 'group-label'].includes(properties.what)) {
-        stopEventFromActivatingCardWideActions(properties.event);
-        this._changeViewToRecording(properties.time, String(properties.group));
-      } else if (properties.what === 'axis') {
-        stopEventFromActivatingCardWideActions(properties.event);
-        this._changeViewToRecording(properties.time);
+    if (!this._ignoreClick && properties.what) {
+      if (
+        this.timelineConfig?.show_recordings &&
+        ['background', 'group-label', 'axis'].includes(properties.what)
+      ) {
+        if (['background', 'group-label'].includes(properties.what)) {
+          stopEventFromActivatingCardWideActions(properties.event);
+          const window = this._timeline?.getWindow();
+          if (window) {
+            if (properties.group) {
+              this._changeViewToRecording(window.end, String(properties.group));
+            } else if (this.mini && this.view?.camera) {
+              // In mini mode group may not be displayed / used, so just use the camera directly.
+              this._changeViewToRecording(window.end, this.view.camera);
+            }
+          }
+        } else {
+          stopEventFromActivatingCardWideActions(properties.event);
+          this._changeViewToRecording(properties.time);
+        }
+      } else if (
+        properties.what === 'item' &&
+        properties.item &&
+        this.view &&
+        this.view.target?.children
+      ) {
+        let childIndex: number | null = null;
+        let target: FrigateBrowseMediaSource | null = null;
+        let context: ViewContext = {};
+
+        if (this.view.is('recording')) {
+          const thumbnails = this._generateThumbnails(properties.item);
+
+          if (thumbnails) {
+            target = thumbnails.target;
+            childIndex = thumbnails.childIndex;
+            if (thumbnails.target?.children?.length) {
+              context = this._generateMediaViewerContextForChildren(
+                  thumbnails.target.children,
+                  properties.time,
+                );
+            }
+          }
+        } else {
+          childIndex = this.view.target.children.findIndex(
+            (child) => child.frigate?.event?.id === properties.item,
+          );
+        }
+
+        if (childIndex !== null && childIndex >= 0) {
+          this.view
+            ?.evolve({
+              childIndex: childIndex,
+              ...(target && { target: target }),
+            })
+            .mergeInContext(context)
+            .dispatchChangeEvent(this);
+          dispatchFrigateCardEvent(this, 'thumbnails:open');
+        } else {
+          dispatchFrigateCardEvent(this, 'thumbnails:close');
+        }
       }
     }
 
@@ -839,7 +804,7 @@ export class FrigateCardTimelineCore extends LitElement {
    * Handle a range change in the timeline.
    * @param properties vis.js provided range information.
    */
-  protected _timelineRangeHandler(properties: {
+  protected _timelineRangeChangedHandler(properties: {
     start: Date;
     end: Date;
     byUser: boolean;
@@ -848,28 +813,25 @@ export class FrigateCardTimelineCore extends LitElement {
     if (!properties.byUser) {
       return;
     }
+    this._removeTargetBar();
+
     if (this.hass && this.cameras && this._timeline && this.timelineConfig) {
       const [prefetchStart, prefetchEnd] = this._getPrefetchWindow(
         properties.start,
         properties.end,
       );
-      this._data
-        .fetchIfNecessary(
-          this,
-          this.hass,
-          this.cameras,
-          this.timelineConfig.media,
-          prefetchStart,
-          prefetchEnd,
-          this.timelineConfig.show_recordings,
-        )
+      this.timelineDataManager
+        ?.fetchIfNecessary(this, this.hass, prefetchStart, prefetchEnd)
         .then(() => {
-          if (this._timeline) {
+          // Don't show event thumbnails if the user is looking at recordings,
+          // as the recording "hours" are the media, not the event
+          // clips/snapshots.
+          if (this._timeline && this.view && !this.view?.is('recording')) {
             const thumbnails = this._generateThumbnails();
             // Update the view to reflect the new thumbnails and the timeline
             // window in the context.
             this.view
-              ?.evolve({
+              .evolve({
                 target: thumbnails?.target ?? null,
                 childIndex: thumbnails?.childIndex ?? null,
               })
@@ -881,42 +843,14 @@ export class FrigateCardTimelineCore extends LitElement {
   }
 
   /**
-   * Called when an object on the timeline is selected.
-   * @param data The data about the selection.
-   * @returns
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected _timelineSelectHandler(data: { items: string[]; event: Event }): void {
-    if (!this.view?.target || !this.view?.target.children) {
-      return;
-    }
-
-    const childIndex = data.items.length
-      ? this.view.target.children.findIndex(
-          (child) => child.frigate?.event?.id === data.items[0],
-        )
-      : null;
-
-    this.view
-      ?.evolve({
-        childIndex: childIndex,
-      })
-      .dispatchChangeEvent(this);
-
-    if (childIndex !== null && childIndex >= 0) {
-      dispatchFrigateCardEvent(this, 'thumbnails:open');
-    } else {
-      dispatchFrigateCardEvent(this, 'thumbnails:close');
-    }
-  }
-
-  /**
    * Regenerate the thumbnails from the timeline events.
+   * @param selectedItem An id to select from the thumbnails (currently selected
+   * item is used if none is specified).
    * @returns An object with two keys, or null on error. The keys are `target`
    * containing all the thumbnails, and `childIndex` to refer to the currently
    * selected thumbnail.
    */
-  protected _generateThumbnails(): {
+  protected _generateThumbnails(selectedItem?: IdType): {
     target: FrigateBrowseMediaSource;
     childIndex: number | null;
   } | null {
@@ -924,29 +858,12 @@ export class FrigateCardTimelineCore extends LitElement {
       return null;
     }
 
-    /**
-     * Sort the timeline items most recent to least recent.
-     * @param a The first item.
-     * @param b The second item.
-     * @returns -1, 0, 1 (standard array sort function configuration).
-     */
-    const sortEvent = (
-      a: FrigateCardTimelineItem,
-      b: FrigateCardTimelineItem,
-    ): number => {
-      if (a.start < b.start) {
-        return 1;
-      }
-      if (a.start > b.start) {
-        return -1;
-      }
-      return 0;
-    };
-
-    const selected = this._timeline.getSelection();
+    const selected: IdType[] = selectedItem
+      ? [selectedItem]
+      : this._timeline.getSelection();
     let childIndex = -1;
     const children: FrigateBrowseMediaSource[] = [];
-    this._data.dataset.get({ order: sortEvent }).forEach((item) => {
+    this._dataview?.get({ order: sortTimelineItemsYoungestToOldest }).forEach((item) => {
       if (item.event && item.source) {
         children.push(item.source);
         if (selected.includes(item.event.id)) {
@@ -970,20 +887,19 @@ export class FrigateCardTimelineCore extends LitElement {
    */
   protected _getGroups(): DataGroupCollectionType {
     const groups: FrigateCardGroupData[] = [];
-    const processedCameras: Set<string> = new Set();
 
-    this.cameras?.forEach((cameraConfig, camera) => {
-      const frigateCameraID = getUniqueFrigateCameraEventsID(cameraConfig);
-      if (
-        cameraConfig.frigate.camera_name &&
-        cameraConfig.frigate.camera_name !== CAMERA_BIRDSEYE &&
-        !processedCameras.has(frigateCameraID)
-      ) {
-        processedCameras.add(frigateCameraID);
-        groups.push({
-          id: camera,
-          content: getCameraTitle(this.hass, cameraConfig),
-        });
+    this._getTimelineCameraIDs().forEach((cameraID) => {
+      const cameraConfig = this.cameras?.get(cameraID);
+      if (cameraConfig) {
+        if (
+          cameraConfig.frigate.camera_name &&
+          cameraConfig.frigate.camera_name !== CAMERA_BIRDSEYE
+        ) {
+          groups.push({
+            id: cameraID,
+            content: getCameraTitle(this.hass, cameraConfig),
+          });
+        }
       }
     });
     return new DataSet(groups);
@@ -1037,10 +953,6 @@ export class FrigateCardTimelineCore extends LitElement {
    * @returns A tuple of start/end date.
    */
   protected _getStartEnd(): [Date, Date] {
-    const event = this.view?.target?.frigate?.event;
-    if (event) {
-      return this._getStartEndFromEvent(event);
-    }
     const end = new Date();
     const start = sub(end, {
       seconds: this._getConfiguredWindowSeconds(),
@@ -1062,9 +974,9 @@ export class FrigateCardTimelineCore extends LitElement {
   /**
    * Handle timeline resize.
    */
-  protected _getOptions(): TimelineOptions | void {
+  protected _getOptions(): TimelineOptions | null {
     if (!this.timelineConfig) {
-      return;
+      return null;
     }
 
     const [start, end] = this._getStartEnd();
@@ -1107,7 +1019,7 @@ export class FrigateCardTimelineCore extends LitElement {
       selectable: true,
       start: start,
       end: end,
-      groupHeightMode: 'fixed',
+      groupHeightMode: 'auto',
       tooltip: {
         followMouse: true,
         overflowMethod: 'cap',
@@ -1145,7 +1057,13 @@ export class FrigateCardTimelineCore extends LitElement {
    * Update the timeline from the view object.
    */
   protected async _updateTimelineFromView(): Promise<void> {
-    if (!this.hass || !this.cameras || !this.view || !this.timelineConfig) {
+    if (
+      !this.hass ||
+      !this.cameras ||
+      !this.view ||
+      !this.timelineConfig ||
+      !this._timeline
+    ) {
       return;
     }
 
@@ -1154,19 +1072,23 @@ export class FrigateCardTimelineCore extends LitElement {
       ? this._getStartEndFromEvent(event)
       : this._getStartEnd();
 
-    const [prefetchStart, prefetchEnd] = this._getPrefetchWindow(windowStart, windowEnd);
-    const fetched = await this._data.fetchIfNecessary(
-      this,
-      this.hass,
-      this.cameras,
-      this.timelineConfig.media,
-      prefetchStart,
-      prefetchEnd,
-      this.timelineConfig.show_recordings,
-    );
-
-    if (!this._timeline) {
-      return;
+    let fetched = false;
+    if (!this._pointerHeld) {
+      // Don't fetch any data or touch the timeline in any way if the user is
+      // currently interacting with it. Without this the subsequent data fetches
+      // (via fetchIfNecessary) may update the timeline contents which causes
+      // the visjs timeline to stop dragging/panning operations which is very
+      // disruptive to the user.
+      const [prefetchStart, prefetchEnd] = this._getPrefetchWindow(
+        windowStart,
+        windowEnd,
+      );
+      fetched = !!(await this.timelineDataManager?.fetchIfNecessary(
+        this,
+        this.hass,
+        prefetchStart,
+        prefetchEnd,
+      ));
     }
 
     this._timeline.setSelection(event ? [event.id] : [], {
@@ -1177,38 +1099,38 @@ export class FrigateCardTimelineCore extends LitElement {
       },
     });
 
-    // Regenerate the thumbnails after the selection, to allow the new selection
-    // to be in the generated view.
-    const context = this.view.context?.timeline;
-    const timelineWindow = this._timeline.getWindow();
+    if (event && this._isClustering()) {
+      // Hack: Clustering may not update unless the dataset changes, artifically
+      // update the dataset to ensure the newly selected item cannot be included
+      // in a cluster.
+      this.timelineDataManager?.rewriteItem(event.id);
+    }
 
-    if (context?.window) {
-      if (!isEqual(context.window, timelineWindow)) {
-        this._timeline.setWindow(context.window.start, context.window.end);
-      }
-    } else if (event) {
-      const eventStart = new Date(event.start_time * 1000);
-      const eventEnd = event.end_time ? new Date(event.end_time * 1000) : 0;
+    if (!this._pointerHeld) {
+      // Regenerate the thumbnails after the selection, to allow the new selection
+      // to be in the generated view.
+      const context = this.view.context?.timeline;
+      const timelineWindow = this._timeline.getWindow();
 
-      if (
-        eventStart < timelineWindow.start ||
-        eventStart > timelineWindow.end ||
-        (eventEnd && (eventEnd < timelineWindow.start || eventEnd > timelineWindow.end))
-      ) {
+      if (context?.window) {
+        if (!isEqual(context.window, timelineWindow)) {
+          this._timeline.setWindow(context.window.start, context.window.end);
+        }
+      } else if (event) {
+        const eventStart = new Date(event.start_time * 1000);
+        const eventEnd = event.end_time ? new Date(event.end_time * 1000) : 0;
+
+        if (
+          eventStart < timelineWindow.start ||
+          eventStart > timelineWindow.end ||
+          (eventEnd &&
+            (eventEnd < timelineWindow.start || eventEnd > timelineWindow.end))
+        ) {
+          this._timeline.setWindow(windowStart, windowEnd);
+        }
+      } else {
         this._timeline.setWindow(windowStart, windowEnd);
       }
-
-      if (this._isClustering()) {
-        // Hack: Clustering may not update unless the dataset changes, artifically
-        // update the dataset to ensure the newly selected item cannot be included
-        // in a cluster.
-        const item = this._data.dataset.get(event.id);
-        if (item) {
-          this._data.dataset.updateOnly(item);
-        }
-      }
-    } else {
-      this._timeline.setWindow(windowStart, windowEnd);
     }
 
     // Only generate thumbnails if an actual fetch occurred, to avoid getting
@@ -1221,7 +1143,7 @@ export class FrigateCardTimelineCore extends LitElement {
     //      -> New view dispatched (to load thumbnails into outer carousel).
     //  -> New view received ... [loop]
 
-    if (fetched) {
+    if ((fetched || !this.view.context?.timeline?.generatedThumbnails) && !this.mini) {
       const thumbnails = this._generateThumbnails();
       this.view
         ?.evolve({
@@ -1241,17 +1163,19 @@ export class FrigateCardTimelineCore extends LitElement {
    */
   protected _generateTimelineContext(addWindow: boolean): ViewContext {
     const currentContext = this.view?.context?.timeline;
-    const newContext: TimelineViewContext = {}
+    const newContext: TimelineViewContext = {
+      generatedThumbnails: true,
+    };
 
     if (addWindow && this._timeline) {
       newContext.window = this._timeline.getWindow();
     } else if (currentContext?.window) {
       newContext.window = currentContext.window;
     }
-    if (this._data.lastFetchDate) {
-      newContext.dateFetch = this._data.lastFetchDate;
+    if (this.timelineDataManager?.lastFetchDate) {
+      newContext.dateFetch = this.timelineDataManager.lastFetchDate;
     }
-    return Object.keys(newContext) ? {timeline: newContext} : {};
+    return { timeline: newContext };
   }
 
   /**
@@ -1259,19 +1183,32 @@ export class FrigateCardTimelineCore extends LitElement {
    * @param changedProps The changed properties
    */
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('timelineConfig')) {
-      if (this.timelineConfig?.controls.thumbnails.size) {
+    if (changedProps.has('thumbnailSize')) {
+      if (this.thumbnailSize !== undefined) {
         this.style.setProperty(
           '--frigate-card-thumbnail-size',
-          `${this.timelineConfig.controls.thumbnails.size}px`,
+          `${this.thumbnailSize}px`,
         );
+      } else {
+        this.style.removeProperty('--frigate-card-thumbnail-size');
       }
+    }
+
+    if (changedProps.has('timelineConfig')) {
       if (this.timelineConfig?.show_recordings) {
         this.setAttribute('recordings', '');
       } else {
         this.removeAttribute('recordings');
       }
     }
+  }
+
+  /**
+   * Destroy/reset the timeline.
+   */
+  protected _destroy(): void {
+    this._timeline?.destroy();
+    this._timeline = undefined;
   }
 
   /**
@@ -1282,47 +1219,81 @@ export class FrigateCardTimelineCore extends LitElement {
     super.updated(changedProperties);
 
     if (changedProperties.has('cameras')) {
-      this._data.clear();
-      this._timeline?.destroy();
-      this._timeline = undefined;
+      this._destroy();
     }
 
     const options = this._getOptions();
-    if (changedProperties.has('timelineConfig') && this._refTimeline.value && options) {
+
+    if (
+      this.timelineDataManager &&
+      this._refTimeline.value &&
+      options &&
+      (changedProperties.has('timelineConfig') ||
+        (this.mini &&
+          changedProperties.has('view') &&
+          this.view?.camera !== changedProperties.get('view').camera))
+    ) {
       if (this._timeline) {
-        this._timeline.setOptions(options);
-      } else {
-        // Don't show an empty timeline, show a message instead.
-        const groups = this._getGroups();
-        if (!groups.length) {
+        this._destroy();
+      }
+
+      const groups = this._getGroups();
+      if (!groups.length) {
+        if (!this.mini) {
+          // Don't show an empty timeline, show a message instead.
           dispatchMessageEvent(this, localize('error.timeline_no_cameras'), 'info', {
             icon: 'mdi:chart-gantt',
           });
-          return;
         }
+        return;
+      }
 
+      this._dataview = this.timelineDataManager.createDataView(
+        this._getTimelineCameraIDs(),
+      );
+
+      if (this.mini && groups.length === 1) {
+        // In a mini timeline, if there's only one group don't bother grouping
+        // at all.
         this._timeline = new Timeline(
           this._refTimeline.value,
-          this._data.dataset,
+          this._dataview,
+          options,
+        ) as Timeline;
+        this.removeAttribute('groups');
+      } else {
+        this._timeline = new Timeline(
+          this._refTimeline.value,
+          this._dataview,
           groups,
           options,
-        );
-        this._timeline.on('select', this._timelineSelectHandler.bind(this));
-        this._timeline.on('rangechanged', this._timelineRangeHandler.bind(this));
-        this._timeline.on('click', this._timelineClickHandler.bind(this));
-        this._timeline.on('rangechange', this._timelineRangeChangeHandler.bind(this));
-
-        // This complexity exists to ensure we can tell between a click that
-        // causes the timeline zoom/range to change, and a 'static' click on the
-        // // timeline (which may need to trigger a card wide event).
-        this._timeline.on('mouseDown', () => {
-          this._pointerHeld = true;
-          this._ignoreClick = false;
-        });
-        this._timeline.on('mouseUp', () => {
-          this._pointerHeld = false;
-        });
+        ) as Timeline;
+        this.setAttribute('groups', '');
       }
+
+      this._timeline.on('rangechanged', this._timelineRangeChangedHandler.bind(this));
+      this._timeline.on('click', this._timelineClickHandler.bind(this));
+      this._timeline.on('rangechange', this._timelineRangeChangeHandler.bind(this));
+
+      // This complexity exists to ensure we can tell between a click that
+      // causes the timeline zoom/range to change, and a 'static' click on the
+      // // timeline (which may need to trigger a card wide event).
+      this._timeline.on('mouseDown', (ev: TimelineEventPropertiesResult) => {
+        const window = this._timeline?.getWindow();
+        this._pointerHeld = {
+          ...ev,
+          ...(window && { window: window }),
+        };
+        this._ignoreClick = false;
+
+        // if (ev.what && ['background', 'axis'].includes(ev.what)) {
+        //   this._setTargetBarAppropriately(ev.time);
+        // }
+      });
+      this._timeline.on('mouseUp', () => {
+        this._pointerHeld = null;
+        this._removeTargetBar();
+      });
     }
 
     if (changedProperties.has('view')) {

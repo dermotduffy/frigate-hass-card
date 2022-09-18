@@ -74,9 +74,9 @@ export const getRecordingsSummary = async (
     hass,
     recordingSummarySchema,
     {
-      type: "frigate/recordings/summary",
+      type: 'frigate/recordings/summary',
       instance_id: client_id,
-      camera: camera_name
+      camera: camera_name,
     },
     true,
   );
@@ -102,7 +102,7 @@ export const getRecordingSegments = async (
     hass,
     recordingSegmentsSchema,
     {
-      type: "frigate/recordings/get",
+      type: 'frigate/recordings/get',
       instance_id: client_id,
       camera: camera_name,
       before: Math.floor(before.getTime() / 1000),
@@ -144,27 +144,3 @@ export async function retainEvent(
     });
   }
 }
-
-/**
- * Get an id that unique identifies a particular camera (not zone, object, etc)
- * within a particular Frigate instance. ID will not (necessarily) be unique
- * within the card.
- * @param cameraConfig The camera config.
- */
-export const getUniqueFrigateCameraID = (config: CameraConfig): string => {
-  return [config.frigate.client_id, config.frigate.camera_name].join('/');
-};
-
-/**
- * Get an id that unique identifies a source of Frigate events. ID will not
- * (necessarily) be unique within the card.
- * @param cameraConfig The camera config.
- */
-export const getUniqueFrigateCameraEventsID = (config: CameraConfig): string => {
-  return [
-    config.frigate.client_id,
-    config.frigate.camera_name,
-    config.frigate.label,
-    config.frigate.zone,
-  ].join('/');
-};

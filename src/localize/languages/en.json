@@ -362,7 +362,8 @@
     "duration": "Duration",
     "in_progress": "In Progress",
     "score": "Score",
-    "start": "Start"
+    "start": "Start",
+    "seek": "Seek"
   },
   "recording": {
     "events": "Events",
@@ -372,6 +373,10 @@
     "no_thumbnail": "No thumbnail available",
     "retain_indefinitely": "Event will be indefinitely retained",
     "timeline": "See event in timeline"
+  },
+  "timeline": {
+    "lock": "Lock timeline to a single event",
+    "unlock": "Unlock timeline"
   },
   "elements": {
     "ptz": {

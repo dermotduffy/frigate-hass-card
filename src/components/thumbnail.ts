@@ -2,17 +2,12 @@ import { format, fromUnixTime } from 'date-fns';
 import { CSSResult, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+
 import { localize } from '../localize/localize.js';
 import thumbnailDetailsStyle from '../scss/thumbnail-details.scss';
 import thumbnailFeatureEventStyle from '../scss/thumbnail-feature-event.scss';
 import thumbnailFeatureRecordingStyle from '../scss/thumbnail-feature-recording.scss';
 import thumbnailStyle from '../scss/thumbnail.scss';
-import type {
-  ExtendedHomeAssistant,
-  FrigateBrowseMediaSource,
-  FrigateEvent,
-  FrigateRecording,
-} from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { errorToConsole, prettifyTitle } from '../utils/basic.js';
 import { retainEvent } from '../utils/frigate.js';
@@ -20,7 +15,14 @@ import { getEventDurationString } from '../utils/ha/browse-media.js';
 import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask } from '../utils/thumbnail.js';
 import { View } from '../view.js';
+import { MediaSeek } from './viewer.js';
 
+import type {
+  ExtendedHomeAssistant,
+  FrigateBrowseMediaSource,
+  FrigateEvent,
+  FrigateRecording,
+} from '../types.js';
 // The minimum width of a thumbnail with details enabled.
 export const THUMBNAIL_DETAILS_WIDTH_MIN = 300;
 
@@ -45,9 +47,7 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
             this,
             this._embedThumbnailTask,
             (embeddedThumbnail: string | null) =>
-              embeddedThumbnail
-                ? html`<img src="${embeddedThumbnail}" />`
-                : html``
+              embeddedThumbnail ? html`<img src="${embeddedThumbnail}" />` : html``,
           )
         : html`<ha-icon
             icon="mdi:image-off"
@@ -86,6 +86,9 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
   @property({ attribute: false })
   public event?: FrigateEvent;
 
+  @property({ attribute: false })
+  public mediaSeek?: MediaSeek;
+
   protected render(): TemplateResult | void {
     if (!this.event) {
       return;
@@ -101,6 +104,12 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
           <span class="heading">${localize('event.duration')}:</span>
           <span>${getEventDurationString(this.event)}</span>
         </div>
+        ${this.mediaSeek
+          ? html` <div>
+              <span class="heading">${localize('event.seek')}</span>
+              <span>${format(fromUnixTime(this.mediaSeek.seekTime), 'HH:mm:ss')}</span>
+            </div>`
+          : html``}
       </div>
       <div class="right">
         <span class="larger">${score}</span>
@@ -117,16 +126,19 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
   @property({ attribute: false })
   public recording?: FrigateRecording;
 
+  @property({ attribute: false })
+  public mediaSeek?: MediaSeek;
+
   protected render(): TemplateResult | void {
     if (!this.recording) {
       return;
     }
     return html`<div class="left">
         <div class="larger">${prettifyTitle(this.recording.camera) || ''}</div>
-        ${this.recording.seek_time
+        ${this.mediaSeek
           ? html` <div>
               <span class="heading">${localize('recording.seek')}</span>
-              <span>${format(fromUnixTime(this.recording.seek_time), 'HH:mm:ss')}</span>
+              <span>${format(fromUnixTime(this.mediaSeek.seekTime), 'HH:mm:ss')}</span>
             </div>`
           : html``}
       </div>
@@ -160,6 +172,9 @@ export class FrigateCardThumbnail extends LitElement {
 
   @property({ attribute: false })
   public childIndex?: number;
+
+  @property({ attribute: false })
+  public mediaSeek?: MediaSeek;
 
   // ===================================================
   // Raw interface (can override target-based interface)
@@ -263,10 +278,12 @@ export class FrigateCardThumbnail extends LitElement {
     ${this.details && event
       ? html`<frigate-card-thumbnail-details-event
           .event=${event ?? undefined}
+          .mediaSeek=${this.mediaSeek}
         ></frigate-card-thumbnail-details-event>`
       : this.details && recording
       ? html`<frigate-card-thumbnail-details-recording
           .recording=${recording ?? undefined}
+          .mediaSeek=${this.mediaSeek}
         ></frigate-card-thumbnail-details-recording>`
       : html``}
     ${this.show_timeline_control

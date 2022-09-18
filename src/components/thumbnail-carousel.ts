@@ -209,6 +209,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
       .view=${this.view}
       .target=${parent}
       .childIndex=${childIndex}
+      .mediaSeek=${this.view?.context?.mediaViewer?.seek.get(childIndex)}
       .clientID=${cameraConfig?.frigate.client_id}
       ?details=${this.config?.show_details}
       ?show_favorite_control=${this.config?.show_favorite_control}
