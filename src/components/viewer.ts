@@ -51,7 +51,7 @@ import {
 import './next-prev-control.js';
 import './title-control.js';
 import '../patches/ha-hls-player';
-import './surround-thumbnails';
+import './surround.js';
 import { EmblaCarouselPlugins } from './carousel.js';
 import { renderTask } from '../utils/task.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
@@ -134,7 +134,7 @@ export class FrigateCardViewer extends LitElement {
       return renderProgressIndicator();
     }
 
-    return html` <frigate-card-surround-thumbnails
+    return html` <frigate-card-surround
       .hass=${this.hass}
       .view=${this.view}
       .thumbnailConfig=${this.viewerConfig.controls.thumbnails}
@@ -150,7 +150,7 @@ export class FrigateCardViewer extends LitElement {
         .resolvedMediaCache=${this.resolvedMediaCache}
       >
       </frigate-card-viewer-carousel>
-    </frigate-card-surround-thumbnails>`;
+    </frigate-card-surround>`;
   }
 
   /**

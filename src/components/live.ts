@@ -61,7 +61,7 @@ import {
 import { dispatchErrorMessageEvent } from './message.js';
 import './next-prev-control.js';
 import './title-control.js';
-import './surround-thumbnails';
+import './surround.js';
 import '../patches/ha-camera-stream';
 import { EmblaCarouselPlugins } from './carousel.js';
 import { renderTask } from '../utils/task.js';
@@ -213,7 +213,7 @@ export class FrigateCardLive extends LitElement {
     //   is received when the card is in the background).
     const result = html`${keyed(
       this._renderKey,
-      html`<frigate-card-surround-thumbnails
+      html`<frigate-card-surround
         .hass=${this.hass}
         .view=${this.view}
         .thumbnailConfig=${config.controls.thumbnails}
@@ -251,7 +251,7 @@ export class FrigateCardLive extends LitElement {
           .liveOverrides=${this.liveOverrides}
         >
         </frigate-card-live-carousel>
-      </frigate-card-surround-thumbnails>`,
+      </frigate-card-surround>`,
     )}`;
 
     this._messageReceivedPostRender = false;

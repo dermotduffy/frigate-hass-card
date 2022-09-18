@@ -60,7 +60,7 @@ div.timeline {
 // ensure the background (recordings) always span the full height. Otherwise, in
 // cases where there are no events, the background is incorrectly rendered too
 // short by visjs.
-:host:not([groups]) .vis-item.vis-background {
+:host(:not([groups])) .vis-item.vis-background {
   min-height: 100%;
 }
 
