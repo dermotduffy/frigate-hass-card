@@ -107,16 +107,13 @@ export class TimelineDataManager {
 
   protected _cameras: Map<string, CameraConfig>;
   protected _mediaType: TimelineMediaType;
-  protected _recordings: boolean;
 
   constructor(
     cameras: Map<string, CameraConfig>,
     mediaType: TimelineMediaType,
-    recordings: boolean,
   ) {
     this._cameras = cameras;
     this._mediaType = mediaType;
-    this._recordings = recordings;
   }
 
   // Get the last event fetch date.
@@ -128,10 +125,13 @@ export class TimelineDataManager {
     return this._recordingSummary.get(cameraID) ?? null;
   }
 
-  public createDataView(cameraIDs: Set<string>): DataView<FrigateCardTimelineItem> {
+  public createDataView(
+    cameraIDs: Set<string>,
+    showRecordings: boolean
+  ): DataView<FrigateCardTimelineItem> {
     return new DataView(this._dataset, {
       filter: (item: FrigateCardTimelineItem) =>
-        !!item.group && cameraIDs.has(String(item.group)),
+        !!item.group && cameraIDs.has(String(item.group)) && (showRecordings || item.type !== 'background')
     });
   }
 
@@ -175,7 +175,6 @@ export class TimelineDataManager {
         ['video', 'image'].includes(child.media_content_type)
       ) {
         let item = this._dataset.get(event.id);
-        //const st = fromUnixTime();
         if (!item) {
           item = {
             id: event.id,
@@ -303,8 +302,8 @@ export class TimelineDataManager {
       // range. This is because events may change at any point in time
       // (e.g. a long-running event that ends).
       this._fetchEvents(element, hass, this._dateStart, this._dateEnd),
-      ...(this._recordings ? [this._fetchRecordingSummary(hass)] : []),
-      ...(this._recordings && segmentEnd > segmentStart
+      this._fetchRecordingSummary(hass),
+      ...(segmentEnd > segmentStart
         ? [this._fetchRecordingSegments(hass, segmentStart, segmentEnd)]
         : []),
     ]);

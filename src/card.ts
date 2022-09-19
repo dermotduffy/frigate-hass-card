@@ -1030,7 +1030,7 @@ export class FrigateCard extends LitElement {
 
     if (this._cameras && (changedProps.has('_config') || changedProps.has('_cameras'))) {
       this._timelineDataManager = new TimelineDataManager(
-        this._cameras, this._config.timeline.media, this._config.timeline.show_recordings
+        this._cameras, this._config.timeline.media
       )
     }
   }
