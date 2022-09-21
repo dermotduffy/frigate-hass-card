@@ -108,10 +108,7 @@ export class TimelineDataManager {
   protected _cameras: Map<string, CameraConfig>;
   protected _mediaType: TimelineMediaType;
 
-  constructor(
-    cameras: Map<string, CameraConfig>,
-    mediaType: TimelineMediaType,
-  ) {
+  constructor(cameras: Map<string, CameraConfig>, mediaType: TimelineMediaType) {
     this._cameras = cameras;
     this._mediaType = mediaType;
   }
@@ -127,11 +124,13 @@ export class TimelineDataManager {
 
   public createDataView(
     cameraIDs: Set<string>,
-    showRecordings: boolean
+    showRecordings: boolean,
   ): DataView<FrigateCardTimelineItem> {
     return new DataView(this._dataset, {
       filter: (item: FrigateCardTimelineItem) =>
-        !!item.group && cameraIDs.has(String(item.group)) && (showRecordings || item.type !== 'background')
+        !!item.group &&
+        cameraIDs.has(String(item.group)) &&
+        (showRecordings || item.type !== 'background'),
     });
   }
 

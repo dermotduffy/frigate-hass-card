@@ -1368,20 +1368,6 @@ interface BrowseMediaSource {
   children?: BrowseMediaSource[] | null;
 }
 
-export interface FrigateEvent {
-  camera: string;
-  end_time?: number;
-  false_positive: boolean;
-  has_clip: boolean;
-  has_snapshot: boolean;
-  id: string;
-  label: string;
-  start_time: number;
-  top_score: number;
-  zones: string[];
-  retain_indefinitely?: boolean;
-}
-
 export interface FrigateRecording {
   // Frigate camera name (may not be unique)
   camera: string;
@@ -1399,6 +1385,24 @@ export interface FrigateBrowseMediaSource extends BrowseMediaSource {
   };
 }
 
+export const frigateEventSchema = z.object({
+  camera: z.string(),
+  end_time: z.number().nullable(),
+  false_positive: z.boolean().nullable(),
+  has_clip: z.boolean(),
+  has_snapshot: z.boolean(),
+  id: z.string(),
+  label: z.string(),
+  start_time: z.number(),
+  top_score: z.number(),
+  zones: z.string().array(),
+  retain_indefinitely: z.boolean().optional(),
+});
+export type FrigateEvent = z.infer<typeof frigateEventSchema>;
+
+export const frigateEventsSchema = frigateEventSchema.array();
+export type FrigateEvents = z.infer<typeof frigateEventsSchema>;
+
 export const frigateBrowseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.lazy(
   () =>
     z.object({
@@ -1413,19 +1417,7 @@ export const frigateBrowseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.
       children: z.array(frigateBrowseMediaSourceSchema).nullable().optional(),
       frigate: z
         .object({
-          event: z.object({
-            camera: z.string(),
-            end_time: z.number().nullable(),
-            false_positive: z.boolean().nullable(),
-            has_clip: z.boolean(),
-            has_snapshot: z.boolean(),
-            id: z.string(),
-            label: z.string(),
-            start_time: z.number(),
-            top_score: z.number(),
-            zones: z.string().array(),
-            retain_indefinitely: z.boolean().optional(),
-          }),
+          event: frigateEventSchema
         })
         .optional(),
     }),
