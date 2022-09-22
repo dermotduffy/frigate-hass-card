@@ -16,6 +16,7 @@ import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask } from '../utils/thumbnail.js';
 import { View } from '../view.js';
 import { MediaSeek } from './viewer.js';
+import { TaskStatus } from '@lit-labs/task';
 
 import type {
   ExtendedHomeAssistant,
@@ -38,22 +39,63 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
     this,
     () => this.hass,
     () => this.thumbnail,
+    false,
   );
 
+  // Only load thumbnails on view in case there is a very large number of them.
+  protected _intersectionObserver: IntersectionObserver;
+
+  constructor() {
+    super();
+    this._intersectionObserver = new IntersectionObserver(
+      this._intersectionHandler.bind(this),
+    );
+  }
+
+  /**
+   * Component connected callback.
+   */
+  connectedCallback(): void {
+    this._intersectionObserver.observe(this);
+    super.connectedCallback();
+  }
+
+  /**
+   * Component disconnected callback.
+   */
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this._intersectionObserver.disconnect();
+  }
+
+  /**
+   * Called when the live view intersects with the viewport.
+   * @param entries The IntersectionObserverEntry entries (should be only 1).
+   */
+  protected _intersectionHandler(entries: IntersectionObserverEntry[]): void {
+    if (
+      this._embedThumbnailTask.status === TaskStatus.INITIAL &&
+      entries.some((entry) => entry.isIntersecting)
+    ) {
+      this._embedThumbnailTask.run();
+    }
+  }
+
   protected render(): TemplateResult | void {
-    return html`
-      ${this.thumbnail
-        ? renderTask(
-            this,
-            this._embedThumbnailTask,
-            (embeddedThumbnail: string | null) =>
-              embeddedThumbnail ? html`<img src="${embeddedThumbnail}" />` : html``,
-          )
-        : html`<ha-icon
-            icon="mdi:image-off"
-            title=${localize('thumbnail.no_thumbnail')}
-          ></ha-icon> `}
-    `;
+    const imageOff = html`<ha-icon
+      icon="mdi:image-off"
+      title=${localize('thumbnail.no_thumbnail')}
+    ></ha-icon> `;
+
+    return html`${this.thumbnail
+      ? renderTask(
+          this,
+          this._embedThumbnailTask,
+          (embeddedThumbnail: string | null) =>
+            embeddedThumbnail ? html`<img src="${embeddedThumbnail}" />` : html``,
+          () => imageOff,
+        )
+      : imageOff} `;
   }
 
   static get styles(): CSSResult {
