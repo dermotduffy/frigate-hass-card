@@ -1,29 +1,29 @@
+import { HomeAssistant } from 'custom-card-helpers';
+import { HassEntity } from 'home-assistant-js-websocket';
 import {
   CSSResultGroup,
+  html,
   LitElement,
   PropertyValues,
   TemplateResult,
-  html,
-  unsafeCSS,
+  unsafeCSS
 } from 'lit';
-import { HomeAssistant } from 'custom-card-helpers';
-import { customElement, property, query, state } from 'lit/decorators.js';
-
+import { customElement, property } from 'lit/decorators.js';
+import { live } from 'lit/directives/live.js';
+import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { CachedValueController } from '../cached-value-controller.js';
-import { CameraConfig, ImageViewConfig } from '../types.js';
-import { View } from '../view.js';
-import {
-  dispatchErrorMessageEvent,
-  dispatchMediaShowEvent,
-  shouldUpdateBasedOnHass,
-} from '../common.js';
-import { localize } from '../localize/localize.js';
-
 import defaultImage from '../images/frigate-bird-in-sky.jpg';
-
+import { localize } from '../localize/localize.js';
 import imageStyle from '../scss/image.scss';
+import { CameraConfig, ImageViewConfig } from '../types.js';
+import { isHassDifferent } from '../utils/ha';
+import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
+import { dispatchMediaLoadedEvent } from '../utils/media-info.js';
+import { View } from '../view.js';
+import { dispatchErrorMessageEvent } from './message.js';
+import { contentsChanged } from '../utils/basic.js';
 
-// See: https://github.com/home-assistant/core/blob/dev/homeassistant/components/camera/__init__.py#L101
+// See TOKEN_CHANGE_INTERVAL in https://github.com/home-assistant/core/blob/dev/homeassistant/components/camera/__init__.py .
 const HASS_REJECTION_CUTOFF_MS = 5 * 60 * 1000;
 
 @customElement('frigate-card-image')
@@ -32,40 +32,31 @@ export class FrigateCardImage extends LitElement {
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  protected view?: Readonly<View>;
+  public view?: Readonly<View>;
 
   @property({ attribute: false })
-  protected cameraConfig?: CameraConfig;
+  public cameraConfig?: CameraConfig;
 
-  @state()
-  protected _imageConfig?: ImageViewConfig;
+  // Using contentsChanged to ensure overridden configs (e.g. when the
+  // 'show_image_during_load' option is true for live views, an overridden
+  // config may be used here).
+  @property({ attribute: false, hasChanged: contentsChanged })
+  public imageConfig?: ImageViewConfig;
 
-  @query('img')
-  protected _image?: HTMLImageElement;
+  protected _refImage: Ref<HTMLImageElement> = createRef();
 
   protected _cachedValueController?: CachedValueController<string>;
   protected _boundVisibilityHandler = this._visibilityHandler.bind(this);
-  /**
-   * Set the image configuration.
-   */
-  set imageConfig(imageConfig: ImageViewConfig) {
-    this._imageConfig = imageConfig;
-    if (this._cachedValueController) {
-      this._cachedValueController.removeController();
-    }
-    this._cachedValueController = new CachedValueController(
-      this,
-      this._imageConfig.refresh_seconds,
-      this._getImageSource.bind(this),
-    );
-  }
 
   /**
    * Get the camera entity for the current camera configuration.
    * @returns The entity or undefined if no camera entity is available.
    */
-  protected _getCameraEntity(): string | undefined {
-    return this.cameraConfig?.camera_entity || this.cameraConfig?.webrtc_card?.entity;
+  protected _getCameraEntity(): string | null {
+    return (
+      (this.cameraConfig?.camera_entity || this.cameraConfig?.webrtc_card?.entity) ??
+      null
+    );
   }
 
   /**
@@ -78,30 +69,14 @@ export class FrigateCardImage extends LitElement {
       return false;
     }
 
-    // If camera mode is enabled, reject all updates if hass is older than
-    // HASS_REJECTION_CUTOFF_MS or if HASS is not currently connected. By using
-    // an older hass (even if it is not the property being updated), we run the
-    // risk that the JS has an old access token for the camera, and that results
-    // in a notification on the HA UI about a failed login. See
-    // https://github.com/dermotduffy/frigate-hass-card/issues/398 .
     const cameraEntity = this._getCameraEntity();
-    const state = cameraEntity ? this.hass.states[cameraEntity] : undefined;
-    if (
-      this._imageConfig?.mode === 'camera' &&
-      (!this.hass.connected ||
-        !state ||
-        Date.now() - Date.parse(state.last_updated) >= HASS_REJECTION_CUTOFF_MS)
-    ) {
-      return false;
-    }
-
     if (
       changedProps.has('hass') &&
       changedProps.size == 1 &&
-      this._imageConfig?.mode === 'camera' &&
+      this.imageConfig?.mode === 'camera' &&
       cameraEntity
     ) {
-      if (shouldUpdateBasedOnHass(this.hass, changedProps.get('hass'), [cameraEntity])) {
+      if (isHassDifferent(this.hass, changedProps.get('hass'), [cameraEntity])) {
         // If the state of the camera entity has changed, remove the cached
         // value (will be re-calculated in willUpdate). This is important to
         // ensure a changed access token is immediately used.
@@ -117,11 +92,57 @@ export class FrigateCardImage extends LitElement {
    * Ensure there is a cached value before an update.
    * @param _changedProps The changed properties
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected willUpdate(_changedProps: PropertyValues): void {
+  protected willUpdate(changedProps: PropertyValues): void {
+    if (changedProps.has('imageConfig')) {
+      if (this._cachedValueController) {
+        this._cachedValueController.removeController();
+      }
+      if (this.imageConfig) {
+        this._cachedValueController = new CachedValueController(
+          this,
+          this.imageConfig.refresh_seconds,
+          this._getImageSource.bind(this),
+        );
+      }
+      updateElementStyleFromMediaLayoutConfig(this, this.imageConfig?.layout);
+    }
+
+    // If the camera or view changed, immediately discard the old value (view to
+    // allow pressing of the image button to fetch a fresh image). Likewise, if
+    // the state is not acceptable, discard the old value (to allow a stock or
+    // backup image to be displayed).
+    if (
+      changedProps.has('cameraConfig') ||
+      changedProps.has('view') ||
+      (this.imageConfig?.mode === 'camera' &&
+        !this._getAcceptableState(this._getCameraEntity()))
+    ) {
+      this._cachedValueController?.clearValue();
+    }
+
     if (!this._cachedValueController?.value) {
       this._cachedValueController?.updateValue();
     }
+  }
+
+  /**
+   * Determine if a given entity is acceptable as the basis for an image render
+   * (detects old or disconnected states). Using an old state is problematic as
+   * it runs the risk that the JS has an old access token for the camera, and
+   * that results in a notification on the HA UI about a failed login. See:
+   * https://github.com/dermotduffy/frigate-hass-card/issues/398 .
+   * @param entity The entity.
+   * @returns The state or null if not acceptable.
+   */
+  protected _getAcceptableState(entity: string | null): HassEntity | null {
+    const state = (entity ? this.hass?.states[entity] : null) ?? null;
+
+    return !!this.hass &&
+      this.hass.connected &&
+      !!state &&
+      Date.now() - Date.parse(state.last_updated) < HASS_REJECTION_CUTOFF_MS
+      ? state
+      : null;
   }
 
   /**
@@ -130,12 +151,14 @@ export class FrigateCardImage extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     document.addEventListener('visibilitychange', this._boundVisibilityHandler);
+    this._cachedValueController?.startTimer();
   }
 
   /**
    * Component disconnected callback.
    */
   disconnectedCallback(): void {
+    this._cachedValueController?.stopTimer();
     document.removeEventListener('visibilitychange', this._boundVisibilityHandler);
     super.disconnectedCallback();
   }
@@ -144,7 +167,7 @@ export class FrigateCardImage extends LitElement {
    * Handle document visibility changes.
    */
   protected _visibilityHandler(): void {
-    if (!this._image) {
+    if (!this._refImage.value) {
       return;
     }
     if (document.visibilityState === 'hidden') {
@@ -155,13 +178,15 @@ export class FrigateCardImage extends LitElement {
       // re-generation of a new URL would generate an unauthorized request
       // (401), see:
       // https://github.com/dermotduffy/frigate-hass-card/issues/398
+      this._cachedValueController?.stopTimer();
       this._cachedValueController?.clearValue();
-      this._forceStockImage();
+      this._forceSafeImage();
     } else {
       // If the document is freshly re-visible, immediately re-render it to
       // restore the image src. If the HASS object is old (i.e. browser tab was
       // inactive for some time) this update request may be (correctly)
       // rejected.
+      this._cachedValueController?.startTimer();
       this.requestUpdate();
     }
   }
@@ -178,49 +203,53 @@ export class FrigateCardImage extends LitElement {
   }
 
   protected _getImageSource(): string {
-    if (this._imageConfig?.mode === 'url' && this._imageConfig?.url) {
-      return this._buildImageURL(this._imageConfig.url);
-    } else if (this.hass && this._imageConfig?.mode === 'camera') {
-      const entity = this._getCameraEntity();
-      if (entity) {
-        const state = this.hass.states[entity];
-        if (state && state.attributes.entity_picture) {
-          return this._buildImageURL(state.attributes.entity_picture);
-        }
+    if (this.hass && this.imageConfig?.mode === 'camera') {
+      const state = this._getAcceptableState(this._getCameraEntity());
+      if (state?.attributes.entity_picture) {
+        return this._buildImageURL(state.attributes.entity_picture);
       }
+    }
+    if (this.imageConfig?.mode !== 'screensaver' && this.imageConfig?.url) {
+      return this._buildImageURL(this.imageConfig.url);
     }
     return defaultImage;
   }
 
   /**
-   * Force the img element to the stock image.
+   * Force the img element to a safe image.
    */
-  protected _forceStockImage(): void {
-    if (this._image) {
-      this._image.src = defaultImage;
+  protected _forceSafeImage(stockOnly?: boolean): void {
+    if (this._refImage.value) {
+      this._refImage.value.src =
+        !stockOnly && this.imageConfig?.url ? this.imageConfig.url : defaultImage;
     }
   }
 
   protected render(): TemplateResult | void {
     const src = this._cachedValueController?.value;
+    // Note the use of live() below to ensure the update will restore the image
+    // src if it's been changed via _forceSafeImage().
     return src
       ? html` <img
-          src=${src}
-          @load=${(ev) => {
-            dispatchMediaShowEvent(this, ev);
+          ${ref(this._refImage)}
+          src=${live(src)}
+          @load=${(ev: Event) => {
+            dispatchMediaLoadedEvent(this, ev);
           }}
           @error=${() => {
-            if (this._imageConfig?.mode === 'camera') {
+            if (this.imageConfig?.mode === 'camera') {
               // In camera mode, the user has likely not made an error, but HA
-              // may be unavailble, so show the stock image.
-              this._forceStockImage();
-            } else if (this._imageConfig?.mode === 'url') {
+              // may be unavailble, so show the stock image. Don't let the URL
+              // override the stock image in this case, as this could create an
+              // error loop if that URL subsequently failed to load.
+              this._forceSafeImage(true);
+            } else if (this.imageConfig?.mode === 'url') {
               // In url mode, the user likely specified a URL that cannot be
               // resolved. Show an error message.
               dispatchErrorMessageEvent(
                 this,
                 localize('error.image_load_error'),
-                this._imageConfig,
+                { context: this.imageConfig },
               );
             }
           }}
@@ -231,4 +260,10 @@ export class FrigateCardImage extends LitElement {
   static get styles(): CSSResultGroup {
     return unsafeCSS(imageStyle);
   }
+}
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-image": FrigateCardImage
+	}
 }

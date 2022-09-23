@@ -1,28 +1,46 @@
 import * as en from './languages/en.json';
-import * as pt_BR from './languages/pt_br.json';
+import * as pt_BR from './languages/pt-BR.json';
+import * as it from './languages/it.json';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const languages: any = {
   en: en,
   pt_BR: pt_BR,
+  it: it,
 };
 
-export function localize(string: string, search = '', replace = ''): string {
-  // Get the browser language.
-  let lang = localStorage
-    .getItem('selectedLanguage')
-    ?.replace(/['"]+/g, '')
-    .replace('-', '_');
+export function getLanguage(): string {
+  const canonicalizeLanguage = (language?: string | null): string | null => {
+    if (!language) {
+      return null;
+    }
+    return language.replace('-', '_');
+  };
 
-  // If that's not specified, try to find the Home Assistant language.
-  if (!lang) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const hass = (document.querySelector('home-assistant') as any)?.hass;
-    lang = hass.selectedLanguage || hass.language;
+  // Try the HA language first...
+  let lang: string | null = null;
+  const HALanguage = localStorage.getItem('selectedLanguage');
+  if (HALanguage) {
+    const selectedLanguage = canonicalizeLanguage(JSON.parse(HALanguage));
+    if (selectedLanguage) {
+      lang = selectedLanguage;
+    }
   }
 
-  // Default to English is there's still no language setting.
-  lang = lang || 'en';
+  // Then fall back to the browser language.
+  if (!lang) {
+    for (const language of navigator.languages) {
+      const canonicalLanguage = canonicalizeLanguage(language);
+      if (canonicalLanguage && canonicalLanguage in languages) {
+        lang = language;
+      }
+    }
+  }
+  return lang || 'en';
+}
+
+export function localize(string: string, search = '', replace = ''): string {
+  const lang = getLanguage();
   let translated: string;
 
   try {
@@ -31,7 +49,7 @@ export function localize(string: string, search = '', replace = ''): string {
     translated = string.split('.').reduce((o, i) => o[i], languages['en']);
   }
 
-  if (translated === undefined) {
+  if (!translated) {
     translated = string.split('.').reduce((o, i) => o[i], languages['en']);
   }
 

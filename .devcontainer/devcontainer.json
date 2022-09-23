@@ -1,14 +1,26 @@
 // See https://aka.ms/vscode-remote/devcontainer.json for format details.
 {
-  "name": "Boilerplate Card Development",
-  "image": "ludeeus/container:monster",
-  "context": "..",
-  "appPort": ["5000:5000", "9123:8123"],
-  "postCreateCommand": "npm install",
-  "runArgs": [
-    "-v",
-    "${env:HOME}${env:USERPROFILE}/.ssh:/tmp/.ssh" // This is added so you can push from inside the container
-  ],
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "dev",
+  "workspaceFolder": "${localWorkspaceFolder}",
+  "shutdownAction": "stopCompose",
+  "portsAttributes": {
+    "10001": {
+      "label": "Rollup",
+      "onAutoForward": "silent"
+    },
+    "hass:8123": {
+      "label": "Home Assistant",
+      "onAutoForward": "silent"
+    },
+    "frigate:5000": {
+      "label": "Frigate",
+      "onAutoForward": "silent"
+    }
+  },
+  "forwardPorts": [10001, "hass:8123", "frigate:5000"],
+  "initializeCommand": ".devcontainer/initialize.sh",
+  "postCreateCommand": "yarn install",
   "extensions": [
     "github.vscode-pull-request-github",
     "eamodio.gitlens",
@@ -16,17 +28,23 @@
     "esbenp.prettier-vscode",
     "bierner.lit-html",
     "runem.lit-plugin",
-    "auchenberg.vscode-browser-preview",
     "davidanson.vscode-markdownlint",
-    "redhat.vscode-yaml"
+    "redhat.vscode-yaml",
+    "lokalise.i18n-ally",
+    "ms-azuretools.vscode-docker"
   ],
   "settings": {
     "files.eol": "\n",
-    "editor.tabSize": 4,
-    "terminal.integrated.shell.linux": "/bin/bash",
+    "editor.tabSize": 2,
     "editor.formatOnPaste": false,
     "editor.formatOnSave": true,
     "editor.formatOnType": true,
-    "files.trimTrailingWhitespace": true
+    "files.trimTrailingWhitespace": true,
+    "[json]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[jsonc]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
   }
 }

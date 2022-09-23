@@ -1,11 +1,23 @@
 :host {
   display: block;
 
-  // Anchor absolutes to the outer part of the card.
+  // Anchor absolutes to the outermost part of the card.
   position: relative;
+
+  // Different browsers use different colors as their fullscreen background,
+  // this ensures the same experience across all browsers.
+  background-color: var(--card-background-color);
+
+  // The primary border-radius used is the div.main. This is only useful for
+  // keeping the background-color within the radius.
+  border-radius: var(--ha-card-border-radius, 4px);
 }
 
-.container {
+:host([dark]) {
+  filter: brightness(75%);
+}
+
+div.main {
   position: relative;
   overflow: auto;
   width: 100%;
@@ -14,49 +26,49 @@
   display: flex;
   justify-content: center;
 
-  // Need to apply the border radius on the container level, as the ha-card has
-  // overflow visible in order to allow a submenu to extend beyond the card
-  // boundary.
-  border-radius: var(--ha-card-border-radius, 4px);
-}
+  // Necessary to get Safari to show border-radius correctly.
+  transform: translateZ(0);
 
-.frigate-card-contents {
-  width: inherit;
-  height: inherit;
-  margin: auto;
-  overflow: auto;
-  -ms-overflow-style: none; /* Hide scrollbar: IE and Edge */
-  scrollbar-width: none;    /* Hide scrollbar: Firefox */
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  // Include the borders in the sizing (to keep the triggered warning pulse
+  // visible in fullscreen).
+  box-sizing: border-box;
+
+  // Hide scrollbar: Firefox
+  scrollbar-width: none;
+  // Hide scrollbar: IE and Edge
+  -ms-overflow-style: none;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
-.frigate-card-contents::-webkit-scrollbar {
+div.main::-webkit-scrollbar {
   display: none;
 }
 
-/* When forcing aspect ratio absolute positioning is required */
-.frigate-card-contents.absolute {
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  bottom: 0px;
-  left: 0px;
+// Need to apply the border radius on the container level, as the ha-card has
+// overflow visible in order to allow a submenu to extend beyond the card
+// boundary. Need to be able to selectively curve top or bottom depending on
+// whether the outside menu is being shown. There's no way to select 'preceding
+// element' in CSS, so this must be implemented in JS.
+div.main.curve-top {
+  border-top-left-radius: var(--ha-card-border-radius, 4px);
+  border-top-right-radius: var(--ha-card-border-radius, 4px);
+}
+div.main.curve-bottom {
+  border-bottom-left-radius: var(--ha-card-border-radius, 4px);
+  border-bottom-right-radius: var(--ha-card-border-radius, 4px);
 }
 
 /* The 'hover' menu mode is styling applied outside of the menu itself */
-frigate-card-menu[data-mode^=hover-] {
+frigate-card-menu[data-style='hover'] {
   z-index: 1;
   transition: opacity 0.5s ease;
 }
 
-.outer + frigate-card-menu[data-mode^=hover-] {
-  opacity: 0.0;
+.main + frigate-card-menu[data-style='hover'] {
+  opacity: 0;
 }
-.outer:hover + frigate-card-menu[data-mode^=hover-], frigate-card-menu[data-mode^=hover-]:hover {
-  opacity: 1.0;
+frigate-card-menu[data-style='hover']:hover {
+  opacity: 1;
 }
 
 ha-card {
@@ -70,34 +82,64 @@ ha-card {
   height: 100%;
   position: static;
   color: var(--secondary-text-color, white);
-  background-color: var(--secondary-background-color, black);
-  border-radius: var(--ha-card-border-radius, 4px);
+}
+ha-card.triggered {
+  @keyframes warning-pulse {
+    0% {
+      border: solid 2px rgba(0, 0, 0, 0);
+    }
+    50% {
+      border: solid 2px var(--warning-color);
+    }
+    100% {
+      border: solid 2px rgba(0, 0, 0, 0);
+    }
+  }
+  animation: warning-pulse 5s infinite;
 }
 
-frigate-card-live.hidden  {
+
+frigate-card-live.hidden {
   // Live view will be rendered but hidden for live preloading.
   display: none;
 }
+
+/************
+ * Fullscreen
+ *************/
 
 // Browsers will reject invalid whole CSS selectors if one selector is bad, so
 // need to use mixin here instead of just comma-separated selectors.
 //  - Related: https://stackoverflow.com/questions/16982449/why-isnt-it-possible-to-combine-vendor-specific-pseudo-elements-classes-into-on
 @mixin fullscreen-ha-card {
-  // Make the background black, to give it the expected fullscreen feel.
-  background-color: black;
+  // Hide corners on Safari fullscreen.
+  border-radius: 0px;
 
+  // Theme styles may set these which are not helpful in fullscreen mode, reset
+  // them.
+  box-shadow: none;
+  margin: 0;
+}
+
+// Need to use an id selector here to overcome theme styling that may
+// incorrectly apply to ha-card style.
+:host(:fullscreen) #ha-card {
+  @include fullscreen-ha-card;
+}
+:host(:-webkit-full-screen) #ha-card {
+  @include fullscreen-ha-card;
+}
+
+@mixin fullscreen-no-rounded-corners {
   // Hide corners on Safari fullscreen.
   border-radius: 0px;
 }
-:host(:fullscreen) ha-card {
-  @include fullscreen-ha-card;
+
+:host(:fullscreen) div.main,
+:host(:fullscreen) frigate-card-menu {
+  @include fullscreen-no-rounded-corners;
 }
-:host(:-webkit-full-screen) ha-card {
-  @include fullscreen-ha-card;
-}
-:host(:-moz-full-screen) ha-card {
-  @include fullscreen-ha-card;
-}
-:host(:-ms-fullscreen) ha-card {
-  @include fullscreen-ha-card;
+:host(:-webkit-full-screen) div.main,
+:host(:-webkit-full-screen) frigate-card-menu {
+  @include fullscreen-no-rounded-corners;
 }

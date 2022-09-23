@@ -1,7 +1,9 @@
 :host {
+  display: block;
+  width: 100%;
+  height: 100%;
   --video-max-height: none;
-}
 
-.embla__slide {
-  flex: 0 0 100%;
+  // Keep the controls relative to the media carousel itself.
+  position: relative;
 }

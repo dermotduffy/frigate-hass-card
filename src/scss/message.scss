@@ -1,7 +1,16 @@
 :host {
-  height: 100%;
+  min-height: 100%;
   width: 100%;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  // Ensure error messages are selectable.
+  user-select: text;
+  // Safari only has prefixed support.
+  -webkit-user-select: text;
+
+  color: var(--primary-text-color);
 }
 
 div.wrapper {
@@ -13,13 +22,17 @@ div.message {
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
-  padding: 10%;
+  padding: 20px;
   height: 100%;
 }
 
 div.message div.contents {
+  display: flex;
+  flex-direction: column;
   padding: 10px;
-  height: 100%;
+  margin-top: auto;
+  margin-bottom: auto;
+  min-width: 0;
 }
 
 div.message div.icon {
@@ -37,4 +50,30 @@ div.message div.icon {
 
 .message pre {
   margin-top: 20px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.dotdotdot:after {
+  @keyframes dots {
+    0%,
+    20% {
+      content: '.';
+    }
+    40% {
+      content: '..';
+    }
+    60% {
+      content: '...';
+    }
+    90%,
+    100% {
+      content: '';
+    }
+  }
+
+  animation: dots 2s linear infinite;
+  content: '';
+  display: inline-block;
+  width: 3em;
 }

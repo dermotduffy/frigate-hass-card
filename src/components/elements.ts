@@ -1,24 +1,39 @@
-import { LitElement, TemplateResult, html, CSSResultGroup, unsafeCSS } from 'lit';
-import { HomeAssistant } from 'custom-card-helpers';
-import { customElement, property, query } from 'lit/decorators.js';
-
+import { HASSDomEvent, HomeAssistant } from 'custom-card-helpers';
 import {
-  ExtendedHomeAssistant,
+  CSSResultGroup,
+  html,
+  LitElement,
+  PropertyValues,
+  TemplateResult,
+  unsafeCSS,
+} from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import { ConditionState, fetchStateAndEvaluateCondition } from '../card-condition.js';
+import { localize } from '../localize/localize.js';
+import elementsStyle from '../scss/elements.scss';
+import ptzStyle from '../scss/elements-ptz.scss';
+import {
+  Actions,
+  ActionsConfig,
+  FrigateCardError,
+  FrigateCardPTZConfig,
   FrigateConditional,
   MenuButton,
   MenuIcon,
   MenuStateIcon,
-  PictureElements,
   MenuSubmenu,
+  MenuSubmenuSelect,
+  PictureElements,
 } from '../types.js';
+import { dispatchFrigateCardEvent } from '../utils/basic.js';
+import { dispatchFrigateCardErrorEvent } from './message.js';
+import { actionHandler } from '../action-handler-directive.js';
 import {
-  dispatchErrorMessageEvent,
-  dispatchFrigateCardEvent,
-} from '../common.js';
-
-import elementsStyle from '../scss/elements.scss';
-import { localize } from '../localize/localize.js';
-import { ConditionState, fetchStateAndEvaluateCondition } from '../card-condition.js';
+  frigateCardHandleActionConfig,
+  frigateCardHasAction,
+  getActionConfigGivenAction,
+} from '../utils/action.js';
+import { classMap } from 'lit/directives/class-map.js';
 
 /* A note on picture element rendering:
  *
@@ -53,33 +68,29 @@ import { ConditionState, fetchStateAndEvaluateCondition } from '../card-conditio
  * upper layers to handle correctly.
  */
 
+interface HuiConditionalElement extends HTMLElement {
+  hass: HomeAssistant;
+  setConfig(config: unknown): void;
+}
+
 // A small wrapper around a HA conditional element used to render a set of
 // picture elements.
 @customElement('frigate-card-elements-core')
-class FrigateCardElementsCore extends LitElement {
+export class FrigateCardElementsCore extends LitElement {
   @property({ attribute: false })
-  protected elements: PictureElements;
+  public elements: PictureElements;
 
   /**
    * Need to ensure card re-renders when conditionState changes, hence having it
    * as a property even though it is not currently directly used by this class.
    */
   @property({ attribute: false })
-  protected conditionState?: ConditionState;
+  public conditionState?: ConditionState;
 
-  protected _root: HTMLElement | null = null;
-  protected _hass?: HomeAssistant & ExtendedHomeAssistant;
+  protected _root: HuiConditionalElement | null = null;
 
-  /**
-   * Set Home Assistant object.
-   */
-  set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
-    if (this._root) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (this._root as any).hass = hass;
-    }
-    this._hass = hass;
-  }
+  @property({ attribute: false })
+  public hass?: HomeAssistant;
 
   /**
    * Create a transparent render root.
@@ -90,17 +101,16 @@ class FrigateCardElementsCore extends LitElement {
 
   /**
    * Create the root node for our picture elements.
-   * @returns 
+   * @returns The newly created root.
    */
-  protected _createRoot(): HTMLElement {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const elementConstructor = customElements.get('hui-conditional-element') as any;
-    if (!elementConstructor || !this._hass) {
+  protected _createRoot(): HuiConditionalElement {
+    const elementConstructor = customElements.get('hui-conditional-element');
+    if (!elementConstructor || !this.hass) {
       throw new Error(localize('error.could_not_render_elements'));
     }
 
-    const element = new elementConstructor();
-    element.hass = this._hass;
+    const element = new elementConstructor() as HuiConditionalElement;
+    element.hass = this.hass;
     const config = {
       type: 'conditional',
       conditions: [],
@@ -109,10 +119,26 @@ class FrigateCardElementsCore extends LitElement {
     try {
       element.setConfig(config);
     } catch (e) {
-      console.error(e, (e as Error).stack);
-      throw new Error(localize('error.invalid_elements_config'));
+      console.error(e);
+      throw new FrigateCardError(localize('error.invalid_elements_config'));
     }
     return element;
+  }
+
+  /**
+   * Create the root as necessary prior to rendering.
+   */
+  protected willUpdate(changedProps: PropertyValues): void {
+    try {
+      // The root is only created once per elements configuration change, to
+      // avoid the elements being continually re-created & destroyed (for some
+      // elements, e.g. image, recreation causes a flicker).
+      if (this.elements && (!this._root || changedProps.has('elements'))) {
+        this._root = this._createRoot();
+      }
+    } catch (e) {
+      return dispatchFrigateCardErrorEvent(this, e as FrigateCardError);
+    }
   }
 
   /**
@@ -120,14 +146,15 @@ class FrigateCardElementsCore extends LitElement {
    * @returns A rendered template or void.
    */
   protected render(): TemplateResult | void {
-    try {
-      // Recreate the root on each render to ensure conditional ancestors
-      // re-fire events as necessary.
-      this._root = this._createRoot();
-    } catch (e) {
-      return dispatchErrorMessageEvent(this, (e as Error).message);
-    }
     return html`${this._root || ''}`;
+  }
+
+  protected updated(): void {
+    if (this.hass && this._root) {
+      // Always update hass. It is used as a trigger to re-evaluate conditions
+      // down the chain, see the note on FrigateCardElementsConditional.
+      this._root.hass = this.hass;
+    }
   }
 }
 
@@ -137,16 +164,15 @@ class FrigateCardElementsCore extends LitElement {
 @customElement('frigate-card-elements')
 export class FrigateCardElements extends LitElement {
   @property({ attribute: false })
-  public hass?: HomeAssistant & ExtendedHomeAssistant;
+  public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  protected elements: PictureElements;
+  public conditionState?: ConditionState;
 
   @property({ attribute: false })
-  protected conditionState?: ConditionState;
+  public elements: PictureElements;
 
-  @query('frigate-card-elements-core')
-  _core!: FrigateCardElementsCore;
+  protected _boundMenuRemoveHandler = this._menuRemoveHandler.bind(this);
 
   /**
    * Handle a picture element to be removed from the menu.
@@ -178,13 +204,10 @@ export class FrigateCardElements extends LitElement {
     // Ensure listener is only attached 1 time by removing it first.
     path[0].removeEventListener(
       'frigate-card:menu-remove',
-      this._menuRemoveHandler.bind(this),
+      this._boundMenuRemoveHandler,
     );
 
-    path[0].addEventListener(
-      'frigate-card:menu-remove',
-      this._menuRemoveHandler.bind(this),
-    );
+    path[0].addEventListener('frigate-card:menu-remove', this._boundMenuRemoveHandler);
   }
 
   /**
@@ -235,20 +258,13 @@ export class FrigateCardElements extends LitElement {
 @customElement('frigate-card-conditional')
 export class FrigateCardElementsConditional extends LitElement {
   protected _config?: FrigateConditional;
-  protected _hass?: HomeAssistant & ExtendedHomeAssistant;
 
-  @query('frigate-card-elements-core')
-  _core?: FrigateCardElementsCore;
-
-  /**
-   * Set the Home Assistant object.
-   */
-  set hass(hass: HomeAssistant & ExtendedHomeAssistant) {
-    if (this._core) {
-      this._core.hass = hass;
-    }
-    this._hass = hass;
-  }
+  // Every set of hass is treated  as a reason to re-evaluate. Given that this
+  // node may be buried down the DOM (as a descendent of non-Frigate card
+  // elements), the hass object is used as the (only) trigger for condition
+  // re-fetch even if hass itself has not changed.
+  @property({ attribute: false, hasChanged: () => true })
+  public hass?: HomeAssistant;
 
   /**
    * Set the card configuration.
@@ -260,7 +276,7 @@ export class FrigateCardElementsConditional extends LitElement {
 
   /**
    * Create a root into which to render. This card is "transparent".
-   * @returns 
+   * @returns
    */
   createRenderRoot(): LitElement {
     return this;
@@ -284,7 +300,7 @@ export class FrigateCardElementsConditional extends LitElement {
   protected render(): TemplateResult | void {
     if (fetchStateAndEvaluateCondition(this, this._config.conditions)) {
       return html` <frigate-card-elements-core
-        .hass=${this._hass}
+        .hass=${this.hass}
         .elements=${this._config.elements}
       >
       </frigate-card-elements-core>`;
@@ -294,7 +310,7 @@ export class FrigateCardElementsConditional extends LitElement {
 
 // A base class for rendering menu icons / menu state icons.
 export class FrigateCardElementsBaseMenuIcon<T> extends LitElement {
-  @property({ attribute: false })
+  @state()
   protected _config: T | null = null;
 
   /**
@@ -334,3 +350,127 @@ export class FrigateCardElementsMenuStateIcon extends FrigateCardElementsBaseMen
 
 @customElement('frigate-card-menu-submenu')
 export class FrigateCardElementsMenuSubmenu extends FrigateCardElementsBaseMenuIcon<MenuSubmenu> {}
+
+@customElement('frigate-card-menu-submenu-select')
+export class FrigateCardElementsMenuSubmenuSelect extends FrigateCardElementsBaseMenuIcon<MenuSubmenuSelect> {}
+
+@customElement('frigate-card-ptz')
+export class FrigateCardPTZ extends LitElement {
+  @property({ attribute: false })
+  public hass?: HomeAssistant;
+
+  @state()
+  protected _config: FrigateCardPTZConfig | null = null;
+
+  /**
+   * Set the card config.
+   * @param config The configuration.
+   */
+  public setConfig(config: FrigateCardPTZConfig): void {
+    this._config = config;
+  }
+
+  /**
+   * Called before each update.
+   */
+  protected willUpdate(changedProps: PropertyValues): void {
+    if (changedProps.has('_config')) {
+      this.setAttribute('data-orientation', this._config?.orientation ?? 'vertical');
+    }
+  }
+
+  /**
+   * Handle a PTZ action.
+   * @param ev The actionHandler event.
+   * @param config The action configuration.
+   */
+  protected _actionHandler(
+    ev: HASSDomEvent<{ action: string }>,
+    config?: ActionsConfig,
+  ): void {
+    // Nothing else has the configuration for this action, so don't let it
+    // propagate further.
+    ev.stopPropagation();
+
+    const interaction: string = ev.detail.action;
+    const action = getActionConfigGivenAction(interaction, config);
+    if (config && action && this.hass) {
+      frigateCardHandleActionConfig(this, this.hass, config, interaction, action);
+    }
+  }
+
+  /**
+   * Render the elements.
+   * @returns A rendered template or void.
+   */
+  protected render(): TemplateResult | void {
+    if (!this._config) {
+      return;
+    }
+    const renderIcon = (
+      name: string,
+      icon: string,
+      actions?: Actions,
+    ): TemplateResult => {
+      const hasHold = frigateCardHasAction(actions?.hold_action);
+      const hasDoubleClick = frigateCardHasAction(actions?.double_tap_action);
+      const classes = {
+        [name]: true,
+        disabled: !actions,
+      };
+
+      return html`<ha-icon
+        class=${classMap(classes)}
+        icon=${icon}
+        .actionHandler=${actionHandler({
+          hasHold: hasHold,
+          hasDoubleClick: hasDoubleClick,
+        })}
+        .title=${localize(`elements.ptz.${name}`)}
+        @action=${(ev) => this._actionHandler(ev, actions)}
+      ></ha-icon>`;
+    };
+
+    return html` <div class="ptz">
+      <div class="ptz-move">
+        ${renderIcon('right', 'mdi:arrow-right', this._config.actions_right)}
+        ${renderIcon('left', 'mdi:arrow-left', this._config.actions_left)}
+        ${renderIcon('up', 'mdi:arrow-up', this._config.actions_up)}
+        ${renderIcon('down', 'mdi:arrow-down', this._config.actions_down)}
+      </div>
+      ${this._config.actions_zoom_in || this._config.actions_zoom_out
+        ? html` <div class="ptz-zoom">
+            ${renderIcon('zoom_in', 'mdi:plus', this._config.actions_zoom_in)}
+            ${renderIcon('zoom_out', 'mdi:minus', this._config.actions_zoom_out)}
+          </div>`
+        : html``}
+      ${this._config.actions_home
+        ? html`
+            <div class="ptz-home">
+              ${renderIcon('home', 'mdi:home', this._config.actions_home)}
+            </div>
+          `
+        : html``}
+    </div>`;
+  }
+
+  /**
+   * Return compiled CSS styles.
+   */
+  static get styles(): CSSResultGroup {
+    return unsafeCSS(ptzStyle);
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'frigate-card-conditional': FrigateCardElementsConditional;
+    'frigate-card-elements': FrigateCardElements;
+    'frigate-card-menu-submenu-select': FrigateCardElementsMenuSubmenuSelect;
+    'frigate-card-menu-submenu': FrigateCardElementsMenuSubmenu;
+    'frigate-card-menu-state-icon': FrigateCardElementsMenuStateIcon;
+    'frigate-card-menu-icon': FrigateCardElementsMenuIcon;
+    'frigate-card-elements-core': FrigateCardElementsCore;
+    'frigate-card-ptz': FrigateCardPTZ;
+  }
+}

@@ -4,16 +4,9 @@
   width: 100%;
 }
 
-img,video {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
 .embla {
   width: 100%;
   height: 100%;
-  position: relative;
   margin-left: auto;
   margin-right: auto;
 }
@@ -27,6 +20,12 @@ img,video {
   -webkit-touch-callout: none;
   -khtml-user-select: none;
   -webkit-tap-highlight-color: transparent;
+}
+:host([direction='vertical']) .embla__container {
+  flex-direction: column;
+}
+:host([direction='horizontal']) .embla__container {
+  flex-direction: row;
 }
 
 .embla__viewport {
@@ -47,14 +46,10 @@ img,video {
   cursor: grabbing;
 }
 
-.embla__slide {
-  position: relative;
-  height: 100%;
-  margin-right: 5px;
-  overflow: visible;
+:host([direction='vertical']) ::slotted(.embla__slide) {
+  margin-bottom: 5px;
 }
-.embla__slide img,video {
-  // Letterbox media. <frigate-card-ha-hls-player> has similar added directly in
-  // its element.
-  object-fit: contain;
+
+:host([direction='horizontal']) ::slotted(.embla__slide) {
+  margin-right: 5px;
 }

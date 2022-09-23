@@ -1,0 +1,33 @@
+:host {
+  display: block;
+  overflow: hidden;
+}
+
+img {
+  display: block;
+}
+
+img,
+ha-icon,
+frigate-card-progress-indicator {
+  border-radius: var(--ha-card-border-radius, 4px);
+
+  max-width: var(--frigate-card-thumbnail-size);
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
+
+  // Not 'contain' as some thumbnails may vary in aspect-ratio slightly and
+  // should be clipped to fill the thumbnail div whilst maintaining
+  // aspect-ratio.
+  object-fit: cover;
+}
+
+ha-icon {
+  --mdc-icon-size: 50%;
+  color: var(--primary-text-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-sizing: border-box;
+}

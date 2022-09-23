@@ -1,12 +1,20 @@
-import type { BrowseMediaSource, FrigateCardView } from './types.js';
-import { dispatchFrigateCardEvent } from './common.js';
+import { ViewContext } from 'view';
+import {
+  FrigateBrowseMediaSource,
+  FrigateCardUserSpecifiedView,
+  FrigateCardView,
+  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
+  FRIGATE_CARD_VIEW_DEFAULT,
+} from './types.js';
+import { dispatchFrigateCardEvent } from './utils/basic.js';
 
 export interface ViewEvolveParameters {
   view?: FrigateCardView;
   camera?: string;
-  target?: BrowseMediaSource;
-  childIndex?: number;
-  previous?: View;
+  target?: FrigateBrowseMediaSource | null;
+  childIndex?: number | null;
+  previous?: View | null;
+  context?: ViewContext | null;
 }
 
 export interface ViewParameters extends ViewEvolveParameters {
@@ -17,16 +25,60 @@ export interface ViewParameters extends ViewEvolveParameters {
 export class View {
   view: FrigateCardView;
   camera: string;
-  target?: BrowseMediaSource;
-  childIndex?: number;
-  previous?: View;
+  target: FrigateBrowseMediaSource | null;
+  childIndex: number | null;
+  previous: View | null;
+  context: ViewContext | null;
 
   constructor(params: ViewParameters) {
-    this.view = params?.view;
-    this.camera = params?.camera;
-    this.target = params?.target;
-    this.childIndex = params?.childIndex;
-    this.previous = params?.previous;
+    this.view = params.view;
+    this.camera = params.camera;
+    this.target = params.target ?? null;
+    this.childIndex = params.childIndex ?? null;
+    this.previous = params.previous ?? null;
+    this.context = params.context ?? null;
+  }
+
+  /**
+   * Selects the best view for a non-Frigate camera.
+   * @param view The wanted view.
+   * @returns The closest view supported by the non-Frigate camera.
+   */
+  public static selectBestViewForNonFrigateCameras(view: FrigateCardView) {
+    return ['timeline', 'image'].includes(view) ? view : FRIGATE_CARD_VIEW_DEFAULT;
+  }
+
+  /**
+   * Selects the best view for a user specified view.
+   * @param view The wanted view.
+   * @returns The closest view supported that is user changeable.
+   */
+  public static selectBestViewForUserSpecified(view: FrigateCardView) {
+    return FRIGATE_CARD_VIEWS_USER_SPECIFIED.includes(
+      view as FrigateCardUserSpecifiedView,
+    )
+      ? view
+      : FRIGATE_CARD_VIEW_DEFAULT;
+  }
+
+  /**
+   * Detect if a view change represents a major "media change" for the given
+   * view.
+   * @param prev The previous view.
+   * @param curr The current view.
+   * @returns True if the view change is a real media change.
+   */
+  public static isMediaChange(prev?: View, curr?: View): boolean {
+    return (
+      !prev ||
+      !curr ||
+      prev.view !== curr.view ||
+      prev.camera !== curr.camera ||
+      // When in the live view, the target/childIndex are the events that
+      // happened in the past -- not reflective of the actual live media viewer.
+      (curr.view !== 'live' &&
+        (prev.target !== curr.target || prev.childIndex !== curr.childIndex))
+    );
   }
 
   /**
@@ -38,7 +90,8 @@ export class View {
       camera: this.camera,
       target: this.target,
       childIndex: this.childIndex,
-      previous: this.previous
+      previous: this.previous,
+      context: this.context,
     });
   }
 
@@ -49,12 +102,38 @@ export class View {
    */
   public evolve(params: ViewEvolveParameters): View {
     return new View({
-      view: params.view ?? this.view,
-      camera: params.camera ?? this.camera,
-      target: params.target ?? this.target,
-      childIndex: params.childIndex ?? this.childIndex,
-      previous: params.previous ?? this.previous,
-    })
+      view: params.view !== undefined ? params.view : this.view,
+      camera: params.camera !== undefined ? params.camera : this.camera,
+      target: params.target !== undefined ? params.target : this.target,
+      childIndex: params.childIndex !== undefined ? params.childIndex : this.childIndex,
+      context: params.context !== undefined ? params.context : this.context,
+
+      // Special case: Set the previous to this of the evolved view (rather than
+      // the previous of this).
+      previous: params.previous !== undefined ? params.previous : this,
+    });
+  }
+
+  /**
+   * Merge view contexts.
+   * @param context The context to merge in.
+   * @returns This view.
+   */
+  public mergeInContext(context: ViewContext): View {
+    this.context = { ...this.context, ...context };
+    return this;
+  }
+
+  /**
+   * Remove a context key.
+   * @param key The key to remove.
+   * @returns This view.
+   */
+  public removeContext(key: keyof ViewContext): View {
+    if (this.context) {
+      delete(this.context[key]);
+    }
+    return this;
   }
 
   /**
@@ -72,19 +151,18 @@ export class View {
   }
 
   /**
-   * Determine if a view is of a piece of media (i.e. not the gallery).
+   * Determine if a view is of a piece of media (including the media viewer,
+   * live view, image view -- anything that can create a MediaLoadedInfo event).
    */
-  public isMediaView(): boolean {
-    return !this.isGalleryView();
+  public isAnyMediaView(): boolean {
+    return this.isViewerView() || this.is('live') || this.is('image');
   }
 
   /**
    * Determine if a view is for the media viewer.
    */
   public isViewerView(): boolean {
-    return ['clip', 'snapshot'].includes(
-      this.view,
-    );
+    return ['clip', 'snapshot', 'media'].includes(this.view);
   }
 
   /**
@@ -102,23 +180,46 @@ export class View {
   }
 
   /**
+   * Get the media type for this view if available.
+   * @returns Whether the media is `clips` or `snapshots` or unknown (`null`)
+   */
+  public getMediaType(): 'clips' | 'snapshots' | null {
+    return this.isClipRelatedView()
+      ? 'clips'
+      : this.isSnapshotRelatedView()
+      ? 'snapshots'
+      : null;
+  }
+
+  /**
    *  Get the media item that should be played.
    **/
-  get media(): BrowseMediaSource | undefined {
+  get media(): FrigateBrowseMediaSource | null {
     if (this.target) {
-      if (this.target.children && this.childIndex !== undefined) {
-        return this.target.children[this.childIndex];
+      if (this.target.children && this.childIndex !== null) {
+        return this.target.children[this.childIndex] ?? null;
       }
-      return this.target;
     }
-    return undefined;
+    return null;
   }
 
   /**
    * Dispatch an event to request a view change.
-   * @param node The element dispatching the event.
+   * @param target The target dispatching the event.
    */
-  public dispatchChangeEvent(node: HTMLElement): void {
-    dispatchFrigateCardEvent(node, 'change-view', this);
+  public dispatchChangeEvent(target: EventTarget): void {
+    dispatchFrigateCardEvent(target, 'view:change', this);
   }
 }
+
+/**
+ * Dispatch an event to change the view context.
+ * @param target The EventTarget to send the event from.
+ * @param context The context to change.
+ */
+export const dispatchViewContextChangeEvent = (
+  target: EventTarget,
+  context: ViewContext,
+): void => {
+  dispatchFrigateCardEvent(target, 'view:change-context', context);
+};

@@ -83,3 +83,9 @@ export class FrigateCardTitleControl extends LitElement {
     return unsafeCSS(titleStyle);
   }
 }
+
+declare global {
+	interface HTMLElementTagNameMap {
+		"frigate-card-title-control": FrigateCardTitleControl
+	}
+}

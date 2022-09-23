@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "pwa-chrome",
+      "request": "launch",
+      "name": "Launch Chrome against Home Assistant",
+      "url": "http://localhost:8123",
+      "webRoot": "${workspaceFolder}/dist",
+      "preLaunchTask": "Rollup",
+      "resolveSourceMapLocations": ["http://localhost:1000/**"]
+    }
+  ]
+}

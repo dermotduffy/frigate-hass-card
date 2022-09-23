@@ -23,15 +23,14 @@
   pointer-events: none;
 }
 .values {
-  padding: 10px;
   background: var(--secondary-background-color);
   display: grid;
-  margin-bottom: 10px;
 }
-ha-formfield {
-  padding-bottom: 8px;
+// Space submenus from the next top-level options.
+.values + .option,
+.submenu + .option {
+  margin-top: 10px;
 }
-
 div.upgrade {
   width: auto;
   border: 1px dotted var(--primary-color);
@@ -44,38 +43,68 @@ div.upgrade span {
   padding: 10px;
 }
 
-.camera-header {
+.submenu-header {
   display: flex;
-  margin-top: 4px;
+  padding: 10px;
 
   cursor: pointer;
 }
-.camera-header * {
+.submenu.selected > .submenu-header {
+  background-color: var(--primary-color);
+  color: var(--primary-text-color);
+}
+
+.submenu-header * {
   flex-basis: auto;
 
-  // Only allow clicks on the outermost header.
+  // Only allow clicks on the header.
   pointer-events: none;
 }
-.camera-header ha-icon {
-  padding-right: 10px;
-}
-.camera-header .new-camera {
+.submenu-header .new-camera {
   font-style: italic;
+}
+.submenu:not(.selected) > .submenu-header .new-camera {
   color: var(--secondary-text-color, 'black');
 }
-.cameras {
-  margin: 5px 5px 10px 20px;
+
+.submenu-header ha-icon,
+.submenu-header ha-svg-icon {
+  padding-right: 15px;
 }
-.cameras .controls {
+
+.submenu {
+  border: 1px solid var(--divider-color);
+}
+.submenu.selected {
+  border: 1px solid var(--primary-color);
+}
+
+// Nested menus should shrink width.
+.submenu .submenu {
+  width: calc(100% - 10px * 2);
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 10px;
+}
+.submenu :not(.submenu.selected) {
+  border: none;
+}
+
+.submenu .controls {
   display: inline-block;
   margin-left: auto;
   margin-right: 0px;
   margin-bottom: 5px;
 }
-.cameras .controls ha-icon-button.button {
+.submenu .controls ha-icon-button.button {
   --mdc-icon-button-size: 32px;
   --mdc-icon-size: calc(var(--mdc-icon-button-size) / 2);
 }
 span.info {
   padding: 4px;
+}
+
+ha-selector {
+  padding: 10px;
+  border: 1px solid var(--divider-color);
 }

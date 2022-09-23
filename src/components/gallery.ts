@@ -1,59 +1,78 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import { HomeAssistant } from 'custom-card-helpers';
-import { customElement, property, state } from 'lit/decorators.js';
-import { styleMap } from 'lit/directives/style-map.js';
-
+import {
+  css,
+  CSSResultGroup,
+  html,
+  LitElement,
+  PropertyValues,
+  TemplateResult,
+  unsafeCSS,
+} from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import galleryStyle from '../scss/gallery.scss';
 import {
   CameraConfig,
   ExtendedHomeAssistant,
-  GalleryConfig,
   frigateCardConfigDefaults,
+  GalleryConfig,
+  THUMBNAIL_WIDTH_MAX,
 } from '../types.js';
-import { BrowseMediaUtil } from '../browse-media-util.js';
+import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
+import {
+  fetchChildMediaAndDispatchViewChange,
+  fetchLatestMediaAndDispatchViewChange,
+  getFullDependentBrowseMediaQueryParametersOrDispatchError,
+} from '../utils/ha/browse-media';
 import { View } from '../view.js';
 import { renderProgressIndicator } from './message.js';
-import { stopEventFromActivatingCardWideActions } from '../common.js';
-
-import galleryStyle from '../scss/gallery.scss';
-
-const MAX_THUMBNAIL_WIDTH = 175;
+import './thumbnail.js';
+import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
 
 @customElement('frigate-card-gallery')
 export class FrigateCardGallery extends LitElement {
   @property({ attribute: false })
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+  public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected view?: Readonly<View>;
+  public view?: Readonly<View>;
 
   @property({ attribute: false })
-  protected cameraConfig?: CameraConfig;
+  public galleryConfig?: GalleryConfig;
 
   @property({ attribute: false })
-  protected galleryConfig?: GalleryConfig;
+  public cameras?: Map<string, CameraConfig>;
 
   /**
    * Master render method.
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.view || !this.cameraConfig) {
+    const mediaType = this.view?.getMediaType();
+    if (
+      !this.hass ||
+      !this.view ||
+      !this.cameras ||
+      !this.view.isGalleryView() ||
+      !mediaType
+    ) {
       return;
     }
 
     if (!this.view.target) {
       const browseMediaQueryParameters =
-        BrowseMediaUtil.getBrowseMediaQueryParametersOrDispatchError(
+        getFullDependentBrowseMediaQueryParametersOrDispatchError(
           this,
-          this.view,
-          this.cameraConfig,
+          this.hass,
+          this.cameras,
+          this.view.camera,
+          mediaType,
         );
+
       if (!browseMediaQueryParameters) {
         return;
       }
 
-      BrowseMediaUtil.fetchLatestMediaAndDispatchViewChange(
+      fetchLatestMediaAndDispatchViewChange(
         this,
         this.hass,
         this.view,
@@ -67,6 +86,7 @@ export class FrigateCardGallery extends LitElement {
         .hass=${this.hass}
         .view=${this.view}
         .galleryConfig=${this.galleryConfig}
+        .cameras=${this.cameras}
       >
       </frigate-card-gallery-core>
     `;
@@ -76,25 +96,31 @@ export class FrigateCardGallery extends LitElement {
    * Get element styles.
    */
   static get styles(): CSSResultGroup {
-    return unsafeCSS(galleryStyle);
+    return css`
+      :host {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+    `;
   }
 }
 
 @customElement('frigate-card-gallery-core')
 export class FrigateCardGalleryCore extends LitElement {
   @property({ attribute: false })
-  protected hass?: HomeAssistant & ExtendedHomeAssistant;
+  public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  protected view?: Readonly<View>;
+  public view?: Readonly<View>;
 
   @property({ attribute: false })
-  protected galleryConfig?: GalleryConfig;
+  public galleryConfig?: GalleryConfig;
+
+  @property({ attribute: false })
+  public cameras?: Map<string, CameraConfig>;
 
   protected _resizeObserver: ResizeObserver;
-
-  @state()
-  protected _columns = frigateCardConfigDefaults.event_gallery.min_columns;
 
   constructor() {
     super();
@@ -118,14 +144,61 @@ export class FrigateCardGalleryCore extends LitElement {
   }
 
   /**
+   * Set gallery columns.
+   */
+  protected _setColumnCount(): void {
+    const thumbnailSize =
+      this.galleryConfig?.controls.thumbnails.size ??
+      frigateCardConfigDefaults.event_gallery.controls.thumbnails.size;
+    const columns = this.galleryConfig?.controls.thumbnails.show_details
+      ? Math.max(1, Math.floor(this.clientWidth / THUMBNAIL_DETAILS_WIDTH_MIN))
+      : Math.max(
+          1,
+          Math.ceil(this.clientWidth / THUMBNAIL_WIDTH_MAX),
+          Math.ceil(this.clientWidth / thumbnailSize),
+        );
+
+    this.style.setProperty('--frigate-card-gallery-columns', String(columns));
+  }
+
+  /**
    * Handle gallery resize.
    */
   protected _resizeHandler(): void {
-    this._columns = Math.max(
-      this.galleryConfig?.min_columns ??
-        frigateCardConfigDefaults.event_gallery.min_columns,
-      Math.ceil(this.clientWidth / MAX_THUMBNAIL_WIDTH),
+    this._setColumnCount();
+  }
+
+  /**
+   * Determine whether the back arrow should be displayed.
+   * @returns `true` if the back arrow should be displayed, `false` otherwise.
+   */
+  protected _showBackArrow(): boolean {
+    return (
+      !!this.view?.previous &&
+      !!this.view.previous.target &&
+      this.view.previous.view === this.view.view
     );
+  }
+
+  /**
+   * Called when an update will occur.
+   * @param changedProps The changed properties
+   */
+  protected willUpdate(changedProps: PropertyValues): void {
+    if (changedProps.has('galleryConfig')) {
+      if (this.galleryConfig?.controls.thumbnails.show_details) {
+        this.setAttribute('details', '');
+      } else {
+        this.removeAttribute('details');
+      }
+      this._setColumnCount();
+      if (this.galleryConfig?.controls.thumbnails.size) {
+        this.style.setProperty(
+          '--frigate-card-thumbnail-size',
+          `${this.galleryConfig.controls.thumbnails.size}px`,
+        );
+      }
+    }
   }
 
   /**
@@ -138,93 +211,78 @@ export class FrigateCardGalleryCore extends LitElement {
       !this.view ||
       !this.view.target ||
       !this.view.target.children ||
-      !(this.view.is('clips') || this.view.is('snapshots'))
+      !(this.view.is('clips') || this.view.is('snapshots')) ||
+      !this.cameras
     ) {
       return html``;
     }
 
-    const itemStyle = {
-      // Controls the number of columns in the gallery (allows for 5px gutter).
-      width: `calc(${100 / this._columns}% - 5.25px)`,
-    };
-
-    const folderStyle = {
-      // Values derived from experimentation on typical Lovelace card sizes.
-      'font-size': `${Math.min(
-        1.1,
-        (0.6 * (this.clientWidth / this._columns)) / 50.0,
-      )}em`,
-    };
-
-    return html` <ul class="mdc-image-list frigate-card-gallery">
-      ${this.view && this.view.previous
-        ? html`<li class="mdc-image-list__item" style="${styleMap(itemStyle)}">
-            <div class="mdc-image-list__image-aspect-container">
-              <div class="mdc-image-list__image">
-                <ha-card
-                  @click=${(ev) => {
-                    if (this.view && this.view.previous) {
-                      this.view.previous.dispatchChangeEvent(this);
-                    }
-                    stopEventFromActivatingCardWideActions(ev);
-                  }}
-                  outlined=""
-                  class="frigate-card-gallery-folder"
-                >
-                  <ha-icon .icon=${'mdi:arrow-left'}></ha-icon>
-                </ha-card>
-              </div>
-            </div>
-          </li>`
+    const cameraConfig = this.cameras.get(this.view.camera);
+    return html`
+      ${this._showBackArrow()
+        ? html` <ha-card
+            @click=${(ev) => {
+              if (this.view && this.view.previous) {
+                this.view.previous.dispatchChangeEvent(this);
+              }
+              stopEventFromActivatingCardWideActions(ev);
+            }}
+            outlined=""
+          >
+            <ha-icon .icon=${'mdi:arrow-left'}></ha-icon>
+          </ha-card>`
         : ''}
       ${this.view.target.children.map(
         (child, index) =>
-          html` <li class="mdc-image-list__item" style="${styleMap(itemStyle)}">
-            <div class="mdc-image-list__image-aspect-container">
-              ${child.can_expand
-                ? html`<div class="mdc-image-list__image">
-                    <ha-card
-                      @click=${(ev) => {
-                        if (this.hass && this.view) {
-                          BrowseMediaUtil.fetchChildMediaAndDispatchViewChange(
-                            this,
-                            this.hass,
-                            this.view,
-                            child,
-                          );
-                        }
-                        stopEventFromActivatingCardWideActions(ev);
-                      }}
-                      outlined=""
-                      class="frigate-card-gallery-folder"
-                    >
-                      <div style="${styleMap(folderStyle)}">${child.title}</div>
-                    </ha-card>
-                  </div>`
-                : child.thumbnail
-                ? html`<img
-                    aria-label="${child.title}"
-                    class="mdc-image-list__image"
-                    src="${child.thumbnail}"
-                    title="${child.title}"
+          html`
+            ${child.can_expand
+              ? html`
+                  <ha-card
                     @click=${(ev) => {
-                      if (this.view) {
-                        this.view
-                          .evolve({
-                            view: this.view.is('clips') ? 'clip' : 'snapshot',
-                            childIndex: index,
-                            previous: this.view,
-                          })
-                          .dispatchChangeEvent(this);
+                      if (this.hass && this.view) {
+                        fetchChildMediaAndDispatchViewChange(
+                          this,
+                          this.hass,
+                          this.view,
+                          child,
+                        );
                       }
                       stopEventFromActivatingCardWideActions(ev);
                     }}
-                  />`
-                : ``}
-            </div>
-          </li>`,
+                    outlined=""
+                  >
+                    <div>${child.title}</div>
+                  </ha-card>
+                `
+              : child.thumbnail
+              ? html`<frigate-card-thumbnail
+                  .view=${this.view}
+                  .target=${this.view?.target ?? null}
+                  .childIndex=${index}
+                  .hass=${this.hass}
+                  .clientID=${cameraConfig?.frigate.client_id}
+                  ?details=${!!this.galleryConfig?.controls.thumbnails.show_details}
+                  ?show_favorite_control=${!!this.galleryConfig?.controls.thumbnails
+                    .show_favorite_control}
+                  ?show_timeline_control=${!!this.galleryConfig?.controls.thumbnails
+                    .show_timeline_control}
+                  @click=${(ev: Event) => {
+                    if (this.view) {
+                      this.view
+                        .evolve({
+                          view: this.view.is('clips') ? 'clip' : 'snapshot',
+                          childIndex: index,
+                        })
+                        .dispatchChangeEvent(this);
+                    }
+                    stopEventFromActivatingCardWideActions(ev);
+                  }}
+                >
+                </frigate-card-thumbnail>`
+              : ``}
+          `,
       )}
-    </ul>`;
+    `;
   }
 
   /**
@@ -232,5 +290,12 @@ export class FrigateCardGalleryCore extends LitElement {
    */
   static get styles(): CSSResultGroup {
     return unsafeCSS(galleryStyle);
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'frigate-card-gallery-core': FrigateCardGalleryCore;
+    'frigate-card-gallery': FrigateCardGallery;
   }
 }

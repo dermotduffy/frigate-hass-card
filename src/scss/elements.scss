@@ -1,12 +1,21 @@
+:host {
+  position: absolute;
+  inset: 0;
+
+  // Don't let elements overflow.
+  overflow: hidden;
+  pointer-events: none;
+}
+
 .element {
   position: absolute;
   transform: translate(-50%, -50%);
+  pointer-events: auto;
 }
 
 // Errors encountered by HA (not the card) during parsing of the configuration
 // (e.g. custom picture element that does not exist).
 hui-error-card.element {
   inset: 0px;
-  background-color: var(--secondary-background-color, black);
   transform: unset;
 }

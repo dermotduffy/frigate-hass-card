@@ -1,67 +1,94 @@
-import { StyleInfo } from 'lit/directives/style-map.js';
 import {
   CallServiceActionConfig,
+  ConfirmationRestrictionConfig,
   CustomActionConfig,
-  LovelaceCard,
-  LovelaceCardEditor,
+  HomeAssistant,
+  LovelaceCardConfig,
   MoreInfoActionConfig,
   NavigateActionConfig,
   NoActionConfig,
+  Themes,
   ToggleActionConfig,
   UrlActionConfig,
 } from 'custom-card-helpers';
+import { StyleInfo } from 'lit/directives/style-map.js';
 import { z } from 'zod';
+import { deepRemoveDefaults } from './utils/zod.js';
 
-import { deepRemoveDefaults } from './zod-util';
+// The min allowed size of buttons.
+export const BUTTON_SIZE_MIN = 20;
 
-declare global {
-  interface HTMLElementTagNameMap {
-    'frigate-card-editor': LovelaceCardEditor;
-    'hui-error-card': LovelaceCard;
-  }
-}
+// The min/max width thumbnail (Frigate returns a maximum of 175px).
+export const THUMBNAIL_WIDTH_MAX = 175;
+export const THUMBNAIL_WIDTH_MIN = 75;
 
 /**
  * Internal types.
  */
 
-const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
-  'live', // Live view.
-  'clip', // Most recent clip.
-  'clips', // Clips gallery.
-  'snapshot', // Most recent snapshot.
-  'snapshots', // Snapshots gallery.
-  'image', // Static image.
+export const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
+  'live',
+  'clip',
+  'clips',
+  'snapshot',
+  'snapshots',
+  'image',
+  'timeline',
 ] as const;
 
-export type FrigateCardView = typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED[number];
+const FRIGATE_CARD_VIEWS = [
+  ...FRIGATE_CARD_VIEWS_USER_SPECIFIED,
 
-const FRIGATE_MENU_MODES = [
-  'none',
-  'hidden-top',
-  'hidden-left',
-  'hidden-bottom',
-  'hidden-right',
-  'overlay-top',
-  'overlay-left',
-  'overlay-bottom',
-  'overlay-right',
-  'hover-top',
-  'hover-left',
-  'hover-bottom',
-  'hover-right',
-  'above',
-  'below',
+  // Media: A generic piece of media (could be clip, snapshot, recording).
+  'media',
 ] as const;
+
+export type FrigateCardView = typeof FRIGATE_CARD_VIEWS[number];
+export type FrigateCardUserSpecifiedView =
+  typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED[number];
+export const FRIGATE_CARD_VIEW_DEFAULT = 'live' as const;
+
+const FRIGATE_MENU_STYLES = ['none', 'hidden', 'overlay', 'hover', 'outside'] as const;
+const FRIGATE_MENU_POSITIONS = ['left', 'right', 'top', 'bottom'] as const;
+const FRIGATE_MENU_ALIGNMENTS = FRIGATE_MENU_POSITIONS;
+
+export const FRIGATE_MENU_PRIORITY_DEFAULT = 50;
+export const FRIGATE_MENU_PRIORITY_MAX = 100;
+
 const LIVE_PROVIDERS = ['auto', 'ha', 'frigate-jsmpeg', 'webrtc-card'] as const;
 export type LiveProvider = typeof LIVE_PROVIDERS[number];
 
-export class FrigateCardError extends Error {}
+const MEDIA_ACTION_NEGATIVE_CONDITIONS = [
+  'all',
+  'unselected',
+  'hidden',
+  'never',
+] as const;
+export type LazyUnloadCondition = typeof MEDIA_ACTION_NEGATIVE_CONDITIONS[number];
+export type AutoMuteCondition = typeof MEDIA_ACTION_NEGATIVE_CONDITIONS[number];
+export type AutoPauseCondition = typeof MEDIA_ACTION_NEGATIVE_CONDITIONS[number];
+
+const MEDIA_ACTION_POSITIVE_CONDITIONS = [
+  'all',
+  'selected',
+  'visible',
+  'never',
+] as const;
+export type AutoUnmuteCondition = typeof MEDIA_ACTION_POSITIVE_CONDITIONS[number];
+export type AutoPlayCondition = typeof MEDIA_ACTION_POSITIVE_CONDITIONS[number];
+
+export class FrigateCardError extends Error {
+  context?: unknown;
+
+  constructor(message: string, context?: unknown) {
+    super(message);
+    this.context = context;
+  }
+}
 
 /**
  * Action Types (for "Picture Elements" / Menu)
  */
-
 // Declare schemas to existing types:
 // - https://github.com/colinhacks/zod/issues/372#issuecomment-826380330
 const schemaForType =
@@ -70,50 +97,92 @@ const schemaForType =
   <S extends z.ZodType<T, any, any>>(arg: S) => {
     return arg;
   };
-const toggleActionSchema = schemaForType<ToggleActionConfig>()(
-  z.object({
+
+// https://www.home-assistant.io/dashboards/actions/#options-for-confirmation
+const actionBaseSchema = z.object({
+  confirmation: z
+    .boolean()
+    .or(
+      z.object({
+        text: z.string().optional(),
+        exemptions: z
+          .object({
+            user: z.string(),
+          })
+          .array()
+          .optional(),
+      }),
+    )
+    .optional(),
+});
+
+// HA accepts either a boolean or a ConfirmationRestrictionConfig object.
+// `custom-card-helpers` currently only supports the latter. For maximum
+// compatibility, this card supports what HA supports.
+export interface ExtendedConfirmationRestrictionConfig {
+  confirmation?: boolean | ConfirmationRestrictionConfig;
+}
+
+const toggleActionSchema = schemaForType<
+  ToggleActionConfig & ExtendedConfirmationRestrictionConfig
+>()(
+  actionBaseSchema.extend({
     action: z.literal('toggle'),
   }),
 );
-const callServiceActionSchema = schemaForType<CallServiceActionConfig>()(
-  z.object({
+const callServiceActionSchema = schemaForType<
+  CallServiceActionConfig & ExtendedConfirmationRestrictionConfig
+>()(
+  actionBaseSchema.extend({
     action: z.literal('call-service'),
     service: z.string(),
     service_data: z.object({}).passthrough().optional(),
   }),
 );
-const navigateActionSchema = schemaForType<NavigateActionConfig>()(
-  z.object({
+const navigateActionSchema = schemaForType<
+  NavigateActionConfig & ExtendedConfirmationRestrictionConfig
+>()(
+  actionBaseSchema.extend({
     action: z.literal('navigate'),
     navigation_path: z.string(),
   }),
 );
-const urlActionSchema = schemaForType<UrlActionConfig>()(
-  z.object({
+const urlActionSchema = schemaForType<
+  UrlActionConfig & ExtendedConfirmationRestrictionConfig
+>()(
+  actionBaseSchema.extend({
     action: z.literal('url'),
     url_path: z.string(),
   }),
 );
-const moreInfoActionSchema = schemaForType<MoreInfoActionConfig>()(
-  z.object({
+const moreInfoActionSchema = schemaForType<
+  MoreInfoActionConfig & ExtendedConfirmationRestrictionConfig
+>()(
+  actionBaseSchema.extend({
     action: z.literal('more-info'),
   }),
 );
-const customActionSchema = schemaForType<CustomActionConfig>()(
-  z.object({
-    action: z.literal('fire-dom-event'),
-  }),
+const customActionSchema = schemaForType<
+  CustomActionConfig & ExtendedConfirmationRestrictionConfig
+>()(
+  actionBaseSchema
+    .extend({
+      action: z.literal('fire-dom-event'),
+    })
+    .passthrough(),
 );
-const noActionSchema = schemaForType<NoActionConfig>()(
-  z.object({
+const noActionSchema = schemaForType<
+  NoActionConfig & ExtendedConfirmationRestrictionConfig
+>()(
+  actionBaseSchema.extend({
     action: z.literal('none'),
   }),
 );
 
-const frigateCardCustomActionBaseSchema = customActionSchema.extend({
-  // Syntactic sugar to avoid 'fire-dom-event' as part of an external API.
+const frigateCardCustomactionsBaseSchema = customActionSchema.extend({
   action: z
     .literal('custom:frigate-card-action')
+    // Syntactic sugar to avoid 'fire-dom-event' as part of an external API.
     .transform((): 'fire-dom-event' => 'fire-dom-event')
     .or(z.literal('fire-dom-event')),
 });
@@ -126,24 +195,37 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'live',
   'snapshot',
   'snapshots',
+  'timeline',
   'download',
   'frigate_ui',
   'fullscreen',
   'menu_toggle',
+  'diagnostics',
 ] as const;
-const FRIGATE_CARD_ACTIONS = [...FRIGATE_CARD_GENERAL_ACTIONS, 'camera_select'] as const;
+const FRIGATE_CARD_ACTIONS = [
+  ...FRIGATE_CARD_GENERAL_ACTIONS,
+  'camera_select',
+  'media_player',
+] as const;
 export type FrigateCardAction = typeof FRIGATE_CARD_ACTIONS[number];
 
-const frigateCardGeneralActionSchema = frigateCardCustomActionBaseSchema.extend({
+const frigateCardGeneralActionSchema = frigateCardCustomactionsBaseSchema.extend({
   frigate_card_action: z.enum(FRIGATE_CARD_GENERAL_ACTIONS),
 });
-const frigateCardCameraSelectActionSchema = frigateCardCustomActionBaseSchema.extend({
+const frigateCardCameraSelectActionSchema = frigateCardCustomactionsBaseSchema.extend({
   frigate_card_action: z.literal('camera_select'),
   camera: z.string(),
 });
+const frigateCarMediaPlayerActionSchema = frigateCardCustomactionsBaseSchema.extend({
+  frigate_card_action: z.literal('media_player'),
+  media_player: z.string(),
+  media_player_action: z.enum(['play', 'stop']),
+});
+
 export const frigateCardCustomActionSchema = z.union([
   frigateCardGeneralActionSchema,
   frigateCardCameraSelectActionSchema,
+  frigateCarMediaPlayerActionSchema,
 ]);
 export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSchema>;
 
@@ -156,11 +238,12 @@ const actionSchema = z.union([
   urlActionSchema,
   moreInfoActionSchema,
   noActionSchema,
+  customActionSchema,
   frigateCardCustomActionSchema,
 ]);
 export type ActionType = z.infer<typeof actionSchema>;
 
-const actionBaseSchema = z
+const actionsBaseSchema = z
   .object({
     tap_action: actionSchema.or(actionSchema.array()).optional(),
     hold_action: actionSchema.or(actionSchema.array()).optional(),
@@ -172,17 +255,17 @@ const actionBaseSchema = z
   // card doesn't need these attributes, but handleAction() in
   // custom_card_helpers may depending on how the action is configured.
   .passthrough();
-export type Actions = z.infer<typeof actionBaseSchema>;
+export type Actions = z.infer<typeof actionsBaseSchema>;
 export type ActionsConfig = Actions & {
   camera_image?: string;
   entity?: string;
 };
 
 const actionsSchema = z.object({
-  actions: actionBaseSchema.optional(),
+  actions: actionsBaseSchema.optional(),
 });
 
-const elementsBaseSchema = actionBaseSchema.extend({
+const elementsBaseSchema = actionsBaseSchema.extend({
   style: z.object({}).passthrough().optional(),
   title: z.string().nullable().optional(),
 });
@@ -247,16 +330,20 @@ const imageSchema = elementsBaseSchema.extend({
   aspect_ratio: z.string().optional(),
 });
 
+// This state condition is used both for the Picture elements conditional
+// schema, and also in frigateCardConditionSchema.
+const stateConditions = z
+  .object({
+    entity: z.string(),
+    state: z.string().optional(),
+    state_not: z.string().optional(),
+  })
+  .array();
+
 // https://www.home-assistant.io/lovelace/picture-elements/#image-element
 const conditionalSchema = z.object({
   type: z.literal('conditional'),
-  conditions: z
-    .object({
-      entity: z.string(),
-      state: z.string().optional(),
-      state_not: z.string().optional(),
-    })
-    .array(),
+  conditions: stateConditions,
   elements: z.lazy(() => pictureElementsSchema),
 });
 
@@ -280,8 +367,19 @@ const customSchema = z
  * Camera configuration section
  */
 export const cameraConfigDefault = {
-  client_id: 'frigate' as const,
   live_provider: 'auto' as const,
+  frigate: {
+    client_id: 'frigate' as const,
+  },
+  dependencies: {
+    all_cameras: false,
+    cameras: [],
+  },
+  triggers: {
+    motion: false,
+    occupancy: true,
+    entities: [],
+  },
 };
 const webrtcCardCameraConfigSchema = z.object({
   entity: z.string().optional(),
@@ -289,12 +387,6 @@ const webrtcCardCameraConfigSchema = z.object({
 });
 const cameraConfigSchema = z
   .object({
-    // No URL validation to allow relative URLs within HA (e.g. Frigate addon).
-    frigate_url: z.string().optional(),
-    client_id: z.string().default(cameraConfigDefault.client_id),
-    camera_name: z.string().optional(),
-    label: z.string().optional(),
-    zone: z.string().optional(),
     camera_entity: z.string().optional(),
     live_provider: z.enum(LIVE_PROVIDERS).default(cameraConfigDefault.live_provider),
 
@@ -307,8 +399,34 @@ const cameraConfigSchema = z
     // this card.
     id: z.string().optional(),
 
+    frigate: z
+      .object({
+        // No URL validation to allow relative URLs within HA (e.g. Frigate addon).
+        url: z.string().optional(),
+        client_id: z.string().default(cameraConfigDefault.frigate.client_id),
+        camera_name: z.string().optional(),
+        label: z.string().optional(),
+        zone: z.string().optional(),
+      })
+      .default(cameraConfigDefault.frigate),
+
     // Camera identifiers for WebRTC.
     webrtc_card: webrtcCardCameraConfigSchema.optional(),
+
+    dependencies: z
+      .object({
+        all_cameras: z.boolean().default(cameraConfigDefault.dependencies.all_cameras),
+        cameras: z.string().array().default(cameraConfigDefault.dependencies.cameras),
+      })
+      .default(cameraConfigDefault.dependencies),
+
+    triggers: z
+      .object({
+        motion: z.boolean().default(cameraConfigDefault.triggers.motion),
+        occupancy: z.boolean().default(cameraConfigDefault.triggers.occupancy),
+        entities: z.string().array().default(cameraConfigDefault.triggers.entities),
+      })
+      .default(cameraConfigDefault.triggers),
   })
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigSchema>;
@@ -316,15 +434,29 @@ export type CameraConfig = z.infer<typeof cameraConfigSchema>;
 /**
  * Custom Element Types.
  */
+const menuBaseSchema = z.object({
+  enabled: z.boolean().default(true).optional(),
+  priority: z
+    .number()
+    .min(0)
+    .max(FRIGATE_MENU_PRIORITY_MAX)
+    .default(FRIGATE_MENU_PRIORITY_DEFAULT)
+    .optional(),
+  alignment: z.enum(['matching', 'opposing']).default('matching').optional(),
+  icon: z.string().optional(),
+});
 
-export const menuIconSchema = iconSchema.extend({
+export const menuIconSchema = menuBaseSchema.merge(iconSchema).extend({
   type: z.literal('custom:frigate-card-menu-icon'),
 });
 export type MenuIcon = z.infer<typeof menuIconSchema>;
 
-export const menuStateIconSchema = stateIconSchema.extend({
-  type: z.literal('custom:frigate-card-menu-state-icon'),
-});
+export const menuStateIconSchema = menuBaseSchema
+  .merge(stateIconSchema)
+  .extend({
+    type: z.literal('custom:frigate-card-menu-state-icon'),
+  })
+  .merge(menuBaseSchema);
 export type MenuStateIcon = z.infer<typeof menuStateIconSchema>;
 
 const menuSubmenuItemSchema = elementsBaseSchema.extend({
@@ -332,19 +464,31 @@ const menuSubmenuItemSchema = elementsBaseSchema.extend({
   icon: z.string().optional(),
   state_color: z.boolean().default(true),
   selected: z.boolean().default(false),
+  subtitle: z.string().optional(),
+  enabled: z.boolean().default(true),
 });
 export type MenuSubmenuItem = z.infer<typeof menuSubmenuItemSchema>;
 
-export const menuSubmenuSchema = iconSchema.extend({
+const menuSubmenuSchema = menuBaseSchema.merge(iconSchema).extend({
   type: z.literal('custom:frigate-card-menu-submenu'),
   items: menuSubmenuItemSchema.array(),
 });
 export type MenuSubmenu = z.infer<typeof menuSubmenuSchema>;
 
+const menuSubmenuSelectSchema = menuBaseSchema.merge(stateIconSchema).extend({
+  type: z.literal('custom:frigate-card-menu-submenu-select'),
+  options: z.record(menuSubmenuItemSchema.deepPartial()).optional(),
+});
+export type MenuSubmenuSelect = z.infer<typeof menuSubmenuSelectSchema>;
+
+export type MenuItem = MenuIcon | MenuStateIcon | MenuSubmenu | MenuSubmenuSelect;
+
 const frigateCardConditionSchema = z.object({
   view: z.string().array().optional(),
   fullscreen: z.boolean().optional(),
   camera: z.string().array().optional(),
+  mediaLoaded: z.boolean().optional(),
+  state: stateConditions.optional(),
 });
 export type FrigateCardCondition = z.infer<typeof frigateCardConditionSchema>;
 
@@ -355,13 +499,56 @@ const frigateConditionalSchema = z.object({
 });
 export type FrigateConditional = z.infer<typeof frigateConditionalSchema>;
 
+const frigateCardPTZSchema = z.preprocess(
+  // To avoid lots of YAML duplication, provide an easy way to just specify the
+  // service data as actions for each PTZ icon, and it will be preprocessed into
+  // the full form. This also provides compatability with the AlexIT/WebRTC PTZ
+  // configuration.
+  (data) => {
+    if (!data || typeof data !== 'object' || !data['service']) {
+      return data;
+    }
+    const out = { ...data };
+    ['left', 'right', 'up', 'down', 'zoom_in', 'zoom_out', 'home'].forEach((name) => {
+      if (`data_${name}` in data && !(`actions_${name}` in data)) {
+        out[`actions_${name}`] = {
+          tap_action: {
+            action: 'call-service',
+            service: data['service'],
+            service_data: data[`data_${name}`],
+          },
+        };
+        delete out[`data_${name}`];
+      }
+    });
+    return out;
+  },
+  z.object({
+    type: z.literal('custom:frigate-card-ptz'),
+    style: z.object({}).passthrough().optional(),
+    orientation: z.enum(['vertical', 'horizontal']).default('vertical').optional(),
+    service: z.string().optional(),
+    actions_left: actionsBaseSchema.optional(),
+    actions_right: actionsBaseSchema.optional(),
+    actions_up: actionsBaseSchema.optional(),
+    actions_down: actionsBaseSchema.optional(),
+    actions_zoom_in: actionsBaseSchema.optional(),
+    actions_zoom_out: actionsBaseSchema.optional(),
+    actions_home: actionsBaseSchema.optional(),
+  }),
+);
+
+export type FrigateCardPTZConfig = z.infer<typeof frigateCardPTZSchema>;
+
 // Cannot use discriminatedUnion since customSchema uses a superRefine, which
 // causes false rejections.
 const pictureElementSchema = z.union([
   menuStateIconSchema,
   menuIconSchema,
   menuSubmenuSchema,
+  menuSubmenuSelectSchema,
   frigateConditionalSchema,
+  frigateCardPTZSchema,
   stateBadgeIconSchema,
   stateIconSchema,
   stateLabelSchema,
@@ -377,15 +564,34 @@ const pictureElementsSchema = pictureElementSchema.array().optional();
 export type PictureElements = z.infer<typeof pictureElementsSchema>;
 
 /**
+ * Media layout configuration section.
+ */
+const mediaLayoutConfigSchema = z.object({
+  fit: z.enum(['contain', 'cover', 'fill']).optional(),
+  position: z.object({
+    x: z.number().min(0).max(100).optional(),
+    y: z.number().min(0).max(100).optional(),
+  }).optional(),
+});
+export type MediaLayoutConfig = z.infer<typeof mediaLayoutConfigSchema>;
+
+/**
  * View configuration section.
  */
 const viewConfigDefault = {
-  default: 'live' as const,
+  default: FRIGATE_CARD_VIEW_DEFAULT,
   camera_select: 'current' as const,
   timeout_seconds: 300,
   update_seconds: 0,
   update_force: false,
   update_cycle_camera: false,
+  dark_mode: 'off' as const,
+  scan: {
+    enabled: false,
+    show_trigger_status: true,
+    untrigger_seconds: 0,
+    untrigger_reset: true,
+  },
 };
 const viewConfigSchema = z
   .object({
@@ -401,6 +607,17 @@ const viewConfigSchema = z
     update_cycle_camera: z.boolean().default(viewConfigDefault.update_cycle_camera),
     update_entities: z.string().array().optional(),
     render_entities: z.string().array().optional(),
+    dark_mode: z.enum(['on', 'off', 'auto']).optional(),
+    scan: z
+      .object({
+        enabled: z.boolean().default(viewConfigDefault.scan.enabled),
+        show_trigger_status: z
+          .boolean()
+          .default(viewConfigDefault.scan.show_trigger_status),
+        untrigger_seconds: z.number().default(viewConfigDefault.scan.untrigger_seconds),
+        untrigger_reset: z.boolean().default(viewConfigDefault.scan.untrigger_reset),
+      })
+      .default(viewConfigDefault.scan),
   })
   .merge(actionsSchema)
   .default(viewConfigDefault);
@@ -409,11 +626,7 @@ const viewConfigSchema = z
  * Image view configuration section.
  */
 
-export const IMAGE_MODES = [
-  'screensaver',
-  'camera',
-  'url',
-] as const;
+export const IMAGE_MODES = ['screensaver', 'camera', 'url'] as const;
 const imageConfigDefault = {
   mode: 'url' as const,
   refresh_seconds: 0,
@@ -423,6 +636,7 @@ const imageConfigSchema = z
     mode: z.enum(IMAGE_MODES).default(imageConfigDefault.mode),
     url: z.string().optional(),
     refresh_seconds: z.number().min(0).default(imageConfigDefault.refresh_seconds),
+    layout: mediaLayoutConfigSchema.optional(),
   })
   .merge(actionsSchema)
   .default(imageConfigDefault);
@@ -433,8 +647,11 @@ export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
  */
 
 const thumbnailsControlSchema = z.object({
-  mode: z.enum(['none', 'above', 'below']),
-  size: z.string().optional(),
+  mode: z.enum(['none', 'above', 'below', 'left', 'right']),
+  size: z.number().min(THUMBNAIL_WIDTH_MIN).max(THUMBNAIL_WIDTH_MAX).optional(),
+  show_details: z.boolean().optional(),
+  show_favorite_control: z.boolean().optional(),
+  show_timeline_control: z.boolean().optional(),
 });
 export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlSchema>;
 
@@ -444,7 +661,7 @@ export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlSchema>;
 
 const nextPreviousControlConfigSchema = z.object({
   style: z.enum(['none', 'chevrons', 'icons', 'thumbnails']),
-  size: z.string(),
+  size: z.number().min(BUTTON_SIZE_MIN),
 });
 export type NextPreviousControlConfig = z.infer<typeof nextPreviousControlConfigSchema>;
 
@@ -473,21 +690,28 @@ export type TitleControlConfig = z.infer<typeof titleControlConfigSchema>;
  * Live view configuration section.
  */
 const liveConfigDefault = {
-  auto_unmute: false,
+  auto_play: 'all' as const,
+  auto_pause: 'never' as const,
+  auto_mute: 'all' as const,
+  auto_unmute: 'never' as const,
   preload: false,
   lazy_load: true,
-  lazy_unload: false,
+  lazy_unload: 'never' as const,
   draggable: true,
   transition_effect: 'slide' as const,
+  show_image_during_load: true,
   controls: {
     next_previous: {
-      size: '48px',
+      size: 48,
       style: 'chevrons' as const,
     },
     thumbnails: {
       media: 'clips' as const,
-      size: '100px',
-      mode: 'none' as const,
+      size: 100,
+      show_details: true,
+      show_favorite_control: true,
+      show_timeline_control: true,
+      mode: 'left' as const,
     },
     title: {
       mode: 'popup-bottom-right' as const,
@@ -547,6 +771,17 @@ const liveOverridableConfigSchema = z
             size: thumbnailsControlSchema.shape.size.default(
               liveConfigDefault.controls.thumbnails.size,
             ),
+            show_details: thumbnailsControlSchema.shape.show_details.default(
+              liveConfigDefault.controls.thumbnails.show_details,
+            ),
+            show_favorite_control:
+              thumbnailsControlSchema.shape.show_favorite_control.default(
+                liveConfigDefault.controls.thumbnails.show_favorite_control,
+              ),
+            show_timeline_control:
+              thumbnailsControlSchema.shape.show_timeline_control.default(
+                liveConfigDefault.controls.thumbnails.show_timeline_control,
+              ),
             media: z
               .enum(['clips', 'snapshots'])
               .default(liveConfigDefault.controls.thumbnails.media),
@@ -564,18 +799,37 @@ const liveOverridableConfigSchema = z
           .default(liveConfigDefault.controls.title),
       })
       .default(liveConfigDefault.controls),
+    show_image_during_load: z
+      .boolean()
+      .default(liveConfigDefault.show_image_during_load),
+    layout: mediaLayoutConfigSchema.optional(),
   })
   .merge(actionsSchema);
 
 const liveConfigSchema = liveOverridableConfigSchema
   .extend({
     // Non-overrideable parameters.
-    auto_unmute: z.boolean().default(liveConfigDefault.auto_unmute),
+    auto_play: z
+      .enum(MEDIA_ACTION_POSITIVE_CONDITIONS)
+      .default(liveConfigDefault.auto_play),
+    auto_pause: z
+      .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
+      .default(liveConfigDefault.auto_pause),
+    auto_mute: z
+      .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
+      .default(liveConfigDefault.auto_mute),
+    auto_unmute: z
+      .enum(MEDIA_ACTION_POSITIVE_CONDITIONS)
+      .default(liveConfigDefault.auto_unmute),
     preload: z.boolean().default(liveConfigDefault.preload),
     lazy_load: z.boolean().default(liveConfigDefault.lazy_load),
-    lazy_unload: z.boolean().default(liveConfigDefault.lazy_unload),
+    lazy_unload: z
+      .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
+      .default(liveConfigDefault.lazy_unload),
     draggable: z.boolean().default(liveConfigDefault.draggable),
-    transition_effect: transitionEffectConfigSchema.default(liveConfigDefault.transition_effect),
+    transition_effect: transitionEffectConfigSchema.default(
+      liveConfigDefault.transition_effect,
+    ),
   })
   .default(liveConfigDefault);
 export type LiveConfig = z.infer<typeof liveConfigSchema>;
@@ -583,39 +837,68 @@ export type LiveConfig = z.infer<typeof liveConfigSchema>;
 /**
  * Menu configuration section.
  */
-const menuConfigDefault = {
-  mode: 'hidden-top' as const,
-  buttons: {
-    frigate: true,
-    cameras: true,
-    live: true,
-    clips: true,
-    snapshots: true,
-    image: false,
-    download: true,
-    frigate_ui: true,
-    fullscreen: true,
-  },
-  button_size: '40px',
+
+const visibleButtonDefault = {
+  priority: FRIGATE_MENU_PRIORITY_DEFAULT,
+  enabled: true,
 };
+const hiddenButtonDefault = {
+  priority: FRIGATE_MENU_PRIORITY_DEFAULT,
+  enabled: false,
+};
+
+const menuConfigDefault = {
+  style: 'hidden' as const,
+  position: 'top' as const,
+  alignment: 'left' as const,
+  buttons: {
+    frigate: visibleButtonDefault,
+    cameras: visibleButtonDefault,
+    live: visibleButtonDefault,
+    clips: visibleButtonDefault,
+    snapshots: visibleButtonDefault,
+    image: hiddenButtonDefault,
+    timeline: visibleButtonDefault,
+    download: visibleButtonDefault,
+    frigate_ui: visibleButtonDefault,
+    fullscreen: visibleButtonDefault,
+    media_player: visibleButtonDefault,
+  },
+  button_size: 40,
+};
+
+const visibleButtonSchema = menuBaseSchema.extend({
+  enabled: menuBaseSchema.shape.enabled.default(visibleButtonDefault.enabled),
+  priority: menuBaseSchema.shape.priority.default(visibleButtonDefault.priority),
+});
+const hiddenButtonSchema = menuBaseSchema.extend({
+  enabled: menuBaseSchema.shape.enabled.default(hiddenButtonDefault.enabled),
+  priority: menuBaseSchema.shape.priority.default(hiddenButtonDefault.priority),
+});
 
 const menuConfigSchema = z
   .object({
-    mode: z.enum(FRIGATE_MENU_MODES).default(menuConfigDefault.mode),
+    style: z.enum(FRIGATE_MENU_STYLES).default(menuConfigDefault.style),
+    position: z.enum(FRIGATE_MENU_POSITIONS).default(menuConfigDefault.position),
+    alignment: z.enum(FRIGATE_MENU_ALIGNMENTS).default(menuConfigDefault.alignment),
     buttons: z
       .object({
-        frigate: z.boolean().default(menuConfigDefault.buttons.frigate),
-        cameras: z.boolean().default(menuConfigDefault.buttons.cameras),
-        live: z.boolean().default(menuConfigDefault.buttons.live),
-        clips: z.boolean().default(menuConfigDefault.buttons.clips),
-        snapshots: z.boolean().default(menuConfigDefault.buttons.snapshots),
-        image: z.boolean().default(menuConfigDefault.buttons.image),
-        download: z.boolean().default(menuConfigDefault.buttons.download),
-        frigate_ui: z.boolean().default(menuConfigDefault.buttons.frigate_ui),
-        fullscreen: z.boolean().default(menuConfigDefault.buttons.fullscreen),
+        frigate: visibleButtonSchema.default(menuConfigDefault.buttons.frigate),
+        cameras: visibleButtonSchema.default(menuConfigDefault.buttons.cameras),
+        live: visibleButtonSchema.default(menuConfigDefault.buttons.live),
+        clips: visibleButtonSchema.default(menuConfigDefault.buttons.clips),
+        snapshots: visibleButtonSchema.default(menuConfigDefault.buttons.snapshots),
+        image: hiddenButtonSchema.default(menuConfigDefault.buttons.image),
+        timeline: visibleButtonSchema.default(menuConfigDefault.buttons.timeline),
+        download: visibleButtonSchema.default(menuConfigDefault.buttons.download),
+        frigate_ui: visibleButtonSchema.default(menuConfigDefault.buttons.frigate_ui),
+        fullscreen: visibleButtonSchema.default(menuConfigDefault.buttons.fullscreen),
+        media_player: visibleButtonSchema.default(
+          menuConfigDefault.buttons.media_player,
+        ),
       })
       .default(menuConfigDefault.buttons),
-    button_size: z.string().default(menuConfigDefault.button_size),
+    button_size: z.number().min(BUTTON_SIZE_MIN).default(menuConfigDefault.button_size),
   })
   .default(menuConfigDefault);
 export type MenuConfig = z.infer<typeof menuConfigSchema>;
@@ -624,19 +907,24 @@ export type MenuConfig = z.infer<typeof menuConfigSchema>;
  * Event viewer configuration section (clip, snapshot).
  */
 const viewerConfigDefault = {
-  auto_play: true,
-  auto_unmute: false,
+  auto_play: 'all' as const,
+  auto_pause: 'all' as const,
+  auto_mute: 'all' as const,
+  auto_unmute: 'never' as const,
   lazy_load: true,
   draggable: true,
   transition_effect: 'slide' as const,
   controls: {
     next_previous: {
-      size: '48px',
+      size: 48,
       style: 'thumbnails' as const,
     },
     thumbnails: {
-      size: '100px',
-      mode: 'none' as const,
+      size: 100,
+      show_details: true,
+      show_favorite_control: true,
+      show_timeline_control: true,
+      mode: 'left' as const,
     },
     title: {
       mode: 'popup-bottom-right' as const,
@@ -648,7 +936,9 @@ const viewerNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.ex
   style: z
     .enum(['none', 'thumbnails', 'chevrons'])
     .default(viewerConfigDefault.controls.next_previous.style),
-  size: z.string().default(viewerConfigDefault.controls.next_previous.size),
+  size: nextPreviousControlConfigSchema.shape.size.default(
+    viewerConfigDefault.controls.next_previous.size,
+  ),
 });
 export type ViewerNextPreviousControlConfig = z.infer<
   typeof viewerNextPreviousControlConfigSchema
@@ -656,11 +946,23 @@ export type ViewerNextPreviousControlConfig = z.infer<
 
 const viewerConfigSchema = z
   .object({
-    auto_play: z.boolean().default(viewerConfigDefault.auto_play),
-    auto_unmute: z.boolean().default(viewerConfigDefault.auto_unmute),
+    auto_play: z
+      .enum(MEDIA_ACTION_POSITIVE_CONDITIONS)
+      .default(viewerConfigDefault.auto_play),
+    auto_pause: z
+      .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
+      .default(viewerConfigDefault.auto_pause),
+    auto_mute: z
+      .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
+      .default(viewerConfigDefault.auto_mute),
+    auto_unmute: z
+      .enum(MEDIA_ACTION_POSITIVE_CONDITIONS)
+      .default(viewerConfigDefault.auto_unmute),
     lazy_load: z.boolean().default(viewerConfigDefault.lazy_load),
     draggable: z.boolean().default(viewerConfigDefault.draggable),
-    transition_effect: transitionEffectConfigSchema.default(viewerConfigDefault.transition_effect),
+    transition_effect: transitionEffectConfigSchema.default(
+      viewerConfigDefault.transition_effect,
+    ),
     controls: z
       .object({
         next_previous: viewerNextPreviousControlConfigSchema.default(
@@ -674,6 +976,17 @@ const viewerConfigSchema = z
             size: thumbnailsControlSchema.shape.size.default(
               viewerConfigDefault.controls.thumbnails.size,
             ),
+            show_details: thumbnailsControlSchema.shape.show_details.default(
+              viewerConfigDefault.controls.thumbnails.show_details,
+            ),
+            show_favorite_control:
+              thumbnailsControlSchema.shape.show_favorite_control.default(
+                viewerConfigDefault.controls.thumbnails.show_favorite_control,
+              ),
+            show_timeline_control:
+              thumbnailsControlSchema.shape.show_timeline_control.default(
+                viewerConfigDefault.controls.thumbnails.show_timeline_control,
+              ),
           })
           .default(viewerConfigDefault.controls.thumbnails),
         title: titleControlConfigSchema
@@ -688,6 +1001,7 @@ const viewerConfigSchema = z
           .default(viewerConfigDefault.controls.title),
       })
       .default(viewerConfigDefault.controls),
+    layout: mediaLayoutConfigSchema.optional(),
   })
   .merge(actionsSchema)
   .default(viewerConfigDefault);
@@ -697,12 +1011,42 @@ export type ViewerConfig = z.infer<typeof viewerConfigSchema>;
  * Event gallery configuration section (clips, snapshots).
  */
 const galleryConfigDefault = {
-  min_columns: 5,
+  controls: {
+    thumbnails: {
+      size: 100,
+      show_details: false,
+      show_favorite_control: true,
+      show_timeline_control: true,
+    },
+  },
 };
 
 const galleryConfigSchema = z
   .object({
-    min_columns: z.number().min(1).max(10).default(galleryConfigDefault.min_columns),
+    controls: z
+      .object({
+        thumbnails: thumbnailsControlSchema
+          // Gallery shows thumbnails "centrally" so no need for the mode.
+          .omit({ mode: true })
+          .extend({
+            size: thumbnailsControlSchema.shape.size.default(
+              galleryConfigDefault.controls.thumbnails.size,
+            ),
+            show_details: thumbnailsControlSchema.shape.show_details.default(
+              galleryConfigDefault.controls.thumbnails.show_details,
+            ),
+            show_favorite_control:
+              thumbnailsControlSchema.shape.show_favorite_control.default(
+                galleryConfigDefault.controls.thumbnails.show_favorite_control,
+              ),
+            show_timeline_control:
+              thumbnailsControlSchema.shape.show_timeline_control.default(
+                galleryConfigDefault.controls.thumbnails.show_timeline_control,
+              ),
+          })
+          .default(galleryConfigDefault.controls.thumbnails),
+      })
+      .default(galleryConfigDefault.controls),
   })
   .merge(actionsSchema)
   .default(galleryConfigDefault);
@@ -735,6 +1079,73 @@ const dimensionsConfigSchema = z
   .default(dimensionsConfigDefault);
 
 /**
+ * Timeline configuration section.
+ */
+const timelineConfigDefault = {
+  clustering_threshold: 3,
+  media: 'all' as const,
+  window_seconds: 60 * 60,
+  show_recordings: true,
+  controls: {
+    thumbnails: {
+      mode: 'left' as const,
+      size: 100,
+      show_details: true,
+      show_favorite_control: true,
+      show_timeline_control: true,
+    },
+  },
+};
+const timelineConfigSchema = z
+  .object({
+    clustering_threshold: z
+      .number()
+      .optional()
+      .default(timelineConfigDefault.clustering_threshold),
+    media: z
+      .enum(['all', 'clips', 'snapshots'])
+      .optional()
+      .default(timelineConfigDefault.media),
+    window_seconds: z
+      .number()
+      .min(1 * 60)
+      .max(24 * 60 * 60)
+      .optional()
+      .default(timelineConfigDefault.window_seconds),
+    show_recordings: z
+      .boolean()
+      .optional()
+      .default(timelineConfigDefault.show_recordings),
+    controls: z
+      .object({
+        thumbnails: thumbnailsControlSchema
+          .extend({
+            mode: thumbnailsControlSchema.shape.mode.default(
+              timelineConfigDefault.controls.thumbnails.mode,
+            ),
+            size: thumbnailsControlSchema.shape.size.default(
+              timelineConfigDefault.controls.thumbnails.size,
+            ),
+            show_details: thumbnailsControlSchema.shape.show_details.default(
+              timelineConfigDefault.controls.thumbnails.show_details,
+            ),
+            show_favorite_control:
+              thumbnailsControlSchema.shape.show_favorite_control.default(
+                timelineConfigDefault.controls.thumbnails.show_favorite_control,
+              ),
+            show_timeline_control:
+              thumbnailsControlSchema.shape.show_timeline_control.default(
+                timelineConfigDefault.controls.thumbnails.show_timeline_control,
+              ),
+          })
+          .default(timelineConfigDefault.controls.thumbnails),
+      })
+      .default(timelineConfigDefault.controls),
+  })
+  .default(timelineConfigDefault);
+export type TimelineConfig = z.infer<typeof timelineConfigSchema>;
+
+/**
  * Configuration overrides
  */
 // Strip all defaults from the override schemas, to ensure values are only what
@@ -743,6 +1154,8 @@ const overrideConfigurationSchema = z.object({
   live: deepRemoveDefaults(liveOverridableConfigSchema).optional(),
   menu: deepRemoveDefaults(menuConfigSchema).optional(),
   image: deepRemoveDefaults(imageConfigSchema).optional(),
+  view: deepRemoveDefaults(viewConfigSchema).optional(),
+  dimensions: deepRemoveDefaults(dimensionsConfigSchema).optional(),
 });
 export type OverrideConfigurationKey = keyof z.infer<typeof overrideConfigurationSchema>;
 
@@ -772,11 +1185,12 @@ export const frigateCardConfigSchema = z.object({
   view: viewConfigSchema,
   menu: menuConfigSchema,
   live: liveConfigSchema,
-  event_viewer: viewerConfigSchema,
+  media_viewer: viewerConfigSchema,
   event_gallery: galleryConfigSchema,
   image: imageConfigSchema,
   elements: pictureElementsSchema,
   dimensions: dimensionsConfigSchema,
+  timeline: timelineConfigSchema,
 
   // Configuration overrides.
   overrides: overridesSchema,
@@ -797,49 +1211,88 @@ export const frigateCardConfigDefaults = {
   view: viewConfigDefault,
   menu: menuConfigDefault,
   live: liveConfigDefault,
-  event_viewer: viewerConfigDefault,
+  media_viewer: viewerConfigDefault,
   event_gallery: galleryConfigDefault,
   image: imageConfigDefault,
+  timeline: timelineConfigDefault,
 };
 
-const menuButtonSchema = z.discriminatedUnion("type", [
+const menuButtonSchema = z.discriminatedUnion('type', [
   menuIconSchema,
   menuStateIconSchema,
   menuSubmenuSchema,
+  menuSubmenuSelectSchema,
 ]);
 export type MenuButton = z.infer<typeof menuButtonSchema>;
-export interface ExtendedHomeAssistant {
+export interface ExtendedHomeAssistant extends HomeAssistant {
   hassUrl(path?): string;
+  themes: Themes & {
+    darkMode?: boolean;
+  };
 }
 
 export interface BrowseMediaQueryParameters {
-  mediaType: 'clips' | 'snapshots';
+  // ========================================
+  // Parameters used to construct media query
+  // ========================================
+  mediaType?: 'clips' | 'snapshots';
   clientId: string;
   cameraName: string;
   label?: string;
   zone?: string;
   before?: number;
   after?: number;
+  unlimited?: boolean;
+
+  // ========================================
+  // Parameters used to differentiate results
+  // ========================================
+  // Optional title to be used for separating results when merging multiple
+  // sets of results. See `mergeFrigateBrowseMediaSources()` .
+  title?: string;
+
+  // Optional camera-id to which this query is associated. May be used to map
+  // results to a particular camera within the card.
+  cameraID?: string;
+}
+
+export interface BrowseRecordingQueryParameters {
+  clientId: string;
+  cameraName: string;
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
 }
 
 export interface BrowseMediaNeighbors {
-  previous: BrowseMediaSource | null;
+  previous: FrigateBrowseMediaSource | null;
   previousIndex: number | null;
 
-  next: BrowseMediaSource | null;
+  next: FrigateBrowseMediaSource | null;
   nextIndex: number | null;
 }
 
-export interface MediaShowInfo {
+export interface MediaLoadedInfo {
   width: number;
   height: number;
 }
 
+export const MESSAGE_TYPE_PRIORITIES = {
+  info: 10,
+  error: 20,
+  connection: 30,
+  diagnostics: 40,
+};
+
+export type MessageType = 'info' | 'error' | 'connection' | 'diagnostics';
+
 export interface Message {
   message: string;
-  type: 'error' | 'info';
+  type: MessageType;
   icon?: string;
   context?: unknown;
+  dotdotdot?: boolean;
 }
 
 export interface StateParameters {
@@ -857,17 +1310,32 @@ export interface FrigateCardMediaPlayer {
   pause(): void;
   mute(): void;
   unmute(): void;
+  seek(seconds: number): void;
+}
+
+export interface CardHelpers {
+  createCardElement(config: LovelaceCardConfig): Promise<{
+    constructor: {
+      getConfigElement(): HTMLElement;
+    };
+  }>;
 }
 
 /**
  * Home Assistant API types.
  */
 
+export const MEDIA_CLASS_PLAYLIST = 'playlist' as const;
+export const MEDIA_CLASS_VIDEO = 'video' as const;
+export const MEDIA_TYPE_PLAYLIST = 'playlist' as const;
+export const MEDIA_TYPE_IMAGE = 'image' as const;
+export const MEDIA_TYPE_VIDEO = 'video' as const;
+
 // Recursive type, cannot use type interference:
 // See: https://github.com/colinhacks/zod#recursive-types
 //
 // Server side data-type defined here: https://github.com/home-assistant/core/blob/dev/homeassistant/components/media_player/browse_media.py#L46
-export interface BrowseMediaSource {
+interface BrowseMediaSource {
   title: string;
   media_class: string;
   media_content_type: string;
@@ -879,18 +1347,71 @@ export interface BrowseMediaSource {
   children?: BrowseMediaSource[] | null;
 }
 
-export const browseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.lazy(() =>
-  z.object({
-    title: z.string(),
-    media_class: z.string(),
-    media_content_type: z.string(),
-    media_content_id: z.string(),
-    can_play: z.boolean(),
-    can_expand: z.boolean(),
-    children_media_class: z.string().nullable().optional(),
-    thumbnail: z.string().nullable(),
-    children: z.array(browseMediaSourceSchema).nullable().optional(),
-  }),
+export interface FrigateEvent {
+  camera: string;
+  end_time?: number;
+  false_positive: boolean;
+  has_clip: boolean;
+  has_snapshot: boolean;
+  id: string;
+  label: string;
+  start_time: number;
+  top_score: number;
+  zones: string[];
+  retain_indefinitely?: boolean;
+}
+
+export interface FrigateRecording {
+  camera: string;
+  start_time: number;
+  end_time: number;
+  events: number;
+
+  // Specifies the point at which this recording should be played, the
+  // seek_time is the date of the desired play point, and seek_seconds is the
+  // number of seconds to seek to reach that point.
+  seek_time?: number;
+  seek_seconds?: number;
+}
+
+export interface FrigateBrowseMediaSource extends BrowseMediaSource {
+  children?: FrigateBrowseMediaSource[] | null;
+  frigate?: {
+    event?: FrigateEvent;
+    recording?: FrigateRecording;
+  };
+}
+
+export const frigateBrowseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.lazy(
+  () =>
+    z.object({
+      title: z.string(),
+      media_class: z.string(),
+      media_content_type: z.string(),
+      media_content_id: z.string(),
+      can_play: z.boolean(),
+      can_expand: z.boolean(),
+      children_media_class: z.string().nullable().optional(),
+      thumbnail: z.string().nullable(),
+      children: z.array(frigateBrowseMediaSourceSchema).nullable().optional(),
+      frigate: z
+        .object({
+          event: z.object({
+            camera: z.string(),
+            end_time: z.number().nullable(),
+            false_positive: z.boolean().nullable(),
+            has_clip: z.boolean(),
+            has_snapshot: z.boolean(),
+            id: z.string(),
+            label: z.string(),
+            start_time: z.number(),
+            top_score: z.number(),
+            zones: z.string().array(),
+            retain_indefinitely: z.boolean().optional(),
+          }),
+        })
+        .optional(),
+    }),
 );
 
 // Server side data-type defined here: https://github.com/home-assistant/core/blob/dev/homeassistant/components/media_source/models.py
@@ -906,8 +1427,18 @@ export const signedPathSchema = z.object({
 export type SignedPath = z.infer<typeof signedPathSchema>;
 
 export const entitySchema = z.object({
+  config_entry_id: z.string().nullable(),
+  disabled_by: z.string().nullable(),
   entity_id: z.string(),
-  unique_id: z.string(),
   platform: z.string(),
 });
 export type Entity = z.infer<typeof entitySchema>;
+
+export const extendedEntitySchema = entitySchema.extend({
+  // Extended entity results.
+  unique_id: z.string().optional(),
+});
+export type ExtendedEntity = z.infer<typeof extendedEntitySchema>;
+
+export const entityListSchema = entitySchema.array();
+export type EntityList = z.infer<typeof entityListSchema>;

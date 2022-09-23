@@ -1,0 +1,45 @@
+:host {
+  // Drawer width sizes to contents.
+  width: unset;
+}
+
+#fs {
+  // Hide the freespace screen.
+  display: none;
+  width: 100%;
+  inset: 0;
+}
+
+#d,
+#fs {
+  // Override width/height to be 100% instead of 100v[wh].
+  height: 100%;
+
+  // Position absolutely.
+  position: absolute;
+}
+
+#d {
+  // Need to allow drawer controls to be visible.
+  overflow: visible;
+
+  // Don't let the drawer exceed 90% of the full width of the relative parent.
+  max-width: 90%;
+}
+
+:host([location=right]) #d {
+  // Position to the right.
+  left: unset;
+  right: 0;
+  transform: translateX(100%);
+}
+
+:host([location=right][open]) #d {
+  transform: none;
+  box-shadow: 0px 0px 25px 0px black;
+}
+
+#ifs {
+  // Override width/height to be 100% instead of 100v[wh].
+  height: 100%;
+}

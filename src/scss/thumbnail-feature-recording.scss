@@ -1,0 +1,27 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  max-width: var(--frigate-card-thumbnail-size);
+  max-height: var(--frigate-card-thumbnail-size);
+  padding: 10px;
+
+  border: 1px solid var(--secondary-color);
+  background-color: var(--secondary-background-color);
+  border-radius: var(--ha-card-border-radius, 4px);
+  box-sizing: border-box;
+
+  color: var(--primary-text-color);
+}
+
+div {
+  text-align: center;
+}
+
+div.title {
+  font-size: 1.5rem;
+}

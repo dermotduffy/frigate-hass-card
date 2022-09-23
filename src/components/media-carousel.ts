@@ -1,59 +1,240 @@
-import { CSSResultGroup, unsafeCSS } from 'lit';
-import { EmblaCarouselType } from 'embla-carousel';
-import { createRef, Ref } from 'lit/directives/ref.js';
-import { customElement } from 'lit/decorators.js';
-
-import { AutoMediaPluginType } from './embla-plugins/automedia.js';
-import { FrigateCardCarousel } from './carousel.js';
+import { EmblaOptionsType } from 'embla-carousel';
+import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
+import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import mediaCarouselStyle from '../scss/media-carousel.scss';
+import type {
+  MediaLoadedInfo,
+  NextPreviousControlConfig,
+  TitleControlConfig,
+  TransitionEffect,
+} from '../types.js';
+import { dispatchFrigateCardEvent } from '../utils/basic';
+import {
+  createMediaLoadedInfo,
+  dispatchExistingMediaLoadedInfoAsEvent,
+  isValidMediaLoadedInfo,
+} from '../utils/media-info.js';
+import { CarouselSelect, EmblaCarouselPlugins, FrigateCardCarousel } from './carousel';
+import { AutoMediaType } from './embla-plugins/automedia.js';
+import './next-prev-control.js';
+import './carousel.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
 import { FrigateCardTitleControl } from './title-control.js';
-import type { MediaShowInfo } from '../types.js';
-import {
-  dispatchExistingMediaShowInfoAsEvent,
-  isValidMediaShowInfo,
-} from '../common.js';
-
-import './next-prev-control.js';
-
-import mediaCarouselStyle from '../scss/media-carousel.scss';
 
 const getEmptyImageSrc = (width: number, height: number) =>
   `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"%3E%3C/svg%3E`;
 export const IMG_EMPTY = getEmptyImageSrc(16, 9);
 
+export interface CarouselMediaLoadedInfo {
+  slide: number;
+  mediaLoadedInfo: MediaLoadedInfo;
+}
+
+export interface CarouselMediaUnloadedInfo {
+  slide: number;
+}
+
+/**
+ * Dispatch a carousel media loaded event.
+ * @param target The target to send it from.
+ * @param carouselMediaLoadedInfo The CarouselMediaLoadedInfo.
+ */
+const dispatchFrigateCardCarouselMediaLoaded = (
+  target: EventTarget,
+  carouselMediaLoadedInfo: CarouselMediaLoadedInfo,
+): void => {
+  dispatchFrigateCardEvent<CarouselMediaLoadedInfo>(
+    target,
+    'carousel:media:loaded',
+    carouselMediaLoadedInfo,
+  );
+};
+
+/**
+ * Dispatch a carousel media UNloaded event.
+ * @param target The target to send it from.
+ * @param carouselMediaUnloadedInfo The CarouselMediaUnloadedInfo.
+ */
+const dispatchFrigateCardCarouselMediaUnloaded = (
+  target: EventTarget,
+  carouselMediaUnloadedInfo: CarouselMediaUnloadedInfo,
+): void => {
+  dispatchFrigateCardEvent<CarouselMediaUnloadedInfo>(
+    target,
+    'carousel:media:unloaded',
+    carouselMediaUnloadedInfo,
+  );
+};
+
+/**
+ * Turn a MediaLoadedInfo into a CarouselMediaLoadedInfo.
+ * @param slide The slide number.
+ * @param event The MediaShowEvent.
+ */
+export const wrapMediaLoadedEventForCarousel = (
+  slide: number,
+  event: CustomEvent<MediaLoadedInfo>,
+) => {
+  event.stopPropagation();
+  dispatchFrigateCardCarouselMediaLoaded(event.composedPath()[0], {
+    slide: slide,
+    mediaLoadedInfo: event.detail,
+  });
+};
+
+/**
+ * Turn a (raw, e.g. img) media load event into a CarouselMediaLoadedInfo.
+ * @param slide The slide number.
+ * @param event The MediaShowEvent.
+ */
+export const wrapRawMediaLoadedEventForCarousel = (slide: number, event: Event) => {
+  const mediaLoadedInfo = createMediaLoadedInfo(event);
+  if (mediaLoadedInfo) {
+    dispatchFrigateCardCarouselMediaLoaded(event.composedPath()[0], {
+      slide: slide,
+      mediaLoadedInfo: mediaLoadedInfo,
+    });
+  }
+};
+
+/**
+ * Turn a MediaUnloadedInfo into a CarouselMediaUnloadedInfo.
+ * @param slide The slide number.
+ * @param event The MediaUnloadedEvent.
+ */
+export const wrapMediaUnloadedEventForCarousel = (
+  slide: number,
+  event: CustomEvent<void>,
+) => {
+  event.stopPropagation();
+  dispatchFrigateCardCarouselMediaUnloaded(event.composedPath()[0], {
+    slide: slide,
+  });
+};
+
 @customElement('frigate-card-media-carousel')
-export class FrigateCardMediaCarousel extends FrigateCardCarousel {
-  // A "map" from slide number to MediaShowInfo object.
-  protected _mediaShowInfo: Record<number, MediaShowInfo> = {};
+export class FrigateCardMediaCarousel extends LitElement {
+  @property({ attribute: false })
+  public nextPreviousConfig?: NextPreviousControlConfig;
+
+  @property({ attribute: false })
+  public carouselOptions?: EmblaOptionsType;
+
+  @property({ attribute: false })
+  public carouselPlugins?: EmblaCarouselPlugins;
+
+  @property({ attribute: true })
+  public transitionEffect?: TransitionEffect;
+
+  @property({ attribute: false })
+  public label?: string;
+
+  @property({ attribute: false })
+  public titlePopupConfig?: TitleControlConfig;
+
+  // A "map" from slide number to MediaLoadedInfo object.
+  protected _mediaLoadedInfo: Record<number, MediaLoadedInfo> = {};
   protected _nextControlRef: Ref<FrigateCardNextPreviousControl> = createRef();
   protected _previousControlRef: Ref<FrigateCardNextPreviousControl> = createRef();
   protected _titleControlRef: Ref<FrigateCardTitleControl> = createRef();
   protected _titleTimerID: number | null = null;
 
+  protected _boundAutoPlayHandler = this.autoPlay.bind(this);
+  protected _boundAutoUnmuteHandler = this.autoUnmute.bind(this);
+  protected _boundAdaptContainerHeightToSlide =
+    this._adaptContainerHeightToSlide.bind(this);
+  protected _boundTitleHandler = this._titleHandler.bind(this);
+
   // This carousel may be resized by Lovelace resizes, window resizes,
   // fullscreen, etc. Always call the adaptive height handler when the size
   // changes.
   protected _resizeObserver: ResizeObserver;
+  protected _slideResizeObserver: ResizeObserver;
+  protected _intersectionObserver: IntersectionObserver;
+
+  protected _refCarousel: Ref<FrigateCardCarousel> = createRef();
 
   constructor() {
     super();
-    this._resizeObserver = new ResizeObserver(this._adaptiveHeightHandler.bind(this));
+    // Need to watch both changes in this element (e.g. caused by a window
+    // resize or fullscreen change) and changes in the selected slide itself
+    // (e.g. changing from a progress indicator to a loaded media).
+    this._resizeObserver = new ResizeObserver(this._reInitAndAdjustHeight.bind(this));
+    this._slideResizeObserver = new ResizeObserver(
+      this._reInitAndAdjustHeight.bind(this),
+    );
+    this._intersectionObserver = new IntersectionObserver(
+      this._intersectionHandler.bind(this),
+    );
   }
 
   /**
-   * Play the media on the selected slide. May be overridden to control when
-   * autoplay should happen.
+   * Get the underlying carousel.
    */
-  protected _autoPlayHandler(): void {
-    (this._plugins['AutoMediaPlugin'] as AutoMediaPluginType | undefined)?.play();
+  public frigateCardCarousel(): FrigateCardCarousel | null {
+    return this._refCarousel.value ?? null;
   }
 
   /**
-   * Unmute the media on the selected slide. May be overridden to control when
-   * autoplay should happen.
+   * Get the AutoMedia plugin (if any).
+   * @returns The plugin or `null`.
    */
-  protected _autoUnmuteHandler(): void {
-    (this._plugins['AutoMediaPlugin'] as AutoMediaPluginType | undefined)?.unmute();
+  protected _getAutoMediaPlugin(): AutoMediaType | null {
+    return this.frigateCardCarousel()?.carousel()?.plugins().autoMedia ?? null;
+  }
+
+  /**
+   * Play the media on the selected slide.
+   */
+  public autoPlay(): void {
+    const automediaOptions = this._getAutoMediaPlugin()?.options;
+    if (
+      automediaOptions?.autoPlayCondition &&
+      ['all', 'selected'].includes(automediaOptions?.autoPlayCondition)
+    ) {
+      this._getAutoMediaPlugin()?.play();
+    }
+  }
+
+  /**
+   * Pause the media on the selected slide.
+   */
+  public autoPause(): void {
+    const automediaOptions = this._getAutoMediaPlugin()?.options;
+    if (
+      automediaOptions?.autoPauseCondition &&
+      ['all', 'selected'].includes(automediaOptions.autoPauseCondition)
+    ) {
+      this._getAutoMediaPlugin()?.pause();
+    }
+  }
+
+  /**
+   * Unmute the media on the selected slide.
+   */
+  public autoUnmute(): void {
+    const automediaOptions = this._getAutoMediaPlugin()?.options;
+    if (
+      automediaOptions?.autoUnmuteCondition &&
+      ['all', 'selected'].includes(automediaOptions?.autoUnmuteCondition)
+    ) {
+      this._getAutoMediaPlugin()?.unmute();
+    }
+  }
+
+  /**
+   * Mute the media on the selected slide.
+   */
+  public autoMute(): void {
+    const automediaOptions = this._getAutoMediaPlugin()?.options;
+    if (
+      automediaOptions?.autoMuteCondition &&
+      ['all', 'selected'].includes(automediaOptions?.autoMuteCondition)
+    ) {
+      this._getAutoMediaPlugin()?.mute();
+    }
   }
 
   /**
@@ -77,8 +258,7 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
 
     // Allow a brief pause after the media loads, but before the title is
     // displayed. This allows for a pleasant appearance/disappear of the title,
-    // and allows for the browser to finish rendering the carousel (inc.
-    // adaptive height which has `0.5s ease`, see `media-carousel.scss`).
+    // and allows for the browser to finish rendering the carousel.
     this._titleTimerID = window.setTimeout(show, 0.5 * 1000);
   }
 
@@ -87,83 +267,88 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
    */
   connectedCallback(): void {
     super.connectedCallback();
-    this.addEventListener('frigate-card:media-show', this._autoPlayHandler);
-    this.addEventListener('frigate-card:media-show', this._autoUnmuteHandler);
-    this.addEventListener('frigate-card:media-show', this._adaptiveHeightHandler);
-    this.addEventListener('frigate-card:media-show', this._titleHandler);
+
+    this.addEventListener('frigate-card:media:loaded', this._boundAutoPlayHandler);
+    this.addEventListener('frigate-card:media:loaded', this._boundAutoUnmuteHandler);
+    this.addEventListener(
+      'frigate-card:media:loaded',
+      this._boundAdaptContainerHeightToSlide,
+    );
+    this.addEventListener('frigate-card:media:loaded', this._boundTitleHandler);
     this._resizeObserver.observe(this);
+    this._intersectionObserver.observe(this);
   }
 
   /**
    * Component disconnected callback.
    */
   disconnectedCallback(): void {
-    super.disconnectedCallback();
-    this.removeEventListener('frigate-card:media-show', this._autoPlayHandler);
-    this.removeEventListener('frigate-card:media-show', this._autoUnmuteHandler);
-    this.removeEventListener('frigate-card:media-show', this._adaptiveHeightHandler);
-    this.removeEventListener('frigate-card:media-show', this._titleHandler);
+    this.removeEventListener('frigate-card:media:loaded', this._boundAutoPlayHandler);
+    this.removeEventListener('frigate-card:media:loaded', this._boundAutoUnmuteHandler);
+    this.removeEventListener(
+      'frigate-card:media:loaded',
+      this._boundAdaptContainerHeightToSlide,
+    );
+    this.removeEventListener('frigate-card:media:loaded', this._boundTitleHandler);
     this._resizeObserver.disconnect();
-  }
+    this._intersectionObserver.disconnect();
 
-  protected _destroyCarousel(): void {
-    super._destroyCarousel();
-
-    // Notes on instance variables:
-    // * this._mediaShowInfo: This is set when the media in the DOM loads. If a
-    //   new View included the same media, the DOM would not change and so the
-    //   prior contents would still be valid and would not re-appear (as the
-    //   media would not reload) -- as such, leave this alone on carousel
-    //   destroy. New media in that slide will replace the prior contents on
-    //   load.
+    this._mediaLoadedInfo = {};
+    super.disconnectedCallback();
   }
 
   /**
-   * Initialize the carousel.
+   * ReInit the carousel and adapt the container height.
    */
-  protected _initCarousel(): void {
-    super._initCarousel();
-
-    // Necessary because typescript local type narrowing is not paying attention
-    // to the side-effect of the call to super._initCarousel().
-    const carousel = this._carousel as EmblaCarouselType | undefined;
-
-    // Update the view object as the carousel is moved.
-    carousel?.on('select', this._selectSlideSetViewHandler.bind(this));
-
-    // Update the next/previous controls as the carousel is moved.
-    carousel?.on('select', this._selectSlideNextPreviousHandler.bind(this));
-
-    // Dispatch MediaShow events as the carousel is moved.
-    carousel?.on('init', this._selectSlideMediaShowHandler.bind(this));
-    carousel?.on('select', this._selectSlideMediaShowHandler.bind(this));
+  protected _reInitAndAdjustHeight(): void {
+    this.frigateCardCarousel()?.carouselReInitWhenSafe();
+    this._adaptContainerHeightToSlide();
   }
 
   /**
-   * Set the the height of the container on media load in case the dimensions
+   * Called when the carousel intersects with the viewport.
+   * @param entries The IntersectionObserverEntry entries (should be only 1).
+   */
+  protected _intersectionHandler(entries: IntersectionObserverEntry[]): void {
+    /**
+     * - If the DOM that contains this carousel changes such that it causes
+     *   slides to entirely appear/disappear (e.g. `display: none` or hidden),
+     *   then the displayed slide sizes will significantly change and the
+     *   carousel will need to be reinitialized. Without this, odd bugs may
+     *   occur for some users in some circumstances causing the carousel to
+     *   appear 'stuck'.
+     * - Example bug when this reinitialization is not performed:
+     *   https://github.com/dermotduffy/frigate-hass-card/issues/651
+     */
+    if (entries.some((entry) => entry.isIntersecting)) {
+      this._reInitAndAdjustHeight();
+    }
+  }
+
+  /**
+   * Set the the height of the component on media load in case the dimensions
    * have changed. This handler is not triggered from carousel events, as it's
    * actually the media load/show that will change the dimensions, and that is
    * async from carousel actions (e.g. lazy-loaded media).
+   *
+   * This component does not use the stock Embla auto-height plugin as it
+   * resizes the container on selection rather than media load.
    */
-  protected _adaptiveHeightHandler(): void {
+  protected _adaptContainerHeightToSlide(): void {
     const adaptCarouselHeight = (): void => {
-      if (!this._carousel) {
-        return;
-      }
-      const slide = this._carousel?.selectedScrollSnap();
-      if (slide !== undefined) {
-        this._carousel.containerNode().style.removeProperty('max-height');
-        const slides = this._carousel.slideNodes();
-        const height = slides[slide].getBoundingClientRect().height;
-        if (height > 0) {
-          this._carousel.containerNode().style.maxHeight = `${height}px`;
+      const selected = this.frigateCardCarousel()?.getCarouselSelected();
+      if (selected) {
+        this.style.removeProperty('max-height');
+        const height = selected.element.getBoundingClientRect().height;
+        if (height !== undefined && height > 0) {
+          this.style.maxHeight = `${height}px`;
         }
       }
     };
 
     // Hack: This method attempts to measure the height of the selected slide in
     // order to set the overall carousel height to match. This method is
-    // triggered from `frigate-card:media-show` events, which are usually in
+    // triggered from `frigate-card:media:loaded` events, which are usually in
     // turn triggered from media/metadata load events from media players.
     // Sufficient time needs to be allowed after these metadata load events to
     // allow the browser to repaint the element heights, so that we can get the
@@ -172,116 +357,102 @@ export class FrigateCardMediaCarousel extends FrigateCardCarousel {
   }
 
   /**
-   * Handle the user selecting a new slide in the carousel.
-   */
-  protected _selectSlideSetViewHandler(): void {
-    // To be overridden in children.
-  }
-
-  /**
-   * Handle updating of the next/previous controls when the carousel is moved.
-   */
-  protected _selectSlideNextPreviousHandler(): void {
-    // To be overridden in children.
-  }
-
-  /**
-   * Handle a next/previous control interaction.
-   * @param direction The direction requested, previous or next.
-   */
-  protected _nextPreviousHandler(direction: 'previous' | 'next'): void {
-    if (direction == 'previous') {
-      this._carousel?.scrollPrev(this._getTransitionEffect() === 'none');
-    } else if (direction == 'next') {
-      this._carousel?.scrollNext(this._getTransitionEffect() === 'none');
-    }
-  }
-
-  /**
    * Fire a media show event when a slide is selected.
    */
-  protected _selectSlideMediaShowHandler(): void {
-    if (!this._carousel) {
-      return;
-    }
-
-    const slideIndex = this._carousel.selectedScrollSnap();
-    if (slideIndex in this._mediaShowInfo) {
-      dispatchExistingMediaShowInfoAsEvent(this, this._mediaShowInfo[slideIndex]);
+  protected _dispatchMediaLoadedInfo(): void {
+    const slideIndex = this.frigateCardCarousel()?.getCarouselSelected()?.index;
+    if (slideIndex !== undefined && slideIndex in this._mediaLoadedInfo) {
+      dispatchExistingMediaLoadedInfoAsEvent(this, this._mediaLoadedInfo[slideIndex]);
     }
   }
 
   /**
-   * Handle a media-show event that is generated by a child component, saving the
+   * Handle a media:loaded event that is generated by a child component, saving the
    * contents for future use when the relevant slide is actually shown.
    * @param slideIndex The relevant slide index.
-   * @param event The media-show event from the child component.
+   * @param event The media:loaded event from the child component.
    */
-  protected _mediaShowEventHandler(
-    slideIndex: number,
-    event: CustomEvent<MediaShowInfo>,
-  ): void {
+  protected _storeMediaLoadedInfo(event: CustomEvent<CarouselMediaLoadedInfo>): void {
     // Don't allow the inbound event to propagate upwards, that will be
     // automatically done at the appropriate time as the slide is shown.
     event.stopPropagation();
-    this._mediaLoadedHandler(slideIndex, event.detail);
+    const mediaLoadedInfo = event.detail.mediaLoadedInfo;
+    const slideIndex = event.detail.slide;
+
+    // isValidMediaLoadedInfo is used to prevent saving media info that will be
+    // rejected upstream (empty 1x1 images will be rejected here).
+    if (mediaLoadedInfo && isValidMediaLoadedInfo(mediaLoadedInfo)) {
+      this._mediaLoadedInfo[slideIndex] = mediaLoadedInfo;
+      if (this.frigateCardCarousel()?.getCarouselSelected()?.index === slideIndex) {
+        dispatchExistingMediaLoadedInfoAsEvent(this, mediaLoadedInfo);
+      }
+    }
   }
 
   /**
-   * Handle a MediaShowInfo object that is generated on media load, by saving it
-   * for future, or immediate use, when the relevant slide is displayed.
-   * @param slideIndex The relevant slide index.
-   * @param mediaShowInfo The MediaShowInfo object generated by the media.
+   * Remove a media loaded info (i.e. a media item has unloaded).
+   * @param event The CarouselMediaUnloadedInfo event.
    */
-  protected _mediaLoadedHandler(
-    slideIndex: number,
-    mediaShowInfo?: MediaShowInfo | null,
-  ): void {
-    // isValidMediaShowInfo is used to prevent saving media info that will be
-    // rejected upstream (empty 1x1 images will be rejected here).
-    if (mediaShowInfo && isValidMediaShowInfo(mediaShowInfo)) {
-      this._mediaShowInfo[slideIndex] = mediaShowInfo;
-      if (this._carousel && this._carousel?.selectedScrollSnap() == slideIndex) {
-        dispatchExistingMediaShowInfoAsEvent(this, mediaShowInfo);
-      }
+  protected _removeMediaLoadedInfo(event: CustomEvent<CarouselMediaUnloadedInfo>): void {
+    const slideIndex = event.detail.slide;
+    delete this._mediaLoadedInfo[slideIndex];
 
-      /**
-       * Images need a width/height from initial load, and browsers will assume
-       * that the aspect ratio of the initial dummy-image load will persist. In
-       * lazy-loading, this can cause a 1x1 pixel dummy image to cause the
-       * browser to assume all images will be square, so the whole carousel will
-       * have the wrong aspect-ratio until every single image has been lazily
-       * loaded. Adaptive height helps in that the carousel gets resized on each
-       * img display to the correct size, but it still causes a minor noticeable
-       * flicker until the height change is complete.
-       *
-       * To avoid this, we use a 16:9 dummy image at first (most
-       * likely?) and once the first piece of real media has been loaded, all
-       * dummy images are replaced with dummy images that match the aspect ratio
-       * of the real image. It still might be wrong, but it's the best option
-       * available.
-       */
-      const firstMediaLoad = !Object.keys(this._mediaShowInfo).length;
-      if (firstMediaLoad) {
-        const replacementImageSrc = getEmptyImageSrc(
-          mediaShowInfo.width,
-          mediaShowInfo.height,
-        );
-
-        this.renderRoot.querySelectorAll('.embla__container img').forEach((img) => {
-          const imageElement = img as HTMLImageElement;
-          if (imageElement.src === IMG_EMPTY) {
-            imageElement.src = replacementImageSrc;
-          }
-        });
-      }
+    // If the slide that unloaded is not visible, don't propagate the event upwards.
+    if (this.frigateCardCarousel()?.getCarouselSelected()?.index !== slideIndex) {
+      event.stopPropagation();
     }
+  }
+
+  protected render(): TemplateResult | void {
+    return html` <frigate-card-carousel
+        ${ref(this._refCarousel)}
+        .carouselOptions=${this.carouselOptions}
+        .carouselPlugins=${this.carouselPlugins}
+        transitionEffect=${ifDefined(this.transitionEffect)}
+        @frigate-card:carousel:init=${this._dispatchMediaLoadedInfo.bind(this)}
+        @frigate-card:carousel:select=${(ev: CustomEvent<CarouselSelect>) => {
+          this._slideResizeObserver.disconnect();
+          this._slideResizeObserver.observe(ev.detail.element);
+
+          // Pass up the media-carousel select event first to allow parents to
+          // initialize/reset before the media info is dispatched.
+          dispatchFrigateCardEvent<CarouselSelect>(
+            this,
+            'media-carousel:select',
+            ev.detail,
+          );
+
+          // Dispatch media info.
+          this._dispatchMediaLoadedInfo();
+        }}
+        @frigate-card:carousel:media:loaded=${this._storeMediaLoadedInfo.bind(this)}
+        @frigate-card:carousel:media:unloaded=${this._removeMediaLoadedInfo.bind(this)}
+      >
+        <slot slot="previous" name="previous"></slot>
+        <slot></slot>
+        <slot slot="next" name="next"></slot>
+      </frigate-card-carousel>
+      ${this.label && this.titlePopupConfig
+        ? html`<frigate-card-title-control
+            ${ref(this._titleControlRef)}
+            .config=${this.titlePopupConfig}
+            .text="${this.label}"
+            .fitInto=${this as HTMLElement}
+          >
+          </frigate-card-title-control> `
+        : ``}`;
   }
 
   /**
    * Get element styles.
    */
   static get styles(): CSSResultGroup {
-    return [super.styles, unsafeCSS(mediaCarouselStyle)];
+    return unsafeCSS(mediaCarouselStyle);
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'frigate-card-media-carousel': FrigateCardMediaCarousel;
   }
 }

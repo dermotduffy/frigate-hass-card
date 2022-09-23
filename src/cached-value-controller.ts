@@ -17,6 +17,7 @@ export class CachedValueController<T> implements ReactiveController {
    * Remove the controller for the host.
    */
   public removeController(): void {
+    this.stopTimer();
     this._host.removeController(this);
   }
 
@@ -28,11 +29,10 @@ export class CachedValueController<T> implements ReactiveController {
   }
 
   /**
-   * Update the cached value (and reset the timer).
+   * Update the cached value.
    */
   public updateValue(): void {
     this._value = this._callback();
-    this._startTimer();
   }
 
   /**
@@ -40,22 +40,24 @@ export class CachedValueController<T> implements ReactiveController {
    */
   public clearValue(): void {
     this._value = undefined;
-    this._stopTimer();
   }
 
   /**
    * Disable the timer.
    */
-  protected _stopTimer(): void {
-    clearInterval(this._timerID);
+  public stopTimer(): void {
+    if (this._timerID !== undefined) {
+      window.clearInterval(this._timerID);
+    }
     this._timerID = undefined;
   }
 
   /**
    * Enable the timer. Repeated calls will have no effect.
    */
-  protected _startTimer(): void {
-    this._stopTimer();
+  public startTimer(): void {
+    this.stopTimer();
+
     if (this._timerSeconds > 0) {
       this._timerID = window.setInterval(() => {
         this.updateValue();
@@ -69,6 +71,7 @@ export class CachedValueController<T> implements ReactiveController {
    */
   hostConnected(): void {
     this.updateValue();
+    this.startTimer();
     this._host.requestUpdate();
   }
 
@@ -77,5 +80,6 @@ export class CachedValueController<T> implements ReactiveController {
    */
   hostDisconnected(): void {
     this.clearValue();
+    this.stopTimer();
   }
 }

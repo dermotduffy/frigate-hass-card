@@ -1,0 +1,65 @@
+$drawer-icon-size: 20px;
+$drawer-padding-extend: 20px;
+
+side-drawer {
+  background-color: var(--card-background-color);
+}
+
+div.control-surround {
+  position: absolute;
+  bottom: 50%;
+  transform: translateY(50%);
+  z-index: 0;
+  padding-top: $drawer-padding-extend;
+  padding-bottom: $drawer-padding-extend;
+}
+:host([location=left]) div.control-surround {
+  @if $drawer-icon-size < 32 {
+    // Ensure the clickable area is at least 32px wide.
+    padding-right: calc(32px - $drawer-icon-size);
+  }
+  left: 100%;
+}
+:host([location=right]) div.control-surround {
+  @if $drawer-icon-size < 32 {
+    // See note above.
+    padding-left: calc(32px - $drawer-icon-size);
+  }
+  right: 100%;
+}
+:host([empty]), :host([empty]) > * {
+  visibility: hidden;
+}
+:host(:not([empty])), :host(:not([empty])) > * {
+  visibility: visible;
+}
+
+ha-icon.control {
+  color: var(--secondary-color, white);
+  background-color: rgba(0, 0, 0, 0.7);
+  opacity: 0.7;
+  pointer-events: all;
+
+  --mdc-icon-size: #{$drawer-icon-size};
+  padding-top: $drawer-padding-extend;
+  padding-bottom: $drawer-padding-extend;
+
+  transition: opacity 0.5s ease;
+}
+
+:host([open]) ha-icon.control, ha-icon.control:hover {
+  // When the drawer is open or hovered make the button to close it more
+  // prominent.
+  opacity: 1;
+  background-color: black;
+}
+
+:host([location=left]) ha-icon.control {
+  border-top-right-radius: $drawer-icon-size;
+  border-bottom-right-radius: $drawer-icon-size;
+}
+
+:host([location=right]) ha-icon.control {
+  border-top-left-radius: $drawer-icon-size;
+  border-bottom-left-radius: $drawer-icon-size;
+}

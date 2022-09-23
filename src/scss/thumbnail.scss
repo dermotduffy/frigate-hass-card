@@ -1,0 +1,59 @@
+:host {
+  display: flex;
+  flex-direction: row;
+  box-sizing: border-box;
+
+  // Ensure control icons are relative to the thumbnail.
+  position: relative;
+  overflow: hidden;
+
+  transition: transform 0.2s linear;
+}
+
+:host(:not([details])) {
+  aspect-ratio: 1 / 1;
+}
+
+:host([details]) {
+  border: 1px solid var(--primary-color);
+  border-radius: var(--ha-card-border-radius, 4px);
+  padding: 2px;
+
+  // When details are enabled, use a background color so that the details have
+  // contrast with the background.
+  background-color: var(--primary-background-color, black);
+}
+
+:host(:hover) {
+  transform: scale(1.04);
+}
+
+ha-icon {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.5;
+  color: var(--primary-color);
+  top: 3px;
+
+  cursor: pointer;
+
+  transition: opacity 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+ha-icon:hover {
+  opacity: 1.0;
+}
+
+ha-icon.star {
+  left: 3px;
+}
+ha-icon.star.starred {
+  color: gold;
+}
+
+ha-icon.timeline {
+  right: 3px;
+}
+
+frigate-card-thumbnail-details-event, frigate-card-thumbnail-details-recording {
+  flex: 1;
+}

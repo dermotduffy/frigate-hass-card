@@ -22,7 +22,7 @@
 }
 
 .controls.icons {
-  top: calc(50% - (40px / 2));
+  top: calc(50% - (var(--frigate-card-next-prev-size) / 2));
 }
 
 .controls.thumbnails {
@@ -32,6 +32,7 @@
   box-shadow: 0px 0px 20px 5px black;
   transition: all 0.2s ease-out;
   opacity: 0.8;
+  aspect-ratio: 1 / 1;
 }
 .controls.thumbnails:hover {
   opacity: 1 !important;

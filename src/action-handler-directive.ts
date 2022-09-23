@@ -1,3 +1,8 @@
+import { fireEvent } from 'custom-card-helpers';
+import type {
+  ActionHandlerDetail,
+  ActionHandlerOptions,
+} from 'custom-card-helpers/dist/types.d.js';
 import { noChange } from 'lit';
 import {
   AttributePart,
@@ -5,13 +10,7 @@ import {
   Directive,
   DirectiveParameters,
 } from 'lit/directive.js';
-
-import type {
-  ActionHandlerDetail,
-  ActionHandlerOptions,
-} from 'custom-card-helpers/dist/types.d.js';
-import { fireEvent } from 'custom-card-helpers';
-import { stopEventFromActivatingCardWideActions } from './common';
+import { stopEventFromActivatingCardWideActions } from './utils/action.js';
 
 interface ActionHandler extends HTMLElement {
   holdTime: number;
@@ -19,12 +18,6 @@ interface ActionHandler extends HTMLElement {
 }
 interface ActionHandlerElement extends HTMLElement {
   actionHandlerOptions?: FrigateCardActionHandlerOptions;
-}
-
-declare global {
-  interface HASSDomEvents {
-    action: ActionHandlerDetail;
-  }
 }
 
 interface FrigateCardActionHandlerOptions extends ActionHandlerOptions {
@@ -142,10 +135,9 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     };
 
     const handleEnter = (ev: KeyboardEvent): void => {
-      if (ev.keyCode !== 13) {
-        return;
+      if (ev.key === 'Enter') {
+        end(ev);
       }
-      end(ev);
     };
 
     element.addEventListener('touchstart', start, { passive: true });
@@ -195,3 +187,12 @@ export const actionHandler = directive(
     render(_options?: FrigateCardActionHandlerOptions) {}
   },
 );
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'action-handler-frigate-card': ActionHandler;
+  }
+  interface HASSDomEvents {
+    action: ActionHandlerDetail;
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "lovelace_resources",
+  "data": {
+    "items": [
+      {
+        "url": "http://localhost:10001/frigate-hass-card.js",
+        "type": "module",
+        "id": "00c459541bac4290af01c51bf9c06ba1"
+      }
+    ]
+  }
+}

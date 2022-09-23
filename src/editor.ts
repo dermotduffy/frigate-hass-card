@@ -1,77 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
+import { fireEvent, HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
+import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-
-import { HomeAssistant, LovelaceCardEditor, fireEvent } from 'custom-card-helpers';
-import { localize } from './localize/localize.js';
-import {
-  frigateCardConfigDefaults,
-  RawFrigateCardConfig,
-  RawFrigateCardConfigArray,
-} from './types.js';
-
-import {
-  CONF_CAMERAS,
-  CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
-  CONF_CAMERAS_ARRAY_CAMERA_NAME,
-  CONF_CAMERAS_ARRAY_CLIENT_ID,
-  CONF_CAMERAS_ARRAY_ICON,
-  CONF_CAMERAS_ARRAY_ID,
-  CONF_CAMERAS_ARRAY_LABEL,
-  CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
-  CONF_CAMERAS_ARRAY_TITLE,
-  CONF_CAMERAS_ARRAY_URL,
-  CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY,
-  CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL,
-  CONF_CAMERAS_ARRAY_ZONE,
-  CONF_DIMENSIONS_ASPECT_RATIO,
-  CONF_DIMENSIONS_ASPECT_RATIO_MODE,
-  CONF_EVENT_GALLERY_MIN_COLUMNS,
-  CONF_EVENT_VIEWER_AUTO_PLAY,
-  CONF_EVENT_VIEWER_AUTO_UNMUTE,
-  CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
-  CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
-  CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE,
-  CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE,
-  CONF_EVENT_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
-  CONF_EVENT_VIEWER_CONTROLS_TITLE_MODE,
-  CONF_EVENT_VIEWER_DRAGGABLE,
-  CONF_EVENT_VIEWER_LAZY_LOAD,
-  CONF_EVENT_VIEWER_TRANSITION_EFFECT,
-  CONF_IMAGE_MODE,
-  CONF_IMAGE_REFRESH_SECONDS,
-  CONF_IMAGE_URL,
-  CONF_LIVE_AUTO_UNMUTE,
-  CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
-  CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
-  CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
-  CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
-  CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
-  CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
-  CONF_LIVE_CONTROLS_TITLE_MODE,
-  CONF_LIVE_DRAGGABLE,
-  CONF_LIVE_LAZY_LOAD,
-  CONF_LIVE_LAZY_UNLOAD,
-  CONF_LIVE_PRELOAD,
-  CONF_LIVE_TRANSITION_EFFECT,
-  CONF_MENU_BUTTONS_CLIPS,
-  CONF_MENU_BUTTONS_FRIGATE,
-  CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD,
-  CONF_MENU_BUTTONS_FRIGATE_FULLSCREEN,
-  CONF_MENU_BUTTONS_FRIGATE_UI,
-  CONF_MENU_BUTTONS_IMAGE,
-  CONF_MENU_BUTTONS_LIVE,
-  CONF_MENU_BUTTONS_SNAPSHOTS,
-  CONF_MENU_BUTTON_SIZE,
-  CONF_MENU_MODE,
-  CONF_VIEW_CAMERA_SELECT,
-  CONF_VIEW_DEFAULT,
-  CONF_VIEW_TIMEOUT_SECONDS,
-  CONF_VIEW_UPDATE_CYCLE_CAMERA,
-  CONF_VIEW_UPDATE_FORCE,
-  CONF_VIEW_UPDATE_SECONDS,
-} from './const.js';
-import { arrayMove, getEntityTitle, prettifyFrigateName } from './common.js';
+import { classMap } from 'lit/directives/class-map.js';
 import {
   copyConfig,
   deleteConfigValue,
@@ -81,25 +11,155 @@ import {
   setConfigValue,
   upgradeConfig,
 } from './config-mgmt.js';
-
+import {
+  CONF_CAMERAS,
+  CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
+  CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS,
+  CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS,
+  CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME,
+  CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID,
+  CONF_CAMERAS_ARRAY_FRIGATE_LABEL,
+  CONF_CAMERAS_ARRAY_FRIGATE_URL,
+  CONF_CAMERAS_ARRAY_FRIGATE_ZONE,
+  CONF_CAMERAS_ARRAY_ICON,
+  CONF_CAMERAS_ARRAY_ID,
+  CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
+  CONF_CAMERAS_ARRAY_TITLE,
+  CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES,
+  CONF_CAMERAS_ARRAY_TRIGGERS_MOTION,
+  CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY,
+  CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY,
+  CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL,
+  CONF_DIMENSIONS_ASPECT_RATIO,
+  CONF_DIMENSIONS_ASPECT_RATIO_MODE,
+  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE,
+  CONF_IMAGE_LAYOUT_FIT,
+  CONF_IMAGE_LAYOUT_POSITION_X,
+  CONF_IMAGE_LAYOUT_POSITION_Y,
+  CONF_IMAGE_MODE,
+  CONF_IMAGE_REFRESH_SECONDS,
+  CONF_IMAGE_URL,
+  CONF_LIVE_AUTO_MUTE,
+  CONF_LIVE_AUTO_PAUSE,
+  CONF_LIVE_AUTO_PLAY,
+  CONF_LIVE_AUTO_UNMUTE,
+  CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
+  CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
+  CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
+  CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
+  CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+  CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+  CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+  CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
+  CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
+  CONF_LIVE_CONTROLS_TITLE_MODE,
+  CONF_LIVE_DRAGGABLE,
+  CONF_LIVE_LAYOUT_FIT,
+  CONF_LIVE_LAYOUT_POSITION_X,
+  CONF_LIVE_LAYOUT_POSITION_Y,
+  CONF_LIVE_LAZY_LOAD,
+  CONF_LIVE_LAZY_UNLOAD,
+  CONF_LIVE_PRELOAD,
+  CONF_LIVE_SHOW_IMAGE_DURING_LOAD,
+  CONF_LIVE_TRANSITION_EFFECT,
+  CONF_MEDIA_VIEWER_AUTO_MUTE,
+  CONF_MEDIA_VIEWER_AUTO_PAUSE,
+  CONF_MEDIA_VIEWER_AUTO_PLAY,
+  CONF_MEDIA_VIEWER_AUTO_UNMUTE,
+  CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
+  CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
+  CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
+  CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+  CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+  CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+  CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE,
+  CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
+  CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE,
+  CONF_MEDIA_VIEWER_DRAGGABLE,
+  CONF_MEDIA_VIEWER_LAYOUT_FIT,
+  CONF_MEDIA_VIEWER_LAYOUT_POSITION_X,
+  CONF_MEDIA_VIEWER_LAYOUT_POSITION_Y,
+  CONF_MEDIA_VIEWER_LAZY_LOAD,
+  CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
+  CONF_MENU_ALIGNMENT,
+  CONF_MENU_BUTTONS,
+  CONF_MENU_BUTTON_SIZE,
+  CONF_MENU_POSITION,
+  CONF_MENU_STYLE,
+  CONF_TIMELINE_CLUSTERING_THRESHOLD,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+  CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
+  CONF_TIMELINE_MEDIA,
+  CONF_TIMELINE_SHOW_RECORDINGS,
+  CONF_TIMELINE_WINDOW_SECONDS,
+  CONF_VIEW_CAMERA_SELECT,
+  CONF_VIEW_DARK_MODE,
+  CONF_VIEW_DEFAULT,
+  CONF_VIEW_SCAN,
+  CONF_VIEW_SCAN_ENABLED,
+  CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
+  CONF_VIEW_SCAN_UNTRIGGER_RESET,
+  CONF_VIEW_SCAN_UNTRIGGER_SECONDS,
+  CONF_VIEW_TIMEOUT_SECONDS,
+  CONF_VIEW_UPDATE_CYCLE_CAMERA,
+  CONF_VIEW_UPDATE_FORCE,
+  CONF_VIEW_UPDATE_SECONDS,
+} from './const.js';
+import { localize } from './localize/localize.js';
 import frigate_card_editor_style from './scss/editor.scss';
+import {
+  BUTTON_SIZE_MIN,
+  frigateCardConfigDefaults,
+  FRIGATE_MENU_PRIORITY_MAX,
+  RawFrigateCardConfig,
+  RawFrigateCardConfigArray,
+  THUMBNAIL_WIDTH_MAX,
+  THUMBNAIL_WIDTH_MIN,
+} from './types.js';
+import { arrayMove } from './utils/basic.js';
+import { getCameraID, getCameraTitle } from './utils/camera.js';
+import { FRIGATE_ICON_SVG_PATH } from './utils/frigate.js';
+import { getEntitiesFromHASS, sideLoadHomeAssistantElements } from './utils/ha';
+
+const MENU_BUTTONS = 'buttons';
+const MENU_CAMERAS = 'cameras';
+const MENU_CAMERAS_DEPENDENCIES = 'cameras.dependencies';
+const MENU_CAMERAS_FRIGATE = 'cameras.frigate';
+const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
+const MENU_CAMERAS_WEBRTC = 'cameras.webrtc';
+const MENU_EVENT_GALLERY_CONTROLS = 'event_gallery.controls';
+const MENU_IMAGE_LAYOUT = 'image.layout';
+const MENU_LIVE_CONTROLS = 'live.controls';
+const MENU_LIVE_LAYOUT = 'live.layout';
+const MENU_MEDIA_VIEWER_CONTROLS = 'media_viewer.controls';
+const MENU_MEDIA_VIEWER_LAYOUT = 'media_viewer.layout';
+const MENU_TIMELINE_CONTROLS = 'timeline.controls';
+const MENU_OPTIONS = 'options';
+const MENU_VIEW_SCAN = 'scan';
 
 interface EditorOptionsSet {
   icon: string;
   name: string;
   secondary: string;
-  show: boolean;
 }
 interface EditorOptions {
   [setName: string]: EditorOptionsSet;
 }
 
-interface EditorCameraTarget {
-  cameraIndex: number;
+interface EditorSelectOption {
+  value: string;
+  label: string;
 }
 
-interface EditorOptionSetTarget {
-  optionSetName: string;
+interface EditorMenuTarget {
+  domain: string;
+  key: string | number;
 }
 
 const options: EditorOptions = {
@@ -107,55 +167,51 @@ const options: EditorOptions = {
     icon: 'video',
     name: localize('editor.cameras'),
     secondary: localize('editor.cameras_secondary'),
-    show: true,
   },
   view: {
     icon: 'eye',
     name: localize('editor.view'),
     secondary: localize('editor.view_secondary'),
-    show: false,
   },
   menu: {
     icon: 'menu',
     name: localize('editor.menu'),
     secondary: localize('editor.menu_secondary'),
-    show: false,
   },
   live: {
     icon: 'cctv',
     name: localize('editor.live'),
     secondary: localize('editor.live_secondary'),
-    show: false,
   },
-  event_viewer: {
+  media_viewer: {
     icon: 'filmstrip',
-    name: localize('editor.event_viewer'),
-    secondary: localize('editor.event_viewer_secondary'),
-    show: false,
+    name: localize('editor.media_viewer'),
+    secondary: localize('editor.media_viewer_secondary'),
   },
   event_gallery: {
     icon: 'grid',
     name: localize('editor.event_gallery'),
     secondary: localize('editor.event_gallery_secondary'),
-    show: false,
   },
   image: {
     icon: 'image',
     name: localize('editor.image'),
     secondary: localize('editor.image_secondary'),
-    show: false,
+  },
+  timeline: {
+    icon: 'chart-gantt',
+    name: localize('editor.timeline'),
+    secondary: localize('editor.timeline_secondary'),
   },
   dimensions: {
     icon: 'aspect-ratio',
     name: localize('editor.dimensions'),
     secondary: localize('editor.dimensions_secondary'),
-    show: false,
   },
   overrides: {
     icon: 'file-replace',
     name: localize('editor.overrides'),
     secondary: localize('editor.overrides_secondary'),
-    show: false,
   },
 };
 
@@ -163,14 +219,13 @@ const options: EditorOptions = {
 export class FrigateCardEditor extends LitElement implements LovelaceCardEditor {
   @property({ attribute: false }) public hass?: HomeAssistant;
   @state() protected _config?: RawFrigateCardConfig;
-  @state() protected _helpers?: any;
   protected _initialized = false;
   protected _configUpgradeable = false;
 
-  @property({ attribute: false })
-  protected _expandedCameraIndex: number | null = null;
+  @state()
+  protected _expandedMenus: Record<string, string | number> = {};
 
-  protected _viewModes = [
+  protected _viewModes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'live', label: localize('config.view.views.live') },
     { value: 'clips', label: localize('config.view.views.clips') },
@@ -178,49 +233,56 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'clip', label: localize('config.view.views.clip') },
     { value: 'snapshot', label: localize('config.view.views.snapshot') },
     { value: 'image', label: localize('config.view.views.image') },
+    { value: 'timeline', label: localize('config.view.views.timeline') },
   ];
 
-  protected _cameraSelectViewModes = [
+  protected _cameraSelectViewModes: EditorSelectOption[] = [
     ...this._viewModes,
     { value: 'current', label: localize('config.view.views.current') },
   ];
 
-  protected _menuModes = [
+  protected _menuStyles: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'none', label: localize('config.menu.modes.none') },
-    { value: 'hidden-top', label: localize('config.menu.modes.hidden-top') },
-    { value: 'hidden-left', label: localize('config.menu.modes.hidden-left') },
-    { value: 'hidden-bottom', label: localize('config.menu.modes.hidden-bottom') },
-    { value: 'hidden-right', label: localize('config.menu.modes.hidden-right') },
-    { value: 'overlay-top', label: localize('config.menu.modes.overlay-top') },
-    { value: 'overlay-left', label: localize('config.menu.modes.overlay-left') },
-    { value: 'overlay-bottom', label: localize('config.menu.modes.overlay-bottom') },
-    { value: 'overlay-right', label: localize('config.menu.modes.overlay-right') },
-    { value: 'hover-top', label: localize('config.menu.modes.hover-top') },
-    { value: 'hover-left', label: localize('config.menu.modes.hover-left') },
-    { value: 'hover-bottom', label: localize('config.menu.modes.hover-bottom') },
-    { value: 'hover-right', label: localize('config.menu.modes.hover-right') },
-    { value: 'above', label: localize('config.menu.modes.above') },
-    { value: 'below', label: localize('config.menu.modes.below') },
+    { value: 'none', label: localize('config.menu.styles.none') },
+    { value: 'hidden', label: localize('config.menu.styles.hidden') },
+    { value: 'overlay', label: localize('config.menu.styles.overlay') },
+    { value: 'hover', label: localize('config.menu.styles.hover') },
+    { value: 'outside', label: localize('config.menu.styles.outside') },
   ];
 
-  protected _eventViewerNextPreviousControlStyles = [
+  protected _menuPositions: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'left', label: localize('config.menu.positions.left') },
+    { value: 'right', label: localize('config.menu.positions.right') },
+    { value: 'top', label: localize('config.menu.positions.top') },
+    { value: 'bottom', label: localize('config.menu.positions.bottom') },
+  ];
+
+  protected _menuAlignments: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'left', label: localize('config.menu.alignments.left') },
+    { value: 'right', label: localize('config.menu.alignments.right') },
+    { value: 'top', label: localize('config.menu.alignments.top') },
+    { value: 'bottom', label: localize('config.menu.alignments.bottom') },
+  ];
+
+  protected _eventViewerNextPreviousControlStyles: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'thumbnails',
-      label: localize('config.event_viewer.controls.next_previous.styles.thumbnails'),
+      label: localize('config.media_viewer.controls.next_previous.styles.thumbnails'),
     },
     {
       value: 'chevrons',
-      label: localize('config.event_viewer.controls.next_previous.styles.chevrons'),
+      label: localize('config.media_viewer.controls.next_previous.styles.chevrons'),
     },
     {
       value: 'none',
-      label: localize('config.event_viewer.controls.next_previous.styles.none'),
+      label: localize('config.media_viewer.controls.next_previous.styles.none'),
     },
   ];
 
-  protected _liveNextPreviousControlStyles = [
+  protected _liveNextPreviousControlStyles: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'chevrons',
@@ -233,7 +295,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'none', label: localize('config.live.controls.next_previous.styles.none') },
   ];
 
-  protected _aspectRatioModes = [
+  protected _aspectRatioModes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'dynamic',
@@ -246,23 +308,31 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     },
   ];
 
-  protected _thumbnailModes = [
+  protected _thumbnailModes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'none',
-      label: localize('config.event_viewer.controls.thumbnails.modes.none'),
+      label: localize('config.media_viewer.controls.thumbnails.modes.none'),
     },
     {
       value: 'above',
-      label: localize('config.event_viewer.controls.thumbnails.modes.above'),
+      label: localize('config.media_viewer.controls.thumbnails.modes.above'),
     },
     {
       value: 'below',
-      label: localize('config.event_viewer.controls.thumbnails.modes.below'),
+      label: localize('config.media_viewer.controls.thumbnails.modes.below'),
+    },
+    {
+      value: 'left',
+      label: localize('config.media_viewer.controls.thumbnails.modes.left'),
+    },
+    {
+      value: 'right',
+      label: localize('config.media_viewer.controls.thumbnails.modes.right'),
     },
   ];
 
-  protected _thumbnailMedias = [
+  protected _thumbnailMedias: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'clips', label: localize('config.live.controls.thumbnails.medias.clips') },
     {
@@ -271,38 +341,84 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     },
   ];
 
-  protected _titleModes = [
+  protected _titleModes: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'none', label: localize('config.event_viewer.controls.title.modes.none') },
+    { value: 'none', label: localize('config.media_viewer.controls.title.modes.none') },
     {
       value: 'popup-top-left',
-      label: localize('config.event_viewer.controls.title.modes.popup-top-left'),
+      label: localize('config.media_viewer.controls.title.modes.popup-top-left'),
     },
     {
       value: 'popup-top-right',
-      label: localize('config.event_viewer.controls.title.modes.popup-top-right'),
+      label: localize('config.media_viewer.controls.title.modes.popup-top-right'),
     },
     {
       value: 'popup-bottom-left',
-      label: localize('config.event_viewer.controls.title.modes.popup-bottom-left'),
+      label: localize('config.media_viewer.controls.title.modes.popup-bottom-left'),
     },
     {
       value: 'popup-bottom-right',
-      label: localize('config.event_viewer.controls.title.modes.popup-bottom-right'),
+      label: localize('config.media_viewer.controls.title.modes.popup-bottom-right'),
     },
   ];
 
-  protected _transitionEffects = [
+  protected _transitionEffects: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'none', label: localize('config.event_viewer.transition_effects.none') },
-    { value: 'slide', label: localize('config.event_viewer.transition_effects.slide') },
+    { value: 'none', label: localize('config.media_viewer.transition_effects.none') },
+    { value: 'slide', label: localize('config.media_viewer.transition_effects.slide') },
   ];
 
-  protected _imageModes = [
+  protected _imageModes: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'camera', label: localize('config.image.modes.camera') },
     { value: 'screensaver', label: localize('config.image.modes.screensaver') },
     { value: 'url', label: localize('config.image.modes.url') },
+  ];
+
+  protected _timelineMediaTypes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'all', label: localize('config.timeline.medias.all') },
+    { value: 'clips', label: localize('config.timeline.medias.clips') },
+    { value: 'snapshots', label: localize('config.timeline.medias.snapshots') },
+  ];
+
+  protected _darkModes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'on', label: localize('config.view.dark_modes.on') },
+    { value: 'off', label: localize('config.view.dark_modes.off') },
+    { value: 'auto', label: localize('config.view.dark_modes.auto') },
+  ];
+
+  protected _mediaActionNegativeConditions: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'all', label: localize('config.common.media_action_conditions.all') },
+    {
+      value: 'unselected',
+      label: localize('config.common.media_action_conditions.unselected'),
+    },
+    { value: 'hidden', label: localize('config.common.media_action_conditions.hidden') },
+    { value: 'never', label: localize('config.common.media_action_conditions.never') },
+  ];
+
+  protected _mediaActionPositiveConditions: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'all', label: localize('config.common.media_action_conditions.all') },
+    {
+      value: 'selected',
+      label: localize('config.common.media_action_conditions.selected'),
+    },
+    {
+      value: 'visible',
+      label: localize('config.common.media_action_conditions.visible'),
+    },
+    { value: 'never', label: localize('config.common.media_action_conditions.never') },
+  ];
+
+  protected _layoutFits: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'contain', label: localize('config.common.layout.fits.contain') },
+    { value: 'cover', label: localize('config.common.layout.fits.cover') },
+    { value: 'fill', label: localize('config.common.layout.fits.fill') },
   ];
 
   public setConfig(config: RawFrigateCardConfig): void {
@@ -312,29 +428,19 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     // such, RawFrigateCardConfig is used as the type.
     this._config = config;
     this._configUpgradeable = isConfigUpgradeable(config);
-    this.loadCardHelpers();
   }
 
-  protected shouldUpdate(): boolean {
+  /**
+   * Called before each update.
+   */
+  protected willUpdate(): void {
     if (!this._initialized) {
-      this._initialize();
+      sideLoadHomeAssistantElements().then((success) => {
+        if (success) {
+          this._initialized = true;
+        }
+      });
     }
-
-    return true;
-  }
-
-  protected _getEntities(domain: string): string[] {
-    if (!this.hass) {
-      return [];
-    }
-    const entities = Object.keys(this.hass.states).filter(
-      (eid) => eid.substr(0, eid.indexOf('.')) === domain,
-    );
-    entities.sort();
-
-    // Add a blank entry to unset a selection.
-    entities.unshift('');
-    return entities;
   }
 
   /**
@@ -348,8 +454,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     return html`
       <div
         class="option option-${optionSetName}"
-        @click=${this._toggleOptionHandler}
-        .optionSetName=${optionSetName}
+        @click=${this._toggleMenu}
+        .domain=${'options'}
+        .key=${optionSetName}
       >
         <div class="row">
           <ha-icon .icon=${`mdi:${optionSet.icon}`}></ha-icon>
@@ -405,11 +512,16 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    * Render an option/"select" selector.
    * @param configPath The configuration path to set/read.
    * @param options The options to show in the selector.
+   * @param params Option parameters to control the selector.
    * @returns A rendered template.
    */
   protected _renderOptionSelector(
     configPath: string,
     options: string[] | { value: string; label: string }[],
+    params?: {
+      multiple?: boolean;
+      label?: string;
+    },
   ): TemplateResult | void {
     if (!this._config) {
       return;
@@ -418,8 +530,41 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     return html`
       <ha-selector
         .hass=${this.hass}
-        .selector=${{ select: { options: options } }}
-        .label=${this._getLabel(configPath)}
+        .selector=${{
+          select: { mode: 'dropdown', multiple: !!params?.multiple, options: options },
+        }}
+        .label=${params?.label || this._getLabel(configPath)}
+        .value=${getConfigValue(this._config, configPath, '')}
+        .required=${false}
+        @value-changed=${(ev) => this._valueChangedHandler(configPath, ev)}
+      >
+      </ha-selector>
+    `;
+  }
+
+  /**
+   * Render an icon selector.
+   * @param configPath The configuration path to set/read.
+   * @param params Optional parameters to control the selector.
+   * @returns A rendered template.
+   */
+  protected _renderIconSelector(
+    configPath: string,
+    params?: {
+      label?: string;
+    },
+  ): TemplateResult | void {
+    if (!this._config) {
+      return;
+    }
+
+    return html`
+      <ha-selector
+        .hass=${this.hass}
+        .selector=${{
+          icon: {},
+        }}
+        .label=${params?.label || this._getLabel(configPath)}
         .value=${getConfigValue(this._config, configPath, '')}
         .required=${false}
         @value-changed=${(ev) => this._valueChangedHandler(configPath, ev)}
@@ -431,29 +576,30 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   /**
    * Render a number slider.
    * @param configPath Configuration path of the variable.
-   * @param valueDefault The default value.
-   * @param icon The icon to use on the slider.
-   * @param min The minimum value.
-   * @param max The maximum value.
+   * @param params Optional parameters to control the selector.
    * @returns A rendered template.
    */
   protected _renderNumberInput(
     configPath: string,
-    min?: number,
-    max?: number,
+    params?: {
+      min?: number;
+      max?: number;
+      label?: string;
+      default?: number;
+    },
   ): TemplateResult | void {
     if (!this._config) {
       return;
     }
     const value = getConfigValue(this._config, configPath);
-    const mode = max === undefined ? 'box' : 'slider';
+    const mode = params?.max === undefined ? 'box' : 'slider';
 
     return html`
       <ha-selector
         .hass=${this.hass}
-        .selector=${{ number: { min: min || 0, max: max, mode: mode } }}
-        .label=${this._getLabel(configPath)}
-        .value=${value}
+        .selector=${{ number: { min: params?.min || 0, max: params?.max, mode: mode } }}
+        .label=${params?.label || this._getLabel(configPath)}
+        .value=${value ?? params?.default}
         .required=${false}
         @value-changed=${(ev) => this._valueChangedHandler(configPath, ev)}
       >
@@ -471,57 +617,206 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   /**
-   * Render a camera header.
-   * @param cameraIndex The index of the camera to edit/add.
-   * @param cameraConfig The configuration of the camera in question.
-   * @param addNewCamera Whether or not this is a header to add a new camera.
-   * @returns A rendered template.
+   * Get an editor title for the camera.
+   * @param cameraIndex The index of the camera in the cameras array.
+   * @param cameraConfig The raw camera configuration object.
+   * @returns A string title.
    */
-  protected _renderCameraHeader(
+  protected _getEditorCameraTitle(
     cameraIndex: number,
-    cameraConfig?: RawFrigateCardConfig,
-    addNewCamera?: boolean,
-  ): TemplateResult {
+    cameraConfig: RawFrigateCardConfig,
+  ): string {
+    return (
+      getCameraTitle(this.hass, cameraConfig) ||
+      localize('editor.camera') + ' #' + cameraIndex
+    );
+  }
+
+  protected _renderViewScanMenu(): TemplateResult {
+    const submenuClasses = {
+      submenu: true,
+      selected: !!this._expandedMenus[MENU_VIEW_SCAN],
+    };
     return html`
-      <div
-        class="camera-header"
-        @click=${this._toggleCameraHandler}
-        .cameraIndex=${cameraIndex}
-      >
-        <ha-icon .icon=${addNewCamera ? 'mdi:video-plus' : 'mdi:video'}></ha-icon>
-        <span>
-          ${addNewCamera
-            ? html` <span class="new-camera">
-                [${localize('editor.add_new_camera')}...]
-              </span>`
-            : // Attempt to render a recognizable name for the camera,
-              // starting with the most likely to be useful and working our
-              // ways towards the least useful.
-              html` <span>
-                ${cameraConfig?.title ||
-                cameraConfig?.id ||
-                [
-                  cameraConfig?.camera_entity
-                    ? getEntityTitle(this.hass, String(cameraConfig.camera_entity))
-                    : '',
-                  cameraConfig?.client_id,
-                  cameraConfig?.camera_name
-                    ? prettifyFrigateName(String(cameraConfig.camera_name))
-                    : '',
-                  cameraConfig?.label
-                    ? prettifyFrigateName(String(cameraConfig.label))
-                    : '',
-                  cameraConfig?.zone
-                    ? prettifyFrigateName(String(cameraConfig.zone))
-                    : '',
-                ]
-                  .filter(Boolean)
-                  .join(' / ') ||
-                localize('editor.camera') + ' #' + cameraIndex}
-              </span>`}
-        </span>
+      <div class="${classMap(submenuClasses)}">
+        <div
+          class="submenu-header"
+          @click=${this._toggleMenu}
+          .domain=${MENU_VIEW_SCAN}
+          .key=${true}
+        >
+          <ha-icon .icon=${'mdi:target-account'}></ha-icon>
+          <span>${localize(`config.${CONF_VIEW_SCAN}.scan_mode`)}</span>
+        </div>
+        ${this._expandedMenus[MENU_VIEW_SCAN]
+          ? html` <div class="values">
+              ${this._renderSwitch(
+                CONF_VIEW_SCAN_ENABLED,
+                frigateCardConfigDefaults.view.scan.enabled,
+                {
+                  label: localize(`config.${CONF_VIEW_SCAN_ENABLED}`),
+                },
+              )}
+              ${this._renderSwitch(
+                CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
+                frigateCardConfigDefaults.view.scan.show_trigger_status,
+                {
+                  label: localize(`config.${CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS}`),
+                },
+              )}
+              ${this._renderSwitch(
+                CONF_VIEW_SCAN_UNTRIGGER_RESET,
+                frigateCardConfigDefaults.view.scan.untrigger_reset,
+              )}
+              ${this._renderNumberInput(CONF_VIEW_SCAN_UNTRIGGER_SECONDS, {
+                default: frigateCardConfigDefaults.view.scan.untrigger_seconds,
+              })}
+            </div>`
+          : ''}
       </div>
     `;
+  }
+
+  /**
+   * Render an editor menu for the card menu buttons.
+   * @param button The name of the button.
+   * @returns A rendered template.
+   */
+  protected _renderMenuButton(button: string): TemplateResult {
+    const menuButtonAlignments: EditorSelectOption[] = [
+      { value: '', label: '' },
+      { value: 'matching', label: localize('config.menu.buttons.alignments.matching') },
+      { value: 'opposing', label: localize('config.menu.buttons.alignments.opposing') },
+    ];
+    const submenuClasses = {
+      submenu: true,
+      selected: this._expandedMenus[MENU_BUTTONS] === button,
+    };
+
+    return html`
+      <div class="${classMap(submenuClasses)}">
+        <div
+          class="submenu-header"
+          @click=${this._toggleMenu}
+          .domain=${MENU_BUTTONS}
+          .key=${button}
+        >
+          <ha-icon .icon=${'mdi:gesture-tap-button'}></ha-icon>
+          <span
+            >${localize('editor.button') +
+            ': ' +
+            localize(`config.${CONF_MENU_BUTTONS}.${button}`)}</span
+          >
+        </div>
+
+        ${this._expandedMenus[MENU_BUTTONS] === button
+          ? html` <div class="values">
+              ${this._renderSwitch(
+                `${CONF_MENU_BUTTONS}.${button}.enabled`,
+                frigateCardConfigDefaults.menu.buttons[button]?.enabled ?? true,
+                {
+                  label: localize('config.menu.buttons.enabled'),
+                },
+              )}
+              ${this._renderOptionSelector(
+                `${CONF_MENU_BUTTONS}.${button}.alignment`,
+                menuButtonAlignments,
+                {
+                  label: localize('config.menu.buttons.alignment'),
+                },
+              )}
+              ${this._renderNumberInput(`${CONF_MENU_BUTTONS}.${button}.priority`, {
+                max: FRIGATE_MENU_PRIORITY_MAX,
+                default: frigateCardConfigDefaults.menu.buttons[button]?.priority,
+                label: localize('config.menu.buttons.priority'),
+              })}
+              ${this._renderIconSelector(`${CONF_MENU_BUTTONS}.${button}.icon`, {
+                label: localize('config.menu.buttons.icon'),
+              })}
+            </div>`
+          : ''}
+      </div>
+    `;
+  }
+
+  /**
+   * Put a given rendered template into a submenu.
+   * @param domain The submenu domain.
+   * @param key The submenu key.
+   * @param icon The icon for the submenu.
+   * @param labelPath The path to the label to localize.
+   * @param template The template to put in the submenu.
+   * @returns
+   */
+  protected _putInSubmenu(
+    domain: string,
+    key: unknown,
+    labelPath: string,
+    icon: {
+      name?: string;
+      path?: string;
+    },
+    template: TemplateResult,
+  ): TemplateResult {
+    const selected = this._expandedMenus[domain] === key;
+    const submenuClasses = {
+      submenu: true,
+      selected: selected,
+    };
+
+    return html` <div class="${classMap(submenuClasses)}">
+      <div
+        class="submenu-header"
+        @click=${this._toggleMenu}
+        .domain=${domain}
+        .key=${key}
+      >
+        ${icon.name
+          ? html` <ha-icon .icon=${icon.name}></ha-icon> `
+          : icon.path
+          ? html` <ha-svg-icon .path="${icon.path}"></ha-svg-icon> `
+          : ``}
+        <span>${localize(labelPath)}</span>
+      </div>
+      ${selected ? html`<div class="values">${template}</div>` : ''}
+    </div>`;
+  }
+
+  /**
+   * Render a media layout section.
+   * @param domain The submenu domain. 
+   * @param labelPath The path to the label.
+   * @param configPathFit The path to the fit config.
+   * @param configPathPositionX The path to the position.x config.
+   * @param configPathPositionY The path to the position.y config.
+   * @returns A rendered template.
+   */
+  protected _renderMediaLayout(
+    domain: string,
+    labelPath: string,
+    configPathFit: string,
+    configPathPositionX: string,
+    configPathPositionY: string,
+  ): TemplateResult | void {
+    return this._putInSubmenu(
+      domain,
+      true,
+      labelPath,
+      { name: 'mdi:page-layout-body' },
+      html`
+        ${this._renderOptionSelector(configPathFit, this._layoutFits)}
+        ${this._renderNumberInput(configPathPositionX, {
+          min: 0,
+          max: 100,
+          label: localize('config.common.layout.position.x'),
+        })}
+        ${this._renderNumberInput(configPathPositionY, {
+          min: 0,
+          max: 100,
+          label: localize('config.common.layout.position.y'),
+        })}
+      `,
+    );
   }
 
   /**
@@ -534,9 +829,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   protected _renderCamera(
     cameras: RawFrigateCardConfigArray,
     cameraIndex: number,
+    entities: string[],
     addNewCamera?: boolean,
   ): TemplateResult | void {
-    const liveProviders = [
+    const liveProviders: EditorSelectOption[] = [
       { value: '', label: '' },
       { value: 'auto', label: localize('config.cameras.live_providers.auto') },
       { value: 'ha', label: localize('config.cameras.live_providers.ha') },
@@ -550,6 +846,16 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       },
     ];
 
+    const dependentCameras: EditorSelectOption[] = [];
+    cameras.forEach((camera, index) => {
+      if (index !== cameraIndex) {
+        dependentCameras.push({
+          value: getCameraID(camera),
+          label: this._getEditorCameraTitle(index, camera),
+        });
+      }
+    });
+
     // Make a new config and update the editor with changes on it,
     const modifyConfig = (func: (config: RawFrigateCardConfig) => boolean): void => {
       if (this._config) {
@@ -560,113 +866,206 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       }
     };
 
+    const submenuClasses = {
+      submenu: true,
+      selected: this._expandedMenus[MENU_CAMERAS] === cameraIndex,
+    };
+
     return html`
-      ${this._renderCameraHeader(cameraIndex, cameras[cameraIndex], addNewCamera)}
-      ${this._expandedCameraIndex === cameraIndex
-        ? html` <div class="values">
-            <div class="controls">
-              <ha-icon-button
-                class="button"
-                .label=${localize('editor.move_up')}
-                .disabled=${addNewCamera ||
-                !this._config ||
-                !Array.isArray(this._config.cameras) ||
-                cameraIndex <= 0}
-                @click=${() =>
-                  !addNewCamera &&
-                  modifyConfig((config: RawFrigateCardConfig): boolean => {
-                    if (Array.isArray(config.cameras) && cameraIndex > 0) {
-                      arrayMove(config.cameras, cameraIndex, cameraIndex - 1);
-                      this._expandedCameraIndex = cameraIndex - 1;
-                      return true;
-                    }
-                    return false;
-                  })}
-              >
-                <ha-icon icon="mdi:arrow-up"></ha-icon>
-              </ha-icon-button>
-              <ha-icon-button
-                class="button"
-                .label=${localize('editor.move_down')}
-                .disabled=${addNewCamera ||
-                !this._config ||
-                !Array.isArray(this._config.cameras) ||
-                cameraIndex >= this._config.cameras.length - 1}
-                @click=${() =>
-                  !addNewCamera &&
-                  modifyConfig((config: RawFrigateCardConfig): boolean => {
-                    if (
-                      Array.isArray(config.cameras) &&
-                      cameraIndex < config.cameras.length - 1
-                    ) {
-                      arrayMove(config.cameras, cameraIndex, cameraIndex + 1);
-                      this._expandedCameraIndex = cameraIndex + 1;
-                      return true;
-                    }
-                    return false;
-                  })}
-              >
-                <ha-icon icon="mdi:arrow-down"></ha-icon>
-              </ha-icon-button>
-              <ha-icon-button
-                class="button"
-                .label=${localize('editor.delete')}
-                .disabled=${addNewCamera}
-                @click=${() => {
-                  modifyConfig((config: RawFrigateCardConfig): boolean => {
-                    if (Array.isArray(config.cameras)) {
-                      config.cameras.splice(cameraIndex, 1);
-                      this._expandedCameraIndex = null;
-                      return true;
-                    }
-                    return false;
-                  });
-                }}
-              >
-                <ha-icon icon="mdi:delete"></ha-icon>
-              </ha-icon-button>
-            </div>
-            ${this._renderEntitySelector(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_CAMERA_ENTITY, cameraIndex),
-              'camera',
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_CAMERA_NAME, cameraIndex),
-            )}
-            ${this._renderOptionSelector(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_LIVE_PROVIDER, cameraIndex),
-              liveProviders,
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_URL, cameraIndex),
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_LABEL, cameraIndex),
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_ZONE, cameraIndex),
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_CLIENT_ID, cameraIndex),
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_TITLE, cameraIndex),
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_ICON, cameraIndex),
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
-            )}
-            ${this._renderEntitySelector(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY, cameraIndex),
-              'camera',
-            )}
-            ${this._renderStringInput(
-              getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
-            )}
-          </div>`
-        : ``}
+      <div class="${classMap(submenuClasses)}">
+        <div
+          class="submenu-header"
+          @click=${this._toggleMenu}
+          .domain=${MENU_CAMERAS}
+          .key=${cameraIndex}
+        >
+          <ha-icon .icon=${addNewCamera ? 'mdi:video-plus' : 'mdi:video'}></ha-icon>
+          <span>
+            ${addNewCamera
+              ? html` <span class="new-camera">
+                  [${localize('editor.add_new_camera')}...]
+                </span>`
+              : html`<span
+                  >${this._getEditorCameraTitle(
+                    cameraIndex,
+                    cameras[cameraIndex] || {},
+                  )}</span
+                >`}
+          </span>
+        </div>
+        ${this._expandedMenus[MENU_CAMERAS] === cameraIndex
+          ? html` <div class="values">
+              <div class="controls">
+                <ha-icon-button
+                  class="button"
+                  .label=${localize('editor.move_up')}
+                  .disabled=${addNewCamera ||
+                  !this._config ||
+                  !Array.isArray(this._config.cameras) ||
+                  cameraIndex <= 0}
+                  @click=${() =>
+                    !addNewCamera &&
+                    modifyConfig((config: RawFrigateCardConfig): boolean => {
+                      if (Array.isArray(config.cameras) && cameraIndex > 0) {
+                        arrayMove(config.cameras, cameraIndex, cameraIndex - 1);
+                        this._openMenu(MENU_CAMERAS, cameraIndex - 1);
+                        return true;
+                      }
+                      return false;
+                    })}
+                >
+                  <ha-icon icon="mdi:arrow-up"></ha-icon>
+                </ha-icon-button>
+                <ha-icon-button
+                  class="button"
+                  .label=${localize('editor.move_down')}
+                  .disabled=${addNewCamera ||
+                  !this._config ||
+                  !Array.isArray(this._config.cameras) ||
+                  cameraIndex >= this._config.cameras.length - 1}
+                  @click=${() =>
+                    !addNewCamera &&
+                    modifyConfig((config: RawFrigateCardConfig): boolean => {
+                      if (
+                        Array.isArray(config.cameras) &&
+                        cameraIndex < config.cameras.length - 1
+                      ) {
+                        arrayMove(config.cameras, cameraIndex, cameraIndex + 1);
+                        this._openMenu(MENU_CAMERAS, cameraIndex + 1);
+                        return true;
+                      }
+                      return false;
+                    })}
+                >
+                  <ha-icon icon="mdi:arrow-down"></ha-icon>
+                </ha-icon-button>
+                <ha-icon-button
+                  class="button"
+                  .label=${localize('editor.delete')}
+                  .disabled=${addNewCamera}
+                  @click=${() => {
+                    modifyConfig((config: RawFrigateCardConfig): boolean => {
+                      if (Array.isArray(config.cameras)) {
+                        config.cameras.splice(cameraIndex, 1);
+                        this._closeMenu(MENU_CAMERAS);
+                        return true;
+                      }
+                      return false;
+                    });
+                  }}
+                >
+                  <ha-icon icon="mdi:delete"></ha-icon>
+                </ha-icon-button>
+              </div>
+              ${this._renderEntitySelector(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_CAMERA_ENTITY, cameraIndex),
+                'camera',
+              )}
+              ${this._renderOptionSelector(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_LIVE_PROVIDER, cameraIndex),
+                liveProviders,
+              )}
+              ${this._renderStringInput(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_TITLE, cameraIndex),
+              )}
+              ${this._renderIconSelector(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_ICON, cameraIndex),
+                {
+                  label: localize('config.cameras.icon'),
+                },
+              )}
+              ${this._renderStringInput(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
+              )}
+              ${this._putInSubmenu(
+                MENU_CAMERAS_FRIGATE,
+                cameraIndex,
+                'config.cameras.frigate.options',
+                { path: FRIGATE_ICON_SVG_PATH },
+                html`
+                  ${this._renderStringInput(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME,
+                      cameraIndex,
+                    ),
+                  )}
+                  ${this._renderStringInput(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_URL, cameraIndex),
+                  )}
+                  ${this._renderStringInput(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_LABEL, cameraIndex),
+                  )}
+                  ${this._renderStringInput(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_ZONE, cameraIndex),
+                  )}
+                  ${this._renderStringInput(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID,
+                      cameraIndex,
+                    ),
+                  )}
+                `,
+              )}
+              ${this._putInSubmenu(
+                MENU_CAMERAS_DEPENDENCIES,
+                cameraIndex,
+                'config.cameras.dependencies.options',
+                { name: 'mdi:graph' },
+                html` ${this._renderSwitch(
+                  getArrayConfigPath(
+                    CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS,
+                    cameraIndex,
+                  ),
+                  frigateCardConfigDefaults.cameras.dependencies.all_cameras,
+                )}
+                ${this._renderOptionSelector(
+                  getArrayConfigPath(
+                    CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS,
+                    cameraIndex,
+                  ),
+                  dependentCameras,
+                  {
+                    multiple: true,
+                  },
+                )}`,
+              )}
+              ${this._putInSubmenu(
+                MENU_CAMERAS_TRIGGERS,
+                cameraIndex,
+                'config.cameras.triggers.options',
+                { name: 'mdi:magnify-scan' },
+                html` ${this._renderSwitch(
+                  getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY, cameraIndex),
+                  frigateCardConfigDefaults.cameras.triggers.occupancy,
+                )}
+                ${this._renderSwitch(
+                  getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_MOTION, cameraIndex),
+                  frigateCardConfigDefaults.cameras.triggers.motion,
+                )}
+                ${this._renderOptionSelector(
+                  getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES, cameraIndex),
+                  entities,
+                  {
+                    multiple: true,
+                  },
+                )}`,
+              )}
+              ${this._putInSubmenu(
+                MENU_CAMERAS_WEBRTC,
+                cameraIndex,
+                'config.cameras.webrtc_card.options',
+                { name: 'mdi:webrtc' },
+                html`${this._renderEntitySelector(
+                  getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY, cameraIndex),
+                  'camera',
+                )}
+                ${this._renderStringInput(
+                  getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
+                )}`,
+              )}
+            </div>`
+          : ``}
+      </div>
     `;
   }
 
@@ -714,13 +1113,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    * Render a boolean selector.
    * @param configPath The configuration path to set/read.
    * @param valueDefault The default switch value if unset.
-   * @param label An optional switch label.
+   * @param params Optional parameters to control the selector.
    * @returns A rendered template.
    */
   protected _renderSwitch(
     configPath: string,
     valueDefault: boolean,
-    label?: string,
+    params?: {
+      label?: string;
+    },
   ): TemplateResult | void {
     if (!this._config) {
       return;
@@ -730,7 +1131,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       <ha-selector
         .hass=${this.hass}
         .selector=${{ boolean: {} }}
-        .label=${label || this._getLabel(configPath)}
+        .label=${params?.label || this._getLabel(configPath)}
         .value=${getConfigValue(this._config, configPath, valueDefault)}
         .required=${false}
         @value-changed=${(ev) => this._valueChangedHandler(configPath, ev)}
@@ -745,15 +1146,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   protected render(): TemplateResult | void {
-    if (!this.hass || !this._helpers || !this._config) {
+    if (!this.hass || !this._config) {
       return html``;
     }
 
     const defaults = frigateCardConfigDefaults;
-
-    const getShowButtonLabel = (configPath: string) =>
-      localize('editor.show_button') + ': ' + localize(`config.${configPath}`);
-
+    const entities = getEntitiesFromHASS(this.hass);
     const cameras = (getConfigValue(this._config, CONF_CAMERAS) ||
       []) as RawFrigateCardConfigArray;
 
@@ -780,14 +1178,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         : html``}
       <div class="card-config">
         ${this._renderOptionSetHeader('cameras')}
-        ${options.cameras.show
-          ? html` <div class="cameras">
-              ${cameras.map((_, index) => this._renderCamera(cameras, index))}
-              ${this._renderCamera(cameras, cameras.length, true)}
-            </div>`
+        ${this._expandedMenus[MENU_OPTIONS] === 'cameras'
+          ? html`
+              ${cameras.map((_, index) => this._renderCamera(cameras, index, entities))}
+              ${this._renderCamera(cameras, cameras.length, entities, true)}
+            `
           : ''}
         ${this._renderOptionSetHeader('view')}
-        ${options.view.show
+        ${this._expandedMenus[MENU_OPTIONS] === 'view'
           ? html`
               <div class="values">
                 ${this._renderOptionSelector(CONF_VIEW_DEFAULT, this._viewModes)}
@@ -795,6 +1193,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_VIEW_CAMERA_SELECT,
                   this._cameraSelectViewModes,
                 )}
+                ${this._renderOptionSelector(CONF_VIEW_DARK_MODE, this._darkModes)}
                 ${this._renderNumberInput(CONF_VIEW_TIMEOUT_SECONDS)}
                 ${this._renderNumberInput(CONF_VIEW_UPDATE_SECONDS)}
                 ${this._renderSwitch(CONF_VIEW_UPDATE_FORCE, defaults.view.update_force)}
@@ -802,157 +1201,303 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_VIEW_UPDATE_CYCLE_CAMERA,
                   defaults.view.update_cycle_camera,
                 )}
+                ${this._renderViewScanMenu()}
               </div>
             `
           : ''}
         ${this._renderOptionSetHeader('menu')}
-        ${options.menu.show
+        ${this._expandedMenus[MENU_OPTIONS] === 'menu'
           ? html`
               <div class="values">
-                ${this._renderOptionSelector(CONF_MENU_MODE, this._menuModes)}
-                ${this._renderStringInput(CONF_MENU_BUTTON_SIZE)}
-                ${this._renderSwitch(
-                  CONF_MENU_BUTTONS_FRIGATE,
-                  defaults.menu.buttons.frigate,
-                  getShowButtonLabel(CONF_MENU_BUTTONS_FRIGATE),
-                )}
-                ${this._renderSwitch(
-                  CONF_MENU_BUTTONS_LIVE,
-                  defaults.menu.buttons.live,
-                  getShowButtonLabel('view.views.live'),
-                )}
-                ${this._renderSwitch(
-                  CONF_MENU_BUTTONS_CLIPS,
-                  defaults.menu.buttons.clips,
-                  getShowButtonLabel('view.views.clips'),
-                )}
-                ${this._renderSwitch(
-                  CONF_MENU_BUTTONS_SNAPSHOTS,
-                  defaults.menu.buttons.snapshots,
-                  getShowButtonLabel('view.views.snapshots'),
-                )}
-                ${this._renderSwitch(
-                  CONF_MENU_BUTTONS_IMAGE,
-                  defaults.menu.buttons.image,
-                  getShowButtonLabel('view.views.image'),
-                )}
-                ${this._renderSwitch(
-                  CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD,
-                  defaults.menu.buttons.download,
-                  getShowButtonLabel(CONF_MENU_BUTTONS_FRIGATE_DOWNLOAD),
-                )}
-                ${this._renderSwitch(
-                  CONF_MENU_BUTTONS_FRIGATE_UI,
-                  defaults.menu.buttons.frigate_ui,
-                  getShowButtonLabel(CONF_MENU_BUTTONS_FRIGATE_UI),
-                )}
-                ${this._renderSwitch(
-                  CONF_MENU_BUTTONS_FRIGATE_FULLSCREEN,
-                  defaults.menu.buttons.fullscreen,
-                  getShowButtonLabel(CONF_MENU_BUTTONS_FRIGATE_FULLSCREEN),
-                )}
+                ${this._renderOptionSelector(CONF_MENU_STYLE, this._menuStyles)}
+                ${this._renderOptionSelector(CONF_MENU_POSITION, this._menuPositions)}
+                ${this._renderOptionSelector(CONF_MENU_ALIGNMENT, this._menuAlignments)}
+                ${this._renderNumberInput(CONF_MENU_BUTTON_SIZE, {
+                  min: BUTTON_SIZE_MIN,
+                })}
               </div>
+              ${this._renderMenuButton('frigate') /* */}
+              ${this._renderMenuButton('cameras') /* */}
+              ${this._renderMenuButton('live') /* */}
+              ${this._renderMenuButton('clips') /* */}
+              ${this._renderMenuButton('snapshots')}
+              ${this._renderMenuButton('image') /* */}
+              ${this._renderMenuButton('download')}
+              ${this._renderMenuButton('frigate_ui')}
+              ${this._renderMenuButton('fullscreen')}
+              ${this._renderMenuButton('timeline')}
+              ${this._renderMenuButton('media_player')}
             `
           : ''}
         ${this._renderOptionSetHeader('live')}
-        ${options.live.show
+        ${this._expandedMenus[MENU_OPTIONS] === 'live'
           ? html`
               <div class="values">
                 ${this._renderSwitch(CONF_LIVE_PRELOAD, defaults.live.preload)}
                 ${this._renderSwitch(CONF_LIVE_DRAGGABLE, defaults.live.draggable)}
                 ${this._renderSwitch(CONF_LIVE_LAZY_LOAD, defaults.live.lazy_load)}
-                ${this._renderSwitch(CONF_LIVE_LAZY_UNLOAD, defaults.live.lazy_unload)}
-                ${this._renderSwitch(CONF_LIVE_AUTO_UNMUTE, defaults.live.auto_unmute)}
                 ${this._renderOptionSelector(
-                  CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
-                  this._liveNextPreviousControlStyles,
-                )}
-                ${this._renderStringInput(CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE)}
-                ${this._renderOptionSelector(
-                  CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
-                  this._thumbnailModes,
+                  CONF_LIVE_LAZY_UNLOAD,
+                  this._mediaActionNegativeConditions,
                 )}
                 ${this._renderOptionSelector(
-                  CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
-                  this._thumbnailMedias,
+                  CONF_LIVE_AUTO_PLAY,
+                  this._mediaActionPositiveConditions,
                 )}
-                ${this._renderStringInput(CONF_LIVE_CONTROLS_THUMBNAILS_SIZE)}
                 ${this._renderOptionSelector(
-                  CONF_LIVE_CONTROLS_TITLE_MODE,
-                  this._titleModes,
+                  CONF_LIVE_AUTO_PAUSE,
+                  this._mediaActionNegativeConditions,
                 )}
-                ${this._renderNumberInput(
-                  CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
-                  0,
-                  60,
+                ${this._renderOptionSelector(
+                  CONF_LIVE_AUTO_MUTE,
+                  this._mediaActionNegativeConditions,
+                )}
+                ${this._renderOptionSelector(
+                  CONF_LIVE_AUTO_UNMUTE,
+                  this._mediaActionPositiveConditions,
                 )}
                 ${this._renderOptionSelector(
                   CONF_LIVE_TRANSITION_EFFECT,
                   this._transitionEffects,
                 )}
+                ${this._renderSwitch(
+                  CONF_LIVE_SHOW_IMAGE_DURING_LOAD,
+                  defaults.live.show_image_during_load,
+                )}
+                ${this._putInSubmenu(
+                  MENU_LIVE_CONTROLS,
+                  true,
+                  'config.live.controls.options',
+                  { name: 'mdi:gamepad' },
+                  html`
+                    ${this._renderOptionSelector(
+                      CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
+                      this._liveNextPreviousControlStyles,
+                    )}
+                    ${this._renderNumberInput(CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE, {
+                      min: BUTTON_SIZE_MIN,
+                    })}
+                    ${this._renderOptionSelector(
+                      CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
+                      this._thumbnailModes,
+                    )}
+                    ${this._renderOptionSelector(
+                      CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
+                      this._thumbnailMedias,
+                    )}
+                    ${this._renderNumberInput(CONF_LIVE_CONTROLS_THUMBNAILS_SIZE, {
+                      min: THUMBNAIL_WIDTH_MIN,
+                      max: THUMBNAIL_WIDTH_MAX,
+                    })}
+                    ${this._renderOptionSelector(
+                      CONF_LIVE_CONTROLS_TITLE_MODE,
+                      this._titleModes,
+                    )}
+                    ${this._renderSwitch(
+                      CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+                      defaults.live.controls.thumbnails.show_details,
+                    )}
+                    ${this._renderSwitch(
+                      CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+                      defaults.live.controls.thumbnails.show_favorite_control,
+                    )}
+                    ${this._renderSwitch(
+                      CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                      defaults.live.controls.thumbnails.show_timeline_control,
+                    )}
+                    ${this._renderNumberInput(
+                      CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
+                      {
+                        min: 0,
+                        max: 60,
+                      },
+                    )}
+                  `,
+                )}
+                ${this._renderMediaLayout(
+                  MENU_LIVE_LAYOUT,
+                  'config.live.layout',
+                  CONF_LIVE_LAYOUT_FIT,
+                  CONF_LIVE_LAYOUT_POSITION_X,
+                  CONF_LIVE_LAYOUT_POSITION_Y,
+                )}
               </div>
             `
           : ''}
         ${this._renderOptionSetHeader('event_gallery')}
-        ${options.event_gallery.show
+        ${this._expandedMenus[MENU_OPTIONS] === 'event_gallery'
           ? html` <div class="values">
-              ${this._renderNumberInput(CONF_EVENT_GALLERY_MIN_COLUMNS, 1, 10)}
+              ${this._putInSubmenu(
+                MENU_EVENT_GALLERY_CONTROLS,
+                true,
+                'config.event_gallery.controls.options',
+                { name: 'mdi:gamepad' },
+                html` ${this._renderNumberInput(
+                  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE,
+                  {
+                    min: THUMBNAIL_WIDTH_MIN,
+                    max: THUMBNAIL_WIDTH_MAX,
+                  },
+                )}
+                ${this._renderSwitch(
+                  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+                  defaults.media_viewer.controls.thumbnails.show_details,
+                )}
+                ${this._renderSwitch(
+                  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+                  defaults.media_viewer.controls.thumbnails.show_favorite_control,
+                )}
+                ${this._renderSwitch(
+                  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                  defaults.media_viewer.controls.thumbnails.show_timeline_control,
+                )}`,
+              )}
             </div>`
           : ''}
-        ${this._renderOptionSetHeader('event_viewer')}
-        ${options.event_viewer.show
+        ${this._renderOptionSetHeader('media_viewer')}
+        ${this._expandedMenus[MENU_OPTIONS] === 'media_viewer'
           ? html` <div class="values">
-              ${this._renderSwitch(
-                CONF_EVENT_VIEWER_AUTO_PLAY,
-                defaults.event_viewer.auto_play,
-              )}
-              ${this._renderSwitch(
-                CONF_EVENT_VIEWER_AUTO_UNMUTE,
-                defaults.event_viewer.auto_unmute,
-              )}
-              ${this._renderSwitch(
-                CONF_EVENT_VIEWER_DRAGGABLE,
-                defaults.event_viewer.draggable,
-              )}
-              ${this._renderSwitch(
-                CONF_EVENT_VIEWER_LAZY_LOAD,
-                defaults.event_viewer.lazy_load,
+              ${this._renderOptionSelector(
+                CONF_MEDIA_VIEWER_AUTO_PLAY,
+                this._mediaActionPositiveConditions,
               )}
               ${this._renderOptionSelector(
-                CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
-                this._eventViewerNextPreviousControlStyles,
-              )}
-              ${this._renderStringInput(CONF_EVENT_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE)}
-              ${this._renderOptionSelector(
-                CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_MODE,
-                this._thumbnailModes,
-              )}
-              ${this._renderStringInput(CONF_EVENT_VIEWER_CONTROLS_THUMBNAILS_SIZE)}
-              ${this._renderOptionSelector(
-                CONF_EVENT_VIEWER_CONTROLS_TITLE_MODE,
-                this._titleModes,
-              )}
-              ${this._renderNumberInput(
-                CONF_EVENT_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
-                0,
-                60,
+                CONF_MEDIA_VIEWER_AUTO_PAUSE,
+                this._mediaActionNegativeConditions,
               )}
               ${this._renderOptionSelector(
-                CONF_EVENT_VIEWER_TRANSITION_EFFECT,
+                CONF_MEDIA_VIEWER_AUTO_MUTE,
+                this._mediaActionNegativeConditions,
+              )}
+              ${this._renderOptionSelector(
+                CONF_MEDIA_VIEWER_AUTO_UNMUTE,
+                this._mediaActionPositiveConditions,
+              )}
+              ${this._renderSwitch(
+                CONF_MEDIA_VIEWER_DRAGGABLE,
+                defaults.media_viewer.draggable,
+              )}
+              ${this._renderSwitch(
+                CONF_MEDIA_VIEWER_LAZY_LOAD,
+                defaults.media_viewer.lazy_load,
+              )}
+              ${this._renderOptionSelector(
+                CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
                 this._transitionEffects,
+              )}
+              ${this._putInSubmenu(
+                MENU_MEDIA_VIEWER_CONTROLS,
+                true,
+                'config.media_viewer.controls.options',
+                { name: 'mdi:gamepad' },
+                html`
+                  ${this._renderOptionSelector(
+                    CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
+                    this._eventViewerNextPreviousControlStyles,
+                  )}
+                  ${this._renderNumberInput(
+                    CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
+                    {
+                      min: BUTTON_SIZE_MIN,
+                    },
+                  )}
+                  ${this._renderOptionSelector(
+                    CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
+                    this._thumbnailModes,
+                  )}
+                  ${this._renderNumberInput(CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE, {
+                    min: THUMBNAIL_WIDTH_MIN,
+                    max: THUMBNAIL_WIDTH_MAX,
+                  })}
+                  ${this._renderSwitch(
+                    CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+                    defaults.media_viewer.controls.thumbnails.show_details,
+                  )}
+                  ${this._renderSwitch(
+                    CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+                    defaults.media_viewer.controls.thumbnails.show_favorite_control,
+                  )}
+                  ${this._renderSwitch(
+                    CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                    defaults.media_viewer.controls.thumbnails.show_timeline_control,
+                  )}
+                  ${this._renderOptionSelector(
+                    CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE,
+                    this._titleModes,
+                  )}
+                  ${this._renderNumberInput(
+                    CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
+                    { min: 0, max: 60 },
+                  )}
+                `,
+              )}
+              ${this._renderMediaLayout(
+                MENU_MEDIA_VIEWER_LAYOUT,
+                'config.media_viewer.layout',
+                CONF_MEDIA_VIEWER_LAYOUT_FIT,
+                CONF_MEDIA_VIEWER_LAYOUT_POSITION_X,
+                CONF_MEDIA_VIEWER_LAYOUT_POSITION_Y,
               )}
             </div>`
           : ''}
         ${this._renderOptionSetHeader('image')}
-        ${options.image.show
+        ${this._expandedMenus[MENU_OPTIONS] === 'image'
           ? html` <div class="values">
               ${this._renderOptionSelector(CONF_IMAGE_MODE, this._imageModes)}
               ${this._renderStringInput(CONF_IMAGE_URL)}
               ${this._renderNumberInput(CONF_IMAGE_REFRESH_SECONDS)}
+              ${this._renderMediaLayout(
+                MENU_IMAGE_LAYOUT,
+                'config.image.layout',
+                CONF_IMAGE_LAYOUT_FIT,
+                CONF_IMAGE_LAYOUT_POSITION_X,
+                CONF_IMAGE_LAYOUT_POSITION_Y,
+              )}
+            </div>`
+          : ''}
+        ${this._renderOptionSetHeader('timeline')}
+        ${this._expandedMenus[MENU_OPTIONS] === 'timeline'
+          ? html` <div class="values">
+              ${this._renderNumberInput(CONF_TIMELINE_WINDOW_SECONDS)}
+              ${this._renderNumberInput(CONF_TIMELINE_CLUSTERING_THRESHOLD)}
+              ${this._renderOptionSelector(
+                CONF_TIMELINE_MEDIA,
+                this._timelineMediaTypes,
+              )}
+              ${this._renderSwitch(
+                CONF_TIMELINE_SHOW_RECORDINGS,
+                defaults.timeline.show_recordings,
+              )}
+              ${this._putInSubmenu(
+                MENU_TIMELINE_CONTROLS,
+                true,
+                'config.timeline.controls.options',
+                { name: 'mdi:gamepad' },
+                html` ${this._renderOptionSelector(
+                  CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
+                  this._thumbnailModes,
+                )}
+                ${this._renderNumberInput(CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE, {
+                  min: THUMBNAIL_WIDTH_MIN,
+                  max: THUMBNAIL_WIDTH_MAX,
+                })}
+                ${this._renderSwitch(
+                  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+                  defaults.timeline.controls.thumbnails.show_details,
+                )}
+                ${this._renderSwitch(
+                  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+                  defaults.timeline.controls.thumbnails.show_favorite_control,
+                )}
+                ${this._renderSwitch(
+                  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                  defaults.timeline.controls.thumbnails.show_timeline_control,
+                )}`,
+              )}
             </div>`
           : ''}
         ${this._renderOptionSetHeader('dimensions')}
-        ${options.dimensions.show
+        ${this._expandedMenus[MENU_OPTIONS] === 'dimensions'
           ? html` <div class="values">
               ${this._renderOptionSelector(
                 CONF_DIMENSIONS_ASPECT_RATIO_MODE,
@@ -963,7 +1508,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           : ''}
         ${this._config['overrides'] !== undefined
           ? html` ${this._renderOptionSetHeader('overrides')}
-            ${options.overrides.show
+            ${this._expandedMenus[MENU_OPTIONS] === 'overrides'
               ? html` <div class="values">
                   ${this._renderInfo(localize('config.overrides.info'))}
                 </div>`
@@ -974,72 +1519,38 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   /**
-   * Verify editor is initialized.
+   * Close the editor menu with the given domain.
+   * @param targetDomain The menu domain to close.
    */
-  protected _initialize(): void {
-    if (this.hass === undefined) return;
-    if (this._config === undefined) return;
-    if (this._helpers === undefined) return;
-
-    (async (): Promise<void> => {
-      // The picture-glance editor loads the ha-selectors.
-      // See: https://github.com/thomasloven/hass-config/wiki/PreLoading-Lovelace-Elements
-      const pictureGlance = await this._helpers.createCardElement({
-        type: 'picture-glance',
-        entities: [],
-        camera_image: 'dummy-to-load-editor-components',
-      });
-      if (pictureGlance.constructor.getConfigElement) {
-        await pictureGlance.constructor.getConfigElement();
-        this._initialized = true;
-      }
-    })();
+  protected _closeMenu(targetDomain: string) {
+    delete this._expandedMenus[targetDomain];
+    this.requestUpdate();
   }
 
   /**
-   * Load card helpers.
+   * Open an editor menu.
+   * @param targetDomain The menu domain to open.
+   * @param key The menu object key to open.
    */
-  protected async loadCardHelpers(): Promise<void> {
-    this._helpers = await (window as any).loadCardHelpers();
+  protected _openMenu(targetDomain: string, key: number | string) {
+    this._expandedMenus[targetDomain] = key;
+    this.requestUpdate();
   }
 
   /**
-   * Display/hide a camera section.
-   * @param ev The event triggering the change.
+   * Toggle an editor menu.
+   * @param ev An event.
    */
-  protected _toggleCameraHandler(ev: { target: EditorCameraTarget | null }): void {
+  protected _toggleMenu(ev: { target: EditorMenuTarget | null }): void {
     if (ev && ev.target) {
-      this._expandedCameraIndex =
-        this._expandedCameraIndex == ev.target.cameraIndex
-          ? null
-          : ev.target.cameraIndex;
-    }
-  }
+      const domain = ev.target.domain;
+      const key = ev.target.key;
 
-  /**
-   * Handle a toggled set of options.
-   * @param ev The event triggering the change.
-   */
-  protected _toggleOptionHandler(ev: { target: EditorOptionSetTarget | null }): void {
-    this._toggleOptionSet(ev, options);
-  }
-
-  /**
-   * Toggle display of a set of options (e.g. 'Live')
-   * @param ev The event triggering the change.
-   * @param options The EditorOptions object.
-   */
-  protected _toggleOptionSet(
-    ev: { target: EditorOptionSetTarget | null },
-    options: EditorOptions,
-  ): void {
-    if (ev && ev.target) {
-      const show = !options[ev.target.optionSetName].show;
-      for (const [key] of Object.entries(options)) {
-        options[key].show = false;
+      if (this._expandedMenus[domain] === key) {
+        this._closeMenu(domain);
+      } else {
+        this._openMenu(domain, key);
       }
-      options[ev.target.optionSetName].show = show;
-      this.requestUpdate();
     }
   }
 
@@ -1080,5 +1591,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    */
   static get styles(): CSSResultGroup {
     return unsafeCSS(frigate_card_editor_style);
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'frigate-card-editor': FrigateCardEditor;
   }
 }

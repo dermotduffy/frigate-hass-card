@@ -9,10 +9,14 @@
 // available as compilation time.
 // ====================================================================
 
-import { Ref, createRef, ref } from 'lit/directives/ref.js';
-import { TemplateResult, css, html } from 'lit';
+import { css, CSSResultGroup, html, unsafeCSS, TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { dispatchMediaShowEvent } from '../common.js';
+import { query } from 'lit/decorators/query.js';
+import { FrigateCardMediaPlayer } from '../types.js';
+import { dispatchMediaLoadedEvent } from '../utils/media-info.js';
+import './ha-hls-player';
+import './ha-web-rtc-player';
+import liveHAComponentsStyle from '../scss/live-ha-components.scss';
 
 customElements.whenDefined('ha-camera-stream').then(() => {
   // ========================================================================================
@@ -38,7 +42,10 @@ customElements.whenDefined('ha-camera-stream').then(() => {
   @customElement('frigate-card-ha-camera-stream')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   class FrigateCardHaCameraStream extends customElements.get('ha-camera-stream') {
-    protected _playerRef: Ref<HTMLElement> = createRef();
+    // Due to an obscure behavior when this card is casted, this element needs
+    // to use query rather than the ref directive to find the player.
+    @query('#player')
+    protected _player: FrigateCardMediaPlayer;
 
     // ========================================================================================
     // Minor modifications from:
@@ -49,28 +56,35 @@ customElements.whenDefined('ha-camera-stream').then(() => {
      * Play the video.
      */
     public play(): void {
-      this._playerRef.value?.play();
+      this._player?.play();
     }
 
     /**
      * Pause the video.
      */
     public pause(): void {
-      this._playerRef.value?.pause();
+      this._player?.pause();
     }
 
     /**
      * Mute the video.
      */
     public mute(): void {
-      this.muted = true;
+      this._player?.mute();
     }
 
     /**
      * Unmute the video.
      */
     public unmute(): void {
-      this.muted = false;
+      this._player?.unmute();
+    }
+
+    /**
+     * Seek the video (unsupported).
+     */
+    public seek(seconds: number): void {
+      this._player?.seek(seconds);
     }
 
     /**
@@ -85,8 +99,8 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       if (this._shouldRenderMJPEG) {
         return html`
           <img
-            @load=${(e) => {
-              dispatchMediaShowEvent(this, e);
+            @load=${(ev: Event) => {
+              dispatchMediaLoadedEvent(this, ev);
             }}
             .src=${typeof this._connected == 'undefined' || this._connected
               ? computeMJPEGStreamUrl(this.stateObj)
@@ -98,7 +112,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       if (this.stateObj.attributes.frontend_stream_type === STREAM_TYPE_HLS) {
         return this._url
           ? html` <frigate-card-ha-hls-player
-              ${ref(this._playerRef)}
+              id="player"
               ?autoplay=${false}
               playsinline
               .allowExoPlayer=${this.allowExoPlayer}
@@ -111,7 +125,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       }
       if (this.stateObj.attributes.frontend_stream_type === STREAM_TYPE_WEB_RTC) {
         return html`<frigate-card-ha-web-rtc-player
-          ${ref(this._playerRef)}
+          id="player"
           ?autoplay=${false}
           playsinline
           .muted=${this.muted}
@@ -125,8 +139,13 @@ customElements.whenDefined('ha-camera-stream').then(() => {
     static get styles(): CSSResultGroup {
       return [
         super.styles,
+        unsafeCSS(liveHAComponentsStyle),
         css`
           :host {
+            width: 100%;
+            height: 100%;
+          }
+          img {
             width: 100%;
             height: 100%;
           }
@@ -135,3 +154,9 @@ customElements.whenDefined('ha-camera-stream').then(() => {
     }
   }
 });
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'frigate-card-ha-camera-stream': FrigateCardHaCameraStream;
+  }
+}
