@@ -455,6 +455,10 @@ export class FrigateCardTimelineCore extends LitElement {
    * @param properties
    */
   protected _timelineRangeChangeHandler(properties: TimelineRangeChange): void {
+    if (this._pointerHeld) {
+      this._ignoreClick = true;
+    }
+
     if (
       this._timeline &&
       properties.byUser &&
@@ -463,9 +467,6 @@ export class FrigateCardTimelineCore extends LitElement {
       properties.event.additionalEvent !== 'pinchin' &&
       properties.event.additionalEvent !== 'pinchout'
     ) {
-      if (this._pointerHeld) {
-        this._ignoreClick = true;
-      }
 
       const targetTime = this._pointerHeld?.window
         ? add(properties.start, {

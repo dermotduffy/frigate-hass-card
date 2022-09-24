@@ -1,6 +1,4 @@
 // TODO: When a media viewer is first loaded the selected child won't work (because the underlying carousel has not yet rendered)
-
-// TODO: delete segments if not in summary? is this actually necessary? could it create gaps in data? better off stopping access via summary?
 // TODO: Make minitimeline configurable in the editor
 
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';

@@ -49,7 +49,7 @@ const recordingSummarySchema = z
   .object({
     day: z.preprocess((arg) => {
       // Must provide the hour:minute:second on parsing or Javascript will
-      // assume UTC midnight.
+      // assume *UTC* midnight.
       return typeof arg === 'string' ? new Date(`${arg}T00:00:00`) : arg;
     }, z.date()),
     events: z.number(),

@@ -9,7 +9,7 @@ import {
   FrigateEvent,
   FrigateEvents,
 } from '../types.js';
-import { errorToConsole } from '../utils/basic.js';
+import { errorToConsole, runWhenIdleIfSupported } from '../utils/basic.js';
 import {
   FrigateGetEventsParameters,
   getEventsMultiple,
@@ -19,6 +19,8 @@ import {
   RecordingSummary,
 } from './frigate.js';
 import { dispatchFrigateCardErrorEvent } from '../components/message.js';
+import fromUnixTime from 'date-fns/fromUnixTime';
+import { throttle } from 'lodash-es';
 
 const RECORDING_SEGMENT_TOLERANCE = 60;
 const TIMELINE_DATA_MANAGER_MAX_AGE_SECONDS = 10;
@@ -104,6 +106,15 @@ export class TimelineDataManager {
   protected _cameras: Map<string, CameraConfig>;
   protected _mediaType: TimelineMediaType;
 
+  // Garbage collect segments at most once an hour.
+  protected _throttledSegmentGarbageCollector = throttle(
+    () => {
+      runWhenIdleIfSupported(this._garbageCollectSegments.bind(this));
+    },
+    60 * 60 * 1000,
+    { trailing: true },
+  );
+
   constructor(cameras: Map<string, CameraConfig>, mediaType: TimelineMediaType) {
     this._cameras = cameras;
     this._mediaType = mediaType;
@@ -131,10 +142,14 @@ export class TimelineDataManager {
   ): DataView<FrigateCardTimelineItem> {
     return new DataView(this._dataset, {
       filter: (item: FrigateCardTimelineItem) =>
+        // Only return items for the given cameras.
         !!item.group &&
         cameraIDs.has(String(item.group)) &&
+        // Don't return recordings if the user does not want them.
         (showRecordings || item.type !== 'background') &&
-        (mediaType === 'all' ||
+        // Don't return events that are the wrong media type.
+        (item.type === 'background' ||
+          mediaType === 'all' ||
           (mediaType === 'clips' && !!item.event?.has_clip) ||
           (mediaType === 'snapshots' && !!item.event?.has_snapshot)),
     });
@@ -290,7 +305,48 @@ export class TimelineDataManager {
         ? [this._fetchRecordingSegments(hass, segmentStart, segmentEnd)]
         : []),
     ]);
+
+    this._throttledSegmentGarbageCollector();
     return true;
+  }
+
+  /**
+   * Garbage collect recording segments that no longer feature in the summary.
+   */
+  protected _garbageCollectSegments(): void {
+    if (!this._recordingSegments || !this._recordingSummary) {
+      return;
+    }
+
+    // Performance: _recordingSegments is potentially very large (e.g. 10K - 1M
+    // items) and each item must be examined, so care required here to stick to
+    // nothing worse than O(n) performance.
+    const getHourID = (cameraID: string, day: number, hour: number): string => {
+      return `${cameraID}/${day}/${hour}`;
+    };
+
+    const goodHours: Set<string> = new Set();
+    for (const cameraID of this._recordingSummary.keys()) {
+      for (const summaryDay of this._recordingSummary?.get(cameraID) ?? []) {
+        for (const summaryHour of summaryDay.hours) {
+          goodHours.add(getHourID(cameraID, summaryDay.day.getDate(), summaryHour.hour));
+        }
+      }
+    }
+
+    const deleteIDs: string[] = [];
+    this._recordingSegments.forEach((item, id) => {
+      const startDate = fromUnixTime(item.start / 1000);
+      const hourID = getHourID(item.cameraID, startDate.getDate(), startDate.getHours());
+
+      // ~O(1) lookup time for a JS set.
+      if (!goodHours.has(hourID)) {
+        deleteIDs.push(String(id));
+      }
+    });
+
+    this._recordingSegments.remove(deleteIDs);
+    this._compressRecordingSegmentsOntoTimeline();
   }
 
   /**
