@@ -122,6 +122,12 @@ export class TimelineDataManager {
     return this._recordingSummary.get(cameraID) ?? null;
   }
 
+  /**
+   * Create a dataview for a given set of camera.
+   * @param cameraIDs The cameraIDs to include.
+   * @param showRecordings Whether or not to show recordings.
+   * @returns 
+   */
   public createDataView(
     cameraIDs: Set<string>,
     showRecordings: boolean,
@@ -134,10 +140,17 @@ export class TimelineDataManager {
     });
   }
 
+  /**
+   * Create a dataview for segments.
+   * @returns 
+   */
   public createSegmentDataView(): DataView<RecordingSegmentsItem> {
     return new DataView(this._recordingSegments);
   }
 
+  /**
+   * Get the underlying recording segments dataset.
+   */
   get recordingSegments(): DataSet<RecordingSegmentsItem> {
     return this._recordingSegments;
   }

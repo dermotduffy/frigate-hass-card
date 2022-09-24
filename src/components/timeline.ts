@@ -1,10 +1,8 @@
 // TODO: When a media viewer is first loaded the selected child won't work (because the underlying carousel has not yet rendered)
 
-// TODO: unselect in mini timeline should not cause media viewer to render nothing
 // TODO: delete segments if not in summary? is this actually necessary? could it create gaps in data? better off stopping access via summary?
 // TODO: support filtering created dataviews by recordings or mediatype (so storage )
 // TODO: Make minitimeline configurable in the editor
-// TODO: Make performance okay for 2+ days of events
 
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';

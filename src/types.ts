@@ -569,10 +569,12 @@ export type PictureElements = z.infer<typeof pictureElementsSchema>;
  */
 const mediaLayoutConfigSchema = z.object({
   fit: z.enum(['contain', 'cover', 'fill']).optional(),
-  position: z.object({
-    x: z.number().min(0).max(100).optional(),
-    y: z.number().min(0).max(100).optional(),
-  }).optional(),
+  position: z
+    .object({
+      x: z.number().min(0).max(100).optional(),
+      y: z.number().min(0).max(100).optional(),
+    })
+    .optional(),
 });
 export type MediaLayoutConfig = z.infer<typeof mediaLayoutConfigSchema>;
 
@@ -667,27 +669,26 @@ const timelineCoreConfigDefault = {
   show_recordings: true,
 };
 
-const timelineCoreConfigSchema = z
-  .object({
-    clustering_threshold: z
-      .number()
-      .optional()
-      .default(timelineCoreConfigDefault.clustering_threshold),
-    media: z
-      .enum(['all', 'clips', 'snapshots'])
-      .optional()
-      .default(timelineCoreConfigDefault.media),
-    window_seconds: z
-      .number()
-      .min(1 * 60)
-      .max(24 * 60 * 60)
-      .optional()
-      .default(timelineCoreConfigDefault.window_seconds),
-    show_recordings: z
-      .boolean()
-      .optional()
-      .default(timelineCoreConfigDefault.show_recordings),
-  });
+const timelineMediaSchema = z.enum(['all', 'clips', 'snapshots']);
+export type TimelineMedia = z.infer<typeof timelineMediaSchema>;
+
+const timelineCoreConfigSchema = z.object({
+  clustering_threshold: z
+    .number()
+    .optional()
+    .default(timelineCoreConfigDefault.clustering_threshold),
+  media: timelineMediaSchema.optional().default(timelineCoreConfigDefault.media),
+  window_seconds: z
+    .number()
+    .min(1 * 60)
+    .max(24 * 60 * 60)
+    .optional()
+    .default(timelineCoreConfigDefault.window_seconds),
+  show_recordings: z
+    .boolean()
+    .optional()
+    .default(timelineCoreConfigDefault.show_recordings),
+});
 export type TimelineCoreConfig = z.infer<typeof timelineCoreConfigSchema>;
 
 const miniTimelineConfigSchema = timelineCoreConfigSchema.extend({
@@ -1136,7 +1137,8 @@ const timelineConfigDefault = {
   },
 };
 
-const timelineConfigSchema = timelineCoreConfigSchema.extend({
+const timelineConfigSchema = timelineCoreConfigSchema
+  .extend({
     controls: z
       .object({
         thumbnails: thumbnailsControlSchema
@@ -1417,7 +1419,7 @@ export const frigateBrowseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.
       children: z.array(frigateBrowseMediaSourceSchema).nullable().optional(),
       frigate: z
         .object({
-          event: frigateEventSchema
+          event: frigateEventSchema,
         })
         .optional(),
     }),
