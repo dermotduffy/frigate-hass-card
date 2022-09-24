@@ -3,29 +3,26 @@ import { DataSet, DataView } from 'vis-data/esnext';
 import { IdType, TimelineItem } from 'vis-timeline/esnext';
 import { CAMERA_BIRDSEYE } from '../const.js';
 import {
-  BrowseMediaQueryParameters,
   CameraConfig,
   ExtendedHomeAssistant,
-  FrigateBrowseMediaSource,
   FrigateCardError,
   FrigateEvent,
+  FrigateEvents,
 } from '../types.js';
 import { errorToConsole } from '../utils/basic.js';
 import {
+  FrigateGetEventsParameters,
+  getEventsMultiple,
   getRecordingSegments,
   getRecordingsSummary,
   RecordingSegments,
   RecordingSummary,
 } from './frigate.js';
-import {
-  getBrowseMediaQueryParameters,
-  isTrueMedia,
-  multipleBrowseMediaQuery,
-} from './ha/browse-media.js';
 import { dispatchFrigateCardErrorEvent } from '../components/message.js';
 
 const RECORDING_SEGMENT_TOLERANCE = 60;
 const TIMELINE_DATA_MANAGER_MAX_AGE_SECONDS = 10;
+const TIMELINE_DATA_MANAGER_MAX_FETCH_COUNT = 10000;
 
 export interface FrigateCardTimelineItem extends TimelineItem {
   // DataView has issues using datasets with Date objects, so avoid them and use
@@ -33,7 +30,6 @@ export interface FrigateCardTimelineItem extends TimelineItem {
   start: number;
   end?: number;
   event?: FrigateEvent;
-  source?: FrigateBrowseMediaSource;
 }
 
 type TimelineMediaType = 'all' | 'clips' | 'snapshots';
@@ -126,23 +122,27 @@ export class TimelineDataManager {
    * Create a dataview for a given set of camera.
    * @param cameraIDs The cameraIDs to include.
    * @param showRecordings Whether or not to show recordings.
-   * @returns 
+   * @returns A dataview.
    */
   public createDataView(
     cameraIDs: Set<string>,
     showRecordings: boolean,
+    mediaType: TimelineMediaType,
   ): DataView<FrigateCardTimelineItem> {
     return new DataView(this._dataset, {
       filter: (item: FrigateCardTimelineItem) =>
         !!item.group &&
         cameraIDs.has(String(item.group)) &&
-        (showRecordings || item.type !== 'background'),
+        (showRecordings || item.type !== 'background') &&
+        (mediaType === 'all' ||
+          (mediaType === 'clips' && !!item.event?.has_clip) ||
+          (mediaType === 'snapshots' && !!item.event?.has_snapshot)),
     });
   }
 
   /**
    * Create a dataview for segments.
-   * @returns 
+   * @returns A dataview.
    */
   public createSegmentDataView(): DataView<RecordingSegmentsItem> {
     return new DataView(this._recordingSegments);
@@ -171,51 +171,22 @@ export class TimelineDataManager {
   }
 
   /**
-   * Add a FrigateBrowseMediaSource object to the managed timeline.
-   * @param cameraID The id the camera this object is from.
-   * @param target The FrigateBrowseMediaSource to add.
+   * Add events for the given camera.
+   * @param cameraID The camera ID.
+   * @param events The array of events.
    */
-  protected _addMediaSource(target: FrigateBrowseMediaSource): void {
-    const items: FrigateCardTimelineItem[] = [];
-    target.children?.forEach((child) => {
-      const event = child.frigate?.event;
-      const cameraID = child.frigate?.cameraID;
-      if (
-        cameraID &&
-        event &&
-        isTrueMedia(child) &&
-        ['video', 'image'].includes(child.media_content_type)
-      ) {
-        let item = this._dataset.get(event.id);
-        if (!item) {
-          item = {
-            id: event.id,
-            group: cameraID,
-            content: '',
-            start: event.start_time * 1000,
-            event: event,
-          };
-        }
-        if (
-          (child.media_content_type === 'video' &&
-            ['all', 'clips'].includes(this._mediaType)) ||
-          (!item.source &&
-            child.media_content_type === 'image' &&
-            ['all', 'snapshots'].includes(this._mediaType))
-        ) {
-          item.source = child;
-        }
-        if (event.end_time) {
-          item['end'] = event.end_time * 1000;
-          item['type'] = 'range';
-        } else {
-          item['type'] = 'point';
-        }
-        items.push(item);
-      }
-    });
-
-    this._dataset.update(items);
+  protected _addEvents(cameraID: string, events: FrigateEvents): void {
+    this._dataset.update(
+      events.map((event) => ({
+        id: event.id,
+        group: cameraID,
+        content: '',
+        event: event,
+        start: event.start_time * 1000,
+        type: event.end_time ? 'range' : 'point',
+        ...(event.end_time && { end: event.end_time * 1000 }),
+      })),
+    );
   }
 
   /**
@@ -485,37 +456,31 @@ export class TimelineDataManager {
     start: Date,
     end: Date,
   ): Promise<void> {
-    const params: BrowseMediaQueryParameters[] = [];
+    const params: Map<string, FrigateGetEventsParameters> = new Map();
+
     this._cameras.forEach((cameraConfig, cameraID) => {
-      (this._mediaType === 'all' ? ['clips', 'snapshots'] : [this._mediaType]).forEach(
-        (mediaType) => {
-          if (cameraConfig?.frigate.camera_name !== CAMERA_BIRDSEYE) {
-            const param = getBrowseMediaQueryParameters(hass, cameraID, cameraConfig, {
-              before: end.getTime() / 1000,
-              after: start.getTime() / 1000,
-              unlimited: true,
-              mediaType: mediaType as 'clips' | 'snapshots',
-            });
-            if (param) {
-              params.push(param);
-            }
-          }
-        },
-      );
+      if (
+        cameraConfig.frigate.camera_name &&
+        cameraConfig.frigate.camera_name !== CAMERA_BIRDSEYE
+      ) {
+        params.set(cameraID, {
+          instance_id: cameraConfig.frigate.client_id,
+          camera: cameraConfig.frigate.camera_name,
+          ...(cameraConfig.frigate.label && { label: cameraConfig.frigate.label }),
+          ...(cameraConfig.frigate.zone && { label: cameraConfig.frigate.zone }),
+          before: Math.floor(end.getTime() / 1000),
+          after: Math.floor(start.getTime() / 1000),
+          limit: TIMELINE_DATA_MANAGER_MAX_FETCH_COUNT,
+        });
+      }
     });
 
-    if (!params.length) {
-      return;
-    }
-
-    let results: Map<BrowseMediaQueryParameters, FrigateBrowseMediaSource>;
+    let results: Map<string, FrigateEvents>;
     try {
-      results = await multipleBrowseMediaQuery(hass, params);
+      results = await getEventsMultiple(hass, params);
     } catch (e) {
       return dispatchFrigateCardErrorEvent(element, e as FrigateCardError);
     }
-    for (const result of results.values()) {
-      this._addMediaSource(result);
-    }
+    results.forEach((params, cameraID) => this._addEvents(cameraID, params));
   }
 }

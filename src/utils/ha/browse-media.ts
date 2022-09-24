@@ -1,10 +1,4 @@
 import { HomeAssistant } from 'custom-card-helpers';
-import {
-  differenceInHours,
-  differenceInMinutes,
-  differenceInSeconds,
-  fromUnixTime,
-} from 'date-fns';
 import { homeAssistantWSRequest } from '.';
 import {
   dispatchErrorMessageEvent,
@@ -14,7 +8,6 @@ import {
 import { localize } from '../../localize/localize.js';
 import {
   BrowseMediaQueryParameters,
-  BrowseRecordingQueryParameters,
   CameraConfig,
   FrigateBrowseMediaSource,
   frigateBrowseMediaSourceSchema,
@@ -413,16 +406,17 @@ export const createEventParentForChildren = (
 /**
  * Given a media video child with a given media_content_id.
  * @param title The title to use for the child.
- * @param media_con
+ * @param mediaContentID The media content id to use for the child.
  * @param children The children media items.
  * @returns A single parent containing the children.
  */
-export const createVideoChild = (
+export const createChild = (
   title: string,
   mediaContentID: string,
   options?: {
     thumbnail?: string;
     recording?: FrigateRecording;
+    event?: FrigateEvent;
     cameraID?: string,
   },
 ): FrigateBrowseMediaSource => {
@@ -436,8 +430,11 @@ export const createVideoChild = (
     thumbnail: options?.thumbnail ?? null,
     children: null
   }
-  if (options?.recording || options?.cameraID) {
+  if (options?.recording || options?.cameraID || options?.event) {
     result.frigate = {}
+    if (options?.event) {
+      result.frigate.event = options.event;
+    }
     if (options?.recording) {
       result.frigate.recording = options.recording;
     }
@@ -446,52 +443,4 @@ export const createVideoChild = (
     }
   }
   return result;
-};
-
-/**
- * Convenience function to convert a timestamp to hours, minutes and seconds
- * string. Heavily inspired by, and returning the same format as, the Frigate
- * UI: https://github.com/blakeblackshear/frigate/blob/master/web/src/components/RecordingPlaylist.jsx#L97
- * @param event The Frigate event.
- * @returns A duration string.
- */
-export function getEventDurationString(event: FrigateEvent): string {
-  if (!event.end_time) {
-    return localize('event.in_progress');
-  }
-  const start = fromUnixTime(event.start_time);
-  const end = fromUnixTime(event.end_time);
-  const hours = differenceInHours(end, start);
-  const minutes = differenceInMinutes(end, start) - hours * 60;
-  const seconds = differenceInSeconds(end, start) - hours * 60 * 60 - minutes * 60;
-  let duration = '';
-
-  if (hours) {
-    duration += `${hours}h `;
-  }
-  if (minutes) {
-    duration += `${minutes}m `;
-  }
-  duration += `${seconds}s`;
-  return duration;
-}
-
-/**
- * Generate a recording identifier.
- * @param hass The HomeAssistant object.
- * @param params The recording parameters to use in the identifer.
- * @returns A recording identifier.
- */
-export const generateRecordingIdentifier = (
-  params: BrowseRecordingQueryParameters,
-): string => {
-  return [
-    'media-source://frigate',
-    params.clientId,
-    'recordings',
-    `${params.year}-${String(params.month).padStart(2, '0')}`,
-    String(params.day).padStart(2, '0'),
-    String(params.hour).padStart(2, '0'),
-    params.cameraName,
-  ].join('/');
 };

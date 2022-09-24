@@ -32,7 +32,7 @@ import './surround-basic.js';
 import './timeline-core.js';
 
 interface ThumbnailViewContext {
-  // Whetherr or not to fetch thumbnails.
+  // Whether or not to fetch thumbnails.
   fetch?: boolean;
 }
 
@@ -59,6 +59,9 @@ export class FrigateCardSurround extends LitElement {
   @property({ attribute: false })
   public inBackground?: boolean;
 
+  @property({ attribute: false })
+  public fetch = false;
+
   @property({ attribute: false, hasChanged: contentsChanged })
   public browseMediaParams?: BrowseMediaQueryParameters | BrowseMediaQueryParameters[];
 
@@ -76,12 +79,13 @@ export class FrigateCardSurround extends LitElement {
    */
   protected async _fetchMedia(): Promise<void> {
     if (
+      !this.fetch ||
       this.inBackground ||
       !this.hass ||
       !this.view ||
+      this.view.target ||      
       !this.thumbnailConfig ||
       this.thumbnailConfig.mode === 'none' ||
-      this.view.target ||
       !this.browseMediaParams ||
       !(this.view.context?.thumbnails?.fetch ?? true)
     ) {

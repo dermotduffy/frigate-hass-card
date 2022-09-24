@@ -137,6 +137,7 @@ export class FrigateCardViewer extends LitElement {
     return html` <frigate-card-surround
       .hass=${this.hass}
       .view=${this.view}
+      .fetch=${false}
       .thumbnailConfig=${this.viewerConfig.controls.thumbnails}
       .timelineConfig=${this.viewerConfig.controls.timeline}
       .timelineDataManager=${this.timelineDataManager}

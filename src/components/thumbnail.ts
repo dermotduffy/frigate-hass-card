@@ -11,7 +11,7 @@ import thumbnailStyle from '../scss/thumbnail.scss';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { errorToConsole, prettifyTitle } from '../utils/basic.js';
 import { retainEvent } from '../utils/frigate.js';
-import { getEventDurationString } from '../utils/ha/browse-media.js';
+import { getEventDurationString } from '../utils/frigate.js';
 import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask } from '../utils/thumbnail.js';
 import { View } from '../view.js';

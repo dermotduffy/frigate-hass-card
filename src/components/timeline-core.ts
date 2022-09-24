@@ -47,16 +47,19 @@ import { stopEventFromActivatingCardWideActions } from '../utils/action';
 import {
   contentsChanged,
   dispatchFrigateCardEvent,
+  formatDateAndTime,
   isHoverableDevice,
   prettifyTitle,
 } from '../utils/basic';
 import { getAllDependentCameras, getCameraTitle } from '../utils/camera.js';
-
 import {
-  createEventParentForChildren,
-  createVideoChild,
-  generateRecordingIdentifier,
-} from '../utils/ha/browse-media';
+  getEventMediaContentID,
+  getEventThumbnailURL,
+  getEventTitle,
+  getRecordingMediaContentID,
+} from '../utils/frigate';
+
+import { createEventParentForChildren, createChild } from '../utils/ha/browse-media';
 import {
   FrigateCardTimelineItem,
   RecordingSegmentsItem,
@@ -216,16 +219,17 @@ export class FrigateCardTimelineCore extends LitElement {
    * @returns The tooltip as a string to render.
    */
   protected _getTooltip(item: TimelineItem): string {
-    const source = (<FrigateCardTimelineItem>item).source;
-    if (!this._isHoverableDevice || !source) {
+    const event = (<FrigateCardTimelineItem>item).event;
+    const clientId = item.group
+      ? this.cameras?.get(String(item.group))?.frigate.client_id
+      : null;
+    if (!this._isHoverableDevice || !event || !clientId) {
       // Don't display tooltips on touch devices, they just get in the way of
       // the drawer.
       return '';
     }
 
-    const eventAttr = source.frigate?.event
-      ? `event='${JSON.stringify(source.frigate.event)}'`
-      : '';
+    const eventAttr = `event='${JSON.stringify(event)}'`;
     const detailsAttr = this.thumbnailDetails ? 'details' : '';
 
     // Cannot use Lit data-bindings as visjs requires a string for tooltips.
@@ -233,10 +237,10 @@ export class FrigateCardTimelineCore extends LitElement {
     // whitelist in `_getOptions()` .
     return `
       <frigate-card-timeline-thumbnail
-        thumbnail="${source.thumbnail}"
+        thumbnail="${getEventThumbnailURL(clientId, event)}"
         ${detailsAttr}
         ${eventAttr}
-        label="${source.title}"
+        label="${getEventTitle(event)}"
       >
       </frigate-card-timeline-thumbnail>`;
   }
@@ -324,12 +328,9 @@ export class FrigateCardTimelineCore extends LitElement {
           // hours, otherwise only show the matching hour from all cameras.
           if (!onlyShowMatchingHour || isMatchingHour) {
             children.push(
-              createVideoChild(
-                `${prettifyTitle(config.frigate.camera_name)} ${format(
-                  hour,
-                  'yyyy-MM-dd HH:mm',
-                )}`,
-                generateRecordingIdentifier({
+              createChild(
+                `${prettifyTitle(config.frigate.camera_name)} ${formatDateAndTime(hour)}`,
+                getRecordingMediaContentID({
                   clientId: config.frigate.client_id,
                   year: dayData.day.getFullYear(),
                   month: dayData.day.getMonth() + 1,
@@ -812,9 +813,40 @@ export class FrigateCardTimelineCore extends LitElement {
     let childIndex = -1;
     const children: FrigateBrowseMediaSource[] = [];
     this._dataview?.get({ order: sortTimelineItemsYoungestToOldest }).forEach((item) => {
-      if (item.event && item.source) {
-        children.push(item.source);
-        if (selected.includes(item.event.id)) {
+      const cameraID = item.group ? String(item.group) : null;
+      const cameraConfig = cameraID ? this.cameras?.get(cameraID) : null;
+      const event = item.event;
+      const media =
+        event?.has_clip && this.timelineConfig?.media !== 'snapshots'
+          ? 'clips'
+          : event?.has_snapshot
+          ? 'snapshots'
+          : null;
+
+      if (
+        cameraID &&
+        cameraConfig &&
+        event &&
+        media &&
+        cameraConfig.frigate.camera_name
+      ) {
+        children.push(
+          createChild(
+            getEventTitle(event),
+            getEventMediaContentID(
+              cameraConfig.frigate.client_id,
+              cameraConfig.frigate.camera_name,
+              event.id,
+              media,
+            ),
+            {
+              thumbnail: getEventThumbnailURL(cameraConfig.frigate.client_id, event),
+              event: event,
+              cameraID: cameraID,
+            },
+          ),
+        );
+        if (selected.includes(event.id)) {
           childIndex = children.length - 1;
         }
       }
@@ -1190,6 +1222,7 @@ export class FrigateCardTimelineCore extends LitElement {
       this.timelineDataManager &&
       this._refTimeline.value &&
       options &&
+      this.timelineConfig &&
       (changedProperties.has('timelineConfig') ||
         (this.mini &&
           changedProperties.has('view') &&
@@ -1212,7 +1245,8 @@ export class FrigateCardTimelineCore extends LitElement {
 
       this._dataview = this.timelineDataManager.createDataView(
         this._getTimelineCameraIDs(),
-        !!this.timelineConfig?.show_recordings,
+        !!this.timelineConfig.show_recordings,
+        this.timelineConfig.media,
       );
 
       if (this.mini && groups.length === 1) {

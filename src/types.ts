@@ -26,6 +26,8 @@ export const THUMBNAIL_WIDTH_MIN = 75;
  * Internal types.
  */
 
+export type ClipsOrSnapshots = 'clips' | 'snapshots';
+
 export const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
   'live',
   'clip',

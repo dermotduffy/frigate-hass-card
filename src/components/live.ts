@@ -216,6 +216,7 @@ export class FrigateCardLive extends LitElement {
       html`<frigate-card-surround
         .hass=${this.hass}
         .view=${this.view}
+        .fetch=${true}
         .thumbnailConfig=${config.controls.thumbnails}
         .timelineConfig=${config.controls.timeline}
         .browseMediaParams=${browseMediaParams ?? undefined}

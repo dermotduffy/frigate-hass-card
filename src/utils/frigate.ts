@@ -1,7 +1,21 @@
 import { HomeAssistant } from 'custom-card-helpers';
+import utcToZonedTime from 'date-fns-tz/utcToZonedTime';
+import differenceInHours from 'date-fns/differenceInHours';
+import differenceInMinutes from 'date-fns/differenceInMinutes';
+import differenceInSeconds from 'date-fns/differenceInSeconds';
+import fromUnixTime from 'date-fns/fromUnixTime';
 import { z } from 'zod';
 import { localize } from '../localize/localize';
-import { ExtendedHomeAssistant, FrigateCardError } from '../types';
+import {
+  BrowseRecordingQueryParameters,
+  ClipsOrSnapshots,
+  ExtendedHomeAssistant,
+  FrigateCardError,
+  FrigateEvent,
+  FrigateEvents,
+  frigateEventsSchema,
+} from '../types';
+import { formatDateAndTime, prettifyTitle } from './basic';
 import { homeAssistantWSRequest } from './ha';
 
 export const FRIGATE_ICON_SVG_PATH =
@@ -143,4 +157,153 @@ export async function retainEvent(
       response: response,
     });
   }
+}
+
+export interface FrigateGetEventsParameters {
+  instance_id?: string;
+  camera?: string;
+  label?: string;
+  zone?: string;
+  after?: number;
+  before?: number;
+  limit?: number;
+  has_clip?: boolean;
+  has_snapshot?: boolean;
+}
+
+/**
+ * Get events over websocket. May throw.
+ * @param hass The Home Assistant object.
+ * @param params The events search parameters.
+ * @returns An array of 'FrigateEvent's.
+ */
+export const getEvents = async (
+  hass: HomeAssistant,
+  params?: FrigateGetEventsParameters,
+): Promise<FrigateEvents> => {
+  return await homeAssistantWSRequest(
+    hass,
+    frigateEventsSchema,
+    {
+      type: 'frigate/events/get',
+      ...params,
+    },
+    true,
+  );
+};
+
+/**
+ * Get multiple sets of events.
+ * @param hass The Home Assistant object.
+ * @param params A Map of parameters keyed on any key.
+ * @returns A Map of key -> events.
+ */
+export const getEventsMultiple = async <T>(
+  hass: HomeAssistant,
+  params: Map<T, FrigateGetEventsParameters>,
+): Promise<Map<T, FrigateEvents>> => {
+  const output: Map<T, FrigateEvents> = new Map();
+  const getEventsAndStore = async (
+    key: T,
+    param: FrigateGetEventsParameters,
+  ): Promise<void> => {
+    output.set(key, await getEvents(hass, param));
+  };
+  await Promise.all(
+    Array.from(params).map(([key, param]) => getEventsAndStore(key, param)),
+  );
+  return output;
+};
+
+/**
+ * Given an event generate a title.
+ * @param event
+ */
+export const getEventTitle = (event: FrigateEvent): string => {
+  const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const durationSeconds = Math.round(
+    event.end_time
+      ? event.end_time - event.start_time
+      : Date.now() / 1000 - event.start_time,
+  );
+  return `${formatDateAndTime(
+    utcToZonedTime(event.start_time * 1000, localTimezone),
+  )} [${durationSeconds}s, ${prettifyTitle(event.label)} ${Math.round(
+    event.top_score * 100,
+  )}%]`;
+};
+
+/**
+ * Get a thumbnail URL for an event.
+ * @param clientId The Frigate client id.
+ * @param event The event.
+ * @returns A string URL.
+ */
+export const getEventThumbnailURL = (clientId: string, event: FrigateEvent): string => {
+  return `/api/frigate/${clientId}/thumbnail/${event.id}`;
+};
+
+/**
+ * Get a media content ID for an event.
+ * @param clientId The Frigate client id.
+ * @param cameraName The Frigate camera name.
+ * @param id The event id.
+ * @param mediaType The media type required.
+ * @returns A string media content id.
+ */
+export const getEventMediaContentID = (
+  clientId: string,
+  cameraName: string,
+  id: string,
+  mediaType: ClipsOrSnapshots,
+): string => {
+  return `media-source://frigate/${clientId}/event/${mediaType}/${cameraName}/${id}`;
+};
+
+/**
+ * Generate a recording identifier.
+ * @param hass The HomeAssistant object.
+ * @param params The recording parameters to use in the identifer.
+ * @returns A recording identifier.
+ */
+export const getRecordingMediaContentID = (
+  params: BrowseRecordingQueryParameters,
+): string => {
+  return [
+    'media-source://frigate',
+    params.clientId,
+    'recordings',
+    `${params.year}-${String(params.month).padStart(2, '0')}`,
+    String(params.day).padStart(2, '0'),
+    String(params.hour).padStart(2, '0'),
+    params.cameraName,
+  ].join('/');
+};
+
+/**
+ * Convenience function to convert a timestamp to hours, minutes and seconds
+ * string. Heavily inspired by, and returning the same format as, the Frigate
+ * UI: https://github.com/blakeblackshear/frigate/blob/master/web/src/components/RecordingPlaylist.jsx#L97
+ * @param event The Frigate event.
+ * @returns A duration string.
+ */
+export function getEventDurationString(event: FrigateEvent): string {
+  if (!event.end_time) {
+    return localize('event.in_progress');
+  }
+  const start = fromUnixTime(event.start_time);
+  const end = fromUnixTime(event.end_time);
+  const hours = differenceInHours(end, start);
+  const minutes = differenceInMinutes(end, start) - hours * 60;
+  const seconds = differenceInSeconds(end, start) - hours * 60 * 60 - minutes * 60;
+  let duration = '';
+
+  if (hours) {
+    duration += `${hours}h `;
+  }
+  if (minutes) {
+    duration += `${minutes}m `;
+  }
+  duration += `${seconds}s`;
+  return duration;
 }
