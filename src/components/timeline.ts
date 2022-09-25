@@ -1,6 +1,3 @@
-// TODO: When a media viewer is first loaded the selected child won't work (because the underlying carousel has not yet rendered)
-// TODO: time on recording != time on timeline in media viewer after scrolling around
-
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import timelineStyle from '../scss/timeline.scss';

@@ -2,7 +2,6 @@ import {
   add,
   differenceInSeconds,
   endOfHour,
-  format,
   fromUnixTime,
   getUnixTime,
   startOfHour,
