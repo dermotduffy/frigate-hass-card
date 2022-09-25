@@ -84,6 +84,17 @@ export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_timeline_control` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.size` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD =
+  `${CONF_MEDIA_VIEWER}.controls.timeline.clustering_threshold` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA =
+  `${CONF_MEDIA_VIEWER}.controls.timeline.media` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE =
+  `${CONF_MEDIA_VIEWER}.controls.timeline.mode` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS =
+  `${CONF_MEDIA_VIEWER}.controls.timeline.show_recordings` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS =
+  `${CONF_MEDIA_VIEWER}.controls.timeline.window_seconds` as const;
+
 export const CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE =
   `${CONF_MEDIA_VIEWER}.controls.title.mode` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS =
@@ -115,6 +126,16 @@ export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
   `${CONF_LIVE}.controls.thumbnails.show_favorite_control` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
   `${CONF_LIVE}.controls.thumbnails.show_timeline_control` as const;
+export const CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD =
+  `${CONF_LIVE}.control s.timeline.clustering_threshold` as const;
+export const CONF_LIVE_CONTROLS_TIMELINE_MEDIA =
+  `${CONF_LIVE}.controls.timeline.media` as const;
+export const CONF_LIVE_CONTROLS_TIMELINE_MODE =
+  `${CONF_LIVE}.controls.timeline.mode` as const;
+export const CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS =
+  `${CONF_LIVE}.controls.timeline.show_recordings` as const;
+export const CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS =
+  `${CONF_LIVE}.controls.timeline.window_seconds` as const;
 export const CONF_LIVE_CONTROLS_TITLE_MODE = `${CONF_LIVE}.controls.title.mode` as const;
 export const CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS =
   `${CONF_LIVE}.controls.title.duration_seconds` as const;

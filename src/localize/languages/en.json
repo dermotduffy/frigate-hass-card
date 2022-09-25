@@ -254,6 +254,15 @@
           "size": "Timeline thumbnails size in pixels"
         }
       },
+      "mini": {
+        "options": "Mini Timeline",
+        "mode": "Mode",
+        "modes": {
+          "none": "None",
+          "above": "Above",
+          "below": "Below"
+        }
+      },
       "media": "The media the timeline displays",
       "medias": {
         "all": "All media types",

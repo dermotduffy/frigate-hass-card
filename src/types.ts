@@ -1240,6 +1240,7 @@ export const frigateCardConfigDefaults = {
   event_gallery: galleryConfigDefault,
   image: imageConfigDefault,
   timeline: timelineConfigDefault,
+  mini_timeline: timelineCoreConfigDefault,
 };
 
 const menuButtonSchema = z.discriminatedUnion('type', [

@@ -54,6 +54,11 @@ import {
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
+  CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
+  CONF_LIVE_CONTROLS_TIMELINE_MEDIA,
+  CONF_LIVE_CONTROLS_TIMELINE_MODE,
+  CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
+  CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS,
   CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
   CONF_LIVE_CONTROLS_TITLE_MODE,
   CONF_LIVE_DRAGGABLE,
@@ -76,6 +81,11 @@ import {
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE,
+  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
+  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA,
+  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE,
+  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS,
+  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS,
   CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
   CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE,
   CONF_MEDIA_VIEWER_DRAGGABLE,
@@ -136,8 +146,10 @@ const MENU_CAMERAS_WEBRTC = 'cameras.webrtc';
 const MENU_EVENT_GALLERY_CONTROLS = 'event_gallery.controls';
 const MENU_IMAGE_LAYOUT = 'image.layout';
 const MENU_LIVE_CONTROLS = 'live.controls';
+const MENU_LIVE_CONTROLS_TIMELINE = 'live.controls.timeline';
 const MENU_LIVE_LAYOUT = 'live.layout';
 const MENU_MEDIA_VIEWER_CONTROLS = 'media_viewer.controls';
+const MENU_MEDIA_VIEWER_CONTROLS_TIMELINE = 'media_viewer.controls.timeline';
 const MENU_MEDIA_VIEWER_LAYOUT = 'media_viewer.layout';
 const MENU_TIMELINE_CONTROLS = 'timeline.controls';
 const MENU_OPTIONS = 'options';
@@ -419,6 +431,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'contain', label: localize('config.common.layout.fits.contain') },
     { value: 'cover', label: localize('config.common.layout.fits.cover') },
     { value: 'fill', label: localize('config.common.layout.fits.fill') },
+  ];
+
+  protected _miniTimelineModes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'none', label: localize('config.timeline.mini.modes.none') },
+    { value: 'above', label: localize('config.timeline.mini.modes.above') },
+    { value: 'below', label: localize('config.timeline.mini.modes.below') },
   ];
 
   public setConfig(config: RawFrigateCardConfig): void {
@@ -784,7 +803,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
   /**
    * Render a media layout section.
-   * @param domain The submenu domain. 
+   * @param domain The submenu domain.
    * @param labelPath The path to the label.
    * @param configPathFit The path to the fit config.
    * @param configPathPositionX The path to the position.x config.
@@ -816,6 +835,71 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           label: localize('config.common.layout.position.y'),
         })}
       `,
+    );
+  }
+
+  /**
+   * Render the core timeline controls (mini or full timeline),
+   * @param configPathWindowSeconds Timeline window config path.
+   * @param configPathClusteringThreshold Clustering threshold config path.
+   * @param configPathTimelineMedia Timeline media config path.
+   * @param configPathShowRecordings Show recordings config path.
+   * @param defaultShowRecordings Default value of show_recordings.
+   * @returns A rendered template.
+   */
+  protected _renderTimelineCoreControls(
+    configPathWindowSeconds: string,
+    configPathClusteringThreshold: string,
+    configPathTimelineMedia: string,
+    configPathShowRecordings: string,
+    defaultShowRecordings: boolean,
+  ): TemplateResult {
+    return html` ${this._renderNumberInput(configPathWindowSeconds, {
+      label: localize(`config.${CONF_TIMELINE_WINDOW_SECONDS}`),
+    })}
+    ${this._renderNumberInput(configPathClusteringThreshold, {
+      label: localize(`config.${CONF_TIMELINE_CLUSTERING_THRESHOLD}`),
+    })}
+    ${this._renderOptionSelector(configPathTimelineMedia, this._timelineMediaTypes, {
+      label: localize(`config.${CONF_TIMELINE_MEDIA}`),
+    })}
+    ${this._renderSwitch(configPathShowRecordings, defaultShowRecordings, {
+      label: localize(`config.${CONF_TIMELINE_SHOW_RECORDINGS}`),
+    })}`;
+  }
+
+  /**
+   * Render the mini timeline controls.
+   * @param domain The submenu domain.
+   * @param configPathWindowSeconds Timeline window config path.
+   * @param configPathClusteringThreshold Clustering threshold config path.
+   * @param configPathTimelineMedia Timeline media config path.
+   * @param configPathShowRecordings Show recordings config path.
+   * @returns A rendered template.
+   */
+  protected _renderMiniTimeline(
+    domain: string,
+    configPathMode: string,
+    configPathWindowSeconds: string,
+    configPathClusteringThreshold: string,
+    configPathTimelineMedia: string,
+    configPathShowRecordings: string,
+  ): TemplateResult | void {
+    return this._putInSubmenu(
+      domain,
+      true,
+      'config.timeline.mini.options',
+      { name: 'mdi:chart-gantt' },
+      html` ${this._renderOptionSelector(configPathMode, this._miniTimelineModes, {
+        label: localize('config.timeline.mini.mode'),
+      })}
+      ${this._renderTimelineCoreControls(
+        configPathWindowSeconds,
+        configPathClusteringThreshold,
+        configPathTimelineMedia,
+        configPathShowRecordings,
+        frigateCardConfigDefaults.mini_timeline.show_recordings,
+      )}`,
     );
   }
 
@@ -1312,6 +1396,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                         max: 60,
                       },
                     )}
+                    ${this._renderMiniTimeline(
+                      MENU_LIVE_CONTROLS_TIMELINE,
+                      CONF_LIVE_CONTROLS_TIMELINE_MODE,
+                      CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS,
+                      CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
+                      CONF_LIVE_CONTROLS_TIMELINE_MEDIA,
+                      CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
+                    )}
                   `,
                 )}
                 ${this._renderMediaLayout(
@@ -1429,6 +1521,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
                     { min: 0, max: 60 },
                   )}
+                  ${this._renderMiniTimeline(
+                    MENU_MEDIA_VIEWER_CONTROLS_TIMELINE,
+                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE,
+                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS,
+                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
+                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA,
+                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS,
+                  )}
                 `,
               )}
               ${this._renderMediaLayout(
@@ -1458,13 +1558,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${this._renderOptionSetHeader('timeline')}
         ${this._expandedMenus[MENU_OPTIONS] === 'timeline'
           ? html` <div class="values">
-              ${this._renderNumberInput(CONF_TIMELINE_WINDOW_SECONDS)}
-              ${this._renderNumberInput(CONF_TIMELINE_CLUSTERING_THRESHOLD)}
-              ${this._renderOptionSelector(
+              ${this._renderTimelineCoreControls(
+                CONF_TIMELINE_WINDOW_SECONDS,
+                CONF_TIMELINE_CLUSTERING_THRESHOLD,
                 CONF_TIMELINE_MEDIA,
-                this._timelineMediaTypes,
-              )}
-              ${this._renderSwitch(
                 CONF_TIMELINE_SHOW_RECORDINGS,
                 defaults.timeline.show_recordings,
               )}
