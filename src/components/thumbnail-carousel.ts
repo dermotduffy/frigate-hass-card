@@ -59,8 +59,8 @@ export class FrigateCardThumbnailCarousel extends LitElement {
   @property({ attribute: false })
   public config?: ThumbnailsControlConfig;
 
-  @state()
-  protected _selected: number | null = null;
+  @property({ attribute: false, type: Number, reflect: true })
+  public selected?: number;
 
   protected _carouselOptions?: EmblaOptionsType;
   protected _carouselPlugins: EmblaPluginType[] = [
@@ -74,15 +74,6 @@ export class FrigateCardThumbnailCarousel extends LitElement {
   constructor() {
     super();
     this._resizeObserver = new ResizeObserver(this._resizeHandler.bind(this));
-  }
-
-  @property({ attribute: false })
-  set selected(selected: number | null) {
-    this._selected = selected;
-    this.style.setProperty(
-      '--frigate-card-carousel-thumbnail-opacity',
-      selected === null ? '1.0' : '0.4',
-    );
   }
 
   /**
@@ -116,7 +107,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
     return {
       containScroll: 'keepSnaps',
       dragFree: true,
-      startIndex: this._selected ?? 0,
+      startIndex: this.selected ?? 0,
     };
   }
   /**
@@ -155,6 +146,13 @@ export class FrigateCardThumbnailCarousel extends LitElement {
       }
     }
 
+    if (changedProps.has('selected')) {
+      this.style.setProperty(
+        '--frigate-card-carousel-thumbnail-opacity',
+        this.selected === undefined ? '1.0' : '0.4',
+      );
+    }
+  
     if (!this._carouselOptions) {
       // Want to set the initial carousel options just before the first render
       // in order to get the startIndex correct in the options. It is not safe
@@ -171,10 +169,10 @@ export class FrigateCardThumbnailCarousel extends LitElement {
   updated(changedProperties: PropertyValues): void {
     super.updated(changedProperties);
 
-    if (changedProperties.has('_selected')) {
+    if (changedProperties.has('selected')) {
       this.updateComplete.then(() => {
-        if (this._selected !== null) {
-          this._refCarousel.value?.carouselScrollTo(this._selected);
+        if (this.selected !== undefined) {
+          this._refCarousel.value?.carouselScrollTo(this.selected);
         }
       });
     }
@@ -200,7 +198,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
 
     const classes = {
       embla__slide: true,
-      'slide-selected': this._selected === childIndex,
+      'slide-selected': this.selected === childIndex,
     };
 
     const cameraConfig = this.view?.camera ? this.cameras?.get(this.view.camera) : null;

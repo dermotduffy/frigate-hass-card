@@ -30,6 +30,7 @@ import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 
 import './surround-basic.js';
 import './timeline-core.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 
 interface ThumbnailViewContext {
   // Whether or not to fetch thumbnails.
@@ -171,8 +172,8 @@ export class FrigateCardSurround extends LitElement {
             .config=${this.thumbnailConfig}
             .view=${this.view}
             .target=${this.view.target}
-            .selected=${this.view.childIndex}
             .cameras=${this.cameras}
+            selected=${ifDefined(this.view.childIndex ?? undefined)}
             @frigate-card:view:change=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
             @frigate-card:thumbnail-carousel:tap=${(
               ev: CustomEvent<ThumbnailCarouselTap>,

@@ -681,7 +681,9 @@ export class FrigateCardTimelineCore extends LitElement {
           const window = this._timeline?.getWindow();
           if (window) {
             if (properties.group) {
-              this._changeViewToRecording(window.end, String(properties.group));
+              this._changeViewToRecording(
+                properties.what === 'background' ? properties.time : window.end,
+                String(properties.group));
             } else if (this.mini && this.view?.camera) {
               // In mini mode group may not be displayed / used, so just use the camera directly.
               this._changeViewToRecording(window.end, this.view.camera);
@@ -812,7 +814,10 @@ export class FrigateCardTimelineCore extends LitElement {
       : this._timeline.getSelection();
     let childIndex = -1;
     const children: FrigateBrowseMediaSource[] = [];
-    this._dataview?.get({ order: sortTimelineItemsYoungestToOldest }).forEach((item) => {
+    this._dataview?.get({ 
+      filter: (item) => item.type !== 'background',
+      order: sortTimelineItemsYoungestToOldest }
+    ).forEach((item) => {
       const cameraID = item.group ? String(item.group) : null;
       const cameraConfig = cameraID ? this.cameras?.get(cameraID) : null;
       const event = item.event;
