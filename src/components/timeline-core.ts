@@ -730,8 +730,10 @@ export class FrigateCardTimelineCore extends LitElement {
             })
             .mergeInContext(context)
             .dispatchChangeEvent(this);
-          dispatchFrigateCardEvent(this, 'thumbnails:open');
-        } else {
+          if (this.view.is('timeline')) {
+            dispatchFrigateCardEvent(this, 'thumbnails:open');
+          }
+        } else if (this.view.is('timeline')) {
           dispatchFrigateCardEvent(this, 'thumbnails:close');
         }
       }
@@ -966,7 +968,7 @@ export class FrigateCardTimelineCore extends LitElement {
   }
 
   /**
-   * Handle timeline resize.
+   * Get timeline options.
    */
   protected _getOptions(): TimelineOptions | null {
     if (!this.timelineConfig) {
@@ -1287,10 +1289,6 @@ export class FrigateCardTimelineCore extends LitElement {
           ...(window && { window: window }),
         };
         this._ignoreClick = false;
-
-        // if (ev.what && ['background', 'axis'].includes(ev.what)) {
-        //   this._setTargetBarAppropriately(ev.time);
-        // }
       });
       this._timeline.on('mouseUp', () => {
         this._pointerHeld = null;
