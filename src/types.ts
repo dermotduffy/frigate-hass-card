@@ -26,6 +26,8 @@ export const THUMBNAIL_WIDTH_MIN = 75;
  * Internal types.
  */
 
+export type ClipsOrSnapshots = 'clips' | 'snapshots';
+
 export const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
   'live',
   'clip',
@@ -38,6 +40,7 @@ export const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
 
 const FRIGATE_CARD_VIEWS = [
   ...FRIGATE_CARD_VIEWS_USER_SPECIFIED,
+  'recording',
 
   // Media: A generic piece of media (could be clip, snapshot, recording).
   'media',
@@ -568,10 +571,12 @@ export type PictureElements = z.infer<typeof pictureElementsSchema>;
  */
 const mediaLayoutConfigSchema = z.object({
   fit: z.enum(['contain', 'cover', 'fill']).optional(),
-  position: z.object({
-    x: z.number().min(0).max(100).optional(),
-    y: z.number().min(0).max(100).optional(),
-  }).optional(),
+  position: z
+    .object({
+      x: z.number().min(0).max(100).optional(),
+      y: z.number().min(0).max(100).optional(),
+    })
+    .optional(),
 });
 export type MediaLayoutConfig = z.infer<typeof mediaLayoutConfigSchema>;
 
@@ -654,6 +659,44 @@ const thumbnailsControlSchema = z.object({
   show_timeline_control: z.boolean().optional(),
 });
 export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlSchema>;
+
+/**
+ * Core/Mini timeline controls configuration section.
+ */
+
+const timelineCoreConfigDefault = {
+  clustering_threshold: 3,
+  media: 'all' as const,
+  window_seconds: 60 * 60,
+  show_recordings: true,
+};
+
+const timelineMediaSchema = z.enum(['all', 'clips', 'snapshots']);
+export type TimelineMedia = z.infer<typeof timelineMediaSchema>;
+
+const timelineCoreConfigSchema = z.object({
+  clustering_threshold: z
+    .number()
+    .optional()
+    .default(timelineCoreConfigDefault.clustering_threshold),
+  media: timelineMediaSchema.optional().default(timelineCoreConfigDefault.media),
+  window_seconds: z
+    .number()
+    .min(1 * 60)
+    .max(24 * 60 * 60)
+    .optional()
+    .default(timelineCoreConfigDefault.window_seconds),
+  show_recordings: z
+    .boolean()
+    .optional()
+    .default(timelineCoreConfigDefault.show_recordings),
+});
+export type TimelineCoreConfig = z.infer<typeof timelineCoreConfigSchema>;
+
+const miniTimelineConfigSchema = timelineCoreConfigSchema.extend({
+  mode: z.enum(['none', 'above', 'below']),
+});
+export type MiniTimelineControlConfig = z.infer<typeof miniTimelineConfigSchema>;
 
 /**
  * Next/Previous Control configuration section.
@@ -787,6 +830,7 @@ const liveOverridableConfigSchema = z
               .default(liveConfigDefault.controls.thumbnails.media),
           })
           .default(liveConfigDefault.controls.thumbnails),
+        timeline: miniTimelineConfigSchema.optional(),
         title: titleControlConfigSchema
           .extend({
             mode: titleControlConfigSchema.shape.mode.default(
@@ -989,6 +1033,7 @@ const viewerConfigSchema = z
               ),
           })
           .default(viewerConfigDefault.controls.thumbnails),
+        timeline: miniTimelineConfigSchema.optional(),
         title: titleControlConfigSchema
           .extend({
             mode: titleControlConfigSchema.shape.mode.default(
@@ -1082,10 +1127,7 @@ const dimensionsConfigSchema = z
  * Timeline configuration section.
  */
 const timelineConfigDefault = {
-  clustering_threshold: 3,
-  media: 'all' as const,
-  window_seconds: 60 * 60,
-  show_recordings: true,
+  ...timelineCoreConfigDefault,
   controls: {
     thumbnails: {
       mode: 'left' as const,
@@ -1096,26 +1138,9 @@ const timelineConfigDefault = {
     },
   },
 };
-const timelineConfigSchema = z
-  .object({
-    clustering_threshold: z
-      .number()
-      .optional()
-      .default(timelineConfigDefault.clustering_threshold),
-    media: z
-      .enum(['all', 'clips', 'snapshots'])
-      .optional()
-      .default(timelineConfigDefault.media),
-    window_seconds: z
-      .number()
-      .min(1 * 60)
-      .max(24 * 60 * 60)
-      .optional()
-      .default(timelineConfigDefault.window_seconds),
-    show_recordings: z
-      .boolean()
-      .optional()
-      .default(timelineConfigDefault.show_recordings),
+
+const timelineConfigSchema = timelineCoreConfigSchema
+  .extend({
     controls: z
       .object({
         thumbnails: thumbnailsControlSchema
@@ -1215,6 +1240,7 @@ export const frigateCardConfigDefaults = {
   event_gallery: galleryConfigDefault,
   image: imageConfigDefault,
   timeline: timelineConfigDefault,
+  mini_timeline: timelineCoreConfigDefault,
 };
 
 const menuButtonSchema = z.discriminatedUnion('type', [
@@ -1347,31 +1373,12 @@ interface BrowseMediaSource {
   children?: BrowseMediaSource[] | null;
 }
 
-export interface FrigateEvent {
-  camera: string;
-  end_time?: number;
-  false_positive: boolean;
-  has_clip: boolean;
-  has_snapshot: boolean;
-  id: string;
-  label: string;
-  start_time: number;
-  top_score: number;
-  zones: string[];
-  retain_indefinitely?: boolean;
-}
-
 export interface FrigateRecording {
+  // Frigate camera name (may not be unique)
   camera: string;
   start_time: number;
   end_time: number;
   events: number;
-
-  // Specifies the point at which this recording should be played, the
-  // seek_time is the date of the desired play point, and seek_seconds is the
-  // number of seconds to seek to reach that point.
-  seek_time?: number;
-  seek_seconds?: number;
 }
 
 export interface FrigateBrowseMediaSource extends BrowseMediaSource {
@@ -1379,8 +1386,27 @@ export interface FrigateBrowseMediaSource extends BrowseMediaSource {
   frigate?: {
     event?: FrigateEvent;
     recording?: FrigateRecording;
+    cameraID?: string;
   };
 }
+
+export const frigateEventSchema = z.object({
+  camera: z.string(),
+  end_time: z.number().nullable(),
+  false_positive: z.boolean().nullable(),
+  has_clip: z.boolean(),
+  has_snapshot: z.boolean(),
+  id: z.string(),
+  label: z.string(),
+  start_time: z.number(),
+  top_score: z.number(),
+  zones: z.string().array(),
+  retain_indefinitely: z.boolean().optional(),
+});
+export type FrigateEvent = z.infer<typeof frigateEventSchema>;
+
+export const frigateEventsSchema = frigateEventSchema.array();
+export type FrigateEvents = z.infer<typeof frigateEventsSchema>;
 
 export const frigateBrowseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.lazy(
   () =>
@@ -1396,19 +1422,7 @@ export const frigateBrowseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.
       children: z.array(frigateBrowseMediaSourceSchema).nullable().optional(),
       frigate: z
         .object({
-          event: z.object({
-            camera: z.string(),
-            end_time: z.number().nullable(),
-            false_positive: z.boolean().nullable(),
-            has_clip: z.boolean(),
-            has_snapshot: z.boolean(),
-            id: z.string(),
-            label: z.string(),
-            start_time: z.number(),
-            top_score: z.number(),
-            zones: z.string().array(),
-            retain_indefinitely: z.boolean().optional(),
-          }),
+          event: frigateEventSchema,
         })
         .optional(),
     }),

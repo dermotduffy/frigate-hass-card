@@ -37,7 +37,7 @@ div.control-surround {
 ha-icon.control {
   color: var(--secondary-color, white);
   background-color: rgba(0, 0, 0, 0.7);
-  opacity: 0.7;
+  opacity: 0.5;
   pointer-events: all;
 
   --mdc-icon-size: #{$drawer-icon-size};

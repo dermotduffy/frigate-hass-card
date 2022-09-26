@@ -161,11 +161,11 @@
         "thumbnails": {
           "mode": "Media Viewer thumbnails mode",
           "modes": {
-            "above": "Thumbnails above the media",
-            "below": "Thumbnails below the media",
-            "left": "Thumbnails in a drawer left of the media",
+            "above": "Thumbnails above",
+            "below": "Thumbnails below",
+            "left": "Thumbnails in a drawer to the left",
             "none": "No thumbnails",
-            "right": "Thumbnails in a drawer right of the media"
+            "right": "Thumbnails in a drawer to the right"
           },
           "show_details": "Show details with thumbnails",
           "show_favorite_control": "Show favorite control on thumbnails",
@@ -252,6 +252,15 @@
           "show_favorite_control": "Show favorite control on thumbnails",
           "show_timeline_control": "Show timeline control on thumbnails",
           "size": "Timeline thumbnails size in pixels"
+        }
+      },
+      "mini": {
+        "options": "Mini Timeline",
+        "mode": "Mode",
+        "modes": {
+          "none": "None",
+          "above": "Above",
+          "below": "Below"
         }
       },
       "media": "The media the timeline displays",
@@ -362,7 +371,8 @@
     "duration": "Duration",
     "in_progress": "In Progress",
     "score": "Score",
-    "start": "Start"
+    "start": "Start",
+    "seek": "Seek"
   },
   "recording": {
     "events": "Events",
@@ -371,7 +381,11 @@
   "thumbnail": {
     "no_thumbnail": "No thumbnail available",
     "retain_indefinitely": "Event will be indefinitely retained",
-    "timeline": "See event in timeline"
+    "timeline": "See event/recording in timeline"
+  },
+  "timeline": {
+    "lock": "Lock timeline to a single event",
+    "unlock": "Unlock timeline"
   },
   "elements": {
     "ptz": {

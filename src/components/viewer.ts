@@ -51,10 +51,30 @@ import {
 import './next-prev-control.js';
 import './title-control.js';
 import '../patches/ha-hls-player';
-import './surround-thumbnails';
+import './surround.js';
 import { EmblaCarouselPlugins } from './carousel.js';
 import { renderTask } from '../utils/task.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
+import { TimelineDataManager } from '../utils/timeline-data-manager.js';
+
+export interface MediaSeek {
+  // Specifies the point at which this recording should be played, the
+  // seek_time is the date of the desired play point (for display purposes
+  // usually), and seek_seconds is the number of seconds to seek into the video
+  // stream to reach that point.
+  seekTime: number;
+  seekSeconds: number;
+}
+
+export interface MediaViewerViewContext {
+  seek: Map<number, MediaSeek>;
+}
+
+declare module 'view' {
+  interface ViewContext {
+    mediaViewer?: MediaViewerViewContext;
+  }
+}
 
 @customElement('frigate-card-viewer')
 export class FrigateCardViewer extends LitElement {
@@ -72,6 +92,9 @@ export class FrigateCardViewer extends LitElement {
 
   @property({ attribute: false })
   public resolvedMediaCache?: ResolvedMediaCache;
+
+  @property({ attribute: false })
+  public timelineDataManager?: TimelineDataManager;
 
   /**
    * Master render method.
@@ -111,10 +134,13 @@ export class FrigateCardViewer extends LitElement {
       return renderProgressIndicator();
     }
 
-    return html` <frigate-card-surround-thumbnails
+    return html` <frigate-card-surround
       .hass=${this.hass}
       .view=${this.view}
-      .config=${this.viewerConfig.controls.thumbnails}
+      .fetch=${false}
+      .thumbnailConfig=${this.viewerConfig.controls.thumbnails}
+      .timelineConfig=${this.viewerConfig.controls.timeline}
+      .timelineDataManager=${this.timelineDataManager}
       .cameras=${this.cameras}
     >
       <frigate-card-viewer-carousel
@@ -125,7 +151,7 @@ export class FrigateCardViewer extends LitElement {
         .resolvedMediaCache=${this.resolvedMediaCache}
       >
       </frigate-card-viewer-carousel>
-    </frigate-card-surround-thumbnails>`;
+    </frigate-card-surround>`;
   }
 
   /**
@@ -202,7 +228,7 @@ export class FrigateCardViewerCarousel extends LitElement {
       if (oldView) {
         if (
           oldView.target === this.view?.target &&
-          this.view.childIndex != oldView.childIndex
+          oldView.childIndex !== this.view.childIndex
         ) {
           const slide = this._getSlideForChild(this.view.childIndex);
           if (
@@ -215,8 +241,14 @@ export class FrigateCardViewerCarousel extends LitElement {
           }
         }
       }
-    }
 
+      // Seek into the video if the seek time has changed (this is also called
+      // on media load, since the media may or may not have been loaded at
+      // this point).
+      if (this.view?.context?.mediaViewer !== oldView?.context?.mediaViewer) {
+        this._recordingSeekHandler();
+      }
+    }
     super.updated(changedProperties);
   }
 
@@ -663,15 +695,12 @@ export class FrigateCardViewerCarousel extends LitElement {
    * Fire a media show event when a slide is selected.
    */
   protected _recordingSeekHandler(): void {
-    // If this is a recording and play is desired to be started from a
-    // particular point, seek to that point. Use the media off the slide itself
-    // -- when the slide is changed, the media show event may be dispatched
-    // before this.view has been updated to reflect the new selection.
-    const player = this._getPlayer() as FrigateCardMediaPlayer & {
-      media?: FrigateBrowseMediaSource;
-    };
-    if (player && player.media && player.media.frigate?.recording?.seek_seconds) {
-      player.seek(player.media.frigate.recording.seek_seconds);
+    const player = this._getPlayer();
+    const childIndex = this.view?.childIndex ?? null;
+    const seek =
+      childIndex !== null ? this.view?.context?.mediaViewer?.seek.get(childIndex) : null;
+    if (player && seek) {
+      player.seek(seek.seekSeconds);
     }
   }
 
@@ -718,7 +747,6 @@ export class FrigateCardViewerCarousel extends LitElement {
               url=${ifDefined(
                 lazyLoad ? undefined : this._canonicalizeHAURL(resolvedMedia?.url),
               )}
-              .media=${mediaToRender}
               .hass=${this.hass}
               @frigate-card:media:loaded=${(e: CustomEvent<MediaLoadedInfo>) => {
                 wrapMediaLoadedEventForCarousel(slideIndex, e);

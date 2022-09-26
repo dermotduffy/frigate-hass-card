@@ -395,6 +395,23 @@ live:
 | `style` | `chevrons` | :white_check_mark: | When viewing live cameras, what kind of controls to show to move to the previous/next camera. Acceptable values: `chevrons`, `icons`, `none` . |
 | `size` | 48 | :white_check_mark: | The size of the next/previous controls in pixels. Must be >= `20`. |
 
+#### Live Controls: Mini Timeline
+
+All configuration is under:
+
+```yaml
+live:
+  controls:
+    timeline:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `window_seconds` | `3600` | :white_check_mark: | The length of the default timeline in seconds. By default, 1 hour (`3600` seconds) is shown in the timeline. |
+| `clustering_threshold` | `3` | :white_check_mark: | The number of overlapping events to allow prior to clustering/grouping them. Higher numbers cause clustering to happen less frequently. `0` disables clustering entirely.|
+| `media` | `all` | :white_check_mark: | Whether to show only events with `clips`, events with `snapshots` or `all` events. When `all` is used, `clips` are favored for events that have both a clip and a snapshot.|
+| `show_recordings` | `true` | :white_check_mark: | Whether to show recordings on the timeline (specifically: which hours have any recorded content).|
+
 <a name="live-controls-title"></a>
 
 #### Live Controls: Title
@@ -469,6 +486,23 @@ media_viewer:
 | `show_details` | `false` | :heavy_multiplication_x: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
 | `show_favorite_control` | `true` | :heavy_multiplication_x: | Whether to show the favorite ('star') control on each thumbnail.|
 | `show_timeline_control` | `true` | :heavy_multiplication_x: | Whether to show the timeline ('target') control on each thumbnail.|
+
+#### Media Viewer Controls: Mini Timeline
+
+All configuration is under:
+
+```yaml
+media_viewer:
+  controls:
+    timeline:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `window_seconds` | `3600` | :heavy_multiplication_x: | The length of the default timeline in seconds. By default, 1 hour (`3600` seconds) is shown in the timeline. |
+| `clustering_threshold` | `3` | :heavy_multiplication_x: | The number of overlapping events to allow prior to clustering/grouping them. Higher numbers cause clustering to happen less frequently. `0` disables clustering entirely.|
+| `media` | `all` | :heavy_multiplication_x: | Whether to show only events with `clips`, events with `snapshots` or `all` events. When `all` is used, `clips` are favored for events that have both a clip and a snapshot.|
+| `show_recordings` | `true` | :heavy_multiplication_x: | Whether to show recordings on the timeline (specifically: which hours have any recorded content).|
 
 #### Media Viewer Controls: Title
 
@@ -1340,6 +1374,12 @@ live:
       show_favorite_control: true
       show_timeline_control: true
       mode: none
+    timeline:
+      mode: none
+      clustering_threshold: 3
+      media: all
+      show_recordings: true
+      window_seconds: 3600
     title:
       mode: popup-bottom-right
       duration_seconds: 2
@@ -1390,6 +1430,12 @@ media_viewer:
       show_details: false
       show_favorite_control: true
       show_timeline_control: true
+    timeline:
+      mode: none
+      clustering_threshold: 3
+      media: all
+      show_recordings: true
+      window_seconds: 3600
     title:
       mode: popup-bottom-right
       duration_seconds: 2

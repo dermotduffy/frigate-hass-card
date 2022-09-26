@@ -4,10 +4,6 @@
 
 :host {
   width: 100%;
-  height: 100%;
-  background-color: var(--card-background-color);
-  padding-bottom: 5px;
-
   // Share the screen space with thumbnails that may be above/below.
   display: flex;
   flex-direction: column;
@@ -26,14 +22,6 @@ frigate-card-thumbnail[details] {
 
 div.timeline {
   flex: 1;
-}
-div.timeline.left-margin {
-  // Clearance for the drawer button.
-  margin-left: calc(drawer.$drawer-icon-size + 1px);
-}
-div.timeline.right-margin {
-  // Clearance for the drawer button.
-  margin-right: calc(drawer.$drawer-icon-size + 1px);
 }
 
 .vis-text {
@@ -66,6 +54,14 @@ div.timeline.right-margin {
 .vis-item.vis-background {
   background-color: var(--primary-color);
   opacity: 0.1;
+}
+
+// If there are no timeline groups shown (e.g. mini mode with a single camera),
+// ensure the background (recordings) always span the full height. Otherwise, in
+// cases where there are no events, the background is incorrectly rendered too
+// short by visjs.
+:host(:not([groups])) .vis-item.vis-background {
+  min-height: 100%;
 }
 
 .vis-item:not(.vis-background) {
@@ -126,4 +122,22 @@ div.vis-tooltip {
 
   // Use browser default font-family for tooltips.
   font-family: unset;
+}
+
+.target_bar {
+  border-left: 2px solid var(--primary-color);
+  opacity: 0.7;
+  box-shadow: 0px 0px 3px 1px var(--primary-color);
+
+  // Prevent the mouse interacting with the custom time.
+  pointer-events: none;
+}
+
+ha-icon.lock {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  color: var(--primary-color);
+  z-index: 10;
+  cursor: pointer;
 }

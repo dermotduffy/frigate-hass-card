@@ -61,13 +61,14 @@ import {
 import { dispatchErrorMessageEvent } from './message.js';
 import './next-prev-control.js';
 import './title-control.js';
-import './surround-thumbnails';
+import './surround.js';
 import '../patches/ha-camera-stream';
 import { EmblaCarouselPlugins } from './carousel.js';
 import { renderTask } from '../utils/task.js';
 import { classMap } from 'lit/directives/class-map.js';
 import './image';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
+import { TimelineDataManager } from '../utils/timeline-data-manager.js';
 
 // Number of seconds a signed URL is valid for.
 const URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -95,10 +96,13 @@ export class FrigateCardLive extends LitElement {
   @property({ attribute: false, hasChanged: contentsChanged })
   public liveOverrides?: LiveOverrides;
 
+  @property({ attribute: false })
+  public timelineDataManager?: TimelineDataManager;
+
   // Whether or not the live view is currently in the background (i.e. preloaded
   // but not visible)
   @state()
-  protected _inBackground?: boolean = true;
+  protected _inBackground?: boolean = false;
 
   // Intersection handler is used to detect when the live view flips between
   // foreground and background (in preload mode).
@@ -122,7 +126,7 @@ export class FrigateCardLive extends LitElement {
    * @param entries The IntersectionObserverEntry entries (should be only 1).
    */
   protected _intersectionHandler(entries: IntersectionObserverEntry[]): void {
-    this._inBackground = entries.every((entry) => !entry.isIntersecting);
+    this._inBackground = !entries.some((entry) => entry.isIntersecting);
 
     if (
       !this._inBackground &&
@@ -209,13 +213,16 @@ export class FrigateCardLive extends LitElement {
     //   is received when the card is in the background).
     const result = html`${keyed(
       this._renderKey,
-      html`<frigate-card-surround-thumbnails
+      html`<frigate-card-surround
         .hass=${this.hass}
         .view=${this.view}
-        .config=${config.controls.thumbnails}
+        .fetch=${true}
+        .thumbnailConfig=${config.controls.thumbnails}
+        .timelineConfig=${config.controls.timeline}
         .browseMediaParams=${browseMediaParams ?? undefined}
         .cameras=${this.cameras}
-        ?fetch=${!this._inBackground}
+        .timelineDataManager=${this.timelineDataManager}
+        .inBackground=${this._inBackground}
         @frigate-card:message=${(ev: CustomEvent<Message>) => {
           this._renderKey++;
           this._messageReceivedPostRender = true;
@@ -245,7 +252,7 @@ export class FrigateCardLive extends LitElement {
           .liveOverrides=${this.liveOverrides}
         >
         </frigate-card-live-carousel>
-      </frigate-card-surround-thumbnails>`,
+      </frigate-card-surround>`,
     )}`;
 
     this._messageReceivedPostRender = false;

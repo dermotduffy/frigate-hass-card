@@ -55,19 +55,23 @@ export const createFetchThumbnailTask = (
   host: ReactiveControllerHost,
   getHASS: () => HomeAssistant | undefined,
   getThumbnailURL: () => string | undefined,
+  autoRun = true,
 ): Task<FetchThumbnailTaskArgs, string | null> => {
   return new Task(
     host,
-    async ([haveHASS, thumbnailURL]: FetchThumbnailTaskArgs): Promise<
-      string | null
-    > => {
-      const hass = getHASS();
-      if (!haveHASS || !hass || !thumbnailURL) {
-        return null;
-      }
-      return fetchThumbnail(hass, thumbnailURL);
+    {
+      // Do not re-run the task if hass changes, unless it was previously undefined.
+      args: (): FetchThumbnailTaskArgs => [!!getHASS(), getThumbnailURL()],
+      task: async ([haveHASS, thumbnailURL]: FetchThumbnailTaskArgs): Promise<
+        string | null
+      > => {
+        const hass = getHASS();
+        if (!haveHASS || !hass || !thumbnailURL) {
+          return null;
+        }
+        return fetchThumbnail(hass, thumbnailURL);
+      },
+      autoRun: autoRun,
     },
-    // Do not re-run the task if hass changes, unless it was previously undefined.
-    (): FetchThumbnailTaskArgs => [!!getHASS(), getThumbnailURL()],
   );
 };

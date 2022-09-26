@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import { isEqual } from 'lodash-es';
 import { FrigateCardError } from '../types';
 
@@ -85,3 +86,28 @@ export function errorToConsole(e: Error, func?: CallableFunction): void {
 export const isHoverableDevice = (): boolean => window.matchMedia(
   '(hover: hover) and (pointer: fine)',
 ).matches;
+
+/**
+ * Format a date object to RFC3339.
+ * @param date A Date object.
+ * @returns A date and time.
+ */
+export const formatDateAndTime = (date: Date): string => {
+  return format(date, 'yyyy-MM-dd HH:mm');
+}
+
+/**
+ * Run a function in idle periods. If idle callbacks are not supported (e.g.
+ * Safari) the callback is run immediately.
+ * @param func The function to call.
+ * @param timeout The maximum number of seconds to wait.
+ */
+export const runWhenIdleIfSupported = (func: () => void, timeout?: number): void => {
+  if (window.requestIdleCallback) {
+    window.requestIdleCallback(func, {
+      ...(timeout && { timeout: timeout})
+    });
+  } else {
+    func();
+  }
+}

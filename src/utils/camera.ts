@@ -72,3 +72,38 @@ export function getCameraIcon(
 ): string {
   return config?.icon || getEntityIcon(hass, config?.camera_entity) || 'mdi:video';
 }
+
+/**
+ * Get all cameras that depend on a given camera.
+ * @param cameras Cameras map.
+ * @param camera Name of the target camera.
+ * @returns A set of query parameters.
+ */
+export const getAllDependentCameras = (
+  cameras: Map<string, CameraConfig>,
+  camera?: string,
+): Set<string> => {
+  const cameraIDs: Set<string> = new Set();
+  const getDependentCameras = (camera: string): void => {
+    const cameraConfig = cameras.get(camera);
+    if (cameraConfig) {
+      cameraIDs.add(camera);
+      const dependentCameras: Set<string> = new Set();
+      (cameraConfig.dependencies.cameras || []).forEach((item) =>
+        dependentCameras.add(item),
+      );
+      if (cameraConfig.dependencies.all_cameras) {
+        cameras.forEach((_, key) => dependentCameras.add(key));
+      }
+      for (const eventCameraID of dependentCameras) {
+        if (!cameraIDs.has(eventCameraID)) {
+          getDependentCameras(eventCameraID);
+        }
+      }
+    }
+  };
+  if (camera) {
+    getDependentCameras(camera);
+  }
+  return cameraIDs;
+};

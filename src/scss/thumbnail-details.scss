@@ -13,6 +13,8 @@ div.left {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  font-size: 0.8rem;
+  line-height: normal;
 }
 div.right {
   align-items: center;
@@ -42,5 +44,5 @@ span.heading {
 
 div.larger,
 span.larger {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
 }

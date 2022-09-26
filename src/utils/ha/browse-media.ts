@@ -1,10 +1,4 @@
 import { HomeAssistant } from 'custom-card-helpers';
-import {
-  differenceInHours,
-  differenceInMinutes,
-  differenceInSeconds,
-  fromUnixTime,
-} from 'date-fns';
 import { homeAssistantWSRequest } from '.';
 import {
   dispatchErrorMessageEvent,
@@ -14,7 +8,6 @@ import {
 import { localize } from '../../localize/localize.js';
 import {
   BrowseMediaQueryParameters,
-  BrowseRecordingQueryParameters,
   CameraConfig,
   FrigateBrowseMediaSource,
   frigateBrowseMediaSourceSchema,
@@ -27,7 +20,7 @@ import {
   MEDIA_TYPE_VIDEO,
 } from '../../types.js';
 import { View } from '../../view.js';
-import { getCameraTitle } from '../camera.js';
+import { getAllDependentCameras, getCameraTitle } from '../camera.js';
 
 /**
  * Return the Frigate event_id given a FrigateBrowseMediaSource object.
@@ -78,7 +71,7 @@ export const getFirstTrueMediaChildIndex = (
  * @param media_content_id The media content id to browse.
  * @returns A FrigateBrowseMediaSource object or null on malformed.
  */
-export const browseMedia = async (
+const browseMedia = async (
   hass: HomeAssistant,
   media_content_id: string,
 ): Promise<FrigateBrowseMediaSource> => {
@@ -95,11 +88,11 @@ export const browseMedia = async (
  * @param params The search parameters to use to search for media.
  * @returns A FrigateBrowseMediaSource object or null on malformed.
  */
-export const browseMediaQuery = async (
+const browseMediaQuery = async (
   hass: HomeAssistant,
   params: BrowseMediaQueryParameters,
 ): Promise<FrigateBrowseMediaSource> => {
-  return browseMedia(
+  const result = await browseMedia(
     hass,
     // Defined in:
     // https://github.com/blakeblackshear/frigate-hass-integration/blob/master/custom_components/frigate/media_source.py
@@ -118,6 +111,14 @@ export const browseMediaQuery = async (
       params.zone,
     ].join('/'),
   );
+  // If a cameraID was specified, imprint each child with that id for
+  // traceability.
+  if (params.cameraID) {
+    result.children?.forEach((child: FrigateBrowseMediaSource) => {
+      (child.frigate ??= {}).cameraID = params.cameraID;
+    })
+  }
+  return result;
 };
 
 /**
@@ -259,27 +260,7 @@ export const getFullDependentBrowseMediaQueryParameters = (
   camera: string,
   mediaType?: 'clips' | 'snapshots',
 ): BrowseMediaQueryParameters[] | null => {
-  const cameraIDs: Set<string> = new Set();
-  const getDependentCameras = (camera: string): void => {
-    const cameraConfig = cameras.get(camera);
-    if (cameraConfig) {
-      cameraIDs.add(camera);
-      const dependentCameras: Set<string> = new Set();
-      (cameraConfig.dependencies.cameras || []).forEach((item) =>
-        dependentCameras.add(item),
-      );
-      if (cameraConfig.dependencies.all_cameras) {
-        cameras.forEach((_, key) => dependentCameras.add(key));
-      }
-      for (const eventCameraID of dependentCameras) {
-        if (!cameraIDs.has(eventCameraID)) {
-          getDependentCameras(eventCameraID);
-        }
-      }
-    }
-  };
-  getDependentCameras(camera);
-
+  const cameraIDs = getAllDependentCameras(cameras, camera);
   const params: BrowseMediaQueryParameters[] = [];
   for (const cameraID of cameraIDs) {
     const param = getBrowseMediaQueryParameters(
@@ -425,19 +406,21 @@ export const createEventParentForChildren = (
 /**
  * Given a media video child with a given media_content_id.
  * @param title The title to use for the child.
- * @param media_con
+ * @param mediaContentID The media content id to use for the child.
  * @param children The children media items.
  * @returns A single parent containing the children.
  */
-export const createVideoChild = (
+export const createChild = (
   title: string,
   mediaContentID: string,
   options?: {
     thumbnail?: string;
     recording?: FrigateRecording;
+    event?: FrigateEvent;
+    cameraID?: string,
   },
 ): FrigateBrowseMediaSource => {
-  return {
+  const result: FrigateBrowseMediaSource = {
     title: title,
     media_class: MEDIA_CLASS_VIDEO,
     media_content_type: MEDIA_TYPE_VIDEO,
@@ -445,59 +428,19 @@ export const createVideoChild = (
     can_play: true,
     can_expand: false,
     thumbnail: options?.thumbnail ?? null,
-    children: null,
-    ...(options?.recording && {
-      frigate: {
-        recording: options.recording,
-      },
-    }),
-  };
-};
-
-/**
- * Convenience function to convert a timestamp to hours, minutes and seconds
- * string. Heavily inspired by, and returning the same format as, the Frigate
- * UI: https://github.com/blakeblackshear/frigate/blob/master/web/src/components/RecordingPlaylist.jsx#L97
- * @param event The Frigate event.
- * @returns A duration string.
- */
-export function getEventDurationString(event: FrigateEvent): string {
-  if (!event.end_time) {
-    return localize('event.in_progress');
+    children: null
   }
-  const start = fromUnixTime(event.start_time);
-  const end = fromUnixTime(event.end_time);
-  const hours = differenceInHours(end, start);
-  const minutes = differenceInMinutes(end, start) - hours * 60;
-  const seconds = differenceInSeconds(end, start) - hours * 60 * 60 - minutes * 60;
-  let duration = '';
-
-  if (hours) {
-    duration += `${hours}h `;
+  if (options?.recording || options?.cameraID || options?.event) {
+    result.frigate = {}
+    if (options?.event) {
+      result.frigate.event = options.event;
+    }
+    if (options?.recording) {
+      result.frigate.recording = options.recording;
+    }
+    if (options?.cameraID) {
+      result.frigate.cameraID = options.cameraID;
+    }
   }
-  if (minutes) {
-    duration += `${minutes}m `;
-  }
-  duration += `${seconds}s`;
-  return duration;
-}
-
-/**
- * Generate a recording identifier.
- * @param hass The HomeAssistant object.
- * @param params The recording parameters to use in the identifer.
- * @returns A recording identifier.
- */
-export const generateRecordingIdentifier = (
-  params: BrowseRecordingQueryParameters,
-): string => {
-  return [
-    'media-source://frigate',
-    params.clientId,
-    'recordings',
-    `${params.year}-${String(params.month).padStart(2, '0')}`,
-    String(params.day).padStart(2, '0'),
-    String(params.hour).padStart(2, '0'),
-    params.cameraName,
-  ].join('/');
+  return result;
 };

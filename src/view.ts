@@ -23,12 +23,12 @@ export interface ViewParameters extends ViewEvolveParameters {
 }
 
 export class View {
-  view: FrigateCardView;
-  camera: string;
-  target: FrigateBrowseMediaSource | null;
-  childIndex: number | null;
-  previous: View | null;
-  context: ViewContext | null;
+  public view: FrigateCardView;
+  public camera: string;
+  public target: FrigateBrowseMediaSource | null;
+  public childIndex: number | null;
+  public previous: View | null;
+  public context: ViewContext | null;
 
   constructor(params: ViewParameters) {
     this.view = params.view;
@@ -162,7 +162,7 @@ export class View {
    * Determine if a view is for the media viewer.
    */
   public isViewerView(): boolean {
-    return ['clip', 'snapshot', 'media'].includes(this.view);
+    return ['clip', 'snapshot', 'media', 'recording'].includes(this.view);
   }
 
   /**
