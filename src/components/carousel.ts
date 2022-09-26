@@ -105,13 +105,16 @@ export class FrigateCardCarousel extends LitElement {
    * @param index Slide number.
    */
   public carouselScrollTo(index: number): void {
-    const scroll = () => this._carousel?.scrollTo(index, this.transitionEffect === 'none');
+    const scroll = () =>
+      this._carousel?.scrollTo(index, this.transitionEffect === 'none');
+    // This ensures scrolling can work on initial render when the carousel may
+    // not yet exist.
     if (this._carousel) {
       scroll();
     } else {
       this.updateComplete.then(() => {
         scroll();
-      })
+      });
     }
   }
 
