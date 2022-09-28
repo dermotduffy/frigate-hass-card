@@ -68,6 +68,7 @@
     "rollup-plugin-styles": "^4.0.0",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.33.0",
+    "rollup-plugin-visualizer": "^5.8.2",
     "sass": "^1.54.9",
     "typescript": "^4.8.3"
   },
