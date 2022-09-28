@@ -5,3 +5,5 @@ package-lock.json
 
 .env
 .envrc
+
+stats.html

@@ -29,7 +29,7 @@ import {
   TimelineOptions,
   TimelineOptionsCluster,
   TimelineWindow,
-} from 'vis-timeline/esnext';
+} from 'vis-timeline/esnext/umd/vis-timeline-graph2d.min.js';
 import { CAMERA_BIRDSEYE } from '../const';
 import { localize } from '../localize/localize';
 import timelineCoreStyle from '../scss/timeline-core.scss';
