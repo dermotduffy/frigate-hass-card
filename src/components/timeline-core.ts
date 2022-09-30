@@ -730,10 +730,10 @@ export class FrigateCardTimelineCore extends LitElement {
             })
             .mergeInContext(context)
             .dispatchChangeEvent(this);
-          if (this.view.is('timeline')) {
+          if (!this.view.isViewerView()) {
             dispatchFrigateCardEvent(this, 'thumbnails:open');
           }
-        } else if (this.view.is('timeline')) {
+        } else if (!this.view.isViewerView()) {
           dispatchFrigateCardEvent(this, 'thumbnails:close');
         }
       }

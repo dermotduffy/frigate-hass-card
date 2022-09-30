@@ -2939,6 +2939,21 @@ See [screenshot above](#screenshots-card-casting).
 
 You must be using a version of the [Frigate integration](https://github.com/blakeblackshear/frigate-hass-integration) >= 3.0.0-rc.2 to see recordings. Using an older version of the integration may also show blank thumbnails in the events viewer. Please upgrade your integration accordingly.
 
+### `Forbidden media source identifier`
+
+You must have the `Enable the media browser` option enabled for the Frigate integration, in order for media fetches to work for the card. Media fetches are used to fetch events / clips / snapshots, etc. If you just wish to use live streams without media fetches, you can use the following configuration:
+
+```yaml
+live:
+  controls:
+    thumbnails:
+      mode: none
+```
+
+### Static image URL with credentials doesn't load
+
+Your browser will not allow a page/script (like this card) to pass credentials to a cross-origin (different host) image URL for security reasons. There is no way around this unless you could also control the webserver that is serving the image to specifically allow `crossorigin` requests (which is typically not the case for an image served from a camera, for example). The stock Home Assistant Picture Glance card has the same limitation, for the same reasons.
+
 ### Chrome autoplays when a tab becomes visible again
 
 Even if `live.auto_play` or `media_viewer.auto_play` is set to `never`, Chrome itself will still auto play a video that was previously playing prior to the tab being hidden, once that tab is visible again. This behavior cannot be influenced by the card. Other browsers (e.g. Firefox, Safari) do not exhibit this behavior.
@@ -2954,7 +2969,6 @@ For some slowly loading cameras, for which [Home Assistant stream preloading](ht
 You must be using a version of the [Frigate integration](https://github.com/blakeblackshear/frigate-hass-integration) >= 2.1.0
 to use JSMPEG proxying. The `frigate-jsmpeg` live provider will not work with earlier
 integration versions.
-
 
 ### Timeline shows error message
 
