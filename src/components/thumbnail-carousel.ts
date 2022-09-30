@@ -59,7 +59,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
   @property({ attribute: false })
   public config?: ThumbnailsControlConfig;
 
-  @property({ attribute: false, type: Number, reflect: true })
+  @property({ attribute: true, type: Number, reflect: true })
   public selected?: number;
 
   protected _carouselOptions?: EmblaOptionsType;
