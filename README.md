@@ -2941,7 +2941,8 @@ You must be using a version of the [Frigate integration](https://github.com/blak
 
 ### `Forbidden media source identifier`
 
-You must have the `Enable the media browser` option enabled for the Frigate integration, in order for media fetches to work for the card. Media fetches are used to fetch events / clips / snapshots, etc. If you just wish to use live streams without media fetches, you can use the following configuration:
+* If you are using a custom `client_id` setting in your `frigate.yml` file (the configuration file for the Frigate backend itself), you must tell the card about it. See [camera configuration](#camera-frigate-configuration").
+* You must have the `Enable the media browser` option enabled for the Frigate integration, in order for media fetches to work for the card. Media fetches are used to fetch events / clips / snapshots, etc. If you just wish to use live streams without media fetches, you can use the following configuration:
 
 ```yaml
 live:

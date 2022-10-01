@@ -143,15 +143,21 @@ const MENU_CAMERAS_DEPENDENCIES = 'cameras.dependencies';
 const MENU_CAMERAS_FRIGATE = 'cameras.frigate';
 const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
 const MENU_CAMERAS_WEBRTC = 'cameras.webrtc';
-const MENU_EVENT_GALLERY_CONTROLS = 'event_gallery.controls';
+const MENU_EVENT_GALLERY_CONTROLS_THUMBNAILS = 'event_gallery.controls.thumbnails';
 const MENU_IMAGE_LAYOUT = 'image.layout';
 const MENU_LIVE_CONTROLS = 'live.controls';
+const MENU_LIVE_CONTROLS_NEXT_PREVIOUS = 'live.controls.next_previous';
+const MENU_LIVE_CONTROLS_THUMBNAILS = 'live.controls.thumbnails';
 const MENU_LIVE_CONTROLS_TIMELINE = 'live.controls.timeline';
+const MENU_LIVE_CONTROLS_TITLE = 'live.controls.title';
 const MENU_LIVE_LAYOUT = 'live.layout';
 const MENU_MEDIA_VIEWER_CONTROLS = 'media_viewer.controls';
+const MENU_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS = 'media_viewer.controls.next_previous';
+const MENU_MEDIA_VIEWER_CONTROLS_THUMBNAILS = 'media_viewer.controls.thumbnails';
 const MENU_MEDIA_VIEWER_CONTROLS_TIMELINE = 'media_viewer.controls.timeline';
+const MENU_MEDIA_VIEWER_CONTROLS_TITLE = 'media_viewer.controls.title';
 const MENU_MEDIA_VIEWER_LAYOUT = 'media_viewer.layout';
-const MENU_TIMELINE_CONTROLS = 'timeline.controls';
+const MENU_TIMELINE_CONTROLS_THUMBNAILS = 'timeline.controls.thumbnails';
 const MENU_OPTIONS = 'options';
 const MENU_VIEW_SCAN = 'scan';
 
@@ -278,33 +284,17 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'bottom', label: localize('config.menu.alignments.bottom') },
   ];
 
-  protected _eventViewerNextPreviousControlStyles: EditorSelectOption[] = [
-    { value: '', label: '' },
-    {
-      value: 'thumbnails',
-      label: localize('config.media_viewer.controls.next_previous.styles.thumbnails'),
-    },
-    {
-      value: 'chevrons',
-      label: localize('config.media_viewer.controls.next_previous.styles.chevrons'),
-    },
-    {
-      value: 'none',
-      label: localize('config.media_viewer.controls.next_previous.styles.none'),
-    },
-  ];
-
-  protected _liveNextPreviousControlStyles: EditorSelectOption[] = [
+  protected _nextPreviousControlStyles: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'chevrons',
-      label: localize('config.live.controls.next_previous.styles.chevrons'),
+      label: localize('config.common.controls.next_previous.styles.chevrons'),
     },
     {
       value: 'icons',
-      label: localize('config.live.controls.next_previous.styles.icons'),
+      label: localize('config.common.controls.next_previous.styles.icons'),
     },
-    { value: 'none', label: localize('config.live.controls.next_previous.styles.none') },
+    { value: 'none', label: localize('config.common.controls.next_previous.styles.none') },
   ];
 
   protected _aspectRatioModes: EditorSelectOption[] = [
@@ -324,53 +314,53 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: '', label: '' },
     {
       value: 'none',
-      label: localize('config.media_viewer.controls.thumbnails.modes.none'),
+      label: localize('config.common.controls.thumbnails.modes.none'),
     },
     {
       value: 'above',
-      label: localize('config.media_viewer.controls.thumbnails.modes.above'),
+      label: localize('config.common.controls.thumbnails.modes.above'),
     },
     {
       value: 'below',
-      label: localize('config.media_viewer.controls.thumbnails.modes.below'),
+      label: localize('config.common.controls.thumbnails.modes.below'),
     },
     {
       value: 'left',
-      label: localize('config.media_viewer.controls.thumbnails.modes.left'),
+      label: localize('config.common.controls.thumbnails.modes.left'),
     },
     {
       value: 'right',
-      label: localize('config.media_viewer.controls.thumbnails.modes.right'),
+      label: localize('config.common.controls.thumbnails.modes.right'),
     },
   ];
 
   protected _thumbnailMedias: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'clips', label: localize('config.live.controls.thumbnails.medias.clips') },
+    { value: 'clips', label: localize('config.common.controls.thumbnails.medias.clips') },
     {
       value: 'snapshots',
-      label: localize('config.live.controls.thumbnails.medias.snapshots'),
+      label: localize('config.common.controls.thumbnails.medias.snapshots'),
     },
   ];
 
   protected _titleModes: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'none', label: localize('config.media_viewer.controls.title.modes.none') },
+    { value: 'none', label: localize('config.common.controls.title.modes.none') },
     {
       value: 'popup-top-left',
-      label: localize('config.media_viewer.controls.title.modes.popup-top-left'),
+      label: localize('config.common.controls.title.modes.popup-top-left'),
     },
     {
       value: 'popup-top-right',
-      label: localize('config.media_viewer.controls.title.modes.popup-top-right'),
+      label: localize('config.common.controls.title.modes.popup-top-right'),
     },
     {
       value: 'popup-bottom-left',
-      label: localize('config.media_viewer.controls.title.modes.popup-bottom-left'),
+      label: localize('config.common.controls.title.modes.popup-bottom-left'),
     },
     {
       value: 'popup-bottom-right',
-      label: localize('config.media_viewer.controls.title.modes.popup-bottom-right'),
+      label: localize('config.common.controls.title.modes.popup-bottom-right'),
     },
   ];
 
@@ -389,9 +379,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
   protected _timelineMediaTypes: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'all', label: localize('config.timeline.medias.all') },
-    { value: 'clips', label: localize('config.timeline.medias.clips') },
-    { value: 'snapshots', label: localize('config.timeline.medias.snapshots') },
+    { value: 'all', label: localize('config.common.timeline.medias.all') },
+    { value: 'clips', label: localize('config.common.timeline.medias.clips') },
+    { value: 'snapshots', label: localize('config.common.timeline.medias.snapshots') },
   ];
 
   protected _darkModes: EditorSelectOption[] = [
@@ -435,9 +425,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
   protected _miniTimelineModes: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'none', label: localize('config.timeline.mini.modes.none') },
-    { value: 'above', label: localize('config.timeline.mini.modes.above') },
-    { value: 'below', label: localize('config.timeline.mini.modes.below') },
+    { value: 'none', label: localize('config.common.controls.timeline.modes.none') },
+    { value: 'above', label: localize('config.common.controls.timeline.modes.above') },
+    { value: 'below', label: localize('config.common.controls.timeline.modes.below') },
   ];
 
   public setConfig(config: RawFrigateCardConfig): void {
@@ -855,16 +845,16 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     defaultShowRecordings: boolean,
   ): TemplateResult {
     return html` ${this._renderNumberInput(configPathWindowSeconds, {
-      label: localize(`config.${CONF_TIMELINE_WINDOW_SECONDS}`),
+      label: localize(`config.common.${CONF_TIMELINE_WINDOW_SECONDS}`),
     })}
     ${this._renderNumberInput(configPathClusteringThreshold, {
-      label: localize(`config.${CONF_TIMELINE_CLUSTERING_THRESHOLD}`),
+      label: localize(`config.common.${CONF_TIMELINE_CLUSTERING_THRESHOLD}`),
     })}
     ${this._renderOptionSelector(configPathTimelineMedia, this._timelineMediaTypes, {
-      label: localize(`config.${CONF_TIMELINE_MEDIA}`),
+      label: localize(`config.common.${CONF_TIMELINE_MEDIA}`),
     })}
     ${this._renderSwitch(configPathShowRecordings, defaultShowRecordings, {
-      label: localize(`config.${CONF_TIMELINE_SHOW_RECORDINGS}`),
+      label: localize(`config.common.${CONF_TIMELINE_SHOW_RECORDINGS}`),
     })}`;
   }
 
@@ -888,10 +878,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     return this._putInSubmenu(
       domain,
       true,
-      'config.timeline.mini.options',
+      'config.common.controls.timeline.editor_label',
       { name: 'mdi:chart-gantt' },
       html` ${this._renderOptionSelector(configPathMode, this._miniTimelineModes, {
-        label: localize('config.timeline.mini.mode'),
+        label: localize('config.common.controls.timeline.mode'),
       })}
       ${this._renderTimelineCoreControls(
         configPathWindowSeconds,
@@ -900,6 +890,139 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         configPathShowRecordings,
         frigateCardConfigDefaults.mini_timeline.show_recordings,
       )}`,
+    );
+  }
+
+  /**
+   * Render the next & previous controls.
+   * @param domain The submenu domain.
+   * @param configPathStyle Next previous style config path.
+   * @param configPathSize Next previous size config path.
+   * @returns A rendered template.
+   */
+  protected _renderNextPreviousControls(
+    domain: string,
+    configPathStyle: string,
+    configPathSize: string,
+  ): TemplateResult | void {
+    return this._putInSubmenu(
+      domain,
+      true,
+      'config.common.controls.next_previous.editor_label',
+      { name: 'mdi:arrow-right-bold-circle' },
+      html`
+        ${this._renderOptionSelector(configPathStyle, this._nextPreviousControlStyles, {
+          label: localize('config.common.controls.next_previous.style'),
+        })}
+        ${this._renderNumberInput(configPathSize, {
+          min: BUTTON_SIZE_MIN,
+          label: localize('config.common.controls.next_previous.size'),
+        })}
+      `,
+    );
+  }
+
+  /**
+   * Render the thumbnails controls.
+   * @param domain The submenu domain.
+   * @param configPathMode Thumbnails mode config path.
+   * @param configPathSize Thumbnails size config path.
+   * @param configPathShowDetails Thumbnails show details config path.
+   * @param configPathShowFavoriteControl Thumbnails show favorite control config path.
+   * @param configPathShowTimelineControl Thumbnails show timeline control config path,
+   * @param configPathMedia Thumbnails media config path.
+   * @returns A rendered template.
+   */
+  protected _renderThumbnailsControls(
+    domain: string,
+    configPathSize: string,
+    configPathShowDetails: string,
+    configPathShowFavoriteControl: string,
+    configPathShowTimelineControl: string,
+    options?: {
+      configPathMedia?: string;
+      configPathMode?: string;
+    },
+  ): TemplateResult | void {
+    return this._putInSubmenu(
+      domain,
+      true,
+      'config.common.controls.thumbnails.editor_label',
+      { name: 'mdi:image-text' },
+      html`
+        ${options?.configPathMode
+          ? html`${this._renderOptionSelector(
+              options.configPathMode,
+              this._thumbnailModes,
+              {
+                label: localize('config.common.controls.thumbnails.mode'),
+              },
+            )}`
+          : html``}
+        ${options?.configPathMedia
+          ? html`${this._renderOptionSelector(
+              options.configPathMedia,
+              this._thumbnailMedias,
+              {
+                label: localize('config.common.controls.thumbnails.media'),
+              },
+            )}`
+          : html``}
+        ${this._renderNumberInput(configPathSize, {
+          min: THUMBNAIL_WIDTH_MIN,
+          max: THUMBNAIL_WIDTH_MAX,
+          label: localize('config.common.controls.thumbnails.size'),
+        })}
+        ${this._renderSwitch(
+          configPathShowDetails,
+          frigateCardConfigDefaults.live.controls.thumbnails.show_details,
+          {
+            label: localize('config.common.controls.thumbnails.show_details'),
+          },
+        )}
+        ${this._renderSwitch(
+          configPathShowFavoriteControl,
+          frigateCardConfigDefaults.live.controls.thumbnails.show_favorite_control,
+          {
+            label: localize('config.common.controls.thumbnails.show_favorite_control'),
+          },
+        )}
+        ${this._renderSwitch(
+          configPathShowTimelineControl,
+          frigateCardConfigDefaults.live.controls.thumbnails.show_timeline_control,
+          {
+            label: localize('config.common.controls.thumbnails.show_timeline_control'),
+          },
+        )}
+      `,
+    );
+  }
+
+  /**
+   * Render the titles controls.
+   * @param domain The submenu domain.
+   * @param configPathMode Title mode config path.
+   * @param configPathDurationSeconds Title duration seconds config path.
+   * @returns A rendered template.
+   */
+  protected _renderTitleControls(
+    domain: string,
+    configPathMode: string,
+    configPathDurationSeconds: string,
+  ): TemplateResult | void {
+    return this._putInSubmenu(
+      domain,
+      true,
+      'config.common.controls.title.editor_label',
+      { name: 'mdi:subtitles' },
+      html` ${this._renderOptionSelector(configPathMode, this._titleModes, {
+        label: localize('config.common.controls.title.mode'),
+      })}
+      ${this._renderNumberInput(configPathDurationSeconds, {
+        min: 0,
+        max: 60,
+        label: localize('config.common.controls.title.duration_seconds'),
+      })}`,
     );
   }
 
@@ -1064,7 +1187,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._putInSubmenu(
                 MENU_CAMERAS_FRIGATE,
                 cameraIndex,
-                'config.cameras.frigate.options',
+                'config.cameras.frigate.editor_label',
                 { path: FRIGATE_ICON_SVG_PATH },
                 html`
                   ${this._renderStringInput(
@@ -1093,7 +1216,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._putInSubmenu(
                 MENU_CAMERAS_DEPENDENCIES,
                 cameraIndex,
-                'config.cameras.dependencies.options',
+                'config.cameras.dependencies.editor_label',
                 { name: 'mdi:graph' },
                 html` ${this._renderSwitch(
                   getArrayConfigPath(
@@ -1116,7 +1239,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._putInSubmenu(
                 MENU_CAMERAS_TRIGGERS,
                 cameraIndex,
-                'config.cameras.triggers.options',
+                'config.cameras.triggers.editor_label',
                 { name: 'mdi:magnify-scan' },
                 html` ${this._renderSwitch(
                   getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY, cameraIndex),
@@ -1137,7 +1260,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._putInSubmenu(
                 MENU_CAMERAS_WEBRTC,
                 cameraIndex,
-                'config.cameras.webrtc_card.options',
+                'config.cameras.webrtc_card.editor_label',
                 { name: 'mdi:webrtc' },
                 html`${this._renderEntitySelector(
                   getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY, cameraIndex),
@@ -1264,8 +1387,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${this._renderOptionSetHeader('cameras')}
         ${this._expandedMenus[MENU_OPTIONS] === 'cameras'
           ? html`
-              ${cameras.map((_, index) => this._renderCamera(cameras, index, entities))}
-              ${this._renderCamera(cameras, cameras.length, entities, true)}
+              <div class="values">
+                ${cameras.map((_, index) => this._renderCamera(cameras, index, entities))}
+                ${this._renderCamera(cameras, cameras.length, entities, true)}
+              </div>
             `
           : ''}
         ${this._renderOptionSetHeader('view')}
@@ -1351,50 +1476,29 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._putInSubmenu(
                   MENU_LIVE_CONTROLS,
                   true,
-                  'config.live.controls.options',
+                  'config.live.controls.editor_label',
                   { name: 'mdi:gamepad' },
                   html`
-                    ${this._renderOptionSelector(
+                    ${this._renderNextPreviousControls(
+                      MENU_LIVE_CONTROLS_NEXT_PREVIOUS,
                       CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
-                      this._liveNextPreviousControlStyles,
+                      CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
                     )}
-                    ${this._renderNumberInput(CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE, {
-                      min: BUTTON_SIZE_MIN,
-                    })}
-                    ${this._renderOptionSelector(
-                      CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
-                      this._thumbnailModes,
-                    )}
-                    ${this._renderOptionSelector(
-                      CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
-                      this._thumbnailMedias,
-                    )}
-                    ${this._renderNumberInput(CONF_LIVE_CONTROLS_THUMBNAILS_SIZE, {
-                      min: THUMBNAIL_WIDTH_MIN,
-                      max: THUMBNAIL_WIDTH_MAX,
-                    })}
-                    ${this._renderOptionSelector(
-                      CONF_LIVE_CONTROLS_TITLE_MODE,
-                      this._titleModes,
-                    )}
-                    ${this._renderSwitch(
+                    ${this._renderThumbnailsControls(
+                      MENU_LIVE_CONTROLS_THUMBNAILS,
+                      CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
                       CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-                      defaults.live.controls.thumbnails.show_details,
-                    )}
-                    ${this._renderSwitch(
                       CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
-                      defaults.live.controls.thumbnails.show_favorite_control,
-                    )}
-                    ${this._renderSwitch(
                       CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
-                      defaults.live.controls.thumbnails.show_timeline_control,
-                    )}
-                    ${this._renderNumberInput(
-                      CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
                       {
-                        min: 0,
-                        max: 60,
-                      },
+                        configPathMedia: CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
+                        configPathMode: CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
+                      }
+                    )}
+                    ${this._renderTitleControls(
+                      MENU_LIVE_CONTROLS_TITLE,
+                      CONF_LIVE_CONTROLS_TITLE_MODE,
+                      CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
                     )}
                     ${this._renderMiniTimeline(
                       MENU_LIVE_CONTROLS_TIMELINE,
@@ -1419,30 +1523,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${this._renderOptionSetHeader('event_gallery')}
         ${this._expandedMenus[MENU_OPTIONS] === 'event_gallery'
           ? html` <div class="values">
-              ${this._putInSubmenu(
-                MENU_EVENT_GALLERY_CONTROLS,
-                true,
-                'config.event_gallery.controls.options',
-                { name: 'mdi:gamepad' },
-                html` ${this._renderNumberInput(
-                  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE,
-                  {
-                    min: THUMBNAIL_WIDTH_MIN,
-                    max: THUMBNAIL_WIDTH_MAX,
-                  },
-                )}
-                ${this._renderSwitch(
-                  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-                  defaults.media_viewer.controls.thumbnails.show_details,
-                )}
-                ${this._renderSwitch(
-                  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
-                  defaults.media_viewer.controls.thumbnails.show_favorite_control,
-                )}
-                ${this._renderSwitch(
-                  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
-                  defaults.media_viewer.controls.thumbnails.show_timeline_control,
-                )}`,
+              ${this._renderThumbnailsControls(
+                MENU_EVENT_GALLERY_CONTROLS_THUMBNAILS,
+                CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE,
+                CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+                CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+                CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
               )}
             </div>`
           : ''}
@@ -1480,46 +1566,28 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._putInSubmenu(
                 MENU_MEDIA_VIEWER_CONTROLS,
                 true,
-                'config.media_viewer.controls.options',
+                'config.media_viewer.controls.editor_label',
                 { name: 'mdi:gamepad' },
                 html`
-                  ${this._renderOptionSelector(
+                  ${this._renderNextPreviousControls(
+                    MENU_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS,
                     CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
-                    this._eventViewerNextPreviousControlStyles,
-                  )}
-                  ${this._renderNumberInput(
                     CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
-                    {
-                      min: BUTTON_SIZE_MIN,
-                    },
                   )}
-                  ${this._renderOptionSelector(
-                    CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
-                    this._thumbnailModes,
-                  )}
-                  ${this._renderNumberInput(CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE, {
-                    min: THUMBNAIL_WIDTH_MIN,
-                    max: THUMBNAIL_WIDTH_MAX,
-                  })}
-                  ${this._renderSwitch(
+                  ${this._renderThumbnailsControls(
+                    MENU_MEDIA_VIEWER_CONTROLS_THUMBNAILS,
+                    CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE,
                     CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-                    defaults.media_viewer.controls.thumbnails.show_details,
-                  )}
-                  ${this._renderSwitch(
                     CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
-                    defaults.media_viewer.controls.thumbnails.show_favorite_control,
-                  )}
-                  ${this._renderSwitch(
                     CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
-                    defaults.media_viewer.controls.thumbnails.show_timeline_control,
+                    {
+                      configPathMode: CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
+                    }
                   )}
-                  ${this._renderOptionSelector(
+                  ${this._renderTitleControls(
+                    MENU_MEDIA_VIEWER_CONTROLS_TITLE,
                     CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE,
-                    this._titleModes,
-                  )}
-                  ${this._renderNumberInput(
                     CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
-                    { min: 0, max: 60 },
                   )}
                   ${this._renderMiniTimeline(
                     MENU_MEDIA_VIEWER_CONTROLS_TIMELINE,
@@ -1565,31 +1633,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 CONF_TIMELINE_SHOW_RECORDINGS,
                 defaults.timeline.show_recordings,
               )}
-              ${this._putInSubmenu(
-                MENU_TIMELINE_CONTROLS,
-                true,
-                'config.timeline.controls.options',
-                { name: 'mdi:gamepad' },
-                html` ${this._renderOptionSelector(
-                  CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
-                  this._thumbnailModes,
-                )}
-                ${this._renderNumberInput(CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE, {
-                  min: THUMBNAIL_WIDTH_MIN,
-                  max: THUMBNAIL_WIDTH_MAX,
-                })}
-                ${this._renderSwitch(
-                  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-                  defaults.timeline.controls.thumbnails.show_details,
-                )}
-                ${this._renderSwitch(
-                  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
-                  defaults.timeline.controls.thumbnails.show_favorite_control,
-                )}
-                ${this._renderSwitch(
-                  CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
-                  defaults.timeline.controls.thumbnails.show_timeline_control,
-                )}`,
+              ${this._renderThumbnailsControls(
+                MENU_TIMELINE_CONTROLS_THUMBNAILS,
+                CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
+                CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+                CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+                CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                {
+                  configPathMode: CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
+                }
               )}
             </div>`
           : ''}

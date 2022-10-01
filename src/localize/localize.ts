@@ -3,7 +3,7 @@ import * as pt_BR from './languages/pt-BR.json';
 import * as it from './languages/it.json';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const languages: any = {
+const languages: Record<string, any> = {
   en: en,
   pt_BR: pt_BR,
   it: it,

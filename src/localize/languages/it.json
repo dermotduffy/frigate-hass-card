@@ -16,13 +16,13 @@
       "dependencies": {
         "all_cameras": "Mostra eventi per tutte le telecamere con questa telecamera",
         "cameras": "Mostra eventi per telecamere specifiche con questa telecamera",
-        "options": "Opzioni di dipendenza"
+        "editor_label": "Opzioni di dipendenza"
       },
       "frigate": {
         "camera_name": "Nome della telecamera frigate (autodificato dall'entità)",
         "client_id": "ID client Frigate (per > 1 Frigate server)",
         "label": "Filtro etichetta/oggetto Frigate",
-        "options": "Frigate Opzione",
+        "editor_label": "Frigate Opzione",
         "url": "Frigate URL del server",
         "zone": "Frigate zona"
       },
@@ -40,11 +40,11 @@
         "entities": "Trigger da altre entità",
         "motion": "Trigger rilevando automaticamente dal sensore di movimento",
         "occupancy": "Attivare rilevando automatico tramite il sensore di presenza",
-        "options": "Trigger Opzioni"
+        "editor_label": "Trigger Opzioni"
       },
       "webrtc_card": {
         "entity": "Entità della telecamera della scheda WebRTC (non una telecamera Frigate)",
-        "options": "Opzioni della scheda WebRTC",
+        "editor_label": "Opzioni della scheda WebRTC",
         "url": "URL della telecamera della scheda WebRTC"
       }
     },
@@ -56,6 +56,82 @@
         "selected": "Sulla selezione",
         "unselected": "Sulla non selezione",
         "visible": "Sul browser/visibilità della scheda"
+      },
+      "layout": {
+        "fit": "",
+        "fits": {
+          "cover": "",
+          "contain": "",
+          "fill": ""
+        },
+        "position": {
+          "x": "",
+          "y": ""
+        }
+      },
+      "timeline": {
+        "clustering_threshold": "Il conteggio degli eventi in cui sono raggruppati (0 = nessun clustering)",
+        "media": "I media vengono visualizzati la sequenza temporale",
+        "medias": {
+          "all": "Tutti i tipi di media",
+          "clips": "Clip",
+          "snapshots": "Istantanee"
+        },
+        "show_recordings": "Mostra registrazioni",
+        "window_seconds": "La lunghezza predefinita della vista della sequenza temporale in secondi"
+      },
+      "controls": {
+        "next_previous": {
+          "editor_label": "",
+          "size": "Successiva e Precedenti dimensioni di controllo nei pixel",
+          "style": "Stile di controllo successivo e precedente",
+          "styles": {
+            "chevrons": "Chevrons",
+            "icons": "Icone",
+            "none": "Icone"
+          }
+        },
+        "timeline": {
+          "editor_label": "",
+          "mode": "",
+          "modes": {
+            "none": "",
+            "above": "",
+            "below": ""
+          }
+        },
+        "thumbnails": {
+          "editor_label": "",
+          "media": "Se mostrare miniature di clip o istantanee",
+          "medias": {
+            "clips": "Miniature di clip",
+            "snapshots": "Miniature istantanee"
+          },
+          "mode": "Modalità miniatura",
+          "modes": {
+            "above": "Miniature sopra",
+            "below": "Miniature sotto",
+            "left": "Miniature in un cassetto a sinistra",
+            "none": "Nessuna miniatura",
+            "right": "Miniature in un cassetto a destra"
+          },
+          "show_details": "Mostra i dettagli dell'evento con le miniature",
+          "show_favorite_control": "Mostra il controllo preferito sulle miniature",
+          "show_timeline_control": "Mostra il controllo della sequenza temporale sulle miniature",
+          "size": "Dimensione delle miniature in pixel"
+        },
+        "title": {
+          "editor_label": "",
+          "duration_seconds": "Secondi per visualizzare il titolo popup (0 = per sempre)",
+          "mode": "Modalità di visualizzazione del titolo",
+          "modes": {
+            "none": "Nessuna visualizzazione del titolo",
+            "popup-bottom-left": "Popup in basso a sinistra",
+            "popup-bottom-right": "Popup in basso a destra",
+            "popup-top-left": "Popup in alto a sinistra",
+            "popup-top-right": "Popup in alto a destra"
+          }
+        }
       }
     },
     "dimensions": {
@@ -67,18 +143,8 @@
         "unconstrained": "Proporzioni non vincolate"
       }
     },
-    "event_gallery": {
-      "controls": {
-        "options": "Controlli della galleria degli eventi",
-        "thumbnails": {
-          "show_details": "Mostra i dettagli dell'evento con le miniature",
-          "show_favorite_control": "Mostra il controllo preferito sulle miniature",
-          "show_timeline_control": "Mostra il controllo della sequenza temporale sulle miniature",
-          "size": "Dimensione delle miniature della galleria di eventi nei pixel"
-        }
-      }
-    },
     "image": {
+      "layout": "",
       "mode": "Modalità Visualizza immagine",
       "modes": {
         "camera": "Istantanea della telecamera di Home Assistant dell'entità telecamera",
@@ -94,34 +160,10 @@
       "auto_play": "Gioca automaticamente le telecamere dal vivo",
       "auto_unmute": "Riattiva automaticamente l'audio delle telecamere live",
       "controls": {
-        "next_previous": {
-          "size": "Vista live Successiva e Precedenti dimensioni di controllo nei pixel",
-          "style": "Stile di controllo successivo e precedente della vista dal vivo",
-          "styles": {
-            "chevrons": "Chevrons",
-            "icons": "Icone",
-            "none": "Icone"
-          }
-        },
-        "options": "Controlli dal vivo",
-        "thumbnails": {
-          "media": "Se mostrare miniature di clip o istantanee",
-          "medias": {
-            "clips": "Miniature di clip",
-            "snapshots": "Miniature istantanee"
-          },
-          "mode": "Modalità di miniatura dal vivo",
-          "show_details": "Mostra i dettagli dell'evento con le miniature",
-          "show_favorite_control": "Mostra il controllo preferito sulle miniature",
-          "show_timeline_control": "Mostra il controllo della sequenza temporale sulle miniature",
-          "size": "Dimensione delle miniature dal vivo nei pixel"
-        },
-        "title": {
-          "duration_seconds": "Secondi per visualizzare il titolo popup (0 = per sempre)",
-          "mode": "Modalità di visualizzazione del titolo multimediale dal vivo"
-        }
+        "editor_label": "Controlli dal vivo"
       },
       "draggable": "Il Visualizzatore eventi può essere trascinato oppure puoi scorrere",
+      "layout": "",
       "lazy_load": "Le telecamere dal vivo sono pigramente cariche",
       "lazy_unload": "Le telecamere dal vivo sono pigramente non caricate",
       "preload": "Precarica Live View in background",
@@ -134,44 +176,11 @@
       "auto_play": "Riproduci automaticamente i contenuti multimediali",
       "auto_unmute": "Riattiva automaticamente i contenuti multimediali",
       "controls": {
-        "next_previous": {
-          "size": "Media Viewer successivo e precedente controllo dimensione in pixel",
-          "style": "Visualizzatore multimediale successivo e stile di controllo precedente",
-          "styles": {
-            "chevrons": "chevrons",
-            "none": "Nessuno",
-            "thumbnails": "Miniature"
-          }
-        },
-        "options": "Controlli di visualizzatore multimediale",
-        "thumbnails": {
-          "mode": "Modalità miniature del visualizzatore multimediale",
-          "modes": {
-            "above": "Miniature sopra i media",
-            "below": "Miniature sotto i media",
-            "left": "Miniature in un cassetto a sinistra del supporto",
-            "none": "Nessuna miniatura",
-            "right": "Miniature in un cassetto a destra dei media"
-          },
-          "show_details": "Mostra i dettagli con le miniature",
-          "show_favorite_control": "Mostra il controllo preferito sulle miniature",
-          "show_timeline_control": "Mostra il controllo della sequenza temporale sulle miniature",
-          "size": "Dimensioni delle miniature di Media Viewer in pixel"
-        },
-        "title": {
-          "duration_seconds": "Secondi per visualizzare il titolo popup (0 = per sempre)",
-          "mode": "Media Viewer modalità di visualizzazione del titolo multimediale",
-          "modes": {
-            "none": "Nessuna visualizzazione del titolo",
-            "popup-bottom-left": "Popup in basso a sinistra",
-            "popup-bottom-right": "Popup in basso a destra",
-            "popup-top-left": "Popup in alto a sinistra",
-            "popup-top-right": "Popup in alto a destra"
-          }
-        }
+        "editor_label": "Controlli di visualizzatore multimediale"
       },
       "draggable": "Il visualizzatore multimediale può essere trascinato oppure può scorrere",
       "lazy_load": "Il media Viewer viene caricato pigramente nel carosello",
+      "layout": "",
       "transition_effect": "Effetto di transizione del visualizzatore multimediale",
       "transition_effects": {
         "none": "Nessuna transizione",
@@ -226,27 +235,6 @@
     },
     "overrides": {
       "info": "Questa configurazione della scheda ha specificato manualmente le sostituzioni configurate che possono sostituire i valori mostrati nell'editor visivo, consultare l'editor di codice per visualizzare/modificare queste sostituzioni"
-    },
-    "timeline": {
-      "clustering_threshold": "Il conteggio degli eventi in cui sono raggruppati (0 = nessun clustering)",
-      "controls": {
-        "options": "Controlli della sequenza temporale",
-        "thumbnails": {
-          "mode": "Modalità miniatura della sequenza temporale",
-          "show_details": "Mostra i dettagli dell'evento con le miniature",
-          "show_favorite_control": "Mostra il controllo preferito sulle miniature",
-          "show_timeline_control": "Mostra il controllo della sequenza temporale sulle miniature",
-          "size": "Dimensione delle miniature della sequenza temporale in pixel"
-        }
-      },
-      "media": "I media vengono visualizzati la sequenza temporale",
-      "medias": {
-        "all": "Tutti i tipi di media",
-        "clips": "Clip",
-        "snapshots": "Istantanee"
-      },
-      "show_recordings": "Mostra registrazioni",
-      "window_seconds": "La lunghezza predefinita della vista della sequenza temporale in secondi"
     },
     "view": {
       "camera_select": "Visualizza per le telecamere appena selezionate",
@@ -347,7 +335,8 @@
     "duration": "Durata",
     "in_progress": "In corso",
     "score": "Punteggio",
-    "start": "Avvia"
+    "start": "Avvia",
+    "seek": "Cercare"
   },
   "recording": {
     "events": "Eventi",
@@ -357,5 +346,20 @@
     "no_thumbnail": "Nessuna miniatura disponibile",
     "retain_indefinitely": "L'evento sarà mantenuto indefinitamente",
     "timeline": "Vedi evento nella timeline"
+  },
+  "timeline": {
+    "lock": "",
+    "unlock": ""
+  },
+  "elements": {
+    "ptz": {
+      "up": "",
+      "down": "",
+      "left": "",
+      "right": "",
+      "zoom_in": "",
+      "zoom_out": "",
+      "home": ""
+    }
   }
 }
