@@ -86,6 +86,11 @@ div.upgrade span {
   margin-right: auto;
   margin-bottom: 10px;
 }
+
+.submenu .submenu:first-child {
+  margin-top: 10px;
+}
+
 .submenu :not(.submenu.selected) {
   border: none;
 }
