@@ -1,5 +1,3 @@
-// TODO: simplify submenu CSS for nested submenus (use .values for cameras)
-
 import { fireEvent, HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
@@ -1389,8 +1387,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${this._renderOptionSetHeader('cameras')}
         ${this._expandedMenus[MENU_OPTIONS] === 'cameras'
           ? html`
-              ${cameras.map((_, index) => this._renderCamera(cameras, index, entities))}
-              ${this._renderCamera(cameras, cameras.length, entities, true)}
+              <div class="values">
+                ${cameras.map((_, index) => this._renderCamera(cameras, index, entities))}
+                ${this._renderCamera(cameras, cameras.length, entities, true)}
+              </div>
             `
           : ''}
         ${this._renderOptionSetHeader('view')}

@@ -72,27 +72,22 @@ div.upgrade span {
   padding-right: 15px;
 }
 
-.submenu {
-  border: 1px solid var(--divider-color);
-}
 .submenu.selected {
   border: 1px solid var(--primary-color);
 }
 
 // Nested menus should shrink width.
-.submenu .submenu {
+.submenu {
   width: calc(100% - 10px * 2);
   margin-left: auto;
   margin-right: auto;
   margin-bottom: 10px;
 }
 
-.submenu .submenu:first-child {
+// Add a margin above a submenu unless it's another submenu.
+.submenu:first-child,
+:not(.submenu) + .submenu {
   margin-top: 10px;
-}
-
-.submenu :not(.submenu.selected) {
-  border: none;
 }
 
 .submenu .controls {
