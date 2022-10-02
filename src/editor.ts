@@ -294,7 +294,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       value: 'icons',
       label: localize('config.common.controls.next_previous.styles.icons'),
     },
-    { value: 'none', label: localize('config.common.controls.next_previous.styles.none') },
+    {
+      value: 'none',
+      label: localize('config.common.controls.next_previous.styles.none'),
+    },
   ];
 
   protected _aspectRatioModes: EditorSelectOption[] = [
@@ -336,7 +339,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
   protected _thumbnailMedias: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'clips', label: localize('config.common.controls.thumbnails.medias.clips') },
+    {
+      value: 'clips',
+      label: localize('config.common.controls.thumbnails.medias.clips'),
+    },
     {
       value: 'snapshots',
       label: localize('config.common.controls.thumbnails.medias.snapshots'),
@@ -1388,7 +1394,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${this._expandedMenus[MENU_OPTIONS] === 'cameras'
           ? html`
               <div class="values">
-                ${cameras.map((_, index) => this._renderCamera(cameras, index, entities))}
+                ${cameras.map((_, index) =>
+                  this._renderCamera(cameras, index, entities),
+                )}
                 ${this._renderCamera(cameras, cameras.length, entities, true)}
               </div>
             `
@@ -1424,18 +1432,18 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderNumberInput(CONF_MENU_BUTTON_SIZE, {
                   min: BUTTON_SIZE_MIN,
                 })}
+                ${this._renderMenuButton('frigate') /* */}
+                ${this._renderMenuButton('cameras') /* */}
+                ${this._renderMenuButton('live') /* */}
+                ${this._renderMenuButton('clips') /* */}
+                ${this._renderMenuButton('snapshots')}
+                ${this._renderMenuButton('image') /* */}
+                ${this._renderMenuButton('download')}
+                ${this._renderMenuButton('frigate_ui')}
+                ${this._renderMenuButton('fullscreen')}
+                ${this._renderMenuButton('timeline')}
+                ${this._renderMenuButton('media_player')}
               </div>
-              ${this._renderMenuButton('frigate') /* */}
-              ${this._renderMenuButton('cameras') /* */}
-              ${this._renderMenuButton('live') /* */}
-              ${this._renderMenuButton('clips') /* */}
-              ${this._renderMenuButton('snapshots')}
-              ${this._renderMenuButton('image') /* */}
-              ${this._renderMenuButton('download')}
-              ${this._renderMenuButton('frigate_ui')}
-              ${this._renderMenuButton('fullscreen')}
-              ${this._renderMenuButton('timeline')}
-              ${this._renderMenuButton('media_player')}
             `
           : ''}
         ${this._renderOptionSetHeader('live')}
@@ -1493,7 +1501,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       {
                         configPathMedia: CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
                         configPathMode: CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
-                      }
+                      },
                     )}
                     ${this._renderTitleControls(
                       MENU_LIVE_CONTROLS_TITLE,
@@ -1582,7 +1590,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
                     {
                       configPathMode: CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
-                    }
+                    },
                   )}
                   ${this._renderTitleControls(
                     MENU_MEDIA_VIEWER_CONTROLS_TITLE,
@@ -1641,7 +1649,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
                 {
                   configPathMode: CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
-                }
+                },
               )}
             </div>`
           : ''}

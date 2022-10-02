@@ -328,7 +328,9 @@ export class FrigateCardTimelineCore extends LitElement {
           if (!onlyShowMatchingHour || isMatchingHour) {
             children.push(
               createChild(
-                `${prettifyTitle(config.frigate.camera_name)} ${formatDateAndTime(hour)}`,
+                `${prettifyTitle(config.frigate.camera_name)} ${formatDateAndTime(
+                  hour,
+                )}`,
                 getRecordingMediaContentID({
                   clientId: config.frigate.client_id,
                   year: dayData.day.getFullYear(),
@@ -466,7 +468,6 @@ export class FrigateCardTimelineCore extends LitElement {
       properties.event.additionalEvent !== 'pinchin' &&
       properties.event.additionalEvent !== 'pinchout'
     ) {
-
       const targetTime = this._pointerHeld?.window
         ? add(properties.start, {
             seconds:
@@ -683,7 +684,8 @@ export class FrigateCardTimelineCore extends LitElement {
             if (properties.group) {
               this._changeViewToRecording(
                 properties.what === 'background' ? properties.time : window.end,
-                String(properties.group));
+                String(properties.group),
+              );
             } else if (this.mini && this.view?.camera) {
               // In mini mode group may not be displayed / used, so just use the camera directly.
               this._changeViewToRecording(window.end, this.view.camera);
@@ -816,48 +818,50 @@ export class FrigateCardTimelineCore extends LitElement {
       : this._timeline.getSelection();
     let childIndex = -1;
     const children: FrigateBrowseMediaSource[] = [];
-    this._dataview?.get({ 
-      filter: (item) => item.type !== 'background',
-      order: sortTimelineItemsYoungestToOldest }
-    ).forEach((item) => {
-      const cameraID = item.group ? String(item.group) : null;
-      const cameraConfig = cameraID ? this.cameras?.get(cameraID) : null;
-      const event = item.event;
-      const media =
-        event?.has_clip && this.timelineConfig?.media !== 'snapshots'
-          ? 'clips'
-          : event?.has_snapshot
-          ? 'snapshots'
-          : null;
+    this._dataview
+      ?.get({
+        filter: (item) => item.type !== 'background',
+        order: sortTimelineItemsYoungestToOldest,
+      })
+      .forEach((item) => {
+        const cameraID = item.group ? String(item.group) : null;
+        const cameraConfig = cameraID ? this.cameras?.get(cameraID) : null;
+        const event = item.event;
+        const media =
+          event?.has_clip && this.timelineConfig?.media !== 'snapshots'
+            ? 'clips'
+            : event?.has_snapshot
+            ? 'snapshots'
+            : null;
 
-      if (
-        cameraID &&
-        cameraConfig &&
-        event &&
-        media &&
-        cameraConfig.frigate.camera_name
-      ) {
-        children.push(
-          createChild(
-            getEventTitle(event),
-            getEventMediaContentID(
-              cameraConfig.frigate.client_id,
-              cameraConfig.frigate.camera_name,
-              event.id,
-              media,
+        if (
+          cameraID &&
+          cameraConfig &&
+          event &&
+          media &&
+          cameraConfig.frigate.camera_name
+        ) {
+          children.push(
+            createChild(
+              getEventTitle(event),
+              getEventMediaContentID(
+                cameraConfig.frigate.client_id,
+                cameraConfig.frigate.camera_name,
+                event.id,
+                media,
+              ),
+              {
+                thumbnail: getEventThumbnailURL(cameraConfig.frigate.client_id, event),
+                event: event,
+                cameraID: cameraID,
+              },
             ),
-            {
-              thumbnail: getEventThumbnailURL(cameraConfig.frigate.client_id, event),
-              event: event,
-              cameraID: cameraID,
-            },
-          ),
-        );
-        if (selected.includes(event.id)) {
-          childIndex = children.length - 1;
+          );
+          if (selected.includes(event.id)) {
+            childIndex = children.length - 1;
+          }
         }
-      }
-    });
+      });
     if (!children.length) {
       return null;
     }
@@ -1053,13 +1057,7 @@ export class FrigateCardTimelineCore extends LitElement {
    * Update the timeline from the view object.
    */
   protected async _updateTimelineFromView(): Promise<void> {
-    if (
-      !this.hass ||
-      !this.cameras ||
-      !this.view ||
-      !this.timelineConfig ||
-      !this._timeline
-    ) {
+    if (!this.hass || !this.cameras || !this.view || !this.timelineConfig) {
       return;
     }
 
@@ -1091,7 +1089,7 @@ export class FrigateCardTimelineCore extends LitElement {
       ));
     }
 
-    this._timeline.setSelection(event ? [event.id] : [], {
+    this._timeline?.setSelection(event ? [event.id] : [], {
       focus: false,
       animation: {
         animation: false,
@@ -1107,7 +1105,11 @@ export class FrigateCardTimelineCore extends LitElement {
       this.timelineDataManager?.rewriteItem(event.id);
     }
 
-    if (!this._pointerHeld && !this.view.context?.timeline?.noSetWindow) {
+    if (
+      !this._pointerHeld &&
+      !this.view.context?.timeline?.noSetWindow &&
+      this._timeline
+    ) {
       // Regenerate the thumbnails after the selection, to allow the new selection
       // to be in the generated view.
       const context = this.view.context?.timeline;
