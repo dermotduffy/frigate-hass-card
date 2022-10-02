@@ -1030,8 +1030,9 @@ export class FrigateCard extends LitElement {
 
     if (this._cameras && (changedProps.has('_config') || changedProps.has('_cameras'))) {
       this._timelineDataManager = new TimelineDataManager(
-        this._cameras, this._config.timeline.media
-      )
+        this._cameras,
+        this._config.timeline.media,
+      );
     }
   }
 
@@ -1226,29 +1227,44 @@ export class FrigateCard extends LitElement {
       });
       return;
     }
-    const event_id = getEventID(this._view.media);
-    if (!event_id) {
-      this._setMessageAndUpdate({
-        message: localize('error.download_no_event_id'),
-        type: 'error',
-      });
-      return;
-    }
 
     const cameraConfig = this._getSelectedCameraConfig();
-    if (!cameraConfig) {
+    if (!cameraConfig || !cameraConfig.frigate.camera_name) {
       return;
     }
 
-    const path =
-      `/api/frigate/${cameraConfig.frigate.client_id}` +
-      `/notifications/${event_id}/` +
-      `${
-        this._view.media.media_content_type === MEDIA_TYPE_VIDEO
-          ? 'clip.mp4'
-          : 'snapshot.jpg'
-      }` +
-      `?download=true`;
+    let path: string;
+    if (this._view.media.frigate?.event) {
+      const event_id = getEventID(this._view.media);
+      if (!event_id) {
+        this._setMessageAndUpdate({
+          message: localize('error.download_no_event_id'),
+          type: 'error',
+        });
+        return;
+      }
+
+      path =
+        `/api/frigate/${cameraConfig.frigate.client_id}` +
+        `/notifications/${event_id}/` +
+        `${
+          this._view.media.media_content_type === MEDIA_TYPE_VIDEO
+            ? 'clip.mp4'
+            : 'snapshot.jpg'
+        }` +
+        `?download=true`;
+    } else if (this._view.media.frigate?.recording) {
+      const recording = this._view.media.frigate.recording;
+      path =
+        `/api/frigate/${cameraConfig.frigate.client_id}` +
+        `/recording/${cameraConfig.frigate.camera_name}` +
+        `/start/${recording.start_time}` +
+        `/end/${recording.end_time}` +
+        `?download=true`;
+    } else {
+      return;
+    }
+
     let response: string | null | undefined;
     try {
       response = await homeAssistantSignPath(this._hass, path);
