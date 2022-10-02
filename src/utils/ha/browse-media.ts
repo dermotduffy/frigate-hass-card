@@ -9,6 +9,7 @@ import { localize } from '../../localize/localize.js';
 import {
   BrowseMediaQueryParameters,
   CameraConfig,
+  ClipsOrSnapshots,
   FrigateBrowseMediaSource,
   frigateBrowseMediaSourceSchema,
   FrigateCardError,
@@ -258,7 +259,7 @@ export const getFullDependentBrowseMediaQueryParameters = (
   hass: HomeAssistant,
   cameras: Map<string, CameraConfig>,
   camera: string,
-  mediaType?: 'clips' | 'snapshots',
+  mediaType?: ClipsOrSnapshots,
 ): BrowseMediaQueryParameters[] | null => {
   const cameraIDs = getAllDependentCameras(cameras, camera);
   const params: BrowseMediaQueryParameters[] = [];
@@ -290,7 +291,7 @@ export const getFullDependentBrowseMediaQueryParametersOrDispatchError = (
   hass: HomeAssistant,
   cameras: Map<string, CameraConfig>,
   camera: string,
-  mediaType?: 'clips' | 'snapshots',
+  mediaType?: ClipsOrSnapshots,
 ): BrowseMediaQueryParameters[] | null => {
   const params = getFullDependentBrowseMediaQueryParameters(
     hass,

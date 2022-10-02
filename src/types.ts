@@ -34,13 +34,14 @@ export const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
   'clips',
   'snapshot',
   'snapshots',
+  'recording',
+  'recordings',
   'image',
   'timeline',
 ] as const;
 
 const FRIGATE_CARD_VIEWS = [
   ...FRIGATE_CARD_VIEWS_USER_SPECIFIED,
-  'recording',
 
   // Media: A generic piece of media (could be clip, snapshot, recording).
   'media',
@@ -204,6 +205,8 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'fullscreen',
   'menu_toggle',
   'diagnostics',
+  'recording',
+  'recordings'
 ] as const;
 const FRIGATE_CARD_ACTIONS = [
   ...FRIGATE_CARD_GENERAL_ACTIONS,
@@ -907,6 +910,7 @@ const menuConfigDefault = {
     frigate_ui: visibleButtonDefault,
     fullscreen: visibleButtonDefault,
     media_player: visibleButtonDefault,
+    recordings: hiddenButtonDefault,
   },
   button_size: 40,
 };
@@ -940,6 +944,7 @@ const menuConfigSchema = z
         media_player: visibleButtonSchema.default(
           menuConfigDefault.buttons.media_player,
         ),
+        recordings: hiddenButtonSchema.default(menuConfigDefault.buttons.recordings),
       })
       .default(menuConfigDefault.buttons),
     button_size: z.number().min(BUTTON_SIZE_MIN).default(menuConfigDefault.button_size),

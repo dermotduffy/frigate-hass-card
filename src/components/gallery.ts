@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   css,
   CSSResultGroup,
@@ -23,6 +22,10 @@ import {
   fetchLatestMediaAndDispatchViewChange,
   getFullDependentBrowseMediaQueryParametersOrDispatchError,
 } from '../utils/ha/browse-media';
+import {
+  changeViewToRecentRecording,
+} from '../utils/media-to-view.js';
+import { TimelineDataManager } from '../utils/timeline-data-manager';
 import { View } from '../view.js';
 import { renderProgressIndicator } from './message.js';
 import './thumbnail.js';
@@ -42,6 +45,9 @@ export class FrigateCardGallery extends LitElement {
   @property({ attribute: false })
   public cameras?: Map<string, CameraConfig>;
 
+  @property({ attribute: false })
+  public dataManager?: TimelineDataManager;
+
   /**
    * Master render method.
    * @returns A rendered template.
@@ -53,31 +59,45 @@ export class FrigateCardGallery extends LitElement {
       !this.view ||
       !this.cameras ||
       !this.view.isGalleryView() ||
-      !mediaType
+      !mediaType ||
+      !this.dataManager
     ) {
       return;
     }
 
     if (!this.view.target) {
-      const browseMediaQueryParameters =
-        getFullDependentBrowseMediaQueryParametersOrDispatchError(
+      if (mediaType === 'recordings') {
+        changeViewToRecentRecording(
           this,
           this.hass,
+          this.dataManager,
           this.cameras,
-          this.view.camera,
-          mediaType,
+          this.view,
+          {
+            targetView: 'recordings',
+          },
         );
+      } else {
+        const browseMediaQueryParameters =
+          getFullDependentBrowseMediaQueryParametersOrDispatchError(
+            this,
+            this.hass,
+            this.cameras,
+            this.view.camera,
+            mediaType,
+          );
 
-      if (!browseMediaQueryParameters) {
-        return;
+        if (!browseMediaQueryParameters) {
+          return;
+        }
+
+        fetchLatestMediaAndDispatchViewChange(
+          this,
+          this.hass,
+          this.view,
+          browseMediaQueryParameters,
+        );
       }
-
-      fetchLatestMediaAndDispatchViewChange(
-        this,
-        this.hass,
-        this.view,
-        browseMediaQueryParameters,
-      );
       return renderProgressIndicator();
     }
 
@@ -211,7 +231,7 @@ export class FrigateCardGalleryCore extends LitElement {
       !this.view ||
       !this.view.target ||
       !this.view.target.children ||
-      !(this.view.is('clips') || this.view.is('snapshots')) ||
+      !this.view.isGalleryView() ||
       !this.cameras
     ) {
       return html``;
@@ -254,8 +274,7 @@ export class FrigateCardGalleryCore extends LitElement {
                     <div>${child.title}</div>
                   </ha-card>
                 `
-              : child.thumbnail
-              ? html`<frigate-card-thumbnail
+              : html`<frigate-card-thumbnail
                   .view=${this.view}
                   .target=${this.view?.target ?? null}
                   .childIndex=${index}
@@ -278,8 +297,7 @@ export class FrigateCardGalleryCore extends LitElement {
                     stopEventFromActivatingCardWideActions(ev);
                   }}
                 >
-                </frigate-card-thumbnail>`
-              : ``}
+                </frigate-card-thumbnail>`}
           `,
       )}
     `;

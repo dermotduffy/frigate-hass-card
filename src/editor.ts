@@ -248,8 +248,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'live', label: localize('config.view.views.live') },
     { value: 'clips', label: localize('config.view.views.clips') },
     { value: 'snapshots', label: localize('config.view.views.snapshots') },
+    { value: 'recordings', label: localize('config.view.views.recordings') },
     { value: 'clip', label: localize('config.view.views.clip') },
     { value: 'snapshot', label: localize('config.view.views.snapshot') },
+    { value: 'recording', label: localize('config.view.views.recording') },
     { value: 'image', label: localize('config.view.views.image') },
     { value: 'timeline', label: localize('config.view.views.timeline') },
   ];
@@ -936,7 +938,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    * @param configPathShowDetails Thumbnails show details config path.
    * @param configPathShowFavoriteControl Thumbnails show favorite control config path.
    * @param configPathShowTimelineControl Thumbnails show timeline control config path,
-   * @param configPathMedia Thumbnails media config path.
+   * @param options An optional config path to media selection and mini-timeline mode.
    * @returns A rendered template.
    */
   protected _renderThumbnailsControls(
@@ -1437,6 +1439,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderMenuButton('live') /* */}
                 ${this._renderMenuButton('clips') /* */}
                 ${this._renderMenuButton('snapshots')}
+                ${this._renderMenuButton('recordings')}
                 ${this._renderMenuButton('image') /* */}
                 ${this._renderMenuButton('download')}
                 ${this._renderMenuButton('frigate_ui')}
