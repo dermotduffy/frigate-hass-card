@@ -946,7 +946,7 @@ This card supports several different views:
 |`snapshot`|Shows a Media viewer for the most recent snapshot for this camera/zone/label. Can also be accessed by holding down the `snapshots` menu icon.|
 |`clips`|Shows an event gallery of clips for this camera/zone/label.|
 |`clip`|Shows a Media viewer for the most recent clip for this camera/zone/label. Can also be accessed by holding down the `clips` menu icon.|
-|`recordings`|Shows a gallery of recordings for this camera.|
+|`recordings`|Shows a gallery of recent (last day) recordings for this camera and its dependents.|
 |`recording`|Shows a Media viewer for the most recent recording for this camera. Can also be accessed by holding down the `recordings` menu icon.|
 |`image`|Shows a static image specified by the `image` parameter, can be used as a discrete default view or a screensaver (via `view.timeout_seconds`).|
 
@@ -2693,7 +2693,7 @@ menu:
 
 ### Using a dependent camera
 
-`dependencies.cameras` allows events for other cameras to be shown along with the currently selected camera. For example, this can be used to show events with the `birdseye` camera (since it will not have events of its own).
+`dependencies.cameras` allows events/recordings for other cameras to be shown along with the currently selected camera. For example, this can be used to show events with the `birdseye` camera (since it will not have events of its own).
 
 <details>
   <summary>Expand: Using dependent cameras with birdseye</summary>

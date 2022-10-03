@@ -62,7 +62,7 @@ import {
 } from '../utils/media-to-view';
 import {
   FrigateCardTimelineItem,
-  sortTimelineItemsYoungestToOldest,
+  sortYoungestToOldest,
   TimelineDataManager,
 } from '../utils/timeline-data-manager';
 import { View } from '../view';
@@ -619,7 +619,7 @@ export class FrigateCardTimelineCore extends LitElement {
     this._dataview
       ?.get({
         filter: (item) => item.type !== 'background',
-        order: sortTimelineItemsYoungestToOldest,
+        order: sortYoungestToOldest,
       })
       .forEach((item) => {
         const cameraID = item.group ? String(item.group) : null;

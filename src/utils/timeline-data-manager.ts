@@ -49,9 +49,9 @@ export interface RecordingSegmentsItem {
  * @param b The second item.
  * @returns -1, 0, 1 (standard array sort function configuration).
  */
-export const sortTimelineItemsYoungestToOldest = (
-  a: FrigateCardTimelineItem,
-  b: FrigateCardTimelineItem,
+export const sortYoungestToOldest = (
+  a: RecordingSegmentsItem | FrigateCardTimelineItem,
+  b: RecordingSegmentsItem | FrigateCardTimelineItem,
 ): number => {
   if (a.start < b.start) {
     return 1;
@@ -68,9 +68,9 @@ export const sortTimelineItemsYoungestToOldest = (
  * @param b The second item.
  * @returns -1, 0, 1 (standard array sort function configuration).
  */
-export const sortSegmentsOldestToYoungest = (
-  a: RecordingSegmentsItem,
-  b: RecordingSegmentsItem,
+export const sortOldestToYoungest = (
+  a: RecordingSegmentsItem | FrigateCardTimelineItem,
+  b: RecordingSegmentsItem | FrigateCardTimelineItem,
 ): number => {
   if (a.start < b.start) {
     return -1;
@@ -438,7 +438,7 @@ export class TimelineDataManager {
     this._cameras.forEach((_, cameraID) => {
       const segments = this._recordingSegments.get({
         filter: (item) => item.cameraID === cameraID,
-        order: sortSegmentsOldestToYoungest,
+        order: sortOldestToYoungest,
       });
       let current: RecordingSegmentsItem | null = null;
       for (let i = 0; i < segments.length; ++i) {

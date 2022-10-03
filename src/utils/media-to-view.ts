@@ -6,13 +6,13 @@ import { CameraConfig, ExtendedHomeAssistant, FrigateBrowseMediaSource } from '.
 import { View } from '../view';
 import { formatDateAndTime, prettifyTitle } from './basic';
 import { getRecordingMediaContentID } from './frigate';
-import { createChild, createEventParentForChildren } from './ha/browse-media';
+import { createChild, createEventParentForChildren, sortYoungestToOldest } from './ha/browse-media';
 import {
   RecordingSegmentsItem,
-  sortSegmentsOldestToYoungest,
+  sortOldestToYoungest,
   TimelineDataManager,
 } from './timeline-data-manager';
-import { getAllDependentCameras } from './camera.js';
+import { getAllDependentCameras, getTrueCameras } from './camera.js';
 
 /**
  * Change the view to a recent recording.
@@ -132,8 +132,10 @@ const createRecordingChildren = (
 ): FrigateBrowseMediaSource[] => {
   const children: FrigateBrowseMediaSource[] = [];
 
-  for (const cameraID of cameraIDs) {
-    const config = cameras.get(cameraID);
+  for (const cameraID of getTrueCameras(
+    cameras, cameraIDs
+  )) {
+    const config = cameras.get(cameraID) ?? null;
     const recordingSummary = dataManager.getRecordingSummaryForCamera(cameraID);
     if (!config?.frigate.camera_name || !recordingSummary) {
       continue;
@@ -175,7 +177,9 @@ const createRecordingChildren = (
       }
     }
   }
-  return children;
+  // Sort the events by time (to align recordings for different cameras at the
+  // same time).
+  return children.sort(sortYoungestToOldest);
 };
 
 /**
@@ -208,7 +212,7 @@ export const generateMediaViewerContextForChildren = (
             segment.cameraID === child.frigate?.cameraID &&
             segment.start >= start &&
             segment.end <= end,
-          order: sortSegmentsOldestToYoungest,
+          order: sortOldestToYoungest,
         });
         seekSeconds = getSeekTimeInSegments(
           // Recordings start from the top of the hour.

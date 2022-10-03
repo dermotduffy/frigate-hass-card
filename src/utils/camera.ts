@@ -107,3 +107,34 @@ export const getAllDependentCameras = (
   }
   return cameraIDs;
 };
+
+/**
+ * Return the cameraIDs of truly unique cameras (some configured cameras may be
+ * the same Frigate came but with different zone/labels).
+ * @param cameras The full set of cameras.
+ * @param cameraIDs The specific IDs to dedup.
+ */
+export const getTrueCameras = (
+  cameras: Map<string, CameraConfig>,
+  cameraIDs: Set<string>,
+): Set<string> => {
+  const getTrueCameraID = (cameraConfig: CameraConfig): string => {
+    return `${cameraConfig.frigate?.client_id ?? ''}/${
+      cameraConfig.frigate.camera_name ?? ''
+    }`;
+  };
+
+  const output = new Set<string>();
+  const visitedTrueCameras = new Set<string>();
+  cameraIDs.forEach((cameraID: string) => {
+    const cameraConfig = cameras.get(cameraID) ?? null;
+    if (cameraConfig && cameraConfig.frigate.camera_name) {
+      const trueCameraID = getTrueCameraID(cameraConfig);
+      if (!visitedTrueCameras.has(trueCameraID)) {
+        output.add(cameraID);
+        visitedTrueCameras.add(trueCameraID);
+      }
+    }
+  });
+  return output;
+};
