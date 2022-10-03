@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   css,
   CSSResultGroup,
@@ -23,6 +22,8 @@ import {
   fetchLatestMediaAndDispatchViewChange,
   getFullDependentBrowseMediaQueryParametersOrDispatchError,
 } from '../utils/ha/browse-media';
+import { changeViewToRecentRecordingForCameraAndDependents } from '../utils/media-to-view.js';
+import { TimelineDataManager } from '../utils/timeline-data-manager';
 import { View } from '../view.js';
 import { renderProgressIndicator } from './message.js';
 import './thumbnail.js';
@@ -42,6 +43,9 @@ export class FrigateCardGallery extends LitElement {
   @property({ attribute: false })
   public cameras?: Map<string, CameraConfig>;
 
+  @property({ attribute: false })
+  public dataManager?: TimelineDataManager;
+
   /**
    * Master render method.
    * @returns A rendered template.
@@ -53,31 +57,45 @@ export class FrigateCardGallery extends LitElement {
       !this.view ||
       !this.cameras ||
       !this.view.isGalleryView() ||
-      !mediaType
+      !mediaType ||
+      !this.dataManager
     ) {
       return;
     }
 
     if (!this.view.target) {
-      const browseMediaQueryParameters =
-        getFullDependentBrowseMediaQueryParametersOrDispatchError(
+      if (mediaType === 'recordings') {
+        changeViewToRecentRecordingForCameraAndDependents(
           this,
           this.hass,
+          this.dataManager,
           this.cameras,
-          this.view.camera,
-          mediaType,
+          this.view,
+          {
+            targetView: 'recordings',
+          },
         );
+      } else {
+        const browseMediaQueryParameters =
+          getFullDependentBrowseMediaQueryParametersOrDispatchError(
+            this,
+            this.hass,
+            this.cameras,
+            this.view.camera,
+            mediaType,
+          );
 
-      if (!browseMediaQueryParameters) {
-        return;
+        if (!browseMediaQueryParameters) {
+          return;
+        }
+
+        fetchLatestMediaAndDispatchViewChange(
+          this,
+          this.hass,
+          this.view,
+          browseMediaQueryParameters,
+        );
       }
-
-      fetchLatestMediaAndDispatchViewChange(
-        this,
-        this.hass,
-        this.view,
-        browseMediaQueryParameters,
-      );
       return renderProgressIndicator();
     }
 
@@ -211,13 +229,12 @@ export class FrigateCardGalleryCore extends LitElement {
       !this.view ||
       !this.view.target ||
       !this.view.target.children ||
-      !(this.view.is('clips') || this.view.is('snapshots')) ||
+      !this.view.isGalleryView() ||
       !this.cameras
     ) {
       return html``;
     }
 
-    const cameraConfig = this.cameras.get(this.view.camera);
     return html`
       ${this._showBackArrow()
         ? html` <ha-card
@@ -254,13 +271,14 @@ export class FrigateCardGalleryCore extends LitElement {
                     <div>${child.title}</div>
                   </ha-card>
                 `
-              : child.thumbnail
-              ? html`<frigate-card-thumbnail
+              : html`<frigate-card-thumbnail
                   .view=${this.view}
                   .target=${this.view?.target ?? null}
                   .childIndex=${index}
                   .hass=${this.hass}
-                  .clientID=${cameraConfig?.frigate.client_id}
+                  .cameraConfig=${child.frigate?.cameraID
+                    ? this.cameras?.get(child.frigate.cameraID)
+                    : undefined}
                   ?details=${!!this.galleryConfig?.controls.thumbnails.show_details}
                   ?show_favorite_control=${!!this.galleryConfig?.controls.thumbnails
                     .show_favorite_control}
@@ -268,18 +286,20 @@ export class FrigateCardGalleryCore extends LitElement {
                     .show_timeline_control}
                   @click=${(ev: Event) => {
                     if (this.view) {
-                      this.view
-                        .evolve({
-                          view: this.view.is('clips') ? 'clip' : 'snapshot',
-                          childIndex: index,
-                        })
-                        .dispatchChangeEvent(this);
+                      const targetView = this.view.getViewerViewForGalleryView();
+                      if (targetView) {
+                        this.view
+                          .evolve({
+                            view: targetView,
+                            childIndex: index,
+                          })
+                          .dispatchChangeEvent(this);
+                      }
                     }
                     stopEventFromActivatingCardWideActions(ev);
                   }}
                 >
-                </frigate-card-thumbnail>`
-              : ``}
+                </frigate-card-thumbnail>`}
           `,
       )}
     `;

@@ -9,6 +9,7 @@ import { localize } from '../../localize/localize.js';
 import {
   BrowseMediaQueryParameters,
   CameraConfig,
+  ClipsOrSnapshots,
   FrigateBrowseMediaSource,
   frigateBrowseMediaSourceSchema,
   FrigateCardError,
@@ -182,27 +183,7 @@ export const mergeFrigateBrowseMediaSources = async (
     }
   }
 
-  const eventSort = (
-    a: FrigateBrowseMediaSource,
-    b: FrigateBrowseMediaSource,
-  ): number => {
-    if (
-      !a.frigate?.event ||
-      (b.frigate?.event && b.frigate.event.start_time > a.frigate.event.start_time)
-    ) {
-      return 1;
-    }
-
-    if (
-      !b.frigate?.event ||
-      (a.frigate?.event && b.frigate.event.start_time < a.frigate.event.start_time)
-    ) {
-      return -1;
-    }
-    return 0;
-  };
-
-  return createEventParentForChildren('Merged events', children.sort(eventSort));
+  return createEventParentForChildren('Merged events', children.sort(sortYoungestToOldest));
 };
 
 /**
@@ -258,7 +239,7 @@ export const getFullDependentBrowseMediaQueryParameters = (
   hass: HomeAssistant,
   cameras: Map<string, CameraConfig>,
   camera: string,
-  mediaType?: 'clips' | 'snapshots',
+  mediaType?: ClipsOrSnapshots,
 ): BrowseMediaQueryParameters[] | null => {
   const cameraIDs = getAllDependentCameras(cameras, camera);
   const params: BrowseMediaQueryParameters[] = [];
@@ -290,7 +271,7 @@ export const getFullDependentBrowseMediaQueryParametersOrDispatchError = (
   hass: HomeAssistant,
   cameras: Map<string, CameraConfig>,
   camera: string,
-  mediaType?: 'clips' | 'snapshots',
+  mediaType?: ClipsOrSnapshots,
 ): BrowseMediaQueryParameters[] | null => {
   const params = getFullDependentBrowseMediaQueryParameters(
     hass,
@@ -443,4 +424,33 @@ export const createChild = (
     }
   }
   return result;
+};
+
+/**
+ * Sort the timeline items most recent to least recent.
+ * @param a The first item.
+ * @param b The second item.
+ * @returns -1, 0, 1 (standard array sort function configuration).
+ */
+export const sortYoungestToOldest = (
+  a: FrigateBrowseMediaSource,
+  b: FrigateBrowseMediaSource,
+): number => {
+  const a_source = a.frigate?.event ?? a.frigate?.recording;
+  const b_source = b.frigate?.event ?? b.frigate?.recording;
+
+  if (
+    !a_source ||
+    (b_source && b_source.start_time > a_source.start_time)
+  ) {
+    return 1;
+  }
+
+  if (
+    !b_source ||
+    (a_source && b_source.start_time < a_source.start_time)
+  ) {
+    return -1;
+  }
+  return 0;
 };

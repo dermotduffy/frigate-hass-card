@@ -56,6 +56,7 @@ import { EmblaCarouselPlugins } from './carousel.js';
 import { renderTask } from '../utils/task.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
 import { TimelineDataManager } from '../utils/timeline-data-manager.js';
+import { changeViewToRecentRecordingForCameraAndDependents } from '../utils/media-to-view.js';
 
 export interface MediaSeek {
   // Specifies the point at which this recording should be played, the
@@ -101,7 +102,13 @@ export class FrigateCardViewer extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.view || !this.cameras || !this.viewerConfig) {
+    if (
+      !this.hass ||
+      !this.view ||
+      !this.cameras ||
+      !this.viewerConfig ||
+      !this.timelineDataManager
+    ) {
       return;
     }
 
@@ -123,14 +130,27 @@ export class FrigateCardViewer extends LitElement {
         return;
       }
 
-      fetchLatestMediaAndDispatchViewChange(
-        this,
-        this.hass,
-        this.view,
-        overrideMultiBrowseMediaQueryParameters(browseMediaQueryParameters, {
-          mediaType: mediaType,
-        }),
-      );
+      if (mediaType === 'recordings') {
+        changeViewToRecentRecordingForCameraAndDependents(
+          this,
+          this.hass,
+          this.timelineDataManager,
+          this.cameras,
+          this.view,
+          {
+            targetView: 'recording',
+          },
+        );
+      } else {
+        fetchLatestMediaAndDispatchViewChange(
+          this,
+          this.hass,
+          this.view,
+          overrideMultiBrowseMediaQueryParameters(browseMediaQueryParameters, {
+            mediaType: mediaType,
+          }),
+        );
+      }
       return renderProgressIndicator();
     }
 

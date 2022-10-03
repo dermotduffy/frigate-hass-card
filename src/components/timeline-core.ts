@@ -3,7 +3,6 @@ import {
   differenceInSeconds,
   endOfHour,
   fromUnixTime,
-  getUnixTime,
   startOfHour,
   sub,
 } from 'date-fns';
@@ -46,24 +45,24 @@ import { stopEventFromActivatingCardWideActions } from '../utils/action';
 import {
   contentsChanged,
   dispatchFrigateCardEvent,
-  formatDateAndTime,
   isHoverableDevice,
-  prettifyTitle,
 } from '../utils/basic';
 import { getAllDependentCameras, getCameraTitle } from '../utils/camera.js';
 import {
   getEventMediaContentID,
   getEventThumbnailURL,
   getEventTitle,
-  getRecordingMediaContentID,
 } from '../utils/frigate';
 
 import { createEventParentForChildren, createChild } from '../utils/ha/browse-media';
 import {
+  changeViewToRecording,
+  findChildIndex,
+  generateMediaViewerContextForChildren,
+} from '../utils/media-to-view';
+import {
   FrigateCardTimelineItem,
-  RecordingSegmentsItem,
-  sortSegmentsOldestToYoungest,
-  sortTimelineItemsYoungestToOldest,
+  sortYoungestToOldest,
   TimelineDataManager,
 } from '../utils/timeline-data-manager';
 import { View } from '../view';
@@ -294,164 +293,6 @@ export class FrigateCardTimelineCore extends LitElement {
   }
 
   /**
-   * Create recording objects.
-   * @param time The target time for the recordings.
-   * @param cameraIDs The camera IDs to create recordings for.
-   * @param onlyShowMatchingHour If `true` only shows the hour matching the target
-   * for the provided cameras, otherwise shows all hours.
-   * @returns
-   */
-  protected _createRecordingChildren(
-    time: Date,
-    cameraIDs: Set<string>,
-    onlyShowMatchingHour: boolean,
-  ): FrigateBrowseMediaSource[] {
-    const children: FrigateBrowseMediaSource[] = [];
-
-    for (const cameraID of cameraIDs) {
-      const config = this.cameras?.get(cameraID);
-      const recordingSummary =
-        this.timelineDataManager?.getRecordingSummaryForCamera(cameraID);
-      if (!config?.frigate.camera_name || !recordingSummary) {
-        continue;
-      }
-
-      for (const dayData of recordingSummary) {
-        for (const hourData of dayData.hours) {
-          const hour = add(dayData.day, { hours: hourData.hour });
-          const startHour = startOfHour(hour);
-          const endHour = endOfHour(hour);
-          const isMatchingHour = time >= startHour && time <= endHour;
-
-          // If asked to only provide recordings for a given camera show all
-          // hours, otherwise only show the matching hour from all cameras.
-          if (!onlyShowMatchingHour || isMatchingHour) {
-            children.push(
-              createChild(
-                `${prettifyTitle(config.frigate.camera_name)} ${formatDateAndTime(
-                  hour,
-                )}`,
-                getRecordingMediaContentID({
-                  clientId: config.frigate.client_id,
-                  year: dayData.day.getFullYear(),
-                  month: dayData.day.getMonth() + 1,
-                  day: dayData.day.getDate(),
-                  hour: hourData.hour,
-                  cameraName: config.frigate.camera_name,
-                }),
-                {
-                  recording: {
-                    camera: config.frigate.camera_name,
-                    start_time: getUnixTime(startHour),
-                    end_time: getUnixTime(endHour),
-                    events: hourData.events,
-                  },
-                  cameraID: cameraID,
-                },
-              ),
-            );
-          }
-        }
-      }
-    }
-    return children;
-  }
-
-  /**
-   * Change the view to a recording.
-   * @param targetTime The time of the recording to show.
-   * @param cameraID An optional camera to show a recording of, otherwise all
-   * cameras are shown at the given time.
-   */
-  protected async _changeViewToRecording(
-    targetTime: Date,
-    cameraID?: string,
-  ): Promise<void> {
-    if (!this.hass || !this.timelineConfig || !this.cameras) {
-      return;
-    }
-
-    const cameraIDs = cameraID ? new Set([cameraID]) : this._getAllCameraIDs();
-    const children = this._createRecordingChildren(targetTime, cameraIDs, !cameraID);
-    if (!children.length) {
-      return;
-    }
-    const viewerContext = this._generateMediaViewerContextForChildren(
-      children,
-      targetTime,
-    );
-    const childIndex = this._findChildIndex(
-      children,
-      startOfHour(targetTime),
-      cameraIDs,
-    );
-    const child = childIndex !== null ? children[childIndex] : null;
-
-    if (childIndex !== null && child !== null) {
-      this.view
-        ?.evolve({
-          view: 'recording',
-          target: createEventParentForChildren(localize('common.recordings'), children),
-          childIndex: childIndex,
-          ...(child.frigate?.cameraID && { camera: child.frigate?.cameraID }),
-        })
-        .mergeInContext(viewerContext)
-        .dispatchChangeEvent(this);
-    }
-  }
-
-  /**
-   * Find the relevant recording child given a date target.
-   * @param children The FrigateBrowseMediaSource[] children. Must be sorted
-   * most recent first.
-   * @param targetTime The target time used to find the relevant child.
-   * @param cameraIDs The camera IDs to search for.
-   * @param refPoint Whether to find based on the start or end of the
-   * event/recording. If not specified, the first match is returned rather than
-   * the best match.
-   * @returns The childindex or null if no matching child is found.
-   */
-  protected _findChildIndex(
-    children: FrigateBrowseMediaSource[],
-    targetTime: Date,
-    cameraIDs: Set<string>,
-    refPoint?: 'start' | 'end',
-  ): number | null {
-    let bestMatch:
-      | {
-          index: number;
-          delta: number;
-        }
-      | undefined;
-
-    for (let i = 0; i < children.length; ++i) {
-      const child = children[i];
-      if (child.frigate?.cameraID && cameraIDs.has(child.frigate.cameraID)) {
-        const source = child.frigate.event ?? child.frigate.recording;
-        if (!source?.start_time || !source?.end_time) {
-          continue;
-        }
-        const startTime = fromUnixTime(source.start_time);
-        const endTime = fromUnixTime(source.end_time);
-
-        if (startTime <= targetTime && endTime >= targetTime) {
-          if (!refPoint) {
-            return i;
-          }
-          const delta =
-            refPoint === 'end'
-              ? endTime.getTime() - targetTime.getTime()
-              : targetTime.getTime() - startTime.getTime();
-          if (!bestMatch || delta < bestMatch.delta) {
-            bestMatch = { index: i, delta: delta };
-          }
-        }
-      }
-    }
-    return bestMatch ? bestMatch.index : null;
-  }
-
-  /**
    * Called whenever the range is in the process of being changed.
    * @param properties
    */
@@ -540,13 +381,19 @@ export class FrigateCardTimelineCore extends LitElement {
     targetTime: Date,
     properties: TimelineRangeChange,
   ): void {
-    if (!this._timeline || !this.view || !this.view.target?.children?.length) {
+    if (
+      !this._timeline ||
+      !this.view ||
+      !this.view.target?.children?.length ||
+      !this.timelineDataManager
+    ) {
       return;
     }
 
     const canSeek = !!this.view?.isViewerView();
     const context = canSeek
-      ? this._generateMediaViewerContextForChildren(
+      ? generateMediaViewerContextForChildren(
+          this.timelineDataManager,
           this.view.target.children,
           targetTime,
         )
@@ -554,7 +401,7 @@ export class FrigateCardTimelineCore extends LitElement {
 
     const childIndex = this._locked
       ? null
-      : this._findChildIndex(
+      : findChildIndex(
           this.view.target.children,
           targetTime,
           this._getTimelineCameraIDs(),
@@ -577,90 +424,6 @@ export class FrigateCardTimelineCore extends LitElement {
   }
 
   /**
-   * Generate the media view context for a set of media children (used to set
-   * seek times into each media item).
-   * @param children The media children.
-   * @param targetTime The target time.
-   * @returns The ViewContext.
-   */
-  protected _generateMediaViewerContextForChildren(
-    children: FrigateBrowseMediaSource[],
-    targetTime: Date,
-  ): ViewContext {
-    if (!this.timelineDataManager) {
-      return {};
-    }
-    const seek = new Map();
-    const segmentsDataset = this.timelineDataManager.recordingSegments;
-    const hourStart = startOfHour(targetTime);
-
-    children.forEach((child, index) => {
-      const source = child.frigate?.recording ?? child.frigate?.event;
-      if (source && source.end_time && child.frigate?.cameraID) {
-        const start = source.start_time * 1000;
-        const end = source.end_time * 1000;
-        let seekSeconds: number | null = null;
-
-        if (targetTime.getTime() >= start && targetTime.getTime() <= end) {
-          const segments = segmentsDataset.get({
-            filter: (segment) =>
-              segment.cameraID === child.frigate?.cameraID &&
-              segment.start >= start &&
-              segment.end <= end,
-            order: sortSegmentsOldestToYoungest,
-          });
-          seekSeconds = this._getSeekTimeInSegments(
-            // Recordings start from the top of the hour.
-            child.frigate.recording ? hourStart : fromUnixTime(source.start_time),
-            targetTime,
-            segments,
-          );
-        }
-
-        if (seekSeconds !== null) {
-          seek.set(index, {
-            seekSeconds: seekSeconds,
-            seekTime: targetTime.getTime() / 1000,
-          });
-        }
-      }
-    });
-    return seek.size > 0 ? { mediaViewer: { seek: seek } } : {};
-  }
-
-  /**
-   * Get the number of seconds to seek into a video stream consisting of the
-   * provided segments to reach the target time provided.
-   * @param startTime The earliest allowable time to seek from.
-   * @param targetTime Target time.
-   * @param segments An array of segments dataset items. Must be sorted from oldest to youngest.
-   * @returns
-   */
-  protected _getSeekTimeInSegments(
-    startTime: Date,
-    targetTime: Date,
-    segments: RecordingSegmentsItem[],
-  ): number | null {
-    if (!segments.length) {
-      return null;
-    }
-    let seekMilliseconds = 0;
-
-    // Inspired by: https://github.com/blakeblackshear/frigate/blob/release-0.11.0/web/src/routes/Recording.jsx#L27
-    for (const segment of segments) {
-      if (segment.start > targetTime.getTime()) {
-        break;
-      }
-      const start =
-        segment.start < startTime.getTime() ? startTime.getTime() : segment.start;
-      const end =
-        segment.end > targetTime.getTime() ? targetTime.getTime() : segment.end;
-      seekMilliseconds += end - start;
-    }
-    return seekMilliseconds / 1000;
-  }
-
-  /**
    * Called whenever the timeline is clicked.
    * @param properties The properties of the timeline click event.
    */
@@ -672,34 +435,68 @@ export class FrigateCardTimelineCore extends LitElement {
       stopEventFromActivatingCardWideActions(properties.event);
     }
 
-    if (!this._ignoreClick && properties.what) {
+    if (
+      !this._ignoreClick &&
+      properties.what &&
+      this.hass &&
+      this.timelineDataManager &&
+      this.cameras &&
+      this.view
+    ) {
       if (
         this.timelineConfig?.show_recordings &&
         ['background', 'group-label', 'axis'].includes(properties.what)
       ) {
+        stopEventFromActivatingCardWideActions(properties.event);
+
         if (['background', 'group-label'].includes(properties.what)) {
-          stopEventFromActivatingCardWideActions(properties.event);
           const window = this._timeline?.getWindow();
           if (window) {
             if (properties.group) {
-              this._changeViewToRecording(
-                properties.what === 'background' ? properties.time : window.end,
-                String(properties.group),
+              changeViewToRecording(
+                this,
+                this.hass,
+                this.timelineDataManager,
+                this.cameras,
+                this.view, {
+                  cameraIDs: new Set([String(properties.group)]),
+                  targetTime:
+                    properties.what === 'background' ? properties.time : window.end,
+                },
               );
             } else if (this.mini && this.view?.camera) {
               // In mini mode group may not be displayed / used, so just use the camera directly.
-              this._changeViewToRecording(window.end, this.view.camera);
+              changeViewToRecording(
+                this,
+                this.hass,
+                this.timelineDataManager,
+                this.cameras,
+                this.view, {
+                  targetTime: window.end,
+                },
+              );
             }
           }
         } else {
-          stopEventFromActivatingCardWideActions(properties.event);
-          this._changeViewToRecording(properties.time);
+          changeViewToRecording(
+            this,
+            this.hass,
+            this.timelineDataManager,
+            this.cameras,
+            this.view, {
+              cameraIDs: this._getAllCameraIDs(),
+              start: startOfHour(properties.time),
+              end: endOfHour(properties.time),
+              targetTime: properties.time,
+            }
+          );
         }
       } else if (
         properties.what === 'item' &&
         properties.item &&
         this.view &&
-        this.view.target?.children
+        this.view.target?.children &&
+        this.timelineDataManager
       ) {
         let childIndex: number | null = null;
         let target: FrigateBrowseMediaSource | null = null;
@@ -712,7 +509,8 @@ export class FrigateCardTimelineCore extends LitElement {
             target = thumbnails.target;
             childIndex = thumbnails.childIndex;
             if (thumbnails.target?.children?.length) {
-              context = this._generateMediaViewerContextForChildren(
+              context = generateMediaViewerContextForChildren(
+                this.timelineDataManager,
                 thumbnails.target.children,
                 properties.time,
               );
@@ -821,7 +619,7 @@ export class FrigateCardTimelineCore extends LitElement {
     this._dataview
       ?.get({
         filter: (item) => item.type !== 'background',
-        order: sortTimelineItemsYoungestToOldest,
+        order: sortYoungestToOldest,
       })
       .forEach((item) => {
         const cameraID = item.group ? String(item.group) : null;
@@ -1226,6 +1024,7 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     const options = this._getOptions();
+    let createdTimeline = false;
 
     if (
       this.timelineDataManager &&
@@ -1258,6 +1057,7 @@ export class FrigateCardTimelineCore extends LitElement {
         this.timelineConfig.media,
       );
 
+      createdTimeline = true;
       if (this.mini && groups.length === 1) {
         // In a mini timeline, if there's only one group don't bother grouping
         // at all.
@@ -1299,7 +1099,15 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     if (changedProperties.has('view')) {
-      this._updateTimelineFromView();
+      if (createdTimeline) {
+        // If the timeline was just created, give it one frame to draw itself.
+        // Failure to do so may result in subsequent calls to
+        // `this._timeline.setwindow()` being entirely ignored. Example case:
+        // Clicking the timeline control on a recording thumbnail.
+        window.requestAnimationFrame(this._updateTimelineFromView.bind(this));
+      } else {
+        this._updateTimelineFromView();
+      }
     }
   }
 

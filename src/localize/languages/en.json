@@ -7,6 +7,7 @@
     "no_clips": "No clips",
     "no_snapshot": "No recent snapshot",
     "no_snapshots": "No snapshots",
+    "no_recording": "No recent recording",
     "recordings": "Recordings",
     "version": "Version"
   },
@@ -215,7 +216,8 @@
         "media_player": "Send to media player",
         "priority": "Priority",
         "snapshots": "Snapshots",
-        "timeline": "Timeline"
+        "timeline": "Timeline",
+        "recordings": "Recordings"
       },
       "position": "Menu position",
       "positions": {
@@ -262,6 +264,8 @@
         "current": "Current view",
         "image": "Static image",
         "live": "Live view",
+        "recording": "Most recent recording",
+        "recordings": "Recordings gallery",
         "snapshot": "Most recent snapshot",
         "snapshots": "Snapshots gallery",
         "timeline": "Timeline view"

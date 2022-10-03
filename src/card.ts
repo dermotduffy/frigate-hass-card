@@ -467,6 +467,29 @@ export class FrigateCard extends LitElement {
       });
     }
 
+    // Don't show `recordings` button if there's no `camera_name` (e.g. non-Frigate
+    // cameras), or is birdseye (unless there are dependent cameras).
+    if (
+      cameraConfig?.frigate.camera_name &&
+      (cameraConfig?.frigate.camera_name !== CAMERA_BIRDSEYE ||
+        cameraConfig?.dependencies.cameras.length ||
+        cameraConfig?.dependencies.all_cameras)
+    ) {
+      buttons.push({
+        icon: 'mdi:album',
+        ...this._getConfig().menu.buttons.recordings,
+        type: 'custom:frigate-card-menu-icon',
+        title: localize('config.view.views.recordings'),
+        style: this._view?.is('recordings') ? this._getEmphasizedStyle() : {},
+        tap_action: createFrigateCardCustomAction(
+          'recordings',
+        ) as FrigateCardCustomAction,
+        hold_action: createFrigateCardCustomAction(
+          'recording',
+        ) as FrigateCardCustomAction,
+      });
+    }
+
     buttons.push({
       icon: 'mdi:image',
       ...this._getConfig().menu.buttons.image,
@@ -1369,6 +1392,8 @@ export class FrigateCard extends LitElement {
       case 'clips':
       case 'image':
       case 'live':
+      case 'recording':
+      case 'recordings':
       case 'snapshot':
       case 'snapshots':
       case 'timeline':
@@ -1931,6 +1956,7 @@ export class FrigateCard extends LitElement {
             .view=${this._view}
             .cameras=${this._cameras}
             .galleryConfig=${this._getConfig().event_gallery}
+            .dataManager=${this._timelineDataManager}
           >
           </frigate-card-gallery>`
         : ``}

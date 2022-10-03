@@ -287,6 +287,7 @@ menu:
 | `live` | :white_check_mark: | The `live` view menu button: brings the user to the `live` view. See [views](#views) below.|
 | `clips` | :white_check_mark: | The `clips` view menu button: brings the user to the `clips` view on tap and the most-recent `clip` view on hold. See [views](#views) below. This button will never be shown if the `frigate.camera_name` for the selected camera is not auto-detected/specified (e.g. non-Frigate cameras), or if the `frigate.camera_name` is `birdseye`.|
 | `snapshots` | :white_check_mark: | The `snapshots` view menu button: brings the user to the `clips` view on tap and the most-recent `snapshot` view on hold. See [views](#views) below. This button will never be shown if the `frigate.camera_name` for the selected camera is not auto-detected/specified (e.g. non-Frigate cameras), or if the `frigate.camera_name` is `birdseye`.|
+| `recordings` | :white_check_mark: | The `recordings` view menu button: brings the user to the `recordings` view on tap and the most-recent `recording` view on hold. See [views](#views) below. This button will never be shown if the `frigate.camera_name` for the selected camera is not auto-detected/specified (e.g. non-Frigate cameras), or if the `frigate.camera_name` is `birdseye`.|
 | `image` | :white_check_mark: | The `image` view menu button: brings the user to the static `image` view. See [views](#views) below.|
 | `download` | :white_check_mark: | The `download` menu button: allow direct download of the media being displayed.|
 | `frigate_ui` | :white_check_mark: | The `frigate_ui` menu button: brings the user to a context-appropriate page on the Frigate UI (e.g. the camera homepage). Will only appear if the `frigate.url` option is set.|
@@ -521,7 +522,7 @@ media_viewer:
 
 ### Event Gallery Options
 
-The `event_gallery` is used for providing an overview of all `clips` and `snapshots` in a thumbnail gallery.
+The `event_gallery` is used for providing an overview of all `clips`, `snapshots` and `recordings` in a thumbnail gallery.
 
 All configuration is under:
 
@@ -537,7 +538,7 @@ See the [fully expanded event gallery configuration example](#config-expanded-ev
 | `show_details` | `false` | :heavy_multiplication_x: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
 | `show_favorite_control` | `true` | :heavy_multiplication_x: | Whether to show the favorite ('star') control on each thumbnail.|
 | `show_timeline_control` | `true` | :heavy_multiplication_x: | Whether to show the timeline ('target') control on each thumbnail.|
-| `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `event_gallery` (e.g. `clips`, `snapshots`). See [actions](#actions) below.|
+| `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `event_gallery` (e.g. `clips`, `snapshots`, `recordings`). See [actions](#actions) below.|
 
 ### Image Options
 
@@ -916,14 +917,14 @@ Parameters for the `custom:frigate-card-ptz` element:
 | Parameter | Description |
 | - | - |
 | `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `snapshot`, `snapshots`, `download`, `timeline`, `frigate_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`.|
+| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `frigate_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`.|
 
 ##### Command descriptions
 
 | Value | Description |
 | - | - |
 | `default` | Trigger the default view. |
-| `clip`, `clips`, `image`, `live`, `snapshot`, `snapshots` | Trigger the named [view](#views).|
+| `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots` | Trigger the named [view](#views).|
 |`download`|Download the displayed media.|
 |`frigate_ui`|Open the Frigate UI at the configured URL.|
 |`fullscreen`|Toggle fullscreen.|
@@ -945,6 +946,8 @@ This card supports several different views:
 |`snapshot`|Shows a Media viewer for the most recent snapshot for this camera/zone/label. Can also be accessed by holding down the `snapshots` menu icon.|
 |`clips`|Shows an event gallery of clips for this camera/zone/label.|
 |`clip`|Shows a Media viewer for the most recent clip for this camera/zone/label. Can also be accessed by holding down the `clips` menu icon.|
+|`recordings`|Shows a gallery of recent (last day) recordings for this camera and its dependents.|
+|`recording`|Shows a Media viewer for the most recent recording for this camera. Can also be accessed by holding down the `recordings` menu icon.|
 |`image`|Shows a static image specified by the `image` parameter, can be used as a discrete default view or a screensaver (via `view.timeout_seconds`).|
 
 ### Navigating From A Snapshot To A Clip
@@ -1005,8 +1008,8 @@ view.
 | Configuration path | Views to which it refers |
 | - | - |
 | `view.actions` | All (may be overriden by the below) |
-| `media_viewer.actions` | `clip`, `snapshot` |
-| `event_gallery.actions` | `clips`, `snapshots` |
+| `media_viewer.actions` | `clip`, `snapshot`, `recording` |
+| `event_gallery.actions` | `clips`, `snapshots`, `recordings` |
 | `live.actions` | `live` |
 | `image.actions` | `image` |
 
@@ -2002,6 +2005,11 @@ overrides:
             enabled: true
             alignment: matching
             icon: mdi:camera
+          recordings:
+            priority: 50
+            enabled: false
+            alignment: matching
+            icon: mdi:album
           image:
             priority: 50
             # Disable the image button.
@@ -2685,7 +2693,7 @@ menu:
 
 ### Using a dependent camera
 
-`dependencies.cameras` allows events for other cameras to be shown along with the currently selected camera. For example, this can be used to show events with the `birdseye` camera (since it will not have events of its own).
+`dependencies.cameras` allows events/recordings for other cameras to be shown along with the currently selected camera. For example, this can be used to show events with the `birdseye` camera (since it will not have events of its own).
 
 <details>
   <summary>Expand: Using dependent cameras with birdseye</summary>

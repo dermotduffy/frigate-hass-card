@@ -147,7 +147,21 @@ export class View {
    * Determine if a view is a gallery.
    */
   public isGalleryView(): boolean {
-    return this.view == 'clips' || this.view == 'snapshots';
+    return ['clips', 'snapshots', 'recordings'].includes(this.view);
+  }
+
+  /**
+   * Get the viewer view given a gallery view.
+   */
+  public getViewerViewForGalleryView(): 'clip' | 'snapshot' | 'recording' | null {
+    if (this.is('clips')) {
+      return 'clip';
+    } else if (this.is('snapshots')) {
+      return 'snapshot';
+    } else if (this.is('recordings')) {
+      return 'recording';
+    }
+    return null;
   }
 
   /**
@@ -180,14 +194,24 @@ export class View {
   }
 
   /**
-   * Get the media type for this view if available.
-   * @returns Whether the media is `clips` or `snapshots` or unknown (`null`)
+   * Determine if a view is related to a recording or recordings.
    */
-  public getMediaType(): 'clips' | 'snapshots' | null {
+   public isRecordingRelatedView(): boolean {
+    return ['recording', 'recordings'].includes(this.view);
+  }
+
+  /**
+   * Get the media type for this view if available.
+   * @returns Whether the media is `clips`, `snapshots`, `recordings` or unknown
+   * (`null`).
+   */
+  public getMediaType(): 'clips' | 'snapshots' | 'recordings' | null {
     return this.isClipRelatedView()
       ? 'clips'
       : this.isSnapshotRelatedView()
       ? 'snapshots'
+      : this.isRecordingRelatedView()
+      ? 'recordings'
       : null;
   }
 
