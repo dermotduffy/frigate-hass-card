@@ -1024,6 +1024,7 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     const options = this._getOptions();
+    let createdTimeline = false;
 
     if (
       this.timelineDataManager &&
@@ -1056,6 +1057,7 @@ export class FrigateCardTimelineCore extends LitElement {
         this.timelineConfig.media,
       );
 
+      createdTimeline = true;
       if (this.mini && groups.length === 1) {
         // In a mini timeline, if there's only one group don't bother grouping
         // at all.
@@ -1097,7 +1099,15 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     if (changedProperties.has('view')) {
-      this._updateTimelineFromView();
+      if (createdTimeline) {
+        // If the timeline was just created, give it one frame to draw itself.
+        // Failure to do so may result in subsequent calls to
+        // `this._timeline.setwindow()` being entirely ignored. Example case:
+        // Clicking the timeline control on a recording thumbnail.
+        window.requestAnimationFrame(this._updateTimelineFromView.bind(this));
+      } else {
+        this._updateTimelineFromView();
+      }
     }
   }
 

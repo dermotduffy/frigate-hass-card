@@ -12,6 +12,7 @@ import {
   sortSegmentsOldestToYoungest,
   TimelineDataManager,
 } from './timeline-data-manager';
+import { getAllDependentCameras } from './camera.js';
 
 /**
  * Change the view to a recent recording.
@@ -20,17 +21,15 @@ import {
  * @param dataManager The datamanager to use for data access.
  * @param cameras The camera configurations.
  * @param view The current view.
- * @param cameraIDs The camera IDs to include recordings for.
- * @param options A specific window (start and end) to fetch recordings for, and a targetTime to seek to.
+ * @param options A set of cameraIDs to fetch recordings for, and a targetView to dispatch to.
  */
- export const changeViewToRecentRecording = async (
+ export const changeViewToRecentRecordingForCameraAndDependents = async (
   element: HTMLElement,
   hass: ExtendedHomeAssistant,
   dataManager: TimelineDataManager,
   cameras: Map<string, CameraConfig>,
   view: View,
   options?: {
-    cameraIDs?: Set<string>;
     targetView?: 'recording' | 'recordings';
   },
 ): Promise<void> => {
@@ -46,6 +45,7 @@ import {
       ...options,
 
       // Fetch 1 days worth of recordings (including recordings that are for the current hour).
+      cameraIDs: getAllDependentCameras(cameras, view.camera),
       start: sub(now, { days: 1 }),
       end: add(now, { hours: 1 }),
     }
@@ -59,8 +59,9 @@ import {
  * @param dataManager The datamanager to use for data access.
  * @param cameras The camera configurations.
  * @param view The current view.
- * @param cameraIDs The camera IDs to include recordings for.
- * @param options A specific window (start and end) to fetch recordings for, and a targetTime to seek to.
+ * @param options A specific window (start and end) to fetch recordings for, a
+ * targetTime to seek to, a targetView to dispatch to and a set of cameraIDs to
+ * restrict to.
  */
 export const changeViewToRecording = async (
   element: HTMLElement,

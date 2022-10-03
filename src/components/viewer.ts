@@ -56,7 +56,7 @@ import { EmblaCarouselPlugins } from './carousel.js';
 import { renderTask } from '../utils/task.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
 import { TimelineDataManager } from '../utils/timeline-data-manager.js';
-import { changeViewToRecentRecording } from '../utils/media-to-view.js';
+import { changeViewToRecentRecordingForCameraAndDependents } from '../utils/media-to-view.js';
 
 export interface MediaSeek {
   // Specifies the point at which this recording should be played, the
@@ -131,7 +131,7 @@ export class FrigateCardViewer extends LitElement {
       }
 
       if (mediaType === 'recordings') {
-        changeViewToRecentRecording(
+        changeViewToRecentRecordingForCameraAndDependents(
           this,
           this.hass,
           this.timelineDataManager,

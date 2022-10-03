@@ -10,6 +10,7 @@ import thumbnailFeatureRecordingStyle from '../scss/thumbnail-feature-recording.
 import thumbnailStyle from '../scss/thumbnail.scss';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { errorToConsole, prettifyTitle } from '../utils/basic.js';
+import { getCameraTitle } from '../utils/camera.js';
 import { retainEvent } from '../utils/frigate.js';
 import { getEventDurationString } from '../utils/frigate.js';
 import { renderTask } from '../utils/task.js';
@@ -19,6 +20,7 @@ import { MediaSeek } from './viewer.js';
 import { TaskStatus } from '@lit-labs/task';
 
 import type {
+  CameraConfig,
   ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
   FrigateEvent,
@@ -108,6 +110,9 @@ export class FrigateCardThumbnailFeatureRecording extends LitElement {
   @property({ attribute: false })
   public date?: Date;
 
+  @property({ attribute: false })
+  public cameraTitle?: string;
+
   protected render(): TemplateResult | void {
     if (!this.date) {
       return;
@@ -115,6 +120,7 @@ export class FrigateCardThumbnailFeatureRecording extends LitElement {
     return html`
       <div class="title">${format(this.date, 'HH:mm')}</div>
       <div class="subtitle">${format(this.date, 'MMM do')}</div>
+      ${this.cameraTitle ? html`<div class="camera">${this.cameraTitle}</div>` : html``}
     `;
   }
 
@@ -240,7 +246,7 @@ export class FrigateCardThumbnail extends LitElement {
   public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  public clientID?: string;
+  public cameraConfig?: CameraConfig;
 
   /**
    * Render the element.
@@ -277,6 +283,7 @@ export class FrigateCardThumbnail extends LitElement {
       starred: !!event?.retain_indefinitely,
     };
 
+    const clientID = this.cameraConfig?.frigate.client_id;
     return html` ${event
       ? html`<frigate-card-thumbnail-feature-event
           aria-label="${label ?? ''}"
@@ -285,22 +292,25 @@ export class FrigateCardThumbnail extends LitElement {
           .thumbnail=${thumbnail ?? undefined}
           .label=${label ?? undefined}
         ></frigate-card-thumbnail-feature-event>`
-      : html`<frigate-card-thumbnail-feature-recording
+      : recording
+      ? html`<frigate-card-thumbnail-feature-recording
           aria-label="${label ?? ''}"
           title="${label ?? ''}"
+          .cameraTitle=${this.details || !this.cameraConfig || !this.hass ? undefined : getCameraTitle(this.hass, this.cameraConfig)}
           .date=${recording ? fromUnixTime(recording.start_time) : undefined}
-        ></frigate-card-thumbnail-feature-recording>`}
-    ${this.show_favorite_control && event && this.hass && this.clientID
+        ></frigate-card-thumbnail-feature-recording>`
+      : html``}
+    ${this.show_favorite_control && event && this.hass && clientID
       ? html` <ha-icon
             class="${classMap(starClasses)}"
             icon=${event?.retain_indefinitely ? 'mdi:star' : 'mdi:star-outline'}
             title=${localize('thumbnail.retain_indefinitely')}
             @click=${(ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
-              if (event && this.hass && this.clientID) {
+              if (event && this.hass && clientID) {
                 retainEvent(
                   this.hass,
-                  this.clientID,
+                  clientID,
                   event.id,
                   !event.retain_indefinitely,
                 )

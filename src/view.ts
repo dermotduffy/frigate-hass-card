@@ -151,6 +151,20 @@ export class View {
   }
 
   /**
+   * Get the viewer view given a gallery view.
+   */
+  public getViewerViewForGalleryView(): 'clip' | 'snapshot' | 'recording' | null {
+    if (this.is('clips')) {
+      return 'clip';
+    } else if (this.is('snapshots')) {
+      return 'snapshot';
+    } else if (this.is('recordings')) {
+      return 'recording';
+    }
+    return null;
+  }
+
+  /**
    * Determine if a view is of a piece of media (including the media viewer,
    * live view, image view -- anything that can create a MediaLoadedInfo event).
    */

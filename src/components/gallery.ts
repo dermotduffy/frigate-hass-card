@@ -22,9 +22,7 @@ import {
   fetchLatestMediaAndDispatchViewChange,
   getFullDependentBrowseMediaQueryParametersOrDispatchError,
 } from '../utils/ha/browse-media';
-import {
-  changeViewToRecentRecording,
-} from '../utils/media-to-view.js';
+import { changeViewToRecentRecordingForCameraAndDependents } from '../utils/media-to-view.js';
 import { TimelineDataManager } from '../utils/timeline-data-manager';
 import { View } from '../view.js';
 import { renderProgressIndicator } from './message.js';
@@ -67,7 +65,7 @@ export class FrigateCardGallery extends LitElement {
 
     if (!this.view.target) {
       if (mediaType === 'recordings') {
-        changeViewToRecentRecording(
+        changeViewToRecentRecordingForCameraAndDependents(
           this,
           this.hass,
           this.dataManager,
@@ -237,7 +235,6 @@ export class FrigateCardGalleryCore extends LitElement {
       return html``;
     }
 
-    const cameraConfig = this.cameras.get(this.view.camera);
     return html`
       ${this._showBackArrow()
         ? html` <ha-card
@@ -279,7 +276,9 @@ export class FrigateCardGalleryCore extends LitElement {
                   .target=${this.view?.target ?? null}
                   .childIndex=${index}
                   .hass=${this.hass}
-                  .clientID=${cameraConfig?.frigate.client_id}
+                  .cameraConfig=${child.frigate?.cameraID
+                    ? this.cameras?.get(child.frigate.cameraID)
+                    : undefined}
                   ?details=${!!this.galleryConfig?.controls.thumbnails.show_details}
                   ?show_favorite_control=${!!this.galleryConfig?.controls.thumbnails
                     .show_favorite_control}
@@ -287,12 +286,15 @@ export class FrigateCardGalleryCore extends LitElement {
                     .show_timeline_control}
                   @click=${(ev: Event) => {
                     if (this.view) {
-                      this.view
-                        .evolve({
-                          view: this.view.is('clips') ? 'clip' : 'snapshot',
-                          childIndex: index,
-                        })
-                        .dispatchChangeEvent(this);
+                      const targetView = this.view.getViewerViewForGalleryView();
+                      if (targetView) {
+                        this.view
+                          .evolve({
+                            view: targetView,
+                            childIndex: index,
+                          })
+                          .dispatchChangeEvent(this);
+                      }
                     }
                     stopEventFromActivatingCardWideActions(ev);
                   }}
