@@ -9,7 +9,7 @@ import {
   FrigateEvent,
   FrigateEvents,
 } from '../types.js';
-import { errorToConsole, runWhenIdleIfSupported } from '../utils/basic.js';
+import { errorToConsole, runWhenIdleIfSupported } from './basic.js';
 import {
   FrigateGetEventsParameters,
   getEventsMultiple,
@@ -23,8 +23,8 @@ import fromUnixTime from 'date-fns/fromUnixTime';
 import { throttle } from 'lodash-es';
 
 const RECORDING_SEGMENT_TOLERANCE = 60;
-const TIMELINE_DATA_MANAGER_MAX_AGE_SECONDS = 10;
-const TIMELINE_DATA_MANAGER_MAX_FETCH_COUNT = 10000;
+const DATA_MANAGER_MAX_AGE_SECONDS = 10;
+const DATA_MANAGER_MAX_FETCH_COUNT = 10000;
 
 export interface FrigateCardTimelineItem extends TimelineItem {
   // DataView has issues using datasets with Date objects, so avoid them and use
@@ -84,7 +84,7 @@ export const sortOldestToYoungest = (
 /**
  * A manager to maintain/fetch timeline events.
  */
-export class TimelineDataManager {
+export class DataManager {
   protected _recordingSummary: Map<string, RecordingSummary | null> = new Map();
   protected _recordingSegments = new DataSet<RecordingSegmentsItem>();
 
@@ -101,7 +101,7 @@ export class TimelineDataManager {
 
   // The maximum allowable age of fetch data (will not fetch more frequently
   // than this).
-  protected _maxAgeSeconds: number = TIMELINE_DATA_MANAGER_MAX_AGE_SECONDS;
+  protected _maxAgeSeconds: number = DATA_MANAGER_MAX_AGE_SECONDS;
 
   protected _cameras: Map<string, CameraConfig>;
   protected _mediaType: TimelineMediaType;
@@ -526,7 +526,7 @@ export class TimelineDataManager {
           ...(cameraConfig.frigate.zone && { label: cameraConfig.frigate.zone }),
           before: Math.floor(end.getTime() / 1000),
           after: Math.floor(start.getTime() / 1000),
-          limit: TIMELINE_DATA_MANAGER_MAX_FETCH_COUNT,
+          limit: DATA_MANAGER_MAX_FETCH_COUNT,
         });
       }
     });

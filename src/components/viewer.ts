@@ -55,7 +55,7 @@ import './surround.js';
 import { EmblaCarouselPlugins } from './carousel.js';
 import { renderTask } from '../utils/task.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
-import { TimelineDataManager } from '../utils/timeline-data-manager.js';
+import { DataManager } from '../utils/data-manager.js';
 import { changeViewToRecentRecordingForCameraAndDependents } from '../utils/media-to-view.js';
 
 export interface MediaSeek {
@@ -95,7 +95,7 @@ export class FrigateCardViewer extends LitElement {
   public resolvedMediaCache?: ResolvedMediaCache;
 
   @property({ attribute: false })
-  public timelineDataManager?: TimelineDataManager;
+  public dataManager?: DataManager;
 
   /**
    * Master render method.
@@ -107,7 +107,7 @@ export class FrigateCardViewer extends LitElement {
       !this.view ||
       !this.cameras ||
       !this.viewerConfig ||
-      !this.timelineDataManager
+      !this.dataManager
     ) {
       return;
     }
@@ -134,7 +134,7 @@ export class FrigateCardViewer extends LitElement {
         changeViewToRecentRecordingForCameraAndDependents(
           this,
           this.hass,
-          this.timelineDataManager,
+          this.dataManager,
           this.cameras,
           this.view,
           {
@@ -160,7 +160,7 @@ export class FrigateCardViewer extends LitElement {
       .fetch=${false}
       .thumbnailConfig=${this.viewerConfig.controls.thumbnails}
       .timelineConfig=${this.viewerConfig.controls.timeline}
-      .timelineDataManager=${this.timelineDataManager}
+      .dataManager=${this.dataManager}
       .cameras=${this.cameras}
     >
       <frigate-card-viewer-carousel

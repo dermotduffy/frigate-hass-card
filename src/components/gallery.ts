@@ -23,7 +23,7 @@ import {
   getFullDependentBrowseMediaQueryParametersOrDispatchError,
 } from '../utils/ha/browse-media';
 import { changeViewToRecentRecordingForCameraAndDependents } from '../utils/media-to-view.js';
-import { TimelineDataManager } from '../utils/timeline-data-manager';
+import { DataManager } from '../utils/data-manager';
 import { View } from '../view.js';
 import { renderProgressIndicator } from './message.js';
 import './thumbnail.js';
@@ -44,7 +44,7 @@ export class FrigateCardGallery extends LitElement {
   public cameras?: Map<string, CameraConfig>;
 
   @property({ attribute: false })
-  public dataManager?: TimelineDataManager;
+  public dataManager?: DataManager;
 
   /**
    * Master render method.

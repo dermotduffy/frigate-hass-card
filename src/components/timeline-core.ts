@@ -63,8 +63,8 @@ import {
 import {
   FrigateCardTimelineItem,
   sortYoungestToOldest,
-  TimelineDataManager,
-} from '../utils/timeline-data-manager';
+  DataManager,
+} from '../utils/data-manager';
 import { View } from '../view';
 import { dispatchMessageEvent } from './message.js';
 import './thumbnail.js';
@@ -186,7 +186,7 @@ export class FrigateCardTimelineCore extends LitElement {
   public mini = false;
 
   @property({ attribute: false })
-  public timelineDataManager?: TimelineDataManager;
+  public dataManager?: DataManager;
 
   @state()
   protected _locked = false;
@@ -385,7 +385,7 @@ export class FrigateCardTimelineCore extends LitElement {
       !this._timeline ||
       !this.view ||
       !this.view.target?.children?.length ||
-      !this.timelineDataManager
+      !this.dataManager
     ) {
       return;
     }
@@ -393,7 +393,7 @@ export class FrigateCardTimelineCore extends LitElement {
     const canSeek = !!this.view?.isViewerView();
     const context = canSeek
       ? generateMediaViewerContextForChildren(
-          this.timelineDataManager,
+          this.dataManager,
           this.view.target.children,
           targetTime,
         )
@@ -439,7 +439,7 @@ export class FrigateCardTimelineCore extends LitElement {
       !this._ignoreClick &&
       properties.what &&
       this.hass &&
-      this.timelineDataManager &&
+      this.dataManager &&
       this.cameras &&
       this.view
     ) {
@@ -456,7 +456,7 @@ export class FrigateCardTimelineCore extends LitElement {
               changeViewToRecording(
                 this,
                 this.hass,
-                this.timelineDataManager,
+                this.dataManager,
                 this.cameras,
                 this.view, {
                   cameraIDs: new Set([String(properties.group)]),
@@ -469,7 +469,7 @@ export class FrigateCardTimelineCore extends LitElement {
               changeViewToRecording(
                 this,
                 this.hass,
-                this.timelineDataManager,
+                this.dataManager,
                 this.cameras,
                 this.view, {
                   targetTime: window.end,
@@ -481,7 +481,7 @@ export class FrigateCardTimelineCore extends LitElement {
           changeViewToRecording(
             this,
             this.hass,
-            this.timelineDataManager,
+            this.dataManager,
             this.cameras,
             this.view, {
               cameraIDs: this._getAllCameraIDs(),
@@ -496,7 +496,7 @@ export class FrigateCardTimelineCore extends LitElement {
         properties.item &&
         this.view &&
         this.view.target?.children &&
-        this.timelineDataManager
+        this.dataManager
       ) {
         let childIndex: number | null = null;
         let target: FrigateBrowseMediaSource | null = null;
@@ -510,7 +510,7 @@ export class FrigateCardTimelineCore extends LitElement {
             childIndex = thumbnails.childIndex;
             if (thumbnails.target?.children?.length) {
               context = generateMediaViewerContextForChildren(
-                this.timelineDataManager,
+                this.dataManager,
                 thumbnails.target.children,
                 properties.time,
               );
@@ -573,7 +573,7 @@ export class FrigateCardTimelineCore extends LitElement {
         properties.start,
         properties.end,
       );
-      this.timelineDataManager
+      this.dataManager
         ?.fetchIfNecessary(this, this.hass, prefetchStart, prefetchEnd)
         .then(() => {
           // Don't show event thumbnails if the user is looking at recordings,
@@ -879,7 +879,7 @@ export class FrigateCardTimelineCore extends LitElement {
         windowStart,
         windowEnd,
       );
-      fetched = !!(await this.timelineDataManager?.fetchIfNecessary(
+      fetched = !!(await this.dataManager?.fetchIfNecessary(
         this,
         this.hass,
         prefetchStart,
@@ -900,7 +900,7 @@ export class FrigateCardTimelineCore extends LitElement {
       // update the dataset to ensure the newly selected item cannot be included
       // in a cluster. Only do this when the pointer is not held to avoid
       // interrupting the user and to make the timeline smoother.
-      this.timelineDataManager?.rewriteItem(event.id);
+      this.dataManager?.rewriteItem(event.id);
     }
 
     if (
@@ -1027,7 +1027,7 @@ export class FrigateCardTimelineCore extends LitElement {
     let createdTimeline = false;
 
     if (
-      this.timelineDataManager &&
+      this.dataManager &&
       this._refTimeline.value &&
       options &&
       this.timelineConfig &&
@@ -1051,7 +1051,7 @@ export class FrigateCardTimelineCore extends LitElement {
         return;
       }
 
-      this._dataview = this.timelineDataManager.createDataView(
+      this._dataview = this.dataManager.createDataView(
         this._getTimelineCameraIDs(),
         !!this.timelineConfig.show_recordings,
         this.timelineConfig.media,
