@@ -10,8 +10,8 @@ import { createChild, createEventParentForChildren, sortYoungestToOldest } from 
 import {
   RecordingSegmentsItem,
   sortOldestToYoungest,
-  TimelineDataManager,
-} from './timeline-data-manager';
+  DataManager,
+} from './data-manager';
 import { getAllDependentCameras, getTrueCameras } from './camera.js';
 
 /**
@@ -26,7 +26,7 @@ import { getAllDependentCameras, getTrueCameras } from './camera.js';
  export const changeViewToRecentRecordingForCameraAndDependents = async (
   element: HTMLElement,
   hass: ExtendedHomeAssistant,
-  dataManager: TimelineDataManager,
+  dataManager: DataManager,
   cameras: Map<string, CameraConfig>,
   view: View,
   options?: {
@@ -66,7 +66,7 @@ import { getAllDependentCameras, getTrueCameras } from './camera.js';
 export const changeViewToRecording = async (
   element: HTMLElement,
   hass: ExtendedHomeAssistant,
-  dataManager: TimelineDataManager,
+  dataManager: DataManager,
   cameras: Map<string, CameraConfig>,
   view: View,
   options?: {
@@ -122,7 +122,7 @@ export const changeViewToRecording = async (
  * @returns
  */
 const createRecordingChildren = (
-  dataManager: TimelineDataManager,
+  dataManager: DataManager,
   cameras: Map<string, CameraConfig>,
   cameraIDs: Set<string>,
   options?: {
@@ -191,7 +191,7 @@ const createRecordingChildren = (
  * @returns The ViewContext.
  */
 export const generateMediaViewerContextForChildren = (
-  dataManager: TimelineDataManager,
+  dataManager: DataManager,
   children: FrigateBrowseMediaSource[],
   targetTime: Date,
 ): ViewContext => {

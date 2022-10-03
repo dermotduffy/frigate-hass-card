@@ -23,7 +23,7 @@ import {
   getFirstTrueMediaChildIndex,
   multipleBrowseMediaQueryMerged,
 } from '../utils/ha/browse-media';
-import { TimelineDataManager } from '../utils/timeline-data-manager';
+import { DataManager } from '../utils/data-manager';
 import { View } from '../view.js';
 import { dispatchFrigateCardErrorEvent } from './message.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
@@ -70,7 +70,7 @@ export class FrigateCardSurround extends LitElement {
   public cameras?: Map<string, CameraConfig>;
 
   @property({ attribute: false })
-  public timelineDataManager?: TimelineDataManager;
+  public dataManager?: DataManager;
 
   /**
    * Fetch thumbnail media when a target is not specified in the view (e.g. for
@@ -210,7 +210,7 @@ export class FrigateCardSurround extends LitElement {
             .timelineConfig=${this.timelineConfig}
             .thumbnailDetails=${this.thumbnailConfig?.show_details}
             .thumbnailSize=${this.thumbnailConfig?.size}
-            .timelineDataManager=${this.timelineDataManager}
+            .dataManager=${this.dataManager}
           >
           </frigate-card-timeline-core>`
         : ''}

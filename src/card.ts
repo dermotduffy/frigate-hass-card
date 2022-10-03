@@ -100,7 +100,7 @@ import { isValidMediaLoadedInfo } from './utils/media-info.js';
 import { View } from './view.js';
 import pkg from '../package.json';
 import { ViewContext } from 'view';
-import { TimelineDataManager } from './utils/timeline-data-manager.js';
+import { DataManager } from './utils/data-manager.js';
 
 /** A note on media callbacks:
  *
@@ -203,7 +203,7 @@ export class FrigateCard extends LitElement {
   protected _resolvedMediaCache = new ResolvedMediaCache();
 
   // Shared timeline data manager (for main timeline view and mini-timelines).
-  protected _timelineDataManager?: TimelineDataManager;
+  protected _dataManager?: DataManager;
 
   // The mouse handler may be called continually, throttle it to at most once
   // per second for performance reasons.
@@ -1052,10 +1052,7 @@ export class FrigateCard extends LitElement {
     }
 
     if (this._cameras && (changedProps.has('_config') || changedProps.has('_cameras'))) {
-      this._timelineDataManager = new TimelineDataManager(
-        this._cameras,
-        this._config.timeline.media,
-      );
+      this._dataManager = new DataManager(this._cameras, this._config.timeline.media);
     }
   }
 
@@ -1956,7 +1953,7 @@ export class FrigateCard extends LitElement {
             .view=${this._view}
             .cameras=${this._cameras}
             .galleryConfig=${this._getConfig().event_gallery}
-            .dataManager=${this._timelineDataManager}
+            .dataManager=${this._dataManager}
           >
           </frigate-card-gallery>`
         : ``}
@@ -1967,7 +1964,7 @@ export class FrigateCard extends LitElement {
             .cameras=${this._cameras}
             .viewerConfig=${this._getConfig().media_viewer}
             .resolvedMediaCache=${this._resolvedMediaCache}
-            .timelineDataManager=${this._timelineDataManager}
+            .dataManager=${this._dataManager}
           >
           </frigate-card-viewer>`
         : ``}
@@ -1977,7 +1974,7 @@ export class FrigateCard extends LitElement {
             .view=${this._view}
             .cameras=${this._cameras}
             .timelineConfig=${this._getConfig().timeline}
-            .timelineDataManager=${this._timelineDataManager}
+            .dataManager=${this._dataManager}
           >
           </frigate-card-timeline>`
         : ``}
@@ -1998,7 +1995,7 @@ export class FrigateCard extends LitElement {
                 .conditionState=${this._conditionState}
                 .liveOverrides=${getOverridesByKey(this._getConfig().overrides, 'live')}
                 .cameras=${this._cameras}
-                .timelineDataManager=${this._timelineDataManager}
+                .dataManager=${this._dataManager}
                 class="${classMap(liveClasses)}"
               >
               </frigate-card-live>

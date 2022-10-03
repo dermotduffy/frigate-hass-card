@@ -68,7 +68,7 @@ import { renderTask } from '../utils/task.js';
 import { classMap } from 'lit/directives/class-map.js';
 import './image';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
-import { TimelineDataManager } from '../utils/timeline-data-manager.js';
+import { DataManager } from '../utils/data-manager.js';
 
 // Number of seconds a signed URL is valid for.
 const URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -97,7 +97,7 @@ export class FrigateCardLive extends LitElement {
   public liveOverrides?: LiveOverrides;
 
   @property({ attribute: false })
-  public timelineDataManager?: TimelineDataManager;
+  public dataManager?: DataManager;
 
   // Whether or not the live view is currently in the background (i.e. preloaded
   // but not visible)
@@ -221,7 +221,7 @@ export class FrigateCardLive extends LitElement {
         .timelineConfig=${config.controls.timeline}
         .browseMediaParams=${browseMediaParams ?? undefined}
         .cameras=${this.cameras}
-        .timelineDataManager=${this.timelineDataManager}
+        .dataManager=${this.dataManager}
         .inBackground=${this._inBackground}
         @frigate-card:message=${(ev: CustomEvent<Message>) => {
           this._renderKey++;
