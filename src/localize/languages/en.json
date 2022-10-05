@@ -89,7 +89,8 @@
           "styles": {
             "chevrons": "Chevrons",
             "icons": "Icons",
-            "none": "None"
+            "none": "None",
+            "thumbnails": "Thumbnails"
           }
         },
         "timeline": {

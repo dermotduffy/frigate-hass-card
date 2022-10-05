@@ -4,7 +4,7 @@ import type {
   RawFrigateCardConfig,
 } from './types';
 import { HassEntities } from 'home-assistant-js-websocket';
-import { cloneDeep, merge } from 'lodash-es';
+import { merge } from 'lodash-es';
 
 export interface ConditionState {
   view?: string;
@@ -109,7 +109,7 @@ export function getOverriddenConfig(
   overrides: Readonly<RawOverrides> | undefined,
   conditionState?: Readonly<ConditionState>,
 ): RawFrigateCardConfig {
-  const output = cloneDeep(config);
+  const output = structuredClone(config);
   let overridden = false;
   if (overrides) {
     for (const override of overrides) {

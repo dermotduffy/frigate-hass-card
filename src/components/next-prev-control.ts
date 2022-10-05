@@ -52,9 +52,9 @@ export class FrigateCardNextPreviousControl extends LitElement {
 
     const classes = {
       controls: true,
-      previous: this.direction == 'previous',
-      next: this.direction == 'next',
-      thumbnails: this._controlConfig.style == 'thumbnails',
+      previous: this.direction === 'previous',
+      next: this.direction === 'next',
+      thumbnails: this._controlConfig.style === 'thumbnails',
       icons: ['chevrons', 'icons'].includes(this._controlConfig.style),
       button: ['chevrons', 'icons'].includes(this._controlConfig.style),
     };
@@ -62,7 +62,7 @@ export class FrigateCardNextPreviousControl extends LitElement {
     if (['chevrons', 'icons'].includes(this._controlConfig.style)) {
       let icon: string;
       if (this._controlConfig.style === 'chevrons') {
-        icon = this.direction == 'previous' ? 'mdi:chevron-left' : 'mdi:chevron-right';
+        icon = this.direction === 'previous' ? 'mdi:chevron-left' : 'mdi:chevron-right';
       } else {
         if (!this.icon) {
           return html``;

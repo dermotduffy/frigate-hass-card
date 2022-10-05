@@ -104,7 +104,6 @@ export class DataManager {
   protected _maxAgeSeconds: number = DATA_MANAGER_MAX_AGE_SECONDS;
 
   protected _cameras: Map<string, CameraConfig>;
-  protected _mediaType: TimelineMediaType;
 
   // Garbage collect segments at most once an hour.
   protected _throttledSegmentGarbageCollector = throttle(
@@ -115,9 +114,8 @@ export class DataManager {
     { trailing: true },
   );
 
-  constructor(cameras: Map<string, CameraConfig>, mediaType: TimelineMediaType) {
+  constructor(cameras: Map<string, CameraConfig>) {
     this._cameras = cameras;
-    this._mediaType = mediaType;
   }
 
   // Get the last event fetch date.

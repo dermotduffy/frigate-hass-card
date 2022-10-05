@@ -300,6 +300,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       value: 'none',
       label: localize('config.common.controls.next_previous.styles.none'),
     },
+    {
+      value: 'thumbnails',
+      label: localize('config.common.controls.next_previous.styles.thumbnails'),
+    },
   ];
 
   protected _aspectRatioModes: EditorSelectOption[] = [
@@ -912,6 +916,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     domain: string,
     configPathStyle: string,
     configPathSize: string,
+    options?: {
+      allowIcons?: boolean;
+      allowThumbnails?: boolean;
+    },
   ): TemplateResult | void {
     return this._putInSubmenu(
       domain,
@@ -919,9 +927,17 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       'config.common.controls.next_previous.editor_label',
       { name: 'mdi:arrow-right-bold-circle' },
       html`
-        ${this._renderOptionSelector(configPathStyle, this._nextPreviousControlStyles, {
-          label: localize('config.common.controls.next_previous.style'),
-        })}
+        ${this._renderOptionSelector(
+          configPathStyle,
+          this._nextPreviousControlStyles.filter(
+            (item) =>
+              (!!options?.allowThumbnails || item.value !== 'thumbnails') &&
+              (!!options?.allowIcons || item.value !== 'icons'),
+          ),
+          {
+            label: localize('config.common.controls.next_previous.style'),
+          },
+        )}
         ${this._renderNumberInput(configPathSize, {
           min: BUTTON_SIZE_MIN,
           label: localize('config.common.controls.next_previous.size'),
@@ -1494,6 +1510,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       MENU_LIVE_CONTROLS_NEXT_PREVIOUS,
                       CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
                       CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
+                      {
+                        allowIcons: true,
+                      },
                     )}
                     ${this._renderThumbnailsControls(
                       MENU_LIVE_CONTROLS_THUMBNAILS,
@@ -1584,6 +1603,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     MENU_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS,
                     CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
                     CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
+                    {
+                      allowThumbnails: true,
+                    },
                   )}
                   ${this._renderThumbnailsControls(
                     MENU_MEDIA_VIEWER_CONTROLS_THUMBNAILS,

@@ -23,7 +23,7 @@ import {
   getFullDependentBrowseMediaQueryParametersOrDispatchError,
 } from '../utils/ha/browse-media';
 import { changeViewToRecentRecordingForCameraAndDependents } from '../utils/media-to-view.js';
-import { DataManager } from '../utils/data-manager';
+import { DataManager } from '../utils/data-manager.js';
 import { View } from '../view.js';
 import { renderProgressIndicator } from './message.js';
 import './thumbnail.js';

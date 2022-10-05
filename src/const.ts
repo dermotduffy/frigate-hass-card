@@ -192,7 +192,9 @@ export const CONF_MENU_BUTTONS_FRIGATE_UI = `${CONF_MENU}.buttons.frigate_ui` as
 export const CONF_MENU_BUTTONS_FULLSCREEN = `${CONF_MENU}.buttons.fullscreen` as const;
 export const CONF_MENU_BUTTONS_IMAGE = `${CONF_MENU}.buttons.image` as const;
 export const CONF_MENU_BUTTONS_LIVE = `${CONF_MENU}.buttons.live` as const;
+export const CONF_MENU_BUTTONS_MEDIA_PLAYER = `${CONF_MENU}.buttons.media_player` as const;
 export const CONF_MENU_BUTTONS_SNAPSHOTS = `${CONF_MENU}.buttons.snapshots` as const;
+export const CONF_MENU_BUTTONS_TIMELINE = `${CONF_MENU}.buttons.timeline` as const;
 
 export const CONF_DIMENSIONS = 'dimensions' as const;
 export const CONF_DIMENSIONS_ASPECT_RATIO = `${CONF_DIMENSIONS}.aspect_ratio` as const;

@@ -101,6 +101,7 @@ import { View } from './view.js';
 import pkg from '../package.json';
 import { ViewContext } from 'view';
 import { DataManager } from './utils/data-manager.js';
+import { setLowPerformanceProfile } from './performance.js';
 
 /** A note on media callbacks:
  *
@@ -933,7 +934,10 @@ export class FrigateCard extends LitElement {
             : localize('error.invalid_configuration_no_hint')),
       );
     }
-    const config = parseResult.data;
+    const config =
+      parseResult.data.performance.profile !== 'low'
+        ? parseResult.data
+        : setLowPerformanceProfile(inputConfig, parseResult.data);
 
     if (config.test_gui) {
       getLovelace().setEditMode(true);
@@ -1052,7 +1056,7 @@ export class FrigateCard extends LitElement {
     }
 
     if (this._cameras && (changedProps.has('_config') || changedProps.has('_cameras'))) {
-      this._dataManager = new DataManager(this._cameras, this._config.timeline.media);
+      this._dataManager = new DataManager(this._cameras);
     }
   }
 

@@ -1,4 +1,4 @@
-import { cloneDeep, get, isEqual, set } from 'lodash-es';
+import { get, isEqual, set } from 'lodash-es';
 import {
   CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
@@ -104,7 +104,7 @@ export const upgradeConfig = function (obj: RawFrigateCardConfig): boolean {
  * @returns `true` if the configuration is upgradeable.
  */
 export const isConfigUpgradeable = function (obj: RawFrigateCardConfig): boolean {
-  const newObj = JSON.parse(JSON.stringify(obj));
+  const newObj = structuredClone(obj);
   return upgradeConfig(newObj);
 };
 
@@ -136,7 +136,7 @@ export const trimConfig = function (obj: RawFrigateCardConfig): boolean {
  * @returns A new deeply-copied configuration.
  */
 export const copyConfig = function (obj: RawFrigateCardConfig): RawFrigateCardConfig {
-  return cloneDeep(obj);
+  return structuredClone(obj);
 };
 
 /**

@@ -1206,6 +1206,14 @@ const liveOverridesSchema = z
   .optional();
 export type LiveOverrides = z.infer<typeof liveOverridesSchema>;
 
+const performanceConfigDefault = {
+  profile: 'high' as const,
+}
+
+const performanceConfigSchema = z.object({
+  profile: z.enum(['low', 'high'])
+}).default(performanceConfigDefault);
+
 /**
  * Main card config.
  */
@@ -1221,6 +1229,7 @@ export const frigateCardConfigSchema = z.object({
   elements: pictureElementsSchema,
   dimensions: dimensionsConfigSchema,
   timeline: timelineConfigSchema,
+  performance: performanceConfigSchema,
 
   // Configuration overrides.
   overrides: overridesSchema,
@@ -1246,6 +1255,7 @@ export const frigateCardConfigDefaults = {
   image: imageConfigDefault,
   timeline: timelineConfigDefault,
   mini_timeline: timelineCoreConfigDefault,
+  performance: performanceConfigDefault,
 };
 
 const menuButtonSchema = z.discriminatedUnion('type', [

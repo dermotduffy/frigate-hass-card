@@ -84,7 +84,7 @@ export class FrigateCardSurround extends LitElement {
       this.inBackground ||
       !this.hass ||
       !this.view ||
-      this.view.target ||      
+      this.view.target ||
       !this.thumbnailConfig ||
       this.thumbnailConfig.mode === 'none' ||
       !this.browseMediaParams ||
@@ -200,7 +200,7 @@ export class FrigateCardSurround extends LitElement {
           >
           </frigate-card-thumbnail-carousel>`
         : ''}
-      ${this.timelineConfig && !this.inBackground
+      ${this.timelineConfig?.mode && this.timelineConfig.mode !== 'none' && !this.inBackground
         ? html` <frigate-card-timeline-core
             slot=${this.timelineConfig.mode}
             .hass=${this.hass}
