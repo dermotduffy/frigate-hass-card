@@ -27,6 +27,7 @@ import liveCarouselStyle from '../scss/live-carousel.scss';
 import liveProviderStyle from '../scss/live-provider.scss';
 import {
   CameraConfig,
+  CardWideConfig,
   ExtendedHomeAssistant,
   frigateCardConfigDefaults,
   FrigateCardError,
@@ -98,6 +99,9 @@ export class FrigateCardLive extends LitElement {
 
   @property({ attribute: false })
   public dataManager?: DataManager;
+
+  @property({ attribute: false })
+  public cardWideConfig?: CardWideConfig;
 
   // Whether or not the live view is currently in the background (i.e. preloaded
   // but not visible)
@@ -250,6 +254,7 @@ export class FrigateCardLive extends LitElement {
           .inBackground=${this._inBackground}
           .conditionState=${this.conditionState}
           .liveOverrides=${this.liveOverrides}
+          .cardWideConfig=${this.cardWideConfig}
         >
         </frigate-card-live-carousel>
       </frigate-card-surround>`,
@@ -289,6 +294,9 @@ export class FrigateCardLiveCarousel extends LitElement {
 
   @property({ attribute: false })
   public conditionState?: ConditionState;
+
+  @property({ attribute: false })
+  public cardWideConfig?: CardWideConfig;
 
   // Index between camera name and slide number.
   protected _cameraToSlide: Record<string, number> = {};
@@ -520,6 +528,7 @@ export class FrigateCardLiveCarousel extends LitElement {
           .label=${getCameraTitle(this.hass, cameraConfig)}
           .liveConfig=${config}
           .hass=${this.hass}
+          .cardWideConfig=${this.cardWideConfig}
           @frigate-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
             wrapMediaLoadedEventForCarousel(slideIndex, ev);
           }}
@@ -666,6 +675,9 @@ export class FrigateCardLiveProvider extends LitElement {
   // Label that is used for ARIA support and as tooltip.
   @property({ attribute: false })
   public label = '';
+
+  @property({ attribute: false })
+  public cardWideConfig?: CardWideConfig;
 
   @state()
   protected _isVideoMediaLoaded = false;
@@ -819,6 +831,7 @@ export class FrigateCardLiveProvider extends LitElement {
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
             .webRTCConfig=${this.liveConfig.webrtc_card}
+            .cardWideConfig=${this.cardWideConfig}
             @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >
           </frigate-card-live-webrtc-card>`
@@ -828,6 +841,7 @@ export class FrigateCardLiveProvider extends LitElement {
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
             .jsmpegConfig=${this.liveConfig.jsmpeg}
+            .cardWideConfig=${this.cardWideConfig}
             @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >
           </frigate-card-live-jsmpeg>`}
@@ -949,6 +963,9 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
 
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
+
+  @property({ attribute: false })
+  public cardWideConfig?: CardWideConfig;
 
   protected hass?: HomeAssistant;
 
@@ -1079,9 +1096,13 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
     // Use a task to allow us to asynchronously wait for the WebRTC card to
     // load, but yet still have the card load be followed by the updated()
     // lifecycle callback (unlike just using `until`).
-    return renderTask(this, this._webrtcTask, render, () =>
-      renderProgressIndicator(localize('error.webrtc_card_waiting')),
-    );
+    return renderTask(this, this._webrtcTask, render, {
+      inProgressFunc: () =>
+        renderProgressIndicator({
+          message: localize('error.webrtc_card_waiting'),
+          cardWideConfig: this.cardWideConfig,
+        }),
+    });
   }
 
   /**
@@ -1120,6 +1141,9 @@ export class FrigateCardLiveJSMPEG extends LitElement {
 
   @property({ attribute: false, hasChanged: contentsChanged })
   public jsmpegConfig?: JSMPEGConfig;
+
+  @property({ attribute: false })
+  public cardWideConfig?: CardWideConfig;
 
   protected hass?: ExtendedHomeAssistant;
 
@@ -1327,7 +1351,12 @@ export class FrigateCardLiveJSMPEG extends LitElement {
       }
       return html`${this._jsmpegCanvasElement}`;
     };
-    return html`${until(_render(), renderProgressIndicator())}`;
+    return html`${until(
+      _render(),
+      renderProgressIndicator({
+        cardWideConfig: this.cardWideConfig,
+      }),
+    )}`;
   }
 
   /**

@@ -54,6 +54,10 @@ div.message div.icon {
   word-break: break-all;
 }
 
+.message ha-icon, ha-circular-progress {
+  padding: 10px;
+}
+
 .dotdotdot:after {
   @keyframes dots {
     0%,

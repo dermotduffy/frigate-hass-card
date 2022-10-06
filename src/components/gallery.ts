@@ -11,6 +11,7 @@ import { customElement, property } from 'lit/decorators.js';
 import galleryStyle from '../scss/gallery.scss';
 import {
   CameraConfig,
+  CardWideConfig,
   ExtendedHomeAssistant,
   frigateCardConfigDefaults,
   GalleryConfig,
@@ -45,6 +46,9 @@ export class FrigateCardGallery extends LitElement {
 
   @property({ attribute: false })
   public dataManager?: DataManager;
+
+  @property({ attribute: false })
+  public cardWideConfig?: CardWideConfig;
 
   /**
    * Master render method.
@@ -96,7 +100,7 @@ export class FrigateCardGallery extends LitElement {
           browseMediaQueryParameters,
         );
       }
-      return renderProgressIndicator();
+      return renderProgressIndicator({cardWideConfig: this.cardWideConfig});
     }
 
     return html`

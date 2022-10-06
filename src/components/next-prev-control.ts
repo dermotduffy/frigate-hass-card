@@ -91,7 +91,7 @@ export class FrigateCardNextPreviousControl extends LitElement {
               aria-label="${this.label}"
             />`
           : html``,
-      () => html`<div class=${classMap(classes)}></div>`,
+      { inProgressFunc: () => html`<div class=${classMap(classes)}></div>` },
     );
   }
 

@@ -95,7 +95,7 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
           this._embedThumbnailTask,
           (embeddedThumbnail: string | null) =>
             embeddedThumbnail ? html`<img src="${embeddedThumbnail}" />` : html``,
-          () => imageOff,
+          {inProgressFunc: () => imageOff},
         )
       : imageOff} `;
   }

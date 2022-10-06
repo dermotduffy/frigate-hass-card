@@ -1,7 +1,6 @@
 // TODO: Change defaults themselves?
-// TODO: Camera auto-dep detection
 // TODO: CSS
-// TODO: Renderprogress
+// TODO: Don't pump out conditionStates based on state?
 
 import { deepRemoveDefaults } from './utils/zod.js';
 import {
@@ -16,7 +15,6 @@ import {
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_LIVE_AUTO_MUTE,
-  CONF_LIVE_AUTO_PLAY,
   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,

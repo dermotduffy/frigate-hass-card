@@ -67,6 +67,7 @@ import {
   MenuButton,
   Message,
   RawFrigateCardConfig,
+  CardWideConfig,
 } from './types.js';
 import {
   convertActionToFrigateCardCustomAction,
@@ -165,6 +166,9 @@ export class FrigateCard extends LitElement {
   @state()
   protected _config!: FrigateCardConfig;
   protected _rawConfig?: RawFrigateCardConfig;
+
+  @state()
+  protected _cardWideConfig?: CardWideConfig;
 
   @state()
   protected _overriddenConfig?: FrigateCardConfig;
@@ -976,6 +980,10 @@ export class FrigateCard extends LitElement {
 
     this._rawConfig = inputConfig;
     this._config = config;
+    this._cardWideConfig = {
+      performance: config.performance,
+    };
+
     this._overriddenConfig = undefined;
     this._cameras = undefined;
     this._view = undefined;
@@ -1919,7 +1927,7 @@ export class FrigateCard extends LitElement {
                 this._changeView({ resetMessage: false });
                 return this._render();
               })(),
-              renderProgressIndicator(),
+              renderProgressIndicator({cardWideConfig: this._cardWideConfig}),
             )
           : // Always want to call render even if there's a message, to
             // ensure live preload is always present (even if not displayed).
@@ -1989,6 +1997,7 @@ export class FrigateCard extends LitElement {
             .cameras=${this._cameras}
             .galleryConfig=${this._getConfig().event_gallery}
             .dataManager=${this._dataManager}
+            .cardWideConfig=${this._cardWideConfig}
           >
           </frigate-card-gallery>`
         : ``}
@@ -2000,6 +2009,7 @@ export class FrigateCard extends LitElement {
             .viewerConfig=${this._getConfig().media_viewer}
             .resolvedMediaCache=${this._resolvedMediaCache}
             .dataManager=${this._dataManager}
+            .cardWideConfig=${this._cardWideConfig}
           >
           </frigate-card-viewer>`
         : ``}
@@ -2031,6 +2041,7 @@ export class FrigateCard extends LitElement {
                 .liveOverrides=${getOverridesByKey(this._getConfig().overrides, 'live')}
                 .cameras=${this._cameras}
                 .dataManager=${this._dataManager}
+                .cardWideConfig=${this._cardWideConfig}
                 class="${classMap(liveClasses)}"
               >
               </frigate-card-live>

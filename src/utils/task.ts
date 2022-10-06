@@ -4,6 +4,7 @@ import {
   dispatchFrigateCardErrorEvent,
   renderProgressIndicator,
 } from '../components/message';
+import { CardWideConfig } from '../types';
 import { errorToConsole } from './basic';
 
 /**
@@ -18,11 +19,19 @@ export const renderTask = <R>(
   host: EventTarget,
   task: Task<unknown[], R>,
   completeFunc: (result: R) => TemplateResult | void,
-  inProgressFunc?: () => TemplateResult | void,
+  options?: {
+    cardWideConfig?: CardWideConfig;
+    inProgressFunc?: () => TemplateResult | void;
+  },
 ): TemplateResult => {
+  const progressConfig = {
+    ...(options?.cardWideConfig && { cardWideConfig: options.cardWideConfig }),
+  };
   return html` ${task.render({
-    initial: () => inProgressFunc?.() ?? renderProgressIndicator(),
-    pending: () => inProgressFunc?.() ?? renderProgressIndicator(),
+    initial: () =>
+      options?.inProgressFunc?.() ?? renderProgressIndicator(progressConfig),
+    pending: () =>
+      options?.inProgressFunc?.() ?? renderProgressIndicator(progressConfig),
     error: (e: unknown) => {
       errorToConsole(e as Error);
       dispatchFrigateCardErrorEvent(host, e as Error);
