@@ -122,7 +122,8 @@ export function renderProgressIndicator(options?: {
   return html`
     <frigate-card-progress-indicator
       .message=${options?.message || ''}
-      .animated=${options?.cardWideConfig?.performance?.profile !== 'low'}
+      .animated=${options?.cardWideConfig?.performance?.features
+        .animated_progress_indicator ?? true}
     >
     </frigate-card-progress-indicator>
   `;

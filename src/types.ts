@@ -206,7 +206,7 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'menu_toggle',
   'diagnostics',
   'recording',
-  'recordings'
+  'recordings',
 ] as const;
 const FRIGATE_CARD_ACTIONS = [
   ...FRIGATE_CARD_GENERAL_ACTIONS,
@@ -1208,11 +1208,23 @@ export type LiveOverrides = z.infer<typeof liveOverridesSchema>;
 
 const performanceConfigDefault = {
   profile: 'high' as const,
-}
+  features: {
+    animated_progress_indicator: true,
+  },
+};
 
-const performanceConfigSchema = z.object({
-  profile: z.enum(['low', 'high'])
-}).default(performanceConfigDefault);
+const performanceConfigSchema = z
+  .object({
+    profile: z.enum(['low', 'high']),
+    features: z
+      .object({
+        animated_progress_indicator: z
+          .boolean()
+          .default(performanceConfigDefault.features.animated_progress_indicator),
+      })
+      .default(performanceConfigDefault.features),
+  })
+  .default(performanceConfigDefault);
 export type PerformanceConfig = z.infer<typeof performanceConfigSchema>;
 
 export interface CardWideConfig {
