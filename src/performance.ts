@@ -9,8 +9,9 @@ import {
   FrigateCardConfig,
   RawFrigateCardConfig,
 } from './types';
-import { getConfigValue, setConfigValue } from './config-mgmt.js';
+import { getArrayConfigPath, getConfigValue, setConfigValue } from './config-mgmt.js';
 import {
+  CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
@@ -64,7 +65,6 @@ const LOW_PROFILE_DEFAULTS = {
   [CONF_TIMELINE_SHOW_RECORDINGS]: false,
 
   // Take no automatic media actions.
-  [CONF_LIVE_AUTO_PLAY]: 'never' as const,
   [CONF_LIVE_AUTO_MUTE]: 'never' as const,
   [CONF_MEDIA_VIEWER_AUTO_PLAY]: 'never' as const,
   [CONF_MEDIA_VIEWER_AUTO_PAUSE]: 'never' as const,
@@ -114,6 +114,10 @@ const LOW_PROFILE_DEFAULTS = {
   [CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS]: false,
 };
 
+const LOW_PROFILE_CAMERA_DEFAULTS = {
+  [CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY]: false,
+};
+
 /**
  * Set low performance profile mode. Sets flags as defined in
  * LOW_PROFILE_DEFAULTS unless they are explicitly overriden in the
@@ -126,16 +130,34 @@ export const setLowPerformanceProfile = (
   inputConfig: RawFrigateCardConfig,
   parsedConfig: FrigateCardConfig,
 ): FrigateCardConfig => {
+  const setIfNotSpecified = (
+    defaultLessConfig: RawFrigateCardConfig,
+    parsedConfig: FrigateCardConfig,
+    key: string,
+    value: unknown,
+  ) => {
+    if (getConfigValue(defaultLessConfig, key) === undefined) {
+      setConfigValue(parsedConfig, key, value);
+    }
+  };
+
   const defaultLessParseResult = deepRemoveDefaults(frigateCardConfigSchema).safeParse(
     inputConfig,
   );
   if (defaultLessParseResult.success) {
     const defaultLessConfig = defaultLessParseResult.data;
-    Object.entries(LOW_PROFILE_DEFAULTS).forEach(([k, v]: [string, unknown]) => {
-      if (getConfigValue(defaultLessConfig, k) === undefined) {
-        setConfigValue(parsedConfig, k, v);
-      }
-    });
+    Object.entries(LOW_PROFILE_DEFAULTS).forEach(([k, v]: [string, unknown]) =>
+      setIfNotSpecified(defaultLessConfig, parsedConfig, k, v),
+    );
+
+    Object.entries(LOW_PROFILE_CAMERA_DEFAULTS).forEach(
+      ([rawKey, v]: [string, unknown]) => {
+        defaultLessConfig.cameras.forEach((_, index: number) => {
+          const indexedKey = getArrayConfigPath(rawKey, index);
+          setIfNotSpecified(defaultLessConfig, parsedConfig, indexedKey, v);
+        });
+      },
+    );
   }
   return parsedConfig;
 };

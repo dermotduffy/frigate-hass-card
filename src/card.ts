@@ -709,24 +709,38 @@ export class FrigateCard extends LitElement {
       return;
     }
 
-    const cache = new ExtendedEntityCache();
+    const hasAutoTriggers = (config: CameraConfig): boolean => {
+      return config.triggers.motion || config.triggers.occupancy;
+    };
+    const hasAnyTriggers = (config: CameraConfig): boolean => {
+      return hasAutoTriggers(config) || !!config.triggers.entities.length;
+    };
+    const hasCameraName = (config: CameraConfig): boolean => {
+      return !!config.frigate?.camera_name;
+    };
+
+    // Loading cameras may require a number of calls to Home Assistant.
+    //
+    // - getAllEntities: Required if any camera has auto-triggers (motion or
+    //   occupancy sensors).
+    // - getExtendedEntity: Per camera entity to autodetect the Frigate camera
+    //   name or to compute auto-triggers (motion or occupancy sensors).
+    // - getExtendedEntities: Per binary sensor associated with a Frigate config
+    //   entry, to compute auto-triggers (motion or occupancy sensors).
+    //
+    // For loading performance these are only called when absolutely needed.
+
     let entityList: EntityList | undefined;
-    try {
-      entityList = await getAllEntities(this._hass);
-    } catch (e) {
-      errorToConsole(e as Error);
-    }
+    const cache = new ExtendedEntityCache();
+    const loadedCameras: CameraConfig[] = [];
 
-    const cameras: Map<string, CameraConfig> = new Map();
-    let errorFree = true;
-
-    const addCameraConfig = async (config: CameraConfig) => {
+    const addCameraConfig = async (config: CameraConfig, index: number) => {
       if (!this._hass) {
         return;
       }
 
       let entity: ExtendedEntity | null = null;
-      if (config.camera_entity) {
+      if (config.camera_entity && (hasAnyTriggers(config) || !hasCameraName(config))) {
         try {
           entity = await getExtendedEntity(this._hass, config.camera_entity, cache);
         } catch (e) {
@@ -736,77 +750,94 @@ export class FrigateCard extends LitElement {
         }
       }
 
-      if (!config.frigate.camera_name && entity) {
+      if (entity && !hasCameraName(config)) {
         const resolvedName = this._getFrigateCameraNameFromEntity(entity);
         if (resolvedName) {
           config.frigate.camera_name = resolvedName;
         }
       }
 
-      if (entity && entityList) {
-        // Try to find the correct entities for the motion & occupancy sensors.
-        // We know they are binary_sensors, and that they'll have the same
-        // config entry ID as the camera. Searching via unique_id ensures this
-        // search still works if the user renames the entity_id.
-        const binarySensorEntities = entityList.filter(
-          (ent) =>
-            ent.config_entry_id === entity?.config_entry_id &&
-            !ent.disabled_by &&
-            ent.entity_id.startsWith('binary_sensor.'),
-        );
-
-        try {
-          await getExtendedEntities(
-            this._hass,
-            binarySensorEntities.map((ent) => ent.entity_id),
-            cache,
+      if (entity && entityList && hasAnyTriggers(config)) {
+        if (hasAutoTriggers(config)) {
+          // Try to find the correct entities for the motion & occupancy sensors.
+          // We know they are binary_sensors, and that they'll have the same
+          // config entry ID as the camera. Searching via unique_id ensures this
+          // search still works if the user renames the entity_id.
+          const binarySensorEntities = entityList.filter(
+            (ent) =>
+              ent.config_entry_id === entity?.config_entry_id &&
+              !ent.disabled_by &&
+              ent.entity_id.startsWith('binary_sensor.'),
           );
+
+          try {
+            await getExtendedEntities(
+              this._hass,
+              binarySensorEntities.map((ent) => ent.entity_id),
+              cache,
+            );
+          } catch (e) {
+            errorToConsole(e as Error);
+          }
+
+          if (config.triggers.motion) {
+            const motionEntity = this._getMotionSensor(cache, config);
+            if (motionEntity) {
+              config.triggers.entities.push(motionEntity);
+            }
+          }
+
+          if (config.triggers.occupancy) {
+            const occupancyEntity = this._getOccupancySensor(cache, config);
+            if (occupancyEntity) {
+              config.triggers.entities.push(occupancyEntity);
+            }
+          }
+        }
+
+        config.triggers.entities = [...new Set(config.triggers.entities)];
+      }
+
+      loadedCameras[index] = config;
+    };
+
+    let errorFree = true;
+    const cameras: Map<string, CameraConfig> = new Map();
+    const configCameras = this._getConfig().cameras;
+
+    if (configCameras && Array.isArray(configCameras)) {
+      if (configCameras.some((config) => hasAutoTriggers(config))) {
+        try {
+          entityList = await getAllEntities(this._hass);
         } catch (e) {
           errorToConsole(e as Error);
         }
+      }
 
-        if (config.triggers.motion) {
-          const motionEntity = this._getMotionSensor(cache, config);
-          if (motionEntity) {
-            config.triggers.entities.push(motionEntity);
-          }
+      // Load all cameras in parallel, but remember the order they were provided
+      // (they must be added to the cameraMap in this same order).
+      await Promise.all(configCameras.map((configCamera, index) => addCameraConfig(configCamera, index)))
+
+      loadedCameras.forEach((loadedCamera: CameraConfig) => {
+        const id = getCameraID(loadedCamera);
+        if (!id) {
+          this._setMessageAndUpdate({
+            message: localize('error.no_camera_id'),
+            type: 'error',
+            context: loadedCamera,
+          });
+          errorFree = false;
+        } else if (cameras.has(id)) {
+          this._setMessageAndUpdate({
+            message: localize('error.duplicate_camera_id'),
+            type: 'error',
+            context: loadedCamera,
+          });
+          errorFree = false;
+        } else {
+          cameras.set(id, loadedCamera);
         }
-
-        if (config.triggers.occupancy) {
-          const occupancyEntity = this._getOccupancySensor(cache, config);
-          if (occupancyEntity) {
-            config.triggers.entities.push(occupancyEntity);
-          }
-        }
-      }
-      config.triggers.entities = [...new Set(config.triggers.entities)];
-
-      const id = getCameraID(config);
-      if (!id) {
-        this._setMessageAndUpdate({
-          message: localize('error.no_camera_id'),
-          type: 'error',
-          context: config,
-        });
-        errorFree = false;
-      } else if (cameras.has(id)) {
-        this._setMessageAndUpdate({
-          message: localize('error.duplicate_camera_id'),
-          type: 'error',
-          context: config,
-        });
-        errorFree = false;
-      } else {
-        cameras.set(id, config);
-      }
-    };
-
-    if (this._getConfig().cameras && Array.isArray(this._getConfig().cameras)) {
-      // Cameras are loaded sequentially rather than in parallel to preserve the
-      // order of the input camera array.
-      for (const camera of this._getConfig().cameras) {
-        await addCameraConfig(camera);
-      }
+      });
     }
 
     if (!cameras.size) {

@@ -1213,6 +1213,11 @@ const performanceConfigDefault = {
 const performanceConfigSchema = z.object({
   profile: z.enum(['low', 'high'])
 }).default(performanceConfigDefault);
+export type PerformanceConfig = z.infer<typeof performanceConfigSchema>;
+
+export interface CardWideConfig {
+  performance?: PerformanceConfig;
+}
 
 /**
  * Main card config.

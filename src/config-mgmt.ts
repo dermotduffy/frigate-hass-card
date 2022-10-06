@@ -40,7 +40,7 @@ import {
 /**
  * Set a configuration value.
  * @param obj The configuration.
- * @param key The key to the property to set.
+ * @param keys The key to the property to set.
  * @param value The value to set.
  */
 
@@ -55,7 +55,8 @@ export const setConfigValue = (
 /**
  * Get a configuration value.
  * @param obj The configuration.
- * @param key The key to the property to retrieve.
+ * @param keys The key to the property to retrieve.
+ * @param def Default if key not found.
  * @returns The property or undefined if not found.
  */
 export const getConfigValue = (
