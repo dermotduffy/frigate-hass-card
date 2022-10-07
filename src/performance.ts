@@ -1,12 +1,13 @@
 // TODO: Change defaults themselves?
-// TODO: CSS
 // TODO: Don't pump out conditionStates based on state?
+// TODO: view history
 
 import { deepRemoveDefaults } from './utils/zod.js';
 import {
   frigateCardConfigSchema,
   FrigateCardConfig,
   RawFrigateCardConfig,
+  PerformanceConfig,
 } from './types';
 import { getArrayConfigPath, getConfigValue, setConfigValue } from './config-mgmt.js';
 import {
@@ -42,6 +43,8 @@ import {
   CONF_MENU_BUTTONS_TIMELINE,
   CONF_MENU_STYLE,
   CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
+  CONF_PERFORMANCE_STYLE_BORDER_RADIUS,
+  CONF_PERFORMANCE_STYLE_BOX_SHADOW,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
@@ -114,6 +117,10 @@ const LOW_PROFILE_DEFAULTS = {
 
   // Disable all optional performance related features.
   [CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR]: false,
+
+  // Disable all expensive CSS features.
+  [CONF_PERFORMANCE_STYLE_BORDER_RADIUS]: false,
+  [CONF_PERFORMANCE_STYLE_BOX_SHADOW]: false,
 };
 
 const LOW_PROFILE_CAMERA_DEFAULTS = {
@@ -162,4 +169,29 @@ export const setLowPerformanceProfile = (
     );
   }
   return parsedConfig;
+};
+
+const STYLE_DISABLE_MAP = {
+  box_shadow: 'none',
+  border_radius: '0px',
+};
+
+/**
+ * Set card-wide CSS variables for performance.
+ * @param element The element to set the variables on.
+ * @param performance The performance configuration.
+ */
+export const setPerformanceCSSStyles = (
+  element: HTMLElement,
+  performance?: PerformanceConfig,
+): void => {
+  const styles = performance?.style ?? {};
+  for (const configKey of Object.keys(styles)) {
+    const CSSKey = `--frigate-card-css-${configKey.replaceAll('_', '-')}`;
+    if (styles[configKey] === false) {
+      element.style.setProperty(CSSKey, STYLE_DISABLE_MAP[configKey]);
+    } else {
+      element.style.removeProperty(CSSKey);
+    }
+  }
 };

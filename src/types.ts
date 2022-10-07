@@ -1211,6 +1211,10 @@ const performanceConfigDefault = {
   features: {
     animated_progress_indicator: true,
   },
+  style: {
+    border_radius: false,
+    box_shadow: true,
+  },
 };
 
 const performanceConfigSchema = z
@@ -1223,6 +1227,12 @@ const performanceConfigSchema = z
           .default(performanceConfigDefault.features.animated_progress_indicator),
       })
       .default(performanceConfigDefault.features),
+    style: z
+      .object({
+        border_radius: z.boolean().default(performanceConfigDefault.style.border_radius),
+        box_shadow: z.boolean().default(performanceConfigDefault.style.box_shadow),
+      })
+      .default(performanceConfigDefault.style),
   })
   .default(performanceConfigDefault);
 export type PerformanceConfig = z.infer<typeof performanceConfigSchema>;

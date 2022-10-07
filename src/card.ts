@@ -102,7 +102,7 @@ import { View } from './view.js';
 import pkg from '../package.json';
 import { ViewContext } from 'view';
 import { DataManager } from './utils/data-manager.js';
-import { setLowPerformanceProfile } from './performance.js';
+import { setLowPerformanceProfile, setPerformanceCSSStyles } from './performance.js';
 
 /** A note on media callbacks:
  *
@@ -1096,6 +1096,10 @@ export class FrigateCard extends LitElement {
 
     if (this._cameras && (changedProps.has('_config') || changedProps.has('_cameras'))) {
       this._dataManager = new DataManager(this._cameras);
+    }
+
+    if (changedProps.has('_cardWideConfig')) {
+      setPerformanceCSSStyles(this, this._cardWideConfig?.performance);
     }
   }
 

@@ -12,7 +12,7 @@
 
   border: 1px solid var(--secondary-color);
   background-color: var(--secondary-background-color);
-  border-radius: var(--ha-card-border-radius, 4px);
+  border-radius: var(--frigate-card-css-border-radius, var(--ha-card-border-radius, 4px));
   box-sizing: border-box;
 
   color: var(--primary-text-color);
