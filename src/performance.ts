@@ -1,9 +1,6 @@
-// TODO: Don't pump out conditionStates based on state?
-
 import { deepRemoveDefaults } from './utils/zod.js';
 import {
   frigateCardConfigSchema,
-  FrigateCardConfig,
   RawFrigateCardConfig,
   PerformanceConfig,
 } from './types';

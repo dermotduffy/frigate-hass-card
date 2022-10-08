@@ -220,6 +220,11 @@ export class FrigateCard extends LitElement {
   protected _triggers: Map<string, Date> = new Map();
   protected _untriggerTimerID: number | null = null;
 
+  // Whether or not to include HA state in ConditionState. Doing so increases
+  // CPU usage as HA state is pumped out very fast, so this is only enabled if
+  // the configuration is likely to consume it.
+  protected _needHAStateInConditionState = false;
+
   /**
    * Set the Home Assistant object.
    */
@@ -241,8 +246,10 @@ export class FrigateCard extends LitElement {
       }
     }
 
-    // HA entity state is part of the condition state.
-    this._generateConditionState();
+    if (this._needHAStateInConditionState) {
+      // HA entity state is part of the condition state.
+      this._generateConditionState();
+    }
 
     // Dark mode may depend on HASS.
     this._setLightOrDarkMode();
@@ -287,8 +294,10 @@ export class FrigateCard extends LitElement {
       view: this._view?.view,
       fullscreen: screenfull.isEnabled && screenfull.isFullscreen,
       camera: this._view?.camera,
-      state: this._hass?.states,
       mediaLoaded: !!this._currentMediaLoadedInfo,
+      ...(this._needHAStateInConditionState && {
+        state: this._hass?.states,
+      })
     };
 
     // Update the components that need the new condition state. Passed directly
@@ -991,6 +1000,21 @@ export class FrigateCard extends LitElement {
     this._generateConditionState();
     this._setLightOrDarkMode();
     this._untrigger();
+
+    const hasStateCondition = (): boolean => {
+      for (const override of this._config.overrides ?? []) {
+        if (override.conditions.state?.length) {
+          return true;
+        }
+      }
+      // For elements there can be arbitrary custom elements that not related to
+      // this card so we cannot easily determine if state is used further down
+      // the chain by a custom:frigate-card-conditional element. Instead, include state
+      // if elements are configured at all.
+      return !!this._config.elements;
+    }
+
+    this._needHAStateInConditionState = hasStateCondition();
   }
 
   /**
