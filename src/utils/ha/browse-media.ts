@@ -1,4 +1,5 @@
 import { HomeAssistant } from 'custom-card-helpers';
+import { ViewContext } from 'view';
 import { homeAssistantWSRequest } from '.';
 import {
   dispatchErrorMessageEvent,
@@ -346,6 +347,7 @@ export const fetchChildMediaAndDispatchViewChange = async (
   hass: HomeAssistant,
   view: Readonly<View>,
   child: Readonly<FrigateBrowseMediaSource>,
+  context?: ViewContext,
 ): Promise<void> => {
   let parent: FrigateBrowseMediaSource;
   try {
@@ -358,6 +360,7 @@ export const fetchChildMediaAndDispatchViewChange = async (
     .evolve({
       target: parent,
     })
+    .mergeInContext(context)
     .dispatchChangeEvent(element);
 };
 
