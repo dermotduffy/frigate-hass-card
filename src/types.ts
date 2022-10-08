@@ -696,8 +696,12 @@ const timelineCoreConfigSchema = z.object({
 });
 export type TimelineCoreConfig = z.infer<typeof timelineCoreConfigSchema>;
 
+const miniTimelineConfigDefault = {
+  ...timelineCoreConfigDefault,
+  mode: 'none' as const,
+}
 const miniTimelineConfigSchema = timelineCoreConfigSchema.extend({
-  mode: z.enum(['none', 'above', 'below']),
+  mode: z.enum(['none', 'above', 'below']).default(miniTimelineConfigDefault.mode),
 });
 export type MiniTimelineControlConfig = z.infer<typeof miniTimelineConfigSchema>;
 
@@ -759,6 +763,7 @@ const liveConfigDefault = {
       show_timeline_control: true,
       mode: 'left' as const,
     },
+    timeline: miniTimelineConfigDefault,
     title: {
       mode: 'popup-bottom-right' as const,
       duration_seconds: 2,
@@ -833,7 +838,7 @@ const liveOverridableConfigSchema = z
               .default(liveConfigDefault.controls.thumbnails.media),
           })
           .default(liveConfigDefault.controls.thumbnails),
-        timeline: miniTimelineConfigSchema.optional(),
+        timeline: miniTimelineConfigSchema.default(liveConfigDefault.controls.timeline),
         title: titleControlConfigSchema
           .extend({
             mode: titleControlConfigSchema.shape.mode.default(
@@ -975,6 +980,7 @@ const viewerConfigDefault = {
       show_timeline_control: true,
       mode: 'left' as const,
     },
+    timeline: miniTimelineConfigDefault,
     title: {
       mode: 'popup-bottom-right' as const,
       duration_seconds: 2,
@@ -1038,7 +1044,7 @@ const viewerConfigSchema = z
               ),
           })
           .default(viewerConfigDefault.controls.thumbnails),
-        timeline: miniTimelineConfigSchema.optional(),
+        timeline: miniTimelineConfigSchema.default(viewerConfigDefault.controls.timeline),
         title: titleControlConfigSchema
           .extend({
             mode: titleControlConfigSchema.shape.mode.default(
@@ -1212,14 +1218,14 @@ const performanceConfigDefault = {
     animated_progress_indicator: true,
   },
   style: {
-    border_radius: false,
+    border_radius: true,
     box_shadow: true,
   },
 };
 
 const performanceConfigSchema = z
   .object({
-    profile: z.enum(['low', 'high']),
+    profile: z.enum(['low', 'high']).default(performanceConfigDefault.profile),
     features: z
       .object({
         animated_progress_indicator: z
@@ -1281,7 +1287,6 @@ export const frigateCardConfigDefaults = {
   event_gallery: galleryConfigDefault,
   image: imageConfigDefault,
   timeline: timelineConfigDefault,
-  mini_timeline: timelineCoreConfigDefault,
   performance: performanceConfigDefault,
 };
 

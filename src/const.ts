@@ -206,6 +206,7 @@ export const CONF_OVERRIDES = 'overrides' as const;
 
 export const CONF_PERFORMANCE = 'performance' as const;
 export const CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR = `${CONF_PERFORMANCE}.features.animated_progress_indicator`;
+export const CONF_PERFORMANCE_PROFILE = `${CONF_PERFORMANCE}.profile`;
 export const CONF_PERFORMANCE_STYLE_BOX_SHADOW = `${CONF_PERFORMANCE}.style.box_shadow`;
 export const CONF_PERFORMANCE_STYLE_BORDER_RADIUS = `${CONF_PERFORMANCE}.style.border_radius`;
 

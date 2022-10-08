@@ -99,6 +99,10 @@ import {
   CONF_MENU_BUTTON_SIZE,
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
+  CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
+  CONF_PERFORMANCE_PROFILE,
+  CONF_PERFORMANCE_STYLE_BORDER_RADIUS,
+  CONF_PERFORMANCE_STYLE_BOX_SHADOW,
   CONF_TIMELINE_CLUSTERING_THRESHOLD,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
@@ -125,6 +129,7 @@ import { localize } from './localize/localize.js';
 import frigate_card_editor_style from './scss/editor.scss';
 import {
   BUTTON_SIZE_MIN,
+  FrigateCardConfig,
   frigateCardConfigDefaults,
   FRIGATE_MENU_PRIORITY_MAX,
   RawFrigateCardConfig,
@@ -136,6 +141,7 @@ import { arrayMove } from './utils/basic.js';
 import { getCameraID, getCameraTitle } from './utils/camera.js';
 import { FRIGATE_ICON_SVG_PATH } from './utils/frigate.js';
 import { getEntitiesFromHASS, sideLoadHomeAssistantElements } from './utils/ha';
+import { setLowPerformanceProfile } from './performance.js';
 
 const MENU_BUTTONS = 'buttons';
 const MENU_CAMERAS = 'cameras';
@@ -159,6 +165,8 @@ const MENU_MEDIA_VIEWER_CONTROLS_TITLE = 'media_viewer.controls.title';
 const MENU_MEDIA_VIEWER_LAYOUT = 'media_viewer.layout';
 const MENU_TIMELINE_CONTROLS_THUMBNAILS = 'timeline.controls.thumbnails';
 const MENU_OPTIONS = 'options';
+const MENU_PERFORMANCE_FEATURES = 'performance.features';
+const MENU_PERFORMANCE_STYLE = 'performance.style';
 const MENU_VIEW_SCAN = 'scan';
 
 interface EditorOptionsSet {
@@ -226,6 +234,11 @@ const options: EditorOptions = {
     name: localize('editor.dimensions'),
     secondary: localize('editor.dimensions_secondary'),
   },
+  performance: {
+    icon: 'speedometer',
+    name: localize('editor.performance'),
+    secondary: localize('editor.performance_secondary'),
+  },
   overrides: {
     icon: 'file-replace',
     name: localize('editor.overrides'),
@@ -237,6 +250,8 @@ const options: EditorOptions = {
 export class FrigateCardEditor extends LitElement implements LovelaceCardEditor {
   @property({ attribute: false }) public hass?: HomeAssistant;
   @state() protected _config?: RawFrigateCardConfig;
+  @state() protected _defaults = structuredClone(frigateCardConfigDefaults);
+
   protected _initialized = false;
   protected _configUpgradeable = false;
 
@@ -442,6 +457,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'below', label: localize('config.common.controls.timeline.modes.below') },
   ];
 
+  protected _performanceProfiles: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'low', label: localize('config.performance.profiles.low') },
+    { value: 'high', label: localize('config.performance.profiles.high') },
+  ];
+
   public setConfig(config: RawFrigateCardConfig): void {
     // Note: This does not use Zod to parse the configuration, so it may be
     // partially or completely invalid. It's more useful to have a partially
@@ -449,6 +470,21 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     // such, RawFrigateCardConfig is used as the type.
     this._config = config;
     this._configUpgradeable = isConfigUpgradeable(config);
+
+    let unvalidatedProfile: string | null = null;
+    try {
+      // this._config may not be a valid FrigateCardConfig as it has not been
+      // parsed. Attempt to pull out the performance profile.
+      unvalidatedProfile = (this._config as FrigateCardConfig).performance?.profile;
+    } catch (_) {}
+
+    if (unvalidatedProfile === 'high' || unvalidatedProfile === 'low') {
+      const defaults = structuredClone(frigateCardConfigDefaults);
+      if (unvalidatedProfile === 'low') {
+        setLowPerformanceProfile(this._config, defaults);
+      }
+      this._defaults = defaults;
+    }
   }
 
   /**
@@ -469,7 +505,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    * @param optionSetName The name of the EditorOptionsSet.
    * @returns A rendered template.
    */
-  protected _renderOptionSetHeader(optionSetName: string): TemplateResult {
+  protected _renderOptionSetHeader(
+    optionSetName: string,
+    titleClass?: string,
+  ): TemplateResult {
     const optionSet = options[optionSetName];
 
     return html`
@@ -481,7 +520,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       >
         <div class="row">
           <ha-icon .icon=${`mdi:${optionSet.icon}`}></ha-icon>
-          <div class="title">${optionSet.name}</div>
+          <div class="title ${titleClass ?? ''}">${optionSet.name}</div>
         </div>
         <div class="secondary">${optionSet.secondary}</div>
       </div>
@@ -673,24 +712,24 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html` <div class="values">
               ${this._renderSwitch(
                 CONF_VIEW_SCAN_ENABLED,
-                frigateCardConfigDefaults.view.scan.enabled,
+                this._defaults.view.scan.enabled,
                 {
                   label: localize(`config.${CONF_VIEW_SCAN_ENABLED}`),
                 },
               )}
               ${this._renderSwitch(
                 CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
-                frigateCardConfigDefaults.view.scan.show_trigger_status,
+                this._defaults.view.scan.show_trigger_status,
                 {
                   label: localize(`config.${CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS}`),
                 },
               )}
               ${this._renderSwitch(
                 CONF_VIEW_SCAN_UNTRIGGER_RESET,
-                frigateCardConfigDefaults.view.scan.untrigger_reset,
+                this._defaults.view.scan.untrigger_reset,
               )}
               ${this._renderNumberInput(CONF_VIEW_SCAN_UNTRIGGER_SECONDS, {
-                default: frigateCardConfigDefaults.view.scan.untrigger_seconds,
+                default: this._defaults.view.scan.untrigger_seconds,
               })}
             </div>`
           : ''}
@@ -734,7 +773,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html` <div class="values">
               ${this._renderSwitch(
                 `${CONF_MENU_BUTTONS}.${button}.enabled`,
-                frigateCardConfigDefaults.menu.buttons[button]?.enabled ?? true,
+                this._defaults.menu.buttons[button]?.enabled ?? true,
                 {
                   label: localize('config.menu.buttons.enabled'),
                 },
@@ -748,7 +787,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               )}
               ${this._renderNumberInput(`${CONF_MENU_BUTTONS}.${button}.priority`, {
                 max: FRIGATE_MENU_PRIORITY_MAX,
-                default: frigateCardConfigDefaults.menu.buttons[button]?.priority,
+                default: this._defaults.menu.buttons[button]?.priority,
                 label: localize('config.menu.buttons.priority'),
               })}
               ${this._renderIconSelector(`${CONF_MENU_BUTTONS}.${button}.icon`, {
@@ -886,6 +925,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     configPathClusteringThreshold: string,
     configPathTimelineMedia: string,
     configPathShowRecordings: string,
+    showRecordingsDefault: boolean,
   ): TemplateResult | void {
     return this._putInSubmenu(
       domain,
@@ -900,7 +940,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         configPathClusteringThreshold,
         configPathTimelineMedia,
         configPathShowRecordings,
-        frigateCardConfigDefaults.mini_timeline.show_recordings,
+        showRecordingsDefault,
       )}`,
     );
   }
@@ -999,21 +1039,21 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         })}
         ${this._renderSwitch(
           configPathShowDetails,
-          frigateCardConfigDefaults.live.controls.thumbnails.show_details,
+          this._defaults.live.controls.thumbnails.show_details,
           {
             label: localize('config.common.controls.thumbnails.show_details'),
           },
         )}
         ${this._renderSwitch(
           configPathShowFavoriteControl,
-          frigateCardConfigDefaults.live.controls.thumbnails.show_favorite_control,
+          this._defaults.live.controls.thumbnails.show_favorite_control,
           {
             label: localize('config.common.controls.thumbnails.show_favorite_control'),
           },
         )}
         ${this._renderSwitch(
           configPathShowTimelineControl,
-          frigateCardConfigDefaults.live.controls.thumbnails.show_timeline_control,
+          this._defaults.live.controls.thumbnails.show_timeline_control,
           {
             label: localize('config.common.controls.thumbnails.show_timeline_control'),
           },
@@ -1247,7 +1287,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS,
                     cameraIndex,
                   ),
-                  frigateCardConfigDefaults.cameras.dependencies.all_cameras,
+                  this._defaults.cameras.dependencies.all_cameras,
                 )}
                 ${this._renderOptionSelector(
                   getArrayConfigPath(
@@ -1267,11 +1307,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 { name: 'mdi:magnify-scan' },
                 html` ${this._renderSwitch(
                   getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY, cameraIndex),
-                  frigateCardConfigDefaults.cameras.triggers.occupancy,
+                  this._defaults.cameras.triggers.occupancy,
                 )}
                 ${this._renderSwitch(
                   getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_MOTION, cameraIndex),
-                  frigateCardConfigDefaults.cameras.triggers.motion,
+                  this._defaults.cameras.triggers.motion,
                 )}
                 ${this._renderOptionSelector(
                   getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES, cameraIndex),
@@ -1381,7 +1421,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       return html``;
     }
 
-    const defaults = frigateCardConfigDefaults;
     const entities = getEntitiesFromHASS(this.hass);
     const cameras = (getConfigValue(this._config, CONF_CAMERAS) ||
       []) as RawFrigateCardConfigArray;
@@ -1431,10 +1470,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderOptionSelector(CONF_VIEW_DARK_MODE, this._darkModes)}
                 ${this._renderNumberInput(CONF_VIEW_TIMEOUT_SECONDS)}
                 ${this._renderNumberInput(CONF_VIEW_UPDATE_SECONDS)}
-                ${this._renderSwitch(CONF_VIEW_UPDATE_FORCE, defaults.view.update_force)}
+                ${this._renderSwitch(
+                  CONF_VIEW_UPDATE_FORCE,
+                  this._defaults.view.update_force,
+                )}
                 ${this._renderSwitch(
                   CONF_VIEW_UPDATE_CYCLE_CAMERA,
-                  defaults.view.update_cycle_camera,
+                  this._defaults.view.update_cycle_camera,
                 )}
                 ${this._renderViewScanMenu()}
               </div>
@@ -1469,9 +1511,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${this._expandedMenus[MENU_OPTIONS] === 'live'
           ? html`
               <div class="values">
-                ${this._renderSwitch(CONF_LIVE_PRELOAD, defaults.live.preload)}
-                ${this._renderSwitch(CONF_LIVE_DRAGGABLE, defaults.live.draggable)}
-                ${this._renderSwitch(CONF_LIVE_LAZY_LOAD, defaults.live.lazy_load)}
+                ${this._renderSwitch(CONF_LIVE_PRELOAD, this._defaults.live.preload)}
+                ${this._renderSwitch(CONF_LIVE_DRAGGABLE, this._defaults.live.draggable)}
+                ${this._renderSwitch(CONF_LIVE_LAZY_LOAD, this._defaults.live.lazy_load)}
                 ${this._renderOptionSelector(
                   CONF_LIVE_LAZY_UNLOAD,
                   this._mediaActionNegativeConditions,
@@ -1498,7 +1540,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 )}
                 ${this._renderSwitch(
                   CONF_LIVE_SHOW_IMAGE_DURING_LOAD,
-                  defaults.live.show_image_during_load,
+                  this._defaults.live.show_image_during_load,
                 )}
                 ${this._putInSubmenu(
                   MENU_LIVE_CONTROLS,
@@ -1537,6 +1579,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
                       CONF_LIVE_CONTROLS_TIMELINE_MEDIA,
                       CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
+                      this._defaults.live.controls.timeline.show_recordings,
                     )}
                   `,
                 )}
@@ -1583,11 +1626,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               )}
               ${this._renderSwitch(
                 CONF_MEDIA_VIEWER_DRAGGABLE,
-                defaults.media_viewer.draggable,
+                this._defaults.media_viewer.draggable,
               )}
               ${this._renderSwitch(
                 CONF_MEDIA_VIEWER_LAZY_LOAD,
-                defaults.media_viewer.lazy_load,
+                this._defaults.media_viewer.lazy_load,
               )}
               ${this._renderOptionSelector(
                 CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
@@ -1629,6 +1672,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS,
+                    this._defaults.media_viewer.controls.timeline.show_recordings,
                   )}
                 `,
               )}
@@ -1664,7 +1708,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 CONF_TIMELINE_CLUSTERING_THRESHOLD,
                 CONF_TIMELINE_MEDIA,
                 CONF_TIMELINE_SHOW_RECORDINGS,
-                defaults.timeline.show_recordings,
+                this._defaults.timeline.show_recordings,
               )}
               ${this._renderThumbnailsControls(
                 MENU_TIMELINE_CONTROLS_THUMBNAILS,
@@ -1686,6 +1730,51 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 this._aspectRatioModes,
               )}
               ${this._renderStringInput(CONF_DIMENSIONS_ASPECT_RATIO)}
+            </div>`
+          : ''}
+        ${this._renderOptionSetHeader(
+          'performance',
+          getConfigValue(this._config, CONF_PERFORMANCE_PROFILE) === 'low'
+            ? 'warning'
+            : undefined,
+        )}
+        ${this._expandedMenus[MENU_OPTIONS] === 'performance'
+          ? html` <div class="values">
+              ${getConfigValue(this._config, CONF_PERFORMANCE_PROFILE) === 'low'
+                ? this._renderInfo(localize('config.performance.warning'))
+                : html``}
+              ${this._renderOptionSelector(
+                CONF_PERFORMANCE_PROFILE,
+                this._performanceProfiles,
+              )}
+              ${this._putInSubmenu(
+                MENU_PERFORMANCE_FEATURES,
+                true,
+                'config.performance.features.editor_label',
+                { name: 'mdi:feature-search' },
+                html`
+                  ${this._renderSwitch(
+                    CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
+                    this._defaults.performance.features.animated_progress_indicator,
+                  )}
+                `,
+              )}
+              ${this._putInSubmenu(
+                MENU_PERFORMANCE_STYLE,
+                true,
+                'config.performance.style.editor_label',
+                { name: 'mdi:palette-swatch-variant' },
+                html`
+                  ${this._renderSwitch(
+                    CONF_PERFORMANCE_STYLE_BORDER_RADIUS,
+                    this._defaults.performance.style.border_radius,
+                  )}
+                  ${this._renderSwitch(
+                    CONF_PERFORMANCE_STYLE_BOX_SHADOW,
+                    this._defaults.performance.style.box_shadow,
+                  )}
+                `,
+              )}
             </div>`
           : ''}
         ${this._config['overrides'] !== undefined

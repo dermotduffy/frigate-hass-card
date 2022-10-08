@@ -17,6 +17,9 @@
   margin-top: -6px;
   pointer-events: none;
 }
+.title.warning {
+  color: var(--warning-color);
+}
 .secondary {
   padding-left: 40px;
   color: var(--secondary-text-color);
@@ -101,7 +104,7 @@ div.upgrade span {
   --mdc-icon-size: calc(var(--mdc-icon-button-size) / 2);
 }
 span.info {
-  padding: 4px;
+  padding: 10px;
 }
 
 ha-selector {

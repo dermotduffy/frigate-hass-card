@@ -1,6 +1,4 @@
-// TODO: Change defaults themselves?
 // TODO: Don't pump out conditionStates based on state?
-// TODO: view history
 
 import { deepRemoveDefaults } from './utils/zod.js';
 import {
@@ -132,21 +130,21 @@ const LOW_PROFILE_CAMERA_DEFAULTS = {
  * LOW_PROFILE_DEFAULTS unless they are explicitly overriden in the
  * configuration.
  * @param inputConfig The raw unparsed input configuration.
- * @param parsedConfig The parsed input configuration.
+ * @param outputConfig The output config to write to.
  * @returns A changed (in-place) parsed input configuration.
  */
-export const setLowPerformanceProfile = (
+export const setLowPerformanceProfile = <T extends RawFrigateCardConfig>(
   inputConfig: RawFrigateCardConfig,
-  parsedConfig: FrigateCardConfig,
-): FrigateCardConfig => {
+  outputConfig: T,
+): T => {
   const setIfNotSpecified = (
     defaultLessConfig: RawFrigateCardConfig,
-    parsedConfig: FrigateCardConfig,
+    outputConfig: T,
     key: string,
     value: unknown,
   ) => {
     if (getConfigValue(defaultLessConfig, key) === undefined) {
-      setConfigValue(parsedConfig, key, value);
+      setConfigValue(outputConfig, key, value);
     }
   };
 
@@ -156,19 +154,19 @@ export const setLowPerformanceProfile = (
   if (defaultLessParseResult.success) {
     const defaultLessConfig = defaultLessParseResult.data;
     Object.entries(LOW_PROFILE_DEFAULTS).forEach(([k, v]: [string, unknown]) =>
-      setIfNotSpecified(defaultLessConfig, parsedConfig, k, v),
+      setIfNotSpecified(defaultLessConfig, outputConfig, k, v),
     );
 
     Object.entries(LOW_PROFILE_CAMERA_DEFAULTS).forEach(
       ([rawKey, v]: [string, unknown]) => {
         defaultLessConfig.cameras.forEach((_, index: number) => {
           const indexedKey = getArrayConfigPath(rawKey, index);
-          setIfNotSpecified(defaultLessConfig, parsedConfig, indexedKey, v);
+          setIfNotSpecified(defaultLessConfig, outputConfig, indexedKey, v);
         });
       },
     );
   }
-  return parsedConfig;
+  return outputConfig;
 };
 
 const STYLE_DISABLE_MAP = {
