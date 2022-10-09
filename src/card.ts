@@ -37,7 +37,7 @@ import {
   MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
   REPO_URL,
 } from './const.js';
-import { getLanguage, localize } from './localize/localize.js';
+import { getLanguage, loadLanguages, localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
 import {
   Actions,
@@ -206,7 +206,8 @@ export class FrigateCard extends LitElement {
   protected _boundMouseHandler = throttle(this._mouseHandler.bind(this), 1 * 1000);
 
   // Whether the card has been successfully initialized.
-  protected _initialized = false;
+  protected _loadedHAElements = false;
+  protected _loadedLanguages = false;
 
   protected _triggers: Map<string, Date> = new Map();
   protected _untriggerTimerID: number | null = null;
@@ -1101,11 +1102,12 @@ export class FrigateCard extends LitElement {
    * Called before each update.
    */
   protected willUpdate(changedProps: PropertyValues): void {
-    // Side load the necessary elements if not already initialized.
-    if (!this._initialized) {
+    // Side load the necessary elements if not already initialized (do not need
+    // to block for the loading to complete).
+    if (!this._loadedHAElements) {
       sideLoadHomeAssistantElements().then((success) => {
         if (success) {
-          this._initialized = true;
+          this._loadedHAElements = true;
         }
       });
     }
@@ -1244,6 +1246,15 @@ export class FrigateCard extends LitElement {
    * @returns `true` if the element should be updated.
    */
   protected shouldUpdate(changedProps: PropertyValues): boolean {
+    // Load the relevant languages. Cannot do anything until then.
+    if (!this._loadedLanguages) {
+      loadLanguages().then(() => {
+        this._loadedLanguages = true;
+        this.requestUpdate();
+      });
+      return false;
+    }
+
     const oldHass = changedProps.get('_hass') as HomeAssistant | undefined;
     let shouldUpdate = !oldHass || changedProps.size != 1;
 

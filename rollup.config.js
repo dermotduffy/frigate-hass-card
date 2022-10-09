@@ -8,7 +8,7 @@ import styles from 'rollup-plugin-styles';
 import image from '@rollup/plugin-image';
 import replace from '@rollup/plugin-replace';
 import gitInfo from 'rollup-plugin-git-info';
-import { visualizer } from "rollup-plugin-visualizer";
+import { visualizer } from 'rollup-plugin-visualizer';
 
 const watch = process.env.ROLLUP_WATCH === 'true' || process.env.ROLLUP_WATCH === '1';
 const dev = watch || process.env.DEV === 'true' || process.env.DEV === '1';
@@ -69,6 +69,16 @@ const config = {
   output: {
     entryFileNames: 'frigate-hass-card.js',
     dir: 'dist',
+    chunkFileNames: (chunk) => {
+      // Add "lang-" to the front of the language chunk names for readability.
+      if (
+        chunk.facadeModuleId &&
+        chunk.facadeModuleId.match(/localize\/languages\/.*\.json/)
+      ) {
+        return 'lang-[name]-[hash].js';
+      }
+      return '[name]-[hash].js';
+    },
     format: 'es',
     ...(dev && {
       sourcemap: true,
