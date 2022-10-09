@@ -1,6 +1,6 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { DataSet, DataView } from 'vis-data/esnext';
-import { IdType, TimelineItem } from 'vis-timeline/esnext';
+import type { IdType, TimelineItem } from 'vis-timeline/esnext';
 import { CAMERA_BIRDSEYE } from '../const.js';
 import {
   CameraConfig,

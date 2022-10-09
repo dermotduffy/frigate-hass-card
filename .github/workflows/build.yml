@@ -35,4 +35,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: frigate-hass-card
-          path: dist/frigate-hass-card.js
+          path: dist/*.js

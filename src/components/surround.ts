@@ -29,7 +29,6 @@ import { dispatchFrigateCardErrorEvent } from './message.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 
 import './surround-basic.js';
-import './timeline-core.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 
 interface ThumbnailViewContext {
@@ -122,6 +121,10 @@ export class FrigateCardSurround extends LitElement {
    * Called before each update.
    */
   protected willUpdate(changedProperties: PropertyValues): void {
+    if (this.timelineConfig?.mode && this.timelineConfig.mode !== 'none') {
+      import('./timeline-core.js');
+    }
+
     // Once the component will certainly update, dispatch a media request. Only
     // do so if properties relevant to the request have changed (as per their
     // hasChanged).

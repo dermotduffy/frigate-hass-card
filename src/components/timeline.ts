@@ -5,7 +5,6 @@ import { CameraConfig, ExtendedHomeAssistant, TimelineConfig } from '../types';
 import { DataManager } from '../utils/data-manager';
 import { View } from '../view';
 import './surround.js';
-import './timeline-core.js';
 
 // This file is kept separate from timeline-core.ts to avoid a circular dependency:
 //   FrigateCardTimeline ->
@@ -28,6 +27,13 @@ export class FrigateCardTimeline extends LitElement {
 
   @property({ attribute: false })
   public dataManager?: DataManager;
+
+  /**
+   * Called on first update.
+   */
+  protected firstUpdated(): void {
+    import('./timeline-core.js');    
+  }
 
   /**
    * Master render method.

@@ -240,7 +240,7 @@
       "info": "This card configuration has manually specified overrides configured which may override values shown in the visual editor, please consult the code editor to view/modify these overrides"
     },
     "performance": {
-      "warning": "This card is in low profile mode so many defaults have changed to optimize performance",
+      "warning": "This card is in low profile mode so defaults have changed to optimize performance",
       "features": {
         "editor_label": "Feature Options",
         "animated_progress_indicator": "Animated Progress Indicator"

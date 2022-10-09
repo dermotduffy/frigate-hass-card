@@ -1,0 +1,114 @@
+import { HomeAssistant } from 'custom-card-helpers';
+import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import { createRef, Ref, ref } from 'lit/directives/ref.js';
+import { localize } from '../../localize/localize.js';
+import liveFrigateStyle from '../../scss/live-frigate.scss';
+import { CameraConfig, FrigateCardMediaPlayer } from '../../types.js';
+import { getCameraTitle } from '../../utils/camera.js';
+import { dispatchErrorMessageEvent, dispatchMessageEvent } from '../message.js';
+import '../../patches/ha-camera-stream';
+
+@customElement('frigate-card-live-ha')
+export class FrigateCardLiveHA extends LitElement {
+  @property({ attribute: false })
+  public hass?: HomeAssistant;
+
+  @property({ attribute: false })
+  public cameraConfig?: CameraConfig;
+
+  protected _playerRef: Ref<Element & FrigateCardMediaPlayer> = createRef();
+
+  /**
+   * Play the video.
+   */
+  public play(): void {
+    this._playerRef.value?.play();
+  }
+
+  /**
+   * Pause the video.
+   */
+  public pause(): void {
+    this._playerRef.value?.pause();
+  }
+
+  /**
+   * Mute the video.
+   */
+  public mute(): void {
+    this._playerRef.value?.mute();
+  }
+
+  /**
+   * Unmute the video.
+   */
+  public unmute(): void {
+    this._playerRef.value?.unmute();
+  }
+
+  /**
+   * Seek the video.
+   */
+  public seek(seconds: number): void {
+    this._playerRef.value?.seek(seconds);
+  }
+
+  /**
+   * Master render method.
+   * @returns A rendered template.
+   */
+  protected render(): TemplateResult | void {
+    if (!this.hass) {
+      return;
+    }
+
+    if (!this.cameraConfig?.camera_entity) {
+      return dispatchErrorMessageEvent(this, localize('error.no_live_camera'), {
+        context: this.cameraConfig,
+      });
+    }
+
+    const stateObj = this.hass.states[this.cameraConfig.camera_entity];
+    if (!stateObj) {
+      return dispatchErrorMessageEvent(this, localize('error.live_camera_not_found'), {
+        context: this.cameraConfig,
+      });
+    }
+
+    if (stateObj.state === 'unavailable') {
+      // Don't treat state unavailability as an error per se.
+      return dispatchMessageEvent(
+        this,
+        localize('error.live_camera_unavailable'),
+        'info',
+        {
+          icon: 'mdi:connection',
+          context: getCameraTitle(this.hass, this.cameraConfig),
+        },
+      );
+    }
+
+    return html` <frigate-card-ha-camera-stream
+      ${ref(this._playerRef)}
+      .hass=${this.hass}
+      .stateObj=${stateObj}
+      .controls=${true}
+      .muted=${true}
+    >
+    </frigate-card-ha-camera-stream>`;
+  }
+
+  /**
+   * Get styles.
+   */
+  static get styles(): CSSResultGroup {
+    return unsafeCSS(liveFrigateStyle);
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'frigate-card-live-ha': FrigateCardLiveHA;
+  }
+}

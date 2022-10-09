@@ -19,9 +19,8 @@ import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { isEqual, throttle } from 'lodash-es';
 import { ViewContext } from 'view';
 import { DataView, DataSet } from 'vis-data/esnext';
+import type { DataGroupCollectionType, IdType } from 'vis-timeline/esnext';
 import {
-  DataGroupCollectionType,
-  IdType,
   Timeline,
   TimelineEventPropertiesResult,
   TimelineItem,
@@ -458,7 +457,8 @@ export class FrigateCardTimelineCore extends LitElement {
                 this.hass,
                 this.dataManager,
                 this.cameras,
-                this.view, {
+                this.view,
+                {
                   cameraIDs: new Set([String(properties.group)]),
                   targetTime:
                     properties.what === 'background' ? properties.time : window.end,
@@ -471,7 +471,8 @@ export class FrigateCardTimelineCore extends LitElement {
                 this.hass,
                 this.dataManager,
                 this.cameras,
-                this.view, {
+                this.view,
+                {
                   targetTime: window.end,
                 },
               );
@@ -483,12 +484,13 @@ export class FrigateCardTimelineCore extends LitElement {
             this.hass,
             this.dataManager,
             this.cameras,
-            this.view, {
+            this.view,
+            {
               cameraIDs: this._getAllCameraIDs(),
               start: startOfHour(properties.time),
               end: endOfHour(properties.time),
               targetTime: properties.time,
-            }
+            },
           );
         }
       } else if (

@@ -65,8 +65,10 @@ const plugins = [
  */
 const config = {
   input: 'src/card.ts',
+  preserveEntrySignatures: false,
   output: {
-    file: 'dist/frigate-hass-card.js',
+    entryFileNames: 'frigate-hass-card.js',
+    dir: 'dist',
     format: 'es',
     ...(dev && {
       sourcemap: true,
