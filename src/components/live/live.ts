@@ -845,6 +845,7 @@ export class FrigateCardLiveProvider extends LitElement {
             ${ref(this._providerRef)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
+            .liveImageConfig=${this.liveConfig.image}
             @frigate-card:media:loaded=${() => {
               if (provider === 'image') {
                 // Only count the media has loaded if the required provider is

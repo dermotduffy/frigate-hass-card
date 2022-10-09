@@ -62,6 +62,7 @@ import {
   CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
   CONF_LIVE_CONTROLS_TITLE_MODE,
   CONF_LIVE_DRAGGABLE,
+  CONF_LIVE_IMAGE_REFRESH_SECONDS,
   CONF_LIVE_LAYOUT_FIT,
   CONF_LIVE_LAYOUT_POSITION_X,
   CONF_LIVE_LAYOUT_POSITION_Y,
@@ -156,6 +157,7 @@ const MENU_LIVE_CONTROLS_NEXT_PREVIOUS = 'live.controls.next_previous';
 const MENU_LIVE_CONTROLS_THUMBNAILS = 'live.controls.thumbnails';
 const MENU_LIVE_CONTROLS_TIMELINE = 'live.controls.timeline';
 const MENU_LIVE_CONTROLS_TITLE = 'live.controls.title';
+const MENU_LIVE_IMAGE = 'live.image';
 const MENU_LIVE_LAYOUT = 'live.layout';
 const MENU_MEDIA_VIEWER_CONTROLS = 'media_viewer.controls';
 const MENU_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS = 'media_viewer.controls.next_previous';
@@ -1110,7 +1112,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       {
         value: 'image',
         label: localize('config.cameras.live_providers.image'),
-      },     
+      },
       {
         value: 'frigate-jsmpeg',
         label: localize('config.cameras.live_providers.frigate-jsmpeg'),
@@ -1593,6 +1595,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_LIVE_LAYOUT_FIT,
                   CONF_LIVE_LAYOUT_POSITION_X,
                   CONF_LIVE_LAYOUT_POSITION_Y,
+                )}
+                ${this._putInSubmenu(
+                  MENU_LIVE_IMAGE,
+                  true,
+                  'config.live.image.editor_label',
+                  { name: 'mdi:image-sync' },
+                  html` ${this._renderNumberInput(CONF_LIVE_IMAGE_REFRESH_SECONDS)} `,
                 )}
               </div>
             `

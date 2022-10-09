@@ -2,7 +2,7 @@ import { HomeAssistant } from 'custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import liveFrigateStyle from '../../scss/live-frigate.scss';
-import { CameraConfig } from '../../types.js';
+import { CameraConfig, LiveImageConfig } from '../../types.js';
 import { getStateObjOrDispatchError } from './live.js';
 import '../image.js';
 
@@ -13,6 +13,9 @@ export class FrigateCardLiveImage extends LitElement {
 
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
+
+  @property({ attribute: false })
+  public liveImageConfig?: LiveImageConfig;
 
   @state()
   protected _playing = true;
@@ -58,7 +61,7 @@ export class FrigateCardLiveImage extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass) {
+    if (!this.hass || !this.liveImageConfig) {
       return;
     }
 
@@ -67,7 +70,7 @@ export class FrigateCardLiveImage extends LitElement {
     return html` <frigate-card-image
       .imageConfig=${{
         mode: 'camera' as const,
-        refresh_seconds: this._playing ? 1 : 0,
+        refresh_seconds: this._playing ? this.liveImageConfig.refresh_seconds : 0,
       }}
       .hass=${this.hass}
       .cameraConfig=${this.cameraConfig}

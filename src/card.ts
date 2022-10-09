@@ -955,9 +955,9 @@ export class FrigateCard extends LitElement {
       throw new Error(localize('error.invalid_configuration'));
     }
 
-    const configUpgradeable = isConfigUpgradeable(inputConfig);
     const parseResult = frigateCardConfigSchema.safeParse(inputConfig);
     if (!parseResult.success) {
+      const configUpgradeable = isConfigUpgradeable(inputConfig);
       const hint = this._getParseErrorPaths(parseResult.error);
       let upgradeMessage = '';
       if (configUpgradeable && getLovelace().mode !== 'yaml') {

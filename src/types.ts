@@ -739,6 +739,11 @@ export type TitleControlConfig = z.infer<typeof titleControlConfigSchema>;
 /**
  * Live view configuration section.
  */
+
+const liveImageConfigDefault = {
+  refresh_seconds: 1,
+};
+
 const liveConfigDefault = {
   auto_play: 'all' as const,
   auto_pause: 'never' as const,
@@ -750,6 +755,7 @@ const liveConfigDefault = {
   draggable: true,
   transition_effect: 'slide' as const,
   show_image_during_load: true,
+  image: liveImageConfigDefault,
   controls: {
     next_previous: {
       size: 48,
@@ -770,6 +776,11 @@ const liveConfigDefault = {
     },
   },
 };
+
+const liveImageConfigSchema = z.object({
+  refresh_seconds: z.number().min(0).default(liveConfigDefault.image.refresh_seconds),
+});
+export type LiveImageConfig = z.infer<typeof liveImageConfigSchema>;
 
 const webrtcCardConfigSchema = webrtcCardCameraConfigSchema.passthrough().optional();
 export type WebRTCCardConfig = z.infer<typeof webrtcCardConfigSchema>;
@@ -799,8 +810,9 @@ export type JSMPEGConfig = z.infer<typeof jsmpegConfigSchema>;
 
 const liveOverridableConfigSchema = z
   .object({
-    webrtc_card: webrtcCardConfigSchema,
+    image: liveImageConfigSchema.default(liveConfigDefault.image),
     jsmpeg: jsmpegConfigSchema,
+    webrtc_card: webrtcCardConfigSchema,
     controls: z
       .object({
         next_previous: nextPreviousControlConfigSchema

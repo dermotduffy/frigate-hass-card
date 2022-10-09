@@ -139,6 +139,8 @@ export const CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS =
 export const CONF_LIVE_CONTROLS_TITLE_MODE = `${CONF_LIVE}.controls.title.mode` as const;
 export const CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS =
   `${CONF_LIVE}.controls.title.duration_seconds` as const;
+export const CONF_LIVE_IMAGE_REFRESH_SECONDS =
+  `${CONF_LIVE}.image.refresh_seconds` as const;
 export const CONF_LIVE_LAYOUT_FIT = `${CONF_LIVE}.layout.fit` as const;
 export const CONF_LIVE_LAYOUT_POSITION_X = `${CONF_LIVE}.layout.position.x` as const;
 export const CONF_LIVE_LAYOUT_POSITION_Y = `${CONF_LIVE}.layout.position.y` as const;
