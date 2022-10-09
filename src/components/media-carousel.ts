@@ -22,7 +22,7 @@ import './next-prev-control.js';
 import './carousel.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
 import { FrigateCardTitleControl } from './title-control.js';
-import { debounce } from 'lodash-es';
+import debounce from 'lodash-es/debounce';
 
 const getEmptyImageSrc = (width: number, height: number) =>
   `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"%3E%3C/svg%3E`;

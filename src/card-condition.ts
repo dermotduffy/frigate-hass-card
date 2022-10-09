@@ -4,7 +4,7 @@ import type {
   RawFrigateCardConfig,
 } from './types';
 import { HassEntities } from 'home-assistant-js-websocket';
-import { merge } from 'lodash-es';
+import merge from 'lodash-es/merge';
 
 export interface ConditionState {
   view?: string;

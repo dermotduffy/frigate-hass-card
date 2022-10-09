@@ -15,7 +15,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
-import { throttle } from 'lodash-es';
+import throttle from 'lodash-es/throttle';
 import carouselStyle from '../scss/carousel.scss';
 import { TransitionEffect } from '../types';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';

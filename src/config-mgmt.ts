@@ -1,4 +1,6 @@
-import { get, isEqual, set } from 'lodash-es';
+import get from 'lodash-es/get';
+import isEqual from 'lodash-es/isEqual';
+import set from 'lodash-es/set';
 import {
   CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,

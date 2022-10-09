@@ -1,11 +1,9 @@
-import {
-  add,
-  differenceInSeconds,
-  endOfHour,
-  fromUnixTime,
-  startOfHour,
-  sub,
-} from 'date-fns';
+import add from 'date-fns/add';
+import endOfHour from 'date-fns/endOfHour';
+import fromUnixTime from 'date-fns/fromUnixTime';
+import differenceInSeconds from 'date-fns/differenceInSeconds';
+import startOfHour from 'date-fns/startOfHour';
+import sub from 'date-fns/sub';
 import {
   CSSResultGroup,
   html,
@@ -16,7 +14,8 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
-import { isEqual, throttle } from 'lodash-es';
+import isEqual from 'lodash-es/isEqual';
+import throttle from 'lodash-es/throttle';
 import { ViewContext } from 'view';
 import { DataView, DataSet } from 'vis-data/esnext';
 import type { DataGroupCollectionType, IdType } from 'vis-timeline/esnext';

@@ -12,7 +12,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
 import { until } from 'lit/directives/until.js';
-import { throttle } from 'lodash-es';
+import throttle from 'lodash-es/throttle';
 import screenfull from 'screenfull';
 import { z } from 'zod';
 import { actionHandler } from './action-handler-directive.js';

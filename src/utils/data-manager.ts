@@ -20,7 +20,7 @@ import {
 } from './frigate.js';
 import { dispatchFrigateCardErrorEvent } from '../components/message.js';
 import fromUnixTime from 'date-fns/fromUnixTime';
-import { throttle } from 'lodash-es';
+import throttle from 'lodash-es/throttle';
 
 const RECORDING_SEGMENT_TOLERANCE = 60;
 const DATA_MANAGER_MAX_AGE_SECONDS = 10;

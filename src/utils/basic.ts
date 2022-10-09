@@ -1,5 +1,5 @@
-import { format } from 'date-fns';
-import { isEqual } from 'lodash-es';
+import format from 'date-fns/format';
+import isEqual from 'lodash-es/isEqual';
 import { FrigateCardError } from '../types';
 
 /**
