@@ -49,10 +49,8 @@ import {
 import '../next-prev-control.js';
 import '../title-control.js';
 import '../surround.js';
-import '../../patches/ha-camera-stream';
 import { EmblaCarouselPlugins } from '../carousel.js';
 import { classMap } from 'lit/directives/class-map.js';
-import '../image';
 import { updateElementStyleFromMediaLayoutConfig } from '../../utils/media-layout.js';
 import { DataManager } from '../../utils/data-manager.js';
 
@@ -760,6 +758,9 @@ export class FrigateCardLiveProvider extends LitElement {
     }
     if (changedProps.has('liveConfig')) {
       updateElementStyleFromMediaLayoutConfig(this, this.liveConfig?.layout);
+      if (this.liveConfig?.show_image_during_load) {
+        import('../image.js');
+      }
     }
     if (changedProps.has('cameraConfig')) {
       if (this._getResolvedProvider() === 'frigate-jsmpeg') {

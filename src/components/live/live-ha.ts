@@ -8,6 +8,9 @@ import { CameraConfig, FrigateCardMediaPlayer } from '../../types.js';
 import { getCameraTitle } from '../../utils/camera.js';
 import { dispatchErrorMessageEvent, dispatchMessageEvent } from '../message.js';
 import '../../patches/ha-camera-stream';
+import '../../patches/ha-hls-player.js';
+import '../../patches/ha-web-rtc-player.ts';
+
 
 @customElement('frigate-card-live-ha')
 export class FrigateCardLiveHA extends LitElement {

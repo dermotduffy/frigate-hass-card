@@ -24,18 +24,13 @@ import {
 } from './card-condition.js';
 import './components/elements.js';
 import { FrigateCardElements } from './components/elements.js';
-import './components/gallery.js';
-import './components/image.js';
-import { FrigateCardImage } from './components/image.js';
-import './components/live/live.js';
+import type { FrigateCardImage } from './components/image.js';
 import type { FrigateCardLive } from './components/live/live.js';
 import './components/menu.js';
 import { FrigateCardMenu, FRIGATE_BUTTON_MENU_ICON } from './components/menu.js';
 import './components/message.js';
 import { renderMessage, renderProgressIndicator } from './components/message.js';
 import './components/thumbnail-carousel.js';
-import './components/timeline.js';
-import './components/viewer.js';
 import { isConfigUpgradeable } from './config-mgmt.js';
 import {
   CAMERA_BIRDSEYE,
@@ -43,9 +38,6 @@ import {
   REPO_URL,
 } from './const.js';
 import { getLanguage, localize } from './localize/localize.js';
-import './patches/ha-camera-stream.js';
-import './patches/ha-hls-player.js';
-import './patches/ha-web-rtc-player.ts';
 import cardStyle from './scss/card.scss';
 import {
   Actions,
@@ -1124,6 +1116,18 @@ export class FrigateCard extends LitElement {
 
     if (changedProps.has('_cardWideConfig')) {
       setPerformanceCSSStyles(this, this._cardWideConfig?.performance);
+    }
+
+    if (this._view?.is('live')) {
+      import('./components/live/live.js');
+    } else if (this._view?.isGalleryView()) {
+      import('./components/gallery.js');
+    } else if (this._view?.isViewerView()) {
+      import('./components/viewer.js');
+    } else if (this._view?.is('image')) {
+      import('./components/image.js');
+    } else if (this._view?.is('timeline')) {
+      import('./components/timeline.js');
     }
   }
 

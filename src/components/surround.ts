@@ -122,7 +122,7 @@ export class FrigateCardSurround extends LitElement {
    */
   protected willUpdate(changedProperties: PropertyValues): void {
     if (this.timelineConfig?.mode && this.timelineConfig.mode !== 'none') {
-      import('./timeline-core.js');
+      import('./timeline.js');
     }
 
     // Once the component will certainly update, dispatch a media request. Only

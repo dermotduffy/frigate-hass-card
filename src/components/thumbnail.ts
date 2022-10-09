@@ -17,7 +17,7 @@ import { getEventDurationString } from '../utils/frigate.js';
 import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask } from '../utils/thumbnail.js';
 import { View } from '../view.js';
-import { MediaSeek } from './viewer.js';
+import type { MediaSeek } from './viewer.js';
 import { TaskStatus } from '@lit-labs/task';
 
 import type {
