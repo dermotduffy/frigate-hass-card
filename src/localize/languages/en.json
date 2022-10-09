@@ -33,7 +33,8 @@
       "live_providers": {
         "auto": "Automatic",
         "frigate-jsmpeg": "Frigate JSMpeg",
-        "ha": "Home Assistant (i.e. HLS, LL-HLS, WebRTC native)",
+        "ha": "Home Assistant video stream (i.e. HLS, LL-HLS, WebRTC native)",
+        "image": "Home Assistant images",
         "webrtc-card": "WebRTC Card (i.e. AlexxIT's WebRTC Card)"
       },
       "title": "Title for this camera (Autodetected from entity)",

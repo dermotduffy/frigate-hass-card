@@ -2,11 +2,9 @@ import { HomeAssistant } from 'custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
-import { localize } from '../../localize/localize.js';
 import liveFrigateStyle from '../../scss/live-frigate.scss';
 import { CameraConfig, FrigateCardMediaPlayer } from '../../types.js';
-import { getCameraTitle } from '../../utils/camera.js';
-import { dispatchErrorMessageEvent, dispatchMessageEvent } from '../message.js';
+import { getStateObjOrDispatchError } from './live.js';
 import '../../patches/ha-camera-stream';
 import '../../patches/ha-hls-player.js';
 import '../../patches/ha-web-rtc-player.ts';
@@ -66,30 +64,9 @@ export class FrigateCardLiveHA extends LitElement {
       return;
     }
 
-    if (!this.cameraConfig?.camera_entity) {
-      return dispatchErrorMessageEvent(this, localize('error.no_live_camera'), {
-        context: this.cameraConfig,
-      });
-    }
-
-    const stateObj = this.hass.states[this.cameraConfig.camera_entity];
+    const stateObj = getStateObjOrDispatchError(this, this.hass, this.cameraConfig);
     if (!stateObj) {
-      return dispatchErrorMessageEvent(this, localize('error.live_camera_not_found'), {
-        context: this.cameraConfig,
-      });
-    }
-
-    if (stateObj.state === 'unavailable') {
-      // Don't treat state unavailability as an error per se.
-      return dispatchMessageEvent(
-        this,
-        localize('error.live_camera_unavailable'),
-        'info',
-        {
-          icon: 'mdi:connection',
-          context: getCameraTitle(this.hass, this.cameraConfig),
-        },
-      );
+      return;
     }
 
     return html` <frigate-card-ha-camera-stream

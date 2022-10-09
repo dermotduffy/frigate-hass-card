@@ -6,7 +6,7 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS
+  unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
@@ -15,13 +15,17 @@ import { CachedValueController } from '../cached-value-controller.js';
 import defaultImage from '../images/frigate-bird-in-sky.jpg';
 import { localize } from '../localize/localize.js';
 import imageStyle from '../scss/image.scss';
-import { CameraConfig, ImageViewConfig } from '../types.js';
+import { CameraConfig, ImageViewConfig, MediaLoadedInfo } from '../types.js';
 import { isHassDifferent } from '../utils/ha';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
-import { dispatchMediaLoadedEvent } from '../utils/media-info.js';
+import {
+  createMediaLoadedInfo,
+  dispatchExistingMediaLoadedInfoAsEvent,
+} from '../utils/media-info.js';
 import { View } from '../view.js';
 import { dispatchErrorMessageEvent } from './message.js';
 import { contentsChanged } from '../utils/basic.js';
+import isEqual from 'lodash-es/isEqual';
 
 // See TOKEN_CHANGE_INTERVAL in https://github.com/home-assistant/core/blob/dev/homeassistant/components/camera/__init__.py .
 const HASS_REJECTION_CUTOFF_MS = 5 * 60 * 1000;
@@ -47,6 +51,8 @@ export class FrigateCardImage extends LitElement {
 
   protected _cachedValueController?: CachedValueController<string>;
   protected _boundVisibilityHandler = this._visibilityHandler.bind(this);
+
+  protected _mediaLoadedInfo: MediaLoadedInfo | null = null;
 
   /**
    * Get the camera entity for the current camera configuration.
@@ -234,7 +240,13 @@ export class FrigateCardImage extends LitElement {
           ${ref(this._refImage)}
           src=${live(src)}
           @load=${(ev: Event) => {
-            dispatchMediaLoadedEvent(this, ev);
+            const mediaLoadedInfo = createMediaLoadedInfo(ev);
+            // Avoid the media being reported as repeatedly loading unless the
+            // media info changes.
+            if (mediaLoadedInfo && !isEqual(this._mediaLoadedInfo, mediaLoadedInfo)) {
+              this._mediaLoadedInfo = mediaLoadedInfo;
+              dispatchExistingMediaLoadedInfoAsEvent(this, mediaLoadedInfo);
+            }
           }}
           @error=${() => {
             if (this.imageConfig?.mode === 'camera') {
@@ -246,11 +258,9 @@ export class FrigateCardImage extends LitElement {
             } else if (this.imageConfig?.mode === 'url') {
               // In url mode, the user likely specified a URL that cannot be
               // resolved. Show an error message.
-              dispatchErrorMessageEvent(
-                this,
-                localize('error.image_load_error'),
-                { context: this.imageConfig },
-              );
+              dispatchErrorMessageEvent(this, localize('error.image_load_error'), {
+                context: this.imageConfig,
+              });
             }
           }}
         />`
@@ -263,7 +273,7 @@ export class FrigateCardImage extends LitElement {
 }
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card-image": FrigateCardImage
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card-image': FrigateCardImage;
+  }
 }

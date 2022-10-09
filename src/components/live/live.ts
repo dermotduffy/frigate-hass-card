@@ -53,6 +53,47 @@ import { EmblaCarouselPlugins } from '../carousel.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../../utils/media-layout.js';
 import { DataManager } from '../../utils/data-manager.js';
+import { HomeAssistant } from 'custom-card-helpers';
+import { dispatchMessageEvent, dispatchErrorMessageEvent } from '../message.js';
+import { HassEntity } from 'home-assistant-js-websocket';
+
+/**
+ * Get the state object or dispatch an error. Used in `ha` and `image` live
+ * providers.
+ * @param element HTMLElement to dispatch errors from.
+ * @param hass Home Assistant object.
+ * @param cameraConfig Camera configuration.
+ * @returns
+ */
+export const getStateObjOrDispatchError = (
+  element: HTMLElement,
+  hass: HomeAssistant,
+  cameraConfig?: CameraConfig,
+): HassEntity | null => {
+  if (!cameraConfig?.camera_entity) {
+    dispatchErrorMessageEvent(element, localize('error.no_live_camera'), {
+      context: cameraConfig,
+    });
+    return null;
+  }
+
+  const stateObj = hass.states[cameraConfig.camera_entity];
+  if (!stateObj) {
+    dispatchErrorMessageEvent(element, localize('error.live_camera_not_found'), {
+      context: cameraConfig,
+    });
+    return null;
+  }
+
+  if (stateObj.state === 'unavailable') {
+    dispatchMessageEvent(element, localize('error.live_camera_unavailable'), 'info', {
+      icon: 'mdi:connection',
+      context: getCameraTitle(hass, cameraConfig),
+    });
+    return null;
+  }
+  return stateObj;
+};
 
 @customElement('frigate-card-live')
 export class FrigateCardLive extends LitElement {
@@ -708,15 +749,17 @@ export class FrigateCardLiveProvider extends LitElement {
       ) {
         return 'webrtc-card';
       } else if (this.cameraConfig?.camera_entity) {
-        return 'ha';
+        if (this.cardWideConfig?.performance?.profile === 'low') {
+          return 'image';
+        } else {
+          return 'ha';
+        }
       } else if (this.cameraConfig?.frigate.camera_name) {
         return 'frigate-jsmpeg';
       }
       return frigateCardConfigDefaults.cameras.live_provider;
     }
-    return (
-      this.cameraConfig?.live_provider || frigateCardConfigDefaults.cameras.live_provider
-    );
+    return this.cameraConfig?.live_provider || 'image';
   }
 
   /**
@@ -759,16 +802,19 @@ export class FrigateCardLiveProvider extends LitElement {
     if (changedProps.has('liveConfig')) {
       updateElementStyleFromMediaLayoutConfig(this, this.liveConfig?.layout);
       if (this.liveConfig?.show_image_during_load) {
-        import('../image.js');
+        import('./live-image.js');
       }
     }
     if (changedProps.has('cameraConfig')) {
-      if (this._getResolvedProvider() === 'frigate-jsmpeg') {
+      const provider = this._getResolvedProvider();
+      if (provider === 'frigate-jsmpeg') {
         import('./live-jsmpeg.js');
-      } else if (this._getResolvedProvider() === 'ha') {
+      } else if (provider === 'ha') {
         import('./live-ha.js');
-      } else if (this._getResolvedProvider() === 'webrtc-card') {
+      } else if (provider === 'webrtc-card') {
         import('./live-webrtc.js');
+      } else if (provider === 'image') {
+        import('./live-image.js');
       }
     }
   }
@@ -787,22 +833,28 @@ export class FrigateCardLiveProvider extends LitElement {
     this.ariaLabel = this.label;
 
     const provider = this._getResolvedProvider();
-    const showImage = !this._isVideoMediaLoaded && this._shouldShowImageDuringLoading();
+    const showImageDuringLoading =
+      !this._isVideoMediaLoaded && this._shouldShowImageDuringLoading();
     const providerClasses = {
-      hidden: showImage,
+      hidden: showImageDuringLoading,
     };
 
     return html`
-      ${showImage
-        ? html`<frigate-card-image
-            .imageConfig=${{
-              mode: 'camera' as const,
-              refresh_seconds: 1,
-            }}
+      ${showImageDuringLoading || provider === 'image'
+        ? html`<frigate-card-live-image
+            ${ref(this._providerRef)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
+            @frigate-card:media:loaded=${() => {
+              if (provider === 'image') {
+                // Only count the media has loaded if the required provider is
+                // the image (not just the temporary image shown during
+                // loading).
+                this._videoMediaShowHandler();
+              }
+            }}
           >
-          </frigate-card-image>`
+          </frigate-card-live-image>`
         : html``}
       ${provider === 'ha'
         ? html` <frigate-card-live-ha
@@ -824,7 +876,8 @@ export class FrigateCardLiveProvider extends LitElement {
             @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >
           </frigate-card-live-webrtc-card>`
-        : html` <frigate-card-live-jsmpeg
+        : provider === 'frigate-jsmpeg'
+        ? html` <frigate-card-live-jsmpeg
             ${ref(this._providerRef)}
             class=${classMap(providerClasses)}
             .hass=${this.hass}
@@ -833,7 +886,8 @@ export class FrigateCardLiveProvider extends LitElement {
             .cardWideConfig=${this.cardWideConfig}
             @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >
-          </frigate-card-live-jsmpeg>`}
+          </frigate-card-live-jsmpeg>`
+        : html``}
     `;
   }
 
