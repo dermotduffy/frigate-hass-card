@@ -71,6 +71,8 @@ export class FrigateCardLiveImage extends LitElement {
       .imageConfig=${{
         mode: 'camera' as const,
         refresh_seconds: this._playing ? this.liveImageConfig.refresh_seconds : 0,
+        // Don't need to pass layout options as FrigateCardLiveProvider has
+        // already taken care of this for us.
       }}
       .hass=${this.hass}
       .cameraConfig=${this.cameraConfig}
