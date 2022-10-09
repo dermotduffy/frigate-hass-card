@@ -42,7 +42,6 @@ import {
   MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
   REPO_URL,
 } from './const.js';
-import './editor.js';
 import { getLanguage, localize } from './localize/localize.js';
 import './patches/ha-camera-stream.js';
 import './patches/ha-hls-player.js';
@@ -260,6 +259,7 @@ export class FrigateCard extends LitElement {
    * @returns A LovelaceCardEditor element.
    */
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
+    await import('./editor.js');
     return document.createElement('frigate-card-editor');
   }
 
