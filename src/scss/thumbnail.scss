@@ -16,7 +16,7 @@
 
 :host([details]) {
   border: 1px solid var(--primary-color);
-  border-radius: var(--ha-card-border-radius, 4px);
+  border-radius: var(--frigate-card-css-border-radius, var(--ha-card-border-radius, 4px));
   padding: 2px;
 
   // When details are enabled, use a background color so that the details have

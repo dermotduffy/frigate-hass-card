@@ -33,7 +33,8 @@
       "live_providers": {
         "auto": "Automatic",
         "frigate-jsmpeg": "Frigate JSMpeg",
-        "ha": "Home Assistant (i.e. HLS, LL-HLS, WebRTC native)",
+        "ha": "Home Assistant video stream (i.e. HLS, LL-HLS, WebRTC native)",
+        "image": "Home Assistant images",
         "webrtc-card": "WebRTC Card (i.e. AlexxIT's WebRTC Card)"
       },
       "title": "Title for this camera (Autodetected from entity)",
@@ -89,7 +90,8 @@
           "styles": {
             "chevrons": "Chevrons",
             "icons": "Icons",
-            "none": "None"
+            "none": "None",
+            "thumbnails": "Thumbnails"
           }
         },
         "timeline": {
@@ -164,6 +166,10 @@
         "editor_label": "Live Controls"
       },
       "draggable": "Live cameras view can be dragged/swiped",
+      "image": {
+        "editor_label": "Image Live Provider Options",
+        "refresh_seconds": "Number of seconds after which to refresh live image (0=never)"
+      },
       "layout": "Live Layout",
       "lazy_load": "Live cameras are lazily loaded",
       "lazy_unload": "Live cameras are lazily unloaded",
@@ -238,6 +244,23 @@
     "overrides": {
       "info": "This card configuration has manually specified overrides configured which may override values shown in the visual editor, please consult the code editor to view/modify these overrides"
     },
+    "performance": {
+      "warning": "This card is in low profile mode so defaults have changed to optimize performance",
+      "features": {
+        "editor_label": "Feature Options",
+        "animated_progress_indicator": "Animated Progress Indicator"
+      },
+      "profile": "Performance profile",
+      "profiles": {
+        "low": "Low performance",
+        "high": "High/full performance"
+      },
+      "style": {
+        "editor_label": "Style Options",
+        "box_shadow": "Shadows",
+        "border_radius": "Curves"
+      }
+    },
     "view": {
       "camera_select": "View for newly selected cameras",
       "dark_mode": "Dark mode",
@@ -295,6 +318,8 @@
     "move_up": "Move up",
     "overrides": "Overrides are active",
     "overrides_secondary": "Dynamic configuration overrides detected",
+    "performance": "Performance",
+    "performance_secondary": "Card performance options",
     "timeline": "Timeline",
     "timeline_secondary": "Event timeline options",
     "upgrade": "Upgrade",

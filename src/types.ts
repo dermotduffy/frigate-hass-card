@@ -59,7 +59,7 @@ const FRIGATE_MENU_ALIGNMENTS = FRIGATE_MENU_POSITIONS;
 export const FRIGATE_MENU_PRIORITY_DEFAULT = 50;
 export const FRIGATE_MENU_PRIORITY_MAX = 100;
 
-const LIVE_PROVIDERS = ['auto', 'ha', 'frigate-jsmpeg', 'webrtc-card'] as const;
+const LIVE_PROVIDERS = ['auto', 'image', 'ha', 'frigate-jsmpeg', 'webrtc-card'] as const;
 export type LiveProvider = typeof LIVE_PROVIDERS[number];
 
 const MEDIA_ACTION_NEGATIVE_CONDITIONS = [
@@ -206,7 +206,7 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'menu_toggle',
   'diagnostics',
   'recording',
-  'recordings'
+  'recordings',
 ] as const;
 const FRIGATE_CARD_ACTIONS = [
   ...FRIGATE_CARD_GENERAL_ACTIONS,
@@ -696,8 +696,12 @@ const timelineCoreConfigSchema = z.object({
 });
 export type TimelineCoreConfig = z.infer<typeof timelineCoreConfigSchema>;
 
+const miniTimelineConfigDefault = {
+  ...timelineCoreConfigDefault,
+  mode: 'none' as const,
+}
 const miniTimelineConfigSchema = timelineCoreConfigSchema.extend({
-  mode: z.enum(['none', 'above', 'below']),
+  mode: z.enum(['none', 'above', 'below']).default(miniTimelineConfigDefault.mode),
 });
 export type MiniTimelineControlConfig = z.infer<typeof miniTimelineConfigSchema>;
 
@@ -735,6 +739,11 @@ export type TitleControlConfig = z.infer<typeof titleControlConfigSchema>;
 /**
  * Live view configuration section.
  */
+
+const liveImageConfigDefault = {
+  refresh_seconds: 1,
+};
+
 const liveConfigDefault = {
   auto_play: 'all' as const,
   auto_pause: 'never' as const,
@@ -746,6 +755,7 @@ const liveConfigDefault = {
   draggable: true,
   transition_effect: 'slide' as const,
   show_image_during_load: true,
+  image: liveImageConfigDefault,
   controls: {
     next_previous: {
       size: 48,
@@ -759,12 +769,18 @@ const liveConfigDefault = {
       show_timeline_control: true,
       mode: 'left' as const,
     },
+    timeline: miniTimelineConfigDefault,
     title: {
       mode: 'popup-bottom-right' as const,
       duration_seconds: 2,
     },
   },
 };
+
+const liveImageConfigSchema = z.object({
+  refresh_seconds: z.number().min(0).default(liveConfigDefault.image.refresh_seconds),
+});
+export type LiveImageConfig = z.infer<typeof liveImageConfigSchema>;
 
 const webrtcCardConfigSchema = webrtcCardCameraConfigSchema.passthrough().optional();
 export type WebRTCCardConfig = z.infer<typeof webrtcCardConfigSchema>;
@@ -794,8 +810,9 @@ export type JSMPEGConfig = z.infer<typeof jsmpegConfigSchema>;
 
 const liveOverridableConfigSchema = z
   .object({
-    webrtc_card: webrtcCardConfigSchema,
+    image: liveImageConfigSchema.default(liveConfigDefault.image),
     jsmpeg: jsmpegConfigSchema,
+    webrtc_card: webrtcCardConfigSchema,
     controls: z
       .object({
         next_previous: nextPreviousControlConfigSchema
@@ -833,7 +850,7 @@ const liveOverridableConfigSchema = z
               .default(liveConfigDefault.controls.thumbnails.media),
           })
           .default(liveConfigDefault.controls.thumbnails),
-        timeline: miniTimelineConfigSchema.optional(),
+        timeline: miniTimelineConfigSchema.default(liveConfigDefault.controls.timeline),
         title: titleControlConfigSchema
           .extend({
             mode: titleControlConfigSchema.shape.mode.default(
@@ -975,6 +992,7 @@ const viewerConfigDefault = {
       show_timeline_control: true,
       mode: 'left' as const,
     },
+    timeline: miniTimelineConfigDefault,
     title: {
       mode: 'popup-bottom-right' as const,
       duration_seconds: 2,
@@ -1038,7 +1056,7 @@ const viewerConfigSchema = z
               ),
           })
           .default(viewerConfigDefault.controls.thumbnails),
-        timeline: miniTimelineConfigSchema.optional(),
+        timeline: miniTimelineConfigSchema.default(viewerConfigDefault.controls.timeline),
         title: titleControlConfigSchema
           .extend({
             mode: titleControlConfigSchema.shape.mode.default(
@@ -1206,6 +1224,41 @@ const liveOverridesSchema = z
   .optional();
 export type LiveOverrides = z.infer<typeof liveOverridesSchema>;
 
+const performanceConfigDefault = {
+  profile: 'high' as const,
+  features: {
+    animated_progress_indicator: true,
+  },
+  style: {
+    border_radius: true,
+    box_shadow: true,
+  },
+};
+
+const performanceConfigSchema = z
+  .object({
+    profile: z.enum(['low', 'high']).default(performanceConfigDefault.profile),
+    features: z
+      .object({
+        animated_progress_indicator: z
+          .boolean()
+          .default(performanceConfigDefault.features.animated_progress_indicator),
+      })
+      .default(performanceConfigDefault.features),
+    style: z
+      .object({
+        border_radius: z.boolean().default(performanceConfigDefault.style.border_radius),
+        box_shadow: z.boolean().default(performanceConfigDefault.style.box_shadow),
+      })
+      .default(performanceConfigDefault.style),
+  })
+  .default(performanceConfigDefault);
+export type PerformanceConfig = z.infer<typeof performanceConfigSchema>;
+
+export interface CardWideConfig {
+  performance?: PerformanceConfig;
+}
+
 /**
  * Main card config.
  */
@@ -1221,6 +1274,7 @@ export const frigateCardConfigSchema = z.object({
   elements: pictureElementsSchema,
   dimensions: dimensionsConfigSchema,
   timeline: timelineConfigSchema,
+  performance: performanceConfigSchema,
 
   // Configuration overrides.
   overrides: overridesSchema,
@@ -1245,7 +1299,7 @@ export const frigateCardConfigDefaults = {
   event_gallery: galleryConfigDefault,
   image: imageConfigDefault,
   timeline: timelineConfigDefault,
-  mini_timeline: timelineCoreConfigDefault,
+  performance: performanceConfigDefault,
 };
 
 const menuButtonSchema = z.discriminatedUnion('type', [

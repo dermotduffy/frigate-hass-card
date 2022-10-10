@@ -1,4 +1,9 @@
-import { add, endOfHour, fromUnixTime, getUnixTime, startOfHour, sub } from 'date-fns';
+import add from 'date-fns/add';
+import endOfHour from 'date-fns/endOfHour';
+import fromUnixTime from 'date-fns/fromUnixTime';
+import getUnixTime from 'date-fns/getUnixTime';
+import startOfHour from 'date-fns/startOfHour';
+import sub from 'date-fns/sub';
 import { ViewContext } from 'view';
 import { dispatchMessageEvent } from '../components/message';
 import { localize } from '../localize/localize';
@@ -6,7 +11,11 @@ import { CameraConfig, ExtendedHomeAssistant, FrigateBrowseMediaSource } from '.
 import { View } from '../view';
 import { formatDateAndTime, prettifyTitle } from './basic';
 import { getRecordingMediaContentID } from './frigate';
-import { createChild, createEventParentForChildren, sortYoungestToOldest } from './ha/browse-media';
+import {
+  createChild,
+  createEventParentForChildren,
+  sortYoungestToOldest,
+} from './ha/browse-media';
 import {
   RecordingSegmentsItem,
   sortOldestToYoungest,
@@ -23,7 +32,7 @@ import { getAllDependentCameras, getTrueCameras } from './camera.js';
  * @param view The current view.
  * @param options A set of cameraIDs to fetch recordings for, and a targetView to dispatch to.
  */
- export const changeViewToRecentRecordingForCameraAndDependents = async (
+export const changeViewToRecentRecordingForCameraAndDependents = async (
   element: HTMLElement,
   hass: ExtendedHomeAssistant,
   dataManager: DataManager,
@@ -35,22 +44,15 @@ import { getAllDependentCameras, getTrueCameras } from './camera.js';
 ): Promise<void> => {
   const now = new Date();
 
-  await changeViewToRecording(
-    element,
-    hass,
-    dataManager,
-    cameras,
-    view,
-    {
-      ...options,
+  await changeViewToRecording(element, hass, dataManager, cameras, view, {
+    ...options,
 
-      // Fetch 1 days worth of recordings (including recordings that are for the current hour).
-      cameraIDs: getAllDependentCameras(cameras, view.camera),
-      start: sub(now, { days: 1 }),
-      end: add(now, { hours: 1 }),
-    }
-  );
-}
+    // Fetch 1 days worth of recordings (including recordings that are for the current hour).
+    cameraIDs: getAllDependentCameras(cameras, view.camera),
+    start: sub(now, { days: 1 }),
+    end: add(now, { hours: 1 }),
+  });
+};
 
 /**
  * Change the view to a recording.
@@ -132,9 +134,7 @@ const createRecordingChildren = (
 ): FrigateBrowseMediaSource[] => {
   const children: FrigateBrowseMediaSource[] = [];
 
-  for (const cameraID of getTrueCameras(
-    cameras, cameraIDs
-  )) {
+  for (const cameraID of getTrueCameras(cameras, cameraIDs)) {
     const config = cameras.get(cameraID) ?? null;
     const recordingSummary = dataManager.getRecordingSummaryForCamera(cameraID);
     if (!config?.frigate.camera_name || !recordingSummary) {

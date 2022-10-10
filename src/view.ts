@@ -13,7 +13,6 @@ export interface ViewEvolveParameters {
   camera?: string;
   target?: FrigateBrowseMediaSource | null;
   childIndex?: number | null;
-  previous?: View | null;
   context?: ViewContext | null;
 }
 
@@ -27,7 +26,6 @@ export class View {
   public camera: string;
   public target: FrigateBrowseMediaSource | null;
   public childIndex: number | null;
-  public previous: View | null;
   public context: ViewContext | null;
 
   constructor(params: ViewParameters) {
@@ -35,7 +33,6 @@ export class View {
     this.camera = params.camera;
     this.target = params.target ?? null;
     this.childIndex = params.childIndex ?? null;
-    this.previous = params.previous ?? null;
     this.context = params.context ?? null;
   }
 
@@ -90,7 +87,6 @@ export class View {
       camera: this.camera,
       target: this.target,
       childIndex: this.childIndex,
-      previous: this.previous,
       context: this.context,
     });
   }
@@ -107,10 +103,6 @@ export class View {
       target: params.target !== undefined ? params.target : this.target,
       childIndex: params.childIndex !== undefined ? params.childIndex : this.childIndex,
       context: params.context !== undefined ? params.context : this.context,
-
-      // Special case: Set the previous to this of the evolved view (rather than
-      // the previous of this).
-      previous: params.previous !== undefined ? params.previous : this,
     });
   }
 
@@ -119,7 +111,7 @@ export class View {
    * @param context The context to merge in.
    * @returns This view.
    */
-  public mergeInContext(context: ViewContext): View {
+  public mergeInContext(context?: ViewContext): View {
     this.context = { ...this.context, ...context };
     return this;
   }

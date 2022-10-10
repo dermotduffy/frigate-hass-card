@@ -4,7 +4,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { TROUBLESHOOTING_URL } from '../const.js';
 import { localize } from '../localize/localize.js';
 import messageStyle from '../scss/message.scss';
-import { FrigateCardError, Message, MessageType } from '../types.js';
+import { CardWideConfig, FrigateCardError, Message, MessageType } from '../types.js';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
 
 @customElement('frigate-card-message')
@@ -82,11 +82,14 @@ export class FrigateCardProgressIndicator extends LitElement {
   @property({ attribute: false })
   public message: string | TemplateResult = '';
 
+  @property({ attribute: false })
+  public animated = false;
+
   protected render(): TemplateResult {
     return html` <div class="message vertical">
-      <span>
-        <ha-circular-progress active="true" size="large"> </ha-circular-progress>
-      </span>
+      ${this.animated
+        ? html`<ha-circular-progress active="true" size="large"> </ha-circular-progress>`
+        : html`<ha-icon icon="mdi:timer-sand"></ha-icon>`}
       ${this.message ? html`<span>${this.message}</span>` : html``}
     </div>`;
   }
@@ -112,9 +115,16 @@ export function renderMessage(message: Message): TemplateResult {
   return html``;
 }
 
-export function renderProgressIndicator(message?: string): TemplateResult {
+export function renderProgressIndicator(options?: {
+  message?: string;
+  cardWideConfig?: CardWideConfig;
+}): TemplateResult {
   return html`
-    <frigate-card-progress-indicator .message=${message || ''}>
+    <frigate-card-progress-indicator
+      .message=${options?.message || ''}
+      .animated=${options?.cardWideConfig?.performance?.features
+        .animated_progress_indicator ?? true}
+    >
     </frigate-card-progress-indicator>
   `;
 }

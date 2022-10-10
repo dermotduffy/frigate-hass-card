@@ -1,4 +1,5 @@
-import { format, fromUnixTime } from 'date-fns';
+import format from 'date-fns/format';
+import fromUnixTime from 'date-fns/fromUnixTime';
 import { CSSResult, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -16,7 +17,7 @@ import { getEventDurationString } from '../utils/frigate.js';
 import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask } from '../utils/thumbnail.js';
 import { View } from '../view.js';
-import { MediaSeek } from './viewer.js';
+import type { MediaSeek } from './viewer.js';
 import { TaskStatus } from '@lit-labs/task';
 
 import type {
@@ -95,7 +96,7 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
           this._embedThumbnailTask,
           (embeddedThumbnail: string | null) =>
             embeddedThumbnail ? html`<img src="${embeddedThumbnail}" />` : html``,
-          () => imageOff,
+          { inProgressFunc: () => imageOff },
         )
       : imageOff} `;
   }
@@ -296,7 +297,9 @@ export class FrigateCardThumbnail extends LitElement {
       ? html`<frigate-card-thumbnail-feature-recording
           aria-label="${label ?? ''}"
           title="${label ?? ''}"
-          .cameraTitle=${this.details || !this.cameraConfig || !this.hass ? undefined : getCameraTitle(this.hass, this.cameraConfig)}
+          .cameraTitle=${this.details || !this.cameraConfig || !this.hass
+            ? undefined
+            : getCameraTitle(this.hass, this.cameraConfig)}
           .date=${recording ? fromUnixTime(recording.start_time) : undefined}
         ></frigate-card-thumbnail-feature-recording>`
       : html``}
@@ -308,12 +311,7 @@ export class FrigateCardThumbnail extends LitElement {
             @click=${(ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
               if (event && this.hass && clientID) {
-                retainEvent(
-                  this.hass,
-                  clientID,
-                  event.id,
-                  !event.retain_indefinitely,
-                )
+                retainEvent(this.hass, clientID, event.id, !event.retain_indefinitely)
                   .then(() => {
                     if (event) {
                       event.retain_indefinitely = !event.retain_indefinitely;

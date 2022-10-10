@@ -29,7 +29,6 @@ import { dispatchFrigateCardErrorEvent } from './message.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 
 import './surround-basic.js';
-import './timeline-core.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 
 interface ThumbnailViewContext {
@@ -84,7 +83,7 @@ export class FrigateCardSurround extends LitElement {
       this.inBackground ||
       !this.hass ||
       !this.view ||
-      this.view.target ||      
+      this.view.target ||
       !this.thumbnailConfig ||
       this.thumbnailConfig.mode === 'none' ||
       !this.browseMediaParams ||
@@ -103,9 +102,6 @@ export class FrigateCardSurround extends LitElement {
         ?.evolve({
           target: parent,
           childIndex: null,
-
-          // Don't carry over history of this 'empty' view.
-          previous: null,
         })
         .dispatchChangeEvent(this);
     }
@@ -125,6 +121,10 @@ export class FrigateCardSurround extends LitElement {
    * Called before each update.
    */
   protected willUpdate(changedProperties: PropertyValues): void {
+    if (this.timelineConfig?.mode && this.timelineConfig.mode !== 'none') {
+      import('./timeline.js');
+    }
+
     // Once the component will certainly update, dispatch a media request. Only
     // do so if properties relevant to the request have changed (as per their
     // hasChanged).
@@ -200,7 +200,7 @@ export class FrigateCardSurround extends LitElement {
           >
           </frigate-card-thumbnail-carousel>`
         : ''}
-      ${this.timelineConfig && !this.inBackground
+      ${this.timelineConfig?.mode && this.timelineConfig.mode !== 'none' && !this.inBackground
         ? html` <frigate-card-timeline-core
             slot=${this.timelineConfig.mode}
             .hass=${this.hass}

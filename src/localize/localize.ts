@@ -1,14 +1,16 @@
 import * as en from './languages/en.json';
-import * as pt_BR from './languages/pt-BR.json';
-import * as it from './languages/it.json';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const languages: Record<string, any> = {
+  // English as always loaded as it's the fallback language that will be used
+  // when translations are not found or before they are loaded (via
+  // loadLanguages()).
   en: en,
-  pt_BR: pt_BR,
-  it: it,
-};
+}
 
+/**
+ * Get the configured language.
+ */
 export function getLanguage(): string {
   const canonicalizeLanguage = (language?: string | null): string | null => {
     if (!language) {
@@ -39,14 +41,32 @@ export function getLanguage(): string {
   return lang || 'en';
 }
 
+/**
+ * Load required languages.
+ */
+export const loadLanguages = async (): Promise<void> => {
+  const lang = getLanguage();
+  if (lang === 'it') {
+    languages['it'] = await import('./languages/it.json');
+  } else if (lang === 'pt_BR') {
+    languages['pt_BR'] = await import('./languages/pt-BR.json');
+  }
+}
+
+/**
+ * Get a localized version of a given string key.
+ * @param string The key.
+ * @param search An optional search key to be used with 'replace'.
+ * @param replace An optional replacement text to be used with 'search'.
+ * @returns 
+ */
 export function localize(string: string, search = '', replace = ''): string {
   const lang = getLanguage();
-  let translated: string;
+  let translated = '';
 
   try {
     translated = string.split('.').reduce((o, i) => o[i], languages[lang]);
-  } catch (e) {
-    translated = string.split('.').reduce((o, i) => o[i], languages['en']);
+  } catch (_) {
   }
 
   if (!translated) {

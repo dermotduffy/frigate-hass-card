@@ -20,6 +20,7 @@ import {
   BrowseMediaNeighbors,
   BrowseMediaQueryParameters,
   CameraConfig,
+  CardWideConfig,
   ExtendedHomeAssistant,
   FrigateBrowseMediaSource,
   frigateCardConfigDefaults,
@@ -97,6 +98,9 @@ export class FrigateCardViewer extends LitElement {
   @property({ attribute: false })
   public dataManager?: DataManager;
 
+  @property({ attribute: false })
+  public cardWideConfig?: CardWideConfig;
+
   /**
    * Master render method.
    * @returns A rendered template.
@@ -151,7 +155,7 @@ export class FrigateCardViewer extends LitElement {
           }),
         );
       }
-      return renderProgressIndicator();
+      return renderProgressIndicator({ cardWideConfig: this.cardWideConfig });
     }
 
     return html` <frigate-card-surround
@@ -169,6 +173,7 @@ export class FrigateCardViewer extends LitElement {
         .viewerConfig=${this.viewerConfig}
         .browseMediaQueryParameters=${browseMediaQueryParameters}
         .resolvedMediaCache=${this.resolvedMediaCache}
+        .cardWideConfig=${this.cardWideConfig}
       >
       </frigate-card-viewer-carousel>
     </frigate-card-surround>`;
@@ -205,6 +210,9 @@ export class FrigateCardViewerCarousel extends LitElement {
 
   @property({ attribute: false })
   public resolvedMediaCache?: ResolvedMediaCache;
+
+  @property({ attribute: false })
+  public cardWideConfig?: CardWideConfig;
 
   protected _refMediaCarousel: Ref<FrigateCardMediaCarousel> = createRef();
 
@@ -645,7 +653,9 @@ export class FrigateCardViewerCarousel extends LitElement {
     // If lazy loading is not enabled, wait for the media resolver task to
     // complete and show a progress indictator until this.
     if (!this.viewerConfig?.lazy_load && !this._isMediaFullyResolved()) {
-      return renderTask(this, this._mediaResolutionTask, this._render.bind(this));
+      return renderTask(this, this._mediaResolutionTask, this._render.bind(this), {
+        cardWideConfig: this.cardWideConfig,
+      });
     }
     return this._render();
   }

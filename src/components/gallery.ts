@@ -11,6 +11,7 @@ import { customElement, property } from 'lit/decorators.js';
 import galleryStyle from '../scss/gallery.scss';
 import {
   CameraConfig,
+  CardWideConfig,
   ExtendedHomeAssistant,
   frigateCardConfigDefaults,
   GalleryConfig,
@@ -23,11 +24,22 @@ import {
   getFullDependentBrowseMediaQueryParametersOrDispatchError,
 } from '../utils/ha/browse-media';
 import { changeViewToRecentRecordingForCameraAndDependents } from '../utils/media-to-view.js';
-import { DataManager } from '../utils/data-manager';
+import { DataManager } from '../utils/data-manager.js';
 import { View } from '../view.js';
 import { renderProgressIndicator } from './message.js';
 import './thumbnail.js';
 import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
+
+interface GalleryViewContext {
+  // Keep track of the previous view to allow returning to a higher-level folder.
+  previous?: View;
+}
+
+declare module 'view' {
+  interface ViewContext {
+    gallery?: GalleryViewContext;
+  }
+}
 
 @customElement('frigate-card-gallery')
 export class FrigateCardGallery extends LitElement {
@@ -45,6 +57,9 @@ export class FrigateCardGallery extends LitElement {
 
   @property({ attribute: false })
   public dataManager?: DataManager;
+
+  @property({ attribute: false })
+  public cardWideConfig?: CardWideConfig;
 
   /**
    * Master render method.
@@ -96,7 +111,7 @@ export class FrigateCardGallery extends LitElement {
           browseMediaQueryParameters,
         );
       }
-      return renderProgressIndicator();
+      return renderProgressIndicator({ cardWideConfig: this.cardWideConfig });
     }
 
     return html`
@@ -192,9 +207,9 @@ export class FrigateCardGalleryCore extends LitElement {
    */
   protected _showBackArrow(): boolean {
     return (
-      !!this.view?.previous &&
-      !!this.view.previous.target &&
-      this.view.previous.view === this.view.view
+      !!this.view?.context?.gallery?.previous &&
+      !!this.view.context.gallery.previous.target &&
+      this.view.context.gallery.previous.view === this.view.view
     );
   }
 
@@ -239,8 +254,8 @@ export class FrigateCardGalleryCore extends LitElement {
       ${this._showBackArrow()
         ? html` <ha-card
             @click=${(ev) => {
-              if (this.view && this.view.previous) {
-                this.view.previous.dispatchChangeEvent(this);
+              if (this.view && this.view.context?.gallery?.previous) {
+                this.view.context.gallery.previous.dispatchChangeEvent(this);
               }
               stopEventFromActivatingCardWideActions(ev);
             }}
@@ -262,6 +277,11 @@ export class FrigateCardGalleryCore extends LitElement {
                           this.hass,
                           this.view,
                           child,
+                          {
+                            gallery: {
+                              previous: this.view,
+                            },
+                          },
                         );
                       }
                       stopEventFromActivatingCardWideActions(ev);

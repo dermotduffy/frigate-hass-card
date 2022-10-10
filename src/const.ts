@@ -139,6 +139,8 @@ export const CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS =
 export const CONF_LIVE_CONTROLS_TITLE_MODE = `${CONF_LIVE}.controls.title.mode` as const;
 export const CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS =
   `${CONF_LIVE}.controls.title.duration_seconds` as const;
+export const CONF_LIVE_IMAGE_REFRESH_SECONDS =
+  `${CONF_LIVE}.image.refresh_seconds` as const;
 export const CONF_LIVE_LAYOUT_FIT = `${CONF_LIVE}.layout.fit` as const;
 export const CONF_LIVE_LAYOUT_POSITION_X = `${CONF_LIVE}.layout.position.x` as const;
 export const CONF_LIVE_LAYOUT_POSITION_Y = `${CONF_LIVE}.layout.position.y` as const;
@@ -192,7 +194,10 @@ export const CONF_MENU_BUTTONS_FRIGATE_UI = `${CONF_MENU}.buttons.frigate_ui` as
 export const CONF_MENU_BUTTONS_FULLSCREEN = `${CONF_MENU}.buttons.fullscreen` as const;
 export const CONF_MENU_BUTTONS_IMAGE = `${CONF_MENU}.buttons.image` as const;
 export const CONF_MENU_BUTTONS_LIVE = `${CONF_MENU}.buttons.live` as const;
+export const CONF_MENU_BUTTONS_MEDIA_PLAYER =
+  `${CONF_MENU}.buttons.media_player` as const;
 export const CONF_MENU_BUTTONS_SNAPSHOTS = `${CONF_MENU}.buttons.snapshots` as const;
+export const CONF_MENU_BUTTONS_TIMELINE = `${CONF_MENU}.buttons.timeline` as const;
 
 export const CONF_DIMENSIONS = 'dimensions' as const;
 export const CONF_DIMENSIONS_ASPECT_RATIO = `${CONF_DIMENSIONS}.aspect_ratio` as const;
@@ -200,6 +205,12 @@ export const CONF_DIMENSIONS_ASPECT_RATIO_MODE =
   `${CONF_DIMENSIONS}.aspect_ratio_mode` as const;
 
 export const CONF_OVERRIDES = 'overrides' as const;
+
+export const CONF_PERFORMANCE = 'performance' as const;
+export const CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR = `${CONF_PERFORMANCE}.features.animated_progress_indicator`;
+export const CONF_PERFORMANCE_PROFILE = `${CONF_PERFORMANCE}.profile`;
+export const CONF_PERFORMANCE_STYLE_BOX_SHADOW = `${CONF_PERFORMANCE}.style.box_shadow`;
+export const CONF_PERFORMANCE_STYLE_BORDER_RADIUS = `${CONF_PERFORMANCE}.style.border_radius`;
 
 // Taken from https://github.dev/home-assistant/frontend/blob/b5861869e39290fd2e15737e89571dfc543b3ad3/src/data/media-player.ts#L93
 export const MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA = 131072;

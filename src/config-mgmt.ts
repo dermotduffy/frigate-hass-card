@@ -1,4 +1,6 @@
-import { cloneDeep, get, isEqual, set } from 'lodash-es';
+import get from 'lodash-es/get';
+import isEqual from 'lodash-es/isEqual';
+import set from 'lodash-es/set';
 import {
   CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
@@ -40,7 +42,7 @@ import {
 /**
  * Set a configuration value.
  * @param obj The configuration.
- * @param key The key to the property to set.
+ * @param keys The key to the property to set.
  * @param value The value to set.
  */
 
@@ -55,7 +57,8 @@ export const setConfigValue = (
 /**
  * Get a configuration value.
  * @param obj The configuration.
- * @param key The key to the property to retrieve.
+ * @param keys The key to the property to retrieve.
+ * @param def Default if key not found.
  * @returns The property or undefined if not found.
  */
 export const getConfigValue = (
@@ -104,7 +107,7 @@ export const upgradeConfig = function (obj: RawFrigateCardConfig): boolean {
  * @returns `true` if the configuration is upgradeable.
  */
 export const isConfigUpgradeable = function (obj: RawFrigateCardConfig): boolean {
-  const newObj = JSON.parse(JSON.stringify(obj));
+  const newObj = structuredClone(obj);
   return upgradeConfig(newObj);
 };
 
@@ -136,7 +139,7 @@ export const trimConfig = function (obj: RawFrigateCardConfig): boolean {
  * @returns A new deeply-copied configuration.
  */
 export const copyConfig = function (obj: RawFrigateCardConfig): RawFrigateCardConfig {
-  return cloneDeep(obj);
+  return structuredClone(obj);
 };
 
 /**

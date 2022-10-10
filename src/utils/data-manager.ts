@@ -1,6 +1,6 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { DataSet, DataView } from 'vis-data/esnext';
-import { IdType, TimelineItem } from 'vis-timeline/esnext';
+import type { IdType, TimelineItem } from 'vis-timeline/esnext';
 import { CAMERA_BIRDSEYE } from '../const.js';
 import {
   CameraConfig,
@@ -20,7 +20,7 @@ import {
 } from './frigate.js';
 import { dispatchFrigateCardErrorEvent } from '../components/message.js';
 import fromUnixTime from 'date-fns/fromUnixTime';
-import { throttle } from 'lodash-es';
+import throttle from 'lodash-es/throttle';
 
 const RECORDING_SEGMENT_TOLERANCE = 60;
 const DATA_MANAGER_MAX_AGE_SECONDS = 10;
@@ -104,7 +104,6 @@ export class DataManager {
   protected _maxAgeSeconds: number = DATA_MANAGER_MAX_AGE_SECONDS;
 
   protected _cameras: Map<string, CameraConfig>;
-  protected _mediaType: TimelineMediaType;
 
   // Garbage collect segments at most once an hour.
   protected _throttledSegmentGarbageCollector = throttle(
@@ -115,9 +114,8 @@ export class DataManager {
     { trailing: true },
   );
 
-  constructor(cameras: Map<string, CameraConfig>, mediaType: TimelineMediaType) {
+  constructor(cameras: Map<string, CameraConfig>) {
     this._cameras = cameras;
-    this._mediaType = mediaType;
   }
 
   // Get the last event fetch date.

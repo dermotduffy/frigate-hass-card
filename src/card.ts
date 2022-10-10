@@ -12,7 +12,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
 import { until } from 'lit/directives/until.js';
-import { throttle } from 'lodash-es';
+import throttle from 'lodash-es/throttle';
 import screenfull from 'screenfull';
 import { z } from 'zod';
 import { actionHandler } from './action-handler-directive.js';
@@ -24,29 +24,20 @@ import {
 } from './card-condition.js';
 import './components/elements.js';
 import { FrigateCardElements } from './components/elements.js';
-import './components/gallery.js';
-import './components/image.js';
-import { FrigateCardImage } from './components/image.js';
-import './components/live.js';
-import { FrigateCardLive } from './components/live.js';
+import type { FrigateCardImage } from './components/image.js';
+import type { FrigateCardLive } from './components/live/live.js';
 import './components/menu.js';
 import { FrigateCardMenu, FRIGATE_BUTTON_MENU_ICON } from './components/menu.js';
 import './components/message.js';
 import { renderMessage, renderProgressIndicator } from './components/message.js';
 import './components/thumbnail-carousel.js';
-import './components/timeline.js';
-import './components/viewer.js';
 import { isConfigUpgradeable } from './config-mgmt.js';
 import {
   CAMERA_BIRDSEYE,
   MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
   REPO_URL,
 } from './const.js';
-import './editor.js';
-import { getLanguage, localize } from './localize/localize.js';
-import './patches/ha-camera-stream.js';
-import './patches/ha-hls-player.js';
-import './patches/ha-web-rtc-player.ts';
+import { getLanguage, loadLanguages, localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
 import {
   Actions,
@@ -67,6 +58,7 @@ import {
   MenuButton,
   Message,
   RawFrigateCardConfig,
+  CardWideConfig,
 } from './types.js';
 import {
   convertActionToFrigateCardCustomAction,
@@ -101,6 +93,7 @@ import { View } from './view.js';
 import pkg from '../package.json';
 import { ViewContext } from 'view';
 import { DataManager } from './utils/data-manager.js';
+import { setLowPerformanceProfile, setPerformanceCSSStyles } from './performance.js';
 
 /** A note on media callbacks:
  *
@@ -166,6 +159,9 @@ export class FrigateCard extends LitElement {
   protected _rawConfig?: RawFrigateCardConfig;
 
   @state()
+  protected _cardWideConfig?: CardWideConfig;
+
+  @state()
   protected _overriddenConfig?: FrigateCardConfig;
 
   @state()
@@ -210,10 +206,16 @@ export class FrigateCard extends LitElement {
   protected _boundMouseHandler = throttle(this._mouseHandler.bind(this), 1 * 1000);
 
   // Whether the card has been successfully initialized.
-  protected _initialized = false;
+  protected _loadedHAElements = false;
+  protected _loadedLanguages = false;
 
   protected _triggers: Map<string, Date> = new Map();
   protected _untriggerTimerID: number | null = null;
+
+  // Whether or not to include HA state in ConditionState. Doing so increases
+  // CPU usage as HA state is pumped out very fast, so this is only enabled if
+  // the configuration is likely to consume it.
+  protected _needHAStateInConditionState = false;
 
   /**
    * Set the Home Assistant object.
@@ -236,8 +238,10 @@ export class FrigateCard extends LitElement {
       }
     }
 
-    // HA entity state is part of the condition state.
-    this._generateConditionState();
+    if (this._needHAStateInConditionState) {
+      // HA entity state is part of the condition state.
+      this._generateConditionState();
+    }
 
     // Dark mode may depend on HASS.
     this._setLightOrDarkMode();
@@ -248,6 +252,7 @@ export class FrigateCard extends LitElement {
    * @returns A LovelaceCardEditor element.
    */
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
+    await import('./editor.js');
     return document.createElement('frigate-card-editor');
   }
 
@@ -282,8 +287,10 @@ export class FrigateCard extends LitElement {
       view: this._view?.view,
       fullscreen: screenfull.isEnabled && screenfull.isFullscreen,
       camera: this._view?.camera,
-      state: this._hass?.states,
       mediaLoaded: !!this._currentMediaLoadedInfo,
+      ...(this._needHAStateInConditionState && {
+        state: this._hass?.states,
+      })
     };
 
     // Update the components that need the new condition state. Passed directly
@@ -708,24 +715,38 @@ export class FrigateCard extends LitElement {
       return;
     }
 
-    const cache = new ExtendedEntityCache();
+    const hasAutoTriggers = (config: CameraConfig): boolean => {
+      return config.triggers.motion || config.triggers.occupancy;
+    };
+    const hasAnyTriggers = (config: CameraConfig): boolean => {
+      return hasAutoTriggers(config) || !!config.triggers.entities.length;
+    };
+    const hasCameraName = (config: CameraConfig): boolean => {
+      return !!config.frigate?.camera_name;
+    };
+
+    // Loading cameras may require a number of calls to Home Assistant.
+    //
+    // - getAllEntities: Required if any camera has auto-triggers (motion or
+    //   occupancy sensors).
+    // - getExtendedEntity: Per camera entity to autodetect the Frigate camera
+    //   name or to compute auto-triggers (motion or occupancy sensors).
+    // - getExtendedEntities: Per binary sensor associated with a Frigate config
+    //   entry, to compute auto-triggers (motion or occupancy sensors).
+    //
+    // For loading performance these are only called when absolutely needed.
+
     let entityList: EntityList | undefined;
-    try {
-      entityList = await getAllEntities(this._hass);
-    } catch (e) {
-      errorToConsole(e as Error);
-    }
+    const cache = new ExtendedEntityCache();
+    const loadedCameras: CameraConfig[] = [];
 
-    const cameras: Map<string, CameraConfig> = new Map();
-    let errorFree = true;
-
-    const addCameraConfig = async (config: CameraConfig) => {
+    const addCameraConfig = async (config: CameraConfig, index: number) => {
       if (!this._hass) {
         return;
       }
 
       let entity: ExtendedEntity | null = null;
-      if (config.camera_entity) {
+      if (config.camera_entity && (hasAnyTriggers(config) || !hasCameraName(config))) {
         try {
           entity = await getExtendedEntity(this._hass, config.camera_entity, cache);
         } catch (e) {
@@ -735,77 +756,94 @@ export class FrigateCard extends LitElement {
         }
       }
 
-      if (!config.frigate.camera_name && entity) {
+      if (entity && !hasCameraName(config)) {
         const resolvedName = this._getFrigateCameraNameFromEntity(entity);
         if (resolvedName) {
           config.frigate.camera_name = resolvedName;
         }
       }
 
-      if (entity && entityList) {
-        // Try to find the correct entities for the motion & occupancy sensors.
-        // We know they are binary_sensors, and that they'll have the same
-        // config entry ID as the camera. Searching via unique_id ensures this
-        // search still works if the user renames the entity_id.
-        const binarySensorEntities = entityList.filter(
-          (ent) =>
-            ent.config_entry_id === entity?.config_entry_id &&
-            !ent.disabled_by &&
-            ent.entity_id.startsWith('binary_sensor.'),
-        );
-
-        try {
-          await getExtendedEntities(
-            this._hass,
-            binarySensorEntities.map((ent) => ent.entity_id),
-            cache,
+      if (entity && entityList && hasAnyTriggers(config)) {
+        if (hasAutoTriggers(config)) {
+          // Try to find the correct entities for the motion & occupancy sensors.
+          // We know they are binary_sensors, and that they'll have the same
+          // config entry ID as the camera. Searching via unique_id ensures this
+          // search still works if the user renames the entity_id.
+          const binarySensorEntities = entityList.filter(
+            (ent) =>
+              ent.config_entry_id === entity?.config_entry_id &&
+              !ent.disabled_by &&
+              ent.entity_id.startsWith('binary_sensor.'),
           );
+
+          try {
+            await getExtendedEntities(
+              this._hass,
+              binarySensorEntities.map((ent) => ent.entity_id),
+              cache,
+            );
+          } catch (e) {
+            errorToConsole(e as Error);
+          }
+
+          if (config.triggers.motion) {
+            const motionEntity = this._getMotionSensor(cache, config);
+            if (motionEntity) {
+              config.triggers.entities.push(motionEntity);
+            }
+          }
+
+          if (config.triggers.occupancy) {
+            const occupancyEntity = this._getOccupancySensor(cache, config);
+            if (occupancyEntity) {
+              config.triggers.entities.push(occupancyEntity);
+            }
+          }
+        }
+
+        config.triggers.entities = [...new Set(config.triggers.entities)];
+      }
+
+      loadedCameras[index] = config;
+    };
+
+    let errorFree = true;
+    const cameras: Map<string, CameraConfig> = new Map();
+    const configCameras = this._getConfig().cameras;
+
+    if (configCameras && Array.isArray(configCameras)) {
+      if (configCameras.some((config) => hasAutoTriggers(config))) {
+        try {
+          entityList = await getAllEntities(this._hass);
         } catch (e) {
           errorToConsole(e as Error);
         }
+      }
 
-        if (config.triggers.motion) {
-          const motionEntity = this._getMotionSensor(cache, config);
-          if (motionEntity) {
-            config.triggers.entities.push(motionEntity);
-          }
+      // Load all cameras in parallel, but remember the order they were provided
+      // (they must be added to the cameraMap in this same order).
+      await Promise.all(configCameras.map((configCamera, index) => addCameraConfig(configCamera, index)))
+
+      loadedCameras.forEach((loadedCamera: CameraConfig) => {
+        const id = getCameraID(loadedCamera);
+        if (!id) {
+          this._setMessageAndUpdate({
+            message: localize('error.no_camera_id'),
+            type: 'error',
+            context: loadedCamera,
+          });
+          errorFree = false;
+        } else if (cameras.has(id)) {
+          this._setMessageAndUpdate({
+            message: localize('error.duplicate_camera_id'),
+            type: 'error',
+            context: loadedCamera,
+          });
+          errorFree = false;
+        } else {
+          cameras.set(id, loadedCamera);
         }
-
-        if (config.triggers.occupancy) {
-          const occupancyEntity = this._getOccupancySensor(cache, config);
-          if (occupancyEntity) {
-            config.triggers.entities.push(occupancyEntity);
-          }
-        }
-      }
-      config.triggers.entities = [...new Set(config.triggers.entities)];
-
-      const id = getCameraID(config);
-      if (!id) {
-        this._setMessageAndUpdate({
-          message: localize('error.no_camera_id'),
-          type: 'error',
-          context: config,
-        });
-        errorFree = false;
-      } else if (cameras.has(id)) {
-        this._setMessageAndUpdate({
-          message: localize('error.duplicate_camera_id'),
-          type: 'error',
-          context: config,
-        });
-        errorFree = false;
-      } else {
-        cameras.set(id, config);
-      }
-    };
-
-    if (this._getConfig().cameras && Array.isArray(this._getConfig().cameras)) {
-      // Cameras are loaded sequentially rather than in parallel to preserve the
-      // order of the input camera array.
-      for (const camera of this._getConfig().cameras) {
-        await addCameraConfig(camera);
-      }
+      });
     }
 
     if (!cameras.size) {
@@ -917,9 +955,9 @@ export class FrigateCard extends LitElement {
       throw new Error(localize('error.invalid_configuration'));
     }
 
-    const configUpgradeable = isConfigUpgradeable(inputConfig);
     const parseResult = frigateCardConfigSchema.safeParse(inputConfig);
     if (!parseResult.success) {
+      const configUpgradeable = isConfigUpgradeable(inputConfig);
       const hint = this._getParseErrorPaths(parseResult.error);
       let upgradeMessage = '';
       if (configUpgradeable && getLovelace().mode !== 'yaml') {
@@ -933,7 +971,10 @@ export class FrigateCard extends LitElement {
             : localize('error.invalid_configuration_no_hint')),
       );
     }
-    const config = parseResult.data;
+    const config =
+      parseResult.data.performance.profile !== 'low'
+        ? parseResult.data
+        : setLowPerformanceProfile(inputConfig, parseResult.data);
 
     if (config.test_gui) {
       getLovelace().setEditMode(true);
@@ -941,6 +982,10 @@ export class FrigateCard extends LitElement {
 
     this._rawConfig = inputConfig;
     this._config = config;
+    this._cardWideConfig = {
+      performance: config.performance,
+    };
+
     this._overriddenConfig = undefined;
     this._cameras = undefined;
     this._view = undefined;
@@ -948,6 +993,21 @@ export class FrigateCard extends LitElement {
     this._generateConditionState();
     this._setLightOrDarkMode();
     this._untrigger();
+
+    const hasStateCondition = (): boolean => {
+      for (const override of this._config.overrides ?? []) {
+        if (override.conditions.state?.length) {
+          return true;
+        }
+      }
+      // For elements there can be arbitrary custom elements that not related to
+      // this card so we cannot easily determine if state is used further down
+      // the chain by a custom:frigate-card-conditional element. Instead, include state
+      // if elements are configured at all.
+      return !!this._config.elements;
+    }
+
+    this._needHAStateInConditionState = hasStateCondition();
   }
 
   /**
@@ -1042,17 +1102,34 @@ export class FrigateCard extends LitElement {
    * Called before each update.
    */
   protected willUpdate(changedProps: PropertyValues): void {
-    // Side load the necessary elements if not already initialized.
-    if (!this._initialized) {
+    // Side load the necessary elements if not already initialized (do not need
+    // to block for the loading to complete).
+    if (!this._loadedHAElements) {
       sideLoadHomeAssistantElements().then((success) => {
         if (success) {
-          this._initialized = true;
+          this._loadedHAElements = true;
         }
       });
     }
 
     if (this._cameras && (changedProps.has('_config') || changedProps.has('_cameras'))) {
-      this._dataManager = new DataManager(this._cameras, this._config.timeline.media);
+      this._dataManager = new DataManager(this._cameras);
+    }
+
+    if (changedProps.has('_cardWideConfig')) {
+      setPerformanceCSSStyles(this, this._cardWideConfig?.performance);
+    }
+
+    if (this._view?.is('live')) {
+      import('./components/live/live.js');
+    } else if (this._view?.isGalleryView()) {
+      import('./components/gallery.js');
+    } else if (this._view?.isViewerView()) {
+      import('./components/viewer.js');
+    } else if (this._view?.is('image')) {
+      import('./components/image.js');
+    } else if (this._view?.is('timeline')) {
+      import('./components/timeline.js');
     }
   }
 
@@ -1169,6 +1246,15 @@ export class FrigateCard extends LitElement {
    * @returns `true` if the element should be updated.
    */
   protected shouldUpdate(changedProps: PropertyValues): boolean {
+    // Load the relevant languages. Cannot do anything until then.
+    if (!this._loadedLanguages) {
+      loadLanguages().then(() => {
+        this._loadedLanguages = true;
+        this.requestUpdate();
+      });
+      return false;
+    }
+
     const oldHass = changedProps.get('_hass') as HomeAssistant | undefined;
     let shouldUpdate = !oldHass || changedProps.size != 1;
 
@@ -1884,7 +1970,7 @@ export class FrigateCard extends LitElement {
                 this._changeView({ resetMessage: false });
                 return this._render();
               })(),
-              renderProgressIndicator(),
+              renderProgressIndicator({cardWideConfig: this._cardWideConfig}),
             )
           : // Always want to call render even if there's a message, to
             // ensure live preload is always present (even if not displayed).
@@ -1954,6 +2040,7 @@ export class FrigateCard extends LitElement {
             .cameras=${this._cameras}
             .galleryConfig=${this._getConfig().event_gallery}
             .dataManager=${this._dataManager}
+            .cardWideConfig=${this._cardWideConfig}
           >
           </frigate-card-gallery>`
         : ``}
@@ -1965,6 +2052,7 @@ export class FrigateCard extends LitElement {
             .viewerConfig=${this._getConfig().media_viewer}
             .resolvedMediaCache=${this._resolvedMediaCache}
             .dataManager=${this._dataManager}
+            .cardWideConfig=${this._cardWideConfig}
           >
           </frigate-card-viewer>`
         : ``}
@@ -1996,6 +2084,7 @@ export class FrigateCard extends LitElement {
                 .liveOverrides=${getOverridesByKey(this._getConfig().overrides, 'live')}
                 .cameras=${this._cameras}
                 .dataManager=${this._dataManager}
+                .cardWideConfig=${this._cardWideConfig}
                 class="${classMap(liveClasses)}"
               >
               </frigate-card-live>
