@@ -113,14 +113,14 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 
 #### Available Live Providers
 
-|Live Provider|Latency|Frame Rate|Installation|Description|
-| -- | -- | -- | -- | -- |
-|`ha` (default HA configuration)|Poor|High|Builtin|Use the built-in Home Assistant camera stream. The camera doesn't even need to be a Frigate camera! |
-|`ha` (when configured with LL-HLS)|Better|High|Builtin|Use the built-in Home Assistant camera streams -- can be configured to use an [LL-HLS](https://www.home-assistant.io/integrations/stream/#ll-hls) feed for lower latency.|
-|`ha` (Native WebRTC)|Best|High|Builtin|Use the built-in Home Assistant camera streams -- can be configured to use [native WebRTC](https://www.home-assistant.io/integrations/rtsp_to_webrtc/) offering a very low-latency feed direct to your browser.|
-|`frigate-jsmpeg`|Better|Low|Builtin|Stream the JSMPEG stream from Frigate (proxied via the Frigate integration). See [note below on the required integration version](#jsmpeg-troubleshooting) for this live provider to function. This is the only live provider that can view the Frigate `birdseye` view.|
-|`webrtc-card`|Best|High|Separate installation required|Embed's [AlexxIT's WebRTC Card](https://github.com/AlexxIT/WebRTC) to stream live feed, requires manual extra setup, see [below](#webrtc). Not to be confused with native Home Assistant WebRTC (use `ha` provider above).|
-
+|Live Provider|Latency|Frame Rate|Loading Time|Installation|Description|
+| -- | -- | -- | -- | -- | -- |
+|`ha` (default HA configuration)|Poor|High|Better|Builtin|Use the built-in Home Assistant camera stream. The camera doesn't even need to be a Frigate camera! |
+|`ha` (when configured with LL-HLS)|Better|High|Better|Builtin|Use the built-in Home Assistant camera streams -- can be configured to use an [LL-HLS](https://www.home-assistant.io/integrations/stream/#ll-hls) feed for lower latency.|
+|`ha` (Native WebRTC)|Best|High|Better|Builtin|Use the built-in Home Assistant camera streams -- can be configured to use [native WebRTC](https://www.home-assistant.io/integrations/rtsp_to_webrtc/) offering a very low-latency feed direct to your browser.|
+|`image`|Poor|Poor|Best|Builtin|Use refreshing snapshots of the built-in Home Assistant camera streams.|
+|`frigate-jsmpeg`|Better|Low|Poor|Builtin|Stream the JSMPEG stream from Frigate (proxied via the Frigate integration). See [note below on the required integration version](#jsmpeg-troubleshooting) for this live provider to function. This is the only live provider that can view the Frigate `birdseye` view.|
+|`webrtc-card`|Best|High|Better|Separate installation required|Embed's [AlexxIT's WebRTC Card](https://github.com/AlexxIT/WebRTC) to stream live feed, requires manual extra setup, see [below](#webrtc). Not to be confused with native Home Assistant WebRTC (use `ha` provider above).|
 
 <a name="camera-frigate-configuration"></a>
 
@@ -325,12 +325,25 @@ See the [fully expanded live configuration example](#config-expanded-live) for h
 | `lazy_unload` | `never` | :heavy_multiplication_x: | When to lazily **un**load lazyily-loaded cameras. `never` will never lazily-unload, `unselected` will lazy-unload a camera when it is unselected in the carousel, `hidden` will lazy-unload all cameras when the browser/tab becomes hidden or `all` on any opportunity to lazily unload (i.e. either case). This will cause a reloading delay on revisiting that camera in the carousel but will save the streaming network resources that are otherwise consumed. This option has no effect if `lazy_load` is false. Some live providers (e.g. `webrtc-card`) implement their own lazy unloading independently which may occur regardless of the value of this setting.|
 | `draggable` | `true` | :heavy_multiplication_x: | Whether or not the live carousel can be dragged left or right, via touch/swipe and mouse dragging. |
 | `transition_effect` | `slide` | :heavy_multiplication_x: | Effect to apply as a transition between live cameras. Accepted values: `slide` or `none`. |
-| `show_image_during_load` | `true` | :white_check_mark: | If `true`, during the initial stream load, a still image will be shown instead of the loading video stream. This still image will auto-refresh every 1 second and will be replaced with the live stream once loaded. |
+| `show_image_during_load` | `true` | :white_check_mark: | If `true`, during the initial stream load, the `image` live provider will be shown instead of the loading video stream. This still image will auto-refresh and is replaced with the live stream once loaded. |
 | `actions` | | :white_check_mark: | Actions to use for the `live` view. See [actions](#actions) below.|
 | `controls` | | :white_check_mark: | Configuration for the `live` view controls. See below. |
 | `jsmpeg` | | :white_check_mark: | Configuration for the `frigate-jsmpeg` live provider. See below.|
 | `webrtc_card` | | :white_check_mark: | Configuration for the `webrtc-card` live provider. See below.|
 | `layout` | | :white_check_mark: | See [media layout](#media-layout) below.|
+
+#### Live Provider: Image Configuration
+
+All configuration is under:
+
+```yaml
+live:
+  image:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `refresh_seconds` | 1 | :white_check_mark: | The image will be refreshed at least every `refresh_seconds`. `0` implies no refreshing. |
 
 #### Live Provider: JSMPEG Configuration
 
@@ -557,6 +570,8 @@ See the [fully expanded image configuration example](#config-expanded-image) for
 | `refresh_seconds` | 0 | :white_check_mark: | The image will be refreshed at least every `refresh_seconds` (it may refresh more frequently, e.g. whenever Home Assistant updates its camera security token). `0` implies no refreshing. |
 | `actions` | | :white_check_mark: | Actions to use for the `image` view. See [actions](#actions) below.|
 
+**Note**: When `mode` is set to `camera` this is effectively providing the same image as the `image` live provider would show in the live camera carousel.
+
 ### Timeline Options
 
 The `timeline` is used to show the timing sequence of events and recordings across cameras. You can interact with the timeline in a number of ways:
@@ -650,6 +665,88 @@ The card aspect ratio can be changed with the `dimensions.aspect_ratio_mode` and
 
 If no aspect ratio is specified or available, but one is needed then `16:9` will
 be used by default.
+
+<a name="performance-options"></a>
+
+### Performance Options
+
+These options control the card performance settings to enable the card to run
+(more) smoothly on lower end devices.
+
+All configuration is under:
+
+```yaml
+performance:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `profile` | `high` | :heavy_multiplication_x: | Whether the card is configured in full `high` performance mode, or `low` performance defaults for lower end devices. See [low performance profile](#performance-profile-low) below.|
+
+#### Feature Options
+
+Controls card-wide central functionality that may impact performance but which is not configurable elsewhere.
+
+All configuration is under:
+
+```yaml
+performance:
+  features:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `animated_progress_indicator` | `true` | :heavy_multiplication_x: | Will show the animated progress indicator 'spinner' when `true` or a simple loading icon when `false`.|
+
+#### Style Options
+
+Style performance options request the card minimize certain expensive CSS
+stylings. This does not necessarily disable these stylings _entirely_ since that
+may break the basic expected visuals of the card (e.g. menu icons need curves),
+but rather avoids use of them in high item-count situations (e.g. avoiding
+shadows on timeline items, or curves in the event gallery items).
+
+All configuration is under:
+
+```yaml
+performance:
+  style:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `border_radius` | `true` | :heavy_multiplication_x: | If `false` minimizes the usage of rounded corners.|
+| `box_shadow` | `true` | :heavy_multiplication_x: | If `false` minimizes the usage of shadows.|
+
+<a name="performance-profile-low"></a>
+
+#### Performance Profile `low`
+
+In the `low` performance profile, the card attempts to lower the CPU and network
+consumption of the card by setting default option values when they have not been explicitly set by the user.
+
+Principles used in the selection of options set by `low` profile mode:
+
+* Get 'out of the box' performance similar to the basic "Home Assistant Picture Glance" card.
+* Only change behavior that the user can case-by-case 'reset' by explicitly setting an option elsewhere.
+* Do not break the visual aesthetic of the card.
+
+**Note:**: Since the performance profile changes the _default_ value of options,
+setting the `low` profile on a pre-existing card could have no effect if there are
+considerable options already set by the user.
+
+Please see <a href="src/performance.ts">the source code</a> for an exhaustive list of options set by `low` profile mode. Summary:
+
+* The default live provider (`auto`) will resolve to the `image` live provider for cameras with a `camera_entity` specified. It will have a refresh period of 10 seconds (same as the stock Home Assistant Picture Glance card).
+* No event thumbnails fetched.
+* No recordings shown.
+* No automated actions (e.g. mute, play, pause) except playing in live view.
+* Always lazily unload anything that can be unloaded.
+* Carousels are not draggable and have no 'slide' effects.
+* Live image is not shown during stream loads.
+* No title popups.
+* Menu rendered outside the main body of the card, with reduced menu buttons.
+* All optional performace features and performance styles (described above) disabled.
 
 <a name="overrides"></a>
 
@@ -1366,6 +1463,8 @@ live:
       maxAudioLag: 10
       videoBufferSize: 524288
       audioBufferSize: 131072
+  image:
+    refresh_seconds: 1
   controls:
     next_previous:
       style: chevrons
@@ -2082,6 +2181,23 @@ overrides:
             action: none
           end_tap_action:
             action: none
+```
+</details>
+
+
+<details>
+  <summary>Expand: Performance section</summary>
+
+Reference: [Performance Options](#performance-options).
+
+```yaml
+performance:
+  profile: high
+  features:
+    animated_progress_indicator: true
+  style:
+    border_radius: true
+    box_shadow: true
 ```
 </details>
 

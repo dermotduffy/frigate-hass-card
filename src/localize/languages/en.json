@@ -167,7 +167,7 @@
       },
       "draggable": "Live cameras view can be dragged/swiped",
       "image": {
-        "editor_label": "Live Image Options",
+        "editor_label": "Image Live Provider Options",
         "refresh_seconds": "Number of seconds after which to refresh live image (0=never)"
       },
       "layout": "Live Layout",

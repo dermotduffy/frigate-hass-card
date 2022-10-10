@@ -1600,7 +1600,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   MENU_LIVE_IMAGE,
                   true,
                   'config.live.image.editor_label',
-                  { name: 'mdi:image-sync' },
+                  { name: 'mdi:image-sync-outline' },
                   html` ${this._renderNumberInput(CONF_LIVE_IMAGE_REFRESH_SECONDS)} `,
                 )}
               </div>
