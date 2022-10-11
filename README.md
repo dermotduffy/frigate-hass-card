@@ -262,7 +262,7 @@ See the [fully expanded menu configuration example](#config-expanded-menu) for h
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `style` | `hidden` | :white_check_mark: | The menu style to show by default, one of `none`, `hidden`, `hover`, `overlay`, or `outside`. See [menu styles](#menu-styles) below.|
+| `style` | `hidden` | :white_check_mark: | The menu style to show by default, one of `none`, `hidden`, `hover`, `hover-card`, `overlay`, or `outside`. See [menu styles](#menu-styles) below.|
 | `position` | `top` | :white_check_mark: | Whether to show the menu on the `left`, `right`, `top` or `bottom` side of the card. Note that for the `outside` style only the `top` and `bottom` positions have an effect.|
 | `alignment` | `left` | :white_check_mark: | Whether to align the menu buttons to the `left`, `right`, `top` or `bottom` of the menu. Some selections may have no effect depending on the value of `position` (e.g. it doesn't make sense to `left` align icons on a menu with `position` to the `left`).|
 | `button_size` | 40 | :white_check_mark: | The size of the menu buttons in pixels. Must be >= `20`.|
@@ -1133,7 +1133,8 @@ This card supports several menu styles.
 | ------------- | --------------------------------------------- | - |
 |`hidden`| Hide the menu by default, expandable upon clicking the Frigate button. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/menu-mode-hidden.png" alt="Menu hidden" width="400px"> |
 |`overlay`| Overlay the menu over the card contents. The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/menu-mode-overlay.png" alt="Menu overlaid" width="400px"> |
-|`hover`| Overlay the menu over the card contents when the mouse is over the menu, otherwise it is not shown. The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/menu-mode-overlay.png" alt="Menu overlaid" width="400px"> |
+|`hover`| Overlay the menu over the card contents when the mouse is over the **menu**, otherwise it is not shown. The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/menu-mode-overlay.png" alt="Menu overlaid" width="400px"> |
+|`hover-card`| Overlay the menu over the card contents when the mouse is over the **card**, otherwise it is not shown. The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/menu-mode-overlay.png" alt="Menu overlaid" width="400px"> |
 |`outside`| Render the menu outside the card (i.e. above it if `position` is `top`, or below it if `position` is `bottom`). The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/menu-mode-above.png" alt="Menu above" width="400px"> |
 |`none`| No menu is shown. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/menu-mode-none.png" alt="No Menu" width="400px"> |
 

@@ -58,16 +58,20 @@ div.main.curve-bottom {
   border-bottom-right-radius: var(--ha-card-border-radius, 4px);
 }
 
-/* The 'hover' menu mode is styling applied outside of the menu itself */
-frigate-card-menu[data-style='hover'] {
+/* The 'hover' menu mode is styled applied outside of the menu itself */
+frigate-card-menu[data-style*='hover'] {
   z-index: 1;
   transition: opacity 0.5s ease;
 }
 
-.main + frigate-card-menu[data-style='hover'] {
+.main + frigate-card-menu[data-style*='hover'] {
   opacity: 0;
 }
 frigate-card-menu[data-style='hover']:hover {
+  opacity: 1;
+}
+.main:hover + frigate-card-menu[data-style='hover-card'],
+frigate-card-menu[data-style='hover-card']:hover {
   opacity: 1;
 }
 
@@ -97,7 +101,6 @@ ha-card.triggered {
   }
   animation: warning-pulse 5s infinite;
 }
-
 
 frigate-card-live.hidden {
   // Live view will be rendered but hidden for live preloading.
