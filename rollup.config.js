@@ -65,7 +65,12 @@ const plugins = [
  */
 const config = {
   input: 'src/card.ts',
-  preserveEntrySignatures: false,
+  // Specifically want a facade created as HACS will attach a hacstag
+  // queryparameter to the resource. Without a facade when chunks re-import the
+  // card chunk, they'll refer to a 'different' copy of the card chunk without
+  // the hacstag, causing a re-download of the same content and functionality
+  // problems.
+  preserveEntrySignatures: 'strict',
   output: {
     entryFileNames: 'frigate-hass-card.js',
     dir: 'dist',

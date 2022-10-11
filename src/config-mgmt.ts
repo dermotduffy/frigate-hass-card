@@ -1,3 +1,4 @@
+import cloneDeep from 'lodash-es/cloneDeep'
 import get from 'lodash-es/get';
 import isEqual from 'lodash-es/isEqual';
 import set from 'lodash-es/set';
@@ -107,8 +108,7 @@ export const upgradeConfig = function (obj: RawFrigateCardConfig): boolean {
  * @returns `true` if the configuration is upgradeable.
  */
 export const isConfigUpgradeable = function (obj: RawFrigateCardConfig): boolean {
-  const newObj = structuredClone(obj);
-  return upgradeConfig(newObj);
+  return upgradeConfig(copyConfig(obj));
 };
 
 /**
@@ -138,8 +138,8 @@ export const trimConfig = function (obj: RawFrigateCardConfig): boolean {
  * @param obj Configuration to copy.
  * @returns A new deeply-copied configuration.
  */
-export const copyConfig = function (obj: RawFrigateCardConfig): RawFrigateCardConfig {
-  return structuredClone(obj);
+export const copyConfig = <T>(obj: T): T => {
+  return cloneDeep(obj);
 };
 
 /**

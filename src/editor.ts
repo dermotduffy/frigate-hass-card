@@ -252,7 +252,7 @@ const options: EditorOptions = {
 export class FrigateCardEditor extends LitElement implements LovelaceCardEditor {
   @property({ attribute: false }) public hass?: HomeAssistant;
   @state() protected _config?: RawFrigateCardConfig;
-  @state() protected _defaults = structuredClone(frigateCardConfigDefaults);
+  @state() protected _defaults = copyConfig(frigateCardConfigDefaults);
 
   protected _initialized = false;
   protected _configUpgradeable = false;
@@ -481,7 +481,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     } catch (_) {}
 
     if (unvalidatedProfile === 'high' || unvalidatedProfile === 'low') {
-      const defaults = structuredClone(frigateCardConfigDefaults);
+      const defaults = copyConfig(frigateCardConfigDefaults);
       if (unvalidatedProfile === 'low') {
         setLowPerformanceProfile(this._config, defaults);
       }
