@@ -15,6 +15,10 @@ import { query } from 'lit/decorators/query.js';
 import { dispatchErrorMessageEvent } from '../components/message.js';
 import { dispatchMediaLoadedEvent } from '../utils/media-info.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
+import {
+  hideMediaControlsTemporarily,
+  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
+} from '../utils/media.js';
 
 customElements.whenDefined('ha-hls-player').then(() => {
   @customElement('frigate-card-ha-hls-player')
@@ -67,20 +71,8 @@ customElements.whenDefined('ha-hls-player').then(() => {
      */
     public seek(seconds: number): void {
       if (this._video) {
-        // Hide the controls while programatically seeking, and make them
-        // visible again a short time after the last seek (controls are annoying
-        // during timeline seeking)
-        this._video.controls = false;
-
+        hideMediaControlsTemporarily(this._video);
         this._video.currentTime = seconds;
-
-        if (this._controlsVisibilityTimerID !== null) {
-          window.clearTimeout(this._controlsVisibilityTimerID);
-        }
-        this._controlsVisibilityTimerID = window.setTimeout(() => {
-          this._video.controls = true;
-          this._controlsVisibilityTimerID = null;
-        }, 1000);
       }
     }
 
@@ -100,6 +92,9 @@ customElements.whenDefined('ha-hls-player').then(() => {
           .muted=${this.muted}
           ?playsinline=${this.playsInline}
           ?controls=${this.controls}
+          @loadedmetadata=${() => {
+            hideMediaControlsTemporarily(this._video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
+          }}
           @loadeddata=${(e) => {
             dispatchMediaLoadedEvent(this, e);
           }}

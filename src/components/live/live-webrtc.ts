@@ -14,6 +14,7 @@ import { contentsChanged } from '../../utils/basic.js';
 import { dispatchMediaLoadedEvent } from '../../utils/media-info.js';
 import { dispatchErrorMessageEvent, renderProgressIndicator } from '../message.js';
 import { renderTask } from '../../utils/task.js';
+import { hideMediaControlsTemporarily, MEDIA_LOAD_CONTROLS_HIDE_SECONDS } from '../../utils/media.js';
 
 // Create a wrapper for AlexxIT's WebRTC card
 //  - https://github.com/AlexxIT/WebRTC
@@ -181,6 +182,7 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
           if (onloadeddata) {
             onloadeddata.call(video, e);
           }
+          hideMediaControlsTemporarily(video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
           dispatchMediaLoadedEvent(this, video);
         };
       }
