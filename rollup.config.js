@@ -46,6 +46,7 @@ const plugins = [
   }),
   commonjs({
     include: 'node_modules/**',
+    sourceMap: false,
   }),
   typescript(),
   json({ exclude: 'package.json' }),

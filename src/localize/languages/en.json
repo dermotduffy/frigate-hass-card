@@ -236,6 +236,7 @@
       "styles": {
         "hidden": "Hidden menu",
         "hover": "Hover menu",
+        "hover-card": "Hover menu (card-wide)",
         "none": "No menu",
         "outside": "Outside menu",
         "overlay": "Overlay menu"

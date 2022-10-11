@@ -52,7 +52,7 @@ export type FrigateCardUserSpecifiedView =
   typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED[number];
 export const FRIGATE_CARD_VIEW_DEFAULT = 'live' as const;
 
-const FRIGATE_MENU_STYLES = ['none', 'hidden', 'overlay', 'hover', 'outside'] as const;
+const FRIGATE_MENU_STYLES = ['none', 'hidden', 'overlay', 'hover', 'hover-card', 'outside'] as const;
 const FRIGATE_MENU_POSITIONS = ['left', 'right', 'top', 'bottom'] as const;
 const FRIGATE_MENU_ALIGNMENTS = FRIGATE_MENU_POSITIONS;
 

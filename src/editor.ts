@@ -284,6 +284,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'hidden', label: localize('config.menu.styles.hidden') },
     { value: 'overlay', label: localize('config.menu.styles.overlay') },
     { value: 'hover', label: localize('config.menu.styles.hover') },
+    { value: 'hover-card', label: localize('config.menu.styles.hover-card') },
     { value: 'outside', label: localize('config.menu.styles.outside') },
   ];
 

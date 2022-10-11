@@ -114,8 +114,8 @@ div.opposing {
 }
 :host(:not([data-style='outside'])[data-style='overlay'][data-position='left']) div > *,
 :host(:not([data-style='outside'])[data-style='overlay'][data-position='right']) div > *,
-:host(:not([data-style='outside'])[data-style='hover'][data-position='left']) div > *,
-:host(:not([data-style='outside'])[data-style='hover'][data-position='right']) div > *,
+:host(:not([data-style='outside'])[data-style*='hover'][data-position='left']) div > *,
+:host(:not([data-style='outside'])[data-style*='hover'][data-position='right']) div > *,
 :host(:not([data-style='outside'])[data-style='hidden'][data-position='left']) div > *,
 :host(:not([data-style='outside'])[data-style='hidden'][data-position='right']) div > * {
   // See "Awful hack" above. Note that this "cancelation" of writing mode only
@@ -154,7 +154,7 @@ div.opposing {
  ********************************************/
 
 :host([data-style='overlay']),
-:host([data-style='hover']),
+:host([data-style*=hover]),
 :host([data-style='hidden']) {
   position: absolute;
   overflow: hidden;
@@ -164,8 +164,8 @@ div.opposing {
 
 :host([data-style='overlay'][data-position='top']),
 :host([data-style='overlay'][data-position='bottom']),
-:host([data-style='hover'][data-position='top']),
-:host([data-style='hover'][data-position='bottom']),
+:host([data-style*='hover'][data-position='top']),
+:host([data-style*='hover'][data-position='bottom']),
 :host([data-style='hidden'][data-position='top'][expanded]),
 :host([data-style='hidden'][data-position='bottom'][expanded]) {
   width: 100%;
@@ -176,8 +176,8 @@ div.opposing {
 
 :host([data-style='overlay'][data-position='left']),
 :host([data-style='overlay'][data-position='right']),
-:host([data-style='hover'][data-position='left']),
-:host([data-style='hover'][data-position='right']),
+:host([data-style*='hover'][data-position='left']),
+:host([data-style*='hover'][data-position='right']),
 :host([data-style='hidden'][data-position='left'][expanded]),
 :host([data-style='hidden'][data-position='right'][expanded]) {
   height: 100%;
