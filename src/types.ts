@@ -495,10 +495,11 @@ const frigateCardConditionSchema = z.object({
   camera: z.string().array().optional(),
   mediaLoaded: z.boolean().optional(),
   state: stateConditions.optional(),
+  media_query: z.string().optional(),
 });
 export type FrigateCardCondition = z.infer<typeof frigateCardConditionSchema>;
 
-const frigateConditionalSchema = z.object({
+export const frigateConditionalSchema = z.object({
   type: z.literal('custom:frigate-card-conditional'),
   conditions: frigateCardConditionSchema,
   elements: z.lazy(() => pictureElementsSchema),

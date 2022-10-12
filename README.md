@@ -874,6 +874,7 @@ All variables listed are under a `conditions:` section.
 | `fullscreen` | If `true` the condition is satisfied if the card is in fullscreen mode. If `false` the condition is satisfied if the card is **NOT** in fullscreen mode.|
 | `state` | A list of state conditions to compare with Home Assistant state. See below. |
 | `mediaLoaded` | If `true` the condition is satisfied if there is media load**ED** (not load**ING**) in the card (e.g. a clip, snapshot or live view). This may be used to hide controls during media loading or when a message (not media) is being displayed. Note that if `true` this condition will never be satisfied for views that do not themselves load media directly (e.g. gallery).|
+| `media_query` | Any valid [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries) string. Media queries must start and end with parentheses. This may be used to alter card configuration based on device/media properties (e.g. viewport width, orientation). Please note that `width` and `height` refer to the entire viewport not just the card. See the [media query example](#media-query-example).|
 
 See the [example below](#frigate-card-conditional-example) for a real-world example of how these conditions can be used.
 
@@ -2960,8 +2961,55 @@ overrides:
 ```
 </details>
 
+<a name="media-query-example"></a>
 
-<a name="card-updates"></a>
+### Using Media Query conditions
+
+Alter the card configuration based on device or viewport properties.
+
+<details>
+  <summary>Expand: Hide menu & controls when viewport width <= 300 (e.g. PIP mode)</summary>
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.back_yard
+  - camera_entity: camera.sitting_room
+overrides:
+  - conditions:
+      media_query: '(max-width: 300px)'
+    overrides:
+      menu:
+        style: none
+      live:
+        controls:
+          next_previous:
+            style: none
+          thumbnails:
+            mode: none
+```
+</details>
+
+<details>
+  <summary>Expand: Change menu position when orientation changes</summary>
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.back_yard
+  - camera_entity: camera.sitting_room
+menu:
+  style: overlay
+overrides:
+  - conditions:
+      media_query: '(orientation: landscape)'
+    overrides:
+      menu:
+        position: left
+```
+</details>
+
+<a name="media-layout-examples"></a>
 
 ## Card Refreshes
 
