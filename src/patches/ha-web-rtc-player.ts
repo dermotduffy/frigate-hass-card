@@ -14,6 +14,10 @@ import { customElement } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
 import { dispatchErrorMessageEvent } from '../components/message.js';
 import { dispatchMediaLoadedEvent } from '../utils/media-info.js';
+import {
+  hideMediaControlsTemporarily,
+  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
+} from '../utils/media.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
 
 customElements.whenDefined('ha-web-rtc-player').then(() => {
@@ -86,6 +90,9 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
           .muted=${this.muted}
           ?playsinline=${this.playsInline}
           ?controls=${this.controls}
+          @loadedmetadata=${() => {
+            hideMediaControlsTemporarily(this._video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
+          }}
           @loadeddata=${(e) => {
             dispatchMediaLoadedEvent(this, e);
           }}

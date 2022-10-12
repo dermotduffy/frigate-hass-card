@@ -29,8 +29,6 @@ customElements.whenDefined('ha-hls-player').then(() => {
     @query('#video')
     protected _video: HTMLVideoElement;
 
-    protected _controlsVisibilityTimerID: number | null = null;
-
     /**
      * Play the video.
      */
