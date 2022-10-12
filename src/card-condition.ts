@@ -1,5 +1,7 @@
-import type {
+import {
   FrigateCardCondition,
+  FrigateCardConfig,
+  frigateConditionalSchema,
   OverrideConfigurationKey,
   RawFrigateCardConfig,
 } from './types';
@@ -53,6 +55,9 @@ export function evaluateCondition(
   if (condition?.mediaLoaded !== undefined) {
     result &&=
       state.mediaLoaded !== undefined && condition.mediaLoaded == state.mediaLoaded;
+  }
+  if (condition?.media_query) {
+    result &&= window.matchMedia(condition.media_query).matches;
   }
   return result;
 }
@@ -137,4 +142,83 @@ export function getOverridesByKey(
         overrides: o.overrides[key] as RawFrigateCardConfig,
       })) ?? []
   );
+}
+
+export class CardConditionManager {
+  // Whether or not to include HA state in ConditionState. Doing so increases
+  // CPU usage as HA state is pumped out very fast, so this is only enabled if
+  // the configuration needs to consume it.
+  protected _hasHAStateConditions = false;
+
+  protected _callback: () => void;
+  protected _mediaQueries: MediaQueryList[] = [];
+  protected _boundTriggerChange = this._triggerChange.bind(this);
+
+  constructor(config: FrigateCardConfig, callback: () => void) {
+    this._initConditions(config);
+    this._callback = callback;
+  }
+
+  /**
+   * Destroy the object.
+   */
+  public destroy(): void {
+    this._mediaQueries.forEach((mql) =>
+      mql.removeEventListener('change', this._boundTriggerChange),
+    );
+    this._mediaQueries = [];
+  }
+
+  /**
+   * Determine if the conditions have state conditions.
+   */
+  get hasHAStateConditions(): boolean {
+    return this._hasHAStateConditions;
+  }
+
+  /**
+   * Trigger the callback.
+   * @param _ Ignored parameter.
+   */
+  protected _triggerChange(_): void {
+    this._callback();
+  }
+
+  /**
+   * Init the conditions.
+   * @param config The card configuration.
+   */
+  protected _initConditions(config: FrigateCardConfig): void {
+    const getAllConditions = (config: FrigateCardConfig): FrigateCardCondition[] => {
+      const conditions: FrigateCardCondition[] = [];
+      config.overrides?.forEach((override) => conditions.push(override.conditions));
+
+      // Element conditions can be arbitrarily nested underneath conditionals and
+      // custom elements that this card may not known. Here we recursively parse
+      // down the elements tree, parsing as we go to find valid conditions.
+      const getElementsConditions = (data: unknown): void => {
+        const parseResult = frigateConditionalSchema.safeParse(data);
+        if (parseResult.success) {
+          conditions.push(parseResult.data.conditions);
+          parseResult.data.elements?.forEach(getElementsConditions);
+        } else if (data && typeof data === 'object') {
+          Object.keys(data).forEach((key) => getElementsConditions(data[key]));
+        }
+      };
+      config.elements?.forEach(getElementsConditions);
+      return conditions;
+    };
+
+    const conditions = getAllConditions(config);
+    this._hasHAStateConditions = conditions.some(
+      (condition) => !!condition.state?.length,
+    );
+    conditions.forEach((condition) => {
+      if (condition.media_query) {
+        const mql = window.matchMedia(condition.media_query);
+        mql.addEventListener('change', this._boundTriggerChange);
+        this._mediaQueries.push(mql);
+      }
+    });
+  }
 }

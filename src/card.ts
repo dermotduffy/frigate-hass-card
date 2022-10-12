@@ -17,6 +17,7 @@ import screenfull from 'screenfull';
 import { z } from 'zod';
 import { actionHandler } from './action-handler-directive.js';
 import {
+  CardConditionManager,
   ConditionState,
   conditionStateRequestHandler,
   getOverriddenConfig,
@@ -212,10 +213,7 @@ export class FrigateCard extends LitElement {
   protected _triggers: Map<string, Date> = new Map();
   protected _untriggerTimerID: number | null = null;
 
-  // Whether or not to include HA state in ConditionState. Doing so increases
-  // CPU usage as HA state is pumped out very fast, so this is only enabled if
-  // the configuration is likely to consume it.
-  protected _needHAStateInConditionState = false;
+  protected _conditionManager: CardConditionManager | null = null;
 
   /**
    * Set the Home Assistant object.
@@ -238,7 +236,7 @@ export class FrigateCard extends LitElement {
       }
     }
 
-    if (this._needHAStateInConditionState) {
+    if (this._conditionManager?.hasHAStateConditions) {
       // HA entity state is part of the condition state.
       this._generateConditionState();
     }
@@ -288,9 +286,9 @@ export class FrigateCard extends LitElement {
       fullscreen: screenfull.isEnabled && screenfull.isFullscreen,
       camera: this._view?.camera,
       mediaLoaded: !!this._currentMediaLoadedInfo,
-      ...(this._needHAStateInConditionState && {
+      ...(this._conditionManager?.hasHAStateConditions && {
         state: this._hass?.states,
-      })
+      }),
     };
 
     // Update the components that need the new condition state. Passed directly
@@ -822,7 +820,9 @@ export class FrigateCard extends LitElement {
 
       // Load all cameras in parallel, but remember the order they were provided
       // (they must be added to the cameraMap in this same order).
-      await Promise.all(configCameras.map((configCamera, index) => addCameraConfig(configCamera, index)))
+      await Promise.all(
+        configCameras.map((configCamera, index) => addCameraConfig(configCamera, index)),
+      );
 
       loadedCameras.forEach((loadedCamera: CameraConfig) => {
         const id = getCameraID(loadedCamera);
@@ -990,24 +990,16 @@ export class FrigateCard extends LitElement {
     this._cameras = undefined;
     this._view = undefined;
     this._message = null;
+
+    this._conditionManager?.destroy();
+    this._conditionManager = new CardConditionManager(
+      config,
+      this._generateConditionState.bind(this),
+    );
+
     this._generateConditionState();
     this._setLightOrDarkMode();
     this._untrigger();
-
-    const hasStateCondition = (): boolean => {
-      for (const override of this._config.overrides ?? []) {
-        if (override.conditions.state?.length) {
-          return true;
-        }
-      }
-      // For elements there can be arbitrary custom elements that not related to
-      // this card so we cannot easily determine if state is used further down
-      // the chain by a custom:frigate-card-conditional element. Instead, include state
-      // if elements are configured at all.
-      return !!this._config.elements;
-    }
-
-    this._needHAStateInConditionState = hasStateCondition();
   }
 
   /**
@@ -1970,7 +1962,7 @@ export class FrigateCard extends LitElement {
                 this._changeView({ resetMessage: false });
                 return this._render();
               })(),
-              renderProgressIndicator({cardWideConfig: this._cardWideConfig}),
+              renderProgressIndicator({ cardWideConfig: this._cardWideConfig }),
             )
           : // Always want to call render even if there's a message, to
             // ensure live preload is always present (even if not displayed).
