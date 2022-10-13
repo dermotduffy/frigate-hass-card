@@ -182,6 +182,7 @@
       "auto_pause": "Automatically pause media",
       "auto_play": "Automatically play media",
       "auto_unmute": "Automatically unmute media",
+      "snapshot_click_plays_clip": "Clicking on a snapshot plays a related clip",
       "controls": {
         "editor_label": "Media Viewer Controls"
       },

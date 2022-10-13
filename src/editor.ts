@@ -75,6 +75,7 @@ import {
   CONF_MEDIA_VIEWER_AUTO_PAUSE,
   CONF_MEDIA_VIEWER_AUTO_PLAY,
   CONF_MEDIA_VIEWER_AUTO_UNMUTE,
+  CONF_MEDIA_VIEWER_SNAPSHOT_CLICK_PLAYS_CLIP,
   CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
@@ -1649,6 +1650,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderOptionSelector(
                 CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
                 this._transitionEffects,
+              )}
+              ${this._renderSwitch(
+                CONF_MEDIA_VIEWER_SNAPSHOT_CLICK_PLAYS_CLIP,
+                this._defaults.media_viewer.snapshot_click_plays_clip,
               )}
               ${this._putInSubmenu(
                 MENU_MEDIA_VIEWER_CONTROLS,
