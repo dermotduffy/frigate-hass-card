@@ -463,6 +463,7 @@ See the [fully expanded Media viewer configuration example](#config-expanded-med
 | `auto_unmute` | `never` | :heavy_multiplication_x: | Whether to automatically unmute events. `never` will never automatically unmute, `selected` will automatically unmute when an event is selected in the carousel, `visible` will automatically unmute when the browser/tab becomes visible or `all` on any opportunity to automatically unmute (i.e. either case). Note that some browsers will not allow automated unmute until the user has interacted with the page in some way -- if the user has not then the browser may pause the media instead.|
 | `lazy_load` | `true` | :heavy_multiplication_x: | Whether or not to lazily load media in the Media viewer carousel. Setting this will false will fetch all media immediately which may make the carousel experience smoother at a cost of (potentially) a substantial number of simultaneous media fetches on load. |
 | `draggable` | `true` | :heavy_multiplication_x: | Whether or not the Media viewer carousel can be dragged left or right, via touch/swipe and mouse dragging. |
+| `snapshot_click_plays_clip` | `true` | :heavy_multiplication_x: | Whether clicking on a snapshot in the media viewer should play a related clip. |
 | `transition_effect` | `slide` | :heavy_multiplication_x: | Effect to apply as a transition between event media. Accepted values: `slide` or `none`. |
 | `controls` | | :heavy_multiplication_x: | Configuration for the Media viewer controls. See below. |
 | `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `media_viewer` (e.g. `clip`, `snapshot`). See [actions](#actions) below.|
@@ -1523,6 +1524,7 @@ media_viewer:
   auto_unmute: never
   lazy_load: true
   draggable: true
+  snapshot_click_plays_clip: true
   transition_effect: slide
   controls:
     next_previous:

@@ -793,7 +793,8 @@ export class FrigateCardViewerCarousel extends LitElement {
                 if (
                   this._refMediaCarousel.value
                     ?.frigateCardCarousel()
-                    ?.carouselClickAllowed()
+                    ?.carouselClickAllowed() &&
+                  this.viewerConfig?.snapshot_click_plays_clip
                 ) {
                   this._findRelatedClipView(mediaToRender).then((view) => {
                     if (view) {

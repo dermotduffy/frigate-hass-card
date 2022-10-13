@@ -68,6 +68,8 @@ export const CONF_MEDIA_VIEWER_AUTO_MUTE = `${CONF_MEDIA_VIEWER}.auto_mute` as c
 export const CONF_MEDIA_VIEWER_AUTO_UNMUTE = `${CONF_MEDIA_VIEWER}.auto_unmute` as const;
 export const CONF_MEDIA_VIEWER_DRAGGABLE = `${CONF_MEDIA_VIEWER}.draggable` as const;
 export const CONF_MEDIA_VIEWER_LAZY_LOAD = `${CONF_MEDIA_VIEWER}.lazy_load` as const;
+export const CONF_MEDIA_VIEWER_SNAPSHOT_CLICK_PLAYS_CLIP =
+  `${CONF_MEDIA_VIEWER}.snapshot_click_plays_clip` as const;
 export const CONF_MEDIA_VIEWER_TRANSITION_EFFECT =
   `${CONF_MEDIA_VIEWER}.transition_effect` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE =

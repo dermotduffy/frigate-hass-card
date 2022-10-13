@@ -52,7 +52,14 @@ export type FrigateCardUserSpecifiedView =
   typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED[number];
 export const FRIGATE_CARD_VIEW_DEFAULT = 'live' as const;
 
-const FRIGATE_MENU_STYLES = ['none', 'hidden', 'overlay', 'hover', 'hover-card', 'outside'] as const;
+const FRIGATE_MENU_STYLES = [
+  'none',
+  'hidden',
+  'overlay',
+  'hover',
+  'hover-card',
+  'outside',
+] as const;
 const FRIGATE_MENU_POSITIONS = ['left', 'right', 'top', 'bottom'] as const;
 const FRIGATE_MENU_ALIGNMENTS = FRIGATE_MENU_POSITIONS;
 
@@ -700,7 +707,7 @@ export type TimelineCoreConfig = z.infer<typeof timelineCoreConfigSchema>;
 const miniTimelineConfigDefault = {
   ...timelineCoreConfigDefault,
   mode: 'none' as const,
-}
+};
 const miniTimelineConfigSchema = timelineCoreConfigSchema.extend({
   mode: z.enum(['none', 'above', 'below']).default(miniTimelineConfigDefault.mode),
 });
@@ -981,6 +988,7 @@ const viewerConfigDefault = {
   lazy_load: true,
   draggable: true,
   transition_effect: 'slide' as const,
+  snapshot_click_plays_clip: true,
   controls: {
     next_previous: {
       size: 48,
@@ -1031,6 +1039,9 @@ const viewerConfigSchema = z
     transition_effect: transitionEffectConfigSchema.default(
       viewerConfigDefault.transition_effect,
     ),
+    snapshot_click_plays_clip: z
+      .boolean()
+      .default(viewerConfigDefault.snapshot_click_plays_clip),
     controls: z
       .object({
         next_previous: viewerNextPreviousControlConfigSchema.default(
@@ -1057,7 +1068,9 @@ const viewerConfigSchema = z
               ),
           })
           .default(viewerConfigDefault.controls.thumbnails),
-        timeline: miniTimelineConfigSchema.default(viewerConfigDefault.controls.timeline),
+        timeline: miniTimelineConfigSchema.default(
+          viewerConfigDefault.controls.timeline,
+        ),
         title: titleControlConfigSchema
           .extend({
             mode: titleControlConfigSchema.shape.mode.default(
