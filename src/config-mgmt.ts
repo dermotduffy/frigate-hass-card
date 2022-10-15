@@ -1,4 +1,4 @@
-import cloneDeep from 'lodash-es/cloneDeep'
+import cloneDeep from 'lodash-es/cloneDeep';
 import get from 'lodash-es/get';
 import isEqual from 'lodash-es/isEqual';
 import set from 'lodash-es/set';
@@ -6,6 +6,7 @@ import {
   CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
   CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
+  CONF_ELEMENTS,
   CONF_IMAGE_URL,
   CONF_LIVE_AUTO_UNMUTE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
@@ -122,7 +123,7 @@ export const trimConfig = function (obj: RawFrigateCardConfig): boolean {
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
     if (typeof obj[key] === 'object' && obj[key] != null) {
-      modified ||= trimConfig(obj[key] as RawFrigateCardConfig);
+      modified = trimConfig(obj[key] as RawFrigateCardConfig) || modified;
 
       if (!Object.keys(obj[key] as RawFrigateCardConfig).length) {
         delete obj[key];
@@ -547,6 +548,56 @@ const upgradeThumbnailShowControlsToIndividualControls = (
   };
 };
 
+/**
+ * Recursively upgrade an object.
+ * @param transform A transform applied to each object recursively.
+ * @param getObject A function to get the object to be upgraded.
+ * @returns An upgrade function.
+ */
+const recursiveUpgradeObject = (
+  transform: (data: RawFrigateCardConfig) => boolean,
+  getObject?: (data: RawFrigateCardConfig) => RawFrigateCardConfig | undefined | null,
+): ((data: RawFrigateCardConfig) => boolean) => {
+  const recurse = (data: RawFrigateCardConfig): boolean => {
+    let result = false;
+    if (data && typeof data === 'object') {
+      const object = getObject ? getObject(data) : data;
+      if (object) {
+        result = transform(object) || result;
+      }
+      if (Array.isArray(data)) {
+        data
+          .filter((item) => typeof item === 'object')
+          .forEach((item: RawFrigateCardConfig) => {
+            result = recurse(item) || result;
+          });
+      } else {
+        Object.keys(data)
+          .filter((key) => typeof data[key] === 'object')
+          .forEach((key) => {
+            result = recurse(data[key] as RawFrigateCardConfig) || result;
+          });
+      }
+    }
+    return result;
+  };
+  return recurse;
+};
+
+/**
+ * Transform mediaLoaded -> media_loaded
+ * @param data Input data.
+ * @returns `true` if the configuration was modified.
+ */
+const transformConditionMediaLoaded = (data: unknown): boolean => {
+  if (typeof data === 'object' && data && data['mediaLoaded'] !== undefined) {
+    data['media_loaded'] = data['mediaLoaded'];
+    delete data['mediaLoaded'];
+    return true;
+  }
+  return false;
+};
+
 const UPGRADES = [
   // v1.2.1 -> v2.0.0
   upgradeMoveTo('frigate_url', 'frigate.url'),
@@ -645,4 +696,17 @@ const UPGRADES = [
   upgradeThumbnailShowControlsToIndividualControls('media_viewer.controls.thumbnails'),
   upgradeThumbnailShowControlsToIndividualControls('live.controls.thumbnails'),
   upgradeThumbnailShowControlsToIndividualControls('timeline.controls.thumbnails'),
+
+  // v4.0.0 -> v4.1.0
+  upgradeArrayValue(
+    CONF_OVERRIDES,
+    transformConditionMediaLoaded,
+    (data) => data.conditions as RawFrigateCardConfig | undefined,
+  ),
+  (data: unknown): boolean => {
+    return recursiveUpgradeObject(
+      transformConditionMediaLoaded,
+      (data) => data.conditions as RawFrigateCardConfig | undefined,
+    )(typeof data === 'object' && data ? data[CONF_ELEMENTS] : {});
+  },
 ];

@@ -285,7 +285,7 @@ export class FrigateCard extends LitElement {
       view: this._view?.view,
       fullscreen: screenfull.isEnabled && screenfull.isFullscreen,
       camera: this._view?.camera,
-      mediaLoaded: !!this._currentMediaLoadedInfo,
+      media_loaded: !!this._currentMediaLoadedInfo,
       ...(this._conditionManager?.hasHAStateConditions && {
         state: this._hass?.states,
       }),

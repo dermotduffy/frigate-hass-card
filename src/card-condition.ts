@@ -14,7 +14,7 @@ export interface ConditionState {
   fullscreen?: boolean;
   camera?: string;
   state?: HassEntities;
-  mediaLoaded?: boolean;
+  media_loaded?: boolean;
 }
 
 class ConditionStateRequestEvent extends Event {
@@ -52,9 +52,9 @@ export function evaluateCondition(
               state.state[stateTest.entity].state !== stateTest.state_not)));
     }
   }
-  if (condition?.mediaLoaded !== undefined) {
+  if (condition?.media_loaded !== undefined) {
     result &&=
-      state.mediaLoaded !== undefined && condition.mediaLoaded == state.mediaLoaded;
+      state.media_loaded !== undefined && condition.media_loaded == state.media_loaded;
   }
   if (condition?.media_query) {
     result &&= window.matchMedia(condition.media_query).matches;

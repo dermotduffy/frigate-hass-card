@@ -33,6 +33,8 @@ export const CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY =
 export const CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES =
   `${CONF_CAMERAS}.#.triggers.entities` as const;
 
+export const CONF_ELEMENTS = 'elements' as const;
+
 export const CONF_VIEW = 'view' as const;
 export const CONF_VIEW_CAMERA_SELECT = `${CONF_VIEW}.camera_select` as const;
 export const CONF_VIEW_DARK_MODE = `${CONF_VIEW}.dark_mode` as const;
