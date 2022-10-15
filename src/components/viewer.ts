@@ -9,7 +9,6 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { guard } from 'lit/directives/guard.js';
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
@@ -49,11 +48,11 @@ import {
   wrapRawMediaLoadedEventForCarousel,
   wrapMediaLoadedEventForCarousel,
 } from './media-carousel.js';
+import type { CarouselSelect } from './carousel.js';
 import './next-prev-control.js';
 import './title-control.js';
 import '../patches/ha-hls-player';
 import './surround.js';
-import { EmblaCarouselPlugins } from './carousel.js';
 import { renderTask } from '../utils/task.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
 import { DataManager } from '../utils/data-manager.js';
@@ -219,6 +218,9 @@ export class FrigateCardViewerCarousel extends LitElement {
   // Mapping of slide # to FrigateBrowseMediaSource child #.
   // (Folders are not media items that can be rendered).
   protected _slideToChild: Record<number, number> = {};
+
+  protected _carouselOptions?: EmblaOptionsType;
+  protected _carouselPlugins?: EmblaPluginType[];
 
   // A task to resolve target media if lazy loading is disabled.
   protected _mediaResolutionTask = new Task<
@@ -516,24 +518,19 @@ export class FrigateCardViewerCarousel extends LitElement {
   /**
    * Handle the user selecting a new slide in the carousel.
    */
-  protected _setViewHandler(): void {
+  protected _setViewHandler(ev: CustomEvent<CarouselSelect>): void {
     if (!this._refMediaCarousel.value || !this.view) {
       return;
     }
 
     // Update the childIndex in the view.
-    const selected = this._refMediaCarousel.value
-      .frigateCardCarousel()
-      ?.getCarouselSelected()?.index;
-    if (selected !== undefined) {
-      const childIndex = this._slideToChild[selected];
-      if (childIndex !== undefined) {
-        this.view
-          .evolve({
-            childIndex: childIndex,
-          })
-          .dispatchChangeEvent(this);
-      }
+    const childIndex = this._slideToChild[ev.detail.index];
+    if (childIndex !== undefined) {
+      this.view
+        .evolve({
+          childIndex: childIndex,
+        })
+        .dispatchChangeEvent(this);
     }
   }
 
@@ -596,30 +593,27 @@ export class FrigateCardViewerCarousel extends LitElement {
 
   /**
    * Get slides to include in the render.
-   * @returns The slides to include in the render and an index keyed by slide
-   * number that maps to child number.
+   * @returns The slides to include in the render.
    */
-  protected _getSlides(): [TemplateResult[], Record<number, number>] {
+  protected _getSlides(): TemplateResult[] {
     if (
       !this.view ||
       !this.view.target ||
       !this.view.target.children ||
       !this.view.target.children.length
     ) {
-      return [[], {}];
+      return [];
     }
 
-    const slideToChild: Record<number, number> = {};
     const slides: TemplateResult[] = [];
     for (let i = 0; i < this.view.target.children?.length; ++i) {
       const slide = this._renderMediaItem(this.view.target.children[i], slides.length);
 
       if (slide) {
-        slideToChild[slides.length] = i;
         slides.push(slide);
       }
     }
-    return [slides, slideToChild];
+    return slides;
   }
 
   /**
@@ -639,8 +633,31 @@ export class FrigateCardViewerCarousel extends LitElement {
    * @param changedProps The changed properties
    */
   protected willUpdate(changedProps: PropertyValues): void {
+    // Pre-populate a map between real media slides and view child indicies.
+    if (changedProps.has('view')) {
+      this._slideToChild = {};
+      let i = 0;
+      (this.view?.target?.children ?? []).forEach((child, index) => {
+        if (isTrueMedia(child) && ['video', 'image'].includes(child.media_content_type)) {
+          this._slideToChild[i++] = index;
+        }
+      })
+    }
+
     if (changedProps.has('viewerConfig')) {
       updateElementStyleFromMediaLayoutConfig(this, this.viewerConfig?.layout);
+    }
+    if (!this._carouselOptions || changedProps.has('viewerConfig')) {
+      this._carouselOptions = this._getOptions();
+    }
+    if (
+      !this._carouselPlugins ||
+      changedProps.has('viewerConfig') ||
+      (changedProps.has('view') &&
+        this.view?.target?.children?.length !==
+          changedProps.get('view')?.target?.children?.length)
+    ) {
+      this._carouselPlugins = this._getPlugins();
     }
   }
 
@@ -648,8 +665,6 @@ export class FrigateCardViewerCarousel extends LitElement {
    * Render the element, resolving the media first if necessary.
    */
   protected render(): TemplateResult | void {
-    this._slideToChild = {};
-
     // If lazy loading is not enabled, wait for the media resolver task to
     // complete and show a progress indictator until this.
     if (!this.viewerConfig?.lazy_load && !this._isMediaFullyResolved()) {
@@ -665,8 +680,8 @@ export class FrigateCardViewerCarousel extends LitElement {
    * @returns A template to display to the user.
    */
   protected _render(): TemplateResult | void {
-    const [slides, slideToChild] = this._getSlides();
-    this._slideToChild = slideToChild;
+    const slides = this._getSlides();
+
     if (!slides.length || !this.view?.media) {
       return;
     }
@@ -674,17 +689,10 @@ export class FrigateCardViewerCarousel extends LitElement {
     const neighbors = this._getMediaNeighbors();
     const [prev, next] = [neighbors?.previous, neighbors?.next];
 
-    // Notes on the below:
-    // - guard() is used to avoid reseting the carousel unless the
-    //   options/plugins actually change.
-
     return html` <frigate-card-media-carousel
       ${ref(this._refMediaCarousel)}
-      .carouselOptions=${guard([this.viewerConfig], this._getOptions.bind(this))}
-      .carouselPlugins=${guard(
-        [this.viewerConfig, this.view?.target?.children?.length],
-        this._getPlugins.bind(this),
-      ) as EmblaCarouselPlugins}
+      .carouselOptions=${this._carouselOptions}
+      .carouselPlugins=${this._carouselPlugins}
       .label="${this.view.media.title}"
       .titlePopupConfig=${this.viewerConfig?.controls.title}
       transitionEffect=${this._getTransitionEffect()}

@@ -164,23 +164,20 @@ export class FrigateCardCarousel extends LitElement {
   }
 
   /**
-   * ReInit the carousel.
-   */
-  protected _carouselReInit(options?: EmblaOptionsType): void {
-    // Allow the browser a moment to paint components that are inflight, to
-    // ensure accurate measurements are taken during the carousel
-    // reinitialization.
-    window.requestAnimationFrame(() => {
-      this._carousel?.reInit({ ...options });
-    });
-  }
-  /**
    * ReInit the carousel but stay on the current slide.
    */
   protected _carouselReInitInPlaceInternal(): void {
+    const carouselReInit = (options?: EmblaOptionsType): void => {
+      // Allow the browser a moment to paint components that are inflight, to
+      // ensure accurate measurements are taken during the carousel
+      // reinitialization.
+      window.requestAnimationFrame(() => {
+        this._carousel?.reInit({ ...options });
+      });
+    }
     const selected = this.getCarouselSelected();
 
-    this._carouselReInit({
+    carouselReInit({
       ...(selected && { startIndex: selected.index }),
     });
   }
@@ -252,12 +249,11 @@ export class FrigateCardCarousel extends LitElement {
           axis: this.direction == 'horizontal' ? 'x' : 'y',
           speed: 20,
           ...this.carouselOptions,
-          ...(this._savedStartIndex && { startIndex: this._savedStartIndex }),
+          ...(this._savedStartIndex !== null && { startIndex: this._savedStartIndex }),
         },
         this.carouselPlugins,
       );
-      this._carousel.on('init', () => dispatchFrigateCardEvent(this, 'carousel:init'));
-      this._carousel.on('select', () => {
+      const selectSlide = (): void => {
         const selected = this.getCarouselSelected();
         if (selected) {
           dispatchFrigateCardEvent<CarouselSelect>(this, 'carousel:select', selected);
@@ -266,8 +262,10 @@ export class FrigateCardCarousel extends LitElement {
         // Make sure every select causes a refresh to allow for re-paint of the
         // next/previous controls.
         this.requestUpdate();
-      });
+      }
 
+      this._carousel.on('init', selectSlide);
+      this._carousel.on('select', selectSlide);
       this._carousel.on('scroll', () => {
         this._scrolling = true;
       });
@@ -305,7 +303,7 @@ export class FrigateCardCarousel extends LitElement {
 
   protected render(): TemplateResult | void {
     const slides = this._refSlot.value?.assignedElements({ flatten: true }) || [];
-    const currentSlide = this._carousel?.selectedScrollSnap() ?? 0;
+    const currentSlide = (this._carousel?.selectedScrollSnap() ?? this.carouselOptions?.startIndex) ?? 0;
     const showPrevious = this.carouselOptions?.loop || currentSlide > 0;
     const showNext = this.carouselOptions?.loop || currentSlide + 1 < slides.length;
 

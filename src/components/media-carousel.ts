@@ -155,7 +155,6 @@ export class FrigateCardMediaCarousel extends LitElement {
   // This carousel may be resized by Lovelace resizes, window resizes,
   // fullscreen, etc. Always call the adaptive height handler when the size
   // changes.
-  protected _resizeObserver: ResizeObserver;
   protected _slideResizeObserver: ResizeObserver;
   protected _intersectionObserver: IntersectionObserver;
 
@@ -166,7 +165,6 @@ export class FrigateCardMediaCarousel extends LitElement {
     // Need to watch both changes in this element (e.g. caused by a window
     // resize or fullscreen change) and changes in the selected slide itself
     // (e.g. changing from a progress indicator to a loaded media).
-    this._resizeObserver = new ResizeObserver(this._reInitAndAdjustHeight.bind(this));
     this._slideResizeObserver = new ResizeObserver(
       this._reInitAndAdjustHeight.bind(this),
     );
@@ -294,7 +292,6 @@ export class FrigateCardMediaCarousel extends LitElement {
       this._debouncedAdaptContainerHeightToSlide,
     );
     this.removeEventListener('frigate-card:media:loaded', this._boundTitleHandler);
-    this._resizeObserver.disconnect();
     this._intersectionObserver.disconnect();
 
     this._mediaLoadedInfo = {};
@@ -397,28 +394,26 @@ export class FrigateCardMediaCarousel extends LitElement {
   }
 
   protected render(): TemplateResult | void {
-    const selectSlide = (ev?: CustomEvent<CarouselSelect>): void => {
+    const selectSlide = (ev: CustomEvent<CarouselSelect>): void => {
       this._slideResizeObserver.disconnect();
       const parent = this.getRootNode();
       if (parent && parent instanceof ShadowRoot) {
         this._slideResizeObserver.observe(parent.host);
       }
 
-      const selected = ev ? ev.detail : this.frigateCardCarousel()?.getCarouselSelected();
-      if (selected) {
-        this._slideResizeObserver.observe(selected.element);
+      const selected = ev.detail;
+      this._slideResizeObserver.observe(selected.element);
 
-        // Pass up the media-carousel select event first to allow parents to
-        // initialize/reset before the media info is dispatched.
-        dispatchFrigateCardEvent<CarouselSelect>(
-          this,
-          'media-carousel:select',
-          selected,
-        );
+      // Pass up the media-carousel select event first to allow parents to
+      // initialize/reset before the media info is dispatched.
+      dispatchFrigateCardEvent<CarouselSelect>(
+        this,
+        'media-carousel:select',
+        selected,
+      );
 
-        // Dispatch media info.
-        this._dispatchMediaLoadedInfo(selected);
-      }
+      // Dispatch media info.
+      this._dispatchMediaLoadedInfo(selected);
     }
 
     return html` <frigate-card-carousel
@@ -426,9 +421,6 @@ export class FrigateCardMediaCarousel extends LitElement {
         .carouselOptions=${this.carouselOptions}
         .carouselPlugins=${this.carouselPlugins}
         transitionEffect=${ifDefined(this.transitionEffect)}
-        @frigate-card:carousel:init=${() => {
-          selectSlide();
-        }}
         @frigate-card:carousel:select=${(ev: CustomEvent<CarouselSelect>) => {
           selectSlide(ev);
         }}
