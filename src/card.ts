@@ -7,7 +7,7 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
@@ -75,6 +75,7 @@ import {
   getEntityTitle,
   getHassDifferences,
   homeAssistantSignPath,
+  isCardInPanel,
   isHassDifferent,
   isTriggeredState,
   sideLoadHomeAssistantElements,
@@ -167,6 +168,10 @@ export class FrigateCard extends LitElement {
 
   @state()
   protected _view?: View;
+
+  // Whether or not the card is in panel mode on the dashboard.
+  @property({ attribute: 'panel', type: Boolean, reflect: true })
+  protected _panel = false;
 
   protected _conditionState?: ConditionState;
 
@@ -1804,6 +1809,7 @@ export class FrigateCard extends LitElement {
       screenfull.on('change', this._fullscreenHandler.bind(this));
     }
     this.addEventListener('mousemove', this._boundMouseHandler);
+    this._panel = isCardInPanel(this);
   }
 
   /**

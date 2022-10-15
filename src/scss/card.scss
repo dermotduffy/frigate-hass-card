@@ -16,6 +16,11 @@
 :host([dark]) {
   filter: brightness(75%);
 }
+:host([panel]) {
+  // Card always extends to the full allowed height in panel mode (in non-panel
+  // mode this would cause the card to expand to the height of a column).
+  height: 100%;
+}
 
 div.main {
   position: relative;
