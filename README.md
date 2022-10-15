@@ -874,7 +874,7 @@ All variables listed are under a `conditions:` section.
 | `camera` | A list of camera ids in which this condition is satisfied. See [camera IDs](#camera-ids).|
 | `fullscreen` | If `true` the condition is satisfied if the card is in fullscreen mode. If `false` the condition is satisfied if the card is **NOT** in fullscreen mode.|
 | `state` | A list of state conditions to compare with Home Assistant state. See below. |
-| `mediaLoaded` | If `true` the condition is satisfied if there is media load**ED** (not load**ING**) in the card (e.g. a clip, snapshot or live view). This may be used to hide controls during media loading or when a message (not media) is being displayed. Note that if `true` this condition will never be satisfied for views that do not themselves load media directly (e.g. gallery).|
+| `media_loaded` | If `true` the condition is satisfied if there is media load**ED** (not load**ING**) in the card (e.g. a clip, snapshot or live view). This may be used to hide controls during media loading or when a message (not media) is being displayed. Note that if `true` this condition will never be satisfied for views that do not themselves load media directly (e.g. gallery).|
 | `media_query` | Any valid [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries) string. Media queries must start and end with parentheses. This may be used to alter card configuration based on device/media properties (e.g. viewport width, orientation). Please note that `width` and `height` refer to the entire viewport not just the card. See the [media query example](#media-query-example).|
 
 See the [example below](#frigate-card-conditional-example) for a real-world example of how these conditions can be used.
@@ -1842,7 +1842,7 @@ elements:
         - entity: light.office_main_lights
           state: on
           state_not: off
-      mediaLoaded: true
+      media_loaded: true
     # Full form PTZ actions (only left button shown).
   - type: custom:frigate-card-ptz
     orientation: vertical
@@ -2733,7 +2733,7 @@ This example shows the native PTZ element when the `live` or `image` view is dis
 elements:
   - type: custom:frigate-card-conditional
     conditions:
-      mediaLoaded: true
+      media_loaded: true
       view:
         - live
         - image

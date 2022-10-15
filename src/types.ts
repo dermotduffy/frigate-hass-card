@@ -500,7 +500,7 @@ const frigateCardConditionSchema = z.object({
   view: z.string().array().optional(),
   fullscreen: z.boolean().optional(),
   camera: z.string().array().optional(),
-  mediaLoaded: z.boolean().optional(),
+  media_loaded: z.boolean().optional(),
   state: stateConditions.optional(),
   media_query: z.string().optional(),
 });
