@@ -12,6 +12,11 @@
   position: relative;
 }
 
+:host(:not([mini])) {
+  // Timeline covers 100% of the parent unless it's in mini-mode.
+  height: 100%;
+}
+
 frigate-card-thumbnail {
   height: var(--frigate-card-thumbnail-size);
   width: var(--frigate-card-thumbnail-size);
