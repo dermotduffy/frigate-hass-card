@@ -495,9 +495,10 @@ export const generateRecordingIdentifier = (
     'media-source://frigate',
     params.clientId,
     'recordings',
-    `${params.year}-${String(params.month).padStart(2, '0')}`,
-    String(params.day).padStart(2, '0'),
-    String(params.hour).padStart(2, '0'),
     params.cameraName,
+    `${params.year}-${String(params.month).padStart(2, '0')}-${String(
+      params.day,
+    ).padStart(2, '0')}`,
+    String(params.hour).padStart(2, '0'),
   ].join('/');
 };
