@@ -626,10 +626,12 @@ export class FrigateCardTimelineCore extends LitElement {
       return null;
     }
 
+    const cacheFriendlyWindow = this._timelineSource.getCacheFriendlyEventWindow(
+      options?.window ?? this._timeline.getWindow(),
+    );
+
     return new EventMediaQueries(
-      this._timelineSource.getTimelineEventQueries(
-        options?.window ?? this._timeline.getWindow(),
-      ),
+      this._timelineSource.getTimelineEventQueries(cacheFriendlyWindow),
     );
   }
 

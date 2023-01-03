@@ -1,4 +1,5 @@
 import { HomeAssistant } from 'custom-card-helpers';
+import add from 'date-fns/add';
 import sub from 'date-fns/sub';
 import { DataSet } from 'vis-data';
 import { IdType, TimelineItem, TimelineWindow } from 'vis-timeline/esnext';
@@ -9,7 +10,11 @@ import { RecordingSegment, RecordingSegments } from './frigate';
 import { capEndDate, convertRangeToCacheFriendlyTimes } from './data/data-manager-util';
 import { EventMediaQueries } from '../view';
 import { ViewMedia } from '../view-media';
-import { compressRanges, MemoryRangeSet } from './data/data-manager-range';
+import {
+  compressRanges,
+  ExpiringMemoryRangeSet,
+  MemoryRangeSet,
+} from './data/data-manager-range';
 import { ModifyInterface } from './basic';
 
 // Allow timeline freshness to be at least this number of seconds out of date
@@ -35,7 +40,14 @@ export class TimelineDataSource {
   protected _dataset: DataSet<FrigateCardTimelineItem> = new DataSet();
 
   // The ranges in which recordings have been calculated and added for.
+  // Calculating recordings is a very expensive process since it is based on
+  // segments (not just the fetch is expensive, but the JS to dedup and turn the
+  // high-N segments into a smaller number of consecutive recording blocks).
   protected _recordingRanges = new MemoryRangeSet();
+
+  // Cache event ranges since re-adding the same events is a timeline
+  // performance killer (even if the request results are cached).
+  protected _eventRanges = new ExpiringMemoryRangeSet();
 
   protected _cameraIDs: Set<string>;
   protected _mediaType: ClipsOrSnapshotsOrAll;
@@ -55,6 +67,7 @@ export class TimelineDataSource {
   }
 
   public clearEvents(): void {
+    this._eventRanges.clear();
     this._dataset.remove(
       this._dataset.get({
         filter: (item) => item.type !== 'background',
@@ -88,13 +101,16 @@ export class TimelineDataSource {
     ]);
   }
 
-  public getTimelineEventQueries(window: TimelineWindow): EventQuery[] {
-    const _window = convertRangeToCacheFriendlyTimes(window, {
+  public getCacheFriendlyEventWindow(window: TimelineWindow): TimelineWindow {
+    return convertRangeToCacheFriendlyTimes(window, {
       endCap: true,
     });
+  }
+
+  public getTimelineEventQueries(window: TimelineWindow): EventQuery[] {
     return this._dataManager.generateDefaultEventQueries(this._cameraIDs, {
-      start: _window.start,
-      end: _window.end,
+      start: window.start,
+      end: window.end,
       ...(this._mediaType === 'clips' && { hasClip: true }),
       ...(this._mediaType === 'snapshots' && { hasSnapshot: true }),
     });
@@ -105,7 +121,22 @@ export class TimelineDataSource {
     cameras: Map<string, CameraConfig>,
     window: TimelineWindow,
   ): Promise<void> {
-    const query = new EventMediaQueries(this.getTimelineEventQueries(window));
+    if (
+      this._eventRanges.hasCoverage({
+        start: window.start,
+        end: sub(capEndDate(window.end), {
+          seconds: TIMELINE_FRESHNESS_TOLERANCE_SECONDS,
+        }),
+      })
+    ) {
+      return;
+    }
+
+    const cacheFriendlyWindow = this.getCacheFriendlyEventWindow(window);
+    const query = new EventMediaQueries(
+      this.getTimelineEventQueries(cacheFriendlyWindow),
+    );
+
     const results = await this._dataManager.executeMediaQuery(hass, query);
     for (const media of results?.getResults() ?? []) {
       const endTime = media.getEndTime();
@@ -123,6 +154,11 @@ export class TimelineDataSource {
         });
       }
     }
+
+    this._eventRanges.add({
+      ...cacheFriendlyWindow,
+      expires: add(new Date(), { seconds: TIMELINE_FRESHNESS_TOLERANCE_SECONDS }),
+    });
   }
 
   protected async _refreshRecordings(
@@ -171,14 +207,14 @@ export class TimelineDataSource {
 
     // Calculate an end date that's slightly short of the current time to allow
     // for caching up to the freshness tolerance.
-    const end = sub(capEndDate(window.end), {
-      seconds: TIMELINE_FRESHNESS_TOLERANCE_SECONDS,
-    });
-    const hasCoverage = this._recordingRanges.hasCoverage({
-      start: window.start,
-      end: end,
-    });
-    if (hasCoverage) {
+    if (
+      this._recordingRanges.hasCoverage({
+        start: window.start,
+        end: sub(capEndDate(window.end), {
+          seconds: TIMELINE_FRESHNESS_TOLERANCE_SECONDS,
+        }),
+      })
+    ) {
       return;
     }
 
@@ -220,6 +256,9 @@ export class TimelineDataSource {
       addRecordings(compressedRecordings);
     }
 
-    this._recordingRanges.add({ start: window.start, end: end });
+    this._recordingRanges.add({
+      start: cacheFriendlyWindow.start,
+      end: cacheFriendlyWindow.end,
+    });
   }
 }

@@ -23,7 +23,7 @@ export class MemoryRequestCache<Request, Response>
   protected _data: RequestCacheItem<Request, Response>[] = [];
 
   public get(request: Request): Response | null {
-    const now = this._now();
+    const now = new Date();
     for (const item of this._data) {
       if (
         (!item.expires || now <= item.expires) &&
@@ -50,16 +50,12 @@ export class MemoryRequestCache<Request, Response>
     this._expireOldRequests();
   }
 
-  protected _now(): Date {
-    return new Date();
-  }
-
   protected _contains(a: Request, b: Request): boolean {
     return isEqual(a, b);
   }
 
   protected _expireOldRequests(): void {
-    const now = this._now();
+    const now = new Date();
     this._data = this._data.filter((item) => !item.expires || now < item.expires);
   }
 }

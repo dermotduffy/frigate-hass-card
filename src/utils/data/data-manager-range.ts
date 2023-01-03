@@ -1,4 +1,3 @@
-import cloneDeep from 'lodash-es/cloneDeep';
 import orderBy from 'lodash-es/orderBy';
 
 interface Range<T extends Date | number> {
@@ -8,20 +7,22 @@ interface Range<T extends Date | number> {
 
 export type DateRange = Range<Date>;
 
-export class MemoryRangeSet {
+interface MemoryRangeSetInterface<T> {
+  hasCoverage(range: T): boolean;
+  add(range: T): void;
+  clear(): void;
+}
+
+export class MemoryRangeSet implements MemoryRangeSetInterface<DateRange> {
   protected _ranges: DateRange[];
 
   constructor(ranges?: DateRange[]) {
     this._ranges = ranges ?? [];
   }
 
-  public clone(): MemoryRangeSet {
-    return new MemoryRangeSet(cloneDeep(this._ranges));
-  }
-
   public hasCoverage(range: DateRange): boolean {
     return this._ranges.some((cachedRange) =>
-      this._isEntirelyContained(cachedRange, range),
+      rangeIsEntirelyContained(cachedRange, range),
     );
   }
 
@@ -30,10 +31,50 @@ export class MemoryRangeSet {
     this._ranges = compressRanges(this._ranges);
   }
 
-  protected _isEntirelyContained(bigger: DateRange, smaller: DateRange): boolean {
-    return smaller.start >= bigger.start && smaller.end <= bigger.end;
+  public clear(): void {
+    this._ranges = [];
   }
 }
+
+interface ExpiringRange<T extends Date | number> extends Range<T> {
+  expires: Date;
+}
+
+export class ExpiringMemoryRangeSet
+  implements MemoryRangeSetInterface<ExpiringRange<Date>>
+{
+  protected _ranges: ExpiringRange<Date>[];
+
+  constructor(ranges?: ExpiringRange<Date>[]) {
+    this._ranges = ranges ?? [];
+  }
+
+  public hasCoverage(range: DateRange): boolean {
+    const now = new Date();
+    return this._ranges.some(
+      (cachedRange) =>
+        now < cachedRange.expires && rangeIsEntirelyContained(cachedRange, range),
+    );
+  }
+
+  public add(range: ExpiringRange<Date>): void {
+    this._expireOldRanges();
+    this._ranges.push(range);
+  }
+
+  protected _expireOldRanges(): void {
+    const now = new Date();
+    this._ranges = this._ranges.filter((range) => now < range.expires);
+  }
+
+  public clear(): void {
+    this._ranges = [];
+  }
+}
+
+const rangeIsEntirelyContained = (bigger: DateRange, smaller: DateRange): boolean => {
+  return smaller.start >= bigger.start && smaller.end <= bigger.end;
+};
 
 export const rangesOverlap = (a: DateRange, b: DateRange): boolean => {
   return (
@@ -44,7 +85,7 @@ export const rangesOverlap = (a: DateRange, b: DateRange): boolean => {
     // a encompasses the entire range of b.
     (a.start <= b.start && a.end >= b.end)
   );
-}
+};
 
 export const compressRanges = <T extends Date | number>(
   ranges: Range<T>[],
