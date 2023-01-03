@@ -1,5 +1,4 @@
-import { FrigateEvents, FrigateRecording } from '../types';
-import { RecordingSegments } from './frigate/frigate';
+import { FrigateEvents, FrigateRecording, RecordingSegment } from '../types';
 
 // ====
 // Base
@@ -83,7 +82,6 @@ export interface EventQuery extends MediaQuery {
 }
 export type PartialEventQuery = Partial<EventQuery>;
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface EventQueryResults extends QueryResults {
   type: QueryResultsType.Event;
 }
@@ -92,13 +90,11 @@ export interface EventQueryResults extends QueryResults {
 // Recording Query
 // ===============
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface RecordingQuery extends MediaQuery {
   type: QueryType.Recording;
 }
 export type PartialRecordingQuery = Partial<RecordingQuery>;
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface RecordingQueryResults extends QueryResults {
   type: QueryResultsType.Recording;
 }
@@ -111,11 +107,10 @@ export interface RecordingSegmentsQuery extends DataQuery, TimeBasedDataQuery {
   type: QueryType.RecordingSegments;
 }
 export type PartialRecordingSegmentsQuery = Partial<RecordingSegmentsQuery>;
-//export type PartialRecordingSegmentsQuery = Partial<RecordingSegmentsQuery> & { type: QueryType.RecordingSegments };
 
 export interface RecordingSegmentsQueryResults extends QueryResults {
   type: QueryResultsType.RecordingSegments;
-  segments: RecordingSegments;
+  segments: RecordingSegment[];
 }
 
 // ========================

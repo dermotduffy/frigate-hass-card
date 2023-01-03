@@ -4,20 +4,10 @@ import endOfHour from 'date-fns/endOfHour';
 import getUnixTime from 'date-fns/getUnixTime';
 import startOfHour from 'date-fns/startOfHour';
 import { CAMERA_BIRDSEYE } from '../../const';
-import { CameraConfig, FrigateRecording } from '../../types';
+import { CameraConfig, FrigateRecording, RecordingSegment } from '../../types';
 import { MediaQueries, MediaQueriesResults } from '../../view';
 import { ViewMedia, ViewMediaClassifier, ViewMediaFactory } from '../../view-media';
 import { errorToConsole } from '../../utils/basic';
-import {
-  getEvents,
-  getRecordingSegments,
-  getRecordingsSummary,
-  NativeFrigateEventQuery,
-  NativeFrigateRecordingSegmentsQuery,
-  RecordingSegments,
-  RecordingSummary,
-  retainEvent,
-} from './frigate';
 import { RecordingSegmentsCache } from '../cache';
 import {
   CameraManagerEngine,
@@ -41,6 +31,8 @@ import {
   RecordingQuery,
   RecordingSegmentsQuery,
 } from '../types';
+import { RecordingSummary } from './schema';
+import { getEvents, getRecordingSegments, getRecordingsSummary, NativeFrigateEventQuery, NativeFrigateRecordingSegmentsQuery, retainEvent } from './requests';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
@@ -290,7 +282,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       before: Math.floor(query.end.getTime() / 1000),
     };
 
-    let segments: RecordingSegments;
+    let segments: RecordingSegment[];
     try {
       segments = await getRecordingSegments(hass, request);
     } catch (e) {

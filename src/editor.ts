@@ -141,7 +141,7 @@ import {
 } from './types.js';
 import { arrayMove } from './utils/basic.js';
 import { getCameraID, getCameraTitle } from './utils/camera.js';
-import { FRIGATE_ICON_SVG_PATH } from './camera/frigate/frigate.js';
+import { FRIGATE_ICON_SVG_PATH } from './camera/frigate/icon.js';
 import { getEntitiesFromHASS, sideLoadHomeAssistantElements } from './utils/ha';
 import { setLowPerformanceProfile } from './performance.js';
 

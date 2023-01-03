@@ -3,9 +3,8 @@ import fromUnixTime from 'date-fns/fromUnixTime';
 import startOfHour from 'date-fns/startOfHour';
 import sub from 'date-fns/sub';
 import { ViewContext } from 'view';
-import { CameraConfig, ClipsOrSnapshotsOrAll, FrigateCardView } from '../types';
+import { CameraConfig, ClipsOrSnapshotsOrAll, FrigateCardView, RecordingSegment } from '../types';
 import { EventMediaQueries, RecordingMediaQueries, View } from '../view';
-import { RecordingSegments } from '../camera/frigate/frigate';
 import { CameraManager } from '../camera/manager';
 import { getAllDependentCameras } from './camera.js';
 import { ViewMedia, ViewMediaClassifier } from '../view-media';
@@ -279,7 +278,7 @@ export const findClosestMediaIndex = (
 const getSeekTimeInSegments = (
   startTime: Date,
   targetTime: Date,
-  segments: RecordingSegments,
+  segments: RecordingSegment[],
 ): number | null => {
   if (!segments.length) {
     return null;

@@ -1498,3 +1498,10 @@ export type ExtendedEntity = z.infer<typeof extendedEntitySchema>;
 
 export const entityListSchema = entitySchema.array();
 export type EntityList = z.infer<typeof entityListSchema>;
+
+// Generic recording segment type (inspired by Frigate recording segments).
+export interface RecordingSegment {
+  start_time: number;
+  end_time: number;
+  id: string;
+}

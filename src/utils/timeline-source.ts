@@ -3,10 +3,9 @@ import add from 'date-fns/add';
 import sub from 'date-fns/sub';
 import { DataSet } from 'vis-data';
 import { IdType, TimelineItem, TimelineWindow } from 'vis-timeline/esnext';
-import { CameraConfig, ClipsOrSnapshotsOrAll } from '../types';
+import { CameraConfig, ClipsOrSnapshotsOrAll, RecordingSegment } from '../types';
 import { CameraManager } from '../camera/manager';
 import { EventQuery } from '../camera/types';
-import { RecordingSegment, RecordingSegments } from '../camera/frigate/frigate';
 import { capEndDate, convertRangeToCacheFriendlyTimes } from '../camera/util';
 import { EventMediaQueries } from '../view';
 import { ViewMedia } from '../view-media';
@@ -228,9 +227,9 @@ export class TimelineDataSource {
 
     const results = await this._cameraManager.getRecordingSegments(hass, queries);
 
-    const newSegments: Map<string, RecordingSegments> = new Map();
+    const newSegments: Map<string, RecordingSegment[]> = new Map();
     for (const [query, result] of results) {
-      let destination: RecordingSegments | undefined = newSegments.get(query.cameraID);
+      let destination: RecordingSegment[] | undefined = newSegments.get(query.cameraID);
       if (!destination) {
         destination = [];
         newSegments.set(query.cameraID, destination);

@@ -1,7 +1,7 @@
 import isEqual from 'lodash-es/isEqual';
 import orderBy from 'lodash-es/orderBy';
 import sortedUniqBy from 'lodash-es/sortedUniqBy';
-import { RecordingSegment, RecordingSegments } from './frigate/frigate';
+import { RecordingSegment } from '../types';
 import { DateRange, MemoryRangeSet } from './range';
 import { DataQuery, QueryResults } from './types';
 
@@ -108,7 +108,7 @@ export class MemoryRangedCache<Data> {
 export class RecordingSegmentsCache {
   protected _segments: Map<string, MemoryRangedCache<RecordingSegment>> = new Map();
 
-  public add(cameraID: string, range: DateRange, segments: RecordingSegments) {
+  public add(cameraID: string, range: DateRange, segments: RecordingSegment[]) {
     let cameraSegmentCache: MemoryRangedCache<RecordingSegment> | undefined =
       this._segments.get(cameraID);
     if (!cameraSegmentCache) {
@@ -125,7 +125,7 @@ export class RecordingSegmentsCache {
     return !!this._segments.get(cameraID)?.hasCoverage(range);
   }
 
-  public get(cameraID: string, range: DateRange): RecordingSegments | null {
+  public get(cameraID: string, range: DateRange): RecordingSegment[] | null {
     return this._segments.get(cameraID)?.get(range) ?? null;
   }
 }
