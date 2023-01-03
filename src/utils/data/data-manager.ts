@@ -202,13 +202,11 @@ export class DataManager {
       }
     }
 
-    return mediaArray.length
-      ? new MediaQueriesResults(
-          orderBy(mediaArray, (media) => media.getStartTime(), 'desc'),
-          // Select the first (most-recent) item.
-          0,
-        )
-      : null;
+    return new MediaQueriesResults(
+      orderBy(mediaArray, (media) => media.getStartTime(), 'desc'),
+      // Select the first (most-recent) item.
+      mediaArray.length ? 0 : null,
+    );
   }
 
   public getMediaDownloadPath(media: ViewMedia): string | null {

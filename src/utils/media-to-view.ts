@@ -54,9 +54,9 @@ export const createViewForEvents = async (
     const queries = dataManager.generateDefaultEventQueries(cameraIDs, {
       ...(options?.limit && { limit: options.limit }),
       ...((!options?.mediaType || ['clips', 'all'].includes(options.mediaType)) && {
-        has_clip: true,
+        hasClip: true,
       }),
-      ...(options?.mediaType === 'snapshots' && { has_snapshot: true }),
+      ...(options?.mediaType === 'snapshots' && { hasSnapshot: true }),
     });
     query = new EventMediaQueries(queries);
   }

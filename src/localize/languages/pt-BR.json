@@ -3,10 +3,7 @@
     "frigate_card": "Cartão Frigate",
     "frigate_card_description": "Um cartão da Lovelace para usar com Frigate",
     "live": "Ao Vivo",
-    "no_clip": "Sem clip recente",
-    "no_clips": "Sem clips",
-    "no_snapshot": "Sem snapshot recente",
-    "no_snapshots": "Sem snapshots",
+    "no_media": "",
     "recordings": "Gravações",
     "version": "Versão"
   },

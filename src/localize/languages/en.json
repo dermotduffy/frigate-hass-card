@@ -3,11 +3,7 @@
     "frigate_card": "Frigate card",
     "frigate_card_description": "A Lovelace card for use with Frigate",
     "live": "Live",
-    "no_clip": "No recent clip",
-    "no_clips": "No clips",
-    "no_snapshot": "No recent snapshot",
-    "no_snapshots": "No snapshots",
-    "no_recording": "No recent recording",
+    "no_media": "No media to display",
     "recordings": "Recordings",
     "version": "Version"
   },

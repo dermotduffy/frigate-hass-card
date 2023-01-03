@@ -6,7 +6,6 @@
 //  - TODO: Are there elements of ViewMedia (e.g. getEventCount) that should be moved into subclasses (e.g. a recording subclass).
 //  - TODO: In MediaQueriesBase, do we need to generic? Just have T be a MediaQuery?
 //  - TODO: Are areEventQueries and areRecordingQueries should be in a classifier to keep with the pattern used elsewhere.
-//  - TODO: Callers to the creation of new views for events/recordings need to dispatch events themselves when none are found.
 //  - TODO: In the viewer @click handlers should I use this.selected instead of calling carouselScrollPrevious()
 //  - TODO: Can _timelineClickHandler be an async method in timeline-core to improve cleanliness?
 //  - TODO: Can _timelineRangeChangedHandler be an async method in timeline-core to improve cleanliness?
@@ -124,7 +123,7 @@ export class MediaQueriesResults {
   protected _resultsTimestamp: Date | null = null;
   protected _selectedIndex: number | null = null;
 
-  constructor(results?: ViewMedia[], selectedIndex?: number) {
+  constructor(results?: ViewMedia[], selectedIndex?: number | null) {
     if (results) {
       this.setResults(results);
     }
@@ -177,8 +176,8 @@ export class MediaQueriesResults {
     return this._resultsTimestamp;
   }
 
-  public selectResult(index: number): MediaQueriesResults {
-    if (this._results && index >= 0 && index < this._results.length) {
+  public selectResult(index: number | null): MediaQueriesResults {
+    if (index === null || (this._results && index >= 0 && index < this._results.length)) {
       this._selectedIndex = index;
     }
     return this;

@@ -509,8 +509,10 @@ export class FrigateCardTimelineCore extends LitElement {
             targetView: 'media',
           },
         );
-        const results = view?.queryResults?.getResults() ?? null;
-        if (!results || !view) {
+        const results = view?.queryResults?.getResults();
+        // Specifically ensure there are _some_ results before dispatching the
+        // view change.
+        if (!view || !results || !results.length) {
           return null;
         }
         view.mergeInContext(

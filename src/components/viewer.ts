@@ -12,7 +12,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
-import { renderProgressIndicator } from '../components/message.js';
+import { dispatchMessageEvent, renderProgressIndicator } from '../components/message.js';
 import viewerStyle from '../scss/viewer.scss';
 import viewerCarouselStyle from '../scss/viewer-carousel.scss';
 import {
@@ -53,6 +53,7 @@ import {
 } from '../utils/media-to-view.js';
 import { ViewMedia, ViewMediaClassifier } from '../view-media.js';
 import { guard } from 'lit/directives/guard.js';
+import { localize } from '../localize/localize.js';
 
 export interface MediaSeek {
   // Specifies the point at which this recording should be played, the
@@ -566,6 +567,12 @@ export class FrigateCardViewerCarousel extends LitElement {
    * @returns A template to display to the user.
    */
   protected _render(): TemplateResult | void {
+    if ((this.view?.queryResults?.getResultsCount() ?? 0) === 0) {
+      return dispatchMessageEvent(this, localize('common.no_media'), 'info', {
+        icon: 'mdi:multimedia',
+      });
+    }
+
     const media = this.view?.queryResults?.getSelectedResult();
     if (!media || !this.cameras) {
       return;
@@ -622,7 +629,7 @@ export class FrigateCardViewerCarousel extends LitElement {
   protected _recordingSeekHandler(): void {
     const selectedIndex = this.view?.queryResults?.getSelectedIndex() ?? null;
     const seek =
-    selectedIndex !== null
+      selectedIndex !== null
         ? this.view?.context?.mediaViewer?.seek.get(selectedIndex)
         : null;
     const player = this._getPlayer();
