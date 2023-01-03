@@ -177,9 +177,11 @@ export function dispatchErrorMessageEvent(
  */
 export function dispatchFrigateCardErrorEvent(
   element: EventTarget,
-  error: FrigateCardError,
+  error: FrigateCardError | Error,
 ): void {
-  dispatchErrorMessageEvent(element, error.message, { context: error.context });
+  dispatchErrorMessageEvent(element, error.message, {
+    ...(error instanceof FrigateCardError && { context: error.context }),
+  });
 }
 
 declare global {

@@ -1,6 +1,11 @@
+import differenceInHours from 'date-fns/differenceInHours';
+import differenceInMinutes from 'date-fns/differenceInMinutes';
+import differenceInSeconds from 'date-fns/differenceInSeconds';
 import format from 'date-fns/format';
 import isEqual from 'lodash-es/isEqual';
 import { FrigateCardError } from '../types';
+
+export type ModifyInterface<T, R> = Omit<T, keyof R> & R;
 
 /**
  * Dispatch a Frigate Card event.
@@ -52,6 +57,24 @@ export function arrayMove(target: unknown[], from: number, to: number): void {
 }
 
 /**
+ * Convert a value to an array if it is not already one.
+ * @param value: A value (which may be an array).
+ * @returns An array.
+ */
+export const arrayify = <T>(value: T | T[]): T[] => {
+  return Array.isArray(value) ? value : [value];
+};
+
+/**
+ * Convert a value to an set if it is not already one.
+ * @param value: A value (which may be a set, an array or a T)
+ * @returns A set of T.
+ */
+export const setify = <T>(value: T | T[] | Set<T>): Set<T> => {
+  return value instanceof Set ? value : new Set(arrayify(value));
+};
+
+/**
  * Determine if the contents of the n(ew) and o(ld) values have changed. For use
  * in lit web components that may have a value that changes address but not
  * contents -- and for which a re-render is expensive/jarring.
@@ -68,10 +91,7 @@ export function contentsChanged(n: unknown, o: unknown): boolean {
  * @param e The Error object.
  * @param func The Console func to call.
  */
-export function errorToConsole(e: Error, func?: CallableFunction): void {
-  if (!func) {
-    func = console.warn;
-  }
+export function errorToConsole(e: Error, func: CallableFunction = console.warn): void {
   if (e instanceof FrigateCardError && e.context) {
     func(e, e.context);
   } else {
@@ -83,9 +103,8 @@ export function errorToConsole(e: Error, func?: CallableFunction): void {
  * Determine if the device supports hovering.
  * @returns `true` if the device supports hovering, `false` otherwise.
  */
-export const isHoverableDevice = (): boolean => window.matchMedia(
-  '(hover: hover) and (pointer: fine)',
-).matches;
+export const isHoverableDevice = (): boolean =>
+  window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
 /**
  * Format a date object to RFC3339.
@@ -94,7 +113,7 @@ export const isHoverableDevice = (): boolean => window.matchMedia(
  */
 export const formatDateAndTime = (date: Date): string => {
   return format(date, 'yyyy-MM-dd HH:mm');
-}
+};
 
 /**
  * Run a function in idle periods. If idle callbacks are not supported (e.g.
@@ -105,9 +124,34 @@ export const formatDateAndTime = (date: Date): string => {
 export const runWhenIdleIfSupported = (func: () => void, timeout?: number): void => {
   if (window.requestIdleCallback) {
     window.requestIdleCallback(func, {
-      ...(timeout && { timeout: timeout})
+      ...(timeout && { timeout: timeout }),
     });
   } else {
     func();
   }
+};
+
+/**
+ * Convenience function to return a string representing the difference in hours,
+ * minutes and seconds between two dates. Heavily inspired by, and returning the
+ * same format as, the Frigate UI:
+ * https://github.com/blakeblackshear/frigate/blob/master/web/src/components/RecordingPlaylist.jsx#L97
+ * @param start The start date.
+ * @param end The end date.
+ * @returns A duration string.
+ */
+export function getDurationString(start: Date, end: Date): string {
+  const hours = differenceInHours(end, start);
+  const minutes = differenceInMinutes(end, start) - hours * 60;
+  const seconds = differenceInSeconds(end, start) - hours * 60 * 60 - minutes * 60;
+  let duration = '';
+
+  if (hours) {
+    duration += `${hours}h `;
+  }
+  if (minutes) {
+    duration += `${minutes}m `;
+  }
+  duration += `${seconds}s`;
+  return duration;
 }

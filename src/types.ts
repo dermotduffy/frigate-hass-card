@@ -27,6 +27,7 @@ export const THUMBNAIL_WIDTH_MIN = 75;
  */
 
 export type ClipsOrSnapshots = 'clips' | 'snapshots';
+export type ClipsOrSnapshotsOrAll = 'clips' | 'snapshots' | 'all';
 
 export const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
   'live',
@@ -661,13 +662,30 @@ export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
 /**
  * Thumbnail controls configuration section.
  */
+const thumbnailControlsDefaults = {
+  mode: 'right' as const,
+  size: 100,
+  show_details: true,
+  show_favorite_control: true,
+  show_timeline_control: true,
+};
 
 const thumbnailsControlSchema = z.object({
-  mode: z.enum(['none', 'above', 'below', 'left', 'right']),
-  size: z.number().min(THUMBNAIL_WIDTH_MIN).max(THUMBNAIL_WIDTH_MAX).optional(),
-  show_details: z.boolean().optional(),
-  show_favorite_control: z.boolean().optional(),
-  show_timeline_control: z.boolean().optional(),
+  mode: z
+    .enum(['none', 'above', 'below', 'left', 'right'])
+    .default(thumbnailControlsDefaults.mode),
+  size: z
+    .number()
+    .min(THUMBNAIL_WIDTH_MIN)
+    .max(THUMBNAIL_WIDTH_MAX)
+    .default(thumbnailControlsDefaults.size),
+  show_details: z.boolean().default(thumbnailControlsDefaults.show_details),
+  show_favorite_control: z
+    .boolean()
+    .default(thumbnailControlsDefaults.show_favorite_control),
+  show_timeline_control: z
+    .boolean()
+    .default(thumbnailControlsDefaults.show_timeline_control),
 });
 export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlSchema>;
 
@@ -752,6 +770,11 @@ const liveImageConfigDefault = {
   refresh_seconds: 1,
 };
 
+const liveThumbnailControlsDefaults = {
+  ...thumbnailControlsDefaults,
+  media: 'clips' as const,
+};
+
 const liveConfigDefault = {
   auto_play: 'all' as const,
   auto_pause: 'never' as const,
@@ -769,14 +792,7 @@ const liveConfigDefault = {
       size: 48,
       style: 'chevrons' as const,
     },
-    thumbnails: {
-      media: 'clips' as const,
-      size: 100,
-      show_details: true,
-      show_favorite_control: true,
-      show_timeline_control: true,
-      mode: 'left' as const,
-    },
+    thumbnails: liveThumbnailControlsDefaults,
     timeline: miniTimelineConfigDefault,
     title: {
       mode: 'popup-bottom-right' as const,
@@ -784,6 +800,12 @@ const liveConfigDefault = {
     },
   },
 };
+
+const livethumbnailsControlSchema = thumbnailsControlSchema.extend({
+  media: z
+    .enum(['clips', 'snapshots'])
+    .default(liveConfigDefault.controls.thumbnails.media),
+});
 
 const liveImageConfigSchema = z.object({
   refresh_seconds: z.number().min(0).default(liveConfigDefault.image.refresh_seconds),
@@ -834,30 +856,9 @@ const liveOverridableConfigSchema = z
             ),
           })
           .default(liveConfigDefault.controls.next_previous),
-        thumbnails: thumbnailsControlSchema
-          .extend({
-            mode: thumbnailsControlSchema.shape.mode.default(
-              liveConfigDefault.controls.thumbnails.mode,
-            ),
-            size: thumbnailsControlSchema.shape.size.default(
-              liveConfigDefault.controls.thumbnails.size,
-            ),
-            show_details: thumbnailsControlSchema.shape.show_details.default(
-              liveConfigDefault.controls.thumbnails.show_details,
-            ),
-            show_favorite_control:
-              thumbnailsControlSchema.shape.show_favorite_control.default(
-                liveConfigDefault.controls.thumbnails.show_favorite_control,
-              ),
-            show_timeline_control:
-              thumbnailsControlSchema.shape.show_timeline_control.default(
-                liveConfigDefault.controls.thumbnails.show_timeline_control,
-              ),
-            media: z
-              .enum(['clips', 'snapshots'])
-              .default(liveConfigDefault.controls.thumbnails.media),
-          })
-          .default(liveConfigDefault.controls.thumbnails),
+        thumbnails: livethumbnailsControlSchema.default(
+          liveConfigDefault.controls.thumbnails,
+        ),
         timeline: miniTimelineConfigSchema.default(liveConfigDefault.controls.timeline),
         title: titleControlConfigSchema
           .extend({
@@ -994,13 +995,7 @@ const viewerConfigDefault = {
       size: 48,
       style: 'thumbnails' as const,
     },
-    thumbnails: {
-      size: 100,
-      show_details: true,
-      show_favorite_control: true,
-      show_timeline_control: true,
-      mode: 'left' as const,
-    },
+    thumbnails: thumbnailControlsDefaults,
     timeline: miniTimelineConfigDefault,
     title: {
       mode: 'popup-bottom-right' as const,
@@ -1047,27 +1042,9 @@ const viewerConfigSchema = z
         next_previous: viewerNextPreviousControlConfigSchema.default(
           viewerConfigDefault.controls.next_previous,
         ),
-        thumbnails: thumbnailsControlSchema
-          .extend({
-            mode: thumbnailsControlSchema.shape.mode.default(
-              viewerConfigDefault.controls.thumbnails.mode,
-            ),
-            size: thumbnailsControlSchema.shape.size.default(
-              viewerConfigDefault.controls.thumbnails.size,
-            ),
-            show_details: thumbnailsControlSchema.shape.show_details.default(
-              viewerConfigDefault.controls.thumbnails.show_details,
-            ),
-            show_favorite_control:
-              thumbnailsControlSchema.shape.show_favorite_control.default(
-                viewerConfigDefault.controls.thumbnails.show_favorite_control,
-              ),
-            show_timeline_control:
-              thumbnailsControlSchema.shape.show_timeline_control.default(
-                viewerConfigDefault.controls.thumbnails.show_timeline_control,
-              ),
-          })
-          .default(viewerConfigDefault.controls.thumbnails),
+        thumbnails: thumbnailsControlSchema.default(
+          viewerConfigDefault.controls.thumbnails,
+        ),
         timeline: miniTimelineConfigSchema.default(
           viewerConfigDefault.controls.timeline,
         ),
@@ -1364,14 +1341,6 @@ export interface BrowseRecordingQueryParameters {
   hour: number;
 }
 
-export interface BrowseMediaNeighbors {
-  previous: FrigateBrowseMediaSource | null;
-  previousIndex: number | null;
-
-  next: FrigateBrowseMediaSource | null;
-  nextIndex: number | null;
-}
-
 export interface MediaLoadedInfo {
   width: number;
   height: number;
@@ -1434,7 +1403,7 @@ export const MEDIA_TYPE_VIDEO = 'video' as const;
 // See: https://github.com/colinhacks/zod#recursive-types
 //
 // Server side data-type defined here: https://github.com/home-assistant/core/blob/dev/homeassistant/components/media_player/browse_media.py#L46
-interface BrowseMediaSource {
+export interface BrowseMediaSource {
   title: string;
   media_class: string;
   media_content_type: string;

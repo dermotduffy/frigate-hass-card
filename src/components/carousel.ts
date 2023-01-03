@@ -41,14 +41,11 @@ export class FrigateCardCarousel extends LitElement {
   @property({ attribute: false })
   public carouselPlugins?: EmblaCarouselPlugins;
 
+  @property({ attribute: false })
+  public selected = 0;
+
   @property({ attribute: true })
   public transitionEffect?: TransitionEffect;
-
-  // An override to the startIndex, used to preserve the current carousel
-  // position after the carousel is destroyed (so it can be restored if
-  // recreated).
-  // See: https://github.com/dermotduffy/frigate-hass-card/issues/775
-  protected _savedStartIndex: number | null = null;
 
   protected _refSlot: Ref<HTMLSlotElement> = createRef();
 
@@ -81,7 +78,7 @@ export class FrigateCardCarousel extends LitElement {
     // Destroy the carousel when the component is disconnected, which forces the
     // plugins (which may have registered event handlers) to also be destroyed.
     // The carousel will automatically reconstruct if the component is re-rendered.
-    this._destroyCarousel({ savePosition: true });
+    this._destroyCarousel();
     super.disconnectedCallback();
   }
 
@@ -96,7 +93,7 @@ export class FrigateCardCarousel extends LitElement {
       'carouselPlugins',
     ] as const;
     if (destroyProperties.some((prop) => changedProps.has(prop))) {
-      this._destroyCarousel({ savePosition: true });
+      this._destroyCarousel();
     }
   }
 
@@ -105,31 +102,21 @@ export class FrigateCardCarousel extends LitElement {
    * @param index Slide number.
    */
   public carouselScrollTo(index: number): void {
-    const scroll = () =>
-      this._carousel?.scrollTo(index, this.transitionEffect === 'none');
-    // This ensures scrolling can work on initial render when the carousel may
-    // not yet exist.
-    if (this._carousel) {
-      scroll();
-    } else {
-      this.updateComplete.then(() => {
-        scroll();
-      });
-    }
+    this.selected = index;
   }
 
   /**
    * Scroll to the previous slide.
    */
   public carouselScrollPrevious(): void {
-    this._carousel?.scrollPrev(this.transitionEffect === 'none');
+    this.selected = Math.max(0, this.selected - 1);
   }
 
   /**
    * Scroll to the next slide.
    */
   public carouselScrollNext(): void {
-    this._carousel?.scrollNext(this.transitionEffect === 'none');
+    this.selected = this.selected + 1;
   }
 
   /**
@@ -174,11 +161,10 @@ export class FrigateCardCarousel extends LitElement {
       window.requestAnimationFrame(() => {
         this._carousel?.reInit({ ...options });
       });
-    }
-    const selected = this.getCarouselSelected();
+    };
 
     carouselReInit({
-      ...(selected && { startIndex: selected.index }),
+      startIndex: this.selected,
     });
   }
 
@@ -211,6 +197,10 @@ export class FrigateCardCarousel extends LitElement {
     if (!this._carousel) {
       this._initCarousel();
     }
+
+    if (changedProperties.has('selected')) {
+      this._carousel?.scrollTo(this.selected, this.transitionEffect === 'none');
+    }
   }
 
   /**
@@ -218,9 +208,7 @@ export class FrigateCardCarousel extends LitElement {
    * @param options If `savePosition` is set the existing carousel position
    * will be saved so it can be restored if the carousel is recreated.
    */
-  protected _destroyCarousel(options?: { savePosition: boolean }): void {
-    this._savedStartIndex =
-      (options?.savePosition ? this._carousel?.selectedScrollSnap() : null) ?? null;
+  protected _destroyCarousel(): void {
     if (this._carousel) {
       this._carousel.destroy();
     }
@@ -248,8 +236,8 @@ export class FrigateCardCarousel extends LitElement {
         {
           axis: this.direction == 'horizontal' ? 'x' : 'y',
           speed: 20,
+          startIndex: this.selected,
           ...this.carouselOptions,
-          ...(this._savedStartIndex !== null && { startIndex: this._savedStartIndex }),
         },
         this.carouselPlugins,
       );
@@ -262,7 +250,7 @@ export class FrigateCardCarousel extends LitElement {
         // Make sure every select causes a refresh to allow for re-paint of the
         // next/previous controls.
         this.requestUpdate();
-      }
+      };
 
       this._carousel.on('init', selectSlide);
       this._carousel.on('select', selectSlide);
@@ -294,18 +282,14 @@ export class FrigateCardCarousel extends LitElement {
   protected _slotChanged(): void {
     // Cannot just re-init, because the slide elements themselves may have
     // changed, and only a carousel init can pass in new (slotted) children. If
-    // the slides themselves change, any position the user has set is assumed to
-    // be abandoned and so the startIndex is reset to whatever the carousel was
-    // originally configured with.
-    this._destroyCarousel({ savePosition: false });
+    this._destroyCarousel();
     this.requestUpdate();
   }
 
   protected render(): TemplateResult | void {
     const slides = this._refSlot.value?.assignedElements({ flatten: true }) || [];
-    const currentSlide = (this._carousel?.selectedScrollSnap() ?? this.carouselOptions?.startIndex) ?? 0;
-    const showPrevious = this.carouselOptions?.loop || currentSlide > 0;
-    const showNext = this.carouselOptions?.loop || currentSlide + 1 < slides.length;
+    const showPrevious = this.carouselOptions?.loop || this.selected > 0;
+    const showNext = this.carouselOptions?.loop || this.selected + 1 < slides.length;
 
     return html` <div class="embla">
       ${showPrevious ? html`<slot name="previous"></slot>` : ``}

@@ -126,6 +126,9 @@ export class FrigateCardMediaCarousel extends LitElement {
   @property({ attribute: false })
   public carouselPlugins?: EmblaCarouselPlugins;
 
+  @property({ attribute: false, type: Number })
+  public selected = 0;
+
   @property({ attribute: true })
   public transitionEffect?: TransitionEffect;
 
@@ -418,6 +421,7 @@ export class FrigateCardMediaCarousel extends LitElement {
 
     return html` <frigate-card-carousel
         ${ref(this._refCarousel)}
+        .selected=${this.selected ?? 0}
         .carouselOptions=${this.carouselOptions}
         .carouselPlugins=${this.carouselPlugins}
         transitionEffect=${ifDefined(this.transitionEffect)}

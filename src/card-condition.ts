@@ -180,7 +180,8 @@ export class CardConditionManager {
    * Trigger the callback.
    * @param _ Ignored parameter.
    */
-  protected _triggerChange(_): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected _triggerChange(_: MediaQueryListEvent): void {
     this._callback();
   }
 

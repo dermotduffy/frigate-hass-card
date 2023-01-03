@@ -7,29 +7,20 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-
 import surroundStyle from '../scss/surround.scss';
 import {
-  BrowseMediaQueryParameters,
   CameraConfig,
+  ClipsOrSnapshotsOrAll,
   ExtendedHomeAssistant,
-  FrigateBrowseMediaSource,
-  FrigateCardError,
   MiniTimelineControlConfig,
   ThumbnailsControlConfig,
 } from '../types.js';
 import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
-import {
-  getFirstTrueMediaChildIndex,
-  multipleBrowseMediaQueryMerged,
-} from '../utils/ha/browse-media';
-import { DataManager } from '../utils/data-manager';
+import { DataManager } from '../utils/data/data-manager.js';
 import { View } from '../view.js';
-import { dispatchFrigateCardErrorEvent } from './message.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
-
 import './surround-basic.js';
-import { ifDefined } from 'lit/directives/if-defined.js';
+import { changeViewToRecentEventsForCameraAndDependents } from '../utils/media-to-view';
 
 interface ThumbnailViewContext {
   // Whether or not to fetch thumbnails.
@@ -59,11 +50,9 @@ export class FrigateCardSurround extends LitElement {
   @property({ attribute: false })
   public inBackground?: boolean;
 
-  @property({ attribute: false })
-  public fetch = false;
-
+  // If fetchMedia is not specified, no fetching is done.
   @property({ attribute: false, hasChanged: contentsChanged })
-  public browseMediaParams?: BrowseMediaQueryParameters | BrowseMediaQueryParameters[];
+  public fetchMedia?: ClipsOrSnapshotsOrAll;
 
   @property({ attribute: false })
   public cameras?: Map<string, CameraConfig>;
@@ -79,32 +68,29 @@ export class FrigateCardSurround extends LitElement {
    */
   protected async _fetchMedia(): Promise<void> {
     if (
-      !this.fetch ||
+      !this.cameras ||
+      !this.dataManager ||
+      !this.fetchMedia ||
       this.inBackground ||
       !this.hass ||
       !this.view ||
-      this.view.target ||
+      this.view.query ||
       !this.thumbnailConfig ||
       this.thumbnailConfig.mode === 'none' ||
-      !this.browseMediaParams ||
       !(this.view.context?.thumbnails?.fetch ?? true)
     ) {
       return;
     }
-    let parent: FrigateBrowseMediaSource | null;
-    try {
-      parent = await multipleBrowseMediaQueryMerged(this.hass, this.browseMediaParams);
-    } catch (e) {
-      return dispatchFrigateCardErrorEvent(this, e as FrigateCardError);
-    }
-    if (getFirstTrueMediaChildIndex(parent) !== null) {
-      this.view
-        ?.evolve({
-          target: parent,
-          childIndex: null,
-        })
-        .dispatchChangeEvent(this);
-    }
+    await changeViewToRecentEventsForCameraAndDependents(
+      this,
+      this.hass,
+      this.dataManager,
+      this.cameras,
+      this.view,
+      {
+        mediaType: this.fetchMedia,
+      },
+    );
   }
 
   /**
@@ -170,25 +156,21 @@ export class FrigateCardSurround extends LitElement {
             slot=${this.thumbnailConfig.mode}
             .hass=${this.hass}
             .config=${this.thumbnailConfig}
+            .dataManager=${this.dataManager}
             .view=${this.view}
-            .target=${this.view.target}
             .cameras=${this.cameras}
-            selected=${ifDefined(this.view.childIndex ?? undefined)}
+            .selected=${this.view.queryResults?.getSelectedIndex() ?? undefined}
             @frigate-card:view:change=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
             @frigate-card:thumbnail-carousel:tap=${(
               ev: CustomEvent<ThumbnailCarouselTap>,
             ) => {
-              const child: FrigateBrowseMediaSource | null =
-                ev.detail.target?.children?.[ev.detail.childIndex] ?? null;
-              if (child) {
+              const media = ev.detail.queryResults.getSelectedResult();
+              if (media) {
                 this.view
                   ?.evolve({
                     view: this.view.is('recording') ? 'recording' : 'media',
-                    target: ev.detail.target,
-                    childIndex: ev.detail.childIndex,
-                    ...(child.frigate?.cameraID && {
-                      camera: child.frigate?.cameraID,
-                    }),
+                    queryResults: ev.detail.queryResults,
+                    ...(media.getCameraID() && { camera: media.getCameraID() }),
                   })
                   .removeContext('timeline')
                   // Send the view change from the source of the tap event, so
@@ -200,7 +182,9 @@ export class FrigateCardSurround extends LitElement {
           >
           </frigate-card-thumbnail-carousel>`
         : ''}
-      ${this.timelineConfig?.mode && this.timelineConfig.mode !== 'none' && !this.inBackground
+      ${this.timelineConfig?.mode &&
+      this.timelineConfig.mode !== 'none' &&
+      !this.inBackground
         ? html` <frigate-card-timeline-core
             slot=${this.timelineConfig.mode}
             .hass=${this.hass}

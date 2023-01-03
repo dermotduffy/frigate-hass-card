@@ -81,13 +81,13 @@ export function getCameraIcon(
  */
 export const getAllDependentCameras = (
   cameras: Map<string, CameraConfig>,
-  camera?: string,
+  cameraID?: string,
 ): Set<string> => {
   const cameraIDs: Set<string> = new Set();
-  const getDependentCameras = (camera: string): void => {
-    const cameraConfig = cameras.get(camera);
+  const getDependentCameras = (cameraID: string): void => {
+    const cameraConfig = cameras.get(cameraID);
     if (cameraConfig) {
-      cameraIDs.add(camera);
+      cameraIDs.add(cameraID);
       const dependentCameras: Set<string> = new Set();
       (cameraConfig.dependencies.cameras || []).forEach((item) =>
         dependentCameras.add(item),
@@ -102,39 +102,8 @@ export const getAllDependentCameras = (
       }
     }
   };
-  if (camera) {
-    getDependentCameras(camera);
+  if (cameraID) {
+    getDependentCameras(cameraID);
   }
   return cameraIDs;
-};
-
-/**
- * Return the cameraIDs of truly unique cameras (some configured cameras may be
- * the same Frigate came but with different zone/labels).
- * @param cameras The full set of cameras.
- * @param cameraIDs The specific IDs to dedup.
- */
-export const getTrueCameras = (
-  cameras: Map<string, CameraConfig>,
-  cameraIDs: Set<string>,
-): Set<string> => {
-  const getTrueCameraID = (cameraConfig: CameraConfig): string => {
-    return `${cameraConfig.frigate?.client_id ?? ''}/${
-      cameraConfig.frigate.camera_name ?? ''
-    }`;
-  };
-
-  const output = new Set<string>();
-  const visitedTrueCameras = new Set<string>();
-  cameraIDs.forEach((cameraID: string) => {
-    const cameraConfig = cameras.get(cameraID) ?? null;
-    if (cameraConfig && cameraConfig.frigate.camera_name) {
-      const trueCameraID = getTrueCameraID(cameraConfig);
-      if (!visitedTrueCameras.has(trueCameraID)) {
-        output.add(cameraID);
-        visitedTrueCameras.add(trueCameraID);
-      }
-    }
-  });
-  return output;
 };

@@ -1,19 +1,15 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import utcToZonedTime from 'date-fns-tz/utcToZonedTime';
-import differenceInHours from 'date-fns/differenceInHours';
-import differenceInMinutes from 'date-fns/differenceInMinutes';
-import differenceInSeconds from 'date-fns/differenceInSeconds';
 import fromUnixTime from 'date-fns/fromUnixTime';
 import { z } from 'zod';
 import { localize } from '../localize/localize';
 import {
-  BrowseRecordingQueryParameters,
   ClipsOrSnapshots,
-  ExtendedHomeAssistant,
   FrigateCardError,
   FrigateEvent,
   FrigateEvents,
   frigateEventsSchema,
+  FrigateRecording,
 } from '../types';
 import { formatDateAndTime, prettifyTitle } from './basic';
 import { homeAssistantWSRequest } from './ha';
@@ -63,6 +59,8 @@ const recordingSegmentSchema = z.object({
   end_time: z.number(),
   id: z.string(),
 });
+export type RecordingSegment = z.infer<typeof recordingSegmentSchema>;
+
 const recordingSegmentsSchema = recordingSegmentSchema.array();
 export type RecordingSegments = z.infer<typeof recordingSegmentsSchema>;
 
@@ -80,7 +78,7 @@ export type RetainResult = z.infer<typeof retainResultSchema>;
  * @returns A RecordingSummary object.
  */
 export const getRecordingsSummary = async (
-  hass: ExtendedHomeAssistant,
+  hass: HomeAssistant,
   client_id: string,
   camera_name: string,
 ): Promise<RecordingSummary> => {
@@ -96,31 +94,29 @@ export const getRecordingsSummary = async (
   );
 };
 
+export interface NativeFrigateRecordingSegmentsQuery {
+  instance_id: string;
+  camera: string;
+  after: number;
+  before: number;
+}
+
 /**
  * Get the recording segments. May throw.
  * @param hass The Home Assistant object.
- * @param client_id The Frigate client_id.
- * @param camera_name The Frigate camera name.
- * @param before The segment low watermark.
- * @param after The segment high watermark.
+ * @param params The recording segment query parameters.
  * @returns A RecordingSegments object.
  */
 export const getRecordingSegments = async (
-  hass: ExtendedHomeAssistant,
-  client_id: string,
-  camera_name: string,
-  before: Date,
-  after: Date,
+  hass: HomeAssistant,
+  params: NativeFrigateRecordingSegmentsQuery,
 ): Promise<RecordingSegments> => {
   return await homeAssistantWSRequest(
     hass,
     recordingSegmentsSchema,
     {
       type: 'frigate/recordings/get',
-      instance_id: client_id,
-      camera: camera_name,
-      before: Math.floor(before.getTime() / 1000),
-      after: Math.ceil(after.getTime() / 1000),
+      ...params,
     },
     true,
   );
@@ -159,7 +155,7 @@ export async function retainEvent(
   }
 }
 
-export interface FrigateGetEventsParameters {
+export interface NativeFrigateEventQuery {
   instance_id?: string;
   camera?: string;
   label?: string;
@@ -179,7 +175,7 @@ export interface FrigateGetEventsParameters {
  */
 export const getEvents = async (
   hass: HomeAssistant,
-  params?: FrigateGetEventsParameters,
+  params?: NativeFrigateEventQuery,
 ): Promise<FrigateEvents> => {
   return await homeAssistantWSRequest(
     hass,
@@ -190,29 +186,6 @@ export const getEvents = async (
     },
     true,
   );
-};
-
-/**
- * Get multiple sets of events.
- * @param hass The Home Assistant object.
- * @param params A Map of parameters keyed on any key.
- * @returns A Map of key -> events.
- */
-export const getEventsMultiple = async <T>(
-  hass: HomeAssistant,
-  params: Map<T, FrigateGetEventsParameters>,
-): Promise<Map<T, FrigateEvents>> => {
-  const output: Map<T, FrigateEvents> = new Map();
-  const getEventsAndStore = async (
-    key: T,
-    param: FrigateGetEventsParameters,
-  ): Promise<void> => {
-    output.set(key, await getEvents(hass, param));
-  };
-  await Promise.all(
-    Array.from(params).map(([key, param]) => getEventsAndStore(key, param)),
-  );
-  return output;
 };
 
 /**
@@ -231,6 +204,12 @@ export const getEventTitle = (event: FrigateEvent): string => {
   )} [${durationSeconds}s, ${prettifyTitle(event.label)} ${Math.round(
     event.top_score * 100,
   )}%]`;
+};
+
+export const getRecordingTitle = (recording: FrigateRecording): string => {
+  return `${prettifyTitle(recording.camera)} ${formatDateAndTime(
+    fromUnixTime(recording.start_time),
+  )}`;
 };
 
 /**
@@ -254,10 +233,10 @@ export const getEventThumbnailURL = (clientId: string, event: FrigateEvent): str
 export const getEventMediaContentID = (
   clientId: string,
   cameraName: string,
-  id: string,
+  event: FrigateEvent,
   mediaType: ClipsOrSnapshots,
 ): string => {
-  return `media-source://frigate/${clientId}/event/${mediaType}/${cameraName}/${id}`;
+  return `media-source://frigate/${clientId}/event/${mediaType}/${cameraName}/${event.id}`;
 };
 
 /**
@@ -267,43 +246,19 @@ export const getEventMediaContentID = (
  * @returns A recording identifier.
  */
 export const getRecordingMediaContentID = (
-  params: BrowseRecordingQueryParameters,
+  clientId: string,
+  cameraName: string,
+  recording: FrigateRecording,
 ): string => {
+  const date = fromUnixTime(recording.start_time);
   return [
     'media-source://frigate',
-    params.clientId,
+    clientId,
     'recordings',
-    `${params.year}-${String(params.month).padStart(2, '0')}`,
-    String(params.day).padStart(2, '0'),
-    String(params.hour).padStart(2, '0'),
-    params.cameraName,
+    cameraName,
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+      String(date.getDate()).padStart(2, '0'),
+    )}`,
+    String(date.getHours()).padStart(2, '0'),
   ].join('/');
 };
-
-/**
- * Convenience function to convert a timestamp to hours, minutes and seconds
- * string. Heavily inspired by, and returning the same format as, the Frigate
- * UI: https://github.com/blakeblackshear/frigate/blob/master/web/src/components/RecordingPlaylist.jsx#L97
- * @param event The Frigate event.
- * @returns A duration string.
- */
-export function getEventDurationString(event: FrigateEvent): string {
-  if (!event.end_time) {
-    return localize('event.in_progress');
-  }
-  const start = fromUnixTime(event.start_time);
-  const end = fromUnixTime(event.end_time);
-  const hours = differenceInHours(end, start);
-  const minutes = differenceInMinutes(end, start) - hours * 60;
-  const seconds = differenceInSeconds(end, start) - hours * 60 * 60 - minutes * 60;
-  let duration = '';
-
-  if (hours) {
-    duration += `${hours}h `;
-  }
-  if (minutes) {
-    duration += `${minutes}m `;
-  }
-  duration += `${seconds}s`;
-  return duration;
-}

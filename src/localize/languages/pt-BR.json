@@ -303,7 +303,6 @@
     "could_not_render_elements": "Não foi possível renderizar os elementos da imagem",
     "could_not_resolve": "Não foi possível resolver o URL de mídia",
     "diagnostics": "Diagnósticos do cartão. Revise as informações confidenciais antes de compartilhar",
-    "download_no_event_id": "Não foi possível extrair o Frigate ID do evento da mídia",
     "download_no_media": "Nenhuma mídia para download",
     "download_sign_failed": "Não foi possível assinar o URL de mídia para download",
     "duplicate_camera_id": "Duplique o ID da câmera Frigate para a câmera a seguir, use o parâmetro 'id' para identificar exclusivamente as câmeras",

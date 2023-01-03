@@ -1,27 +1,73 @@
 import add from 'date-fns/add';
-import endOfHour from 'date-fns/endOfHour';
 import fromUnixTime from 'date-fns/fromUnixTime';
-import getUnixTime from 'date-fns/getUnixTime';
 import startOfHour from 'date-fns/startOfHour';
 import sub from 'date-fns/sub';
 import { ViewContext } from 'view';
-import { dispatchMessageEvent } from '../components/message';
-import { localize } from '../localize/localize';
-import { CameraConfig, ExtendedHomeAssistant, FrigateBrowseMediaSource } from '../types';
-import { View } from '../view';
-import { formatDateAndTime, prettifyTitle } from './basic';
-import { getRecordingMediaContentID } from './frigate';
-import {
-  createChild,
-  createEventParentForChildren,
-  sortYoungestToOldest,
-} from './ha/browse-media';
-import {
-  RecordingSegmentsItem,
-  sortOldestToYoungest,
-  DataManager,
-} from './data-manager';
-import { getAllDependentCameras, getTrueCameras } from './camera.js';
+import { CameraConfig, ClipsOrSnapshotsOrAll, FrigateCardView } from '../types';
+import { EventMediaQueries, RecordingMediaQueries, View } from '../view';
+import { RecordingSegments } from './frigate';
+import { DataManager } from './data/data-manager';
+import { getAllDependentCameras } from './camera.js';
+import { ViewMedia, ViewMediaClassifier } from '../view-media';
+import { HomeAssistant } from 'custom-card-helpers';
+
+export const changeViewToRecentEventsForCameraAndDependents = async (
+  element: HTMLElement,
+  hass: HomeAssistant,
+  dataManager: DataManager,
+  cameras: Map<string, CameraConfig>,
+  view: View,
+  options?: {
+    mediaType?: ClipsOrSnapshotsOrAll;
+    targetView?: FrigateCardView;
+  },
+): Promise<void> => {
+  (
+    await createViewForEvents(hass, dataManager, cameras, view, {
+      ...options,
+      limit: 50, // Capture the 50 most recent events.
+    })
+  ).dispatchChangeEvent(element);
+};
+
+export const createViewForEvents = async (
+  hass: HomeAssistant,
+  dataManager: DataManager,
+  cameras: Map<string, CameraConfig>,
+  view: View,
+  options?: {
+    query?: EventMediaQueries;
+    cameraIDs?: Set<string>;
+    mediaType?: ClipsOrSnapshotsOrAll;
+    targetView?: FrigateCardView;
+    limit?: number;
+  },
+): Promise<View> => {
+  let query: EventMediaQueries;
+  if (options?.query) {
+    query = options.query;
+  } else {
+    const cameraIDs: Set<string> = options?.cameraIDs
+      ? options.cameraIDs
+      : new Set(getAllDependentCameras(cameras, view.camera));
+
+    const queries = dataManager.generateDefaultEventQueries(cameraIDs, {
+      ...(options?.limit && { limit: options.limit }),
+      ...((!options?.mediaType || ['clips', 'all'].includes(options.mediaType)) && {
+        has_clip: true,
+      }),
+      ...(options?.mediaType === 'snapshots' && { has_snapshot: true }),
+    });
+    query = new EventMediaQueries(queries);
+  }
+  const queryResults = await dataManager.executeMediaQuery(hass, query);
+
+  return view?.evolve({
+    view: options?.targetView,
+    query: query,
+    queryResults: queryResults,
+  });
+};
 
 /**
  * Change the view to a recent recording.
@@ -34,7 +80,7 @@ import { getAllDependentCameras, getTrueCameras } from './camera.js';
  */
 export const changeViewToRecentRecordingForCameraAndDependents = async (
   element: HTMLElement,
-  hass: ExtendedHomeAssistant,
+  hass: HomeAssistant,
   dataManager: DataManager,
   cameras: Map<string, CameraConfig>,
   view: View,
@@ -43,20 +89,19 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
   },
 ): Promise<void> => {
   const now = new Date();
-
-  await changeViewToRecording(element, hass, dataManager, cameras, view, {
-    ...options,
-
-    // Fetch 1 days worth of recordings (including recordings that are for the current hour).
-    cameraIDs: getAllDependentCameras(cameras, view.camera),
-    start: sub(now, { days: 1 }),
-    end: add(now, { hours: 1 }),
-  });
+  (
+    await createViewForRecordings(hass, dataManager, cameras, view, {
+      ...options,
+      // Fetch 7 days worth of recordings (including recordings that are for the
+      // current hour).
+      start: sub(now, { days: 7 }),
+      end: add(now, { hours: 1 }),
+    })
+  ).dispatchChangeEvent(element);
 };
 
 /**
- * Change the view to a recording.
- * @param element The element to dispatch the view change from.
+ * Create a view for recordings.
  * @param hass The Home Assistant object.
  * @param dataManager The datamanager to use for data access.
  * @param cameras The camera configurations.
@@ -65,9 +110,8 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
  * targetTime to seek to, a targetView to dispatch to and a set of cameraIDs to
  * restrict to.
  */
-export const changeViewToRecording = async (
-  element: HTMLElement,
-  hass: ExtendedHomeAssistant,
+export const createViewForRecordings = async (
+  hass: HomeAssistant,
   dataManager: DataManager,
   cameras: Map<string, CameraConfig>,
   view: View,
@@ -78,165 +122,104 @@ export const changeViewToRecording = async (
     start?: Date;
     end?: Date;
   },
-): Promise<void> => {
-  if (options && options.start && options.end) {
-    await dataManager.fetchIfNecessary(element, hass, options.start, options.end);
-  }
-
+): Promise<View> => {
   const cameraIDs: Set<string> = options?.cameraIDs
     ? options.cameraIDs
-    : new Set([view.camera]);
-  const children = createRecordingChildren(dataManager, cameras, cameraIDs, {
-    ...(options?.start && options?.end && { start: options.start, end: options.end }),
+    : new Set(getAllDependentCameras(cameras, view.camera));
+
+  const queries = dataManager.generateDefaultRecordingQueries(cameraIDs, {
+    ...(options?.start && { start: options.start }),
+    ...(options?.end && { end: options.end }),
   });
 
-  if (!children.length) {
-    return dispatchMessageEvent(element, localize('common.no_recording'), 'info', {
-      icon: 'mdi:album',
-    });
+  const query = new RecordingMediaQueries(queries);
+  const queryResults = await dataManager.executeMediaQuery(hass, query);
+
+  let viewerContext: ViewContext | undefined = {};
+  const mediaArray = queryResults?.getResults();
+  if (queryResults && mediaArray && options?.targetTime) {
+    queryResults.selectBestResult((media) =>
+      findClosestMediaIndex(media, options.targetTime as Date, cameraIDs),
+    );
+    viewerContext = await generateMediaViewerContext(
+      hass,
+      dataManager,
+      mediaArray,
+      options.targetTime,
+    );
   }
 
-  const viewerContext = options?.targetTime
-    ? generateMediaViewerContextForChildren(dataManager, children, options.targetTime)
-    : {};
-  const childIndex = options?.targetTime
-    ? findChildIndex(children, options.targetTime, cameraIDs)
-    : null;
-  const child = childIndex !== null ? children[childIndex] ?? null : null;
-
-  view
-    ?.evolve({
-      view: options?.targetView ? options.targetView : 'recording',
-      target: createEventParentForChildren(localize('common.recordings'), children),
-      childIndex: childIndex ?? 0,
-      ...(child?.frigate?.cameraID && { camera: child.frigate?.cameraID }),
-    })
-    .mergeInContext(viewerContext)
-    .dispatchChangeEvent(element);
-};
-
-/**
- * Create recording objects.
- * @param dataManager The datamanager to use for data access.
- * @param cameras The camera configurations.
- * @param cameraIDs The camera IDs to include recordings for.
- * @param options A specific window (start and end) to allow recordings for.
- * @returns
- */
-const createRecordingChildren = (
-  dataManager: DataManager,
-  cameras: Map<string, CameraConfig>,
-  cameraIDs: Set<string>,
-  options?: {
-    start?: Date;
-    end?: Date;
-  },
-): FrigateBrowseMediaSource[] => {
-  const children: FrigateBrowseMediaSource[] = [];
-
-  for (const cameraID of getTrueCameras(cameras, cameraIDs)) {
-    const config = cameras.get(cameraID) ?? null;
-    const recordingSummary = dataManager.getRecordingSummaryForCamera(cameraID);
-    if (!config?.frigate.camera_name || !recordingSummary) {
-      continue;
-    }
-
-    for (const dayData of recordingSummary) {
-      for (const hourData of dayData.hours) {
-        const hour = add(dayData.day, { hours: hourData.hour });
-        const startHour = startOfHour(hour);
-        const endHour = endOfHour(hour);
-
-        if (
-          (!options?.start || startHour >= options.start) &&
-          (!options?.end || endHour <= options.end)
-        ) {
-          children.push(
-            createChild(
-              `${prettifyTitle(config.frigate.camera_name)} ${formatDateAndTime(hour)}`,
-              getRecordingMediaContentID({
-                clientId: config.frigate.client_id,
-                year: dayData.day.getFullYear(),
-                month: dayData.day.getMonth() + 1,
-                day: dayData.day.getDate(),
-                hour: hourData.hour,
-                cameraName: config.frigate.camera_name,
-              }),
-              {
-                recording: {
-                  camera: config.frigate.camera_name,
-                  start_time: getUnixTime(startHour),
-                  end_time: getUnixTime(endHour),
-                  events: hourData.events,
-                },
-                cameraID: cameraID,
-              },
-            ),
-          );
-        }
-      }
-    }
-  }
-  // Sort the events by time (to align recordings for different cameras at the
-  // same time).
-  return children.sort(sortYoungestToOldest);
+  return (
+    view
+      ?.evolve({
+        view: options?.targetView ? options.targetView : 'recording',
+        query: query,
+        queryResults: queryResults,
+      })
+      .mergeInContext(viewerContext) ?? null
+  );
 };
 
 /**
  * Generate the media view context for a set of media children (used to set
  * seek times into each media item).
+ * @param hass The Home Assistant object.
  * @param dataManager The datamanager to use for data access.
- * @param children The media children.
+ * @param media The media.
  * @param targetTime The target time.
  * @returns The ViewContext.
  */
-export const generateMediaViewerContextForChildren = (
+export const generateMediaViewerContext = async (
+  hass: HomeAssistant,
   dataManager: DataManager,
-  children: FrigateBrowseMediaSource[],
+  media: ViewMedia[],
   targetTime: Date,
-): ViewContext => {
+): Promise<ViewContext> => {
   const seek = new Map();
-  const segmentsDataset = dataManager.recordingSegments;
   const hourStart = startOfHour(targetTime);
 
-  children.forEach((child, index) => {
-    const source = child.frigate?.recording ?? child.frigate?.event;
-    if (source && source.end_time && child.frigate?.cameraID) {
-      const start = source.start_time * 1000;
-      const end = source.end_time * 1000;
-      let seekSeconds: number | null = null;
+  for (const [index, child] of media.entries()) {
+    if (!ViewMediaClassifier.isMediaWithStartEndTime(child)) {
+      continue;
+    }
 
-      if (targetTime.getTime() >= start && targetTime.getTime() <= end) {
-        const segments = segmentsDataset.get({
-          filter: (segment) =>
-            segment.cameraID === child.frigate?.cameraID &&
-            segment.start >= start &&
-            segment.end <= end,
-          order: sortOldestToYoungest,
-        });
+    const start = child.getStartTime();
+    const end = child.getEndTime();
+    let seekSeconds: number | null = null;
+
+    if (targetTime >= start && targetTime <= end) {
+      const query = dataManager.generateDefaultRecordingSegmentsQueries(
+        child.getCameraID(),
+        {
+          start: start,
+          end: end,
+        },
+      )[0];
+      const segments = (await dataManager.getRecordingSegments(hass, query)).get(query);
+
+      if (segments) {
         seekSeconds = getSeekTimeInSegments(
           // Recordings start from the top of the hour.
-          child.frigate.recording ? hourStart : fromUnixTime(source.start_time),
+          child.isRecording() ? hourStart : start,
           targetTime,
-          segments,
+          segments.segments,
         );
       }
-
-      if (seekSeconds !== null) {
-        seek.set(index, {
-          seekSeconds: seekSeconds,
-          seekTime: targetTime.getTime() / 1000,
-        });
-      }
     }
-  });
+
+    if (seekSeconds !== null) {
+      seek.set(index, {
+        seekSeconds: seekSeconds,
+        seekTime: targetTime.getTime() / 1000,
+      });
+    }
+  }
   return seek.size > 0 ? { mediaViewer: { seek: seek } } : {};
 };
 
 /**
- * Find the relevant recording child given a date target.
- * @param children The FrigateBrowseMediaSource[] children. Must be sorted
- * most recent first.
+ * Find the closest matching media object.
+ * @param mediaArray The media. Must be sorted most recent first.
  * @param targetTime The target time used to find the relevant child.
  * @param cameraIDs The camera IDs to search for.
  * @param refPoint Whether to find based on the start or end of the
@@ -244,8 +227,8 @@ export const generateMediaViewerContextForChildren = (
  * the best match.
  * @returns The childindex or null if no matching child is found.
  */
-export const findChildIndex = (
-  children: FrigateBrowseMediaSource[],
+export const findClosestMediaIndex = (
+  mediaArray: ViewMedia[],
   targetTime: Date,
   cameraIDs: Set<string>,
   refPoint?: 'start' | 'end',
@@ -257,27 +240,28 @@ export const findChildIndex = (
       }
     | undefined;
 
-  for (let i = 0; i < children.length; ++i) {
-    const child = children[i];
-    if (child.frigate?.cameraID && cameraIDs.has(child.frigate.cameraID)) {
-      const source = child.frigate.event ?? child.frigate.recording;
-      if (!source?.start_time || !source?.end_time) {
-        continue;
-      }
-      const startTime = fromUnixTime(source.start_time);
-      const endTime = fromUnixTime(source.end_time);
+  for (let i = 0; i < mediaArray.length; ++i) {
+    const media = mediaArray[i];
+    if (
+      !cameraIDs.has(media.getCameraID()) ||
+      !ViewMediaClassifier.isMediaWithStartEndTime(media)
+    ) {
+      continue;
+    }
 
-      if (startTime <= targetTime && endTime >= targetTime) {
-        if (!refPoint) {
-          return i;
-        }
-        const delta =
-          refPoint === 'end'
-            ? endTime.getTime() - targetTime.getTime()
-            : targetTime.getTime() - startTime.getTime();
-        if (!bestMatch || delta < bestMatch.delta) {
-          bestMatch = { index: i, delta: delta };
-        }
+    const startTime = media.getStartTime();
+    const endTime = media.getEndTime();
+
+    if (startTime <= targetTime && endTime >= targetTime) {
+      if (!refPoint) {
+        return i;
+      }
+      const delta =
+        refPoint === 'end'
+          ? endTime.getTime() - targetTime.getTime()
+          : targetTime.getTime() - startTime.getTime();
+      if (!bestMatch || delta < bestMatch.delta) {
+        bestMatch = { index: i, delta: delta };
       }
     }
   }
@@ -295,7 +279,7 @@ export const findChildIndex = (
 const getSeekTimeInSegments = (
   startTime: Date,
   targetTime: Date,
-  segments: RecordingSegmentsItem[],
+  segments: RecordingSegments,
 ): number | null => {
   if (!segments.length) {
     return null;
@@ -304,13 +288,14 @@ const getSeekTimeInSegments = (
 
   // Inspired by: https://github.com/blakeblackshear/frigate/blob/release-0.11.0/web/src/routes/Recording.jsx#L27
   for (const segment of segments) {
-    if (segment.start > targetTime.getTime()) {
+    const segmentStart = fromUnixTime(segment.start_time);
+    if (segmentStart > targetTime) {
       break;
     }
-    const start =
-      segment.start < startTime.getTime() ? startTime.getTime() : segment.start;
-    const end = segment.end > targetTime.getTime() ? targetTime.getTime() : segment.end;
-    seekMilliseconds += end - start;
+    const segmentEnd = fromUnixTime(segment.end_time);
+    const start = segmentStart < startTime ? startTime : segmentStart;
+    const end = segmentEnd > targetTime ? targetTime : segmentEnd;
+    seekMilliseconds += end.getTime() - start.getTime();
   }
   return seekMilliseconds / 1000;
 };

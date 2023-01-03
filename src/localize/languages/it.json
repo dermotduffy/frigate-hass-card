@@ -303,7 +303,6 @@
     "could_not_render_elements": "Impossibile renderizzare gli elementi dell'immagine",
     "could_not_resolve": "Impossibile risolvere l'URL dei media",
     "diagnostics": "Diagnostica delle carte.Si prega di rivedere per informazioni riservate prima di condividere",
-    "download_no_event_id": "Impossibile estrarre l'evento ID tramite media",
     "download_no_media": "Nessun media da scaricare",
     "download_sign_failed": "Impossibile firmare URL multimediale per il download",
     "duplicate_camera_id": "Duplicato ID dellla telecamera Frigate, utilizzare il parametro 'ID' per identificare in modo univoco le telecamere",

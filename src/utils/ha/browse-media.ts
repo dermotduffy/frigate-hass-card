@@ -1,11 +1,6 @@
 import { HomeAssistant } from 'custom-card-helpers';
-import { ViewContext } from 'view';
 import { homeAssistantWSRequest } from '.';
-import {
-  dispatchErrorMessageEvent,
-  dispatchFrigateCardErrorEvent,
-  dispatchMessageEvent,
-} from '../../components/message.js';
+import { dispatchErrorMessageEvent } from '../../components/message.js';
 import { localize } from '../../localize/localize.js';
 import {
   BrowseMediaQueryParameters,
@@ -14,7 +9,6 @@ import {
   ClipsOrSnapshots,
   FrigateBrowseMediaSource,
   frigateBrowseMediaSourceSchema,
-  FrigateCardError,
   FrigateEvent,
   FrigateRecording,
   MEDIA_CLASS_PLAYLIST,
@@ -22,7 +16,6 @@ import {
   MEDIA_TYPE_PLAYLIST,
   MEDIA_TYPE_VIDEO,
 } from '../../types.js';
-import { View } from '../../view.js';
 import { getAllDependentCameras, getCameraTitle } from '../camera.js';
 
 /**
@@ -119,7 +112,7 @@ const browseMediaQuery = async (
   if (params.cameraID) {
     result.children?.forEach((child: FrigateBrowseMediaSource) => {
       (child.frigate ??= {}).cameraID = params.cameraID;
-    })
+    });
   }
   return result;
 };
@@ -185,7 +178,10 @@ export const mergeFrigateBrowseMediaSources = async (
     }
   }
 
-  return createEventParentForChildren('Merged events', children.sort(sortYoungestToOldest));
+  return createEventParentForChildren(
+    'Merged events',
+    children.sort(sortYoungestToOldest),
+  );
 };
 
 /**
@@ -291,81 +287,6 @@ export const getFullDependentBrowseMediaQueryParametersOrDispatchError = (
 };
 
 /**
- * Fetch the latest media and dispatch a change view event to reflect the
- * results. If no media is found a suitable message event will be triggered
- * instead.
- * @param element The HTMLElement to dispatch events from.
- * @param hass The Home Assistant object.
- * @param view The current view to evolve.
- * @param browseMediaQueryParameters The media parameters to query with.
- * @returns
- */
-export const fetchLatestMediaAndDispatchViewChange = async (
-  element: HTMLElement,
-  hass: HomeAssistant,
-  view: Readonly<View>,
-  browseMediaQueryParameters: BrowseMediaQueryParameters | BrowseMediaQueryParameters[],
-): Promise<void> => {
-  let parent: FrigateBrowseMediaSource | null;
-  try {
-    parent = await multipleBrowseMediaQueryMerged(hass, browseMediaQueryParameters);
-  } catch (e) {
-    return dispatchFrigateCardErrorEvent(element, e as FrigateCardError);
-  }
-  const childIndex = getFirstTrueMediaChildIndex(parent);
-  if (!parent || !parent.children || childIndex == null) {
-    return dispatchMessageEvent(
-      element,
-      view.isClipRelatedView()
-        ? localize('common.no_clip')
-        : localize('common.no_snapshot'),
-      'info',
-      {
-        icon: view.isClipRelatedView() ? 'mdi:filmstrip-off' : 'mdi:camera-off',
-      },
-    );
-  }
-
-  view
-    .evolve({
-      target: parent,
-      childIndex: childIndex,
-    })
-    .dispatchChangeEvent(element);
-};
-
-/**
- * Fetch the media of a child FrigateBrowseMediaSource object and dispatch a change
- * view event to reflect the results.
- * @param node The HTMLElement to dispatch events from.
- * @param hass The Home Assistant object.
- * @param view The current view to evolve.
- * @param child The FrigateBrowseMediaSource child to query for.
- * @returns
- */
-export const fetchChildMediaAndDispatchViewChange = async (
-  element: HTMLElement,
-  hass: HomeAssistant,
-  view: Readonly<View>,
-  child: Readonly<FrigateBrowseMediaSource>,
-  context?: ViewContext,
-): Promise<void> => {
-  let parent: FrigateBrowseMediaSource;
-  try {
-    parent = await browseMedia(hass, child.media_content_id);
-  } catch (e) {
-    return dispatchFrigateCardErrorEvent(element, e as FrigateCardError);
-  }
-
-  view
-    .evolve({
-      target: parent,
-    })
-    .mergeInContext(context)
-    .dispatchChangeEvent(element);
-};
-
-/**
  * Given an array of media children, create a parent for them.
  * @param title The title to use for the parent.
  * @param children The children media items.
@@ -402,7 +323,7 @@ export const createChild = (
     thumbnail?: string;
     recording?: FrigateRecording;
     event?: FrigateEvent;
-    cameraID?: string,
+    cameraID?: string;
   },
 ): FrigateBrowseMediaSource => {
   const result: FrigateBrowseMediaSource = {
@@ -413,10 +334,10 @@ export const createChild = (
     can_play: true,
     can_expand: false,
     thumbnail: options?.thumbnail ?? null,
-    children: null
-  }
+    children: null,
+  };
   if (options?.recording || options?.cameraID || options?.event) {
-    result.frigate = {}
+    result.frigate = {};
     if (options?.event) {
       result.frigate.event = options.event;
     }
@@ -443,38 +364,12 @@ export const sortYoungestToOldest = (
   const a_source = a.frigate?.event ?? a.frigate?.recording;
   const b_source = b.frigate?.event ?? b.frigate?.recording;
 
-  if (
-    !a_source ||
-    (b_source && b_source.start_time > a_source.start_time)
-  ) {
+  if (!a_source || (b_source && b_source.start_time > a_source.start_time)) {
     return 1;
   }
 
-  if (
-    !b_source ||
-    (a_source && b_source.start_time < a_source.start_time)
-  ) {
+  if (!b_source || (a_source && b_source.start_time < a_source.start_time)) {
     return -1;
   }
   return 0;
-};
-/**
- * Generate a recording identifier.
- * @param hass The HomeAssistant object.
- * @param params The recording parameters to use in the identifer.
- * @returns A recording identifier.
- */
-export const generateRecordingIdentifier = (
-  params: BrowseRecordingQueryParameters,
-): string => {
-  return [
-    'media-source://frigate',
-    params.clientId,
-    'recordings',
-    params.cameraName,
-    `${params.year}-${String(params.month).padStart(2, '0')}-${String(
-      params.day,
-    ).padStart(2, '0')}`,
-    String(params.hour).padStart(2, '0'),
-  ].join('/');
 };
