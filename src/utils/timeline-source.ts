@@ -4,17 +4,13 @@ import sub from 'date-fns/sub';
 import { DataSet } from 'vis-data';
 import { IdType, TimelineItem, TimelineWindow } from 'vis-timeline/esnext';
 import { CameraConfig, ClipsOrSnapshotsOrAll } from '../types';
-import { DataManager } from './data/data-manager';
-import { EventQuery } from './data/data-types';
+import { CameraManager } from '../camera/manager';
+import { EventQuery } from '../camera/types';
 import { RecordingSegment, RecordingSegments } from './frigate';
-import { capEndDate, convertRangeToCacheFriendlyTimes } from './data/data-manager-util';
+import { capEndDate, convertRangeToCacheFriendlyTimes } from '../camera/util';
 import { EventMediaQueries } from '../view';
 import { ViewMedia } from '../view-media';
-import {
-  compressRanges,
-  ExpiringMemoryRangeSet,
-  MemoryRangeSet,
-} from './data/data-manager-range';
+import { compressRanges, ExpiringMemoryRangeSet, MemoryRangeSet } from '../camera/range';
 import { ModifyInterface } from './basic';
 
 // Allow timeline freshness to be at least this number of seconds out of date
@@ -36,7 +32,7 @@ export interface FrigateCardTimelineItem extends TimelineItem {
 }
 
 export class TimelineDataSource {
-  protected _dataManager: DataManager;
+  protected _cameraManager: CameraManager;
   protected _dataset: DataSet<FrigateCardTimelineItem> = new DataSet();
 
   // The ranges in which recordings have been calculated and added for.
@@ -53,11 +49,11 @@ export class TimelineDataSource {
   protected _mediaType: ClipsOrSnapshotsOrAll;
 
   constructor(
-    dataManager: DataManager,
+    cameraManager: CameraManager,
     cameraIDs: Set<string>,
     media: ClipsOrSnapshotsOrAll,
   ) {
-    this._dataManager = dataManager;
+    this._cameraManager = cameraManager;
     this._cameraIDs = cameraIDs;
     this._mediaType = media;
   }
@@ -108,7 +104,7 @@ export class TimelineDataSource {
   }
 
   public getTimelineEventQueries(window: TimelineWindow): EventQuery[] {
-    return this._dataManager.generateDefaultEventQueries(this._cameraIDs, {
+    return this._cameraManager.generateDefaultEventQueries(this._cameraIDs, {
       start: window.start,
       end: window.end,
       ...(this._mediaType === 'clips' && { hasClip: true }),
@@ -137,7 +133,7 @@ export class TimelineDataSource {
       this.getTimelineEventQueries(cacheFriendlyWindow),
     );
 
-    const results = await this._dataManager.executeMediaQuery(hass, query);
+    const results = await this._cameraManager.executeMediaQuery(hass, query);
     for (const media of results?.getResults() ?? []) {
       const endTime = media.getEndTime();
       const startTime = media.getStartTime();
@@ -222,7 +218,7 @@ export class TimelineDataSource {
       endCap: true,
     });
 
-    const queries = this._dataManager.generateDefaultRecordingSegmentsQueries(
+    const queries = this._cameraManager.generateDefaultRecordingSegmentsQueries(
       this._cameraIDs,
       {
         start: cacheFriendlyWindow.start,
@@ -230,7 +226,7 @@ export class TimelineDataSource {
       },
     );
 
-    const results = await this._dataManager.getRecordingSegments(hass, queries);
+    const results = await this._cameraManager.getRecordingSegments(hass, queries);
 
     const newSegments: Map<string, RecordingSegments> = new Map();
     for (const [query, result] of results) {

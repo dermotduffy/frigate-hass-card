@@ -3,11 +3,11 @@ import add from 'date-fns/add';
 import endOfHour from 'date-fns/endOfHour';
 import getUnixTime from 'date-fns/getUnixTime';
 import startOfHour from 'date-fns/startOfHour';
-import { CAMERA_BIRDSEYE } from '../../const';
-import { CameraConfig, FrigateRecording } from '../../types';
-import { MediaQueries, MediaQueriesResults } from '../../view';
-import { ViewMedia, ViewMediaClassifier, ViewMediaFactory } from '../../view-media';
-import { errorToConsole } from '../basic';
+import { CAMERA_BIRDSEYE } from '../const';
+import { CameraConfig, FrigateRecording } from '../types';
+import { MediaQueries, MediaQueriesResults } from '../view';
+import { ViewMedia, ViewMediaClassifier, ViewMediaFactory } from '../view-media';
+import { errorToConsole } from '../utils/basic';
 import {
   getEvents,
   getRecordingSegments,
@@ -17,14 +17,14 @@ import {
   RecordingSegments,
   RecordingSummary,
   retainEvent,
-} from '../frigate';
-import { RecordingSegmentsCache } from './data-manager-cache';
+} from '../utils/frigate';
+import { RecordingSegmentsCache } from './cache';
 import {
-  DataManagerEngine,
-  DATA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
-} from './data-manager-engine';
-import { DataManagerError } from './data-manager-error';
-import { DateRange } from './data-manager-range';
+  CameraManagerEngine,
+  CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
+} from './engine';
+import { CameraManagerError } from './error';
+import { DateRange } from './range';
 import {
   Engine,
   EventQuery,
@@ -40,7 +40,7 @@ import {
   QueryType,
   RecordingQuery,
   RecordingSegmentsQuery,
-} from './data-types';
+} from './types';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
@@ -70,7 +70,7 @@ class FrigateQueryResultsClassifier {
   }
 }
 
-export class FrigateDataManagerEngine implements DataManagerEngine {
+export class FrigateCameraManagerEngine implements CameraManagerEngine {
   protected _recordingSegmentsCache: RecordingSegmentsCache;
 
   constructor(recordingSegmentsCache: RecordingSegmentsCache) {
@@ -157,7 +157,7 @@ export class FrigateDataManagerEngine implements DataManagerEngine {
       await retainEvent(hass, clientID, media.getID(cameraConfig), favorite);
     } catch (e) {
       errorToConsole(e as Error);
-      throw new DataManagerError((e as Error).message);
+      throw new CameraManagerError((e as Error).message);
     }
 
     media.setFavorite(favorite);
@@ -183,7 +183,7 @@ export class FrigateDataManagerEngine implements DataManagerEngine {
       ...(query?.limit && { limit: query.limit }),
       ...(query?.hasClip && { has_clip: query.hasClip }),
       ...(query?.hasSnapshot && { has_snapshot: query.hasSnapshot }),
-      limit: query?.limit ?? DATA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
+      limit: query?.limit ?? CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
     };
 
     try {
@@ -196,7 +196,7 @@ export class FrigateDataManagerEngine implements DataManagerEngine {
       return result;
     } catch (e) {
       errorToConsole(e as Error);
-      throw new DataManagerError((e as Error).message, query);
+      throw new CameraManagerError((e as Error).message, query);
     }
   }
 
@@ -222,7 +222,7 @@ export class FrigateDataManagerEngine implements DataManagerEngine {
       );
     } catch (e) {
       errorToConsole(e as Error);
-      throw new DataManagerError((e as Error).message, query);
+      throw new CameraManagerError((e as Error).message, query);
     }
 
     const recordings: FrigateRecording[] = [];
@@ -295,7 +295,7 @@ export class FrigateDataManagerEngine implements DataManagerEngine {
       segments = await getRecordingSegments(hass, request);
     } catch (e) {
       errorToConsole(e as Error);
-      throw new DataManagerError((e as Error).message, query);
+      throw new CameraManagerError((e as Error).message, query);
     }
 
     this._recordingSegmentsCache.add(query.cameraID, range, segments);

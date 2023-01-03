@@ -16,7 +16,7 @@ import {
   ThumbnailsControlConfig,
 } from '../types.js';
 import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
-import { DataManager } from '../utils/data/data-manager.js';
+import { CameraManager } from '../camera/manager.js';
 import { View } from '../view.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 import './surround-basic.js';
@@ -58,7 +58,7 @@ export class FrigateCardSurround extends LitElement {
   public cameras?: Map<string, CameraConfig>;
 
   @property({ attribute: false })
-  public dataManager?: DataManager;
+  public cameraManager?: CameraManager;
 
   /**
    * Fetch thumbnail media when a target is not specified in the view (e.g. for
@@ -69,7 +69,7 @@ export class FrigateCardSurround extends LitElement {
   protected async _fetchMedia(): Promise<void> {
     if (
       !this.cameras ||
-      !this.dataManager ||
+      !this.cameraManager ||
       !this.fetchMedia ||
       this.inBackground ||
       !this.hass ||
@@ -84,7 +84,7 @@ export class FrigateCardSurround extends LitElement {
     await changeViewToRecentEventsForCameraAndDependents(
       this,
       this.hass,
-      this.dataManager,
+      this.cameraManager,
       this.cameras,
       this.view,
       {
@@ -156,7 +156,7 @@ export class FrigateCardSurround extends LitElement {
             slot=${this.thumbnailConfig.mode}
             .hass=${this.hass}
             .config=${this.thumbnailConfig}
-            .dataManager=${this.dataManager}
+            .cameraManager=${this.cameraManager}
             .view=${this.view}
             .cameras=${this.cameras}
             .selected=${this.view.queryResults?.getSelectedIndex() ?? undefined}
@@ -194,7 +194,7 @@ export class FrigateCardSurround extends LitElement {
             .timelineConfig=${this.timelineConfig}
             .thumbnailDetails=${this.thumbnailConfig?.show_details}
             .thumbnailSize=${this.thumbnailConfig?.size}
-            .dataManager=${this.dataManager}
+            .cameraManager=${this.cameraManager}
           >
           </frigate-card-timeline-core>`
         : ''}

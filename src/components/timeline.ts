@@ -2,7 +2,7 @@ import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import timelineStyle from '../scss/timeline.scss';
 import { CameraConfig, ExtendedHomeAssistant, TimelineConfig } from '../types';
-import { DataManager } from '../utils/data/data-manager';
+import { CameraManager } from '../camera/manager';
 import { View } from '../view';
 import './surround.js';
 import './timeline-core.js';
@@ -27,7 +27,7 @@ export class FrigateCardTimeline extends LitElement {
   public timelineConfig?: TimelineConfig;
 
   @property({ attribute: false })
-  public dataManager?: DataManager;
+  public cameraManager?: CameraManager;
 
   /**
    * Master render method.
@@ -51,7 +51,7 @@ export class FrigateCardTimeline extends LitElement {
         .timelineConfig=${this.timelineConfig}
         .thumbnailDetails=${this.timelineConfig.controls.thumbnails.show_details}
         .thumbnailSize=${this.timelineConfig.controls.thumbnails.size}
-        .dataManager=${this.dataManager}
+        .cameraManager=${this.cameraManager}
       >
       </frigate-card-timeline-core>
     </frigate-card-surround>`;

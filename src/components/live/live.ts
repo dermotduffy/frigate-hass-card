@@ -51,7 +51,7 @@ import '../surround.js';
 import { EmblaCarouselPlugins } from '../carousel.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../../utils/media-layout.js';
-import { DataManager } from '../../utils/data/data-manager.js';
+import { CameraManager } from '../../camera/manager.js';
 import { HomeAssistant } from 'custom-card-helpers';
 import { dispatchMessageEvent, dispatchErrorMessageEvent } from '../message.js';
 import { HassEntity } from 'home-assistant-js-websocket';
@@ -115,7 +115,7 @@ export class FrigateCardLive extends LitElement {
   public liveOverrides?: LiveOverrides;
 
   @property({ attribute: false })
-  public dataManager?: DataManager;
+  public cameraManager?: CameraManager;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -231,7 +231,7 @@ export class FrigateCardLive extends LitElement {
         .thumbnailConfig=${config.controls.thumbnails}
         .timelineConfig=${config.controls.timeline}
         .cameras=${this.cameras}
-        .dataManager=${this.dataManager}
+        .cameraManager=${this.cameraManager}
         .inBackground=${this._inBackground}
         @frigate-card:message=${(ev: CustomEvent<Message>) => {
           this._renderKey++;

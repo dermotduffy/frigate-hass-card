@@ -1,9 +1,9 @@
 import isEqual from 'lodash-es/isEqual';
 import orderBy from 'lodash-es/orderBy';
 import sortedUniqBy from 'lodash-es/sortedUniqBy';
-import { RecordingSegment, RecordingSegments } from '../frigate';
-import { DateRange, MemoryRangeSet } from './data-manager-range';
-import { DataQuery, QueryResults } from './data-types';
+import { RecordingSegment, RecordingSegments } from '../utils/frigate';
+import { DateRange, MemoryRangeSet } from './range';
+import { DataQuery, QueryResults } from './types';
 
 interface RequestCacheItem<Request, Response> {
   request: Request;
@@ -11,14 +11,14 @@ interface RequestCacheItem<Request, Response> {
   expires?: Date;
 }
 
-interface DataManagerCache<Request, Response> {
+interface CameraManagerCache<Request, Response> {
   get(request: Request): Response | null;
   has(request: Request): boolean;
   set(request: Request, response: Response, expiry?: Date): void;
 }
 
 export class MemoryRequestCache<Request, Response>
-  implements DataManagerCache<Request, Response>
+  implements CameraManagerCache<Request, Response>
 {
   protected _data: RequestCacheItem<Request, Response>[] = [];
 

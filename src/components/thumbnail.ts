@@ -19,7 +19,7 @@ import { TaskStatus } from '@lit-labs/task';
 
 import type { CameraConfig, ExtendedHomeAssistant } from '../types.js';
 import { ViewMedia } from '../view-media.js';
-import { DataManager } from '../utils/data/data-manager.js';
+import { CameraManager } from '../camera/manager.js';
 
 // The minimum width of a thumbnail with details enabled.
 export const THUMBNAIL_DETAILS_WIDTH_MIN = 300;
@@ -221,9 +221,9 @@ export class FrigateCardThumbnail extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
-  // DataManager used for marking media as favorite.
+  // CameraManager used for marking media as favorite.
   @property({ attribute: false })
-  public dataManager?: DataManager;
+  public cameraManager?: CameraManager;
 
   @property({ attribute: true })
   public media?: ViewMedia;
@@ -296,7 +296,7 @@ export class FrigateCardThumbnail extends LitElement {
             @click=${(ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
               if (this.hass && this.cameraConfig && this.media) {
-                this.dataManager?.favoriteMedia(
+                this.cameraManager?.favoriteMedia(
                   this.hass,
                   this.cameraConfig,
                   this.media,

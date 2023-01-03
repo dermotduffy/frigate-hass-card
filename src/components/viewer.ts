@@ -46,7 +46,7 @@ import '../patches/ha-hls-player';
 import './surround.js';
 import { renderTask } from '../utils/task.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
-import { DataManager } from '../utils/data/data-manager.js';
+import { CameraManager } from '../camera/manager.js';
 import {
   changeViewToRecentEventsForCameraAndDependents,
   changeViewToRecentRecordingForCameraAndDependents,
@@ -92,7 +92,7 @@ export class FrigateCardViewer extends LitElement {
   public resolvedMediaCache?: ResolvedMediaCache;
 
   @property({ attribute: false })
-  public dataManager?: DataManager;
+  public cameraManager?: CameraManager;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -107,7 +107,7 @@ export class FrigateCardViewer extends LitElement {
       !this.view ||
       !this.cameras ||
       !this.viewerConfig ||
-      !this.dataManager
+      !this.cameraManager
     ) {
       return;
     }
@@ -134,7 +134,7 @@ export class FrigateCardViewer extends LitElement {
         changeViewToRecentRecordingForCameraAndDependents(
           this,
           this.hass,
-          this.dataManager,
+          this.cameraManager,
           this.cameras,
           this.view,
           {
@@ -145,7 +145,7 @@ export class FrigateCardViewer extends LitElement {
         changeViewToRecentEventsForCameraAndDependents(
           this,
           this.hass,
-          this.dataManager,
+          this.cameraManager,
           this.cameras,
           this.view,
           {
@@ -161,7 +161,7 @@ export class FrigateCardViewer extends LitElement {
       .view=${this.view}
       .thumbnailConfig=${this.viewerConfig.controls.thumbnails}
       .timelineConfig=${this.viewerConfig.controls.timeline}
-      .dataManager=${this.dataManager}
+      .cameraManager=${this.cameraManager}
       .cameras=${this.cameras}
     >
       <frigate-card-viewer-carousel

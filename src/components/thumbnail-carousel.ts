@@ -24,7 +24,7 @@ import { FrigateCardCarousel } from './carousel.js';
 import './thumbnail.js';
 import './carousel.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { DataManager } from '../utils/data/data-manager.js';
+import { CameraManager } from '../camera/manager.js';
 
 export interface ThumbnailCarouselTap {
   queryResults: MediaQueriesResults;
@@ -42,7 +42,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
   public cameras?: Map<string, CameraConfig>;
 
   @property({ attribute: false })
-  public dataManager?: DataManager;
+  public cameraManager?: CameraManager;
 
   protected _refCarousel: Ref<FrigateCardCarousel> = createRef();
 
@@ -161,7 +161,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
 
     return html` <frigate-card-thumbnail
       class="${classMap(classes)}"
-      .dataManager=${this.dataManager}
+      .cameraManager=${this.cameraManager}
       .hass=${this.hass}
       .media=${media}
       .cameraConfig=${cameraConfig}

@@ -1,7 +1,7 @@
 import { HomeAssistant } from 'custom-card-helpers';
-import { CameraConfig } from '../../types';
-import { MediaQueries, MediaQueriesResults } from '../../view';
-import { ViewMedia } from '../../view-media';
+import { CameraConfig } from '../types';
+import { MediaQueries, MediaQueriesResults } from '../view';
+import { ViewMedia } from '../view-media';
 import {
   EventQuery,
   PartialEventQuery,
@@ -10,11 +10,11 @@ import {
   QueryReturnType,
   RecordingQuery,
   RecordingSegmentsQuery,
-} from './data-types';
+} from './types';
 
-export const DATA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT = 10000;
+export const CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT = 10000;
 
-export interface DataManagerEngine {
+export interface CameraManagerEngine {
   generateDefaultEventQuery(
     cameraID: string,
     cameraConfig: CameraConfig,

@@ -91,10 +91,10 @@ import { isValidMediaLoadedInfo } from './utils/media-info.js';
 import { View } from './view.js';
 import pkg from '../package.json';
 import { ViewContext } from 'view';
-import { DataManager } from './utils/data/data-manager.js';
+import { CameraManager } from './camera/manager.js';
 import { setLowPerformanceProfile, setPerformanceCSSStyles } from './performance.js';
-import { DataManagerEngineFactory } from './utils/data/data-manager-engine-factory.js';
-import { RequestCache } from './utils/data/data-manager-cache.js';
+import { CameraManagerEngineFactory } from './camera/engine-factory.js';
+import { RequestCache } from './camera/cache.js';
 
 /** A note on media callbacks:
  *
@@ -205,7 +205,7 @@ export class FrigateCard extends LitElement {
   // A cache of resolved media URLs/mimetypes for use in the whole card.
   protected _resolvedMediaCache = new ResolvedMediaCache();
 
-  protected _dataManager?: DataManager;
+  protected _cameraManager?: CameraManager;
 
   // The mouse handler may be called continually, throttle it to at most once
   // per second for performance reasons.
@@ -1101,8 +1101,8 @@ export class FrigateCard extends LitElement {
    */
   protected willUpdate(changedProps: PropertyValues): void {
     if (this._cameras && (changedProps.has('_config') || changedProps.has('_cameras'))) {
-      this._dataManager = new DataManager(
-        new DataManagerEngineFactory(),
+      this._cameraManager = new CameraManager(
+        new CameraManagerEngineFactory(),
         this._cameras,
         new RequestCache(),
       );
@@ -1336,7 +1336,7 @@ export class FrigateCard extends LitElement {
       return;
     }
 
-    const path = this._dataManager?.getMediaDownloadPath(media);
+    const path = this._cameraManager?.getMediaDownloadPath(media);
     if (!path) {
       return;
     }
@@ -2018,7 +2018,7 @@ export class FrigateCard extends LitElement {
             .view=${this._view}
             .cameras=${this._cameras}
             .galleryConfig=${this._getConfig().event_gallery}
-            .dataManager=${this._dataManager}
+            .cameraManager=${this._cameraManager}
             .cardWideConfig=${this._cardWideConfig}
           >
           </frigate-card-gallery>`
@@ -2030,7 +2030,7 @@ export class FrigateCard extends LitElement {
             .cameras=${this._cameras}
             .viewerConfig=${this._getConfig().media_viewer}
             .resolvedMediaCache=${this._resolvedMediaCache}
-            .dataManager=${this._dataManager}
+            .cameraManager=${this._cameraManager}
             .cardWideConfig=${this._cardWideConfig}
           >
           </frigate-card-viewer>`
@@ -2041,7 +2041,7 @@ export class FrigateCard extends LitElement {
             .view=${this._view}
             .cameras=${this._cameras}
             .timelineConfig=${this._getConfig().timeline}
-            .dataManager=${this._dataManager}
+            .cameraManager=${this._cameraManager}
           >
           </frigate-card-timeline>`
         : ``}
@@ -2062,7 +2062,7 @@ export class FrigateCard extends LitElement {
                 .conditionState=${this._conditionState}
                 .liveOverrides=${getOverridesByKey(this._getConfig().overrides, 'live')}
                 .cameras=${this._cameras}
-                .dataManager=${this._dataManager}
+                .cameraManager=${this._cameraManager}
                 .cardWideConfig=${this._cardWideConfig}
                 class="${classMap(liveClasses)}"
               >

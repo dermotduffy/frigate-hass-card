@@ -49,13 +49,13 @@ import {
   createViewForRecordings,
   generateMediaViewerContext,
 } from '../utils/media-to-view';
-import { DataManager } from '../utils/data/data-manager';
+import { CameraManager } from '../camera/manager';
 import { EventMediaQueries, MediaQueries, View } from '../view';
 import { dispatchMessageEvent } from './message.js';
 import './thumbnail.js';
 import { FrigateCardTimelineItem, TimelineDataSource } from '../utils/timeline-source';
 import { ViewMedia, ViewMediaClassifier } from '../view-media';
-import { rangesOverlap } from '../utils/data/data-manager-range';
+import { rangesOverlap } from '../camera/range';
 
 interface FrigateCardGroupData {
   id: string;
@@ -89,7 +89,7 @@ declare module 'view' {
 interface ThumbnailDataRequest {
   item: IdType;
   hass?: ExtendedHomeAssistant;
-  dataManager?: DataManager;
+  cameraManager?: CameraManager;
   cameraConfig?: CameraConfig;
   media?: ViewMedia;
   view?: View;
@@ -142,7 +142,7 @@ export class FrigateCardTimelineThumbnail extends LitElement {
 
     if (
       !dataRequest.hass ||
-      !dataRequest.dataManager ||
+      !dataRequest.cameraManager ||
       !dataRequest.cameraConfig ||
       !dataRequest.media ||
       !dataRequest.view
@@ -152,7 +152,7 @@ export class FrigateCardTimelineThumbnail extends LitElement {
 
     return html` <frigate-card-thumbnail
       .hass=${dataRequest.hass}
-      .dataManager=${dataRequest.dataManager}
+      .cameraManager=${dataRequest.cameraManager}
       .cameraConfig=${dataRequest.cameraConfig}
       .media=${dataRequest.media}
       .view=${dataRequest.view}
@@ -188,7 +188,7 @@ export class FrigateCardTimelineCore extends LitElement {
   public mini = false;
 
   @property({ attribute: false })
-  public dataManager?: DataManager;
+  public cameraManager?: CameraManager;
 
   @state()
   protected _locked = false;
@@ -245,7 +245,7 @@ export class FrigateCardTimelineCore extends LitElement {
     request.detail.cameraConfig = media
       ? this.cameras?.get(media.getCameraID())
       : undefined;
-    request.detail.dataManager = this.dataManager;
+    request.detail.cameraManager = this.cameraManager;
     request.detail.media = media;
     request.detail.view = this.view;
   }
@@ -392,7 +392,7 @@ export class FrigateCardTimelineCore extends LitElement {
       !this._timeline ||
       !this.view ||
       // !this.view.target?.length ||
-      !this.dataManager
+      !this.cameraManager
     ) {
       return;
     }
@@ -401,7 +401,7 @@ export class FrigateCardTimelineCore extends LitElement {
     // const canSeek = !!this.view?.isViewerView();
     // const context = canSeek
     //   ? generateMediaViewerContextForChildren(
-    //       this.dataManager,
+    //       this.cameraManager,
     //       this.view.target,
     //       targetTime,
     //     )
@@ -453,7 +453,7 @@ export class FrigateCardTimelineCore extends LitElement {
       !this._timeline ||
       !this.cameras ||
       !this.view ||
-      !this.dataManager ||
+      !this.cameraManager ||
       !properties.what
     ) {
       return;
@@ -467,7 +467,7 @@ export class FrigateCardTimelineCore extends LitElement {
     ) {
       viewPromise = createViewForRecordings(
         this.hass,
-        this.dataManager,
+        this.cameraManager,
         this.cameras,
         this.view,
         {
@@ -483,7 +483,7 @@ export class FrigateCardTimelineCore extends LitElement {
     } else if (this.timelineConfig?.show_recordings && properties.what === 'axis') {
       viewPromise = createViewForRecordings(
         this.hass,
-        this.dataManager,
+        this.cameraManager,
         this.cameras,
         this.view,
         {
@@ -499,7 +499,7 @@ export class FrigateCardTimelineCore extends LitElement {
       this.view.query?.areRecordingQueries()
     ) {
       viewPromise = (async (): Promise<View | null> => {
-        if (!properties.item || !this.dataManager || !this.hass) {
+        if (!properties.item || !this.cameraManager || !this.hass) {
           return null;
         }
         const view = await this._createViewWithEventMediaQuery(
@@ -518,7 +518,7 @@ export class FrigateCardTimelineCore extends LitElement {
         view.mergeInContext(
           await generateMediaViewerContext(
             this.hass,
-            this.dataManager,
+            this.cameraManager,
             results,
             properties.time,
           ),
@@ -645,12 +645,12 @@ export class FrigateCardTimelineCore extends LitElement {
       noSetWindow?: boolean;
     },
   ): Promise<View | null> {
-    if (!this.hass || !this.dataManager || !this.cameras || !this.view || !query) {
+    if (!this.hass || !this.cameraManager || !this.cameras || !this.view || !query) {
       return null;
     }
     const view = await createViewForEvents(
       this.hass,
-      this.dataManager,
+      this.cameraManager,
       this.cameras,
       this.view,
       {
@@ -983,11 +983,11 @@ export class FrigateCardTimelineCore extends LitElement {
 
   protected _alreadyHasAcceptableMediaQuery(freshMediaQuery: MediaQueries): boolean {
     return (
-      !!this.dataManager &&
+      !!this.cameraManager &&
       !!this.view?.query &&
       !!this.view.queryResults &&
       freshMediaQuery.isEqual(this.view.query) &&
-      this.dataManager.areMediaQueriesResultsFresh(
+      this.cameraManager.areMediaQueriesResultsFresh(
         this.view.query,
         this.view.queryResults,
       )
@@ -1033,13 +1033,13 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     if (
-      changedProps.has('dataManager') ||
+      changedProps.has('cameraManager') ||
       changedProps.has('cameras') ||
       changedProps.has('timelineConfig')
     ) {
-      if (this.dataManager && this.cameras && this.timelineConfig) {
+      if (this.cameraManager && this.cameras && this.timelineConfig) {
         this._timelineSource = new TimelineDataSource(
-          this.dataManager,
+          this.cameraManager,
           this._getTimelineCameraIDs(),
           this.timelineConfig.media,
         );
@@ -1069,7 +1069,7 @@ export class FrigateCardTimelineCore extends LitElement {
   protected updated(changedProperties: PropertyValues): void {
     super.updated(changedProperties);
 
-    if (changedProperties.has('cameras') || changedProperties.has('dataManager')) {
+    if (changedProperties.has('cameras') || changedProperties.has('cameraManager')) {
       this._destroy();
     }
 

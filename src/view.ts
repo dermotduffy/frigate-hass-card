@@ -1,5 +1,5 @@
 // Easy:
-//  - TODO: Search for references to frigate.js and see where it's being called outside of the dataManager. Can I collapse some of those functions in?
+//  - TODO: Search for references to frigate.js and see where it's being called outside of the cameraManager. Can I collapse some of those functions in?
 //  - TODO: Refactor thumbnailsControlSchema to all use the shortform for other thumbnail users beyond live.
 //  - TODO: limit param in recordings should do something
 //  - TODO: Should be able to set live media to 'all' and have it work.
@@ -36,7 +36,7 @@ import {
   FRIGATE_CARD_VIEW_DEFAULT,
 } from './types.js';
 import { dispatchFrigateCardEvent } from './utils/basic.js';
-import { EventQuery, MediaQuery, RecordingQuery } from './utils/data/data-types.js';
+import { EventQuery, MediaQuery, RecordingQuery } from './camera/types.js';
 import { ViewMedia } from './view-media.js';
 
 export interface ViewEvolveParameters {

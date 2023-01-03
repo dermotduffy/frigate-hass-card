@@ -6,7 +6,7 @@ import { ViewContext } from 'view';
 import { CameraConfig, ClipsOrSnapshotsOrAll, FrigateCardView } from '../types';
 import { EventMediaQueries, RecordingMediaQueries, View } from '../view';
 import { RecordingSegments } from './frigate';
-import { DataManager } from './data/data-manager';
+import { CameraManager } from '../camera/manager';
 import { getAllDependentCameras } from './camera.js';
 import { ViewMedia, ViewMediaClassifier } from '../view-media';
 import { HomeAssistant } from 'custom-card-helpers';
@@ -14,7 +14,7 @@ import { HomeAssistant } from 'custom-card-helpers';
 export const changeViewToRecentEventsForCameraAndDependents = async (
   element: HTMLElement,
   hass: HomeAssistant,
-  dataManager: DataManager,
+  cameraManager: CameraManager,
   cameras: Map<string, CameraConfig>,
   view: View,
   options?: {
@@ -23,7 +23,7 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
   },
 ): Promise<void> => {
   (
-    await createViewForEvents(hass, dataManager, cameras, view, {
+    await createViewForEvents(hass, cameraManager, cameras, view, {
       ...options,
       limit: 50, // Capture the 50 most recent events.
     })
@@ -32,7 +32,7 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
 
 export const createViewForEvents = async (
   hass: HomeAssistant,
-  dataManager: DataManager,
+  cameraManager: CameraManager,
   cameras: Map<string, CameraConfig>,
   view: View,
   options?: {
@@ -51,7 +51,7 @@ export const createViewForEvents = async (
       ? options.cameraIDs
       : new Set(getAllDependentCameras(cameras, view.camera));
 
-    const queries = dataManager.generateDefaultEventQueries(cameraIDs, {
+    const queries = cameraManager.generateDefaultEventQueries(cameraIDs, {
       ...(options?.limit && { limit: options.limit }),
       ...((!options?.mediaType || ['clips', 'all'].includes(options.mediaType)) && {
         hasClip: true,
@@ -60,7 +60,7 @@ export const createViewForEvents = async (
     });
     query = new EventMediaQueries(queries);
   }
-  const queryResults = await dataManager.executeMediaQuery(hass, query);
+  const queryResults = await cameraManager.executeMediaQuery(hass, query);
 
   return view?.evolve({
     view: options?.targetView,
@@ -73,7 +73,7 @@ export const createViewForEvents = async (
  * Change the view to a recent recording.
  * @param element The element to dispatch the view change from.
  * @param hass The Home Assistant object.
- * @param dataManager The datamanager to use for data access.
+ * @param cameraManager The datamanager to use for data access.
  * @param cameras The camera configurations.
  * @param view The current view.
  * @param options A set of cameraIDs to fetch recordings for, and a targetView to dispatch to.
@@ -81,7 +81,7 @@ export const createViewForEvents = async (
 export const changeViewToRecentRecordingForCameraAndDependents = async (
   element: HTMLElement,
   hass: HomeAssistant,
-  dataManager: DataManager,
+  cameraManager: CameraManager,
   cameras: Map<string, CameraConfig>,
   view: View,
   options?: {
@@ -90,7 +90,7 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
 ): Promise<void> => {
   const now = new Date();
   (
-    await createViewForRecordings(hass, dataManager, cameras, view, {
+    await createViewForRecordings(hass, cameraManager, cameras, view, {
       ...options,
       // Fetch 7 days worth of recordings (including recordings that are for the
       // current hour).
@@ -103,7 +103,7 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
 /**
  * Create a view for recordings.
  * @param hass The Home Assistant object.
- * @param dataManager The datamanager to use for data access.
+ * @param cameraManager The datamanager to use for data access.
  * @param cameras The camera configurations.
  * @param view The current view.
  * @param options A specific window (start and end) to fetch recordings for, a
@@ -112,7 +112,7 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
  */
 export const createViewForRecordings = async (
   hass: HomeAssistant,
-  dataManager: DataManager,
+  cameraManager: CameraManager,
   cameras: Map<string, CameraConfig>,
   view: View,
   options?: {
@@ -127,13 +127,13 @@ export const createViewForRecordings = async (
     ? options.cameraIDs
     : new Set(getAllDependentCameras(cameras, view.camera));
 
-  const queries = dataManager.generateDefaultRecordingQueries(cameraIDs, {
+  const queries = cameraManager.generateDefaultRecordingQueries(cameraIDs, {
     ...(options?.start && { start: options.start }),
     ...(options?.end && { end: options.end }),
   });
 
   const query = new RecordingMediaQueries(queries);
-  const queryResults = await dataManager.executeMediaQuery(hass, query);
+  const queryResults = await cameraManager.executeMediaQuery(hass, query);
 
   let viewerContext: ViewContext | undefined = {};
   const mediaArray = queryResults?.getResults();
@@ -143,7 +143,7 @@ export const createViewForRecordings = async (
     );
     viewerContext = await generateMediaViewerContext(
       hass,
-      dataManager,
+      cameraManager,
       mediaArray,
       options.targetTime,
     );
@@ -164,14 +164,14 @@ export const createViewForRecordings = async (
  * Generate the media view context for a set of media children (used to set
  * seek times into each media item).
  * @param hass The Home Assistant object.
- * @param dataManager The datamanager to use for data access.
+ * @param cameraManager The datamanager to use for data access.
  * @param media The media.
  * @param targetTime The target time.
  * @returns The ViewContext.
  */
 export const generateMediaViewerContext = async (
   hass: HomeAssistant,
-  dataManager: DataManager,
+  cameraManager: CameraManager,
   media: ViewMedia[],
   targetTime: Date,
 ): Promise<ViewContext> => {
@@ -188,14 +188,14 @@ export const generateMediaViewerContext = async (
     let seekSeconds: number | null = null;
 
     if (targetTime >= start && targetTime <= end) {
-      const query = dataManager.generateDefaultRecordingSegmentsQueries(
+      const query = cameraManager.generateDefaultRecordingSegmentsQueries(
         child.getCameraID(),
         {
           start: start,
           end: end,
         },
       )[0];
-      const segments = (await dataManager.getRecordingSegments(hass, query)).get(query);
+      const segments = (await cameraManager.getRecordingSegments(hass, query)).get(query);
 
       if (segments) {
         seekSeconds = getSeekTimeInSegments(

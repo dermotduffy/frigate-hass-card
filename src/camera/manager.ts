@@ -1,6 +1,6 @@
 import { HomeAssistant } from 'custom-card-helpers';
-import { CameraConfig } from '../../types.js';
-import { arrayify, setify } from '../basic.js';
+import { CameraConfig } from '../types.js';
+import { arrayify, setify } from '../utils/basic.js';
 import {
   DataQuery,
   EventQuery,
@@ -18,12 +18,12 @@ import {
   RecordingQueryResults,
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResults,
-} from './data-types.js';
+} from './types.js';
 import orderBy from 'lodash-es/orderBy';
-import { DataManagerEngineFactory } from './data-manager-engine-factory.js';
-import { ViewMedia } from '../../view-media.js';
-import { MediaQueries, MediaQueriesResults } from '../../view.js';
-import { MemoryRequestCache } from './data-manager-cache.js';
+import { CameraManagerEngineFactory } from './engine-factory.js';
+import { ViewMedia } from '../view-media.js';
+import { MediaQueries, MediaQueriesResults } from '../view.js';
+import { MemoryRequestCache } from './cache.js';
 
 export class QueryClassifier {
   public static isEventQuery(query: DataQuery | PartialDataQuery): query is EventQuery {
@@ -61,13 +61,13 @@ export class QueryResultClassifier {
 
 export type RequestCache = MemoryRequestCache<DataQuery, QueryResults>;
 
-export class DataManager {
-  protected _engineFactory: DataManagerEngineFactory;
+export class CameraManager {
+  protected _engineFactory: CameraManagerEngineFactory;
   protected _cameras: Map<string, CameraConfig>;
   protected _requestCache: RequestCache;
 
   constructor(
-    engineFactory: DataManagerEngineFactory,
+    engineFactory: CameraManagerEngineFactory,
     cameras: Map<string, CameraConfig>,
     requestCache: RequestCache,
   ) {
@@ -296,7 +296,7 @@ export class DataManager {
     await Promise.all(_queries.map((query) => processQuery(query)));
 
     console.debug(
-      'Frigate Card DataManager request (Cached:',
+      'Frigate Card CameraManager request (Cached:',
       `${queryCachedCount}/${_queries.length},`,
       `Duration: ${(new Date().getTime() - queryStartTime.getTime()) / 1000}s,`,
       'Queries:',

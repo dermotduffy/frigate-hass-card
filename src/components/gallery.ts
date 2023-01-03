@@ -22,7 +22,7 @@ import {
   getFullDependentBrowseMediaQueryParametersOrDispatchError,
 } from '../utils/ha/browse-media';
 import { changeViewToRecentEventsForCameraAndDependents, changeViewToRecentRecordingForCameraAndDependents } from '../utils/media-to-view.js';
-import { DataManager } from '../utils/data/data-manager.js';
+import { CameraManager } from '../camera/manager.js';
 import { View } from '../view.js';
 import { renderProgressIndicator } from './message.js';
 import './thumbnail.js';
@@ -54,7 +54,7 @@ export class FrigateCardGallery extends LitElement {
   public cameras?: Map<string, CameraConfig>;
 
   @property({ attribute: false })
-  public dataManager?: DataManager;
+  public cameraManager?: CameraManager;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -71,7 +71,7 @@ export class FrigateCardGallery extends LitElement {
     //   !this.cameras ||
     //   !this.view.isGalleryView() ||
     //   !mediaType ||
-    //   !this.dataManager
+    //   !this.cameraManager
     // ) {
     //   return;
     // }
@@ -81,7 +81,7 @@ export class FrigateCardGallery extends LitElement {
     //     changeViewToRecentRecordingForCameraAndDependents(
     //       this,
     //       this.hass,
-    //       this.dataManager,
+    //       this.cameraManager,
     //       this.cameras,
     //       this.view,
     //       {
@@ -92,7 +92,7 @@ export class FrigateCardGallery extends LitElement {
     //     changeViewToRecentEventsForCameraAndDependents(
     //       this,
     //       this.hass,
-    //       this.dataManager,
+    //       this.cameraManager,
     //       this.cameras,
     //       this.view,
     //       {

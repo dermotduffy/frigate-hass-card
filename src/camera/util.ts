@@ -5,7 +5,7 @@ import endOfDay from 'date-fns/endOfDay';
 import endOfMinute from 'date-fns/endOfMinute';
 import endOfWeek from 'date-fns/endOfWeek';
 import startOfWeek from 'date-fns/startOfWeek';
-import { DateRange } from './data-manager-range';
+import { DateRange } from './range';
 
 export const convertRangeToCacheFriendlyTimes = (
   range: DateRange,
