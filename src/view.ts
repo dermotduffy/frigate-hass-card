@@ -1,5 +1,4 @@
 // Easy:
-//  - TODO: Search for references to frigate.js and see where it's being called outside of the cameraManager. Can I collapse some of those functions in?
 //  - TODO: Refactor thumbnailsControlSchema to all use the shortform for other thumbnail users beyond live.
 //  - TODO: limit param in recordings should do something
 //  - TODO: Should be able to set live media to 'all' and have it work.
@@ -7,15 +6,15 @@
 //  - TODO: In MediaQueriesBase, do we need to generic? Just have T be a MediaQuery?
 //  - TODO: Are areEventQueries and areRecordingQueries should be in a classifier to keep with the pattern used elsewhere.
 //  - TODO: In the viewer @click handlers should I use this.selected instead of calling carouselScrollPrevious()
-//  - TODO: Can _timelineClickHandler be an async method in timeline-core to improve cleanliness?
-//  - TODO: Can _timelineRangeChangedHandler be an async method in timeline-core to improve cleanliness?
 
 // Medium:
-// - TODO: Callers of all async methods of data-engine need to catch errors.
-// - TODO: Add garbage collecting of segments not present in the recording summaries anymore.
-// - TODO: Do I need to dedup recordings? (i.e. multiple zones on same camera may need to be dedup'd somewhere before returning the view). The media getID() call may be useful for this.
-// - TODO: Do a fresh media query in the viewer on snapshot click, since the first query may (e.g.) only have requested events with snapshots (which would miss an event with just a clip).
-// - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
+//  - TODO: Callers of all async methods of data-engine need to catch errors.
+//  - TODO: Add garbage collecting of segments not present in the recording summaries anymore.
+//  - TODO: Do I need to dedup recordings? (i.e. multiple zones on same camera may need to be dedup'd somewhere before returning the view). The media getID() call may be useful for this.
+//  - TODO: Do a fresh media query in the viewer on snapshot click, since the first query may (e.g.) only have requested events with snapshots (which would miss an event with just a clip).
+//  - TODO: Move view/ stuff into a view directory.
+//  - TODO: Move frigate specific view-media under the camera manager.
+//  - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
 
 // Hard:
 //  - TODO: Implement dragging the timeline seeking forward in both Frigate recordings & events.

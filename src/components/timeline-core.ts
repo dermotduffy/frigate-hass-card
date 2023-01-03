@@ -435,7 +435,7 @@ export class FrigateCardTimelineCore extends LitElement {
    * Called whenever the timeline is clicked.
    * @param properties The properties of the timeline click event.
    */
-  protected _timelineClickHandler(properties: TimelineEventPropertiesResult): void {
+  protected async _timelineClickHandler(properties: TimelineEventPropertiesResult): Promise<void> {
     // Calls to stopEventFromActivatingCardWideActions() are included for
     // completeness. Timeline does not support card-wide events and they are
     // disabled in card.ts in `_getMergedActions`.
@@ -459,13 +459,13 @@ export class FrigateCardTimelineCore extends LitElement {
       return;
     }
 
-    let viewPromise: Promise<View | null> | null = null;
+    let view: View | null = null;
 
     if (
       this.timelineConfig?.show_recordings &&
       ['background', 'group-label'].includes(properties.what)
     ) {
-      viewPromise = createViewForRecordings(
+      view = await createViewForRecordings(
         this.hass,
         this.cameraManager,
         this.cameras,
@@ -481,7 +481,7 @@ export class FrigateCardTimelineCore extends LitElement {
         },
       );
     } else if (this.timelineConfig?.show_recordings && properties.what === 'axis') {
-      viewPromise = createViewForRecordings(
+      view = await createViewForRecordings(
         this.hass,
         this.cameraManager,
         this.cameras,
@@ -498,24 +498,18 @@ export class FrigateCardTimelineCore extends LitElement {
       properties.what === 'item' &&
       this.view.query?.areRecordingQueries()
     ) {
-      viewPromise = (async (): Promise<View | null> => {
-        if (!properties.item || !this.cameraManager || !this.hass) {
-          return null;
-        }
-        const view = await this._createViewWithEventMediaQuery(
-          this._createEventMediaQuerys(),
-          {
-            selectedItem: properties.item,
-            targetView: 'media',
-          },
-        );
-        const results = view?.queryResults?.getResults();
-        // Specifically ensure there are _some_ results before dispatching the
-        // view change.
-        if (!view || !results || !results.length) {
-          return null;
-        }
-        view.mergeInContext(
+      const eventView = await this._createViewWithEventMediaQuery(
+        this._createEventMediaQuerys(),
+        {
+          selectedItem: properties.item,
+          targetView: 'media',
+        },
+      );
+      const results = eventView?.queryResults?.getResults();
+      // Specifically ensure there are _some_ results before dispatching the
+      // view change.
+      if (eventView && results && results.length) {
+        eventView.mergeInContext(
           await generateMediaViewerContext(
             this.hass,
             this.cameraManager,
@@ -523,18 +517,15 @@ export class FrigateCardTimelineCore extends LitElement {
             properties.time,
           ),
         );
-        return view;
-      })();
+        view = eventView;
+      }
     } else if (
       properties.item &&
       properties.what === 'item' &&
-      this.view.queryResults?.hasResults()
+      this.view.queryResults?.hasResults() &&
+      this.view.query
     ) {
-      viewPromise = (async (): Promise<View | null> => {
-        if (!this.view?.query) {
-          return null;
-        }
-        return this.view.evolve({
+        view = this.view.evolve({
           queryResults: this.view.queryResults
             ?.clone()
             .resetSelectedResult()
@@ -544,24 +535,18 @@ export class FrigateCardTimelineCore extends LitElement {
                 media.getID(this.cameras.get(media.getCameraID())) === properties.item,
             ),
         });
-      })();
     }
 
-    if (viewPromise) {
-      viewPromise.then((view: View | null) => {
-        if (view) {
-          view
-            // If the user is clicking something in the timeline, don't
-            // subsequently shift the window (it's pretty jarring).
-            .mergeInContext(this._generateTimelineContext({ noSetWindow: true }))
-            .dispatchChangeEvent(this);
-          if (this.view?.is('timeline')) {
-            dispatchFrigateCardEvent(this, 'thumbnails:open');
-          }
-          this._ignoreClick = false;
-          return;
-        }
-      });
+    if (view) {
+      view
+        // If the user is clicking something in the timeline, don't
+        // subsequently shift the window (it's pretty jarring).
+        .mergeInContext(this._generateTimelineContext({ noSetWindow: true }))
+        .dispatchChangeEvent(this);
+
+      if (this.view?.is('timeline')) {
+        dispatchFrigateCardEvent(this, 'thumbnails:open');
+      }
     } else if (this.view?.is('timeline')) {
       dispatchFrigateCardEvent(this, 'thumbnails:close');
     }
@@ -586,39 +571,37 @@ export class FrigateCardTimelineCore extends LitElement {
    * Handle a range change in the timeline.
    * @param properties vis.js provided range information.
    */
-  protected _timelineRangeChangedHandler(properties: {
+  protected async _timelineRangeChangedHandler(properties: {
     start: Date;
     end: Date;
     byUser: boolean;
     event: Event & { additionalEvent: string };
-  }): void {
+  }): Promise<void> {
     if (!properties.byUser) {
       return;
     }
     this._removeTargetBar();
 
-    (async (): Promise<void> => {
-      if (!this.hass || !this.cameras) {
-        return;
-      }
+    if (!this.hass || !this.cameras) {
+      return;
+    }
 
-      const prefetchedWindow = this._getPrefetchWindow(properties);
-      await this._timelineSource?.refresh(this.hass, this.cameras, prefetchedWindow);
+    const prefetchedWindow = this._getPrefetchWindow(properties);
+    await this._timelineSource?.refresh(this.hass, this.cameras, prefetchedWindow);
 
-      // Don't show event thumbnails if the user is looking at recordings,
-      // as the recording "hours" are the media, not the event
-      // clips/snapshots.
-      if (this._timeline && this.view && !this.view.query?.areRecordingQueries()) {
-        (
-          await this._createViewWithEventMediaQuery(
-            this._createEventMediaQuerys({ window: prefetchedWindow }),
-            {
-              noSetWindow: true,
-            },
-          )
-        )?.dispatchChangeEvent(this);
-      }
-    })();
+    // Don't show event thumbnails if the user is looking at recordings,
+    // as the recording "hours" are the media, not the event
+    // clips/snapshots.
+    if (this._timeline && this.view && !this.view.query?.areRecordingQueries()) {
+      (
+        await this._createViewWithEventMediaQuery(
+          this._createEventMediaQuerys({ window: prefetchedWindow }),
+          {
+            noSetWindow: true,
+          },
+        )
+      )?.dispatchChangeEvent(this);
+    }
   }
 
   protected _createEventMediaQuerys(options?: {
