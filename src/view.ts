@@ -1,4 +1,4 @@
-// TODO: Do I need getMediaType below?
+// TODO: Implement gallery.
 // TODO: Improve data storage in data-manager to allow fetching by limit not time.
 // TODO: Live should get most recent events regardless of when they were.
 // TODO: Refactor thumbnailsControlSchema to all use the shortform for other thumbnail users beyond live.
@@ -24,7 +24,6 @@
 // TODO: Can _timelineRangeChangedHandler be an async method in timeline-core to improve cleanliness?
 // TODO: What should the timeline do when an event is clicked on that is not in the queryResults (or if queryResults is empty)?
 // TODO: Should the timeline data source clear events (as it currently does) when the query changes?
-// TODO: Implement gallery.
 
 import isEqual from 'lodash-es/isEqual';
 import clone from 'lodash-es/clone.js';
@@ -335,20 +334,6 @@ export class View {
   }
 
   /**
-   * Get the viewer view given a gallery view.
-   */
-  public getViewerViewForGalleryView(): 'clip' | 'snapshot' | 'recording' | null {
-    if (this.is('clips')) {
-      return 'clip';
-    } else if (this.is('snapshots')) {
-      return 'snapshot';
-    } else if (this.is('recordings')) {
-      return 'recording';
-    }
-    return null;
-  }
-
-  /**
    * Determine if a view is of a piece of media (including the media viewer,
    * live view, image view -- anything that can create a MediaLoadedInfo event).
    */
@@ -364,39 +349,21 @@ export class View {
   }
 
   /**
-   * Determine if a view is related to a clip or clips.
-   */
-  public isClipRelatedView(): boolean {
-    return ['clip', 'clips'].includes(this.view);
-  }
-
-  /**
-   * Determine if a view is related to a snapshot or snapshots.
-   */
-  public isSnapshotRelatedView(): boolean {
-    return ['snapshot', 'snapshots'].includes(this.view);
-  }
-
-  /**
-   * Determine if a view is related to a recording or recordings.
-   */
-  public isRecordingRelatedView(): boolean {
-    return ['recording', 'recordings'].includes(this.view);
-  }
-
-  /**
-   * Get the media type for this view if available.
-   * @returns Whether the media is `clips`, `snapshots`, `recordings` or unknown
+   * Get the default media type for this view if available.
+   * @returns Whether the default media is `clips`, `snapshots`, `recordings` or unknown
    * (`null`).
    */
-  public getMediaType(): 'clips' | 'snapshots' | 'recordings' | null {
-    return this.isClipRelatedView()
-      ? 'clips'
-      : this.isSnapshotRelatedView()
-      ? 'snapshots'
-      : this.isRecordingRelatedView()
-      ? 'recordings'
-      : null;
+  public getDefaultMediaType(): 'clips' | 'snapshots' | 'recordings' | null {
+    if (['clip', 'clips'].includes(this.view)) {
+      return 'clips';
+    }
+    if (['snapshot', 'snapshots'].includes(this.view)) {
+      return 'snapshots';
+    }
+    if (['recording', 'recordings'].includes(this.view)) {
+      return 'recordings';
+    }
+    return null;
   }
 
   /**

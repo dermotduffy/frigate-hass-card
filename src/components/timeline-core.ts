@@ -496,7 +496,7 @@ export class FrigateCardTimelineCore extends LitElement {
     } else if (
       properties.item &&
       properties.what === 'item' &&
-      this.view.is('recording')
+      this.view.query?.areRecordingQueries()
     ) {
       viewPromise = (async (): Promise<View | null> => {
         if (!properties.item || !this.dataManager || !this.hass) {
@@ -606,7 +606,7 @@ export class FrigateCardTimelineCore extends LitElement {
       // Don't show event thumbnails if the user is looking at recordings,
       // as the recording "hours" are the media, not the event
       // clips/snapshots.
-      if (this._timeline && this.view && !this.view?.is('recording')) {
+      if (this._timeline && this.view && !this.view.query?.areRecordingQueries()) {
         (
           await this._createViewWithEventMediaQuery(
             this._createEventMediaQuerys({ window: prefetchedWindow }),
@@ -967,7 +967,7 @@ export class FrigateCardTimelineCore extends LitElement {
 
     if (
       !this.mini &&
-      !this.view.is('recording') &&
+      !this.view.query?.areRecordingQueries() &&
       freshMediaQuery &&
       !this._alreadyHasAcceptableMediaQuery(freshMediaQuery)
     ) {

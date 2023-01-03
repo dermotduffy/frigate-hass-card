@@ -168,7 +168,7 @@ export class FrigateCardSurround extends LitElement {
               if (media) {
                 this.view
                   ?.evolve({
-                    view: this.view.is('recording') ? 'recording' : 'media',
+                    view: 'media',
                     queryResults: ev.detail.queryResults,
                     ...(media.getCameraID() && { camera: media.getCameraID() }),
                   })

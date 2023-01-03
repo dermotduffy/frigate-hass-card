@@ -124,7 +124,7 @@ export class FrigateCardViewer extends LitElement {
       // search for. When the query *is* specified, the view is not required to
       // indicate the media type (e.g. the mixed 'media' view from the
       // timeline).
-      const mediaType = this.view.getMediaType();
+      const mediaType = this.view.getDefaultMediaType();
       if (!browseMediaQueryParameters || !mediaType) {
         return;
       }
@@ -148,7 +148,7 @@ export class FrigateCardViewer extends LitElement {
           this.cameras,
           this.view,
           {
-            targetView: mediaType === 'clips' ? 'clip' : 'snapshot',
+            targetView: 'media',
           },
         );
       }
