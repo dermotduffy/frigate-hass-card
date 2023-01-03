@@ -1,29 +1,30 @@
-// TODO: Implement gallery.
-// TODO: Improve data storage in data-manager to allow fetching by limit not time.
-// TODO: Live should get most recent events regardless of when they were.
-// TODO: Refactor thumbnailsControlSchema to all use the shortform for other thumbnail users beyond live.
-// TODO: Should be able to set live media to 'all' and have it work.
-// TODO: If I replace the indexdb backend with just a map / array, does it work? Might be better.
-// TODO: limit param in recordings should do something
-// TODO: Callers of all async methods of data-engine need to catch errors.
-// TODO: Search for references to frigate.js and see where it's being called outside of the dataManager. Can I collapse some of those functions in?
-// TODO: Are there elements of ViewMedia (e.g. getEventCount) that should be moved into subclasses (e.g. a recording subclass).
-// TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
-// TODO: In MediaQueriesBase, do we need to generic? Just have T be a MediaQuery?
-// TODO: Are areEventQueries and areRecordingQueries should be in a classifier to keep with the pattern used elsewhere.
-// TODO: Callers to the creation of new views for events/recordings need to dispatch events themselves when none are found.
-// TODO: Examine how much of utils/frigate.ts can be moved into the Frigate data engine.
-// TODO: Add garbage collecting of segments not present in the recording summaries anymore.
-// TODO: Do I need to dedup recordings? (i.e. multiple zones on same camera may need to be dedup'd somewhere before returning the view). The media getID() call may be useful for this.
-// TODO: Verify that scrolling the timeline will seek forward in both Frigate recordings & events.
-// TODO: In generateMediaViewerContext there is an assumption that recordings start/end on the hour, which is true for Frigate but that assumption should be in the engine.
-// TODO: Do a fresh media query in the viewer on snapshot click, since the first query may (e.g.) only have requested events with snapshots (which would miss an event with just a clip).
-// TODO: In the viewer @click handlers should I use this.selected instead of calling carouselScrollPrevious()
-// TODO: Implement seeking when the timeline is dragged.
-// TODO: Can _timelineClickHandler be an async method in timeline-core to improve cleanliness?
-// TODO: Can _timelineRangeChangedHandler be an async method in timeline-core to improve cleanliness?
-// TODO: What should the timeline do when an event is clicked on that is not in the queryResults (or if queryResults is empty)?
-// TODO: Should the timeline data source clear events (as it currently does) when the query changes?
+// Easy:
+//  - TODO: Search for references to frigate.js and see where it's being called outside of the dataManager. Can I collapse some of those functions in?
+//  - TODO: Refactor thumbnailsControlSchema to all use the shortform for other thumbnail users beyond live.
+//  - TODO: limit param in recordings should do something
+//  - TODO: Should be able to set live media to 'all' and have it work.
+//  - TODO: Are there elements of ViewMedia (e.g. getEventCount) that should be moved into subclasses (e.g. a recording subclass).
+//  - TODO: In MediaQueriesBase, do we need to generic? Just have T be a MediaQuery?
+//  - TODO: Are areEventQueries and areRecordingQueries should be in a classifier to keep with the pattern used elsewhere.
+//  - TODO: Callers to the creation of new views for events/recordings need to dispatch events themselves when none are found.
+//  - TODO: In the viewer @click handlers should I use this.selected instead of calling carouselScrollPrevious()
+//  - TODO: Can _timelineClickHandler be an async method in timeline-core to improve cleanliness?
+//  - TODO: Can _timelineRangeChangedHandler be an async method in timeline-core to improve cleanliness?
+
+// Medium:
+// - TODO: Callers of all async methods of data-engine need to catch errors.
+// - TODO: Add garbage collecting of segments not present in the recording summaries anymore.
+// - TODO: Do I need to dedup recordings? (i.e. multiple zones on same camera may need to be dedup'd somewhere before returning the view). The media getID() call may be useful for this.
+// - TODO: Do a fresh media query in the viewer on snapshot click, since the first query may (e.g.) only have requested events with snapshots (which would miss an event with just a clip).
+// - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
+
+// Hard:
+//  - TODO: Implement dragging the timeline seeking forward in both Frigate recordings & events.
+//  - TODO: Implement gallery.
+//  - TODO: In generateMediaViewerContext there is an assumption that recordings start/end on the hour, which is true for Frigate but that assumption should be in the engine.
+//  - TODO: What should the timeline do when an event is clicked on that is not in the queryResults (or if queryResults is empty)?
+//  - TODO: Should the timeline data source clear events (as it currently does) when the query changes?
+
 
 import isEqual from 'lodash-es/isEqual';
 import clone from 'lodash-es/clone.js';
