@@ -20,6 +20,7 @@
 // Hard:
 //  - TODO: Implement dragging the timeline seeking forward in both Frigate recordings & events.
 //  - TODO: Implement gallery.
+//  - TODO: Remove FrigateBrowseMediaSource if not necessary (post-gallery).
 //  - TODO: In generateMediaViewerContext there is an assumption that recordings start/end on the hour, which is true for Frigate but that assumption should be in the engine.
 //  - TODO: What should the timeline do when an event is clicked on that is not in the queryResults (or if queryResults is empty)?
 //  - TODO: Should the timeline data source clear events (as it currently does) when the query changes?

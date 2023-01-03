@@ -13,6 +13,7 @@ import {
 } from 'custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map.js';
 import { z } from 'zod';
+import { eventSchema, FrigateEvent, FrigateRecording } from './camera/frigate/types.js';
 import { deepRemoveDefaults } from './utils/zod.js';
 
 // The min allowed size of buttons.
@@ -1415,14 +1416,6 @@ export interface BrowseMediaSource {
   children?: BrowseMediaSource[] | null;
 }
 
-export interface FrigateRecording {
-  // Frigate camera name (may not be unique)
-  camera: string;
-  start_time: number;
-  end_time: number;
-  events: number;
-}
-
 export interface FrigateBrowseMediaSource extends BrowseMediaSource {
   children?: FrigateBrowseMediaSource[] | null;
   frigate?: {
@@ -1432,23 +1425,6 @@ export interface FrigateBrowseMediaSource extends BrowseMediaSource {
   };
 }
 
-export const frigateEventSchema = z.object({
-  camera: z.string(),
-  end_time: z.number().nullable(),
-  false_positive: z.boolean().nullable(),
-  has_clip: z.boolean(),
-  has_snapshot: z.boolean(),
-  id: z.string(),
-  label: z.string(),
-  start_time: z.number(),
-  top_score: z.number(),
-  zones: z.string().array(),
-  retain_indefinitely: z.boolean().optional(),
-});
-export type FrigateEvent = z.infer<typeof frigateEventSchema>;
-
-export const frigateEventsSchema = frigateEventSchema.array();
-export type FrigateEvents = z.infer<typeof frigateEventsSchema>;
 
 export const frigateBrowseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.lazy(
   () =>
@@ -1464,7 +1440,7 @@ export const frigateBrowseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.
       children: z.array(frigateBrowseMediaSourceSchema).nullable().optional(),
       frigate: z
         .object({
-          event: frigateEventSchema,
+          event: eventSchema,
         })
         .optional(),
     }),

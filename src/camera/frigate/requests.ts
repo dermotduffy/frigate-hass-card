@@ -2,12 +2,10 @@ import { HomeAssistant } from 'custom-card-helpers';
 import { localize } from '../../localize/localize';
 import {
   FrigateCardError,
-  FrigateEvents,
-  frigateEventsSchema,
   RecordingSegment,
 } from '../../types';
 import { homeAssistantWSRequest } from '../../utils/ha';
-import { recordingSegmentsSchema, RecordingSummary, recordingSummarySchema, RetainResult, retainResultSchema } from './schema';
+import { FrigateEvent, frigateEventsSchema, recordingSegmentsSchema, RecordingSummary, recordingSummarySchema, RetainResult, retainResultSchema } from './types';
 
 /**
  * Get the recordings summary. May throw.
@@ -115,7 +113,7 @@ export interface NativeFrigateEventQuery {
 export const getEvents = async (
   hass: HomeAssistant,
   params?: NativeFrigateEventQuery,
-): Promise<FrigateEvents> => {
+): Promise<FrigateEvent[]> => {
   return await homeAssistantWSRequest(
     hass,
     frigateEventsSchema,

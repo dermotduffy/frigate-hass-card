@@ -1,5 +1,22 @@
 import { z } from 'zod';
 
+export const eventSchema = z.object({
+  camera: z.string(),
+  end_time: z.number().nullable(),
+  false_positive: z.boolean().nullable(),
+  has_clip: z.boolean(),
+  has_snapshot: z.boolean(),
+  id: z.string(),
+  label: z.string(),
+  start_time: z.number(),
+  top_score: z.number(),
+  zones: z.string().array(),
+  retain_indefinitely: z.boolean().optional(),
+});
+export const frigateEventsSchema = eventSchema.array();
+
+export type FrigateEvent = z.infer<typeof eventSchema>;
+
 const recordingSummaryHourSchema = z.object({
   hour: z.preprocess((arg) => Number(arg), z.number().min(0).max(23)),
   duration: z.number().min(0),
@@ -31,3 +48,11 @@ export const retainResultSchema = z.object({
   message: z.string(),
 });
 export type RetainResult = z.infer<typeof retainResultSchema>;
+
+export interface FrigateRecording {
+  // Frigate camera name (may not be unique)
+  camera: string;
+  start_time: number;
+  end_time: number;
+  events: number;
+}

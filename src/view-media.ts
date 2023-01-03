@@ -3,8 +3,6 @@ import isEqual from 'lodash-es/isEqual';
 import {
   BrowseMediaSource,
   CameraConfig,
-  FrigateEvent,
-  FrigateRecording,
   MEDIA_TYPE_IMAGE,
 } from './types.js';
 import { ModifyInterface } from './utils/basic.js';
@@ -15,6 +13,7 @@ import {
   getRecordingMediaContentID,
   getRecordingTitle,
 } from './camera/frigate/util.js';
+import { FrigateEvent, FrigateRecording } from './camera/frigate/types.js';
 
 export type ViewMediaType = 'clip' | 'snapshot' | 'recording';
 export type ViewMediaSourceType = FrigateEvent | FrigateRecording | BrowseMediaSource;

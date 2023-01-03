@@ -1,11 +1,8 @@
 import utcToZonedTime from 'date-fns-tz/utcToZonedTime';
 import fromUnixTime from 'date-fns/fromUnixTime';
-import {
-  ClipsOrSnapshots,
-  FrigateEvent,
-  FrigateRecording,
-} from '../../types';
+import { ClipsOrSnapshots } from '../../types';
 import { formatDateAndTime, prettifyTitle } from '../../utils/basic';
+import { FrigateEvent, FrigateRecording } from './types';
 
 /**
  * Given an event generate a title.

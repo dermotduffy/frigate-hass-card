@@ -4,7 +4,7 @@ import endOfHour from 'date-fns/endOfHour';
 import getUnixTime from 'date-fns/getUnixTime';
 import startOfHour from 'date-fns/startOfHour';
 import { CAMERA_BIRDSEYE } from '../../const';
-import { CameraConfig, FrigateRecording, RecordingSegment } from '../../types';
+import { CameraConfig, RecordingSegment } from '../../types';
 import { MediaQueries, MediaQueriesResults } from '../../view';
 import { ViewMedia, ViewMediaClassifier, ViewMediaFactory } from '../../view-media';
 import { errorToConsole } from '../../utils/basic';
@@ -31,7 +31,7 @@ import {
   RecordingQuery,
   RecordingSegmentsQuery,
 } from '../types';
-import { RecordingSummary } from './schema';
+import { FrigateRecording, RecordingSummary } from './types';
 import { getEvents, getRecordingSegments, getRecordingsSummary, NativeFrigateEventQuery, NativeFrigateRecordingSegmentsQuery, retainEvent } from './requests';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;

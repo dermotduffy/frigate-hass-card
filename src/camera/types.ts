@@ -1,4 +1,5 @@
-import { FrigateEvents, FrigateRecording, RecordingSegment } from '../types';
+import { RecordingSegment } from '../types';
+import { FrigateEvent, FrigateRecording } from './frigate/types';
 
 // ====
 // Base
@@ -119,7 +120,7 @@ export interface RecordingSegmentsQueryResults extends QueryResults {
 
 export interface FrigateEventQueryResults extends EventQueryResults {
   engine: Engine.Frigate;
-  events: FrigateEvents;
+  events: FrigateEvent[];
 }
 
 export interface FrigateRecordingQueryResults extends RecordingQueryResults {
