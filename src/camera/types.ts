@@ -1,5 +1,5 @@
 import { FrigateEvents, FrigateRecording } from '../types';
-import { RecordingSegments } from '../utils/frigate';
+import { RecordingSegments } from './frigate/frigate';
 
 // ====
 // Base

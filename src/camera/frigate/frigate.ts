@@ -2,7 +2,7 @@ import { HomeAssistant } from 'custom-card-helpers';
 import utcToZonedTime from 'date-fns-tz/utcToZonedTime';
 import fromUnixTime from 'date-fns/fromUnixTime';
 import { z } from 'zod';
-import { localize } from '../localize/localize';
+import { localize } from '../../localize/localize';
 import {
   ClipsOrSnapshots,
   FrigateCardError,
@@ -10,9 +10,9 @@ import {
   FrigateEvents,
   frigateEventsSchema,
   FrigateRecording,
-} from '../types';
-import { formatDateAndTime, prettifyTitle } from './basic';
-import { homeAssistantWSRequest } from './ha';
+} from '../../types';
+import { formatDateAndTime, prettifyTitle } from '../../utils/basic';
+import { homeAssistantWSRequest } from '../../utils/ha';
 
 export const FRIGATE_ICON_SVG_PATH =
   'm 4.8759466,22.743573 c 0.0866,0.69274 0.811811,1.16359 0.37885,1.27183 ' +
@@ -226,7 +226,7 @@ export const getEventThumbnailURL = (clientId: string, event: FrigateEvent): str
  * Get a media content ID for an event.
  * @param clientId The Frigate client id.
  * @param cameraName The Frigate camera name.
- * @param id The event id.
+ * @param event The Frigate event.
  * @param mediaType The media type required.
  * @returns A string media content id.
  */
@@ -241,8 +241,9 @@ export const getEventMediaContentID = (
 
 /**
  * Generate a recording identifier.
- * @param hass The HomeAssistant object.
- * @param params The recording parameters to use in the identifer.
+ * @param clientId The Frigate client id.
+ * @param cameraName The Frigate camera name.
+ * @param recording The Frigate recording.
  * @returns A recording identifier.
  */
 export const getRecordingMediaContentID = (

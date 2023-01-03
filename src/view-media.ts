@@ -14,7 +14,7 @@ import {
   getEventTitle,
   getRecordingMediaContentID,
   getRecordingTitle,
-} from './utils/frigate.js';
+} from './camera/frigate/frigate.js';
 
 export type ViewMediaType = 'clip' | 'snapshot' | 'recording';
 export type ViewMediaSourceType = FrigateEvent | FrigateRecording | BrowseMediaSource;

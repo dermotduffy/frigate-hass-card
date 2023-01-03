@@ -1,7 +1,7 @@
 import isEqual from 'lodash-es/isEqual';
 import orderBy from 'lodash-es/orderBy';
 import sortedUniqBy from 'lodash-es/sortedUniqBy';
-import { RecordingSegment, RecordingSegments } from '../utils/frigate';
+import { RecordingSegment, RecordingSegments } from './frigate/frigate';
 import { DateRange, MemoryRangeSet } from './range';
 import { DataQuery, QueryResults } from './types';
 

@@ -6,7 +6,7 @@ import { IdType, TimelineItem, TimelineWindow } from 'vis-timeline/esnext';
 import { CameraConfig, ClipsOrSnapshotsOrAll } from '../types';
 import { CameraManager } from '../camera/manager';
 import { EventQuery } from '../camera/types';
-import { RecordingSegment, RecordingSegments } from './frigate';
+import { RecordingSegment, RecordingSegments } from '../camera/frigate/frigate';
 import { capEndDate, convertRangeToCacheFriendlyTimes } from '../camera/util';
 import { EventMediaQueries } from '../view';
 import { ViewMedia } from '../view-media';

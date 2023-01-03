@@ -1,7 +1,7 @@
 import { CameraConfig } from '../types';
 import { RecordingSegmentsCache } from './cache';
 import { CameraManagerEngine } from './engine';
-import { FrigateCameraManagerEngine } from './engine-frigate';
+import { FrigateCameraManagerEngine } from './frigate/engine-frigate';
 import { DataQuery } from './types';
 
 export class CameraManagerEngineFactory {

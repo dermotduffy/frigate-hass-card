@@ -5,7 +5,7 @@ import sub from 'date-fns/sub';
 import { ViewContext } from 'view';
 import { CameraConfig, ClipsOrSnapshotsOrAll, FrigateCardView } from '../types';
 import { EventMediaQueries, RecordingMediaQueries, View } from '../view';
-import { RecordingSegments } from './frigate';
+import { RecordingSegments } from '../camera/frigate/frigate';
 import { CameraManager } from '../camera/manager';
 import { getAllDependentCameras } from './camera.js';
 import { ViewMedia, ViewMediaClassifier } from '../view-media';
