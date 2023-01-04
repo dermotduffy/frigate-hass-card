@@ -1,6 +1,5 @@
 // Easy:
 //  - TODO: Refactor thumbnailsControlSchema to all use the shortform for other thumbnail users beyond live.
-//  - TODO: limit param in recordings should do something
 //  - TODO: Should be able to set live media to 'all' and have it work.
 //  - TODO: Are there elements of ViewMedia (e.g. getEventCount) that should be moved into subclasses (e.g. a recording subclass).
 //  - TODO: In MediaQueriesBase, do we need to generic? Just have T be a MediaQuery?
@@ -11,7 +10,6 @@
 //  - TODO: Add garbage collecting of segments not present in the recording summaries anymore.
 //  - TODO: Do I need to dedup recordings? (i.e. multiple zones on same camera may need to be dedup'd somewhere before returning the view). The media getID() call may be useful for this.
 //  - TODO: Do a fresh media query in the viewer on snapshot click, since the first query may (e.g.) only have requested events with snapshots (which would miss an event with just a clip).
-//  - TODO: Move view/ stuff into a view directory.
 //  - TODO: Move frigate specific view-media under the camera manager.
 //  - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
 

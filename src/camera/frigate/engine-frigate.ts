@@ -5,10 +5,10 @@ import getUnixTime from 'date-fns/getUnixTime';
 import startOfHour from 'date-fns/startOfHour';
 import { CAMERA_BIRDSEYE } from '../../const';
 import { CameraConfig, RecordingSegment } from '../../types';
-import { MediaQueriesResults } from "../../view/media-queries-results";
-import { MediaQueriesClassifier } from "../../view/media-queries-classifier";
+import { MediaQueriesResults } from '../../view/media-queries-results';
+import { MediaQueriesClassifier } from '../../view/media-queries-classifier';
 import { ViewMedia, ViewMediaFactory } from '../../view/media';
-import { ViewMediaClassifier } from "../../view/media-classifier";
+import { ViewMediaClassifier } from '../../view/media-classifier';
 import { errorToConsole } from '../../utils/basic';
 import { RecordingSegmentsCache } from '../cache';
 import {
@@ -34,8 +34,16 @@ import {
   RecordingSegmentsQuery,
 } from '../types';
 import { FrigateRecording, RecordingSummary } from './types';
-import { getEvents, getRecordingSegments, getRecordingsSummary, NativeFrigateEventQuery, NativeFrigateRecordingSegmentsQuery, retainEvent } from './requests';
+import {
+  getEvents,
+  getRecordingSegments,
+  getRecordingsSummary,
+  NativeFrigateEventQuery,
+  NativeFrigateRecordingSegmentsQuery,
+  retainEvent,
+} from './requests';
 import { MediaQueries } from '../../view/media-queries';
+import orderBy from 'lodash-es/orderBy';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
@@ -182,13 +190,12 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     };
 
     try {
-      const result: FrigateEventQueryResults = {
+      return <FrigateEventQueryResults>{
         type: QueryResultsType.Event,
         engine: Engine.Frigate,
         events: await getEvents(hass, nativeQuery),
         expiry: add(new Date(), { seconds: EVENT_REQUEST_CACHE_MAX_AGE_SECONDS }),
       };
-      return result;
     } catch (e) {
       errorToConsole(e as Error);
       throw new CameraManagerError((e as Error).message, query);
@@ -220,7 +227,8 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       throw new CameraManagerError((e as Error).message, query);
     }
 
-    const recordings: FrigateRecording[] = [];
+    let recordings: FrigateRecording[] = [];
+
     for (const dayData of recordingSummary ?? []) {
       for (const hourData of dayData.hours) {
         const hour = add(dayData.day, { hours: hourData.hour });
@@ -238,6 +246,16 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
           });
         }
       }
+    }
+
+    if (query.limit !== undefined) {
+      // Frigate does not natively support a way to limit recording searches so
+      // this simulates it.
+      recordings = orderBy(
+        recordings,
+        (recording: FrigateRecording) => recording.start_time,
+        'desc',
+      ).slice(0, query.limit);
     }
 
     return <FrigateRecordingQueryResults>{
