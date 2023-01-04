@@ -4,7 +4,6 @@
 //  - TODO: Should be able to set live media to 'all' and have it work.
 //  - TODO: Are there elements of ViewMedia (e.g. getEventCount) that should be moved into subclasses (e.g. a recording subclass).
 //  - TODO: In MediaQueriesBase, do we need to generic? Just have T be a MediaQuery?
-//  - TODO: Are areEventQueries and areRecordingQueries should be in a classifier to keep with the pattern used elsewhere.
 //  - TODO: In the viewer @click handlers should I use this.selected instead of calling carouselScrollPrevious()
 
 // Medium:
@@ -23,7 +22,6 @@
 //  - TODO: In generateMediaViewerContext there is an assumption that recordings start/end on the hour, which is true for Frigate but that assumption should be in the engine.
 //  - TODO: What should the timeline do when an event is clicked on that is not in the queryResults (or if queryResults is empty)?
 //  - TODO: Should the timeline data source clear events (as it currently does) when the query changes?
-
 
 import isEqual from 'lodash-es/isEqual';
 import clone from 'lodash-es/clone.js';
@@ -52,6 +50,20 @@ export interface ViewParameters extends ViewEvolveParameters {
   camera: string;
 }
 
+export class MediaQueriesClassifier {
+  public static areEventQueries(
+    queries?: MediaQueries | null,
+  ): queries is EventMediaQueries {
+    return queries instanceof EventMediaQueries;
+  }
+
+  public static areRecordingQueries(
+    queries?: MediaQueries | null,
+  ): queries is RecordingMediaQueries {
+    return queries instanceof RecordingMediaQueries;
+  }
+}
+
 export class MediaQueriesBase<T extends MediaQuery> {
   protected _queries: T[] | null = null;
 
@@ -67,14 +79,6 @@ export class MediaQueriesBase<T extends MediaQuery> {
 
   public isEqual(that: MediaQueries): boolean {
     return isEqual(this.getQueries(), that.getQueries());
-  }
-
-  public areEventQueries(): this is EventMediaQueries {
-    return this instanceof EventMediaQueries;
-  }
-
-  public areRecordingQueries(): this is RecordingMediaQueries {
-    return this instanceof RecordingMediaQueries;
   }
 
   public getQueries(): T[] | null {
@@ -177,7 +181,10 @@ export class MediaQueriesResults {
   }
 
   public selectResult(index: number | null): MediaQueriesResults {
-    if (index === null || (this._results && index >= 0 && index < this._results.length)) {
+    if (
+      index === null ||
+      (this._results && index >= 0 && index < this._results.length)
+    ) {
       this._selectedIndex = index;
     }
     return this;

@@ -30,7 +30,7 @@ import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { contentsChanged } from '../utils/basic.js';
 import { getFullDependentBrowseMediaQueryParametersOrDispatchError } from '../utils/ha/browse-media.js';
 import { ResolvedMediaCache, resolveMedia } from '../utils/ha/resolved-media.js';
-import { MediaQueriesResults, View } from '../view.js';
+import { MediaQueriesClassifier, MediaQueriesResults, View } from '../view.js';
 import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import { Lazyload } from './embla-plugins/lazyload.js';
 import {
@@ -372,7 +372,7 @@ export class FrigateCardViewerCarousel extends LitElement {
       // the other media items do).
       !ViewMediaClassifier.isFrigateEvent(media) ||
       !media.hasClip() ||
-      !this.view.query?.areEventQueries()
+      !MediaQueriesClassifier.areEventQueries(this.view.query)
     ) {
       return null;
     }

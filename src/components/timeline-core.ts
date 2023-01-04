@@ -50,7 +50,7 @@ import {
   generateMediaViewerContext,
 } from '../utils/media-to-view';
 import { CameraManager } from '../camera/manager';
-import { EventMediaQueries, MediaQueries, View } from '../view';
+import { EventMediaQueries, MediaQueries, MediaQueriesClassifier, View } from '../view';
 import { dispatchMessageEvent } from './message.js';
 import './thumbnail.js';
 import { FrigateCardTimelineItem, TimelineDataSource } from '../utils/timeline-source';
@@ -435,7 +435,9 @@ export class FrigateCardTimelineCore extends LitElement {
    * Called whenever the timeline is clicked.
    * @param properties The properties of the timeline click event.
    */
-  protected async _timelineClickHandler(properties: TimelineEventPropertiesResult): Promise<void> {
+  protected async _timelineClickHandler(
+    properties: TimelineEventPropertiesResult,
+  ): Promise<void> {
     // Calls to stopEventFromActivatingCardWideActions() are included for
     // completeness. Timeline does not support card-wide events and they are
     // disabled in card.ts in `_getMergedActions`.
@@ -496,7 +498,7 @@ export class FrigateCardTimelineCore extends LitElement {
     } else if (
       properties.item &&
       properties.what === 'item' &&
-      this.view.query?.areRecordingQueries()
+      MediaQueriesClassifier.areRecordingQueries(this.view.query)
     ) {
       const eventView = await this._createViewWithEventMediaQuery(
         this._createEventMediaQuerys(),
@@ -525,16 +527,16 @@ export class FrigateCardTimelineCore extends LitElement {
       this.view.queryResults?.hasResults() &&
       this.view.query
     ) {
-        view = this.view.evolve({
-          queryResults: this.view.queryResults
-            ?.clone()
-            .resetSelectedResult()
-            .selectResultIfFound(
-              (media) =>
-                !!this.cameras &&
-                media.getID(this.cameras.get(media.getCameraID())) === properties.item,
-            ),
-        });
+      view = this.view.evolve({
+        queryResults: this.view.queryResults
+          ?.clone()
+          .resetSelectedResult()
+          .selectResultIfFound(
+            (media) =>
+              !!this.cameras &&
+              media.getID(this.cameras.get(media.getCameraID())) === properties.item,
+          ),
+      });
     }
 
     if (view) {
@@ -592,7 +594,11 @@ export class FrigateCardTimelineCore extends LitElement {
     // Don't show event thumbnails if the user is looking at recordings,
     // as the recording "hours" are the media, not the event
     // clips/snapshots.
-    if (this._timeline && this.view && !this.view.query?.areRecordingQueries()) {
+    if (
+      this._timeline &&
+      this.view &&
+      !MediaQueriesClassifier.areRecordingQueries(this.view.query)
+    ) {
       (
         await this._createViewWithEventMediaQuery(
           this._createEventMediaQuerys({ window: prefetchedWindow }),
@@ -954,7 +960,7 @@ export class FrigateCardTimelineCore extends LitElement {
 
     if (
       !this.mini &&
-      !this.view.query?.areRecordingQueries() &&
+      !MediaQueriesClassifier.areRecordingQueries(this.view.query) &&
       freshMediaQuery &&
       !this._alreadyHasAcceptableMediaQuery(freshMediaQuery)
     ) {

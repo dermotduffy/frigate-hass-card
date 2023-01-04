@@ -5,7 +5,7 @@ import getUnixTime from 'date-fns/getUnixTime';
 import startOfHour from 'date-fns/startOfHour';
 import { CAMERA_BIRDSEYE } from '../../const';
 import { CameraConfig, RecordingSegment } from '../../types';
-import { MediaQueries, MediaQueriesResults } from '../../view';
+import { MediaQueries, MediaQueriesClassifier, MediaQueriesResults } from '../../view';
 import { ViewMedia, ViewMediaClassifier, ViewMediaFactory } from '../../view-media';
 import { errorToConsole } from '../../utils/basic';
 import { RecordingSegmentsCache } from '../cache';
@@ -362,9 +362,9 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     results: MediaQueriesResults,
   ): boolean {
     let freshThreshold: number | null = null;
-    if (queries.areEventQueries()) {
+    if (MediaQueriesClassifier.areEventQueries(queries)) {
       freshThreshold = EVENT_REQUEST_CACHE_MAX_AGE_SECONDS;
-    } else if (queries.areRecordingQueries()) {
+    } else if (MediaQueriesClassifier.areRecordingQueries(queries)) {
       freshThreshold = RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS;
     }
     const now = new Date();
