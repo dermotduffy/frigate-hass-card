@@ -1,5 +1,4 @@
 // Easy:
-//  - TODO: Refactor thumbnailsControlSchema to all use the shortform for other thumbnail users beyond live.
 //  - TODO: Should be able to set live media to 'all' and have it work.
 //  - TODO: Are there elements of ViewMedia (e.g. getEventCount) that should be moved into subclasses (e.g. a recording subclass).
 //  - TODO: In MediaQueriesBase, do we need to generic? Just have T be a MediaQuery?

@@ -1070,41 +1070,28 @@ export type ViewerConfig = z.infer<typeof viewerConfigSchema>;
 /**
  * Event gallery configuration section (clips, snapshots).
  */
+const galleryThumbnailControlsDefaults = {
+  ...thumbnailControlsDefaults,
+  show_details: false,
+};
+
 const galleryConfigDefault = {
   controls: {
-    thumbnails: {
-      size: 100,
-      show_details: false,
-      show_favorite_control: true,
-      show_timeline_control: true,
-    },
+    thumbnails: galleryThumbnailControlsDefaults,
   },
 };
+
+const gallerythumbnailsControlSchema = thumbnailsControlSchema.extend({
+  show_details: z.boolean().default(galleryThumbnailControlsDefaults.show_details),
+});
 
 const galleryConfigSchema = z
   .object({
     controls: z
       .object({
-        thumbnails: thumbnailsControlSchema
-          // Gallery shows thumbnails "centrally" so no need for the mode.
-          .omit({ mode: true })
-          .extend({
-            size: thumbnailsControlSchema.shape.size.default(
-              galleryConfigDefault.controls.thumbnails.size,
-            ),
-            show_details: thumbnailsControlSchema.shape.show_details.default(
-              galleryConfigDefault.controls.thumbnails.show_details,
-            ),
-            show_favorite_control:
-              thumbnailsControlSchema.shape.show_favorite_control.default(
-                galleryConfigDefault.controls.thumbnails.show_favorite_control,
-              ),
-            show_timeline_control:
-              thumbnailsControlSchema.shape.show_timeline_control.default(
-                galleryConfigDefault.controls.thumbnails.show_timeline_control,
-              ),
-          })
-          .default(galleryConfigDefault.controls.thumbnails),
+        thumbnails: gallerythumbnailsControlSchema.default(
+          galleryConfigDefault.controls.thumbnails,
+        ),
       })
       .default(galleryConfigDefault.controls),
   })
@@ -1144,13 +1131,7 @@ const dimensionsConfigSchema = z
 const timelineConfigDefault = {
   ...timelineCoreConfigDefault,
   controls: {
-    thumbnails: {
-      mode: 'left' as const,
-      size: 100,
-      show_details: true,
-      show_favorite_control: true,
-      show_timeline_control: true,
-    },
+    thumbnails: thumbnailControlsDefaults,
   },
 };
 
@@ -1158,27 +1139,9 @@ const timelineConfigSchema = timelineCoreConfigSchema
   .extend({
     controls: z
       .object({
-        thumbnails: thumbnailsControlSchema
-          .extend({
-            mode: thumbnailsControlSchema.shape.mode.default(
-              timelineConfigDefault.controls.thumbnails.mode,
-            ),
-            size: thumbnailsControlSchema.shape.size.default(
-              timelineConfigDefault.controls.thumbnails.size,
-            ),
-            show_details: thumbnailsControlSchema.shape.show_details.default(
-              timelineConfigDefault.controls.thumbnails.show_details,
-            ),
-            show_favorite_control:
-              thumbnailsControlSchema.shape.show_favorite_control.default(
-                timelineConfigDefault.controls.thumbnails.show_favorite_control,
-              ),
-            show_timeline_control:
-              thumbnailsControlSchema.shape.show_timeline_control.default(
-                timelineConfigDefault.controls.thumbnails.show_timeline_control,
-              ),
-          })
-          .default(timelineConfigDefault.controls.thumbnails),
+        thumbnails: thumbnailsControlSchema.default(
+          timelineConfigDefault.controls.thumbnails,
+        ),
       })
       .default(timelineConfigDefault.controls),
   })
@@ -1424,7 +1387,6 @@ export interface FrigateBrowseMediaSource extends BrowseMediaSource {
     cameraID?: string;
   };
 }
-
 
 export const frigateBrowseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.lazy(
   () =>
