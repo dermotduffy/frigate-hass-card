@@ -4,10 +4,12 @@ import startOfHour from 'date-fns/startOfHour';
 import sub from 'date-fns/sub';
 import { ViewContext } from 'view';
 import { CameraConfig, ClipsOrSnapshotsOrAll, FrigateCardView, RecordingSegment } from '../types';
-import { EventMediaQueries, RecordingMediaQueries, View } from '../view';
+import { View } from '../view/view';
+import { EventMediaQueries, RecordingMediaQueries } from "../view/media-queries";
 import { CameraManager } from '../camera/manager';
 import { getAllDependentCameras } from './camera.js';
-import { ViewMedia, ViewMediaClassifier } from '../view-media';
+import { ViewMedia } from '../view/media';
+import { ViewMediaClassifier } from "../view/media-classifier";
 import { HomeAssistant } from 'custom-card-helpers';
 
 export const changeViewToRecentEventsForCameraAndDependents = async (

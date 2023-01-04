@@ -7,8 +7,8 @@ import { CameraConfig, ClipsOrSnapshotsOrAll, RecordingSegment } from '../types'
 import { CameraManager } from '../camera/manager';
 import { EventQuery } from '../camera/types';
 import { capEndDate, convertRangeToCacheFriendlyTimes } from '../camera/util';
-import { EventMediaQueries } from '../view';
-import { ViewMedia } from '../view-media';
+import { EventMediaQueries } from "../view/media-queries";
+import { ViewMedia } from '../view/media';
 import { compressRanges, ExpiringMemoryRangeSet, MemoryRangeSet } from '../camera/range';
 import { ModifyInterface } from './basic';
 

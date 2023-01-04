@@ -23,19 +23,16 @@
 //  - TODO: What should the timeline do when an event is clicked on that is not in the queryResults (or if queryResults is empty)?
 //  - TODO: Should the timeline data source clear events (as it currently does) when the query changes?
 
-import isEqual from 'lodash-es/isEqual';
-import clone from 'lodash-es/clone.js';
-import cloneDeep from 'lodash-es/cloneDeep.js';
 import { ViewContext } from 'view';
 import {
   FrigateCardUserSpecifiedView,
   FrigateCardView,
   FRIGATE_CARD_VIEWS_USER_SPECIFIED,
   FRIGATE_CARD_VIEW_DEFAULT,
-} from './types.js';
-import { dispatchFrigateCardEvent } from './utils/basic.js';
-import { EventQuery, MediaQuery, RecordingQuery } from './camera/types.js';
-import { ViewMedia } from './view-media.js';
+} from '../types.js';
+import { dispatchFrigateCardEvent } from '../utils/basic.js';
+import { MediaQueries } from './media-queries';
+import { MediaQueriesResults } from './media-queries-results';
 
 export interface ViewEvolveParameters {
   view?: FrigateCardView;
@@ -48,167 +45,6 @@ export interface ViewEvolveParameters {
 export interface ViewParameters extends ViewEvolveParameters {
   view: FrigateCardView;
   camera: string;
-}
-
-export class MediaQueriesClassifier {
-  public static areEventQueries(
-    queries?: MediaQueries | null,
-  ): queries is EventMediaQueries {
-    return queries instanceof EventMediaQueries;
-  }
-
-  public static areRecordingQueries(
-    queries?: MediaQueries | null,
-  ): queries is RecordingMediaQueries {
-    return queries instanceof RecordingMediaQueries;
-  }
-}
-
-export class MediaQueriesBase<T extends MediaQuery> {
-  protected _queries: T[] | null = null;
-
-  protected constructor(queries?: T[]) {
-    if (queries) {
-      this._queries = queries;
-    }
-  }
-
-  public clone(): MediaQueriesBase<T> {
-    return cloneDeep(this);
-  }
-
-  public isEqual(that: MediaQueries): boolean {
-    return isEqual(this.getQueries(), that.getQueries());
-  }
-
-  public getQueries(): T[] | null {
-    return this._queries;
-  }
-
-  public setQueries(queries: T[]): void {
-    this._queries = queries;
-  }
-
-  public setQueriesTime(start: Date, end: Date) {
-    for (const query of this._queries ?? []) {
-      query.start = start;
-      query.end = end;
-    }
-  }
-}
-
-export class EventMediaQueries extends MediaQueriesBase<EventQuery> {
-  constructor(queries?: EventQuery[]) {
-    super(queries);
-  }
-
-  public convertToClipsQueries(): void {
-    for (const query of this._queries ?? []) {
-      delete query.hasSnapshot;
-      query.hasClip = true;
-    }
-  }
-
-  public clone(): EventMediaQueries {
-    return cloneDeep(this);
-  }
-}
-
-export class RecordingMediaQueries extends MediaQueriesBase<RecordingQuery> {
-  constructor(queries?: RecordingQuery[]) {
-    super(queries);
-  }
-}
-
-export type MediaQueries = EventMediaQueries | RecordingMediaQueries;
-
-export class MediaQueriesResults {
-  protected _results: ViewMedia[] | null = null;
-  protected _resultsTimestamp: Date | null = null;
-  protected _selectedIndex: number | null = null;
-
-  constructor(results?: ViewMedia[], selectedIndex?: number | null) {
-    if (results) {
-      this.setResults(results);
-    }
-    if (selectedIndex !== undefined) {
-      this.selectResult(selectedIndex);
-    }
-  }
-
-  public clone(): MediaQueriesResults {
-    // Shallow clone -- will reuse the same _results object (as there are no
-    // methods that support modification of the results themselves, and since
-    // changing the selectedIndex on a consistent set of results is a common
-    // operation).
-    return clone(this);
-  }
-
-  public getResults(): ViewMedia[] | null {
-    return this._results;
-  }
-  public getResultsCount(): number {
-    return this._results?.length ?? 0;
-  }
-  public hasResults(): boolean {
-    return !!this._results;
-  }
-  public setResults(results: ViewMedia[]) {
-    this._results = results;
-    this._resultsTimestamp = new Date();
-  }
-  public getResult(index?: number): ViewMedia | null {
-    if (!this._results || index === undefined) {
-      return null;
-    }
-    return this._results[index];
-  }
-  public getSelectedResult(): ViewMedia | null {
-    return this._selectedIndex === null ? null : this.getResult(this._selectedIndex);
-  }
-  public getSelectedIndex(): number | null {
-    return this._selectedIndex;
-  }
-  public hasSelectedResult(): boolean {
-    return this.getSelectedResult() !== null;
-  }
-  public resetSelectedResult(): MediaQueriesResults {
-    this._selectedIndex = null;
-    return this;
-  }
-  public getResultsTimestamp(): Date | null {
-    return this._resultsTimestamp;
-  }
-
-  public selectResult(index: number | null): MediaQueriesResults {
-    if (
-      index === null ||
-      (this._results && index >= 0 && index < this._results.length)
-    ) {
-      this._selectedIndex = index;
-    }
-    return this;
-  }
-  public selectResultIfFound(func: (media: ViewMedia) => boolean): MediaQueriesResults {
-    for (const [index, result] of this._results?.entries() ?? []) {
-      if (func(result)) {
-        this._selectedIndex = index;
-        break;
-      }
-    }
-    return this;
-  }
-  public selectBestResult(
-    func: (media: ViewMedia[]) => number | null,
-  ): MediaQueriesResults {
-    if (this._results) {
-      const resultIndex = func(this._results);
-      if (resultIndex !== null) {
-        this._selectedIndex = resultIndex;
-      }
-    }
-    return this;
-  }
 }
 
 export class View {

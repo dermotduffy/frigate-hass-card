@@ -37,7 +37,7 @@ import {
   dispatchExistingMediaLoadedInfoAsEvent,
   dispatchMediaUnloadedEvent,
 } from '../../utils/media-info.js';
-import { dispatchViewContextChangeEvent, View } from '../../view.js';
+import { dispatchViewContextChangeEvent, View } from '../../view/view.js';
 import { AutoMediaPlugin } from './../embla-plugins/automedia.js';
 import { Lazyload } from './../embla-plugins/lazyload.js';
 import {

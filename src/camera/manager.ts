@@ -21,9 +21,10 @@ import {
 } from './types.js';
 import orderBy from 'lodash-es/orderBy';
 import { CameraManagerEngineFactory } from './engine-factory.js';
-import { ViewMedia } from '../view-media.js';
-import { MediaQueries, MediaQueriesResults } from '../view.js';
+import { ViewMedia } from '../view/media.js';
+import { MediaQueriesResults } from '../view/media-queries-results';
 import { MemoryRequestCache } from './cache.js';
+import { MediaQueries } from '../view/media-queries.js';
 
 export class QueryClassifier {
   public static isEventQuery(query: DataQuery | PartialDataQuery): query is EventQuery {

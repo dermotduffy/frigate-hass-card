@@ -88,7 +88,7 @@ import {
 import { ResolvedMediaCache } from './utils/ha/resolved-media.js';
 import { supportsFeature } from './utils/ha/update.js';
 import { isValidMediaLoadedInfo } from './utils/media-info.js';
-import { View } from './view.js';
+import { View } from './view/view.js';
 import pkg from '../package.json';
 import { ViewContext } from 'view';
 import { CameraManager } from './camera/manager.js';

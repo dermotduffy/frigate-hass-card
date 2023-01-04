@@ -17,7 +17,7 @@ import {
 } from '../types.js';
 import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
 import { CameraManager } from '../camera/manager.js';
-import { View } from '../view.js';
+import { View } from '../view/view.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 import './surround-basic.js';
 import { changeViewToRecentEventsForCameraAndDependents } from '../utils/media-to-view';

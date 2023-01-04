@@ -1,73 +1,17 @@
 import fromUnixTime from 'date-fns/fromUnixTime';
 import isEqual from 'lodash-es/isEqual';
-import {
-  BrowseMediaSource,
-  CameraConfig,
-  MEDIA_TYPE_IMAGE,
-} from './types.js';
-import { ModifyInterface } from './utils/basic.js';
+import { BrowseMediaSource, CameraConfig, MEDIA_TYPE_IMAGE } from '../types.js';
 import {
   getEventMediaContentID,
   getEventThumbnailURL,
   getEventTitle,
   getRecordingMediaContentID,
   getRecordingTitle,
-} from './camera/frigate/util.js';
-import { FrigateEvent, FrigateRecording } from './camera/frigate/types.js';
+} from '../camera/frigate/util.js';
+import { FrigateEvent, FrigateRecording } from '../camera/frigate/types.js';
 
 export type ViewMediaType = 'clip' | 'snapshot' | 'recording';
 export type ViewMediaSourceType = FrigateEvent | FrigateRecording | BrowseMediaSource;
-
-export class ViewMediaClassifier {
-  public static isFrigateMedia(
-    media: ViewMedia,
-  ): media is FrigateEventViewMedia | FrigateRecordingViewMedia {
-    return this.isFrigateEvent(media) || this.isFrigateRecording(media);
-  }
-  public static isFrigateEvent(media: ViewMedia): media is FrigateEventViewMedia {
-    return media instanceof FrigateEventViewMedia;
-  }
-  public static isFrigateRecording(
-    media: ViewMedia,
-  ): media is FrigateRecordingViewMedia {
-    return media instanceof FrigateRecordingViewMedia;
-  }
-
-  // Typescript conveniences.
-  public static isMediaWithStartEndTime(media: ViewMedia): media is ModifyInterface<
-    ViewMedia,
-    {
-      getStartTime(): Date;
-      getEndTime(): Date;
-    }
-  > {
-    return !!media.getStartTime() && !!media.getEndTime();
-  }
-  public static isMediaWithStartTime(media: ViewMedia): media is ModifyInterface<
-    ViewMedia,
-    {
-      getStartTime(): Date;
-    }
-  > {
-    return !!media.getStartTime();
-  }
-  public static isMediaWithEndTime(media: ViewMedia): media is ModifyInterface<
-    ViewMedia,
-    {
-      getEndTime(): Date;
-    }
-  > {
-    return !!media.getEndTime();
-  }
-  public static isMediaWithID(media: ViewMedia): media is ModifyInterface<
-    ViewMedia,
-    {
-      getID(): string;
-    }
-  > {
-    return !!media.getID();
-  }
-}
 
 class ViewMediaBase<T extends ViewMediaSourceType> {
   protected _mediaType: ViewMediaType;

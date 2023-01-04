@@ -5,8 +5,10 @@ import getUnixTime from 'date-fns/getUnixTime';
 import startOfHour from 'date-fns/startOfHour';
 import { CAMERA_BIRDSEYE } from '../../const';
 import { CameraConfig, RecordingSegment } from '../../types';
-import { MediaQueries, MediaQueriesClassifier, MediaQueriesResults } from '../../view';
-import { ViewMedia, ViewMediaClassifier, ViewMediaFactory } from '../../view-media';
+import { MediaQueriesResults } from "../../view/media-queries-results";
+import { MediaQueriesClassifier } from "../../view/media-queries-classifier";
+import { ViewMedia, ViewMediaFactory } from '../../view/media';
+import { ViewMediaClassifier } from "../../view/media-classifier";
 import { errorToConsole } from '../../utils/basic';
 import { RecordingSegmentsCache } from '../cache';
 import {
@@ -33,6 +35,7 @@ import {
 } from '../types';
 import { FrigateRecording, RecordingSummary } from './types';
 import { getEvents, getRecordingSegments, getRecordingsSummary, NativeFrigateEventQuery, NativeFrigateRecordingSegmentsQuery, retainEvent } from './requests';
+import { MediaQueries } from '../../view/media-queries';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;

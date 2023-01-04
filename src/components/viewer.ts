@@ -30,7 +30,9 @@ import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { contentsChanged } from '../utils/basic.js';
 import { getFullDependentBrowseMediaQueryParametersOrDispatchError } from '../utils/ha/browse-media.js';
 import { ResolvedMediaCache, resolveMedia } from '../utils/ha/resolved-media.js';
-import { MediaQueriesClassifier, MediaQueriesResults, View } from '../view.js';
+import { View } from '../view/view.js';
+import { MediaQueriesResults } from "../view/media-queries-results";
+import { MediaQueriesClassifier } from "../view/media-queries-classifier";
 import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import { Lazyload } from './embla-plugins/lazyload.js';
 import {
@@ -51,7 +53,8 @@ import {
   changeViewToRecentEventsForCameraAndDependents,
   changeViewToRecentRecordingForCameraAndDependents,
 } from '../utils/media-to-view.js';
-import { ViewMedia, ViewMediaClassifier } from '../view-media.js';
+import { ViewMedia } from '../view/media.js';
+import { ViewMediaClassifier } from "../view/media-classifier";
 import { guard } from 'lit/directives/guard.js';
 import { localize } from '../localize/localize.js';
 

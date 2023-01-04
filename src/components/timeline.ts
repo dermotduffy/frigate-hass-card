@@ -3,7 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import timelineStyle from '../scss/timeline.scss';
 import { CameraConfig, ExtendedHomeAssistant, TimelineConfig } from '../types';
 import { CameraManager } from '../camera/manager';
-import { View } from '../view';
+import { View } from '../view/view';
 import './surround.js';
 import './timeline-core.js';
 

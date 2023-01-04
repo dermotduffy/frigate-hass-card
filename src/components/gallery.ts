@@ -23,7 +23,7 @@ import {
 } from '../utils/ha/browse-media';
 import { changeViewToRecentEventsForCameraAndDependents, changeViewToRecentRecordingForCameraAndDependents } from '../utils/media-to-view.js';
 import { CameraManager } from '../camera/manager.js';
-import { View } from '../view.js';
+import { View } from '../view/view.js';
 import { renderProgressIndicator } from './message.js';
 import './thumbnail.js';
 import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';

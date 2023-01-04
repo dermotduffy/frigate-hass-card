@@ -19,7 +19,8 @@ import {
 } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
-import { MediaQueriesResults, View } from '../view.js';
+import { View } from '../view/view.js';
+import { MediaQueriesResults } from "../view/media-queries-results";
 import { FrigateCardCarousel } from './carousel.js';
 import './thumbnail.js';
 import './carousel.js';

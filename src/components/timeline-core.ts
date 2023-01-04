@@ -50,12 +50,15 @@ import {
   generateMediaViewerContext,
 } from '../utils/media-to-view';
 import { CameraManager } from '../camera/manager';
-import { EventMediaQueries, MediaQueries, MediaQueriesClassifier, View } from '../view';
+import { EventMediaQueries, MediaQueries } from "../view/media-queries";
+import { MediaQueriesClassifier } from "../view/media-queries-classifier";
 import { dispatchMessageEvent } from './message.js';
 import './thumbnail.js';
 import { FrigateCardTimelineItem, TimelineDataSource } from '../utils/timeline-source';
-import { ViewMedia, ViewMediaClassifier } from '../view-media';
+import { ViewMedia } from '../view/media';
+import { ViewMediaClassifier } from "../view/media-classifier";
 import { rangesOverlap } from '../camera/range';
+import { View } from '../view/view';
 
 interface FrigateCardGroupData {
   id: string;

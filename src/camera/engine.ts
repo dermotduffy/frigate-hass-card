@@ -1,7 +1,7 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { CameraConfig } from '../types';
-import { MediaQueries, MediaQueriesResults } from '../view';
-import { ViewMedia } from '../view-media';
+import { MediaQueriesResults } from "../view/media-queries-results";
+import { ViewMedia } from '../view/media';
 import {
   EventQuery,
   PartialEventQuery,
@@ -11,6 +11,7 @@ import {
   RecordingQuery,
   RecordingSegmentsQuery,
 } from './types';
+import { MediaQueries } from '../view/media-queries';
 
 export const CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT = 10000;
 

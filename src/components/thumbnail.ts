@@ -13,12 +13,12 @@ import { getDurationString, prettifyTitle } from '../utils/basic.js';
 import { getCameraTitle } from '../utils/camera.js';
 import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask } from '../utils/thumbnail.js';
-import { View } from '../view.js';
+import { View } from '../view/view.js';
 import type { MediaSeek } from './viewer.js';
 import { TaskStatus } from '@lit-labs/task';
 
 import type { CameraConfig, ExtendedHomeAssistant } from '../types.js';
-import { ViewMedia } from '../view-media.js';
+import { ViewMedia } from '../view/media.js';
 import { CameraManager } from '../camera/manager.js';
 
 // The minimum width of a thumbnail with details enabled.
