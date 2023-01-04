@@ -773,7 +773,7 @@ const liveImageConfigDefault = {
 
 const liveThumbnailControlsDefaults = {
   ...thumbnailControlsDefaults,
-  media: 'clips' as const,
+  media: 'all' as const,
 };
 
 const liveConfigDefault = {
@@ -804,7 +804,7 @@ const liveConfigDefault = {
 
 const livethumbnailsControlSchema = thumbnailsControlSchema.extend({
   media: z
-    .enum(['clips', 'snapshots'])
+    .enum(['all', 'clips', 'snapshots'])
     .default(liveConfigDefault.controls.thumbnails.media),
 });
 

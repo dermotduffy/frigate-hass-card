@@ -392,7 +392,7 @@ live:
 | `show_details` | `false` | :white_check_mark: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
 | `show_favorite_control` | `true` | :white_check_mark: | Whether to show the favorite ('star') control on each thumbnail.|
 | `show_timeline_control` | `true` | :white_check_mark: | Whether to show the timeline ('target') control on each thumbnail.|
-| `media` | `clips` | :white_check_mark: | Whether to show `clips` or `snapshots` in the thumbnail carousel in the `live` view.|
+| `media` | `all` | :white_check_mark: | Whether to show `clips`, `snapshots` or `all` in the thumbnail carousel in the `live` view.|
 
 #### Live Controls: Next / Previous
 
