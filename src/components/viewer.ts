@@ -31,8 +31,8 @@ import { contentsChanged } from '../utils/basic.js';
 import { getFullDependentBrowseMediaQueryParametersOrDispatchError } from '../utils/ha/browse-media.js';
 import { ResolvedMediaCache, resolveMedia } from '../utils/ha/resolved-media.js';
 import { View } from '../view/view.js';
-import { MediaQueriesResults } from "../view/media-queries-results";
-import { MediaQueriesClassifier } from "../view/media-queries-classifier";
+import { MediaQueriesResults } from '../view/media-queries-results';
+import { MediaQueriesClassifier } from '../view/media-queries-classifier';
 import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import { Lazyload } from './embla-plugins/lazyload.js';
 import {
@@ -54,7 +54,7 @@ import {
   changeViewToRecentRecordingForCameraAndDependents,
 } from '../utils/media-to-view.js';
 import { ViewMedia } from '../view/media.js';
-import { ViewMediaClassifier } from "../view/media-classifier";
+import { ViewMediaClassifier } from '../view/media-classifier';
 import { guard } from 'lit/directives/guard.js';
 import { localize } from '../localize/localize.js';
 
@@ -419,21 +419,21 @@ export class FrigateCardViewerCarousel extends LitElement {
    * Handle the user selecting a new slide in the carousel.
    */
   protected _setViewHandler(ev: CustomEvent<CarouselSelect>): void {
-    if (!this._refMediaCarousel.value || !this.view) {
-      return;
+    if (ev.detail.index !== this.view?.queryResults?.getSelectedIndex()) {
+      this._setViewSelectedIndex(ev.detail.index);
     }
+  }
 
+  protected _setViewSelectedIndex(index: number): void {
     // The slide may already be selected on load, so don't dispatch a new view
     // unless necessary.
-    if (ev.detail.index !== this.view.queryResults?.getSelectedIndex()) {
-      this.view
-        .evolve({
-          queryResults: this.view.queryResults?.clone().selectResult(ev.detail.index),
-        })
-        // Ensure the timeline is able to update its position.
-        .mergeInContext({ timeline: { noSetWindow: false } })
-        .dispatchChangeEvent(this);
-    }
+    this.view
+      ?.evolve({
+        queryResults: this.view.queryResults?.clone().selectResult(index),
+      })
+      // Ensure the timeline is able to update its position.
+      .mergeInContext({ timeline: { noSetWindow: false } })
+      .dispatchChangeEvent(this);
   }
 
   /**
@@ -583,6 +583,17 @@ export class FrigateCardViewerCarousel extends LitElement {
 
     const [prev, next] = this._getMediaNeighbors();
 
+    const scroll = (direction: 'previous' | 'next'): void => {
+      const currentIndex = this.view?.queryResults?.getSelectedIndex() ?? null;
+      if (!this.view || !this.view?.queryResults || currentIndex === null) {
+        return;
+      }
+      const newIndex = direction === 'previous' ? currentIndex - 1 : currentIndex + 1;
+      if (newIndex >= 0 && newIndex < this.view.queryResults.getResultsCount()) {
+        this._setViewSelectedIndex(newIndex);
+      }
+    };
+
     return html` <frigate-card-media-carousel
       ${ref(this._refMediaCarousel)}
       .carouselOptions=${this._carouselOptions}
@@ -604,7 +615,7 @@ export class FrigateCardViewerCarousel extends LitElement {
         .label=${prev?.getTitle() ?? ''}
         ?disabled=${!prev}
         @click=${(ev) => {
-          this._refMediaCarousel.value?.frigateCardCarousel()?.carouselScrollPrevious();
+          scroll('previous');
           stopEventFromActivatingCardWideActions(ev);
         }}
       ></frigate-card-next-previous-control>
@@ -619,7 +630,7 @@ export class FrigateCardViewerCarousel extends LitElement {
         .label=${next?.getTitle() ?? ''}
         ?disabled=${!next}
         @click=${(ev) => {
-          this._refMediaCarousel.value?.frigateCardCarousel()?.carouselScrollNext();
+          scroll('next');
           stopEventFromActivatingCardWideActions(ev);
         }}
       ></frigate-card-next-previous-control>

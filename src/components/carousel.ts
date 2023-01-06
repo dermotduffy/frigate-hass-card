@@ -98,28 +98,6 @@ export class FrigateCardCarousel extends LitElement {
   }
 
   /**
-   * Scroll to a particular slide.
-   * @param index Slide number.
-   */
-  public carouselScrollTo(index: number): void {
-    this.selected = index;
-  }
-
-  /**
-   * Scroll to the previous slide.
-   */
-  public carouselScrollPrevious(): void {
-    this.selected = Math.max(0, this.selected - 1);
-  }
-
-  /**
-   * Scroll to the next slide.
-   */
-  public carouselScrollNext(): void {
-    this.selected = this.selected + 1;
-  }
-
-  /**
    * Get the selected slide.
    * @returns A CarouselSelect object (index & element).
    */

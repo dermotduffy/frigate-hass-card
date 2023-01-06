@@ -9,7 +9,6 @@ import {
   getRecordingTitle,
 } from '../camera/frigate/util.js';
 import { FrigateEvent, FrigateRecording } from '../camera/frigate/types.js';
-import { ViewMediaClassifier } from './media-classifier.js';
 
 export type ViewMediaType = 'clip' | 'snapshot' | 'recording';
 export type ViewMediaSourceType = FrigateEvent | FrigateRecording;
@@ -129,7 +128,7 @@ export class FrigateEventViewMedia
       cameraConfig.frigate.client_id,
       cameraConfig.frigate.camera_name,
       this._source,
-      ViewMediaClassifier.isClip(this) ? 'clips' : 'snapshots',
+      this._mediaType === 'clip' ? 'clips' : 'snapshots',
     );
   }
 

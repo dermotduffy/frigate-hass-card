@@ -48,7 +48,7 @@ import {
 import '../next-prev-control.js';
 import '../title-control.js';
 import '../surround.js';
-import { EmblaCarouselPlugins } from '../carousel.js';
+import { CarouselSelect, EmblaCarouselPlugins } from '../carousel.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../../utils/media-layout.js';
 import { CameraManager } from '../../camera/manager.js';
@@ -316,28 +316,9 @@ export class FrigateCardLiveCarousel extends LitElement {
     super.updated(changedProperties);
 
     const frigateCardMediaCarousel = this._refMediaCarousel.value;
-    const frigateCardCarousel = frigateCardMediaCarousel?.frigateCardCarousel();
-
-    if (changedProperties.has('view')) {
-      const oldView = changedProperties.get('view') as View | undefined;
-      if (
-        frigateCardCarousel &&
-        this.view?.camera &&
-        (!oldView || this.view?.camera !== oldView.camera)
-      ) {
-        const slide: number | undefined = this._cameraToSlide[this.view.camera];
-        if (
-          slide !== undefined &&
-          slide !== frigateCardCarousel.getCarouselSelected()?.index
-        ) {
-          frigateCardCarousel.carouselScrollTo(slide);
-        }
-      }
-    }
 
     if (
       frigateCardMediaCarousel &&
-      frigateCardCarousel &&
       changedProperties.has('inBackground')
     ) {
       // If this has changed to be in the background (i.e. preloaded but not
@@ -463,25 +444,26 @@ export class FrigateCardLiveCarousel extends LitElement {
   /**
    * Handle the user selecting a new slide in the carousel.
    */
-  protected _setViewHandler(): void {
-    const selectedCameraIndex = this._refMediaCarousel.value
-      ?.frigateCardCarousel()
-      ?.getCarouselSelected()?.index;
-    if (selectedCameraIndex === undefined || !this.view || !this.cameras) {
-      return;
+  protected _setViewHandler(ev: CustomEvent<CarouselSelect>): void {
+    if (this.cameras && ev.detail.index !== this._getSelectedCameraIndex()) {
+      this._setViewCameraID(Array.from(this.cameras.keys())[ev.detail.index]);
     }
+  }
 
-    this.view
-      .evolve({
-        camera: Array.from(this.cameras.keys())[selectedCameraIndex],
-        // Reset the query and query results.
-        query: null,
-        queryResults: null,
-      })
-      // Don't yet fetch thumbnails (they will be fetched when the carousel
-      // settles).
-      .mergeInContext({ thumbnails: { fetch: false } })
-      .dispatchChangeEvent(this);
+  protected _setViewCameraID(cameraID?: string | null): void {
+    if (cameraID) {
+      this.view
+        ?.evolve({
+          camera: cameraID,
+          // Reset the query and query results.
+          query: null,
+          queryResults: null,
+        })
+        // Don't yet fetch thumbnails (they will be fetched when the carousel
+        // settles).
+        .mergeInContext({ thumbnails: { fetch: false } })
+        .dispatchChangeEvent(this);
+    }
   }
 
   /**
@@ -549,7 +531,7 @@ export class FrigateCardLiveCarousel extends LitElement {
     `;
   }
 
-  protected _getCameraNeighbors(): [CameraConfig | null, CameraConfig | null] {
+  protected _getCameraIDsOfNeighbors(): [string | null, string | null] {
     if (!this.cameras || !this.view || !this.hass) {
       return [null, null];
     }
@@ -560,15 +542,10 @@ export class FrigateCardLiveCarousel extends LitElement {
       return [null, null];
     }
 
-    const prev =
-      this.cameras.get(
-        keys[currentIndex > 0 ? currentIndex - 1 : this.cameras.size - 1],
-      ) ?? null;
-    const next =
-      this.cameras.get(
-        keys[currentIndex + 1 < this.cameras.size ? currentIndex + 1 : 0],
-      ) ?? null;
-    return [prev, next];
+    return [
+      keys[currentIndex > 0 ? currentIndex - 1 : this.cameras.size - 1],
+      keys[currentIndex + 1 < this.cameras.size ? currentIndex + 1 : 0],
+    ];
   }
 
   /**
@@ -588,7 +565,7 @@ export class FrigateCardLiveCarousel extends LitElement {
       this.conditionState,
     ) as LiveConfig;
 
-    const [prev, next] = this._getCameraNeighbors();
+    const [prevID, nextID] = this._getCameraIDsOfNeighbors();
     const title = getCameraTitle(this.hass, this.cameras.get(this.view.camera));
 
     // Notes on the below:
@@ -627,13 +604,11 @@ export class FrigateCardLiveCarousel extends LitElement {
           .hass=${this.hass}
           .direction=${'previous'}
           .controlConfig=${config.controls.next_previous}
-          .label=${getCameraTitle(this.hass, prev)}
-          .icon=${getCameraIcon(this.hass, prev)}
-          ?disabled=${prev == null}
+          .label=${getCameraTitle(this.hass, prevID ? this.cameras.get(prevID) : null)}
+          .icon=${getCameraIcon(this.hass, prevID ? this.cameras.get(prevID) : null)}
+          ?disabled=${prevID === null}
           @click=${(ev) => {
-            this._refMediaCarousel.value
-              ?.frigateCardCarousel()
-              ?.carouselScrollPrevious();
+            this._setViewCameraID(prevID);
             stopEventFromActivatingCardWideActions(ev);
           }}
         >
@@ -644,11 +619,11 @@ export class FrigateCardLiveCarousel extends LitElement {
           .hass=${this.hass}
           .direction=${'next'}
           .controlConfig=${config.controls.next_previous}
-          .label=${getCameraTitle(this.hass, next)}
-          .icon=${getCameraIcon(this.hass, next)}
-          ?disabled=${next == null}
+          .label=${getCameraTitle(this.hass, nextID ? this.cameras.get(nextID) : null)}
+          .icon=${getCameraIcon(this.hass, nextID ? this.cameras.get(nextID) : null)}
+          ?disabled=${nextID === null}
           @click=${(ev) => {
-            this._refMediaCarousel.value?.frigateCardCarousel()?.carouselScrollNext();
+            this._setViewCameraID(nextID);
             stopEventFromActivatingCardWideActions(ev);
           }}
         >

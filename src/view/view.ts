@@ -1,7 +1,3 @@
-// Easy:
-//  - TODO: In MediaQueriesBase, do we need to generic? Just have T be a MediaQuery?
-//  - TODO: In the viewer @click handlers should I use this.selected instead of calling carouselScrollPrevious()
-
 // Medium:
 //  - TODO: Callers of all async methods of data-engine need to catch errors.
 //  - TODO: Add garbage collecting of segments not present in the recording summaries anymore.
