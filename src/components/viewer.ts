@@ -666,7 +666,7 @@ export class FrigateCardViewerCarousel extends LitElement {
     // `_selectSlideMediaShowHandler` (and not used by the player itself).
     return html`
       <div class="embla__slide">
-        ${media.isVideo()
+        ${ViewMediaClassifier.isVideo(media)
           ? html`<frigate-card-ha-hls-player
               allow-exoplayer
               aria-label="${media.getTitle() ?? ''}"

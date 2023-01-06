@@ -18,8 +18,9 @@ import type { MediaSeek } from './viewer.js';
 import { TaskStatus } from '@lit-labs/task';
 
 import type { CameraConfig, ExtendedHomeAssistant } from '../types.js';
-import { ViewMedia } from '../view/media.js';
+import { EventViewMedia, RecordingViewMedia, ViewMedia } from '../view/media.js';
 import { CameraManager } from '../camera/manager.js';
+import { ViewMediaClassifier } from '../view/media-classifier.js';
 
 // The minimum width of a thumbnail with details enabled.
 export const THUMBNAIL_DETAILS_WIDTH_MIN = 300;
@@ -127,13 +128,13 @@ export class FrigateCardThumbnailFeatureRecording extends LitElement {
 @customElement('frigate-card-thumbnail-details-event')
 export class FrigateCardThumbnailDetailsEvent extends LitElement {
   @property({ attribute: false })
-  public media?: ViewMedia;
+  public media?: EventViewMedia;
 
   @property({ attribute: false })
   public mediaSeek?: MediaSeek;
 
   protected render(): TemplateResult | void {
-    if (!this.media || !this.media.isEvent()) {
+    if (!this.media) {
       return;
     }
     const score = this.media.getScore();
@@ -179,7 +180,7 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
 @customElement('frigate-card-thumbnail-details-recording')
 export class FrigateCardThumbnailDetailsRecording extends LitElement {
   @property({ attribute: false })
-  public media?: ViewMedia;
+  public media?: RecordingViewMedia;
 
   @property({ attribute: false })
   public mediaSeek?: MediaSeek;
@@ -266,19 +267,19 @@ export class FrigateCardThumbnail extends LitElement {
     const shouldShowTimelineControl =
       this.show_timeline_control &&
       this.view &&
-      (!this.media.isRecording() ||
+      (!ViewMediaClassifier.isRecording(this.media) ||
         // Only show timeline control if the recording has a start & end time.
         (this.media.getStartTime() && this.media.getEndTime()));
 
     const clientID = this.cameraConfig?.frigate.client_id;
-    return html` ${this.media.isEvent()
+    return html` ${ViewMediaClassifier.isEvent(this.media)
       ? html`<frigate-card-thumbnail-feature-event
           aria-label="${title ?? ''}"
           title=${title}
           .hass=${this.hass}
           .thumbnail=${thumbnail ?? undefined}
         ></frigate-card-thumbnail-feature-event>`
-      : this.media.isRecording()
+      : ViewMediaClassifier.isRecording(this.media)
       ? html`<frigate-card-thumbnail-feature-recording
           aria-label="${title ?? ''}"
           title="${title ?? ''}"
@@ -306,12 +307,12 @@ export class FrigateCardThumbnail extends LitElement {
             }}
           /></ha-icon>`
       : ``}
-    ${this.details && this.media.isEvent()
+    ${this.details && ViewMediaClassifier.isEvent(this.media)
       ? html`<frigate-card-thumbnail-details-event
           .media=${this.media ?? undefined}
           .mediaSeek=${this.mediaSeek}
         ></frigate-card-thumbnail-details-event>`
-      : this.details && this.media.isRecording()
+      : this.details && ViewMediaClassifier.isRecording(this.media)
       ? html`<frigate-card-thumbnail-details-recording
           .media=${this.media ?? undefined}
           .cameraTitle=${getCameraTitle(this.hass, this.cameraConfig)}
@@ -328,7 +329,7 @@ export class FrigateCardThumbnail extends LitElement {
             if (!this.view || !this.media) {
               return;
             }
-            if (this.media.isEvent()) {
+            if (ViewMediaClassifier.isEvent(this.media)) {
               this.view
                 .evolve({
                   view: 'timeline',
@@ -338,7 +339,7 @@ export class FrigateCardThumbnail extends LitElement {
                 })
                 .removeContext('timeline')
                 .dispatchChangeEvent(this);
-            } else if (this.media.isRecording()) {
+            } else if (ViewMediaClassifier.isRecording(this.media)) {
               const startTime = this.media.getStartTime();
               const endTime = this.media.getStartTime();
               if (!startTime || !endTime) {

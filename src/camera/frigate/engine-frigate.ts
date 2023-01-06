@@ -89,7 +89,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       path =
         `/api/frigate/${cameraConfig.frigate.client_id}` +
         `/notifications/${media.getID()}/` +
-        `${media.isClip() ? 'clip.mp4' : 'snapshot.jpg'}` +
+        `${ViewMediaClassifier.isClip(media) ? 'clip.mp4' : 'snapshot.jpg'}` +
         `?download=true`;
     } else if (ViewMediaClassifier.isFrigateRecording(media)) {
       path =

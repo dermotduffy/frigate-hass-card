@@ -1,6 +1,6 @@
 import fromUnixTime from 'date-fns/fromUnixTime';
 import isEqual from 'lodash-es/isEqual';
-import { BrowseMediaSource, CameraConfig, MEDIA_TYPE_IMAGE } from '../types.js';
+import { CameraConfig } from '../types.js';
 import {
   getEventMediaContentID,
   getEventThumbnailURL,
@@ -9,9 +9,10 @@ import {
   getRecordingTitle,
 } from '../camera/frigate/util.js';
 import { FrigateEvent, FrigateRecording } from '../camera/frigate/types.js';
+import { ViewMediaClassifier } from './media-classifier.js';
 
 export type ViewMediaType = 'clip' | 'snapshot' | 'recording';
-export type ViewMediaSourceType = FrigateEvent | FrigateRecording | BrowseMediaSource;
+export type ViewMediaSourceType = FrigateEvent | FrigateRecording;
 
 class ViewMediaBase<T extends ViewMediaSourceType> {
   protected _mediaType: ViewMediaType;
@@ -23,19 +24,6 @@ class ViewMediaBase<T extends ViewMediaSourceType> {
     this._cameraID = cameraID;
     this._source = source;
   }
-
-  public isEvent(): boolean {
-    return this._mediaType === 'clip' || this._mediaType === 'snapshot';
-  }
-  public isRecording(): boolean {
-    return this._mediaType === 'recording';
-  }
-  public isClip(): boolean {
-    return this._mediaType === 'clip';
-  }
-  public isSnapshot(): boolean {
-    return this._mediaType === 'snapshot';
-  }
   public getContentType(): 'image' | 'video' {
     return this._mediaType === 'snapshot' ? 'image' : 'video';
   }
@@ -44,9 +32,6 @@ class ViewMediaBase<T extends ViewMediaSourceType> {
   }
   public getMediaType(): ViewMediaType {
     return this._mediaType;
-  }
-  public isVideo(): boolean {
-    return this.isClip() || this.isRecording();
   }
   public getSource(): T {
     return this._source;
@@ -73,14 +58,6 @@ class ViewMediaBase<T extends ViewMediaSourceType> {
   public getThumbnail(_cameraConfig?: CameraConfig): string | null {
     return null;
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public isGroupableWith(that: ViewMedia): boolean {
-    return (
-      this.getMediaType() === that.getMediaType() &&
-      isEqual(this.getWhere(), that.getWhere()) &&
-      isEqual(this.getWhat(), that.getWhat())
-    );
-  }
   public isFavorite(): boolean | null {
     return null;
   }
@@ -91,18 +68,19 @@ class ViewMediaBase<T extends ViewMediaSourceType> {
   public setFavorite(_favorite: boolean): void {
     return;
   }
-  public getWhat(): string[] | null {
-    return null;
-  }
   public getWhere(): string[] | null {
     return null;
   }
-  public getScore(): number | null {
-    return null;
-  }
-  public getEventCount(): number | null {
-    return null;
-  }
+}
+
+export interface EventViewMedia extends ViewMedia {
+  getScore(): number | null;
+  getWhat(): string[] | null;
+  isGroupableWith(that: EventViewMedia): boolean;
+}
+
+export interface RecordingViewMedia extends ViewMedia {
+  getEventCount(): number | null;
 }
 
 // Creates a 'public interface only' version of ViewMediaBase for use elsewhere
@@ -112,26 +90,10 @@ export type ViewMedia = {
   [P in keyof ViewMediaBase<ViewMediaSourceType>]: ViewMediaBase<ViewMediaSourceType>[P];
 };
 
-export class HomeAssistantBrowserViewMedia extends ViewMediaBase<BrowseMediaSource> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getID(_cameraConfig?: CameraConfig): string | null {
-    return this._source.media_content_id;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getContentID(_cameraConfig?: CameraConfig): string | null {
-    return this._source.media_content_id;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getTitle(_cameraConfig?: CameraConfig): string | null {
-    return this._source.title;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getThumbnail(_cameraConfig?: CameraConfig): string | null {
-    return this._source.thumbnail;
-  }
-}
-
-export class FrigateEventViewMedia extends ViewMediaBase<FrigateEvent> {
+export class FrigateEventViewMedia
+  extends ViewMediaBase<FrigateEvent>
+  implements EventViewMedia
+{
   public hasClip(): boolean {
     return !!this._source.has_clip;
   }
@@ -167,7 +129,7 @@ export class FrigateEventViewMedia extends ViewMediaBase<FrigateEvent> {
       cameraConfig.frigate.client_id,
       cameraConfig.frigate.camera_name,
       this._source,
-      this.isClip() ? 'clips' : 'snapshots',
+      ViewMediaClassifier.isClip(this) ? 'clips' : 'snapshots',
     );
   }
 
@@ -198,9 +160,21 @@ export class FrigateEventViewMedia extends ViewMediaBase<FrigateEvent> {
   public getScore(): number | null {
     return this._source.top_score;
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public isGroupableWith(that: EventViewMedia): boolean {
+    return (
+      this.getMediaType() === that.getMediaType() &&
+      isEqual(this.getWhere(), that.getWhere()) &&
+      isEqual(this.getWhat(), that.getWhat())
+    );
+  }
 }
 
-export class FrigateRecordingViewMedia extends ViewMediaBase<FrigateRecording> {
+export class FrigateRecordingViewMedia
+  extends ViewMediaBase<FrigateRecording>
+  implements RecordingViewMedia
+{
   public getID(cameraConfig?: CameraConfig): string | null {
     // ID name is derived from the real camera name (not CameraID) since the
     // recordings for the same camera across multiple zones will be the same and
@@ -261,16 +235,5 @@ export class ViewMediaFactory {
     recording: FrigateRecording,
   ): ViewMedia | null {
     return new FrigateRecordingViewMedia('recording', cameraID, recording);
-  }
-
-  static createViewMediaFromBrowseMediaSource(
-    cameraID: string,
-    browseMedia: BrowseMediaSource,
-  ): ViewMedia | null {
-    return new HomeAssistantBrowserViewMedia(
-      browseMedia.media_content_type === MEDIA_TYPE_IMAGE ? 'snapshot' : 'clip',
-      cameraID,
-      browseMedia,
-    );
   }
 }

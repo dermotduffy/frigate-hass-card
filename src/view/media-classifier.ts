@@ -1,5 +1,10 @@
-import { ModifyInterface } from '../utils/basic.js';
-import { ViewMedia, FrigateEventViewMedia, FrigateRecordingViewMedia } from './media';
+import {
+  ViewMedia,
+  FrigateEventViewMedia,
+  FrigateRecordingViewMedia,
+  RecordingViewMedia,
+  EventViewMedia,
+} from './media';
 
 export class ViewMediaClassifier {
   public static isFrigateMedia(
@@ -15,39 +20,19 @@ export class ViewMediaClassifier {
   ): media is FrigateRecordingViewMedia {
     return media instanceof FrigateRecordingViewMedia;
   }
-
-  // Typescript conveniences.
-  public static isMediaWithStartEndTime(media: ViewMedia): media is ModifyInterface<
-    ViewMedia,
-    {
-      getStartTime(): Date;
-      getEndTime(): Date;
-    }
-  > {
-    return !!media.getStartTime() && !!media.getEndTime();
+  public static isEvent(media: ViewMedia): media is EventViewMedia {
+    return this.isClip(media) || this.isSnapshot(media);
   }
-  public static isMediaWithStartTime(media: ViewMedia): media is ModifyInterface<
-    ViewMedia,
-    {
-      getStartTime(): Date;
-    }
-  > {
-    return !!media.getStartTime();
+  public static isRecording(media: ViewMedia): media is RecordingViewMedia {
+    return media.getMediaType() === 'recording';
   }
-  public static isMediaWithEndTime(media: ViewMedia): media is ModifyInterface<
-    ViewMedia,
-    {
-      getEndTime(): Date;
-    }
-  > {
-    return !!media.getEndTime();
+  public static isClip(media: ViewMedia): boolean {
+    return media.getMediaType() === 'clip';
   }
-  public static isMediaWithID(media: ViewMedia): media is ModifyInterface<
-    ViewMedia,
-    {
-      getID(): string;
-    }
-  > {
-    return !!media.getID();
+  public static isSnapshot(media: ViewMedia): boolean {
+    return media.getMediaType() === 'snapshot';
+  }
+  public static isVideo(media: ViewMedia): boolean {
+    return this.isClip(media) || this.isRecording(media); 
   }
 }

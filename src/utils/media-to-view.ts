@@ -3,13 +3,18 @@ import fromUnixTime from 'date-fns/fromUnixTime';
 import startOfHour from 'date-fns/startOfHour';
 import sub from 'date-fns/sub';
 import { ViewContext } from 'view';
-import { CameraConfig, ClipsOrSnapshotsOrAll, FrigateCardView, RecordingSegment } from '../types';
+import {
+  CameraConfig,
+  ClipsOrSnapshotsOrAll,
+  FrigateCardView,
+  RecordingSegment,
+} from '../types';
 import { View } from '../view/view';
-import { EventMediaQueries, RecordingMediaQueries } from "../view/media-queries";
+import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
 import { CameraManager } from '../camera/manager';
 import { getAllDependentCameras } from './camera.js';
 import { ViewMedia } from '../view/media';
-import { ViewMediaClassifier } from "../view/media-classifier";
+import { ViewMediaClassifier } from '../view/media-classifier';
 import { HomeAssistant } from 'custom-card-helpers';
 
 export const changeViewToRecentEventsForCameraAndDependents = async (
@@ -178,12 +183,12 @@ export const generateMediaViewerContext = async (
   const hourStart = startOfHour(targetTime);
 
   for (const [index, child] of media.entries()) {
-    if (!ViewMediaClassifier.isMediaWithStartEndTime(child)) {
+    const start = child.getStartTime();
+    const end = child.getEndTime();
+    if (!start || !end) {
       continue;
     }
 
-    const start = child.getStartTime();
-    const end = child.getEndTime();
     let seekSeconds: number | null = null;
 
     if (targetTime >= start && targetTime <= end) {
@@ -194,12 +199,14 @@ export const generateMediaViewerContext = async (
           end: end,
         },
       )[0];
-      const segments = (await cameraManager.getRecordingSegments(hass, query)).get(query);
+      const segments = (await cameraManager.getRecordingSegments(hass, query)).get(
+        query,
+      );
 
       if (segments) {
         seekSeconds = getSeekTimeInSegments(
           // Recordings start from the top of the hour.
-          child.isRecording() ? hourStart : start,
+          ViewMediaClassifier.isRecording(child) ? hourStart : start,
           targetTime,
           segments.segments,
         );
@@ -241,24 +248,20 @@ export const findClosestMediaIndex = (
 
   for (let i = 0; i < mediaArray.length; ++i) {
     const media = mediaArray[i];
-    if (
-      !cameraIDs.has(media.getCameraID()) ||
-      !ViewMediaClassifier.isMediaWithStartEndTime(media)
-    ) {
+    const start = media.getStartTime();
+    const end = media.getEndTime();
+    if (!cameraIDs.has(media.getCameraID()) || !start || !end) {
       continue;
     }
 
-    const startTime = media.getStartTime();
-    const endTime = media.getEndTime();
-
-    if (startTime <= targetTime && endTime >= targetTime) {
+    if (start <= targetTime && end >= targetTime) {
       if (!refPoint) {
         return i;
       }
       const delta =
         refPoint === 'end'
-          ? endTime.getTime() - targetTime.getTime()
-          : targetTime.getTime() - startTime.getTime();
+          ? end.getTime() - targetTime.getTime()
+          : targetTime.getTime() - start.getTime();
       if (!bestMatch || delta < bestMatch.delta) {
         bestMatch = { index: i, delta: delta };
       }
