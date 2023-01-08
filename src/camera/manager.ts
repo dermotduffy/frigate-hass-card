@@ -25,6 +25,7 @@ import { ViewMedia } from '../view/media.js';
 import { MediaQueriesResults } from '../view/media-queries-results';
 import { MemoryRequestCache } from './cache.js';
 import { MediaQueries } from '../view/media-queries.js';
+import uniqBy from 'lodash-es/uniqBy';
 
 export class QueryClassifier {
   public static isEventQuery(query: DataQuery | PartialDataQuery): query is EventQuery {
@@ -204,7 +205,19 @@ export class CameraManager {
     }
 
     return new MediaQueriesResults(
-      orderBy(mediaArray, (media) => media.getStartTime(), 'desc'),
+      orderBy(
+        // Ensure uniqueness by the ID (if specified), otherwise all elements
+        // are assumed to be unique.
+        uniqBy(
+          mediaArray,
+          (media) => media.getID(this._cameras.get(media.getCameraID())) ?? media,
+        ),
+
+        // Sort all items leading with the most recent.
+        (media) => media.getStartTime(),
+        'desc',
+      ),
+
       // Select the first (most-recent) item.
       mediaArray.length ? 0 : null,
     );

@@ -108,8 +108,8 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     return {
       type: QueryType.Event,
       cameraID: cameraID,
-      ...(cameraConfig.frigate.label && { label: cameraConfig.frigate.label }),
-      ...(cameraConfig.frigate.zone && { zone: cameraConfig.frigate.zone }),
+      ...(cameraConfig.frigate.label && { what: cameraConfig.frigate.label }),
+      ...(cameraConfig.frigate.zone && { where: cameraConfig.frigate.zone }),
       ...query,
     };
   }

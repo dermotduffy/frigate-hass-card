@@ -1,8 +1,8 @@
 // Medium:
 //  - TODO: Add garbage collecting of segments not present in the recording summaries anymore.
-//  - TODO: Do I need to dedup recordings? (i.e. multiple zones on same camera may need to be dedup'd somewhere before returning the view). The media getID() call may be useful for this.
 //  - TODO: Move frigate specific view-media under the camera manager.
 //  - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
+//  - TODO: Engine should not need cameraConfig to favorite since it already has cameras.
 
 // Hard:
 //  - TODO: Implement dragging the timeline seeking forward in both Frigate recordings & events.
