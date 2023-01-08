@@ -2,11 +2,11 @@
 //  - TODO: Callers of all async methods of data-engine need to catch errors.
 //  - TODO: Add garbage collecting of segments not present in the recording summaries anymore.
 //  - TODO: Do I need to dedup recordings? (i.e. multiple zones on same camera may need to be dedup'd somewhere before returning the view). The media getID() call may be useful for this.
-//  - TODO: Do a fresh media query in the viewer on snapshot click, since the first query may (e.g.) only have requested events with snapshots (which would miss an event with just a clip).
 //  - TODO: Move frigate specific view-media under the camera manager.
 //  - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
 
 // Hard:
+//  - TODO: There are circumstances when lazy load doesn't work (e.g. snapshot -> clips re-query)
 //  - TODO: Implement dragging the timeline seeking forward in both Frigate recordings & events.
 //  - TODO: Implement gallery.
 //  - TODO: Remove FrigateBrowseMediaSource if not necessary (post-gallery).

@@ -10,7 +10,7 @@ import { capEndDate, convertRangeToCacheFriendlyTimes } from '../camera/util';
 import { EventMediaQueries } from "../view/media-queries";
 import { ViewMedia } from '../view/media';
 import { compressRanges, ExpiringMemoryRangeSet, MemoryRangeSet } from '../camera/range';
-import { ModifyInterface } from './basic';
+import { ModifyInterface } from './basic.js';
 
 // Allow timeline freshness to be at least this number of seconds out of date
 // (caching times in the data-engine may increase the effective delay).

@@ -153,6 +153,7 @@ export class FrigateCardViewer extends LitElement {
           this.view,
           {
             targetView: 'media',
+            mediaType: mediaType,
           },
         );
       }
@@ -173,6 +174,7 @@ export class FrigateCardViewer extends LitElement {
         .cameras=${this.cameras}
         .viewerConfig=${this.viewerConfig}
         .resolvedMediaCache=${this.resolvedMediaCache}
+        .cameraManager=${this.cameraManager}       
         .cardWideConfig=${this.cardWideConfig}
       >
       </frigate-card-viewer-carousel>
@@ -213,6 +215,9 @@ export class FrigateCardViewerCarousel extends LitElement {
 
   @property({ attribute: false })
   public cameras?: Map<string, CameraConfig>;
+
+  @property({ attribute: false })
+  public cameraManager?: CameraManager;
 
   protected _refMediaCarousel: Ref<FrigateCardMediaCarousel> = createRef();
 
@@ -359,17 +364,16 @@ export class FrigateCardViewerCarousel extends LitElement {
   }
 
   /**
-   * Get a clip view that matches a given snapshot. Includes clips within the
-   * same range as the current view.
-   * @param snapshot The snapshot to find a matching clip for.
-   * @returns The view that would show the matching clip.
+   * Dispatch a clip view that matches the current (snapshot) query.
+   * @param index The index of the selected media.
    */
-  protected async _createRelatedClipView(targetIndex: number): Promise<View | null> {
-    const media = this.view?.queryResults?.getResult(targetIndex);
+  protected async _dispatchRelatedClipView(index: number): Promise<void> {
+    const media = this.view?.queryResults?.getResult(index);
 
     if (
       !this.hass ||
       !this.view ||
+      !this.cameraManager ||
       !media ||
       // If this specific media item has no clip, then do nothing (even if all
       // the other media items do).
@@ -377,42 +381,28 @@ export class FrigateCardViewerCarousel extends LitElement {
       !media.hasClip() ||
       !MediaQueriesClassifier.areEventQueries(this.view.query)
     ) {
-      return null;
+      return;
     }
-
-    const newResults: ViewMedia[] = [];
-    let newSelectedIndex: number | null = null;
 
     // Convert the query to a clips equivalent.
-    const newQuery = this.view.query.clone();
-    newQuery.convertToClipsQueries();
+    const clipQuery = this.view.query.clone();
+    clipQuery.convertToClipsQueries();
 
-    // Regenerate the whole results stack.
-    for (let i = 0; i < (this.view.queryResults?.getResultsCount() ?? 0); ++i) {
-      const media = this.view.queryResults?.getResult(i);
-      if (!media || !ViewMediaClassifier.isFrigateEvent(media)) {
-        continue;
-      }
-      const clipMedia = media.getClipEquivalent();
-      if (clipMedia) {
-        newResults.push(clipMedia);
-        if (i === targetIndex) {
-          newSelectedIndex = i;
-        }
-      }
-    }
-    if (newSelectedIndex === null) {
-      return null;
+    const results = await this.cameraManager.executeMediaQuery(this.hass, clipQuery);
+    if (!results) {
+      return;
     }
 
-    const newQueryResults = new MediaQueriesResults(newResults);
-    newQueryResults.selectResult(newSelectedIndex);
+    results.selectResultIfFound((clipMedia) => clipMedia.getID() === media.getID());
+    if (!results.hasSelectedResult()) {
+      return;
+    }
 
-    return this.view.evolve({
-      view: 'clip',
-      query: newQuery,
-      queryResults: newQueryResults,
-    });
+    this.view.evolve({
+      view: 'media',
+      query: clipQuery,
+      queryResults: results,
+    }).dispatchChangeEvent(this);
   }
 
   /**
@@ -708,11 +698,7 @@ export class FrigateCardViewerCarousel extends LitElement {
                     ?.carouselClickAllowed() &&
                   this.viewerConfig?.snapshot_click_plays_clip
                 ) {
-                  this._createRelatedClipView(index).then((view) => {
-                    if (view) {
-                      view.dispatchChangeEvent(this);
-                    }
-                  });
+                  this._dispatchRelatedClipView(index);
                 }
               }}
               @load="${(e: Event) => {

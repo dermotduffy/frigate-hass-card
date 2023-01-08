@@ -5,6 +5,8 @@ import format from 'date-fns/format';
 import isEqual from 'lodash-es/isEqual';
 import { FrigateCardError } from '../types';
 
+export type ModifyInterface<T, R> = Omit<T, keyof R> & R;
+
 /**
  * Dispatch a Frigate Card event.
  * @param target The target from which send the event.
