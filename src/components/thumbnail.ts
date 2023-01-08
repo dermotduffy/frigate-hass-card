@@ -9,7 +9,7 @@ import thumbnailFeatureEventStyle from '../scss/thumbnail-feature-event.scss';
 import thumbnailFeatureRecordingStyle from '../scss/thumbnail-feature-recording.scss';
 import thumbnailStyle from '../scss/thumbnail.scss';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
-import { getDurationString, prettifyTitle } from '../utils/basic.js';
+import { errorToConsole, getDurationString, prettifyTitle } from '../utils/basic.js';
 import { getCameraTitle } from '../utils/camera.js';
 import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask } from '../utils/thumbnail.js';
@@ -289,20 +289,26 @@ export class FrigateCardThumbnail extends LitElement {
           .date=${this.media.getStartTime() ?? undefined}
         ></frigate-card-thumbnail-feature-recording>`
       : html``}
-    ${this.show_favorite_control && event && this.hass && clientID
+    ${this.show_favorite_control && this.media && this.hass && clientID
       ? html` <ha-icon
             class="${classMap(starClasses)}"
             icon=${this.media.isFavorite() ? 'mdi:star' : 'mdi:star-outline'}
             title=${localize('thumbnail.retain_indefinitely')}
-            @click=${(ev: Event) => {
+            @click=${async (ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
               if (this.hass && this.cameraConfig && this.media) {
-                this.cameraManager?.favoriteMedia(
-                  this.hass,
-                  this.cameraConfig,
-                  this.media,
-                  !this.media?.isFavorite(),
-                );
+                try {
+                  await this.cameraManager?.favoriteMedia(
+                    this.hass,
+                    this.cameraConfig,
+                    this.media,
+                    !this.media?.isFavorite(),
+                  );
+                } catch (e) {
+                  errorToConsole(e as Error);
+                  return;
+                }
+                this.requestUpdate();
               }
             }}
           /></ha-icon>`

@@ -10,7 +10,7 @@ import { capEndDate, convertRangeToCacheFriendlyTimes } from '../camera/util';
 import { EventMediaQueries } from "../view/media-queries";
 import { ViewMedia } from '../view/media';
 import { compressRanges, ExpiringMemoryRangeSet, MemoryRangeSet } from '../camera/range';
-import { ModifyInterface } from './basic.js';
+import { errorToConsole, ModifyInterface } from './basic.js';
 
 // Allow timeline freshness to be at least this number of seconds out of date
 // (caching times in the data-engine may increase the effective delay).
@@ -90,10 +90,19 @@ export class TimelineDataSource {
     cameras: Map<string, CameraConfig>,
     window: TimelineWindow,
   ): Promise<void> {
-    await Promise.all([
-      this._refreshEvents(hass, cameras, window),
-      this._refreshRecordings(hass, window),
-    ]);
+    try {
+      await Promise.all([
+        this._refreshEvents(hass, cameras, window),
+        this._refreshRecordings(hass, window),
+      ]);
+    } catch (e) {
+      errorToConsole(e as Error);
+
+      // Intentionally ignore errors here, since it is likely the user will
+      // change the range again and a subsequent call may work. To do otherwise
+      // would be jarring to the timeline experience in the case of transient
+      // errors from the backend.
+    }
   }
 
   public getCacheFriendlyEventWindow(window: TimelineWindow): TimelineWindow {

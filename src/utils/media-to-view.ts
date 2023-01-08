@@ -16,6 +16,10 @@ import { getAllDependentCameras } from './camera.js';
 import { ViewMedia } from '../view/media';
 import { ViewMediaClassifier } from '../view/media-classifier';
 import { HomeAssistant } from 'custom-card-helpers';
+import { dispatchFrigateCardErrorEvent } from '../components/message';
+import { MediaQueriesResults } from '../view/media-queries-results';
+import { errorToConsole } from './basic';
+import { RecordingSegmentsQueryResults } from '../camera/types';
 
 export const changeViewToRecentEventsForCameraAndDependents = async (
   element: HTMLElement,
@@ -29,14 +33,15 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
   },
 ): Promise<void> => {
   (
-    await createViewForEvents(hass, cameraManager, cameras, view, {
+    await createViewForEvents(element, hass, cameraManager, cameras, view, {
       ...options,
       limit: 50, // Capture the 50 most recent events.
     })
-  ).dispatchChangeEvent(element);
+  )?.dispatchChangeEvent(element);
 };
 
 export const createViewForEvents = async (
+  element: HTMLElement,
   hass: HomeAssistant,
   cameraManager: CameraManager,
   cameras: Map<string, CameraConfig>,
@@ -48,7 +53,7 @@ export const createViewForEvents = async (
     targetView?: FrigateCardView;
     limit?: number;
   },
-): Promise<View> => {
+): Promise<View | null> => {
   let query: EventMediaQueries;
   if (options?.query) {
     query = options.query;
@@ -64,7 +69,15 @@ export const createViewForEvents = async (
     });
     query = new EventMediaQueries(queries);
   }
-  const queryResults = await cameraManager.executeMediaQuery(hass, query);
+
+  let queryResults: MediaQueriesResults | null;
+  try {
+    queryResults = await cameraManager.executeMediaQuery(hass, query);
+  } catch (e) {
+    errorToConsole(e as Error);
+    dispatchFrigateCardErrorEvent(element, e as Error);
+    return null;
+  }
 
   return view?.evolve({
     view: options?.targetView,
@@ -94,18 +107,19 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
 ): Promise<void> => {
   const now = new Date();
   (
-    await createViewForRecordings(hass, cameraManager, cameras, view, {
+    await createViewForRecordings(element, hass, cameraManager, cameras, view, {
       ...options,
       // Fetch 7 days worth of recordings (including recordings that are for the
       // current hour).
       start: sub(now, { days: 7 }),
       end: add(now, { hours: 1 }),
     })
-  ).dispatchChangeEvent(element);
+  )?.dispatchChangeEvent(element);
 };
 
 /**
  * Create a view for recordings.
+ * @param element The element to dispatch the view change from.
  * @param hass The Home Assistant object.
  * @param cameraManager The datamanager to use for data access.
  * @param cameras The camera configurations.
@@ -115,6 +129,7 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
  * restrict to.
  */
 export const createViewForRecordings = async (
+  element: HTMLElement,
   hass: HomeAssistant,
   cameraManager: CameraManager,
   cameras: Map<string, CameraConfig>,
@@ -126,7 +141,7 @@ export const createViewForRecordings = async (
     start?: Date;
     end?: Date;
   },
-): Promise<View> => {
+): Promise<View | null> => {
   const cameraIDs: Set<string> = options?.cameraIDs
     ? options.cameraIDs
     : new Set(getAllDependentCameras(cameras, view.camera));
@@ -137,7 +152,15 @@ export const createViewForRecordings = async (
   });
 
   const query = new RecordingMediaQueries(queries);
-  const queryResults = await cameraManager.executeMediaQuery(hass, query);
+  let queryResults: MediaQueriesResults | null;
+
+  try {
+    queryResults = await cameraManager.executeMediaQuery(hass, query);
+  } catch (e) {
+    errorToConsole(e as Error);
+    dispatchFrigateCardErrorEvent(element, e as Error);
+    return null;
+  }
 
   let viewerContext: ViewContext | undefined = {};
   const mediaArray = queryResults?.getResults();
@@ -199,9 +222,19 @@ export const generateMediaViewerContext = async (
           end: end,
         },
       )[0];
-      const segments = (await cameraManager.getRecordingSegments(hass, query)).get(
-        query,
-      );
+      let segments: RecordingSegmentsQueryResults | null;
+
+      try {
+        segments = (await cameraManager.getRecordingSegments(hass, query)).get(
+          query,
+        ) ?? null;
+      } catch (e) {
+        errorToConsole(e as Error);
+        // View context is never critical. Ignore errors which will at least
+        // allow the video to load even if it doesn't seek to the correct
+        // location.
+        return {};
+      }
 
       if (segments) {
         seekSeconds = getSeekTimeInSegments(

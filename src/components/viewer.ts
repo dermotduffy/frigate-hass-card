@@ -27,7 +27,7 @@ import {
   ViewerConfig,
 } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
-import { contentsChanged } from '../utils/basic.js';
+import { contentsChanged, errorToConsole } from '../utils/basic.js';
 import { getFullDependentBrowseMediaQueryParametersOrDispatchError } from '../utils/ha/browse-media.js';
 import { ResolvedMediaCache, resolveMedia } from '../utils/ha/resolved-media.js';
 import { View } from '../view/view.js';
@@ -56,6 +56,7 @@ import { ViewMedia } from '../view/media.js';
 import { ViewMediaClassifier } from '../view/media-classifier';
 import { guard } from 'lit/directives/guard.js';
 import { localize } from '../localize/localize.js';
+import { MediaQueriesResults } from '../view/media-queries-results.js';
 
 export interface MediaSeek {
   // Specifies the point at which this recording should be played, the
@@ -384,7 +385,14 @@ export class FrigateCardViewerCarousel extends LitElement {
     const clipQuery = this.view.query.clone();
     clipQuery.convertToClipsQueries();
 
-    const results = await this.cameraManager.executeMediaQuery(this.hass, clipQuery);
+    let results: MediaQueriesResults | null;
+    try {
+      results = await this.cameraManager.executeMediaQuery(this.hass, clipQuery);
+    } catch (e) {
+      errorToConsole(e as Error);
+      return;
+    }
+
     if (!results) {
       return;
     }

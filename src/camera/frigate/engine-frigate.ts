@@ -4,18 +4,16 @@ import endOfHour from 'date-fns/endOfHour';
 import getUnixTime from 'date-fns/getUnixTime';
 import startOfHour from 'date-fns/startOfHour';
 import { CAMERA_BIRDSEYE } from '../../const';
-import { CameraConfig, RecordingSegment } from '../../types';
+import { CameraConfig } from '../../types';
 import { MediaQueriesResults } from '../../view/media-queries-results';
 import { MediaQueriesClassifier } from '../../view/media-queries-classifier';
 import { ViewMedia, ViewMediaFactory } from '../../view/media';
 import { ViewMediaClassifier } from '../../view/media-classifier';
-import { errorToConsole } from '../../utils/basic';
 import { RecordingSegmentsCache } from '../cache';
 import {
   CameraManagerEngine,
   CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
 } from '../engine';
-import { CameraManagerError } from '../error';
 import { DateRange } from '../range';
 import {
   Engine,
@@ -33,7 +31,7 @@ import {
   RecordingQuery,
   RecordingSegmentsQuery,
 } from '../types';
-import { FrigateRecording, RecordingSummary } from './types';
+import { FrigateRecording } from './types';
 import {
   getEvents,
   getRecordingSegments,
@@ -156,13 +154,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       return;
     }
 
-    try {
-      await retainEvent(hass, clientID, media.getID(cameraConfig), favorite);
-    } catch (e) {
-      errorToConsole(e as Error);
-      throw new CameraManagerError((e as Error).message);
-    }
-
+    await retainEvent(hass, clientID, media.getID(cameraConfig), favorite);
     media.setFavorite(favorite);
   }
 
@@ -189,17 +181,12 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       limit: query?.limit ?? CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
     };
 
-    try {
-      return <FrigateEventQueryResults>{
-        type: QueryResultsType.Event,
-        engine: Engine.Frigate,
-        events: await getEvents(hass, nativeQuery),
-        expiry: add(new Date(), { seconds: EVENT_REQUEST_CACHE_MAX_AGE_SECONDS }),
-      };
-    } catch (e) {
-      errorToConsole(e as Error);
-      throw new CameraManagerError((e as Error).message, query);
-    }
+    return <FrigateEventQueryResults>{
+      type: QueryResultsType.Event,
+      engine: Engine.Frigate,
+      events: await getEvents(hass, nativeQuery),
+      expiry: add(new Date(), { seconds: EVENT_REQUEST_CACHE_MAX_AGE_SECONDS }),
+    };
   }
 
   public async getRecordings(
@@ -215,17 +202,11 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       return null;
     }
 
-    let recordingSummary: RecordingSummary;
-    try {
-      recordingSummary = await getRecordingsSummary(
-        hass,
-        cameraConfig.frigate.client_id,
-        cameraConfig.frigate.camera_name,
-      );
-    } catch (e) {
-      errorToConsole(e as Error);
-      throw new CameraManagerError((e as Error).message, query);
-    }
+    const recordingSummary = await getRecordingsSummary(
+      hass,
+      cameraConfig.frigate.client_id,
+      cameraConfig.frigate.camera_name,
+    );
 
     let recordings: FrigateRecording[] = [];
 
@@ -303,14 +284,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       before: Math.floor(query.end.getTime() / 1000),
     };
 
-    let segments: RecordingSegment[];
-    try {
-      segments = await getRecordingSegments(hass, request);
-    } catch (e) {
-      errorToConsole(e as Error);
-      throw new CameraManagerError((e as Error).message, query);
-    }
-
+    const segments = await getRecordingSegments(hass, request);
     this._recordingSegmentsCache.add(query.cameraID, range, segments);
 
     return {

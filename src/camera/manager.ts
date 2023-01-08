@@ -229,7 +229,18 @@ export class CameraManager {
   ): Promise<void> {
     const engine = this._engineFactory.getEngineForCamera(cameraConfig);
     if (engine) {
-      engine.favoriteMedia(hass, cameraConfig, media, favorite);
+      const queryStartTime = new Date();
+      await engine.favoriteMedia(hass, cameraConfig, media, favorite);
+
+      console.debug(
+        'Frigate Card CameraManager favorite request (',
+        `Duration: ${(new Date().getTime() - queryStartTime.getTime()) / 1000}s,`,
+        'Media:',
+        media.getID(),
+        ', Favorite:',
+        favorite,
+        ')',
+      );
     }
   }
 

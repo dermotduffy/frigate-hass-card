@@ -471,6 +471,7 @@ export class FrigateCardTimelineCore extends LitElement {
       ['background', 'group-label'].includes(properties.what)
     ) {
       view = await createViewForRecordings(
+        this,
         this.hass,
         this.cameraManager,
         this.cameras,
@@ -487,6 +488,7 @@ export class FrigateCardTimelineCore extends LitElement {
       );
     } else if (this.timelineConfig?.show_recordings && properties.what === 'axis') {
       view = await createViewForRecordings(
+        this,
         this.hass,
         this.cameraManager,
         this.cameras,
@@ -641,6 +643,7 @@ export class FrigateCardTimelineCore extends LitElement {
       return null;
     }
     const view = await createViewForEvents(
+      this,
       this.hass,
       this.cameraManager,
       this.cameras,
@@ -651,6 +654,9 @@ export class FrigateCardTimelineCore extends LitElement {
         mediaType: this.timelineConfig?.media,
       },
     );
+    if (!view) {
+      return null;
+    }
     view.mergeInContext(
       this._generateTimelineContext({ noSetWindow: options?.noSetWindow }),
     );
@@ -813,7 +819,8 @@ export class FrigateCardTimelineCore extends LitElement {
               );
             },
           }
-        : (false as TimelineOptionsCluster),
+        : // Timeline type information is incorrect requiring this 'as'.
+          (false as unknown as TimelineOptionsCluster),
       minHeight: '100%',
       maxHeight: '100%',
       zoomMax: 1 * 24 * 60 * 60 * 1000,
