@@ -2,7 +2,6 @@
 //  - TODO: Add garbage collecting of segments not present in the recording summaries anymore.
 //  - TODO: Move frigate specific view-media under the camera manager.
 //  - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
-//  - TODO: Engine should not need cameraConfig to favorite since it already has cameras.
 
 // Hard:
 //  - TODO: Implement dragging the timeline seeking forward in both Frigate recordings & events.

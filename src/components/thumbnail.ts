@@ -296,11 +296,10 @@ export class FrigateCardThumbnail extends LitElement {
             title=${localize('thumbnail.retain_indefinitely')}
             @click=${async (ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
-              if (this.hass && this.cameraConfig && this.media) {
+              if (this.hass && this.media) {
                 try {
                   await this.cameraManager?.favoriteMedia(
                     this.hass,
-                    this.cameraConfig,
                     this.media,
                     !this.media?.isFavorite(),
                   );

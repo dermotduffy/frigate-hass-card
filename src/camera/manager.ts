@@ -236,10 +236,13 @@ export class CameraManager {
 
   public async favoriteMedia(
     hass: HomeAssistant,
-    cameraConfig: CameraConfig,
     media: ViewMedia,
     favorite: boolean,
   ): Promise<void> {
+    const cameraConfig = this._cameras.get(media.getCameraID());
+    if (!cameraConfig) {
+      return;
+    }
     const engine = this._engineFactory.getEngineForCamera(cameraConfig);
     if (engine) {
       const queryStartTime = new Date();
