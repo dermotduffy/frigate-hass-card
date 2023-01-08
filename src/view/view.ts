@@ -6,7 +6,6 @@
 //  - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
 
 // Hard:
-//  - TODO: There are circumstances when lazy load doesn't work (e.g. snapshot -> clips re-query)
 //  - TODO: Implement dragging the timeline seeking forward in both Frigate recordings & events.
 //  - TODO: Implement gallery.
 //  - TODO: Remove FrigateBrowseMediaSource if not necessary (post-gallery).

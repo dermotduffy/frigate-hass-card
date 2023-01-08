@@ -31,7 +31,6 @@ import { contentsChanged } from '../utils/basic.js';
 import { getFullDependentBrowseMediaQueryParametersOrDispatchError } from '../utils/ha/browse-media.js';
 import { ResolvedMediaCache, resolveMedia } from '../utils/ha/resolved-media.js';
 import { View } from '../view/view.js';
-import { MediaQueriesResults } from '../view/media-queries-results';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
 import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import { Lazyload } from './embla-plugins/lazyload.js';
@@ -174,7 +173,7 @@ export class FrigateCardViewer extends LitElement {
         .cameras=${this.cameras}
         .viewerConfig=${this.viewerConfig}
         .resolvedMediaCache=${this.resolvedMediaCache}
-        .cameraManager=${this.cameraManager}       
+        .cameraManager=${this.cameraManager}
         .cardWideConfig=${this.cardWideConfig}
       >
       </frigate-card-viewer-carousel>
@@ -220,9 +219,6 @@ export class FrigateCardViewerCarousel extends LitElement {
   public cameraManager?: CameraManager;
 
   protected _refMediaCarousel: Ref<FrigateCardMediaCarousel> = createRef();
-
-  protected _carouselOptions?: EmblaOptionsType;
-  protected _carouselPlugins?: EmblaPluginType[];
 
   // A task to resolve target media if lazy loading is disabled.
   protected _mediaResolutionTask = new Task<
@@ -398,11 +394,13 @@ export class FrigateCardViewerCarousel extends LitElement {
       return;
     }
 
-    this.view.evolve({
-      view: 'media',
-      query: clipQuery,
-      queryResults: results,
-    }).dispatchChangeEvent(this);
+    this.view
+      .evolve({
+        view: 'media',
+        query: clipQuery,
+        queryResults: results,
+      })
+      .dispatchChangeEvent(this);
   }
 
   /**
@@ -525,20 +523,6 @@ export class FrigateCardViewerCarousel extends LitElement {
     if (changedProps.has('viewerConfig')) {
       updateElementStyleFromMediaLayoutConfig(this, this.viewerConfig?.layout);
     }
-    if (!this._carouselOptions || changedProps.has('viewerConfig')) {
-      this._carouselOptions = {
-        draggable: this.viewerConfig?.draggable ?? true,
-      };
-    }
-    if (
-      !this._carouselPlugins ||
-      changedProps.has('viewerConfig') ||
-      (changedProps.has('view') &&
-        this.view?.queryResults?.getResultsCount() !==
-          changedProps.get('view')?.queryResults?.getResultsCount())
-    ) {
-      this._carouselPlugins = this._getPlugins();
-    }
   }
 
   /**
@@ -586,8 +570,13 @@ export class FrigateCardViewerCarousel extends LitElement {
 
     return html` <frigate-card-media-carousel
       ${ref(this._refMediaCarousel)}
-      .carouselOptions=${this._carouselOptions}
-      .carouselPlugins=${this._carouselPlugins}
+      .carouselOptions=${guard([this.viewerConfig], () => ({
+        draggable: this.viewerConfig?.draggable ?? true,
+      }))}
+      .carouselPlugins=${guard(
+        [this.viewerConfig, this.view?.queryResults?.getResults()],
+        this._getPlugins.bind(this),
+      )}
       .label=${media.getTitle() ?? undefined}
       .titlePopupConfig=${this.viewerConfig?.controls.title}
       .selected=${this.view?.queryResults?.getSelectedIndex() ?? 0}
