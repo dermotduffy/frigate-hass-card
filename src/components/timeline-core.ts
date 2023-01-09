@@ -47,6 +47,7 @@ import { getAllDependentCameras, getCameraTitle } from '../utils/camera.js';
 import {
   createViewForEvents,
   createViewForRecordings,
+  findClosestMediaIndex,
   generateMediaViewerContext,
 } from '../utils/media-to-view';
 import { CameraManager } from '../camera/manager';
@@ -387,51 +388,66 @@ export class FrigateCardTimelineCore extends LitElement {
    * @param properties The range change properties.
    * @returns
    */
-  protected _setViewDuringRangeChange(
-    _targetTime: Date,
-    _properties: TimelineRangeChange,
-  ): void {
+  protected async _setViewDuringRangeChange(
+    targetTime: Date,
+    properties: TimelineRangeChange,
+  ): Promise<void> {
+    const results = this.view?.queryResults;
+    const media = results?.getResults();
     if (
+      !media ||
+      !results ||
       !this._timeline ||
       !this.view ||
-      // !this.view.target?.length ||
+      !this.hass ||
+      !this.cameraManager ||
       !this.cameraManager
     ) {
       return;
     }
 
-    // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-    // const canSeek = !!this.view?.isViewerView();
-    // const context = canSeek
-    //   ? generateMediaViewerContextForChildren(
-    //       this.cameraManager,
-    //       this.view.target,
-    //       targetTime,
-    //     )
-    //   : null;
+    const canSeek = !!this.view?.isViewerView();
 
-    // const childIndex = this._locked
-    //   ? null
-    //   : findChildIndex(
-    //       this.view.target.children,
-    //       targetTime,
-    //       this._getTimelineCameraIDs(),
-    //       properties.event.additionalEvent === 'panright' ? 'end' : 'start',
-    //     );
+    const context = canSeek
+      ? await generateMediaViewerContext(
+          this.hass,
+          this.cameraManager,
+          media,
+          targetTime,
+        )
+      : null;
 
-    // if (canSeek || (childIndex !== null && childIndex !== this.view.childIndex)) {
-    //   this.view
-    //     .evolve({
-    //       ...(childIndex !== null && {
-    //         childIndex: childIndex,
-    //       }),
-    //     }) // Whether or not to set the timeline window.
-    //     .mergeInContext({
-    //       ...this._generateTimelineContext({ noSetWindow: true }),
-    //       ...context,
-    //     })
-    //     .dispatchChangeEvent(this);
-    // }
+    const newResults = this._locked
+      ? null
+      : results
+          .clone()
+          .resetSelectedResult()
+          .selectBestResult((media) =>
+            findClosestMediaIndex(
+              media,
+              targetTime,
+              this._getTimelineCameraIDs(),
+              properties.event.additionalEvent === 'panright' ? 'end' : 'start',
+            ),
+          );
+
+    if (
+      canSeek ||
+      (newResults &&
+        newResults.hasSelectedResult() &&
+        newResults.getResult() !== results.getResult())
+    ) {
+      this.view
+        .evolve({
+          ...(newResults &&
+            newResults.hasSelectedResult() && { queryResults: newResults }),
+        }) // Whether or not to set the timeline window.
+        .mergeInContext({
+          ...this._generateTimelineContext({ noSetWindow: true }),
+          ...context,
+        })
+        .dispatchChangeEvent(this);
+    }
   }
 
   /**
@@ -537,9 +553,7 @@ export class FrigateCardTimelineCore extends LitElement {
           ?.clone()
           .resetSelectedResult()
           .selectResultIfFound(
-            (media) =>
-              !!this.cameras &&
-              media.getID(this.cameras.get(media.getCameraID())) === properties.item,
+            (media) => !!this.cameras && media.getID() === properties.item,
           ),
       });
     }
@@ -662,9 +676,7 @@ export class FrigateCardTimelineCore extends LitElement {
     );
     if (options?.selectedItem) {
       view.queryResults?.selectResultIfFound(
-        (media) =>
-          !!this.cameras &&
-          media.getID(this.cameras.get(media.getCameraID())) === options.selectedItem,
+        (media) => !!this.cameras && media.getID() === options.selectedItem,
       );
     }
     return view;
@@ -799,7 +811,7 @@ export class FrigateCardTimelineCore extends LitElement {
               }
 
               const media = this.view?.queryResults?.getSelectedResult();
-              const selectedId = media?.getID(this.cameras.get(media.getCameraID()));
+              const selectedId = media?.getID();
               const firstMedia = (<FrigateCardTimelineItem>first).media;
               const secondMedia = (<FrigateCardTimelineItem>second).media;
 
@@ -810,7 +822,7 @@ export class FrigateCardTimelineCore extends LitElement {
                 first.type !== 'background' &&
                 first.type === second.type &&
                 first.id !== selectedId &&
-                second.id != selectedId &&
+                second.id !== selectedId &&
                 !!firstMedia &&
                 !!secondMedia &&
                 ViewMediaClassifier.isEvent(firstMedia) &&

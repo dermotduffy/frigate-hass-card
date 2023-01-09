@@ -197,6 +197,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       engine: Engine.Frigate,
       events: await getEvents(hass, nativeQuery),
       expiry: add(new Date(), { seconds: EVENT_REQUEST_CACHE_MAX_AGE_SECONDS }),
+      cached: false,
     };
   }
 
@@ -257,6 +258,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       expiry: add(new Date(), {
         seconds: RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS,
       }),
+      cached: false,
     };
   }
 
@@ -285,6 +287,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
         type: QueryResultsType.RecordingSegments,
         engine: Engine.Frigate,
         segments: cachedSegments,
+        cached: true,
       };
     }
 
@@ -304,6 +307,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       type: QueryResultsType.RecordingSegments,
       engine: Engine.Frigate,
       segments: segments,
+      cached: false,
     };
   }
 

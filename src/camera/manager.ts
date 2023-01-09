@@ -210,10 +210,7 @@ export class CameraManager {
       orderBy(
         // Ensure uniqueness by the ID (if specified), otherwise all elements
         // are assumed to be unique.
-        uniqBy(
-          mediaArray,
-          (media) => media.getID() ?? media,
-        ),
+        uniqBy(mediaArray, (media) => media.getID() ?? media),
 
         // Sort all items leading with the most recent.
         (media) => media.getStartTime(),
@@ -315,9 +312,15 @@ export class CameraManager {
         result = await engine.getRecordingSegments(hass, this._cameras, query);
       }
 
+      // The engine may independently cached the results. Respect that in our
+      // debug logging.
+      if (result?.cached) {
+        queryCachedCount++;
+      }
+
       if (result) {
         if (result.expiry) {
-          this._requestCache.set(query, result, result.expiry);
+          this._requestCache.set(query, { ...result, cached: true }, result.expiry);
         }
         results.set(query, result as QueryReturnType<QT>);
       }

@@ -45,6 +45,7 @@ export interface QueryResults {
   type: QueryResultsType;
   engine: Engine;
   expiry?: Date;
+  cached?: boolean;
 }
 
 export type QueryReturnType<QT> = QT extends EventQuery

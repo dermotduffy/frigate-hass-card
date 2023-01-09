@@ -1,6 +1,7 @@
-// Medium:
+// Minor / later:
 //  - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
 //  - TODO: getRecordingTitle should use getCameraTitle but need hass.
+//  - TODO: Pass timezone to recordings & event summary endpoint.
 
 // Hard:
 //  - TODO: Implement dragging the timeline seeking forward in both Frigate recordings & events.
