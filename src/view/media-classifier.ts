@@ -1,10 +1,10 @@
 import { ViewMedia, RecordingViewMedia, EventViewMedia } from './media';
 
 export class ViewMediaClassifier {
-  public static isEvent(media: ViewMedia): media is EventViewMedia<unknown> {
+  public static isEvent(media: ViewMedia): media is EventViewMedia {
     return this.isClip(media) || this.isSnapshot(media);
   }
-  public static isRecording(media: ViewMedia): media is RecordingViewMedia<unknown> {
+  public static isRecording(media: ViewMedia): media is RecordingViewMedia {
     return media.getMediaType() === 'recording';
   }
   public static isClip(media: ViewMedia): boolean {
