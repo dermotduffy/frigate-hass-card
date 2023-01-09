@@ -1,12 +1,12 @@
 // Medium:
-//  - TODO: Move frigate specific view-media under the camera manager.
 //  - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
-//  - TODO: Use sortedUniqBy in the engine sort/uniq combo.
+//  - TODO: getRecordingTitle should use getCameraTitle but need hass.
 
 // Hard:
 //  - TODO: Implement dragging the timeline seeking forward in both Frigate recordings & events.
 //  - TODO: Implement gallery.
 //  - TODO: Remove FrigateBrowseMediaSource if not necessary (post-gallery).
+//  - TODO: Remove browse-media.ts TODOs.
 //  - TODO: In generateMediaViewerContext there is an assumption that recordings start/end on the hour, which is true for Frigate but that assumption should be in the engine.
 //  - TODO: What should the timeline do when an event is clicked on that is not in the queryResults (or if queryResults is empty)?
 //  - TODO: Should the timeline data source clear events (as it currently does) when the query changes?

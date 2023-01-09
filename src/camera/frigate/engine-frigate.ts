@@ -83,7 +83,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   protected _throttledSegmentGarbageCollector = throttle(
     this._garbageCollectSegments.bind(this),
     60 * 60 * 1000,
-    { trailing: true },
+    { leading: false, trailing: true },
   );
 
   constructor(recordingSegmentsCache: RecordingSegmentsCache) {
