@@ -1,10 +1,9 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import add from 'date-fns/add';
 import endOfHour from 'date-fns/endOfHour';
-import getUnixTime from 'date-fns/getUnixTime';
 import startOfHour from 'date-fns/startOfHour';
 import { CAMERA_BIRDSEYE } from '../../const';
-import { CameraConfig } from '../../types';
+import { CameraConfig, RecordingSegment } from '../../types';
 import { MediaQueriesResults } from '../../view/media-queries-results';
 import { MediaQueriesClassifier } from '../../view/media-queries-classifier';
 import { ViewMedia, ViewMediaFactory } from '../../view/media';
@@ -42,6 +41,10 @@ import {
 } from './requests';
 import { MediaQueries } from '../../view/media-queries';
 import orderBy from 'lodash-es/orderBy';
+import throttle from 'lodash-es/throttle';
+import { runWhenIdleIfSupported } from '../../utils/basic';
+import { fromUnixTime } from 'date-fns';
+import { sum } from 'lodash-es';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
@@ -73,6 +76,13 @@ class FrigateQueryResultsClassifier {
 
 export class FrigateCameraManagerEngine implements CameraManagerEngine {
   protected _recordingSegmentsCache: RecordingSegmentsCache;
+
+  // Garbage collect segments at most once an hour.
+  protected _throttledSegmentGarbageCollector = throttle(
+    this._garbageCollectSegments.bind(this),
+    60 * 60 * 1000,
+    { trailing: true },
+  );
 
   constructor(recordingSegmentsCache: RecordingSegmentsCache) {
     this._recordingSegmentsCache = recordingSegmentsCache;
@@ -220,9 +230,9 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
           (!query.end || endHour <= query.end)
         ) {
           recordings.push({
-            camera: cameraConfig.frigate.camera_name,
-            start_time: getUnixTime(startHour),
-            end_time: getUnixTime(endHour),
+            cameraID: query.cameraID,
+            startTime: startHour,
+            endTime: endHour,
             events: hourData.events,
           });
         }
@@ -234,7 +244,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       // this simulates it.
       recordings = orderBy(
         recordings,
-        (recording: FrigateRecording) => recording.start_time,
+        (recording: FrigateRecording) => recording.startTime,
         'desc',
       ).slice(0, query.limit);
     }
@@ -286,6 +296,8 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
 
     const segments = await getRecordingSegments(hass, request);
     this._recordingSegmentsCache.add(query.cameraID, range, segments);
+
+    runWhenIdleIfSupported(() => this._throttledSegmentGarbageCollector(hass, cameras));
 
     return {
       type: QueryResultsType.RecordingSegments,
@@ -380,5 +392,69 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       return null;
     }
     return cameraConfig;
+  }
+
+  /**
+   * Garbage collect recording segments that no longer feature in the recordings
+   * returned by the Frigate backend.
+   */
+  protected async _garbageCollectSegments(
+    hass: HomeAssistant,
+    cameras: Map<string, CameraConfig>,
+  ): Promise<void> {
+    const cameraIDs = this._recordingSegmentsCache.getCameraIDs();
+    const recordingQueries: RecordingQuery[] = cameraIDs.map((cameraID) => ({
+      cameraID: cameraID,
+      type: QueryType.Recording,
+    }));
+
+    const countSegments = () =>
+      sum(
+        cameraIDs.map(
+          (cameraID) => this._recordingSegmentsCache.getCache(cameraID)?.size() ?? 0,
+        ),
+      );
+    const segmentsStart = countSegments();
+
+    const results: Map<RecordingQuery, FrigateRecordingQueryResults> = new Map();
+
+    await Promise.all(
+      recordingQueries.map((query) =>
+        (async () => {
+          const recordings = await this.getRecordings(hass, cameras, query);
+          if (recordings && recordings.engine === Engine.Frigate) {
+            results.set(query, recordings as FrigateRecordingQueryResults);
+          }
+        })(),
+      ),
+    );
+
+    // Performance: _recordingSegments is potentially very large (e.g. 10K - 1M
+    // items) and each item must be examined, so care required here to stick to
+    // nothing worse than O(n) performance.
+    const getHourID = (cameraID: string, startTime: Date): string => {
+      return `${cameraID}/${startTime.getDate()}/${startTime.getHours()}`;
+    };
+
+    for (const [query, result] of results) {
+      const goodHours: Set<string> = new Set();
+      for (const recording of result.recordings) {
+        goodHours.add(getHourID(recording.cameraID, recording.startTime));
+      }
+
+      this._recordingSegmentsCache.expireMatches(
+        query.cameraID,
+        (segment: RecordingSegment) => {
+          const hourID = getHourID(query.cameraID, fromUnixTime(segment.start_time));
+          // ~O(1) lookup time for a JS set.
+          return goodHours.has(hourID);
+        },
+      );
+    }
+
+    console.debug(
+      'Frigate Card recording segment garbage collection: ' +
+        `Released ${segmentsStart - countSegments()} segment(s)`,
+    );
   }
 }

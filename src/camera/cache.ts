@@ -103,6 +103,20 @@ export class MemoryRangedCache<Data> {
     }
     return output;
   }
+
+  public size(): number {
+    return this._data.length;
+  }
+
+  /**
+   * Remove old data that matches a given predicate. No change to the covered
+   * ranges is made, i.e. this is asserting authoritiatively that this data does
+   * not exist in the current ranges.
+   * @param predicate A predicate to run on each data element.
+   */
+  public expireMatches(predicate: (data: Data) => boolean): void {
+    this._data = this._data.filter(predicate);
+  }
 }
 
 export class RecordingSegmentsCache {
@@ -127,5 +141,20 @@ export class RecordingSegmentsCache {
 
   public get(cameraID: string, range: DateRange): RecordingSegment[] | null {
     return this._segments.get(cameraID)?.get(range) ?? null;
+  }
+
+  public getCache(cameraID: string): MemoryRangedCache<RecordingSegment> | null {
+    return this._segments.get(cameraID) ?? null;
+  }
+
+  public getCameraIDs(): string[] {
+    return [...this._segments.keys()];
+  }
+
+  public expireMatches(
+    cameraID: string,
+    func: (segment: RecordingSegment) => boolean,
+  ): void {
+    this._segments.get(cameraID)?.expireMatches(func);
   }
 }

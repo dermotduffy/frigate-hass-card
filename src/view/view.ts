@@ -1,7 +1,7 @@
 // Medium:
-//  - TODO: Add garbage collecting of segments not present in the recording summaries anymore.
 //  - TODO: Move frigate specific view-media under the camera manager.
 //  - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
+//  - TODO: Use sortedUniqBy in the engine sort/uniq combo.
 
 // Hard:
 //  - TODO: Implement dragging the timeline seeking forward in both Frigate recordings & events.
@@ -85,8 +85,9 @@ export class View {
       !curr ||
       prev.view !== curr.view ||
       prev.camera !== curr.camera ||
-      // When in the live view, the target contains the events that happened in
-      // the past -- not reflective of the actual live media viewer.
+      // When in the live view, the queryResults contain the events that
+      // happened in the past -- not reflective of the actual live media viewer
+      // the user is seeing.
       (curr.view !== 'live' &&
         (prev.queryResults !== curr.queryResults ||
           prev.queryResults?.getSelectedResult() !==
@@ -103,9 +104,6 @@ export class View {
       camera: this.camera,
       query: this.query?.clone() ?? null,
       queryResults: this.queryResults?.clone() ?? null,
-      // target: this.target,
-      // targetIndex: this.targetIndex,
-      // targetFingerprint: this.targetFingerprint,
       context: this.context,
     });
   }

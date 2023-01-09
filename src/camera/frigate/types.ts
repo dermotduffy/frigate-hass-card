@@ -50,9 +50,8 @@ export const retainResultSchema = z.object({
 export type RetainResult = z.infer<typeof retainResultSchema>;
 
 export interface FrigateRecording {
-  // Frigate camera name (may not be unique)
-  camera: string;
-  start_time: number;
-  end_time: number;
+  cameraID: string;
+  startTime: Date;
+  endTime: Date;
   events: number;
 }
