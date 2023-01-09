@@ -128,7 +128,7 @@ export class FrigateCardThumbnailFeatureRecording extends LitElement {
 @customElement('frigate-card-thumbnail-details-event')
 export class FrigateCardThumbnailDetailsEvent extends LitElement {
   @property({ attribute: false })
-  public media?: EventViewMedia;
+  public media?: EventViewMedia<unknown>;
 
   @property({ attribute: false })
   public mediaSeek?: MediaSeek;
@@ -180,7 +180,7 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
 @customElement('frigate-card-thumbnail-details-recording')
 export class FrigateCardThumbnailDetailsRecording extends LitElement {
   @property({ attribute: false })
-  public media?: RecordingViewMedia;
+  public media?: RecordingViewMedia<unknown>;
 
   @property({ attribute: false })
   public mediaSeek?: MediaSeek;

@@ -1,6 +1,5 @@
 import utcToZonedTime from 'date-fns-tz/utcToZonedTime';
-import fromUnixTime from 'date-fns/fromUnixTime';
-import { ClipsOrSnapshots } from '../../types';
+import { CameraConfig, ClipsOrSnapshots } from '../../types';
 import { formatDateAndTime, prettifyTitle } from '../../utils/basic';
 import { FrigateEvent, FrigateRecording } from './types';
 
@@ -22,9 +21,12 @@ export const getEventTitle = (event: FrigateEvent): string => {
   )}%]`;
 };
 
-export const getRecordingTitle = (recording: FrigateRecording): string => {
-  return `${prettifyTitle(recording.camera)} ${formatDateAndTime(
-    fromUnixTime(recording.start_time),
+export const getRecordingTitle = (
+  cameraConfig: CameraConfig,
+  recording: FrigateRecording,
+): string => {
+  return `${prettifyTitle(cameraConfig.frigate.camera_name)} ${formatDateAndTime(
+    recording.startTime,
   )}`;
 };
 
@@ -67,15 +69,16 @@ export const getRecordingMediaContentID = (
   cameraName: string,
   recording: FrigateRecording,
 ): string => {
-  const date = fromUnixTime(recording.start_time);
   return [
     'media-source://frigate',
     clientId,
     'recordings',
     cameraName,
-    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
-      String(date.getDate()).padStart(2, '0'),
+    `${recording.startTime.getFullYear()}-${String(
+      recording.startTime.getMonth() + 1,
+    ).padStart(2, '0')}-${String(
+      String(recording.startTime.getDate()).padStart(2, '0'),
     )}`,
-    String(date.getHours()).padStart(2, '0'),
+    String(recording.startTime.getHours()).padStart(2, '0'),
   ].join('/');
 };

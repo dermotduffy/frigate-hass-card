@@ -1,19 +1,7 @@
-import fromUnixTime from 'date-fns/fromUnixTime';
-import isEqual from 'lodash-es/isEqual';
 import { CameraConfig } from '../types.js';
-import {
-  getEventMediaContentID,
-  getEventThumbnailURL,
-  getEventTitle,
-  getRecordingMediaContentID,
-  getRecordingTitle,
-} from '../camera/frigate/util.js';
-import { FrigateEvent, FrigateRecording } from '../camera/frigate/types.js';
-
 export type ViewMediaType = 'clip' | 'snapshot' | 'recording';
-export type ViewMediaSourceType = FrigateEvent | FrigateRecording;
 
-class ViewMediaBase<T extends ViewMediaSourceType> {
+export class ViewMediaBase<T> {
   protected _mediaType: ViewMediaType;
   protected _cameraID: string;
   protected _source: T;
@@ -72,167 +60,15 @@ class ViewMediaBase<T extends ViewMediaSourceType> {
   }
 }
 
-export interface EventViewMedia extends ViewMedia {
+export interface EventViewMedia<T> extends ViewMediaBase<T> {
   getScore(): number | null;
   getWhat(): string[] | null;
-  isGroupableWith(that: EventViewMedia): boolean;
+  isGroupableWith(that: EventViewMedia<T>): boolean;
+  hasClip(): boolean | null;
 }
 
-export interface RecordingViewMedia extends ViewMedia {
+export interface RecordingViewMedia<T> extends ViewMediaBase<T> {
   getEventCount(): number | null;
 }
 
-// Creates a 'public interface only' version of ViewMediaBase for use elsewhere
-// (typescript struggles with the ViewMediaClassifier classification functions
-// used above if the object has data elements).
-export type ViewMedia = {
-  [P in keyof ViewMediaBase<ViewMediaSourceType>]: ViewMediaBase<ViewMediaSourceType>[P];
-};
-
-export class FrigateEventViewMedia
-  extends ViewMediaBase<FrigateEvent>
-  implements EventViewMedia
-{
-  public hasClip(): boolean {
-    return !!this._source.has_clip;
-  }
-  public getClipEquivalent(): ViewMedia | null {
-    if (!this.hasClip()) {
-      return null;
-    }
-    return ViewMediaFactory.createViewMediaFromFrigateEvent(
-      'clip',
-      this._cameraID,
-      this._source,
-    );
-  }
-  public getStartTime(): Date {
-    return fromUnixTime(this._source.start_time);
-  }
-  public getEndTime(): Date | null {
-    return this._source.end_time ? fromUnixTime(this._source.end_time) : null;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getID(_cameraConfig?: CameraConfig): string {
-    return this._source.id;
-  }
-  public getContentID(cameraConfig?: CameraConfig): string | null {
-    if (
-      !cameraConfig ||
-      !cameraConfig.frigate.client_id ||
-      !cameraConfig.frigate.camera_name
-    ) {
-      return null;
-    }
-    return getEventMediaContentID(
-      cameraConfig.frigate.client_id,
-      cameraConfig.frigate.camera_name,
-      this._source,
-      this._mediaType === 'clip' ? 'clips' : 'snapshots',
-    );
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getTitle(_cameraConfig?: CameraConfig): string | null {
-    return getEventTitle(this._source);
-  }
-
-  public getThumbnail(cameraConfig?: CameraConfig): string | null {
-    if (cameraConfig?.frigate.client_id) {
-      return getEventThumbnailURL(cameraConfig.frigate.client_id, this._source);
-    }
-    return null;
-  }
-  public isFavorite(): boolean | null {
-    return this._source.retain_indefinitely ?? null;
-  }
-  public setFavorite(favorite: boolean): void {
-    this._source.retain_indefinitely = favorite;
-  }
-  public getWhat(): string[] | null {
-    return [this._source.label];
-  }
-  public getWhere(): string[] | null {
-    const zones = this._source.zones;
-    return zones.length ? zones : null;
-  }
-  public getScore(): number | null {
-    return this._source.top_score;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public isGroupableWith(that: EventViewMedia): boolean {
-    return (
-      this.getMediaType() === that.getMediaType() &&
-      isEqual(this.getWhere(), that.getWhere()) &&
-      isEqual(this.getWhat(), that.getWhat())
-    );
-  }
-}
-
-export class FrigateRecordingViewMedia
-  extends ViewMediaBase<FrigateRecording>
-  implements RecordingViewMedia
-{
-  public getID(cameraConfig?: CameraConfig): string | null {
-    // ID name is derived from the real camera name (not CameraID) since the
-    // recordings for the same camera across multiple zones will be the same and
-    // can be dedup'd from this id.
-    if (cameraConfig) {
-      return `${cameraConfig.frigate?.client_id ?? ''}/${
-        cameraConfig.frigate.camera_name ?? ''
-      }/${this._source.start_time}/${this._source.end_time}}`;
-    }
-    return null;
-  }
-  public getStartTime(): Date {
-    return fromUnixTime(this._source.start_time);
-  }
-  public getEndTime(): Date {
-    return fromUnixTime(this._source.end_time);
-  }
-  public getContentID(cameraConfig?: CameraConfig): string | null {
-    if (
-      !cameraConfig ||
-      !cameraConfig.frigate.client_id ||
-      !cameraConfig.frigate.camera_name
-    ) {
-      return null;
-    }
-    return getRecordingMediaContentID(
-      cameraConfig.frigate.client_id,
-      cameraConfig.frigate.camera_name,
-      this._source,
-    );
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getTitle(_cameraConfig?: CameraConfig): string | null {
-    return getRecordingTitle(this._source);
-  }
-  public getEventCount(): number {
-    return this._source.events;
-  }
-}
-
-export class ViewMediaFactory {
-  static createViewMediaFromFrigateEvent(
-    type: 'clip' | 'snapshot',
-    cameraID: string,
-    event: FrigateEvent,
-  ): ViewMedia | null {
-    if (
-      (type === 'clip' && event.has_clip) ||
-      (type === 'snapshot' && event.has_snapshot)
-    ) {
-      return new FrigateEventViewMedia(type, cameraID, event);
-    }
-    return null;
-  }
-
-  static createViewMediaFromFrigateRecording(
-    cameraID: string,
-    recording: FrigateRecording,
-  ): ViewMedia | null {
-    return new FrigateRecordingViewMedia('recording', cameraID, recording);
-  }
-}
+export type ViewMedia = ViewMediaBase<unknown>;

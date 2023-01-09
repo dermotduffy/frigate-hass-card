@@ -6,8 +6,7 @@ import { CAMERA_BIRDSEYE } from '../../const';
 import { CameraConfig, RecordingSegment } from '../../types';
 import { MediaQueriesResults } from '../../view/media-queries-results';
 import { MediaQueriesClassifier } from '../../view/media-queries-classifier';
-import { ViewMedia, ViewMediaFactory } from '../../view/media';
-import { ViewMediaClassifier } from '../../view/media-classifier';
+import { ViewMedia } from '../../view/media';
 import { RecordingSegmentsCache } from '../cache';
 import {
   CameraManagerEngine,
@@ -45,6 +44,9 @@ import throttle from 'lodash-es/throttle';
 import { runWhenIdleIfSupported } from '../../utils/basic';
 import { fromUnixTime } from 'date-fns';
 import { sum } from 'lodash-es';
+import { FrigateViewMediaClassifier } from './media-classifier';
+import { ViewMediaClassifier } from '../../view/media-classifier';
+import { FrigateViewMediaFactory } from './media';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
@@ -93,13 +95,13 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     media: ViewMedia,
   ): string | null {
     let path: string | null = null;
-    if (ViewMediaClassifier.isFrigateEvent(media)) {
+    if (FrigateViewMediaClassifier.isFrigateEvent(media)) {
       path =
         `/api/frigate/${cameraConfig.frigate.client_id}` +
         `/notifications/${media.getID()}/` +
         `${ViewMediaClassifier.isClip(media) ? 'clip.mp4' : 'snapshot.jpg'}` +
         `?download=true`;
-    } else if (ViewMediaClassifier.isFrigateRecording(media)) {
+    } else if (FrigateViewMediaClassifier.isFrigateRecording(media)) {
       path =
         `/api/frigate/${cameraConfig.frigate.client_id}` +
         `/recording/${cameraConfig.frigate.camera_name}` +
@@ -160,7 +162,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     favorite: boolean,
   ): Promise<void> {
     const clientID = cameraConfig.frigate.client_id;
-    if (!ViewMediaClassifier.isFrigateEvent(media)) {
+    if (!FrigateViewMediaClassifier.isFrigateEvent(media)) {
       return;
     }
 
@@ -331,7 +333,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       if (!mediaType) {
         continue;
       }
-      const media = ViewMediaFactory.createViewMediaFromFrigateEvent(
+      const media = FrigateViewMediaFactory.createEventViewMedia(
         mediaType,
         query.cameraID,
         event,
@@ -353,7 +355,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
 
     const output: ViewMedia[] = [];
     for (const recording of results.recordings) {
-      const media = ViewMediaFactory.createViewMediaFromFrigateRecording(
+      const media = FrigateViewMediaFactory.createRecordingViewMedia(
         query.cameraID,
         recording,
       );

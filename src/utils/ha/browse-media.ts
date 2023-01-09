@@ -179,7 +179,8 @@ export const mergeFrigateBrowseMediaSources = async (
 
   return createEventParentForChildren(
     'Merged events',
-    children.sort(sortYoungestToOldest),
+    children
+    // TODO: Restore sort or remove: children.sort(sortYoungestToOldest),
   );
 };
 
@@ -350,25 +351,26 @@ export const createChild = (
   return result;
 };
 
-/**
- * Sort the timeline items most recent to least recent.
- * @param a The first item.
- * @param b The second item.
- * @returns -1, 0, 1 (standard array sort function configuration).
- */
-export const sortYoungestToOldest = (
-  a: FrigateBrowseMediaSource,
-  b: FrigateBrowseMediaSource,
-): number => {
-  const a_source = a.frigate?.event ?? a.frigate?.recording;
-  const b_source = b.frigate?.event ?? b.frigate?.recording;
+// TODO Remove or fix this if not needed post gallery.
+// /**
+//  * Sort the timeline items most recent to least recent.
+//  * @param a The first item.
+//  * @param b The second item.
+//  * @returns -1, 0, 1 (standard array sort function configuration).
+//  */
+// export const sortYoungestToOldest = (
+//   a: FrigateBrowseMediaSource,
+//   b: FrigateBrowseMediaSource,
+// ): number => {
+//   const a_source = a.frigate?.event ?? a.frigate?.recording;
+//   const b_source = b.frigate?.event ?? b.frigate?.recording;
 
-  if (!a_source || (b_source && b_source.start_time > a_source.start_time)) {
-    return 1;
-  }
+//   if (!a_source || (b_source && b_source.start_time > a_source.start_time)) {
+//     return 1;
+//   }
 
-  if (!b_source || (a_source && b_source.start_time < a_source.start_time)) {
-    return -1;
-  }
-  return 0;
-};
+//   if (!b_source || (a_source && b_source.start_time < a_source.start_time)) {
+//     return -1;
+//   }
+//   return 0;
+// };

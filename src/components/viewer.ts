@@ -374,8 +374,11 @@ export class FrigateCardViewerCarousel extends LitElement {
       !media ||
       // If this specific media item has no clip, then do nothing (even if all
       // the other media items do).
-      !ViewMediaClassifier.isFrigateEvent(media) ||
-      !media.hasClip() ||
+      !ViewMediaClassifier.isEvent(media) ||
+      // If the event certainly has no clip, don't bother going further. If
+      // we're not sure for this camera type (i.e. hasClip() === null) the query
+      // will proceed anyway.
+      media.hasClip() === false ||
       !MediaQueriesClassifier.areEventQueries(this.view.query)
     ) {
       return;
