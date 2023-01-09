@@ -1,5 +1,5 @@
 import { Task } from '@lit-labs/task';
-import { EmblaOptionsType, EmblaPluginType } from 'embla-carousel';
+import { EmblaPluginType } from 'embla-carousel';
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
 import {
   CSSResultGroup,
@@ -243,7 +243,7 @@ export class FrigateCardViewerCarousel extends LitElement {
       }
       const promises: Promise<ResolvedMedia | null>[] = [];
       view.queryResults?.getResults()?.forEach((media: ViewMedia) => {
-        const mediaContentID = media.getContentID(cameras.get(media.getCameraID()));
+        const mediaContentID = media.getContentID();
         if (this.hass && mediaContentID) {
           promises.push(
             resolveMedia(this.hass, mediaContentID, this.resolvedMediaCache),
@@ -266,7 +266,7 @@ export class FrigateCardViewerCarousel extends LitElement {
       // on media load, since the media may or may not have been loaded at
       // this point).
       if (this.view?.context?.mediaViewer !== oldView?.context?.mediaViewer) {
-        this._recordingSeekHandler();
+        this._seekHandler();
       }
     }
     super.updated(changedProperties);
@@ -458,9 +458,7 @@ export class FrigateCardViewerCarousel extends LitElement {
     }
 
     const media = this.view.queryResults?.getResult(index);
-    const mediaContentID = media
-      ? media.getContentID(this.cameras.get(media.getCameraID()))
-      : null;
+    const mediaContentID = media ? media.getContentID() : null;
     if (!mediaContentID) {
       return;
     }
@@ -518,7 +516,7 @@ export class FrigateCardViewerCarousel extends LitElement {
       return false;
     }
     for (const media of this.view?.queryResults?.getResults() ?? []) {
-      const mediaContentID = media.getContentID(this.cameras.get(media.getCameraID()));
+      const mediaContentID = media.getContentID();
       if (mediaContentID && !this.resolvedMediaCache.has(mediaContentID)) {
         return false;
       }
@@ -593,15 +591,14 @@ export class FrigateCardViewerCarousel extends LitElement {
       .selected=${this.view?.queryResults?.getSelectedIndex() ?? 0}
       transitionEffect=${this._getTransitionEffect()}
       @frigate-card:media-carousel:select=${this._setViewHandler.bind(this)}
-      @frigate-card:media:loaded=${this._recordingSeekHandler.bind(this)}
+      @frigate-card:media:loaded=${this._seekHandler.bind(this)}
     >
       <frigate-card-next-previous-control
         slot="previous"
         .hass=${this.hass}
         .direction=${'previous'}
         .controlConfig=${this.viewerConfig?.controls.next_previous}
-        .thumbnail=${prev?.getThumbnail(this.cameras.get(prev.getCameraID())) ??
-        undefined}
+        .thumbnail=${prev?.getThumbnail() ?? undefined}
         .label=${prev?.getTitle() ?? ''}
         ?disabled=${!prev}
         @click=${(ev) => {
@@ -615,8 +612,7 @@ export class FrigateCardViewerCarousel extends LitElement {
         .hass=${this.hass}
         .direction=${'next'}
         .controlConfig=${this.viewerConfig?.controls.next_previous}
-        .thumbnail=${next?.getThumbnail(this.cameras.get(next.getCameraID())) ??
-        undefined}
+        .thumbnail=${next?.getThumbnail() ?? undefined}
         .label=${next?.getTitle() ?? ''}
         ?disabled=${!next}
         @click=${(ev) => {
@@ -630,7 +626,7 @@ export class FrigateCardViewerCarousel extends LitElement {
   /**
    * Fire a media show event when a slide is selected.
    */
-  protected _recordingSeekHandler(): void {
+  protected _seekHandler(): void {
     const selectedIndex = this.view?.queryResults?.getSelectedIndex() ?? null;
     const seek =
       selectedIndex !== null
@@ -655,7 +651,7 @@ export class FrigateCardViewerCarousel extends LitElement {
     }
 
     const lazyLoad = this.viewerConfig.lazy_load;
-    const mediaContentID = media.getContentID(this.cameras.get(media.getCameraID()));
+    const mediaContentID = media.getContentID();
     const resolvedMedia = mediaContentID
       ? this.resolvedMediaCache?.get(mediaContentID)
       : null;
