@@ -184,19 +184,21 @@ export class CameraManager {
 
     const mediaArray: ViewMedia[] = [];
     for (const [query, result] of results.entries()) {
-      const engine = this._engineFactory.getEngineForQuery(this._cameras, query);
-      if (engine) {
+      const cameraConfig = this._cameras.get(query.cameraID);
+      const engine = this._engineFactory.getEngineForCamera(cameraConfig);
+
+      if (engine && cameraConfig) {
         let media: ViewMedia[] | null = null;
         if (
           QueryClassifier.isEventQuery(query) &&
           QueryResultClassifier.isEventQueryResult(result)
         ) {
-          media = engine.generateMediaFromEvents(query, result);
+          media = engine.generateMediaFromEvents(cameraConfig, query, result);
         } else if (
           QueryClassifier.isRecordingQuery(query) &&
           QueryResultClassifier.isRecordingQuery(result)
         ) {
-          media = engine.generateMediaFromRecordings(query, result);
+          media = engine.generateMediaFromRecordings(cameraConfig, query, result);
         }
         if (media) {
           mediaArray.push(...media);
@@ -210,7 +212,7 @@ export class CameraManager {
         // are assumed to be unique.
         uniqBy(
           mediaArray,
-          (media) => media.getID(this._cameras.get(media.getCameraID())) ?? media,
+          (media) => media.getID() ?? media,
         ),
 
         // Sort all items leading with the most recent.

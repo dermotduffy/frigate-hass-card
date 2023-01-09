@@ -12,16 +12,27 @@ import {
   getEventMediaContentID,
   getEventThumbnailURL,
   getEventTitle,
+  getRecordingID,
   getRecordingMediaContentID,
   getRecordingTitle,
 } from './util';
 
 export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
   protected _event: FrigateEvent;
+  protected _contentID: string;
+  protected _thumbnail: string;
 
-  constructor(mediaType: ViewMediaType, cameraID: string, event: FrigateEvent) {
+  constructor(
+    mediaType: ViewMediaType,
+    cameraID: string,
+    event: FrigateEvent,
+    contentID: string,
+    thumbnail: string,
+  ) {
     super(mediaType, cameraID);
     this._event = event;
+    this._contentID = contentID;
+    this._thumbnail = thumbnail;
   }
 
   public hasClip(): boolean {
@@ -33,36 +44,17 @@ export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
   public getEndTime(): Date | null {
     return this._event.end_time ? fromUnixTime(this._event.end_time) : null;
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getID(_cameraConfig?: CameraConfig): string {
+  public getID(): string {
     return this._event.id;
   }
-  public getContentID(cameraConfig?: CameraConfig): string | null {
-    if (
-      !cameraConfig ||
-      !cameraConfig.frigate.client_id ||
-      !cameraConfig.frigate.camera_name
-    ) {
-      return null;
-    }
-    return getEventMediaContentID(
-      cameraConfig.frigate.client_id,
-      cameraConfig.frigate.camera_name,
-      this._event,
-      this._mediaType === 'clip' ? 'clips' : 'snapshots',
-    );
+  public getContentID(): string {
+    return this._contentID;
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getTitle(_cameraConfig?: CameraConfig): string | null {
+  public getTitle(): string | null {
     return getEventTitle(this._event);
   }
-
-  public getThumbnail(cameraConfig?: CameraConfig): string | null {
-    if (cameraConfig?.frigate.client_id) {
-      return getEventThumbnailURL(cameraConfig.frigate.client_id, this._event);
-    }
-    return null;
+  public getThumbnail(): string | null {
+    return this._thumbnail;
   }
   public isFavorite(): boolean | null {
     return this._event.retain_indefinitely ?? null;
@@ -89,37 +81,31 @@ export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
       isEqual(this.getWhat(), that.getWhat())
     );
   }
-
-  public getClipEquivalent(): EventViewMedia | null {
-    if (!this.hasClip()) {
-      return null;
-    }
-    return FrigateViewMediaFactory.createEventViewMedia(
-      'clip',
-      this._cameraID,
-      this._event,
-    );
-  }
 }
 
 export class FrigateRecordingViewMedia extends ViewMedia implements RecordingViewMedia {
   protected _recording: FrigateRecording;
+  protected _id: string;
+  protected _contentID: string;
+  protected _title: string;
 
-  constructor(mediaType: ViewMediaType, cameraID: string, recording: FrigateRecording) {
+  constructor(
+    mediaType: ViewMediaType,
+    cameraID: string,
+    recording: FrigateRecording,
+    id: string,
+    contentID: string,
+    title: string,
+  ) {
     super(mediaType, cameraID);
     this._recording = recording;
+    this._id = id;
+    this._contentID = contentID;
+    this._title = title;
   }
 
-  public getID(cameraConfig?: CameraConfig): string | null {
-    // ID name is derived from the real camera name (not CameraID) since the
-    // recordings for the same camera across multiple zones will be the same and
-    // can be dedup'd from this id.
-    if (cameraConfig) {
-      return `${cameraConfig.frigate?.client_id ?? ''}/${
-        cameraConfig.frigate.camera_name ?? ''
-      }/${this._recording.startTime.getTime()}/${this._recording.endTime.getTime()}}`;
-    }
-    return null;
+  public getID(): string {
+    return this._id;
   }
   public getStartTime(): Date {
     return this._recording.startTime;
@@ -127,26 +113,11 @@ export class FrigateRecordingViewMedia extends ViewMedia implements RecordingVie
   public getEndTime(): Date {
     return this._recording.endTime;
   }
-  public getContentID(cameraConfig?: CameraConfig): string | null {
-    if (
-      !cameraConfig ||
-      !cameraConfig.frigate.client_id ||
-      !cameraConfig.frigate.camera_name
-    ) {
-      return null;
-    }
-    return getRecordingMediaContentID(
-      cameraConfig.frigate.client_id,
-      cameraConfig.frigate.camera_name,
-      this._recording,
-    );
+  public getContentID(): string | null {
+    return this._contentID;
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getTitle(cameraConfig?: CameraConfig): string | null {
-    if (!cameraConfig) {
-      return null;
-    }
-    return getRecordingTitle(cameraConfig, this._recording);
+  public getTitle(): string | null {
+    return this._title;
   }
   public getEventCount(): number {
     return this._recording.events;
@@ -155,23 +126,54 @@ export class FrigateRecordingViewMedia extends ViewMedia implements RecordingVie
 
 export class FrigateViewMediaFactory {
   static createEventViewMedia(
-    type: 'clip' | 'snapshot',
+    mediaType: 'clip' | 'snapshot',
     cameraID: string,
+    cameraConfig: CameraConfig,
     event: FrigateEvent,
   ): FrigateEventViewMedia | null {
     if (
-      (type === 'clip' && event.has_clip) ||
-      (type === 'snapshot' && event.has_snapshot)
+      (mediaType === 'clip' && !event.has_clip) ||
+      (mediaType === 'snapshot' && !event.has_snapshot) ||
+      !cameraConfig.frigate.client_id ||
+      !cameraConfig.frigate.camera_name
     ) {
-      return new FrigateEventViewMedia(type, cameraID, event);
+      return null;
     }
-    return null;
+
+    return new FrigateEventViewMedia(
+      mediaType,
+      cameraID,
+      event,
+      getEventMediaContentID(
+        cameraConfig.frigate.client_id,
+        cameraConfig.frigate.camera_name,
+        event,
+        mediaType === 'clip' ? 'clips' : 'snapshots',
+      ),
+      getEventThumbnailURL(cameraConfig.frigate.client_id, event),
+    );
   }
 
   static createRecordingViewMedia(
     cameraID: string,
     recording: FrigateRecording,
+    cameraConfig: CameraConfig,
   ): FrigateRecordingViewMedia | null {
-    return new FrigateRecordingViewMedia('recording', cameraID, recording);
+    if (!cameraConfig.frigate.client_id || !cameraConfig.frigate.camera_name) {
+      return null;
+    }
+
+    return new FrigateRecordingViewMedia(
+      'recording',
+      cameraID,
+      recording,
+      getRecordingID(cameraConfig, recording),
+      getRecordingMediaContentID(
+        cameraConfig.frigate.client_id,
+        cameraConfig.frigate.camera_name,
+        recording,
+      ),
+      getRecordingTitle(cameraConfig, recording),
+    );
   }
 }

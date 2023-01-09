@@ -161,12 +161,11 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     media: ViewMedia,
     favorite: boolean,
   ): Promise<void> {
-    const clientID = cameraConfig.frigate.client_id;
     if (!FrigateViewMediaClassifier.isFrigateEvent(media)) {
       return;
     }
 
-    await retainEvent(hass, clientID, media.getID(cameraConfig), favorite);
+    await retainEvent(hass, cameraConfig.frigate.client_id, media.getID(), favorite);
     media.setFavorite(favorite);
   }
 
@@ -309,6 +308,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   }
 
   public generateMediaFromEvents(
+    cameraConfig: CameraConfig,
     query: EventQuery,
     results: QueryReturnType<EventQuery>,
   ): ViewMedia[] | null {
@@ -336,6 +336,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       const media = FrigateViewMediaFactory.createEventViewMedia(
         mediaType,
         query.cameraID,
+        cameraConfig,
         event,
       );
       if (media) {
@@ -346,6 +347,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   }
 
   public generateMediaFromRecordings(
+    cameraConfig: CameraConfig,
     query: RecordingQuery,
     results: QueryReturnType<RecordingQuery>,
   ): ViewMedia[] | null {
@@ -358,6 +360,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       const media = FrigateViewMediaFactory.createRecordingViewMedia(
         query.cameraID,
         recording,
+        cameraConfig,
       );
       if (media) {
         output.push(media);

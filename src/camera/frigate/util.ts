@@ -82,3 +82,18 @@ export const getRecordingMediaContentID = (
     String(recording.startTime.getHours()).padStart(2, '0'),
   ].join('/');
 };
+
+/**
+ * Get a recording ID for internal de-duping.
+ */
+export const getRecordingID = (
+  cameraConfig: CameraConfig,
+  recording: FrigateRecording,
+): string => {
+  // ID name is derived from the real camera name (not CameraID) since the
+  // recordings for the same camera across multiple zones will be the same and
+  // can be dedup'd from this id.
+  return `${cameraConfig.frigate?.client_id ?? ''}/${
+    cameraConfig.frigate.camera_name ?? ''
+  }/${recording.startTime.getTime()}/${recording.endTime.getTime()}}`;
+};

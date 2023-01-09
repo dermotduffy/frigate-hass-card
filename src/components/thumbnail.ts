@@ -256,8 +256,8 @@ export class FrigateCardThumbnail extends LitElement {
       return;
     }
 
-    const thumbnail = this.media.getThumbnail(this.cameraConfig);
-    const title = this.media.getTitle(this.cameraConfig) ?? '';
+    const thumbnail = this.media.getThumbnail();
+    const title = this.media.getTitle() ?? '';
 
     const starClasses = {
       star: true,
@@ -271,7 +271,6 @@ export class FrigateCardThumbnail extends LitElement {
         // Only show timeline control if the recording has a start & end time.
         (this.media.getStartTime() && this.media.getEndTime()));
 
-    const clientID = this.cameraConfig?.frigate.client_id;
     return html` ${ViewMediaClassifier.isEvent(this.media)
       ? html`<frigate-card-thumbnail-feature-event
           aria-label="${title ?? ''}"
@@ -289,7 +288,7 @@ export class FrigateCardThumbnail extends LitElement {
           .date=${this.media.getStartTime() ?? undefined}
         ></frigate-card-thumbnail-feature-recording>`
       : html``}
-    ${this.show_favorite_control && this.media && this.hass && clientID
+    ${this.show_favorite_control && this.media && this.hass
       ? html` <ha-icon
             class="${classMap(starClasses)}"
             icon=${this.media.isFavorite() ? 'mdi:star' : 'mdi:star-outline'}

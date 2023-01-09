@@ -32,7 +32,11 @@ export class CameraManagerEngineFactory {
     return cameraConfig ? this.getEngineForCamera(cameraConfig) : null;
   }
 
-  public getEngineForCamera(cameraConfig: CameraConfig): CameraManagerEngine | null {
+  public getEngineForCamera(cameraConfig?: CameraConfig): CameraManagerEngine | null {
+    if (!cameraConfig) {
+      return null;
+    }
+
     let engineKey: string | null = null;
     if (cameraConfig.frigate.camera_name) {
       engineKey = 'frigate';

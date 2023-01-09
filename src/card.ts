@@ -1402,10 +1402,10 @@ export class FrigateCard extends LitElement {
     const media = this._view.queryResults?.getSelectedResult();
 
     if (this._view.isViewerView() && media && this._cameras) {
-      media_content_id = media.getContentID(cameraConfig);
+      media_content_id = media.getContentID();
       media_content_type = media.getContentType();
-      title = media.getTitle(cameraConfig);
-      thumbnail = media.getThumbnail(cameraConfig);
+      title = media.getTitle();
+      thumbnail = media.getThumbnail();
     } else if (this._view?.is('live') && cameraEntity) {
       media_content_id = `media-source://camera/${cameraEntity}`;
       media_content_type = 'application/vnd.apple.mpegurl';

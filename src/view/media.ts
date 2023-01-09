@@ -1,4 +1,3 @@
-import { CameraConfig } from '../types.js';
 export type ViewMediaType = 'clip' | 'snapshot' | 'recording';
 
 export class ViewMedia {
@@ -18,8 +17,7 @@ export class ViewMedia {
   public getMediaType(): ViewMediaType {
     return this._mediaType;
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getID(_cameraConfig?: CameraConfig): string | null {
+  public getID(): string | null {
     return null;
   }
   public getStartTime(): Date | null {
@@ -28,16 +26,13 @@ export class ViewMedia {
   public getEndTime(): Date | null {
     return null;
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getContentID(_cameraConfig?: CameraConfig): string | null {
+  public getContentID(): string | null {
     return null;
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getTitle(_cameraConfig?: CameraConfig): string | null {
+  public getTitle(): string | null {
     return null;
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getThumbnail(_cameraConfig?: CameraConfig): string | null {
+  public getThumbnail(): string | null {
     return null;
   }
   public isFavorite(): boolean | null {

@@ -53,11 +53,13 @@ export interface CameraManagerEngine {
   ): Promise<QueryReturnType<RecordingSegmentsQuery> | null>;
 
   generateMediaFromEvents(
+    cameraConfig: CameraConfig,
     query: EventQuery,
     results: QueryReturnType<EventQuery>,
   ): ViewMedia[] | null;
 
   generateMediaFromRecordings(
+    cameraConfig: CameraConfig,
     query: RecordingQuery,
     results: QueryReturnType<RecordingQuery>,
   ): ViewMedia[] | null;
