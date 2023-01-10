@@ -38,6 +38,11 @@ export class ViewMedia {
   public isFavorite(): boolean | null {
     return null;
   }
+  public includesTime(seek: Date): boolean {
+    const startTime = this.getStartTime();
+    const endTime = this.getEndTime();
+    return !!startTime && !!endTime && seek >= startTime && seek <= endTime;
+  }
 
   // Sets the favorite attribute (if any). This purely sets the media item as a
   // favorite in JS.

@@ -160,6 +160,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
       'slide-selected': this.selected === index,
     };
 
+    const seekTarget = this.view?.context?.mediaViewer?.seek;
     return html` <frigate-card-thumbnail
       class="${classMap(classes)}"
       .cameraManager=${this.cameraManager}
@@ -167,7 +168,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
       .media=${media}
       .cameraConfig=${cameraConfig}
       .view=${this.view}
-      .mediaSeek=${this.view?.context?.mediaViewer?.seek.get(index)}
+      .seek=${seekTarget && media.includesTime(seekTarget) ? seekTarget : undefined}
       ?details=${!!this.config?.show_details}
       ?show_favorite_control=${this.config?.show_favorite_control}
       ?show_timeline_control=${this.config?.show_timeline_control}

@@ -26,6 +26,7 @@ export const getRecordingsSummary = async (
       type: 'frigate/recordings/summary',
       instance_id: client_id,
       camera: camera_name,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     },
     true,
   );

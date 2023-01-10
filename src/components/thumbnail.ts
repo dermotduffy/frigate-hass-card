@@ -14,7 +14,6 @@ import { getCameraTitle } from '../utils/camera.js';
 import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask } from '../utils/thumbnail.js';
 import { View } from '../view/view.js';
-import type { MediaSeek } from './viewer.js';
 import { TaskStatus } from '@lit-labs/task';
 
 import type { CameraConfig, ExtendedHomeAssistant } from '../types.js';
@@ -131,7 +130,7 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
   public media?: EventViewMedia;
 
   @property({ attribute: false })
-  public mediaSeek?: MediaSeek;
+  public seek?: Date;
 
   protected render(): TemplateResult | void {
     if (!this.media) {
@@ -158,10 +157,10 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
                 >
               </div>`
           : ``}
-        ${this.mediaSeek
+        ${this.seek
           ? html` <div>
               <span class="heading">${localize('event.seek')}</span>
-              <span>${format(fromUnixTime(this.mediaSeek.seekTime), 'HH:mm:ss')}</span>
+              <span>${format(this.seek, 'HH:mm:ss')}</span>
             </div>`
           : html``}
       </div>
@@ -183,7 +182,7 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
   public media?: RecordingViewMedia;
 
   @property({ attribute: false })
-  public mediaSeek?: MediaSeek;
+  public seek?: Date;
 
   @property({ attribute: false })
   public cameraTitle?: string;
@@ -195,10 +194,10 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
     const eventCount = this.media.getEventCount();
     return html`<div class="left">
         <div class="larger">${this.cameraTitle ?? ''}</div>
-        ${this.mediaSeek
+        ${this.seek
           ? html` <div>
               <span class="heading">${localize('recording.seek')}</span>
-              <span>${format(fromUnixTime(this.mediaSeek.seekTime), 'HH:mm:ss')}</span>
+              <span>${format(this.seek, 'HH:mm:ss')}</span>
             </div>`
           : html``}
       </div>
@@ -242,7 +241,7 @@ export class FrigateCardThumbnail extends LitElement {
   public show_timeline_control = false;
 
   @property({ attribute: false })
-  public mediaSeek?: MediaSeek;
+  public seek?: Date;
 
   @property({ attribute: false })
   public view?: Readonly<View>;
@@ -314,13 +313,13 @@ export class FrigateCardThumbnail extends LitElement {
     ${this.details && ViewMediaClassifier.isEvent(this.media)
       ? html`<frigate-card-thumbnail-details-event
           .media=${this.media ?? undefined}
-          .mediaSeek=${this.mediaSeek}
+          .seek=${this.seek}
         ></frigate-card-thumbnail-details-event>`
       : this.details && ViewMediaClassifier.isRecording(this.media)
       ? html`<frigate-card-thumbnail-details-recording
           .media=${this.media ?? undefined}
           .cameraTitle=${getCameraTitle(this.hass, this.cameraConfig)}
-          .mediaSeek=${this.mediaSeek}
+          .seek=${this.seek}
         ></frigate-card-thumbnail-details-recording>`
       : html``}
     ${shouldShowTimelineControl

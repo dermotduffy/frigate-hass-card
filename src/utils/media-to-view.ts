@@ -1,25 +1,16 @@
 import add from 'date-fns/add';
-import fromUnixTime from 'date-fns/fromUnixTime';
-import startOfHour from 'date-fns/startOfHour';
 import sub from 'date-fns/sub';
 import { ViewContext } from 'view';
-import {
-  CameraConfig,
-  ClipsOrSnapshotsOrAll,
-  FrigateCardView,
-  RecordingSegment,
-} from '../types';
+import { CameraConfig, ClipsOrSnapshotsOrAll, FrigateCardView } from '../types';
 import { View } from '../view/view';
 import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
 import { CameraManager } from '../camera/manager';
 import { getAllDependentCameras } from './camera.js';
 import { ViewMedia } from '../view/media';
-import { ViewMediaClassifier } from '../view/media-classifier';
 import { HomeAssistant } from 'custom-card-helpers';
 import { dispatchFrigateCardErrorEvent } from '../components/message';
 import { MediaQueriesResults } from '../view/media-queries-results';
 import { errorToConsole } from './basic';
-import { RecordingSegmentsQueryResults } from '../camera/types';
 
 export const changeViewToRecentEventsForCameraAndDependents = async (
   element: HTMLElement,
@@ -168,12 +159,11 @@ export const createViewForRecordings = async (
     queryResults.selectBestResult((media) =>
       findClosestMediaIndex(media, options.targetTime as Date, cameraIDs),
     );
-    viewerContext = await generateMediaViewerContext(
-      hass,
-      cameraManager,
-      mediaArray,
-      options.targetTime,
-    );
+    viewerContext = {
+      mediaViewer: {
+        seek: options.targetTime,
+      },
+    };
   }
 
   return (
@@ -185,75 +175,6 @@ export const createViewForRecordings = async (
       })
       .mergeInContext(viewerContext) ?? null
   );
-};
-
-/**
- * Generate the media view context for a set of media children (used to set
- * seek times into each media item).
- * @param hass The Home Assistant object.
- * @param cameraManager The datamanager to use for data access.
- * @param media The media.
- * @param targetTime The target time.
- * @returns The ViewContext.
- */
-export const generateMediaViewerContext = async (
-  hass: HomeAssistant,
-  cameraManager: CameraManager,
-  media: ViewMedia[],
-  targetTime: Date,
-): Promise<ViewContext> => {
-  const seek = new Map();
-  const hourStart = startOfHour(targetTime);
-
-  for (const [index, child] of media.entries()) {
-    const start = child.getStartTime();
-    const end = child.getEndTime();
-    if (!start || !end) {
-      continue;
-    }
-
-    let seekSeconds: number | null = null;
-
-    if (targetTime >= start && targetTime <= end) {
-      const query = cameraManager.generateDefaultRecordingSegmentsQueries(
-        child.getCameraID(),
-        {
-          start: start,
-          end: end,
-        },
-      )[0];
-      let segments: RecordingSegmentsQueryResults | null;
-
-      try {
-        segments = (await cameraManager.getRecordingSegments(hass, query)).get(
-          query,
-        ) ?? null;
-      } catch (e) {
-        errorToConsole(e as Error);
-        // View context is never critical. Ignore errors which will at least
-        // allow the video to load even if it doesn't seek to the correct
-        // location.
-        return {};
-      }
-
-      if (segments) {
-        seekSeconds = getSeekTimeInSegments(
-          // Recordings start from the top of the hour.
-          ViewMediaClassifier.isRecording(child) ? hourStart : start,
-          targetTime,
-          segments.segments,
-        );
-      }
-    }
-
-    if (seekSeconds !== null) {
-      seek.set(index, {
-        seekSeconds: seekSeconds,
-        seekTime: targetTime.getTime() / 1000,
-      });
-    }
-  }
-  return seek.size > 0 ? { mediaViewer: { seek: seek } } : {};
 };
 
 /**
@@ -301,36 +222,4 @@ export const findClosestMediaIndex = (
     }
   }
   return bestMatch ? bestMatch.index : null;
-};
-
-/**
- * Get the number of seconds to seek into a video stream consisting of the
- * provided segments to reach the target time provided.
- * @param startTime The earliest allowable time to seek from.
- * @param targetTime Target time.
- * @param segments An array of segments dataset items. Must be sorted from oldest to youngest.
- * @returns
- */
-const getSeekTimeInSegments = (
-  startTime: Date,
-  targetTime: Date,
-  segments: RecordingSegment[],
-): number | null => {
-  if (!segments.length) {
-    return null;
-  }
-  let seekMilliseconds = 0;
-
-  // Inspired by: https://github.com/blakeblackshear/frigate/blob/release-0.11.0/web/src/routes/Recording.jsx#L27
-  for (const segment of segments) {
-    const segmentStart = fromUnixTime(segment.start_time);
-    if (segmentStart > targetTime) {
-      break;
-    }
-    const segmentEnd = fromUnixTime(segment.end_time);
-    const start = segmentStart < startTime ? startTime : segmentStart;
-    const end = segmentEnd > targetTime ? targetTime : segmentEnd;
-    seekMilliseconds += end.getTime() - start.getTime();
-  }
-  return seekMilliseconds / 1000;
 };

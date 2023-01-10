@@ -278,6 +278,28 @@ export class CameraManager {
     return true;
   }
 
+  public async getMediaSeekTime(
+    hass: HomeAssistant,
+    media: ViewMedia,
+    target: Date,
+  ): Promise<number | null> {
+    const startTime = media.getStartTime();
+    const endTime = media.getEndTime();
+    const cameraConfig = this._cameras.get(media.getCameraID());
+    if (
+      !cameraConfig ||
+      !startTime ||
+      !endTime ||
+      target < startTime ||
+      target > endTime
+    ) {
+      return null;
+    }
+
+    const engine = this._engineFactory.getEngineForCamera(cameraConfig);
+    return (await engine?.getMediaSeekTime(hass, this._cameras, media, target)) ?? null;
+  }
+
   protected async _handleQuery<QT extends DataQuery>(
     hass: HomeAssistant,
     query: QT | QT[],

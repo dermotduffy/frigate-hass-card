@@ -392,6 +392,32 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     );
   }
 
+  public async getMediaSeekTime(
+    hass: HomeAssistant,
+    cameras: Map<string, CameraConfig>,
+    media: ViewMedia,
+    target: Date,
+  ): Promise<number | null> {
+    const start = media.getStartTime();
+    const end = media.getEndTime();
+    if (!start || !end || target < start || target > end) {
+      return null;
+    }
+
+    const query: RecordingSegmentsQuery = {
+      cameraID: media.getCameraID(),
+      start: start,
+      end: end,
+      type: QueryType.RecordingSegments,
+    };
+
+    const segments = await this.getRecordingSegments(hass, cameras, query);
+    const out = segments
+      ? this._getSeekTimeInSegments(start, target, segments.segments)
+      : null;
+    return out;
+  }
+
   protected _getQueryableCameraConfig(
     cameras: Map<string, CameraConfig>,
     cameraID: string,
@@ -465,5 +491,37 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       'Frigate Card recording segment garbage collection: ' +
         `Released ${segmentsStart - countSegments()} segment(s)`,
     );
+  }
+
+  /**
+   * Get the number of seconds to seek into a video stream consisting of the
+   * provided segments to reach the target time provided.
+   * @param startTime The earliest allowable time to seek from.
+   * @param targetTime Target time.
+   * @param segments An array of segments dataset items. Must be sorted from oldest to youngest.
+   * @returns
+   */
+  protected _getSeekTimeInSegments(
+    startTime: Date,
+    targetTime: Date,
+    segments: RecordingSegment[],
+  ): number | null {
+    if (!segments.length) {
+      return null;
+    }
+    let seekMilliseconds = 0;
+
+    // Inspired by: https://github.com/blakeblackshear/frigate/blob/release-0.11.0/web/src/routes/Recording.jsx#L27
+    for (const segment of segments) {
+      const segmentStart = fromUnixTime(segment.start_time);
+      if (segmentStart > targetTime) {
+        break;
+      }
+      const segmentEnd = fromUnixTime(segment.end_time);
+      const start = segmentStart < startTime ? startTime : segmentStart;
+      const end = segmentEnd > targetTime ? targetTime : segmentEnd;
+      seekMilliseconds += end.getTime() - start.getTime();
+    }
+    return seekMilliseconds / 1000;
   }
 }

@@ -77,4 +77,11 @@ export interface CameraManagerEngine {
     queries: MediaQueries,
     results: MediaQueriesResults,
   ): boolean;
+
+  getMediaSeekTime(
+    hass: HomeAssistant,
+    cameras: Map<string, CameraConfig>,
+    media: ViewMedia,
+    target: Date,
+  ): Promise<number | null>;
 }

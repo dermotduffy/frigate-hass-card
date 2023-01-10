@@ -87,12 +87,11 @@ export class TimelineDataSource {
 
   public async refresh(
     hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
     window: TimelineWindow,
   ): Promise<void> {
     try {
       await Promise.all([
-        this._refreshEvents(hass, cameras, window),
+        this._refreshEvents(hass, window),
         this._refreshRecordings(hass, window),
       ]);
     } catch (e) {
@@ -122,7 +121,6 @@ export class TimelineDataSource {
 
   protected async _refreshEvents(
     hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
     window: TimelineWindow,
   ): Promise<void> {
     if (
@@ -145,7 +143,7 @@ export class TimelineDataSource {
     for (const media of results?.getResults() ?? []) {
       const endTime = media.getEndTime();
       const startTime = media.getStartTime();
-      const id = media.getID(cameras.get(media.getCameraID()));
+      const id = media.getID();
       if (id && startTime) {
         this._dataset.update({
           id: id,

@@ -58,17 +58,8 @@ import { guard } from 'lit/directives/guard.js';
 import { localize } from '../localize/localize.js';
 import { MediaQueriesResults } from '../view/media-queries-results.js';
 
-export interface MediaSeek {
-  // Specifies the point at which this recording should be played, the
-  // seek_time is the date of the desired play point (for display purposes
-  // usually), and seek_seconds is the number of seconds to seek into the video
-  // stream to reach that point.
-  seekTime: number;
-  seekSeconds: number;
-}
-
 export interface MediaViewerViewContext {
-  seek: Map<number, MediaSeek>;
+  seek?: Date;
 }
 
 declare module 'view' {
@@ -260,6 +251,8 @@ export class FrigateCardViewerCarousel extends LitElement {
    * @param changedProperties The properties that were changed in this render.
    */
   updated(changedProperties: PropertyValues): void {
+    super.updated(changedProperties);
+
     if (changedProperties.has('view')) {
       const oldView = changedProperties.get('view') as View | undefined;
       // Seek into the video if the seek time has changed (this is also called
@@ -269,7 +262,6 @@ export class FrigateCardViewerCarousel extends LitElement {
         this._seekHandler();
       }
     }
-    super.updated(changedProperties);
   }
 
   /**
@@ -418,17 +410,26 @@ export class FrigateCardViewerCarousel extends LitElement {
    * Handle the user selecting a new slide in the carousel.
    */
   protected _setViewHandler(ev: CustomEvent<CarouselSelect>): void {
+    // The slide may already be selected on load, so don't dispatch a new view
+    // unless necessary.
     if (ev.detail.index !== this.view?.queryResults?.getSelectedIndex()) {
       this._setViewSelectedIndex(ev.detail.index);
     }
   }
 
   protected _setViewSelectedIndex(index: number): void {
-    // The slide may already be selected on load, so don't dispatch a new view
-    // unless necessary.
+    const newResults = this.view?.queryResults?.clone().selectResult(index);
+    if (!newResults) {
+      return;
+    }
+    const cameraID = newResults.getSelectedResult()?.getCameraID();
+
     this.view
       ?.evolve({
-        queryResults: this.view.queryResults?.clone().selectResult(index),
+        queryResults: newResults,
+
+        // Always change the camera to the owner of the selected media.
+        ...(cameraID && { camera: cameraID }),
       })
       // Ensure the timeline is able to update its position.
       .mergeInContext({ timeline: { noSetWindow: false } })
@@ -626,15 +627,18 @@ export class FrigateCardViewerCarousel extends LitElement {
   /**
    * Fire a media show event when a slide is selected.
    */
-  protected _seekHandler(): void {
-    const selectedIndex = this.view?.queryResults?.getSelectedIndex() ?? null;
-    const seek =
-      selectedIndex !== null
-        ? this.view?.context?.mediaViewer?.seek.get(selectedIndex)
-        : null;
+  protected async _seekHandler(): Promise<void> {
+    const seek = this.view?.context?.mediaViewer?.seek;
+    const media = this.view?.queryResults?.getSelectedResult();
+    if (!this.hass || !media || !seek) {
+      return;
+    }
+
+    const seekTime =
+      (await this.cameraManager?.getMediaSeekTime(this.hass, media, seek)) ?? null;
     const player = this._getPlayer();
-    if (player && seek) {
-      player.seek(seek.seekSeconds);
+    if (player && seekTime !== null) {
+      player.seek(seekTime);
     }
   }
 

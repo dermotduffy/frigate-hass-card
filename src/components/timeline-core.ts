@@ -48,7 +48,6 @@ import {
   createViewForEvents,
   createViewForRecordings,
   findClosestMediaIndex,
-  generateMediaViewerContext,
 } from '../utils/media-to-view';
 import { CameraManager } from '../camera/manager';
 import { EventMediaQueries, MediaQueries } from '../view/media-queries';
@@ -407,16 +406,6 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     const canSeek = !!this.view?.isViewerView();
-
-    const context = canSeek
-      ? await generateMediaViewerContext(
-          this.hass,
-          this.cameraManager,
-          media,
-          targetTime,
-        )
-      : null;
-
     const newResults = this._locked
       ? null
       : results
@@ -444,7 +433,7 @@ export class FrigateCardTimelineCore extends LitElement {
         }) // Whether or not to set the timeline window.
         .mergeInContext({
           ...this._generateTimelineContext({ noSetWindow: true }),
-          ...context,
+          ...(canSeek && { mediaViewer: { seek: targetTime }})
         })
         .dispatchChangeEvent(this);
     }
@@ -533,12 +522,7 @@ export class FrigateCardTimelineCore extends LitElement {
       // view change.
       if (eventView && results && results.length) {
         eventView.mergeInContext(
-          await generateMediaViewerContext(
-            this.hass,
-            this.cameraManager,
-            results,
-            properties.time,
-          ),
+          {mediaViewer: {seek: properties.time}}
         );
         view = eventView;
       }
@@ -608,7 +592,7 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     const prefetchedWindow = this._getPrefetchWindow(properties);
-    await this._timelineSource?.refresh(this.hass, this.cameras, prefetchedWindow);
+    await this._timelineSource?.refresh(this.hass, prefetchedWindow);
 
     // Don't show event thumbnails if the user is looking at recordings,
     // as the recording "hours" are the media, not the event
@@ -918,7 +902,7 @@ export class FrigateCardTimelineCore extends LitElement {
       // (via fetchIfNecessary) may update the timeline contents which causes
       // the visjs timeline to stop dragging/panning operations which is very
       // disruptive to the user.
-      await this._timelineSource?.refresh(this.hass, this.cameras, prefetchedWindow);
+      await this._timelineSource?.refresh(this.hass, prefetchedWindow);
     }
 
     const mediaID = media?.getID();
