@@ -1557,6 +1557,7 @@ export class FrigateCard extends LitElement {
           date: new Date(),
           frigate_version: Object.fromEntries(frigateVersionMap),
           lang: getLanguage(),
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           git: {
             ...(pkg['gitVersion'] && { build_version: pkg['gitVersion'] }),
             ...(pkg['buildDate'] && { build_date: pkg['buildDate'] }),
