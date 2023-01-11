@@ -3,7 +3,6 @@
 //  - TODO: getRecordingTitle should use getCameraTitle but need hass.
 
 // Hard:
-//  - TODO: Implement dragging the timeline seeking forward in both Frigate recordings & events.
 //  - TODO: Implement gallery.
 //  - TODO: Remove FrigateBrowseMediaSource if not necessary (post-gallery).
 //  - TODO: Remove browse-media.ts TODOs.
