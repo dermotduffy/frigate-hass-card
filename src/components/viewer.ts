@@ -431,8 +431,6 @@ export class FrigateCardViewerCarousel extends LitElement {
         // Always change the camera to the owner of the selected media.
         ...(cameraID && { camera: cameraID }),
       })
-      // Ensure the timeline is able to update its position.
-      .mergeInContext({ timeline: { noSetWindow: false } })
       .dispatchChangeEvent(this);
   }
 

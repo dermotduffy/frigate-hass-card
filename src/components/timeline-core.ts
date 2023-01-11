@@ -72,13 +72,9 @@ interface TimelineRangeChange extends TimelineWindow {
 
 interface TimelineViewContext {
   // Force a particular timeline window rather than taking the time from an
-  // event / recording. The timeline itself does not set this, but respects it
-  // if set elsewhere.
+  // event / recording. The timeline itself never sets this, but respects it if
+  // set elsewhere on first load.
   window?: TimelineWindow;
-
-  // Whether or not to set the timeline window (either from the window
-  // parameter, or from an event/recording).
-  noSetWindow?: boolean;
 }
 
 declare module 'view' {
@@ -435,7 +431,6 @@ export class FrigateCardTimelineCore extends LitElement {
             newResults.hasSelectedResult() && { queryResults: newResults }),
         }) // Whether or not to set the timeline window.
         .mergeInContext({
-          ...this._generateTimelineContext({ noSetWindow: true }),
           ...(canSeek && { mediaViewer: { seek: targetTime } }),
         })
         .dispatchChangeEvent(this);
@@ -547,7 +542,6 @@ export class FrigateCardTimelineCore extends LitElement {
       view
         // If the user is clicking something in the timeline, don't
         // subsequently shift the window (it's pretty jarring).
-        .mergeInContext(this._generateTimelineContext({ noSetWindow: true }))
         .dispatchChangeEvent(this);
 
       if (this.view?.is('timeline')) {
@@ -605,10 +599,7 @@ export class FrigateCardTimelineCore extends LitElement {
     ) {
       (
         await this._createViewWithEventMediaQuery(
-          this._createEventMediaQuerys({ window: prefetchedWindow }),
-          {
-            noSetWindow: true,
-          },
+          this._createEventMediaQuerys({ window: this._timeline.getWindow() }),
         )
       )?.dispatchChangeEvent(this);
     }
@@ -635,7 +626,6 @@ export class FrigateCardTimelineCore extends LitElement {
     options?: {
       targetView?: FrigateCardView;
       selectedItem?: IdType;
-      noSetWindow?: boolean;
     },
   ): Promise<View | null> {
     if (!this.hass || !this.cameraManager || !this.cameras || !this.view || !query) {
@@ -656,9 +646,6 @@ export class FrigateCardTimelineCore extends LitElement {
     if (!view) {
       return null;
     }
-    view.mergeInContext(
-      this._generateTimelineContext({ noSetWindow: options?.noSetWindow }),
-    );
     if (options?.selectedItem) {
       view.queryResults?.selectResultIfFound(
         (media) => !!this.cameras && media.getID() === options.selectedItem,
@@ -940,11 +927,7 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     // Set the timeline window if necessary.
-    if (
-      !this._pointerHeld &&
-      !this.view.context?.timeline?.noSetWindow &&
-      !isEqual(desiredWindow, timelineWindow)
-    ) {
+    if (!this._pointerHeld && !isEqual(desiredWindow, timelineWindow)) {
       this._timeline.setWindow(desiredWindow.start, desiredWindow.end);
     }
 
@@ -963,7 +946,7 @@ export class FrigateCardTimelineCore extends LitElement {
     // recordings, not events in this case).
 
     const freshMediaQuery = this._createEventMediaQuerys({
-      window: prefetchedWindow,
+      window: desiredWindow,
     });
 
     if (
@@ -973,7 +956,17 @@ export class FrigateCardTimelineCore extends LitElement {
       !this._alreadyHasAcceptableMediaQuery(freshMediaQuery)
     ) {
       (await this._createViewWithEventMediaQuery(freshMediaQuery))
-        ?.mergeInContext(this._generateTimelineContext({ noSetWindow: true }))
+        ?.mergeInContext(this._removeWindowFromContext())
+        .dispatchChangeEvent(this);
+    } else if (this.view.context?.timeline?.window) {
+      // No matter what, always remove the window context if it's set, otherwise
+      // the timeline can 'jump' (e.g. if window context is set, timeline window
+      // gets set to that, then the user subsequently manually moves the
+      // timeline but then a view is re-dispatched for some other reason -- it
+      // would cause the timeline to jump back to the original context window) .
+      this.view
+        .clone()
+        ?.mergeInContext(this._removeWindowFromContext())
         .dispatchChangeEvent(this);
     }
   }
@@ -993,15 +986,11 @@ export class FrigateCardTimelineCore extends LitElement {
 
   /**
    * Generate the context for timeline views.
-   * @param options Configure how the context is set.
    * @returns The TimelineViewContext object.
    */
-  protected _generateTimelineContext(options?: { noSetWindow?: boolean }): ViewContext {
-    const newContext: TimelineViewContext = {};
-
-    if (options?.noSetWindow) {
-      newContext.noSetWindow = options.noSetWindow;
-    }
+  protected _removeWindowFromContext(): ViewContext {
+    const newContext = {...this.view?.context?.timeline}
+    delete newContext.window;
     return { timeline: newContext };
   }
 
@@ -1043,11 +1032,6 @@ export class FrigateCardTimelineCore extends LitElement {
       } else {
         this._timelineSource = null;
       }
-    }
-
-    const oldView = changedProps.get('view');
-    if (oldView?.query && this.view?.query && !this.view.query.isEqual(oldView.query)) {
-      this._timelineSource?.clearEvents();
     }
   }
 
