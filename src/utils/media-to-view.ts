@@ -200,16 +200,15 @@ export const findClosestMediaIndex = (
       }
     | undefined;
 
-  for (let i = 0; i < mediaArray.length; ++i) {
-    const media = mediaArray[i];
-    const start = media.getStartTime();
-    const end = media.getEndTime();
-    if (!cameraIDs.has(media.getCameraID()) || !start || !end) {
+  for (const [i, media] of mediaArray.entries()) {
+    if (!cameraIDs.has(media.getCameraID())) {
       continue;
     }
 
-    if (start <= targetTime && end >= targetTime) {
-      if (!refPoint) {
+    if (media.includesTime(targetTime)) {
+      const start = media.getStartTime();
+      const end = media.getEndTime();
+       if (!refPoint || !start || !end) {
         return i;
       }
       const delta =

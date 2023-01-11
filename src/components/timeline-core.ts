@@ -400,7 +400,10 @@ export class FrigateCardTimelineCore extends LitElement {
       !this.view ||
       !this.hass ||
       !this.cameraManager ||
-      !this.cameraManager
+      !this.cameraManager ||
+      // Skip range changes that do not have hammerjs pan directions associated
+      // with them, as these outliers cause media matching issues below.
+      !properties.event.additionalEvent
     ) {
       return;
     }
@@ -433,7 +436,7 @@ export class FrigateCardTimelineCore extends LitElement {
         }) // Whether or not to set the timeline window.
         .mergeInContext({
           ...this._generateTimelineContext({ noSetWindow: true }),
-          ...(canSeek && { mediaViewer: { seek: targetTime }})
+          ...(canSeek && { mediaViewer: { seek: targetTime } }),
         })
         .dispatchChangeEvent(this);
     }
@@ -521,9 +524,7 @@ export class FrigateCardTimelineCore extends LitElement {
       // Specifically ensure there are _some_ results before dispatching the
       // view change.
       if (eventView && results && results.length) {
-        eventView.mergeInContext(
-          {mediaViewer: {seek: properties.time}}
-        );
+        eventView.mergeInContext({ mediaViewer: { seek: properties.time } });
         view = eventView;
       }
     } else if (
@@ -662,6 +663,15 @@ export class FrigateCardTimelineCore extends LitElement {
       view.queryResults?.selectResultIfFound(
         (media) => !!this.cameras && media.getID() === options.selectedItem,
       );
+    } else {
+      // If not asked to select a new item, persist the currently selected item
+      // if possible.
+      const currentlySelectedResult = this.view.queryResults?.getSelectedResult();
+      if (currentlySelectedResult) {
+        view.queryResults?.selectResultIfFound(
+          (media) => media.getID() === currentlySelectedResult.getID(),
+        );
+      }
     }
     return view;
   }

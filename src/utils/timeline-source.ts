@@ -3,7 +3,7 @@ import add from 'date-fns/add';
 import sub from 'date-fns/sub';
 import { DataSet } from 'vis-data';
 import { IdType, TimelineItem, TimelineWindow } from 'vis-timeline/esnext';
-import { CameraConfig, ClipsOrSnapshotsOrAll, RecordingSegment } from '../types';
+import { ClipsOrSnapshotsOrAll, RecordingSegment } from '../types';
 import { CameraManager } from '../camera/manager';
 import { EventQuery } from '../camera/types';
 import { capEndDate, convertRangeToCacheFriendlyTimes } from '../camera/util';
