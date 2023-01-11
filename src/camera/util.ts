@@ -3,8 +3,6 @@ import endOfHour from 'date-fns/endOfHour';
 import startOfDay from 'date-fns/startOfDay';
 import endOfDay from 'date-fns/endOfDay';
 import endOfMinute from 'date-fns/endOfMinute';
-import endOfWeek from 'date-fns/endOfWeek';
-import startOfWeek from 'date-fns/startOfWeek';
 import { DateRange } from './range';
 
 export const convertRangeToCacheFriendlyTimes = (
@@ -20,12 +18,9 @@ export const convertRangeToCacheFriendlyTimes = (
   if (widthSeconds <= 60 * 60) {
     cacheableStart = startOfHour(range.start);
     cacheableEnd = endOfHour(range.end);
-  } else if (widthSeconds <= 60 * 60 * 24) {
+  } else {
     cacheableStart = startOfDay(range.start);
     cacheableEnd = endOfDay(range.end);
-  } else {
-    cacheableStart = startOfWeek(range.start);
-    cacheableEnd = endOfWeek(range.end);
   }
 
   if (options?.endCap) {
