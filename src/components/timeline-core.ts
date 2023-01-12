@@ -71,9 +71,6 @@ interface TimelineRangeChange extends TimelineWindow {
 }
 
 interface TimelineViewContext {
-  // Force a particular timeline window rather than taking the time from an
-  // event / recording. The timeline itself never sets this, but respects it if
-  // set elsewhere on first load.
   window?: TimelineWindow;
 }
 
@@ -432,6 +429,7 @@ export class FrigateCardTimelineCore extends LitElement {
         }) // Whether or not to set the timeline window.
         .mergeInContext({
           ...(canSeek && { mediaViewer: { seek: targetTime } }),
+          ...this._setWindowInContext(properties)
         })
         .dispatchChangeEvent(this);
     }
@@ -601,7 +599,9 @@ export class FrigateCardTimelineCore extends LitElement {
         await this._createViewWithEventMediaQuery(
           this._createEventMediaQuerys({ window: this._timeline.getWindow() }),
         )
-      )?.dispatchChangeEvent(this);
+      )
+        ?.mergeInContext(this._setWindowInContext())
+        ?.dispatchChangeEvent(this);
     }
   }
 
@@ -956,17 +956,7 @@ export class FrigateCardTimelineCore extends LitElement {
       !this._alreadyHasAcceptableMediaQuery(freshMediaQuery)
     ) {
       (await this._createViewWithEventMediaQuery(freshMediaQuery))
-        ?.mergeInContext(this._removeWindowFromContext())
-        .dispatchChangeEvent(this);
-    } else if (this.view.context?.timeline?.window) {
-      // No matter what, always remove the window context if it's set, otherwise
-      // the timeline can 'jump' (e.g. if window context is set, timeline window
-      // gets set to that, then the user subsequently manually moves the
-      // timeline but then a view is re-dispatched for some other reason -- it
-      // would cause the timeline to jump back to the original context window) .
-      this.view
-        .clone()
-        ?.mergeInContext(this._removeWindowFromContext())
+        ?.mergeInContext(this._setWindowInContext(desiredWindow))
         .dispatchChangeEvent(this);
     }
   }
@@ -988,10 +978,14 @@ export class FrigateCardTimelineCore extends LitElement {
    * Generate the context for timeline views.
    * @returns The TimelineViewContext object.
    */
-  protected _removeWindowFromContext(): ViewContext {
-    const newContext = {...this.view?.context?.timeline}
-    delete newContext.window;
-    return { timeline: newContext };
+  protected _setWindowInContext(window?: TimelineWindow): ViewContext {
+    const newWindow = window ?? this._timeline?.getWindow();
+    return {
+      timeline: {
+        ...this.view?.context?.timeline,
+        ...(newWindow && { window: newWindow }),
+      },
+    };
   }
 
   /**
