@@ -5,6 +5,7 @@ import {
   DataQuery,
   EventQuery,
   EventQueryResults,
+  MediaQuery,
   PartialDataQuery,
   PartialEventQuery,
   PartialQueryConcreteType,
@@ -59,6 +60,11 @@ export class QueryResultClassifier {
   ): queryResults is RecordingSegmentsQueryResults {
     return queryResults.type === QueryResultsType.RecordingSegments;
   }
+}
+
+export interface ExtendedMediaQueryResult<T extends MediaQuery> {
+  queries: T[];
+  results: ViewMedia[];
 }
 
 export type RequestCache = MemoryRequestCache<DataQuery, QueryResults>;
@@ -171,55 +177,87 @@ export class CameraManager {
     return await this._handleQuery(hass, query);
   }
 
-  public async executeMediaQuery(
+  public async executeMediaQueries(
     hass: HomeAssistant,
-    mediaQuerys: MediaQueries,
+    mediaQueries: MediaQueries,
   ): Promise<MediaQueriesResults | null> {
-    const queries: (RecordingQuery | EventQuery)[] | null = mediaQuerys.getQueries();
+    const queries: (RecordingQuery | EventQuery)[] | null = mediaQueries.getQueries();
     if (!queries) {
       return null;
     }
-
-    const results = await this._handleQuery(hass, queries);
-
-    const mediaArray: ViewMedia[] = [];
-    for (const [query, result] of results.entries()) {
-      const cameraConfig = this._cameras.get(query.cameraID);
-      const engine = this._engineFactory.getEngineForCamera(cameraConfig);
-
-      if (engine && cameraConfig) {
-        let media: ViewMedia[] | null = null;
-        if (
-          QueryClassifier.isEventQuery(query) &&
-          QueryResultClassifier.isEventQueryResult(result)
-        ) {
-          media = engine.generateMediaFromEvents(cameraConfig, query, result);
-        } else if (
-          QueryClassifier.isRecordingQuery(query) &&
-          QueryResultClassifier.isRecordingQuery(result)
-        ) {
-          media = engine.generateMediaFromRecordings(cameraConfig, query, result);
-        }
-        if (media) {
-          mediaArray.push(...media);
-        }
-      }
-    }
+    const mediaArray = this._convertQueryResultsToMedia(
+      await this._handleQuery(hass, queries),
+    );
 
     return new MediaQueriesResults(
-      orderBy(
-        // Ensure uniqueness by the ID (if specified), otherwise all elements
-        // are assumed to be unique.
-        uniqBy(mediaArray, (media) => media.getID() ?? media),
-
-        // Sort all items leading with the most recent.
-        (media) => media.getStartTime(),
-        'desc',
-      ),
+      mediaArray,
 
       // Select the first (most-recent) item.
       mediaArray.length ? 0 : null,
     );
+  }
+
+  public async extendMediaQueries<T extends MediaQuery>(
+    hass: HomeAssistant,
+    queries: T[],
+    results: ViewMedia[],
+    direction: 'earlier' | 'later',
+    chunkSize: number,
+  ): Promise<ExtendedMediaQueryResult<T> | null> {
+    const getTimeFromResults = (want: 'earliest' | 'latest'): Date | null => {
+      let output: Date | null = null;
+      for (const result of results) {
+        const startTime = result.getStartTime();
+        if (
+          startTime &&
+          (!output ||
+            (want === 'earliest' && startTime < output) ||
+            (want === 'latest' && startTime > output))
+        ) {
+          output = startTime;
+        }
+      }
+      return output;
+    };
+
+    // The queries associated with the chunk to fetch.
+    const newChunkQueries: T[] = [];
+
+    // The re-constituted combined query.
+    const newCombinedQueries: T[] = [];
+
+    for (const query of queries) {
+      const newChunkQuery = { ...query };
+      const newCombinedQuery = { ...query };
+
+      if (direction === 'later') {
+        newChunkQuery.start = getTimeFromResults('latest') ?? undefined;
+        newChunkQuery.end = undefined;
+        newCombinedQuery.end = undefined;
+      } else if (direction === 'earlier') {
+        newChunkQuery.end = getTimeFromResults('earliest') ?? undefined;
+        newChunkQuery.start = undefined;
+        newCombinedQuery.start = undefined;
+      }
+      newChunkQuery.limit = chunkSize;
+      newCombinedQuery.limit = (query.limit ?? 0) + chunkSize;
+
+      newCombinedQueries.push(newCombinedQuery);
+      newChunkQueries.push(newChunkQuery);
+    }
+
+    const newChunkMedia = this._convertQueryResultsToMedia(
+      await this._handleQuery(hass, newChunkQueries),
+    );
+
+    if (!newChunkMedia.length) {
+      return null;
+    }
+
+    return {
+      queries: newCombinedQueries,
+      results: this._sortMedia(results.concat(newChunkMedia)),
+    };
   }
 
   public getMediaDownloadPath(media: ViewMedia): string | null {
@@ -361,5 +399,46 @@ export class CameraManager {
       ')',
     );
     return results;
+  }
+
+  protected _convertQueryResultsToMedia<QT extends DataQuery>(
+    results: Map<QT, QueryReturnType<QT>>,
+  ): ViewMedia[] {
+    const mediaArray: ViewMedia[] = [];
+    for (const [query, result] of results.entries()) {
+      const cameraConfig = this._cameras.get(query.cameraID);
+      const engine = this._engineFactory.getEngineForCamera(cameraConfig);
+
+      if (engine && cameraConfig) {
+        let media: ViewMedia[] | null = null;
+        if (
+          QueryClassifier.isEventQuery(query) &&
+          QueryResultClassifier.isEventQueryResult(result)
+        ) {
+          media = engine.generateMediaFromEvents(cameraConfig, query, result);
+        } else if (
+          QueryClassifier.isRecordingQuery(query) &&
+          QueryResultClassifier.isRecordingQuery(result)
+        ) {
+          media = engine.generateMediaFromRecordings(cameraConfig, query, result);
+        }
+        if (media) {
+          mediaArray.push(...media);
+        }
+      }
+    }
+    return this._sortMedia(mediaArray);
+  }
+
+  protected _sortMedia(mediaArray: ViewMedia[]): ViewMedia[] {
+    return orderBy(
+      // Ensure uniqueness by the ID (if specified), otherwise all elements
+      // are assumed to be unique.
+      uniqBy(mediaArray, (media) => media.getID() ?? media),
+
+      // Sort all items leading with the most recent.
+      (media) => media.getStartTime(),
+      'desc',
+    );
   }
 }

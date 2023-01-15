@@ -1,6 +1,8 @@
 // Minor / later:
 //  - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
 //  - TODO: getRecordingTitle should use getCameraTitle but need hass.
+//  - TODO: Take MediaQueries wrappers out of the camera manager.
+//  - TODO: Event gallery show_details default does not work.
 
 // Hard:
 //  - TODO: Implement gallery.

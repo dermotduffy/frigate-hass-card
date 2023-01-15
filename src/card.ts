@@ -1021,9 +1021,11 @@ export class FrigateCard extends LitElement {
       if (View.isMediaChange(this._view, view)) {
         this._currentMediaLoadedInfo = null;
       }
+      if (this._view?.view !== view.view) {
+        this._resetMainScroll();
+      }
       this._view = view;
       this._generateConditionState();
-      this._resetMainScroll();
     };
 
     if (args?.resetMessage ?? true) {

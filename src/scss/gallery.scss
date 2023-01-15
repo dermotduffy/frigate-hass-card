@@ -1,3 +1,5 @@
+@use 'dotdotdot.scss';
+
 :host {
   width: 100%;
   height: auto;
@@ -31,7 +33,10 @@
   text-align: center;
   color: var(--primary-text-color, white);
   border: 1px solid var(--primary-color);
-  border-radius: var(--frigate-card-css-border-radius, var(--ha-card-border-radius, 4px));
+  border-radius: var(
+    --frigate-card-css-border-radius,
+    var(--ha-card-border-radius, 4px)
+  );
 
   // Folder background color should match the thumbnail element background
   // color.

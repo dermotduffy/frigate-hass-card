@@ -139,7 +139,7 @@ export class TimelineDataSource {
       this.getTimelineEventQueries(cacheFriendlyWindow),
     );
 
-    const results = await this._cameraManager.executeMediaQuery(hass, query);
+    const results = await this._cameraManager.executeMediaQueries(hass, query);
     for (const media of results?.getResults() ?? []) {
       const endTime = media.getEndTime();
       const startTime = media.getStartTime();

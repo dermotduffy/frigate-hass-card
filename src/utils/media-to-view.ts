@@ -63,7 +63,7 @@ export const createViewForEvents = async (
 
   let queryResults: MediaQueriesResults | null;
   try {
-    queryResults = await cameraManager.executeMediaQuery(hass, query);
+    queryResults = await cameraManager.executeMediaQueries(hass, query);
   } catch (e) {
     errorToConsole(e as Error);
     dispatchFrigateCardErrorEvent(element, e as Error);
@@ -146,7 +146,7 @@ export const createViewForRecordings = async (
   let queryResults: MediaQueriesResults | null;
 
   try {
-    queryResults = await cameraManager.executeMediaQuery(hass, query);
+    queryResults = await cameraManager.executeMediaQueries(hass, query);
   } catch (e) {
     errorToConsole(e as Error);
     dispatchFrigateCardErrorEvent(element, e as Error);

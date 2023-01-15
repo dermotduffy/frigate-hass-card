@@ -1,3 +1,5 @@
+@use 'dotdotdot.scss';
+
 :host {
   min-height: 100%;
   width: 100%;
@@ -56,28 +58,4 @@ div.message div.icon {
 
 .message ha-icon, ha-circular-progress {
   padding: 10px;
-}
-
-.dotdotdot:after {
-  @keyframes dots {
-    0%,
-    20% {
-      content: '.';
-    }
-    40% {
-      content: '..';
-    }
-    60% {
-      content: '...';
-    }
-    90%,
-    100% {
-      content: '';
-    }
-  }
-
-  animation: dots 2s linear infinite;
-  content: '';
-  display: inline-block;
-  width: 3em;
 }

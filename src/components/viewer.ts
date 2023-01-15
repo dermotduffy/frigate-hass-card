@@ -382,7 +382,7 @@ export class FrigateCardViewerCarousel extends LitElement {
 
     let results: MediaQueriesResults | null;
     try {
-      results = await this.cameraManager.executeMediaQuery(this.hass, clipQuery);
+      results = await this.cameraManager.executeMediaQueries(this.hass, clipQuery);
     } catch (e) {
       errorToConsole(e as Error);
       return;

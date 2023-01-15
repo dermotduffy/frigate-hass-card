@@ -7,7 +7,7 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import galleryStyle from '../scss/gallery.scss';
 import {
   CameraConfig,
@@ -22,12 +22,20 @@ import {
   changeViewToRecentEventsForCameraAndDependents,
   changeViewToRecentRecordingForCameraAndDependents,
 } from '../utils/media-to-view.js';
-import { CameraManager } from '../camera/manager.js';
+import { CameraManager, ExtendedMediaQueryResult } from '../camera/manager.js';
 import { View } from '../view/view.js';
 import { renderProgressIndicator } from './message.js';
 import './thumbnail.js';
 import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
 import './media-filter';
+import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { MediaQueriesClassifier } from '../view/media-queries-classifier';
+import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
+import { EventQuery, MediaQuery, RecordingQuery } from '../camera/types';
+import { MediaQueriesResults } from '../view/media-queries-results';
+import { errorToConsole } from '../utils/basic';
+
+const GALLERY_MEDIA_CHUNK_SIZE = 100;
 
 @customElement('frigate-card-gallery')
 export class FrigateCardGallery extends LitElement {
@@ -136,11 +144,19 @@ export class FrigateCardGalleryCore extends LitElement {
   @property({ attribute: false })
   public cameraManager?: CameraManager;
 
+  protected _intersectionObserver: IntersectionObserver;
   protected _resizeObserver: ResizeObserver;
+  protected _refSentinel: Ref<HTMLElement> = createRef();
+
+  @state()
+  protected _showExtensionLoader = true;
 
   constructor() {
     super();
     this._resizeObserver = new ResizeObserver(this._resizeHandler.bind(this));
+    this._intersectionObserver = new IntersectionObserver(
+      this._intersectionHandler.bind(this),
+    );
   }
 
   /**
@@ -149,6 +165,10 @@ export class FrigateCardGalleryCore extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     this._resizeObserver.observe(this);
+
+    // Request update in order to ensure the intersection observer reconnects
+    // with the sentinel.
+    this.requestUpdate();
   }
 
   /**
@@ -156,6 +176,7 @@ export class FrigateCardGalleryCore extends LitElement {
    */
   disconnectedCallback(): void {
     this._resizeObserver.disconnect();
+    this._intersectionObserver.disconnect();
     super.disconnectedCallback();
   }
 
@@ -184,6 +205,57 @@ export class FrigateCardGalleryCore extends LitElement {
     this._setColumnCount();
   }
 
+  protected async _intersectionHandler(
+    entries: IntersectionObserverEntry[],
+  ): Promise<void> {
+    if (!this.cameraManager || !this.hass || !this.view) {
+      return;
+    }
+    if (entries.every((entry) => !entry.isIntersecting)) {
+      return;
+    }
+
+    this._showExtensionLoader = false;
+
+    const query = this.view?.query;
+    const rawQueries: MediaQuery[] | null = query?.getQueries() ?? null;
+    const existingMedia = this.view.queryResults?.getResults();
+    if (!query || !rawQueries || !existingMedia) {
+      return;
+    }
+
+    let extension: ExtendedMediaQueryResult<MediaQuery> | null;
+    try {
+      extension = await this.cameraManager.extendMediaQueries(
+        this.hass,
+        rawQueries,
+        existingMedia,
+        'earlier',
+        GALLERY_MEDIA_CHUNK_SIZE,
+      );
+    } catch (e) {
+      errorToConsole(e as Error);
+      return;
+    }
+
+    if (extension) {
+      const newMediaQueries = MediaQueriesClassifier.areEventQueries(query)
+        ? new EventMediaQueries(extension.queries as EventQuery[])
+        : MediaQueriesClassifier.areRecordingQueries(query)
+        ? new RecordingMediaQueries(extension.queries as RecordingQuery[])
+        : null;
+
+      if (newMediaQueries) {
+        this.view
+          ?.evolve({
+            query: newMediaQueries,
+            queryResults: new MediaQueriesResults(extension.results),
+          })
+          .dispatchChangeEvent(this);
+      }
+    }
+  }
+
   /**
    * Called when an update will occur.
    * @param changedProps The changed properties
@@ -202,6 +274,9 @@ export class FrigateCardGalleryCore extends LitElement {
           `${this.galleryConfig.controls.thumbnails.size}px`,
         );
       }
+    }
+    if (changedProps.has('view')) {
+      this._showExtensionLoader = true;
     }
   }
 
@@ -222,33 +297,47 @@ export class FrigateCardGalleryCore extends LitElement {
       return html``;
     }
 
-    return html` ${results.map(
-      (media, index) =>
-        html`<frigate-card-thumbnail
-          .hass=${this.hass}
-          .cameraManager=${this.cameraManager}
-          .media=${media}
-          .cameraConfig=${this.cameras?.get(media.getCameraID())}
-          .view=${this.view}
-          ?details=${!!this.galleryConfig?.controls.thumbnails.show_details}
-          ?show_favorite_control=${!!this.galleryConfig?.controls.thumbnails
-            .show_favorite_control}
-          ?show_timeline_control=${!!this.galleryConfig?.controls.thumbnails
-            .show_timeline_control}
-          @click=${(ev: Event) => {
-            if (this.view) {
-              this.view
-                .evolve({
-                  view: 'media',
-                  queryResults: this.view.queryResults?.clone().selectResult(index),
-                })
-                .dispatchChangeEvent(this);
-            }
-            stopEventFromActivatingCardWideActions(ev);
-          }}
-        >
-        </frigate-card-thumbnail>`,
-    )}`;
+    return html`
+      ${results.map(
+        (media, index) =>
+          html`<frigate-card-thumbnail
+            .hass=${this.hass}
+            .cameraManager=${this.cameraManager}
+            .media=${media}
+            .cameraConfig=${this.cameras?.get(media.getCameraID())}
+            .view=${this.view}
+            ?details=${!!this.galleryConfig?.controls.thumbnails.show_details}
+            ?show_favorite_control=${!!this.galleryConfig?.controls.thumbnails
+              .show_favorite_control}
+            ?show_timeline_control=${!!this.galleryConfig?.controls.thumbnails
+              .show_timeline_control}
+            @click=${(ev: Event) => {
+              if (this.view) {
+                this.view
+                  .evolve({
+                    view: 'media',
+                    queryResults: this.view.queryResults?.clone().selectResult(index),
+                  })
+                  .dispatchChangeEvent(this);
+              }
+              stopEventFromActivatingCardWideActions(ev);
+            }}
+          >
+          </frigate-card-thumbnail>`,
+      )}
+      ${this._showExtensionLoader
+        ? html` <ha-card class="sentinel" ${ref(this._refSentinel)}>
+            <span class="dotdotdot"></span>
+          </ha-card>`
+        : ''}
+    `;
+  }
+
+  public updated(): void {
+    if (this._refSentinel.value) {
+      this._intersectionObserver.disconnect();
+      this._intersectionObserver.observe(this._refSentinel.value);
+    }
   }
 
   /**

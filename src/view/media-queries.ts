@@ -7,7 +7,7 @@ export type MediaQueries = EventMediaQueries | RecordingMediaQueries;
 export class MediaQueriesBase<T extends MediaQuery> {
   protected _queries: T[] | null = null;
 
-  protected constructor(queries?: T[]) {
+  public constructor(queries?: T[]) {
     if (queries) {
       this._queries = queries;
     }
@@ -28,20 +28,9 @@ export class MediaQueriesBase<T extends MediaQuery> {
   public setQueries(queries: T[]): void {
     this._queries = queries;
   }
-
-  public setQueriesTime(start: Date, end: Date) {
-    for (const query of this._queries ?? []) {
-      query.start = start;
-      query.end = end;
-    }
-  }
 }
 
 export class EventMediaQueries extends MediaQueriesBase<EventQuery> {
-  constructor(queries?: EventQuery[]) {
-    super(queries);
-  }
-
   public convertToClipsQueries(): void {
     for (const query of this._queries ?? []) {
       delete query.hasSnapshot;
@@ -54,8 +43,4 @@ export class EventMediaQueries extends MediaQueriesBase<EventQuery> {
   }
 }
 
-export class RecordingMediaQueries extends MediaQueriesBase<RecordingQuery> {
-  constructor(queries?: RecordingQuery[]) {
-    super(queries);
-  }
-}
+export class RecordingMediaQueries extends MediaQueriesBase<RecordingQuery> {}
