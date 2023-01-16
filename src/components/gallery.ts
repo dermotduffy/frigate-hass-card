@@ -103,7 +103,14 @@ export class FrigateCardGallery extends LitElement {
 
     // TODO Make this slot choice configuration left/right.
     return html`
-      <frigate-card-surround-basic>
+      <frigate-card-surround-basic
+        .drawerIcons=${{
+          'right': {
+            closed: 'mdi:filter-cog-outline',
+            open: 'mdi:filter-cog'
+          }
+        }}
+      >
         <frigate-card-media-filter
           .hass=${this.hass}
           .cameras=${this.cameras}

@@ -15,6 +15,11 @@ import drawerStyle from '../scss/drawer.scss';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
 import { isHoverableDevice } from '../utils/basic';
 
+export interface DrawerIcons {
+  open?: string;
+  closed?: string;
+}
+
 @customElement('frigate-card-drawer')
 export class FrigateCardDrawer extends LitElement {
   @property({ attribute: true, reflect: true })
@@ -25,6 +30,9 @@ export class FrigateCardDrawer extends LitElement {
 
   @property({ type: Boolean, reflect: true, attribute: true })
   public open = false;
+
+  @property({ attribute: false })
+  public icons?: DrawerIcons;
 
   // The 'empty' attribute is used in the styling to change the drawer
   // visibility and that of all descendants if there is no content. Styling is
@@ -111,7 +119,9 @@ export class FrigateCardDrawer extends LitElement {
               >
                 <ha-icon
                   class="control"
-                  icon="${this.open ? 'mdi:menu-open' : 'mdi:menu'}"
+                  icon="${this.open
+                    ? this.icons?.open ?? 'mdi:menu-open'
+                    : this.icons?.closed ?? 'mdi:menu'}"
                   @mouseenter=${() => {
                     // Only open the drawer on mousenter when the device
                     // supports hover (otherwise iOS may end up passing on

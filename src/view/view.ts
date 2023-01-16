@@ -8,7 +8,6 @@
 //  - TODO: Use spinner for gallery loading / cardwideconfig not dotdotdot
 //  - TODO: Handle all TODOs in media filter and media filter core.
 //  - TODO: Make media filter slot choice configurable (gallery.ts).
-//  - TODO: Configurable drawer icons (e.g. filter).
 //  - TODO: Filter panel expands from right can occasionally 'stick' open.
 
 // Hard:
