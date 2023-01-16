@@ -2,7 +2,14 @@
 //  - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
 //  - TODO: getRecordingTitle should use getCameraTitle but need hass.
 //  - TODO: Take MediaQueries wrappers out of the camera manager.
+
+// Gallery:
 //  - TODO: Event gallery show_details default does not work.
+//  - TODO: Use spinner for gallery loading / cardwideconfig not dotdotdot
+//  - TODO: Handle all TODOs in media filter and media filter core.
+//  - TODO: Make media filter slot choice configurable (gallery.ts).
+//  - TODO: Configurable drawer icons (e.g. filter).
+//  - TODO: Filter panel expands from right can occasionally 'stick' open.
 
 // Hard:
 //  - TODO: Implement gallery.

@@ -335,6 +335,19 @@
     "start": "Início",
     "seek": "Procurar"
   },
+  "media_filter": {
+    "all": "",
+    "camera": "",
+    "favorite": "",
+    "not_favorite": "",
+    "past_month": "",
+    "past_week": "",
+    "today": "",
+    "what": "",
+    "when": "",
+    "where": "",
+    "yesterday": ""
+  },
   "recording": {
     "events": "Eventos",
     "seek": "Procurar"

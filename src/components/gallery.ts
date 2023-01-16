@@ -27,13 +27,13 @@ import { View } from '../view/view.js';
 import { renderProgressIndicator } from './message.js';
 import './thumbnail.js';
 import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
-import './media-filter';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
 import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
 import { EventQuery, MediaQuery, RecordingQuery } from '../camera/types';
 import { MediaQueriesResults } from '../view/media-queries-results';
 import { errorToConsole } from '../utils/basic';
+import "./media-filter";
 
 const GALLERY_MEDIA_CHUNK_SIZE = 100;
 
@@ -101,15 +101,25 @@ export class FrigateCardGallery extends LitElement {
       return renderProgressIndicator({ cardWideConfig: this.cardWideConfig });
     }
 
+    // TODO Make this slot choice configuration left/right.
     return html`
-      <frigate-card-gallery-core
-        .hass=${this.hass}
-        .view=${this.view}
-        .galleryConfig=${this.galleryConfig}
-        .cameras=${this.cameras}
-        .cameraManager=${this.cameraManager}
-      >
-      </frigate-card-gallery-core>
+      <frigate-card-surround-basic>
+        <frigate-card-media-filter
+          .hass=${this.hass}
+          .cameras=${this.cameras}
+          .cameraManager=${this.cameraManager}
+          slot="right"
+        >
+        </frigate-card-media-filter>
+        <frigate-card-gallery-core
+          .hass=${this.hass}
+          .view=${this.view}
+          .galleryConfig=${this.galleryConfig}
+          .cameras=${this.cameras}
+          .cameraManager=${this.cameraManager}
+        >
+        </frigate-card-gallery-core>
+      </frigate-card-surround-basic>
     `;
   }
 
@@ -146,7 +156,7 @@ export class FrigateCardGalleryCore extends LitElement {
 
   protected _intersectionObserver: IntersectionObserver;
   protected _resizeObserver: ResizeObserver;
-  protected _refSentinel: Ref<HTMLElement> = createRef();
+  protected _refLoader: Ref<HTMLElement> = createRef();
 
   @state()
   protected _showExtensionLoader = true;
@@ -167,7 +177,7 @@ export class FrigateCardGalleryCore extends LitElement {
     this._resizeObserver.observe(this);
 
     // Request update in order to ensure the intersection observer reconnects
-    // with the sentinel.
+    // with the loader sentinel.
     this.requestUpdate();
   }
 
@@ -326,7 +336,7 @@ export class FrigateCardGalleryCore extends LitElement {
           </frigate-card-thumbnail>`,
       )}
       ${this._showExtensionLoader
-        ? html` <ha-card class="sentinel" ${ref(this._refSentinel)}>
+        ? html` <ha-card ${ref(this._refLoader)}>
             <span class="dotdotdot"></span>
           </ha-card>`
         : ''}
@@ -334,9 +344,9 @@ export class FrigateCardGalleryCore extends LitElement {
   }
 
   public updated(): void {
-    if (this._refSentinel.value) {
+    if (this._refLoader.value) {
       this._intersectionObserver.disconnect();
-      this._intersectionObserver.observe(this._refSentinel.value);
+      this._intersectionObserver.observe(this._refLoader.value);
     }
   }
 

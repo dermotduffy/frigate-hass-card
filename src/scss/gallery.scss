@@ -16,7 +16,7 @@
 
   display: grid;
   grid-template-columns: repeat(var(--frigate-card-gallery-columns), minmax(0, 1fr));
-  grid-auto-rows: 1fr;
+  grid-auto-rows: min-content;
   gap: var(--frigate-card-gallery-gap);
 }
 
@@ -26,6 +26,8 @@
 }
 
 :host ha-card {
+  min-width: 100%;
+  aspect-ratio: 1/1;
   display: flex;
   justify-content: center;
   align-items: center;

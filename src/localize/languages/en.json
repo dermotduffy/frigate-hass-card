@@ -364,6 +364,19 @@
     "start": "Start",
     "seek": "Seek"
   },
+  "media_filter": {
+    "all": "All",
+    "camera": "Camera",
+    "favorite": "Favorite",
+    "not_favorite": "Not Favorite",
+    "past_month": "Past Month",
+    "past_week": "Past Week",
+    "today": "Today",
+    "what": "What",
+    "when": "When",
+    "where": "Where",
+    "yesterday": "Yesterday"
+  },
   "recording": {
     "events": "Events",
     "seek": "Seek"
