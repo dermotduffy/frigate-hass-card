@@ -311,16 +311,17 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   ): Promise<RecordingQueryResultsMap | null> {
     const output: RecordingQueryResultsMap = new Map();
 
-    const processQuery = async (query: RecordingQuery): Promise<void> => {
+    const processQuery = async (
+      baseQuery: RecordingQuery,
+      cameraID: string,
+    ): Promise<void> => {
+      const query = { ...baseQuery, cameraIDs: new Set([cameraID]) };
       const cachedResult = this._requestCache.get(query);
       if (cachedResult) {
         output.set(query, cachedResult as RecordingQueryResults);
         return;
       }
 
-      // There will only ever be a single cameraID specified for queries in this
-      // inner function.
-      const cameraID = [...query.cameraIDs][0];
       const cameraConfig = this._getQueryableCameraConfig(cameras, cameraID);
       if (!cameraConfig || !cameraConfig.frigate.camera_name) {
         return;
@@ -380,9 +381,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     // Frigate recordings can only be queried for a single camera, so fan out
     // the inbound query into multiple outbound queries.
     await Promise.all(
-      Array.from(query.cameraIDs).map((cameraID) =>
-        processQuery({ ...query, cameraIDs: new Set([cameraID]) }),
-      ),
+      Array.from(query.cameraIDs).map((cameraID) => processQuery(query, cameraID)),
     );
     return output.size ? output : null;
   }
@@ -394,10 +393,11 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   ): Promise<RecordingSegmentsQueryResultsMap | null> {
     const output: RecordingSegmentsQueryResultsMap = new Map();
 
-    const processQuery = async (query: RecordingSegmentsQuery): Promise<void> => {
-      // There will only ever be a single cameraID specified for queries in this
-      // inner function.
-      const cameraID = [...query.cameraIDs][0];
+    const processQuery = async (
+      baseQuery: RecordingSegmentsQuery,
+      cameraID: string,
+    ): Promise<void> => {
+      const query = { ...baseQuery, cameraIDs: new Set([cameraID]) };
       const cameraConfig = this._getQueryableCameraConfig(cameras, cameraID);
       if (!cameraConfig || !cameraConfig.frigate.camera_name) {
         return;
@@ -446,9 +446,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     // Frigate recording segments can only be queried for a single camera, so
     // fan out the inbound query into multiple outbound queries.
     await Promise.all(
-      Array.from(query.cameraIDs).map((cameraID) =>
-        processQuery({ ...query, cameraIDs: new Set([cameraID]) }),
-      ),
+      Array.from(query.cameraIDs).map((cameraID) => processQuery(query, cameraID)),
     );
 
     runWhenIdleIfSupported(() => this._throttledSegmentGarbageCollector(hass, cameras));
