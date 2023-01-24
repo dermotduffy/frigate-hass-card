@@ -1106,7 +1106,6 @@ export class FrigateCard extends LitElement {
       this._cameraManager = new CameraManager(
         new CameraManagerEngineFactory(),
         this._cameras,
-        new RequestCache(),
       );
     }
 

@@ -95,9 +95,9 @@ export async function retainEvent(
 
 export interface NativeFrigateEventQuery {
   instance_id?: string;
-  camera?: string;
-  label?: string;
-  zone?: string;
+  cameras?: string[];
+  labels?: string[];
+  zones?: string[];
   after?: number;
   before?: number;
   limit?: number;

@@ -23,7 +23,7 @@ export enum Engine {
 
 export interface DataQuery {
   type: QueryType;
-  cameraID: string;
+  cameraIDs: Set<string>;
 }
 export type PartialDataQuery = Partial<DataQuery>;
 
@@ -63,6 +63,11 @@ export type PartialQueryConcreteType<PQT> = PQT extends PartialEventQuery
   ? RecordingSegmentsQuery
   : never;
 
+export type ResultsMap<QT> = Map<QT, QueryReturnType<QT>>;
+export type EventQueryResultsMap = ResultsMap<EventQuery>;
+export type RecordingQueryResultsMap = ResultsMap<RecordingQuery>;
+export type RecordingSegmentsQueryResultsMap = ResultsMap<RecordingSegmentsQuery>;
+
 // ===========
 // Event Query
 // ===========
@@ -77,10 +82,10 @@ export interface EventQuery extends MediaQuery {
   hasClip?: boolean;
 
   // Frigate equivalent: label
-  what?: string;
+  what?: Set<string>;
 
   // Frigate equivalent: zone
-  where?: string;
+  where?: Set<string>;
 }
 export type PartialEventQuery = Partial<EventQuery>;
 
@@ -121,15 +126,18 @@ export interface RecordingSegmentsQueryResults extends QueryResults {
 
 export interface FrigateEventQueryResults extends EventQueryResults {
   engine: Engine.Frigate;
+  instanceID: string;
   events: FrigateEvent[];
 }
 
 export interface FrigateRecordingQueryResults extends RecordingQueryResults {
   engine: Engine.Frigate;
+  instanceID: string;
   recordings: FrigateRecording[];
 }
 
 export interface FrigateRecordingSegmentsQueryResults
   extends RecordingSegmentsQueryResults {
   engine: Engine.Frigate;
+  instanceID: string;
 }

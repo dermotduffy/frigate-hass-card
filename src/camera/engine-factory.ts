@@ -1,35 +1,32 @@
 import { CameraConfig } from '../types';
-import { RecordingSegmentsCache } from './cache';
+import { RecordingSegmentsCache, RequestCache } from './cache';
 import { CameraManagerEngine } from './engine';
 import { FrigateCameraManagerEngine } from './frigate/engine-frigate';
-import { DataQuery } from './types';
+import { Engine } from './types';
+
+type CameraManagerEngineCameraIDMap = Map<CameraManagerEngine, Set<string>>;
 
 export class CameraManagerEngineFactory {
-  protected _engines: Map<string, CameraManagerEngine> = new Map();
+  protected _engines: Map<Engine, CameraManagerEngine> = new Map();
 
-  protected _getOrCreateEngine(engineKey: string): CameraManagerEngine | null {
-    const cachedEngine = this._engines.get(engineKey);
+  public getEngine(engine: Engine): CameraManagerEngine | null {
+    const cachedEngine = this._engines.get(engine);
     if (cachedEngine) {
       return cachedEngine;
     }
-    let newEngine: CameraManagerEngine | null = null;
-    switch (engineKey) {
-      case 'frigate':
-        newEngine = new FrigateCameraManagerEngine(new RecordingSegmentsCache());
+    let cameraManagerEngine: CameraManagerEngine | null = null;
+    switch (engine) {
+      case Engine.Frigate:
+        cameraManagerEngine = new FrigateCameraManagerEngine(
+          new RecordingSegmentsCache(),
+          new RequestCache(),
+        );
         break;
     }
-    if (newEngine) {
-      this._engines.set(engineKey, newEngine);
+    if (cameraManagerEngine) {
+      this._engines.set(engine, cameraManagerEngine);
     }
-    return newEngine;
-  }
-
-  public getEngineForQuery(
-    cameras: Map<string, CameraConfig>,
-    query: DataQuery,
-  ): CameraManagerEngine | null {
-    const cameraConfig = cameras.get(query.cameraID);
-    return cameraConfig ? this.getEngineForCamera(cameraConfig) : null;
+    return cameraManagerEngine;
   }
 
   public getEngineForCamera(cameraConfig?: CameraConfig): CameraManagerEngine | null {
@@ -37,10 +34,34 @@ export class CameraManagerEngineFactory {
       return null;
     }
 
-    let engineKey: string | null = null;
+    let engine: Engine | null = null;
     if (cameraConfig.frigate.camera_name) {
-      engineKey = 'frigate';
+      engine = Engine.Frigate;
     }
-    return engineKey ? this._getOrCreateEngine(engineKey) : null;
+    return engine ? this.getEngine(engine) : null;
+  }
+
+  public getEnginesForCameraIDs(
+    cameras: Map<string, CameraConfig>,
+    cameraIDs: Set<string>,
+  ): CameraManagerEngineCameraIDMap | null {
+    const output: CameraManagerEngineCameraIDMap = new Map();
+
+    for (const cameraID of cameraIDs) {
+      const cameraConfig = cameras.get(cameraID);
+      if (!cameraConfig) {
+        continue;
+      }
+
+      const engine = this.getEngineForCamera(cameraConfig);
+      if (!engine) {
+        continue;
+      }
+      if (!output.has(engine)) {
+        output.set(engine, new Set());
+      }
+      output.get(engine)?.add(cameraID);
+    }
+    return output;
   }
 }

@@ -4,18 +4,19 @@ import endOfHour from 'date-fns/endOfHour';
 import startOfHour from 'date-fns/startOfHour';
 import { CAMERA_BIRDSEYE } from '../../const';
 import { CameraConfig, RecordingSegment } from '../../types';
-import { MediaQueriesResults } from '../../view/media-queries-results';
-import { MediaQueriesClassifier } from '../../view/media-queries-classifier';
 import { ViewMedia } from '../../view/media';
-import { RecordingSegmentsCache } from '../cache';
+import { RequestCache, RecordingSegmentsCache } from '../cache';
 import {
   CameraManagerEngine,
   CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
 } from '../engine';
 import { DateRange } from '../range';
 import {
+  DataQuery,
   Engine,
   EventQuery,
+  EventQueryResults,
+  EventQueryResultsMap,
   FrigateEventQueryResults,
   FrigateRecordingQueryResults,
   FrigateRecordingSegmentsQueryResults,
@@ -27,7 +28,10 @@ import {
   QueryReturnType,
   QueryType,
   RecordingQuery,
+  RecordingQueryResults,
+  RecordingQueryResultsMap,
   RecordingSegmentsQuery,
+  RecordingSegmentsQueryResultsMap,
 } from '../types';
 import { FrigateRecording } from './types';
 import {
@@ -38,7 +42,6 @@ import {
   NativeFrigateRecordingSegmentsQuery,
   retainEvent,
 } from './requests';
-import { MediaQueries } from '../../view/media-queries';
 import orderBy from 'lodash-es/orderBy';
 import throttle from 'lodash-es/throttle';
 import { runWhenIdleIfSupported } from '../../utils/basic';
@@ -78,6 +81,7 @@ class FrigateQueryResultsClassifier {
 
 export class FrigateCameraManagerEngine implements CameraManagerEngine {
   protected _recordingSegmentsCache: RecordingSegmentsCache;
+  protected _requestCache: RequestCache;
 
   // Garbage collect segments at most once an hour.
   protected _throttledSegmentGarbageCollector = throttle(
@@ -86,8 +90,12 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     { leading: false, trailing: true },
   );
 
-  constructor(recordingSegmentsCache: RecordingSegmentsCache) {
+  constructor(
+    recordingSegmentsCache: RecordingSegmentsCache,
+    requestCache: RequestCache,
+  ) {
     this._recordingSegmentsCache = recordingSegmentsCache;
+    this._requestCache = requestCache;
   }
 
   public getMediaDownloadPath(
@@ -113,46 +121,81 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   }
 
   public generateDefaultEventQuery(
-    cameraID: string,
-    cameraConfig: CameraConfig,
+    cameras: Map<string, CameraConfig>,
+    cameraIDs: Set<string>,
     query: PartialEventQuery,
-  ): EventQuery | null {
-    return {
-      type: QueryType.Event,
-      cameraID: cameraID,
-      ...(cameraConfig.frigate.label && { what: cameraConfig.frigate.label }),
-      ...(cameraConfig.frigate.zone && { where: cameraConfig.frigate.zone }),
-      ...query,
-    };
+  ): EventQuery[] | null {
+    const relevantCameraConfigs = Array.from(cameraIDs).map((cameraID) =>
+      cameras.get(cameraID),
+    );
+
+    // If there isn't a label or zone specified, we can come up with a single
+    // batch query for Frigate that will match across all cameras.
+    const canDoBatchQuery = relevantCameraConfigs.every(
+      (cameraConfig) => !cameraConfig?.frigate.label && !cameraConfig?.frigate.zone,
+    );
+
+    if (canDoBatchQuery) {
+      return [
+        {
+          type: QueryType.Event,
+          cameraIDs: cameraIDs,
+          ...query,
+        },
+      ];
+    }
+
+    const output: EventQuery[] = [];
+    for (const cameraID of cameraIDs) {
+      const cameraConfig = cameras.get(cameraID);
+      if (cameraConfig) {
+        output.push({
+          type: QueryType.Event,
+          cameraIDs: new Set([cameraID]),
+          ...(cameraConfig.frigate.label && {
+            what: new Set([cameraConfig.frigate.label]),
+          }),
+          ...(cameraConfig.frigate.zone && {
+            where: new Set([cameraConfig.frigate.zone]),
+          }),
+          ...query,
+        });
+      }
+    }
+    return output.length ? output : null;
   }
 
   public generateDefaultRecordingQuery(
-    cameraID: string,
-    _cameraConfig: CameraConfig,
+    _cameras: Map<string, CameraConfig>,
+    cameraIDs: Set<string>,
     query: PartialRecordingQuery,
-  ): RecordingQuery | null {
-    return {
-      type: QueryType.Recording,
-      cameraID: cameraID,
-      ...query,
-    };
+  ): RecordingQuery[] | null {
+    return [
+      {
+        type: QueryType.Recording,
+        cameraIDs: cameraIDs,
+        ...query,
+      },
+    ];
   }
 
   public generateDefaultRecordingSegmentsQuery(
-    cameraID: string,
-    _cameraConfig: CameraConfig,
+    _cameras: Map<string, CameraConfig>,
+    cameraIDs: Set<string>,
     query: PartialRecordingSegmentsQuery,
-  ): RecordingSegmentsQuery | null {
+  ): RecordingSegmentsQuery[] | null {
     if (!query.start || !query.end) {
       return null;
     }
-    return {
-      type: QueryType.RecordingSegments,
-      cameraID: cameraID,
-      start: query.start,
-      end: query.end,
-      ...query,
-    };
+    return [
+      {
+        type: QueryType.RecordingSegments,
+        cameraIDs: cameraIDs,
+        start: query.start,
+        end: query.end,
+        ...query,
+      },
+    ];
   }
 
   public async favoriteMedia(
@@ -169,150 +212,275 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     media.setFavorite(favorite);
   }
 
+  protected _buildInstanceToCameraIDMapFromQuery(
+    cameras: Map<string, CameraConfig>,
+    query: DataQuery,
+  ): Map<string, Set<string>> {
+    const output: Map<string, Set<string>> = new Map();
+    for (const cameraID of query.cameraIDs) {
+      const cameraConfig = this._getQueryableCameraConfig(cameras, cameraID);
+      const clientID = cameraConfig?.frigate.client_id;
+      if (clientID) {
+        if (!output.has(clientID)) {
+          output.set(clientID, new Set());
+        }
+        output.get(clientID)?.add(cameraID);
+      }
+    }
+    return output;
+  }
+
+  protected _getFrigateCameraNamesForCameraIDs(
+    cameras: Map<string, CameraConfig>,
+    cameraIDs: Set<string>,
+  ): Set<string> {
+    const output = new Set<string>();
+    for (const cameraID of cameraIDs) {
+      const cameraConfig = this._getQueryableCameraConfig(cameras, cameraID);
+      if (cameraConfig?.frigate.camera_name) {
+        output.add(cameraConfig.frigate.camera_name);
+      }
+    }
+    return output;
+  }
+
   public async getEvents(
     hass: HomeAssistant,
     cameras: Map<string, CameraConfig>,
     query: EventQuery,
-  ): Promise<QueryReturnType<EventQuery> | null> {
-    const cameraConfig = this._getQueryableCameraConfig(cameras, query.cameraID);
-    if (!cameraConfig) {
-      return null;
-    }
+  ): Promise<EventQueryResultsMap | null> {
+    const output: EventQueryResultsMap = new Map();
 
-    const nativeQuery: NativeFrigateEventQuery = {
-      instance_id: cameraConfig.frigate.client_id,
-      camera: cameraConfig.frigate.camera_name,
-      ...(query.what && { label: query.what }),
-      ...(query.where && { zone: query.where }),
-      ...(query?.end && { before: Math.floor(query.end.getTime() / 1000) }),
-      ...(query?.start && { after: Math.floor(query.start.getTime() / 1000) }),
-      ...(query?.limit && { limit: query.limit }),
-      ...(query?.hasClip && { has_clip: query.hasClip }),
-      ...(query?.hasSnapshot && { has_snapshot: query.hasSnapshot }),
-      limit: query?.limit ?? CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
+    const processInstanceQuery = async (
+      instanceID: string,
+      cameraIDs?: Set<string>,
+    ): Promise<void> => {
+      if (!cameraIDs || !cameraIDs.size) {
+        return;
+      }
+      const instanceQuery = { ...query, cameraIDs: cameraIDs };
+      const cachedResult = this._requestCache.get(instanceQuery);
+      if (cachedResult) {
+        output.set(query, cachedResult as EventQueryResults);
+        return;
+      }
+
+      const nativeQuery: NativeFrigateEventQuery = {
+        instance_id: instanceID,
+        cameras: Array.from(this._getFrigateCameraNamesForCameraIDs(cameras, cameraIDs)),
+        ...(query.what && { label: Array.from(query.what) }),
+        ...(query.where && { zone: Array.from(query.where) }),
+        ...(query.end && { before: Math.floor(query.end.getTime() / 1000) }),
+        ...(query.start && { after: Math.floor(query.start.getTime() / 1000) }),
+        ...(query.limit && { limit: query.limit }),
+        ...(query.hasClip && { has_clip: query.hasClip }),
+        ...(query.hasSnapshot && { has_snapshot: query.hasSnapshot }),
+        limit: query?.limit ?? CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
+      };
+
+      const result: FrigateEventQueryResults = {
+        type: QueryResultsType.Event,
+        engine: Engine.Frigate,
+        instanceID: instanceID,
+        events: await getEvents(hass, nativeQuery),
+        expiry: add(new Date(), { seconds: EVENT_REQUEST_CACHE_MAX_AGE_SECONDS }),
+        cached: false,
+      };
+
+      this._requestCache.set(query, { ...result, cached: true }, result.expiry);
+      output.set(instanceQuery, result);
     };
 
-    return <FrigateEventQueryResults>{
-      type: QueryResultsType.Event,
-      engine: Engine.Frigate,
-      events: await getEvents(hass, nativeQuery),
-      expiry: add(new Date(), { seconds: EVENT_REQUEST_CACHE_MAX_AGE_SECONDS }),
-      cached: false,
-    };
+    // Frigate allows multiple cameras to be searched for events in a single
+    // query. Break them down into groups of cameras per Frigate instance, then
+    // query once per instance for all cameras in that instance.
+    const instances = this._buildInstanceToCameraIDMapFromQuery(cameras, query);
+
+    await Promise.all(
+      Array.from(instances.keys()).map((instanceID) =>
+        processInstanceQuery(instanceID, instances.get(instanceID)),
+      ),
+    );
+    return output.size ? output : null;
   }
 
   public async getRecordings(
     hass: HomeAssistant,
     cameras: Map<string, CameraConfig>,
     query: RecordingQuery,
-  ): Promise<QueryReturnType<RecordingQuery> | null> {
-    const cameraConfig = this._getQueryableCameraConfig(cameras, query.cameraID);
-    if (!cameraConfig) {
-      return null;
-    }
-    if (!cameraConfig || !cameraConfig.frigate.camera_name) {
-      return null;
-    }
+  ): Promise<RecordingQueryResultsMap | null> {
+    const output: RecordingQueryResultsMap = new Map();
 
-    const recordingSummary = await getRecordingsSummary(
-      hass,
-      cameraConfig.frigate.client_id,
-      cameraConfig.frigate.camera_name,
-    );
+    const processQuery = async (query: RecordingQuery): Promise<void> => {
+      const cachedResult = this._requestCache.get(query);
+      if (cachedResult) {
+        output.set(query, cachedResult as RecordingQueryResults);
+        return;
+      }
 
-    let recordings: FrigateRecording[] = [];
+      // There will only ever be a single cameraID specified for queries in this
+      // inner function.
+      const cameraID = [...query.cameraIDs][0];
+      const cameraConfig = this._getQueryableCameraConfig(cameras, cameraID);
+      if (!cameraConfig || !cameraConfig.frigate.camera_name) {
+        return;
+      }
 
-    for (const dayData of recordingSummary ?? []) {
-      for (const hourData of dayData.hours) {
-        const hour = add(dayData.day, { hours: hourData.hour });
-        const startHour = startOfHour(hour);
-        const endHour = endOfHour(hour);
-        if (
-          (!query.start || startHour >= query.start) &&
-          (!query.end || endHour <= query.end)
-        ) {
-          recordings.push({
-            cameraID: query.cameraID,
-            startTime: startHour,
-            endTime: endHour,
-            events: hourData.events,
-          });
+      const recordingSummary = await getRecordingsSummary(
+        hass,
+        cameraConfig.frigate.client_id,
+        cameraConfig.frigate.camera_name,
+      );
+
+      let recordings: FrigateRecording[] = [];
+
+      for (const dayData of recordingSummary ?? []) {
+        for (const hourData of dayData.hours) {
+          const hour = add(dayData.day, { hours: hourData.hour });
+          const startHour = startOfHour(hour);
+          const endHour = endOfHour(hour);
+          if (
+            (!query.start || startHour >= query.start) &&
+            (!query.end || endHour <= query.end)
+          ) {
+            recordings.push({
+              cameraID: cameraID,
+              startTime: startHour,
+              endTime: endHour,
+              events: hourData.events,
+            });
+          }
         }
       }
-    }
 
-    if (query.limit !== undefined) {
-      // Frigate does not natively support a way to limit recording searches so
-      // this simulates it.
-      recordings = orderBy(
-        recordings,
-        (recording: FrigateRecording) => recording.startTime,
-        'desc',
-      ).slice(0, query.limit);
-    }
+      if (query.limit !== undefined) {
+        // Frigate does not natively support a way to limit recording searches so
+        // this simulates it.
+        recordings = orderBy(
+          recordings,
+          (recording: FrigateRecording) => recording.startTime,
+          'desc',
+        ).slice(0, query.limit);
+      }
 
-    return <FrigateRecordingQueryResults>{
-      type: QueryResultsType.Recording,
-      engine: Engine.Frigate,
-      recordings: recordings,
-      expiry: add(new Date(), {
-        seconds: RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS,
-      }),
-      cached: false,
+      const result: FrigateRecordingQueryResults = {
+        type: QueryResultsType.Recording,
+        engine: Engine.Frigate,
+        instanceID: cameraConfig.frigate.client_id,
+        recordings: recordings,
+        expiry: add(new Date(), {
+          seconds: RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS,
+        }),
+        cached: false,
+      };
+      this._requestCache.set(query, { ...result, cached: true }, result.expiry);
+      output.set(query, result);
     };
+
+    // Frigate recordings can only be queried for a single camera, so fan out
+    // the inbound query into multiple outbound queries.
+    await Promise.all(
+      Array.from(query.cameraIDs).map((cameraID) =>
+        processQuery({ ...query, cameraIDs: new Set([cameraID]) }),
+      ),
+    );
+    return output.size ? output : null;
   }
 
   public async getRecordingSegments(
     hass: HomeAssistant,
     cameras: Map<string, CameraConfig>,
     query: RecordingSegmentsQuery,
-  ): Promise<QueryReturnType<RecordingSegmentsQuery> | null> {
-    const cameraConfig = this._getQueryableCameraConfig(cameras, query.cameraID);
-    if (!cameraConfig || !cameraConfig.frigate.camera_name) {
-      return null;
-    }
+  ): Promise<RecordingSegmentsQueryResultsMap | null> {
+    const output: RecordingSegmentsQueryResultsMap = new Map();
 
-    const range: DateRange = { start: query.start, end: query.end };
+    const processQuery = async (query: RecordingSegmentsQuery): Promise<void> => {
+      // There will only ever be a single cameraID specified for queries in this
+      // inner function.
+      const cameraID = [...query.cameraIDs][0];
+      const cameraConfig = this._getQueryableCameraConfig(cameras, cameraID);
+      if (!cameraConfig || !cameraConfig.frigate.camera_name) {
+        return;
+      }
 
-    // A note on Frigate Recording Segments:
-    // - Unlike other query types, there is an internal cache at the engine
-    //   level for segments to allow caching "within an existing query" (e.g. if
-    //   we already cached hour 1-8, we will avoid a fetch if we request hours
-    //   2-3 even though the query is different -- the segments won't be). This
-    //   is since the volume of data in segment transfers can be high, and the
-    //   segments can be used in high frequency situations (e.g. video seeking).
-    const cachedSegments = this._recordingSegmentsCache.get(query.cameraID, range);
-    if (cachedSegments) {
-      return {
+      const range: DateRange = { start: query.start, end: query.end };
+
+      // A note on Frigate Recording Segments:
+      // - There is an internal cache at the engine level for segments to allow
+      //   caching "within an existing query" (e.g. if we already cached hour
+      //   1-8, we will avoid a fetch if we request hours 2-3 even though the
+      //   query is different -- the segments won't be). This is since the
+      //   volume of data in segment transfers can be high, and the segments can
+      //   be used in high frequency situations (e.g. video seeking).
+      const cachedSegments = this._recordingSegmentsCache.get(cameraID, range);
+      if (cachedSegments) {
+        output.set(query, <FrigateRecordingSegmentsQueryResults>{
+          type: QueryResultsType.RecordingSegments,
+          engine: Engine.Frigate,
+          instanceID: cameraConfig.frigate.client_id,
+          segments: cachedSegments,
+          cached: true,
+        });
+        return;
+      }
+
+      const request: NativeFrigateRecordingSegmentsQuery = {
+        instance_id: cameraConfig.frigate.client_id,
+        camera: cameraConfig.frigate.camera_name,
+        after: Math.floor(query.start.getTime() / 1000),
+        before: Math.floor(query.end.getTime() / 1000),
+      };
+
+      const segments = await getRecordingSegments(hass, request);
+      this._recordingSegmentsCache.add(cameraID, range, segments);
+
+      output.set(query, <FrigateRecordingSegmentsQueryResults>{
         type: QueryResultsType.RecordingSegments,
         engine: Engine.Frigate,
-        segments: cachedSegments,
-        cached: true,
-      };
-    }
-
-    const request: NativeFrigateRecordingSegmentsQuery = {
-      instance_id: cameraConfig.frigate.client_id,
-      camera: cameraConfig.frigate.camera_name,
-      after: Math.floor(query.start.getTime() / 1000),
-      before: Math.floor(query.end.getTime() / 1000),
+        instanceID: cameraConfig.frigate.client_id,
+        segments: segments,
+        cached: false,
+      });
     };
 
-    const segments = await getRecordingSegments(hass, request);
-    this._recordingSegmentsCache.add(query.cameraID, range, segments);
+    // Frigate recording segments can only be queried for a single camera, so
+    // fan out the inbound query into multiple outbound queries.
+    await Promise.all(
+      Array.from(query.cameraIDs).map((cameraID) =>
+        processQuery({ ...query, cameraIDs: new Set([cameraID]) }),
+      ),
+    );
 
     runWhenIdleIfSupported(() => this._throttledSegmentGarbageCollector(hass, cameras));
+    return output.size ? output : null;
+  }
 
-    return {
-      type: QueryResultsType.RecordingSegments,
-      engine: Engine.Frigate,
-      segments: segments,
-      cached: false,
-    };
+  protected _getCameraIDMatch(
+    cameras: Map<string, CameraConfig>,
+    query: DataQuery,
+    instanceID: string,
+    cameraName: string,
+  ): string | null {
+    // If the query is only for a single cameraID, all results are assumed to
+    // belong to it for performance reasons. Otherwise, we need to map the
+    // instanceID and camera name for the known cameras, and get the precise
+    // cameraID that matches the expected instance ID / camera name.
+    if (query.cameraIDs.size === 1) {
+      return [...query.cameraIDs][0];
+    }
+    for (const [cameraID, cameraConfig] of cameras.entries()) {
+      if (
+        cameraConfig.frigate.client_id === instanceID &&
+        cameraConfig.frigate.camera_name === cameraName
+      ) {
+        return cameraID;
+      }
+    }
+    return null;
   }
 
   public generateMediaFromEvents(
-    cameraConfig: CameraConfig,
+    cameras: Map<string, CameraConfig>,
     query: EventQuery,
     results: QueryReturnType<EventQuery>,
   ): ViewMedia[] | null {
@@ -322,6 +490,19 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
 
     const output: ViewMedia[] = [];
     for (const event of results.events) {
+      const cameraID = this._getCameraIDMatch(
+        cameras,
+        query,
+        results.instanceID,
+        event.camera,
+      );
+      if (!cameraID) {
+        continue;
+      }
+      const cameraConfig = this._getQueryableCameraConfig(cameras, cameraID);
+      if (!cameraConfig) {
+        continue;
+      }
       let mediaType: 'clip' | 'snapshot' | null = null;
       if (
         !query.hasClip &&
@@ -339,7 +520,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       }
       const media = FrigateViewMediaFactory.createEventViewMedia(
         mediaType,
-        query.cameraID,
+        cameraID,
         cameraConfig,
         event,
       );
@@ -351,8 +532,8 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   }
 
   public generateMediaFromRecordings(
-    cameraConfig: CameraConfig,
-    query: RecordingQuery,
+    cameras: Map<string, CameraConfig>,
+    _query: RecordingQuery,
     results: QueryReturnType<RecordingQuery>,
   ): ViewMedia[] | null {
     if (!FrigateQueryResultsClassifier.isFrigateRecordingQueryResults(results)) {
@@ -361,8 +542,12 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
 
     const output: ViewMedia[] = [];
     for (const recording of results.recordings) {
+      const cameraConfig = this._getQueryableCameraConfig(cameras, recording.cameraID);
+      if (!cameraConfig) {
+        continue;
+      }
       const media = FrigateViewMediaFactory.createRecordingViewMedia(
-        query.cameraID,
+        recording.cameraID,
         recording,
         cameraConfig,
       );
@@ -373,23 +558,13 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     return output;
   }
 
-  public areMediaQueriesResultsFresh(
-    queries: MediaQueries,
-    results: MediaQueriesResults,
-  ): boolean {
-    let freshThreshold: number | null = null;
-    if (MediaQueriesClassifier.areEventQueries(queries)) {
-      freshThreshold = EVENT_REQUEST_CACHE_MAX_AGE_SECONDS;
-    } else if (MediaQueriesClassifier.areRecordingQueries(queries)) {
-      freshThreshold = RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS;
+  public getQueryResultMaxAge(query: DataQuery): number | null {
+    if (query.type === QueryType.Event) {
+      return EVENT_REQUEST_CACHE_MAX_AGE_SECONDS;
+    } else if (query.type === QueryType.Recording) {
+      return RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS;
     }
-    const now = new Date();
-    const resultsTimestamp = results.getResultsTimestamp();
-    return (
-      !freshThreshold ||
-      !resultsTimestamp ||
-      add(resultsTimestamp, { seconds: freshThreshold }) >= now
-    );
+    return null;
   }
 
   public async getMediaSeekTime(
@@ -404,18 +579,26 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       return null;
     }
 
+    const cameraID = media.getCameraID();
     const query: RecordingSegmentsQuery = {
-      cameraID: media.getCameraID(),
+      cameraIDs: new Set([cameraID]),
       start: start,
       end: end,
       type: QueryType.RecordingSegments,
     };
 
-    const segments = await this.getRecordingSegments(hass, cameras, query);
-    const out = segments
-      ? this._getSeekTimeInSegments(start, target, segments.segments)
-      : null;
-    return out;
+    const results = await this.getRecordingSegments(hass, cameras, query);
+
+    if (results) {
+      return this._getSeekTimeInSegments(
+        start,
+        target,
+        // There will only be a single result since Frigate recording segments
+        // searches are per camera which is specified singularly above.
+        Array.from(results.values())[0].segments,
+      );
+    }
+    return null;
   }
 
   protected _getQueryableCameraConfig(
@@ -438,10 +621,10 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     cameras: Map<string, CameraConfig>,
   ): Promise<void> {
     const cameraIDs = this._recordingSegmentsCache.getCameraIDs();
-    const recordingQueries: RecordingQuery[] = cameraIDs.map((cameraID) => ({
-      cameraID: cameraID,
+    const recordingQuery: RecordingQuery = {
+      cameraIDs: new Set(cameraIDs),
       type: QueryType.Recording,
-    }));
+    };
 
     const countSegments = () =>
       sum(
@@ -451,19 +634,6 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       );
     const segmentsStart = countSegments();
 
-    const results: Map<RecordingQuery, FrigateRecordingQueryResults> = new Map();
-
-    await Promise.all(
-      recordingQueries.map((query) =>
-        (async () => {
-          const recordings = await this.getRecordings(hass, cameras, query);
-          if (recordings && recordings.engine === Engine.Frigate) {
-            results.set(query, recordings as FrigateRecordingQueryResults);
-          }
-        })(),
-      ),
-    );
-
     // Performance: _recordingSegments is potentially very large (e.g. 10K - 1M
     // items) and each item must be examined, so care required here to stick to
     // nothing worse than O(n) performance.
@@ -471,16 +641,28 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       return `${cameraID}/${startTime.getDate()}/${startTime.getHours()}`;
     };
 
+    const results = await this.getRecordings(hass, cameras, recordingQuery);
+    if (!results) {
+      return;
+    }
+
     for (const [query, result] of results) {
+      if (!FrigateQueryResultsClassifier.isFrigateRecordingQueryResults(result)) {
+        continue;
+      }
+
       const goodHours: Set<string> = new Set();
       for (const recording of result.recordings) {
         goodHours.add(getHourID(recording.cameraID, recording.startTime));
       }
 
+      // Frigate recordings are always executed individually, so there'll only
+      // be a single results.
+      const cameraID = Array.from(query.cameraIDs)[0];
       this._recordingSegmentsCache.expireMatches(
-        query.cameraID,
+        cameraID,
         (segment: RecordingSegment) => {
-          const hourID = getHourID(query.cameraID, fromUnixTime(segment.start_time));
+          const hourID = getHourID(cameraID, fromUnixTime(segment.start_time));
           // ~O(1) lookup time for a JS set.
           return goodHours.has(hourID);
         },

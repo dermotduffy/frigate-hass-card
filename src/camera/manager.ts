@@ -5,6 +5,7 @@ import {
   DataQuery,
   EventQuery,
   EventQueryResults,
+  EventQueryResultsMap,
   MediaQuery,
   PartialDataQuery,
   PartialEventQuery,
@@ -17,16 +18,21 @@ import {
   QueryType,
   RecordingQuery,
   RecordingQueryResults,
+  RecordingQueryResultsMap,
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResults,
+  RecordingSegmentsQueryResultsMap,
+  ResultsMap,
 } from './types.js';
 import orderBy from 'lodash-es/orderBy';
 import { CameraManagerEngineFactory } from './engine-factory.js';
 import { ViewMedia } from '../view/media.js';
 import { MediaQueriesResults } from '../view/media-queries-results';
-import { MemoryRequestCache } from './cache.js';
 import { MediaQueries } from '../view/media-queries.js';
 import uniqBy from 'lodash-es/uniqBy';
+import { CameraManagerEngine } from './engine.js';
+import sum from 'lodash-es/sum';
+import add from 'date-fns/add';
 
 export class QueryClassifier {
   public static isEventQuery(query: DataQuery | PartialDataQuery): query is EventQuery {
@@ -67,27 +73,22 @@ export interface ExtendedMediaQueryResult<T extends MediaQuery> {
   results: ViewMedia[];
 }
 
-export type RequestCache = MemoryRequestCache<DataQuery, QueryResults>;
-
 export class CameraManager {
   protected _engineFactory: CameraManagerEngineFactory;
   protected _cameras: Map<string, CameraConfig>;
-  protected _requestCache: RequestCache;
 
   constructor(
     engineFactory: CameraManagerEngineFactory,
     cameras: Map<string, CameraConfig>,
-    requestCache: RequestCache,
   ) {
     this._engineFactory = engineFactory;
     this._cameras = cameras;
-    this._requestCache = requestCache;
   }
 
   public generateDefaultEventQueries(
     cameraIDs: string | Set<string>,
     partialQuery: PartialEventQuery,
-  ): EventQuery[] {
+  ): EventQuery[] | null {
     return this._generateDefaultQueries(cameraIDs, {
       ...partialQuery,
       type: QueryType.Event,
@@ -97,7 +98,7 @@ export class CameraManager {
   public generateDefaultRecordingQueries(
     cameraIDs: string | Set<string>,
     partialQuery: PartialRecordingQuery,
-  ): RecordingQuery[] {
+  ): RecordingQuery[] | null {
     return this._generateDefaultQueries(cameraIDs, {
       ...partialQuery,
       type: QueryType.Recording,
@@ -107,73 +108,76 @@ export class CameraManager {
   public generateDefaultRecordingSegmentsQueries(
     cameraIDs: string | Set<string>,
     partialQuery: PartialRecordingSegmentsQuery,
-  ): RecordingSegmentsQuery[] {
+  ): RecordingSegmentsQuery[] | null {
     return this._generateDefaultQueries(cameraIDs, {
       ...partialQuery,
       type: QueryType.RecordingSegments,
     });
   }
 
-  protected _generateDefaultQueries<PQT extends Partial<DataQuery>>(
+  protected _generateDefaultQueries<PQT extends PartialDataQuery>(
     cameraIDs: string | Set<string>,
     partialQuery: PQT,
-  ): PartialQueryConcreteType<PQT>[] {
+  ): PartialQueryConcreteType<PQT>[] | null {
     const concreteQueries: PartialQueryConcreteType<PQT>[] = [];
     const _cameraIDs = setify(cameraIDs);
 
-    _cameraIDs.forEach((cameraID) => {
-      const cameraConfig = this._cameras.get(cameraID);
-      if (!cameraConfig) {
-        return;
-      }
+    const engines = this._engineFactory.getEnginesForCameraIDs(
+      this._cameras,
+      _cameraIDs,
+    );
 
-      const engine = this._engineFactory.getEngineForCamera(cameraConfig);
-      if (!engine) {
-        return;
-      }
+    if (!engines) {
+      return null;
+    }
 
-      let query: DataQuery | null = null;
+    for (const [engine, cameraIDs] of engines) {
+      let queries: DataQuery[] | null = null;
       if (QueryClassifier.isEventQuery(partialQuery)) {
-        query = engine.generateDefaultEventQuery(cameraID, cameraConfig, partialQuery);
+        queries = engine.generateDefaultEventQuery(
+          this._cameras,
+          cameraIDs,
+          partialQuery,
+        );
       } else if (QueryClassifier.isRecordingQuery(partialQuery)) {
-        query = engine.generateDefaultRecordingQuery(
-          cameraID,
-          cameraConfig,
+        queries = engine.generateDefaultRecordingQuery(
+          this._cameras,
+          cameraIDs,
           partialQuery,
         );
       } else if (QueryClassifier.isRecordingSegmentsQuery(partialQuery)) {
-        query = engine.generateDefaultRecordingSegmentsQuery(
-          cameraID,
-          cameraConfig,
+        queries = engine.generateDefaultRecordingSegmentsQuery(
+          this._cameras,
+          cameraIDs,
           partialQuery,
         );
       }
 
-      if (query) {
+      for (const query of queries ?? []) {
         concreteQueries.push(query as PartialQueryConcreteType<PQT>);
       }
-    });
+    }
     return concreteQueries;
   }
 
   public async getEvents(
     hass: HomeAssistant,
     query: EventQuery | EventQuery[],
-  ): Promise<Map<EventQuery, EventQueryResults>> {
+  ): Promise<EventQueryResultsMap> {
     return await this._handleQuery(hass, query);
   }
 
   public async getRecordings(
     hass: HomeAssistant,
     query: RecordingQuery | RecordingQuery[],
-  ): Promise<Map<RecordingQuery, RecordingQueryResults>> {
+  ): Promise<RecordingQueryResultsMap> {
     return await this._handleQuery(hass, query);
   }
 
   public async getRecordingSegments(
     hass: HomeAssistant,
     query: RecordingSegmentsQuery | RecordingSegmentsQuery[],
-  ): Promise<Map<RecordingSegmentsQuery, RecordingSegmentsQueryResults>> {
+  ): Promise<RecordingSegmentsQueryResultsMap> {
     return await this._handleQuery(hass, query);
   }
 
@@ -301,16 +305,29 @@ export class CameraManager {
     queries: MediaQueries,
     results: MediaQueriesResults,
   ): boolean {
-    const cameraIDs: Set<string> = new Set();
-    (queries.getQueries() ?? []).forEach((query) => cameraIDs.add(query.cameraID));
-    for (const cameraID of cameraIDs) {
-      const cameraConfig = this._cameras.get(cameraID);
-      if (!cameraConfig) {
-        return false;
-      }
-      const engine = this._engineFactory.getEngineForCamera(cameraConfig);
-      if (!engine || !engine.areMediaQueriesResultsFresh(queries, results)) {
-        return false;
+    const now = new Date();
+    const resultsTimestamp = results.getResultsTimestamp();
+
+    if (!resultsTimestamp) {
+      return false;
+    }
+
+    for (const query of queries.getQueries() ?? []) {
+      const engines = this._engineFactory.getEnginesForCameraIDs(
+        this._cameras,
+        query.cameraIDs,
+      );
+      for (const [engine, cameraIDs] of engines ?? []) {
+        const maxAgeSeconds = engine.getQueryResultMaxAge({
+          ...query,
+          cameraIDs: cameraIDs,
+        });
+        if (
+          maxAgeSeconds !== null &&
+          add(resultsTimestamp, { seconds: maxAgeSeconds }) < now
+        ) {
+          return false;
+        }
       }
     }
     return true;
@@ -344,83 +361,96 @@ export class CameraManager {
   ): Promise<Map<QT, QueryReturnType<QT>>> {
     const _queries = arrayify(query);
     const results = new Map<QT, QueryReturnType<QT>>();
-
     const queryStartTime = new Date();
-    let queryCachedCount = 0;
+
+    const processEngineQuery = async (
+      engine: CameraManagerEngine,
+      query?: QT,
+    ): Promise<void> => {
+      if (!query) {
+        return;
+      }
+
+      let engineResult: Map<QT, QueryReturnType<QT>> | null = null;
+      if (QueryClassifier.isEventQuery(query)) {
+        engineResult = (await engine.getEvents(hass, this._cameras, query)) as Map<
+          QT,
+          QueryReturnType<QT>
+        > | null;
+      } else if (QueryClassifier.isRecordingQuery(query)) {
+        engineResult = (await engine.getRecordings(hass, this._cameras, query)) as Map<
+          QT,
+          QueryReturnType<QT>
+        > | null;
+      } else if (QueryClassifier.isRecordingSegmentsQuery(query)) {
+        engineResult = (await engine.getRecordingSegments(
+          hass,
+          this._cameras,
+          query,
+        )) as Map<QT, QueryReturnType<QT>> | null;
+      }
+
+      engineResult?.forEach((value, key) => results.set(key, value));
+    };
 
     const processQuery = async (query: QT): Promise<void> => {
-      const cachedResult: QueryReturnType<QT> | null = this._requestCache.get(
-        query,
-      ) as QueryReturnType<QT> | null;
-      if (cachedResult) {
-        queryCachedCount++;
-        results.set(query, cachedResult);
+      const engines = this._engineFactory.getEnginesForCameraIDs(
+        this._cameras,
+        query.cameraIDs,
+      );
+      if (!engines) {
         return;
       }
-
-      const engine = this._engineFactory.getEngineForQuery(this._cameras, query);
-      if (!engine) {
-        return;
-      }
-
-      let result: QueryResults | null = null;
-      if (QueryClassifier.isEventQuery(query)) {
-        result = await engine.getEvents(hass, this._cameras, query);
-      } else if (QueryClassifier.isRecordingQuery(query)) {
-        result = await engine.getRecordings(hass, this._cameras, query);
-      } else if (QueryClassifier.isRecordingSegmentsQuery(query)) {
-        result = await engine.getRecordingSegments(hass, this._cameras, query);
-      }
-
-      // The engine may independently cached the results. Respect that in our
-      // debug logging.
-      if (result?.cached) {
-        queryCachedCount++;
-      }
-
-      if (result) {
-        if (result.expiry) {
-          this._requestCache.set(query, { ...result, cached: true }, result.expiry);
-        }
-        results.set(query, result as QueryReturnType<QT>);
-      }
+      await Promise.all(
+        Array.from(engines.keys()).map((engine) =>
+          processEngineQuery(engine, { ...query, cameraIDs: engines.get(engine) }),
+        ),
+      );
     };
 
     await Promise.all(_queries.map((query) => processQuery(query)));
 
+    const cachedOutputQueries = sum(
+      Array.from(results.values()).map((result) => Number(result.cached)),
+    );
+
     console.debug(
-      'Frigate Card CameraManager request (Cached:',
-      `${queryCachedCount}/${_queries.length},`,
-      `Duration: ${(new Date().getTime() - queryStartTime.getTime()) / 1000}s,`,
-      'Queries:',
+      'Frigate Card CameraManager request [Input queries:',
+      _queries.length,
+      ', Cached output queries:',
+      cachedOutputQueries,
+      ', Total output queries:',
+      results.size,
+      ', Duration:',
+      `${(new Date().getTime() - queryStartTime.getTime()) / 1000}s,`,
+      ', Queries:',
       _queries,
       ', Results:',
       results,
-      ')',
+      ']',
     );
     return results;
   }
 
   protected _convertQueryResultsToMedia<QT extends DataQuery>(
-    results: Map<QT, QueryReturnType<QT>>,
+    results: ResultsMap<QT>,
   ): ViewMedia[] {
     const mediaArray: ViewMedia[] = [];
     for (const [query, result] of results.entries()) {
-      const cameraConfig = this._cameras.get(query.cameraID);
-      const engine = this._engineFactory.getEngineForCamera(cameraConfig);
+      const engine = this._engineFactory.getEngine(result.engine);
 
-      if (engine && cameraConfig) {
+      if (engine) {
         let media: ViewMedia[] | null = null;
         if (
           QueryClassifier.isEventQuery(query) &&
           QueryResultClassifier.isEventQueryResult(result)
         ) {
-          media = engine.generateMediaFromEvents(cameraConfig, query, result);
+          media = engine.generateMediaFromEvents(this._cameras, query, result);
         } else if (
           QueryClassifier.isRecordingQuery(query) &&
           QueryResultClassifier.isRecordingQuery(result)
         ) {
-          media = engine.generateMediaFromRecordings(cameraConfig, query, result);
+          media = engine.generateMediaFromRecordings(this._cameras, query, result);
         }
         if (media) {
           mediaArray.push(...media);

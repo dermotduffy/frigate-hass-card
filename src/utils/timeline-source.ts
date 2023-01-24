@@ -7,7 +7,7 @@ import { ClipsOrSnapshotsOrAll, RecordingSegment } from '../types';
 import { CameraManager } from '../camera/manager';
 import { EventQuery } from '../camera/types';
 import { capEndDate, convertRangeToCacheFriendlyTimes } from '../camera/util';
-import { EventMediaQueries } from "../view/media-queries";
+import { EventMediaQueries } from '../view/media-queries';
 import { ViewMedia } from '../view/media';
 import { compressRanges, ExpiringMemoryRangeSet, MemoryRangeSet } from '../camera/range';
 import { errorToConsole, ModifyInterface } from './basic.js';
@@ -85,10 +85,7 @@ export class TimelineDataSource {
     }
   }
 
-  public async refresh(
-    hass: HomeAssistant,
-    window: TimelineWindow,
-  ): Promise<void> {
+  public async refresh(hass: HomeAssistant, window: TimelineWindow): Promise<void> {
     try {
       await Promise.all([
         this._refreshEvents(hass, window),
@@ -110,7 +107,7 @@ export class TimelineDataSource {
     });
   }
 
-  public getTimelineEventQueries(window: TimelineWindow): EventQuery[] {
+  public getTimelineEventQueries(window: TimelineWindow): EventQuery[] | null {
     return this._cameraManager.generateDefaultEventQueries(this._cameraIDs, {
       start: window.start,
       end: window.end,
@@ -135,9 +132,11 @@ export class TimelineDataSource {
     }
 
     const cacheFriendlyWindow = this.getCacheFriendlyEventWindow(window);
-    const query = new EventMediaQueries(
-      this.getTimelineEventQueries(cacheFriendlyWindow),
-    );
+    const eventQueries = this.getTimelineEventQueries(cacheFriendlyWindow)
+    if (!eventQueries) {
+      return;
+    }
+    const query = new EventMediaQueries(eventQueries);
 
     const results = await this._cameraManager.executeMediaQueries(hass, query);
     for (const media of results?.getResults() ?? []) {
@@ -224,7 +223,7 @@ export class TimelineDataSource {
       endCap: true,
     });
 
-    const queries = this._cameraManager.generateDefaultRecordingSegmentsQueries(
+    const recordingQueries = this._cameraManager.generateDefaultRecordingSegmentsQueries(
       this._cameraIDs,
       {
         start: cacheFriendlyWindow.start,
@@ -232,16 +231,21 @@ export class TimelineDataSource {
       },
     );
 
-    const results = await this._cameraManager.getRecordingSegments(hass, queries);
+    if (!recordingQueries) {
+      return;
+    }
+    const results = await this._cameraManager.getRecordingSegments(hass, recordingQueries);
 
     const newSegments: Map<string, RecordingSegment[]> = new Map();
     for (const [query, result] of results) {
-      let destination: RecordingSegment[] | undefined = newSegments.get(query.cameraID);
-      if (!destination) {
-        destination = [];
-        newSegments.set(query.cameraID, destination);
+      for (const cameraID of query.cameraIDs) {
+        let destination: RecordingSegment[] | undefined = newSegments.get(cameraID);
+        if (!destination) {
+          destination = [];
+          newSegments.set(cameraID, destination);
+        }
+        result.segments.forEach((segment) => destination?.push(segment));
       }
-      result.segments.forEach((segment) => destination?.push(segment));
     }
 
     for (const [cameraID, segments] of newSegments.entries()) {

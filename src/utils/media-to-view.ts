@@ -53,12 +53,15 @@ export const createViewForEvents = async (
       ? options.cameraIDs
       : new Set(getAllDependentCameras(cameras, view.camera));
 
-    const queries = cameraManager.generateDefaultEventQueries(cameraIDs, {
+    const eventQueries = cameraManager.generateDefaultEventQueries(cameraIDs, {
       ...(options?.limit && { limit: options.limit }),
       ...(options?.mediaType === 'clips' && { hasClip: true }),
       ...(options?.mediaType === 'snapshots' && { hasSnapshot: true }),
     });
-    query = new EventMediaQueries(queries);
+    if (!eventQueries) {
+      return null;
+    }
+    query = new EventMediaQueries(eventQueries);
   }
 
   let queryResults: MediaQueriesResults | null;
@@ -137,12 +140,16 @@ export const createViewForRecordings = async (
     ? options.cameraIDs
     : new Set(getAllDependentCameras(cameras, view.camera));
 
-  const queries = cameraManager.generateDefaultRecordingQueries(cameraIDs, {
+  const recordingQueries = cameraManager.generateDefaultRecordingQueries(cameraIDs, {
     ...(options?.start && { start: options.start }),
     ...(options?.end && { end: options.end }),
   });
 
-  const query = new RecordingMediaQueries(queries);
+  if (!recordingQueries) {
+    return null;
+  }
+
+  const query = new RecordingMediaQueries(recordingQueries);
   let queryResults: MediaQueriesResults | null;
 
   try {

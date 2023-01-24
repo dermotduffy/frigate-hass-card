@@ -1,65 +1,67 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { CameraConfig } from '../types';
-import { MediaQueriesResults } from "../view/media-queries-results";
 import { ViewMedia } from '../view/media';
 import {
+  DataQuery,
   EventQuery,
+  EventQueryResultsMap,
   PartialEventQuery,
   PartialRecordingQuery,
   PartialRecordingSegmentsQuery,
   QueryReturnType,
   RecordingQuery,
+  RecordingQueryResultsMap,
   RecordingSegmentsQuery,
+  RecordingSegmentsQueryResultsMap,
 } from './types';
-import { MediaQueries } from '../view/media-queries';
 
 export const CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT = 10000;
 
 export interface CameraManagerEngine {
   generateDefaultEventQuery(
-    cameraID: string,
-    cameraConfig: CameraConfig,
+    cameras: Map<string, CameraConfig>,
+    cameraIDs: Set<string>,
     query: PartialEventQuery,
-  ): EventQuery | null;
+  ): EventQuery[] | null;
 
   generateDefaultRecordingQuery(
-    cameraID: string,
-    cameraConfig: CameraConfig,
+    cameras: Map<string, CameraConfig>,
+    cameraIDs: Set<string>,
     query: PartialRecordingQuery,
-  ): RecordingQuery | null;
+  ): RecordingQuery[] | null;
 
   generateDefaultRecordingSegmentsQuery(
-    cameraID: string,
-    cameraConfig: CameraConfig,
+    cameras: Map<string, CameraConfig>,
+    cameraIDs: Set<string>,
     query: PartialRecordingSegmentsQuery,
-  ): RecordingSegmentsQuery | null;
+  ): RecordingSegmentsQuery[] | null;
 
   getEvents(
     hass: HomeAssistant,
     cameras: Map<string, CameraConfig>,
     query: EventQuery,
-  ): Promise<QueryReturnType<EventQuery> | null>;
+  ): Promise<EventQueryResultsMap | null>;
 
   getRecordings(
     hass: HomeAssistant,
     cameras: Map<string, CameraConfig>,
     query: RecordingQuery,
-  ): Promise<QueryReturnType<RecordingQuery> | null>;
+  ): Promise<RecordingQueryResultsMap | null>;
 
   getRecordingSegments(
     hass: HomeAssistant,
     cameras: Map<string, CameraConfig>,
     query: RecordingSegmentsQuery,
-  ): Promise<QueryReturnType<RecordingSegmentsQuery> | null>;
+  ): Promise<RecordingSegmentsQueryResultsMap | null>;
 
   generateMediaFromEvents(
-    cameraConfig: CameraConfig,
+    cameras: Map<string, CameraConfig>,
     query: EventQuery,
     results: QueryReturnType<EventQuery>,
   ): ViewMedia[] | null;
 
   generateMediaFromRecordings(
-    cameraConfig: CameraConfig,
+    cameras: Map<string, CameraConfig>,
     query: RecordingQuery,
     results: QueryReturnType<RecordingQuery>,
   ): ViewMedia[] | null;
@@ -73,10 +75,9 @@ export interface CameraManagerEngine {
     favorite: boolean,
   ): Promise<void>;
 
-  areMediaQueriesResultsFresh(
-    queries: MediaQueries,
-    results: MediaQueriesResults,
-  ): boolean;
+  getQueryResultMaxAge(
+    query: DataQuery
+  ): number | null;
 
   getMediaSeekTime(
     hass: HomeAssistant,

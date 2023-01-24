@@ -429,7 +429,7 @@ export class FrigateCardTimelineCore extends LitElement {
         }) // Whether or not to set the timeline window.
         .mergeInContext({
           ...(canSeek && { mediaViewer: { seek: targetTime } }),
-          ...this._setWindowInContext(properties)
+          ...this._setWindowInContext(properties),
         })
         .dispatchChangeEvent(this);
     }
@@ -616,9 +616,12 @@ export class FrigateCardTimelineCore extends LitElement {
       options?.window ?? this._timeline.getWindow(),
     );
 
-    return new EventMediaQueries(
-      this._timelineSource.getTimelineEventQueries(cacheFriendlyWindow),
-    );
+    const eventQueries =
+      this._timelineSource.getTimelineEventQueries(cacheFriendlyWindow);
+    if (!eventQueries) {
+      return null;
+    }
+    return new EventMediaQueries(eventQueries);
   }
 
   protected async _createViewWithEventMediaQuery(
