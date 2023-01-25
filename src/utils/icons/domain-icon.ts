@@ -101,8 +101,42 @@ export function domainIcon(domain: string, entity?: HassEntity, state?: string):
           return 'mdi:lock';
       }
 
+    // Taken from https://github.com/home-assistant/frontend/blob/45646eaf0bfc86aa0d0d6b73809ef0b32abb5729/src/common/entity/domain_icon.ts#L138-L172
     case 'media_player':
-      return state === 'playing' ? 'mdi:cast-connected' : 'mdi:cast';
+      switch (entity?.attributes.device_class) {
+        case 'speaker':
+          switch (state) {
+            case 'playing':
+              return 'mdi:speaker-play';
+            case 'paused':
+              return 'mdi:speaker-pause';
+            case 'off':
+              return 'mdi:speaker-off';
+            default:
+              return 'mdi:speaker';
+          }
+        case 'tv':
+          switch (state) {
+            case 'playing':
+              return 'mdi:television-play';
+            case 'paused':
+              return 'mdi:television-pause';
+            case 'off':
+              return 'mdi:television-off';
+            default:
+              return 'mdi:television';
+          }
+        default:
+          switch (state) {
+            case 'playing':
+            case 'paused':
+              return 'mdi:cast-connected';
+            case 'off':
+              return 'mdi:cast-off';
+            default:
+              return 'mdi:cast';
+          }
+      }
 
     case 'switch':
       switch (entity?.attributes.device_class) {
