@@ -1,6 +1,5 @@
 import format from 'date-fns/format';
-import fromUnixTime from 'date-fns/fromUnixTime';
-import { CSSResult, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import { CSSResult, html, LitElement, PropertyValues, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { localize } from '../localize/localize.js';
@@ -12,9 +11,9 @@ import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { errorToConsole, getDurationString, prettifyTitle } from '../utils/basic.js';
 import { getCameraTitle } from '../utils/camera.js';
 import { renderTask } from '../utils/task.js';
-import { createFetchThumbnailTask } from '../utils/thumbnail.js';
+import { createFetchThumbnailTask, FetchThumbnailTaskArgs } from '../utils/thumbnail.js';
 import { View } from '../view/view.js';
-import { TaskStatus } from '@lit-labs/task';
+import { Task, TaskStatus } from '@lit-labs/task';
 
 import type { CameraConfig, ExtendedHomeAssistant } from '../types.js';
 import { EventViewMedia, RecordingViewMedia, ViewMedia } from '../view/media.js';
@@ -32,12 +31,7 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
-  protected _embedThumbnailTask = createFetchThumbnailTask(
-    this,
-    () => this.hass,
-    () => this.thumbnail,
-    false,
-  );
+  protected _embedThumbnailTask?: Task<FetchThumbnailTaskArgs, string | null>;
 
   // Only load thumbnails on view in case there is a very large number of them.
   protected _intersectionObserver: IntersectionObserver;
@@ -65,20 +59,38 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
     this._intersectionObserver.disconnect();
   }
 
+  protected willUpdate(changedProps: PropertyValues): void {
+    if (changedProps.has('thumbnail')) {
+      this._embedThumbnailTask = createFetchThumbnailTask(
+        this,
+        () => this.hass,
+        () => this.thumbnail,
+        false,
+      );
+      // Reset the observer so the initial intersection handler call will set
+      // the visibility correctly.
+      this._intersectionObserver.unobserve(this);
+      this._intersectionObserver.observe(this);
+    }
+  }
+
   /**
    * Called when the live view intersects with the viewport.
    * @param entries The IntersectionObserverEntry entries (should be only 1).
    */
   protected _intersectionHandler(entries: IntersectionObserverEntry[]): void {
     if (
-      this._embedThumbnailTask.status === TaskStatus.INITIAL &&
+      this._embedThumbnailTask?.status === TaskStatus.INITIAL &&
       entries.some((entry) => entry.isIntersecting)
     ) {
-      this._embedThumbnailTask.run();
+      this._embedThumbnailTask?.run();
     }
   }
 
   protected render(): TemplateResult | void {
+    if (!this._embedThumbnailTask) {
+      return;
+    }
     const imageOff = html`<ha-icon
       icon="mdi:image-off"
       title=${localize('thumbnail.no_thumbnail')}

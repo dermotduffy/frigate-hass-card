@@ -103,6 +103,7 @@ export interface NativeFrigateEventQuery {
   limit?: number;
   has_clip?: boolean;
   has_snapshot?: boolean;
+  favorites?: boolean;
 }
 
 /**

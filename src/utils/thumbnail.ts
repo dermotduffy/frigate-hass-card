@@ -42,7 +42,7 @@ export const fetchThumbnail = async (
   });
 };
 
-type FetchThumbnailTaskArgs = [boolean, string | undefined];
+export type FetchThumbnailTaskArgs = [boolean, string | undefined];
 
 /**
  * Create a Lit task to fetch a thumbnail.

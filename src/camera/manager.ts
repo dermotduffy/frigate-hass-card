@@ -87,31 +87,31 @@ export class CameraManager {
 
   public generateDefaultEventQueries(
     cameraIDs: string | Set<string>,
-    partialQuery: PartialEventQuery,
+    partialQuery?: PartialEventQuery,
   ): EventQuery[] | null {
     return this._generateDefaultQueries(cameraIDs, {
-      ...partialQuery,
       type: QueryType.Event,
+      ...partialQuery,
     });
   }
 
   public generateDefaultRecordingQueries(
     cameraIDs: string | Set<string>,
-    partialQuery: PartialRecordingQuery,
+    partialQuery?: PartialRecordingQuery,
   ): RecordingQuery[] | null {
     return this._generateDefaultQueries(cameraIDs, {
-      ...partialQuery,
       type: QueryType.Recording,
+      ...partialQuery,
     });
   }
 
   public generateDefaultRecordingSegmentsQueries(
     cameraIDs: string | Set<string>,
-    partialQuery: PartialRecordingSegmentsQuery,
+    partialQuery?: PartialRecordingSegmentsQuery,
   ): RecordingSegmentsQuery[] | null {
     return this._generateDefaultQueries(cameraIDs, {
-      ...partialQuery,
       type: QueryType.RecordingSegments,
+      ...partialQuery,
     });
   }
 

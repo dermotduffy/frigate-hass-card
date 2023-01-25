@@ -268,13 +268,14 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       const nativeQuery: NativeFrigateEventQuery = {
         instance_id: instanceID,
         cameras: Array.from(this._getFrigateCameraNamesForCameraIDs(cameras, cameraIDs)),
-        ...(query.what && { label: Array.from(query.what) }),
-        ...(query.where && { zone: Array.from(query.where) }),
+        ...(query.what && { labels: Array.from(query.what) }),
+        ...(query.where && { zones: Array.from(query.where) }),
         ...(query.end && { before: Math.floor(query.end.getTime() / 1000) }),
         ...(query.start && { after: Math.floor(query.start.getTime() / 1000) }),
         ...(query.limit && { limit: query.limit }),
         ...(query.hasClip && { has_clip: query.hasClip }),
         ...(query.hasSnapshot && { has_snapshot: query.hasSnapshot }),
+        ...(query.favorite && { favorites: query.favorite }),
         limit: query?.limit ?? CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
       };
 

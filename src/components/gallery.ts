@@ -115,6 +115,8 @@ export class FrigateCardGallery extends LitElement {
           .hass=${this.hass}
           .cameras=${this.cameras}
           .cameraManager=${this.cameraManager}
+          .view=${this.view}
+          .mediaLimit=${GALLERY_MEDIA_CHUNK_SIZE}
           slot="right"
         >
         </frigate-card-media-filter>

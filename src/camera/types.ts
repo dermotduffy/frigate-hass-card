@@ -86,6 +86,8 @@ export interface EventQuery extends MediaQuery {
 
   // Frigate equivalent: zone
   where?: Set<string>;
+
+  favorite?: boolean;
 }
 export type PartialEventQuery = Partial<EventQuery>;
 

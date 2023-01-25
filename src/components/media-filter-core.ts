@@ -1,4 +1,11 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  CSSResultGroup,
+  html,
+  LitElement,
+  PropertyValues,
+  TemplateResult,
+  unsafeCSS,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { DateRange } from '../camera/range';
@@ -13,9 +20,9 @@ export interface ValueLabel<T> {
 }
 
 export interface MediaFilterCoreSelection {
-  camera?: string[];
-  what?: string[];
-  where?: string[];
+  cameraIDs?: Set<string>;
+  what?: Set<string>;
+  where?: Set<string>;
   when?: MediaFilterCoreWhenSelection;
   favorite?: MediaFilterCoreFavoriteSelection;
 }
@@ -25,13 +32,11 @@ type FilterElement<T> = HTMLElement & {
 };
 
 export enum MediaFilterCoreFavoriteSelection {
-  All = 'all',
   Favorite = 'favorite',
   NotFavorite = 'not-favorite',
 }
 
 export enum MediaFilterCoreWhen {
-  All = 'all',
   Today = 'today',
   Yesterday = 'yesterday',
   PastWeek = 'past-week',
@@ -50,10 +55,10 @@ export class FrigateCardMediaFilterCore extends LitElement {
   public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  public whenOptions?: ValueLabel<MediaFilterCoreWhenSelection>[];
+  public cameraOptions?: ValueLabel<string>[];
 
   @property({ attribute: false })
-  public cameraOptions?: ValueLabel<string>[];
+  public whenOptions?: ValueLabel<MediaFilterCoreWhenSelection>[];
 
   @property({ attribute: false })
   public whatOptions?: ValueLabel<string>[];
@@ -61,54 +66,27 @@ export class FrigateCardMediaFilterCore extends LitElement {
   @property({ attribute: false })
   public whereOptions?: ValueLabel<string>[];
 
-  protected _refWhen: Ref<FilterElement<MediaFilterCoreWhenSelection>> = createRef();
+  @property({ attribute: false })
+  public defaults?: MediaFilterCoreSelection;
+
+  protected _cameraOptions?: ValueLabel<string>[];
+  protected _whenOptions?: ValueLabel<MediaFilterCoreWhenSelection>[];
+  protected _whatOptions?: ValueLabel<string>[];
+  protected _whereOptions?: ValueLabel<string>[];
+  protected _favoriteOptions: ValueLabel<MediaFilterCoreFavoriteSelection>[];
+
   protected _refCamera: Ref<FilterElement<string>> = createRef();
+  protected _refWhen: Ref<FilterElement<MediaFilterCoreWhenSelection>> = createRef();
   protected _refWhat: Ref<FilterElement<string>> = createRef();
   protected _refWhere: Ref<FilterElement<string>> = createRef();
   protected _refFavorite: Ref<FilterElement<MediaFilterCoreFavoriteSelection>> =
     createRef();
 
-  protected _valueChangedHandler(ev: CustomEvent<{ value: unknown }>): void {
-    // Handler is called on initial load -- skip it.
-    if (!ev.detail.value) {
-      return;
-    }
-    const values: MediaFilterCoreSelection = {
-      ...(this._refWhen.value && {
-        when: this._refWhen.value.selectedItem?.value as MediaFilterCoreWhenSelection,
-      }),
-      ...(this._refCamera.value && {
-        camera: this._refCamera.value.selectedItem?.value
-          ? [this._refCamera.value.selectedItem?.value]
-          : undefined,
-      }),
-      ...(this._refWhat.value && {
-        what: this._refWhat.value.selectedItem?.value
-          ? [this._refWhat.value.selectedItem?.value]
-          : undefined,
-      }),
-      ...(this._refWhere.value && {
-        where: this._refWhere.value.selectedItem?.value
-          ? [this._refWhere.value.selectedItem?.value]
-          : undefined,
-      }),
-      ...(this._refFavorite.value && {
-        favorite: this._refFavorite.value.selectedItem?.value as
-          | MediaFilterCoreFavoriteSelection
-          | undefined,
-      }),
-    };
-    dispatchFrigateCardEvent(this, 'media-filter-core:change', values);
-  }
-
-  /**
-   * Master render method.
-   * @returns A rendered template.
-   */
-  protected render(): TemplateResult | void {
-    const favoriteOptions: ValueLabel<MediaFilterCoreFavoriteSelection>[] = [
+  constructor() {
+    super();
+    this._favoriteOptions = [
       {
-        value: MediaFilterCoreFavoriteSelection.All,
+        value: undefined,
         label: localize('media_filter.all'),
       },
       {
@@ -120,39 +98,100 @@ export class FrigateCardMediaFilterCore extends LitElement {
         label: localize('media_filter.not_favorite'),
       },
     ];
+  }
 
-    // Time based options are not pre-computed here to ensure relative dates
-    // (e.g. 'today') are always calculated when activated not when rendered.
-    const whenOptions = [
-      {
-        value: { selection: MediaFilterCoreWhen.All },
-        label: localize('media_filter.all'),
-      },
-      {
-        value: { selection: MediaFilterCoreWhen.Today },
-        label: localize('media_filter.today'),
-      },
-      {
-        value: { selection: MediaFilterCoreWhen.Yesterday },
-        label: localize('media_filter.yesterday'),
-      },
-      {
-        value: { selection: MediaFilterCoreWhen.PastWeek },
-        label: localize('media_filter.past_week'),
-      },
-      {
-        value: { selection: MediaFilterCoreWhen.PastMonth },
-        label: localize('media_filter.past_month'),
-      },
-      ...(this.whenOptions ?? []),
-    ];
+  protected _valueChangedHandler(ev: CustomEvent<{ value: unknown }>): void {
+    // Handler is called on initial load -- skip it.
+    if (!ev.detail.value) {
+      return;
+    }
+    const values: MediaFilterCoreSelection = {
+      ...(this._refCamera.value &&
+        this._refCamera.value.selectedItem?.value && {
+          cameraIDs: new Set([this._refCamera.value.selectedItem.value]),
+        }),
+      ...(this._refWhen.value &&
+        this._refWhen.value.selectedItem?.value && {
+          when: this._refWhen.value.selectedItem?.value,
+        }),
+      ...(this._refWhat.value &&
+        this._refWhat.value.selectedItem?.value && {
+          what: new Set([this._refWhat.value.selectedItem.value]),
+        }),
+      ...(this._refWhere.value &&
+        this._refWhere.value.selectedItem?.value && {
+          where: new Set([this._refWhere.value.selectedItem?.value]),
+        }),
+      ...(this._refFavorite.value &&
+        this._refFavorite.value.selectedItem?.value !== undefined && {
+          favorite: this._refFavorite.value.selectedItem?.value,
+        }),
+    };
+    dispatchFrigateCardEvent(this, 'media-filter-core:change', values);
+  }
 
+  protected willUpdate(changedProps: PropertyValues): void {
+    if (changedProps.has('cameraOptions')) {
+      this._cameraOptions = [
+        {
+          value: undefined,
+          label: localize('media_filter.all'),
+        },
+        ...(this.cameraOptions ?? []),
+      ];
+    }
+    if (changedProps.has('whenOptions')) {
+      // Time based options are not pre-computed here to ensure relative dates
+      // (e.g. 'today') are always calculated when activated not when rendered.
+      this._whenOptions = [
+        {
+          value: undefined,
+          label: localize('media_filter.all'),
+        },
+        {
+          value: { selection: MediaFilterCoreWhen.Today },
+          label: localize('media_filter.today'),
+        },
+        {
+          value: { selection: MediaFilterCoreWhen.Yesterday },
+          label: localize('media_filter.yesterday'),
+        },
+        {
+          value: { selection: MediaFilterCoreWhen.PastWeek },
+          label: localize('media_filter.past_week'),
+        },
+        {
+          value: { selection: MediaFilterCoreWhen.PastMonth },
+          label: localize('media_filter.past_month'),
+        },
+        ...(this.whenOptions ?? []),
+      ];
+    }
+    if (changedProps.has('whatOptions')) {
+      this._whatOptions = [
+        { value: undefined, label: localize('media_filter.all') },
+        ...(this.whatOptions ?? []),
+      ];
+    }
+    if (changedProps.has('whereOptions')) {
+      this._whereOptions = [
+        { value: undefined, label: localize('media_filter.all') },
+        ...(this.whereOptions ?? []),
+      ];
+    }
+  }
+
+  /**
+   * Master render method.
+   * @returns A rendered template.
+   */
+  protected render(): TemplateResult | void {
     return html`
       <ha-combo-box
         ${ref(this._refWhen)}
         .hass=${this.hass}
         .label=${localize('media_filter.when')}
-        .items=${whenOptions}
+        .items=${this._whenOptions}
         .allowCustomValue=${false}
         @value-changed=${this._valueChangedHandler.bind(this)}
       ></ha-combo-box>
@@ -161,7 +200,7 @@ export class FrigateCardMediaFilterCore extends LitElement {
             ${ref(this._refCamera)}
             .hass=${this.hass}
             .label=${localize('media_filter.camera')}
-            .items=${this.cameraOptions}
+            .items=${this._cameraOptions}
             .allowCustomValue=${false}
             @value-changed=${this._valueChangedHandler.bind(this)}
           ></ha-combo-box>`
@@ -171,7 +210,7 @@ export class FrigateCardMediaFilterCore extends LitElement {
             ${ref(this._refWhat)}
             .hass=${this.hass}
             .label=${localize('media_filter.what')}
-            .items=${this.whatOptions}
+            .items="${this._whatOptions}"
             .allowCustomValue=${false}
             @value-changed=${this._valueChangedHandler.bind(this)}
           ></ha-combo-box>`
@@ -181,7 +220,7 @@ export class FrigateCardMediaFilterCore extends LitElement {
             ${ref(this._refWhere)}
             .hass=${this.hass}
             .label=${localize('media_filter.where')}
-            .items=${this.whereOptions}
+            .items=${this._whereOptions}
             .allowCustomValue=${false}
             @value-changed=${this._valueChangedHandler.bind(this)}
           ></ha-combo-box>`
@@ -190,7 +229,7 @@ export class FrigateCardMediaFilterCore extends LitElement {
         ${ref(this._refFavorite)}
         .hass=${this.hass}
         .label=${localize('media_filter.favorite')}
-        .items=${favoriteOptions}
+        .items=${this._favoriteOptions}
         .allowCustomValue=${false}
         @value-changed=${this._valueChangedHandler.bind(this)}
       ></ha-combo-box>
