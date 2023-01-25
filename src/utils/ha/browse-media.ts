@@ -9,6 +9,7 @@ import {
 import { localize } from '../../localize/localize.js';
 import {
   BrowseMediaQueryParameters,
+  BrowseRecordingQueryParameters,
   CameraConfig,
   ClipsOrSnapshots,
   FrigateBrowseMediaSource,
@@ -456,4 +457,24 @@ export const sortYoungestToOldest = (
     return -1;
   }
   return 0;
+};
+/**
+ * Generate a recording identifier.
+ * @param hass The HomeAssistant object.
+ * @param params The recording parameters to use in the identifer.
+ * @returns A recording identifier.
+ */
+export const generateRecordingIdentifier = (
+  params: BrowseRecordingQueryParameters,
+): string => {
+  return [
+    'media-source://frigate',
+    params.clientId,
+    'recordings',
+    params.cameraName,
+    `${params.year}-${String(params.month).padStart(2, '0')}-${String(
+      params.day,
+    ).padStart(2, '0')}`,
+    String(params.hour).padStart(2, '0'),
+  ].join('/');
 };
