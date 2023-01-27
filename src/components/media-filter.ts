@@ -11,6 +11,8 @@ import {
   html,
   LitElement,
   PropertyValues,
+  ReactiveController,
+  ReactiveControllerHost,
   TemplateResult,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
@@ -31,6 +33,11 @@ import './timeline-core.js';
 import { EventQuery, QueryType } from '../camera/types';
 import { EventMediaQueries } from '../view/media-queries';
 import { createViewForEvents } from '../utils/media-to-view.js';
+import { HomeAssistant } from 'custom-card-helpers';
+import { prettifyTitle } from '../utils/basic';
+import format from 'date-fns/format';
+import parse from 'date-fns/parse';
+import endOfMonth from 'date-fns/endOfMonth';
 
 @customElement('frigate-card-media-filter')
 export class FrigateCardMediaFilter extends LitElement {
@@ -50,6 +57,7 @@ export class FrigateCardMediaFilter extends LitElement {
   public mediaLimit?: number;
 
   protected _cameraOptions: ValueLabel<string>[] = [];
+  protected _mediaMetadataController?: MediaMetadataController;
 
   protected _convertWhenToDateRange(
     value?: MediaFilterCoreWhenSelection,
@@ -127,35 +135,23 @@ export class FrigateCardMediaFilter extends LitElement {
         }),
       );
     }
+
+    if (changedProps.has('cameraManager') && this.hass && this.cameraManager) {
+      this._mediaMetadataController = new MediaMetadataController(
+        this,
+        this.hass,
+        this.cameraManager,
+      );
+    }
   }
 
   protected render(): TemplateResult | void {
-    // TODO Replace with real custom when options
-    // TODO Replace with real custom what options
-    // TODO Replace with real custom where options
-    const whereOptions = [{ value: 'steps', label: 'Front Steps' }];
-
-    const whatOptions = [
-      { value: 'car', label: 'Car' },
-      { value: 'person', label: 'Person' },
-    ];
-
-    const whenOptions = [
-      {
-        value: {
-          selection: MediaFilterCoreWhen.Custom,
-          custom: { start: startOfToday(), end: endOfToday() },
-        },
-        label: 'December 2021',
-      },
-    ];
-
     return html` <frigate-card-media-filter-core
       .hass=${this.hass}
-      .whenOptions=${whenOptions}
+      .whenOptions=${this._mediaMetadataController?.whenOptions}
       .cameraOptions=${this._cameraOptions}
-      .whatOptions=${whatOptions}
-      .whereOptions=${whereOptions}
+      .whatOptions=${this._mediaMetadataController?.whatOptions}
+      .whereOptions=${this._mediaMetadataController?.whereOptions}
       @frigate-card:media-filter-core:change=${this._mediaFilterHandler.bind(this)}
     >
     </frigate-card-media-filter-core>`;
@@ -167,6 +163,65 @@ export class FrigateCardMediaFilter extends LitElement {
         display: block;
       }
     `;
+  }
+}
+
+export class MediaMetadataController implements ReactiveController {
+  protected _host: ReactiveControllerHost;
+  protected _hass: HomeAssistant;
+  protected _cameraManager: CameraManager;
+
+  public whenOptions: ValueLabel<MediaFilterCoreWhenSelection>[] = [];
+  public whatOptions: ValueLabel<string>[] = [];
+  public whereOptions: ValueLabel<string>[] = [];
+
+  constructor(
+    host: ReactiveControllerHost,
+    hass: HomeAssistant,
+    cameraManager: CameraManager,
+  ) {
+    this._host = host;
+    this._hass = hass;
+    this._cameraManager = cameraManager;
+    host.addController(this);
+  }
+
+  async hostConnected() {
+    const metadata = await this._cameraManager.getMediaMetadata(this._hass);
+    if (metadata) {
+      if (metadata.what) {
+        this.whatOptions = [...metadata.what]
+          .sort()
+          .map((what) => ({ value: what, label: prettifyTitle(what) }));
+      }
+      if (metadata.where) {
+        this.whereOptions = [...metadata.where]
+          .sort()
+          .map((where) => ({ value: where, label: prettifyTitle(where) }));
+      }
+      if (metadata.days) {
+        const yearMonths: Set<string> = new Set();
+        [...metadata.days].forEach((day) => {
+          // An efficient conversion: 2023-01-26 -> 2023-01
+          yearMonths.add(day.substring(0, 7));
+        });
+        const monthStarts: Date[] = [];
+        yearMonths.forEach((yearMonth) => {
+          monthStarts.push(parse(yearMonth, 'yyyy-MM', new Date()));
+        });
+        this.whenOptions = monthStarts
+          .sort()
+          .reverse()
+          .map((monthStart) => ({
+            label: format(monthStart, 'MMMM yyyy'),
+            value: {
+              selection: MediaFilterCoreWhen.Custom,
+              custom: { start: monthStart, end: endOfMonth(monthStart) },
+            },
+          }));
+      }
+      this._host.requestUpdate();
+    }
   }
 }
 

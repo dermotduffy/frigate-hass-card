@@ -1,4 +1,9 @@
 import { z } from 'zod';
+import { dayToDate } from '../../utils/basic';
+
+const dayStringToDate = (arg: unknown): Date | unknown => {
+  return typeof arg === 'string' ? dayToDate(arg) : arg;
+};
 
 export const eventSchema = z.object({
   camera: z.string(),
@@ -25,11 +30,7 @@ const recordingSummaryHourSchema = z.object({
 
 export const recordingSummarySchema = z
   .object({
-    day: z.preprocess((arg) => {
-      // Must provide the hour:minute:second on parsing or Javascript will
-      // assume *UTC* midnight.
-      return typeof arg === 'string' ? new Date(`${arg}T00:00:00`) : arg;
-    }, z.date()),
+    day: z.preprocess(dayStringToDate, z.date()),
     events: z.number(),
     hours: recordingSummaryHourSchema.array(),
   })
@@ -55,3 +56,13 @@ export interface FrigateRecording {
   endTime: Date;
   events: number;
 }
+
+export const eventSummarySchema = z
+  .object({
+    camera: z.string(),
+    day: z.string(),
+    label: z.string(),
+    zones: z.string().array(),
+  })
+  .array();
+export type EventSummary = z.infer<typeof eventSummarySchema>;

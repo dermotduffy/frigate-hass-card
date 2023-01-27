@@ -5,6 +5,7 @@ import {
   DataQuery,
   EventQuery,
   EventQueryResultsMap,
+  MediaMetadata,
   PartialEventQuery,
   PartialRecordingQuery,
   PartialRecordingSegmentsQuery,
@@ -75,9 +76,7 @@ export interface CameraManagerEngine {
     favorite: boolean,
   ): Promise<void>;
 
-  getQueryResultMaxAge(
-    query: DataQuery
-  ): number | null;
+  getQueryResultMaxAge(query: DataQuery): number | null;
 
   getMediaSeekTime(
     hass: HomeAssistant,
@@ -85,4 +84,9 @@ export interface CameraManagerEngine {
     media: ViewMedia,
     target: Date,
   ): Promise<number | null>;
+
+  getMediaMetadata(
+    hass: HomeAssistant,
+    cameras: Map<string, CameraConfig>,
+  ): Promise<MediaMetadata | null>;
 }

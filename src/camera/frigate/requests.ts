@@ -1,22 +1,29 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { localize } from '../../localize/localize';
-import {
-  FrigateCardError,
-  RecordingSegment,
-} from '../../types';
+import { FrigateCardError, RecordingSegment } from '../../types';
 import { homeAssistantWSRequest } from '../../utils/ha';
-import { FrigateEvent, frigateEventsSchema, recordingSegmentsSchema, RecordingSummary, recordingSummarySchema, RetainResult, retainResultSchema } from './types';
+import {
+  EventSummary,
+  eventSummarySchema,
+  FrigateEvent,
+  frigateEventsSchema,
+  recordingSegmentsSchema,
+  RecordingSummary,
+  recordingSummarySchema,
+  RetainResult,
+  retainResultSchema,
+} from './types';
 
 /**
  * Get the recordings summary. May throw.
  * @param hass The Home Assistant object.
- * @param client_id The Frigate client_id.
+ * @param clientID The Frigate clientID.
  * @param camera_name The Frigate camera name.
  * @returns A RecordingSummary object.
  */
 export const getRecordingsSummary = async (
   hass: HomeAssistant,
-  client_id: string,
+  clientID: string,
   camera_name: string,
 ): Promise<RecordingSummary> => {
   return await homeAssistantWSRequest(
@@ -24,7 +31,7 @@ export const getRecordingsSummary = async (
     recordingSummarySchema,
     {
       type: 'frigate/recordings/summary',
-      instance_id: client_id,
+      instance_id: clientID,
       camera: camera_name,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     },
@@ -63,19 +70,19 @@ export const getRecordingSegments = async (
 /**
  * Request that Frigate retain an event. May throw.
  * @param hass The HomeAssistant object.
- * @param client_id The Frigate client_id.
+ * @param clientID The Frigate clientID.
  * @param eventID The event ID to retain.
  * @param retain `true` to retain or `false` to unretain.
  */
 export async function retainEvent(
   hass: HomeAssistant,
-  client_id: string,
+  clientID: string,
   eventID: string,
   retain: boolean,
 ): Promise<void> {
   const retainRequest = {
     type: 'frigate/event/retain',
-    instance_id: client_id,
+    instance_id: clientID,
     event_id: eventID,
     retain: retain,
   };
@@ -122,6 +129,22 @@ export const getEvents = async (
     {
       type: 'frigate/events/get',
       ...params,
+    },
+    true,
+  );
+};
+
+export const getEventSummary = async (
+  hass: HomeAssistant,
+  clientID: string,
+): Promise<EventSummary> => {
+  return await homeAssistantWSRequest(
+    hass,
+    eventSummarySchema,
+    {
+      type: 'frigate/events/summary',
+      instance_id: clientID,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     },
     true,
   );

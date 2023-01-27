@@ -1,11 +1,12 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { CameraConfig } from '../types.js';
-import { arrayify, setify } from '../utils/basic.js';
+import { allPromises, arrayify, setify } from '../utils/basic.js';
 import {
   DataQuery,
   EventQuery,
   EventQueryResults,
   EventQueryResultsMap,
+  MediaMetadata,
   MediaQuery,
   PartialDataQuery,
   PartialEventQuery,
@@ -113,6 +114,45 @@ export class CameraManager {
       type: QueryType.RecordingSegments,
       ...partialQuery,
     });
+  }
+
+  public async getMediaMetadata(
+    hass: HomeAssistant,
+  ): Promise<MediaMetadata | null> {
+    const what: Set<string> = new Set();
+    const where: Set<string> = new Set();
+    const days: Set<string> = new Set();
+
+    const engines = this._engineFactory.getAllEngines(this._cameras);
+    if (!engines) {
+      return null;
+    }
+
+    const processMetadata = async (engine: CameraManagerEngine): Promise<void> => {
+      const engineMetadata = await engine.getMediaMetadata(hass, this._cameras);
+      if (engineMetadata) {
+        if (engineMetadata.what) {
+          engineMetadata.what.forEach(what.add, what);
+        }
+        if (engineMetadata.where) {
+          engineMetadata.where.forEach(where.add, where);
+        }
+        if (engineMetadata.days) {
+          engineMetadata.days.forEach(days.add, days);
+        }
+      }
+    }
+
+    await allPromises(engines, (engine) => processMetadata(engine));
+
+    if (!what.size && !where.size && !days.size) {
+      return null;
+    }
+    return {
+      ...(what.size && { what: what }),
+      ...(where.size && { where: where }),
+      ...(days.size && { days: days }),
+    }
   }
 
   protected _generateDefaultQueries<PQT extends PartialDataQuery>(

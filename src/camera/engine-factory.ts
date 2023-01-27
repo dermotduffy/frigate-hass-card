@@ -62,6 +62,13 @@ export class CameraManagerEngineFactory {
       }
       output.get(engine)?.add(cameraID);
     }
-    return output;
+    return output.size ? output : null;
+  }
+
+  public getAllEngines(
+    cameras: Map<string, CameraConfig>,
+  ): CameraManagerEngine[] | null {
+    const engines = this.getEnginesForCameraIDs(cameras, new Set(cameras.keys()));
+    return engines ? [...engines.keys()] : null;
   }
 }

@@ -32,6 +32,7 @@ export function dispatchFrigateCardEvent<T>(
  * @param input The input Frigate (camera/label/zone) name.
  * @returns A prettified name.
  */
+export function prettifyTitle(input: string): string;
 export function prettifyTitle(input?: string): string | undefined {
   if (!input) {
     return undefined;
@@ -158,8 +159,24 @@ export function getDurationString(start: Date, end: Date): string {
 
 /**
  * For debug purposes only.
- * @param seconds 
+ * @param seconds
  */
 export const sleep = async (seconds: number) => {
-  await new Promise(r => setTimeout(r, seconds * 1000));
+  await new Promise((r) => setTimeout(r, seconds * 1000));
+};
+
+export const allPromises = async <T>(
+  items: T[],
+  func: (arg: T) => void,
+): Promise<void> => {
+  await Promise.all(Array.from(items).map((item) => func(item)));
+};
+
+/**
+ * Simple efficient YYYY-MM-DD -> date converter.
+ */
+export const dayToDate = (day: string): Date => {
+  // Must provide the hour:minute:second on parsing or Javascript will assume
+  // *UTC* midnight.
+  return new Date(`${day}T00:00:00`);
 }

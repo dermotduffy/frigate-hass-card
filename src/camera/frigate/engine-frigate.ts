@@ -20,6 +20,7 @@ import {
   FrigateEventQueryResults,
   FrigateRecordingQueryResults,
   FrigateRecordingSegmentsQueryResults,
+  MediaMetadata,
   PartialEventQuery,
   PartialRecordingQuery,
   PartialRecordingSegmentsQuery,
@@ -36,6 +37,7 @@ import {
 import { FrigateRecording } from './types';
 import {
   getEvents,
+  getEventSummary,
   getRecordingSegments,
   getRecordingsSummary,
   NativeFrigateEventQuery,
@@ -44,7 +46,7 @@ import {
 } from './requests';
 import orderBy from 'lodash-es/orderBy';
 import throttle from 'lodash-es/throttle';
-import { runWhenIdleIfSupported } from '../../utils/basic';
+import { allPromises, runWhenIdleIfSupported } from '../../utils/basic';
 import { fromUnixTime } from 'date-fns';
 import { sum } from 'lodash-es';
 import { FrigateViewMediaClassifier } from './media-classifier';
@@ -214,10 +216,10 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
 
   protected _buildInstanceToCameraIDMapFromQuery(
     cameras: Map<string, CameraConfig>,
-    query: DataQuery,
+    cameraIDs: Set<string>,
   ): Map<string, Set<string>> {
     const output: Map<string, Set<string>> = new Map();
-    for (const cameraID of query.cameraIDs) {
+    for (const cameraID of cameraIDs) {
       const cameraConfig = this._getQueryableCameraConfig(cameras, cameraID);
       const clientID = cameraConfig?.frigate.client_id;
       if (clientID) {
@@ -295,7 +297,10 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     // Frigate allows multiple cameras to be searched for events in a single
     // query. Break them down into groups of cameras per Frigate instance, then
     // query once per instance for all cameras in that instance.
-    const instances = this._buildInstanceToCameraIDMapFromQuery(cameras, query);
+    const instances = this._buildInstanceToCameraIDMapFromQuery(
+      cameras,
+      query.cameraIDs,
+    );
 
     await Promise.all(
       Array.from(instances.keys()).map((instanceID) =>
@@ -609,6 +614,56 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       return null;
     }
     return cameraConfig;
+  }
+
+  public async getMediaMetadata(
+    hass: HomeAssistant,
+    cameras: Map<string, CameraConfig>,
+  ): Promise<MediaMetadata | null> {
+    const what: Set<string> = new Set();
+    const where: Set<string> = new Set();
+    const days: Set<string> = new Set();
+
+    const instances = this._buildInstanceToCameraIDMapFromQuery(
+      cameras,
+      new Set(cameras.keys()),
+    );
+
+    const processQuery = async (
+      instanceID: string,
+      cameraIDs: Set<string>,
+    ): Promise<void> => {
+      const cameraNames = this._getFrigateCameraNamesForCameraIDs(cameras, cameraIDs);
+      for (const entry of await getEventSummary(hass, instanceID)) {
+        if (!cameraNames.has(entry.camera)) {
+          // If this entry applies to a camera that *is* in this Frigate
+          // instance, but is *not* a configured camera in the card, skip it.
+          continue;
+        }
+        if (entry.label) {
+          what.add(entry.label);
+        }
+        if (entry.zones.length) {
+          entry.zones.forEach(where.add, where);
+        }
+        if (entry.day) {
+          days.add(entry.day);
+        }
+      }
+    };
+
+    await allPromises([...instances.entries()], ([instanceID, cameraIDs]) =>
+      processQuery(instanceID, cameraIDs),
+    );
+
+    if (!what.size && !where.size && !days.size) {
+      return null;
+    }
+    return {
+      ...(what.size && { what: what }),
+      ...(where.size && { where: where }),
+      ...(days.size && { days: days }),
+    };
   }
 
   /**

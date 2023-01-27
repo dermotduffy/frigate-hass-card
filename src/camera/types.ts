@@ -68,6 +68,12 @@ export type EventQueryResultsMap = ResultsMap<EventQuery>;
 export type RecordingQueryResultsMap = ResultsMap<RecordingQuery>;
 export type RecordingSegmentsQueryResultsMap = ResultsMap<RecordingSegmentsQuery>;
 
+export interface MediaMetadata {
+  where?: Set<string>;
+  what?: Set<string>;
+  days?: Set<string>;
+}
+
 // ===========
 // Event Query
 // ===========
