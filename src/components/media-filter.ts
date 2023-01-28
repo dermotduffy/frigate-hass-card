@@ -6,7 +6,6 @@ import startOfToday from 'date-fns/esm/startOfToday';
 import startOfDay from 'date-fns/startOfDay';
 import startOfYesterday from 'date-fns/startOfYesterday';
 import {
-  css,
   CSSResultGroup,
   html,
   LitElement,
@@ -14,6 +13,7 @@ import {
   ReactiveController,
   ReactiveControllerHost,
   TemplateResult,
+  unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { CameraManager } from '../camera/manager';
@@ -38,6 +38,7 @@ import { prettifyTitle } from '../utils/basic';
 import format from 'date-fns/format';
 import parse from 'date-fns/parse';
 import endOfMonth from 'date-fns/endOfMonth';
+import mediaFilterStyle from '../scss/media-filter.scss';
 
 @customElement('frigate-card-media-filter')
 export class FrigateCardMediaFilter extends LitElement {
@@ -158,11 +159,7 @@ export class FrigateCardMediaFilter extends LitElement {
   }
 
   static get styles(): CSSResultGroup {
-    return css`
-      :host {
-        display: block;
-      }
-    `;
+    return unsafeCSS(mediaFilterStyle);
   }
 }
 

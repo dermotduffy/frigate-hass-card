@@ -368,14 +368,22 @@
     "all": "All",
     "camera": "Camera",
     "favorite": "Favorite",
+    "media_type": "Media Type",
+    "media_types": {
+      "clips": "Clips",
+      "snapshots": "Snapshots",
+      "recordings": "Recordings"
+    },
     "not_favorite": "Not Favorite",
-    "past_month": "Past Month",
-    "past_week": "Past Week",
-    "today": "Today",
     "what": "What",
     "when": "When",
-    "where": "Where",
-    "yesterday": "Yesterday"
+    "whens": {
+      "past_month": "Past Month",
+      "past_week": "Past Week",
+      "today": "Today",  
+      "yesterday": "Yesterday"      
+    },
+    "where": "Where"
   },
   "recording": {
     "events": "Events",

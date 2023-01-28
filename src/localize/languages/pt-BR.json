@@ -339,14 +339,22 @@
     "all": "",
     "camera": "",
     "favorite": "",
+    "media_type": "",
+    "media_types": {
+      "clips": "",
+      "snapshots": "",
+      "recordings": ""
+    },
     "not_favorite": "",
-    "past_month": "",
-    "past_week": "",
-    "today": "",
     "what": "",
     "when": "",
-    "where": "",
-    "yesterday": ""
+    "whens": {
+      "past_month": "",
+      "past_week": "",
+      "today": "",
+      "yesterday": ""
+    },
+    "where": ""
   },
   "recording": {
     "events": "Eventos",
