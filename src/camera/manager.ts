@@ -268,25 +268,22 @@ export class CameraManager {
     const newChunkQueries: T[] = [];
 
     // The re-constituted combined query.
-    const newCombinedQueries: T[] = [];
+    const extendedQueries: T[] = [];
 
     for (const query of queries) {
       const newChunkQuery = { ...query };
-      const newCombinedQuery = { ...query };
 
       if (direction === 'later') {
         newChunkQuery.start = getTimeFromResults('latest') ?? undefined;
-        newChunkQuery.end = undefined;
-        newCombinedQuery.end = undefined;
       } else if (direction === 'earlier') {
         newChunkQuery.end = getTimeFromResults('earliest') ?? undefined;
-        newChunkQuery.start = undefined;
-        newCombinedQuery.start = undefined;
       }
       newChunkQuery.limit = chunkSize;
-      newCombinedQuery.limit = (query.limit ?? 0) + chunkSize;
 
-      newCombinedQueries.push(newCombinedQuery);
+      extendedQueries.push({
+        ...query,
+        limit: (query.limit ?? 0) + chunkSize,
+      });
       newChunkQueries.push(newChunkQuery);
     }
 
@@ -299,7 +296,7 @@ export class CameraManager {
     }
 
     return {
-      queries: newCombinedQueries,
+      queries: extendedQueries,
       results: this._sortMedia(results.concat(newChunkMedia)),
     };
   }
