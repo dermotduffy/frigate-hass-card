@@ -27,13 +27,13 @@ import { View } from '../view/view.js';
 import { renderProgressIndicator } from './message.js';
 import './thumbnail.js';
 import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { createRef, Ref } from 'lit/directives/ref.js';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
 import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
 import { EventQuery, MediaQuery, RecordingQuery } from '../camera/types';
 import { MediaQueriesResults } from '../view/media-queries-results';
 import { errorToConsole } from '../utils/basic';
-import "./media-filter";
+import './media-filter';
 
 const GALLERY_MEDIA_CHUNK_SIZE = 100;
 
@@ -105,10 +105,10 @@ export class FrigateCardGallery extends LitElement {
     return html`
       <frigate-card-surround-basic
         .drawerIcons=${{
-          'right': {
+          right: {
             closed: 'mdi:filter-cog-outline',
-            open: 'mdi:filter-cog'
-          }
+            open: 'mdi:filter-cog',
+          },
         }}
       >
         <frigate-card-media-filter
@@ -126,6 +126,7 @@ export class FrigateCardGallery extends LitElement {
           .galleryConfig=${this.galleryConfig}
           .cameras=${this.cameras}
           .cameraManager=${this.cameraManager}
+          .cardWideConfig=${this.cardWideConfig}
         >
         </frigate-card-gallery-core>
       </frigate-card-surround-basic>
@@ -162,6 +163,9 @@ export class FrigateCardGalleryCore extends LitElement {
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
+
+  @property({ attribute: false })
+  public cardWideConfig?: CardWideConfig;
 
   protected _intersectionObserver: IntersectionObserver;
   protected _resizeObserver: ResizeObserver;
@@ -345,9 +349,10 @@ export class FrigateCardGalleryCore extends LitElement {
           </frigate-card-thumbnail>`,
       )}
       ${this._showExtensionLoader
-        ? html` <ha-card ${ref(this._refLoader)}>
-            <span class="dotdotdot"></span>
-          </ha-card>`
+        ? html`${renderProgressIndicator({
+            cardWideConfig: this.cardWideConfig,
+            componentRef: this._refLoader,
+          })}`
         : ''}
     `;
   }

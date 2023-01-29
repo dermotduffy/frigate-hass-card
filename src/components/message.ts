@@ -1,6 +1,7 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { ref, Ref } from 'lit/directives/ref.js';
 import { TROUBLESHOOTING_URL } from '../const.js';
 import { localize } from '../localize/localize.js';
 import messageStyle from '../scss/message.scss';
@@ -118,9 +119,11 @@ export function renderMessage(message: Message): TemplateResult {
 export function renderProgressIndicator(options?: {
   message?: string;
   cardWideConfig?: CardWideConfig;
+  componentRef?: Ref<HTMLElement>,
 }): TemplateResult {
   return html`
     <frigate-card-progress-indicator
+      ${options?.componentRef ? ref(options.componentRef) : ''}
       .message=${options?.message || ''}
       .animated=${options?.cardWideConfig?.performance?.features
         .animated_progress_indicator ?? true}
