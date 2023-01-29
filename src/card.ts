@@ -94,7 +94,6 @@ import { ViewContext } from 'view';
 import { CameraManager } from './camera/manager.js';
 import { setLowPerformanceProfile, setPerformanceCSSStyles } from './performance.js';
 import { CameraManagerEngineFactory } from './camera/engine-factory.js';
-import { RequestCache } from './camera/cache.js';
 
 /** A note on media callbacks:
  *

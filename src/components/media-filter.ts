@@ -16,9 +16,7 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import {
-  CameraManager,
-} from '../camera/manager';
+import { CameraManager } from '../camera/manager';
 import { DateRange } from '../camera/range';
 import { CameraConfig, ExtendedHomeAssistant } from '../types';
 import { getCameraTitle } from '../utils/camera';
@@ -44,6 +42,8 @@ import parse from 'date-fns/parse';
 import endOfMonth from 'date-fns/endOfMonth';
 import mediaFilterStyle from '../scss/media-filter.scss';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
+import uniqWith from 'lodash-es/uniqWith';
+import isEqual from 'lodash-es/isEqual';
 
 @customElement('frigate-card-media-filter')
 export class FrigateCardMediaFilter extends LitElement {
@@ -114,21 +114,33 @@ export class FrigateCardMediaFilter extends LitElement {
 
     const convertedTime = this._convertWhenToDateRange(mediaFilter.when);
     const convertedFavorite = this._convertFavoriteToBoolean(mediaFilter.favorite);
+    const cameraIDs = mediaFilter.cameraIDs ?? new Set(this.cameras.keys());
 
+    // A note on views:
+    // - In the below, if the user selects a camera to view media for, the main
+    //   view camera is also set to that value (e.g. a user browsing the
+    //   gallery, chooses a different camera in the media filter, then
+    //   subsequently chooses the live button -- they would expect the live view
+    //   for that filtered camera not the prior camera).
+    // - Similarly, if the user chooses clips or snapshots, set the actual view
+    //   to 'clips' or 'snapshots' in order to ensure the right icon is shown as
+    //   selected in the menu.
     if (
       mediaFilter.mediaType === MediaFilterMediaType.Clips ||
       mediaFilter.mediaType === MediaFilterMediaType.Snapshots
     ) {
       const query: EventQuery = {
         type: QueryType.Event,
-        cameraIDs: mediaFilter.cameraIDs ?? new Set(this.cameras.keys()),
+        cameraIDs: cameraIDs,
         ...(mediaFilter.what && { what: mediaFilter.what }),
         ...(mediaFilter.where && { where: mediaFilter.where }),
         ...(convertedFavorite !== null && { favorite: convertedFavorite }),
         ...(convertedTime && { start: convertedTime.start, end: convertedTime.end }),
         ...(this.mediaLimit && { limit: this.mediaLimit }),
         ...(mediaFilter.mediaType === MediaFilterMediaType.Clips && { hasClip: true }),
-        ...(mediaFilter.mediaType === MediaFilterMediaType.Snapshots && { hasSnapshot: true })
+        ...(mediaFilter.mediaType === MediaFilterMediaType.Snapshots && {
+          hasSnapshot: true,
+        }),
       };
 
       (
@@ -140,13 +152,20 @@ export class FrigateCardMediaFilter extends LitElement {
           this.view,
           {
             query: new EventMediaQueries([query]),
+
+            // See 'A note on views' above for these two arguments.
+            ...(cameraIDs.size === 1 && { targetCameraID: [...cameraIDs][0] }),
+            targetView:
+              mediaFilter.mediaType === MediaFilterMediaType.Clips
+                ? 'clips'
+                : 'snapshots',
           },
         )
       )?.dispatchChangeEvent(this);
     } else if (mediaFilter.mediaType === MediaFilterMediaType.Recordings) {
       const query: RecordingQuery = {
         type: QueryType.Recording,
-        cameraIDs: mediaFilter.cameraIDs ?? new Set(this.cameras.keys()),
+        cameraIDs: cameraIDs,
         ...(convertedTime && { start: convertedTime.start, end: convertedTime.end }),
       };
 
@@ -159,6 +178,10 @@ export class FrigateCardMediaFilter extends LitElement {
           this.view,
           {
             query: new RecordingMediaQueries([query]),
+
+            // See 'A note on views' above for these two arguments.
+            ...(cameraIDs.size === 1 && { targetCameraID: [...cameraIDs][0] }),
+            targetView: 'recordings',
           },
         )
       )?.dispatchChangeEvent(this);
@@ -184,6 +207,82 @@ export class FrigateCardMediaFilter extends LitElement {
     }
   }
 
+  protected _getDefaultsFromView(): MediaFilterCoreSelection | undefined {
+    if (!this.view) {
+      return undefined;
+    }
+
+    let mediaType: MediaFilterMediaType | undefined;
+    let cameraIDs: Set<string> | undefined;
+    let what: Set<string> | undefined;
+    let where: Set<string> | undefined;
+    let favorite: boolean | undefined;
+
+    if (MediaQueriesClassifier.areEventQueries(this.view.query)) {
+      const queries = this.view.query.getQueries();
+      if (!queries) {
+        return;
+      }
+
+      const hasClips = uniqWith(
+        queries.map((query) => query.hasClip),
+        isEqual,
+      );
+      const hasSnapshots = uniqWith(
+        queries.map((query) => query.hasSnapshot),
+        isEqual,
+      );
+      if (hasClips.length === 1 && hasSnapshots.length === 1) {
+        mediaType = !!hasClips[0]
+          ? MediaFilterMediaType.Clips
+          : !!hasSnapshots[0]
+          ? MediaFilterMediaType.Snapshots
+          : undefined;
+      }
+
+      const cameraIDSets = uniqWith(
+        queries.map((query) => query.cameraIDs),
+        isEqual,
+      );
+      if (cameraIDSets.length === 1) {
+        cameraIDs = queries[0].cameraIDs;
+      }
+      const whatSets = uniqWith(
+        queries.map((query) => query.what),
+        isEqual,
+      );
+      if (whatSets.length === 1) {
+        what = queries[0].what;
+      }
+      const whereSets = uniqWith(
+        queries.map((query) => query.where),
+        isEqual,
+      );
+      if (whereSets.length === 1) {
+        where = queries[0].where;
+      }
+      const favoriteValues = uniqWith(
+        queries.map((query) => query.favorite),
+        isEqual,
+      );
+      if (favoriteValues.length === 1) {
+        favorite = queries[0].favorite;
+      }
+    }
+
+    return {
+      ...(mediaType && { mediaType: mediaType }),
+      ...(cameraIDs && { cameraIDs: cameraIDs }),
+      ...(what && { what: what }),
+      ...(where && { where: where }),
+      ...(favorite !== undefined && {
+        favorite: favorite
+          ? MediaFilterCoreFavoriteSelection.Favorite
+          : MediaFilterCoreFavoriteSelection.NotFavorite,
+      }),
+    };
+  }
+
   protected render(): TemplateResult | void {
     const areEvents = !!(
       this.view?.query && MediaQueriesClassifier.areEventQueries(this.view.query)
@@ -203,6 +302,7 @@ export class FrigateCardMediaFilter extends LitElement {
         ? !!managerCapabilities?.canFavoriteRecordings
         : false,
     };
+    const defaults = this._getDefaultsFromView();
 
     return html` <frigate-card-media-filter-core
       .hass=${this.hass}
@@ -211,6 +311,7 @@ export class FrigateCardMediaFilter extends LitElement {
       .whatOptions=${this._mediaMetadataController?.whatOptions}
       .whereOptions=${this._mediaMetadataController?.whereOptions}
       .controls=${controls}
+      .defaults=${defaults}
       @frigate-card:media-filter-core:change=${this._mediaFilterHandler.bind(this)}
     >
     </frigate-card-media-filter-core>`;
@@ -249,7 +350,6 @@ export class MediaMetadataController implements ReactiveController {
       errorToConsole(e as Error);
       return;
     }
-  
     if (!metadata) {
       return;
     }

@@ -25,7 +25,8 @@ export const getRecordingTitle = (
   cameraConfig: CameraConfig,
   recording: FrigateRecording,
 ): string => {
-  return `${prettifyTitle(cameraConfig.frigate.camera_name)} ${formatDateAndTime(
+  const cameraName = prettifyTitle(cameraConfig.frigate.camera_name ?? '');
+  return `${cameraName ? `${cameraName} ` : ''}${formatDateAndTime(
     recording.startTime,
   )}`;
 };

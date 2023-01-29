@@ -232,6 +232,7 @@ export class FrigateCardMediaFilterCore extends LitElement {
           .label=${localize('media_filter.media_type')}
           .items=${this._mediaTypeOptions}
           .allowCustomValue=${false}
+          .value=${this.defaults?.mediaType}
           @value-changed=${this._valueChangedHandler.bind(this)}
         ></ha-combo-box>`
       : ''}
@@ -242,6 +243,7 @@ export class FrigateCardMediaFilterCore extends LitElement {
           .label=${localize('media_filter.when')}
           .items=${this._whenOptions}
           .allowCustomValue=${false}
+          .value=${this.defaults?.when}
           @value-changed=${this._valueChangedHandler.bind(this)}
         ></ha-combo-box>`
       : ''}
@@ -252,6 +254,9 @@ export class FrigateCardMediaFilterCore extends LitElement {
           .label=${localize('media_filter.camera')}
           .items=${this._cameraOptions}
           .allowCustomValue=${false}
+          .value=${this.defaults?.cameraIDs?.size === 1
+            ? [...this.defaults.cameraIDs][0]
+            : undefined}
           @value-changed=${this._valueChangedHandler.bind(this)}
         ></ha-combo-box>`
       : ''}
@@ -262,6 +267,9 @@ export class FrigateCardMediaFilterCore extends LitElement {
           .label=${localize('media_filter.what')}
           .items="${this._whatOptions}"
           .allowCustomValue=${false}
+          .value=${this.defaults?.what?.size === 1
+            ? [...this.defaults.what][0]
+            : undefined}
           @value-changed=${this._valueChangedHandler.bind(this)}
         ></ha-combo-box>`
       : ''}
@@ -272,6 +280,9 @@ export class FrigateCardMediaFilterCore extends LitElement {
           .label=${localize('media_filter.where')}
           .items=${this._whereOptions}
           .allowCustomValue=${false}
+          .value=${this.defaults?.where?.size === 1
+            ? [...this.defaults.where][0]
+            : undefined}
           @value-changed=${this._valueChangedHandler.bind(this)}
         ></ha-combo-box>`
       : ''}
@@ -283,6 +294,7 @@ export class FrigateCardMediaFilterCore extends LitElement {
             .label=${localize('media_filter.favorite')}
             .items=${this._favoriteOptions}
             .allowCustomValue=${false}
+            .value=${this.defaults?.favorite}
             @value-changed=${this._valueChangedHandler.bind(this)}
           ></ha-combo-box>
         `

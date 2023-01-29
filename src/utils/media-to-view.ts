@@ -45,6 +45,7 @@ export const createViewForEvents = async (
     query?: EventMediaQueries;
     cameraIDs?: Set<string>;
     mediaType?: ClipsOrSnapshotsOrAll;
+    targetCameraID?: string;
     targetView?: FrigateCardView;
     limit?: number;
   },
@@ -72,17 +73,11 @@ export const createViewForEvents = async (
     return null;
   }
 
-  return executeMediaQueryForView(
-    element,
-    hass,
-    cameraManager,
-    view,
-    query,
-    options?.targetView ?? 'clips',
-    {
-      cameraIDs: cameraIDs,
-    },
-  );
+  return executeMediaQueryForView(element, hass, cameraManager, view, query, {
+    cameraIDs: cameraIDs,
+    targetView: options?.targetView,
+    targetCameraID: options?.targetCameraID,
+  });
 };
 
 /**
@@ -136,6 +131,7 @@ export const createViewForRecordings = async (
   options?: {
     query?: RecordingMediaQueries;
     cameraIDs?: Set<string>;
+    targetCameraID?: string;
     targetView?: 'recording' | 'recordings';
     targetTime?: Date;
     start?: Date;
@@ -162,18 +158,12 @@ export const createViewForRecordings = async (
     query = new RecordingMediaQueries(recordingQueries);
   }
 
-  return executeMediaQueryForView(
-    element,
-    hass,
-    cameraManager,
-    view,
-    query,
-    options?.targetView ?? 'recordings',
-    {
-      cameraIDs: cameraIDs,
-      ...(options?.targetTime && { targetTime: options.targetTime }),
-    },
-  );
+  return executeMediaQueryForView(element, hass, cameraManager, view, query, {
+    cameraIDs: cameraIDs,
+    targetView: options?.targetView,
+    targetCameraID: options?.targetCameraID,
+    targetTime: options?.targetTime,
+  });
 };
 
 const executeMediaQueryForView = async (
@@ -182,9 +172,10 @@ const executeMediaQueryForView = async (
   cameraManager: CameraManager,
   view: View,
   query: MediaQueries,
-  targetView: FrigateCardView,
   options?: {
-    cameraIDs: Set<string>;
+    cameraIDs?: Set<string>;
+    targetCameraID?: string;
+    targetView?: FrigateCardView;
     targetTime?: Date;
   },
 ): Promise<View | null> => {
@@ -214,9 +205,10 @@ const executeMediaQueryForView = async (
   return (
     view
       ?.evolve({
-        view: targetView,
         query: query,
         queryResults: queryResults,
+        view: options?.targetView,
+        camera: options?.targetCameraID,
       })
       .mergeInContext(viewerContext) ?? null
   );
@@ -235,7 +227,7 @@ const executeMediaQueryForView = async (
 export const findClosestMediaIndex = (
   mediaArray: ViewMedia[],
   targetTime: Date,
-  cameraIDs: Set<string>,
+  cameraIDs?: Set<string>,
   refPoint?: 'start' | 'end',
 ): number | null => {
   let bestMatch:
@@ -244,6 +236,10 @@ export const findClosestMediaIndex = (
         delta: number;
       }
     | undefined;
+
+  if (!cameraIDs) {
+    return null;
+  }
 
   for (const [i, media] of mediaArray.entries()) {
     if (!cameraIDs.has(media.getCameraID())) {

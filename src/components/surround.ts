@@ -88,6 +88,7 @@ export class FrigateCardSurround extends LitElement {
       this.cameras,
       this.view,
       {
+        targetView: this.view.view,
         mediaType: this.fetchMedia,
       },
     );
