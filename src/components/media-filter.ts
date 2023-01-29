@@ -34,11 +34,11 @@ import {
 } from './media-filter-core';
 import './surround.js';
 import './timeline-core.js';
-import { EventQuery, QueryType, RecordingQuery } from '../camera/types';
+import { EventQuery, MediaMetadata, QueryType, RecordingQuery } from '../camera/types';
 import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
 import { createViewForEvents, createViewForRecordings } from '../utils/media-to-view.js';
 import { HomeAssistant } from 'custom-card-helpers';
-import { prettifyTitle } from '../utils/basic';
+import { errorToConsole, prettifyTitle } from '../utils/basic';
 import format from 'date-fns/format';
 import parse from 'date-fns/parse';
 import endOfMonth from 'date-fns/endOfMonth';
@@ -242,41 +242,50 @@ export class MediaMetadataController implements ReactiveController {
   }
 
   async hostConnected() {
-    const metadata = await this._cameraManager.getMediaMetadata(this._hass);
-    if (metadata) {
-      if (metadata.what) {
-        this.whatOptions = [...metadata.what]
-          .sort()
-          .map((what) => ({ value: what, label: prettifyTitle(what) }));
-      }
-      if (metadata.where) {
-        this.whereOptions = [...metadata.where]
-          .sort()
-          .map((where) => ({ value: where, label: prettifyTitle(where) }));
-      }
-      if (metadata.days) {
-        const yearMonths: Set<string> = new Set();
-        [...metadata.days].forEach((day) => {
-          // An efficient conversion: "2023-01-26" -> "2023-01"
-          yearMonths.add(day.substring(0, 7));
-        });
-        const monthStarts: Date[] = [];
-        yearMonths.forEach((yearMonth) => {
-          monthStarts.push(parse(yearMonth, 'yyyy-MM', new Date()));
-        });
-        this.whenOptions = monthStarts
-          .sort()
-          .reverse()
-          .map((monthStart) => ({
-            label: format(monthStart, 'MMMM yyyy'),
-            value: {
-              selection: MediaFilterCoreWhen.Custom,
-              custom: { start: monthStart, end: endOfMonth(monthStart) },
-            },
-          }));
-      }
-      this._host.requestUpdate();
+    let metadata: MediaMetadata | null;
+    try {
+      metadata = await this._cameraManager.getMediaMetadata(this._hass);
+    } catch (e) {
+      errorToConsole(e as Error);
+      return;
     }
+  
+    if (!metadata) {
+      return;
+    }
+
+    if (metadata.what) {
+      this.whatOptions = [...metadata.what]
+        .sort()
+        .map((what) => ({ value: what, label: prettifyTitle(what) }));
+    }
+    if (metadata.where) {
+      this.whereOptions = [...metadata.where]
+        .sort()
+        .map((where) => ({ value: where, label: prettifyTitle(where) }));
+    }
+    if (metadata.days) {
+      const yearMonths: Set<string> = new Set();
+      [...metadata.days].forEach((day) => {
+        // An efficient conversion: "2023-01-26" -> "2023-01"
+        yearMonths.add(day.substring(0, 7));
+      });
+      const monthStarts: Date[] = [];
+      yearMonths.forEach((yearMonth) => {
+        monthStarts.push(parse(yearMonth, 'yyyy-MM', new Date()));
+      });
+      this.whenOptions = monthStarts
+        .sort()
+        .reverse()
+        .map((monthStart) => ({
+          label: format(monthStart, 'MMMM yyyy'),
+          value: {
+            selection: MediaFilterCoreWhen.Custom,
+            custom: { start: monthStart, end: endOfMonth(monthStart) },
+          },
+        }));
+    }
+    this._host.requestUpdate();
   }
 }
 
