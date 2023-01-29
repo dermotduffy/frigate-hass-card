@@ -74,6 +74,17 @@ export interface MediaMetadata {
   days?: Set<string>;
 }
 
+interface BaseCapabilities {
+  canFavoriteEvents: boolean;
+  canFavoriteRecordings: boolean;
+}
+
+export type CameraManagerCapabilities = BaseCapabilities;
+export type CameraManagerEngineCapabilities = BaseCapabilities;
+export interface CameraManagerMediaCapabilities {
+  canFavorite: boolean;
+}
+
 // ===========
 // Event Query
 // ===========
@@ -107,6 +118,8 @@ export interface EventQueryResults extends QueryResults {
 
 export interface RecordingQuery extends MediaQuery {
   type: QueryType.Recording;
+
+  favorite?: boolean;
 }
 export type PartialRecordingQuery = Partial<RecordingQuery>;
 

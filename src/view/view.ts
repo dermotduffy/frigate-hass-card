@@ -3,6 +3,7 @@
 //  - TODO: getRecordingTitle should use getCameraTitle but need hass.
 //  - TODO: Take MediaQueries wrappers out of the camera manager.
 //  - TODO: View a media in the gallery from September, then notice timeline missing the item.
+//  - TODO: Debug statement in card wide config.
 
 // Gallery:
 //  - TODO: Event gallery show_details default does not work.

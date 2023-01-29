@@ -56,14 +56,14 @@ export interface MediaFilterCoreWhenSelection {
   custom?: DateRange;
 }
 
-export enum MediaFilterControl {
-  mediaType = 'mediaType',
-  when = 'when',
-  camera = 'camera',
-  what = 'what',
-  where = 'where',
-  favorite = 'favorite',
-}
+export type MediaFilterControls = {
+  mediaType?: boolean;
+  when?: boolean;
+  camera?: boolean;
+  what?: boolean;
+  where?: boolean;
+  favorite?: boolean;
+};
 
 @customElement('frigate-card-media-filter-core')
 export class FrigateCardMediaFilterCore extends LitElement {
@@ -86,7 +86,7 @@ export class FrigateCardMediaFilterCore extends LitElement {
   public defaults?: MediaFilterCoreSelection;
 
   @property({ attribute: false })
-  public controls?: Record<MediaFilterControl, boolean>;
+  public controls?: MediaFilterControls;
 
   protected _cameraOptions?: ValueLabel<string>[];
   protected _whenOptions?: ValueLabel<MediaFilterCoreWhenSelection>[];

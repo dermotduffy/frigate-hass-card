@@ -2,6 +2,8 @@ import { HomeAssistant } from 'custom-card-helpers';
 import { CameraConfig } from '../types.js';
 import { allPromises, arrayify, setify } from '../utils/basic.js';
 import {
+  CameraManagerCapabilities,
+  CameraManagerMediaCapabilities,
   DataQuery,
   EventQuery,
   EventQueryResults,
@@ -310,6 +312,26 @@ export class CameraManager {
       return null;
     }
     return engine.getMediaDownloadPath(cameraConfig, media);
+  }
+
+  public getCapabilities(): CameraManagerCapabilities | null {
+    const engines = this._engineFactory.getAllEngines(this._cameras);
+    if (!engines) {
+      return null;
+    }
+
+    return {
+      canFavoriteEvents: engines.some((engine) => engine.getCapabilities()?.canFavoriteEvents),
+      canFavoriteRecordings: engines.some((engine) => engine.getCapabilities()?.canFavoriteRecordings),
+    }
+  }
+
+  public getMediaCapabilities(media: ViewMedia): CameraManagerMediaCapabilities | null {
+    const engine = this._engineFactory.getEngineForMedia(this._cameras, media);
+    if (!engine) {
+      return null;
+    }
+    return engine.getMediaCapabilities(media);
   }
 
   public async favoriteMedia(

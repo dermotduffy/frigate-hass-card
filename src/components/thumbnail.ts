@@ -1,5 +1,12 @@
 import format from 'date-fns/format';
-import { CSSResult, html, LitElement, PropertyValues, TemplateResult, unsafeCSS } from 'lit';
+import {
+  CSSResult,
+  html,
+  LitElement,
+  PropertyValues,
+  TemplateResult,
+  unsafeCSS,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { localize } from '../localize/localize.js';
@@ -282,6 +289,12 @@ export class FrigateCardThumbnail extends LitElement {
         // Only show timeline control if the recording has a start & end time.
         (this.media.getStartTime() && this.media.getEndTime()));
 
+    const shouldShowFavoriteControl =
+      this.show_favorite_control &&
+      this.media &&
+      this.hass &&
+      this.cameraManager?.getMediaCapabilities(this.media)?.canFavorite;
+
     return html` ${ViewMediaClassifier.isEvent(this.media)
       ? html`<frigate-card-thumbnail-feature-event
           aria-label="${title ?? ''}"
@@ -299,7 +312,7 @@ export class FrigateCardThumbnail extends LitElement {
           .date=${this.media.getStartTime() ?? undefined}
         ></frigate-card-thumbnail-feature-recording>`
       : html``}
-    ${this.show_favorite_control && this.media && this.hass
+    ${shouldShowFavoriteControl
       ? html` <ha-icon
             class="${classMap(starClasses)}"
             icon=${this.media.isFavorite() ? 'mdi:star' : 'mdi:star-outline'}

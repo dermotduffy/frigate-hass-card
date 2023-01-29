@@ -16,29 +16,34 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { CameraManager } from '../camera/manager';
+import {
+  CameraManager,
+} from '../camera/manager';
 import { DateRange } from '../camera/range';
 import { CameraConfig, ExtendedHomeAssistant } from '../types';
 import { getCameraTitle } from '../utils/camera';
 import { View } from '../view/view';
 import {
+  MediaFilterControls,
   MediaFilterCoreFavoriteSelection,
   MediaFilterCoreSelection,
   MediaFilterCoreWhen,
   MediaFilterCoreWhenSelection,
+  MediaFilterMediaType,
   ValueLabel,
 } from './media-filter-core';
 import './surround.js';
 import './timeline-core.js';
-import { EventQuery, QueryType } from '../camera/types';
-import { EventMediaQueries } from '../view/media-queries';
-import { createViewForEvents } from '../utils/media-to-view.js';
+import { EventQuery, QueryType, RecordingQuery } from '../camera/types';
+import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
+import { createViewForEvents, createViewForRecordings } from '../utils/media-to-view.js';
 import { HomeAssistant } from 'custom-card-helpers';
 import { prettifyTitle } from '../utils/basic';
 import format from 'date-fns/format';
 import parse from 'date-fns/parse';
 import endOfMonth from 'date-fns/endOfMonth';
 import mediaFilterStyle from '../scss/media-filter.scss';
+import { MediaQueriesClassifier } from '../view/media-queries-classifier';
 
 @customElement('frigate-card-media-filter')
 export class FrigateCardMediaFilter extends LitElement {
@@ -96,35 +101,68 @@ export class FrigateCardMediaFilter extends LitElement {
   protected async _mediaFilterHandler(
     ev: CustomEvent<MediaFilterCoreSelection>,
   ): Promise<void> {
-    if (!this.cameras || !this.cameraManager || !this.hass || !this.view) {
+    const mediaFilter = ev.detail;
+    if (
+      !this.cameras ||
+      !this.cameraManager ||
+      !this.hass ||
+      !this.view ||
+      !mediaFilter.mediaType
+    ) {
       return;
     }
-    const mediaFilter = ev.detail;
+
     const convertedTime = this._convertWhenToDateRange(mediaFilter.when);
     const convertedFavorite = this._convertFavoriteToBoolean(mediaFilter.favorite);
 
-    const query: EventQuery = {
-      type: QueryType.Event,
-      cameraIDs: mediaFilter.cameraIDs ?? new Set(this.cameras.keys()),
-      ...(mediaFilter.what && { what: mediaFilter.what }),
-      ...(mediaFilter.where && { where: mediaFilter.where }),
-      ...(convertedFavorite !== null && { favorite: convertedFavorite }),
-      ...(convertedTime && { start: convertedTime.start, end: convertedTime.end }),
-      ...(this.mediaLimit && { limit: this.mediaLimit }),
-    };
+    if (
+      mediaFilter.mediaType === MediaFilterMediaType.Clips ||
+      mediaFilter.mediaType === MediaFilterMediaType.Snapshots
+    ) {
+      const query: EventQuery = {
+        type: QueryType.Event,
+        cameraIDs: mediaFilter.cameraIDs ?? new Set(this.cameras.keys()),
+        ...(mediaFilter.what && { what: mediaFilter.what }),
+        ...(mediaFilter.where && { where: mediaFilter.where }),
+        ...(convertedFavorite !== null && { favorite: convertedFavorite }),
+        ...(convertedTime && { start: convertedTime.start, end: convertedTime.end }),
+        ...(this.mediaLimit && { limit: this.mediaLimit }),
+        ...(mediaFilter.mediaType === MediaFilterMediaType.Clips && { hasClip: true }),
+        ...(mediaFilter.mediaType === MediaFilterMediaType.Snapshots && { hasSnapshot: true })
+      };
 
-    (
-      await createViewForEvents(
-        this,
-        this.hass,
-        this.cameraManager,
-        this.cameras,
-        this.view,
-        {
-          query: new EventMediaQueries([query]),
-        },
-      )
-    )?.dispatchChangeEvent(this);
+      (
+        await createViewForEvents(
+          this,
+          this.hass,
+          this.cameraManager,
+          this.cameras,
+          this.view,
+          {
+            query: new EventMediaQueries([query]),
+          },
+        )
+      )?.dispatchChangeEvent(this);
+    } else if (mediaFilter.mediaType === MediaFilterMediaType.Recordings) {
+      const query: RecordingQuery = {
+        type: QueryType.Recording,
+        cameraIDs: mediaFilter.cameraIDs ?? new Set(this.cameras.keys()),
+        ...(convertedTime && { start: convertedTime.start, end: convertedTime.end }),
+      };
+
+      (
+        await createViewForRecordings(
+          this,
+          this.hass,
+          this.cameraManager,
+          this.cameras,
+          this.view,
+          {
+            query: new RecordingMediaQueries([query]),
+          },
+        )
+      )?.dispatchChangeEvent(this);
+    }
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
@@ -147,12 +185,32 @@ export class FrigateCardMediaFilter extends LitElement {
   }
 
   protected render(): TemplateResult | void {
+    const areEvents = !!(
+      this.view?.query && MediaQueriesClassifier.areEventQueries(this.view.query)
+    );
+    const areRecordings = !!(
+      this.view?.query && MediaQueriesClassifier.areRecordingQueries(this.view.query)
+    );
+    const managerCapabilities = this.cameraManager?.getCapabilities();
+
+    // Which media controls are shown depends on the view.
+    const controls: MediaFilterControls = {
+      what: areEvents,
+      where: areEvents,
+      favorite: areEvents
+        ? !!managerCapabilities?.canFavoriteEvents
+        : areRecordings
+        ? !!managerCapabilities?.canFavoriteRecordings
+        : false,
+    };
+
     return html` <frigate-card-media-filter-core
       .hass=${this.hass}
       .whenOptions=${this._mediaMetadataController?.whenOptions}
       .cameraOptions=${this._cameraOptions}
       .whatOptions=${this._mediaMetadataController?.whatOptions}
       .whereOptions=${this._mediaMetadataController?.whereOptions}
+      .controls=${controls}
       @frigate-card:media-filter-core:change=${this._mediaFilterHandler.bind(this)}
     >
     </frigate-card-media-filter-core>`;

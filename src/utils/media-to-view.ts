@@ -3,7 +3,11 @@ import sub from 'date-fns/sub';
 import { ViewContext } from 'view';
 import { CameraConfig, ClipsOrSnapshotsOrAll, FrigateCardView } from '../types';
 import { View } from '../view/view';
-import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
+import {
+  EventMediaQueries,
+  MediaQueries,
+  RecordingMediaQueries,
+} from '../view/media-queries';
 import { CameraManager } from '../camera/manager';
 import { getAllDependentCameras } from './camera.js';
 import { ViewMedia } from '../view/media';
@@ -46,13 +50,13 @@ export const createViewForEvents = async (
   },
 ): Promise<View | null> => {
   let query: EventMediaQueries;
+  const cameraIDs: Set<string> = options?.cameraIDs
+    ? options.cameraIDs
+    : new Set(getAllDependentCameras(cameras, view.camera));
+
   if (options?.query) {
     query = options.query;
   } else {
-    const cameraIDs: Set<string> = options?.cameraIDs
-      ? options.cameraIDs
-      : new Set(getAllDependentCameras(cameras, view.camera));
-
     const eventQueries = cameraManager.generateDefaultEventQueries(cameraIDs, {
       ...(options?.limit && { limit: options.limit }),
       ...(options?.mediaType === 'clips' && { hasClip: true }),
@@ -64,20 +68,21 @@ export const createViewForEvents = async (
     query = new EventMediaQueries(eventQueries);
   }
 
-  let queryResults: MediaQueriesResults | null;
-  try {
-    queryResults = await cameraManager.executeMediaQueries(hass, query);
-  } catch (e) {
-    errorToConsole(e as Error);
-    dispatchFrigateCardErrorEvent(element, e as Error);
+  if (!query) {
     return null;
   }
 
-  return view?.evolve({
-    view: options?.targetView,
-    query: query,
-    queryResults: queryResults,
-  });
+  return executeMediaQueryForView(
+    element,
+    hass,
+    cameraManager,
+    view,
+    query,
+    options?.targetView ?? 'clips',
+    {
+      cameraIDs: cameraIDs,
+    },
+  );
 };
 
 /**
@@ -129,6 +134,7 @@ export const createViewForRecordings = async (
   cameras: Map<string, CameraConfig>,
   view: View,
   options?: {
+    query?: RecordingMediaQueries;
     cameraIDs?: Set<string>;
     targetView?: 'recording' | 'recordings';
     targetTime?: Date;
@@ -140,16 +146,48 @@ export const createViewForRecordings = async (
     ? options.cameraIDs
     : new Set(getAllDependentCameras(cameras, view.camera));
 
-  const recordingQueries = cameraManager.generateDefaultRecordingQueries(cameraIDs, {
-    ...(options?.start && { start: options.start }),
-    ...(options?.end && { end: options.end }),
-  });
+  let query: RecordingMediaQueries;
+  if (options?.query) {
+    query = options.query;
+  } else {
+    const recordingQueries = cameraManager.generateDefaultRecordingQueries(cameraIDs, {
+      ...(options?.start && { start: options.start }),
+      ...(options?.end && { end: options.end }),
+    });
 
-  if (!recordingQueries) {
-    return null;
+    if (!recordingQueries) {
+      return null;
+    }
+
+    query = new RecordingMediaQueries(recordingQueries);
   }
 
-  const query = new RecordingMediaQueries(recordingQueries);
+  return executeMediaQueryForView(
+    element,
+    hass,
+    cameraManager,
+    view,
+    query,
+    options?.targetView ?? 'recordings',
+    {
+      cameraIDs: cameraIDs,
+      ...(options?.targetTime && { targetTime: options.targetTime }),
+    },
+  );
+};
+
+const executeMediaQueryForView = async (
+  element: HTMLElement,
+  hass: HomeAssistant,
+  cameraManager: CameraManager,
+  view: View,
+  query: MediaQueries,
+  targetView: FrigateCardView,
+  options?: {
+    cameraIDs: Set<string>;
+    targetTime?: Date;
+  },
+): Promise<View | null> => {
   let queryResults: MediaQueriesResults | null;
 
   try {
@@ -162,9 +200,9 @@ export const createViewForRecordings = async (
 
   let viewerContext: ViewContext | undefined = {};
   const mediaArray = queryResults?.getResults();
-  if (queryResults && mediaArray && options?.targetTime) {
+  if (queryResults && mediaArray && options?.targetTime && options.cameraIDs) {
     queryResults.selectBestResult((media) =>
-      findClosestMediaIndex(media, options.targetTime as Date, cameraIDs),
+      findClosestMediaIndex(media, options.targetTime as Date, options.cameraIDs),
     );
     viewerContext = {
       mediaViewer: {
@@ -176,7 +214,7 @@ export const createViewForRecordings = async (
   return (
     view
       ?.evolve({
-        view: options?.targetView ? options.targetView : 'recording',
+        view: targetView,
         query: query,
         queryResults: queryResults,
       })
@@ -215,7 +253,7 @@ export const findClosestMediaIndex = (
     if (media.includesTime(targetTime)) {
       const start = media.getStartTime();
       const end = media.getEndTime();
-       if (!refPoint || !start || !end) {
+      if (!refPoint || !start || !end) {
         return i;
       }
       const delta =

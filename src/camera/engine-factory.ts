@@ -1,4 +1,5 @@
 import { CameraConfig } from '../types';
+import { ViewMedia } from '../view/media';
 import { RecordingSegmentsCache, RequestCache } from './cache';
 import { CameraManagerEngine } from './engine';
 import { FrigateCameraManagerEngine } from './frigate/engine-frigate';
@@ -63,6 +64,18 @@ export class CameraManagerEngineFactory {
       output.get(engine)?.add(cameraID);
     }
     return output.size ? output : null;
+  }
+
+  public getEngineForMedia(
+    cameras: Map<string, CameraConfig>,
+    media: ViewMedia,
+  ): CameraManagerEngine | null {
+    const cameraID = media.getCameraID();
+    if (!cameraID) {
+      return null;
+    }
+    const engines = this.getEnginesForCameraIDs(cameras, new Set([cameraID]));
+    return engines ? ([...engines.keys()][0] ?? null) : null;
   }
 
   public getAllEngines(

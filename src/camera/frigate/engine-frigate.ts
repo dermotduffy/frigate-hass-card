@@ -12,6 +12,8 @@ import {
 } from '../engine';
 import { DateRange } from '../range';
 import {
+  CameraManagerEngineCapabilities,
+  CameraManagerMediaCapabilities,
   DataQuery,
   Engine,
   EventQuery,
@@ -759,5 +761,18 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       seekMilliseconds += end.getTime() - start.getTime();
     }
     return seekMilliseconds / 1000;
+  }
+
+  public getCapabilities(): CameraManagerEngineCapabilities {
+    return {
+      canFavoriteEvents: true,
+      canFavoriteRecordings: false,
+    }
+  }
+
+  public getMediaCapabilities(media: ViewMedia): CameraManagerMediaCapabilities {
+    return {
+      canFavorite: ViewMediaClassifier.isEvent(media)
+    }
   }
 }
