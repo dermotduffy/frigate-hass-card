@@ -1007,6 +1007,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     configPathShowDetails: string,
     configPathShowFavoriteControl: string,
     configPathShowTimelineControl: string,
+    defaults: {
+      show_details: boolean;
+      show_favorite_control: boolean;
+      show_timeline_control: boolean;
+    },
     options?: {
       configPathMedia?: string;
       configPathMode?: string;
@@ -1043,21 +1048,21 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         })}
         ${this._renderSwitch(
           configPathShowDetails,
-          this._defaults.live.controls.thumbnails.show_details,
+          defaults.show_details,
           {
             label: localize('config.common.controls.thumbnails.show_details'),
           },
         )}
         ${this._renderSwitch(
           configPathShowFavoriteControl,
-          this._defaults.live.controls.thumbnails.show_favorite_control,
+          defaults.show_favorite_control,
           {
             label: localize('config.common.controls.thumbnails.show_favorite_control'),
           },
         )}
         ${this._renderSwitch(
           configPathShowTimelineControl,
-          this._defaults.live.controls.thumbnails.show_timeline_control,
+          defaults.show_timeline_control,
           {
             label: localize('config.common.controls.thumbnails.show_timeline_control'),
           },
@@ -1570,6 +1575,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
                       CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
                       CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                      this._defaults.live.controls.thumbnails,
                       {
                         configPathMedia: CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
                         configPathMode: CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
@@ -1617,6 +1623,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
                 CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
                 CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                this._defaults.event_gallery.controls.thumbnails,
               )}
             </div>`
           : ''}
@@ -1675,6 +1682,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
                     CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
                     CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                    this._defaults.media_viewer.controls.thumbnails,
                     {
                       configPathMode: CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
                     },
@@ -1735,6 +1743,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
                 CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
                 CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                this._defaults.timeline.controls.thumbnails,
                 {
                   configPathMode: CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
                 },

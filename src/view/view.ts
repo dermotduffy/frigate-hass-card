@@ -6,7 +6,6 @@
 //  - TODO: Debug statement in card wide config.
 
 // Gallery:
-//  - TODO: Event gallery show_details default does not work.
 //  - TODO: Use spinner for gallery loading / cardwideconfig not dotdotdot
 //  - TODO: Handle all TODOs in media filter and media filter core.
 //  - TODO: Make media filter slot choice configurable (gallery.ts).
