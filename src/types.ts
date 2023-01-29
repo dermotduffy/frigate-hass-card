@@ -1220,8 +1220,18 @@ const performanceConfigSchema = z
   .default(performanceConfigDefault);
 export type PerformanceConfig = z.infer<typeof performanceConfigSchema>;
 
+const debugConfigDefault = {
+  logging: false,
+};
+
+const debugConfigSchema = z.object({
+  logging: z.boolean().default(debugConfigDefault.logging),
+}).default(debugConfigDefault);
+export type DebugConfig = z.infer<typeof debugConfigSchema>;
+
 export interface CardWideConfig {
   performance?: PerformanceConfig;
+  debug?: DebugConfig;
 }
 
 /**
@@ -1240,6 +1250,7 @@ export const frigateCardConfigSchema = z.object({
   dimensions: dimensionsConfigSchema,
   timeline: timelineConfigSchema,
   performance: performanceConfigSchema,
+  debug: debugConfigSchema,
 
   // Configuration overrides.
   overrides: overridesSchema,
@@ -1265,6 +1276,7 @@ export const frigateCardConfigDefaults = {
   image: imageConfigDefault,
   timeline: timelineConfigDefault,
   performance: performanceConfigDefault,
+  debug: debugConfigDefault,
 };
 
 const menuButtonSchema = z.discriminatedUnion('type', [

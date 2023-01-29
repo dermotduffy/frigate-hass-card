@@ -166,14 +166,6 @@ export function getDurationString(start: Date, end: Date): string {
   return duration;
 }
 
-/**
- * For debug purposes only.
- * @param seconds
- */
-export const sleep = async (seconds: number) => {
-  await new Promise((r) => setTimeout(r, seconds * 1000));
-};
-
 export const allPromises = async <T>(
   items: T[],
   func: (arg: T) => void,

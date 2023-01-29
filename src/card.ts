@@ -94,6 +94,7 @@ import { ViewContext } from 'view';
 import { CameraManager } from './camera/manager.js';
 import { setLowPerformanceProfile, setPerformanceCSSStyles } from './performance.js';
 import { CameraManagerEngineFactory } from './camera/engine-factory.js';
+import { log } from './utils/debug.js';
 
 /** A note on media callbacks:
  *
@@ -988,6 +989,7 @@ export class FrigateCard extends LitElement {
     this._config = config;
     this._cardWideConfig = {
       performance: config.performance,
+      debug: config.debug,
     };
 
     this._overriddenConfig = undefined;
@@ -1015,7 +1017,7 @@ export class FrigateCard extends LitElement {
   }
 
   protected _changeView(args?: { view?: View; resetMessage?: boolean }): void {
-    console.debug(`Frigate Card view change: `, args?.view ?? '[default]');
+    log(this._cardWideConfig, `Frigate Card view change: `, args?.view ?? '[default]');
     const changeView = (view: View): void => {
       if (View.isMediaChange(this._view, view)) {
         this._currentMediaLoadedInfo = null;
@@ -1101,10 +1103,16 @@ export class FrigateCard extends LitElement {
    * Called before each update.
    */
   protected willUpdate(changedProps: PropertyValues): void {
-    if (this._cameras && (changedProps.has('_config') || changedProps.has('_cameras'))) {
+    if (
+      this._cameras && this._cardWideConfig &&
+      (changedProps.has('_config') ||
+        changedProps.has('_cameras') ||
+        changedProps.has('_cardWideConfig'))
+    ) {
       this._cameraManager = new CameraManager(
-        new CameraManagerEngineFactory(),
+        new CameraManagerEngineFactory(this._cardWideConfig),
         this._cameras,
+        this._cardWideConfig,
       );
     }
 

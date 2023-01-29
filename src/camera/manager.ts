@@ -1,5 +1,5 @@
 import { HomeAssistant } from 'custom-card-helpers';
-import { CameraConfig } from '../types.js';
+import { CameraConfig, CardWideConfig } from '../types.js';
 import { allPromises, arrayify, setify } from '../utils/basic.js';
 import {
   CameraManagerCapabilities,
@@ -36,6 +36,7 @@ import uniqBy from 'lodash-es/uniqBy';
 import { CameraManagerEngine } from './engine.js';
 import sum from 'lodash-es/sum';
 import add from 'date-fns/add';
+import { log } from '../utils/debug.js';
 
 export class QueryClassifier {
   public static isEventQuery(query: DataQuery | PartialDataQuery): query is EventQuery {
@@ -79,13 +80,16 @@ export interface ExtendedMediaQueryResult<T extends MediaQuery> {
 export class CameraManager {
   protected _engineFactory: CameraManagerEngineFactory;
   protected _cameras: Map<string, CameraConfig>;
+  protected _cardWideConfig?: CardWideConfig;
 
   constructor(
     engineFactory: CameraManagerEngineFactory,
     cameras: Map<string, CameraConfig>,
+    cardWideConfig?: CardWideConfig,
   ) {
     this._engineFactory = engineFactory;
     this._cameras = cameras;
+    this._cardWideConfig = cardWideConfig;
   }
 
   public generateDefaultEventQueries(
@@ -348,7 +352,8 @@ export class CameraManager {
       const queryStartTime = new Date();
       await engine.favoriteMedia(hass, cameraConfig, media, favorite);
 
-      console.debug(
+      log(
+        this._cardWideConfig,
         'Frigate Card CameraManager favorite request (',
         `Duration: ${(new Date().getTime() - queryStartTime.getTime()) / 1000}s,`,
         'Media:',
@@ -473,7 +478,8 @@ export class CameraManager {
       Array.from(results.values()).map((result) => Number(result.cached)),
     );
 
-    console.debug(
+    log(
+      this._cardWideConfig,
       'Frigate Card CameraManager request [Input queries:',
       _queries.length,
       ', Cached output queries:',

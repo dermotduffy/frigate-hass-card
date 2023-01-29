@@ -3,7 +3,7 @@ import add from 'date-fns/add';
 import endOfHour from 'date-fns/endOfHour';
 import startOfHour from 'date-fns/startOfHour';
 import { CAMERA_BIRDSEYE } from '../../const';
-import { CameraConfig, RecordingSegment } from '../../types';
+import { CameraConfig, CardWideConfig, RecordingSegment } from '../../types';
 import { ViewMedia } from '../../view/media';
 import { RequestCache, RecordingSegmentsCache } from '../cache';
 import {
@@ -54,6 +54,7 @@ import { sum } from 'lodash-es';
 import { FrigateViewMediaClassifier } from './media-classifier';
 import { ViewMediaClassifier } from '../../view/media-classifier';
 import { FrigateViewMediaFactory } from './media';
+import { log } from '../../utils/debug';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
@@ -86,6 +87,7 @@ class FrigateQueryResultsClassifier {
 export class FrigateCameraManagerEngine implements CameraManagerEngine {
   protected _recordingSegmentsCache: RecordingSegmentsCache;
   protected _requestCache: RequestCache;
+  protected _cardWideConfig: CardWideConfig;
 
   // Garbage collect segments at most once an hour.
   protected _throttledSegmentGarbageCollector = throttle(
@@ -95,9 +97,11 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   );
 
   constructor(
+    cardWideConfig: CardWideConfig,
     recordingSegmentsCache: RecordingSegmentsCache,
     requestCache: RequestCache,
   ) {
+    this._cardWideConfig = cardWideConfig;
     this._recordingSegmentsCache = recordingSegmentsCache;
     this._requestCache = requestCache;
   }
@@ -654,9 +658,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       }
     };
 
-    const processRecordings = async (
-      cameraIDs: Set<string>): Promise<void> => {
-      
+    const processRecordings = async (cameraIDs: Set<string>): Promise<void> => {
       const recordings = await this.getRecordings(hass, cameras, {
         type: QueryType.Recording,
         cameraIDs: cameraIDs,
@@ -675,13 +677,16 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
           days.add(formatDate(recording.startTime));
         }
       }
-    }
+    };
 
-    await allPromises([...instances.entries()], ([instanceID, cameraIDs]) => (async () => {
-      await Promise.all([
-        processEventSummary(instanceID, cameraIDs),
-        processRecordings(cameraIDs)]);
-    })());
+    await allPromises([...instances.entries()], ([instanceID, cameraIDs]) =>
+      (async () => {
+        await Promise.all([
+          processEventSummary(instanceID, cameraIDs),
+          processRecordings(cameraIDs),
+        ]);
+      })(),
+    );
 
     if (!what.size && !where.size && !days.size) {
       return null;
@@ -750,7 +755,8 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       );
     }
 
-    console.debug(
+    log(
+      this._cardWideConfig,
       'Frigate Card recording segment garbage collection: ' +
         `Released ${segmentsStart - countSegments()} segment(s)`,
     );
@@ -792,12 +798,12 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     return {
       canFavoriteEvents: true,
       canFavoriteRecordings: false,
-    }
+    };
   }
 
   public getMediaCapabilities(media: ViewMedia): CameraManagerMediaCapabilities {
     return {
-      canFavorite: ViewMediaClassifier.isEvent(media)
-    }
+      canFavorite: ViewMediaClassifier.isEvent(media),
+    };
   }
 }

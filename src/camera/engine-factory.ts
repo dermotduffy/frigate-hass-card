@@ -1,4 +1,4 @@
-import { CameraConfig } from '../types';
+import { CameraConfig, CardWideConfig } from '../types';
 import { ViewMedia } from '../view/media';
 import { RecordingSegmentsCache, RequestCache } from './cache';
 import { CameraManagerEngine } from './engine';
@@ -9,6 +9,11 @@ type CameraManagerEngineCameraIDMap = Map<CameraManagerEngine, Set<string>>;
 
 export class CameraManagerEngineFactory {
   protected _engines: Map<Engine, CameraManagerEngine> = new Map();
+  protected _cardWideConfig: CardWideConfig;
+
+  constructor(cardWideConfig: CardWideConfig) {
+    this._cardWideConfig = cardWideConfig;
+  }
 
   public getEngine(engine: Engine): CameraManagerEngine | null {
     const cachedEngine = this._engines.get(engine);
@@ -19,6 +24,7 @@ export class CameraManagerEngineFactory {
     switch (engine) {
       case Engine.Frigate:
         cameraManagerEngine = new FrigateCameraManagerEngine(
+          this._cardWideConfig,
           new RecordingSegmentsCache(),
           new RequestCache(),
         );

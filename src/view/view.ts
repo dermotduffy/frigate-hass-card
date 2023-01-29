@@ -3,13 +3,11 @@
 //  - TODO: getRecordingTitle should use getCameraTitle but need hass.
 //  - TODO: Take MediaQueries wrappers out of the camera manager.
 //  - TODO: View a media in the gallery from September, then notice timeline missing the item.
-//  - TODO: Debug statement in card wide config.
 
 // Gallery:
 //  - TODO: Filter panel expands from right can occasionally 'stick' open.
 
 // Hard:
-//  - TODO: Implement gallery.
 //  - TODO: Remove FrigateBrowseMediaSource if not necessary (post-gallery).
 //  - TODO: Remove browse-media.ts TODOs.
 //  - TODO: What should the timeline do when an event is clicked on that is not in the queryResults (or if queryResults is empty)?
