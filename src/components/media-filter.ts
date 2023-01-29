@@ -257,7 +257,7 @@ export class MediaMetadataController implements ReactiveController {
       if (metadata.days) {
         const yearMonths: Set<string> = new Set();
         [...metadata.days].forEach((day) => {
-          // An efficient conversion: 2023-01-26 -> 2023-01
+          // An efficient conversion: "2023-01-26" -> "2023-01"
           yearMonths.add(day.substring(0, 7));
         });
         const monthStarts: Date[] = [];

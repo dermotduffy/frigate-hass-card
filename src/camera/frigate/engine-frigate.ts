@@ -48,7 +48,7 @@ import {
 } from './requests';
 import orderBy from 'lodash-es/orderBy';
 import throttle from 'lodash-es/throttle';
-import { allPromises, runWhenIdleIfSupported } from '../../utils/basic';
+import { allPromises, formatDate, runWhenIdleIfSupported } from '../../utils/basic';
 import { fromUnixTime } from 'date-fns';
 import { sum } from 'lodash-es';
 import { FrigateViewMediaClassifier } from './media-classifier';
@@ -127,7 +127,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   public generateDefaultEventQuery(
     cameras: Map<string, CameraConfig>,
     cameraIDs: Set<string>,
-    query: PartialEventQuery,
+    query?: PartialEventQuery,
   ): EventQuery[] | null {
     const relevantCameraConfigs = Array.from(cameraIDs).map((cameraID) =>
       cameras.get(cameraID),
@@ -172,8 +172,8 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   public generateDefaultRecordingQuery(
     _cameras: Map<string, CameraConfig>,
     cameraIDs: Set<string>,
-    query: PartialRecordingQuery,
-  ): RecordingQuery[] | null {
+    query?: PartialRecordingQuery,
+  ): RecordingQuery[] {
     return [
       {
         type: QueryType.Recording,
@@ -631,7 +631,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       new Set(cameras.keys()),
     );
 
-    const processQuery = async (
+    const processEventSummary = async (
       instanceID: string,
       cameraIDs: Set<string>,
     ): Promise<void> => {
@@ -654,9 +654,34 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
       }
     };
 
-    await allPromises([...instances.entries()], ([instanceID, cameraIDs]) =>
-      processQuery(instanceID, cameraIDs),
-    );
+    const processRecordings = async (
+      cameraIDs: Set<string>): Promise<void> => {
+      
+      const recordings = await this.getRecordings(hass, cameras, {
+        type: QueryType.Recording,
+        cameraIDs: cameraIDs,
+      });
+      if (!recordings) {
+        return;
+      }
+
+      for (const result of recordings.values()) {
+        if (!FrigateQueryResultsClassifier.isFrigateRecordingQueryResults(result)) {
+          continue;
+        }
+
+        for (const recording of result.recordings) {
+          // Frigate recordings are always 1 hour long, i.e. never span a day.
+          days.add(formatDate(recording.startTime));
+        }
+      }
+    }
+
+    await allPromises([...instances.entries()], ([instanceID, cameraIDs]) => (async () => {
+      await Promise.all([
+        processEventSummary(instanceID, cameraIDs),
+        processRecordings(cameraIDs)]);
+    })());
 
     if (!what.size && !where.size && !days.size) {
       return null;

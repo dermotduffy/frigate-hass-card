@@ -117,6 +117,15 @@ export const formatDateAndTime = (date: Date): string => {
 };
 
 /**
+ * Format a date object to RFC3339.
+ * @param date A Date object.
+ * @returns A date.
+ */
+export const formatDate = (date: Date): string => {
+  return format(date, 'yyyy-MM-dd');
+};
+
+/**
  * Run a function in idle periods. If idle callbacks are not supported (e.g.
  * Safari) the callback is run immediately.
  * @param func The function to call.

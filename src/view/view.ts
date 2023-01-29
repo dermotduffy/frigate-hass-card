@@ -12,6 +12,7 @@
 //  - TODO: Make media filter slot choice configurable (gallery.ts).
 //  - TODO: Filter panel expands from right can occasionally 'stick' open.
 //  - TODO: Media type selection, i.e. events or recordings.
+//  - TODO: Cache every summary.
 
 // Hard:
 //  - TODO: Implement gallery.
