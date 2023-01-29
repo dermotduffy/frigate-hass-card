@@ -78,6 +78,15 @@
         "window_seconds": "A duração padrão da visualização da linha do tempo em segundos"
       },
       "controls": {
+        "filter": {
+          "editor_label": "",
+          "mode": "",
+          "modes": {
+            "none": "",
+            "left": "",
+            "right": ""
+          }
+        },
         "next_previous": {
           "editor_label": "",
           "size": "Tamanho de controle próximo e anterior",

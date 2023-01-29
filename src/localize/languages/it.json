@@ -78,6 +78,15 @@
         "window_seconds": "La lunghezza predefinita della vista della sequenza temporale in secondi"
       },
       "controls": {
+        "filter": {
+          "editor_label": "",
+          "mode": "",
+          "modes": {
+            "none": "",
+            "left": "",
+            "right": ""
+          }
+        },
         "next_previous": {
           "editor_label": "",
           "size": "Successiva e Precedenti dimensioni di controllo nei pixel",

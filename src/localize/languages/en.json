@@ -79,6 +79,15 @@
         "window_seconds": "The default length of the timeline view in seconds"
       },
       "controls": {
+        "filter": {
+          "editor_label": "Media Filter",
+          "mode": "Filter mode",
+          "modes": {
+            "none": "No media filter",
+            "left": "Media filter in a drawer to the left",
+            "right": "Media filter in a drawer to the right"
+          }
+        },
         "next_previous": {
           "editor_label": "Next & Previous",
           "size": "Next & previous control size in pixels",

@@ -37,6 +37,11 @@ import './media-filter';
 
 const GALLERY_MEDIA_CHUNK_SIZE = 100;
 
+const GALLERY_MEDIA_FILTER_MENU_ICONS = {
+  closed: 'mdi:filter-cog-outline',
+  open: 'mdi:filter-cog',
+};
+
 @customElement('frigate-card-gallery')
 export class FrigateCardGallery extends LitElement {
   @property({ attribute: false })
@@ -101,25 +106,26 @@ export class FrigateCardGallery extends LitElement {
       return renderProgressIndicator({ cardWideConfig: this.cardWideConfig });
     }
 
-    // TODO Make this slot choice configuration left/right.
     return html`
       <frigate-card-surround-basic
         .drawerIcons=${{
-          right: {
-            closed: 'mdi:filter-cog-outline',
-            open: 'mdi:filter-cog',
-          },
+          ...(this.galleryConfig &&
+            this.galleryConfig.controls.filter.mode !== 'none' && {
+              [this.galleryConfig.controls.filter.mode]: GALLERY_MEDIA_FILTER_MENU_ICONS,
+            }),
         }}
       >
-        <frigate-card-media-filter
-          .hass=${this.hass}
-          .cameras=${this.cameras}
-          .cameraManager=${this.cameraManager}
-          .view=${this.view}
-          .mediaLimit=${GALLERY_MEDIA_CHUNK_SIZE}
-          slot="right"
-        >
-        </frigate-card-media-filter>
+        ${this.galleryConfig && this.galleryConfig.controls.filter.mode !== 'none'
+          ? html` <frigate-card-media-filter
+              .hass=${this.hass}
+              .cameras=${this.cameras}
+              .cameraManager=${this.cameraManager}
+              .view=${this.view}
+              .mediaLimit=${GALLERY_MEDIA_CHUNK_SIZE}
+              slot=${this.galleryConfig.controls.filter.mode}
+            >
+            </frigate-card-media-filter>`
+          : ''}
         <frigate-card-gallery-core
           .hass=${this.hass}
           .view=${this.view}

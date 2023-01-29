@@ -32,6 +32,7 @@ import {
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL,
   CONF_DIMENSIONS_ASPECT_RATIO,
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
+  CONF_EVENT_GALLERY_CONTROLS_FILTER_MODE,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
@@ -152,6 +153,7 @@ const MENU_CAMERAS_FRIGATE = 'cameras.frigate';
 const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
 const MENU_CAMERAS_WEBRTC = 'cameras.webrtc';
 const MENU_EVENT_GALLERY_CONTROLS_THUMBNAILS = 'event_gallery.controls.thumbnails';
+const MENU_EVENT_GALLERY_CONTROLS_FILTER = 'event_gallery.controls.filter';
 const MENU_IMAGE_LAYOUT = 'image.layout';
 const MENU_LIVE_CONTROLS = 'live.controls';
 const MENU_LIVE_CONTROLS_NEXT_PREVIOUS = 'live.controls.next_previous';
@@ -277,6 +279,22 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   protected _cameraSelectViewModes: EditorSelectOption[] = [
     ...this._viewModes,
     { value: 'current', label: localize('config.view.views.current') },
+  ];
+
+  protected _filterModes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'none',
+      label: localize('config.common.controls.filter.modes.none'),
+    },
+    {
+      value: 'left',
+      label: localize('config.common.controls.filter.modes.left'),
+    },
+    {
+      value: 'right',
+      label: localize('config.common.controls.filter.modes.right'),
+    },
   ];
 
   protected _menuStyles: EditorSelectOption[] = [
@@ -1046,13 +1064,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           max: THUMBNAIL_WIDTH_MAX,
           label: localize('config.common.controls.thumbnails.size'),
         })}
-        ${this._renderSwitch(
-          configPathShowDetails,
-          defaults.show_details,
-          {
-            label: localize('config.common.controls.thumbnails.show_details'),
-          },
-        )}
+        ${this._renderSwitch(configPathShowDetails, defaults.show_details, {
+          label: localize('config.common.controls.thumbnails.show_details'),
+        })}
         ${this._renderSwitch(
           configPathShowFavoriteControl,
           defaults.show_favorite_control,
@@ -1067,6 +1081,31 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             label: localize('config.common.controls.thumbnails.show_timeline_control'),
           },
         )}
+      `,
+    );
+  }
+
+  /**
+   * Render the thumbnails controls.
+   * @param domain The submenu domain.
+   * @param configPathMode Filter mode config path.
+   * @returns A rendered template.
+   */
+  protected _renderFilterControls(
+    domain: string,
+    configPathMode: string,
+  ): TemplateResult | void {
+    return this._putInSubmenu(
+      domain,
+      true,
+      'config.common.controls.filter.editor_label',
+      { name: 'mdi:filter-cog' },
+      html`
+        ${configPathMode
+          ? html`${this._renderOptionSelector(configPathMode, this._filterModes, {
+              label: localize('config.common.controls.filter.mode'),
+            })}`
+          : html``}
       `,
     );
   }
@@ -1624,6 +1663,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
                 CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
                 this._defaults.event_gallery.controls.thumbnails,
+              )}
+              ${this._renderFilterControls(
+                MENU_EVENT_GALLERY_CONTROLS_FILTER,
+                CONF_EVENT_GALLERY_CONTROLS_FILTER_MODE,
               )}
             </div>`
           : ''}

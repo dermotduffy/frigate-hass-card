@@ -54,6 +54,8 @@ export const CONF_VIEW_SCAN_UNTRIGGER_SECONDS =
   `${CONF_VIEW_SCAN}.untrigger_seconds` as const;
 
 export const CONF_EVENT_GALLERY = 'event_gallery' as const;
+export const CONF_EVENT_GALLERY_CONTROLS_FILTER_MODE =
+  `${CONF_EVENT_GALLERY}.controls.filter.mode` as const;
 export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS =
   `${CONF_EVENT_GALLERY}.controls.thumbnails.show_details` as const;
 export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =

@@ -1078,6 +1078,9 @@ const galleryThumbnailControlsDefaults = {
 const galleryConfigDefault = {
   controls: {
     thumbnails: galleryThumbnailControlsDefaults,
+    filter: {
+      mode: 'right' as const,
+    },
   },
 };
 
@@ -1092,6 +1095,13 @@ const galleryConfigSchema = z
         thumbnails: gallerythumbnailsControlSchema.default(
           galleryConfigDefault.controls.thumbnails,
         ),
+        filter: z
+          .object({
+            mode: z
+              .enum(['none', 'left', 'right'])
+              .default(galleryConfigDefault.controls.filter.mode),
+          })
+          .default(galleryConfigDefault.controls.filter),
       })
       .default(galleryConfigDefault.controls),
   })

@@ -548,11 +548,39 @@ See the [fully expanded event gallery configuration example](#config-expanded-ev
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `size` | 100 | :heavy_multiplication_x: | The size of the thumbnails in the event gallery in pixels. Must be >= `75` and <= `175`.|
-| `show_details` | `false` | :heavy_multiplication_x: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
+| `controls` | | :heavy_multiplication_x: | Configuration for the Media viewer controls. See below. |
+| `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `event_gallery` (e.g. `clips`, `snapshots`, `recordings`). See [actions](#actions) below.|
+
+#### Event Gallery Controls: Filter
+
+All configuration is under:
+
+```yaml
+event_gallery:
+  controls:
+    filter:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `mode` | `right` | :heavy_multiplication_x: | Whether to show the gallery media filter to the `left`, to the `right` or `none` for no media filter. |
+
+#### Event Gallery Controls: Thumbnails
+
+All configuration is under:
+
+```yaml
+event_gallery:
+  controls:
+    thumbnails:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `size` | 100 | :heavy_multiplication_x: | The size of the thumbnails in the gallery. Must be >= `75` and <= `175`.|
+| `show_details` | `false` | :heavy_multiplication_x: | Whether to show media details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
 | `show_favorite_control` | `true` | :heavy_multiplication_x: | Whether to show the favorite ('star') control on each thumbnail.|
 | `show_timeline_control` | `true` | :heavy_multiplication_x: | Whether to show the timeline ('target') control on each thumbnail.|
-| `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `event_gallery` (e.g. `clips`, `snapshots`, `recordings`). See [actions](#actions) below.|
 
 ### Image Options
 
@@ -1575,6 +1603,8 @@ Reference: [Event Gallery Options](#event-gallery-options).
 ```yaml
 event_gallery:
   controls:
+    filter:
+      mode: 'right'
     thumbnails:
       size: 100
       show_details: false
