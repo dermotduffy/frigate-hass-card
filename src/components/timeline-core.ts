@@ -503,37 +503,38 @@ export class FrigateCardTimelineCore extends LitElement {
       );
     } else if (
       properties.item &&
-      properties.what === 'item' &&
-      MediaQueriesClassifier.areRecordingQueries(this.view.query)
+      properties.what === 'item'
     ) {
-      const eventView = await this._createViewWithEventMediaQuery(
-        this._createEventMediaQuerys(),
-        {
-          selectedItem: properties.item,
-          targetView: 'media',
-        },
-      );
-      const results = eventView?.queryResults?.getResults();
-      // Specifically ensure there are _some_ results before dispatching the
-      // view change.
-      if (eventView && results && results.length) {
-        eventView.mergeInContext({ mediaViewer: { seek: properties.time } });
-        view = eventView;
+      const newResults = this.view.queryResults?.clone()
+        .resetSelectedResult()
+        .selectResultIfFound(
+          (media) => !!this.cameras && media.getID() === properties.item,
+        );
+
+      if (!newResults || !newResults.hasSelectedResult()) {
+        // This can happen if this is a recording query (with recorded hours)
+        // and an event is clicked on the timeline, or if the current thumbnails
+        // is a filtered view from the media gallery (i.e. any case where the
+        // thumbnails may not be match the events on the timeline).
+        const fullEventView = await this._createViewWithEventMediaQuery(
+          this._createEventMediaQuerys(),
+          {
+            selectedItem: properties.item,
+            targetView: 'media',
+          },
+        );
+        if (fullEventView?.queryResults?.hasResults()) {
+          view = fullEventView;
+        }
+      } else {
+        view = this.view.evolve({
+          queryResults: newResults,
+        });
       }
-    } else if (
-      properties.item &&
-      properties.what === 'item' &&
-      this.view.queryResults?.hasResults() &&
-      this.view.query
-    ) {
-      view = this.view.evolve({
-        queryResults: this.view.queryResults
-          ?.clone()
-          .resetSelectedResult()
-          .selectResultIfFound(
-            (media) => !!this.cameras && media.getID() === properties.item,
-          ),
-      });
+
+      if (view?.queryResults?.hasResults()) {
+        view.mergeInContext({ mediaViewer: { seek: properties.time } });
+      }
     }
 
     if (view) {

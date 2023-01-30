@@ -9,8 +9,6 @@
 // Hard:
 //  - TODO: Remove FrigateBrowseMediaSource if not necessary (post-gallery).
 //  - TODO: Remove browse-media.ts TODOs.
-//  - TODO: What should the timeline do when an event is clicked on that is not in the queryResults (or if queryResults is empty)?
-//  - TODO: Should the timeline data source clear events (as it currently does) when the query changes?
 
 import { ViewContext } from 'view';
 import {
