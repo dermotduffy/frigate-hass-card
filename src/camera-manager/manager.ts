@@ -267,9 +267,15 @@ export class CameraManager {
       const newChunkQuery = { ...query };
 
       if (direction === 'later') {
-        newChunkQuery.start = getTimeFromResults('latest') ?? undefined;
+        const latestResult = getTimeFromResults('latest');
+        if (latestResult) {
+          newChunkQuery.start = latestResult;
+        }
       } else if (direction === 'earlier') {
-        newChunkQuery.end = getTimeFromResults('earliest') ?? undefined;
+        const earliestResult = getTimeFromResults('earliest');
+        if (earliestResult) {
+          newChunkQuery.end = earliestResult;
+        }
       }
       newChunkQuery.limit = chunkSize;
 

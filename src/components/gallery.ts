@@ -247,7 +247,7 @@ export class FrigateCardGalleryCore extends LitElement {
     this._showExtensionLoader = false;
 
     const query = this.view?.query;
-    const rawQueries: MediaQuery[] | null = query?.getQueries() ?? null;
+    const rawQueries = query?.getQueries() ?? null;
     const existingMedia = this.view.queryResults?.getResults();
     if (!query || !rawQueries || !existingMedia) {
       return;
@@ -255,7 +255,7 @@ export class FrigateCardGalleryCore extends LitElement {
 
     let extension: ExtendedMediaQueryResult<MediaQuery> | null;
     try {
-      extension = await this.cameraManager.extendMediaQueries(
+      extension = await this.cameraManager.extendMediaQueries<MediaQuery>(
         this.hass,
         rawQueries,
         existingMedia,
