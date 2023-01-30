@@ -490,6 +490,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   }
 
   public generateMediaFromEvents(
+    _hass: HomeAssistant,
     cameras: Map<string, CameraConfig>,
     query: EventQuery,
     results: QueryReturnType<EventQuery>,
@@ -542,6 +543,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   }
 
   public generateMediaFromRecordings(
+    hass: HomeAssistant,
     cameras: Map<string, CameraConfig>,
     _query: RecordingQuery,
     results: QueryReturnType<RecordingQuery>,
@@ -557,6 +559,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
         continue;
       }
       const media = FrigateViewMediaFactory.createRecordingViewMedia(
+        hass,
         recording.cameraID,
         recording,
         cameraConfig,

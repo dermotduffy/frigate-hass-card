@@ -58,12 +58,14 @@ export interface CameraManagerEngine {
   ): Promise<RecordingSegmentsQueryResultsMap | null>;
 
   generateMediaFromEvents(
+    hass: HomeAssistant,
     cameras: Map<string, CameraConfig>,
     query: EventQuery,
     results: QueryReturnType<EventQuery>,
   ): ViewMedia[] | null;
 
   generateMediaFromRecordings(
+    hass: HomeAssistant,
     cameras: Map<string, CameraConfig>,
     query: RecordingQuery,
     results: QueryReturnType<RecordingQuery>,

@@ -236,6 +236,7 @@ export class CameraManager {
       return null;
     }
     const mediaArray = this._convertQueryResultsToMedia(
+      hass,
       await this._handleQuery(hass, queries),
     );
 
@@ -294,6 +295,7 @@ export class CameraManager {
     }
 
     const newChunkMedia = this._convertQueryResultsToMedia(
+      hass,
       await this._handleQuery(hass, newChunkQueries),
     );
 
@@ -498,6 +500,7 @@ export class CameraManager {
   }
 
   protected _convertQueryResultsToMedia<QT extends DataQuery>(
+    hass: HomeAssistant,
     results: ResultsMap<QT>,
   ): ViewMedia[] {
     const mediaArray: ViewMedia[] = [];
@@ -510,12 +513,12 @@ export class CameraManager {
           QueryClassifier.isEventQuery(query) &&
           QueryResultClassifier.isEventQueryResult(result)
         ) {
-          media = engine.generateMediaFromEvents(this._cameras, query, result);
+          media = engine.generateMediaFromEvents(hass, this._cameras, query, result);
         } else if (
           QueryClassifier.isRecordingQuery(query) &&
           QueryResultClassifier.isRecordingQuery(result)
         ) {
-          media = engine.generateMediaFromRecordings(this._cameras, query, result);
+          media = engine.generateMediaFromRecordings(hass, this._cameras, query, result);
         }
         if (media) {
           mediaArray.push(...media);

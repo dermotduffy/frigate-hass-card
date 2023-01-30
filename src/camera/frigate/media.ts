@@ -1,3 +1,4 @@
+import { HomeAssistant } from 'custom-card-helpers';
 import fromUnixTime from 'date-fns/fromUnixTime';
 import isEqual from 'lodash-es/isEqual';
 import { CameraConfig } from '../../types';
@@ -155,6 +156,7 @@ export class FrigateViewMediaFactory {
   }
 
   static createRecordingViewMedia(
+    hass: HomeAssistant,
     cameraID: string,
     recording: FrigateRecording,
     cameraConfig: CameraConfig,
@@ -173,7 +175,7 @@ export class FrigateViewMediaFactory {
         cameraConfig.frigate.camera_name,
         recording,
       ),
-      getRecordingTitle(cameraConfig, recording),
+      getRecordingTitle(hass, cameraConfig, recording),
     );
   }
 }
