@@ -1,8 +1,6 @@
-import { HomeAssistant } from 'custom-card-helpers';
 import utcToZonedTime from 'date-fns-tz/utcToZonedTime';
 import { CameraConfig, ClipsOrSnapshots } from '../../types';
 import { formatDateAndTime, prettifyTitle } from '../../utils/basic';
-import { getCameraTitle } from '../../utils/camera';
 import { FrigateEvent, FrigateRecording } from './types';
 
 /**
@@ -24,14 +22,10 @@ export const getEventTitle = (event: FrigateEvent): string => {
 };
 
 export const getRecordingTitle = (
-  hass: HomeAssistant,
-  cameraConfig: CameraConfig,
+  cameraTitle: string,
   recording: FrigateRecording,
 ): string => {
-  const cameraTitle = getCameraTitle(hass, cameraConfig);
-  return `${cameraTitle ? `${cameraTitle} ` : ''}${formatDateAndTime(
-    recording.startTime,
-  )}`;
+  return `${cameraTitle} ${formatDateAndTime(recording.startTime)}`;
 };
 
 /**

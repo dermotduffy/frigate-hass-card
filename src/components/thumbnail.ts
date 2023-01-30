@@ -16,7 +16,6 @@ import thumbnailFeatureRecordingStyle from '../scss/thumbnail-feature-recording.
 import thumbnailStyle from '../scss/thumbnail.scss';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { errorToConsole, getDurationString, prettifyTitle } from '../utils/basic.js';
-import { getCameraTitle } from '../utils/camera.js';
 import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask, FetchThumbnailTaskArgs } from '../utils/thumbnail.js';
 import { View } from '../view/view.js';
@@ -270,7 +269,7 @@ export class FrigateCardThumbnail extends LitElement {
    * @returns A template to display to the user.
    */
   protected render(): TemplateResult | void {
-    if (!this.media || !this.cameraConfig) {
+    if (!this.media || !this.cameraConfig || !this.cameraManager || !this.hass) {
       return;
     }
 
@@ -295,6 +294,8 @@ export class FrigateCardThumbnail extends LitElement {
       this.hass &&
       this.cameraManager?.getMediaCapabilities(this.media)?.canFavorite;
 
+    const cameraTitle = this.cameraManager.getCameraMetadata(this.hass, this.cameraConfig)?.title;
+
     return html` ${ViewMediaClassifier.isEvent(this.media)
       ? html`<frigate-card-thumbnail-feature-event
           aria-label="${title ?? ''}"
@@ -306,9 +307,7 @@ export class FrigateCardThumbnail extends LitElement {
       ? html`<frigate-card-thumbnail-feature-recording
           aria-label="${title ?? ''}"
           title="${title ?? ''}"
-          .cameraTitle=${this.details || !this.cameraConfig || !this.hass
-            ? undefined
-            : getCameraTitle(this.hass, this.cameraConfig)}
+          .cameraTitle=${this.details ? undefined : cameraTitle}
           .date=${this.media.getStartTime() ?? undefined}
         ></frigate-card-thumbnail-feature-recording>`
       : html``}
@@ -343,7 +342,7 @@ export class FrigateCardThumbnail extends LitElement {
       : this.details && ViewMediaClassifier.isRecording(this.media)
       ? html`<frigate-card-thumbnail-details-recording
           .media=${this.media ?? undefined}
-          .cameraTitle=${getCameraTitle(this.hass, this.cameraConfig)}
+          .cameraTitle=${cameraTitle}
           .seek=${this.seek}
         ></frigate-card-thumbnail-details-recording>`
       : html``}

@@ -156,10 +156,10 @@ export class FrigateViewMediaFactory {
   }
 
   static createRecordingViewMedia(
-    hass: HomeAssistant,
     cameraID: string,
     recording: FrigateRecording,
     cameraConfig: CameraConfig,
+    cameraTitle: string,
   ): FrigateRecordingViewMedia | null {
     if (!cameraConfig.frigate.client_id || !cameraConfig.frigate.camera_name) {
       return null;
@@ -175,7 +175,7 @@ export class FrigateViewMediaFactory {
         cameraConfig.frigate.camera_name,
         recording,
       ),
-      getRecordingTitle(hass, cameraConfig, recording),
+      getRecordingTitle(cameraTitle, recording),
     );
   }
 }

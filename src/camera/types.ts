@@ -85,6 +85,11 @@ export interface CameraManagerMediaCapabilities {
   canFavorite: boolean;
 }
 
+export interface CameraManagerCameraMetadata {
+  title: string;
+  icon: string;
+}
+
 // ===========
 // Event Query
 // ===========

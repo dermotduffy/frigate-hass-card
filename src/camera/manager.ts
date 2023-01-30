@@ -2,6 +2,7 @@ import { HomeAssistant } from 'custom-card-helpers';
 import { CameraConfig, CardWideConfig } from '../types.js';
 import { allPromises, arrayify, setify } from '../utils/basic.js';
 import {
+  CameraManagerCameraMetadata,
   CameraManagerCapabilities,
   CameraManagerMediaCapabilities,
   DataQuery,
@@ -538,5 +539,16 @@ export class CameraManager {
       (media) => media.getStartTime(),
       'desc',
     );
+  }
+
+  public getCameraMetadata(
+    hass: HomeAssistant,
+    cameraConfig?: CameraConfig,
+  ): CameraManagerCameraMetadata | null {
+    const engine = this._engineFactory.getEngineForCamera(cameraConfig);
+    if (!engine || !cameraConfig) {
+      return null;
+    }
+    return engine.getCameraMetadata(hass, cameraConfig);
   }
 }

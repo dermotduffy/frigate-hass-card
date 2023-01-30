@@ -140,10 +140,14 @@ import {
   THUMBNAIL_WIDTH_MAX,
   THUMBNAIL_WIDTH_MIN,
 } from './types.js';
-import { arrayMove } from './utils/basic.js';
-import { getCameraID, getCameraTitle } from './utils/camera.js';
+import { arrayMove, prettifyTitle } from './utils/basic.js';
+import { getCameraID } from './utils/camera.js';
 import { FRIGATE_ICON_SVG_PATH } from './camera/frigate/icon.js';
-import { getEntitiesFromHASS, sideLoadHomeAssistantElements } from './utils/ha';
+import {
+  getEntitiesFromHASS,
+  getEntityTitle,
+  sideLoadHomeAssistantElements,
+} from './utils/ha';
 import { setLowPerformanceProfile } from './performance.js';
 
 const MENU_BUTTONS = 'buttons';
@@ -708,8 +712,29 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     cameraIndex: number,
     cameraConfig: RawFrigateCardConfig,
   ): string {
+    // Attempt to render a recognizable name for the camera, starting with the
+    // most likely to be useful and working our ways towards the least useful.
+    // This is only used for the editor since the card itself can use the
+    // cameraManager.
     return (
-      getCameraTitle(this.hass, cameraConfig) ||
+      (typeof cameraConfig?.title === 'string' && cameraConfig.title) ||
+      (typeof cameraConfig?.camera_entity === 'string'
+        ? getEntityTitle(this.hass, cameraConfig.camera_entity)
+        : '') ||
+      (typeof cameraConfig?.webrtc_card === 'object' &&
+        cameraConfig.webrtc_card &&
+        typeof cameraConfig.webrtc_card['entity'] === 'string' &&
+        cameraConfig.webrtc_card['entity']) ||
+      // Usage of engine specific logic here is allowed as an exception, since
+      // the camera manager cannot be started with an unparsed and unloaded
+      // config.
+      (typeof cameraConfig?.frigate === 'object' &&
+      cameraConfig.frigate &&
+      typeof cameraConfig?.frigate['camera_name'] === 'string' &&
+      cameraConfig.frigate['camera_name']
+        ? prettifyTitle(cameraConfig.frigate['camera_name'])
+        : '') ||
+      (typeof cameraConfig?.id === 'string' && cameraConfig.id) ||
       localize('editor.camera') + ' #' + cameraIndex
     );
   }

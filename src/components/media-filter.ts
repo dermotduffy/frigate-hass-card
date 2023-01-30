@@ -19,7 +19,6 @@ import { customElement, property } from 'lit/decorators.js';
 import { CameraManager } from '../camera/manager';
 import { DateRange } from '../camera/range';
 import { CameraConfig, ExtendedHomeAssistant } from '../types';
-import { getCameraTitle } from '../utils/camera';
 import { View } from '../view/view';
 import {
   MediaFilterControls,
@@ -193,7 +192,9 @@ export class FrigateCardMediaFilter extends LitElement {
       this._cameraOptions = Array.from(this.cameras.entries()).map(
         ([cameraID, cameraConfig]) => ({
           value: cameraID,
-          label: getCameraTitle(this.hass, cameraConfig),
+          label: this.hass
+            ? this.cameraManager?.getCameraMetadata(this.hass, cameraConfig)?.title ?? ''
+            : '',
         }),
       );
     }

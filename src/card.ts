@@ -67,7 +67,7 @@ import {
   getActionConfigGivenAction,
 } from './utils/action.js';
 import { contentsChanged, errorToConsole } from './utils/basic.js';
-import { getCameraIcon, getCameraID, getCameraTitle } from './utils/camera.js';
+import { getCameraID } from './utils/camera.js';
 import {
   getEntityIcon,
   getEntityTitle,
@@ -403,12 +403,16 @@ export class FrigateCard extends LitElement {
         const action = createFrigateCardCustomAction('camera_select', {
           camera: camera,
         });
+        const metadata = this._hass
+          ? this._cameraManager?.getCameraMetadata(this._hass, config) ?? undefined
+          : undefined;
+
         return {
           enabled: true,
-          icon: getCameraIcon(this._hass, config),
+          icon: metadata?.icon,
           entity: config.camera_entity,
           state_color: true,
-          title: getCameraTitle(this._hass, config),
+          title: metadata?.title,
           selected: this._view?.camera === camera,
           ...(action && { tap_action: action }),
         };
@@ -1104,7 +1108,8 @@ export class FrigateCard extends LitElement {
    */
   protected willUpdate(changedProps: PropertyValues): void {
     if (
-      this._cameras && this._cardWideConfig &&
+      this._cameras &&
+      this._cardWideConfig &&
       (changedProps.has('_config') ||
         changedProps.has('_cameras') ||
         changedProps.has('_cardWideConfig'))
@@ -1393,7 +1398,12 @@ export class FrigateCard extends LitElement {
    * @returns
    */
   protected _mediaPlayerAction(mediaPlayer: string, action: 'play' | 'stop'): void {
-    if (!['play', 'stop'].includes(action) || !this._view) {
+    if (
+      !['play', 'stop'].includes(action) ||
+      !this._view ||
+      !this._hass ||
+      !this._cameraManager
+    ) {
       return;
     }
 
@@ -1417,7 +1427,7 @@ export class FrigateCard extends LitElement {
     } else if (this._view?.is('live') && cameraEntity) {
       media_content_id = `media-source://camera/${cameraEntity}`;
       media_content_type = 'application/vnd.apple.mpegurl';
-      title = getCameraTitle(this._hass, cameraConfig);
+      title = this._cameraManager.getCameraMetadata(this._hass, cameraConfig)?.title ?? null;
       thumbnail = this._hass?.states[cameraEntity]?.attributes?.entity_picture ?? null;
     }
 

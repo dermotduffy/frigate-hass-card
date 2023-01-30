@@ -42,7 +42,7 @@ import {
   dispatchFrigateCardEvent,
   isHoverableDevice,
 } from '../utils/basic';
-import { getAllDependentCameras, getCameraTitle } from '../utils/camera.js';
+import { getAllDependentCameras } from '../utils/camera.js';
 
 import {
   createViewForEvents,
@@ -675,16 +675,22 @@ export class FrigateCardTimelineCore extends LitElement {
 
     this._getTimelineCameraIDs().forEach((cameraID) => {
       const cameraConfig = this.cameras?.get(cameraID);
-      if (cameraConfig) {
-        if (
-          cameraConfig.frigate.camera_name &&
-          cameraConfig.frigate.camera_name !== CAMERA_BIRDSEYE
-        ) {
-          groups.push({
-            id: cameraID,
-            content: getCameraTitle(this.hass, cameraConfig),
-          });
-        }
+      if (!this.hass || !cameraConfig || !this.cameraManager) {
+        return;
+      }
+      const cameraMetadata = this.cameraManager.getCameraMetadata(
+        this.hass,
+        cameraConfig,
+      );
+      if (
+        cameraMetadata &&
+        cameraConfig.frigate.camera_name &&
+        cameraConfig.frigate.camera_name !== CAMERA_BIRDSEYE
+      ) {
+        groups.push({
+          id: cameraID,
+          content: cameraMetadata.title,
+        });
       }
     });
     return new DataSet(groups);

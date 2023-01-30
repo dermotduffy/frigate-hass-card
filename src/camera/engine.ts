@@ -16,6 +16,7 @@ import {
   RecordingSegmentsQueryResultsMap,
   CameraManagerEngineCapabilities,
   CameraManagerMediaCapabilities,
+  CameraManagerCameraMetadata,
 } from './types';
 
 export const CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT = 10000;
@@ -93,6 +94,11 @@ export interface CameraManagerEngine {
     hass: HomeAssistant,
     cameras: Map<string, CameraConfig>,
   ): Promise<MediaMetadata | null>;
+
+  getCameraMetadata(
+    hass: HomeAssistant,
+    cameraConfig: CameraConfig,
+  ): CameraManagerCameraMetadata;
 
   getCapabilities(): CameraManagerEngineCapabilities | null;
   getMediaCapabilities(media: ViewMedia): CameraManagerMediaCapabilities | null;

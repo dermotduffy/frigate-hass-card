@@ -12,6 +12,7 @@ import {
 } from '../engine';
 import { DateRange } from '../range';
 import {
+  CameraManagerCameraMetadata,
   CameraManagerEngineCapabilities,
   CameraManagerMediaCapabilities,
   DataQuery,
@@ -48,13 +49,19 @@ import {
 } from './requests';
 import orderBy from 'lodash-es/orderBy';
 import throttle from 'lodash-es/throttle';
-import { allPromises, formatDate, runWhenIdleIfSupported } from '../../utils/basic';
+import {
+  allPromises,
+  formatDate,
+  prettifyTitle,
+  runWhenIdleIfSupported,
+} from '../../utils/basic';
 import { fromUnixTime } from 'date-fns';
 import { sum } from 'lodash-es';
 import { FrigateViewMediaClassifier } from './media-classifier';
 import { ViewMediaClassifier } from '../../view/media-classifier';
 import { FrigateViewMediaFactory } from './media';
 import { log } from '../../utils/debug';
+import { getEntityIcon, getEntityTitle } from '../../utils/ha';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
@@ -559,10 +566,10 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
         continue;
       }
       const media = FrigateViewMediaFactory.createRecordingViewMedia(
-        hass,
         recording.cameraID,
         recording,
         cameraConfig,
+        this.getCameraMetadata(hass, cameraConfig).title,
       );
       if (media) {
         output.push(media);
@@ -807,6 +814,25 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   public getMediaCapabilities(media: ViewMedia): CameraManagerMediaCapabilities {
     return {
       canFavorite: ViewMediaClassifier.isEvent(media),
+    };
+  }
+
+  public getCameraMetadata(
+    hass: HomeAssistant,
+    cameraConfig: CameraConfig,
+  ): CameraManagerCameraMetadata {
+    return {
+      title:
+        cameraConfig.title ??
+        getEntityTitle(hass, cameraConfig.camera_entity) ??
+        getEntityTitle(hass, cameraConfig.webrtc_card?.entity) ??
+        prettifyTitle(cameraConfig.frigate?.camera_name) ??
+        cameraConfig.id ??
+        '',
+      icon:
+        cameraConfig?.icon ??
+        getEntityIcon(hass, cameraConfig.camera_entity) ??
+        'mdi:video',
     };
   }
 }

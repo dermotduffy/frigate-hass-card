@@ -5,7 +5,6 @@ import { dispatchErrorMessageEvent } from '../../components/message.js';
 import { localize } from '../../localize/localize.js';
 import {
   BrowseMediaQueryParameters,
-  BrowseRecordingQueryParameters,
   CameraConfig,
   ClipsOrSnapshots,
   FrigateBrowseMediaSource,
@@ -15,7 +14,7 @@ import {
   MEDIA_TYPE_PLAYLIST,
   MEDIA_TYPE_VIDEO,
 } from '../../types.js';
-import { getAllDependentCameras, getCameraTitle } from '../camera.js';
+import { getAllDependentCameras } from '../camera.js';
 
 /**
  * Return the Frigate event_id given a FrigateBrowseMediaSource object.
@@ -189,7 +188,7 @@ export const mergeFrigateBrowseMediaSources = async (
  * @returns A BrowseMediaQueryParameters object.
  */
 export const getBrowseMediaQueryParameters = (
-  hass: HomeAssistant,
+  _hass: HomeAssistant,
   cameraID: string,
   cameraConfig?: CameraConfig,
   overrides?: Partial<BrowseMediaQueryParameters>,
@@ -202,7 +201,7 @@ export const getBrowseMediaQueryParameters = (
     cameraName: cameraConfig.frigate.camera_name,
     label: cameraConfig.frigate.label,
     zone: cameraConfig.frigate.zone,
-    title: getCameraTitle(hass, cameraConfig),
+    title: '', // TODO: Replace: getCameraTitle(hass, cameraConfig),
     cameraID: cameraID,
     ...overrides,
   };

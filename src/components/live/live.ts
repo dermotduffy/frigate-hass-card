@@ -32,7 +32,6 @@ import {
 } from '../../types.js';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { contentsChanged } from '../../utils/basic.js';
-import { getCameraIcon, getCameraTitle } from '../../utils/camera.js';
 import {
   dispatchExistingMediaLoadedInfoAsEvent,
   dispatchMediaUnloadedEvent,
@@ -87,7 +86,7 @@ export const getStateObjOrDispatchError = (
   if (stateObj.state === 'unavailable') {
     dispatchMessageEvent(element, localize('error.live_camera_unavailable'), 'info', {
       icon: 'mdi:connection',
-      context: getCameraTitle(hass, cameraConfig),
+      context: cameraConfig,
     });
     return null;
   }
@@ -261,6 +260,7 @@ export class FrigateCardLive extends LitElement {
           .conditionState=${this.conditionState}
           .liveOverrides=${this.liveOverrides}
           .cardWideConfig=${this.cardWideConfig}
+          .cameraManager=${this.cameraManager}
         >
         </frigate-card-live-carousel>
       </frigate-card-surround>`,
@@ -304,6 +304,9 @@ export class FrigateCardLiveCarousel extends LitElement {
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
+  @property({ attribute: false })
+  public cameraManager?: CameraManager;
+
   // Index between camera name and slide number.
   protected _cameraToSlide: Record<string, number> = {};
   protected _refMediaCarousel: Ref<FrigateCardMediaCarousel> = createRef();
@@ -317,10 +320,7 @@ export class FrigateCardLiveCarousel extends LitElement {
 
     const frigateCardMediaCarousel = this._refMediaCarousel.value;
 
-    if (
-      frigateCardMediaCarousel &&
-      changedProperties.has('inBackground')
-    ) {
+    if (frigateCardMediaCarousel && changedProperties.has('inBackground')) {
       // If this has changed to be in the background (i.e. preloaded but not
       // visible) take the appropriate play/pause/mute/unmute actions.
       if (this.inBackground) {
@@ -493,7 +493,7 @@ export class FrigateCardLiveCarousel extends LitElement {
     cameraConfig: CameraConfig,
     slideIndex: number,
   ): TemplateResult | void {
-    if (!this.liveConfig) {
+    if (!this.liveConfig || !this.hass || !this.cameraManager) {
       return;
     }
     // The conditionState object contains the currently live camera, which (in
@@ -510,12 +510,14 @@ export class FrigateCardLiveCarousel extends LitElement {
       conditionState,
     ) as LiveConfig;
 
+    const cameraMetadata = this.cameraManager.getCameraMetadata(this.hass, cameraConfig);
+
     return html`
       <div class="embla__slide">
         <frigate-card-live-provider
           ?disabled=${this.liveConfig.lazy_load}
           .cameraConfig=${cameraConfig}
-          .label=${getCameraTitle(this.hass, cameraConfig)}
+          .label=${cameraMetadata?.title ?? ''}
           .liveConfig=${config}
           .hass=${this.hass}
           .cardWideConfig=${this.cardWideConfig}
@@ -555,7 +557,14 @@ export class FrigateCardLiveCarousel extends LitElement {
   protected render(): TemplateResult | void {
     const [slides, cameraToSlide] = this._getSlides();
     this._cameraToSlide = cameraToSlide;
-    if (!slides.length || !this.liveConfig || !this.cameras || !this.view) {
+    if (
+      !slides.length ||
+      !this.liveConfig ||
+      !this.cameras ||
+      !this.view ||
+      !this.hass ||
+      !this.cameraManager
+    ) {
       return;
     }
 
@@ -566,7 +575,19 @@ export class FrigateCardLiveCarousel extends LitElement {
     ) as LiveConfig;
 
     const [prevID, nextID] = this._getCameraIDsOfNeighbors();
-    const title = getCameraTitle(this.hass, this.cameras.get(this.view.camera));
+
+    const cameraMetadataPrevious = prevID ? this.cameraManager.getCameraMetadata(
+      this.hass,
+      this.cameras.get(prevID),
+    ) : null;
+    const cameraMetadataCurrent = this.cameraManager.getCameraMetadata(
+      this.hass,
+      this.cameras.get(this.view.camera),
+    );
+    const cameraMetadataNext = nextID ? this.cameraManager.getCameraMetadata(
+      this.hass,
+      this.cameras.get(nextID),
+    ) : null;
 
     // Notes on the below:
     // - guard() is used to avoid reseting the carousel unless the
@@ -589,7 +610,7 @@ export class FrigateCardLiveCarousel extends LitElement {
           [this.cameras, this.liveConfig],
           this._getPlugins.bind(this),
         ) as EmblaCarouselPlugins}
-        .label="${title ? `${localize('common.live')}: ${title}` : ''}"
+        .label="${cameraMetadataCurrent ? `${localize('common.live')}: ${cameraMetadataCurrent.title}` : ''}"
         .titlePopupConfig=${config.controls.title}
         .selected=${this._getSelectedCameraIndex()}
         transitionEffect=${this._getTransitionEffect()}
@@ -604,8 +625,8 @@ export class FrigateCardLiveCarousel extends LitElement {
           .hass=${this.hass}
           .direction=${'previous'}
           .controlConfig=${config.controls.next_previous}
-          .label=${getCameraTitle(this.hass, prevID ? this.cameras.get(prevID) : null)}
-          .icon=${getCameraIcon(this.hass, prevID ? this.cameras.get(prevID) : null)}
+          .label=${cameraMetadataPrevious?.title ?? ''}
+          .icon=${cameraMetadataPrevious?.icon}
           ?disabled=${prevID === null}
           @click=${(ev) => {
             this._setViewCameraID(prevID);
@@ -619,8 +640,8 @@ export class FrigateCardLiveCarousel extends LitElement {
           .hass=${this.hass}
           .direction=${'next'}
           .controlConfig=${config.controls.next_previous}
-          .label=${getCameraTitle(this.hass, nextID ? this.cameras.get(nextID) : null)}
-          .icon=${getCameraIcon(this.hass, nextID ? this.cameras.get(nextID) : null)}
+          .label=${cameraMetadataNext?.title ?? ''}
+          .icon=${cameraMetadataNext?.icon}
           ?disabled=${nextID === null}
           @click=${(ev) => {
             this._setViewCameraID(nextID);

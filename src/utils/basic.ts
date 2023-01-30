@@ -33,6 +33,7 @@ export function dispatchFrigateCardEvent<T>(
  * @returns A prettified name.
  */
 export function prettifyTitle(input: string): string;
+export function prettifyTitle(input?: string): string | undefined;
 export function prettifyTitle(input?: string): string | undefined {
   if (!input) {
     return undefined;
