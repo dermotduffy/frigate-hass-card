@@ -377,7 +377,6 @@ export class MediaMetadataController implements ReactiveController {
       });
       this.whenOptions = monthStarts
         .sort()
-        .reverse()
         .map((monthStart) => ({
           label: format(monthStart, 'MMMM yyyy'),
           value: {

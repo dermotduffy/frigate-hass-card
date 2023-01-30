@@ -1,6 +1,5 @@
 // Minor / later:
 //  - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
-//  - TODO: Take MediaQueries wrappers out of the camera manager.
 //  - TODO: View a media in the gallery from September, then notice timeline missing the item.
 
 // Gallery:
