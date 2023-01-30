@@ -179,10 +179,15 @@ export class FrigateCardTimelineCore extends LitElement {
   @property({ attribute: false })
   public thumbnailSize?: number;
 
-  // Whether or not this is a mini-timeline for a different view (e.g. media
-  // viewer).
+  // Whether or not this is a mini-timeline (in mini-mode the component takes a
+  // supportive role for other views).
   @property({ attribute: true, type: Boolean, reflect: true })
   public mini = false;
+
+  // Which cameraIDs to include in the timeline. If not specified, all cameraIDs
+  // are shown.
+  @property({ attribute: false })
+  public  cameraIDs?: Set<string>;
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
@@ -282,10 +287,7 @@ export class FrigateCardTimelineCore extends LitElement {
    * @returns A set of camera ids (may be empty).
    */
   protected _getTimelineCameraIDs(): Set<string> {
-    if (!this.mini || !this.cameras) {
-      return this._getAllCameraIDs();
-    }
-    return getAllDependentCameras(this.cameras, this.view?.camera);
+    return this.cameraIDs ?? this._getAllCameraIDs();
   }
 
   /**
@@ -1068,10 +1070,7 @@ export class FrigateCardTimelineCore extends LitElement {
       this._refTimeline.value &&
       options &&
       this.timelineConfig &&
-      (changedProperties.has('timelineConfig') ||
-        (this.mini &&
-          changedProperties.has('view') &&
-          this.view?.camera !== changedProperties.get('view').camera))
+      (changedProperties.has('timelineConfig') || changedProperties.has('cameraIDs'))
     ) {
       if (this._timeline) {
         this._destroy();

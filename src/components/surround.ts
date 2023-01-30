@@ -21,6 +21,7 @@ import { View } from '../view/view.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 import './surround-basic.js';
 import { changeViewToRecentEventsForCameraAndDependents } from '../utils/media-to-view';
+import { getAllDependentCameras } from '../utils/camera.js';
 
 interface ThumbnailViewContext {
   // Whether or not to fetch thumbnails.
@@ -124,12 +125,25 @@ export class FrigateCardSurround extends LitElement {
     }
   }
 
+  protected _getCameraIDsForView(): Set<string> | null {
+    if (!this.view || !this.cameras) {
+      return null;
+    }
+    if (this.view?.is('live')) {
+      return getAllDependentCameras(this.cameras, this.view.camera);
+    }
+    if (this.view.isViewerView()) {
+      return new Set(this.view.queryResults?.getResults()?.map((media) => media.getCameraID()));
+    }
+    return null;
+  }
+
   /**
    * Master render method.
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.view || !this.thumbnailConfig) {
+    if (!this.hass || !this.view || !this.thumbnailConfig || !this.cameras) {
       return;
     }
 
@@ -191,6 +205,7 @@ export class FrigateCardSurround extends LitElement {
             .hass=${this.hass}
             .view=${this.view}
             .cameras=${this.cameras}
+            .cameraIDs=${this._getCameraIDsForView() ?? undefined}
             .mini=${true}
             .timelineConfig=${this.timelineConfig}
             .thumbnailDetails=${this.thumbnailConfig?.show_details}
