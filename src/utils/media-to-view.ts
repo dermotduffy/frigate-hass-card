@@ -15,6 +15,7 @@ import { HomeAssistant } from 'custom-card-helpers';
 import { dispatchFrigateCardErrorEvent } from '../components/message';
 import { MediaQueriesResults } from '../view/media-queries-results';
 import { errorToConsole } from './basic';
+import { MediaQuery } from '../camera-manager/types';
 
 export const changeViewToRecentEventsForCameraAndDependents = async (
   element: HTMLElement,
@@ -179,19 +180,29 @@ const executeMediaQueryForView = async (
     targetTime?: Date;
   },
 ): Promise<View | null> => {
-  let queryResults: MediaQueriesResults | null;
+  let mediaArray: ViewMedia[] | null;
+
+  const queries = query.getQueries();
+  if (!queries) {
+    return null;
+  }
 
   try {
-    queryResults = await cameraManager.executeMediaQueries(hass, query);
+    mediaArray = await cameraManager.executeMediaQueries<MediaQuery>(hass, queries);
   } catch (e) {
     errorToConsole(e as Error);
     dispatchFrigateCardErrorEvent(element, e as Error);
     return null;
   }
 
+  if (!mediaArray) {
+    return null;
+  }
+
+  const queryResults = new MediaQueriesResults(mediaArray);
   let viewerContext: ViewContext | undefined = {};
-  const mediaArray = queryResults?.getResults();
-  if (queryResults && mediaArray && options?.targetTime && options.cameraIDs) {
+
+  if (options?.targetTime && options.cameraIDs) {
     queryResults.selectBestResult((media) =>
       findClosestMediaIndex(media, options.targetTime as Date, options.cameraIDs),
     );

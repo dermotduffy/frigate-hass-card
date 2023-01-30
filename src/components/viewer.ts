@@ -380,18 +380,23 @@ export class FrigateCardViewerCarousel extends LitElement {
     const clipQuery = this.view.query.clone();
     clipQuery.convertToClipsQueries();
 
-    let results: MediaQueriesResults | null;
+    const queries = clipQuery.getQueries();
+    if (!queries) {
+      return;
+    }
+
+    let mediaArray: ViewMedia[] | null;
     try {
-      results = await this.cameraManager.executeMediaQueries(this.hass, clipQuery);
+      mediaArray = await this.cameraManager.executeMediaQueries(this.hass, queries);
     } catch (e) {
       errorToConsole(e as Error);
       return;
     }
-
-    if (!results) {
+    if (!mediaArray) {
       return;
     }
 
+    const results = new MediaQueriesResults(mediaArray);
     results.selectResultIfFound((clipMedia) => clipMedia.getID() === media.getID());
     if (!results.hasSelectedResult()) {
       return;

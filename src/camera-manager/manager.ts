@@ -31,8 +31,6 @@ import {
 import orderBy from 'lodash-es/orderBy';
 import { CameraManagerEngineFactory } from './engine-factory.js';
 import { ViewMedia } from '../view/media.js';
-import { MediaQueriesResults } from '../view/media-queries-results';
-import { MediaQueries } from '../view/media-queries.js';
 import uniqBy from 'lodash-es/uniqBy';
 import { CameraManagerEngine } from './engine.js';
 import sum from 'lodash-es/sum';
@@ -123,9 +121,7 @@ export class CameraManager {
     });
   }
 
-  public async getMediaMetadata(
-    hass: HomeAssistant,
-  ): Promise<MediaMetadata | null> {
+  public async getMediaMetadata(hass: HomeAssistant): Promise<MediaMetadata | null> {
     const what: Set<string> = new Set();
     const where: Set<string> = new Set();
     const days: Set<string> = new Set();
@@ -148,7 +144,7 @@ export class CameraManager {
           engineMetadata.days.forEach(days.add, days);
         }
       }
-    }
+    };
 
     await allPromises(engines, (engine) => processMetadata(engine));
 
@@ -159,7 +155,7 @@ export class CameraManager {
       ...(what.size && { what: what }),
       ...(where.size && { where: where }),
       ...(days.size && { days: days }),
-    }
+    };
   }
 
   protected _generateDefaultQueries<PQT extends PartialDataQuery>(
@@ -228,24 +224,13 @@ export class CameraManager {
     return await this._handleQuery(hass, query);
   }
 
-  public async executeMediaQueries(
+  public async executeMediaQueries<T extends MediaQuery>(
     hass: HomeAssistant,
-    mediaQueries: MediaQueries,
-  ): Promise<MediaQueriesResults | null> {
-    const queries: (RecordingQuery | EventQuery)[] | null = mediaQueries.getQueries();
-    if (!queries) {
-      return null;
-    }
-    const mediaArray = this._convertQueryResultsToMedia(
+    queries: T[],
+  ): Promise<ViewMedia[] | null> {
+    return this._convertQueryResultsToMedia(
       hass,
       await this._handleQuery(hass, queries),
-    );
-
-    return new MediaQueriesResults(
-      mediaArray,
-
-      // Select the first (most-recent) item.
-      mediaArray.length ? 0 : null,
     );
   }
 
@@ -328,9 +313,13 @@ export class CameraManager {
     }
 
     return {
-      canFavoriteEvents: engines.some((engine) => engine.getCapabilities()?.canFavoriteEvents),
-      canFavoriteRecordings: engines.some((engine) => engine.getCapabilities()?.canFavoriteRecordings),
-    }
+      canFavoriteEvents: engines.some(
+        (engine) => engine.getCapabilities()?.canFavoriteEvents,
+      ),
+      canFavoriteRecordings: engines.some(
+        (engine) => engine.getCapabilities()?.canFavoriteRecordings,
+      ),
+    };
   }
 
   public getMediaCapabilities(media: ViewMedia): CameraManagerMediaCapabilities | null {
@@ -368,18 +357,13 @@ export class CameraManager {
     }
   }
 
-  public areMediaQueriesResultsFresh(
-    queries: MediaQueries,
-    results: MediaQueriesResults,
+  public areMediaQueriesResultsFresh<T extends MediaQuery>(
+    queries: T[],
+    resultsTimestamp: Date,
   ): boolean {
     const now = new Date();
-    const resultsTimestamp = results.getResultsTimestamp();
 
-    if (!resultsTimestamp) {
-      return false;
-    }
-
-    for (const query of queries.getQueries() ?? []) {
+    for (const query of queries) {
       const engines = this._engineFactory.getEnginesForCameraIDs(
         this._cameras,
         query.cameraIDs,

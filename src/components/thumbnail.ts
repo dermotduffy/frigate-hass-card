@@ -239,7 +239,6 @@ export class FrigateCardThumbnail extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
-  // CameraManager used for marking media as favorite.
   @property({ attribute: false })
   public cameraManager?: CameraManager;
 

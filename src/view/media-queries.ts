@@ -1,4 +1,3 @@
-import isEqual from 'lodash-es/isEqual';
 import cloneDeep from 'lodash-es/cloneDeep.js';
 import { EventQuery, MediaQuery, RecordingQuery } from '../camera-manager/types.js';
 
@@ -15,10 +14,6 @@ export class MediaQueriesBase<T extends MediaQuery> {
 
   public clone(): MediaQueriesBase<T> {
     return cloneDeep(this);
-  }
-
-  public isEqual(that: MediaQueries): boolean {
-    return isEqual(this.getQueries(), that.getQueries());
   }
 
   public getQueries(): T[] | null {

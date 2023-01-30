@@ -59,6 +59,7 @@ import { ViewMedia } from '../view/media';
 import { ViewMediaClassifier } from '../view/media-classifier';
 import { rangesOverlap } from '../camera-manager/range';
 import { View } from '../view/view';
+import { MediaQuery } from '../camera-manager/types';
 
 interface FrigateCardGroupData {
   id: string;
@@ -501,11 +502,9 @@ export class FrigateCardTimelineCore extends LitElement {
           targetTime: properties.time,
         },
       );
-    } else if (
-      properties.item &&
-      properties.what === 'item'
-    ) {
-      const newResults = this.view.queryResults?.clone()
+    } else if (properties.item && properties.what === 'item') {
+      const newResults = this.view.queryResults
+        ?.clone()
         .resetSelectedResult()
         .selectResultIfFound(
           (media) => !!this.cameras && media.getID() === properties.item,
@@ -972,14 +971,17 @@ export class FrigateCardTimelineCore extends LitElement {
   }
 
   protected _alreadyHasAcceptableMediaQuery(freshMediaQuery: MediaQueries): boolean {
+    const currentQueries = this.view?.query?.getQueries();
+    const currentResultTimestamp = this.view?.queryResults?.getResultsTimestamp();
+
     return (
       !!this.cameraManager &&
-      !!this.view?.query &&
-      !!this.view.queryResults &&
-      freshMediaQuery.isEqual(this.view.query) &&
-      this.cameraManager.areMediaQueriesResultsFresh(
-        this.view.query,
-        this.view.queryResults,
+      !!currentQueries &&
+      !!currentResultTimestamp &&
+      isEqual(currentQueries, freshMediaQuery.getQueries()) &&
+      this.cameraManager.areMediaQueriesResultsFresh<MediaQuery>(
+        currentQueries,
+        currentResultTimestamp,
       )
     );
   }

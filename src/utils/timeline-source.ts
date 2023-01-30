@@ -7,9 +7,12 @@ import { ClipsOrSnapshotsOrAll, RecordingSegment } from '../types';
 import { CameraManager } from '../camera-manager/manager';
 import { EventQuery } from '../camera-manager/types';
 import { capEndDate, convertRangeToCacheFriendlyTimes } from '../camera-manager/util';
-import { EventMediaQueries } from '../view/media-queries';
 import { ViewMedia } from '../view/media';
-import { compressRanges, ExpiringMemoryRangeSet, MemoryRangeSet } from '../camera-manager/range';
+import {
+  compressRanges,
+  ExpiringMemoryRangeSet,
+  MemoryRangeSet,
+} from '../camera-manager/range';
 import { errorToConsole, ModifyInterface } from './basic.js';
 
 // Allow timeline freshness to be at least this number of seconds out of date
@@ -132,14 +135,13 @@ export class TimelineDataSource {
     }
 
     const cacheFriendlyWindow = this.getCacheFriendlyEventWindow(window);
-    const eventQueries = this.getTimelineEventQueries(cacheFriendlyWindow)
+    const eventQueries = this.getTimelineEventQueries(cacheFriendlyWindow);
     if (!eventQueries) {
       return;
     }
-    const query = new EventMediaQueries(eventQueries);
 
-    const results = await this._cameraManager.executeMediaQueries(hass, query);
-    for (const media of results?.getResults() ?? []) {
+    const mediaArray = await this._cameraManager.executeMediaQueries(hass, eventQueries);
+    for (const media of mediaArray ?? []) {
       const endTime = media.getEndTime();
       const startTime = media.getStartTime();
       const id = media.getID();
@@ -234,7 +236,10 @@ export class TimelineDataSource {
     if (!recordingQueries) {
       return;
     }
-    const results = await this._cameraManager.getRecordingSegments(hass, recordingQueries);
+    const results = await this._cameraManager.getRecordingSegments(
+      hass,
+      recordingQueries,
+    );
 
     const newSegments: Map<string, RecordingSegment[]> = new Map();
     for (const [query, result] of results) {
