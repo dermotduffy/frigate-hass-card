@@ -22,7 +22,7 @@ import {
   changeViewToRecentEventsForCameraAndDependents,
   changeViewToRecentRecordingForCameraAndDependents,
 } from '../utils/media-to-view.js';
-import { CameraManager, ExtendedMediaQueryResult } from '../camera/manager.js';
+import { CameraManager, ExtendedMediaQueryResult } from '../camera-manager/manager.js';
 import { View } from '../view/view.js';
 import { renderProgressIndicator } from './message.js';
 import './thumbnail.js';
@@ -30,7 +30,7 @@ import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
 import { createRef, Ref } from 'lit/directives/ref.js';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
 import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
-import { EventQuery, MediaQuery, RecordingQuery } from '../camera/types';
+import { EventQuery, MediaQuery, RecordingQuery } from '../camera-manager/types';
 import { MediaQueriesResults } from '../view/media-queries-results';
 import { errorToConsole } from '../utils/basic';
 import './media-filter';

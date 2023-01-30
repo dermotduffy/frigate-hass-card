@@ -16,8 +16,8 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { CameraManager } from '../camera/manager';
-import { DateRange } from '../camera/range';
+import { CameraManager } from '../camera-manager/manager';
+import { DateRange } from '../camera-manager/range';
 import { CameraConfig, ExtendedHomeAssistant } from '../types';
 import { View } from '../view/view';
 import {
@@ -31,7 +31,7 @@ import {
 } from './media-filter-core';
 import './surround.js';
 import './timeline-core.js';
-import { EventQuery, MediaMetadata, QueryType, RecordingQuery } from '../camera/types';
+import { EventQuery, MediaMetadata, QueryType, RecordingQuery } from '../camera-manager/types';
 import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
 import { createViewForEvents, createViewForRecordings } from '../utils/media-to-view.js';
 import { HomeAssistant } from 'custom-card-helpers';

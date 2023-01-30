@@ -25,7 +25,7 @@ import { FrigateCardCarousel } from './carousel.js';
 import './thumbnail.js';
 import './carousel.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { CameraManager } from '../camera/manager.js';
+import { CameraManager } from '../camera-manager/manager.js';
 
 export interface ThumbnailCarouselTap {
   queryResults: MediaQueriesResults;

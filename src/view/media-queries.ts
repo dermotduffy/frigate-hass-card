@@ -1,6 +1,6 @@
 import isEqual from 'lodash-es/isEqual';
 import cloneDeep from 'lodash-es/cloneDeep.js';
-import { EventQuery, MediaQuery, RecordingQuery } from '../camera/types.js';
+import { EventQuery, MediaQuery, RecordingQuery } from '../camera-manager/types.js';
 
 export type MediaQueries = EventMediaQueries | RecordingMediaQueries;
 

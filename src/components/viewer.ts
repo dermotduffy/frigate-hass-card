@@ -47,7 +47,7 @@ import '../patches/ha-hls-player';
 import './surround.js';
 import { renderTask } from '../utils/task.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
-import { CameraManager } from '../camera/manager.js';
+import { CameraManager } from '../camera-manager/manager.js';
 import {
   changeViewToRecentEventsForCameraAndDependents,
   changeViewToRecentRecordingForCameraAndDependents,

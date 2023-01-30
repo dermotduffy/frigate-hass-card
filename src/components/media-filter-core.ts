@@ -8,7 +8,7 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
-import { DateRange } from '../camera/range';
+import { DateRange } from '../camera-manager/range';
 import { localize } from '../localize/localize';
 import mediaFilterCoreStyle from '../scss/media-filter-core.scss';
 import { ExtendedHomeAssistant } from '../types';

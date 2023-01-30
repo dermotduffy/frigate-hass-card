@@ -27,7 +27,7 @@ import {
   frigateCardHasAction,
   getActionConfigGivenAction
 } from '../utils/action.js';
-import { FRIGATE_ICON_SVG_PATH } from '../camera/frigate/icon.js';
+import { FRIGATE_ICON_SVG_PATH } from '../camera-manager/frigate/icon.js';
 import { refreshDynamicStateParameters } from '../utils/ha';
 import './submenu.js';
 

@@ -50,7 +50,7 @@ import '../surround.js';
 import { CarouselSelect, EmblaCarouselPlugins } from '../carousel.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../../utils/media-layout.js';
-import { CameraManager } from '../../camera/manager.js';
+import { CameraManager } from '../../camera-manager/manager.js';
 import { HomeAssistant } from 'custom-card-helpers';
 import { dispatchMessageEvent, dispatchErrorMessageEvent } from '../message.js';
 import { HassEntity } from 'home-assistant-js-websocket';

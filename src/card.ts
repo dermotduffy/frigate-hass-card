@@ -91,9 +91,9 @@ import { isValidMediaLoadedInfo } from './utils/media-info.js';
 import { View } from './view/view.js';
 import pkg from '../package.json';
 import { ViewContext } from 'view';
-import { CameraManager } from './camera/manager.js';
+import { CameraManager } from './camera-manager/manager.js';
 import { setLowPerformanceProfile, setPerformanceCSSStyles } from './performance.js';
-import { CameraManagerEngineFactory } from './camera/engine-factory.js';
+import { CameraManagerEngineFactory } from './camera-manager/engine-factory.js';
 import { log } from './utils/debug.js';
 
 /** A note on media callbacks:

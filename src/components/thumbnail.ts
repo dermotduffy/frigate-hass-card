@@ -23,7 +23,7 @@ import { Task, TaskStatus } from '@lit-labs/task';
 
 import type { CameraConfig, ExtendedHomeAssistant } from '../types.js';
 import { EventViewMedia, RecordingViewMedia, ViewMedia } from '../view/media.js';
-import { CameraManager } from '../camera/manager.js';
+import { CameraManager } from '../camera-manager/manager.js';
 import { ViewMediaClassifier } from '../view/media-classifier.js';
 
 // The minimum width of a thumbnail with details enabled.

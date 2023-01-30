@@ -1,6 +1,6 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { homeAssistantWSRequest } from '.';
-import { FrigateEvent, FrigateRecording } from '../../camera/frigate/types';
+import { FrigateEvent, FrigateRecording } from '../../camera-manager/frigate/types';
 import { dispatchErrorMessageEvent } from '../../components/message.js';
 import { localize } from '../../localize/localize.js';
 import {

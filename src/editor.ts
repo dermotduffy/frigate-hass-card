@@ -142,7 +142,7 @@ import {
 } from './types.js';
 import { arrayMove, prettifyTitle } from './utils/basic.js';
 import { getCameraID } from './utils/camera.js';
-import { FRIGATE_ICON_SVG_PATH } from './camera/frigate/icon.js';
+import { FRIGATE_ICON_SVG_PATH } from './camera-manager/frigate/icon.js';
 import {
   getEntitiesFromHASS,
   getEntityTitle,

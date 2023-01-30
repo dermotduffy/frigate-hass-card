@@ -8,7 +8,7 @@ import {
   MediaQueries,
   RecordingMediaQueries,
 } from '../view/media-queries';
-import { CameraManager } from '../camera/manager';
+import { CameraManager } from '../camera-manager/manager';
 import { getAllDependentCameras } from './camera.js';
 import { ViewMedia } from '../view/media';
 import { HomeAssistant } from 'custom-card-helpers';

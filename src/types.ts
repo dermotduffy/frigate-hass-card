@@ -13,7 +13,7 @@ import {
 } from 'custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map.js';
 import { z } from 'zod';
-import { eventSchema, FrigateEvent, FrigateRecording } from './camera/frigate/types.js';
+import { eventSchema, FrigateEvent, FrigateRecording } from './camera-manager/frigate/types.js';
 import { deepRemoveDefaults } from './utils/zod.js';
 
 // The min allowed size of buttons.

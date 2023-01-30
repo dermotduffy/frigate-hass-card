@@ -49,7 +49,7 @@ import {
   createViewForRecordings,
   findClosestMediaIndex,
 } from '../utils/media-to-view';
-import { CameraManager } from '../camera/manager';
+import { CameraManager } from '../camera-manager/manager';
 import { EventMediaQueries, MediaQueries } from '../view/media-queries';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
 import { dispatchMessageEvent } from './message.js';
@@ -57,7 +57,7 @@ import './thumbnail.js';
 import { FrigateCardTimelineItem, TimelineDataSource } from '../utils/timeline-source';
 import { ViewMedia } from '../view/media';
 import { ViewMediaClassifier } from '../view/media-classifier';
-import { rangesOverlap } from '../camera/range';
+import { rangesOverlap } from '../camera-manager/range';
 import { View } from '../view/view';
 
 interface FrigateCardGroupData {
