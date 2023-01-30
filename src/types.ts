@@ -13,7 +13,6 @@ import {
 } from 'custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map.js';
 import { z } from 'zod';
-import { eventSchema, FrigateEvent, FrigateRecording } from './camera-manager/frigate/types.js';
 import { deepRemoveDefaults } from './utils/zod.js';
 
 // The min allowed size of buttons.
@@ -1224,9 +1223,11 @@ const debugConfigDefault = {
   logging: false,
 };
 
-const debugConfigSchema = z.object({
-  logging: z.boolean().default(debugConfigDefault.logging),
-}).default(debugConfigDefault);
+const debugConfigSchema = z
+  .object({
+    logging: z.boolean().default(debugConfigDefault.logging),
+  })
+  .default(debugConfigDefault);
 export type DebugConfig = z.infer<typeof debugConfigSchema>;
 
 export interface CardWideConfig {
@@ -1401,35 +1402,6 @@ export interface BrowseMediaSource {
   children?: BrowseMediaSource[] | null;
 }
 
-export interface FrigateBrowseMediaSource extends BrowseMediaSource {
-  children?: FrigateBrowseMediaSource[] | null;
-  frigate?: {
-    event?: FrigateEvent;
-    recording?: FrigateRecording;
-    cameraID?: string;
-  };
-}
-
-export const frigateBrowseMediaSourceSchema: z.ZodSchema<BrowseMediaSource> = z.lazy(
-  () =>
-    z.object({
-      title: z.string(),
-      media_class: z.string(),
-      media_content_type: z.string(),
-      media_content_id: z.string(),
-      can_play: z.boolean(),
-      can_expand: z.boolean(),
-      children_media_class: z.string().nullable().optional(),
-      thumbnail: z.string().nullable(),
-      children: z.array(frigateBrowseMediaSourceSchema).nullable().optional(),
-      frigate: z
-        .object({
-          event: eventSchema,
-        })
-        .optional(),
-    }),
-);
-
 // Server side data-type defined here: https://github.com/home-assistant/core/blob/dev/homeassistant/components/media_source/models.py
 export const resolvedMediaSchema = z.object({
   url: z.string(),
@@ -1458,10 +1430,3 @@ export type ExtendedEntity = z.infer<typeof extendedEntitySchema>;
 
 export const entityListSchema = entitySchema.array();
 export type EntityList = z.infer<typeof entityListSchema>;
-
-// Generic recording segment type (inspired by Frigate recording segments).
-export interface RecordingSegment {
-  start_time: number;
-  end_time: number;
-  id: string;
-}

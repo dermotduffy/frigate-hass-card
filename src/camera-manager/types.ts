@@ -1,4 +1,3 @@
-import { RecordingSegment } from '../types';
 import { FrigateEvent, FrigateRecording } from './frigate/types';
 
 // ====
@@ -46,6 +45,13 @@ export interface QueryResults {
   engine: Engine;
   expiry?: Date;
   cached?: boolean;
+}
+
+// Generic recording segment type (inspired by Frigate recording segments).
+export interface RecordingSegment {
+  start_time: number;
+  end_time: number;
+  id: string;
 }
 
 export type QueryReturnType<QT> = QT extends EventQuery

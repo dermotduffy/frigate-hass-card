@@ -28,7 +28,6 @@ import {
 } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { contentsChanged, errorToConsole } from '../utils/basic.js';
-import { getFullDependentBrowseMediaQueryParametersOrDispatchError } from '../utils/ha/browse-media.js';
 import { ResolvedMediaCache, resolveMedia } from '../utils/ha/resolved-media.js';
 import { View } from '../view/view.js';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
@@ -106,21 +105,13 @@ export class FrigateCardViewer extends LitElement {
       return;
     }
 
-    const browseMediaQueryParameters =
-      getFullDependentBrowseMediaQueryParametersOrDispatchError(
-        this,
-        this.hass,
-        this.cameras,
-        this.view.camera,
-      );
-
     if (!this.view.queryResults?.hasResults()) {
       // If the query is not specified, the view must tell us which mediaType to
       // search for. When the query *is* specified, the view is not required to
       // indicate the media type (e.g. the mixed 'media' view from the
       // timeline).
       const mediaType = this.view.getDefaultMediaType();
-      if (!browseMediaQueryParameters || !mediaType) {
+      if (!mediaType) {
         return;
       }
 

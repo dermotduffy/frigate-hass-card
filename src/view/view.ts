@@ -5,10 +5,6 @@
 // Gallery:
 //  - TODO: Filter panel expands from right can occasionally 'stick' open.
 
-// Hard:
-//  - TODO: Remove FrigateBrowseMediaSource if not necessary (post-gallery).
-//  - TODO: Remove browse-media.ts TODOs.
-
 import { ViewContext } from 'view';
 import {
   FrigateCardUserSpecifiedView,
