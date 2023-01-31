@@ -78,8 +78,10 @@ export class View {
       // When in the live view, the queryResults contain the events that
       // happened in the past -- not reflective of the actual live media viewer
       // the user is seeing.
-      // TODO: Put stuff here that can be used in timeline reset code
-      (curr.view !== 'live' && (prev.queryResults !== curr.queryResults || prev.queryResults?.getSelectedResult() !==  curr.queryResults?.getSelectedResult()))
+      (curr.view !== 'live' &&
+        (prev.queryResults !== curr.queryResults ||
+          prev.queryResults?.getSelectedResult() !==
+            curr.queryResults?.getSelectedResult()))
     );
   }
 
