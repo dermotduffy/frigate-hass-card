@@ -1,6 +1,5 @@
 // Minor / later:
 //  - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
-//  - TODO: Changing camera in live view, timeline stays the same.
 // Gallery:
 //  - TODO: Filter panel expands from right can occasionally 'stick' open.
 
