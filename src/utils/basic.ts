@@ -181,4 +181,13 @@ export const dayToDate = (day: string): Date => {
   // Must provide the hour:minute:second on parsing or Javascript will assume
   // *UTC* midnight.
   return new Date(`${day}T00:00:00`);
-}
+};
+
+export const isSuperset = (superset: Set<unknown>, subset: Set<unknown>) => {
+  for (const item of subset) {
+    if (!superset.has(item)) {
+      return false;
+    }
+  }
+  return true;
+};

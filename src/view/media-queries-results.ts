@@ -1,4 +1,5 @@
 import clone from 'lodash-es/clone.js';
+import { isSuperset } from '../utils/basic.js';
 import { ViewMedia } from './media.js';
 
 export class MediaQueriesResults {
@@ -19,6 +20,28 @@ export class MediaQueriesResults {
     // changing the selectedIndex on a consistent set of results is a common
     // operation).
     return clone(this);
+  }
+
+  public isSupersetOf(that: MediaQueriesResults): boolean {
+    if (!this._results || !that._results) {
+      return false;
+    }
+
+    const thisMediaIDs = new Set(this._results.map((media) => media.getID()));
+    const thatMediaIDs = new Set(that._results.map((media) => media.getID()));
+
+    if (
+      !thisMediaIDs ||
+      !thatMediaIDs ||
+      // If either media sets contain a null identifier (i.e. a media item with
+      // no ID) we must assume this is not a subset as multiple media items may
+      // reduce to the same null identifier above.
+      thisMediaIDs.has(null) ||
+      thatMediaIDs.has(null)
+    ) {
+      return false;
+    }
+    return isSuperset(thisMediaIDs, thatMediaIDs);
   }
 
   public getResults(): ViewMedia[] | null {

@@ -595,13 +595,22 @@ export class FrigateCardTimelineCore extends LitElement {
       this.view &&
       !MediaQueriesClassifier.areRecordingQueries(this.view.query)
     ) {
-      (
-        await this._createViewWithEventMediaQuery(
+      const newView = await this._createViewWithEventMediaQuery(
           this._createEventMediaQuerys({ window: this._timeline.getWindow() }),
         )
-      )
-        ?.mergeInContext(this._setWindowInContext())
-        ?.dispatchChangeEvent(this);
+
+      // Specifically avoid dispatching new results on range change unless there
+      // is something to be gained by doing so. Example usecase: On initial view
+      // load in mini timeline mode, the first 50 events are fetched -- the
+      // first drag of the timeline should not dispatch new results unless
+      // something is actually useful (as otherwise it creates a visible
+      // 'flicker' for the user as the viewer reloads all the media).
+      const newResults = newView?.queryResults;
+      if (newView && newResults && !this.view.queryResults?.isSupersetOf(newResults)) {
+        newView
+          ?.mergeInContext(this._setWindowInContext())
+          ?.dispatchChangeEvent(this);
+      }
     }
   }
 

@@ -1,7 +1,6 @@
 // Minor / later:
 //  - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
 //  - TODO: Changing camera in live view, timeline stays the same.
-//  - TODO: Timeline initial load, then drag, appears to reset?
 // Gallery:
 //  - TODO: Filter panel expands from right can occasionally 'stick' open.
 
