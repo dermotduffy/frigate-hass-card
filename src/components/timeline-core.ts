@@ -42,7 +42,6 @@ import {
   dispatchFrigateCardEvent,
   isHoverableDevice,
 } from '../utils/basic';
-import { getAllDependentCameras } from '../utils/camera.js';
 
 import {
   createViewForEvents,
@@ -186,7 +185,7 @@ export class FrigateCardTimelineCore extends LitElement {
 
   // Which cameraIDs to include in the timeline. If not specified, all cameraIDs
   // are shown.
-  @property({ attribute: false })
+  @property({ attribute: false, hasChanged: contentsChanged })
   public  cameraIDs?: Set<string>;
 
   @property({ attribute: false })
@@ -343,8 +342,7 @@ export class FrigateCardTimelineCore extends LitElement {
 
     const targetBarOn =
       !this._locked ||
-      (!this.view?.is('timeline') &&
-        this._timeline.getSelection().some((id) => {
+      (this.mini && this._timeline.getSelection().some((id) => {
           const item = this._timelineSource?.dataset?.get(id);
           return (
             item &&
@@ -1049,6 +1047,7 @@ export class FrigateCardTimelineCore extends LitElement {
   protected _destroy(): void {
     this._timeline?.destroy();
     this._timeline = undefined;
+    this._targetBarVisible = false;
   }
 
   /**

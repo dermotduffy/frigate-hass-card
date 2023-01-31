@@ -61,6 +61,8 @@ export class FrigateCardSurround extends LitElement {
   @property({ attribute: false })
   public cameraManager?: CameraManager;
 
+  protected _cameraIDsForTimeline?: Set<string>;
+
   /**
    * Fetch thumbnail media when a target is not specified in the view (e.g. for
    * the live view).
@@ -113,6 +115,16 @@ export class FrigateCardSurround extends LitElement {
       import('./timeline.js');
     }
 
+    // Only reset the timeline cameraIDs when the media materially changes (and
+    // not on every view change, since the view will change frequently when the
+    // user is scrubbing video).
+    if (
+      changedProperties.has('view') &&
+      View.isMediaChange(changedProperties.get('view'), this.view)
+    ) {
+      this._cameraIDsForTimeline = this._getCameraIDsForTimeline() ?? undefined;
+    }
+
     // Once the component will certainly update, dispatch a media request. Only
     // do so if properties relevant to the request have changed (as per their
     // hasChanged).
@@ -125,7 +137,7 @@ export class FrigateCardSurround extends LitElement {
     }
   }
 
-  protected _getCameraIDsForView(): Set<string> | null {
+  protected _getCameraIDsForTimeline(): Set<string> | null {
     if (!this.view || !this.cameras) {
       return null;
     }
@@ -133,7 +145,12 @@ export class FrigateCardSurround extends LitElement {
       return getAllDependentCameras(this.cameras, this.view.camera);
     }
     if (this.view.isViewerView()) {
-      return new Set(this.view.queryResults?.getResults()?.map((media) => media.getCameraID()));
+      return new Set(
+        this.view.query
+          ?.getQueries()
+          ?.map((query) => [...query.cameraIDs])
+          .flat(),
+      );
     }
     return null;
   }
@@ -205,7 +222,7 @@ export class FrigateCardSurround extends LitElement {
             .hass=${this.hass}
             .view=${this.view}
             .cameras=${this.cameras}
-            .cameraIDs=${this._getCameraIDsForView() ?? undefined}
+            .cameraIDs=${this._cameraIDsForTimeline}
             .mini=${true}
             .timelineConfig=${this.timelineConfig}
             .thumbnailDetails=${this.thumbnailConfig?.show_details}

@@ -1,7 +1,7 @@
 // Minor / later:
 //  - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
-//  - TODO: View a media in the gallery from September, then notice timeline missing the item.
-
+//  - TODO: Changing camera in live view, timeline stays the same.
+//  - TODO: Timeline initial load, then drag, appears to reset?
 // Gallery:
 //  - TODO: Filter panel expands from right can occasionally 'stick' open.
 
@@ -82,10 +82,8 @@ export class View {
       // When in the live view, the queryResults contain the events that
       // happened in the past -- not reflective of the actual live media viewer
       // the user is seeing.
-      (curr.view !== 'live' &&
-        (prev.queryResults !== curr.queryResults ||
-          prev.queryResults?.getSelectedResult() !==
-            curr.queryResults?.getSelectedResult()))
+      // TODO: Put stuff here that can be used in timeline reset code
+      (curr.view !== 'live' && (prev.queryResults !== curr.queryResults || prev.queryResults?.getSelectedResult() !==  curr.queryResults?.getSelectedResult()))
     );
   }
 
