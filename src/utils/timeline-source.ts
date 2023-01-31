@@ -3,9 +3,9 @@ import add from 'date-fns/add';
 import sub from 'date-fns/sub';
 import { DataSet } from 'vis-data';
 import { IdType, TimelineItem, TimelineWindow } from 'vis-timeline/esnext';
-import { ClipsOrSnapshotsOrAll, RecordingSegment } from '../types';
+import { ClipsOrSnapshotsOrAll } from '../types';
 import { CameraManager } from '../camera-manager/manager';
-import { EventQuery } from '../camera-manager/types';
+import { EventQuery, RecordingSegment } from '../camera-manager/types';
 import { capEndDate, convertRangeToCacheFriendlyTimes } from '../camera-manager/util';
 import { ViewMedia } from '../view/media';
 import {
@@ -62,15 +62,6 @@ export class TimelineDataSource {
 
   get dataset(): DataSet<FrigateCardTimelineItem> {
     return this._dataset;
-  }
-
-  public clearEvents(): void {
-    this._eventRanges.clear();
-    this._dataset.remove(
-      this._dataset.get({
-        filter: (item) => item.type !== 'background',
-      }),
-    );
   }
 
   public rewriteEvent(id: IdType): void {

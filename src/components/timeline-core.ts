@@ -186,7 +186,7 @@ export class FrigateCardTimelineCore extends LitElement {
   // Which cameraIDs to include in the timeline. If not specified, all cameraIDs
   // are shown.
   @property({ attribute: false, hasChanged: contentsChanged })
-  public  cameraIDs?: Set<string>;
+  public cameraIDs?: Set<string>;
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
@@ -342,7 +342,8 @@ export class FrigateCardTimelineCore extends LitElement {
 
     const targetBarOn =
       !this._locked ||
-      (this.mini && this._timeline.getSelection().some((id) => {
+      (this.mini &&
+        this._timeline.getSelection().some((id) => {
           const item = this._timelineSource?.dataset?.get(id);
           return (
             item &&
@@ -596,8 +597,8 @@ export class FrigateCardTimelineCore extends LitElement {
       !MediaQueriesClassifier.areRecordingQueries(this.view.query)
     ) {
       const newView = await this._createViewWithEventMediaQuery(
-          this._createEventMediaQuerys({ window: this._timeline.getWindow() }),
-        )
+        this._createEventMediaQuerys({ window: this._timeline.getWindow() }),
+      );
 
       // Specifically avoid dispatching new results on range change unless there
       // is something to be gained by doing so. Example usecase: On initial view
@@ -607,9 +608,7 @@ export class FrigateCardTimelineCore extends LitElement {
       // 'flicker' for the user as the viewer reloads all the media).
       const newResults = newView?.queryResults;
       if (newView && newResults && !this.view.queryResults?.isSupersetOf(newResults)) {
-        newView
-          ?.mergeInContext(this._setWindowInContext())
-          ?.dispatchChangeEvent(this);
+        newView?.mergeInContext(this._setWindowInContext())?.dispatchChangeEvent(this);
       }
     }
   }
@@ -1036,7 +1035,8 @@ export class FrigateCardTimelineCore extends LitElement {
     if (
       changedProps.has('cameraManager') ||
       changedProps.has('cameras') ||
-      changedProps.has('timelineConfig')
+      changedProps.has('timelineConfig') ||
+      changedProps.has('cameraIDs')
     ) {
       if (this.cameraManager && this.cameras && this.timelineConfig) {
         this._timelineSource = new TimelineDataSource(
