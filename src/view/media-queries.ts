@@ -3,7 +3,7 @@ import { EventQuery, MediaQuery, RecordingQuery } from '../camera-manager/types.
 
 export type MediaQueries = EventMediaQueries | RecordingMediaQueries;
 
-export class MediaQueriesBase<T extends MediaQuery> {
+class MediaQueriesBase<T extends MediaQuery> {
   protected _queries: T[] | null = null;
 
   public constructor(queries?: T[]) {

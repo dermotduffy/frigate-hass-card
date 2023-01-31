@@ -64,7 +64,7 @@ const FRIGATE_MENU_STYLES = [
 const FRIGATE_MENU_POSITIONS = ['left', 'right', 'top', 'bottom'] as const;
 const FRIGATE_MENU_ALIGNMENTS = FRIGATE_MENU_POSITIONS;
 
-export const FRIGATE_MENU_PRIORITY_DEFAULT = 50;
+const FRIGATE_MENU_PRIORITY_DEFAULT = 50;
 export const FRIGATE_MENU_PRIORITY_MAX = 100;
 
 const LIVE_PROVIDERS = ['auto', 'image', 'ha', 'frigate-jsmpeg', 'webrtc-card'] as const;
@@ -131,7 +131,7 @@ const actionBaseSchema = z.object({
 // HA accepts either a boolean or a ConfirmationRestrictionConfig object.
 // `custom-card-helpers` currently only supports the latter. For maximum
 // compatibility, this card supports what HA supports.
-export interface ExtendedConfirmationRestrictionConfig {
+interface ExtendedConfirmationRestrictionConfig {
   confirmation?: boolean | ConfirmationRestrictionConfig;
 }
 
@@ -380,7 +380,7 @@ const customSchema = z
 /**
  * Camera configuration section
  */
-export const cameraConfigDefault = {
+const cameraConfigDefault = {
   live_provider: 'auto' as const,
   frigate: {
     client_id: 'frigate' as const,
@@ -460,12 +460,12 @@ const menuBaseSchema = z.object({
   icon: z.string().optional(),
 });
 
-export const menuIconSchema = menuBaseSchema.merge(iconSchema).extend({
+const menuIconSchema = menuBaseSchema.merge(iconSchema).extend({
   type: z.literal('custom:frigate-card-menu-icon'),
 });
 export type MenuIcon = z.infer<typeof menuIconSchema>;
 
-export const menuStateIconSchema = menuBaseSchema
+const menuStateIconSchema = menuBaseSchema
   .merge(stateIconSchema)
   .extend({
     type: z.literal('custom:frigate-card-menu-state-icon'),
@@ -573,7 +573,6 @@ const pictureElementSchema = z.union([
   conditionalSchema,
   customSchema,
 ]);
-export type PictureElement = z.infer<typeof pictureElementSchema>;
 
 const pictureElementsSchema = pictureElementSchema.array().optional();
 export type PictureElements = z.infer<typeof pictureElementsSchema>;
@@ -643,7 +642,7 @@ const viewConfigSchema = z
  * Image view configuration section.
  */
 
-export const IMAGE_MODES = ['screensaver', 'camera', 'url'] as const;
+const IMAGE_MODES = ['screensaver', 'camera', 'url'] as const;
 const imageConfigDefault = {
   mode: 'url' as const,
   refresh_seconds: 0,
@@ -701,8 +700,6 @@ const timelineCoreConfigDefault = {
 };
 
 const timelineMediaSchema = z.enum(['all', 'clips', 'snapshots']);
-export type TimelineMedia = z.infer<typeof timelineMediaSchema>;
-
 const timelineCoreConfigSchema = z.object({
   clustering_threshold: z
     .number()
@@ -1011,9 +1008,6 @@ const viewerNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.ex
     viewerConfigDefault.controls.next_previous.size,
   ),
 });
-export type ViewerNextPreviousControlConfig = z.infer<
-  typeof viewerNextPreviousControlConfigSchema
->;
 
 const viewerConfigSchema = z
   .object({
@@ -1228,7 +1222,7 @@ const debugConfigSchema = z
     logging: z.boolean().default(debugConfigDefault.logging),
   })
   .default(debugConfigDefault);
-export type DebugConfig = z.infer<typeof debugConfigSchema>;
+type DebugConfig = z.infer<typeof debugConfigSchema>;
 
 export interface CardWideConfig {
   performance?: PerformanceConfig;
@@ -1294,40 +1288,6 @@ export interface ExtendedHomeAssistant extends HomeAssistant {
   };
 }
 
-export interface BrowseMediaQueryParameters {
-  // ========================================
-  // Parameters used to construct media query
-  // ========================================
-  mediaType?: 'clips' | 'snapshots';
-  clientId: string;
-  cameraName: string;
-  label?: string;
-  zone?: string;
-  before?: number;
-  after?: number;
-  unlimited?: boolean;
-
-  // ========================================
-  // Parameters used to differentiate results
-  // ========================================
-  // Optional title to be used for separating results when merging multiple
-  // sets of results. See `mergeFrigateBrowseMediaSources()` .
-  title?: string;
-
-  // Optional camera-id to which this query is associated. May be used to map
-  // results to a particular camera within the card.
-  cameraID?: string;
-}
-
-export interface BrowseRecordingQueryParameters {
-  clientId: string;
-  cameraName: string;
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-}
-
 export interface MediaLoadedInfo {
   width: number;
   height: number;
@@ -1380,28 +1340,6 @@ export interface CardHelpers {
  * Home Assistant API types.
  */
 
-export const MEDIA_CLASS_PLAYLIST = 'playlist' as const;
-export const MEDIA_CLASS_VIDEO = 'video' as const;
-export const MEDIA_TYPE_PLAYLIST = 'playlist' as const;
-export const MEDIA_TYPE_IMAGE = 'image' as const;
-export const MEDIA_TYPE_VIDEO = 'video' as const;
-
-// Recursive type, cannot use type interference:
-// See: https://github.com/colinhacks/zod#recursive-types
-//
-// Server side data-type defined here: https://github.com/home-assistant/core/blob/dev/homeassistant/components/media_player/browse_media.py#L46
-export interface BrowseMediaSource {
-  title: string;
-  media_class: string;
-  media_content_type: string;
-  media_content_id: string;
-  can_play: boolean;
-  can_expand: boolean;
-  children_media_class?: string | null;
-  thumbnail: string | null;
-  children?: BrowseMediaSource[] | null;
-}
-
 // Server side data-type defined here: https://github.com/home-assistant/core/blob/dev/homeassistant/components/media_source/models.py
 export const resolvedMediaSchema = z.object({
   url: z.string(),
@@ -1414,7 +1352,7 @@ export const signedPathSchema = z.object({
 });
 export type SignedPath = z.infer<typeof signedPathSchema>;
 
-export const entitySchema = z.object({
+const entitySchema = z.object({
   config_entry_id: z.string().nullable(),
   disabled_by: z.string().nullable(),
   entity_id: z.string(),

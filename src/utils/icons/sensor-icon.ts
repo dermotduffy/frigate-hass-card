@@ -70,7 +70,7 @@ const batteryStateIcon = (
   return batteryIcon(battery, batteryCharging);
 };
 
-export const batteryIcon = (
+const batteryIcon = (
   batteryState: number | string,
   batteryCharging?: boolean,
 ) => {

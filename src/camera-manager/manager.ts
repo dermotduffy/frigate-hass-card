@@ -37,7 +37,7 @@ import sum from 'lodash-es/sum';
 import add from 'date-fns/add';
 import { log } from '../utils/debug.js';
 
-export class QueryClassifier {
+class QueryClassifier {
   public static isEventQuery(query: DataQuery | PartialDataQuery): query is EventQuery {
     return query.type === QueryType.Event;
   }
@@ -53,7 +53,7 @@ export class QueryClassifier {
   }
 }
 
-export class QueryResultClassifier {
+class QueryResultClassifier {
   public static isEventQueryResult(
     queryResults: QueryResults,
   ): queryResults is EventQueryResults {

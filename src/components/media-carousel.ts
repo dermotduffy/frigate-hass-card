@@ -28,12 +28,12 @@ const getEmptyImageSrc = (width: number, height: number) =>
   `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"%3E%3C/svg%3E`;
 export const IMG_EMPTY = getEmptyImageSrc(16, 9);
 
-export interface CarouselMediaLoadedInfo {
+interface CarouselMediaLoadedInfo {
   slide: number;
   mediaLoadedInfo: MediaLoadedInfo;
 }
 
-export interface CarouselMediaUnloadedInfo {
+interface CarouselMediaUnloadedInfo {
   slide: number;
 }
 

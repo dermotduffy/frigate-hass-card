@@ -21,7 +21,7 @@ class ConditionStateRequestEvent extends Event {
   public conditionState?: ConditionState;
 }
 
-export function evaluateCondition(
+function evaluateCondition(
   condition?: Readonly<FrigateCardCondition>,
   state?: Readonly<ConditionState>,
 ): boolean {

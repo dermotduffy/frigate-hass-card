@@ -1,5 +1,3 @@
-// Minor / later:
-//  - TODO: ts-prune https://camchenry.com/blog/deleting-dead-code-in-typescript
 // Gallery:
 //  - TODO: Filter panel expands from right can occasionally 'stick' open.
 
@@ -14,7 +12,7 @@ import { dispatchFrigateCardEvent } from '../utils/basic.js';
 import { MediaQueries } from './media-queries';
 import { MediaQueriesResults } from './media-queries-results';
 
-export interface ViewEvolveParameters {
+interface ViewEvolveParameters {
   view?: FrigateCardView;
   camera?: string;
   query?: MediaQueries | null;
@@ -22,7 +20,7 @@ export interface ViewEvolveParameters {
   context?: ViewContext | null;
 }
 
-export interface ViewParameters extends ViewEvolveParameters {
+interface ViewParameters extends ViewEvolveParameters {
   view: FrigateCardView;
   camera: string;
 }

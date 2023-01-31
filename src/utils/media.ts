@@ -2,7 +2,7 @@
 // to give a cleaner UI appearance, see:
 // https://github.com/dermotduffy/frigate-hass-card/issues/856
 export const MEDIA_LOAD_CONTROLS_HIDE_SECONDS = 2;
-export const MEDIA_SEEK_CONTROLS_HIDE_SECONDS = 1;
+const MEDIA_SEEK_CONTROLS_HIDE_SECONDS = 1;
 
 /**
  * Temporarily hide media controls.

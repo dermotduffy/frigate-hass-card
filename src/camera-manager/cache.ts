@@ -1,9 +1,8 @@
 import isEqual from 'lodash-es/isEqual';
 import orderBy from 'lodash-es/orderBy';
 import sortedUniqBy from 'lodash-es/sortedUniqBy';
-import { RecordingSegment } from '../types';
 import { DateRange, MemoryRangeSet } from './range';
-import { DataQuery, QueryResults } from './types';
+import { DataQuery, QueryResults, RecordingSegment } from './types';
 
 interface RequestCacheItem<Request, Response> {
   request: Request;
@@ -17,7 +16,7 @@ interface CameraManagerCache<Request, Response> {
   set(request: Request, response: Response, expiry?: Date): void;
 }
 
-export class MemoryRequestCache<Request, Response>
+class MemoryRequestCache<Request, Response>
   implements CameraManagerCache<Request, Response>
 {
   protected _data: RequestCacheItem<Request, Response>[] = [];
@@ -62,7 +61,7 @@ export class MemoryRequestCache<Request, Response>
 
 export class RequestCache extends MemoryRequestCache<DataQuery, QueryResults> {}
 
-export class MemoryRangedCache<Data> {
+class MemoryRangedCache<Data> {
   protected _ranges: MemoryRangeSet = new MemoryRangeSet();
   protected _data: Data[] = [];
   protected _timeFunc: (data: Data) => number;

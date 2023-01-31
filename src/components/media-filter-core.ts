@@ -66,7 +66,7 @@ export type MediaFilterControls = {
 };
 
 @customElement('frigate-card-media-filter-core')
-export class FrigateCardMediaFilterCore extends LitElement {
+class FrigateCardMediaFilterCore extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 

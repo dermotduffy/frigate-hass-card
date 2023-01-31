@@ -205,7 +205,7 @@ function computeStyle(state: HassEntity): StyleInfo {
  * @param stateObj The HassEntity object from `hass.states`.
  * @returns A string state, e.g. 'on'.
  */
-export const computeActiveState = (stateObj: HassEntity): string => {
+const computeActiveState = (stateObj: HassEntity): string => {
   const domain = stateObj.entity_id.split('.')[0];
   let state = stateObj.state;
 

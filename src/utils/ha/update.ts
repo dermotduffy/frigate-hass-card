@@ -4,11 +4,7 @@ import {
     HassEntityBase
 } from 'home-assistant-js-websocket';
 
-export const UPDATE_SUPPORT_INSTALL = 1;
-export const UPDATE_SUPPORT_SPECIFIC_VERSION = 2;
-export const UPDATE_SUPPORT_PROGRESS = 4;
-export const UPDATE_SUPPORT_BACKUP = 8;
-export const UPDATE_SUPPORT_RELEASE_NOTES = 16;
+const UPDATE_SUPPORT_PROGRESS = 4;
 
 interface UpdateEntityAttributes extends HassEntityAttributeBase {
   auto_update: boolean | null;
@@ -28,7 +24,7 @@ export interface UpdateEntity extends HassEntityBase {
 export const supportsFeature = (stateObj: HassEntity, feature: number): boolean =>
   ((stateObj.attributes.supported_features ?? 0) & feature) !== 0;
 
-export const updateUsesProgress = (entity: UpdateEntity): boolean =>
+const updateUsesProgress = (entity: UpdateEntity): boolean =>
   supportsFeature(entity, UPDATE_SUPPORT_PROGRESS) &&
   typeof entity.attributes.in_progress === 'number';
 

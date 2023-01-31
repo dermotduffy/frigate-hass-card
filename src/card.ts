@@ -149,7 +149,7 @@ type InitializedType = 'initialized' | 'initializing';
  * Main FrigateCard class.
  */
 @customElement('frigate-card')
-export class FrigateCard extends LitElement {
+class FrigateCard extends LitElement {
   @state()
   protected _hass?: ExtendedHomeAssistant;
 

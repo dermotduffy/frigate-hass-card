@@ -26,12 +26,12 @@ export interface DataQuery {
 }
 export type PartialDataQuery = Partial<DataQuery>;
 
-export interface TimeBasedDataQuery {
+interface TimeBasedDataQuery {
   start: Date;
   end: Date;
 }
 
-export interface LimitedDataQuery {
+interface LimitedDataQuery {
   limit: number;
 }
 
