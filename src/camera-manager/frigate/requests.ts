@@ -1,7 +1,8 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { localize } from '../../localize/localize';
-import { FrigateCardError, RecordingSegment } from '../../types';
+import { FrigateCardError } from '../../types';
 import { homeAssistantWSRequest } from '../../utils/ha';
+import { RecordingSegment } from '../types';
 import {
   EventSummary,
   eventSummarySchema,

@@ -3,7 +3,7 @@ import add from 'date-fns/add';
 import endOfHour from 'date-fns/endOfHour';
 import startOfHour from 'date-fns/startOfHour';
 import { CAMERA_BIRDSEYE } from '../../const';
-import { CameraConfig, CardWideConfig, RecordingSegment } from '../../types';
+import { CameraConfig, CardWideConfig } from '../../types';
 import { ViewMedia } from '../../view/media';
 import { RequestCache, RecordingSegmentsCache } from '../cache';
 import {
@@ -34,6 +34,7 @@ import {
   RecordingQuery,
   RecordingQueryResults,
   RecordingQueryResultsMap,
+  RecordingSegment,
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
 } from '../types';
@@ -55,8 +56,8 @@ import {
   prettifyTitle,
   runWhenIdleIfSupported,
 } from '../../utils/basic';
-import { fromUnixTime } from 'date-fns';
-import { sum } from 'lodash-es';
+import fromUnixTime from 'date-fns/fromUnixTime';
+import sum from 'lodash-es/sum';
 import { FrigateViewMediaClassifier } from './media-classifier';
 import { ViewMediaClassifier } from '../../view/media-classifier';
 import { FrigateViewMediaFactory } from './media';
