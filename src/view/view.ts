@@ -1,5 +1,5 @@
 // Gallery:
-//  - TODO: Filter panel expands from right can occasionally 'stick' open.
+//  - TODO: View a recording from the gallery => timeline should span the hour.
 
 import { ViewContext } from 'view';
 import {

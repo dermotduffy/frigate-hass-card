@@ -384,6 +384,12 @@
       "recordings": "Recordings"
     },
     "not_favorite": "Not Favorite",
+    "select_camera": "Select camera...",
+    "select_favorite": "Select favorite...",
+    "select_media_type": "Select media type...",
+    "select_what": "Select what...",
+    "select_when": "Select when...",
+    "select_where": "Select where...",
     "what": "What",
     "when": "When",
     "whens": {

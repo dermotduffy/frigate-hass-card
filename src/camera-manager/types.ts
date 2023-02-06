@@ -38,7 +38,9 @@ interface LimitedDataQuery {
 export interface MediaQuery
   extends DataQuery,
     Partial<TimeBasedDataQuery>,
-    Partial<LimitedDataQuery> {}
+    Partial<LimitedDataQuery> {
+  favorite?: boolean;
+}
 
 export interface QueryResults {
   type: QueryResultsType;
@@ -114,8 +116,6 @@ export interface EventQuery extends MediaQuery {
 
   // Frigate equivalent: zone
   where?: Set<string>;
-
-  favorite?: boolean;
 }
 export type PartialEventQuery = Partial<EventQuery>;
 
@@ -129,8 +129,6 @@ export interface EventQueryResults extends QueryResults {
 
 export interface RecordingQuery extends MediaQuery {
   type: QueryType.Recording;
-
-  favorite?: boolean;
 }
 export type PartialRecordingQuery = Partial<RecordingQuery>;
 

@@ -355,6 +355,12 @@
       "recordings": ""
     },
     "not_favorite": "",
+    "select_camera": "",
+    "select_favorite": "",
+    "select_media_type": "",
+    "select_what": "",
+    "select_when": "",
+    "select_where": "",
     "what": "",
     "when": "",
     "whens": {

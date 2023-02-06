@@ -34,6 +34,7 @@ import { EventQuery, MediaQuery, RecordingQuery } from '../camera-manager/types'
 import { MediaQueriesResults } from '../view/media-queries-results';
 import { errorToConsole } from '../utils/basic';
 import './media-filter';
+import "./surround-basic";
 
 const GALLERY_MEDIA_CHUNK_SIZE = 100;
 
