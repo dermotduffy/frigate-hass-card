@@ -1,8 +1,7 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
-import { customElement } from 'lit/decorators.js';
-
-import { FrigateCardDrawer } from './drawer.js';
+import { customElement, property } from 'lit/decorators.js';
+import { DrawerIcons, FrigateCardDrawer } from './drawer.js';
 
 import './drawer.js';
 
@@ -14,6 +13,12 @@ interface FrigateCardDrawerOpen {
 
 @customElement('frigate-card-surround-basic')
 export class FrigateCardSurroundBasic extends LitElement {
+  @property({ attribute: false })
+  public drawerIcons?: {
+    left?: DrawerIcons;
+    right?: DrawerIcons;
+  };
+
   protected _refDrawerLeft: Ref<FrigateCardDrawer> = createRef();
   protected _refDrawerRight: Ref<FrigateCardDrawer> = createRef();
   protected _boundDrawerHandler = this._drawerHandler.bind(this);
@@ -53,10 +58,18 @@ export class FrigateCardSurroundBasic extends LitElement {
   protected render(): TemplateResult | void {
     return html` <slot name="above"></slot>
       <slot></slot>
-      <frigate-card-drawer ${ref(this._refDrawerLeft)} location="left">
+      <frigate-card-drawer
+        ${ref(this._refDrawerLeft)}
+        location="left"
+        .icons=${this.drawerIcons?.left}
+      >
         <slot name="left"></slot>
       </frigate-card-drawer>
-      <frigate-card-drawer ${ref(this._refDrawerRight)} location="right">
+      <frigate-card-drawer
+        ${ref(this._refDrawerRight)}
+        location="right"
+        .icons=${this.drawerIcons?.right}
+      >
         <slot name="right"></slot>
       </frigate-card-drawer>
       <slot name="below"></slot>`;

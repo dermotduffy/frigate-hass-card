@@ -23,6 +23,7 @@
         // imported by a custom card directly.
         "globalTags": [
           "ha-card",
+          "ha-combo-box",
           "ha-icon",
           "ha-icon-button",
           "ha-button-menu",

@@ -3,10 +3,7 @@
     "frigate_card": "Cartão Frigate",
     "frigate_card_description": "Um cartão da Lovelace para usar com Frigate",
     "live": "Ao Vivo",
-    "no_clip": "Sem clip recente",
-    "no_clips": "Sem clips",
-    "no_snapshot": "Sem snapshot recente",
-    "no_snapshots": "Sem snapshots",
+    "no_media": "",
     "recordings": "Gravações",
     "version": "Versão"
   },
@@ -81,6 +78,15 @@
         "window_seconds": "A duração padrão da visualização da linha do tempo em segundos"
       },
       "controls": {
+        "filter": {
+          "editor_label": "",
+          "mode": "",
+          "modes": {
+            "none": "",
+            "left": "",
+            "right": ""
+          }
+        },
         "next_previous": {
           "editor_label": "",
           "size": "Tamanho de controle próximo e anterior",
@@ -303,7 +309,6 @@
     "could_not_render_elements": "Não foi possível renderizar os elementos da imagem",
     "could_not_resolve": "Não foi possível resolver o URL de mídia",
     "diagnostics": "Diagnósticos do cartão. Revise as informações confidenciais antes de compartilhar",
-    "download_no_event_id": "Não foi possível extrair o Frigate ID do evento da mídia",
     "download_no_media": "Nenhuma mídia para download",
     "download_sign_failed": "Não foi possível assinar o URL de mídia para download",
     "duplicate_camera_id": "Duplique o ID da câmera Frigate para a câmera a seguir, use o parâmetro 'id' para identificar exclusivamente as câmeras",
@@ -338,6 +343,33 @@
     "score": "Pontuação",
     "start": "Início",
     "seek": "Procurar"
+  },
+  "media_filter": {
+    "all": "",
+    "camera": "",
+    "favorite": "",
+    "media_type": "",
+    "media_types": {
+      "clips": "",
+      "snapshots": "",
+      "recordings": ""
+    },
+    "not_favorite": "",
+    "select_camera": "",
+    "select_favorite": "",
+    "select_media_type": "",
+    "select_what": "",
+    "select_when": "",
+    "select_where": "",
+    "what": "",
+    "when": "",
+    "whens": {
+      "past_month": "",
+      "past_week": "",
+      "today": "",
+      "yesterday": ""
+    },
+    "where": ""
   },
   "recording": {
     "events": "Eventos",

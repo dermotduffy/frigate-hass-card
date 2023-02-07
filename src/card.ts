@@ -53,8 +53,6 @@ import {
   FrigateCardView,
   FRIGATE_CARD_VIEWS_USER_SPECIFIED,
   MediaLoadedInfo,
-  MEDIA_TYPE_IMAGE,
-  MEDIA_TYPE_VIDEO,
   MESSAGE_TYPE_PRIORITIES,
   MenuButton,
   Message,
@@ -69,7 +67,7 @@ import {
   getActionConfigGivenAction,
 } from './utils/action.js';
 import { contentsChanged, errorToConsole } from './utils/basic.js';
-import { getCameraIcon, getCameraID, getCameraTitle } from './utils/camera.js';
+import { getCameraID } from './utils/camera.js';
 import {
   getEntityIcon,
   getEntityTitle,
@@ -80,7 +78,6 @@ import {
   isTriggeredState,
   sideLoadHomeAssistantElements,
 } from './utils/ha';
-import { getEventID } from './utils/ha/browse-media.js';
 import { DeviceList, getAllDevices } from './utils/ha/device-registry.js';
 import {
   ExtendedEntityCache,
@@ -91,11 +88,13 @@ import {
 import { ResolvedMediaCache } from './utils/ha/resolved-media.js';
 import { supportsFeature } from './utils/ha/update.js';
 import { isValidMediaLoadedInfo } from './utils/media-info.js';
-import { View } from './view.js';
+import { View } from './view/view.js';
 import pkg from '../package.json';
 import { ViewContext } from 'view';
-import { DataManager } from './utils/data-manager.js';
+import { CameraManager } from './camera-manager/manager.js';
 import { setLowPerformanceProfile, setPerformanceCSSStyles } from './performance.js';
+import { CameraManagerEngineFactory } from './camera-manager/engine-factory.js';
+import { log } from './utils/debug.js';
 
 /** A note on media callbacks:
  *
@@ -144,11 +143,13 @@ console.info(
   documentationURL: REPO_URL,
 });
 
+type InitializedType = 'initialized' | 'initializing';
+
 /**
  * Main FrigateCard class.
  */
 @customElement('frigate-card')
-export class FrigateCard extends LitElement {
+class FrigateCard extends LitElement {
   @state()
   protected _hass?: ExtendedHomeAssistant;
 
@@ -204,16 +205,14 @@ export class FrigateCard extends LitElement {
   // A cache of resolved media URLs/mimetypes for use in the whole card.
   protected _resolvedMediaCache = new ResolvedMediaCache();
 
-  // Shared timeline data manager (for main timeline view and mini-timelines).
-  protected _dataManager?: DataManager;
+  protected _cameraManager?: CameraManager;
 
   // The mouse handler may be called continually, throttle it to at most once
   // per second for performance reasons.
   protected _boundMouseHandler = throttle(this._mouseHandler.bind(this), 1 * 1000);
 
   // Whether the card has been successfully initialized.
-  protected _loadedHAElements = false;
-  protected _loadedLanguages = false;
+  protected _initialized?: InitializedType;
 
   protected _triggers: Map<string, Date> = new Map();
   protected _untriggerTimerID: number | null = null;
@@ -404,12 +403,16 @@ export class FrigateCard extends LitElement {
         const action = createFrigateCardCustomAction('camera_select', {
           camera: camera,
         });
+        const metadata = this._hass
+          ? this._cameraManager?.getCameraMetadata(this._hass, config) ?? undefined
+          : undefined;
+
         return {
           enabled: true,
-          icon: getCameraIcon(this._hass, config),
+          icon: metadata?.icon,
           entity: config.camera_entity,
           state_color: true,
-          title: getCameraTitle(this._hass, config),
+          title: metadata?.title,
           selected: this._view?.camera === camera,
           ...(action && { tap_action: action }),
         };
@@ -530,7 +533,8 @@ export class FrigateCard extends LitElement {
 
     if (
       !this._isBeingCasted() &&
-      (this._view?.isViewerView() || (this._view?.is('timeline') && !!this._view?.media))
+      (this._view?.isViewerView() ||
+        (this._view?.is('timeline') && !!this._view?.queryResults?.hasSelectedResult()))
     ) {
       buttons.push({
         icon: 'mdi:download',
@@ -989,6 +993,7 @@ export class FrigateCard extends LitElement {
     this._config = config;
     this._cardWideConfig = {
       performance: config.performance,
+      debug: config.debug,
     };
 
     this._overriddenConfig = undefined;
@@ -1016,13 +1021,16 @@ export class FrigateCard extends LitElement {
   }
 
   protected _changeView(args?: { view?: View; resetMessage?: boolean }): void {
+    log(this._cardWideConfig, `Frigate Card view change: `, args?.view ?? '[default]');
     const changeView = (view: View): void => {
       if (View.isMediaChange(this._view, view)) {
         this._currentMediaLoadedInfo = null;
       }
+      if (this._view?.view !== view.view) {
+        this._resetMainScroll();
+      }
       this._view = view;
       this._generateConditionState();
-      this._resetMainScroll();
     };
 
     if (args?.resetMessage ?? true) {
@@ -1099,18 +1107,18 @@ export class FrigateCard extends LitElement {
    * Called before each update.
    */
   protected willUpdate(changedProps: PropertyValues): void {
-    // Side load the necessary elements if not already initialized (do not need
-    // to block for the loading to complete).
-    if (!this._loadedHAElements) {
-      sideLoadHomeAssistantElements().then((success) => {
-        if (success) {
-          this._loadedHAElements = true;
-        }
-      });
-    }
-
-    if (this._cameras && (changedProps.has('_config') || changedProps.has('_cameras'))) {
-      this._dataManager = new DataManager(this._cameras);
+    if (
+      this._cameras &&
+      this._cardWideConfig &&
+      (changedProps.has('_config') ||
+        changedProps.has('_cameras') ||
+        changedProps.has('_cardWideConfig'))
+    ) {
+      this._cameraManager = new CameraManager(
+        new CameraManagerEngineFactory(this._cardWideConfig),
+        this._cameras,
+        this._cardWideConfig,
+      );
     }
 
     if (changedProps.has('_cardWideConfig')) {
@@ -1238,17 +1246,25 @@ export class FrigateCard extends LitElement {
   }
 
   /**
+   * Initialize the card.
+   */
+  protected async _initialize(): Promise<void> {
+    await Promise.all([sideLoadHomeAssistantElements(), loadLanguages()]);
+  }
+  /**
    * Determine whether the element should be updated.
    * @param changedProps The changed properties if any.
    * @returns `true` if the element should be updated.
    */
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     // Load the relevant languages. Cannot do anything until then.
-    if (!this._loadedLanguages) {
-      loadLanguages().then(() => {
-        this._loadedLanguages = true;
-        this.requestUpdate();
-      });
+    if (this._initialized !== 'initialized') {
+      if (this._initialized !== 'initializing') {
+        this._initialize().then(() => {
+          this._initialized = 'initialized';
+          this.requestUpdate();
+        });
+      }
       return false;
     }
 
@@ -1318,12 +1334,9 @@ export class FrigateCard extends LitElement {
       // Should not occur.
       return;
     }
+    const media = this._view.queryResults?.getSelectedResult();
 
-    if (
-      !this._view.media ||
-      (this._view.media.media_content_type !== MEDIA_TYPE_VIDEO &&
-        this._view.media.media_content_type !== MEDIA_TYPE_IMAGE)
-    ) {
+    if (!media) {
       this._setMessageAndUpdate({
         message: localize('error.download_no_media'),
         type: 'error',
@@ -1336,35 +1349,8 @@ export class FrigateCard extends LitElement {
       return;
     }
 
-    let path: string;
-    if (this._view.media.frigate?.event) {
-      const event_id = getEventID(this._view.media);
-      if (!event_id) {
-        this._setMessageAndUpdate({
-          message: localize('error.download_no_event_id'),
-          type: 'error',
-        });
-        return;
-      }
-
-      path =
-        `/api/frigate/${cameraConfig.frigate.client_id}` +
-        `/notifications/${event_id}/` +
-        `${
-          this._view.media.media_content_type === MEDIA_TYPE_VIDEO
-            ? 'clip.mp4'
-            : 'snapshot.jpg'
-        }` +
-        `?download=true`;
-    } else if (this._view.media.frigate?.recording) {
-      const recording = this._view.media.frigate.recording;
-      path =
-        `/api/frigate/${cameraConfig.frigate.client_id}` +
-        `/recording/${cameraConfig.frigate.camera_name}` +
-        `/start/${recording.start_time}` +
-        `/end/${recording.end_time}` +
-        `?download=true`;
-    } else {
+    const path = this._cameraManager?.getMediaDownloadPath(media);
+    if (!path) {
       return;
     }
 
@@ -1412,30 +1398,40 @@ export class FrigateCard extends LitElement {
    * @returns
    */
   protected _mediaPlayerAction(mediaPlayer: string, action: 'play' | 'stop'): void {
-    if (!['play', 'stop'].includes(action)) {
+    if (
+      !['play', 'stop'].includes(action) ||
+      !this._view ||
+      !this._hass ||
+      !this._cameraManager
+    ) {
       return;
     }
 
-    let media_content_id: string;
-    let media_content_type: string;
-    const extra = {};
-    const cameraConfig = this._getSelectedCameraConfig();
-    const cameraEntity = cameraConfig?.camera_entity ?? null;
+    let media_content_id: string | null = null;
+    let media_content_type: string | null = null;
+    let title: string | null = null;
+    let thumbnail: string | null = null;
 
-    if (this._view?.isViewerView() && this._view.media) {
-      media_content_id = this._view.media.media_content_id;
-      media_content_type = this._view.media.media_content_type;
-      extra['thumb'] = this._view.media.thumbnail;
-      extra['title'] = this._view.media.title;
+    const cameraConfig = this._getSelectedCameraConfig();
+    if (!cameraConfig) {
+      return;
+    }
+    const cameraEntity = cameraConfig.camera_entity ?? null;
+    const media = this._view.queryResults?.getSelectedResult();
+
+    if (this._view.isViewerView() && media && this._cameras) {
+      media_content_id = media.getContentID();
+      media_content_type = media.getContentType();
+      title = media.getTitle();
+      thumbnail = media.getThumbnail();
     } else if (this._view?.is('live') && cameraEntity) {
-      if (this._hass?.states && cameraEntity in this._hass.states) {
-        extra['thumb'] =
-          this._hass.states[cameraEntity].attributes.entity_picture ?? null;
-      }
-      extra['title'] = getCameraTitle(this._hass, cameraConfig);
       media_content_id = `media-source://camera/${cameraEntity}`;
       media_content_type = 'application/vnd.apple.mpegurl';
-    } else {
+      title = this._cameraManager.getCameraMetadata(this._hass, cameraConfig)?.title ?? null;
+      thumbnail = this._hass?.states[cameraEntity]?.attributes?.entity_picture ?? null;
+    }
+
+    if (!media_content_id || !media_content_type) {
       return;
     }
 
@@ -1444,7 +1440,10 @@ export class FrigateCard extends LitElement {
         entity_id: mediaPlayer,
         media_content_id: media_content_id,
         media_content_type: media_content_type,
-        extra: extra,
+        extra: {
+          ...(title && { title: title }),
+          ...(thumbnail && { thumb: thumbnail }),
+        },
       });
     } else if (action === 'stop') {
       this._hass?.callService('media_player', 'media_stop', {
@@ -1576,6 +1575,7 @@ export class FrigateCard extends LitElement {
           date: new Date(),
           frigate_version: Object.fromEntries(frigateVersionMap),
           lang: getLanguage(),
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           git: {
             ...(pkg['gitVersion'] && { build_version: pkg['gitVersion'] }),
             ...(pkg['buildDate'] && { build_date: pkg['buildDate'] }),
@@ -2037,7 +2037,7 @@ export class FrigateCard extends LitElement {
             .view=${this._view}
             .cameras=${this._cameras}
             .galleryConfig=${this._getConfig().event_gallery}
-            .dataManager=${this._dataManager}
+            .cameraManager=${this._cameraManager}
             .cardWideConfig=${this._cardWideConfig}
           >
           </frigate-card-gallery>`
@@ -2049,7 +2049,7 @@ export class FrigateCard extends LitElement {
             .cameras=${this._cameras}
             .viewerConfig=${this._getConfig().media_viewer}
             .resolvedMediaCache=${this._resolvedMediaCache}
-            .dataManager=${this._dataManager}
+            .cameraManager=${this._cameraManager}
             .cardWideConfig=${this._cardWideConfig}
           >
           </frigate-card-viewer>`
@@ -2060,7 +2060,7 @@ export class FrigateCard extends LitElement {
             .view=${this._view}
             .cameras=${this._cameras}
             .timelineConfig=${this._getConfig().timeline}
-            .dataManager=${this._dataManager}
+            .cameraManager=${this._cameraManager}
           >
           </frigate-card-timeline>`
         : ``}
@@ -2081,7 +2081,7 @@ export class FrigateCard extends LitElement {
                 .conditionState=${this._conditionState}
                 .liveOverrides=${getOverridesByKey(this._getConfig().overrides, 'live')}
                 .cameras=${this._cameras}
-                .dataManager=${this._dataManager}
+                .cameraManager=${this._cameraManager}
                 .cardWideConfig=${this._cardWideConfig}
                 class="${classMap(liveClasses)}"
               >

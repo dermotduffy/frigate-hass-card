@@ -21,7 +21,7 @@ class ConditionStateRequestEvent extends Event {
   public conditionState?: ConditionState;
 }
 
-export function evaluateCondition(
+function evaluateCondition(
   condition?: Readonly<FrigateCardCondition>,
   state?: Readonly<ConditionState>,
 ): boolean {
@@ -180,7 +180,8 @@ export class CardConditionManager {
    * Trigger the callback.
    * @param _ Ignored parameter.
    */
-  protected _triggerChange(_): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected _triggerChange(_: MediaQueryListEvent): void {
     this._callback();
   }
 

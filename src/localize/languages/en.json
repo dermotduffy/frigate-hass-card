@@ -3,11 +3,7 @@
     "frigate_card": "Frigate card",
     "frigate_card_description": "A Lovelace card for use with Frigate",
     "live": "Live",
-    "no_clip": "No recent clip",
-    "no_clips": "No clips",
-    "no_snapshot": "No recent snapshot",
-    "no_snapshots": "No snapshots",
-    "no_recording": "No recent recording",
+    "no_media": "No media to display",
     "recordings": "Recordings",
     "version": "Version"
   },
@@ -83,6 +79,15 @@
         "window_seconds": "The default length of the timeline view in seconds"
       },
       "controls": {
+        "filter": {
+          "editor_label": "Media Filter",
+          "mode": "Filter mode",
+          "modes": {
+            "none": "No media filter",
+            "left": "Media filter in a drawer to the left",
+            "right": "Media filter in a drawer to the right"
+          }
+        },
         "next_previous": {
           "editor_label": "Next & Previous",
           "size": "Next & previous control size in pixels",
@@ -333,7 +338,6 @@
     "could_not_render_elements": "Could not render picture elements",
     "could_not_resolve": "Could not resolve media URL",
     "diagnostics": "Card diagnostics. Please review for confidential information prior to sharing",
-    "download_no_event_id": "Could not extract Frigate event id from media",
     "download_no_media": "No media to download",
     "download_sign_failed": "Could not sign media URL for download",
     "duplicate_camera_id": "Duplicate Frigate camera id for the following camera, use the 'id' parameter to uniquely identify cameras",
@@ -368,6 +372,33 @@
     "score": "Score",
     "start": "Start",
     "seek": "Seek"
+  },
+  "media_filter": {
+    "all": "All",
+    "camera": "Camera",
+    "favorite": "Favorite",
+    "media_type": "Media Type",
+    "media_types": {
+      "clips": "Clips",
+      "snapshots": "Snapshots",
+      "recordings": "Recordings"
+    },
+    "not_favorite": "Not Favorite",
+    "select_camera": "Select camera...",
+    "select_favorite": "Select favorite...",
+    "select_media_type": "Select media type...",
+    "select_what": "Select what...",
+    "select_when": "Select when...",
+    "select_where": "Select where...",
+    "what": "What",
+    "when": "When",
+    "whens": {
+      "past_month": "Past Month",
+      "past_week": "Past Week",
+      "today": "Today",  
+      "yesterday": "Yesterday"      
+    },
+    "where": "Where"
   },
   "recording": {
     "events": "Events",

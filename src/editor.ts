@@ -32,6 +32,7 @@ import {
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL,
   CONF_DIMENSIONS_ASPECT_RATIO,
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
+  CONF_EVENT_GALLERY_CONTROLS_FILTER_MODE,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
   CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
@@ -139,10 +140,14 @@ import {
   THUMBNAIL_WIDTH_MAX,
   THUMBNAIL_WIDTH_MIN,
 } from './types.js';
-import { arrayMove } from './utils/basic.js';
-import { getCameraID, getCameraTitle } from './utils/camera.js';
-import { FRIGATE_ICON_SVG_PATH } from './utils/frigate.js';
-import { getEntitiesFromHASS, sideLoadHomeAssistantElements } from './utils/ha';
+import { arrayMove, prettifyTitle } from './utils/basic.js';
+import { getCameraID } from './utils/camera.js';
+import { FRIGATE_ICON_SVG_PATH } from './camera-manager/frigate/icon.js';
+import {
+  getEntitiesFromHASS,
+  getEntityTitle,
+  sideLoadHomeAssistantElements,
+} from './utils/ha';
 import { setLowPerformanceProfile } from './performance.js';
 
 const MENU_BUTTONS = 'buttons';
@@ -152,6 +157,7 @@ const MENU_CAMERAS_FRIGATE = 'cameras.frigate';
 const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
 const MENU_CAMERAS_WEBRTC = 'cameras.webrtc';
 const MENU_EVENT_GALLERY_CONTROLS_THUMBNAILS = 'event_gallery.controls.thumbnails';
+const MENU_EVENT_GALLERY_CONTROLS_FILTER = 'event_gallery.controls.filter';
 const MENU_IMAGE_LAYOUT = 'image.layout';
 const MENU_LIVE_CONTROLS = 'live.controls';
 const MENU_LIVE_CONTROLS_NEXT_PREVIOUS = 'live.controls.next_previous';
@@ -277,6 +283,22 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   protected _cameraSelectViewModes: EditorSelectOption[] = [
     ...this._viewModes,
     { value: 'current', label: localize('config.view.views.current') },
+  ];
+
+  protected _filterModes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'none',
+      label: localize('config.common.controls.filter.modes.none'),
+    },
+    {
+      value: 'left',
+      label: localize('config.common.controls.filter.modes.left'),
+    },
+    {
+      value: 'right',
+      label: localize('config.common.controls.filter.modes.right'),
+    },
   ];
 
   protected _menuStyles: EditorSelectOption[] = [
@@ -690,8 +712,29 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     cameraIndex: number,
     cameraConfig: RawFrigateCardConfig,
   ): string {
+    // Attempt to render a recognizable name for the camera, starting with the
+    // most likely to be useful and working our ways towards the least useful.
+    // This is only used for the editor since the card itself can use the
+    // cameraManager.
     return (
-      getCameraTitle(this.hass, cameraConfig) ||
+      (typeof cameraConfig?.title === 'string' && cameraConfig.title) ||
+      (typeof cameraConfig?.camera_entity === 'string'
+        ? getEntityTitle(this.hass, cameraConfig.camera_entity)
+        : '') ||
+      (typeof cameraConfig?.webrtc_card === 'object' &&
+        cameraConfig.webrtc_card &&
+        typeof cameraConfig.webrtc_card['entity'] === 'string' &&
+        cameraConfig.webrtc_card['entity']) ||
+      // Usage of engine specific logic here is allowed as an exception, since
+      // the camera manager cannot be started with an unparsed and unloaded
+      // config.
+      (typeof cameraConfig?.frigate === 'object' &&
+      cameraConfig.frigate &&
+      typeof cameraConfig?.frigate['camera_name'] === 'string' &&
+      cameraConfig.frigate['camera_name']
+        ? prettifyTitle(cameraConfig.frigate['camera_name'])
+        : '') ||
+      (typeof cameraConfig?.id === 'string' && cameraConfig.id) ||
       localize('editor.camera') + ' #' + cameraIndex
     );
   }
@@ -1007,6 +1050,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     configPathShowDetails: string,
     configPathShowFavoriteControl: string,
     configPathShowTimelineControl: string,
+    defaults: {
+      show_details: boolean;
+      show_favorite_control: boolean;
+      show_timeline_control: boolean;
+    },
     options?: {
       configPathMedia?: string;
       configPathMode?: string;
@@ -1041,27 +1089,48 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           max: THUMBNAIL_WIDTH_MAX,
           label: localize('config.common.controls.thumbnails.size'),
         })}
-        ${this._renderSwitch(
-          configPathShowDetails,
-          this._defaults.live.controls.thumbnails.show_details,
-          {
-            label: localize('config.common.controls.thumbnails.show_details'),
-          },
-        )}
+        ${this._renderSwitch(configPathShowDetails, defaults.show_details, {
+          label: localize('config.common.controls.thumbnails.show_details'),
+        })}
         ${this._renderSwitch(
           configPathShowFavoriteControl,
-          this._defaults.live.controls.thumbnails.show_favorite_control,
+          defaults.show_favorite_control,
           {
             label: localize('config.common.controls.thumbnails.show_favorite_control'),
           },
         )}
         ${this._renderSwitch(
           configPathShowTimelineControl,
-          this._defaults.live.controls.thumbnails.show_timeline_control,
+          defaults.show_timeline_control,
           {
             label: localize('config.common.controls.thumbnails.show_timeline_control'),
           },
         )}
+      `,
+    );
+  }
+
+  /**
+   * Render the thumbnails controls.
+   * @param domain The submenu domain.
+   * @param configPathMode Filter mode config path.
+   * @returns A rendered template.
+   */
+  protected _renderFilterControls(
+    domain: string,
+    configPathMode: string,
+  ): TemplateResult | void {
+    return this._putInSubmenu(
+      domain,
+      true,
+      'config.common.controls.filter.editor_label',
+      { name: 'mdi:filter-cog' },
+      html`
+        ${configPathMode
+          ? html`${this._renderOptionSelector(configPathMode, this._filterModes, {
+              label: localize('config.common.controls.filter.mode'),
+            })}`
+          : html``}
       `,
     );
   }
@@ -1570,6 +1639,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
                       CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
                       CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                      this._defaults.live.controls.thumbnails,
                       {
                         configPathMedia: CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
                         configPathMode: CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
@@ -1617,6 +1687,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
                 CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
                 CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                this._defaults.event_gallery.controls.thumbnails,
+              )}
+              ${this._renderFilterControls(
+                MENU_EVENT_GALLERY_CONTROLS_FILTER,
+                CONF_EVENT_GALLERY_CONTROLS_FILTER_MODE,
               )}
             </div>`
           : ''}
@@ -1675,6 +1750,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
                     CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
                     CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                    this._defaults.media_viewer.controls.thumbnails,
                     {
                       configPathMode: CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
                     },
@@ -1735,6 +1811,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
                 CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
                 CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                this._defaults.timeline.controls.thumbnails,
                 {
                   configPathMode: CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
                 },

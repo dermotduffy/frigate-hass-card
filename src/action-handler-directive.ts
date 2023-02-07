@@ -165,7 +165,7 @@ const getActionHandler = (): ActionHandler => {
   return actionhandler as ActionHandler;
 };
 
-export const actionHandlerBind = (
+const actionHandlerBind = (
   element: ActionHandlerElement,
   options?: FrigateCardActionHandlerOptions,
 ): void => {

@@ -35,7 +35,7 @@ export const CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES =
 
 export const CONF_ELEMENTS = 'elements' as const;
 
-export const CONF_VIEW = 'view' as const;
+const CONF_VIEW = 'view' as const;
 export const CONF_VIEW_CAMERA_SELECT = `${CONF_VIEW}.camera_select` as const;
 export const CONF_VIEW_DARK_MODE = `${CONF_VIEW}.dark_mode` as const;
 export const CONF_VIEW_DEFAULT = `${CONF_VIEW}.default` as const;
@@ -53,7 +53,9 @@ export const CONF_VIEW_SCAN_UNTRIGGER_RESET =
 export const CONF_VIEW_SCAN_UNTRIGGER_SECONDS =
   `${CONF_VIEW_SCAN}.untrigger_seconds` as const;
 
-export const CONF_EVENT_GALLERY = 'event_gallery' as const;
+const CONF_EVENT_GALLERY = 'event_gallery' as const;
+export const CONF_EVENT_GALLERY_CONTROLS_FILTER_MODE =
+  `${CONF_EVENT_GALLERY}.controls.filter.mode` as const;
 export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS =
   `${CONF_EVENT_GALLERY}.controls.thumbnails.show_details` as const;
 export const CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
@@ -109,7 +111,7 @@ export const CONF_MEDIA_VIEWER_LAYOUT_POSITION_X =
 export const CONF_MEDIA_VIEWER_LAYOUT_POSITION_Y =
   `${CONF_MEDIA_VIEWER}.layout.position.y` as const;
 
-export const CONF_LIVE = 'live' as const;
+const CONF_LIVE = 'live' as const;
 export const CONF_LIVE_AUTO_PLAY = `${CONF_LIVE}.auto_play` as const;
 export const CONF_LIVE_AUTO_PAUSE = `${CONF_LIVE}.auto_pause` as const;
 export const CONF_LIVE_AUTO_MUTE = `${CONF_LIVE}.auto_mute` as const;
@@ -149,7 +151,6 @@ export const CONF_LIVE_LAYOUT_FIT = `${CONF_LIVE}.layout.fit` as const;
 export const CONF_LIVE_LAYOUT_POSITION_X = `${CONF_LIVE}.layout.position.x` as const;
 export const CONF_LIVE_LAYOUT_POSITION_Y = `${CONF_LIVE}.layout.position.y` as const;
 export const CONF_LIVE_DRAGGABLE = `${CONF_LIVE}.draggable` as const;
-export const CONF_LIVE_JSMPEG = `${CONF_LIVE}.jsmpeg` as const;
 export const CONF_LIVE_LAZY_LOAD = `${CONF_LIVE}.lazy_load` as const;
 export const CONF_LIVE_LAZY_UNLOAD = `${CONF_LIVE}.lazy_unload` as const;
 export const CONF_LIVE_PRELOAD = `${CONF_LIVE}.preload` as const;
@@ -158,7 +159,7 @@ export const CONF_LIVE_SHOW_IMAGE_DURING_LOAD =
   `${CONF_LIVE}.show_image_during_load` as const;
 export const CONF_LIVE_WEBRTC_CARD = `${CONF_LIVE}.webrtc_card` as const;
 
-export const CONF_IMAGE = 'image' as const;
+const CONF_IMAGE = 'image' as const;
 export const CONF_IMAGE_LAYOUT_FIT = `${CONF_IMAGE}.layout.fit` as const;
 export const CONF_IMAGE_LAYOUT_POSITION_X = `${CONF_IMAGE}.layout.position.x` as const;
 export const CONF_IMAGE_LAYOUT_POSITION_Y = `${CONF_IMAGE}.layout.position.y` as const;
@@ -166,7 +167,7 @@ export const CONF_IMAGE_MODE = `${CONF_IMAGE}.mode` as const;
 export const CONF_IMAGE_REFRESH_SECONDS = `${CONF_IMAGE}.refresh_seconds` as const;
 export const CONF_IMAGE_URL = `${CONF_IMAGE}.url` as const;
 
-export const CONF_TIMELINE = 'timeline' as const;
+const CONF_TIMELINE = 'timeline' as const;
 export const CONF_TIMELINE_WINDOW_SECONDS = `${CONF_TIMELINE}.window_seconds` as const;
 export const CONF_TIMELINE_CLUSTERING_THRESHOLD =
   `${CONF_TIMELINE}.clustering_threshold` as const;
@@ -203,14 +204,14 @@ export const CONF_MENU_BUTTONS_MEDIA_PLAYER =
 export const CONF_MENU_BUTTONS_SNAPSHOTS = `${CONF_MENU}.buttons.snapshots` as const;
 export const CONF_MENU_BUTTONS_TIMELINE = `${CONF_MENU}.buttons.timeline` as const;
 
-export const CONF_DIMENSIONS = 'dimensions' as const;
+const CONF_DIMENSIONS = 'dimensions' as const;
 export const CONF_DIMENSIONS_ASPECT_RATIO = `${CONF_DIMENSIONS}.aspect_ratio` as const;
 export const CONF_DIMENSIONS_ASPECT_RATIO_MODE =
   `${CONF_DIMENSIONS}.aspect_ratio_mode` as const;
 
 export const CONF_OVERRIDES = 'overrides' as const;
 
-export const CONF_PERFORMANCE = 'performance' as const;
+const CONF_PERFORMANCE = 'performance' as const;
 export const CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR = `${CONF_PERFORMANCE}.features.animated_progress_indicator`;
 export const CONF_PERFORMANCE_PROFILE = `${CONF_PERFORMANCE}.profile`;
 export const CONF_PERFORMANCE_STYLE_BOX_SHADOW = `${CONF_PERFORMANCE}.style.box_shadow`;

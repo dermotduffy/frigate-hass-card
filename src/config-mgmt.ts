@@ -117,7 +117,7 @@ export const isConfigUpgradeable = function (obj: RawFrigateCardConfig): boolean
  * @param obj Configuration object.
  * @returns `true` if the configuration was modified.
  */
-export const trimConfig = function (obj: RawFrigateCardConfig): boolean {
+const trimConfig = function (obj: RawFrigateCardConfig): boolean {
   const keys = Object.keys(obj);
   let modified = false;
   for (let i = 0; i < keys.length; i++) {
@@ -221,7 +221,7 @@ const deleteProperty = function (_value: unknown): number | null | undefined {
  * @param transform An optional transform for the value.
  * @returns `true` if the configuration was modified.
  */
-export const moveConfigValue = (
+const moveConfigValue = (
   obj: RawFrigateCardConfig,
   oldPath: string,
   newPath: string,

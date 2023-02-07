@@ -1,32 +1,31 @@
 import format from 'date-fns/format';
-import fromUnixTime from 'date-fns/fromUnixTime';
-import { CSSResult, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  CSSResult,
+  html,
+  LitElement,
+  PropertyValues,
+  TemplateResult,
+  unsafeCSS,
+} from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
-
 import { localize } from '../localize/localize.js';
 import thumbnailDetailsStyle from '../scss/thumbnail-details.scss';
 import thumbnailFeatureEventStyle from '../scss/thumbnail-feature-event.scss';
 import thumbnailFeatureRecordingStyle from '../scss/thumbnail-feature-recording.scss';
 import thumbnailStyle from '../scss/thumbnail.scss';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
-import { errorToConsole, prettifyTitle } from '../utils/basic.js';
-import { getCameraTitle } from '../utils/camera.js';
-import { retainEvent } from '../utils/frigate.js';
-import { getEventDurationString } from '../utils/frigate.js';
+import { errorToConsole, getDurationString, prettifyTitle } from '../utils/basic.js';
 import { renderTask } from '../utils/task.js';
-import { createFetchThumbnailTask } from '../utils/thumbnail.js';
-import { View } from '../view.js';
-import type { MediaSeek } from './viewer.js';
-import { TaskStatus } from '@lit-labs/task';
+import { createFetchThumbnailTask, FetchThumbnailTaskArgs } from '../utils/thumbnail.js';
+import { View } from '../view/view.js';
+import { Task, TaskStatus } from '@lit-labs/task';
 
-import type {
-  CameraConfig,
-  ExtendedHomeAssistant,
-  FrigateBrowseMediaSource,
-  FrigateEvent,
-  FrigateRecording,
-} from '../types.js';
+import type { CameraConfig, ExtendedHomeAssistant } from '../types.js';
+import { EventViewMedia, RecordingViewMedia, ViewMedia } from '../view/media.js';
+import { CameraManager } from '../camera-manager/manager.js';
+import { ViewMediaClassifier } from '../view/media-classifier.js';
+
 // The minimum width of a thumbnail with details enabled.
 export const THUMBNAIL_DETAILS_WIDTH_MIN = 300;
 
@@ -38,12 +37,7 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
-  protected _embedThumbnailTask = createFetchThumbnailTask(
-    this,
-    () => this.hass,
-    () => this.thumbnail,
-    false,
-  );
+  protected _embedThumbnailTask?: Task<FetchThumbnailTaskArgs, string | null>;
 
   // Only load thumbnails on view in case there is a very large number of them.
   protected _intersectionObserver: IntersectionObserver;
@@ -71,20 +65,38 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
     this._intersectionObserver.disconnect();
   }
 
+  protected willUpdate(changedProps: PropertyValues): void {
+    if (changedProps.has('thumbnail')) {
+      this._embedThumbnailTask = createFetchThumbnailTask(
+        this,
+        () => this.hass,
+        () => this.thumbnail,
+        false,
+      );
+      // Reset the observer so the initial intersection handler call will set
+      // the visibility correctly.
+      this._intersectionObserver.unobserve(this);
+      this._intersectionObserver.observe(this);
+    }
+  }
+
   /**
    * Called when the live view intersects with the viewport.
    * @param entries The IntersectionObserverEntry entries (should be only 1).
    */
   protected _intersectionHandler(entries: IntersectionObserverEntry[]): void {
     if (
-      this._embedThumbnailTask.status === TaskStatus.INITIAL &&
+      this._embedThumbnailTask?.status === TaskStatus.INITIAL &&
       entries.some((entry) => entry.isIntersecting)
     ) {
-      this._embedThumbnailTask.run();
+      this._embedThumbnailTask?.run();
     }
   }
 
   protected render(): TemplateResult | void {
+    if (!this._embedThumbnailTask) {
+      return;
+    }
     const imageOff = html`<ha-icon
       icon="mdi:image-off"
       title=${localize('thumbnail.no_thumbnail')}
@@ -133,36 +145,48 @@ export class FrigateCardThumbnailFeatureRecording extends LitElement {
 @customElement('frigate-card-thumbnail-details-event')
 export class FrigateCardThumbnailDetailsEvent extends LitElement {
   @property({ attribute: false })
-  public event?: FrigateEvent;
+  public media?: EventViewMedia;
 
   @property({ attribute: false })
-  public mediaSeek?: MediaSeek;
+  public seek?: Date;
 
   protected render(): TemplateResult | void {
-    if (!this.event) {
+    if (!this.media) {
       return;
     }
-    const score = (this.event.top_score * 100).toFixed(2) + '%';
-    return html`<div class="left">
-        <div class="larger">${prettifyTitle(this.event.label)}</div>
-        <div>
-          <span class="heading">${localize('event.start')}:</span>
-          <span>${format(fromUnixTime(this.event.start_time), 'HH:mm:ss')}</span>
-        </div>
-        <div>
-          <span class="heading">${localize('event.duration')}:</span>
-          <span>${getEventDurationString(this.event)}</span>
-        </div>
-        ${this.mediaSeek
+    const score = this.media.getScore();
+    const startTime = this.media.getStartTime();
+    const endTime = this.media.getEndTime();
+    const what = this.media.getWhat();
+
+    return html` <div class="left">
+        ${what ? html`<div class="larger">${prettifyTitle(what.join(', '))}</div>` : ``}
+        ${startTime
+          ? html` <div>
+                <span class="heading">${localize('event.start')}:</span>
+                <span>${format(startTime, 'HH:mm:ss')}</span>
+              </div>
+              <div>
+                <span class="heading">${localize('event.duration')}:</span>
+                <span
+                  >${endTime
+                    ? getDurationString(startTime, endTime)
+                    : localize('event.in_progress')}</span
+                >
+              </div>`
+          : ``}
+        ${this.seek
           ? html` <div>
               <span class="heading">${localize('event.seek')}</span>
-              <span>${format(fromUnixTime(this.mediaSeek.seekTime), 'HH:mm:ss')}</span>
+              <span>${format(this.seek, 'HH:mm:ss')}</span>
             </div>`
           : html``}
       </div>
-      <div class="right">
-        <span class="larger">${score}</span>
-      </div>`;
+      ${score
+        ? html`<div class="right">
+            <span class="larger">${(score * 100).toFixed(2) + '%'}</span>
+          </div>`
+        : ``}`;
   }
 
   static get styles(): CSSResult {
@@ -173,28 +197,34 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
 @customElement('frigate-card-thumbnail-details-recording')
 export class FrigateCardThumbnailDetailsRecording extends LitElement {
   @property({ attribute: false })
-  public recording?: FrigateRecording;
+  public media?: RecordingViewMedia;
 
   @property({ attribute: false })
-  public mediaSeek?: MediaSeek;
+  public seek?: Date;
+
+  @property({ attribute: false })
+  public cameraTitle?: string;
 
   protected render(): TemplateResult | void {
-    if (!this.recording) {
+    if (!this.media) {
       return;
     }
+    const eventCount = this.media.getEventCount();
     return html`<div class="left">
-        <div class="larger">${prettifyTitle(this.recording.camera) || ''}</div>
-        ${this.mediaSeek
+        <div class="larger">${this.cameraTitle ?? ''}</div>
+        ${this.seek
           ? html` <div>
               <span class="heading">${localize('recording.seek')}</span>
-              <span>${format(fromUnixTime(this.mediaSeek.seekTime), 'HH:mm:ss')}</span>
+              <span>${format(this.seek, 'HH:mm:ss')}</span>
             </div>`
           : html``}
       </div>
-      <div class="right">
-        <span class="larger">${this.recording.events}</span>
-        <span>${localize('recording.events')}</span>
-      </div>`;
+      ${eventCount !== null
+        ? html`<div class="right">
+            <span class="larger">${eventCount}</span>
+            <span>${localize('recording.events')}</span>
+          </div>`
+        : ``}`;
   }
 
   static get styles(): CSSResult {
@@ -204,6 +234,20 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
 
 @customElement('frigate-card-thumbnail')
 export class FrigateCardThumbnail extends LitElement {
+  // HomeAssistant object may be required for thumbnail signing (for Frigate
+  // events).
+  @property({ attribute: false })
+  public hass?: ExtendedHomeAssistant;
+
+  @property({ attribute: false })
+  public cameraManager?: CameraManager;
+
+  @property({ attribute: true })
+  public media?: ViewMedia;
+
+  @property({ attribute: false })
+  public cameraConfig?: CameraConfig;
+
   @property({ attribute: true, type: Boolean })
   public details = false;
 
@@ -213,160 +257,133 @@ export class FrigateCardThumbnail extends LitElement {
   @property({ attribute: true, type: Boolean })
   public show_timeline_control = false;
 
-  // ======================
-  // Target-based interface
-  // ======================
   @property({ attribute: false })
-  public target?: FrigateBrowseMediaSource | null;
+  public seek?: Date;
 
-  @property({ attribute: false })
-  public childIndex?: number;
-
-  @property({ attribute: false })
-  public mediaSeek?: MediaSeek;
-
-  // ===================================================
-  // Raw interface (can override target-based interface)
-  // ===================================================
-  @property({ attribute: true })
-  public thumbnail?: string;
-
-  @property({ attribute: true })
-  public label?: string;
-
-  @property({ attribute: false })
-  public event?: FrigateEvent;
-
-  // ================================
-  // Optional parameters for controls
-  // ================================
   @property({ attribute: false })
   public view?: Readonly<View>;
-
-  @property({ attribute: false })
-  public hass?: ExtendedHomeAssistant;
-
-  @property({ attribute: false })
-  public cameraConfig?: CameraConfig;
 
   /**
    * Render the element.
    * @returns A template to display to the user.
    */
   protected render(): TemplateResult | void {
-    let event: FrigateEvent | null = null;
-    let recording: FrigateRecording | null = null;
-    let thumbnail: string | null = null;
-    let label: string | null = null;
-
-    // Take the event / thumbnail / label from the data-bound media (if specified).
-    if (this.target && this.target.children && this.childIndex !== undefined) {
-      const media = this.target.children[this.childIndex];
-      event = media.frigate?.event ?? null;
-      recording = media.frigate?.recording ?? null;
-      thumbnail = media.thumbnail;
-      label = media.title;
-    }
-
-    // Always give the overrides preference (if specified).
-    if (this.event) {
-      event = this.event;
-    }
-    thumbnail = this.thumbnail ? this.thumbnail : thumbnail;
-    label = this.label ? this.label : label;
-
-    if (!event && !recording) {
+    if (!this.media || !this.cameraConfig || !this.cameraManager || !this.hass) {
       return;
     }
 
+    const thumbnail = this.media.getThumbnail();
+    const title = this.media.getTitle() ?? '';
+
     const starClasses = {
       star: true,
-      starred: !!event?.retain_indefinitely,
+      starred: !!this.media?.isFavorite(),
     };
 
-    const clientID = this.cameraConfig?.frigate.client_id;
-    return html` ${event
+    const shouldShowTimelineControl =
+      this.show_timeline_control &&
+      this.view &&
+      (!ViewMediaClassifier.isRecording(this.media) ||
+        // Only show timeline control if the recording has a start & end time.
+        (this.media.getStartTime() && this.media.getEndTime()));
+
+    const shouldShowFavoriteControl =
+      this.show_favorite_control &&
+      this.media &&
+      this.hass &&
+      this.cameraManager?.getMediaCapabilities(this.media)?.canFavorite;
+
+    const cameraTitle = this.cameraManager.getCameraMetadata(this.hass, this.cameraConfig)?.title;
+
+    return html` ${ViewMediaClassifier.isEvent(this.media)
       ? html`<frigate-card-thumbnail-feature-event
-          aria-label="${label ?? ''}"
-          title="${label ?? ''}"
+          aria-label="${title ?? ''}"
+          title=${title}
           .hass=${this.hass}
           .thumbnail=${thumbnail ?? undefined}
-          .label=${label ?? undefined}
         ></frigate-card-thumbnail-feature-event>`
-      : recording
+      : ViewMediaClassifier.isRecording(this.media)
       ? html`<frigate-card-thumbnail-feature-recording
-          aria-label="${label ?? ''}"
-          title="${label ?? ''}"
-          .cameraTitle=${this.details || !this.cameraConfig || !this.hass
-            ? undefined
-            : getCameraTitle(this.hass, this.cameraConfig)}
-          .date=${recording ? fromUnixTime(recording.start_time) : undefined}
+          aria-label="${title ?? ''}"
+          title="${title ?? ''}"
+          .cameraTitle=${this.details ? undefined : cameraTitle}
+          .date=${this.media.getStartTime() ?? undefined}
         ></frigate-card-thumbnail-feature-recording>`
       : html``}
-    ${this.show_favorite_control && event && this.hass && clientID
+    ${shouldShowFavoriteControl
       ? html` <ha-icon
             class="${classMap(starClasses)}"
-            icon=${event?.retain_indefinitely ? 'mdi:star' : 'mdi:star-outline'}
+            icon=${this.media.isFavorite() ? 'mdi:star' : 'mdi:star-outline'}
             title=${localize('thumbnail.retain_indefinitely')}
-            @click=${(ev: Event) => {
+            @click=${async (ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
-              if (event && this.hass && clientID) {
-                retainEvent(this.hass, clientID, event.id, !event.retain_indefinitely)
-                  .then(() => {
-                    if (event) {
-                      event.retain_indefinitely = !event.retain_indefinitely;
-                      this.requestUpdate();
-                    }
-                  })
-                  .catch((e) => {
-                    errorToConsole(e);
-                  });
+              if (this.hass && this.media) {
+                try {
+                  await this.cameraManager?.favoriteMedia(
+                    this.hass,
+                    this.media,
+                    !this.media?.isFavorite(),
+                  );
+                } catch (e) {
+                  errorToConsole(e as Error);
+                  return;
+                }
+                this.requestUpdate();
               }
             }}
           /></ha-icon>`
       : ``}
-    ${this.details && event
+    ${this.details && ViewMediaClassifier.isEvent(this.media)
       ? html`<frigate-card-thumbnail-details-event
-          .event=${event ?? undefined}
-          .mediaSeek=${this.mediaSeek}
+          .media=${this.media ?? undefined}
+          .seek=${this.seek}
         ></frigate-card-thumbnail-details-event>`
-      : this.details && recording
+      : this.details && ViewMediaClassifier.isRecording(this.media)
       ? html`<frigate-card-thumbnail-details-recording
-          .recording=${recording ?? undefined}
-          .mediaSeek=${this.mediaSeek}
+          .media=${this.media ?? undefined}
+          .cameraTitle=${cameraTitle}
+          .seek=${this.seek}
         ></frigate-card-thumbnail-details-recording>`
       : html``}
-    ${this.show_timeline_control
+    ${shouldShowTimelineControl
       ? html`<ha-icon
           class="timeline"
           icon="mdi:target"
           title=${localize('thumbnail.timeline')}
           @click=${(ev: Event) => {
             stopEventFromActivatingCardWideActions(ev);
-            if (event) {
+            if (!this.view || !this.media) {
+              return;
+            }
+            if (ViewMediaClassifier.isEvent(this.media)) {
               this.view
-                ?.evolve({
+                .evolve({
                   view: 'timeline',
-                  target: this.target,
-                  childIndex: this.childIndex ?? null,
+                  queryResults: this.view.queryResults
+                    ?.clone()
+                    .selectResultIfFound((media) => media === this.media),
                 })
                 .removeContext('timeline')
                 .dispatchChangeEvent(this);
-            } else if (recording) {
+            } else if (ViewMediaClassifier.isRecording(this.media)) {
+              const startTime = this.media.getStartTime();
+              const endTime = this.media.getStartTime();
+              if (!startTime || !endTime) {
+                return;
+              }
               // Specifically reset the media target/childIndex, as we cannot
               // 'select' an hour in the timeline rather we set the window to
               // matching values.
               this.view
                 ?.evolve({
                   view: 'timeline',
-                  target: null,
-                  childIndex: null,
+                  query: null,
                 })
                 .mergeInContext({
                   timeline: {
                     window: {
-                      start: fromUnixTime(recording.start_time),
-                      end: fromUnixTime(recording.end_time),
+                      start: startTime,
+                      end: endTime,
                     },
                   },
                 })

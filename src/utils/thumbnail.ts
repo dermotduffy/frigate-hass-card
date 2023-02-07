@@ -8,7 +8,7 @@ import { HomeAssistant } from 'custom-card-helpers';
  * @param thumbnailURL The thumbnail URL.
  * @returns A base64 encoded data URL for the thumbnail.
  */
-export const fetchThumbnail = async (
+const fetchThumbnail = async (
   hass: HomeAssistant,
   thumbnailURL: string,
 ): Promise<string | null> => {
@@ -42,7 +42,7 @@ export const fetchThumbnail = async (
   });
 };
 
-type FetchThumbnailTaskArgs = [boolean, string | undefined];
+export type FetchThumbnailTaskArgs = [boolean, string | undefined];
 
 /**
  * Create a Lit task to fetch a thumbnail.

@@ -7,7 +7,7 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import galleryStyle from '../scss/gallery.scss';
 import {
   CameraConfig,
@@ -19,27 +19,29 @@ import {
 } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import {
-  fetchChildMediaAndDispatchViewChange,
-  fetchLatestMediaAndDispatchViewChange,
-  getFullDependentBrowseMediaQueryParametersOrDispatchError,
-} from '../utils/ha/browse-media';
-import { changeViewToRecentRecordingForCameraAndDependents } from '../utils/media-to-view.js';
-import { DataManager } from '../utils/data-manager.js';
-import { View } from '../view.js';
+  changeViewToRecentEventsForCameraAndDependents,
+  changeViewToRecentRecordingForCameraAndDependents,
+} from '../utils/media-to-view.js';
+import { CameraManager, ExtendedMediaQueryResult } from '../camera-manager/manager.js';
+import { View } from '../view/view.js';
 import { renderProgressIndicator } from './message.js';
 import './thumbnail.js';
 import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
+import { createRef, Ref } from 'lit/directives/ref.js';
+import { MediaQueriesClassifier } from '../view/media-queries-classifier';
+import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
+import { EventQuery, MediaQuery, RecordingQuery } from '../camera-manager/types';
+import { MediaQueriesResults } from '../view/media-queries-results';
+import { errorToConsole } from '../utils/basic';
+import './media-filter';
+import "./surround-basic";
 
-interface GalleryViewContext {
-  // Keep track of the previous view to allow returning to a higher-level folder.
-  previous?: View;
-}
+const GALLERY_MEDIA_CHUNK_SIZE = 100;
 
-declare module 'view' {
-  interface ViewContext {
-    gallery?: GalleryViewContext;
-  }
-}
+const GALLERY_MEDIA_FILTER_MENU_ICONS = {
+  closed: 'mdi:filter-cog-outline',
+  open: 'mdi:filter-cog',
+};
 
 @customElement('frigate-card-gallery')
 export class FrigateCardGallery extends LitElement {
@@ -56,7 +58,7 @@ export class FrigateCardGallery extends LitElement {
   public cameras?: Map<string, CameraConfig>;
 
   @property({ attribute: false })
-  public dataManager?: DataManager;
+  public cameraManager?: CameraManager;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -66,62 +68,75 @@ export class FrigateCardGallery extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    const mediaType = this.view?.getMediaType();
     if (
       !this.hass ||
       !this.view ||
       !this.cameras ||
       !this.view.isGalleryView() ||
-      !mediaType ||
-      !this.dataManager
+      !this.cameraManager
     ) {
       return;
     }
 
-    if (!this.view.target) {
-      if (mediaType === 'recordings') {
+    if (!this.view.query) {
+      if (this.view.is('recordings')) {
         changeViewToRecentRecordingForCameraAndDependents(
           this,
           this.hass,
-          this.dataManager,
+          this.cameraManager,
+          this.cameras,
+          this.view,
+        );
+      } else {
+        const mediaType = this.view.is('snapshots')
+          ? 'snapshots'
+          : this.view.is('clips')
+          ? 'clips'
+          : null;
+        changeViewToRecentEventsForCameraAndDependents(
+          this,
+          this.hass,
+          this.cameraManager,
           this.cameras,
           this.view,
           {
-            targetView: 'recordings',
+            ...(mediaType && { mediaType: mediaType }),
           },
-        );
-      } else {
-        const browseMediaQueryParameters =
-          getFullDependentBrowseMediaQueryParametersOrDispatchError(
-            this,
-            this.hass,
-            this.cameras,
-            this.view.camera,
-            mediaType,
-          );
-
-        if (!browseMediaQueryParameters) {
-          return;
-        }
-
-        fetchLatestMediaAndDispatchViewChange(
-          this,
-          this.hass,
-          this.view,
-          browseMediaQueryParameters,
         );
       }
       return renderProgressIndicator({ cardWideConfig: this.cardWideConfig });
     }
 
     return html`
-      <frigate-card-gallery-core
-        .hass=${this.hass}
-        .view=${this.view}
-        .galleryConfig=${this.galleryConfig}
-        .cameras=${this.cameras}
+      <frigate-card-surround-basic
+        .drawerIcons=${{
+          ...(this.galleryConfig &&
+            this.galleryConfig.controls.filter.mode !== 'none' && {
+              [this.galleryConfig.controls.filter.mode]: GALLERY_MEDIA_FILTER_MENU_ICONS,
+            }),
+        }}
       >
-      </frigate-card-gallery-core>
+        ${this.galleryConfig && this.galleryConfig.controls.filter.mode !== 'none'
+          ? html` <frigate-card-media-filter
+              .hass=${this.hass}
+              .cameras=${this.cameras}
+              .cameraManager=${this.cameraManager}
+              .view=${this.view}
+              .mediaLimit=${GALLERY_MEDIA_CHUNK_SIZE}
+              slot=${this.galleryConfig.controls.filter.mode}
+            >
+            </frigate-card-media-filter>`
+          : ''}
+        <frigate-card-gallery-core
+          .hass=${this.hass}
+          .view=${this.view}
+          .galleryConfig=${this.galleryConfig}
+          .cameras=${this.cameras}
+          .cameraManager=${this.cameraManager}
+          .cardWideConfig=${this.cardWideConfig}
+        >
+        </frigate-card-gallery-core>
+      </frigate-card-surround-basic>
     `;
   }
 
@@ -153,11 +168,25 @@ export class FrigateCardGalleryCore extends LitElement {
   @property({ attribute: false })
   public cameras?: Map<string, CameraConfig>;
 
+  @property({ attribute: false })
+  public cameraManager?: CameraManager;
+
+  @property({ attribute: false })
+  public cardWideConfig?: CardWideConfig;
+
+  protected _intersectionObserver: IntersectionObserver;
   protected _resizeObserver: ResizeObserver;
+  protected _refLoader: Ref<HTMLElement> = createRef();
+
+  @state()
+  protected _showExtensionLoader = true;
 
   constructor() {
     super();
     this._resizeObserver = new ResizeObserver(this._resizeHandler.bind(this));
+    this._intersectionObserver = new IntersectionObserver(
+      this._intersectionHandler.bind(this),
+    );
   }
 
   /**
@@ -166,6 +195,10 @@ export class FrigateCardGalleryCore extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     this._resizeObserver.observe(this);
+
+    // Request update in order to ensure the intersection observer reconnects
+    // with the loader sentinel.
+    this.requestUpdate();
   }
 
   /**
@@ -173,6 +206,7 @@ export class FrigateCardGalleryCore extends LitElement {
    */
   disconnectedCallback(): void {
     this._resizeObserver.disconnect();
+    this._intersectionObserver.disconnect();
     super.disconnectedCallback();
   }
 
@@ -201,16 +235,55 @@ export class FrigateCardGalleryCore extends LitElement {
     this._setColumnCount();
   }
 
-  /**
-   * Determine whether the back arrow should be displayed.
-   * @returns `true` if the back arrow should be displayed, `false` otherwise.
-   */
-  protected _showBackArrow(): boolean {
-    return (
-      !!this.view?.context?.gallery?.previous &&
-      !!this.view.context.gallery.previous.target &&
-      this.view.context.gallery.previous.view === this.view.view
-    );
+  protected async _intersectionHandler(
+    entries: IntersectionObserverEntry[],
+  ): Promise<void> {
+    if (!this.cameraManager || !this.hass || !this.view) {
+      return;
+    }
+    if (entries.every((entry) => !entry.isIntersecting)) {
+      return;
+    }
+
+    this._showExtensionLoader = false;
+
+    const query = this.view?.query;
+    const rawQueries = query?.getQueries() ?? null;
+    const existingMedia = this.view.queryResults?.getResults();
+    if (!query || !rawQueries || !existingMedia) {
+      return;
+    }
+
+    let extension: ExtendedMediaQueryResult<MediaQuery> | null;
+    try {
+      extension = await this.cameraManager.extendMediaQueries<MediaQuery>(
+        this.hass,
+        rawQueries,
+        existingMedia,
+        'earlier',
+        GALLERY_MEDIA_CHUNK_SIZE,
+      );
+    } catch (e) {
+      errorToConsole(e as Error);
+      return;
+    }
+
+    if (extension) {
+      const newMediaQueries = MediaQueriesClassifier.areEventQueries(query)
+        ? new EventMediaQueries(extension.queries as EventQuery[])
+        : MediaQueriesClassifier.areRecordingQueries(query)
+        ? new RecordingMediaQueries(extension.queries as RecordingQuery[])
+        : null;
+
+      if (newMediaQueries) {
+        this.view
+          ?.evolve({
+            query: newMediaQueries,
+            queryResults: new MediaQueriesResults(extension.results),
+          })
+          .dispatchChangeEvent(this);
+      }
+    }
   }
 
   /**
@@ -232,6 +305,9 @@ export class FrigateCardGalleryCore extends LitElement {
         );
       }
     }
+    if (changedProps.has('view')) {
+      this._showExtensionLoader = true;
+    }
   }
 
   /**
@@ -239,11 +315,12 @@ export class FrigateCardGalleryCore extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
+    const results = this.view?.queryResults?.getResults();
+
     if (
+      !results ||
       !this.hass ||
       !this.view ||
-      !this.view.target ||
-      !this.view.target.children ||
       !this.view.isGalleryView() ||
       !this.cameras
     ) {
@@ -251,78 +328,47 @@ export class FrigateCardGalleryCore extends LitElement {
     }
 
     return html`
-      ${this._showBackArrow()
-        ? html` <ha-card
-            @click=${(ev) => {
-              if (this.view && this.view.context?.gallery?.previous) {
-                this.view.context.gallery.previous.dispatchChangeEvent(this);
+      ${results.map(
+        (media, index) =>
+          html`<frigate-card-thumbnail
+            .hass=${this.hass}
+            .cameraManager=${this.cameraManager}
+            .media=${media}
+            .cameraConfig=${this.cameras?.get(media.getCameraID())}
+            .view=${this.view}
+            ?details=${!!this.galleryConfig?.controls.thumbnails.show_details}
+            ?show_favorite_control=${!!this.galleryConfig?.controls.thumbnails
+              .show_favorite_control}
+            ?show_timeline_control=${!!this.galleryConfig?.controls.thumbnails
+              .show_timeline_control}
+            @click=${(ev: Event) => {
+              if (this.view) {
+                this.view
+                  .evolve({
+                    view: 'media',
+                    queryResults: this.view.queryResults?.clone().selectResult(index),
+                  })
+                  .dispatchChangeEvent(this);
               }
               stopEventFromActivatingCardWideActions(ev);
             }}
-            outlined=""
           >
-            <ha-icon .icon=${'mdi:arrow-left'}></ha-icon>
-          </ha-card>`
-        : ''}
-      ${this.view.target.children.map(
-        (child, index) =>
-          html`
-            ${child.can_expand
-              ? html`
-                  <ha-card
-                    @click=${(ev) => {
-                      if (this.hass && this.view) {
-                        fetchChildMediaAndDispatchViewChange(
-                          this,
-                          this.hass,
-                          this.view,
-                          child,
-                          {
-                            gallery: {
-                              previous: this.view,
-                            },
-                          },
-                        );
-                      }
-                      stopEventFromActivatingCardWideActions(ev);
-                    }}
-                    outlined=""
-                  >
-                    <div>${child.title}</div>
-                  </ha-card>
-                `
-              : html`<frigate-card-thumbnail
-                  .view=${this.view}
-                  .target=${this.view?.target ?? null}
-                  .childIndex=${index}
-                  .hass=${this.hass}
-                  .cameraConfig=${child.frigate?.cameraID
-                    ? this.cameras?.get(child.frigate.cameraID)
-                    : undefined}
-                  ?details=${!!this.galleryConfig?.controls.thumbnails.show_details}
-                  ?show_favorite_control=${!!this.galleryConfig?.controls.thumbnails
-                    .show_favorite_control}
-                  ?show_timeline_control=${!!this.galleryConfig?.controls.thumbnails
-                    .show_timeline_control}
-                  @click=${(ev: Event) => {
-                    if (this.view) {
-                      const targetView = this.view.getViewerViewForGalleryView();
-                      if (targetView) {
-                        this.view
-                          .evolve({
-                            view: targetView,
-                            childIndex: index,
-                          })
-                          .dispatchChangeEvent(this);
-                      }
-                    }
-                    stopEventFromActivatingCardWideActions(ev);
-                  }}
-                >
-                </frigate-card-thumbnail>`}
-          `,
+          </frigate-card-thumbnail>`,
       )}
+      ${this._showExtensionLoader
+        ? html`${renderProgressIndicator({
+            cardWideConfig: this.cardWideConfig,
+            componentRef: this._refLoader,
+          })}`
+        : ''}
     `;
+  }
+
+  public updated(): void {
+    if (this._refLoader.value) {
+      this._intersectionObserver.disconnect();
+      this._intersectionObserver.observe(this._refLoader.value);
+    }
   }
 
   /**

@@ -1,0 +1,7 @@
+@use '@graphiteds/core/css/core.css';
+
+:host {
+  // The graphite css (above) loads variables into :root, which is lost in the
+  // shadow DOM, so copy them into the host.
+  @extend :root;
+}

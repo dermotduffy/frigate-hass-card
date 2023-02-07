@@ -22,7 +22,7 @@ import {
   createMediaLoadedInfo,
   dispatchExistingMediaLoadedInfoAsEvent,
 } from '../utils/media-info.js';
-import { View } from '../view.js';
+import { View } from '../view/view.js';
 import { dispatchErrorMessageEvent } from './message.js';
 import { contentsChanged } from '../utils/basic.js';
 import isEqual from 'lodash-es/isEqual';
