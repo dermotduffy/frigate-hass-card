@@ -27,7 +27,7 @@ export const getRecordingsSummary = async (
   clientID: string,
   camera_name: string,
 ): Promise<RecordingSummary> => {
-  return await homeAssistantWSRequest(
+  return (await homeAssistantWSRequest(
     hass,
     recordingSummarySchema,
     {
@@ -37,7 +37,8 @@ export const getRecordingsSummary = async (
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     },
     true,
-  );
+    // See: https://github.com/colinhacks/zod/pull/1752
+  )) as RecordingSummary;
 };
 
 export interface NativeFrigateRecordingSegmentsQuery {
