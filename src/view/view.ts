@@ -1,6 +1,3 @@
-// Gallery:
-//  - TODO: View a recording from the gallery => timeline should span the hour.
-
 import { ViewContext } from 'view';
 import {
   FrigateCardUserSpecifiedView,

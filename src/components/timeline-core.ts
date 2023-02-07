@@ -706,7 +706,7 @@ export class FrigateCardTimelineCore extends LitElement {
 
   protected _getPerfectWindowFromMedia(media: ViewMedia): TimelineWindow | null {
     const startTime = media.getStartTime();
-    const endTime = media.getStartTime();
+    const endTime = media.getEndTime();
 
     if (ViewMediaClassifier.isEvent(media)) {
       const windowSeconds = this._getConfiguredWindowSeconds();
