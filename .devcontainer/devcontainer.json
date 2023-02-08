@@ -2,8 +2,15 @@
 {
   "dockerComposeFile": "../docker-compose.yml",
   "service": "dev",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": false,
+      "dockerDashComposeVersion": "v2"
+    }
+  },
   "workspaceFolder": "${localWorkspaceFolder}",
   "shutdownAction": "stopCompose",
+  "forwardPorts": [10001, "hass:8123", "frigate:5000"],
   "portsAttributes": {
     "10001": {
       "label": "Rollup",
@@ -18,33 +25,36 @@
       "onAutoForward": "silent"
     }
   },
-  "forwardPorts": [10001, "hass:8123", "frigate:5000"],
   "initializeCommand": ".devcontainer/initialize.sh",
   "postCreateCommand": "yarn install",
-  "extensions": [
-    "github.vscode-pull-request-github",
-    "eamodio.gitlens",
-    "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
-    "bierner.lit-html",
-    "runem.lit-plugin",
-    "davidanson.vscode-markdownlint",
-    "redhat.vscode-yaml",
-    "lokalise.i18n-ally",
-    "ms-azuretools.vscode-docker"
-  ],
-  "settings": {
-    "files.eol": "\n",
-    "editor.tabSize": 2,
-    "editor.formatOnPaste": false,
-    "editor.formatOnSave": true,
-    "editor.formatOnType": true,
-    "files.trimTrailingWhitespace": true,
-    "[json]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[jsonc]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "github.vscode-pull-request-github",
+        "eamodio.gitlens",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bierner.lit-html",
+        "runem.lit-plugin",
+        "davidanson.vscode-markdownlint",
+        "redhat.vscode-yaml",
+        "lokalise.i18n-ally",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "files.eol": "\n",
+        "editor.tabSize": 2,
+        "editor.formatOnPaste": false,
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true,
+        "files.trimTrailingWhitespace": true,
+        "[json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[jsonc]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        }
+      }
     }
   }
 }

@@ -1,10 +1,11 @@
 ---
-version: '3'
 services:
   dev:
-    user: node
+    user: vscode
     init: true
     build: .devcontainer
+    entrypoint: /usr/local/share/docker-init.sh
+    command: sleep infinity
     env_file:
       - .env
     volumes:

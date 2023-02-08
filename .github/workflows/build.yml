@@ -16,7 +16,12 @@ jobs:
     name: Test build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node and Yarn
+        uses: volta-cli/action@v3
+
       - name: Build
         run: |
           yarn install
