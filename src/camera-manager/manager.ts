@@ -525,9 +525,10 @@ export class CameraManager {
       // are assumed to be unique.
       uniqBy(mediaArray, (media) => media.getID() ?? media),
 
-      // Sort all items leading with the most recent.
+      // Sort all items leading oldest -> youngest (so media is loaded in this
+      // order in the viewer which matches the left-to-right timeline order).
       (media) => media.getStartTime(),
-      'desc',
+      'asc',
     );
   }
 

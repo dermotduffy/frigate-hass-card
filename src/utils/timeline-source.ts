@@ -132,12 +132,13 @@ export class TimelineDataSource {
     }
 
     const mediaArray = await this._cameraManager.executeMediaQueries(hass, eventQueries);
+    const data: FrigateCardTimelineItem[] = []
     for (const media of mediaArray ?? []) {
       const endTime = media.getEndTime();
       const startTime = media.getStartTime();
       const id = media.getID();
       if (id && startTime) {
-        this._dataset.update({
+        data.push({
           id: id,
           group: media.getCameraID(),
           content: '',
@@ -148,6 +149,7 @@ export class TimelineDataSource {
         });
       }
     }
+    this._dataset.update(data);
 
     this._eventRanges.add({
       ...cacheFriendlyWindow,

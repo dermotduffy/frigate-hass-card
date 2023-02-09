@@ -1,4 +1,3 @@
-import { HomeAssistant } from 'custom-card-helpers';
 import fromUnixTime from 'date-fns/fromUnixTime';
 import isEqual from 'lodash-es/isEqual';
 import { CameraConfig } from '../../types';
