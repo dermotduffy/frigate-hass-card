@@ -2450,14 +2450,13 @@ __metadata:
     screenfull: ^6.0.2
     side-drawer: ^3.1.0
     ts-prune: ^0.10.3
-    ts-toolbelt: ^9.6.0
-    typescript: ^4.8.3
+    typescript: ^4.9.5
     uuid: ^8.3.2
     vis-data: ^7.1.4
     vis-timeline: ^7.7.0
     vis-util: ^5.0.2
     xss: ^1.0.14
-    zod: ^3.20.2
+    zod: ^3.20.5
   languageName: unknown
   linkType: soft
 
@@ -5122,13 +5121,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-toolbelt@npm:^9.6.0":
-  version: 9.6.0
-  resolution: "ts-toolbelt@npm:9.6.0"
-  checksum: 9f35fd95d895a5d32ea9fd2e532a695b0bae6cbff6832b77292efa188a0ed1ed6e54f63f74a8920390f3d909a7a3adb20a144686372a8e78b420246a9bd3d58a
-  languageName: node
-  linkType: hard
-
 "tsconfig-paths@npm:^3.14.1":
   version: 3.14.1
   resolution: "tsconfig-paths@npm:3.14.1"
@@ -5193,7 +5185,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.5.4, typescript@npm:^4.8.3":
+"typescript@npm:^4.5.4, typescript@npm:^4.9.5":
   version: 4.9.5
   resolution: "typescript@npm:4.9.5"
   bin:
@@ -5203,7 +5195,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.5.4#~builtin<compat/typescript>, typescript@patch:typescript@^4.8.3#~builtin<compat/typescript>":
+"typescript@patch:typescript@^4.5.4#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.5#~builtin<compat/typescript>":
   version: 4.9.5
   resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=23ec76"
   bin:
@@ -5474,9 +5466,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.20.2":
-  version: 3.20.2
-  resolution: "zod@npm:3.20.2"
-  checksum: 04172f7e9350372684ccd298d4716908edc9113751295b6c4e1b3ea84e2af8997e504b33ba36f4741417bb2a5dc90bfd40501f6b0e7389df10e42a63d6d8366c
+"zod@npm:^3.20.5":
+  version: 3.20.5
+  resolution: "zod@npm:3.20.5"
+  checksum: b04ba76447337176f3c851fbde93271a6f224225dcce4823a2562cecab6686986ca76a9090c65f01bf436bb456805f4baecc84eb5d64eb45a47986575c1de1d1
   languageName: node
   linkType: hard
