@@ -402,18 +402,23 @@ export class FrigateCardViewerCarousel extends LitElement {
       .dispatchChangeEvent(this);
   }
 
-  /**
-   * Handle the user selecting a new slide in the carousel.
-   */
   protected _setViewHandler(ev: CustomEvent<CarouselSelect>): void {
-    // The slide may already be selected on load, so don't dispatch a new view
-    // unless necessary.
-    if (ev.detail.index !== this.view?.queryResults?.getSelectedIndex()) {
-      this._setViewSelectedIndex(ev.detail.index);
-    }
+    this._setViewSelectedIndex(ev.detail.index);
   }
 
   protected _setViewSelectedIndex(index: number): void {
+    if (!this.view?.queryResults) {
+      return;
+    }
+
+    const selectedIndex = this.view.queryResults.getSelectedIndex();
+    if (selectedIndex === null || selectedIndex === index) {
+      // The slide may already be selected on load, so don't dispatch a new view
+      // unless necessary (i.e. the new index is different from the current
+      // index).
+      return;
+    }
+
     const newResults = this.view?.queryResults?.clone().selectResult(index);
     if (!newResults) {
       return;
@@ -555,7 +560,7 @@ export class FrigateCardViewerCarousel extends LitElement {
     }
 
     const media = this.view?.queryResults?.getSelectedResult();
-    if (!media || !this.cameras) {
+    if (!media || !this.cameras || !this.view || !this.view.queryResults) {
       return;
     }
 
@@ -578,7 +583,7 @@ export class FrigateCardViewerCarousel extends LitElement {
         draggable: this.viewerConfig?.draggable ?? true,
       }))}
       .carouselPlugins=${guard(
-        [this.viewerConfig, this.view?.queryResults?.getResults()],
+        [this.viewerConfig, this.view.queryResults.getResults()],
         this._getPlugins.bind(this),
       )}
       .label=${media.getTitle() ?? undefined}

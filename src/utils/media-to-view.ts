@@ -198,8 +198,9 @@ const executeMediaQueryForView = async (
   if (!mediaArray) {
     return null;
   }
-
-  const queryResults = new MediaQueriesResults(mediaArray);
+  // Select the last item by default (which is the most recent).
+  const selectedIndex = mediaArray.length ? mediaArray.length - 1 : undefined;
+  const queryResults = new MediaQueriesResults(mediaArray, selectedIndex);
   let viewerContext: ViewContext | undefined = {};
 
   if (options?.targetTime && options.cameraIDs) {
