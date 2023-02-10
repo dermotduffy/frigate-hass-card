@@ -104,12 +104,12 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
 
     return html`${this.thumbnail
       ? renderTask(
-          this,
-          this._embedThumbnailTask,
-          (embeddedThumbnail: string | null) =>
-            embeddedThumbnail ? html`<img src="${embeddedThumbnail}" />` : html``,
-          { inProgressFunc: () => imageOff },
-        )
+        this,
+        this._embedThumbnailTask,
+        (embeddedThumbnail: string | null) =>
+          embeddedThumbnail ? html`<img src="${embeddedThumbnail}" />` : html``,
+        { inProgressFunc: () => imageOff },
+      )
       : imageOff} `;
   }
 
@@ -162,7 +162,7 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
     return html` <div class="left">
         ${what ? html`<div class="larger">${prettifyTitle(what.join(', '))}</div>` : ``}
         ${startTime
-          ? html` <div>
+        ? html` <div>
                 <span class="heading">${localize('event.start')}:</span>
                 <span>${format(startTime, 'HH:mm:ss')}</span>
               </div>
@@ -170,17 +170,17 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
                 <span class="heading">${localize('event.duration')}:</span>
                 <span
                   >${endTime
-                    ? getDurationString(startTime, endTime)
-                    : localize('event.in_progress')}</span
+            ? getDurationString(startTime, endTime)
+            : localize('event.in_progress')}</span
                 >
               </div>`
-          : ``}
+        : ``}
         ${this.seek
-          ? html` <div>
+        ? html` <div>
               <span class="heading">${localize('event.seek')}</span>
               <span>${format(this.seek, 'HH:mm:ss')}</span>
             </div>`
-          : html``}
+        : html``}
       </div>
       ${score
         ? html`<div class="right">
@@ -213,11 +213,11 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
     return html`<div class="left">
         <div class="larger">${this.cameraTitle ?? ''}</div>
         ${this.seek
-          ? html` <div>
+        ? html` <div>
               <span class="heading">${localize('recording.seek')}</span>
               <span>${format(this.seek, 'HH:mm:ss')}</span>
             </div>`
-          : html``}
+        : html``}
       </div>
       ${eventCount !== null
         ? html`<div class="right">
@@ -303,50 +303,50 @@ export class FrigateCardThumbnail extends LitElement {
           .thumbnail=${thumbnail ?? undefined}
         ></frigate-card-thumbnail-feature-event>`
       : ViewMediaClassifier.isRecording(this.media)
-      ? html`<frigate-card-thumbnail-feature-recording
+        ? html`<frigate-card-thumbnail-feature-recording
           aria-label="${title ?? ''}"
           title="${title ?? ''}"
           .cameraTitle=${this.details ? undefined : cameraTitle}
           .date=${this.media.getStartTime() ?? undefined}
         ></frigate-card-thumbnail-feature-recording>`
-      : html``}
+        : html``}
     ${shouldShowFavoriteControl
-      ? html` <ha-icon
+        ? html` <ha-icon
             class="${classMap(starClasses)}"
             icon=${this.media.isFavorite() ? 'mdi:star' : 'mdi:star-outline'}
             title=${localize('thumbnail.retain_indefinitely')}
             @click=${async (ev: Event) => {
-              stopEventFromActivatingCardWideActions(ev);
-              if (this.hass && this.media) {
-                try {
-                  await this.cameraManager?.favoriteMedia(
-                    this.hass,
-                    this.media,
-                    !this.media?.isFavorite(),
-                  );
-                } catch (e) {
-                  errorToConsole(e as Error);
-                  return;
-                }
-                this.requestUpdate();
+            stopEventFromActivatingCardWideActions(ev);
+            if (this.hass && this.media) {
+              try {
+                await this.cameraManager?.favoriteMedia(
+                  this.hass,
+                  this.media,
+                  !this.media?.isFavorite(),
+                );
+              } catch (e) {
+                errorToConsole(e as Error);
+                return;
               }
-            }}
+              this.requestUpdate();
+            }
+          }}
           /></ha-icon>`
-      : ``}
+        : ``}
     ${this.details && ViewMediaClassifier.isEvent(this.media)
-      ? html`<frigate-card-thumbnail-details-event
+        ? html`<frigate-card-thumbnail-details-event
           .media=${this.media ?? undefined}
           .seek=${this.seek}
         ></frigate-card-thumbnail-details-event>`
-      : this.details && ViewMediaClassifier.isRecording(this.media)
-      ? html`<frigate-card-thumbnail-details-recording
+        : this.details && ViewMediaClassifier.isRecording(this.media)
+          ? html`<frigate-card-thumbnail-details-recording
           .media=${this.media ?? undefined}
           .cameraTitle=${cameraTitle}
           .seek=${this.seek}
         ></frigate-card-thumbnail-details-recording>`
-      : html``}
+          : html``}
     ${shouldShowTimelineControl
-      ? html`<ha-icon
+        ? html`<ha-icon
           class="timeline"
           icon="mdi:target"
           title=${localize('thumbnail.timeline')}
@@ -355,43 +355,19 @@ export class FrigateCardThumbnail extends LitElement {
             if (!this.view || !this.media) {
               return;
             }
-            if (ViewMediaClassifier.isEvent(this.media)) {
-              this.view
-                .evolve({
-                  view: 'timeline',
-                  queryResults: this.view.queryResults
-                    ?.clone()
-                    .selectResultIfFound((media) => media === this.media),
-                })
-                .removeContext('timeline')
-                .dispatchChangeEvent(this);
-            } else if (ViewMediaClassifier.isRecording(this.media)) {
-              const startTime = this.media.getStartTime();
-              const endTime = this.media.getStartTime();
-              if (!startTime || !endTime) {
-                return;
-              }
-              // Specifically reset the media target/childIndex, as we cannot
-              // 'select' an hour in the timeline rather we set the window to
-              // matching values.
-              this.view
-                ?.evolve({
-                  view: 'timeline',
-                  query: null,
-                })
-                .mergeInContext({
-                  timeline: {
-                    window: {
-                      start: startTime,
-                      end: endTime,
-                    },
-                  },
-                })
-                .dispatchChangeEvent(this);
-            }
-          }}
+            this.view
+              .evolve({
+                view: 'timeline',
+                queryResults: this.view.queryResults
+                  ?.clone()
+                  .selectResultIfFound((media) => media === this.media),
+              })
+              .removeContext('timeline')
+              .dispatchChangeEvent(this);
+          }
+          }
         ></ha-icon>`
-      : ''}`;
+        : ''}`;
   }
 
   /**
