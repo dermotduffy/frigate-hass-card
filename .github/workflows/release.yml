@@ -17,11 +17,11 @@ jobs:
       - name: Setup Node and Yarn
         uses: volta-cli/action@v3
 
-      # Build
+      - name: Install dependencies
+        run: yarn install --immutable
+
       - name: Build the file
-        run: |
-          yarn install
-          yarn run build
+        run: yarn run build
 
       # Upload build file to the release as an asset.
       - name: Upload zip to release

@@ -22,10 +22,11 @@ jobs:
       - name: Setup Node and Yarn
         uses: volta-cli/action@v3
 
-      - name: Build
-        run: |
-          yarn install
-          yarn run build
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build the file
+        run: yarn run build
 
       - name: HACS build validation
         uses: "hacs/action@21.12.1"
