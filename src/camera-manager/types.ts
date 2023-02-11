@@ -85,10 +85,11 @@ export interface MediaMetadata {
 interface BaseCapabilities {
   canFavoriteEvents: boolean;
   canFavoriteRecordings: boolean;
+  supportsTimeline: boolean;
 }
 
 export type CameraManagerCapabilities = BaseCapabilities;
-export type CameraManagerEngineCapabilities = BaseCapabilities;
+export type CameraManagerCameraCapabilities = BaseCapabilities;
 export interface CameraManagerMediaCapabilities {
   canFavorite: boolean;
 }

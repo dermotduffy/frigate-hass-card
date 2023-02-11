@@ -149,7 +149,6 @@ export class FrigateCardTimelineThumbnail extends LitElement {
     return html` <frigate-card-thumbnail
       .hass=${dataRequest.hass}
       .cameraManager=${dataRequest.cameraManager}
-      .cameraConfig=${dataRequest.cameraConfig}
       .media=${dataRequest.media}
       .view=${dataRequest.view}
       ?details=${this.details}
@@ -259,26 +258,34 @@ export class FrigateCardTimelineCore extends LitElement {
     if (!this.hass || !this.view || !this.timelineConfig) {
       return;
     }
-    return html`<div
-      @frigate-card:timeline:thumbnail-data-request=${this._handleThumbnailDataRequest.bind(
-        this,
-      )}
-      class="timeline"
-      ${ref(this._refTimeline)}
-    >
-      <ha-icon
-        class="lock"
-        .icon=${`mdi:${this._locked ? 'lock' : 'lock-open-variant'}`}
-        @click=${() => {
-          this._locked = !this._locked;
-        }}
-        aria-label="${this._locked
-          ? localize('timeline.unlock')
-          : localize('timeline.lock')}"
-        title="${this._locked ? localize('timeline.unlock') : localize('timeline.lock')}"
-      >
-      </ha-icon>
-    </div>`;
+    const capabilities = this.cameraManager?.getAggregateCameraCapabilities(
+      this._getTimelineCameraIDs(),
+    );
+
+    return html` ${capabilities?.supportsTimeline
+      ? html` <div
+          @frigate-card:timeline:thumbnail-data-request=${this._handleThumbnailDataRequest.bind(
+            this,
+          )}
+          class="timeline"
+          ${ref(this._refTimeline)}
+        >
+          <ha-icon
+            class="lock"
+            .icon=${`mdi:${this._locked ? 'lock' : 'lock-open-variant'}`}
+            @click=${() => {
+              this._locked = !this._locked;
+            }}
+            aria-label="${this._locked
+              ? localize('timeline.unlock')
+              : localize('timeline.lock')}"
+            title="${this._locked
+              ? localize('timeline.unlock')
+              : localize('timeline.lock')}"
+          >
+          </ha-icon>
+        </div>`
+      : ''}`;
   }
 
   /**
@@ -686,15 +693,10 @@ export class FrigateCardTimelineCore extends LitElement {
       if (!this.hass || !cameraConfig || !this.cameraManager) {
         return;
       }
-      const cameraMetadata = this.cameraManager.getCameraMetadata(
-        this.hass,
-        cameraConfig,
-      );
-      if (
-        cameraMetadata &&
-        cameraConfig.frigate.camera_name &&
-        cameraConfig.frigate.camera_name !== CAMERA_BIRDSEYE
-      ) {
+      const cameraMetadata = this.cameraManager.getCameraMetadata(this.hass, cameraID);
+      const cameraCapabilities = this.cameraManager.getCameraCapabilities(cameraID);
+
+      if (cameraMetadata && cameraCapabilities?.supportsTimeline) {
         groups.push({
           id: cameraID,
           content: cameraMetadata.title,

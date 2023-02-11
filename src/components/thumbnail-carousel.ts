@@ -40,9 +40,6 @@ export class FrigateCardThumbnailCarousel extends LitElement {
   public view?: Readonly<View>;
 
   @property({ attribute: false })
-  public cameras?: Map<string, CameraConfig>;
-
-  @property({ attribute: false })
   public cameraManager?: CameraManager;
 
   protected _refCarousel: Ref<FrigateCardCarousel> = createRef();
@@ -150,8 +147,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
    */
   protected _renderThumbnail(index: number): TemplateResult | void {
     const media = this.view?.queryResults?.getResult(index) ?? null;
-    const cameraConfig = media ? this.cameras?.get(media.getCameraID()) : null;
-    if (!media || !cameraConfig || !this.view) {
+    if (!media || !this.view) {
       return;
     }
 
@@ -166,7 +162,6 @@ export class FrigateCardThumbnailCarousel extends LitElement {
       .cameraManager=${this.cameraManager}
       .hass=${this.hass}
       .media=${media}
-      .cameraConfig=${cameraConfig}
       .view=${this.view}
       .seek=${seekTarget && media.includesTime(seekTarget) ? seekTarget : undefined}
       ?details=${!!this.config?.show_details}

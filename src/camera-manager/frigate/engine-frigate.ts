@@ -13,7 +13,7 @@ import {
 import { DateRange } from '../range';
 import {
   CameraManagerCameraMetadata,
-  CameraManagerEngineCapabilities,
+  CameraManagerCameraCapabilities,
   CameraManagerMediaCapabilities,
   DataQuery,
   Engine,
@@ -805,10 +805,14 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     return seekMilliseconds / 1000;
   }
 
-  public getCapabilities(): CameraManagerEngineCapabilities {
+  public getCameraCapabilities(
+    cameraConfig: CameraConfig,
+  ): CameraManagerCameraCapabilities {
+    const isBirdseye = cameraConfig.frigate.camera_name === CAMERA_BIRDSEYE;
     return {
-      canFavoriteEvents: true,
-      canFavoriteRecordings: false,
+      canFavoriteEvents: !isBirdseye,
+      canFavoriteRecordings: !isBirdseye,
+      supportsTimeline: !isBirdseye,
     };
   }
 

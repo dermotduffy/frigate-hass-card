@@ -14,7 +14,7 @@ import {
   RecordingQueryResultsMap,
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
-  CameraManagerEngineCapabilities,
+  CameraManagerCameraCapabilities,
   CameraManagerMediaCapabilities,
   CameraManagerCameraMetadata,
 } from './types';
@@ -100,6 +100,9 @@ export interface CameraManagerEngine {
     cameraConfig: CameraConfig,
   ): CameraManagerCameraMetadata;
 
-  getCapabilities(): CameraManagerEngineCapabilities | null;
+  getCameraCapabilities(
+    cameraConfig: CameraConfig,
+  ): CameraManagerCameraCapabilities | null;
+
   getMediaCapabilities(media: ViewMedia): CameraManagerMediaCapabilities | null;
 }

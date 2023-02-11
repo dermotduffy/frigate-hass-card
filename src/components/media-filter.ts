@@ -272,14 +272,12 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('cameras') && this.cameras) {
-      this._cameraOptions = Array.from(this.cameras.entries()).map(
-        ([cameraID, cameraConfig]) => ({
-          value: cameraID,
-          label: this.hass
-            ? this.cameraManager?.getCameraMetadata(this.hass, cameraConfig)?.title ?? ''
-            : '',
-        }),
-      );
+      this._cameraOptions = Array.from(this.cameras.keys()).map((cameraID) => ({
+        value: cameraID,
+        label: this.hass
+          ? this.cameraManager?.getCameraMetadata(this.hass, cameraID)?.title ?? ''
+          : '',
+      }));
     }
 
     if (changedProps.has('cameraManager') && this.hass && this.cameraManager) {
@@ -413,7 +411,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
     const areRecordings = !!(
       this.view?.query && MediaQueriesClassifier.areRecordingQueries(this.view.query)
     );
-    const managerCapabilities = this.cameraManager?.getCapabilities();
+    const managerCapabilities = this.cameraManager?.getAggregateCameraCapabilities();
 
     // Which media controls are shown depends on the view.
     const showFavoriteControl = areEvents
