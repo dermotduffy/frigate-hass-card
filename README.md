@@ -3269,6 +3269,10 @@ This card heavily uses [Embla Carousel](https://www.embla-carousel.com/) -- a li
 
 ### Building
 
+This project uses [Volta](https://github.com/volta-cli/volta) to ensure a consistent version of Node and Yarn are used during development. If you install Volta in your environment, you should not need to worry about which Version of both to choose. **Note:** the devcontainer already comes with Volta installed.
+
+However, if you are not using Volta, you can check the `volta` key in the [`package.json`](./package.json) for a reference on which version of Node and Yarn should be used.
+
 ```sh
 $ git clone https://github.com/dermotduffy/frigate-hass-card
 $ cd frigate-hass-card
@@ -3280,9 +3284,9 @@ Resultant build will be at `dist/frigate-hass-card.js`. This could be installed 
 
 ### Dev Container
 
-[![Open in Remote - Containers](https://img.shields.io/static/v1?label=Remote%20-%20Containers&message=Open&color=blue&logo=visualstudiocode&style=flat-square)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/dermotduffy/frigate-hass-card)
+[![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/dermotduffy/frigate-hass-card)
 
-You can use the [VS Code Remote - Containers](https://code.visualstudio.com/docs/remote/containers) extension to speed up the development environment creation. Simply:
+You can use the [VS Code Dev Containers](https://code.visualstudio.com/docs/remote/containers) extension to speed up the development environment creation. Simply:
 
 1. Clone the repository to your machine
 1. Open VS Code on it
@@ -3291,9 +3295,9 @@ You can use the [VS Code Remote - Containers](https://code.visualstudio.com/docs
 
 Everything should just work without any additional configuration. Under the hood, the dev container setup takes care of bringing up:
 
-* Home Assistant (port `48123:8123`)
-* Frigate (ports `45000:5000`, `41935:1935`)
-* MQTT (port `41883:1883`)
+* Home Assistant (port `8123` or the next available one)
+* Frigate (ports `5000` or the next available one)
+* MQTT (port `1883` or the next available one)
 
 As docker-compose containers.
 
