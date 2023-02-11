@@ -1,7 +1,6 @@
 ---
 services:
   dev:
-    user: vscode
     init: true
     build: .devcontainer
     entrypoint: /usr/local/share/docker-init.sh

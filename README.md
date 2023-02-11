@@ -3269,7 +3269,7 @@ This card heavily uses [Embla Carousel](https://www.embla-carousel.com/) -- a li
 
 ### Building
 
-This project uses [Volta](https://github.com/volta-cli/volta) to ensure a consistent version of Node and Yarn are used during development. If you install Volta in your environment, you should not need to worry about which Version of both to choose. **Note:** the devcontainer already comes with Volta installed.
+This project uses [Volta](https://github.com/volta-cli/volta) to ensure a consistent version of Node and Yarn are used during development. If you install Volta in your environment, you should not need to worry about which version of both to choose. **Note:** the dev container already comes with Volta installed.
 
 However, if you are not using Volta, you can check the `volta` key in the [`package.json`](./package.json) for a reference on which version of Node and Yarn should be used.
 
