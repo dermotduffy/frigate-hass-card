@@ -343,7 +343,6 @@ export class FrigateCardGalleryCore extends LitElement {
             .hass=${this.hass}
             .cameraManager=${this.cameraManager}
             .media=${media}
-            .cameraConfig=${this.cameras?.get(media.getCameraID())}
             .view=${this.view}
             ?details=${!!this.galleryConfig?.controls.thumbnails.show_details}
             ?show_favorite_control=${!!this.galleryConfig?.controls.thumbnails

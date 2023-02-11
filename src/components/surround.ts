@@ -190,7 +190,6 @@ export class FrigateCardSurround extends LitElement {
             .config=${this.thumbnailConfig}
             .cameraManager=${this.cameraManager}
             .view=${this.view}
-            .cameras=${this.cameras}
             .selected=${this.view.queryResults?.getSelectedIndex() ?? undefined}
             @frigate-card:view:change=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
             @frigate-card:thumbnail-carousel:tap=${(

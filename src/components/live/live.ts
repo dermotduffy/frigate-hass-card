@@ -489,7 +489,7 @@ export class FrigateCardLiveCarousel extends LitElement {
   }
 
   protected _renderLive(
-    camera: string,
+    cameraID: string,
     cameraConfig: CameraConfig,
     slideIndex: number,
   ): TemplateResult | void {
@@ -501,7 +501,7 @@ export class FrigateCardLiveCarousel extends LitElement {
     // <frigate-card-live-provider> is rendering right now.
     const conditionState = {
       ...this.conditionState,
-      camera: camera,
+      camera: cameraID,
     };
 
     const config = getOverriddenConfig(
@@ -510,7 +510,7 @@ export class FrigateCardLiveCarousel extends LitElement {
       conditionState,
     ) as LiveConfig;
 
-    const cameraMetadata = this.cameraManager.getCameraMetadata(this.hass, cameraConfig);
+    const cameraMetadata = this.cameraManager.getCameraMetadata(this.hass, cameraID);
 
     return html`
       <div class="embla__slide">
@@ -560,7 +560,6 @@ export class FrigateCardLiveCarousel extends LitElement {
     if (
       !slides.length ||
       !this.liveConfig ||
-      !this.cameras ||
       !this.view ||
       !this.hass ||
       !this.cameraManager
@@ -578,15 +577,15 @@ export class FrigateCardLiveCarousel extends LitElement {
 
     const cameraMetadataPrevious = prevID ? this.cameraManager.getCameraMetadata(
       this.hass,
-      this.cameras.get(prevID),
+      prevID,
     ) : null;
     const cameraMetadataCurrent = this.cameraManager.getCameraMetadata(
       this.hass,
-      this.cameras.get(this.view.camera),
+      this.view.camera,
     );
     const cameraMetadataNext = nextID ? this.cameraManager.getCameraMetadata(
       this.hass,
-      this.cameras.get(nextID),
+      nextID,
     ) : null;
 
     // Notes on the below:

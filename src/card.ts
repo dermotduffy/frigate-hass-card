@@ -399,12 +399,12 @@ class FrigateCard extends LitElement {
     });
 
     if (this._cameras && this._cameras.size > 1) {
-      const menuItems = Array.from(this._cameras, ([camera, config]) => {
+      const menuItems = Array.from(this._cameras, ([cameraID, config]) => {
         const action = createFrigateCardCustomAction('camera_select', {
-          camera: camera,
+          camera: cameraID,
         });
         const metadata = this._hass
-          ? this._cameraManager?.getCameraMetadata(this._hass, config) ?? undefined
+          ? this._cameraManager?.getCameraMetadata(this._hass, cameraID) ?? undefined
           : undefined;
 
         return {
@@ -413,7 +413,7 @@ class FrigateCard extends LitElement {
           entity: config.camera_entity,
           state_color: true,
           title: metadata?.title,
-          selected: this._view?.camera === camera,
+          selected: this._view?.camera === cameraID,
           ...(action && { tap_action: action }),
         };
       });
@@ -1427,7 +1427,9 @@ class FrigateCard extends LitElement {
     } else if (this._view?.is('live') && cameraEntity) {
       media_content_id = `media-source://camera/${cameraEntity}`;
       media_content_type = 'application/vnd.apple.mpegurl';
-      title = this._cameraManager.getCameraMetadata(this._hass, cameraConfig)?.title ?? null;
+      title =
+        this._cameraManager.getCameraMetadata(this._hass, this._view.camera)?.title ??
+        null;
       thumbnail = this._hass?.states[cameraEntity]?.attributes?.entity_picture ?? null;
     }
 
