@@ -2,6 +2,7 @@ import { HomeAssistant } from 'custom-card-helpers';
 import { CameraConfig, CardWideConfig } from '../types.js';
 import { allPromises, arrayify, setify } from '../utils/basic.js';
 import {
+  CameraManagerCameraCapabilities,
   CameraManagerCameraMetadata,
   CameraManagerCapabilities,
   CameraManagerMediaCapabilities,
@@ -312,22 +313,6 @@ export class CameraManager {
     return engine.getMediaDownloadPath(cameraConfig, media);
   }
 
-  public getCapabilities(): CameraManagerCapabilities | null {
-    const engines = this._engineFactory.getAllEngines(this._cameras);
-    if (!engines) {
-      return null;
-    }
-
-    return {
-      canFavoriteEvents: engines.some(
-        (engine) => engine.getCapabilities()?.canFavoriteEvents,
-      ),
-      canFavoriteRecordings: engines.some(
-        (engine) => engine.getCapabilities()?.canFavoriteRecordings,
-      ),
-    };
-  }
-
   public getMediaCapabilities(media: ViewMedia): CameraManagerMediaCapabilities | null {
     const engine = this._engineFactory.getEngineForMedia(this._cameras, media);
     if (!engine) {
@@ -534,12 +519,45 @@ export class CameraManager {
 
   public getCameraMetadata(
     hass: HomeAssistant,
-    cameraConfig?: CameraConfig,
+    cameraID: string,
   ): CameraManagerCameraMetadata | null {
+    const cameraConfig = this._cameras.get(cameraID);
     const engine = this._engineFactory.getEngineForCamera(cameraConfig);
     if (!engine || !cameraConfig) {
       return null;
     }
     return engine.getCameraMetadata(hass, cameraConfig);
+  }
+
+  public getCameraCapabilities(
+    cameraID: string,
+  ): CameraManagerCameraCapabilities | null {
+    const cameraConfig = this._cameras.get(cameraID);
+    if (!cameraConfig) {
+      return null;
+    }
+
+    const engine = this._engineFactory.getEngineForCamera(cameraConfig);
+    if (!engine) {
+      return null;
+    }
+
+    return engine.getCameraCapabilities(cameraConfig);
+  }
+
+  public getAggregateCameraCapabilities(
+    cameraIDs?: Set<string>,
+  ): CameraManagerCapabilities {
+    const perCameraCapabilities = [...(cameraIDs ?? this._cameras.keys())].map(
+      (cameraID) => this.getCameraCapabilities(cameraID),
+    );
+
+    return {
+      canFavoriteEvents: perCameraCapabilities.some((cap) => cap?.canFavoriteEvents),
+      canFavoriteRecordings: perCameraCapabilities.some(
+        (cap) => cap?.canFavoriteRecordings,
+      ),
+      supportsTimeline: perCameraCapabilities.some((cap) => cap?.supportsTimeline),
+    };
   }
 }
