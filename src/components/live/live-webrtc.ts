@@ -89,7 +89,7 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
    * @returns The player or `null` if not found.
    */
   protected _getPlayer(): HTMLVideoElement | null {
-    return this.renderRoot?.querySelector('#video') as HTMLVideoElement | null;
+    return this.renderRoot?.querySelector('video') as HTMLVideoElement | null;
   }
 
   protected async _getWebRTCCardElement(): Promise<
