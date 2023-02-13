@@ -13,7 +13,6 @@ import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
 import {
-  CameraConfig,
   ExtendedHomeAssistant,
   ThumbnailsControlConfig,
 } from '../types.js';

@@ -13,7 +13,6 @@ import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { DateRange } from '../camera-manager/range';
 import { localize } from '../localize/localize';
 import mediaFilterStyle from '../scss/media-filter.scss';
-import { CameraConfig } from '../types';
 import { createViewForEvents, createViewForRecordings } from '../utils/media-to-view.js';
 import { errorToConsole, formatDate, prettifyTitle } from '../utils/basic';
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
@@ -76,9 +75,6 @@ export enum MediaFilterMediaType {
 class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
   @property({ attribute: false })
   public hass?: HomeAssistant;
-
-  @property({ attribute: false })
-  public cameras?: Map<string, CameraConfig>;
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
@@ -173,7 +169,8 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _ev: CustomEvent<{ value: unknown }>,
   ): Promise<void> {
-    if (!this.hass || !this.cameras || !this.cameraManager || !this.view) {
+    const cameras = this.cameraManager?.getCameras();
+    if (!this.hass || !cameras || !this.cameraManager || !this.view) {
       return;
     }
 
@@ -187,7 +184,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
     };
 
     const cameraIDs =
-      getArrayValueAsSet(this._refCamera.value?.value) ?? new Set(this.cameras.keys());
+      getArrayValueAsSet(this._refCamera.value?.value) ?? new Set(cameras.keys());
     const mediaType = this._refMediaType.value?.value as
       | MediaFilterMediaType
       | undefined;
@@ -229,20 +226,13 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
       ];
 
       (
-        await createViewForEvents(
-          this,
-          this.hass,
-          this.cameraManager,
-          this.cameras,
-          this.view,
-          {
-            query: new EventMediaQueries(queries),
+        await createViewForEvents(this, this.hass, this.cameraManager, this.view, {
+          query: new EventMediaQueries(queries),
 
-            // See 'A note on views' above for these two arguments.
-            ...(cameraIDs.size === 1 && { targetCameraID: [...cameraIDs][0] }),
-            targetView: mediaType === MediaFilterMediaType.Clips ? 'clips' : 'snapshots',
-          },
-        )
+          // See 'A note on views' above for these two arguments.
+          ...(cameraIDs.size === 1 && { targetCameraID: [...cameraIDs][0] }),
+          targetView: mediaType === MediaFilterMediaType.Clips ? 'clips' : 'snapshots',
+        })
       )?.dispatchChangeEvent(this);
     } else if (mediaType === MediaFilterMediaType.Recordings) {
       const query: RecordingQuery = {
@@ -252,32 +242,28 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
       };
 
       (
-        await createViewForRecordings(
-          this,
-          this.hass,
-          this.cameraManager,
-          this.cameras,
-          this.view,
-          {
-            query: new RecordingMediaQueries([query]),
+        await createViewForRecordings(this, this.hass, this.cameraManager, this.view, {
+          query: new RecordingMediaQueries([query]),
 
-            // See 'A note on views' above for these two arguments.
-            ...(cameraIDs.size === 1 && { targetCameraID: [...cameraIDs][0] }),
-            targetView: 'recordings',
-          },
-        )
+          // See 'A note on views' above for these two arguments.
+          ...(cameraIDs.size === 1 && { targetCameraID: [...cameraIDs][0] }),
+          targetView: 'recordings',
+        })
       )?.dispatchChangeEvent(this);
     }
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('cameras') && this.cameras) {
-      this._cameraOptions = Array.from(this.cameras.keys()).map((cameraID) => ({
-        value: cameraID,
-        label: this.hass
-          ? this.cameraManager?.getCameraMetadata(this.hass, cameraID)?.title ?? ''
-          : '',
-      }));
+    if (changedProps.has('cameraManager')) {
+      const cameras = this.cameraManager?.getCameras();
+      if (cameras) {
+        this._cameraOptions = Array.from(cameras.keys()).map((cameraID) => ({
+          value: cameraID,
+          label: this.hass
+            ? this.cameraManager?.getCameraMetadata(this.hass, cameraID)?.title ?? ''
+            : '',
+        }));
+      }
     }
 
     if (changedProps.has('cameraManager') && this.hass && this.cameraManager) {
@@ -321,7 +307,8 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
 
   protected _getDefaultsFromView(): MediaFilterCoreDefaults | null {
     const queries = this.view?.query?.getQueries();
-    if (!this.view || !queries) {
+    const cameras = this.cameraManager?.getCameras();
+    if (!this.view || !queries || !cameras) {
       return null;
     }
 
@@ -337,7 +324,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
     );
     // Special note: If all cameras are selected, this is the same as no
     // selector at all.
-    if (cameraIDSets.length === 1 && queries[0].cameraIDs.size !== this.cameras?.size) {
+    if (cameraIDSets.length === 1 && queries[0].cameraIDs.size !== cameras.size) {
       cameraIDs = [...queries[0].cameraIDs];
     }
 

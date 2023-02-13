@@ -1,5 +1,6 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { CameraConfig } from '../types';
+import { EntityRegistryManager } from '../utils/ha/entity-registry';
 import { ViewMedia } from '../view/media';
 import {
   DataQuery,
@@ -17,57 +18,68 @@ import {
   CameraManagerCameraCapabilities,
   CameraManagerMediaCapabilities,
   CameraManagerCameraMetadata,
+  CameraURLContext,
+  CameraConfigs,
+  Engine,
 } from './types';
 
 export const CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT = 10000;
 
 export interface CameraManagerEngine {
+  getEngineType(): Engine;
+
+  initializeCamera(
+    hass: HomeAssistant,
+    entityRegistryManager: EntityRegistryManager,
+    cameraConfig: CameraConfig,
+  ): Promise<CameraConfig>;
+
   generateDefaultEventQuery(
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     cameraIDs: Set<string>,
     query: PartialEventQuery,
   ): EventQuery[] | null;
 
   generateDefaultRecordingQuery(
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     cameraIDs: Set<string>,
     query: PartialRecordingQuery,
   ): RecordingQuery[] | null;
 
   generateDefaultRecordingSegmentsQuery(
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     cameraIDs: Set<string>,
     query: PartialRecordingSegmentsQuery,
   ): RecordingSegmentsQuery[] | null;
 
   getEvents(
     hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     query: EventQuery,
   ): Promise<EventQueryResultsMap | null>;
 
   getRecordings(
     hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     query: RecordingQuery,
   ): Promise<RecordingQueryResultsMap | null>;
 
   getRecordingSegments(
     hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     query: RecordingSegmentsQuery,
   ): Promise<RecordingSegmentsQueryResultsMap | null>;
 
   generateMediaFromEvents(
     hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     query: EventQuery,
     results: QueryReturnType<EventQuery>,
   ): ViewMedia[] | null;
 
   generateMediaFromRecordings(
     hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     query: RecordingQuery,
     results: QueryReturnType<RecordingQuery>,
   ): ViewMedia[] | null;
@@ -85,14 +97,14 @@ export interface CameraManagerEngine {
 
   getMediaSeekTime(
     hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     media: ViewMedia,
     target: Date,
   ): Promise<number | null>;
 
   getMediaMetadata(
     hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
   ): Promise<MediaMetadata | null>;
 
   getCameraMetadata(
@@ -105,4 +117,9 @@ export interface CameraManagerEngine {
   ): CameraManagerCameraCapabilities | null;
 
   getMediaCapabilities(media: ViewMedia): CameraManagerMediaCapabilities | null;
+
+  getCameraURL(
+    cameraConfig: CameraConfig,
+    context?: CameraURLContext,
+  ): string | null;
 }

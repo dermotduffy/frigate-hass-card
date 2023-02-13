@@ -104,6 +104,7 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 | `title` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | A friendly name for this camera to use in the card. |
 | `icon` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | The icon to use for this camera in the camera menu and in the next & previous controls when using the `icon` style. |
 | `id` | `camera_entity`, `webrtc_card.entity` or `frigate.camera_name` if set (in that preference order). | :heavy_multiplication_x: | An optional identifier to use throughout the card configuration to refer unambiguously to this camera. See [camera IDs](#camera-ids). |
+| `engine` | `auto` | :heavy_multiplication_x: | Which camera engine to use for this camera. If `auto` the card will attempt to choose the correct engine from the specified options. See [engines](#engines) below for valid options.|
 | `frigate` | | :heavy_multiplication_x: | Options for a Frigate camera. See [Frigate configuration](#camera-frigate-configuration) below. |
 | `dependencies` | | :heavy_multiplication_x: | Other cameras that this camera should depend upon. See [camera dependencies](#camera-dependencies-configuration) below. |
 | `triggers` | | :heavy_multiplication_x: | Define what should cause this camera to update/trigger. See [camera triggers](#camera-trigger-configuration) below. |
@@ -121,6 +122,15 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 |`image`|Poor|Poor|Best|Builtin|Use refreshing snapshots of the built-in Home Assistant camera streams.|
 |`frigate-jsmpeg`|Better|Low|Poor|Builtin|Stream the JSMPEG stream from Frigate (proxied via the Frigate integration). See [note below on the required integration version](#jsmpeg-troubleshooting) for this live provider to function. This is the only live provider that can view the Frigate `birdseye` view.|
 |`webrtc-card`|Best|High|Better|Separate installation required|Embed's [AlexxIT's WebRTC Card](https://github.com/AlexxIT/WebRTC) to stream live feed, requires manual extra setup, see [below](#webrtc). Not to be confused with native Home Assistant WebRTC (use `ha` provider above).|
+
+<a name="engines"></a>
+
+#### Available Camera Engines
+
+|Engine|Live|Supports clips|Supports Snapshots|Supports Recordings|Supports Timeline|Favorite events|Favorite recordings|
+| - | - | - | - | - | - | - | - |
+|`frigate`| :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: |
+|`generic`| :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: |
 
 <a name="camera-frigate-configuration"></a>
 
@@ -1304,6 +1314,7 @@ Reference: [Camera Options](#camera-options).
 cameras:
   - camera_entity: camera.front_Door
     live_provider: ha
+    engine: auto
     frigate:
       url: http://my.frigate.local
       client_id: frigate
@@ -1322,6 +1333,7 @@ cameras:
         - binary_sensor.front_door_sensor
   - camera_entity: camera.entrance
     live_provider: webrtc-card
+    engine: auto
     frigate:
       url: http://my-other.frigate.local
       client_id: frigate-other

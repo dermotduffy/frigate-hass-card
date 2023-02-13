@@ -167,11 +167,11 @@ export function getDurationString(start: Date, end: Date): string {
   return duration;
 }
 
-export const allPromises = async <T>(
-  items: T[],
-  func: (arg: T) => void,
-): Promise<void> => {
-  await Promise.all(Array.from(items).map((item) => func(item)));
+export const allPromises = async <T, R>(
+  items: Iterable<T>,
+  func: (arg: T) => R,
+): Promise<Awaited<R>[]> => {
+  return await Promise.all(Array.from(items).map((item) => func(item)));
 };
 
 /**
