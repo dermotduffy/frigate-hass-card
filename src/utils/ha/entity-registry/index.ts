@@ -42,7 +42,10 @@ export class EntityRegistryManager {
     return await this.getExtendedEntity(hass, entityID);
   }
 
-  public async getMatchingEntities(hass: HomeAssistant, func: (arg: Entity) => boolean): Promise<Entity[]> {
+  public async getMatchingEntities(
+    hass: HomeAssistant,
+    func: (arg: Entity) => boolean,
+  ): Promise<Entity[]> {
     await this.fetchEntityList(hass);
     return this._cache.getMatches(func);
   }
@@ -65,6 +68,21 @@ export class EntityRegistryManager {
     );
     this._extendedCache.set(extendedEntity);
     return extendedEntity;
+  }
+
+  public async getEntities(
+    hass: HomeAssistant,
+    entityIDs: string[],
+  ): Promise<Map<string, Entity>> {
+    const output: Map<string, Entity> = new Map();
+    const _storeEntity = async (entityID: string): Promise<void> => {
+      const entity = await this.getEntity(hass, entityID);
+      if (entity) {
+        output.set(entityID, entity);
+      }
+    };
+    await Promise.all(entityIDs.map(_storeEntity));
+    return output;
   }
 
   public async getExtendedEntities(
