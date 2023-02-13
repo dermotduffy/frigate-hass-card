@@ -2,9 +2,17 @@
 /.rpt2_cache/
 package-lock.json
 /dist
-/.yarn/
 
 .env
 .envrc
 
 stats.html
+
+# https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
