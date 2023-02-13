@@ -95,8 +95,11 @@ const LOW_PROFILE_DEFAULTS = {
   // Hide several buttons that are otherwise visible by default.
   [`${CONF_MENU_BUTTONS_FRIGATE}.enabled`]: false,
   [`${CONF_MENU_BUTTONS_TIMELINE}.enabled`]: false,
-  [`${CONF_MENU_BUTTONS_MEDIA_PLAYER}.enabled`]: false,
   [`${CONF_MENU_BUTTONS_TIMELINE}.enabled`]: false,
+
+  // If the media player button is present media player entity fetches are
+  // required on initialization.
+  [`${CONF_MENU_BUTTONS_MEDIA_PLAYER}.enabled`]: false,
 
   // Disable all options in thumbnails.
   [CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL]: false,

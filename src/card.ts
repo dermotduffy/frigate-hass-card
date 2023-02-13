@@ -210,6 +210,8 @@ class FrigateCard extends LitElement {
 
   protected _conditionManager: CardConditionManager | null = null;
 
+  protected _mediaPlayers?: string[];
+
   constructor() {
     super();
     this._entityRegistryManager = new EntityRegistryManager(
@@ -551,29 +553,12 @@ class FrigateCard extends LitElement {
       });
     }
 
-    const isValidMediaPlayer = (entity: string): boolean => {
-      if (entity.startsWith('media_player.')) {
-        const stateObj = this._hass?.states[entity];
-        if (
-          stateObj &&
-          stateObj.state !== 'unavailable' &&
-          supportsFeature(stateObj, MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA)
-        ) {
-          return true;
-        }
-      }
-      return false;
-    };
-
-    const mediaPlayers = Object.keys(this._hass?.states || {}).filter(
-      isValidMediaPlayer,
-    );
     if (
-      mediaPlayers.length &&
+      this._mediaPlayers?.length &&
       (this._view?.isViewerView() ||
         (this._view?.is('live') && selectedCameraConfig?.camera_entity))
     ) {
-      const mediaPlayerItems = mediaPlayers.map((playerEntityID) => {
+      const mediaPlayerItems = this._mediaPlayers.map((playerEntityID) => {
         const title = getEntityTitle(this._hass, playerEntityID) || playerEntityID;
         const state = this._hass?.states[playerEntityID];
         const playAction = createFrigateCardCustomAction('media_player', {
@@ -865,16 +850,45 @@ class FrigateCard extends LitElement {
     });
   }
 
-  protected async _initializeCameras(): Promise<void> {
-    if (!this._hass || !this._cameraManager) {
-      return;
-    }
+  protected async _initialize(
+    hass: HomeAssistant,
+    config: FrigateCardConfig,
+    cardWideConfig: CardWideConfig,
+  ): Promise<void> {
+    // Above arguments are taken (vs usage of `this`) as they must exist prior
+    // to initialization and this ensures it is the callers responsibility to
+    // verify that.
+
+    await Promise.all([
+      // Side load Home Assistant elements used in the UI.
+      sideLoadHomeAssistantElements(),
+
+      // Load dynamic language imports.
+      loadLanguages(),
+    ]);
+
+    await this._initializeCameras(hass, config, cardWideConfig);
+
+    // Don't reset the message which may be set to an error above. This sets the
+    // first view using the newly loaded cameras.
+    this._changeView({ resetMessage: false });
+  }
+
+  protected async _initializeCameras(
+    hass: HomeAssistant,
+    config: FrigateCardConfig,
+    cardWideConfig: CardWideConfig,
+  ): Promise<void> {
+    this._cameraManager = new CameraManager(
+      new CameraManagerEngineFactory(this._entityRegistryManager, cardWideConfig),
+      this._cardWideConfig,
+    );
 
     try {
       await this._cameraManager.initializeCameras(
-        this._hass,
+        hass,
         this._entityRegistryManager,
-        this._getConfig().cameras,
+        config.cameras,
       );
     } catch (e: unknown) {
       if (e instanceof Error) {
@@ -888,34 +902,72 @@ class FrigateCard extends LitElement {
         });
       }
     }
+  }
 
-    // Don't reset the message which may be set to an error above. This sets the
-    // first view using the newly loaded cameras.
-    this._changeView({ resetMessage: false });
+  protected async _initializeMediaPlayers(hass: HomeAssistant): Promise<void> {
+    const isValidMediaPlayer = (entityID: string): boolean => {
+      if (entityID.startsWith('media_player.')) {
+        const stateObj = this._hass?.states[entityID];
+        if (
+          stateObj &&
+          stateObj.state !== 'unavailable' &&
+          supportsFeature(stateObj, MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA)
+        ) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    const mediaPlayers = Object.keys(this._hass?.states || {}).filter(
+      isValidMediaPlayer,
+    );
+    let mediaPlayerEntities: Map<string, Entity>;
+    try {
+      mediaPlayerEntities = await this._entityRegistryManager.getEntities(
+        hass,
+        mediaPlayers,
+      );
+    } catch (e) {
+      // Failing to fetch media player information is not considered
+      // sufficiently serious to block card startup.
+      errorToConsole(e as Error);
+      return;
+    }
+
+    // Filter out entities that are marked as hidden (this information is not
+    // available in the HA state, only in the registry).
+    this._mediaPlayers = [...mediaPlayerEntities.values()]
+      .filter((entity) => !entity.hidden_by)
+      .map((entity) => entity.entity_id);
   }
 
   /**
    * Called before each update.
    */
   protected willUpdate(changedProps: PropertyValues): void {
-    if (
-      this._cardWideConfig &&
-      (!this._cameraManager ||
-        changedProps.has('_config') ||
-        changedProps.has('_cardWideConfig'))
-    ) {
-      this._cameraManager = new CameraManager(
-        new CameraManagerEngineFactory(
-          this._entityRegistryManager,
-          this._cardWideConfig,
-        ),
-        this._cardWideConfig,
-      );
-      this._initializeCameras().then(() => this.requestUpdate());
-    }
-
     if (changedProps.has('_cardWideConfig')) {
       setPerformanceCSSStyles(this, this._cardWideConfig?.performance);
+    }
+
+    if (
+      this._hass &&
+      !this._mediaPlayers &&
+      this._getConfig().menu.buttons.media_player.enabled
+    ) {
+      // Media players are initialized outside the main initialization code (the
+      // `initialize` method) since they may be required depending on an
+      // overridable configuration value.
+
+      // We also want to initialize media players after since the main camera
+      // initialization since that may have fetched entity information that will
+      // be cached and re-used here (minor performance optimization). Only do
+      // this if the media player button is enabled to further limit the
+      // performance implications.
+
+      // Prevent a double initialization.
+      this._mediaPlayers = [];
+      this._initializeMediaPlayers(this._hass);
     }
 
     if (this._view?.is('live')) {
@@ -1040,12 +1092,6 @@ class FrigateCard extends LitElement {
   }
 
   /**
-   * Initialize the card.
-   */
-  protected async _initialize(): Promise<void> {
-    await Promise.all([sideLoadHomeAssistantElements(), loadLanguages()]);
-  }
-  /**
    * Determine whether the element should be updated.
    * @param changedProps The changed properties if any.
    * @returns `true` if the element should be updated.
@@ -1053,8 +1099,15 @@ class FrigateCard extends LitElement {
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     // Load the relevant languages. Cannot do anything until then.
     if (this._initialized !== 'initialized') {
-      if (this._initialized !== 'initializing') {
-        this._initialize().then(() => {
+      const config = this._getConfig();
+      if (
+        this._initialized !== 'initializing' &&
+        this._hass &&
+        config &&
+        this._cardWideConfig
+      ) {
+        this._initialized = 'initializing';
+        this._initialize(this._hass, config, this._cardWideConfig).then(() => {
           this._initialized = 'initialized';
           this.requestUpdate();
         });

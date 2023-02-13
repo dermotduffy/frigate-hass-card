@@ -1,8 +1,11 @@
 import { HomeAssistant } from 'custom-card-helpers';
+import { localize } from '../localize/localize';
 import { CameraConfig, CardWideConfig } from '../types';
 import { EntityRegistryManager } from '../utils/ha/entity-registry';
+import { Entity } from '../utils/ha/entity-registry/types';
 import { RecordingSegmentsCache, RequestCache } from './cache';
 import { CameraManagerEngine } from './engine';
+import { CameraInitializationError } from './error';
 import { FrigateCameraManagerEngine } from './frigate/engine-frigate';
 import { GenericCameraManagerEngine } from './generic/engine-generic';
 import { Engine } from './types';
@@ -51,7 +54,18 @@ export class CameraManagerEngineFactory {
       const cameraEntity = cameraConfig.camera_entity;
 
       if (cameraEntity) {
-        const entity = await this._entityRegistryManager.getEntity(hass, cameraEntity);
+        let entity: Entity | null;
+        try {
+          entity = await this._entityRegistryManager.getEntity(hass, cameraEntity);
+        } catch (e) {
+          // Throw a slightly friendlier exception (as a typo in the entity is
+          // likely to be a common failure mode).
+          throw new CameraInitializationError(
+            localize('error.no_camera_entity'),
+            cameraConfig,
+          );
+        }
+
         switch (entity?.platform) {
           case 'frigate':
             engine = Engine.Frigate;
