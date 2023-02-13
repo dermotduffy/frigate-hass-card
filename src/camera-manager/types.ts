@@ -1,3 +1,5 @@
+import { CameraConfig, FrigateCardView } from '../types';
+import { ViewMedia } from '../view/media';
 import { FrigateEvent, FrigateRecording } from './frigate/types';
 
 // ====
@@ -18,6 +20,7 @@ export enum QueryResultsType {
 
 export enum Engine {
   Frigate = 'frigate',
+  Generic = 'generic',
 }
 
 export interface DataQuery {
@@ -85,6 +88,10 @@ export interface MediaMetadata {
 interface BaseCapabilities {
   canFavoriteEvents: boolean;
   canFavoriteRecordings: boolean;
+
+  supportsClips: boolean;
+  supportsRecordings: boolean;
+  supportsSnapshots: boolean;
   supportsTimeline: boolean;
 }
 
@@ -98,6 +105,13 @@ export interface CameraManagerCameraMetadata {
   title: string;
   icon: string;
 }
+
+export interface CameraURLContext {
+  media?: ViewMedia;
+  view?: FrigateCardView;
+}
+
+export type CameraConfigs = Map<string, CameraConfig>;
 
 // ===========
 // Event Query

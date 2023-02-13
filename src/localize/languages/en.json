@@ -354,6 +354,8 @@
     "jsmpeg_no_sign": "Could not retrieve or sign JSMPEG websocket path",
     "live_camera_not_found": "The configured camera_entity was not found",
     "live_camera_unavailable": "Camera unavailable",
+    "no_camera_engine": "Could not determine suitable engine for camera",
+    "no_camera_entity": "Could not find camera entity",
     "no_camera_id": "Could not determine camera id for the following camera, may need to set 'id' parameter manually",
     "no_camera_name": "Could not determine a Frigate camera name for camera (or one of its dependents), please specify either 'camera_entity' or 'camera_name'",
     "no_cameras": "No valid cameras found, you must configure at least one camera entry",

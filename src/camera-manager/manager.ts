@@ -1,11 +1,12 @@
 import { HomeAssistant } from 'custom-card-helpers';
-import { CameraConfig, CardWideConfig } from '../types.js';
+import { CameraConfig, CamerasConfig, CardWideConfig } from '../types.js';
 import { allPromises, arrayify, setify } from '../utils/basic.js';
 import {
   CameraManagerCameraCapabilities,
   CameraManagerCameraMetadata,
   CameraManagerCapabilities,
   CameraManagerMediaCapabilities,
+  CameraURLContext,
   DataQuery,
   EventQuery,
   EventQueryResults,
@@ -37,6 +38,12 @@ import { CameraManagerEngine } from './engine.js';
 import sum from 'lodash-es/sum';
 import add from 'date-fns/add';
 import { log } from '../utils/debug.js';
+import { EntityRegistryManager } from '../utils/ha/entity-registry/index.js';
+import { getCameraID } from '../utils/camera.js';
+import { localize } from '../localize/localize.js';
+import { CameraInitializationError } from './error.js';
+import { CameraManagerStore } from './store.js';
+import { cloneDeep } from 'lodash-es';
 
 class QueryClassifier {
   public static isEventQuery(query: DataQuery | PartialDataQuery): query is EventQuery {
@@ -77,19 +84,132 @@ export interface ExtendedMediaQueryResult<T extends MediaQuery> {
   results: ViewMedia[];
 }
 
+interface InitializedCamera {
+  inputConfig: CameraConfig;
+  initializedConfig: CameraConfig;
+  engine: CameraManagerEngine;
+}
+
 export class CameraManager {
   protected _engineFactory: CameraManagerEngineFactory;
-  protected _cameras: Map<string, CameraConfig>;
   protected _cardWideConfig?: CardWideConfig;
+  protected _store: CameraManagerStore;
 
   constructor(
     engineFactory: CameraManagerEngineFactory,
-    cameras: Map<string, CameraConfig>,
     cardWideConfig?: CardWideConfig,
   ) {
     this._engineFactory = engineFactory;
-    this._cameras = cameras;
     this._cardWideConfig = cardWideConfig;
+    this._store = new CameraManagerStore();
+  }
+
+  protected async _initializeCamera(
+    hass: HomeAssistant,
+    entityRegistryManager: EntityRegistryManager,
+    inputCameraConfig: CameraConfig,
+  ): Promise<InitializedCamera> {
+    const engineType = await this._engineFactory.getEngineForCamera(
+      hass,
+      inputCameraConfig,
+    );
+    const engine = engineType
+      ? this._store.getEngineOfType(engineType) ??
+        (await this._engineFactory.createEngine(engineType))
+      : null;
+    if (!engine) {
+      throw new CameraInitializationError(
+        localize('error.no_camera_engine'),
+        inputCameraConfig,
+      );
+    }
+
+    const initializedConfig = await engine.initializeCamera(
+      hass,
+      entityRegistryManager,
+      // Camera initialization may modify the configuration. Keep the original
+      // for display in error messages to avoid user confusion.
+      cloneDeep(inputCameraConfig),
+    );
+
+    return {
+      inputConfig: inputCameraConfig,
+      initializedConfig: initializedConfig,
+      engine: engine,
+    };
+  }
+
+  public async initializeCameras(
+    hass: HomeAssistant,
+    entityRegistryManager: EntityRegistryManager,
+    camerasConfig: CamerasConfig,
+  ): Promise<void> {
+    const hasAutoTriggers = (config: CameraConfig): boolean => {
+      return config.triggers.motion || config.triggers.occupancy;
+    };
+
+    if (
+      // If any camera requires automatic trigger detection ...
+      camerasConfig.some((config) => hasAutoTriggers(config))
+    ) {
+      // ... then we need to populate the entity cache by fetching all entities
+      // from Home Assistant.
+      await entityRegistryManager.fetchEntityList(hass);
+    }
+
+    const results = await allPromises(
+      camerasConfig,
+      async (cameraConfig) =>
+        await this._initializeCamera(hass, entityRegistryManager, cameraConfig),
+    );
+
+    // Do the additions based off the result-order, to ensure the map order is
+    // preserved.
+    results.forEach((result) => {
+      const id = getCameraID(result.initializedConfig);
+
+      if (!id) {
+        throw new CameraInitializationError(
+          localize('error.no_camera_id'),
+          result.inputConfig,
+        );
+      }
+
+      if (this._store.hasCameraID(id)) {
+        throw new CameraInitializationError(
+          localize('error.duplicate_camera_id'),
+          result.inputConfig,
+        );
+      }
+
+      this._store.addCamera(id, result.initializedConfig, result.engine);
+    });
+
+    if (!this._store.getCameraCount()) {
+      throw new CameraInitializationError(localize('error.no_cameras'));
+    }
+  }
+
+  public isInitialized(): boolean {
+    return this._store.getCameraCount() > 0;
+  }
+
+  public getCameras(): Map<string, CameraConfig> | null {
+    return this._store.getCameras();
+  }
+
+  public getCameraConfig(cameraID: string): CameraConfig | null {
+    return this._store.getCameraConfig(cameraID);
+  }
+
+  public getCameraIDs(): Set<string> | null {
+    return this._store.getCameraCount()
+      ? new Set(this._store.getCameras().keys())
+      : null;
+  }
+
+  public hasCameraID(cameraID: string): boolean {
+    return this._store.hasCameraID(cameraID);
   }
 
   public generateDefaultEventQueries(
@@ -127,13 +247,13 @@ export class CameraManager {
     const where: Set<string> = new Set();
     const days: Set<string> = new Set();
 
-    const engines = this._engineFactory.getAllEngines(this._cameras);
-    if (!engines) {
-      return null;
-    }
+    const engines = this._store.getAllEngines();
 
     const processMetadata = async (engine: CameraManagerEngine): Promise<void> => {
-      const engineMetadata = await engine.getMediaMetadata(hass, this._cameras);
+      const engineMetadata = await engine.getMediaMetadata(
+        hass,
+        this._store.getCameras(),
+      );
       if (engineMetadata) {
         if (engineMetadata.what) {
           engineMetadata.what.forEach(what.add, what);
@@ -147,7 +267,7 @@ export class CameraManager {
       }
     };
 
-    await allPromises(engines, (engine) => processMetadata(engine));
+    await allPromises(engines, processMetadata);
 
     if (!what.size && !where.size && !days.size) {
       return null;
@@ -165,11 +285,7 @@ export class CameraManager {
   ): PartialQueryConcreteType<PQT>[] | null {
     const concreteQueries: PartialQueryConcreteType<PQT>[] = [];
     const _cameraIDs = setify(cameraIDs);
-
-    const engines = this._engineFactory.getEnginesForCameraIDs(
-      this._cameras,
-      _cameraIDs,
-    );
+    const engines = this._store.getEnginesForCameraIDs(_cameraIDs);
 
     if (!engines) {
       return null;
@@ -179,19 +295,19 @@ export class CameraManager {
       let queries: DataQuery[] | null = null;
       if (QueryClassifier.isEventQuery(partialQuery)) {
         queries = engine.generateDefaultEventQuery(
-          this._cameras,
+          this._store.getCameras(),
           cameraIDs,
           partialQuery,
         );
       } else if (QueryClassifier.isRecordingQuery(partialQuery)) {
         queries = engine.generateDefaultRecordingQuery(
-          this._cameras,
+          this._store.getCameras(),
           cameraIDs,
           partialQuery,
         );
       } else if (QueryClassifier.isRecordingSegmentsQuery(partialQuery)) {
         queries = engine.generateDefaultRecordingSegmentsQuery(
-          this._cameras,
+          this._store.getCameras(),
           cameraIDs,
           partialQuery,
         );
@@ -303,10 +419,9 @@ export class CameraManager {
   }
 
   public getMediaDownloadPath(media: ViewMedia): string | null {
-    const cameraConfig = this._cameras.get(media.getCameraID());
-    const engine = cameraConfig
-      ? this._engineFactory.getEngineForCamera(cameraConfig)
-      : null;
+    const cameraConfig = this._store.getCameraConfigForMedia(media);
+    const engine = this._store.getEngineForMedia(media);
+
     if (!cameraConfig || !engine) {
       return null;
     }
@@ -314,7 +429,7 @@ export class CameraManager {
   }
 
   public getMediaCapabilities(media: ViewMedia): CameraManagerMediaCapabilities | null {
-    const engine = this._engineFactory.getEngineForMedia(this._cameras, media);
+    const engine = this._store.getEngineForMedia(media);
     if (!engine) {
       return null;
     }
@@ -326,26 +441,26 @@ export class CameraManager {
     media: ViewMedia,
     favorite: boolean,
   ): Promise<void> {
-    const cameraConfig = this._cameras.get(media.getCameraID());
-    if (!cameraConfig) {
+    const cameraConfig = this._store.getCameraConfigForMedia(media);
+    const engine = this._store.getEngineForMedia(media);
+
+    if (!cameraConfig || !engine) {
       return;
     }
-    const engine = this._engineFactory.getEngineForCamera(cameraConfig);
-    if (engine) {
-      const queryStartTime = new Date();
-      await engine.favoriteMedia(hass, cameraConfig, media, favorite);
 
-      log(
-        this._cardWideConfig,
-        'Frigate Card CameraManager favorite request (',
-        `Duration: ${(new Date().getTime() - queryStartTime.getTime()) / 1000}s,`,
-        'Media:',
-        media.getID(),
-        ', Favorite:',
-        favorite,
-        ')',
-      );
-    }
+    const queryStartTime = new Date();
+    await engine.favoriteMedia(hass, cameraConfig, media, favorite);
+
+    log(
+      this._cardWideConfig,
+      'Frigate Card CameraManager favorite request (',
+      `Duration: ${(new Date().getTime() - queryStartTime.getTime()) / 1000}s,`,
+      'Media:',
+      media.getID(),
+      ', Favorite:',
+      favorite,
+      ')',
+    );
   }
 
   public areMediaQueriesResultsFresh<T extends MediaQuery>(
@@ -355,10 +470,7 @@ export class CameraManager {
     const now = new Date();
 
     for (const query of queries) {
-      const engines = this._engineFactory.getEnginesForCameraIDs(
-        this._cameras,
-        query.cameraIDs,
-      );
+      const engines = this._store.getEnginesForCameraIDs(query.cameraIDs);
       for (const [engine, cameraIDs] of engines ?? []) {
         const maxAgeSeconds = engine.getQueryResultMaxAge({
           ...query,
@@ -382,9 +494,11 @@ export class CameraManager {
   ): Promise<number | null> {
     const startTime = media.getStartTime();
     const endTime = media.getEndTime();
-    const cameraConfig = this._cameras.get(media.getCameraID());
+    const cameraConfig = this._store.getCameraConfigForMedia(media);
+    const engine = this._store.getEngineForMedia(media);
     if (
       !cameraConfig ||
+      !engine ||
       !startTime ||
       !endTime ||
       target < startTime ||
@@ -393,8 +507,7 @@ export class CameraManager {
       return null;
     }
 
-    const engine = this._engineFactory.getEngineForCamera(cameraConfig);
-    return (await engine?.getMediaSeekTime(hass, this._cameras, media, target)) ?? null;
+    return await engine.getMediaSeekTime(hass, this._store.getCameras(), media, target);
   }
 
   protected async _handleQuery<QT extends DataQuery>(
@@ -415,19 +528,21 @@ export class CameraManager {
 
       let engineResult: Map<QT, QueryReturnType<QT>> | null = null;
       if (QueryClassifier.isEventQuery(query)) {
-        engineResult = (await engine.getEvents(hass, this._cameras, query)) as Map<
-          QT,
-          QueryReturnType<QT>
-        > | null;
+        engineResult = (await engine.getEvents(
+          hass,
+          this._store.getCameras(),
+          query,
+        )) as Map<QT, QueryReturnType<QT>> | null;
       } else if (QueryClassifier.isRecordingQuery(query)) {
-        engineResult = (await engine.getRecordings(hass, this._cameras, query)) as Map<
-          QT,
-          QueryReturnType<QT>
-        > | null;
+        engineResult = (await engine.getRecordings(
+          hass,
+          this._store.getCameras(),
+          query,
+        )) as Map<QT, QueryReturnType<QT>> | null;
       } else if (QueryClassifier.isRecordingSegmentsQuery(query)) {
         engineResult = (await engine.getRecordingSegments(
           hass,
-          this._cameras,
+          this._store.getCameras(),
           query,
         )) as Map<QT, QueryReturnType<QT>> | null;
       }
@@ -436,10 +551,7 @@ export class CameraManager {
     };
 
     const processQuery = async (query: QT): Promise<void> => {
-      const engines = this._engineFactory.getEnginesForCameraIDs(
-        this._cameras,
-        query.cameraIDs,
-      );
+      const engines = this._store.getEnginesForCameraIDs(query.cameraIDs);
       if (!engines) {
         return;
       }
@@ -481,7 +593,7 @@ export class CameraManager {
   ): ViewMedia[] {
     const mediaArray: ViewMedia[] = [];
     for (const [query, result] of results.entries()) {
-      const engine = this._engineFactory.getEngine(result.engine);
+      const engine = this._store.getEngineOfType(result.engine);
 
       if (engine) {
         let media: ViewMedia[] | null = null;
@@ -489,12 +601,22 @@ export class CameraManager {
           QueryClassifier.isEventQuery(query) &&
           QueryResultClassifier.isEventQueryResult(result)
         ) {
-          media = engine.generateMediaFromEvents(hass, this._cameras, query, result);
+          media = engine.generateMediaFromEvents(
+            hass,
+            this._store.getCameras(),
+            query,
+            result,
+          );
         } else if (
           QueryClassifier.isRecordingQuery(query) &&
           QueryResultClassifier.isRecordingQuery(result)
         ) {
-          media = engine.generateMediaFromRecordings(hass, this._cameras, query, result);
+          media = engine.generateMediaFromRecordings(
+            hass,
+            this._store.getCameras(),
+            query,
+            result,
+          );
         }
         if (media) {
           mediaArray.push(...media);
@@ -517,13 +639,22 @@ export class CameraManager {
     );
   }
 
+  public getCameraURL(cameraID: string, context?: CameraURLContext): string | null {
+    const cameraConfig = this._store.getCameraConfig(cameraID);
+    const engine = this._store.getEngineForCameraID(cameraID);
+    if (!cameraConfig || !engine) {
+      return null;
+    }
+    return engine.getCameraURL(cameraConfig, context);
+  }
+
   public getCameraMetadata(
     hass: HomeAssistant,
     cameraID: string,
   ): CameraManagerCameraMetadata | null {
-    const cameraConfig = this._cameras.get(cameraID);
-    const engine = this._engineFactory.getEngineForCamera(cameraConfig);
-    if (!engine || !cameraConfig) {
+    const cameraConfig = this._store.getCameraConfig(cameraID);
+    const engine = this._store.getEngineForCameraID(cameraID);
+    if (!cameraConfig || !engine) {
       return null;
     }
     return engine.getCameraMetadata(hass, cameraConfig);
@@ -532,23 +663,18 @@ export class CameraManager {
   public getCameraCapabilities(
     cameraID: string,
   ): CameraManagerCameraCapabilities | null {
-    const cameraConfig = this._cameras.get(cameraID);
-    if (!cameraConfig) {
+    const cameraConfig = this._store.getCameraConfig(cameraID);
+    const engine = this._store.getEngineForCameraID(cameraID);
+    if (!cameraConfig || !engine) {
       return null;
     }
-
-    const engine = this._engineFactory.getEngineForCamera(cameraConfig);
-    if (!engine) {
-      return null;
-    }
-
     return engine.getCameraCapabilities(cameraConfig);
   }
 
   public getAggregateCameraCapabilities(
     cameraIDs?: Set<string>,
-  ): CameraManagerCapabilities {
-    const perCameraCapabilities = [...(cameraIDs ?? this._cameras.keys())].map(
+  ): CameraManagerCapabilities | null {
+    const perCameraCapabilities = [...(cameraIDs ?? this._store.getCameraIDs())].map(
       (cameraID) => this.getCameraCapabilities(cameraID),
     );
 
@@ -557,6 +683,10 @@ export class CameraManager {
       canFavoriteRecordings: perCameraCapabilities.some(
         (cap) => cap?.canFavoriteRecordings,
       ),
+
+      supportsClips: perCameraCapabilities.some((cap) => cap?.supportsClips),
+      supportsRecordings: perCameraCapabilities.some((cap) => cap?.supportsRecordings),
+      supportsSnapshots: perCameraCapabilities.some((cap) => cap?.supportsSnapshots),
       supportsTimeline: perCameraCapabilities.some((cap) => cap?.supportsTimeline),
     };
   }

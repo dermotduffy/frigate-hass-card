@@ -37,6 +37,8 @@ import {
   RecordingSegment,
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
+  CameraURLContext,
+  CameraConfigs,
 } from '../types';
 import { FrigateRecording } from './types';
 import {
@@ -62,7 +64,14 @@ import { FrigateViewMediaClassifier } from './media-classifier';
 import { ViewMediaClassifier } from '../../view/media-classifier';
 import { FrigateViewMediaFactory } from './media';
 import { log } from '../../utils/debug';
-import { getEntityIcon, getEntityTitle } from '../../utils/ha';
+import { getEntityTitle } from '../../utils/ha';
+import { EntityRegistryManager } from '../../utils/ha/entity-registry';
+import { ExtendedEntity } from '../../utils/ha/entity-registry/types';
+import { CameraInitializationError } from '../error';
+import { localize } from '../../localize/localize';
+import uniq from 'lodash-es/uniq';
+import format from 'date-fns/format';
+import { GenericCameraManagerEngine } from '../generic/engine-generic';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
@@ -92,7 +101,10 @@ class FrigateQueryResultsClassifier {
   }
 }
 
-export class FrigateCameraManagerEngine implements CameraManagerEngine {
+export class FrigateCameraManagerEngine
+  extends GenericCameraManagerEngine
+  implements CameraManagerEngine
+{
   protected _recordingSegmentsCache: RecordingSegmentsCache;
   protected _requestCache: RequestCache;
   protected _cardWideConfig: CardWideConfig;
@@ -109,9 +121,160 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     recordingSegmentsCache: RecordingSegmentsCache,
     requestCache: RequestCache,
   ) {
+    super();
     this._cardWideConfig = cardWideConfig;
     this._recordingSegmentsCache = recordingSegmentsCache;
     this._requestCache = requestCache;
+  }
+
+  public getEngineType(): Engine {
+    return Engine.Frigate;
+  }
+
+  public async initializeCamera(
+    hass: HomeAssistant,
+    entityRegistryManager: EntityRegistryManager,
+    cameraConfig: CameraConfig,
+  ): Promise<CameraConfig> {
+    const hasCameraName = !!cameraConfig.frigate?.camera_name;
+    const hasAutoTriggers =
+      cameraConfig.triggers.motion || cameraConfig.triggers.occupancy;
+
+    let entity: ExtendedEntity | null = null;
+
+    // Extended entity information is required if the Frigate camera name is
+    // missing, or if the entity requires automatic resolution of
+    // motion/occupancy sensors.
+    if (cameraConfig.camera_entity && (!hasCameraName || hasAutoTriggers)) {
+      try {
+        entity = await entityRegistryManager.getExtendedEntity(
+          hass,
+          cameraConfig.camera_entity,
+        );
+      } catch (e) {
+        throw new CameraInitializationError(
+          localize('error.no_camera_entity'),
+          cameraConfig,
+        );
+      }
+    }
+
+    if (entity && !hasCameraName) {
+      const resolvedName = this._getFrigateCameraNameFromEntity(entity);
+      if (resolvedName) {
+        cameraConfig.frigate.camera_name = resolvedName;
+      }
+    }
+
+    if (hasAutoTriggers) {
+      // Try to find the correct entities for the motion & occupancy sensors.
+      // We know they are binary_sensors, and that they'll have the same
+      // config entry ID as the camera. Searching via unique_id ensures this
+      // search still works if the user renames the entity_id.
+      const binarySensorEntities = await entityRegistryManager.getMatchingEntities(
+        hass,
+        (ent) =>
+          ent.config_entry_id === entity?.config_entry_id &&
+          !ent.disabled_by &&
+          ent.entity_id.startsWith('binary_sensor.'),
+      );
+
+      const extendedEntities = await entityRegistryManager.getExtendedEntities(
+        hass,
+        binarySensorEntities.map((entity) => entity.entity_id),
+      );
+
+      if (cameraConfig.triggers.motion) {
+        const motionEntity = this._getMotionSensor(cameraConfig, [
+          ...extendedEntities.values(),
+        ]);
+        if (motionEntity) {
+          cameraConfig.triggers.entities.push(motionEntity);
+        }
+      }
+
+      if (cameraConfig.triggers.occupancy) {
+        const occupancyEntity = this._getOccupancySensor(cameraConfig, [
+          ...extendedEntities.values(),
+        ]);
+        if (occupancyEntity) {
+          cameraConfig.triggers.entities.push(occupancyEntity);
+        }
+      }
+
+      // De-duplicate triggering entities.
+      cameraConfig.triggers.entities = uniq(cameraConfig.triggers.entities);
+    }
+
+    return cameraConfig;
+  }
+
+  /**
+   * Get the Frigate camera name from an entity.
+   * @returns The Frigate camera name or null if unavailable.
+   */
+  protected _getFrigateCameraNameFromEntity(entity: ExtendedEntity): string | null {
+    if (entity.unique_id && entity.platform === 'frigate') {
+      const match = entity.unique_id.match(/:camera:(?<camera>[^:]+)$/);
+      if (match && match.groups) {
+        return match.groups['camera'];
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get the motion sensor entity for a given camera.
+   * @param cache The ExtendedEntityCache of entity registry information.
+   * @param cameraConfig The camera config in question.
+   * @returns The entity id of the motion sensor or null.
+   */
+  protected _getMotionSensor(
+    cameraConfig: CameraConfig,
+    extendedEntities: ExtendedEntity[],
+  ): string | null {
+    if (cameraConfig.frigate.camera_name) {
+      return (
+        extendedEntities.find(
+          (ent) =>
+            !!ent.unique_id?.match(
+              new RegExp(
+                `:motion_sensor:${
+                  cameraConfig.frigate.zone || cameraConfig.frigate.camera_name
+                }`,
+              ),
+            ),
+        )?.entity_id ?? null
+      );
+    }
+    return null;
+  }
+
+  /**
+   * Get the occupancy sensor entity for a given camera.
+   * @param cache The ExtendedEntityCache of entity registry information.
+   * @param cameraConfig The camera config in question.
+   * @returns The entity id of the occupancy sensor or null.
+   */
+  protected _getOccupancySensor(
+    cameraConfig: CameraConfig,
+    extendedEntities: ExtendedEntity[],
+  ): string | null {
+    if (cameraConfig.frigate.camera_name) {
+      return (
+        extendedEntities.find(
+          (ent) =>
+            !!ent.unique_id?.match(
+              new RegExp(
+                `:occupancy_sensor:${
+                  cameraConfig.frigate.zone || cameraConfig.frigate.camera_name
+                }_${cameraConfig.frigate.label || 'all'}`,
+              ),
+            ),
+        )?.entity_id ?? null
+      );
+    }
+    return null;
   }
 
   public getMediaDownloadPath(
@@ -137,7 +300,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   }
 
   public generateDefaultEventQuery(
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     cameraIDs: Set<string>,
     query?: PartialEventQuery,
   ): EventQuery[] | null {
@@ -182,7 +345,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   }
 
   public generateDefaultRecordingQuery(
-    _cameras: Map<string, CameraConfig>,
+    _cameras: CameraConfigs,
     cameraIDs: Set<string>,
     query?: PartialRecordingQuery,
   ): RecordingQuery[] {
@@ -196,7 +359,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   }
 
   public generateDefaultRecordingSegmentsQuery(
-    _cameras: Map<string, CameraConfig>,
+    _cameras: CameraConfigs,
     cameraIDs: Set<string>,
     query: PartialRecordingSegmentsQuery,
   ): RecordingSegmentsQuery[] | null {
@@ -229,7 +392,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   }
 
   protected _buildInstanceToCameraIDMapFromQuery(
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     cameraIDs: Set<string>,
   ): Map<string, Set<string>> {
     const output: Map<string, Set<string>> = new Map();
@@ -247,7 +410,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   }
 
   protected _getFrigateCameraNamesForCameraIDs(
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     cameraIDs: Set<string>,
   ): Set<string> {
     const output = new Set<string>();
@@ -262,7 +425,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
 
   public async getEvents(
     hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     query: EventQuery,
   ): Promise<EventQueryResultsMap | null> {
     const output: EventQueryResultsMap = new Map();
@@ -326,7 +489,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
 
   public async getRecordings(
     hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     query: RecordingQuery,
   ): Promise<RecordingQueryResultsMap | null> {
     const output: RecordingQueryResultsMap = new Map();
@@ -408,7 +571,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
 
   public async getRecordingSegments(
     hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     query: RecordingSegmentsQuery,
   ): Promise<RecordingSegmentsQueryResultsMap | null> {
     const output: RecordingSegmentsQueryResultsMap = new Map();
@@ -474,7 +637,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   }
 
   protected _getCameraIDMatch(
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     query: DataQuery,
     instanceID: string,
     cameraName: string,
@@ -499,7 +662,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
 
   public generateMediaFromEvents(
     _hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     query: EventQuery,
     results: QueryReturnType<EventQuery>,
   ): ViewMedia[] | null {
@@ -552,7 +715,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
 
   public generateMediaFromRecordings(
     hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     _query: RecordingQuery,
     results: QueryReturnType<RecordingQuery>,
   ): ViewMedia[] | null {
@@ -590,7 +753,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
 
   public async getMediaSeekTime(
     hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     media: ViewMedia,
     target: Date,
   ): Promise<number | null> {
@@ -623,7 +786,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
   }
 
   protected _getQueryableCameraConfig(
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
     cameraID: string,
   ): CameraConfig | null {
     const cameraConfig = cameras.get(cameraID);
@@ -635,7 +798,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
 
   public async getMediaMetadata(
     hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
   ): Promise<MediaMetadata | null> {
     const what: Set<string> = new Set();
     const where: Set<string> = new Set();
@@ -715,7 +878,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
    */
   protected async _garbageCollectSegments(
     hass: HomeAssistant,
-    cameras: Map<string, CameraConfig>,
+    cameras: CameraConfigs,
   ): Promise<void> {
     const cameraIDs = this._recordingSegmentsCache.getCameraIDs();
     const recordingQuery: RecordingQuery = {
@@ -812,6 +975,9 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     return {
       canFavoriteEvents: !isBirdseye,
       canFavoriteRecordings: !isBirdseye,
+      supportsClips: !isBirdseye,
+      supportsSnapshots: !isBirdseye,
+      supportsRecordings: !isBirdseye,
       supportsTimeline: !isBirdseye,
     };
   }
@@ -826,6 +992,7 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
     hass: HomeAssistant,
     cameraConfig: CameraConfig,
   ): CameraManagerCameraMetadata {
+    const metadata = super.getCameraMetadata(hass, cameraConfig);
     return {
       title:
         cameraConfig.title ??
@@ -834,10 +1001,51 @@ export class FrigateCameraManagerEngine implements CameraManagerEngine {
         prettifyTitle(cameraConfig.frigate?.camera_name) ??
         cameraConfig.id ??
         '',
-      icon:
-        cameraConfig?.icon ??
-        getEntityIcon(hass, cameraConfig.camera_entity) ??
-        'mdi:video',
+      icon: metadata.icon,
     };
+  }
+
+  public getCameraURL(
+    cameraConfig: CameraConfig,
+    context?: CameraURLContext,
+  ): string | null {
+    if (!cameraConfig.frigate.url) {
+      return null;
+    }
+    if (!cameraConfig.frigate.camera_name) {
+      return cameraConfig.frigate.url;
+    }
+
+    const eventsURL =
+      `${cameraConfig.frigate.url}/events?camera=` + cameraConfig.frigate.camera_name;
+    const recordingsURL =
+      `${cameraConfig.frigate.url}/recording/` + cameraConfig.frigate.camera_name;
+
+    // If media is available, use it since it may result in a more precisely
+    // correct URL.
+    switch (context?.media?.getMediaType()) {
+      case 'clip':
+      case 'snapshot':
+        return eventsURL;
+      case 'recording':
+        const startTime = context.media.getStartTime();
+        if (startTime) {
+          return recordingsURL + format(startTime, 'yyyy-MM-dd/HH');
+        }
+    }
+
+    // Otherwise, fall back to just using the view if we have that.
+    switch (context?.view) {
+      case 'clip':
+      case 'clips':
+      case 'snapshots':
+      case 'snapshot':
+        return eventsURL;
+      case 'recording':
+      case 'recordings':
+        return recordingsURL;
+    }
+
+    return `${cameraConfig.frigate.url}/cameras/${cameraConfig.frigate.camera_name}`;
   }
 }

@@ -16,7 +16,6 @@ import { dispatchMessageEvent, renderProgressIndicator } from '../components/mes
 import viewerStyle from '../scss/viewer.scss';
 import viewerCarouselStyle from '../scss/viewer-carousel.scss';
 import {
-  CameraConfig,
   CardWideConfig,
   ExtendedHomeAssistant,
   frigateCardConfigDefaults,
@@ -79,9 +78,6 @@ export class FrigateCardViewer extends LitElement {
   public viewerConfig?: ViewerConfig;
 
   @property({ attribute: false })
-  public cameras?: Map<string, CameraConfig>;
-
-  @property({ attribute: false })
   public resolvedMediaCache?: ResolvedMediaCache;
 
   @property({ attribute: false })
@@ -98,7 +94,6 @@ export class FrigateCardViewer extends LitElement {
     if (
       !this.hass ||
       !this.view ||
-      !this.cameras ||
       !this.viewerConfig ||
       !this.cameraManager
     ) {
@@ -120,7 +115,6 @@ export class FrigateCardViewer extends LitElement {
           this,
           this.hass,
           this.cameraManager,
-          this.cameras,
           this.view,
           {
             targetView: 'recording',
@@ -131,7 +125,6 @@ export class FrigateCardViewer extends LitElement {
           this,
           this.hass,
           this.cameraManager,
-          this.cameras,
           this.view,
           {
             targetView: 'media',
@@ -148,12 +141,10 @@ export class FrigateCardViewer extends LitElement {
       .thumbnailConfig=${this.viewerConfig.controls.thumbnails}
       .timelineConfig=${this.viewerConfig.controls.timeline}
       .cameraManager=${this.cameraManager}
-      .cameras=${this.cameras}
     >
       <frigate-card-viewer-carousel
         .hass=${this.hass}
         .view=${this.view}
-        .cameras=${this.cameras}
         .viewerConfig=${this.viewerConfig}
         .resolvedMediaCache=${this.resolvedMediaCache}
         .cameraManager=${this.cameraManager}
@@ -196,28 +187,23 @@ export class FrigateCardViewerCarousel extends LitElement {
   public cardWideConfig?: CardWideConfig;
 
   @property({ attribute: false })
-  public cameras?: Map<string, CameraConfig>;
-
-  @property({ attribute: false })
   public cameraManager?: CameraManager;
 
   protected _refMediaCarousel: Ref<FrigateCardMediaCarousel> = createRef();
 
   // A task to resolve target media if lazy loading is disabled.
   protected _mediaResolutionTask = new Task<
-    [ViewerConfig | undefined, Map<string, CameraConfig> | undefined, View | undefined],
+    [ViewerConfig | undefined, View | undefined],
     void
   >(
     this,
-    async ([viewerConfig, cameras, view]: [
+    async ([viewerConfig, view]: [
       ViewerConfig | undefined,
-      Map<string, CameraConfig> | undefined,
       View | undefined,
     ]): Promise<void> => {
       if (
         !this.hass ||
         !viewerConfig?.lazy_load ||
-        !cameras ||
         !view ||
         !view.queryResults?.hasResults()
       ) {
@@ -234,7 +220,7 @@ export class FrigateCardViewerCarousel extends LitElement {
       });
       await Promise.all(promises);
     },
-    () => [this.viewerConfig, this.cameras, this.view],
+    () => [this.viewerConfig, this.view],
   );
 
   /**
@@ -453,7 +439,7 @@ export class FrigateCardViewerCarousel extends LitElement {
    * @param slide The slide to lazy load.
    */
   protected _lazyloadSlide(index: number, slide: HTMLElement): void {
-    if (!this.hass || !this.view || !this.view.query || !this.cameras) {
+    if (!this.hass || !this.view || !this.view.query) {
       return;
     }
 
@@ -512,7 +498,7 @@ export class FrigateCardViewerCarousel extends LitElement {
    * Determine if all the media in the carousel are resolved.
    */
   protected _isMediaFullyResolved(): boolean {
-    if (!this.resolvedMediaCache || !this.cameras) {
+    if (!this.resolvedMediaCache) {
       return false;
     }
     for (const media of this.view?.queryResults?.getResults() ?? []) {
@@ -560,7 +546,7 @@ export class FrigateCardViewerCarousel extends LitElement {
     }
 
     const media = this.view?.queryResults?.getSelectedResult();
-    if (!media || !this.cameras || !this.view || !this.view.queryResults) {
+    if (!media || !this.view || !this.view.queryResults) {
       return;
     }
 
@@ -649,7 +635,7 @@ export class FrigateCardViewerCarousel extends LitElement {
    */
   protected _renderMediaItem(media: ViewMedia, index: number): TemplateResult | null {
     // Skip folders as they cannot be rendered by this viewer.
-    if (!this.hass || !this.view || !this.viewerConfig || !this.cameras) {
+    if (!this.hass || !this.view || !this.viewerConfig) {
       return null;
     }
 

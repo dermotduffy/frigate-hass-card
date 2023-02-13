@@ -10,7 +10,6 @@ import {
 import { customElement, property, state } from 'lit/decorators.js';
 import galleryStyle from '../scss/gallery.scss';
 import {
-  CameraConfig,
   CardWideConfig,
   ExtendedHomeAssistant,
   frigateCardConfigDefaults,
@@ -24,7 +23,7 @@ import {
 } from '../utils/media-to-view.js';
 import { CameraManager, ExtendedMediaQueryResult } from '../camera-manager/manager.js';
 import { View } from '../view/view.js';
-import { renderProgressIndicator } from './message.js';
+import { dispatchMessageEvent, renderProgressIndicator } from './message.js';
 import './thumbnail.js';
 import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
 import { createRef, Ref } from 'lit/directives/ref.js';
@@ -36,6 +35,7 @@ import { errorToConsole } from '../utils/basic';
 import './media-filter';
 import "./surround-basic";
 import { ViewMedia } from '../view/media';
+import { localize } from '../localize/localize';
 
 const GALLERY_MEDIA_CHUNK_SIZE = 100;
 
@@ -56,9 +56,6 @@ export class FrigateCardGallery extends LitElement {
   public galleryConfig?: GalleryConfig;
 
   @property({ attribute: false })
-  public cameras?: Map<string, CameraConfig>;
-
-  @property({ attribute: false })
   public cameraManager?: CameraManager;
 
   @property({ attribute: false })
@@ -72,7 +69,6 @@ export class FrigateCardGallery extends LitElement {
     if (
       !this.hass ||
       !this.view ||
-      !this.cameras ||
       !this.view.isGalleryView() ||
       !this.cameraManager
     ) {
@@ -85,7 +81,6 @@ export class FrigateCardGallery extends LitElement {
           this,
           this.hass,
           this.cameraManager,
-          this.cameras,
           this.view,
         );
       } else {
@@ -98,7 +93,6 @@ export class FrigateCardGallery extends LitElement {
           this,
           this.hass,
           this.cameraManager,
-          this.cameras,
           this.view,
           {
             ...(mediaType && { mediaType: mediaType }),
@@ -120,7 +114,6 @@ export class FrigateCardGallery extends LitElement {
         ${this.galleryConfig && this.galleryConfig.controls.filter.mode !== 'none'
         ? html` <frigate-card-media-filter
               .hass=${this.hass}
-              .cameras=${this.cameras}
               .cameraManager=${this.cameraManager}
               .view=${this.view}
               .mediaLimit=${GALLERY_MEDIA_CHUNK_SIZE}
@@ -132,7 +125,6 @@ export class FrigateCardGallery extends LitElement {
           .hass=${this.hass}
           .view=${this.view}
           .galleryConfig=${this.galleryConfig}
-          .cameras=${this.cameras}
           .cameraManager=${this.cameraManager}
           .cardWideConfig=${this.cardWideConfig}
         >
@@ -165,9 +157,6 @@ export class FrigateCardGalleryCore extends LitElement {
 
   @property({ attribute: false })
   public galleryConfig?: GalleryConfig;
-
-  @property({ attribute: false })
-  public cameras?: Map<string, CameraConfig>;
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
@@ -330,10 +319,15 @@ export class FrigateCardGalleryCore extends LitElement {
       !this._media ||
       !this.hass ||
       !this.view ||
-      !this.view.isGalleryView() ||
-      !this.cameras
+      !this.view.isGalleryView()
     ) {
       return html``;
+    }
+
+    if ((this.view?.queryResults?.getResultsCount() ?? 0) === 0) {
+      return dispatchMessageEvent(this, localize('common.no_media'), 'info', {
+        icon: 'mdi:multimedia',
+      });
     }
 
     return html`

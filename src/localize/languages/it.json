@@ -325,6 +325,8 @@
     "jsmpeg_no_sign": "Impossibile recuperare o firmare il percorso WebSocket JSMPEG",
     "live_camera_not_found": "La telecamera configurata non è stata trovata",
     "live_camera_unavailable": "Telecamera non disponibile",
+    "no_camera_engine": "",
+    "no_camera_entity": "",
     "no_camera_id": "Impossibile determinare l'ID della telecamera , potrebbe essere necessario impostare manualmente il parametro 'ID'",
     "no_camera_name": "Impossibile determinare un nome della telecamera in Frigate, si prega di specificare 'camera_enty' o 'camera_name'",
     "no_cameras": "Nessuna telecamera valida trovata, è necessario configurare almeno una voce della telecamera",

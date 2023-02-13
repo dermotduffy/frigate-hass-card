@@ -1,7 +1,7 @@
 import add from 'date-fns/add';
 import sub from 'date-fns/sub';
 import { ViewContext } from 'view';
-import { CameraConfig, ClipsOrSnapshotsOrAll, FrigateCardView } from '../types';
+import { ClipsOrSnapshotsOrAll, FrigateCardView } from '../types';
 import { View } from '../view/view';
 import {
   EventMediaQueries,
@@ -21,7 +21,6 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
   element: HTMLElement,
   hass: HomeAssistant,
   cameraManager: CameraManager,
-  cameras: Map<string, CameraConfig>,
   view: View,
   options?: {
     mediaType?: ClipsOrSnapshotsOrAll;
@@ -29,7 +28,7 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
   },
 ): Promise<void> => {
   (
-    await createViewForEvents(element, hass, cameraManager, cameras, view, {
+    await createViewForEvents(element, hass, cameraManager, view, {
       ...options,
       limit: 50, // Capture the 50 most recent events.
     })
@@ -40,7 +39,6 @@ export const createViewForEvents = async (
   element: HTMLElement,
   hass: HomeAssistant,
   cameraManager: CameraManager,
-  cameras: Map<string, CameraConfig>,
   view: View,
   options?: {
     query?: EventMediaQueries;
@@ -51,6 +49,10 @@ export const createViewForEvents = async (
     limit?: number;
   },
 ): Promise<View | null> => {
+  const cameras = cameraManager.getCameras();
+  if (!cameras) {
+    return null;
+  }
   let query: EventMediaQueries;
   const cameraIDs: Set<string> = options?.cameraIDs
     ? options.cameraIDs
@@ -94,7 +96,6 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
   element: HTMLElement,
   hass: HomeAssistant,
   cameraManager: CameraManager,
-  cameras: Map<string, CameraConfig>,
   view: View,
   options?: {
     targetView?: 'recording' | 'recordings';
@@ -102,7 +103,7 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
 ): Promise<void> => {
   const now = new Date();
   (
-    await createViewForRecordings(element, hass, cameraManager, cameras, view, {
+    await createViewForRecordings(element, hass, cameraManager, view, {
       ...options,
       // Fetch 7 days worth of recordings (including recordings that are for the
       // current hour).
@@ -127,7 +128,6 @@ export const createViewForRecordings = async (
   element: HTMLElement,
   hass: HomeAssistant,
   cameraManager: CameraManager,
-  cameras: Map<string, CameraConfig>,
   view: View,
   options?: {
     query?: RecordingMediaQueries;
@@ -139,6 +139,10 @@ export const createViewForRecordings = async (
     end?: Date;
   },
 ): Promise<View | null> => {
+  const cameras = cameraManager.getCameras();
+  if (!cameras) {
+    return null;
+  }
   const cameraIDs: Set<string> = options?.cameraIDs
     ? options.cameraIDs
     : new Set(getAllDependentCameras(cameras, view.camera));

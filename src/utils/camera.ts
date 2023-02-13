@@ -26,7 +26,7 @@ export function getCameraID(
 /**
  * Get all cameras that depend on a given camera.
  * @param cameras Cameras map.
- * @param camera Name of the target camera.
+ * @param cameraID ID of the target camera.
  * @returns A set of query parameters.
  */
 export const getAllDependentCameras = (

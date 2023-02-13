@@ -325,6 +325,8 @@
     "jsmpeg_no_sign": "Não foi possível recuperar ou assinar o caminho do websocket JSMPEG",
     "live_camera_not_found": "",
     "live_camera_unavailable": "",
+    "no_camera_engine": "",
+    "no_camera_entity": "",
     "no_camera_id": "Não foi possível determinar o ID da câmera para a câmera a seguir, pode ser necessário definir o parâmetro 'id' manualmente",
     "no_camera_name": "Não foi possível determinar o nome da câmera da Frigate, especifique 'camera_entity' ou 'camera_name' para a câmera a seguir",
     "no_cameras": "Nenhuma câmera válida encontrada, você deve configurar pelo menos uma câmera",

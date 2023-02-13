@@ -49,8 +49,6 @@ const FRIGATE_CARD_VIEWS = [
 ] as const;
 
 export type FrigateCardView = typeof FRIGATE_CARD_VIEWS[number];
-export type FrigateCardUserSpecifiedView =
-  typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED[number];
 export const FRIGATE_CARD_VIEW_DEFAULT = 'live' as const;
 
 const FRIGATE_MENU_STYLES = [
@@ -88,6 +86,12 @@ const MEDIA_ACTION_POSITIVE_CONDITIONS = [
 ] as const;
 export type AutoUnmuteCondition = typeof MEDIA_ACTION_POSITIVE_CONDITIONS[number];
 export type AutoPlayCondition = typeof MEDIA_ACTION_POSITIVE_CONDITIONS[number];
+
+const ENGINES = [
+  'auto',
+  'frigate',
+  'generic',
+] as const;
 
 export class FrigateCardError extends Error {
   context?: unknown;
@@ -382,6 +386,7 @@ const customSchema = z
  */
 const cameraConfigDefault = {
   live_provider: 'auto' as const,
+  engine: 'auto' as const,
   frigate: {
     client_id: 'frigate' as const,
   },
@@ -412,6 +417,8 @@ const cameraConfigSchema = z
     // Optional identifier to separate different camera configurations used in
     // this card.
     id: z.string().optional(),
+
+    engine: z.enum(ENGINES).default('auto'),
 
     frigate: z
       .object({
@@ -444,6 +451,9 @@ const cameraConfigSchema = z
   })
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigSchema>;
+
+const camerasConfigSchema = cameraConfigSchema.array().nonempty();
+export type CamerasConfig = z.infer<typeof camerasConfigSchema>;
 
 /**
  * Custom Element Types.
@@ -1234,7 +1244,7 @@ export interface CardWideConfig {
  */
 export const frigateCardConfigSchema = z.object({
   // Main configuration sections.
-  cameras: cameraConfigSchema.array().nonempty(),
+  cameras: camerasConfigSchema,
   view: viewConfigSchema,
   menu: menuConfigSchema,
   live: liveConfigSchema,
@@ -1351,20 +1361,3 @@ export const signedPathSchema = z.object({
   path: z.string(),
 });
 export type SignedPath = z.infer<typeof signedPathSchema>;
-
-const entitySchema = z.object({
-  config_entry_id: z.string().nullable(),
-  disabled_by: z.string().nullable(),
-  entity_id: z.string(),
-  platform: z.string(),
-});
-export type Entity = z.infer<typeof entitySchema>;
-
-export const extendedEntitySchema = entitySchema.extend({
-  // Extended entity results.
-  unique_id: z.string().optional(),
-});
-export type ExtendedEntity = z.infer<typeof extendedEntitySchema>;
-
-export const entityListSchema = entitySchema.array();
-export type EntityList = z.infer<typeof entityListSchema>;

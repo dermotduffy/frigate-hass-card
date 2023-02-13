@@ -1,27 +1,30 @@
+import { HomeAssistant } from 'custom-card-helpers';
 import { CameraConfig, CardWideConfig } from '../types';
-import { ViewMedia } from '../view/media';
+import { EntityRegistryManager } from '../utils/ha/entity-registry';
 import { RecordingSegmentsCache, RequestCache } from './cache';
 import { CameraManagerEngine } from './engine';
 import { FrigateCameraManagerEngine } from './frigate/engine-frigate';
+import { GenericCameraManagerEngine } from './generic/engine-generic';
 import { Engine } from './types';
 
-type CameraManagerEngineCameraIDMap = Map<CameraManagerEngine, Set<string>>;
-
 export class CameraManagerEngineFactory {
-  protected _engines: Map<Engine, CameraManagerEngine> = new Map();
+  protected _entityRegistryManager: EntityRegistryManager;
   protected _cardWideConfig: CardWideConfig;
 
-  constructor(cardWideConfig: CardWideConfig) {
+  constructor(
+    entityRegistryManager: EntityRegistryManager,
+    cardWideConfig: CardWideConfig,
+  ) {
+    this._entityRegistryManager = entityRegistryManager;
     this._cardWideConfig = cardWideConfig;
   }
 
-  public getEngine(engine: Engine): CameraManagerEngine | null {
-    const cachedEngine = this._engines.get(engine);
-    if (cachedEngine) {
-      return cachedEngine;
-    }
+  public async createEngine(engine: Engine): Promise<CameraManagerEngine | null> {
     let cameraManagerEngine: CameraManagerEngine | null = null;
     switch (engine) {
+      case Engine.Generic:
+        cameraManagerEngine = new GenericCameraManagerEngine();
+        break;
       case Engine.Frigate:
         cameraManagerEngine = new FrigateCameraManagerEngine(
           this._cardWideConfig,
@@ -30,64 +33,39 @@ export class CameraManagerEngineFactory {
         );
         break;
     }
-    if (cameraManagerEngine) {
-      this._engines.set(engine, cameraManagerEngine);
-    }
     return cameraManagerEngine;
   }
 
-  public getEngineForCamera(cameraConfig?: CameraConfig): CameraManagerEngine | null {
+  public async getEngineForCamera(
+    hass: HomeAssistant,
+    cameraConfig: CameraConfig,
+  ): Promise<Engine | null> {
     if (!cameraConfig) {
       return null;
     }
 
     let engine: Engine | null = null;
-    if (cameraConfig.frigate.camera_name) {
+    if (cameraConfig.engine === 'frigate') {
       engine = Engine.Frigate;
-    }
-    return engine ? this.getEngine(engine) : null;
-  }
+    } else if (cameraConfig.engine === 'auto') {
+      const cameraEntity = cameraConfig.camera_entity;
 
-  public getEnginesForCameraIDs(
-    cameras: Map<string, CameraConfig>,
-    cameraIDs: Set<string>,
-  ): CameraManagerEngineCameraIDMap | null {
-    const output: CameraManagerEngineCameraIDMap = new Map();
-
-    for (const cameraID of cameraIDs) {
-      const cameraConfig = cameras.get(cameraID);
-      if (!cameraConfig) {
-        continue;
+      if (cameraEntity) {
+        const entity = await this._entityRegistryManager.getEntity(hass, cameraEntity);
+        switch (entity?.platform) {
+          case 'frigate':
+            engine = Engine.Frigate;
+            break;
+          default:
+            engine = Engine.Generic;
+        }
+      } else if (cameraConfig.frigate.camera_name) {
+        // Frigate technically does not need an entity, if the camera name is
+        // manually set the camera is assumed to be Frigate.
+        engine = Engine.Frigate;
       }
-
-      const engine = this.getEngineForCamera(cameraConfig);
-      if (!engine) {
-        continue;
-      }
-      if (!output.has(engine)) {
-        output.set(engine, new Set());
-      }
-      output.get(engine)?.add(cameraID);
     }
-    return output.size ? output : null;
-  }
 
-  public getEngineForMedia(
-    cameras: Map<string, CameraConfig>,
-    media: ViewMedia,
-  ): CameraManagerEngine | null {
-    const cameraID = media.getCameraID();
-    if (!cameraID) {
-      return null;
-    }
-    const engines = this.getEnginesForCameraIDs(cameras, new Set([cameraID]));
-    return engines ? ([...engines.keys()][0] ?? null) : null;
-  }
-
-  public getAllEngines(
-    cameras: Map<string, CameraConfig>,
-  ): CameraManagerEngine[] | null {
-    const engines = this.getEnginesForCameraIDs(cameras, new Set(cameras.keys()));
-    return engines ? [...engines.keys()] : null;
+    return engine;
   }
 }

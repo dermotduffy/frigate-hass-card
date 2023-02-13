@@ -9,7 +9,6 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import surroundStyle from '../scss/surround.scss';
 import {
-  CameraConfig,
   ClipsOrSnapshotsOrAll,
   ExtendedHomeAssistant,
   MiniTimelineControlConfig,
@@ -56,9 +55,6 @@ export class FrigateCardSurround extends LitElement {
   public fetchMedia?: ClipsOrSnapshotsOrAll;
 
   @property({ attribute: false })
-  public cameras?: Map<string, CameraConfig>;
-
-  @property({ attribute: false })
   public cameraManager?: CameraManager;
 
   protected _cameraIDsForTimeline?: Set<string>;
@@ -71,7 +67,6 @@ export class FrigateCardSurround extends LitElement {
    */
   protected async _fetchMedia(): Promise<void> {
     if (
-      !this.cameras ||
       !this.cameraManager ||
       !this.fetchMedia ||
       this.inBackground ||
@@ -88,7 +83,6 @@ export class FrigateCardSurround extends LitElement {
       this,
       this.hass,
       this.cameraManager,
-      this.cameras,
       this.view,
       {
         targetView: this.view.view,
@@ -138,11 +132,12 @@ export class FrigateCardSurround extends LitElement {
   }
 
   protected _getCameraIDsForTimeline(): Set<string> | null {
-    if (!this.view || !this.cameras) {
+    const cameras = this.cameraManager?.getCameras();
+    if (!this.view || !cameras) {
       return null;
     }
     if (this.view?.is('live')) {
-      return getAllDependentCameras(this.cameras, this.view.camera);
+      return getAllDependentCameras(cameras, this.view.camera);
     }
     if (this.view.isViewerView()) {
       return new Set(
@@ -160,7 +155,7 @@ export class FrigateCardSurround extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.view || !this.thumbnailConfig || !this.cameras) {
+    if (!this.hass || !this.view || !this.thumbnailConfig) {
       return;
     }
 
@@ -220,7 +215,6 @@ export class FrigateCardSurround extends LitElement {
             slot=${this.timelineConfig.mode}
             .hass=${this.hass}
             .view=${this.view}
-            .cameras=${this.cameras}
             .cameraIDs=${this._cameraIDsForTimeline}
             .mini=${true}
             .timelineConfig=${this.timelineConfig}
