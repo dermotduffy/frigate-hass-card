@@ -122,7 +122,7 @@
             "none": "Nessuna miniatura",
             "right": "Miniature in un cassetto a destra"
           },
-          "show_details": "Mostra i dettagli dell'evento con le miniature",
+          "show_details": "",
           "show_favorite_control": "Mostra il controllo preferito sulle miniature",
           "show_timeline_control": "Mostra il controllo della sequenza temporale sulle miniature",
           "size": "Dimensione delle miniature in pixel"
@@ -302,12 +302,12 @@
     "delete": "Elimina",
     "dimensions": "Dimensioni",
     "dimensions_secondary": "Dimensioni e opzioni di forma",
-    "event_gallery": "Galleria degli eventi",
-    "event_gallery_secondary": "Opzioni della galleria di istantanee e clips",
     "image": "Immagine",
     "image_secondary": "Opzioni di visualizzazione dell'immagine statica",
     "live": "Live",
     "live_secondary": "Opzioni di visualizzazione della telecamera live",
+    "media_gallery": "",
+    "media_gallery_secondary": "",
     "media_viewer": "Visualizzatore dei media",
     "media_viewer_secondary": "Visualizzatore per supporti statici (clip, istantanee o registrazioni)",
     "menu": "Menu",

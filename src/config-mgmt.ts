@@ -14,6 +14,7 @@ import {
   CONF_LIVE_LAZY_UNLOAD,
   CONF_LIVE_PRELOAD,
   CONF_LIVE_WEBRTC_CARD,
+  CONF_MEDIA_GALLERY,
   CONF_MEDIA_VIEWER,
   CONF_MENU,
   CONF_MENU_BUTTONS_CAMERAS,
@@ -709,4 +710,5 @@ const UPGRADES = [
       (data) => data.conditions as RawFrigateCardConfig | undefined,
     )(typeof data === 'object' && data ? data[CONF_ELEMENTS] : {});
   },
+  upgradeMoveToWithOverrides('event_gallery', CONF_MEDIA_GALLERY),
 ];

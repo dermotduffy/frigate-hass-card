@@ -122,7 +122,7 @@
             "none": "Sem miniaturas",
             "right": "Miniaturas em uma gaveta à direita"
           },
-          "show_details": "Mostrar detalhes do evento com miniaturas",
+          "show_details": "",
           "show_favorite_control": "Mostrar controle de favorito nas miniaturas",
           "show_timeline_control": "Mostrar controle da linha do tempo nas miniaturas",
           "size": "Tamanho das miniaturas em pixels"
@@ -302,12 +302,12 @@
     "delete": "Excluir",
     "dimensions": "Dimensões",
     "dimensions_secondary": "Dimensões e opções de forma",
-    "event_gallery": "Galeria de eventos",
-    "event_gallery_secondary": "Opções da galeria de Snapshots e clipes",
     "image": "Imagem",
     "image_secondary": "Opções de visualização de imagem estática",
     "live": "Ao vivo",
     "live_secondary": "Opções de visualização da câmera ao vivo",
+    "media_gallery": "",
+    "media_gallery_secondary": "",
     "media_viewer": "Visualizador de eventos",
     "media_viewer_secondary": "Opções do visualizador de Snapshots e clipes",
     "menu": "Menu",

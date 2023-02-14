@@ -544,29 +544,31 @@ media_viewer:
 | `mode` | `popup-bottom-right` | :heavy_multiplication_x: | How to display the Media viewer media title. Acceptable values: `none`, `popup-top-left`, `popup-top-right`, `popup-bottom-left`, `popup-bottom-right` . |
 | `duration_seconds` | `2` | :heavy_multiplication_x: | The number of seconds to display the title popup. `0` implies forever.|
 
-### Event Gallery Options
+<a name="media-gallery-options"></a>
 
-The `event_gallery` is used for providing an overview of all `clips`, `snapshots` and `recordings` in a thumbnail gallery.
+### Media Gallery Options
+
+The `media_gallery` is used for providing an overview of all `clips`, `snapshots` and `recordings` in a thumbnail gallery.
 
 All configuration is under:
 
 ```yaml
-event_gallery:
+media_gallery:
 ```
 
-See the [fully expanded event gallery configuration example](#config-expanded-event-gallery) for how these parameters are structured.
+See the [fully expanded media gallery configuration example](#config-expanded-media-gallery) for how these parameters are structured.
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `controls` | | :heavy_multiplication_x: | Configuration for the Media viewer controls. See below. |
 | `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `event_gallery` (e.g. `clips`, `snapshots`, `recordings`). See [actions](#actions) below.|
 
-#### Event Gallery Controls: Filter
+#### Media Gallery Controls: Filter
 
 All configuration is under:
 
 ```yaml
-event_gallery:
+media_gallery:
   controls:
     filter:
 ```
@@ -575,7 +577,7 @@ event_gallery:
 | - | - | - | - |
 | `mode` | `right` | :heavy_multiplication_x: | Whether to show the gallery media filter to the `left`, to the `right` or `none` for no media filter. |
 
-#### Event Gallery Controls: Thumbnails
+#### Media Gallery Controls: Thumbnails
 
 All configuration is under:
 
@@ -744,7 +746,7 @@ Style performance options request the card minimize certain expensive CSS
 stylings. This does not necessarily disable these stylings _entirely_ since that
 may break the basic expected visuals of the card (e.g. menu icons need curves),
 but rather avoids use of them in high item-count situations (e.g. avoiding
-shadows on timeline items, or curves in the event gallery items).
+shadows on timeline items, or curves in the media gallery items).
 
 All configuration is under:
 
@@ -1080,12 +1082,12 @@ This card supports several different views:
 | Key           | Description                                         |
 | ------------- | --------------------------------------------- |
 |`live` (default)| Shows the live camera view with the configured live provider.|
-|`snapshots`|Shows an event gallery of snapshots for this camera/zone/label.|
-|`snapshot`|Shows a Media viewer for the most recent snapshot for this camera/zone/label. Can also be accessed by holding down the `snapshots` menu icon.|
-|`clips`|Shows an event gallery of clips for this camera/zone/label.|
-|`clip`|Shows a Media viewer for the most recent clip for this camera/zone/label. Can also be accessed by holding down the `clips` menu icon.|
+|`snapshots`|Shows a gallery of snapshots for this camera/zone/label.|
+|`snapshot`|Shows a viewer for the most recent snapshot for this camera/zone/label. Can also be accessed by holding down the `snapshots` menu icon.|
+|`clips`|Shows a gallery of clips for this camera/zone/label.|
+|`clip`|Shows a viewer for the most recent clip for this camera/zone/label. Can also be accessed by holding down the `clips` menu icon.|
 |`recordings`|Shows a gallery of recent (last day) recordings for this camera and its dependents.|
-|`recording`|Shows a Media viewer for the most recent recording for this camera. Can also be accessed by holding down the `recordings` menu icon.|
+|`recording`|Shows a viewer for the most recent recording for this camera. Can also be accessed by holding down the `recordings` menu icon.|
 |`image`|Shows a static image specified by the `image` parameter, can be used as a discrete default view or a screensaver (via `view.timeout_seconds`).|
 
 ### Navigating From A Snapshot To A Clip
@@ -1606,12 +1608,12 @@ media_viewer:
 ```
 </details>
 
-<a name="config-expanded-event-gallery"></a>
+<a name="config-expanded-media-gallery"></a>
 
 <details>
-  <summary>Expand: Event Gallery section</summary>
+  <summary>Expand: Media Gallery section</summary>
 
-Reference: [Event Gallery Options](#event-gallery-options).
+Reference: [Media Gallery Options](#media-gallery-options).
 
 ```yaml
 event_gallery:

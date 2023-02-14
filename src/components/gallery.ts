@@ -209,7 +209,7 @@ export class FrigateCardGalleryCore extends LitElement {
   protected _setColumnCount(): void {
     const thumbnailSize =
       this.galleryConfig?.controls.thumbnails.size ??
-      frigateCardConfigDefaults.event_gallery.controls.thumbnails.size;
+      frigateCardConfigDefaults.media_gallery.controls.thumbnails.size;
     const columns = this.galleryConfig?.controls.thumbnails.show_details
       ? Math.max(1, Math.floor(this.clientWidth / THUMBNAIL_DETAILS_WIDTH_MIN))
       : Math.max(

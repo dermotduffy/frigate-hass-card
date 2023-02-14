@@ -32,11 +32,11 @@ import {
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL,
   CONF_DIMENSIONS_ASPECT_RATIO,
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
-  CONF_EVENT_GALLERY_CONTROLS_FILTER_MODE,
-  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
-  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
-  CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE,
+  CONF_MEDIA_GALLERY_CONTROLS_FILTER_MODE,
+  CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+  CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+  CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+  CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SIZE,
   CONF_IMAGE_LAYOUT_FIT,
   CONF_IMAGE_LAYOUT_POSITION_X,
   CONF_IMAGE_LAYOUT_POSITION_Y,
@@ -158,8 +158,6 @@ const MENU_CAMERAS_DEPENDENCIES = 'cameras.dependencies';
 const MENU_CAMERAS_FRIGATE = 'cameras.frigate';
 const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
 const MENU_CAMERAS_WEBRTC = 'cameras.webrtc';
-const MENU_EVENT_GALLERY_CONTROLS_THUMBNAILS = 'event_gallery.controls.thumbnails';
-const MENU_EVENT_GALLERY_CONTROLS_FILTER = 'event_gallery.controls.filter';
 const MENU_IMAGE_LAYOUT = 'image.layout';
 const MENU_LIVE_CONTROLS = 'live.controls';
 const MENU_LIVE_CONTROLS_NEXT_PREVIOUS = 'live.controls.next_previous';
@@ -168,6 +166,8 @@ const MENU_LIVE_CONTROLS_TIMELINE = 'live.controls.timeline';
 const MENU_LIVE_CONTROLS_TITLE = 'live.controls.title';
 const MENU_LIVE_IMAGE = 'live.image';
 const MENU_LIVE_LAYOUT = 'live.layout';
+const MENU_MEDIA_GALLERY_CONTROLS_THUMBNAILS = 'media_gallery.controls.thumbnails';
+const MENU_MEDIA_GALLERY_CONTROLS_FILTER = 'media_gallery.controls.filter';
 const MENU_MEDIA_VIEWER_CONTROLS = 'media_viewer.controls';
 const MENU_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS = 'media_viewer.controls.next_previous';
 const MENU_MEDIA_VIEWER_CONTROLS_THUMBNAILS = 'media_viewer.controls.thumbnails';
@@ -220,15 +220,15 @@ const options: EditorOptions = {
     name: localize('editor.live'),
     secondary: localize('editor.live_secondary'),
   },
+  media_gallery: {
+    icon: 'grid',
+    name: localize('editor.media_gallery'),
+    secondary: localize('editor.media_gallery_secondary'),
+  },
   media_viewer: {
     icon: 'filmstrip',
     name: localize('editor.media_viewer'),
     secondary: localize('editor.media_viewer_secondary'),
-  },
-  event_gallery: {
-    icon: 'grid',
-    name: localize('editor.event_gallery'),
-    secondary: localize('editor.event_gallery_secondary'),
   },
   image: {
     icon: 'image',
@@ -1680,20 +1680,20 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
             `
           : ''}
-        ${this._renderOptionSetHeader('event_gallery')}
-        ${this._expandedMenus[MENU_OPTIONS] === 'event_gallery'
+        ${this._renderOptionSetHeader('media_gallery')}
+        ${this._expandedMenus[MENU_OPTIONS] === 'media_gallery'
           ? html` <div class="values">
               ${this._renderThumbnailsControls(
-                MENU_EVENT_GALLERY_CONTROLS_THUMBNAILS,
-                CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SIZE,
-                CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-                CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
-                CONF_EVENT_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
-                this._defaults.event_gallery.controls.thumbnails,
+                MENU_MEDIA_GALLERY_CONTROLS_THUMBNAILS,
+                CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SIZE,
+                CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+                CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+                CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+                this._defaults.media_gallery.controls.thumbnails,
               )}
               ${this._renderFilterControls(
-                MENU_EVENT_GALLERY_CONTROLS_FILTER,
-                CONF_EVENT_GALLERY_CONTROLS_FILTER_MODE,
+                MENU_MEDIA_GALLERY_CONTROLS_FILTER,
+                CONF_MEDIA_GALLERY_CONTROLS_FILTER_MODE,
               )}
             </div>`
           : ''}

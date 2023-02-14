@@ -123,7 +123,7 @@
             "none": "No thumbnails",
             "right": "Thumbnails in a drawer to the right"
           },
-          "show_details": "Show event details with thumbnails",
+          "show_details": "Show details with thumbnails",
           "show_favorite_control": "Show favorite control on thumbnails",
           "show_timeline_control": "Show timeline control on thumbnails",
           "size": "Thumbnails size in pixels"
@@ -312,12 +312,12 @@
     "delete": "Delete",
     "dimensions": "Dimensions",
     "dimensions_secondary": "Dimensions & shape options",
-    "event_gallery": "Event gallery",
-    "event_gallery_secondary": "Snapshots & clips gallery options",
     "image": "Image",
     "image_secondary": "Static image view options",
     "live": "Live",
     "live_secondary": "Live camera view options",
+    "media_gallery": "Media gallery",
+    "media_gallery_secondary": "Media gallery options",
     "media_viewer": "Media viewer",
     "media_viewer_secondary": "Viewer for static media (clips, snapshots or recordings)",
     "menu": "Menu",
