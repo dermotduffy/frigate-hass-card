@@ -13,6 +13,7 @@ import {
 } from 'custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map.js';
 import { z } from 'zod';
+import { MEDIA_CHUNK_SIZE_DEFAULT, MEDIA_CHUNK_SIZE_MAX } from './const.js';
 import { deepRemoveDefaults } from './utils/zod.js';
 
 // The min allowed size of buttons.
@@ -48,7 +49,7 @@ const FRIGATE_CARD_VIEWS = [
   'media',
 ] as const;
 
-export type FrigateCardView = typeof FRIGATE_CARD_VIEWS[number];
+export type FrigateCardView = (typeof FRIGATE_CARD_VIEWS)[number];
 export const FRIGATE_CARD_VIEW_DEFAULT = 'live' as const;
 
 const FRIGATE_MENU_STYLES = [
@@ -66,7 +67,7 @@ const FRIGATE_MENU_PRIORITY_DEFAULT = 50;
 export const FRIGATE_MENU_PRIORITY_MAX = 100;
 
 const LIVE_PROVIDERS = ['auto', 'image', 'ha', 'frigate-jsmpeg', 'webrtc-card'] as const;
-export type LiveProvider = typeof LIVE_PROVIDERS[number];
+export type LiveProvider = (typeof LIVE_PROVIDERS)[number];
 
 const MEDIA_ACTION_NEGATIVE_CONDITIONS = [
   'all',
@@ -74,9 +75,9 @@ const MEDIA_ACTION_NEGATIVE_CONDITIONS = [
   'hidden',
   'never',
 ] as const;
-export type LazyUnloadCondition = typeof MEDIA_ACTION_NEGATIVE_CONDITIONS[number];
-export type AutoMuteCondition = typeof MEDIA_ACTION_NEGATIVE_CONDITIONS[number];
-export type AutoPauseCondition = typeof MEDIA_ACTION_NEGATIVE_CONDITIONS[number];
+export type LazyUnloadCondition = (typeof MEDIA_ACTION_NEGATIVE_CONDITIONS)[number];
+export type AutoMuteCondition = (typeof MEDIA_ACTION_NEGATIVE_CONDITIONS)[number];
+export type AutoPauseCondition = (typeof MEDIA_ACTION_NEGATIVE_CONDITIONS)[number];
 
 const MEDIA_ACTION_POSITIVE_CONDITIONS = [
   'all',
@@ -84,14 +85,10 @@ const MEDIA_ACTION_POSITIVE_CONDITIONS = [
   'visible',
   'never',
 ] as const;
-export type AutoUnmuteCondition = typeof MEDIA_ACTION_POSITIVE_CONDITIONS[number];
-export type AutoPlayCondition = typeof MEDIA_ACTION_POSITIVE_CONDITIONS[number];
+export type AutoUnmuteCondition = (typeof MEDIA_ACTION_POSITIVE_CONDITIONS)[number];
+export type AutoPlayCondition = (typeof MEDIA_ACTION_POSITIVE_CONDITIONS)[number];
 
-const ENGINES = [
-  'auto',
-  'frigate',
-  'generic',
-] as const;
+const ENGINES = ['auto', 'frigate', 'generic'] as const;
 
 export class FrigateCardError extends Error {
   context?: unknown;
@@ -225,7 +222,7 @@ const FRIGATE_CARD_ACTIONS = [
   'camera_select',
   'media_player',
 ] as const;
-export type FrigateCardAction = typeof FRIGATE_CARD_ACTIONS[number];
+export type FrigateCardAction = (typeof FRIGATE_CARD_ACTIONS)[number];
 
 const frigateCardGeneralActionSchema = frigateCardCustomactionsBaseSchema.extend({
   frigate_card_action: z.enum(FRIGATE_CARD_GENERAL_ACTIONS),
@@ -1196,6 +1193,7 @@ const performanceConfigDefault = {
   profile: 'high' as const,
   features: {
     animated_progress_indicator: true,
+    media_chunk_size: MEDIA_CHUNK_SIZE_DEFAULT,
   },
   style: {
     border_radius: true,
@@ -1211,6 +1209,11 @@ const performanceConfigSchema = z
         animated_progress_indicator: z
           .boolean()
           .default(performanceConfigDefault.features.animated_progress_indicator),
+        media_chunk_size: z
+          .number()
+          .min(0)
+          .max(MEDIA_CHUNK_SIZE_MAX)
+          .default(performanceConfigDefault.features.media_chunk_size),
       })
       .default(performanceConfigDefault.features),
     style: z

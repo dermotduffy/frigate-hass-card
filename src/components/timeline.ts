@@ -1,7 +1,7 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import timelineStyle from '../scss/timeline.scss';
-import { ExtendedHomeAssistant, TimelineConfig } from '../types';
+import { CardWideConfig, ExtendedHomeAssistant, TimelineConfig } from '../types';
 import { CameraManager } from '../camera-manager/manager';
 import { View } from '../view/view';
 import './surround.js';
@@ -10,7 +10,7 @@ import './timeline-core.js';
 // This file is kept separate from timeline-core.ts to avoid a circular dependency:
 //   FrigateCardTimeline ->
 //   FrigateCardSurround ->
-//   FrigateCardTimelineCore 
+//   FrigateCardTimelineCore
 
 @customElement('frigate-card-timeline')
 export class FrigateCardTimeline extends LitElement {
@@ -25,6 +25,9 @@ export class FrigateCardTimeline extends LitElement {
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
+
+  @property({ attribute: false })
+  public cardWideConfig?: CardWideConfig;
 
   /**
    * Master render method.
@@ -45,9 +48,9 @@ export class FrigateCardTimeline extends LitElement {
         .hass=${this.hass}
         .view=${this.view}
         .timelineConfig=${this.timelineConfig}
-        .thumbnailDetails=${this.timelineConfig.controls.thumbnails.show_details}
-        .thumbnailSize=${this.timelineConfig.controls.thumbnails.size}
+        .thumbnailConfig=${this.timelineConfig.controls.thumbnails}
         .cameraManager=${this.cameraManager}
+        .cardWideConfig=${this.cardWideConfig}
       >
       </frigate-card-timeline-core>
     </frigate-card-surround>`;

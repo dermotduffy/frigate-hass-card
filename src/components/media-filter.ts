@@ -13,7 +13,7 @@ import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { DateRange } from '../camera-manager/range';
 import { localize } from '../localize/localize';
 import mediaFilterStyle from '../scss/media-filter.scss';
-import { createViewForEvents, createViewForRecordings } from '../utils/media-to-view.js';
+import { executeMediaQueryForView } from '../utils/media-to-view.js';
 import { errorToConsole, formatDate, prettifyTitle } from '../utils/basic';
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
 import './select';
@@ -32,10 +32,8 @@ import { View } from '../view/view';
 import { CameraManager } from '../camera-manager/manager';
 import { HomeAssistant } from 'custom-card-helpers';
 import {
-  EventQuery,
   MediaMetadata,
   QueryType,
-  RecordingQuery,
 } from '../camera-manager/types';
 import format from 'date-fns/format';
 import endOfMonth from 'date-fns/endOfMonth';
@@ -43,6 +41,7 @@ import isEqual from 'lodash-es/isEqual';
 import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
 import './select.js';
 import orderBy from 'lodash-es/orderBy';
+import { CardWideConfig } from '../types';
 
 interface MediaFilterCoreDefaults {
   mediaType?: MediaFilterMediaType;
@@ -83,7 +82,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
   public view?: View;
 
   @property({ attribute: false })
-  public mediaLimit?: number;
+  public cardWideConfig?: CardWideConfig;
 
   static elementDefinitions = {
     'frigate-card-select': FrigateCardSelect,
@@ -202,6 +201,8 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
     // - Similarly, if the user chooses clips or snapshots, set the actual view
     //   to 'clips' or 'snapshots' in order to ensure the right icon is shown as
     //   selected in the menu.
+    const limit = this.cardWideConfig?.performance?.features.media_chunk_size;
+
     if (
       mediaType === MediaFilterMediaType.Clips ||
       mediaType === MediaFilterMediaType.Snapshots
@@ -209,7 +210,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
       const where = getArrayValueAsSet(this._refWhere.value?.value);
       const what = getArrayValueAsSet(this._refWhat.value?.value);
 
-      const queries: EventQuery[] = [
+      const queries = new EventMediaQueries([
         {
           type: QueryType.Event,
           cameraIDs: cameraIDs,
@@ -217,38 +218,51 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
           ...(where && { where: where }),
           ...(favorite !== null && { favorite: favorite }),
           ...(when && { start: when.start, end: when.end }),
-          ...(this.mediaLimit && { limit: this.mediaLimit }),
+          ...(limit && { limit: limit }),
           ...(mediaType === MediaFilterMediaType.Clips && { hasClip: true }),
           ...(mediaType === MediaFilterMediaType.Snapshots && {
             hasSnapshot: true,
           }),
         },
-      ];
+      ]);
 
       (
-        await createViewForEvents(this, this.hass, this.cameraManager, this.view, {
-          query: new EventMediaQueries(queries),
-
-          // See 'A note on views' above for these two arguments.
-          ...(cameraIDs.size === 1 && { targetCameraID: [...cameraIDs][0] }),
-          targetView: mediaType === MediaFilterMediaType.Clips ? 'clips' : 'snapshots',
-        })
+        await executeMediaQueryForView(
+          this,
+          this.hass,
+          this.cameraManager,
+          this.view,
+          queries,
+          {
+            // See 'A note on views' above for these two arguments.
+            ...(cameraIDs.size === 1 && { targetCameraID: [...cameraIDs][0] }),
+            targetView: mediaType === MediaFilterMediaType.Clips ? 'clips' : 'snapshots',
+          },
+        )
       )?.dispatchChangeEvent(this);
     } else if (mediaType === MediaFilterMediaType.Recordings) {
-      const query: RecordingQuery = {
-        type: QueryType.Recording,
-        cameraIDs: cameraIDs,
-        ...(when && { start: when.start, end: when.end }),
-      };
+      const queries = new RecordingMediaQueries([
+        {
+          type: QueryType.Recording,
+          cameraIDs: cameraIDs,
+          ...(limit && { limit: limit }),
+          ...(when && { start: when.start, end: when.end }),
+        },
+      ]);
 
       (
-        await createViewForRecordings(this, this.hass, this.cameraManager, this.view, {
-          query: new RecordingMediaQueries([query]),
-
-          // See 'A note on views' above for these two arguments.
-          ...(cameraIDs.size === 1 && { targetCameraID: [...cameraIDs][0] }),
-          targetView: 'recordings',
-        })
+        await executeMediaQueryForView(
+          this,
+          this.hass,
+          this.cameraManager,
+          this.view,
+          queries,
+          {
+            // See 'A note on views' above for these two arguments.
+            ...(cameraIDs.size === 1 && { targetCameraID: [...cameraIDs][0] }),
+            targetView: 'recordings',
+          },
+        )
       )?.dispatchChangeEvent(this);
     }
   }

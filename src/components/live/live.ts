@@ -228,6 +228,7 @@ export class FrigateCardLive extends LitElement {
         .timelineConfig=${config.controls.timeline}
         .cameraManager=${this.cameraManager}
         .inBackground=${this._inBackground}
+        .cardWideConfig=${this.cardWideConfig}
         @frigate-card:message=${(ev: CustomEvent<Message>) => {
           this._renderKey++;
           this._messageReceivedPostRender = true;

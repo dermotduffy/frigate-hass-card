@@ -44,6 +44,7 @@ import { localize } from '../localize/localize.js';
 import { CameraInitializationError } from './error.js';
 import { CameraManagerStore } from './store.js';
 import { cloneDeep } from 'lodash-es';
+import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
 
 class QueryClassifier {
   public static isEventQuery(query: DataQuery | PartialDataQuery): query is EventQuery {
@@ -356,7 +357,6 @@ export class CameraManager {
     queries: T[],
     results: ViewMedia[],
     direction: 'earlier' | 'later',
-    chunkSize: number,
   ): Promise<ExtendedMediaQueryResult<T> | null> {
     const getTimeFromResults = (want: 'earliest' | 'latest'): Date | null => {
       let output: Date | null = null;
@@ -373,6 +373,10 @@ export class CameraManager {
       }
       return output;
     };
+
+    const chunkSize =
+      this._cardWideConfig?.performance?.features.media_chunk_size ??
+      MEDIA_CHUNK_SIZE_DEFAULT;
 
     // The queries associated with the chunk to fetch.
     const newChunkQueries: T[] = [];

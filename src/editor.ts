@@ -127,6 +127,8 @@ import {
   CONF_VIEW_UPDATE_CYCLE_CAMERA,
   CONF_VIEW_UPDATE_FORCE,
   CONF_VIEW_UPDATE_SECONDS,
+  CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE,
+  MEDIA_CHUNK_SIZE_MAX,
 } from './const.js';
 import { localize } from './localize/localize.js';
 import frigate_card_editor_style from './scss/editor.scss';
@@ -1853,6 +1855,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
                     this._defaults.performance.features.animated_progress_indicator,
                   )}
+                  ${this._renderNumberInput(CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE, {
+                    max: MEDIA_CHUNK_SIZE_MAX,
+                  })}
                 `,
               )}
               ${this._putInSubmenu(

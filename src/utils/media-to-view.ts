@@ -1,7 +1,5 @@
-import add from 'date-fns/add';
-import sub from 'date-fns/sub';
 import { ViewContext } from 'view';
-import { ClipsOrSnapshotsOrAll, FrigateCardView } from '../types';
+import { CardWideConfig, ClipsOrSnapshotsOrAll, FrigateCardView } from '../types';
 import { View } from '../view/view';
 import {
   EventMediaQueries,
@@ -16,71 +14,54 @@ import { dispatchFrigateCardErrorEvent } from '../components/message';
 import { MediaQueriesResults } from '../view/media-queries-results';
 import { errorToConsole } from './basic';
 import { MediaQuery } from '../camera-manager/types';
+import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const';
 
 export const changeViewToRecentEventsForCameraAndDependents = async (
   element: HTMLElement,
   hass: HomeAssistant,
   cameraManager: CameraManager,
+  cardWideConfig: CardWideConfig,
   view: View,
   options?: {
     mediaType?: ClipsOrSnapshotsOrAll;
     targetView?: FrigateCardView;
   },
 ): Promise<void> => {
+  const cameras = cameraManager.getCameras();
+  if (!cameras) {
+    return;
+  }
+  const cameraIDs = new Set(getAllDependentCameras(cameras, view.camera));
+  const queries = createQueriesForEventsView(cameraManager, cardWideConfig, cameraIDs, {
+    mediaType: options?.mediaType,
+  });
+  if (!queries) {
+    return;
+  }
+
   (
-    await createViewForEvents(element, hass, cameraManager, view, {
-      ...options,
-      limit: 50, // Capture the 50 most recent events.
+    await executeMediaQueryForView(element, hass, cameraManager, view, queries, {
+      targetView: options?.targetView,
     })
   )?.dispatchChangeEvent(element);
 };
 
-export const createViewForEvents = async (
-  element: HTMLElement,
-  hass: HomeAssistant,
+const createQueriesForEventsView = (
   cameraManager: CameraManager,
-  view: View,
+  cardWideConfig: CardWideConfig,
+  cameraIDs: Set<string>,
   options?: {
-    query?: EventMediaQueries;
-    cameraIDs?: Set<string>;
     mediaType?: ClipsOrSnapshotsOrAll;
-    targetCameraID?: string;
-    targetView?: FrigateCardView;
-    limit?: number;
   },
-): Promise<View | null> => {
-  const cameras = cameraManager.getCameras();
-  if (!cameras) {
-    return null;
-  }
-  let query: EventMediaQueries;
-  const cameraIDs: Set<string> = options?.cameraIDs
-    ? options.cameraIDs
-    : new Set(getAllDependentCameras(cameras, view.camera));
-
-  if (options?.query) {
-    query = options.query;
-  } else {
-    const eventQueries = cameraManager.generateDefaultEventQueries(cameraIDs, {
-      ...(options?.limit && { limit: options.limit }),
-      ...(options?.mediaType === 'clips' && { hasClip: true }),
-      ...(options?.mediaType === 'snapshots' && { hasSnapshot: true }),
-    });
-    if (!eventQueries) {
-      return null;
-    }
-    query = new EventMediaQueries(eventQueries);
-  }
-
-  if (!query) {
-    return null;
-  }
-
-  return executeMediaQueryForView(element, hass, cameraManager, view, query, {
-    cameraIDs: cameraIDs,
-    targetView: options?.targetView,
-    targetCameraID: options?.targetCameraID,
+): EventMediaQueries | null => {
+  const limit =
+    cardWideConfig.performance?.features.media_chunk_size ?? MEDIA_CHUNK_SIZE_DEFAULT;
+  const eventQueries = cameraManager.generateDefaultEventQueries(cameraIDs, {
+    limit: limit,
+    ...(options?.mediaType === 'clips' && { hasClip: true }),
+    ...(options?.mediaType === 'snapshots' && { hasSnapshot: true }),
   });
+  return eventQueries ? new EventMediaQueries(eventQueries) : null;
 };
 
 /**
@@ -96,89 +77,61 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
   element: HTMLElement,
   hass: HomeAssistant,
   cameraManager: CameraManager,
+  cardWideConfig: CardWideConfig,
   view: View,
   options?: {
     targetView?: 'recording' | 'recordings';
   },
 ): Promise<void> => {
-  const now = new Date();
+  const cameras = cameraManager.getCameras();
+  if (!cameras) {
+    return;
+  }
+
+  const cameraIDs = new Set(getAllDependentCameras(cameras, view.camera));
+  const queries = createQueriesForRecordingsView(
+    cameraManager,
+    cardWideConfig,
+    cameraIDs,
+  );
+
+  if (!queries) {
+    return;
+  }
+
   (
-    await createViewForRecordings(element, hass, cameraManager, view, {
-      ...options,
-      // Fetch 7 days worth of recordings (including recordings that are for the
-      // current hour).
-      start: sub(now, { days: 7 }),
-      end: add(now, { hours: 1 }),
+    await executeMediaQueryForView(element, hass, cameraManager, view, queries, {
+      targetView: options?.targetView,
     })
   )?.dispatchChangeEvent(element);
 };
 
-/**
- * Create a view for recordings.
- * @param element The element to dispatch the view change from.
- * @param hass The Home Assistant object.
- * @param cameraManager The datamanager to use for data access.
- * @param cameras The camera configurations.
- * @param view The current view.
- * @param options A specific window (start and end) to fetch recordings for, a
- * targetTime to seek to, a targetView to dispatch to and a set of cameraIDs to
- * restrict to.
- */
-export const createViewForRecordings = async (
-  element: HTMLElement,
-  hass: HomeAssistant,
+export const createQueriesForRecordingsView = (
   cameraManager: CameraManager,
-  view: View,
+  cardWideConfig: CardWideConfig,
+  cameraIDs: Set<string>,
   options?: {
-    query?: RecordingMediaQueries;
-    cameraIDs?: Set<string>;
-    targetCameraID?: string;
-    targetView?: 'recording' | 'recordings';
-    targetTime?: Date;
     start?: Date;
     end?: Date;
   },
-): Promise<View | null> => {
-  const cameras = cameraManager.getCameras();
-  if (!cameras) {
-    return null;
-  }
-  const cameraIDs: Set<string> = options?.cameraIDs
-    ? options.cameraIDs
-    : new Set(getAllDependentCameras(cameras, view.camera));
-
-  let query: RecordingMediaQueries;
-  if (options?.query) {
-    query = options.query;
-  } else {
-    const recordingQueries = cameraManager.generateDefaultRecordingQueries(cameraIDs, {
-      ...(options?.start && { start: options.start }),
-      ...(options?.end && { end: options.end }),
-    });
-
-    if (!recordingQueries) {
-      return null;
-    }
-
-    query = new RecordingMediaQueries(recordingQueries);
-  }
-
-  return executeMediaQueryForView(element, hass, cameraManager, view, query, {
-    cameraIDs: cameraIDs,
-    targetView: options?.targetView,
-    targetCameraID: options?.targetCameraID,
-    targetTime: options?.targetTime,
+): RecordingMediaQueries | null => {
+  const limit =
+    cardWideConfig.performance?.features.media_chunk_size ?? MEDIA_CHUNK_SIZE_DEFAULT;
+  const recordingQueries = cameraManager.generateDefaultRecordingQueries(cameraIDs, {
+    limit: limit,
+    ...(options?.start && { start: options.start }),
+    ...(options?.end && { end: options.end }),
   });
+  return recordingQueries ? new RecordingMediaQueries(recordingQueries) : null;
 };
 
-const executeMediaQueryForView = async (
+export const executeMediaQueryForView = async (
   element: HTMLElement,
   hass: HomeAssistant,
   cameraManager: CameraManager,
   view: View,
   query: MediaQueries,
   options?: {
-    cameraIDs?: Set<string>;
     targetCameraID?: string;
     targetView?: FrigateCardView;
     targetTime?: Date;
@@ -207,9 +160,9 @@ const executeMediaQueryForView = async (
   const queryResults = new MediaQueriesResults(mediaArray, selectedIndex);
   let viewerContext: ViewContext | undefined = {};
 
-  if (options?.targetTime && options.cameraIDs) {
+  if (options?.targetTime) {
     queryResults.selectBestResult((media) =>
-      findClosestMediaIndex(media, options.targetTime as Date, options.cameraIDs),
+      findClosestMediaIndex(media, options.targetTime as Date),
     );
     viewerContext = {
       mediaViewer: {
@@ -234,7 +187,6 @@ const executeMediaQueryForView = async (
  * Find the closest matching media object.
  * @param mediaArray The media. Must be sorted most recent first.
  * @param targetTime The target time used to find the relevant child.
- * @param cameraIDs The camera IDs to search for.
  * @param refPoint Whether to find based on the start or end of the
  * event/recording. If not specified, the first match is returned rather than
  * the best match.
@@ -243,7 +195,6 @@ const executeMediaQueryForView = async (
 export const findClosestMediaIndex = (
   mediaArray: ViewMedia[],
   targetTime: Date,
-  cameraIDs?: Set<string>,
   refPoint?: 'start' | 'end',
 ): number | null => {
   let bestMatch:
@@ -253,15 +204,7 @@ export const findClosestMediaIndex = (
       }
     | undefined;
 
-  if (!cameraIDs) {
-    return null;
-  }
-
   for (const [i, media] of mediaArray.entries()) {
-    if (!cameraIDs.has(media.getCameraID())) {
-      continue;
-    }
-
     if (media.includesTime(targetTime)) {
       const start = media.getStartTime();
       const end = media.getEndTime();

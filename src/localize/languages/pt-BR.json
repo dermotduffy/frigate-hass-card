@@ -243,6 +243,24 @@
     "overrides": {
       "info": "Esta configuração do cartão especificou manualmente as substituições configuradas que podem substituir os valores mostrados no editor visual, consulte o editor de código para visualizar/modificar essas substituições"
     },
+    "performance": {
+      "warning": "",
+      "features": {
+        "editor_label": "",
+        "animated_progress_indicator": "",
+        "media_chunk_size": ""
+      },
+      "profile": "",
+      "profiles": {
+        "low": "",
+        "high": ""
+      },
+      "style": {
+        "editor_label": "",
+        "box_shadow": "",
+        "border_radius": ""
+      }
+    },
     "view": {
       "camera_select": "Visualização de câmeras recém-selecionadas",
       "dark_mode": "Modo escuro",

@@ -33,11 +33,9 @@ import { EventQuery, MediaQuery, RecordingQuery } from '../camera-manager/types'
 import { MediaQueriesResults } from '../view/media-queries-results';
 import { errorToConsole } from '../utils/basic';
 import './media-filter';
-import "./surround-basic";
+import './surround-basic';
 import { ViewMedia } from '../view/media';
 import { localize } from '../localize/localize';
-
-const GALLERY_MEDIA_CHUNK_SIZE = 100;
 
 const GALLERY_MEDIA_FILTER_MENU_ICONS = {
   closed: 'mdi:filter-cog-outline',
@@ -70,7 +68,8 @@ export class FrigateCardGallery extends LitElement {
       !this.hass ||
       !this.view ||
       !this.view.isGalleryView() ||
-      !this.cameraManager
+      !this.cameraManager ||
+      !this.cardWideConfig
     ) {
       return;
     }
@@ -81,18 +80,20 @@ export class FrigateCardGallery extends LitElement {
           this,
           this.hass,
           this.cameraManager,
+          this.cardWideConfig,
           this.view,
         );
       } else {
         const mediaType = this.view.is('snapshots')
           ? 'snapshots'
           : this.view.is('clips')
-            ? 'clips'
-            : null;
+          ? 'clips'
+          : null;
         changeViewToRecentEventsForCameraAndDependents(
           this,
           this.hass,
           this.cameraManager,
+          this.cardWideConfig,
           this.view,
           {
             ...(mediaType && { mediaType: mediaType }),
@@ -105,22 +106,22 @@ export class FrigateCardGallery extends LitElement {
     return html`
       <frigate-card-surround-basic
         .drawerIcons=${{
-        ...(this.galleryConfig &&
-          this.galleryConfig.controls.filter.mode !== 'none' && {
-          [this.galleryConfig.controls.filter.mode]: GALLERY_MEDIA_FILTER_MENU_ICONS,
-        }),
-      }}
+          ...(this.galleryConfig &&
+            this.galleryConfig.controls.filter.mode !== 'none' && {
+              [this.galleryConfig.controls.filter.mode]: GALLERY_MEDIA_FILTER_MENU_ICONS,
+            }),
+        }}
       >
         ${this.galleryConfig && this.galleryConfig.controls.filter.mode !== 'none'
-        ? html` <frigate-card-media-filter
+          ? html` <frigate-card-media-filter
               .hass=${this.hass}
               .cameraManager=${this.cameraManager}
               .view=${this.view}
-              .mediaLimit=${GALLERY_MEDIA_CHUNK_SIZE}
+              .cardWideConfig=${this.cardWideConfig}
               slot=${this.galleryConfig.controls.filter.mode}
             >
             </frigate-card-media-filter>`
-        : ''}
+          : ''}
         <frigate-card-gallery-core
           .hass=${this.hass}
           .view=${this.view}
@@ -212,10 +213,10 @@ export class FrigateCardGalleryCore extends LitElement {
     const columns = this.galleryConfig?.controls.thumbnails.show_details
       ? Math.max(1, Math.floor(this.clientWidth / THUMBNAIL_DETAILS_WIDTH_MIN))
       : Math.max(
-        1,
-        Math.ceil(this.clientWidth / THUMBNAIL_WIDTH_MAX),
-        Math.ceil(this.clientWidth / thumbnailSize),
-      );
+          1,
+          Math.ceil(this.clientWidth / THUMBNAIL_WIDTH_MAX),
+          Math.ceil(this.clientWidth / thumbnailSize),
+        );
 
     this.style.setProperty('--frigate-card-gallery-columns', String(columns));
   }
@@ -253,7 +254,6 @@ export class FrigateCardGalleryCore extends LitElement {
         rawQueries,
         existingMedia,
         'earlier',
-        GALLERY_MEDIA_CHUNK_SIZE,
       );
     } catch (e) {
       errorToConsole(e as Error);
@@ -264,8 +264,8 @@ export class FrigateCardGalleryCore extends LitElement {
       const newMediaQueries = MediaQueriesClassifier.areEventQueries(query)
         ? new EventMediaQueries(extension.queries as EventQuery[])
         : MediaQueriesClassifier.areRecordingQueries(query)
-          ? new RecordingMediaQueries(extension.queries as RecordingQuery[])
-          : null;
+        ? new RecordingMediaQueries(extension.queries as RecordingQuery[])
+        : null;
 
       if (newMediaQueries) {
         this.view
@@ -301,11 +301,13 @@ export class FrigateCardGalleryCore extends LitElement {
       this._showExtensionLoader = true;
       const oldView: View | undefined = changedProps.get('view');
 
-      if (oldView?.queryResults?.getResults() !== this.view?.queryResults?.getResults()) {
+      if (
+        oldView?.queryResults?.getResults() !== this.view?.queryResults?.getResults()
+      ) {
         // Gallery places the most recent media at the top (the query results place
         // the most recent media at the end for use in the viewer). This is copied
         // to a new array to avoid reversing the query results in place.
-        this._media = [...this.view?.queryResults?.getResults() ?? []].reverse();
+        this._media = [...(this.view?.queryResults?.getResults() ?? [])].reverse();
       }
     }
   }
@@ -315,12 +317,7 @@ export class FrigateCardGalleryCore extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (
-      !this._media ||
-      !this.hass ||
-      !this.view ||
-      !this.view.isGalleryView()
-    ) {
+    if (!this._media || !this.hass || !this.view || !this.view.isGalleryView()) {
       return html``;
     }
 
@@ -332,40 +329,40 @@ export class FrigateCardGalleryCore extends LitElement {
 
     return html`
       ${this._media.map(
-      (media, index) =>
-        html`<frigate-card-thumbnail
+        (media, index) =>
+          html`<frigate-card-thumbnail
             .hass=${this.hass}
             .cameraManager=${this.cameraManager}
             .media=${media}
             .view=${this.view}
             ?details=${!!this.galleryConfig?.controls.thumbnails.show_details}
             ?show_favorite_control=${!!this.galleryConfig?.controls.thumbnails
-            .show_favorite_control}
+              .show_favorite_control}
             ?show_timeline_control=${!!this.galleryConfig?.controls.thumbnails
-            .show_timeline_control}
+              .show_timeline_control}
             @click=${(ev: Event) => {
-            if (this.view && this._media) {
-              this.view
-                .evolve({
-                  view: 'media',
-                  queryResults: this.view.queryResults?.clone().selectResult(
-                    // Media in the gallery is reversed vs the queryResults (see
-                    // note above).
-                    this._media.length - index - 1
-                  ),
-                })
-                .dispatchChangeEvent(this);
-            }
-            stopEventFromActivatingCardWideActions(ev);
-          }}
+              if (this.view && this._media) {
+                this.view
+                  .evolve({
+                    view: 'media',
+                    queryResults: this.view.queryResults?.clone().selectResult(
+                      // Media in the gallery is reversed vs the queryResults (see
+                      // note above).
+                      this._media.length - index - 1,
+                    ),
+                  })
+                  .dispatchChangeEvent(this);
+              }
+              stopEventFromActivatingCardWideActions(ev);
+            }}
           >
           </frigate-card-thumbnail>`,
-    )}
+      )}
       ${this._showExtensionLoader
         ? html`${renderProgressIndicator({
-          cardWideConfig: this.cardWideConfig,
-          componentRef: this._refLoader,
-        })}`
+            cardWideConfig: this.cardWideConfig,
+            componentRef: this._refLoader,
+          })}`
         : ''}
     `;
   }
