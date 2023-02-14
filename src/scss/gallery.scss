@@ -30,7 +30,3 @@ frigate-card-thumbnail {
 frigate-card-thumbnail:not([details]) {
   width: 100%;
 }
-frigate-card-progress-indicator {
-  // Progress indicator spans the grid.
-  grid-column: 1 / -1;
-}
