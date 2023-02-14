@@ -1,4 +1,3 @@
-export const CAMERA_BIRDSEYE = 'birdseye' as const;
 export const REPO_URL = 'https://github.com/dermotduffy/frigate-hass-card' as const;
 export const TROUBLESHOOTING_URL = `${REPO_URL}#troubleshooting` as const;
 
@@ -213,9 +212,16 @@ export const CONF_OVERRIDES = 'overrides' as const;
 
 const CONF_PERFORMANCE = 'performance' as const;
 export const CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR = `${CONF_PERFORMANCE}.features.animated_progress_indicator`;
+export const CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE = `${CONF_PERFORMANCE}.features.media_chunk_size`;
 export const CONF_PERFORMANCE_PROFILE = `${CONF_PERFORMANCE}.profile`;
 export const CONF_PERFORMANCE_STYLE_BOX_SHADOW = `${CONF_PERFORMANCE}.style.box_shadow`;
 export const CONF_PERFORMANCE_STYLE_BORDER_RADIUS = `${CONF_PERFORMANCE}.style.border_radius`;
 
 // Taken from https://github.dev/home-assistant/frontend/blob/b5861869e39290fd2e15737e89571dfc543b3ad3/src/data/media-player.ts#L93
 export const MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA = 131072;
+
+// The number of media items to fetch at a time (for clips/snapshot views, and
+// gallery chunks). Smaller values will cause more frequent smaller fetches, but
+// improved rendering performance.
+export const MEDIA_CHUNK_SIZE_DEFAULT = 50;
+export const MEDIA_CHUNK_SIZE_MAX = 1000;

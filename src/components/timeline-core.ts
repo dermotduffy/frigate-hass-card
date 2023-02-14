@@ -30,9 +30,11 @@ import { localize } from '../localize/localize';
 import timelineCoreStyle from '../scss/timeline-core.scss';
 import {
   CameraConfig,
+  CardWideConfig,
   ExtendedHomeAssistant,
   frigateCardConfigDefaults,
   FrigateCardView,
+  ThumbnailsControlConfig,
   TimelineCoreConfig,
 } from '../types';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
@@ -41,10 +43,9 @@ import {
   dispatchFrigateCardEvent,
   isHoverableDevice,
 } from '../utils/basic';
-
 import {
-  createViewForEvents,
-  createViewForRecordings,
+  createQueriesForRecordingsView,
+  executeMediaQueryForView,
   findClosestMediaIndex,
 } from '../utils/media-to-view';
 import { CameraManager } from '../camera-manager/manager';
@@ -168,10 +169,7 @@ export class FrigateCardTimelineCore extends LitElement {
   public timelineConfig?: TimelineCoreConfig;
 
   @property({ attribute: true, type: Boolean })
-  public thumbnailDetails? = false;
-
-  @property({ attribute: false })
-  public thumbnailSize?: number;
+  public thumbnailConfig?: ThumbnailsControlConfig;
 
   // Whether or not this is a mini-timeline (in mini-mode the component takes a
   // supportive role for other views).
@@ -185,6 +183,9 @@ export class FrigateCardTimelineCore extends LitElement {
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
+
+  @property({ attribute: false })
+  public cardWideConfig?: CardWideConfig;
 
   @state()
   protected _locked = false;
@@ -228,7 +229,7 @@ export class FrigateCardTimelineCore extends LitElement {
     return `
       <frigate-card-timeline-thumbnail
         item='${item.id}'
-        ${this.thumbnailDetails ? 'details' : ''}
+        ${this.thumbnailConfig?.show_details ? 'details' : ''}
       >
       </frigate-card-timeline-thumbnail>`;
   }
@@ -392,7 +393,6 @@ export class FrigateCardTimelineCore extends LitElement {
   ): Promise<void> {
     const results = this.view?.queryResults;
     const media = results?.getResults();
-    const cameraIDs = this._getTimelineCameraIDs();
     if (
       !media ||
       !results ||
@@ -400,7 +400,6 @@ export class FrigateCardTimelineCore extends LitElement {
       !this.view ||
       !this.hass ||
       !this.cameraManager ||
-      !cameraIDs ||
       // Skip range changes that do not have hammerjs pan directions associated
       // with them, as these outliers cause media matching issues below.
       !properties.event.additionalEvent
@@ -418,7 +417,6 @@ export class FrigateCardTimelineCore extends LitElement {
             findClosestMediaIndex(
               media,
               targetTime,
-              cameraIDs,
               properties.event.additionalEvent === 'panright' ? 'end' : 'start',
             ),
           );
@@ -467,6 +465,7 @@ export class FrigateCardTimelineCore extends LitElement {
       !this._timeline ||
       !this.view ||
       !this.cameraManager ||
+      !this.cardWideConfig ||
       !timelineCameraIDs ||
       !properties.what
     ) {
@@ -479,34 +478,50 @@ export class FrigateCardTimelineCore extends LitElement {
       this.timelineConfig?.show_recordings &&
       ['background', 'group-label'].includes(properties.what)
     ) {
-      view = await createViewForRecordings(
-        this,
-        this.hass,
+      const query = createQueriesForRecordingsView(
         this.cameraManager,
-        this.view,
-        {
-          targetTime:
-            properties.what === 'background'
-              ? properties.time
-              : this._timeline.getWindow().end,
-          ...(properties.group && {
-            cameraIDs: new Set([String(properties.group)]),
-          }),
-        },
+        this.cardWideConfig,
+        new Set([String(properties.group)]),
       );
+      if (query) {
+        view = await executeMediaQueryForView(
+          this,
+          this.hass,
+          this.cameraManager,
+          this.view,
+          query,
+          {
+            targetView: 'recording',
+            targetTime:
+              properties.what === 'background'
+                ? properties.time
+                : this._timeline.getWindow().end,
+          },
+        );
+      }
     } else if (this.timelineConfig?.show_recordings && properties.what === 'axis') {
-      view = await createViewForRecordings(
-        this,
-        this.hass,
+      const query = createQueriesForRecordingsView(
         this.cameraManager,
-        this.view,
+        this.cardWideConfig,
+        timelineCameraIDs,
         {
-          cameraIDs: timelineCameraIDs,
           start: startOfHour(properties.time),
           end: endOfHour(properties.time),
-          targetTime: properties.time,
         },
       );
+      if (query) {
+        view = await executeMediaQueryForView(
+          this,
+          this.hass,
+          this.cameraManager,
+          this.view,
+          query,
+          {
+            targetView: 'recording',
+            targetTime: properties.time,
+          },
+        );
+      }
     } else if (properties.item && properties.what === 'item') {
       const newResults = this.view.queryResults
         ?.clone()
@@ -618,7 +633,7 @@ export class FrigateCardTimelineCore extends LitElement {
   protected _createEventMediaQuerys(options?: {
     window?: TimelineWindow;
   }): EventMediaQueries | null {
-    if (!this._timeline || !this._timelineSource) {
+    if (!this._timeline || !this._timelineSource || !this.cardWideConfig) {
       return null;
     }
 
@@ -644,15 +659,14 @@ export class FrigateCardTimelineCore extends LitElement {
     if (!this.hass || !this.cameraManager || !this.view || !query) {
       return null;
     }
-    const view = await createViewForEvents(
+    const view = await executeMediaQueryForView(
       this,
       this.hass,
       this.cameraManager,
       this.view,
+      query,
       {
-        query: query,
         targetView: options?.targetView,
-        mediaType: this.timelineConfig?.media,
       },
     );
     if (!view) {
@@ -1002,11 +1016,11 @@ export class FrigateCardTimelineCore extends LitElement {
    * @param changedProps The changed properties
    */
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('thumbnailSize')) {
-      if (this.thumbnailSize !== undefined) {
+    if (changedProps.has('thumbnailConfig')) {
+      if (this.thumbnailConfig) {
         this.style.setProperty(
           '--frigate-card-thumbnail-size',
-          `${this.thumbnailSize}px`,
+          `${this.thumbnailConfig.size}px`,
         );
       } else {
         this.style.removeProperty('--frigate-card-thumbnail-size');
@@ -1028,7 +1042,11 @@ export class FrigateCardTimelineCore extends LitElement {
       changedProps.has('cameraIDs')
     ) {
       const cameraIDs = this._getTimelineCameraIDs();
-      if (cameraIDs && this.cameraManager && this.timelineConfig) {
+      if (
+        cameraIDs &&
+        this.cameraManager &&
+        this.timelineConfig
+      ) {
         this._timelineSource = new TimelineDataSource(
           this.cameraManager,
           cameraIDs,

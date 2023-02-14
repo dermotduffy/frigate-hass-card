@@ -95,7 +95,8 @@ export class FrigateCardViewer extends LitElement {
       !this.hass ||
       !this.view ||
       !this.viewerConfig ||
-      !this.cameraManager
+      !this.cameraManager ||
+      !this.cardWideConfig
     ) {
       return;
     }
@@ -115,6 +116,7 @@ export class FrigateCardViewer extends LitElement {
           this,
           this.hass,
           this.cameraManager,
+          this.cardWideConfig,
           this.view,
           {
             targetView: 'recording',
@@ -125,6 +127,7 @@ export class FrigateCardViewer extends LitElement {
           this,
           this.hass,
           this.cameraManager,
+          this.cardWideConfig,
           this.view,
           {
             targetView: 'media',
@@ -141,6 +144,7 @@ export class FrigateCardViewer extends LitElement {
       .thumbnailConfig=${this.viewerConfig.controls.thumbnails}
       .timelineConfig=${this.viewerConfig.controls.timeline}
       .cameraManager=${this.cameraManager}
+      .cardWideConfig=${this.cardWideConfig}
     >
       <frigate-card-viewer-carousel
         .hass=${this.hass}

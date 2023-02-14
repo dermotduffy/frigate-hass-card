@@ -243,6 +243,24 @@
     "overrides": {
       "info": "Questa configurazione della scheda ha specificato manualmente le sostituzioni configurate che possono sostituire i valori mostrati nell'editor visivo, consultare l'editor di codice per visualizzare/modificare queste sostituzioni"
     },
+    "performance": {
+      "warning": "",
+      "features": {
+        "editor_label": "",
+        "animated_progress_indicator": "",
+        "media_chunk_size": ""
+      },
+      "profile": "",
+      "profiles": {
+        "low": "",
+        "high": ""
+      },
+      "style": {
+        "editor_label": "",
+        "box_shadow": "",
+        "border_radius": ""
+      }
+    },
     "view": {
       "camera_select": "Visualizza per le telecamere appena selezionate",
       "dark_mode": "Tema scuro",

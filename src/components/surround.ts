@@ -9,6 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import surroundStyle from '../scss/surround.scss';
 import {
+  CardWideConfig,
   ClipsOrSnapshotsOrAll,
   ExtendedHomeAssistant,
   MiniTimelineControlConfig,
@@ -57,6 +58,9 @@ export class FrigateCardSurround extends LitElement {
   @property({ attribute: false })
   public cameraManager?: CameraManager;
 
+  @property({ attribute: false })
+  public cardWideConfig?: CardWideConfig;
+
   protected _cameraIDsForTimeline?: Set<string>;
 
   /**
@@ -68,6 +72,7 @@ export class FrigateCardSurround extends LitElement {
   protected async _fetchMedia(): Promise<void> {
     if (
       !this.cameraManager ||
+      !this.cardWideConfig ||
       !this.fetchMedia ||
       this.inBackground ||
       !this.hass ||
@@ -83,6 +88,7 @@ export class FrigateCardSurround extends LitElement {
       this,
       this.hass,
       this.cameraManager,
+      this.cardWideConfig,
       this.view,
       {
         targetView: this.view.view,
@@ -218,9 +224,9 @@ export class FrigateCardSurround extends LitElement {
             .cameraIDs=${this._cameraIDsForTimeline}
             .mini=${true}
             .timelineConfig=${this.timelineConfig}
-            .thumbnailDetails=${this.thumbnailConfig?.show_details}
-            .thumbnailSize=${this.thumbnailConfig?.size}
+            .thumbnailConfig=${this.thumbnailConfig}
             .cameraManager=${this.cameraManager}
+            .cardWideConfig=${this.cardWideConfig}
           >
           </frigate-card-timeline-core>`
         : ''}

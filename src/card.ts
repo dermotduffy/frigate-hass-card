@@ -1916,6 +1916,7 @@ class FrigateCard extends LitElement {
             .view=${this._view}
             .timelineConfig=${this._getConfig().timeline}
             .cameraManager=${this._cameraManager}
+            .cardWideConfig=${this._cardWideConfig}
           >
           </frigate-card-timeline>`
         : ``}

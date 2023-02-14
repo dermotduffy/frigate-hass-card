@@ -736,6 +736,7 @@ performance:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `animated_progress_indicator` | `true` | :heavy_multiplication_x: | Will show the animated progress indicator 'spinner' when `true` or a simple loading icon when `false`.|
+| `media_chunk_size` | `50` | :heavy_multiplication_x: | How many media items to fetch and render at a time (e.g. thumbnails under a live view, or number of snapshots to load in the media viewer). This may only make partial sense in some contexts (e.g. the 'infinite gallery' is still infinite, just loads thumbnails this many items at a time) or not at all (e.g. the timeline will show the number of events dictated by the time span the user navigates to).|
 
 #### Style Options
 
@@ -2241,6 +2242,7 @@ performance:
   profile: high
   features:
     animated_progress_indicator: true
+    media_chunk_size: 50
   style:
     border_radius: true
     box_shadow: true

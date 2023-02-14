@@ -255,7 +255,8 @@
       "warning": "This card is in low profile mode so defaults have changed to optimize performance",
       "features": {
         "editor_label": "Feature Options",
-        "animated_progress_indicator": "Animated Progress Indicator"
+        "animated_progress_indicator": "Animated Progress Indicator",
+        "media_chunk_size": "Media chunk size"
       },
       "profile": "Performance profile",
       "profiles": {

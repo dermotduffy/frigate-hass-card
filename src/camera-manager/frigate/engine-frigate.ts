@@ -2,7 +2,6 @@ import { HomeAssistant } from 'custom-card-helpers';
 import add from 'date-fns/add';
 import endOfHour from 'date-fns/endOfHour';
 import startOfHour from 'date-fns/startOfHour';
-import { CAMERA_BIRDSEYE } from '../../const';
 import { CameraConfig, CardWideConfig } from '../../types';
 import { ViewMedia } from '../../view/media';
 import { RequestCache, RecordingSegmentsCache } from '../cache';
@@ -75,6 +74,8 @@ import { GenericCameraManagerEngine } from '../generic/engine-generic';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
+
+const CAMERA_BIRDSEYE = 'birdseye' as const;
 
 class FrigateQueryResultsClassifier {
   public static isFrigateEventQueryResults(
