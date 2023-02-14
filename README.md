@@ -561,7 +561,7 @@ See the [fully expanded media gallery configuration example](#config-expanded-me
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `controls` | | :heavy_multiplication_x: | Configuration for the Media viewer controls. See below. |
-| `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `event_gallery` (e.g. `clips`, `snapshots`, `recordings`). See [actions](#actions) below.|
+| `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `media_gallery` (e.g. `clips`, `snapshots`, `recordings`). See [actions](#actions) below.|
 
 #### Media Gallery Controls: Filter
 
@@ -582,7 +582,7 @@ media_gallery:
 All configuration is under:
 
 ```yaml
-event_gallery:
+media_gallery:
   controls:
     thumbnails:
 ```
@@ -1148,8 +1148,8 @@ view.
 | Configuration path | Views to which it refers |
 | - | - |
 | `view.actions` | All (may be overriden by the below) |
+| `media_gallery.actions` | `clips`, `snapshots`, `recordings` |
 | `media_viewer.actions` | `clip`, `snapshot`, `recording` |
-| `event_gallery.actions` | `clips`, `snapshots`, `recordings` |
 | `live.actions` | `live` |
 | `image.actions` | `image` |
 
@@ -1616,7 +1616,7 @@ media_viewer:
 Reference: [Media Gallery Options](#media-gallery-options).
 
 ```yaml
-event_gallery:
+media_gallery:
   controls:
     filter:
       mode: 'right'

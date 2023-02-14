@@ -1764,7 +1764,7 @@ class FrigateCard extends LitElement {
     if (this._view?.is('live')) {
       specificActions = this._getConfig().live.actions;
     } else if (this._view?.isGalleryView()) {
-      specificActions = this._getConfig().event_gallery?.actions;
+      specificActions = this._getConfig().media_gallery?.actions;
     } else if (this._view?.isViewerView()) {
       specificActions = this._getConfig().media_viewer.actions;
     } else if (this._view?.is('image')) {
@@ -1893,7 +1893,7 @@ class FrigateCard extends LitElement {
         ? html` <frigate-card-gallery
             .hass=${this._hass}
             .view=${this._view}
-            .galleryConfig=${this._getConfig().event_gallery}
+            .galleryConfig=${this._getConfig().media_gallery}
             .cameraManager=${this._cameraManager}
             .cardWideConfig=${this._cardWideConfig}
           >
