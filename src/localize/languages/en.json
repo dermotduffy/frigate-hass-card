@@ -215,12 +215,12 @@
           "matching": "Matching the menu alignment",
           "opposing": "Opposing the menu alignment"
         },
+        "camera_ui": "Camera user interface",
         "cameras": "Cameras",
         "clips": "Clips",
         "download": "Download",
         "enabled": "Button enabled",
         "frigate": "Frigate menu / Default view",
-        "frigate_ui": "Frigate user interface",
         "fullscreen": "Fullscreen",
         "icon": "Icon",
         "image": "Image",

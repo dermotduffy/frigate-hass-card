@@ -1579,7 +1579,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderMenuButton('recordings')}
                 ${this._renderMenuButton('image') /* */}
                 ${this._renderMenuButton('download')}
-                ${this._renderMenuButton('frigate_ui')}
+                ${this._renderMenuButton('camera_ui')}
                 ${this._renderMenuButton('fullscreen')}
                 ${this._renderMenuButton('timeline')}
                 ${this._renderMenuButton('media_player')}
