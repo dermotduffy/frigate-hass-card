@@ -209,12 +209,12 @@
           "matching": "Mesmo alinhamento do menu",
           "opposing": "Opor-se ao alinhamento do menu"
         },
+        "camera_ui": "",
         "cameras": "Selecionar câmera",
         "clips": "Clipes",
         "download": "Baixe a mídia do evento",
         "enabled": "Botão ativado",
         "frigate": "Frigate menu / Visualização padrão",
-        "frigate_ui": "Frigate Interface de usuário",
         "fullscreen": "Tela cheia",
         "icon": "Ícone",
         "image": "Imagem",

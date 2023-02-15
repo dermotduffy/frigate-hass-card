@@ -531,11 +531,11 @@ class FrigateCard extends LitElement {
     if (this._getCameraURLFromContext()) {
       buttons.push({
         icon: 'mdi:web',
-        ...this._getConfig().menu.buttons.frigate_ui,
+        ...this._getConfig().menu.buttons.camera_ui,
         type: 'custom:frigate-card-menu-icon',
-        title: localize('config.menu.buttons.frigate_ui'),
+        title: localize('config.menu.buttons.camera_ui'),
         tap_action: createFrigateCardCustomAction(
-          'frigate_ui',
+          'camera_ui',
         ) as FrigateCardCustomAction,
       });
     }
@@ -1337,7 +1337,7 @@ class FrigateCard extends LitElement {
       case 'download':
         this._downloadViewerMedia();
         break;
-      case 'frigate_ui':
+      case 'camera_ui':
         const url = this._getCameraURLFromContext();
         if (url) {
           window.open(url);

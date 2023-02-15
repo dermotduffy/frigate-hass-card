@@ -209,12 +209,12 @@
           "matching": "Corrispondenza con l'allineamento del menu",
           "opposing": "Contrastare l'allineamento del menu"
         },
+        "camera_ui": "",
         "cameras": "Telecamere",
         "clips": "Clip",
         "download": "Download",
         "enabled": "Pulsante abilitato",
         "frigate": "Frigate menu / Visualizzazione predefinita",
-        "frigate_ui": "Frigate interfaccia utente",
         "fullscreen": "A schermo intero",
         "icon": "Icona",
         "image": "Immagine",

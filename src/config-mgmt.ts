@@ -18,10 +18,10 @@ import {
   CONF_MEDIA_VIEWER,
   CONF_MENU,
   CONF_MENU_BUTTONS_CAMERAS,
+  CONF_MENU_BUTTONS_CAMERA_UI,
   CONF_MENU_BUTTONS_CLIPS,
   CONF_MENU_BUTTONS_DOWNLOAD,
   CONF_MENU_BUTTONS_FRIGATE,
-  CONF_MENU_BUTTONS_FRIGATE_UI,
   CONF_MENU_BUTTONS_FULLSCREEN,
   CONF_MENU_BUTTONS_IMAGE,
   CONF_MENU_BUTTONS_LIVE,
@@ -599,6 +599,24 @@ const transformConditionMediaLoaded = (data: unknown): boolean => {
   return false;
 };
 
+/**
+ * Transform action frigate_ui -> camera_ui
+ * @param data Input data.
+ * @returns `true` if the configuration was modified.
+ */
+const transformFrigateUIAction = (data: unknown): boolean => {
+  if (
+    typeof data === 'object' &&
+    data &&
+    data['action'] === 'custom:frigate-card-action' &&
+    data['frigate_card_action'] === 'frigate_ui'
+  ) {
+    data['frigate_card_action'] = 'camera_ui';
+    return true;
+  }
+  return false;
+};
+
 const UPGRADES = [
   // v1.2.1 -> v2.0.0
   upgradeMoveTo('frigate_url', 'frigate.url'),
@@ -671,7 +689,7 @@ const UPGRADES = [
   upgradeWithOverrides(CONF_MENU_BUTTONS_SNAPSHOTS, menuButtonBooleanToObject),
   upgradeWithOverrides(CONF_MENU_BUTTONS_IMAGE, menuButtonBooleanToObject),
   upgradeWithOverrides(CONF_MENU_BUTTONS_DOWNLOAD, menuButtonBooleanToObject),
-  upgradeWithOverrides(CONF_MENU_BUTTONS_FRIGATE_UI, menuButtonBooleanToObject),
+  upgradeWithOverrides('menu.buttons.frigate_ui', menuButtonBooleanToObject),
   upgradeWithOverrides(CONF_MENU_BUTTONS_FULLSCREEN, menuButtonBooleanToObject),
   upgrade(CONF_LIVE_LAZY_UNLOAD, (val) =>
     typeof val === 'boolean' ? (val ? 'all' : 'never') : undefined,
@@ -711,4 +729,10 @@ const UPGRADES = [
     )(typeof data === 'object' && data ? data[CONF_ELEMENTS] : {});
   },
   upgradeMoveToWithOverrides('event_gallery', CONF_MEDIA_GALLERY),
+  upgradeMoveToWithOverrides('menu.buttons.frigate_ui', CONF_MENU_BUTTONS_CAMERA_UI),
+  (data: unknown): boolean => {
+    return recursiveUpgradeObject(transformFrigateUIAction)(
+      typeof data === 'object' && data ? <RawFrigateCardConfig>data : {},
+    );
+  },
 ];

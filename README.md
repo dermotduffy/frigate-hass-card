@@ -300,7 +300,7 @@ menu:
 | `recordings` | :white_check_mark: | The `recordings` view menu button: brings the user to the `recordings` view on tap and the most-recent `recording` view on hold. See [views](#views) below. This button will never be shown if the `frigate.camera_name` for the selected camera is not auto-detected/specified (e.g. non-Frigate cameras), or if the `frigate.camera_name` is `birdseye`.|
 | `image` | :white_check_mark: | The `image` view menu button: brings the user to the static `image` view. See [views](#views) below.|
 | `download` | :white_check_mark: | The `download` menu button: allow direct download of the media being displayed.|
-| `frigate_ui` | :white_check_mark: | The `frigate_ui` menu button: brings the user to a context-appropriate page on the Frigate UI (e.g. the camera homepage). Will only appear if the `frigate.url` option is set.|
+| `camera_ui` | :white_check_mark: | The `camera_ui` menu button: brings the user to a context-appropriate page on the UI of their camera engine (e.g. the Frigate camera homepage). Will only appear if the camera engine supports a camera UI (e.g. if `frigate.url` option is set for `frigate` engine users).|
 | `fullscreen` | :white_check_mark: | The `fullscreen` menu button: expand the card to consume the fullscreen. |
 | `timeline` | :white_check_mark: | The `timeline` menu button: show the event timeline. |
 | `media_player` | :white_check_mark: | The `media_player` menu button: sends the visible media to a remote media player. Supports Frigate clips, snapshots and live camera (only for cameras that specify a `camera_entity` and only using the default HA stream (equivalent to the `ha` live provider). `jsmpeg` or `webrtc-card` are not supported, although live can still be played as long as `camera_entity` is specified. In the player list, a `tap` will send the media to the player, a `hold` will stop the media on the player. |
@@ -1057,7 +1057,7 @@ Parameters for the `custom:frigate-card-ptz` element:
 | Parameter | Description |
 | - | - |
 | `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `frigate_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`.|
+| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`.|
 
 ##### Command descriptions
 
@@ -1066,7 +1066,7 @@ Parameters for the `custom:frigate-card-ptz` element:
 | `default` | Trigger the default view. |
 | `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots` | Trigger the named [view](#views).|
 |`download`|Download the displayed media.|
-|`frigate_ui`|Open the Frigate UI at the configured URL.|
+|`camera_ui`|Open the Frigate UI at the configured URL.|
 |`fullscreen`|Toggle fullscreen.|
 |`camera_select`|Select a given camera. Takes a single additional `camera` parameter with the [camera ID](#camera-ids) of the camera to select. Respects the value of `view.camera_select` to choose the appropriate view on the new camera.|
 |`menu_toggle` | Show/hide the menu (for the `hidden` mode style). |
@@ -1455,7 +1455,7 @@ menu:
       enabled: true
       alignment: matching
       icon: mdi:download
-    frigate_ui:
+    camera_ui:
       priority: 50
       enabled: true
       alignment: matching
@@ -1976,7 +1976,7 @@ elements:
     title: Open Frigate UI
     tap_action:
       action: custom:frigate-card-action
-      frigate_card_action: frigate_ui
+      frigate_card_action: camera_ui
   - type: custom:frigate-card-menu-icon
     icon: mdi:alpha-j-circle
     title: Change to fullscreen
@@ -2175,7 +2175,7 @@ overrides:
             enabled: true
             alignment: matching
             icon: mdi:download
-          frigate_ui:
+          camera_ui:
             priority: 50
             enabled: true
             alignment: matching
