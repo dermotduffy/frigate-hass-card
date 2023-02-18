@@ -29,7 +29,9 @@
       "live_providers": {
         "auto": "Automatico",
         "frigate-jsmpeg": "Frigate JSMpeg",
-        "ha": "Home Assistant (HLS, LL-HLS ou WebRTC nativo)",
+        "go2rtc": "",
+        "ha": "",
+        "image": "",
         "webrtc-card": "Cartão WebRTC (de @AlexxIT)"
       },
       "title": "Título para esta câmera (detectado automaticamente pela entidade)",

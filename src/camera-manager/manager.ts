@@ -43,7 +43,7 @@ import { getCameraID } from '../utils/camera.js';
 import { localize } from '../localize/localize.js';
 import { CameraInitializationError } from './error.js';
 import { CameraManagerStore } from './store.js';
-import { cloneDeep } from 'lodash-es';
+import cloneDeep from 'lodash-es/cloneDeep';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
 
 class QueryClassifier {

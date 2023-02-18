@@ -17,10 +17,10 @@ import { dispatchErrorMessageEvent } from '../message.js';
 import { contentsChanged, errorToConsole } from '../../utils/basic.js';
 
 // Number of seconds a signed URL is valid for.
-const URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
+const JSMPEG_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
 
 // Number of seconds before the expiry to trigger a refresh.
-const URL_SIGN_REFRESH_THRESHOLD_SECONDS = 1 * 60 * 60;
+const JSMPEG_URL_SIGN_REFRESH_THRESHOLD_SECONDS = 1 * 60 * 60;
 
 @customElement('frigate-card-live-jsmpeg')
 export class FrigateCardLiveJSMPEG extends LitElement {
@@ -102,7 +102,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
         this.hass,
         `/api/frigate/${this.cameraConfig.frigate.client_id}` +
           `/jsmpeg/${this.cameraConfig.frigate.camera_name}`,
-        URL_SIGN_EXPIRY_SECONDS,
+        JSMPEG_URL_SIGN_EXPIRY_SECONDS,
       );
     } catch (e) {
       errorToConsole(e as Error);
@@ -221,7 +221,7 @@ export class FrigateCardLiveJSMPEG extends LitElement {
       this._jsmpegVideoPlayer = await this._createJSMPEGPlayer(url);
       this._refreshPlayerTimerID = window.setTimeout(() => {
         this.requestUpdate();
-      }, (URL_SIGN_EXPIRY_SECONDS - URL_SIGN_REFRESH_THRESHOLD_SECONDS) * 1000);
+      }, (JSMPEG_URL_SIGN_EXPIRY_SECONDS - JSMPEG_URL_SIGN_REFRESH_THRESHOLD_SECONDS) * 1000);
     } else {
       dispatchErrorMessageEvent(this, localize('error.jsmpeg_no_sign'));
     }

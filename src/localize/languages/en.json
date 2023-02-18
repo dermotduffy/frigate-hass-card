@@ -29,7 +29,8 @@
       "live_providers": {
         "auto": "Automatic",
         "frigate-jsmpeg": "Frigate JSMpeg",
-        "ha": "Home Assistant video stream (i.e. HLS, LL-HLS, WebRTC native)",
+        "go2rtc": "go2rtc",
+        "ha": "Home Assistant video stream (i.e. HLS, LL-HLS, WebRTC via HA)",
         "image": "Home Assistant images",
         "webrtc-card": "WebRTC Card (i.e. AlexxIT's WebRTC Card)"
       },

@@ -573,18 +573,16 @@ export class FrigateCardLiveCarousel extends LitElement {
 
     const [prevID, nextID] = this._getCameraIDsOfNeighbors();
 
-    const cameraMetadataPrevious = prevID ? this.cameraManager.getCameraMetadata(
-      this.hass,
-      prevID,
-    ) : null;
+    const cameraMetadataPrevious = prevID
+      ? this.cameraManager.getCameraMetadata(this.hass, prevID)
+      : null;
     const cameraMetadataCurrent = this.cameraManager.getCameraMetadata(
       this.hass,
       this.view.camera,
     );
-    const cameraMetadataNext = nextID ? this.cameraManager.getCameraMetadata(
-      this.hass,
-      nextID,
-    ) : null;
+    const cameraMetadataNext = nextID
+      ? this.cameraManager.getCameraMetadata(this.hass, nextID)
+      : null;
 
     // Notes on the below:
     // - guard() is used to avoid reseting the carousel unless the
@@ -607,7 +605,9 @@ export class FrigateCardLiveCarousel extends LitElement {
           [this.cameraManager, this.liveConfig],
           this._getPlugins.bind(this),
         ) as EmblaCarouselPlugins}
-        .label="${cameraMetadataCurrent ? `${localize('common.live')}: ${cameraMetadataCurrent.title}` : ''}"
+        .label="${cameraMetadataCurrent
+          ? `${localize('common.live')}: ${cameraMetadataCurrent.title}`
+          : ''}"
         .titlePopupConfig=${config.controls.title}
         .selected=${this._getSelectedCameraIndex()}
         transitionEffect=${this._getTransitionEffect()}
@@ -796,9 +796,11 @@ export class FrigateCardLiveProvider extends LitElement {
       } else if (provider === 'ha') {
         import('./live-ha.js');
       } else if (provider === 'webrtc-card') {
-        import('./live-webrtc.js');
+        import('./live-webrtc-card.js');
       } else if (provider === 'image') {
         import('./live-image.js');
+      } else if (provider === 'go2rtc') {
+        import('./live-go2rtc.js');
       }
     }
   }
@@ -850,6 +852,15 @@ export class FrigateCardLiveProvider extends LitElement {
             @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >
           </frigate-card-live-ha>`
+        : provider === 'go2rtc'
+        ? html`<frigate-card-live-go2rtc
+              ${ref(this._providerRef)}
+              class=${classMap(providerClasses)}
+              .hass=${this.hass}
+              .cameraConfig=${this.cameraConfig}
+              @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
+            >
+            </frigate-card-live-webrtc-card>`
         : provider === 'webrtc-card'
         ? html`<frigate-card-live-webrtc-card
             ${ref(this._providerRef)}

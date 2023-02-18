@@ -3,7 +3,7 @@ import { HomeAssistant } from 'custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { localize } from '../../localize/localize.js';
-import liveWebRTCStyle from '../../scss/live-webrtc.scss';
+import liveWebRTCCardStyle from '../../scss/live-webrtc-card.scss';
 import {
   CameraConfig,
   CardWideConfig,
@@ -193,7 +193,7 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
    * Get styles.
    */
   static get styles(): CSSResultGroup {
-    return unsafeCSS(liveWebRTCStyle);
+    return unsafeCSS(liveWebRTCCardStyle);
   }
 }
 

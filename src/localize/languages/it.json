@@ -29,7 +29,9 @@
       "live_providers": {
         "auto": "Automatica",
         "frigate-jsmpeg": "Frigate JSMpeg",
-        "ha": "Home Assistant (ovvero HLS, LL-HLS, WebRTC nativo)",
+        "go2rtc": "",
+        "ha": "",
+        "image": "",
         "webrtc-card": "Scheda WebRTC (ovvero la scheda WebRTC di Alexxit)"
       },
       "title": "Titolo per questa telecamera (Autoidentificato dall'entità)",

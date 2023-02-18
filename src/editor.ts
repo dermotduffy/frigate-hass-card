@@ -1191,6 +1191,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         label: localize('config.cameras.live_providers.frigate-jsmpeg'),
       },
       {
+        value: 'go2rtc',
+        label: localize('config.cameras.live_providers.go2rtc'),
+      },
+      {
         value: 'webrtc-card',
         label: localize('config.cameras.live_providers.webrtc-card'),
       },

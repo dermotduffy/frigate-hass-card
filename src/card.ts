@@ -1641,6 +1641,8 @@ class FrigateCard extends LitElement {
       return;
     }
 
+    log(this._cardWideConfig, `Frigate Card media load: `, mediaLoadedInfo);
+
     this._lastValidMediaLoadedInfo = this._currentMediaLoadedInfo = mediaLoadedInfo;
 
     // An update may be required to draw elements.

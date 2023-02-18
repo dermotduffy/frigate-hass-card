@@ -2,7 +2,7 @@ import { HomeAssistant } from 'custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
-import liveFrigateStyle from '../../scss/live-frigate.scss';
+import liveHAStyle from '../../scss/live-ha.scss';
 import { CameraConfig, FrigateCardMediaPlayer } from '../../types.js';
 import { getStateObjOrDispatchError } from './live.js';
 import '../../patches/ha-camera-stream';
@@ -83,7 +83,7 @@ export class FrigateCardLiveHA extends LitElement {
    * Get styles.
    */
   static get styles(): CSSResultGroup {
-    return unsafeCSS(liveFrigateStyle);
+    return unsafeCSS(liveHAStyle);
   }
 }
 
