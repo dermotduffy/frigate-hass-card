@@ -121,6 +121,7 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 |`ha` (Native WebRTC)|Best|High|Better|Builtin|Use the built-in Home Assistant camera streams -- can be configured to use [native WebRTC](https://www.home-assistant.io/integrations/rtsp_to_webrtc/) offering a very low-latency feed direct to your browser.|
 |`image`|Poor|Poor|Best|Builtin|Use refreshing snapshots of the built-in Home Assistant camera streams.|
 |`frigate-jsmpeg`|Better|Low|Poor|Builtin|Stream the JSMPEG stream from Frigate (proxied via the Frigate integration). See [note below on the required integration version](#jsmpeg-troubleshooting) for this live provider to function. This is the only live provider that can view the Frigate `birdseye` view.|
+|`go2rtc`|Best|High|Better|Builtin|Uses [go2rtc](https://github.com/AlexxIT/go2rtc) to stream live feeds. This is supported by Frigate >= `0.12`.|
 |`webrtc-card`|Best|High|Better|Separate installation required|Embed's [AlexxIT's WebRTC Card](https://github.com/AlexxIT/WebRTC) to stream live feed, requires manual extra setup, see [below](#webrtc). Not to be confused with native Home Assistant WebRTC (use `ha` provider above).|
 
 <a name="engines"></a>
@@ -150,6 +151,19 @@ cameras:
 | `label` | | :heavy_multiplication_x: | A Frigate label / object filter used to filter events (clips & snapshots), e.g. `person`.|
 | `zone` | | :heavy_multiplication_x: | A Frigate zone used to filter events (clips & snapshots), e.g. `front_door`.|
 | `client_id` | `frigate` | :heavy_multiplication_x: | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://docs.frigate.video/integrations/home-assistant/#multiple-instance-support).|
+
+#### Camera go2rtc configuration
+
+The `go2rtc` block configures use of the `go2rtc` live provider. This configuration is included as part of a camera entry in the `cameras` array.
+
+```yaml
+cameras:
+ - go2rtc:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `modes` | `[webrtc, mse, mp4, mjpeg]` | :heavy_multiplication_x: | An ordered array of `go2rtc` modes to use. Valid values are `webrtc`, `mse`, `mp4` or `mjpeg` values. |
 
 #### Camera WebRTC Card configuration
 
@@ -1357,6 +1371,14 @@ cameras:
         - binary_sensor.entrance_sensor
     dependencies:
       all_cameras: false
+  - camera_entity: camera.sitting_room
+    live_provider: go2rtc
+    go2rtc:
+      modes:
+        - webrtc
+        - mse
+        - mp4
+        - mjpeg
 ```
 </details>
 
