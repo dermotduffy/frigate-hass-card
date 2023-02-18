@@ -117,13 +117,6 @@ export class FrigateCardCarousel extends LitElement {
   /**
    * Get the carousel.
    */
-  public carouselClickAllowed(): boolean {
-    return this._carousel?.clickAllowed() ?? true;
-  }
-
-  /**
-   * Get the carousel.
-   */
   public carousel(): EmblaCarouselType | null {
     return this._carousel ?? null;
   }
