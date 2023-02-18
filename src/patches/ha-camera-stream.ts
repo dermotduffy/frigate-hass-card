@@ -41,7 +41,10 @@ customElements.whenDefined('ha-camera-stream').then(() => {
 
   @customElement('frigate-card-ha-camera-stream')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  class FrigateCardHaCameraStream extends customElements.get('ha-camera-stream') {
+  class FrigateCardHaCameraStream
+    extends customElements.get('ha-camera-stream')
+    implements FrigateCardMediaPlayer
+  {
     // Due to an obscure behavior when this card is casted, this element needs
     // to use query rather than the ref directive to find the player.
     @query('#player')
@@ -52,32 +55,24 @@ customElements.whenDefined('ha-camera-stream').then(() => {
     // - https://github.com/home-assistant/frontend/blob/dev/src/components/ha-camera-stream.ts
     // ========================================================================================
 
-    /**
-     * Play the video.
-     */
-    public play(): void {
-      this._player?.play();
+    public async play(): Promise<void> {
+      return this._player?.play();
     }
 
-    /**
-     * Pause the video.
-     */
     public pause(): void {
       this._player?.pause();
     }
 
-    /**
-     * Mute the video.
-     */
     public mute(): void {
       this._player?.mute();
     }
 
-    /**
-     * Unmute the video.
-     */
     public unmute(): void {
       this._player?.unmute();
+    }
+
+    public isMuted(): boolean {
+      return this._player?.isMuted() ?? true;
     }
 
     /**
