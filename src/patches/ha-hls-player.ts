@@ -19,33 +19,28 @@ import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
 } from '../utils/media.js';
+import { FrigateCardMediaPlayer } from '../types.js';
 
 customElements.whenDefined('ha-hls-player').then(() => {
   @customElement('frigate-card-ha-hls-player')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  class FrigateCardHaHlsPlayer extends customElements.get('ha-hls-player') {
+  class FrigateCardHaHlsPlayer
+    extends customElements.get('ha-hls-player')
+    implements FrigateCardMediaPlayer
+  {
     // Due to an obscure behavior when this card is casted, this element needs
     // to use query rather than the ref directive to find the player.
     @query('#video')
     protected _video: HTMLVideoElement;
 
-    /**
-     * Play the video.
-     */
-    public play(): void {
-      this._video?.play();
+    public async play(): Promise<void> {
+      return this._video?.play();
     }
 
-    /**
-     * Pause the video.
-     */
     public pause(): void {
       this._video?.pause();
     }
 
-    /**
-     * Mute the video.
-     */
     public mute(): void {
       // The muted property is only for the initial muted state. Must explicitly
       // set the muted on the video player to make the change dynamic.
@@ -54,9 +49,6 @@ customElements.whenDefined('ha-hls-player').then(() => {
       }
     }
 
-    /**
-     * Unmute the video.
-     */
     public unmute(): void {
       // See note in mute().
       if (this._video) {
@@ -64,9 +56,10 @@ customElements.whenDefined('ha-hls-player').then(() => {
       }
     }
 
-    /**
-     * Seek the video.
-     */
+    public isMuted(): boolean {
+      return this._video?.muted() ?? true;
+    }
+
     public seek(seconds: number): void {
       if (this._video) {
         hideMediaControlsTemporarily(this._video);

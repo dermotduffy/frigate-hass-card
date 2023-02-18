@@ -9,9 +9,8 @@ import '../../patches/ha-camera-stream';
 import '../../patches/ha-hls-player.js';
 import '../../patches/ha-web-rtc-player.ts';
 
-
 @customElement('frigate-card-live-ha')
-export class FrigateCardLiveHA extends LitElement {
+export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPlayer {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
@@ -20,45 +19,30 @@ export class FrigateCardLiveHA extends LitElement {
 
   protected _playerRef: Ref<Element & FrigateCardMediaPlayer> = createRef();
 
-  /**
-   * Play the video.
-   */
-  public play(): void {
-    this._playerRef.value?.play();
+  public async play(): Promise<void> {
+    return this._playerRef.value?.play();
   }
 
-  /**
-   * Pause the video.
-   */
   public pause(): void {
     this._playerRef.value?.pause();
   }
 
-  /**
-   * Mute the video.
-   */
   public mute(): void {
     this._playerRef.value?.mute();
   }
 
-  /**
-   * Unmute the video.
-   */
   public unmute(): void {
     this._playerRef.value?.unmute();
   }
 
-  /**
-   * Seek the video.
-   */
+  public isMuted(): boolean {
+    return this._playerRef.value?.isMuted() ?? true;
+  }
+
   public seek(seconds: number): void {
     this._playerRef.value?.seek(seconds);
   }
 
-  /**
-   * Master render method.
-   * @returns A rendered template.
-   */
   protected render(): TemplateResult | void {
     if (!this.hass) {
       return;
@@ -79,9 +63,6 @@ export class FrigateCardLiveHA extends LitElement {
     </frigate-card-ha-camera-stream>`;
   }
 
-  /**
-   * Get styles.
-   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(liveHAStyle);
   }

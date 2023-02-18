@@ -515,9 +515,8 @@ export class FrigateCardLiveCarousel extends LitElement {
         <frigate-card-live-provider
           ?disabled=${this.liveConfig.lazy_load}
           .cameraConfig=${cameraConfig}
-          .cameraEndpoints=${guard(
-            [this.cameraManager],
-            () => this.cameraManager?.getCameraEndpoints(cameraID),
+          .cameraEndpoints=${guard([this.cameraManager], () =>
+            this.cameraManager?.getCameraEndpoints(cameraID),
           )}
           .label=${cameraMetadata?.title ?? ''}
           .liveConfig=${config}
@@ -664,7 +663,10 @@ export class FrigateCardLiveCarousel extends LitElement {
 }
 
 @customElement('frigate-card-live-provider')
-export class FrigateCardLiveProvider extends LitElement {
+export class FrigateCardLiveProvider
+  extends LitElement
+  implements FrigateCardMediaPlayer
+{
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -694,37 +696,34 @@ export class FrigateCardLiveProvider extends LitElement {
 
   protected _providerRef: Ref<Element & FrigateCardMediaPlayer> = createRef();
 
-  /**
-   * Play the video.
-   */
-  public play(): void {
-    this._providerRef.value?.play();
+  public async play(): Promise<void> {
+    // If the play call fails, and the media is not already muted, mute it first
+    // and then try again. This works around some browsers that prevent
+    // auto-play unless the video is muted.
+    this._providerRef.value?.play().catch((ev) => {
+      if (ev.name === 'NotAllowedError' && !this.isMuted()) {
+        this.mute();
+        this._providerRef.value?.play().catch();
+      }
+    });
   }
 
-  /**
-   * Pause the video.
-   */
   public pause(): void {
     this._providerRef.value?.pause();
   }
 
-  /**
-   * Mute the video.
-   */
   public mute(): void {
     this._providerRef.value?.mute();
   }
 
-  /**
-   * Unmute the video.
-   */
   public unmute(): void {
     this._providerRef.value?.unmute();
   }
 
-  /**
-   * Seek the video.
-   */
+  public isMuted(): boolean {
+    return this._providerRef.value?.isMuted() ?? true;
+  }
+
   public seek(seconds: number): void {
     this._providerRef.value?.seek(seconds);
   }
