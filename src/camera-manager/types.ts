@@ -106,9 +106,20 @@ export interface CameraManagerCameraMetadata {
   icon: string;
 }
 
-export interface CameraURLContext {
+export interface CameraEndpointsContext {
   media?: ViewMedia;
   view?: FrigateCardView;
+}
+
+export interface CameraEndpoint {
+  endpoint: string;
+  sign?: boolean;
+}
+
+export interface CameraEndpoints {
+  ui?: CameraEndpoint;
+  go2rtc?: CameraEndpoint;
+  jsmpeg?: CameraEndpoint;
 }
 
 export type CameraConfigs = Map<string, CameraConfig>;

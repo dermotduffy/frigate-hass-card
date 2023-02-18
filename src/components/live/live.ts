@@ -54,6 +54,7 @@ import { CameraManager } from '../../camera-manager/manager.js';
 import { HomeAssistant } from 'custom-card-helpers';
 import { dispatchMessageEvent, dispatchErrorMessageEvent } from '../message.js';
 import { HassEntity } from 'home-assistant-js-websocket';
+import { CameraEndpoints } from '../../camera-manager/types.js';
 
 /**
  * Get the state object or dispatch an error. Used in `ha` and `image` live
@@ -514,6 +515,10 @@ export class FrigateCardLiveCarousel extends LitElement {
         <frigate-card-live-provider
           ?disabled=${this.liveConfig.lazy_load}
           .cameraConfig=${cameraConfig}
+          .cameraEndpoints=${guard(
+            [this.cameraManager],
+            () => this.cameraManager?.getCameraEndpoints(cameraID),
+          )}
           .label=${cameraMetadata?.title ?? ''}
           .liveConfig=${config}
           .hass=${this.hass}
@@ -573,18 +578,16 @@ export class FrigateCardLiveCarousel extends LitElement {
 
     const [prevID, nextID] = this._getCameraIDsOfNeighbors();
 
-    const cameraMetadataPrevious = prevID ? this.cameraManager.getCameraMetadata(
-      this.hass,
-      prevID,
-    ) : null;
+    const cameraMetadataPrevious = prevID
+      ? this.cameraManager.getCameraMetadata(this.hass, prevID)
+      : null;
     const cameraMetadataCurrent = this.cameraManager.getCameraMetadata(
       this.hass,
       this.view.camera,
     );
-    const cameraMetadataNext = nextID ? this.cameraManager.getCameraMetadata(
-      this.hass,
-      nextID,
-    ) : null;
+    const cameraMetadataNext = nextID
+      ? this.cameraManager.getCameraMetadata(this.hass, nextID)
+      : null;
 
     // Notes on the below:
     // - guard() is used to avoid reseting the carousel unless the
@@ -607,7 +610,9 @@ export class FrigateCardLiveCarousel extends LitElement {
           [this.cameraManager, this.liveConfig],
           this._getPlugins.bind(this),
         ) as EmblaCarouselPlugins}
-        .label="${cameraMetadataCurrent ? `${localize('common.live')}: ${cameraMetadataCurrent.title}` : ''}"
+        .label="${cameraMetadataCurrent
+          ? `${localize('common.live')}: ${cameraMetadataCurrent.title}`
+          : ''}"
         .titlePopupConfig=${config.controls.title}
         .selected=${this._getSelectedCameraIndex()}
         transitionEffect=${this._getTransitionEffect()}
@@ -665,6 +670,9 @@ export class FrigateCardLiveProvider extends LitElement {
 
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
+
+  @property({ attribute: false })
+  public cameraEndpoints?: CameraEndpoints;
 
   @property({ attribute: false })
   public liveConfig?: LiveConfig;
@@ -739,7 +747,7 @@ export class FrigateCardLiveProvider extends LitElement {
           return 'ha';
         }
       } else if (this.cameraConfig?.frigate.camera_name) {
-        return 'frigate-jsmpeg';
+        return 'jsmpeg';
       }
       return frigateCardConfigDefaults.cameras.live_provider;
     }
@@ -791,14 +799,16 @@ export class FrigateCardLiveProvider extends LitElement {
     }
     if (changedProps.has('cameraConfig')) {
       const provider = this._getResolvedProvider();
-      if (provider === 'frigate-jsmpeg') {
+      if (provider === 'jsmpeg') {
         import('./live-jsmpeg.js');
       } else if (provider === 'ha') {
         import('./live-ha.js');
       } else if (provider === 'webrtc-card') {
-        import('./live-webrtc.js');
+        import('./live-webrtc-card.js');
       } else if (provider === 'image') {
         import('./live-image.js');
+      } else if (provider === 'go2rtc') {
+        import('./live-go2rtc.js');
       }
     }
   }
@@ -850,6 +860,16 @@ export class FrigateCardLiveProvider extends LitElement {
             @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >
           </frigate-card-live-ha>`
+        : provider === 'go2rtc'
+        ? html`<frigate-card-live-go2rtc
+              ${ref(this._providerRef)}
+              class=${classMap(providerClasses)}
+              .hass=${this.hass}
+              .cameraConfig=${this.cameraConfig}
+              .cameraEndpoints=${this.cameraEndpoints}
+              @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
+            >
+            </frigate-card-live-webrtc-card>`
         : provider === 'webrtc-card'
         ? html`<frigate-card-live-webrtc-card
             ${ref(this._providerRef)}
@@ -861,12 +881,13 @@ export class FrigateCardLiveProvider extends LitElement {
             @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >
           </frigate-card-live-webrtc-card>`
-        : provider === 'frigate-jsmpeg'
+        : provider === 'jsmpeg'
         ? html` <frigate-card-live-jsmpeg
             ${ref(this._providerRef)}
             class=${classMap(providerClasses)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
+            .cameraEndpoints=${this.cameraEndpoints}
             .jsmpegConfig=${this.liveConfig.jsmpeg}
             .cardWideConfig=${this.cardWideConfig}
             @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}

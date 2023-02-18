@@ -1,7 +1,7 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import liveFrigateStyle from '../../scss/live-frigate.scss';
+import liveImageStyle from '../../scss/live-image.scss';
 import { CameraConfig, LiveImageConfig } from '../../types.js';
 import { getStateObjOrDispatchError } from './live.js';
 import '../image.js';
@@ -84,7 +84,7 @@ export class FrigateCardLiveImage extends LitElement {
    * Get styles.
    */
   static get styles(): CSSResultGroup {
-    return unsafeCSS(liveFrigateStyle);
+    return unsafeCSS(liveImageStyle);
   }
 }
 

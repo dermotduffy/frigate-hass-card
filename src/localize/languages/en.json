@@ -23,13 +23,24 @@
         "url": "Frigate server URL",
         "zone": "Frigate zone"
       },
+      "go2rtc": {
+        "editor_label": "go2rtc Options",
+        "modes": {
+          "editor_label": "go2rtc Modes",
+          "mse": "Media Source Extensions (MSE)",
+          "webrtc": "Web Real-Time Communication (WebRTC)",
+          "mp4": "MPEG-4 (MP4)",
+          "mjpeg": "Motion JPEG (MJPEG)"
+        }
+      },
       "icon": "Icon for this camera (Autodetected from entity)",
       "id": "Unique id for this camera in this card",
       "live_provider": "Live view provider for this camera",
       "live_providers": {
         "auto": "Automatic",
-        "frigate-jsmpeg": "Frigate JSMpeg",
-        "ha": "Home Assistant video stream (i.e. HLS, LL-HLS, WebRTC native)",
+        "jsmpeg": "JSMpeg",
+        "go2rtc": "go2rtc",
+        "ha": "Home Assistant video stream (i.e. HLS, LL-HLS, WebRTC via HA)",
         "image": "Home Assistant images",
         "webrtc-card": "WebRTC Card (i.e. AlexxIT's WebRTC Card)"
       },
@@ -352,7 +363,7 @@
     "invalid_elements_config": "Invalid picture elements configuration",
     "invalid_response": "Received invalid response from Home Assistant for request",
     "jsmpeg_no_player": "Could not start JSMPEG player",
-    "jsmpeg_no_sign": "Could not retrieve or sign JSMPEG websocket path",
+    "live_camera_no_endpoint": "Could not get camera endpoint for this live provider (incomplete configuration?)",
     "live_camera_not_found": "The configured camera_entity was not found",
     "live_camera_unavailable": "Camera unavailable",
     "no_camera_engine": "Could not determine suitable engine for camera",

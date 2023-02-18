@@ -66,7 +66,14 @@ const FRIGATE_MENU_ALIGNMENTS = FRIGATE_MENU_POSITIONS;
 const FRIGATE_MENU_PRIORITY_DEFAULT = 50;
 export const FRIGATE_MENU_PRIORITY_MAX = 100;
 
-const LIVE_PROVIDERS = ['auto', 'image', 'ha', 'frigate-jsmpeg', 'webrtc-card'] as const;
+const LIVE_PROVIDERS = [
+  'auto',
+  'image',
+  'ha',
+  'jsmpeg',
+  'go2rtc',
+  'webrtc-card',
+] as const;
 export type LiveProvider = (typeof LIVE_PROVIDERS)[number];
 
 const MEDIA_ACTION_NEGATIVE_CONDITIONS = [
@@ -427,6 +434,12 @@ const cameraConfigSchema = z
         zone: z.string().optional(),
       })
       .default(cameraConfigDefault.frigate),
+
+    go2rtc: z
+      .object({
+        modes: z.enum(['webrtc', 'mse', 'mp4', 'mjpeg']).array(),
+      })
+      .optional(),
 
     // Camera identifiers for WebRTC.
     webrtc_card: webrtcCardCameraConfigSchema.optional(),

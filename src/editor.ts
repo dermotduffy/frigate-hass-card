@@ -129,6 +129,7 @@ import {
   CONF_VIEW_UPDATE_SECONDS,
   CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE,
   MEDIA_CHUNK_SIZE_MAX,
+  CONF_CAMERAS_ARRAY_GO2RTC_MODES,
 } from './const.js';
 import { localize } from './localize/localize.js';
 import frigate_card_editor_style from './scss/editor.scss';
@@ -156,6 +157,7 @@ const MENU_BUTTONS = 'buttons';
 const MENU_CAMERAS = 'cameras';
 const MENU_CAMERAS_DEPENDENCIES = 'cameras.dependencies';
 const MENU_CAMERAS_FRIGATE = 'cameras.frigate';
+const MENU_CAMERAS_GO2RTC = 'cameras.go2rtc';
 const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
 const MENU_CAMERAS_WEBRTC = 'cameras.webrtc';
 const MENU_IMAGE_LAYOUT = 'image.layout';
@@ -489,6 +491,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: '', label: '' },
     { value: 'low', label: localize('config.performance.profiles.low') },
     { value: 'high', label: localize('config.performance.profiles.high') },
+  ];
+
+  protected _go2rtcModes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'mse', label: localize('config.cameras.go2rtc.modes.mse') },
+    { value: 'webrtc', label: localize('config.cameras.go2rtc.modes.webrtc') },
+    { value: 'mp4', label: localize('config.cameras.go2rtc.modes.mp4') },
+    { value: 'mjpeg', label: localize('config.cameras.go2rtc.modes.mjpeg') },
   ];
 
   public setConfig(config: RawFrigateCardConfig): void {
@@ -1187,8 +1197,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         label: localize('config.cameras.live_providers.image'),
       },
       {
-        value: 'frigate-jsmpeg',
-        label: localize('config.cameras.live_providers.frigate-jsmpeg'),
+        value: 'jsmpeg',
+        label: localize('config.cameras.live_providers.jsmpeg'),
+      },
+      {
+        value: 'go2rtc',
+        label: localize('config.cameras.live_providers.go2rtc'),
       },
       {
         value: 'webrtc-card',
@@ -1398,6 +1412,23 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   {
                     multiple: true,
                   },
+                )}`,
+              )}
+              ${this._putInSubmenu(
+                MENU_CAMERAS_GO2RTC,
+                cameraIndex,
+                'config.cameras.go2rtc.editor_label',
+                { name: 'mdi:alpha-g-circle' },
+                html`${this._renderOptionSelector(
+                  getArrayConfigPath(CONF_CAMERAS_ARRAY_GO2RTC_MODES, cameraIndex),
+                  this._go2rtcModes,
+                  {
+                    multiple: true,
+                    label: localize('config.cameras.go2rtc.modes.editor_label')
+                  }
+                )}
+                ${this._renderStringInput(
+                  getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
                 )}`,
               )}
               ${this._putInSubmenu(

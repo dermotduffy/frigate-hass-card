@@ -11,21 +11,25 @@ import {
   ExtendedHomeAssistant,
   JSMPEGConfig,
 } from '../../types.js';
-import { homeAssistantSignPath } from '../../utils/ha';
 import { dispatchMediaLoadedEvent } from '../../utils/media-info.js';
 import { dispatchErrorMessageEvent } from '../message.js';
-import { contentsChanged, errorToConsole } from '../../utils/basic.js';
+import { contentsChanged } from '../../utils/basic.js';
+import { CameraEndpoints } from '../../camera-manager/types.js';
+import { getEndpointAddressOrDispatchError } from '../../utils/endpoint.js';
 
 // Number of seconds a signed URL is valid for.
-const URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
+const JSMPEG_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
 
 // Number of seconds before the expiry to trigger a refresh.
-const URL_SIGN_REFRESH_THRESHOLD_SECONDS = 1 * 60 * 60;
+const JSMPEG_URL_SIGN_REFRESH_THRESHOLD_SECONDS = 1 * 60 * 60;
 
 @customElement('frigate-card-live-jsmpeg')
 export class FrigateCardLiveJSMPEG extends LitElement {
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
+
+  @property({ attribute: false })
+  public cameraEndpoints?: CameraEndpoints;
 
   @property({ attribute: false, hasChanged: contentsChanged })
   public jsmpegConfig?: JSMPEGConfig;
@@ -81,37 +85,6 @@ export class FrigateCardLiveJSMPEG extends LitElement {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public seek(_seconds: number): void {
     // JSMPEG does not support seeking.
-  }
-
-  /**
-   * Get a signed player URL.
-   * @returns A URL or null.
-   */
-  protected async _getURL(): Promise<string | null> {
-    if (
-      !this.hass ||
-      !this.cameraConfig?.frigate.client_id ||
-      !this.cameraConfig?.frigate.camera_name
-    ) {
-      return null;
-    }
-
-    let response: string | null | undefined;
-    try {
-      response = await homeAssistantSignPath(
-        this.hass,
-        `/api/frigate/${this.cameraConfig.frigate.client_id}` +
-          `/jsmpeg/${this.cameraConfig.frigate.camera_name}`,
-        URL_SIGN_EXPIRY_SECONDS,
-      );
-    } catch (e) {
-      errorToConsole(e as Error);
-      return null;
-    }
-    if (!response) {
-      return null;
-    }
-    return response.replace(/^http/i, 'ws');
   }
 
   /**
@@ -205,26 +178,35 @@ export class FrigateCardLiveJSMPEG extends LitElement {
    * Refresh the JSMPEG player.
    */
   protected async _refreshPlayer(): Promise<void> {
+    if (!this.hass) {
+      return;
+    }
     this._resetPlayer();
 
     this._jsmpegCanvasElement = document.createElement('canvas');
     this._jsmpegCanvasElement.className = 'media';
 
-    if (!this.cameraConfig?.frigate.camera_name) {
-      return dispatchErrorMessageEvent(this, localize('error.no_camera_name'), {
+    const endpoint = this.cameraEndpoints?.jsmpeg;
+    if (!endpoint) {
+      return dispatchErrorMessageEvent(this, localize('error.live_camera_no_endpoint'), {
         context: this.cameraConfig,
       });
     }
 
-    const url = await this._getURL();
-    if (url) {
-      this._jsmpegVideoPlayer = await this._createJSMPEGPlayer(url);
-      this._refreshPlayerTimerID = window.setTimeout(() => {
-        this.requestUpdate();
-      }, (URL_SIGN_EXPIRY_SECONDS - URL_SIGN_REFRESH_THRESHOLD_SECONDS) * 1000);
-    } else {
-      dispatchErrorMessageEvent(this, localize('error.jsmpeg_no_sign'));
+    const address = await getEndpointAddressOrDispatchError(
+      this,
+      this.hass,
+      endpoint,
+      JSMPEG_URL_SIGN_EXPIRY_SECONDS,
+    );
+    if (!address) {
+      return;
     }
+
+    this._jsmpegVideoPlayer = await this._createJSMPEGPlayer(address);
+    this._refreshPlayerTimerID = window.setTimeout(() => {
+      this.requestUpdate();
+    }, (JSMPEG_URL_SIGN_EXPIRY_SECONDS - JSMPEG_URL_SIGN_REFRESH_THRESHOLD_SECONDS) * 1000);
   }
 
   /**

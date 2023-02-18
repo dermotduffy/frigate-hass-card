@@ -120,17 +120,27 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 |`ha` (when configured with LL-HLS)|Better|High|Better|Builtin|Use the built-in Home Assistant camera streams -- can be configured to use an [LL-HLS](https://www.home-assistant.io/integrations/stream/#ll-hls) feed for lower latency.|
 |`ha` (Native WebRTC)|Best|High|Better|Builtin|Use the built-in Home Assistant camera streams -- can be configured to use [native WebRTC](https://www.home-assistant.io/integrations/rtsp_to_webrtc/) offering a very low-latency feed direct to your browser.|
 |`image`|Poor|Poor|Best|Builtin|Use refreshing snapshots of the built-in Home Assistant camera streams.|
-|`frigate-jsmpeg`|Better|Low|Poor|Builtin|Stream the JSMPEG stream from Frigate (proxied via the Frigate integration). See [note below on the required integration version](#jsmpeg-troubleshooting) for this live provider to function. This is the only live provider that can view the Frigate `birdseye` view.|
+|`jsmpeg`|Better|Low|Poor|Builtin|Use a the JSMPEG stream.|
+|`go2rtc`|Best|High|Better|Builtin|Uses [go2rtc](https://github.com/AlexxIT/go2rtc) to stream live feeds. This is supported by Frigate >= `0.12`.|
 |`webrtc-card`|Best|High|Better|Separate installation required|Embed's [AlexxIT's WebRTC Card](https://github.com/AlexxIT/WebRTC) to stream live feed, requires manual extra setup, see [below](#webrtc). Not to be confused with native Home Assistant WebRTC (use `ha` provider above).|
 
 <a name="engines"></a>
 
 #### Available Camera Engines
 
+##### Engine Capabilities
+
 |Engine|Live|Supports clips|Supports Snapshots|Supports Recordings|Supports Timeline|Favorite events|Favorite recordings|
 | - | - | - | - | - | - | - | - |
 |`frigate`| :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: |
 |`generic`| :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: |
+
+##### Live providers supported per Engine
+
+|Engine / Live Provider|`ha`|`image`|`jsmpeg`|`go2rtc`|`webrtc-card`|
+| - | - | - | - | - | - |
+|`frigate`| :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+|`generic`| :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | :white_check_mark: |
 
 <a name="camera-frigate-configuration"></a>
 
@@ -145,11 +155,24 @@ cameras:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `camera_name` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | The Frigate camera name to use when communicating with the Frigate server, e.g. for viewing clips/snapshots or the JSMPEG live view. To view the birdseye view set this to `birdseye` and use the `frigate-jsmpeg` live provider.|
+| `camera_name` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | The Frigate camera name to use when communicating with the Frigate server, e.g. for viewing clips/snapshots or the JSMPEG live view.|
 | `url` | | :heavy_multiplication_x: | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. All other communication with Frigate goes via Home Assistant. |
 | `label` | | :heavy_multiplication_x: | A Frigate label / object filter used to filter events (clips & snapshots), e.g. `person`.|
 | `zone` | | :heavy_multiplication_x: | A Frigate zone used to filter events (clips & snapshots), e.g. `front_door`.|
 | `client_id` | `frigate` | :heavy_multiplication_x: | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://docs.frigate.video/integrations/home-assistant/#multiple-instance-support).|
+
+#### Camera go2rtc configuration
+
+The `go2rtc` block configures use of the `go2rtc` live provider. This configuration is included as part of a camera entry in the `cameras` array.
+
+```yaml
+cameras:
+ - go2rtc:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `modes` | `[webrtc, mse, mp4, mjpeg]` | :heavy_multiplication_x: | An ordered array of `go2rtc` modes to use. Valid values are `webrtc`, `mse`, `mp4` or `mjpeg` values. |
 
 #### Camera WebRTC Card configuration
 
@@ -338,7 +361,7 @@ See the [fully expanded live configuration example](#config-expanded-live) for h
 | `show_image_during_load` | `true` | :white_check_mark: | If `true`, during the initial stream load, the `image` live provider will be shown instead of the loading video stream. This still image will auto-refresh and is replaced with the live stream once loaded. |
 | `actions` | | :white_check_mark: | Actions to use for the `live` view. See [actions](#actions) below.|
 | `controls` | | :white_check_mark: | Configuration for the `live` view controls. See below. |
-| `jsmpeg` | | :white_check_mark: | Configuration for the `frigate-jsmpeg` live provider. See below.|
+| `jsmpeg` | | :white_check_mark: | Configuration for the `jsmpeg` live provider. See below.|
 | `webrtc_card` | | :white_check_mark: | Configuration for the `webrtc-card` live provider. See below.|
 | `layout` | | :white_check_mark: | See [media layout](#media-layout) below.|
 
@@ -1357,6 +1380,14 @@ cameras:
         - binary_sensor.entrance_sensor
     dependencies:
       all_cameras: false
+  - camera_entity: camera.sitting_room
+    live_provider: go2rtc
+    go2rtc:
+      modes:
+        - webrtc
+        - mse
+        - mp4
+        - mjpeg
 ```
 </details>
 
@@ -2276,7 +2307,7 @@ to provide a separate unambiguous way of referring to that camera, since the
 type: custom:frigate-card
 cameras:
   - camera_entity: camera.front_door
-    live_provider: frigate-jsmpeg
+    live_provider: jsmpeg
     title: Front Door (JSMPEG)
   - camera_entity: camera.front_door
     live_provider: webrtc-card
@@ -3144,7 +3175,7 @@ Using a `panel` dashboard with the following base configuration will result in t
 type: custom:frigate-card
 cameras:
   - camera_entity: camera.front_door
-    live_provider: frigate-jsmpeg
+    live_provider: jsmpeg
 dimensions:
   aspect_ratio: 1024:600
   aspect_ratio_mode: static
@@ -3185,12 +3216,6 @@ Even if `live.auto_play` or `media_viewer.auto_play` is set to `never`, Chrome i
 For some slowly loading cameras, for which [Home Assistant stream preloading](https://www.home-assistant.io/integrations/camera/) is not enabled, Home Assistant may return a blank white image when asked for a still. These stills are used during initial Frigate card load of the `live` view if the `live.show_image_during_load` option is enabled. Disabling this option should show the default media loading controls (e.g. a spinner or empty video player) instead of the blank white image.
 
 <a name="jsmpeg-troubleshooting"></a>
-
-### JSMPEG Live Camera Only Shows A 'spinner'
-
-You must be using a version of the [Frigate integration](https://github.com/blakeblackshear/frigate-hass-integration) >= 2.1.0
-to use JSMPEG proxying. The `frigate-jsmpeg` live provider will not work with earlier
-integration versions.
 
 ### Timeline shows error message
 
@@ -3233,7 +3258,7 @@ possible in carousels that use the Firefox video player (e.g. `clips` carousel,
 or live views that use the `frigate` or `webrtc-card` provider). The next and
 previous buttons may be used to navigate in these instances.
 
-Dragging works as expected for snapshots, or for the `frigate-jsmpeg` provider.
+Dragging works as expected for snapshots, or for the `jsmpeg` provider.
 
 ### Progress bar cannot be dragged in Safari
 

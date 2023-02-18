@@ -36,8 +36,10 @@ import {
   RecordingSegment,
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
-  CameraURLContext,
+  CameraEndpointsContext,
   CameraConfigs,
+  CameraEndpoints,
+  CameraEndpoint,
 } from '../types';
 import { FrigateRecording } from './types';
 import {
@@ -1006,47 +1008,91 @@ export class FrigateCameraManagerEngine
     };
   }
 
-  public getCameraURL(
+  public getCameraEndpoints(
     cameraConfig: CameraConfig,
-    context?: CameraURLContext,
-  ): string | null {
-    if (!cameraConfig.frigate.url) {
-      return null;
-    }
-    if (!cameraConfig.frigate.camera_name) {
-      return cameraConfig.frigate.url;
-    }
+    context?: CameraEndpointsContext,
+  ): CameraEndpoints | null {
+    const getUIEndpoint = (): CameraEndpoint | null => {
+      if (!cameraConfig.frigate.url) {
+        return null;
+      }
+      if (!cameraConfig.frigate.camera_name) {
+        return { endpoint: cameraConfig.frigate.url };
+      }
 
-    const eventsURL =
-      `${cameraConfig.frigate.url}/events?camera=` + cameraConfig.frigate.camera_name;
-    const recordingsURL =
-      `${cameraConfig.frigate.url}/recording/` + cameraConfig.frigate.camera_name;
+      const cameraURL =
+        `${cameraConfig.frigate.url}/cameras/` + cameraConfig.frigate.camera_name;
 
-    // If media is available, use it since it may result in a more precisely
-    // correct URL.
-    switch (context?.media?.getMediaType()) {
-      case 'clip':
-      case 'snapshot':
-        return eventsURL;
-      case 'recording':
-        const startTime = context.media.getStartTime();
-        if (startTime) {
-          return recordingsURL + format(startTime, 'yyyy-MM-dd/HH');
+      if (context?.view === 'live') {
+        return { endpoint: cameraURL };
+      }
+
+      const eventsURL =
+        `${cameraConfig.frigate.url}/events?camera=` + cameraConfig.frigate.camera_name;
+      const recordingsURL =
+        `${cameraConfig.frigate.url}/recording/` + cameraConfig.frigate.camera_name;
+
+      // If media is available, use it since it may result in a more precisely
+      // correct URL.
+      switch (context?.media?.getMediaType()) {
+        case 'clip':
+        case 'snapshot':
+          return { endpoint: eventsURL };
+        case 'recording':
+          const startTime = context.media.getStartTime();
+          if (startTime) {
+            return { endpoint: recordingsURL + format(startTime, 'yyyy-MM-dd/HH') };
+          }
+      }
+
+      // Otherwise, fall back to just using the view if we have that.
+      switch (context?.view) {
+        case 'clip':
+        case 'clips':
+        case 'snapshots':
+        case 'snapshot':
+          return { endpoint: eventsURL };
+        case 'recording':
+        case 'recordings':
+          return { endpoint: recordingsURL };
+      }
+
+      return {
+        endpoint: cameraURL,
+      };
+    };
+
+    const getGo2RTC = (): CameraEndpoint | null => {
+      return {
+        endpoint:
+          `/api/frigate/${cameraConfig.frigate.client_id}` +
+          // go2rtc is exposed by the integration under the (slightly
+          // misleading) 'mse' path, even though that path can serve all go2rtc
+          // modes.
+          `/mse/api/ws?src=${cameraConfig.frigate.camera_name}`,
+        sign: true,
+      };
+    };
+
+    const getJSMPEG = (): CameraEndpoint | null => {
+      return {
+        endpoint:
+          `/api/frigate/${cameraConfig.frigate.client_id}` +
+          `/jsmpeg/${cameraConfig.frigate.camera_name}`,
+        sign: true,
+      };
+    };
+
+    const ui = getUIEndpoint();
+    const go2rtc = getGo2RTC();
+    const jsmpeg = getJSMPEG();
+
+    return ui || go2rtc || jsmpeg
+      ? {
+          ...(ui && { ui: ui }),
+          ...(go2rtc && { go2rtc: go2rtc }),
+          ...(jsmpeg && { jsmpeg: jsmpeg }),
         }
-    }
-
-    // Otherwise, fall back to just using the view if we have that.
-    switch (context?.view) {
-      case 'clip':
-      case 'clips':
-      case 'snapshots':
-      case 'snapshot':
-        return eventsURL;
-      case 'recording':
-      case 'recordings':
-        return recordingsURL;
-    }
-
-    return `${cameraConfig.frigate.url}/cameras/${cameraConfig.frigate.camera_name}`;
+      : null;
   }
 }

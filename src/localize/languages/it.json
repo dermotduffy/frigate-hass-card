@@ -28,8 +28,10 @@
       "live_provider": "Provider di visualizzazione dal vivo per questa telecamera",
       "live_providers": {
         "auto": "Automatica",
-        "frigate-jsmpeg": "Frigate JSMpeg",
-        "ha": "Home Assistant (ovvero HLS, LL-HLS, WebRTC nativo)",
+        "jsmpeg": "JSMpeg",
+        "go2rtc": "",
+        "ha": "",
+        "image": "",
         "webrtc-card": "Scheda WebRTC (ovvero la scheda WebRTC di Alexxit)"
       },
       "title": "Titolo per questa telecamera (Autoidentificato dall'entità)",
@@ -340,7 +342,7 @@
     "invalid_elements_config": "Configurazione degli elementi di immagine non valida",
     "invalid_response": "Ricevuta una risposta non valida da Home Assistant per la richiesta",
     "jsmpeg_no_player": "Impossibile avviare JSMPEG Player",
-    "jsmpeg_no_sign": "Impossibile recuperare o firmare il percorso WebSocket JSMPEG",
+    "live_camera_no_endpoint": "",
     "live_camera_not_found": "La telecamera configurata non è stata trovata",
     "live_camera_unavailable": "Telecamera non disponibile",
     "no_camera_engine": "",
