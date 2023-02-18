@@ -435,6 +435,12 @@ const cameraConfigSchema = z
       })
       .default(cameraConfigDefault.frigate),
 
+    go2rtc: z
+      .object({
+        modes: z.enum(['webrtc', 'mse', 'mp4', 'mjpeg']).array(),
+      })
+      .optional(),
+
     // Camera identifiers for WebRTC.
     webrtc_card: webrtcCardCameraConfigSchema.optional(),
 

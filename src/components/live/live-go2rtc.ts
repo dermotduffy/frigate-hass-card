@@ -115,7 +115,9 @@ export class FrigateCardGo2RTC extends LitElement {
     this._player.src = address;
     this._player.visibilityCheck = false;
     this._player.background = true;
-    this._player.mode = 'webrtc';
+    if (this.cameraConfig?.go2rtc?.modes) {
+      this._player.mode = this.cameraConfig.go2rtc.modes.join(',');
+    }
 
     this.requestUpdate();
   }

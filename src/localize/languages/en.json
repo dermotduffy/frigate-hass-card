@@ -23,6 +23,16 @@
         "url": "Frigate server URL",
         "zone": "Frigate zone"
       },
+      "go2rtc": {
+        "editor_label": "go2rtc Options",
+        "modes": {
+          "editor_label": "go2rtc Modes",
+          "mse": "Media Source Extensions (MSE)",
+          "webrtc": "Web Real-Time Communication (WebRTC)",
+          "mp4": "MPEG-4 (MP4)",
+          "mjpeg": "Motion JPEG (MJPEG)"
+        }
+      },
       "icon": "Icon for this camera (Autodetected from entity)",
       "id": "Unique id for this camera in this card",
       "live_provider": "Live view provider for this camera",
