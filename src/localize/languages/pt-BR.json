@@ -342,7 +342,7 @@
     "invalid_elements_config": "Configuração de elementos de imagem inválida",
     "invalid_response": "Resposta inválida recebida do Home Assistant para a solicitação",
     "jsmpeg_no_player": "Não foi possível iniciar o player JSMPEG",
-    "jsmpeg_no_sign": "Não foi possível recuperar ou assinar o caminho do websocket JSMPEG",
+    "live_camera_no_endpoint": "",
     "live_camera_not_found": "",
     "live_camera_unavailable": "",
     "no_camera_engine": "",

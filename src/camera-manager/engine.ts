@@ -18,9 +18,10 @@ import {
   CameraManagerCameraCapabilities,
   CameraManagerMediaCapabilities,
   CameraManagerCameraMetadata,
-  CameraURLContext,
+  CameraEndpointsContext,
   CameraConfigs,
   Engine,
+  CameraEndpoints,
 } from './types';
 
 export const CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT = 10000;
@@ -118,8 +119,8 @@ export interface CameraManagerEngine {
 
   getMediaCapabilities(media: ViewMedia): CameraManagerMediaCapabilities | null;
 
-  getCameraURL(
+  getCameraEndpoints(
     cameraConfig: CameraConfig,
-    context?: CameraURLContext,
-  ): string | null;
+    context?: CameraEndpointsContext,
+  ): CameraEndpoints | null;
 }

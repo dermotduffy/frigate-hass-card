@@ -16,12 +16,13 @@ import {
   RecordingQueryResultsMap,
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
-  CameraURLContext,
+  CameraEndpointsContext,
   CameraConfigs,
   RecordingQuery,
   QueryReturnType,
   CameraManagerCameraCapabilities,
   Engine,
+  CameraEndpoints,
 } from '../types';
 import { getEntityIcon, getEntityTitle } from '../../utils/ha';
 import { EntityRegistryManager } from '../../utils/ha/entity-registry';
@@ -177,10 +178,10 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     return null;
   }
 
-  public getCameraURL(
+  public getCameraEndpoints(
     _cameraConfig: CameraConfig,
-    _context?: CameraURLContext,
-  ): string | null {
+    _context?: CameraEndpointsContext,
+  ): CameraEndpoints | null {
     return null;
   }
 }

@@ -6,7 +6,7 @@ import {
   CameraManagerCameraMetadata,
   CameraManagerCapabilities,
   CameraManagerMediaCapabilities,
-  CameraURLContext,
+  CameraEndpointsContext,
   DataQuery,
   EventQuery,
   EventQueryResults,
@@ -29,6 +29,7 @@ import {
   RecordingSegmentsQueryResults,
   RecordingSegmentsQueryResultsMap,
   ResultsMap,
+  CameraEndpoints,
 } from './types.js';
 import orderBy from 'lodash-es/orderBy';
 import { CameraManagerEngineFactory } from './engine-factory.js';
@@ -643,13 +644,16 @@ export class CameraManager {
     );
   }
 
-  public getCameraURL(cameraID: string, context?: CameraURLContext): string | null {
+  public getCameraEndpoints(
+    cameraID: string,
+    context?: CameraEndpointsContext,
+  ): CameraEndpoints | null {
     const cameraConfig = this._store.getCameraConfig(cameraID);
     const engine = this._store.getEngineForCameraID(cameraID);
     if (!cameraConfig || !engine) {
       return null;
     }
-    return engine.getCameraURL(cameraConfig, context);
+    return engine.getCameraEndpoints(cameraConfig, context);
   }
 
   public getCameraMetadata(

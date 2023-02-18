@@ -54,6 +54,7 @@ import { CameraManager } from '../../camera-manager/manager.js';
 import { HomeAssistant } from 'custom-card-helpers';
 import { dispatchMessageEvent, dispatchErrorMessageEvent } from '../message.js';
 import { HassEntity } from 'home-assistant-js-websocket';
+import { CameraEndpoints } from '../../camera-manager/types.js';
 
 /**
  * Get the state object or dispatch an error. Used in `ha` and `image` live
@@ -514,6 +515,10 @@ export class FrigateCardLiveCarousel extends LitElement {
         <frigate-card-live-provider
           ?disabled=${this.liveConfig.lazy_load}
           .cameraConfig=${cameraConfig}
+          .cameraEndpoints=${guard(
+            [this.cameraManager],
+            () => this.cameraManager?.getCameraEndpoints(cameraID),
+          )}
           .label=${cameraMetadata?.title ?? ''}
           .liveConfig=${config}
           .hass=${this.hass}
@@ -665,6 +670,9 @@ export class FrigateCardLiveProvider extends LitElement {
 
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
+
+  @property({ attribute: false })
+  public cameraEndpoints?: CameraEndpoints;
 
   @property({ attribute: false })
   public liveConfig?: LiveConfig;
@@ -858,6 +866,7 @@ export class FrigateCardLiveProvider extends LitElement {
               class=${classMap(providerClasses)}
               .hass=${this.hass}
               .cameraConfig=${this.cameraConfig}
+              .cameraEndpoints=${this.cameraEndpoints}
               @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
             >
             </frigate-card-live-webrtc-card>`
@@ -878,6 +887,7 @@ export class FrigateCardLiveProvider extends LitElement {
             class=${classMap(providerClasses)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
+            .cameraEndpoints=${this.cameraEndpoints}
             .jsmpegConfig=${this.liveConfig.jsmpeg}
             .cardWideConfig=${this.cardWideConfig}
             @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}

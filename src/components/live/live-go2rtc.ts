@@ -7,7 +7,7 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import liveMSEStyle from '../../scss/live-mse-webrtc.scss';
+import liveMSEStyle from '../../scss/live-go2rtc.scss';
 import { CameraConfig, ExtendedHomeAssistant } from '../../types.js';
 import '../image.js';
 import {
@@ -18,8 +18,8 @@ import { dispatchMediaLoadedEvent } from '../../utils/media-info';
 import { localize } from '../../localize/localize';
 import { dispatchErrorMessageEvent } from '../message';
 import { VideoRTC } from '../../external/go2rtc/video-rtc';
-import { homeAssistantSignPath } from '../../utils/ha';
-import { errorToConsole } from '../../utils/basic';
+import { CameraEndpoints } from '../../camera-manager/types.js';
+import { getEndpointAddressOrDispatchError } from '../../utils/endpoint';
 
 // Note (2023-02-18): Depending on the behavior of the player / browser is
 // possible this URL will need to be re-signed in order to avoid HA spamming
@@ -58,6 +58,9 @@ export class FrigateCardGo2RTC extends LitElement {
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
 
+  @property({ attribute: false })
+  public cameraEndpoints?: CameraEndpoints;
+
   protected _player?: FrigateCardGo2RTCPlayer;
 
   public play(): void {
@@ -87,36 +90,29 @@ export class FrigateCardGo2RTC extends LitElement {
   }
 
   protected async _createPlayer(): Promise<void> {
-    if (
-      !this.hass ||
-      !this.cameraConfig?.frigate.client_id ||
-      !this.cameraConfig.frigate.camera_name
-    ) {
+    if (!this.hass) {
       return;
     }
 
-    let response: string | null | undefined;
-    try {
-      response = await homeAssistantSignPath(
-        this.hass,
-        `/api/frigate/${this.cameraConfig.frigate.client_id}` +
-          `/mse/api/ws?src=${this.cameraConfig.frigate.camera_name}`,
-        GO2RTC_URL_SIGN_EXPIRY_SECONDS,
-      );
-    } catch (e) {
-      errorToConsole(e as Error);
-      return;
+    const endpoint = this.cameraEndpoints?.go2rtc;
+    if (!endpoint) {
+      return dispatchErrorMessageEvent(this, localize('error.live_camera_no_endpoint'), {
+        context: this.cameraConfig,
+      });
     }
-    if (!response) {
+
+    const address = await getEndpointAddressOrDispatchError(
+      this,
+      this.hass,
+      endpoint,
+      GO2RTC_URL_SIGN_EXPIRY_SECONDS,
+    );
+    if (!address) {
       return;
-    }
-    const url = response.replace(/^http/i, 'ws');
-    if (!url) {
-      return dispatchErrorMessageEvent(this, localize('error.failed_sign'));
     }
 
     this._player = new FrigateCardGo2RTCPlayer();
-    this._player.src = url;
+    this._player.src = address;
     this._player.visibilityCheck = false;
     this._player.background = true;
     this._player.mode = 'webrtc';
@@ -125,7 +121,7 @@ export class FrigateCardGo2RTC extends LitElement {
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('cameraConfig')) {
+    if (changedProps.has('cameraEndpoints')) {
       this._createPlayer();
     }
   }

@@ -1461,15 +1461,18 @@ class FrigateCard extends LitElement {
    * @returns The URL or null if unavailable.
    */
   protected _getCameraURLFromContext(): string | null {
-    const view = this._view;
-    const selectedCameraID = view?.camera;
-    const media = view?.queryResults?.getSelectedResult() ?? null;
-    return this._hass && view && selectedCameraID
-      ? this._cameraManager?.getCameraURL(selectedCameraID, {
-          ...(media && { media: media }),
-          ...(view && { view: view.view }),
-        }) ?? null
-      : null;
+    if (!this._view) {
+      return null;
+    }
+
+    const selectedCameraID = this._view.camera;
+    const media = this._view.queryResults?.getSelectedResult() ?? null;
+    const endpoints =
+      this._cameraManager?.getCameraEndpoints(selectedCameraID, {
+        view: this._view.view,
+        ...(media && { media: media }),
+      }) ?? null;
+    return endpoints?.ui?.endpoint ?? null;
   }
 
   /**
