@@ -12,14 +12,11 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
-import {
-  ExtendedHomeAssistant,
-  ThumbnailsControlConfig,
-} from '../types.js';
+import { ExtendedHomeAssistant, ThumbnailsControlConfig } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
 import { View } from '../view/view.js';
-import { MediaQueriesResults } from "../view/media-queries-results";
+import { MediaQueriesResults } from '../view/media-queries-results';
 import { FrigateCardCarousel } from './carousel.js';
 import './thumbnail.js';
 import './carousel.js';
@@ -167,11 +164,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
       ?show_favorite_control=${this.config?.show_favorite_control}
       ?show_timeline_control=${this.config?.show_timeline_control}
       @click=${(ev: Event) => {
-        if (
-          this.view &&
-          this.view.queryResults &&
-          this._refCarousel.value?.carouselClickAllowed()
-        ) {
+        if (this.view && this.view.queryResults) {
           dispatchFrigateCardEvent<ThumbnailCarouselTap>(
             this,
             'thumbnail-carousel:tap',

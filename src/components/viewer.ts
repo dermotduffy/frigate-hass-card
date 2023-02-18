@@ -681,12 +681,7 @@ export class FrigateCardViewerCarousel extends LitElement {
               )}
               title="${media.getTitle() ?? ''}"
               @click=${() => {
-                if (
-                  this._refMediaCarousel.value
-                    ?.frigateCardCarousel()
-                    ?.carouselClickAllowed() &&
-                  this.viewerConfig?.snapshot_click_plays_clip
-                ) {
+                if (this.viewerConfig?.snapshot_click_plays_clip) {
                   this._dispatchRelatedClipView(index);
                 }
               }}
