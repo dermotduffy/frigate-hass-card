@@ -28,7 +28,7 @@
       "live_provider": "Provedor de visualização ao vivo para esta câmera",
       "live_providers": {
         "auto": "Automatico",
-        "frigate-jsmpeg": "Frigate JSMpeg",
+        "jsmpeg": "JSMpeg",
         "go2rtc": "",
         "ha": "",
         "image": "",

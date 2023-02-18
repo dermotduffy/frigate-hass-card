@@ -735,4 +735,10 @@ const UPGRADES = [
       typeof data === 'object' && data ? <RawFrigateCardConfig>data : {},
     );
   },
+  upgradeArrayValue(
+    CONF_CAMERAS,
+    upgradeWithOverrides('live_provider', (val) =>
+      val === 'frigate-jsmpeg' ? 'jsmpeg' : val,
+    ),
+  ),
 ];

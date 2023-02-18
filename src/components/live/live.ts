@@ -747,7 +747,7 @@ export class FrigateCardLiveProvider extends LitElement {
           return 'ha';
         }
       } else if (this.cameraConfig?.frigate.camera_name) {
-        return 'frigate-jsmpeg';
+        return 'jsmpeg';
       }
       return frigateCardConfigDefaults.cameras.live_provider;
     }
@@ -799,7 +799,7 @@ export class FrigateCardLiveProvider extends LitElement {
     }
     if (changedProps.has('cameraConfig')) {
       const provider = this._getResolvedProvider();
-      if (provider === 'frigate-jsmpeg') {
+      if (provider === 'jsmpeg') {
         import('./live-jsmpeg.js');
       } else if (provider === 'ha') {
         import('./live-ha.js');
@@ -881,7 +881,7 @@ export class FrigateCardLiveProvider extends LitElement {
             @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >
           </frigate-card-live-webrtc-card>`
-        : provider === 'frigate-jsmpeg'
+        : provider === 'jsmpeg'
         ? html` <frigate-card-live-jsmpeg
             ${ref(this._providerRef)}
             class=${classMap(providerClasses)}

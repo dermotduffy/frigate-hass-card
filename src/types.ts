@@ -70,7 +70,7 @@ const LIVE_PROVIDERS = [
   'auto',
   'image',
   'ha',
-  'frigate-jsmpeg',
+  'jsmpeg',
   'go2rtc',
   'webrtc-card',
 ] as const;
