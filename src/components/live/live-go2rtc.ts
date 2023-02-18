@@ -8,7 +8,11 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import liveMSEStyle from '../../scss/live-go2rtc.scss';
-import { CameraConfig, ExtendedHomeAssistant } from '../../types.js';
+import {
+  CameraConfig,
+  ExtendedHomeAssistant,
+  FrigateCardMediaPlayer,
+} from '../../types.js';
 import '../image.js';
 import {
   hideMediaControlsTemporarily,
@@ -51,7 +55,7 @@ class FrigateCardGo2RTCPlayer extends VideoRTC {
 }
 
 @customElement('frigate-card-live-go2rtc')
-export class FrigateCardGo2RTC extends LitElement {
+export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPlayer {
   // Not an reactive property to avoid resetting the video.
   public hass?: ExtendedHomeAssistant;
 
@@ -63,8 +67,8 @@ export class FrigateCardGo2RTC extends LitElement {
 
   protected _player?: FrigateCardGo2RTCPlayer;
 
-  public play(): void {
-    this._player?.video?.play();
+  public async play(): Promise<void> {
+    return this._player?.video?.play();
   }
 
   public pause(): void {
@@ -81,6 +85,10 @@ export class FrigateCardGo2RTC extends LitElement {
     if (this._player?.video) {
       this._player.video.muted = false;
     }
+  }
+
+  public isMuted(): boolean {
+    return this._player?.video.muted ?? true;
   }
 
   public seek(seconds: number): void {

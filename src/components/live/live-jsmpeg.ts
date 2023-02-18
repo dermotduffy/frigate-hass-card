@@ -9,6 +9,7 @@ import {
   CameraConfig,
   CardWideConfig,
   ExtendedHomeAssistant,
+  FrigateCardMediaPlayer,
   JSMPEGConfig,
 } from '../../types.js';
 import { dispatchMediaLoadedEvent } from '../../utils/media-info.js';
@@ -24,7 +25,7 @@ const JSMPEG_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
 const JSMPEG_URL_SIGN_REFRESH_THRESHOLD_SECONDS = 1 * 60 * 60;
 
 @customElement('frigate-card-live-jsmpeg')
-export class FrigateCardLiveJSMPEG extends LitElement {
+export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMediaPlayer {
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
 
@@ -43,24 +44,14 @@ export class FrigateCardLiveJSMPEG extends LitElement {
   protected _jsmpegVideoPlayer?: JSMpeg.VideoElement;
   protected _refreshPlayerTimerID?: number;
 
-  /**
-   * Play the video.
-   */
-  public play(): void {
-    this._jsmpegVideoPlayer?.play();
+  public async play(): Promise<void> {
+    return this._jsmpegVideoPlayer?.play();
   }
 
-  /**
-   * Pause the video.
-   */
   public pause(): void {
     this._jsmpegVideoPlayer?.stop();
   }
 
-  /**
-   * Mute the video (included for completeness, JSMPEG live disables audio as
-   * Frigate does not encode it).
-   */
   public mute(): void {
     const player = this._jsmpegVideoPlayer?.player;
     if (player) {
@@ -68,10 +59,6 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     }
   }
 
-  /**
-   * Unmute the video (included for completeness, JSMPEG live disables audio as
-   * Frigate does not encode it).
-   */
   public unmute(): void {
     const player = this._jsmpegVideoPlayer?.player;
     if (player) {
@@ -79,9 +66,10 @@ export class FrigateCardLiveJSMPEG extends LitElement {
     }
   }
 
-  /**
-   * Seek the video (unsupported).
-   */
+  public isMuted(): boolean {
+    return this._jsmpegVideoPlayer ? this._jsmpegVideoPlayer.player.volume === 0 : true;
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public seek(_seconds: number): void {
     // JSMPEG does not support seeking.

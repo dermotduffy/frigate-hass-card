@@ -8,18 +8,25 @@ import {
   CameraConfig,
   CardWideConfig,
   FrigateCardError,
+  FrigateCardMediaPlayer,
   WebRTCCardConfig,
 } from '../../types.js';
 import { contentsChanged } from '../../utils/basic.js';
 import { dispatchMediaLoadedEvent } from '../../utils/media-info.js';
 import { dispatchErrorMessageEvent, renderProgressIndicator } from '../message.js';
 import { renderTask } from '../../utils/task.js';
-import { hideMediaControlsTemporarily, MEDIA_LOAD_CONTROLS_HIDE_SECONDS } from '../../utils/media.js';
+import {
+  hideMediaControlsTemporarily,
+  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
+} from '../../utils/media.js';
 
 // Create a wrapper for AlexxIT's WebRTC card
 //  - https://github.com/AlexxIT/WebRTC
 @customElement('frigate-card-live-webrtc-card')
-export class FrigateCardLiveWebRTCCard extends LitElement {
+export class FrigateCardLiveWebRTCCard
+  extends LitElement
+  implements FrigateCardMediaPlayer
+{
   @property({ attribute: false, hasChanged: contentsChanged })
   public webRTCConfig?: WebRTCCardConfig;
 
@@ -34,29 +41,14 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
   // A task to await the load of the WebRTC component.
   protected _webrtcTask = new Task(this, this._getWebRTCCardElement, () => [1]);
 
-  /**
-   * Play the video.
-   */
-  public play(): void {
-    this._getPlayer()
-      ?.play()
-      .catch(() => {
-        // WebRTC appears to generate additional spurious load events, which may
-        // result in loads after a play() call, which causes the browser to spam
-        // the logs unless the promise rejection is handled here.
-      });
+  public async play(): Promise<void> {
+    return this._getPlayer()?.play();
   }
 
-  /**
-   * Pause the video.
-   */
   public pause(): void {
     this._getPlayer()?.pause();
   }
 
-  /**
-   * Mute the video.
-   */
   public mute(): void {
     const player = this._getPlayer();
     if (player) {
@@ -64,9 +56,6 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
     }
   }
 
-  /**
-   * Unmute the video.
-   */
   public unmute(): void {
     const player = this._getPlayer();
     if (player) {
@@ -74,9 +63,10 @@ export class FrigateCardLiveWebRTCCard extends LitElement {
     }
   }
 
-  /**
-   * Seek the video.
-   */
+  public isMuted(): boolean {
+    return this._getPlayer()?.muted ?? true;
+  }
+
   public seek(seconds: number): void {
     const player = this._getPlayer();
     if (player) {
