@@ -30,6 +30,7 @@ import {
   RecordingSegmentsQueryResultsMap,
   ResultsMap,
   CameraEndpoints,
+  Engine,
 } from './types.js';
 import orderBy from 'lodash-es/orderBy';
 import { CameraManagerEngineFactory } from './engine-factory.js';
@@ -106,26 +107,39 @@ export class CameraManager {
     this._store = new CameraManagerStore();
   }
 
+  protected async _getEnginesForCameras(
+    hass: HomeAssistant,
+    camerasConfig: CamerasConfig,
+  ): Promise<Map<CameraConfig, CameraManagerEngine>> {
+    const output: Map<CameraConfig, CameraManagerEngine> = new Map();
+    const engines: Map<Engine, CameraManagerEngine> = new Map();
+
+    for (const cameraConfig of camerasConfig) {
+      const engineType = await this._engineFactory.getEngineForCamera(
+        hass,
+        cameraConfig,
+      );
+      const engine = engineType
+        ? engines.get(engineType) ?? this._engineFactory.createEngine(engineType)
+        : null;
+      if (!engine || !engineType) {
+        throw new CameraInitializationError(
+          localize('error.no_camera_engine'),
+          cameraConfig,
+        );
+      }
+      engines.set(engineType, engine);
+      output.set(cameraConfig, engine);
+    }
+    return output;
+  }
+
   protected async _initializeCamera(
     hass: HomeAssistant,
+    engine: CameraManagerEngine,
     entityRegistryManager: EntityRegistryManager,
     inputCameraConfig: CameraConfig,
   ): Promise<InitializedCamera> {
-    const engineType = await this._engineFactory.getEngineForCamera(
-      hass,
-      inputCameraConfig,
-    );
-    const engine = engineType
-      ? this._store.getEngineOfType(engineType) ??
-        (await this._engineFactory.createEngine(engineType))
-      : null;
-    if (!engine) {
-      throw new CameraInitializationError(
-        localize('error.no_camera_engine'),
-        inputCameraConfig,
-      );
-    }
-
     const initializedConfig = await engine.initializeCamera(
       hass,
       entityRegistryManager,
@@ -159,10 +173,15 @@ export class CameraManager {
       await entityRegistryManager.fetchEntityList(hass);
     }
 
+    // Engines are created sequentially, to avoid duplicate creation of the same
+    // engine. See: https://github.com/dermotduffy/frigate-hass-card/issues/941
+    const engineByConfig = await this._getEnginesForCameras(hass, camerasConfig);
+
+    // Configuration is initialized in parallel.
     const results = await allPromises(
-      camerasConfig,
-      async (cameraConfig) =>
-        await this._initializeCamera(hass, entityRegistryManager, cameraConfig),
+      engineByConfig.entries(),
+      async ([cameraConfig, engine]) =>
+        await this._initializeCamera(hass, engine, entityRegistryManager, cameraConfig),
     );
 
     // Do the additions based off the result-order, to ensure the map order is
