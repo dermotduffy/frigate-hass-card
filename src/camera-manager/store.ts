@@ -1,4 +1,3 @@
-import uniq from 'lodash-es/uniq';
 import { CameraConfig } from '../types';
 import { ViewMedia } from '../view/media';
 import { CameraManagerEngine } from './engine';
@@ -8,7 +7,7 @@ type CameraManagerEngineCameraIDMap = Map<CameraManagerEngine, Set<string>>;
 
 export class CameraManagerStore {
   protected _configs: Map<string, CameraConfig> = new Map();
-  protected _engines: Map<string, CameraManagerEngine> = new Map();
+  protected _enginesByCamera: Map<string, CameraManagerEngine> = new Map();
   protected _enginesByType: Map<Engine, CameraManagerEngine> = new Map();
 
   public addCamera(
@@ -17,7 +16,7 @@ export class CameraManagerStore {
     engine: CameraManagerEngine,
   ): void {
     this._configs.set(cameraID, cameraConfig);
-    this._engines.set(cameraID, engine);
+    this._enginesByCamera.set(cameraID, engine);
     this._enginesByType.set(engine.getEngineType(), engine);
   }
 
@@ -54,7 +53,7 @@ export class CameraManagerStore {
   }
 
   public getEngineForCameraID(cameraID: string): CameraManagerEngine | null {
-    return this._engines.get(cameraID) ?? null;
+    return this._enginesByCamera.get(cameraID) ?? null;
   }
 
   public getEnginesForCameraIDs(
@@ -84,6 +83,6 @@ export class CameraManagerStore {
   }
 
   public getAllEngines(): CameraManagerEngine[] {
-    return uniq([...this._engines.values()]);
+    return [...this._enginesByType.values()];
   }
 }

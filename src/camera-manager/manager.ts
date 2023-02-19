@@ -30,6 +30,9 @@ import {
   RecordingSegmentsQueryResultsMap,
   ResultsMap,
   CameraEndpoints,
+  Engine,
+  MediaMetadataQuery,
+  MediaMetadataQueryResults,
 } from './types.js';
 import orderBy from 'lodash-es/orderBy';
 import { CameraManagerEngineFactory } from './engine-factory.js';
@@ -61,6 +64,11 @@ class QueryClassifier {
   ): query is RecordingSegmentsQuery {
     return query.type === QueryType.RecordingSegments;
   }
+  public static isMediaMetadataQuery(
+    query: DataQuery | PartialDataQuery,
+  ): query is MediaMetadataQuery {
+    return query.type === QueryType.MediaMetadata;
+  }
 }
 
 class QueryResultClassifier {
@@ -78,6 +86,11 @@ class QueryResultClassifier {
     queryResults: QueryResults,
   ): queryResults is RecordingSegmentsQueryResults {
     return queryResults.type === QueryResultsType.RecordingSegments;
+  }
+  public static isMediaMetadataQuery(
+    queryResults: QueryResults,
+  ): queryResults is MediaMetadataQueryResults {
+    return queryResults.type === QueryResultsType.MediaMetadata;
   }
 }
 
@@ -106,26 +119,39 @@ export class CameraManager {
     this._store = new CameraManagerStore();
   }
 
+  protected async _getEnginesForCameras(
+    hass: HomeAssistant,
+    camerasConfig: CamerasConfig,
+  ): Promise<Map<CameraConfig, CameraManagerEngine>> {
+    const output: Map<CameraConfig, CameraManagerEngine> = new Map();
+    const engines: Map<Engine, CameraManagerEngine> = new Map();
+
+    for (const cameraConfig of camerasConfig) {
+      const engineType = await this._engineFactory.getEngineForCamera(
+        hass,
+        cameraConfig,
+      );
+      const engine = engineType
+        ? engines.get(engineType) ?? this._engineFactory.createEngine(engineType)
+        : null;
+      if (!engine || !engineType) {
+        throw new CameraInitializationError(
+          localize('error.no_camera_engine'),
+          cameraConfig,
+        );
+      }
+      engines.set(engineType, engine);
+      output.set(cameraConfig, engine);
+    }
+    return output;
+  }
+
   protected async _initializeCamera(
     hass: HomeAssistant,
+    engine: CameraManagerEngine,
     entityRegistryManager: EntityRegistryManager,
     inputCameraConfig: CameraConfig,
   ): Promise<InitializedCamera> {
-    const engineType = await this._engineFactory.getEngineForCamera(
-      hass,
-      inputCameraConfig,
-    );
-    const engine = engineType
-      ? this._store.getEngineOfType(engineType) ??
-        (await this._engineFactory.createEngine(engineType))
-      : null;
-    if (!engine) {
-      throw new CameraInitializationError(
-        localize('error.no_camera_engine'),
-        inputCameraConfig,
-      );
-    }
-
     const initializedConfig = await engine.initializeCamera(
       hass,
       entityRegistryManager,
@@ -159,10 +185,15 @@ export class CameraManager {
       await entityRegistryManager.fetchEntityList(hass);
     }
 
+    // Engines are created sequentially, to avoid duplicate creation of the same
+    // engine. See: https://github.com/dermotduffy/frigate-hass-card/issues/941
+    const engineByConfig = await this._getEnginesForCameras(hass, camerasConfig);
+
+    // Configuration is initialized in parallel.
     const results = await allPromises(
-      camerasConfig,
-      async (cameraConfig) =>
-        await this._initializeCamera(hass, entityRegistryManager, cameraConfig),
+      engineByConfig.entries(),
+      async ([cameraConfig, engine]) =>
+        await this._initializeCamera(hass, engine, entityRegistryManager, cameraConfig),
     );
 
     // Do the additions based off the result-order, to ensure the map order is
@@ -249,27 +280,24 @@ export class CameraManager {
     const where: Set<string> = new Set();
     const days: Set<string> = new Set();
 
-    const engines = this._store.getAllEngines();
-
-    const processMetadata = async (engine: CameraManagerEngine): Promise<void> => {
-      const engineMetadata = await engine.getMediaMetadata(
-        hass,
-        this._store.getCameras(),
-      );
-      if (engineMetadata) {
-        if (engineMetadata.what) {
-          engineMetadata.what.forEach(what.add, what);
-        }
-        if (engineMetadata.where) {
-          engineMetadata.where.forEach(where.add, where);
-        }
-        if (engineMetadata.days) {
-          engineMetadata.days.forEach(days.add, days);
-        }
-      }
+    const query: MediaMetadataQuery = {
+      type: QueryType.MediaMetadata,
+      cameraIDs: this._store.getCameraIDs(),
     };
 
-    await allPromises(engines, processMetadata);
+    const results = await this._handleQuery(hass, query);
+
+    for (const [query, result] of results?.entries() ?? []) {
+      if (result.metadata.what) {
+        result.metadata.what.forEach(what.add, what);
+      }
+      if (result.metadata.where) {
+        result.metadata.where.forEach(where.add, where);
+      }
+      if (result.metadata.days) {
+        result.metadata.days.forEach(days.add, days);
+      }
+    }
 
     if (!what.size && !where.size && !days.size) {
       return null;
@@ -546,6 +574,12 @@ export class CameraManager {
         )) as Map<QT, QueryReturnType<QT>> | null;
       } else if (QueryClassifier.isRecordingSegmentsQuery(query)) {
         engineResult = (await engine.getRecordingSegments(
+          hass,
+          this._store.getCameras(),
+          query,
+        )) as Map<QT, QueryReturnType<QT>> | null;
+      } else if (QueryClassifier.isMediaMetadataQuery(query)) {
+        engineResult = (await engine.getMediaMetadata(
           hass,
           this._store.getCameras(),
           query,

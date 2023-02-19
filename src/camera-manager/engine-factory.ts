@@ -22,7 +22,7 @@ export class CameraManagerEngineFactory {
     this._cardWideConfig = cardWideConfig;
   }
 
-  public async createEngine(engine: Engine): Promise<CameraManagerEngine | null> {
+  public createEngine(engine: Engine): CameraManagerEngine | null {
     let cameraManagerEngine: CameraManagerEngine | null = null;
     switch (engine) {
       case Engine.Generic:
