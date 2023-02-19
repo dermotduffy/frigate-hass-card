@@ -1,5 +1,11 @@
 import { z } from 'zod';
 import { dayToDate } from '../../utils/basic';
+import {
+  Engine,
+  EventQueryResults,
+  RecordingQueryResults,
+  RecordingSegmentsQueryResults,
+} from '../types';
 
 const dayStringToDate = (arg: unknown): Date | unknown => {
   return typeof arg === 'string' ? dayToDate(arg) : arg;
@@ -66,3 +72,25 @@ export const eventSummarySchema = z
   })
   .array();
 export type EventSummary = z.infer<typeof eventSummarySchema>;
+
+// ==============================
+// Frigate concrete query results
+// ==============================
+
+export interface FrigateEventQueryResults extends EventQueryResults {
+  engine: Engine.Frigate;
+  instanceID: string;
+  events: FrigateEvent[];
+}
+
+export interface FrigateRecordingQueryResults extends RecordingQueryResults {
+  engine: Engine.Frigate;
+  instanceID: string;
+  recordings: FrigateRecording[];
+}
+
+export interface FrigateRecordingSegmentsQueryResults
+  extends RecordingSegmentsQueryResults {
+  engine: Engine.Frigate;
+  instanceID: string;
+}

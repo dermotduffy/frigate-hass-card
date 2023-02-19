@@ -1,6 +1,5 @@
 import { CameraConfig, FrigateCardView } from '../types';
 import { ViewMedia } from '../view/media';
-import { FrigateEvent, FrigateRecording } from './frigate/types';
 
 // ====
 // Base
@@ -10,12 +9,14 @@ export enum QueryType {
   Event = 'event-query',
   Recording = 'recording-query',
   RecordingSegments = 'recording-segments-query',
+  MediaMetadata = 'media-metadata',
 }
 
 export enum QueryResultsType {
   Event = 'event-results',
   Recording = 'recording-results',
   RecordingSegments = 'recording-segments-results',
+  MediaMetadata = 'media-metadata-results',
 }
 
 export enum Engine {
@@ -65,6 +66,8 @@ export type QueryReturnType<QT> = QT extends EventQuery
   ? RecordingQueryResults
   : QT extends RecordingSegmentsQuery
   ? RecordingSegmentsQueryResults
+  : QT extends MediaMetadataQuery
+  ? MediaMetadataQueryResults
   : never;
 export type PartialQueryConcreteType<PQT> = PQT extends PartialEventQuery
   ? EventQuery
@@ -78,6 +81,7 @@ export type ResultsMap<QT> = Map<QT, QueryReturnType<QT>>;
 export type EventQueryResultsMap = ResultsMap<EventQuery>;
 export type RecordingQueryResultsMap = ResultsMap<RecordingQuery>;
 export type RecordingSegmentsQueryResultsMap = ResultsMap<RecordingSegmentsQuery>;
+export type MediaMetadataQueryResultsMap = ResultsMap<MediaMetadataQuery>;
 
 export interface MediaMetadata {
   where?: Set<string>;
@@ -176,24 +180,15 @@ export interface RecordingSegmentsQueryResults extends QueryResults {
   segments: RecordingSegment[];
 }
 
-// ========================
-// Frigate concrete results
-// ========================
+// ====================
+// Media metadata Query
+// ====================
 
-export interface FrigateEventQueryResults extends EventQueryResults {
-  engine: Engine.Frigate;
-  instanceID: string;
-  events: FrigateEvent[];
+export interface MediaMetadataQuery extends DataQuery {
+  type: QueryType.MediaMetadata;
 }
 
-export interface FrigateRecordingQueryResults extends RecordingQueryResults {
-  engine: Engine.Frigate;
-  instanceID: string;
-  recordings: FrigateRecording[];
-}
-
-export interface FrigateRecordingSegmentsQueryResults
-  extends RecordingSegmentsQueryResults {
-  engine: Engine.Frigate;
-  instanceID: string;
+export interface MediaMetadataQueryResults extends QueryResults {
+  type: QueryResultsType.MediaMetadata;
+  metadata: MediaMetadata;
 }

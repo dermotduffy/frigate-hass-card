@@ -4,7 +4,7 @@ import endOfHour from 'date-fns/endOfHour';
 import startOfHour from 'date-fns/startOfHour';
 import { CameraConfig, CardWideConfig } from '../../types';
 import { ViewMedia } from '../../view/media';
-import { RequestCache, RecordingSegmentsCache } from '../cache';
+import { RecordingSegmentsCache, RequestCache } from '../cache';
 import {
   CameraManagerEngine,
   CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
@@ -19,9 +19,6 @@ import {
   EventQuery,
   EventQueryResults,
   EventQueryResultsMap,
-  FrigateEventQueryResults,
-  FrigateRecordingQueryResults,
-  FrigateRecordingSegmentsQueryResults,
   MediaMetadata,
   PartialEventQuery,
   PartialRecordingQuery,
@@ -40,8 +37,16 @@ import {
   CameraConfigs,
   CameraEndpoints,
   CameraEndpoint,
+  MediaMetadataQuery,
+  MediaMetadataQueryResults,
+  MediaMetadataQueryResultsMap,
 } from '../types';
-import { FrigateRecording } from './types';
+import {
+  FrigateEventQueryResults,
+  FrigateRecordingQueryResults,
+  FrigateRecordingSegmentsQueryResults,
+  FrigateRecording,
+} from './types';
 import {
   getEvents,
   getEventSummary,
@@ -76,6 +81,7 @@ import { GenericCameraManagerEngine } from '../generic/engine-generic';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
+const MEDIA_METADATA_REQUEST_CACHE_AGE_SECONDS = 60;
 
 const CAMERA_BIRDSEYE = 'birdseye' as const;
 
@@ -802,14 +808,26 @@ export class FrigateCameraManagerEngine
   public async getMediaMetadata(
     hass: HomeAssistant,
     cameras: CameraConfigs,
-  ): Promise<MediaMetadata | null> {
+    query: MediaMetadataQuery,
+  ): Promise<MediaMetadataQueryResultsMap | null> {
+    const output: MediaMetadataQueryResultsMap = new Map();
+    if (this._requestCache.has(query)) {
+      const cachedResult = <MediaMetadataQueryResults | null>(
+        this._requestCache.get(query)
+      );
+      if (cachedResult) {
+        output.set(query, cachedResult as MediaMetadataQueryResults);
+        return output;
+      }
+    }
+
     const what: Set<string> = new Set();
     const where: Set<string> = new Set();
     const days: Set<string> = new Set();
 
     const instances = this._buildInstanceToCameraIDMapFromQuery(
       cameras,
-      new Set(cameras.keys()),
+      query.cameraIDs,
     );
 
     const processEventSummary = async (
@@ -865,14 +883,21 @@ export class FrigateCameraManagerEngine
       })(),
     );
 
-    if (!what.size && !where.size && !days.size) {
-      return null;
-    }
-    return {
-      ...(what.size && { what: what }),
-      ...(where.size && { where: where }),
-      ...(days.size && { days: days }),
+    const result: MediaMetadataQueryResults = {
+      type: QueryResultsType.MediaMetadata,
+      engine: Engine.Frigate,
+      metadata: {
+        ...(what.size && { what: what }),
+        ...(where.size && { where: where }),
+        ...(days.size && { days: days }),
+      },
+      expiry: add(new Date(), { seconds: MEDIA_METADATA_REQUEST_CACHE_AGE_SECONDS }),
+      cached: false,
     };
+
+    this._requestCache.set(query, { ...result, cached: true }, result.expiry);
+    output.set(query, result);
+    return output;
   }
 
   /**

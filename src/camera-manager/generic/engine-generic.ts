@@ -23,6 +23,8 @@ import {
   CameraManagerCameraCapabilities,
   Engine,
   CameraEndpoints,
+  MediaMetadataQuery,
+  MediaMetadataQueryResultsMap,
 } from '../types';
 import { getEntityIcon, getEntityTitle } from '../../utils/ha';
 import { EntityRegistryManager } from '../../utils/ha/entity-registry';
@@ -139,7 +141,8 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
   public async getMediaMetadata(
     _hass: HomeAssistant,
     _cameras: CameraConfigs,
-  ): Promise<MediaMetadata | null> {
+    _query: MediaMetadataQuery,
+  ): Promise<MediaMetadataQueryResultsMap | null> {
     return null;
   }
 
