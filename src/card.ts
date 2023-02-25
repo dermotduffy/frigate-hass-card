@@ -384,13 +384,14 @@ class FrigateCard extends LitElement {
   protected _getMenuButtons(): MenuButton[] {
     const buttons: MenuButton[] = [];
 
-    const cameras = this._cameraManager?.getCameras();
+    const visibleCameras = this._cameraManager?.getStore().getVisibleCameras();
     const selectedCameraID = this._view?.camera;
     const selectedCameraConfig = this._getSelectedCameraConfig();
-    const allSelectedCameraIDs =
-      cameras && selectedCameraID
-        ? getAllDependentCameras(cameras, selectedCameraID)
-        : null;
+    const allSelectedCameraIDs = getAllDependentCameras(
+      this._cameraManager,
+      selectedCameraID,
+    );
+
     const cameraCapabilities = allSelectedCameraIDs
       ? this._cameraManager?.getAggregateCameraCapabilities(allSelectedCameraIDs)
       : null;
@@ -410,8 +411,8 @@ class FrigateCard extends LitElement {
       ) as FrigateCardCustomAction,
     });
 
-    if (cameras) {
-      const menuItems = Array.from(cameras, ([cameraID, config]) => {
+    if (visibleCameras) {
+      const menuItems = Array.from(visibleCameras, ([cameraID, config]) => {
         const action = createFrigateCardCustomAction('camera_select', {
           camera: cameraID,
         });
@@ -437,6 +438,61 @@ class FrigateCard extends LitElement {
         title: localize('config.menu.buttons.cameras'),
         items: menuItems,
       });
+    }
+
+    if (selectedCameraID && allSelectedCameraIDs && this._view?.is('live')) {
+      const dependencies = [...allSelectedCameraIDs];
+      const override = this._view?.context?.live?.overrides?.get(selectedCameraID);
+
+      if (dependencies.length === 2) {
+        // If there are only two dependencies (the main camera, and 1 other)
+        // then use a button not a menu to toggle.
+        buttons.push({
+          icon: 'mdi:video-input-component',
+          style:
+            override && override !== selectedCameraID ? this._getEmphasizedStyle() : {},
+          title: localize('config.menu.buttons.substreams'),
+          ...this._getConfig().menu.buttons.substreams,
+          type: 'custom:frigate-card-menu-icon',
+          tap_action: createFrigateCardCustomAction('live_substream_select', {
+            camera:
+              override === undefined || override === dependencies[0]
+                ? dependencies[1]
+                : dependencies[0],
+          }) as FrigateCardCustomAction,
+        });
+      } else if (dependencies.length > 2) {
+        const menuItems = Array.from(dependencies, (cameraID) => {
+          const action = createFrigateCardCustomAction('live_substream_select', {
+            camera: cameraID,
+          });
+          const metadata = this._hass
+            ? this._cameraManager?.getCameraMetadata(this._hass, cameraID) ?? undefined
+            : undefined;
+          const cameraConfig = this._cameraManager?.getStore().getCameraConfig(cameraID);
+          return {
+            enabled: true,
+            icon: metadata?.icon,
+            entity: cameraConfig?.camera_entity,
+            state_color: true,
+            title: metadata?.title,
+            selected:
+              (this._view?.context?.live?.overrides?.get(selectedCameraID) ??
+                selectedCameraID) === cameraID,
+            ...(action && { tap_action: action }),
+          };
+        });
+
+        buttons.push({
+          icon: 'mdi:video-input-component',
+          title: localize('config.menu.buttons.substreams'),
+          style:
+            override && override !== selectedCameraID ? this._getEmphasizedStyle() : {},
+          ...this._getConfig().menu.buttons.substreams,
+          type: 'custom:frigate-card-menu-submenu',
+          items: menuItems,
+        });
+      }
     }
 
     buttons.push({
@@ -634,7 +690,7 @@ class FrigateCard extends LitElement {
     if (!this._view || !this._cameraManager) {
       return null;
     }
-    return this._cameraManager.getCameraConfig(this._view.camera);
+    return this._cameraManager.getStore().getCameraConfig(this._view.camera);
   }
 
   /**
@@ -767,7 +823,7 @@ class FrigateCard extends LitElement {
   protected _changeView(args?: { view?: View; resetMessage?: boolean }): void {
     log(this._cardWideConfig, `Frigate Card view change: `, args?.view ?? '[default]');
     const changeView = (view: View): void => {
-      if (View.isMediaChange(this._view, view)) {
+      if (View.isMajorMediaChange(this._view, view)) {
         this._currentMediaLoadedInfo = null;
       }
       if (this._view?.view !== view.view) {
@@ -785,7 +841,7 @@ class FrigateCard extends LitElement {
       // Load the default view.
       let cameraID: string | null = null;
       if (this._cameraManager) {
-        const cameras = this._cameraManager.getCameras();
+        const cameras = this._cameraManager.getStore().getVisibleCameras();
         if (cameras) {
           if (this._view?.camera && this._getConfig().view.update_cycle_camera) {
             const keys = Array.from(cameras.keys());
@@ -1007,7 +1063,7 @@ class FrigateCard extends LitElement {
     let changedCamera = false;
     let triggerChanges = false;
 
-    const cameras = this._cameraManager?.getCameras();
+    const cameras = this._cameraManager?.getStore().getVisibleCameras();
     for (const [cameraID, config] of cameras?.entries() ?? []) {
       const triggerEntities = config.triggers.entities ?? [];
       const diffs = getHassDifferences(this._hass, oldHass, triggerEntities, {
@@ -1307,7 +1363,7 @@ class FrigateCard extends LitElement {
    */
   protected _cardActionHandler(ev: CustomEvent<ActionType>): void {
     const frigateCardAction = convertActionToFrigateCardCustomAction(ev.detail);
-    if (!frigateCardAction) {
+    if (!this._view || !frigateCardAction) {
       return;
     }
     const action = frigateCardAction.frigate_card_action;
@@ -1325,14 +1381,12 @@ class FrigateCard extends LitElement {
       case 'snapshot':
       case 'snapshots':
       case 'timeline':
-        if (this._view) {
-          this._changeView({
-            view: new View({
-              view: action,
-              camera: this._view.camera,
-            }),
-          });
-        }
+        this._changeView({
+          view: new View({
+            view: action,
+            camera: this._view.camera,
+          }),
+        });
         break;
       case 'download':
         this._downloadViewerMedia();
@@ -1355,16 +1409,31 @@ class FrigateCard extends LitElement {
         this._refMenu.value?.toggleMenu();
         break;
       case 'camera_select':
-        const cameraID = frigateCardAction.camera;
-        if (this._cameraManager?.hasCameraID(cameraID) && this._view) {
+        const selectCameraID = frigateCardAction.camera;
+        if (
+          this._view &&
+          this._cameraManager?.getStore().hasVisibleCameraID(selectCameraID)
+        ) {
           const viewOnCameraSelect = this._getConfig().view.camera_select;
           const targetView =
             viewOnCameraSelect === 'current' ? this._view.view : viewOnCameraSelect;
-          const actualView = this.isViewSupportedByCamera(cameraID, targetView)
+          const actualView = this.isViewSupportedByCamera(selectCameraID, targetView)
             ? targetView
             : FRIGATE_CARD_VIEW_DEFAULT;
-          this._changeView({ view: new View({ view: actualView, camera: cameraID }) });
+          this._changeView({
+            view: new View({ view: actualView, camera: selectCameraID }),
+          });
         }
+        break;
+      case 'live_substream_select':
+        const overrides: Map<string, string> =
+          this._view.context?.live?.overrides ?? new Map();
+        overrides.set(this._view.camera, frigateCardAction.camera);
+        this._changeView({
+          view: this._view.clone().mergeInContext({
+            live: { overrides: overrides },
+          }),
+        });
         break;
       case 'media_player':
         this._mediaPlayerAction(

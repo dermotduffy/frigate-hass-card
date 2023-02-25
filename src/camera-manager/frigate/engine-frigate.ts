@@ -19,7 +19,6 @@ import {
   EventQuery,
   EventQueryResults,
   EventQueryResultsMap,
-  MediaMetadata,
   PartialEventQuery,
   PartialRecordingQuery,
   PartialRecordingSegmentsQuery,

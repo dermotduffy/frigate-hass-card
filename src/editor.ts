@@ -130,6 +130,7 @@ import {
   CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE,
   MEDIA_CHUNK_SIZE_MAX,
   CONF_CAMERAS_ARRAY_GO2RTC_MODES,
+  CONF_CAMERAS_ARRAY_HIDE,
 } from './const.js';
 import { localize } from './localize/localize.js';
 import frigate_card_editor_style from './scss/editor.scss';
@@ -1341,6 +1342,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderStringInput(
                 getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
               )}
+              ${this._renderSwitch(
+                getArrayConfigPath(
+                  CONF_CAMERAS_ARRAY_HIDE,
+                  cameraIndex,
+                ),
+                this._defaults.cameras.hide,
+              )}
               ${this._putInSubmenu(
                 MENU_CAMERAS_FRIGATE,
                 cameraIndex,
@@ -1604,6 +1612,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 })}
                 ${this._renderMenuButton('frigate') /* */}
                 ${this._renderMenuButton('cameras') /* */}
+                ${this._renderMenuButton('substreams') /* */}
                 ${this._renderMenuButton('live') /* */}
                 ${this._renderMenuButton('clips') /* */}
                 ${this._renderMenuButton('snapshots')}

@@ -1,3 +1,4 @@
+import { CameraManager } from '../camera-manager/manager.js';
 import { CameraConfig, RawFrigateCardConfig } from '../types.js';
 
 /**
@@ -25,14 +26,19 @@ export function getCameraID(
 
 /**
  * Get all cameras that depend on a given camera.
- * @param cameras Cameras map.
+ * @param cameraManager The camera manager.
  * @param cameraID ID of the target camera.
- * @returns A set of query parameters.
+ * @returns A set of dependent cameraIDs or null.
  */
 export const getAllDependentCameras = (
-  cameras: Map<string, CameraConfig>,
+  cameraManager?: CameraManager,
   cameraID?: string,
-): Set<string> => {
+): Set<string> | null => {
+  if (!cameraManager || !cameraID) {
+    return null;
+  }
+  const cameras = cameraManager.getStore().getCameras();
+
   const cameraIDs: Set<string> = new Set();
   const getDependentCameras = (cameraID: string): void => {
     const cameraConfig = cameras.get(cameraID);

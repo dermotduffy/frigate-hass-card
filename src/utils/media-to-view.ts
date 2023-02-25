@@ -27,11 +27,11 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
     targetView?: FrigateCardView;
   },
 ): Promise<void> => {
-  const cameras = cameraManager.getCameras();
-  if (!cameras) {
+  const cameraIDs = getAllDependentCameras(cameraManager, view.camera);
+  if (!cameraIDs) {
     return;
   }
-  const cameraIDs = new Set(getAllDependentCameras(cameras, view.camera));
+
   const queries = createQueriesForEventsView(cameraManager, cardWideConfig, cameraIDs, {
     mediaType: options?.mediaType,
   });
@@ -83,18 +83,16 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
     targetView?: 'recording' | 'recordings';
   },
 ): Promise<void> => {
-  const cameras = cameraManager.getCameras();
-  if (!cameras) {
+  const cameraIDs = getAllDependentCameras(cameraManager, view.camera);
+  if (!cameraIDs) {
     return;
   }
 
-  const cameraIDs = new Set(getAllDependentCameras(cameras, view.camera));
   const queries = createQueriesForRecordingsView(
     cameraManager,
     cardWideConfig,
     cameraIDs,
   );
-
   if (!queries) {
     return;
   }

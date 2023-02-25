@@ -23,6 +23,7 @@
         "url": "URL do servidor Frigate",
         "zone": "Zona do Frigate"
       },
+      "hide": "",
       "icon": "Ícone para esta câmera (detectado automaticamente pela entidade)",
       "id": "ID exclusivo para esta câmera nesse cartão",
       "live_provider": "Provedor de visualização ao vivo para esta câmera",
@@ -223,6 +224,7 @@
         "live": "Ao vivo",
         "media_player": "Enviar para o reprodutor de mídia",
         "priority": "Prioridade",
+        "substreams": "",
         "snapshots": "Instantâneos",
         "timeline": "Linha do tempo"
       },
@@ -347,10 +349,11 @@
     "live_camera_unavailable": "",
     "no_camera_engine": "",
     "no_camera_entity": "",
+    "no_camera_entity_for_triggers": "",
     "no_camera_id": "Não foi possível determinar o ID da câmera para a câmera a seguir, pode ser necessário definir o parâmetro 'id' manualmente",
     "no_camera_name": "Não foi possível determinar o nome da câmera da Frigate, especifique 'camera_entity' ou 'camera_name' para a câmera a seguir",
-    "no_cameras": "Nenhuma câmera válida encontrada, você deve configurar pelo menos uma câmera",
     "no_live_camera": "O parâmetro camera_entity deve ser definido e válido para este provedor ativo",
+    "no_visible_cameras": "",
     "reconnecting": "Reconectando",
     "timeline_no_cameras": "Nenhuma câmera do Frigate para mostrar na linha do tempo",
     "troubleshooting": "Verifique a solução de problemas",

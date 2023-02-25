@@ -53,7 +53,7 @@ export class EntityRegistryManager {
   public async getExtendedEntity(
     hass: HomeAssistant,
     entityID: string,
-  ): Promise<ExtendedEntity | null> {
+  ): Promise<ExtendedEntity> {
     const cachedValue = this._extendedCache.get(entityID);
     if (cachedValue) {
       return cachedValue;

@@ -22,6 +22,7 @@ import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 import './surround-basic.js';
 import { changeViewToRecentEventsForCameraAndDependents } from '../utils/media-to-view';
 import { getAllDependentCameras } from '../utils/camera.js';
+import type { DataQuery } from '../camera-manager/types';
 
 interface ThumbnailViewContext {
   // Whether or not to fetch thumbnails.
@@ -120,7 +121,7 @@ export class FrigateCardSurround extends LitElement {
     // user is scrubbing video).
     if (
       changedProperties.has('view') &&
-      View.isMediaChange(changedProperties.get('view'), this.view)
+      View.isMajorMediaChange(changedProperties.get('view'), this.view)
     ) {
       this._cameraIDsForTimeline = this._getCameraIDsForTimeline() ?? undefined;
     }
@@ -138,18 +139,20 @@ export class FrigateCardSurround extends LitElement {
   }
 
   protected _getCameraIDsForTimeline(): Set<string> | null {
-    const cameras = this.cameraManager?.getCameras();
-    if (!this.view || !cameras) {
+    if (!this.view) {
       return null;
     }
     if (this.view?.is('live')) {
-      return getAllDependentCameras(cameras, this.view.camera);
+      return getAllDependentCameras(
+        this.cameraManager,
+        this.view.camera,
+      );
     }
     if (this.view.isViewerView()) {
       return new Set(
         this.view.query
           ?.getQueries()
-          ?.map((query) => [...query.cameraIDs])
+          ?.map((query: DataQuery) => [...query.cameraIDs])
           .flat(),
       );
     }
