@@ -103,6 +103,7 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 | `live_provider` | `auto` | :heavy_multiplication_x: | The choice of live stream provider. See [Live Providers](#live-providers) below.|
 | `title` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | A friendly name for this camera to use in the card. |
 | `icon` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | The icon to use for this camera in the camera menu and in the next & previous controls when using the `icon` style. |
+| `hide` | `false` | :heavy_multiplication_x: | Whether or not to hide this as an independent camera (e.g. hidden on the live carousel, media filter, camera menu, and triggers cannot trigger this camera). This may be useful if this camera is exclusively used as a dependency of another camera. |
 | `id` | `camera_entity`, `webrtc_card.entity` or `frigate.camera_name` if set (in that preference order). | :heavy_multiplication_x: | An optional identifier to use throughout the card configuration to refer unambiguously to this camera. See [camera IDs](#camera-ids). |
 | `engine` | `auto` | :heavy_multiplication_x: | Which camera engine to use for this camera. If `auto` the card will attempt to choose the correct engine from the specified options. See [engines](#engines) below for valid options.|
 | `frigate` | | :heavy_multiplication_x: | Options for a Frigate camera. See [Frigate configuration](#camera-frigate-configuration) below. |
@@ -194,7 +195,7 @@ See [Using the WebRTC Card](#webrtc) below for more details on how to use the We
 
 #### Camera Dependency Configuration
 
-The `dependencies` block configures other cameras as dependents of this camera. Dependent cameras have their events fetched and merged with this camera. Configuration is under:
+The `dependencies` block configures other cameras as dependents of this camera. Dependent cameras have their media fetched and merged with this camera by default, and offer their respective live views as 'substreams' of the main (depended upon) camera. Configuration is under:
 
 ```yaml
 cameras:
@@ -203,7 +204,7 @@ cameras:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `cameras` | | :heavy_multiplication_x: | An optional array of other camera identifiers (see [camera IDs](#camera-ids)). If specified the card will fetch events for this camera and *also* recursively events for the named cameras. All dependent cameras must themselves be a configured camera in the card. This can be useful to group events for cameras that are close together, to always have clips/snapshots show fully merged events across all cameras or to show events for the `birdseye` camera that otherwise would not have events itself.|
+| `cameras` | | :heavy_multiplication_x: | An optional array of other camera identifiers (see [camera IDs](#camera-ids)). If specified the card will fetch media for this camera and *also* recursively for the named cameras by default. Live views for the involved cameras will be available as 'substreams' of the main (depended upon) camera. All dependent cameras must themselves be a configured camera in the card. This can be useful to group events for cameras that are close together, to show multiple related live  views, to always have clips/snapshots show fully merged events across all cameras or to show events for the `birdseye` camera that otherwise would not have events itself.|
 | `all_cameras` | `false` | :heavy_multiplication_x: | Shortcut to specify all other cameras as dependent cameras.|
 
 <a name="camera-triggers-configuration"></a>
@@ -225,7 +226,7 @@ cameras:
 
 <a name="camera-ids"></a>
 
-#### Camera IDs: Refering to cameras in card configuration
+#### Camera IDs: Referring to cameras in card configuration
 
 Each camera configured in the card has a single identifier (`id`). For a given camera, this will be one of the camera {`id`, `camera_entity`, `webrtc_card.entity` or `frigate.camera_name`} parameters for that camera -- in that order of precedence. These ids may be used in conditions, dependencies or custom actions to refer to a given camera unambiguously. |
 
@@ -1341,6 +1342,7 @@ cameras:
   - camera_entity: camera.front_Door
     live_provider: ha
     engine: auto
+    hide: false
     frigate:
       url: http://my.frigate.local
       client_id: frigate
@@ -1370,6 +1372,8 @@ cameras:
     title: 'Front entrance'
     # Custom identifier for the camera to refer to it above.
     id: 'camera-2'
+    # Don't show this camera on the UI (will only be available as a dependent substream).
+    hide: true
     webrtc_card:
       entity: camera.entrance_rtsp
       url: 'rtsp://username:password@camera:554/av_stream/ch0'
@@ -1456,6 +1460,10 @@ menu:
       enabled: true
       alignment: matching
       icon: mdi:video-switch
+    substreams:
+      priority: 50
+      enabled: true
+      icon: mdi:video-input-component
     live:
       priority: 50
       enabled: true
@@ -2834,6 +2842,66 @@ elements:
         data_down:
           device: '048123'
           cmd: down
+```
+</details>
+
+### Using live substreams
+
+The card supports configuring 'substreams' to show up for a given live camera through the use of [camera dependencies](#camera-dependencies-configuration).
+
+<details>
+  <summary>Expand: Having an SD and HD substream</summary>
+
+This example shows two substreams for a single live camera, and uses the 'HD' icon.
+
+```yaml
+[...]
+cameras:
+  - camera_entity: camera.sitting_room
+    live_provider: image
+    dependencies:
+      cameras:
+        - sitting_room_hd
+  - camera_entity: camera.sitting_room
+    title: Sitting Room HD
+    live_provider: go2rtc
+    id: sitting_room_hd
+    # Do not show the HD camera independently on the UI.
+    hide: true
+menu:
+  buttons:
+    substreams:
+      icon: mdi:high-definition
+```
+</details>
+
+<details>
+  <summary>Expand: Having a substream menu with different live providers</summary>
+
+This example shows a substream menu for three different live providers for a given camera.
+
+```yaml
+[...]
+cameras:
+  - camera_entity: camera.sitting_room
+    live_provider: image
+    dependencies:
+      cameras:
+        - sitting_room_go2rtc
+        - sitting_room_ha
+    icon: mdi:image
+  - camera_entity: camera.sitting_room
+    live_provider: go2rtc
+    id: sitting_room_go2rtc
+    hide: true
+    title: Sitting Room go2rtc
+    icon: mdi:alpha-g
+  - camera_entity: camera.sitting_room
+    live_provider: ha
+    id: sitting_room_ha
+    hide: true
+    title: Sitting Room HA
+    icon: mdi:home
 ```
 </details>
 
