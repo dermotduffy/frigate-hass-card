@@ -33,6 +33,7 @@
           "mjpeg": "Motion JPEG (MJPEG)"
         }
       },
+      "hide": "Hide camera from UI",
       "icon": "Icon for this camera (Autodetected from entity)",
       "id": "Unique id for this camera in this card",
       "live_provider": "Live view provider for this camera",
@@ -239,6 +240,7 @@
         "media_player": "Send to media player",
         "priority": "Priority",
         "snapshots": "Snapshots",
+        "substreams": "Substream(s)",
         "timeline": "Timeline",
         "recordings": "Recordings"
       },
@@ -368,10 +370,11 @@
     "live_camera_unavailable": "Camera unavailable",
     "no_camera_engine": "Could not determine suitable engine for camera",
     "no_camera_entity": "Could not find camera entity",
+    "no_camera_entity_for_triggers": "A camera entity is required in order to autodetect triggers",
     "no_camera_id": "Could not determine camera id for the following camera, may need to set 'id' parameter manually",
     "no_camera_name": "Could not determine a Frigate camera name for camera (or one of its dependents), please specify either 'camera_entity' or 'camera_name'",
-    "no_cameras": "No valid cameras found, you must configure at least one camera entry",
     "no_live_camera": "The camera_entity parameter must be set and valid for this live provider",
+    "no_visible_cameras": "No visible cameras found, you must configure at least one non-hidden camera",
     "reconnecting": "Reconnecting",
     "timeline_no_cameras": "No Frigate cameras to show in timeline",
     "troubleshooting": "Check troubleshooting",

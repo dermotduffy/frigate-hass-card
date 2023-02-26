@@ -5,8 +5,26 @@ import { CameraConfigs, Engine } from './types';
 
 type CameraManagerEngineCameraIDMap = Map<CameraManagerEngine, Set<string>>;
 
-export class CameraManagerStore {
-  protected _configs: Map<string, CameraConfig> = new Map();
+export interface CameraManagerReadOnlyConfigStore {
+  getCameraConfig(cameraID: string): CameraConfig | null;
+  getCameraConfigForMedia(media: ViewMedia): CameraConfig | null;
+
+  hasCameraID(cameraID: string): boolean;
+  hasVisibleCameraID(cameraID: string): boolean;
+
+  getCameraCount(): number;
+  getVisibleCameraCount(): number;
+
+  getCameras(): CameraConfigs;
+  getVisibleCameras(): CameraConfigs;
+
+  getCameraIDs(): Set<string>;
+  getVisibleCameraIDs(): Set<string>;
+}
+
+export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
+  protected _allConfigs: Map<string, CameraConfig> = new Map();
+  protected _visibleConfigs: Map<string, CameraConfig> = new Map();
   protected _enginesByCamera: Map<string, CameraManagerEngine> = new Map();
   protected _enginesByType: Map<Engine, CameraManagerEngine> = new Map();
 
@@ -15,29 +33,44 @@ export class CameraManagerStore {
     cameraConfig: CameraConfig,
     engine: CameraManagerEngine,
   ): void {
-    this._configs.set(cameraID, cameraConfig);
+    if (!cameraConfig.hide) {
+      this._visibleConfigs.set(cameraID, cameraConfig);
+    }
+    this._allConfigs.set(cameraID, cameraConfig);
     this._enginesByCamera.set(cameraID, engine);
     this._enginesByType.set(engine.getEngineType(), engine);
   }
 
-  public getCameraCount(): number {
-    return this._configs.size;
+  public getCameraConfig(cameraID: string): CameraConfig | null {
+    return this._allConfigs.get(cameraID) ?? null;
   }
 
   public hasCameraID(cameraID: string): boolean {
-    return this._configs.has(cameraID);
+    return this._allConfigs.has(cameraID);
+  }
+  public hasVisibleCameraID(cameraID: string): boolean {
+    return this._visibleConfigs.has(cameraID);
   }
 
-  public getCameraConfig(cameraID: string): CameraConfig | null {
-    return this._configs.get(cameraID) ?? null;
+  public getCameraCount(): number {
+    return this._allConfigs.size;
+  }
+  public getVisibleCameraCount(): number {
+    return this._visibleConfigs.size;
   }
 
   public getCameras(): CameraConfigs {
-    return this._configs;
+    return this._allConfigs;
+  }
+  public getVisibleCameras(): CameraConfigs {
+    return this._visibleConfigs;
   }
 
   public getCameraIDs(): Set<string> {
-    return new Set(this._configs.keys());
+    return new Set(this._allConfigs.keys());
+  }
+  public getVisibleCameraIDs(): Set<string> {
+    return new Set(this._visibleConfigs.keys());
   }
 
   public getCameraConfigForMedia(media: ViewMedia): CameraConfig | null {

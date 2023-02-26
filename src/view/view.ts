@@ -39,12 +39,17 @@ export class View {
    * @param curr The current view.
    * @returns True if the view change is a real media change.
    */
-  public static isMediaChange(prev?: View, curr?: View): boolean {
+  public static isMajorMediaChange(prev?: View, curr?: View): boolean {
     return (
       !prev ||
       !curr ||
       prev.view !== curr.view ||
       prev.camera !== curr.camera ||
+      // When in live mode, take overrides into account in deciding if this is a
+      // major media change.
+      (curr.view === 'live' &&
+        prev.context?.live?.overrides?.get(prev.camera) !==
+          curr.context?.live?.overrides?.get(curr.camera)) ||
       // When in the live view, the queryResults contain the events that
       // happened in the past -- not reflective of the actual live media viewer
       // the user is seeing.

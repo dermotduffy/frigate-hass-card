@@ -23,6 +23,7 @@
         "url": "Frigate URL del server",
         "zone": "Frigate zona"
       },
+      "hide": "",
       "icon": "Icona per questa telecamera (Autoidentificato dall'entità)",
       "id": "ID univoco per questa telecamera in questa carta",
       "live_provider": "Provider di visualizzazione dal vivo per questa telecamera",
@@ -223,6 +224,7 @@
         "live": "Abitare",
         "media_player": "Invia a Media Player",
         "priority": "Priorità",
+        "substreams": "",
         "snapshots": "Istantanee",
         "timeline": "Timeline"
       },
@@ -347,10 +349,11 @@
     "live_camera_unavailable": "Telecamera non disponibile",
     "no_camera_engine": "",
     "no_camera_entity": "",
+    "no_camera_entity_for_triggers": "",
     "no_camera_id": "Impossibile determinare l'ID della telecamera , potrebbe essere necessario impostare manualmente il parametro 'ID'",
     "no_camera_name": "Impossibile determinare un nome della telecamera in Frigate, si prega di specificare 'camera_enty' o 'camera_name'",
-    "no_cameras": "Nessuna telecamera valida trovata, è necessario configurare almeno una voce della telecamera",
     "no_live_camera": "Il parametro fotocamera_enty deve essere impostato e valido per questo provider live",
+    "no_visible_cameras": "",
     "reconnecting": "Riconnessione",
     "timeline_no_cameras": "Nessuna telecamera damostrare in Frigate nella timeline",
     "troubleshooting": "Controllare la risoluzione dei problemi",

@@ -1,16 +1,16 @@
 import {
-    ActionConfig,
-    handleActionConfig,
-    hasAction,
-    HomeAssistant
+  ActionConfig,
+  handleActionConfig,
+  hasAction,
+  HomeAssistant,
 } from 'custom-card-helpers';
 import {
-    Actions,
-    ActionsConfig,
-    ActionType,
-    FrigateCardAction,
-    FrigateCardCustomAction,
-    frigateCardCustomActionSchema
+  Actions,
+  ActionsConfig,
+  ActionType,
+  FrigateCardAction,
+  FrigateCardCustomAction,
+  frigateCardCustomActionSchema,
 } from '../types.js';
 
 /**
@@ -43,7 +43,7 @@ export function createFrigateCardCustomAction(
     media_player_action?: 'play' | 'stop';
   },
 ): FrigateCardCustomAction | null {
-  if (action === 'camera_select') {
+  if (action === 'camera_select' || action === 'live_substream_select') {
     if (!args?.camera) {
       return null;
     }

@@ -1,5 +1,9 @@
 import { HomeAssistant } from 'custom-card-helpers';
-import { CameraConfig, CamerasConfig, CardWideConfig } from '../types.js';
+import {
+  CameraConfig,
+  CamerasConfig,
+  CardWideConfig,
+} from '../types.js';
 import { allPromises, arrayify, setify } from '../utils/basic.js';
 import {
   CameraManagerCameraCapabilities,
@@ -46,7 +50,7 @@ import { EntityRegistryManager } from '../utils/ha/entity-registry/index.js';
 import { getCameraID } from '../utils/camera.js';
 import { localize } from '../localize/localize.js';
 import { CameraInitializationError } from './error.js';
-import { CameraManagerStore } from './store.js';
+import { CameraManagerReadOnlyConfigStore, CameraManagerStore } from './store.js';
 import cloneDeep from 'lodash-es/cloneDeep';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
 
@@ -126,14 +130,18 @@ export class CameraManager {
     const output: Map<CameraConfig, CameraManagerEngine> = new Map();
     const engines: Map<Engine, CameraManagerEngine> = new Map();
 
-    for (const cameraConfig of camerasConfig) {
-      const engineType = await this._engineFactory.getEngineForCamera(
-        hass,
-        cameraConfig,
+    const getEngineTypes = async (configs: CameraConfig[]) => {
+      return await allPromises(configs, (config) =>
+        this._engineFactory.getEngineForCamera(hass, config),
       );
+    };
+
+    const engineTypes = await getEngineTypes(camerasConfig);
+    for (const [index, cameraConfig] of camerasConfig.entries())  {
+      const engineType = engineTypes[index];      
       const engine = engineType
-        ? engines.get(engineType) ?? this._engineFactory.createEngine(engineType)
-        : null;
+      ? engines.get(engineType) ?? this._engineFactory.createEngine(engineType)
+      : null;
       if (!engine || !engineType) {
         throw new CameraInitializationError(
           localize('error.no_camera_engine'),
@@ -218,8 +226,8 @@ export class CameraManager {
       this._store.addCamera(id, result.initializedConfig, result.engine);
     });
 
-    if (!this._store.getCameraCount()) {
-      throw new CameraInitializationError(localize('error.no_cameras'));
+    if (!this._store.getVisibleCameraCount()) {
+      throw new CameraInitializationError(localize('error.no_visible_cameras'));
     }
   }
 
@@ -227,22 +235,8 @@ export class CameraManager {
     return this._store.getCameraCount() > 0;
   }
 
-  public getCameras(): Map<string, CameraConfig> | null {
-    return this._store.getCameras();
-  }
-
-  public getCameraConfig(cameraID: string): CameraConfig | null {
-    return this._store.getCameraConfig(cameraID);
-  }
-
-  public getCameraIDs(): Set<string> | null {
-    return this._store.getCameraCount()
-      ? new Set(this._store.getCameras().keys())
-      : null;
-  }
-
-  public hasCameraID(cameraID: string): boolean {
-    return this._store.hasCameraID(cameraID);
+  public getStore(): CameraManagerReadOnlyConfigStore {
+    return this._store;
   }
 
   public generateDefaultEventQueries(
@@ -287,7 +281,7 @@ export class CameraManager {
 
     const results = await this._handleQuery(hass, query);
 
-    for (const [query, result] of results?.entries() ?? []) {
+    for (const result of results?.values() ?? []) {
       if (result.metadata.what) {
         result.metadata.what.forEach(what.add, what);
       }
@@ -325,19 +319,19 @@ export class CameraManager {
       let queries: DataQuery[] | null = null;
       if (QueryClassifier.isEventQuery(partialQuery)) {
         queries = engine.generateDefaultEventQuery(
-          this._store.getCameras(),
+          this._store.getVisibleCameras(),
           cameraIDs,
           partialQuery,
         );
       } else if (QueryClassifier.isRecordingQuery(partialQuery)) {
         queries = engine.generateDefaultRecordingQuery(
-          this._store.getCameras(),
+          this._store.getVisibleCameras(),
           cameraIDs,
           partialQuery,
         );
       } else if (QueryClassifier.isRecordingSegmentsQuery(partialQuery)) {
         queries = engine.generateDefaultRecordingSegmentsQuery(
-          this._store.getCameras(),
+          this._store.getVisibleCameras(),
           cameraIDs,
           partialQuery,
         );

@@ -238,7 +238,7 @@ export class FrigateCardTimelineCore extends LitElement {
     const item = request.detail.item;
     const media = this._timelineSource?.dataset.get(item)?.media;
     const cameraConfig = media
-      ? this.cameraManager?.getCameraConfig(media.getCameraID()) ?? undefined
+      ? this.cameraManager?.getStore().getCameraConfigForMedia(media) ?? undefined
       : undefined;
 
     request.detail.hass = this.hass;
@@ -291,15 +291,9 @@ export class FrigateCardTimelineCore extends LitElement {
    * @returns A set of camera ids (may be empty).
    */
   protected _getTimelineCameraIDs(): Set<string> | null {
-    return this.cameraIDs ?? this._getAllCameraIDs();
-  }
-
-  /**
-   * Get all the keys of all cameras.
-   * @returns A set of camera ids (may be empty).
-   */
-  protected _getAllCameraIDs(): Set<string> | null {
-    return this.cameraManager?.getCameraIDs() ?? null;
+    return (
+      this.cameraIDs ?? this.cameraManager?.getStore().getVisibleCameraIDs() ?? null
+    );
   }
 
   /**
@@ -1042,11 +1036,7 @@ export class FrigateCardTimelineCore extends LitElement {
       changedProps.has('cameraIDs')
     ) {
       const cameraIDs = this._getTimelineCameraIDs();
-      if (
-        cameraIDs &&
-        this.cameraManager &&
-        this.timelineConfig
-      ) {
+      if (cameraIDs && this.cameraManager && this.timelineConfig) {
         this._timelineSource = new TimelineDataSource(
           this.cameraManager,
           cameraIDs,

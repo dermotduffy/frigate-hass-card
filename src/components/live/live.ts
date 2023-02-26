@@ -56,6 +56,18 @@ import { dispatchMessageEvent, dispatchErrorMessageEvent } from '../message.js';
 import { HassEntity } from 'home-assistant-js-websocket';
 import { CameraEndpoints } from '../../camera-manager/types.js';
 
+interface LiveViewContext {
+  // A cameraID override (used for dependencies/substreams to force a different
+  // camera to be live rather than the camera selected in the view).
+  overrides?: Map<string, string>;
+}
+
+declare module 'view' {
+  interface ViewContext {
+    live?: LiveViewContext;
+  }
+}
+
 /**
  * Get the state object or dispatch an error. Used in `ha` and `image` live
  * providers.
@@ -339,7 +351,7 @@ export class FrigateCardLiveCarousel extends LitElement {
   }
 
   protected _getSelectedCameraIndex(): number {
-    const cameraIDs = this.cameraManager?.getCameraIDs();
+    const cameraIDs = this.cameraManager?.getStore().getVisibleCameraIDs();
     if (!cameraIDs || !this.view) {
       return 0;
     }
@@ -362,7 +374,7 @@ export class FrigateCardLiveCarousel extends LitElement {
    * @returns A list of EmblaOptionsTypes.
    */
   protected _getPlugins(): EmblaCarouselPlugins {
-    const cameras = this.cameraManager?.getCameraIDs();
+    const cameras = this.cameraManager?.getStore().getVisibleCameraIDs();
     return [
       // Only enable wheel plugin if there is more than one camera.
       ...(cameras && cameras.size > 1
@@ -420,18 +432,27 @@ export class FrigateCardLiveCarousel extends LitElement {
    * name to slide number.
    */
   protected _getSlides(): [TemplateResult[], Record<string, number>] {
-    const cameras = this.cameraManager?.getCameras();
-    if (!cameras) {
+    const visibleCameras = this.cameraManager?.getStore().getVisibleCameras();
+    if (!visibleCameras) {
       return [[], {}];
     }
 
     const slides: TemplateResult[] = [];
     const cameraToSlide: Record<string, number> = {};
 
-    for (const [camera, cameraConfig] of cameras) {
-      const slide = this._renderLive(camera, cameraConfig, slides.length);
+    for (const [cameraID, cameraConfig] of visibleCameras) {
+      const liveCameraID =
+        this.view?.context?.live?.overrides?.get(cameraID) ?? cameraID;
+      const liveCameraConfig =
+        cameraID === liveCameraID
+          ? cameraConfig
+          : this.cameraManager?.getStore().getCameraConfig(liveCameraID);
+
+      const slide = liveCameraConfig
+        ? this._renderLive(liveCameraID, liveCameraConfig, slides.length)
+        : null;
       if (slide) {
-        cameraToSlide[camera] = slides.length;
+        cameraToSlide[cameraID] = slides.length;
         slides.push(slide);
       }
     }
@@ -442,7 +463,7 @@ export class FrigateCardLiveCarousel extends LitElement {
    * Handle the user selecting a new slide in the carousel.
    */
   protected _setViewHandler(ev: CustomEvent<CarouselSelect>): void {
-    const cameras = this.cameraManager?.getCameras();
+    const cameras = this.cameraManager?.getStore().getVisibleCameras();
     if (cameras && ev.detail.index !== this._getSelectedCameraIndex()) {
       this._setViewCameraID(Array.from(cameras.keys())[ev.detail.index]);
     }
@@ -515,7 +536,7 @@ export class FrigateCardLiveCarousel extends LitElement {
         <frigate-card-live-provider
           ?disabled=${this.liveConfig.lazy_load}
           .cameraConfig=${cameraConfig}
-          .cameraEndpoints=${guard([this.cameraManager], () =>
+          .cameraEndpoints=${guard([this.cameraManager, cameraID], () =>
             this.cameraManager?.getCameraEndpoints(cameraID),
           )}
           .label=${cameraMetadata?.title ?? ''}
@@ -535,7 +556,7 @@ export class FrigateCardLiveCarousel extends LitElement {
   }
 
   protected _getCameraIDsOfNeighbors(): [string | null, string | null] {
-    const cameras = this.cameraManager?.getCameras();
+    const cameras = this.cameraManager?.getStore().getVisibleCameras();
     if (!cameras || !this.view || !this.hass) {
       return [null, null];
     }
@@ -557,15 +578,13 @@ export class FrigateCardLiveCarousel extends LitElement {
    * @returns A template to display to the user.
    */
   protected render(): TemplateResult | void {
+    if (!this.liveConfig || !this.view || !this.hass || !this.cameraManager) {
+      return;
+    }
+
     const [slides, cameraToSlide] = this._getSlides();
     this._cameraToSlide = cameraToSlide;
-    if (
-      !slides.length ||
-      !this.liveConfig ||
-      !this.view ||
-      !this.hass ||
-      !this.cameraManager
-    ) {
+    if (!slides.length) {
       return;
     }
 
@@ -577,15 +596,19 @@ export class FrigateCardLiveCarousel extends LitElement {
 
     const [prevID, nextID] = this._getCameraIDsOfNeighbors();
 
+    const overrideCameraID = (cameraID: string): string => {
+      return this.view?.context?.live?.overrides?.get(cameraID) ?? cameraID;
+    };
+
     const cameraMetadataPrevious = prevID
-      ? this.cameraManager.getCameraMetadata(this.hass, prevID)
+      ? this.cameraManager.getCameraMetadata(this.hass, overrideCameraID(prevID))
       : null;
     const cameraMetadataCurrent = this.cameraManager.getCameraMetadata(
       this.hass,
-      this.view.camera,
+      overrideCameraID(this.view.camera),
     );
     const cameraMetadataNext = nextID
-      ? this.cameraManager.getCameraMetadata(this.hass, nextID)
+      ? this.cameraManager.getCameraMetadata(this.hass, overrideCameraID(nextID))
       : null;
 
     // Notes on the below:

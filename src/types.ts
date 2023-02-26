@@ -199,7 +199,7 @@ const noActionSchema = schemaForType<
   }),
 );
 
-const frigateCardCustomactionsBaseSchema = customActionSchema.extend({
+const frigateCardCustomActionsBaseSchema = customActionSchema.extend({
   action: z
     .literal('custom:frigate-card-action')
     // Syntactic sugar to avoid 'fire-dom-event' as part of an external API.
@@ -227,18 +227,24 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
 const FRIGATE_CARD_ACTIONS = [
   ...FRIGATE_CARD_GENERAL_ACTIONS,
   'camera_select',
+  'live_substream_select',
   'media_player',
 ] as const;
 export type FrigateCardAction = (typeof FRIGATE_CARD_ACTIONS)[number];
 
-const frigateCardGeneralActionSchema = frigateCardCustomactionsBaseSchema.extend({
+const frigateCardGeneralActionSchema = frigateCardCustomActionsBaseSchema.extend({
   frigate_card_action: z.enum(FRIGATE_CARD_GENERAL_ACTIONS),
 });
-const frigateCardCameraSelectActionSchema = frigateCardCustomactionsBaseSchema.extend({
+const frigateCardCameraSelectActionSchema = frigateCardCustomActionsBaseSchema.extend({
   frigate_card_action: z.literal('camera_select'),
   camera: z.string(),
 });
-const frigateCarMediaPlayerActionSchema = frigateCardCustomactionsBaseSchema.extend({
+const frigateCardLiveDependencySelectActionSchema =
+  frigateCardCustomActionsBaseSchema.extend({
+    frigate_card_action: z.literal('live_substream_select'),
+    camera: z.string(),
+  });
+const frigateCarMediaPlayerActionSchema = frigateCardCustomActionsBaseSchema.extend({
   frigate_card_action: z.literal('media_player'),
   media_player: z.string(),
   media_player_action: z.enum(['play', 'stop']),
@@ -247,6 +253,7 @@ const frigateCarMediaPlayerActionSchema = frigateCardCustomactionsBaseSchema.ext
 export const frigateCardCustomActionSchema = z.union([
   frigateCardGeneralActionSchema,
   frigateCardCameraSelectActionSchema,
+  frigateCardLiveDependencySelectActionSchema,
   frigateCarMediaPlayerActionSchema,
 ]);
 export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSchema>;
@@ -398,6 +405,7 @@ const cameraConfigDefault = {
     all_cameras: false,
     cameras: [],
   },
+  hide: false,
   triggers: {
     motion: false,
     occupancy: true,
@@ -417,6 +425,9 @@ const cameraConfigSchema = z
     // specified).
     icon: z.string().optional(),
     title: z.string().optional(),
+
+    // Used to hide the camera (e.g. when used only as a dependency).
+    hide: z.boolean().optional(),
 
     // Optional identifier to separate different camera configurations used in
     // this card.
@@ -944,6 +955,7 @@ const menuConfigDefault = {
   buttons: {
     frigate: visibleButtonDefault,
     cameras: visibleButtonDefault,
+    substreams: visibleButtonDefault,
     live: visibleButtonDefault,
     clips: visibleButtonDefault,
     snapshots: visibleButtonDefault,
@@ -976,6 +988,7 @@ const menuConfigSchema = z
       .object({
         frigate: visibleButtonSchema.default(menuConfigDefault.buttons.frigate),
         cameras: visibleButtonSchema.default(menuConfigDefault.buttons.cameras),
+        substreams: visibleButtonSchema.default(menuConfigDefault.buttons.substreams),
         live: visibleButtonSchema.default(menuConfigDefault.buttons.live),
         clips: visibleButtonSchema.default(menuConfigDefault.buttons.clips),
         snapshots: visibleButtonSchema.default(menuConfigDefault.buttons.snapshots),

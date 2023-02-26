@@ -31,10 +31,7 @@ import { MediaQueriesClassifier } from '../view/media-queries-classifier';
 import { View } from '../view/view';
 import { CameraManager } from '../camera-manager/manager';
 import { HomeAssistant } from 'custom-card-helpers';
-import {
-  MediaMetadata,
-  QueryType,
-} from '../camera-manager/types';
+import { DataQuery, MediaMetadata, QueryType } from '../camera-manager/types';
 import format from 'date-fns/format';
 import endOfMonth from 'date-fns/endOfMonth';
 import isEqual from 'lodash-es/isEqual';
@@ -168,7 +165,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _ev: CustomEvent<{ value: unknown }>,
   ): Promise<void> {
-    const cameras = this.cameraManager?.getCameras();
+    const cameras = this.cameraManager?.getStore().getVisibleCameras();
     if (!this.hass || !cameras || !this.cameraManager || !this.view) {
       return;
     }
@@ -269,7 +266,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('cameraManager')) {
-      const cameras = this.cameraManager?.getCameras();
+      const cameras = this.cameraManager?.getStore().getVisibleCameras();
       if (cameras) {
         this._cameraOptions = Array.from(cameras.keys()).map((cameraID) => ({
           value: cameraID,
@@ -321,7 +318,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
 
   protected _getDefaultsFromView(): MediaFilterCoreDefaults | null {
     const queries = this.view?.query?.getQueries();
-    const cameras = this.cameraManager?.getCameras();
+    const cameras = this.cameraManager?.getStore().getVisibleCameras();
     if (!this.view || !queries || !cameras) {
       return null;
     }
@@ -333,12 +330,12 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
     let favorite: MediaFilterCoreFavoriteSelection | undefined;
 
     const cameraIDSets = uniqWith(
-      queries.map((query) => query.cameraIDs),
+      queries.map((query: DataQuery) => query.cameraIDs),
       isEqual,
     );
-    // Special note: If all cameras are selected, this is the same as no
+    // Special note: If all visible cameras are selected, this is the same as no
     // selector at all.
-    if (cameraIDSets.length === 1 && queries[0].cameraIDs.size !== cameras.size) {
+    if (cameraIDSets.length === 1 && isEqual(queries[0].cameraIDs, cameras)) {
       cameraIDs = [...queries[0].cameraIDs];
     }
 

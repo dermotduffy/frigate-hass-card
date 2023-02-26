@@ -6,7 +6,6 @@ import {
   DataQuery,
   EventQuery,
   EventQueryResultsMap,
-  MediaMetadata,
   PartialEventQuery,
   PartialRecordingQuery,
   PartialRecordingSegmentsQuery,
