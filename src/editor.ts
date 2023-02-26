@@ -130,6 +130,7 @@ import {
   CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE,
   MEDIA_CHUNK_SIZE_MAX,
   CONF_CAMERAS_ARRAY_GO2RTC_MODES,
+  CONF_CAMERAS_ARRAY_GO2RTC_STREAM,
   CONF_CAMERAS_ARRAY_HIDE,
 } from './const.js';
 import { localize } from './localize/localize.js';
@@ -1436,7 +1437,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   }
                 )}
                 ${this._renderStringInput(
-                  getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
+                  getArrayConfigPath(CONF_CAMERAS_ARRAY_GO2RTC_STREAM, cameraIndex),
                 )}`,
               )}
               ${this._putInSubmenu(

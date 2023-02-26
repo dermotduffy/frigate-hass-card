@@ -1093,7 +1093,7 @@ export class FrigateCameraManagerEngine
           // go2rtc is exposed by the integration under the (slightly
           // misleading) 'mse' path, even though that path can serve all go2rtc
           // modes.
-          `/mse/api/ws?src=${cameraConfig.frigate.camera_name}`,
+          `/mse/api/ws?src=${cameraConfig.go2rtc?.stream ?? cameraConfig.frigate.camera_name}`,
         sign: true,
       };
     };

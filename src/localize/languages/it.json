@@ -23,6 +23,17 @@
         "url": "Frigate URL del server",
         "zone": "Frigate zona"
       },
+      "go2rtc": {
+        "editor_label": "",
+        "modes": {
+          "editor_label": "",
+          "mse": "",
+          "webrtc": "",
+          "mp4": "",
+          "mjpeg": ""
+        },
+        "stream": ""
+      },
       "hide": "",
       "icon": "Icona per questa telecamera (Autoidentificato dall'entità)",
       "id": "ID univoco per questa telecamera in questa carta",

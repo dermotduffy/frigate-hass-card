@@ -174,6 +174,7 @@ cameras:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `modes` | `[webrtc, mse, mp4, mjpeg]` | :heavy_multiplication_x: | An ordered array of `go2rtc` modes to use. Valid values are `webrtc`, `mse`, `mp4` or `mjpeg` values. |
+| `stream` | Determind by camera engine (e.g. `frigate` camera name). | :heavy_multiplication_x: | A valid `go2rtc` stream name. |
 
 #### Camera WebRTC Card configuration
 
@@ -1392,6 +1393,7 @@ cameras:
         - mse
         - mp4
         - mjpeg
+      stream: sitting_room
 ```
 </details>
 

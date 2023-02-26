@@ -13,6 +13,7 @@ export const CONF_CAMERAS_ARRAY_FRIGATE_LABEL =
 export const CONF_CAMERAS_ARRAY_FRIGATE_URL = `${CONF_CAMERAS}.#.frigate.url` as const;
 export const CONF_CAMERAS_ARRAY_FRIGATE_ZONE = `${CONF_CAMERAS}.#.frigate.zone` as const;
 export const CONF_CAMERAS_ARRAY_GO2RTC_MODES = `${CONF_CAMERAS}.#.go2rtc.modes` as const;
+export const CONF_CAMERAS_ARRAY_GO2RTC_STREAM = `${CONF_CAMERAS}.#.go2rtc.stream` as const;
 export const CONF_CAMERAS_ARRAY_HIDE = `${CONF_CAMERAS}.#.hide` as const;
 export const CONF_CAMERAS_ARRAY_ID = `${CONF_CAMERAS}.#.id` as const;
 export const CONF_CAMERAS_ARRAY_TITLE = `${CONF_CAMERAS}.#.title` as const;
