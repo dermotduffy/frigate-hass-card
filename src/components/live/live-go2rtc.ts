@@ -50,6 +50,10 @@ class FrigateCardGo2RTCPlayer extends VideoRTC {
         hideMediaControlsTemporarily(this.video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
         dispatchMediaLoadedEvent(this, this.video);
       };
+
+      // Always started muted. Media may be unmuted in accordance with user
+      // configuration.
+      this.video.muted = true;
     }
   }
 }
