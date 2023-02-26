@@ -448,7 +448,8 @@ const cameraConfigSchema = z
 
     go2rtc: z
       .object({
-        modes: z.enum(['webrtc', 'mse', 'mp4', 'mjpeg']).array(),
+        modes: z.enum(['webrtc', 'mse', 'mp4', 'mjpeg']).array().optional(),
+        stream: z.string().optional(),
       })
       .optional(),
 

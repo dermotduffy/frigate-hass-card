@@ -31,7 +31,8 @@
           "webrtc": "Web Real-Time Communication (WebRTC)",
           "mp4": "MPEG-4 (MP4)",
           "mjpeg": "Motion JPEG (MJPEG)"
-        }
+        },
+        "stream": "go2rtc stream name"
       },
       "hide": "Hide camera from UI",
       "icon": "Icon for this camera (Autodetected from entity)",

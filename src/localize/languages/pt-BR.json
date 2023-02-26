@@ -23,6 +23,17 @@
         "url": "URL do servidor Frigate",
         "zone": "Zona do Frigate"
       },
+      "go2rtc": {
+        "editor_label": "",
+        "modes": {
+          "editor_label": "",
+          "mse": "",
+          "webrtc": "",
+          "mp4": "",
+          "mjpeg": ""
+        },
+        "stream": ""
+      },
       "hide": "",
       "icon": "Ícone para esta câmera (detectado automaticamente pela entidade)",
       "id": "ID exclusivo para esta câmera nesse cartão",
