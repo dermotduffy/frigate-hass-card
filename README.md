@@ -3151,6 +3151,62 @@ overrides:
 ```
 </details>
 
+### Automatically trigger "fullscreen" mode
+
+The card cannot automatically natively trigger fullscreen mode without the user
+clicking, since Javascript (understandbly) prevents random websites from
+triggering fullscreen mode without the user having activated it. 
+
+There is a potential workaround:
+
+<details>
+  <summary>Expand: Use "browser_mod" to show a popup with a Frigate Card</summary>
+
+This workaround uses
+[hass-browser_mod](https://github.com/thomasloven/hass-browser_mod) with an
+automation to trigger a popup. Thanks to
+[conorlap@](https://github.com/conorlap) for the following example:
+
+```yaml
+alias: >-
+  Doorbell Pressed OR Human Detected - Firefox browser full screen video feed
+  for 15 seconds
+description: ""
+trigger:
+  - platform: state
+    from: "off"
+    to: "on"
+    entity_id:
+      - binary_sensor.frontdoor_person_occupancy
+  - platform: state
+    entity_id:
+      - binary_sensor.front_door_dahua_button_pressed
+    to: "on"
+condition: []
+action:
+  - service: browser_mod.popup
+    data:
+      size: wide
+      timeout: 15000
+      content:
+        type: custom:frigate-card
+        aspect_ratio: 55%
+        cameras:
+          - camera_entity: camera.frontdoor
+            live_provider: ha
+        menu:
+          style: none
+        live:
+          controls:
+            title:
+              mode: none
+    target:
+      device_id:
+        - d0e93101edfg44y3yt35y5y45y54y
+mode: single
+```
+</details>
+
 <a name="media-layout-examples"></a>
 
 ## Card Refreshes
