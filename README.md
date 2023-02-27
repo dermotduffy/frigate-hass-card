@@ -187,8 +187,8 @@ cameras:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `entity` | | :heavy_multiplication_x: | The RTSP entity to pass to the WebRTC Card for this camera. Specify this OR `url`. |
-| `url` | | :heavy_multiplication_x: | The RTSP url to pass to the WebRTC Card. Specify this OR `entity`. |
+| `entity` | | :heavy_multiplication_x: | The RTSP entity to pass to the WebRTC Card for this camera. |
+| `url` | Depends on the camera engine (e.g. Frigate will use the camera name by default since this is the [recommended setup](https://deploy-preview-4055--frigate-docs.netlify.app/guides/configuring_go2rtc/))| :heavy_multiplication_x: | The RTSP url to pass to the WebRTC Card. |
 | `*`| | :heavy_multiplication_x: | Any options specified in the `webrtc_card:` YAML dictionary are silently passed through to the AlexxIT's WebRTC Card. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides. |
 
 
@@ -873,6 +873,12 @@ events/snapshots/UI. A perfect combination!
 
 #### Specifying The WebRTC Card Camera
 
+##### Frigate v0.12 and onwards
+
+If you have used the [recommended go2rtc setup](https://deploy-preview-4055--frigate-docs.netlify.app/guides/configuring_go2rtc/) for Frigate, no additional `webrtc_card` configuration is necessary.
+
+##### Frigate v0.11 and earlier
+
 The WebRTC Card live provider does **not** support use of Frigate-provided
 camera entities, as it requires an RTSP stream which Frigate does not currently
 provide. There are two ways to specify the WebRTC Card source camera:
@@ -899,12 +905,12 @@ cameras:
      url: 'rtsp://USERNAME:PASSWORD@CAMERA:554/RTSP_PATH'
 ```
 
-Other WebRTC Card options may be specified under the `live` section, like so:
+Other WebRTC Card options may be specified under the `webrtc_card` section, like so:
 
 ```yaml
-live:
-  webrtc_card:
-    ui: true
+cameras:
+  - webrtc_card:
+      ui: true
 ```
 
 See [the WebRTC Card live configuration](#webrtc-live-configuration) above, and the

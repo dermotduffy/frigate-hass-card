@@ -899,6 +899,7 @@ export class FrigateCardLiveProvider
             class=${classMap(providerClasses)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
+            .cameraEndpoints=${this.cameraEndpoints}
             .cardWideConfig=${this.cardWideConfig}
             @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >

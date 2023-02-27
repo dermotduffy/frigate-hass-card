@@ -1093,7 +1093,9 @@ export class FrigateCameraManagerEngine
           // go2rtc is exposed by the integration under the (slightly
           // misleading) 'mse' path, even though that path can serve all go2rtc
           // modes.
-          `/mse/api/ws?src=${cameraConfig.go2rtc?.stream ?? cameraConfig.frigate.camera_name}`,
+          `/mse/api/ws?src=${
+            cameraConfig.go2rtc?.stream ?? cameraConfig.frigate.camera_name
+          }`,
         sign: true,
       };
     };
@@ -1107,15 +1109,30 @@ export class FrigateCameraManagerEngine
       };
     };
 
+    const getWebRTCCard = (): CameraEndpoint | null => {
+      // By defaykt use the frigate camera name which is the default recommended
+      // setup as per:
+      // https://deploy-preview-4055--frigate-docs.netlify.app/guides/configuring_go2rtc/
+      //
+      // The user may override this in their webrtc_card configuration.
+      const endpoint = cameraConfig.frigate.camera_name
+        ? cameraConfig.frigate.camera_name
+        : null;
+      return endpoint ? { endpoint: endpoint } : null;
+    };
+
     const ui = getUIEndpoint();
     const go2rtc = getGo2RTC();
     const jsmpeg = getJSMPEG();
+    const webrtcCard = getWebRTCCard();
 
     return ui || go2rtc || jsmpeg
       ? {
           ...(ui && { ui: ui }),
           ...(go2rtc && { go2rtc: go2rtc }),
           ...(jsmpeg && { jsmpeg: jsmpeg }),
+          ...(jsmpeg && { jsmpeg: jsmpeg }),
+          ...(webrtcCard && { webrtcCard: webrtcCard }),
         }
       : null;
   }

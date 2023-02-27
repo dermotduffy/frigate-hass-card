@@ -124,6 +124,7 @@ export interface CameraEndpoints {
   ui?: CameraEndpoint;
   go2rtc?: CameraEndpoint;
   jsmpeg?: CameraEndpoint;
+  webrtcCard?: CameraEndpoint;
 }
 
 export type CameraConfigs = Map<string, CameraConfig>;
