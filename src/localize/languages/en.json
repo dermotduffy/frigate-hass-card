@@ -41,7 +41,8 @@
       "icon": "Icon for this camera (Autodetected from entity)",
       "image": {
         "editor_label": "Image Options",
-        "refresh_seconds": "Number of seconds after which to refresh live image (0=never)"
+        "refresh_seconds": "Number of seconds after which to refresh live image (0=never)",
+        "url": "Image URL to use instead of camera entity snapshot"
       },
       "id": "Unique id for this camera in this card",
       "live_provider": "Live view provider for this camera",

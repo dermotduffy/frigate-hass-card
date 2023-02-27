@@ -132,6 +132,7 @@ import {
   CONF_CAMERAS_ARRAY_GO2RTC_MODES,
   CONF_CAMERAS_ARRAY_GO2RTC_STREAM,
   CONF_CAMERAS_ARRAY_HIDE,
+  CONF_CAMERAS_ARRAY_IMAGE_URL,
 } from './const.js';
 import { localize } from './localize/localize.js';
 import frigate_card_editor_style from './scss/editor.scss';
@@ -1411,12 +1412,17 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   true,
                   'config.cameras.image.editor_label',
                   { name: 'mdi:image' },
-                  html` ${this._renderNumberInput(
-                    getArrayConfigPath(
-                      CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
-                      cameraIndex,
-                    ),
-                  )}`,
+                  html`
+                    ${this._renderNumberInput(
+                      getArrayConfigPath(
+                        CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
+                        cameraIndex,
+                      ),
+                    )}
+                    ${this._renderStringInput(
+                      getArrayConfigPath(CONF_CAMERAS_ARRAY_IMAGE_URL, cameraIndex),
+                    )}
+                  `,
                 )}
                 ${this._putInSubmenu(
                   MENU_CAMERAS_WEBRTC_CARD,

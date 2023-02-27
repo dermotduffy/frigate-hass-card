@@ -194,7 +194,6 @@ cameras:
 
 See [Using the WebRTC Card](#webrtc) below for more details on how to use the WebRTC Card live provider.
 
-
 #### Live Provider: Image Configuration
 
 All configuration is under:
@@ -207,6 +206,7 @@ cameras:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `refresh_seconds` | 1 | :heavy_multiplication_x: | The image will be refreshed at least every `refresh_seconds`. `0` implies no refreshing. |
+| `url` | | :heavy_multiplication_x: | **Advanced**: A static image URL to be fetched in lieu of the Home Assistant image for the given camera. This may be useful for advanced configurations where the camera image is being provided by some non-Home Assistant system. This will also set the temporary loading image used when `show_image_during_load` is set to true under the `live` configuration. |
 
 #### Live Provider: JSMPEG Configuration
 
@@ -3367,7 +3367,7 @@ This could be for any number of reasons. Chromecast devices can be quite picky o
 
 ### Javascript console shows `[Violation] Added non-passive event listener to a scroll-blocking [...] event`
 
-This card heavily uses [Embla Carousel](https://www.embla-carousel.com/) -- a light-weight performant carousel library -- to show media. This carousel library uses non-passive event-listeners in a considered and performant way, but one that still causes occasional and unhelpful Chrome warnings. These warnings can be safely ignored in this instance, and cannot easily be fixed in the underlying library as it heavily relies on non-passive event listeners ([see this bug comment for explanation](https://github.com/davidjerleke/embla-carousel/issues/62#issuecomment-628569509)).
+This card uses [visjs](https://github.com/visjs/vis-timeline) -- a timeline library -- to show camera timelines. This library currently uses non-passive event-listeners. These warnings can be safely ignored in this instance and cannot easily be fixed in the underlying library.
 
 ## Development
 

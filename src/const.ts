@@ -19,6 +19,7 @@ export const CONF_CAMERAS_ARRAY_HIDE = `${CONF_CAMERAS}.#.hide` as const;
 export const CONF_CAMERAS_ARRAY_ID = `${CONF_CAMERAS}.#.id` as const;
 export const CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS =
   `${CONF_CAMERAS}.#.image.refresh_seconds` as const;
+export const CONF_CAMERAS_ARRAY_IMAGE_URL = `${CONF_CAMERAS}.#.image.url` as const;
 export const CONF_CAMERAS_ARRAY_TITLE = `${CONF_CAMERAS}.#.title` as const;
 export const CONF_CAMERAS_ARRAY_ICON = `${CONF_CAMERAS}.#.icon` as const;
 export const CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY =
