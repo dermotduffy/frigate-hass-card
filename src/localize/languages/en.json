@@ -15,6 +15,9 @@
         "cameras": "Show events for specific cameras with this camera",
         "editor_label": "Dependency Options"
       },
+      "engines": {
+        "editor_label": "Camera engine options"
+      },
       "frigate": {
         "camera_name": "Frigate camera name (Autodetected from entity)",
         "client_id": "Frigate client id (For >1 Frigate server)",
@@ -36,8 +39,15 @@
       },
       "hide": "Hide camera from UI",
       "icon": "Icon for this camera (Autodetected from entity)",
+      "image": {
+        "editor_label": "Image Options",
+        "refresh_seconds": "Number of seconds after which to refresh live image (0=never)"
+      },
       "id": "Unique id for this camera in this card",
       "live_provider": "Live view provider for this camera",
+      "live_provider_options": {
+        "editor_label": "Live provider options"
+      },
       "live_providers": {
         "auto": "Automatic",
         "jsmpeg": "JSMpeg",
@@ -184,10 +194,6 @@
         "editor_label": "Live Controls"
       },
       "draggable": "Live cameras view can be dragged/swiped",
-      "image": {
-        "editor_label": "Image Live Provider Options",
-        "refresh_seconds": "Number of seconds after which to refresh live image (0=never)"
-      },
       "layout": "Live Layout",
       "lazy_load": "Live cameras are lazily loaded",
       "lazy_unload": "Live cameras are lazily unloaded",

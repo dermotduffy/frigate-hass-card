@@ -15,6 +15,9 @@
         "cameras": "Mostrar eventos para câmeras específicas nesta câmera",
         "editor_label": "Opções de dependência"
       },
+      "engines": {
+        "editor_label": ""
+      },
       "frigate": {
         "camera_name": "Nome da câmera do Frigate (detectado automaticamente pela entidade)",
         "client_id": "ID do cliente do Frigate (para >1 servidor Frigate)",
@@ -36,8 +39,15 @@
       },
       "hide": "",
       "icon": "Ícone para esta câmera (detectado automaticamente pela entidade)",
+      "image": {
+        "editor_label": "",
+        "refresh_seconds": ""
+      },
       "id": "ID exclusivo para esta câmera nesse cartão",
       "live_provider": "Provedor de visualização ao vivo para esta câmera",
+      "live_provider_options": {
+        "editor_label": ""
+      },
       "live_providers": {
         "auto": "Automatico",
         "jsmpeg": "JSMpeg",

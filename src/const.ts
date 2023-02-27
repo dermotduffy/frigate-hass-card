@@ -13,9 +13,12 @@ export const CONF_CAMERAS_ARRAY_FRIGATE_LABEL =
 export const CONF_CAMERAS_ARRAY_FRIGATE_URL = `${CONF_CAMERAS}.#.frigate.url` as const;
 export const CONF_CAMERAS_ARRAY_FRIGATE_ZONE = `${CONF_CAMERAS}.#.frigate.zone` as const;
 export const CONF_CAMERAS_ARRAY_GO2RTC_MODES = `${CONF_CAMERAS}.#.go2rtc.modes` as const;
-export const CONF_CAMERAS_ARRAY_GO2RTC_STREAM = `${CONF_CAMERAS}.#.go2rtc.stream` as const;
+export const CONF_CAMERAS_ARRAY_GO2RTC_STREAM =
+  `${CONF_CAMERAS}.#.go2rtc.stream` as const;
 export const CONF_CAMERAS_ARRAY_HIDE = `${CONF_CAMERAS}.#.hide` as const;
 export const CONF_CAMERAS_ARRAY_ID = `${CONF_CAMERAS}.#.id` as const;
+export const CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS =
+  `${CONF_CAMERAS}.#.image.refresh_seconds` as const;
 export const CONF_CAMERAS_ARRAY_TITLE = `${CONF_CAMERAS}.#.title` as const;
 export const CONF_CAMERAS_ARRAY_ICON = `${CONF_CAMERAS}.#.icon` as const;
 export const CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY =
@@ -147,8 +150,6 @@ export const CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS =
 export const CONF_LIVE_CONTROLS_TITLE_MODE = `${CONF_LIVE}.controls.title.mode` as const;
 export const CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS =
   `${CONF_LIVE}.controls.title.duration_seconds` as const;
-export const CONF_LIVE_IMAGE_REFRESH_SECONDS =
-  `${CONF_LIVE}.image.refresh_seconds` as const;
 export const CONF_LIVE_LAYOUT_FIT = `${CONF_LIVE}.layout.fit` as const;
 export const CONF_LIVE_LAYOUT_POSITION_X = `${CONF_LIVE}.layout.position.x` as const;
 export const CONF_LIVE_LAYOUT_POSITION_Y = `${CONF_LIVE}.layout.position.y` as const;
@@ -159,7 +160,6 @@ export const CONF_LIVE_PRELOAD = `${CONF_LIVE}.preload` as const;
 export const CONF_LIVE_TRANSITION_EFFECT = `${CONF_LIVE}.transition_effect` as const;
 export const CONF_LIVE_SHOW_IMAGE_DURING_LOAD =
   `${CONF_LIVE}.show_image_during_load` as const;
-export const CONF_LIVE_WEBRTC_CARD = `${CONF_LIVE}.webrtc_card` as const;
 
 const CONF_IMAGE = 'image' as const;
 export const CONF_IMAGE_LAYOUT_FIT = `${CONF_IMAGE}.layout.fit` as const;

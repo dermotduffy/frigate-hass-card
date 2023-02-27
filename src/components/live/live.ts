@@ -861,7 +861,6 @@ export class FrigateCardLiveProvider
             ${ref(this._providerRef)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
-            .liveImageConfig=${this.liveConfig.image}
             @frigate-card:media:loaded=${() => {
               if (provider === 'image') {
                 // Only count the media has loaded if the required provider is
@@ -898,7 +897,6 @@ export class FrigateCardLiveProvider
             class=${classMap(providerClasses)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
-            .webRTCConfig=${this.liveConfig.webrtc_card}
             .cardWideConfig=${this.cardWideConfig}
             @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >
@@ -910,7 +908,6 @@ export class FrigateCardLiveProvider
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
             .cameraEndpoints=${this.cameraEndpoints}
-            .jsmpegConfig=${this.liveConfig.jsmpeg}
             .cardWideConfig=${this.cardWideConfig}
             @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >

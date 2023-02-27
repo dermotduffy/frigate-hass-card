@@ -393,6 +393,51 @@ const customSchema = z
   .passthrough();
 
 /**
+ * Live provider options
+ */
+
+const go2rtcConfigSchema = z.object({
+  modes: z.enum(['webrtc', 'mse', 'mp4', 'mjpeg']).array().optional(),
+  stream: z.string().optional(),
+});
+export type Go2rtcConfig = z.infer<typeof go2rtcConfigSchema>;
+
+const liveImageConfigSchema = z.object({
+  refresh_seconds: z.number().min(0).default(1),
+});
+export type LiveImageConfig = z.infer<typeof liveImageConfigSchema>;
+
+const webrtcCardConfigSchema = z
+  .object({
+    entity: z.string().optional(),
+    url: z.string().optional(),
+  })
+  .passthrough();
+export type WebRTCCardConfig = z.infer<typeof webrtcCardConfigSchema>;
+
+const jsmpegConfigSchema = z
+  .object({
+    options: z
+      .object({
+        // https://github.com/phoboslab/jsmpeg#usage
+        audio: z.boolean().optional(),
+        video: z.boolean().optional(),
+        pauseWhenHidden: z.boolean().optional(),
+        disableGl: z.boolean().optional(),
+        disableWebAssembly: z.boolean().optional(),
+        preserveDrawingBuffer: z.boolean().optional(),
+        progressive: z.boolean().optional(),
+        throttled: z.boolean().optional(),
+        chunkSize: z.number().optional(),
+        maxAudioLag: z.number().optional(),
+        videoBufferSize: z.number().optional(),
+        audioBufferSize: z.number().optional(),
+      })
+      .optional(),
+  });
+export type JSMPEGConfig = z.infer<typeof jsmpegConfigSchema>;
+
+/**
  * Camera configuration section
  */
 const cameraConfigDefault = {
@@ -405,6 +450,9 @@ const cameraConfigDefault = {
     all_cameras: false,
     cameras: [],
   },
+  image: {
+    refresh_seconds: 1,
+  },
   hide: false,
   triggers: {
     motion: false,
@@ -412,14 +460,10 @@ const cameraConfigDefault = {
     entities: [],
   },
 };
-const webrtcCardCameraConfigSchema = z.object({
-  entity: z.string().optional(),
-  url: z.string().optional(),
-});
+
 const cameraConfigSchema = z
   .object({
     camera_entity: z.string().optional(),
-    live_provider: z.enum(LIVE_PROVIDERS).default(cameraConfigDefault.live_provider),
 
     // Used for presentation in the UI (autodetected from the entity if
     // specified).
@@ -432,29 +476,6 @@ const cameraConfigSchema = z
     // Optional identifier to separate different camera configurations used in
     // this card.
     id: z.string().optional(),
-
-    engine: z.enum(ENGINES).default('auto'),
-
-    frigate: z
-      .object({
-        // No URL validation to allow relative URLs within HA (e.g. Frigate addon).
-        url: z.string().optional(),
-        client_id: z.string().default(cameraConfigDefault.frigate.client_id),
-        camera_name: z.string().optional(),
-        label: z.string().optional(),
-        zone: z.string().optional(),
-      })
-      .default(cameraConfigDefault.frigate),
-
-    go2rtc: z
-      .object({
-        modes: z.enum(['webrtc', 'mse', 'mp4', 'mjpeg']).array().optional(),
-        stream: z.string().optional(),
-      })
-      .optional(),
-
-    // Camera identifiers for WebRTC.
-    webrtc_card: webrtcCardCameraConfigSchema.optional(),
 
     dependencies: z
       .object({
@@ -470,6 +491,26 @@ const cameraConfigSchema = z
         entities: z.string().array().default(cameraConfigDefault.triggers.entities),
       })
       .default(cameraConfigDefault.triggers),
+
+    // Engine options.
+    engine: z.enum(ENGINES).default('auto'),
+    frigate: z
+      .object({
+        // No URL validation to allow relative URLs within HA (e.g. Frigate addon).
+        url: z.string().optional(),
+        client_id: z.string().default(cameraConfigDefault.frigate.client_id),
+        camera_name: z.string().optional(),
+        label: z.string().optional(),
+        zone: z.string().optional(),
+      })
+      .default(cameraConfigDefault.frigate),
+
+    // Live provider options.
+    live_provider: z.enum(LIVE_PROVIDERS).default(cameraConfigDefault.live_provider),
+    go2rtc: go2rtcConfigSchema.optional(),
+    image: liveImageConfigSchema.default(cameraConfigDefault.image),
+    jsmpeg: jsmpegConfigSchema.optional(),
+    webrtc_card: webrtcCardConfigSchema.optional(),
   })
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigSchema>;
@@ -795,10 +836,6 @@ export type TitleControlConfig = z.infer<typeof titleControlConfigSchema>;
  * Live view configuration section.
  */
 
-const liveImageConfigDefault = {
-  refresh_seconds: 1,
-};
-
 const liveThumbnailControlsDefaults = {
   ...thumbnailControlsDefaults,
   media: 'all' as const,
@@ -815,7 +852,6 @@ const liveConfigDefault = {
   draggable: true,
   transition_effect: 'slide' as const,
   show_image_during_load: true,
-  image: liveImageConfigDefault,
   controls: {
     next_previous: {
       size: 48,
@@ -836,42 +872,8 @@ const livethumbnailsControlSchema = thumbnailsControlSchema.extend({
     .default(liveConfigDefault.controls.thumbnails.media),
 });
 
-const liveImageConfigSchema = z.object({
-  refresh_seconds: z.number().min(0).default(liveConfigDefault.image.refresh_seconds),
-});
-export type LiveImageConfig = z.infer<typeof liveImageConfigSchema>;
-
-const webrtcCardConfigSchema = webrtcCardCameraConfigSchema.passthrough().optional();
-export type WebRTCCardConfig = z.infer<typeof webrtcCardConfigSchema>;
-
-const jsmpegConfigSchema = z
-  .object({
-    options: z
-      .object({
-        // https://github.com/phoboslab/jsmpeg#usage
-        audio: z.boolean().optional(),
-        video: z.boolean().optional(),
-        pauseWhenHidden: z.boolean().optional(),
-        disableGl: z.boolean().optional(),
-        disableWebAssembly: z.boolean().optional(),
-        preserveDrawingBuffer: z.boolean().optional(),
-        progressive: z.boolean().optional(),
-        throttled: z.boolean().optional(),
-        chunkSize: z.number().optional(),
-        maxAudioLag: z.number().optional(),
-        videoBufferSize: z.number().optional(),
-        audioBufferSize: z.number().optional(),
-      })
-      .optional(),
-  })
-  .optional();
-export type JSMPEGConfig = z.infer<typeof jsmpegConfigSchema>;
-
 const liveOverridableConfigSchema = z
   .object({
-    image: liveImageConfigSchema.default(liveConfigDefault.image),
-    jsmpeg: jsmpegConfigSchema,
-    webrtc_card: webrtcCardConfigSchema,
     controls: z
       .object({
         next_previous: nextPreviousControlConfigSchema
