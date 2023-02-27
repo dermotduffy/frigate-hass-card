@@ -9,9 +9,7 @@ import {
   CardWideConfig,
   FrigateCardError,
   FrigateCardMediaPlayer,
-  WebRTCCardConfig,
 } from '../../types.js';
-import { contentsChanged } from '../../utils/basic.js';
 import { dispatchMediaLoadedEvent } from '../../utils/media-info.js';
 import { dispatchErrorMessageEvent, renderProgressIndicator } from '../message.js';
 import { renderTask } from '../../utils/task.js';
@@ -27,9 +25,6 @@ export class FrigateCardLiveWebRTCCard
   extends LitElement
   implements FrigateCardMediaPlayer
 {
-  @property({ attribute: false, hasChanged: contentsChanged })
-  public webRTCConfig?: WebRTCCardConfig;
-
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
 
@@ -95,23 +90,12 @@ export class FrigateCardLiveWebRTCCard
   protected _createWebRTC(): HTMLElement | null {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const webrtcElement = this._webrtcTask.value;
-    if (webrtcElement && this.hass) {
+    if (webrtcElement && this.hass && this.cameraConfig?.webrtc_card) {
       const webrtc = new webrtcElement() as HTMLElement & {
         hass: HomeAssistant;
         setConfig: (config: Record<string, unknown>) => void;
       };
-      const config = { ...this.webRTCConfig };
-
-      // If the live WebRTC configuration does not specify a URL/entity to use,
-      // then take values from the camera configuration instead (if there are
-      // any).
-      if (!config.url) {
-        config.url = this.cameraConfig?.webrtc_card?.url;
-      }
-      if (!config.entity) {
-        config.entity = this.cameraConfig?.webrtc_card?.entity;
-      }
-      webrtc.setConfig(config);
+      webrtc.setConfig(this.cameraConfig.webrtc_card);
       webrtc.hass = this.hass;
       return webrtc;
     }

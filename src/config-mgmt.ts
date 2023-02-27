@@ -13,7 +13,6 @@ import {
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
   CONF_LIVE_LAZY_UNLOAD,
   CONF_LIVE_PRELOAD,
-  CONF_LIVE_WEBRTC_CARD,
   CONF_MEDIA_GALLERY,
   CONF_MEDIA_VIEWER,
   CONF_MENU,
@@ -617,6 +616,80 @@ const transformFrigateUIAction = (data: unknown): boolean => {
   return false;
 };
 
+/**
+ * Move live provider options exclusively into camera configs.
+ * @returns An upgrade function.
+ */
+const upgradeCameraOptionsFromLiveToMultipleCameras = (): ((
+  obj: RawFrigateCardConfig,
+) => boolean) => {
+  return function (obj: RawFrigateCardConfig): boolean {
+    const cameras = getConfigValue(obj, CONF_CAMERAS) as
+      | RawFrigateCardConfigArray
+      | undefined;
+    if (cameras === undefined) {
+      return false;
+    }
+
+    const webrtcCardConfig = getConfigValue(obj, 'live.webrtc_card') as
+      | RawFrigateCardConfigArray
+      | undefined;
+    const imageConfig = getConfigValue(obj, 'live.image') as
+      | RawFrigateCardConfigArray
+      | undefined;
+    const jsmpegConfig = getConfigValue(obj, 'live.jsmpeg') as
+      | RawFrigateCardConfigArray
+      | undefined;
+
+    if (!webrtcCardConfig && !imageConfig && !jsmpegConfig) {
+      return false;
+    }
+
+    if (webrtcCardConfig) {
+      cameras.forEach((camera) => {
+        if (
+          camera.live_provider === 'webrtc_card' &&
+          (camera.webrtc_card === undefined || typeof camera.webrtc_card === 'object')
+        ) {
+          camera.webrtc_card = { ...webrtcCardConfig, ...camera.webrtc_card };
+        }
+      });
+    }
+    if (imageConfig) {
+      cameras.forEach((camera) => {
+        if (
+          camera.live_provider === 'image' &&
+          (camera.image === undefined || typeof camera.image === 'object')
+        ) {
+          camera.image = { ...imageConfig, ...camera.image };
+        }
+      });
+    }
+    if (jsmpegConfig) {
+      cameras.forEach((camera) => {
+        if (
+          camera.live_provider === 'jsmpeg' &&
+          (camera.jsmpeg === undefined || typeof camera.jsmpeg === 'object')
+        ) {
+          camera.jsmpeg = { ...jsmpegConfig, ...camera.jsmpeg };
+        }
+      });
+    }
+
+    setConfigValue(obj, CONF_CAMERAS, cameras);
+    deleteConfigValue(obj, 'live.webrtc_card');
+    deleteConfigValue(obj, 'live.image');
+    deleteConfigValue(obj, 'live.jsmpeg');
+
+    // Note: This upgrade is imperfect. There could be override conditions being
+    // set that this upgrade cannot understand, e.g. if in fullscreen mode then
+    // refresh a live image more frequently. Such functionality is not possible
+    // after this change, since camera configs cannot be overrided.
+
+    return true;
+  };
+};
+
 const UPGRADES = [
   // v1.2.1 -> v2.0.0
   upgradeMoveTo('frigate_url', 'frigate.url'),
@@ -656,7 +729,7 @@ const UPGRADES = [
     ),
   ),
   upgradeArrayValue(CONF_CAMERAS, upgradeMoveTo('webrtc', 'webrtc_card')),
-  upgradeMoveToWithOverrides('live.webrtc', CONF_LIVE_WEBRTC_CARD),
+  upgradeMoveToWithOverrides('live.webrtc', 'live.webrtc_card'),
   upgradeMoveToWithOverrides('image.src', CONF_IMAGE_URL),
 
   // v3.0.0 -> v4.0.0-rc.1
@@ -741,4 +814,5 @@ const UPGRADES = [
       val === 'frigate-jsmpeg' ? 'jsmpeg' : val,
     ),
   ),
+  upgradeCameraOptionsFromLiveToMultipleCameras(),
 ];

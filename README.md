@@ -162,7 +162,7 @@ cameras:
 | `zone` | | :heavy_multiplication_x: | A Frigate zone used to filter events (clips & snapshots), e.g. `front_door`.|
 | `client_id` | `frigate` | :heavy_multiplication_x: | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://docs.frigate.video/integrations/home-assistant/#multiple-instance-support).|
 
-#### Camera go2rtc configuration
+#### Live Provider: Camera go2rtc configuration
 
 The `go2rtc` block configures use of the `go2rtc` live provider. This configuration is included as part of a camera entry in the `cameras` array.
 
@@ -176,9 +176,9 @@ cameras:
 | `modes` | `[webrtc, mse, mp4, mjpeg]` | :heavy_multiplication_x: | An ordered array of `go2rtc` modes to use. Valid values are `webrtc`, `mse`, `mp4` or `mjpeg` values. |
 | `stream` | Determind by camera engine (e.g. `frigate` camera name). | :heavy_multiplication_x: | A valid `go2rtc` stream name. |
 
-#### Camera WebRTC Card configuration
+#### Live Provider: Camera WebRTC Card configuration
 
-The `webrtc_card` block configures only the entity/URL for this camera to be used with the WebRTC Card live provider. This configuration is included as part of a camera entry in the `cameras` array.
+Configures the `webrtc_card` live provider:
 
 ```yaml
 cameras:
@@ -187,10 +187,41 @@ cameras:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `entity` | | :heavy_multiplication_x: | The RTSP entity to pass to the WebRTC Card for this camera. Specify this OR `url` (below). |
-| `url` | | :heavy_multiplication_x: | The RTSP url to pass to the WebRTC Card. Specify this OR `entity` (above). |
+| `entity` | | :heavy_multiplication_x: | The RTSP entity to pass to the WebRTC Card for this camera. Specify this OR `url`. |
+| `url` | | :heavy_multiplication_x: | The RTSP url to pass to the WebRTC Card. Specify this OR `entity`. |
+| `*`| | :heavy_multiplication_x: | Any options specified in the `webrtc_card:` YAML dictionary are silently passed through to the AlexxIT's WebRTC Card. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides. |
+
 
 See [Using the WebRTC Card](#webrtc) below for more details on how to use the WebRTC Card live provider.
+
+
+#### Live Provider: Image Configuration
+
+All configuration is under:
+
+```yaml
+cameras:
+  - image:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `refresh_seconds` | 1 | :heavy_multiplication_x: | The image will be refreshed at least every `refresh_seconds`. `0` implies no refreshing. |
+
+#### Live Provider: JSMPEG Configuration
+
+All configuration is under:
+
+```yaml
+cameras:
+  - jsmpeg:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `options` | | :heavy_multiplication_x: | **Advanced users only**: Control the underlying [JSMPEG library options](https://github.com/phoboslab/jsmpeg#usage). Supports setting these JSMPEG options `{audio, video, pauseWhenHidden, disableGl, disableWebAssembly, preserveDrawingBuffer, progressive, throttled, chunkSize, maxAudioLag, videoBufferSize, audioBufferSize}`. This is not necessary for the vast majority of users: only set these flags if you know what you're doing, as you may entirely break video rendering in the card.|
+
+<a name="webrtc-live-configuration"></a>
 
 <a name="camera-dependencies-configuration"></a>
 
@@ -363,52 +394,7 @@ See the [fully expanded live configuration example](#config-expanded-live) for h
 | `show_image_during_load` | `true` | :white_check_mark: | If `true`, during the initial stream load, the `image` live provider will be shown instead of the loading video stream. This still image will auto-refresh and is replaced with the live stream once loaded. |
 | `actions` | | :white_check_mark: | Actions to use for the `live` view. See [actions](#actions) below.|
 | `controls` | | :white_check_mark: | Configuration for the `live` view controls. See below. |
-| `jsmpeg` | | :white_check_mark: | Configuration for the `jsmpeg` live provider. See below.|
-| `webrtc_card` | | :white_check_mark: | Configuration for the `webrtc-card` live provider. See below.|
 | `layout` | | :white_check_mark: | See [media layout](#media-layout) below.|
-
-#### Live Provider: Image Configuration
-
-All configuration is under:
-
-```yaml
-live:
-  image:
-```
-
-| Option | Default | Overridable | Description |
-| - | - | - | - |
-| `refresh_seconds` | 1 | :white_check_mark: | The image will be refreshed at least every `refresh_seconds`. `0` implies no refreshing. |
-
-#### Live Provider: JSMPEG Configuration
-
-All configuration is under:
-
-```yaml
-live:
-  jsmpeg:
-```
-
-| Option | Default | Overridable | Description |
-| - | - | - | - |
-| `options` | | :white_check_mark: | **Advanced users only**: Control the underlying [JSMPEG library options](https://github.com/phoboslab/jsmpeg#usage). Supports setting these JSMPEG options `{audio, video, pauseWhenHidden, disableGl, disableWebAssembly, preserveDrawingBuffer, progressive, throttled, chunkSize, maxAudioLag, videoBufferSize, audioBufferSize}`. This is not necessary for the vast majority of users: only set these flags if you know what you're doing, as you may entirely break video rendering in the card.|
-
-<a name="webrtc-live-configuration"></a>
-
-#### Live Provider: WebRTC Card Configuration
-
-All configuration is under:
-
-```yaml
-live:
-  webrtc_card:
-```
-
-| Option | Default | Overridable | Description |
-| - | - | - | - |
-| `*`| | :white_check_mark: | Any options specified in the `webrtc_card:` YAML dictionary are silently passed through to the AlexxIT's WebRTC Card. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides. This implies that if `entity` or `url` are specified here they will override the matching named parameters under the per camera configuration. |
-
-See [Using WebRTC Card](#webrtc) below for more details on how to embed AlexxIT's WebRTC Card with the Frigate Card.
 
 #### Live Controls: Thumbnails
 
@@ -1394,6 +1380,32 @@ cameras:
         - mp4
         - mjpeg
       stream: sitting_room
+  - camera_entity: camera.sitting_room_webrtc_card
+    live_provider: webrtc_card
+    webrtc_card:
+      # Arbitrary WebRTC Card options, see https://github.com/AlexxIT/WebRTC#configuration .
+      entity: camera.sitting_room_rtsp
+      ui: true
+  - camera_entity: camera.kitchen
+    live_provider: jsmpeg
+    jsmpeg:
+      options:
+        audio: false
+        video: true
+        pauseWhenHidden: false
+        disableGl: false
+        disableWebAssembly: false
+        preserveDrawingBuffer: false
+        progressive: true
+        throttled: true
+        chunkSize: 1048576
+        maxAudioLag: 10
+        videoBufferSize: 524288
+        audioBufferSize: 131072
+  - camera_entity: camera.back_yard
+    live_provider: image
+    image:
+      refresh_seconds: 1
 ```
 </details>
 
@@ -1533,25 +1545,6 @@ live:
   lazy_unload: never
   draggable: true
   transition_effect: slide
-  webrtc_card:
-    # Arbitrary WebRTC Card options, see https://github.com/AlexxIT/WebRTC#configuration .
-    ui: true
-  jsmpeg:
-    options:
-      audio: false
-      video: true
-      pauseWhenHidden: false
-      disableGl: false
-      disableWebAssembly: false
-      preserveDrawingBuffer: false
-      progressive: true
-      throttled: true
-      chunkSize: 1048576
-      maxAudioLag: 10
-      videoBufferSize: 524288
-      audioBufferSize: 131072
-  image:
-    refresh_seconds: 1
   controls:
     next_previous:
       style: chevrons

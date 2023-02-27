@@ -15,6 +15,9 @@
         "cameras": "Mostra eventi per telecamere specifiche con questa telecamera",
         "editor_label": "Opzioni di dipendenza"
       },
+      "engines": {
+        "editor_label": ""
+      },
       "frigate": {
         "camera_name": "Nome della telecamera frigate (autodificato dall'entità)",
         "client_id": "ID client Frigate (per > 1 Frigate server)",
@@ -36,8 +39,15 @@
       },
       "hide": "",
       "icon": "Icona per questa telecamera (Autoidentificato dall'entità)",
+      "image": {
+        "editor_label": "",
+        "refresh_seconds": ""
+      },
       "id": "ID univoco per questa telecamera in questa carta",
       "live_provider": "Provider di visualizzazione dal vivo per questa telecamera",
+      "live_provider_options": {
+        "editor_label": ""
+      },
       "live_providers": {
         "auto": "Automatica",
         "jsmpeg": "JSMpeg",

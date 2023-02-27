@@ -23,6 +23,7 @@ import {
   CONF_CAMERAS_ARRAY_FRIGATE_ZONE,
   CONF_CAMERAS_ARRAY_ICON,
   CONF_CAMERAS_ARRAY_ID,
+  CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
   CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
   CONF_CAMERAS_ARRAY_TITLE,
   CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES,
@@ -63,7 +64,6 @@ import {
   CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
   CONF_LIVE_CONTROLS_TITLE_MODE,
   CONF_LIVE_DRAGGABLE,
-  CONF_LIVE_IMAGE_REFRESH_SECONDS,
   CONF_LIVE_LAYOUT_FIT,
   CONF_LIVE_LAYOUT_POSITION_X,
   CONF_LIVE_LAYOUT_POSITION_Y,
@@ -160,15 +160,17 @@ const MENU_CAMERAS = 'cameras';
 const MENU_CAMERAS_DEPENDENCIES = 'cameras.dependencies';
 const MENU_CAMERAS_FRIGATE = 'cameras.frigate';
 const MENU_CAMERAS_GO2RTC = 'cameras.go2rtc';
+const MENU_CAMERAS_IMAGE = 'cameras.image';
 const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
-const MENU_CAMERAS_WEBRTC = 'cameras.webrtc';
+const MENU_CAMERAS_WEBRTC_CARD = 'cameras.webrtc_card';
+const MENU_CAMERAS_LIVE_PROVIDER = 'cameras.live_provider';
+const MENU_CAMERAS_ENGINE = 'cameras.engine';
 const MENU_IMAGE_LAYOUT = 'image.layout';
 const MENU_LIVE_CONTROLS = 'live.controls';
 const MENU_LIVE_CONTROLS_NEXT_PREVIOUS = 'live.controls.next_previous';
 const MENU_LIVE_CONTROLS_THUMBNAILS = 'live.controls.thumbnails';
 const MENU_LIVE_CONTROLS_TIMELINE = 'live.controls.timeline';
 const MENU_LIVE_CONTROLS_TITLE = 'live.controls.title';
-const MENU_LIVE_IMAGE = 'live.image';
 const MENU_LIVE_LAYOUT = 'live.layout';
 const MENU_MEDIA_GALLERY_CONTROLS_THUMBNAILS = 'media_gallery.controls.thumbnails';
 const MENU_MEDIA_GALLERY_CONTROLS_FILTER = 'media_gallery.controls.filter';
@@ -1157,12 +1159,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    * @returns A rendered template.
    */
   protected _renderTitleControls(
-    domain: string,
+    menuDomain: string,
     configPathMode: string,
     configPathDurationSeconds: string,
   ): TemplateResult | void {
     return this._putInSubmenu(
-      domain,
+      menuDomain,
       true,
       'config.common.controls.title.editor_label',
       { name: 'mdi:subtitles' },
@@ -1344,40 +1346,94 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
               )}
               ${this._renderSwitch(
-                getArrayConfigPath(
-                  CONF_CAMERAS_ARRAY_HIDE,
-                  cameraIndex,
-                ),
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_HIDE, cameraIndex),
                 this._defaults.cameras.hide,
               )}
               ${this._putInSubmenu(
-                MENU_CAMERAS_FRIGATE,
-                cameraIndex,
-                'config.cameras.frigate.editor_label',
-                { path: FRIGATE_ICON_SVG_PATH },
-                html`
+                MENU_CAMERAS_ENGINE,
+                true,
+                'config.cameras.engines.editor_label',
+                { name: 'mdi:engine' },
+                html`${this._putInSubmenu(
+                  MENU_CAMERAS_FRIGATE,
+                  cameraIndex,
+                  'config.cameras.frigate.editor_label',
+                  { path: FRIGATE_ICON_SVG_PATH },
+                  html`
+                    ${this._renderStringInput(
+                      getArrayConfigPath(
+                        CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME,
+                        cameraIndex,
+                      ),
+                    )}
+                    ${this._renderStringInput(
+                      getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_URL, cameraIndex),
+                    )}
+                    ${this._renderStringInput(
+                      getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_LABEL, cameraIndex),
+                    )}
+                    ${this._renderStringInput(
+                      getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_ZONE, cameraIndex),
+                    )}
+                    ${this._renderStringInput(
+                      getArrayConfigPath(
+                        CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID,
+                        cameraIndex,
+                      ),
+                    )}
+                  `,
+                )}`,
+              )}
+              ${this._putInSubmenu(
+                MENU_CAMERAS_LIVE_PROVIDER,
+                true,
+                'config.cameras.live_provider_options.editor_label',
+                { name: 'mdi:cctv' },
+                html` ${this._putInSubmenu(
+                  MENU_CAMERAS_GO2RTC,
+                  cameraIndex,
+                  'config.cameras.go2rtc.editor_label',
+                  { name: 'mdi:alpha-g-circle' },
+                  html`${this._renderOptionSelector(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_GO2RTC_MODES, cameraIndex),
+                    this._go2rtcModes,
+                    {
+                      multiple: true,
+                      label: localize('config.cameras.go2rtc.modes.editor_label'),
+                    },
+                  )}
                   ${this._renderStringInput(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_GO2RTC_STREAM, cameraIndex),
+                  )}`,
+                )}
+                ${this._putInSubmenu(
+                  MENU_CAMERAS_IMAGE,
+                  true,
+                  'config.cameras.image.editor_label',
+                  { name: 'mdi:image' },
+                  html` ${this._renderNumberInput(
                     getArrayConfigPath(
-                      CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME,
+                      CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
                       cameraIndex,
                     ),
-                  )}
-                  ${this._renderStringInput(
-                    getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_URL, cameraIndex),
-                  )}
-                  ${this._renderStringInput(
-                    getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_LABEL, cameraIndex),
-                  )}
-                  ${this._renderStringInput(
-                    getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_ZONE, cameraIndex),
-                  )}
-                  ${this._renderStringInput(
+                  )}`,
+                )}
+                ${this._putInSubmenu(
+                  MENU_CAMERAS_WEBRTC_CARD,
+                  cameraIndex,
+                  'config.cameras.webrtc_card.editor_label',
+                  { name: 'mdi:webrtc' },
+                  html`${this._renderEntitySelector(
                     getArrayConfigPath(
-                      CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID,
+                      CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY,
                       cameraIndex,
                     ),
+                    'camera',
                   )}
-                `,
+                  ${this._renderStringInput(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
+                  )}`,
+                )}`,
               )}
               ${this._putInSubmenu(
                 MENU_CAMERAS_DEPENDENCIES,
@@ -1423,36 +1479,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   },
                 )}`,
               )}
-              ${this._putInSubmenu(
-                MENU_CAMERAS_GO2RTC,
-                cameraIndex,
-                'config.cameras.go2rtc.editor_label',
-                { name: 'mdi:alpha-g-circle' },
-                html`${this._renderOptionSelector(
-                  getArrayConfigPath(CONF_CAMERAS_ARRAY_GO2RTC_MODES, cameraIndex),
-                  this._go2rtcModes,
-                  {
-                    multiple: true,
-                    label: localize('config.cameras.go2rtc.modes.editor_label')
-                  }
-                )}
-                ${this._renderStringInput(
-                  getArrayConfigPath(CONF_CAMERAS_ARRAY_GO2RTC_STREAM, cameraIndex),
-                )}`,
-              )}
-              ${this._putInSubmenu(
-                MENU_CAMERAS_WEBRTC,
-                cameraIndex,
-                'config.cameras.webrtc_card.editor_label',
-                { name: 'mdi:webrtc' },
-                html`${this._renderEntitySelector(
-                  getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY, cameraIndex),
-                  'camera',
-                )}
-                ${this._renderStringInput(
-                  getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
-                )}`,
-              )}
             </div>`
           : ``}
       </div>
@@ -1467,20 +1493,23 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    */
   protected _renderStringInput(
     configPath: string,
-    type?:
-      | 'number'
-      | 'text'
-      | 'search'
-      | 'tel'
-      | 'url'
-      | 'email'
-      | 'password'
-      | 'date'
-      | 'month'
-      | 'week'
-      | 'time'
-      | 'datetime-local'
-      | 'color',
+    params?: {
+      label?: string;
+      type?:
+        | 'number'
+        | 'text'
+        | 'search'
+        | 'tel'
+        | 'url'
+        | 'email'
+        | 'password'
+        | 'date'
+        | 'month'
+        | 'week'
+        | 'time'
+        | 'datetime-local'
+        | 'color';
+    },
   ): TemplateResult | void {
     if (!this._config) {
       return;
@@ -1489,8 +1518,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     return html`
       <ha-selector
         .hass=${this.hass}
-        .selector=${{ text: { type: type || 'text' } }}
-        .label=${this._getLabel(configPath)}
+        .selector=${{ text: { type: params?.type || 'text' } }}
+        .label=${params?.label ?? this._getLabel(configPath)}
         .value=${getConfigValue(this._config, configPath, '')}
         .required=${false}
         @value-changed=${(ev) => this._valueChangedHandler(configPath, ev)}
@@ -1710,13 +1739,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_LIVE_LAYOUT_FIT,
                   CONF_LIVE_LAYOUT_POSITION_X,
                   CONF_LIVE_LAYOUT_POSITION_Y,
-                )}
-                ${this._putInSubmenu(
-                  MENU_LIVE_IMAGE,
-                  true,
-                  'config.live.image.editor_label',
-                  { name: 'mdi:image-sync-outline' },
-                  html` ${this._renderNumberInput(CONF_LIVE_IMAGE_REFRESH_SECONDS)} `,
                 )}
               </div>
             `

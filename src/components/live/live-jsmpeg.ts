@@ -10,11 +10,9 @@ import {
   CardWideConfig,
   ExtendedHomeAssistant,
   FrigateCardMediaPlayer,
-  JSMPEGConfig,
 } from '../../types.js';
 import { dispatchMediaLoadedEvent } from '../../utils/media-info.js';
 import { dispatchErrorMessageEvent } from '../message.js';
-import { contentsChanged } from '../../utils/basic.js';
 import { CameraEndpoints } from '../../camera-manager/types.js';
 import { getEndpointAddressOrDispatchError } from '../../utils/endpoint.js';
 
@@ -31,9 +29,6 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
 
   @property({ attribute: false })
   public cameraEndpoints?: CameraEndpoints;
-
-  @property({ attribute: false, hasChanged: contentsChanged })
-  public jsmpegConfig?: JSMPEGConfig;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -99,7 +94,7 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
           videoBufferSize: 1024 * 1024 * 4,
 
           // Override with user-specified options.
-          ...this.jsmpegConfig?.options,
+          ...this.cameraConfig?.jsmpeg?.options,
 
           // Don't allow the player to internally reconnect, as it may re-use a
           // URL with a (newly) invalid signature, e.g. during a Home Assistant
