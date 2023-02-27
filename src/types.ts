@@ -393,6 +393,18 @@ const customSchema = z
   .passthrough();
 
 /**
+ * Image config base options. Image config schema base is used both for the
+ * `image` live provider and the `image` card view.
+ */
+const imageBaseConfigDefault = {
+  refresh_seconds: 1,
+};
+const imageBaseConfigSchema = z.object({
+  url: z.string().optional(),
+  refresh_seconds: z.number().min(0).default(imageBaseConfigDefault.refresh_seconds),
+});
+
+/**
  * Live provider options
  */
 
@@ -402,9 +414,7 @@ const go2rtcConfigSchema = z.object({
 });
 export type Go2rtcConfig = z.infer<typeof go2rtcConfigSchema>;
 
-const liveImageConfigSchema = z.object({
-  refresh_seconds: z.number().min(0).default(1),
-});
+const liveImageConfigSchema = imageBaseConfigSchema;
 export type LiveImageConfig = z.infer<typeof liveImageConfigSchema>;
 
 const webrtcCardConfigSchema = z
@@ -415,26 +425,25 @@ const webrtcCardConfigSchema = z
   .passthrough();
 export type WebRTCCardConfig = z.infer<typeof webrtcCardConfigSchema>;
 
-const jsmpegConfigSchema = z
-  .object({
-    options: z
-      .object({
-        // https://github.com/phoboslab/jsmpeg#usage
-        audio: z.boolean().optional(),
-        video: z.boolean().optional(),
-        pauseWhenHidden: z.boolean().optional(),
-        disableGl: z.boolean().optional(),
-        disableWebAssembly: z.boolean().optional(),
-        preserveDrawingBuffer: z.boolean().optional(),
-        progressive: z.boolean().optional(),
-        throttled: z.boolean().optional(),
-        chunkSize: z.number().optional(),
-        maxAudioLag: z.number().optional(),
-        videoBufferSize: z.number().optional(),
-        audioBufferSize: z.number().optional(),
-      })
-      .optional(),
-  });
+const jsmpegConfigSchema = z.object({
+  options: z
+    .object({
+      // https://github.com/phoboslab/jsmpeg#usage
+      audio: z.boolean().optional(),
+      video: z.boolean().optional(),
+      pauseWhenHidden: z.boolean().optional(),
+      disableGl: z.boolean().optional(),
+      disableWebAssembly: z.boolean().optional(),
+      preserveDrawingBuffer: z.boolean().optional(),
+      progressive: z.boolean().optional(),
+      throttled: z.boolean().optional(),
+      chunkSize: z.number().optional(),
+      maxAudioLag: z.number().optional(),
+      videoBufferSize: z.number().optional(),
+      audioBufferSize: z.number().optional(),
+    })
+    .optional(),
+});
 export type JSMPEGConfig = z.infer<typeof jsmpegConfigSchema>;
 
 /**
@@ -718,13 +727,11 @@ const viewConfigSchema = z
 const IMAGE_MODES = ['screensaver', 'camera', 'url'] as const;
 const imageConfigDefault = {
   mode: 'url' as const,
-  refresh_seconds: 0,
+  ...imageBaseConfigDefault,
 };
-const imageConfigSchema = z
-  .object({
+const imageConfigSchema = imageBaseConfigSchema
+  .extend({
     mode: z.enum(IMAGE_MODES).default(imageConfigDefault.mode),
-    url: z.string().optional(),
-    refresh_seconds: z.number().min(0).default(imageConfigDefault.refresh_seconds),
     layout: mediaLayoutConfigSchema.optional(),
   })
   .merge(actionsSchema)

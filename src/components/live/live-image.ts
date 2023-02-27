@@ -51,8 +51,9 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
 
     return html` <frigate-card-image
       .imageConfig=${{
-        mode: 'camera' as const,
+        mode: this.cameraConfig.image.url ? 'url' as const : 'camera' as const,
         refresh_seconds: this._playing ? this.cameraConfig.image.refresh_seconds : 0,
+        url: this.cameraConfig.image.url,
         // Don't need to pass layout options as FrigateCardLiveProvider has
         // already taken care of this for us.
       }}

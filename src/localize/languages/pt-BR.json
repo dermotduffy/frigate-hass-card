@@ -41,7 +41,8 @@
       "icon": "Ícone para esta câmera (detectado automaticamente pela entidade)",
       "image": {
         "editor_label": "",
-        "refresh_seconds": ""
+        "refresh_seconds": "",
+        "url": ""
       },
       "id": "ID exclusivo para esta câmera nesse cartão",
       "live_provider": "Provedor de visualização ao vivo para esta câmera",

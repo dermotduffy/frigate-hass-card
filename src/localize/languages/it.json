@@ -41,7 +41,8 @@
       "icon": "Icona per questa telecamera (Autoidentificato dall'entità)",
       "image": {
         "editor_label": "",
-        "refresh_seconds": ""
+        "refresh_seconds": "",
+        "url": ""
       },
       "id": "ID univoco per questa telecamera in questa carta",
       "live_provider": "Provider di visualizzazione dal vivo per questa telecamera",

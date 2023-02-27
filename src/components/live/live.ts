@@ -723,12 +723,14 @@ export class FrigateCardLiveProvider
     // If the play call fails, and the media is not already muted, mute it first
     // and then try again. This works around some browsers that prevent
     // auto-play unless the video is muted.
-    this._providerRef.value?.play().catch((ev) => {
-      if (ev.name === 'NotAllowedError' && !this.isMuted()) {
-        this.mute();
-        this._providerRef.value?.play().catch();
-      }
-    });
+    if (this._providerRef.value?.play) {
+      this._providerRef.value?.play().catch((ev) => {
+        if (ev.name === 'NotAllowedError' && !this.isMuted()) {
+          this.mute();
+          this._providerRef.value?.play().catch();
+        }
+      });
+    }
   }
 
   public pause(): void {
