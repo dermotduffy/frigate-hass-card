@@ -17,6 +17,7 @@ import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
 } from '../../utils/media.js';
+import { CameraEndpoints } from '../../camera-manager/types.js';
 
 // Create a wrapper for AlexxIT's WebRTC card
 //  - https://github.com/AlexxIT/WebRTC
@@ -27,6 +28,9 @@ export class FrigateCardLiveWebRTCCard
 {
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
+
+  @property({ attribute: false })
+  public cameraEndpoints?: CameraEndpoints;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -90,12 +94,18 @@ export class FrigateCardLiveWebRTCCard
   protected _createWebRTC(): HTMLElement | null {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const webrtcElement = this._webrtcTask.value;
-    if (webrtcElement && this.hass && this.cameraConfig?.webrtc_card) {
+    if (webrtcElement && this.hass && this.cameraConfig) {
       const webrtc = new webrtcElement() as HTMLElement & {
         hass: HomeAssistant;
         setConfig: (config: Record<string, unknown>) => void;
       };
-      webrtc.setConfig(this.cameraConfig.webrtc_card);
+      const config = {...this.cameraConfig.webrtc_card};
+      if (!config.url && !config.entity && this.cameraEndpoints?.webrtcCard) {
+        // This will never need to be signed, it is just used internally by the
+        // card as a stream name lookup.
+        config.url = this.cameraEndpoints.webrtcCard.endpoint;
+      }
+      webrtc.setConfig(config);
       webrtc.hass = this.hass;
       return webrtc;
     }
