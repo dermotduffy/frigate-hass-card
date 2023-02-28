@@ -78,7 +78,10 @@ export class FrigateCardLiveWebRTCCard
    * @returns The player or `null` if not found.
    */
   protected _getPlayer(): HTMLVideoElement | null {
-    return this.renderRoot?.querySelector('video') as HTMLVideoElement | null;
+    const root = this.renderRoot?.querySelector('#webrtc') as
+      | (HTMLElement & { video?: HTMLVideoElement })
+      | null;
+    return root?.video ?? null;
   }
 
   protected async _getWebRTCCardElement(): Promise<
@@ -99,7 +102,7 @@ export class FrigateCardLiveWebRTCCard
         hass: HomeAssistant;
         setConfig: (config: Record<string, unknown>) => void;
       };
-      const config = {...this.cameraConfig.webrtc_card};
+      const config = { ...this.cameraConfig.webrtc_card };
       if (!config.url && !config.entity && this.cameraEndpoints?.webrtcCard) {
         // This will never need to be signed, it is just used internally by the
         // card as a stream name lookup.

@@ -863,12 +863,14 @@ export class FrigateCardLiveProvider
             ${ref(this._providerRef)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
-            @frigate-card:media:loaded=${() => {
+            @frigate-card:media:loaded=${(ev: Event) => {
               if (provider === 'image') {
                 // Only count the media has loaded if the required provider is
                 // the image (not just the temporary image shown during
                 // loading).
                 this._videoMediaShowHandler();
+              } else {
+                ev.stopPropagation();
               }
             }}
           >
