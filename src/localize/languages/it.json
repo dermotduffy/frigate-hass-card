@@ -385,11 +385,14 @@
     "webrtc_card_waiting": "Aspettando che la scheda WebRTC si carichi ..."
   },
   "event": {
+    "camera": "",
     "duration": "Durata",
     "in_progress": "In corso",
     "score": "Punteggio",
+    "seek": "Cercare",
     "start": "Avvia",
-    "seek": "Cercare"
+    "what": "",
+    "where": ""
   },
   "media_filter": {
     "all": "",
@@ -419,8 +422,11 @@
     "where": ""
   },
   "recording": {
+    "camera": "",
+    "duration": "",
     "events": "Eventi",
-    "seek": "Cercare"
+    "seek": "Cercare",
+    "start": ""
   },
   "thumbnail": {
     "no_thumbnail": "Nessuna miniatura disponibile",

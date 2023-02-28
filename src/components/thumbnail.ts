@@ -15,7 +15,12 @@ import thumbnailFeatureEventStyle from '../scss/thumbnail-feature-event.scss';
 import thumbnailFeatureRecordingStyle from '../scss/thumbnail-feature-recording.scss';
 import thumbnailStyle from '../scss/thumbnail.scss';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
-import { errorToConsole, getDurationString, prettifyTitle } from '../utils/basic.js';
+import {
+  errorToConsole,
+  formatDateAndTime,
+  getDurationString,
+  prettifyTitle,
+} from '../utils/basic.js';
 import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask, FetchThumbnailTaskArgs } from '../utils/thumbnail.js';
 import { View } from '../view/view.js';
@@ -150,6 +155,9 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
   @property({ attribute: false })
   public seek?: Date;
 
+  @property({ attribute: false })
+  public cameraTitle?: string;
+
   protected render(): TemplateResult | void {
     if (!this.media) {
       return;
@@ -158,35 +166,48 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
     const startTime = this.media.getStartTime();
     const endTime = this.media.getEndTime();
     const what = this.media.getWhat();
+    const where = this.media.getWhere();
 
-    return html` <div class="left">
-        ${what ? html`<div class="larger">${prettifyTitle(what.join(', '))}</div>` : ``}
+    return html`
+      ${what
+        ? html` <div class="title" title=${localize('event.what')}>
+            ${prettifyTitle(what.join(', '))}
+            ${score ? html`(${(score * 100).toFixed(2) + '%'})` : ''}
+          </div>`
+        : ``}
+      <div class="details">
         ${startTime
-          ? html` <div>
-                <span class="heading">${localize('event.start')}:</span>
-                <span>${format(startTime, 'HH:mm:ss')}</span>
+          ? html` <div title=${localize('event.start')}>
+                <ha-icon .icon=${'mdi:calendar-clock-outline'}></ha-icon>
+                ${formatDateAndTime(startTime)}
               </div>
-              <div>
-                <span class="heading">${localize('event.duration')}:</span>
-                <span
-                  >${endTime
-                    ? getDurationString(startTime, endTime)
-                    : localize('event.in_progress')}</span
-                >
+              <div title=${localize('event.duration')}>
+                <ha-icon .icon=${'mdi:clock-outline'}></ha-icon>
+                ${endTime
+                  ? getDurationString(startTime, endTime)
+                  : localize('event.in_progress')}
               </div>`
-          : ``}
+          : ''}
+        ${this.cameraTitle
+          ? html` <div title=${localize('event.camera')}>
+              <ha-icon .icon=${'mdi:cctv'}></ha-icon>
+              ${this.cameraTitle}
+            </div>`
+          : ''}
+        ${where
+          ? html` <div title=${localize('event.where')}>
+              <ha-icon .icon=${'mdi:map-marker-outline'}></ha-icon>
+              ${prettifyTitle(where.join(', '))}
+            </div>`
+          : html``}
         ${this.seek
-          ? html` <div>
-              <span class="heading">${localize('event.seek')}</span>
-              <span>${format(this.seek, 'HH:mm:ss')}</span>
+          ? html` <div title=${localize('event.seek')}>
+              <ha-icon .icon=${'mdi:clock-fast'}></ha-icon>
+              ${format(this.seek, 'HH:mm:ss')}
             </div>`
           : html``}
       </div>
-      ${score
-        ? html`<div class="right">
-            <span class="larger">${(score * 100).toFixed(2) + '%'}</span>
-          </div>`
-        : ``}`;
+    `;
   }
 
   static get styles(): CSSResult {
@@ -209,22 +230,42 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
     if (!this.media) {
       return;
     }
+    const startTime = this.media.getStartTime();
+    const endTime = this.media.getEndTime();
     const eventCount = this.media.getEventCount();
-    return html`<div class="left">
-        <div class="larger">${this.cameraTitle ?? ''}</div>
+    return html`
+      ${this.cameraTitle
+        ? html` <div class="title" title=${localize('recording.camera')}>
+            ${this.cameraTitle}
+          </div>`
+        : ``}
+      <div class="details">
+        ${startTime
+          ? html` <div title=${localize('recording.start')}>
+                <ha-icon .icon=${'mdi:calendar-clock-outline'}></ha-icon>
+                ${formatDateAndTime(startTime)}
+              </div>
+              <div title=${localize('recording.duration')}>
+                <ha-icon .icon=${'mdi:clock-outline'}></ha-icon>
+                ${endTime
+                  ? getDurationString(startTime, endTime)
+                  : localize('event.in_progress')}
+              </div>`
+          : ''}
         ${this.seek
-          ? html` <div>
-              <span class="heading">${localize('recording.seek')}</span>
-              <span>${format(this.seek, 'HH:mm:ss')}</span>
+          ? html` <div title=${localize('event.seek')}>
+              <ha-icon .icon=${'mdi:clock-fast'}></ha-icon>
+              ${format(this.seek, 'HH:mm:ss')}
             </div>`
           : html``}
+        ${eventCount !== null
+          ? html`<div title=${localize('recording.events')}>
+              <ha-icon .icon=${'mdi:shield-alert'}></ha-icon>
+              ${eventCount}
+            </div>`
+          : ``}
       </div>
-      ${eventCount !== null
-        ? html`<div class="right">
-            <span class="larger">${eventCount}</span>
-            <span>${localize('recording.events')}</span>
-          </div>`
-        : ``}`;
+    `;
   }
 
   static get styles(): CSSResult {
@@ -336,6 +377,7 @@ export class FrigateCardThumbnail extends LitElement {
     ${this.details && ViewMediaClassifier.isEvent(this.media)
       ? html`<frigate-card-thumbnail-details-event
           .media=${this.media ?? undefined}
+          .cameraTitle=${cameraTitle}
           .seek=${this.seek}
         ></frigate-card-thumbnail-details-event>`
       : this.details && ViewMediaClassifier.isRecording(this.media)
