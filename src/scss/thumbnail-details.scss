@@ -1,48 +1,28 @@
 :host {
   display: flex;
+  flex-direction: column;
+
   width: 100%;
   margin-left: 5px;
-  padding: 8px;
+  padding: 5px;
   color: var(--primary-text-color);
   overflow: hidden;
   column-gap: 5%;
 }
 
-div.right,
-div.left {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  font-size: 0.8rem;
-  line-height: normal;
-}
-div.right {
-  align-items: center;
+div.title {
+  font-size: 1.2rem;
+  font-weight: bold;
 }
 
-div.left {
+div.details {
   flex: 1;
 
   display: flex;
   flex-direction: column;
   flex-wrap: wrap;
-  align-content: flex-start;
-  justify-content: center;
+  --mdc-icon-size: 16px;
 
-  overflow: hidden;
-
-  column-gap: 5%;
-}
-
-div.left div {
-  width: 100%;
-}
-
-span.heading {
-  font-weight: bold;
-}
-
-div.larger,
-span.larger {
-  font-size: 1.4rem;
+  // Details panel can shrink as well as grow.
+  min-height: 0px;
 }
