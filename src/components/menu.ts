@@ -309,11 +309,13 @@ export class FrigateCardMenu extends LitElement {
             (button) => !button.alignment || button.alignment === 'matching',
           )
         : this.buttons.filter((button) => button.icon === FRIGATE_BUTTON_MENU_ICON)
-    ).filter((button) => !!button.enabled)
+    ).filter((button) => button.enabled !== false);
 
     const opposingButtons =
       style !== 'hidden' || this.expanded
-        ? this.buttons.filter((button) => button.alignment === 'opposing' && button.enabled)
+        ? this.buttons.filter(
+            (button) => button.alignment === 'opposing' && button.enabled !== false,
+          )
         : [];
 
     const matchingStyle = {
