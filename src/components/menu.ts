@@ -5,7 +5,7 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS
+  unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -19,13 +19,13 @@ import type {
   MenuButton,
   MenuConfig,
   MenuItem,
-  StateParameters
+  StateParameters,
 } from '../types.js';
 import {
   convertActionToFrigateCardCustomAction,
   frigateCardHandleActionConfig,
   frigateCardHasAction,
-  getActionConfigGivenAction
+  getActionConfigGivenAction,
 } from '../utils/action.js';
 import { FRIGATE_ICON_SVG_PATH } from '../camera-manager/frigate/icon.js';
 import { refreshDynamicStateParameters } from '../utils/ha';
@@ -226,9 +226,6 @@ export class FrigateCardMenu extends LitElement {
    * @returns A rendered template or void.
    */
   protected _renderButton(button: MenuButton): TemplateResult | void {
-    if (button.enabled === false) {
-      return;
-    }
     if (button.type === 'custom:frigate-card-menu-submenu') {
       return html` <frigate-card-submenu
         .hass=${this.hass}
@@ -306,16 +303,17 @@ export class FrigateCardMenu extends LitElement {
     }
 
     // If the hidden menu isn't expanded, only show the Frigate button.
-    const matchingButtons =
+    const matchingButtons = (
       style !== 'hidden' || this.expanded
         ? this.buttons.filter(
             (button) => !button.alignment || button.alignment === 'matching',
           )
-        : this.buttons.filter((button) => button.icon === FRIGATE_BUTTON_MENU_ICON);
+        : this.buttons.filter((button) => button.icon === FRIGATE_BUTTON_MENU_ICON)
+    ).filter((button) => !!button.enabled)
 
     const opposingButtons =
       style !== 'hidden' || this.expanded
-        ? this.buttons.filter((button) => button.alignment === 'opposing')
+        ? this.buttons.filter((button) => button.alignment === 'opposing' && button.enabled)
         : [];
 
     const matchingStyle = {
@@ -342,7 +340,7 @@ export class FrigateCardMenu extends LitElement {
 }
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card-menu": FrigateCardMenu
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card-menu': FrigateCardMenu;
+  }
 }
