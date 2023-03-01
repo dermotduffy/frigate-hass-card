@@ -20,7 +20,7 @@ jobs:
 
       # Upload build file to the releas as an asset.
       - name: Upload zip to release
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@2.5.0
 
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
