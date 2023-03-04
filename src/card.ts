@@ -61,7 +61,7 @@ import {
   frigateCardHasAction,
   getActionConfigGivenAction,
 } from './utils/action.js';
-import { contentsChanged, errorToConsole } from './utils/basic.js';
+import { errorToConsole } from './utils/basic.js';
 import {
   getEntityIcon,
   getEntityTitle,
@@ -87,6 +87,10 @@ import { EntityRegistryManager } from './utils/ha/entity-registry/index.js';
 import { EntityCache } from './utils/ha/entity-registry/cache.js';
 import { Entity, ExtendedEntity } from './utils/ha/entity-registry/types.js';
 import { getAllDependentCameras } from './utils/camera.js';
+import cloneDeep from 'lodash-es/cloneDeep';
+import isEqual from 'lodash-es/isEqual';
+import merge from 'lodash-es/merge';
+import { FrigateCardInitializer } from './utils/initializer.js';
 
 /** A note on media callbacks:
  *
@@ -135,7 +139,12 @@ console.info(
   documentationURL: REPO_URL,
 });
 
-type InitializedType = 'initialized' | 'initializing';
+enum InitializationAspect {
+  LANGUAGES = 'languages',
+  SIDE_LOAD_ELEMENTS = 'side-load-elements',
+  MEDIA_PLAYERS = 'media-players',
+  CAMERAS = 'cameras',
+}
 
 /**
  * Main FrigateCard class.
@@ -202,15 +211,14 @@ class FrigateCard extends LitElement {
   // per second for performance reasons.
   protected _boundMouseHandler = throttle(this._mouseHandler.bind(this), 1 * 1000);
 
-  // Whether the card has been successfully initialized.
-  protected _initialized?: InitializedType;
-
   protected _triggers: Map<string, Date> = new Map();
   protected _untriggerTimerID: number | null = null;
 
   protected _conditionManager: CardConditionManager | null = null;
 
   protected _mediaPlayers?: string[];
+
+  protected _initializer = new FrigateCardInitializer();
 
   constructor() {
     super();
@@ -315,7 +323,15 @@ class FrigateCard extends LitElement {
 
     // Save on Lit re-rendering costs by only updating the configuration if it
     // actually changes.
-    if (contentsChanged(overriddenConfig, this._overriddenConfig)) {
+    if (!isEqual(overriddenConfig, this._overriddenConfig)) {
+      if (
+        !isEqual(overriddenConfig.cameras, this._overriddenConfig?.cameras) ||
+        !isEqual(overriddenConfig.cameras_global, this._overriddenConfig?.cameras_global)
+      ) {
+        // Uninitialize the cameras (they will be re-initialized on the render
+        // cycle triggered by updating the overridden config) below.
+        this._initializer.uninitialize(InitializationAspect.CAMERAS);
+      }
       this._overriddenConfig = overriddenConfig;
     }
   }
@@ -906,98 +922,6 @@ class FrigateCard extends LitElement {
     });
   }
 
-  protected async _initialize(
-    hass: HomeAssistant,
-    config: FrigateCardConfig,
-    cardWideConfig: CardWideConfig,
-  ): Promise<void> {
-    // Above arguments are taken (vs usage of `this`) as they must exist prior
-    // to initialization and this ensures it is the callers responsibility to
-    // verify that.
-
-    await Promise.all([
-      // Side load Home Assistant elements used in the UI.
-      sideLoadHomeAssistantElements(),
-
-      // Load dynamic language imports.
-      loadLanguages(),
-    ]);
-
-    await this._initializeCameras(hass, config, cardWideConfig);
-
-    // Don't reset the message which may be set to an error above. This sets the
-    // first view using the newly loaded cameras.
-    this._changeView({ resetMessage: false });
-  }
-
-  protected async _initializeCameras(
-    hass: HomeAssistant,
-    config: FrigateCardConfig,
-    cardWideConfig: CardWideConfig,
-  ): Promise<void> {
-    this._cameraManager = new CameraManager(
-      new CameraManagerEngineFactory(this._entityRegistryManager, cardWideConfig),
-      this._cardWideConfig,
-    );
-
-    try {
-      await this._cameraManager.initializeCameras(
-        hass,
-        this._entityRegistryManager,
-        config.cameras,
-      );
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        errorToConsole(e);
-      }
-      if (e instanceof FrigateCardError) {
-        this._setMessageAndUpdate({
-          message: e.message,
-          type: 'error',
-          context: e.context,
-        });
-      }
-    }
-  }
-
-  protected async _initializeMediaPlayers(hass: HomeAssistant): Promise<void> {
-    const isValidMediaPlayer = (entityID: string): boolean => {
-      if (entityID.startsWith('media_player.')) {
-        const stateObj = this._hass?.states[entityID];
-        if (
-          stateObj &&
-          stateObj.state !== 'unavailable' &&
-          supportsFeature(stateObj, MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA)
-        ) {
-          return true;
-        }
-      }
-      return false;
-    };
-
-    const mediaPlayers = Object.keys(this._hass?.states || {}).filter(
-      isValidMediaPlayer,
-    );
-    let mediaPlayerEntities: Map<string, Entity>;
-    try {
-      mediaPlayerEntities = await this._entityRegistryManager.getEntities(
-        hass,
-        mediaPlayers,
-      );
-    } catch (e) {
-      // Failing to fetch media player information is not considered
-      // sufficiently serious to block card startup.
-      errorToConsole(e as Error);
-      return;
-    }
-
-    // Filter out entities that are marked as hidden (this information is not
-    // available in the HA state, only in the registry).
-    this._mediaPlayers = [...mediaPlayerEntities.values()]
-      .filter((entity) => !entity.hidden_by)
-      .map((entity) => entity.entity_id);
-  }
-
   /**
    * Called before each update.
    */
@@ -1006,25 +930,7 @@ class FrigateCard extends LitElement {
       setPerformanceCSSStyles(this, this._cardWideConfig?.performance);
     }
 
-    if (
-      this._hass &&
-      !this._mediaPlayers &&
-      this._getConfig().menu.buttons.media_player.enabled
-    ) {
-      // Media players are initialized outside the main initialization code (the
-      // `initialize` method) since they may be required depending on an
-      // overridable configuration value.
-
-      // We also want to initialize media players after since the main camera
-      // initialization since that may have fetched entity information that will
-      // be cached and re-used here (minor performance optimization). Only do
-      // this if the media player button is enabled to further limit the
-      // performance implications.
-
-      // Prevent a double initialization.
-      this._mediaPlayers = [];
-      this._initializeMediaPlayers(this._hass);
-    }
+    this._initializeBackground();
 
     if (this._view?.is('live')) {
       import('./components/live/live.js');
@@ -1147,30 +1053,173 @@ class FrigateCard extends LitElement {
     }
   }
 
+  protected async _initializeCameras(
+    hass: HomeAssistant,
+    config: FrigateCardConfig,
+    cardWideConfig: CardWideConfig,
+  ): Promise<void> {
+    this._cameraManager = new CameraManager(
+      new CameraManagerEngineFactory(this._entityRegistryManager, cardWideConfig),
+      this._cardWideConfig,
+    );
+
+    // For each camera merge the config into the camera global config. The
+    // merging must happen in this order, to ensure that the defaults in the
+    // cameras global config do not override the values specified in the
+    // per-camera config.
+    const cameras = config.cameras.map((camera) =>
+      merge(cloneDeep(config.cameras_global), camera),
+    );
+
+    console.info("MERGED CAMERAS", cameras);
+
+    try {
+      await this._cameraManager.initializeCameras(
+        hass,
+        this._entityRegistryManager,
+        cameras,
+      );
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        errorToConsole(e);
+      }
+      if (e instanceof FrigateCardError) {
+        this._setMessageAndUpdate({
+          message: e.message,
+          type: 'error',
+          context: e.context,
+        });
+      }
+    }
+
+    // If there's no view set yet, set one. This will be the case on initial camera load.
+    if (!this._view) {
+      // Don't reset the message which may be set to an error above. This sets the
+      // first view using the newly loaded cameras.
+      this._changeView({ resetMessage: false });
+    }
+  }
+
+  protected async _initializeMediaPlayers(hass: HomeAssistant): Promise<void> {
+    const isValidMediaPlayer = (entityID: string): boolean => {
+      if (entityID.startsWith('media_player.')) {
+        const stateObj = this._hass?.states[entityID];
+        if (
+          stateObj &&
+          stateObj.state !== 'unavailable' &&
+          supportsFeature(stateObj, MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA)
+        ) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    const mediaPlayers = Object.keys(this._hass?.states || {}).filter(
+      isValidMediaPlayer,
+    );
+    let mediaPlayerEntities: Map<string, Entity>;
+    try {
+      mediaPlayerEntities = await this._entityRegistryManager.getEntities(
+        hass,
+        mediaPlayers,
+      );
+    } catch (e) {
+      // Failing to fetch media player information is not considered
+      // sufficiently serious to block card startup.
+      errorToConsole(e as Error);
+      return;
+    }
+
+    // Filter out entities that are marked as hidden (this information is not
+    // available in the HA state, only in the registry).
+    this._mediaPlayers = [...mediaPlayerEntities.values()]
+      .filter((entity) => !entity.hidden_by)
+      .map((entity) => entity.entity_id);
+  }
+
+  /**
+   * Initialize the hard requirements for rendering anything.
+   * @returns `true` if card rendering can continue.
+   */
+  protected _initializeMandatory(): boolean {
+    if (
+      this._initializer.isInitializedMultiple([
+        InitializationAspect.LANGUAGES,
+        InitializationAspect.SIDE_LOAD_ELEMENTS,
+        InitializationAspect.CAMERAS,
+      ])
+    ) {
+      return true;
+    }
+
+    const hass = this._hass;
+    const config = this._getConfig();
+    const cardWideConfig = this._cardWideConfig;
+    if (!hass || !config || !cardWideConfig) {
+      return false;
+    }
+
+    this._initializer
+      .initializeMultipleIfNecessary({
+        // Caution: Ensure nothing in this set of initializers requires
+        // languages since they will not yet have been initialized.
+        [InitializationAspect.LANGUAGES]: async () => loadLanguages,
+        [InitializationAspect.SIDE_LOAD_ELEMENTS]: async () =>
+          sideLoadHomeAssistantElements,
+      })
+      .then(() => {
+        return this._initializer.initializeIfNecessary(
+          InitializationAspect.CAMERAS,
+          async () => this._initializeCameras(hass, config, cardWideConfig),
+        );
+      })
+      .then((initialized) => {
+        if (initialized) {
+          return this.requestUpdate();
+        }
+      });
+    return false;
+  }
+
+  /**
+   * Initialize aspects of the card that can load in the 'background'.
+   * @returns `true` if card rendering can continue.
+   */
+  protected _initializeBackground(): void {
+    if (this._initializer.isInitialized(InitializationAspect.MEDIA_PLAYERS)) {
+      return;
+    }
+    const hass = this._hass;
+    const config = this._getConfig();
+    if (!hass || !config) {
+      return;
+    }
+
+    this._initializer
+      .initializeMultipleIfNecessary({
+        ...(config.menu.buttons.media_player.enabled && {
+          [InitializationAspect.MEDIA_PLAYERS]: async () =>
+            this._initializeMediaPlayers(hass),
+        }),
+      })
+      .then((initialized) => {
+        if (initialized) {
+          this.requestUpdate();
+        }
+      });
+    return;
+  }
+
   /**
    * Determine whether the element should be updated.
    * @param changedProps The changed properties if any.
    * @returns `true` if the element should be updated.
    */
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    // Load the relevant languages. Cannot do anything until then.
-    if (this._initialized !== 'initialized') {
-      const config = this._getConfig();
-      if (
-        this._initialized !== 'initializing' &&
-        this._hass &&
-        config &&
-        this._cardWideConfig
-      ) {
-        this._initialized = 'initializing';
-        this._initialize(this._hass, config, this._cardWideConfig).then(() => {
-          this._initialized = 'initialized';
-          this.requestUpdate();
-        });
-      }
+    if (!this._initializeMandatory()) {
       return false;
     }
-
     const oldHass = changedProps.get('_hass') as HomeAssistant | undefined;
     let shouldUpdate = !oldHass || changedProps.size != 1;
 

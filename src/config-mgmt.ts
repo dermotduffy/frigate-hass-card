@@ -4,6 +4,9 @@ import isEqual from 'lodash-es/isEqual';
 import set from 'lodash-es/set';
 import {
   CONF_CAMERAS,
+  CONF_CAMERAS_GLOBAL_IMAGE,
+  CONF_CAMERAS_GLOBAL_JSMPEG,
+  CONF_CAMERAS_GLOBAL_WEBRTC_CARD,
   CONF_ELEMENTS,
   CONF_LIVE_AUTO_UNMUTE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
@@ -28,7 +31,6 @@ import {
 import {
   BUTTON_SIZE_MIN,
   RawFrigateCardConfig,
-  RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
   THUMBNAIL_WIDTH_MIN,
 } from './types';
@@ -91,7 +93,6 @@ export const upgradeConfig = function (obj: RawFrigateCardConfig): boolean {
   for (let i = 0; i < UPGRADES.length; i++) {
     upgraded = UPGRADES[i](obj) || upgraded;
   }
-  trimConfig(obj);
   return upgraded;
 };
 
@@ -102,28 +103,6 @@ export const upgradeConfig = function (obj: RawFrigateCardConfig): boolean {
  */
 export const isConfigUpgradeable = function (obj: RawFrigateCardConfig): boolean {
   return upgradeConfig(copyConfig(obj));
-};
-
-/**
- * Remove empty sections from a configuration.
- * @param obj Configuration object.
- * @returns `true` if the configuration was modified.
- */
-const trimConfig = function (obj: RawFrigateCardConfig): boolean {
-  const keys = Object.keys(obj);
-  let modified = false;
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i];
-    if (typeof obj[key] === 'object' && obj[key] != null) {
-      modified = trimConfig(obj[key] as RawFrigateCardConfig) || modified;
-
-      if (!Object.keys(obj[key] as RawFrigateCardConfig).length) {
-        delete obj[key];
-        modified = true;
-      }
-    }
-  }
-  return modified;
 };
 
 /**
@@ -523,80 +502,6 @@ const transformFrigateUIAction = (data: unknown): boolean => {
   return false;
 };
 
-/**
- * Move live provider options exclusively into camera configs.
- * @returns An upgrade function.
- */
-const upgradeCameraOptionsFromLiveToMultipleCameras = (): ((
-  obj: RawFrigateCardConfig,
-) => boolean) => {
-  return function (obj: RawFrigateCardConfig): boolean {
-    const cameras = getConfigValue(obj, CONF_CAMERAS) as
-      | RawFrigateCardConfigArray
-      | undefined;
-    if (cameras === undefined) {
-      return false;
-    }
-
-    const webrtcCardConfig = getConfigValue(obj, 'live.webrtc_card') as
-      | RawFrigateCardConfigArray
-      | undefined;
-    const imageConfig = getConfigValue(obj, 'live.image') as
-      | RawFrigateCardConfigArray
-      | undefined;
-    const jsmpegConfig = getConfigValue(obj, 'live.jsmpeg') as
-      | RawFrigateCardConfigArray
-      | undefined;
-
-    if (!webrtcCardConfig && !imageConfig && !jsmpegConfig) {
-      return false;
-    }
-
-    if (webrtcCardConfig) {
-      cameras.forEach((camera) => {
-        if (
-          camera.live_provider === 'webrtc_card' &&
-          (camera.webrtc_card === undefined || typeof camera.webrtc_card === 'object')
-        ) {
-          camera.webrtc_card = { ...webrtcCardConfig, ...camera.webrtc_card };
-        }
-      });
-    }
-    if (imageConfig) {
-      cameras.forEach((camera) => {
-        if (
-          camera.live_provider === 'image' &&
-          (camera.image === undefined || typeof camera.image === 'object')
-        ) {
-          camera.image = { ...imageConfig, ...camera.image };
-        }
-      });
-    }
-    if (jsmpegConfig) {
-      cameras.forEach((camera) => {
-        if (
-          camera.live_provider === 'jsmpeg' &&
-          (camera.jsmpeg === undefined || typeof camera.jsmpeg === 'object')
-        ) {
-          camera.jsmpeg = { ...jsmpegConfig, ...camera.jsmpeg };
-        }
-      });
-    }
-
-    setConfigValue(obj, CONF_CAMERAS, cameras);
-    deleteConfigValue(obj, 'live.webrtc_card');
-    deleteConfigValue(obj, 'live.image');
-    deleteConfigValue(obj, 'live.jsmpeg');
-
-    // Note: This upgrade is imperfect. There could be override conditions being
-    // set that this upgrade cannot understand, e.g. if in fullscreen mode then
-    // refresh a live image more frequently. Such functionality is not possible
-    // after this change, since camera configs cannot be overrided.
-
-    return true;
-  };
-};
-
 const UPGRADES = [
   // v3.0.0 -> v4.0.0-rc.1
   upgradeWithOverrides(
@@ -680,5 +585,7 @@ const UPGRADES = [
       val === 'frigate-jsmpeg' ? 'jsmpeg' : val,
     ),
   ),
-  upgradeCameraOptionsFromLiveToMultipleCameras(),
+  upgradeMoveToWithOverrides('live.image', CONF_CAMERAS_GLOBAL_IMAGE),
+  upgradeMoveToWithOverrides('live.jsmpeg', CONF_CAMERAS_GLOBAL_JSMPEG),
+  upgradeMoveToWithOverrides('live.webrtc_card', CONF_CAMERAS_GLOBAL_WEBRTC_CARD),
 ];
