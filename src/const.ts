@@ -44,6 +44,10 @@ export const CONF_CAMERAS_GLOBAL_IMAGE = `${CONF_CAMERAS_GLOBAL}.image` as const
 export const CONF_CAMERAS_GLOBAL_JSMPEG = `${CONF_CAMERAS_GLOBAL}.jsmpeg` as const;
 export const CONF_CAMERAS_GLOBAL_WEBRTC_CARD =
   `${CONF_CAMERAS_GLOBAL}.webrtc_card` as const;
+export const CONF_CAMERAS_GLOBAL_TRIGGERS_OCCUPANCY =
+  `${CONF_CAMERAS_GLOBAL}.triggers.occupancy` as const;
+export const CONF_CAMERAS_GLOBAL_IMAGE_REFRESH_SECONDS =
+  `${CONF_CAMERAS_GLOBAL}.image.refresh_seconds` as const;
 
 export const CONF_ELEMENTS = 'elements' as const;
 
