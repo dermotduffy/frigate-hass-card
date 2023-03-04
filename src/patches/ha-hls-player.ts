@@ -73,8 +73,12 @@ customElements.whenDefined('ha-hls-player').then(() => {
     // =====================================================================================
     protected render(): TemplateResult {
       if (this._error) {
-        // Use native Frigate card error handling.
-        return dispatchErrorMessageEvent(this, this._error);
+        if (this._errorIsFatal) {
+          // Use native Frigate card error handling for fatal errors.
+          return dispatchErrorMessageEvent(this, this._error);
+        } else {
+          console.error(this._error);
+        }
       }
       return html`
         <video
