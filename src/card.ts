@@ -85,7 +85,7 @@ import { CameraManagerEngineFactory } from './camera-manager/engine-factory.js';
 import { log } from './utils/debug.js';
 import { EntityRegistryManager } from './utils/ha/entity-registry/index.js';
 import { EntityCache } from './utils/ha/entity-registry/cache.js';
-import { Entity, ExtendedEntity } from './utils/ha/entity-registry/types.js';
+import { Entity } from './utils/ha/entity-registry/types.js';
 import { getAllDependentCameras } from './utils/camera.js';
 import cloneDeep from 'lodash-es/cloneDeep';
 import isEqual from 'lodash-es/isEqual';
@@ -222,10 +222,7 @@ class FrigateCard extends LitElement {
 
   constructor() {
     super();
-    this._entityRegistryManager = new EntityRegistryManager(
-      new EntityCache<Entity>(),
-      new EntityCache<ExtendedEntity>(),
-    );
+    this._entityRegistryManager = new EntityRegistryManager(new EntityCache());
   }
 
   /**

@@ -187,7 +187,8 @@ export class CameraManager {
       camerasConfig.some((config) => hasAutoTriggers(config))
     ) {
       // ... then we need to populate the entity cache by fetching all entities
-      // from Home Assistant.
+      // from Home Assistant. Do this once upfront, to avoid each camera doing
+      // it.
       await entityRegistryManager.fetchEntityList(hass);
     }
 

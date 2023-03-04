@@ -71,7 +71,7 @@ import { FrigateViewMediaFactory } from './media';
 import { log } from '../../utils/debug';
 import { getEntityTitle } from '../../utils/ha';
 import { EntityRegistryManager } from '../../utils/ha/entity-registry';
-import { ExtendedEntity } from '../../utils/ha/entity-registry/types';
+import { Entity } from '../../utils/ha/entity-registry/types';
 import { CameraInitializationError } from '../error';
 import { localize } from '../../localize/localize';
 import uniq from 'lodash-es/uniq';
@@ -148,17 +148,13 @@ export class FrigateCameraManagerEngine
     const hasAutoTriggers =
       cameraConfig.triggers.motion || cameraConfig.triggers.occupancy;
 
-    let entity: ExtendedEntity | null = null;
+    let entity: Entity | null = null;
 
-    // Extended entity information is required if the Frigate camera name is
-    // missing, or if the entity requires automatic resolution of
-    // motion/occupancy sensors.
+    // Entity information is required if the Frigate camera name is missing, or
+    // if the entity requires automatic resolution of motion/occupancy sensors.
     if (cameraConfig.camera_entity && (!hasCameraName || hasAutoTriggers)) {
       try {
-        entity = await entityRegistryManager.getExtendedEntity(
-          hass,
-          cameraConfig.camera_entity,
-        );
+        entity = await entityRegistryManager.getEntity(hass, cameraConfig.camera_entity);
       } catch (e) {
         throw new CameraInitializationError(
           localize('error.no_camera_entity'),
@@ -187,14 +183,9 @@ export class FrigateCameraManagerEngine
           ent.entity_id.startsWith('binary_sensor.'),
       );
 
-      const extendedEntities = await entityRegistryManager.getExtendedEntities(
-        hass,
-        binarySensorEntities.map((entity) => entity.entity_id),
-      );
-
       if (cameraConfig.triggers.motion) {
         const motionEntity = this._getMotionSensor(cameraConfig, [
-          ...extendedEntities.values(),
+          ...binarySensorEntities.values(),
         ]);
         if (motionEntity) {
           cameraConfig.triggers.entities.push(motionEntity);
@@ -203,7 +194,7 @@ export class FrigateCameraManagerEngine
 
       if (cameraConfig.triggers.occupancy) {
         const occupancyEntity = this._getOccupancySensor(cameraConfig, [
-          ...extendedEntities.values(),
+          ...binarySensorEntities.values(),
         ]);
         if (occupancyEntity) {
           cameraConfig.triggers.entities.push(occupancyEntity);
@@ -221,7 +212,7 @@ export class FrigateCameraManagerEngine
    * Get the Frigate camera name from an entity.
    * @returns The Frigate camera name or null if unavailable.
    */
-  protected _getFrigateCameraNameFromEntity(entity: ExtendedEntity): string | null {
+  protected _getFrigateCameraNameFromEntity(entity: Entity): string | null {
     if (entity.unique_id && entity.platform === 'frigate') {
       const match = entity.unique_id.match(/:camera:(?<camera>[^:]+)$/);
       if (match && match.groups) {
@@ -233,17 +224,17 @@ export class FrigateCameraManagerEngine
 
   /**
    * Get the motion sensor entity for a given camera.
-   * @param cache The ExtendedEntityCache of entity registry information.
+   * @param cache The EntityCache of entity registry information.
    * @param cameraConfig The camera config in question.
    * @returns The entity id of the motion sensor or null.
    */
   protected _getMotionSensor(
     cameraConfig: CameraConfig,
-    extendedEntities: ExtendedEntity[],
+    entities: Entity[],
   ): string | null {
     if (cameraConfig.frigate.camera_name) {
       return (
-        extendedEntities.find(
+        entities.find(
           (ent) =>
             !!ent.unique_id?.match(
               new RegExp(
@@ -260,17 +251,17 @@ export class FrigateCameraManagerEngine
 
   /**
    * Get the occupancy sensor entity for a given camera.
-   * @param cache The ExtendedEntityCache of entity registry information.
+   * @param cache The EntityCache of entity registry information.
    * @param cameraConfig The camera config in question.
    * @returns The entity id of the occupancy sensor or null.
    */
   protected _getOccupancySensor(
     cameraConfig: CameraConfig,
-    extendedEntities: ExtendedEntity[],
+    entities: Entity[],
   ): string | null {
     if (cameraConfig.frigate.camera_name) {
       return (
-        extendedEntities.find(
+        entities.find(
           (ent) =>
             !!ent.unique_id?.match(
               new RegExp(
