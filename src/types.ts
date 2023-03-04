@@ -412,10 +412,8 @@ const go2rtcConfigSchema = z.object({
   modes: z.enum(['webrtc', 'mse', 'mp4', 'mjpeg']).array().optional(),
   stream: z.string().optional(),
 });
-export type Go2rtcConfig = z.infer<typeof go2rtcConfigSchema>;
 
 const liveImageConfigSchema = imageBaseConfigSchema;
-export type LiveImageConfig = z.infer<typeof liveImageConfigSchema>;
 
 const webrtcCardConfigSchema = z
   .object({
@@ -423,7 +421,6 @@ const webrtcCardConfigSchema = z
     url: z.string().optional(),
   })
   .passthrough();
-export type WebRTCCardConfig = z.infer<typeof webrtcCardConfigSchema>;
 
 const jsmpegConfigSchema = z.object({
   options: z
@@ -444,7 +441,6 @@ const jsmpegConfigSchema = z.object({
     })
     .optional(),
 });
-export type JSMPEGConfig = z.infer<typeof jsmpegConfigSchema>;
 
 /**
  * Camera configuration section
@@ -524,7 +520,9 @@ const cameraConfigSchema = z
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigSchema>;
 
-const camerasConfigSchema = cameraConfigSchema.array().nonempty();
+// Avoid using .nonempty() to avoid changing the inferred type
+// (https://github.com/colinhacks/zod#minmaxlength).
+const camerasConfigSchema = cameraConfigSchema.array().min(1);
 export type CamerasConfig = z.infer<typeof camerasConfigSchema>;
 
 /**
@@ -1200,6 +1198,8 @@ export type TimelineConfig = z.infer<typeof timelineConfigSchema>;
 // Strip all defaults from the override schemas, to ensure values are only what
 // the user has specified.
 const overrideConfigurationSchema = z.object({
+  cameras: deepRemoveDefaults(camerasConfigSchema).optional(),
+  cameras_global: deepRemoveDefaults(cameraConfigSchema).optional(),
   live: deepRemoveDefaults(liveOverridableConfigSchema).optional(),
   menu: deepRemoveDefaults(menuConfigSchema).optional(),
   image: deepRemoveDefaults(imageConfigSchema).optional(),
@@ -1282,8 +1282,14 @@ export interface CardWideConfig {
  * Main card config.
  */
 export const frigateCardConfigSchema = z.object({
-  // Main configuration sections.
-  cameras: camerasConfigSchema,
+  // Defaults are stripped out of the individual cameras, since each camera will
+  // be merged with `cameras_global` which *does* have defaults. If we didn't do
+  // this, the default values of each individual camera would override the
+  // intentionally specified values in `cameras_global` during camera
+  // initialization when the two configs are merged.
+  cameras: deepRemoveDefaults(camerasConfigSchema),
+  cameras_global: cameraConfigSchema,
+
   view: viewConfigSchema,
   menu: menuConfigSchema,
   live: liveConfigSchema,

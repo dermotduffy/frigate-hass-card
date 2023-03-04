@@ -39,6 +39,12 @@ export const CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY =
 export const CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES =
   `${CONF_CAMERAS}.#.triggers.entities` as const;
 
+export const CONF_CAMERAS_GLOBAL = 'cameras_global' as const;
+export const CONF_CAMERAS_GLOBAL_IMAGE = `${CONF_CAMERAS_GLOBAL}.image` as const;
+export const CONF_CAMERAS_GLOBAL_JSMPEG = `${CONF_CAMERAS_GLOBAL}.jsmpeg` as const;
+export const CONF_CAMERAS_GLOBAL_WEBRTC_CARD =
+  `${CONF_CAMERAS_GLOBAL}.webrtc_card` as const;
+
 export const CONF_ELEMENTS = 'elements' as const;
 
 const CONF_VIEW = 'view' as const;

@@ -83,6 +83,8 @@ lovelace:
 
 At least 1 camera must be configured in the `cameras` section, but otherwise all configuration parameters are optional.
 
+<a name="camera-options"></a>
+
 ### Camera Options
 
 The `cameras` block configures a list of cameras the card should support. The first listed camera is the default. Camera configuration is under:
@@ -99,17 +101,17 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `camera_entity` | | :heavy_multiplication_x: | The Home Assistant camera entity to use with the `frigate` live provider view. Also used to automatically detect the name of the underlying Frigate camera, and the title/icon of the camera. |
-| `live_provider` | `auto` | :heavy_multiplication_x: | The choice of live stream provider. See [Live Providers](#live-providers) below.|
-| `title` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | A friendly name for this camera to use in the card. |
-| `icon` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | The icon to use for this camera in the camera menu and in the next & previous controls when using the `icon` style. |
-| `hide` | `false` | :heavy_multiplication_x: | Whether or not to hide this as an independent camera (e.g. hidden on the live carousel, media filter, camera menu, and triggers cannot trigger this camera). This may be useful if this camera is exclusively used as a dependency of another camera. |
-| `id` | `camera_entity`, `webrtc_card.entity` or `frigate.camera_name` if set (in that preference order). | :heavy_multiplication_x: | An optional identifier to use throughout the card configuration to refer unambiguously to this camera. See [camera IDs](#camera-ids). |
-| `engine` | `auto` | :heavy_multiplication_x: | Which camera engine to use for this camera. If `auto` the card will attempt to choose the correct engine from the specified options. See [engines](#engines) below for valid options.|
-| `frigate` | | :heavy_multiplication_x: | Options for a Frigate camera. See [Frigate configuration](#camera-frigate-configuration) below. |
-| `dependencies` | | :heavy_multiplication_x: | Other cameras that this camera should depend upon. See [camera dependencies](#camera-dependencies-configuration) below. |
-| `triggers` | | :heavy_multiplication_x: | Define what should cause this camera to update/trigger. See [camera triggers](#camera-trigger-configuration) below. |
-| `webrtc_card` | | :heavy_multiplication_x: | The WebRTC entity/URL to use for this camera with the `webrtc-card` live provider. See below. |
+| `camera_entity` | | :white_check_mark: | The Home Assistant camera entity to use with the `frigate` live provider view. Also used to automatically detect the name of the underlying Frigate camera, and the title/icon of the camera. |
+| `live_provider` | `auto` | :white_check_mark: | The choice of live stream provider. See [Live Providers](#live-providers) below.|
+| `title` | Autodetected from `camera_entity` if that is specified. | :white_check_mark: | A friendly name for this camera to use in the card. |
+| `icon` | Autodetected from `camera_entity` if that is specified. | :white_check_mark: | The icon to use for this camera in the camera menu and in the next & previous controls when using the `icon` style. |
+| `hide` | `false` | :white_check_mark: | Whether or not to hide this as an independent camera (e.g. hidden on the live carousel, media filter, camera menu, and triggers cannot trigger this camera). This may be useful if this camera is exclusively used as a dependency of another camera. |
+| `id` | `camera_entity`, `webrtc_card.entity` or `frigate.camera_name` if set (in that preference order). | :white_check_mark: | An optional identifier to use throughout the card configuration to refer unambiguously to this camera. See [camera IDs](#camera-ids). |
+| `engine` | `auto` | :white_check_mark: | Which camera engine to use for this camera. If `auto` the card will attempt to choose the correct engine from the specified options. See [engines](#engines) below for valid options.|
+| `frigate` | | :white_check_mark: | Options for a Frigate camera. See [Frigate configuration](#camera-frigate-configuration) below. |
+| `dependencies` | | :white_check_mark: | Other cameras that this camera should depend upon. See [camera dependencies](#camera-dependencies-configuration) below. |
+| `triggers` | | :white_check_mark: | Define what should cause this camera to update/trigger. See [camera triggers](#camera-trigger-configuration) below. |
+| `webrtc_card` | | :white_check_mark: | The WebRTC entity/URL to use for this camera with the `webrtc-card` live provider. See below. |
 
 <a name="live-providers"></a>
 
@@ -156,11 +158,11 @@ cameras:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `camera_name` | Autodetected from `camera_entity` if that is specified. | :heavy_multiplication_x: | The Frigate camera name to use when communicating with the Frigate server, e.g. for viewing clips/snapshots or the JSMPEG live view.|
-| `url` | | :heavy_multiplication_x: | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. All other communication with Frigate goes via Home Assistant. |
-| `label` | | :heavy_multiplication_x: | A Frigate label / object filter used to filter events (clips & snapshots), e.g. `person`.|
-| `zone` | | :heavy_multiplication_x: | A Frigate zone used to filter events (clips & snapshots), e.g. `front_door`.|
-| `client_id` | `frigate` | :heavy_multiplication_x: | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://docs.frigate.video/integrations/home-assistant/#multiple-instance-support).|
+| `camera_name` | Autodetected from `camera_entity` if that is specified. | :white_check_mark: | The Frigate camera name to use when communicating with the Frigate server, e.g. for viewing clips/snapshots or the JSMPEG live view.|
+| `url` | | :white_check_mark: | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. All other communication with Frigate goes via Home Assistant. |
+| `label` | | :white_check_mark: | A Frigate label / object filter used to filter events (clips & snapshots), e.g. `person`.|
+| `zone` | | :white_check_mark: | A Frigate zone used to filter events (clips & snapshots), e.g. `front_door`.|
+| `client_id` | `frigate` | :white_check_mark: | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://docs.frigate.video/integrations/home-assistant/#multiple-instance-support).|
 
 #### Live Provider: Camera go2rtc configuration
 
@@ -173,8 +175,8 @@ cameras:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `modes` | `[webrtc, mse, mp4, mjpeg]` | :heavy_multiplication_x: | An ordered array of `go2rtc` modes to use. Valid values are `webrtc`, `mse`, `mp4` or `mjpeg` values. |
-| `stream` | Determind by camera engine (e.g. `frigate` camera name). | :heavy_multiplication_x: | A valid `go2rtc` stream name. |
+| `modes` | `[webrtc, mse, mp4, mjpeg]` | :white_check_mark: | An ordered array of `go2rtc` modes to use. Valid values are `webrtc`, `mse`, `mp4` or `mjpeg` values. |
+| `stream` | Determind by camera engine (e.g. `frigate` camera name). | :white_check_mark: | A valid `go2rtc` stream name. |
 
 #### Live Provider: Camera WebRTC Card configuration
 
@@ -187,9 +189,9 @@ cameras:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `entity` | | :heavy_multiplication_x: | The RTSP entity to pass to the WebRTC Card for this camera. |
-| `url` | Depends on the camera engine (e.g. Frigate will use the camera name by default since this is the [recommended setup](https://deploy-preview-4055--frigate-docs.netlify.app/guides/configuring_go2rtc/))| :heavy_multiplication_x: | The RTSP url to pass to the WebRTC Card. |
-| `*`| | :heavy_multiplication_x: | Any options specified in the `webrtc_card:` YAML dictionary are silently passed through to the AlexxIT's WebRTC Card. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides. |
+| `entity` | | :white_check_mark: | The RTSP entity to pass to the WebRTC Card for this camera. |
+| `url` | Depends on the camera engine (e.g. Frigate will use the camera name by default since this is the [recommended setup](https://deploy-preview-4055--frigate-docs.netlify.app/guides/configuring_go2rtc/))| :white_check_mark: | The RTSP url to pass to the WebRTC Card. |
+| `*`| | :white_check_mark: | Any options specified in the `webrtc_card:` YAML dictionary are silently passed through to the AlexxIT's WebRTC Card. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides. |
 
 
 See [Using the WebRTC Card](#webrtc) below for more details on how to use the WebRTC Card live provider.
@@ -205,8 +207,8 @@ cameras:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `refresh_seconds` | 1 | :heavy_multiplication_x: | The image will be refreshed at least every `refresh_seconds`. `0` implies no refreshing. |
-| `url` | | :heavy_multiplication_x: | **Advanced**: A static image URL to be fetched in lieu of the Home Assistant image for the given camera. This may be useful for advanced configurations where the camera image is being provided by some non-Home Assistant system. This will also set the temporary loading image used when `show_image_during_load` is set to true under the `live` configuration. |
+| `refresh_seconds` | 1 | :white_check_mark: | The image will be refreshed at least every `refresh_seconds`. `0` implies no refreshing. |
+| `url` | | :white_check_mark: | **Advanced**: A static image URL to be fetched in lieu of the Home Assistant image for the given camera. This may be useful for advanced configurations where the camera image is being provided by some non-Home Assistant system. This will also set the temporary loading image used when `show_image_during_load` is set to true under the `live` configuration. |
 
 #### Live Provider: JSMPEG Configuration
 
@@ -219,7 +221,7 @@ cameras:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `options` | | :heavy_multiplication_x: | **Advanced users only**: Control the underlying [JSMPEG library options](https://github.com/phoboslab/jsmpeg#usage). Supports setting these JSMPEG options `{audio, video, pauseWhenHidden, disableGl, disableWebAssembly, preserveDrawingBuffer, progressive, throttled, chunkSize, maxAudioLag, videoBufferSize, audioBufferSize}`. This is not necessary for the vast majority of users: only set these flags if you know what you're doing, as you may entirely break video rendering in the card.|
+| `options` | | :white_check_mark: | **Advanced users only**: Control the underlying [JSMPEG library options](https://github.com/phoboslab/jsmpeg#usage). Supports setting these JSMPEG options `{audio, video, pauseWhenHidden, disableGl, disableWebAssembly, preserveDrawingBuffer, progressive, throttled, chunkSize, maxAudioLag, videoBufferSize, audioBufferSize}`. This is not necessary for the vast majority of users: only set these flags if you know what you're doing, as you may entirely break video rendering in the card.|
 
 <a name="webrtc-live-configuration"></a>
 
@@ -236,8 +238,8 @@ cameras:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `cameras` | | :heavy_multiplication_x: | An optional array of other camera identifiers (see [camera IDs](#camera-ids)). If specified the card will fetch media for this camera and *also* recursively for the named cameras by default. Live views for the involved cameras will be available as 'substreams' of the main (depended upon) camera. All dependent cameras must themselves be a configured camera in the card. This can be useful to group events for cameras that are close together, to show multiple related live  views, to always have clips/snapshots show fully merged events across all cameras or to show events for the `birdseye` camera that otherwise would not have events itself.|
-| `all_cameras` | `false` | :heavy_multiplication_x: | Shortcut to specify all other cameras as dependent cameras.|
+| `cameras` | | :white_check_mark: | An optional array of other camera identifiers (see [camera IDs](#camera-ids)). If specified the card will fetch media for this camera and *also* recursively for the named cameras by default. Live views for the involved cameras will be available as 'substreams' of the main (depended upon) camera. All dependent cameras must themselves be a configured camera in the card. This can be useful to group events for cameras that are close together, to show multiple related live  views, to always have clips/snapshots show fully merged events across all cameras or to show events for the `birdseye` camera that otherwise would not have events itself.|
+| `all_cameras` | `false` | :white_check_mark: | Shortcut to specify all other cameras as dependent cameras.|
 
 <a name="camera-triggers-configuration"></a>
 
@@ -252,9 +254,9 @@ cameras:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `motion` | `false` | :heavy_multiplication_x: | Whether to not to trigger the camera by automatically detecting and using the motion `binary_sensor` for this camera. This autodetection only works for Frigate cameras, and only when the motion `binary_sensor` entity has been enabled in Home Assistant.|
-| `occupancy` | `true` | :heavy_multiplication_x: | Whether to not to trigger the camera by automatically detecting and using the occupancy `binary_sensor` for this camera. This autodetection only works for Frigate cameras, and only when the occupancy `binary_sensor` entity has been enabled in Home Assistant.|
-| `entities` | | :heavy_multiplication_x: | Whether to not to trigger the camera when the state of any Home Assistant entity becomes active (i.e. state becomes `on` or `open`). This works for Frigate or non-Frigate cameras.|
+| `motion` | `false` | :white_check_mark: | Whether to not to trigger the camera by automatically detecting and using the motion `binary_sensor` for this camera. This autodetection only works for Frigate cameras, and only when the motion `binary_sensor` entity has been enabled in Home Assistant.|
+| `occupancy` | `true` | :white_check_mark: | Whether to not to trigger the camera by automatically detecting and using the occupancy `binary_sensor` for this camera. This autodetection only works for Frigate cameras, and only when the occupancy `binary_sensor` entity has been enabled in Home Assistant.|
+| `entities` | | :white_check_mark: | Whether to not to trigger the camera when the state of any Home Assistant entity becomes active (i.e. state becomes `on` or `open`). This works for Frigate or non-Frigate cameras.|
 
 <a name="camera-ids"></a>
 
@@ -265,6 +267,20 @@ Each camera configured in the card has a single identifier (`id`). For a given c
 #### Example
 
 See [the basic cameras configuration example](#basic-cameras-configuration) below.
+
+<a name="camera-global-options"></a>
+
+### Camera Global Options
+
+**Advanced:** The optional `cameras_global` block configures global options that
+apply to all cameras from the `cameras` section. For large configs, this can
+avoid significant repetition across cameras. The configuration is under:
+
+```yaml
+cameras_global:
+```
+
+The configuration options are identical to a single [camera entry](#camera-options).
 
 ### View Options
 
@@ -1415,6 +1431,61 @@ cameras:
 ```
 </details>
 
+<details>
+  <summary>Expand: Cameras Global section</summary>
+
+Reference: [Cameras Global Options](#camera-global-options).
+
+```yaml
+cameras_global:
+  live_provider: ha
+  engine: auto
+  hide: false
+  frigate:
+    url: http://my.frigate.local
+    client_id: frigate
+    camera_name: front_door
+    label: person
+    zone: steps
+  dependencies:
+    all_cameras: false
+    cameras:
+      - camera-2
+  triggers:
+    motion: false
+    occupancy: true
+    entities:
+      - binary_sensor.front_door_sensor
+  go2rtc:
+    modes:
+      - webrtc
+      - mse
+      - mp4
+      - mjpeg
+    stream: sitting_room
+  webrtc_card:
+    # Arbitrary WebRTC Card options, see https://github.com/AlexxIT/WebRTC#configuration .
+    entity: camera.sitting_room_rtsp
+    ui: true
+  jsmpeg:
+    options:
+      audio: false
+      video: true
+      pauseWhenHidden: false
+      disableGl: false
+      disableWebAssembly: false
+      preserveDrawingBuffer: false
+      progressive: true
+      throttled: true
+      chunkSize: 1048576
+      maxAudioLag: 10
+      videoBufferSize: 524288
+      audioBufferSize: 131072
+  image:
+    refresh_seconds: 1
+```
+</details>
+
 <a name="config-expanded-view"></a>
 
 <details>
@@ -2118,6 +2189,58 @@ overrides:
           state: on
           state_not: off
     overrides:
+      cameras:
+        # As this is an array, we need to carefully ensure we are
+        # overridding the correct index. We do this by specifying
+        # earlier indicies as being overridden with an empty object
+        # (in YAML this is `{}`). In this example, overriddes will
+        # only apply to the 2nd camera:
+        - {}                       # No overrides for camera index 0.
+        - live_provider: 'ha'      # Overrides for camera index 1.
+          engine: auto
+          hide: false
+          frigate:
+            url: http://my.frigate.local
+            client_id: frigate
+            camera_name: front_door
+            label: person
+            zone: steps
+          dependencies:
+            all_cameras: false
+            cameras:
+              - camera-2
+          triggers:
+            motion: false
+            occupancy: true
+            entities:
+              - binary_sensor.front_door_sensor
+          go2rtc:
+            modes:
+              - webrtc
+              - mse
+              - mp4
+              - mjpeg
+            stream: sitting_room
+          webrtc_card:
+            # Arbitrary WebRTC Card options, see https://github.com/AlexxIT/WebRTC#configuration .
+            entity: camera.sitting_room_rtsp
+            ui: true
+          jsmpeg:
+            options:
+              audio: false
+              video: true
+              pauseWhenHidden: false
+              disableGl: false
+              disableWebAssembly: false
+              preserveDrawingBuffer: false
+              progressive: true
+              throttled: true
+              chunkSize: 1048576
+              maxAudioLag: 10
+              videoBufferSize: 524288
+              audioBufferSize: 131072
+  image:
+    refresh_seconds: 1
       live:
         webrtc_card:
           ui: true
