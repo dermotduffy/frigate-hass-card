@@ -1,7 +1,7 @@
-import { Entity, ExtendedEntity } from './types.js';
+import { Entity } from './types.js';
 
-export class EntityCache<T extends Entity | ExtendedEntity> {
-  protected _cache: Map<string, T> = new Map();
+export class EntityCache {
+  protected _cache: Map<string, Entity> = new Map();
 
   /**
    * Determine if the cache has a given entity_id.
@@ -21,25 +21,25 @@ export class EntityCache<T extends Entity | ExtendedEntity> {
   //   return [...this._cache.values()].find(func) ?? null;
   // }
 
-  public getMatches(func: (arg: T) => boolean): T[] {
+  public getMatches(func: (arg: Entity) => boolean): Entity[] {
     return [...this._cache.values()].filter(func);
   }
 
   /**
    * Get entity information given an id.
    * @param id The entity id.
-   * @returns The `ExtendedEntity` for this id.
+   * @returns The entity for this id.
    */
-  public get(id: string): T | undefined {
+  public get(id: string): Entity | undefined {
     return this._cache.get(id);
   }
 
   /**
    * Add a given entity to the cache.
-   * @param extendedEntity
+   * @param input The entity.
    */
-  public set(input: T | T[]): void {
-    const _set = (entity: T) => this._cache.set(entity.entity_id, entity);
+  public set(input: Entity | Entity[]): void {
+    const _set = (entity: Entity) => this._cache.set(entity.entity_id, entity);
 
     if (Array.isArray(input)) {
       input.forEach(_set);
