@@ -6,6 +6,7 @@ export const entitySchema = z.object({
   entity_id: z.string(),
   hidden_by: z.string().nullable(),
   platform: z.string(),
+  translation_key: z.string().nullable(),
   unique_id: z.string().optional(),
 });
 export type Entity = z.infer<typeof entitySchema>;
