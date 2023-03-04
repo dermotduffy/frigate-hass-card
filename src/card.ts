@@ -1159,7 +1159,7 @@ class FrigateCard extends LitElement {
       .initializeMultipleIfNecessary({
         // Caution: Ensure nothing in this set of initializers requires
         // languages since they will not yet have been initialized.
-        [InitializationAspect.LANGUAGES]: async () => loadLanguages,
+        [InitializationAspect.LANGUAGES]: async () => loadLanguages(hass),
         [InitializationAspect.SIDE_LOAD_ELEMENTS]: async () =>
           sideLoadHomeAssistantElements,
       })
