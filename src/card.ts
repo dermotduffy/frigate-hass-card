@@ -1263,11 +1263,13 @@ class FrigateCard extends LitElement {
         this._changeView();
         shouldUpdate = true;
       } else {
-        shouldUpdate ||= isHassDifferent(
-          this._hass,
-          oldHass,
-          this._getConfig().view.render_entities || [],
-        );
+        shouldUpdate ||= isHassDifferent(this._hass, oldHass, [
+          ...(this._getConfig().view.render_entities ?? []),
+
+          // Refresh the card if media player state changes:
+          // https://github.com/dermotduffy/frigate-hass-card/issues/881
+          ...(this._mediaPlayers ?? []),
+        ]);
       }
     }
     return shouldUpdate;
