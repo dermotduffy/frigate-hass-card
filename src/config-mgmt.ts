@@ -4,18 +4,13 @@ import isEqual from 'lodash-es/isEqual';
 import set from 'lodash-es/set';
 import {
   CONF_CAMERAS,
-  CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
-  CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
   CONF_ELEMENTS,
-  CONF_IMAGE_URL,
   CONF_LIVE_AUTO_UNMUTE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
   CONF_LIVE_LAZY_UNLOAD,
-  CONF_LIVE_PRELOAD,
   CONF_MEDIA_GALLERY,
   CONF_MEDIA_VIEWER,
-  CONF_MENU,
   CONF_MENU_BUTTONS_CAMERAS,
   CONF_MENU_BUTTONS_CAMERA_UI,
   CONF_MENU_BUTTONS_CLIPS,
@@ -29,9 +24,6 @@ import {
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
   CONF_OVERRIDES,
-  CONF_VIEW_DEFAULT,
-  CONF_VIEW_TIMEOUT_SECONDS,
-  CONF_VIEW_UPDATE_ENTITIES,
 } from './const';
 import {
   BUTTON_SIZE_MIN,
@@ -141,24 +133,6 @@ const trimConfig = function (obj: RawFrigateCardConfig): boolean {
  */
 export const copyConfig = <T>(obj: T): T => {
   return cloneDeep(obj);
-};
-
-/**
- * Determines if a property is not an object.
- * @param value The value.
- * @returns `true` is the value is not an object.
- */
-const isNotObject = function (value: unknown): unknown | undefined {
-  return typeof value !== 'object' ? value : undefined;
-};
-
-/**
- * Converts to a number or return undefined.
- * @param value The value.
- * @returns A number or undefined.
- */
-const toNumberOrIgnore = function (value: unknown): number | undefined {
-  return isNaN(value as number) ? undefined : Number(value);
 };
 
 /**
@@ -368,39 +342,6 @@ const upgradeArrayValue = function (
 };
 
 /**
- * Upgrade from a singular camera model to multiple.
- * @returns An upgrade function.
- */
-const upgradeToMultipleCameras = (): ((obj: RawFrigateCardConfig) => boolean) => {
-  return function (obj: RawFrigateCardConfig): boolean {
-    let modified = false;
-    const cameras = getConfigValue(obj, CONF_CAMERAS) as RawFrigateCardConfigArray;
-
-    // Only do an upgrade if the cameras section does not exist.
-    if (cameras !== undefined) {
-      return false;
-    }
-
-    const imports = {
-      camera_entity: CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
-      'frigate.camera_name': 'cameras.#.camera_name',
-      'frigate.client_id': 'cameras.#.client_id',
-      'frigate.label': 'cameras.#.label',
-      'frigate.url': 'cameras.#.frigate_url',
-      'frigate.zone': 'cameras.#.zone',
-      'live.webrtc.entity': `cameras.#.webrtc.entity`,
-      'live.webrtc.url': `cameras.#.webrtc.url`,
-      'live.provider': CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
-    };
-    Object.keys(imports).forEach((key) => {
-      modified =
-        moveConfigValue(obj, key, getArrayConfigPath(imports[key], 0)) || modified;
-    });
-    return modified;
-  };
-};
-
-/**
  * Upgrade from a menu-mode to a style & position.
  * @returns An upgrade function.
  */
@@ -461,40 +402,6 @@ const upgradeMenuModeToStyleAndPosition = (): ((
 
     // Delete the old `menu.mode` .
     return upgradeWithOverrides('menu.mode', deleteProperty)(obj) || modified;
-  };
-};
-
-/**
- * Upgrade from a condition on the menu (to allow rendering) to a menu mode
- * override instead.
- * @param key A string key.
- * @returns A safe key.
- */
-const upgradeMenuConditionToMenuOverride = (): ((
-  obj: RawFrigateCardConfig,
-) => boolean) => {
-  return function (obj: RawFrigateCardConfig): boolean {
-    const menuConditions = getConfigValue(
-      obj,
-      `${CONF_MENU}.conditions`,
-    ) as RawFrigateCardConfig;
-
-    if (menuConditions === undefined) {
-      return false;
-    }
-
-    const overrides =
-      (getConfigValue(obj, `${CONF_OVERRIDES}`) as RawFrigateCardConfigArray) || [];
-    setConfigValue(obj, `${CONF_OVERRIDES}.[${overrides.length}]`, {
-      conditions: menuConditions,
-      overrides: {
-        menu: {
-          mode: 'none',
-        },
-      },
-    });
-    deleteConfigValue(obj, `${CONF_MENU}.conditions`);
-    return true;
   };
 };
 
@@ -691,47 +598,6 @@ const upgradeCameraOptionsFromLiveToMultipleCameras = (): ((
 };
 
 const UPGRADES = [
-  // v1.2.1 -> v2.0.0
-  upgradeMoveTo('frigate_url', 'frigate.url'),
-  upgradeMoveTo('frigate_client_id', 'frigate.client_id'),
-  upgradeMoveTo('frigate_camera_name', 'frigate.camera_name'),
-  upgradeMoveTo('label', 'frigate.label'),
-  upgradeMoveTo('zone', 'frigate.zone'),
-  upgradeMoveTo('view_default', CONF_VIEW_DEFAULT),
-  upgradeMoveTo('view_timeout', 'view.timeout'),
-  upgradeMoveTo('live_provider', 'live.provider'),
-  upgradeMoveTo('live_preload', CONF_LIVE_PRELOAD),
-  upgradeMoveTo('webrtc', 'live.webrtc'),
-  upgradeMoveTo('autoplay_clip', 'event_viewer.autoplay_clip'),
-  upgradeMoveTo('controls.nextprev', 'event_viewer.controls.next_previous.style'),
-  upgradeMoveTo('controls.nextprev_size', 'event_viewer.controls.next_previous.size'),
-  upgradeMoveTo('menu_mode', 'menu.mode'),
-  upgradeMoveTo('menu_buttons', 'menu.buttons'),
-  upgradeMoveTo('menu_button_size', CONF_MENU_BUTTON_SIZE),
-  upgradeMoveTo('image', 'image.src', { transform: isNotObject }),
-
-  // v2.0.0 -> v2.1.0
-  upgradeMoveTo('update_entities', CONF_VIEW_UPDATE_ENTITIES),
-
-  // v2.1.0 -> v3.0.0-rc.1
-  upgradeToMultipleCameras(),
-  upgradeMenuConditionToMenuOverride(),
-  upgradeMoveTo('view.timeout', CONF_VIEW_TIMEOUT_SECONDS, {
-    transform: toNumberOrIgnore,
-  }),
-  upgradeMoveTo('event_viewer.autoplay_clip', 'event_viewer.auto_play'),
-
-  // v3.0.0-rc.1 -> v3.0.0-rc.2
-  upgradeArrayValue(
-    CONF_CAMERAS,
-    upgradeWithOverrides('live_provider', (val) =>
-      val === 'frigate' ? 'ha' : val === 'webrtc' ? 'webrtc-card' : val,
-    ),
-  ),
-  upgradeArrayValue(CONF_CAMERAS, upgradeMoveTo('webrtc', 'webrtc_card')),
-  upgradeMoveToWithOverrides('live.webrtc', 'live.webrtc_card'),
-  upgradeMoveToWithOverrides('image.src', CONF_IMAGE_URL),
-
   // v3.0.0 -> v4.0.0-rc.1
   upgradeWithOverrides(
     CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
