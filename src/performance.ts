@@ -4,10 +4,8 @@ import {
   RawFrigateCardConfig,
   PerformanceConfig,
 } from './types';
-import { getArrayConfigPath, getConfigValue, setConfigValue } from './config-mgmt.js';
+import { getConfigValue, setConfigValue } from './config-mgmt.js';
 import {
-  CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY,
-  CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
   CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
   CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
@@ -48,6 +46,8 @@ import {
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_TIMELINE_SHOW_RECORDINGS,
+  CONF_CAMERAS_GLOBAL_TRIGGERS_OCCUPANCY,
+  CONF_CAMERAS_GLOBAL_IMAGE_REFRESH_SECONDS,
 } from './const.js';
 
 // Caution: These values are applied after parsing (since we cannot know the
@@ -128,14 +128,12 @@ const LOW_PROFILE_DEFAULTS = {
 
   // Clicking on a snapshot should not play a clip.
   [CONF_MEDIA_VIEWER_SNAPSHOT_CLICK_PLAYS_CLIP]: false,
-};
 
-const LOW_PROFILE_CAMERA_DEFAULTS = {
-  [CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY]: false,
+  [CONF_CAMERAS_GLOBAL_TRIGGERS_OCCUPANCY]: false,
 
   // Refresh the live camera image every 10 seconds (same as stock Home
   // Assistant Picture Glance).
-  [CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS]: 10,
+  [CONF_CAMERAS_GLOBAL_IMAGE_REFRESH_SECONDS]: 10,
 };
 
 /**
@@ -168,15 +166,6 @@ export const setLowPerformanceProfile = <T extends RawFrigateCardConfig>(
     const defaultLessConfig = defaultLessParseResult.data;
     Object.entries(LOW_PROFILE_DEFAULTS).forEach(([k, v]: [string, unknown]) =>
       setIfNotSpecified(defaultLessConfig, outputConfig, k, v),
-    );
-
-    Object.entries(LOW_PROFILE_CAMERA_DEFAULTS).forEach(
-      ([rawKey, v]: [string, unknown]) => {
-        defaultLessConfig.cameras.forEach((_, index: number) => {
-          const indexedKey = getArrayConfigPath(rawKey, index);
-          setIfNotSpecified(defaultLessConfig, outputConfig, indexedKey, v);
-        });
-      },
     );
   }
   return outputConfig;
