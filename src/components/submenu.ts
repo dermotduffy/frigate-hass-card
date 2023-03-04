@@ -7,7 +7,7 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../action-handler-directive.js';
@@ -23,6 +23,8 @@ import {
   stopEventFromActivatingCardWideActions,
 } from '../utils/action.js';
 import { isHassDifferent, refreshDynamicStateParameters } from '../utils/ha';
+import { EntityRegistryManager } from '../utils/ha/entity-registry/index.js';
+import { getEntityStateTranslation } from '../utils/ha/entity-state-translation.js';
 import { domainIcon } from '../utils/icons/domain-icon.js';
 
 @customElement('frigate-card-submenu')
@@ -127,6 +129,12 @@ export class FrigateCardSubmenuSelect extends LitElement {
   @property({ attribute: false })
   public submenuSelect?: MenuSubmenuSelect;
 
+  @property({ attribute: false })
+  public entityRegistryManager?: EntityRegistryManager;
+
+  @state()
+  protected _optionTitles?: Record<string, string>;
+
   protected _generatedSubmenu?: MenuSubmenu;
 
   /**
@@ -138,10 +146,37 @@ export class FrigateCardSubmenuSelect extends LitElement {
     // No need to update the submenu unless the select entity has changed.
     const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
     return (
-      changedProps.size != 1 ||
+      !changedProps.has('hass') ||
+      !oldHass ||
       !this.submenuSelect ||
-      (!!oldHass && isHassDifferent(this.hass, oldHass, [this.submenuSelect.entity]))
+      isHassDifferent(this.hass, oldHass, [this.submenuSelect.entity])
     );
+  }
+
+  protected async _refreshOptionTitles(): Promise<void> {
+    if (!this.hass || !this.submenuSelect) {
+      return;
+    }
+    const entityID = this.submenuSelect.entity;
+    const stateObj = this.hass.states[entityID];
+    const options = stateObj?.attributes?.options;
+    const entity =
+      (await this.entityRegistryManager?.getEntity(this.hass, entityID)) ?? null;
+
+    const optionTitles = {};
+    for (const option of options) {
+      const title = getEntityStateTranslation(this.hass, entityID, {
+        ...(entity && { entity: entity }),
+        state: option,
+      });
+      if (title) {
+        optionTitles[option] = title;
+      }
+    }
+
+    // This will cause a re-render with the updated title if it is
+    // different.
+    this._optionTitles = optionTitles;
   }
 
   /**
@@ -151,8 +186,13 @@ export class FrigateCardSubmenuSelect extends LitElement {
     if (!this.submenuSelect || !this.hass) {
       return;
     }
-    const entity = this.submenuSelect.entity;
-    const stateObj = this.hass.states[entity];
+
+    if (!this._optionTitles) {
+      this._refreshOptionTitles();
+    }
+
+    const entityID = this.submenuSelect.entity;
+    const stateObj = this.hass.states[entityID];
     const options = stateObj?.attributes?.options;
     if (!stateObj || !options) {
       return;
@@ -180,26 +220,20 @@ export class FrigateCardSubmenuSelect extends LitElement {
     delete submenu['options'];
 
     for (const option of options) {
-      // If there's a device_class there may be a localized translation of the
-      // select title available via HASS.
-      const title = stateObj.attributes.device_class
-        ? this.hass.localize(
-            `component.select.state.${stateObj.attributes.device_class}.${option}`,
-          )
-        : option;
+      const title = this._optionTitles?.[option] ?? option;
       submenu.items.push({
         state_color: true,
         selected: stateObj.state === option,
         enabled: true,
         title: title || option,
-        ...((entity.startsWith('select.') || entity.startsWith('input_select.')) && {
+        ...((entityID.startsWith('select.') || entityID.startsWith('input_select.')) && {
           tap_action: {
             action: 'call-service',
-            service: entity.startsWith('select.')
+            service: entityID.startsWith('select.')
               ? 'select.select_option'
               : 'input_select.select_option',
             service_data: {
-              entity_id: entity,
+              entity_id: entityID,
               option: option,
             },
           },

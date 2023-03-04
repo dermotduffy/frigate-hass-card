@@ -30,6 +30,7 @@ import {
 import { FRIGATE_ICON_SVG_PATH } from '../camera-manager/frigate/icon.js';
 import { refreshDynamicStateParameters } from '../utils/ha';
 import './submenu.js';
+import { EntityRegistryManager } from '../utils/ha/entity-registry/index.js';
 
 export const FRIGATE_BUTTON_MENU_ICON = 'frigate';
 
@@ -63,6 +64,9 @@ export class FrigateCardMenu extends LitElement {
 
   @property({ attribute: false })
   public buttons: MenuButton[] = [];
+
+  @property({ attribute: false })
+  public entityRegistryManager?: EntityRegistryManager;
 
   /**
    * Determine if a given menu configuration is a hiding menu.
@@ -237,6 +241,7 @@ export class FrigateCardMenu extends LitElement {
       return html` <frigate-card-submenu-select
         .hass=${this.hass}
         .submenuSelect=${button}
+        .entityRegistryManager=${this.entityRegistryManager}
         @action=${this._actionHandler.bind(this)}
       >
       </frigate-card-submenu-select>`;

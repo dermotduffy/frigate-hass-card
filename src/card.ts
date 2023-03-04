@@ -1699,6 +1699,7 @@ class FrigateCard extends LitElement {
         .hass=${this._hass}
         .menuConfig=${this._getConfig().menu}
         .buttons=${this._getMenuButtons()}
+        .entityRegistryManager=${this._entityRegistryManager}
       ></frigate-card-menu>
     `;
   }
