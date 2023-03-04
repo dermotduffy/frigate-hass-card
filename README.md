@@ -2189,6 +2189,58 @@ overrides:
           state: on
           state_not: off
     overrides:
+      cameras:
+        # As this is an array, we need to carefully ensure we are
+        # overridding the correct index. We do this by specifying
+        # earlier indicies as being overridden with an empty object
+        # (in YAML this is `{}`). In this example, overriddes will
+        # only apply to the 2nd camera:
+        - {}                       # No overrides for camera index 0.
+        - live_provider: 'ha'      # Overrides for camera index 1.
+          engine: auto
+          hide: false
+          frigate:
+            url: http://my.frigate.local
+            client_id: frigate
+            camera_name: front_door
+            label: person
+            zone: steps
+          dependencies:
+            all_cameras: false
+            cameras:
+              - camera-2
+          triggers:
+            motion: false
+            occupancy: true
+            entities:
+              - binary_sensor.front_door_sensor
+          go2rtc:
+            modes:
+              - webrtc
+              - mse
+              - mp4
+              - mjpeg
+            stream: sitting_room
+          webrtc_card:
+            # Arbitrary WebRTC Card options, see https://github.com/AlexxIT/WebRTC#configuration .
+            entity: camera.sitting_room_rtsp
+            ui: true
+          jsmpeg:
+            options:
+              audio: false
+              video: true
+              pauseWhenHidden: false
+              disableGl: false
+              disableWebAssembly: false
+              preserveDrawingBuffer: false
+              progressive: true
+              throttled: true
+              chunkSize: 1048576
+              maxAudioLag: 10
+              videoBufferSize: 524288
+              audioBufferSize: 131072
+  image:
+    refresh_seconds: 1
       live:
         webrtc_card:
           ui: true
