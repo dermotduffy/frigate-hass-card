@@ -1063,15 +1063,13 @@ class FrigateCard extends LitElement {
       this._cardWideConfig,
     );
 
-    // For each camera merge the config into the camera global config. The
-    // merging must happen in this order, to ensure that the defaults in the
-    // cameras global config do not override the values specified in the
-    // per-camera config.
+    // For each camera merge the config (which has no defaults) into the camera
+    // global config (which does have defaults). The merging must happen in this
+    // order, to ensure that the defaults in the cameras global config do not
+    // override the values specified in the per-camera config.
     const cameras = config.cameras.map((camera) =>
       merge(cloneDeep(config.cameras_global), camera),
     );
-
-    console.info("MERGED CAMERAS", cameras);
 
     try {
       await this._cameraManager.initializeCameras(

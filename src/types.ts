@@ -1282,9 +1282,14 @@ export interface CardWideConfig {
  * Main card config.
  */
 export const frigateCardConfigSchema = z.object({
-  // Main configuration sections.
-  cameras: camerasConfigSchema,
-  cameras_global: cameraConfigSchema.optional(),
+  // Defaults are stripped out of the individual cameras, since each camera will
+  // be merged with `cameras_global` which *does* have defaults. If we didn't do
+  // this, the default values of each individual camera would override the
+  // intentionally specified values in `cameras_global` during camera
+  // initialization when the two configs are merged.
+  cameras: deepRemoveDefaults(camerasConfigSchema),
+  cameras_global: cameraConfigSchema,
+
   view: viewConfigSchema,
   menu: menuConfigSchema,
   live: liveConfigSchema,

@@ -1,9 +1,5 @@
 import { HomeAssistant } from 'custom-card-helpers';
-import {
-  CameraConfig,
-  CamerasConfig,
-  CardWideConfig,
-} from '../types.js';
+import { CameraConfig, CamerasConfig, CardWideConfig } from '../types.js';
 import { allPromises, arrayify, setify } from '../utils/basic.js';
 import {
   CameraManagerCameraCapabilities,
@@ -137,11 +133,11 @@ export class CameraManager {
     };
 
     const engineTypes = await getEngineTypes(camerasConfig);
-    for (const [index, cameraConfig] of camerasConfig.entries())  {
-      const engineType = engineTypes[index];      
+    for (const [index, cameraConfig] of camerasConfig.entries()) {
+      const engineType = engineTypes[index];
       const engine = engineType
-      ? engines.get(engineType) ?? this._engineFactory.createEngine(engineType)
-      : null;
+        ? engines.get(engineType) ?? this._engineFactory.createEngine(engineType)
+        : null;
       if (!engine || !engineType) {
         throw new CameraInitializationError(
           localize('error.no_camera_engine'),
@@ -180,6 +176,8 @@ export class CameraManager {
     entityRegistryManager: EntityRegistryManager,
     camerasConfig: CamerasConfig,
   ): Promise<void> {
+    const initializationStartTime = new Date();
+
     const hasAutoTriggers = (config: CameraConfig): boolean => {
       return config.triggers.motion || config.triggers.occupancy;
     };
@@ -229,6 +227,16 @@ export class CameraManager {
     if (!this._store.getVisibleCameraCount()) {
       throw new CameraInitializationError(localize('error.no_visible_cameras'));
     }
+
+    log(
+      this._cardWideConfig,
+      'Frigate Card CameraManager initialized (Cameras: ',
+      camerasConfig,
+      `, Duration: ${
+        (new Date().getTime() - initializationStartTime.getTime()) / 1000
+      }s,`,
+      ')',
+    );
   }
 
   public isInitialized(): boolean {
