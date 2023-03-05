@@ -19,6 +19,7 @@ const eventSchema = z.object({
   has_snapshot: z.boolean(),
   id: z.string(),
   label: z.string(),
+  sub_label: z.string().nullable(),
   start_time: z.number(),
   top_score: z.number(),
   zones: z.string().array(),
@@ -68,6 +69,7 @@ export const eventSummarySchema = z
     camera: z.string(),
     day: z.string(),
     label: z.string(),
+    sub_label: z.string().nullable(),
     zones: z.string().array(),
   })
   .array();

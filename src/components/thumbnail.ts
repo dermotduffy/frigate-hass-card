@@ -167,11 +167,13 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
     const endTime = this.media.getEndTime();
     const what = this.media.getWhat();
     const where = this.media.getWhere();
+    const tags = this.media.getTags();
 
     return html`
       ${what
         ? html` <div class="title" title=${localize('event.what')}>
-            ${prettifyTitle(what.join(', '))}
+            ${prettifyTitle(what.join(', ')) +
+            (tags ? ': ' + prettifyTitle(tags.join(', ')) : '')}
             ${score ? html`(${(score * 100).toFixed(2) + '%'})` : ''}
           </div>`
         : ``}
@@ -198,6 +200,12 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
           ? html` <div title=${localize('event.where')}>
               <ha-icon .icon=${'mdi:map-marker-outline'}></ha-icon>
               ${prettifyTitle(where.join(', '))}
+            </div>`
+          : html``}
+        ${tags
+          ? html` <div title=${localize('event.tag')}>
+              <ha-icon .icon=${'mdi:tag'}></ha-icon>
+              ${prettifyTitle(tags.join(', '))}
             </div>`
           : html``}
         ${this.seek

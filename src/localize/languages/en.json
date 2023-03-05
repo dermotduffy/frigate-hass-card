@@ -398,6 +398,7 @@
     "score": "Score",
     "seek": "Seek",
     "start": "Start",
+    "tag": "Tag",
     "what": "What",
     "where": "Where"
   },
@@ -418,6 +419,8 @@
     "select_what": "Select what...",
     "select_when": "Select when...",
     "select_where": "Select where...",
+    "select_tag": "Select tag...",
+    "tag": "Tag",
     "what": "What",
     "when": "When",
     "whens": {

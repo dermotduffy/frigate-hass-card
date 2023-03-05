@@ -58,6 +58,7 @@ export class ViewMedia {
 export interface EventViewMedia extends ViewMedia {
   getScore(): number | null;
   getWhat(): string[] | null;
+  getTags(): string[] | null;
   isGroupableWith(that: EventViewMedia): boolean;
   hasClip(): boolean | null;
 }

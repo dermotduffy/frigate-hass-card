@@ -41,12 +41,13 @@ import orderBy from 'lodash-es/orderBy';
 import { CardWideConfig } from '../types';
 
 interface MediaFilterCoreDefaults {
-  mediaType?: MediaFilterMediaType;
   cameraIDs?: string[];
-  what?: string[];
-  where?: string[];
   favorite?: MediaFilterCoreFavoriteSelection;
+  mediaType?: MediaFilterMediaType;
+  what?: string[];
   when?: string;
+  where?: string[];
+  tags?: string[];
 }
 
 export enum MediaFilterCoreFavoriteSelection {
@@ -100,6 +101,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
   protected _refWhat: Ref<FrigateCardSelect> = createRef();
   protected _refWhere: Ref<FrigateCardSelect> = createRef();
   protected _refFavorite: Ref<FrigateCardSelect> = createRef();
+  protected _refTags: Ref<FrigateCardSelect> = createRef();
 
   constructor() {
     super();
@@ -206,11 +208,13 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
     ) {
       const where = getArrayValueAsSet(this._refWhere.value?.value);
       const what = getArrayValueAsSet(this._refWhat.value?.value);
+      const tags = getArrayValueAsSet(this._refTags.value?.value);
 
       const queries = new EventMediaQueries([
         {
           type: QueryType.Event,
           cameraIDs: cameraIDs,
+          ...(tags && { tags: tags }),
           ...(what && { what: what }),
           ...(where && { where: where }),
           ...(favorite !== null && { favorite: favorite }),
@@ -328,6 +332,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
     let what: string[] | undefined;
     let where: string[] | undefined;
     let favorite: MediaFilterCoreFavoriteSelection | undefined;
+    let tags: string[] | undefined;
 
     const cameraIDSets = uniqWith(
       queries.map((query: DataQuery) => query.cameraIDs),
@@ -385,6 +390,13 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
       if (whereSets.length === 1 && queries[0].where?.size) {
         where = [...queries[0].where];
       }
+      const tagsSets = uniqWith(
+        queries.map((query) => query.tags),
+        isEqual,
+      );
+      if (tagsSets.length === 1 && queries[0].tags?.size) {
+        tags = [...queries[0].tags];
+      }
     } else if (MediaQueriesClassifier.areRecordingQueries(this.view.query)) {
       mediaType = MediaFilterMediaType.Recordings;
     }
@@ -395,6 +407,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
       ...(what && { what: what }),
       ...(where && { where: where }),
       ...(favorite !== undefined && { favorite: favorite }),
+      ...(tags && { tags: tags })
     };
   }
 
@@ -461,6 +474,19 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
           >
           </frigate-card-select>`
         : ''}
+      ${areEvents && this._mediaMetadataController.tagsOptions.length
+          ? html` <frigate-card-select
+              ${ref(this._refTags)}
+              label=${localize('media_filter.tag')}
+              placeholder=${localize('media_filter.select_tag')}
+              clearable
+              multiple
+              .options=${this._mediaMetadataController.tagsOptions}
+              .value=${this._defaults?.tags}
+              @frigate-card:select:change=${this._valueChangedHandler.bind(this)}
+            >
+            </frigate-card-select>`
+          : ''}
       ${areEvents && this._mediaMetadataController.whereOptions.length
         ? html` <frigate-card-select
             ${ref(this._refWhere)}
@@ -500,6 +526,7 @@ export class MediaMetadataController implements ReactiveController {
   protected _hass: HomeAssistant;
   protected _cameraManager: CameraManager;
 
+  public tagsOptions: SelectOption[] = [];
   public whenOptions: SelectOption[] = [];
   public whatOptions: SelectOption[] = [];
   public whereOptions: SelectOption[] = [];
@@ -540,6 +567,11 @@ export class MediaMetadataController implements ReactiveController {
       this.whereOptions = [...metadata.where]
         .sort()
         .map((where) => ({ value: where, label: prettifyTitle(where) }));
+    }
+    if (metadata.tags) {
+      this.tagsOptions = [...metadata.tags]
+        .sort()
+        .map((tag) => ({ value: tag, label: prettifyTitle(tag) }));
     }
     if (metadata.days) {
       const yearMonths: Set<string> = new Set();
