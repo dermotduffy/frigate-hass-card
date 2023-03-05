@@ -448,6 +448,7 @@ export class FrigateCameraManagerEngine
         cameras: Array.from(this._getFrigateCameraNamesForCameraIDs(cameras, cameraIDs)),
         ...(query.what && { labels: Array.from(query.what) }),
         ...(query.where && { zones: Array.from(query.where) }),
+        ...(query.tags && { sub_labels: Array.from(query.tags) }),
         ...(query.end && { before: Math.floor(query.end.getTime() / 1000) }),
         ...(query.start && { after: Math.floor(query.start.getTime() / 1000) }),
         ...(query.limit && { limit: query.limit }),
@@ -704,6 +705,7 @@ export class FrigateCameraManagerEngine
         cameraID,
         cameraConfig,
         event,
+        event.sub_label ? this._splitSubLabels(event.sub_label) : undefined,
       );
       if (media) {
         output.push(media);
@@ -795,6 +797,16 @@ export class FrigateCameraManagerEngine
     return cameraConfig;
   }
 
+  protected _splitSubLabels(input: string): string[] {
+    // A note on Frigate sub_labels: As of Frigate v0.12 sub_labels is a string
+    // (not an array) per event, but may contain comma-separated values (e.g.
+    // double-take (https://github.com/jakowenko/double-take) identifying two
+    // people in the same photo). When we search for multiple sub_labels, the
+    // integration will comma-join them together, then the Frigate backend will
+    // do the magic to match exactly or against a comma-separated part.
+    return input.split(',').map((s) => s.trim());
+  }
+
   public async getMediaMetadata(
     hass: HomeAssistant,
     cameras: CameraConfigs,
@@ -814,6 +826,7 @@ export class FrigateCameraManagerEngine
     const what: Set<string> = new Set();
     const where: Set<string> = new Set();
     const days: Set<string> = new Set();
+    const tags: Set<string> = new Set();
 
     const instances = this._buildInstanceToCameraIDMapFromQuery(
       cameras,
@@ -839,6 +852,9 @@ export class FrigateCameraManagerEngine
         }
         if (entry.day) {
           days.add(entry.day);
+        }
+        if (entry.sub_label) {
+          this._splitSubLabels(entry.sub_label).forEach(tags.add, tags);
         }
       }
     };
@@ -880,6 +896,7 @@ export class FrigateCameraManagerEngine
         ...(what.size && { what: what }),
         ...(where.size && { where: where }),
         ...(days.size && { days: days }),
+        ...(tags.size && { tags: tags }),
       },
       expiry: add(new Date(), { seconds: MEDIA_METADATA_REQUEST_CACHE_AGE_SECONDS }),
       cached: false,

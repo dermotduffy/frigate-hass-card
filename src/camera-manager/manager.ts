@@ -279,6 +279,7 @@ export class CameraManager {
   }
 
   public async getMediaMetadata(hass: HomeAssistant): Promise<MediaMetadata | null> {
+    const tags: Set<string> = new Set();
     const what: Set<string> = new Set();
     const where: Set<string> = new Set();
     const days: Set<string> = new Set();
@@ -291,6 +292,9 @@ export class CameraManager {
     const results = await this._handleQuery(hass, query);
 
     for (const result of results?.values() ?? []) {
+      if (result.metadata.tags) {
+        result.metadata.tags.forEach(tags.add, tags);
+      }
       if (result.metadata.what) {
         result.metadata.what.forEach(what.add, what);
       }
@@ -306,6 +310,7 @@ export class CameraManager {
       return null;
     }
     return {
+      ...(tags.size && { tags: tags }),
       ...(what.size && { what: what }),
       ...(where.size && { where: where }),
       ...(days.size && { days: days }),

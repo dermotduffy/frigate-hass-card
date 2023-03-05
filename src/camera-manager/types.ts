@@ -84,9 +84,10 @@ export type RecordingSegmentsQueryResultsMap = ResultsMap<RecordingSegmentsQuery
 export type MediaMetadataQueryResultsMap = ResultsMap<MediaMetadataQuery>;
 
 export interface MediaMetadata {
+  days?: Set<string>;
+  tags?: Set<string>;
   where?: Set<string>;
   what?: Set<string>;
-  days?: Set<string>;
 }
 
 interface BaseCapabilities {
@@ -145,6 +146,9 @@ export interface EventQuery extends MediaQuery {
   // Frigate equivalent: label
   what?: Set<string>;
 
+  // Frigate equivalent: sub_label
+  tags?: Set<string>;
+ 
   // Frigate equivalent: zone
   where?: Set<string>;
 }

@@ -21,6 +21,7 @@ export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
   protected _event: FrigateEvent;
   protected _contentID: string;
   protected _thumbnail: string;
+  protected _subLabels: string[] | null;
 
   constructor(
     mediaType: ViewMediaType,
@@ -28,11 +29,17 @@ export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
     event: FrigateEvent,
     contentID: string,
     thumbnail: string,
+    // See 'A note on Frigate sub_labels' in engine-frigate.ts for more
+    // details about why sub-labels are treated specially. By taking in
+    // subLabels as an array here, we can keep a single place that splits
+    // sublabels (`_splitSubLabels` in engine-frigate.ts).
+    subLabels?: string[],
   ) {
     super(mediaType, cameraID);
     this._event = event;
     this._contentID = contentID;
     this._thumbnail = thumbnail;
+    this._subLabels = subLabels ?? null;
   }
 
   public hasClip(): boolean {
@@ -71,6 +78,9 @@ export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
   }
   public getScore(): number | null {
     return this._event.top_score;
+  }
+  public getTags(): string[] | null {
+    return this._subLabels;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -130,6 +140,7 @@ export class FrigateViewMediaFactory {
     cameraID: string,
     cameraConfig: CameraConfig,
     event: FrigateEvent,
+    subLabels?: string[],
   ): FrigateEventViewMedia | null {
     if (
       (mediaType === 'clip' && !event.has_clip) ||
@@ -151,6 +162,7 @@ export class FrigateViewMediaFactory {
         mediaType === 'clip' ? 'clips' : 'snapshots',
       ),
       getEventThumbnailURL(cameraConfig.frigate.client_id, event),
+      subLabels,
     );
   }
 
