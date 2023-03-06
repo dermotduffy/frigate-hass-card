@@ -842,6 +842,26 @@ class FrigateCard extends LitElement {
       if (this._view?.view !== view.view) {
         this._resetMainScroll();
       }
+
+      // Special case: If the user is currently using the viewer, and then
+      // switches to the gallery (no matter how), make an attempt to keep the
+      // query/queryResults the same so the gallery can be used to click bath
+      // and forth to the viewer, and the selected media can be centered in the
+      // gallery. See the matching code in `updated()` in `gallery.ts`.
+      // See: https://github.com/dermotduffy/frigate-hass-card/issues/885
+      if (
+        this._view?.isViewerView() &&
+        view.isGalleryView() &&
+        (!view.query || !view.queryResults)
+      ) {
+        if (this._view?.query) {
+          view.query = this._view.query;
+        }
+        if (this._view?.queryResults) {
+          view.queryResults = this._view.queryResults;
+        }
+      }
+
       this._view = view;
       this._generateConditionState();
     };

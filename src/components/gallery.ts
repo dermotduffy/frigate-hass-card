@@ -26,7 +26,7 @@ import { View } from '../view/view.js';
 import { dispatchMessageEvent, renderProgressIndicator } from './message.js';
 import './thumbnail.js';
 import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
-import { createRef, Ref } from 'lit/directives/ref.js';
+import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
 import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
 import { EventQuery, MediaQuery, RecordingQuery } from '../camera-manager/types';
@@ -168,6 +168,7 @@ export class FrigateCardGalleryCore extends LitElement {
   protected _intersectionObserver: IntersectionObserver;
   protected _resizeObserver: ResizeObserver;
   protected _refLoader: Ref<HTMLElement> = createRef();
+  protected _refSelected: Ref<HTMLElement> = createRef();
 
   @state()
   protected _showExtensionLoader = true;
@@ -327,10 +328,12 @@ export class FrigateCardGalleryCore extends LitElement {
       });
     }
 
+    const selected = this.view?.queryResults?.getSelectedResult();
     return html`
       ${this._media.map(
         (media, index) =>
           html`<frigate-card-thumbnail
+            ${media === selected ? ref(this._refSelected) : ''}
             .hass=${this.hass}
             .cameraManager=${this.cameraManager}
             .media=${media}
@@ -367,11 +370,30 @@ export class FrigateCardGalleryCore extends LitElement {
     `;
   }
 
-  public updated(): void {
+  public updated(changedProps: PropertyValues): void {
     if (this._refLoader.value) {
       this._intersectionObserver.disconnect();
       this._intersectionObserver.observe(this._refLoader.value);
     }
+
+    // This wait for updateComplete is necessary for the scrolling to work
+    // correctly.
+    this.updateComplete.then(() => {
+      // As a special case, if the view has changed and did not previously exist
+      // (i.e. first setting of it), we intentionally scroll the gallery to the
+      // selected element in that view (if any).
+      // See: https://github.com/dermotduffy/frigate-hass-card/issues/885
+      if (
+        // If this update cycle updated the view ...
+        changedProps.has('view') &&
+        // ... and it wasn't set at all prior ...
+        !changedProps.get('view') &&
+        // ... and there is a thumbnail rendered that is selected.
+        this._refSelected.value
+      ) {
+        this._refSelected.value.scrollIntoView();
+      }
+    });
   }
 
   /**
