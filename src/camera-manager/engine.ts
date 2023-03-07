@@ -23,6 +23,7 @@ import {
   CameraEndpoints,
   MediaMetadataQuery,
   MediaMetadataQueryResultsMap,
+  EngineOptions,
 } from './types';
 
 export const CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT = 10000;
@@ -58,18 +59,21 @@ export interface CameraManagerEngine {
     hass: HomeAssistant,
     cameras: CameraConfigs,
     query: EventQuery,
+    engineOptions?: EngineOptions,
   ): Promise<EventQueryResultsMap | null>;
 
   getRecordings(
     hass: HomeAssistant,
     cameras: CameraConfigs,
     query: RecordingQuery,
+    engineOptions?: EngineOptions,
   ): Promise<RecordingQueryResultsMap | null>;
 
   getRecordingSegments(
     hass: HomeAssistant,
     cameras: CameraConfigs,
     query: RecordingSegmentsQuery,
+    engineOptions?: EngineOptions,
   ): Promise<RecordingSegmentsQueryResultsMap | null>;
 
   generateMediaFromEvents(
@@ -102,12 +106,14 @@ export interface CameraManagerEngine {
     cameras: CameraConfigs,
     media: ViewMedia,
     target: Date,
+    engineOptions?: EngineOptions,
   ): Promise<number | null>;
 
   getMediaMetadata(
     hass: HomeAssistant,
     cameras: CameraConfigs,
     query: MediaMetadataQuery,
+    engineOptions?: EngineOptions,
   ): Promise<MediaMetadataQueryResultsMap | null>;
 
   getCameraMetadata(

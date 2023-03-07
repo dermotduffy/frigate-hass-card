@@ -130,6 +130,10 @@ export interface CameraEndpoints {
 
 export type CameraConfigs = Map<string, CameraConfig>;
 
+export interface EngineOptions {
+  useCache?: boolean;
+}
+
 // ===========
 // Event Query
 // ===========
@@ -148,7 +152,7 @@ export interface EventQuery extends MediaQuery {
 
   // Frigate equivalent: sub_label
   tags?: Set<string>;
- 
+
   // Frigate equivalent: zone
   where?: Set<string>;
 }

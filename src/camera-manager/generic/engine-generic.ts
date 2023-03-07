@@ -9,7 +9,6 @@ import {
   DataQuery,
   EventQuery,
   EventQueryResultsMap,
-  MediaMetadata,
   PartialEventQuery,
   PartialRecordingQuery,
   PartialRecordingSegmentsQuery,
@@ -25,6 +24,7 @@ import {
   CameraEndpoints,
   MediaMetadataQuery,
   MediaMetadataQueryResultsMap,
+  EngineOptions,
 } from '../types';
 import { getEntityIcon, getEntityTitle } from '../../utils/ha';
 import { EntityRegistryManager } from '../../utils/ha/entity-registry';
@@ -71,6 +71,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     _hass: HomeAssistant,
     _cameras: CameraConfigs,
     _query: EventQuery,
+    _engineOptions?: EngineOptions,
   ): Promise<EventQueryResultsMap | null> {
     return null;
   }
@@ -79,6 +80,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     _hass: HomeAssistant,
     _cameras: CameraConfigs,
     _query: RecordingQuery,
+    _engineOptions?: EngineOptions,
   ): Promise<RecordingQueryResultsMap | null> {
     return null;
   }
@@ -87,6 +89,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     _hass: HomeAssistant,
     _cameras: CameraConfigs,
     _query: RecordingSegmentsQuery,
+    _engineOptions?: EngineOptions,
   ): Promise<RecordingSegmentsQueryResultsMap | null> {
     return null;
   }
@@ -134,6 +137,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     _cameras: CameraConfigs,
     _media: ViewMedia,
     _target: Date,
+    _engineOptions?: EngineOptions,
   ): Promise<number | null> {
     return null;
   }
@@ -142,6 +146,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     _hass: HomeAssistant,
     _cameras: CameraConfigs,
     _query: MediaMetadataQuery,
+    _engineOptions?: EngineOptions,
   ): Promise<MediaMetadataQueryResultsMap | null> {
     return null;
   }

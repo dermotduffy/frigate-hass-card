@@ -24,8 +24,11 @@ div.message {
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
-  padding: 20px;
   height: 100%;
+}
+
+div.message.padded {
+  padding: 20px;
 }
 
 div.message div.contents {
@@ -54,8 +57,4 @@ div.message div.icon {
   margin-top: 20px;
   white-space: pre-wrap;
   word-break: break-all;
-}
-
-.message ha-icon, ha-circular-progress {
-  padding: 10px;
 }
