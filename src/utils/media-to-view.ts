@@ -16,6 +16,8 @@ import { errorToConsole } from './basic';
 import { MediaQuery } from '../camera-manager/types';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const';
 
+type ResultSelectType = 'latest' | 'time' | 'none';
+
 export const changeViewToRecentEventsForCameraAndDependents = async (
   element: HTMLElement,
   hass: HomeAssistant,
@@ -25,6 +27,7 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
   options?: {
     mediaType?: ClipsOrSnapshotsOrAll;
     targetView?: FrigateCardView;
+    select?: ResultSelectType;
   },
 ): Promise<void> => {
   const cameraIDs = getAllDependentCameras(cameraManager, view.camera);
@@ -42,6 +45,7 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
   (
     await executeMediaQueryForView(element, hass, cameraManager, view, queries, {
       targetView: options?.targetView,
+      select: options?.select,
     })
   )?.dispatchChangeEvent(element);
 };
@@ -81,6 +85,7 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
   view: View,
   options?: {
     targetView?: 'recording' | 'recordings';
+    select?: ResultSelectType;
   },
 ): Promise<void> => {
   const cameraIDs = getAllDependentCameras(cameraManager, view.camera);
@@ -100,6 +105,7 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
   (
     await executeMediaQueryForView(element, hass, cameraManager, view, queries, {
       targetView: options?.targetView,
+      select: options?.select,
     })
   )?.dispatchChangeEvent(element);
 };
@@ -133,6 +139,7 @@ export const executeMediaQueryForView = async (
     targetCameraID?: string;
     targetView?: FrigateCardView;
     targetTime?: Date;
+    select?: ResultSelectType;
   },
 ): Promise<View | null> => {
   let mediaArray: ViewMedia[] | null;
@@ -153,12 +160,16 @@ export const executeMediaQueryForView = async (
   if (!mediaArray) {
     return null;
   }
-  // Select the last item by default (which is the most recent).
-  const selectedIndex = mediaArray.length ? mediaArray.length - 1 : undefined;
-  const queryResults = new MediaQueriesResults(mediaArray, selectedIndex);
+
+  const queryResults = new MediaQueriesResults(
+    mediaArray,
+    options?.select === 'latest' && mediaArray.length
+      ? mediaArray.length - 1
+      : undefined,
+  );
   let viewerContext: ViewContext | undefined = {};
 
-  if (options?.targetTime) {
+  if (options?.select === 'time' && options?.targetTime) {
     queryResults.selectBestResult((media) =>
       findClosestMediaIndex(media, options.targetTime as Date),
     );

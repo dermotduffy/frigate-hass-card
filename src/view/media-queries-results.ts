@@ -11,7 +11,9 @@ export class MediaQueriesResults {
     if (results) {
       this.setResults(results);
     }
-    this.selectResult(selectedIndex ?? 0);
+    if (selectedIndex !== undefined) {
+      this.selectResult(selectedIndex);
+    }
   }
 
   public clone(): MediaQueriesResults {

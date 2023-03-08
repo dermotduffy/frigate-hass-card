@@ -94,6 +94,7 @@ export class FrigateCardSurround extends LitElement {
       {
         targetView: this.view.view,
         mediaType: this.fetchMedia,
+        select: 'latest',
       },
     );
   }

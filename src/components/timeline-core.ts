@@ -490,6 +490,7 @@ export class FrigateCardTimelineCore extends LitElement {
               properties.what === 'background'
                 ? properties.time
                 : this._timeline.getWindow().end,
+            select: 'time',
           },
         );
       }
@@ -513,6 +514,7 @@ export class FrigateCardTimelineCore extends LitElement {
           {
             targetView: 'recording',
             targetTime: properties.time,
+            select: 'time',
           },
         );
       }
@@ -661,6 +663,7 @@ export class FrigateCardTimelineCore extends LitElement {
       query,
       {
         targetView: options?.targetView,
+        select: 'latest',
       },
     );
     if (!view) {
