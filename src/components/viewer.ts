@@ -120,6 +120,7 @@ export class FrigateCardViewer extends LitElement {
           this.view,
           {
             targetView: 'recording',
+            select: 'latest',
           },
         );
       } else {
@@ -132,6 +133,7 @@ export class FrigateCardViewer extends LitElement {
           {
             targetView: 'media',
             mediaType: mediaType,
+            select: 'latest',
           },
         );
       }
@@ -543,13 +545,19 @@ export class FrigateCardViewerCarousel extends LitElement {
    * @returns A template to display to the user.
    */
   protected _render(): TemplateResult | void {
-    if ((this.view?.queryResults?.getResultsCount() ?? 0) === 0) {
+    const resultCount = this.view?.queryResults?.getResultsCount() ?? 0;
+    if (!resultCount) {
       return dispatchMessageEvent(this, localize('common.no_media'), 'info', {
         icon: 'mdi:multimedia',
       });
     }
 
-    const media = this.view?.queryResults?.getSelectedResult();
+    // If there's no selected media, just choose the last (most recent one) to
+    // avoid rendering a blank. This situation should not occur in practice, as
+    // this view should not be called without a selected media.
+    const media =
+      this.view?.queryResults?.getSelectedResult() ??
+      this.view?.queryResults?.getResult(resultCount - 1);
     if (!media || !this.view || !this.view.queryResults) {
       return;
     }

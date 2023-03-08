@@ -33,6 +33,7 @@ import {
   Engine,
   MediaMetadataQuery,
   MediaMetadataQueryResults,
+  EngineOptions,
 } from './types.js';
 import orderBy from 'lodash-es/orderBy';
 import { CameraManagerEngineFactory } from './engine-factory.js';
@@ -361,31 +362,35 @@ export class CameraManager {
   public async getEvents(
     hass: HomeAssistant,
     query: EventQuery | EventQuery[],
+    engineOptions?: EngineOptions,
   ): Promise<EventQueryResultsMap> {
-    return await this._handleQuery(hass, query);
+    return await this._handleQuery(hass, query, engineOptions);
   }
 
   public async getRecordings(
     hass: HomeAssistant,
     query: RecordingQuery | RecordingQuery[],
+    engineOptions?: EngineOptions,
   ): Promise<RecordingQueryResultsMap> {
-    return await this._handleQuery(hass, query);
+    return await this._handleQuery(hass, query, engineOptions);
   }
 
   public async getRecordingSegments(
     hass: HomeAssistant,
     query: RecordingSegmentsQuery | RecordingSegmentsQuery[],
+    engineOptions?: EngineOptions,
   ): Promise<RecordingSegmentsQueryResultsMap> {
-    return await this._handleQuery(hass, query);
+    return await this._handleQuery(hass, query, engineOptions);
   }
 
   public async executeMediaQueries<T extends MediaQuery>(
     hass: HomeAssistant,
     queries: T[],
+    engineOptions?: EngineOptions,
   ): Promise<ViewMedia[] | null> {
     return this._convertQueryResultsToMedia(
       hass,
-      await this._handleQuery(hass, queries),
+      await this._handleQuery(hass, queries, engineOptions),
     );
   }
 
@@ -394,6 +399,7 @@ export class CameraManager {
     queries: T[],
     results: ViewMedia[],
     direction: 'earlier' | 'later',
+    engineOptions?: EngineOptions,
   ): Promise<ExtendedMediaQueryResult<T> | null> {
     const getTimeFromResults = (want: 'earliest' | 'latest'): Date | null => {
       let output: Date | null = null;
@@ -446,7 +452,7 @@ export class CameraManager {
 
     const newChunkMedia = this._convertQueryResultsToMedia(
       hass,
-      await this._handleQuery(hass, newChunkQueries),
+      await this._handleQuery(hass, newChunkQueries, engineOptions),
     );
 
     if (!newChunkMedia.length) {
@@ -554,6 +560,7 @@ export class CameraManager {
   protected async _handleQuery<QT extends DataQuery>(
     hass: HomeAssistant,
     query: QT | QT[],
+    engineOptions?: EngineOptions,
   ): Promise<Map<QT, QueryReturnType<QT>>> {
     const _queries = arrayify(query);
     const results = new Map<QT, QueryReturnType<QT>>();
@@ -573,24 +580,28 @@ export class CameraManager {
           hass,
           this._store.getCameras(),
           query,
+          engineOptions,
         )) as Map<QT, QueryReturnType<QT>> | null;
       } else if (QueryClassifier.isRecordingQuery(query)) {
         engineResult = (await engine.getRecordings(
           hass,
           this._store.getCameras(),
           query,
+          engineOptions,
         )) as Map<QT, QueryReturnType<QT>> | null;
       } else if (QueryClassifier.isRecordingSegmentsQuery(query)) {
         engineResult = (await engine.getRecordingSegments(
           hass,
           this._store.getCameras(),
           query,
+          engineOptions,
         )) as Map<QT, QueryReturnType<QT>> | null;
       } else if (QueryClassifier.isMediaMetadataQuery(query)) {
         engineResult = (await engine.getMediaMetadata(
           hass,
           this._store.getCameras(),
           query,
+          engineOptions,
         )) as Map<QT, QueryReturnType<QT>> | null;
       }
 

@@ -39,6 +39,7 @@ import {
   MediaMetadataQuery,
   MediaMetadataQueryResults,
   MediaMetadataQueryResultsMap,
+  EngineOptions,
 } from '../types';
 import {
   FrigateEventQueryResults,
@@ -426,6 +427,7 @@ export class FrigateCameraManagerEngine
     hass: HomeAssistant,
     cameras: CameraConfigs,
     query: EventQuery,
+    engineOptions?: EngineOptions,
   ): Promise<EventQueryResultsMap | null> {
     const output: EventQueryResultsMap = new Map();
 
@@ -437,7 +439,8 @@ export class FrigateCameraManagerEngine
         return;
       }
       const instanceQuery = { ...query, cameraIDs: cameraIDs };
-      const cachedResult = this._requestCache.get(instanceQuery);
+      const cachedResult =
+        engineOptions?.useCache ?? true ? this._requestCache.get(instanceQuery) : null;
       if (cachedResult) {
         output.set(query, cachedResult as EventQueryResults);
         return;
@@ -467,7 +470,9 @@ export class FrigateCameraManagerEngine
         cached: false,
       };
 
-      this._requestCache.set(query, { ...result, cached: true }, result.expiry);
+      if (engineOptions?.useCache ?? true) {
+        this._requestCache.set(query, { ...result, cached: true }, result.expiry);
+      }
       output.set(instanceQuery, result);
     };
 
@@ -491,6 +496,7 @@ export class FrigateCameraManagerEngine
     hass: HomeAssistant,
     cameras: CameraConfigs,
     query: RecordingQuery,
+    engineOptions?: EngineOptions,
   ): Promise<RecordingQueryResultsMap | null> {
     const output: RecordingQueryResultsMap = new Map();
 
@@ -499,7 +505,8 @@ export class FrigateCameraManagerEngine
       cameraID: string,
     ): Promise<void> => {
       const query = { ...baseQuery, cameraIDs: new Set([cameraID]) };
-      const cachedResult = this._requestCache.get(query);
+      const cachedResult =
+        engineOptions?.useCache ?? true ? this._requestCache.get(query) : null;
       if (cachedResult) {
         output.set(query, cachedResult as RecordingQueryResults);
         return;
@@ -557,7 +564,9 @@ export class FrigateCameraManagerEngine
         }),
         cached: false,
       };
-      this._requestCache.set(query, { ...result, cached: true }, result.expiry);
+      if (engineOptions?.useCache ?? true) {
+        this._requestCache.set(query, { ...result, cached: true }, result.expiry);
+      }
       output.set(query, result);
     };
 
@@ -573,6 +582,7 @@ export class FrigateCameraManagerEngine
     hass: HomeAssistant,
     cameras: CameraConfigs,
     query: RecordingSegmentsQuery,
+    engineOptions?: EngineOptions,
   ): Promise<RecordingSegmentsQueryResultsMap | null> {
     const output: RecordingSegmentsQueryResultsMap = new Map();
 
@@ -595,7 +605,10 @@ export class FrigateCameraManagerEngine
       //   query is different -- the segments won't be). This is since the
       //   volume of data in segment transfers can be high, and the segments can
       //   be used in high frequency situations (e.g. video seeking).
-      const cachedSegments = this._recordingSegmentsCache.get(cameraID, range);
+      const cachedSegments =
+        engineOptions?.useCache ?? true
+          ? this._recordingSegmentsCache.get(cameraID, range)
+          : null;
       if (cachedSegments) {
         output.set(query, <FrigateRecordingSegmentsQueryResults>{
           type: QueryResultsType.RecordingSegments,
@@ -615,7 +628,10 @@ export class FrigateCameraManagerEngine
       };
 
       const segments = await getRecordingSegments(hass, request);
-      this._recordingSegmentsCache.add(cameraID, range, segments);
+
+      if (engineOptions?.useCache ?? true) {
+        this._recordingSegmentsCache.add(cameraID, range, segments);
+      }
 
       output.set(query, <FrigateRecordingSegmentsQueryResults>{
         type: QueryResultsType.RecordingSegments,
@@ -757,6 +773,7 @@ export class FrigateCameraManagerEngine
     cameras: CameraConfigs,
     media: ViewMedia,
     target: Date,
+    engineOptions?: EngineOptions,
   ): Promise<number | null> {
     const start = media.getStartTime();
     const end = media.getEndTime();
@@ -772,7 +789,7 @@ export class FrigateCameraManagerEngine
       type: QueryType.RecordingSegments,
     };
 
-    const results = await this.getRecordingSegments(hass, cameras, query);
+    const results = await this.getRecordingSegments(hass, cameras, query, engineOptions);
 
     if (results) {
       return this._getSeekTimeInSegments(
@@ -811,9 +828,10 @@ export class FrigateCameraManagerEngine
     hass: HomeAssistant,
     cameras: CameraConfigs,
     query: MediaMetadataQuery,
+    engineOptions?: EngineOptions,
   ): Promise<MediaMetadataQueryResultsMap | null> {
     const output: MediaMetadataQueryResultsMap = new Map();
-    if (this._requestCache.has(query)) {
+    if ((engineOptions?.useCache ?? true) && this._requestCache.has(query)) {
       const cachedResult = <MediaMetadataQueryResults | null>(
         this._requestCache.get(query)
       );
@@ -860,10 +878,15 @@ export class FrigateCameraManagerEngine
     };
 
     const processRecordings = async (cameraIDs: Set<string>): Promise<void> => {
-      const recordings = await this.getRecordings(hass, cameras, {
-        type: QueryType.Recording,
-        cameraIDs: cameraIDs,
-      });
+      const recordings = await this.getRecordings(
+        hass,
+        cameras,
+        {
+          type: QueryType.Recording,
+          cameraIDs: cameraIDs,
+        },
+        engineOptions,
+      );
       if (!recordings) {
         return;
       }
@@ -902,7 +925,9 @@ export class FrigateCameraManagerEngine
       cached: false,
     };
 
-    this._requestCache.set(query, { ...result, cached: true }, result.expiry);
+    if (engineOptions?.useCache ?? true) {
+      this._requestCache.set(query, { ...result, cached: true }, result.expiry);
+    }
     output.set(query, result);
     return output;
   }

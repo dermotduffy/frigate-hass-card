@@ -31,16 +31,20 @@ import { MediaQueriesClassifier } from '../view/media-queries-classifier';
 import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
 import { EventQuery, MediaQuery, RecordingQuery } from '../camera-manager/types';
 import { MediaQueriesResults } from '../view/media-queries-results';
-import { errorToConsole } from '../utils/basic';
+import { errorToConsole, sleep } from '../utils/basic';
 import './media-filter';
 import './surround-basic';
 import { ViewMedia } from '../view/media';
 import { localize } from '../localize/localize';
+import throttle from 'lodash-es/throttle';
+import { classMap } from 'lit/directives/class-map.js';
 
 const GALLERY_MEDIA_FILTER_MENU_ICONS = {
   closed: 'mdi:filter-cog-outline',
   open: 'mdi:filter-cog',
 };
+
+const MIN_GALLERY_EXTENSION_SECONDS = 0.5;
 
 @customElement('frigate-card-gallery')
 export class FrigateCardGallery extends LitElement {
@@ -167,13 +171,41 @@ export class FrigateCardGalleryCore extends LitElement {
 
   protected _intersectionObserver: IntersectionObserver;
   protected _resizeObserver: ResizeObserver;
-  protected _refLoader: Ref<HTMLElement> = createRef();
+  protected _refLoaderBottom: Ref<HTMLElement> = createRef();
   protected _refSelected: Ref<HTMLElement> = createRef();
 
+  // Bottom loader: A progress indicator shown in a "cell" (not across) at the
+  // bottom of the gallery. Once visible this attempts to fetch new content from
+  // "earlier" (less recently) than the current query. This is rendered by
+  // default (and once visible, the fetch is triggered after which it is
+  // re-hidden).
   @state()
-  protected _showExtensionLoader = true;
+  protected _showLoaderBottom = true;
+
+  // Top loader: A progress indicator is shown across the top of the gallery if
+  // the user is _already_ at the top of the gallery and scrolls upwards. This
+  // attempts to fetch new content from "later" (more recently) than the current
+  // query. This is hidden by default.
+  @state()
+  protected _showLoaderTop = false;
 
   protected _media?: ViewMedia[];
+
+  protected _boundWheelHandler = this._wheelHandler.bind(this);
+  protected _boundTouchStartHandler = this._touchStartHandler.bind(this);
+  protected _boundTouchEndHandler = this._touchEndHandler.bind(this);
+
+  // Wheel / touch events may be voluminous, throttle extension calls.
+  protected _throttleExtendGalleryLater = throttle(
+    this._extendGallery.bind(this),
+    MIN_GALLERY_EXTENSION_SECONDS * 1000,
+    {
+      leading: true,
+      trailing: false,
+    },
+  );
+
+  protected _touchScrollYPosition: number | null = null;
 
   constructor() {
     super();
@@ -183,12 +215,72 @@ export class FrigateCardGalleryCore extends LitElement {
     );
   }
 
+  // Since the scroll event does not fire if the user is already at the top of
+  // the container, instead we manually use the wheel and touchstart/end events
+  // to detect "top upwards scrolling" (to trigger an extension of the gallery).
+
+  protected _touchStartHandler(ev: TouchEvent): void {
+    // Remember the Y touch position on touch start, so that we can calculate if
+    // the user gestured upwards or downards on touchend.
+    if (ev.touches.length === 1) {
+      this._touchScrollYPosition = ev.touches[0].screenY;
+    } else {
+      this._touchScrollYPosition = null;
+    }
+  }
+
+  protected async _touchEndHandler(ev: TouchEvent): Promise<void> {
+    if (
+      !this.scrollTop &&
+      ev.changedTouches.length === 1 &&
+      this._touchScrollYPosition
+    ) {
+      if (ev.changedTouches[0].screenY > this._touchScrollYPosition) {
+        await this._extendLater();
+      }
+    }
+    this._touchScrollYPosition = null;
+  }
+
+  protected async _wheelHandler(ev: WheelEvent): Promise<void> {
+    if (!this.scrollTop && ev.deltaY < 0) {
+      await this._extendLater();
+    }
+  }
+
+  protected async _extendLater(): Promise<void> {
+    const start = new Date();
+    this._showLoaderTop = true;
+    await this._throttleExtendGalleryLater(
+      'later',
+      // Ask the engine to avoid use of cache since the user is explicitly
+      // looking for the freshest possible data.
+      false,
+    );
+    const delta = new Date().getTime() - start.getTime();
+    if (delta < MIN_GALLERY_EXTENSION_SECONDS * 1000) {
+      // Hidden gem: "legitimate" (?!) use of sleep() :-)
+      // These calls can return very quickly even with caching disabled since
+      // the time window constraints on the query will usually be very narrow
+      // and the backend can thus very quickly reply. It's often so fast it
+      // actually looks like a rendering issue where the progress indictor
+      // barely registers before it's gone again. This optional pause ensures
+      // there is at least some visual feedback to the user that last long
+      // enough they can 'feel' the fetch has happened.
+      await sleep(MIN_GALLERY_EXTENSION_SECONDS - delta / 1000);
+    }
+    this._showLoaderTop = false;
+  }
+
   /**
    * Component connected callback.
    */
   connectedCallback(): void {
     super.connectedCallback();
     this._resizeObserver.observe(this);
+    this.addEventListener('wheel', this._boundWheelHandler, { passive: true });
+    this.addEventListener('touchstart', this._boundTouchStartHandler, { passive: true });
+    this.addEventListener('touchend', this._boundTouchEndHandler);
 
     // Request update in order to ensure the intersection observer reconnects
     // with the loader sentinel.
@@ -199,6 +291,9 @@ export class FrigateCardGalleryCore extends LitElement {
    * Component disconnected callback.
    */
   disconnectedCallback(): void {
+    this.removeEventListener('wheel', this._boundWheelHandler);
+    this.removeEventListener('touchstart', this._boundTouchStartHandler);
+    this.removeEventListener('touchend', this._boundTouchEndHandler);
     this._resizeObserver.disconnect();
     this._intersectionObserver.disconnect();
     super.disconnectedCallback();
@@ -232,14 +327,21 @@ export class FrigateCardGalleryCore extends LitElement {
   protected async _intersectionHandler(
     entries: IntersectionObserverEntry[],
   ): Promise<void> {
-    if (!this.cameraManager || !this.hass || !this.view) {
-      return;
-    }
     if (entries.every((entry) => !entry.isIntersecting)) {
       return;
     }
 
-    this._showExtensionLoader = false;
+    this._showLoaderBottom = false;
+    await this._extendGallery('earlier');
+  }
+
+  protected async _extendGallery(
+    direction: 'earlier' | 'later',
+    useCache = true,
+  ): Promise<void> {
+    if (!this.cameraManager || !this.hass || !this.view) {
+      return;
+    }
 
     const query = this.view?.query;
     const rawQueries = query?.getQueries() ?? null;
@@ -254,7 +356,10 @@ export class FrigateCardGalleryCore extends LitElement {
         this.hass,
         rawQueries,
         existingMedia,
-        'earlier',
+        direction,
+        {
+          useCache: useCache,
+        },
       );
     } catch (e) {
       errorToConsole(e as Error);
@@ -272,7 +377,9 @@ export class FrigateCardGalleryCore extends LitElement {
         this.view
           ?.evolve({
             query: newMediaQueries,
-            queryResults: new MediaQueriesResults(extension.results),
+            queryResults: new MediaQueriesResults(extension.results).selectResultIfFound(
+              (media) => media === this.view?.queryResults?.getSelectedResult(),
+            ),
           })
           .dispatchChangeEvent(this);
       }
@@ -299,7 +406,9 @@ export class FrigateCardGalleryCore extends LitElement {
       }
     }
     if (changedProps.has('view')) {
-      this._showExtensionLoader = true;
+      // If the view changes, always render the bottom loader to allow for the
+      // view to be extended once the bottom loader becomes visible.
+      this._showLoaderBottom = true;
       const oldView: View | undefined = changedProps.get('view');
 
       if (
@@ -330,10 +439,22 @@ export class FrigateCardGalleryCore extends LitElement {
 
     const selected = this.view?.queryResults?.getSelectedResult();
     return html`
+      ${this._showLoaderTop
+        ? html`${renderProgressIndicator({
+            cardWideConfig: this.cardWideConfig,
+            classes: {
+              top: true,
+            },
+            size: 'small',
+          })}`
+        : ''}
       ${this._media.map(
         (media, index) =>
           html`<frigate-card-thumbnail
             ${media === selected ? ref(this._refSelected) : ''}
+            class=${classMap({
+              selected: media === selected,
+            })}
             .hass=${this.hass}
             .cameraManager=${this.cameraManager}
             .media=${media}
@@ -361,19 +482,19 @@ export class FrigateCardGalleryCore extends LitElement {
           >
           </frigate-card-thumbnail>`,
       )}
-      ${this._showExtensionLoader
+      ${this._showLoaderBottom
         ? html`${renderProgressIndicator({
             cardWideConfig: this.cardWideConfig,
-            componentRef: this._refLoader,
+            componentRef: this._refLoaderBottom,
           })}`
         : ''}
     `;
   }
 
   public updated(changedProps: PropertyValues): void {
-    if (this._refLoader.value) {
+    if (this._refLoaderBottom.value) {
       this._intersectionObserver.disconnect();
-      this._intersectionObserver.observe(this._refLoader.value);
+      this._intersectionObserver.observe(this._refLoaderBottom.value);
     }
 
     // This wait for updateComplete is necessary for the scrolling to work
