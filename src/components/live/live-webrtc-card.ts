@@ -73,6 +73,14 @@ export class FrigateCardLiveWebRTCCard
     }
   }
 
+  connectedCallback(): void {
+    super.connectedCallback();
+
+    // Reset the player when reconnected to the DOM.
+    // https://github.com/dermotduffy/frigate-hass-card/issues/996
+    this.requestUpdate();    
+  }
+
   /**
    * Get the underlying video player.
    * @returns The player or `null` if not found.

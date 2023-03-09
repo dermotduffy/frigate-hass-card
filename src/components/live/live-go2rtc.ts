@@ -101,6 +101,18 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
     }
   }
 
+  disconnectedCallback(): void {
+    this._player = undefined;
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+
+    // Reset the player when reconnected to the DOM.
+    // https://github.com/dermotduffy/frigate-hass-card/issues/996
+    this.requestUpdate();
+  }
+
   protected async _createPlayer(): Promise<void> {
     if (!this.hass) {
       return;
@@ -126,8 +138,8 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
     this._player = new FrigateCardGo2RTCPlayer();
     this._player.src = address;
     this._player.visibilityCheck = false;
-    this._player.background = true;
-    if (this.cameraConfig?.go2rtc?.modes) {
+
+    if (this.cameraConfig?.go2rtc?.modes && this.cameraConfig.go2rtc.modes.length) {
       this._player.mode = this.cameraConfig.go2rtc.modes.join(',');
     }
 
@@ -135,7 +147,7 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('cameraEndpoints')) {
+    if (!this._player || changedProps.has('cameraEndpoints')) {
       this._createPlayer();
     }
   }
