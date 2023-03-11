@@ -206,7 +206,7 @@ export class FrigateCardCarousel extends LitElement {
         nodes,
         {
           axis: this.direction == 'horizontal' ? 'x' : 'y',
-          speed: 20,
+          speed: 30,
           startIndex: this.selected,
           ...this.carouselOptions,
         },

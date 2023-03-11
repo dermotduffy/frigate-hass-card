@@ -91,6 +91,7 @@ import cloneDeep from 'lodash-es/cloneDeep';
 import isEqual from 'lodash-es/isEqual';
 import merge from 'lodash-es/merge';
 import { FrigateCardInitializer } from './utils/initializer.js';
+import 'web-dialog';
 
 /** A note on media callbacks:
  *
@@ -174,6 +175,9 @@ class FrigateCard extends LitElement {
   // Whether or not the card is in panel mode on the dashboard.
   @property({ attribute: 'panel', type: Boolean, reflect: true })
   protected _panel = false;
+
+  @state()
+  protected _expand?: boolean = false;
 
   protected _conditionState?: ConditionState;
 
@@ -294,6 +298,7 @@ class FrigateCard extends LitElement {
     this._conditionState = {
       view: this._view?.view,
       fullscreen: screenfull.isEnabled && screenfull.isFullscreen,
+      expand: this._expand,
       camera: this._view?.camera,
       media_loaded: !!this._currentMediaLoadedInfo,
       ...(this._conditionManager?.hasHAStateConditions && {
@@ -621,6 +626,17 @@ class FrigateCard extends LitElement {
         style: screenfull.isFullscreen ? this._getEmphasizedStyle() : {},
       });
     }
+
+    buttons.push({
+      icon: this._expand ? 'mdi:arrow-collapse-all' : 'mdi:arrow-expand-all',
+      ...this._getConfig().menu.buttons.expand,
+      type: 'custom:frigate-card-menu-icon',
+      title: localize('config.menu.buttons.expand'),
+      tap_action: createFrigateCardCustomAction(
+        'expand_toggle',
+      ) as FrigateCardCustomAction,
+      style: this._expand ? this._getEmphasizedStyle() : {},
+    });
 
     if (
       this._mediaPlayers?.length &&
@@ -1510,6 +1526,9 @@ class FrigateCard extends LitElement {
       case 'diagnostics':
         this._diagnostics();
         break;
+      case 'expand_toggle':
+        this._setExpand(!this._expand);
+        break;
       default:
         console.warn(`Frigate card received unknown card action: ${action}`);
     }
@@ -1784,6 +1803,13 @@ class FrigateCard extends LitElement {
 
     this._lastValidMediaLoadedInfo = this._currentMediaLoadedInfo = mediaLoadedInfo;
 
+    // When a new media loads, set the aspect ratio for when the card is
+    // expanded/popped-up.
+    this.style.setProperty(
+      '--frigate-card-expand-aspect-ratio',
+      this._getAspectRatioStyle(),
+    );
+
     // An update may be required to draw elements.
     this._generateConditionState();
     this.requestUpdate();
@@ -1869,12 +1895,20 @@ class FrigateCard extends LitElement {
    * @returns A padding percentage.
    */
   protected _getAspectRatioStyle(): string {
-    if (!this._isAspectRatioEnforced()) {
+    // In expanded mode we must always set the aspect ratio since there are no
+    // constraints on the size.
+
+    if (!this._expand && !this._isAspectRatioEnforced()) {
       return 'auto';
     }
 
     const aspectRatioMode = this._getConfig().dimensions.aspect_ratio_mode;
-    if (aspectRatioMode == 'dynamic' && this._lastValidMediaLoadedInfo) {
+
+    if (
+      this._lastValidMediaLoadedInfo &&
+      (aspectRatioMode === 'dynamic' ||
+        (this._expand && aspectRatioMode === 'unconstrained'))
+    ) {
       return `${this._lastValidMediaLoadedInfo.width} / ${this._lastValidMediaLoadedInfo.height}`;
     }
 
@@ -1914,6 +1948,27 @@ class FrigateCard extends LitElement {
     return { ...this._getConfig().view.actions, ...specificActions };
   }
 
+  protected _setExpand(expand: boolean): void {
+    this._expand = expand;
+    this._generateConditionState();
+  }
+
+  protected _renderInDialogIfNecessary(contents: TemplateResult): TemplateResult | void {
+    if (this._expand) {
+      return html` <web-dialog
+        open
+        center
+        @close=${() => {
+          this._setExpand(false);
+        }}
+      >
+        ${contents}
+      </web-dialog>`;
+    } else {
+      return contents;
+    }
+  }
+
   /**
    * Master render method for the card.
    */
@@ -1947,8 +2002,7 @@ class FrigateCard extends LitElement {
 
     // Caution: Keep the main div and the menu next to one another in order to
     // ensure the hover menu styling continues to work.
-
-    return html` <ha-card
+    return this._renderInDialogIfNecessary(html` <ha-card
       id="ha-card"
       .actionHandler=${actionHandler({
         hasHold: frigateCardHasAction(actions.hold_action),
@@ -1999,7 +2053,7 @@ class FrigateCard extends LitElement {
           >
           </frigate-card-elements>`
         : ``}
-    </ha-card>`;
+    </ha-card>`);
   }
 
   /**

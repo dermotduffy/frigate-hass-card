@@ -85,6 +85,8 @@ ha-card {
   flex-direction: column;
   margin: auto;
 
+  border: 0px;
+
   // Some elements (such as submenus) may need to extend beyond the card boundary.
   overflow: visible;
   width: 100%;
@@ -150,4 +152,31 @@ frigate-card-live.hidden {
 :host(:-webkit-full-screen) div.main,
 :host(:-webkit-full-screen) frigate-card-menu {
   @include fullscreen-no-rounded-corners;
+}
+
+/***************
+ * Expanded mode
+ ***************/
+
+web-dialog {
+  --dialog-padding: 0px;
+  --dialog-container-padding: 0px;
+
+  // The standard HA header is 56 pixels wide, so that much off the top (header)
+  // and bottom (to maintain center), before doing the calculation of
+  // max-height. This matters on small mobile devices in landscape orientation.
+  --dialog-max-height: calc( ( 100vh - (2 * 56px) ) * 0.85 );
+  --dialog-max-width: 85vw;
+
+  --dialog-width: none;
+  --dialog-height: none;
+
+  // Allow submenus to flow outside the edge of the dialog.
+  --dialog-overflow-x: visible;
+  --dialog-overflow-y: visible;
+}
+
+web-dialog::part(dialog) {
+  aspect-ratio: var(--frigate-card-expand-aspect-ratio);
+  height: 100%;
 }
