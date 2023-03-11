@@ -374,6 +374,7 @@ menu:
 | `download` | :white_check_mark: | The `download` menu button: allow direct download of the media being displayed.|
 | `camera_ui` | :white_check_mark: | The `camera_ui` menu button: brings the user to a context-appropriate page on the UI of their camera engine (e.g. the Frigate camera homepage). Will only appear if the camera engine supports a camera UI (e.g. if `frigate.url` option is set for `frigate` engine users).|
 | `fullscreen` | :white_check_mark: | The `fullscreen` menu button: expand the card to consume the fullscreen. |
+| `expand` | :white_check_mark: | The `expand` menu button: expand the card into a popup/dialog. |
 | `timeline` | :white_check_mark: | The `timeline` menu button: show the event timeline. |
 | `media_player` | :white_check_mark: | The `media_player` menu button: sends the visible media to a remote media player. Supports Frigate clips, snapshots and live camera (only for cameras that specify a `camera_entity` and only using the default HA stream (equivalent to the `ha` live provider). `jsmpeg` or `webrtc-card` are not supported, although live can still be played as long as `camera_entity` is specified. In the player list, a `tap` will send the media to the player, a `hold` will stop the media on the player. |
 
@@ -947,6 +948,7 @@ All variables listed are under a `conditions:` section.
 | `view` | A list of [views](#views) in which this condition is satified (e.g. `clips`) |
 | `camera` | A list of camera ids in which this condition is satisfied. See [camera IDs](#camera-ids).|
 | `fullscreen` | If `true` the condition is satisfied if the card is in fullscreen mode. If `false` the condition is satisfied if the card is **NOT** in fullscreen mode.|
+| `expand` | If `true` the condition is satisfied if the card is in expanded mode (in a dialog/popup). If `false` the condition is satisfied if the card is **NOT** in expanded mode (in a dialog/popup).|
 | `state` | A list of state conditions to compare with Home Assistant state. See below. |
 | `media_loaded` | If `true` the condition is satisfied if there is media load**ED** (not load**ING**) in the card (e.g. a clip, snapshot or live view). This may be used to hide controls during media loading or when a message (not media) is being displayed. Note that if `true` this condition will never be satisfied for views that do not themselves load media directly (e.g. gallery).|
 | `media_query` | Any valid [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries) string. Media queries must start and end with parentheses. This may be used to alter card configuration based on device/media properties (e.g. viewport width, orientation). Please note that `width` and `height` refer to the entire viewport not just the card. See the [media query example](#media-query-example).|
@@ -1090,7 +1092,7 @@ Parameters for the `custom:frigate-card-ptz` element:
 | Parameter | Description |
 | - | - |
 | `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`.|
+| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_select`, `expand_toggle`.|
 
 ##### Command descriptions
 
@@ -1104,7 +1106,8 @@ Parameters for the `custom:frigate-card-ptz` element:
 |`camera_select`|Select a given camera. Takes a single additional `camera` parameter with the [camera ID](#camera-ids) of the camera to select. Respects the value of `view.camera_select` to choose the appropriate view on the new camera.|
 |`menu_toggle` | Show/hide the menu (for the `hidden` mode style). |
 |`media_player`| Perform a media player action. Takes a `media_player` parameter with the entity ID of the media_player on which to perform the action, and a `media_player_action` parameter which should be either `play` or `stop` to play or stop the media in question. |
-
+|`live_substream_select`| Perform a media player action. Takes a `camera` parameter with the [camera ID](#camera-ids) of the substream camera. |
+|`expand_toggle`| Expand the card into a dialog/popup. |
 
 <a name="views"></a>
 
@@ -1595,6 +1598,11 @@ menu:
       enabled: true
       alignment: matching
       icon: mdi:fullscreen
+    expand:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:arrow-expand-all
     media_player:
       priority: 50
       enabled: false
@@ -2838,8 +2846,6 @@ overrides:
 
 </details>
 
-<a name="frigate-card-menu-override-example"></a>
-
 <details>
   <summary>Expand: Change the menu position based on HA state</summary>
 
@@ -2854,9 +2860,6 @@ overrides:
         position: bottom
 ```
 </details>
-
-
-<a name="frigate-card-menu-override-example"></a>
 
 <details>
   <summary>Expand: Change the default view based on HA state</summary>
@@ -2885,6 +2888,25 @@ overrides:
     overrides:
       view:
         default: image
+```
+</details>
+
+
+<details>
+  <summary>Expand: Change the menu style in expanded mode</summary>
+
+This example changes the menu style to `overlay` in expanded mode in order to take
+advantage of the extra horizontal space of the dialog/popup.
+
+```yaml
+menu:
+  style: hidden
+overrides:
+  - conditions:
+      expand: true
+    overrides:
+      menu:
+        style: overlay
 ```
 </details>
 

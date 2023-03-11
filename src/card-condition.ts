@@ -12,6 +12,7 @@ import { copyConfig } from './config-mgmt';
 export interface ConditionState {
   view?: string;
   fullscreen?: boolean;
+  expand?: boolean;
   camera?: string;
   state?: HassEntities;
   media_loaded?: boolean;
@@ -36,6 +37,10 @@ function evaluateCondition(
   if (condition?.fullscreen !== undefined) {
     result &&=
       state.fullscreen !== undefined && condition.fullscreen == state.fullscreen;
+  }
+  if (condition?.expand !== undefined) {
+    result &&=
+      state.expand !== undefined && condition.expand == state.expand;
   }
   if (condition?.camera?.length) {
     result &&= !!state.camera && condition.camera.includes(state.camera);

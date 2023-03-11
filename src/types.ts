@@ -208,21 +208,22 @@ const frigateCardCustomActionsBaseSchema = customActionSchema.extend({
 });
 
 const FRIGATE_CARD_GENERAL_ACTIONS = [
-  'default',
+  'camera_ui',
   'clip',
   'clips',
+  'default',
+  'diagnostics',
+  'expand_toggle',
+  'download',
+  'fullscreen',
   'image',
   'live',
+  'menu_toggle',
+  'recording',
+  'recordings',
   'snapshot',
   'snapshots',
   'timeline',
-  'download',
-  'camera_ui',
-  'fullscreen',
-  'menu_toggle',
-  'diagnostics',
-  'recording',
-  'recordings',
 ] as const;
 const FRIGATE_CARD_ACTIONS = [
   ...FRIGATE_CARD_GENERAL_ACTIONS,
@@ -580,6 +581,7 @@ export type MenuItem = MenuIcon | MenuStateIcon | MenuSubmenu | MenuSubmenuSelec
 const frigateCardConditionSchema = z.object({
   view: z.string().array().optional(),
   fullscreen: z.boolean().optional(),
+  expand: z.boolean().optional(),
   camera: z.string().array().optional(),
   media_loaded: z.boolean().optional(),
   state: stateConditions.optional(),
@@ -972,6 +974,7 @@ const menuConfigDefault = {
     download: visibleButtonDefault,
     camera_ui: visibleButtonDefault,
     fullscreen: visibleButtonDefault,
+    expand: hiddenButtonDefault,
     media_player: visibleButtonDefault,
     recordings: hiddenButtonDefault,
   },
@@ -1005,6 +1008,7 @@ const menuConfigSchema = z
         download: visibleButtonSchema.default(menuConfigDefault.buttons.download),
         camera_ui: visibleButtonSchema.default(menuConfigDefault.buttons.camera_ui),
         fullscreen: visibleButtonSchema.default(menuConfigDefault.buttons.fullscreen),
+        expand: hiddenButtonSchema.default(menuConfigDefault.buttons.expand),
         media_player: visibleButtonSchema.default(
           menuConfigDefault.buttons.media_player,
         ),
