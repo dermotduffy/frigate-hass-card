@@ -13,7 +13,7 @@ import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
 import throttle from 'lodash-es/throttle';
 import screenfull from 'screenfull';
-import { string, z } from 'zod';
+import { z } from 'zod';
 import { actionHandler } from './action-handler-directive.js';
 import {
   CardConditionManager,
@@ -1816,13 +1816,16 @@ class FrigateCard extends LitElement {
 
   protected _setPropertiesForExpandedMode(): void {
     // When a new media loads, set the aspect ratio for when the card is
-    // expanded/popped-up.
-    if (this._view?.isAnyMediaView() && this._lastValidMediaLoadedInfo) {
-      this.style.setProperty(
-        '--frigate-card-expand-aspect-ratio',
-        `${this._lastValidMediaLoadedInfo.width} / ${this._lastValidMediaLoadedInfo.height}`,
-      );
-    }
+    // expanded/popped-up. This is based exclusively on last media content,
+    // as dimension configuration does not apply in fullscreen or expanded mode.
+    this.style.setProperty(
+      '--frigate-card-expand-aspect-ratio',
+      this._view?.isAnyMediaView() && this._lastValidMediaLoadedInfo
+        ? `${this._lastValidMediaLoadedInfo.width} / ${this._lastValidMediaLoadedInfo.height}`
+        : 'unset',
+    );
+    // Non-media mays have no intrinsic dimensions and so we need to explicit
+    // request the dialog to use all available space.
     this.style.setProperty(
       '--frigate-card-expand-width',
       this._view?.isAnyMediaView() ? 'none' : 'var(--frigate-card-expand-max-width)',

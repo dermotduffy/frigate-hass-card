@@ -19,6 +19,7 @@
   --frigate-card-expand-max-width: 85vw;
   --frigate-card-expand-width: none;
   --frigate-card-expand-height: none;
+  --frigate-card-expand-aspect-ratio: unset;
 }
 
 :host([dark]) {
