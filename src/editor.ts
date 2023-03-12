@@ -18,9 +18,9 @@ import {
   CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS,
   CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME,
   CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID,
-  CONF_CAMERAS_ARRAY_FRIGATE_LABEL,
+  CONF_CAMERAS_ARRAY_FRIGATE_LABELS,
   CONF_CAMERAS_ARRAY_FRIGATE_URL,
-  CONF_CAMERAS_ARRAY_FRIGATE_ZONE,
+  CONF_CAMERAS_ARRAY_FRIGATE_ZONES,
   CONF_CAMERAS_ARRAY_ICON,
   CONF_CAMERAS_ARRAY_ID,
   CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
@@ -620,7 +620,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    */
   protected _renderOptionSelector(
     configPath: string,
-    options: string[] | { value: string; label: string }[],
+    options: string[] | { value: string; label: string }[] = [],
     params?: {
       multiple?: boolean;
       label?: string;
@@ -634,7 +634,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       <ha-selector
         .hass=${this.hass}
         .selector=${{
-          select: { mode: 'dropdown', multiple: !!params?.multiple, options: options },
+          select: {
+            mode: 'dropdown',
+            multiple: !!params?.multiple,
+            custom_value: !options.length,
+            options: options,
+          },
         }}
         .label=${params?.label || this._getLabel(configPath)}
         .value=${getConfigValue(this._config, configPath, '')}
@@ -1370,11 +1375,21 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     ${this._renderStringInput(
                       getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_URL, cameraIndex),
                     )}
-                    ${this._renderStringInput(
-                      getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_LABEL, cameraIndex),
+                    ${this._renderOptionSelector(
+                      getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_LABELS, cameraIndex),
+                      [],
+                      {
+                        multiple: true,
+                        label: localize('config.cameras.frigate.labels'),
+                      },
                     )}
-                    ${this._renderStringInput(
-                      getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_ZONE, cameraIndex),
+                    ${this._renderOptionSelector(
+                      getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_ZONES, cameraIndex),
+                      [],
+                      {
+                        multiple: true,
+                        label: localize('config.cameras.frigate.zones'),
+                      },
                     )}
                     ${this._renderStringInput(
                       getArrayConfigPath(
@@ -1657,7 +1672,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderMenuButton('download')}
                 ${this._renderMenuButton('camera_ui')}
                 ${this._renderMenuButton('fullscreen')}
-                ${this._renderMenuButton('expand')}
+                ${this._renderMenuButton('expand') /* */}
                 ${this._renderMenuButton('timeline')}
                 ${this._renderMenuButton('media_player')}
               </div>

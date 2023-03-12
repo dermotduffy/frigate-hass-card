@@ -21,10 +21,10 @@
       "frigate": {
         "camera_name": "Nome della telecamera frigate (autodificato dall'entità)",
         "client_id": "ID client Frigate (per > 1 Frigate server)",
-        "label": "Filtro etichetta/oggetto Frigate",
+        "labels": "",
         "editor_label": "Frigate Opzione",
         "url": "Frigate URL del server",
-        "zone": "Frigate zona"
+        "zones": ""
       },
       "go2rtc": {
         "editor_label": "",

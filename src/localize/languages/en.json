@@ -21,10 +21,10 @@
       "frigate": {
         "camera_name": "Frigate camera name (Autodetected from entity)",
         "client_id": "Frigate client id (For >1 Frigate server)",
-        "label": "Frigate label/object filter",
+        "labels": "Frigate labels/object filters",
         "editor_label": "Frigate Options",
         "url": "Frigate server URL",
-        "zone": "Frigate zone"
+        "zones": "Frigate zones"
       },
       "go2rtc": {
         "editor_label": "go2rtc Options",

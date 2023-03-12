@@ -21,10 +21,10 @@
       "frigate": {
         "camera_name": "Nome da câmera do Frigate (detectado automaticamente pela entidade)",
         "client_id": "ID do cliente do Frigate (para >1 servidor Frigate)",
-        "label": "Filtro de rótulo/objeto do Frigate",
+        "label": "",
         "editor_label": "Opções do Frigate",
         "url": "URL do servidor Frigate",
-        "zone": "Zona do Frigate"
+        "zone": ""
       },
       "go2rtc": {
         "editor_label": "",

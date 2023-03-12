@@ -56,8 +56,10 @@ import {
   NativeFrigateRecordingSegmentsQuery,
   retainEvent,
 } from './requests';
+import isEqual from 'lodash-es/isEqual';
 import orderBy from 'lodash-es/orderBy';
 import throttle from 'lodash-es/throttle';
+import uniqWith from 'lodash-es/uniqWith';
 import {
   allPromises,
   formatDate,
@@ -194,11 +196,11 @@ export class FrigateCameraManagerEngine
       }
 
       if (cameraConfig.triggers.occupancy) {
-        const occupancyEntity = this._getOccupancySensor(cameraConfig, [
+        const occupancyEntities = this._getOccupancySensor(cameraConfig, [
           ...binarySensorEntities.values(),
         ]);
-        if (occupancyEntity) {
-          cameraConfig.triggers.entities.push(occupancyEntity);
+        if (occupancyEntities) {
+          cameraConfig.triggers.entities.push(...occupancyEntities);
         }
       }
 
@@ -238,11 +240,7 @@ export class FrigateCameraManagerEngine
         entities.find(
           (ent) =>
             !!ent.unique_id?.match(
-              new RegExp(
-                `:motion_sensor:${
-                  cameraConfig.frigate.zone || cameraConfig.frigate.camera_name
-                }`,
-              ),
+              new RegExp(`:motion_sensor:${cameraConfig.frigate.camera_name}`),
             ),
         )?.entity_id ?? null
       );
@@ -259,20 +257,39 @@ export class FrigateCameraManagerEngine
   protected _getOccupancySensor(
     cameraConfig: CameraConfig,
     entities: Entity[],
-  ): string | null {
-    if (cameraConfig.frigate.camera_name) {
-      return (
+  ): string[] | null {
+    const entityIDs: string[] = [];
+    const addEntityIDIfFound = (cameraOrZone: string, label: string): void => {
+      const entityID =
         entities.find(
           (ent) =>
             !!ent.unique_id?.match(
-              new RegExp(
-                `:occupancy_sensor:${
-                  cameraConfig.frigate.zone || cameraConfig.frigate.camera_name
-                }_${cameraConfig.frigate.label || 'all'}`,
-              ),
+              new RegExp(`:occupancy_sensor:${cameraOrZone}_${label}`),
             ),
-        )?.entity_id ?? null
-      );
+        )?.entity_id ?? null;
+      if (entityID) {
+        entityIDs.push(entityID);
+      }
+    };
+
+    if (cameraConfig.frigate.camera_name) {
+      // If zone(s) are specified, the master occupancy sensor for the overall
+      // camera is not used by default (but could be manually added by the
+      // user).
+      const camerasAndZones = cameraConfig.frigate.zones
+        ? cameraConfig.frigate.zones
+        : [cameraConfig.frigate.camera_name];
+
+      const labels = cameraConfig.frigate.labels ? cameraConfig.frigate.labels : ['all'];
+      for (const cameraOrZone of camerasAndZones) {
+        for (const label of labels) {
+          addEntityIDIfFound(cameraOrZone, label);
+        }
+      }
+
+      if (entityIDs.length) {
+        return entityIDs;
+      }
     }
     return null;
   }
@@ -308,17 +325,26 @@ export class FrigateCameraManagerEngine
       cameras.get(cameraID),
     );
 
-    // If there isn't a label or zone specified, we can come up with a single
-    // batch query for Frigate that will match across all cameras.
-    const canDoBatchQuery = relevantCameraConfigs.every(
-      (cameraConfig) => !cameraConfig?.frigate.label && !cameraConfig?.frigate.zone,
+    // If all cameras specify exactly the same zones or labels (incl. none), we
+    // can use a single batch query which will be better performance wise,
+    // otherwise we must fan out to multiple queries in order to precisely match
+    // the user's intent.
+    const uniqueZoneArrays = uniqWith(
+      relevantCameraConfigs.map((config) => config?.frigate.zones),
+      isEqual,
+    );
+    const uniqueLabelArrays = uniqWith(
+      relevantCameraConfigs.map((config) => config?.frigate.labels),
+      isEqual,
     );
 
-    if (canDoBatchQuery) {
+    if (uniqueZoneArrays.length === 1 && uniqueLabelArrays.length === 1) {
       return [
         {
           type: QueryType.Event,
           cameraIDs: cameraIDs,
+          ...(uniqueLabelArrays[0] && { what: new Set(uniqueLabelArrays[0]) }),
+          ...(uniqueZoneArrays[0] && { where: new Set(uniqueZoneArrays[0]) }),
           ...query,
         },
       ];
@@ -331,11 +357,11 @@ export class FrigateCameraManagerEngine
         output.push({
           type: QueryType.Event,
           cameraIDs: new Set([cameraID]),
-          ...(cameraConfig.frigate.label && {
-            what: new Set([cameraConfig.frigate.label]),
+          ...(cameraConfig.frigate.labels && {
+            what: new Set(cameraConfig.frigate.labels),
           }),
-          ...(cameraConfig.frigate.zone && {
-            where: new Set([cameraConfig.frigate.zone]),
+          ...(cameraConfig.frigate.zones && {
+            where: new Set(cameraConfig.frigate.zones),
           }),
           ...query,
         });
