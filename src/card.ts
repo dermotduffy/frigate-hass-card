@@ -976,6 +976,10 @@ class FrigateCard extends LitElement {
     } else if (this._view?.is('timeline')) {
       import('./components/timeline.js');
     }
+
+    if (changedProps.has('_view')) {
+      this._setPropertiesForExpandedMode();
+    }
   }
 
   /**
@@ -1803,16 +1807,33 @@ class FrigateCard extends LitElement {
 
     this._lastValidMediaLoadedInfo = this._currentMediaLoadedInfo = mediaLoadedInfo;
 
-    // When a new media loads, set the aspect ratio for when the card is
-    // expanded/popped-up.
-    this.style.setProperty(
-      '--frigate-card-expand-aspect-ratio',
-      this._getAspectRatioStyle(),
-    );
+    this._setPropertiesForExpandedMode();
 
     // An update may be required to draw elements.
     this._generateConditionState();
     this.requestUpdate();
+  }
+
+  protected _setPropertiesForExpandedMode(): void {
+    // When a new media loads, set the aspect ratio for when the card is
+    // expanded/popped-up. This is based exclusively on last media content,
+    // as dimension configuration does not apply in fullscreen or expanded mode.
+    this.style.setProperty(
+      '--frigate-card-expand-aspect-ratio',
+      this._view?.isAnyMediaView() && this._lastValidMediaLoadedInfo
+        ? `${this._lastValidMediaLoadedInfo.width} / ${this._lastValidMediaLoadedInfo.height}`
+        : 'unset',
+    );
+    // Non-media mays have no intrinsic dimensions and so we need to explicit
+    // request the dialog to use all available space.
+    this.style.setProperty(
+      '--frigate-card-expand-width',
+      this._view?.isAnyMediaView() ? 'none' : 'var(--frigate-card-expand-max-width)',
+    );
+    this.style.setProperty(
+      '--frigate-card-expand-height',
+      this._view?.isAnyMediaView() ? 'none' : 'var(--frigate-card-expand-max-height)',
+    );
   }
 
   /**
@@ -1877,12 +1898,14 @@ class FrigateCard extends LitElement {
 
     // Do not artifically constrain aspect ratio if:
     // - It's fullscreen.
+    // - It's in expanded mode.
     // - Aspect ratio enforcement is disabled.
     // - Aspect ratio enforcement is dynamic and it's a media view (i.e. not the
     //   gallery) or timeline.
 
     return !(
       (screenfull.isEnabled && screenfull.isFullscreen) ||
+      this._expand ||
       aspectRatioMode == 'unconstrained' ||
       (aspectRatioMode == 'dynamic' &&
         (this._view?.isAnyMediaView() || this._view?.is('timeline')))
@@ -1898,17 +1921,13 @@ class FrigateCard extends LitElement {
     // In expanded mode we must always set the aspect ratio since there are no
     // constraints on the size.
 
-    if (!this._expand && !this._isAspectRatioEnforced()) {
+    if (!this._isAspectRatioEnforced()) {
       return 'auto';
     }
 
     const aspectRatioMode = this._getConfig().dimensions.aspect_ratio_mode;
 
-    if (
-      this._lastValidMediaLoadedInfo &&
-      (aspectRatioMode === 'dynamic' ||
-        (this._expand && aspectRatioMode === 'unconstrained'))
-    ) {
+    if (this._lastValidMediaLoadedInfo && aspectRatioMode === 'dynamic') {
       return `${this._lastValidMediaLoadedInfo.width} / ${this._lastValidMediaLoadedInfo.height}`;
     }
 
