@@ -233,7 +233,7 @@ export class CameraManager {
     log(
       this._cardWideConfig,
       'Frigate Card CameraManager initialized (Cameras: ',
-      camerasConfig,
+      this._store.getCameras(),
       `, Duration: ${
         (new Date().getTime() - initializationStartTime.getTime()) / 1000
       }s,`,

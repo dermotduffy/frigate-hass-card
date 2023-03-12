@@ -506,8 +506,8 @@ const cameraConfigSchema = z
         url: z.string().optional(),
         client_id: z.string().default(cameraConfigDefault.frigate.client_id),
         camera_name: z.string().optional(),
-        label: z.string().optional(),
-        zone: z.string().optional(),
+        labels: z.string().array().optional(),
+        zones: z.string().array().optional(),
       })
       .default(cameraConfigDefault.frigate),
 

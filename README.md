@@ -160,8 +160,8 @@ cameras:
 | - | - | - | - |
 | `camera_name` | Autodetected from `camera_entity` if that is specified. | :white_check_mark: | The Frigate camera name to use when communicating with the Frigate server, e.g. for viewing clips/snapshots or the JSMPEG live view.|
 | `url` | | :white_check_mark: | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. All other communication with Frigate goes via Home Assistant. |
-| `label` | | :white_check_mark: | A Frigate label / object filter used to filter events (clips & snapshots), e.g. `person`.|
-| `zone` | | :white_check_mark: | A Frigate zone used to filter events (clips & snapshots), e.g. `front_door`.|
+| `labels` | | :white_check_mark: | An array of Frigate labels used to filter events (clips & snapshots), e.g. [`person`, `car`].|
+| `zones` | | :white_check_mark: | An array of Frigates zones used to filter events (clips & snapshots), e.g. [`front_door`, `front_steps`].|
 | `client_id` | `frigate` | :white_check_mark: | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://docs.frigate.video/integrations/home-assistant/#multiple-instance-support).|
 
 #### Live Provider: Camera go2rtc configuration
@@ -255,7 +255,7 @@ cameras:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `motion` | `false` | :white_check_mark: | Whether to not to trigger the camera by automatically detecting and using the motion `binary_sensor` for this camera. This autodetection only works for Frigate cameras, and only when the motion `binary_sensor` entity has been enabled in Home Assistant.|
-| `occupancy` | `true` | :white_check_mark: | Whether to not to trigger the camera by automatically detecting and using the occupancy `binary_sensor` for this camera. This autodetection only works for Frigate cameras, and only when the occupancy `binary_sensor` entity has been enabled in Home Assistant.|
+| `occupancy` | `true` | :white_check_mark: | Whether to not to trigger the camera by automatically detecting and using the occupancy `binary_sensor` for this camera and its configured zones and labels. This autodetection only works for Frigate cameras, and only when the occupancy `binary_sensor` entity has been enabled in Home Assistant. If this camera has configured zones, only occupancy sensors for those zones are used -- if the overall _camera_ occupancy sensor is also required, it can be manually added to `entities`. If this camera has configured labels, only occupancy sensors for those labels are used.|
 | `entities` | | :white_check_mark: | Whether to not to trigger the camera when the state of any Home Assistant entity becomes active (i.e. state becomes `on` or `open`). This works for Frigate or non-Frigate cameras.|
 
 <a name="camera-ids"></a>
@@ -1120,10 +1120,10 @@ This card supports several different views:
 | Key           | Description                                         |
 | ------------- | --------------------------------------------- |
 |`live` (default)| Shows the live camera view with the configured live provider.|
-|`snapshots`|Shows a gallery of snapshots for this camera/zone/label.|
-|`snapshot`|Shows a viewer for the most recent snapshot for this camera/zone/label. Can also be accessed by holding down the `snapshots` menu icon.|
-|`clips`|Shows a gallery of clips for this camera/zone/label.|
-|`clip`|Shows a viewer for the most recent clip for this camera/zone/label. Can also be accessed by holding down the `clips` menu icon.|
+|`snapshots`|Shows a gallery of snapshots for this camera.|
+|`snapshot`|Shows a viewer for the most recent snapshot for this camera. Can also be accessed by holding down the `snapshots` menu icon.|
+|`clips`|Shows a gallery of clips for this camera.|
+|`clip`|Shows a viewer for the most recent clip for this camera. Can also be accessed by holding down the `clips` menu icon.|
 |`recordings`|Shows a gallery of recent (last day) recordings for this camera and its dependents.|
 |`recording`|Shows a viewer for the most recent recording for this camera. Can also be accessed by holding down the `recordings` menu icon.|
 |`image`|Shows a static image specified by the `image` parameter, can be used as a discrete default view or a screensaver (via `view.timeout_seconds`).|
@@ -1361,8 +1361,10 @@ cameras:
       url: http://my.frigate.local
       client_id: frigate
       camera_name: front_door
-      label: person
-      zone: steps
+      labels:
+       - person
+      zones:
+       - steps
     # Show events for camera-2 when this camera is viewed.
     dependencies:
       all_cameras: false
@@ -1380,8 +1382,10 @@ cameras:
       url: http://my-other.frigate.local
       client_id: frigate-other
       camera_name: entrance
-      label: car
-      zone: driveway
+      labels:
+       - car
+      zones:
+       - driveway
     icon: 'mdi:car'
     title: 'Front entrance'
     # Custom identifier for the camera to refer to it above.
@@ -1450,8 +1454,10 @@ cameras_global:
     url: http://my.frigate.local
     client_id: frigate
     camera_name: front_door
-    label: person
-    zone: steps
+    labels:
+     - person
+    zones:
+     - steps
   dependencies:
     all_cameras: false
     cameras:
@@ -2213,8 +2219,10 @@ overrides:
             url: http://my.frigate.local
             client_id: frigate
             camera_name: front_door
-            label: person
-            zone: steps
+            labels:
+             - person
+            zones:
+             - steps
           dependencies:
             all_cameras: false
             cameras:

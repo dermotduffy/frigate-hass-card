@@ -34,6 +34,7 @@ import {
   THUMBNAIL_WIDTH_MAX,
   THUMBNAIL_WIDTH_MIN,
 } from './types';
+import { arrayify } from './utils/basic';
 
 /**
  * Set a configuration value.
@@ -588,4 +589,16 @@ const UPGRADES = [
   upgradeMoveToWithOverrides('live.image', CONF_CAMERAS_GLOBAL_IMAGE),
   upgradeMoveToWithOverrides('live.jsmpeg', CONF_CAMERAS_GLOBAL_JSMPEG),
   upgradeMoveToWithOverrides('live.webrtc_card', CONF_CAMERAS_GLOBAL_WEBRTC_CARD),
+  upgradeArrayValue(
+    CONF_CAMERAS,
+    upgradeMoveToWithOverrides('frigate.zone', 'frigate.zones', {
+      transform: (zone) => arrayify(zone),
+    }),
+  ),
+  upgradeArrayValue(
+    CONF_CAMERAS,
+    upgradeMoveToWithOverrides('frigate.label', 'frigate.labels', {
+      transform: (label) => arrayify(label),
+    }),
+  ),
 ];
