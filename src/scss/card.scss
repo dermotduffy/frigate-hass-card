@@ -11,6 +11,14 @@
   // The primary border-radius used is the div.main. This is only useful for
   // keeping the background-color within the radius.
   border-radius: var(--ha-card-border-radius, 4px);
+
+  // The standard HA header is 56 pixels wide, so that much off the top (header)
+  // and bottom (to maintain center), before doing the calculation of
+  // max-height. This matters on small mobile devices in landscape orientation.
+  --frigate-card-expand-max-height: calc( ( 100vh - (2 * 56px) ) * 0.85 );
+  --frigate-card-expand-max-width: 85vw;
+  --frigate-card-expand-width: none;
+  --frigate-card-expand-height: none;
 }
 
 :host([dark]) {
@@ -162,14 +170,11 @@ web-dialog {
   --dialog-padding: 0px;
   --dialog-container-padding: 0px;
 
-  // The standard HA header is 56 pixels wide, so that much off the top (header)
-  // and bottom (to maintain center), before doing the calculation of
-  // max-height. This matters on small mobile devices in landscape orientation.
-  --dialog-max-height: calc( ( 100vh - (2 * 56px) ) * 0.85 );
-  --dialog-max-width: 85vw;
+  --dialog-max-height: var(--frigate-card-expand-max-height);
+  --dialog-max-width: var(--frigate-card-expand-max-width);
 
-  --dialog-width: none;
-  --dialog-height: none;
+  --dialog-width: var(--frigate-card-expand-width);
+  --dialog-height: var(--frigate-card-expand-height);
 
   // Allow submenus to flow outside the edge of the dialog.
   --dialog-overflow-x: visible;
@@ -178,5 +183,4 @@ web-dialog {
 
 web-dialog::part(dialog) {
   aspect-ratio: var(--frigate-card-expand-aspect-ratio);
-  height: 100%;
 }

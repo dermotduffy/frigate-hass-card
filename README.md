@@ -690,7 +690,10 @@ timeline:
 These options control the aspect-ratio of the entire card to make placement in
 Home Assistant dashboards more stable. Aspect ratio configuration applies once
 to the entire card (including the menu, thumbnails, etc), not just to displayed
-media.
+media. This only applies to the card in normal render mode -- when in
+fullscreen, or when in expanded (popup/dialog mode) the aspect ratio is chosen
+dynamically to maximize the amount of content shown.
+
 
 All configuration is under:
 
@@ -699,7 +702,6 @@ dimensions:
 ```
 
 See the [fully expanded dimensions configuration example](#config-expanded-dimensions) for how these parameters are structured.
-
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
