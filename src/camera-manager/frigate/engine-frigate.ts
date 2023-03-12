@@ -276,11 +276,13 @@ export class FrigateCameraManagerEngine
       // If zone(s) are specified, the master occupancy sensor for the overall
       // camera is not used by default (but could be manually added by the
       // user).
-      const camerasAndZones = cameraConfig.frigate.zones
+      const camerasAndZones = cameraConfig.frigate.zones?.length
         ? cameraConfig.frigate.zones
         : [cameraConfig.frigate.camera_name];
 
-      const labels = cameraConfig.frigate.labels ? cameraConfig.frigate.labels : ['all'];
+      const labels = cameraConfig.frigate.labels?.length
+        ? cameraConfig.frigate.labels
+        : ['all'];
       for (const cameraOrZone of camerasAndZones) {
         for (const label of labels) {
           addEntityIDIfFound(cameraOrZone, label);
