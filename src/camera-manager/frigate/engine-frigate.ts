@@ -1073,6 +1073,7 @@ export class FrigateCameraManagerEngine
   public getMediaCapabilities(media: ViewMedia): CameraManagerMediaCapabilities {
     return {
       canFavorite: ViewMediaClassifier.isEvent(media),
+      canDownload: true,
     };
   }
 

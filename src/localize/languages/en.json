@@ -148,6 +148,7 @@
             "right": "Thumbnails in a drawer to the right"
           },
           "show_details": "Show details with thumbnails",
+          "show_download_control": "Show download control on thumbnails",
           "show_favorite_control": "Show favorite control on thumbnails",
           "show_timeline_control": "Show timeline control on thumbnails",
           "size": "Thumbnails size in pixels"
@@ -440,9 +441,10 @@
     "start": "Start"
   },
   "thumbnail": {
+    "download": "Download media",
     "no_thumbnail": "No thumbnail available",
-    "retain_indefinitely": "Event will be indefinitely retained",
-    "timeline": "See event/recording in timeline"
+    "retain_indefinitely": "Media will be indefinitely retained",
+    "timeline": "See media in timeline"
   },
   "timeline": {
     "lock": "Lock timeline to a single event",

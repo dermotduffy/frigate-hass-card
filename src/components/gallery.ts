@@ -464,6 +464,8 @@ export class FrigateCardGalleryCore extends LitElement {
               .show_favorite_control}
             ?show_timeline_control=${!!this.galleryConfig?.controls.thumbnails
               .show_timeline_control}
+            ?show_download_control=${!!this.galleryConfig?.controls.thumbnails
+              .show_download_control}
             @click=${(ev: Event) => {
               if (this.view && this._media) {
                 this.view

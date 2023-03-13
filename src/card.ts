@@ -39,20 +39,20 @@ import {
   Actions,
   ActionType,
   CameraConfig,
+  CardWideConfig,
   ExtendedHomeAssistant,
+  FRIGATE_CARD_VIEW_DEFAULT,
+  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
   FrigateCardConfig,
   frigateCardConfigSchema,
   FrigateCardCustomAction,
+  FrigateCardError,
   FrigateCardView,
-  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
   MediaLoadedInfo,
-  MESSAGE_TYPE_PRIORITIES,
   MenuButton,
+  MESSAGE_TYPE_PRIORITIES,
   Message,
   RawFrigateCardConfig,
-  CardWideConfig,
-  FrigateCardError,
-  FRIGATE_CARD_VIEW_DEFAULT,
 } from './types.js';
 import {
   convertActionToFrigateCardCustomAction,
@@ -66,7 +66,6 @@ import {
   getEntityIcon,
   getEntityTitle,
   getHassDifferences,
-  homeAssistantSignPath,
   isCardInPanel,
   isHassDifferent,
   isTriggeredState,
@@ -92,6 +91,7 @@ import isEqual from 'lodash-es/isEqual';
 import merge from 'lodash-es/merge';
 import { FrigateCardInitializer } from './utils/initializer.js';
 import 'web-dialog';
+import { downloadMedia } from './utils/download.js';
 
 /** A note on media callbacks:
  *
@@ -409,9 +409,13 @@ class FrigateCard extends LitElement {
       this._cameraManager,
       selectedCameraID,
     );
+    const selectedMedia = this._view?.queryResults?.getSelectedResult();
 
     const cameraCapabilities = allSelectedCameraIDs
       ? this._cameraManager?.getAggregateCameraCapabilities(allSelectedCameraIDs)
+      : null;
+    const mediaCapabilities = selectedMedia
+      ? this._cameraManager?.getMediaCapabilities(selectedMedia)
       : null;
 
     buttons.push({
@@ -588,11 +592,7 @@ class FrigateCard extends LitElement {
       });
     }
 
-    if (
-      !this._isBeingCasted() &&
-      (this._view?.isViewerView() ||
-        (this._view?.is('timeline') && !!this._view?.queryResults?.hasSelectedResult()))
-    ) {
+    if (mediaCapabilities?.canDownload && !this._isBeingCasted()) {
       buttons.push({
         icon: 'mdi:download',
         ...this._getConfig().menu.buttons.download,
@@ -1090,6 +1090,19 @@ class FrigateCard extends LitElement {
     }
   }
 
+  protected _handleThrownError(error: unknown) {
+    if (error instanceof Error) {
+      errorToConsole(error);
+    }
+    if (error instanceof FrigateCardError) {
+      this._setMessageAndUpdate({
+        message: error.message,
+        type: 'error',
+        context: error.context,
+      });
+    }
+  }
+
   protected async _initializeCameras(
     hass: HomeAssistant,
     config: FrigateCardConfig,
@@ -1115,16 +1128,7 @@ class FrigateCard extends LitElement {
         cameras,
       );
     } catch (e: unknown) {
-      if (e instanceof Error) {
-        errorToConsole(e);
-      }
-      if (e instanceof FrigateCardError) {
-        this._setMessageAndUpdate({
-          message: e.message,
-          type: 'error',
-          context: e.context,
-        });
-      }
+      this._handleThrownError(e);
     }
 
     // If there's no view set yet, set one. This will be the case on initial camera load.
@@ -1319,64 +1323,15 @@ class FrigateCard extends LitElement {
    * Download media being displayed in the viewer.
    */
   protected async _downloadViewerMedia(): Promise<void> {
-    if (!this._hass || !(this._view?.isViewerView() || this._view?.is('timeline'))) {
-      // Should not occur.
-      return;
-    }
-    const media = this._view.queryResults?.getSelectedResult();
-
-    if (!media) {
-      this._setMessageAndUpdate({
-        message: localize('error.download_no_media'),
-        type: 'error',
-      });
+    const media = this._view?.queryResults?.getSelectedResult();
+    if (!this._hass || !this._cameraManager || !media) {
       return;
     }
 
-    const cameraConfig = this._getSelectedCameraConfig();
-    if (!cameraConfig || !cameraConfig.frigate.camera_name) {
-      return;
-    }
-
-    const path = this._cameraManager?.getMediaDownloadPath(media);
-    if (!path) {
-      return;
-    }
-
-    let response: string | null | undefined;
     try {
-      response = await homeAssistantSignPath(this._hass, path);
-    } catch (e) {
-      errorToConsole(e as Error);
-    }
-
-    if (!response) {
-      this._setMessageAndUpdate({
-        message: localize('error.download_sign_failed'),
-        type: 'error',
-      });
-      return;
-    }
-
-    if (
-      navigator.userAgent.startsWith('Home Assistant/') ||
-      navigator.userAgent.startsWith('HomeAssistant/')
-    ) {
-      // Home Assistant companion apps cannot download files without opening a
-      // new browser window.
-      //
-      // User-agents are specified here:
-      //  - Android: https://github.com/home-assistant/android/blob/master/app/src/main/java/io/homeassistant/companion/android/webview/WebViewActivity.kt#L107
-      //  - iOS: https://github.com/home-assistant/iOS/blob/master/Sources/Shared/API/HAAPI.swift#L75
-      window.open(response, '_blank');
-    } else {
-      // Use the HTML5 download attribute to prevent a new window from
-      // temporarily opening.
-      const link = document.createElement('a');
-      link.setAttribute('download', '');
-      link.href = response;
-      link.click();
-      link.remove();
+      await downloadMedia(this._hass, this._cameraManager, media);
+    } catch (error) {
+      this._handleThrownError(error);
     }
   }
 

@@ -428,6 +428,7 @@ live:
 | `mode` | `none` | :white_check_mark: | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).|
 | `size` | 100 | :white_check_mark: | The size of the thumbnails in the thumbnail carousel in pixels. Must be >= `75` and <= `175`. |
 | `show_details` | `false` | :white_check_mark: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
+| `show_download_control` | `true` | :white_check_mark: | Whether to show the download control on each thumbnail.|
 | `show_favorite_control` | `true` | :white_check_mark: | Whether to show the favorite ('star') control on each thumbnail.|
 | `show_timeline_control` | `true` | :white_check_mark: | Whether to show the timeline ('target') control on each thumbnail.|
 | `media` | `all` | :white_check_mark: | Whether to show `clips`, `snapshots` or `all` in the thumbnail carousel in the `live` view.|
@@ -537,6 +538,7 @@ media_viewer:
 | `mode` | `none` | :heavy_multiplication_x: | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).|
 | `size` | 100 | :heavy_multiplication_x: | The size of the thumbnails in the thumbnail carousel pixels. Must be >= `75` and <= `175`.|
 | `show_details` | `false` | :heavy_multiplication_x: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
+| `show_download_control` | `true` | :heavy_multiplication_x: | Whether to show the download control on each thumbnail.|
 | `show_favorite_control` | `true` | :heavy_multiplication_x: | Whether to show the favorite ('star') control on each thumbnail.|
 | `show_timeline_control` | `true` | :heavy_multiplication_x: | Whether to show the timeline ('target') control on each thumbnail.|
 
@@ -619,6 +621,7 @@ media_gallery:
 | - | - | - | - |
 | `size` | 100 | :heavy_multiplication_x: | The size of the thumbnails in the gallery. Must be >= `75` and <= `175`.|
 | `show_details` | `false` | :heavy_multiplication_x: | Whether to show media details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
+| `show_download_control` | `true` | :heavy_multiplication_x: | Whether to show the download control on each thumbnail.|
 | `show_favorite_control` | `true` | :heavy_multiplication_x: | Whether to show the favorite ('star') control on each thumbnail.|
 | `show_timeline_control` | `true` | :heavy_multiplication_x: | Whether to show the timeline ('target') control on each thumbnail.|
 
@@ -680,8 +683,9 @@ timeline:
 | `mode` | `none` | :heavy_multiplication_x: | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).|
 | `size` | 100 | :heavy_multiplication_x: | The size of the thumbnails in the thumbnail carousel in pixels. Must be >= `75` and <= `175`.|
 | `show_details` | `false` | :heavy_multiplication_x: | Whether to show event details (e.g. duration, start time, object detected, etc) alongside the thumbnail.|
-| `show_favorite_control` | `true` | :white_check_mark: | Whether to show the favorite ('star') control on each thumbnail.|
-| `show_timeline_control` | `true` | :white_check_mark: | Whether to show the timeline ('target') control on each thumbnail.|
+| `show_download_control` | `true` | :heavy_multiplication_x: | Whether to show the download control on each thumbnail.|
+| `show_favorite_control` | `true` | :heavy_multiplication_x: | Whether to show the favorite ('star') control on each thumbnail.|
+| `show_timeline_control` | `true` | :heavy_multiplication_x: | Whether to show the timeline ('target') control on each thumbnail.|
 
 <a name="dimensions"></a>
 
@@ -1646,6 +1650,7 @@ live:
       media: clips
       size: 100
       show_details: false
+      show_download_control: true
       show_favorite_control: true
       show_timeline_control: true
       mode: none
@@ -1704,6 +1709,7 @@ media_viewer:
       size: 100
       mode: none
       show_details: false
+      show_download_control: true
       show_favorite_control: true
       show_timeline_control: true
     timeline:
@@ -1750,6 +1756,7 @@ media_gallery:
     thumbnails:
       size: 100
       show_details: false
+      show_download_control: true
       show_favorite_control: true
       show_timeline_control: true
   actions:
@@ -2174,6 +2181,7 @@ timeline:
       mode: left
       size: 100
       show_details: true
+      show_download_control: true
       show_favorite_control: true
       show_timeline_control: true
 ```
@@ -2284,6 +2292,7 @@ overrides:
             media: clips
             size: 100
             show_details: false
+            show_download_control: true
             show_favorite_control: true
             show_timeline_control: true
             mode: none

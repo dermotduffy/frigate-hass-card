@@ -33,7 +33,6 @@ ha-icon {
   border-radius: 50%;
   opacity: 0.5;
   color: var(--primary-color);
-  top: 3px;
 
   cursor: pointer;
 
@@ -44,6 +43,7 @@ ha-icon:hover {
 }
 
 ha-icon.star {
+  top: 3px;
   left: 3px;
 }
 ha-icon.star.starred {
@@ -51,7 +51,13 @@ ha-icon.star.starred {
 }
 
 ha-icon.timeline {
+  top: 3px;
   right: 3px;
+}
+
+ha-icon.download {
+  right: 3px;
+  bottom: 3px;
 }
 
 frigate-card-thumbnail-details-event, frigate-card-thumbnail-details-recording {
