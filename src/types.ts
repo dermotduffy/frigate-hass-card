@@ -245,7 +245,7 @@ const frigateCardLiveDependencySelectActionSchema =
     frigate_card_action: z.literal('live_substream_select'),
     camera: z.string(),
   });
-const frigateCarMediaPlayerActionSchema = frigateCardCustomActionsBaseSchema.extend({
+const frigateCardMediaPlayerActionSchema = frigateCardCustomActionsBaseSchema.extend({
   frigate_card_action: z.literal('media_player'),
   media_player: z.string(),
   media_player_action: z.enum(['play', 'stop']),
@@ -255,7 +255,7 @@ export const frigateCardCustomActionSchema = z.union([
   frigateCardGeneralActionSchema,
   frigateCardCameraSelectActionSchema,
   frigateCardLiveDependencySelectActionSchema,
-  frigateCarMediaPlayerActionSchema,
+  frigateCardMediaPlayerActionSchema,
 ]);
 export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSchema>;
 
@@ -747,6 +747,7 @@ const thumbnailControlsDefaults = {
   show_details: true,
   show_favorite_control: true,
   show_timeline_control: true,
+  show_download_control: true,
 };
 
 const thumbnailsControlSchema = z.object({
@@ -765,6 +766,9 @@ const thumbnailsControlSchema = z.object({
   show_timeline_control: z
     .boolean()
     .default(thumbnailControlsDefaults.show_timeline_control),
+  show_download_control: z
+    .boolean()
+    .default(thumbnailControlsDefaults.show_download_control),
 });
 export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlSchema>;
 

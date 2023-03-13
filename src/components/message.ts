@@ -190,11 +190,13 @@ export function dispatchErrorMessageEvent(
  */
 export function dispatchFrigateCardErrorEvent(
   element: EventTarget,
-  error: FrigateCardError | Error,
+  error: unknown,
 ): void {
-  dispatchErrorMessageEvent(element, error.message, {
-    ...(error instanceof FrigateCardError && { context: error.context }),
-  });
+  if (error instanceof Error) {
+    dispatchErrorMessageEvent(element, error.message, {
+      ...(error instanceof FrigateCardError && { context: error.context }),
+    });
+  }
 }
 
 declare global {

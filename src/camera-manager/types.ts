@@ -104,6 +104,7 @@ export type CameraManagerCapabilities = BaseCapabilities;
 export type CameraManagerCameraCapabilities = BaseCapabilities;
 export interface CameraManagerMediaCapabilities {
   canFavorite: boolean;
+  canDownload: boolean;
 }
 
 export interface CameraManagerCameraMetadata {

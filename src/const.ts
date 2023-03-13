@@ -39,7 +39,7 @@ export const CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY =
 export const CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES =
   `${CONF_CAMERAS}.#.triggers.entities` as const;
 
-export const CONF_CAMERAS_GLOBAL = 'cameras_global' as const;
+const CONF_CAMERAS_GLOBAL = 'cameras_global' as const;
 export const CONF_CAMERAS_GLOBAL_IMAGE = `${CONF_CAMERAS_GLOBAL}.image` as const;
 export const CONF_CAMERAS_GLOBAL_JSMPEG = `${CONF_CAMERAS_GLOBAL}.jsmpeg` as const;
 export const CONF_CAMERAS_GLOBAL_WEBRTC_CARD =
@@ -58,7 +58,6 @@ export const CONF_VIEW_DEFAULT = `${CONF_VIEW}.default` as const;
 export const CONF_VIEW_TIMEOUT_SECONDS = `${CONF_VIEW}.timeout_seconds` as const;
 export const CONF_VIEW_UPDATE_CYCLE_CAMERA = `${CONF_VIEW}.update_cycle_camera` as const;
 export const CONF_VIEW_UPDATE_FORCE = `${CONF_VIEW}.update_force` as const;
-export const CONF_VIEW_UPDATE_ENTITIES = `${CONF_VIEW}.update_entities` as const;
 export const CONF_VIEW_UPDATE_SECONDS = `${CONF_VIEW}.update_seconds` as const;
 export const CONF_VIEW_SCAN = `${CONF_VIEW}.scan` as const;
 export const CONF_VIEW_SCAN_ENABLED = `${CONF_VIEW_SCAN}.enabled` as const;
@@ -74,6 +73,8 @@ export const CONF_MEDIA_GALLERY_CONTROLS_FILTER_MODE =
   `${CONF_MEDIA_GALLERY}.controls.filter.mode` as const;
 export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS =
   `${CONF_MEDIA_GALLERY}.controls.thumbnails.show_details` as const;
+export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL =
+  `${CONF_MEDIA_GALLERY}.controls.thumbnails.show_download_control` as const;
 export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
   `${CONF_MEDIA_GALLERY}.controls.thumbnails.show_favorite_control` as const;
 export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
@@ -100,6 +101,8 @@ export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.mode` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_details` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL =
+  `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_download_control` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.show_favorite_control` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
@@ -144,6 +147,8 @@ export const CONF_LIVE_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_LIVE}.controls.thumbnails.size` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS =
   `${CONF_LIVE}.controls.thumbnails.show_details` as const;
+export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL =
+  `${CONF_LIVE}.controls.thumbnails.show_download_control` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
   `${CONF_LIVE}.controls.thumbnails.show_favorite_control` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
@@ -192,12 +197,14 @@ export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_TIMELINE}.controls.thumbnails.size` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS =
   `${CONF_TIMELINE}.controls.thumbnails.show_details` as const;
+export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL =
+  `${CONF_TIMELINE}.controls.thumbnails.show_download_control` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
   `${CONF_TIMELINE}.controls.thumbnails.show_favorite_control` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
   `${CONF_TIMELINE}.controls.thumbnails.show_timeline_control` as const;
 
-export const CONF_MENU = 'menu' as const;
+const CONF_MENU = 'menu' as const;
 export const CONF_MENU_ALIGNMENT = `${CONF_MENU}.alignment` as const;
 export const CONF_MENU_POSITION = `${CONF_MENU}.position` as const;
 export const CONF_MENU_STYLE = `${CONF_MENU}.style` as const;
