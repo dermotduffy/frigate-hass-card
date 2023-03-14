@@ -1319,8 +1319,12 @@ export const frigateCardConfigSchema = z.object({
   // Support for card_mod (https://github.com/thomasloven/lovelace-card-mod).
   card_mod: z.unknown(),
 
-  // Card ID (used for query string commands).
-  card_id: z.string().optional(),
+  // Card ID (used for query string commands). Restrict contents to only values
+  // that be easily used in a URL.
+  card_id: z
+    .string()
+    .regex(/^\w+$/)
+    .optional(),
 
   // Stock lovelace card config.
   type: z.string(),

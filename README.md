@@ -895,7 +895,7 @@ type: custom:frigate-card
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `card_id` | | :heavy_multiplication_x: | **Advanced users only**: An optional ID to uniquely identify this card. For use when actions are being sent to card(s) via the [query string](#query-string-actions).|
+| `card_id` | | :heavy_multiplication_x: | **Advanced users only**: An optional ID to uniquely identify this card. For use when actions are being sent to card(s) via the [query string](#query-string-actions). Must exclusively consist of these characters: `[a-zA-Z0-9_]`.|
 
 <a name="webrtc"></a>
 
