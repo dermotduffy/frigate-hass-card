@@ -216,7 +216,7 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'clips',
   'default',
   'diagnostics',
-  'expand_toggle',
+  'expand',
   'download',
   'fullscreen',
   'image',

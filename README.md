@@ -1113,7 +1113,7 @@ Parameters for the `custom:frigate-card-ptz` element:
 | Parameter | Description |
 | - | - |
 | `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_select`, `expand_toggle`.|
+| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_select`, `expand`.|
 
 <a name="custom-actions"></a>
 
@@ -1130,7 +1130,7 @@ Parameters for the `custom:frigate-card-ptz` element:
 |`menu_toggle` | Show/hide the menu (for the `hidden` mode style). |
 |`media_player`| Perform a media player action. Takes a `media_player` parameter with the entity ID of the media_player on which to perform the action, and a `media_player_action` parameter which should be either `play` or `stop` to play or stop the media in question. |
 |`live_substream_select`| Perform a media player action. Takes a `camera` parameter with the [camera ID](#camera-ids) of the substream camera. |
-|`expand_toggle`| Expand the card into a dialog/popup. |
+|`expand`| Expand the card into a dialog/popup. |
 
 <a name="views"></a>
 
@@ -3416,7 +3416,7 @@ The card can respond to actions in the query string (see [below](#query-string-a
 This example assumes the dashboard URL is `https://ha.mydomain.org/lovelace-test/0`.
 
 ```
-https://ha.mydomain.org/lovelace-test/0?frigate-card-action:camera_select=kitchen&frigate-card-action:expand_toggle
+https://ha.mydomain.org/lovelace-test/0?frigate-card-action:camera_select=kitchen&frigate-card-action:expand
 ```
 </details>
 
@@ -3533,8 +3533,8 @@ To send an action to a named Frigate card on the dashboard:
 | `clips` | :white_check_mark: | |
 | `default` | :white_check_mark:  | |
 | `download`| :heavy_multiplication_x: | Latest media information is not available on initial render. |
-| `expand_toggle` | :white_check_mark: | |
-| `fullscreen` | :heavy_multiplication_x: | Javascript does not support activating fullscreen without direct human interaction. Use `expand_toggle` as an alternative. |
+| `expand` | :white_check_mark: | |
+| `fullscreen` | :heavy_multiplication_x: | Javascript does not support activating fullscreen without direct human interaction. Use `expand` as an alternative. |
 | `image` | :white_check_mark: | |
 | `live_substream_select` | :white_check_mark: | |
 | `live` | :white_check_mark: | |
