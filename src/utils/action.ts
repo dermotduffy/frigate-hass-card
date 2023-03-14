@@ -19,7 +19,7 @@ import {
  * @returns A FrigateCardCustomAction or null if it cannot be converted.
  */
 export function convertActionToFrigateCardCustomAction(
-  action: ActionType | null,
+  action: unknown,
 ): FrigateCardCustomAction | null {
   if (!action) {
     return null;
@@ -38,6 +38,7 @@ export function convertActionToFrigateCardCustomAction(
 export function createFrigateCardCustomAction(
   action: FrigateCardAction,
   args?: {
+    cardID?: string;
     camera?: string;
     media_player?: string;
     media_player_action?: 'play' | 'stop';
@@ -51,6 +52,7 @@ export function createFrigateCardCustomAction(
       action: 'fire-dom-event',
       frigate_card_action: action,
       camera: args.camera as string,
+      ...(args.cardID && { card_id: args.cardID})
     };
   }
   if (action === 'media_player') {
@@ -62,11 +64,13 @@ export function createFrigateCardCustomAction(
       frigate_card_action: action,
       media_player: args.media_player,
       media_player_action: args.media_player_action,
+      ...(args.cardID && { card_id: args.cardID})
     };
   }
   return {
     action: 'fire-dom-event',
     frigate_card_action: action,
+    ...(args?.cardID && { card_id: args.cardID})
   };
 }
 

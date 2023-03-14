@@ -205,6 +205,9 @@ const frigateCardCustomActionsBaseSchema = customActionSchema.extend({
     // Syntactic sugar to avoid 'fire-dom-event' as part of an external API.
     .transform((): 'fire-dom-event' => 'fire-dom-event')
     .or(z.literal('fire-dom-event')),
+
+  // Card this command is intended for.
+  card_id: z.string().optional(),
 });
 
 const FRIGATE_CARD_GENERAL_ACTIONS = [
@@ -1315,6 +1318,9 @@ export const frigateCardConfigSchema = z.object({
 
   // Support for card_mod (https://github.com/thomasloven/lovelace-card-mod).
   card_mod: z.unknown(),
+
+  // Card ID (used for query string commands).
+  card_id: z.string().optional(),
 
   // Stock lovelace card config.
   type: z.string(),
