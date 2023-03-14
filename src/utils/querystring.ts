@@ -31,7 +31,7 @@ export const getActionsFromQueryString = (): FrigateCardCustomAction[] => {
       case 'default':
       case 'diagnostics':
       case 'download':
-      case 'expand_toggle':
+      case 'expand':
       case 'image':
       case 'live':
       case 'menu_toggle':

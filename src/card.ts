@@ -634,7 +634,7 @@ class FrigateCard extends LitElement {
       type: 'custom:frigate-card-menu-icon',
       title: localize('config.menu.buttons.expand'),
       tap_action: createFrigateCardCustomAction(
-        'expand_toggle',
+        'expand',
       ) as FrigateCardCustomAction,
       style: this._expand ? this._getEmphasizedStyle() : {},
     });
@@ -1497,7 +1497,7 @@ class FrigateCard extends LitElement {
       case 'diagnostics':
         this._diagnostics();
         break;
-      case 'expand_toggle':
+      case 'expand':
         this._setExpand(!this._expand);
         break;
       default:
