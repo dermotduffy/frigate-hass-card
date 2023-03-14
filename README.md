@@ -882,6 +882,21 @@ If multiple cameras are configured in the card, use [overrides](#overrides) to c
 
 See [media layout examples](#media-layout-examples).
 
+<a name="other-options"></a>
+
+### Other Options
+
+All listed configuration options are under the top level, e.g.:
+
+```yaml
+type: custom:frigate-card
+...
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `card_id` | | :heavy_multiplication_x: | **Advanced users only**: An optional ID to uniquely identify this card. For use when actions are being sent to card(s) via the [query string](#query-string-actions). Must exclusively consist of these characters: `[a-zA-Z0-9_]`.|
+
 <a name="webrtc"></a>
 
 ### Using AlexxIT's WebRTC Card
@@ -1100,7 +1115,9 @@ Parameters for the `custom:frigate-card-ptz` element:
 | `action` | Must be `custom:frigate-card-action`. |
 | `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_select`, `expand_toggle`.|
 
-##### Command descriptions
+<a name="custom-actions"></a>
+
+##### Action descriptions
 
 | Value | Description |
 | - | - |
@@ -2441,6 +2458,16 @@ performance:
 ```
 </details>
 
+<details>
+  <summary>Expand: Other options</summary>
+
+Reference: [Other Options](#other-options).
+
+```yaml
+card_id: main
+```
+</details>
+
 ### Basic cameras configuration
 
 <details>
@@ -3377,6 +3404,41 @@ mode: single
 ```
 </details>
 
+<a name="query-string-examples"></a>
+
+### Passing the card actions from the URL
+
+The card can respond to actions in the query string (see [below](#query-string-actions)).
+
+<details>
+  <summary>Expand: Selecting the kitchen camera and opening the expanded view</summary>
+
+This example assumes the dashboard URL is `https://ha.mydomain.org/lovelace-test/0`.
+
+```
+https://ha.mydomain.org/lovelace-test/0?frigate-card-action:camera_select=kitchen&frigate-card-action:expand_toggle
+```
+</details>
+
+<details>
+  <summary>Expand: Choosing the clips view on a named card</summary>
+
+This example assumes the dashboard URL is `https://ha.mydomain.org/lovelace-test/0`.
+
+It assumes that one card (of potentially multiple Frigate Cards on the dashboard) is configured with a `card_id` parameter:
+
+```yaml
+type: custom:frigate-card
+card_id: main
+cameras:
+[...]
+```
+
+```
+https://ha.mydomain.org/lovelace-test/0?frigate-card-action:main:clips
+```
+</details>
+
 <a name="media-layout-examples"></a>
 
 ## Card Refreshes
@@ -3436,6 +3498,58 @@ view:
   default: clip
   timeout_seconds: 30
 ```
+
+<a name="query-string-actions"></a>
+
+### Passing the card actions from the URL
+
+It is possible to pass the Frigate card one or more actions from the URL (e.g. select a particular camera, open the live view in expanded mode, etc).
+
+To send an action to *all* Frigate cards on a dashboard:
+
+```
+[PATH_TO_YOUR_HA_DASHBOARD]?frigate-card-action:[ACTION]=[VALUE]
+```
+
+To send an action to a named Frigate card on the dashboard:
+
+```
+[PATH_TO_YOUR_HA_DASHBOARD]?frigate-card-action:[CARD_ID]:[ACTION]=[VALUE]
+```
+
+| Parameter | Description |
+| - | - |
+| `ACTION` | One of the supported Frigate Card custom actions (see below). |
+| `CARD_ID` | When specified only cards that have a `card_id` parameter will act. |
+| `VALUE` | An optional value to use with the `camera_select` and `live_substream_select` actions. |
+
+#### Actions
+
+| Action | Supported in query string | Explanation |
+| - | - | - |
+| `camera_select` | :white_check_mark: | |
+| `camera_ui`| :white_check_mark:  | |
+| `clip` | :white_check_mark: | |
+| `clips` | :white_check_mark: | |
+| `default` | :white_check_mark:  | |
+| `download`| :heavy_multiplication_x: | Latest media information is not available on initial render. |
+| `expand_toggle` | :white_check_mark: | |
+| `fullscreen` | :heavy_multiplication_x: | Javascript does not support activating fullscreen without direct human interaction. Use `expand_toggle` as an alternative. |
+| `image` | :white_check_mark: | |
+| `live_substream_select` | :white_check_mark: | |
+| `live` | :white_check_mark: | |
+| `media_player`| :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/frigate-hass-card/issues) if you need this. |
+| `menu_toggle` | :white_check_mark: | |
+| `recording` | :white_check_mark: | |
+| `recordings` | :white_check_mark: | |
+| `snapshot` | :white_check_mark: | |
+| `snapshots` | :white_check_mark: | |
+
+See [custom actions](#custom-actions) for a description of what the actions do.
+
+#### Examples
+
+See [query string examples](#query-string-examples) for examples of usage.
 
 ### Casting the Card
 

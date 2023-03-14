@@ -92,6 +92,7 @@ import merge from 'lodash-es/merge';
 import { FrigateCardInitializer } from './utils/initializer.js';
 import 'web-dialog';
 import { downloadMedia } from './utils/download.js';
+import { getActionsFromQueryString } from './utils/querystring.js';
 
 /** A note on media callbacks:
  *
@@ -1398,15 +1399,26 @@ class FrigateCard extends LitElement {
     }
   }
 
-  /**
-   * Handle a request for a card action.
-   * @param ev The action requested.
-   */
-  protected _cardActionHandler(ev: CustomEvent<ActionType>): void {
+  protected _cardActionEventHandler(ev: CustomEvent<ActionType>): void {
     const frigateCardAction = convertActionToFrigateCardCustomAction(ev.detail);
-    if (!this._view || !frigateCardAction) {
+    if (frigateCardAction) {
+      this._cardActionHandler(frigateCardAction);
+    }
+  }
+
+  protected _cardActionHandler(frigateCardAction: FrigateCardCustomAction): void {
+    if (!this._view) {
       return;
     }
+
+    if (
+      frigateCardAction.card_id &&
+      this._getConfig().card_id !== frigateCardAction.card_id
+    ) {
+      // Command not intended for this card (e.g. query string command).
+      return;
+    }
+
     const action = frigateCardAction.frigate_card_action;
 
     switch (action) {
@@ -1985,7 +1997,7 @@ class FrigateCard extends LitElement {
       class="${classMap(cardClasses)}"
       style="${styleMap(cardStyle)}"
       @action=${(ev: CustomEvent) => this._actionHandler(ev, actions)}
-      @ll-custom=${this._cardActionHandler.bind(this)}
+      @ll-custom=${this._cardActionEventHandler.bind(this)}
       @frigate-card:message=${this._messageHandler.bind(this)}
       @frigate-card:view:change=${this._changeViewHandler.bind(this)}
       @frigate-card:view:change-context=${this._addViewContextHandler.bind(this)}
@@ -2114,6 +2126,11 @@ class FrigateCard extends LitElement {
           : ``
       }
     `;
+  }
+
+  protected firstUpdated(): void {
+    // Execute query string actions after first render is complete.
+    getActionsFromQueryString().forEach((action) => this._cardActionHandler(action));
   }
 
   /**
