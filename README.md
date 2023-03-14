@@ -3416,7 +3416,7 @@ The card can respond to actions in the query string (see [below](#query-string-a
 This example assumes the dashboard URL is `https://ha.mydomain.org/lovelace-test/0`.
 
 ```
-https://ha.mydomain.org/lovelace-test/0?frigate-card-action/camera_select=kitchen&frigate-card-action/expand_toggle
+https://ha.mydomain.org/lovelace-test/0?frigate-card-action:camera_select=kitchen&frigate-card-action:expand_toggle
 ```
 </details>
 
@@ -3435,7 +3435,7 @@ cameras:
 ```
 
 ```
-https://ha.mydomain.org/lovelace-test/0?frigate-card-action/main/clips
+https://ha.mydomain.org/lovelace-test/0?frigate-card-action:main:clips
 ```
 </details>
 
@@ -3508,13 +3508,13 @@ It is possible to pass the Frigate card one or more actions from the URL (e.g. s
 To send an action to *all* Frigate cards on a dashboard:
 
 ```
-[PATH_TO_YOUR_HA_DASHBOARD]?frigate-card-action/[ACTION]=[VALUE]
+[PATH_TO_YOUR_HA_DASHBOARD]?frigate-card-action:[ACTION]=[VALUE]
 ```
 
 To send an action to a named Frigate card on the dashboard:
 
 ```
-[PATH_TO_YOUR_HA_DASHBOARD]?frigate-card-action/[CARD_ID]/[ACTION]=[VALUE]
+[PATH_TO_YOUR_HA_DASHBOARD]?frigate-card-action:[CARD_ID]:[ACTION]=[VALUE]
 ```
 
 | Parameter | Description |

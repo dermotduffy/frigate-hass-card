@@ -4,7 +4,7 @@ import { createFrigateCardCustomAction } from './action.js';
 export const getActionsFromQueryString = (): FrigateCardCustomAction[] => {
   const params = new URLSearchParams(window.location.search);
   const actions: FrigateCardCustomAction[] = [];
-  const actionRE = new RegExp(/^frigate-card-action(\/(?<cardID>\w+))?\/(?<action>\w+)/);
+  const actionRE = new RegExp(/^frigate-card-action(:(?<cardID>\w+))?:(?<action>\w+)/);
 
   for (const [key, value] of params.entries()) {
     const match = key.match(actionRE);
