@@ -348,3 +348,18 @@ export const isCardInPanel = (card: HTMLElement): boolean => {
     parent.host.tagName === 'HUI-PANEL-VIEW'
   );
 };
+
+/**
+ * Ensure URLs use the correct HA URL (relevant for Chromecast where the default
+ * location will be the Chromecast receiver, not HA).
+ * @param url The media URL
+ */
+export const canonicalizeHAURL = (
+  hass: ExtendedHomeAssistant,
+  url?: string,
+): string | null => {
+  if (hass && url && url.startsWith('/')) {
+    return hass.hassUrl(url);
+  }
+  return url ?? null;
+};
