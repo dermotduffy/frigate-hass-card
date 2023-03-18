@@ -69,6 +69,8 @@ declare module 'view' {
   }
 }
 
+const FRIGATE_CARD_LIVE_PROVIDER = 'frigate-card-live-provider';
+
 /**
  * Get the state object or dispatch an error. Used in `ha` and `image` live
  * providers.
@@ -398,7 +400,7 @@ export class FrigateCardLiveCarousel extends LitElement {
           this._lazyloadOrUnloadSlide('unload', index, slide),
       }),
       AutoMediaPlugin({
-        playerSelector: 'frigate-card-live-provider',
+        playerSelector: FRIGATE_CARD_LIVE_PROVIDER,
         ...(this.liveConfig?.auto_play && {
           autoPlayCondition: this.liveConfig.auto_play,
         }),
@@ -501,7 +503,7 @@ export class FrigateCardLiveCarousel extends LitElement {
     }
 
     const liveProvider = slide?.querySelector(
-      'frigate-card-live-provider',
+      FRIGATE_CARD_LIVE_PROVIDER,
     ) as FrigateCardLiveProvider | null;
     if (liveProvider) {
       liveProvider.disabled = action !== 'load';
@@ -686,7 +688,7 @@ export class FrigateCardLiveCarousel extends LitElement {
   }
 }
 
-@customElement('frigate-card-live-provider')
+@customElement(FRIGATE_CARD_LIVE_PROVIDER)
 export class FrigateCardLiveProvider
   extends LitElement
   implements FrigateCardMediaPlayer
@@ -721,7 +723,7 @@ export class FrigateCardLiveProvider
   protected _refProvider: Ref<Element & FrigateCardMediaPlayer> = createRef();
 
   public async play(): Promise<void> {
-    playMediaMutingIfNecessary(this._refProvider.value)
+    playMediaMutingIfNecessary(this._refProvider.value);
   }
 
   public pause(): void {
@@ -922,7 +924,7 @@ export class FrigateCardLiveProvider
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-live-provider': FrigateCardLiveProvider;
+    FRIGATE_CARD_LIVE_PROVIDER: FrigateCardLiveProvider;
     'frigate-card-live-carousel': FrigateCardLiveCarousel;
     'frigate-card-live': FrigateCardLive;
   }
