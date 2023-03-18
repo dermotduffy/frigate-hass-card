@@ -166,7 +166,7 @@ export class FrigateCardViewer extends LitElement {
   }
 }
 
-const FRIGATE_CARD_HLS_SELECTOR = 'frigate-card-ha-hls-player';
+const FRIGATE_CARD_VIEWER_PROVIDER = 'frigate-card-viewer-provider';
 
 @customElement('frigate-card-viewer-carousel')
 export class FrigateCardViewerCarousel extends LitElement {
@@ -237,7 +237,9 @@ export class FrigateCardViewerCarousel extends LitElement {
     }
 
     return (
-      (slide?.querySelector(FRIGATE_CARD_HLS_SELECTOR) as FrigateCardMediaPlayer) ?? null
+      (slide?.querySelector(
+        FRIGATE_CARD_VIEWER_PROVIDER,
+      ) as unknown as FrigateCardMediaPlayer) ?? null
     );
   }
 
@@ -263,7 +265,7 @@ export class FrigateCardViewerCarousel extends LitElement {
         }),
       }),
       AutoMediaPlugin({
-        playerSelector: FRIGATE_CARD_HLS_SELECTOR,
+        playerSelector: FRIGATE_CARD_VIEWER_PROVIDER,
         ...(this.viewerConfig?.auto_play && {
           autoPlayCondition: this.viewerConfig.auto_play,
         }),
@@ -511,7 +513,7 @@ export class FrigateCardViewerCarousel extends LitElement {
   }
 }
 
-@customElement('frigate-card-viewer-provider')
+@customElement(FRIGATE_CARD_VIEWER_PROVIDER)
 export class FrigateCardViewerProvider
   extends LitElement
   implements FrigateCardMediaPlayer
@@ -545,7 +547,7 @@ export class FrigateCardViewerProvider
   protected _refVideoProvider: Ref<Element & FrigateCardMediaPlayer> = createRef();
 
   public async play(): Promise<void> {
-    playMediaMutingIfNecessary(this._refVideoProvider.value)
+    playMediaMutingIfNecessary(this._refVideoProvider.value);
   }
 
   public pause(): void {
@@ -701,6 +703,6 @@ declare global {
   interface HTMLElementTagNameMap {
     'frigate-card-viewer-carousel': FrigateCardViewerCarousel;
     'frigate-card-viewer': FrigateCardViewer;
-    'frigate-card-viewer-provider': FrigateCardViewerProvider;
+    FRIGATE_CARD_VIEWER_PROVIDER: FrigateCardViewerProvider;
   }
 }
