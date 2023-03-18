@@ -1,14 +1,4 @@
-@use 'media-layout.scss';
-
 .embla__slide {
   height: 100%;
   flex: 0 0 100%;
-}
-
-.embla__slide img {
-  display: block;
-  width: 100%;
-  height: 100%;
-
-  @include media-layout.media-layout();
 }

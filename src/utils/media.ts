@@ -1,3 +1,5 @@
+import { FrigateCardMediaPlayer } from '../types';
+
 // The number of seconds to hide the video controls for after loading (in order
 // to give a cleaner UI appearance, see:
 // https://github.com/dermotduffy/frigate-hass-card/issues/856
@@ -26,4 +28,24 @@ export const hideMediaControlsTemporarily = (
     element.controls = true;
     delete element._controlsHideTimeoutID;
   }, seconds * 1000);
+};
+
+/**
+ * Play a piece of media, muting it if necessary.
+ * @param underlyingPlayer
+ */
+export const playMediaMutingIfNecessary = async (
+  player?: FrigateCardMediaPlayer,
+): Promise<void> => {
+  // If the play call fails, and the media is not already muted, mute it first
+  // and then try again. This works around some browsers that prevent
+  // auto-play unless the video is muted.
+  if (player?.play) {
+    player.play().catch((ev) => {
+      if (ev.name === 'NotAllowedError' && !player.isMuted()) {
+        player.mute();
+        player.play().catch();
+      }
+    });
+  }
 };

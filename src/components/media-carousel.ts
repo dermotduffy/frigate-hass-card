@@ -12,7 +12,6 @@ import type {
 } from '../types.js';
 import { dispatchFrigateCardEvent } from '../utils/basic';
 import {
-  createMediaLoadedInfo,
   dispatchExistingMediaLoadedInfoAsEvent,
   isValidMediaLoadedInfo,
 } from '../utils/media-info.js';
@@ -23,10 +22,6 @@ import './carousel.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
 import { FrigateCardTitleControl } from './title-control.js';
 import debounce from 'lodash-es/debounce';
-
-const getEmptyImageSrc = (width: number, height: number) =>
-  `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"%3E%3C/svg%3E`;
-export const IMG_EMPTY = getEmptyImageSrc(16, 9);
 
 interface CarouselMediaLoadedInfo {
   slide: number;
@@ -83,21 +78,6 @@ export const wrapMediaLoadedEventForCarousel = (
     slide: slide,
     mediaLoadedInfo: event.detail,
   });
-};
-
-/**
- * Turn a (raw, e.g. img) media load event into a CarouselMediaLoadedInfo.
- * @param slide The slide number.
- * @param event The MediaShowEvent.
- */
-export const wrapRawMediaLoadedEventForCarousel = (slide: number, event: Event) => {
-  const mediaLoadedInfo = createMediaLoadedInfo(event);
-  if (mediaLoadedInfo) {
-    dispatchFrigateCardCarouselMediaLoaded(event.composedPath()[0], {
-      slide: slide,
-      mediaLoadedInfo: mediaLoadedInfo,
-    });
-  }
 };
 
 /**

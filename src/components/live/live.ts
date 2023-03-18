@@ -55,6 +55,7 @@ import { HomeAssistant } from 'custom-card-helpers';
 import { dispatchMessageEvent, dispatchErrorMessageEvent } from '../message.js';
 import { HassEntity } from 'home-assistant-js-websocket';
 import { CameraEndpoints } from '../../camera-manager/types.js';
+import { playMediaMutingIfNecessary } from '../../utils/media.js';
 
 interface LiveViewContext {
   // A cameraID override (used for dependencies/substreams to force a different
@@ -717,40 +718,30 @@ export class FrigateCardLiveProvider
   @state()
   protected _isVideoMediaLoaded = false;
 
-  protected _providerRef: Ref<Element & FrigateCardMediaPlayer> = createRef();
+  protected _refProvider: Ref<Element & FrigateCardMediaPlayer> = createRef();
 
   public async play(): Promise<void> {
-    // If the play call fails, and the media is not already muted, mute it first
-    // and then try again. This works around some browsers that prevent
-    // auto-play unless the video is muted.
-    if (this._providerRef.value?.play) {
-      this._providerRef.value?.play().catch((ev) => {
-        if (ev.name === 'NotAllowedError' && !this.isMuted()) {
-          this.mute();
-          this._providerRef.value?.play().catch();
-        }
-      });
-    }
+    playMediaMutingIfNecessary(this._refProvider.value)
   }
 
   public pause(): void {
-    this._providerRef.value?.pause();
+    this._refProvider.value?.pause();
   }
 
   public mute(): void {
-    this._providerRef.value?.mute();
+    this._refProvider.value?.mute();
   }
 
   public unmute(): void {
-    this._providerRef.value?.unmute();
+    this._refProvider.value?.unmute();
   }
 
   public isMuted(): boolean {
-    return this._providerRef.value?.isMuted() ?? true;
+    return this._refProvider.value?.isMuted() ?? true;
   }
 
   public seek(seconds: number): void {
-    this._providerRef.value?.seek(seconds);
+    this._refProvider.value?.seek(seconds);
   }
 
   /**
@@ -860,7 +851,7 @@ export class FrigateCardLiveProvider
     return html`
       ${showImageDuringLoading || provider === 'image'
         ? html`<frigate-card-live-image
-            ${ref(this._providerRef)}
+            ${ref(this._refProvider)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
             @frigate-card:media:loaded=${(ev: Event) => {
@@ -878,7 +869,7 @@ export class FrigateCardLiveProvider
         : html``}
       ${provider === 'ha'
         ? html` <frigate-card-live-ha
-            ${ref(this._providerRef)}
+            ${ref(this._refProvider)}
             class=${classMap(providerClasses)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
@@ -887,7 +878,7 @@ export class FrigateCardLiveProvider
           </frigate-card-live-ha>`
         : provider === 'go2rtc'
         ? html`<frigate-card-live-go2rtc
-              ${ref(this._providerRef)}
+              ${ref(this._refProvider)}
               class=${classMap(providerClasses)}
               .hass=${this.hass}
               .cameraConfig=${this.cameraConfig}
@@ -897,7 +888,7 @@ export class FrigateCardLiveProvider
             </frigate-card-live-webrtc-card>`
         : provider === 'webrtc-card'
         ? html`<frigate-card-live-webrtc-card
-            ${ref(this._providerRef)}
+            ${ref(this._refProvider)}
             class=${classMap(providerClasses)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
@@ -908,7 +899,7 @@ export class FrigateCardLiveProvider
           </frigate-card-live-webrtc-card>`
         : provider === 'jsmpeg'
         ? html` <frigate-card-live-jsmpeg
-            ${ref(this._providerRef)}
+            ${ref(this._refProvider)}
             class=${classMap(providerClasses)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
