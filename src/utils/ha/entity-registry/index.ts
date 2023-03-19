@@ -43,7 +43,14 @@ export class EntityRegistryManager {
   ): Promise<Map<string, Entity>> {
     const output: Map<string, Entity> = new Map();
     const _storeEntity = async (entityID: string): Promise<void> => {
-      const entity = await this.getEntity(hass, entityID);
+      let entity: Entity | null = null;
+      try {
+        entity = await this.getEntity(hass, entityID);
+      } catch {
+        // When asked to fetch multiple entities, ignore missing entities (they
+        // will just not feature in the output).
+        return;
+      }
       if (entity) {
         output.set(entityID, entity);
       }
