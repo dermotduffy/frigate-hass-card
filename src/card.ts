@@ -93,8 +93,6 @@ import { FrigateCardInitializer } from './utils/initializer.js';
 import 'web-dialog';
 import { downloadMedia } from './utils/download.js';
 import { getActionsFromQueryString } from './utils/querystring.js';
-import { MediaQueries } from './view/media-queries.js';
-import { MediaQuery } from './camera-manager/types.js';
 
 /** A note on media callbacks:
  *

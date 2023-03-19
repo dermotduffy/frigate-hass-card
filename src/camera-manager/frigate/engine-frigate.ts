@@ -216,7 +216,11 @@ export class FrigateCameraManagerEngine
    * @returns The Frigate camera name or null if unavailable.
    */
   protected _getFrigateCameraNameFromEntity(entity: Entity): string | null {
-    if (entity.unique_id && entity.platform === 'frigate') {
+    if (
+      entity.platform === 'frigate' &&
+      entity.unique_id &&
+      typeof entity.unique_id === 'string'
+    ) {
       const match = entity.unique_id.match(/:camera:(?<camera>[^:]+)$/);
       if (match && match.groups) {
         return match.groups['camera'];
@@ -238,8 +242,9 @@ export class FrigateCameraManagerEngine
     if (cameraConfig.frigate.camera_name) {
       return (
         entities.find(
-          (ent) =>
-            !!ent.unique_id?.match(
+          (entity) =>
+            typeof entity.unique_id === 'string' &&
+            !!entity.unique_id?.match(
               new RegExp(`:motion_sensor:${cameraConfig.frigate.camera_name}`),
             ),
         )?.entity_id ?? null
@@ -262,8 +267,9 @@ export class FrigateCameraManagerEngine
     const addEntityIDIfFound = (cameraOrZone: string, label: string): void => {
       const entityID =
         entities.find(
-          (ent) =>
-            !!ent.unique_id?.match(
+          (entity) =>
+            typeof entity.unique_id === 'string' &&
+            !!entity.unique_id?.match(
               new RegExp(`:occupancy_sensor:${cameraOrZone}_${label}`),
             ),
         )?.entity_id ?? null;
