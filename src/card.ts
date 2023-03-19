@@ -1154,9 +1154,12 @@ class FrigateCard extends LitElement {
 
     // Filter out entities that are marked as hidden (this information is not
     // available in the HA state, only in the registry).
-    this._mediaPlayers = [...mediaPlayerEntities.values()]
-      .filter((entity) => !entity.hidden_by)
-      .map((entity) => entity.entity_id);
+    this._mediaPlayers = mediaPlayers.filter((entityID) => {
+      // Specifically allow for media players that are not found in the entity registry:
+      // See: https://github.com/dermotduffy/frigate-hass-card/issues/1016
+      const entity = mediaPlayerEntities.get(entityID);
+      return !entity || !entity.hidden_by;
+    });
   }
 
   /**
