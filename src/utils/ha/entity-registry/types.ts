@@ -7,7 +7,10 @@ export const entitySchema = z.object({
   hidden_by: z.string().nullable(),
   platform: z.string(),
   translation_key: z.string().nullable(),
-  unique_id: z.string().optional(),
+  // Technically the unique_id should be a string, but we want to tolerate
+  // numeric unique_ids also in case they are used. See:
+  // https://github.com/dermotduffy/frigate-hass-card/issues/1016
+  unique_id: z.string().or(z.number()).optional(),
 });
 export type Entity = z.infer<typeof entitySchema>;
 
