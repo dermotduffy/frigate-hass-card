@@ -2,7 +2,7 @@ import { HomeAssistant } from 'custom-card-helpers';
 import add from 'date-fns/add';
 import endOfHour from 'date-fns/endOfHour';
 import startOfHour from 'date-fns/startOfHour';
-import { CameraConfig, CardWideConfig } from '../../types';
+import { CameraConfig, CardWideConfig, ExtendedHomeAssistant } from '../../types';
 import { ViewMedia } from '../../view/media';
 import { RecordingSegmentsCache, RequestCache } from '../cache';
 import {
@@ -80,6 +80,7 @@ import { localize } from '../../localize/localize';
 import uniq from 'lodash-es/uniq';
 import format from 'date-fns/format';
 import { GenericCameraManagerEngine } from '../generic/engine-generic';
+import frigateLogo from './assets/frigate-logo-dark.svg';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
@@ -302,26 +303,32 @@ export class FrigateCameraManagerEngine
     return null;
   }
 
-  public getMediaDownloadPath(
+  public async getMediaDownloadPath(
+    _hass: ExtendedHomeAssistant,
     cameraConfig: CameraConfig,
     media: ViewMedia,
-  ): string | null {
-    let path: string | null = null;
+  ): Promise<CameraEndpoint | null> {
     if (FrigateViewMediaClassifier.isFrigateEvent(media)) {
-      path =
-        `/api/frigate/${cameraConfig.frigate.client_id}` +
-        `/notifications/${media.getID()}/` +
-        `${ViewMediaClassifier.isClip(media) ? 'clip.mp4' : 'snapshot.jpg'}` +
-        `?download=true`;
+      return {
+        endpoint:
+          `/api/frigate/${cameraConfig.frigate.client_id}` +
+          `/notifications/${media.getID()}/` +
+          `${ViewMediaClassifier.isClip(media) ? 'clip.mp4' : 'snapshot.jpg'}` +
+          `?download=true`,
+        sign: true,
+      };
     } else if (FrigateViewMediaClassifier.isFrigateRecording(media)) {
-      path =
-        `/api/frigate/${cameraConfig.frigate.client_id}` +
-        `/recording/${cameraConfig.frigate.camera_name}` +
-        `/start/${Math.floor(media.getStartTime().getTime() / 1000)}` +
-        `/end/${Math.floor(media.getEndTime().getTime() / 1000)}}` +
-        `?download=true`;
+      return {
+        endpoint:
+          `/api/frigate/${cameraConfig.frigate.client_id}` +
+          `/recording/${cameraConfig.frigate.camera_name}` +
+          `/start/${Math.floor(media.getStartTime().getTime() / 1000)}` +
+          `/end/${Math.floor(media.getEndTime().getTime() / 1000)}}` +
+          `?download=true`,
+        sign: true,
+      };
     }
-    return path;
+    return null;
   }
 
   public generateDefaultEventQuery(
@@ -1097,6 +1104,7 @@ export class FrigateCameraManagerEngine
         cameraConfig.id ??
         '',
       icon: metadata.icon,
+      engineLogo: frigateLogo,
     };
   }
 
@@ -1178,7 +1186,7 @@ export class FrigateCameraManagerEngine
     };
 
     const getWebRTCCard = (): CameraEndpoint | null => {
-      // By defaykt use the frigate camera name which is the default recommended
+      // By default use the frigate camera name which is the default recommended
       // setup as per:
       // https://deploy-preview-4055--frigate-docs.netlify.app/guides/configuring_go2rtc/
       //
@@ -1194,14 +1202,11 @@ export class FrigateCameraManagerEngine
     const jsmpeg = getJSMPEG();
     const webrtcCard = getWebRTCCard();
 
-    return ui || go2rtc || jsmpeg
-      ? {
-          ...(ui && { ui: ui }),
-          ...(go2rtc && { go2rtc: go2rtc }),
-          ...(jsmpeg && { jsmpeg: jsmpeg }),
-          ...(jsmpeg && { jsmpeg: jsmpeg }),
-          ...(webrtcCard && { webrtcCard: webrtcCard }),
-        }
-      : null;
+    return {
+      ...(ui && { ui: ui }),
+      ...(go2rtc && { go2rtc: go2rtc }),
+      ...(jsmpeg && { jsmpeg: jsmpeg }),
+      ...(webrtcCard && { webrtcCard: webrtcCard }),
+    };
   }
 }

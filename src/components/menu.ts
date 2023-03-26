@@ -247,7 +247,7 @@ export class FrigateCardMenu extends LitElement {
       </frigate-card-submenu-select>`;
     }
 
-    let stateParameters: StateParameters = { ...button };
+    let stateParameters = { ...button } as StateParameters;
     const svgPath =
       stateParameters.icon === FRIGATE_BUTTON_MENU_ICON ? FRIGATE_ICON_SVG_PATH : '';
 

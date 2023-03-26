@@ -196,3 +196,7 @@ export const isSuperset = (superset: Set<unknown>, subset: Set<unknown>) => {
 export const sleep = async (seconds: number) => {
   await new Promise((r) => setTimeout(r, seconds * 1000));
 };
+
+export const isValidDate = (date: Date): boolean => {
+  return !isNaN(date.getTime());
+}

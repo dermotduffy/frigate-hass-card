@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { HomeAssistant } from 'custom-card-helpers';
-import { CameraConfig } from '../../types';
+import { CameraConfig, ExtendedHomeAssistant } from '../../types';
 import { ViewMedia } from '../../view/media';
 import {
   CameraManagerCameraMetadata,
@@ -25,6 +25,7 @@ import {
   MediaMetadataQuery,
   MediaMetadataQueryResultsMap,
   EngineOptions,
+  CameraEndpoint,
 } from '../types';
 import { getEntityIcon, getEntityTitle } from '../../utils/ha';
 import { EntityRegistryManager } from '../../utils/ha/entity-registry';
@@ -112,10 +113,11 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     return null;
   }
 
-  public getMediaDownloadPath(
+  public async getMediaDownloadPath(
+    _hass: ExtendedHomeAssistant,
     _cameraConfig: CameraConfig,
     _media: ViewMedia,
-  ): string | null {
+  ): Promise<CameraEndpoint | null> {
     return null;
   }
 
@@ -174,12 +176,12 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
   ): CameraManagerCameraCapabilities | null {
     return {
       canFavoriteEvents: false,
-      canFavoriteRecordings:false,
+      canFavoriteRecordings: false,
       supportsClips: false,
       supportsRecordings: false,
       supportsSnapshots: false,
       supportsTimeline: false,
-    }
+    };
   }
 
   public getMediaCapabilities(_media: ViewMedia): CameraManagerMediaCapabilities | null {

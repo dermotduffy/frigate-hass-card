@@ -539,8 +539,9 @@ export class FrigateCardLiveCarousel extends LitElement {
         <frigate-card-live-provider
           ?disabled=${this.liveConfig.lazy_load}
           .cameraConfig=${cameraConfig}
-          .cameraEndpoints=${guard([this.cameraManager, cameraID], () =>
-            this.cameraManager?.getCameraEndpoints(cameraID),
+          .cameraEndpoints=${guard(
+            [this.cameraManager, cameraID],
+            () => this.cameraManager?.getCameraEndpoints(cameraID) ?? undefined,
           )}
           .label=${cameraMetadata?.title ?? ''}
           .liveConfig=${config}
@@ -638,6 +639,7 @@ export class FrigateCardLiveCarousel extends LitElement {
         .label="${cameraMetadataCurrent
           ? `${localize('common.live')}: ${cameraMetadataCurrent.title}`
           : ''}"
+        .logo="${cameraMetadataCurrent?.engineLogo}"
         .titlePopupConfig=${config.controls.title}
         .selected=${this._getSelectedCameraIndex()}
         transitionEffect=${this._getTransitionEffect()}
@@ -723,7 +725,7 @@ export class FrigateCardLiveProvider
   protected _refProvider: Ref<Element & FrigateCardMediaPlayer> = createRef();
 
   public async play(): Promise<void> {
-    playMediaMutingIfNecessary(this._refProvider.value);
+    playMediaMutingIfNecessary(this, this._refProvider.value);
   }
 
   public pause(): void {

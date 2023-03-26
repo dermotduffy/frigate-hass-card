@@ -1091,7 +1091,11 @@ class FrigateCard extends LitElement {
     cardWideConfig: CardWideConfig,
   ): Promise<void> {
     this._cameraManager = new CameraManager(
-      new CameraManagerEngineFactory(this._entityRegistryManager, cardWideConfig),
+      new CameraManagerEngineFactory(
+        this._entityRegistryManager,
+        this._resolvedMediaCache,
+        cardWideConfig,
+      ),
       this._cardWideConfig,
     );
 

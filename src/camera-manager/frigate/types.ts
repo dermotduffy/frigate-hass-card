@@ -67,6 +67,7 @@ export interface FrigateRecording {
 export const eventSummarySchema = z
   .object({
     camera: z.string(),
+    // Days in RFC3339 format.
     day: z.string(),
     label: z.string(),
     sub_label: z.string().nullable(),

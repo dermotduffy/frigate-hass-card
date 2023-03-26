@@ -1,7 +1,6 @@
 import {
   CallServiceActionConfig,
   ConfirmationRestrictionConfig,
-  CustomActionConfig,
   HomeAssistant,
   LovelaceCardConfig,
   MoreInfoActionConfig,
@@ -95,7 +94,7 @@ const MEDIA_ACTION_POSITIVE_CONDITIONS = [
 export type AutoUnmuteCondition = (typeof MEDIA_ACTION_POSITIVE_CONDITIONS)[number];
 export type AutoPlayCondition = (typeof MEDIA_ACTION_POSITIVE_CONDITIONS)[number];
 
-const ENGINES = ['auto', 'frigate', 'generic'] as const;
+const ENGINES = ['auto', 'frigate', 'generic', 'motioneye'] as const;
 
 export class FrigateCardError extends Error {
   context?: unknown;
@@ -182,15 +181,13 @@ const moreInfoActionSchema = schemaForType<
     action: z.literal('more-info'),
   }),
 );
-const customActionSchema = schemaForType<
-  CustomActionConfig & ExtendedConfirmationRestrictionConfig
->()(
-  actionBaseSchema
-    .extend({
-      action: z.literal('fire-dom-event'),
-    })
-    .passthrough(),
-);
+
+const customActionSchema = actionBaseSchema
+  .extend({
+    action: z.literal('fire-dom-event'),
+  })
+  .passthrough();
+
 const noActionSchema = schemaForType<
   NoActionConfig & ExtendedConfirmationRestrictionConfig
 >()(
@@ -450,19 +447,29 @@ const jsmpegConfigSchema = z.object({
  * Camera configuration section
  */
 const cameraConfigDefault = {
-  live_provider: 'auto' as const,
-  engine: 'auto' as const,
-  frigate: {
-    client_id: 'frigate' as const,
-  },
   dependencies: {
     all_cameras: false,
     cameras: [],
   },
+  engine: 'auto' as const,
+  frigate: {
+    client_id: 'frigate' as const,
+  },
+  hide: false,
   image: {
     refresh_seconds: 1,
   },
-  hide: false,
+  live_provider: 'auto' as const,
+  motioneye: {
+    images: {
+      directory_pattern: '%Y-%m-%d' as const,
+      file_pattern: '%H-%M-%S' as const,
+    },
+    movies: {
+      directory_pattern: '%Y-%m-%d' as const,
+      file_pattern: '%H-%M-%S' as const,
+    },
+  },
   triggers: {
     motion: false,
     occupancy: true,
@@ -505,7 +512,6 @@ const cameraConfigSchema = z
     engine: z.enum(ENGINES).default('auto'),
     frigate: z
       .object({
-        // No URL validation to allow relative URLs within HA (e.g. Frigate addon).
         url: z.string().optional(),
         client_id: z.string().default(cameraConfigDefault.frigate.client_id),
         camera_name: z.string().optional(),
@@ -513,6 +519,35 @@ const cameraConfigSchema = z
         zones: z.string().array().optional(),
       })
       .default(cameraConfigDefault.frigate),
+    motioneye: z
+      .object({
+        url: z.string().optional(),
+        images: z
+          .object({
+            directory_pattern: z
+              .string()
+              .includes('%')
+              .default(cameraConfigDefault.motioneye.images.directory_pattern),
+            file_pattern: z
+              .string()
+              .includes('%')
+              .default(cameraConfigDefault.motioneye.images.file_pattern),
+          })
+          .default(cameraConfigDefault.motioneye.images),
+        movies: z
+          .object({
+            directory_pattern: z
+              .string()
+              .includes('%')
+              .default(cameraConfigDefault.motioneye.movies.directory_pattern),
+            file_pattern: z
+              .string()
+              .includes('%')
+              .default(cameraConfigDefault.motioneye.movies.file_pattern),
+          })
+          .default(cameraConfigDefault.motioneye.movies),
+      })
+      .default(cameraConfigDefault.motioneye),
 
     // Live provider options.
     live_provider: z.enum(LIVE_PROVIDERS).default(cameraConfigDefault.live_provider),
@@ -1321,10 +1356,7 @@ export const frigateCardConfigSchema = z.object({
 
   // Card ID (used for query string commands). Restrict contents to only values
   // that be easily used in a URL.
-  card_id: z
-    .string()
-    .regex(/^\w+$/)
-    .optional(),
+  card_id: z.string().regex(/^\w+$/).optional(),
 
   // Stock lovelace card config.
   type: z.string(),

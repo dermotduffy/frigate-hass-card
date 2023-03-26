@@ -1,8 +1,10 @@
 @use 'dotdotdot.scss';
 
 :host {
-  min-height: 100%;
+  display: block;
+  height: 100%;
   width: 100%;
+
   display: flex;
   flex-direction: column;
   justify-content: center;

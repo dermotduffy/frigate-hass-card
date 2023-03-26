@@ -45,7 +45,7 @@ import {
   changeViewToRecentEventsForCameraAndDependents,
   changeViewToRecentRecordingForCameraAndDependents,
 } from '../utils/media-to-view.js';
-import { ViewMedia } from '../view/media.js';
+import { VideoContentType, ViewMedia } from '../view/media.js';
 import { ViewMediaClassifier } from '../view/media-classifier';
 import { guard } from 'lit/directives/guard.js';
 import { localize } from '../localize/localize.js';
@@ -53,6 +53,10 @@ import { MediaQueriesResults } from '../view/media-queries-results.js';
 import { canonicalizeHAURL } from '../utils/ha/index.js';
 import { dispatchMediaLoadedEvent } from '../utils/media-info.js';
 import { playMediaMutingIfNecessary } from '../utils/media.js';
+import {
+  hideMediaControlsTemporarily,
+  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
+} from '../utils/media.js';
 
 export interface MediaViewerViewContext {
   seek?: Date;
@@ -399,7 +403,13 @@ export class FrigateCardViewerCarousel extends LitElement {
     const media =
       this.view?.queryResults?.getSelectedResult() ??
       this.view?.queryResults?.getResult(resultCount - 1);
-    if (!media || !this.view || !this.view.queryResults) {
+    if (
+      !this.hass ||
+      !this.cameraManager ||
+      !media ||
+      !this.view ||
+      !this.view.queryResults
+    ) {
       return;
     }
 
@@ -416,6 +426,11 @@ export class FrigateCardViewerCarousel extends LitElement {
       }
     };
 
+    const cameraMetadata = this.cameraManager.getCameraMetadata(
+      this.hass,
+      media.getCameraID(),
+    );
+
     return html` <frigate-card-media-carousel
       ${ref(this._refMediaCarousel)}
       .carouselOptions=${guard([this.viewerConfig], () => ({
@@ -426,6 +441,7 @@ export class FrigateCardViewerCarousel extends LitElement {
         this._getPlugins.bind(this),
       )}
       .label=${media.getTitle() ?? undefined}
+      .logo=${cameraMetadata?.engineLogo}
       .titlePopupConfig=${this.viewerConfig?.controls.title}
       .selected=${this.view?.queryResults?.getSelectedIndex() ?? 0}
       transitionEffect=${this._getTransitionEffect()}
@@ -544,30 +560,53 @@ export class FrigateCardViewerProvider
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
-  protected _refVideoProvider: Ref<Element & FrigateCardMediaPlayer> = createRef();
+  protected _refFrigateCardMediaPlayer: Ref<Element & FrigateCardMediaPlayer> =
+    createRef();
+  protected _refVideoProvider: Ref<HTMLVideoElement> = createRef();
 
   public async play(): Promise<void> {
-    playMediaMutingIfNecessary(this._refVideoProvider.value);
+    playMediaMutingIfNecessary(
+      this,
+      this._refFrigateCardMediaPlayer.value ?? this._refVideoProvider.value,
+    );
   }
 
   public pause(): void {
-    this._refVideoProvider.value?.pause();
+    (this._refFrigateCardMediaPlayer.value || this._refVideoProvider.value)?.pause();
   }
 
   public mute(): void {
-    this._refVideoProvider.value?.mute();
+    if (this._refFrigateCardMediaPlayer.value) {
+      this._refFrigateCardMediaPlayer.value?.mute();
+    } else if (this._refVideoProvider.value) {
+      this._refVideoProvider.value.muted = true;
+    }
   }
 
   public unmute(): void {
-    this._refVideoProvider.value?.unmute();
+    if (this._refFrigateCardMediaPlayer.value) {
+      this._refFrigateCardMediaPlayer.value?.mute();
+    } else if (this._refVideoProvider.value) {
+      this._refVideoProvider.value.muted = false;
+    }
   }
 
   public isMuted(): boolean {
-    return this._refVideoProvider.value?.isMuted() ?? true;
+    if (this._refFrigateCardMediaPlayer.value) {
+      return this._refFrigateCardMediaPlayer.value?.isMuted() ?? true;
+    } else if (this._refVideoProvider.value) {
+      return this._refVideoProvider.value.muted;
+    }
+    return true;
   }
 
   public seek(seconds: number): void {
-    this._refVideoProvider.value?.seek(seconds);
+    if (this._refFrigateCardMediaPlayer.value) {
+      return this._refFrigateCardMediaPlayer.value.seek(seconds);
+    } else if (this._refVideoProvider.value) {
+      hideMediaControlsTemporarily(this._refVideoProvider.value);
+      this._refVideoProvider.value.currentTime = seconds;
+    }
   }
 
   /**
@@ -666,19 +705,47 @@ export class FrigateCardViewerProvider
     }
 
     return ViewMediaClassifier.isVideo(this.media)
-      ? html`<frigate-card-ha-hls-player
-          ${ref(this._refVideoProvider)}
-          allow-exoplayer
-          aria-label="${this.media.getTitle() ?? ''}"
-          ?autoplay=${false}
-          controls
-          muted
-          playsinline
-          title="${this.media.getTitle() ?? ''}"
-          url=${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}
-          .hass=${this.hass}
-        >
-        </frigate-card-ha-hls-player>`
+      ? this.media.getVideoContentType() === VideoContentType.HLS
+        ? html`<frigate-card-ha-hls-player
+            ${ref(this._refFrigateCardMediaPlayer)}
+            allow-exoplayer
+            aria-label="${this.media.getTitle() ?? ''}"
+            ?autoplay=${false}
+            controls
+            muted
+            playsinline
+            title="${this.media.getTitle() ?? ''}"
+            url=${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}
+            .hass=${this.hass}
+          >
+          </frigate-card-ha-hls-player>`
+        : html`
+            <video
+              ${ref(this._refVideoProvider)}
+              aria-label="${this.media.getTitle() ?? ''}"
+              title="${this.media.getTitle() ?? ''}"
+              muted
+              controls
+              playsinline
+              ?autoplay=${false}
+              @loadedmetadata=${(ev: Event) => {
+                if (ev.target) {
+                  hideMediaControlsTemporarily(
+                    ev.target as HTMLVideoElement,
+                    MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
+                  );
+                }
+              }}
+              @loadeddata=${(ev: Event) => {
+                dispatchMediaLoadedEvent(this, ev);
+              }}
+            >
+              <source
+                src=${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}
+                type="video/mp4"
+              />
+            </video>
+          `
       : html`<img
           aria-label="${this.media.getTitle() ?? ''}"
           src="${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}"

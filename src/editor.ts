@@ -28,6 +28,11 @@ import {
   CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
   CONF_CAMERAS_ARRAY_IMAGE_URL,
   CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
+  CONF_CAMERAS_ARRAY_MOTIONEYE_IMAGES_DIRECTORY_PATTERN,
+  CONF_CAMERAS_ARRAY_MOTIONEYE_IMAGES_FILE_PATTERN,
+  CONF_CAMERAS_ARRAY_MOTIONEYE_MOVIES_DIRECTORY_PATTERN,
+  CONF_CAMERAS_ARRAY_MOTIONEYE_MOVIES_FILE_PATTERN,
+  CONF_CAMERAS_ARRAY_MOTIONEYE_URL,
   CONF_CAMERAS_ARRAY_TITLE,
   CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES,
   CONF_CAMERAS_ARRAY_TRIGGERS_MOTION,
@@ -159,6 +164,10 @@ import {
   sideLoadHomeAssistantElements,
 } from './utils/ha';
 import { setLowPerformanceProfile } from './performance.js';
+import {
+  MOTIONEYE_ICON_SVG_PATH,
+  MOTIONEYE_ICON_SVG_VIEWBOX,
+} from './camera-manager/motioneye/icon.js';
 
 const MENU_BUTTONS = 'buttons';
 const MENU_CAMERAS = 'cameras';
@@ -166,6 +175,7 @@ const MENU_CAMERAS_DEPENDENCIES = 'cameras.dependencies';
 const MENU_CAMERAS_FRIGATE = 'cameras.frigate';
 const MENU_CAMERAS_GO2RTC = 'cameras.go2rtc';
 const MENU_CAMERAS_IMAGE = 'cameras.image';
+const MENU_CAMERAS_MOTIONEYE = 'cameras.motioneye';
 const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
 const MENU_CAMERAS_WEBRTC_CARD = 'cameras.webrtc_card';
 const MENU_CAMERAS_LIVE_PROVIDER = 'cameras.live_provider';
@@ -888,6 +898,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     icon: {
       name?: string;
       path?: string;
+      viewBox?: string;
     },
     template: TemplateResult,
   ): TemplateResult {
@@ -907,7 +918,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${icon.name
           ? html` <ha-icon .icon=${icon.name}></ha-icon> `
           : icon.path
-          ? html` <ha-svg-icon .path="${icon.path}"></ha-svg-icon> `
+          ? html`
+              <ha-svg-icon .viewBox=${icon.viewBox} .path="${icon.path}"></ha-svg-icon>
+            `
           : ``}
         <span>${localize(labelPath)}</span>
       </div>
@@ -1411,7 +1424,42 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       ),
                     )}
                   `,
-                )}`,
+                )}
+                ${this._putInSubmenu(
+                  MENU_CAMERAS_MOTIONEYE,
+                  cameraIndex,
+                  'config.cameras.motioneye.editor_label',
+                  { path: MOTIONEYE_ICON_SVG_PATH, viewBox: MOTIONEYE_ICON_SVG_VIEWBOX },
+                  html`
+                    ${this._renderStringInput(
+                      getArrayConfigPath(CONF_CAMERAS_ARRAY_MOTIONEYE_URL, cameraIndex),
+                    )}
+                    ${this._renderStringInput(
+                      getArrayConfigPath(
+                        CONF_CAMERAS_ARRAY_MOTIONEYE_IMAGES_DIRECTORY_PATTERN,
+                        cameraIndex,
+                      ),
+                    )}
+                    ${this._renderStringInput(
+                      getArrayConfigPath(
+                        CONF_CAMERAS_ARRAY_MOTIONEYE_IMAGES_FILE_PATTERN,
+                        cameraIndex,
+                      ),
+                    )}
+                    ${this._renderStringInput(
+                      getArrayConfigPath(
+                        CONF_CAMERAS_ARRAY_MOTIONEYE_MOVIES_DIRECTORY_PATTERN,
+                        cameraIndex,
+                      ),
+                    )}
+                    ${this._renderStringInput(
+                      getArrayConfigPath(
+                        CONF_CAMERAS_ARRAY_MOTIONEYE_MOVIES_FILE_PATTERN,
+                        cameraIndex,
+                      ),
+                    )}
+                  `,
+                )} `,
               )}
               ${this._putInSubmenu(
                 MENU_CAMERAS_LIVE_PROVIDER,

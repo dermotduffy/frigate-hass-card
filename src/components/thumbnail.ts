@@ -170,11 +170,9 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
     const startTime = rawStartTime ? formatDateAndTime(rawStartTime) : null;
 
     const rawEndTime = this.media.getEndTime();
-    const endTime = rawStartTime
-      ? rawEndTime
-        ? getDurationString(rawStartTime, rawEndTime)
-        : localize('event.in_progress')
-      : null;
+    const duration =
+      rawStartTime && rawEndTime ? getDurationString(rawStartTime, rawEndTime) : null;
+    const inProgress = this.media.inProgress() ? localize('event.in_progress') : null;
 
     const what = prettifyTitle(this.media.getWhat()?.join(', ')) ?? null;
     const where = prettifyTitle(this.media.getWhere()?.join(', ')) ?? null;
@@ -200,13 +198,18 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
                 ></ha-icon>
                 <span title="${startTime}">${startTime}</span>
               </div>
-              <div>
-                <ha-icon
-                  title=${localize('event.duration')}
-                  .icon=${'mdi:clock-outline'}
-                ></ha-icon>
-                <span title="${endTime}">${endTime}</span>
-              </div>`
+              ${duration || inProgress
+                ? html` <div>
+                    <ha-icon
+                      title=${localize('event.duration')}
+                      .icon=${'mdi:clock-outline'}
+                    ></ha-icon>
+                    ${duration ? html`<span title="${duration}">${duration}</span>` : ''}
+                    ${inProgress
+                      ? html`<span title="${inProgress}">${inProgress}</span>`
+                      : ''}
+                  </div>`
+                : ''}`
           : ''}
         ${this.cameraTitle
           ? html` <div>
@@ -266,11 +269,9 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
     const startTime = rawStartTime ? formatDateAndTime(rawStartTime) : null;
 
     const rawEndTime = this.media.getEndTime();
-    const endTime = rawStartTime
-      ? rawEndTime
-        ? getDurationString(rawStartTime, rawEndTime)
-        : localize('event.in_progress')
-      : null;
+    const duration =
+      rawStartTime && rawEndTime ? getDurationString(rawStartTime, rawEndTime) : null;
+    const inProgress = this.media.inProgress() ? localize('recording.in_progress') : null;
 
     const seek = this.seek ? format(this.seek, 'HH:mm:ss') : null;
 
@@ -284,17 +285,24 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
       <div class="details">
         ${startTime
           ? html` <div>
-                <ha-icon title=${localize(
-                  'recording.start',
-                )} .icon=${'mdi:calendar-clock-outline'}></ha-icon>
+                <ha-icon
+                  title=${localize('recording.start')}
+                  .icon=${'mdi:calendar-clock-outline'}
+                ></ha-icon>
                 <span title="${startTime}">${startTime}</span>
               </div>
-              <div>
-                <ha-icon title=${localize(
-                  'recording.duration',
-                )} .icon=${'mdi:clock-outline'}></ha-icon>
-                <span title="${endTime}">${endTime}</span>
-              </div>`
+              ${duration || inProgress
+                ? html` <div>
+                    <ha-icon
+                      title=${localize('recording.duration')}
+                      .icon=${'mdi:clock-outline'}
+                    ></ha-icon>
+                    ${duration ? html`<span title="${duration}">${duration}</span>` : ''}
+                    ${inProgress
+                      ? html`<span title="${inProgress}">${inProgress}</span>`
+                      : ''}
+                  </div>`
+                : ''}`
           : ''}
         ${seek
           ? html` <div>

@@ -6,6 +6,7 @@ import {
   EventViewMedia,
   RecordingViewMedia,
   ViewMediaType,
+  VideoContentType,
 } from '../../view/media';
 import { FrigateEvent, FrigateRecording } from './types';
 import {
@@ -50,6 +51,14 @@ export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
   }
   public getEndTime(): Date | null {
     return this._event.end_time ? fromUnixTime(this._event.end_time) : null;
+  }
+  public inProgress(): boolean | null {
+    // In Frigate, events/recordings always have end times unless they are in
+    // progress.
+    return !this.getEndTime();
+  }
+  public getVideoContentType(): VideoContentType | null {
+    return VideoContentType.HLS;
   }
   public getID(): string {
     return this._event.id;
@@ -122,6 +131,11 @@ export class FrigateRecordingViewMedia extends ViewMedia implements RecordingVie
   }
   public getEndTime(): Date {
     return this._recording.endTime;
+  }
+  public inProgress(): boolean | null {
+    // In Frigate, events/recordings always have end times unless they are in
+    // progress.
+    return !this.getEndTime();
   }
   public getContentID(): string | null {
     return this._contentID;

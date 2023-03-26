@@ -57,7 +57,7 @@ customElements.whenDefined('ha-hls-player').then(() => {
     }
 
     public isMuted(): boolean {
-      return this._video?.muted() ?? true;
+      return this._video?.muted ?? true;
     }
 
     public seek(seconds: number): void {

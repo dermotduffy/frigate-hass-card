@@ -1,5 +1,10 @@
 export type ViewMediaType = 'clip' | 'snapshot' | 'recording';
 
+export enum VideoContentType {
+  MP4 = "mp4",
+  HLS = "hls",
+}
+
 export class ViewMedia {
   protected _mediaType: ViewMediaType;
   protected _cameraID: string;
@@ -17,6 +22,9 @@ export class ViewMedia {
   public getMediaType(): ViewMediaType {
     return this._mediaType;
   }
+  public getVideoContentType(): VideoContentType | null {
+    return null;
+  }
   public getID(): string | null {
     return null;
   }
@@ -24,6 +32,9 @@ export class ViewMedia {
     return null;
   }
   public getEndTime(): Date | null {
+    return null;
+  }
+  public inProgress(): boolean | null {
     return null;
   }
   public getContentID(): string | null {

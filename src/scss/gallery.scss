@@ -1,6 +1,7 @@
 :host {
   width: 100%;
-  height: auto;
+  height: 100%;
+  display: block;
   overflow: auto;
 
   // Hide scrollbar: IE and Edge
@@ -11,7 +12,9 @@
 
   --frigate-card-gallery-gap: 3px;
   --frigate-card-gallery-columns: 4;
+}
 
+.grid {
   display: grid;
   grid-template-columns: repeat(var(--frigate-card-gallery-columns), minmax(0, 1fr));
   grid-auto-rows: min-content;

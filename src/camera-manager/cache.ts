@@ -16,7 +16,7 @@ interface CameraManagerCache<Request, Response> {
   set(request: Request, response: Response, expiry?: Date): void;
 }
 
-class MemoryRequestCache<Request, Response>
+export class MemoryRequestCache<Request, Response>
   implements CameraManagerCache<Request, Response>
 {
   protected _data: RequestCacheItem<Request, Response>[] = [];

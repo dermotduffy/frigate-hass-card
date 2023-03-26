@@ -1,7 +1,6 @@
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { customElement, property } from 'lit/decorators.js';
-
 import { TitleControlConfig } from '../types.js';
 
 import titleStyle from '../scss/title-control.scss';
@@ -20,6 +19,9 @@ export class FrigateCardTitleControl extends LitElement {
 
   @property({ attribute: false })
   public fitInto?: HTMLElement;
+
+  @property({ attribute: false })
+  public logo?: string;
 
   protected _toastRef: Ref<PaperToast> = createRef();
 
@@ -44,6 +46,7 @@ export class FrigateCardTitleControl extends LitElement {
       .text="${this.text}"
       .fitInto=${this.fitInto}
     >
+      ${this.logo ? html`<img src=${this.logo} />` : ''}
     </paper-toast>`;
   }
 
@@ -58,7 +61,7 @@ export class FrigateCardTitleControl extends LitElement {
   /**
    * Show the toast.
    */
-   public hide(): void {
+  public hide(): void {
     if (this._toastRef.value) {
       // Set it to false first, to ensure the timer resets.
       this._toastRef.value.opened = false;
@@ -85,7 +88,7 @@ export class FrigateCardTitleControl extends LitElement {
 }
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card-title-control": FrigateCardTitleControl
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card-title-control': FrigateCardTitleControl;
+  }
 }
