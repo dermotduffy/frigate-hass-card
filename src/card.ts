@@ -1192,14 +1192,17 @@ class FrigateCard extends LitElement {
       .initializeMultipleIfNecessary({
         // Caution: Ensure nothing in this set of initializers requires
         // languages since they will not yet have been initialized.
-        [InitializationAspect.LANGUAGES]: async () => loadLanguages(hass),
+        [InitializationAspect.LANGUAGES]: async () => await loadLanguages(hass),
         [InitializationAspect.SIDE_LOAD_ELEMENTS]: async () =>
-          sideLoadHomeAssistantElements,
+          await sideLoadHomeAssistantElements(),
       })
-      .then(() => {
+      .then((initialized) => {
+        if (!initialized) {
+          return false;
+        }
         return this._initializer.initializeIfNecessary(
           InitializationAspect.CAMERAS,
-          async () => this._initializeCameras(hass, config, cardWideConfig),
+          async () => await this._initializeCameras(hass, config, cardWideConfig),
         );
       })
       .then((initialized) => {
@@ -1228,7 +1231,7 @@ class FrigateCard extends LitElement {
       .initializeMultipleIfNecessary({
         ...(config.menu.buttons.media_player.enabled && {
           [InitializationAspect.MEDIA_PLAYERS]: async () =>
-            this._initializeMediaPlayers(hass),
+            await this._initializeMediaPlayers(hass),
         }),
       })
       .then((initialized) => {
