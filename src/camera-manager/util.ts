@@ -4,6 +4,9 @@ import startOfDay from 'date-fns/startOfDay';
 import endOfDay from 'date-fns/endOfDay';
 import endOfMinute from 'date-fns/endOfMinute';
 import { DateRange } from './range';
+import orderBy from 'lodash-es/orderBy';
+import uniqBy from 'lodash-es/uniqBy';
+import { ViewMedia } from '../view/media';
 
 export const convertRangeToCacheFriendlyTimes = (
   range: DateRange,
@@ -36,4 +39,17 @@ export const convertRangeToCacheFriendlyTimes = (
 export const capEndDate = (end: Date): Date => {
   const now = new Date();
   return end > now ? now : end;
+};
+
+export const sortMedia = (mediaArray: ViewMedia[]): ViewMedia[] => {
+  return orderBy(
+    // Ensure uniqueness by the ID (if specified), otherwise all elements
+    // are assumed to be unique.
+    uniqBy(mediaArray, (media) => media.getID() ?? media),
+
+    // Sort all items leading oldest -> youngest (so media is loaded in this
+    // order in the viewer which matches the left-to-right timeline order).
+    (media) => media.getStartTime(),
+    'asc',
+  );
 };

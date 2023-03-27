@@ -116,6 +116,9 @@ export class FrigateCardMediaCarousel extends LitElement {
   public label?: string;
 
   @property({ attribute: false })
+  public logo?: string;
+
+  @property({ attribute: false })
   public titlePopupConfig?: TitleControlConfig;
 
   // A "map" from slide number to MediaLoadedInfo object.
@@ -420,6 +423,7 @@ export class FrigateCardMediaCarousel extends LitElement {
             ${ref(this._titleControlRef)}
             .config=${this.titlePopupConfig}
             .text="${this.label}"
+            .logo="${this.logo}"
             .fitInto=${this as HTMLElement}
           >
           </frigate-card-title-control> `

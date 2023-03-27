@@ -22,6 +22,7 @@ export enum QueryResultsType {
 export enum Engine {
   Frigate = 'frigate',
   Generic = 'generic',
+  MotionEye = 'motioneye',
 }
 
 export interface DataQuery {
@@ -110,6 +111,7 @@ export interface CameraManagerMediaCapabilities {
 export interface CameraManagerCameraMetadata {
   title: string;
   icon: string;
+  engineLogo?: string;
 }
 
 export interface CameraEndpointsContext {

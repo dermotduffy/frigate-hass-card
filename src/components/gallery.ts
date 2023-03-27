@@ -23,7 +23,7 @@ import {
 } from '../utils/media-to-view.js';
 import { CameraManager, ExtendedMediaQueryResult } from '../camera-manager/manager.js';
 import { View } from '../view/view.js';
-import { dispatchMessageEvent, renderProgressIndicator } from './message.js';
+import { renderMessage, renderProgressIndicator } from './message.js';
 import './thumbnail.js';
 import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
@@ -432,13 +432,19 @@ export class FrigateCardGalleryCore extends LitElement {
     }
 
     if ((this.view?.queryResults?.getResultsCount() ?? 0) === 0) {
-      return dispatchMessageEvent(this, localize('common.no_media'), 'info', {
+      // Note that this is not throwing up an error message for the card to
+      // handle (as typical), but rather directly rendering the message into the
+      // gallery. This is to allow the filter to still be available when a given
+      // filter selection returns no media.
+      return renderMessage({
+        type: 'info',
+        message: localize('common.no_media'),
         icon: 'mdi:multimedia',
       });
     }
 
     const selected = this.view?.queryResults?.getSelectedResult();
-    return html`
+    return html` <div class="grid">
       ${this._showLoaderTop
         ? html`${renderProgressIndicator({
             cardWideConfig: this.cardWideConfig,
@@ -490,7 +496,7 @@ export class FrigateCardGalleryCore extends LitElement {
             componentRef: this._refLoaderBottom,
           })}`
         : ''}
-    `;
+    </div>`;
   }
 
   public updated(changedProps: PropertyValues): void {

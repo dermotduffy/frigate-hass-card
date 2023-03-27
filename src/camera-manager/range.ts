@@ -80,7 +80,7 @@ export const rangesOverlap = (a: DateRange, b: DateRange): boolean => {
   return (
     // a starts within the range of b.
     (a.start >= b.start && a.start <= b.end) ||
-    // a events within the range of b.
+    // a ends within the range of b.
     (a.end >= b.start && a.end <= b.end) ||
     // a encompasses the entire range of b.
     (a.start <= b.start && a.end >= b.end)

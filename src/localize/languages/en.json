@@ -57,6 +57,18 @@
         "image": "Home Assistant images",
         "webrtc-card": "WebRTC Card (i.e. AlexxIT's WebRTC Card)"
       },
+      "motioneye": {
+        "editor_label": "MotionEye Options",
+        "images": {
+          "directory_pattern": "Images directory pattern",
+          "file_pattern": "Images file pattern"
+        },
+        "movies": {
+          "directory_pattern": "Movies directory pattern",
+          "file_pattern": "Movies file pattern"
+        },
+        "url": "MotionEye UI URL"
+      },
       "title": "Title for this camera (Autodetected from entity)",
       "triggers": {
         "entities": "Trigger from other entities",
@@ -428,14 +440,15 @@
     "whens": {
       "past_month": "Past Month",
       "past_week": "Past Week",
-      "today": "Today",  
-      "yesterday": "Yesterday"      
+      "today": "Today",
+      "yesterday": "Yesterday"
     },
     "where": "Where"
   },
   "recording": {
     "camera": "Camera",
     "duration": "Duration",
+    "in_progress": "In Progress",
     "events": "Events",
     "seek": "Seek",
     "start": "Start"

@@ -31,20 +31,22 @@ export const hideMediaControlsTemporarily = (
 };
 
 /**
- * Play a piece of media, muting it if necessary.
- * @param underlyingPlayer
+ * 
+ * @param player The Frigate Card Media Player object.
+ * @param video An underlying video or media player upon which to call play.
  */
 export const playMediaMutingIfNecessary = async (
-  player?: FrigateCardMediaPlayer,
+  player: FrigateCardMediaPlayer,
+  video?: HTMLVideoElement | FrigateCardMediaPlayer,
 ): Promise<void> => {
   // If the play call fails, and the media is not already muted, mute it first
   // and then try again. This works around some browsers that prevent
   // auto-play unless the video is muted.
-  if (player?.play) {
-    player.play().catch((ev) => {
+  if (video?.play) {
+    video.play().catch((ev) => {
       if (ev.name === 'NotAllowedError' && !player.isMuted()) {
         player.mute();
-        player.play().catch();
+        video.play().catch();
       }
     });
   }

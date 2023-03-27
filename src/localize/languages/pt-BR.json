@@ -57,6 +57,18 @@
         "image": "",
         "webrtc-card": "Cartão WebRTC (de @AlexxIT)"
       },
+      "motioneye": {
+        "editor_label": "",
+        "images": {
+          "directory_pattern": "",
+          "file_pattern": ""
+        },
+        "movies": {
+          "directory_pattern": "",
+          "file_pattern": ""
+        },
+        "url": ""
+      },
       "title": "Título para esta câmera (detectado automaticamente pela entidade)",
       "triggers": {
         "entities": "Acionar a partir de outras entidades",
@@ -427,6 +439,7 @@
     "camera": "",
     "duration": "",
     "events": "Eventos",
+    "in_progress": "Em andamento",
     "seek": "Procurar",
     "start": ""
   },

@@ -354,12 +354,13 @@ export const isCardInPanel = (card: HTMLElement): boolean => {
  * location will be the Chromecast receiver, not HA).
  * @param url The media URL
  */
-export const canonicalizeHAURL = (
+export function canonicalizeHAURL(hass: ExtendedHomeAssistant, url: string): string;
+export function canonicalizeHAURL(
   hass: ExtendedHomeAssistant,
   url?: string,
-): string | null => {
+): string | null {
   if (hass && url && url.startsWith('/')) {
     return hass.hassUrl(url);
   }
   return url ?? null;
-};
+}

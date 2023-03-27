@@ -2,6 +2,11 @@ import { Task } from '@lit-labs/task';
 import { ReactiveControllerHost } from '@lit/reactive-element';
 import { HomeAssistant } from 'custom-card-helpers';
 
+// See: https://github.com/sindresorhus/is-absolute-url
+// Scheme: https://tools.ietf.org/html/rfc3986#section-3.1
+// Absolute URL: https://tools.ietf.org/html/rfc3986#section-4.3
+const ABSOLUTE_URL_REGEX = /^[a-zA-Z][a-zA-Z\d+\-.]*?:/;
+
 /**
  * Fetch a thumbnail URL and return a data URL.
  * @param hass Home Assistant object.
@@ -12,10 +17,10 @@ const fetchThumbnail = async (
   hass: HomeAssistant,
   thumbnailURL: string,
 ): Promise<string | null> => {
-  if (!hass) {
+  if (!hass || !thumbnailURL) {
     return null;
   }
-  if (thumbnailURL?.startsWith('data:')) {
+  if (thumbnailURL.startsWith('data:') || thumbnailURL.match(ABSOLUTE_URL_REGEX)) {
     return thumbnailURL;
   }
   return new Promise((resolve, reject) => {
@@ -57,21 +62,18 @@ export const createFetchThumbnailTask = (
   getThumbnailURL: () => string | undefined,
   autoRun = true,
 ): Task<FetchThumbnailTaskArgs, string | null> => {
-  return new Task(
-    host,
-    {
-      // Do not re-run the task if hass changes, unless it was previously undefined.
-      args: (): FetchThumbnailTaskArgs => [!!getHASS(), getThumbnailURL()],
-      task: async ([haveHASS, thumbnailURL]: FetchThumbnailTaskArgs): Promise<
-        string | null
-      > => {
-        const hass = getHASS();
-        if (!haveHASS || !hass || !thumbnailURL) {
-          return null;
-        }
-        return fetchThumbnail(hass, thumbnailURL);
-      },
-      autoRun: autoRun,
+  return new Task(host, {
+    // Do not re-run the task if hass changes, unless it was previously undefined.
+    args: (): FetchThumbnailTaskArgs => [!!getHASS(), getThumbnailURL()],
+    task: async ([haveHASS, thumbnailURL]: FetchThumbnailTaskArgs): Promise<
+      string | null
+    > => {
+      const hass = getHASS();
+      if (!haveHASS || !hass || !thumbnailURL) {
+        return null;
+      }
+      return fetchThumbnail(hass, thumbnailURL);
     },
-  );
+    autoRun: autoRun,
+  });
 };

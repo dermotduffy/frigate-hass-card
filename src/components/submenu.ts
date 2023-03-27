@@ -9,7 +9,7 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { styleMap } from 'lit/directives/style-map.js';
+import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../action-handler-directive.js';
 import submenuStyle from '../scss/submenu.scss';
 import {
@@ -39,7 +39,7 @@ export class FrigateCardSubmenu extends LitElement {
     if (!this.hass) {
       return;
     }
-    const stateParameters = refreshDynamicStateParameters(this.hass, { ...item });
+    const stateParameters = refreshDynamicStateParameters(this.hass, { ...item } as StateParameters);
     const getIcon = (stateParameters: StateParameters): TemplateResult => {
       if (stateParameters.icon) {
         return html` <ha-icon
@@ -95,7 +95,7 @@ export class FrigateCardSubmenu extends LitElement {
         @click=${(ev) => stopEventFromActivatingCardWideActions(ev)}
       >
         <ha-icon-button
-          style="${styleMap(this.submenu.style || {})}"
+          style="${styleMap(this.submenu.style as StyleInfo || {})}"
           class="button"
           slot="trigger"
           .label=${this.submenu.title || ''}
@@ -205,7 +205,7 @@ export class FrigateCardSubmenuSelect extends LitElement {
       icon: domainIcon('select'),
 
       // Pull out the dynamic properties (like icon, and title) from the state.
-      ...refreshDynamicStateParameters(this.hass, this.submenuSelect),
+      ...refreshDynamicStateParameters(this.hass, this.submenuSelect as StateParameters),
 
       // Override it with anything explicitly set in the submenuSelect.
       ...this.submenuSelect,

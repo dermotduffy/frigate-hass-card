@@ -43,7 +43,7 @@
     "vis-util": "^5.0.2",
     "web-dialog": "^0.0.11",
     "xss": "^1.0.14",
-    "zod": "^3.20.6"
+    "zod": "^3.21.4"
   },
   "devDependencies": {
     "@babel/core": "^7.19.0",
@@ -51,7 +51,7 @@
     "@babel/plugin-proposal-decorators": "^7.19.0",
     "@rollup/plugin-babel": "^5.3.1",
     "@rollup/plugin-commonjs": "^22.0.2",
-    "@rollup/plugin-image": "^2.1.1",
+    "@rollup/plugin-image": "^3.0.2",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-replace": "^4.0.0",

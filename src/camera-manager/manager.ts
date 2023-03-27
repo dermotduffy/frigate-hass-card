@@ -1,5 +1,10 @@
 import { HomeAssistant } from 'custom-card-helpers';
-import { CameraConfig, CamerasConfig, CardWideConfig } from '../types.js';
+import {
+  CameraConfig,
+  CamerasConfig,
+  CardWideConfig,
+  ExtendedHomeAssistant,
+} from '../types.js';
 import { allPromises, arrayify, setify } from '../utils/basic.js';
 import {
   CameraManagerCameraCapabilities,
@@ -34,11 +39,10 @@ import {
   MediaMetadataQuery,
   MediaMetadataQueryResults,
   EngineOptions,
+  CameraEndpoint,
 } from './types.js';
-import orderBy from 'lodash-es/orderBy';
 import { CameraManagerEngineFactory } from './engine-factory.js';
 import { ViewMedia } from '../view/media.js';
-import uniqBy from 'lodash-es/uniqBy';
 import { CameraManagerEngine } from './engine.js';
 import sum from 'lodash-es/sum';
 import add from 'date-fns/add';
@@ -50,6 +54,7 @@ import { CameraInitializationError } from './error.js';
 import { CameraManagerReadOnlyConfigStore, CameraManagerStore } from './store.js';
 import cloneDeep from 'lodash-es/cloneDeep';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
+import { sortMedia } from './util.js';
 
 class QueryClassifier {
   public static isEventQuery(query: DataQuery | PartialDataQuery): query is EventQuery {
@@ -356,7 +361,7 @@ export class CameraManager {
         concreteQueries.push(query as PartialQueryConcreteType<PQT>);
       }
     }
-    return concreteQueries;
+    return concreteQueries.length ? concreteQueries : null;
   }
 
   public async getEvents(
@@ -459,20 +464,31 @@ export class CameraManager {
       return null;
     }
 
+    const outputMedia = sortMedia(results.concat(newChunkMedia));
+
+    // If the media did not _ACTUALLY_ get longer, there is no new media despite
+    // the increased limit, so just return null.
+    if (outputMedia.length === results.length) {
+      return null;
+    }
+
     return {
       queries: extendedQueries,
-      results: this._sortMedia(results.concat(newChunkMedia)),
+      results: outputMedia,
     };
   }
 
-  public getMediaDownloadPath(media: ViewMedia): string | null {
+  public async getMediaDownloadPath(
+    hass: ExtendedHomeAssistant,
+    media: ViewMedia,
+  ): Promise<CameraEndpoint | null> {
     const cameraConfig = this._store.getCameraConfigForMedia(media);
     const engine = this._store.getEngineForMedia(media);
 
     if (!cameraConfig || !engine) {
       return null;
     }
-    return engine.getMediaDownloadPath(cameraConfig, media);
+    return await engine.getMediaDownloadPath(hass, cameraConfig, media);
   }
 
   public getMediaCapabilities(media: ViewMedia): CameraManagerMediaCapabilities | null {
@@ -623,7 +639,7 @@ export class CameraManager {
     await Promise.all(_queries.map((query) => processQuery(query)));
 
     const cachedOutputQueries = sum(
-      Array.from(results.values()).map((result) => Number(result.cached)),
+      Array.from(results.values()).map((result) => Number(result.cached ?? 0)),
     );
 
     log(
@@ -681,20 +697,7 @@ export class CameraManager {
         }
       }
     }
-    return this._sortMedia(mediaArray);
-  }
-
-  protected _sortMedia(mediaArray: ViewMedia[]): ViewMedia[] {
-    return orderBy(
-      // Ensure uniqueness by the ID (if specified), otherwise all elements
-      // are assumed to be unique.
-      uniqBy(mediaArray, (media) => media.getID() ?? media),
-
-      // Sort all items leading oldest -> youngest (so media is loaded in this
-      // order in the viewer which matches the left-to-right timeline order).
-      (media) => media.getStartTime(),
-      'asc',
-    );
+    return sortMedia(mediaArray);
   }
 
   public getCameraEndpoints(

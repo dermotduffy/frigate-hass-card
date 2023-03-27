@@ -525,10 +525,13 @@ export class FrigateCardTimelineCore extends LitElement {
         .selectResultIfFound((media) => media.getID() === properties.item);
 
       if (!newResults || !newResults.hasSelectedResult()) {
-        // This can happen if this is a recording query (with recorded hours)
-        // and an event is clicked on the timeline, or if the current thumbnails
-        // is a filtered view from the media gallery (i.e. any case where the
-        // thumbnails may not be match the events on the timeline).
+        // This can happen in a few situations:
+        // - If this is a recording query (with recorded hours) and an event is
+        //   clicked on the timeline
+        // - If the current thumbnails/results is a filtered view from the media
+        //   gallery (i.e. any case where the thumbnails may not be match the
+        //   events on the timeline, e.g. in the snapshots viewer but
+        //   mini-timeline showing all media).
         const fullEventView = await this._createViewWithEventMediaQuery(
           this._createEventMediaQuerys(),
           {
@@ -551,10 +554,7 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     if (view) {
-      view
-        // If the user is clicking something in the timeline, don't
-        // subsequently shift the window (it's pretty jarring).
-        .dispatchChangeEvent(this);
+      view.dispatchChangeEvent(this);
 
       if (this.view?.is('timeline')) {
         dispatchFrigateCardEvent(this, 'thumbnails:open');
@@ -895,8 +895,10 @@ export class FrigateCardTimelineCore extends LitElement {
     const mediaStartTime = media?.getStartTime();
     const mediaEndTime = media?.getEndTime();
     const mediaWindow: TimelineWindow | null =
-      media && mediaStartTime && mediaEndTime
-        ? { start: mediaStartTime, end: mediaEndTime }
+      media && mediaStartTime
+        // If this media has no end time, it's just a "point" in time so the
+        // range effectively starts/ends at the same time.
+        ? { start: mediaStartTime, end: mediaEndTime ?? mediaStartTime }
         : null;
     const context = this.view.context?.timeline;
 

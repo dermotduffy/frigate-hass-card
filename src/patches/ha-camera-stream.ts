@@ -28,14 +28,6 @@ customElements.whenDefined('ha-camera-stream').then(() => {
   const computeMJPEGStreamUrl = (entity: CameraEntity): string =>
     `/api/camera_proxy_stream/${entity.entity_id}?token=${entity.attributes.access_token}`;
 
-  const computeObjectId = (entityId: string): string =>
-    entityId.substr(entityId.indexOf('.') + 1);
-
-  const computeStateName = (stateObj: HassEntity): string =>
-    stateObj.attributes.friendly_name === undefined
-      ? computeObjectId(stateObj.entity_id).replace(/_/g, ' ')
-      : stateObj.attributes.friendly_name || '';
-
   const STREAM_TYPE_HLS = 'hls';
   const STREAM_TYPE_WEB_RTC = 'web_rtc';
 
@@ -100,7 +92,6 @@ customElements.whenDefined('ha-camera-stream').then(() => {
             .src=${typeof this._connected == 'undefined' || this._connected
               ? computeMJPEGStreamUrl(this.stateObj)
               : ''}
-            .alt=${`Preview of the ${computeStateName(this.stateObj)} camera.`}
           />
         `;
       }

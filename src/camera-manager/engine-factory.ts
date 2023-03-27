@@ -1,25 +1,32 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { localize } from '../localize/localize';
 import { CameraConfig, CardWideConfig } from '../types';
+import { BrowseMediaManager } from '../utils/ha/browse-media/browse-media-manager';
+import { BrowseMedia } from '../utils/ha/browse-media/types';
 import { EntityRegistryManager } from '../utils/ha/entity-registry';
 import { Entity } from '../utils/ha/entity-registry/types';
-import { RecordingSegmentsCache, RequestCache } from './cache';
+import { ResolvedMediaCache } from '../utils/ha/resolved-media';
+import { MemoryRequestCache, RecordingSegmentsCache, RequestCache } from './cache';
 import { CameraManagerEngine } from './engine';
 import { CameraInitializationError } from './error';
 import { FrigateCameraManagerEngine } from './frigate/engine-frigate';
 import { GenericCameraManagerEngine } from './generic/engine-generic';
+import { MotionEyeCameraManagerEngine } from './motioneye/engine-motioneye';
 import { Engine } from './types';
 
 export class CameraManagerEngineFactory {
   protected _entityRegistryManager: EntityRegistryManager;
+  protected _resolvedMediaCache: ResolvedMediaCache;
   protected _cardWideConfig: CardWideConfig;
 
   constructor(
     entityRegistryManager: EntityRegistryManager,
+    resolvedMediaCache: ResolvedMediaCache,
     cardWideConfig: CardWideConfig,
   ) {
     this._entityRegistryManager = entityRegistryManager;
     this._cardWideConfig = cardWideConfig;
+    this._resolvedMediaCache = resolvedMediaCache;
   }
 
   public createEngine(engine: Engine): CameraManagerEngine | null {
@@ -35,6 +42,12 @@ export class CameraManagerEngineFactory {
           new RequestCache(),
         );
         break;
+      case Engine.MotionEye:
+        cameraManagerEngine = new MotionEyeCameraManagerEngine(
+          new BrowseMediaManager(new MemoryRequestCache<string, BrowseMedia>()),
+          this._resolvedMediaCache,
+          new RequestCache(),
+        );
     }
     return cameraManagerEngine;
   }
@@ -50,6 +63,8 @@ export class CameraManagerEngineFactory {
     let engine: Engine | null = null;
     if (cameraConfig.engine === 'frigate') {
       engine = Engine.Frigate;
+    } else if (cameraConfig.engine === 'motioneye') {
+      engine = Engine.MotionEye;
     } else if (cameraConfig.engine === 'auto') {
       const cameraEntity = cameraConfig.camera_entity;
 
@@ -69,6 +84,9 @@ export class CameraManagerEngineFactory {
         switch (entity?.platform) {
           case 'frigate':
             engine = Engine.Frigate;
+            break;
+          case 'motioneye':
+            engine = Engine.MotionEye;
             break;
           default:
             engine = Engine.Generic;

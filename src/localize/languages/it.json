@@ -57,6 +57,18 @@
         "image": "",
         "webrtc-card": "Scheda WebRTC (ovvero la scheda WebRTC di Alexxit)"
       },
+      "motioneye": {
+        "editor_label": "",
+        "images": {
+          "directory_pattern": "",
+          "file_pattern": ""
+        },
+        "movies": {
+          "directory_pattern": "",
+          "file_pattern": ""
+        },
+        "url": ""
+      },
       "title": "Titolo per questa telecamera (Autoidentificato dall'entità)",
       "triggers": {
         "entities": "Trigger da altre entità",
@@ -427,6 +439,7 @@
     "camera": "",
     "duration": "",
     "events": "Eventi",
+    "in_progress": "In corso",
     "seek": "Cercare",
     "start": ""
   },

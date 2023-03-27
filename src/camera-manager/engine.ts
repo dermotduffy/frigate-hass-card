@@ -1,5 +1,5 @@
 import { HomeAssistant } from 'custom-card-helpers';
-import { CameraConfig } from '../types';
+import { CameraConfig, ExtendedHomeAssistant } from '../types';
 import { EntityRegistryManager } from '../utils/ha/entity-registry';
 import { ViewMedia } from '../view/media';
 import {
@@ -24,6 +24,7 @@ import {
   MediaMetadataQuery,
   MediaMetadataQueryResultsMap,
   EngineOptions,
+  CameraEndpoint,
 } from './types';
 
 export const CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT = 10000;
@@ -90,7 +91,11 @@ export interface CameraManagerEngine {
     results: QueryReturnType<RecordingQuery>,
   ): ViewMedia[] | null;
 
-  getMediaDownloadPath(cameraConfig: CameraConfig, media: ViewMedia): string | null;
+  getMediaDownloadPath(
+    hass: ExtendedHomeAssistant,
+    cameraConfig: CameraConfig,
+    media: ViewMedia,
+  ): Promise<CameraEndpoint | null>;
 
   favoriteMedia(
     hass: HomeAssistant,

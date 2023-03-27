@@ -137,6 +137,7 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 | - | - | - | - | - | - | - | - |
 |`frigate`| :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: |
 |`generic`| :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: |
+|`motioneye`| :white_check_mark: | :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: | :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: |
 
 ##### Live providers supported per Engine
 
@@ -144,6 +145,7 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 | - | - | - | - | - | - |
 |`frigate`| :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
 |`generic`| :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | :white_check_mark: |
+|`motioneye`| :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: |
 
 <a name="camera-frigate-configuration"></a>
 
@@ -159,10 +161,48 @@ cameras:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `camera_name` | Autodetected from `camera_entity` if that is specified. | :white_check_mark: | The Frigate camera name to use when communicating with the Frigate server, e.g. for viewing clips/snapshots or the JSMPEG live view.|
-| `url` | | :white_check_mark: | The URL of the frigate server. If set, this value will be (exclusively) used for a `Frigate UI` menu button. All other communication with Frigate goes via Home Assistant. |
+| `url` | | :white_check_mark: | The URL of the frigate server. If set, this value will be (exclusively) used for a `Camera UI` menu button. All other communication with Frigate goes via Home Assistant. |
 | `labels` | | :white_check_mark: | An array of Frigate labels used to filter events (clips & snapshots), e.g. [`person`, `car`].|
 | `zones` | | :white_check_mark: | An array of Frigates zones used to filter events (clips & snapshots), e.g. [`front_door`, `front_steps`].|
 | `client_id` | `frigate` | :white_check_mark: | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://docs.frigate.video/integrations/home-assistant/#multiple-instance-support).|
+
+#### Camera MotionEye configuration
+
+The `motioneye` block configures options for a MotionEye camera. This configuration is included as part of a camera entry in the `cameras` array.
+
+```yaml
+cameras:
+ - motioneye:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `url` | | :white_check_mark: | The URL of the MotionEye server. If set, this value will be (exclusively) used for a `Camera UI` menu button. |
+| `images` | | :white_check_mark: | Configure how MotionEye images are consumed. See below. |
+| `movies` | | :white_check_mark: | Configure how MotionEye movies are consumed. See below. |
+
+#### Camera MotionEye images and movies configuration
+
+The `images` and `movies` block configures options for a MotionEye camera. All
+options for `images` and `movies` are under their respective blocks. The options
+for both are the same.
+
+```yaml
+cameras:
+ - motioneye:
+     images:
+```
+
+```yaml
+cameras:
+ - motioneye:
+     movies:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `directory_pattern` | `%Y-%m-%d` | :white_check_mark: | The directory that motionEye is configured to store media into. May contain multiple sub-directories separated by `/`. Path must encode the date of the media using MotionEye patterns such as `%Y`, `%m`, `%d`, `%H`, `%M`, `%S` (at least one pattern is required). Consult MotionEye help text for information on these substitutions. |
+| `file_pattern` | `%H-%M-%S` | :white_check_mark: | Within a directory (as matched by `directory_pattern`) the media items must exist and match this pattern. `file_pattern` must encode the time of the media using MotionEye patterns such as `%Y`, `%m`, `%d`, `%H`, `%M`, `%S` (at least one pattern is required). Consult MotionEye help text for information on these substitutions. |
 
 #### Live Provider: Camera go2rtc configuration
 
@@ -1458,6 +1498,14 @@ cameras:
     live_provider: image
     image:
       refresh_seconds: 1
+  - camera_entity: camera.office_motioneye
+    motioneye:
+      images:
+        directory_pattern: '%Y-%m-%d'
+        file_pattern: '%H-%M-%S'
+      movies:
+        directory_pattern: '%Y-%m-%d'
+        file_pattern: '%H-%M-%S'
 ```
 </details>
 

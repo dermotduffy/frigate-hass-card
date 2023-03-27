@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const entitySchema = z.object({
   config_entry_id: z.string().nullable(),
+  device_id: z.string().nullable(),
   disabled_by: z.string().nullable(),
   entity_id: z.string(),
   hidden_by: z.string().nullable(),
