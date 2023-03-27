@@ -340,7 +340,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
     );
     // Special note: If all visible cameras are selected, this is the same as no
     // selector at all.
-    if (cameraIDSets.length === 1 && isEqual(queries[0].cameraIDs, cameras)) {
+    if (cameraIDSets.length === 1 && !isEqual(queries[0].cameraIDs, cameras)) {
       cameraIDs = [...queries[0].cameraIDs];
     }
 
