@@ -20,6 +20,8 @@ import { Entity } from '../../utils/ha/entity-registry/types';
 import { BrowseMediaManager } from '../../utils/ha/browse-media/browse-media-manager';
 import {
   BROWSE_MEDIA_CACHE_SECONDS,
+  MEDIA_CLASS_IMAGE,
+  MEDIA_CLASS_VIDEO,
   RichBrowseMedia,
 } from '../../utils/ha/browse-media/types';
 import { BrowseMediaMetadata } from './types';
@@ -27,6 +29,89 @@ import { rangesOverlap } from '../range';
 import { ResolvedMediaCache, resolveMedia } from '../../utils/ha/resolved-media';
 import { canonicalizeHAURL } from '../../utils/ha';
 import { RequestCache } from '../cache';
+import { BrowseMediaViewMediaFactory } from './media';
+
+/**
+ * A utility method to determine if a browse media object matches against a
+ * start and end date.
+ * @param media The browse media object (with rich metadata).
+ * @param start The optional start date.
+ * @param end The optional end date.
+ * @returns `true` if the media falls within the provided dates.
+ */
+export const isMediaWithinDates = (
+  media: RichBrowseMedia<BrowseMediaMetadata>,
+  start?: Date,
+  end?: Date,
+): boolean => {
+  // If no date is specified at all, everything matches.
+  const dateReference = start ?? end;
+  if (!dateReference) {
+    return true;
+  }
+
+  // If there's no metadata, nothing matches.
+  if (!media._metadata) {
+    return false;
+  }
+
+  // Determine if:
+  // - The media starts within the query timeframe.
+  // - The media ends within the query timeframe.
+  // - The media entirely encompasses the query timeframe.
+  return rangesOverlap(
+    {
+      start: media._metadata.startDate,
+      end: media._metadata.endDate,
+    },
+    {
+      start: start ?? dateReference,
+      end: end ?? dateReference,
+    },
+  );
+};
+
+export const getViewMediaFromBrowseMediaArray = (
+  browseMedia: RichBrowseMedia<BrowseMediaMetadata>[],
+): ViewMedia[] | null => {
+  const lookup: Map<string, ViewMedia> = new Map();
+  for (const browseMediaItem of browseMedia) {
+    const cameraID = browseMediaItem._metadata?.cameraID;
+    if (!cameraID) {
+      continue;
+    }
+
+    const mediaType =
+      browseMediaItem.media_class === MEDIA_CLASS_VIDEO
+        ? 'clip'
+        : browseMediaItem.media_class === MEDIA_CLASS_IMAGE
+        ? 'snapshot'
+        : null;
+
+    if (!mediaType) {
+      continue;
+    }
+    const media = BrowseMediaViewMediaFactory.createEventViewMedia(
+      mediaType,
+      browseMediaItem,
+      cameraID,
+    );
+
+    if (media) {
+      const id = media.getID();
+      const existing = lookup.get(id);
+      // De-duplicate events with precisely the same ID (same
+      // hour/minute/second) choosing clip > snapshot.
+      if (
+        !existing ||
+        (existing.getMediaType() === 'snapshot' && media.getMediaType() === 'clip')
+      ) {
+        lookup.set(id, media);
+      }
+    }
+  }
+  return [...lookup.values()];
+};
 
 /**
  * A base class for cameras that read events from HA BrowseMedia interface.
@@ -82,46 +167,6 @@ export class BrowseMediaCameraManagerEngine
       },
     ];
   }
-
-  /**
-   * A utility method to determine if a browse media object matches against a
-   * start and end date.
-   * @param media The browse media object (with rich metadata).
-   * @param start The optional start date.
-   * @param end The optional end date.
-   * @returns `true` if the media falls within the provided dates.
-   */
-  protected _mediaIsWithinDates = (
-    media: RichBrowseMedia<BrowseMediaMetadata>,
-    start?: Date,
-    end?: Date,
-  ): boolean => {
-    // If no date is specified at all, everything matches.
-    const dateReference = start ?? end;
-    if (!dateReference) {
-      return true;
-    }
-
-    // If there's no metadata, nothing matches.
-    if (!media._metadata) {
-      return false;
-    }
-
-    // Determine if:
-    // - The media starts within the query timeframe.
-    // - The media ends within the query timeframe.
-    // - The media entirely encompasses the query timeframe.
-    return rangesOverlap(
-      {
-        start: media._metadata.startDate,
-        end: media._metadata.endDate,
-      },
-      {
-        start: start ?? dateReference,
-        end: end ?? dateReference,
-      },
-    );
-  };
 
   public async getMediaDownloadPath(
     hass: ExtendedHomeAssistant,

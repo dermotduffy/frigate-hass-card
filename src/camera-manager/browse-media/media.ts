@@ -1,6 +1,7 @@
+import format from 'date-fns/format';
 import isEqual from 'lodash-es/isEqual';
 import { formatDateAndTime } from '../../utils/basic';
-import { MEDIA_CLASS_VIDEO, RichBrowseMedia } from '../../utils/ha/browse-media/types';
+import { RichBrowseMedia } from '../../utils/ha/browse-media/types';
 import {
   ViewMedia,
   EventViewMedia,
@@ -11,6 +12,7 @@ import { BrowseMediaMetadata } from '../browse-media/types';
 
 class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMedia {
   protected _browseMedia: RichBrowseMedia<BrowseMediaMetadata>;
+  protected _id: string;
 
   constructor(
     mediaType: ViewMediaType,
@@ -19,11 +21,19 @@ class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMedia {
   ) {
     super(mediaType, cameraID);
     this._browseMedia = browseMedia;
+
+    // Generate a custom ID that uses the start date (to allow multiple
+    // BrowseMedia objects (e.g. images and movies) to be de-duplicated).
+    if (browseMedia._metadata?.startDate) {
+      this._id = `${cameraID}/${format(
+        browseMedia._metadata.startDate,
+        'yyyy-MM-dd HH:mm:ss',
+      )}`;
+    } else {
+      this._id = browseMedia.media_content_id;
+    }
   }
 
-  public hasClip(): boolean {
-    return this._browseMedia.media_class === MEDIA_CLASS_VIDEO;
-  }
   public getStartTime(): Date | null {
     return this._browseMedia._metadata?.startDate ?? null;
   }
@@ -34,7 +44,7 @@ class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMedia {
     return VideoContentType.MP4;
   }
   public getID(): string {
-    return this.getContentID();
+    return this._id;
   }
   public getContentID(): string {
     return this._browseMedia.media_content_id;

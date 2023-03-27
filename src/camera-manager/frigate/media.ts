@@ -43,9 +43,6 @@ export class FrigateEventViewMedia extends ViewMedia implements EventViewMedia {
     this._subLabels = subLabels ?? null;
   }
 
-  public hasClip(): boolean {
-    return !!this._event.has_clip;
-  }
   public getStartTime(): Date {
     return fromUnixTime(this._event.start_time);
   }

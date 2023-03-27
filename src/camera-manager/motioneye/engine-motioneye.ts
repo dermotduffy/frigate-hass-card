@@ -38,9 +38,12 @@ import { MotionEyeEventQueryResults } from './types';
 import orderBy from 'lodash-es/orderBy';
 import startOfDay from 'date-fns/startOfDay';
 import add from 'date-fns/add';
-import { BrowseMediaCameraManagerEngine } from '../browse-media/engine-browse-media';
+import {
+  BrowseMediaCameraManagerEngine,
+  getViewMediaFromBrowseMediaArray,
+  isMediaWithinDates,
+} from '../browse-media/engine-browse-media';
 import { BrowseMediaMetadata } from '../browse-media/types';
-import { BrowseMediaViewMediaFactory } from '../browse-media/media';
 import motioneyeLogo from './assets/motioneye-logo.svg';
 
 class MotionEyeQueryResultsClassifier {
@@ -172,7 +175,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
           matcher: (media: RichBrowseMedia<BrowseMediaMetadata>) =>
             media.can_expand &&
             (!!dateFormat || media.title === next) &&
-            this._mediaIsWithinDates(media, matchOptions?.start, matchOptions?.end),
+            isMediaWithinDates(media, matchOptions?.start, matchOptions?.end),
           advance: (media) => generateNextStep(parts, media),
         },
       ];
@@ -271,7 +274,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
             },
             matcher: (media: RichBrowseMedia<BrowseMediaMetadata>) =>
               !media.can_expand &&
-              this._mediaIsWithinDates(media, perCameraQuery.start, perCameraQuery.end),
+              isMediaWithinDates(media, perCameraQuery.start, perCameraQuery.end),
           },
         ],
         { useCache: engineOptions?.useCache },
@@ -313,34 +316,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     if (!MotionEyeQueryResultsClassifier.isMotionEyeEventQueryResults(results)) {
       return null;
     }
-
-    const output: ViewMedia[] = [];
-    for (const browseMedia of results.browseMedia) {
-      const cameraID = browseMedia._metadata?.cameraID;
-      if (!cameraID) {
-        continue;
-      }
-
-      const mediaType =
-        browseMedia.media_class === MEDIA_CLASS_VIDEO
-          ? 'clip'
-          : browseMedia.media_class === MEDIA_CLASS_IMAGE
-          ? 'snapshot'
-          : null;
-
-      if (!mediaType) {
-        continue;
-      }
-      const media = BrowseMediaViewMediaFactory.createEventViewMedia(
-        mediaType,
-        browseMedia,
-        cameraID,
-      );
-      if (media) {
-        output.push(media);
-      }
-    }
-    return output;
+    return getViewMediaFromBrowseMediaArray(results.browseMedia);
   }
 
   public async getMediaMetadata(

@@ -71,7 +71,6 @@ export interface EventViewMedia extends ViewMedia {
   getWhat(): string[] | null;
   getTags(): string[] | null;
   isGroupableWith(that: EventViewMedia): boolean;
-  hasClip(): boolean | null;
 }
 
 export interface RecordingViewMedia extends ViewMedia {

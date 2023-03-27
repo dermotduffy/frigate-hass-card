@@ -621,10 +621,6 @@ export class FrigateCardViewerProvider
       // If this specific media item has no clip, then do nothing (even if all
       // the other media items do).
       !ViewMediaClassifier.isEvent(this.media) ||
-      // If the event certainly has no clip, don't bother going further. If
-      // we're not sure for this camera type (i.e. hasClip() === null) the query
-      // will proceed anyway.
-      this.media.hasClip() === false ||
       !MediaQueriesClassifier.areEventQueries(this.view.query)
     ) {
       return;
