@@ -83,7 +83,12 @@ lovelace:
 
 You can install any unreleased version of the card by leveraging the GitHub Actions artifacts that are generated on every revision. Here is a video walkthrough installing the latest revision of the `release-4.1.0` branch:
 
+<details>
+  <summary>Click here to show</summary>
+
 https://user-images.githubusercontent.com/29582865/228320074-6a2607f5-c637-48d5-b833-a553f8df8f4f.mp4
+
+</details>
 
 ## Configuration
 
