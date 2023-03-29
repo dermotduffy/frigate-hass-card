@@ -49,15 +49,18 @@ export class TimelineDataSource {
 
   protected _cameraIDs: Set<string>;
   protected _mediaType: ClipsOrSnapshotsOrAll;
+  protected _showRecordings: boolean;
 
   constructor(
     cameraManager: CameraManager,
     cameraIDs: Set<string>,
     media: ClipsOrSnapshotsOrAll,
+    showRecordings: boolean,
   ) {
     this._cameraManager = cameraManager;
     this._cameraIDs = cameraIDs;
     this._mediaType = media;
+    this._showRecordings = showRecordings;
   }
 
   get dataset(): DataSet<FrigateCardTimelineItem> {
@@ -83,7 +86,7 @@ export class TimelineDataSource {
     try {
       await Promise.all([
         this._refreshEvents(hass, window),
-        this._refreshRecordings(hass, window),
+        ...(this._showRecordings ? [this._refreshRecordings(hass, window)] : []),
       ]);
     } catch (e) {
       errorToConsole(e as Error);
