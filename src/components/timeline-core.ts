@@ -1073,6 +1073,7 @@ export class FrigateCardTimelineCore extends LitElement {
           this.cameraManager,
           cameraIDs,
           this.timelineConfig.media,
+          this.timelineConfig.show_recordings,
         );
       } else {
         this._timelineSource = null;
