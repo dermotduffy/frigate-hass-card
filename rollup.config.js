@@ -91,11 +91,12 @@ const config = {
     }),
   },
   plugins: plugins,
-  // These two files use this at the toplevel, which causes rollup warning
-  // spam on build: `this` has been rewritten to `undefined`
+  // These files use this at the toplevel, which causes rollup warning
+  // spam on build: `this` has been rewritten to `undefined`.
   moduleContext: {
     './node_modules/@formatjs/intl-utils/lib/src/diff.js': 'window',
     './node_modules/@formatjs/intl-utils/lib/src/resolve-locale.js': 'window',
+    './node_modules/flatpickr/dist/esm/index.js': 'window',
   },
 };
 

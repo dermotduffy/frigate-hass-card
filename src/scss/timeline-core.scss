@@ -141,11 +141,14 @@ div.vis-tooltip {
   pointer-events: none;
 }
 
-ha-icon.lock {
+.timeline-tools {
   position: absolute;
   right: 2px;
   bottom: 2px;
   color: var(--primary-color);
   z-index: 10;
+}
+
+.timeline-tools ha-icon {
   cursor: pointer;
 }

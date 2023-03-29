@@ -59,6 +59,10 @@ import { ViewMediaClassifier } from '../view/media-classifier';
 import { rangesOverlap } from '../camera-manager/range';
 import { View } from '../view/view';
 import { MediaQuery } from '../camera-manager/types';
+import './date-picker.js';
+import { DatePickerEvent, FrigateCardDatePicker } from './date-picker.js';
+import startOfDay from 'date-fns/startOfDay';
+import endOfDay from 'date-fns/endOfDay';
 
 interface FrigateCardGroupData {
   id: string;
@@ -191,7 +195,10 @@ export class FrigateCardTimelineCore extends LitElement {
   protected _locked = false;
 
   protected _targetBarVisible = false;
+
+  protected _refDatePicker: Ref<FrigateCardDatePicker> = createRef();
   protected _refTimeline: Ref<HTMLElement> = createRef();
+
   protected _timeline?: Timeline;
 
   protected _timelineSource: TimelineDataSource | null = null;
@@ -260,6 +267,10 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     const capabilities = this.cameraManager?.getAggregateCameraCapabilities(cameraIDs);
+    const lockTitle = this._locked
+      ? localize('timeline.unlock')
+      : localize('timeline.lock');
+
     return html` ${capabilities?.supportsTimeline
       ? html` <div
           @frigate-card:timeline:thumbnail-data-request=${this._handleThumbnailDataRequest.bind(
@@ -268,20 +279,36 @@ export class FrigateCardTimelineCore extends LitElement {
           class="timeline"
           ${ref(this._refTimeline)}
         >
-          <ha-icon
-            class="lock"
-            .icon=${`mdi:${this._locked ? 'lock' : 'lock-open-variant'}`}
-            @click=${() => {
-              this._locked = !this._locked;
-            }}
-            aria-label="${this._locked
-              ? localize('timeline.unlock')
-              : localize('timeline.lock')}"
-            title="${this._locked
-              ? localize('timeline.unlock')
-              : localize('timeline.lock')}"
-          >
-          </ha-icon>
+          <div class="timeline-tools">
+            <frigate-card-date-picker
+              ${ref(this._refDatePicker)}
+              @frigate-card:date-picker:change=${(ev: CustomEvent<DatePickerEvent>) => {
+                this._timeline?.setWindow(
+                  startOfDay(ev.detail.date),
+                  endOfDay(ev.detail.date),
+                );
+              }}
+            >
+            </frigate-card-date-picker>
+            <ha-icon
+              .icon=${`mdi:calendar-search`}
+              aria-label="${localize('timeline.select_date')}"
+              title="${localize('timeline.select_date')}"
+              @click=${() => {
+                this._refDatePicker.value?.open();
+              }}
+            >
+            </ha-icon>
+            <ha-icon
+              .icon=${`mdi:${this._locked ? 'lock' : 'lock-open-variant'}`}
+              @click=${() => {
+                this._locked = !this._locked;
+              }}
+              aria-label="${lockTitle}"
+              title="${lockTitle}"
+            >
+            </ha-icon>
+          </div>
         </div>`
       : ''}`;
   }
@@ -896,9 +923,9 @@ export class FrigateCardTimelineCore extends LitElement {
     const mediaEndTime = media?.getEndTime();
     const mediaWindow: TimelineWindow | null =
       media && mediaStartTime
-        // If this media has no end time, it's just a "point" in time so the
-        // range effectively starts/ends at the same time.
-        ? { start: mediaStartTime, end: mediaEndTime ?? mediaStartTime }
+        ? // If this media has no end time, it's just a "point" in time so the
+          // range effectively starts/ends at the same time.
+          { start: mediaStartTime, end: mediaEndTime ?? mediaStartTime }
         : null;
     const context = this.view.context?.timeline;
 
