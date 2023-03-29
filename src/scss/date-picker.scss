@@ -1,0 +1,7 @@
+// The lit-flatpickr element itself is hidden as we only want the popup
+// calender.
+lit-flatpickr {
+  visibility: hidden;
+  width: 0px;
+  height: 0px;
+}

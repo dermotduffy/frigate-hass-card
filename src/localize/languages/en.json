@@ -461,6 +461,7 @@
   },
   "timeline": {
     "lock": "Lock timeline to a single event",
+    "select_date": "Choose date",
     "unlock": "Unlock timeline"
   },
   "elements": {
