@@ -142,7 +142,7 @@ export class CameraManager {
     for (const [index, cameraConfig] of camerasConfig.entries()) {
       const engineType = engineTypes[index];
       const engine = engineType
-        ? engines.get(engineType) ?? this._engineFactory.createEngine(engineType)
+        ? engines.get(engineType) ?? await this._engineFactory.createEngine(engineType)
         : null;
       if (!engine || !engineType) {
         throw new CameraInitializationError(

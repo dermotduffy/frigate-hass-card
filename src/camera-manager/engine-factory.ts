@@ -9,9 +9,6 @@ import { ResolvedMediaCache } from '../utils/ha/resolved-media';
 import { MemoryRequestCache, RecordingSegmentsCache, RequestCache } from './cache';
 import { CameraManagerEngine } from './engine';
 import { CameraInitializationError } from './error';
-import { FrigateCameraManagerEngine } from './frigate/engine-frigate';
-import { GenericCameraManagerEngine } from './generic/engine-generic';
-import { MotionEyeCameraManagerEngine } from './motioneye/engine-motioneye';
 import { Engine } from './types';
 
 export class CameraManagerEngineFactory {
@@ -29,13 +26,15 @@ export class CameraManagerEngineFactory {
     this._resolvedMediaCache = resolvedMediaCache;
   }
 
-  public createEngine(engine: Engine): CameraManagerEngine | null {
+  public async createEngine(engine: Engine): Promise<CameraManagerEngine | null> {
     let cameraManagerEngine: CameraManagerEngine | null = null;
     switch (engine) {
       case Engine.Generic:
+        const { GenericCameraManagerEngine } = await import('./generic/engine-generic');
         cameraManagerEngine = new GenericCameraManagerEngine();
         break;
       case Engine.Frigate:
+        const { FrigateCameraManagerEngine } = await import('./frigate/engine-frigate');
         cameraManagerEngine = new FrigateCameraManagerEngine(
           this._cardWideConfig,
           new RecordingSegmentsCache(),
@@ -43,6 +42,9 @@ export class CameraManagerEngineFactory {
         );
         break;
       case Engine.MotionEye:
+        const { MotionEyeCameraManagerEngine } = await import(
+          './motioneye/engine-motioneye'
+        );
         cameraManagerEngine = new MotionEyeCameraManagerEngine(
           new BrowseMediaManager(new MemoryRequestCache<string, BrowseMedia>()),
           this._resolvedMediaCache,
