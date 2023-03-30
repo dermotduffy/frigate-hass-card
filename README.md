@@ -35,6 +35,10 @@ A full-featured Frigate Lovelace card:
 
 See more [screenshots](#screenshots) below.
 
+## Supported Browsers
+
+Modern Safari, Firefox and Chrome-based browsers are supported, as well as the Home Assistant App on Android and iOS. Other/older browsers may work, but are unsupported.
+
 ## Installation
 
 * [HACS](https://hacs.xyz/) is **highly** recommended to install the card -- it works for all Home Assistant variants. If you don't have [HACS](https://hacs.xyz/) installed, start there -- then come back to these instructions.
@@ -3767,6 +3771,10 @@ This could be for any number of reasons. Chromecast devices can be quite picky o
 ### Javascript console shows `[Violation] Added non-passive event listener to a scroll-blocking [...] event`
 
 This card uses [visjs](https://github.com/visjs/vis-timeline) -- a timeline library -- to show camera timelines. This library currently uses non-passive event-listeners. These warnings can be safely ignored in this instance and cannot easily be fixed in the underlying library.
+
+### Custom element does not exist
+
+This is usually a sign that the card is not correctly installed (i.e. the browser cannot find the Javascript). In cases where it works in some browsers / devices but not in others it may simply be an old browser / webview that does not support modern Javascript (this is occasionally seen on old Android hardware). In this latter case, you are out of luck.
 
 ## Development
 
