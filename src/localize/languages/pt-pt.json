@@ -1,9 +1,10 @@
+#v0.2
 {
   "common": {
     "frigate_card": "Cartão Frigate",
     "frigate_card_description": "Um cartão da Lovelace para usar com Frigate",
     "live": "Ao Vivo",
-    "no_media": "sem média",
+    "no_media": "Sem média",
     "recordings": "Gravações",
     "version": "Versão"
   },
@@ -16,65 +17,65 @@
         "editor_label": "Opções de dependência"
       },
       "engines": {
-        "editor_label": "editor de rotulos"
+        "editor_label": "Editor de rotulos"
       },
       "frigate": {
         "camera_name": "Nome da câmera do Frigate (detectado automaticamente pela entidade)",
         "client_id": "ID do cliente do Frigate (para >1 servidor Frigate)",
-        "labels": "rotulos",
+        "labels": "Rotulos",
         "editor_label": "Opções do Frigate",
         "url": "URL do servidor Frigate",
-        "zones": "zonas"
+        "zones": "Zonas"
       },
       "go2rtc": {
-        "editor_label": "editor de rotulos",
+        "editor_label": "Editor de rotulos",
         "modes": {
-          "editor_label": "editor de rotulos",
-          "mse": "mse",
-          "webrtc": "webrtc",
-          "mp4": "mp4",
-          "mjpeg": "mjpeg"
+          "editor_label": "Editor de rotulos",
+          "mse": "Mse",
+          "webrtc": "Webrtc",
+          "mp4": "Mp4",
+          "mjpeg": "Mjpeg"
         },
-        "stream": "stream"
+        "stream": "Stream"
       },
-      "hide": "esconder",
+      "hide": "Esconder",
       "icon": "Ícone para esta câmera (detectado automaticamente pela entidade)",
       "image": {
-        "editor_label": "editor etiquetas",
-        "refresh_seconds": "refresh em segundos",
-        "url": "link"
+        "editor_label": "Editor etiquetas",
+        "refresh_seconds": "Atualizar em segundos",
+        "url": "Link"
       },
       "id": "ID exclusivo para esta câmera nesse cartão",
-      "live_provider": "Provedor de visualização ao vivo para esta câmera",
+      "live_provider": "Fonte de visualização ao vivo para esta câmera",
       "live_provider_options": {
-        "editor_label": "editor de etiquetas"
+        "editor_label": "Editor de etiquetas"
       },
       "live_providers": {
         "auto": "Automatico",
         "jsmpeg": "JSMpeg",
-        "go2rtc": "go2rtc",
-        "ha": "ha",
-        "image": "imagem",
+        "go2rtc": "Go2rtc",
+        "ha": "Ha",
+        "image": "Imagem",
         "webrtc-card": "Cartão WebRTC (de @AlexxIT)"
       },
       "motioneye": {
-        "editor_label": "directory_pattern",
+        "editor_label": "Directoria pre-definido",
         "images": {
-          "directory_pattern": "directory_pattern",
-          "file_pattern": "file_pattern"
+          "directory_pattern": "Directoria pre-definido",
+          "file_pattern": "Ficheiro pre-definido"
         },
         "movies": {
-          "directory_pattern": "directory_pattern",
-          "file_pattern": "file_pattern"
+          "directory_pattern": "Directoria pre-definida",
+          "file_pattern": "Ficheiro pre-definido"
         },
-        "url": "link"
+        "url": "Link"
       },
       "title": "Título para esta câmera (detectado automaticamente pela entidade)",
       "triggers": {
-        "entities": "Acionar a partir de outras entidades",
-        "motion": "Acionar detectando automaticamente o sensor de movimento",
-        "occupancy": "Acionar detectando automaticamente o sensor de ocupação",
-        "editor_label": "Opções de acionamento"
+        "entities": "Activar a partir de outras entidades",
+        "motion": "Activar detectando automaticamente o sensor de movimento",
+        "occupancy": "Activar detectando automaticamente o sensor de ocupação",
+        "editor_label": "Opções de activação"
       },
       "webrtc_card": {
         "entity": "Entidade de câmera de cartão WebRTC (não é uma câmera Frigate)",
@@ -92,11 +93,11 @@
         "visible": "Ao mostrar o navegador/aba"
       },
       "layout": {
-        "fit": "fit",
+        "fit": "Fit",
         "fits": {
-          "cover": "cover",
-          "contain": "contain",
-          "fill": "fill"
+          "cover": "Tapar",
+          "contain": "Conter",
+          "fill": "Preencher"
         },
         "position": {
           "x": "x",
@@ -116,16 +117,16 @@
       },
       "controls": {
         "filter": {
-          "editor_label": "editor de titulos",
-          "mode": "modo",
+          "editor_label": "Editor de titulos",
+          "mode": "Modo",
           "modes": {
-            "none": "nenhum",
-            "left": "esquerda",
-            "right": "direita"
+            "none": "Nenhum",
+            "left": "Esquerda",
+            "right": "Direita"
           }
         },
         "next_previous": {
-          "editor_label": "",
+          "editor_label": "Editor de rótulos",
           "size": "Tamanho de controle próximo e anterior",
           "style": "Estilo do controle próximo e anterior",
           "styles": {
@@ -137,21 +138,21 @@
         },
         "timeline": {
           "editor_label": "Controles de linha do tempo",
-          "mode": "modo",
+          "mode": "Modo",
           "modes": {
-            "none": "nenhum",
-            "above": "por cima",
-            "below": "abaixo"
+            "none": "Nenhum",
+            "above": "Por cima",
+            "below": "Abaixo"
           }
         },
         "thumbnails": {
           "editor_label": "Editor de titulos",
-          "media": "Se deve mostrar miniaturas de clipes ou snapshots",
+          "media": "Mostrar miniaturas de clipes ou snapshots",
           "medias": {
             "clips": "Miniaturas de clipes",
             "snapshots": "Miniaturas de Snapshots"
           },
-          "mode": "modos",
+          "mode": "Modos",
           "modes": {
             "above": "Miniaturas acima da mídia",
             "below": "Miniaturas abaixo da mídia",
@@ -159,10 +160,10 @@
             "none": "Sem miniaturas",
             "right": "Miniaturas em uma gaveta à direita"
           },
-          "show_details": "Mostar detalhes",
-          "show_download_control": "",
-          "show_favorite_control": "Mostrar controle de favorito nas miniaturas",
-          "show_timeline_control": "Mostrar controle da linha do tempo nas miniaturas",
+          "show_details": "Mostrar detalhes",
+          "show_download_control": "Mostrar o butão de download",
+          "show_favorite_control": "Mostrar o butão de favorito nas miniaturas",
+          "show_timeline_control": "Mostrar a linha do tempo nas miniaturas",
           "size": "Tamanho das miniaturas em pixels"
         },
         "title": {
@@ -189,7 +190,7 @@
       }
     },
     "image": {
-      "layout": "layout",
+      "layout": "Layout",
       "mode": "Modo de visualização de imagem",
       "modes": {
         "camera": "Instantâneo da câmera do Home Assistant, da entidade de câmera",
@@ -225,7 +226,7 @@
       },
       "draggable": "Visualizador de eventos pode ser arrastado/deslizado",
       "lazy_load": "A mídia do Visualizador de eventos é carregada lentamente no carrossel",
-      "layout": "layout",
+      "layout": "Layout",
       "transition_effect": "Efeito de transição do Visualizador de eventos",
       "transition_effects": {
         "none": "Sem transição",
@@ -247,12 +248,12 @@
           "matching": "Mesmo alinhamento do menu",
           "opposing": "Opor-se ao alinhamento do menu"
         },
-        "camera_ui": "",
+        "camera_ui": "Camera",
         "cameras": "Selecionar câmera",
         "clips": "Clipes",
         "download": "Baixe a mídia do evento",
         "enabled": "Botão ativado",
-        "expand": "expandir",
+        "expand": "Expandir",
         "frigate": "Frigate menu / Visualização padrão",
         "fullscreen": "Tela cheia",
         "icon": "Ícone",
@@ -286,19 +287,19 @@
     "performance": {
       "warning": "Avisos",
       "features": {
-        "editor_label": "editor_label",
-        "animated_progress_indicator": "animated_progress_indicator",
-        "media_chunk_size": "media_chunk_size"
+        "editor_label": "Editor de rotulos",
+        "animated_progress_indicator": "Animação na barra de progresso",
+        "media_chunk_size": "Tamanho do ficheiro"
       },
-      "profile": "perfil",
+      "profile": "Perfil",
       "profiles": {
-        "low": "baixo",
+        "low": "Baixo",
         "high": "Alto"
       },
       "style": {
-        "editor_label": "editor_label",
-        "box_shadow": "box_shadow",
-        "border_radius": "border_radius"
+        "editor_label": "Editor de rotulos",
+        "box_shadow": "Caixa de Fundo",
+        "border_radius": "Tamanho da borda"
       }
     },
     "view": {
@@ -380,17 +381,17 @@
     "invalid_elements_config": "Configuração de elementos de imagem inválida",
     "invalid_response": "Resposta inválida recebida do Home Assistant para a solicitação",
     "jsmpeg_no_player": "Não foi possível iniciar o player JSMPEG",
-    "live_camera_no_endpoint": "sem câmera ao vivo",
-    "live_camera_not_found": "câmera ao vivo não encontrada",
-    "live_camera_unavailable": "câmera ao vivo indisponivel",
+    "live_camera_no_endpoint": "Nenhuma câmera ao vivo",
+    "live_camera_not_found": "Nenhuma câmera ao vivo não foi encontrada",
+    "live_camera_unavailable": "Câmera ao vivo indisponivel",
     "no_camera_engine": "Não existe câmera",
-    "no_camera_entity": "Não existe uma entidade câmera  ",
+    "no_camera_entity": "Não existe uma entidade câmera",
     "no_camera_entity_for_triggers": "Não existe camera para a acção",
     "no_camera_id": "Não foi possível determinar o ID da câmera para a câmera a seguir, pode ser necessário definir o parâmetro 'id' manualmente",
     "no_camera_name": "Não foi possível determinar o nome da câmera da Frigate, especifique 'camera_entity' ou 'camera_name' para a câmera a seguir",
     "no_live_camera": "O parâmetro camera_entity deve ser definido e válido para este serviço ativo",
-    "no_visible_cameras": "",
-    "reconnecting": "Reconectando",
+    "no_visible_cameras": "Sem camaras visiveis",
+    "reconnecting": "A voltar a ligar",
     "timeline_no_cameras": "Nenhuma câmera do Frigate para mostrar na linha do tempo",
     "troubleshooting": "Verifique a solução de problemas",
     "unknown": "Erro desconhecido",
@@ -399,49 +400,49 @@
     "webrtc_card_waiting": "Aguardar o cartão WebRTC carregar ..."
   },
   "event": {
-    "camera": "camera",
+    "camera": "Camera",
     "duration": "Duração",
     "in_progress": "Em andamento",
     "score": "Pontuação",
     "seek": "Procurar",
     "start": "Início",
-    "what": "o quê",
-    "where": "onde"
+    "what": "O quê",
+    "where": "Onde"
   },
   "media_filter": {
-    "all": "todos",
-    "camera": "camera",
-    "favorite": "favoritos",
-    "media_type": "tipos de media",
+    "all": "Todos",
+    "camera": "Camera",
+    "favorite": "Favoritos",
+    "media_type": "Tipos de media",
     "media_types": {
-      "clips": "clips",
-      "snapshots": "imagens",
-      "recordings": "gravações"
+      "clips": "Clips",
+      "snapshots": "Imagens",
+      "recordings": "Gravações"
     },
-    "not_favorite": "não favorito",
-    "select_camera": "seleciona a camarera",
-    "select_favorite": "seleciona o favorito",
-    "select_media_type": "seleciona o tipo de media",
-    "select_what": "seleciona",
-    "select_when": "seleciona quando",
-    "select_where": "seleciona onde",
-    "what": "o que",
-    "when": "quando",
+    "not_favorite": "Não favorito",
+    "select_camera": "Seleciona a camara",
+    "select_favorite": "Seleciona o favorito",
+    "select_media_type": "Seleciona o tipo de media",
+    "select_what": "Seleciona",
+    "select_when": "Seleciona quando",
+    "select_where": "Seleciona onde",
+    "what": "O que",
+    "when": "Quando",
     "whens": {
-      "past_month": "o mes passado",
-      "past_week": "a semana passda",
-      "today": "hoje",
-      "yesterday": "ontem"
+      "past_month": "O mes passado",
+      "past_week": "A semana passda",
+      "today": "Hoje",
+      "yesterday": "Ontem"
     },
-    "where": "onde"
+    "where": "Onde"
   },
   "recording": {
-    "camera": "camera",
-    "duration": "duração",
+    "camera": "Camera",
+    "duration": "Duração",
     "events": "Eventos",
     "in_progress": "Em andamento",
     "seek": "Procurar",
-    "start": "começar"
+    "start": "Começar"
   },
   "thumbnail": {
     "no_thumbnail": "Nenhuma miniatura disponível",
@@ -449,19 +450,19 @@
     "timeline": "Ver evento na linha do tempo"
   },
   "timeline": {
-    "lock": "bloquear",
-    "select_date": "selecionar a data",
-    "unlock": "desbloquear"
+    "lock": "Bloquear",
+    "select_date": "Selecionar a data",
+    "unlock": "Desbloquear"
   },
   "elements": {
     "ptz": {
-      "up": "cima",
-      "down": "baixo",
-      "left": "esquerda",
-      "right": "direira",
-      "zoom_in": "ampliar",
-      "zoom_out": "reduzir",
-      "home": ""
+      "up": "Cima",
+      "down": "Baixo",
+      "left": "Esquerda",
+      "right": "Direira",
+      "zoom_in": "Ampliar",
+      "zoom_out": "Reduzir",
+      "home": "Origem"
     }
   }
 }
