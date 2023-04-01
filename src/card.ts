@@ -1218,21 +1218,21 @@ class FrigateCard extends LitElement {
    * @returns `true` if card rendering can continue.
    */
   protected _initializeBackground(): void {
-    if (this._initializer.isInitialized(InitializationAspect.MEDIA_PLAYERS)) {
-      return;
-    }
     const hass = this._hass;
     const config = this._getConfig();
-    if (!hass || !config) {
+    const needMediaPlayers = config.menu.buttons.media_player.enabled;
+    if (!hass || !config || !needMediaPlayers) {
+      return;
+    }
+
+    if (!this._initializer.isInitialized(InitializationAspect.MEDIA_PLAYERS)) {
       return;
     }
 
     this._initializer
       .initializeMultipleIfNecessary({
-        ...(config.menu.buttons.media_player.enabled && {
-          [InitializationAspect.MEDIA_PLAYERS]: async () =>
-            await this._initializeMediaPlayers(hass),
-        }),
+        [InitializationAspect.MEDIA_PLAYERS]: async () =>
+          await this._initializeMediaPlayers(hass),
       })
       .then((initialized) => {
         if (initialized) {
