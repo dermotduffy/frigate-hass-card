@@ -280,6 +280,26 @@ export class FrigateCardTimelineCore extends LitElement {
           ${ref(this._refTimeline)}
         >
           <div class="timeline-tools">
+            ${this._shouldSupportSeeking()
+              ? html` <ha-icon
+                  .icon=${`mdi:${this._locked ? 'lock' : 'lock-open-variant'}`}
+                  @click=${() => {
+                    this._locked = !this._locked;
+                  }}
+                  aria-label="${lockTitle}"
+                  title="${lockTitle}"
+                >
+                </ha-icon>`
+              : ''}
+            <ha-icon
+              .icon=${`mdi:calendar-search`}
+              aria-label="${localize('timeline.select_date')}"
+              title="${localize('timeline.select_date')}"
+              @click=${() => {
+                this._refDatePicker.value?.open();
+              }}
+            >
+            </ha-icon>
             <frigate-card-date-picker
               ${ref(this._refDatePicker)}
               @frigate-card:date-picker:change=${(ev: CustomEvent<DatePickerEvent>) => {
@@ -290,24 +310,6 @@ export class FrigateCardTimelineCore extends LitElement {
               }}
             >
             </frigate-card-date-picker>
-            <ha-icon
-              .icon=${`mdi:calendar-search`}
-              aria-label="${localize('timeline.select_date')}"
-              title="${localize('timeline.select_date')}"
-              @click=${() => {
-                this._refDatePicker.value?.open();
-              }}
-            >
-            </ha-icon>
-            <ha-icon
-              .icon=${`mdi:${this._locked ? 'lock' : 'lock-open-variant'}`}
-              @click=${() => {
-                this._locked = !this._locked;
-              }}
-              aria-label="${lockTitle}"
-              title="${lockTitle}"
-            >
-            </ha-icon>
           </div>
         </div>`
       : ''}`;
@@ -357,6 +359,16 @@ export class FrigateCardTimelineCore extends LitElement {
     }
   }
 
+  protected _shouldSupportSeeking(): boolean {
+    const cameraIDs = this._getTimelineCameraIDs();
+    if (!this._timeline || !cameraIDs) {
+      return false;
+    }
+
+    const capabilities = this.cameraManager?.getAggregateCameraCapabilities(cameraIDs);
+    return (this.view?.isViewerView() && capabilities?.canSeek) ?? false;
+  }
+
   /**
    * Set the target bar at a given time.
    * @param targetTime
@@ -367,18 +379,19 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     const targetBarOn =
-      !this._locked ||
-      (this.mini &&
-        this._timeline.getSelection().some((id) => {
-          const item = this._timelineSource?.dataset?.get(id);
-          return (
-            item &&
-            item.start &&
-            item.end &&
-            targetTime.getTime() >= item.start &&
-            targetTime.getTime() <= item.end
-          );
-        }));
+      this._shouldSupportSeeking() &&
+      (!this._locked ||
+        (this.mini &&
+          this._timeline.getSelection().some((id) => {
+            const item = this._timelineSource?.dataset?.get(id);
+            return (
+              item &&
+              item.start &&
+              item.end &&
+              targetTime.getTime() >= item.start &&
+              targetTime.getTime() <= item.end
+            );
+          })));
 
     if (targetBarOn) {
       if (!this._targetBarVisible) {

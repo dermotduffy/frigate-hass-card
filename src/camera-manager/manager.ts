@@ -747,6 +747,9 @@ export class CameraManager {
       canFavoriteRecordings: perCameraCapabilities.some(
         (cap) => cap?.canFavoriteRecordings,
       ),
+      canSeek: perCameraCapabilities.some(
+        (cap) => cap?.canSeek,
+      ),
 
       supportsClips: perCameraCapabilities.some((cap) => cap?.supportsClips),
       supportsRecordings: perCameraCapabilities.some((cap) => cap?.supportsRecordings),
