@@ -1416,15 +1416,15 @@ Pan around a large camera view to only show part of the video feed in the card a
 
 ### Video Scrubbing
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/media-layout-b.png" alt="Media Layout B" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/video-scrubbing.png" alt="Video Scrubbing" width="400px">
 
 ### Media filtering
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/media-filtering.gif" alt="Media Filtering" width="400px">
 
-### Seamless integration of camera sources
+### Seamless integration of different camera sources/engines
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/motioneye.gif" alt="Media Filtering" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/motioneye.gif" alt="MotionEye Support" width="400px">
 
 ### Expanded mode
 
@@ -1432,7 +1432,7 @@ Pan around a large camera view to only show part of the video feed in the card a
 
 ### Substream Support
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/substream.gif" alt="Expanded Mode" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/substream.gif" alt="Substream Support" width="400px">
 
 ### Timeline Date Picking
 
