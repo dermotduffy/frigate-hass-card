@@ -94,6 +94,7 @@ export interface MediaMetadata {
 interface BaseCapabilities {
   canFavoriteEvents: boolean;
   canFavoriteRecordings: boolean;
+  canSeek: boolean;
 
   supportsClips: boolean;
   supportsRecordings: boolean;

@@ -177,6 +177,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     return {
       canFavoriteEvents: false,
       canFavoriteRecordings: false,
+      canSeek: false,
       supportsClips: false,
       supportsRecordings: false,
       supportsSnapshots: false,

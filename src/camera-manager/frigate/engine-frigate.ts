@@ -1076,6 +1076,7 @@ export class FrigateCameraManagerEngine
     return {
       canFavoriteEvents: !isBirdseye,
       canFavoriteRecordings: !isBirdseye,
+      canSeek: true,
       supportsClips: !isBirdseye,
       supportsSnapshots: !isBirdseye,
       supportsRecordings: !isBirdseye,
