@@ -62,7 +62,7 @@ const MOTIONEYE_REPL_SUBSTITUTIONS: Record<string, string> = {
   '%d': 'dd',
   '%H': 'HH',
   '%M': 'mm',
-  '%S': 'SS',
+  '%S': 'ss',
 };
 const MOTIONEYE_REPL_REGEXP = new RegExp(/(%Y|%m|%d|%H|%M|%S)/g);
 
