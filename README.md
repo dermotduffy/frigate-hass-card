@@ -1438,6 +1438,10 @@ Pan around a large camera view to only show part of the video feed in the card a
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/date-picker.gif" alt="Timeline Date Picking" width="400px">
 
+### Low performance mode
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/performance.png" alt="Low Performance Mode" width="400px">
+
 ## Examples
 
 ### Illustrative Expanded Configuration Reference
