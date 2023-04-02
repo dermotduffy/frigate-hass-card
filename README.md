@@ -10,7 +10,8 @@
 [![GitHub Release](https://img.shields.io/github/release/dermotduffy/frigate-hass-card.svg?style=flat-square)](https://github.com/dermotduffy/frigate-hass-card/releases)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/dermotduffy/frigate-hass-card/build.yml?style=flat-square)](https://github.com/dermotduffy/frigate-hass-card/actions/workflows/build.yml)
 [![License](https://img.shields.io/github/license/dermotduffy/frigate-hass-card.svg?style=flat-square)](LICENSE)
-[![hacs](https://img.shields.io/badge/HACS-default-orange.svg?style=flat-square)](https://hacs.xyz) <iframe src="https://github.com/sponsors/dermotduffy/button" title="Sponsor development" height="20" width="71.25" style="border: 0; border-radius: 0px;"></iframe>
+[![HACS](https://img.shields.io/badge/HACS-default-orange.svg?style=flat-square)](https://hacs.xyz) 
+[![Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86&style=flat-square)](https://github.com/sponsors/dermotduffy) 
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/image-view.png" alt="Frigate card example" width="400px">
 
