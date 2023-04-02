@@ -1441,10 +1441,11 @@ class FrigateCard extends LitElement {
           window.open(url);
         }
         break;
+      case 'expand':
+        this._setExpand(!this._expand);
+        break;
       case 'fullscreen':
-        if (screenfull.isEnabled) {
-          screenfull.toggle(this);
-        }
+        this._toggleFullscreen();
         break;
       case 'menu_toggle':
         // This is a rare code path: this would only be used if someone has a
@@ -1487,9 +1488,6 @@ class FrigateCard extends LitElement {
         break;
       case 'diagnostics':
         this._diagnostics();
-        break;
-      case 'expand':
-        this._setExpand(!this._expand);
         break;
       default:
         console.warn(`Frigate card received unknown card action: ${action}`);
@@ -1926,8 +1924,21 @@ class FrigateCard extends LitElement {
   }
 
   protected _setExpand(expand: boolean): void {
+    if (screenfull.isEnabled && screenfull.isFullscreen) {
+      // Fullscreen and expanded mode are mutually exclusive.
+      screenfull.exit();
+    }
+
     this._expand = expand;
     this._generateConditionState();
+  }
+
+  protected _toggleFullscreen(): void {
+    if (screenfull.isEnabled) {
+      // Fullscreen and expanded mode are mutually exclusive.
+      this._expand = false;
+      screenfull.toggle(this);
+    }
   }
 
   protected _renderInDialogIfNecessary(contents: TemplateResult): TemplateResult | void {
