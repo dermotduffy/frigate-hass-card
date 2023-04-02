@@ -33,7 +33,10 @@ export function getLanguage(hass?: HomeAssistant): string {
   // Then the language that hass may have stored locally.
   const storageLanguage = localStorage.getItem('selectedLanguage');
   if (storageLanguage) {
-    return canonicalizeLanguage(JSON.parse(storageLanguage));
+    const parsedLanguage: string | null = JSON.parse(storageLanguage);
+    if (parsedLanguage) {
+      return canonicalizeLanguage(parsedLanguage);
+    }
   }
 
   // Then fall back to the browser language.
