@@ -184,4 +184,8 @@ web-dialog {
 
 web-dialog::part(dialog) {
   aspect-ratio: var(--frigate-card-expand-aspect-ratio);
+
+  // Fixes to render the dialog correctly in Safari.
+  border-radius: 0px;
+  background: transparent;
 }
