@@ -7,6 +7,7 @@ package-lock.json
 .envrc
 
 stats.html
+/coverage/
 
 # https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
 .pnp.*

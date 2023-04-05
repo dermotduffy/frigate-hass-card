@@ -58,10 +58,6 @@ export class CameraManagerEngineFactory {
     hass: HomeAssistant,
     cameraConfig: CameraConfig,
   ): Promise<Engine | null> {
-    if (!cameraConfig) {
-      return null;
-    }
-
     let engine: Engine | null = null;
     if (cameraConfig.engine === 'frigate') {
       engine = Engine.Frigate;
