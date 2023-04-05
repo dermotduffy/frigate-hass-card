@@ -477,7 +477,7 @@ const cameraConfigDefault = {
   },
 };
 
-const cameraConfigSchema = z
+export const cameraConfigSchema = z
   .object({
     camera_entity: z.string().optional(),
 

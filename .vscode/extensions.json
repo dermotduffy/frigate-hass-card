@@ -8,6 +8,7 @@
     "runem.lit-plugin",
     "davidanson.vscode-markdownlint",
     "redhat.vscode-yaml",
-    "lokalise.i18n-ally"
+    "lokalise.i18n-ally",
+    "zixuanchen.vitest-explorer"
   ]
 }
