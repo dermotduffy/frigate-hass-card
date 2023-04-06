@@ -34,6 +34,10 @@ export class MemoryRequestCache<Request, Response>
     return null;
   }
 
+  public clear(): void {
+    this._data = [];
+  }
+
   public has(request: Request): boolean {
     return !!this.get(request);
   }
@@ -92,7 +96,7 @@ class MemoryRangedCache<Data> {
     const output: Data[] = [];
     for (const data of this._data) {
       const start = this._timeFunc(data);
-      if (start > range.start.getTime()) {
+      if (start >= range.start.getTime()) {
         if (start > range.end.getTime()) {
           // Data is kept in order.
           break;
@@ -103,7 +107,7 @@ class MemoryRangedCache<Data> {
     return output;
   }
 
-  public size(): number {
+  public getSize(): number {
     return this._data.length;
   }
 
@@ -114,7 +118,7 @@ class MemoryRangedCache<Data> {
    * @param predicate A predicate to run on each data element.
    */
   public expireMatches(predicate: (data: Data) => boolean): void {
-    this._data = this._data.filter(predicate);
+    this._data = this._data.filter((data) => !predicate(data));
   }
 }
 
@@ -134,6 +138,10 @@ export class RecordingSegmentsCache {
     cameraSegmentCache.add(range, segments);
   }
 
+  public clear(): void {
+    this._segments.clear();
+  }
+
   public hasCoverage(cameraID: string, range: DateRange): boolean {
     return !!this._segments.get(cameraID)?.hasCoverage(range);
   }
@@ -142,8 +150,8 @@ export class RecordingSegmentsCache {
     return this._segments.get(cameraID)?.get(range) ?? null;
   }
 
-  public getCache(cameraID: string): MemoryRangedCache<RecordingSegment> | null {
-    return this._segments.get(cameraID) ?? null;
+  public getSize(cameraID: string): number | null {
+    return this._segments.get(cameraID)?.getSize() ?? null;
   }
 
   public getCameraIDs(): string[] {
