@@ -107,6 +107,10 @@ class MemoryRangedCache<Data> {
     return output;
   }
 
+  public getSize(): number {
+    return this._data.length;
+  }
+
   /**
    * Remove old data that matches a given predicate. No change to the covered
    * ranges is made, i.e. this is asserting authoritiatively that this data does
@@ -146,8 +150,8 @@ export class RecordingSegmentsCache {
     return this._segments.get(cameraID)?.get(range) ?? null;
   }
 
-  public getCache(cameraID: string): MemoryRangedCache<RecordingSegment> | null {
-    return this._segments.get(cameraID) ?? null;
+  public getSize(cameraID: string): number | null {
+    return this._segments.get(cameraID)?.getSize() ?? null;
   }
 
   public getCameraIDs(): string[] {

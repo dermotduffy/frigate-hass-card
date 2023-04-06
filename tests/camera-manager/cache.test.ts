@@ -112,15 +112,13 @@ describe('RecordingSegmentsCache', () => {
     expect(cache.hasCoverage('camera-1', range)).toBeFalsy();
   });
 
-  it('should return internal cache', () => {
+  it('should get size', () => {
     cache.add('camera-1', range, segments);
-    const internalCache = cache.getCache('camera-1');
-    expect(internalCache).toBeTruthy();
-    expect(internalCache?.get(range)).toEqual(segments);
+    expect(cache.getSize("camera-1")).toBe(3);
   });
-  it('should not return internal cache for wrong camera', () => {
+  it('should not size for other camera', () => {
     cache.add('camera-1', range, segments);
-    expect(cache.getCache('camera-2')).toBeNull();
+    expect(cache.getSize("camera-2")).toBeNull();
   });
 
   it('should return cameraIDs', () => {

@@ -990,7 +990,7 @@ export class FrigateCameraManagerEngine
     const countSegments = () =>
       sum(
         cameraIDs.map(
-          (cameraID) => this._recordingSegmentsCache.getCache(cameraID)?.size() ?? 0,
+          (cameraID) => this._recordingSegmentsCache.getSize(cameraID) ?? 0,
         ),
       );
     const segmentsStart = countSegments();
