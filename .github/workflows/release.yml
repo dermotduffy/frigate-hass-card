@@ -26,7 +26,7 @@ jobs:
       - name: Zip the files
         uses: montudor/action-zip@v1
         with:
-          args: cd dist/ && zip frigate-hass-card.zip *
+          args: cd dist/ && zip frigate-hass-card.zip *.js
 
       - name: Upload files to release
         uses: svenstaro/upload-release-action@2.5.0
