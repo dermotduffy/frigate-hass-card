@@ -36,7 +36,7 @@ export class MemoryRangeSet implements MemoryRangeSetInterface<DateRange> {
   }
 }
 
-interface ExpiringRange<T extends Date | number> extends Range<T> {
+export interface ExpiringRange<T extends Date | number> extends Range<T> {
   expires: Date;
 }
 
