@@ -20,21 +20,25 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Build the file
+      - name: Build the files
         run: yarn run build
 
-      # Upload build file to the release as an asset.
-      - name: Upload zip to release
+      - name: Zip the files
+        uses: montudor/action-zip@v1
+        with:
+          args: cd dist/ && zip frigate-hass-card.zip *
+
+      - name: Upload files to release
         uses: svenstaro/upload-release-action@2.5.0
 
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist/*.js
+          file: dist/*.js dist/*.zip
           file_glob: true
           tag: ${{ github.ref }}
           overwrite: true
 
       - name: HACS release validation
-        uses: "hacs/action@21.12.1"
+        uses: hacs/action@21.12.1
         with:
-          category: "plugin"
+          category: plugin
