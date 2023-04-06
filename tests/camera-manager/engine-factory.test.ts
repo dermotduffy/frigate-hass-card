@@ -49,20 +49,20 @@ const createEntity = (entity: Partial<Entity>): Entity => {
   };
 };
 
-describe('getEngineForCamera()', () => {
-  it('config:frigate', async () => {
+describe('CameraManagerEngineFactory.getEngineForCamera()', () => {
+  it('should get frigate engine from config', async () => {
     const config = createCameraConfig({ engine: 'frigate' });
     expect(await createFactory().getEngineForCamera(createHASS(), config)).toBe(
       Engine.Frigate,
     );
   });
-  it('config:motionEye', async () => {
+  it('should get motionEye engine from config', async () => {
     const config = createCameraConfig({ engine: 'motioneye' });
     expect(await createFactory().getEngineForCamera(createHASS(), config)).toBe(
       Engine.MotionEye,
     );
   });
-  it('auto:frigate', async () => {
+  it('should get frigate engine from auto config', async () => {
     const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
     const entityRegistryManager = new EntityRegistryManager(new EntityCache());
 
@@ -76,7 +76,7 @@ describe('getEngineForCamera()', () => {
       }).getEngineForCamera(createHASS(), config),
     ).toBe(Engine.Frigate);
   });
-  it('auto:motioneye', async () => {
+  it('should get motioneye engine from auto config', async () => {
     const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
     const entityRegistryManager = new EntityRegistryManager(new EntityCache());
 
@@ -92,7 +92,7 @@ describe('getEngineForCamera()', () => {
       }).getEngineForCamera(createHASS(), config),
     ).toBe(Engine.MotionEye);
   });
-  it('auto:motioneye', async () => {
+  it('should get generic engine from auto config', async () => {
     const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
     const entityRegistryManager = new EntityRegistryManager(new EntityCache());
 
@@ -106,7 +106,7 @@ describe('getEngineForCamera()', () => {
       }).getEngineForCamera(createHASS(), config),
     ).toBe(Engine.Generic);
   });
-  it('config:frigate:camera_name', async () => {
+  it('should get frigate engine from config with camera_name', async () => {
     const config = createCameraConfig({
       frigate: { client_id: 'bar', camera_name: 'foo' },
     });
@@ -114,7 +114,7 @@ describe('getEngineForCamera()', () => {
       Engine.Frigate,
     );
   });
-  it('config:frigate:throw', async () => {
+  it('should throw error on invalid entity', async () => {
     const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
     const entityRegistryManager = new EntityRegistryManager(new EntityCache());
 
@@ -128,18 +128,18 @@ describe('getEngineForCamera()', () => {
   });
 });
 
-describe('createEngine()', () => {
-  it('generic', async () => {
+describe('CameraManagerEngineFactory.createEngine()', () => {
+  it('should create generic engine', async () => {
     expect(await createFactory().createEngine(Engine.Generic)).toBeInstanceOf(
       GenericCameraManagerEngine,
     );
   });
-  it('frigate', async () => {
+  it('should create frigate engine', async () => {
     expect(await createFactory().createEngine(Engine.Frigate)).toBeInstanceOf(
       FrigateCameraManagerEngine,
     );
   });
-  it('motioneye', async () => {
+  it('should create motioneye engine', async () => {
     expect(await createFactory().createEngine(Engine.MotionEye)).toBeInstanceOf(
       MotionEyeCameraManagerEngine,
     );

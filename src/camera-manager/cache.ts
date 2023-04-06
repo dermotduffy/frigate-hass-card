@@ -34,6 +34,10 @@ export class MemoryRequestCache<Request, Response>
     return null;
   }
 
+  public clear(): void {
+    this._data = [];
+  }
+
   public has(request: Request): boolean {
     return !!this.get(request);
   }
@@ -92,7 +96,7 @@ class MemoryRangedCache<Data> {
     const output: Data[] = [];
     for (const data of this._data) {
       const start = this._timeFunc(data);
-      if (start > range.start.getTime()) {
+      if (start >= range.start.getTime()) {
         if (start > range.end.getTime()) {
           // Data is kept in order.
           break;
@@ -103,10 +107,6 @@ class MemoryRangedCache<Data> {
     return output;
   }
 
-  public size(): number {
-    return this._data.length;
-  }
-
   /**
    * Remove old data that matches a given predicate. No change to the covered
    * ranges is made, i.e. this is asserting authoritiatively that this data does
@@ -114,7 +114,7 @@ class MemoryRangedCache<Data> {
    * @param predicate A predicate to run on each data element.
    */
   public expireMatches(predicate: (data: Data) => boolean): void {
-    this._data = this._data.filter(predicate);
+    this._data = this._data.filter((data) => !predicate(data));
   }
 }
 
@@ -132,6 +132,10 @@ export class RecordingSegmentsCache {
       this._segments.set(cameraID, cameraSegmentCache);
     }
     cameraSegmentCache.add(range, segments);
+  }
+
+  public clear(): void {
+    this._segments.clear();
   }
 
   public hasCoverage(cameraID: string, range: DateRange): boolean {

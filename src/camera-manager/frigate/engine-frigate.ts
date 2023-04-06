@@ -1025,7 +1025,7 @@ export class FrigateCameraManagerEngine
         (segment: RecordingSegment) => {
           const hourID = getHourID(cameraID, fromUnixTime(segment.start_time));
           // ~O(1) lookup time for a JS set.
-          return goodHours.has(hourID);
+          return !goodHours.has(hourID);
         },
       );
     }
