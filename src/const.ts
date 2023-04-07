@@ -165,7 +165,7 @@ export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL =
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
   `${CONF_LIVE}.controls.thumbnails.show_timeline_control` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD =
-  `${CONF_LIVE}.control s.timeline.clustering_threshold` as const;
+  `${CONF_LIVE}.controls.timeline.clustering_threshold` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_MEDIA =
   `${CONF_LIVE}.controls.timeline.media` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_MODE =
