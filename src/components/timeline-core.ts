@@ -34,7 +34,7 @@ import {
   ExtendedHomeAssistant,
   frigateCardConfigDefaults,
   FrigateCardView,
-  ThumbnailsControlConfig,
+  ThumbnailsControlBaseConfig,
   TimelineCoreConfig,
 } from '../types';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
@@ -77,6 +77,8 @@ interface TimelineRangeChange extends TimelineWindow {
 interface TimelineViewContext {
   window?: TimelineWindow;
 }
+
+type TimelineItemClickAction = 'play' | 'select';
 
 declare module 'view' {
   interface ViewContext {
@@ -173,7 +175,7 @@ export class FrigateCardTimelineCore extends LitElement {
   public timelineConfig?: TimelineCoreConfig;
 
   @property({ attribute: true, type: Boolean })
-  public thumbnailConfig?: ThumbnailsControlConfig;
+  public thumbnailConfig?: ThumbnailsControlBaseConfig;
 
   // Whether or not this is a mini-timeline (in mini-mode the component takes a
   // supportive role for other views).
@@ -190,6 +192,9 @@ export class FrigateCardTimelineCore extends LitElement {
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
+
+  @property({ attribute: false })
+  public itemClickAction?: TimelineItemClickAction;
 
   @state()
   protected _locked = false;
@@ -507,6 +512,7 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     let view: View | null = null;
+    let drawerAction: 'open' | 'close' = 'close';
 
     if (
       this.timelineConfig?.show_recordings &&
@@ -585,23 +591,23 @@ export class FrigateCardTimelineCore extends LitElement {
       } else {
         view = this.view.evolve({
           queryResults: newResults,
+          view: this.itemClickAction === 'play' ? 'media' : this.view.view,
         });
       }
 
       if (view?.queryResults?.hasResults()) {
         view.mergeInContext({ mediaViewer: { seek: properties.time } });
       }
+
+      if (this.itemClickAction === 'select' && view) {
+        drawerAction = 'open';
+      }
     }
 
     if (view) {
       view.dispatchChangeEvent(this);
-
-      if (this.view?.is('timeline')) {
-        dispatchFrigateCardEvent(this, 'thumbnails:open');
-      }
-    } else if (this.view?.is('timeline')) {
-      dispatchFrigateCardEvent(this, 'thumbnails:close');
     }
+    dispatchFrigateCardEvent(this, `thumbnails:${drawerAction}`);
 
     this._ignoreClick = false;
   }
@@ -1114,13 +1120,11 @@ export class FrigateCardTimelineCore extends LitElement {
       this._destroy();
     }
 
-    const options = this._getOptions();
     let createdTimeline = false;
 
     if (
       this._timelineSource &&
       this._refTimeline.value &&
-      options &&
       this.timelineConfig &&
       (changedProperties.has('timelineConfig') || changedProperties.has('cameraIDs'))
     ) {
@@ -1139,45 +1143,48 @@ export class FrigateCardTimelineCore extends LitElement {
         return;
       }
 
-      createdTimeline = true;
-      if (this.mini && groups.length === 1) {
-        // In a mini timeline, if there's only one group don't bother grouping
-        // at all.
-        this._timeline = new Timeline(
-          this._refTimeline.value,
-          this._timelineSource.dataset,
-          options,
-        ) as Timeline;
-        this.removeAttribute('groups');
-      } else {
-        this._timeline = new Timeline(
-          this._refTimeline.value,
-          this._timelineSource.dataset,
-          groups,
-          options,
-        ) as Timeline;
-        this.setAttribute('groups', '');
+      const options = this._getOptions();
+      if (options) {
+        createdTimeline = true;
+        if (this.mini && groups.length === 1) {
+          // In a mini timeline, if there's only one group don't bother grouping
+          // at all.
+          this._timeline = new Timeline(
+            this._refTimeline.value,
+            this._timelineSource.dataset,
+            options,
+          ) as Timeline;
+          this.removeAttribute('groups');
+        } else {
+          this._timeline = new Timeline(
+            this._refTimeline.value,
+            this._timelineSource.dataset,
+            groups,
+            options,
+          ) as Timeline;
+          this.setAttribute('groups', '');
+        }
+
+        this._timeline.on('rangechanged', this._timelineRangeChangedHandler.bind(this));
+        this._timeline.on('click', this._timelineClickHandler.bind(this));
+        this._timeline.on('rangechange', this._timelineRangeChangeHandler.bind(this));
+
+        // This complexity exists to ensure we can tell between a click that
+        // causes the timeline zoom/range to change, and a 'static' click on the
+        // // timeline (which may need to trigger a card wide event).
+        this._timeline.on('mouseDown', (ev: TimelineEventPropertiesResult) => {
+          const window = this._timeline?.getWindow();
+          this._pointerHeld = {
+            ...ev,
+            ...(window && { window: window }),
+          };
+          this._ignoreClick = false;
+        });
+        this._timeline.on('mouseUp', () => {
+          this._pointerHeld = null;
+          this._removeTargetBar();
+        });
       }
-
-      this._timeline.on('rangechanged', this._timelineRangeChangedHandler.bind(this));
-      this._timeline.on('click', this._timelineClickHandler.bind(this));
-      this._timeline.on('rangechange', this._timelineRangeChangeHandler.bind(this));
-
-      // This complexity exists to ensure we can tell between a click that
-      // causes the timeline zoom/range to change, and a 'static' click on the
-      // // timeline (which may need to trigger a card wide event).
-      this._timeline.on('mouseDown', (ev: TimelineEventPropertiesResult) => {
-        const window = this._timeline?.getWindow();
-        this._pointerHeld = {
-          ...ev,
-          ...(window && { window: window }),
-        };
-        this._ignoreClick = false;
-      });
-      this._timeline.on('mouseUp', () => {
-        this._pointerHeld = null;
-        this._removeTargetBar();
-      });
     }
 
     if (changedProperties.has('view')) {

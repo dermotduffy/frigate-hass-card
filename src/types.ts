@@ -779,8 +779,8 @@ export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
 /**
  * Thumbnail controls configuration section.
  */
-const thumbnailControlsDefaults = {
-  mode: 'right' as const,
+
+const thumbnailControlsBaseDefaults = {
   size: 100,
   show_details: true,
   show_favorite_control: true,
@@ -788,26 +788,39 @@ const thumbnailControlsDefaults = {
   show_download_control: true,
 };
 
-const thumbnailsControlSchema = z.object({
-  mode: z
-    .enum(['none', 'above', 'below', 'left', 'right'])
-    .default(thumbnailControlsDefaults.mode),
+// Configuration for the actual rendered thumbnail.
+const thumbnailsControlBaseSchema = z.object({
   size: z
     .number()
     .min(THUMBNAIL_WIDTH_MIN)
     .max(THUMBNAIL_WIDTH_MAX)
-    .default(thumbnailControlsDefaults.size),
-  show_details: z.boolean().default(thumbnailControlsDefaults.show_details),
+    .default(thumbnailControlsBaseDefaults.size),
+  show_details: z.boolean().default(thumbnailControlsBaseDefaults.show_details),
   show_favorite_control: z
     .boolean()
-    .default(thumbnailControlsDefaults.show_favorite_control),
+    .default(thumbnailControlsBaseDefaults.show_favorite_control),
   show_timeline_control: z
     .boolean()
-    .default(thumbnailControlsDefaults.show_timeline_control),
+    .default(thumbnailControlsBaseDefaults.show_timeline_control),
   show_download_control: z
     .boolean()
-    .default(thumbnailControlsDefaults.show_download_control),
+    .default(thumbnailControlsBaseDefaults.show_download_control),
 });
+
+export type ThumbnailsControlBaseConfig = z.infer<typeof thumbnailsControlBaseSchema>;
+
+// Configuration that may control the placement of the thumbnail.
+const thumbnailControlsDefaults = {
+  ...thumbnailControlsBaseDefaults,
+  mode: 'right' as const,
+};
+
+const thumbnailsControlSchema = thumbnailsControlBaseSchema.extend({
+  mode: z
+    .enum(['none', 'above', 'below', 'left', 'right'])
+    .default(thumbnailControlsDefaults.mode),
+});
+
 export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlSchema>;
 
 /**

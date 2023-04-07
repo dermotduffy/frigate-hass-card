@@ -144,10 +144,7 @@ export class FrigateCardSurround extends LitElement {
       return null;
     }
     if (this.view?.is('live')) {
-      return getAllDependentCameras(
-        this.cameraManager,
-        this.view.camera,
-      );
+      return getAllDependentCameras(this.cameraManager, this.view.camera);
     }
     if (this.view.isViewerView()) {
       return new Set(
@@ -225,6 +222,10 @@ export class FrigateCardSurround extends LitElement {
             slot=${this.timelineConfig.mode}
             .hass=${this.hass}
             .view=${this.view}
+            .itemClickAction=${this.view.isViewerView() ||
+            this.thumbnailConfig.mode === 'none'
+              ? 'play'
+              : 'select'}
             .cameraIDs=${this._cameraIDsForTimeline}
             .mini=${true}
             .timelineConfig=${this.timelineConfig}

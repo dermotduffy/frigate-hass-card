@@ -51,6 +51,9 @@ export class FrigateCardTimeline extends LitElement {
         .thumbnailConfig=${this.timelineConfig.controls.thumbnails}
         .cameraManager=${this.cameraManager}
         .cardWideConfig=${this.cardWideConfig}
+        .itemClickAction=${this.timelineConfig.controls.thumbnails.mode === 'none'
+          ? 'play'
+          : 'select'}
       >
       </frigate-card-timeline-core>
     </frigate-card-surround>`;
