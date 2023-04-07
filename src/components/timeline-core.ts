@@ -38,7 +38,11 @@ import {
   TimelineCoreConfig,
 } from '../types';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
-import { contentsChanged, isHoverableDevice } from '../utils/basic';
+import {
+  contentsChanged,
+  dispatchFrigateCardEvent,
+  isHoverableDevice,
+} from '../utils/basic';
 import {
   createQueriesForRecordingsView,
   executeMediaQueryForView,
@@ -73,6 +77,8 @@ interface TimelineRangeChange extends TimelineWindow {
 interface TimelineViewContext {
   window?: TimelineWindow;
 }
+
+type TimelineItemClickAction = 'play' | 'select';
 
 declare module 'view' {
   interface ViewContext {
@@ -186,6 +192,9 @@ export class FrigateCardTimelineCore extends LitElement {
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
+
+  @property({ attribute: false })
+  public itemClickAction?: TimelineItemClickAction;
 
   @state()
   protected _locked = false;
@@ -503,6 +512,7 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     let view: View | null = null;
+    let drawerAction: 'open' | 'close' = 'close';
 
     if (
       this.timelineConfig?.show_recordings &&
@@ -581,18 +591,23 @@ export class FrigateCardTimelineCore extends LitElement {
       } else {
         view = this.view.evolve({
           queryResults: newResults,
-          view: 'media',
+          view: this.itemClickAction === 'play' ? 'media' : this.view.view,
         });
       }
 
       if (view?.queryResults?.hasResults()) {
         view.mergeInContext({ mediaViewer: { seek: properties.time } });
       }
+
+      if (this.itemClickAction === 'select' && view) {
+        drawerAction = 'open';
+      }
     }
 
     if (view) {
       view.dispatchChangeEvent(this);
     }
+    dispatchFrigateCardEvent(this, `thumbnails:${drawerAction}`);
 
     this._ignoreClick = false;
   }

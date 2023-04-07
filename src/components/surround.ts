@@ -222,6 +222,10 @@ export class FrigateCardSurround extends LitElement {
             slot=${this.timelineConfig.mode}
             .hass=${this.hass}
             .view=${this.view}
+            .itemClickAction=${this.view.isViewerView() ||
+            this.thumbnailConfig.mode === 'none'
+              ? 'play'
+              : 'select'}
             .cameraIDs=${this._cameraIDsForTimeline}
             .mini=${true}
             .timelineConfig=${this.timelineConfig}
