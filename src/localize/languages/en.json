@@ -460,9 +460,12 @@
     "timeline": "See media in timeline"
   },
   "timeline": {
-    "lock": "Lock timeline to a single event",
-    "select_date": "Choose date",
-    "unlock": "Unlock timeline"
+    "pan_behavior": {
+      "pan": "Pan",
+      "seek": "Pan seeks across media",
+      "seek-in-media": "Pan seeks within media"
+    },
+    "select_date": "Choose date"
   },
   "elements": {
     "ptz": {

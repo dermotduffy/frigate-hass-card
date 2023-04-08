@@ -51,7 +51,7 @@ export class ViewMedia {
   }
   public includesTime(seek: Date): boolean {
     const startTime = this.getStartTime();
-    const endTime = this.getEndTime();
+    const endTime = this.getEndTime() ?? startTime;
     return !!startTime && !!endTime && seek >= startTime && seek <= endTime;
   }
 
