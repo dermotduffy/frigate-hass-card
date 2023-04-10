@@ -30,10 +30,10 @@
         "editor_label": "Opções do go2rtc",
         "modes": {
           "editor_label": "Modos do go2rtc",
-          "mse": "Media Source Extensions (MSE)",
-          "webrtc": "Web Real-Time Communication (WebRTC)",
+          "mjpeg": "Motion JPEG (MJPEG)",
           "mp4": "MPEG-4 (MP4)",
-          "mjpeg": "Motion JPEG (MJPEG)"
+          "mse": "Media Source Extensions (MSE)",
+          "webrtc": "Web Real-Time Communication (WebRTC)"
         },
         "stream": "Nome do stream do go2rtc"
       },
