@@ -194,7 +194,7 @@ export const executeMediaQueryForView = async (
 
 /**
  * Find the closest matching media object.
- * @param mediaArray The media. Must be sorted most recent first.
+ * @param mediaArray The media.
  * @param targetTime The target time used to find the relevant child.
  * @param refPoint Whether to find based on the start or end of the
  * event/recording. If not specified, the first match is returned rather than

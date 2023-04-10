@@ -5,63 +5,67 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS,
+  unsafeCSS
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
+import cloneDeep from 'lodash-es/cloneDeep';
+import isEqual from 'lodash-es/isEqual';
+import merge from 'lodash-es/merge';
 import throttle from 'lodash-es/throttle';
 import screenfull from 'screenfull';
+import { ViewContext } from 'view';
+import 'web-dialog';
 import { z } from 'zod';
+import pkg from '../package.json';
 import { actionHandler } from './action-handler-directive.js';
+import { CameraManagerEngineFactory } from './camera-manager/engine-factory.js';
+import { CameraManager } from './camera-manager/manager.js';
 import {
   CardConditionManager,
   ConditionState,
   conditionStateRequestHandler,
-  getOverriddenConfig,
-  getOverridesByKey,
+  getOverriddenConfig
 } from './card-condition.js';
 import './components/elements.js';
 import { FrigateCardElements } from './components/elements.js';
-import type { FrigateCardImage } from './components/image.js';
-import type { FrigateCardLive } from './components/live/live.js';
 import './components/menu.js';
 import { FrigateCardMenu, FRIGATE_BUTTON_MENU_ICON } from './components/menu.js';
 import './components/message.js';
 import { renderMessage, renderProgressIndicator } from './components/message.js';
 import './components/thumbnail-carousel.js';
+import './components/views.js';
+import { FrigateCardViews } from './components/views.js';
 import { isConfigUpgradeable } from './config-mgmt.js';
 import { MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA, REPO_URL } from './const.js';
 import { getLanguage, loadLanguages, localize } from './localize/localize.js';
+import { setLowPerformanceProfile, setPerformanceCSSStyles } from './performance.js';
 import cardStyle from './scss/card.scss';
 import {
   Actions,
   ActionType,
   CameraConfig,
   CardWideConfig,
-  ExtendedHomeAssistant,
-  FRIGATE_CARD_VIEW_DEFAULT,
-  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
-  FrigateCardConfig,
+  ExtendedHomeAssistant, FrigateCardConfig,
   frigateCardConfigSchema,
   FrigateCardCustomAction,
   FrigateCardError,
-  FrigateCardView,
-  MediaLoadedInfo,
-  MenuButton,
-  MESSAGE_TYPE_PRIORITIES,
-  Message,
-  RawFrigateCardConfig,
+  FrigateCardView, FRIGATE_CARD_VIEWS_USER_SPECIFIED, FRIGATE_CARD_VIEW_DEFAULT, MediaLoadedInfo,
+  MenuButton, Message, MESSAGE_TYPE_PRIORITIES, RawFrigateCardConfig
 } from './types.js';
 import {
   convertActionToFrigateCardCustomAction,
   createFrigateCardCustomAction,
   frigateCardHandleAction,
   frigateCardHasAction,
-  getActionConfigGivenAction,
+  getActionConfigGivenAction
 } from './utils/action.js';
 import { errorToConsole } from './utils/basic.js';
+import { getAllDependentCameras } from './utils/camera.js';
+import { log } from './utils/debug.js';
+import { downloadMedia } from './utils/download.js';
 import {
   getEntityIcon,
   getEntityTitle,
@@ -69,30 +73,18 @@ import {
   isCardInPanel,
   isHassDifferent,
   isTriggeredState,
-  sideLoadHomeAssistantElements,
+  sideLoadHomeAssistantElements
 } from './utils/ha';
 import { DeviceList, getAllDevices } from './utils/ha/device-registry.js';
+import { EntityCache } from './utils/ha/entity-registry/cache.js';
+import { EntityRegistryManager } from './utils/ha/entity-registry/index.js';
+import { Entity } from './utils/ha/entity-registry/types.js';
 import { ResolvedMediaCache } from './utils/ha/resolved-media.js';
 import { supportsFeature } from './utils/ha/update.js';
-import { isValidMediaLoadedInfo } from './utils/media-info.js';
-import { View } from './view/view.js';
-import pkg from '../package.json';
-import { ViewContext } from 'view';
-import { CameraManager } from './camera-manager/manager.js';
-import { setLowPerformanceProfile, setPerformanceCSSStyles } from './performance.js';
-import { CameraManagerEngineFactory } from './camera-manager/engine-factory.js';
-import { log } from './utils/debug.js';
-import { EntityRegistryManager } from './utils/ha/entity-registry/index.js';
-import { EntityCache } from './utils/ha/entity-registry/cache.js';
-import { Entity } from './utils/ha/entity-registry/types.js';
-import { getAllDependentCameras } from './utils/camera.js';
-import cloneDeep from 'lodash-es/cloneDeep';
-import isEqual from 'lodash-es/isEqual';
-import merge from 'lodash-es/merge';
 import { FrigateCardInitializer } from './utils/initializer.js';
-import 'web-dialog';
-import { downloadMedia } from './utils/download.js';
+import { isValidMediaLoadedInfo } from './utils/media-info.js';
 import { getActionsFromQueryString } from './utils/querystring.js';
+import { View } from './view/view.js';
 
 /** A note on media callbacks:
  *
@@ -185,8 +177,7 @@ class FrigateCard extends LitElement {
   protected _refMenu: Ref<FrigateCardMenu> = createRef();
   protected _refMain: Ref<HTMLElement> = createRef();
   protected _refElements: Ref<FrigateCardElements> = createRef();
-  protected _refImage: Ref<FrigateCardImage> = createRef();
-  protected _refLive: Ref<FrigateCardLive> = createRef();
+  protected _refViews: Ref<FrigateCardViews> = createRef();
 
   // user interaction timer ("screensaver" functionality, return to default
   // view after user interaction).
@@ -246,8 +237,8 @@ class FrigateCard extends LitElement {
       if (this._refElements.value) {
         this._refElements.value.hass = this._hass;
       }
-      if (this._refImage.value) {
-        this._refImage.value.hass = this._hass;
+      if (this._refViews.value) {
+        this._refViews.value.hass = this._hass;
       }
     }
 
@@ -311,8 +302,8 @@ class FrigateCard extends LitElement {
     // to them to avoid the performance hit of a entire card re-render (esp.
     // when using card-mod).
     // https://github.com/dermotduffy/frigate-hass-card/issues/678
-    if (this._refLive.value) {
-      this._refLive.value.conditionState = this._conditionState;
+    if (this._refViews.value) {
+      this._refViews.value.conditionState = this._conditionState;
     }
     if (this._refElements.value) {
       this._refElements.value.conditionState = this._conditionState;
@@ -946,18 +937,6 @@ class FrigateCard extends LitElement {
     }
 
     this._initializeBackground();
-
-    if (this._view?.is('live')) {
-      import('./components/live/live.js');
-    } else if (this._view?.isGalleryView()) {
-      import('./components/gallery.js');
-    } else if (this._view?.isViewerView()) {
-      import('./components/viewer.js');
-    } else if (this._view?.is('image')) {
-      import('./components/image.js');
-    } else if (this._view?.is('timeline')) {
-      import('./components/timeline.js');
-    }
 
     if (changedProps.has('_view')) {
       this._setPropertiesForExpandedMode();
@@ -2013,7 +1992,18 @@ class FrigateCard extends LitElement {
           ? renderProgressIndicator({ cardWideConfig: this._cardWideConfig })
           : // Always want to call render even if there's a message, to
             // ensure live preload is always present (even if not displayed).
-            this._render()}
+            html`<frigate-card-views
+              ${ref(this._refViews)}
+              .hass=${this._hass}
+              .view=${this._view}
+              .cardWideConfig=${this._cardWideConfig}
+              .cameraManager=${this._cameraManager}
+              .resolvedMediaCache=${this._resolvedMediaCache}
+              .config=${this._getConfig()}
+              .nonOverriddenConfig=${this._config}
+              .conditionState=${this._conditionState}
+              .hide=${!!this._message}
+            ></frigate-card-views>`}
         ${
           // Keep message rendering to last to show messages that may have been
           // generated during the render.
@@ -2042,92 +2032,6 @@ class FrigateCard extends LitElement {
           </frigate-card-elements>`
         : ``}
     </ha-card>`);
-  }
-
-  /**
-   * Sub-render method for the card.
-   */
-  protected _render(): TemplateResult | void {
-    const cameraConfig = this._getSelectedCameraConfig();
-
-    if (!this._hass || !this._view || !cameraConfig) {
-      return html``;
-    }
-
-    // Render but hide the live view if there's a message, or if it's preload
-    // mode and the view is not live.
-    const liveClasses = {
-      hidden:
-        !!this._message || (this._getConfig().live.preload && !this._view.is('live')),
-    };
-
-    return html`
-      ${!this._message && this._view.is('image')
-        ? html` <frigate-card-image
-            ${ref(this._refImage)}
-            .imageConfig=${this._getConfig().image}
-            .view=${this._view}
-            .hass=${this._hass}
-            .cameraConfig=${cameraConfig}
-          >
-          </frigate-card-image>`
-        : ``}
-      ${!this._message && this._view.isGalleryView()
-        ? html` <frigate-card-gallery
-            .hass=${this._hass}
-            .view=${this._view}
-            .galleryConfig=${this._getConfig().media_gallery}
-            .cameraManager=${this._cameraManager}
-            .cardWideConfig=${this._cardWideConfig}
-          >
-          </frigate-card-gallery>`
-        : ``}
-      ${!this._message && this._view.isViewerView()
-        ? html` <frigate-card-viewer
-            .hass=${this._hass}
-            .view=${this._view}
-            .viewerConfig=${this._getConfig().media_viewer}
-            .resolvedMediaCache=${this._resolvedMediaCache}
-            .cameraManager=${this._cameraManager}
-            .cardWideConfig=${this._cardWideConfig}
-          >
-          </frigate-card-viewer>`
-        : ``}
-      ${!this._message && this._view.is('timeline')
-        ? html` <frigate-card-timeline
-            .hass=${this._hass}
-            .view=${this._view}
-            .timelineConfig=${this._getConfig().timeline}
-            .cameraManager=${this._cameraManager}
-            .cardWideConfig=${this._cardWideConfig}
-          >
-          </frigate-card-timeline>`
-        : ``}
-      ${
-        // Note: Subtle difference in condition below vs the other views in order
-        // to always render the live view for live.preload mode.
-
-        // Note: <frigate-card-live> uses the underlying _config rather than the
-        // overriden config (via getConfig), as it does it's own overriding as
-        // part of the camera carousel.
-        this._getConfig().live.preload || (!this._message && this._view.is('live'))
-          ? html`
-              <frigate-card-live
-                ${ref(this._refLive)}
-                .hass=${this._hass}
-                .view=${this._view}
-                .liveConfig=${this._config.live}
-                .conditionState=${this._conditionState}
-                .liveOverrides=${getOverridesByKey(this._getConfig().overrides, 'live')}
-                .cameraManager=${this._cameraManager}
-                .cardWideConfig=${this._cardWideConfig}
-                class="${classMap(liveClasses)}"
-              >
-              </frigate-card-live>
-            `
-          : ``
-      }
-    `;
   }
 
   protected firstUpdated(): void {

@@ -450,9 +450,12 @@
     "timeline": "Vedi evento nella timeline"
   },
   "timeline": {
-    "lock": "Blocca la sequenza temporale su un singolo evento",
-    "select_date": "Scegli la data",
-    "unlock": "Sblocca la cronologia"
+    "pan_behavior": {
+      "pan": "",
+      "seek": "",
+      "seek-in-media": ""
+    },
+    "select_date": "Scegli la data"
   },
   "elements": {
     "ptz": {

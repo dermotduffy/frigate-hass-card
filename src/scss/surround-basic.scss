@@ -14,8 +14,9 @@
   overflow: hidden;
 }
 
-::slotted:not([name]) {
+::slotted(:not([slot])) {
   // Expand the main body to fill available content not otherwise used by the
-  // surround.
+  // named slots around the surround.
   flex: 1;
+  min-height: 0px;
 }

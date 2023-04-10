@@ -471,8 +471,11 @@
     "timeline": "Ver evento na linha do tempo"
   },
   "timeline": {
-    "lock": "Bloquear linha do tempo em um único evento",
-    "select_date": "Escolha a data",
-    "unlock": "Desbloquear linha do tempo"
+    "pan_behavior": {
+      "pan": "",
+      "seek": "",
+      "seek-in-media": ""
+    },
+    "select_date": "Escolha a data"
   }
 }

@@ -44,18 +44,18 @@ export class FrigateCardLiveWebRTCCard
     return this._getPlayer()?.play();
   }
 
-  public pause(): void {
+  public async pause(): Promise<void> {
     this._getPlayer()?.pause();
   }
 
-  public mute(): void {
+  public async mute(): Promise<void> {
     const player = this._getPlayer();
     if (player) {
       player.muted = true;
     }
   }
 
-  public unmute(): void {
+  public async unmute(): Promise<void> {
     const player = this._getPlayer();
     if (player) {
       player.muted = false;
@@ -66,7 +66,7 @@ export class FrigateCardLiveWebRTCCard
     return this._getPlayer()?.muted ?? true;
   }
 
-  public seek(seconds: number): void {
+  public async seek(seconds: number): Promise<void> {
     const player = this._getPlayer();
     if (player) {
       player.currentTime = seconds;
@@ -78,7 +78,7 @@ export class FrigateCardLiveWebRTCCard
 
     // Reset the player when reconnected to the DOM.
     // https://github.com/dermotduffy/frigate-hass-card/issues/996
-    this.requestUpdate();    
+    this.requestUpdate();
   }
 
   /**

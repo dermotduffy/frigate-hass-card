@@ -76,9 +76,11 @@ interface TimelineRangeChange extends TimelineWindow {
 
 interface TimelineViewContext {
   window?: TimelineWindow;
+  panBehavior?: TimelinePanBehavior;
 }
 
 type TimelineItemClickAction = 'play' | 'select';
+type TimelinePanBehavior = 'pan' | 'seek' | 'seek-in-media';
 
 declare module 'view' {
   interface ViewContext {
@@ -197,7 +199,7 @@ export class FrigateCardTimelineCore extends LitElement {
   public itemClickAction?: TimelineItemClickAction;
 
   @state()
-  protected _locked = false;
+  protected _panBehavior: TimelinePanBehavior = 'seek';
 
   protected _targetBarVisible = false;
 
@@ -272,9 +274,18 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     const capabilities = this.cameraManager?.getAggregateCameraCapabilities(cameraIDs);
-    const lockTitle = this._locked
-      ? localize('timeline.unlock')
-      : localize('timeline.lock');
+    const panTitle =
+      this._panBehavior === 'pan'
+        ? localize('timeline.pan_behavior.pan')
+        : this._panBehavior === 'seek'
+        ? localize('timeline.pan_behavior.seek')
+        : localize('timeline.pan_behavior.seek-in-media');
+    const panIcon =
+      this._panBehavior === 'pan'
+        ? 'mdi:pan-horizontal'
+        : this._panBehavior === 'seek'
+        ? 'mdi:filmstrip'
+        : 'mdi:lock';
 
     return html` ${capabilities?.supportsTimeline
       ? html` <div
@@ -287,12 +298,17 @@ export class FrigateCardTimelineCore extends LitElement {
           <div class="timeline-tools">
             ${this._shouldSupportSeeking()
               ? html` <ha-icon
-                  .icon=${`mdi:${this._locked ? 'lock' : 'lock-open-variant'}`}
+                  .icon=${panIcon}
                   @click=${() => {
-                    this._locked = !this._locked;
+                    this._panBehavior =
+                      this._panBehavior === 'pan'
+                        ? 'seek'
+                        : this._panBehavior === 'seek'
+                        ? 'seek-in-media'
+                        : 'pan';
                   }}
-                  aria-label="${lockTitle}"
-                  title="${lockTitle}"
+                  aria-label="${panTitle}"
+                  title="${panTitle}"
                 >
                 </ha-icon>`
               : ''}
@@ -340,9 +356,10 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     if (
+      this._shouldSupportSeeking() &&
       this._timeline &&
       properties.byUser &&
-      // Do not adjust select children or seek during zoom events.
+      // Do not adjust select/seek media during zoom events.
       properties.event.type !== 'wheel' &&
       properties.event.additionalEvent !== 'pinchin' &&
       properties.event.additionalEvent !== 'pinchout'
@@ -365,13 +382,7 @@ export class FrigateCardTimelineCore extends LitElement {
   }
 
   protected _shouldSupportSeeking(): boolean {
-    const cameraIDs = this._getTimelineCameraIDs();
-    if (!this._timeline || !cameraIDs) {
-      return false;
-    }
-
-    const capabilities = this.cameraManager?.getAggregateCameraCapabilities(cameraIDs);
-    return (this.view?.isViewerView() && capabilities?.canSeek) ?? false;
+    return this.mini;
   }
 
   /**
@@ -385,8 +396,8 @@ export class FrigateCardTimelineCore extends LitElement {
 
     const targetBarOn =
       this._shouldSupportSeeking() &&
-      (!this._locked ||
-        (this.mini &&
+      (this._panBehavior === 'seek' ||
+        (this._panBehavior === 'seek-in-media' &&
           this._timeline.getSelection().some((id) => {
             const item = this._timelineSource?.dataset?.get(id);
             return (
@@ -439,6 +450,7 @@ export class FrigateCardTimelineCore extends LitElement {
       !this.view ||
       !this.hass ||
       !this.cameraManager ||
+      this._panBehavior === 'pan' ||
       // Skip range changes that do not have hammerjs pan directions associated
       // with them, as these outliers cause media matching issues below.
       !properties.event.additionalEvent
@@ -446,37 +458,38 @@ export class FrigateCardTimelineCore extends LitElement {
       return;
     }
 
-    const canSeek = !!this.view?.isViewerView();
-    const newResults = this._locked
-      ? null
-      : results
-          .clone()
-          .resetSelectedResult()
-          .selectBestResult((media) =>
-            findClosestMediaIndex(
-              media,
-              targetTime,
-              properties.event.additionalEvent === 'panright' ? 'end' : 'start',
-            ),
-          );
+    const canSeek = this._shouldSupportSeeking();
+    const newResults =
+      this._panBehavior === 'seek-in-media'
+        ? null
+        : results
+            .clone()
+            .resetSelectedResult()
+            .selectBestResult((media) =>
+              findClosestMediaIndex(
+                media,
+                targetTime,
+                properties.event.additionalEvent === 'panright' ? 'end' : 'start',
+              ),
+            );
 
-    if (
-      canSeek ||
-      (newResults &&
-        newResults.hasSelectedResult() &&
-        newResults.getResult() !== results.getResult())
-    ) {
-      this.view
-        .evolve({
-          ...(newResults &&
-            newResults.hasSelectedResult() && { queryResults: newResults }),
-        }) // Whether or not to set the timeline window.
-        .mergeInContext({
-          ...(canSeek && { mediaViewer: { seek: targetTime } }),
-          ...this._setWindowInContext(properties),
-        })
-        .dispatchChangeEvent(this);
-    }
+    const desiredView: FrigateCardView = this.mini
+      ? targetTime >= new Date()
+        ? 'live'
+        : 'media'
+      : this.view.view;
+
+    this.view
+      .evolve({
+        view: desiredView,
+        ...(newResults &&
+          newResults.hasSelectedResult() && { queryResults: newResults }),
+      }) // Whether or not to set the timeline window.
+      .mergeInContext({
+        ...(canSeek && { mediaViewer: { seek: targetTime } }),
+        ...this._getTimelineContext(properties),
+      })
+      .dispatchChangeEvent(this);
   }
 
   /**
@@ -667,7 +680,7 @@ export class FrigateCardTimelineCore extends LitElement {
       // 'flicker' for the user as the viewer reloads all the media).
       const newResults = newView?.queryResults;
       if (newView && newResults && !this.view.queryResults?.isSupersetOf(newResults)) {
-        newView?.mergeInContext(this._setWindowInContext())?.dispatchChangeEvent(this);
+        newView?.mergeInContext(this._getTimelineContext())?.dispatchChangeEvent(this);
       }
     }
   }
@@ -948,6 +961,10 @@ export class FrigateCardTimelineCore extends LitElement {
         : null;
     const context = this.view.context?.timeline;
 
+    if (context && context.panBehavior) {
+      this._panBehavior = context.panBehavior;
+    }
+
     if (context && context.window) {
       desiredWindow = context.window;
     } else if (media && mediaWindow && !rangesOverlap(mediaWindow, timelineWindow)) {
@@ -1021,7 +1038,7 @@ export class FrigateCardTimelineCore extends LitElement {
       !this._alreadyHasAcceptableMediaQuery(freshMediaQuery)
     ) {
       (await this._createViewWithEventMediaQuery(freshMediaQuery))
-        ?.mergeInContext(this._setWindowInContext(desiredWindow))
+        ?.mergeInContext(this._getTimelineContext(desiredWindow))
         .dispatchChangeEvent(this);
     }
   }
@@ -1046,11 +1063,12 @@ export class FrigateCardTimelineCore extends LitElement {
    * Generate the context for timeline views.
    * @returns The TimelineViewContext object.
    */
-  protected _setWindowInContext(window?: TimelineWindow): ViewContext {
+  protected _getTimelineContext(window?: TimelineWindow): ViewContext {
     const newWindow = window ?? this._timeline?.getWindow();
     return {
       timeline: {
         ...this.view?.context?.timeline,
+        panBehavior: this._panBehavior,
         ...(newWindow && { window: newWindow }),
       },
     };

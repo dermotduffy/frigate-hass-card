@@ -49,9 +49,6 @@ export class FrigateCardSurround extends LitElement {
   @property({ attribute: false, hasChanged: contentsChanged })
   public timelineConfig?: MiniTimelineControlConfig;
 
-  @property({ attribute: false })
-  public inBackground?: boolean;
-
   // If fetchMedia is not specified, no fetching is done.
   @property({ attribute: false, hasChanged: contentsChanged })
   public fetchMedia?: ClipsOrSnapshotsOrAll;
@@ -75,7 +72,6 @@ export class FrigateCardSurround extends LitElement {
       !this.cameraManager ||
       !this.cardWideConfig ||
       !this.fetchMedia ||
-      this.inBackground ||
       !this.hass ||
       !this.view ||
       this.view.query ||
@@ -131,9 +127,7 @@ export class FrigateCardSurround extends LitElement {
     // do so if properties relevant to the request have changed (as per their
     // hasChanged).
     if (
-      ['view', 'fetch', 'browseMediaParams', 'inBackground'].some((prop) =>
-        changedProperties.has(prop),
-      )
+      ['view', 'fetch', 'browseMediaParams'].some((prop) => changedProperties.has(prop))
     ) {
       this._fetchMedia();
     }
@@ -162,7 +156,7 @@ export class FrigateCardSurround extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.view || !this.thumbnailConfig) {
+    if (!this.hass || !this.view) {
       return;
     }
 
@@ -183,9 +177,7 @@ export class FrigateCardSurround extends LitElement {
       @frigate-card:thumbnails:open=${(ev: CustomEvent) => changeDrawer(ev, 'open')}
       @frigate-card:thumbnails:close=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
     >
-      ${this.thumbnailConfig &&
-      this.thumbnailConfig.mode !== 'none' &&
-      !this.inBackground
+      ${this.thumbnailConfig && this.thumbnailConfig.mode !== 'none'
         ? html` <frigate-card-thumbnail-carousel
             slot=${this.thumbnailConfig.mode}
             .hass=${this.hass}
@@ -215,15 +207,14 @@ export class FrigateCardSurround extends LitElement {
           >
           </frigate-card-thumbnail-carousel>`
         : ''}
-      ${this.timelineConfig?.mode &&
-      this.timelineConfig.mode !== 'none' &&
-      !this.inBackground
+      ${this.timelineConfig && this.timelineConfig.mode !== 'none'
         ? html` <frigate-card-timeline-core
             slot=${this.timelineConfig.mode}
             .hass=${this.hass}
             .view=${this.view}
             .itemClickAction=${this.view.isViewerView() ||
-            this.thumbnailConfig.mode === 'none'
+            !this.thumbnailConfig ||
+            this.thumbnailConfig?.mode === 'none'
               ? 'play'
               : 'select'}
             .cameraIDs=${this._cameraIDsForTimeline}

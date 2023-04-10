@@ -37,8 +37,7 @@ div.main {
   width: 100%;
   height: 100%;
   margin: auto;
-  display: flex;
-  justify-content: center;
+  display: block;
 
   // Necessary to get Safari to show border-radius correctly.
   transform: translateZ(0);
@@ -116,11 +115,6 @@ ha-card.triggered {
     }
   }
   animation: warning-pulse 5s infinite;
-}
-
-frigate-card-live.hidden {
-  // Live view will be rendered but hidden for live preloading.
-  display: none;
 }
 
 /************

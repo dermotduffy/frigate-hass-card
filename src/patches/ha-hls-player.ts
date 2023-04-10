@@ -37,11 +37,11 @@ customElements.whenDefined('ha-hls-player').then(() => {
       return this._video?.play();
     }
 
-    public pause(): void {
+    public async pause(): Promise<void> {
       this._video?.pause();
     }
 
-    public mute(): void {
+    public async mute(): Promise<void> {
       // The muted property is only for the initial muted state. Must explicitly
       // set the muted on the video player to make the change dynamic.
       if (this._video) {
@@ -49,7 +49,7 @@ customElements.whenDefined('ha-hls-player').then(() => {
       }
     }
 
-    public unmute(): void {
+    public async unmute(): Promise<void> {
       // See note in mute().
       if (this._video) {
         this._video.muted = false;
@@ -60,7 +60,7 @@ customElements.whenDefined('ha-hls-player').then(() => {
       return this._video?.muted ?? true;
     }
 
-    public seek(seconds: number): void {
+    public async seek(seconds: number): Promise<void> {
       if (this._video) {
         hideMediaControlsTemporarily(this._video);
         this._video.currentTime = seconds;
