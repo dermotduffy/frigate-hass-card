@@ -21,8 +21,8 @@
       "frigate": {
         "camera_name": "Frigate camera name (Autodetected from entity)",
         "client_id": "Frigate client id (For >1 Frigate server)",
-        "labels": "Frigate labels/object filters",
         "editor_label": "Frigate Options",
+        "labels": "Frigate labels/object filters",
         "url": "Frigate server URL",
         "zones": "Frigate zones"
       },
@@ -30,31 +30,31 @@
         "editor_label": "go2rtc Options",
         "modes": {
           "editor_label": "go2rtc Modes",
-          "mse": "Media Source Extensions (MSE)",
-          "webrtc": "Web Real-Time Communication (WebRTC)",
+          "mjpeg": "Motion JPEG (MJPEG)",
           "mp4": "MPEG-4 (MP4)",
-          "mjpeg": "Motion JPEG (MJPEG)"
+          "mse": "Media Source Extensions (MSE)",
+          "webrtc": "Web Real-Time Communication (WebRTC)"
         },
         "stream": "go2rtc stream name"
       },
       "hide": "Hide camera from UI",
       "icon": "Icon for this camera (Autodetected from entity)",
+      "id": "Unique id for this camera in this card",
       "image": {
         "editor_label": "Image Options",
         "refresh_seconds": "Number of seconds after which to refresh live image (0=never)",
         "url": "Image URL to use instead of camera entity snapshot"
       },
-      "id": "Unique id for this camera in this card",
       "live_provider": "Live view provider for this camera",
       "live_provider_options": {
         "editor_label": "Live provider options"
       },
       "live_providers": {
         "auto": "Automatic",
-        "jsmpeg": "JSMpeg",
         "go2rtc": "go2rtc",
         "ha": "Home Assistant video stream (i.e. HLS, LL-HLS, WebRTC via HA)",
         "image": "Home Assistant images",
+        "jsmpeg": "JSMpeg",
         "webrtc-card": "WebRTC Card (i.e. AlexxIT's WebRTC Card)"
       },
       "motioneye": {
@@ -71,56 +71,25 @@
       },
       "title": "Title for this camera (Autodetected from entity)",
       "triggers": {
+        "editor_label": "Trigger Options",
         "entities": "Trigger from other entities",
         "motion": "Trigger by auto-detecting the motion sensor",
-        "occupancy": "Trigger by auto-detecting the occupancy sensor",
-        "editor_label": "Trigger Options"
+        "occupancy": "Trigger by auto-detecting the occupancy sensor"
       },
       "webrtc_card": {
-        "entity": "WebRTC Card Camera Entity (Not a Frigate camera)",
         "editor_label": "WebRTC Card Options",
+        "entity": "WebRTC Card Camera Entity (Not a Frigate camera)",
         "url": "WebRTC Card Camera URL"
       }
     },
     "common": {
-      "media_action_conditions": {
-        "all": "All opportunities",
-        "hidden": "On browser/tab hiding",
-        "never": "Never",
-        "selected": "On selection",
-        "unselected": "On unselection",
-        "visible": "On browser/tab visibility"
-      },
-      "layout": {
-        "fit": "Layout fit",
-        "fits": {
-          "cover": "Media expands proportionally to cover the card",
-          "contain": "Media is contained/letterboxed",
-          "fill": "Media is stretched to fill the card"
-        },
-        "position": {
-          "x": "Horizontal placement percentage",
-          "y": "Vertical placement percentage"
-        }
-      },
-      "timeline": {
-        "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",
-        "media": "The media the timeline displays",
-        "medias": {
-          "all": "All media types",
-          "clips": "Clips",
-          "snapshots": "Snapshots"
-        },
-        "show_recordings": "Show recordings",
-        "window_seconds": "The default length of the timeline view in seconds"
-      },
       "controls": {
         "filter": {
           "editor_label": "Media Filter",
           "mode": "Filter mode",
           "modes": {
-            "none": "No media filter",
             "left": "Media filter in a drawer to the left",
+            "none": "No media filter",
             "right": "Media filter in a drawer to the right"
           }
         },
@@ -133,15 +102,6 @@
             "icons": "Icons",
             "none": "None",
             "thumbnails": "Thumbnails"
-          }
-        },
-        "timeline": {
-          "editor_label": "Mini Timeline",
-          "mode": "Mode",
-          "modes": {
-            "none": "None",
-            "above": "Above",
-            "below": "Below"
           }
         },
         "thumbnails": {
@@ -165,9 +125,18 @@
           "show_timeline_control": "Show timeline control on thumbnails",
           "size": "Thumbnails size in pixels"
         },
+        "timeline": {
+          "editor_label": "Mini Timeline",
+          "mode": "Mode",
+          "modes": {
+            "above": "Above",
+            "below": "Below",
+            "none": "None"
+          }
+        },
         "title": {
-          "editor_label": "Popup Title Controls",
           "duration_seconds": "Seconds to display popup title (0=forever)",
+          "editor_label": "Popup Title Controls",
           "mode": "Popup title display mode",
           "modes": {
             "none": "No title display",
@@ -177,6 +146,37 @@
             "popup-top-right": "Popup on the top right"
           }
         }
+      },
+      "layout": {
+        "fit": "Layout fit",
+        "fits": {
+          "contain": "Media is contained/letterboxed",
+          "cover": "Media expands proportionally to cover the card",
+          "fill": "Media is stretched to fill the card"
+        },
+        "position": {
+          "x": "Horizontal placement percentage",
+          "y": "Vertical placement percentage"
+        }
+      },
+      "media_action_conditions": {
+        "all": "All opportunities",
+        "hidden": "On browser/tab hiding",
+        "never": "Never",
+        "selected": "On selection",
+        "unselected": "On unselection",
+        "visible": "On browser/tab visibility"
+      },
+      "timeline": {
+        "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",
+        "media": "The media the timeline displays",
+        "medias": {
+          "all": "All media types",
+          "clips": "Clips",
+          "snapshots": "Snapshots"
+        },
+        "show_recordings": "Show recordings",
+        "window_seconds": "The default length of the timeline view in seconds"
       }
     },
     "dimensions": {
@@ -220,13 +220,13 @@
       "auto_pause": "Automatically pause media",
       "auto_play": "Automatically play media",
       "auto_unmute": "Automatically unmute media",
-      "snapshot_click_plays_clip": "Clicking on a snapshot plays a related clip",
       "controls": {
         "editor_label": "Media Viewer Controls"
       },
       "draggable": "Media Viewer can be dragged/swiped",
-      "lazy_load": "Media Viewer media is lazily loaded in carousel",
       "layout": "Media Viewer Layout",
+      "lazy_load": "Media Viewer media is lazily loaded in carousel",
+      "snapshot_click_plays_clip": "Clicking on a snapshot plays a related clip",
       "transition_effect": "Media Viewer transition effect",
       "transition_effects": {
         "none": "No transition",
@@ -261,10 +261,10 @@
         "live": "Live",
         "media_player": "Send to media player",
         "priority": "Priority",
+        "recordings": "Recordings",
         "snapshots": "Snapshots",
         "substreams": "Substream(s)",
-        "timeline": "Timeline",
-        "recordings": "Recordings"
+        "timeline": "Timeline"
       },
       "position": "Menu position",
       "positions": {
@@ -287,22 +287,22 @@
       "info": "This card configuration has manually specified overrides configured which may override values shown in the visual editor, please consult the code editor to view/modify these overrides"
     },
     "performance": {
-      "warning": "This card is in low profile mode so defaults have changed to optimize performance",
       "features": {
-        "editor_label": "Feature Options",
         "animated_progress_indicator": "Animated Progress Indicator",
+        "editor_label": "Feature Options",
         "media_chunk_size": "Media chunk size"
       },
       "profile": "Performance profile",
       "profiles": {
-        "low": "Low performance",
-        "high": "High/full performance"
+        "high": "High/full performance",
+        "low": "Low performance"
       },
       "style": {
-        "editor_label": "Style Options",
+        "border_radius": "Curves",
         "box_shadow": "Shadows",
-        "border_radius": "Curves"
-      }
+        "editor_label": "Style Options"
+      },
+      "warning": "This card is in low profile mode so defaults have changed to optimize performance"
     },
     "view": {
       "camera_select": "View for newly selected cameras",
@@ -370,6 +370,17 @@
     "view": "View",
     "view_secondary": "What the card should show and how to show it"
   },
+  "elements": {
+    "ptz": {
+      "down": "Down",
+      "home": "Home",
+      "left": "Left",
+      "right": "Right",
+      "up": "Up",
+      "zoom_in": "Zoom In",
+      "zoom_out": "Zoom Out"
+    }
+  },
   "error": {
     "could_not_render_elements": "Could not render picture elements",
     "could_not_resolve": "Could not resolve media URL",
@@ -423,17 +434,17 @@
     "media_type": "Media Type",
     "media_types": {
       "clips": "Clips",
-      "snapshots": "Snapshots",
-      "recordings": "Recordings"
+      "recordings": "Recordings",
+      "snapshots": "Snapshots"
     },
     "not_favorite": "Not Favorite",
     "select_camera": "Select camera...",
     "select_favorite": "Select favorite...",
     "select_media_type": "Select media type...",
+    "select_tag": "Select tag...",
     "select_what": "Select what...",
     "select_when": "Select when...",
     "select_where": "Select where...",
-    "select_tag": "Select tag...",
     "tag": "Tag",
     "what": "What",
     "when": "When",
@@ -448,8 +459,8 @@
   "recording": {
     "camera": "Camera",
     "duration": "Duration",
-    "in_progress": "In Progress",
     "events": "Events",
+    "in_progress": "In Progress",
     "seek": "Seek",
     "start": "Start"
   },
@@ -466,16 +477,5 @@
       "seek-in-media": "Pan seeks within selected media item only"
     },
     "select_date": "Choose date"
-  },
-  "elements": {
-    "ptz": {
-      "up": "Up",
-      "down": "Down",
-      "left": "Left",
-      "right": "Right",
-      "zoom_in": "Zoom In",
-      "zoom_out": "Zoom Out",
-      "home": "Home"
-    }
   }
 }
