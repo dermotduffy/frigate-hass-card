@@ -1440,11 +1440,11 @@ export interface StateParameters {
 
 export interface FrigateCardMediaPlayer {
   play(): Promise<void>;
-  pause(): void;
-  mute(): void;
-  unmute(): void;
+  pause(): Promise<void>;
+  mute(): Promise<void>;
+  unmute(): Promise<void>;
   isMuted(): boolean;
-  seek(seconds: number): void;
+  seek(seconds: number): Promise<void>;
 }
 
 export interface CardHelpers {

@@ -31,7 +31,6 @@ export const hideMediaControlsTemporarily = (
 };
 
 /**
- * 
  * @param player The Frigate Card Media Player object.
  * @param video An underlying video or media player upon which to call play.
  */
@@ -43,10 +42,14 @@ export const playMediaMutingIfNecessary = async (
   // and then try again. This works around some browsers that prevent
   // auto-play unless the video is muted.
   if (video?.play) {
-    video.play().catch((ev) => {
+    video.play().catch(async (ev) => {
       if (ev.name === 'NotAllowedError' && !player.isMuted()) {
-        player.mute();
-        video.play().catch();
+        await player.mute();
+        try {
+          await video.play();
+        } catch (_) {
+          // Pass.
+        }
       }
     });
   }

@@ -214,25 +214,19 @@ export const findClosestMediaIndex = (
     | undefined;
 
   for (const [i, media] of mediaArray.entries()) {
-    if (!refPoint) {
-      if (media.includesTime(targetTime)) {
+    if (media.includesTime(targetTime)) {
+      const start = media.getStartTime();
+      const end = media.getEndTime();
+      if (!refPoint || !start || !end) {
         return i;
       }
-      continue;
-    }
-
-    const start = media.getStartTime();
-    const end = media.getEndTime() ?? start;
-    if (!start || !end) {
-      continue;
-    }
-
-    const delta =
-      refPoint === 'end'
-        ? end.getTime() - targetTime.getTime()
-        : targetTime.getTime() - start.getTime();
-    if (delta > 0 && (!bestMatch || delta < bestMatch.delta)) {
-      bestMatch = { index: i, delta: delta };
+      const delta =
+        refPoint === 'end'
+          ? end.getTime() - targetTime.getTime()
+          : targetTime.getTime() - start.getTime();
+      if (!bestMatch || delta < bestMatch.delta) {
+        bestMatch = { index: i, delta: delta };
+      }
     }
   }
   return bestMatch ? bestMatch.index : null;

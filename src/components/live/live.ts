@@ -69,6 +69,11 @@ declare module 'view' {
   }
 }
 
+interface LastMediaLoadedInfo {
+  mediaLoadedInfo: MediaLoadedInfo;
+  source: EventTarget;
+}
+
 const FRIGATE_CARD_LIVE_PROVIDER = 'frigate-card-live-provider';
 
 /**
@@ -141,9 +146,11 @@ export class FrigateCardLive extends LitElement {
   // foreground and background (in preload mode).
   protected _intersectionObserver: IntersectionObserver;
 
-  // MediaLoadedInfo object and message from the underlying live object. In the
-  // case of pre-loading these may be propagated upwards later.
-  protected _backgroundMediaLoadedInfo: MediaLoadedInfo | null = null;
+  // MediaLoadedInfo object and target from the underlying live object. In the
+  // case of pre-loading these may be propagated later (from the original
+  // source).
+  protected _lastMediaLoadedInfo: LastMediaLoadedInfo | null = null;
+
   protected _messageReceivedPostRender = false;
   protected _renderKey = 0;
 
@@ -164,12 +171,17 @@ export class FrigateCardLive extends LitElement {
     if (
       !this._inBackground &&
       !this._messageReceivedPostRender &&
-      this._backgroundMediaLoadedInfo
+      this._lastMediaLoadedInfo
     ) {
       // If this isn't being rendered in the background, the last render did not
       // generate a message and there's a saved MediaInfo, dispatch it upwards.
-      dispatchExistingMediaLoadedInfoAsEvent(this, this._backgroundMediaLoadedInfo);
-      this._backgroundMediaLoadedInfo = null;
+      dispatchExistingMediaLoadedInfoAsEvent(
+        // Specifically dispatch the event "where it came from", as otherwise
+        // the intermediate layers (e.g. media-carousel which controls the title
+        // popups) will not re-receive the events.
+        this._lastMediaLoadedInfo.source,
+        this._lastMediaLoadedInfo.mediaLoadedInfo,
+      );
     }
 
     // Trigger a re-render which may be necessary if the prior render resulted
@@ -217,18 +229,10 @@ export class FrigateCardLive extends LitElement {
       return;
     }
 
-    const config = getOverriddenConfig(
-      this.liveConfig,
-      this.liveOverrides,
-      this.conditionState,
-    ) as LiveConfig;
-
     // Notes:
     // - See use of liveConfig and not config below -- the carousel will
     //   independently override the liveConfig to reflect the camera in the
     //   carousel (not necessarily the selected camera).
-    // - Fetching of thumbnails is disabled as long as live view is the
-    //   background.
     // - Various events are captured to prevent them propagating upwards if the
     //   card is in the background.
     // - The entire returned template is keyed to allow for the whole template
@@ -236,34 +240,7 @@ export class FrigateCardLive extends LitElement {
     //   is received when the card is in the background).
     const result = html`${keyed(
       this._renderKey,
-      html`<frigate-card-surround
-        .hass=${this.hass}
-        .view=${this.view}
-        .fetchMedia=${config.controls.thumbnails.media}
-        .thumbnailConfig=${config.controls.thumbnails}
-        .timelineConfig=${config.controls.timeline}
-        .cameraManager=${this.cameraManager}
-        .inBackground=${this._inBackground}
-        .cardWideConfig=${this.cardWideConfig}
-        @frigate-card:message=${(ev: CustomEvent<Message>) => {
-          this._renderKey++;
-          this._messageReceivedPostRender = true;
-          if (this._inBackground) {
-            ev.stopPropagation();
-          }
-        }}
-        @frigate-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
-          if (this._inBackground) {
-            this._backgroundMediaLoadedInfo = ev.detail;
-            ev.stopPropagation();
-          }
-        }}
-        @frigate-card:view:change=${(ev: CustomEvent<View>) => {
-          if (this._inBackground) {
-            ev.stopPropagation();
-          }
-        }}
-      >
+      html`
         <frigate-card-live-carousel
           .hass=${this.hass}
           .view=${this.view}
@@ -273,9 +250,30 @@ export class FrigateCardLive extends LitElement {
           .liveOverrides=${this.liveOverrides}
           .cardWideConfig=${this.cardWideConfig}
           .cameraManager=${this.cameraManager}
+          @frigate-card:message=${(ev: CustomEvent<Message>) => {
+            this._renderKey++;
+            this._messageReceivedPostRender = true;
+            if (this._inBackground) {
+              ev.stopPropagation();
+            }
+          }}
+          @frigate-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
+            this._lastMediaLoadedInfo = {
+              source: ev.composedPath()[0],
+              mediaLoadedInfo: ev.detail,
+            };
+            if (this._inBackground) {
+              ev.stopPropagation();
+            }
+          }}
+          @frigate-card:view:change=${(ev: CustomEvent<View>) => {
+            if (this._inBackground) {
+              ev.stopPropagation();
+            }
+          }}
         >
         </frigate-card-live-carousel>
-      </frigate-card-surround>`,
+      `,
     )}`;
 
     this._messageReceivedPostRender = false;
@@ -327,18 +325,22 @@ export class FrigateCardLiveCarousel extends LitElement {
   updated(changedProperties: PropertyValues): void {
     super.updated(changedProperties);
 
-    const frigateCardMediaCarousel = this._refMediaCarousel.value;
-
-    if (frigateCardMediaCarousel && changedProperties.has('inBackground')) {
-      // If this has changed to be in the background (i.e. preloaded but not
-      // visible) take the appropriate play/pause/mute/unmute actions.
-      if (this.inBackground) {
-        frigateCardMediaCarousel.autoPause();
-        frigateCardMediaCarousel.autoMute();
-      } else {
-        frigateCardMediaCarousel.autoPlay();
-        frigateCardMediaCarousel.autoUnmute();
-      }
+    if (changedProperties.has('inBackground')) {
+      this.updateComplete.then(async () => {
+        const frigateCardMediaCarousel = this._refMediaCarousel.value;
+        if (frigateCardMediaCarousel) {
+          await frigateCardMediaCarousel.updateComplete;
+          // If this has changed to be in the background (i.e. preloaded but not
+          // visible) take the appropriate play/pause/mute/unmute actions.
+          if (this.inBackground) {
+            frigateCardMediaCarousel.autoPause();
+            frigateCardMediaCarousel.autoMute();
+          } else {
+            frigateCardMediaCarousel.autoPlay();
+            frigateCardMediaCarousel.autoUnmute();
+          }
+        }
+      });
     }
   }
 
@@ -722,21 +724,41 @@ export class FrigateCardLiveProvider
   @state()
   protected _isVideoMediaLoaded = false;
 
-  protected _refProvider: Ref<Element & FrigateCardMediaPlayer> = createRef();
+  protected _refProvider: Ref<LitElement & FrigateCardMediaPlayer> = createRef();
+
+  // A note on dynamic imports:
+  //
+  // We gather the dynamic live provider import promises and do not consider the
+  // update of the element complete until these imports have returned. Without
+  // this behavior calls to the media methods (e.g. `mute()`) may throw if the
+  // underlying code is not yet loaded.
+  //
+  // Test case: A card with a non-live view, but live pre-loaded, attempts to
+  // call mute() when the <frigate-card-live> element first renders in the
+  // background. These calls fail without waiting for loading here.
+  protected _importPromises: Promise<unknown>[] = [];
 
   public async play(): Promise<void> {
-    playMediaMutingIfNecessary(this, this._refProvider.value);
+    await this.updateComplete;
+    await this._refProvider.value?.updateComplete;
+    await playMediaMutingIfNecessary(this, this._refProvider.value);
   }
 
-  public pause(): void {
+  public async pause(): Promise<void> {
+    await this.updateComplete;
+    await this._refProvider.value?.updateComplete;
     this._refProvider.value?.pause();
   }
 
-  public mute(): void {
+  public async mute(): Promise<void> {
+    await this.updateComplete;
+    await this._refProvider.value?.updateComplete;
     this._refProvider.value?.mute();
   }
 
-  public unmute(): void {
+  public async unmute(): Promise<void> {
+    await this.updateComplete;
+    await this._refProvider.value?.updateComplete;
     this._refProvider.value?.unmute();
   }
 
@@ -744,7 +766,9 @@ export class FrigateCardLiveProvider
     return this._refProvider.value?.isMuted() ?? true;
   }
 
-  public seek(seconds: number): void {
+  public async seek(seconds: number): Promise<void> {
+    await this.updateComplete;
+    await this._refProvider.value?.updateComplete;
     this._refProvider.value?.seek(seconds);
   }
 
@@ -813,23 +837,32 @@ export class FrigateCardLiveProvider
     if (changedProps.has('liveConfig')) {
       updateElementStyleFromMediaLayoutConfig(this, this.liveConfig?.layout);
       if (this.liveConfig?.show_image_during_load) {
-        import('./live-image.js');
+        this._importPromises.push(import('./live-image.js'));
       }
     }
     if (changedProps.has('cameraConfig')) {
       const provider = this._getResolvedProvider();
       if (provider === 'jsmpeg') {
-        import('./live-jsmpeg.js');
+        this._importPromises.push(import('./live-jsmpeg.js'));
       } else if (provider === 'ha') {
-        import('./live-ha.js');
+        this._importPromises.push(import('./live-ha.js'));
       } else if (provider === 'webrtc-card') {
-        import('./live-webrtc-card.js');
+        this._importPromises.push(import('./live-webrtc-card.js'));
       } else if (provider === 'image') {
-        import('./live-image.js');
+        this._importPromises.push(import('./live-image.js'));
       } else if (provider === 'go2rtc') {
-        import('./live-go2rtc.js');
+        this._importPromises.push(import('./live-go2rtc.js'));
       }
     }
+  }
+
+  override async getUpdateComplete(): Promise<boolean> {
+    // See 'A note on dynamic imports' above for explanation of why this is
+    // necessary.
+    const result = await super.getUpdateComplete();
+    await Promise.all(this._importPromises);
+    this._importPromises = [];
+    return result;
   }
 
   /**

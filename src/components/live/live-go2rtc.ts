@@ -75,17 +75,17 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
     return this._player?.video?.play();
   }
 
-  public pause(): void {
+  public async pause(): Promise<void> {
     this._player?.video?.pause();
   }
 
-  public mute(): void {
+  public async mute(): Promise<void> {
     if (this._player?.video) {
       this._player.video.muted = true;
     }
   }
 
-  public unmute(): void {
+  public async unmute(): Promise<void> {
     if (this._player?.video) {
       this._player.video.muted = false;
     }
@@ -95,7 +95,7 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
     return this._player?.video.muted ?? true;
   }
 
-  public seek(seconds: number): void {
+  public async seek(seconds: number): Promise<void> {
     if (this._player?.video) {
       this._player.video.currentTime = seconds;
     }

@@ -284,8 +284,8 @@ export class FrigateCardTimelineCore extends LitElement {
       this._panBehavior === 'pan'
         ? 'mdi:pan-horizontal'
         : this._panBehavior === 'seek'
-        ? 'mdi:movie-search'
-        : 'mdi:file-find';
+        ? 'mdi:filmstrip'
+        : 'mdi:lock';
 
     return html` ${capabilities?.supportsTimeline
       ? html` <div

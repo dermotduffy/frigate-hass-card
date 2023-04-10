@@ -462,8 +462,8 @@
   "timeline": {
     "pan_behavior": {
       "pan": "Pan",
-      "seek": "Pan seeks across media",
-      "seek-in-media": "Pan seeks within media"
+      "seek": "Pan seeks across all media",
+      "seek-in-media": "Pan seeks within selected media item only"
     },
     "select_date": "Choose date"
   },

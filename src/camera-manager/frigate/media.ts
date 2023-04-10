@@ -134,6 +134,9 @@ export class FrigateRecordingViewMedia extends ViewMedia implements RecordingVie
     // progress.
     return !this.getEndTime();
   }
+  public getVideoContentType(): VideoContentType | null {
+    return VideoContentType.HLS;
+  }
   public getContentID(): string | null {
     return this._contentID;
   }

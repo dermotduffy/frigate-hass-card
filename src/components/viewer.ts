@@ -142,14 +142,7 @@ export class FrigateCardViewer extends LitElement {
       return renderProgressIndicator({ cardWideConfig: this.cardWideConfig });
     }
 
-    return html` <frigate-card-surround
-      .hass=${this.hass}
-      .view=${this.view}
-      .thumbnailConfig=${this.viewerConfig.controls.thumbnails}
-      .timelineConfig=${this.viewerConfig.controls.timeline}
-      .cameraManager=${this.cameraManager}
-      .cardWideConfig=${this.cardWideConfig}
-    >
+    return html`
       <frigate-card-viewer-carousel
         .hass=${this.hass}
         .view=${this.view}
@@ -159,7 +152,7 @@ export class FrigateCardViewer extends LitElement {
         .cardWideConfig=${this.cardWideConfig}
       >
       </frigate-card-viewer-carousel>
-    </frigate-card-surround>`;
+    `;
   }
 
   /**
@@ -565,17 +558,17 @@ export class FrigateCardViewerProvider
   protected _refVideoProvider: Ref<HTMLVideoElement> = createRef();
 
   public async play(): Promise<void> {
-    playMediaMutingIfNecessary(
+    await playMediaMutingIfNecessary(
       this,
       this._refFrigateCardMediaPlayer.value ?? this._refVideoProvider.value,
     );
   }
 
-  public pause(): void {
+  public async pause(): Promise<void> {
     (this._refFrigateCardMediaPlayer.value || this._refVideoProvider.value)?.pause();
   }
 
-  public mute(): void {
+  public async mute(): Promise<void> {
     if (this._refFrigateCardMediaPlayer.value) {
       this._refFrigateCardMediaPlayer.value?.mute();
     } else if (this._refVideoProvider.value) {
@@ -583,7 +576,7 @@ export class FrigateCardViewerProvider
     }
   }
 
-  public unmute(): void {
+  public async unmute(): Promise<void> {
     if (this._refFrigateCardMediaPlayer.value) {
       this._refFrigateCardMediaPlayer.value?.mute();
     } else if (this._refVideoProvider.value) {
@@ -600,7 +593,7 @@ export class FrigateCardViewerProvider
     return true;
   }
 
-  public seek(seconds: number): void {
+  public async seek(seconds: number): Promise<void> {
     if (this._refFrigateCardMediaPlayer.value) {
       return this._refFrigateCardMediaPlayer.value.seek(seconds);
     } else if (this._refVideoProvider.value) {

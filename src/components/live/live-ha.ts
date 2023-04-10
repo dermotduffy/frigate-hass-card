@@ -23,15 +23,15 @@ export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPla
     return this._playerRef.value?.play();
   }
 
-  public pause(): void {
+  public async pause(): Promise<void> {
     this._playerRef.value?.pause();
   }
 
-  public mute(): void {
+  public async mute(): Promise<void> {
     this._playerRef.value?.mute();
   }
 
-  public unmute(): void {
+  public async unmute(): Promise<void> {
     this._playerRef.value?.unmute();
   }
 
@@ -39,7 +39,7 @@ export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPla
     return this._playerRef.value?.isMuted() ?? true;
   }
 
-  public seek(seconds: number): void {
+  public async seek(seconds: number): Promise<void> {
     this._playerRef.value?.seek(seconds);
   }
 

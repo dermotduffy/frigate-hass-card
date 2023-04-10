@@ -7,11 +7,6 @@ import { View } from '../view/view';
 import './surround.js';
 import './timeline-core.js';
 
-// This file is kept separate from timeline-core.ts to avoid a circular dependency:
-//   FrigateCardTimeline ->
-//   FrigateCardSurround ->
-//   FrigateCardTimelineCore
-
 @customElement('frigate-card-timeline')
 export class FrigateCardTimeline extends LitElement {
   @property({ attribute: false })
@@ -38,12 +33,7 @@ export class FrigateCardTimeline extends LitElement {
       return html``;
     }
 
-    return html` <frigate-card-surround
-      .hass=${this.hass}
-      .view=${this.view}
-      .thumbnailConfig=${this.timelineConfig.controls.thumbnails}
-      .cameraManager=${this.cameraManager}
-    >
+    return html`
       <frigate-card-timeline-core
         .hass=${this.hass}
         .view=${this.view}
@@ -56,7 +46,7 @@ export class FrigateCardTimeline extends LitElement {
           : 'select'}
       >
       </frigate-card-timeline-core>
-    </frigate-card-surround>`;
+    `;
   }
 
   /**

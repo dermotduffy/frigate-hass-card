@@ -51,15 +51,15 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       return this._player?.play();
     }
 
-    public pause(): void {
+    public async pause(): Promise<void> {
       this._player?.pause();
     }
 
-    public mute(): void {
+    public async mute(): Promise<void> {
       this._player?.mute();
     }
 
-    public unmute(): void {
+    public async unmute(): Promise<void> {
       this._player?.unmute();
     }
 
@@ -67,10 +67,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       return this._player?.isMuted() ?? true;
     }
 
-    /**
-     * Seek the video (unsupported).
-     */
-    public seek(seconds: number): void {
+    public async seek(seconds: number): Promise<void> {
       this._player?.seek(seconds);
     }
 

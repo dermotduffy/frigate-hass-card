@@ -43,18 +43,18 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
     return this._jsmpegVideoPlayer?.play();
   }
 
-  public pause(): void {
+  public async pause(): Promise<void> {
     this._jsmpegVideoPlayer?.stop();
   }
 
-  public mute(): void {
+  public async mute(): Promise<void> {
     const player = this._jsmpegVideoPlayer?.player;
     if (player) {
       player.volume = 0;
     }
   }
 
-  public unmute(): void {
+  public async unmute(): Promise<void> {
     const player = this._jsmpegVideoPlayer?.player;
     if (player) {
       player.volume = 1;
@@ -66,7 +66,7 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public seek(_seconds: number): void {
+  public async seek(_seconds: number): Promise<void> {
     // JSMPEG does not support seeking.
   }
 

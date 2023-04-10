@@ -21,15 +21,15 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
     this._playing = true;
   }
 
-  public pause(): void {
+  public async pause(): Promise<void> {
     this._playing = false;
   }
 
-  public mute(): void {
+  public async mute(): Promise<void> {
     // Not implemented.
   }
 
-  public unmute(): void {
+  public async unmute(): Promise<void> {
     // Not implemented.
   }
 
@@ -38,7 +38,7 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public seek(_seconds: number): void {
+  public async seek(_seconds: number): Promise<void> {
     // Not implemented.
   }
 
@@ -51,7 +51,7 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
 
     return html` <frigate-card-image
       .imageConfig=${{
-        mode: this.cameraConfig.image.url ? 'url' as const : 'camera' as const,
+        mode: this.cameraConfig.image.url ? ('url' as const) : ('camera' as const),
         refresh_seconds: this._playing ? this.cameraConfig.image.refresh_seconds : 0,
         url: this.cameraConfig.image.url,
         // Don't need to pass layout options as FrigateCardLiveProvider has
