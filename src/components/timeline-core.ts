@@ -487,7 +487,7 @@ export class FrigateCardTimelineCore extends LitElement {
       }) // Whether or not to set the timeline window.
       .mergeInContext({
         ...(canSeek && { mediaViewer: { seek: targetTime } }),
-        ...this._getTimelineContext(properties),
+        ...this._getTimelineContext({ start: properties.start, end: properties.end }),
       })
       .dispatchChangeEvent(this);
   }
@@ -609,8 +609,11 @@ export class FrigateCardTimelineCore extends LitElement {
       }
 
       if (view?.queryResults?.hasResults()) {
-        view.mergeInContext({ mediaViewer: { seek: properties.time } });
+        view.mergeInContext(
+          { mediaViewer: { seek: properties.time }
+        });
       }
+      view?.mergeInContext(this._getTimelineContext());
 
       if (this.itemClickAction === 'select' && view) {
         drawerAction = 'open';
