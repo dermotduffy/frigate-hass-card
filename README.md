@@ -2271,6 +2271,8 @@ Reference: [Dimension Options](#dimensions-options).
 dimensions:
   aspect_ratio_mode: dynamic
   aspect_ratio: 16:9
+  max_height: 100vh
+  min_height: 100px
 ```
 </details>
 
