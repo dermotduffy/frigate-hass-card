@@ -184,6 +184,9 @@ web-dialog {
   // Allow submenus to flow outside the edge of the dialog.
   --dialog-overflow-x: visible;
   --dialog-overflow-y: visible;
+
+  // Required to ensure the dialog is centered vertically.
+  max-height: 100vh;
 }
 
 web-dialog::part(dialog) {
