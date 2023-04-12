@@ -1,5 +1,4 @@
 import {
-  css,
   CSSResultGroup,
   html,
   LitElement,
@@ -9,6 +8,7 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import galleryStyle from '../scss/gallery.scss';
+import galleryCoreStyle from '../scss/gallery-core.scss';
 import {
   CardWideConfig,
   ExtendedHomeAssistant,
@@ -138,17 +138,8 @@ export class FrigateCardGallery extends LitElement {
     `;
   }
 
-  /**
-   * Get element styles.
-   */
   static get styles(): CSSResultGroup {
-    return css`
-      :host {
-        display: block;
-        width: 100%;
-        height: 100%;
-      }
-    `;
+    return unsafeCSS(galleryStyle);
   }
 }
 
@@ -525,11 +516,8 @@ export class FrigateCardGalleryCore extends LitElement {
     });
   }
 
-  /**
-   * Get styles.
-   */
   static get styles(): CSSResultGroup {
-    return unsafeCSS(galleryStyle);
+    return unsafeCSS(galleryCoreStyle);
   }
 }
 

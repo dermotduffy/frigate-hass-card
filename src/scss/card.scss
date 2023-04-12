@@ -12,7 +12,13 @@
   // keeping the background-color within the radius.
   border-radius: var(--ha-card-border-radius, 4px);
 
-  // The standard HA header is 56 pixels wide, so that much off the top (header)
+  // Necessary to ensure children adhere to height of outer container (without
+  // this gallery surround is not correctly positioned in the middle of the
+  // card, but rather the middle of the scrolling gallery container).
+  max-height: var(--frigate-card-max-height);
+  min-height: var(--frigate-card-min-height);
+
+  // The standard HA header is 56 pixels tall, so that much off the top (header)
   // and bottom (to maintain center), before doing the calculation of
   // max-height. This matters on small mobile devices in landscape orientation.
   --frigate-card-expand-max-height: calc( ( 100vh - (2 * 56px) ) * 0.85 );
@@ -20,6 +26,9 @@
   --frigate-card-expand-width: none;
   --frigate-card-expand-height: none;
   --frigate-card-expand-aspect-ratio: unset;
+
+  --frigate-card-max-height: none;
+  --frigate-card-min-height: none;
 }
 
 :host([dark]) {
@@ -27,7 +36,8 @@
 }
 :host([panel]) {
   // Card always extends to the full allowed height in panel mode (in non-panel
-  // mode this would cause the card to expand to the height of a column).
+  // mode this would cause the card to expand to the height of a column when
+  // there are multiple cards in the column).
   height: 100%;
 }
 

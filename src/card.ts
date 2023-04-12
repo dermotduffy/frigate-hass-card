@@ -5,7 +5,7 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS
+  unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -27,7 +27,7 @@ import {
   CardConditionManager,
   ConditionState,
   conditionStateRequestHandler,
-  getOverriddenConfig
+  getOverriddenConfig,
 } from './card-condition.js';
 import './components/elements.js';
 import { FrigateCardElements } from './components/elements.js';
@@ -48,19 +48,26 @@ import {
   ActionType,
   CameraConfig,
   CardWideConfig,
-  ExtendedHomeAssistant, FrigateCardConfig,
+  ExtendedHomeAssistant,
+  FrigateCardConfig,
   frigateCardConfigSchema,
   FrigateCardCustomAction,
   FrigateCardError,
-  FrigateCardView, FRIGATE_CARD_VIEWS_USER_SPECIFIED, FRIGATE_CARD_VIEW_DEFAULT, MediaLoadedInfo,
-  MenuButton, Message, MESSAGE_TYPE_PRIORITIES, RawFrigateCardConfig
+  FrigateCardView,
+  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
+  FRIGATE_CARD_VIEW_DEFAULT,
+  MediaLoadedInfo,
+  MenuButton,
+  Message,
+  MESSAGE_TYPE_PRIORITIES,
+  RawFrigateCardConfig,
 } from './types.js';
 import {
   convertActionToFrigateCardCustomAction,
   createFrigateCardCustomAction,
   frigateCardHandleAction,
   frigateCardHasAction,
-  getActionConfigGivenAction
+  getActionConfigGivenAction,
 } from './utils/action.js';
 import { errorToConsole } from './utils/basic.js';
 import { getAllDependentCameras } from './utils/camera.js';
@@ -73,7 +80,7 @@ import {
   isCardInPanel,
   isHassDifferent,
   isTriggeredState,
-  sideLoadHomeAssistantElements
+  sideLoadHomeAssistantElements,
 } from './utils/ha';
 import { DeviceList, getAllDevices } from './utils/ha/device-registry.js';
 import { EntityCache } from './utils/ha/entity-registry/cache.js';
@@ -828,6 +835,7 @@ class FrigateCard extends LitElement {
 
     this._generateConditionState();
     this._setLightOrDarkMode();
+    this._setPropertiesForMinMaxHeight();
     this._untrigger();
   }
 
@@ -941,6 +949,18 @@ class FrigateCard extends LitElement {
     if (changedProps.has('_view')) {
       this._setPropertiesForExpandedMode();
     }
+  }
+
+  protected _setPropertiesForMinMaxHeight(): void {
+    this.style.setProperty(
+      '--frigate-card-max-height',
+      this._getConfig().dimensions.max_height,
+    );
+
+    this.style.setProperty(
+      '--frigate-card-min-height',
+      this._getConfig().dimensions.min_height,
+    );
   }
 
   /**
@@ -1853,9 +1873,6 @@ class FrigateCard extends LitElement {
    * @returns A padding percentage.
    */
   protected _getAspectRatioStyle(): string {
-    // In expanded mode we must always set the aspect ratio since there are no
-    // constraints on the size.
-
     if (!this._isAspectRatioEnforced()) {
       return 'auto';
     }
