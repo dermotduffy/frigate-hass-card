@@ -186,7 +186,9 @@
         "dynamic": "Aspect ratio adjusts to media",
         "static": "Static aspect ratio",
         "unconstrained": "Unconstrained aspect ratio"
-      }
+      },
+      "max_height": "Maximum card height in CSS units (e.g. '100vh')",
+      "min_height": "Minimum card height in CSS units (e.g. '100px')"
     },
     "image": {
       "layout": "Image Layout",

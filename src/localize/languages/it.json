@@ -186,7 +186,9 @@
         "dynamic": "Le proporzioni si adattano ai media",
         "static": "Proporzioni statiche",
         "unconstrained": "Proporzioni non vincolate"
-      }
+      },
+      "max_height": "",
+      "min_height": ""
     },
     "image": {
       "layout": "Disposizione dell'immagine",

@@ -142,6 +142,8 @@ import {
   CONF_VIEW_UPDATE_FORCE,
   CONF_VIEW_UPDATE_SECONDS,
   MEDIA_CHUNK_SIZE_MAX,
+  CONF_DIMENSIONS_MAX_HEIGHT,
+  CONF_DIMENSIONS_MIN_HEIGHT,
 } from './const.js';
 import { localize } from './localize/localize.js';
 import frigate_card_editor_style from './scss/editor.scss';
@@ -1978,6 +1980,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 this._aspectRatioModes,
               )}
               ${this._renderStringInput(CONF_DIMENSIONS_ASPECT_RATIO)}
+              ${this._renderStringInput(CONF_DIMENSIONS_MAX_HEIGHT)}
+              ${this._renderStringInput(CONF_DIMENSIONS_MIN_HEIGHT)}
             </div>`
           : ''}
         ${this._renderOptionSetHeader(

@@ -239,6 +239,8 @@ const CONF_DIMENSIONS = 'dimensions' as const;
 export const CONF_DIMENSIONS_ASPECT_RATIO = `${CONF_DIMENSIONS}.aspect_ratio` as const;
 export const CONF_DIMENSIONS_ASPECT_RATIO_MODE =
   `${CONF_DIMENSIONS}.aspect_ratio_mode` as const;
+export const CONF_DIMENSIONS_MAX_HEIGHT = `${CONF_DIMENSIONS}.max_height` as const;
+export const CONF_DIMENSIONS_MIN_HEIGHT = `${CONF_DIMENSIONS}.min_height` as const;
 
 export const CONF_OVERRIDES = 'overrides' as const;
 

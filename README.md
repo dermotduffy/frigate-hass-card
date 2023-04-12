@@ -766,6 +766,9 @@ See the [fully expanded dimensions configuration example](#config-expanded-dimen
 | - | - | - | - |
 | `aspect_ratio_mode` | `dynamic` | :white_check_mark: | The aspect ratio mode to use. Acceptable values: `dynamic`, `static`, `unconstrained`. See [aspect ratios](#aspect-ratios) below.|
 | `aspect_ratio` | `16:9` | :white_check_mark: | The aspect ratio  to use. Acceptable values: `<W>:<H>` or `<W>/<H>`. See [aspect ratios](#aspect-ratios) below.|
+| `max_height` | `100vh` | :white_check_mark: | The maximum allowable height for the card. Specified in [CSS units](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Values_and_units). Generally users should not need to change this setting unless they have set an `unconstrained` aspect ratio. |
+| `min_height` | `100px` | :white_check_mark: | The minimum allowable height for the card. Specified in [CSS units](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Values_and_units). Generally users should not need to change this setting. |
+
 
 #### `dimensions.aspect_ratio_mode`:
 
@@ -2268,6 +2271,8 @@ Reference: [Dimension Options](#dimensions-options).
 dimensions:
   aspect_ratio_mode: dynamic
   aspect_ratio: 16:9
+  max_height: 100vh
+  min_height: 100px
 ```
 </details>
 
