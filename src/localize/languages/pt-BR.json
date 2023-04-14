@@ -176,6 +176,11 @@
           "snapshots": "Instantâneos"
         },
         "show_recordings": "Mostrar gravações",
+        "style": "",
+        "styles": {
+          "ribbon": "",
+          "stack": ""
+        },
         "window_seconds": "A duração padrão da visualização da linha do tempo em segundos"
       }
     },

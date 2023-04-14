@@ -128,6 +128,8 @@ export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE =
   `${CONF_MEDIA_VIEWER}.controls.timeline.mode` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS =
   `${CONF_MEDIA_VIEWER}.controls.timeline.show_recordings` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE =
+  `${CONF_MEDIA_VIEWER}.controls.timeline.style` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS =
   `${CONF_MEDIA_VIEWER}.controls.timeline.window_seconds` as const;
 
@@ -172,6 +174,8 @@ export const CONF_LIVE_CONTROLS_TIMELINE_MODE =
   `${CONF_LIVE}.controls.timeline.mode` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS =
   `${CONF_LIVE}.controls.timeline.show_recordings` as const;
+export const CONF_LIVE_CONTROLS_TIMELINE_STYLE =
+  `${CONF_LIVE}.controls.timeline.style` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS =
   `${CONF_LIVE}.controls.timeline.window_seconds` as const;
 export const CONF_LIVE_CONTROLS_TITLE_MODE = `${CONF_LIVE}.controls.title.mode` as const;
@@ -202,6 +206,7 @@ export const CONF_TIMELINE_CLUSTERING_THRESHOLD =
   `${CONF_TIMELINE}.clustering_threshold` as const;
 export const CONF_TIMELINE_MEDIA = `${CONF_TIMELINE}.media` as const;
 export const CONF_TIMELINE_SHOW_RECORDINGS = `${CONF_TIMELINE}.show_recordings` as const;
+export const CONF_TIMELINE_STYLE = `${CONF_TIMELINE}.style` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE =
   `${CONF_TIMELINE}.controls.thumbnails.mode` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE =

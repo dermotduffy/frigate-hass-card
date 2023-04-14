@@ -144,6 +144,9 @@ import {
   MEDIA_CHUNK_SIZE_MAX,
   CONF_DIMENSIONS_MAX_HEIGHT,
   CONF_DIMENSIONS_MIN_HEIGHT,
+  CONF_TIMELINE_STYLE,
+  CONF_LIVE_CONTROLS_TIMELINE_STYLE,
+  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE,
 } from './const.js';
 import { localize } from './localize/localize.js';
 import frigate_card_editor_style from './scss/editor.scss';
@@ -460,6 +463,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'all', label: localize('config.common.timeline.medias.all') },
     { value: 'clips', label: localize('config.common.timeline.medias.clips') },
     { value: 'snapshots', label: localize('config.common.timeline.medias.snapshots') },
+  ];
+
+  protected _timelineStyleTypes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'ribbon', label: localize('config.common.timeline.styles.ribbon') },
+    { value: 'stack', label: localize('config.common.timeline.styles.stack') },
   ];
 
   protected _darkModes: EditorSelectOption[] = [
@@ -969,6 +978,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
   /**
    * Render the core timeline controls (mini or full timeline),
+   * @param configPathStyle Timeline style config path.
    * @param configPathWindowSeconds Timeline window config path.
    * @param configPathClusteringThreshold Clustering threshold config path.
    * @param configPathTimelineMedia Timeline media config path.
@@ -977,13 +987,18 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    * @returns A rendered template.
    */
   protected _renderTimelineCoreControls(
+    configPathStyle: string,
     configPathWindowSeconds: string,
     configPathClusteringThreshold: string,
     configPathTimelineMedia: string,
     configPathShowRecordings: string,
     defaultShowRecordings: boolean,
   ): TemplateResult {
-    return html` ${this._renderNumberInput(configPathWindowSeconds, {
+    return html`
+    ${this._renderOptionSelector(configPathStyle, this._timelineStyleTypes, {
+      label: localize(`config.common.${CONF_TIMELINE_STYLE}`),
+    })}
+    ${this._renderNumberInput(configPathWindowSeconds, {
       label: localize(`config.common.${CONF_TIMELINE_WINDOW_SECONDS}`),
     })}
     ${this._renderNumberInput(configPathClusteringThreshold, {
@@ -1009,6 +1024,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   protected _renderMiniTimeline(
     domain: string,
     configPathMode: string,
+    configPathStyle: string,
     configPathWindowSeconds: string,
     configPathClusteringThreshold: string,
     configPathTimelineMedia: string,
@@ -1024,6 +1040,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         label: localize('config.common.controls.timeline.mode'),
       })}
       ${this._renderTimelineCoreControls(
+        configPathStyle,
         configPathWindowSeconds,
         configPathClusteringThreshold,
         configPathTimelineMedia,
@@ -1811,6 +1828,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     ${this._renderMiniTimeline(
                       MENU_LIVE_CONTROLS_TIMELINE,
                       CONF_LIVE_CONTROLS_TIMELINE_MODE,
+                      CONF_LIVE_CONTROLS_TIMELINE_STYLE,
                       CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS,
                       CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
                       CONF_LIVE_CONTROLS_TIMELINE_MEDIA,
@@ -1916,6 +1934,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   ${this._renderMiniTimeline(
                     MENU_MEDIA_VIEWER_CONTROLS_TIMELINE,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE,
+                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA,
@@ -1952,6 +1971,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${this._expandedMenus[MENU_OPTIONS] === 'timeline'
           ? html` <div class="values">
               ${this._renderTimelineCoreControls(
+                CONF_TIMELINE_STYLE,
                 CONF_TIMELINE_WINDOW_SECONDS,
                 CONF_TIMELINE_CLUSTERING_THRESHOLD,
                 CONF_TIMELINE_MEDIA,

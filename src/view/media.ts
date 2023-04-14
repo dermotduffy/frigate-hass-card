@@ -1,8 +1,8 @@
 export type ViewMediaType = 'clip' | 'snapshot' | 'recording';
 
 export enum VideoContentType {
-  MP4 = "mp4",
-  HLS = "hls",
+  MP4 = 'mp4',
+  HLS = 'hls',
 }
 
 export class ViewMedia {
@@ -34,6 +34,9 @@ export class ViewMedia {
   public getEndTime(): Date | null {
     return null;
   }
+  public getUsableEndTime(): Date | null {
+    return this.getEndTime() ?? (this.inProgress() ? new Date() : this.getStartTime());
+  }
   public inProgress(): boolean | null {
     return null;
   }
@@ -51,7 +54,7 @@ export class ViewMedia {
   }
   public includesTime(seek: Date): boolean {
     const startTime = this.getStartTime();
-    const endTime = this.getEndTime() ?? startTime;
+    const endTime = this.getUsableEndTime();
     return !!startTime && !!endTime && seek >= startTime && seek <= endTime;
   }
 

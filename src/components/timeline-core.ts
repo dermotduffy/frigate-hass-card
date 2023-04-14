@@ -1,6 +1,8 @@
 import add from 'date-fns/add';
-import endOfHour from 'date-fns/endOfHour';
 import differenceInSeconds from 'date-fns/differenceInSeconds';
+import endOfDay from 'date-fns/endOfDay';
+import endOfHour from 'date-fns/endOfHour';
+import startOfDay from 'date-fns/startOfDay';
 import startOfHour from 'date-fns/startOfHour';
 import sub from 'date-fns/sub';
 import {
@@ -26,6 +28,9 @@ import {
   TimelineOptionsCluster,
   TimelineWindow,
 } from 'vis-timeline/esnext';
+import { CameraManager } from '../camera-manager/manager';
+import { rangesOverlap } from '../camera-manager/range';
+import { MediaQuery } from '../camera-manager/types';
 import { localize } from '../localize/localize';
 import timelineCoreStyle from '../scss/timeline-core.scss';
 import {
@@ -42,27 +47,23 @@ import {
   contentsChanged,
   dispatchFrigateCardEvent,
   isHoverableDevice,
+  setOrRemoveAttribute,
 } from '../utils/basic';
 import {
   createQueriesForRecordingsView,
   executeMediaQueryForView,
-  findClosestMediaIndex,
+  findBestMediaIndex,
 } from '../utils/media-to-view';
-import { CameraManager } from '../camera-manager/manager';
-import { EventMediaQueries, MediaQueries } from '../view/media-queries';
-import { MediaQueriesClassifier } from '../view/media-queries-classifier';
-import { dispatchMessageEvent } from './message.js';
-import './thumbnail.js';
 import { FrigateCardTimelineItem, TimelineDataSource } from '../utils/timeline-source';
 import { ViewMedia } from '../view/media';
 import { ViewMediaClassifier } from '../view/media-classifier';
-import { rangesOverlap } from '../camera-manager/range';
+import { EventMediaQueries, MediaQueries } from '../view/media-queries';
+import { MediaQueriesClassifier } from '../view/media-queries-classifier';
 import { View } from '../view/view';
-import { MediaQuery } from '../camera-manager/types';
 import './date-picker.js';
 import { DatePickerEvent, FrigateCardDatePicker } from './date-picker.js';
-import startOfDay from 'date-fns/startOfDay';
-import endOfDay from 'date-fns/endOfDay';
+import { dispatchMessageEvent } from './message.js';
+import './thumbnail.js';
 
 interface FrigateCardGroupData {
   id: string;
@@ -450,10 +451,7 @@ export class FrigateCardTimelineCore extends LitElement {
       !this.view ||
       !this.hass ||
       !this.cameraManager ||
-      this._panBehavior === 'pan' ||
-      // Skip range changes that do not have hammerjs pan directions associated
-      // with them, as these outliers cause media matching issues below.
-      !properties.event.additionalEvent
+      this._panBehavior === 'pan'
     ) {
       return;
     }
@@ -466,10 +464,9 @@ export class FrigateCardTimelineCore extends LitElement {
             .clone()
             .resetSelectedResult()
             .selectBestResult((media) =>
-              findClosestMediaIndex(
+              findBestMediaIndex(
                 media,
                 targetTime,
-                properties.event.additionalEvent === 'panright' ? 'end' : 'start',
               ),
             );
 
@@ -609,9 +606,7 @@ export class FrigateCardTimelineCore extends LitElement {
       }
 
       if (view?.queryResults?.hasResults()) {
-        view.mergeInContext(
-          { mediaViewer: { seek: properties.time }
-        });
+        view.mergeInContext({ mediaViewer: { seek: properties.time } });
       }
       view?.mergeInContext(this._getTimelineContext());
 
@@ -840,6 +835,7 @@ export class FrigateCardTimelineCore extends LitElement {
    */
   protected _isClustering(): boolean {
     return (
+      this.timelineConfig?.style === 'stack' &&
       !!this.timelineConfig?.clustering_threshold &&
       this.timelineConfig.clustering_threshold > 0
     );
@@ -854,7 +850,7 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     const defaultWindow = this._getDefaultStartEnd();
-
+    const stack = this.timelineConfig.style === 'stack';
     // Configuration for the Timeline, see:
     // https://visjs.github.io/vis-timeline/docs/timeline/#Configuration_Options
     return {
@@ -898,7 +894,15 @@ export class FrigateCardTimelineCore extends LitElement {
       maxHeight: '100%',
       zoomMax: 1 * 24 * 60 * 60 * 1000,
       zoomMin: 1 * 1000,
+      margin: {
+        item: {
+          // In ribbon mode, a 20px item is reduced to 6px, so need to add a
+          // 14px margin to ensure items line up with subgroups.
+          vertical: stack ? 10 : 24,
+        },
+      },
       selectable: true,
+      stack: stack,
       start: defaultWindow.start,
       end: defaultWindow.end,
       groupHeightMode: 'auto',
@@ -988,7 +992,7 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     const mediaID = media?.getID();
-    if (!this._pointerHeld && media && mediaID && this._isClustering()) {
+    if (media && mediaID && this._isClustering()) {
       // Hack: Clustering may not update unless the dataset changes, artifically
       // update the dataset to ensure the newly selected item cannot be included
       // in a cluster. Only do this when the pointer is not held to avoid
@@ -1094,11 +1098,9 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     if (changedProps.has('timelineConfig')) {
-      if (this.timelineConfig?.show_recordings) {
-        this.setAttribute('recordings', '');
-      } else {
-        this.removeAttribute('recordings');
-      }
+      setOrRemoveAttribute(this, !!this.timelineConfig?.show_recordings, 'recordings');
+      setOrRemoveAttribute(this, this.timelineConfig?.style === 'ribbon', 'ribbon');
+      setOrRemoveAttribute(this, this.timelineConfig?.style === 'stack', 'stack');
     }
 
     if (
@@ -1128,6 +1130,7 @@ export class FrigateCardTimelineCore extends LitElement {
     this._timeline?.destroy();
     this._timeline = undefined;
     this._targetBarVisible = false;
+    this._pointerHeld = null;
   }
 
   /**
@@ -1167,7 +1170,8 @@ export class FrigateCardTimelineCore extends LitElement {
       const options = this._getOptions();
       if (options) {
         createdTimeline = true;
-        if (this.mini && groups.length === 1) {
+        const noGroups = this.mini && groups.length === 1;
+        if (noGroups) {
           // In a mini timeline, if there's only one group don't bother grouping
           // at all.
           this._timeline = new Timeline(
@@ -1175,7 +1179,6 @@ export class FrigateCardTimelineCore extends LitElement {
             this._timelineSource.dataset,
             options,
           ) as Timeline;
-          this.removeAttribute('groups');
         } else {
           this._timeline = new Timeline(
             this._refTimeline.value,
@@ -1183,8 +1186,8 @@ export class FrigateCardTimelineCore extends LitElement {
             groups,
             options,
           ) as Timeline;
-          this.setAttribute('groups', '');
         }
+        setOrRemoveAttribute(this, !noGroups, 'groups');
 
         this._timeline.on('rangechanged', this._timelineRangeChangedHandler.bind(this));
         this._timeline.on('click', this._timelineClickHandler.bind(this));
@@ -1208,16 +1211,14 @@ export class FrigateCardTimelineCore extends LitElement {
       }
     }
 
-    if (changedProperties.has('view')) {
-      if (createdTimeline) {
-        // If the timeline was just created, give it one frame to draw itself.
-        // Failure to do so may result in subsequent calls to
-        // `this._timeline.setwindow()` being entirely ignored. Example case:
-        // Clicking the timeline control on a recording thumbnail.
-        window.requestAnimationFrame(this._updateTimelineFromView.bind(this));
-      } else {
-        this._updateTimelineFromView();
-      }
+    if (createdTimeline) {
+      // If the timeline was just created, give it one frame to draw itself.
+      // Failure to do so may result in subsequent calls to
+      // `this._timeline.setwindow()` being entirely ignored. Example case:
+      // Clicking the timeline control on a recording thumbnail.
+      window.requestAnimationFrame(this._updateTimelineFromView.bind(this));
+    } else if (changedProperties.has('view')) {
+      this._updateTimelineFromView();
     }
   }
 
