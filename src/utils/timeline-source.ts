@@ -147,8 +147,8 @@ export class TimelineDataSource {
           content: '',
           media: media,
           start: startTime.getTime(),
-          type: endTime ? 'range' : 'point',
-          ...(endTime && { end: endTime.getTime() }),
+          type: 'range',
+          end: endTime?.getTime() ?? startTime.getTime(),
         });
       }
     }

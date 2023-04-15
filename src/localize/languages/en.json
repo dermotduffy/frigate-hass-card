@@ -176,6 +176,11 @@
           "snapshots": "Snapshots"
         },
         "show_recordings": "Show recordings",
+        "style": "Timeline style",
+        "styles": {
+          "ribbon": "Events on a single ribbon",
+          "stack": "Stacked & clustered events"
+        },
         "window_seconds": "The default length of the timeline view in seconds"
       }
     },

@@ -42,6 +42,17 @@ div.timeline {
   color: var(--primary-text-color);
 }
 
+:host([ribbon]:not([groups])) .vis-item:not(.vis-background) {
+  // When a ribbon timeline is used without groups, we need to add extra margin
+  // to the top to center the bar vertically within the mini-timeline.
+  margin-top: 7px;
+}
+
+:host([ribbon]) .vis-item:not(.vis-background) {
+  // Ribbon timelines have a much shorter 'bar'.
+  height: 6px;
+}
+
 .vis-item {
   border-color: var(--primary-color);
   background: none;

@@ -171,7 +171,7 @@ export const executeMediaQueryForView = async (
 
   if (options?.select === 'time' && options?.targetTime) {
     queryResults.selectBestResult((media) =>
-      findClosestMediaIndex(media, options.targetTime as Date),
+      findBestMediaIndex(media, options.targetTime as Date),
     );
     viewerContext = {
       mediaViewer: {
@@ -193,39 +193,31 @@ export const executeMediaQueryForView = async (
 };
 
 /**
- * Find the closest matching media object.
+ * Find the longest matching media object that contains a given targetTime.
+ * Longest is chosen to give the most stability to the media viewer.
  * @param mediaArray The media.
  * @param targetTime The target time used to find the relevant child.
- * @param refPoint Whether to find based on the start or end of the
- * event/recording. If not specified, the first match is returned rather than
- * the best match.
  * @returns The childindex or null if no matching child is found.
  */
-export const findClosestMediaIndex = (
+export const findBestMediaIndex = (
   mediaArray: ViewMedia[],
-  targetTime: Date,
-  refPoint?: 'start' | 'end',
+  targetTime: Date
 ): number | null => {
   let bestMatch:
     | {
         index: number;
-        delta: number;
+        duration: number;
       }
     | undefined;
 
   for (const [i, media] of mediaArray.entries()) {
-    if (media.includesTime(targetTime)) {
-      const start = media.getStartTime();
-      const end = media.getEndTime();
-      if (!refPoint || !start || !end) {
-        return i;
-      }
-      const delta =
-        refPoint === 'end'
-          ? end.getTime() - targetTime.getTime()
-          : targetTime.getTime() - start.getTime();
-      if (!bestMatch || delta < bestMatch.delta) {
-        bestMatch = { index: i, delta: delta };
+    const start = media.getStartTime();
+    const end = media.getUsableEndTime();
+
+    if (media.includesTime(targetTime) && start && end) {
+      const duration = end.getTime() - start.getTime();
+      if (!bestMatch || duration > bestMatch.duration) {
+        bestMatch = { index: i, duration: duration };
       }
     }
   }

@@ -199,4 +199,24 @@ export const sleep = async (seconds: number) => {
 
 export const isValidDate = (date: Date): boolean => {
   return !isNaN(date.getTime());
-}
+};
+
+/**
+ * Set or remove an attribute on a HTMLElement.
+ * @param element The element.
+ * @param set If `true` sets the attribute, otherwise removes it.
+ * @param name The attribute name.
+ * @param value An optional value to set the attribute to.
+ */
+export const setOrRemoveAttribute = (
+  element: HTMLElement,
+  set: boolean,
+  name: string,
+  value?: string,
+): void => {
+  if (set) {
+    element.setAttribute(name, value ?? '');
+  } else {
+    element.removeAttribute(name);
+  }
+};

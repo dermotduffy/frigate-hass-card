@@ -176,6 +176,11 @@
           "snapshots": "Istantanee"
         },
         "show_recordings": "Mostra registrazioni",
+        "style": "",
+        "styles": {
+          "ribbon": "",
+          "stack": ""
+        },
         "window_seconds": "La lunghezza predefinita della vista della sequenza temporale in secondi"
       }
     },

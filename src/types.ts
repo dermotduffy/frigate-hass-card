@@ -832,6 +832,7 @@ const timelineCoreConfigDefault = {
   media: 'all' as const,
   window_seconds: 60 * 60,
   show_recordings: true,
+  style: 'stack' as const,
 };
 
 const timelineMediaSchema = z.enum(['all', 'clips', 'snapshots']);
@@ -851,15 +852,20 @@ const timelineCoreConfigSchema = z.object({
     .boolean()
     .optional()
     .default(timelineCoreConfigDefault.show_recordings),
+  style: z.enum(['stack', 'ribbon']).optional().default(timelineCoreConfigDefault.style),
 });
 export type TimelineCoreConfig = z.infer<typeof timelineCoreConfigSchema>;
 
 const miniTimelineConfigDefault = {
   ...timelineCoreConfigDefault,
   mode: 'none' as const,
+
+  // Mini-timeline defaults to ribbon style.
+  style: 'ribbon' as const,
 };
 const miniTimelineConfigSchema = timelineCoreConfigSchema.extend({
   mode: z.enum(['none', 'above', 'below']).default(miniTimelineConfigDefault.mode),
+  style: timelineCoreConfigSchema.shape.style.default(miniTimelineConfigDefault.style),
 });
 export type MiniTimelineControlConfig = z.infer<typeof miniTimelineConfigSchema>;
 
