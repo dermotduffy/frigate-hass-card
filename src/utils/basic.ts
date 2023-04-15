@@ -52,10 +52,11 @@ export function prettifyTitle(input?: string): string | undefined {
  * @param from From index.
  * @param to To index.
  */
-export function arrayMove(target: unknown[], from: number, to: number): void {
+export function arrayMove(target: unknown[], from: number, to: number): unknown[] {
   const element = target[from];
   target.splice(from, 1);
   target.splice(to, 0, element);
+  return target;
 }
 
 /**
