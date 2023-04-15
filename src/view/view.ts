@@ -13,7 +13,7 @@ interface ViewEvolveParameters {
   context?: ViewContext | null;
 }
 
-interface ViewParameters extends ViewEvolveParameters {
+export interface ViewParameters extends ViewEvolveParameters {
   view: FrigateCardView;
   camera: string;
 }
@@ -46,18 +46,15 @@ export class View {
       !curr ||
       prev.view !== curr.view ||
       prev.camera !== curr.camera ||
-      // When in live mode, take overrides into account in deciding if this is a
-      // major media change.
+      // When in live mode, take overrides (substreams) into account in deciding
+      // if this is a major media change.
       (curr.view === 'live' &&
         prev.context?.live?.overrides?.get(prev.camera) !==
           curr.context?.live?.overrides?.get(curr.camera)) ||
       // When in the live view, the queryResults contain the events that
       // happened in the past -- not reflective of the actual live media viewer
       // the user is seeing.
-      (curr.view !== 'live' &&
-        (prev.queryResults !== curr.queryResults ||
-          prev.queryResults?.getSelectedResult() !==
-            curr.queryResults?.getSelectedResult()))
+      (curr.view !== 'live' && prev.queryResults !== curr.queryResults)
     );
   }
 
