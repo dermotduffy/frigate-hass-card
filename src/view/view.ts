@@ -61,40 +61,60 @@ export class View {
     );
   }
 
-  public static adoptQueryIfAppropriate(next: View, curr?: View): void {
-    // Special case: If the user is currently using the viewer, and then
-    // switches to the gallery we make an attempt to keep the query/queryResults
-    // the same so the gallery can be used to click back and forth to the
-    // viewer, and the selected media can be centered in the gallery. See the
-    // matching code in `updated()` in `gallery.ts`. We specifically must ensure
-    // that the new target media of the gallery (e.g. clips, snapshots or
-    // recordings) is equal to the queries that are currently used in the
-    // viewer.
-    // See: https://github.com/dermotduffy/frigate-hass-card/issues/885
+  public static adoptFromViewIfAppropriate(next: View, curr?: View): void {
+    if (!curr) {
+      return;
+    }
+
+    // In certain cases it may make sense to adopt parameters from a prior view.
+    //
+    // * Case #1: If the user is currently using the viewer, and then switches
+    //   to the gallery we make an attempt to keep the query/queryResults the
+    //   same so the gallery can be used to click back and forth to the viewer,
+    //   and the selected media can be centered in the gallery. See the matching
+    //   code in `updated()` in `gallery.ts`. We specifically must ensure that
+    //   the new target media of the gallery (e.g. clips, snapshots or
+    //   recordings) is equal to the queries that are currently used in the
+    //   viewer. See:
+    //   https://github.com/dermotduffy/frigate-hass-card/issues/885
+    //
+    // * Case #2: If the user is looking at media in the `media` view and then
+    //   changes camera to the *current* camera (via the menu) it will cause a
+    //   new view to issue without a query and just the 'media' view, which
+    //   means the viewer cannot know what kind of media to fetch.
 
     let currentQueriesView: ClipsOrSnapshots | 'recordings' | null = null;
-    if (MediaQueriesClassifier.areEventQueries(curr?.query)) {
-      const queries = curr?.query.getQueries();
+    if (MediaQueriesClassifier.areEventQueries(curr.query)) {
+      const queries = curr.query.getQueries();
       if (queries?.every((query) => query.hasClip)) {
         currentQueriesView = 'clips';
       } else if (queries?.every((query) => query.hasSnapshot)) {
         currentQueriesView = 'snapshots';
       }
-    } else if (MediaQueriesClassifier.areRecordingQueries(curr?.query)) {
+    } else if (MediaQueriesClassifier.areRecordingQueries(curr.query)) {
       currentQueriesView = 'recordings';
     }
 
-    if (
-      curr?.isViewerView() &&
-      next.isGalleryView() &&
-      (!next.query || !next.queryResults) &&
-      next.view === currentQueriesView
-    ) {
-      if (curr.query) {
-        next.query = curr.query;
-      }
-      if (curr.queryResults) {
-        next.queryResults = curr.queryResults;
+    const hasNoQueryOrResults = !next.query || !next.queryResults;
+    const switchingToGalleryFromViewer =
+      curr.isViewerView() && next.isGalleryView() && next.view === currentQueriesView;
+    const switchingToMediaFromMedia = curr?.is('media') && next.is('media');
+
+    if (hasNoQueryOrResults) {
+      if (switchingToGalleryFromViewer) {
+        if (curr.query) {
+          next.query = curr.query;
+        }
+        if (curr.queryResults) {
+          next.queryResults = curr.queryResults;
+        }
+      } else if (switchingToMediaFromMedia && currentQueriesView) {
+        next.view =
+          currentQueriesView === 'clips'
+            ? 'clip'
+            : currentQueriesView === 'snapshots'
+            ? 'snapshot'
+            : 'recording';
       }
     }
   }

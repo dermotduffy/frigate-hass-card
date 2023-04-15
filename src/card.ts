@@ -857,7 +857,7 @@ class FrigateCard extends LitElement {
         this._resetMainScroll();
       }
 
-      View.adoptQueryIfAppropriate(view, this._view);
+      View.adoptFromViewIfAppropriate(view, this._view);
 
       this._view = view;
       this._generateConditionState();
