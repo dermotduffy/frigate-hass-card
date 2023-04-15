@@ -19,7 +19,7 @@ import isEqual from 'lodash-es/isEqual';
 import throttle from 'lodash-es/throttle';
 import { ViewContext } from 'view';
 import { DataSet } from 'vis-data/esnext';
-import type { DataGroupCollectionType, IdType } from 'vis-timeline/esnext';
+import type { DataGroupCollectionType, DateType, IdType } from 'vis-timeline/esnext';
 import {
   Timeline,
   TimelineEventPropertiesResult,
@@ -46,6 +46,7 @@ import { stopEventFromActivatingCardWideActions } from '../utils/action';
 import {
   contentsChanged,
   dispatchFrigateCardEvent,
+  formatDateAndTime,
   isHoverableDevice,
   setOrRemoveAttribute,
 } from '../utils/basic';
@@ -87,6 +88,11 @@ declare module 'view' {
   interface ViewContext {
     timeline?: TimelineViewContext;
   }
+}
+
+interface ExtendedTimeline extends Timeline {
+  // setCustomTimeMarker currently missing from Timeline types.
+  setCustomTimeMarker?(time: DateType, id?: IdType): void;
 }
 
 // An event used to fetch data required for thumbnail rendering. See special
@@ -206,8 +212,7 @@ export class FrigateCardTimelineCore extends LitElement {
 
   protected _refDatePicker: Ref<FrigateCardDatePicker> = createRef();
   protected _refTimeline: Ref<HTMLElement> = createRef();
-
-  protected _timeline?: Timeline;
+  protected _timeline?: ExtendedTimeline;
 
   protected _timelineSource: TimelineDataSource | null = null;
 
@@ -417,6 +422,22 @@ export class FrigateCardTimelineCore extends LitElement {
       } else {
         this._timeline?.setCustomTime(targetTime, TIMELINE_TARGET_BAR_ID);
       }
+
+      const window = this._timeline.getWindow();
+      const markerProportion =
+        (targetTime.getTime() - window.start.getTime()) /
+        (window.end.getTime() - window.start.getTime());
+
+      // Position the marker proportionally to how 'far' the pointer is being
+      // held relative to the timeline window.
+      this.setAttribute(
+        'target-bar-marker-direction',
+        markerProportion < 0.25 ? 'right' : markerProportion > 0.75 ? 'left' : 'center',
+      );
+      this._timeline?.setCustomTimeMarker?.(
+        formatDateAndTime(targetTime, true),
+        TIMELINE_TARGET_BAR_ID,
+      );
     } else {
       this._removeTargetBar();
     }
@@ -426,6 +447,7 @@ export class FrigateCardTimelineCore extends LitElement {
    * Remove the target bar.
    */
   protected _removeTargetBar(): void {
+    this.removeAttribute('target-bar-direction');
     if (this._targetBarVisible) {
       this._timeline?.removeCustomTime(TIMELINE_TARGET_BAR_ID);
       this._targetBarVisible = false;
@@ -463,12 +485,7 @@ export class FrigateCardTimelineCore extends LitElement {
         : results
             .clone()
             .resetSelectedResult()
-            .selectBestResult((media) =>
-              findBestMediaIndex(
-                media,
-                targetTime,
-              ),
-            );
+            .selectBestResult((media) => findBestMediaIndex(media, targetTime));
 
     const desiredView: FrigateCardView = this.mini
       ? targetTime >= new Date()
