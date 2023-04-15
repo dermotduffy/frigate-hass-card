@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterAll, beforeEach } from 'vitest';
-import { FrigateCardError } from '../src/types';
+import { FrigateCardError } from '../../src/types';
 import {
   allPromises,
   arrayify,
@@ -19,7 +19,7 @@ import {
   setify,
   setOrRemoveAttribute,
   sleep,
-} from '../src/utils/basic';
+} from '../../src/utils/basic';
 
 // @vitest-environment jsdom
 describe('dispatchFrigateCardEvent', () => {
