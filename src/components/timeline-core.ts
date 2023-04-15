@@ -545,11 +545,16 @@ export class FrigateCardTimelineCore extends LitElement {
       this.timelineConfig?.show_recordings &&
       ['background', 'group-label'].includes(properties.what)
     ) {
-      const query = createQueriesForRecordingsView(
-        this.cameraManager,
-        this.cardWideConfig,
-        new Set([String(properties.group)]),
-      );
+      const cameraIDs = properties.group
+        ? new Set([String(properties.group)])
+        : this._getTimelineCameraIDs();
+      const query = cameraIDs
+        ? createQueriesForRecordingsView(
+            this.cameraManager,
+            this.cardWideConfig,
+            cameraIDs,
+          )
+        : null;
       if (query) {
         view = await executeMediaQueryForView(
           this,
