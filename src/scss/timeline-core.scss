@@ -141,6 +141,8 @@ div.vis-tooltip {
 
   // Use browser default font-family for tooltips.
   font-family: unset;
+
+  z-index: 30;
 }
 
 .target_bar {

@@ -28,6 +28,9 @@
 frigate-card-thumbnail {
   width: var(--frigate-card-thumbnail-size);
   height: var(--frigate-card-thumbnail-size);
+
+  // Do not let thumbnails span beyond the width of the carousel.
+  max-width: 100%;
 }
 frigate-card-thumbnail[details] {
   width: var(--frigate-card-thumbnail-details-width);
