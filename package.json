@@ -1,6 +1,6 @@
 {
   "name": "frigate-hass-card",
-  "version": "5.0.0-beta.1",
+  "version": "5.0.0-beta.2",
   "description": "Frigate Lovelace Card for Home Assistant",
   "keywords": [
     "frigate",
