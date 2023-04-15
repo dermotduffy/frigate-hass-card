@@ -17,6 +17,7 @@ import {
   prettifyTitle,
   runWhenIdleIfSupported,
   setify,
+  setOrRemoveAttribute,
   sleep,
 } from '../src/utils/basic';
 
@@ -131,6 +132,10 @@ describe('formatDateAndTime', () => {
     const date = new Date(2023, 3, 14, 13, 35, 0);
     expect(formatDateAndTime(date)).toBe('2023-04-14 13:35');
   });
+  it('should format date and time with seconds', () => {
+    const date = new Date(2023, 3, 14, 13, 35, 1);
+    expect(formatDateAndTime(date, true)).toBe('2023-04-14 13:35:01');
+  });
 });
 
 describe('formatDate', () => {
@@ -218,5 +223,20 @@ describe('isValidDate', () => {
   });
   it('should be invalid date', () => {
     expect(isValidDate(new Date('moo'))).toBeFalsy();
+  });
+});
+
+describe('setOrRemoveAttribute', () => {
+  it('should set attribute', () => {
+    const element = document.createElement('div');
+    setOrRemoveAttribute(element, true, 'key', 'value');
+    expect(element.getAttribute('key')).toBe('value');
+  });
+
+  it('should remove attribute date', () => {
+    const element = document.createElement('div');
+    element.setAttribute('key', 'value');
+    setOrRemoveAttribute(element, false, 'key');
+    expect(element.getAttribute('key')).toBeFalsy();
   });
 });

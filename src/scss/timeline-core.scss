@@ -144,12 +144,29 @@ div.vis-tooltip {
 }
 
 .target_bar {
-  border-left: 2px solid var(--primary-color);
-  opacity: 0.7;
-  box-shadow: var(--frigate-card-css-box-shadow, 0px 0px 3px 1px var(--primary-color));
+  background-color: var(--primary-color);
+  width: 2px;
+
+  z-index: 20;
 
   // Prevent the mouse interacting with the custom time.
   pointer-events: none;
+}
+.target_bar .vis-custom-time-marker {
+  background-color: var(--primary-background-color);
+  color: var(--primary-text-color);
+  bottom: 0px;
+  top: unset;
+}
+:host([target-bar-marker-direction='right']) .target_bar .vis-custom-time-marker {
+  left: 2px;
+}
+:host([target-bar-marker-direction='left']) .target_bar .vis-custom-time-marker {
+  right: 2px;
+}
+:host([target-bar-marker-direction='center']) .target_bar .vis-custom-time-marker {
+  left: 0px;
+  transform: translateX(-50%);
 }
 
 .timeline-tools {

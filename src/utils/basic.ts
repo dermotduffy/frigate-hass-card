@@ -114,8 +114,8 @@ export const isHoverableDevice = (): boolean =>
  * @param date A Date object.
  * @returns A date and time.
  */
-export const formatDateAndTime = (date: Date): string => {
-  return format(date, 'yyyy-MM-dd HH:mm');
+export const formatDateAndTime = (date: Date, includeSeconds?: boolean): string => {
+  return format(date, `yyyy-MM-dd HH:mm${includeSeconds ? ':ss' : ''}`);
 };
 
 /**
