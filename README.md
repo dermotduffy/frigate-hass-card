@@ -1426,7 +1426,7 @@ Pan around a large camera view to only show part of the video feed in the card a
 
 ### Video Scrubbing
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/video-scrubbing.png" alt="Video Scrubbing" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/video-scrubbing.gif" alt="Video Scrubbing" width="400px">
 
 ### Media filtering
 
