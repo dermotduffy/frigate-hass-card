@@ -1,6 +1,10 @@
+@use 'dotdotdot.scss';
+
 :host {
-  min-height: 100%;
+  display: block;
+  height: 100%;
   width: 100%;
+
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -22,8 +26,11 @@ div.message {
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
-  padding: 20px;
   height: 100%;
+}
+
+div.message.padded {
+  padding: 20px;
 }
 
 div.message div.contents {
@@ -52,28 +59,4 @@ div.message div.icon {
   margin-top: 20px;
   white-space: pre-wrap;
   word-break: break-all;
-}
-
-.dotdotdot:after {
-  @keyframes dots {
-    0%,
-    20% {
-      content: '.';
-    }
-    40% {
-      content: '..';
-    }
-    60% {
-      content: '...';
-    }
-    90%,
-    100% {
-      content: '';
-    }
-  }
-
-  animation: dots 2s linear infinite;
-  content: '';
-  display: inline-block;
-  width: 3em;
 }

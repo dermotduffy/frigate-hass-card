@@ -1,0 +1,22 @@
+:host {
+  width: 100%;
+  height: 100%;
+
+  // Share the screen space with thumbnails that may be above/below.
+  display: flex;
+  flex-direction: column;
+
+  // Set the drawer relative to this host.
+  position: relative;
+
+  // Hide any content outside the main pane (e.g. side drawers) to ensure the
+  // user cannot scroll across to the drawers without opening them.
+  overflow: hidden;
+}
+
+::slotted(:not([slot])) {
+  // Expand the main body to fill available content not otherwise used by the
+  // named slots around the surround.
+  flex: 1;
+  min-height: 0px;
+}

@@ -1,22 +1,24 @@
-import { cloneDeep, get, isEqual, set } from 'lodash-es';
+import cloneDeep from 'lodash-es/cloneDeep';
+import get from 'lodash-es/get';
+import isEqual from 'lodash-es/isEqual';
+import set from 'lodash-es/set';
 import {
   CONF_CAMERAS,
-  CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
-  CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
-  CONF_IMAGE_URL,
+  CONF_CAMERAS_GLOBAL_IMAGE,
+  CONF_CAMERAS_GLOBAL_JSMPEG,
+  CONF_CAMERAS_GLOBAL_WEBRTC_CARD,
+  CONF_ELEMENTS,
   CONF_LIVE_AUTO_UNMUTE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
   CONF_LIVE_LAZY_UNLOAD,
-  CONF_LIVE_PRELOAD,
-  CONF_LIVE_WEBRTC_CARD,
+  CONF_MEDIA_GALLERY,
   CONF_MEDIA_VIEWER,
-  CONF_MENU,
   CONF_MENU_BUTTONS_CAMERAS,
+  CONF_MENU_BUTTONS_CAMERA_UI,
   CONF_MENU_BUTTONS_CLIPS,
   CONF_MENU_BUTTONS_DOWNLOAD,
   CONF_MENU_BUTTONS_FRIGATE,
-  CONF_MENU_BUTTONS_FRIGATE_UI,
   CONF_MENU_BUTTONS_FULLSCREEN,
   CONF_MENU_BUTTONS_IMAGE,
   CONF_MENU_BUTTONS_LIVE,
@@ -25,22 +27,19 @@ import {
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
   CONF_OVERRIDES,
-  CONF_VIEW_DEFAULT,
-  CONF_VIEW_TIMEOUT_SECONDS,
-  CONF_VIEW_UPDATE_ENTITIES,
 } from './const';
 import {
   BUTTON_SIZE_MIN,
   RawFrigateCardConfig,
-  RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
   THUMBNAIL_WIDTH_MIN,
 } from './types';
+import { arrayify } from './utils/basic';
 
 /**
  * Set a configuration value.
  * @param obj The configuration.
- * @param key The key to the property to set.
+ * @param keys The key to the property to set.
  * @param value The value to set.
  */
 
@@ -55,7 +54,8 @@ export const setConfigValue = (
 /**
  * Get a configuration value.
  * @param obj The configuration.
- * @param key The key to the property to retrieve.
+ * @param keys The key to the property to retrieve.
+ * @param def Default if key not found.
  * @returns The property or undefined if not found.
  */
 export const getConfigValue = (
@@ -94,7 +94,6 @@ export const upgradeConfig = function (obj: RawFrigateCardConfig): boolean {
   for (let i = 0; i < UPGRADES.length; i++) {
     upgraded = UPGRADES[i](obj) || upgraded;
   }
-  trimConfig(obj);
   return upgraded;
 };
 
@@ -104,30 +103,7 @@ export const upgradeConfig = function (obj: RawFrigateCardConfig): boolean {
  * @returns `true` if the configuration is upgradeable.
  */
 export const isConfigUpgradeable = function (obj: RawFrigateCardConfig): boolean {
-  const newObj = JSON.parse(JSON.stringify(obj));
-  return upgradeConfig(newObj);
-};
-
-/**
- * Remove empty sections from a configuration.
- * @param obj Configuration object.
- * @returns `true` if the configuration was modified.
- */
-export const trimConfig = function (obj: RawFrigateCardConfig): boolean {
-  const keys = Object.keys(obj);
-  let modified = false;
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i];
-    if (typeof obj[key] === 'object' && obj[key] != null) {
-      modified ||= trimConfig(obj[key] as RawFrigateCardConfig);
-
-      if (!Object.keys(obj[key] as RawFrigateCardConfig).length) {
-        delete obj[key];
-        modified = true;
-      }
-    }
-  }
-  return modified;
+  return upgradeConfig(copyConfig(obj));
 };
 
 /**
@@ -135,26 +111,8 @@ export const trimConfig = function (obj: RawFrigateCardConfig): boolean {
  * @param obj Configuration to copy.
  * @returns A new deeply-copied configuration.
  */
-export const copyConfig = function (obj: RawFrigateCardConfig): RawFrigateCardConfig {
+export const copyConfig = <T>(obj: T): T => {
   return cloneDeep(obj);
-};
-
-/**
- * Determines if a property is not an object.
- * @param value The value.
- * @returns `true` is the value is not an object.
- */
-const isNotObject = function (value: unknown): unknown | undefined {
-  return typeof value !== 'object' ? value : undefined;
-};
-
-/**
- * Converts to a number or return undefined.
- * @param value The value.
- * @returns A number or undefined.
- */
-const toNumberOrIgnore = function (value: unknown): number | undefined {
-  return isNaN(value as number) ? undefined : Number(value);
 };
 
 /**
@@ -217,7 +175,7 @@ const deleteProperty = function (_value: unknown): number | null | undefined {
  * @param transform An optional transform for the value.
  * @returns `true` if the configuration was modified.
  */
-export const moveConfigValue = (
+const moveConfigValue = (
   obj: RawFrigateCardConfig,
   oldPath: string,
   newPath: string,
@@ -364,39 +322,6 @@ const upgradeArrayValue = function (
 };
 
 /**
- * Upgrade from a singular camera model to multiple.
- * @returns An upgrade function.
- */
-const upgradeToMultipleCameras = (): ((obj: RawFrigateCardConfig) => boolean) => {
-  return function (obj: RawFrigateCardConfig): boolean {
-    let modified = false;
-    const cameras = getConfigValue(obj, CONF_CAMERAS) as RawFrigateCardConfigArray;
-
-    // Only do an upgrade if the cameras section does not exist.
-    if (cameras !== undefined) {
-      return false;
-    }
-
-    const imports = {
-      camera_entity: CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
-      'frigate.camera_name': 'cameras.#.camera_name',
-      'frigate.client_id': 'cameras.#.client_id',
-      'frigate.label': 'cameras.#.label',
-      'frigate.url': 'cameras.#.frigate_url',
-      'frigate.zone': 'cameras.#.zone',
-      'live.webrtc.entity': `cameras.#.webrtc.entity`,
-      'live.webrtc.url': `cameras.#.webrtc.url`,
-      'live.provider': CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
-    };
-    Object.keys(imports).forEach((key) => {
-      modified =
-        moveConfigValue(obj, key, getArrayConfigPath(imports[key], 0)) || modified;
-    });
-    return modified;
-  };
-};
-
-/**
  * Upgrade from a menu-mode to a style & position.
  * @returns An upgrade function.
  */
@@ -461,40 +386,6 @@ const upgradeMenuModeToStyleAndPosition = (): ((
 };
 
 /**
- * Upgrade from a condition on the menu (to allow rendering) to a menu mode
- * override instead.
- * @param key A string key.
- * @returns A safe key.
- */
-const upgradeMenuConditionToMenuOverride = (): ((
-  obj: RawFrigateCardConfig,
-) => boolean) => {
-  return function (obj: RawFrigateCardConfig): boolean {
-    const menuConditions = getConfigValue(
-      obj,
-      `${CONF_MENU}.conditions`,
-    ) as RawFrigateCardConfig;
-
-    if (menuConditions === undefined) {
-      return false;
-    }
-
-    const overrides =
-      (getConfigValue(obj, `${CONF_OVERRIDES}`) as RawFrigateCardConfigArray) || [];
-    setConfigValue(obj, `${CONF_OVERRIDES}.[${overrides.length}]`, {
-      conditions: menuConditions,
-      overrides: {
-        menu: {
-          mode: 'none',
-        },
-      },
-    });
-    deleteConfigValue(obj, `${CONF_MENU}.conditions`);
-    return true;
-  };
-};
-
-/**
  * Transform a menu button from a boolean to a priority.
  * @param value The boolean true/false for show/hide the switch.
  * @returns A priority value.
@@ -544,48 +435,75 @@ const upgradeThumbnailShowControlsToIndividualControls = (
   };
 };
 
+/**
+ * Recursively upgrade an object.
+ * @param transform A transform applied to each object recursively.
+ * @param getObject A function to get the object to be upgraded.
+ * @returns An upgrade function.
+ */
+const recursiveUpgradeObject = (
+  transform: (data: RawFrigateCardConfig) => boolean,
+  getObject?: (data: RawFrigateCardConfig) => RawFrigateCardConfig | undefined | null,
+): ((data: RawFrigateCardConfig) => boolean) => {
+  const recurse = (data: RawFrigateCardConfig): boolean => {
+    let result = false;
+    if (data && typeof data === 'object') {
+      const object = getObject ? getObject(data) : data;
+      if (object) {
+        result = transform(object) || result;
+      }
+      if (Array.isArray(data)) {
+        data
+          .filter((item) => typeof item === 'object')
+          .forEach((item: RawFrigateCardConfig) => {
+            result = recurse(item) || result;
+          });
+      } else {
+        Object.keys(data)
+          .filter((key) => typeof data[key] === 'object')
+          .forEach((key) => {
+            result = recurse(data[key] as RawFrigateCardConfig) || result;
+          });
+      }
+    }
+    return result;
+  };
+  return recurse;
+};
+
+/**
+ * Transform mediaLoaded -> media_loaded
+ * @param data Input data.
+ * @returns `true` if the configuration was modified.
+ */
+const transformConditionMediaLoaded = (data: unknown): boolean => {
+  if (typeof data === 'object' && data && data['mediaLoaded'] !== undefined) {
+    data['media_loaded'] = data['mediaLoaded'];
+    delete data['mediaLoaded'];
+    return true;
+  }
+  return false;
+};
+
+/**
+ * Transform action frigate_ui -> camera_ui
+ * @param data Input data.
+ * @returns `true` if the configuration was modified.
+ */
+const transformFrigateUIAction = (data: unknown): boolean => {
+  if (
+    typeof data === 'object' &&
+    data &&
+    data['action'] === 'custom:frigate-card-action' &&
+    data['frigate_card_action'] === 'frigate_ui'
+  ) {
+    data['frigate_card_action'] = 'camera_ui';
+    return true;
+  }
+  return false;
+};
+
 const UPGRADES = [
-  // v1.2.1 -> v2.0.0
-  upgradeMoveTo('frigate_url', 'frigate.url'),
-  upgradeMoveTo('frigate_client_id', 'frigate.client_id'),
-  upgradeMoveTo('frigate_camera_name', 'frigate.camera_name'),
-  upgradeMoveTo('label', 'frigate.label'),
-  upgradeMoveTo('zone', 'frigate.zone'),
-  upgradeMoveTo('view_default', CONF_VIEW_DEFAULT),
-  upgradeMoveTo('view_timeout', 'view.timeout'),
-  upgradeMoveTo('live_provider', 'live.provider'),
-  upgradeMoveTo('live_preload', CONF_LIVE_PRELOAD),
-  upgradeMoveTo('webrtc', 'live.webrtc'),
-  upgradeMoveTo('autoplay_clip', 'event_viewer.autoplay_clip'),
-  upgradeMoveTo('controls.nextprev', 'event_viewer.controls.next_previous.style'),
-  upgradeMoveTo('controls.nextprev_size', 'event_viewer.controls.next_previous.size'),
-  upgradeMoveTo('menu_mode', 'menu.mode'),
-  upgradeMoveTo('menu_buttons', 'menu.buttons'),
-  upgradeMoveTo('menu_button_size', CONF_MENU_BUTTON_SIZE),
-  upgradeMoveTo('image', 'image.src', { transform: isNotObject }),
-
-  // v2.0.0 -> v2.1.0
-  upgradeMoveTo('update_entities', CONF_VIEW_UPDATE_ENTITIES),
-
-  // v2.1.0 -> v3.0.0-rc.1
-  upgradeToMultipleCameras(),
-  upgradeMenuConditionToMenuOverride(),
-  upgradeMoveTo('view.timeout', CONF_VIEW_TIMEOUT_SECONDS, {
-    transform: toNumberOrIgnore,
-  }),
-  upgradeMoveTo('event_viewer.autoplay_clip', 'event_viewer.auto_play'),
-
-  // v3.0.0-rc.1 -> v3.0.0-rc.2
-  upgradeArrayValue(
-    CONF_CAMERAS,
-    upgradeWithOverrides('live_provider', (val) =>
-      val === 'frigate' ? 'ha' : val === 'webrtc' ? 'webrtc-card' : val,
-    ),
-  ),
-  upgradeArrayValue(CONF_CAMERAS, upgradeMoveTo('webrtc', 'webrtc_card')),
-  upgradeMoveToWithOverrides('live.webrtc', CONF_LIVE_WEBRTC_CARD),
-  upgradeMoveToWithOverrides('image.src', CONF_IMAGE_URL),
-
   // v3.0.0 -> v4.0.0-rc.1
   upgradeWithOverrides(
     CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
@@ -616,7 +534,7 @@ const UPGRADES = [
   upgradeWithOverrides(CONF_MENU_BUTTONS_SNAPSHOTS, menuButtonBooleanToObject),
   upgradeWithOverrides(CONF_MENU_BUTTONS_IMAGE, menuButtonBooleanToObject),
   upgradeWithOverrides(CONF_MENU_BUTTONS_DOWNLOAD, menuButtonBooleanToObject),
-  upgradeWithOverrides(CONF_MENU_BUTTONS_FRIGATE_UI, menuButtonBooleanToObject),
+  upgradeWithOverrides('menu.buttons.frigate_ui', menuButtonBooleanToObject),
   upgradeWithOverrides(CONF_MENU_BUTTONS_FULLSCREEN, menuButtonBooleanToObject),
   upgrade(CONF_LIVE_LAZY_UNLOAD, (val) =>
     typeof val === 'boolean' ? (val ? 'all' : 'never') : undefined,
@@ -642,4 +560,45 @@ const UPGRADES = [
   upgradeThumbnailShowControlsToIndividualControls('media_viewer.controls.thumbnails'),
   upgradeThumbnailShowControlsToIndividualControls('live.controls.thumbnails'),
   upgradeThumbnailShowControlsToIndividualControls('timeline.controls.thumbnails'),
+
+  // v4.0.0 -> v4.1.0
+  upgradeArrayValue(
+    CONF_OVERRIDES,
+    transformConditionMediaLoaded,
+    (data) => data.conditions as RawFrigateCardConfig | undefined,
+  ),
+  (data: unknown): boolean => {
+    return recursiveUpgradeObject(
+      transformConditionMediaLoaded,
+      (data) => data.conditions as RawFrigateCardConfig | undefined,
+    )(typeof data === 'object' && data ? data[CONF_ELEMENTS] : {});
+  },
+  upgradeMoveToWithOverrides('event_gallery', CONF_MEDIA_GALLERY),
+  upgradeMoveToWithOverrides('menu.buttons.frigate_ui', CONF_MENU_BUTTONS_CAMERA_UI),
+  (data: unknown): boolean => {
+    return recursiveUpgradeObject(transformFrigateUIAction)(
+      typeof data === 'object' && data ? <RawFrigateCardConfig>data : {},
+    );
+  },
+  upgradeArrayValue(
+    CONF_CAMERAS,
+    upgradeWithOverrides('live_provider', (val) =>
+      val === 'frigate-jsmpeg' ? 'jsmpeg' : val,
+    ),
+  ),
+  upgradeMoveToWithOverrides('live.image', CONF_CAMERAS_GLOBAL_IMAGE),
+  upgradeMoveToWithOverrides('live.jsmpeg', CONF_CAMERAS_GLOBAL_JSMPEG),
+  upgradeMoveToWithOverrides('live.webrtc_card', CONF_CAMERAS_GLOBAL_WEBRTC_CARD),
+  upgradeArrayValue(
+    CONF_CAMERAS,
+    upgradeMoveToWithOverrides('frigate.zone', 'frigate.zones', {
+      transform: (zone) => arrayify(zone),
+    }),
+  ),
+  upgradeArrayValue(
+    CONF_CAMERAS,
+    upgradeMoveToWithOverrides('frigate.label', 'frigate.labels', {
+      transform: (label) => arrayify(label),
+    }),
+  ),
 ];

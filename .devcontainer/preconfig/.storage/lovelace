@@ -18,83 +18,15 @@
               "cameras": [
                 {
                   "camera_entity": "camera.big_buck_bunny",
-                  "live_provider": "frigate-jsmpeg",
+                  "live_provider": "jsmpeg",
                   "id": "big_buck_bunny_jsmpeg"
                 },
                 {
                   "camera_entity": "camera.big_buck_bunny",
                   "live_provider": "ha",
                   "id": "big_buck_bunny_ha"
-                },
-                {
-                  "camera_entity": "camera.demo_camera"
                 }
               ]
-            }
-          ]
-        },
-        {
-          "theme": "Backend-selected",
-          "title": "Menu",
-          "path": "menu",
-          "badges": [],
-          "cards": [
-            {
-              "type": "custom:frigate-card",
-              "cameras": [
-                {
-                  "camera_entity": "camera.demo_camera",
-                  "title": "Default"
-                }
-              ]
-            },
-            {
-              "type": "custom:frigate-card",
-              "cameras": [
-                {
-                  "camera_entity": "camera.demo_camera",
-                  "title": "Hidden"
-                }
-              ],
-              "menu": {
-                "style": "hidden"
-              }
-            },
-            {
-              "type": "custom:frigate-card",
-              "cameras": [
-                {
-                  "camera_entity": "camera.demo_camera",
-                  "title": "Overlay"
-                }
-              ],
-              "menu": {
-                "style": "overlay"
-              }
-            },
-            {
-              "type": "custom:frigate-card",
-              "cameras": [
-                {
-                  "camera_entity": "camera.demo_camera",
-                  "title": "Hover"
-                }
-              ],
-              "menu": {
-                "style": "hover"
-              }
-            },
-            {
-              "type": "custom:frigate-card",
-              "cameras": [
-                {
-                  "camera_entity": "camera.demo_camera",
-                  "title": "Outside"
-                }
-              ],
-              "menu": {
-                "style": "outside"
-              }
             }
           ]
         }

@@ -4,32 +4,52 @@ name: Release
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 jobs:
   release:
     name: Prepare release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      # Build
-      - name: Build the file
-        run: |
-          yarn install
-          yarn run build
+      - name: Setup Node and Yarn
+        uses: volta-cli/action@v3
 
-      # Upload build file to the releas as an asset.
-      - name: Upload zip to release
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build the files
+        run: yarn run build
+
+      - name: Zip the files
+        uses: thedoctor0/zip-release@0.7.1
+        with:
+          type: zip
+          path: dist
+          filename: frigate-hass-card.zip
+
+      - name: Upload JS files to release
         uses: svenstaro/upload-release-action@2.5.0
 
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist/frigate-hass-card.js
-          asset_name: frigate-hass-card.js
+          file: dist/*.js
+          file_glob: true
+          tag: ${{ github.ref }}
+          overwrite: true
+
+      - name: Upload Zip file to release
+        uses: svenstaro/upload-release-action@2.5.0
+
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: frigate-hass-card.zip
           tag: ${{ github.ref }}
           overwrite: true
 
       - name: HACS release validation
-        uses: "hacs/action@21.12.1"
+        uses: hacs/action@21.12.1
         with:
-          category: "plugin"
+          category: plugin

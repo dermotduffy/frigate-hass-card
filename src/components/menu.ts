@@ -5,7 +5,7 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS
+  unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -19,17 +19,18 @@ import type {
   MenuButton,
   MenuConfig,
   MenuItem,
-  StateParameters
+  StateParameters,
 } from '../types.js';
 import {
   convertActionToFrigateCardCustomAction,
   frigateCardHandleActionConfig,
   frigateCardHasAction,
-  getActionConfigGivenAction
+  getActionConfigGivenAction,
 } from '../utils/action.js';
-import { FRIGATE_ICON_SVG_PATH } from '../utils/frigate.js';
+import { FRIGATE_ICON_SVG_PATH } from '../camera-manager/frigate/icon.js';
 import { refreshDynamicStateParameters } from '../utils/ha';
 import './submenu.js';
+import { EntityRegistryManager } from '../utils/ha/entity-registry/index.js';
 
 export const FRIGATE_BUTTON_MENU_ICON = 'frigate';
 
@@ -63,6 +64,9 @@ export class FrigateCardMenu extends LitElement {
 
   @property({ attribute: false })
   public buttons: MenuButton[] = [];
+
+  @property({ attribute: false })
+  public entityRegistryManager?: EntityRegistryManager;
 
   /**
    * Determine if a given menu configuration is a hiding menu.
@@ -226,9 +230,6 @@ export class FrigateCardMenu extends LitElement {
    * @returns A rendered template or void.
    */
   protected _renderButton(button: MenuButton): TemplateResult | void {
-    if (button.enabled === false) {
-      return;
-    }
     if (button.type === 'custom:frigate-card-menu-submenu') {
       return html` <frigate-card-submenu
         .hass=${this.hass}
@@ -240,12 +241,13 @@ export class FrigateCardMenu extends LitElement {
       return html` <frigate-card-submenu-select
         .hass=${this.hass}
         .submenuSelect=${button}
+        .entityRegistryManager=${this.entityRegistryManager}
         @action=${this._actionHandler.bind(this)}
       >
       </frigate-card-submenu-select>`;
     }
 
-    let stateParameters: StateParameters = { ...button };
+    let stateParameters = { ...button } as StateParameters;
     const svgPath =
       stateParameters.icon === FRIGATE_BUTTON_MENU_ICON ? FRIGATE_ICON_SVG_PATH : '';
 
@@ -306,16 +308,19 @@ export class FrigateCardMenu extends LitElement {
     }
 
     // If the hidden menu isn't expanded, only show the Frigate button.
-    const matchingButtons =
+    const matchingButtons = (
       style !== 'hidden' || this.expanded
         ? this.buttons.filter(
             (button) => !button.alignment || button.alignment === 'matching',
           )
-        : this.buttons.filter((button) => button.icon === FRIGATE_BUTTON_MENU_ICON);
+        : this.buttons.filter((button) => button.icon === FRIGATE_BUTTON_MENU_ICON)
+    ).filter((button) => button.enabled !== false);
 
     const opposingButtons =
       style !== 'hidden' || this.expanded
-        ? this.buttons.filter((button) => button.alignment === 'opposing')
+        ? this.buttons.filter(
+            (button) => button.alignment === 'opposing' && button.enabled !== false,
+          )
         : [];
 
     const matchingStyle = {
@@ -342,7 +347,7 @@ export class FrigateCardMenu extends LitElement {
 }
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card-menu": FrigateCardMenu
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card-menu': FrigateCardMenu;
+  }
 }

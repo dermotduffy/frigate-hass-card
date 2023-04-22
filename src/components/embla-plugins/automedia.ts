@@ -27,7 +27,7 @@ const defaultOptions: OptionsType = {
   breakpoints: {},
 };
 
-export type AutoMediaOptionsType = Partial<OptionsType>
+type AutoMediaOptionsType = Partial<OptionsType>
 
 export type AutoMediaType = CreatePluginType<
   {

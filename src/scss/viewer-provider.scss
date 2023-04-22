@@ -1,0 +1,22 @@
+@use 'media-layout.scss';
+
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+img,
+video,
+frigate-card-ha-hls-player {
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  @include media-layout.media-layout();
+}
+
+frigate-card-progress-indicator {
+  padding: 30px;
+  box-sizing: border-box;
+}

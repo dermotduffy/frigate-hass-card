@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "target": "es2017",
+    "target": "es2021",
     "module": "es2020",
     "moduleResolution": "node",
-    "lib": ["es2017", "dom", "dom.iterable"],
+    "lib": ["es2021", "dom", "dom.iterable"],
     "noEmit": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
@@ -23,6 +23,7 @@
         // imported by a custom card directly.
         "globalTags": [
           "ha-card",
+          "ha-combo-box",
           "ha-icon",
           "ha-icon-button",
           "ha-button-menu",

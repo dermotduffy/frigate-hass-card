@@ -1,6 +1,12 @@
 :host {
   display: block;
   overflow: hidden;
+
+  aspect-ratio: 1 / 1;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 img {
@@ -8,9 +14,15 @@ img {
 }
 
 img,
-ha-icon,
-frigate-card-progress-indicator {
-  border-radius: var(--ha-card-border-radius, 4px);
+ha-icon { 
+  // Safari will occasionally not load thumbnails correctly with display block.
+  display: inline-block;
+
+  // Ensure no whitespace around img with inline-block display.
+  vertical-align: top;
+  margin: 0;
+
+  border-radius: var(--frigate-card-css-border-radius, var(--ha-card-border-radius, 4px));
 
   max-width: var(--frigate-card-thumbnail-size);
   max-height: 100%;
@@ -30,4 +42,5 @@ ha-icon {
   align-items: center;
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-sizing: border-box;
+  opacity: 0.2;
 }

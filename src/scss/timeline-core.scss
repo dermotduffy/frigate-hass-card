@@ -4,16 +4,17 @@
 
 :host {
   width: 100%;
-  height: 100%;
-  background-color: var(--card-background-color);
-  padding-bottom: 5px;
-
   // Share the screen space with thumbnails that may be above/below.
   display: flex;
   flex-direction: column;
 
   // So that absolute sidedrawer is relative to this host.
   position: relative;
+}
+
+:host(:not([mini])) {
+  // Timeline covers 100% of the parent unless it's in mini-mode.
+  height: 100%;
 }
 
 frigate-card-thumbnail {
@@ -26,14 +27,6 @@ frigate-card-thumbnail[details] {
 
 div.timeline {
   flex: 1;
-}
-div.timeline.left-margin {
-  // Clearance for the drawer button.
-  margin-left: calc(drawer.$drawer-icon-size + 1px);
-}
-div.timeline.right-margin {
-  // Clearance for the drawer button.
-  margin-right: calc(drawer.$drawer-icon-size + 1px);
 }
 
 .vis-text {
@@ -49,6 +42,17 @@ div.timeline.right-margin {
   color: var(--primary-text-color);
 }
 
+:host([ribbon]:not([groups])) .vis-item:not(.vis-background) {
+  // When a ribbon timeline is used without groups, we need to add extra margin
+  // to the top to center the bar vertically within the mini-timeline.
+  margin-top: 7px;
+}
+
+:host([ribbon]) .vis-item:not(.vis-background) {
+  // Ribbon timelines have a much shorter 'bar'.
+  height: 6px;
+}
+
 .vis-item {
   border-color: var(--primary-color);
   background: none;
@@ -61,11 +65,19 @@ div.timeline.right-margin {
 .vis-item.vis-selected {
   border-color: var(--accent-color);
   background-color: var(--accent-color);
-  box-shadow: 0px 0px 5px 1px var(--primary-color);
+  box-shadow: var(--frigate-card-css-box-shadow, 0px 0px 5px 1px var(--primary-color));
 }
 .vis-item.vis-background {
   background-color: var(--primary-color);
   opacity: 0.1;
+}
+
+// If there are no timeline groups shown (e.g. mini mode with a single camera),
+// ensure the background (recordings) always span the full height. Otherwise, in
+// cases where there are no events, the background is incorrectly rendered too
+// short by visjs.
+:host(:not([groups])) .vis-item.vis-background {
+  min-height: 100%;
 }
 
 .vis-item:not(.vis-background) {
@@ -92,7 +104,10 @@ div.timeline.right-margin {
   border-style: dotted;
   color: var(--primary-text-color);
   background-color: var(--primary-background-color);
-  box-shadow: 0px 0px 5px 1px var(--primary-color);
+  box-shadow: var(--frigate-card-css-box-shadow, 0px 0px 5px 1px var(--primary-color));
+}
+.vis-item.vis-range {
+  border-radius: var(--frigate-card-css-border-radius, unset);
 }
 
 .vis-time-axis .vis-grid.vis-minor {
@@ -126,4 +141,44 @@ div.vis-tooltip {
 
   // Use browser default font-family for tooltips.
   font-family: unset;
+
+  z-index: 30;
+}
+
+.target_bar {
+  background-color: var(--primary-color);
+  width: 2px;
+
+  z-index: 20;
+
+  // Prevent the mouse interacting with the custom time.
+  pointer-events: none;
+}
+.target_bar .vis-custom-time-marker {
+  background-color: var(--primary-background-color);
+  color: var(--primary-text-color);
+  bottom: 0px;
+  top: unset;
+}
+:host([target-bar-marker-direction='right']) .target_bar .vis-custom-time-marker {
+  left: 2px;
+}
+:host([target-bar-marker-direction='left']) .target_bar .vis-custom-time-marker {
+  right: 2px;
+}
+:host([target-bar-marker-direction='center']) .target_bar .vis-custom-time-marker {
+  left: 0px;
+  transform: translateX(-50%);
+}
+
+.timeline-tools {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  color: var(--primary-color);
+  z-index: 10;
+}
+
+.timeline-tools ha-icon {
+  cursor: pointer;
 }

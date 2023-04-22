@@ -17,6 +17,9 @@
   margin-top: -6px;
   pointer-events: none;
 }
+.title.warning {
+  color: var(--warning-color);
+}
 .secondary {
   padding-left: 40px;
   color: var(--secondary-text-color);
@@ -72,22 +75,22 @@ div.upgrade span {
   padding-right: 15px;
 }
 
-.submenu {
-  border: 1px solid var(--divider-color);
-}
 .submenu.selected {
   border: 1px solid var(--primary-color);
 }
 
 // Nested menus should shrink width.
-.submenu .submenu {
+.submenu {
   width: calc(100% - 10px * 2);
   margin-left: auto;
   margin-right: auto;
   margin-bottom: 10px;
 }
-.submenu :not(.submenu.selected) {
-  border: none;
+
+// Add a margin above a submenu unless it's another submenu.
+.submenu:first-child,
+:not(.submenu) + .submenu {
+  margin-top: 10px;
 }
 
 .submenu .controls {
@@ -101,7 +104,7 @@ div.upgrade span {
   --mdc-icon-size: calc(var(--mdc-icon-button-size) / 2);
 }
 span.info {
-  padding: 4px;
+  padding: 10px;
 }
 
 ha-selector {

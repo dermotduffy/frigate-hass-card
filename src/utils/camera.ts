@@ -1,7 +1,5 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { CameraManager } from '../camera-manager/manager.js';
 import { CameraConfig, RawFrigateCardConfig } from '../types.js';
-import { prettifyTitle } from './basic.js';
-import { getEntityIcon, getEntityTitle } from './ha';
 
 /**
  * Get a camera id.
@@ -27,48 +25,41 @@ export function getCameraID(
 }
 
 /**
- * Get a camera text title.
- * @param hass The Home Assistant object.
- * @param config The camera config (either parsed or raw).
- * @returns A title string.
+ * Get all cameras that depend on a given camera.
+ * @param cameraManager The camera manager.
+ * @param cameraID ID of the target camera.
+ * @returns A set of dependent cameraIDs or null.
  */
-export function getCameraTitle(
-  hass?: HomeAssistant,
-  config?: CameraConfig | RawFrigateCardConfig | null,
-): string {
-  // Attempt to render a recognizable name for the camera,
-  // starting with the most likely to be useful and working our
-  // ways towards the least useful. Extra type checking here since this is also
-  // used on raw configuration in the editor.
-  return (
-    (typeof config?.title === 'string' && config.title) ||
-    (typeof config?.camera_entity === 'string'
-      ? getEntityTitle(hass, config.camera_entity)
-      : '') ||
-    (typeof config?.webrtc_card === 'object' &&
-      config.webrtc_card &&
-      typeof config.webrtc_card['entity'] === 'string' &&
-      config.webrtc_card['entity']) ||
-    (typeof config?.frigate === 'object' &&
-    config.frigate &&
-    typeof config?.frigate['camera_name'] === 'string' &&
-    config.frigate['camera_name']
-      ? prettifyTitle(config.frigate['camera_name'])
-      : '') ||
-    (typeof config?.id === 'string' && config.id) ||
-    ''
-  );
-}
+export const getAllDependentCameras = (
+  cameraManager?: CameraManager,
+  cameraID?: string,
+): Set<string> | null => {
+  if (!cameraManager || !cameraID) {
+    return null;
+  }
+  const cameras = cameraManager.getStore().getCameras();
 
-/**
- * Get a camera icon.
- * @param hass The Home Assistant object.
- * @param config The camera config.
- * @returns An icon string.
- */
-export function getCameraIcon(
-  hass?: HomeAssistant,
-  config?: CameraConfig | null,
-): string {
-  return config?.icon || getEntityIcon(hass, config?.camera_entity) || 'mdi:video';
-}
+  const cameraIDs: Set<string> = new Set();
+  const getDependentCameras = (cameraID: string): void => {
+    const cameraConfig = cameras.get(cameraID);
+    if (cameraConfig) {
+      cameraIDs.add(cameraID);
+      const dependentCameras: Set<string> = new Set();
+      (cameraConfig.dependencies.cameras || []).forEach((item) =>
+        dependentCameras.add(item),
+      );
+      if (cameraConfig.dependencies.all_cameras) {
+        cameras.forEach((_, key) => dependentCameras.add(key));
+      }
+      for (const eventCameraID of dependentCameras) {
+        if (!cameraIDs.has(eventCameraID)) {
+          getDependentCameras(eventCameraID);
+        }
+      }
+    }
+  };
+  if (cameraID) {
+    getDependentCameras(cameraID);
+  }
+  return cameraIDs;
+};

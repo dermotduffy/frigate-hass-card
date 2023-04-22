@@ -1,0 +1,27 @@
+@use 'media-layout.scss';
+
+:host {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Don't drop shadow or have radius for nested webrtc card */
+#webrtc ha-card {
+  border-radius: 0px;
+
+  // To get the WebRTC player to line up correctly with some themes.
+  margin: 0px;
+  box-shadow: none;
+}
+
+ha-card,
+div.fix-safari,
+#video {
+  background: unset;
+  background-color: unset;
+}
+
+#webrtc #video {
+  @include media-layout.media-layout();
+}

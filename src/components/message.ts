@@ -1,10 +1,11 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { classMap } from 'lit/directives/class-map.js';
+import { ClassInfo, classMap } from 'lit/directives/class-map.js';
+import { ref, Ref } from 'lit/directives/ref.js';
 import { TROUBLESHOOTING_URL } from '../const.js';
 import { localize } from '../localize/localize.js';
 import messageStyle from '../scss/message.scss';
-import { FrigateCardError, Message, MessageType } from '../types.js';
+import { CardWideConfig, FrigateCardError, Message, MessageType } from '../types.js';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
 
 @customElement('frigate-card-message')
@@ -28,7 +29,7 @@ export class FrigateCardMessage extends LitElement {
       dotdotdot: !!this.dotdotdot,
     };
     return html` <div class="wrapper">
-      <div class="message">
+      <div class="message padded">
         <div class="icon">
           <ha-icon icon="${icon}"> </ha-icon>
         </div>
@@ -77,16 +78,25 @@ export class FrigateCardErrorMessage extends LitElement {
   }
 }
 
+type FrigateCardProgressIndicatorSize = 'tiny' | 'small' | 'medium' | 'large';
+
 @customElement('frigate-card-progress-indicator')
 export class FrigateCardProgressIndicator extends LitElement {
   @property({ attribute: false })
   public message: string | TemplateResult = '';
 
+  @property({ attribute: false })
+  public animated = false;
+
+  @property({ attribute: false })
+  public size: FrigateCardProgressIndicatorSize = 'large';
+
   protected render(): TemplateResult {
     return html` <div class="message vertical">
-      <span>
-        <ha-circular-progress active="true" size="large"> </ha-circular-progress>
-      </span>
+      ${this.animated
+        ? html`<ha-circular-progress active="true" size="${this.size}">
+          </ha-circular-progress>`
+        : html`<ha-icon icon="mdi:timer-sand"></ha-icon>`}
       ${this.message ? html`<span>${this.message}</span>` : html``}
     </div>`;
   }
@@ -112,9 +122,22 @@ export function renderMessage(message: Message): TemplateResult {
   return html``;
 }
 
-export function renderProgressIndicator(message?: string): TemplateResult {
+export function renderProgressIndicator(options?: {
+  message?: string;
+  cardWideConfig?: CardWideConfig;
+  componentRef?: Ref<HTMLElement>;
+  classes?: ClassInfo;
+  size?: FrigateCardProgressIndicatorSize;
+}): TemplateResult {
   return html`
-    <frigate-card-progress-indicator .message=${message || ''}>
+    <frigate-card-progress-indicator
+      class="${classMap(options?.classes ?? {})}"
+      .size=${options?.size}
+      ${options?.componentRef ? ref(options.componentRef) : ''}
+      .message=${options?.message || ''}
+      .animated=${options?.cardWideConfig?.performance?.features
+        .animated_progress_indicator ?? true}
+    >
     </frigate-card-progress-indicator>
   `;
 }
@@ -167,9 +190,13 @@ export function dispatchErrorMessageEvent(
  */
 export function dispatchFrigateCardErrorEvent(
   element: EventTarget,
-  error: FrigateCardError,
+  error: unknown,
 ): void {
-  dispatchErrorMessageEvent(element, error.message, { context: error.context });
+  if (error instanceof Error) {
+    dispatchErrorMessageEvent(element, error.message, {
+      ...(error instanceof FrigateCardError && { context: error.context }),
+    });
+  }
 }
 
 declare global {

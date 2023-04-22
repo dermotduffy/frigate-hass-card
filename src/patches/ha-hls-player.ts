@@ -15,34 +15,33 @@ import { query } from 'lit/decorators/query.js';
 import { dispatchErrorMessageEvent } from '../components/message.js';
 import { dispatchMediaLoadedEvent } from '../utils/media-info.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
+import {
+  hideMediaControlsTemporarily,
+  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
+} from '../utils/media.js';
+import { FrigateCardMediaPlayer } from '../types.js';
 
 customElements.whenDefined('ha-hls-player').then(() => {
   @customElement('frigate-card-ha-hls-player')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  class FrigateCardHaHlsPlayer extends customElements.get('ha-hls-player') {
+  class FrigateCardHaHlsPlayer
+    extends customElements.get('ha-hls-player')
+    implements FrigateCardMediaPlayer
+  {
     // Due to an obscure behavior when this card is casted, this element needs
     // to use query rather than the ref directive to find the player.
     @query('#video')
     protected _video: HTMLVideoElement;
 
-    /**
-     * Play the video.
-     */
-    public play(): void {
-      this._video?.play();
+    public async play(): Promise<void> {
+      return this._video?.play();
     }
 
-    /**
-     * Pause the video.
-     */
-    public pause(): void {
+    public async pause(): Promise<void> {
       this._video?.pause();
     }
 
-    /**
-     * Mute the video.
-     */
-    public mute(): void {
+    public async mute(): Promise<void> {
       // The muted property is only for the initial muted state. Must explicitly
       // set the muted on the video player to make the change dynamic.
       if (this._video) {
@@ -50,21 +49,20 @@ customElements.whenDefined('ha-hls-player').then(() => {
       }
     }
 
-    /**
-     * Unmute the video.
-     */
-    public unmute(): void {
+    public async unmute(): Promise<void> {
       // See note in mute().
       if (this._video) {
         this._video.muted = false;
       }
     }
 
-    /**
-     * Seek the video.
-     */
-    public seek(seconds: number): void {
+    public isMuted(): boolean {
+      return this._video?.muted ?? true;
+    }
+
+    public async seek(seconds: number): Promise<void> {
       if (this._video) {
+        hideMediaControlsTemporarily(this._video);
         this._video.currentTime = seconds;
       }
     }
@@ -75,8 +73,12 @@ customElements.whenDefined('ha-hls-player').then(() => {
     // =====================================================================================
     protected render(): TemplateResult {
       if (this._error) {
-        // Use native Frigate card error handling.
-        return dispatchErrorMessageEvent(this, this._error);
+        if (this._errorIsFatal) {
+          // Use native Frigate card error handling for fatal errors.
+          return dispatchErrorMessageEvent(this, this._error);
+        } else {
+          console.error(this._error);
+        }
       }
       return html`
         <video
@@ -85,6 +87,9 @@ customElements.whenDefined('ha-hls-player').then(() => {
           .muted=${this.muted}
           ?playsinline=${this.playsInline}
           ?controls=${this.controls}
+          @loadedmetadata=${() => {
+            hideMediaControlsTemporarily(this._video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
+          }}
           @loadeddata=${(e) => {
             dispatchMediaLoadedEvent(this, e);
           }}
@@ -112,7 +117,7 @@ customElements.whenDefined('ha-hls-player').then(() => {
 });
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"frigate-card-ha-hls-player": FrigateCardHaHlsPlayer
-	}
+  interface HTMLElementTagNameMap {
+    'frigate-card-ha-hls-player': FrigateCardHaHlsPlayer;
+  }
 }

@@ -28,20 +28,15 @@ customElements.whenDefined('ha-camera-stream').then(() => {
   const computeMJPEGStreamUrl = (entity: CameraEntity): string =>
     `/api/camera_proxy_stream/${entity.entity_id}?token=${entity.attributes.access_token}`;
 
-  const computeObjectId = (entityId: string): string =>
-    entityId.substr(entityId.indexOf('.') + 1);
-
-  const computeStateName = (stateObj: HassEntity): string =>
-    stateObj.attributes.friendly_name === undefined
-      ? computeObjectId(stateObj.entity_id).replace(/_/g, ' ')
-      : stateObj.attributes.friendly_name || '';
-
   const STREAM_TYPE_HLS = 'hls';
   const STREAM_TYPE_WEB_RTC = 'web_rtc';
 
   @customElement('frigate-card-ha-camera-stream')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  class FrigateCardHaCameraStream extends customElements.get('ha-camera-stream') {
+  class FrigateCardHaCameraStream
+    extends customElements.get('ha-camera-stream')
+    implements FrigateCardMediaPlayer
+  {
     // Due to an obscure behavior when this card is casted, this element needs
     // to use query rather than the ref directive to find the player.
     @query('#player')
@@ -52,38 +47,27 @@ customElements.whenDefined('ha-camera-stream').then(() => {
     // - https://github.com/home-assistant/frontend/blob/dev/src/components/ha-camera-stream.ts
     // ========================================================================================
 
-    /**
-     * Play the video.
-     */
-    public play(): void {
-      this._player?.play();
+    public async play(): Promise<void> {
+      return this._player?.play();
     }
 
-    /**
-     * Pause the video.
-     */
-    public pause(): void {
+    public async pause(): Promise<void> {
       this._player?.pause();
     }
 
-    /**
-     * Mute the video.
-     */
-    public mute(): void {
+    public async mute(): Promise<void> {
       this._player?.mute();
     }
 
-    /**
-     * Unmute the video.
-     */
-    public unmute(): void {
+    public async unmute(): Promise<void> {
       this._player?.unmute();
     }
 
-    /**
-     * Seek the video (unsupported).
-     */
-    public seek(seconds: number): void {
+    public isMuted(): boolean {
+      return this._player?.isMuted() ?? true;
+    }
+
+    public async seek(seconds: number): Promise<void> {
       this._player?.seek(seconds);
     }
 
@@ -105,7 +89,6 @@ customElements.whenDefined('ha-camera-stream').then(() => {
             .src=${typeof this._connected == 'undefined' || this._connected
               ? computeMJPEGStreamUrl(this.stateObj)
               : ''}
-            .alt=${`Preview of the ${computeStateName(this.stateObj)} camera.`}
           />
         `;
       }

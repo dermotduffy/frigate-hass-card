@@ -205,7 +205,7 @@ function computeStyle(state: HassEntity): StyleInfo {
  * @param stateObj The HassEntity object from `hass.states`.
  * @returns A string state, e.g. 'on'.
  */
-export const computeActiveState = (stateObj: HassEntity): string => {
+const computeActiveState = (stateObj: HassEntity): string => {
   const domain = stateObj.entity_id.split('.')[0];
   let state = stateObj.state;
 
@@ -336,3 +336,31 @@ export const getEntitiesFromHASS = (hass: HomeAssistant, domain?: string): strin
   entities.sort();
   return entities;
 };
+
+/**
+ * Determine if a card is in panel mode.
+ */
+export const isCardInPanel = (card: HTMLElement): boolean => {
+  const parent = card.getRootNode();
+  return !!(
+    parent &&
+    parent instanceof ShadowRoot &&
+    parent.host.tagName === 'HUI-PANEL-VIEW'
+  );
+};
+
+/**
+ * Ensure URLs use the correct HA URL (relevant for Chromecast where the default
+ * location will be the Chromecast receiver, not HA).
+ * @param url The media URL
+ */
+export function canonicalizeHAURL(hass: ExtendedHomeAssistant, url: string): string;
+export function canonicalizeHAURL(
+  hass: ExtendedHomeAssistant,
+  url?: string,
+): string | null {
+  if (hass && url && url.startsWith('/')) {
+    return hass.hassUrl(url);
+  }
+  return url ?? null;
+}

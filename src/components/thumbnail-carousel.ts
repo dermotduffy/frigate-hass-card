@@ -8,29 +8,23 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
-import {
-  CameraConfig,
-  ExtendedHomeAssistant,
-  FrigateBrowseMediaSource,
-  ThumbnailsControlConfig,
-} from '../types.js';
+import { ExtendedHomeAssistant, ThumbnailsControlConfig } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
-import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
-import { isTrueMedia } from '../utils/ha/browse-media';
-import { View } from '../view.js';
+import { dispatchFrigateCardEvent } from '../utils/basic.js';
+import { View } from '../view/view.js';
+import { MediaQueriesResults } from '../view/media-queries-results';
 import { FrigateCardCarousel } from './carousel.js';
 import './thumbnail.js';
 import './carousel.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
+import { CameraManager } from '../camera-manager/manager.js';
 
 export interface ThumbnailCarouselTap {
-  slideIndex: number;
-  target: FrigateBrowseMediaSource;
-  childIndex: number;
+  queryResults: MediaQueriesResults;
 }
 
 @customElement('frigate-card-thumbnail-carousel')
@@ -41,13 +35,8 @@ export class FrigateCardThumbnailCarousel extends LitElement {
   @property({ attribute: false })
   public view?: Readonly<View>;
 
-  // Use contentsChanged here to avoid the carousel rebuilding and resetting in
-  // front of the user, unless the contents have actually changed.
-  @property({ attribute: false, hasChanged: contentsChanged })
-  public target?: FrigateBrowseMediaSource | null;
-
   @property({ attribute: false })
-  public cameras?: Map<string, CameraConfig>;
+  public cameraManager?: CameraManager;
 
   protected _refCarousel: Ref<FrigateCardCarousel> = createRef();
 
@@ -59,10 +48,14 @@ export class FrigateCardThumbnailCarousel extends LitElement {
   @property({ attribute: false })
   public config?: ThumbnailsControlConfig;
 
-  @state()
-  protected _selected: number | null = null;
+  @property({ attribute: false })
+  public selected? = 0;
 
-  protected _carouselOptions?: EmblaOptionsType;
+  protected _carouselOptions?: EmblaOptionsType = {
+    containScroll: 'keepSnaps',
+    dragFree: true,
+  };
+
   protected _carouselPlugins: EmblaPluginType[] = [
     WheelGesturesPlugin({
       // Whether the carousel is vertical or horizontal, interpret y-axis wheel
@@ -74,15 +67,6 @@ export class FrigateCardThumbnailCarousel extends LitElement {
   constructor() {
     super();
     this._resizeObserver = new ResizeObserver(this._resizeHandler.bind(this));
-  }
-
-  @property({ attribute: false })
-  set selected(selected: number | null) {
-    this._selected = selected;
-    this.style.setProperty(
-      '--frigate-card-carousel-thumbnail-opacity',
-      selected === null ? '1.0' : '0.4',
-    );
   }
 
   /**
@@ -109,30 +93,19 @@ export class FrigateCardThumbnailCarousel extends LitElement {
   }
 
   /**
-   * Get the Embla options to use.
-   * @returns An EmblaOptionsType object or undefined for no options.
-   */
-  protected _getOptions(): EmblaOptionsType {
-    return {
-      containScroll: 'keepSnaps',
-      dragFree: true,
-      startIndex: this._selected ?? 0,
-    };
-  }
-  /**
    * Get slides to include in the render.
    * @returns The slides to include in the render.
    */
   protected _getSlides(): TemplateResult[] {
-    if (!this.target || !this.target.children || !this.target.children.length) {
+    if (!this.view?.query || !this.view.queryResults?.hasResults()) {
       return [];
     }
 
     const slides: TemplateResult[] = [];
-    for (let i = 0; i < this.target.children.length; ++i) {
-      const thumbnail = this._renderThumbnail(this.target, i, slides.length);
+    for (let i = 0; i < this.view.queryResults.getResultsCount(); ++i) {
+      const thumbnail = this._renderThumbnail(i);
       if (thumbnail) {
-        slides.push(thumbnail);
+        slides[i] = thumbnail;
       }
     }
     return slides;
@@ -155,28 +128,11 @@ export class FrigateCardThumbnailCarousel extends LitElement {
       }
     }
 
-    if (!this._carouselOptions) {
-      // Want to set the initial carousel options just before the first render
-      // in order to get the startIndex correct in the options. It is not safe
-      // to rely on carouselScrollTo() post update, since the nested carousel
-      // may not yet be actual rendered/created.
-      this._carouselOptions = this._getOptions();
-    }
-  }
-
-  /**
-   * The updated lifecycle callback for this element.
-   * @param changedProperties The properties that were changed in this render.
-   */
-  updated(changedProperties: PropertyValues): void {
-    super.updated(changedProperties);
-
-    if (changedProperties.has('_selected')) {
-      this.updateComplete.then(() => {
-        if (this._selected !== null) {
-          this._refCarousel.value?.carouselScrollTo(this._selected);
-        }
-      });
+    if (changedProps.has('selected')) {
+      this.style.setProperty(
+        '--frigate-card-carousel-thumbnail-opacity',
+        this.selected === undefined ? '1.0' : '0.4',
+      );
     }
   }
 
@@ -185,44 +141,36 @@ export class FrigateCardThumbnailCarousel extends LitElement {
    * @param mediaToRender The media item to render.
    * @returns A template or void if the item could not be rendered.
    */
-  protected _renderThumbnail(
-    parent: FrigateBrowseMediaSource,
-    childIndex: number,
-    slideIndex: number,
-  ): TemplateResult | void {
-    if (
-      !parent.children ||
-      !parent.children.length ||
-      !isTrueMedia(parent.children[childIndex])
-    ) {
+  protected _renderThumbnail(index: number): TemplateResult | void {
+    const media = this.view?.queryResults?.getResult(index) ?? null;
+    if (!media || !this.view) {
       return;
     }
 
     const classes = {
       embla__slide: true,
-      'slide-selected': this._selected === childIndex,
+      'slide-selected': this.selected === index,
     };
 
-    const cameraConfig = this.view?.camera ? this.cameras?.get(this.view.camera) : null;
+    const seekTarget = this.view?.context?.mediaViewer?.seek;
     return html` <frigate-card-thumbnail
+      class="${classMap(classes)}"
+      .cameraManager=${this.cameraManager}
       .hass=${this.hass}
+      .media=${media}
       .view=${this.view}
-      .target=${parent}
-      .childIndex=${childIndex}
-      .clientID=${cameraConfig?.frigate.client_id}
-      ?details=${this.config?.show_details}
+      .seek=${seekTarget && media.includesTime(seekTarget) ? seekTarget : undefined}
+      ?details=${!!this.config?.show_details}
       ?show_favorite_control=${this.config?.show_favorite_control}
       ?show_timeline_control=${this.config?.show_timeline_control}
-      class="${classMap(classes)}"
-      @click=${(ev) => {
-        if (this._refCarousel.value?.carouselClickAllowed()) {
+      ?show_download_control=${this.config?.show_download_control}
+      @click=${(ev: Event) => {
+        if (this.view && this.view.queryResults) {
           dispatchFrigateCardEvent<ThumbnailCarouselTap>(
             this,
             'thumbnail-carousel:tap',
             {
-              slideIndex: slideIndex,
-              target: parent,
-              childIndex: childIndex,
+              queryResults: this.view.queryResults.clone().selectResult(index),
             },
           );
         }
@@ -258,6 +206,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
     return html`<frigate-card-carousel
       ${ref(this._refCarousel)}
       direction=${ifDefined(this._getDirection())}
+      .selected=${this.selected ?? 0}
       .carouselOptions=${this._carouselOptions}
       .carouselPlugins=${this._carouselPlugins}
     >

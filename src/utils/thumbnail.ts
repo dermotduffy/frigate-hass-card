@@ -2,20 +2,25 @@ import { Task } from '@lit-labs/task';
 import { ReactiveControllerHost } from '@lit/reactive-element';
 import { HomeAssistant } from 'custom-card-helpers';
 
+// See: https://github.com/sindresorhus/is-absolute-url
+// Scheme: https://tools.ietf.org/html/rfc3986#section-3.1
+// Absolute URL: https://tools.ietf.org/html/rfc3986#section-4.3
+const ABSOLUTE_URL_REGEX = /^[a-zA-Z][a-zA-Z\d+\-.]*?:/;
+
 /**
  * Fetch a thumbnail URL and return a data URL.
  * @param hass Home Assistant object.
  * @param thumbnailURL The thumbnail URL.
  * @returns A base64 encoded data URL for the thumbnail.
  */
-export const fetchThumbnail = async (
+const fetchThumbnail = async (
   hass: HomeAssistant,
   thumbnailURL: string,
 ): Promise<string | null> => {
-  if (!hass) {
+  if (!hass || !thumbnailURL) {
     return null;
   }
-  if (thumbnailURL?.startsWith('data:')) {
+  if (thumbnailURL.startsWith('data:') || thumbnailURL.match(ABSOLUTE_URL_REGEX)) {
     return thumbnailURL;
   }
   return new Promise((resolve, reject) => {
@@ -42,7 +47,7 @@ export const fetchThumbnail = async (
   });
 };
 
-type FetchThumbnailTaskArgs = [boolean, string | undefined];
+export type FetchThumbnailTaskArgs = [boolean, string | undefined];
 
 /**
  * Create a Lit task to fetch a thumbnail.
@@ -55,10 +60,12 @@ export const createFetchThumbnailTask = (
   host: ReactiveControllerHost,
   getHASS: () => HomeAssistant | undefined,
   getThumbnailURL: () => string | undefined,
+  autoRun = true,
 ): Task<FetchThumbnailTaskArgs, string | null> => {
-  return new Task(
-    host,
-    async ([haveHASS, thumbnailURL]: FetchThumbnailTaskArgs): Promise<
+  return new Task(host, {
+    // Do not re-run the task if hass changes, unless it was previously undefined.
+    args: (): FetchThumbnailTaskArgs => [!!getHASS(), getThumbnailURL()],
+    task: async ([haveHASS, thumbnailURL]: FetchThumbnailTaskArgs): Promise<
       string | null
     > => {
       const hass = getHASS();
@@ -67,7 +74,6 @@ export const createFetchThumbnailTask = (
       }
       return fetchThumbnail(hass, thumbnailURL);
     },
-    // Do not re-run the task if hass changes, unless it was previously undefined.
-    (): FetchThumbnailTaskArgs => [!!getHASS(), getThumbnailURL()],
-  );
+    autoRun: autoRun,
+  });
 };

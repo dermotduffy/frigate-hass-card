@@ -44,12 +44,12 @@ export function createMediaLoadedInfo(
  * @param source An event or HTMLElement that should be used as a source.
  */
 export function dispatchMediaLoadedEvent(
-  element: HTMLElement,
+  target: HTMLElement,
   source: Event | HTMLElement,
 ): void {
   const mediaLoadedInfo = createMediaLoadedInfo(source);
   if (mediaLoadedInfo) {
-    dispatchExistingMediaLoadedInfoAsEvent(element, mediaLoadedInfo);
+    dispatchExistingMediaLoadedInfoAsEvent(target, mediaLoadedInfo);
   }
 }
 
@@ -59,10 +59,10 @@ export function dispatchMediaLoadedEvent(
  * @param MediaLoadedInfo The MediaLoadedInfo object to send.
  */
 export function dispatchExistingMediaLoadedInfoAsEvent(
-  element: HTMLElement,
+  target: EventTarget,
   MediaLoadedInfo: MediaLoadedInfo,
 ): void {
-  dispatchFrigateCardEvent<MediaLoadedInfo>(element, 'media:loaded', MediaLoadedInfo);
+  dispatchFrigateCardEvent<MediaLoadedInfo>(target, 'media:loaded', MediaLoadedInfo);
 }
 
 /**

@@ -1,0 +1,14 @@
+:host {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+:host([hidden]),
+.hidden {
+  // Views content is hidden in these cases:
+  // - Live view being preloaded but live view not active.
+  // - Overall views component marked as hidden (e.g. error message to display
+  //   at the card level).
+  display: none;
+}

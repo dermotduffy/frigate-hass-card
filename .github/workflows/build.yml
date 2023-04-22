@@ -16,11 +16,20 @@ jobs:
     name: Test build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node and Yarn
+        uses: volta-cli/action@v3
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
       - name: Build
-        run: |
-          yarn install
-          yarn run build
+        run: yarn run build
+
+      - name: Test
+        run: yarn run test
 
       - name: HACS build validation
         uses: "hacs/action@21.12.1"
@@ -35,4 +44,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: frigate-hass-card
-          path: dist/frigate-hass-card.js
+          path: dist/*.js
