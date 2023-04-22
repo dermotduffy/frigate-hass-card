@@ -13,7 +13,7 @@
 [![HACS](https://img.shields.io/badge/HACS-default-orange.svg?style=flat-square)](https://hacs.xyz) 
 [![Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86&style=flat-square)](https://github.com/sponsors/dermotduffy) 
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/image-view.png" alt="Frigate card example" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/image-view.png" alt="Frigate card example" width="400px">
 
 # Frigate Lovelace Card
 
@@ -698,7 +698,7 @@ See the [fully expanded image configuration example](#config-expanded-image) for
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `mode` | `url` | :white_check_mark: | Mode of the the `image` [view](#views). Value must be one of `url` (to fetch an arbitrary image URL), `camera` (to show a still of the currently selected camera using either `camera_entity` or `webrtc_card.entity` in that order of precedence), or `screensaver` (to show an [embedded stock Frigate card logo](https://github.com/dermotduffy/frigate-hass-card/blob/release-4.0.0/src/images/frigate-bird-in-sky.jpg)). In either `url` or `camera` mode, the `screensaver` content is used as a fallback if a URL is not specified or cannot be derived. |
+| `mode` | `url` | :white_check_mark: | Mode of the the `image` [view](#views). Value must be one of `url` (to fetch an arbitrary image URL), `camera` (to show a still of the currently selected camera using either `camera_entity` or `webrtc_card.entity` in that order of precedence), or `screensaver` (to show an [embedded stock Frigate card logo](https://github.com/dermotduffy/frigate-hass-card/blob/main/src/images/frigate-bird-in-sky.jpg)). In either `url` or `camera` mode, the `screensaver` content is used as a fallback if a URL is not specified or cannot be derived. |
 | `url` | | :white_check_mark: |  A static image URL to be used when the `mode` is set to `url` or when a temporary image is required (e.g. may appear momentarily prior to load of a camera snapshot in the `camera` mode). Note that a `_t=[timestsamp]` query parameter will be automatically added to all URLs such that the image will not be cached by the browser.|
 | `refresh_seconds` | 0 | :white_check_mark: | The image will be refreshed at least every `refresh_seconds` (it may refresh more frequently, e.g. whenever Home Assistant updates its camera security token). `0` implies no refreshing. |
 | `actions` | | :white_check_mark: | Actions to use for the `image` view. See [actions](#actions) below.|
@@ -970,7 +970,7 @@ WebRTC Card support blends the use of the ultra-realtime [WebRTC card live
 view](https://github.com/AlexxIT/WebRTC) with convenient access to Frigate
 events/snapshots/UI. A perfect combination!
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/webrtc.png" alt="Live viewing" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/webrtc.png" alt="Live viewing" width="400px">
 
 **Note**: AlexxIT's WebRTC Integration/Card must be installed and configured separately (see [details](https://github.com/AlexxIT/WebRTC)) before it can be used with this card.
 
@@ -1298,12 +1298,12 @@ This card supports several menu styles.
 
 | Key           | Description                                         | Screenshot |
 | ------------- | --------------------------------------------- | - |
-|`hidden`| Hide the menu by default, expandable upon clicking the Frigate button. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/menu-mode-hidden.png" alt="Menu hidden" width="400px"> |
-|`overlay`| Overlay the menu over the card contents. The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/menu-mode-overlay.png" alt="Menu overlaid" width="400px"> |
-|`hover`| Overlay the menu over the card contents when the mouse is over the **menu**, otherwise it is not shown. The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/menu-mode-overlay.png" alt="Menu overlaid" width="400px"> |
-|`hover-card`| Overlay the menu over the card contents when the mouse is over the **card**, otherwise it is not shown. The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/menu-mode-overlay.png" alt="Menu overlaid" width="400px"> |
-|`outside`| Render the menu outside the card (i.e. above it if `position` is `top`, or below it if `position` is `bottom`). The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/menu-mode-above.png" alt="Menu above" width="400px"> |
-|`none`| No menu is shown. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/menu-mode-none.png" alt="No Menu" width="400px"> |
+|`hidden`| Hide the menu by default, expandable upon clicking the Frigate button. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-hidden.png" alt="Menu hidden" width="400px"> |
+|`overlay`| Overlay the menu over the card contents. The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-overlay.png" alt="Menu overlaid" width="400px"> |
+|`hover`| Overlay the menu over the card contents when the mouse is over the **menu**, otherwise it is not shown. The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-overlay.png" alt="Menu overlaid" width="400px"> |
+|`hover-card`| Overlay the menu over the card contents when the mouse is over the **card**, otherwise it is not shown. The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-overlay.png" alt="Menu overlaid" width="400px"> |
+|`outside`| Render the menu outside the card (i.e. above it if `position` is `top`, or below it if `position` is `bottom`). The Frigate button shows the default view. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-above.png" alt="Menu above" width="400px"> |
+|`none`| No menu is shown. | <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/menu-mode-none.png" alt="No Menu" width="400px"> |
 
 <a name="screenshots"></a>
 
@@ -1314,83 +1314,83 @@ This card supports several menu styles.
 Scroll through your live cameras, or choose from a menu. Seamlessly supports
 cameras of different dimensions, and custom submenus per camera.
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/camera-carousel.gif" alt="Gallery" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/camera-carousel.gif" alt="Gallery" width="400px">
 
 ### Full Viewing Of Events
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/gallery.png" alt="Gallery" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/gallery.png" alt="Gallery" width="400px">
 
 ### Live Viewing With Thumbnail Carousel
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/live-thumbnails.gif" alt="Live view with event thumbnails" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/live-thumbnails.gif" alt="Live view with event thumbnails" width="400px">
 
 ### Clip Viewing With Thumbnail Carousel
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/viewer-thumbnails.gif" alt="Viewer with event thumbnails" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/viewer-thumbnails.gif" alt="Viewer with event thumbnails" width="400px">
 
 ### Hover Menu / Thumbnail Next & Previous Controls
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/viewer-with-thumbnail-next-prev.gif" alt="Viewer with event thumbnails" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/viewer-with-thumbnail-next-prev.gif" alt="Viewer with event thumbnails" width="400px">
 
 ### Card Editing
 
 This card supports full editing via the Lovelace card editor. Additional arbitrary configuration for WebRTC Card may be specified in YAML mode.
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/editor.gif" alt="Live viewing" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/editor.gif" alt="Live viewing" width="400px">
 
 ### Configurable Submenus
 
 This card supports fully configurable submenus.
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/submenu.gif" alt="Configurable submenus" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/submenu.gif" alt="Configurable submenus" width="400px">
 
 ### Select Entity Submenus
 
 Automatically generate submenus from `select` entities.
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/submenu-select.gif" alt="Select based submenus" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/submenu-select.gif" alt="Select based submenus" width="400px">
 
 ### Cast media from the card
 
 Cast media from the card to a local player.
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/cast-your-events.gif" alt="Cast media" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/cast-your-events.gif" alt="Cast media" width="400px">
 
 ### Scan Mode
 
 Automatically choose the camera with the action!
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/scan-mode.gif" alt="Cast media" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/scan-mode.gif" alt="Cast media" width="400px">
 
 ### Thumbnail Drawers
 
 View thumbnails in side-drawers.
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/thumbnails-in-drawer.gif" alt="Thumbnail drawers" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/thumbnails-in-drawer.gif" alt="Thumbnail drawers" width="400px">
 
 ### Event Timeline
 
 View events in the timeline.
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/timeline.gif" alt="Event Timeline" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/timeline.gif" alt="Event Timeline" width="400px">
 
 ### Single Camera Recordings
 
 View recordings for a camera across time:
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/recording-seek.gif" alt="Recording for single camera" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/recording-seek.gif" alt="Recording for single camera" width="400px">
 
 ### Multiple Camera Recordings
 
 View recordings for multiple cameras at a given time:
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/recording-seek-all-cameras.gif" alt="Recording for multiple cameras" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/recording-seek-all-cameras.gif" alt="Recording for multiple cameras" width="400px">
 
 ### Dark Mode
 
 Dim the card when not used.
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/dark-mode.gif" alt="Card dark mode" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/dark-mode.gif" alt="Card dark mode" width="400px">
 
 <a name="screenshots-card-casting"></a>
 
@@ -1398,19 +1398,19 @@ Dim the card when not used.
 
 A dashboard with the card can be cast onto a suitable device (such as the Nest Hub shown below).
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/card-on-nest-hub.jpg" alt="Card on Nest Hub" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/card-on-nest-hub.jpg" alt="Card on Nest Hub" width="400px">
 
 ### Event starring
 
 Retain interesting Frigate events forever:
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/star.gif" alt="Retain events" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/star.gif" alt="Retain events" width="400px">
 
 ### PTZ Control
 
 Control a PTZ camera:
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/native-ptz.gif" alt="PTZ Control" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/native-ptz.gif" alt="PTZ Control" width="400px">
 
 ### Media Layout
 
@@ -1418,43 +1418,43 @@ Pan around a large camera view to only show part of the video feed in the card a
 
 #### Before
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/media-layout-a.png" alt="Media Layout A" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/media-layout-a.png" alt="Media Layout A" width="400px">
 
 #### After
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/media-layout-b.png" alt="Media Layout B" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/media-layout-b.png" alt="Media Layout B" width="400px">
 
 ### Video Scrubbing
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/video-scrubbing.gif" alt="Video Scrubbing" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/video-scrubbing.gif" alt="Video Scrubbing" width="400px">
 
 ### Media filtering
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/media-filtering.gif" alt="Media Filtering" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/media-filtering.gif" alt="Media Filtering" width="400px">
 
 ### Seamless integration of different camera sources/engines
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/motioneye.gif" alt="MotionEye Support" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/motioneye.gif" alt="MotionEye Support" width="400px">
 
 ### Expanded mode
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/expanded.gif" alt="Expanded Mode" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/expanded.gif" alt="Expanded Mode" width="400px">
 
 ### Substream Support
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/substream.gif" alt="Substream Support" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/substream.gif" alt="Substream Support" width="400px">
 
 ### Timeline Date Picking
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/date-picker.gif" alt="Timeline Date Picking" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/date-picker.gif" alt="Timeline Date Picking" width="400px">
 
 ### Low performance mode
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/performance.png" alt="Low Performance Mode" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/performance.png" alt="Low Performance Mode" width="400px">
 
 ### Ribbon timeline
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-5.0.0/images/ribbon-timeline.png" alt="Ribbon Timeline" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/ribbon-timeline.png" alt="Ribbon Timeline" width="400px">
 
 ## Examples
 
@@ -2712,7 +2712,7 @@ elements:
       opacity: 0.5
 ```
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/release-4.0.0/images/picture_elements_temperature.png" alt="Picture elements temperature example" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/picture_elements_temperature.png" alt="Picture elements temperature example" width="400px">
 </details>
 
 ### Adding State Badges
