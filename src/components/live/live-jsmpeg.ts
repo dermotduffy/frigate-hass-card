@@ -70,6 +70,11 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
     // JSMPEG does not support seeking.
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async setControls(_controls: boolean): Promise<void> {
+    // Not implemented.
+  }
+
   /**
    * Create a JSMPEG player.
    * @param url The URL for the player to connect to.

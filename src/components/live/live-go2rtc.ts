@@ -101,6 +101,12 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
     }
   }
 
+  public async setControls(controls: boolean): Promise<void> {
+    if (this._player?.video) {
+      this._player.video.controls = controls;
+    }
+  }
+
   disconnectedCallback(): void {
     this._player = undefined;
   }

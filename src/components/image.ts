@@ -26,6 +26,7 @@ import { View } from '../view/view.js';
 import { dispatchErrorMessageEvent } from './message.js';
 import { contentsChanged } from '../utils/basic.js';
 import isEqual from 'lodash-es/isEqual';
+import './zoomer.js';
 
 // See TOKEN_CHANGE_INTERVAL in https://github.com/home-assistant/core/blob/dev/homeassistant/components/camera/__init__.py .
 const HASS_REJECTION_CUTOFF_MS = 5 * 60 * 1000;
@@ -40,6 +41,9 @@ export class FrigateCardImage extends LitElement {
 
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
+
+  @property({ attribute: false })
+  public supportZoom = false;
 
   // Using contentsChanged to ensure overridden configs (e.g. when the
   // 'show_image_during_load' option is true for live views, an overridden
@@ -231,12 +235,18 @@ export class FrigateCardImage extends LitElement {
     }
   }
 
+  protected _renderZoom(contents: TemplateResult): TemplateResult {
+    return this.supportZoom
+      ? html` <frigate-card-zoomer>${contents}</frigate-card-zoomer>`
+      : contents;
+  }
+
   protected render(): TemplateResult | void {
     const src = this._cachedValueController?.value;
     // Note the use of live() below to ensure the update will restore the image
     // src if it's been changed via _forceSafeImage().
     return src
-      ? html` <img
+      ? this._renderZoom(html` <img
           ${ref(this._refImage)}
           src=${live(src)}
           @load=${(ev: Event) => {
@@ -263,7 +273,7 @@ export class FrigateCardImage extends LitElement {
               });
             }
           }}
-        />`
+        />`)
       : html``;
   }
 

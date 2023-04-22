@@ -71,6 +71,12 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       this._player?.seek(seconds);
     }
 
+    public async setControls(controls: boolean): Promise<void> {
+      if (this._player) {
+        this._player.setControls(controls);
+      }
+    }
+
     /**
      * Master render method.
      * @returns A rendered template.
