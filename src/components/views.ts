@@ -1,10 +1,10 @@
 import {
-    CSSResultGroup,
-    html,
-    LitElement,
-    PropertyValues,
-    TemplateResult,
-    unsafeCSS
+  CSSResultGroup,
+  html,
+  LitElement,
+  PropertyValues,
+  TemplateResult,
+  unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -72,7 +72,7 @@ export class FrigateCardViews extends LitElement {
       }
     }
   }
-  
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected shouldUpdate(_: PropertyValues): boolean {
     // Future: Updates to `hass` and `conditionState` here will be frequent.
@@ -150,6 +150,7 @@ export class FrigateCardViews extends LitElement {
             .view=${this.view}
             .hass=${this.hass}
             .cameraConfig=${cameraConfig}
+            .supportZoom=${true}
           >
           </frigate-card-image>`
         : ``}

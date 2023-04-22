@@ -42,6 +42,11 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
     // Not implemented.
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async setControls(_controls: boolean): Promise<void> {
+    // Not implemented.
+  }
+
   protected render(): TemplateResult | void {
     if (!this.hass || !this.cameraConfig) {
       return;

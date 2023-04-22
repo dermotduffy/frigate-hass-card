@@ -67,6 +67,12 @@ customElements.whenDefined('ha-hls-player').then(() => {
       }
     }
 
+    public async setControls(controls: boolean): Promise<void> {
+      if (this._video) {
+        this._video.controls = controls;
+      }
+    }
+
     // =====================================================================================
     // Minor modifications from:
     // - https://github.com/home-assistant/frontend/blob/dev/src/components/ha-hls-player.ts

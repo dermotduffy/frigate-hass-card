@@ -1455,6 +1455,7 @@ export interface FrigateCardMediaPlayer {
   unmute(): Promise<void>;
   isMuted(): boolean;
   seek(seconds: number): Promise<void>;
+  setControls(controls: boolean): Promise<void>;
 }
 
 export interface CardHelpers {

@@ -43,6 +43,10 @@ export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPla
     this._playerRef.value?.seek(seconds);
   }
 
+  public async setControls(controls: boolean): Promise<void> {
+    this._playerRef.value?.setControls(controls);
+  }
+
   protected render(): TemplateResult | void {
     if (!this.hass) {
       return;

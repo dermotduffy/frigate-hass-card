@@ -73,6 +73,13 @@ export class FrigateCardLiveWebRTCCard
     }
   }
 
+  public async setControls(controls: boolean): Promise<void> {
+    const player = this._getPlayer();
+    if (player) {
+      player.controls = controls;
+    }
+  }
+
   connectedCallback(): void {
     super.connectedCallback();
 
