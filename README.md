@@ -515,6 +515,7 @@ live:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
+| `mode` | `none` | :white_check_mark: | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).|
 | `style` | `ribbon` | :white_check_mark: | Whether the timeline should show events as a single flat `ribbon` or a `stack` of events that are clustered using the `clustering_threshold` (below). |
 | `window_seconds` | `3600` | :white_check_mark: | The length of the default timeline in seconds. By default, 1 hour (`3600` seconds) is shown in the timeline. |
 | `clustering_threshold` | `3` | :white_check_mark: | The minimum number of overlapping events to allow prior to clustering/grouping them. Higher numbers cause clustering to happen less frequently. Depending on the timescale/zoom of the timeline, the underlying timeline library may still allow overlaps for low values of this parameter -- for a fully "flat" timeline use the `ribbon` style. `0` disables clustering entirely. Only used in the `stack` style of timeline. |
@@ -612,6 +613,7 @@ media_viewer:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
+| `mode` | `none` | :heavy_multiplication_x: | Whether to show the thumbnail carousel `below` the media, `above` the media, in a drawer to the `left` or `right` of the media or to hide it entirely (`none`).|
 | `style` | `ribbon` | :heavy_multiplication_x: | Whether the timeline should show events as a single flat `ribbon` or a `stack` of events that are clustered using the `clustering_threshold` (below). |
 | `window_seconds` | `3600` | :heavy_multiplication_x: | The length of the default timeline in seconds. By default, 1 hour (`3600` seconds) is shown in the timeline. |
 | `clustering_threshold` | `3` | :heavy_multiplication_x: | The minimum number of overlapping events to allow prior to clustering/grouping them. Higher numbers cause clustering to happen less frequently. Depending on the timescale/zoom of the timeline, the underlying timeline library may still allow overlaps for low values of this parameter -- for a fully "flat" timeline use the `ribbon` style. `0` disables clustering entirely. Only used in the `stack` style of timeline. |
