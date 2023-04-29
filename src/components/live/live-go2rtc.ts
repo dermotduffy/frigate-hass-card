@@ -153,7 +153,6 @@ class FrigateCardGo2RTCPlayer extends VideoRTC {
 
     // Must add microphone tracks prior to making the offer.
     this._microphoneStream?.getTracks().forEach((track) => {
-      console.info('Adding microphone track', track);
       pc.addTransceiver(track, { direction: 'sendonly' });
     });
 
