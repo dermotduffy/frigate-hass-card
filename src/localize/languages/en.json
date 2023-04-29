@@ -218,6 +218,11 @@
       "layout": "Live Layout",
       "lazy_load": "Live cameras are lazily loaded",
       "lazy_unload": "Live cameras are lazily unloaded",
+      "microphone": {
+        "disconnect_seconds": "Seconds after which to disconnect microphone (0=never)",
+        "editor_label": "Microphone",
+        "enabled": "Microphone enabled"
+      },
       "preload": "Preload live view in the background",
       "show_image_during_load": "Show still image while the live stream is loading",
       "transition_effect": "Live camera transition effect"
@@ -267,6 +272,7 @@
         "image": "Image",
         "live": "Live",
         "media_player": "Send to media player",
+        "microphone": "Microphone",
         "priority": "Priority",
         "recordings": "Recordings",
         "snapshots": "Snapshots",

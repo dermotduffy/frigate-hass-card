@@ -191,6 +191,8 @@ export const CONF_LIVE_PRELOAD = `${CONF_LIVE}.preload` as const;
 export const CONF_LIVE_TRANSITION_EFFECT = `${CONF_LIVE}.transition_effect` as const;
 export const CONF_LIVE_SHOW_IMAGE_DURING_LOAD =
   `${CONF_LIVE}.show_image_during_load` as const;
+export const CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS =
+  `${CONF_LIVE}.microphone.disconnect_seconds` as const;
 
 const CONF_IMAGE = 'image' as const;
 export const CONF_IMAGE_LAYOUT_FIT = `${CONF_IMAGE}.layout.fit` as const;

@@ -182,6 +182,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
       supportsRecordings: false,
       supportsSnapshots: false,
       supportsTimeline: false,
+      supports2WayAudio: false,
     };
   }
 

@@ -755,6 +755,7 @@ export class CameraManager {
       supportsRecordings: perCameraCapabilities.some((cap) => cap?.supportsRecordings),
       supportsSnapshots: perCameraCapabilities.some((cap) => cap?.supportsSnapshots),
       supportsTimeline: perCameraCapabilities.some((cap) => cap?.supportsTimeline),
+      supports2WayAudio: perCameraCapabilities.some((cap) => cap?.supports2WayAudio),
     };
   }
 }

@@ -78,14 +78,10 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     });
 
     const start = (): void => {
-      const options = element.actionHandlerOptions;
-
-      if (options?.hasHold) {
-        this.held = false;
-        this.timer = window.setTimeout(() => {
-          this.held = true;
-        }, this.holdTime);
-      }
+      this.held = false;
+      this.timer = window.setTimeout(() => {
+        this.held = true;
+      }, this.holdTime);
 
       fireEvent(element, 'action', { action: 'start_tap' });
     };
@@ -102,14 +98,13 @@ class ActionHandler extends HTMLElement implements ActionHandler {
         // This action handler by default relies on synthetic click events for
         // touch devices, in order to ensure that embedded cards (e.g. WebRTC)
         // can use stock click handlers. The exception is for hold events.
-        !(options?.hasHold && this.held)
+        !this.held
       ) {
         return;
       }
-      if (options?.hasHold) {
-        clearTimeout(this.timer);
-        this.timer = undefined;
-      }
+
+      clearTimeout(this.timer);
+      this.timer = undefined;
 
       fireEvent(element, 'action', { action: 'end_tap' });
 

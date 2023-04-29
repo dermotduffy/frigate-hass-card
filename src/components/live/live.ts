@@ -138,6 +138,9 @@ export class FrigateCardLive extends LitElement {
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
+  @property({ attribute: false })
+  public microphoneStream?: MediaStream;
+
   // Whether or not the live view is currently in the background (i.e. preloaded
   // but not visible)
   @state()
@@ -251,6 +254,7 @@ export class FrigateCardLive extends LitElement {
           .liveOverrides=${this.liveOverrides}
           .cardWideConfig=${this.cardWideConfig}
           .cameraManager=${this.cameraManager}
+          .microphoneStream=${this.microphoneStream}
           @frigate-card:message=${(ev: CustomEvent<Message>) => {
             this._renderKey++;
             this._messageReceivedPostRender = true;
@@ -314,6 +318,9 @@ export class FrigateCardLiveCarousel extends LitElement {
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
+
+  @property({ attribute: false })
+  public microphoneStream?: MediaStream;
 
   // Index between camera name and slide number.
   protected _cameraToSlide: Record<string, number> = {};
@@ -541,6 +548,7 @@ export class FrigateCardLiveCarousel extends LitElement {
       <div class="embla__slide">
         <frigate-card-live-provider
           ?disabled=${this.liveConfig.lazy_load}
+          .microphoneStream=${this.view?.camera === cameraID ? this.microphoneStream : undefined}
           .cameraConfig=${cameraConfig}
           .cameraEndpoints=${guard(
             [this.cameraManager, cameraID],
@@ -721,6 +729,9 @@ export class FrigateCardLiveProvider
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
+
+  @property({ attribute: false })
+  public microphoneStream?: MediaStream;
 
   @state()
   protected _isVideoMediaLoaded = false;
@@ -933,6 +944,8 @@ export class FrigateCardLiveProvider
               .hass=${this.hass}
               .cameraConfig=${this.cameraConfig}
               .cameraEndpoints=${this.cameraEndpoints}
+              .microphoneStream=${this.microphoneStream}
+              .microphoneConfig=${this.liveConfig.microphone}
               @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
             >
             </frigate-card-live-webrtc-card>`

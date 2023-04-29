@@ -100,6 +100,7 @@ interface BaseCapabilities {
   supportsRecordings: boolean;
   supportsSnapshots: boolean;
   supportsTimeline: boolean;
+  supports2WayAudio: boolean;
 }
 
 export type CameraManagerCapabilities = BaseCapabilities;
