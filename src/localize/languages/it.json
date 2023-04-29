@@ -218,6 +218,11 @@
       "layout": "Disposizione dal vivo",
       "lazy_load": "Le telecamere dal vivo sono pigramente cariche",
       "lazy_unload": "Le telecamere dal vivo sono pigramente non caricate",
+      "microphone": {
+        "disconnect_seconds": "",
+        "editor_label": "",
+        "enabled": ""
+      },
       "preload": "Precarica Live View in background",
       "show_image_during_load": "Mostra un'immagine fissa durante il caricamento del live streaming",
       "transition_effect": "Effetto di transizione della telecamera dal vivo"

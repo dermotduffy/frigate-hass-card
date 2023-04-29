@@ -219,6 +219,8 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'image',
   'live',
   'menu_toggle',
+  'microphone_mute',
+  'microphone_unmute',
   'recording',
   'recordings',
   'snapshot',
@@ -408,6 +410,20 @@ const imageBaseConfigSchema = z.object({
 /**
  * Live provider options
  */
+
+const microphoneConfigDefault = {
+  disconnect_seconds: 60,
+};
+
+const microphoneConfigSchema = z
+  .object({
+    disconnect_seconds: z
+      .number()
+      .min(0)
+      .default(microphoneConfigDefault.disconnect_seconds),
+  })
+  .default(microphoneConfigDefault);
+export type MicrophoneConfig = z.infer<typeof microphoneConfigSchema>;
 
 const go2rtcConfigSchema = z.object({
   modes: z.enum(['webrtc', 'mse', 'mp4', 'mjpeg']).array().optional(),
@@ -932,6 +948,9 @@ const liveConfigDefault = {
       duration_seconds: 2,
     },
   },
+  microphone: {
+    ...microphoneConfigDefault,
+  },
 };
 
 const livethumbnailsControlSchema = thumbnailsControlSchema.extend({
@@ -975,6 +994,7 @@ const liveOverridableConfigSchema = z
       .boolean()
       .default(liveConfigDefault.show_image_during_load),
     layout: mediaLayoutConfigSchema.optional(),
+    microphone: microphoneConfigSchema.default(liveConfigDefault.microphone),
   })
   .merge(actionsSchema);
 
@@ -1037,6 +1057,7 @@ const menuConfigDefault = {
     fullscreen: visibleButtonDefault,
     expand: hiddenButtonDefault,
     media_player: visibleButtonDefault,
+    microphone: hiddenButtonDefault,
     recordings: hiddenButtonDefault,
   },
   button_size: 40,
@@ -1073,6 +1094,7 @@ const menuConfigSchema = z
         media_player: visibleButtonSchema.default(
           menuConfigDefault.buttons.media_player,
         ),
+        microphone: hiddenButtonSchema.default(menuConfigDefault.buttons.microphone),
         recordings: hiddenButtonSchema.default(menuConfigDefault.buttons.recordings),
       })
       .default(menuConfigDefault.buttons),

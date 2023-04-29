@@ -218,6 +218,11 @@
       "layout": "Layout dinâmico",
       "lazy_load": "As câmeras ao vivo são carregadas lentamente",
       "lazy_unload": "As câmeras ao vivo são descarregadas preguiçosamente",
+      "microphone": {
+        "disconnect_seconds": "",
+        "editor_label": "",
+        "enabled": ""
+      },
       "preload": "Pré-carregar a visualização ao vivo em segundo plano",
       "show_image_during_load": "Mostrar imagem estática enquanto a transmissão ao vivo está carregando",
       "transition_effect": "Efeito de transição de câmera ao vivo"

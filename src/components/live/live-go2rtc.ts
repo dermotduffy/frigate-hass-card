@@ -12,6 +12,7 @@ import {
   CameraConfig,
   ExtendedHomeAssistant,
   FrigateCardMediaPlayer,
+  MicrophoneConfig,
 } from '../../types.js';
 import '../image.js';
 import {
@@ -34,8 +35,38 @@ const GO2RTC_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
 
 @customElement('frigate-card-live-go2rtc-player')
 class FrigateCardGo2RTCPlayer extends VideoRTC {
+  protected _microphoneStream?: MediaStream;
+
+  constructor(microphoneStream?: MediaStream) {
+    super();
+    if (microphoneStream) {
+      this._microphoneStream = this._microphoneStream;
+    }
+  }
+
   public play(): void {
     // Let Frigate card control auto playing.
+  }
+
+  protected reconnect(): void {
+    if (this.wsState !== WebSocket.CLOSED) {
+      // The websocket has onclose handlers, so don't call onconnect directly,
+      // wait until the eventhandlers are finished..
+      this.ws?.addEventListener('close', () => this.onconnect());
+      this.ondisconnect();
+    } else {
+      // Still call ondisconnect() as there may be an RTC connection to
+      // terminate even if the websocket is closed.
+      this.ondisconnect();
+      this.onconnect();
+    }
+  }
+
+  public async setMicrophoneStream(microphoneStream?: MediaStream): Promise<void> {
+    if (this._microphoneStream !== microphoneStream) {
+      this._microphoneStream = microphoneStream;
+      this.reconnect();
+    }
   }
 
   public oninit(): void {
@@ -56,6 +87,85 @@ class FrigateCardGo2RTCPlayer extends VideoRTC {
       this.video.muted = true;
     }
   }
+
+  // This is a modified version of onwebrtc() to support 2-way audio.
+  override onwebrtc() {
+    const pc = new RTCPeerConnection(this.pcConfig);
+
+    const video2: HTMLVideoElement = document.createElement('video');
+    video2.addEventListener('loadeddata', (ev) => this.onpcvideo(ev), { once: true });
+
+    pc.addEventListener('icecandidate', (ev) => {
+      const candidate = ev.candidate ? ev.candidate.toJSON().candidate : '';
+      this.send({ type: 'webrtc/candidate', value: candidate });
+    });
+
+    pc.addEventListener('track', (ev) => {
+      // when stream already init
+      if (video2.srcObject !== null) return;
+
+      // when audio track not exist in Chrome
+      if (ev.streams.length === 0) return;
+
+      // when audio track not exist in Firefox
+      if (ev.streams[0].id[0] === '{') return;
+
+      // Filter out tracks that are not video related.
+      if (ev.track.kind !== 'video') return;
+
+      video2.srcObject = ev.streams[0];
+    });
+
+    pc.addEventListener('connectionstatechange', () => {
+      if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+        pc.close(); // stop next events
+
+        this.pcState = WebSocket.CLOSED;
+        this.pc = null;
+
+        this.onconnect();
+      }
+    });
+
+    this.onmessage['webrtc'] = (msg) => {
+      switch (msg.type) {
+        case 'webrtc/candidate':
+          pc.addIceCandidate({
+            candidate: msg.value,
+            sdpMid: '0',
+          }).catch(() => console.debug);
+          break;
+        case 'webrtc/answer':
+          pc.setRemoteDescription({
+            type: 'answer',
+            sdp: msg.value,
+          }).catch(() => console.debug);
+          break;
+        case 'error':
+          if (msg.value.indexOf('webrtc/offer') < 0) return;
+          pc.close();
+      }
+    };
+
+    // Safari doesn't support "offerToReceiveVideo"
+    pc.addTransceiver('video', { direction: 'recvonly' });
+    pc.addTransceiver('audio', { direction: 'recvonly' });
+
+    // Must add microphone tracks prior to making the offer.
+    this._microphoneStream?.getTracks().forEach((track) => {
+      console.info('Adding microphone track', track);
+      pc.addTransceiver(track, { direction: 'sendonly' });
+    });
+
+    pc.createOffer().then((offer) => {
+      pc.setLocalDescription(offer).then(() => {
+        this.send({ type: 'webrtc/offer', value: offer.sdp });
+      });
+    });
+
+    this.pcState = WebSocket.CONNECTING;
+    this.pc = pc;
+  }
 }
 
 @customElement('frigate-card-live-go2rtc')
@@ -68,6 +178,12 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
 
   @property({ attribute: false })
   public cameraEndpoints?: CameraEndpoints;
+
+  @property({ attribute: false })
+  public microphoneStream?: MediaStream;
+
+  @property({ attribute: false })
+  public microphoneConfig?: MicrophoneConfig;
 
   protected _player?: FrigateCardGo2RTCPlayer;
 
@@ -141,7 +257,7 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
       return;
     }
 
-    this._player = new FrigateCardGo2RTCPlayer();
+    this._player = new FrigateCardGo2RTCPlayer(this.microphoneStream);
     this._player.src = address;
     this._player.visibilityCheck = false;
 
@@ -155,6 +271,9 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
   protected willUpdate(changedProps: PropertyValues): void {
     if (!this._player || changedProps.has('cameraEndpoints')) {
       this._createPlayer();
+    }
+    if (changedProps.has('microphoneStream')) {
+      this._player?.setMicrophoneStream(this.microphoneStream);
     }
   }
 

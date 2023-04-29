@@ -90,6 +90,7 @@ import { ResolvedMediaCache } from './utils/ha/resolved-media.js';
 import { supportsFeature } from './utils/ha/update.js';
 import { FrigateCardInitializer } from './utils/initializer.js';
 import { isValidMediaLoadedInfo } from './utils/media-info.js';
+import { MicrophoneController } from './utils/microphone';
 import { getActionsFromQueryString } from './utils/querystring.js';
 import { View } from './view/view.js';
 
@@ -178,6 +179,9 @@ class FrigateCard extends LitElement {
 
   @state()
   protected _expand?: boolean = false;
+
+  // null implies the user refused microphone access.
+  protected _microphoneController?: MicrophoneController;
 
   protected _conditionState?: ConditionState;
 
@@ -341,7 +345,13 @@ class FrigateCard extends LitElement {
    * Get the style of emphasized menu items.
    * @returns A StyleInfo.
    */
-  protected _getEmphasizedStyle(): StyleInfo {
+  protected _getEmphasizedStyle(critical?: boolean): StyleInfo {
+    if (critical) {
+      return {
+        animation: 'pulse 3s infinite',
+        color: 'var(--error-color, white)',
+      };
+    }
     return {
       color: 'var(--primary-color, white)',
     };
@@ -609,6 +619,27 @@ class FrigateCard extends LitElement {
         title: localize('config.menu.buttons.camera_ui'),
         tap_action: createFrigateCardCustomAction(
           'camera_ui',
+        ) as FrigateCardCustomAction,
+      });
+    }
+
+    if (this._microphoneController && cameraCapabilities?.supports2WayAudio) {
+      const muted = this._microphoneController.isMuted();
+      buttons.push({
+        icon: this._microphoneController.isForbidden()
+          ? 'mdi:microphone-message-off'
+          : muted
+          ? 'mdi:microphone-off'
+          : 'mdi:microphone',
+        ...this._getConfig().menu.buttons.microphone,
+        type: 'custom:frigate-card-menu-icon',
+        title: localize('config.menu.buttons.microphone'),
+        style: muted ? {} : this._getEmphasizedStyle(true),
+        start_tap_action: createFrigateCardCustomAction(
+          'microphone_unmute',
+        ) as FrigateCardCustomAction,
+        end_tap_action: createFrigateCardCustomAction(
+          'microphone_mute',
         ) as FrigateCardCustomAction,
       });
     }
@@ -948,6 +979,21 @@ class FrigateCard extends LitElement {
 
     if (changedProps.has('_view')) {
       this._setPropertiesForExpandedMode();
+    }
+
+    const oldConfig: FrigateCardConfig | undefined =
+      changedProps.get('_overriddenConfig') ?? changedProps.get('_config');
+    const newConfig = this._getConfig();
+    if (
+      (!this._microphoneController ||
+        changedProps.has('_overriddenConfig') ||
+        changedProps.has('_config')) &&
+      oldConfig?.live.microphone.disconnect_seconds !==
+        newConfig.live.microphone.disconnect_seconds
+    ) {
+      this._microphoneController = new MicrophoneController(
+        this._getConfig().live.microphone.disconnect_seconds,
+      );
     }
   }
 
@@ -1488,6 +1534,24 @@ class FrigateCard extends LitElement {
       case 'diagnostics':
         this._diagnostics();
         break;
+      case 'microphone_mute':
+        this._microphoneController?.mute();
+        this.requestUpdate();
+        break;
+      case 'microphone_unmute':
+        const unmuteAndUpdate = () => {
+          this._microphoneController?.unmute();
+          this.requestUpdate();
+        }
+        if (
+          !this._microphoneController?.isConnected() &&
+          !this._microphoneController?.isForbidden()
+        ) {
+          this._microphoneController?.connect().then(unmuteAndUpdate);
+        } else if (this._microphoneController?.isConnected()) {
+          unmuteAndUpdate();
+        }
+        break;
       default:
         console.warn(`Frigate card received unknown card action: ${action}`);
     }
@@ -2020,6 +2084,7 @@ class FrigateCard extends LitElement {
               .nonOverriddenConfig=${this._config}
               .conditionState=${this._conditionState}
               .hide=${!!this._message}
+              .microphoneStream=${this._microphoneController?.getStream()}
             ></frigate-card-views>`}
         ${
           // Keep message rendering to last to show messages that may have been

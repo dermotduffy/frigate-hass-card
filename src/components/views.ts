@@ -48,6 +48,9 @@ export class FrigateCardViews extends LitElement {
   @property({ attribute: false })
   public hide?: boolean;
 
+  @property({ attribute: false })
+  public microphoneStream?: MediaStream;
+
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('view') || changedProps.has('config')) {
       if (this.view?.is('live') || this._shouldLivePreload()) {
@@ -204,6 +207,7 @@ export class FrigateCardViews extends LitElement {
                 .liveOverrides=${getOverridesByKey(this.config.overrides, 'live')}
                 .cameraManager=${this.cameraManager}
                 .cardWideConfig=${this.cardWideConfig}
+                .microphoneStream=${this.microphoneStream}
                 class="${classMap(liveClasses)}"
               >
               </frigate-card-live>

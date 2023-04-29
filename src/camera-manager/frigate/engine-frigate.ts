@@ -989,9 +989,7 @@ export class FrigateCameraManagerEngine
 
     const countSegments = () =>
       sum(
-        cameraIDs.map(
-          (cameraID) => this._recordingSegmentsCache.getSize(cameraID) ?? 0,
-        ),
+        cameraIDs.map((cameraID) => this._recordingSegmentsCache.getSize(cameraID) ?? 0),
       );
     const segmentsStart = countSegments();
 
@@ -1081,6 +1079,7 @@ export class FrigateCameraManagerEngine
       supportsSnapshots: !isBirdseye,
       supportsRecordings: !isBirdseye,
       supportsTimeline: !isBirdseye,
+      supports2WayAudio: cameraConfig.live_provider === 'go2rtc',
     };
   }
 

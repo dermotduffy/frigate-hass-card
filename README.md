@@ -467,6 +467,7 @@ See the [fully expanded live configuration example](#config-expanded-live) for h
 | `actions` | | :white_check_mark: | Actions to use for the `live` view. See [actions](#actions) below.|
 | `controls` | | :white_check_mark: | Configuration for the `live` view controls. See below. |
 | `layout` | | :white_check_mark: | See [media layout](#media-layout) below.|
+| `microphone` | | :white_check_mark: | See [microphone](#microphone) below.|
 
 #### Live Controls: Thumbnails
 
@@ -539,6 +540,23 @@ live:
 | - | - | - | - |
 | `mode` | `popup-bottom-right` | :white_check_mark: | How to display the live camera title. Acceptable values: `none`, `popup-top-left`, `popup-top-right`, `popup-bottom-left`, `popup-bottom-right` . |
 | `duration_seconds` | `2` | :white_check_mark: | The number of seconds to display the title popup. `0` implies forever.|
+
+<a name="microphone"></a>
+
+#### Live: Microphone
+
+All configuration is under:
+
+```yaml
+live:
+  microphone:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `disconnect_seconds` | `60` | :white_check_mark: | The number of seconds after which to disconnect the microphone from the stream. `0` implies never. |
+
+See [Using 2-way audio](#using-2-way-audio) for more information about the very particular requirements that must be followed for 2-way audio to work.
 
 ### Media Viewer Options
 
@@ -1021,6 +1039,44 @@ See [the WebRTC Card live configuration](#webrtc-live-configuration) above, and 
 documentation](https://github.com/AlexxIT/WebRTC#configuration) for full
 configuration options that can be used here.
 
+<a name="using-2-way-audio"></a>
+
+## Using 2-Way Audio
+
+This card supports 2-way audio (e.g. transmitting audio from a microphone to a suitably equipped camera). Requirements for 2-way audio to work:
+
+Environmental requirements:
+   * Must have a camera that supports audio out (otherwise what's the point!)
+   * Camera must be supported by `go2rtc` for 2-way audio (see [supported cameras](https://github.com/AlexxIT/go2rtc#two-way-audio)).
+   * Must be accessing your Home Assistant instance over `https`. The browser will enforce this.
+
+Card requirements:
+   * Only Frigate cameras are supported.
+   * Only the `go2rtc` live provider is supported.
+   * Only the `webrtc` mode supports 2-way audio:
+```yaml
+cameras:
+  - camera_entity: camera.front_door
+    live_provider: go2rtc
+    go2rtc:
+      modes:
+        - webrtc
+```
+  * Must have microphone menu button enabled:
+```yaml
+menu:
+  buttons:
+    microphone:
+      enabled: true
+```
+
+Usage:
+   * The camera will always load without the microphone connected.
+   * To speak, hold-down the microphone menu button.
+      * On first press, this will reset the `webrtc` connection to include 2-way audio.
+      * Thereafter hold the microphone button down to unmute/speak, let go to mute.
+   * The video will automatically reset to remove the microphone after the number of seconds specified by `disconnect_seconds` in the `microphone` configuration have elapsed since the last mute/unmute press.
+
 <a name="frigate-card-conditions"></a>
 
 ## Frigate Card Conditions
@@ -1178,7 +1234,7 @@ Parameters for the `custom:frigate-card-ptz` element:
 | Parameter | Description |
 | - | - |
 | `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_select`, `expand`.|
+| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_select`, `expand`, `microphone_mute`, `microphone_unmute`|
 
 <a name="custom-actions"></a>
 
@@ -1196,6 +1252,7 @@ Parameters for the `custom:frigate-card-ptz` element:
 |`media_player`| Perform a media player action. Takes a `media_player` parameter with the entity ID of the media_player on which to perform the action, and a `media_player_action` parameter which should be either `play` or `stop` to play or stop the media in question. |
 |`live_substream_select`| Perform a media player action. Takes a `camera` parameter with the [camera ID](#camera-ids) of the substream camera. |
 |`expand`| Expand the card into a dialog/popup. |
+|`microphone_mute`, `microphone_unmute`| Mute or unmute the microphone. See [Using 2-way audio](#using-2-way-audio). |
 
 <a name="views"></a>
 
@@ -1791,6 +1848,8 @@ live:
     position:
       x: 50
       y: 50
+  microphone:
+    disconnect_seconds: 60
   actions:
     entity: light.office_main_lights
     tap_action:
@@ -3650,6 +3709,7 @@ To send an action to a named Frigate card on the dashboard:
 | `live` | :white_check_mark: | |
 | `media_player`| :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/frigate-hass-card/issues) if you need this. |
 | `menu_toggle` | :white_check_mark: | |
+| `microphone_mute`, `microphone_unmute`| :heavy_multiplication_x: | |
 | `recording` | :white_check_mark: | |
 | `recordings` | :white_check_mark: | |
 | `snapshot` | :white_check_mark: | |
@@ -3715,6 +3775,18 @@ live:
     thumbnails:
       mode: none
 ```
+
+### Microphone / 2-way audio doesn't work
+
+There are many requirements for 2-way audio to work. See [Using 2-way
+audio](#using-2-way-audio) for more information about these. If your microphone
+still does not work and you believe you meet all the requirements try
+eliminating the card from the picture by going directly to the `go2rtc` UI,
+navigating to `links` for your given stream, then to `webrtc.html` with a
+microphone. If this does not work correctly with 2-way audio then your issue is
+with `go2rtc` not with the card. In this case, you could file an issue in [that
+repo](https://github.com/AlexxIT/go2rtc/issues) with debugging information as
+appropriate.
 
 ### Static image URL with credentials doesn't load
 

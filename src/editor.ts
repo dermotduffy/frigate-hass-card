@@ -147,6 +147,7 @@ import {
   CONF_TIMELINE_STYLE,
   CONF_LIVE_CONTROLS_TIMELINE_STYLE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE,
+  CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS,
 } from './const.js';
 import { localize } from './localize/localize.js';
 import frigate_card_editor_style from './scss/editor.scss';
@@ -192,6 +193,7 @@ const MENU_LIVE_CONTROLS_THUMBNAILS = 'live.controls.thumbnails';
 const MENU_LIVE_CONTROLS_TIMELINE = 'live.controls.timeline';
 const MENU_LIVE_CONTROLS_TITLE = 'live.controls.title';
 const MENU_LIVE_LAYOUT = 'live.layout';
+const MENU_LIVE_MICROPHONE = 'live.microphone';
 const MENU_MEDIA_GALLERY_CONTROLS_THUMBNAILS = 'media_gallery.controls.thumbnails';
 const MENU_MEDIA_GALLERY_CONTROLS_FILTER = 'media_gallery.controls.filter';
 const MENU_MEDIA_VIEWER_CONTROLS = 'media_viewer.controls';
@@ -994,10 +996,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     configPathShowRecordings: string,
     defaultShowRecordings: boolean,
   ): TemplateResult {
-    return html`
-    ${this._renderOptionSelector(configPathStyle, this._timelineStyleTypes, {
-      label: localize(`config.common.${CONF_TIMELINE_STYLE}`),
-    })}
+    return html` ${this._renderOptionSelector(
+      configPathStyle,
+      this._timelineStyleTypes,
+      {
+        label: localize(`config.common.${CONF_TIMELINE_STYLE}`),
+      },
+    )}
     ${this._renderNumberInput(configPathWindowSeconds, {
       label: localize(`config.common.${CONF_TIMELINE_WINDOW_SECONDS}`),
     })}
@@ -1755,6 +1760,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderMenuButton('expand') /* */}
                 ${this._renderMenuButton('timeline')}
                 ${this._renderMenuButton('media_player')}
+                ${this._renderMenuButton('microphone')}
               </div>
             `
           : ''}
@@ -1843,6 +1849,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_LIVE_LAYOUT_FIT,
                   CONF_LIVE_LAYOUT_POSITION_X,
                   CONF_LIVE_LAYOUT_POSITION_Y,
+                )}
+                ${this._putInSubmenu(
+                  MENU_LIVE_MICROPHONE,
+                  true,
+                  'config.live.microphone.editor_label',
+                  { name: 'mdi:microphone' },
+                  html`
+                    ${this._renderNumberInput(CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS)}
+                  `,
                 )}
               </div>
             `

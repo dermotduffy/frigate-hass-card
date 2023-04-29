@@ -12,11 +12,19 @@ export class VideoRTC extends HTMLElement {
   video: HTMLVideoElement;
   ws: WebSocket | null;
   wsURL: string;
-  pc: RTCPeerConnection;
+  pc: RTCPeerConnection | null;
   connectTS: number;
   mseCodecs: string;
 
   src: string | URL;
 
   oninit(): void;
+  send(value: unknown): void;
+  onpcvideo(ev: Event): void;
+  onconnect(): void;
+  ondisconnect(): void;
+  onclose(): void;
+  onopen(): void;
+  onwebrtc(): void;
+  onmessage: Record<string, (msg: { type: string; value: string }) => void>;
 }
