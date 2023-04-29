@@ -10,6 +10,7 @@ import { MemoryRequestCache, RecordingSegmentsCache, RequestCache } from './cach
 import { CameraManagerEngine } from './engine';
 import { CameraInitializationError } from './error';
 import { Engine } from './types';
+import { getCameraEntityFromConfig } from './util';
 
 export class CameraManagerEngineFactory {
   protected _entityRegistryManager: EntityRegistryManager;
@@ -63,16 +64,22 @@ export class CameraManagerEngineFactory {
       engine = Engine.Frigate;
     } else if (cameraConfig.engine === 'motioneye') {
       engine = Engine.MotionEye;
+    } else if (cameraConfig.engine === 'generic') {
+      engine = Engine.Generic;
     } else if (cameraConfig.engine === 'auto') {
-      const cameraEntity = cameraConfig.camera_entity;
+      const cameraEntity = getCameraEntityFromConfig(cameraConfig);
 
       if (cameraEntity) {
         let entity: Entity | null;
         try {
           entity = await this._entityRegistryManager.getEntity(hass, cameraEntity);
         } catch (e) {
-          // Throw a slightly friendlier exception (as a typo in the entity is
-          // likely to be a common failure mode).
+          // If the camera is not in the registry, but is in the HA states it is
+          // assumed to be a generic camera.
+          if (hass.states[cameraEntity]) {
+            return Engine.Generic;
+          }
+          // Otherwise, it's probably a typo so throw an exception.
           throw new CameraInitializationError(
             localize('error.no_camera_entity'),
             cameraConfig,
