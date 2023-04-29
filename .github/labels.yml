@@ -64,3 +64,6 @@
 - name: wontfix
   description: This will not be worked on
   color: ffffff
+- name: votes needed
+  description: Vote for this feature to encourage prioritization!
+  color: e2ed82
