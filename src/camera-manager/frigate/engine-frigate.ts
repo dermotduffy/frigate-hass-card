@@ -81,6 +81,7 @@ import uniq from 'lodash-es/uniq';
 import format from 'date-fns/format';
 import { GenericCameraManagerEngine } from '../generic/engine-generic';
 import frigateLogo from './assets/frigate-logo-dark.svg';
+import { getCameraEntityFromConfig } from '../util';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
@@ -153,12 +154,13 @@ export class FrigateCameraManagerEngine
       cameraConfig.triggers.motion || cameraConfig.triggers.occupancy;
 
     let entity: Entity | null = null;
+    const cameraEntity = getCameraEntityFromConfig(cameraConfig);
 
     // Entity information is required if the Frigate camera name is missing, or
     // if the entity requires automatic resolution of motion/occupancy sensors.
-    if (cameraConfig.camera_entity && (!hasCameraName || hasAutoTriggers)) {
+    if (cameraEntity && (!hasCameraName || hasAutoTriggers)) {
       try {
-        entity = await entityRegistryManager.getEntity(hass, cameraConfig.camera_entity);
+        entity = await entityRegistryManager.getEntity(hass, cameraEntity);
       } catch (e) {
         throw new CameraInitializationError(
           localize('error.no_camera_entity'),

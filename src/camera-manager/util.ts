@@ -7,6 +7,7 @@ import { DateRange } from './range';
 import orderBy from 'lodash-es/orderBy';
 import uniqBy from 'lodash-es/uniqBy';
 import { ViewMedia } from '../view/media';
+import { CameraConfig } from '../types';
 
 export const convertRangeToCacheFriendlyTimes = (
   range: DateRange,
@@ -52,4 +53,8 @@ export const sortMedia = (mediaArray: ViewMedia[]): ViewMedia[] => {
     (media) => media.getStartTime(),
     'asc',
   );
+};
+
+export const getCameraEntityFromConfig = (cameraConfig: CameraConfig): string | null => {
+  return cameraConfig.camera_entity ?? cameraConfig.webrtc_card?.entity ?? null;
 };
