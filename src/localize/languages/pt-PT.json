@@ -120,7 +120,7 @@
             "right": "Miniaturas em uma gaveta à direita"
           },
           "show_details": "Mostrar detalhes",
-          "show_download_control": "Mostrar o butão de download",
+          "show_download_control": "Mostrar o botão de download",
           "show_favorite_control": "Mostrar o butão de favorito nas miniaturas",
           "show_timeline_control": "Mostrar a linha do tempo nas miniaturas",
           "size": "Tamanho das miniaturas em pixels"
