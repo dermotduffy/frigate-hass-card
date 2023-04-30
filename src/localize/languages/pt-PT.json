@@ -217,7 +217,7 @@
     },
     "media_viewer": {
       "auto_mute": "Silenciar mídia automaticamente",
-      "auto_pause": "Pausar mídia automaticamente",
+      "auto_pause": "Parar mídia automaticamente",
       "auto_play": "Reproduzir mídia automaticamente",
       "auto_unmute": "Ativar mídia automaticamente",
       "controls": {
