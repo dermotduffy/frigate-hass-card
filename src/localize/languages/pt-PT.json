@@ -286,7 +286,7 @@
     "performance": {
       "features": {
         "animated_progress_indicator": "Animação na barra de progresso",
-        "editor_label": "Editor de rotulos",
+        "editor_label": "Editor de etiquetas",
         "media_chunk_size": "Tamanho do ficheiro"
       },
       "profile": "Perfil",
