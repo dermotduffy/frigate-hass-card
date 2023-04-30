@@ -319,7 +319,7 @@
       },
       "timeout_seconds": "Redefinir para a visualização padrão X segundos após a ação do usuário (0 = nunca)",
       "update_cycle_camera": "Percorrer as câmeras quando a visualização padrão for atualizada",
-      "update_force": "Forçar atualizações do cartão (ignore a interação do usuário)",
+      "update_force": "Forçar atualizações do cartão (ignore a interação do Utilizador)",
       "update_seconds": "Atualize a visualização padrão a cada X segundos (0 = nunca)",
       "views": {
         "clip": "Clipe mais recente",
