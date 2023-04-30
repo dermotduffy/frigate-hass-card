@@ -313,7 +313,7 @@
       "scan": {
         "enabled": "Modo scan ativado",
         "scan_mode": "Modo scan",
-        "show_trigger_status": "Pulsar borda quando acionado",
+        "show_trigger_status": "Exibir estado do gatilho",
         "untrigger_reset": "Redefinir a visualização para o padrão após desacionar",
         "untrigger_seconds": "Segundos após a mudar para o estado inativo para desacionar"
       },
