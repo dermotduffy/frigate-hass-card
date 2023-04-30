@@ -94,7 +94,7 @@
           }
         },
         "next_previous": {
-          "editor_label": "Editor de rótulos",
+          "editor_label": "Editor de titulos",
           "size": "Tamanho de controle próximo e anterior",
           "style": "Estilo do controle próximo e anterior",
           "styles": {
