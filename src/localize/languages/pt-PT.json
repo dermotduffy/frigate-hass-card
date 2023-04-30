@@ -27,7 +27,7 @@
         "zones": "Zonas"
       },
       "go2rtc": {
-        "editor_label": "Editor de rotulos",
+        "editor_label": "Editor de etiquetas",
         "modes": {
           "editor_label": "Editor de rotulos",
           "mjpeg": "Mjpeg",
