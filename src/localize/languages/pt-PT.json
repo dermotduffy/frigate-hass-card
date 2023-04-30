@@ -361,7 +361,7 @@
     "upgrade": "Actualização",
     "upgrade_available": "Está disponível uma atualização automática do cartão",
     "view": "Visualizar",
-    "view_secondary": "O que o cartão deve mostrar e como mostrá-lo"
+    "view_secondary": "O que deve ser mostrado neste cartão"
   },
   "elements": {
     "ptz": {
