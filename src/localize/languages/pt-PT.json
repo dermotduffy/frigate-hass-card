@@ -297,7 +297,7 @@
       "style": {
         "border_radius": "Tamanho do bordo",
         "box_shadow": "Caixa de Fundo",
-        "editor_label": "Editor de rotulos"
+        "editor_label": "Editor de etiquetas"
       },
       "warning": "Avisos"
     },
