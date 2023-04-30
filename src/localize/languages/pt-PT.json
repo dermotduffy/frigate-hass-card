@@ -16,7 +16,7 @@
         "editor_label": "Opções de dependência"
       },
       "engines": {
-        "editor_label": "Editor de rotulos"
+        "editor_label": "Editor de etiquetas"
       },
       "frigate": {
         "camera_name": "Nome da câmera do Frigate (detectado automaticamente pela entidade)",
