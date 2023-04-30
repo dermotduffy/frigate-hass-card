@@ -22,7 +22,7 @@
         "camera_name": "Nome da câmera do Frigate (detectado automaticamente pela entidade)",
         "client_id": "ID do cliente do Frigate (para >1 servidor Frigate)",
         "editor_label": "Opções do Frigate",
-        "labels": "Rotulos",
+        "labels": "Etiquetas",
         "url": "URL do servidor Frigate",
         "zones": "Zonas"
       },
