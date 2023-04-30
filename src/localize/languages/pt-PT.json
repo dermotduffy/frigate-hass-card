@@ -295,7 +295,7 @@
         "low": "Baixo"
       },
       "style": {
-        "border_radius": "Tamanho da borda",
+        "border_radius": "Tamanho do bordo",
         "box_shadow": "Caixa de Fundo",
         "editor_label": "Editor de rotulos"
       },
