@@ -201,7 +201,7 @@
     },
     "live": {
       "auto_mute": "Silenciar câmeras ao vivo automaticamente",
-      "auto_pause": "Pausar câmeras ao vivo automaticamente",
+      "auto_pause": "Parar câmeras ao vivo automaticamente",
       "auto_play": "Reproduzir câmeras ao vivo automaticamente",
       "auto_unmute": "Ativar automaticamente o som das câmeras ao vivo",
       "controls": {
