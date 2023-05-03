@@ -1270,7 +1270,7 @@ class FrigateCard extends LitElement {
       return;
     }
 
-    if (!this._initializer.isInitialized(InitializationAspect.MEDIA_PLAYERS)) {
+    if (this._initializer.isInitialized(InitializationAspect.MEDIA_PLAYERS)) {
       return;
     }
 
