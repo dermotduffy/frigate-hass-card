@@ -423,6 +423,7 @@
     "no_visible_cameras": "No visible cameras found, you must configure at least one non-hidden camera",
     "reconnecting": "Reconnecting",
     "timeline_no_cameras": "No Frigate cameras to show in timeline",
+    "too_many_automations": "Too many nested automation calls, please check your configuration for loops",
     "troubleshooting": "Check troubleshooting",
     "unknown": "Unknown error",
     "upgrade_available": "An automated card configuration upgrade is available, please visit the visual card editor",

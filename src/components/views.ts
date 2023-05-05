@@ -9,7 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
-import { ConditionState, getOverridesByKey } from '../card-condition';
+import { ConditionControllerEpoch, getOverridesByKey } from '../conditions';
 import viewsStyle from '../scss/views.scss';
 import { CardWideConfig, ExtendedHomeAssistant, FrigateCardConfig } from '../types.js';
 import { ResolvedMediaCache } from '../utils/ha/resolved-media';
@@ -40,10 +40,7 @@ export class FrigateCardViews extends LitElement {
   public resolvedMediaCache?: ResolvedMediaCache;
 
   @property({ attribute: false })
-  public conditionState?: ConditionState;
-
-  @property({ attribute: false })
-  public cameras?: ConditionState;
+  public conditionControllerEpoch?: ConditionControllerEpoch;
 
   @property({ attribute: false })
   public hide?: boolean;
@@ -203,8 +200,8 @@ export class FrigateCardViews extends LitElement {
                 .hass=${this.hass}
                 .view=${this.view}
                 .liveConfig=${this.nonOverriddenConfig.live}
-                .conditionState=${this.conditionState}
-                .liveOverrides=${getOverridesByKey(this.config.overrides, 'live')}
+                .conditionControllerEpoch=${this.conditionControllerEpoch}
+                .liveOverrides=${getOverridesByKey('live', this.config.overrides)}
                 .cameraManager=${this.cameraManager}
                 .cardWideConfig=${this.cardWideConfig}
                 .microphoneStream=${this.microphoneStream}

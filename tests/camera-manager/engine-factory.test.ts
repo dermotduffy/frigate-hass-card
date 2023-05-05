@@ -1,17 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
-import { mock } from 'vitest-mock-extended';
+import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-factory.js';
+import { FrigateCameraManagerEngine } from '../../src/camera-manager/frigate/engine-frigate';
+import { GenericCameraManagerEngine } from '../../src/camera-manager/generic/engine-generic';
+import { MotionEyeCameraManagerEngine } from '../../src/camera-manager/motioneye/engine-motioneye';
+import { Engine } from '../../src/camera-manager/types.js';
+import { CardWideConfig } from '../../src/types.js';
 import { EntityRegistryManager } from '../../src/utils/ha/entity-registry';
 import { EntityCache } from '../../src/utils/ha/entity-registry/cache';
-import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-factory.js';
-import { CameraConfig, cameraConfigSchema, CardWideConfig } from '../../src/types.js';
-import { HomeAssistant } from 'custom-card-helpers';
-import { Engine } from '../../src/camera-manager/types.js';
-import { Entity } from '../../src/utils/ha/entity-registry/types.js';
 import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media';
-import { GenericCameraManagerEngine } from '../../src/camera-manager/generic/engine-generic';
-import { FrigateCameraManagerEngine } from '../../src/camera-manager/frigate/engine-frigate';
-import { MotionEyeCameraManagerEngine } from '../../src/camera-manager/motioneye/engine-motioneye';
-import { HassEntities } from 'home-assistant-js-websocket';
+import { createCameraConfig, createHASS, createRegistryEntity } from '../test-utils';
 
 vi.mock('../../src/utils/ha/entity-registry');
 vi.mock('../../src/utils/ha/entity-registry/cache');
@@ -26,32 +23,6 @@ const createFactory = (options?: {
     options?.resolvedMediaCache ?? new ResolvedMediaCache(),
     options?.cardWideConfig ?? {},
   );
-};
-
-const createCameraConfig = (config: Partial<CameraConfig>): CameraConfig => {
-  return cameraConfigSchema.parse(config);
-};
-
-const createHASS = (states?: HassEntities): HomeAssistant => {
-  const hass = mock<HomeAssistant>();
-  if (states) {
-    hass.states = states;
-  }
-  return hass;
-};
-
-const createEntity = (entity: Partial<Entity>): Entity => {
-  return {
-    ...entity,
-    config_entry_id: entity.config_entry_id ?? null,
-    device_id: entity.device_id ?? null,
-    disabled_by: entity.disabled_by ?? null,
-    entity_id: entity.entity_id ?? 'entity_id',
-    hidden_by: entity.hidden_by ?? null,
-    platform: entity.platform ?? 'platform',
-    translation_key: entity.translation_key ?? null,
-    unique_id: entity.unique_id ?? 'unique_id',
-  };
 };
 
 describe('CameraManagerEngineFactory.getEngineForCamera()', () => {
@@ -79,7 +50,9 @@ describe('CameraManagerEngineFactory.getEngineForCamera()', () => {
 
     entityRegistryManager.getEntity = vi
       .fn()
-      .mockResolvedValue(createEntity({ entity_id: 'camera.foo', platform: 'frigate' }));
+      .mockResolvedValue(
+        createRegistryEntity({ entity_id: 'camera.foo', platform: 'frigate' }),
+      );
 
     expect(
       await createFactory({
@@ -94,7 +67,7 @@ describe('CameraManagerEngineFactory.getEngineForCamera()', () => {
     entityRegistryManager.getEntity = vi
       .fn()
       .mockResolvedValue(
-        createEntity({ entity_id: 'camera.foo', platform: 'motioneye' }),
+        createRegistryEntity({ entity_id: 'camera.foo', platform: 'motioneye' }),
       );
 
     expect(
@@ -109,7 +82,9 @@ describe('CameraManagerEngineFactory.getEngineForCamera()', () => {
 
     entityRegistryManager.getEntity = vi
       .fn()
-      .mockResolvedValue(createEntity({ entity_id: 'camera.foo', platform: 'generic' }));
+      .mockResolvedValue(
+        createRegistryEntity({ entity_id: 'camera.foo', platform: 'generic' }),
+      );
 
     expect(
       await createFactory({

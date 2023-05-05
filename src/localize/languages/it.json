@@ -416,6 +416,7 @@
     "reconnecting": "Riconnessione",
     "timeline_no_cameras": "Nessuna telecamera damostrare in Frigate nella timeline",
     "troubleshooting": "Controllare la risoluzione dei problemi",
+    "too_many_automations": "",
     "unknown": "Errore sconosciuto",
     "upgrade_available": "È disponibile un aggiornamento di configurazione della scheda automatizzato, visitare l'editor di schede visive",
     "webrtc_card_reported_error": "La scheda WebRTC ha riportato un errore",

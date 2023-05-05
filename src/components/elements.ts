@@ -8,7 +8,6 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { ConditionState, fetchStateAndEvaluateCondition } from '../card-condition.js';
 import { localize } from '../localize/localize.js';
 import elementsStyle from '../scss/elements.scss';
 import ptzStyle from '../scss/elements-ptz.scss';
@@ -34,6 +33,7 @@ import {
   getActionConfigGivenAction,
 } from '../utils/action.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { ConditionControllerEpoch, evaluateConditionViaEvent } from '../conditions.js';
 
 /* A note on picture element rendering:
  *
@@ -81,11 +81,11 @@ export class FrigateCardElementsCore extends LitElement {
   public elements: PictureElements;
 
   /**
-   * Need to ensure card re-renders when conditionState changes, hence having it
-   * as a property even though it is not currently directly used by this class.
+   * Need to ensure card re-renders when conditions change, hence having it as a
+   * property even though it is not currently directly used by this class.
    */
   @property({ attribute: false })
-  public conditionState?: ConditionState;
+  public conditionControllerEpoch?: ConditionControllerEpoch;
 
   protected _root: HuiConditionalElement | null = null;
 
@@ -167,7 +167,7 @@ export class FrigateCardElements extends LitElement {
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  public conditionState?: ConditionState;
+  public conditionControllerEpoch?: ConditionControllerEpoch;
 
   @property({ attribute: false })
   public elements: PictureElements;
@@ -210,9 +210,6 @@ export class FrigateCardElements extends LitElement {
     path[0].addEventListener('frigate-card:menu-remove', this._boundMenuRemoveHandler);
   }
 
-  /**
-   * Connected callback.
-   */
   connectedCallback(): void {
     super.connectedCallback();
 
@@ -221,30 +218,20 @@ export class FrigateCardElements extends LitElement {
     this.addEventListener('frigate-card:menu-add', this._menuAddHandler);
   }
 
-  /**
-   * Disconnected callback.
-   */
   disconnectedCallback(): void {
     this.removeEventListener('frigate-card:menu-add', this._menuAddHandler);
     super.disconnectedCallback();
   }
 
-  /**
-   * Render the template.
-   * @returns A rendered template.
-   */
   protected render(): TemplateResult {
-    return html` <frigate-card-elements-core
+    return html`<frigate-card-elements-core
       .hass=${this.hass}
-      .conditionState=${this.conditionState}
+      .conditionControllerEpoch=${this.conditionControllerEpoch}
       .elements=${this.elements}
     >
     </frigate-card-elements-core>`;
   }
 
-  /**
-   * Get styles.
-   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(elementsStyle);
   }
@@ -259,7 +246,9 @@ export class FrigateCardElements extends LitElement {
 export class FrigateCardElementsConditional extends LitElement {
   protected _config?: FrigateConditional;
 
-  // Every set of hass is treated  as a reason to re-evaluate. Given that this
+  // A note on hass as an update mechanism:
+  //
+  // Every set of hass is treated as a reason to re-evaluate. Given that this
   // node may be buried down the DOM (as a descendent of non-Frigate card
   // elements), the hass object is used as the (only) trigger for condition
   // re-fetch even if hass itself has not changed.
@@ -298,7 +287,7 @@ export class FrigateCardElementsConditional extends LitElement {
    * Render the card.
    */
   protected render(): TemplateResult | void {
-    if (fetchStateAndEvaluateCondition(this, this._config.conditions)) {
+    if (evaluateConditionViaEvent(this, this._config.conditions)) {
       return html` <frigate-card-elements-core
         .hass=${this.hass}
         .elements=${this._config.elements}
