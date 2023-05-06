@@ -14,11 +14,11 @@ export const getEventTitle = (event: FrigateEvent): string => {
       ? event.end_time - event.start_time
       : Date.now() / 1000 - event.start_time,
   );
+  const score = event.top_score !== null ? ` ${Math.round(event.top_score * 100)}%` : '';
+
   return `${formatDateAndTime(
     utcToZonedTime(event.start_time * 1000, localTimezone),
-  )} [${durationSeconds}s, ${prettifyTitle(event.label)} ${Math.round(
-    event.top_score * 100,
-  )}%]`;
+  )} [${durationSeconds}s, ${prettifyTitle(event.label)}${score}]`;
 };
 
 export const getRecordingTitle = (
@@ -93,5 +93,5 @@ export const getRecordingID = (
   // can be dedup'd from this id.
   return `${cameraConfig.frigate?.client_id ?? ''}/${
     cameraConfig.frigate.camera_name ?? ''
-  }/${recording.startTime.getTime()}/${recording.endTime.getTime()}}`;
+  }/${recording.startTime.getTime()}/${recording.endTime.getTime()}`;
 };

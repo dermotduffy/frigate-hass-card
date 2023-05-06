@@ -21,7 +21,7 @@ const eventSchema = z.object({
   label: z.string(),
   sub_label: z.string().nullable(),
   start_time: z.number(),
-  top_score: z.number(),
+  top_score: z.number().nullable(),
   zones: z.string().array(),
   retain_indefinitely: z.boolean().optional(),
 });
