@@ -11,7 +11,7 @@ import {
 } from '../src/types';
 import { Entity } from '../src/utils/ha/entity-registry/types';
 
-export const createCameraConfig = (config: Partial<CameraConfig>): CameraConfig => {
+export const createCameraConfig = (config: unknown): CameraConfig => {
   return cameraConfigSchema.parse(config);
 };
 

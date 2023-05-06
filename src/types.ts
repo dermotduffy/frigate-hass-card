@@ -219,6 +219,8 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'image',
   'live',
   'menu_toggle',
+  'live_substream_on',
+  'live_substream_off',
   'microphone_mute',
   'microphone_unmute',
   'recording',

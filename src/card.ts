@@ -21,6 +21,7 @@ import 'web-dialog';
 import { z } from 'zod';
 import pkg from '../package.json';
 import { actionHandler } from './action-handler-directive.js';
+import { AutomationsController } from './automations';
 import { CameraManagerEngineFactory } from './camera-manager/engine-factory.js';
 import { CameraManager } from './camera-manager/manager.js';
 import './components/elements.js';
@@ -91,8 +92,13 @@ import { FrigateCardInitializer } from './utils/initializer.js';
 import { isValidMediaLoadedInfo } from './utils/media-info.js';
 import { MicrophoneController } from './utils/microphone';
 import { getActionsFromQueryString } from './utils/querystring.js';
+import {
+  createViewWithNextStream,
+  createViewWithoutSubstream,
+  createViewWithSelectedSubstream,
+  hasSubstream,
+} from './utils/substream';
 import { View } from './view/view.js';
-import { AutomationsController } from './automations';
 
 /** A note on media callbacks:
  *
@@ -485,12 +491,9 @@ class FrigateCard extends LitElement {
           title: localize('config.menu.buttons.substreams'),
           ...this._getConfig().menu.buttons.substreams,
           type: 'custom:frigate-card-menu-icon',
-          tap_action: createFrigateCardCustomAction('live_substream_select', {
-            camera:
-              override === undefined || override === dependencies[0]
-                ? dependencies[1]
-                : dependencies[0],
-          }) as FrigateCardCustomAction,
+          tap_action: createFrigateCardCustomAction(
+            hasSubstream(this._view) ? 'live_substream_off' : 'live_substream_on',
+          ) as FrigateCardCustomAction,
         });
       } else if (dependencies.length > 2) {
         const menuItems = Array.from(dependencies, (cameraID) => {
@@ -1478,7 +1481,7 @@ class FrigateCard extends LitElement {
   }
 
   protected _cardActionHandler(frigateCardAction: FrigateCardCustomAction): void {
-    if (!this._view) {
+    if (!this._view || !this._cameraManager) {
       return;
     }
 
@@ -1550,16 +1553,24 @@ class FrigateCard extends LitElement {
           });
         }
         break;
-      case 'live_substream_select':
-        const overrides: Map<string, string> =
-          this._view.context?.live?.overrides ?? new Map();
-        overrides.set(this._view.camera, frigateCardAction.camera);
-        this._changeView({
-          view: this._view.clone().mergeInContext({
-            live: { overrides: overrides },
-          }),
-        });
+      case 'live_substream_select': {
+        const view = createViewWithSelectedSubstream(
+          this._view,
+          frigateCardAction.camera,
+        );
+        view && this._changeView({ view: view });
         break;
+      }
+      case 'live_substream_off': {
+        const view = createViewWithoutSubstream(this._view);
+        view && this._changeView({ view: view });
+        break;
+      }
+      case 'live_substream_on': {
+        const view = createViewWithNextStream(this._cameraManager, this._view);
+        view && this._changeView({ view: view });
+        break;
+      }
       case 'media_player':
         this._mediaPlayerAction(
           frigateCardAction.media_player,
