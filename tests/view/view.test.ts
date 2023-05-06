@@ -367,6 +367,60 @@ describe('View.adoptFromViewIfAppropriate', () => {
     View.adoptFromViewIfAppropriate(next, current);
     expect(next.view).toBe('clip');
   });
+
+  it('should adopt live context overrides for substreams', () => {
+    const current = createView({
+      view: 'live',
+      context: {
+        live: {
+          overrides: new Map([['camera', 'camera2']]),
+        },
+      },
+    });
+    const next = createView({
+      view: 'live',
+    });
+    View.adoptFromViewIfAppropriate(next, current);
+    expect(next.context?.live).toEqual(current.context?.live);
+  });
+
+  it('should not adopt live context overrides if there are new overrides', () => {
+    const current = createView({
+      view: 'live',
+      context: {
+        live: {
+          overrides: new Map([['camera', 'camera2']]),
+        },
+      },
+    });
+    const next = createView({
+      view: 'live',
+      context: {
+        live: {
+          overrides: new Map([['camera', 'camera3']]),
+        },
+      },
+    });
+    View.adoptFromViewIfAppropriate(next, current);
+    expect(next.context?.live?.overrides).toEqual(new Map([['camera', 'camera3']]));
+  });
+
+  it('should adopt live context overrides even if there is new context', () => {
+    const current = createView({
+      view: 'live',
+      context: {
+        live: {
+          overrides: new Map([['camera', 'camera2']]),
+        },
+      },
+    });
+    const next = createView({
+      view: 'live',
+      context: {},
+    });
+    View.adoptFromViewIfAppropriate(next, current);
+    expect(next.context?.live).toEqual(current.context?.live);
+  });
 });
 
 // @vitest-environment jsdom
