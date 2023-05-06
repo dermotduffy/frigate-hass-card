@@ -75,7 +75,9 @@ export class Zoom {
       maxScale: 10,
       minScale: 1,
       noBind: true,
-      cursor: 'auto',
+      // Do not force the cursor style (by default it will always show the
+      // 'move' type cursor whether or not it is zoomed in).
+      cursor: undefined,
     });
 
     const registerListeners = (
