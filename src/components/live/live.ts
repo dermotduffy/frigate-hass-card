@@ -1,5 +1,7 @@
+import { HomeAssistant } from 'custom-card-helpers';
 import { EmblaOptionsType } from 'embla-carousel';
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
+import { HassEntity } from 'home-assistant-js-websocket';
 import {
   CSSResultGroup,
   html,
@@ -9,14 +11,17 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { createRef, Ref, ref } from 'lit/directives/ref.js';
+import { classMap } from 'lit/directives/class-map.js';
 import { guard } from 'lit/directives/guard.js';
 import { keyed } from 'lit/directives/keyed.js';
-import { ConditionState, getOverriddenConfig } from '../../card-condition.js';
+import { createRef, Ref, ref } from 'lit/directives/ref.js';
+import { CameraManager } from '../../camera-manager/manager.js';
+import { CameraEndpoints } from '../../camera-manager/types.js';
+import { ConditionControllerEpoch, getOverriddenConfig } from '../../conditions.js';
 import { localize } from '../../localize/localize.js';
-import liveStyle from '../../scss/live.scss';
 import liveCarouselStyle from '../../scss/live-carousel.scss';
 import liveProviderStyle from '../../scss/live-provider.scss';
+import liveStyle from '../../scss/live.scss';
 import {
   CameraConfig,
   CardWideConfig,
@@ -36,27 +41,22 @@ import {
   dispatchExistingMediaLoadedInfoAsEvent,
   dispatchMediaUnloadedEvent,
 } from '../../utils/media-info.js';
+import { updateElementStyleFromMediaLayoutConfig } from '../../utils/media-layout.js';
+import { playMediaMutingIfNecessary } from '../../utils/media.js';
 import { dispatchViewContextChangeEvent, View } from '../../view/view.js';
-import { AutoMediaPlugin } from './../embla-plugins/automedia.js';
-import { Lazyload } from './../embla-plugins/lazyload.js';
+import { CarouselSelect, EmblaCarouselPlugins } from '../carousel.js';
 import {
   FrigateCardMediaCarousel,
   wrapMediaLoadedEventForCarousel,
   wrapMediaUnloadedEventForCarousel,
 } from '../media-carousel.js';
+import { dispatchErrorMessageEvent, dispatchMessageEvent } from '../message.js';
 import '../next-prev-control.js';
-import '../title-control.js';
 import '../surround.js';
+import '../title-control.js';
 import '../zoomer.js';
-import { CarouselSelect, EmblaCarouselPlugins } from '../carousel.js';
-import { classMap } from 'lit/directives/class-map.js';
-import { updateElementStyleFromMediaLayoutConfig } from '../../utils/media-layout.js';
-import { CameraManager } from '../../camera-manager/manager.js';
-import { HomeAssistant } from 'custom-card-helpers';
-import { dispatchMessageEvent, dispatchErrorMessageEvent } from '../message.js';
-import { HassEntity } from 'home-assistant-js-websocket';
-import { CameraEndpoints } from '../../camera-manager/types.js';
-import { playMediaMutingIfNecessary } from '../../utils/media.js';
+import { AutoMediaPlugin } from './../embla-plugins/automedia.js';
+import { Lazyload } from './../embla-plugins/lazyload.js';
 
 interface LiveViewContext {
   // A cameraID override (used for dependencies/substreams to force a different
@@ -118,7 +118,7 @@ export const getStateObjOrDispatchError = (
 @customElement('frigate-card-live')
 export class FrigateCardLive extends LitElement {
   @property({ attribute: false })
-  public conditionState?: ConditionState;
+  public conditionControllerEpoch?: ConditionControllerEpoch;
 
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
@@ -250,7 +250,7 @@ export class FrigateCardLive extends LitElement {
           .view=${this.view}
           .liveConfig=${this.liveConfig}
           .inBackground=${this._inBackground}
-          .conditionState=${this.conditionState}
+          .conditionControllerEpoch=${this.conditionControllerEpoch}
           .liveOverrides=${this.liveOverrides}
           .cardWideConfig=${this.cardWideConfig}
           .cameraManager=${this.cameraManager}
@@ -311,7 +311,7 @@ export class FrigateCardLiveCarousel extends LitElement {
   public inBackground?: boolean;
 
   @property({ attribute: false })
-  public conditionState?: ConditionState;
+  public conditionControllerEpoch?: ConditionControllerEpoch;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -525,21 +525,18 @@ export class FrigateCardLiveCarousel extends LitElement {
     cameraConfig: CameraConfig,
     slideIndex: number,
   ): TemplateResult | void {
-    if (!this.liveConfig || !this.hass || !this.cameraManager) {
+    if (!this.liveConfig || !this.hass || !this.cameraManager || !this.conditionControllerEpoch) {
       return;
     }
-    // The conditionState object contains the currently live camera, which (in
-    // the carousel for example) is not necessarily the live camera this
-    // <frigate-card-live-provider> is rendering right now.
-    const conditionState = {
-      ...this.conditionState,
-      camera: cameraID,
-    };
-
+    // The condition controller object contains the currently live camera, which
+    // (in the carousel for example) is not necessarily the live camera *this*
+    // <frigate-card-live-provider> is rendering right now, so we provide a
+    // stateOverride to evaluate the condition in that context.
     const config = getOverriddenConfig(
+      this.conditionControllerEpoch.controller,
       this.liveConfig,
       this.liveOverrides,
-      conditionState,
+      { camera: cameraID },
     ) as LiveConfig;
 
     const cameraMetadata = this.cameraManager.getCameraMetadata(this.hass, cameraID);
@@ -603,12 +600,6 @@ export class FrigateCardLiveCarousel extends LitElement {
       return;
     }
 
-    const config = getOverriddenConfig(
-      this.liveConfig,
-      this.liveOverrides,
-      this.conditionState,
-    ) as LiveConfig;
-
     const [prevID, nextID] = this._getCameraIDsOfNeighbors();
 
     const overrideCameraID = (cameraID: string): string => {
@@ -651,7 +642,7 @@ export class FrigateCardLiveCarousel extends LitElement {
           ? `${localize('common.live')}: ${cameraMetadataCurrent.title}`
           : ''}"
         .logo="${cameraMetadataCurrent?.engineLogo}"
-        .titlePopupConfig=${config.controls.title}
+        .titlePopupConfig=${this.liveConfig.controls.title}
         .selected=${this._getSelectedCameraIndex()}
         transitionEffect=${this._getTransitionEffect()}
         @frigate-card:media-carousel:select=${this._setViewHandler.bind(this)}
@@ -664,7 +655,7 @@ export class FrigateCardLiveCarousel extends LitElement {
           slot="previous"
           .hass=${this.hass}
           .direction=${'previous'}
-          .controlConfig=${config.controls.next_previous}
+          .controlConfig=${this.liveConfig.controls.next_previous}
           .label=${cameraMetadataPrevious?.title ?? ''}
           .icon=${cameraMetadataPrevious?.icon}
           ?disabled=${prevID === null}
@@ -679,7 +670,7 @@ export class FrigateCardLiveCarousel extends LitElement {
           slot="next"
           .hass=${this.hass}
           .direction=${'next'}
-          .controlConfig=${config.controls.next_previous}
+          .controlConfig=${this.liveConfig.controls.next_previous}
           .label=${cameraMetadataNext?.title ?? ''}
           .icon=${cameraMetadataNext?.icon}
           ?disabled=${nextID === null}

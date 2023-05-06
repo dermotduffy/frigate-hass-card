@@ -28,12 +28,21 @@ export function getCameraID(
  * Get all cameras that depend on a given camera.
  * @param cameraManager The camera manager.
  * @param cameraID ID of the target camera.
- * @returns A set of dependent cameraIDs or null.
+ * @returns A set of dependent cameraIDs or null (since JS sets guarantee order,
+ * the first item in the set is guaranteed to be the cameraID itself).
  */
-export const getAllDependentCameras = (
+export function getAllDependentCameras(
+  cameraManager: CameraManager,
+  cameraID: string,
+): Set<string>;
+export function getAllDependentCameras(
   cameraManager?: CameraManager,
   cameraID?: string,
-): Set<string> | null => {
+): Set<string> | null;
+export function getAllDependentCameras(
+  cameraManager?: CameraManager,
+  cameraID?: string,
+): Set<string> | null {
   if (!cameraManager || !cameraID) {
     return null;
   }
@@ -45,9 +54,7 @@ export const getAllDependentCameras = (
     if (cameraConfig) {
       cameraIDs.add(cameraID);
       const dependentCameras: Set<string> = new Set();
-      (cameraConfig.dependencies.cameras || []).forEach((item) =>
-        dependentCameras.add(item),
-      );
+      cameraConfig.dependencies.cameras.forEach((item) => dependentCameras.add(item));
       if (cameraConfig.dependencies.all_cameras) {
         cameras.forEach((_, key) => dependentCameras.add(key));
       }
@@ -62,4 +69,4 @@ export const getAllDependentCameras = (
     getDependentCameras(cameraID);
   }
   return cameraIDs;
-};
+}

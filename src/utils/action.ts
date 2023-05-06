@@ -6,7 +6,6 @@ import {
 } from 'custom-card-helpers';
 import {
   Actions,
-  ActionsConfig,
   ActionType,
   FrigateCardAction,
   FrigateCardCustomAction,
@@ -52,7 +51,7 @@ export function createFrigateCardCustomAction(
       action: 'fire-dom-event',
       frigate_card_action: action,
       camera: args.camera as string,
-      ...(args.cardID && { card_id: args.cardID})
+      ...(args.cardID && { card_id: args.cardID }),
     };
   }
   if (action === 'media_player') {
@@ -64,13 +63,13 @@ export function createFrigateCardCustomAction(
       frigate_card_action: action,
       media_player: args.media_player,
       media_player_action: args.media_player_action,
-      ...(args.cardID && { card_id: args.cardID})
+      ...(args.cardID && { card_id: args.cardID }),
     };
   }
   return {
     action: 'fire-dom-event',
     frigate_card_action: action,
-    ...(args?.cardID && { card_id: args.cardID})
+    ...(args?.cardID && { card_id: args.cardID }),
   };
 }
 
@@ -107,29 +106,6 @@ export function getActionConfigGivenAction(
  * that handles the custom action events the card supports.
  * @param node The node that fired the event.
  * @param hass The Home Assistant object.
- * @param config The multi-action configuration.
- * @param action The action string (e.g. 'hold')
- * @returns Whether or not an action was executed.
- */
-export const frigateCardHandleAction = (
-  node: HTMLElement,
-  hass: HomeAssistant,
-  config: ActionsConfig,
-  action: string,
-): boolean => {
-  return frigateCardHandleActionConfig(
-    node,
-    hass,
-    config,
-    action,
-    getActionConfigGivenAction(action, config),
-  );
-};
-
-/**
- * Handle an ActionConfig or array of ActionConfigs.
- * @param node The node that fired the event.
- * @param hass The Home Assistant object.
  * @param actionConfig A single action config, array of action configs or
  * undefined for the default action config for 'tap'.
  * @param action The action string (e.g. 'hold')
@@ -143,25 +119,37 @@ export const frigateCardHandleActionConfig = (
     entity?: string;
   },
   action: string,
-  actionConfig: ActionType | ActionType[] | undefined,
+  actionConfig?: ActionType | ActionType[],
 ): boolean => {
   // Only allow a tap action to use a default non-config (the more-info config).
   if (actionConfig || action == 'tap') {
-    // ActionConfig vs ActionType:
-    // There is a slight typing (but not functional) difference between
-    // ActionType in this card and ActionConfig in `custom-card-helpers`. See
-    // `ExtendedConfirmationRestrictionConfig` in `types.ts` for the source and
-    // reason behind this difference.
-    if (Array.isArray(actionConfig)) {
-      actionConfig.forEach((action) =>
-        handleActionConfig(node, hass, config, action as ActionConfig | undefined),
-      );
-    } else {
-      handleActionConfig(node, hass, config, actionConfig as ActionConfig | undefined);
-    }
+    frigateCardHandleAction(node, hass, config, actionConfig);
     return true;
   }
   return false;
+};
+
+export const frigateCardHandleAction = (
+  node: HTMLElement,
+  hass: HomeAssistant,
+  config: {
+    camera_image?: string;
+    entity?: string;
+  },
+  actionConfig: ActionType | ActionType[] | undefined,
+): void => {
+  // ActionConfig vs ActionType:
+  // * There is a slight typing (but not functional) difference between
+  //   ActionType in this card and ActionConfig in `custom-card-helpers`. See
+  //   `ExtendedConfirmationRestrictionConfig` in `types.ts` for the source and
+  //   reason behind this difference.
+  if (Array.isArray(actionConfig)) {
+    actionConfig.forEach((action) =>
+      handleActionConfig(node, hass, config, action as ActionConfig | undefined),
+    );
+  } else {
+    handleActionConfig(node, hass, config, actionConfig as ActionConfig | undefined);
+  }
 };
 
 /**
@@ -170,9 +158,7 @@ export const frigateCardHandleActionConfig = (
  * @param config The action config in question.
  * @returns `true` if there's a real action defined, `false` otherwise.
  */
-export const frigateCardHasAction = (
-  config?: ActionType | ActionType[] | undefined,
-): boolean => {
+export const frigateCardHasAction = (config?: ActionType | ActionType[]): boolean => {
   // See note above on 'ActionConfig vs ActionType' for why this cast is
   // necessary and harmless.
   if (Array.isArray(config)) {

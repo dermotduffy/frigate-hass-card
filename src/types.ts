@@ -219,6 +219,8 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'image',
   'live',
   'menu_toggle',
+  'live_substream_on',
+  'live_substream_off',
   'microphone_mute',
   'microphone_unmute',
   'recording',
@@ -263,7 +265,7 @@ export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSche
 
 // Cannot use discriminatedUnion since frigateCardCustomActionSchema uses a
 // transform on the discriminated union key.
-const actionSchema = z.union([
+export const actionSchema = z.union([
   toggleActionSchema,
   callServiceActionSchema,
   navigateActionSchema,
@@ -632,7 +634,7 @@ export type MenuSubmenuSelect = z.infer<typeof menuSubmenuSelectSchema>;
 
 export type MenuItem = MenuIcon | MenuStateIcon | MenuSubmenu | MenuSubmenuSelect;
 
-const frigateCardConditionSchema = z.object({
+export const frigateCardConditionSchema = z.object({
   view: z.string().array().optional(),
   fullscreen: z.boolean().optional(),
   expand: z.boolean().optional(),
@@ -1316,6 +1318,19 @@ const liveOverridesSchema = z
   .optional();
 export type LiveOverrides = z.infer<typeof liveOverridesSchema>;
 
+const automationActionSchema = actionSchema.array().optional();
+export type AutomationActions = z.infer<typeof automationActionSchema>;
+
+const automationSchema = z.object({
+  conditions: frigateCardConditionSchema,
+  actions: automationActionSchema,
+  actions_not: automationActionSchema,
+});
+export type Automation = z.infer<typeof automationSchema>;
+
+export const automationsSchema = automationSchema.array().optional();
+export type Automations = z.infer<typeof automationsSchema>;
+
 const performanceConfigDefault = {
   profile: 'high' as const,
   features: {
@@ -1392,6 +1407,7 @@ export const frigateCardConfigSchema = z.object({
   timeline: timelineConfigSchema,
   performance: performanceConfigSchema,
   debug: debugConfigSchema,
+  automations: automationsSchema,
 
   // Configuration overrides.
   overrides: overridesSchema,

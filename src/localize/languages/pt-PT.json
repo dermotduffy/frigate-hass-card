@@ -404,6 +404,7 @@
     "reconnecting": "A voltar a ligar",
     "timeline_no_cameras": "Nenhuma câmera do Frigate para mostrar na linha do tempo",
     "troubleshooting": "Verifique a solução de problemas",
+    "too_many_automations": "",
     "unknown": "Erro desconhecido",
     "upgrade_available": "Uma atualização automatizada da configuração do cartão está disponível, visite o editor visual do cartão",
     "webrtc_card_reported_error": "O cartão WebRTC relatou um erro",

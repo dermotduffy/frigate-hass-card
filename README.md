@@ -939,6 +939,25 @@ item, that has both of the following parameters set:
 | `conditions` | | :heavy_multiplication_x: | A set of conditions that must evaluate to `true` in order for the overrides to be applied. See [Frigate Card Conditions](#frigate-card-conditions). |
 | `overrides` | | :heavy_multiplication_x: |Configuration overrides to be applied. Any configuration parameter described in this documentation as 'Overridable' is supported. |
 
+<a name="automation-options"></a>
+
+### Automation Optionns
+
+All configuration is a list under:
+
+```yaml
+automations:
+  - [conditions:]
+    [actions:]
+    [actions_not:]
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `conditions` | | :heavy_multiplication_x: | A set of conditions that will trigger the automation. See [Frigate Card Conditions](#frigate-card-conditions). |
+| `actions` | | :heavy_multiplication_x: | An optional list of actions that will be run when the conditions evaluate `true`. Actions can be [stock Home Assistant actions](https://www.home-assistant.io/dashboards/actions/) or [Frigate card actions](#frigate-card-actions).|
+| `actions_not` | | :heavy_multiplication_x: | An optional list of actions that will be run when the conditions evaluate `false`. Actions can be [stock Home Assistant actions](https://www.home-assistant.io/dashboards/actions/) or [Frigate card actions](#frigate-card-actions).|
+
 <a name="media-layout"></a>
 
 ### Media Layout
@@ -1229,6 +1248,8 @@ Parameters for the `custom:frigate-card-ptz` element:
 | `data_left`, `data_right`, `data_up`, `data_down`, `data_zoom_in`, `data_zoom_out`, `data_home` | Shorthand for a `tap_action` that calls the `service` with the data provided in this argument. Internally, this is just translated into the longer-form `actions_[button]`. If both `actions_X` and `data_X` are specified, `actions_X` takes priority. This is compatible with [AlexxIT's WebRTC Card PTZ configuration](https://github.com/AlexxIT/WebRTC/wiki/PTZ-Config-Examples). |
 | `service` | | An optional Home Assistant service to call when the `data_` parameters are used. |
 
+<a name="frigate-card-actions"></a>
+
 ### Special Actions
 
 #### `custom:frigate-card-action`
@@ -1236,7 +1257,7 @@ Parameters for the `custom:frigate-card-ptz` element:
 | Parameter | Description |
 | - | - |
 | `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_select`, `expand`, `microphone_mute`, `microphone_unmute`|
+| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_on`, `live_substream_off`, `live_substream_select`, `expand`, `microphone_mute`, `microphone_unmute`|
 
 <a name="custom-actions"></a>
 
@@ -2630,6 +2651,24 @@ performance:
 </details>
 
 <details>
+  <summary>Expand: Automation section</summary>
+
+Reference: [Automation Options](#automation-options).
+
+```yaml
+automations:
+  - conditions:
+      fullscreen: true
+    actions:
+      - action: custom:frigate-card-action
+        frigate_card_action: live_substream_on
+    actions_not:
+      - action: custom:frigate-card-action
+        frigate_card_action: live_substream_off
+```
+</details>
+
+<details>
   <summary>Expand: Other options</summary>
 
 Reference: [Other Options](#other-options).
@@ -3607,6 +3646,31 @@ cameras:
 
 ```
 https://ha.mydomain.org/lovelace-test/0?frigate-card-action:main:clips
+```
+</details>
+
+
+### Automation actions
+
+The card can automatically execute actions when certain conditions are met.
+
+<details>
+  <summary>Expand: Automatically selecting a high-definition substream in fullscreen mode</summary>
+
+This example will automatically turn on the first configured substream when the
+card is put in fullscreen mode, and turn off the substream when exiting
+fullscreen mode.
+
+```yaml
+automations:
+  - conditions:
+      fullscreen: true
+    actions:
+      - action: custom:frigate-card-action
+        frigate_card_action: live_substream_on
+    actions_not:
+      - action: custom:frigate-card-action
+        frigate_card_action: live_substream_off
 ```
 </details>
 

@@ -21,23 +21,23 @@ import 'web-dialog';
 import { z } from 'zod';
 import pkg from '../package.json';
 import { actionHandler } from './action-handler-directive.js';
+import { AutomationsController } from './automations';
 import { CameraManagerEngineFactory } from './camera-manager/engine-factory.js';
 import { CameraManager } from './camera-manager/manager.js';
-import {
-  CardConditionManager,
-  ConditionState,
-  conditionStateRequestHandler,
-  getOverriddenConfig,
-} from './card-condition.js';
 import './components/elements.js';
 import { FrigateCardElements } from './components/elements.js';
 import './components/menu.js';
-import { FrigateCardMenu, FRIGATE_BUTTON_MENU_ICON } from './components/menu.js';
+import { FRIGATE_BUTTON_MENU_ICON, FrigateCardMenu } from './components/menu.js';
 import './components/message.js';
 import { renderMessage, renderProgressIndicator } from './components/message.js';
 import './components/thumbnail-carousel.js';
 import './components/views.js';
 import { FrigateCardViews } from './components/views.js';
+import {
+  ConditionController,
+  ConditionEvaluateRequestEvent,
+  getOverriddenConfig,
+} from './conditions.js';
 import { isConfigUpgradeable } from './config-mgmt.js';
 import { MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA, REPO_URL } from './const.js';
 import { getLanguage, loadLanguages, localize } from './localize/localize.js';
@@ -45,17 +45,17 @@ import { setLowPerformanceProfile, setPerformanceCSSStyles } from './performance
 import cardStyle from './scss/card.scss';
 import {
   Actions,
-  ActionType,
+  ActionsConfig,
   CameraConfig,
   CardWideConfig,
   ExtendedHomeAssistant,
+  FRIGATE_CARD_VIEW_DEFAULT,
+  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
   FrigateCardConfig,
   frigateCardConfigSchema,
   FrigateCardCustomAction,
   FrigateCardError,
   FrigateCardView,
-  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
-  FRIGATE_CARD_VIEW_DEFAULT,
   MediaLoadedInfo,
   MenuButton,
   Message,
@@ -65,7 +65,7 @@ import {
 import {
   convertActionToFrigateCardCustomAction,
   createFrigateCardCustomAction,
-  frigateCardHandleAction,
+  frigateCardHandleActionConfig,
   frigateCardHasAction,
   getActionConfigGivenAction,
 } from './utils/action.js';
@@ -92,6 +92,12 @@ import { FrigateCardInitializer } from './utils/initializer.js';
 import { isValidMediaLoadedInfo } from './utils/media-info.js';
 import { MicrophoneController } from './utils/microphone';
 import { getActionsFromQueryString } from './utils/querystring.js';
+import {
+  createViewWithNextStream,
+  createViewWithoutSubstream,
+  createViewWithSelectedSubstream,
+  hasSubstream,
+} from './utils/substream';
 import { View } from './view/view.js';
 
 /** A note on media callbacks:
@@ -113,11 +119,11 @@ import { View } from './view/view.js';
 
 /** A note on action/menu/ll-custom events:
  *
- * The card supports actions being configured in a number of places (e.g. tap on an
- * element, double_tap on a menu item, hold on the live view). These actions are
- * handled frigateCardHandleAction(). For Frigate-card specific actions,
- * frigateCardHandleAction() call will result in an ll-custom DOM event being
- * fired, which needs to be caught at the card level to handle.
+ * The card supports actions being configured in a number of places (e.g. tap on
+ * an element, double_tap on a menu item, hold on the live view). These actions
+ * are handled by frigateCardHandleActionConfig(). For Frigate-card specific
+ * actions, the frigateCardHandleActionConfig() call will result in an ll-custom
+ * DOM event being fired, which needs to be caught at the card level to handle.
  */
 
 /* eslint no-console: 0 */
@@ -180,10 +186,9 @@ class FrigateCard extends LitElement {
   @state()
   protected _expand?: boolean = false;
 
-  // null implies the user refused microphone access.
   protected _microphoneController?: MicrophoneController;
-
-  protected _conditionState?: ConditionState;
+  protected _conditionController?: ConditionController;
+  protected _automationsController?: AutomationsController;
 
   protected _refMenu: Ref<FrigateCardMenu> = createRef();
   protected _refMain: Ref<HTMLElement> = createRef();
@@ -217,11 +222,11 @@ class FrigateCard extends LitElement {
   // The mouse handler may be called continually, throttle it to at most once
   // per second for performance reasons.
   protected _boundMouseHandler = throttle(this._mouseHandler.bind(this), 1 * 1000);
+  protected _boundCardActionEventHandler = this._cardActionEventHandler.bind(this);
+  protected _boundFullscreenHandler = this._fullscreenHandler.bind(this);
 
   protected _triggers: Map<string, Date> = new Map();
   protected _untriggerTimerID: number | null = null;
-
-  protected _conditionManager: CardConditionManager | null = null;
 
   protected _mediaPlayers?: string[];
 
@@ -253,9 +258,8 @@ class FrigateCard extends LitElement {
       }
     }
 
-    if (this._conditionManager?.hasHAStateConditions) {
-      // HA entity state is part of the condition state.
-      this._generateConditionState();
+    if (this._conditionController?.hasHAStateConditions) {
+      this._conditionController.setState({ state: this._hass.states });
     }
 
     // Dark mode may depend on HASS.
@@ -294,36 +298,30 @@ class FrigateCard extends LitElement {
     } as unknown as FrigateCardConfig;
   }
 
-  /**
-   * Generate the state used to evaluate conditions.
-   */
-  protected _generateConditionState(): void {
-    this._conditionState = {
-      view: this._view?.view,
-      fullscreen: screenfull.isEnabled && screenfull.isFullscreen,
-      expand: this._expand,
-      camera: this._view?.camera,
-      media_loaded: !!this._currentMediaLoadedInfo,
-      ...(this._conditionManager?.hasHAStateConditions && {
-        state: this._hass?.states,
-      }),
-    };
-
-    // Update the components that need the new condition state. Passed directly
-    // to them to avoid the performance hit of a entire card re-render (esp.
-    // when using card-mod).
+  protected _requestUpdateForComponentsThatUseConditions(): void {
+    // Update the components that need to know about condition changes. Trigger
+    // updates directly on them to them to avoid the performance hit of a entire
+    // card re-render (esp. when using card-mod).
     // https://github.com/dermotduffy/frigate-hass-card/issues/678
     if (this._refViews.value) {
-      this._refViews.value.conditionState = this._conditionState;
+      this._refViews.value.conditionControllerEpoch =
+        this._conditionController?.getEpoch();
     }
     if (this._refElements.value) {
-      this._refElements.value.conditionState = this._conditionState;
+      this._refElements.value.conditionControllerEpoch =
+        this._conditionController?.getEpoch();
+    }
+  }
+
+  protected _overrideConfig(): void {
+    if (!this._conditionController) {
+      return;
     }
 
     const overriddenConfig = getOverriddenConfig(
+      this._conditionController,
       this._config,
       this._config.overrides,
-      this._conditionState,
     ) as FrigateCardConfig;
 
     // Save on Lit re-rendering costs by only updating the configuration if it
@@ -485,12 +483,9 @@ class FrigateCard extends LitElement {
           title: localize('config.menu.buttons.substreams'),
           ...this._getConfig().menu.buttons.substreams,
           type: 'custom:frigate-card-menu-icon',
-          tap_action: createFrigateCardCustomAction('live_substream_select', {
-            camera:
-              override === undefined || override === dependencies[0]
-                ? dependencies[1]
-                : dependencies[0],
-          }) as FrigateCardCustomAction,
+          tap_action: createFrigateCardCustomAction(
+            hasSubstream(this._view) ? 'live_substream_off' : 'live_substream_on',
+          ) as FrigateCardCustomAction,
         });
       } else if (dependencies.length > 2) {
         const menuItems = Array.from(dependencies, (cameraID) => {
@@ -858,16 +853,42 @@ class FrigateCard extends LitElement {
     this._view = undefined;
     this._message = null;
 
-    this._conditionManager?.destroy();
-    this._conditionManager = new CardConditionManager(
-      config,
-      this._generateConditionState.bind(this),
-    );
+    this._setupConditionController();
+    this._conditionController?.setState({
+      view: undefined,
+      camera: undefined,
+    });
 
-    this._generateConditionState();
+    this._automationsController = new AutomationsController(this._config.automations);
     this._setLightOrDarkMode();
     this._setPropertiesForMinMaxHeight();
     this._untrigger();
+  }
+
+  protected _setupConditionController(): void {
+    this._conditionController?.destroy();
+    this._conditionController = new ConditionController(this._config);
+    this._conditionController.addStateListener(this._overrideConfig.bind(this));
+    this._conditionController.addStateListener(
+      this._requestUpdateForComponentsThatUseConditions.bind(this),
+    );
+    this._conditionController.addStateListener(this._executeAutomations.bind(this));
+  }
+
+  protected _executeAutomations(): void {
+    // Never execute automations if there's an error (as our automation loop
+    // avoidance -- which shows as an error -- does not work).
+    if (this._message?.type !== 'error' && this._hass && this._conditionController) {
+      try {
+        this._automationsController?.execute(
+          this,
+          this._hass,
+          this._conditionController,
+        );
+      } catch (e: unknown) {
+        this._handleThrownError(e);
+      }
+    }
   }
 
   /**
@@ -891,7 +912,10 @@ class FrigateCard extends LitElement {
       View.adoptFromViewIfAppropriate(view, this._view);
 
       this._view = view;
-      this._generateConditionState();
+      this._conditionController?.setState({
+        view: this._view.view,
+        camera: this._view.camera,
+      });
     };
 
     if (args?.resetMessage ?? true) {
@@ -1435,15 +1459,21 @@ class FrigateCard extends LitElement {
     }
   }
 
-  protected _cardActionEventHandler(ev: CustomEvent<ActionType>): void {
-    const frigateCardAction = convertActionToFrigateCardCustomAction(ev.detail);
-    if (frigateCardAction) {
-      this._cardActionHandler(frigateCardAction);
+  protected _cardActionEventHandler(ev: Event): void {
+    // The event may not actually be a CustomEvent object, but may still have a
+    // detail field (see:
+    // https://github.com/custom-cards/custom-card-helpers/blob/master/src/fire-event.ts#L70
+    // )
+    if ('detail' in ev) {
+      const frigateCardAction = convertActionToFrigateCardCustomAction(ev.detail);
+      if (frigateCardAction) {
+        this._cardActionHandler(frigateCardAction);
+      }
     }
   }
 
   protected _cardActionHandler(frigateCardAction: FrigateCardCustomAction): void {
-    if (!this._view) {
+    if (!this._view || !this._cameraManager) {
       return;
     }
 
@@ -1490,7 +1520,7 @@ class FrigateCard extends LitElement {
         this._setExpand(!this._expand);
         break;
       case 'fullscreen':
-        this._toggleFullscreen();
+        screenfull.toggle(this);
         break;
       case 'menu_toggle':
         // This is a rare code path: this would only be used if someone has a
@@ -1515,16 +1545,24 @@ class FrigateCard extends LitElement {
           });
         }
         break;
-      case 'live_substream_select':
-        const overrides: Map<string, string> =
-          this._view.context?.live?.overrides ?? new Map();
-        overrides.set(this._view.camera, frigateCardAction.camera);
-        this._changeView({
-          view: this._view.clone().mergeInContext({
-            live: { overrides: overrides },
-          }),
-        });
+      case 'live_substream_select': {
+        const view = createViewWithSelectedSubstream(
+          this._view,
+          frigateCardAction.camera,
+        );
+        view && this._changeView({ view: view });
         break;
+      }
+      case 'live_substream_off': {
+        const view = createViewWithoutSubstream(this._view);
+        view && this._changeView({ view: view });
+        break;
+      }
+      case 'live_substream_on': {
+        const view = createViewWithNextStream(this._cameraManager, this._view);
+        view && this._changeView({ view: view });
+        break;
+      }
       case 'media_player':
         this._mediaPlayerAction(
           frigateCardAction.media_player,
@@ -1542,7 +1580,7 @@ class FrigateCard extends LitElement {
         const unmuteAndUpdate = () => {
           this._microphoneController?.unmute();
           this.requestUpdate();
-        }
+        };
         if (
           !this._microphoneController?.isConnected() &&
           !this._microphoneController?.isForbidden()
@@ -1656,23 +1694,26 @@ class FrigateCard extends LitElement {
    * Handle an action called on an element.
    * @param ev The actionHandler event.
    */
-  protected _actionHandler(ev: CustomEvent, config?: Actions): void {
+  protected _actionHandler(ev: CustomEvent, config?: ActionsConfig): void {
     const interaction = ev.detail.action;
     const node: HTMLElement | null = ev.currentTarget as HTMLElement | null;
+    const actionConfig = getActionConfigGivenAction(interaction, config);
     if (
+      this._hass &&
       config &&
       node &&
       interaction &&
-      // Don't call frigateCardHandleAction() unless there is explicitly an
+      // Don't call frigateCardHandleActionConfig() unless there is explicitly an
       // action defined (as it uses a default that is unhelpful for views that
       // have default tap/click actions).
-      getActionConfigGivenAction(interaction, config)
+      actionConfig
     ) {
-      frigateCardHandleAction(
+      frigateCardHandleActionConfig(
         node,
-        this._hass as HomeAssistant,
+        this._hass,
         config,
         ev.detail.action,
+        actionConfig,
       );
     }
 
@@ -1828,8 +1869,10 @@ class FrigateCard extends LitElement {
 
     this._setPropertiesForExpandedMode();
 
-    // An update may be required to draw elements.
-    this._generateConditionState();
+    this._conditionController?.setState({
+      media_loaded: !!this._currentMediaLoadedInfo,
+    });
+
     this.requestUpdate();
   }
 
@@ -1860,18 +1903,7 @@ class FrigateCard extends LitElement {
    */
   protected _mediaUnloadedHandler(): void {
     this._currentMediaLoadedInfo = null;
-    this._generateConditionState();
-  }
-
-  /**
-   * Handler called when fullscreen is toggled.
-   */
-  protected _fullscreenHandler(): void {
-    this._generateConditionState();
-    // Re-render after a change to fullscreen mode to take advantage of
-    // the expanded screen real-estate (vs staying in aspect-ratio locked
-    // modes).
-    this.requestUpdate();
+    this._conditionController?.setState({ media_loaded: false });
   }
 
   /**
@@ -1880,9 +1912,10 @@ class FrigateCard extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     if (screenfull.isEnabled) {
-      screenfull.on('change', this._fullscreenHandler.bind(this));
+      screenfull.on('change', this._boundFullscreenHandler);
     }
     this.addEventListener('mousemove', this._boundMouseHandler);
+    this.addEventListener('ll-custom', this._boundCardActionEventHandler);
     this._panel = isCardInPanel(this);
   }
 
@@ -1894,9 +1927,10 @@ class FrigateCard extends LitElement {
     this._mediaUnloadedHandler();
 
     if (screenfull.isEnabled) {
-      screenfull.off('change', this._fullscreenHandler.bind(this));
+      screenfull.off('change', this._boundFullscreenHandler);
     }
     this.removeEventListener('mousemove', this._boundMouseHandler);
+    this.removeEventListener('ll-custom', this._boundCardActionEventHandler);
     super.disconnectedCallback();
   }
 
@@ -1983,22 +2017,38 @@ class FrigateCard extends LitElement {
     return { ...this._getConfig().view.actions, ...specificActions };
   }
 
+  protected _isInFullscreen(): boolean {
+    return screenfull.isEnabled && screenfull.isFullscreen;
+  }
+
   protected _setExpand(expand: boolean): void {
-    if (screenfull.isEnabled && screenfull.isFullscreen) {
+    if (expand && this._isInFullscreen()) {
       // Fullscreen and expanded mode are mutually exclusive.
       screenfull.exit();
     }
 
     this._expand = expand;
-    this._generateConditionState();
+    this._conditionController?.setState({
+      expand: this._expand,
+    });
   }
 
-  protected _toggleFullscreen(): void {
-    if (screenfull.isEnabled) {
-      // Fullscreen and expanded mode are mutually exclusive.
+  protected _fullscreenHandler(): void {
+    const inFullscreen = screenfull.isEnabled && screenfull.isFullscreen;
+
+    if (inFullscreen) {
       this._expand = false;
-      screenfull.toggle(this);
     }
+
+    this._conditionController?.setState({
+      fullscreen: inFullscreen,
+      expand: this._expand,
+    });
+
+    // Re-render after a change to fullscreen mode to take advantage of
+    // the expanded screen real-estate (vs staying in aspect-ratio locked
+    // modes).
+    this.requestUpdate();
   }
 
   protected _renderInDialogIfNecessary(contents: TemplateResult): TemplateResult | void {
@@ -2059,7 +2109,6 @@ class FrigateCard extends LitElement {
       class="${classMap(cardClasses)}"
       style="${styleMap(cardStyle)}"
       @action=${(ev: CustomEvent) => this._actionHandler(ev, actions)}
-      @ll-custom=${this._cardActionEventHandler.bind(this)}
       @frigate-card:message=${this._messageHandler.bind(this)}
       @frigate-card:view:change=${this._changeViewHandler.bind(this)}
       @frigate-card:view:change-context=${this._addViewContextHandler.bind(this)}
@@ -2082,7 +2131,7 @@ class FrigateCard extends LitElement {
               .resolvedMediaCache=${this._resolvedMediaCache}
               .config=${this._getConfig()}
               .nonOverriddenConfig=${this._config}
-              .conditionState=${this._conditionState}
+              .conditionControllerEpoch=${this._conditionController?.getEpoch()}
               .hide=${!!this._message}
               .microphoneStream=${this._microphoneController?.getStream()}
             ></frigate-card-views>`}
@@ -2100,15 +2149,15 @@ class FrigateCard extends LitElement {
             ${ref(this._refElements)}
             .hass=${this._hass}
             .elements=${this._getConfig().elements}
-            .conditionState=${this._conditionState}
+            .conditionControllerEpoch=${this._conditionController?.getEpoch()}
             @frigate-card:menu-add=${(e) => {
               this._addDynamicMenuButton(e.detail);
             }}
             @frigate-card:menu-remove=${(e) => {
               this._removeDynamicMenuButton(e.detail);
             }}
-            @frigate-card:condition-state-request=${(ev) => {
-              conditionStateRequestHandler(ev, this._conditionState);
+            @frigate-card:condition:evaluate=${(ev: ConditionEvaluateRequestEvent) => {
+              ev.evaluation = this._conditionController?.evaluateCondition(ev.condition);
             }}
           >
           </frigate-card-elements>`
