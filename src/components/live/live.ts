@@ -54,7 +54,6 @@ import { dispatchErrorMessageEvent, dispatchMessageEvent } from '../message.js';
 import '../next-prev-control.js';
 import '../surround.js';
 import '../title-control.js';
-import '../zoomer.js';
 import { AutoMediaPlugin } from './../embla-plugins/automedia.js';
 import { Lazyload } from './../embla-plugins/lazyload.js';
 
@@ -525,7 +524,12 @@ export class FrigateCardLiveCarousel extends LitElement {
     cameraConfig: CameraConfig,
     slideIndex: number,
   ): TemplateResult | void {
-    if (!this.liveConfig || !this.hass || !this.cameraManager || !this.conditionControllerEpoch) {
+    if (
+      !this.liveConfig ||
+      !this.hass ||
+      !this.cameraManager ||
+      !this.conditionControllerEpoch
+    ) {
       return;
     }
     // The condition controller object contains the currently live camera, which
@@ -545,7 +549,9 @@ export class FrigateCardLiveCarousel extends LitElement {
       <div class="embla__slide">
         <frigate-card-live-provider
           ?disabled=${this.liveConfig.lazy_load}
-          .microphoneStream=${this.view?.camera === cameraID ? this.microphoneStream : undefined}
+          .microphoneStream=${this.view?.camera === cameraID
+            ? this.microphoneStream
+            : undefined}
           .cameraConfig=${cameraConfig}
           .cameraEndpoints=${guard(
             [this.cameraManager, cameraID],
@@ -848,6 +854,9 @@ export class FrigateCardLiveProvider
       if (this.liveConfig?.show_image_during_load) {
         this._importPromises.push(import('./live-image.js'));
       }
+      if (this.liveConfig?.zoomable) {
+        this._importPromises.push(import('./../zoomer.js'));
+      }
     }
     if (changedProps.has('cameraConfig')) {
       const provider = this._getResolvedProvider();
@@ -874,6 +883,17 @@ export class FrigateCardLiveProvider
     return result;
   }
 
+  protected _useZoomIfRequired(template: TemplateResult): TemplateResult {
+    return this.liveConfig?.zoomable
+      ? html` <frigate-card-zoomer
+          @frigate-card:zoom:zoomed=${() => this.setControls(false)}
+          @frigate-card:zoom:unzoomed=${() => this.setControls(true)}
+        >
+          ${template}
+        </frigate-card-zoomer>`
+      : template;
+  }
+
   /**
    * Master render method.
    * @returns A rendered template.
@@ -894,42 +914,36 @@ export class FrigateCardLiveProvider
       hidden: showImageDuringLoading,
     };
 
-    return html`
-      <frigate-card-zoomer
-        @frigate-card:zoom:zoomed=${() => this.setControls(false)}
-        @frigate-card:zoom:unzoomed=${() => this.setControls(true)}
-      >
-        ${showImageDuringLoading || provider === 'image'
-          ? html`
-              <frigate-card-live-image
-                ${ref(this._refProvider)}
-                .hass=${this.hass}
-                .cameraConfig=${this.cameraConfig}
-                @frigate-card:media:loaded=${(ev: Event) => {
-                  if (provider === 'image') {
-                    // Only count the media has loaded if the required provider is
-                    // the image (not just the temporary image shown during
-                    // loading).
-                    this._videoMediaShowHandler();
-                  } else {
-                    ev.stopPropagation();
-                  }
-                }}
-              >
-              </frigate-card-live-image
-            ></frigate-card-zoomer>`
-          : html``}
-        ${provider === 'ha'
-          ? html` <frigate-card-live-ha
-              ${ref(this._refProvider)}
-              class=${classMap(providerClasses)}
-              .hass=${this.hass}
-              .cameraConfig=${this.cameraConfig}
-              @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
-            >
-            </frigate-card-live-ha>`
-          : provider === 'go2rtc'
-          ? html`<frigate-card-live-go2rtc
+    return this._useZoomIfRequired(html`
+      ${showImageDuringLoading || provider === 'image'
+        ? html` <frigate-card-live-image
+            ${ref(this._refProvider)}
+            .hass=${this.hass}
+            .cameraConfig=${this.cameraConfig}
+            @frigate-card:media:loaded=${(ev: Event) => {
+              if (provider === 'image') {
+                // Only count the media has loaded if the required provider is
+                // the image (not just the temporary image shown during
+                // loading).
+                this._videoMediaShowHandler();
+              } else {
+                ev.stopPropagation();
+              }
+            }}
+          >
+          </frigate-card-live-image>`
+        : html``}
+      ${provider === 'ha'
+        ? html` <frigate-card-live-ha
+            ${ref(this._refProvider)}
+            class=${classMap(providerClasses)}
+            .hass=${this.hass}
+            .cameraConfig=${this.cameraConfig}
+            @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
+          >
+          </frigate-card-live-ha>`
+        : provider === 'go2rtc'
+        ? html`<frigate-card-live-go2rtc
               ${ref(this._refProvider)}
               class=${classMap(providerClasses)}
               .hass=${this.hass}
@@ -940,31 +954,30 @@ export class FrigateCardLiveProvider
               @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
             >
             </frigate-card-live-webrtc-card>`
-          : provider === 'webrtc-card'
-          ? html`<frigate-card-live-webrtc-card
-              ${ref(this._refProvider)}
-              class=${classMap(providerClasses)}
-              .hass=${this.hass}
-              .cameraConfig=${this.cameraConfig}
-              .cameraEndpoints=${this.cameraEndpoints}
-              .cardWideConfig=${this.cardWideConfig}
-              @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
-            >
-            </frigate-card-live-webrtc-card>`
-          : provider === 'jsmpeg'
-          ? html` <frigate-card-live-jsmpeg
-              ${ref(this._refProvider)}
-              class=${classMap(providerClasses)}
-              .hass=${this.hass}
-              .cameraConfig=${this.cameraConfig}
-              .cameraEndpoints=${this.cameraEndpoints}
-              .cardWideConfig=${this.cardWideConfig}
-              @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
-            >
-            </frigate-card-live-jsmpeg>`
-          : html``}
-      </frigate-card-zoomer>
-    `;
+        : provider === 'webrtc-card'
+        ? html`<frigate-card-live-webrtc-card
+            ${ref(this._refProvider)}
+            class=${classMap(providerClasses)}
+            .hass=${this.hass}
+            .cameraConfig=${this.cameraConfig}
+            .cameraEndpoints=${this.cameraEndpoints}
+            .cardWideConfig=${this.cardWideConfig}
+            @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
+          >
+          </frigate-card-live-webrtc-card>`
+        : provider === 'jsmpeg'
+        ? html` <frigate-card-live-jsmpeg
+            ${ref(this._refProvider)}
+            class=${classMap(providerClasses)}
+            .hass=${this.hass}
+            .cameraConfig=${this.cameraConfig}
+            .cameraEndpoints=${this.cameraEndpoints}
+            .cardWideConfig=${this.cardWideConfig}
+            @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
+          >
+          </frigate-card-live-jsmpeg>`
+        : html``}
+    `);
   }
 
   static get styles(): CSSResultGroup {

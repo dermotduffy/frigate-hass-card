@@ -204,7 +204,8 @@
         "url": "Immagine arbitraria specificata dall'URL"
       },
       "refresh_seconds": "Numero di secondi dopo i quali aggiornare (0 = mai)",
-      "url": "URL di immagine statica per la vista dell'immagine"
+      "url": "URL di immagine statica per la vista dell'immagine",
+      "zoomable": ""
     },
     "live": {
       "auto_mute": "Muta automaticamente le telecamere in diretta",
@@ -225,7 +226,8 @@
       },
       "preload": "Precarica Live View in background",
       "show_image_during_load": "Mostra un'immagine fissa durante il caricamento del live streaming",
-      "transition_effect": "Effetto di transizione della telecamera dal vivo"
+      "transition_effect": "Effetto di transizione della telecamera dal vivo",
+      "zoomable": ""
     },
     "media_viewer": {
       "auto_mute": "Muta automaticamente i media",
@@ -242,7 +244,8 @@
       "transition_effects": {
         "none": "Nessuna transizione",
         "slide": "Transizione diapositiva"
-      }
+      },
+      "zoomable": ""
     },
     "menu": {
       "alignment": "Allineamento dei menu",
