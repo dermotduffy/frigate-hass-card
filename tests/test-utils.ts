@@ -1,6 +1,7 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
 import { mock } from 'vitest-mock-extended';
+import { FrigateEvent, FrigateRecording } from '../src/camera-manager/frigate/types';
 import {
   CameraConfig,
   FrigateCardCondition,
@@ -58,5 +59,33 @@ export const createStateEntity = (entity?: Partial<HassEntity>): HassEntity => {
       parent_id: 'parent_id',
       user_id: 'user_id',
     },
+  };
+};
+
+export const createFrigateEvent = (event?: Partial<FrigateEvent>) => {
+  return {
+    camera: 'camera',
+    end_time: 1683397124,
+    false_positive: false,
+    has_clip: true,
+    has_snapshot: true,
+    id: '1683396875.643998-hmzrh5',
+    label: 'person',
+    sub_label: null,
+    start_time: 1683395000,
+    top_score: 0.841796875,
+    zones: [],
+    retain_indefinitely: false,
+    ...event,
+  };
+};
+
+export const createFrigateRecording = (recording?: Partial<FrigateRecording>) => {
+  return {
+    cameraID: 'cameraID',
+    startTime: new Date('2023-04-29T14:00:00'),
+    endTime: new Date('2023-04-29T14:59:59'),
+    events: 42,
+    ...recording,
   };
 };
