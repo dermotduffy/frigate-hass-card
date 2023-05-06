@@ -1,4 +1,4 @@
-import sub from 'date-fns/sub';
+import add from 'date-fns/add';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import {
@@ -17,6 +17,8 @@ import {
 } from '../../test-utils';
 
 describe('getEventTitle', () => {
+  const start = new Date('2023-05-06T10:43:00');
+  const end = new Date('2023-05-06T10:44:12');
   afterEach(() => {
     vi.useRealTimers();
   });
@@ -24,42 +26,40 @@ describe('getEventTitle', () => {
     expect(
       getEventTitle(
         createFrigateEvent({
-          start_time: 1683395000,
-          end_time: 1683397124,
+          start_time: start.getTime() / 1000,
+          end_time: end.getTime() / 1000,
           top_score: 0.841796875,
           label: 'person',
         }),
       ),
-    ).toBe('2023-05-06 10:43 [2124s, Person 84%]');
+    ).toBe('2023-05-06 10:43 [72s, Person 84%]');
   });
   it('should get in-progress event title', () => {
-    const baseTime = new Date('2023-04-29T14:25');
     vi.useFakeTimers();
-    vi.setSystemTime(baseTime);
-    const startTime = sub(baseTime, { seconds: 60 });
+    vi.setSystemTime(add(start, { seconds: 60 }));
 
     expect(
       getEventTitle(
         createFrigateEvent({
-          start_time: startTime.getTime() / 1000,
+          start_time: start.getTime() / 1000,
           end_time: null,
           top_score: 0.841796875,
           label: 'person',
         }),
       ),
-    ).toBe('2023-04-29 14:24 [60s, Person 84%]');
+    ).toBe('2023-05-06 10:43 [60s, Person 84%]');
   });
   it('should get scoreless event title', () => {
     expect(
       getEventTitle(
         createFrigateEvent({
-          start_time: 1683395000,
-          end_time: 1683397124,
+          start_time: start.getTime() / 1000,
+          end_time: end.getTime() / 1000,
           top_score: null,
           label: 'person',
         }),
       ),
-    ).toBe('2023-05-06 10:43 [2124s, Person]');
+    ).toBe('2023-05-06 10:43 [72s, Person]');
   });
 });
 
@@ -131,11 +131,11 @@ describe('getRecordingID', () => {
           },
         }),
         createFrigateRecording({
-          startTime: new Date('2023-04-29T14:00:00'),
-          endTime: new Date('2023-04-29T14:59:59'),
+          startTime: new Date('2023-04-29T14:00:00Z'),
+          endTime: new Date('2023-04-29T14:59:59Z'),
         }),
       ),
-    ).toBe('unique_client_id/kitchen/1682802000000/1682805599000');
+    ).toBe('unique_client_id/kitchen/1682776800000/1682780399000');
   });
   it('should get recording ID without client_id or camera_name', () => {
     // Note: This path is defended against in the code but should not happen in
@@ -145,10 +145,10 @@ describe('getRecordingID', () => {
       getRecordingID(
         cameraConfig,
         createFrigateRecording({
-          startTime: new Date('2023-04-29T14:00:00'),
-          endTime: new Date('2023-04-29T14:59:59'),
+          startTime: new Date('2023-04-29T14:00:00Z'),
+          endTime: new Date('2023-04-29T14:59:59Z'),
         }),
       ),
-    ).toBe('//1682802000000/1682805599000');
+    ).toBe('//1682776800000/1682780399000');
   });
 });
