@@ -79,6 +79,11 @@ export class View {
     //   changes camera to the *current* camera (via the menu) it will cause a
     //   new view to issue without a query and just the 'media' view, which
     //   means the viewer cannot know what kind of media to fetch.
+    //
+    // * Case #3: Staying within the live view in order to preserve substreams
+    //   turned on. See:
+    //   https://github.com/dermotduffy/frigate-hass-card/issues/1122
+    //
 
     let currentQueriesView: ClipsOrSnapshots | 'recordings' | null = null;
     if (MediaQueriesClassifier.areEventQueries(curr.query)) {
@@ -113,6 +118,17 @@ export class View {
             ? 'snapshot'
             : 'recording';
       }
+    }
+
+    if (
+      curr.is('live') &&
+      next.is('live') &&
+      curr.context?.live?.overrides &&
+      !next.context?.live?.overrides
+    ) {
+      const nextLiveContext = next.context?.live ?? {};
+      nextLiveContext.overrides = curr.context.live.overrides;
+      next.mergeInContext({ live: nextLiveContext });
     }
   }
 
