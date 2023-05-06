@@ -70,16 +70,17 @@ lovelace:
 
 ### Advanced Users: Manual Installation
 
-**Note:** This is very rarely needed unless you are developing the card. Please consider HACS (above)!
+**Note:** This is very rarely needed -- please consider HACS (above)!
 
-* Download the `frigate-hass-card.js` attachment of the desired [release](https://github.com/dermotduffy/frigate-hass-card/releases) to a location accessible by Home Assistant.
-* Add the location as a Lovelace resource via the UI, or via [YAML configuration](https://www.home-assistant.io/lovelace/dashboards/#resources)) such as:
+* Download the `frigate-hass-card.zip` attachment of the desired [release](https://github.com/dermotduffy/frigate-hass-card/releases) to a location accessible by Home Assistant. Note that the release will have a series of `.js` files (for HACS users) **and** a `frigate-hass-card.zip` for the convenience of manual installers.
+* Unzip the file and move the contents of the `dist/` folder to any subfolder name you'd like, e.g. `frigate-card` is used in the below example.
+* Add the location as a Lovelace resource via the UI, or via [YAML configuration](https://www.home-assistant.io/lovelace/dashboards/#resources) such as:
 
 ```yaml
 lovelace:
   mode: yaml
   resources:
-   - url: /local/frigate-hass-card.js
+   - url: /local/frigate-card/frigate-hass-card.js
      type: module
 ```
 
