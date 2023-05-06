@@ -2,6 +2,11 @@ import { fireEvent, HomeAssistant, LovelaceCardEditor } from 'custom-card-helper
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { FRIGATE_ICON_SVG_PATH } from './camera-manager/frigate/icon.js';
+import {
+  MOTIONEYE_ICON_SVG_PATH,
+  MOTIONEYE_ICON_SVG_VIEWBOX,
+} from './camera-manager/motioneye/icon.js';
 import {
   copyConfig,
   deleteConfigValue,
@@ -12,6 +17,7 @@ import {
   upgradeConfig,
 } from './config-mgmt.js';
 import {
+  CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
   CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS,
   CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS,
@@ -39,15 +45,17 @@ import {
   CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL,
-  CONF_CAMERAS,
-  CONF_DIMENSIONS_ASPECT_RATIO_MODE,
   CONF_DIMENSIONS_ASPECT_RATIO,
+  CONF_DIMENSIONS_ASPECT_RATIO_MODE,
+  CONF_DIMENSIONS_MAX_HEIGHT,
+  CONF_DIMENSIONS_MIN_HEIGHT,
   CONF_IMAGE_LAYOUT_FIT,
   CONF_IMAGE_LAYOUT_POSITION_X,
   CONF_IMAGE_LAYOUT_POSITION_Y,
   CONF_IMAGE_MODE,
   CONF_IMAGE_REFRESH_SECONDS,
   CONF_IMAGE_URL,
+  CONF_IMAGE_ZOOMABLE,
   CONF_LIVE_AUTO_MUTE,
   CONF_LIVE_AUTO_PAUSE,
   CONF_LIVE_AUTO_PLAY,
@@ -65,6 +73,7 @@ import {
   CONF_LIVE_CONTROLS_TIMELINE_MEDIA,
   CONF_LIVE_CONTROLS_TIMELINE_MODE,
   CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
+  CONF_LIVE_CONTROLS_TIMELINE_STYLE,
   CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS,
   CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
   CONF_LIVE_CONTROLS_TITLE_MODE,
@@ -74,9 +83,11 @@ import {
   CONF_LIVE_LAYOUT_POSITION_Y,
   CONF_LIVE_LAZY_LOAD,
   CONF_LIVE_LAZY_UNLOAD,
+  CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS,
   CONF_LIVE_PRELOAD,
   CONF_LIVE_SHOW_IMAGE_DURING_LOAD,
   CONF_LIVE_TRANSITION_EFFECT,
+  CONF_LIVE_ZOOMABLE,
   CONF_MEDIA_GALLERY_CONTROLS_FILTER_MODE,
   CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
@@ -99,6 +110,7 @@ import {
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS,
+  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS,
   CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
   CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE,
@@ -109,6 +121,7 @@ import {
   CONF_MEDIA_VIEWER_LAZY_LOAD,
   CONF_MEDIA_VIEWER_SNAPSHOT_CLICK_PLAYS_CLIP,
   CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
+  CONF_MEDIA_VIEWER_ZOOMABLE,
   CONF_MENU_ALIGNMENT,
   CONF_MENU_BUTTON_SIZE,
   CONF_MENU_BUTTONS,
@@ -128,28 +141,24 @@ import {
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
   CONF_TIMELINE_MEDIA,
   CONF_TIMELINE_SHOW_RECORDINGS,
+  CONF_TIMELINE_STYLE,
   CONF_TIMELINE_WINDOW_SECONDS,
   CONF_VIEW_CAMERA_SELECT,
   CONF_VIEW_DARK_MODE,
   CONF_VIEW_DEFAULT,
+  CONF_VIEW_SCAN,
   CONF_VIEW_SCAN_ENABLED,
   CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
   CONF_VIEW_SCAN_UNTRIGGER_RESET,
   CONF_VIEW_SCAN_UNTRIGGER_SECONDS,
-  CONF_VIEW_SCAN,
   CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_CYCLE_CAMERA,
   CONF_VIEW_UPDATE_FORCE,
   CONF_VIEW_UPDATE_SECONDS,
   MEDIA_CHUNK_SIZE_MAX,
-  CONF_DIMENSIONS_MAX_HEIGHT,
-  CONF_DIMENSIONS_MIN_HEIGHT,
-  CONF_TIMELINE_STYLE,
-  CONF_LIVE_CONTROLS_TIMELINE_STYLE,
-  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE,
-  CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS,
 } from './const.js';
 import { localize } from './localize/localize.js';
+import { setLowPerformanceProfile } from './performance.js';
 import frigate_card_editor_style from './scss/editor.scss';
 import {
   BUTTON_SIZE_MIN,
@@ -163,17 +172,11 @@ import {
 } from './types.js';
 import { arrayMove, prettifyTitle } from './utils/basic.js';
 import { getCameraID } from './utils/camera.js';
-import { FRIGATE_ICON_SVG_PATH } from './camera-manager/frigate/icon.js';
 import {
   getEntitiesFromHASS,
   getEntityTitle,
   sideLoadHomeAssistantElements,
 } from './utils/ha';
-import { setLowPerformanceProfile } from './performance.js';
-import {
-  MOTIONEYE_ICON_SVG_PATH,
-  MOTIONEYE_ICON_SVG_VIEWBOX,
-} from './camera-manager/motioneye/icon.js';
 
 const MENU_BUTTONS = 'buttons';
 const MENU_CAMERAS = 'cameras';
@@ -1770,6 +1773,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               <div class="values">
                 ${this._renderSwitch(CONF_LIVE_PRELOAD, this._defaults.live.preload)}
                 ${this._renderSwitch(CONF_LIVE_DRAGGABLE, this._defaults.live.draggable)}
+                ${this._renderSwitch(CONF_LIVE_ZOOMABLE, this._defaults.live.zoomable)}
                 ${this._renderSwitch(CONF_LIVE_LAZY_LOAD, this._defaults.live.lazy_load)}
                 ${this._renderOptionSelector(
                   CONF_LIVE_LAZY_UNLOAD,
@@ -1904,6 +1908,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 this._defaults.media_viewer.draggable,
               )}
               ${this._renderSwitch(
+                CONF_MEDIA_VIEWER_ZOOMABLE,
+                this._defaults.media_viewer.zoomable,
+              )}
+              ${this._renderSwitch(
                 CONF_MEDIA_VIEWER_LAZY_LOAD,
                 this._defaults.media_viewer.lazy_load,
               )}
@@ -1973,6 +1981,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderOptionSelector(CONF_IMAGE_MODE, this._imageModes)}
               ${this._renderStringInput(CONF_IMAGE_URL)}
               ${this._renderNumberInput(CONF_IMAGE_REFRESH_SECONDS)}
+              ${this._renderSwitch(CONF_IMAGE_ZOOMABLE, this._defaults.image.zoomable)}
               ${this._renderMediaLayout(
                 MENU_IMAGE_LAYOUT,
                 'config.image.layout',

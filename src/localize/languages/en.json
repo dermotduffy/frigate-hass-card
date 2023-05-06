@@ -204,7 +204,8 @@
         "url": "Arbitrary image specified by URL"
       },
       "refresh_seconds": "Number of seconds after which to refresh (0=never)",
-      "url": "Static image URL for image view"
+      "url": "Static image URL for image view",
+      "zoomable": "Image can be zoomed/panned"
     },
     "live": {
       "auto_mute": "Automatically mute live cameras",
@@ -225,7 +226,8 @@
       },
       "preload": "Preload live view in the background",
       "show_image_during_load": "Show still image while the live stream is loading",
-      "transition_effect": "Live camera transition effect"
+      "transition_effect": "Live camera transition effect",
+      "zoomable": "Live cameras can be zoomed/panned"
     },
     "media_viewer": {
       "auto_mute": "Automatically mute media",
@@ -243,7 +245,8 @@
       "transition_effects": {
         "none": "No transition",
         "slide": "Slide transition"
-      }
+      },
+      "zoomable": "Media Viewer can be zoomed/panned"
     },
     "menu": {
       "alignment": "Menu alignment",

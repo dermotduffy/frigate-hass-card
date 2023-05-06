@@ -132,6 +132,7 @@ export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE =
   `${CONF_MEDIA_VIEWER}.controls.timeline.style` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS =
   `${CONF_MEDIA_VIEWER}.controls.timeline.window_seconds` as const;
+export const CONF_MEDIA_VIEWER_ZOOMABLE = `${CONF_MEDIA_VIEWER}.zoomable` as const;
 
 export const CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE =
   `${CONF_MEDIA_VIEWER}.controls.title.mode` as const;
@@ -193,6 +194,7 @@ export const CONF_LIVE_SHOW_IMAGE_DURING_LOAD =
   `${CONF_LIVE}.show_image_during_load` as const;
 export const CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS =
   `${CONF_LIVE}.microphone.disconnect_seconds` as const;
+export const CONF_LIVE_ZOOMABLE = `${CONF_LIVE}.zoomable` as const;
 
 const CONF_IMAGE = 'image' as const;
 export const CONF_IMAGE_LAYOUT_FIT = `${CONF_IMAGE}.layout.fit` as const;
@@ -201,6 +203,7 @@ export const CONF_IMAGE_LAYOUT_POSITION_Y = `${CONF_IMAGE}.layout.position.y` as
 export const CONF_IMAGE_MODE = `${CONF_IMAGE}.mode` as const;
 export const CONF_IMAGE_REFRESH_SECONDS = `${CONF_IMAGE}.refresh_seconds` as const;
 export const CONF_IMAGE_URL = `${CONF_IMAGE}.url` as const;
+export const CONF_IMAGE_ZOOMABLE = `${CONF_IMAGE}.zoomable` as const;
 
 const CONF_TIMELINE = 'timeline' as const;
 export const CONF_TIMELINE_WINDOW_SECONDS = `${CONF_TIMELINE}.window_seconds` as const;

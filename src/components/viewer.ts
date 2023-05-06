@@ -47,7 +47,6 @@ import { MediaQueriesClassifier } from '../view/media-queries-classifier';
 import { MediaQueriesResults } from '../view/media-queries-results.js';
 import { VideoContentType, ViewMedia } from '../view/media.js';
 import { View } from '../view/view.js';
-import './zoomer.js';
 import type { CarouselSelect } from './carousel.js';
 import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import { Lazyload } from './embla-plugins/lazyload.js';
@@ -683,6 +682,21 @@ export class FrigateCardViewerProvider
         this.requestUpdate();
       });
     }
+
+    if (changedProps.has('viewerConfig') && this.viewerConfig?.zoomable) {
+      import('./zoomer.js');
+    }
+  }
+
+  protected _useZoomIfRequired(template: TemplateResult): TemplateResult {
+    return this.viewerConfig?.zoomable
+      ? html` <frigate-card-zoomer
+          @frigate-card:zoom:zoomed=${() => this.setControls(false)}
+          @frigate-card:zoom:unzoomed=${() => this.setControls(true)}
+        >
+          ${template}
+        </frigate-card-zoomer>`
+      : template;
   }
 
   protected render(): TemplateResult | void {
@@ -702,68 +716,63 @@ export class FrigateCardViewerProvider
       });
     }
 
-    return html`
-      <frigate-card-zoomer
-        @frigate-card:zoom:zoomed=${() => this.setControls(false)}
-        @frigate-card:zoom:unzoomed=${() => this.setControls(true)}
-      >
-        ${ViewMediaClassifier.isVideo(this.media)
-          ? this.media.getVideoContentType() === VideoContentType.HLS
-            ? html`<frigate-card-ha-hls-player
-                ${ref(this._refFrigateCardMediaPlayer)}
-                allow-exoplayer
-                aria-label="${this.media.getTitle() ?? ''}"
-                ?autoplay=${false}
-                controls
-                muted
-                playsinline
-                title="${this.media.getTitle() ?? ''}"
-                url=${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}
-                .hass=${this.hass}
-              >
-              </frigate-card-ha-hls-player>`
-            : html`
-                <video
-                  ${ref(this._refVideoProvider)}
-                  aria-label="${this.media.getTitle() ?? ''}"
-                  title="${this.media.getTitle() ?? ''}"
-                  muted
-                  controls
-                  playsinline
-                  ?autoplay=${false}
-                  @loadedmetadata=${(ev: Event) => {
-                    if (ev.target) {
-                      hideMediaControlsTemporarily(
-                        ev.target as HTMLVideoElement,
-                        MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
-                      );
-                    }
-                  }}
-                  @loadeddata=${(ev: Event) => {
-                    dispatchMediaLoadedEvent(this, ev);
-                  }}
-                >
-                  <source
-                    src=${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}
-                    type="video/mp4"
-                  />
-                </video>
-              `
-          : html`<img
+    return this._useZoomIfRequired(html`
+      ${ViewMediaClassifier.isVideo(this.media)
+        ? this.media.getVideoContentType() === VideoContentType.HLS
+          ? html`<frigate-card-ha-hls-player
+              ${ref(this._refFrigateCardMediaPlayer)}
+              allow-exoplayer
               aria-label="${this.media.getTitle() ?? ''}"
-              src="${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}"
+              ?autoplay=${false}
+              controls
+              muted
+              playsinline
               title="${this.media.getTitle() ?? ''}"
-              @click=${() => {
-                if (this.viewerConfig?.snapshot_click_plays_clip) {
-                  this._dispatchRelatedClipView();
-                }
-              }}
-              @load=${(e: Event) => {
-                dispatchMediaLoadedEvent(this, e);
-              }}
-            />`}
-      </frigate-card-zoomer>
-    `;
+              url=${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}
+              .hass=${this.hass}
+            >
+            </frigate-card-ha-hls-player>`
+          : html`
+              <video
+                ${ref(this._refVideoProvider)}
+                aria-label="${this.media.getTitle() ?? ''}"
+                title="${this.media.getTitle() ?? ''}"
+                muted
+                controls
+                playsinline
+                ?autoplay=${false}
+                @loadedmetadata=${(ev: Event) => {
+                  if (ev.target) {
+                    hideMediaControlsTemporarily(
+                      ev.target as HTMLVideoElement,
+                      MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
+                    );
+                  }
+                }}
+                @loadeddata=${(ev: Event) => {
+                  dispatchMediaLoadedEvent(this, ev);
+                }}
+              >
+                <source
+                  src=${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}
+                  type="video/mp4"
+                />
+              </video>
+            `
+        : html`<img
+            aria-label="${this.media.getTitle() ?? ''}"
+            src="${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}"
+            title="${this.media.getTitle() ?? ''}"
+            @click=${() => {
+              if (this.viewerConfig?.snapshot_click_plays_clip) {
+                this._dispatchRelatedClipView();
+              }
+            }}
+            @load=${(e: Event) => {
+              dispatchMediaLoadedEvent(this, e);
+            }}
+          />`}
+    `);
   }
 
   static get styles(): CSSResultGroup {

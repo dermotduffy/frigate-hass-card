@@ -783,12 +783,14 @@ const viewConfigSchema = z
 const IMAGE_MODES = ['screensaver', 'camera', 'url'] as const;
 const imageConfigDefault = {
   mode: 'url' as const,
+  zoomable: true,
   ...imageBaseConfigDefault,
 };
 const imageConfigSchema = imageBaseConfigSchema
   .extend({
     mode: z.enum(IMAGE_MODES).default(imageConfigDefault.mode),
     layout: mediaLayoutConfigSchema.optional(),
+    zoomable: z.boolean().default(imageConfigDefault.zoomable),
   })
   .merge(actionsSchema)
   .default(imageConfigDefault);
@@ -936,6 +938,7 @@ const liveConfigDefault = {
   lazy_load: true,
   lazy_unload: 'never' as const,
   draggable: true,
+  zoomable: true,
   transition_effect: 'slide' as const,
   show_image_during_load: true,
   controls: {
@@ -997,6 +1000,7 @@ const liveOverridableConfigSchema = z
       .default(liveConfigDefault.show_image_during_load),
     layout: mediaLayoutConfigSchema.optional(),
     microphone: microphoneConfigSchema.default(liveConfigDefault.microphone),
+    zoomable: z.boolean().default(liveConfigDefault.zoomable),
   })
   .merge(actionsSchema);
 
@@ -1115,6 +1119,7 @@ const viewerConfigDefault = {
   auto_unmute: 'never' as const,
   lazy_load: true,
   draggable: true,
+  zoomable: true,
   transition_effect: 'slide' as const,
   snapshot_click_plays_clip: true,
   controls: {
@@ -1155,6 +1160,7 @@ const viewerConfigSchema = z
       .default(viewerConfigDefault.auto_unmute),
     lazy_load: z.boolean().default(viewerConfigDefault.lazy_load),
     draggable: z.boolean().default(viewerConfigDefault.draggable),
+    zoomable: z.boolean().default(viewerConfigDefault.zoomable),
     transition_effect: transitionEffectConfigSchema.default(
       viewerConfigDefault.transition_effect,
     ),
