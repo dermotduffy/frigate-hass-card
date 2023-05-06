@@ -181,14 +181,14 @@ import {
 const MENU_BUTTONS = 'buttons';
 const MENU_CAMERAS = 'cameras';
 const MENU_CAMERAS_DEPENDENCIES = 'cameras.dependencies';
+const MENU_CAMERAS_ENGINE = 'cameras.engine';
 const MENU_CAMERAS_FRIGATE = 'cameras.frigate';
 const MENU_CAMERAS_GO2RTC = 'cameras.go2rtc';
 const MENU_CAMERAS_IMAGE = 'cameras.image';
+const MENU_CAMERAS_LIVE_PROVIDER = 'cameras.live_provider';
 const MENU_CAMERAS_MOTIONEYE = 'cameras.motioneye';
 const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
 const MENU_CAMERAS_WEBRTC_CARD = 'cameras.webrtc_card';
-const MENU_CAMERAS_LIVE_PROVIDER = 'cameras.live_provider';
-const MENU_CAMERAS_ENGINE = 'cameras.engine';
 const MENU_IMAGE_LAYOUT = 'image.layout';
 const MENU_LIVE_CONTROLS = 'live.controls';
 const MENU_LIVE_CONTROLS_NEXT_PREVIOUS = 'live.controls.next_previous';
@@ -197,18 +197,18 @@ const MENU_LIVE_CONTROLS_TIMELINE = 'live.controls.timeline';
 const MENU_LIVE_CONTROLS_TITLE = 'live.controls.title';
 const MENU_LIVE_LAYOUT = 'live.layout';
 const MENU_LIVE_MICROPHONE = 'live.microphone';
-const MENU_MEDIA_GALLERY_CONTROLS_THUMBNAILS = 'media_gallery.controls.thumbnails';
 const MENU_MEDIA_GALLERY_CONTROLS_FILTER = 'media_gallery.controls.filter';
+const MENU_MEDIA_GALLERY_CONTROLS_THUMBNAILS = 'media_gallery.controls.thumbnails';
 const MENU_MEDIA_VIEWER_CONTROLS = 'media_viewer.controls';
 const MENU_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS = 'media_viewer.controls.next_previous';
 const MENU_MEDIA_VIEWER_CONTROLS_THUMBNAILS = 'media_viewer.controls.thumbnails';
 const MENU_MEDIA_VIEWER_CONTROLS_TIMELINE = 'media_viewer.controls.timeline';
 const MENU_MEDIA_VIEWER_CONTROLS_TITLE = 'media_viewer.controls.title';
 const MENU_MEDIA_VIEWER_LAYOUT = 'media_viewer.layout';
-const MENU_TIMELINE_CONTROLS_THUMBNAILS = 'timeline.controls.thumbnails';
 const MENU_OPTIONS = 'options';
 const MENU_PERFORMANCE_FEATURES = 'performance.features';
 const MENU_PERFORMANCE_STYLE = 'performance.style';
+const MENU_TIMELINE_CONTROLS_THUMBNAILS = 'timeline.controls.thumbnails';
 const MENU_VIEW_SCAN = 'scan';
 
 interface EditorOptionsSet {
@@ -536,6 +536,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'mjpeg', label: localize('config.cameras.go2rtc.modes.mjpeg') },
   ];
 
+  protected _microphoneButtonTypes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'momentary', label: localize('config.menu.buttons.types.momentary') },
+    { value: 'toggle', label: localize('config.menu.buttons.types.toggle') },
+  ];
+
   public setConfig(config: RawFrigateCardConfig): void {
     // Note: This does not use Zod to parse the configuration, so it may be
     // partially or completely invalid. It's more useful to have a partially
@@ -841,7 +847,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    * @param button The name of the button.
    * @returns A rendered template.
    */
-  protected _renderMenuButton(button: string): TemplateResult {
+  protected _renderMenuButton(
+    button: string,
+    additionalOptions?: TemplateResult,
+  ): TemplateResult {
     const menuButtonAlignments: EditorSelectOption[] = [
       { value: '', label: '' },
       { value: 'matching', label: localize('config.menu.buttons.alignments.matching') },
@@ -892,6 +901,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderIconSelector(`${CONF_MENU_BUTTONS}.${button}.icon`, {
                 label: localize('config.menu.buttons.icon'),
               })}
+              ${additionalOptions}
             </div>`
           : ''}
       </div>
@@ -1763,7 +1773,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderMenuButton('expand') /* */}
                 ${this._renderMenuButton('timeline')}
                 ${this._renderMenuButton('media_player')}
-                ${this._renderMenuButton('microphone')}
+                ${this._renderMenuButton(
+                  'microphone',
+                  html`${this._renderOptionSelector(
+                    `${CONF_MENU_BUTTONS}.microphone.type`,
+                    this._microphoneButtonTypes,
+                    { label: localize('config.menu.buttons.type') },
+                  )}`,
+                )}
               </div>
             `
           : ''}

@@ -620,6 +620,7 @@ class FrigateCard extends LitElement {
 
     if (this._microphoneController && cameraCapabilities?.supports2WayAudio) {
       const muted = this._microphoneController.isMuted();
+      const buttonType = this._getConfig().menu.buttons.microphone.type;
       buttons.push({
         icon: this._microphoneController.isForbidden()
           ? 'mdi:microphone-message-off'
@@ -630,12 +631,21 @@ class FrigateCard extends LitElement {
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.menu.buttons.microphone'),
         style: muted ? {} : this._getEmphasizedStyle(true),
-        start_tap_action: createFrigateCardCustomAction(
-          'microphone_unmute',
-        ) as FrigateCardCustomAction,
-        end_tap_action: createFrigateCardCustomAction(
-          'microphone_mute',
-        ) as FrigateCardCustomAction,
+        ...(buttonType === 'momentary' && {
+          start_tap_action: createFrigateCardCustomAction(
+            'microphone_unmute',
+          ) as FrigateCardCustomAction,
+          end_tap_action: createFrigateCardCustomAction(
+            'microphone_mute',
+          ) as FrigateCardCustomAction,
+        }),
+        ...(buttonType === 'toggle' && {
+          tap_action: createFrigateCardCustomAction(
+            this._microphoneController.isMuted()
+              ? 'microphone_unmute'
+              : 'microphone_mute',
+          ) as FrigateCardCustomAction,
+        }),
       });
     }
 
@@ -1577,17 +1587,24 @@ class FrigateCard extends LitElement {
         this.requestUpdate();
         break;
       case 'microphone_unmute':
-        const unmuteAndUpdate = () => {
-          this._microphoneController?.unmute();
-          this.requestUpdate();
-        };
         if (
           !this._microphoneController?.isConnected() &&
           !this._microphoneController?.isForbidden()
         ) {
-          this._microphoneController?.connect().then(unmuteAndUpdate);
+          // The connect() call is async and make take an arbitrary amount of
+          // time for the user to grant access to their microphone. With a
+          // momentary microphone button the mute call (on mouse release) may
+          // arrive before the connection is even granted, so we unmute first
+          // before the connection is made, so the mute call on release will not
+          // be 'overwritten' incorrectly.
+          this._microphoneController?.unmute();
+
+          // Must requestUpdate to show the correct microphone state in the
+          // menu.
+          this._microphoneController?.connect().then(() => this.requestUpdate());
         } else if (this._microphoneController?.isConnected()) {
-          unmuteAndUpdate();
+          this._microphoneController.unmute();
+          this.requestUpdate();
         }
         break;
       default:
