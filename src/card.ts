@@ -339,14 +339,6 @@ class FrigateCard extends LitElement {
     }
   }
 
-  // protected _runAutomations(): void {
-  //   // this._getConfig().automations?.forEach((automation) => {
-  //   //   if (this._hass && evaluateCondition(automation.conditions, this._conditionState)) {
-  //   //     frigateCardHandleAction(this, this._hass, {}, automation.actions);
-  //   //   }
-  //   // });
-  // }
-
   /**
    * Get the style of emphasized menu items.
    * @returns A StyleInfo.
