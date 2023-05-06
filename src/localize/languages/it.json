@@ -277,7 +277,12 @@
         "priority": "Priorità",
         "snapshots": "Istantanee",
         "substreams": "Flusso/i secondario/i",
-        "timeline": "Timeline"
+        "timeline": "Timeline",
+        "type": "",
+        "types": {
+          "momentary": "",
+          "toggle": ""
+        }
       },
       "position": "Posizione del menu",
       "positions": {

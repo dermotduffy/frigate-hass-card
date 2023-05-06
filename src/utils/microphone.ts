@@ -1,3 +1,5 @@
+import { errorToConsole } from "./basic";
+
 export class MicrophoneController {
   protected _stream?: MediaStream | null;
   protected _timerID: number | null = null;
@@ -19,7 +21,8 @@ export class MicrophoneController {
         audio: true,
         video: false,
       });
-    } catch (e) {
+    } catch (e: unknown) {
+      errorToConsole(e as Error);
       this._stream = null;
     }
     this._setMute();

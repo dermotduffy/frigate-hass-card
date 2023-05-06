@@ -1063,7 +1063,10 @@ const menuConfigDefault = {
     fullscreen: visibleButtonDefault,
     expand: hiddenButtonDefault,
     media_player: visibleButtonDefault,
-    microphone: hiddenButtonDefault,
+    microphone: {
+      ...hiddenButtonDefault,
+      type: 'momentary' as const,
+    },
     recordings: hiddenButtonDefault,
   },
   button_size: 40,
@@ -1100,7 +1103,13 @@ const menuConfigSchema = z
         media_player: visibleButtonSchema.default(
           menuConfigDefault.buttons.media_player,
         ),
-        microphone: hiddenButtonSchema.default(menuConfigDefault.buttons.microphone),
+        microphone: hiddenButtonSchema
+          .extend({
+            type: z
+              .enum(['momentary', 'toggle'])
+              .default(menuConfigDefault.buttons.microphone.type),
+          })
+          .default(menuConfigDefault.buttons.microphone),
         recordings: hiddenButtonSchema.default(menuConfigDefault.buttons.recordings),
       })
       .default(menuConfigDefault.buttons),

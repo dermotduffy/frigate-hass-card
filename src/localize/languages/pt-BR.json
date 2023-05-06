@@ -279,7 +279,12 @@
         "recordings": "Gravações",
         "snapshots": "Instantâneos",
         "substreams": "Substream(s)",
-        "timeline": "Linha do tempo"
+        "timeline": "Linha do tempo",
+        "type": "",
+        "types": {
+          "momentary": "",
+          "toggle": ""
+        }
       },
       "position": "Posição do menu",
       "positions": {
