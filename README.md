@@ -557,7 +557,8 @@ live:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `disconnect_seconds` | `60` | :white_check_mark: | The number of seconds after which to disconnect the microphone from the stream. `0` implies never. |
+| `always_connected` | `false` | :white_check_mark: | Whether or not to keep the microphone stream continually connected while the card is running, or only when microphone is used (default). In the latter case there'll be a connection reset when the microphone is first used -- using this option can avoid that reset.|
+| `disconnect_seconds` | `60` | :white_check_mark: | The number of seconds after microphone usage to disconnect the microphone from the stream. `0` implies never. Not relevant if `always_connected` is `true`.|
 
 See [Using 2-way audio](#using-2-way-audio) for more information about the very particular requirements that must be followed for 2-way audio to work.
 
@@ -1098,7 +1099,7 @@ menu:
 Usage:
    * The camera will always load without the microphone connected.
    * To speak, hold-down the microphone menu button.
-      * On first press, this will reset the `webrtc` connection to include 2-way audio.
+      * On first press, this will reset the `webrtc` connection to include 2-way audio (unless the `always_connected` microphone option is set to `true`).
       * Thereafter hold the microphone button down to unmute/speak, let go to mute.
    * The video will automatically reset to remove the microphone after the number of seconds specified by `disconnect_seconds` in the `microphone` configuration have elapsed since the last mute/unmute press.
 
@@ -1877,6 +1878,7 @@ live:
       x: 50
       y: 50
   microphone:
+    always_connected: false
     disconnect_seconds: 60
   actions:
     entity: light.office_main_lights

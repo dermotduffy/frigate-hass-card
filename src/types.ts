@@ -414,11 +414,13 @@ const imageBaseConfigSchema = z.object({
  */
 
 const microphoneConfigDefault = {
+  always_connected: false,
   disconnect_seconds: 60,
 };
 
 const microphoneConfigSchema = z
   .object({
+    always_connected: z.boolean().default(microphoneConfigDefault.always_connected),
     disconnect_seconds: z
       .number()
       .min(0)

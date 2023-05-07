@@ -220,6 +220,7 @@
       "lazy_load": "Live cameras are lazily loaded",
       "lazy_unload": "Live cameras are lazily unloaded",
       "microphone": {
+        "always_connected": "Always keep the microphone connected",
         "disconnect_seconds": "Seconds after which to disconnect microphone (0=never)",
         "editor_label": "Microphone",
         "enabled": "Microphone enabled"

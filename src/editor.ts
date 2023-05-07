@@ -156,6 +156,7 @@ import {
   CONF_VIEW_UPDATE_FORCE,
   CONF_VIEW_UPDATE_SECONDS,
   MEDIA_CHUNK_SIZE_MAX,
+  CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED,
 } from './const.js';
 import { localize } from './localize/localize.js';
 import { setLowPerformanceProfile } from './performance.js';
@@ -1878,6 +1879,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   { name: 'mdi:microphone' },
                   html`
                     ${this._renderNumberInput(CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS)}
+                    ${this._renderSwitch(
+                      CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED,
+                      this._defaults.live.microphone.always_connected,
+                    )}
                   `,
                 )}
               </div>
