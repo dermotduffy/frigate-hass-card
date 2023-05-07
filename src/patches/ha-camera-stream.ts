@@ -90,7 +90,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
         return html`
           <img
             @load=${(ev: Event) => {
-              dispatchMediaLoadedEvent(this, ev);
+              dispatchMediaLoadedEvent(this, ev, { player: this });
             }}
             .src=${typeof this._connected == 'undefined' || this._connected
               ? computeMJPEGStreamUrl(this.stateObj)

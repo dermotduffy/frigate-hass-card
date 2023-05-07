@@ -36,9 +36,11 @@ const GO2RTC_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
 @customElement('frigate-card-live-go2rtc-player')
 class FrigateCardGo2RTCPlayer extends VideoRTC {
   protected _microphoneStream?: MediaStream;
+  protected _containingPlayer?: FrigateCardMediaPlayer;
 
-  constructor(microphoneStream?: MediaStream) {
+  constructor(containingPlayer: FrigateCardMediaPlayer, microphoneStream?: MediaStream) {
     super();
+    this._containingPlayer = containingPlayer;
     if (microphoneStream) {
       this._microphoneStream = microphoneStream;
     }
@@ -79,7 +81,16 @@ class FrigateCardGo2RTCPlayer extends VideoRTC {
           onloadeddata.call(this.video, e);
         }
         hideMediaControlsTemporarily(this.video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
-        dispatchMediaLoadedEvent(this, this.video);
+        dispatchMediaLoadedEvent(this, this.video, {
+          player: this._containingPlayer,
+          capabilities: {
+            // 2-way audio is only supported on WebRTC connections. The state of
+            // `this._microphoneStream` is not taken into account here since
+            // that can be created after the fact -- this is purely saying that
+            // were a microphone stream available it could be used usefully.
+            supports2WayAudio: !!this.pc,
+          },
+        });
       };
 
       // Always started muted. Media may be unmuted in accordance with user
@@ -256,7 +267,7 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
       return;
     }
 
-    this._player = new FrigateCardGo2RTCPlayer(this.microphoneStream);
+    this._player = new FrigateCardGo2RTCPlayer(this, this.microphoneStream);
     this._player.src = address;
     this._player.visibilityCheck = false;
 

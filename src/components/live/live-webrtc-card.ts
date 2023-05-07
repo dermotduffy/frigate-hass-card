@@ -185,7 +185,7 @@ export class FrigateCardLiveWebRTCCard
             onloadeddata.call(video, e);
           }
           hideMediaControlsTemporarily(video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
-          dispatchMediaLoadedEvent(this, video);
+          dispatchMediaLoadedEvent(this, video, { player: this });
         };
       }
     });

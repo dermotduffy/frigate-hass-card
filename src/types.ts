@@ -1471,9 +1471,15 @@ export interface ExtendedHomeAssistant extends HomeAssistant {
   };
 }
 
+export interface MediaLoadedCapabilities {
+  supports2WayAudio?: boolean;
+}
+
 export interface MediaLoadedInfo {
   width: number;
   height: number;
+  player?: FrigateCardMediaPlayer;
+  capabilities?: MediaLoadedCapabilities;
 }
 
 export const MESSAGE_TYPE_PRIORITIES = {

@@ -1081,7 +1081,6 @@ export class FrigateCameraManagerEngine
       supportsSnapshots: !isBirdseye,
       supportsRecordings: !isBirdseye,
       supportsTimeline: !isBirdseye,
-      supports2WayAudio: cameraConfig.live_provider === 'go2rtc',
     };
   }
 

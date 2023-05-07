@@ -619,7 +619,10 @@ class FrigateCard extends LitElement {
       });
     }
 
-    if (this._microphoneController && cameraCapabilities?.supports2WayAudio) {
+    if (
+      this._microphoneController &&
+      this._currentMediaLoadedInfo?.capabilities?.supports2WayAudio
+    ) {
       const muted = this._microphoneController.isMuted();
       const buttonType = this._getConfig().menu.buttons.microphone.type;
       buttons.push({

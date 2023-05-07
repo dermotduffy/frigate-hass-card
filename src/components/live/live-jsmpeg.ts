@@ -111,7 +111,9 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
             // ignore any subsequent calls.
             if (!videoDecoded && this._jsmpegCanvasElement) {
               videoDecoded = true;
-              dispatchMediaLoadedEvent(this, this._jsmpegCanvasElement);
+              dispatchMediaLoadedEvent(this, this._jsmpegCanvasElement, {
+                player: this,
+              });
               resolve(player);
             }
           },
