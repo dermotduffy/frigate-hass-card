@@ -220,6 +220,7 @@
       "lazy_load": "As câmeras ao vivo são carregadas lentamente",
       "lazy_unload": "As câmeras ao vivo são descarregadas preguiçosamente",
       "microphone": {
+        "connect_on_load": "",
         "disconnect_seconds": "",
         "editor_label": "",
         "enabled": ""

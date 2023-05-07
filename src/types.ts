@@ -415,6 +415,7 @@ const imageBaseConfigSchema = z.object({
 
 const microphoneConfigDefault = {
   disconnect_seconds: 60,
+  connect_on_load: false,
 };
 
 const microphoneConfigSchema = z
@@ -423,6 +424,7 @@ const microphoneConfigSchema = z
       .number()
       .min(0)
       .default(microphoneConfigDefault.disconnect_seconds),
+    connect_on_load: z.boolean().default(microphoneConfigDefault.connect_on_load),
   })
   .default(microphoneConfigDefault);
 export type MicrophoneConfig = z.infer<typeof microphoneConfigSchema>;

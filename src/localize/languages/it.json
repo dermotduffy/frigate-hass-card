@@ -220,6 +220,7 @@
       "lazy_load": "Le telecamere dal vivo sono pigramente cariche",
       "lazy_unload": "Le telecamere dal vivo sono pigramente non caricate",
       "microphone": {
+        "connect_on_load": "",
         "disconnect_seconds": "",
         "editor_label": "",
         "enabled": ""

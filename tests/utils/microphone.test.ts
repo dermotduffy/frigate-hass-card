@@ -15,6 +15,7 @@ describe('MicrophoneController', () => {
   });
 
   afterEach(() => {
+    vi.resetAllMocks();
     vi.unstubAllGlobals;
   });
 
@@ -48,6 +49,8 @@ describe('MicrophoneController', () => {
   });
 
   it('should be forbidden when permission denied', async () => {
+    // Don't actually log messages to the console during the test.
+    vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
     const controller = new MicrophoneController();
     navigatorMock.mediaDevices.getUserMedia.mockRejectedValue(new Error());
     await controller.connect();

@@ -152,6 +152,7 @@ enum InitializationAspect {
   SIDE_LOAD_ELEMENTS = 'side-load-elements',
   MEDIA_PLAYERS = 'media-players',
   CAMERAS = 'cameras',
+  MICROPHONE = 'microphone',
 }
 
 /**
@@ -1009,8 +1010,6 @@ class FrigateCard extends LitElement {
       setPerformanceCSSStyles(this, this._cardWideConfig?.performance);
     }
 
-    this._initializeBackground();
-
     if (changedProps.has('_view')) {
       this._setPropertiesForExpandedMode();
     }
@@ -1029,6 +1028,9 @@ class FrigateCard extends LitElement {
         this._getConfig().live.microphone.disconnect_seconds,
       );
     }
+
+    // Must be called after the microphoneController is created.
+    this._initializeBackground();
   }
 
   protected _setPropertiesForMinMaxHeight(): void {
@@ -1204,6 +1206,10 @@ class FrigateCard extends LitElement {
     }
   }
 
+  protected async _initializeMicrophone(): Promise<void> {
+    await this._microphoneController?.connect();
+  }
+
   protected async _initializeMediaPlayers(hass: HomeAssistant): Promise<void> {
     const isValidMediaPlayer = (entityID: string): boolean => {
       if (entityID.startsWith('media_player.')) {
@@ -1299,19 +1305,33 @@ class FrigateCard extends LitElement {
   protected _initializeBackground(): void {
     const hass = this._hass;
     const config = this._getConfig();
-    const needMediaPlayers = config.menu.buttons.media_player.enabled;
-    if (!hass || !config || !needMediaPlayers) {
+    if (!hass || !config) {
       return;
     }
 
-    if (this._initializer.isInitialized(InitializationAspect.MEDIA_PLAYERS)) {
+    if (
+      this._initializer.isInitializedMultiple([
+        ...(config.menu.buttons.media_player.enabled
+          ? [InitializationAspect.MEDIA_PLAYERS]
+          : []),
+        ...(config.live.microphone.connect_on_load
+          ? [InitializationAspect.MICROPHONE]
+          : []),
+      ])
+    ) {
       return;
     }
 
     this._initializer
       .initializeMultipleIfNecessary({
-        [InitializationAspect.MEDIA_PLAYERS]: async () =>
-          await this._initializeMediaPlayers(hass),
+        ...(config.menu.buttons.media_player.enabled && {
+          [InitializationAspect.MEDIA_PLAYERS]: async () =>
+            await this._initializeMediaPlayers(hass),
+        }),
+        ...(config.live.microphone.connect_on_load && {
+          [InitializationAspect.MICROPHONE]: async () =>
+            await this._initializeMicrophone(),
+        }),
       })
       .then((initialized) => {
         if (initialized) {
@@ -1601,7 +1621,7 @@ class FrigateCard extends LitElement {
 
           // Must requestUpdate to show the correct microphone state in the
           // menu.
-          this._microphoneController?.connect().then(() => this.requestUpdate());
+          this._initializeMicrophone().then(() => this.requestUpdate());
         } else if (this._microphoneController?.isConnected()) {
           this._microphoneController.unmute();
           this.requestUpdate();

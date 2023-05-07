@@ -40,7 +40,7 @@ class FrigateCardGo2RTCPlayer extends VideoRTC {
   constructor(microphoneStream?: MediaStream) {
     super();
     if (microphoneStream) {
-      this._microphoneStream = this._microphoneStream;
+      this._microphoneStream = microphoneStream;
     }
   }
 
