@@ -1024,8 +1024,11 @@ class FrigateCard extends LitElement {
       oldConfig?.live.microphone.disconnect_seconds !==
         newConfig.live.microphone.disconnect_seconds
     ) {
+      const config = this._getConfig();
       this._microphoneController = new MicrophoneController(
-        this._getConfig().live.microphone.disconnect_seconds,
+        config.live.microphone.always_connected
+          ? undefined
+          : config.live.microphone.disconnect_seconds,
       );
     }
 
@@ -1314,7 +1317,7 @@ class FrigateCard extends LitElement {
         ...(config.menu.buttons.media_player.enabled
           ? [InitializationAspect.MEDIA_PLAYERS]
           : []),
-        ...(config.live.microphone.connect_on_load
+        ...(config.live.microphone.always_connected
           ? [InitializationAspect.MICROPHONE]
           : []),
       ])
@@ -1328,7 +1331,7 @@ class FrigateCard extends LitElement {
           [InitializationAspect.MEDIA_PLAYERS]: async () =>
             await this._initializeMediaPlayers(hass),
         }),
-        ...(config.live.microphone.connect_on_load && {
+        ...(config.live.microphone.always_connected && {
           [InitializationAspect.MICROPHONE]: async () =>
             await this._initializeMicrophone(),
         }),
