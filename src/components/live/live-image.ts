@@ -1,10 +1,11 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
+import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import liveImageStyle from '../../scss/live-image.scss';
 import { CameraConfig, FrigateCardMediaPlayer } from '../../types.js';
-import { getStateObjOrDispatchError } from './live.js';
 import '../image.js';
+import { getStateObjOrDispatchError } from './live.js';
 
 @customElement('frigate-card-live-image')
 export class FrigateCardLiveImage extends LitElement implements FrigateCardMediaPlayer {
@@ -14,37 +15,34 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
 
-  @state()
-  protected _playing = true;
+  protected _refImage: Ref<Element & FrigateCardMediaPlayer> = createRef();
 
   public async play(): Promise<void> {
-    this._playing = true;
+    await this._refImage.value?.play();
   }
 
   public async pause(): Promise<void> {
-    this._playing = false;
+    await this._refImage.value?.pause();
   }
 
   public async mute(): Promise<void> {
-    // Not implemented.
+    await this._refImage.value?.mute();
   }
 
   public async unmute(): Promise<void> {
-    // Not implemented.
+    await this._refImage.value?.unmute();
   }
 
   public isMuted(): boolean {
-    return true;
+    return !!this._refImage.value?.isMuted();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async seek(_seconds: number): Promise<void> {
-    // Not implemented.
+  public async seek(seconds: number): Promise<void> {
+    await this._refImage.value?.seek(seconds);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async setControls(_controls: boolean): Promise<void> {
-    // Not implemented.
+  public async setControls(controls: boolean): Promise<void> {
+    await this._refImage.value?.setControls(controls);
   }
 
   protected render(): TemplateResult | void {
@@ -55,16 +53,14 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
     getStateObjOrDispatchError(this, this.hass, this.cameraConfig);
 
     return html` <frigate-card-image
+      ${ref(this._refImage)}
       .imageConfig=${{
         mode: this.cameraConfig.image.url ? ('url' as const) : ('camera' as const),
-        refresh_seconds: this._playing ? this.cameraConfig.image.refresh_seconds : 0,
+        refresh_seconds: this.cameraConfig.image.refresh_seconds,
         url: this.cameraConfig.image.url,
 
-        // The live provider will take care of zoom.
+        // The live provider will take care of zoom and layout options.
         zoomable: false,
-
-        // Don't need to pass layout options as FrigateCardLiveProvider has
-        // already taken care of this for us.
       }}
       .hass=${this.hass}
       .cameraConfig=${this.cameraConfig}

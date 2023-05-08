@@ -93,7 +93,7 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
             hideMediaControlsTemporarily(this._video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
           }}
           @loadeddata=${(e) => {
-            dispatchMediaLoadedEvent(this, e);
+            dispatchMediaLoadedEvent(this, e, { player: this });
           }}
         ></video>
       `;

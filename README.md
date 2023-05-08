@@ -406,6 +406,8 @@ See the [fully expanded menu configuration example](#config-expanded-menu) for h
 | `button_size` | 40 | :white_check_mark: | The size of the menu buttons in pixels. Must be >= `20`.|
 | `buttons` | | :white_check_mark: | Whether to show or hide built-in buttons. See below. |
 
+<a name="menu-buttons"></a>
+
 #### Menu Options: Buttons
 
 All configuration is under:
@@ -433,6 +435,7 @@ menu:
 | `expand` | :white_check_mark: | The `expand` menu button: expand the card into a popup/dialog. |
 | `timeline` | :white_check_mark: | The `timeline` menu button: show the event timeline. |
 | `media_player` | :white_check_mark: | The `media_player` menu button: sends the visible media to a remote media player. Supports Frigate clips, snapshots and live camera (only for cameras that specify a `camera_entity` and only using the default HA stream (equivalent to the `ha` live provider). `jsmpeg` or `webrtc-card` are not supported, although live can still be played as long as `camera_entity` is specified. In the player list, a `tap` will send the media to the player, a `hold` will stop the media on the player. |
+| `microphone` | :white_check_mark: | The `microphone` button allows usage of 2-way audio in certain configurations. See [Using 2-way audio](#using-2-way-audio). |
 
 ##### Configuration on each button
 
@@ -3862,6 +3865,12 @@ microphone. If this does not work correctly with 2-way audio then your issue is
 with `go2rtc` not with the card. In this case, you could file an issue in [that
 repo](https://github.com/AlexxIT/go2rtc/issues) with debugging information as
 appropriate.
+
+### Microphone menu button does not appear
+
+The microphone menu button will only appear if both enabled (see [Menu Button Options](#menu-buttons))
+and if the media that is currently loaded supports 2-way audio. See
+[Using 2-way audio](#using-2-way-audio) for more information about the requirements that must be followed.
 
 ### Static image URL with credentials doesn't load
 

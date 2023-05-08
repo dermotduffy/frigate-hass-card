@@ -750,7 +750,7 @@ export class FrigateCardViewerProvider
                   }
                 }}
                 @loadeddata=${(ev: Event) => {
-                  dispatchMediaLoadedEvent(this, ev);
+                  dispatchMediaLoadedEvent(this, ev, { player: this });
                 }}
               >
                 <source
@@ -768,8 +768,8 @@ export class FrigateCardViewerProvider
                 this._dispatchRelatedClipView();
               }
             }}
-            @load=${(e: Event) => {
-              dispatchMediaLoadedEvent(this, e);
+            @load=${(ev: Event) => {
+              dispatchMediaLoadedEvent(this, ev, { player: this });
             }}
           />`}
     `);
