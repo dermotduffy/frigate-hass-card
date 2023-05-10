@@ -949,7 +949,7 @@ item, that has both of the following parameters set:
 
 <a name="automation-options"></a>
 
-### Automation Optionns
+### Automation Options
 
 All configuration is a list under:
 
