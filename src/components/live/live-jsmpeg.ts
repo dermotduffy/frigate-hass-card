@@ -2,6 +2,7 @@ import JSMpeg from '@cycjimmy/jsmpeg-player';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
+import { CameraEndpoints } from '../../camera-manager/types.js';
 import { renderProgressIndicator } from '../../components/message.js';
 import { localize } from '../../localize/localize.js';
 import liveJSMPEGStyle from '../../scss/live-jsmpeg.scss';
@@ -9,12 +10,15 @@ import {
   CameraConfig,
   CardWideConfig,
   ExtendedHomeAssistant,
-  FrigateCardMediaPlayer,
+  FrigateCardMediaPlayer
 } from '../../types.js';
-import { dispatchMediaLoadedEvent } from '../../utils/media-info.js';
-import { dispatchErrorMessageEvent } from '../message.js';
-import { CameraEndpoints } from '../../camera-manager/types.js';
 import { getEndpointAddressOrDispatchError } from '../../utils/endpoint.js';
+import {
+  dispatchMediaLoadedEvent,
+  dispatchMediaPauseEvent,
+  dispatchMediaPlayEvent
+} from '../../utils/media-info.js';
+import { dispatchErrorMessageEvent } from '../message.js';
 
 // Number of seconds a signed URL is valid for.
 const JSMPEG_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -75,6 +79,10 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
     // Not implemented.
   }
 
+  public isPaused(): boolean {
+    return this._jsmpegVideoPlayer?.player?.paused ?? true;
+  }
+
   /**
    * Create a JSMPEG player.
    * @param url The URL for the player to connect to.
@@ -113,10 +121,15 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
               videoDecoded = true;
               dispatchMediaLoadedEvent(this, this._jsmpegCanvasElement, {
                 player: this,
+                capabilities: {
+                  supportsPause: true,
+                },
               });
               resolve(player);
             }
           },
+          onPlay: () => dispatchMediaPlayEvent(this),
+          onPause: () => dispatchMediaPauseEvent(this),
         },
       );
     });

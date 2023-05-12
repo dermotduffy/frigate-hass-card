@@ -276,6 +276,8 @@
         "image": "Imagem",
         "live": "Ao vivo",
         "media_player": "Enviar para o reprodutor de mídia",
+        "mute": "",
+        "play": "",
         "priority": "Prioridade",
         "recordings": "Gravações",
         "snapshots": "Instantâneos",

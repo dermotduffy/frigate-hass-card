@@ -77,6 +77,10 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       }
     }
 
+    public isPaused(): boolean {
+      return this._player?.isPaused() ?? true;
+    }
+    
     /**
      * Master render method.
      * @returns A rendered template.

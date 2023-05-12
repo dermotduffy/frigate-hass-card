@@ -4,27 +4,33 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS,
+  unsafeCSS
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { CameraEndpoints } from '../../camera-manager/types.js';
+import { VideoRTC } from '../../external/go2rtc/video-rtc';
+import { localize } from '../../localize/localize';
 import liveMSEStyle from '../../scss/live-go2rtc.scss';
 import {
   CameraConfig,
   ExtendedHomeAssistant,
   FrigateCardMediaPlayer,
-  MicrophoneConfig,
+  MicrophoneConfig
 } from '../../types.js';
-import '../image.js';
+import { mayHaveAudio } from '../../utils/audio';
+import { getEndpointAddressOrDispatchError } from '../../utils/endpoint';
 import {
   hideMediaControlsTemporarily,
-  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
+  MEDIA_LOAD_CONTROLS_HIDE_SECONDS
 } from '../../utils/media';
-import { dispatchMediaLoadedEvent } from '../../utils/media-info';
-import { localize } from '../../localize/localize';
+import {
+  dispatchMediaLoadedEvent,
+  dispatchMediaPauseEvent,
+  dispatchMediaPlayEvent,
+  dispatchMediaVolumeChangeEvent
+} from '../../utils/media-info';
+import '../image.js';
 import { dispatchErrorMessageEvent } from '../message';
-import { VideoRTC } from '../../external/go2rtc/video-rtc';
-import { CameraEndpoints } from '../../camera-manager/types.js';
-import { getEndpointAddressOrDispatchError } from '../../utils/endpoint';
 
 // Note (2023-02-18): Depending on the behavior of the player / browser is
 // possible this URL will need to be re-signed in order to avoid HA spamming
@@ -75,11 +81,7 @@ class FrigateCardGo2RTCPlayer extends VideoRTC {
     super.oninit();
 
     if (this.video) {
-      const onloadeddata = this.video.onloadeddata;
-      this.video.onloadeddata = (e) => {
-        if (onloadeddata) {
-          onloadeddata.call(this.video, e);
-        }
+      this.video.onloadeddata = () => {
         hideMediaControlsTemporarily(this.video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
         dispatchMediaLoadedEvent(this, this.video, {
           player: this._containingPlayer,
@@ -89,10 +91,15 @@ class FrigateCardGo2RTCPlayer extends VideoRTC {
             // that can be created after the fact -- this is purely saying that
             // were a microphone stream available it could be used usefully.
             supports2WayAudio: !!this.pc,
+            supportsPause: true,
+            hasAudio: mayHaveAudio(this.video),
           },
         });
       };
-
+      this.video.onvolumechange = () => dispatchMediaVolumeChangeEvent(this),
+      this.video.onplay = () => dispatchMediaPlayEvent(this),
+      this.video.onpause = () => dispatchMediaPauseEvent(this),
+      
       // Always started muted. Media may be unmuted in accordance with user
       // configuration.
       this.video.muted = true;
@@ -231,6 +238,10 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
     if (this._player?.video) {
       this._player.video.controls = controls;
     }
+  }
+
+  public isPaused(): boolean {
+    return this._player?.video.paused ?? true;
   }
 
   disconnectedCallback(): void {

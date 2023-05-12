@@ -275,6 +275,8 @@
         "image": "Immagine",
         "live": "Abitare",
         "media_player": "Invia a Media Player",
+        "mute": "",
+        "play": "",
         "priority": "Priorità",
         "snapshots": "Istantanee",
         "substreams": "Flusso/i secondario/i",

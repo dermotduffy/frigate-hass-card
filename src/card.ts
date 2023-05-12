@@ -714,6 +714,34 @@ class FrigateCard extends LitElement {
       });
     }
 
+    if (this._currentMediaLoadedInfo && this._currentMediaLoadedInfo.player) {
+      if (this._currentMediaLoadedInfo.capabilities?.supportsPause) {
+        const paused = this._currentMediaLoadedInfo.player.isPaused();
+        buttons.push({
+          icon: paused ? 'mdi:play' : 'mdi:pause',
+          ...this._getConfig().menu.buttons.play,
+          type: 'custom:frigate-card-menu-icon',
+          title: localize('config.menu.buttons.play'),
+          tap_action: createFrigateCardCustomAction(
+            paused ? 'play' : 'pause',
+          ) as FrigateCardCustomAction,
+        });
+      }
+
+      if (this._currentMediaLoadedInfo.capabilities?.hasAudio) {
+        const muted = this._currentMediaLoadedInfo.player.isMuted();
+        buttons.push({
+          icon: muted ? 'mdi:volume-off' : 'mdi:volume-high',
+          ...this._getConfig().menu.buttons.mute,
+          type: 'custom:frigate-card-menu-icon',
+          title: localize('config.menu.buttons.mute'),
+          tap_action: createFrigateCardCustomAction(
+            muted ? 'unmute' : 'mute',
+          ) as FrigateCardCustomAction,
+        });
+      }
+    }
+
     const styledDynamicButtons = this._dynamicMenuButtons.map((button) => ({
       style: this._getStyleFromActions(button),
       ...button,
@@ -1633,6 +1661,18 @@ class FrigateCard extends LitElement {
           this.requestUpdate();
         }
         break;
+      case 'mute':
+        this._currentMediaLoadedInfo?.player?.mute();
+        break;
+      case 'unmute':
+        this._currentMediaLoadedInfo?.player?.unmute();
+        break;
+      case 'play':
+        this._currentMediaLoadedInfo?.player?.play();
+        break;
+      case 'pause':
+        this._currentMediaLoadedInfo?.player?.pause();
+        break;
       default:
         console.warn(`Frigate card received unknown card action: ${action}`);
     }
@@ -2157,6 +2197,15 @@ class FrigateCard extends LitElement {
       @frigate-card:view:change-context=${this._addViewContextHandler.bind(this)}
       @frigate-card:media:loaded=${this._mediaLoadedHandler.bind(this)}
       @frigate-card:media:unloaded=${this._mediaUnloadedHandler.bind(this)}
+      @frigate-card:media:volumechange=${
+        () => this.requestUpdate() /* Refresh mute menu button */
+      }
+      @frigate-card:media:play=${
+        () => this.requestUpdate() /* Refresh play/pause menu button */
+      }
+      @frigate-card:media:pause=${
+        () => this.requestUpdate() /* Refresh play/pause menu button */
+      }
       @frigate-card:render=${() => this.requestUpdate()}
     >
       ${renderMenuAbove ? this._renderMenu() : ''}
