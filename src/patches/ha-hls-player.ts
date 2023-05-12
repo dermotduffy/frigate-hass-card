@@ -9,17 +9,23 @@
 // available as compilation time.
 // ====================================================================
 
-import { css, CSSResultGroup, html, unsafeCSS, TemplateResult } from 'lit';
+import { CSSResultGroup, TemplateResult, css, html, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
 import { dispatchErrorMessageEvent } from '../components/message.js';
-import { dispatchMediaLoadedEvent } from '../utils/media-info.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
-import {
-  hideMediaControlsTemporarily,
-  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
-} from '../utils/media.js';
 import { FrigateCardMediaPlayer } from '../types.js';
+import { mayHaveAudio } from '../utils/audio.js';
+import {
+  dispatchMediaLoadedEvent,
+  dispatchMediaPauseEvent,
+  dispatchMediaPlayEvent,
+  dispatchMediaVolumeChangeEvent,
+} from '../utils/media-info.js';
+import {
+  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
+  hideMediaControlsTemporarily,
+} from '../utils/media.js';
 
 customElements.whenDefined('ha-hls-player').then(() => {
   @customElement('frigate-card-ha-hls-player')
@@ -73,6 +79,10 @@ customElements.whenDefined('ha-hls-player').then(() => {
       }
     }
 
+    public isPaused(): boolean {
+      return this._video?.paused ?? true;
+    }
+
     // =====================================================================================
     // Minor modifications from:
     // - https://github.com/home-assistant/frontend/blob/dev/src/components/ha-hls-player.ts
@@ -96,9 +106,18 @@ customElements.whenDefined('ha-hls-player').then(() => {
           @loadedmetadata=${() => {
             hideMediaControlsTemporarily(this._video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
           }}
-          @loadeddata=${(e) => {
-            dispatchMediaLoadedEvent(this, e, { player: this });
+          @loadeddata=${(ev) => {
+            dispatchMediaLoadedEvent(this, ev, {
+              player: this,
+              capabilities: {
+                supportsPause: true,
+                hasAudio: mayHaveAudio(this._video),
+              },
+            });
           }}
+          @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}
+          @play=${() => dispatchMediaPlayEvent(this)}
+          @pause=${() => dispatchMediaPauseEvent(this)}
         ></video>
       `;
     }

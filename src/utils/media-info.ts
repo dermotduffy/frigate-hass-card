@@ -69,6 +69,18 @@ export function dispatchMediaLoadedEvent(
   }
 }
 
+export function dispatchMediaVolumeChangeEvent(target: HTMLElement): void {
+  dispatchFrigateCardEvent(target, 'media:volumechange');
+}
+
+export function dispatchMediaPlayEvent(target: HTMLElement): void {
+  dispatchFrigateCardEvent(target, 'media:play');
+}
+
+export function dispatchMediaPauseEvent(target: HTMLElement): void {
+  dispatchFrigateCardEvent(target, 'media:pause');
+}
+
 /**
  * Dispatch a pre-existing MediaLoadedInfo object as an event.
  * @param element The element to send the event.

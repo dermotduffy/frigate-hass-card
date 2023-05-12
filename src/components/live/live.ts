@@ -787,6 +787,10 @@ export class FrigateCardLiveProvider
     this._refProvider.value?.setControls(controls);
   }
 
+  public isPaused(): boolean {
+    return this._refProvider.value?.isPaused() ?? true;
+  }
+
   /**
    * Get the fully resolved live provider.
    * @returns A live provider (that is not 'auto').

@@ -45,6 +45,10 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
     await this._refImage.value?.setControls(controls);
   }
 
+  public isPaused(): boolean {
+    return this._refImage.value?.isPaused() ?? true;
+  }
+
   protected render(): TemplateResult | void {
     if (!this.hass || !this.cameraConfig) {
       return;

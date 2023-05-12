@@ -10,7 +10,12 @@ import {
   FrigateCardError,
   FrigateCardMediaPlayer,
 } from '../../types.js';
-import { dispatchMediaLoadedEvent } from '../../utils/media-info.js';
+import {
+  dispatchMediaLoadedEvent,
+  dispatchMediaPauseEvent,
+  dispatchMediaPlayEvent,
+  dispatchMediaVolumeChangeEvent,
+} from '../../utils/media-info.js';
 import { dispatchErrorMessageEvent, renderProgressIndicator } from '../message.js';
 import { renderTask } from '../../utils/task.js';
 import {
@@ -18,6 +23,7 @@ import {
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
 } from '../../utils/media.js';
 import { CameraEndpoints } from '../../camera-manager/types.js';
+import { mayHaveAudio } from '../../utils/audio.js';
 
 // Create a wrapper for AlexxIT's WebRTC card
 //  - https://github.com/AlexxIT/WebRTC
@@ -78,6 +84,10 @@ export class FrigateCardLiveWebRTCCard
     if (player) {
       player.controls = controls;
     }
+  }
+
+  public isPaused(): boolean {
+    return this._getPlayer()?.paused ?? true;
   }
 
   connectedCallback(): void {
@@ -178,15 +188,19 @@ export class FrigateCardLiveWebRTCCard
     this.updateComplete.then(() => {
       const video = this._getPlayer();
       if (video) {
-        const onloadeddata = video.onloadeddata;
-
-        video.onloadeddata = (e) => {
-          if (onloadeddata) {
-            onloadeddata.call(video, e);
-          }
+        video.onloadeddata = () => {
           hideMediaControlsTemporarily(video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
-          dispatchMediaLoadedEvent(this, video, { player: this });
+          dispatchMediaLoadedEvent(this, video, {
+            player: this,
+            capabilities: {
+              supportsPause: true,
+              hasAudio: mayHaveAudio(video),
+            },
+          });
         };
+        video.onplay = () => dispatchMediaPlayEvent(this);
+        video.onpause = () => dispatchMediaPauseEvent(this);
+        video.onvolumechange = () => dispatchMediaVolumeChangeEvent(this);
       }
     });
   }

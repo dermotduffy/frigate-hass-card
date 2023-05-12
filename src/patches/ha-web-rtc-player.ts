@@ -15,7 +15,13 @@ import { query } from 'lit/decorators/query.js';
 import { dispatchErrorMessageEvent } from '../components/message.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
 import { FrigateCardMediaPlayer } from '../types.js';
-import { dispatchMediaLoadedEvent } from '../utils/media-info.js';
+import { mayHaveAudio } from '../utils/audio.js';
+import {
+  dispatchMediaLoadedEvent,
+  dispatchMediaPauseEvent,
+  dispatchMediaPlayEvent,
+  dispatchMediaVolumeChangeEvent,
+} from '../utils/media-info.js';
 import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
@@ -72,6 +78,10 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
       }
     }
 
+    public isPaused(): boolean {
+      return this._video?.paused ?? true;
+    }
+
     // =====================================================================================
     // Minor modifications from:
     // - https://github.com/home-assistant/frontend/blob/dev/src/components/ha-web-rtc-player.ts
@@ -92,9 +102,18 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
           @loadedmetadata=${() => {
             hideMediaControlsTemporarily(this._video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
           }}
-          @loadeddata=${(e) => {
-            dispatchMediaLoadedEvent(this, e, { player: this });
+          @loadeddata=${(ev) => {
+            dispatchMediaLoadedEvent(this, ev, {
+              player: this,
+              capabilities: {
+                supportsPause: true,
+                hasAudio: mayHaveAudio(this._video),
+              },
+            });
           }}
+          @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}
+          @play=${() => dispatchMediaPlayEvent(this)}
+          @pause=${() => dispatchMediaPauseEvent(this)}
         ></video>
       `;
     }

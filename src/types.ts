@@ -219,15 +219,19 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'image',
   'live',
   'menu_toggle',
+  'mute',
   'live_substream_on',
   'live_substream_off',
   'microphone_mute',
   'microphone_unmute',
+  'play',
+  'pause',
   'recording',
   'recordings',
   'snapshot',
   'snapshots',
   'timeline',
+  'unmute',
 ] as const;
 const FRIGATE_CARD_ACTIONS = [
   ...FRIGATE_CARD_GENERAL_ACTIONS,
@@ -1069,6 +1073,8 @@ const menuConfigDefault = {
       ...hiddenButtonDefault,
       type: 'momentary' as const,
     },
+    mute: hiddenButtonDefault,
+    play: hiddenButtonDefault,
     recordings: hiddenButtonDefault,
   },
   button_size: 40,
@@ -1113,6 +1119,8 @@ const menuConfigSchema = z
           })
           .default(menuConfigDefault.buttons.microphone),
         recordings: hiddenButtonSchema.default(menuConfigDefault.buttons.recordings),
+        mute: hiddenButtonSchema.default(menuConfigDefault.buttons.mute),
+        play: hiddenButtonSchema.default(menuConfigDefault.buttons.play),
       })
       .default(menuConfigDefault.buttons),
     button_size: z.number().min(BUTTON_SIZE_MIN).default(menuConfigDefault.button_size),
@@ -1473,6 +1481,8 @@ export interface ExtendedHomeAssistant extends HomeAssistant {
 
 export interface MediaLoadedCapabilities {
   supports2WayAudio?: boolean;
+  supportsPause?: boolean;
+  hasAudio?: boolean;
 }
 
 export interface MediaLoadedInfo {
@@ -1517,6 +1527,7 @@ export interface FrigateCardMediaPlayer {
   isMuted(): boolean;
   seek(seconds: number): Promise<void>;
   setControls(controls: boolean): Promise<void>;
+  isPaused(): boolean;
 }
 
 export interface CardHelpers {

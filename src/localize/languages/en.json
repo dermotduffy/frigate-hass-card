@@ -277,6 +277,8 @@
         "live": "Live",
         "media_player": "Send to media player",
         "microphone": "Microphone",
+        "mute": "Mute / Unmute",
+        "play": "Play / Pause",
         "priority": "Priority",
         "recordings": "Recordings",
         "snapshots": "Snapshots",

@@ -6,7 +6,7 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS,
+  unsafeCSS
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
@@ -25,22 +25,23 @@ import {
   FrigateCardMediaPlayer,
   MediaLoadedInfo,
   TransitionEffect,
-  ViewerConfig,
+  ViewerConfig
 } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
+import { mayHaveAudio } from '../utils/audio.js';
 import { contentsChanged, errorToConsole } from '../utils/basic.js';
 import { canonicalizeHAURL } from '../utils/ha/index.js';
 import { ResolvedMediaCache, resolveMedia } from '../utils/ha/resolved-media.js';
-import { dispatchMediaLoadedEvent } from '../utils/media-info.js';
+import { dispatchMediaLoadedEvent, dispatchMediaPauseEvent, dispatchMediaPlayEvent, dispatchMediaVolumeChangeEvent } from '../utils/media-info.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
 import {
   changeViewToRecentEventsForCameraAndDependents,
-  changeViewToRecentRecordingForCameraAndDependents,
+  changeViewToRecentRecordingForCameraAndDependents
 } from '../utils/media-to-view.js';
 import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
-  playMediaMutingIfNecessary,
+  playMediaMutingIfNecessary
 } from '../utils/media.js';
 import { ViewMediaClassifier } from '../view/media-classifier';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
@@ -52,7 +53,7 @@ import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import { Lazyload } from './embla-plugins/lazyload.js';
 import {
   FrigateCardMediaCarousel,
-  wrapMediaLoadedEventForCarousel,
+  wrapMediaLoadedEventForCarousel
 } from './media-carousel.js';
 import './next-prev-control.js';
 import './surround.js';
@@ -610,6 +611,15 @@ export class FrigateCardViewerProvider
     }
   }
 
+  public isPaused(): boolean {
+    if (this._refFrigateCardMediaPlayer.value) {
+      return this._refFrigateCardMediaPlayer.value.isPaused();
+    } else if (this._refVideoProvider.value) {
+      return this._refVideoProvider.value.paused;
+    }
+    return true;
+  }
+
   /**
    * Dispatch a clip view that matches the current (snapshot) query.
    */
@@ -750,8 +760,17 @@ export class FrigateCardViewerProvider
                   }
                 }}
                 @loadeddata=${(ev: Event) => {
-                  dispatchMediaLoadedEvent(this, ev, { player: this });
+                  dispatchMediaLoadedEvent(this, ev, {
+                    player: this,
+                    capabilities: {
+                      supportsPause: true,
+                      hasAudio: mayHaveAudio(ev.target as HTMLVideoElement),
+                    },
+                  });
                 }}
+                @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}
+                @play=${() => dispatchMediaPlayEvent(this)}
+                @pause=${() => dispatchMediaPauseEvent(this)}
               >
                 <source
                   src=${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}

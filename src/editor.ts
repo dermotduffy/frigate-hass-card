@@ -1782,6 +1782,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     { label: localize('config.menu.buttons.type') },
                   )}`,
                 )}
+                ${this._renderMenuButton('play')}
+                ${this._renderMenuButton('mute')}
               </div>
             `
           : ''}

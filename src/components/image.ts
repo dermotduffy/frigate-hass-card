@@ -6,7 +6,7 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS,
+  unsafeCSS
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
@@ -20,13 +20,15 @@ import {
   CameraConfig,
   FrigateCardMediaPlayer,
   ImageViewConfig,
-  MediaLoadedInfo,
+  MediaLoadedInfo
 } from '../types.js';
 import { contentsChanged } from '../utils/basic.js';
 import { isHassDifferent } from '../utils/ha';
 import {
   createMediaLoadedInfo,
   dispatchExistingMediaLoadedInfoAsEvent,
+  dispatchMediaPauseEvent,
+  dispatchMediaPlayEvent
 } from '../utils/media-info.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
 import { View } from '../view/view.js';
@@ -89,6 +91,10 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
     // Not implemented.
   }
 
+  public isPaused(): boolean {
+    return !this._cachedValueController?.hasTimer() ?? true;
+  }
+
   /**
    * Get the camera entity for the current camera configuration.
    * @returns The entity or undefined if no camera entity is available.
@@ -143,6 +149,8 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
           this,
           this.imageConfig.refresh_seconds,
           this._getImageSource.bind(this),
+          () => dispatchMediaPlayEvent(this),
+          () => dispatchMediaPauseEvent(this),
         );
       }
       updateElementStyleFromMediaLayoutConfig(this, this.imageConfig?.layout);
@@ -285,7 +293,12 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
           ${ref(this._refImage)}
           src=${live(src)}
           @load=${(ev: Event) => {
-            const mediaLoadedInfo = createMediaLoadedInfo(ev, { player: this });
+            const mediaLoadedInfo = createMediaLoadedInfo(ev, {
+              player: this,
+              capabilities: {
+                supportsPause: !!this.imageConfig?.refresh_seconds,
+              },
+            });
             // Avoid the media being reported as repeatedly loading unless the
             // media info changes.
             if (mediaLoadedInfo && !isEqual(this._mediaLoadedInfo, mediaLoadedInfo)) {
