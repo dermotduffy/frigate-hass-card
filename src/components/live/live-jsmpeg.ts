@@ -10,13 +10,13 @@ import {
   CameraConfig,
   CardWideConfig,
   ExtendedHomeAssistant,
-  FrigateCardMediaPlayer
+  FrigateCardMediaPlayer,
 } from '../../types.js';
 import { getEndpointAddressOrDispatchError } from '../../utils/endpoint.js';
 import {
   dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,
-  dispatchMediaPlayEvent
+  dispatchMediaPlayEvent,
 } from '../../utils/media-info.js';
 import { dispatchErrorMessageEvent } from '../message.js';
 
@@ -89,7 +89,7 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
    * @returns A JSMPEG player.
    */
   protected async _createJSMPEGPlayer(url: string): Promise<JSMpeg.VideoElement> {
-    return new Promise<JSMpeg.VideoElement>((resolve) => {
+    this._jsmpegVideoPlayer = await new Promise<JSMpeg.VideoElement>((resolve) => {
       let videoDecoded = false;
       const player = new JSMpeg.VideoElement(
         this,
@@ -119,12 +119,6 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
             // ignore any subsequent calls.
             if (!videoDecoded && this._jsmpegCanvasElement) {
               videoDecoded = true;
-              dispatchMediaLoadedEvent(this, this._jsmpegCanvasElement, {
-                player: this,
-                capabilities: {
-                  supportsPause: true,
-                },
-              });
               resolve(player);
             }
           },
@@ -133,6 +127,18 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
         },
       );
     });
+
+    // The media loaded event must be dispatched after the player is assigned to
+    // `this._jsmpegVideoPlayer`, since the load call may (will!) result in
+    // calls back to the player to check for pause status for menu buttons.
+    if (this._jsmpegCanvasElement) {
+      dispatchMediaLoadedEvent(this, this._jsmpegCanvasElement, {
+        player: this,
+        capabilities: {
+          supportsPause: true,
+        },
+      });
+    }
   }
 
   /**
@@ -206,7 +212,7 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
       return;
     }
 
-    this._jsmpegVideoPlayer = await this._createJSMPEGPlayer(address);
+    await this._createJSMPEGPlayer(address);
     this._refreshPlayerTimerID = window.setTimeout(() => {
       this.requestUpdate();
     }, (JSMPEG_URL_SIGN_EXPIRY_SECONDS - JSMPEG_URL_SIGN_REFRESH_THRESHOLD_SECONDS) * 1000);

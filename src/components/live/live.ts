@@ -781,7 +781,7 @@ export class FrigateCardLiveProvider
     this._refProvider.value?.seek(seconds);
   }
 
-  public async setControls(controls: boolean): Promise<void> {
+  public async setControls(controls?: boolean): Promise<void> {
     await this.updateComplete;
     await this._refProvider.value?.updateComplete;
     this._refProvider.value?.setControls(controls);
@@ -891,7 +891,7 @@ export class FrigateCardLiveProvider
     return this.liveConfig?.zoomable
       ? html` <frigate-card-zoomer
           @frigate-card:zoom:zoomed=${() => this.setControls(false)}
-          @frigate-card:zoom:unzoomed=${() => this.setControls(true)}
+          @frigate-card:zoom:unzoomed=${() => this.setControls()}
         >
           ${template}
         </frigate-card-zoomer>`
@@ -943,6 +943,7 @@ export class FrigateCardLiveProvider
             class=${classMap(providerClasses)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
+            ?controls=${this.liveConfig.controls.builtin}
             @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >
           </frigate-card-live-ha>`
@@ -955,6 +956,7 @@ export class FrigateCardLiveProvider
               .cameraEndpoints=${this.cameraEndpoints}
               .microphoneStream=${this.microphoneStream}
               .microphoneConfig=${this.liveConfig.microphone}
+              ?controls=${this.liveConfig.controls.builtin}
               @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
             >
             </frigate-card-live-webrtc-card>`
@@ -966,6 +968,7 @@ export class FrigateCardLiveProvider
             .cameraConfig=${this.cameraConfig}
             .cameraEndpoints=${this.cameraEndpoints}
             .cardWideConfig=${this.cardWideConfig}
+            ?controls=${this.liveConfig.controls.builtin}
             @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >
           </frigate-card-live-webrtc-card>`

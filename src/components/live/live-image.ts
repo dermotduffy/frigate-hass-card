@@ -41,7 +41,7 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
     await this._refImage.value?.seek(seconds);
   }
 
-  public async setControls(controls: boolean): Promise<void> {
+  public async setControls(controls?: boolean): Promise<void> {
     await this._refImage.value?.setControls(controls);
   }
 

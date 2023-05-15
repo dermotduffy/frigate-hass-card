@@ -948,6 +948,7 @@ const liveConfigDefault = {
   transition_effect: 'slide' as const,
   show_image_during_load: true,
   controls: {
+    builtin: true,
     next_previous: {
       size: 48,
       style: 'chevrons' as const,
@@ -974,6 +975,7 @@ const liveOverridableConfigSchema = z
   .object({
     controls: z
       .object({
+        builtin: z.boolean().default(liveConfigDefault.controls.builtin),
         next_previous: nextPreviousControlConfigSchema
           .extend({
             // Live cannot show thumbnails, remove that option.
@@ -1142,6 +1144,7 @@ const viewerConfigDefault = {
   transition_effect: 'slide' as const,
   snapshot_click_plays_clip: true,
   controls: {
+    builtin: true,
     next_previous: {
       size: 48,
       style: 'thumbnails' as const,
@@ -1188,6 +1191,7 @@ const viewerConfigSchema = z
       .default(viewerConfigDefault.snapshot_click_plays_clip),
     controls: z
       .object({
+        builtin: z.boolean().default(viewerConfigDefault.controls.builtin),
         next_previous: viewerNextPreviousControlConfigSchema.default(
           viewerConfigDefault.controls.next_previous,
         ),
@@ -1526,7 +1530,8 @@ export interface FrigateCardMediaPlayer {
   unmute(): Promise<void>;
   isMuted(): boolean;
   seek(seconds: number): Promise<void>;
-  setControls(controls: boolean): Promise<void>;
+  // If no value for controls if specified, the player should use the default.
+  setControls(controls?: boolean): Promise<void>;
   isPaused(): boolean;
 }
 

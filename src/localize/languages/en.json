@@ -84,6 +84,7 @@
     },
     "common": {
       "controls": {
+        "builtin": "Built-in video controls",
         "filter": {
           "editor_label": "Media Filter",
           "mode": "Filter mode",

@@ -104,6 +104,8 @@ export const CONF_MEDIA_VIEWER_SNAPSHOT_CLICK_PLAYS_CLIP =
   `${CONF_MEDIA_VIEWER}.snapshot_click_plays_clip` as const;
 export const CONF_MEDIA_VIEWER_TRANSITION_EFFECT =
   `${CONF_MEDIA_VIEWER}.transition_effect` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_BUILTIN =
+  `${CONF_MEDIA_VIEWER}.controls.builtin` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE =
   `${CONF_MEDIA_VIEWER}.controls.next_previous.style` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE =
@@ -149,6 +151,7 @@ export const CONF_LIVE_AUTO_PLAY = `${CONF_LIVE}.auto_play` as const;
 export const CONF_LIVE_AUTO_PAUSE = `${CONF_LIVE}.auto_pause` as const;
 export const CONF_LIVE_AUTO_MUTE = `${CONF_LIVE}.auto_mute` as const;
 export const CONF_LIVE_AUTO_UNMUTE = `${CONF_LIVE}.auto_unmute` as const;
+export const CONF_LIVE_CONTROLS_BUILTIN = `${CONF_LIVE}.controls.builtin` as const;
 export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE =
   `${CONF_LIVE}.controls.next_previous.style` as const;
 export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE =

@@ -60,6 +60,7 @@ import {
   CONF_LIVE_AUTO_PAUSE,
   CONF_LIVE_AUTO_PLAY,
   CONF_LIVE_AUTO_UNMUTE,
+  CONF_LIVE_CONTROLS_BUILTIN,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
@@ -83,6 +84,7 @@ import {
   CONF_LIVE_LAYOUT_POSITION_Y,
   CONF_LIVE_LAZY_LOAD,
   CONF_LIVE_LAZY_UNLOAD,
+  CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED,
   CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS,
   CONF_LIVE_PRELOAD,
   CONF_LIVE_SHOW_IMAGE_DURING_LOAD,
@@ -98,6 +100,7 @@ import {
   CONF_MEDIA_VIEWER_AUTO_PAUSE,
   CONF_MEDIA_VIEWER_AUTO_PLAY,
   CONF_MEDIA_VIEWER_AUTO_UNMUTE,
+  CONF_MEDIA_VIEWER_CONTROLS_BUILTIN,
   CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
@@ -156,7 +159,6 @@ import {
   CONF_VIEW_UPDATE_FORCE,
   CONF_VIEW_UPDATE_SECONDS,
   MEDIA_CHUNK_SIZE_MAX,
-  CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED,
 } from './const.js';
 import { localize } from './localize/localize.js';
 import { setLowPerformanceProfile } from './performance.js';
@@ -1782,7 +1784,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     { label: localize('config.menu.buttons.type') },
                   )}`,
                 )}
-                ${this._renderMenuButton('play')}
+                ${this._renderMenuButton('play') /*  */}
                 ${this._renderMenuButton('mute')}
               </div>
             `
@@ -1829,6 +1831,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   'config.live.controls.editor_label',
                   { name: 'mdi:gamepad' },
                   html`
+                    ${this._renderSwitch(
+                      CONF_LIVE_CONTROLS_BUILTIN,
+                      this._defaults.live.controls.builtin,
+                      {
+                        label: localize('config.common.controls.builtin'),
+                      },
+                    )}
                     ${this._renderNextPreviousControls(
                       MENU_LIVE_CONTROLS_NEXT_PREVIOUS,
                       CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
@@ -1953,6 +1962,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 'config.media_viewer.controls.editor_label',
                 { name: 'mdi:gamepad' },
                 html`
+                  ${this._renderSwitch(
+                    CONF_MEDIA_VIEWER_CONTROLS_BUILTIN,
+                    this._defaults.media_viewer.controls.builtin,
+                    {
+                      label: localize('config.common.controls.builtin'),
+                    },
+                  )}
                   ${this._renderNextPreviousControls(
                     MENU_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS,
                     CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,

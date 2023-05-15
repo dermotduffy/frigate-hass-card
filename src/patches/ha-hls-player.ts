@@ -73,9 +73,9 @@ customElements.whenDefined('ha-hls-player').then(() => {
       }
     }
 
-    public async setControls(controls: boolean): Promise<void> {
+    public async setControls(controls?: boolean): Promise<void> {
       if (this._video) {
-        this._video.controls = controls;
+        this._video.controls = controls ?? this.controls;
       }
     }
 
@@ -104,7 +104,12 @@ customElements.whenDefined('ha-hls-player').then(() => {
           ?playsinline=${this.playsInline}
           ?controls=${this.controls}
           @loadedmetadata=${() => {
-            hideMediaControlsTemporarily(this._video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
+            if (this.controls) {
+              hideMediaControlsTemporarily(
+                this._video,
+                MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
+              );
+            }
           }}
           @loadeddata=${(ev) => {
             dispatchMediaLoadedEvent(this, ev, {
