@@ -1,13 +1,13 @@
 import { mayHaveAudio } from '../../../utils/audio';
 import {
-    hideMediaControlsTemporarily,
-    MEDIA_LOAD_CONTROLS_HIDE_SECONDS
+  hideMediaControlsTemporarily,
+  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
 } from '../../../utils/media';
 import {
-    dispatchMediaLoadedEvent,
-    dispatchMediaPauseEvent,
-    dispatchMediaPlayEvent,
-    dispatchMediaVolumeChangeEvent
+  dispatchMediaLoadedEvent,
+  dispatchMediaPauseEvent,
+  dispatchMediaPlayEvent,
+  dispatchMediaVolumeChangeEvent,
 } from '../../../utils/media-info';
 
 /**
@@ -630,9 +630,18 @@ export class VideoRTC extends HTMLElement {
   }
 
   onmjpeg() {
+    let receivedFirstFrame = false;
+
     this.ondata = (data) => {
       this.video.controls = false;
       this.video.poster = 'data:image/jpeg;base64,' + VideoRTC.btoa(data);
+
+      if (!receivedFirstFrame) {
+        receivedFirstFrame = true;
+        dispatchMediaLoadedEvent(this, this.video, {
+          player: this.containingPlayer,
+        });
+      }
     };
 
     this.send({ type: 'mjpeg' });
@@ -655,6 +664,10 @@ export class VideoRTC extends HTMLElement {
         canvas.width = video2.videoWidth;
         canvas.height = video2.videoHeight;
         context = canvas.getContext('2d');
+
+        dispatchMediaLoadedEvent(this, video2, {
+          player: this.containingPlayer,
+        });
       }
 
       context.drawImage(video2, 0, 0, canvas.width, canvas.height);
