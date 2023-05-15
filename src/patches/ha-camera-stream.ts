@@ -71,9 +71,9 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       this._player?.seek(seconds);
     }
 
-    public async setControls(controls: boolean): Promise<void> {
+    public async setControls(controls?: boolean): Promise<void> {
       if (this._player) {
-        this._player.setControls(controls);
+        this._player.setControls(controls ?? this.controls);
       }
     }
 

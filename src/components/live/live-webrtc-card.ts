@@ -41,6 +41,9 @@ export class FrigateCardLiveWebRTCCard
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
+  @property({ attribute: true, type: Boolean })
+  public controls = false;
+
   protected hass?: HomeAssistant;
 
   // A task to await the load of the WebRTC component.
@@ -79,10 +82,10 @@ export class FrigateCardLiveWebRTCCard
     }
   }
 
-  public async setControls(controls: boolean): Promise<void> {
+  public async setControls(controls?: boolean): Promise<void> {
     const player = this._getPlayer();
     if (player) {
-      player.controls = controls;
+      player.controls = controls ?? this.controls;
     }
   }
 
@@ -189,7 +192,9 @@ export class FrigateCardLiveWebRTCCard
       const video = this._getPlayer();
       if (video) {
         video.onloadeddata = () => {
-          hideMediaControlsTemporarily(video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
+          if (this.controls) {
+            hideMediaControlsTemporarily(video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
+          }
           dispatchMediaLoadedEvent(this, video, {
             player: this,
             capabilities: {
@@ -201,6 +206,7 @@ export class FrigateCardLiveWebRTCCard
         video.onplay = () => dispatchMediaPlayEvent(this);
         video.onpause = () => dispatchMediaPauseEvent(this);
         video.onvolumechange = () => dispatchMediaVolumeChangeEvent(this);
+        video.controls = this.controls;
       }
     });
   }

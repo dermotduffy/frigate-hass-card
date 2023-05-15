@@ -474,6 +474,19 @@ See the [fully expanded live configuration example](#config-expanded-live) for h
 | `layout` | | :white_check_mark: | See [media layout](#media-layout) below.|
 | `microphone` | | :white_check_mark: | See [microphone](#microphone) below.|
 
+#### Live Controls
+
+All configuration is under:
+
+```yaml
+live:
+  controls:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `builtin` | `true` | :white_check_mark: | Whether to show the built in (browser) video controls on live video. |
+
 #### Live Controls: Thumbnails
 
 All configuration is under:
@@ -591,6 +604,19 @@ See the [fully expanded Media viewer configuration example](#config-expanded-med
 | `controls` | | :heavy_multiplication_x: | Configuration for the Media viewer controls. See below. |
 | `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `media_viewer` (e.g. `clip`, `snapshot`). See [actions](#actions) below.|
 | `layout` | | :white_check_mark: | See [media layout](#media-layout) below.|
+
+#### Media Viewer Controls
+
+All configuration is under:
+
+```yaml
+media_viewer:
+  controls:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `builtin` | `true` | :white_check_mark: | Whether to show the built in (browser) video controls on media viewer video. |
 
 #### Media Viewer Controls: Next / Previous
 
@@ -1265,7 +1291,7 @@ Parameters for the `custom:frigate-card-ptz` element:
 | Parameter | Description |
 | - | - |
 | `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_on`, `live_substream_off`, `live_substream_select`, `expand`, `microphone_mute`, `microphone_unmute`|
+| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_on`, `live_substream_off`, `live_substream_select`, `expand`, `microphone_mute`, `microphone_unmute`, `mute`, `unmute`, `play`, `pause`|
 
 <a name="custom-actions"></a>
 
@@ -1284,6 +1310,8 @@ Parameters for the `custom:frigate-card-ptz` element:
 |`live_substream_select`| Perform a media player action. Takes a `camera` parameter with the [camera ID](#camera-ids) of the substream camera. |
 |`expand`| Expand the card into a dialog/popup. |
 |`microphone_mute`, `microphone_unmute`| Mute or unmute the microphone. See [Using 2-way audio](#using-2-way-audio). |
+|`mute`, `unmute`| Mute or unmute the loaded media. |
+|`play`, `pause`| Play or pause the loaded media. |
 
 <a name="views"></a>
 
@@ -1830,6 +1858,22 @@ menu:
       enabled: false
       alignment: matching
       icon: mdi:cast
+    microphone:
+      priority: 50
+      enabled: false
+      alignment: matching
+      icon: mdi:microphone
+      type: momentary
+    mute:
+      priority: 50
+      enabled: false
+      alignment: matching
+      icon: mdi:volume-off
+    play:
+      priority: 50
+      enabled: false
+      alignment: matching
+      icon: mdi:play
   button_size: 40
 ```
 </details>
@@ -1854,6 +1898,7 @@ live:
   zoomable: true
   transition_effect: slide
   controls:
+    builtin: true
     next_previous:
       style: chevrons
       size: 48
@@ -1918,6 +1963,7 @@ media_viewer:
   snapshot_click_plays_clip: true
   transition_effect: slide
   controls:
+    builtin: true
     next_previous:
       size: 48
       style: thumbnails
@@ -3570,6 +3616,32 @@ overrides:
 ```
 </details>
 
+### Using menu-based video controls instead of browser builtin controls
+
+<details>
+  <summary>Expand: Using menu-based video controls</summary>
+
+Disable the stock video controls and add menu button equivalents.
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.back_yard
+live:
+  controls:
+    builtin: false
+media_viewer:
+  controls:
+    builtin: false
+menu:
+  buttons:
+    play:
+      enabled: true
+    mute:
+      enabled: true
+```
+</details>
+
 ### Automatically trigger "fullscreen" mode
 
 The card cannot automatically natively trigger fullscreen mode without the user
@@ -3788,6 +3860,8 @@ To send an action to a named Frigate card on the dashboard:
 | `media_player`| :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/frigate-hass-card/issues) if you need this. |
 | `menu_toggle` | :white_check_mark: | |
 | `microphone_mute`, `microphone_unmute`| :heavy_multiplication_x: | |
+| `mute`, `unmute` | :heavy_multiplication_x: | |
+| `play`, `pause` | :heavy_multiplication_x: | |
 | `recording` | :white_check_mark: | |
 | `recordings` | :white_check_mark: | |
 | `snapshot` | :white_check_mark: | |

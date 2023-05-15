@@ -84,6 +84,7 @@
     },
     "common": {
       "controls": {
+        "builtin": "",
         "filter": {
           "editor_label": "Filtro multimediale",
           "mode": "Modalità filtro",

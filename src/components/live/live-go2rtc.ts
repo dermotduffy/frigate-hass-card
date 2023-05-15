@@ -4,33 +4,24 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS
+  unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { CameraEndpoints } from '../../camera-manager/types.js';
-import { VideoRTC } from '../../external/go2rtc/video-rtc';
 import { localize } from '../../localize/localize';
 import liveMSEStyle from '../../scss/live-go2rtc.scss';
 import {
   CameraConfig,
   ExtendedHomeAssistant,
   FrigateCardMediaPlayer,
-  MicrophoneConfig
+  MicrophoneConfig,
 } from '../../types.js';
-import { mayHaveAudio } from '../../utils/audio';
 import { getEndpointAddressOrDispatchError } from '../../utils/endpoint';
-import {
-  hideMediaControlsTemporarily,
-  MEDIA_LOAD_CONTROLS_HIDE_SECONDS
-} from '../../utils/media';
-import {
-  dispatchMediaLoadedEvent,
-  dispatchMediaPauseEvent,
-  dispatchMediaPlayEvent,
-  dispatchMediaVolumeChangeEvent
-} from '../../utils/media-info';
 import '../image.js';
 import { dispatchErrorMessageEvent } from '../message';
+import { VideoRTC } from './go2rtc/video-rtc';
+
+customElements.define('frigate-card-live-go2rtc-player', VideoRTC);
 
 // Note (2023-02-18): Depending on the behavior of the player / browser is
 // possible this URL will need to be re-signed in order to avoid HA spamming
@@ -38,152 +29,6 @@ import { dispatchErrorMessageEvent } from '../message';
 // there are verified cases of this being an issue (see equivalent in the JSMPEG
 // provider).
 const GO2RTC_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
-
-@customElement('frigate-card-live-go2rtc-player')
-class FrigateCardGo2RTCPlayer extends VideoRTC {
-  protected _microphoneStream?: MediaStream;
-  protected _containingPlayer?: FrigateCardMediaPlayer;
-
-  constructor(containingPlayer: FrigateCardMediaPlayer, microphoneStream?: MediaStream) {
-    super();
-    this._containingPlayer = containingPlayer;
-    if (microphoneStream) {
-      this._microphoneStream = microphoneStream;
-    }
-  }
-
-  public play(): void {
-    // Let Frigate card control auto playing.
-  }
-
-  protected reconnect(): void {
-    if (this.wsState !== WebSocket.CLOSED) {
-      // The websocket has onclose handlers, so don't call onconnect directly,
-      // wait until the eventhandlers are finished..
-      this.ws?.addEventListener('close', () => this.onconnect());
-      this.ondisconnect();
-    } else {
-      // Still call ondisconnect() as there may be an RTC connection to
-      // terminate even if the websocket is closed.
-      this.ondisconnect();
-      this.onconnect();
-    }
-  }
-
-  public async setMicrophoneStream(microphoneStream?: MediaStream): Promise<void> {
-    if (this._microphoneStream !== microphoneStream) {
-      this._microphoneStream = microphoneStream;
-      this.reconnect();
-    }
-  }
-
-  public oninit(): void {
-    super.oninit();
-
-    if (this.video) {
-      this.video.onloadeddata = () => {
-        hideMediaControlsTemporarily(this.video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
-        dispatchMediaLoadedEvent(this, this.video, {
-          player: this._containingPlayer,
-          capabilities: {
-            // 2-way audio is only supported on WebRTC connections. The state of
-            // `this._microphoneStream` is not taken into account here since
-            // that can be created after the fact -- this is purely saying that
-            // were a microphone stream available it could be used usefully.
-            supports2WayAudio: !!this.pc,
-            supportsPause: true,
-            hasAudio: mayHaveAudio(this.video),
-          },
-        });
-      };
-      this.video.onvolumechange = () => dispatchMediaVolumeChangeEvent(this),
-      this.video.onplay = () => dispatchMediaPlayEvent(this),
-      this.video.onpause = () => dispatchMediaPauseEvent(this),
-      
-      // Always started muted. Media may be unmuted in accordance with user
-      // configuration.
-      this.video.muted = true;
-    }
-  }
-
-  // This is a modified version of onwebrtc() to support 2-way audio.
-  override onwebrtc() {
-    const pc = new RTCPeerConnection(this.pcConfig);
-
-    const video2: HTMLVideoElement = document.createElement('video');
-    video2.addEventListener('loadeddata', (ev) => this.onpcvideo(ev), { once: true });
-
-    pc.addEventListener('icecandidate', (ev) => {
-      const candidate = ev.candidate ? ev.candidate.toJSON().candidate : '';
-      this.send({ type: 'webrtc/candidate', value: candidate });
-    });
-
-    pc.addEventListener('track', (ev) => {
-      // when stream already init
-      if (video2.srcObject !== null) return;
-
-      // when audio track not exist in Chrome
-      if (ev.streams.length === 0) return;
-
-      // when audio track not exist in Firefox
-      if (ev.streams[0].id[0] === '{') return;
-
-      // Filter out tracks that are not video related.
-      if (ev.track.kind !== 'video') return;
-
-      video2.srcObject = ev.streams[0];
-    });
-
-    pc.addEventListener('connectionstatechange', () => {
-      if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
-        pc.close(); // stop next events
-
-        this.pcState = WebSocket.CLOSED;
-        this.pc = null;
-
-        this.onconnect();
-      }
-    });
-
-    this.onmessage['webrtc'] = (msg) => {
-      switch (msg.type) {
-        case 'webrtc/candidate':
-          pc.addIceCandidate({
-            candidate: msg.value,
-            sdpMid: '0',
-          }).catch(() => console.debug);
-          break;
-        case 'webrtc/answer':
-          pc.setRemoteDescription({
-            type: 'answer',
-            sdp: msg.value,
-          }).catch(() => console.debug);
-          break;
-        case 'error':
-          if (msg.value.indexOf('webrtc/offer') < 0) return;
-          pc.close();
-      }
-    };
-
-    // Safari doesn't support "offerToReceiveVideo"
-    pc.addTransceiver('video', { direction: 'recvonly' });
-    pc.addTransceiver('audio', { direction: 'recvonly' });
-
-    // Must add microphone tracks prior to making the offer.
-    this._microphoneStream?.getTracks().forEach((track) => {
-      pc.addTransceiver(track, { direction: 'sendonly' });
-    });
-
-    pc.createOffer().then((offer) => {
-      pc.setLocalDescription(offer).then(() => {
-        this.send({ type: 'webrtc/offer', value: offer.sdp });
-      });
-    });
-
-    this.pcState = WebSocket.CONNECTING;
-    this.pc = pc;
-  }
-}
 
 @customElement('frigate-card-live-go2rtc')
 export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPlayer {
@@ -202,7 +47,10 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
   @property({ attribute: false })
   public microphoneConfig?: MicrophoneConfig;
 
-  protected _player?: FrigateCardGo2RTCPlayer;
+  @property({ attribute: true, type: Boolean })
+  public controls = false;
+
+  protected _player?: VideoRTC;
 
   public async play(): Promise<void> {
     return this._player?.video?.play();
@@ -234,9 +82,9 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
     }
   }
 
-  public async setControls(controls: boolean): Promise<void> {
+  public async setControls(controls?: boolean): Promise<void> {
     if (this._player?.video) {
-      this._player.video.controls = controls;
+      this._player.video.controls = controls ?? this.controls;
     }
   }
 
@@ -278,9 +126,12 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
       return;
     }
 
-    this._player = new FrigateCardGo2RTCPlayer(this, this.microphoneStream);
+    this._player = new VideoRTC();
+    this._player.containingPlayer = this;
+    this._player.microphoneStream = this.microphoneStream ?? null;
     this._player.src = address;
     this._player.visibilityCheck = false;
+    this._player.controls = this.controls;
 
     if (this.cameraConfig?.go2rtc?.modes && this.cameraConfig.go2rtc.modes.length) {
       this._player.mode = this.cameraConfig.go2rtc.modes.join(',');
@@ -293,8 +144,19 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
     if (!this._player || changedProps.has('cameraEndpoints')) {
       this._createPlayer();
     }
-    if (changedProps.has('microphoneStream')) {
-      this._player?.setMicrophoneStream(this.microphoneStream);
+
+    if (changedProps.has('controls') && this._player) {
+      this._player.controls = this.controls;
+    }
+
+    if (this._player && changedProps.has('microphoneStream')) {
+      if (this._player?.microphoneStream !== this.microphoneStream) {
+        this._player.microphoneStream = this.microphoneStream ?? null;
+
+        // Need to force a reconnect if the microphone stream changes since
+        // WebRTC cannot introduce a new stream after the offer is already made.
+        this._player.reconnect();
+      }
     }
   }
 
