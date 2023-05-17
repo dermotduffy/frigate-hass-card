@@ -3811,6 +3811,12 @@ Try resetting the app frontend cache:
 
 * `Configuration -> Companion App -> Debugging -> Reset frontend cache`
 
+### Chrome does not update card version after upgrade
+
+When upgrading the card it's recommended to reset the frontend cache. Sometimes clearing site data in Chrome settings isn't enough.
+
+* Press F12 to display `Dev Console` in Chrome then right click on the refresh icon and select `Empty Cache and Hard Reload`
+
 ### Casting to a remote media player does not work
 
 This could be for any number of reasons. Chromecast devices can be quite picky on network, DNS and certificate issues, as well as audio and video codecs. Check your Home Assistant log as there may be more information in there.
