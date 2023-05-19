@@ -318,7 +318,7 @@ cameras:
 
 #### Camera IDs: Referring to cameras in card configuration
 
-Each camera configured in the card has a single identifier (`id`). For a given camera, this will be one of the camera {`id`, `camera_entity`, `webrtc_card.entity` or `frigate.camera_name`} parameters for that camera -- in that order of precedence. These ids may be used in conditions, dependencies or custom actions to refer to a given camera unambiguously. |
+Each camera configured in the card has a single identifier (`id`). For a given camera, this will be one of the camera {`id`, `camera_entity`, `webrtc_card.entity` or `frigate.camera_name`} parameters for that camera -- in that order of precedence. These ids may be used in conditions, dependencies or custom actions to refer to a given camera unambiguously.
 
 #### Example
 
@@ -4038,6 +4038,12 @@ rewind or fast-forward. Workarounds:
 Try resetting the app frontend cache:
 
 * `Configuration -> Companion App -> Debugging -> Reset frontend cache`
+
+### Chrome does not update card version after upgrade
+
+When upgrading the card it's recommended to reset the frontend cache. Sometimes clearing site data in Chrome settings isn't enough.
+
+* Press F12 to display `Dev Console` in Chrome then right click on the refresh icon and select `Empty Cache and Hard Reload`
 
 ### Casting to a remote media player does not work
 
