@@ -893,10 +893,6 @@ class FrigateCard extends LitElement {
     this._message = null;
 
     this._setupConditionController();
-    this._conditionController?.setState({
-      view: undefined,
-      camera: undefined,
-    });
 
     this._automationsController = new AutomationsController(this._config.automations);
     this._setLightOrDarkMode();
@@ -912,6 +908,18 @@ class FrigateCard extends LitElement {
       this._requestUpdateForComponentsThatUseConditions.bind(this),
     );
     this._conditionController.addStateListener(this._executeAutomations.bind(this));
+
+    this._conditionController.setState({
+      view: undefined,
+      fullscreen: this._isInFullscreen(),
+      expand: this._expand,
+      camera: undefined,
+      ...(this._hass &&
+        this._conditionController?.hasHAStateConditions && {
+          state: this._hass.states,
+        }),
+      media_loaded: !!this._currentMediaLoadedInfo,
+    });
   }
 
   protected _executeAutomations(): void {
@@ -2088,14 +2096,12 @@ class FrigateCard extends LitElement {
   }
 
   protected _fullscreenHandler(): void {
-    const inFullscreen = screenfull.isEnabled && screenfull.isFullscreen;
-
-    if (inFullscreen) {
+    if (this._isInFullscreen()) {
       this._expand = false;
     }
 
     this._conditionController?.setState({
-      fullscreen: inFullscreen,
+      fullscreen: this._isInFullscreen(),
       expand: this._expand,
     });
 
