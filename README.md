@@ -1572,6 +1572,18 @@ Pan around a large camera view to only show part of the video feed in the card a
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/ribbon-timeline.png" alt="Ribbon Timeline" width="400px">
 
+### In-menu media / mute control
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/dev/images/native-media-control.png" alt="In-Menu Media Control" width="400px">
+
+### 2-way Audio Support
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/dev/images/microphone.gif" alt="2-way Audio" width="400px">
+
+### Zoom Support
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/dev/images/zoom.gif" alt="Zoom Support" width="400px">
+
 ## Examples
 
 ### Illustrative Expanded Configuration Reference
