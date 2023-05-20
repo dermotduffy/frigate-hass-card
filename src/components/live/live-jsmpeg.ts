@@ -19,6 +19,7 @@ import {
   dispatchMediaPlayEvent,
 } from '../../utils/media-info.js';
 import { dispatchErrorMessageEvent } from '../message.js';
+import { Timer } from '../../utils/timer.js';
 
 // Number of seconds a signed URL is valid for.
 const JSMPEG_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -41,7 +42,7 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
 
   protected _jsmpegCanvasElement?: HTMLCanvasElement;
   protected _jsmpegVideoPlayer?: JSMpeg.VideoElement;
-  protected _refreshPlayerTimerID?: number;
+  protected _refreshPlayerTimer = new Timer();
 
   public async play(): Promise<void> {
     return this._jsmpegVideoPlayer?.play();
@@ -145,10 +146,7 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
    * Reset / destroy the player.
    */
   protected _resetPlayer(): void {
-    if (this._refreshPlayerTimerID) {
-      window.clearTimeout(this._refreshPlayerTimerID);
-      this._refreshPlayerTimerID = undefined;
-    }
+    this._refreshPlayerTimer.stop();
     if (this._jsmpegVideoPlayer) {
       try {
         this._jsmpegVideoPlayer.destroy();
@@ -213,9 +211,10 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
     }
 
     await this._createJSMPEGPlayer(address);
-    this._refreshPlayerTimerID = window.setTimeout(() => {
-      this.requestUpdate();
-    }, (JSMPEG_URL_SIGN_EXPIRY_SECONDS - JSMPEG_URL_SIGN_REFRESH_THRESHOLD_SECONDS) * 1000);
+    this._refreshPlayerTimer.start(
+      JSMPEG_URL_SIGN_EXPIRY_SECONDS - JSMPEG_URL_SIGN_REFRESH_THRESHOLD_SECONDS,
+      () => this.requestUpdate(),
+    );
   }
 
   /**

@@ -99,6 +99,7 @@ import {
   hasSubstream,
 } from './utils/substream';
 import { View } from './view/view.js';
+import { Timer } from './utils/timer';
 
 /** A note on media callbacks:
  *
@@ -196,12 +197,9 @@ class FrigateCard extends LitElement {
   protected _refElements: Ref<FrigateCardElements> = createRef();
   protected _refViews: Ref<FrigateCardViews> = createRef();
 
-  // user interaction timer ("screensaver" functionality, return to default
-  // view after user interaction).
-  protected _interactionTimerID: number | null = null;
-
-  // Automated refreshes of the default view.
-  protected _updateTimerID: number | null = null;
+  protected _interactionTimer = new Timer();
+  protected _updateTimer = new Timer();
+  protected _untriggerTimer = new Timer();
 
   // Information about loaded media items.
   protected _currentMediaLoadedInfo: MediaLoadedInfo | null = null;
@@ -227,7 +225,6 @@ class FrigateCard extends LitElement {
   protected _boundFullscreenHandler = this._fullscreenHandler.bind(this);
 
   protected _triggers: Map<string, Date> = new Map();
-  protected _untriggerTimerID: number | null = null;
 
   protected _mediaPlayers?: string[];
 
@@ -1006,7 +1003,7 @@ class FrigateCard extends LitElement {
     const needDarkMode =
       this._getConfig().view.dark_mode === 'on' ||
       (this._getConfig().view.dark_mode === 'auto' &&
-        (!this._interactionTimerID || this._hass?.themes.darkMode));
+        (!this._interactionTimer.isRunning() || this._hass?.themes.darkMode));
 
     if (needDarkMode) {
       this.setAttribute('dark', '');
@@ -1144,7 +1141,7 @@ class FrigateCard extends LitElement {
    * @returns
    */
   protected _isTriggered(): boolean {
-    return !!this._triggers.size || !!this._untriggerTimerID;
+    return !!this._triggers.size || this._untriggerTimer.isRunning();
   }
 
   /**
@@ -1153,7 +1150,7 @@ class FrigateCard extends LitElement {
   protected _untrigger(): void {
     const wasTriggered = this._isTriggered();
     this._triggers.clear();
-    this._clearUntriggerTimer();
+    this._untriggerTimer.stop();
 
     if (wasTriggered) {
       this.requestUpdate();
@@ -1164,9 +1161,7 @@ class FrigateCard extends LitElement {
    * Start the untrigger timer.
    */
   protected _startUntriggerTimer(): void {
-    this._clearUntriggerTimer();
-
-    this._untriggerTimerID = window.setTimeout(() => {
+    this._untriggerTimer.start(this._getConfig().view.scan.untrigger_seconds, () => {
       this._untrigger();
       if (
         this._isAutomatedViewUpdateAllowed() &&
@@ -1174,17 +1169,7 @@ class FrigateCard extends LitElement {
       ) {
         this._changeView();
       }
-    }, this._getConfig().view.scan.untrigger_seconds * 1000);
-  }
-
-  /**
-   * Clear the user interaction ('screensaver') timer.
-   */
-  protected _clearUntriggerTimer(): void {
-    if (this._untriggerTimerID) {
-      window.clearTimeout(this._untriggerTimerID);
-      this._untriggerTimerID = null;
-    }
+    });
   }
 
   protected _handleThrownError(error: unknown) {
@@ -1812,33 +1797,22 @@ class FrigateCard extends LitElement {
   }
 
   /**
-   * Clear the user interaction ('screensaver') timer.
-   */
-  protected _clearInteractionTimer(): void {
-    if (this._interactionTimerID) {
-      window.clearTimeout(this._interactionTimerID);
-      this._interactionTimerID = null;
-    }
-  }
-
-  /**
    * Start the user interaction ('screensaver') timer to reset the view to
    * default `view.timeout_seconds` after user interaction.
    */
   protected _startInteractionTimer(): void {
-    this._clearInteractionTimer();
+    this._interactionTimer.stop();
 
     // Interactions reset the trigger state.
     this._untrigger();
 
     if (this._getConfig().view.timeout_seconds) {
-      this._interactionTimerID = window.setTimeout(() => {
-        this._clearInteractionTimer();
+      this._interactionTimer.start(this._getConfig().view.timeout_seconds, () => {
         if (this._isAutomatedViewUpdateAllowed()) {
           this._changeView();
           this._setLightOrDarkMode();
         }
-      }, this._getConfig().view.timeout_seconds * 1000);
+      });
     }
     this._setLightOrDarkMode();
   }
@@ -1848,12 +1822,9 @@ class FrigateCard extends LitElement {
    * `view.update_seconds`.
    */
   protected _startUpdateTimer(): void {
-    if (this._updateTimerID) {
-      window.clearTimeout(this._updateTimerID);
-      this._updateTimerID = null;
-    }
+    this._updateTimer.stop();
     if (this._getConfig().view.update_seconds) {
-      this._updateTimerID = window.setTimeout(() => {
+      this._updateTimer.start(this._getConfig().view.update_seconds, () => {
         if (this._isAutomatedViewUpdateAllowed()) {
           this._changeView();
         } else {
@@ -1861,7 +1832,7 @@ class FrigateCard extends LitElement {
           // interval.
           this._startUpdateTimer();
         }
-      }, this._getConfig().view.update_seconds * 1000);
+      });
     }
   }
 
@@ -1872,7 +1843,7 @@ class FrigateCard extends LitElement {
   protected _isAutomatedViewUpdateAllowed(ignoreTriggers?: boolean): boolean {
     return (
       (ignoreTriggers || !this._isTriggered()) &&
-      (this._getConfig().view.update_force || !this._interactionTimerID)
+      (this._getConfig().view.update_force || !this._interactionTimer.isRunning())
     );
   }
 

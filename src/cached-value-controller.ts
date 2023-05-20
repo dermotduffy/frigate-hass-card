@@ -1,4 +1,5 @@
 import { ReactiveController, ReactiveControllerHost } from 'lit';
+import { Timer } from './utils/timer';
 
 export class CachedValueController<T> implements ReactiveController {
   protected _value?: T;
@@ -7,7 +8,7 @@ export class CachedValueController<T> implements ReactiveController {
   protected _callback: () => T;
   protected _timerStartCallback?: () => void;
   protected _timerStopCallback?: () => void;
-  protected _timerID?: number;
+  protected _timer = new Timer();
 
   constructor(
     host: ReactiveControllerHost,
@@ -56,11 +57,10 @@ export class CachedValueController<T> implements ReactiveController {
    * Disable the timer.
    */
   public stopTimer(): void {
-    if (this._timerID !== undefined) {
-      window.clearInterval(this._timerID);
+    if (this._timer.isRunning()) {
+      this._timer.stop();
       this._timerStopCallback?.();
     }
-    this._timerID = undefined;
   }
 
   /**
@@ -71,15 +71,15 @@ export class CachedValueController<T> implements ReactiveController {
 
     if (this._timerSeconds > 0) {
       this._timerStartCallback?.();
-      this._timerID = window.setInterval(() => {
+      this._timer.startRepeated(this._timerSeconds, () => {
         this.updateValue();
         this._host.requestUpdate();
-      }, this._timerSeconds * 1000);
+      });
     }
   }
 
   public hasTimer(): boolean {
-    return !!this._timerID;
+    return this._timer.isRunning();
   }
 
   /**
