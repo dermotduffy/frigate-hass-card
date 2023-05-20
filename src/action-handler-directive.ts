@@ -11,6 +11,7 @@ import {
   DirectiveParameters,
 } from 'lit/directive.js';
 import { stopEventFromActivatingCardWideActions } from './utils/action.js';
+import { Timer } from './utils/timer.js';
 
 interface ActionHandler extends HTMLElement {
   holdTime: number;
@@ -25,13 +26,12 @@ interface FrigateCardActionHandlerOptions extends ActionHandlerOptions {
 }
 
 class ActionHandler extends HTMLElement implements ActionHandler {
-  public holdTime = 400;
+  public holdTime = 0.4;
 
-  protected timer?: number;
+  protected holdTimer = new Timer();
+  protected doubleClickTimer = new Timer();
 
   protected held = false;
-
-  private dblClickTimeout?: number;
 
   public connectedCallback(): void {
     [
@@ -46,10 +46,7 @@ class ActionHandler extends HTMLElement implements ActionHandler {
       document.addEventListener(
         ev,
         () => {
-          if (this.timer) {
-            clearTimeout(this.timer);
-            this.timer = undefined;
-          }
+          this.holdTimer.stop();
         },
         { passive: true },
       );
@@ -79,9 +76,9 @@ class ActionHandler extends HTMLElement implements ActionHandler {
 
     const start = (): void => {
       this.held = false;
-      this.timer = window.setTimeout(() => {
+      this.holdTimer.start(this.holdTime, () => {
         this.held = true;
-      }, this.holdTime);
+      });
 
       fireEvent(element, 'action', { action: 'start_tap' });
     };
@@ -103,8 +100,7 @@ class ActionHandler extends HTMLElement implements ActionHandler {
         return;
       }
 
-      clearTimeout(this.timer);
-      this.timer = undefined;
+      this.holdTimer.stop();
 
       fireEvent(element, 'action', { action: 'end_tap' });
 
@@ -113,15 +109,13 @@ class ActionHandler extends HTMLElement implements ActionHandler {
       } else if (options?.hasDoubleClick) {
         if (
           (ev.type === 'click' && (ev as MouseEvent).detail < 2) ||
-          !this.dblClickTimeout
+          !this.doubleClickTimer.isRunning()
         ) {
-          this.dblClickTimeout = window.setTimeout(() => {
-            this.dblClickTimeout = undefined;
-            fireEvent(element, 'action', { action: 'tap' });
-          }, 250);
+          this.doubleClickTimer.start(0.25, () =>
+            fireEvent(element, 'action', { action: 'tap' }),
+          );
         } else {
-          clearTimeout(this.dblClickTimeout);
-          this.dblClickTimeout = undefined;
+          this.doubleClickTimer.stop();
           fireEvent(element, 'action', { action: 'double_tap' });
         }
       } else {

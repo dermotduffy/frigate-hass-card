@@ -1,4 +1,5 @@
 import { FrigateCardMediaPlayer } from '../types';
+import { Timer } from './timer';
 
 // The number of seconds to hide the video controls for after loading (in order
 // to give a cleaner UI appearance, see:
@@ -15,19 +16,17 @@ const MEDIA_SEEK_CONTROLS_HIDE_SECONDS = 1;
 export const hideMediaControlsTemporarily = (
   element: HTMLElement & {
     controls: boolean;
-    _controlsHideTimeoutID?: number;
+    _controlsHideTimer?: Timer;
   },
   seconds = MEDIA_SEEK_CONTROLS_HIDE_SECONDS,
 ): void => {
   element.controls = false;
 
-  if (element._controlsHideTimeoutID) {
-    window.clearTimeout(element._controlsHideTimeoutID);
-  }
-  element._controlsHideTimeoutID = window.setTimeout(() => {
+  element._controlsHideTimer ??= new Timer();
+  element._controlsHideTimer.start(seconds, () => {
     element.controls = true;
-    delete element._controlsHideTimeoutID;
-  }, seconds * 1000);
+    delete element._controlsHideTimer;
+  });
 };
 
 /**
