@@ -6,17 +6,17 @@ describe('MediaLoadedInfoController', () => {
   let controller: MediaLoadedInfoController;
   beforeEach(() => {
     controller = new MediaLoadedInfoController();
-  })
+  });
 
   it('should set', () => {
-    const info = createMediaLoadedInfo()
+    const info = createMediaLoadedInfo();
     controller.set(info);
     expect(controller.has());
-    expect(controller.get()).toBe(info)
+    expect(controller.get()).toBe(info);
   });
 
   it('should get last known', () => {
-    const info = createMediaLoadedInfo()
+    const info = createMediaLoadedInfo();
     controller.set(info);
     expect(controller.has()).toBeTruthy();
     controller.clear();
