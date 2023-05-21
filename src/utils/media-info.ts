@@ -69,18 +69,6 @@ export function dispatchMediaLoadedEvent(
   }
 }
 
-export function dispatchMediaVolumeChangeEvent(target: HTMLElement): void {
-  dispatchFrigateCardEvent(target, 'media:volumechange');
-}
-
-export function dispatchMediaPlayEvent(target: HTMLElement): void {
-  dispatchFrigateCardEvent(target, 'media:play');
-}
-
-export function dispatchMediaPauseEvent(target: HTMLElement): void {
-  dispatchFrigateCardEvent(target, 'media:pause');
-}
-
 /**
  * Dispatch a pre-existing MediaLoadedInfo object as an event.
  * @param element The element to send the event.
@@ -94,6 +82,26 @@ export function dispatchExistingMediaLoadedInfoAsEvent(
 }
 
 /**
+ * Dispatch a media unloaded event.
+ * @param element The element to send the event.
+ */
+export function dispatchMediaUnloadedEvent(element: HTMLElement): void {
+  dispatchFrigateCardEvent(element, 'media:unloaded');
+}
+
+export function dispatchMediaVolumeChangeEvent(target: HTMLElement): void {
+  dispatchFrigateCardEvent(target, 'media:volumechange');
+}
+
+export function dispatchMediaPlayEvent(target: HTMLElement): void {
+  dispatchFrigateCardEvent(target, 'media:play');
+}
+
+export function dispatchMediaPauseEvent(target: HTMLElement): void {
+  dispatchFrigateCardEvent(target, 'media:pause');
+}
+
+/**
  * Determine if a MediaLoadedInfo object is valid/acceptable.
  * @param info The MediaLoadedInfo object.
  * @returns True if the object is valid, false otherwise.
@@ -102,12 +110,4 @@ export function isValidMediaLoadedInfo(info: MediaLoadedInfo): boolean {
   return (
     info.height >= MEDIA_INFO_HEIGHT_CUTOFF && info.width >= MEDIA_INFO_WIDTH_CUTOFF
   );
-}
-
-/**
- * Dispatch a media unloaded event.
- * @param element The element to send the event.
- */
-export function dispatchMediaUnloadedEvent(element: HTMLElement): void {
-  dispatchFrigateCardEvent(element, 'media:unloaded');
 }
