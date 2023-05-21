@@ -195,6 +195,6 @@ export function domainIcon(domain: string, entity?: HassEntity, state?: string):
     return FIXED_DOMAIN_ICONS[domain];
   }
 
-  console.warn(`Unable to find icon for domain ${domain}`);
+  console.warn(`Unable to find icon for domain: ${domain}`);
   return DEFAULT_DOMAIN_ICON;
 }
