@@ -95,6 +95,7 @@ import {
 import { Timer } from './utils/timer';
 import { getParseErrorPaths } from './utils/zod.js';
 import { View } from './view/view.js';
+import { MediaLoadedInfoController } from './utils/media-info-controller';
 
 /** A note on media callbacks:
  *
@@ -187,6 +188,7 @@ class FrigateCard extends LitElement {
   protected _conditionController?: ConditionController;
   protected _automationsController?: AutomationsController;
   protected _menuButtonController = new MenuButtonController();
+  protected _mediaLoadedInfoController = new MediaLoadedInfoController();
 
   protected _refMenu: Ref<FrigateCardMenu> = createRef();
   protected _refMain: Ref<HTMLElement> = createRef();
@@ -196,10 +198,6 @@ class FrigateCard extends LitElement {
   protected _interactionTimer = new Timer();
   protected _updateTimer = new Timer();
   protected _untriggerTimer = new Timer();
-
-  // Information about loaded media items.
-  protected _currentMediaLoadedInfo: MediaLoadedInfo | null = null;
-  protected _lastValidMediaLoadedInfo: MediaLoadedInfo | null = null;
 
   // Error/info message to render.
   protected _message: Message | null = null;
@@ -341,7 +339,6 @@ class FrigateCard extends LitElement {
     return this._cameraManager.getStore().getCameraConfig(this._view.camera);
   }
 
-
   /**
    * Set the card configuration.
    * @param inputConfig The card configuration.
@@ -414,7 +411,7 @@ class FrigateCard extends LitElement {
         this._conditionController?.hasHAStateConditions && {
           state: this._hass.states,
         }),
-      media_loaded: !!this._currentMediaLoadedInfo,
+      media_loaded: this._mediaLoadedInfoController.has(),
     });
   }
 
@@ -446,7 +443,7 @@ class FrigateCard extends LitElement {
     log(this._cardWideConfig, `Frigate Card view change: `, args?.view ?? '[default]');
     const changeView = (view: View): void => {
       if (View.isMajorMediaChange(this._view, view)) {
-        this._currentMediaLoadedInfo = null;
+        this._mediaLoadedInfoController.clear();
       }
       if (this._view?.view !== view.view) {
         this._resetMainScroll();
@@ -1151,16 +1148,16 @@ class FrigateCard extends LitElement {
         }
         break;
       case 'mute':
-        this._currentMediaLoadedInfo?.player?.mute();
+        this._mediaLoadedInfoController.get()?.player?.mute();
         break;
       case 'unmute':
-        this._currentMediaLoadedInfo?.player?.unmute();
+        this._mediaLoadedInfoController.get()?.player?.unmute();
         break;
       case 'play':
-        this._currentMediaLoadedInfo?.player?.play();
+        this._mediaLoadedInfoController.get()?.player?.play();
         break;
       case 'pause':
-        this._currentMediaLoadedInfo?.player?.pause();
+        this._mediaLoadedInfoController.get()?.player?.pause();
         break;
       default:
         console.warn(`Frigate card received unknown card action: ${action}`);
@@ -1371,7 +1368,7 @@ class FrigateCard extends LitElement {
           this._view,
           this._expand,
           {
-            currentMediaLoadedInfo: this._currentMediaLoadedInfo,
+            currentMediaLoadedInfo: this._mediaLoadedInfoController.get(),
             mediaPlayers: this._mediaPlayers,
             cameraURL: this._getCameraURLFromContext(),
             microphoneController: this._microphoneController,
@@ -1438,12 +1435,12 @@ class FrigateCard extends LitElement {
 
     log(this._cardWideConfig, `Frigate Card media load: `, mediaLoadedInfo);
 
-    this._lastValidMediaLoadedInfo = this._currentMediaLoadedInfo = mediaLoadedInfo;
+    this._mediaLoadedInfoController.set(mediaLoadedInfo);
 
     this._setPropertiesForExpandedMode();
 
     this._conditionController?.setState({
-      media_loaded: !!this._currentMediaLoadedInfo,
+      media_loaded: this._mediaLoadedInfoController.has(),
     });
 
     this.requestUpdate();
@@ -1453,10 +1450,11 @@ class FrigateCard extends LitElement {
     // When a new media loads, set the aspect ratio for when the card is
     // expanded/popped-up. This is based exclusively on last media content,
     // as dimension configuration does not apply in fullscreen or expanded mode.
+    const lastKnown = this._mediaLoadedInfoController.getLastKnown();
     this.style.setProperty(
       '--frigate-card-expand-aspect-ratio',
-      this._view?.isAnyMediaView() && this._lastValidMediaLoadedInfo
-        ? `${this._lastValidMediaLoadedInfo.width} / ${this._lastValidMediaLoadedInfo.height}`
+      this._view?.isAnyMediaView() && lastKnown
+        ? `${lastKnown.width} / ${lastKnown.height}`
         : 'unset',
     );
     // Non-media mays have no intrinsic dimensions and so we need to explicit
@@ -1475,7 +1473,7 @@ class FrigateCard extends LitElement {
    * Unload a media item.
    */
   protected _mediaUnloadedHandler(): void {
-    this._currentMediaLoadedInfo = null;
+    this._mediaLoadedInfoController.clear();
     this._conditionController?.setState({ media_loaded: false });
   }
 
@@ -1542,8 +1540,9 @@ class FrigateCard extends LitElement {
 
     const aspectRatioMode = this._getConfig().dimensions.aspect_ratio_mode;
 
-    if (this._lastValidMediaLoadedInfo && aspectRatioMode === 'dynamic') {
-      return `${this._lastValidMediaLoadedInfo.width} / ${this._lastValidMediaLoadedInfo.height}`;
+    const lastKnown = this._mediaLoadedInfoController.getLastKnown();
+    if (lastKnown && aspectRatioMode === 'dynamic') {
+      return `${lastKnown.width} / ${lastKnown.height}`;
     }
 
     const defaultAspectRatio = this._getConfig().dimensions.aspect_ratio;
@@ -1756,8 +1755,9 @@ class FrigateCard extends LitElement {
    * @returns The Lovelace card size in units of 50px.
    */
   public getCardSize(): number {
-    if (this._lastValidMediaLoadedInfo) {
-      return this._lastValidMediaLoadedInfo.height / 50;
+    const lastKnown = this._mediaLoadedInfoController.getLastKnown();
+    if (lastKnown) {
+      return lastKnown.height / 50;
     }
     return 6;
   }
