@@ -25,6 +25,7 @@ import {
 import {
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
   hideMediaControlsTemporarily,
+  setControlsOnVideo,
 } from '../utils/media.js';
 
 customElements.whenDefined('ha-hls-player').then(() => {
@@ -75,7 +76,7 @@ customElements.whenDefined('ha-hls-player').then(() => {
 
     public async setControls(controls?: boolean): Promise<void> {
       if (this._video) {
-        this._video.controls = controls ?? this.controls;
+        setControlsOnVideo(this._video, controls ?? this.controls);
       }
     }
 

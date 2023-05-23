@@ -1,5 +1,4 @@
-import { PanzoomObject, PanzoomEventDetail } from '@dermotduffy/panzoom';
-import Panzoom from '@dermotduffy/panzoom';
+import Panzoom, { PanzoomEventDetail, PanzoomObject } from '@dermotduffy/panzoom';
 import round from 'lodash-es/round';
 import { dispatchFrigateCardEvent, isHoverableDevice } from '../basic';
 
@@ -11,6 +10,7 @@ export class Zoom {
   protected _element: HTMLElement;
   protected _panzoom?: PanzoomObject;
   protected _zoomed = false;
+  protected _allowClick = true;
 
   protected _events = isHoverableDevice()
     ? {
@@ -31,7 +31,21 @@ export class Zoom {
 
       // If we do not prevent default here, the media carousels scroll.
       ev.preventDefault();
+      this._allowClick = false;
+    } else {
+      this._allowClick = true;
     }
+  };
+
+  protected _clickHandler = (ev: Event) => {
+    // When mouse clicking is used to pan, need to avoid that causing a click
+    // handler elsewhere in the card being called. Example: Viewing a snapshot,
+    // and panning within it should not cause a related clip to play (the click
+    // handler in the viewer).
+    if (!this._allowClick) {
+      ev.stopPropagation();
+    }
+    this._allowClick = true;
   };
 
   protected _moveHandler = (ev: Event) => {
@@ -64,7 +78,9 @@ export class Zoom {
   protected _shouldZoomOrPan(ev: Event): boolean {
     return (
       !this._isScaleNormal(this._panzoom?.getScale()) ||
-      (ev instanceof TouchEvent && ev.touches.length > 1) ||
+      // TouchEvent does not exist on Firefox on non-touch events.
+      // See: https://github.com/dermotduffy/frigate-hass-card/issues/1174
+      (window.TouchEvent && ev instanceof TouchEvent && ev.touches.length > 1) ||
       (ev instanceof WheelEvent && ev.ctrlKey)
     );
   }
@@ -94,6 +110,7 @@ export class Zoom {
     registerListeners(this._events['move'], this._moveHandler, { capture: true });
     registerListeners(this._events['up'], this._upHandler, { capture: true });
     registerListeners(['wheel'], this._wheelHandler);
+    registerListeners(['click'], this._clickHandler, { capture: true });
 
     this._element.addEventListener('panzoomzoom', (ev: Event) => {
       // Take care here to only dispatch the zoomed/unzoomed events when the

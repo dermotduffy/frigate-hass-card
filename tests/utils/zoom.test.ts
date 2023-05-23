@@ -124,6 +124,48 @@ describe('Zoom', () => {
     expect(panzoom.handleUp).toBeCalledWith(ev_5);
   });
 
+  it('should ignore click after pointerdown', () => {
+    const outer = document.createElement('div');
+    const inner = document.createElement('div');
+    outer.appendChild(inner);
+    const clickHandler = vi.fn();
+    outer.addEventListener('click', clickHandler);
+
+    const panzoom = createMockPanZoom();
+    vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+
+    createAndRegisterZoom(inner);
+
+    // Simulate being zoomed in.
+    panzoom.getScale = vi.fn().mockReturnValue(1.2);
+
+    // A click on its own will be fine.
+    const click_1 = new MouseEvent('click', { bubbles: true });
+    inner.dispatchEvent(click_1);
+    expect(clickHandler).toBeCalledTimes(1);
+
+    // A click after a pointerdown will be ignored.
+    const pointerdown_1 = new PointerEvent('pointerdown');
+    inner.dispatchEvent(pointerdown_1);
+
+    const click_2 = new MouseEvent('click', { bubbles: true });
+    inner.dispatchEvent(click_2);
+
+    // Click will have been ignored.
+    expect(clickHandler).toBeCalledTimes(1);
+
+    // Simulate being zoomed out.
+    panzoom.getScale = vi.fn().mockReturnValue(1.0);
+    const pointerdown_2 = new PointerEvent('pointerdown');
+    inner.dispatchEvent(pointerdown_2);
+
+    const click_3 = new MouseEvent('click', { bubbles: true });
+    inner.dispatchEvent(click_3);
+
+    // Click will have been processed.
+    expect(clickHandler).toBeCalledTimes(2);
+  });
+
   it('deactivate should remove event handlers', () => {
     const element = document.createElement('div');
 

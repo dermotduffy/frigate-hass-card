@@ -25,6 +25,7 @@ import {
 import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
+  setControlsOnVideo,
 } from '../utils/media.js';
 
 customElements.whenDefined('ha-web-rtc-player').then(() => {
@@ -74,7 +75,7 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
 
     public async setControls(controls?: boolean): Promise<void> {
       if (this._video) {
-        this._video.controls = controls ?? this.controls;
+        setControlsOnVideo(this._video, controls ?? this.controls);
       }
     }
 
