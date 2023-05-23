@@ -7,23 +7,21 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { CameraEndpoints } from '../../camera-manager/types.js';
+import { localize } from '../../localize/localize';
 import liveMSEStyle from '../../scss/live-go2rtc.scss';
 import {
   CameraConfig,
   ExtendedHomeAssistant,
   FrigateCardMediaPlayer,
+  MicrophoneConfig,
 } from '../../types.js';
-import '../image.js';
-import {
-  hideMediaControlsTemporarily,
-  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
-} from '../../utils/media';
-import { dispatchMediaLoadedEvent } from '../../utils/media-info';
-import { localize } from '../../localize/localize';
-import { dispatchErrorMessageEvent } from '../message';
-import { VideoRTC } from '../../external/go2rtc/video-rtc';
-import { CameraEndpoints } from '../../camera-manager/types.js';
 import { getEndpointAddressOrDispatchError } from '../../utils/endpoint';
+import '../image.js';
+import { dispatchErrorMessageEvent } from '../message';
+import { VideoRTC } from './go2rtc/video-rtc';
+
+customElements.define('frigate-card-live-go2rtc-player', VideoRTC);
 
 // Note (2023-02-18): Depending on the behavior of the player / browser is
 // possible this URL will need to be re-signed in order to avoid HA spamming
@@ -31,32 +29,6 @@ import { getEndpointAddressOrDispatchError } from '../../utils/endpoint';
 // there are verified cases of this being an issue (see equivalent in the JSMPEG
 // provider).
 const GO2RTC_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
-
-@customElement('frigate-card-live-go2rtc-player')
-class FrigateCardGo2RTCPlayer extends VideoRTC {
-  public play(): void {
-    // Let Frigate card control auto playing.
-  }
-
-  public oninit(): void {
-    super.oninit();
-
-    if (this.video) {
-      const onloadeddata = this.video.onloadeddata;
-      this.video.onloadeddata = (e) => {
-        if (onloadeddata) {
-          onloadeddata.call(this.video, e);
-        }
-        hideMediaControlsTemporarily(this.video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
-        dispatchMediaLoadedEvent(this, this.video);
-      };
-
-      // Always started muted. Media may be unmuted in accordance with user
-      // configuration.
-      this.video.muted = true;
-    }
-  }
-}
 
 @customElement('frigate-card-live-go2rtc')
 export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPlayer {
@@ -69,7 +41,16 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
   @property({ attribute: false })
   public cameraEndpoints?: CameraEndpoints;
 
-  protected _player?: FrigateCardGo2RTCPlayer;
+  @property({ attribute: false })
+  public microphoneStream?: MediaStream;
+
+  @property({ attribute: false })
+  public microphoneConfig?: MicrophoneConfig;
+
+  @property({ attribute: true, type: Boolean })
+  public controls = false;
+
+  protected _player?: VideoRTC;
 
   public async play(): Promise<void> {
     return this._player?.video?.play();
@@ -99,6 +80,16 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
     if (this._player?.video) {
       this._player.video.currentTime = seconds;
     }
+  }
+
+  public async setControls(controls?: boolean): Promise<void> {
+    if (this._player?.video) {
+      this._player.video.controls = controls ?? this.controls;
+    }
+  }
+
+  public isPaused(): boolean {
+    return this._player?.video.paused ?? true;
   }
 
   disconnectedCallback(): void {
@@ -135,9 +126,12 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
       return;
     }
 
-    this._player = new FrigateCardGo2RTCPlayer();
+    this._player = new VideoRTC();
+    this._player.containingPlayer = this;
+    this._player.microphoneStream = this.microphoneStream ?? null;
     this._player.src = address;
     this._player.visibilityCheck = false;
+    this._player.controls = this.controls;
 
     if (this.cameraConfig?.go2rtc?.modes && this.cameraConfig.go2rtc.modes.length) {
       this._player.mode = this.cameraConfig.go2rtc.modes.join(',');
@@ -149,6 +143,20 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
   protected willUpdate(changedProps: PropertyValues): void {
     if (!this._player || changedProps.has('cameraEndpoints')) {
       this._createPlayer();
+    }
+
+    if (changedProps.has('controls') && this._player) {
+      this._player.controls = this.controls;
+    }
+
+    if (this._player && changedProps.has('microphoneStream')) {
+      if (this._player?.microphoneStream !== this.microphoneStream) {
+        this._player.microphoneStream = this.microphoneStream ?? null;
+
+        // Need to force a reconnect if the microphone stream changes since
+        // WebRTC cannot introduce a new stream after the offer is already made.
+        this._player.reconnect();
+      }
     }
   }
 

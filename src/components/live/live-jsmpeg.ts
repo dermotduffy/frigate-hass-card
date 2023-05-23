@@ -2,6 +2,7 @@ import JSMpeg from '@cycjimmy/jsmpeg-player';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
+import { CameraEndpoints } from '../../camera-manager/types.js';
 import { renderProgressIndicator } from '../../components/message.js';
 import { localize } from '../../localize/localize.js';
 import liveJSMPEGStyle from '../../scss/live-jsmpeg.scss';
@@ -11,10 +12,13 @@ import {
   ExtendedHomeAssistant,
   FrigateCardMediaPlayer,
 } from '../../types.js';
-import { dispatchMediaLoadedEvent } from '../../utils/media-info.js';
-import { dispatchErrorMessageEvent } from '../message.js';
-import { CameraEndpoints } from '../../camera-manager/types.js';
 import { getEndpointAddressOrDispatchError } from '../../utils/endpoint.js';
+import {
+  dispatchMediaLoadedEvent,
+  dispatchMediaPauseEvent,
+  dispatchMediaPlayEvent,
+} from '../../utils/media-info.js';
+import { dispatchErrorMessageEvent } from '../message.js';
 
 // Number of seconds a signed URL is valid for.
 const JSMPEG_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -70,13 +74,22 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
     // JSMPEG does not support seeking.
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async setControls(_controls: boolean): Promise<void> {
+    // Not implemented.
+  }
+
+  public isPaused(): boolean {
+    return this._jsmpegVideoPlayer?.player?.paused ?? true;
+  }
+
   /**
    * Create a JSMPEG player.
    * @param url The URL for the player to connect to.
    * @returns A JSMPEG player.
    */
   protected async _createJSMPEGPlayer(url: string): Promise<JSMpeg.VideoElement> {
-    return new Promise<JSMpeg.VideoElement>((resolve) => {
+    this._jsmpegVideoPlayer = await new Promise<JSMpeg.VideoElement>((resolve) => {
       let videoDecoded = false;
       const player = new JSMpeg.VideoElement(
         this,
@@ -106,13 +119,26 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
             // ignore any subsequent calls.
             if (!videoDecoded && this._jsmpegCanvasElement) {
               videoDecoded = true;
-              dispatchMediaLoadedEvent(this, this._jsmpegCanvasElement);
               resolve(player);
             }
           },
+          onPlay: () => dispatchMediaPlayEvent(this),
+          onPause: () => dispatchMediaPauseEvent(this),
         },
       );
     });
+
+    // The media loaded event must be dispatched after the player is assigned to
+    // `this._jsmpegVideoPlayer`, since the load call may (will!) result in
+    // calls back to the player to check for pause status for menu buttons.
+    if (this._jsmpegCanvasElement) {
+      dispatchMediaLoadedEvent(this, this._jsmpegCanvasElement, {
+        player: this,
+        capabilities: {
+          supportsPause: true,
+        },
+      });
+    }
   }
 
   /**
@@ -186,7 +212,7 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
       return;
     }
 
-    this._jsmpegVideoPlayer = await this._createJSMPEGPlayer(address);
+    await this._createJSMPEGPlayer(address);
     this._refreshPlayerTimerID = window.setTimeout(() => {
       this.requestUpdate();
     }, (JSMPEG_URL_SIGN_EXPIRY_SECONDS - JSMPEG_URL_SIGN_REFRESH_THRESHOLD_SECONDS) * 1000);

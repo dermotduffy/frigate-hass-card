@@ -1,4 +1,8 @@
-import { MediaLoadedInfo } from '../types.js';
+import {
+  FrigateCardMediaPlayer,
+  MediaLoadedCapabilities,
+  MediaLoadedInfo,
+} from '../types.js';
 import { dispatchFrigateCardEvent } from './basic.js';
 
 const MEDIA_INFO_HEIGHT_CUTOFF = 50;
@@ -11,6 +15,10 @@ const MEDIA_INFO_WIDTH_CUTOFF = MEDIA_INFO_HEIGHT_CUTOFF;
  */
 export function createMediaLoadedInfo(
   source: Event | HTMLElement,
+  options?: {
+    player?: FrigateCardMediaPlayer;
+    capabilities?: MediaLoadedCapabilities;
+  },
 ): MediaLoadedInfo | null {
   let target: HTMLElement | EventTarget;
   if (source instanceof Event) {
@@ -23,16 +31,20 @@ export function createMediaLoadedInfo(
     return {
       width: (target as HTMLImageElement).naturalWidth,
       height: (target as HTMLImageElement).naturalHeight,
+      ...options,
     };
   } else if (target instanceof HTMLVideoElement) {
     return {
       width: (target as HTMLVideoElement).videoWidth,
       height: (target as HTMLVideoElement).videoHeight,
+      ...options,
     };
   } else if (target instanceof HTMLCanvasElement) {
     return {
       width: (target as HTMLCanvasElement).width,
       height: (target as HTMLCanvasElement).height,
+      player: options?.player,
+      ...options,
     };
   }
   return null;
@@ -46,11 +58,27 @@ export function createMediaLoadedInfo(
 export function dispatchMediaLoadedEvent(
   target: HTMLElement,
   source: Event | HTMLElement,
+  options?: {
+    player?: FrigateCardMediaPlayer;
+    capabilities?: MediaLoadedCapabilities;
+  },
 ): void {
-  const mediaLoadedInfo = createMediaLoadedInfo(source);
+  const mediaLoadedInfo = createMediaLoadedInfo(source, options);
   if (mediaLoadedInfo) {
     dispatchExistingMediaLoadedInfoAsEvent(target, mediaLoadedInfo);
   }
+}
+
+export function dispatchMediaVolumeChangeEvent(target: HTMLElement): void {
+  dispatchFrigateCardEvent(target, 'media:volumechange');
+}
+
+export function dispatchMediaPlayEvent(target: HTMLElement): void {
+  dispatchFrigateCardEvent(target, 'media:play');
+}
+
+export function dispatchMediaPauseEvent(target: HTMLElement): void {
+  dispatchFrigateCardEvent(target, 'media:pause');
 }
 
 /**

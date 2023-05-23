@@ -84,6 +84,7 @@
     },
     "common": {
       "controls": {
+        "builtin": "",
         "filter": {
           "editor_label": "Filtro de Mídia",
           "mode": "Modo do filtro",
@@ -204,7 +205,8 @@
         "url": "Imagem arbitrária especificada por URL"
       },
       "refresh_seconds": "Número de segundos após o qual atualizar (0 = nunca)",
-      "url": "Imagem arbitrária especificada por URL"
+      "url": "Imagem arbitrária especificada por URL",
+      "zoomable": ""
     },
     "live": {
       "auto_mute": "Silenciar câmeras ao vivo automaticamente",
@@ -218,9 +220,16 @@
       "layout": "Layout dinâmico",
       "lazy_load": "As câmeras ao vivo são carregadas lentamente",
       "lazy_unload": "As câmeras ao vivo são descarregadas preguiçosamente",
+      "microphone": {
+        "always_connected": "",
+        "disconnect_seconds": "",
+        "editor_label": "",
+        "enabled": ""
+      },
       "preload": "Pré-carregar a visualização ao vivo em segundo plano",
       "show_image_during_load": "Mostrar imagem estática enquanto a transmissão ao vivo está carregando",
-      "transition_effect": "Efeito de transição de câmera ao vivo"
+      "transition_effect": "Efeito de transição de câmera ao vivo",
+      "zoomable": ""
     },
     "media_viewer": {
       "auto_mute": "Silenciar mídia automaticamente",
@@ -238,7 +247,8 @@
       "transition_effects": {
         "none": "Sem transição",
         "slide": "Transição de slides"
-      }
+      },
+      "zoomable": ""
     },
     "menu": {
       "alignment": "Alinhamento do menu",
@@ -267,11 +277,18 @@
         "image": "Imagem",
         "live": "Ao vivo",
         "media_player": "Enviar para o reprodutor de mídia",
+        "mute": "",
+        "play": "",
         "priority": "Prioridade",
         "recordings": "Gravações",
         "snapshots": "Instantâneos",
         "substreams": "Substream(s)",
-        "timeline": "Linha do tempo"
+        "timeline": "Linha do tempo",
+        "type": "",
+        "types": {
+          "momentary": "",
+          "toggle": ""
+        }
       },
       "position": "Posição do menu",
       "positions": {
@@ -417,6 +434,7 @@
     "no_visible_cameras": "Nenhuma câmera visível encontrada, você deve configurar pelo menos uma câmera não oculta",
     "reconnecting": "Reconectando",
     "timeline_no_cameras": "Nenhuma câmera do Frigate para mostrar na linha do tempo",
+    "too_many_automations": "",
     "troubleshooting": "Verifique a solução de problemas",
     "unknown": "Erro desconhecido",
     "upgrade_available": "Uma atualização automatizada da configuração do cartão está disponível, visite o editor visual do cartão",

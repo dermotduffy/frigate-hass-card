@@ -84,6 +84,7 @@
     },
     "common": {
       "controls": {
+        "builtin": "",
         "filter": {
           "editor_label": "Filtro multimediale",
           "mode": "Modalità filtro",
@@ -204,7 +205,8 @@
         "url": "Immagine arbitraria specificata dall'URL"
       },
       "refresh_seconds": "Numero di secondi dopo i quali aggiornare (0 = mai)",
-      "url": "URL di immagine statica per la vista dell'immagine"
+      "url": "URL di immagine statica per la vista dell'immagine",
+      "zoomable": ""
     },
     "live": {
       "auto_mute": "Muta automaticamente le telecamere in diretta",
@@ -218,9 +220,16 @@
       "layout": "Disposizione dal vivo",
       "lazy_load": "Le telecamere dal vivo sono pigramente cariche",
       "lazy_unload": "Le telecamere dal vivo sono pigramente non caricate",
+      "microphone": {
+        "always_connected": "",
+        "disconnect_seconds": "",
+        "editor_label": "",
+        "enabled": ""
+      },
       "preload": "Precarica Live View in background",
       "show_image_during_load": "Mostra un'immagine fissa durante il caricamento del live streaming",
-      "transition_effect": "Effetto di transizione della telecamera dal vivo"
+      "transition_effect": "Effetto di transizione della telecamera dal vivo",
+      "zoomable": ""
     },
     "media_viewer": {
       "auto_mute": "Muta automaticamente i media",
@@ -237,7 +246,8 @@
       "transition_effects": {
         "none": "Nessuna transizione",
         "slide": "Transizione diapositiva"
-      }
+      },
+      "zoomable": ""
     },
     "menu": {
       "alignment": "Allineamento dei menu",
@@ -266,10 +276,17 @@
         "image": "Immagine",
         "live": "Abitare",
         "media_player": "Invia a Media Player",
+        "mute": "",
+        "play": "",
         "priority": "Priorità",
         "snapshots": "Istantanee",
         "substreams": "Flusso/i secondario/i",
-        "timeline": "Timeline"
+        "timeline": "Timeline",
+        "type": "",
+        "types": {
+          "momentary": "",
+          "toggle": ""
+        }
       },
       "position": "Posizione del menu",
       "positions": {
@@ -411,6 +428,7 @@
     "reconnecting": "Riconnessione",
     "timeline_no_cameras": "Nessuna telecamera damostrare in Frigate nella timeline",
     "troubleshooting": "Controllare la risoluzione dei problemi",
+    "too_many_automations": "",
     "unknown": "Errore sconosciuto",
     "upgrade_available": "È disponibile un aggiornamento di configurazione della scheda automatizzato, visitare l'editor di schede visive",
     "webrtc_card_reported_error": "La scheda WebRTC ha riportato un errore",

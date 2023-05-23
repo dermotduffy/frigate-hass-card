@@ -33,6 +33,16 @@ Provide details about what browser (and version) you are seeing the issue in. An
 Explain what the issue is, and how things should look/behave. If possible provide a screenshot with a description.
 -->
 
+**Frigate card diagnostic information**
+
+<!--
+On the card, hold down the Frigate menu button for a few seconds then paste the diagnostics below:
+-->
+
+```json
+
+```
+
 **Javascript errors shown in the web inspector (if applicable):**
 
 ```

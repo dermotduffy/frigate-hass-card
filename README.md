@@ -70,16 +70,17 @@ lovelace:
 
 ### Advanced Users: Manual Installation
 
-**Note:** This is very rarely needed unless you are developing the card. Please consider HACS (above)!
+**Note:** This is very rarely needed -- please consider HACS (above)!
 
-* Download the `frigate-hass-card.js` attachment of the desired [release](https://github.com/dermotduffy/frigate-hass-card/releases) to a location accessible by Home Assistant.
-* Add the location as a Lovelace resource via the UI, or via [YAML configuration](https://www.home-assistant.io/lovelace/dashboards/#resources)) such as:
+* Download the `frigate-hass-card.zip` attachment of the desired [release](https://github.com/dermotduffy/frigate-hass-card/releases) to a location accessible by Home Assistant. Note that the release will have a series of `.js` files (for HACS users) **and** a `frigate-hass-card.zip` for the convenience of manual installers.
+* Unzip the file and move the contents of the `dist/` folder to any subfolder name you'd like, e.g. `frigate-card` is used in the below example.
+* Add the location as a Lovelace resource via the UI, or via [YAML configuration](https://www.home-assistant.io/lovelace/dashboards/#resources) such as:
 
 ```yaml
 lovelace:
   mode: yaml
   resources:
-   - url: /local/frigate-hass-card.js
+   - url: /local/frigate-card/frigate-hass-card.js
      type: module
 ```
 
@@ -317,7 +318,7 @@ cameras:
 
 #### Camera IDs: Referring to cameras in card configuration
 
-Each camera configured in the card has a single identifier (`id`). For a given camera, this will be one of the camera {`id`, `camera_entity`, `webrtc_card.entity` or `frigate.camera_name`} parameters for that camera -- in that order of precedence. These ids may be used in conditions, dependencies or custom actions to refer to a given camera unambiguously. |
+Each camera configured in the card has a single identifier (`id`). For a given camera, this will be one of the camera {`id`, `camera_entity`, `webrtc_card.entity` or `frigate.camera_name`} parameters for that camera -- in that order of precedence. These ids may be used in conditions, dependencies or custom actions to refer to a given camera unambiguously.
 
 #### Example
 
@@ -405,6 +406,8 @@ See the [fully expanded menu configuration example](#config-expanded-menu) for h
 | `button_size` | 40 | :white_check_mark: | The size of the menu buttons in pixels. Must be >= `20`.|
 | `buttons` | | :white_check_mark: | Whether to show or hide built-in buttons. See below. |
 
+<a name="menu-buttons"></a>
+
 #### Menu Options: Buttons
 
 All configuration is under:
@@ -432,6 +435,7 @@ menu:
 | `expand` | :white_check_mark: | The `expand` menu button: expand the card into a popup/dialog. |
 | `timeline` | :white_check_mark: | The `timeline` menu button: show the event timeline. |
 | `media_player` | :white_check_mark: | The `media_player` menu button: sends the visible media to a remote media player. Supports Frigate clips, snapshots and live camera (only for cameras that specify a `camera_entity` and only using the default HA stream (equivalent to the `ha` live provider). `jsmpeg` or `webrtc-card` are not supported, although live can still be played as long as `camera_entity` is specified. In the player list, a `tap` will send the media to the player, a `hold` will stop the media on the player. |
+| `microphone` | :white_check_mark: | The `microphone` button allows usage of 2-way audio in certain configurations. See [Using 2-way audio](#using-2-way-audio). |
 
 ##### Configuration on each button
 
@@ -462,11 +466,26 @@ See the [fully expanded live configuration example](#config-expanded-live) for h
 | `lazy_load` | `true` | :heavy_multiplication_x: | Whether or not to lazily load cameras in the camera carousel. Setting this will `false` will cause all cameras to load simultaneously when the `live` carousel is opened (or cause all cameras to load continually if both `lazy_load` and `preload` are `true`). This will result in a smoother carousel experience at a cost of (potentially) a substantial amount of continually streamed data. |
 | `lazy_unload` | `never` | :heavy_multiplication_x: | When to lazily **un**load lazyily-loaded cameras. `never` will never lazily-unload, `unselected` will lazy-unload a camera when it is unselected in the carousel, `hidden` will lazy-unload all cameras when the browser/tab becomes hidden or `all` on any opportunity to lazily unload (i.e. either case). This will cause a reloading delay on revisiting that camera in the carousel but will save the streaming network resources that are otherwise consumed. This option has no effect if `lazy_load` is false. Some live providers (e.g. `webrtc-card`) implement their own lazy unloading independently which may occur regardless of the value of this setting.|
 | `draggable` | `true` | :heavy_multiplication_x: | Whether or not the live carousel can be dragged left or right, via touch/swipe and mouse dragging. |
+| `zoomable` | `true` | :white_check_mark: | Whether or not the live carousel can be zoomed and panned, via touch/pinch and mouse scroll wheel with `ctrl` held. |
 | `transition_effect` | `slide` | :heavy_multiplication_x: | Effect to apply as a transition between live cameras. Accepted values: `slide` or `none`. |
 | `show_image_during_load` | `true` | :white_check_mark: | If `true`, during the initial stream load, the `image` live provider will be shown instead of the loading video stream. This still image will auto-refresh and is replaced with the live stream once loaded. |
 | `actions` | | :white_check_mark: | Actions to use for the `live` view. See [actions](#actions) below.|
 | `controls` | | :white_check_mark: | Configuration for the `live` view controls. See below. |
 | `layout` | | :white_check_mark: | See [media layout](#media-layout) below.|
+| `microphone` | | :white_check_mark: | See [microphone](#microphone) below.|
+
+#### Live Controls
+
+All configuration is under:
+
+```yaml
+live:
+  controls:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `builtin` | `true` | :white_check_mark: | Whether to show the built in (browser) video controls on live video. |
 
 #### Live Controls: Thumbnails
 
@@ -541,6 +560,24 @@ live:
 | `mode` | `popup-bottom-right` | :white_check_mark: | How to display the live camera title. Acceptable values: `none`, `popup-top-left`, `popup-top-right`, `popup-bottom-left`, `popup-bottom-right` . |
 | `duration_seconds` | `2` | :white_check_mark: | The number of seconds to display the title popup. `0` implies forever.|
 
+<a name="microphone"></a>
+
+#### Live: Microphone
+
+All configuration is under:
+
+```yaml
+live:
+  microphone:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `always_connected` | `false` | :white_check_mark: | Whether or not to keep the microphone stream continually connected while the card is running, or only when microphone is used (default). In the latter case there'll be a connection reset when the microphone is first used -- using this option can avoid that reset.|
+| `disconnect_seconds` | `60` | :white_check_mark: | The number of seconds after microphone usage to disconnect the microphone from the stream. `0` implies never. Not relevant if `always_connected` is `true`.|
+
+See [Using 2-way audio](#using-2-way-audio) for more information about the very particular requirements that must be followed for 2-way audio to work.
+
 ### Media Viewer Options
 
 The `media_viewer` is used for viewing all `clip`, `snapshot` or recording media, in a media carousel.
@@ -561,11 +598,25 @@ See the [fully expanded Media viewer configuration example](#config-expanded-med
 | `auto_unmute` | `never` | :heavy_multiplication_x: | Whether to automatically unmute events. `never` will never automatically unmute, `selected` will automatically unmute when an event is selected in the carousel, `visible` will automatically unmute when the browser/tab becomes visible or `all` on any opportunity to automatically unmute (i.e. either case). Note that some browsers will not allow automated unmute until the user has interacted with the page in some way -- if the user has not then the browser may pause the media instead.|
 | `lazy_load` | `true` | :heavy_multiplication_x: | Whether or not to lazily load media in the Media viewer carousel. Setting this will false will fetch all media immediately which may make the carousel experience smoother at a cost of (potentially) a substantial number of simultaneous media fetches on load. |
 | `draggable` | `true` | :heavy_multiplication_x: | Whether or not the Media viewer carousel can be dragged left or right, via touch/swipe and mouse dragging. |
+| `zoomable` | `true` | :heavy_multiplication_x: | Whether or not the Media Viewer can be zoomed and panned, via touch/pinch and mouse scroll wheel with `ctrl` held. |
 | `snapshot_click_plays_clip` | `true` | :heavy_multiplication_x: | Whether clicking on a snapshot in the media viewer should play a related clip. |
 | `transition_effect` | `slide` | :heavy_multiplication_x: | Effect to apply as a transition between event media. Accepted values: `slide` or `none`. |
 | `controls` | | :heavy_multiplication_x: | Configuration for the Media viewer controls. See below. |
 | `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `media_viewer` (e.g. `clip`, `snapshot`). See [actions](#actions) below.|
 | `layout` | | :white_check_mark: | See [media layout](#media-layout) below.|
+
+#### Media Viewer Controls
+
+All configuration is under:
+
+```yaml
+media_viewer:
+  controls:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `builtin` | `true` | :white_check_mark: | Whether to show the built in (browser) video controls on media viewer video. |
 
 #### Media Viewer Controls: Next / Previous
 
@@ -703,6 +754,7 @@ See the [fully expanded image configuration example](#config-expanded-image) for
 | `mode` | `url` | :white_check_mark: | Mode of the the `image` [view](#views). Value must be one of `url` (to fetch an arbitrary image URL), `camera` (to show a still of the currently selected camera using either `camera_entity` or `webrtc_card.entity` in that order of precedence), or `screensaver` (to show an [embedded stock Frigate card logo](https://github.com/dermotduffy/frigate-hass-card/blob/main/src/images/frigate-bird-in-sky.jpg)). In either `url` or `camera` mode, the `screensaver` content is used as a fallback if a URL is not specified or cannot be derived. |
 | `url` | | :white_check_mark: |  A static image URL to be used when the `mode` is set to `url` or when a temporary image is required (e.g. may appear momentarily prior to load of a camera snapshot in the `camera` mode). Note that a `_t=[timestsamp]` query parameter will be automatically added to all URLs such that the image will not be cached by the browser.|
 | `refresh_seconds` | 0 | :white_check_mark: | The image will be refreshed at least every `refresh_seconds` (it may refresh more frequently, e.g. whenever Home Assistant updates its camera security token). `0` implies no refreshing. |
+| `zoomable` | `true` | :white_check_mark: | Whether or not the image can be zoomed and panned, via touch/pinch and mouse scroll wheel with `ctrl` held. |
 | `actions` | | :white_check_mark: | Actions to use for the `image` view. See [actions](#actions) below.|
 
 **Note**: When `mode` is set to `camera` this is effectively providing the same image as the `image` live provider would show in the live camera carousel.
@@ -921,6 +973,25 @@ item, that has both of the following parameters set:
 | `conditions` | | :heavy_multiplication_x: | A set of conditions that must evaluate to `true` in order for the overrides to be applied. See [Frigate Card Conditions](#frigate-card-conditions). |
 | `overrides` | | :heavy_multiplication_x: |Configuration overrides to be applied. Any configuration parameter described in this documentation as 'Overridable' is supported. |
 
+<a name="automation-options"></a>
+
+### Automation Options
+
+All configuration is a list under:
+
+```yaml
+automations:
+  - [conditions:]
+    [actions:]
+    [actions_not:]
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `conditions` | | :heavy_multiplication_x: | A set of conditions that will trigger the automation. See [Frigate Card Conditions](#frigate-card-conditions). |
+| `actions` | | :heavy_multiplication_x: | An optional list of actions that will be run when the conditions evaluate `true`. Actions can be [stock Home Assistant actions](https://www.home-assistant.io/dashboards/actions/) or [Frigate card actions](#frigate-card-actions).|
+| `actions_not` | | :heavy_multiplication_x: | An optional list of actions that will be run when the conditions evaluate `false`. Actions can be [stock Home Assistant actions](https://www.home-assistant.io/dashboards/actions/) or [Frigate card actions](#frigate-card-actions).|
+
 <a name="media-layout"></a>
 
 ### Media Layout
@@ -1022,6 +1093,44 @@ See [the WebRTC Card live configuration](#webrtc-live-configuration) above, and 
 [external WebRTC Card configuration
 documentation](https://github.com/AlexxIT/WebRTC#configuration) for full
 configuration options that can be used here.
+
+<a name="using-2-way-audio"></a>
+
+## Using 2-Way Audio
+
+This card supports 2-way audio (e.g. transmitting audio from a microphone to a suitably equipped camera). Requirements for 2-way audio to work:
+
+Environmental requirements:
+   * Must have a camera that supports audio out (otherwise what's the point!)
+   * Camera must be supported by `go2rtc` for 2-way audio (see [supported cameras](https://github.com/AlexxIT/go2rtc#two-way-audio)).
+   * Must be accessing your Home Assistant instance over `https`. The browser will enforce this.
+
+Card requirements:
+   * Only Frigate cameras are supported.
+   * Only the `go2rtc` live provider is supported.
+   * Only the `webrtc` mode supports 2-way audio:
+```yaml
+cameras:
+  - camera_entity: camera.front_door
+    live_provider: go2rtc
+    go2rtc:
+      modes:
+        - webrtc
+```
+  * Must have microphone menu button enabled:
+```yaml
+menu:
+  buttons:
+    microphone:
+      enabled: true
+```
+
+Usage:
+   * The camera will always load without the microphone connected.
+   * To speak, hold-down the microphone menu button.
+      * On first press, this will reset the `webrtc` connection to include 2-way audio (unless the `always_connected` microphone option is set to `true`).
+      * Thereafter hold the microphone button down to unmute/speak, let go to mute.
+   * The video will automatically reset to remove the microphone after the number of seconds specified by `disconnect_seconds` in the `microphone` configuration have elapsed since the last mute/unmute press.
 
 <a name="frigate-card-conditions"></a>
 
@@ -1173,6 +1282,8 @@ Parameters for the `custom:frigate-card-ptz` element:
 | `data_left`, `data_right`, `data_up`, `data_down`, `data_zoom_in`, `data_zoom_out`, `data_home` | Shorthand for a `tap_action` that calls the `service` with the data provided in this argument. Internally, this is just translated into the longer-form `actions_[button]`. If both `actions_X` and `data_X` are specified, `actions_X` takes priority. This is compatible with [AlexxIT's WebRTC Card PTZ configuration](https://github.com/AlexxIT/WebRTC/wiki/PTZ-Config-Examples). |
 | `service` | | An optional Home Assistant service to call when the `data_` parameters are used. |
 
+<a name="frigate-card-actions"></a>
+
 ### Special Actions
 
 #### `custom:frigate-card-action`
@@ -1180,7 +1291,7 @@ Parameters for the `custom:frigate-card-ptz` element:
 | Parameter | Description |
 | - | - |
 | `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_select`, `expand`.|
+| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_on`, `live_substream_off`, `live_substream_select`, `expand`, `microphone_mute`, `microphone_unmute`, `mute`, `unmute`, `play`, `pause`|
 
 <a name="custom-actions"></a>
 
@@ -1198,6 +1309,9 @@ Parameters for the `custom:frigate-card-ptz` element:
 |`media_player`| Perform a media player action. Takes a `media_player` parameter with the entity ID of the media_player on which to perform the action, and a `media_player_action` parameter which should be either `play` or `stop` to play or stop the media in question. |
 |`live_substream_select`| Perform a media player action. Takes a `camera` parameter with the [camera ID](#camera-ids) of the substream camera. |
 |`expand`| Expand the card into a dialog/popup. |
+|`microphone_mute`, `microphone_unmute`| Mute or unmute the microphone. See [Using 2-way audio](#using-2-way-audio). |
+|`mute`, `unmute`| Mute or unmute the loaded media. |
+|`play`, `pause`| Play or pause the loaded media. |
 
 <a name="views"></a>
 
@@ -1457,6 +1571,18 @@ Pan around a large camera view to only show part of the video feed in the card a
 ### Ribbon timeline
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/ribbon-timeline.png" alt="Ribbon Timeline" width="400px">
+
+### In-menu media / mute control
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/dev/images/native-media-control.png" alt="In-Menu Media Control" width="400px">
+
+### 2-way Audio Support
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/dev/images/microphone.gif" alt="2-way Audio" width="400px">
+
+### Zoom Support
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/dev/images/zoom.gif" alt="Zoom Support" width="400px">
 
 ## Examples
 
@@ -1744,6 +1870,22 @@ menu:
       enabled: false
       alignment: matching
       icon: mdi:cast
+    microphone:
+      priority: 50
+      enabled: false
+      alignment: matching
+      icon: mdi:microphone
+      type: momentary
+    mute:
+      priority: 50
+      enabled: false
+      alignment: matching
+      icon: mdi:volume-off
+    play:
+      priority: 50
+      enabled: false
+      alignment: matching
+      icon: mdi:play
   button_size: 40
 ```
 </details>
@@ -1765,8 +1907,10 @@ live:
   lazy_load: true
   lazy_unload: never
   draggable: true
+  zoomable: true
   transition_effect: slide
   controls:
+    builtin: true
     next_previous:
       style: chevrons
       size: 48
@@ -1793,6 +1937,9 @@ live:
     position:
       x: 50
       y: 50
+  microphone:
+    always_connected: false
+    disconnect_seconds: 60
   actions:
     entity: light.office_main_lights
     tap_action:
@@ -1824,9 +1971,11 @@ media_viewer:
   auto_unmute: never
   lazy_load: true
   draggable: true
+  zoomable: true
   snapshot_click_plays_clip: true
   transition_effect: slide
   controls:
+    builtin: true
     next_previous:
       size: 48
       style: thumbnails
@@ -1911,6 +2060,7 @@ Reference: [Image Options](#image-options).
 image:
   mode: url
   refresh_seconds: 0
+  zoomable: true
   layout:
     fit: contain
     position:
@@ -2567,6 +2717,24 @@ performance:
   style:
     border_radius: true
     box_shadow: true
+```
+</details>
+
+<details>
+  <summary>Expand: Automation section</summary>
+
+Reference: [Automation Options](#automation-options).
+
+```yaml
+automations:
+  - conditions:
+      fullscreen: true
+    actions:
+      - action: custom:frigate-card-action
+        frigate_card_action: live_substream_on
+    actions_not:
+      - action: custom:frigate-card-action
+        frigate_card_action: live_substream_off
 ```
 </details>
 
@@ -3460,6 +3628,32 @@ overrides:
 ```
 </details>
 
+### Using menu-based video controls instead of browser builtin controls
+
+<details>
+  <summary>Expand: Using menu-based video controls</summary>
+
+Disable the stock video controls and add menu button equivalents.
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.back_yard
+live:
+  controls:
+    builtin: false
+media_viewer:
+  controls:
+    builtin: false
+menu:
+  buttons:
+    play:
+      enabled: true
+    mute:
+      enabled: true
+```
+</details>
+
 ### Automatically trigger "fullscreen" mode
 
 The card cannot automatically natively trigger fullscreen mode without the user
@@ -3548,6 +3742,31 @@ cameras:
 
 ```
 https://ha.mydomain.org/lovelace-test/0?frigate-card-action:main:clips
+```
+</details>
+
+
+### Automation actions
+
+The card can automatically execute actions when certain conditions are met.
+
+<details>
+  <summary>Expand: Automatically selecting a high-definition substream in fullscreen mode</summary>
+
+This example will automatically turn on the first configured substream when the
+card is put in fullscreen mode, and turn off the substream when exiting
+fullscreen mode.
+
+```yaml
+automations:
+  - conditions:
+      fullscreen: true
+    actions:
+      - action: custom:frigate-card-action
+        frigate_card_action: live_substream_on
+    actions_not:
+      - action: custom:frigate-card-action
+        frigate_card_action: live_substream_off
 ```
 </details>
 
@@ -3652,6 +3871,9 @@ To send an action to a named Frigate card on the dashboard:
 | `live` | :white_check_mark: | |
 | `media_player`| :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/frigate-hass-card/issues) if you need this. |
 | `menu_toggle` | :white_check_mark: | |
+| `microphone_mute`, `microphone_unmute`| :heavy_multiplication_x: | |
+| `mute`, `unmute` | :heavy_multiplication_x: | |
+| `play`, `pause` | :heavy_multiplication_x: | |
 | `recording` | :white_check_mark: | |
 | `recordings` | :white_check_mark: | |
 | `snapshot` | :white_check_mark: | |
@@ -3717,6 +3939,24 @@ live:
     thumbnails:
       mode: none
 ```
+
+### Microphone / 2-way audio doesn't work
+
+There are many requirements for 2-way audio to work. See [Using 2-way
+audio](#using-2-way-audio) for more information about these. If your microphone
+still does not work and you believe you meet all the requirements try
+eliminating the card from the picture by going directly to the `go2rtc` UI,
+navigating to `links` for your given stream, then to `webrtc.html` with a
+microphone. If this does not work correctly with 2-way audio then your issue is
+with `go2rtc` not with the card. In this case, you could file an issue in [that
+repo](https://github.com/AlexxIT/go2rtc/issues) with debugging information as
+appropriate.
+
+### Microphone menu button does not appear
+
+The microphone menu button will only appear if both enabled (see [Menu Button Options](#menu-buttons))
+and if the media that is currently loaded supports 2-way audio. See
+[Using 2-way audio](#using-2-way-audio) for more information about the requirements that must be followed.
 
 ### Static image URL with credentials doesn't load
 
@@ -3810,6 +4050,12 @@ rewind or fast-forward. Workarounds:
 Try resetting the app frontend cache:
 
 * `Configuration -> Companion App -> Debugging -> Reset frontend cache`
+
+### Chrome does not update card version after upgrade
+
+When upgrading the card it's recommended to reset the frontend cache. Sometimes clearing site data in Chrome settings isn't enough.
+
+* Press F12 to display `Dev Console` in Chrome then right click on the refresh icon and select `Empty Cache and Hard Reload`
 
 ### Casting to a remote media player does not work
 

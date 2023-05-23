@@ -9,8 +9,12 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { guard } from 'lit/directives/guard.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
+import { CameraManager } from '../camera-manager/manager.js';
 import { dispatchMessageEvent, renderProgressIndicator } from '../components/message.js';
+import { localize } from '../localize/localize.js';
+import '../patches/ha-hls-player';
 import viewerCarouselStyle from '../scss/viewer-carousel.scss';
 import viewerProviderStyle from '../scss/viewer-provider.scss';
 import viewerStyle from '../scss/viewer.scss';
@@ -24,39 +28,41 @@ import {
   ViewerConfig,
 } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
+import { mayHaveAudio } from '../utils/audio.js';
 import { contentsChanged, errorToConsole } from '../utils/basic.js';
+import { canonicalizeHAURL } from '../utils/ha/index.js';
 import { ResolvedMediaCache, resolveMedia } from '../utils/ha/resolved-media.js';
-import { View } from '../view/view.js';
+import {
+  dispatchMediaLoadedEvent,
+  dispatchMediaPauseEvent,
+  dispatchMediaPlayEvent,
+  dispatchMediaVolumeChangeEvent,
+} from '../utils/media-info.js';
+import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
+import {
+  changeViewToRecentEventsForCameraAndDependents,
+  changeViewToRecentRecordingForCameraAndDependents,
+} from '../utils/media-to-view.js';
+import {
+  hideMediaControlsTemporarily,
+  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
+  playMediaMutingIfNecessary,
+} from '../utils/media.js';
+import { ViewMediaClassifier } from '../view/media-classifier';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
+import { MediaQueriesResults } from '../view/media-queries-results.js';
+import { VideoContentType, ViewMedia } from '../view/media.js';
+import { View } from '../view/view.js';
+import type { CarouselSelect } from './carousel.js';
 import { AutoMediaPlugin } from './embla-plugins/automedia.js';
 import { Lazyload } from './embla-plugins/lazyload.js';
 import {
   FrigateCardMediaCarousel,
   wrapMediaLoadedEventForCarousel,
 } from './media-carousel.js';
-import type { CarouselSelect } from './carousel.js';
 import './next-prev-control.js';
-import './title-control.js';
-import '../patches/ha-hls-player';
 import './surround.js';
-import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
-import { CameraManager } from '../camera-manager/manager.js';
-import {
-  changeViewToRecentEventsForCameraAndDependents,
-  changeViewToRecentRecordingForCameraAndDependents,
-} from '../utils/media-to-view.js';
-import { VideoContentType, ViewMedia } from '../view/media.js';
-import { ViewMediaClassifier } from '../view/media-classifier';
-import { guard } from 'lit/directives/guard.js';
-import { localize } from '../localize/localize.js';
-import { MediaQueriesResults } from '../view/media-queries-results.js';
-import { canonicalizeHAURL } from '../utils/ha/index.js';
-import { dispatchMediaLoadedEvent } from '../utils/media-info.js';
-import { playMediaMutingIfNecessary } from '../utils/media.js';
-import {
-  hideMediaControlsTemporarily,
-  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
-} from '../utils/media.js';
+import './title-control.js';
 
 export interface MediaViewerViewContext {
   seek?: Date;
@@ -602,6 +608,23 @@ export class FrigateCardViewerProvider
     }
   }
 
+  public async setControls(controls?: boolean): Promise<void> {
+    if (this._refFrigateCardMediaPlayer.value) {
+      return this._refFrigateCardMediaPlayer.value.setControls(controls);
+    } else if (this._refVideoProvider.value) {
+      this._refVideoProvider.value.controls = controls ?? this.viewerConfig?.controls.builtin ?? true;
+    }
+  }
+
+  public isPaused(): boolean {
+    if (this._refFrigateCardMediaPlayer.value) {
+      return this._refFrigateCardMediaPlayer.value.isPaused();
+    } else if (this._refVideoProvider.value) {
+      return this._refVideoProvider.value.paused;
+    }
+    return true;
+  }
+
   /**
    * Dispatch a clip view that matches the current (snapshot) query.
    */
@@ -674,6 +697,21 @@ export class FrigateCardViewerProvider
         this.requestUpdate();
       });
     }
+
+    if (changedProps.has('viewerConfig') && this.viewerConfig?.zoomable) {
+      import('./zoomer.js');
+    }
+  }
+
+  protected _useZoomIfRequired(template: TemplateResult): TemplateResult {
+    return this.viewerConfig?.zoomable
+      ? html` <frigate-card-zoomer
+          @frigate-card:zoom:zoomed=${() => this.setControls(false)}
+          @frigate-card:zoom:unzoomed=${() => this.setControls()}
+        >
+          ${template}
+        </frigate-card-zoomer>`
+      : template;
   }
 
   protected render(): TemplateResult | void {
@@ -693,61 +731,73 @@ export class FrigateCardViewerProvider
       });
     }
 
-    return ViewMediaClassifier.isVideo(this.media)
-      ? this.media.getVideoContentType() === VideoContentType.HLS
-        ? html`<frigate-card-ha-hls-player
-            ${ref(this._refFrigateCardMediaPlayer)}
-            allow-exoplayer
-            aria-label="${this.media.getTitle() ?? ''}"
-            ?autoplay=${false}
-            controls
-            muted
-            playsinline
-            title="${this.media.getTitle() ?? ''}"
-            url=${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}
-            .hass=${this.hass}
-          >
-          </frigate-card-ha-hls-player>`
-        : html`
-            <video
-              ${ref(this._refVideoProvider)}
+    return this._useZoomIfRequired(html`
+      ${ViewMediaClassifier.isVideo(this.media)
+        ? this.media.getVideoContentType() === VideoContentType.HLS
+          ? html`<frigate-card-ha-hls-player
+              ${ref(this._refFrigateCardMediaPlayer)}
+              allow-exoplayer
               aria-label="${this.media.getTitle() ?? ''}"
-              title="${this.media.getTitle() ?? ''}"
-              muted
-              controls
-              playsinline
               ?autoplay=${false}
-              @loadedmetadata=${(ev: Event) => {
-                if (ev.target) {
-                  hideMediaControlsTemporarily(
-                    ev.target as HTMLVideoElement,
-                    MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
-                  );
-                }
-              }}
-              @loadeddata=${(ev: Event) => {
-                dispatchMediaLoadedEvent(this, ev);
-              }}
+              controls
+              muted
+              playsinline
+              title="${this.media.getTitle() ?? ''}"
+              url=${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}
+              .hass=${this.hass}
+              ?controls=${this.viewerConfig.controls.builtin}
             >
-              <source
-                src=${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}
-                type="video/mp4"
-              />
-            </video>
-          `
-      : html`<img
-          aria-label="${this.media.getTitle() ?? ''}"
-          src="${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}"
-          title="${this.media.getTitle() ?? ''}"
-          @click=${() => {
-            if (this.viewerConfig?.snapshot_click_plays_clip) {
-              this._dispatchRelatedClipView();
-            }
-          }}
-          @load=${(e: Event) => {
-            dispatchMediaLoadedEvent(this, e);
-          }}
-        />`;
+            </frigate-card-ha-hls-player>`
+          : html`
+              <video
+                ${ref(this._refVideoProvider)}
+                aria-label="${this.media.getTitle() ?? ''}"
+                title="${this.media.getTitle() ?? ''}"
+                muted
+                playsinline
+                ?autoplay=${false}
+                ?controls=${this.viewerConfig.controls.builtin}
+                @loadedmetadata=${(ev: Event) => {
+                  if (ev.target && !!this.viewerConfig?.controls.builtin) {
+                    hideMediaControlsTemporarily(
+                      ev.target as HTMLVideoElement,
+                      MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
+                    );
+                  }
+                }}
+                @loadeddata=${(ev: Event) => {
+                  dispatchMediaLoadedEvent(this, ev, {
+                    player: this,
+                    capabilities: {
+                      supportsPause: true,
+                      hasAudio: mayHaveAudio(ev.target as HTMLVideoElement),
+                    },
+                  });
+                }}
+                @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}
+                @play=${() => dispatchMediaPlayEvent(this)}
+                @pause=${() => dispatchMediaPauseEvent(this)}
+              >
+                <source
+                  src=${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}
+                  type="video/mp4"
+                />
+              </video>
+            `
+        : html`<img
+            aria-label="${this.media.getTitle() ?? ''}"
+            src="${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}"
+            title="${this.media.getTitle() ?? ''}"
+            @click=${() => {
+              if (this.viewerConfig?.snapshot_click_plays_clip) {
+                this._dispatchRelatedClipView();
+              }
+            }}
+            @load=${(ev: Event) => {
+              dispatchMediaLoadedEvent(this, ev, { player: this });
+            }}
+          />`}
+    `);
   }
 
   static get styles(): CSSResultGroup {

@@ -375,6 +375,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@dermotduffy/panzoom@npm:^4.5.1":
+  version: 4.5.1
+  resolution: "@dermotduffy/panzoom@npm:4.5.1"
+  checksum: 4c826f910425e50d9155005947e14bf344ec6b6a68783feb5a62f6bd2d7261cc541ceb18462552be271539a284a24b423dca27201caf45e153002fc5bf1c188e
+  languageName: node
+  linkType: hard
+
 "@duetds/date-picker@npm:^1.4.0":
   version: 1.4.0
   resolution: "@duetds/date-picker@npm:1.4.0"
@@ -3032,6 +3039,7 @@ __metadata:
     "@babel/plugin-proposal-class-properties": ^7.18.6
     "@babel/plugin-proposal-decorators": ^7.19.0
     "@cycjimmy/jsmpeg-player": ^6.0.4
+    "@dermotduffy/panzoom": ^4.5.1
     "@egjs/hammerjs": ^2.0.17
     "@graphiteds/core": ^1.9.6
     "@lit-labs/scoped-registry-mixin": ^1.0.1

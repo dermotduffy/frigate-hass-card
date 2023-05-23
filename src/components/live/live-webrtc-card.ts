@@ -10,7 +10,12 @@ import {
   FrigateCardError,
   FrigateCardMediaPlayer,
 } from '../../types.js';
-import { dispatchMediaLoadedEvent } from '../../utils/media-info.js';
+import {
+  dispatchMediaLoadedEvent,
+  dispatchMediaPauseEvent,
+  dispatchMediaPlayEvent,
+  dispatchMediaVolumeChangeEvent,
+} from '../../utils/media-info.js';
 import { dispatchErrorMessageEvent, renderProgressIndicator } from '../message.js';
 import { renderTask } from '../../utils/task.js';
 import {
@@ -18,6 +23,7 @@ import {
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
 } from '../../utils/media.js';
 import { CameraEndpoints } from '../../camera-manager/types.js';
+import { mayHaveAudio } from '../../utils/audio.js';
 
 // Create a wrapper for AlexxIT's WebRTC card
 //  - https://github.com/AlexxIT/WebRTC
@@ -34,6 +40,9 @@ export class FrigateCardLiveWebRTCCard
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
+
+  @property({ attribute: true, type: Boolean })
+  public controls = false;
 
   protected hass?: HomeAssistant;
 
@@ -71,6 +80,17 @@ export class FrigateCardLiveWebRTCCard
     if (player) {
       player.currentTime = seconds;
     }
+  }
+
+  public async setControls(controls?: boolean): Promise<void> {
+    const player = this._getPlayer();
+    if (player) {
+      player.controls = controls ?? this.controls;
+    }
+  }
+
+  public isPaused(): boolean {
+    return this._getPlayer()?.paused ?? true;
   }
 
   connectedCallback(): void {
@@ -171,15 +191,22 @@ export class FrigateCardLiveWebRTCCard
     this.updateComplete.then(() => {
       const video = this._getPlayer();
       if (video) {
-        const onloadeddata = video.onloadeddata;
-
-        video.onloadeddata = (e) => {
-          if (onloadeddata) {
-            onloadeddata.call(video, e);
+        video.onloadeddata = () => {
+          if (this.controls) {
+            hideMediaControlsTemporarily(video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
           }
-          hideMediaControlsTemporarily(video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
-          dispatchMediaLoadedEvent(this, video);
+          dispatchMediaLoadedEvent(this, video, {
+            player: this,
+            capabilities: {
+              supportsPause: true,
+              hasAudio: mayHaveAudio(video),
+            },
+          });
         };
+        video.onplay = () => dispatchMediaPlayEvent(this);
+        video.onpause = () => dispatchMediaPauseEvent(this);
+        video.onvolumechange = () => dispatchMediaVolumeChangeEvent(this);
+        video.controls = this.controls;
       }
     });
   }

@@ -1,15 +1,15 @@
 import {
-    CSSResultGroup,
-    html,
-    LitElement,
-    PropertyValues,
-    TemplateResult,
-    unsafeCSS
+  CSSResultGroup,
+  html,
+  LitElement,
+  PropertyValues,
+  TemplateResult,
+  unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
-import { ConditionState, getOverridesByKey } from '../card-condition';
+import { ConditionControllerEpoch, getOverridesByKey } from '../conditions';
 import viewsStyle from '../scss/views.scss';
 import { CardWideConfig, ExtendedHomeAssistant, FrigateCardConfig } from '../types.js';
 import { ResolvedMediaCache } from '../utils/ha/resolved-media';
@@ -40,13 +40,13 @@ export class FrigateCardViews extends LitElement {
   public resolvedMediaCache?: ResolvedMediaCache;
 
   @property({ attribute: false })
-  public conditionState?: ConditionState;
-
-  @property({ attribute: false })
-  public cameras?: ConditionState;
+  public conditionControllerEpoch?: ConditionControllerEpoch;
 
   @property({ attribute: false })
   public hide?: boolean;
+
+  @property({ attribute: false })
+  public microphoneStream?: MediaStream;
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('view') || changedProps.has('config')) {
@@ -72,7 +72,7 @@ export class FrigateCardViews extends LitElement {
       }
     }
   }
-  
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected shouldUpdate(_: PropertyValues): boolean {
     // Future: Updates to `hass` and `conditionState` here will be frequent.
@@ -150,6 +150,7 @@ export class FrigateCardViews extends LitElement {
             .view=${this.view}
             .hass=${this.hass}
             .cameraConfig=${cameraConfig}
+            .supportZoom=${true}
           >
           </frigate-card-image>`
         : ``}
@@ -199,10 +200,11 @@ export class FrigateCardViews extends LitElement {
                 .hass=${this.hass}
                 .view=${this.view}
                 .liveConfig=${this.nonOverriddenConfig.live}
-                .conditionState=${this.conditionState}
-                .liveOverrides=${getOverridesByKey(this.config.overrides, 'live')}
+                .conditionControllerEpoch=${this.conditionControllerEpoch}
+                .liveOverrides=${getOverridesByKey('live', this.config.overrides)}
                 .cameraManager=${this.cameraManager}
                 .cardWideConfig=${this.cardWideConfig}
+                .microphoneStream=${this.microphoneStream}
                 class="${classMap(liveClasses)}"
               >
               </frigate-card-live>

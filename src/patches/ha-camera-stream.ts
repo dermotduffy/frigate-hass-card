@@ -71,6 +71,16 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       this._player?.seek(seconds);
     }
 
+    public async setControls(controls?: boolean): Promise<void> {
+      if (this._player) {
+        this._player.setControls(controls ?? this.controls);
+      }
+    }
+
+    public isPaused(): boolean {
+      return this._player?.isPaused() ?? true;
+    }
+    
     /**
      * Master render method.
      * @returns A rendered template.
@@ -84,7 +94,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
         return html`
           <img
             @load=${(ev: Event) => {
-              dispatchMediaLoadedEvent(this, ev);
+              dispatchMediaLoadedEvent(this, ev, { player: this });
             }}
             .src=${typeof this._connected == 'undefined' || this._connected
               ? computeMJPEGStreamUrl(this.stateObj)

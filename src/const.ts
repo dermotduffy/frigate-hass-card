@@ -104,6 +104,8 @@ export const CONF_MEDIA_VIEWER_SNAPSHOT_CLICK_PLAYS_CLIP =
   `${CONF_MEDIA_VIEWER}.snapshot_click_plays_clip` as const;
 export const CONF_MEDIA_VIEWER_TRANSITION_EFFECT =
   `${CONF_MEDIA_VIEWER}.transition_effect` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_BUILTIN =
+  `${CONF_MEDIA_VIEWER}.controls.builtin` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE =
   `${CONF_MEDIA_VIEWER}.controls.next_previous.style` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE =
@@ -132,6 +134,7 @@ export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE =
   `${CONF_MEDIA_VIEWER}.controls.timeline.style` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS =
   `${CONF_MEDIA_VIEWER}.controls.timeline.window_seconds` as const;
+export const CONF_MEDIA_VIEWER_ZOOMABLE = `${CONF_MEDIA_VIEWER}.zoomable` as const;
 
 export const CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE =
   `${CONF_MEDIA_VIEWER}.controls.title.mode` as const;
@@ -148,6 +151,7 @@ export const CONF_LIVE_AUTO_PLAY = `${CONF_LIVE}.auto_play` as const;
 export const CONF_LIVE_AUTO_PAUSE = `${CONF_LIVE}.auto_pause` as const;
 export const CONF_LIVE_AUTO_MUTE = `${CONF_LIVE}.auto_mute` as const;
 export const CONF_LIVE_AUTO_UNMUTE = `${CONF_LIVE}.auto_unmute` as const;
+export const CONF_LIVE_CONTROLS_BUILTIN = `${CONF_LIVE}.controls.builtin` as const;
 export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE =
   `${CONF_LIVE}.controls.next_previous.style` as const;
 export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE =
@@ -191,6 +195,11 @@ export const CONF_LIVE_PRELOAD = `${CONF_LIVE}.preload` as const;
 export const CONF_LIVE_TRANSITION_EFFECT = `${CONF_LIVE}.transition_effect` as const;
 export const CONF_LIVE_SHOW_IMAGE_DURING_LOAD =
   `${CONF_LIVE}.show_image_during_load` as const;
+export const CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS =
+  `${CONF_LIVE}.microphone.disconnect_seconds` as const;
+export const CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED =
+  `${CONF_LIVE}.microphone.always_connected` as const;
+export const CONF_LIVE_ZOOMABLE = `${CONF_LIVE}.zoomable` as const;
 
 const CONF_IMAGE = 'image' as const;
 export const CONF_IMAGE_LAYOUT_FIT = `${CONF_IMAGE}.layout.fit` as const;
@@ -199,6 +208,7 @@ export const CONF_IMAGE_LAYOUT_POSITION_Y = `${CONF_IMAGE}.layout.position.y` as
 export const CONF_IMAGE_MODE = `${CONF_IMAGE}.mode` as const;
 export const CONF_IMAGE_REFRESH_SECONDS = `${CONF_IMAGE}.refresh_seconds` as const;
 export const CONF_IMAGE_URL = `${CONF_IMAGE}.url` as const;
+export const CONF_IMAGE_ZOOMABLE = `${CONF_IMAGE}.zoomable` as const;
 
 const CONF_TIMELINE = 'timeline' as const;
 export const CONF_TIMELINE_WINDOW_SECONDS = `${CONF_TIMELINE}.window_seconds` as const;

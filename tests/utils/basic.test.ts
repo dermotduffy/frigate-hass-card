@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, afterAll } from 'vitest';
 import { FrigateCardError } from '../../src/types';
 import {
   allPromises,

@@ -84,6 +84,7 @@
     },
     "common": {
       "controls": {
+        "builtin": "Built-in video controls",
         "filter": {
           "editor_label": "Media Filter",
           "mode": "Filter mode",
@@ -204,7 +205,8 @@
         "url": "Arbitrary image specified by URL"
       },
       "refresh_seconds": "Number of seconds after which to refresh (0=never)",
-      "url": "Static image URL for image view"
+      "url": "Static image URL for image view",
+      "zoomable": "Image can be zoomed/panned"
     },
     "live": {
       "auto_mute": "Automatically mute live cameras",
@@ -218,9 +220,16 @@
       "layout": "Live Layout",
       "lazy_load": "Live cameras are lazily loaded",
       "lazy_unload": "Live cameras are lazily unloaded",
+      "microphone": {
+        "always_connected": "Always keep the microphone connected",
+        "disconnect_seconds": "Seconds after which to disconnect microphone (0=never)",
+        "editor_label": "Microphone",
+        "enabled": "Microphone enabled"
+      },
       "preload": "Preload live view in the background",
       "show_image_during_load": "Show still image while the live stream is loading",
-      "transition_effect": "Live camera transition effect"
+      "transition_effect": "Live camera transition effect",
+      "zoomable": "Live cameras can be zoomed/panned"
     },
     "media_viewer": {
       "auto_mute": "Automatically mute media",
@@ -238,7 +247,8 @@
       "transition_effects": {
         "none": "No transition",
         "slide": "Slide transition"
-      }
+      },
+      "zoomable": "Media Viewer can be zoomed/panned"
     },
     "menu": {
       "alignment": "Menu alignment",
@@ -267,11 +277,19 @@
         "image": "Image",
         "live": "Live",
         "media_player": "Send to media player",
+        "microphone": "Microphone",
+        "mute": "Mute / Unmute",
+        "play": "Play / Pause",
         "priority": "Priority",
         "recordings": "Recordings",
         "snapshots": "Snapshots",
         "substreams": "Substream(s)",
-        "timeline": "Timeline"
+        "timeline": "Timeline",
+        "type": "Button type",
+        "types": {
+          "momentary": "Momentary",
+          "toggle": "Toggle"
+        }
       },
       "position": "Menu position",
       "positions": {
@@ -417,6 +435,7 @@
     "no_visible_cameras": "No visible cameras found, you must configure at least one non-hidden camera",
     "reconnecting": "Reconnecting",
     "timeline_no_cameras": "No Frigate cameras to show in timeline",
+    "too_many_automations": "Too many nested automation calls, please check your configuration for loops",
     "troubleshooting": "Check troubleshooting",
     "unknown": "Unknown error",
     "upgrade_available": "An automated card configuration upgrade is available, please visit the visual card editor",

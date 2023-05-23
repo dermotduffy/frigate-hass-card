@@ -6,32 +6,39 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS,
+  unsafeCSS
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import isEqual from 'lodash-es/isEqual';
 import { CachedValueController } from '../cached-value-controller.js';
 import defaultImage from '../images/frigate-bird-in-sky.jpg';
 import { localize } from '../localize/localize.js';
 import imageStyle from '../scss/image.scss';
-import { CameraConfig, ImageViewConfig, MediaLoadedInfo } from '../types.js';
+import {
+  CameraConfig,
+  FrigateCardMediaPlayer,
+  ImageViewConfig,
+  MediaLoadedInfo
+} from '../types.js';
+import { contentsChanged } from '../utils/basic.js';
 import { isHassDifferent } from '../utils/ha';
-import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
 import {
   createMediaLoadedInfo,
   dispatchExistingMediaLoadedInfoAsEvent,
+  dispatchMediaPauseEvent,
+  dispatchMediaPlayEvent
 } from '../utils/media-info.js';
+import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
 import { View } from '../view/view.js';
 import { dispatchErrorMessageEvent } from './message.js';
-import { contentsChanged } from '../utils/basic.js';
-import isEqual from 'lodash-es/isEqual';
 
 // See TOKEN_CHANGE_INTERVAL in https://github.com/home-assistant/core/blob/dev/homeassistant/components/camera/__init__.py .
 const HASS_REJECTION_CUTOFF_MS = 5 * 60 * 1000;
 
 @customElement('frigate-card-image')
-export class FrigateCardImage extends LitElement {
+export class FrigateCardImage extends LitElement implements FrigateCardMediaPlayer {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
@@ -53,6 +60,40 @@ export class FrigateCardImage extends LitElement {
   protected _boundVisibilityHandler = this._visibilityHandler.bind(this);
 
   protected _mediaLoadedInfo: MediaLoadedInfo | null = null;
+
+  public async play(): Promise<void> {
+    this._cachedValueController?.startTimer();
+  }
+
+  public async pause(): Promise<void> {
+    this._cachedValueController?.stopTimer();
+  }
+
+  public async mute(): Promise<void> {
+    // Not implemented.
+  }
+
+  public async unmute(): Promise<void> {
+    // Not implemented.
+  }
+
+  public isMuted(): boolean {
+    return true;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async seek(_seconds: number): Promise<void> {
+    // Not implemented.
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async setControls(_controls: boolean): Promise<void> {
+    // Not implemented.
+  }
+
+  public isPaused(): boolean {
+    return !this._cachedValueController?.hasTimer() ?? true;
+  }
 
   /**
    * Get the camera entity for the current camera configuration.
@@ -108,9 +149,15 @@ export class FrigateCardImage extends LitElement {
           this,
           this.imageConfig.refresh_seconds,
           this._getImageSource.bind(this),
+          () => dispatchMediaPlayEvent(this),
+          () => dispatchMediaPauseEvent(this),
         );
       }
       updateElementStyleFromMediaLayoutConfig(this, this.imageConfig?.layout);
+
+      if (changedProps.has('imageConfig') && this.imageConfig?.zoomable) {
+        import('./zoomer.js');
+      }
     }
 
     // If the camera or view changed, immediately discard the old value (view to
@@ -231,16 +278,27 @@ export class FrigateCardImage extends LitElement {
     }
   }
 
+  protected _useZoomIfRequired(template: TemplateResult): TemplateResult {
+    return this.imageConfig?.zoomable
+      ? html` <frigate-card-zoomer> ${template} </frigate-card-zoomer>`
+      : template;
+  }
+
   protected render(): TemplateResult | void {
     const src = this._cachedValueController?.value;
     // Note the use of live() below to ensure the update will restore the image
     // src if it's been changed via _forceSafeImage().
     return src
-      ? html` <img
+      ? this._useZoomIfRequired(html` <img
           ${ref(this._refImage)}
           src=${live(src)}
           @load=${(ev: Event) => {
-            const mediaLoadedInfo = createMediaLoadedInfo(ev);
+            const mediaLoadedInfo = createMediaLoadedInfo(ev, {
+              player: this,
+              capabilities: {
+                supportsPause: !!this.imageConfig?.refresh_seconds,
+              },
+            });
             // Avoid the media being reported as repeatedly loading unless the
             // media info changes.
             if (mediaLoadedInfo && !isEqual(this._mediaLoadedInfo, mediaLoadedInfo)) {
@@ -263,7 +321,7 @@ export class FrigateCardImage extends LitElement {
               });
             }
           }}
-        />`
+        />`)
       : html``;
   }
 

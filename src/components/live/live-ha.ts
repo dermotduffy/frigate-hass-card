@@ -17,6 +17,9 @@ export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPla
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
 
+  @property({ attribute: true, type: Boolean })
+  public controls = true;
+
   protected _playerRef: Ref<Element & FrigateCardMediaPlayer> = createRef();
 
   public async play(): Promise<void> {
@@ -43,6 +46,14 @@ export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPla
     this._playerRef.value?.seek(seconds);
   }
 
+  public async setControls(controls?: boolean): Promise<void> {
+    this._playerRef.value?.setControls(controls ?? this.controls);
+  }
+
+  public isPaused(): boolean {
+    return this._playerRef.value?.isPaused() ?? true;
+  }
+
   protected render(): TemplateResult | void {
     if (!this.hass) {
       return;
@@ -57,7 +68,7 @@ export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPla
       ${ref(this._playerRef)}
       .hass=${this.hass}
       .stateObj=${stateObj}
-      .controls=${true}
+      .controls=${this.controls}
       .muted=${true}
     >
     </frigate-card-ha-camera-stream>`;

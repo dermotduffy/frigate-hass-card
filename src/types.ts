@@ -219,11 +219,19 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'image',
   'live',
   'menu_toggle',
+  'mute',
+  'live_substream_on',
+  'live_substream_off',
+  'microphone_mute',
+  'microphone_unmute',
+  'play',
+  'pause',
   'recording',
   'recordings',
   'snapshot',
   'snapshots',
   'timeline',
+  'unmute',
 ] as const;
 const FRIGATE_CARD_ACTIONS = [
   ...FRIGATE_CARD_GENERAL_ACTIONS,
@@ -261,7 +269,7 @@ export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSche
 
 // Cannot use discriminatedUnion since frigateCardCustomActionSchema uses a
 // transform on the discriminated union key.
-const actionSchema = z.union([
+export const actionSchema = z.union([
   toggleActionSchema,
   callServiceActionSchema,
   navigateActionSchema,
@@ -408,6 +416,22 @@ const imageBaseConfigSchema = z.object({
 /**
  * Live provider options
  */
+
+const microphoneConfigDefault = {
+  always_connected: false,
+  disconnect_seconds: 60,
+};
+
+const microphoneConfigSchema = z
+  .object({
+    always_connected: z.boolean().default(microphoneConfigDefault.always_connected),
+    disconnect_seconds: z
+      .number()
+      .min(0)
+      .default(microphoneConfigDefault.disconnect_seconds),
+  })
+  .default(microphoneConfigDefault);
+export type MicrophoneConfig = z.infer<typeof microphoneConfigSchema>;
 
 const go2rtcConfigSchema = z.object({
   modes: z.enum(['webrtc', 'mse', 'mp4', 'mjpeg']).array().optional(),
@@ -616,7 +640,7 @@ export type MenuSubmenuSelect = z.infer<typeof menuSubmenuSelectSchema>;
 
 export type MenuItem = MenuIcon | MenuStateIcon | MenuSubmenu | MenuSubmenuSelect;
 
-const frigateCardConditionSchema = z.object({
+export const frigateCardConditionSchema = z.object({
   view: z.string().array().optional(),
   fullscreen: z.boolean().optional(),
   expand: z.boolean().optional(),
@@ -765,12 +789,14 @@ const viewConfigSchema = z
 const IMAGE_MODES = ['screensaver', 'camera', 'url'] as const;
 const imageConfigDefault = {
   mode: 'url' as const,
+  zoomable: true,
   ...imageBaseConfigDefault,
 };
 const imageConfigSchema = imageBaseConfigSchema
   .extend({
     mode: z.enum(IMAGE_MODES).default(imageConfigDefault.mode),
     layout: mediaLayoutConfigSchema.optional(),
+    zoomable: z.boolean().default(imageConfigDefault.zoomable),
   })
   .merge(actionsSchema)
   .default(imageConfigDefault);
@@ -918,9 +944,11 @@ const liveConfigDefault = {
   lazy_load: true,
   lazy_unload: 'never' as const,
   draggable: true,
+  zoomable: true,
   transition_effect: 'slide' as const,
   show_image_during_load: true,
   controls: {
+    builtin: true,
     next_previous: {
       size: 48,
       style: 'chevrons' as const,
@@ -931,6 +959,9 @@ const liveConfigDefault = {
       mode: 'popup-bottom-right' as const,
       duration_seconds: 2,
     },
+  },
+  microphone: {
+    ...microphoneConfigDefault,
   },
 };
 
@@ -944,6 +975,7 @@ const liveOverridableConfigSchema = z
   .object({
     controls: z
       .object({
+        builtin: z.boolean().default(liveConfigDefault.controls.builtin),
         next_previous: nextPreviousControlConfigSchema
           .extend({
             // Live cannot show thumbnails, remove that option.
@@ -975,6 +1007,8 @@ const liveOverridableConfigSchema = z
       .boolean()
       .default(liveConfigDefault.show_image_during_load),
     layout: mediaLayoutConfigSchema.optional(),
+    microphone: microphoneConfigSchema.default(liveConfigDefault.microphone),
+    zoomable: z.boolean().default(liveConfigDefault.zoomable),
   })
   .merge(actionsSchema);
 
@@ -1037,6 +1071,12 @@ const menuConfigDefault = {
     fullscreen: visibleButtonDefault,
     expand: hiddenButtonDefault,
     media_player: visibleButtonDefault,
+    microphone: {
+      ...hiddenButtonDefault,
+      type: 'momentary' as const,
+    },
+    mute: hiddenButtonDefault,
+    play: hiddenButtonDefault,
     recordings: hiddenButtonDefault,
   },
   button_size: 40,
@@ -1073,7 +1113,16 @@ const menuConfigSchema = z
         media_player: visibleButtonSchema.default(
           menuConfigDefault.buttons.media_player,
         ),
+        microphone: hiddenButtonSchema
+          .extend({
+            type: z
+              .enum(['momentary', 'toggle'])
+              .default(menuConfigDefault.buttons.microphone.type),
+          })
+          .default(menuConfigDefault.buttons.microphone),
         recordings: hiddenButtonSchema.default(menuConfigDefault.buttons.recordings),
+        mute: hiddenButtonSchema.default(menuConfigDefault.buttons.mute),
+        play: hiddenButtonSchema.default(menuConfigDefault.buttons.play),
       })
       .default(menuConfigDefault.buttons),
     button_size: z.number().min(BUTTON_SIZE_MIN).default(menuConfigDefault.button_size),
@@ -1091,9 +1140,11 @@ const viewerConfigDefault = {
   auto_unmute: 'never' as const,
   lazy_load: true,
   draggable: true,
+  zoomable: true,
   transition_effect: 'slide' as const,
   snapshot_click_plays_clip: true,
   controls: {
+    builtin: true,
     next_previous: {
       size: 48,
       style: 'thumbnails' as const,
@@ -1131,6 +1182,7 @@ const viewerConfigSchema = z
       .default(viewerConfigDefault.auto_unmute),
     lazy_load: z.boolean().default(viewerConfigDefault.lazy_load),
     draggable: z.boolean().default(viewerConfigDefault.draggable),
+    zoomable: z.boolean().default(viewerConfigDefault.zoomable),
     transition_effect: transitionEffectConfigSchema.default(
       viewerConfigDefault.transition_effect,
     ),
@@ -1139,6 +1191,7 @@ const viewerConfigSchema = z
       .default(viewerConfigDefault.snapshot_click_plays_clip),
     controls: z
       .object({
+        builtin: z.boolean().default(viewerConfigDefault.controls.builtin),
         next_previous: viewerNextPreviousControlConfigSchema.default(
           viewerConfigDefault.controls.next_previous,
         ),
@@ -1294,6 +1347,19 @@ const liveOverridesSchema = z
   .optional();
 export type LiveOverrides = z.infer<typeof liveOverridesSchema>;
 
+const automationActionSchema = actionSchema.array().optional();
+export type AutomationActions = z.infer<typeof automationActionSchema>;
+
+const automationSchema = z.object({
+  conditions: frigateCardConditionSchema,
+  actions: automationActionSchema,
+  actions_not: automationActionSchema,
+});
+export type Automation = z.infer<typeof automationSchema>;
+
+export const automationsSchema = automationSchema.array().optional();
+export type Automations = z.infer<typeof automationsSchema>;
+
 const performanceConfigDefault = {
   profile: 'high' as const,
   features: {
@@ -1370,6 +1436,7 @@ export const frigateCardConfigSchema = z.object({
   timeline: timelineConfigSchema,
   performance: performanceConfigSchema,
   debug: debugConfigSchema,
+  automations: automationsSchema,
 
   // Configuration overrides.
   overrides: overridesSchema,
@@ -1416,9 +1483,17 @@ export interface ExtendedHomeAssistant extends HomeAssistant {
   };
 }
 
+export interface MediaLoadedCapabilities {
+  supports2WayAudio?: boolean;
+  supportsPause?: boolean;
+  hasAudio?: boolean;
+}
+
 export interface MediaLoadedInfo {
   width: number;
   height: number;
+  player?: FrigateCardMediaPlayer;
+  capabilities?: MediaLoadedCapabilities;
 }
 
 export const MESSAGE_TYPE_PRIORITIES = {
@@ -1455,6 +1530,9 @@ export interface FrigateCardMediaPlayer {
   unmute(): Promise<void>;
   isMuted(): boolean;
   seek(seconds: number): Promise<void>;
+  // If no value for controls if specified, the player should use the default.
+  setControls(controls?: boolean): Promise<void>;
+  isPaused(): boolean;
 }
 
 export interface CardHelpers {
