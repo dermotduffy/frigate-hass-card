@@ -2,6 +2,7 @@ import { mayHaveAudio } from '../../../utils/audio';
 import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
+  setControlsOnVideo,
 } from '../../../utils/media';
 import {
   dispatchMediaLoadedEvent,
@@ -271,7 +272,7 @@ export class VideoRTC extends HTMLElement {
    */
   oninit() {
     this.video = document.createElement('video');
-    this.video.controls = this.controls;
+    setControlsOnVideo(this.video, this.controls);
     this.video.playsInline = true;
     this.video.preload = 'auto';
 
@@ -633,7 +634,7 @@ export class VideoRTC extends HTMLElement {
     let receivedFirstFrame = false;
 
     this.ondata = (data) => {
-      this.video.controls = false;
+      setControlsOnVideo(this.video, false);
       this.video.poster = 'data:image/jpeg;base64,' + VideoRTC.btoa(data);
 
       if (!receivedFirstFrame) {
@@ -672,7 +673,7 @@ export class VideoRTC extends HTMLElement {
 
       context.drawImage(video2, 0, 0, canvas.width, canvas.height);
 
-      this.video.controls = false;
+      setControlsOnVideo(this.video, false);
       this.video.poster = canvas.toDataURL('image/jpeg');
     });
 

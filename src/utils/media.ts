@@ -7,25 +7,42 @@ import { Timer } from './timer';
 export const MEDIA_LOAD_CONTROLS_HIDE_SECONDS = 2;
 const MEDIA_SEEK_CONTROLS_HIDE_SECONDS = 1;
 
+export type FrigateCardHTMLVideoElement = HTMLVideoElement & {
+  _controlsHideTimer?: Timer;
+};
+
+/**
+ * Sets the controls on a video and removes a timer that may have been added by
+ * hideMediaControlsTemporarily.
+ * @param video
+ * @param value
+ */
+export const setControlsOnVideo = (
+  video: FrigateCardHTMLVideoElement,
+  value: boolean,
+): void => {
+  if (video._controlsHideTimer) {
+    video._controlsHideTimer.stop();
+    delete video._controlsHideTimer;
+  }
+  video.controls = value;
+};
+
 /**
  * Temporarily hide media controls.
- * @param element Any HTMLElement that has a controls property (e.g.
+ * @param elemaent Any HTMLElement that has a controls property (e.g.
  * HTMLVideoElement, FrigateCardHaHlsPlayer)
  * @param seconds The number of seconds to hide the controls for.
  */
 export const hideMediaControlsTemporarily = (
-  element: HTMLElement & {
-    controls: boolean;
-    _controlsHideTimer?: Timer;
-  },
+  video: FrigateCardHTMLVideoElement,
   seconds = MEDIA_SEEK_CONTROLS_HIDE_SECONDS,
 ): void => {
-  element.controls = false;
-
-  element._controlsHideTimer ??= new Timer();
-  element._controlsHideTimer.start(seconds, () => {
-    element.controls = true;
-    delete element._controlsHideTimer;
+  const oldValue = video.controls;
+  setControlsOnVideo(video, false);
+  video._controlsHideTimer ??= new Timer();
+  video._controlsHideTimer.start(seconds, () => {
+    setControlsOnVideo(video, oldValue);
   });
 };
 
@@ -41,8 +58,10 @@ export const playMediaMutingIfNecessary = async (
   // and then try again. This works around some browsers that prevent
   // auto-play unless the video is muted.
   if (video?.play) {
-    video.play().catch(async (ev) => {
-      if (ev.name === 'NotAllowedError' && !player.isMuted()) {
+    try {
+      await video.play();
+    } catch (err: unknown) {
+      if ((err as Error).name === 'NotAllowedError' && !player.isMuted()) {
         await player.mute();
         try {
           await video.play();
@@ -50,6 +69,6 @@ export const playMediaMutingIfNecessary = async (
           // Pass.
         }
       }
-    });
+    }
   }
 };

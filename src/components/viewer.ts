@@ -47,6 +47,7 @@ import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
   playMediaMutingIfNecessary,
+  setControlsOnVideo,
 } from '../utils/media.js';
 import { ViewMediaClassifier } from '../view/media-classifier';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
@@ -612,7 +613,10 @@ export class FrigateCardViewerProvider
     if (this._refFrigateCardMediaPlayer.value) {
       return this._refFrigateCardMediaPlayer.value.setControls(controls);
     } else if (this._refVideoProvider.value) {
-      this._refVideoProvider.value.controls = controls ?? this.viewerConfig?.controls.builtin ?? true;
+      setControlsOnVideo(
+        this._refVideoProvider.value,
+        controls ?? this.viewerConfig?.controls.builtin ?? true,
+      );
     }
   }
 

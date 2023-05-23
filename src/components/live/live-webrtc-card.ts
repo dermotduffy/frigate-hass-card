@@ -21,6 +21,7 @@ import { renderTask } from '../../utils/task.js';
 import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
+  setControlsOnVideo,
 } from '../../utils/media.js';
 import { CameraEndpoints } from '../../camera-manager/types.js';
 import { mayHaveAudio } from '../../utils/audio.js';
@@ -85,7 +86,7 @@ export class FrigateCardLiveWebRTCCard
   public async setControls(controls?: boolean): Promise<void> {
     const player = this._getPlayer();
     if (player) {
-      player.controls = controls ?? this.controls;
+      setControlsOnVideo(player, controls ?? this.controls);
     }
   }
 
@@ -191,6 +192,7 @@ export class FrigateCardLiveWebRTCCard
     this.updateComplete.then(() => {
       const video = this._getPlayer();
       if (video) {
+        setControlsOnVideo(video, this.controls);
         video.onloadeddata = () => {
           if (this.controls) {
             hideMediaControlsTemporarily(video, MEDIA_LOAD_CONTROLS_HIDE_SECONDS);
@@ -206,7 +208,6 @@ export class FrigateCardLiveWebRTCCard
         video.onplay = () => dispatchMediaPlayEvent(this);
         video.onpause = () => dispatchMediaPauseEvent(this);
         video.onvolumechange = () => dispatchMediaVolumeChangeEvent(this);
-        video.controls = this.controls;
       }
     });
   }

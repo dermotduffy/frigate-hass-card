@@ -17,6 +17,7 @@ import {
   MicrophoneConfig,
 } from '../../types.js';
 import { getEndpointAddressOrDispatchError } from '../../utils/endpoint';
+import { setControlsOnVideo } from '../../utils/media.js';
 import '../image.js';
 import { dispatchErrorMessageEvent } from '../message';
 import { VideoRTC } from './go2rtc/video-rtc';
@@ -84,7 +85,7 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
 
   public async setControls(controls?: boolean): Promise<void> {
     if (this._player?.video) {
-      this._player.video.controls = controls ?? this.controls;
+      setControlsOnVideo(this._player.video, controls ?? this.controls);
     }
   }
 
