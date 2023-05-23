@@ -30,7 +30,7 @@ export const setControlsOnVideo = (
 
 /**
  * Temporarily hide media controls.
- * @param elemaent Any HTMLElement that has a controls property (e.g.
+ * @param element Any HTMLElement that has a controls property (e.g.
  * HTMLVideoElement, FrigateCardHaHlsPlayer)
  * @param seconds The number of seconds to hide the controls for.
  */
