@@ -4126,3 +4126,8 @@ The Home Assistant container will get preconfigured during first initialization,
 1. Use the same version number for the release title and tag.
 1. Choose 'This is a pre-release' for a beta version.
 1. Hit 'Publish release'.
+
+### Translations
+[![translation badge](https://inlang.com/badge?url=github.com/dermotduffy/frigate-hass-card)](https://inlang.com/editor/github.com/dermotduffy/frigate-hass-card?ref=badge)
+
+To add translations, you can manually edit the JSON translation files in `src/localize/languages`, use the [inlang](https://inlang.com/) online editor, or run `yarn machine-translate` to add missing translations using AI from Inlang.
