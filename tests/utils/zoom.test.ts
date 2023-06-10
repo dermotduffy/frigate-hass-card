@@ -192,8 +192,7 @@ describe('Zoom', () => {
     element.addEventListener('frigate-card:zoom:zoomed', zoomedFunc);
     element.addEventListener('frigate-card:zoom:unzoomed', unzoomedFunc);
 
-    const panzoom = createMockPanZoom();
-    vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+    vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
 
     createAndRegisterZoom(element);
 
@@ -221,5 +220,36 @@ describe('Zoom', () => {
     });
     element.dispatchEvent(ev_2);
     expect(unzoomedFunc).toBeCalled();
+  });
+
+  it('should set touch action on zoom/unzoom', () => {
+    const element = document.createElement('div');
+    vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
+
+    createAndRegisterZoom(element);
+
+    const ev_1 = new CustomEvent<PanzoomEventDetail>('panzoomzoom', {
+      detail: {
+        x: 0,
+        y: 0,
+        scale: 1.2,
+        isSVG: false,
+        originalEvent: new PointerEvent('pointermove'),
+      },
+    });
+    element.dispatchEvent(ev_1);
+    expect(element.style.touchAction).toBe('none');
+
+    const ev_2 = new CustomEvent<PanzoomEventDetail>('panzoomzoom', {
+      detail: {
+        x: 0,
+        y: 0,
+        scale: 1,
+        isSVG: false,
+        originalEvent: new PointerEvent('pointermove'),
+      },
+    });
+    element.dispatchEvent(ev_2);
+    expect(element.style.touchAction).toBeFalsy();
   });
 });
