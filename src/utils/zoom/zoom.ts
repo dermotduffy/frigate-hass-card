@@ -85,6 +85,10 @@ export class Zoom {
     );
   }
 
+  protected _setTouchAction(touchEnabled: boolean): void {
+    this._element.style.touchAction = touchEnabled ? '' : 'none';
+  }
+
   public activate(): void {
     this._panzoom = Panzoom(this._element, {
       contain: 'outside',
@@ -94,6 +98,11 @@ export class Zoom {
       // Do not force the cursor style (by default it will always show the
       // 'move' type cursor whether or not it is zoomed in).
       cursor: undefined,
+
+      // Disable automatic touchAction setting from Panzoom() as otherwise it
+      // effectively disables dashboard scrolling.
+      // See: https://github.com/dermotduffy/frigate-hass-card/issues/1181
+      touchAction: '',
     });
 
     const registerListeners = (
@@ -117,11 +126,13 @@ export class Zoom {
       // absolute state changes (rather than on every single zoom adjustment).
       if (this._isScaleNormal((<CustomEvent<PanzoomEventDetail>>ev).detail.scale)) {
         if (this._zoomed) {
+          this._setTouchAction(true);
           dispatchFrigateCardEvent(this._element, 'zoom:unzoomed');
         }
         this._zoomed = false;
       } else {
         if (!this._zoomed) {
+          this._setTouchAction(false);
           dispatchFrigateCardEvent(this._element, 'zoom:zoomed');
         }
         this._zoomed = true;
