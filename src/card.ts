@@ -1477,6 +1477,18 @@ class FrigateCard extends LitElement {
     this._conditionController?.setState({ media_loaded: false });
   }
 
+  protected _locationChangeHandler = (): void => {
+    // Only execute actions when the card has rendered at least once.
+    if (this.hasUpdated) {
+      getActionsFromQueryString().forEach((action) => this._cardActionHandler(action));
+    }
+  };
+
+  protected firstUpdated(): void {
+    // Execute query string actions after first render is complete.
+    this._locationChangeHandler();
+  }
+
   /**
    * Component connected callback.
    */
@@ -1488,6 +1500,18 @@ class FrigateCard extends LitElement {
     this.addEventListener('mousemove', this._boundMouseHandler);
     this.addEventListener('ll-custom', this._boundCardActionEventHandler);
     this._panel = isCardInPanel(this);
+
+    // Listen for HA `navigate` actions.
+    // See: https://github.com/home-assistant/frontend/blob/273992c8e9c3062c6e49481b6d7d688a07067232/src/common/navigate.ts#L43
+    window.addEventListener('location-changed', this._locationChangeHandler);
+
+    // Listen for history state changes (i.e. user using the browser
+    // back/forward controls).
+    window.addEventListener('popstate', this._locationChangeHandler);
+
+    // Manually call the location change handler as the card will be
+    // disconnected/reconnected when dashboard 'tab' changes happen within HA.
+    this._locationChangeHandler();
   }
 
   /**
@@ -1502,6 +1526,10 @@ class FrigateCard extends LitElement {
     }
     this.removeEventListener('mousemove', this._boundMouseHandler);
     this.removeEventListener('ll-custom', this._boundCardActionEventHandler);
+
+    window.removeEventListener('location-changed', this._locationChangeHandler);
+    window.removeEventListener('popstate', this._locationChangeHandler);
+
     super.disconnectedCallback();
   }
 
@@ -1736,11 +1764,6 @@ class FrigateCard extends LitElement {
           </frigate-card-elements>`
         : ``}
     </ha-card>`);
-  }
-
-  protected firstUpdated(): void {
-    // Execute query string actions after first render is complete.
-    getActionsFromQueryString().forEach((action) => this._cardActionHandler(action));
   }
 
   /**

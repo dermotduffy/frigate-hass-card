@@ -1584,6 +1584,10 @@ Pan around a large camera view to only show part of the video feed in the card a
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/dev/images/zoom.gif" alt="Zoom Support" width="400px">
 
+### Taking card actions via the URL
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/dev/images/navigate-picture-elements.gif" alt="Taking card actions via the URL" width="400px">
+
 ## Examples
 
 ### Illustrative Expanded Configuration Reference
@@ -3745,6 +3749,47 @@ https://ha.mydomain.org/lovelace-test/0?frigate-card-action:main:clips
 ```
 </details>
 
+<details>
+  <summary>Expand: Choosing the camera from a separate picture elements card</summary>
+
+In this example, the card will select a given camera when the user navigates from a *separate* Picture Elements card:
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/dev/images/navigate-picture-elements.gif" alt="Taking card actions via the URL" width="400px">
+
+Frigate Card configuration:
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.living_room
+  - camera_entity: camera.landing
+```
+
+Picture Elements configuration (assumes the dashboard is `/lovelace-frigate/map`):
+
+```yaml
+type: picture-elements
+image: https://demo.home-assistant.io/stub_config/floorplan.png
+elements:
+  - type: icon
+    icon: mdi:cctv
+    style:
+      top: 22%
+      left: 30%
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-frigate/map?frigate-card-action:camera_select=camera.living_room
+  - type: icon
+    icon: mdi:cctv
+    style:
+      top: 71%
+      left: 42%
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-frigate/map?frigate-card-action:camera_select=camera.landing
+```
+
+</details>
 
 ### Automation actions
 
@@ -3836,13 +3881,20 @@ view:
 
 It is possible to pass the Frigate card one or more actions from the URL (e.g. select a particular camera, open the live view in expanded mode, etc).
 
-To send an action to *all* Frigate cards on a dashboard:
+The Frigate card will execute these actions in the following circumstances:
+
+* On initial card load.
+* On 'tab' change in a dashboard.
+* When a `navigate` [action](https://www.home-assistant.io/dashboards/actions/) is called on the dashboard (e.g. a button click requests navigation).
+* When the user uses the `back` / `forward` browser buttons whilst viewing a dashboard.
+
+To send an action to *all* Frigate cards:
 
 ```
 [PATH_TO_YOUR_HA_DASHBOARD]?frigate-card-action:[ACTION]=[VALUE]
 ```
 
-To send an action to a named Frigate card on the dashboard:
+To send an action to a named Frigate card:
 
 ```
 [PATH_TO_YOUR_HA_DASHBOARD]?frigate-card-action:[CARD_ID]:[ACTION]=[VALUE]
@@ -3853,6 +3905,10 @@ To send an action to a named Frigate card on the dashboard:
 | `ACTION` | One of the supported Frigate Card custom actions (see below). |
 | `CARD_ID` | When specified only cards that have a `card_id` parameter will act. |
 | `VALUE` | An optional value to use with the `camera_select` and `live_substream_select` actions. |
+
+**Note**: If a dashboard has multiple Frigate cards on it, even if they are on
+different 'tabs' within that dashboard, they will all respond to the actions
+unless the action is targeted with a `CARD_ID` as shown above.
 
 #### Actions
 
