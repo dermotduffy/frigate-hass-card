@@ -325,7 +325,7 @@ export class FrigateCameraManagerEngine
           `/api/frigate/${cameraConfig.frigate.client_id}` +
           `/recording/${cameraConfig.frigate.camera_name}` +
           `/start/${Math.floor(media.getStartTime().getTime() / 1000)}` +
-          `/end/${Math.floor(media.getEndTime().getTime() / 1000)}}` +
+          `/end/${Math.floor(media.getEndTime().getTime() / 1000)}` +
           `?download=true`,
         sign: true,
       };
