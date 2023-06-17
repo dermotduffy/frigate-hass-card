@@ -756,19 +756,19 @@ export class FrigateCardLiveProvider
   public async pause(): Promise<void> {
     await this.updateComplete;
     await this._refProvider.value?.updateComplete;
-    this._refProvider.value?.pause();
+    await this._refProvider.value?.pause();
   }
 
   public async mute(): Promise<void> {
     await this.updateComplete;
     await this._refProvider.value?.updateComplete;
-    this._refProvider.value?.mute();
+    await this._refProvider.value?.mute();
   }
 
   public async unmute(): Promise<void> {
     await this.updateComplete;
     await this._refProvider.value?.updateComplete;
-    this._refProvider.value?.unmute();
+    await this._refProvider.value?.unmute();
   }
 
   public isMuted(): boolean {
@@ -778,17 +778,23 @@ export class FrigateCardLiveProvider
   public async seek(seconds: number): Promise<void> {
     await this.updateComplete;
     await this._refProvider.value?.updateComplete;
-    this._refProvider.value?.seek(seconds);
+    await this._refProvider.value?.seek(seconds);
   }
 
   public async setControls(controls?: boolean): Promise<void> {
     await this.updateComplete;
     await this._refProvider.value?.updateComplete;
-    this._refProvider.value?.setControls(controls);
+    await this._refProvider.value?.setControls(controls);
   }
 
   public isPaused(): boolean {
     return this._refProvider.value?.isPaused() ?? true;
+  }
+
+  public async getScreenshotURL(): Promise<string | null> {
+    await this.updateComplete;
+    await this._refProvider.value?.updateComplete;
+    return await this._refProvider.value?.getScreenshotURL() ?? null;
   }
 
   /**

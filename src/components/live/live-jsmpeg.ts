@@ -84,6 +84,10 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
     return this._jsmpegVideoPlayer?.player?.paused ?? true;
   }
 
+  public async getScreenshotURL(): Promise<string | null> {
+    return this._jsmpegCanvasElement?.toDataURL('image/jpeg') ?? null;
+  }
+
   /**
    * Create a JSMPEG player.
    * @param url The URL for the player to connect to.
@@ -106,6 +110,9 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
           protocols: [],
           audio: false,
           videoBufferSize: 1024 * 1024 * 4,
+
+          // Necessary for screenshots.
+          preserveDrawingBuffer: true,
 
           // Override with user-specified options.
           ...this.cameraConfig?.jsmpeg?.options,

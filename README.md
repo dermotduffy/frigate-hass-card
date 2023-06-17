@@ -433,6 +433,7 @@ menu:
 | `camera_ui` | :white_check_mark: | The `camera_ui` menu button: brings the user to a context-appropriate page on the UI of their camera engine (e.g. the Frigate camera homepage). Will only appear if the camera engine supports a camera UI (e.g. if `frigate.url` option is set for `frigate` engine users).|
 | `fullscreen` | :white_check_mark: | The `fullscreen` menu button: expand the card to consume the fullscreen. |
 | `expand` | :white_check_mark: | The `expand` menu button: expand the card into a popup/dialog. |
+| `screenshot` | :white_check_mark: | The `screenshot` menu button: take a screenshot of the loaded media (e.g. a still from a video). |
 | `timeline` | :white_check_mark: | The `timeline` menu button: show the event timeline. |
 | `media_player` | :white_check_mark: | The `media_player` menu button: sends the visible media to a remote media player. Supports Frigate clips, snapshots and live camera (only for cameras that specify a `camera_entity` and only using the default HA stream (equivalent to the `ha` live provider). `jsmpeg` or `webrtc-card` are not supported, although live can still be played as long as `camera_entity` is specified. In the player list, a `tap` will send the media to the player, a `hold` will stop the media on the player. |
 | `microphone` | :white_check_mark: | The `microphone` button allows usage of 2-way audio in certain configurations. See [Using 2-way audio](#using-2-way-audio). |
@@ -1291,7 +1292,7 @@ Parameters for the `custom:frigate-card-ptz` element:
 | Parameter | Description |
 | - | - |
 | `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_on`, `live_substream_off`, `live_substream_select`, `expand`, `microphone_mute`, `microphone_unmute`, `mute`, `unmute`, `play`, `pause`|
+| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_on`, `live_substream_off`, `live_substream_select`, `expand`, `microphone_mute`, `microphone_unmute`, `mute`, `unmute`, `play`, `pause`, `screenshot`|
 
 <a name="custom-actions"></a>
 
@@ -1312,6 +1313,7 @@ Parameters for the `custom:frigate-card-ptz` element:
 |`microphone_mute`, `microphone_unmute`| Mute or unmute the microphone. See [Using 2-way audio](#using-2-way-audio). |
 |`mute`, `unmute`| Mute or unmute the loaded media. |
 |`play`, `pause`| Play or pause the loaded media. |
+|`screenshot`| Take a screenshot of the loaded media (e.g. a still from a video). |
 
 <a name="views"></a>
 
@@ -2426,6 +2428,12 @@ elements:
       frigate_card_action: media_player
       media_player: media_player.nesthub
       media_player_action: stop
+  - type: custom:frigate-card-menu-icon
+    icon: mdi:alpha-o-circle
+    title: Screenshot
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: screenshot
 ```
 </details>
 
@@ -3932,6 +3940,7 @@ unless the action is targeted with a `CARD_ID` as shown above.
 | `play`, `pause` | :heavy_multiplication_x: | |
 | `recording` | :white_check_mark: | |
 | `recordings` | :white_check_mark: | |
+| `screenshot`| :heavy_multiplication_x: | Latest media information is not available on initial render. |
 | `snapshot` | :white_check_mark: | |
 | `snapshots` | :white_check_mark: | |
 

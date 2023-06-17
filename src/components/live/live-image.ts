@@ -49,6 +49,10 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
     return this._refImage.value?.isPaused() ?? true;
   }
 
+  public async getScreenshotURL(): Promise<string | null> {
+    return await this._refImage.value?.getScreenshotURL() ?? null;
+  }
+
   protected render(): TemplateResult | void {
     if (!this.hass || !this.cameraConfig) {
       return;

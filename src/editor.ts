@@ -1786,6 +1786,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 )}
                 ${this._renderMenuButton('play') /*  */}
                 ${this._renderMenuButton('mute')}
+                ${this._renderMenuButton('screenshot')}
               </div>
             `
           : ''}

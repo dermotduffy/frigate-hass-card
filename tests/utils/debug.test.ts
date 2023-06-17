@@ -4,7 +4,7 @@ import { log } from '../../src/utils/debug.js';
 describe('log', () => {
   const spy = vi.spyOn(global.console, 'debug').mockReturnValue(undefined);
   afterAll(() => {
-    vi.resetAllMocks();
+    vi.restoreAllMocks();
   });
   it('should do nothing without debug logging set', () => {
     log({}, 'foo');

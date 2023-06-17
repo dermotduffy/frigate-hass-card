@@ -228,6 +228,7 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'pause',
   'recording',
   'recordings',
+  'screenshot',
   'snapshot',
   'snapshots',
   'timeline',
@@ -1078,6 +1079,7 @@ const menuConfigDefault = {
     mute: hiddenButtonDefault,
     play: hiddenButtonDefault,
     recordings: hiddenButtonDefault,
+    screenshot: hiddenButtonDefault,
   },
   button_size: 40,
 };
@@ -1123,6 +1125,7 @@ const menuConfigSchema = z
         recordings: hiddenButtonSchema.default(menuConfigDefault.buttons.recordings),
         mute: hiddenButtonSchema.default(menuConfigDefault.buttons.mute),
         play: hiddenButtonSchema.default(menuConfigDefault.buttons.play),
+        screenshot: hiddenButtonSchema.default(menuConfigDefault.buttons.screenshot),
       })
       .default(menuConfigDefault.buttons),
     button_size: z.number().min(BUTTON_SIZE_MIN).default(menuConfigDefault.button_size),
@@ -1530,6 +1533,7 @@ export interface FrigateCardMediaPlayer {
   unmute(): Promise<void>;
   isMuted(): boolean;
   seek(seconds: number): Promise<void>;
+  getScreenshotURL(): Promise<string | null>;
   // If no value for controls if specified, the player should use the default.
   setControls(controls?: boolean): Promise<void>;
   isPaused(): boolean;
