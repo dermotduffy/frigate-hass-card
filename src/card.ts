@@ -68,7 +68,7 @@ import {
 } from './utils/action.js';
 import { errorToConsole } from './utils/basic.js';
 import { log } from './utils/debug.js';
-import { downloadMedia } from './utils/download.js';
+import { downloadMedia, downloadURL } from './utils/download.js';
 import {
   getHassDifferences,
   isCardInPanel,
@@ -83,10 +83,12 @@ import { Entity } from './utils/ha/entity-registry/types.js';
 import { ResolvedMediaCache } from './utils/ha/resolved-media.js';
 import { supportsFeature } from './utils/ha/update.js';
 import { FrigateCardInitializer } from './utils/initializer.js';
+import { MediaLoadedInfoController } from './utils/media-info-controller';
 import { isValidMediaLoadedInfo } from './utils/media-info.js';
 import { MenuButtonController } from './utils/menu-controller';
 import { MicrophoneController } from './utils/microphone';
 import { getActionsFromQueryString } from './utils/querystring.js';
+import { generateScreenshotTitle } from './utils/screenshot';
 import {
   createViewWithNextStream,
   createViewWithoutSubstream,
@@ -95,7 +97,6 @@ import {
 import { Timer } from './utils/timer';
 import { getParseErrorPaths } from './utils/zod.js';
 import { View } from './view/view.js';
-import { MediaLoadedInfoController } from './utils/media-info-controller';
 
 /** A note on media callbacks:
  *
@@ -1158,6 +1159,16 @@ class FrigateCard extends LitElement {
         break;
       case 'pause':
         this._mediaLoadedInfoController.get()?.player?.pause();
+        break;
+      case 'screenshot':
+        this._mediaLoadedInfoController
+          .get()
+          ?.player?.getScreenshotURL()
+          .then((url: string | null) => {
+            if (url) {
+              downloadURL(url, generateScreenshotTitle(this._view));
+            }
+          });
         break;
       default:
         console.warn(`Frigate card received unknown card action: ${action}`);

@@ -382,6 +382,16 @@ export class MenuButtonController {
       }
     }
 
+    if (options?.currentMediaLoadedInfo && options.currentMediaLoadedInfo.player) {
+      buttons.push({
+        icon: 'mdi:monitor-screenshot',
+        ...config.menu.buttons.screenshot,
+        type: 'custom:frigate-card-menu-icon',
+        title: localize('config.menu.buttons.screenshot'),
+        tap_action: createFrigateCardCustomAction('screenshot') as FrigateCardCustomAction,
+      });
+    }
+
     const styledDynamicButtons = this._dynamicMenuButtons.map((button) => ({
       style: this._getStyleFromActions(config, view, button),
       ...button,

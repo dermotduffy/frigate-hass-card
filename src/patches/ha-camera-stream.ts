@@ -81,6 +81,10 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       return this._player?.isPaused() ?? true;
     }
     
+    public async getScreenshotURL(): Promise<string | null> {
+      return this._player ? await this._player.getScreenshotURL() : null;
+    }
+
     /**
      * Master render method.
      * @returns A rendered template.

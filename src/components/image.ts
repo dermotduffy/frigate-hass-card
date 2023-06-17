@@ -95,6 +95,10 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
     return !this._cachedValueController?.hasTimer() ?? true;
   }
 
+  public async getScreenshotURL(): Promise<string | null> {
+    return this._cachedValueController?.value ?? null;
+  }
+
   /**
    * Get the camera entity for the current camera configuration.
    * @returns The entity or undefined if no camera entity is available.

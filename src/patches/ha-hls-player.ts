@@ -9,9 +9,10 @@
 // available as compilation time.
 // ====================================================================
 
-import { CSSResultGroup, TemplateResult, css, html, unsafeCSS } from 'lit';
+import { css, CSSResultGroup, html, TemplateResult, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
+import { screenshotMedia } from '../utils/screenshot.js';
 import { dispatchErrorMessageEvent } from '../components/message.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
 import { FrigateCardMediaPlayer } from '../types.js';
@@ -20,12 +21,10 @@ import {
   dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
-  dispatchMediaVolumeChangeEvent,
+  dispatchMediaVolumeChangeEvent
 } from '../utils/media-info.js';
 import {
-  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
-  hideMediaControlsTemporarily,
-  setControlsOnVideo,
+  hideMediaControlsTemporarily, MEDIA_LOAD_CONTROLS_HIDE_SECONDS, setControlsOnVideo
 } from '../utils/media.js';
 
 customElements.whenDefined('ha-hls-player').then(() => {
@@ -82,6 +81,10 @@ customElements.whenDefined('ha-hls-player').then(() => {
 
     public isPaused(): boolean {
       return this._video?.paused ?? true;
+    }
+
+    public async getScreenshotURL(): Promise<string | null> {
+      return this._video ? screenshotMedia(this._video) : null;
     }
 
     // =====================================================================================

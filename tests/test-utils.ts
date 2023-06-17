@@ -1,4 +1,3 @@
-import { HomeAssistant } from 'custom-card-helpers';
 import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
 import { vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
@@ -13,6 +12,7 @@ import {
 } from '../src/camera-manager/types';
 import {
   CameraConfig,
+  ExtendedHomeAssistant,
   FrigateCardCondition,
   FrigateCardConfig,
   MediaLoadedInfo,
@@ -22,6 +22,7 @@ import {
   frigateCardConfigSchema,
 } from '../src/types';
 import { Entity } from '../src/utils/ha/entity-registry/types';
+import { ViewMedia, ViewMediaType } from '../src/view/media';
 import { View, ViewParameters } from '../src/view/view';
 
 export const createCameraConfig = (config?: unknown): CameraConfig => {
@@ -42,8 +43,8 @@ export const createConfig = (config?: RawFrigateCardConfig): FrigateCardConfig =
   });
 };
 
-export const createHASS = (states?: HassEntities): HomeAssistant => {
-  const hass = mock<HomeAssistant>();
+export const createHASS = (states?: HassEntities): ExtendedHomeAssistant => {
+  const hass = mock<ExtendedHomeAssistant>();
   if (states) {
     hass.states = states;
   }
@@ -167,3 +168,27 @@ export const createMediaLoadedInfo = (
     ...options,
   };
 };
+
+// ViewMedia itself has no native way to set startTime and ID that aren't linked
+// to an engine.
+export class TestViewMedia extends ViewMedia {
+  protected _id: string | null;
+  protected _startTime: Date;
+
+  constructor(
+    id: string | null,
+    startTime: Date,
+    mediaType: ViewMediaType,
+    cameraID: string,
+  ) {
+    super(mediaType, cameraID);
+    this._id = id;
+    this._startTime = startTime;
+  }
+  public getID(): string | null {
+    return this._id;
+  }
+  public getStartTime(): Date | null {
+    return this._startTime;
+  }
+}

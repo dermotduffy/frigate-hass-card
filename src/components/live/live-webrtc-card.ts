@@ -2,6 +2,7 @@ import { Task } from '@lit-labs/task';
 import { HomeAssistant } from 'custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { CameraEndpoints } from '../../camera-manager/types.js';
 import { localize } from '../../localize/localize.js';
 import liveWebRTCCardStyle from '../../scss/live-webrtc-card.scss';
 import {
@@ -10,21 +11,21 @@ import {
   FrigateCardError,
   FrigateCardMediaPlayer,
 } from '../../types.js';
+import { mayHaveAudio } from '../../utils/audio.js';
 import {
   dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
   dispatchMediaVolumeChangeEvent,
 } from '../../utils/media-info.js';
-import { dispatchErrorMessageEvent, renderProgressIndicator } from '../message.js';
-import { renderTask } from '../../utils/task.js';
 import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
   setControlsOnVideo,
 } from '../../utils/media.js';
-import { CameraEndpoints } from '../../camera-manager/types.js';
-import { mayHaveAudio } from '../../utils/audio.js';
+import { screenshotMedia } from '../../utils/screenshot.js';
+import { renderTask } from '../../utils/task.js';
+import { dispatchErrorMessageEvent, renderProgressIndicator } from '../message.js';
 
 // Create a wrapper for AlexxIT's WebRTC card
 //  - https://github.com/AlexxIT/WebRTC
@@ -92,6 +93,11 @@ export class FrigateCardLiveWebRTCCard
 
   public isPaused(): boolean {
     return this._getPlayer()?.paused ?? true;
+  }
+
+  public async getScreenshotURL(): Promise<string | null> {
+    const video = this._getPlayer();
+    return video ? screenshotMedia(video) : null;
   }
 
   connectedCallback(): void {

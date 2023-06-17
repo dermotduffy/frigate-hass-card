@@ -1067,6 +1067,23 @@ describe('MenuButtonController', () => {
     });
   });
 
+  it('should have screenshot button', () => {
+    const buttons = calculateButtons(controller, {
+      currentMediaLoadedInfo: createMediaLoadedInfo({
+        player: mock<FrigateCardMediaPlayer>(),
+      }),
+    });
+
+    expect(buttons).toContainEqual({
+      icon: 'mdi:monitor-screenshot',
+      enabled: false,
+      priority: 50,
+      type: 'custom:frigate-card-menu-icon',
+      title: 'Screenshot',
+      tap_action: { action: 'fire-dom-event', frigate_card_action: 'screenshot' },
+    });
+  });
+
   it('should handle dynamic buttons', () => {
     const button: MenuButton = {
       ...dynamicButton,
