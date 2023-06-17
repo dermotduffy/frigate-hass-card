@@ -24,8 +24,8 @@ const createRecordingMedia = (): FrigateRecordingViewMedia => {
     'camera-1',
     {
       cameraID: 'camera-1',
-      startTime: new Date('2023-06-16T20:00:00'),
-      endTime: new Date('2023-06-16T20:59:59'),
+      startTime: new Date('2023-06-16T20:00:00Z'),
+      endTime: new Date('2023-06-16T20:59:59Z'),
       events: 1,
     },
     'recording-id',
@@ -118,7 +118,7 @@ describe('getMediaDownloadPath', () => {
 
     expect(endpoint).toEqual({
       endpoint:
-        '/api/frigate/frigate/recording/camera-1/start/1686970800/end/1686974399?download=true',
+        '/api/frigate/frigate/recording/camera-1/start/1686945600/end/1686949199?download=true',
       sign: true,
     });
   });
