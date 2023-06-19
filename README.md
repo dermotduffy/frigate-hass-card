@@ -4005,6 +4005,21 @@ live:
       mode: none
 ```
 
+### Title "Popups" are annoying / continually popping up
+
+Title popups can be disabled for live or media viewer views with this configuration:
+
+```yaml
+live:
+  controls:
+    title:
+      mode: none
+media_viewer:
+  controls:
+    title:
+      mode: none
+```
+
 ### Microphone / 2-way audio doesn't work
 
 There are many requirements for 2-way audio to work. See [Using 2-way
