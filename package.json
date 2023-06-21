@@ -18,7 +18,7 @@
     "@cycjimmy/jsmpeg-player": "^6.0.4",
     "@dermotduffy/panzoom": "^4.5.1",
     "@egjs/hammerjs": "^2.0.17",
-    "@graphiteds/core": "^1.9.6",
+    "@graphiteds/core": "^1.9.11",
     "@lit-labs/scoped-registry-mixin": "^1.0.1",
     "@lit-labs/task": "^1.1.3",
     "@types/bluebird": "^3.5.36",
