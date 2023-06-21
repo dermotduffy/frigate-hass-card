@@ -730,7 +730,7 @@ class FrigateCard extends LitElement {
       this._handleThrownError(e);
     }
 
-    // Set a view on initial load. However,if the query string contains an
+    // Set a view on initial load. However, if the query string contains an
     // action that needs to render content (e.g. a view action or diagnostics),
     // we don't set any view here and allow that content to be triggered by the
     // firstUpdated() call. To do otherwise may cause a race condition between
