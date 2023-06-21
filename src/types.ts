@@ -209,15 +209,11 @@ const frigateCardCustomActionsBaseSchema = customActionSchema.extend({
 
 const FRIGATE_CARD_GENERAL_ACTIONS = [
   'camera_ui',
-  'clip',
-  'clips',
   'default',
   'diagnostics',
   'expand',
   'download',
   'fullscreen',
-  'image',
-  'live',
   'menu_toggle',
   'mute',
   'live_substream_on',
@@ -226,21 +222,22 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'microphone_unmute',
   'play',
   'pause',
-  'recording',
-  'recordings',
   'screenshot',
-  'snapshot',
-  'snapshots',
-  'timeline',
   'unmute',
 ] as const;
 const FRIGATE_CARD_ACTIONS = [
+  ...FRIGATE_CARD_VIEWS_USER_SPECIFIED,
   ...FRIGATE_CARD_GENERAL_ACTIONS,
   'camera_select',
   'live_substream_select',
   'media_player',
 ] as const;
 export type FrigateCardAction = (typeof FRIGATE_CARD_ACTIONS)[number];
+
+const frigateCardViewActionSchema = frigateCardCustomActionsBaseSchema.extend({
+  frigate_card_action: z.enum(FRIGATE_CARD_VIEWS_USER_SPECIFIED),
+});
+export type FrigateCardViewAction = z.infer<typeof frigateCardViewActionSchema>;
 
 const frigateCardGeneralActionSchema = frigateCardCustomActionsBaseSchema.extend({
   frigate_card_action: z.enum(FRIGATE_CARD_GENERAL_ACTIONS),
@@ -261,6 +258,7 @@ const frigateCardMediaPlayerActionSchema = frigateCardCustomActionsBaseSchema.ex
 });
 
 export const frigateCardCustomActionSchema = z.union([
+  frigateCardViewActionSchema,
   frigateCardGeneralActionSchema,
   frigateCardCameraSelectActionSchema,
   frigateCardLiveDependencySelectActionSchema,

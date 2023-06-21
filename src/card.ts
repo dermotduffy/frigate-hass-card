@@ -48,12 +48,12 @@ import {
   CameraConfig,
   CardWideConfig,
   ExtendedHomeAssistant,
-  FRIGATE_CARD_VIEW_DEFAULT,
   FrigateCardConfig,
   frigateCardConfigSchema,
   FrigateCardCustomAction,
   FrigateCardError,
   FrigateCardView,
+  FRIGATE_CARD_VIEW_DEFAULT,
   MediaLoadedInfo,
   MenuButton,
   Message,
@@ -65,6 +65,7 @@ import {
   frigateCardHandleActionConfig,
   frigateCardHasAction,
   getActionConfigGivenAction,
+  isViewAction,
 } from './utils/action.js';
 import { errorToConsole } from './utils/basic.js';
 import { log } from './utils/debug.js';
@@ -440,8 +441,17 @@ class FrigateCard extends LitElement {
     return this._overriddenConfig || this._config;
   }
 
-  protected _changeView(args?: { view?: View; resetMessage?: boolean }): void {
-    log(this._cardWideConfig, `Frigate Card view change: `, args?.view ?? '[default]');
+  protected _changeView(args?: {
+    view?: View;
+    viewName?: FrigateCardView;
+    cameraID?: string;
+    resetMessage?: boolean;
+  }): void {
+    log(
+      this._cardWideConfig,
+      `Frigate Card view change: `,
+      args?.view ?? args?.viewName ?? '[default]',
+    );
     const changeView = (view: View): void => {
       if (View.isMajorMediaChange(this._view, view)) {
         this._mediaLoadedInfoController.clear();
@@ -464,12 +474,13 @@ class FrigateCard extends LitElement {
     }
 
     if (!args?.view) {
-      // Load the default view.
       let cameraID: string | null = null;
       if (this._cameraManager) {
         const cameras = this._cameraManager.getStore().getVisibleCameras();
         if (cameras) {
-          if (this._view?.camera && this._getConfig().view.update_cycle_camera) {
+          if (args?.cameraID && cameras.has(args.cameraID)) {
+            cameraID = args.cameraID;
+          } else if (this._view?.camera && this._getConfig().view.update_cycle_camera) {
             const keys = Array.from(cameras.keys());
             const currentIndex = keys.indexOf(this._view.camera);
             const targetIndex = currentIndex + 1 >= keys.length ? 0 : currentIndex + 1;
@@ -484,7 +495,7 @@ class FrigateCard extends LitElement {
       if (cameraID) {
         changeView(
           new View({
-            view: this._getConfig().view.default,
+            view: args?.viewName ?? this._getConfig().view.default,
             camera: cameraID,
           }),
         );
@@ -719,11 +730,26 @@ class FrigateCard extends LitElement {
       this._handleThrownError(e);
     }
 
-    // If there's no view set yet, set one. This will be the case on initial camera load.
+    // Set a view on initial load. However,if the query string contains an
+    // action that needs to render content (e.g. a view action or diagnostics),
+    // we don't set any view here and allow that content to be triggered by the
+    // firstUpdated() call. To do otherwise may cause a race condition between
+    // the default view and the querystring view, see:
+    // https://github.com/dermotduffy/frigate-hass-card/issues/1200
     if (!this._view) {
-      // Don't reset the message which may be set to an error above. This sets the
-      // first view using the newly loaded cameras.
-      this._changeView({ resetMessage: false });
+      const querystringActions = getActionsFromQueryString();
+      if (
+        !querystringActions.find(
+          (action) =>
+            isViewAction(action) || action.frigate_card_action === 'diagnostics',
+        )
+      ) {
+        this._changeView({
+          // Don't reset the message which may be set to an error above. This sets the
+          // first view using the newly loaded cameras.
+          resetMessage: false,
+        });
+      }
     }
   }
 
@@ -1024,7 +1050,10 @@ class FrigateCard extends LitElement {
   }
 
   protected _cardActionHandler(frigateCardAction: FrigateCardCustomAction): void {
-    if (!this._view || !this._cameraManager) {
+    // Note: This function needs to process (view-related) commands even when
+    // _view has not yet been initialized (since it may be used to set a view
+    // via the querystring).
+    if (!this._cameraManager) {
       return;
     }
 
@@ -1052,10 +1081,8 @@ class FrigateCard extends LitElement {
       case 'snapshots':
       case 'timeline':
         this._changeView({
-          view: new View({
-            view: action,
-            camera: this._view.camera,
-          }),
+          viewName: action,
+          cameraID: this._view?.camera,
         });
         break;
       case 'download':
@@ -1097,21 +1124,27 @@ class FrigateCard extends LitElement {
         }
         break;
       case 'live_substream_select': {
-        const view = createViewWithSelectedSubstream(
-          this._view,
-          frigateCardAction.camera,
-        );
-        view && this._changeView({ view: view });
+        if (this._view) {
+          const view = createViewWithSelectedSubstream(
+            this._view,
+            frigateCardAction.camera,
+          );
+          view && this._changeView({ view: view });
+        }
         break;
       }
       case 'live_substream_off': {
-        const view = createViewWithoutSubstream(this._view);
-        view && this._changeView({ view: view });
+        if (this._view) {
+          const view = createViewWithoutSubstream(this._view);
+          view && this._changeView({ view: view });
+        }
         break;
       }
       case 'live_substream_on': {
-        const view = createViewWithNextStream(this._cameraManager, this._view);
-        view && this._changeView({ view: view });
+        if (this._view) {
+          const view = createViewWithNextStream(this._cameraManager, this._view);
+          view && this._changeView({ view: view });
+        }
         break;
       }
       case 'media_player':
