@@ -1,11 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-factory.js';
 import { CameraManager } from '../../src/camera-manager/manager.js';
-import { CameraManagerStore } from '../../src/camera-manager/store.js';
 import { CameraConfigs } from '../../src/camera-manager/types.js';
 import { getAllDependentCameras, getCameraID } from '../../src/utils/camera.js';
-import { createCameraConfig } from '../test-utils.js';
+import { createCameraConfig, createCameraManager } from '../test-utils.js';
 
 vi.mock('../../src/camera-manager/manager.js');
 
@@ -54,11 +52,7 @@ describe('getAllDependentCameras', () => {
       ['two', createCameraConfig({})],
     ]);
 
-    const cameraManager = new CameraManager(mock<CameraManagerEngineFactory>(), {});
-    const store = mock<CameraManagerStore>();
-    vi.mocked(cameraManager.getStore).mockReturnValue(store);
-    store.getCameras.mockReturnValue(cameraConfigs);
-
+    const cameraManager = createCameraManager({ configs: cameraConfigs });
     expect(getAllDependentCameras(cameraManager, 'one')).toEqual(
       new Set(['one', 'two']),
     );
@@ -76,11 +70,7 @@ describe('getAllDependentCameras', () => {
       ['two', createCameraConfig({})],
     ]);
 
-    const cameraManager = new CameraManager(mock<CameraManagerEngineFactory>(), {});
-    const store = mock<CameraManagerStore>();
-    vi.mocked(cameraManager.getStore).mockReturnValue(store);
-    store.getCameras.mockReturnValue(cameraConfigs);
-
+    const cameraManager = createCameraManager({ configs: cameraConfigs });
     expect(getAllDependentCameras(cameraManager, 'one')).toEqual(
       new Set(['one', 'two']),
     );

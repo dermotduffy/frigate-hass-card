@@ -22,6 +22,7 @@ import './carousel.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
 import { FrigateCardTitleControl } from './title-control.js';
 import debounce from 'lodash-es/debounce';
+import { Timer } from '../utils/timer';
 
 interface CarouselMediaLoadedInfo {
   slide: number;
@@ -126,7 +127,7 @@ export class FrigateCardMediaCarousel extends LitElement {
   protected _nextControlRef: Ref<FrigateCardNextPreviousControl> = createRef();
   protected _previousControlRef: Ref<FrigateCardNextPreviousControl> = createRef();
   protected _titleControlRef: Ref<FrigateCardTitleControl> = createRef();
-  protected _titleTimerID: number | null = null;
+  protected _titleTimer = new Timer();
 
   protected _boundAutoPlayHandler = this.autoPlay.bind(this);
   protected _boundAutoUnmuteHandler = this.autoUnmute.bind(this);
@@ -231,13 +232,10 @@ export class FrigateCardMediaCarousel extends LitElement {
    */
   protected _titleHandler(): void {
     const show = () => {
-      this._titleTimerID = null;
+      this._titleTimer.stop();
       this._titleControlRef.value?.show();
     };
 
-    if (this._titleTimerID) {
-      window.clearTimeout(this._titleTimerID);
-    }
     if (this._titleControlRef.value?.isVisible()) {
       // If it's already visible, update it immediately (but also update it
       // after the timer expires to ensure it re-positions if necessary, see
@@ -248,7 +246,7 @@ export class FrigateCardMediaCarousel extends LitElement {
     // Allow a brief pause after the media loads, but before the title is
     // displayed. This allows for a pleasant appearance/disappear of the title,
     // and allows for the browser to finish rendering the carousel.
-    this._titleTimerID = window.setTimeout(show, 0.5 * 1000);
+    this._titleTimer.start(0.5, show);
   }
 
   /**

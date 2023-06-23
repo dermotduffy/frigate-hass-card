@@ -1,14 +1,21 @@
 import { handleActionConfig, hasAction } from 'custom-card-helpers';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { actionSchema } from '../../src/types';
 import {
-    convertActionToFrigateCardCustomAction,
-    createFrigateCardCustomAction,
-    frigateCardHandleActionConfig,
-    frigateCardHasAction,
-    getActionConfigGivenAction,
-    stopEventFromActivatingCardWideActions,
+  actionSchema,
+  FrigateCardAction,
+  FrigateCardCustomAction,
+  frigateCardCustomActionSchema,
+} from '../../src/types';
+import {
+  convertActionToFrigateCardCustomAction,
+  createFrigateCardCustomAction,
+  frigateCardHandleAction,
+  frigateCardHandleActionConfig,
+  frigateCardHasAction,
+  getActionConfigGivenAction,
+  isViewAction,
+  stopEventFromActivatingCardWideActions,
 } from '../../src/utils/action';
 import { createHASS } from '../test-utils';
 
@@ -173,6 +180,23 @@ describe('frigateCardHandleActionConfig', () => {
   });
 });
 
+// @vitest-environment jsdom
+describe('frigateCardHandleAction', () => {
+  const element = document.createElement('div');
+  const action = actionSchema.parse({
+    action: 'none',
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should call action handler', () => {
+    frigateCardHandleAction(element, createHASS(), {}, action);
+    expect(handleActionConfig).toBeCalled();
+  });
+});
+
 describe('frigateCardHasAction', () => {
   const action = actionSchema.parse({
     action: 'toggle',
@@ -198,5 +222,47 @@ describe('stopEventFromActivatingCardWideActions', () => {
     const event = mock<Event>();
     stopEventFromActivatingCardWideActions(event);
     expect(event.stopPropagation).toBeCalled();
+  });
+});
+
+describe('isViewAction', () => {
+  const createAction = (action: FrigateCardAction): FrigateCardCustomAction => {
+    return frigateCardCustomActionSchema.parse({
+      action: 'fire-dom-event' as const,
+      frigate_card_action: action,
+    });
+  };
+  it('should return true for clip view ', () => {
+    expect(isViewAction(createAction('clip'))).toBeTruthy();
+  });
+  it('should return true for clips view ', () => {
+    expect(isViewAction(createAction('clips'))).toBeTruthy();
+  });
+  it('should return true for image view ', () => {
+    expect(isViewAction(createAction('image'))).toBeTruthy();
+  });
+  it('should return true for live view ', () => {
+    expect(isViewAction(createAction('live'))).toBeTruthy();
+  });
+  it('should return true for recording view ', () => {
+    expect(isViewAction(createAction('recording'))).toBeTruthy();
+  });
+  it('should return true for live view ', () => {
+    expect(isViewAction(createAction('live'))).toBeTruthy();
+  });
+  it('should return true for recordings view ', () => {
+    expect(isViewAction(createAction('recordings'))).toBeTruthy();
+  });
+  it('should return true for snapshot view ', () => {
+    expect(isViewAction(createAction('snapshot'))).toBeTruthy();
+  });
+  it('should return true for snapshots view ', () => {
+    expect(isViewAction(createAction('snapshots'))).toBeTruthy();
+  });
+  it('should return true for timeline view ', () => {
+    expect(isViewAction(createAction('timeline'))).toBeTruthy();
+  });
+  it('should return false for anything else', () => {
+    expect(isViewAction(createAction('diagnostics'))).toBeFalsy();
   });
 });

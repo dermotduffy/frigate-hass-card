@@ -10,7 +10,7 @@ import {
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
-import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
+import { styleMap } from 'lit/directives/style-map.js';
 import cloneDeep from 'lodash-es/cloneDeep';
 import isEqual from 'lodash-es/isEqual';
 import merge from 'lodash-es/merge';
@@ -18,7 +18,6 @@ import throttle from 'lodash-es/throttle';
 import screenfull from 'screenfull';
 import { ViewContext } from 'view';
 import 'web-dialog';
-import { z } from 'zod';
 import pkg from '../package.json';
 import { actionHandler } from './action-handler-directive.js';
 import { AutomationsController } from './automations';
@@ -27,7 +26,7 @@ import { CameraManager } from './camera-manager/manager.js';
 import './components/elements.js';
 import { FrigateCardElements } from './components/elements.js';
 import './components/menu.js';
-import { FRIGATE_BUTTON_MENU_ICON, FrigateCardMenu } from './components/menu.js';
+import { FrigateCardMenu } from './components/menu.js';
 import './components/message.js';
 import { renderMessage, renderProgressIndicator } from './components/message.js';
 import './components/thumbnail-carousel.js';
@@ -49,13 +48,12 @@ import {
   CameraConfig,
   CardWideConfig,
   ExtendedHomeAssistant,
-  FRIGATE_CARD_VIEW_DEFAULT,
-  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
   FrigateCardConfig,
   frigateCardConfigSchema,
   FrigateCardCustomAction,
   FrigateCardError,
   FrigateCardView,
+  FRIGATE_CARD_VIEW_DEFAULT,
   MediaLoadedInfo,
   MenuButton,
   Message,
@@ -64,18 +62,15 @@ import {
 } from './types.js';
 import {
   convertActionToFrigateCardCustomAction,
-  createFrigateCardCustomAction,
   frigateCardHandleActionConfig,
   frigateCardHasAction,
   getActionConfigGivenAction,
+  isViewAction,
 } from './utils/action.js';
 import { errorToConsole } from './utils/basic.js';
-import { getAllDependentCameras } from './utils/camera.js';
 import { log } from './utils/debug.js';
-import { downloadMedia } from './utils/download.js';
+import { downloadMedia, downloadURL } from './utils/download.js';
 import {
-  getEntityIcon,
-  getEntityTitle,
   getHassDifferences,
   isCardInPanel,
   isHassDifferent,
@@ -89,15 +84,19 @@ import { Entity } from './utils/ha/entity-registry/types.js';
 import { ResolvedMediaCache } from './utils/ha/resolved-media.js';
 import { supportsFeature } from './utils/ha/update.js';
 import { FrigateCardInitializer } from './utils/initializer.js';
+import { MediaLoadedInfoController } from './utils/media-info-controller';
 import { isValidMediaLoadedInfo } from './utils/media-info.js';
+import { MenuButtonController } from './utils/menu-controller';
 import { MicrophoneController } from './utils/microphone';
 import { getActionsFromQueryString } from './utils/querystring.js';
+import { generateScreenshotTitle } from './utils/screenshot';
 import {
   createViewWithNextStream,
   createViewWithoutSubstream,
   createViewWithSelectedSubstream,
-  hasSubstream,
 } from './utils/substream';
+import { Timer } from './utils/timer';
+import { getParseErrorPaths } from './utils/zod.js';
 import { View } from './view/view.js';
 
 /** A note on media callbacks:
@@ -185,30 +184,22 @@ class FrigateCard extends LitElement {
   protected _panel = false;
 
   @state()
-  protected _expand?: boolean = false;
+  protected _expand = false;
 
   protected _microphoneController?: MicrophoneController;
   protected _conditionController?: ConditionController;
   protected _automationsController?: AutomationsController;
+  protected _menuButtonController = new MenuButtonController();
+  protected _mediaLoadedInfoController = new MediaLoadedInfoController();
 
   protected _refMenu: Ref<FrigateCardMenu> = createRef();
   protected _refMain: Ref<HTMLElement> = createRef();
   protected _refElements: Ref<FrigateCardElements> = createRef();
   protected _refViews: Ref<FrigateCardViews> = createRef();
 
-  // user interaction timer ("screensaver" functionality, return to default
-  // view after user interaction).
-  protected _interactionTimerID: number | null = null;
-
-  // Automated refreshes of the default view.
-  protected _updateTimerID: number | null = null;
-
-  // Information about loaded media items.
-  protected _currentMediaLoadedInfo: MediaLoadedInfo | null = null;
-  protected _lastValidMediaLoadedInfo: MediaLoadedInfo | null = null;
-
-  // Array of dynamic menu buttons to be added to menu.
-  protected _dynamicMenuButtons: MenuButton[] = [];
+  protected _interactionTimer = new Timer();
+  protected _updateTimer = new Timer();
+  protected _untriggerTimer = new Timer();
 
   // Error/info message to render.
   protected _message: Message | null = null;
@@ -227,7 +218,6 @@ class FrigateCard extends LitElement {
   protected _boundFullscreenHandler = this._fullscreenHandler.bind(this);
 
   protected _triggers: Map<string, Date> = new Map();
-  protected _untriggerTimerID: number | null = null;
 
   protected _mediaPlayers?: string[];
 
@@ -341,442 +331,6 @@ class FrigateCard extends LitElement {
   }
 
   /**
-   * Get the style of emphasized menu items.
-   * @returns A StyleInfo.
-   */
-  protected _getEmphasizedStyle(critical?: boolean): StyleInfo {
-    if (critical) {
-      return {
-        animation: 'pulse 3s infinite',
-        color: 'var(--error-color, white)',
-      };
-    }
-    return {
-      color: 'var(--primary-color, white)',
-    };
-  }
-
-  /**
-   * Given a button determine if the style should be emphasized by examining all
-   * of the actions sequentially.
-   * @param button The button to examine.
-   * @returns A StyleInfo object.
-   */
-  protected _getStyleFromActions(button: MenuButton): StyleInfo {
-    for (const actionSet of [
-      button.tap_action,
-      button.double_tap_action,
-      button.hold_action,
-      button.start_tap_action,
-      button.end_tap_action,
-    ]) {
-      const actions = Array.isArray(actionSet) ? actionSet : [actionSet];
-      for (const action of actions) {
-        // All frigate card actions will have action of 'fire-dom-event' and
-        // styling only applies to those.
-        if (
-          !action ||
-          action.action !== 'fire-dom-event' ||
-          !('frigate_card_action' in action)
-        ) {
-          continue;
-        }
-        const frigateCardAction = action as FrigateCardCustomAction;
-        if (
-          FRIGATE_CARD_VIEWS_USER_SPECIFIED.some(
-            (view) =>
-              view === frigateCardAction.frigate_card_action &&
-              this._view?.is(frigateCardAction.frigate_card_action),
-          ) ||
-          (frigateCardAction.frigate_card_action === 'default' &&
-            this._view?.is(this._getConfig().view.default)) ||
-          (frigateCardAction.frigate_card_action === 'fullscreen' &&
-            screenfull.isEnabled &&
-            screenfull.isFullscreen) ||
-          (frigateCardAction.frigate_card_action === 'camera_select' &&
-            this._view?.camera === frigateCardAction.camera)
-        ) {
-          return this._getEmphasizedStyle();
-        }
-      }
-    }
-    return {};
-  }
-
-  /**
-   * Get the menu buttons to display.
-   * @returns An array of menu buttons.
-   */
-  protected _getMenuButtons(): MenuButton[] {
-    const buttons: MenuButton[] = [];
-
-    const visibleCameras = this._cameraManager?.getStore().getVisibleCameras();
-    const selectedCameraID = this._view?.camera;
-    const selectedCameraConfig = this._getSelectedCameraConfig();
-    const allSelectedCameraIDs = getAllDependentCameras(
-      this._cameraManager,
-      selectedCameraID,
-    );
-    const selectedMedia = this._view?.queryResults?.getSelectedResult();
-
-    const cameraCapabilities = allSelectedCameraIDs
-      ? this._cameraManager?.getAggregateCameraCapabilities(allSelectedCameraIDs)
-      : null;
-    const mediaCapabilities = selectedMedia
-      ? this._cameraManager?.getMediaCapabilities(selectedMedia)
-      : null;
-
-    buttons.push({
-      // Use a magic icon value that the menu will use to render the custom
-      // Frigate icon.
-      icon: FRIGATE_BUTTON_MENU_ICON,
-      ...this._getConfig().menu.buttons.frigate,
-      type: 'custom:frigate-card-menu-icon',
-      title: localize('config.menu.buttons.frigate'),
-      tap_action: FrigateCardMenu.isHidingMenu(this._getConfig().menu)
-        ? (createFrigateCardCustomAction('menu_toggle') as FrigateCardCustomAction)
-        : (createFrigateCardCustomAction('default') as FrigateCardCustomAction),
-      hold_action: createFrigateCardCustomAction(
-        'diagnostics',
-      ) as FrigateCardCustomAction,
-    });
-
-    if (visibleCameras) {
-      const menuItems = Array.from(visibleCameras, ([cameraID, config]) => {
-        const action = createFrigateCardCustomAction('camera_select', {
-          camera: cameraID,
-        });
-        const metadata = this._hass
-          ? this._cameraManager?.getCameraMetadata(this._hass, cameraID) ?? undefined
-          : undefined;
-
-        return {
-          enabled: true,
-          icon: metadata?.icon,
-          entity: config.camera_entity,
-          state_color: true,
-          title: metadata?.title,
-          selected: this._view?.camera === cameraID,
-          ...(action && { tap_action: action }),
-        };
-      });
-
-      buttons.push({
-        icon: 'mdi:video-switch',
-        ...this._getConfig().menu.buttons.cameras,
-        type: 'custom:frigate-card-menu-submenu',
-        title: localize('config.menu.buttons.cameras'),
-        items: menuItems,
-      });
-    }
-
-    if (selectedCameraID && allSelectedCameraIDs && this._view?.is('live')) {
-      const dependencies = [...allSelectedCameraIDs];
-      const override = this._view?.context?.live?.overrides?.get(selectedCameraID);
-
-      if (dependencies.length === 2) {
-        // If there are only two dependencies (the main camera, and 1 other)
-        // then use a button not a menu to toggle.
-        buttons.push({
-          icon: 'mdi:video-input-component',
-          style:
-            override && override !== selectedCameraID ? this._getEmphasizedStyle() : {},
-          title: localize('config.menu.buttons.substreams'),
-          ...this._getConfig().menu.buttons.substreams,
-          type: 'custom:frigate-card-menu-icon',
-          tap_action: createFrigateCardCustomAction(
-            hasSubstream(this._view) ? 'live_substream_off' : 'live_substream_on',
-          ) as FrigateCardCustomAction,
-        });
-      } else if (dependencies.length > 2) {
-        const menuItems = Array.from(dependencies, (cameraID) => {
-          const action = createFrigateCardCustomAction('live_substream_select', {
-            camera: cameraID,
-          });
-          const metadata = this._hass
-            ? this._cameraManager?.getCameraMetadata(this._hass, cameraID) ?? undefined
-            : undefined;
-          const cameraConfig = this._cameraManager?.getStore().getCameraConfig(cameraID);
-          return {
-            enabled: true,
-            icon: metadata?.icon,
-            entity: cameraConfig?.camera_entity,
-            state_color: true,
-            title: metadata?.title,
-            selected:
-              (this._view?.context?.live?.overrides?.get(selectedCameraID) ??
-                selectedCameraID) === cameraID,
-            ...(action && { tap_action: action }),
-          };
-        });
-
-        buttons.push({
-          icon: 'mdi:video-input-component',
-          title: localize('config.menu.buttons.substreams'),
-          style:
-            override && override !== selectedCameraID ? this._getEmphasizedStyle() : {},
-          ...this._getConfig().menu.buttons.substreams,
-          type: 'custom:frigate-card-menu-submenu',
-          items: menuItems,
-        });
-      }
-    }
-
-    buttons.push({
-      icon: 'mdi:cctv',
-      ...this._getConfig().menu.buttons.live,
-      type: 'custom:frigate-card-menu-icon',
-      title: localize('config.view.views.live'),
-      style: this._view?.is('live') ? this._getEmphasizedStyle() : {},
-      tap_action: createFrigateCardCustomAction('live') as FrigateCardCustomAction,
-    });
-
-    if (cameraCapabilities?.supportsClips) {
-      buttons.push({
-        icon: 'mdi:filmstrip',
-        ...this._getConfig().menu.buttons.clips,
-        type: 'custom:frigate-card-menu-icon',
-        title: localize('config.view.views.clips'),
-        style: this._view?.is('clips') ? this._getEmphasizedStyle() : {},
-        tap_action: createFrigateCardCustomAction('clips') as FrigateCardCustomAction,
-        hold_action: createFrigateCardCustomAction('clip') as FrigateCardCustomAction,
-      });
-    }
-
-    if (cameraCapabilities?.supportsSnapshots) {
-      buttons.push({
-        icon: 'mdi:camera',
-        ...this._getConfig().menu.buttons.snapshots,
-        type: 'custom:frigate-card-menu-icon',
-        title: localize('config.view.views.snapshots'),
-        style: this._view?.is('snapshots') ? this._getEmphasizedStyle() : {},
-        tap_action: createFrigateCardCustomAction(
-          'snapshots',
-        ) as FrigateCardCustomAction,
-        hold_action: createFrigateCardCustomAction(
-          'snapshot',
-        ) as FrigateCardCustomAction,
-      });
-    }
-
-    if (cameraCapabilities?.supportsRecordings) {
-      buttons.push({
-        icon: 'mdi:album',
-        ...this._getConfig().menu.buttons.recordings,
-        type: 'custom:frigate-card-menu-icon',
-        title: localize('config.view.views.recordings'),
-        style: this._view?.is('recordings') ? this._getEmphasizedStyle() : {},
-        tap_action: createFrigateCardCustomAction(
-          'recordings',
-        ) as FrigateCardCustomAction,
-        hold_action: createFrigateCardCustomAction(
-          'recording',
-        ) as FrigateCardCustomAction,
-      });
-    }
-
-    buttons.push({
-      icon: 'mdi:image',
-      ...this._getConfig().menu.buttons.image,
-      type: 'custom:frigate-card-menu-icon',
-      title: localize('config.view.views.image'),
-      style: this._view?.is('image') ? this._getEmphasizedStyle() : {},
-      tap_action: createFrigateCardCustomAction('image') as FrigateCardCustomAction,
-    });
-
-    // Don't show the timeline button unless there's at least one non-birdseye
-    // camera with a Frigate camera name.
-    if (cameraCapabilities?.supportsTimeline) {
-      buttons.push({
-        icon: 'mdi:chart-gantt',
-        ...this._getConfig().menu.buttons.timeline,
-        type: 'custom:frigate-card-menu-icon',
-        title: localize('config.view.views.timeline'),
-        style: this._view?.is('timeline') ? this._getEmphasizedStyle() : {},
-        tap_action: createFrigateCardCustomAction('timeline') as FrigateCardCustomAction,
-      });
-    }
-
-    if (mediaCapabilities?.canDownload && !this._isBeingCasted()) {
-      buttons.push({
-        icon: 'mdi:download',
-        ...this._getConfig().menu.buttons.download,
-        type: 'custom:frigate-card-menu-icon',
-        title: localize('config.menu.buttons.download'),
-        tap_action: createFrigateCardCustomAction('download') as FrigateCardCustomAction,
-      });
-    }
-
-    if (this._getCameraURLFromContext()) {
-      buttons.push({
-        icon: 'mdi:web',
-        ...this._getConfig().menu.buttons.camera_ui,
-        type: 'custom:frigate-card-menu-icon',
-        title: localize('config.menu.buttons.camera_ui'),
-        tap_action: createFrigateCardCustomAction(
-          'camera_ui',
-        ) as FrigateCardCustomAction,
-      });
-    }
-
-    if (
-      this._microphoneController &&
-      this._currentMediaLoadedInfo?.capabilities?.supports2WayAudio
-    ) {
-      const muted = this._microphoneController.isMuted();
-      const buttonType = this._getConfig().menu.buttons.microphone.type;
-      buttons.push({
-        icon: this._microphoneController.isForbidden()
-          ? 'mdi:microphone-message-off'
-          : muted
-          ? 'mdi:microphone-off'
-          : 'mdi:microphone',
-        ...this._getConfig().menu.buttons.microphone,
-        type: 'custom:frigate-card-menu-icon',
-        title: localize('config.menu.buttons.microphone'),
-        style: muted ? {} : this._getEmphasizedStyle(true),
-        ...(buttonType === 'momentary' && {
-          start_tap_action: createFrigateCardCustomAction(
-            'microphone_unmute',
-          ) as FrigateCardCustomAction,
-          end_tap_action: createFrigateCardCustomAction(
-            'microphone_mute',
-          ) as FrigateCardCustomAction,
-        }),
-        ...(buttonType === 'toggle' && {
-          tap_action: createFrigateCardCustomAction(
-            this._microphoneController.isMuted()
-              ? 'microphone_unmute'
-              : 'microphone_mute',
-          ) as FrigateCardCustomAction,
-        }),
-      });
-    }
-
-    if (screenfull.isEnabled && !this._isBeingCasted()) {
-      buttons.push({
-        icon: screenfull.isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
-        ...this._getConfig().menu.buttons.fullscreen,
-        type: 'custom:frigate-card-menu-icon',
-        title: localize('config.menu.buttons.fullscreen'),
-        tap_action: createFrigateCardCustomAction(
-          'fullscreen',
-        ) as FrigateCardCustomAction,
-        style: screenfull.isFullscreen ? this._getEmphasizedStyle() : {},
-      });
-    }
-
-    buttons.push({
-      icon: this._expand ? 'mdi:arrow-collapse-all' : 'mdi:arrow-expand-all',
-      ...this._getConfig().menu.buttons.expand,
-      type: 'custom:frigate-card-menu-icon',
-      title: localize('config.menu.buttons.expand'),
-      tap_action: createFrigateCardCustomAction('expand') as FrigateCardCustomAction,
-      style: this._expand ? this._getEmphasizedStyle() : {},
-    });
-
-    if (
-      this._mediaPlayers?.length &&
-      (this._view?.isViewerView() ||
-        (this._view?.is('live') && selectedCameraConfig?.camera_entity))
-    ) {
-      const mediaPlayerItems = this._mediaPlayers.map((playerEntityID) => {
-        const title = getEntityTitle(this._hass, playerEntityID) || playerEntityID;
-        const state = this._hass?.states[playerEntityID];
-        const playAction = createFrigateCardCustomAction('media_player', {
-          media_player: playerEntityID,
-          media_player_action: 'play',
-        });
-        const stopAction = createFrigateCardCustomAction('media_player', {
-          media_player: playerEntityID,
-          media_player_action: 'stop',
-        });
-
-        return {
-          enabled: true,
-          selected: false,
-          icon: getEntityIcon(this._hass, playerEntityID) || 'mdi:cast',
-          entity: playerEntityID,
-          state_color: false,
-          title: title,
-          disabled: !state || state.state === 'unavailable',
-          ...(playAction && { tap_action: playAction }),
-          ...(stopAction && { hold_action: stopAction }),
-        };
-      });
-
-      buttons.push({
-        icon: 'mdi:cast',
-        ...this._getConfig().menu.buttons.media_player,
-        type: 'custom:frigate-card-menu-submenu',
-        title: localize('config.menu.buttons.media_player'),
-        items: mediaPlayerItems,
-      });
-    }
-
-    if (this._currentMediaLoadedInfo && this._currentMediaLoadedInfo.player) {
-      if (this._currentMediaLoadedInfo.capabilities?.supportsPause) {
-        const paused = this._currentMediaLoadedInfo.player.isPaused();
-        buttons.push({
-          icon: paused ? 'mdi:play' : 'mdi:pause',
-          ...this._getConfig().menu.buttons.play,
-          type: 'custom:frigate-card-menu-icon',
-          title: localize('config.menu.buttons.play'),
-          tap_action: createFrigateCardCustomAction(
-            paused ? 'play' : 'pause',
-          ) as FrigateCardCustomAction,
-        });
-      }
-
-      if (this._currentMediaLoadedInfo.capabilities?.hasAudio) {
-        const muted = this._currentMediaLoadedInfo.player.isMuted();
-        buttons.push({
-          icon: muted ? 'mdi:volume-off' : 'mdi:volume-high',
-          ...this._getConfig().menu.buttons.mute,
-          type: 'custom:frigate-card-menu-icon',
-          title: localize('config.menu.buttons.mute'),
-          tap_action: createFrigateCardCustomAction(
-            muted ? 'unmute' : 'mute',
-          ) as FrigateCardCustomAction,
-        });
-      }
-    }
-
-    const styledDynamicButtons = this._dynamicMenuButtons.map((button) => ({
-      style: this._getStyleFromActions(button),
-      ...button,
-    }));
-
-    return buttons.concat(styledDynamicButtons);
-  }
-
-  /**
-   * Add a dynamic (elements) menu button.
-   * @param button The button to add.
-   */
-  public _addDynamicMenuButton(button: MenuButton): void {
-    if (!this._dynamicMenuButtons.includes(button)) {
-      this._dynamicMenuButtons = [...this._dynamicMenuButtons, button];
-    }
-    if (this._refMenu.value) {
-      this._refMenu.value.buttons = this._getMenuButtons();
-    }
-  }
-
-  /**
-   * Remove a dynamic (elements) menu button that was previously added.
-   * @param target The button to remove.
-   */
-  public _removeDynamicMenuButton(target: MenuButton): void {
-    this._dynamicMenuButtons = this._dynamicMenuButtons.filter(
-      (button) => button != target,
-    );
-    if (this._refMenu.value) {
-      this._refMenu.value.buttons = this._getMenuButtons();
-    }
-  }
-
-  /**
    * Get the camera configuration for the selected camera.
    * @returns The CameraConfig object or null if not found.
    */
@@ -785,68 +339,6 @@ class FrigateCard extends LitElement {
       return null;
     }
     return this._cameraManager.getStore().getCameraConfig(this._view.camera);
-  }
-
-  /**
-   * Get configuration parse errors.
-   * @param error The ZodError object from parsing.
-   * @returns An array of string error paths.
-   */
-  protected _getParseErrorPaths<T>(error: z.ZodError<T>): Set<string> | null {
-    /* Zod errors involving unions are complex, as Zod may not be able to tell
-     * where the 'real' error is vs simply a union option not matching. This
-     * function finds all ZodError "issues" that don't have an error with 'type'
-     * in that object ('type' is the union discriminator for picture elements,
-     * the major union in the schema). An array of user-readable error
-     * locations is returned, or an empty list if none is available. None being
-     * available suggests the configuration has an error, but we can't tell
-     * exactly why (or rather Zod simply says it doesn't match any of the
-     * available unions). This usually suggests the user specified an incorrect
-     * type name entirely. */
-    const contenders = new Set<string>();
-    if (error && error.issues) {
-      for (let i = 0; i < error.issues.length; i++) {
-        const issue = error.issues[i];
-        if (issue.code == 'invalid_union') {
-          const unionErrors = (issue as z.ZodInvalidUnionIssue).unionErrors;
-          for (let j = 0; j < unionErrors.length; j++) {
-            const nestedErrors = this._getParseErrorPaths(unionErrors[j]);
-            if (nestedErrors && nestedErrors.size) {
-              nestedErrors.forEach(contenders.add, contenders);
-            }
-          }
-        } else if (issue.code == 'invalid_type') {
-          if (issue.path[issue.path.length - 1] == 'type') {
-            return null;
-          }
-          contenders.add(this._getParseErrorPathString(issue.path));
-        } else if (issue.code != 'custom') {
-          contenders.add(this._getParseErrorPathString(issue.path));
-        }
-      }
-    }
-    return contenders;
-  }
-
-  /**
-   * Convert an array of strings and indices into a more user readable string,
-   * e.g. [a, 1, b, 2] => 'a[1] -> b[2]'
-   * @param path An array of strings and numbers.
-   * @returns A single string.
-   */
-  protected _getParseErrorPathString(path: (string | number)[]): string {
-    let out = '';
-    for (let i = 0; i < path.length; i++) {
-      const item = path[i];
-      if (typeof item == 'number') {
-        out += '[' + item + ']';
-      } else if (out) {
-        out += ' -> ' + item;
-      } else {
-        out = item;
-      }
-    }
-    return out;
   }
 
   /**
@@ -861,7 +353,7 @@ class FrigateCard extends LitElement {
     const parseResult = frigateCardConfigSchema.safeParse(inputConfig);
     if (!parseResult.success) {
       const configUpgradeable = isConfigUpgradeable(inputConfig);
-      const hint = this._getParseErrorPaths(parseResult.error);
+      const hint = getParseErrorPaths(parseResult.error);
       let upgradeMessage = '';
       if (configUpgradeable && getLovelace().mode !== 'yaml') {
         upgradeMessage = `${localize('error.upgrade_available')}. `;
@@ -921,7 +413,7 @@ class FrigateCard extends LitElement {
         this._conditionController?.hasHAStateConditions && {
           state: this._hass.states,
         }),
-      media_loaded: !!this._currentMediaLoadedInfo,
+      media_loaded: this._mediaLoadedInfoController.has(),
     });
   }
 
@@ -949,11 +441,20 @@ class FrigateCard extends LitElement {
     return this._overriddenConfig || this._config;
   }
 
-  protected _changeView(args?: { view?: View; resetMessage?: boolean }): void {
-    log(this._cardWideConfig, `Frigate Card view change: `, args?.view ?? '[default]');
+  protected _changeView(args?: {
+    view?: View;
+    viewName?: FrigateCardView;
+    cameraID?: string;
+    resetMessage?: boolean;
+  }): void {
+    log(
+      this._cardWideConfig,
+      `Frigate Card view change: `,
+      args?.view ?? args?.viewName ?? '[default]',
+    );
     const changeView = (view: View): void => {
       if (View.isMajorMediaChange(this._view, view)) {
-        this._currentMediaLoadedInfo = null;
+        this._mediaLoadedInfoController.clear();
       }
       if (this._view?.view !== view.view) {
         this._resetMainScroll();
@@ -973,12 +474,13 @@ class FrigateCard extends LitElement {
     }
 
     if (!args?.view) {
-      // Load the default view.
       let cameraID: string | null = null;
       if (this._cameraManager) {
         const cameras = this._cameraManager.getStore().getVisibleCameras();
         if (cameras) {
-          if (this._view?.camera && this._getConfig().view.update_cycle_camera) {
+          if (args?.cameraID && cameras.has(args.cameraID)) {
+            cameraID = args.cameraID;
+          } else if (this._view?.camera && this._getConfig().view.update_cycle_camera) {
             const keys = Array.from(cameras.keys());
             const currentIndex = keys.indexOf(this._view.camera);
             const targetIndex = currentIndex + 1 >= keys.length ? 0 : currentIndex + 1;
@@ -993,7 +495,7 @@ class FrigateCard extends LitElement {
       if (cameraID) {
         changeView(
           new View({
-            view: this._getConfig().view.default,
+            view: args?.viewName ?? this._getConfig().view.default,
             camera: cameraID,
           }),
         );
@@ -1014,7 +516,7 @@ class FrigateCard extends LitElement {
     const needDarkMode =
       this._getConfig().view.dark_mode === 'on' ||
       (this._getConfig().view.dark_mode === 'auto' &&
-        (!this._interactionTimerID || this._hass?.themes.darkMode));
+        (!this._interactionTimer.isRunning() || this._hass?.themes.darkMode));
 
     if (needDarkMode) {
       this.setAttribute('dark', '');
@@ -1152,7 +654,7 @@ class FrigateCard extends LitElement {
    * @returns
    */
   protected _isTriggered(): boolean {
-    return !!this._triggers.size || !!this._untriggerTimerID;
+    return !!this._triggers.size || this._untriggerTimer.isRunning();
   }
 
   /**
@@ -1161,7 +663,7 @@ class FrigateCard extends LitElement {
   protected _untrigger(): void {
     const wasTriggered = this._isTriggered();
     this._triggers.clear();
-    this._clearUntriggerTimer();
+    this._untriggerTimer.stop();
 
     if (wasTriggered) {
       this.requestUpdate();
@@ -1172,9 +674,7 @@ class FrigateCard extends LitElement {
    * Start the untrigger timer.
    */
   protected _startUntriggerTimer(): void {
-    this._clearUntriggerTimer();
-
-    this._untriggerTimerID = window.setTimeout(() => {
+    this._untriggerTimer.start(this._getConfig().view.scan.untrigger_seconds, () => {
       this._untrigger();
       if (
         this._isAutomatedViewUpdateAllowed() &&
@@ -1182,17 +682,7 @@ class FrigateCard extends LitElement {
       ) {
         this._changeView();
       }
-    }, this._getConfig().view.scan.untrigger_seconds * 1000);
-  }
-
-  /**
-   * Clear the user interaction ('screensaver') timer.
-   */
-  protected _clearUntriggerTimer(): void {
-    if (this._untriggerTimerID) {
-      window.clearTimeout(this._untriggerTimerID);
-      this._untriggerTimerID = null;
-    }
+    });
   }
 
   protected _handleThrownError(error: unknown) {
@@ -1240,11 +730,26 @@ class FrigateCard extends LitElement {
       this._handleThrownError(e);
     }
 
-    // If there's no view set yet, set one. This will be the case on initial camera load.
+    // Set a view on initial load. However, if the query string contains an
+    // action that needs to render content (e.g. a view action or diagnostics),
+    // we don't set any view here and allow that content to be triggered by the
+    // firstUpdated() call. To do otherwise may cause a race condition between
+    // the default view and the querystring view, see:
+    // https://github.com/dermotduffy/frigate-hass-card/issues/1200
     if (!this._view) {
-      // Don't reset the message which may be set to an error above. This sets the
-      // first view using the newly loaded cameras.
-      this._changeView({ resetMessage: false });
+      const querystringActions = getActionsFromQueryString();
+      if (
+        !querystringActions.find(
+          (action) =>
+            isViewAction(action) || action.frigate_card_action === 'diagnostics',
+        )
+      ) {
+        this._changeView({
+          // Don't reset the message which may be set to an error above. This sets the
+          // first view using the newly loaded cameras.
+          resetMessage: false,
+        });
+      }
     }
   }
 
@@ -1545,7 +1050,10 @@ class FrigateCard extends LitElement {
   }
 
   protected _cardActionHandler(frigateCardAction: FrigateCardCustomAction): void {
-    if (!this._view || !this._cameraManager) {
+    // Note: This function needs to process (view-related) commands even when
+    // _view has not yet been initialized (since it may be used to set a view
+    // via the querystring).
+    if (!this._cameraManager) {
       return;
     }
 
@@ -1573,10 +1081,8 @@ class FrigateCard extends LitElement {
       case 'snapshots':
       case 'timeline':
         this._changeView({
-          view: new View({
-            view: action,
-            camera: this._view.camera,
-          }),
+          viewName: action,
+          cameraID: this._view?.camera,
         });
         break;
       case 'download':
@@ -1618,21 +1124,27 @@ class FrigateCard extends LitElement {
         }
         break;
       case 'live_substream_select': {
-        const view = createViewWithSelectedSubstream(
-          this._view,
-          frigateCardAction.camera,
-        );
-        view && this._changeView({ view: view });
+        if (this._view) {
+          const view = createViewWithSelectedSubstream(
+            this._view,
+            frigateCardAction.camera,
+          );
+          view && this._changeView({ view: view });
+        }
         break;
       }
       case 'live_substream_off': {
-        const view = createViewWithoutSubstream(this._view);
-        view && this._changeView({ view: view });
+        if (this._view) {
+          const view = createViewWithoutSubstream(this._view);
+          view && this._changeView({ view: view });
+        }
         break;
       }
       case 'live_substream_on': {
-        const view = createViewWithNextStream(this._cameraManager, this._view);
-        view && this._changeView({ view: view });
+        if (this._view) {
+          const view = createViewWithNextStream(this._cameraManager, this._view);
+          view && this._changeView({ view: view });
+        }
         break;
       }
       case 'media_player':
@@ -1670,16 +1182,26 @@ class FrigateCard extends LitElement {
         }
         break;
       case 'mute':
-        this._currentMediaLoadedInfo?.player?.mute();
+        this._mediaLoadedInfoController.get()?.player?.mute();
         break;
       case 'unmute':
-        this._currentMediaLoadedInfo?.player?.unmute();
+        this._mediaLoadedInfoController.get()?.player?.unmute();
         break;
       case 'play':
-        this._currentMediaLoadedInfo?.player?.play();
+        this._mediaLoadedInfoController.get()?.player?.play();
         break;
       case 'pause':
-        this._currentMediaLoadedInfo?.player?.pause();
+        this._mediaLoadedInfoController.get()?.player?.pause();
+        break;
+      case 'screenshot':
+        this._mediaLoadedInfoController
+          .get()
+          ?.player?.getScreenshotURL()
+          .then((url: string | null) => {
+            if (url) {
+              downloadURL(url, generateScreenshotTitle(this._view));
+            }
+          });
         break;
       default:
         console.warn(`Frigate card received unknown card action: ${action}`);
@@ -1820,33 +1342,22 @@ class FrigateCard extends LitElement {
   }
 
   /**
-   * Clear the user interaction ('screensaver') timer.
-   */
-  protected _clearInteractionTimer(): void {
-    if (this._interactionTimerID) {
-      window.clearTimeout(this._interactionTimerID);
-      this._interactionTimerID = null;
-    }
-  }
-
-  /**
    * Start the user interaction ('screensaver') timer to reset the view to
    * default `view.timeout_seconds` after user interaction.
    */
   protected _startInteractionTimer(): void {
-    this._clearInteractionTimer();
+    this._interactionTimer.stop();
 
     // Interactions reset the trigger state.
     this._untrigger();
 
     if (this._getConfig().view.timeout_seconds) {
-      this._interactionTimerID = window.setTimeout(() => {
-        this._clearInteractionTimer();
+      this._interactionTimer.start(this._getConfig().view.timeout_seconds, () => {
         if (this._isAutomatedViewUpdateAllowed()) {
           this._changeView();
           this._setLightOrDarkMode();
         }
-      }, this._getConfig().view.timeout_seconds * 1000);
+      });
     }
     this._setLightOrDarkMode();
   }
@@ -1856,12 +1367,9 @@ class FrigateCard extends LitElement {
    * `view.update_seconds`.
    */
   protected _startUpdateTimer(): void {
-    if (this._updateTimerID) {
-      window.clearTimeout(this._updateTimerID);
-      this._updateTimerID = null;
-    }
+    this._updateTimer.stop();
     if (this._getConfig().view.update_seconds) {
-      this._updateTimerID = window.setTimeout(() => {
+      this._updateTimer.start(this._getConfig().view.update_seconds, () => {
         if (this._isAutomatedViewUpdateAllowed()) {
           this._changeView();
         } else {
@@ -1869,7 +1377,7 @@ class FrigateCard extends LitElement {
           // interval.
           this._startUpdateTimer();
         }
-      }, this._getConfig().view.update_seconds * 1000);
+      });
     }
   }
 
@@ -1880,7 +1388,7 @@ class FrigateCard extends LitElement {
   protected _isAutomatedViewUpdateAllowed(ignoreTriggers?: boolean): boolean {
     return (
       (ignoreTriggers || !this._isTriggered()) &&
-      (this._getConfig().view.update_force || !this._interactionTimerID)
+      (this._getConfig().view.update_force || !this._interactionTimer.isRunning())
     );
   }
 
@@ -1889,12 +1397,27 @@ class FrigateCard extends LitElement {
    * @returns A rendered template.
    */
   protected _renderMenu(): TemplateResult | void {
+    if (!this._hass || !this._cameraManager || !this._view) {
+      return;
+    }
     return html`
       <frigate-card-menu
         ${ref(this._refMenu)}
         .hass=${this._hass}
         .menuConfig=${this._getConfig().menu}
-        .buttons=${this._getMenuButtons()}
+        .buttons=${this._menuButtonController.calculateButtons(
+          this._hass,
+          this._getConfig(),
+          this._cameraManager,
+          this._view,
+          this._expand,
+          {
+            currentMediaLoadedInfo: this._mediaLoadedInfoController.get(),
+            mediaPlayers: this._mediaPlayers,
+            cameraURL: this._getCameraURLFromContext(),
+            microphoneController: this._microphoneController,
+          },
+        )}
         .entityRegistryManager=${this._entityRegistryManager}
       ></frigate-card-menu>
     `;
@@ -1956,12 +1479,12 @@ class FrigateCard extends LitElement {
 
     log(this._cardWideConfig, `Frigate Card media load: `, mediaLoadedInfo);
 
-    this._lastValidMediaLoadedInfo = this._currentMediaLoadedInfo = mediaLoadedInfo;
+    this._mediaLoadedInfoController.set(mediaLoadedInfo);
 
     this._setPropertiesForExpandedMode();
 
     this._conditionController?.setState({
-      media_loaded: !!this._currentMediaLoadedInfo,
+      media_loaded: this._mediaLoadedInfoController.has(),
     });
 
     this.requestUpdate();
@@ -1971,10 +1494,11 @@ class FrigateCard extends LitElement {
     // When a new media loads, set the aspect ratio for when the card is
     // expanded/popped-up. This is based exclusively on last media content,
     // as dimension configuration does not apply in fullscreen or expanded mode.
+    const lastKnown = this._mediaLoadedInfoController.getLastKnown();
     this.style.setProperty(
       '--frigate-card-expand-aspect-ratio',
-      this._view?.isAnyMediaView() && this._lastValidMediaLoadedInfo
-        ? `${this._lastValidMediaLoadedInfo.width} / ${this._lastValidMediaLoadedInfo.height}`
+      this._view?.isAnyMediaView() && lastKnown
+        ? `${lastKnown.width} / ${lastKnown.height}`
         : 'unset',
     );
     // Non-media mays have no intrinsic dimensions and so we need to explicit
@@ -1993,8 +1517,20 @@ class FrigateCard extends LitElement {
    * Unload a media item.
    */
   protected _mediaUnloadedHandler(): void {
-    this._currentMediaLoadedInfo = null;
+    this._mediaLoadedInfoController.clear();
     this._conditionController?.setState({ media_loaded: false });
+  }
+
+  protected _locationChangeHandler = (): void => {
+    // Only execute actions when the card has rendered at least once.
+    if (this.hasUpdated) {
+      getActionsFromQueryString().forEach((action) => this._cardActionHandler(action));
+    }
+  };
+
+  protected firstUpdated(): void {
+    // Execute query string actions after first render is complete.
+    this._locationChangeHandler();
   }
 
   /**
@@ -2008,6 +1544,18 @@ class FrigateCard extends LitElement {
     this.addEventListener('mousemove', this._boundMouseHandler);
     this.addEventListener('ll-custom', this._boundCardActionEventHandler);
     this._panel = isCardInPanel(this);
+
+    // Listen for HA `navigate` actions.
+    // See: https://github.com/home-assistant/frontend/blob/273992c8e9c3062c6e49481b6d7d688a07067232/src/common/navigate.ts#L43
+    window.addEventListener('location-changed', this._locationChangeHandler);
+
+    // Listen for history state changes (i.e. user using the browser
+    // back/forward controls).
+    window.addEventListener('popstate', this._locationChangeHandler);
+
+    // Manually call the location change handler as the card will be
+    // disconnected/reconnected when dashboard 'tab' changes happen within HA.
+    this._locationChangeHandler();
   }
 
   /**
@@ -2022,15 +1570,11 @@ class FrigateCard extends LitElement {
     }
     this.removeEventListener('mousemove', this._boundMouseHandler);
     this.removeEventListener('ll-custom', this._boundCardActionEventHandler);
-    super.disconnectedCallback();
-  }
 
-  /**
-   * Determine if the card is currently being casted.
-   * @returns
-   */
-  protected _isBeingCasted(): boolean {
-    return !!navigator.userAgent.match(/CrKey\//);
+    window.removeEventListener('location-changed', this._locationChangeHandler);
+    window.removeEventListener('popstate', this._locationChangeHandler);
+
+    super.disconnectedCallback();
   }
 
   /**
@@ -2068,8 +1612,9 @@ class FrigateCard extends LitElement {
 
     const aspectRatioMode = this._getConfig().dimensions.aspect_ratio_mode;
 
-    if (this._lastValidMediaLoadedInfo && aspectRatioMode === 'dynamic') {
-      return `${this._lastValidMediaLoadedInfo.width} / ${this._lastValidMediaLoadedInfo.height}`;
+    const lastKnown = this._mediaLoadedInfoController.getLastKnown();
+    if (lastKnown && aspectRatioMode === 'dynamic') {
+      return `${lastKnown.width} / ${lastKnown.height}`;
     }
 
     const defaultAspectRatio = this._getConfig().dimensions.aspect_ratio;
@@ -2248,11 +1793,13 @@ class FrigateCard extends LitElement {
             .hass=${this._hass}
             .elements=${this._getConfig().elements}
             .conditionControllerEpoch=${this._conditionController?.getEpoch()}
-            @frigate-card:menu-add=${(e) => {
-              this._addDynamicMenuButton(e.detail);
+            @frigate-card:menu-add=${(ev: CustomEvent<MenuButton>) => {
+              this._menuButtonController.addDynamicMenuButton(ev.detail);
+              this.requestUpdate();
             }}
-            @frigate-card:menu-remove=${(e) => {
-              this._removeDynamicMenuButton(e.detail);
+            @frigate-card:menu-remove=${(ev: CustomEvent<MenuButton>) => {
+              this._menuButtonController.removeDynamicMenuButton(ev.detail);
+              this.requestUpdate();
             }}
             @frigate-card:condition:evaluate=${(ev: ConditionEvaluateRequestEvent) => {
               ev.evaluation = this._conditionController?.evaluateCondition(ev.condition);
@@ -2261,11 +1808,6 @@ class FrigateCard extends LitElement {
           </frigate-card-elements>`
         : ``}
     </ha-card>`);
-  }
-
-  protected firstUpdated(): void {
-    // Execute query string actions after first render is complete.
-    getActionsFromQueryString().forEach((action) => this._cardActionHandler(action));
   }
 
   /**
@@ -2280,8 +1822,9 @@ class FrigateCard extends LitElement {
    * @returns The Lovelace card size in units of 50px.
    */
   public getCardSize(): number {
-    if (this._lastValidMediaLoadedInfo) {
-      return this._lastValidMediaLoadedInfo.height / 50;
+    const lastKnown = this._mediaLoadedInfoController.getLastKnown();
+    if (lastKnown) {
+      return lastKnown.height / 50;
     }
     return 6;
   }

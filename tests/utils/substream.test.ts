@@ -1,6 +1,4 @@
 import { describe, expect, it, vi } from 'vitest';
-import { mock } from 'vitest-mock-extended';
-import { CameraManager } from '../../src/camera-manager/manager';
 import { getAllDependentCameras } from '../../src/utils/camera';
 import {
   createViewWithNextStream,
@@ -9,7 +7,9 @@ import {
   hasSubstream,
 } from '../../src/utils/substream';
 import { View } from '../../src/view/view';
+import { createCameraManager } from '../test-utils';
 
+vi.mock('../../src/camera-manager/manager.js');
 vi.mock('../../src/utils/camera');
 
 describe('createViewWithSelectedSubstream', () => {
@@ -95,7 +95,7 @@ describe('createViewWithNextStream', () => {
       camera: 'camera',
     });
     vi.mocked(getAllDependentCameras).mockReturnValue(new Set(['camera']));
-    const cameraManager = mock<CameraManager>();
+    const cameraManager = createCameraManager()
     const newView = createViewWithNextStream(cameraManager, view);
     expect(newView.camera).toBe(view.camera);
     expect(newView.view).toBe(view.view);
@@ -107,7 +107,7 @@ describe('createViewWithNextStream', () => {
       camera: 'camera',
     });
     vi.mocked(getAllDependentCameras).mockReturnValue(new Set(['camera', 'camera2']));
-    const cameraManager = mock<CameraManager>();
+    const cameraManager = createCameraManager()
     const newView = createViewWithNextStream(cameraManager, view);
     expect(newView.context?.live?.overrides).toEqual(new Map([['camera', 'camera2']]));
   });
@@ -122,7 +122,7 @@ describe('createViewWithNextStream', () => {
       },
     });
     vi.mocked(getAllDependentCameras).mockReturnValue(new Set(['camera', 'camera2']));
-    const cameraManager = mock<CameraManager>();
+    const cameraManager = createCameraManager()
     const newView = createViewWithNextStream(cameraManager, view);
     expect(newView.context?.live?.overrides).toEqual(new Map([['camera', 'camera']]));
   });
@@ -137,7 +137,7 @@ describe('createViewWithNextStream', () => {
       },
     });
     vi.mocked(getAllDependentCameras).mockReturnValue(new Set(['camera', 'camera2']));
-    const cameraManager = mock<CameraManager>();
+    const cameraManager = createCameraManager()
     const newView = createViewWithNextStream(cameraManager, view);
     expect(newView.context?.live?.overrides).toEqual(new Map([['camera', 'camera']]));
   });

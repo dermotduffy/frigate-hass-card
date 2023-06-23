@@ -1,19 +1,32 @@
-import { HomeAssistant } from 'custom-card-helpers';
 import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
+import { vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+import { CameraManagerEngineFactory } from '../src/camera-manager/engine-factory';
 import { FrigateEvent, FrigateRecording } from '../src/camera-manager/frigate/types';
+import { CameraManager } from '../src/camera-manager/manager';
+import { CameraManagerStore } from '../src/camera-manager/store';
+import {
+  CameraConfigs,
+  CameraManagerCameraCapabilities,
+  CameraManagerMediaCapabilities,
+} from '../src/camera-manager/types';
 import {
   CameraConfig,
+  ExtendedHomeAssistant,
   FrigateCardCondition,
   FrigateCardConfig,
+  MediaLoadedInfo,
+  RawFrigateCardConfig,
   cameraConfigSchema,
   frigateCardConditionSchema,
   frigateCardConfigSchema,
 } from '../src/types';
 import { Entity } from '../src/utils/ha/entity-registry/types';
+import { ViewMedia, ViewMediaType } from '../src/view/media';
+import { View, ViewParameters } from '../src/view/view';
 
-export const createCameraConfig = (config: unknown): CameraConfig => {
-  return cameraConfigSchema.parse(config);
+export const createCameraConfig = (config?: unknown): CameraConfig => {
+  return cameraConfigSchema.parse(config ?? {});
 };
 
 export const createCondition = (
@@ -22,12 +35,16 @@ export const createCondition = (
   return frigateCardConditionSchema.parse(condition ?? {});
 };
 
-export const createConfig = (config?: Partial<FrigateCardConfig>): FrigateCardConfig => {
-  return frigateCardConfigSchema.parse(config);
+export const createConfig = (config?: RawFrigateCardConfig): FrigateCardConfig => {
+  return frigateCardConfigSchema.parse({
+    type: 'frigate-hass-card',
+    cameras: [],
+    ...config,
+  });
 };
 
-export const createHASS = (states?: HassEntities): HomeAssistant => {
-  const hass = mock<HomeAssistant>();
+export const createHASS = (states?: HassEntities): ExtendedHomeAssistant => {
+  const hass = mock<ExtendedHomeAssistant>();
   if (states) {
     hass.states = states;
   }
@@ -89,3 +106,89 @@ export const createFrigateRecording = (recording?: Partial<FrigateRecording>) =>
     ...recording,
   };
 };
+
+export const createView = (options?: Partial<ViewParameters>): View => {
+  return new View({
+    view: 'live',
+    camera: 'camera',
+    ...options,
+  });
+};
+
+export const createCameraManager = (options?: {
+  store?: CameraManagerStore;
+  configs?: CameraConfigs;
+}): CameraManager => {
+  const cameraManager = new CameraManager(mock<CameraManagerEngineFactory>(), {});
+  let store: CameraManagerStore | undefined = options?.store;
+  if (!store) {
+    store = mock<CameraManagerStore>();
+    const configs = options?.configs ?? new Map([['camera', createCameraConfig()]]);
+    vi.mocked(store.getCameras).mockReturnValue(configs);
+    vi.mocked(store.getVisibleCameras).mockReturnValue(configs);
+    vi.mocked(store.getCameraConfig).mockImplementation((cameraID): CameraConfig => {
+      return configs.get(cameraID) ?? createCameraConfig();
+    });
+  }
+  vi.mocked(cameraManager.getStore).mockReturnValue(store);
+  return cameraManager;
+};
+
+export const createCameraCapabilities = (
+  options?: Partial<CameraManagerCameraCapabilities>,
+): CameraManagerCameraCapabilities => {
+  return {
+    canFavoriteEvents: false,
+    canFavoriteRecordings: false,
+    canSeek: false,
+    supportsClips: false,
+    supportsRecordings: false,
+    supportsSnapshots: false,
+    supportsTimeline: false,
+    ...options,
+  };
+};
+
+export const createMediaCapabilities = (
+  options?: Partial<CameraManagerMediaCapabilities>,
+): CameraManagerMediaCapabilities => {
+  return {
+    canFavorite: false,
+    canDownload: false,
+    ...options,
+  };
+};
+
+export const createMediaLoadedInfo = (
+  options?: Partial<MediaLoadedInfo>,
+): MediaLoadedInfo => {
+  return {
+    width: 100,
+    height: 100,
+    ...options,
+  };
+};
+
+// ViewMedia itself has no native way to set startTime and ID that aren't linked
+// to an engine.
+export class TestViewMedia extends ViewMedia {
+  protected _id: string | null;
+  protected _startTime: Date;
+
+  constructor(
+    id: string | null,
+    startTime: Date,
+    mediaType: ViewMediaType,
+    cameraID: string,
+  ) {
+    super(mediaType, cameraID);
+    this._id = id;
+    this._startTime = startTime;
+  }
+  public getID(): string | null {
+    return this._id;
+  }
+  public getStartTime(): Date | null {
+    return this._startTime;
+  }
+}

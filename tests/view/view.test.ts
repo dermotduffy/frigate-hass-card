@@ -1,22 +1,10 @@
-import { describe, it, expect, vi, test } from 'vitest';
+import { describe, expect, it, test, vi } from 'vitest';
 import { QueryType } from '../../src/camera-manager/types';
 import { ViewMedia } from '../../src/view/media';
 import { EventMediaQueries, RecordingMediaQueries } from '../../src/view/media-queries';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
-import {
-  View,
-  ViewParameters,
-  dispatchViewContextChangeEvent,
-} from '../../src/view/view';
-import { ViewContext } from 'view';
-
-const createView = (options?: Partial<ViewParameters>): View => {
-  return new View({
-    ...options,
-    view: options?.view ?? 'live',
-    camera: options?.camera ?? 'camera',
-  });
-};
+import { View, dispatchViewContextChangeEvent } from '../../src/view/view';
+import { createView } from '../test-utils';
 
 // @vitest-environment jsdom
 describe('View Basics', () => {

@@ -31,8 +31,7 @@ import { FRIGATE_ICON_SVG_PATH } from '../camera-manager/frigate/icon.js';
 import { refreshDynamicStateParameters } from '../utils/ha';
 import './submenu.js';
 import { EntityRegistryManager } from '../utils/ha/entity-registry/index.js';
-
-export const FRIGATE_BUTTON_MENU_ICON = 'frigate';
+import { FRIGATE_BUTTON_MENU_ICON } from '../const.js';
 
 /**
  * A menu for the FrigateCard.

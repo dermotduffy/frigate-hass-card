@@ -636,14 +636,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphiteds/core@npm:^1.9.6":
-  version: 1.9.7
-  resolution: "@graphiteds/core@npm:1.9.7"
+"@graphiteds/core@npm:^1.9.11":
+  version: 1.9.11
+  resolution: "@graphiteds/core@npm:1.9.11"
   dependencies:
     "@duetds/date-picker": ^1.4.0
     "@popperjs/core": ^2.11.5
     "@stencil/core": ^2.20.0
-  checksum: d9fa01a5e63fa4b26010893f85324ddfc1961c08ba1a934da5371941d648582e722a87f5af682084be24f28aa5b3aec3bda6a8ff8759b2f7246e5db13f528391
+  checksum: de67030f51fb165563bd73dc55a1294063f40e6de1bd55f864ea9c627069da81fbdb171de7908ae34a8c3f8d0505fd9414762bd695a0e449304d441867bc59cc
   languageName: node
   linkType: hard
 
@@ -3041,7 +3041,7 @@ __metadata:
     "@cycjimmy/jsmpeg-player": ^6.0.4
     "@dermotduffy/panzoom": ^4.5.1
     "@egjs/hammerjs": ^2.0.17
-    "@graphiteds/core": ^1.9.6
+    "@graphiteds/core": ^1.9.11
     "@lit-labs/scoped-registry-mixin": ^1.0.1
     "@lit-labs/task": ^1.1.3
     "@rollup/plugin-babel": ^5.3.1

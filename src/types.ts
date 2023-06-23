@@ -209,15 +209,11 @@ const frigateCardCustomActionsBaseSchema = customActionSchema.extend({
 
 const FRIGATE_CARD_GENERAL_ACTIONS = [
   'camera_ui',
-  'clip',
-  'clips',
   'default',
   'diagnostics',
   'expand',
   'download',
   'fullscreen',
-  'image',
-  'live',
   'menu_toggle',
   'mute',
   'live_substream_on',
@@ -226,20 +222,22 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'microphone_unmute',
   'play',
   'pause',
-  'recording',
-  'recordings',
-  'snapshot',
-  'snapshots',
-  'timeline',
+  'screenshot',
   'unmute',
 ] as const;
 const FRIGATE_CARD_ACTIONS = [
+  ...FRIGATE_CARD_VIEWS_USER_SPECIFIED,
   ...FRIGATE_CARD_GENERAL_ACTIONS,
   'camera_select',
   'live_substream_select',
   'media_player',
 ] as const;
 export type FrigateCardAction = (typeof FRIGATE_CARD_ACTIONS)[number];
+
+const frigateCardViewActionSchema = frigateCardCustomActionsBaseSchema.extend({
+  frigate_card_action: z.enum(FRIGATE_CARD_VIEWS_USER_SPECIFIED),
+});
+export type FrigateCardViewAction = z.infer<typeof frigateCardViewActionSchema>;
 
 const frigateCardGeneralActionSchema = frigateCardCustomActionsBaseSchema.extend({
   frigate_card_action: z.enum(FRIGATE_CARD_GENERAL_ACTIONS),
@@ -260,6 +258,7 @@ const frigateCardMediaPlayerActionSchema = frigateCardCustomActionsBaseSchema.ex
 });
 
 export const frigateCardCustomActionSchema = z.union([
+  frigateCardViewActionSchema,
   frigateCardGeneralActionSchema,
   frigateCardCameraSelectActionSchema,
   frigateCardLiveDependencySelectActionSchema,
@@ -1078,6 +1077,7 @@ const menuConfigDefault = {
     mute: hiddenButtonDefault,
     play: hiddenButtonDefault,
     recordings: hiddenButtonDefault,
+    screenshot: hiddenButtonDefault,
   },
   button_size: 40,
 };
@@ -1123,6 +1123,7 @@ const menuConfigSchema = z
         recordings: hiddenButtonSchema.default(menuConfigDefault.buttons.recordings),
         mute: hiddenButtonSchema.default(menuConfigDefault.buttons.mute),
         play: hiddenButtonSchema.default(menuConfigDefault.buttons.play),
+        screenshot: hiddenButtonSchema.default(menuConfigDefault.buttons.screenshot),
       })
       .default(menuConfigDefault.buttons),
     button_size: z.number().min(BUTTON_SIZE_MIN).default(menuConfigDefault.button_size),
@@ -1530,6 +1531,7 @@ export interface FrigateCardMediaPlayer {
   unmute(): Promise<void>;
   isMuted(): boolean;
   seek(seconds: number): Promise<void>;
+  getScreenshotURL(): Promise<string | null>;
   // If no value for controls if specified, the player should use the default.
   setControls(controls?: boolean): Promise<void>;
   isPaused(): boolean;

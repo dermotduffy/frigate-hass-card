@@ -54,6 +54,10 @@ export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPla
     return this._playerRef.value?.isPaused() ?? true;
   }
 
+  public async getScreenshotURL(): Promise<string | null> {
+    return await this._playerRef.value?.getScreenshotURL() ?? null;
+  }
+
   protected render(): TemplateResult | void {
     if (!this.hass) {
       return;

@@ -11,7 +11,7 @@ const dayStringToDate = (arg: unknown): Date | unknown => {
   return typeof arg === 'string' ? dayToDate(arg) : arg;
 };
 
-const eventSchema = z.object({
+export const eventSchema = z.object({
   camera: z.string(),
   end_time: z.number().nullable(),
   false_positive: z.boolean().nullable(),

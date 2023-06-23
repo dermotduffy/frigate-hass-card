@@ -1,8 +1,9 @@
-import { errorToConsole } from "./basic";
+import { errorToConsole } from './basic';
+import { Timer } from './timer';
 
 export class MicrophoneController {
   protected _stream?: MediaStream | null;
-  protected _timerID: number | null = null;
+  protected _timer = new Timer();
 
   // We keep mute state separate from the stream state so that mute/unmute can
   // be expressed before the stream is created -- and when it's create it will
@@ -68,20 +69,11 @@ export class MicrophoneController {
     return !this._stream || this._stream.getTracks().every((track) => !track.enabled);
   }
 
-  protected _clearTimer(): void {
-    if (this._timerID) {
-      window.clearTimeout(this._timerID);
-      this._timerID = null;
-    }
-  }
-
   protected _startTimer(): void {
     if (this._disconnectSeconds) {
-      this._clearTimer();
-      this._timerID = window.setTimeout(() => {
-        this._clearTimer();
+      this._timer.start(this._disconnectSeconds, () => {
         this.disconnect();
-      }, this._disconnectSeconds * 1000);
+      });
     }
   }
 }

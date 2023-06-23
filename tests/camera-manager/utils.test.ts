@@ -5,8 +5,9 @@ import {
   getCameraEntityFromConfig,
   sortMedia,
 } from '../../src/camera-manager/util.js';
-import { ViewMedia, ViewMediaType } from '../../src/view/media.js';
 import { CameraConfig, cameraConfigSchema } from '../../src/types.js';
+import { ViewMedia, ViewMediaType } from '../../src/view/media.js';
+import { TestViewMedia } from '../test-utils.js';
 
 describe('convertRangeToCacheFriendlyTimes', () => {
   it('should return cache friendly within hour range', () => {
@@ -73,30 +74,6 @@ describe('capEndDate', () => {
     vi.useRealTimers();
   });
 });
-
-// ViewMedia itself has no native way to set startTime and ID that aren't linked
-// to an engine.
-class TestViewMedia extends ViewMedia {
-  protected _ID: string | null;
-  protected _startTime: Date;
-
-  constructor(
-    ID: string | null,
-    startTime: Date,
-    mediaType: ViewMediaType,
-    cameraID: string,
-  ) {
-    super(mediaType, cameraID);
-    this._ID = ID;
-    this._startTime = startTime;
-  }
-  public getID(): string | null {
-    return this._ID;
-  }
-  public getStartTime(): Date | null {
-    return this._startTime;
-  }
-}
 
 describe('sortMedia', () => {
   const media_1 = new TestViewMedia(

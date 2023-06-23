@@ -47,7 +47,9 @@ import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
   playMediaMutingIfNecessary,
+  setControlsOnVideo,
 } from '../utils/media.js';
+import { screenshotMedia } from '../utils/screenshot.js';
 import { ViewMediaClassifier } from '../view/media-classifier';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
 import { MediaQueriesResults } from '../view/media-queries-results.js';
@@ -562,6 +564,7 @@ export class FrigateCardViewerProvider
   protected _refFrigateCardMediaPlayer: Ref<Element & FrigateCardMediaPlayer> =
     createRef();
   protected _refVideoProvider: Ref<HTMLVideoElement> = createRef();
+  protected _refImageProvider: Ref<HTMLImageElement> = createRef();
 
   public async play(): Promise<void> {
     await playMediaMutingIfNecessary(
@@ -612,7 +615,10 @@ export class FrigateCardViewerProvider
     if (this._refFrigateCardMediaPlayer.value) {
       return this._refFrigateCardMediaPlayer.value.setControls(controls);
     } else if (this._refVideoProvider.value) {
-      this._refVideoProvider.value.controls = controls ?? this.viewerConfig?.controls.builtin ?? true;
+      setControlsOnVideo(
+        this._refVideoProvider.value,
+        controls ?? this.viewerConfig?.controls.builtin ?? true,
+      );
     }
   }
 
@@ -623,6 +629,17 @@ export class FrigateCardViewerProvider
       return this._refVideoProvider.value.paused;
     }
     return true;
+  }
+
+  public async getScreenshotURL(): Promise<string | null> {
+    if (this._refFrigateCardMediaPlayer.value) {
+      return await this._refFrigateCardMediaPlayer.value.getScreenshotURL();
+    } else if (this._refVideoProvider.value) {
+      return screenshotMedia(this._refVideoProvider.value);
+    } else if (this._refImageProvider.value) {
+      return this._refImageProvider.value.src;
+    }
+    return null;
   }
 
   /**
@@ -731,6 +748,8 @@ export class FrigateCardViewerProvider
       });
     }
 
+    // Note: crossorigin="anonymous" is required on <video> below in order to
+    // allow screenshot of motionEye videos which currently go cross-origin.
     return this._useZoomIfRequired(html`
       ${ViewMediaClassifier.isVideo(this.media)
         ? this.media.getVideoContentType() === VideoContentType.HLS
@@ -755,6 +774,7 @@ export class FrigateCardViewerProvider
                 title="${this.media.getTitle() ?? ''}"
                 muted
                 playsinline
+                crossorigin="anonymous"
                 ?autoplay=${false}
                 ?controls=${this.viewerConfig.controls.builtin}
                 @loadedmetadata=${(ev: Event) => {
@@ -785,6 +805,7 @@ export class FrigateCardViewerProvider
               </video>
             `
         : html`<img
+            ${ref(this._refImageProvider)}
             aria-label="${this.media.getTitle() ?? ''}"
             src="${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}"
             title="${this.media.getTitle() ?? ''}"

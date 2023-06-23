@@ -433,6 +433,7 @@ menu:
 | `camera_ui` | :white_check_mark: | The `camera_ui` menu button: brings the user to a context-appropriate page on the UI of their camera engine (e.g. the Frigate camera homepage). Will only appear if the camera engine supports a camera UI (e.g. if `frigate.url` option is set for `frigate` engine users).|
 | `fullscreen` | :white_check_mark: | The `fullscreen` menu button: expand the card to consume the fullscreen. |
 | `expand` | :white_check_mark: | The `expand` menu button: expand the card into a popup/dialog. |
+| `screenshot` | :white_check_mark: | The `screenshot` menu button: take a screenshot of the loaded media (e.g. a still from a video). |
 | `timeline` | :white_check_mark: | The `timeline` menu button: show the event timeline. |
 | `media_player` | :white_check_mark: | The `media_player` menu button: sends the visible media to a remote media player. Supports Frigate clips, snapshots and live camera (only for cameras that specify a `camera_entity` and only using the default HA stream (equivalent to the `ha` live provider). `jsmpeg` or `webrtc-card` are not supported, although live can still be played as long as `camera_entity` is specified. In the player list, a `tap` will send the media to the player, a `hold` will stop the media on the player. |
 | `microphone` | :white_check_mark: | The `microphone` button allows usage of 2-way audio in certain configurations. See [Using 2-way audio](#using-2-way-audio). |
@@ -1291,7 +1292,7 @@ Parameters for the `custom:frigate-card-ptz` element:
 | Parameter | Description |
 | - | - |
 | `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_on`, `live_substream_off`, `live_substream_select`, `expand`, `microphone_mute`, `microphone_unmute`, `mute`, `unmute`, `play`, `pause`|
+| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_on`, `live_substream_off`, `live_substream_select`, `expand`, `microphone_mute`, `microphone_unmute`, `mute`, `unmute`, `play`, `pause`, `screenshot`|
 
 <a name="custom-actions"></a>
 
@@ -1312,6 +1313,7 @@ Parameters for the `custom:frigate-card-ptz` element:
 |`microphone_mute`, `microphone_unmute`| Mute or unmute the microphone. See [Using 2-way audio](#using-2-way-audio). |
 |`mute`, `unmute`| Mute or unmute the loaded media. |
 |`play`, `pause`| Play or pause the loaded media. |
+|`screenshot`| Take a screenshot of the loaded media (e.g. a still from a video). |
 
 <a name="views"></a>
 
@@ -1583,6 +1585,10 @@ Pan around a large camera view to only show part of the video feed in the card a
 ### Zoom Support
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/dev/images/zoom.gif" alt="Zoom Support" width="400px">
+
+### Taking card actions via the URL
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/dev/images/navigate-picture-elements.gif" alt="Taking card actions via the URL" width="400px">
 
 ## Examples
 
@@ -2422,6 +2428,12 @@ elements:
       frigate_card_action: media_player
       media_player: media_player.nesthub
       media_player_action: stop
+  - type: custom:frigate-card-menu-icon
+    icon: mdi:alpha-o-circle
+    title: Screenshot
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: screenshot
 ```
 </details>
 
@@ -3745,6 +3757,47 @@ https://ha.mydomain.org/lovelace-test/0?frigate-card-action:main:clips
 ```
 </details>
 
+<details>
+  <summary>Expand: Choosing the camera from a separate picture elements card</summary>
+
+In this example, the card will select a given camera when the user navigates from a *separate* Picture Elements card:
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/dev/images/navigate-picture-elements.gif" alt="Taking card actions via the URL" width="400px">
+
+Frigate Card configuration:
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.living_room
+  - camera_entity: camera.landing
+```
+
+Picture Elements configuration (assumes the dashboard is `/lovelace-frigate/map`):
+
+```yaml
+type: picture-elements
+image: https://demo.home-assistant.io/stub_config/floorplan.png
+elements:
+  - type: icon
+    icon: mdi:cctv
+    style:
+      top: 22%
+      left: 30%
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-frigate/map?frigate-card-action:camera_select=camera.living_room
+  - type: icon
+    icon: mdi:cctv
+    style:
+      top: 71%
+      left: 42%
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-frigate/map?frigate-card-action:camera_select=camera.landing
+```
+
+</details>
 
 ### Automation actions
 
@@ -3836,13 +3889,20 @@ view:
 
 It is possible to pass the Frigate card one or more actions from the URL (e.g. select a particular camera, open the live view in expanded mode, etc).
 
-To send an action to *all* Frigate cards on a dashboard:
+The Frigate card will execute these actions in the following circumstances:
+
+* On initial card load.
+* On 'tab' change in a dashboard.
+* When a `navigate` [action](https://www.home-assistant.io/dashboards/actions/) is called on the dashboard (e.g. a button click requests navigation).
+* When the user uses the `back` / `forward` browser buttons whilst viewing a dashboard.
+
+To send an action to *all* Frigate cards:
 
 ```
 [PATH_TO_YOUR_HA_DASHBOARD]?frigate-card-action:[ACTION]=[VALUE]
 ```
 
-To send an action to a named Frigate card on the dashboard:
+To send an action to a named Frigate card:
 
 ```
 [PATH_TO_YOUR_HA_DASHBOARD]?frigate-card-action:[CARD_ID]:[ACTION]=[VALUE]
@@ -3853,6 +3913,10 @@ To send an action to a named Frigate card on the dashboard:
 | `ACTION` | One of the supported Frigate Card custom actions (see below). |
 | `CARD_ID` | When specified only cards that have a `card_id` parameter will act. |
 | `VALUE` | An optional value to use with the `camera_select` and `live_substream_select` actions. |
+
+**Note**: If a dashboard has multiple Frigate cards on it, even if they are on
+different 'tabs' within that dashboard, they will all respond to the actions
+unless the action is targeted with a `CARD_ID` as shown above.
 
 #### Actions
 
@@ -3876,6 +3940,7 @@ To send an action to a named Frigate card on the dashboard:
 | `play`, `pause` | :heavy_multiplication_x: | |
 | `recording` | :white_check_mark: | |
 | `recordings` | :white_check_mark: | |
+| `screenshot`| :heavy_multiplication_x: | Latest media information is not available on initial render. |
 | `snapshot` | :white_check_mark: | |
 | `snapshots` | :white_check_mark: | |
 
@@ -3937,6 +4002,21 @@ You must be using a version of the [Frigate integration](https://github.com/blak
 live:
   controls:
     thumbnails:
+      mode: none
+```
+
+### Title "Popups" are annoying / continually popping up
+
+Title popups can be disabled for live or media viewer views with this configuration:
+
+```yaml
+live:
+  controls:
+    title:
+      mode: none
+media_viewer:
+  controls:
+    title:
       mode: none
 ```
 
@@ -4126,3 +4206,8 @@ The Home Assistant container will get preconfigured during first initialization,
 1. Use the same version number for the release title and tag.
 1. Choose 'This is a pre-release' for a beta version.
 1. Hit 'Publish release'.
+
+### Translations
+[![translation badge](https://inlang.com/badge?url=github.com/dermotduffy/frigate-hass-card)](https://inlang.com/editor/github.com/dermotduffy/frigate-hass-card?ref=badge)
+
+To add translations, you can manually edit the JSON translation files in `src/localize/languages`, use the [inlang](https://inlang.com/) online editor, or run `yarn machine-translate` to add missing translations using AI from Inlang.
