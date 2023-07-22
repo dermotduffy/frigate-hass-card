@@ -4070,7 +4070,9 @@ for the iPhone is not currently possible.
 Downloads are assembled by the Frigate backend out of ~10s segment files. You
 must have enough cache space in your Frigate instance to allow this assembly to
 happen -- if downloads don't work, especially for recordings, check your Frigate
-backend logs to see if it's running out of space. You can increase your cache size with the `tmpfs` `size` argument, see [Frigate documentation](https://docs.frigate.video/frigate/installation#docker).
+backend logs to see if it's running out of space. You can increase your cache
+size with the `tmpfs` `size` argument, see [Frigate
+documentation](https://docs.frigate.video/frigate/installation#docker).
 
 Large downloads may take a few seconds to assemble, so there may be a delay
 between clicking the download button and the download starting.
