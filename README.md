@@ -4065,6 +4065,16 @@ Unfortunately, [iOS does not support the Javascript fullscreen
 API](https://caniuse.com/fullscreen). As a result, card-level fullscreen support
 for the iPhone is not currently possible.
 
+### Large downloads don't work
+
+Downloads are assembled by the Frigate backend out of ~10s segment files. You
+must have enough cache space in your Frigate instance to allow this assembly to
+happen -- if downloads don't work, especially for recordings, check your Frigate
+backend logs to see if it's running out of space. You can increase your cache size with the `tmpfs` `size` argument, see [Frigate documentation](https://docs.frigate.video/frigate/installation#docker).
+
+Large downloads may take a few seconds to assemble, so there may be a delay
+between clicking the download button and the download starting.
+
 ### Android Will Not Render >4 JSMPEG Live Views
 
 Android Webview (as used by Android Chrome / Android Home Assistant Companion)
