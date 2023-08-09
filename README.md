@@ -474,6 +474,7 @@ See the [fully expanded live configuration example](#config-expanded-live) for h
 | `controls` | | :white_check_mark: | Configuration for the `live` view controls. See below. |
 | `layout` | | :white_check_mark: | See [media layout](#media-layout) below.|
 | `microphone` | | :white_check_mark: | See [microphone](#microphone) below.|
+| `display` | | :white_check_mark: | See [display](#live-display) below.|
 
 #### Live Controls
 
@@ -578,6 +579,35 @@ live:
 | `disconnect_seconds` | `60` | :white_check_mark: | The number of seconds after microphone usage to disconnect the microphone from the stream. `0` implies never. Not relevant if `always_connected` is `true`.|
 
 See [Using 2-way audio](#using-2-way-audio) for more information about the very particular requirements that must be followed for 2-way audio to work.
+
+<a name="live-display"></a>
+
+#### Live: Display
+
+All configuration is under:
+
+```yaml
+live:
+  display:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `mode` | `single` | :white_check_mark: | Whether to display a `single` media item at a time, or a media item for all cameras in a `grid`` configuration.|
+| `grid_selected_width_factor` | `2` | :white_check_mark: | How much to scale up the selected media item in a grid. A value of `1` will not scale the selected item at all, the default value of `2` will scale the media item width to twice what it would otherwise be, etc. |
+| `grid_columns` | | :white_check_mark: | If specified the grid will always have exactly this number of columns.|
+| `grid_max_columns` | `4` | :white_check_mark: | If specified, and `grid_columns` is not specified, the grid will not render more than this number of columns. The precise number will be calculated based on the [grid layout algorithm](#grid-layout-algorith). |
+
+<a name="grid-layout-algorithm"></a>
+
+##### Grid Layout Algorithm
+
+The grid will lay out cameras roughly in the order they are specified in the config (items may be moved to optimize grid 'density'). The following algorithm is used to calculate the number of columns. This attempts to offers a balance between configurability, reasonable display in a typical Lovelace card width and reasonable display in a typical fullscreen display.
+
+* Use `grid_columns` if specified.
+* Otherwise, use the largest number of columns in the range `[2 - grid_max_columns]` that will fit at least a `600px` column width.
+* Otherwise, use the largest number of columns in the range `[2 - grid_max_columns]` that will fit at least a `190px` column width.
+* Otherwise, there will be `1` column only.
 
 ### Media Viewer Options
 
@@ -688,6 +718,24 @@ media_viewer:
 | - | - | - | - |
 | `mode` | `popup-bottom-right` | :heavy_multiplication_x: | How to display the Media viewer media title. Acceptable values: `none`, `popup-top-left`, `popup-top-right`, `popup-bottom-left`, `popup-bottom-right` . |
 | `duration_seconds` | `2` | :heavy_multiplication_x: | The number of seconds to display the title popup. `0` implies forever.|
+
+<a name="media-viewer-display"></a>
+
+#### Media Viewer: Display
+
+All configuration is under:
+
+```yaml
+media_viewer:
+  display:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `mode` | `single` | :white_check_mark: | Whether to display a `single` media item at a time, or a media item for all cameras in a `grid`` configuration.|
+| `grid_selected_width_factor` | `2` | :white_check_mark: | How much to scale up the selected media item in a grid. A value of `1` will not scale the selected item at all, the default value of `2` will scale the media item width to twice what it would otherwise be, etc. |
+| `grid_columns` | | :white_check_mark: | If specified the grid will always have exactly this number of columns.|
+| `grid_max_columns` | `4` | :white_check_mark: | If specified, and `grid_columns` is not specified, the grid will not render more than this number of columns. The precise number will be calculated based on the [grid layout algorithm](#grid-layout-algorith). |
 
 <a name="media-gallery-options"></a>
 
@@ -1946,6 +1994,10 @@ live:
   microphone:
     always_connected: false
     disconnect_seconds: 60
+  display:
+    mode: single
+    grid_selected_width_factor: 2
+    grid_max_columns: 4
   actions:
     entity: light.office_main_lights
     tap_action:
@@ -2007,6 +2059,10 @@ media_viewer:
     position:
       x: 50
       y: 50
+  display:
+    mode: single
+    grid_selected_width_factor: 2
+    grid_max_columns: 4
   actions:
     entity: light.office_main_lights
     tap_action:
@@ -3820,6 +3876,32 @@ automations:
     actions_not:
       - action: custom:frigate-card-action
         frigate_card_action: live_substream_off
+```
+</details>
+
+### Grid display overrides
+
+<details>
+  <summary>Expand: Change the grid layout configuration in fullscreen mode</summary>
+
+This example will always render 5 columns in fullscreen mode in both the live
+and media viewer views, and will not enlarge the selected item. The normal
+auto-layout behavior will be used outside of fullscreen mode.
+
+```yaml
+overrides:
+  - conditions:
+      fullscreen: true
+      display_mode: grid
+    overrides:
+      live:
+        display:
+          grid_columns: 5
+          grid_selected_width_factor: 1
+      media_viewer:
+        display:
+          grid_columns: 5
+          grid_selected_width_factor: 1
 ```
 </details>
 
