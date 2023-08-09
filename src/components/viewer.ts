@@ -12,7 +12,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
-import basicBlockStyle from '../../scss/basic-block.scss';
+import basicBlockStyle from '../scss/basic-block.scss';
 import { CameraManager } from '../camera-manager/manager.js';
 import { dispatchMessageEvent, renderProgressIndicator } from '../components/message.js';
 import { localize } from '../localize/localize.js';
