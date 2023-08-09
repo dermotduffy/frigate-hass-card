@@ -1,10 +1,10 @@
-import { describe, expect, it, test, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { QueryType } from '../../src/camera-manager/types';
 import { ViewMedia } from '../../src/view/media';
 import { EventMediaQueries, RecordingMediaQueries } from '../../src/view/media-queries';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
 import { View, dispatchViewContextChangeEvent } from '../../src/view/view';
-import { createView } from '../test-utils';
+import { createView, generateViewMediaArray } from '../test-utils';
 
 // @vitest-environment jsdom
 describe('View Basics', () => {
@@ -52,6 +52,7 @@ describe('View Basics', () => {
       query: new EventMediaQueries(),
       queryResults: new MediaQueriesResults(),
       context: {},
+      displayMode: 'single',
     });
 
     const evolved = view.evolve({
@@ -60,12 +61,14 @@ describe('View Basics', () => {
       query: new EventMediaQueries(),
       queryResults: new MediaQueriesResults(),
       context: {},
+      displayMode: 'grid',
     });
     expect(evolved.view).not.toBe(view.view);
     expect(evolved.camera).not.toBe(view.camera);
     expect(evolved.query).not.toBe(view.query);
     expect(evolved.queryResults).not.toBe(view.queryResults);
     expect(evolved.context).not.toBe(view.context);
+    expect(evolved.displayMode).not.toBe(view.displayMode);
   });
 
   it('should evolve with nothing set', () => {
@@ -117,6 +120,13 @@ describe('View Basics', () => {
 
     view.removeContext('live');
     expect(view.context).toEqual({});
+  });
+
+  it('should remove context property', () => {
+    const view = createView({ context: { live: { overrides: new Map() } } });
+
+    view.removeContextProperty('live', 'overrides');
+    expect(view.context).toEqual({ live: {} });
   });
 
   it('should detect gallery views', () => {
@@ -240,8 +250,8 @@ describe('View.isMajorMediaChange', () => {
 
   it('should consider result change as major in other view', () => {
     const media = [new ViewMedia('clip', 'camera-1'), new ViewMedia('clip', 'camera-2')];
-    const queryResults_1 = new MediaQueriesResults(media, 0);
-    const queryResults_2 = new MediaQueriesResults(media, 1);
+    const queryResults_1 = new MediaQueriesResults({ results: media, selectedIndex: 0 });
+    const queryResults_2 = new MediaQueriesResults({ results: media, selectedIndex: 1 });
     expect(
       View.isMajorMediaChange(
         createView({ view: 'media', queryResults: queryResults_1 }),
@@ -252,8 +262,8 @@ describe('View.isMajorMediaChange', () => {
 
   it('should not consider selected result change as major in live view', () => {
     const media = [new ViewMedia('clip', 'camera-1'), new ViewMedia('clip', 'camera-2')];
-    const queryResults_1 = new MediaQueriesResults(media, 0);
-    const queryResults_2 = new MediaQueriesResults(media, 1);
+    const queryResults_1 = new MediaQueriesResults({ results: media, selectedIndex: 0 });
+    const queryResults_2 = new MediaQueriesResults({ results: media, selectedIndex: 1 });
     expect(
       View.isMajorMediaChange(
         createView({ queryResults: queryResults_1 }),
@@ -282,7 +292,7 @@ describe('View.adoptFromViewIfAppropriate', () => {
     expect(next.queryResults).toBe(queryResults);
   });
 
-  test.each([
+  it.each([
     [
       new EventMediaQueries([
         { type: QueryType.Event, cameraIDs: new Set(['camera']), hasClip: true },
@@ -408,6 +418,76 @@ describe('View.adoptFromViewIfAppropriate', () => {
     });
     View.adoptFromViewIfAppropriate(next, current);
     expect(next.context?.live).toEqual(current.context?.live);
+  });
+
+  it('should determine if display mode is grid', () => {
+    expect(createView({ displayMode: 'grid' }).isGrid()).toBeTruthy();
+    expect(createView({ displayMode: 'single' }).isGrid()).toBeFalsy();
+    expect(createView().isGrid()).toBeFalsy();
+  });
+
+  it('should determine if view supports multiple display modes', () => {
+    const resultsOne = new MediaQueriesResults({
+      results: generateViewMediaArray({ cameraIDs: ['office'] }),
+    });
+    const resultsTwo = new MediaQueriesResults({
+      results: generateViewMediaArray({ cameraIDs: ['office', 'kitchen'] }),
+    });
+
+    expect(createView({ view: 'live' }).hasMultipleDisplayModes()).toBeFalsy();
+    expect(createView({ view: 'live' }).hasMultipleDisplayModes(0)).toBeFalsy();
+    expect(createView({ view: 'live' }).hasMultipleDisplayModes(1)).toBeFalsy();
+    expect(createView({ view: 'live' }).hasMultipleDisplayModes(2)).toBeTruthy();
+
+    expect(createView({ view: 'media' }).hasMultipleDisplayModes()).toBeFalsy();
+    expect(
+      createView({ view: 'media', queryResults: resultsOne }).hasMultipleDisplayModes(),
+    ).toBeFalsy();
+    expect(
+      createView({ view: 'media', queryResults: resultsTwo }).hasMultipleDisplayModes(),
+    ).toBeTruthy();
+
+    expect(createView({ view: 'clip' }).hasMultipleDisplayModes()).toBeFalsy();
+    expect(
+      createView({ view: 'clip', queryResults: resultsOne }).hasMultipleDisplayModes(),
+    ).toBeFalsy();
+    expect(
+      createView({ view: 'clip', queryResults: resultsTwo }).hasMultipleDisplayModes(),
+    ).toBeTruthy();
+
+    expect(createView({ view: 'snapshot' }).hasMultipleDisplayModes()).toBeFalsy();
+    expect(
+      createView({
+        view: 'snapshot',
+        queryResults: resultsOne,
+      }).hasMultipleDisplayModes(),
+    ).toBeFalsy();
+    expect(
+      createView({
+        view: 'snapshot',
+        queryResults: resultsTwo,
+      }).hasMultipleDisplayModes(),
+    ).toBeTruthy();
+
+    expect(createView({ view: 'recording' }).hasMultipleDisplayModes()).toBeFalsy();
+    expect(
+      createView({
+        view: 'recording',
+        queryResults: resultsOne,
+      }).hasMultipleDisplayModes(),
+    ).toBeFalsy();
+    expect(
+      createView({
+        view: 'recording',
+        queryResults: resultsTwo,
+      }).hasMultipleDisplayModes(),
+    ).toBeTruthy();
+
+    expect(createView({ view: 'clips' }).hasMultipleDisplayModes()).toBeFalsy();
+    expect(createView({ view: 'snapshots' }).hasMultipleDisplayModes()).toBeFalsy();
+    expect(createView({ view: 'recordings' }).hasMultipleDisplayModes()).toBeFalsy();
+    expect(createView({ view: 'image' }).hasMultipleDisplayModes()).toBeFalsy();
+    expect(createView({ view: 'timeline' }).hasMultipleDisplayModes()).toBeFalsy();
   });
 });
 

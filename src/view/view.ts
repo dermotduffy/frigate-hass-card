@@ -1,5 +1,5 @@
 import { ViewContext } from 'view';
-import { ClipsOrSnapshots, FrigateCardView } from '../types.js';
+import { ClipsOrSnapshots, FrigateCardView, ViewDisplayMode } from '../types.js';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
 import { MediaQueries } from './media-queries';
 import { MediaQueriesClassifier } from './media-queries-classifier.js';
@@ -11,6 +11,7 @@ interface ViewEvolveParameters {
   query?: MediaQueries | null;
   queryResults?: MediaQueriesResults | null;
   context?: ViewContext | null;
+  displayMode?: ViewDisplayMode | null;
 }
 
 export interface ViewParameters extends ViewEvolveParameters {
@@ -24,6 +25,7 @@ export class View {
   public query: MediaQueries | null;
   public queryResults: MediaQueriesResults | null;
   public context: ViewContext | null;
+  public displayMode: ViewDisplayMode | null;
 
   constructor(params: ViewParameters) {
     this.view = params.view;
@@ -31,6 +33,7 @@ export class View {
     this.query = params.query ?? null;
     this.queryResults = params.queryResults ?? null;
     this.context = params.context ?? null;
+    this.displayMode = params.displayMode ?? null;
   }
 
   /**
@@ -142,6 +145,7 @@ export class View {
       query: this.query?.clone() ?? null,
       queryResults: this.queryResults?.clone() ?? null,
       context: this.context,
+      displayMode: this.displayMode,
     });
   }
 
@@ -160,6 +164,8 @@ export class View {
           ? params.queryResults
           : this.queryResults?.clone() ?? null,
       context: params.context !== undefined ? params.context : this.context,
+      displayMode:
+        params.displayMode !== undefined ? params.displayMode : this.displayMode,
     });
   }
 
@@ -181,6 +187,17 @@ export class View {
   public removeContext(key: keyof ViewContext): View {
     if (this.context) {
       delete this.context[key];
+    }
+    return this;
+  }
+
+  public removeContextProperty(
+    contextKey: keyof ViewContext,
+    removeKey: PropertyKey,
+  ): View {
+    const contextObj = this.context?.[contextKey];
+    if (contextObj) {
+      delete contextObj[removeKey];
     }
     return this;
   }
@@ -214,6 +231,13 @@ export class View {
     return ['clip', 'snapshot', 'media', 'recording'].includes(this.view);
   }
 
+  public hasMultipleDisplayModes(cameraCount?: number): boolean {
+    return (
+      (this.is('live') && (cameraCount ?? 0) > 1) ||
+      (this.isViewerView() && (this.queryResults?.getCameraIDs().size ?? 0) > 1)
+    );
+  }
+
   /**
    * Get the default media type for this view if available.
    * @returns Whether the default media is `clips`, `snapshots`, `recordings` or unknown
@@ -230,6 +254,10 @@ export class View {
       return 'recordings';
     }
     return null;
+  }
+
+  public isGrid(): boolean {
+    return this.displayMode === 'grid';
   }
 
   /**

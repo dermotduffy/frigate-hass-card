@@ -98,6 +98,14 @@ export const CONF_MEDIA_VIEWER_AUTO_PLAY = `${CONF_MEDIA_VIEWER}.auto_play` as c
 export const CONF_MEDIA_VIEWER_AUTO_PAUSE = `${CONF_MEDIA_VIEWER}.auto_pause` as const;
 export const CONF_MEDIA_VIEWER_AUTO_MUTE = `${CONF_MEDIA_VIEWER}.auto_mute` as const;
 export const CONF_MEDIA_VIEWER_AUTO_UNMUTE = `${CONF_MEDIA_VIEWER}.auto_unmute` as const;
+export const CONF_MEDIA_VIEWER_DISPLAY_MODE =
+  `${CONF_MEDIA_VIEWER}.display.mode` as const;
+export const CONF_MEDIA_VIEWER_DISPLAY_GRID_COLUMNS =
+  `${CONF_MEDIA_VIEWER}.display.grid_columns` as const;
+export const CONF_MEDIA_VIEWER_DISPLAY_GRID_MAX_COLUMNS =
+  `${CONF_MEDIA_VIEWER}.display.grid_max_columns` as const;
+export const CONF_MEDIA_VIEWER_DISPLAY_GRID_SELECTED_WIDTH_FACTOR =
+  `${CONF_MEDIA_VIEWER}.display.grid_selected_width_factor` as const;
 export const CONF_MEDIA_VIEWER_DRAGGABLE = `${CONF_MEDIA_VIEWER}.draggable` as const;
 export const CONF_MEDIA_VIEWER_LAZY_LOAD = `${CONF_MEDIA_VIEWER}.lazy_load` as const;
 export const CONF_MEDIA_VIEWER_SNAPSHOT_CLICK_PLAYS_CLIP =
@@ -185,6 +193,13 @@ export const CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS =
 export const CONF_LIVE_CONTROLS_TITLE_MODE = `${CONF_LIVE}.controls.title.mode` as const;
 export const CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS =
   `${CONF_LIVE}.controls.title.duration_seconds` as const;
+export const CONF_LIVE_DISPLAY_MODE = `${CONF_LIVE}.display.mode` as const;
+export const CONF_LIVE_DISPLAY_GRID_COLUMNS =
+  `${CONF_LIVE}.display.grid_columns` as const;
+export const CONF_LIVE_DISPLAY_GRID_MAX_COLUMNS =
+  `${CONF_LIVE}.display.grid_max_columns` as const;
+export const CONF_LIVE_DISPLAY_GRID_SELECTED_WIDTH_FACTOR =
+  `${CONF_LIVE}.display.grid_selected_width_factor` as const;
 export const CONF_LIVE_LAYOUT_FIT = `${CONF_LIVE}.layout.fit` as const;
 export const CONF_LIVE_LAYOUT_POSITION_X = `${CONF_LIVE}.layout.position.x` as const;
 export const CONF_LIVE_LAYOUT_POSITION_Y = `${CONF_LIVE}.layout.position.y` as const;
@@ -272,7 +287,7 @@ export const MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA = 131072;
 // The number of media items to fetch at a time (for clips/snapshot views, and
 // gallery chunks). Smaller values will cause more frequent smaller fetches, but
 // improved rendering performance.
-export const MEDIA_CHUNK_SIZE_DEFAULT = 50;
+export const MEDIA_CHUNK_SIZE_DEFAULT = 500;
 export const MEDIA_CHUNK_SIZE_MAX = 1000;
 
 export const FRIGATE_BUTTON_MENU_ICON = 'frigate';

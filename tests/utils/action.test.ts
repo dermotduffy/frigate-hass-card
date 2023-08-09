@@ -103,6 +103,24 @@ describe('createFrigateCardCustomAction', () => {
       card_id: 'card_id',
     });
   });
+
+  it('should create display mode action', () => {
+    expect(
+      createFrigateCardCustomAction('display_mode_select', {
+        display_mode: 'grid',
+        cardID: 'card_id',
+      }),
+    ).toEqual({
+      action: 'fire-dom-event',
+      frigate_card_action: 'display_mode_select',
+      display_mode: 'grid',
+      card_id: 'card_id',
+    });
+  });
+
+  it('should not create display mode action without display mode', () => {
+    expect(createFrigateCardCustomAction('display_mode_select')).toBeNull();
+  });
 });
 
 describe('getActionConfigGivenAction', () => {

@@ -1,3 +1,35 @@
+:host {
+  // Center unseekable icon.
+  position: relative;
+}
+
+// If the carousel has an unselected attribute set on it, do not let the
+// pointer interact (e.g. hover, scroll) with underlying elements. This is used
+// when the carousel is part of a media-grid. Without this next/prev controls
+// will enlarge on hover, and the wheel-gestures plugin may block scrolling.
+// See matching in live-carousel.scss .
+:host([unselected]) frigate-card-media-carousel,
+:host([unselected]) .seek-warning
+{
+  pointer-events: none;
+}
+
+:host([unseekable]) frigate-card-media-carousel {
+  filter: brightness(50%);
+}
+:host([unseekable]) .seek-warning {
+  display: block
+}
+
+.seek-warning {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  color: white;
+}
+
 .embla__slide {
   height: 100%;
   flex: 0 0 100%;

@@ -9,6 +9,7 @@ import {
   FrigateCardMediaPlayer,
   MediaLoadedInfo,
   MenuButton,
+  ViewDisplayMode,
 } from '../../src/types';
 import { createFrigateCardCustomAction } from '../../src/utils/action';
 import { MenuButtonController } from '../../src/utils/menu-controller';
@@ -67,6 +68,7 @@ const calculateButtons = (
   );
 };
 
+// @vitest-environment jsdom
 describe('MenuButtonController', () => {
   let controller: MenuButtonController;
   const dynamicButton: MenuButton = {
@@ -612,7 +614,10 @@ describe('MenuButtonController', () => {
 
     const cameraManager = createCameraManager();
     const view = createView({
-      queryResults: new MediaQueriesResults([new ViewMedia('clip', 'camera-1')], 0),
+      queryResults: new MediaQueriesResults({
+        results: [new ViewMedia('clip', 'camera-1')],
+        selectedIndex: 0,
+      }),
     });
     mock<CameraManager>(cameraManager).getMediaCapabilities.mockReturnValue(
       createMediaCapabilities({ canDownload: true }),
@@ -640,7 +645,10 @@ describe('MenuButtonController', () => {
 
     const cameraManager = createCameraManager();
     const view = createView({
-      queryResults: new MediaQueriesResults([new ViewMedia('clip', 'camera-1')], 0),
+      queryResults: new MediaQueriesResults({
+        results: [new ViewMedia('clip', 'camera-1')],
+        selectedIndex: 0,
+      }),
     });
     mock<CameraManager>(cameraManager).getMediaCapabilities.mockReturnValue(
       createMediaCapabilities({ canDownload: true }),
@@ -1082,6 +1090,27 @@ describe('MenuButtonController', () => {
       title: 'Screenshot',
       tap_action: { action: 'fire-dom-event', frigate_card_action: 'screenshot' },
     });
+  });
+
+  describe('should have grid button when display mode is', () => {
+    it.each([['single' as const], ['grid' as const]])(
+      '%s',
+      (displayMode: ViewDisplayMode) => {
+        const view = createView({ view: 'live', displayMode: displayMode });
+        expect(calculateButtons(controller, { view: view })).toContainEqual({
+          icon: displayMode === 'single' ? 'mdi:grid' : 'mdi:grid-off',
+          enabled: true,
+          priority: 50,
+          type: 'custom:frigate-card-menu-icon',
+          title: 'Display mode',
+          tap_action: {
+            action: 'fire-dom-event',
+            frigate_card_action: 'display_mode_select',
+            display_mode: displayMode === 'single' ? 'grid' : 'single',
+          },
+        });
+      },
+    );
   });
 
   it('should handle dynamic buttons', () => {

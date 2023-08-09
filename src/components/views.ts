@@ -199,7 +199,8 @@ export class FrigateCardViews extends LitElement {
               <frigate-card-live
                 .hass=${this.hass}
                 .view=${this.view}
-                .liveConfig=${this.nonOverriddenConfig.live}
+                .nonOverriddenLiveConfig=${this.nonOverriddenConfig.live}
+                .overriddenLiveConfig=${this.config.live}
                 .conditionControllerEpoch=${this.conditionControllerEpoch}
                 .liveOverrides=${getOverridesByKey('live', this.config.overrides)}
                 .cameraManager=${this.cameraManager}

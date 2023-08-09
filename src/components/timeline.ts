@@ -1,8 +1,8 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import timelineStyle from '../scss/timeline.scss';
-import { CardWideConfig, ExtendedHomeAssistant, TimelineConfig } from '../types';
 import { CameraManager } from '../camera-manager/manager';
+import basicBlockStyle from '../scss/basic-block.scss';
+import { CardWideConfig, ExtendedHomeAssistant, TimelineConfig } from '../types';
 import { View } from '../view/view';
 import './surround.js';
 import './timeline-core.js';
@@ -24,10 +24,6 @@ export class FrigateCardTimeline extends LitElement {
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
-  /**
-   * Master render method.
-   * @returns A rendered template.
-   */
   protected render(): TemplateResult | void {
     if (!this.timelineConfig) {
       return html``;
@@ -49,11 +45,8 @@ export class FrigateCardTimeline extends LitElement {
     `;
   }
 
-  /**
-   * Return compiled CSS styles.
-   */
   static get styles(): CSSResultGroup {
-    return unsafeCSS(timelineStyle);
+    return unsafeCSS(basicBlockStyle);
   }
 }
 

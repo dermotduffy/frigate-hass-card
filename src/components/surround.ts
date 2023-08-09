@@ -7,7 +7,9 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import surroundStyle from '../scss/surround.scss';
+import { CameraManager } from '../camera-manager/manager.js';
+import type { DataQuery } from '../camera-manager/types';
+import basicBlockStyle from '../scss/basic-block.scss';
 import {
   CardWideConfig,
   ClipsOrSnapshotsOrAll,
@@ -16,13 +18,11 @@ import {
   ThumbnailsControlConfig,
 } from '../types.js';
 import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
-import { CameraManager } from '../camera-manager/manager.js';
-import { View } from '../view/view.js';
-import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
-import './surround-basic.js';
-import { changeViewToRecentEventsForCameraAndDependents } from '../utils/media-to-view';
 import { getAllDependentCameras } from '../utils/camera.js';
-import type { DataQuery } from '../camera-manager/types';
+import { changeViewToRecentEventsForCameraAndDependents } from '../utils/media-to-view';
+import { View } from '../view/view.js';
+import './surround-basic.js';
+import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 
 interface ThumbnailViewContext {
   // Whether or not to fetch thumbnails.
@@ -88,6 +88,7 @@ export class FrigateCardSurround extends LitElement {
       this.cardWideConfig,
       this.view,
       {
+        allCameras: this.view.isGrid(),
         targetView: this.view.view,
         mediaType: this.fetchMedia,
         select: 'latest',
@@ -151,10 +152,6 @@ export class FrigateCardSurround extends LitElement {
     return null;
   }
 
-  /**
-   * Master render method.
-   * @returns A rendered template.
-   */
   protected render(): TemplateResult | void {
     if (!this.hass || !this.view) {
       return;
@@ -230,11 +227,8 @@ export class FrigateCardSurround extends LitElement {
     </frigate-card-surround-basic>`;
   }
 
-  /**
-   * Return compiled CSS styles.
-   */
   static get styles(): CSSResultGroup {
-    return unsafeCSS(surroundStyle);
+    return unsafeCSS(basicBlockStyle);
   }
 }
 

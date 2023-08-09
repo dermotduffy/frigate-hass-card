@@ -148,6 +148,16 @@
           }
         }
       },
+      "display": {
+        "editor_label": "",
+        "grid_columns": "",
+        "grid_max_columns": "",
+        "grid_selected_width_factor": "",
+        "modes": {
+          "single": "",
+          "grid": ""
+        }
+      },
       "layout": {
         "fit": "Adatta al layout",
         "fits": {
@@ -267,6 +277,7 @@
         "camera_ui": "Interfaccia utente della fotocamera",
         "cameras": "Telecamere",
         "clips": "Clip",
+        "display_mode": "",
         "download": "Download",
         "enabled": "Pulsante abilitato",
         "expand": "Espandere",
@@ -472,6 +483,9 @@
       "yesterday": "Ieri"
     },
     "where": "Dove"
+  },
+  "media_viewer": {
+    "unseekable": ""
   },
   "recording": {
     "camera": "Camera",

@@ -1,12 +1,26 @@
-import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { TitleControlConfig } from '../types.js';
-
+import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import titleStyle from '../scss/title-control.scss';
+import { TitleControlConfig } from '../types.js';
+import { View } from '../view/view.js';
 
 type PaperToast = HTMLElement & {
   opened: boolean;
+};
+
+export const getDefaultTitleConfigForView = (
+  view?: Readonly<View>,
+  baseConfig?: TitleControlConfig,
+): TitleControlConfig | null => {
+  if (!baseConfig && view?.isGrid()) {
+    return { mode: 'none', duration_seconds: 2 };
+  }
+  return {
+    mode: 'popup-bottom-right',
+    duration_seconds: 2,
+    ...baseConfig,
+  };
 };
 
 @customElement('frigate-card-title-control')

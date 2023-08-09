@@ -485,7 +485,10 @@ export class FrigateCardTimelineCore extends LitElement {
         : results
             .clone()
             .resetSelectedResult()
-            .selectBestResult((media) => findBestMediaIndex(media, targetTime));
+            .selectBestResult((media) => findBestMediaIndex(media, targetTime), {
+              allCameras: true,
+              main: true,
+            });
 
     const desiredView: FrigateCardView = this.mini
       ? targetTime >= new Date()
@@ -496,8 +499,7 @@ export class FrigateCardTimelineCore extends LitElement {
     this.view
       .evolve({
         view: desiredView,
-        ...(newResults &&
-          newResults.hasSelectedResult() && { queryResults: newResults }),
+        queryResults: newResults,
       }) // Whether or not to set the timeline window.
       .mergeInContext({
         ...(canSeek && { mediaViewer: { seek: targetTime } }),
@@ -597,10 +599,15 @@ export class FrigateCardTimelineCore extends LitElement {
         );
       }
     } else if (properties.item && properties.what === 'item') {
+      const cameraID = String(properties.group);
+      const criteria = {
+        main: true,
+        ...(cameraID && this.view.isGrid() && { cameraID: cameraID }),
+      };
       const newResults = this.view.queryResults
         ?.clone()
         .resetSelectedResult()
-        .selectResultIfFound((media) => media.getID() === properties.item);
+        .selectResultIfFound((media) => media.getID() === properties.item, criteria);
 
       if (!newResults || !newResults.hasSelectedResult()) {
         // This can happen in a few situations:
@@ -788,11 +795,12 @@ export class FrigateCardTimelineCore extends LitElement {
     return new DataSet(groups);
   }
 
-  protected _getPerfectWindowFromMedia(media: ViewMedia): TimelineWindow | null {
-    const startTime = media.getStartTime();
-    const endTime = media.getEndTime();
-
-    if (ViewMediaClassifier.isEvent(media)) {
+  protected _getPerfectWindowFromMediaStartAndEndTime(
+    isEvent: boolean,
+    startTime: Date | null,
+    endTime: Date | null,
+  ): TimelineWindow | null {
+    if (isEvent) {
       const windowSeconds = this._getConfiguredWindowSeconds();
 
       if (startTime && endTime) {
@@ -820,7 +828,7 @@ export class FrigateCardTimelineCore extends LitElement {
           end: add(startTime, { seconds: windowSeconds / 2 }),
         };
       }
-    } else if (ViewMediaClassifier.isRecording(media) && startTime && endTime) {
+    } else if (startTime && endTime) {
       return {
         start: startTime,
         end: endTime,
@@ -980,8 +988,10 @@ export class FrigateCardTimelineCore extends LitElement {
 
     let desiredWindow = timelineWindow;
     const media = this.view.queryResults?.getSelectedResult();
-    const mediaStartTime = media?.getStartTime();
-    const mediaEndTime = media?.getEndTime();
+    const mediaStartTime = media?.getStartTime() ?? null;
+    const mediaEndTime = media?.getEndTime() ?? null;
+    const mediaIsEvent = media ? ViewMediaClassifier.isEvent(media) : false;
+
     const mediaWindow: TimelineWindow | null =
       media && mediaStartTime
         ? // If this media has no end time, it's just a "point" in time so the
@@ -996,8 +1006,12 @@ export class FrigateCardTimelineCore extends LitElement {
 
     if (context && context.window) {
       desiredWindow = context.window;
-    } else if (media && mediaWindow && !rangesOverlap(mediaWindow, timelineWindow)) {
-      const perfectMediaWindow = this._getPerfectWindowFromMedia(media);
+    } else if (mediaWindow && !rangesOverlap(mediaWindow, timelineWindow)) {
+      const perfectMediaWindow = this._getPerfectWindowFromMediaStartAndEndTime(
+        mediaIsEvent,
+        mediaStartTime,
+        mediaEndTime,
+      );
       if (perfectMediaWindow) {
         desiredWindow = perfectMediaWindow;
       }
@@ -1013,22 +1027,22 @@ export class FrigateCardTimelineCore extends LitElement {
       await this._timelineSource?.refresh(this.hass, prefetchedWindow);
     }
 
+    const currentSelection = this._timeline.getSelection();
     const mediaID = media?.getID();
-    if (media && mediaID && this._isClustering()) {
-      // Hack: Clustering may not update unless the dataset changes, artifically
-      // update the dataset to ensure the newly selected item cannot be included
-      // in a cluster. Only do this when the pointer is not held to avoid
-      // interrupting the user and to make the timeline smoother.
+    const needToSelect = mediaID && mediaIsEvent && !currentSelection.includes(mediaID);
 
-      // Need to this rewrite prior to setting the selection (just below), or
-      // the selection will be lost on rewrite.
-      this._timelineSource?.rewriteEvent(mediaID);
-    }
+    if (needToSelect) {
+      if (this._isClustering()) {
+        // Hack: Clustering may not update unless the dataset changes, artifically
+        // update the dataset to ensure the newly selected item cannot be included
+        // in a cluster.
 
-    const desiredId =
-      !!media && ViewMediaClassifier.isEvent(media) ? media.getID() : null;
-    if (desiredId) {
-      this._timeline?.setSelection([desiredId], {
+        // Need to this rewrite prior to setting the selection (just below), or
+        // the selection will be lost on rewrite.
+        this._timelineSource?.rewriteEvent(mediaID);
+      }
+
+      this._timeline?.setSelection([mediaID], {
         focus: false,
         animation: {
           animation: false,
@@ -1244,9 +1258,6 @@ export class FrigateCardTimelineCore extends LitElement {
     }
   }
 
-  /**
-   * Return compiled CSS styles.
-   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(timelineCoreStyle);
   }

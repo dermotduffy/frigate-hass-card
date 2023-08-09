@@ -148,6 +148,17 @@
           }
         }
       },
+      "display": {
+        "editor_label": "Display",
+        "grid_columns": "Exact number of grid columns",
+        "grid_max_columns": "Maximum number of grid columns",
+        "grid_selected_width_factor": "Increase selected media width by this factor",
+        "mode": "Mode",
+        "modes": {
+          "single": "Show single media viewer",
+          "grid": "Show media viewer for each camera in a grid"
+        }
+      },
       "layout": {
         "fit": "Layout fit",
         "fits": {
@@ -269,6 +280,7 @@
         "cameras": "Cameras",
         "clips": "Clips",
         "download": "Download",
+        "display_mode": "Display mode",
         "enabled": "Button enabled",
         "expand": "Expand",
         "frigate": "Frigate menu / Default view",
@@ -453,6 +465,9 @@
     "tag": "Tag",
     "what": "What",
     "where": "Where"
+  },
+  "media_viewer": {
+    "unseekable": "Seek time not found in media"
   },
   "media_filter": {
     "all": "All",

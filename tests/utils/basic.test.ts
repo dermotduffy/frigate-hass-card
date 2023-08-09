@@ -8,6 +8,7 @@ import {
   dayToDate,
   dispatchFrigateCardEvent,
   errorToConsole,
+  filterTruthy,
   formatDate,
   formatDateAndTime,
   getDurationString,
@@ -227,7 +228,13 @@ describe('isValidDate', () => {
 });
 
 describe('setOrRemoveAttribute', () => {
-  it('should set attribute', () => {
+  it('should set attribute without value', () => {
+    const element = document.createElement('div');
+    setOrRemoveAttribute(element, true, 'key');
+    expect(element.getAttribute('key')).toBe('');
+  });
+
+  it('should set attribute with value', () => {
     const element = document.createElement('div');
     setOrRemoveAttribute(element, true, 'key', 'value');
     expect(element.getAttribute('key')).toBe('value');
@@ -238,5 +245,14 @@ describe('setOrRemoveAttribute', () => {
     element.setAttribute('key', 'value');
     setOrRemoveAttribute(element, false, 'key');
     expect(element.getAttribute('key')).toBeFalsy();
+  });
+});
+
+describe('filterTruthy', () => {
+  it('should return true for true', () => {
+    expect(filterTruthy(true)).toBeTruthy();
+  });
+  it('should return false for false', () => {
+    expect(filterTruthy(false)).toBeFalsy();
   });
 });

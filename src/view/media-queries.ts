@@ -23,14 +23,24 @@ class MediaQueriesBase<T extends MediaQuery> {
   public setQueries(queries: T[]): void {
     this._queries = queries;
   }
+
+  public hasQueriesForCameraIDs(cameraIDs: Set<string>) {
+    for (const cameraID of cameraIDs) {
+      if (!this._queries?.some((query) => query.cameraIDs.has(cameraID))) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 export class EventMediaQueries extends MediaQueriesBase<EventQuery> {
-  public convertToClipsQueries(): void {
+  public convertToClipsQueries(): this {
     for (const query of this._queries ?? []) {
       delete query.hasSnapshot;
       query.hasClip = true;
     }
+    return this;
   }
 
   public clone(): EventMediaQueries {

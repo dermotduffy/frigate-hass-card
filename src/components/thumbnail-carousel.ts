@@ -170,7 +170,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
             this,
             'thumbnail-carousel:tap',
             {
-              queryResults: this.view.queryResults.clone().selectResult(index),
+              queryResults: this.view.queryResults.clone().selectIndex(index),
             },
           );
         }

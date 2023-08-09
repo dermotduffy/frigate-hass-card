@@ -221,3 +221,8 @@ export const setOrRemoveAttribute = (
     element.removeAttribute(name);
   }
 };
+
+/**
+ * Allow typescript to narrow types based on truthy filter.
+ */
+export const filterTruthy = <T>(x: T | false | undefined | null | '' | 0): x is T => !!x;

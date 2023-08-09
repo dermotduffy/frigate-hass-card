@@ -1,4 +1,4 @@
-import { afterEach, describe, it, expect, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   ConditionController,
   ConditionEvaluateRequestEvent,
@@ -6,6 +6,7 @@ import {
   getOverriddenConfig,
   getOverridesByKey,
 } from '../src/conditions';
+import { FrigateCardCondition } from '../src/types';
 import { createCondition, createConfig, createStateEntity } from './test-utils';
 
 // @vitest-environment jsdom
@@ -346,5 +347,15 @@ describe('ConditionController', () => {
     // Destroy the controller, which should remove the media query listener.
     controller.destroy();
     expect(removeEventListener).toBeCalled();
+  });
+
+  it('should evaluate conditions with display mode', () => {
+    const controller = new ConditionController();
+    const condition: FrigateCardCondition = { display_mode: 'grid' };
+    expect(controller.evaluateCondition(condition)).toBeFalsy();
+    controller.setState({ displayMode: 'grid' });
+    expect(controller.evaluateCondition(condition)).toBeTruthy();
+    controller.setState({ displayMode: 'single' });
+    expect(controller.evaluateCondition(condition)).toBeFalsy();
   });
 });

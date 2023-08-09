@@ -428,9 +428,6 @@ export class FrigateCardMediaCarousel extends LitElement {
         : ``}`;
   }
 
-  /**
-   * Get element styles.
-   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(mediaCarouselStyle);
   }

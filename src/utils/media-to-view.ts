@@ -1,20 +1,20 @@
+import { HomeAssistant } from 'custom-card-helpers';
 import { ViewContext } from 'view';
+import { CameraManager } from '../camera-manager/manager';
+import { MediaQuery } from '../camera-manager/types';
+import { dispatchFrigateCardErrorEvent } from '../components/message';
+import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const';
 import { CardWideConfig, ClipsOrSnapshotsOrAll, FrigateCardView } from '../types';
-import { View } from '../view/view';
+import { ViewMedia } from '../view/media';
 import {
   EventMediaQueries,
   MediaQueries,
   RecordingMediaQueries,
 } from '../view/media-queries';
-import { CameraManager } from '../camera-manager/manager';
-import { getAllDependentCameras } from './camera.js';
-import { ViewMedia } from '../view/media';
-import { HomeAssistant } from 'custom-card-helpers';
-import { dispatchFrigateCardErrorEvent } from '../components/message';
 import { MediaQueriesResults } from '../view/media-queries-results';
+import { View } from '../view/view';
 import { errorToConsole } from './basic';
-import { MediaQuery } from '../camera-manager/types';
-import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const';
+import { getAllDependentCameras } from './camera.js';
 
 type ResultSelectType = 'latest' | 'time' | 'none';
 
@@ -25,13 +25,16 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
   cardWideConfig: CardWideConfig,
   view: View,
   options?: {
+    allCameras?: boolean;
     mediaType?: ClipsOrSnapshotsOrAll;
     targetView?: FrigateCardView;
     select?: ResultSelectType;
   },
 ): Promise<void> => {
-  const cameraIDs = getAllDependentCameras(cameraManager, view.camera);
-  if (!cameraIDs) {
+  const cameraIDs = options?.allCameras
+    ? cameraManager.getStore().getVisibleCameraIDs()
+    : getAllDependentCameras(cameraManager, view.camera);
+  if (!cameraIDs.size) {
     return;
   }
 
@@ -84,12 +87,15 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
   cardWideConfig: CardWideConfig,
   view: View,
   options?: {
+    allCameras?: boolean;
     targetView?: 'recording' | 'recordings';
     select?: ResultSelectType;
   },
 ): Promise<void> => {
-  const cameraIDs = getAllDependentCameras(cameraManager, view.camera);
-  if (!cameraIDs) {
+  const cameraIDs = options?.allCameras
+    ? cameraManager.getStore().getVisibleCameraIDs()
+    : getAllDependentCameras(cameraManager, view.camera);
+  if (!cameraIDs.size) {
     return;
   }
 
@@ -161,12 +167,7 @@ export const executeMediaQueryForView = async (
     return null;
   }
 
-  const queryResults = new MediaQueriesResults(
-    mediaArray,
-    options?.select === 'latest' && mediaArray.length
-      ? mediaArray.length - 1
-      : undefined,
-  );
+  const queryResults = new MediaQueriesResults({ results: mediaArray });
   let viewerContext: ViewContext | undefined = {};
 
   if (options?.select === 'time' && options?.targetTime) {
@@ -180,16 +181,14 @@ export const executeMediaQueryForView = async (
     };
   }
 
-  return (
-    view
-      ?.evolve({
-        query: query,
-        queryResults: queryResults,
-        view: options?.targetView,
-        camera: options?.targetCameraID,
-      })
-      .mergeInContext(viewerContext) ?? null
-  );
+  return view
+    .evolve({
+      query: query,
+      queryResults: queryResults,
+      view: options?.targetView,
+      camera: options?.targetCameraID,
+    })
+    .mergeInContext(viewerContext);
 };
 
 /**
@@ -201,7 +200,7 @@ export const executeMediaQueryForView = async (
  */
 export const findBestMediaIndex = (
   mediaArray: ViewMedia[],
-  targetTime: Date
+  targetTime: Date,
 ): number | null => {
   let bestMatch:
     | {

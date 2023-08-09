@@ -3,6 +3,7 @@ import { mock } from 'vitest-mock-extended';
 import { FrigateCardMediaPlayer } from '../../src/types.js';
 import {
   FrigateCardHTMLVideoElement,
+  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
   hideMediaControlsTemporarily,
   playMediaMutingIfNecessary,
   setControlsOnVideo,
@@ -106,5 +107,11 @@ describe('playMediaMutingIfNecessary', () => {
     expect(video.play).toBeCalledTimes(2);
     expect(player.isMuted).toBeCalled();
     expect(player.mute).toBeCalled();
+  });
+});
+
+describe('constants', () => {
+  it('MEDIA_LOAD_CONTROLS_HIDE_SECONDS', () => {
+    expect(MEDIA_LOAD_CONTROLS_HIDE_SECONDS).toBe(2);
   });
 });

@@ -105,6 +105,17 @@ export class FrigateCardError extends Error {
   }
 }
 
+const viewDisplayModeSchema = z.enum(['single', 'grid']);
+export type ViewDisplayMode = z.infer<typeof viewDisplayModeSchema>;
+
+const viewDisplaySchema = z.object({
+  mode: viewDisplayModeSchema,
+  grid_selected_width_factor: z.number().min(0).optional(),
+  grid_max_columns: z.number().min(0).optional(),
+  grid_columns: z.number().min(0).optional(),
+}).optional();
+export type ViewDisplayConfig = z.infer<typeof viewDisplaySchema>;
+
 /**
  * Action Types (for "Picture Elements" / Menu)
  */
@@ -231,6 +242,7 @@ const FRIGATE_CARD_ACTIONS = [
   'camera_select',
   'live_substream_select',
   'media_player',
+  'display_mode_select',
 ] as const;
 export type FrigateCardAction = (typeof FRIGATE_CARD_ACTIONS)[number];
 
@@ -256,6 +268,12 @@ const frigateCardMediaPlayerActionSchema = frigateCardCustomActionsBaseSchema.ex
   media_player: z.string(),
   media_player_action: z.enum(['play', 'stop']),
 });
+const frigateCardViewDisplayModeActionSchema = frigateCardCustomActionsBaseSchema.extend(
+  {
+    frigate_card_action: z.literal('display_mode_select'),
+    display_mode: viewDisplayModeSchema,
+  },
+);
 
 export const frigateCardCustomActionSchema = z.union([
   frigateCardViewActionSchema,
@@ -263,6 +281,7 @@ export const frigateCardCustomActionSchema = z.union([
   frigateCardCameraSelectActionSchema,
   frigateCardLiveDependencySelectActionSchema,
   frigateCardMediaPlayerActionSchema,
+  frigateCardViewDisplayModeActionSchema,
 ]);
 export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSchema>;
 
@@ -647,6 +666,7 @@ export const frigateCardConditionSchema = z.object({
   media_loaded: z.boolean().optional(),
   state: stateConditions.optional(),
   media_query: z.string().optional(),
+  display_mode: viewDisplayModeSchema.optional(),
 });
 export type FrigateCardCondition = z.infer<typeof frigateCardConditionSchema>;
 
@@ -946,6 +966,7 @@ const liveConfigDefault = {
   zoomable: true,
   transition_effect: 'slide' as const,
   show_image_during_load: true,
+  mode: 'single' as const,
   controls: {
     builtin: true,
     next_previous: {
@@ -954,10 +975,6 @@ const liveConfigDefault = {
     },
     thumbnails: liveThumbnailControlsDefaults,
     timeline: miniTimelineConfigDefault,
-    title: {
-      mode: 'popup-bottom-right' as const,
-      duration_seconds: 2,
-    },
   },
   microphone: {
     ...microphoneConfigDefault,
@@ -990,16 +1007,7 @@ const liveOverridableConfigSchema = z
           liveConfigDefault.controls.thumbnails,
         ),
         timeline: miniTimelineConfigSchema.default(liveConfigDefault.controls.timeline),
-        title: titleControlConfigSchema
-          .extend({
-            mode: titleControlConfigSchema.shape.mode.default(
-              liveConfigDefault.controls.title.mode,
-            ),
-            duration_seconds: titleControlConfigSchema.shape.duration_seconds.default(
-              liveConfigDefault.controls.title.duration_seconds,
-            ),
-          })
-          .default(liveConfigDefault.controls.title),
+        title: titleControlConfigSchema.optional(),
       })
       .default(liveConfigDefault.controls),
     show_image_during_load: z
@@ -1008,6 +1016,7 @@ const liveOverridableConfigSchema = z
     layout: mediaLayoutConfigSchema.optional(),
     microphone: microphoneConfigSchema.default(liveConfigDefault.microphone),
     zoomable: z.boolean().default(liveConfigDefault.zoomable),
+    display: viewDisplaySchema,
   })
   .merge(actionsSchema);
 
@@ -1078,6 +1087,7 @@ const menuConfigDefault = {
     play: hiddenButtonDefault,
     recordings: hiddenButtonDefault,
     screenshot: hiddenButtonDefault,
+    display_mode: visibleButtonDefault,
   },
   button_size: 40,
 };
@@ -1124,6 +1134,7 @@ const menuConfigSchema = z
         mute: hiddenButtonSchema.default(menuConfigDefault.buttons.mute),
         play: hiddenButtonSchema.default(menuConfigDefault.buttons.play),
         screenshot: hiddenButtonSchema.default(menuConfigDefault.buttons.screenshot),
+        display_mode: visibleButtonSchema.default(menuConfigDefault.buttons.display_mode),
       })
       .default(menuConfigDefault.buttons),
     button_size: z.number().min(BUTTON_SIZE_MIN).default(menuConfigDefault.button_size),
@@ -1144,6 +1155,7 @@ const viewerConfigDefault = {
   zoomable: true,
   transition_effect: 'slide' as const,
   snapshot_click_plays_clip: true,
+  display_mode: 'single' as const,
   controls: {
     builtin: true,
     next_previous: {
@@ -1190,6 +1202,7 @@ const viewerConfigSchema = z
     snapshot_click_plays_clip: z
       .boolean()
       .default(viewerConfigDefault.snapshot_click_plays_clip),
+    display: viewDisplaySchema,
     controls: z
       .object({
         builtin: z.boolean().default(viewerConfigDefault.controls.builtin),
@@ -1373,7 +1386,7 @@ const performanceConfigDefault = {
   },
 };
 
-const performanceConfigSchema = z
+export const performanceConfigSchema = z
   .object({
     profile: z.enum(['low', 'high']).default(performanceConfigDefault.profile),
     features: z

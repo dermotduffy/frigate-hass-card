@@ -7,6 +7,7 @@ import {
   frigateConditionalSchema,
   OverrideConfigurationKey,
   RawFrigateCardConfig,
+  ViewDisplayMode
 } from './types';
 
 interface ConditionState {
@@ -16,6 +17,7 @@ interface ConditionState {
   camera?: string;
   state?: HassEntities;
   media_loaded?: boolean;
+  displayMode?: ViewDisplayMode;
 }
 
 export class ConditionEvaluateRequestEvent extends Event {
@@ -176,10 +178,10 @@ export class ConditionController {
     }
     if (condition.fullscreen !== undefined) {
       result &&=
-        state.fullscreen !== undefined && condition.fullscreen == state.fullscreen;
+        state.fullscreen !== undefined && condition.fullscreen === state.fullscreen;
     }
     if (condition.expand !== undefined) {
-      result &&= state.expand !== undefined && condition.expand == state.expand;
+      result &&= state.expand !== undefined && condition.expand === state.expand;
     }
     if (condition.camera?.length) {
       result &&= !!state.camera && condition.camera.includes(state.camera);
@@ -198,10 +200,14 @@ export class ConditionController {
     }
     if (condition.media_loaded !== undefined) {
       result &&=
-        state.media_loaded !== undefined && condition.media_loaded == state.media_loaded;
+        state.media_loaded !== undefined &&
+        condition.media_loaded === state.media_loaded;
     }
     if (condition.media_query) {
       result &&= window.matchMedia(condition.media_query).matches;
+    }
+    if (condition.display_mode) {
+      result &&= !!state.displayMode && condition.display_mode === state.displayMode;
     }
     return result;
   }
