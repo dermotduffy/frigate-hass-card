@@ -46,7 +46,7 @@ export class MediaGridController {
     () => this._masonry?.layout?.(),
     // Throttle layout calls to larger than the masonry.js transitionDuration
     // value specified below.
-    500,
+    300,
     { trailing: true, leading: false },
   );
 
@@ -251,7 +251,7 @@ export class MediaGridController {
       columnWidth: this._getColumnSize(),
       initLayout: false,
       percentPosition: true,
-      transitionDuration: '0.3s',
+      transitionDuration: '0.2s',
     });
     this._masonry.addItems?.([...this._gridContents.values()]);
     this._throttledLayout();

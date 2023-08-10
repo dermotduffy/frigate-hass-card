@@ -1,10 +1,9 @@
 // TODO: Performance of video scanning (pause/play?)
 // TODO: Investigate query spam during a grid load
-// TODO: Test live pre-load
 // TODO: Is the query reset in card.ts correct for media filter multi-camera queries that are not all cameras?
 // TODO: Do I need column max?
-// TODO: test changing tabs in a dashboard (to trigger disconnect, do I still receive media loads from media that was already loaded)?
 // TODO: Can SELECT_CHILD_EVENTS only be 'click' and it still work on Android?
+// TODO: With live autoplay off only white frames appear?
 
 import {
   CSSResultGroup,

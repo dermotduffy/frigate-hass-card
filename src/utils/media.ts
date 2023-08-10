@@ -9,6 +9,7 @@ const MEDIA_SEEK_CONTROLS_HIDE_SECONDS = 1;
 
 export type FrigateCardHTMLVideoElement = HTMLVideoElement & {
   _controlsHideTimer?: Timer;
+  _controlsOriginalValue?: boolean;
 };
 
 /**
@@ -24,6 +25,7 @@ export const setControlsOnVideo = (
   if (video._controlsHideTimer) {
     video._controlsHideTimer.stop();
     delete video._controlsHideTimer;
+    delete video._controlsOriginalValue;
   }
   video.controls = value;
 };
@@ -38,9 +40,10 @@ export const hideMediaControlsTemporarily = (
   video: FrigateCardHTMLVideoElement,
   seconds = MEDIA_SEEK_CONTROLS_HIDE_SECONDS,
 ): void => {
-  const oldValue = video.controls;
+  const oldValue = video._controlsOriginalValue ?? video.controls;
   setControlsOnVideo(video, false);
   video._controlsHideTimer ??= new Timer();
+  video._controlsOriginalValue = oldValue;
   video._controlsHideTimer.start(seconds, () => {
     setControlsOnVideo(video, oldValue);
   });

@@ -53,7 +53,10 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     });
   }
 
-  public bind(element: ActionHandlerElement, options): void {
+  public bind(
+    element: ActionHandlerElement,
+    options: FrigateCardActionHandlerOptions,
+  ): void {
     if (element.actionHandlerOptions) {
       // Reset the options on an existing actionHandler.
       element.actionHandlerOptions = options;
