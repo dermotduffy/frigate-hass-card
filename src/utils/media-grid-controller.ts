@@ -29,8 +29,6 @@ export interface MediaGridConstructorOptions {
   idAttribute?: string;
 }
 
-const SELECT_CHILD_EVENTS = ['click', 'touchend'];
-
 export class MediaGridController {
   protected _host: HTMLElement;
 
@@ -216,27 +214,23 @@ export class MediaGridController {
     this._throttledLayout();
   }
 
-  protected _removeChildEventListeners(child: MediaGridChild): void {
-    for (const event of SELECT_CHILD_EVENTS) {
-      child.removeEventListener(event, this._handleSelectGridCellEvent, {
-        capture: true,
-      });
-    }
+  protected _addChildEventListeners(child: MediaGridChild): void {
+    child.addEventListener('click', this._handleSelectGridCellEvent, {
+      capture: true,
+    });
 
-    child.removeEventListener(
+    child.addEventListener(
       'frigate-card:media:loaded',
       this._handleMediaLoadedInfoEvent,
     );
   }
 
-  protected _addChildEventListeners(child: MediaGridChild): void {
-    for (const event of SELECT_CHILD_EVENTS) {
-      child.addEventListener(event, this._handleSelectGridCellEvent, {
-        capture: true,
-      });
-    }
+  protected _removeChildEventListeners(child: MediaGridChild): void {
+    child.removeEventListener('click', this._handleSelectGridCellEvent, {
+      capture: true,
+    });
 
-    child.addEventListener(
+    child.removeEventListener(
       'frigate-card:media:loaded',
       this._handleMediaLoadedInfoEvent,
     );
