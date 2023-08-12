@@ -301,7 +301,7 @@ describe('MediaGridController', () => {
       expect.objectContaining({
         initLayout: false,
         percentPosition: true,
-        transitionDuration: '0.3s',
+        transitionDuration: '0.2s',
       }),
     );
   });
@@ -352,10 +352,7 @@ describe('MediaGridController', () => {
     const controller = createController(host);
 
     expect(controller.getSelected()).toBeNull();
-
-    const touchEvent = new TouchEvent('touchend');
-    children[1].dispatchEvent(touchEvent);
-
+    children[1].click();
     expect(controller.getSelected()).toBe('1');
   });
 

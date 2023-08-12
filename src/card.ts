@@ -48,12 +48,12 @@ import {
   CameraConfig,
   CardWideConfig,
   ExtendedHomeAssistant,
+  FRIGATE_CARD_VIEW_DEFAULT,
   FrigateCardConfig,
   frigateCardConfigSchema,
   FrigateCardCustomAction,
   FrigateCardError,
   FrigateCardView,
-  FRIGATE_CARD_VIEW_DEFAULT,
   MediaLoadedInfo,
   MenuButton,
   Message,
@@ -87,6 +87,7 @@ import { supportsFeature } from './utils/ha/update.js';
 import { FrigateCardInitializer } from './utils/initializer.js';
 import { MediaLoadedInfoController } from './utils/media-info-controller';
 import { isValidMediaLoadedInfo } from './utils/media-info.js';
+import { executeMediaQueryForView } from './utils/media-to-view';
 import { MenuButtonController } from './utils/menu-controller';
 import { MicrophoneController } from './utils/microphone';
 import { getActionsFromQueryString } from './utils/querystring.js';
@@ -1085,7 +1086,7 @@ class FrigateCard extends LitElement {
     // Note: This function needs to process (view-related) commands even when
     // _view has not yet been initialized (since it may be used to set a view
     // via the querystring).
-    if (!this._cameraManager) {
+    if (!this._cameraManager || !this._hass) {
       return;
     }
 
@@ -1241,19 +1242,33 @@ class FrigateCard extends LitElement {
         this._conditionController?.setState({
           displayMode: this._viewDisplayMode,
         });
-        // If the new mode is for all cameras, but the current query does not
-        // have a query for every cameraID, reset it.
-        const resetQuery =
-          frigateCardAction.mode === 'grid' &&
-          !this._view?.query?.hasQueriesForCameraIDs(
-            this._cameraManager.getStore().getVisibleCameraIDs(),
-          );
-        this._changeView({
-          view: this._view?.evolve({
-            displayMode: frigateCardAction.display_mode,
-            ...(resetQuery && { query: null, queryResults: null }),
-          }),
+
+        const newView = this._view?.evolve({
+          displayMode: frigateCardAction.display_mode,
         });
+
+        const generateNewQuery =
+          newView?.isGrid() &&
+          newView.query &&
+          (newView.query.getQueryCameraIDs()?.size ?? 0) <= 1;
+
+        if (generateNewQuery && newView && newView.query) {
+          // If the user requests a grid but the current query does not have a
+          // query for more than one camera, reset the query results, change the
+          // existing query to refer to all cameras and execute it to fetch new
+          // results.
+          executeMediaQueryForView(
+            this,
+            this._hass,
+            this._cameraManager,
+            newView,
+            newView.query
+              .clone()
+              .setQueryCameraIDs(this._cameraManager.getStore().getVisibleCameraIDs()),
+          ).then((view) => view && this._changeView({ view: view }));
+        } else {
+          this._changeView({ view: newView });
+        }
         break;
       default:
         console.warn(`Frigate card received unknown card action: ${action}`);

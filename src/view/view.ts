@@ -231,11 +231,8 @@ export class View {
     return ['clip', 'snapshot', 'media', 'recording'].includes(this.view);
   }
 
-  public hasMultipleDisplayModes(cameraCount?: number): boolean {
-    return (
-      (this.is('live') && (cameraCount ?? 0) > 1) ||
-      (this.isViewerView() && (this.queryResults?.getCameraIDs().size ?? 0) > 1)
-    );
+  public supportsMultipleDisplayModes(): boolean {
+    return this.isViewerView() || this.is('live');
   }
 
   /**

@@ -149,7 +149,6 @@ export class FrigateCardViewer extends LitElement {
           {
             allCameras: this.view.isGrid(),
             targetView: 'recording',
-            select: 'latest',
           },
         );
       } else {
@@ -163,7 +162,6 @@ export class FrigateCardViewer extends LitElement {
             allCameras: this.view.isGrid(),
             targetView: 'media',
             mediaType: mediaType,
-            select: 'latest',
           },
         );
       }
@@ -648,18 +646,23 @@ export class FrigateCardViewerGrid extends LitElement {
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
-    if (
-      changedProps.has('view') &&
-      this.view?.isGrid() &&
-      this.view?.hasMultipleDisplayModes()
-    ) {
+    if (changedProps.has('view') && this._needsGrid()) {
       import('./media-grid.js');
     }
   }
 
+  protected _needsGrid(): boolean {
+    const cameraIDs = this.view?.queryResults?.getCameraIDs();
+    return (
+      !!this.view?.isGrid() &&
+      !!this.view?.supportsMultipleDisplayModes() &&
+      (cameraIDs?.size ?? 0) > 1
+    );
+  }
+
   protected render(): TemplateResult {
     const cameraIDs = this.view?.queryResults?.getCameraIDs();
-    if (!cameraIDs || !this.view?.isGrid() || !this.view?.hasMultipleDisplayModes()) {
+    if (!cameraIDs || !this._needsGrid()) {
       return this._renderCarousel();
     }
 

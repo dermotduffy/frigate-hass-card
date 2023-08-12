@@ -363,7 +363,12 @@ export class FrigateCardLiveGrid extends LitElement {
 
   protected _needsGrid(): boolean {
     const cameraIDs = this.cameraManager?.getStore().getVisibleCameraIDs();
-    return !!this.view?.isGrid() && !!cameraIDs && cameraIDs.size >= 1;
+    return (
+      !!this.view?.isGrid() &&
+      !!this.view?.supportsMultipleDisplayModes() &&
+      !!cameraIDs &&
+      cameraIDs.size > 1
+    );
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
@@ -377,7 +382,7 @@ export class FrigateCardLiveGrid extends LitElement {
       return;
     }
     const cameraIDs = this.cameraManager?.getStore().getVisibleCameraIDs();
-    if (!this._needsGrid() || !cameraIDs) {
+    if (!cameraIDs || !this._needsGrid()) {
       return this._renderCarousel();
     }
     return html`

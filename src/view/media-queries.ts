@@ -1,4 +1,6 @@
 import cloneDeep from 'lodash-es/cloneDeep.js';
+import isEqual from 'lodash-es/isEqual.js';
+import uniqWith from 'lodash-es/uniqWith.js';
 import { EventQuery, MediaQuery, RecordingQuery } from '../camera-manager/types.js';
 
 export type MediaQueries = EventMediaQueries | RecordingMediaQueries;
@@ -12,7 +14,7 @@ class MediaQueriesBase<T extends MediaQuery> {
     }
   }
 
-  public clone(): MediaQueriesBase<T> {
+  public clone(): this {
     return cloneDeep(this);
   }
 
@@ -20,8 +22,32 @@ class MediaQueriesBase<T extends MediaQuery> {
     return this._queries;
   }
 
-  public setQueries(queries: T[]): void {
+  public setQueries(queries: T[]): this {
     this._queries = queries;
+    return this;
+  }
+
+  public getQueryCameraIDs(): Set<string> | null {
+    if (!this._queries) {
+      return null;
+    }
+    const cameraIDs: Set<string> = new Set();
+    this._queries.forEach((query) =>
+      [...query.cameraIDs].forEach((cameraID) => cameraIDs.add(cameraID)),
+    );
+    return cameraIDs;
+  }
+
+  public setQueryCameraIDs(cameraIDs: Set<string>): this {
+    if (!this._queries) {
+      return this;
+    }
+    const rewrittenQueries: T[] = [];
+    this._queries.forEach((query) =>
+      rewrittenQueries.push({ ...query, cameraIDs: cameraIDs }),
+    );
+    this._queries = uniqWith(rewrittenQueries, isEqual);
+    return this;
   }
 
   public hasQueriesForCameraIDs(cameraIDs: Set<string>) {
@@ -41,10 +67,6 @@ export class EventMediaQueries extends MediaQueriesBase<EventQuery> {
       query.hasClip = true;
     }
     return this;
-  }
-
-  public clone(): EventMediaQueries {
-    return cloneDeep(this);
   }
 }
 

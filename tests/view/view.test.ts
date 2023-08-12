@@ -427,67 +427,17 @@ describe('View.adoptFromViewIfAppropriate', () => {
   });
 
   it('should determine if view supports multiple display modes', () => {
-    const resultsOne = new MediaQueriesResults({
-      results: generateViewMediaArray({ cameraIDs: ['office'] }),
-    });
-    const resultsTwo = new MediaQueriesResults({
-      results: generateViewMediaArray({ cameraIDs: ['office', 'kitchen'] }),
-    });
+    expect(createView({ view: 'live' }).supportsMultipleDisplayModes()).toBeFalsy();
+    expect(createView({ view: 'media' }).supportsMultipleDisplayModes()).toBeTruthy();
+    expect(createView({ view: 'clip' }).supportsMultipleDisplayModes()).toBeTruthy();
+    expect(createView({ view: 'snapshot' }).supportsMultipleDisplayModes()).toBeTruthy();
+    expect(createView({ view: 'recording' }).supportsMultipleDisplayModes()).toBeTruthy();
 
-    expect(createView({ view: 'live' }).hasMultipleDisplayModes()).toBeFalsy();
-    expect(createView({ view: 'live' }).hasMultipleDisplayModes(0)).toBeFalsy();
-    expect(createView({ view: 'live' }).hasMultipleDisplayModes(1)).toBeFalsy();
-    expect(createView({ view: 'live' }).hasMultipleDisplayModes(2)).toBeTruthy();
-
-    expect(createView({ view: 'media' }).hasMultipleDisplayModes()).toBeFalsy();
-    expect(
-      createView({ view: 'media', queryResults: resultsOne }).hasMultipleDisplayModes(),
-    ).toBeFalsy();
-    expect(
-      createView({ view: 'media', queryResults: resultsTwo }).hasMultipleDisplayModes(),
-    ).toBeTruthy();
-
-    expect(createView({ view: 'clip' }).hasMultipleDisplayModes()).toBeFalsy();
-    expect(
-      createView({ view: 'clip', queryResults: resultsOne }).hasMultipleDisplayModes(),
-    ).toBeFalsy();
-    expect(
-      createView({ view: 'clip', queryResults: resultsTwo }).hasMultipleDisplayModes(),
-    ).toBeTruthy();
-
-    expect(createView({ view: 'snapshot' }).hasMultipleDisplayModes()).toBeFalsy();
-    expect(
-      createView({
-        view: 'snapshot',
-        queryResults: resultsOne,
-      }).hasMultipleDisplayModes(),
-    ).toBeFalsy();
-    expect(
-      createView({
-        view: 'snapshot',
-        queryResults: resultsTwo,
-      }).hasMultipleDisplayModes(),
-    ).toBeTruthy();
-
-    expect(createView({ view: 'recording' }).hasMultipleDisplayModes()).toBeFalsy();
-    expect(
-      createView({
-        view: 'recording',
-        queryResults: resultsOne,
-      }).hasMultipleDisplayModes(),
-    ).toBeFalsy();
-    expect(
-      createView({
-        view: 'recording',
-        queryResults: resultsTwo,
-      }).hasMultipleDisplayModes(),
-    ).toBeTruthy();
-
-    expect(createView({ view: 'clips' }).hasMultipleDisplayModes()).toBeFalsy();
-    expect(createView({ view: 'snapshots' }).hasMultipleDisplayModes()).toBeFalsy();
-    expect(createView({ view: 'recordings' }).hasMultipleDisplayModes()).toBeFalsy();
-    expect(createView({ view: 'image' }).hasMultipleDisplayModes()).toBeFalsy();
-    expect(createView({ view: 'timeline' }).hasMultipleDisplayModes()).toBeFalsy();
+    expect(createView({ view: 'clips' }).supportsMultipleDisplayModes()).toBeFalsy();
+    expect(createView({ view: 'snapshots' }).supportsMultipleDisplayModes()).toBeFalsy();
+    expect(createView({ view: 'recordings' }).supportsMultipleDisplayModes()).toBeFalsy();
+    expect(createView({ view: 'image' }).supportsMultipleDisplayModes()).toBeFalsy();
+    expect(createView({ view: 'timeline' }).supportsMultipleDisplayModes()).toBeFalsy();
   });
 });
 

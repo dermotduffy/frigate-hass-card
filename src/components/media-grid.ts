@@ -1,7 +1,8 @@
 // TODO: Performance of video scanning (pause/play?)
 // TODO: Investigate query spam during a grid load
-// TODO: Is the query reset in card.ts correct for media filter multi-camera queries that are not all cameras?
+
 // TODO: Do I need column max?
+// TODO: What thumbnails do I show in the live drawer?
 
 import {
   CSSResultGroup,

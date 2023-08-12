@@ -394,7 +394,7 @@ export class MenuButtonController {
       });
     }
 
-    if (view.hasMultipleDisplayModes(visibleCameras.size)) {
+    if (view.supportsMultipleDisplayModes() && visibleCameras.size > 1) {
       const isGrid = view.isGrid();
       const action = createFrigateCardCustomAction('display_mode_select', {
         display_mode: isGrid ? 'single' : 'grid',

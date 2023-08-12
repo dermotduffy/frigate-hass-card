@@ -72,6 +72,30 @@ describe('EventMediaQueries', () => {
     const queries = new EventMediaQueries(rawQueries);
     expect(queries.clone().getQueries()).toEqual(queries.getQueries());
   });
+
+  it('should get camera IDs when queries are null', () => {
+    expect(new EventMediaQueries().getQueryCameraIDs()).toBeNull();
+  });
+
+  it('should get camera IDs', () => {
+    const cameraIDs = ['office', 'kitchen'];
+    const queries = new EventMediaQueries(createRawEventQueries(new Set(cameraIDs)));
+    expect(queries.getQueryCameraIDs()).toEqual(new Set(cameraIDs));
+  });
+
+  it('should set camera IDs when queries are null', () => {
+    expect(
+      new EventMediaQueries().setQueryCameraIDs(new Set(['office'])).getQueryCameraIDs(),
+    ).toBeNull();
+  });
+
+  it('should set camera IDs', () => {
+    const queries = new EventMediaQueries(createRawEventQueries('sitting_room'));
+    const newCameraIDs = new Set(['office', 'kitchen']);
+    expect(queries.setQueryCameraIDs(newCameraIDs).getQueryCameraIDs()).toEqual(
+      newCameraIDs,
+    );
+  });
 });
 
 describe('RecordingMediaQueries', () => {
@@ -92,11 +116,5 @@ describe('RecordingMediaQueries', () => {
     const rawQueries = createRawRecordingQueries('office');
     const queries = new RecordingMediaQueries(rawQueries);
     expect(queries.getQueries()).toBe(rawQueries);
-  });
-
-  it('should clone', () => {
-    const rawQueries = createRawRecordingQueries('office');
-    const queries = new RecordingMediaQueries(rawQueries);
-    expect(queries.clone().getQueries()).toEqual(queries.getQueries());
   });
 });
