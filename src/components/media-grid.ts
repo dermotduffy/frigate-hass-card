@@ -1,8 +1,6 @@
 // TODO: Performance of video scanning (pause/play?)
 // TODO: Investigate query spam during a grid load
-
 // TODO: Do I need column max?
-// TODO: What thumbnails do I show in the live drawer?
 
 import {
   CSSResultGroup,

@@ -427,7 +427,7 @@ describe('View.adoptFromViewIfAppropriate', () => {
   });
 
   it('should determine if view supports multiple display modes', () => {
-    expect(createView({ view: 'live' }).supportsMultipleDisplayModes()).toBeFalsy();
+    expect(createView({ view: 'live' }).supportsMultipleDisplayModes()).toBeTruthy();
     expect(createView({ view: 'media' }).supportsMultipleDisplayModes()).toBeTruthy();
     expect(createView({ view: 'clip' }).supportsMultipleDisplayModes()).toBeTruthy();
     expect(createView({ view: 'snapshot' }).supportsMultipleDisplayModes()).toBeTruthy();

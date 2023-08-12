@@ -2,6 +2,7 @@ import cloneDeep from 'lodash-es/cloneDeep.js';
 import isEqual from 'lodash-es/isEqual.js';
 import uniqWith from 'lodash-es/uniqWith.js';
 import { EventQuery, MediaQuery, RecordingQuery } from '../camera-manager/types.js';
+import { setify } from '../utils/basic.js';
 
 export type MediaQueries = EventMediaQueries | RecordingMediaQueries;
 
@@ -38,13 +39,13 @@ class MediaQueriesBase<T extends MediaQuery> {
     return cameraIDs;
   }
 
-  public setQueryCameraIDs(cameraIDs: Set<string>): this {
+  public setQueryCameraIDs(cameraIDs: string | Set<string>): this {
     if (!this._queries) {
       return this;
     }
     const rewrittenQueries: T[] = [];
     this._queries.forEach((query) =>
-      rewrittenQueries.push({ ...query, cameraIDs: cameraIDs }),
+      rewrittenQueries.push({ ...query, cameraIDs: setify(cameraIDs) }),
     );
     this._queries = uniqWith(rewrittenQueries, isEqual);
     return this;

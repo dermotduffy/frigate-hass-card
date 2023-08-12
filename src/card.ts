@@ -1248,9 +1248,9 @@ class FrigateCard extends LitElement {
         });
 
         const generateNewQuery =
-          newView?.isGrid() &&
-          newView.query &&
-          (newView.query.getQueryCameraIDs()?.size ?? 0) <= 1;
+          newView?.query &&
+          ((newView.isGrid() && (newView.query.getQueryCameraIDs()?.size ?? 0) <= 1) ||
+            (!newView.isGrid() && (newView.query.getQueryCameraIDs()?.size ?? 0) > 1));
 
         if (generateNewQuery && newView && newView.query) {
           // If the user requests a grid but the current query does not have a
@@ -1264,7 +1264,11 @@ class FrigateCard extends LitElement {
             newView,
             newView.query
               .clone()
-              .setQueryCameraIDs(this._cameraManager.getStore().getVisibleCameraIDs()),
+              .setQueryCameraIDs(
+                newView.isGrid()
+                  ? this._cameraManager.getStore().getVisibleCameraIDs()
+                  : newView.camera,
+              ),
           ).then((view) => view && this._changeView({ view: view }));
         } else {
           this._changeView({ view: newView });
