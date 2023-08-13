@@ -496,8 +496,10 @@ export class FrigateCardTimelineCore extends LitElement {
         : 'media'
       : this.view.view;
 
+    const selectedCamera = newResults?.getSelectedResult()?.getCameraID();
     this.view
       .evolve({
+        ...(selectedCamera && { camera: selectedCamera }),
         view: desiredView,
         queryResults: newResults,
       }) // Whether or not to set the timeline window.

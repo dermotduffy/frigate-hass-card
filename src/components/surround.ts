@@ -8,7 +8,6 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { CameraManager } from '../camera-manager/manager.js';
-import type { DataQuery } from '../camera-manager/types';
 import basicBlockStyle from '../scss/basic-block.scss';
 import {
   CardWideConfig,
@@ -139,15 +138,12 @@ export class FrigateCardSurround extends LitElement {
       return null;
     }
     if (this.view?.is('live')) {
-      return getAllDependentCameras(this.cameraManager, this.view.camera);
+      return this.view.isGrid()
+        ? this.cameraManager?.getStore().getVisibleCameraIDs() ?? null
+        : getAllDependentCameras(this.cameraManager, this.view.camera);
     }
     if (this.view.isViewerView()) {
-      return new Set(
-        this.view.query
-          ?.getQueries()
-          ?.map((query: DataQuery) => [...query.cameraIDs])
-          .flat(),
-      );
+      return this.view.query?.getQueryCameraIDs() ?? null;
     }
     return null;
   }
