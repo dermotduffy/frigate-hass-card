@@ -8,7 +8,7 @@ import {
   dayToDate,
   dispatchFrigateCardEvent,
   errorToConsole,
-  filterTruthy,
+  isTruthy,
   formatDate,
   formatDateAndTime,
   getDurationString,
@@ -20,6 +20,7 @@ import {
   setify,
   setOrRemoveAttribute,
   sleep,
+  isHTMLElement,
 } from '../../src/utils/basic';
 
 // @vitest-environment jsdom
@@ -248,11 +249,22 @@ describe('setOrRemoveAttribute', () => {
   });
 });
 
-describe('filterTruthy', () => {
+describe('isTruthy', () => {
   it('should return true for true', () => {
-    expect(filterTruthy(true)).toBeTruthy();
+    expect(isTruthy(true)).toBeTruthy();
   });
   it('should return false for false', () => {
-    expect(filterTruthy(false)).toBeFalsy();
+    expect(isTruthy(false)).toBeFalsy();
+  });
+});
+
+describe('isHTMLElement', () => {
+  it('should return true for HTMLElement', () => {
+    const htmlElement = document.createElement('div');
+    expect(isHTMLElement(htmlElement)).toBeTruthy();
+  });
+  it('should return false for Element', () => {
+    const svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    expect(isHTMLElement(svgElement)).toBeFalsy();
   });
 });

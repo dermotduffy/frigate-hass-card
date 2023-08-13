@@ -225,4 +225,10 @@ export const setOrRemoveAttribute = (
 /**
  * Allow typescript to narrow types based on truthy filter.
  */
-export const filterTruthy = <T>(x: T | false | undefined | null | '' | 0): x is T => !!x;
+export const isTruthy = <T>(x: T | false | undefined | null | '' | 0): x is T => !!x;
+
+/**
+ * Allow typescript to narrow types for HTMLElements.
+ */
+export const isHTMLElement = (element: unknown): element is HTMLElement =>
+  element instanceof HTMLElement;

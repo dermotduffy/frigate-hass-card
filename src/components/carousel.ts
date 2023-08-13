@@ -11,10 +11,11 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { Ref, createRef, ref } from 'lit/directives/ref.js';
+import isEqual from 'lodash-es/isEqual';
 import throttle from 'lodash-es/throttle';
 import carouselStyle from '../scss/carousel.scss';
 import { TransitionEffect } from '../types';
-import { dispatchFrigateCardEvent } from '../utils/basic.js';
+import { dispatchFrigateCardEvent, isHTMLElement } from '../utils/basic.js';
 
 export interface CarouselSelect {
   index: number;
@@ -175,6 +176,13 @@ export class FrigateCardCarousel extends LitElement {
     this._carousel = undefined;
   }
 
+  protected _getSlideElements(): HTMLElement[] {
+    return (
+      this._refSlot.value?.assignedElements({ flatten: true }).filter(isHTMLElement) ??
+      []
+    );
+  }
+
   /**
    * Initialize the carousel.
    */
@@ -187,7 +195,7 @@ export class FrigateCardCarousel extends LitElement {
       root: carouselNode,
       // As the slides are slotted, need to explicitly pull them out and pass
       // them to Embla.
-      slides: this._refSlot.value?.assignedElements({ flatten: true }) as HTMLElement[],
+      slides: this._getSlideElements(),
     };
 
     if (carouselNode && nodes.slides) {
@@ -219,7 +227,7 @@ export class FrigateCardCarousel extends LitElement {
         // the selected slide as returned by the carousel. This need should be
         // verified in future versions of Embla (tested as necessary on v7.0.9).
         // Test case:
-        // 
+        //
         // - Start in `live` view in grid mode.
         // - Select any camera that is not the first one.
         // - Go to non-grid mode.
@@ -256,10 +264,14 @@ export class FrigateCardCarousel extends LitElement {
    * Called when the slotted children in the carousel change.
    */
   protected _slotChanged(): void {
-    // Cannot just re-init, because the slide elements themselves may have
-    // changed, and only a carousel init can pass in new (slotted) children. If
-    this._destroyCarousel();
-    this.requestUpdate();
+    // Check whether the slotted elements have changed (without this check the
+    // carousel initializations are duplicated).
+    if (!isEqual(this._getSlideElements(), this._carousel?.slideNodes())) {
+      // Cannot just re-init, because the slide elements themselves may have
+      // changed, and only a carousel init can pass in new (slotted) children.
+      this._destroyCarousel();
+      this.requestUpdate();
+    }
   }
 
   protected render(): TemplateResult | void {
