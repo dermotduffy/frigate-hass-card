@@ -3,6 +3,7 @@ import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import debounce from 'lodash-es/debounce';
 import mediaCarouselStyle from '../scss/media-carousel.scss';
 import type {
   MediaLoadedInfo,
@@ -15,14 +16,13 @@ import {
   dispatchExistingMediaLoadedInfoAsEvent,
   isValidMediaLoadedInfo,
 } from '../utils/media-info.js';
+import { Timer } from '../utils/timer';
 import { CarouselSelect, EmblaCarouselPlugins, FrigateCardCarousel } from './carousel';
+import './carousel.js';
 import { AutoMediaType } from './embla-plugins/automedia.js';
 import './next-prev-control.js';
-import './carousel.js';
 import { FrigateCardNextPreviousControl } from './next-prev-control.js';
 import { FrigateCardTitleControl } from './title-control.js';
-import debounce from 'lodash-es/debounce';
-import { Timer } from '../utils/timer';
 
 interface CarouselMediaLoadedInfo {
   slide: number;

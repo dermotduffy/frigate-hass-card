@@ -1,20 +1,16 @@
 import EmblaCarousel, { EmblaCarouselType, EmblaOptionsType } from 'embla-carousel';
 import { EmblaNodesType } from 'embla-carousel/components';
-import {
-  CreatePluginType,
-  EmblaPluginsType,
-  LoosePluginType,
-} from 'embla-carousel/components/Plugins';
+import { CreatePluginType, LoosePluginType } from 'embla-carousel/components/Plugins';
 import {
   CSSResultGroup,
-  html,
   LitElement,
   PropertyValues,
   TemplateResult,
+  html,
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import throttle from 'lodash-es/throttle';
 import carouselStyle from '../scss/carousel.scss';
 import { TransitionEffect } from '../types';
@@ -101,8 +97,8 @@ export class FrigateCardCarousel extends LitElement {
    * Get the selected slide.
    * @returns A CarouselSelect object (index & element).
    */
-  public getCarouselSelected(): CarouselSelect | null {
-    const index = this._carousel?.selectedScrollSnap();
+  public getCarouselSelected(slide?: number): CarouselSelect | null {
+    const index = slide ?? this._carousel?.selectedScrollSnap();
     const element =
       index !== undefined ? this._carousel?.slideNodes()[index] ?? null : null;
     if (index !== undefined && element) {
@@ -149,13 +145,6 @@ export class FrigateCardCarousel extends LitElement {
     } else {
       this._carouselReInitInPlace();
     }
-  }
-
-  /**
-   * Get the live carousel plugins.
-   */
-  public getCarouselPlugins(): EmblaPluginsType | null {
-    return this._carousel?.plugins() ?? null;
   }
 
   /**
@@ -212,8 +201,8 @@ export class FrigateCardCarousel extends LitElement {
         },
         this.carouselPlugins,
       );
-      const selectSlide = (): void => {
-        const selected = this.getCarouselSelected();
+      const selectSlide = (slide?: number): void => {
+        const selected = this.getCarouselSelected(slide);
         if (selected) {
           dispatchFrigateCardEvent<CarouselSelect>(this, 'carousel:select', selected);
         }
@@ -223,8 +212,24 @@ export class FrigateCardCarousel extends LitElement {
         this.requestUpdate();
       };
 
-      this._carousel.on('init', selectSlide);
-      this._carousel.on('select', selectSlide);
+      this._carousel.on(
+        'init',
+        // On initialization selectedScrollSnap() will return 0, even if the
+        // startIndex during initialization is different, as such we override
+        // the selected slide as returned by the carousel. This need should be
+        // verified in future versions of Embla (tested as necessary on v7.0.9).
+        // Test case:
+        // 
+        // - Start in `live` view in grid mode.
+        // - Select any camera that is not the first one.
+        // - Go to non-grid mode.
+        // - Go back to grid mode.
+        // - If successful, thumbnails will load correctly (and the query and
+        //   queryResults in the view will be set vs having been reset in
+        //   `_setViewCameraID` in `live.ts`).
+        () => selectSlide(this.selected),
+      );
+      this._carousel.on('select', () => selectSlide());
       this._carousel.on('scroll', () => {
         this._scrolling = true;
       });

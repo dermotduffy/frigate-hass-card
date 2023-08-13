@@ -253,7 +253,7 @@ export class FrigateCardViewerCarousel extends LitElement {
   }
 
   /**
-   * The the HLS player on a slide (or current slide if not provided.)
+   * Get the media player on a slide (or current slide if not provided).
    * @param slide An optional slide.
    * @returns The FrigateCardMediaPlayer or null if not found.
    */

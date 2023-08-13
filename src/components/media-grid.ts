@@ -1,6 +1,8 @@
 // TODO: Performance of video scanning (pause/play?)
 // TODO: Investigate query spam during a grid load
 // TODO: Do I need column max?
+// TODO: frigate-card-live-go2rtc.hidden double media load event.
+// TODO: Why am I creating so many carousels in the race-condition issue? Expecting 5, getting 10.
 
 import {
   CSSResultGroup,
