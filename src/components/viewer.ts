@@ -541,24 +541,24 @@ export class FrigateCardViewerCarousel extends LitElement {
       return;
     }
     const selectedMedia = this._media[this.selected];
-    if (!selectedMedia) {
+    const player = this._getPlayer();
+    if (!selectedMedia || !player) {
       return;
     }
 
     const seekTimeInMedia = selectedMedia.includesTime(seek);
-
     setOrRemoveAttribute(this, !seekTimeInMedia, 'unseekable');
-    if (!seekTimeInMedia) {
-      this._getPlayer()?.pause();
-    } else {
-      this._getPlayer()?.play();
+    if (!seekTimeInMedia && !player.isPaused()) {
+      player.pause();
+    } else if (seekTimeInMedia && player.isPaused()) {
+      player.play();
     }
 
     const seekTime =
       (await this.cameraManager?.getMediaSeekTime(this.hass, selectedMedia, seek)) ??
       null;
-    const player = this._getPlayer();
-    if (player && seekTime !== null) {
+
+    if (seekTime !== null) {
       player.seek(seekTime);
     }
   }

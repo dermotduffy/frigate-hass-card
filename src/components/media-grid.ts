@@ -1,4 +1,5 @@
-// TODO: Performance of video scanning (pause/play?)
+// TODO: Video scanning not select other camera?
+// TODO: Drag from live results in different cameras being shown in timeline in media viewer?
 
 import {
   CSSResultGroup,
