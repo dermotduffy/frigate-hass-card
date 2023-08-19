@@ -1,9 +1,3 @@
-// TODO: Video scanning not select other camera?
-// TODO: Drag from live results in different cameras being shown in timeline in media viewer?
-// TODO: It's possible to get a single entry in the grid, rendered without the
-// grid (correctly), but still with isGrid so the menu button still shows the
-// take it out of grid mode option.
-
 import {
   CSSResultGroup,
   html,
