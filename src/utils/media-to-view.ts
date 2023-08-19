@@ -169,10 +169,11 @@ export const executeMediaQueryForView = async (
 
   const queryResults = new MediaQueriesResults({ results: mediaArray });
   let viewerContext: ViewContext | undefined = {};
+  const cameraID = options?.targetCameraID ?? view.camera;
 
   if (options?.select === 'time' && options?.targetTime) {
     queryResults.selectBestResult((media) =>
-      findBestMediaIndex(media, options.targetTime as Date),
+      findBestMediaIndex(media, options.targetTime as Date, cameraID),
     );
     viewerContext = {
       mediaViewer: {
@@ -186,7 +187,7 @@ export const executeMediaQueryForView = async (
       query: query,
       queryResults: queryResults,
       view: options?.targetView,
-      camera: options?.targetCameraID,
+      camera: cameraID,
     })
     .mergeInContext(viewerContext);
 };
@@ -201,11 +202,13 @@ export const executeMediaQueryForView = async (
 export const findBestMediaIndex = (
   mediaArray: ViewMedia[],
   targetTime: Date,
+  favorCameraID?: string,
 ): number | null => {
   let bestMatch:
     | {
         index: number;
         duration: number;
+        cameraID: string;
       }
     | undefined;
 
@@ -215,8 +218,21 @@ export const findBestMediaIndex = (
 
     if (media.includesTime(targetTime) && start && end) {
       const duration = end.getTime() - start.getTime();
-      if (!bestMatch || duration > bestMatch.duration) {
-        bestMatch = { index: i, duration: duration };
+
+      if (
+        // No best match so far ...
+        !bestMatch ||
+        // ... or there is a best-match, but it's from a non-favored camera (unlike this one) ...
+        (favorCameraID &&
+          bestMatch.cameraID !== favorCameraID &&
+          media.getCameraID() === favorCameraID) ||
+        // ... or this match is longer and either there's no favored camera or this is it.
+        (duration > bestMatch.duration &&
+          (!favorCameraID ||
+            bestMatch.cameraID !== favorCameraID ||
+            media.getCameraID() === favorCameraID))
+      ) {
+        bestMatch = { index: i, duration: duration, cameraID: media.getCameraID() };
       }
     }
   }

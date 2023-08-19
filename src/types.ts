@@ -108,12 +108,14 @@ export class FrigateCardError extends Error {
 const viewDisplayModeSchema = z.enum(['single', 'grid']);
 export type ViewDisplayMode = z.infer<typeof viewDisplayModeSchema>;
 
-const viewDisplaySchema = z.object({
-  mode: viewDisplayModeSchema,
-  grid_selected_width_factor: z.number().min(0).optional(),
-  grid_max_columns: z.number().min(0).optional(),
-  grid_columns: z.number().min(0).optional(),
-}).optional();
+const viewDisplaySchema = z
+  .object({
+    mode: viewDisplayModeSchema,
+    grid_selected_width_factor: z.number().min(0).optional(),
+    grid_max_columns: z.number().min(0).optional(),
+    grid_columns: z.number().min(0).optional(),
+  })
+  .optional();
 export type ViewDisplayConfig = z.infer<typeof viewDisplaySchema>;
 
 /**
@@ -1134,7 +1136,9 @@ const menuConfigSchema = z
         mute: hiddenButtonSchema.default(menuConfigDefault.buttons.mute),
         play: hiddenButtonSchema.default(menuConfigDefault.buttons.play),
         screenshot: hiddenButtonSchema.default(menuConfigDefault.buttons.screenshot),
-        display_mode: visibleButtonSchema.default(menuConfigDefault.buttons.display_mode),
+        display_mode: visibleButtonSchema.default(
+          menuConfigDefault.buttons.display_mode,
+        ),
       })
       .default(menuConfigDefault.buttons),
     button_size: z.number().min(BUTTON_SIZE_MIN).default(menuConfigDefault.button_size),
@@ -1164,10 +1168,6 @@ const viewerConfigDefault = {
     },
     thumbnails: thumbnailControlsDefaults,
     timeline: miniTimelineConfigDefault,
-    title: {
-      mode: 'popup-bottom-right' as const,
-      duration_seconds: 2,
-    },
   },
 };
 const viewerNextPreviousControlConfigSchema = nextPreviousControlConfigSchema.extend({
@@ -1215,16 +1215,7 @@ const viewerConfigSchema = z
         timeline: miniTimelineConfigSchema.default(
           viewerConfigDefault.controls.timeline,
         ),
-        title: titleControlConfigSchema
-          .extend({
-            mode: titleControlConfigSchema.shape.mode.default(
-              viewerConfigDefault.controls.title.mode,
-            ),
-            duration_seconds: titleControlConfigSchema.shape.duration_seconds.default(
-              viewerConfigDefault.controls.title.duration_seconds,
-            ),
-          })
-          .default(viewerConfigDefault.controls.title),
+        title: titleControlConfigSchema.optional(),
       })
       .default(viewerConfigDefault.controls),
     layout: mediaLayoutConfigSchema.optional(),

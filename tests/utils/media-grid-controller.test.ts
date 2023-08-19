@@ -63,7 +63,7 @@ const createSlotParent = (): HTMLElement => {
 const createSlotHost = (options?: {
   children?: HTMLElement[];
   parent?: HTMLElement;
-}): HTMLElement => {
+}): HTMLSlotElement => {
   const parent = options?.parent ?? createSlotParent();
   const slot = document.createElement('slot');
   parent.shadowRoot?.append(slot);
@@ -281,6 +281,32 @@ describe('MediaGridController', () => {
     newChildren.forEach((child) => host.appendChild(child));
 
     triggerMutationObserver();
+
+    expect(controller.getGridContents()).toEqual(
+      new Map([
+        ['one', newChildren[0]],
+        ['two', newChildren[1]],
+        ['three', newChildren[2]],
+      ]),
+    );
+    expect(controller.getSelected()).toBeNull();
+  });
+
+  it('should replace children of a slot when they change', () => {
+    const children = createChildren();
+    const slotParent = createSlotParent();
+    const host = createSlotHost({ children: children, parent: slotParent });
+
+    const controller = createController(host, { selected: '1' });
+
+    expect(controller.getSelected()).toBe('1');
+    expect(controller.getGridSize()).toBe(3);
+
+    children.forEach((child) => slotParent.removeChild(child));
+    const newChildren = createChildren(['one', 'two', 'three']);
+    newChildren.forEach((child) => slotParent.append(child));
+
+    host.dispatchEvent(new Event('slotchange'));
 
     expect(controller.getGridContents()).toEqual(
       new Map([

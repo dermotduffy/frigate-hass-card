@@ -183,6 +183,25 @@ export class MediaQueriesResults {
   public getSelectedResult(cameraID?: string): ViewMedia | null {
     return this.getSlice(cameraID)?.getSelectedResult() ?? null;
   }
+  public getMultipleSelectedResults(
+    criteria?: ResultSliceSelectionCriteria,
+  ): ViewMedia[] {
+    const results: ViewMedia[] = [];
+    if (!criteria || criteria.main) {
+      const mainResult = this.getSelectedResult();
+      if (mainResult) {
+        results.push(mainResult);
+      }
+    }
+    const cameraIDs = this._getCameraIDsFromCriteria(criteria);
+    for (const cameraID of cameraIDs ?? []) {
+      const result = this.getSelectedResult(cameraID);
+      if (result) {
+        results.push(result);
+      }
+    }
+    return results;
+  }
   public hasSelectedResult(cameraID?: string): boolean {
     return this.getSlice(cameraID)?.hasSelectedResult() ?? false;
   }

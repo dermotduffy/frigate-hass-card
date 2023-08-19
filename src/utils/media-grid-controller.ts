@@ -1,3 +1,4 @@
+import isEqual from 'lodash-es/isEqual';
 import throttle from 'lodash-es/throttle';
 import Masonry from 'masonry-layout';
 import { MediaLoadedInfo, ViewDisplayConfig } from '../types';
@@ -27,6 +28,7 @@ export interface MediaGridSelected {
 export interface MediaGridConstructorOptions {
   selected?: GridID;
   idAttribute?: string;
+  displayConfig?: ViewDisplayConfig;
 }
 
 export class MediaGridController {
@@ -62,14 +64,26 @@ export class MediaGridController {
     this._idAttribute = options?.idAttribute ?? 'grid-id';
     this._hostWidth = this._host.getBoundingClientRect().width;
     this._hostResizeObserver.observe(host);
+    this._displayConfig = options?.displayConfig ?? null;
 
-    this._calculateGridContentsFromHost();
     this._mutationObserver.observe(host, { childList: true });
+    // Need to separately listen for slotchanges since mutation observer will
+    // not be called for shadom DOM slotted changes.
+    if (host instanceof HTMLSlotElement) {
+      host.addEventListener('slotchange', this._calculateGridContentsFromHost);
+    }
+    this._calculateGridContentsFromHost();
   }
 
   public destroy(): void {
     this._hostResizeObserver.disconnect();
     this._cellResizeObserver.disconnect();
+
+    this._mutationObserver.disconnect();
+    if (this._host instanceof HTMLSlotElement) {
+      this._host.removeEventListener('slotchange', this._calculateGridContentsFromHost);
+    }
+
     this._mediaLoadedInfoMap.clear();
     this._masonry?.destroy?.();
     this._masonry = null;
@@ -81,8 +95,10 @@ export class MediaGridController {
   }
 
   public setDisplayConfig(displayConfig: ViewDisplayConfig | null): void {
-    this._displayConfig = displayConfig;
-    this._calculateGridContentsFromHost();
+    if (!isEqual(displayConfig, this._displayConfig)) {
+      this._displayConfig = displayConfig;
+      this._calculateGridContentsFromHost();
+    }
   }
 
   public getGridContents(): MediaGridContents {
@@ -127,11 +143,11 @@ export class MediaGridController {
     this._updateSelectedStylesOnElements();
   }
 
-  protected _calculateGridContentsFromHost(): void {
+  protected _calculateGridContentsFromHost = (): void => {
     let childrenElements: Element[];
 
     if (this._host instanceof HTMLSlotElement) {
-      childrenElements = this._host.assignedElements({ flatten: true });
+      childrenElements = this._host.assignedElements();
     } else {
       childrenElements = [...this._host.children];
     }
@@ -145,7 +161,7 @@ export class MediaGridController {
     }
 
     this._setGridContents(gridContents);
-  }
+  };
 
   protected _setGridContents(elements: MediaGridContents): void {
     this._gridContents = elements;

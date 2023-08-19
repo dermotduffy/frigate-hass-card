@@ -48,6 +48,7 @@ import {
   dispatchFrigateCardEvent,
   formatDateAndTime,
   isHoverableDevice,
+  isTruthy,
   setOrRemoveAttribute,
 } from '../utils/basic';
 import {
@@ -485,10 +486,13 @@ export class FrigateCardTimelineCore extends LitElement {
         : results
             .clone()
             .resetSelectedResult()
-            .selectBestResult((media) => findBestMediaIndex(media, targetTime), {
-              allCameras: true,
-              main: true,
-            });
+            .selectBestResult(
+              (media) => findBestMediaIndex(media, targetTime, this.view?.camera),
+              {
+                allCameras: true,
+                main: true,
+              },
+            );
 
     const desiredView: FrigateCardView = this.mini
       ? targetTime >= new Date()
@@ -899,8 +903,7 @@ export class FrigateCardTimelineCore extends LitElement {
             maxItems: this.timelineConfig.clustering_threshold,
 
             clusterCriteria: (first: TimelineItem, second: TimelineItem): boolean => {
-              const media = this.view?.queryResults?.getSelectedResult();
-              const selectedId = media?.getID();
+              const selectedIDs = this._getAllSelectedMediaIDsFromView();
               const firstMedia = (<FrigateCardTimelineItem>first).media;
               const secondMedia = (<FrigateCardTimelineItem>second).media;
 
@@ -910,8 +913,8 @@ export class FrigateCardTimelineCore extends LitElement {
               return (
                 first.type !== 'background' &&
                 first.type === second.type &&
-                first.id !== selectedId &&
-                second.id !== selectedId &&
+                !selectedIDs.includes(first.id) &&
+                !selectedIDs.includes(second.id) &&
                 !!firstMedia &&
                 !!secondMedia &&
                 ViewMediaClassifier.isEvent(firstMedia) &&
@@ -964,6 +967,18 @@ export class FrigateCardTimelineCore extends LitElement {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected shouldUpdate(_changedProps: PropertyValues): boolean {
     return !!this.hass && !!this.cameraManager;
+  }
+
+  protected _getAllSelectedMediaIDsFromView(): IdType[] {
+    return (
+      this.view?.queryResults?.getMultipleSelectedResults({
+        main: true,
+        ...(this.view.isGrid() && { allCameras: true }),
+      }) ?? []
+    )
+      .filter((media) => ViewMediaClassifier.isEvent(media))
+      .map((media) => media.getID())
+      .filter(isTruthy);
   }
 
   /**
@@ -1030,8 +1045,11 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     const currentSelection = this._timeline.getSelection();
-    const mediaID = media?.getID();
-    const needToSelect = mediaID && mediaIsEvent && !currentSelection.includes(mediaID);
+    const mediaIDsToSelect = this._getAllSelectedMediaIDsFromView();
+
+    const needToSelect = mediaIDsToSelect.some(
+      (mediaID) => !currentSelection.includes(mediaID),
+    );
 
     if (needToSelect) {
       if (this._isClustering()) {
@@ -1039,12 +1057,14 @@ export class FrigateCardTimelineCore extends LitElement {
         // update the dataset to ensure the newly selected item cannot be included
         // in a cluster.
 
-        // Need to this rewrite prior to setting the selection (just below), or
-        // the selection will be lost on rewrite.
-        this._timelineSource?.rewriteEvent(mediaID);
+        for (const mediaID of mediaIDsToSelect) {
+          // Need to this rewrite prior to setting the selection (just below), or
+          // the selection will be lost on rewrite.
+          this._timelineSource?.rewriteEvent(mediaID);
+        }
       }
 
-      this._timeline?.setSelection([mediaID], {
+      this._timeline?.setSelection(mediaIDsToSelect, {
         focus: false,
         animation: {
           animation: false,

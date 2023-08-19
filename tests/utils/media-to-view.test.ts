@@ -54,11 +54,13 @@ const generateViewMedia = (
   index: number,
   base: Date,
   durationSeconds: number,
+  cameraID?: string,
 ): ViewMedia => {
   return new TestViewMedia({
     id: `id-${index}`,
     startTime: base,
     endTime: add(base, { seconds: durationSeconds }),
+    ...(cameraID && { cameraID: cameraID }),
   });
 };
 
@@ -448,5 +450,22 @@ describe('findBestMediaIndex', () => {
     ];
 
     expect(findBestMediaIndex(mediaArray, add(now, { seconds: 30 }))).toBe(1);
+  });
+
+  it('should find best media index respecting favored cameraID', async () => {
+    const now = new Date();
+    const mediaArray = [
+      generateViewMedia(0, now, 60, 'less-good-camera'),
+      generateViewMedia(1, now, 120, 'less-good-camera'),
+      generateViewMedia(2, now, 10, 'favored-camera'),
+      generateViewMedia(3, now, 35, 'favored-camera'),
+      generateViewMedia(4, now, 40, 'favored-camera'),
+      generateViewMedia(5, now, 30, 'favored-camera'),
+      generateViewMedia(6, now, 300, 'less-good-camera'),
+    ];
+
+    expect(
+      findBestMediaIndex(mediaArray, add(now, { seconds: 30 }), 'favored-camera'),
+    ).toBe(4);
   });
 });

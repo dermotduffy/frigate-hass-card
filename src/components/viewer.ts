@@ -14,7 +14,7 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import basicBlockStyle from '../scss/basic-block.scss';
 import { CameraManager } from '../camera-manager/manager.js';
-import { dispatchMessageEvent, renderProgressIndicator } from '../components/message.js';
+import { dispatchMessageEvent, renderMessage, renderProgressIndicator } from '../components/message.js';
 import { localize } from '../localize/localize.js';
 import '../patches/ha-hls-player';
 import viewerCarouselStyle from '../scss/viewer-carousel.scss';
@@ -136,7 +136,14 @@ export class FrigateCardViewer extends LitElement {
       // timeline).
       const mediaType = this.view.getDefaultMediaType();
       if (!mediaType) {
-        return;
+        // Directly render an error message (instead of dispatching it upwards)
+        // to preserve the mini-timeline if the user scans into an area with no
+        // media.
+        return renderMessage({
+          type: 'info',
+          message: localize('common.no_media'),
+          icon: 'mdi:multimedia',
+        });
       }
 
       if (mediaType === 'recordings') {

@@ -35,6 +35,7 @@ describe('dispatchViewContextChangeEvent', () => {
 
     expect(results.selectBestResult((_media: ViewMedia[]) => null)).toEqual(results);
     expect(results.getSelectedResult()).toBeNull();
+    expect(results.getMultipleSelectedResults()).toEqual([]);
   });
 
   it('should function with basic results', () => {
@@ -229,5 +230,17 @@ describe('dispatchViewContextChangeEvent', () => {
 
     expect(results.getSelectedResult('office')?.getID()).toBe('id-office-42');
     expect(results.getSelectedResult('kitchen')?.getID()).toBe('id-kitchen-42');
+  });
+
+  it('should get multiple selected results', () => {
+    const results = new MediaQueriesResults({
+      results: generateViewMediaArray(),
+    });
+
+    expect(
+      results
+        .getMultipleSelectedResults({ main: true, allCameras: true })
+        .map((media) => media.getID()),
+    ).toEqual(['id-office-99', 'id-kitchen-99', 'id-office-99']);
   });
 });
