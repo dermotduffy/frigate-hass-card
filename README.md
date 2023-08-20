@@ -593,7 +593,7 @@ live:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `mode` | `single` | :white_check_mark: | Whether to display a `single` media item at a time, or a media item for all cameras in a `grid`` configuration.|
+| `mode` | `single` | :white_check_mark: | Whether to display a `single` media item at a time, or a media item for all cameras in a `grid` configuration.|
 | `grid_selected_width_factor` | `2` | :white_check_mark: | How much to scale up the selected media item in a grid. A value of `1` will not scale the selected item at all, the default value of `2` will scale the media item width to twice what it would otherwise be, etc. |
 | `grid_columns` | | :white_check_mark: | If specified the grid will always have exactly this number of columns.|
 | `grid_max_columns` | `4` | :white_check_mark: | If specified, and `grid_columns` is not specified, the grid will not render more than this number of columns. The precise number will be calculated based on the [grid layout algorithm](#grid-layout-algorith). |
@@ -732,7 +732,7 @@ media_viewer:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `mode` | `single` | :white_check_mark: | Whether to display a `single` media item at a time, or a media item for all cameras in a `grid`` configuration.|
+| `mode` | `single` | :white_check_mark: | Whether to display a `single` media item at a time, or a media item for all cameras in a `grid` configuration.|
 | `grid_selected_width_factor` | `2` | :white_check_mark: | How much to scale up the selected media item in a grid. A value of `1` will not scale the selected item at all, the default value of `2` will scale the media item width to twice what it would otherwise be, etc. |
 | `grid_columns` | | :white_check_mark: | If specified the grid will always have exactly this number of columns.|
 | `grid_max_columns` | `4` | :white_check_mark: | If specified, and `grid_columns` is not specified, the grid will not render more than this number of columns. The precise number will be calculated based on the [grid layout algorithm](#grid-layout-algorith). |
