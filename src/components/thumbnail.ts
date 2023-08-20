@@ -333,10 +333,17 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
 
 @customElement('frigate-card-thumbnail')
 export class FrigateCardThumbnail extends LitElement {
-  // HomeAssistant object may be required for thumbnail signing (for Frigate
-  // events).
-  @property({ attribute: false })
+  // Performance: During timeline scrubbing, hass may be updated
+  // continuously. As it is not needed for the thumbnail rendering itself, it
+  // does not trigger a re-render. The HomeAssistant object may be required for
+  // thumbnail signing (after initial signing the thumbnail is stored in a data
+  // URL, so the signing will not expire).
   public hass?: ExtendedHomeAssistant;
+
+  // Performance: During timeline scrubbing, the view will be updated
+  // continuously. As it is not needed for the thumbnail rendering itself, it
+  // does not trigger a re-render.
+  public view?: Readonly<View>;
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
@@ -359,9 +366,6 @@ export class FrigateCardThumbnail extends LitElement {
   @property({ attribute: false })
   public seek?: Date;
 
-  @property({ attribute: false })
-  public view?: Readonly<View>;
-
   /**
    * Render the element.
    * @returns A template to display to the user.
@@ -381,7 +385,6 @@ export class FrigateCardThumbnail extends LitElement {
 
     const shouldShowTimelineControl =
       this.show_timeline_control &&
-      this.view &&
       (!ViewMediaClassifier.isRecording(this.media) ||
         // Only show timeline control if the recording has a start & end time.
         (this.media.getStartTime() && this.media.getEndTime()));
