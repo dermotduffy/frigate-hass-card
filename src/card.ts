@@ -189,9 +189,6 @@ class FrigateCard extends LitElement {
   @state()
   protected _expand = false;
 
-  @state()
-  protected _viewDisplayMode?: ViewDisplayMode;
-
   protected _microphoneController?: MicrophoneController;
   protected _conditionController?: ConditionController;
   protected _automationsController?: AutomationsController;
@@ -503,7 +500,7 @@ class FrigateCard extends LitElement {
       if (cameraID) {
         const viewName = args?.viewName ?? this._getConfig().view.default;
         const displayMode =
-          this._viewDisplayMode ?? this._getDefaultDisplayModeForView(viewName);
+          this._view?.displayMode ?? this._getDefaultDisplayModeForView(viewName);
         changeView(
           new View({
             view: viewName,
@@ -1067,6 +1064,7 @@ class FrigateCard extends LitElement {
   protected _getDefaultDisplayModeForView(view: FrigateCardView): ViewDisplayMode {
     let mode: ViewDisplayMode | null = null;
     switch (view) {
+      case 'media':
       case 'clip':
       case 'clips':
       case 'recording':
@@ -1238,11 +1236,6 @@ class FrigateCard extends LitElement {
           });
         break;
       case 'display_mode_select':
-        this._viewDisplayMode = frigateCardAction.display_mode;
-        this._conditionController?.setState({
-          displayMode: this._viewDisplayMode,
-        });
-
         const newView = this._view?.evolve({
           displayMode: frigateCardAction.display_mode,
         });

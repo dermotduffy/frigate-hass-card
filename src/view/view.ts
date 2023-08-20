@@ -91,7 +91,12 @@ export class View {
     let currentQueriesView: ClipsOrSnapshots | 'recordings' | null = null;
     if (MediaQueriesClassifier.areEventQueries(curr.query)) {
       const queries = curr.query.getQueries();
-      if (queries?.every((query) => query.hasClip)) {
+      if (
+        queries?.every((query) => query.hasClip) ||
+        queries?.every(
+          (query) => query.hasClip === undefined && query.hasSnapshot === undefined,
+        )
+      ) {
         currentQueriesView = 'clips';
       } else if (queries?.every((query) => query.hasSnapshot)) {
         currentQueriesView = 'snapshots';

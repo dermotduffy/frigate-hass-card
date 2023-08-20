@@ -482,7 +482,7 @@ export class FrigateCardTimelineCore extends LitElement {
     const canSeek = this._shouldSupportSeeking();
     const newResults =
       this._panBehavior === 'seek-in-media'
-        ? null
+        ? results
         : results
             .clone()
             .resetSelectedResult()
