@@ -1,9 +1,7 @@
 import add from 'date-fns/add';
 import differenceInSeconds from 'date-fns/differenceInSeconds';
 import endOfDay from 'date-fns/endOfDay';
-import endOfHour from 'date-fns/endOfHour';
 import startOfDay from 'date-fns/startOfDay';
-import startOfHour from 'date-fns/startOfHour';
 import sub from 'date-fns/sub';
 import {
   CSSResultGroup,
@@ -31,6 +29,7 @@ import {
 import { CameraManager } from '../camera-manager/manager';
 import { rangesOverlap } from '../camera-manager/range';
 import { MediaQuery } from '../camera-manager/types';
+import { convertRangeToCacheFriendlyTimes } from '../camera-manager/util';
 import { localize } from '../localize/localize';
 import timelineCoreStyle from '../scss/timeline-core.scss';
 import {
@@ -51,16 +50,19 @@ import {
   isTruthy,
   setOrRemoveAttribute,
 } from '../utils/basic';
-import {
-  createQueriesForRecordingsView,
-  executeMediaQueryForView,
-  findBestMediaIndex,
-} from '../utils/media-to-view';
+import { executeMediaQueryForView, findBestMediaIndex } from '../utils/media-to-view';
 import { FrigateCardTimelineItem, TimelineDataSource } from '../utils/timeline-source';
 import { ViewMedia } from '../view/media';
 import { ViewMediaClassifier } from '../view/media-classifier';
-import { EventMediaQueries, MediaQueries } from '../view/media-queries';
-import { MediaQueriesClassifier } from '../view/media-queries-classifier';
+import {
+  EventMediaQueries,
+  MediaQueries,
+  RecordingMediaQueries,
+} from '../view/media-queries';
+import {
+  MediaQueriesClassifier,
+  MediaQueriesType,
+} from '../view/media-queries-classifier';
 import { View } from '../view/view';
 import './date-picker.js';
 import { DatePickerEvent, FrigateCardDatePicker } from './date-picker.js';
@@ -541,6 +543,7 @@ export class FrigateCardTimelineCore extends LitElement {
       !this.cameraManager ||
       !this.cardWideConfig ||
       !timelineCameraIDs ||
+      !this._timelineSource ||
       !properties.what
     ) {
       return;
@@ -551,45 +554,10 @@ export class FrigateCardTimelineCore extends LitElement {
 
     if (
       this.timelineConfig?.show_recordings &&
-      ['background', 'group-label'].includes(properties.what)
+      properties.time &&
+      ['background', 'axis'].includes(properties.what)
     ) {
-      const cameraIDs = properties.group
-        ? new Set([String(properties.group)])
-        : this._getTimelineCameraIDs();
-      const query = cameraIDs
-        ? createQueriesForRecordingsView(
-            this.cameraManager,
-            this.cardWideConfig,
-            cameraIDs,
-          )
-        : null;
-      if (query) {
-        view = await executeMediaQueryForView(
-          this,
-          this.hass,
-          this.cameraManager,
-          this.view,
-          query,
-          {
-            targetView: 'recording',
-            targetTime:
-              properties.what === 'background'
-                ? properties.time
-                : this._timeline.getWindow().end,
-            select: 'time',
-          },
-        );
-      }
-    } else if (this.timelineConfig?.show_recordings && properties.what === 'axis') {
-      const query = createQueriesForRecordingsView(
-        this.cameraManager,
-        this.cardWideConfig,
-        timelineCameraIDs,
-        {
-          start: startOfHour(properties.time),
-          end: endOfHour(properties.time),
-        },
-      );
+      const query = this._createMediaQueries('recording');
       if (query) {
         view = await executeMediaQueryForView(
           this,
@@ -623,8 +591,8 @@ export class FrigateCardTimelineCore extends LitElement {
         //   gallery (i.e. any case where the thumbnails may not be match the
         //   events on the timeline, e.g. in the snapshots viewer but
         //   mini-timeline showing all media).
-        const fullEventView = await this._createViewWithEventMediaQuery(
-          this._createEventMediaQuerys(),
+        const fullEventView = await this._createViewWithMediaQueries(
+          this._createMediaQueries('event'),
           {
             selectedItem: properties.item,
             targetView: 'media',
@@ -686,59 +654,58 @@ export class FrigateCardTimelineCore extends LitElement {
     }
     this._removeTargetBar();
 
-    if (!this.hass) {
+    if (!this.hass || !this._timeline || !this.view) {
       return;
     }
 
-    const prefetchedWindow = this._getPrefetchWindow(properties);
-    await this._timelineSource?.refresh(this.hass, prefetchedWindow);
+    await this._timelineSource?.refresh(this.hass, this._getPrefetchWindow(properties));
 
-    // Don't show event thumbnails if the user is looking at recordings,
-    // as the recording "hours" are the media, not the event
-    // clips/snapshots.
-    if (
-      this._timeline &&
-      this.view &&
-      !MediaQueriesClassifier.areRecordingQueries(this.view.query)
-    ) {
-      const newView = await this._createViewWithEventMediaQuery(
-        this._createEventMediaQuerys({ window: this._timeline.getWindow() }),
-      );
+    const queryType = MediaQueriesClassifier.getQueriesType(this.view.query);
+    if (!queryType) {
+      return;
+    }
+    const mediaQuery = this._createMediaQueries(queryType);
+    const newView = await this._createViewWithMediaQueries(mediaQuery);
 
-      // Specifically avoid dispatching new results on range change unless there
-      // is something to be gained by doing so. Example usecase: On initial view
-      // load in mini timeline mode, the first 50 events are fetched -- the
-      // first drag of the timeline should not dispatch new results unless
-      // something is actually useful (as otherwise it creates a visible
-      // 'flicker' for the user as the viewer reloads all the media).
-      const newResults = newView?.queryResults;
-      if (newView && newResults && !this.view.queryResults?.isSupersetOf(newResults)) {
-        newView?.mergeInContext(this._getTimelineContext())?.dispatchChangeEvent(this);
-      }
+    // Specifically avoid dispatching new results on range change unless there
+    // is something to be gained by doing so. Example usecase: On initial view
+    // load in mini timeline mode, the first 50 events are fetched -- the
+    // first drag of the timeline should not dispatch new results unless
+    // something is actually useful (as otherwise it creates a visible
+    // 'flicker' for the user as the viewer reloads all the media).
+    const newResults = newView?.queryResults;
+    if (newView && newResults && !this.view.queryResults?.isSupersetOf(newResults)) {
+      newView?.mergeInContext(this._getTimelineContext())?.dispatchChangeEvent(this);
     }
   }
 
-  protected _createEventMediaQuerys(options?: {
-    window?: TimelineWindow;
-  }): EventMediaQueries | null {
-    if (!this._timeline || !this._timelineSource || !this.cardWideConfig) {
+  protected _createMediaQueries(
+    type: MediaQueriesType,
+    options?: {
+      window?: TimelineWindow;
+    },
+  ): MediaQueries | null {
+    if (!this._timeline || !this._timelineSource) {
       return null;
     }
 
-    const cacheFriendlyWindow = this._timelineSource.getCacheFriendlyEventWindow(
-      options?.window ?? this._timeline.getWindow(),
+    const cacheFriendlyWindow = convertRangeToCacheFriendlyTimes(
+      this._getPrefetchWindow(options?.window ?? this._timeline.getWindow()),
     );
 
-    const eventQueries =
-      this._timelineSource.getTimelineEventQueries(cacheFriendlyWindow);
-    if (!eventQueries) {
-      return null;
+    if (type === 'event') {
+      const queries = this._timelineSource.getTimelineEventQueries(cacheFriendlyWindow);
+      return queries ? new EventMediaQueries(queries) : null;
+    } else if (type === 'recording') {
+      const queries =
+        this._timelineSource.getTimelineRecordingQueries(cacheFriendlyWindow);
+      return queries ? new RecordingMediaQueries(queries) : null;
     }
-    return new EventMediaQueries(eventQueries);
+    return null;
   }
 
-  protected async _createViewWithEventMediaQuery(
-    query: EventMediaQueries | null,
+  protected async _createViewWithMediaQueries(
+    query: MediaQueries | null,
     options?: {
       targetView?: FrigateCardView;
       selectedItem?: IdType;
@@ -1089,20 +1056,23 @@ export class FrigateCardTimelineCore extends LitElement {
     //  -> New view received ... [loop]
     //
     // Also don't generate thumbnails in mini-timelines (they will already have
-    // been generated), or if the view is for recordings (media thumbnails are
-    // recordings, not events in this case).
+    // been generated).
 
-    const freshMediaQuery = this._createEventMediaQuerys({
+    const queryType = MediaQueriesClassifier.getQueriesType(this.view.query);
+    if (!queryType) {
+      return;
+    }
+
+    const freshMediaQuery = this._createMediaQueries(queryType, {
       window: desiredWindow,
     });
 
     if (
       !this.mini &&
-      !MediaQueriesClassifier.areRecordingQueries(this.view.query) &&
       freshMediaQuery &&
       !this._alreadyHasAcceptableMediaQuery(freshMediaQuery)
     ) {
-      (await this._createViewWithEventMediaQuery(freshMediaQuery))
+      (await this._createViewWithMediaQueries(freshMediaQuery))
         ?.mergeInContext(this._getTimelineContext(desiredWindow))
         .dispatchChangeEvent(this);
     }

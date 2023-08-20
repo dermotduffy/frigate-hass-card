@@ -116,21 +116,15 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
   )?.dispatchChangeEvent(element);
 };
 
-export const createQueriesForRecordingsView = (
+const createQueriesForRecordingsView = (
   cameraManager: CameraManager,
   cardWideConfig: CardWideConfig,
   cameraIDs: Set<string>,
-  options?: {
-    start?: Date;
-    end?: Date;
-  },
 ): RecordingMediaQueries | null => {
   const limit =
     cardWideConfig.performance?.features.media_chunk_size ?? MEDIA_CHUNK_SIZE_DEFAULT;
   const recordingQueries = cameraManager.generateDefaultRecordingQueries(cameraIDs, {
     limit: limit,
-    ...(options?.start && { start: options.start }),
-    ...(options?.end && { end: options.end }),
   });
   return recordingQueries ? new RecordingMediaQueries(recordingQueries) : null;
 };

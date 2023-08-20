@@ -1,16 +1,10 @@
 import add from 'date-fns/add';
 import sub from 'date-fns/sub';
 import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import {
-  CameraConfigs,
-  PartialRecordingQuery,
-  QueryType,
-} from '../../src/camera-manager/types';
-import { setify } from '../../src/utils/basic';
+import { CameraConfigs } from '../../src/camera-manager/types';
 import {
   changeViewToRecentEventsForCameraAndDependents,
   changeViewToRecentRecordingForCameraAndDependents,
-  createQueriesForRecordingsView,
   executeMediaQueryForView,
   findBestMediaIndex,
 } from '../../src/utils/media-to-view';
@@ -396,45 +390,6 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
       expect.objectContaining({
         limit: 1000,
       }),
-    );
-  });
-});
-
-// @vitest-environment jsdom
-describe('createQueriesForRecordingsView', () => {
-  it('should respect start and end date in recording query', async () => {
-    const cameraManager = createCameraManager({ configs: new Map() });
-
-    vi.mocked(cameraManager.generateDefaultRecordingQueries).mockImplementation(
-      (cameraIDs: string | Set<string>, partialQuery?: PartialRecordingQuery) => [
-        {
-          cameraIDs: setify(cameraIDs),
-          type: QueryType.Recording,
-          ...partialQuery,
-        },
-      ],
-    );
-
-    const start = new Date('2023-04-29T14:00:00');
-    const end = new Date('2023-04-29T14:59:59');
-
-    const queries = createQueriesForRecordingsView(
-      cameraManager,
-      {},
-      new Set(['camera']),
-      {
-        start: start,
-        end: end,
-      },
-    );
-
-    expect(queries?.getQueries()).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          start: start,
-          end: end,
-        }),
-      ]),
     );
   });
 });
