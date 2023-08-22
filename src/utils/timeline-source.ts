@@ -137,7 +137,6 @@ export class TimelineDataSource {
     const mediaArray = await this._cameraManager.executeMediaQueries(hass, eventQueries);
     const data: FrigateCardTimelineItem[] = [];
     for (const media of mediaArray ?? []) {
-      const endTime = media.getEndTime();
       const startTime = media.getStartTime();
       const id = media.getID();
       if (id && startTime) {
