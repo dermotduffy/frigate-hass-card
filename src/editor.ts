@@ -557,8 +557,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
   protected _displayModes: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'single', label: localize('config.common.display.modes.single') },
-    { value: 'grid', label: localize('config.common.display.modes.grid') },
+    { value: 'single', label: localize('display_modes.single') },
+    { value: 'grid', label: localize('display_modes.grid') },
   ];
 
   public setConfig(config: RawFrigateCardConfig): void {

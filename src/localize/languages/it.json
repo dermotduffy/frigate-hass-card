@@ -153,10 +153,7 @@
         "grid_columns": "",
         "grid_max_columns": "",
         "grid_selected_width_factor": "",
-        "modes": {
-          "single": "",
-          "grid": ""
-        }
+        "mode": ""
       },
       "layout": {
         "fit": "Adatta al layout",
@@ -368,6 +365,10 @@
         "timeline": "Vista della timeline"
       }
     }
+  },
+  "display_modes": {
+    "grid": "",
+    "single": ""
   },
   "editor": {
     "add_new_camera": "Aggiungi nuova telecamera",

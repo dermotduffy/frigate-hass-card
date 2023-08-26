@@ -404,7 +404,9 @@ export class MenuButtonController {
           icon: isGrid ? 'mdi:grid-off' : 'mdi:grid',
           ...config.menu.buttons.display_mode,
           type: 'custom:frigate-card-menu-icon',
-          title: localize('config.menu.buttons.display_mode'),
+          title: isGrid
+            ? localize('display_modes.single')
+            : localize('display_modes.grid'),
           tap_action: action,
         });
       }

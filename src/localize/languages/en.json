@@ -153,11 +153,7 @@
         "grid_columns": "Exact number of grid columns",
         "grid_max_columns": "Maximum number of grid columns",
         "grid_selected_width_factor": "Increase selected media width by this factor",
-        "mode": "Mode",
-        "modes": {
-          "single": "Show single media viewer",
-          "grid": "Show media viewer for each camera in a grid"
-        }
+        "mode": "Mode"
       },
       "layout": {
         "fit": "Layout fit",
@@ -375,6 +371,10 @@
         "timeline": "Timeline view"
       }
     }
+  },
+  "display_modes": {
+    "single": "Show single media viewer",
+    "grid": "Show media viewer for each camera in a grid"
   },
   "editor": {
     "add_new_camera": "Add new camera",

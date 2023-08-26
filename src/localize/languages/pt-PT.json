@@ -153,11 +153,7 @@
         "grid_columns": "",
         "grid_max_columns": "",
         "grid_selected_width_factor": "",
-        "mode": "",
-        "modes": {
-          "single": "",
-          "grid": ""
-        }
+        "mode": ""
       },
       "layout": {
         "fit": "Fit",
@@ -362,6 +358,10 @@
         "timeline": "Visualização da linha do tempo"
       }
     }
+  },
+  "display_modes": {
+    "grid": "",
+    "single": ""
   },
   "editor": {
     "add_new_camera": "Adicionar nova câmera",

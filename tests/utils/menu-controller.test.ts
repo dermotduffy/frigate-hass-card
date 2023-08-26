@@ -1102,7 +1102,10 @@ describe('MenuButtonController', () => {
           enabled: true,
           priority: 50,
           type: 'custom:frigate-card-menu-icon',
-          title: 'Display mode',
+          title:
+            displayMode === 'grid'
+              ? 'Show single media viewer'
+              : 'Show media viewer for each camera in a grid',
           tap_action: {
             action: 'fire-dom-event',
             frigate_card_action: 'display_mode_select',
