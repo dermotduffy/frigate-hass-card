@@ -136,7 +136,7 @@ export class FrigateCardMediaCarousel extends LitElement {
   // Debounce multiple calls to adapt the container height.
   protected _debouncedAdaptContainerHeightToSlide = debounce(
     this._adaptContainerHeightToSlide.bind(this),
-    1 * 100,
+    1 * 250,
     {trailing: true});
 
   // This carousel may be resized by Lovelace resizes, window resizes,
