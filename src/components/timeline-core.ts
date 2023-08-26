@@ -63,6 +63,7 @@ import {
   MediaQueriesClassifier,
   MediaQueriesType,
 } from '../view/media-queries-classifier';
+import { MediaQueriesResults } from '../view/media-queries-results';
 import { View } from '../view/view';
 import './date-picker.js';
 import { DatePickerEvent, FrigateCardDatePicker } from './date-picker.js';
@@ -85,7 +86,7 @@ interface TimelineViewContext {
 }
 
 type TimelineItemClickAction = 'play' | 'select';
-type TimelinePanBehavior = 'pan' | 'seek' | 'seek-in-media';
+type TimelinePanBehavior = 'pan' | 'seek' | 'seek-in-media' | 'seek-in-camera';
 
 declare module 'view' {
   interface ViewContext {
@@ -288,13 +289,17 @@ export class FrigateCardTimelineCore extends LitElement {
         ? localize('timeline.pan_behavior.pan')
         : this._panBehavior === 'seek'
         ? localize('timeline.pan_behavior.seek')
-        : localize('timeline.pan_behavior.seek-in-media');
+        : this._panBehavior === 'seek-in-media'
+        ? localize('timeline.pan_behavior.seek-in-media')
+        : localize('timeline.pan_behavior.seek-in-camera');
     const panIcon =
       this._panBehavior === 'pan'
         ? 'mdi:pan-horizontal'
         : this._panBehavior === 'seek'
-        ? 'mdi:filmstrip'
-        : 'mdi:lock';
+        ? 'mdi:filmstrip-box-multiple'
+        : this._panBehavior === 'seek-in-media'
+        ? 'mdi:play-box-lock'
+        : 'mdi:camera-lock';
 
     return html` ${capabilities?.supportsTimeline
       ? html` <div
@@ -314,6 +319,8 @@ export class FrigateCardTimelineCore extends LitElement {
                         ? 'seek'
                         : this._panBehavior === 'seek'
                         ? 'seek-in-media'
+                        : this._panBehavior === 'seek-in-media'
+                        ? 'seek-in-camera'
                         : 'pan';
                   }}
                   aria-label="${panTitle}"
@@ -406,15 +413,18 @@ export class FrigateCardTimelineCore extends LitElement {
     const targetBarOn =
       this._shouldSupportSeeking() &&
       (this._panBehavior === 'seek' ||
+        this._panBehavior === 'seek-in-camera' ||
         (this._panBehavior === 'seek-in-media' &&
           this._timeline.getSelection().some((id) => {
             const item = this._timelineSource?.dataset?.get(id);
             return (
+              this._panBehavior !== 'seek-in-camera' ||
+                item?.media?.getCameraID() === this.view?.camera,
               item &&
-              item.start &&
-              item.end &&
-              targetTime.getTime() >= item.start &&
-              targetTime.getTime() <= item.end
+                item.start &&
+                item.end &&
+                targetTime.getTime() >= item.start &&
+                targetTime.getTime() <= item.end
             );
           })));
 
@@ -482,19 +492,30 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     const canSeek = this._shouldSupportSeeking();
-    const newResults =
-      this._panBehavior === 'seek-in-media'
-        ? results
-        : results
-            .clone()
-            .resetSelectedResult()
-            .selectBestResult(
-              (media) => findBestMediaIndex(media, targetTime, this.view?.camera),
-              {
-                allCameras: true,
-                main: true,
-              },
-            );
+    let newResults: MediaQueriesResults | null = null;
+
+    if (this._panBehavior === 'seek') {
+      newResults = results
+        .clone()
+        .resetSelectedResult()
+        .selectBestResult(
+          (mediaArray) => findBestMediaIndex(mediaArray, targetTime, this.view?.camera),
+          {
+            allCameras: true,
+            main: true,
+          },
+        );
+    } else if (this._panBehavior === 'seek-in-camera') {
+      newResults = results
+        .clone()
+        .resetSelectedResult()
+        .selectBestResult((mediaArray) => findBestMediaIndex(mediaArray, targetTime), {
+          cameraID: this.view.camera,
+        })
+        .promoteCameraSelectionToMainSelection(this.view.camera);
+    } else if (this._panBehavior === 'seek-in-media') {
+      newResults = results;
+    }
 
     const desiredView: FrigateCardView = this.mini
       ? targetTime >= new Date()

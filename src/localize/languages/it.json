@@ -504,6 +504,7 @@
     "pan_behavior": {
       "pan": "",
       "seek": "",
+      "seek-in-camera": "",
       "seek-in-media": ""
     },
     "select_date": "Scegli la data"
