@@ -66,7 +66,7 @@ export class CameraManagerEngineFactory {
       engine = Engine.MotionEye;
     } else if (cameraConfig.engine === 'generic') {
       engine = Engine.Generic;
-    } else if (cameraConfig.engine === 'auto') {
+    } else {
       const cameraEntity = getCameraEntityFromConfig(cameraConfig);
 
       if (cameraEntity) {

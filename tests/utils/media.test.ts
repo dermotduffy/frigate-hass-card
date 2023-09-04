@@ -108,6 +108,16 @@ describe('playMediaMutingIfNecessary', () => {
     expect(player.isMuted).toBeCalled();
     expect(player.mute).toBeCalled();
   });
+
+  it('should ignore calls without a video', async () => {
+    const player = mock<FrigateCardMediaPlayer>();
+    player.isMuted.mockReturnValue(false);
+
+    await playMediaMutingIfNecessary(player);
+
+    expect(player.isMuted).not.toBeCalled();
+    expect(player.mute).not.toBeCalled();
+  });
 });
 
 describe('constants', () => {

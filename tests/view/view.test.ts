@@ -4,7 +4,7 @@ import { ViewMedia } from '../../src/view/media';
 import { EventMediaQueries, RecordingMediaQueries } from '../../src/view/media-queries';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
 import { View, dispatchViewContextChangeEvent } from '../../src/view/view';
-import { createView, generateViewMediaArray } from '../test-utils';
+import { createView } from '../test-utils';
 
 // @vitest-environment jsdom
 describe('View Basics', () => {
@@ -122,11 +122,26 @@ describe('View Basics', () => {
     expect(view.context).toEqual({});
   });
 
+  it('should not remove context when no context', () => {
+    const view = createView();
+    expect(view.context).toBeNull();
+
+    view.removeContext('live');
+    expect(view.context).toBeNull();
+  });
+
   it('should remove context property', () => {
     const view = createView({ context: { live: { overrides: new Map() } } });
 
     view.removeContextProperty('live', 'overrides');
     expect(view.context).toEqual({ live: {} });
+  });
+
+  it('should not remove context property that does not exist', () => {
+    const view = createView({ context: {} });
+
+    view.removeContextProperty('live', 'overrides');
+    expect(view.context).toEqual({});
   });
 
   it('should detect gallery views', () => {
@@ -292,6 +307,28 @@ describe('View.adoptFromViewIfAppropriate', () => {
     expect(next.queryResults).toBe(queryResults);
   });
 
+  it('should not adopt for gallery case if neither query nor results in current view', () => {
+    const current = createView({
+      view: 'clip',
+      query: null,
+      queryResults: null,
+    });
+
+    const nextQuery = new EventMediaQueries([
+      { type: QueryType.Event, cameraIDs: new Set(['camera']), hasClip: true },
+    ]);
+    const nextResults = new MediaQueriesResults();
+    const next = createView({
+      view: 'clips',
+      query: nextQuery,
+      queryResults: nextResults,
+    });
+    View.adoptFromViewIfAppropriate(next, current);
+    expect(next.view).toBe('clips');
+    expect(next.query).toBe(nextQuery);
+    expect(next.queryResults).toBe(nextResults);
+  });
+
   it.each([
     [
       new EventMediaQueries([
@@ -311,7 +348,7 @@ describe('View.adoptFromViewIfAppropriate', () => {
       ]),
       'recording',
     ],
-  ])('should adopt for media case', (mediaQueries, expectedView) => {
+  ])('should adopt in media case', (mediaQueries, expectedView) => {
     const current = createView({
       view: 'media',
       query: mediaQueries,
@@ -322,6 +359,54 @@ describe('View.adoptFromViewIfAppropriate', () => {
     expect(next.view).toBe(expectedView);
     expect(next.query).toBeFalsy();
     expect(next.queryResults).toBeFalsy();
+  });
+
+  it('should not adopt for mixed queries in media case', () => {
+    const query = new EventMediaQueries([
+      { type: QueryType.Event, cameraIDs: new Set(['camera']), hasClip: true },
+      { type: QueryType.Event, cameraIDs: new Set(['camera']), hasSnapshot: true },
+    ]);
+    const results = new MediaQueriesResults();
+    const current = createView({
+      view: 'media',
+      query: query,
+      queryResults: results,
+    });
+    const next = createView({ view: 'media' });
+    View.adoptFromViewIfAppropriate(next, current);
+
+    expect(next.view).toBe('media');
+    expect(next.query).toBeNull();
+    expect(next.queryResults).toBeNull();
+  });
+
+  it('should not adopt when queries and results present in next view in media case', () => {
+    const currentQuery = new EventMediaQueries([
+      { type: QueryType.Event, cameraIDs: new Set(['camera-1']), hasClip: true },
+      { type: QueryType.Event, cameraIDs: new Set(['camera-1']), hasSnapshot: true },
+    ]);
+    const currentResults = new MediaQueriesResults();
+    const current = createView({
+      view: 'media',
+      query: currentQuery,
+      queryResults: currentResults,
+    });
+
+    const nextQuery = new EventMediaQueries([
+      { type: QueryType.Event, cameraIDs: new Set(['camera-2']), hasClip: true },
+      { type: QueryType.Event, cameraIDs: new Set(['camera-2']), hasSnapshot: true },
+    ]);
+    const nextResults = new MediaQueriesResults();
+    const next = createView({
+      view: 'media',
+      query: nextQuery,
+      queryResults: nextResults,
+    });
+    View.adoptFromViewIfAppropriate(next, current);
+
+    expect(next.view).toBe('media');
+    expect(next.query).toBe(nextQuery);
+    expect(next.queryResults).toBe(nextResults);
   });
 
   it('should not adopt for other case', () => {
@@ -431,11 +516,15 @@ describe('View.adoptFromViewIfAppropriate', () => {
     expect(createView({ view: 'media' }).supportsMultipleDisplayModes()).toBeTruthy();
     expect(createView({ view: 'clip' }).supportsMultipleDisplayModes()).toBeTruthy();
     expect(createView({ view: 'snapshot' }).supportsMultipleDisplayModes()).toBeTruthy();
-    expect(createView({ view: 'recording' }).supportsMultipleDisplayModes()).toBeTruthy();
+    expect(
+      createView({ view: 'recording' }).supportsMultipleDisplayModes(),
+    ).toBeTruthy();
 
     expect(createView({ view: 'clips' }).supportsMultipleDisplayModes()).toBeFalsy();
     expect(createView({ view: 'snapshots' }).supportsMultipleDisplayModes()).toBeFalsy();
-    expect(createView({ view: 'recordings' }).supportsMultipleDisplayModes()).toBeFalsy();
+    expect(
+      createView({ view: 'recordings' }).supportsMultipleDisplayModes(),
+    ).toBeFalsy();
     expect(createView({ view: 'image' }).supportsMultipleDisplayModes()).toBeFalsy();
     expect(createView({ view: 'timeline' }).supportsMultipleDisplayModes()).toBeFalsy();
   });

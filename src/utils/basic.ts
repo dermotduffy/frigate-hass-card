@@ -232,3 +232,11 @@ export const isTruthy = <T>(x: T | false | undefined | null | '' | 0): x is T =>
  */
 export const isHTMLElement = (element: unknown): element is HTMLElement =>
   element instanceof HTMLElement;
+
+export const getChildrenFromElement = (parent: HTMLElement): HTMLElement[] => {
+  const children =
+    parent instanceof HTMLSlotElement
+      ? parent.assignedElements({ flatten: true })
+      : [...parent.children];
+  return children.filter(isHTMLElement);
+};

@@ -243,4 +243,40 @@ describe('dispatchViewContextChangeEvent', () => {
         .map((media) => media.getID()),
     ).toEqual(['id-office-99', 'id-kitchen-99', 'id-office-99']);
   });
+
+  it('should get multiple selected results without main', () => {
+    const results = new MediaQueriesResults({
+      results: generateViewMediaArray(),
+    });
+
+    expect(
+      results
+        .getMultipleSelectedResults({ main: false, allCameras: true })
+        .map((media) => media.getID()),
+    ).toEqual(['id-kitchen-99', 'id-office-99']);
+  });
+
+  it('should get no results with invalid camera ID without main', () => {
+    const results = new MediaQueriesResults({
+      results: generateViewMediaArray(),
+    });
+
+    expect(
+      results
+        .getMultipleSelectedResults({ main: false, cameraID: 'not-a-real-camera' })
+        .map((media) => media.getID()),
+    ).toEqual([]);
+  });
+
+  it('should not demote main selection when selecting from a specific camera', () => {
+    const results = new MediaQueriesResults({
+      results: generateViewMediaArray(),
+    });
+
+    results.selectIndex(42);
+    results.selectIndex(24, 'office');
+
+    expect(results.getSelectedIndex()).toBe(42);
+    expect(results.getSelectedIndex('office')).toBe(24);
+  });
 });

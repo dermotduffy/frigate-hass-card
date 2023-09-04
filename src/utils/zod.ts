@@ -74,23 +74,22 @@ export const getParseErrorPaths = <T>(error: z.ZodError<T>): Set<string> | null 
    * available unions). This usually suggests the user specified an incorrect
    * type name entirely. */
   const contenders = new Set<string>();
-  if (error && error.issues) {
-    for (let i = 0; i < error.issues.length; i++) {
-      const issue = error.issues[i];
-      if (issue.code == 'invalid_union') {
+  if (error.issues.length) {
+    for (const issue of error.issues) {
+      if (issue.code === 'invalid_union') {
         const unionErrors = (issue as z.ZodInvalidUnionIssue).unionErrors;
-        for (let j = 0; j < unionErrors.length; j++) {
-          const nestedErrors = getParseErrorPaths(unionErrors[j]);
+        for (const unionError of unionErrors) {
+          const nestedErrors = getParseErrorPaths(unionError);
           if (nestedErrors && nestedErrors.size) {
             nestedErrors.forEach(contenders.add, contenders);
           }
         }
-      } else if (issue.code == 'invalid_type') {
-        if (issue.path[issue.path.length - 1] == 'type') {
+      } else if (issue.code === 'invalid_type') {
+        if (issue.path[issue.path.length - 1] === 'type') {
           return null;
         }
         contenders.add(getParseErrorPathString(issue.path));
-      } else if (issue.code != 'custom') {
+      } else {
         contenders.add(getParseErrorPathString(issue.path));
       }
     }

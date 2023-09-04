@@ -65,8 +65,6 @@ export function getAllDependentCameras(
       }
     }
   };
-  if (cameraID) {
-    getDependentCameras(cameraID);
-  }
+  getDependentCameras(cameraID);
   return cameraIDs;
 }

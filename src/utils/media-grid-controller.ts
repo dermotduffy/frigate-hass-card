@@ -2,7 +2,7 @@ import isEqual from 'lodash-es/isEqual';
 import throttle from 'lodash-es/throttle';
 import Masonry from 'masonry-layout';
 import { MediaLoadedInfo, ViewDisplayConfig } from '../types';
-import { dispatchFrigateCardEvent, setOrRemoveAttribute } from './basic';
+import { dispatchFrigateCardEvent, getChildrenFromElement, setOrRemoveAttribute } from './basic';
 import {
   FrigateMediaLoadedEventTarget,
   dispatchExistingMediaLoadedInfoAsEvent,
@@ -144,20 +144,11 @@ export class MediaGridController {
   }
 
   protected _calculateGridContentsFromHost = (): void => {
-    let childrenElements: Element[];
-
-    if (this._host instanceof HTMLSlotElement) {
-      childrenElements = this._host.assignedElements();
-    } else {
-      childrenElements = [...this._host.children];
-    }
-
+    const children = getChildrenFromElement(this._host);
     const gridContents: MediaGridContents = new Map();
-    for (const child of childrenElements) {
-      if (child instanceof HTMLElement) {
-        const id = child.getAttribute(this._idAttribute) || String(gridContents.size);
-        gridContents.set(id, child);
-      }
+    for (const child of children) {
+      const id = child.getAttribute(this._idAttribute) || String(gridContents.size);
+      gridContents.set(id, child);
     }
 
     this._setGridContents(gridContents);
@@ -200,6 +191,7 @@ export class MediaGridController {
     const eventPath = ev.composedPath();
 
     for (const [id, element] of this._gridContents.entries()) {
+      /* istanbul ignore else: the else path cannot be reached -- @preserve */
       if (eventPath.includes(element)) {
         this._mediaLoadedInfoMap.set(id, ev.detail);
         if (id !== this._selected) {
@@ -271,6 +263,7 @@ export class MediaGridController {
     const eventPath = ev.composedPath();
 
     for (const [id, element] of this._gridContents.entries()) {
+      /* istanbul ignore else: the else path cannot be reached -- @preserve */
       if (eventPath.includes(element)) {
         if (this._selected !== id) {
           this.selectCell(id);

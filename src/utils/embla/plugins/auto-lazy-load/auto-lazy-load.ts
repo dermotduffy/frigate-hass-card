@@ -1,17 +1,26 @@
+import { EmblaCarouselType, EmblaEventType } from 'embla-carousel';
 import { CreateOptionsType } from 'embla-carousel/components/Options';
-import { CreatePluginType } from 'embla-carousel/components/Plugins';
-import EmblaCarousel, { EmblaCarouselType, EmblaEventType } from 'embla-carousel';
-import { LazyUnloadCondition } from '../../types';
+import { OptionsHandlerType } from 'embla-carousel/components/OptionsHandler';
+import { CreatePluginType, LoosePluginType } from 'embla-carousel/components/Plugins';
+import { LazyUnloadCondition } from '../../../../types';
+
+declare module 'embla-carousel/components/Plugins' {
+  interface EmblaPluginsType {
+    lazyload?: AutoLazyLoadType;
+  }
+}
 
 type OptionsType = CreateOptionsType<{
   // Number of slides to lazyload left/right of selected (0 == only selected
   // slide).
-  lazyLoadCount?: number;
+  lazyLoadCount: number;
   lazyUnloadCondition?: LazyUnloadCondition;
 
   lazyLoadCallback?: (index: number, slide: HTMLElement) => void;
   lazyUnloadCallback?: (index: number, slide: HTMLElement) => void;
 }>;
+type AutoLazyLoadOptionsType = Partial<OptionsType>;
+type AutoLazyLoadType = CreatePluginType<LoosePluginType, AutoLazyLoadOptionsType>;
 
 const defaultOptions: OptionsType = {
   active: true,
@@ -19,74 +28,54 @@ const defaultOptions: OptionsType = {
   lazyLoadCount: 0,
 };
 
-type LazyloadOptionsType = Partial<OptionsType>;
-
-type LazyloadType = CreatePluginType<
-  {
-    hasLazyloaded(index: number): boolean;
-  },
-  LazyloadOptionsType
->;
-
-declare module 'embla-carousel/components/Plugins' {
-  interface EmblaPluginsType {
-    lazyload?: LazyloadType;
-  }
-}
-
-export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
-  const optionsHandler = EmblaCarousel.optionsHandler();
-  const optionsBase = optionsHandler.merge(defaultOptions, Lazyload.globalOptions);
-  let options: LazyloadType['options'];
-
-  let carousel: EmblaCarouselType;
+export function AutoLazyLoad(
+  userOptions: AutoLazyLoadOptionsType = {},
+): AutoLazyLoadType {
+  let options: OptionsType;
+  let emblaApi: EmblaCarouselType;
   let slides: HTMLElement[];
   const lazyLoadedSlides: Set<number> = new Set();
 
-  const loadEvents: EmblaEventType[] = ['init', 'select', 'resize'];
+  const loadEvents: EmblaEventType[] = ['init', 'select'];
   const unloadEvents: EmblaEventType[] = ['select'];
 
-  /**
-   * Initialize the plugin.
-   */
-  function init(embla: EmblaCarouselType): void {
-    carousel = embla;
-    options = optionsHandler.atMedia(self.options);
-    slides = carousel.slideNodes();
+  function init(
+    emblaApiInstance: EmblaCarouselType,
+    optionsHandler: OptionsHandlerType,
+  ): void {
+    const { mergeOptions, optionsAtMedia } = optionsHandler;
+    const allOptions = mergeOptions(defaultOptions, userOptions);
+    options = optionsAtMedia(allOptions);
+
+    emblaApi = emblaApiInstance;
+    slides = emblaApi.slideNodes();
 
     if (options.lazyLoadCallback) {
-      loadEvents.forEach((evt) => carousel.on(evt, lazyLoadHandler));
+      loadEvents.forEach((evt) => emblaApi.on(evt, lazyLoadHandler));
     }
     if (
       options.lazyUnloadCallback &&
       options.lazyUnloadCondition &&
       ['all', 'unselected'].includes(options.lazyUnloadCondition)
     ) {
-      unloadEvents.forEach((evt) => carousel.on(evt, lazyUnloadPreviousHandler));
+      unloadEvents.forEach((evt) => emblaApi.on(evt, lazyUnloadPreviousHandler));
     }
     document.addEventListener('visibilitychange', visibilityHandler);
   }
 
-  /**
-   * Destroy the plugin.
-   */
   function destroy(): void {
     if (options.lazyLoadCallback) {
-      loadEvents.forEach((evt) => carousel.off(evt, lazyLoadHandler));
+      loadEvents.forEach((evt) => emblaApi.off(evt, lazyLoadHandler));
     }
     if (options.lazyUnloadCallback) {
-      unloadEvents.forEach((evt) => carousel.off(evt, lazyUnloadPreviousHandler));
+      unloadEvents.forEach((evt) => emblaApi.off(evt, lazyUnloadPreviousHandler));
     }
     document.removeEventListener('visibilitychange', visibilityHandler);
   }
 
-  /**
-   * Handle document visibility changes.
-   */
   function visibilityHandler(): void {
     if (
       document.visibilityState === 'hidden' &&
-      options.lazyUnloadCallback &&
       options.lazyUnloadCondition &&
       ['all', 'hidden'].includes(options.lazyUnloadCondition)
     ) {
@@ -96,21 +85,13 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
     }
   }
 
-  /**
-   * Determine if a slide index has been lazily loaded.
-   * @param index Slide index.
-   * @returns `true` if the slide has been lazily loaded.
-   */
   function hasLazyloaded(index: number): boolean {
     return lazyLoadedSlides.has(index);
   }
 
-  /**
-   * Lazily load media in the carousel.
-   */
   function lazyLoadHandler(): void {
-    const lazyLoadCount = options.lazyLoadCount ?? 0;
-    const currentIndex = carousel.selectedScrollSnap();
+    const lazyLoadCount = options.lazyLoadCount;
+    const currentIndex = emblaApi.selectedScrollSnap();
     const slidesToLoad = new Set<number>();
 
     // Lazily load 'count' slides on either side of the slides in view.
@@ -130,9 +111,6 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
     });
   }
 
-  /**
-   * Lazily unload all media in the carousel.
-   */
   function lazyUnloadAllHandler(): void {
     lazyLoadedSlides.forEach((index) => {
       if (options.lazyUnloadCallback) {
@@ -142,11 +120,8 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
     });
   }
 
-  /**
-   * Lazily unload the previously selected media in the carousel.
-   */
   function lazyUnloadPreviousHandler(): void {
-    const index = carousel.previousScrollSnap();
+    const index = emblaApi.previousScrollSnap();
 
     if (hasLazyloaded(index) && options.lazyUnloadCallback) {
       options.lazyUnloadCallback(index, slides[index]);
@@ -154,14 +129,11 @@ export function Lazyload(userOptions?: LazyloadOptionsType): LazyloadType {
     }
   }
 
-  const self: LazyloadType = {
-    name: 'lazyload',
-    options: optionsHandler.merge(optionsBase, userOptions),
+  const self: AutoLazyLoadType = {
+    name: 'autoLazyLoad',
+    options: userOptions,
     init,
     destroy,
-    hasLazyloaded,
   };
   return self;
 }
-
-Lazyload.globalOptions = <LazyloadOptionsType | undefined>undefined;

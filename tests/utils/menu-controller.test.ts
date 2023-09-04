@@ -1,4 +1,5 @@
 import { HomeAssistant } from 'custom-card-helpers';
+import isEqual from 'lodash-es/isEqual';
 import screenfull from 'screenfull';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
@@ -158,6 +159,26 @@ describe('MenuButtonController', () => {
         },
       ],
     });
+  });
+
+  it('should not have a cameras menu without a visible camera', () => {
+    const cameraManager = createCameraManager({
+      configs: new Map([
+        ['camera-1', createCameraConfig()],
+        ['camera-2', createCameraConfig()],
+      ]),
+    });
+
+    vi.mocked(cameraManager.getStore()).getVisibleCameras.mockReturnValue(new Map());
+
+    const buttons = calculateButtons(controller, { cameraManager: cameraManager });
+    expect(buttons).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: 'Cameras',
+        }),
+      ]),
+    );
   });
 
   it('should have substream button with single dependency', () => {
@@ -1122,7 +1143,17 @@ describe('MenuButtonController', () => {
       style: {},
     };
     controller.addDynamicMenuButton(button);
-    expect(calculateButtons(controller)).toContainEqual(button);
+    expect(
+      calculateButtons(controller).filter((menuButton) => isEqual(button, menuButton))
+        .length,
+    ).toBe(1);
+
+    // Adding it again will have no effect.
+    controller.addDynamicMenuButton(button);
+    expect(
+      calculateButtons(controller).filter((menuButton) => isEqual(button, menuButton))
+        .length,
+    ).toBe(1);
 
     controller.removeDynamicMenuButton(button);
     expect(calculateButtons(controller)).not.toContainEqual(button);

@@ -69,13 +69,11 @@ export class CachedValueController<T> implements ReactiveController {
   public startTimer(): void {
     this.stopTimer();
 
-    if (this._timerSeconds > 0) {
-      this._timerStartCallback?.();
-      this._timer.startRepeated(this._timerSeconds, () => {
-        this.updateValue();
-        this._host.requestUpdate();
-      });
-    }
+    this._timerStartCallback?.();
+    this._timer.startRepeated(this._timerSeconds, () => {
+      this.updateValue();
+      this._host.requestUpdate();
+    });
   }
 
   public hasTimer(): boolean {

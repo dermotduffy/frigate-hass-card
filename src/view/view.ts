@@ -111,13 +111,9 @@ export class View {
     const switchingToMediaFromMedia = curr?.is('media') && next.is('media');
 
     if (hasNoQueryOrResults) {
-      if (switchingToGalleryFromViewer) {
-        if (curr.query) {
-          next.query = curr.query;
-        }
-        if (curr.queryResults) {
-          next.queryResults = curr.queryResults;
-        }
+      if (switchingToGalleryFromViewer && curr.query && curr.queryResults) {
+        next.query = curr.query;
+        next.queryResults = curr.queryResults;
       } else if (switchingToMediaFromMedia && currentQueriesView) {
         next.view =
           currentQueriesView === 'clips'

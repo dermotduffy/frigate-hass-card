@@ -239,17 +239,53 @@ export class TestViewMedia extends ViewMedia {
   }
 }
 
-export const createResizeObserverImplementation = (): (() => void) => {
-  return () => ({
-    observe: vi.fn(),
-    unobserve: vi.fn(),
-    disconnect: vi.fn(),
-  });
+export const ResizeObserverMock = vi.fn(() => ({
+  disconnect: vi.fn(),
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+}));
+
+export const IntersectionObserverMock = vi.fn(() => ({
+  disconnect: vi.fn(),
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+}));
+
+export const MutationObserverMock = vi.fn(() => ({
+  disconnect: vi.fn(),
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+}));
+
+export const requestAnimationFrameMock = (callback: FrameRequestCallback) => {
+  callback(new Date().getTime());
+  return 1;
 };
 
-export const createMutationObserverImplementation = (): (() => void) => {
-  return () => ({
-    observe: vi.fn(),
-    disconnect: vi.fn(),
-  });
+export const createSlotHost = (options?: {
+  slot?: HTMLSlotElement;
+  children?: HTMLElement[];
+}): HTMLElement => {
+  const parent = document.createElement('div');
+  parent.attachShadow({ mode: 'open' });
+
+  if (options?.slot) {
+    parent.shadowRoot?.append(options.slot);
+  }
+  if (options?.children) {
+    // Children will automatically be slotted into the default slot when it is
+    // created.
+    parent.append(...options.children);
+  }
+  return parent;
+};
+
+export const createSlot = (): HTMLSlotElement => {
+  return document.createElement('slot');
+};
+
+export const createParent = (options?: { children?: HTMLElement[] }): HTMLElement => {
+  const parent = document.createElement('div');
+  parent.append(...(options?.children ?? []));
+  return parent;
 };

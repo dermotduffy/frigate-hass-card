@@ -3,10 +3,34 @@ import { customElement, property } from 'lit/decorators.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import titleStyle from '../scss/title-control.scss';
 import { TitleControlConfig } from '../types.js';
+import { Timer } from '../utils/timer';
 import { View } from '../view/view.js';
 
 type PaperToast = HTMLElement & {
   opened: boolean;
+};
+
+export const showTitleControlAfterDelay = (
+  control: FrigateCardTitleControl,
+  timer: Timer,
+  delay = 0.5,
+): void => {
+  const show = () => {
+    timer.stop();
+    control.show();
+  };
+
+  if (control.isVisible()) {
+    // If it's already visible, update it immediately (but also update it
+    // after the timer expires to ensure it re-positions if necessary, see
+    // comment below).
+    show();
+  }
+
+  // Allow a brief pause after the media loads, but before the title is
+  // displayed. This allows for a pleasant appearance/disappear of the title,
+  // and allows for the browser to finish rendering the carousel.
+  timer.start(delay, show);
 };
 
 export const getDefaultTitleConfigForView = (
@@ -39,10 +63,6 @@ export class FrigateCardTitleControl extends LitElement {
 
   protected _toastRef: Ref<PaperToast> = createRef();
 
-  /**
-   * Master render method.
-   * @returns A rendered template.
-   */
   protected render(): TemplateResult {
     if (!this.text || !this.config || this.config.mode == 'none' || !this.fitInto) {
       return html``;
@@ -64,17 +84,10 @@ export class FrigateCardTitleControl extends LitElement {
     </paper-toast>`;
   }
 
-  /**
-   * Determine if the toast is visible.
-   * @returns `true` if the toast is visible, `false` otherwise.
-   */
   public isVisible(): boolean {
     return this._toastRef.value?.opened ?? false;
   }
 
-  /**
-   * Show the toast.
-   */
   public hide(): void {
     if (this._toastRef.value) {
       // Set it to false first, to ensure the timer resets.
@@ -82,9 +95,6 @@ export class FrigateCardTitleControl extends LitElement {
     }
   }
 
-  /**
-   * Show the toast.
-   */
   public show(): void {
     if (this._toastRef.value) {
       // Set it to false first, to ensure the timer resets.
@@ -93,9 +103,6 @@ export class FrigateCardTitleControl extends LitElement {
     }
   }
 
-  /**
-   * Get element styles.
-   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(titleStyle);
   }

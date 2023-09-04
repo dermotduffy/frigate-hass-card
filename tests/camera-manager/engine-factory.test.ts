@@ -100,6 +100,11 @@ describe('CameraManagerEngineFactory.getEngineForCamera()', () => {
       Engine.Frigate,
     );
   });
+  it('should get no engine from config with insufficient details', async () => {
+    const config = createCameraConfig({});
+    expect(await createFactory().getEngineForCamera(createHASS(), config)).toBeNull();
+  });
+
   it('should throw error on invalid entity', async () => {
     const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
     const entityRegistryManager = new EntityRegistryManager(new EntityCache());

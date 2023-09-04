@@ -26,7 +26,7 @@ class ResultSlice {
     if (options?.results && options.results.length) {
       if (!options?.selectApproach || options?.selectApproach === 'last') {
         return options.results.length - 1;
-      } else if (options.selectApproach === 'first') {
+      } else {
         return 0;
       }
     }

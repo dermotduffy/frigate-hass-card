@@ -82,7 +82,7 @@ export class MenuButtonController {
       ) as FrigateCardCustomAction,
     });
 
-    if (visibleCameras) {
+    if (visibleCameras.size) {
       const menuItems = Array.from(visibleCameras, ([cameraID, config]) => {
         const action = createFrigateCardCustomAction('camera_select', {
           camera: cameraID,
@@ -399,6 +399,7 @@ export class MenuButtonController {
       const action = createFrigateCardCustomAction('display_mode_select', {
         display_mode: isGrid ? 'single' : 'grid',
       });
+      /* istanbul ignore else: the else path cannot be reached -- @preserve */
       if (action) {
         buttons.push({
           icon: isGrid ? 'mdi:grid-off' : 'mdi:grid',

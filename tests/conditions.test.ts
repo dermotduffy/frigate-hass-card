@@ -99,6 +99,13 @@ describe('getOverriddenConfig', () => {
       },
     });
   });
+
+  it('should do nothing without overrides', () => {
+    const controller = new ConditionController();
+    controller.setState({ fullscreen: true });
+
+    expect(getOverriddenConfig(controller, config)).toBe(config);
+  });
 });
 
 describe('getOverridesByKey', () => {
