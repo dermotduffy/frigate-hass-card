@@ -69,18 +69,36 @@ describe('AutoSize', () => {
   it('should correctly handle resize', () => {
     const plugin = AutoSize();
     const parent = createParent();
-    const emblaApi = createEmblaApiInstance({ containerNode: parent });
+    const children = createTestSlideNodes();
+    const emblaApi = createEmblaApiInstance({
+      containerNode: parent,
+      selectedScrollSnap: 0,
+      slideNodes: children,
+      slideRegistry: [[0]],
+    });
 
     plugin.init(emblaApi, createTestEmblaOptionHandler());
 
+    children[0].getBoundingClientRect = vi.fn().mockReturnValue({
+      width: 200,
+      height: 800,
+    });
+
     callResizeHandler([{ target: parent, width: 10, height: 20 }]);
     callResizeHandler([{ target: parent, width: 10, height: 20 }]);
     callResizeHandler([{ target: parent, width: 10, height: 20 }]);
 
+    expect(parent.style.maxHeight).toBe('800px');
     expect(emblaApi.reInit).toBeCalledTimes(1);
+
+    children[0].getBoundingClientRect = vi.fn().mockReturnValue({
+      width: 200,
+      height: 600,
+    });
 
     callResizeHandler([{ target: parent, width: 20, height: 40 }]);
 
+    expect(parent.style.maxHeight).toBe('600px');
     expect(emblaApi.reInit).toBeCalledTimes(2);
   });
 

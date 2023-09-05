@@ -97,7 +97,7 @@ function AutoSize(): AutoSizeType {
   }
 
   function resizeHandler(entries: ResizeObserverEntry[]): void {
-    let callReInit = false;
+    let resize = false;
 
     for (const entry of entries) {
       const newDimensions: SlideDimensions = {
@@ -113,12 +113,12 @@ function AutoSize(): AutoSizeType {
           oldDimensions?.width !== newDimensions.width)
       ) {
         previousDimensions.set(entry.target, newDimensions);
-        callReInit = true;
+        resize = true;
       }
     }
 
-    if (callReInit) {
-      reInitController?.reinit();
+    if (resize) {
+      debouncedSetContainerHeight();
     }
   }
 
@@ -143,6 +143,8 @@ function AutoSize(): AutoSizeType {
     if (!isNaN(highest) && highest > 0) {
       emblaApi.containerNode().style.maxHeight = `${highest}px`;
     }
+
+    reInitController?.reinit();
   }
 
   const self: AutoSizeType = {
