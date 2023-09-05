@@ -1,5 +1,5 @@
 import Masonry from 'masonry-layout';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { MediaLoadedInfo } from '../../src/types';
 import {
@@ -12,6 +12,7 @@ import {
   ResizeObserverMock,
   createSlot,
   createSlotHost,
+  requestAnimationFrameMock,
 } from '../test-utils';
 
 vi.mock('lodash-es/throttle', () => ({
@@ -60,14 +61,16 @@ const createController = (host: HTMLElement, options?: MediaGridConstructorOptio
   return new MediaGridController(host, options);
 };
 
-const triggerMutationObserver = (): void => {
-  const mutationObserverTrigger = vi.mocked(global.MutationObserver).mock.calls[0][0];
+const triggerMutationObserver = (hostOrCell: 'cell' | 'host'): void => {
+  const mutationObserverTrigger = vi.mocked(global.MutationObserver).mock.calls[
+    hostOrCell === 'host' ? 0 : 1
+  ][0];
   mutationObserverTrigger([], mock<MutationObserver>());
 };
 
-const triggerResizeObserver = (cellOrHost: 'cell' | 'host'): void => {
+const triggerResizeObserver = (hostOrCell: 'cell' | 'host'): void => {
   const resizeObserverTrigger = vi.mocked(global.ResizeObserver).mock.calls[
-    cellOrHost === 'cell' ? 0 : 1
+    hostOrCell === 'host' ? 0 : 1
   ][0];
   resizeObserverTrigger([], mock<ResizeObserver>());
 };
@@ -78,6 +81,10 @@ describe('MediaGridController', () => {
     width: 10,
     height: 20,
   };
+
+  beforeAll(() => {
+    window.requestAnimationFrame = requestAnimationFrameMock;
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -311,13 +318,40 @@ describe('MediaGridController', () => {
     const newChildren = createChildren(['one', 'two', 'three']);
     newChildren.forEach((child) => parent.appendChild(child));
 
-    triggerMutationObserver();
+    triggerMutationObserver('host');
 
     expect(controller.getGridContents()).toEqual(
       new Map([
         ['one', newChildren[0]],
         ['two', newChildren[1]],
         ['three', newChildren[2]],
+      ]),
+    );
+    expect(controller.getSelected()).toBeNull();
+  });
+
+  it('should re-calculate children when id attribute changes', () => {
+    const children = createChildren(['one', 'two', 'three'], 'test-id');
+    const parent = createParent({ children: children });
+    const controller = createController(parent, {
+      selected: 'one',
+      idAttribute: 'test-id',
+    });
+
+    expect(controller.getSelected()).toBe('one');
+    expect(controller.getGridSize()).toBe(3);
+
+    children[0].setAttribute('test-id', 'alpha');
+    children[1].setAttribute('test-id', 'beta');
+    children[2].setAttribute('test-id', 'gamma');
+
+    triggerMutationObserver('cell');
+
+    expect(controller.getGridContents()).toEqual(
+      new Map([
+        ['alpha', children[0]],
+        ['beta', children[1]],
+        ['gamma', children[2]],
       ]),
     );
     expect(controller.getSelected()).toBeNull();
@@ -372,7 +406,9 @@ describe('MediaGridController', () => {
         columnWidth: 246,
       }),
     );
-    expect(parent.style.getPropertyValue('--frigate-card-grid-column-size')).toBe('246px');
+    expect(parent.style.getPropertyValue('--frigate-card-grid-column-size')).toBe(
+      '246px',
+    );
   });
 
   it('should respect exact columns', () => {
@@ -459,7 +495,9 @@ describe('MediaGridController', () => {
         columnWidth: 246,
       }),
     );
-    expect(parent.style.getPropertyValue('--frigate-card-grid-column-size')).toBe('246px');
+    expect(parent.style.getPropertyValue('--frigate-card-grid-column-size')).toBe(
+      '246px',
+    );
 
     // Clear mock state.
     vi.mocked(Masonry).mockClear();
@@ -476,7 +514,9 @@ describe('MediaGridController', () => {
         columnWidth: 667,
       }),
     );
-    expect(parent.style.getPropertyValue('--frigate-card-grid-column-size')).toBe('667px');
+    expect(parent.style.getPropertyValue('--frigate-card-grid-column-size')).toBe(
+      '667px',
+    );
     expect(masonry.layout).toBeCalled();
 
     // Clear mock state.

@@ -1,3 +1,5 @@
+// TODO: Live non-grid -> live grid -> timeline is different from when the timeline is dragged.
+
 import {
   CSSResultGroup,
   html,
