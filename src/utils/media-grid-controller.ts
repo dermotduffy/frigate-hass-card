@@ -2,7 +2,11 @@ import isEqual from 'lodash-es/isEqual';
 import throttle from 'lodash-es/throttle';
 import Masonry from 'masonry-layout';
 import { MediaLoadedInfo, ViewDisplayConfig } from '../types';
-import { dispatchFrigateCardEvent, getChildrenFromElement, setOrRemoveAttribute } from './basic';
+import {
+  dispatchFrigateCardEvent,
+  getChildrenFromElement,
+  setOrRemoveAttribute,
+} from './basic';
 import {
   FrigateMediaLoadedEventTarget,
   dispatchExistingMediaLoadedInfoAsEvent,
@@ -43,20 +47,29 @@ export class MediaGridController {
   protected _idAttribute: string;
 
   protected _throttledLayout = throttle(
-    () => this._masonry?.layout?.(),
+    () => {
+      window.requestAnimationFrame(() => this._masonry?.layout?.());
+    },
     // Throttle layout calls to larger than the masonry.js transitionDuration
     // value specified below.
-    300,
+    400,
     { trailing: true, leading: false },
   );
 
-  protected _mutationObserver = new MutationObserver(
+  // If the order in which the observers are declared changes, the unittest must
+  // be updated in triggerResizeObserver and triggerMutationObserver.
+  protected _hostMutationObserver = new MutationObserver(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (_mutations: MutationRecord[], _observer: MutationObserver) =>
       this._calculateGridContentsFromHost(),
   );
-  protected _cellResizeObserver = new ResizeObserver(this._cellResizeHandler.bind(this));
+  protected _cellMutationObserver = new MutationObserver(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    (_mutations: MutationRecord[], _observer: MutationObserver) =>
+      this._calculateGridContentsFromHost(),
+  );
   protected _hostResizeObserver = new ResizeObserver(this._hostResizeHandler.bind(this));
+  protected _cellResizeObserver = new ResizeObserver(this._cellResizeHandler.bind(this));
 
   constructor(host: HTMLElement, options?: MediaGridConstructorOptions) {
     this._host = host;
@@ -66,7 +79,10 @@ export class MediaGridController {
     this._hostResizeObserver.observe(host);
     this._displayConfig = options?.displayConfig ?? null;
 
-    this._mutationObserver.observe(host, { childList: true });
+    this._hostMutationObserver.observe(host, {
+      childList: true,
+    });
+
     // Need to separately listen for slotchanges since mutation observer will
     // not be called for shadom DOM slotted changes.
     if (host instanceof HTMLSlotElement) {
@@ -79,7 +95,9 @@ export class MediaGridController {
     this._hostResizeObserver.disconnect();
     this._cellResizeObserver.disconnect();
 
-    this._mutationObserver.disconnect();
+    this._hostMutationObserver.disconnect();
+    this._cellMutationObserver.disconnect();
+
     if (this._host instanceof HTMLSlotElement) {
       this._host.removeEventListener('slotchange', this._calculateGridContentsFromHost);
     }
@@ -154,13 +172,13 @@ export class MediaGridController {
     this._setGridContents(gridContents);
   };
 
-  protected _setGridContents(elements: MediaGridContents): void {
-    this._gridContents = elements;
+  protected _setGridContents(gridContents: MediaGridContents): void {
+    this._gridContents = gridContents;
 
     // Remove media loaded info objects that belong to objects no longer in the
     // grid.
     for (const key of this._mediaLoadedInfoMap.keys()) {
-      if (!elements.has(key)) {
+      if (!gridContents.has(key)) {
         this._mediaLoadedInfoMap.delete(key);
       }
     }
@@ -169,7 +187,7 @@ export class MediaGridController {
       this.unselectAll();
     }
 
-    for (const element of elements.values()) {
+    for (const element of gridContents.values()) {
       this._removeChildEventListeners(element);
       this._addChildEventListeners(element);
     }
@@ -177,9 +195,14 @@ export class MediaGridController {
     this._setColumnSizeStyles();
     this._createMasonry();
 
-    // Observe grid elements for size changes.
+    // Observe grid elements for size or id changes.
+    this._cellMutationObserver.disconnect();
     this._cellResizeObserver.disconnect();
-    for (const child of elements.values()) {
+    for (const child of gridContents.values()) {
+      this._cellMutationObserver.observe(child, {
+        attributeFilter: [this._idAttribute],
+        attributes: true,
+      });
       this._cellResizeObserver.observe(child);
     }
 
