@@ -1221,8 +1221,6 @@ export class FrigateCardTimelineCore extends LitElement {
         createdTimeline = true;
         const noGroups = this.mini && groups.length === 1;
         if (noGroups) {
-          // In a mini timeline, if there's only one group don't bother grouping
-          // at all.
           this._timeline = new Timeline(
             this._refTimeline.value,
             this._timelineSource.dataset,

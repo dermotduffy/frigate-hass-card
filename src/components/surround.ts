@@ -113,12 +113,14 @@ export class FrigateCardSurround extends LitElement {
       import('./timeline.js');
     }
 
-    // Only reset the timeline cameraIDs when the media materially changes (and
-    // not on every view change, since the view will change frequently when the
-    // user is scrubbing video).
+    // Only reset the timeline cameraIDs when the media or display mode
+    // materially changes (and not on every view change, since the view will
+    // change frequently when the user is scrubbing video).
+    const oldView = changedProperties.get('view');
     if (
       changedProperties.has('view') &&
-      View.isMajorMediaChange(changedProperties.get('view'), this.view)
+      (View.isMajorMediaChange(oldView, this.view) ||
+        oldView.displayMode !== this.view?.displayMode)
     ) {
       this._cameraIDsForTimeline = this._getCameraIDsForTimeline() ?? undefined;
     }
