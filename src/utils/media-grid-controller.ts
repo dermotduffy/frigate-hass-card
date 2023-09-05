@@ -47,12 +47,10 @@ export class MediaGridController {
   protected _idAttribute: string;
 
   protected _throttledLayout = throttle(
-    () => {
-      window.requestAnimationFrame(() => this._masonry?.layout?.());
-    },
+    () => this._masonry?.layout?.(),
     // Throttle layout calls to larger than the masonry.js transitionDuration
     // value specified below.
-    400,
+    300,
     { trailing: true, leading: false },
   );
 

@@ -1,6 +1,7 @@
 import { EmblaCarouselType } from 'embla-carousel';
 import { LooseOptionsType } from 'embla-carousel/components/Options';
 import { CreatePluginType, LoosePluginType } from 'embla-carousel/components/Plugins';
+import debounce from 'lodash-es/debounce';
 import { EmblaReInitController } from '../../reinit-controller';
 
 declare module 'embla-carousel/components/Plugins' {
@@ -37,6 +38,10 @@ function AutoSize(): AutoSizeType {
     intersectionHandler,
   );
 
+  const debouncedSetContainerHeight = debounce(() => setContainerHeight(), 200, {
+    trailing: true,
+  });
+
   function init(emblaApiInstance: EmblaCarouselType): void {
     emblaApi = emblaApiInstance;
     reInitController = new EmblaReInitController(emblaApi);
@@ -47,7 +52,13 @@ function AutoSize(): AutoSizeType {
       resizeObserver.observe(slide);
     }
 
-    emblaApi.on('settle', setContainerHeight);
+    // Need to examine container size on both settle and media load, as settle
+    // may happen before the media is loaded (which they subsequently changes
+    // the size to large than the maxHeight is set).
+    emblaApi
+      .containerNode()
+      .addEventListener('frigate-card:media:loaded', debouncedSetContainerHeight);
+    emblaApi.on('settle', debouncedSetContainerHeight);
   }
 
   function destroy(): void {
@@ -55,7 +66,10 @@ function AutoSize(): AutoSizeType {
     resizeObserver.disconnect();
     reInitController?.destroy();
 
-    emblaApi.off('settle', setContainerHeight);
+    emblaApi
+      .containerNode()
+      .removeEventListener('frigate-card:media:loaded', debouncedSetContainerHeight);
+    emblaApi.off('settle', debouncedSetContainerHeight);
   }
 
   function intersectionHandler(entries: IntersectionObserverEntry[]): void {

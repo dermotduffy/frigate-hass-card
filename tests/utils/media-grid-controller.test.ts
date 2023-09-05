@@ -1,5 +1,5 @@
 import Masonry from 'masonry-layout';
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { MediaLoadedInfo } from '../../src/types';
 import {
@@ -12,7 +12,6 @@ import {
   ResizeObserverMock,
   createSlot,
   createSlotHost,
-  requestAnimationFrameMock,
 } from '../test-utils';
 
 vi.mock('lodash-es/throttle', () => ({
@@ -81,10 +80,6 @@ describe('MediaGridController', () => {
     width: 10,
     height: 20,
   };
-
-  beforeAll(() => {
-    window.requestAnimationFrame = requestAnimationFrameMock;
-  });
 
   beforeEach(() => {
     vi.clearAllMocks();

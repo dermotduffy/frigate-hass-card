@@ -15,7 +15,6 @@ import {
   createTestSlideNodes,
 } from '../../test-utils';
 
-// Mock out debouncing (used in the reinit controller).
 vi.mock('lodash-es/debounce', () => ({
   default: vi.fn((fn) => fn),
 }));

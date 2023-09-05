@@ -50,9 +50,6 @@ export class EmblaReInitController {
 
   protected _debouncedReInit = debounce(
     () => {
-      // Allow the browser a moment to paint components that are inflight, to
-      // ensure accurate measurements are taken during the carousel
-      // reinitialization.
       this._scrolling = false;
       this._shouldReInitOnScrollStop = false;
       this._emblaApi?.reInit();
