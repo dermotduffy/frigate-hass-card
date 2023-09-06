@@ -37,6 +37,9 @@ export class FrigateCardThumbnailCarousel extends LitElement {
   @property({ attribute: false })
   public config?: ThumbnailsControlConfig;
 
+  @property({ attribute: false })
+  public fadeThumbnails = false;
+
   protected _thumbnailSlides: TemplateResult[] = [];
 
   protected willUpdate(changedProps: PropertyValues): void {
@@ -65,7 +68,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
     if (changedProps.has('view')) {
       this.style.setProperty(
         '--frigate-card-carousel-thumbnail-opacity',
-        this._getSelectedSlide() === null ? '1.0' : '0.4',
+        !this.fadeThumbnails || this._getSelectedSlide() === null ? '1.0' : '0.4',
       );
     }
   }

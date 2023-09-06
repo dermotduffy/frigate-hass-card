@@ -178,6 +178,7 @@ export class FrigateCardSurround extends LitElement {
             .hass=${this.hass}
             .config=${this.thumbnailConfig}
             .cameraManager=${this.cameraManager}
+            .fadeThumbnails=${this.view.isViewerView()}
             .view=${this.view}
             .selected=${this.view.queryResults?.getSelectedIndex() ?? undefined}
             @frigate-card:view:change=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
