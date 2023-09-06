@@ -995,7 +995,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       labelPath,
       { name: 'mdi:page-layout-body' },
       html`
-        ${this._renderOptionSelector(configPathFit, this._layoutFits)}
+        ${this._renderOptionSelector(configPathFit, this._layoutFits, {
+          label: localize('config.common.layout.fit'),
+        })}
         ${this._renderNumberInput(configPathPositionX, {
           min: 0,
           max: 100,
