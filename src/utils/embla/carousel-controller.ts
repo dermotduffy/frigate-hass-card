@@ -137,10 +137,11 @@ export class CarouselController {
     );
 
     const getCarouselSelectedObject = (): CarouselSelected | null => {
-      const selectedIndex = this.getSelectedIndex();
-      const slide = this.getSlide(selectedIndex);
-
-      if (selectedIndex !== null && slide) {
+      // Caution: Must use methods/accessors of the new carousel, not the public
+      // API of this controller which may use a different carousel.
+      const selectedIndex = carousel.selectedScrollSnap();
+      const slide = carousel.slideNodes()[selectedIndex] ?? null;
+      if (slide) {
         return {
           index: selectedIndex,
           element: slide,
@@ -160,7 +161,6 @@ export class CarouselController {
       }
     };
 
-    carousel.on('init', () => selectSlide());
     carousel.on('select', () => selectSlide());
     carousel.on('settle', () => {
       const carouselSelected = getCarouselSelectedObject();

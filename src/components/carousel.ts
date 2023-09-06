@@ -102,9 +102,7 @@ export class FrigateCardCarousel extends LitElement {
           plugins: this.plugins,
         },
       );
-    }
-
-    if (changedProps.has('selected')) {
+    } else if (changedProps.has('selected')) {
       this._carousel?.selectSlide(this.selected);
     }
   }

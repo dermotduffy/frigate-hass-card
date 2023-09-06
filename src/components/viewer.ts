@@ -6,7 +6,7 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
@@ -223,8 +223,8 @@ export class FrigateCardViewerCarousel extends LitElement {
   @property({ attribute: false })
   public cameraManager?: CameraManager;
 
-  @property({ attribute: false })
-  public selected = 0;
+  @state()
+  protected _selected = 0;
 
   protected _media: ViewMedia[] | null = null;
   protected _titleTimer = new Timer();
@@ -298,12 +298,12 @@ export class FrigateCardViewerCarousel extends LitElement {
    */
   protected _getMediaNeighbors(): MediaNeighbors | null {
     const mediaCount = this._media?.length ?? 0;
-    if (!this._media || this.selected === null) {
+    if (!this._media) {
       return null;
     }
 
-    const prevIndex = this.selected > 0 ? this.selected - 1 : null;
-    const nextIndex = this.selected + 1 < mediaCount ? this.selected + 1 : null;
+    const prevIndex = this._selected > 0 ? this._selected - 1 : null;
+    const nextIndex = this._selected + 1 < mediaCount ? this._selected + 1 : null;
     return {
       ...(prevIndex !== null && {
         previous: {
@@ -325,7 +325,7 @@ export class FrigateCardViewerCarousel extends LitElement {
       return;
     }
 
-    if (this.selected === null || this.selected === index) {
+    if (this._selected === index) {
       // The slide may already be selected on load, so don't dispatch a new view
       // unless necessary (i.e. the new index is different from the current
       // index).
@@ -408,10 +408,10 @@ export class FrigateCardViewerCarousel extends LitElement {
         this.view?.queryResults?.getSelectedIndex(this.viewFilterCameraID) ?? 0;
       const newSeek = this.view?.context?.mediaViewer?.seek;
 
-      if (newMedia !== this._media || newSelected !== this.selected || !newSeek) {
+      if (newMedia !== this._media || newSelected !== this._selected || !newSeek) {
         setOrRemoveAttribute(this, false, 'unseekable');
         this._media = newMedia;
-        this.selected = newSelected;
+        this._selected = newSelected;
       }
     }
   }
@@ -427,7 +427,7 @@ export class FrigateCardViewerCarousel extends LitElement {
     // If there's no selected media, just choose the last (most recent one) to
     // avoid rendering a blank. This situation should not occur in practice, as
     // this view should not be called without a selected media.
-    const selectedMedia = this._media[this.selected] ?? this._media[mediaCount - 1];
+    const selectedMedia = this._media[this._selected] ?? this._media[mediaCount - 1];
 
     if (!this.hass || !this.cameraManager || !selectedMedia) {
       return;
@@ -460,7 +460,7 @@ export class FrigateCardViewerCarousel extends LitElement {
       <frigate-card-carousel
         .dragEnabled=${this.viewerConfig?.draggable ?? true}
         .plugins=${guard([this.viewerConfig, this._media], this._getPlugins.bind(this))}
-        .selected=${this.selected ?? 0}
+        .selected=${this._selected}
         transitionEffect=${this._getTransitionEffect()}
         @frigate-card:carousel:select=${(ev: CustomEvent<CarouselSelected>) => {
           this._setViewSelectedIndex(ev.detail.index);
@@ -526,10 +526,15 @@ export class FrigateCardViewerCarousel extends LitElement {
    */
   protected async _seekHandler(): Promise<void> {
     const seek = this.view?.context?.mediaViewer?.seek;
-    if (!this.hass || !seek || !this._media || this.selected === null || !this._player) {
+    if (
+      !this.hass ||
+      !seek ||
+      !this._media ||
+      !this._player
+    ) {
       return;
     }
-    const selectedMedia = this._media[this.selected];
+    const selectedMedia = this._media[this._selected];
     if (!selectedMedia) {
       return;
     }

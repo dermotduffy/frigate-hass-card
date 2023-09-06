@@ -434,7 +434,9 @@ export class FrigateCardLiveCarousel extends LitElement {
 
   protected _getSelectedCameraIndex(): number {
     const cameraIDs = this.cameraManager?.getStore().getVisibleCameraIDs();
-    if (!cameraIDs || !this.view) {
+    if (!cameraIDs || !this.view || this.viewFilterCameraID) {
+      // If the carousel is limited to a single cameraID, the first (only)
+      // element is always the selected one.
       return 0;
     }
     return Math.max(0, Array.from(cameraIDs).indexOf(this.view.camera));
