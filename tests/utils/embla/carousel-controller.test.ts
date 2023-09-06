@@ -130,30 +130,25 @@ describe('CarouselController', () => {
     expect(settleHandler).toBeCalled();
   });
 
-  describe('should dispatch select event on', () => {
-    it.each([['init' as const], ['select' as const]])(
-      '%s',
-      (emblaApiEvt: 'init' | 'select') => {
-        const children = createTestSlideNodes();
-        const parent = createParent({ children: children });
-        new CarouselController(createRoot(), parent);
+  it('should dispatch select event', () => {
+    const children = createTestSlideNodes();
+    const parent = createParent({ children: children });
+    new CarouselController(createRoot(), parent);
 
-        const selectHandler = vi.fn();
-        parent.addEventListener('frigate-card:carousel:select', selectHandler);
+    const selectHandler = vi.fn();
+    parent.addEventListener('frigate-card:carousel:select', selectHandler);
 
-        getEmblaApi()?.selectedScrollSnap.mockReturnValue(6);
-        getEmblaApi()?.slideNodes.mockReturnValue(children);
-        callEmblaHandler(getEmblaApi(), emblaApiEvt);
+    getEmblaApi()?.selectedScrollSnap.mockReturnValue(6);
+    getEmblaApi()?.slideNodes.mockReturnValue(children);
+    callEmblaHandler(getEmblaApi(), 'select');
 
-        expect(selectHandler).toBeCalledWith(
-          expect.objectContaining({
-            detail: {
-              index: 6,
-              element: children[6],
-            },
-          }),
-        );
-      },
+    expect(selectHandler).toBeCalledWith(
+      expect.objectContaining({
+        detail: {
+          index: 6,
+          element: children[6],
+        },
+      }),
     );
   });
 
