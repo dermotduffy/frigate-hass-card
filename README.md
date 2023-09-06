@@ -1649,6 +1649,12 @@ Pan around a large camera view to only show part of the video feed in the card a
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/dev/images/navigate-picture-elements.gif" alt="Taking card actions via the URL" width="400px">
 
+### Interacting with a camera grid
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/dev/images/grid-small.gif" alt="Interacting with a camera grid" width="400px">
+
+## Examples
+
 ## Examples
 
 ### Illustrative Expanded Configuration Reference
