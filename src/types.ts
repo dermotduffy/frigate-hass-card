@@ -217,7 +217,10 @@ const frigateCardCustomActionsBaseSchema = customActionSchema.extend({
     .or(z.literal('fire-dom-event')),
 
   // Card this command is intended for.
-  card_id: z.string().optional(),
+  card_id: z
+    .string()
+    .regex(/^\w+$/, 'card_id parameter can only contain [a-z][A-Z][0-9_]')
+    .optional(),
 });
 
 const FRIGATE_CARD_GENERAL_ACTIONS = [
