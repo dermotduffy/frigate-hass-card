@@ -749,7 +749,7 @@ class FrigateCard extends LitElement {
     // the default view and the querystring view, see:
     // https://github.com/dermotduffy/frigate-hass-card/issues/1200
     if (!this._view) {
-      const querystringActions = getActionsFromQueryString();
+      const querystringActions = getActionsFromQueryString(window.location.search);
       if (
         !querystringActions.find(
           (action) =>
@@ -1594,7 +1594,9 @@ class FrigateCard extends LitElement {
   protected _locationChangeHandler = (): void => {
     // Only execute actions when the card has rendered at least once.
     if (this.hasUpdated) {
-      getActionsFromQueryString().forEach((action) => this._cardActionHandler(action));
+      getActionsFromQueryString(window.location.search).forEach((action) =>
+        this._cardActionHandler(action),
+      );
     }
   };
 

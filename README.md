@@ -3807,7 +3807,7 @@ The card can respond to actions in the query string (see [below](#query-string-a
 This example assumes the dashboard URL is `https://ha.mydomain.org/lovelace-test/0`.
 
 ```
-https://ha.mydomain.org/lovelace-test/0?frigate-card-action:camera_select=kitchen&frigate-card-action:expand
+https://ha.mydomain.org/lovelace-test/0?frigate-card-action.camera_select=kitchen&frigate-card-action.expand
 ```
 </details>
 
@@ -3826,7 +3826,7 @@ cameras:
 ```
 
 ```
-https://ha.mydomain.org/lovelace-test/0?frigate-card-action:main:clips
+https://ha.mydomain.org/lovelace-test/0?frigate-card-action.main.clips
 ```
 </details>
 
@@ -3859,7 +3859,7 @@ elements:
       left: 30%
     tap_action:
       action: navigate
-      navigation_path: /lovelace-frigate/map?frigate-card-action:camera_select=camera.living_room
+      navigation_path: /lovelace-frigate/map?frigate-card-action.camera_select=camera.living_room
   - type: icon
     icon: mdi:cctv
     style:
@@ -3867,7 +3867,7 @@ elements:
       left: 42%
     tap_action:
       action: navigate
-      navigation_path: /lovelace-frigate/map?frigate-card-action:camera_select=camera.landing
+      navigation_path: /lovelace-frigate/map?frigate-card-action.camera_select=camera.landing
 ```
 
 </details>
@@ -3998,13 +3998,13 @@ The Frigate card will execute these actions in the following circumstances:
 To send an action to *all* Frigate cards:
 
 ```
-[PATH_TO_YOUR_HA_DASHBOARD]?frigate-card-action:[ACTION]=[VALUE]
+[PATH_TO_YOUR_HA_DASHBOARD]?frigate-card-action.[ACTION]=[VALUE]
 ```
 
 To send an action to a named Frigate card:
 
 ```
-[PATH_TO_YOUR_HA_DASHBOARD]?frigate-card-action:[CARD_ID]:[ACTION]=[VALUE]
+[PATH_TO_YOUR_HA_DASHBOARD]?frigate-card-action.[CARD_ID].[ACTION]=[VALUE]
 ```
 
 | Parameter | Description |
@@ -4012,6 +4012,8 @@ To send an action to a named Frigate card:
 | `ACTION` | One of the supported Frigate Card custom actions (see below). |
 | `CARD_ID` | When specified only cards that have a `card_id` parameter will act. |
 | `VALUE` | An optional value to use with the `camera_select` and `live_substream_select` actions. |
+
+**Note**: Both `.` and `:` may be used as the delimiter. If you use `:` some browsers may require it be escaped to `%3A`.
 
 **Note**: If a dashboard has multiple Frigate cards on it, even if they are on
 different 'tabs' within that dashboard, they will all respond to the actions
