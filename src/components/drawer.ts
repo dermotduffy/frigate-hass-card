@@ -13,7 +13,7 @@ import { SideDrawer } from 'side-drawer';
 import drawerInjectStyle from '../scss/drawer-inject.scss';
 import drawerStyle from '../scss/drawer.scss';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
-import { isHoverableDevice } from '../utils/basic';
+import { getChildrenFromElement, isHoverableDevice } from '../utils/basic';
 
 export interface DrawerIcons {
   open?: string;
@@ -67,12 +67,14 @@ export class FrigateCardDrawer extends LitElement {
    * Called when the slotted children in the drawer change.
    */
   protected _slotChanged(): void {
-    const elements = this._refSlot.value?.assignedElements({ flatten: true });
+    const children = this._refSlot.value
+      ? getChildrenFromElement(this._refSlot.value)
+      : [];
 
     // Watch all slot children for size changes.
     this._resizeObserver.disconnect();
-    for (const element of elements ?? []) {
-      this._resizeObserver.observe(element);
+    for (const child of children) {
+      this._resizeObserver.observe(child);
     }
     this._hideDrawerIfNecessary();
   }
@@ -86,11 +88,13 @@ export class FrigateCardDrawer extends LitElement {
       return;
     }
 
-    const elements = this._refSlot.value?.assignedElements({ flatten: true });
+    const children = this._refSlot.value
+      ? getChildrenFromElement(this._refSlot.value)
+      : null;
     this.empty =
-      !elements ||
-      !elements.length ||
-      elements.every((element) => {
+      !children ||
+      !children.length ||
+      children.every((element) => {
         const box = element.getBoundingClientRect();
         return !box.width || !box.height;
       });

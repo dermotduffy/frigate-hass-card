@@ -111,3 +111,43 @@ export function isValidMediaLoadedInfo(info: MediaLoadedInfo): boolean {
     info.height >= MEDIA_INFO_HEIGHT_CUTOFF && info.width >= MEDIA_INFO_WIDTH_CUTOFF
   );
 }
+
+// Facilitates correct Typescript typing of media:loaded/unloaded event handlers.
+export interface FrigateMediaLoadedEventTarget extends EventTarget {
+  addEventListener(
+    event: 'frigate-card:media:loaded',
+    listener: (
+      this: FrigateMediaLoadedEventTarget,
+      ev: CustomEvent<MediaLoadedInfo>,
+    ) => void,
+    options?: AddEventListenerOptions | boolean,
+  ): void;
+  addEventListener(
+    event: 'frigate-card:media:unloaded',
+    listener: (this: FrigateMediaLoadedEventTarget, ev: CustomEvent) => void,
+    options?: AddEventListenerOptions | boolean,
+  ): void;
+  addEventListener(
+    type: string,
+    callback: EventListenerOrEventListenerObject,
+    options?: AddEventListenerOptions | boolean,
+  ): void;
+  removeEventListener(
+    event: 'frigate-card:media:loaded',
+    listener: (
+      this: FrigateMediaLoadedEventTarget,
+      ev: CustomEvent<MediaLoadedInfo>,
+    ) => void,
+    options?: boolean | EventListenerOptions,
+  ): void;
+  removeEventListener(
+    event: 'frigate-card:media:unloaded',
+    listener: (this: FrigateMediaLoadedEventTarget, ev: CustomEvent) => void,
+    options?: boolean | EventListenerOptions,
+  ): void;
+  removeEventListener(
+    type: string,
+    callback: EventListenerOrEventListenerObject,
+    options?: boolean | EventListenerOptions,
+  ): void;
+}

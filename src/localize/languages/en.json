@@ -148,6 +148,13 @@
           }
         }
       },
+      "display": {
+        "editor_label": "Display",
+        "grid_columns": "Exact number of grid columns",
+        "grid_max_columns": "Maximum number of grid columns",
+        "grid_selected_width_factor": "Increase selected media width by this factor",
+        "mode": "Mode"
+      },
       "layout": {
         "fit": "Layout fit",
         "fits": {
@@ -269,6 +276,7 @@
         "cameras": "Cameras",
         "clips": "Clips",
         "download": "Download",
+        "display_mode": "Display mode",
         "enabled": "Button enabled",
         "expand": "Expand",
         "frigate": "Frigate menu / Default view",
@@ -364,6 +372,10 @@
       }
     }
   },
+  "display_modes": {
+    "single": "Show single media viewer",
+    "grid": "Show media viewer for each camera in a grid"
+  },
   "editor": {
     "add_new_camera": "Add new camera",
     "button": "Button",
@@ -454,6 +466,9 @@
     "what": "What",
     "where": "Where"
   },
+  "media_viewer": {
+    "unseekable": "Seek time not found in media"
+  },
   "media_filter": {
     "all": "All",
     "camera": "Camera",
@@ -501,6 +516,7 @@
     "pan_behavior": {
       "pan": "Pan",
       "seek": "Pan seeks across all media",
+      "seek-in-camera": "Pan seeks within selected camera only",
       "seek-in-media": "Pan seeks within selected media item only"
     },
     "select_date": "Choose date"

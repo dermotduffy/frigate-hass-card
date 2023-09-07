@@ -1,4 +1,5 @@
 import { HomeAssistant } from 'custom-card-helpers';
+import isEqual from 'lodash-es/isEqual';
 import screenfull from 'screenfull';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
@@ -9,6 +10,7 @@ import {
   FrigateCardMediaPlayer,
   MediaLoadedInfo,
   MenuButton,
+  ViewDisplayMode,
 } from '../../src/types';
 import { createFrigateCardCustomAction } from '../../src/utils/action';
 import { MenuButtonController } from '../../src/utils/menu-controller';
@@ -67,6 +69,7 @@ const calculateButtons = (
   );
 };
 
+// @vitest-environment jsdom
 describe('MenuButtonController', () => {
   let controller: MenuButtonController;
   const dynamicButton: MenuButton = {
@@ -156,6 +159,26 @@ describe('MenuButtonController', () => {
         },
       ],
     });
+  });
+
+  it('should not have a cameras menu without a visible camera', () => {
+    const cameraManager = createCameraManager({
+      configs: new Map([
+        ['camera-1', createCameraConfig()],
+        ['camera-2', createCameraConfig()],
+      ]),
+    });
+
+    vi.mocked(cameraManager.getStore()).getVisibleCameras.mockReturnValue(new Map());
+
+    const buttons = calculateButtons(controller, { cameraManager: cameraManager });
+    expect(buttons).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: 'Cameras',
+        }),
+      ]),
+    );
   });
 
   it('should have substream button with single dependency', () => {
@@ -612,7 +635,10 @@ describe('MenuButtonController', () => {
 
     const cameraManager = createCameraManager();
     const view = createView({
-      queryResults: new MediaQueriesResults([new ViewMedia('clip', 'camera-1')], 0),
+      queryResults: new MediaQueriesResults({
+        results: [new ViewMedia('clip', 'camera-1')],
+        selectedIndex: 0,
+      }),
     });
     mock<CameraManager>(cameraManager).getMediaCapabilities.mockReturnValue(
       createMediaCapabilities({ canDownload: true }),
@@ -640,7 +666,10 @@ describe('MenuButtonController', () => {
 
     const cameraManager = createCameraManager();
     const view = createView({
-      queryResults: new MediaQueriesResults([new ViewMedia('clip', 'camera-1')], 0),
+      queryResults: new MediaQueriesResults({
+        results: [new ViewMedia('clip', 'camera-1')],
+        selectedIndex: 0,
+      }),
     });
     mock<CameraManager>(cameraManager).getMediaCapabilities.mockReturnValue(
       createMediaCapabilities({ canDownload: true }),
@@ -1084,13 +1113,47 @@ describe('MenuButtonController', () => {
     });
   });
 
+  describe('should have grid button when display mode is', () => {
+    it.each([['single' as const], ['grid' as const]])(
+      '%s',
+      (displayMode: ViewDisplayMode) => {
+        const view = createView({ view: 'live', displayMode: displayMode });
+        expect(calculateButtons(controller, { view: view })).toContainEqual({
+          icon: displayMode === 'single' ? 'mdi:grid' : 'mdi:grid-off',
+          enabled: true,
+          priority: 50,
+          type: 'custom:frigate-card-menu-icon',
+          title:
+            displayMode === 'grid'
+              ? 'Show single media viewer'
+              : 'Show media viewer for each camera in a grid',
+          tap_action: {
+            action: 'fire-dom-event',
+            frigate_card_action: 'display_mode_select',
+            display_mode: displayMode === 'single' ? 'grid' : 'single',
+          },
+        });
+      },
+    );
+  });
+
   it('should handle dynamic buttons', () => {
     const button: MenuButton = {
       ...dynamicButton,
       style: {},
     };
     controller.addDynamicMenuButton(button);
-    expect(calculateButtons(controller)).toContainEqual(button);
+    expect(
+      calculateButtons(controller).filter((menuButton) => isEqual(button, menuButton))
+        .length,
+    ).toBe(1);
+
+    // Adding it again will have no effect.
+    controller.addDynamicMenuButton(button);
+    expect(
+      calculateButtons(controller).filter((menuButton) => isEqual(button, menuButton))
+        .length,
+    ).toBe(1);
 
     controller.removeDynamicMenuButton(button);
     expect(calculateButtons(controller)).not.toContainEqual(button);

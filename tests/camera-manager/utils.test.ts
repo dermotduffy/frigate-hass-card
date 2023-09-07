@@ -76,30 +76,26 @@ describe('capEndDate', () => {
 });
 
 describe('sortMedia', () => {
-  const media_1 = new TestViewMedia(
-    'id-1',
-    new Date('2023-04-29T14:25'),
-    'clip',
-    'camera-1',
-  );
-  const media_2 = new TestViewMedia(
-    'id-2',
-    new Date('2023-04-29T14:26'),
-    'clip',
-    'camera-1',
-  );
-  const media_3_dup_id = new TestViewMedia(
-    'id-2',
-    new Date('2023-04-29T14:26'),
-    'clip',
-    'camera-1',
-  );
-  const media_4_no_id = new TestViewMedia(
-    null,
-    new Date('2023-04-29T14:27'),
-    'clip',
-    'camera-1',
-  );
+  const media_1 = new TestViewMedia({
+    id: 'id-1',
+    startTime: new Date('2023-04-29T14:25'),
+    cameraID: 'camera-1',
+  });
+  const media_2 = new TestViewMedia({
+    id: 'id-2',
+    startTime: new Date('2023-04-29T14:26'),
+    cameraID: 'camera-1',
+  });
+  const media_3_dup_id = new TestViewMedia({
+    id: 'id-2',
+    startTime: new Date('2023-04-29T14:26'),
+    cameraID: 'camera-1',
+  });
+  const media_4_no_id = new TestViewMedia({
+    id: null,
+    startTime: new Date('2023-04-29T14:27'),
+    cameraID: 'camera-1',
+  });
 
   it('should sort sorted media', () => {
     const media = [media_1, media_2];

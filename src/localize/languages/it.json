@@ -148,6 +148,13 @@
           }
         }
       },
+      "display": {
+        "editor_label": "",
+        "grid_columns": "",
+        "grid_max_columns": "",
+        "grid_selected_width_factor": "",
+        "mode": ""
+      },
       "layout": {
         "fit": "Adatta al layout",
         "fits": {
@@ -267,6 +274,7 @@
         "camera_ui": "Interfaccia utente della fotocamera",
         "cameras": "Telecamere",
         "clips": "Clip",
+        "display_mode": "",
         "download": "Download",
         "enabled": "Pulsante abilitato",
         "expand": "Espandere",
@@ -357,6 +365,10 @@
         "timeline": "Vista della timeline"
       }
     }
+  },
+  "display_modes": {
+    "grid": "",
+    "single": ""
   },
   "editor": {
     "add_new_camera": "Aggiungi nuova telecamera",
@@ -473,6 +485,9 @@
     },
     "where": "Dove"
   },
+  "media_viewer": {
+    "unseekable": ""
+  },
   "recording": {
     "camera": "Camera",
     "duration": "Durata",
@@ -490,6 +505,7 @@
     "pan_behavior": {
       "pan": "",
       "seek": "",
+      "seek-in-camera": "",
       "seek-in-media": ""
     },
     "select_date": "Scegli la data"

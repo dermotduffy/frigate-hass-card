@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
 import {
-    deepRemoveDefaults,
-    getParseErrorKeys,
-    getParseErrorPaths,
+  deepRemoveDefaults,
+  getParseErrorKeys,
+  getParseErrorPaths,
 } from '../../src/utils/zod';
 
 describe('deepRemoveDefaults', () => {
@@ -87,5 +87,8 @@ describe('getParseErrorPaths', () => {
     expect(getParseErrorPaths(result.error)).toEqual(
       new Set(['array[0] -> type', 'array[0] -> data']),
     );
+  });
+  it('should get no paths for empty error', () => {
+    expect(getParseErrorPaths(new ZodError([]))).toEqual(new Set());
   });
 });

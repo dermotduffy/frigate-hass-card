@@ -148,6 +148,13 @@
           }
         }
       },
+      "display": {
+        "editor_label": "",
+        "grid_columns": "",
+        "grid_max_columns": "",
+        "grid_selected_width_factor": "",
+        "mode": ""
+      },
       "layout": {
         "fit": "Fit",
         "fits": {
@@ -260,6 +267,7 @@
         "camera_ui": "Camera",
         "cameras": "Selecionar câmera",
         "clips": "Clipes",
+        "display_mode": "",
         "download": "Descarregar mídia do evento",
         "enabled": "Botão ativado",
         "expand": "Expandir",
@@ -350,6 +358,10 @@
         "timeline": "Visualização da linha do tempo"
       }
     }
+  },
+  "display_modes": {
+    "grid": "",
+    "single": ""
   },
   "editor": {
     "add_new_camera": "Adicionar nova câmera",
@@ -465,6 +477,9 @@
     },
     "where": "Onde"
   },
+  "media_viewer": {
+    "unseekable": ""
+  },
   "recording": {
     "camera": "Camera",
     "duration": "Duração",
@@ -480,9 +495,10 @@
   },
   "timeline": {
     "pan_behavior": {
-      "pan": "Pan",
-      "seek": "Pan seeks across all media",
-      "seek-in-media": "Pan seeks within selected media item only"
+      "pan": "",
+      "seek": "",
+      "seek-in-camera": "",
+      "seek-in-media": ""
     },
     "select_date": "Selecionar a data"
   }

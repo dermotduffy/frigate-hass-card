@@ -7,7 +7,8 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import surroundStyle from '../scss/surround.scss';
+import { CameraManager } from '../camera-manager/manager.js';
+import basicBlockStyle from '../scss/basic-block.scss';
 import {
   CardWideConfig,
   ClipsOrSnapshotsOrAll,
@@ -16,13 +17,11 @@ import {
   ThumbnailsControlConfig,
 } from '../types.js';
 import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
-import { CameraManager } from '../camera-manager/manager.js';
-import { View } from '../view/view.js';
-import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
-import './surround-basic.js';
-import { changeViewToRecentEventsForCameraAndDependents } from '../utils/media-to-view';
 import { getAllDependentCameras } from '../utils/camera.js';
-import type { DataQuery } from '../camera-manager/types';
+import { changeViewToRecentEventsForCameraAndDependents } from '../utils/media-to-view';
+import { View } from '../view/view.js';
+import './surround-basic.js';
+import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 
 interface ThumbnailViewContext {
   // Whether or not to fetch thumbnails.
@@ -88,6 +87,7 @@ export class FrigateCardSurround extends LitElement {
       this.cardWideConfig,
       this.view,
       {
+        allCameras: this.view.isGrid(),
         targetView: this.view.view,
         mediaType: this.fetchMedia,
         select: 'latest',
@@ -113,12 +113,14 @@ export class FrigateCardSurround extends LitElement {
       import('./timeline.js');
     }
 
-    // Only reset the timeline cameraIDs when the media materially changes (and
-    // not on every view change, since the view will change frequently when the
-    // user is scrubbing video).
+    // Only reset the timeline cameraIDs when the media or display mode
+    // materially changes (and not on every view change, since the view will
+    // change frequently when the user is scrubbing video).
+    const oldView = changedProperties.get('view');
     if (
       changedProperties.has('view') &&
-      View.isMajorMediaChange(changedProperties.get('view'), this.view)
+      (View.isMajorMediaChange(oldView, this.view) ||
+        oldView.displayMode !== this.view?.displayMode)
     ) {
       this._cameraIDsForTimeline = this._getCameraIDsForTimeline() ?? undefined;
     }
@@ -138,23 +140,16 @@ export class FrigateCardSurround extends LitElement {
       return null;
     }
     if (this.view?.is('live')) {
-      return getAllDependentCameras(this.cameraManager, this.view.camera);
+      return this.view.isGrid()
+        ? this.cameraManager?.getStore().getVisibleCameraIDs() ?? null
+        : getAllDependentCameras(this.cameraManager, this.view.camera);
     }
     if (this.view.isViewerView()) {
-      return new Set(
-        this.view.query
-          ?.getQueries()
-          ?.map((query: DataQuery) => [...query.cameraIDs])
-          .flat(),
-      );
+      return this.view.query?.getQueryCameraIDs() ?? null;
     }
     return null;
   }
 
-  /**
-   * Master render method.
-   * @returns A rendered template.
-   */
   protected render(): TemplateResult | void {
     if (!this.hass || !this.view) {
       return;
@@ -183,6 +178,7 @@ export class FrigateCardSurround extends LitElement {
             .hass=${this.hass}
             .config=${this.thumbnailConfig}
             .cameraManager=${this.cameraManager}
+            .fadeThumbnails=${this.view.isViewerView()}
             .view=${this.view}
             .selected=${this.view.queryResults?.getSelectedIndex() ?? undefined}
             @frigate-card:view:change=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
@@ -230,11 +226,8 @@ export class FrigateCardSurround extends LitElement {
     </frigate-card-surround-basic>`;
   }
 
-  /**
-   * Return compiled CSS styles.
-   */
   static get styles(): CSSResultGroup {
-    return unsafeCSS(surroundStyle);
+    return unsafeCSS(basicBlockStyle);
   }
 }
 

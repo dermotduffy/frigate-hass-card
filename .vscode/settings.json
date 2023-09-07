@@ -5,5 +5,6 @@
   "i18n-ally.keepFulfilled": true,
   "i18n-ally.editor.preferEditor": true,
   "i18n-ally.translate.saveAsCandidates": true,
-  "vitest.commandLine": "npx vitest --root ."
+  "vitest.commandLine": "npx vitest --root .",
+  "diffEditor.experimental.useVersion2": true
 }

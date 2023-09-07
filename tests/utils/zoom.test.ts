@@ -92,6 +92,27 @@ describe('Zoom', () => {
     expect(panzoom.handleUp).toBeCalledWith(ev_5);
   });
 
+  it('should not respond to pointer when not zoomed', () => {
+    const element = document.createElement('div');
+
+    const panzoom = createMockPanZoom();
+    vi.mocked(Panzoom).mockReturnValueOnce(panzoom);
+
+    createAndRegisterZoom(element);
+
+    const ev_1 = new PointerEvent('pointerdown');
+    element.dispatchEvent(ev_1);
+    expect(panzoom.handleDown).not.toBeCalledWith(ev_1);
+
+    const ev_2 = new PointerEvent('pointermove');
+    element.dispatchEvent(ev_2);
+    expect(panzoom.handleDown).not.toBeCalledWith(ev_2);
+
+    const ev_3 = new PointerEvent('pointerup');
+    element.dispatchEvent(ev_3);
+    expect(panzoom.handleDown).not.toBeCalledWith(ev_3);
+  });
+
   it('should respond with touch', () => {
     mediaMediSpy.mockReturnValue(<MediaQueryList>{ matches: false });
 
@@ -251,5 +272,51 @@ describe('Zoom', () => {
     });
     element.dispatchEvent(ev_2);
     expect(element.style.touchAction).toBeFalsy();
+  });
+
+  it('should not fire frigate cards when state has not changed or spurious events received', () => {
+    const element = document.createElement('div');
+
+    const zoomedFunc = vi.fn();
+    const unzoomedFunc = vi.fn();
+
+    element.addEventListener('frigate-card:zoom:zoomed', zoomedFunc);
+    element.addEventListener('frigate-card:zoom:unzoomed', unzoomedFunc);
+
+    vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
+
+    createAndRegisterZoom(element);
+
+    const ev_1 = new CustomEvent<PanzoomEventDetail>('panzoomzoom', {
+      detail: {
+        x: 0,
+        y: 0,
+        scale: 1,
+        isSVG: false,
+        originalEvent: new PointerEvent('pointermove'),
+      },
+    });
+    element.dispatchEvent(ev_1);
+
+    // Unzoomed event with scale === 1, this._zoomed will already be false.
+    expect(unzoomedFunc).not.toBeCalled();
+    expect(zoomedFunc).not.toBeCalled();
+
+    const ev_2 = new CustomEvent<PanzoomEventDetail>('panzoomzoom', {
+      detail: {
+        x: 0,
+        y: 0,
+        scale: 1.2,
+        isSVG: false,
+        originalEvent: new PointerEvent('pointermove'),
+      },
+    });
+    element.dispatchEvent(ev_2);
+    expect(zoomedFunc).toBeCalledTimes(1);
+    expect(unzoomedFunc).not.toBeCalled();
+
+    // Another call when already zoomed will be ignored.
+    element.dispatchEvent(ev_2);
+    expect(zoomedFunc).toBeCalledTimes(1);
   });
 });

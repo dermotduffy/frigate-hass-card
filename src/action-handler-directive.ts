@@ -6,9 +6,9 @@ import type {
 import { noChange } from 'lit';
 import {
   AttributePart,
-  directive,
   Directive,
   DirectiveParameters,
+  directive,
 } from 'lit/directive.js';
 import { stopEventFromActivatingCardWideActions } from './utils/action.js';
 import { Timer } from './utils/timer.js';
@@ -53,7 +53,10 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     });
   }
 
-  public bind(element: ActionHandlerElement, options): void {
+  public bind(
+    element: ActionHandlerElement,
+    options: FrigateCardActionHandlerOptions,
+  ): void {
     if (element.actionHandlerOptions) {
       // Reset the options on an existing actionHandler.
       element.actionHandlerOptions = options;

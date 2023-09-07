@@ -48,17 +48,18 @@ import {
   CameraConfig,
   CardWideConfig,
   ExtendedHomeAssistant,
+  FRIGATE_CARD_VIEW_DEFAULT,
   FrigateCardConfig,
   frigateCardConfigSchema,
   FrigateCardCustomAction,
   FrigateCardError,
   FrigateCardView,
-  FRIGATE_CARD_VIEW_DEFAULT,
   MediaLoadedInfo,
   MenuButton,
   Message,
   MESSAGE_TYPE_PRIORITIES,
   RawFrigateCardConfig,
+  ViewDisplayMode,
 } from './types.js';
 import {
   convertActionToFrigateCardCustomAction,
@@ -86,6 +87,7 @@ import { supportsFeature } from './utils/ha/update.js';
 import { FrigateCardInitializer } from './utils/initializer.js';
 import { MediaLoadedInfoController } from './utils/media-info-controller';
 import { isValidMediaLoadedInfo } from './utils/media-info.js';
+import { executeMediaQueryForView } from './utils/media-to-view';
 import { MenuButtonController } from './utils/menu-controller';
 import { MicrophoneController } from './utils/microphone';
 import { getActionsFromQueryString } from './utils/querystring.js';
@@ -97,6 +99,7 @@ import {
 } from './utils/substream';
 import { Timer } from './utils/timer';
 import { getParseErrorPaths } from './utils/zod.js';
+import { ViewMediaClassifier } from './view/media-classifier';
 import { View } from './view/view.js';
 
 /** A note on media callbacks:
@@ -414,6 +417,7 @@ class FrigateCard extends LitElement {
           state: this._hass.states,
         }),
       media_loaded: this._mediaLoadedInfoController.has(),
+      displayMode: undefined,
     });
   }
 
@@ -466,6 +470,7 @@ class FrigateCard extends LitElement {
       this._conditionController?.setState({
         view: this._view.view,
         camera: this._view.camera,
+        displayMode: this._view.displayMode ?? undefined,
       });
     };
 
@@ -493,10 +498,14 @@ class FrigateCard extends LitElement {
       }
 
       if (cameraID) {
+        const viewName = args?.viewName ?? this._getConfig().view.default;
+        const displayMode =
+          this._view?.displayMode ?? this._getDefaultDisplayModeForView(viewName);
         changeView(
           new View({
-            view: args?.viewName ?? this._getConfig().view.default,
+            view: viewName,
             camera: cameraID,
+            displayMode: displayMode,
           }),
         );
 
@@ -641,7 +650,10 @@ class FrigateCard extends LitElement {
           targetCamera &&
           (this._view.camera !== targetCamera || !this._view.is('live'))
         ) {
-          this._changeView({ view: new View({ view: 'live', camera: targetCamera }) });
+          this._changeView({
+            viewName: 'live',
+            cameraID: targetCamera,
+          });
           changedCamera = true;
         }
       }
@@ -1003,7 +1015,7 @@ class FrigateCard extends LitElement {
 
     if (this._view.isViewerView() && media) {
       media_content_id = media.getContentID();
-      media_content_type = media.getContentType();
+      media_content_type = ViewMediaClassifier.isVideo(media) ? 'video' : 'image';
       title = media.getTitle();
       thumbnail = media.getThumbnail();
     } else if (this._view?.is('live') && cameraEntity) {
@@ -1049,11 +1061,30 @@ class FrigateCard extends LitElement {
     }
   }
 
+  protected _getDefaultDisplayModeForView(view: FrigateCardView): ViewDisplayMode {
+    let mode: ViewDisplayMode | null = null;
+    switch (view) {
+      case 'media':
+      case 'clip':
+      case 'clips':
+      case 'recording':
+      case 'recordings':
+      case 'snapshot':
+      case 'snapshots':
+        mode = this._getConfig().media_viewer.display?.mode ?? null;
+        break;
+      case 'live':
+        mode = this._getConfig().live.display?.mode ?? null;
+        break;
+    }
+    return mode ?? 'single';
+  }
+
   protected _cardActionHandler(frigateCardAction: FrigateCardCustomAction): void {
     // Note: This function needs to process (view-related) commands even when
     // _view has not yet been initialized (since it may be used to set a view
     // via the querystring).
-    if (!this._cameraManager) {
+    if (!this._cameraManager || !this._hass) {
       return;
     }
 
@@ -1119,7 +1150,8 @@ class FrigateCard extends LitElement {
             ? targetView
             : FRIGATE_CARD_VIEW_DEFAULT;
           this._changeView({
-            view: new View({ view: actualView, camera: selectCameraID }),
+            viewName: actualView,
+            cameraID: selectCameraID,
           });
         }
         break;
@@ -1202,6 +1234,38 @@ class FrigateCard extends LitElement {
               downloadURL(url, generateScreenshotTitle(this._view));
             }
           });
+        break;
+      case 'display_mode_select':
+        const newView = this._view?.evolve({
+          displayMode: frigateCardAction.display_mode,
+        });
+
+        const generateNewQuery =
+          newView?.query &&
+          ((newView.isGrid() && (newView.query.getQueryCameraIDs()?.size ?? 0) <= 1) ||
+            (!newView.isGrid() && (newView.query.getQueryCameraIDs()?.size ?? 0) > 1));
+
+        if (generateNewQuery && newView && newView.query) {
+          // If the user requests a grid but the current query does not have a
+          // query for more than one camera, reset the query results, change the
+          // existing query to refer to all cameras and execute it to fetch new
+          // results.
+          executeMediaQueryForView(
+            this,
+            this._hass,
+            this._cameraManager,
+            newView,
+            newView.query
+              .clone()
+              .setQueryCameraIDs(
+                newView.isGrid()
+                  ? this._cameraManager.getStore().getVisibleCameraIDs()
+                  : newView.camera,
+              ),
+          ).then((view) => view && this._changeView({ view: view }));
+        } else {
+          this._changeView({ view: newView });
+        }
         break;
       default:
         console.warn(`Frigate card received unknown card action: ${action}`);
@@ -1501,15 +1565,21 @@ class FrigateCard extends LitElement {
         ? `${lastKnown.width} / ${lastKnown.height}`
         : 'unset',
     );
-    // Non-media mays have no intrinsic dimensions and so we need to explicit
-    // request the dialog to use all available space.
+    // Non-media may have no intrinsic dimensions (or multiple media items in a
+    // grid) and so we need to explicit request the dialog to use all available
+    // space.
+    const isGrid = this._view?.isGrid();
     this.style.setProperty(
       '--frigate-card-expand-width',
-      this._view?.isAnyMediaView() ? 'none' : 'var(--frigate-card-expand-max-width)',
+      !isGrid && this._view?.isAnyMediaView()
+        ? 'none'
+        : 'var(--frigate-card-expand-max-width)',
     );
     this.style.setProperty(
       '--frigate-card-expand-height',
-      this._view?.isAnyMediaView() ? 'none' : 'var(--frigate-card-expand-max-height)',
+      !isGrid && this._view?.isAnyMediaView()
+        ? 'none'
+        : 'var(--frigate-card-expand-max-height)',
     );
   }
 

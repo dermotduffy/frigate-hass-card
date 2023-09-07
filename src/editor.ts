@@ -78,6 +78,10 @@ import {
   CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS,
   CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
   CONF_LIVE_CONTROLS_TITLE_MODE,
+  CONF_LIVE_DISPLAY_GRID_COLUMNS,
+  CONF_LIVE_DISPLAY_GRID_MAX_COLUMNS,
+  CONF_LIVE_DISPLAY_GRID_SELECTED_WIDTH_FACTOR,
+  CONF_LIVE_DISPLAY_MODE,
   CONF_LIVE_DRAGGABLE,
   CONF_LIVE_LAYOUT_FIT,
   CONF_LIVE_LAYOUT_POSITION_X,
@@ -117,6 +121,10 @@ import {
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS,
   CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
   CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE,
+  CONF_MEDIA_VIEWER_DISPLAY_GRID_COLUMNS,
+  CONF_MEDIA_VIEWER_DISPLAY_GRID_MAX_COLUMNS,
+  CONF_MEDIA_VIEWER_DISPLAY_GRID_SELECTED_WIDTH_FACTOR,
+  CONF_MEDIA_VIEWER_DISPLAY_MODE,
   CONF_MEDIA_VIEWER_DRAGGABLE,
   CONF_MEDIA_VIEWER_LAYOUT_FIT,
   CONF_MEDIA_VIEWER_LAYOUT_POSITION_X,
@@ -126,8 +134,8 @@ import {
   CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
   CONF_MEDIA_VIEWER_ZOOMABLE,
   CONF_MENU_ALIGNMENT,
-  CONF_MENU_BUTTON_SIZE,
   CONF_MENU_BUTTONS,
+  CONF_MENU_BUTTON_SIZE,
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
   CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
@@ -165,9 +173,9 @@ import { setLowPerformanceProfile } from './performance.js';
 import frigate_card_editor_style from './scss/editor.scss';
 import {
   BUTTON_SIZE_MIN,
-  FRIGATE_MENU_PRIORITY_MAX,
   FrigateCardConfig,
   frigateCardConfigDefaults,
+  FRIGATE_MENU_PRIORITY_MAX,
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
@@ -198,6 +206,7 @@ const MENU_LIVE_CONTROLS_NEXT_PREVIOUS = 'live.controls.next_previous';
 const MENU_LIVE_CONTROLS_THUMBNAILS = 'live.controls.thumbnails';
 const MENU_LIVE_CONTROLS_TIMELINE = 'live.controls.timeline';
 const MENU_LIVE_CONTROLS_TITLE = 'live.controls.title';
+const MENU_LIVE_DISPLAY = 'live.display';
 const MENU_LIVE_LAYOUT = 'live.layout';
 const MENU_LIVE_MICROPHONE = 'live.microphone';
 const MENU_MEDIA_GALLERY_CONTROLS_FILTER = 'media_gallery.controls.filter';
@@ -207,6 +216,7 @@ const MENU_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS = 'media_viewer.controls.next_pre
 const MENU_MEDIA_VIEWER_CONTROLS_THUMBNAILS = 'media_viewer.controls.thumbnails';
 const MENU_MEDIA_VIEWER_CONTROLS_TIMELINE = 'media_viewer.controls.timeline';
 const MENU_MEDIA_VIEWER_CONTROLS_TITLE = 'media_viewer.controls.title';
+const MENU_MEDIA_VIEWER_DISPLAY = 'media_viewer.display';
 const MENU_MEDIA_VIEWER_LAYOUT = 'media_viewer.layout';
 const MENU_OPTIONS = 'options';
 const MENU_PERFORMANCE_FEATURES = 'performance.features';
@@ -543,6 +553,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: '', label: '' },
     { value: 'momentary', label: localize('config.menu.buttons.types.momentary') },
     { value: 'toggle', label: localize('config.menu.buttons.types.toggle') },
+  ];
+
+  protected _displayModes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'single', label: localize('display_modes.single') },
+    { value: 'grid', label: localize('display_modes.grid') },
   ];
 
   public setConfig(config: RawFrigateCardConfig): void {
@@ -979,7 +995,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       labelPath,
       { name: 'mdi:page-layout-body' },
       html`
-        ${this._renderOptionSelector(configPathFit, this._layoutFits)}
+        ${this._renderOptionSelector(configPathFit, this._layoutFits, {
+          label: localize('config.common.layout.fit'),
+        })}
         ${this._renderNumberInput(configPathPositionX, {
           min: 0,
           max: 100,
@@ -1068,6 +1086,49 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         configPathShowRecordings,
         showRecordingsDefault,
       )}`,
+    );
+  }
+
+  /**
+   * Render the next & previous controls.
+   * @param domain The submenu domain.
+   * @param configPathStyle Next previous style config path.
+   * @param configPathSize Next previous size config path.
+   * @returns A rendered template.
+   */
+  protected _renderViewDisplay(
+    domain: string,
+    configPathMode: string,
+    configPathSelectedWidthFactor: string,
+    configPathColumns: string,
+    configPathMaxColumns: string,
+  ): TemplateResult | void {
+    // grid_select_width_factor: z.number().min(0).optional(),
+    // grid_max_columns: z.number().min(0).optional(),
+    // grid_columns: z.number().min(0).optional(),
+
+    return this._putInSubmenu(
+      domain,
+      true,
+      'config.common.display.editor_label',
+      { name: 'mdi:palette-swatch' },
+      html`
+        ${this._renderOptionSelector(configPathMode, this._displayModes, {
+          label: localize('config.common.display.mode'),
+        })}
+        ${this._renderNumberInput(configPathSelectedWidthFactor, {
+          min: 0,
+          label: localize('config.common.display.grid_selected_width_factor'),
+        })}
+        ${this._renderNumberInput(configPathColumns, {
+          min: 0,
+          label: localize('config.common.display.grid_columns'),
+        })}
+        ${this._renderNumberInput(configPathMaxColumns, {
+          min: 0,
+          label: localize('config.common.display.grid_max_columns'),
+        })}
+      `,
     );
   }
 
@@ -1785,7 +1846,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   )}`,
                 )}
                 ${this._renderMenuButton('play') /*  */}
-                ${this._renderMenuButton('mute')}
+                ${this._renderMenuButton('mute') /*  */}
                 ${this._renderMenuButton('screenshot')}
               </div>
             `
@@ -1825,6 +1886,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderSwitch(
                   CONF_LIVE_SHOW_IMAGE_DURING_LOAD,
                   this._defaults.live.show_image_during_load,
+                )}
+                ${this._renderViewDisplay(
+                  MENU_LIVE_DISPLAY,
+                  CONF_LIVE_DISPLAY_MODE,
+                  CONF_LIVE_DISPLAY_GRID_SELECTED_WIDTH_FACTOR,
+                  CONF_LIVE_DISPLAY_GRID_COLUMNS,
+                  CONF_LIVE_DISPLAY_GRID_MAX_COLUMNS,
                 )}
                 ${this._putInSubmenu(
                   MENU_LIVE_CONTROLS,
@@ -1956,6 +2024,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderSwitch(
                 CONF_MEDIA_VIEWER_SNAPSHOT_CLICK_PLAYS_CLIP,
                 this._defaults.media_viewer.snapshot_click_plays_clip,
+              )}
+              ${this._renderViewDisplay(
+                MENU_MEDIA_VIEWER_DISPLAY,
+                CONF_MEDIA_VIEWER_DISPLAY_MODE,
+                CONF_MEDIA_VIEWER_DISPLAY_GRID_SELECTED_WIDTH_FACTOR,
+                CONF_MEDIA_VIEWER_DISPLAY_GRID_COLUMNS,
+                CONF_MEDIA_VIEWER_DISPLAY_GRID_MAX_COLUMNS,
               )}
               ${this._putInSubmenu(
                 MENU_MEDIA_VIEWER_CONTROLS,

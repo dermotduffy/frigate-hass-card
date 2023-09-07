@@ -84,7 +84,6 @@ div.timeline {
   cursor: pointer;
 }
 :host([recordings]) .vis-item.vis-background,
-:host([recordings]) .vis-labelset,
 :host([recordings]) .vis-time-axis {
   cursor: crosshair;
 }
@@ -119,8 +118,7 @@ div.timeline {
 .vis-label {
   transition: background-color 0.5s ease-out;
 }
-:host([recordings]) .vis-text.vis-minor:hover,
-:host([recordings]) .vis-label:hover {
+:host([recordings]) .vis-text.vis-minor:hover {
   background-color: var(--primary-color);
 }
 

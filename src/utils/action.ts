@@ -11,6 +11,7 @@ import {
   FrigateCardCustomAction,
   frigateCardCustomActionSchema,
   FrigateCardViewAction,
+  ViewDisplayMode,
 } from '../types.js';
 
 /**
@@ -42,6 +43,7 @@ export function createFrigateCardCustomAction(
     camera?: string;
     media_player?: string;
     media_player_action?: 'play' | 'stop';
+    display_mode?: ViewDisplayMode;
   },
 ): FrigateCardCustomAction | null {
   if (action === 'camera_select' || action === 'live_substream_select') {
@@ -64,6 +66,17 @@ export function createFrigateCardCustomAction(
       frigate_card_action: action,
       media_player: args.media_player,
       media_player_action: args.media_player_action,
+      ...(args.cardID && { card_id: args.cardID }),
+    };
+  }
+  if (action === 'display_mode_select') {
+    if (!args?.display_mode) {
+      return null;
+    }
+    return {
+      action: 'fire-dom-event',
+      frigate_card_action: action,
+      display_mode: args?.display_mode,
       ...(args.cardID && { card_id: args.cardID }),
     };
   }

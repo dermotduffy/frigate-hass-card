@@ -1,4 +1,4 @@
-import { describe, expect, it, test, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { QueryType } from '../../src/camera-manager/types';
 import { ViewMedia } from '../../src/view/media';
 import { EventMediaQueries, RecordingMediaQueries } from '../../src/view/media-queries';
@@ -52,6 +52,7 @@ describe('View Basics', () => {
       query: new EventMediaQueries(),
       queryResults: new MediaQueriesResults(),
       context: {},
+      displayMode: 'single',
     });
 
     const evolved = view.evolve({
@@ -60,12 +61,14 @@ describe('View Basics', () => {
       query: new EventMediaQueries(),
       queryResults: new MediaQueriesResults(),
       context: {},
+      displayMode: 'grid',
     });
     expect(evolved.view).not.toBe(view.view);
     expect(evolved.camera).not.toBe(view.camera);
     expect(evolved.query).not.toBe(view.query);
     expect(evolved.queryResults).not.toBe(view.queryResults);
     expect(evolved.context).not.toBe(view.context);
+    expect(evolved.displayMode).not.toBe(view.displayMode);
   });
 
   it('should evolve with nothing set', () => {
@@ -116,6 +119,28 @@ describe('View Basics', () => {
     const view = createView({ context: { live: { overrides: new Map() } } });
 
     view.removeContext('live');
+    expect(view.context).toEqual({});
+  });
+
+  it('should not remove context when no context', () => {
+    const view = createView();
+    expect(view.context).toBeNull();
+
+    view.removeContext('live');
+    expect(view.context).toBeNull();
+  });
+
+  it('should remove context property', () => {
+    const view = createView({ context: { live: { overrides: new Map() } } });
+
+    view.removeContextProperty('live', 'overrides');
+    expect(view.context).toEqual({ live: {} });
+  });
+
+  it('should not remove context property that does not exist', () => {
+    const view = createView({ context: {} });
+
+    view.removeContextProperty('live', 'overrides');
     expect(view.context).toEqual({});
   });
 
@@ -240,8 +265,8 @@ describe('View.isMajorMediaChange', () => {
 
   it('should consider result change as major in other view', () => {
     const media = [new ViewMedia('clip', 'camera-1'), new ViewMedia('clip', 'camera-2')];
-    const queryResults_1 = new MediaQueriesResults(media, 0);
-    const queryResults_2 = new MediaQueriesResults(media, 1);
+    const queryResults_1 = new MediaQueriesResults({ results: media, selectedIndex: 0 });
+    const queryResults_2 = new MediaQueriesResults({ results: media, selectedIndex: 1 });
     expect(
       View.isMajorMediaChange(
         createView({ view: 'media', queryResults: queryResults_1 }),
@@ -252,8 +277,8 @@ describe('View.isMajorMediaChange', () => {
 
   it('should not consider selected result change as major in live view', () => {
     const media = [new ViewMedia('clip', 'camera-1'), new ViewMedia('clip', 'camera-2')];
-    const queryResults_1 = new MediaQueriesResults(media, 0);
-    const queryResults_2 = new MediaQueriesResults(media, 1);
+    const queryResults_1 = new MediaQueriesResults({ results: media, selectedIndex: 0 });
+    const queryResults_2 = new MediaQueriesResults({ results: media, selectedIndex: 1 });
     expect(
       View.isMajorMediaChange(
         createView({ queryResults: queryResults_1 }),
@@ -282,7 +307,29 @@ describe('View.adoptFromViewIfAppropriate', () => {
     expect(next.queryResults).toBe(queryResults);
   });
 
-  test.each([
+  it('should not adopt for gallery case if neither query nor results in current view', () => {
+    const current = createView({
+      view: 'clip',
+      query: null,
+      queryResults: null,
+    });
+
+    const nextQuery = new EventMediaQueries([
+      { type: QueryType.Event, cameraIDs: new Set(['camera']), hasClip: true },
+    ]);
+    const nextResults = new MediaQueriesResults();
+    const next = createView({
+      view: 'clips',
+      query: nextQuery,
+      queryResults: nextResults,
+    });
+    View.adoptFromViewIfAppropriate(next, current);
+    expect(next.view).toBe('clips');
+    expect(next.query).toBe(nextQuery);
+    expect(next.queryResults).toBe(nextResults);
+  });
+
+  it.each([
     [
       new EventMediaQueries([
         { type: QueryType.Event, cameraIDs: new Set(['camera']), hasClip: true },
@@ -301,7 +348,7 @@ describe('View.adoptFromViewIfAppropriate', () => {
       ]),
       'recording',
     ],
-  ])('should adopt for media case', (mediaQueries, expectedView) => {
+  ])('should adopt in media case', (mediaQueries, expectedView) => {
     const current = createView({
       view: 'media',
       query: mediaQueries,
@@ -312,6 +359,54 @@ describe('View.adoptFromViewIfAppropriate', () => {
     expect(next.view).toBe(expectedView);
     expect(next.query).toBeFalsy();
     expect(next.queryResults).toBeFalsy();
+  });
+
+  it('should not adopt for mixed queries in media case', () => {
+    const query = new EventMediaQueries([
+      { type: QueryType.Event, cameraIDs: new Set(['camera']), hasClip: true },
+      { type: QueryType.Event, cameraIDs: new Set(['camera']), hasSnapshot: true },
+    ]);
+    const results = new MediaQueriesResults();
+    const current = createView({
+      view: 'media',
+      query: query,
+      queryResults: results,
+    });
+    const next = createView({ view: 'media' });
+    View.adoptFromViewIfAppropriate(next, current);
+
+    expect(next.view).toBe('media');
+    expect(next.query).toBeNull();
+    expect(next.queryResults).toBeNull();
+  });
+
+  it('should not adopt when queries and results present in next view in media case', () => {
+    const currentQuery = new EventMediaQueries([
+      { type: QueryType.Event, cameraIDs: new Set(['camera-1']), hasClip: true },
+      { type: QueryType.Event, cameraIDs: new Set(['camera-1']), hasSnapshot: true },
+    ]);
+    const currentResults = new MediaQueriesResults();
+    const current = createView({
+      view: 'media',
+      query: currentQuery,
+      queryResults: currentResults,
+    });
+
+    const nextQuery = new EventMediaQueries([
+      { type: QueryType.Event, cameraIDs: new Set(['camera-2']), hasClip: true },
+      { type: QueryType.Event, cameraIDs: new Set(['camera-2']), hasSnapshot: true },
+    ]);
+    const nextResults = new MediaQueriesResults();
+    const next = createView({
+      view: 'media',
+      query: nextQuery,
+      queryResults: nextResults,
+    });
+    View.adoptFromViewIfAppropriate(next, current);
+
+    expect(next.view).toBe('media');
+    expect(next.query).toBe(nextQuery);
+    expect(next.queryResults).toBe(nextResults);
   });
 
   it('should not adopt for other case', () => {
@@ -408,6 +503,30 @@ describe('View.adoptFromViewIfAppropriate', () => {
     });
     View.adoptFromViewIfAppropriate(next, current);
     expect(next.context?.live).toEqual(current.context?.live);
+  });
+
+  it('should determine if display mode is grid', () => {
+    expect(createView({ displayMode: 'grid' }).isGrid()).toBeTruthy();
+    expect(createView({ displayMode: 'single' }).isGrid()).toBeFalsy();
+    expect(createView().isGrid()).toBeFalsy();
+  });
+
+  it('should determine if view supports multiple display modes', () => {
+    expect(createView({ view: 'live' }).supportsMultipleDisplayModes()).toBeTruthy();
+    expect(createView({ view: 'media' }).supportsMultipleDisplayModes()).toBeTruthy();
+    expect(createView({ view: 'clip' }).supportsMultipleDisplayModes()).toBeTruthy();
+    expect(createView({ view: 'snapshot' }).supportsMultipleDisplayModes()).toBeTruthy();
+    expect(
+      createView({ view: 'recording' }).supportsMultipleDisplayModes(),
+    ).toBeTruthy();
+
+    expect(createView({ view: 'clips' }).supportsMultipleDisplayModes()).toBeFalsy();
+    expect(createView({ view: 'snapshots' }).supportsMultipleDisplayModes()).toBeFalsy();
+    expect(
+      createView({ view: 'recordings' }).supportsMultipleDisplayModes(),
+    ).toBeFalsy();
+    expect(createView({ view: 'image' }).supportsMultipleDisplayModes()).toBeFalsy();
+    expect(createView({ view: 'timeline' }).supportsMultipleDisplayModes()).toBeFalsy();
   });
 });
 

@@ -474,6 +474,7 @@ See the [fully expanded live configuration example](#config-expanded-live) for h
 | `controls` | | :white_check_mark: | Configuration for the `live` view controls. See below. |
 | `layout` | | :white_check_mark: | See [media layout](#media-layout) below.|
 | `microphone` | | :white_check_mark: | See [microphone](#microphone) below.|
+| `display` | | :white_check_mark: | See [display](#live-display) below.|
 
 #### Live Controls
 
@@ -578,6 +579,35 @@ live:
 | `disconnect_seconds` | `60` | :white_check_mark: | The number of seconds after microphone usage to disconnect the microphone from the stream. `0` implies never. Not relevant if `always_connected` is `true`.|
 
 See [Using 2-way audio](#using-2-way-audio) for more information about the very particular requirements that must be followed for 2-way audio to work.
+
+<a name="live-display"></a>
+
+#### Live: Display
+
+All configuration is under:
+
+```yaml
+live:
+  display:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `mode` | `single` | :white_check_mark: | Whether to display a `single` media item at a time, or a media item for all cameras in a `grid` configuration.|
+| `grid_selected_width_factor` | `2` | :white_check_mark: | How much to scale up the selected media item in a grid. A value of `1` will not scale the selected item at all, the default value of `2` will scale the media item width to twice what it would otherwise be, etc. |
+| `grid_columns` | | :white_check_mark: | If specified the grid will always have exactly this number of columns.|
+| `grid_max_columns` | `4` | :white_check_mark: | If specified, and `grid_columns` is not specified, the grid will not render more than this number of columns. The precise number will be calculated based on the [grid layout algorithm](#grid-layout-algorith). |
+
+<a name="grid-layout-algorithm"></a>
+
+##### Grid Layout Algorithm
+
+The grid will lay out cameras roughly in the order they are specified in the config (items may be moved to optimize grid 'density'). The following algorithm is used to calculate the number of columns. This attempts to offers a balance between configurability, reasonable display in a typical Lovelace card width and reasonable display in a typical fullscreen display.
+
+* Use `grid_columns` if specified.
+* Otherwise, use the largest number of columns in the range `[2 - grid_max_columns]` that will fit at least a `600px` column width.
+* Otherwise, use the largest number of columns in the range `[2 - grid_max_columns]` that will fit at least a `190px` column width.
+* Otherwise, there will be `1` column only.
 
 ### Media Viewer Options
 
@@ -688,6 +718,24 @@ media_viewer:
 | - | - | - | - |
 | `mode` | `popup-bottom-right` | :heavy_multiplication_x: | How to display the Media viewer media title. Acceptable values: `none`, `popup-top-left`, `popup-top-right`, `popup-bottom-left`, `popup-bottom-right` . |
 | `duration_seconds` | `2` | :heavy_multiplication_x: | The number of seconds to display the title popup. `0` implies forever.|
+
+<a name="media-viewer-display"></a>
+
+#### Media Viewer: Display
+
+All configuration is under:
+
+```yaml
+media_viewer:
+  display:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `mode` | `single` | :white_check_mark: | Whether to display a `single` media item at a time, or a media item for all cameras in a `grid` configuration.|
+| `grid_selected_width_factor` | `2` | :white_check_mark: | How much to scale up the selected media item in a grid. A value of `1` will not scale the selected item at all, the default value of `2` will scale the media item width to twice what it would otherwise be, etc. |
+| `grid_columns` | | :white_check_mark: | If specified the grid will always have exactly this number of columns.|
+| `grid_max_columns` | `4` | :white_check_mark: | If specified, and `grid_columns` is not specified, the grid will not render more than this number of columns. The precise number will be calculated based on the [grid layout algorithm](#grid-layout-algorith). |
 
 <a name="media-gallery-options"></a>
 
@@ -805,6 +853,17 @@ timeline:
 | `show_timeline_control` | `true` | :heavy_multiplication_x: | Whether to show the timeline ('target') control on each thumbnail.|
 
 <a name="dimensions"></a>
+
+#### Timeline Seek Behavior
+
+The behavior of the timeline during seeking/dragging can be controlled by means of the icon on the bottom-right of the timeline.
+
+| Option | Behavior |
+| - | - |
+| <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>filmstrip-box-multiple</title><path d="M4,6H2V20A2,2 0 0,0 4,22H18V20H4V6M20,2H8A2,2 0 0,0 6,4V16A2,2 0 0,0 8,18H20A2,2 0 0,0 22,16V4A2,2 0 0,0 20,2M10,15H8V13H10V15M10,11H8V9H10V11M10,7H8V5H10V7M20,15H18V13H20V15M20,11H18V9H20V11M20,7H18V5H20V7Z" /></svg> | Dragging the timeline will seek / select across all available media from all cameras, selecting the media item with the longest duration whilst favoring (but not limited to) the currently selected camera. |
+| <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>play-box-lock</title><path d="M23 17.3V20.8C23 21.4 22.4 22 21.7 22H16.2C15.6 22 15 21.4 15 20.7V17.2C15 16.6 15.6 16 16.2 16V14.5C16.2 13.1 17.6 12 19 12C20.4 12 21.8 13.1 21.8 14.5V16C22.4 16 23 16.6 23 17.3M13 19V21H4C2.89 21 2 20.1 2 19V5C2 3.89 2.89 3 4 3H18C19.1 3 20 3.89 20 5V10.1L19 10L18 10.1C15.79 10.55 14.12 12.45 14 14.76C13.39 15.31 13 16.11 13 17V19M20.5 14.5C20.5 13.7 19.8 13.2 19 13.2C18.2 13.2 17.5 13.7 17.5 14.5V16H20.5V14.5M9 8V16L14 12L9 8Z" /></svg> | Dragging the timeline will seek within the selected media item only. |
+| <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>camera-lock</title><path d="M4 4H7L9 2H15L17 4H20C21.11 4 22 4.89 22 6V12C21.16 11.37 20.13 11 19 11C18.21 11 17.46 11.18 16.79 11.5C16.18 9.22 14.27 7 12 7C9.24 7 7 9.24 7 12C7 14.76 9.24 17 12 17C12.42 17 12.84 16.95 13.23 16.85C13.08 17.2 13 17.59 13 18V20H4C2.9 20 2 19.11 2 18V6C2 4.89 2.9 4 4 4M12 9C13.66 9 15 10.34 15 12C15 13.66 13.66 15 12 15C10.34 15 9 13.66 9 12C9 10.34 10.34 9 12 9M23 18.3V21.8C23 22.4 22.4 23 21.7 23H16.2C15.6 23 15 22.4 15 21.7V18.2C15 17.6 15.6 17 16.2 17V15.5C16.2 14.1 17.6 13 19 13C20.4 13 21.8 14.1 21.8 15.5V17C22.4 17 23 17.6 23 18.3M20.5 15.5C20.5 14.7 19.8 14.2 19 14.2C18.2 14.2 17.5 14.7 17.5 15.5V17H20.5V15.5Z" /></svg> | Dragging the timeline will seek / select across all available media from the selected camera only, selecting the media item with the longest duration. |
+| <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>pan-horizontal</title><path d="M7,8L2.5,12L7,16V8M17,8V16L21.5,12L17,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10Z" /></svg> | Dragging the timeline will pan only without selected or seeking any media. |
 
 ### Dimensions Options
 
@@ -1590,6 +1649,12 @@ Pan around a large camera view to only show part of the video feed in the card a
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/dev/images/navigate-picture-elements.gif" alt="Taking card actions via the URL" width="400px">
 
+### Interacting with a camera grid
+
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/dev/images/grid-small.gif" alt="Interacting with a camera grid" width="400px">
+
+## Examples
+
 ## Examples
 
 ### Illustrative Expanded Configuration Reference
@@ -1946,6 +2011,10 @@ live:
   microphone:
     always_connected: false
     disconnect_seconds: 60
+  display:
+    mode: single
+    grid_selected_width_factor: 2
+    grid_max_columns: 4
   actions:
     entity: light.office_main_lights
     tap_action:
@@ -2007,6 +2076,10 @@ media_viewer:
     position:
       x: 50
       y: 50
+  display:
+    mode: single
+    grid_selected_width_factor: 2
+    grid_max_columns: 4
   actions:
     entity: light.office_main_lights
     tap_action:
@@ -3820,6 +3893,32 @@ automations:
     actions_not:
       - action: custom:frigate-card-action
         frigate_card_action: live_substream_off
+```
+</details>
+
+### Grid display overrides
+
+<details>
+  <summary>Expand: Change the grid layout configuration in fullscreen mode</summary>
+
+This example will always render 5 columns in fullscreen mode in both the live
+and media viewer views, and will not enlarge the selected item. The normal
+auto-layout behavior will be used outside of fullscreen mode.
+
+```yaml
+overrides:
+  - conditions:
+      fullscreen: true
+      display_mode: grid
+    overrides:
+      live:
+        display:
+          grid_columns: 5
+          grid_selected_width_factor: 1
+      media_viewer:
+        display:
+          grid_columns: 5
+          grid_selected_width_factor: 1
 ```
 </details>
 

@@ -2,7 +2,7 @@ import { HomeAssistant } from 'custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
-import liveImageStyle from '../../scss/live-image.scss';
+import basicBlockStyle from '../../scss/basic-block.scss';
 import { CameraConfig, FrigateCardMediaPlayer } from '../../types.js';
 import '../image.js';
 import { getStateObjOrDispatchError } from './live.js';
@@ -50,7 +50,7 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
   }
 
   public async getScreenshotURL(): Promise<string | null> {
-    return await this._refImage.value?.getScreenshotURL() ?? null;
+    return (await this._refImage.value?.getScreenshotURL()) ?? null;
   }
 
   protected render(): TemplateResult | void {
@@ -77,7 +77,7 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
   }
 
   static get styles(): CSSResultGroup {
-    return unsafeCSS(liveImageStyle);
+    return unsafeCSS(basicBlockStyle);
   }
 }
 

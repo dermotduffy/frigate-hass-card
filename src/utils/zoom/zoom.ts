@@ -141,15 +141,20 @@ export class Zoom {
   }
 
   public deactivate(): void {
-    const unregisterListener = (events: string[], func: (ev: Event) => void) => {
+    const unregisterListener = (
+      events: string[],
+      func: (ev: Event) => void,
+      options?: EventListenerOptions,
+    ) => {
       events.forEach((eventName) => {
-        this._element.removeEventListener(eventName, func);
+        this._element.removeEventListener(eventName, func, options);
       });
     };
 
-    unregisterListener(this._events['down'], this._downHandler);
-    unregisterListener(this._events['move'], this._moveHandler);
-    unregisterListener(this._events['up'], this._upHandler);
+    unregisterListener(this._events['down'], this._downHandler, { capture: true });
+    unregisterListener(this._events['move'], this._moveHandler, { capture: true });
+    unregisterListener(this._events['up'], this._upHandler, { capture: true });
     unregisterListener(['wheel'], this._wheelHandler);
+    unregisterListener(['click'], this._clickHandler, { capture: true });
   }
 }

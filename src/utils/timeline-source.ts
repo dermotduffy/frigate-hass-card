@@ -5,7 +5,7 @@ import { DataSet } from 'vis-data';
 import { IdType, TimelineItem, TimelineWindow } from 'vis-timeline/esnext';
 import { ClipsOrSnapshotsOrAll } from '../types';
 import { CameraManager } from '../camera-manager/manager';
-import { EventQuery, RecordingSegment } from '../camera-manager/types';
+import { EventQuery, RecordingQuery, RecordingSegment } from '../camera-manager/types';
 import { capEndDate, convertRangeToCacheFriendlyTimes } from '../camera-manager/util';
 import { ViewMedia } from '../view/media';
 import {
@@ -98,18 +98,19 @@ export class TimelineDataSource {
     }
   }
 
-  public getCacheFriendlyEventWindow(window: TimelineWindow): TimelineWindow {
-    return convertRangeToCacheFriendlyTimes(window, {
-      endCap: true,
-    });
-  }
-
   public getTimelineEventQueries(window: TimelineWindow): EventQuery[] | null {
     return this._cameraManager.generateDefaultEventQueries(this._cameraIDs, {
       start: window.start,
       end: window.end,
       ...(this._mediaType === 'clips' && { hasClip: true }),
       ...(this._mediaType === 'snapshots' && { hasSnapshot: true }),
+    });
+  }
+
+  public getTimelineRecordingQueries(window: TimelineWindow): RecordingQuery[] | null {
+    return this._cameraManager.generateDefaultRecordingQueries(this._cameraIDs, {
+      start: window.start,
+      end: window.end,
     });
   }
 
@@ -127,8 +128,7 @@ export class TimelineDataSource {
     ) {
       return;
     }
-
-    const cacheFriendlyWindow = this.getCacheFriendlyEventWindow(window);
+    const cacheFriendlyWindow = convertRangeToCacheFriendlyTimes(window);
     const eventQueries = this.getTimelineEventQueries(cacheFriendlyWindow);
     if (!eventQueries) {
       return;
@@ -137,7 +137,6 @@ export class TimelineDataSource {
     const mediaArray = await this._cameraManager.executeMediaQueries(hass, eventQueries);
     const data: FrigateCardTimelineItem[] = [];
     for (const media of mediaArray ?? []) {
-      const endTime = media.getEndTime();
       const startTime = media.getStartTime();
       const id = media.getID();
       if (id && startTime) {
@@ -148,7 +147,7 @@ export class TimelineDataSource {
           media: media,
           start: startTime.getTime(),
           type: 'range',
-          end: endTime?.getTime() ?? startTime.getTime(),
+          end: media.getUsableEndTime()?.getTime() ?? startTime.getTime(),
         });
       }
     }
@@ -217,10 +216,7 @@ export class TimelineDataSource {
       return;
     }
 
-    const cacheFriendlyWindow = convertRangeToCacheFriendlyTimes(window, {
-      endCap: true,
-    });
-
+    const cacheFriendlyWindow = convertRangeToCacheFriendlyTimes(window);
     const recordingQueries = this._cameraManager.generateDefaultRecordingSegmentsQueries(
       this._cameraIDs,
       {

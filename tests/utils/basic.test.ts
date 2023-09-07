@@ -1,25 +1,29 @@
-import { describe, it, expect, vi, afterAll } from 'vitest';
+import { afterAll, describe, expect, it, vi } from 'vitest';
 import { FrigateCardError } from '../../src/types';
 import {
   allPromises,
-  arrayify,
   arrayMove,
+  arrayify,
   contentsChanged,
   dayToDate,
   dispatchFrigateCardEvent,
   errorToConsole,
   formatDate,
   formatDateAndTime,
+  getChildrenFromElement,
   getDurationString,
+  isHTMLElement,
   isHoverableDevice,
   isSuperset,
+  isTruthy,
   isValidDate,
   prettifyTitle,
   runWhenIdleIfSupported,
-  setify,
   setOrRemoveAttribute,
+  setify,
   sleep,
 } from '../../src/utils/basic';
+import { createSlot, createSlotHost } from '../test-utils';
 
 // @vitest-environment jsdom
 describe('dispatchFrigateCardEvent', () => {
@@ -181,6 +185,11 @@ describe('getDurationString', () => {
     const end = new Date(2023, 3, 14, 15, 37, 20);
     expect(getDurationString(start, end)).toBe('2h 2m 20s');
   });
+  it('should return very short duration', () => {
+    const start = new Date(2023, 3, 14, 13, 35, 10);
+    const end = new Date(2023, 3, 14, 13, 35, 12);
+    expect(getDurationString(start, end)).toBe('2s');
+  });
 });
 
 describe('allPromises', () => {
@@ -227,7 +236,13 @@ describe('isValidDate', () => {
 });
 
 describe('setOrRemoveAttribute', () => {
-  it('should set attribute', () => {
+  it('should set attribute without value', () => {
+    const element = document.createElement('div');
+    setOrRemoveAttribute(element, true, 'key');
+    expect(element.getAttribute('key')).toBe('');
+  });
+
+  it('should set attribute with value', () => {
     const element = document.createElement('div');
     setOrRemoveAttribute(element, true, 'key', 'value');
     expect(element.getAttribute('key')).toBe('value');
@@ -238,5 +253,41 @@ describe('setOrRemoveAttribute', () => {
     element.setAttribute('key', 'value');
     setOrRemoveAttribute(element, false, 'key');
     expect(element.getAttribute('key')).toBeFalsy();
+  });
+});
+
+describe('isTruthy', () => {
+  it('should return true for true', () => {
+    expect(isTruthy(true)).toBeTruthy();
+  });
+  it('should return false for false', () => {
+    expect(isTruthy(false)).toBeFalsy();
+  });
+});
+
+describe('isHTMLElement', () => {
+  it('should return true for HTMLElement', () => {
+    const htmlElement = document.createElement('div');
+    expect(isHTMLElement(htmlElement)).toBeTruthy();
+  });
+  it('should return false for Element', () => {
+    const svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    expect(isHTMLElement(svgElement)).toBeFalsy();
+  });
+});
+
+describe('getChildrenFromElement', () => {
+  it('should return children for simple parent', () => {
+    const children = [document.createElement('div'), document.createElement('div')];
+    const parent = document.createElement('div');
+    children.forEach((child) => parent.appendChild(child));
+    expect(getChildrenFromElement(parent)).toEqual(children);
+  });
+
+  it('should return children for slot', () => {
+    const children = [document.createElement('div'), document.createElement('div')];
+    const slot = createSlot();
+    createSlotHost({ slot: slot, children: children });
+    expect(getChildrenFromElement(slot)).toEqual(children);
   });
 });

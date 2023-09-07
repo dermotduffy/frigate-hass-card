@@ -58,8 +58,8 @@ export class ExpiringMemoryRangeSet
   }
 
   public add(range: ExpiringRange<Date>): void {
-    this._expireOldRanges();
     this._ranges.push(range);
+    this._expireOldRanges();
   }
 
   protected _expireOldRanges(): void {
@@ -95,26 +95,25 @@ export const compressRanges = <T extends Date | number>(
   ranges = orderBy(ranges, (range) => range.start, 'asc');
 
   let current: Range<T> | null = null;
-  for (let i = 0; i < ranges.length; ++i) {
-    const item = ranges[i];
-    const itemStartSeconds =
-      item.start instanceof Date ? item.start.getTime() : item.start;
+  for (const range of ranges) {
+    const rangeStartSeconds: number =
+      range.start instanceof Date ? range.start.getTime() : range.start;
 
     if (!current) {
-      current = { ...item };
+      current = { ...range };
       continue;
     }
 
     const currentEndSeconds =
       current.end instanceof Date ? current.end.getTime() : (current.end as number);
 
-    if (currentEndSeconds + toleranceSeconds * 1000 >= itemStartSeconds) {
-      if (item.end > current.end) {
-        current.end = item.end;
+    if (currentEndSeconds + toleranceSeconds * 1000 >= rangeStartSeconds) {
+      if (range.end > current.end) {
+        current.end = range.end;
       }
     } else {
       compressedRanges.push(current);
-      current = { ...item };
+      current = { ...range };
     }
   }
   if (current) {

@@ -5,11 +5,11 @@ import { CameraManager } from '../camera-manager/manager';
 import { FRIGATE_BUTTON_MENU_ICON } from '../const';
 import { localize } from '../localize/localize.js';
 import {
-    FRIGATE_CARD_VIEWS_USER_SPECIFIED,
-    FrigateCardConfig,
-    FrigateCardCustomAction,
-    MediaLoadedInfo,
-    MenuButton,
+  FrigateCardConfig,
+  FrigateCardCustomAction,
+  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
+  MediaLoadedInfo,
+  MenuButton,
 } from '../types';
 import { View } from '../view/view';
 import { createFrigateCardCustomAction } from './action';
@@ -82,7 +82,7 @@ export class MenuButtonController {
       ) as FrigateCardCustomAction,
     });
 
-    if (visibleCameras) {
+    if (visibleCameras.size) {
       const menuItems = Array.from(visibleCameras, ([cameraID, config]) => {
         const action = createFrigateCardCustomAction('camera_select', {
           camera: cameraID,
@@ -388,8 +388,29 @@ export class MenuButtonController {
         ...config.menu.buttons.screenshot,
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.menu.buttons.screenshot'),
-        tap_action: createFrigateCardCustomAction('screenshot') as FrigateCardCustomAction,
+        tap_action: createFrigateCardCustomAction(
+          'screenshot',
+        ) as FrigateCardCustomAction,
       });
+    }
+
+    if (view.supportsMultipleDisplayModes() && visibleCameras.size > 1) {
+      const isGrid = view.isGrid();
+      const action = createFrigateCardCustomAction('display_mode_select', {
+        display_mode: isGrid ? 'single' : 'grid',
+      });
+      /* istanbul ignore else: the else path cannot be reached -- @preserve */
+      if (action) {
+        buttons.push({
+          icon: isGrid ? 'mdi:grid-off' : 'mdi:grid',
+          ...config.menu.buttons.display_mode,
+          type: 'custom:frigate-card-menu-icon',
+          title: isGrid
+            ? localize('display_modes.single')
+            : localize('display_modes.grid'),
+          tap_action: action,
+        });
+      }
     }
 
     const styledDynamicButtons = this._dynamicMenuButtons.map((button) => ({

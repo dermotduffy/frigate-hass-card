@@ -62,32 +62,30 @@ describe('generateScreenshotTitle', () => {
   });
 
   it('should get title for media viewer view with id', () => {
-    const media = new TestViewMedia(
-      'id1',
-      new Date('2023-06-16T18:52'),
-      'clip',
-      'camera-1',
-    );
+    const media = new TestViewMedia({
+      id: 'id1',
+      startTime: new Date('2023-06-16T18:52'),
+      cameraID: 'camera-1',
+    });
     const view = createView({
       view: 'media',
       camera: 'camera-1',
-      queryResults: new MediaQueriesResults([media], 0),
+      queryResults: new MediaQueriesResults({ results: [media], selectedIndex: 0 }),
     });
 
     expect(generateScreenshotTitle(view)).toBe('media-camera-1-id1.jpg');
   });
 
   it('should get title for media viewer view without id', () => {
-    const media = new TestViewMedia(
-      null,
-      new Date('2023-06-16T18:52'),
-      'clip',
-      'camera-1',
-    );
+    const media = new TestViewMedia({
+      id: null,
+      startTime: new Date('2023-06-16T18:52'),
+      cameraID: 'camera-1',
+    });
     const view = createView({
       view: 'media',
       camera: 'camera-1',
-      queryResults: new MediaQueriesResults([media], 0),
+      queryResults: new MediaQueriesResults({ results: [media], selectedIndex: 0 }),
     });
 
     expect(generateScreenshotTitle(view)).toBe('media-camera-1.jpg');

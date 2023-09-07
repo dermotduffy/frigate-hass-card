@@ -368,7 +368,9 @@ export class FrigateCardGalleryCore extends LitElement {
         this.view
           ?.evolve({
             query: newMediaQueries,
-            queryResults: new MediaQueriesResults(extension.results).selectResultIfFound(
+            queryResults: new MediaQueriesResults({
+              results: extension.results,
+            }).selectResultIfFound(
               (media) => media === this.view?.queryResults?.getSelectedResult(),
             ),
           })
@@ -468,7 +470,7 @@ export class FrigateCardGalleryCore extends LitElement {
                 this.view
                   .evolve({
                     view: 'media',
-                    queryResults: this.view.queryResults?.clone().selectResult(
+                    queryResults: this.view.queryResults?.clone().selectIndex(
                       // Media in the gallery is reversed vs the queryResults (see
                       // note above).
                       this._media.length - index - 1,

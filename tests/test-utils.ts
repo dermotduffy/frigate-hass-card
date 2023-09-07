@@ -9,6 +9,7 @@ import {
   CameraConfigs,
   CameraManagerCameraCapabilities,
   CameraManagerMediaCapabilities,
+  QueryType,
 } from '../src/camera-manager/types';
 import {
   CameraConfig,
@@ -16,10 +17,12 @@ import {
   FrigateCardCondition,
   FrigateCardConfig,
   MediaLoadedInfo,
+  PerformanceConfig,
   RawFrigateCardConfig,
   cameraConfigSchema,
   frigateCardConditionSchema,
   frigateCardConfigSchema,
+  performanceConfigSchema,
 } from '../src/types';
 import { Entity } from '../src/utils/ha/entity-registry/types';
 import { ViewMedia, ViewMediaType } from '../src/view/media';
@@ -126,11 +129,25 @@ export const createCameraManager = (options?: {
     const configs = options?.configs ?? new Map([['camera', createCameraConfig()]]);
     vi.mocked(store.getCameras).mockReturnValue(configs);
     vi.mocked(store.getVisibleCameras).mockReturnValue(configs);
+    vi.mocked(store.getVisibleCameraIDs).mockReturnValue(new Set(configs.keys()));
     vi.mocked(store.getCameraConfig).mockImplementation((cameraID): CameraConfig => {
       return configs.get(cameraID) ?? createCameraConfig();
     });
   }
   vi.mocked(cameraManager.getStore).mockReturnValue(store);
+  vi.mocked(cameraManager.generateDefaultEventQueries).mockReturnValue([
+    {
+      cameraIDs: new Set(['camera']),
+      type: QueryType.Event,
+    },
+  ]);
+  vi.mocked(cameraManager.generateDefaultRecordingQueries).mockReturnValue([
+    {
+      cameraIDs: new Set(['camera']),
+      type: QueryType.Recording,
+    },
+  ]);
+
   return cameraManager;
 };
 
@@ -169,21 +186,44 @@ export const createMediaLoadedInfo = (
   };
 };
 
+export const createPerformanceConfig = (config: unknown): PerformanceConfig => {
+  return performanceConfigSchema.parse(config);
+};
+
+export const generateViewMediaArray = (options?: {
+  cameraIDs?: string[];
+  count?: number;
+}): ViewMedia[] => {
+  const media: ViewMedia[] = [];
+  for (let i = 0; i < (options?.count ?? 100); ++i) {
+    for (const cameraID of options?.cameraIDs ?? ['kitchen', 'office']) {
+      media.push(new TestViewMedia({ cameraID: cameraID, id: `id-${cameraID}-${i}` }));
+    }
+  }
+  return media;
+};
+
 // ViewMedia itself has no native way to set startTime and ID that aren't linked
 // to an engine.
 export class TestViewMedia extends ViewMedia {
   protected _id: string | null;
-  protected _startTime: Date;
+  protected _startTime: Date | null;
+  protected _endTime: Date | null;
+  protected _inProgress: boolean | null;
 
-  constructor(
-    id: string | null,
-    startTime: Date,
-    mediaType: ViewMediaType,
-    cameraID: string,
-  ) {
-    super(mediaType, cameraID);
-    this._id = id;
-    this._startTime = startTime;
+  constructor(options?: {
+    id?: string | null;
+    startTime?: Date;
+    mediaType?: ViewMediaType;
+    cameraID?: string;
+    endTime?: Date;
+    inProgress?: boolean;
+  }) {
+    super(options?.mediaType ?? 'clip', options?.cameraID ?? 'camera');
+    this._id = options?.id !== undefined ? options.id : 'id';
+    this._startTime = options?.startTime ?? null;
+    this._endTime = options?.endTime ?? null;
+    this._inProgress = options?.inProgress !== undefined ? options.inProgress : false;
   }
   public getID(): string | null {
     return this._id;
@@ -191,4 +231,61 @@ export class TestViewMedia extends ViewMedia {
   public getStartTime(): Date | null {
     return this._startTime;
   }
+  public getEndTime(): Date | null {
+    return this._endTime;
+  }
+  public inProgress(): boolean | null {
+    return this._inProgress;
+  }
 }
+
+export const ResizeObserverMock = vi.fn(() => ({
+  disconnect: vi.fn(),
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+}));
+
+export const IntersectionObserverMock = vi.fn(() => ({
+  disconnect: vi.fn(),
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+}));
+
+export const MutationObserverMock = vi.fn(() => ({
+  disconnect: vi.fn(),
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+}));
+
+export const requestAnimationFrameMock = (callback: FrameRequestCallback) => {
+  callback(new Date().getTime());
+  return 1;
+};
+
+export const createSlotHost = (options?: {
+  slot?: HTMLSlotElement;
+  children?: HTMLElement[];
+}): HTMLElement => {
+  const parent = document.createElement('div');
+  parent.attachShadow({ mode: 'open' });
+
+  if (options?.slot) {
+    parent.shadowRoot?.append(options.slot);
+  }
+  if (options?.children) {
+    // Children will automatically be slotted into the default slot when it is
+    // created.
+    parent.append(...options.children);
+  }
+  return parent;
+};
+
+export const createSlot = (): HTMLSlotElement => {
+  return document.createElement('slot');
+};
+
+export const createParent = (options?: { children?: HTMLElement[] }): HTMLElement => {
+  const parent = document.createElement('div');
+  parent.append(...(options?.children ?? []));
+  return parent;
+};
