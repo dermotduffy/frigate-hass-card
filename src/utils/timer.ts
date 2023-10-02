@@ -1,9 +1,14 @@
 export class Timer {
   protected _timer: number | null = null;
+  protected _repeated = false;
 
   public stop(): void {
     if (this._timer) {
-      window.clearTimeout(this._timer);
+      if (this._repeated) {
+        window.clearInterval(this._timer);
+      } else {
+        window.clearTimeout(this._timer);
+      }
       this._timer = null;
     }
   }
@@ -18,6 +23,7 @@ export class Timer {
       this._timer = null;
       func();
     }, seconds * 1000);
+    this._repeated = false;
   }
 
   public startRepeated(seconds: number, func: () => void): void {
@@ -25,5 +31,6 @@ export class Timer {
     this._timer = window.setInterval(() => {
       func();
     }, seconds * 1000);
+    this._repeated = true;
   }
 }

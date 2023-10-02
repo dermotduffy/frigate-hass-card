@@ -10,7 +10,6 @@ import {
   FrigateCardAction,
   FrigateCardCustomAction,
   frigateCardCustomActionSchema,
-  FrigateCardViewAction,
   ViewDisplayMode,
 } from '../types.js';
 
@@ -186,22 +185,4 @@ export const frigateCardHasAction = (config?: ActionType | ActionType[]): boolea
  */
 export const stopEventFromActivatingCardWideActions = (ev: Event): void => {
   ev.stopPropagation();
-};
-
-export const isViewAction = (
-  action: FrigateCardCustomAction,
-): action is FrigateCardViewAction => {
-  switch (action.frigate_card_action) {
-    case 'clip':
-    case 'clips':
-    case 'image':
-    case 'live':
-    case 'recording':
-    case 'recordings':
-    case 'snapshot':
-    case 'snapshots':
-    case 'timeline':
-      return true;
-  }
-  return false;
 };

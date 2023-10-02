@@ -8,7 +8,12 @@ import { CardWideConfig } from '../../src/types.js';
 import { EntityRegistryManager } from '../../src/utils/ha/entity-registry';
 import { EntityCache } from '../../src/utils/ha/entity-registry/cache';
 import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media';
-import { createCameraConfig, createHASS, createRegistryEntity } from '../test-utils';
+import {
+  createCameraConfig,
+  createHASS,
+  createRegistryEntity,
+  createStateEntity,
+} from '../test-utils';
 
 vi.mock('../../src/utils/ha/entity-registry');
 vi.mock('../../src/utils/ha/entity-registry/cache');
@@ -21,7 +26,6 @@ const createFactory = (options?: {
   return new CameraManagerEngineFactory(
     options?.entityRegistryManager ?? new EntityRegistryManager(new EntityCache()),
     options?.resolvedMediaCache ?? new ResolvedMediaCache(),
-    options?.cardWideConfig ?? {},
   );
 };
 
@@ -131,18 +135,7 @@ describe('CameraManagerEngineFactory.getEngineForCamera()', () => {
         entityRegistryManager: entityRegistryManager,
       }).getEngineForCamera(
         createHASS({
-          'camera.foo': {
-            entity_id: 'camera.foo',
-            state: 'streaming',
-            last_changed: 'bar',
-            last_updated: 'baz',
-            attributes: {},
-            context: {
-              id: 'context',
-              user_id: null,
-              parent_id: null,
-            },
-          },
+          'camera.foo': createStateEntity(),
         }),
         config,
       ),

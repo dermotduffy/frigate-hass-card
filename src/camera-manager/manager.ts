@@ -1,23 +1,30 @@
 import { HomeAssistant } from 'custom-card-helpers';
-import {
-  CameraConfig,
-  CamerasConfig,
-  CardWideConfig,
-  ExtendedHomeAssistant,
-} from '../types.js';
+import add from 'date-fns/add';
+import cloneDeep from 'lodash-es/cloneDeep';
+import merge from 'lodash-es/merge.js';
+import sum from 'lodash-es/sum';
+import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
+import { localize } from '../localize/localize.js';
+import { CameraConfig, CamerasConfig } from '../types.js';
 import { allPromises, arrayify, setify } from '../utils/basic.js';
+import { getCameraID } from '../utils/camera.js';
+import { CardCameraAPI } from '../utils/card-controller/types.js';
+import { log } from '../utils/debug.js';
+import { EntityRegistryManager } from '../utils/ha/entity-registry/index.js';
+import { ViewMedia } from '../view/media.js';
+import { CameraManagerEngineFactory } from './engine-factory.js';
+import { CameraManagerEngine } from './engine.js';
+import { CameraInitializationError } from './error.js';
+import { CameraManagerReadOnlyConfigStore, CameraManagerStore } from './store.js';
 import {
-  CameraManagerCameraCapabilities,
+  CameraEndpoint, CameraEndpoints, CameraEndpointsContext, CameraManagerCameraCapabilities,
   CameraManagerCameraMetadata,
   CameraManagerCapabilities,
-  CameraManagerMediaCapabilities,
-  CameraEndpointsContext,
-  DataQuery,
-  EventQuery,
+  CameraManagerMediaCapabilities, DataQuery, Engine, EngineOptions, EventQuery,
   EventQueryResults,
   EventQueryResultsMap,
-  MediaMetadata,
-  MediaQuery,
+  MediaMetadata, MediaMetadataQuery,
+  MediaMetadataQueryResults, MediaQuery,
   PartialDataQuery,
   PartialEventQuery,
   PartialQueryConcreteType,
@@ -33,27 +40,8 @@ import {
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResults,
   RecordingSegmentsQueryResultsMap,
-  ResultsMap,
-  CameraEndpoints,
-  Engine,
-  MediaMetadataQuery,
-  MediaMetadataQueryResults,
-  EngineOptions,
-  CameraEndpoint,
+  ResultsMap
 } from './types.js';
-import { CameraManagerEngineFactory } from './engine-factory.js';
-import { ViewMedia } from '../view/media.js';
-import { CameraManagerEngine } from './engine.js';
-import sum from 'lodash-es/sum';
-import add from 'date-fns/add';
-import { log } from '../utils/debug.js';
-import { EntityRegistryManager } from '../utils/ha/entity-registry/index.js';
-import { getCameraID } from '../utils/camera.js';
-import { localize } from '../localize/localize.js';
-import { CameraInitializationError } from './error.js';
-import { CameraManagerReadOnlyConfigStore, CameraManagerStore } from './store.js';
-import cloneDeep from 'lodash-es/cloneDeep';
-import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
 import { sortMedia } from './util.js';
 
 class QueryClassifier {
@@ -112,25 +100,51 @@ interface InitializedCamera {
 }
 
 export class CameraManager {
+  protected _api: CardCameraAPI;
   protected _engineFactory: CameraManagerEngineFactory;
-  protected _cardWideConfig?: CardWideConfig;
-  protected _store: CameraManagerStore;
+  protected _store = new CameraManagerStore();
 
-  constructor(
-    engineFactory: CameraManagerEngineFactory,
-    cardWideConfig?: CardWideConfig,
-  ) {
-    this._engineFactory = engineFactory;
-    this._cardWideConfig = cardWideConfig;
-    this._store = new CameraManagerStore();
+  constructor(api: CardCameraAPI) {
+    this._api = api;
+    this._engineFactory = new CameraManagerEngineFactory(
+      this._api.getEntityRegistryManager(),
+      this._api.getResolvedMediaCache(),
+    );
+  }
+
+  public async initializeCamerasFromConfig(): Promise<void> {
+    const config = this._api.getConfigManager().getConfig();
+    const hass = this._api.getHASSManager().getHASS();
+
+    if (!config || !hass) {
+      return;
+    }
+
+    // For each camera merge the config (which has no defaults) into the camera
+    // global config (which does have defaults). The merging must happen in this
+    // order, to ensure that the defaults in the cameras global config do not
+    // override the values specified in the per-camera config.
+    const cameras = config.cameras.map((camera) =>
+      merge(cloneDeep(config?.cameras_global), camera),
+    );
+
+    try {
+      await this._initializeCameras(cameras);
+    } catch (e: unknown) {
+      this._api.getMessageManager().setErrorIfHigherPriority(e);
+    }
   }
 
   protected async _getEnginesForCameras(
-    hass: HomeAssistant,
     camerasConfig: CamerasConfig,
   ): Promise<Map<CameraConfig, CameraManagerEngine>> {
     const output: Map<CameraConfig, CameraManagerEngine> = new Map();
     const engines: Map<Engine, CameraManagerEngine> = new Map();
+    const hass = this._api.getHASSManager().getHASS();
+
+    if (!hass) {
+      return output;
+    }
 
     const getEngineTypes = async (configs: CameraConfig[]) => {
       return await allPromises(configs, (config) =>
@@ -142,7 +156,7 @@ export class CameraManager {
     for (const [index, cameraConfig] of camerasConfig.entries()) {
       const engineType = engineTypes[index];
       const engine = engineType
-        ? engines.get(engineType) ?? await this._engineFactory.createEngine(engineType)
+        ? engines.get(engineType) ?? (await this._engineFactory.createEngine(engineType))
         : null;
       if (!engine || !engineType) {
         throw new CameraInitializationError(
@@ -177,12 +191,13 @@ export class CameraManager {
     };
   }
 
-  public async initializeCameras(
-    hass: HomeAssistant,
-    entityRegistryManager: EntityRegistryManager,
-    camerasConfig: CamerasConfig,
-  ): Promise<void> {
+  protected async _initializeCameras(camerasConfig: CamerasConfig): Promise<void> {
     const initializationStartTime = new Date();
+    const hass = this._api.getHASSManager().getHASS();
+
+    if (!hass) {
+      return;
+    }
 
     const hasAutoTriggers = (config: CameraConfig): boolean => {
       return config.triggers.motion || config.triggers.occupancy;
@@ -195,18 +210,23 @@ export class CameraManager {
       // ... then we need to populate the entity cache by fetching all entities
       // from Home Assistant. Do this once upfront, to avoid each camera doing
       // it.
-      await entityRegistryManager.fetchEntityList(hass);
+      await this._api.getEntityRegistryManager().fetchEntityList(hass);
     }
 
     // Engines are created sequentially, to avoid duplicate creation of the same
     // engine. See: https://github.com/dermotduffy/frigate-hass-card/issues/941
-    const engineByConfig = await this._getEnginesForCameras(hass, camerasConfig);
+    const engineByConfig = await this._getEnginesForCameras(camerasConfig);
 
     // Configuration is initialized in parallel.
     const results = await allPromises(
       engineByConfig.entries(),
       async ([cameraConfig, engine]) =>
-        await this._initializeCamera(hass, engine, entityRegistryManager, cameraConfig),
+        await this._initializeCamera(
+          hass,
+          engine,
+          this._api.getEntityRegistryManager(),
+          cameraConfig,
+        ),
     );
 
     // Do the additions based off the result-order, to ensure the map order is
@@ -236,7 +256,7 @@ export class CameraManager {
     }
 
     log(
-      this._cardWideConfig,
+      this._api.getConfigManager().getCardWideConfig(),
       'Frigate Card CameraManager initialized (Cameras: ',
       this._store.getCameras(),
       `, Duration: ${
@@ -284,7 +304,7 @@ export class CameraManager {
     });
   }
 
-  public async getMediaMetadata(hass: HomeAssistant): Promise<MediaMetadata | null> {
+  public async getMediaMetadata(): Promise<MediaMetadata | null> {
     const tags: Set<string> = new Set();
     const what: Set<string> = new Set();
     const where: Set<string> = new Set();
@@ -295,7 +315,7 @@ export class CameraManager {
       cameraIDs: this._store.getCameraIDs(),
     };
 
-    const results = await this._handleQuery(hass, query);
+    const results = await this._handleQuery(query);
 
     for (const result of results?.values() ?? []) {
       if (result.metadata.tags) {
@@ -365,47 +385,46 @@ export class CameraManager {
   }
 
   public async getEvents(
-    hass: HomeAssistant,
     query: EventQuery | EventQuery[],
     engineOptions?: EngineOptions,
   ): Promise<EventQueryResultsMap> {
-    return await this._handleQuery(hass, query, engineOptions);
+    return await this._handleQuery(query, engineOptions);
   }
 
   public async getRecordings(
-    hass: HomeAssistant,
     query: RecordingQuery | RecordingQuery[],
     engineOptions?: EngineOptions,
   ): Promise<RecordingQueryResultsMap> {
-    return await this._handleQuery(hass, query, engineOptions);
+    return await this._handleQuery(query, engineOptions);
   }
 
   public async getRecordingSegments(
-    hass: HomeAssistant,
     query: RecordingSegmentsQuery | RecordingSegmentsQuery[],
     engineOptions?: EngineOptions,
   ): Promise<RecordingSegmentsQueryResultsMap> {
-    return await this._handleQuery(hass, query, engineOptions);
+    return await this._handleQuery(query, engineOptions);
   }
 
   public async executeMediaQueries<T extends MediaQuery>(
-    hass: HomeAssistant,
     queries: T[],
     engineOptions?: EngineOptions,
   ): Promise<ViewMedia[] | null> {
     return this._convertQueryResultsToMedia(
-      hass,
-      await this._handleQuery(hass, queries, engineOptions),
+      await this._handleQuery(queries, engineOptions),
     );
   }
 
   public async extendMediaQueries<T extends MediaQuery>(
-    hass: HomeAssistant,
     queries: T[],
     results: ViewMedia[],
     direction: 'earlier' | 'later',
     engineOptions?: EngineOptions,
   ): Promise<ExtendedMediaQueryResult<T> | null> {
+    const hass = this._api.getHASSManager().getHASS();
+    if (!hass) {
+      return null;
+    }
+
     const getTimeFromResults = (want: 'earliest' | 'latest'): Date | null => {
       let output: Date | null = null;
       for (const result of results) {
@@ -423,8 +442,8 @@ export class CameraManager {
     };
 
     const chunkSize =
-      this._cardWideConfig?.performance?.features.media_chunk_size ??
-      MEDIA_CHUNK_SIZE_DEFAULT;
+      this._api.getConfigManager().getCardWideConfig()?.performance?.features
+        .media_chunk_size ?? MEDIA_CHUNK_SIZE_DEFAULT;
 
     // The queries associated with the chunk to fetch.
     const newChunkQueries: T[] = [];
@@ -456,8 +475,7 @@ export class CameraManager {
     }
 
     const newChunkMedia = this._convertQueryResultsToMedia(
-      hass,
-      await this._handleQuery(hass, newChunkQueries, engineOptions),
+      await this._handleQuery(newChunkQueries, engineOptions),
     );
 
     if (!newChunkMedia.length) {
@@ -478,14 +496,12 @@ export class CameraManager {
     };
   }
 
-  public async getMediaDownloadPath(
-    hass: ExtendedHomeAssistant,
-    media: ViewMedia,
-  ): Promise<CameraEndpoint | null> {
+  public async getMediaDownloadPath(media: ViewMedia): Promise<CameraEndpoint | null> {
     const cameraConfig = this._store.getCameraConfigForMedia(media);
     const engine = this._store.getEngineForMedia(media);
+    const hass = this._api.getHASSManager().getHASS();
 
-    if (!cameraConfig || !engine) {
+    if (!cameraConfig || !engine || !hass) {
       return null;
     }
     return await engine.getMediaDownloadPath(hass, cameraConfig, media);
@@ -499,15 +515,12 @@ export class CameraManager {
     return engine.getMediaCapabilities(media);
   }
 
-  public async favoriteMedia(
-    hass: HomeAssistant,
-    media: ViewMedia,
-    favorite: boolean,
-  ): Promise<void> {
+  public async favoriteMedia(media: ViewMedia, favorite: boolean): Promise<void> {
     const cameraConfig = this._store.getCameraConfigForMedia(media);
     const engine = this._store.getEngineForMedia(media);
+    const hass = this._api.getHASSManager().getHASS();
 
-    if (!cameraConfig || !engine) {
+    if (!cameraConfig || !engine || !hass) {
       return;
     }
 
@@ -515,7 +528,7 @@ export class CameraManager {
     await engine.favoriteMedia(hass, cameraConfig, media, favorite);
 
     log(
-      this._cardWideConfig,
+      this._api.getConfigManager().getCardWideConfig(),
       'Frigate Card CameraManager favorite request (',
       `Duration: ${(new Date().getTime() - queryStartTime.getTime()) / 1000}s,`,
       'Media:',
@@ -550,16 +563,15 @@ export class CameraManager {
     return true;
   }
 
-  public async getMediaSeekTime(
-    hass: HomeAssistant,
-    media: ViewMedia,
-    target: Date,
-  ): Promise<number | null> {
+  public async getMediaSeekTime(media: ViewMedia, target: Date): Promise<number | null> {
     const startTime = media.getStartTime();
     const endTime = media.getEndTime();
     const cameraConfig = this._store.getCameraConfigForMedia(media);
     const engine = this._store.getEngineForMedia(media);
+    const hass = this._api.getHASSManager().getHASS();
+
     if (
+      !hass ||
       !cameraConfig ||
       !engine ||
       !startTime ||
@@ -574,13 +586,17 @@ export class CameraManager {
   }
 
   protected async _handleQuery<QT extends DataQuery>(
-    hass: HomeAssistant,
     query: QT | QT[],
     engineOptions?: EngineOptions,
   ): Promise<Map<QT, QueryReturnType<QT>>> {
     const _queries = arrayify(query);
     const results = new Map<QT, QueryReturnType<QT>>();
     const queryStartTime = new Date();
+    const hass = this._api.getHASSManager().getHASS();
+
+    if (!hass) {
+      return results;
+    }
 
     const processEngineQuery = async (
       engine: CameraManagerEngine,
@@ -643,7 +659,7 @@ export class CameraManager {
     );
 
     log(
-      this._cardWideConfig,
+      this._api.getConfigManager().getCardWideConfig(),
       'Frigate Card CameraManager request [Input queries:',
       _queries.length,
       ', Cached output queries:',
@@ -662,10 +678,15 @@ export class CameraManager {
   }
 
   protected _convertQueryResultsToMedia<QT extends DataQuery>(
-    hass: HomeAssistant,
     results: ResultsMap<QT>,
   ): ViewMedia[] {
     const mediaArray: ViewMedia[] = [];
+    const hass = this._api.getHASSManager().getHASS();
+
+    if (!hass) {
+      return mediaArray;
+    }
+
     for (const [query, result] of results.entries()) {
       const engine = this._store.getEngineOfType(result.engine);
 
@@ -712,13 +733,12 @@ export class CameraManager {
     return engine.getCameraEndpoints(cameraConfig, context);
   }
 
-  public getCameraMetadata(
-    hass: HomeAssistant,
-    cameraID: string,
-  ): CameraManagerCameraMetadata | null {
+  public getCameraMetadata(cameraID: string): CameraManagerCameraMetadata | null {
     const cameraConfig = this._store.getCameraConfig(cameraID);
     const engine = this._store.getEngineForCameraID(cameraID);
-    if (!cameraConfig || !engine) {
+    const hass = this._api.getHASSManager().getHASS();
+
+    if (!cameraConfig || !engine || !hass) {
       return null;
     }
     return engine.getCameraMetadata(hass, cameraConfig);
@@ -747,9 +767,7 @@ export class CameraManager {
       canFavoriteRecordings: perCameraCapabilities.some(
         (cap) => cap?.canFavoriteRecordings,
       ),
-      canSeek: perCameraCapabilities.some(
-        (cap) => cap?.canSeek,
-      ),
+      canSeek: perCameraCapabilities.some((cap) => cap?.canSeek),
 
       supportsClips: perCameraCapabilities.some((cap) => cap?.supportsClips),
       supportsRecordings: perCameraCapabilities.some((cap) => cap?.supportsRecordings),

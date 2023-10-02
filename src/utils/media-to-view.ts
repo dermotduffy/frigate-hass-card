@@ -1,4 +1,3 @@
-import { HomeAssistant } from 'custom-card-helpers';
 import { ViewContext } from 'view';
 import { CameraManager } from '../camera-manager/manager';
 import { MediaQuery } from '../camera-manager/types';
@@ -20,7 +19,6 @@ type ResultSelectType = 'latest' | 'time' | 'none';
 
 export const changeViewToRecentEventsForCameraAndDependents = async (
   element: HTMLElement,
-  hass: HomeAssistant,
   cameraManager: CameraManager,
   cardWideConfig: CardWideConfig,
   view: View,
@@ -46,7 +44,7 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
   }
 
   (
-    await executeMediaQueryForView(element, hass, cameraManager, view, queries, {
+    await executeMediaQueryForView(element, cameraManager, view, queries, {
       targetView: options?.targetView,
       select: options?.select,
     })
@@ -82,7 +80,6 @@ const createQueriesForEventsView = (
  */
 export const changeViewToRecentRecordingForCameraAndDependents = async (
   element: HTMLElement,
-  hass: HomeAssistant,
   cameraManager: CameraManager,
   cardWideConfig: CardWideConfig,
   view: View,
@@ -109,7 +106,7 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
   }
 
   (
-    await executeMediaQueryForView(element, hass, cameraManager, view, queries, {
+    await executeMediaQueryForView(element, cameraManager, view, queries, {
       targetView: options?.targetView,
       select: options?.select,
     })
@@ -131,7 +128,6 @@ const createQueriesForRecordingsView = (
 
 export const executeMediaQueryForView = async (
   element: HTMLElement,
-  hass: HomeAssistant,
   cameraManager: CameraManager,
   view: View,
   query: MediaQueries,
@@ -150,7 +146,7 @@ export const executeMediaQueryForView = async (
   }
 
   try {
-    mediaArray = await cameraManager.executeMediaQueries<MediaQuery>(hass, queries);
+    mediaArray = await cameraManager.executeMediaQueries<MediaQuery>(queries);
   } catch (e) {
     errorToConsole(e as Error);
     dispatchFrigateCardErrorEvent(element, e as Error);

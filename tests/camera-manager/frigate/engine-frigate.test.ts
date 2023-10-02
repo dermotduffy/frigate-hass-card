@@ -12,7 +12,6 @@ import { createCameraConfig, createHASS } from '../../test-utils';
 
 const createEngine = (): FrigateCameraManagerEngine => {
   return new FrigateCameraManagerEngine(
-    {},
     new RecordingSegmentsCache(),
     new RequestCache(),
   );

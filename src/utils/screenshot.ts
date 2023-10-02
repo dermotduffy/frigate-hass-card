@@ -14,7 +14,7 @@ export const screenshotMedia = (video: HTMLVideoElement): string | null => {
   return canvas.toDataURL('image/jpeg');
 };
 
-export const generateScreenshotTitle = (view?: View): string => {
+export const generateScreenshotTitle = (view?: View | null): string => {
   if (view?.is('live') || view?.is('image')) {
     return `${view.view}-${view.camera}-${format(
       new Date(),

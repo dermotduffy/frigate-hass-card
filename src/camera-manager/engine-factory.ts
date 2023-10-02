@@ -1,6 +1,6 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { localize } from '../localize/localize';
-import { CameraConfig, CardWideConfig } from '../types';
+import { CameraConfig } from '../types';
 import { BrowseMediaManager } from '../utils/ha/browse-media/browse-media-manager';
 import { BrowseMedia } from '../utils/ha/browse-media/types';
 import { EntityRegistryManager } from '../utils/ha/entity-registry';
@@ -15,15 +15,12 @@ import { getCameraEntityFromConfig } from './util';
 export class CameraManagerEngineFactory {
   protected _entityRegistryManager: EntityRegistryManager;
   protected _resolvedMediaCache: ResolvedMediaCache;
-  protected _cardWideConfig: CardWideConfig;
 
   constructor(
     entityRegistryManager: EntityRegistryManager,
     resolvedMediaCache: ResolvedMediaCache,
-    cardWideConfig: CardWideConfig,
   ) {
     this._entityRegistryManager = entityRegistryManager;
-    this._cardWideConfig = cardWideConfig;
     this._resolvedMediaCache = resolvedMediaCache;
   }
 
@@ -37,7 +34,6 @@ export class CameraManagerEngineFactory {
       case Engine.Frigate:
         const { FrigateCameraManagerEngine } = await import('./frigate/engine-frigate');
         cameraManagerEngine = new FrigateCameraManagerEngine(
-          this._cardWideConfig,
           new RecordingSegmentsCache(),
           new RequestCache(),
         );

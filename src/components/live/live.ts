@@ -16,7 +16,10 @@ import { keyed } from 'lit/directives/keyed.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { CameraConfigs, CameraEndpoints } from '../../camera-manager/types.js';
-import { ConditionControllerEpoch, getOverriddenConfig } from '../../conditions.js';
+import {
+  ConditionsManagerEpoch,
+  getOverriddenConfig,
+} from '../../utils/card-controller/conditions-manager.js';
 import { localize } from '../../localize/localize.js';
 import basicBlockStyle from '../../scss/basic-block.scss';
 import liveCarouselStyle from '../../scss/live-carousel.scss';
@@ -121,7 +124,7 @@ export const getStateObjOrDispatchError = (
 @customElement('frigate-card-live')
 export class FrigateCardLive extends LitElement {
   @property({ attribute: false })
-  public conditionControllerEpoch?: ConditionControllerEpoch;
+  public conditionsManagerEpoch?: ConditionsManagerEpoch;
 
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
@@ -247,7 +250,7 @@ export class FrigateCardLive extends LitElement {
           .nonOverriddenLiveConfig=${this.nonOverriddenLiveConfig}
           .overriddenLiveConfig=${this.overriddenLiveConfig}
           .inBackground=${this._inBackground}
-          .conditionControllerEpoch=${this.conditionControllerEpoch}
+          .conditionsManagerEpoch=${this.conditionsManagerEpoch}
           .liveOverrides=${this.liveOverrides}
           .cardWideConfig=${this.cardWideConfig}
           .cameraManager=${this.cameraManager}
@@ -305,7 +308,7 @@ export class FrigateCardLiveGrid extends LitElement {
   public liveOverrides?: LiveOverrides;
 
   @property({ attribute: false })
-  public conditionControllerEpoch?: ConditionControllerEpoch;
+  public conditionsManagerEpoch?: ConditionsManagerEpoch;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -325,7 +328,7 @@ export class FrigateCardLiveGrid extends LitElement {
         .viewFilterCameraID=${cameraID}
         .nonOverriddenLiveConfig=${this.nonOverriddenLiveConfig}
         .overriddenLiveConfig=${this.overriddenLiveConfig}
-        .conditionControllerEpoch=${this.conditionControllerEpoch}
+        .conditionsManagerEpoch=${this.conditionsManagerEpoch}
         .liveOverrides=${this.liveOverrides}
         .cardWideConfig=${this.cardWideConfig}
         .cameraManager=${this.cameraManager}
@@ -360,7 +363,7 @@ export class FrigateCardLiveGrid extends LitElement {
   }
 
   protected render(): TemplateResult | void {
-    if (!this.conditionControllerEpoch || !this.nonOverriddenLiveConfig) {
+    if (!this.conditionsManagerEpoch || !this.nonOverriddenLiveConfig) {
       return;
     }
     const cameraIDs = this.cameraManager?.getStore().getVisibleCameraIDs();
@@ -406,7 +409,7 @@ export class FrigateCardLiveCarousel extends LitElement {
   public liveOverrides?: LiveOverrides;
 
   @property({ attribute: false })
-  public conditionControllerEpoch?: ConditionControllerEpoch;
+  public conditionsManagerEpoch?: ConditionsManagerEpoch;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -572,7 +575,7 @@ export class FrigateCardLiveCarousel extends LitElement {
       !this.nonOverriddenLiveConfig ||
       !this.hass ||
       !this.cameraManager ||
-      !this.conditionControllerEpoch
+      !this.conditionsManagerEpoch
     ) {
       return;
     }
@@ -581,13 +584,13 @@ export class FrigateCardLiveCarousel extends LitElement {
     // <frigate-card-live-provider> is rendering right now, so we provide a
     // stateOverride to evaluate the condition in that context.
     const config = getOverriddenConfig(
-      this.conditionControllerEpoch.controller,
+      this.conditionsManagerEpoch.manager,
       this.nonOverriddenLiveConfig,
       this.liveOverrides,
       { camera: cameraID },
     ) as LiveConfig;
 
-    const cameraMetadata = this.cameraManager.getCameraMetadata(this.hass, cameraID);
+    const cameraMetadata = this.cameraManager.getCameraMetadata(cameraID);
 
     return html`
       <div class="embla__slide">
@@ -650,14 +653,13 @@ export class FrigateCardLiveCarousel extends LitElement {
     };
 
     const cameraMetadataPrevious = prevID
-      ? this.cameraManager.getCameraMetadata(this.hass, overrideCameraID(prevID))
+      ? this.cameraManager.getCameraMetadata(overrideCameraID(prevID))
       : null;
     const cameraMetadataCurrent = this.cameraManager.getCameraMetadata(
-      this.hass,
       overrideCameraID(this.viewFilterCameraID ?? this.view.camera),
     );
     const cameraMetadataNext = nextID
-      ? this.cameraManager.getCameraMetadata(this.hass, overrideCameraID(nextID))
+      ? this.cameraManager.getCameraMetadata(overrideCameraID(nextID))
       : null;
 
     const titleConfig = getDefaultTitleConfigForView(

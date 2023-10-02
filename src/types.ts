@@ -43,6 +43,7 @@ export const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
 
 const FRIGATE_CARD_VIEWS = [
   ...FRIGATE_CARD_VIEWS_USER_SPECIFIED,
+  'diagnostics',
 
   // Media: A generic piece of media (could be clip, snapshot, recording).
   'media',
@@ -777,6 +778,14 @@ const viewConfigDefault = {
     untrigger_reset: true,
   },
 };
+const scanSchema = z.object({
+  enabled: z.boolean().default(viewConfigDefault.scan.enabled).optional(),
+  show_trigger_status: z.boolean().default(viewConfigDefault.scan.show_trigger_status).optional(),
+  untrigger_seconds: z.number().default(viewConfigDefault.scan.untrigger_seconds).optional(),
+  untrigger_reset: z.boolean().default(viewConfigDefault.scan.untrigger_reset).optional(),
+});
+export type ScanOptions = z.infer<typeof scanSchema>;
+
 const viewConfigSchema = z
   .object({
     default: z
@@ -792,16 +801,7 @@ const viewConfigSchema = z
     update_entities: z.string().array().optional(),
     render_entities: z.string().array().optional(),
     dark_mode: z.enum(['on', 'off', 'auto']).optional(),
-    scan: z
-      .object({
-        enabled: z.boolean().default(viewConfigDefault.scan.enabled),
-        show_trigger_status: z
-          .boolean()
-          .default(viewConfigDefault.scan.show_trigger_status),
-        untrigger_seconds: z.number().default(viewConfigDefault.scan.untrigger_seconds),
-        untrigger_reset: z.boolean().default(viewConfigDefault.scan.untrigger_reset),
-      })
-      .default(viewConfigDefault.scan),
+    scan: scanSchema.default(viewConfigDefault.scan),
   })
   .merge(actionsSchema)
   .default(viewConfigDefault);
@@ -1365,7 +1365,7 @@ const automationSchema = z.object({
 });
 export type Automation = z.infer<typeof automationSchema>;
 
-export const automationsSchema = automationSchema.array().optional();
+const automationsSchema = automationSchema.array().optional();
 export type Automations = z.infer<typeof automationsSchema>;
 
 const performanceConfigDefault = {
@@ -1458,7 +1458,6 @@ export const frigateCardConfigSchema = z.object({
 
   // Stock lovelace card config.
   type: z.string(),
-  test_gui: z.boolean().optional(),
 });
 export type FrigateCardConfig = z.infer<typeof frigateCardConfigSchema>;
 export type RawFrigateCardConfig = Record<string, unknown>;
@@ -1504,14 +1503,18 @@ export interface MediaLoadedInfo {
   capabilities?: MediaLoadedCapabilities;
 }
 
-export const MESSAGE_TYPE_PRIORITIES = {
+export type MessageType = 'info' | 'error' | 'connection' | 'diagnostics';
+
+type MessagePriority = {
+  [type in MessageType]: number;
+};
+
+export const MESSAGE_TYPE_PRIORITIES: MessagePriority = {
   info: 10,
   error: 20,
   connection: 30,
   diagnostics: 40,
 };
-
-export type MessageType = 'info' | 'error' | 'connection' | 'diagnostics';
 
 export interface Message {
   message: string;

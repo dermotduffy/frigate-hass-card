@@ -82,7 +82,6 @@ export class FrigateCardSurround extends LitElement {
     }
     await changeViewToRecentEventsForCameraAndDependents(
       this,
-      this.hass,
       this.cameraManager,
       this.cardWideConfig,
       this.view,

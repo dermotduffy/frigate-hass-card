@@ -9,12 +9,16 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
-import { ConditionControllerEpoch, getOverridesByKey } from '../conditions';
+import { ConditionsManagerEpoch, getOverridesByKey } from '../utils/card-controller/conditions-manager';
 import viewsStyle from '../scss/views.scss';
-import { CardWideConfig, ExtendedHomeAssistant, FrigateCardConfig } from '../types.js';
-import { ResolvedMediaCache } from '../utils/ha/resolved-media';
+import { ExtendedHomeAssistant } from '../types.js';
+import { ConfigManager } from '../utils/card-controller/config-manager.js';
+import { ResolvedMediaCache } from '../utils/ha/resolved-media.js';
 import { View } from '../view/view.js';
 import './surround.js';
+
+// As a special case: Diagnostics is not dynamically loaded in case something goes wrong.
+import './diagnostics.js';
 
 @customElement('frigate-card-views')
 export class FrigateCardViews extends LitElement {
@@ -28,19 +32,13 @@ export class FrigateCardViews extends LitElement {
   public cameraManager?: CameraManager;
 
   @property({ attribute: false })
-  public config?: FrigateCardConfig;
-
-  @property({ attribute: false })
-  public nonOverriddenConfig?: FrigateCardConfig;
-
-  @property({ attribute: false })
-  public cardWideConfig?: CardWideConfig;
+  public configManager?: ConfigManager;
 
   @property({ attribute: false })
   public resolvedMediaCache?: ResolvedMediaCache;
 
   @property({ attribute: false })
-  public conditionControllerEpoch?: ConditionControllerEpoch;
+  public conditionsManagerEpoch?: ConditionsManagerEpoch;
 
   @property({ attribute: false })
   public hide?: boolean;
@@ -93,15 +91,24 @@ export class FrigateCardViews extends LitElement {
   }
 
   protected _shouldLivePreload(): boolean {
-    return !!this.config?.live.preload;
+    return (
+      // Special case: Never preload for diagnostics -- we want that to be as
+      // minimal as possible.
+      !!this.configManager?.getConfig()?.live.preload && !this.view?.is('diagnostics')
+    );
   }
 
   protected render(): TemplateResult | void {
+    const config = this.configManager?.getConfig();
+    const nonOverriddenConfig = this.configManager?.getNonOverriddenConfig();
+    const cardWideConfig = this.configManager?.getCardWideConfig();
+    const rawConfig = this.configManager?.getRawConfig();
+
     // Only essential items should be added to the below list, since we want the
     // overall views pane to render in ~almost all cases (e.g. for a camera
     // initialization error to display, `view` and `cameraConfig` may both be
     // undefined, but we still want to render).
-    if (!this.hass || !this.config || !this.nonOverriddenConfig) {
+    if (!this.hass || !config || !nonOverriddenConfig || !cardWideConfig) {
       return html``;
     }
 
@@ -115,17 +122,17 @@ export class FrigateCardViews extends LitElement {
     };
 
     const thumbnailConfig = this.view?.is('live')
-      ? this.config.live.controls.thumbnails
+      ? config.live.controls.thumbnails
       : this.view?.isViewerView()
-      ? this.config.media_viewer.controls.thumbnails
+      ? config.media_viewer.controls.thumbnails
       : this.view?.is('timeline')
-      ? this.config.timeline.controls.thumbnails
+      ? config.timeline.controls.thumbnails
       : undefined;
 
     const miniTimelineConfig = this.view?.is('live')
-      ? this.config.live.controls.timeline
+      ? config.live.controls.timeline
       : this.view?.isViewerView()
-      ? this.config.media_viewer.controls.timeline
+      ? config.media_viewer.controls.timeline
       : undefined;
 
     const cameraConfig = this.view
@@ -137,16 +144,16 @@ export class FrigateCardViews extends LitElement {
       .hass=${this.hass}
       .view=${this.view}
       .fetchMedia=${this.view?.is('live')
-        ? this.config.live.controls.thumbnails.media
+        ? config.live.controls.thumbnails.media
         : undefined}
       .thumbnailConfig=${!this.hide ? thumbnailConfig : undefined}
       .timelineConfig=${!this.hide ? miniTimelineConfig : undefined}
       .cameraManager=${this.cameraManager}
-      .cardWideConfig=${this.cardWideConfig}
+      .cardWideConfig=${cardWideConfig}
     >
       ${!this.hide && this.view?.is('image') && cameraConfig
         ? html` <frigate-card-image
-            .imageConfig=${this.config.image}
+            .imageConfig=${config.image}
             .view=${this.view}
             .hass=${this.hass}
             .cameraConfig=${cameraConfig}
@@ -158,9 +165,9 @@ export class FrigateCardViews extends LitElement {
         ? html` <frigate-card-gallery
             .hass=${this.hass}
             .view=${this.view}
-            .galleryConfig=${this.config.media_gallery}
+            .galleryConfig=${config.media_gallery}
             .cameraManager=${this.cameraManager}
-            .cardWideConfig=${this.cardWideConfig}
+            .cardWideConfig=${cardWideConfig}
           >
           </frigate-card-gallery>`
         : ``}
@@ -169,10 +176,10 @@ export class FrigateCardViews extends LitElement {
             <frigate-card-viewer
               .hass=${this.hass}
               .view=${this.view}
-              .viewerConfig=${this.config.media_viewer}
+              .viewerConfig=${config.media_viewer}
               .resolvedMediaCache=${this.resolvedMediaCache}
               .cameraManager=${this.cameraManager}
-              .cardWideConfig=${this.cardWideConfig}
+              .cardWideConfig=${cardWideConfig}
             >
             </frigate-card-viewer>
           `
@@ -181,11 +188,18 @@ export class FrigateCardViews extends LitElement {
         ? html` <frigate-card-timeline
             .hass=${this.hass}
             .view=${this.view}
-            .timelineConfig=${this.config.timeline}
+            .timelineConfig=${config.timeline}
             .cameraManager=${this.cameraManager}
-            .cardWideConfig=${this.cardWideConfig}
+            .cardWideConfig=${cardWideConfig}
           >
           </frigate-card-timeline>`
+        : ``}
+      ${!this.hide && this.view?.is('diagnostics')
+        ? html` <frigate-card-diagnostics
+            .hass=${this.hass}
+            .rawConfig=${rawConfig}
+          >
+          </frigate-card-diagnostics>`
         : ``}
       ${
         // Note: Subtle difference in condition below vs the other views in order
@@ -199,12 +213,12 @@ export class FrigateCardViews extends LitElement {
               <frigate-card-live
                 .hass=${this.hass}
                 .view=${this.view}
-                .nonOverriddenLiveConfig=${this.nonOverriddenConfig.live}
-                .overriddenLiveConfig=${this.config.live}
-                .conditionControllerEpoch=${this.conditionControllerEpoch}
-                .liveOverrides=${getOverridesByKey('live', this.config.overrides)}
+                .nonOverriddenLiveConfig=${nonOverriddenConfig.live}
+                .overriddenLiveConfig=${config.live}
+                .conditionsManagerEpoch=${this.conditionsManagerEpoch}
+                .liveOverrides=${getOverridesByKey('live', config.overrides)}
                 .cameraManager=${this.cameraManager}
-                .cardWideConfig=${this.cardWideConfig}
+                .cardWideConfig=${cardWideConfig}
                 .microphoneStream=${this.microphoneStream}
                 class="${classMap(liveClasses)}"
               >

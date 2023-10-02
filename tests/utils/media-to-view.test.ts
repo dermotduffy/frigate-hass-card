@@ -12,7 +12,6 @@ import { ViewMedia } from '../../src/view/media';
 import { EventMediaQueries } from '../../src/view/media-queries';
 import {
   createCameraManager,
-  createHASS,
   createPerformanceConfig,
   createView,
   TestViewMedia,
@@ -70,7 +69,6 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
     await changeViewToRecentEventsForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -84,7 +82,6 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
     await changeViewToRecentEventsForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -102,7 +99,6 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
     await changeViewToRecentEventsForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -122,7 +118,6 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
     await changeViewToRecentEventsForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -144,7 +139,6 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
     await changeViewToRecentEventsForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -158,7 +152,6 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
     await changeViewToRecentEventsForCameraAndDependents(
       createElementListenForView().element,
-      createHASS(),
       cameraManager,
       {
         performance: createPerformanceConfig({
@@ -187,7 +180,6 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
       await changeViewToRecentEventsForCameraAndDependents(
         createElementListenForView().element,
-        createHASS(),
         cameraManager,
         {},
         createView(),
@@ -220,7 +212,6 @@ describe('executeMediaQueryForView', () => {
     expect(
       await executeMediaQueryForView(
         elementHandler.element,
-        createHASS(),
         cameraManager,
         createView(),
         new EventMediaQueries(),
@@ -243,7 +234,6 @@ describe('executeMediaQueryForView', () => {
 
     const view = await executeMediaQueryForView(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       createView(),
       new EventMediaQueries(
@@ -276,7 +266,6 @@ describe('executeMediaQueryForView', () => {
 
     const view = await executeMediaQueryForView(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       createView(),
       new EventMediaQueries(
@@ -306,7 +295,6 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
 
     await changeViewToRecentRecordingForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -320,7 +308,6 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
 
     await changeViewToRecentRecordingForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -338,7 +325,6 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
 
     await changeViewToRecentRecordingForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -355,7 +341,6 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
 
     await changeViewToRecentRecordingForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -373,7 +358,6 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
 
     await changeViewToRecentRecordingForCameraAndDependents(
       createElementListenForView().element,
-      createHASS(),
       cameraManager,
       {
         performance: createPerformanceConfig({

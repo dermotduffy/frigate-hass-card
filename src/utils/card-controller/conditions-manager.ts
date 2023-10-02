@@ -1,14 +1,14 @@
 import { HassEntities } from 'home-assistant-js-websocket';
 import merge from 'lodash-es/merge';
-import { copyConfig } from './config-mgmt';
+import { copyConfig } from '../../config-mgmt';
 import {
   FrigateCardCondition,
-  FrigateCardConfig,
   frigateConditionalSchema,
   OverrideConfigurationKey,
   RawFrigateCardConfig,
-  ViewDisplayMode
-} from './types';
+  ViewDisplayMode,
+} from '../../types';
+import { CardConditionAPI } from './types';
 
 interface ConditionState {
   view?: string;
@@ -69,7 +69,7 @@ type RawOverrides = {
 }[];
 
 export function getOverriddenConfig(
-  controller: Readonly<ConditionController>,
+  manager: Readonly<ConditionsManager>,
   config: Readonly<RawFrigateCardConfig>,
   configOverrides?: Readonly<RawOverrides>,
   stateOverrides?: Partial<ConditionState>,
@@ -78,7 +78,7 @@ export function getOverriddenConfig(
   let overridden = false;
   if (configOverrides) {
     for (const override of configOverrides) {
-      if (controller.evaluateCondition(override.conditions, stateOverrides)) {
+      if (manager.evaluateCondition(override.conditions, stateOverrides)) {
         merge(output, override.overrides);
         overridden = true;
       }
@@ -103,19 +103,23 @@ export function getOverridesByKey(
   );
 }
 
-// A tiny wrapper interface to allow the same controller to be passed around
+// A tiny wrapper interface to allow the same manager to be passed around
 // immutably within objects that will not be equal (===). Every state change
 // generates a new epoch. This is used for Lit rendering to ensure changes to
-// condition state are recognized as changes even though the controller is the
+// condition state are recognized as changes even though the manager is the
 // same.
-export interface ConditionControllerEpoch {
-  controller: Readonly<ConditionController>;
+export interface ConditionsManagerEpoch {
+  manager: Readonly<ConditionsManager>;
 }
 
-export class ConditionController {
+export type ConditionsManagerListener = () => void;
+
+export class ConditionsManager {
+  protected _api: CardConditionAPI;
+
   protected _state: ConditionState = {};
-  protected _epoch: ConditionControllerEpoch = this._createEpoch();
-  protected _stateListeners: (() => void)[] = [];
+  protected _epoch: ConditionsManagerEpoch = this._createEpoch();
+  protected _listeners: ConditionsManagerListener[];
 
   // Whether or not to include HA state in ConditionState. Doing so increases
   // CPU usage as HA state is pumped out very fast, so this is only enabled if
@@ -124,27 +128,57 @@ export class ConditionController {
   protected _mediaQueries: MediaQueryList[] = [];
   protected _mediaQueryTrigger = () => this._triggerChange();
 
-  constructor(config?: FrigateCardConfig) {
-    if (config) {
-      this._initConditions(config);
-    }
+  constructor(api: CardConditionAPI, listener?: ConditionsManagerListener) {
+    this._api = api;
+    this._listeners = [
+      () => this._api.getConfigManager().computeOverrideConfig(),
+      () => this._api.getAutomationsManager().execute(),
+      ...(listener ? [listener] : [])
+    ];
   }
 
-  public addStateListener(callback: () => void): void {
-    this._stateListeners.push(callback);
-  }
-
-  public removeStateListener(callback: () => void): void {
-    this._stateListeners = this._stateListeners.filter(
-      (listener) => listener != callback,
-    );
-  }
-
-  public destroy(): void {
+  public removeConditions(): void {
     this._mediaQueries.forEach((mql) =>
       mql.removeEventListener('change', this._mediaQueryTrigger),
     );
     this._mediaQueries = [];
+  }
+
+  public setConditionsFromConfig(): void {
+    this.removeConditions();
+
+    const getAllConditions = (): FrigateCardCondition[] => {
+      const config = this._api.getConfigManager().getConfig();
+      const conditions: FrigateCardCondition[] = [];
+      config?.overrides?.forEach((override) => conditions.push(override.conditions));
+
+      // Element conditions can be arbitrarily nested underneath conditionals and
+      // custom elements that this card may not known. Here we recursively parse
+      // down the elements tree, parsing as we go to find valid conditions.
+      const getElementsConditions = (data: unknown): void => {
+        const parseResult = frigateConditionalSchema.safeParse(data);
+        if (parseResult.success) {
+          conditions.push(parseResult.data.conditions);
+          parseResult.data.elements?.forEach(getElementsConditions);
+        } else if (data && typeof data === 'object') {
+          Object.keys(data).forEach((key) => getElementsConditions(data[key]));
+        }
+      };
+      config?.elements?.forEach(getElementsConditions);
+      return conditions;
+    };
+
+    const conditions = getAllConditions();
+    this._hasHAStateConditions = conditions.some(
+      (condition) => !!condition.state?.length,
+    );
+    conditions.forEach((condition) => {
+      if (condition.media_query) {
+        const mql = window.matchMedia(condition.media_query);
+        mql.addEventListener('change', this._mediaQueryTrigger);
+        this._mediaQueries.push(mql);
+      }
+    });
   }
 
   public setState(state: Partial<ConditionState>): void {
@@ -155,11 +189,11 @@ export class ConditionController {
     this._triggerChange();
   }
 
-  get hasHAStateConditions(): boolean {
+  public hasHAStateConditions(): boolean {
     return this._hasHAStateConditions;
   }
 
-  public getEpoch(): ConditionControllerEpoch {
+  public getEpoch(): ConditionsManagerEpoch {
     return this._epoch;
   }
 
@@ -212,46 +246,12 @@ export class ConditionController {
     return result;
   }
 
-  protected _createEpoch(): ConditionControllerEpoch {
-    return { controller: this };
+  protected _createEpoch(): ConditionsManagerEpoch {
+    return { manager: this };
   }
 
   protected _triggerChange(): void {
     this._epoch = this._createEpoch();
-    this._stateListeners.forEach((listener) => listener());
-  }
-
-  protected _initConditions(config: FrigateCardConfig): void {
-    const getAllConditions = (config: FrigateCardConfig): FrigateCardCondition[] => {
-      const conditions: FrigateCardCondition[] = [];
-      config.overrides?.forEach((override) => conditions.push(override.conditions));
-
-      // Element conditions can be arbitrarily nested underneath conditionals and
-      // custom elements that this card may not known. Here we recursively parse
-      // down the elements tree, parsing as we go to find valid conditions.
-      const getElementsConditions = (data: unknown): void => {
-        const parseResult = frigateConditionalSchema.safeParse(data);
-        if (parseResult.success) {
-          conditions.push(parseResult.data.conditions);
-          parseResult.data.elements?.forEach(getElementsConditions);
-        } else if (data && typeof data === 'object') {
-          Object.keys(data).forEach((key) => getElementsConditions(data[key]));
-        }
-      };
-      config.elements?.forEach(getElementsConditions);
-      return conditions;
-    };
-
-    const conditions = getAllConditions(config);
-    this._hasHAStateConditions = conditions.some(
-      (condition) => !!condition.state?.length,
-    );
-    conditions.forEach((condition) => {
-      if (condition.media_query) {
-        const mql = window.matchMedia(condition.media_query);
-        mql.addEventListener('change', this._mediaQueryTrigger);
-        this._mediaQueries.push(mql);
-      }
-    });
+    this._listeners.forEach((listener) => listener());
   }
 }

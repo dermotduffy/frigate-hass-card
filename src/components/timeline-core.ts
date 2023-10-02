@@ -582,7 +582,6 @@ export class FrigateCardTimelineCore extends LitElement {
       if (query) {
         view = await executeMediaQueryForView(
           this,
-          this.hass,
           this.cameraManager,
           this.view,
           query,
@@ -675,11 +674,11 @@ export class FrigateCardTimelineCore extends LitElement {
     }
     this._removeTargetBar();
 
-    if (!this.hass || !this._timeline || !this.view) {
+    if (!this._timeline || !this.view) {
       return;
     }
 
-    await this._timelineSource?.refresh(this.hass, this._getPrefetchWindow(properties));
+    await this._timelineSource?.refresh(this._getPrefetchWindow(properties));
 
     const queryType = MediaQueriesClassifier.getQueriesType(this.view.query);
     if (!queryType) {
@@ -737,7 +736,6 @@ export class FrigateCardTimelineCore extends LitElement {
     }
     const view = await executeMediaQueryForView(
       this,
-      this.hass,
       this.cameraManager,
       this.view,
       query,
@@ -776,7 +774,7 @@ export class FrigateCardTimelineCore extends LitElement {
       if (!this.hass || !this.cameraManager) {
         return;
       }
-      const cameraMetadata = this.cameraManager.getCameraMetadata(this.hass, cameraID);
+      const cameraMetadata = this.cameraManager.getCameraMetadata(cameraID);
       const cameraCapabilities = this.cameraManager.getCameraCapabilities(cameraID);
 
       if (cameraMetadata && cameraCapabilities?.supportsTimeline) {
@@ -974,7 +972,6 @@ export class FrigateCardTimelineCore extends LitElement {
    */
   protected async _updateTimelineFromView(): Promise<void> {
     if (
-      !this.hass ||
       !this.view ||
       !this.timelineConfig ||
       !this._timelineSource ||
@@ -1029,7 +1026,7 @@ export class FrigateCardTimelineCore extends LitElement {
       // (via fetchIfNecessary) may update the timeline contents which causes
       // the visjs timeline to stop dragging/panning operations which is very
       // disruptive to the user.
-      await this._timelineSource?.refresh(this.hass, prefetchedWindow);
+      await this._timelineSource?.refresh(prefetchedWindow);
     }
 
     const currentSelection = this._timeline.getSelection();

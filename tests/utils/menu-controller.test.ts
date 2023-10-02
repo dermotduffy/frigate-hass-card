@@ -13,8 +13,9 @@ import {
   ViewDisplayMode,
 } from '../../src/types';
 import { createFrigateCardCustomAction } from '../../src/utils/action';
+import { MediaPlayerManager } from '../../src/utils/card-controller/media-player-manager';
+import { MicrophoneManager } from '../../src/utils/card-controller/microphone-manager';
 import { MenuButtonController } from '../../src/utils/menu-controller';
-import { MicrophoneController } from '../../src/utils/microphone';
 import { ViewMedia } from '../../src/view/media';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
 import { View } from '../../src/view/view';
@@ -22,6 +23,7 @@ import {
   createCameraCapabilities,
   createCameraConfig,
   createCameraManager,
+  createCardAPI,
   createConfig,
   createHASS,
   createMediaCapabilities,
@@ -31,7 +33,8 @@ import {
 } from '../test-utils';
 
 vi.mock('../../src/camera-manager/manager.js');
-vi.mock('../../src/utils/microphone');
+vi.mock('../../src/utils/media-player-controller.js');
+vi.mock('../../src/utils/card-controller/microphone-manager.js');
 vi.mock('screenfull');
 
 const calculateButtons = (
@@ -43,9 +46,9 @@ const calculateButtons = (
     view?: View;
     expanded?: boolean;
     currentMediaLoadedInfo?: MediaLoadedInfo | null;
-    mediaPlayers?: string[];
-    cameraURL?: string | null;
-    microphoneController?: MicrophoneController;
+    mediaPlayerController?: MediaPlayerManager;
+    showCameraUIButton?: boolean;
+    microphoneManager?: MicrophoneManager;
   },
 ): MenuButton[] => {
   return controller.calculateButtons(
@@ -62,9 +65,9 @@ const calculateButtons = (
     options?.expanded ?? false,
     {
       currentMediaLoadedInfo: options?.currentMediaLoadedInfo,
-      mediaPlayers: options?.mediaPlayers,
-      cameraURL: options?.cameraURL,
-      microphoneController: options?.microphoneController,
+      mediaPlayerController: options?.mediaPlayerController,
+      showCameraUIButton: options?.showCameraUIButton,
+      microphoneManager: options?.microphoneManager,
     },
   );
 };
@@ -265,7 +268,7 @@ describe('MenuButtonController', () => {
     // Return different metadata depending on the camera to test multiple code
     // paths.
     mock<CameraManager>(cameraManager).getCameraMetadata.mockImplementation(
-      (_hass: unknown, cameraID: string): CameraManagerCameraMetadata | null => {
+      (cameraID: string): CameraManagerCameraMetadata | null => {
         return cameraID === 'camera-1'
           ? {
               title: 'title',
@@ -685,7 +688,7 @@ describe('MenuButtonController', () => {
 
   it('should have camera UI button', () => {
     const buttons = calculateButtons(controller, {
-      cameraURL: 'http://frigate.domain',
+      showCameraUIButton: true,
     });
     expect(buttons).toContainEqual({
       icon: 'mdi:web',
@@ -698,9 +701,9 @@ describe('MenuButtonController', () => {
   });
 
   it('should have microphone button', () => {
-    const microphoneController = new MicrophoneController();
+    const microphoneManager = new MicrophoneManager(createCardAPI());
     const buttons = calculateButtons(controller, {
-      microphoneController: microphoneController,
+      microphoneManager: microphoneManager,
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
           supports2WayAudio: true,
@@ -730,9 +733,9 @@ describe('MenuButtonController', () => {
   });
 
   it('should not have microphone button when media does not support it', () => {
-    const microphoneController = new MicrophoneController();
+    const microphoneManager = new MicrophoneManager(createCardAPI());
     const buttons = calculateButtons(controller, {
-      microphoneController: microphoneController,
+      microphoneManager: microphoneManager,
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
           supports2WayAudio: false,
@@ -746,10 +749,10 @@ describe('MenuButtonController', () => {
   });
 
   it('should have microphone button when microphone forbidden', () => {
-    const microphoneController = new MicrophoneController();
-    mock<MicrophoneController>(microphoneController).isForbidden.mockReturnValue(true);
+    const microphoneManager = new MicrophoneManager(createCardAPI());
+    mock<MicrophoneManager>(microphoneManager).isForbidden.mockReturnValue(true);
     const buttons = calculateButtons(controller, {
-      microphoneController: microphoneController,
+      microphoneManager: microphoneManager,
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
           supports2WayAudio: true,
@@ -768,10 +771,10 @@ describe('MenuButtonController', () => {
   });
 
   it('should have microphone button when microphone muted', () => {
-    const microphoneController = new MicrophoneController();
-    mock<MicrophoneController>(microphoneController).isMuted.mockReturnValue(true);
+    const microphoneManager = new MicrophoneManager(createCardAPI());
+    mock<MicrophoneManager>(microphoneManager).isMuted.mockReturnValue(true);
     const buttons = calculateButtons(controller, {
-      microphoneController: microphoneController,
+      microphoneManager: microphoneManager,
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
           supports2WayAudio: true,
@@ -798,10 +801,10 @@ describe('MenuButtonController', () => {
   });
 
   it('should have microphone button when microphone muted with toggle type', () => {
-    const microphoneController = new MicrophoneController();
-    mock<MicrophoneController>(microphoneController).isMuted.mockReturnValue(true);
+    const microphoneManager = new MicrophoneManager(createCardAPI());
+    mock<MicrophoneManager>(microphoneManager).isMuted.mockReturnValue(true);
     const buttons = calculateButtons(controller, {
-      microphoneController: microphoneController,
+      microphoneManager: microphoneManager,
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
           supports2WayAudio: true,
@@ -827,10 +830,10 @@ describe('MenuButtonController', () => {
   });
 
   it('should have microphone button when microphone unmuted with toggle type', () => {
-    const microphoneController = new MicrophoneController();
-    mock<MicrophoneController>(microphoneController).isMuted.mockReturnValue(false);
+    const microphoneManager = new MicrophoneManager(createCardAPI());
+    mock<MicrophoneManager>(microphoneManager).isMuted.mockReturnValue(false);
     const buttons = calculateButtons(controller, {
-      microphoneController: microphoneController,
+      microphoneManager: microphoneManager,
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
           supports2WayAudio: true,
@@ -932,10 +935,13 @@ describe('MenuButtonController', () => {
         ],
       ]),
     });
+    const mediaPlayerController = mock<MediaPlayerManager>();
+    mediaPlayerController.hasMediaPlayers.mockReturnValue(true);
+    mediaPlayerController.getMediaPlayers.mockReturnValue(['media_player.tv']);
 
     const buttons = calculateButtons(controller, {
       cameraManager: cameraManager,
-      mediaPlayers: ['media_player.tv'],
+      mediaPlayerController: mediaPlayerController,
       hass: createHASS({
         'media_player.tv': createStateEntity({ entity_id: 'media_player.tv' }),
       }),
@@ -984,9 +990,13 @@ describe('MenuButtonController', () => {
         ],
       ]),
     });
+    const mediaPlayerController = mock<MediaPlayerManager>();
+    mediaPlayerController.hasMediaPlayers.mockReturnValue(true);
+    mediaPlayerController.getMediaPlayers.mockReturnValue(['not_a_real_player']);
+
     const buttons = calculateButtons(controller, {
       cameraManager: cameraManager,
-      mediaPlayers: ['player'],
+      mediaPlayerController: mediaPlayerController,
       hass: createHASS(),
     });
 
@@ -1001,9 +1011,9 @@ describe('MenuButtonController', () => {
           enabled: true,
           selected: false,
           icon: 'mdi:bookmark',
-          entity: 'player',
+          entity: 'not_a_real_player',
           state_color: false,
-          title: 'player',
+          title: 'not_a_real_player',
           disabled: true,
         },
       ],

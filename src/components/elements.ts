@@ -8,9 +8,11 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
+import { actionHandler } from '../action-handler-directive.js';
 import { localize } from '../localize/localize.js';
-import elementsStyle from '../scss/elements.scss';
 import ptzStyle from '../scss/elements-ptz.scss';
+import elementsStyle from '../scss/elements.scss';
 import {
   Actions,
   ActionsConfig,
@@ -24,16 +26,17 @@ import {
   MenuSubmenuSelect,
   PictureElements,
 } from '../types.js';
-import { dispatchFrigateCardEvent } from '../utils/basic.js';
-import { dispatchFrigateCardErrorEvent } from './message.js';
-import { actionHandler } from '../action-handler-directive.js';
 import {
   frigateCardHandleActionConfig,
   frigateCardHasAction,
   getActionConfigGivenAction,
 } from '../utils/action.js';
-import { classMap } from 'lit/directives/class-map.js';
-import { ConditionControllerEpoch, evaluateConditionViaEvent } from '../conditions.js';
+import { dispatchFrigateCardEvent } from '../utils/basic.js';
+import {
+  ConditionsManagerEpoch,
+  evaluateConditionViaEvent,
+} from '../utils/card-controller/conditions-manager.js';
+import { dispatchFrigateCardErrorEvent } from './message.js';
 
 /* A note on picture element rendering:
  *
@@ -85,7 +88,7 @@ export class FrigateCardElementsCore extends LitElement {
    * property even though it is not currently directly used by this class.
    */
   @property({ attribute: false })
-  public conditionControllerEpoch?: ConditionControllerEpoch;
+  public conditionsManagerEpoch?: ConditionsManagerEpoch;
 
   protected _root: HuiConditionalElement | null = null;
 
@@ -167,7 +170,7 @@ export class FrigateCardElements extends LitElement {
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  public conditionControllerEpoch?: ConditionControllerEpoch;
+  public conditionsManagerEpoch?: ConditionsManagerEpoch;
 
   @property({ attribute: false })
   public elements: PictureElements;
@@ -226,7 +229,7 @@ export class FrigateCardElements extends LitElement {
   protected render(): TemplateResult {
     return html`<frigate-card-elements-core
       .hass=${this.hass}
-      .conditionControllerEpoch=${this.conditionControllerEpoch}
+      .conditionsManagerEpoch=${this.conditionsManagerEpoch}
       .elements=${this.elements}
     >
     </frigate-card-elements-core>`;

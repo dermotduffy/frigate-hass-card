@@ -151,7 +151,6 @@ export class FrigateCardViewer extends LitElement {
       if (mediaType === 'recordings') {
         changeViewToRecentRecordingForCameraAndDependents(
           this,
-          this.hass,
           this.cameraManager,
           this.cardWideConfig,
           this.view,
@@ -163,7 +162,6 @@ export class FrigateCardViewer extends LitElement {
       } else {
         changeViewToRecentEventsForCameraAndDependents(
           this,
-          this.hass,
           this.cameraManager,
           this.cardWideConfig,
           this.view,
@@ -447,7 +445,6 @@ export class FrigateCardViewerCarousel extends LitElement {
     };
 
     const cameraMetadata = this.cameraManager.getCameraMetadata(
-      this.hass,
       selectedMedia.getCameraID(),
     );
 
@@ -526,12 +523,7 @@ export class FrigateCardViewerCarousel extends LitElement {
    */
   protected async _seekHandler(): Promise<void> {
     const seek = this.view?.context?.mediaViewer?.seek;
-    if (
-      !this.hass ||
-      !seek ||
-      !this._media ||
-      !this._player
-    ) {
+    if (!this.hass || !seek || !this._media || !this._player) {
       return;
     }
     const selectedMedia = this._media[this._selected];
@@ -548,8 +540,7 @@ export class FrigateCardViewerCarousel extends LitElement {
     }
 
     const seekTime =
-      (await this.cameraManager?.getMediaSeekTime(this.hass, selectedMedia, seek)) ??
-      null;
+      (await this.cameraManager?.getMediaSeekTime(selectedMedia, seek)) ?? null;
 
     if (seekTime !== null) {
       this._player.seek(seekTime);
@@ -813,7 +804,7 @@ export class FrigateCardViewerProvider
 
     let mediaArray: ViewMedia[] | null;
     try {
-      mediaArray = await this.cameraManager.executeMediaQueries(this.hass, queries);
+      mediaArray = await this.cameraManager.executeMediaQueries(queries);
     } catch (e) {
       errorToConsole(e as Error);
       return;

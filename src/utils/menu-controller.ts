@@ -15,7 +15,8 @@ import { View } from '../view/view';
 import { createFrigateCardCustomAction } from './action';
 import { getAllDependentCameras } from './camera';
 import { getEntityIcon, getEntityTitle } from './ha';
-import { MicrophoneController } from './microphone';
+import { MediaPlayerManager } from './card-controller/media-player-manager';
+import { MicrophoneManager } from './card-controller/microphone-manager';
 import { hasSubstream } from './substream';
 
 export class MenuButtonController {
@@ -46,9 +47,9 @@ export class MenuButtonController {
     expanded: boolean,
     options?: {
       currentMediaLoadedInfo?: MediaLoadedInfo | null;
-      mediaPlayers?: string[];
-      cameraURL?: string | null;
-      microphoneController?: MicrophoneController;
+      showCameraUIButton?: boolean,
+      microphoneManager?: MicrophoneManager | null;
+      mediaPlayerController?: MediaPlayerManager | null;
     },
   ): MenuButton[] {
     const visibleCameras = cameraManager.getStore().getVisibleCameras();
@@ -87,7 +88,7 @@ export class MenuButtonController {
         const action = createFrigateCardCustomAction('camera_select', {
           camera: cameraID,
         });
-        const metadata = cameraManager.getCameraMetadata(hass, cameraID) ?? undefined;
+        const metadata = cameraManager.getCameraMetadata(cameraID) ?? undefined;
 
         return {
           enabled: true,
@@ -132,7 +133,7 @@ export class MenuButtonController {
           const action = createFrigateCardCustomAction('live_substream_select', {
             camera: cameraID,
           });
-          const metadata = cameraManager.getCameraMetadata(hass, cameraID) ?? undefined;
+          const metadata = cameraManager.getCameraMetadata(cameraID) ?? undefined;
           const cameraConfig = cameraManager.getStore().getCameraConfig(cameraID);
           return {
             enabled: true,
@@ -244,7 +245,7 @@ export class MenuButtonController {
       });
     }
 
-    if (options?.cameraURL) {
+    if (options?.showCameraUIButton) {
       buttons.push({
         icon: 'mdi:web',
         ...config.menu.buttons.camera_ui,
@@ -257,11 +258,11 @@ export class MenuButtonController {
     }
 
     if (
-      options?.microphoneController &&
+      options?.microphoneManager &&
       options?.currentMediaLoadedInfo?.capabilities?.supports2WayAudio
     ) {
-      const forbidden = options.microphoneController.isForbidden();
-      const muted = options.microphoneController.isMuted();
+      const forbidden = options.microphoneManager.isForbidden();
+      const muted = options.microphoneManager.isMuted();
       const buttonType = config.menu.buttons.microphone.type;
       buttons.push({
         icon: forbidden
@@ -285,7 +286,7 @@ export class MenuButtonController {
         ...(!forbidden &&
           buttonType === 'toggle' && {
             tap_action: createFrigateCardCustomAction(
-              options.microphoneController.isMuted()
+              options.microphoneManager.isMuted()
                 ? 'microphone_unmute'
                 : 'microphone_mute',
             ) as FrigateCardCustomAction,
@@ -316,34 +317,36 @@ export class MenuButtonController {
     });
 
     if (
-      options?.mediaPlayers?.length &&
+      options?.mediaPlayerController?.hasMediaPlayers() &&
       (view?.isViewerView() || (view.is('live') && selectedCameraConfig?.camera_entity))
     ) {
-      const mediaPlayerItems = options.mediaPlayers.map((playerEntityID) => {
-        const title = getEntityTitle(hass, playerEntityID) || playerEntityID;
-        const state = hass.states[playerEntityID];
-        const playAction = createFrigateCardCustomAction('media_player', {
-          media_player: playerEntityID,
-          media_player_action: 'play',
-        });
-        const stopAction = createFrigateCardCustomAction('media_player', {
-          media_player: playerEntityID,
-          media_player_action: 'stop',
-        });
-        const disabled = !state || state.state === 'unavailable';
+      const mediaPlayerItems = options.mediaPlayerController
+        .getMediaPlayers()
+        .map((playerEntityID) => {
+          const title = getEntityTitle(hass, playerEntityID) || playerEntityID;
+          const state = hass.states[playerEntityID];
+          const playAction = createFrigateCardCustomAction('media_player', {
+            media_player: playerEntityID,
+            media_player_action: 'play',
+          });
+          const stopAction = createFrigateCardCustomAction('media_player', {
+            media_player: playerEntityID,
+            media_player_action: 'stop',
+          });
+          const disabled = !state || state.state === 'unavailable';
 
-        return {
-          enabled: true,
-          selected: false,
-          icon: getEntityIcon(hass, playerEntityID),
-          entity: playerEntityID,
-          state_color: false,
-          title: title,
-          disabled: disabled,
-          ...(!disabled && playAction && { tap_action: playAction }),
-          ...(!disabled && stopAction && { hold_action: stopAction }),
-        };
-      });
+          return {
+            enabled: true,
+            selected: false,
+            icon: getEntityIcon(hass, playerEntityID),
+            entity: playerEntityID,
+            state_color: false,
+            title: title,
+            disabled: disabled,
+            ...(!disabled && playAction && { tap_action: playAction }),
+            ...(!disabled && stopAction && { hold_action: stopAction }),
+          };
+        });
 
       buttons.push({
         icon: 'mdi:cast',

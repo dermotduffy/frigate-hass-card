@@ -39,7 +39,7 @@ export const downloadMedia = async (
   cameraManager: CameraManager,
   media: ViewMedia,
 ): Promise<void> => {
-  const download = await cameraManager.getMediaDownloadPath(hass, media);
+  const download = await cameraManager.getMediaDownloadPath(media);
   if (!download) {
     throw new FrigateCardError(localize('error.download_no_media'));
   }

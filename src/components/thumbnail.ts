@@ -271,7 +271,9 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
     const rawEndTime = this.media.getEndTime();
     const duration =
       rawStartTime && rawEndTime ? getDurationString(rawStartTime, rawEndTime) : null;
-    const inProgress = this.media.inProgress() ? localize('recording.in_progress') : null;
+    const inProgress = this.media.inProgress()
+      ? localize('recording.in_progress')
+      : null;
 
     const seek = this.seek ? format(this.seek, 'HH:mm:ss') : null;
 
@@ -404,7 +406,6 @@ export class FrigateCardThumbnail extends LitElement {
       mediaCapabilities?.canDownload;
 
     const cameraTitle = this.cameraManager.getCameraMetadata(
-      this.hass,
       this.media.getCameraID(),
     )?.title;
 
@@ -434,7 +435,6 @@ export class FrigateCardThumbnail extends LitElement {
               if (this.hass && this.media) {
                 try {
                   await this.cameraManager?.favoriteMedia(
-                    this.hass,
                     this.media,
                     !this.media?.isFavorite(),
                   );

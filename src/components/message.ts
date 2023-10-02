@@ -106,12 +106,12 @@ export class FrigateCardProgressIndicator extends LitElement {
   }
 }
 
-export function renderMessage(message: Message): TemplateResult {
-  if (message.type === 'error') {
+export function renderMessage(message: Message | null): TemplateResult {
+  if (message?.type === 'error') {
     return html` <frigate-card-error-message
       .message=${message}
     ></frigate-card-error-message>`;
-  } else {
+  } else if (message) {
     return html` <frigate-card-message
       .message=${message.message}
       .icon=${message.icon}
@@ -124,7 +124,7 @@ export function renderMessage(message: Message): TemplateResult {
 
 export function renderProgressIndicator(options?: {
   message?: string;
-  cardWideConfig?: CardWideConfig;
+  cardWideConfig?: CardWideConfig | null;
   componentRef?: Ref<HTMLElement>;
   classes?: ClassInfo;
   size?: FrigateCardProgressIndicatorSize;

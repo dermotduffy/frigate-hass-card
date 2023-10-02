@@ -230,7 +230,6 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
       (
         await executeMediaQueryForView(
           this,
-          this.hass,
           this.cameraManager,
           this.view,
           queries,
@@ -254,7 +253,6 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
       (
         await executeMediaQueryForView(
           this,
-          this.hass,
           this.cameraManager,
           this.view,
           queries,
@@ -275,7 +273,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
         this._cameraOptions = Array.from(cameras.keys()).map((cameraID) => ({
           value: cameraID,
           label: this.hass
-            ? this.cameraManager?.getCameraMetadata(this.hass, cameraID)?.title ?? ''
+            ? this.cameraManager?.getCameraMetadata(cameraID)?.title ?? ''
             : '',
         }));
       }
@@ -284,7 +282,6 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
     if (changedProps.has('cameraManager') && this.hass && this.cameraManager) {
       this._mediaMetadataController = new MediaMetadataController(
         this,
-        this.hass,
         this.cameraManager,
       );
     }
@@ -523,7 +520,6 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
 
 export class MediaMetadataController implements ReactiveController {
   protected _host: ReactiveControllerHost;
-  protected _hass: HomeAssistant;
   protected _cameraManager: CameraManager;
 
   public tagsOptions: SelectOption[] = [];
@@ -533,11 +529,9 @@ export class MediaMetadataController implements ReactiveController {
 
   constructor(
     host: ReactiveControllerHost,
-    hass: HomeAssistant,
     cameraManager: CameraManager,
   ) {
     this._host = host;
-    this._hass = hass;
     this._cameraManager = cameraManager;
     host.addController(this);
   }
@@ -549,7 +543,7 @@ export class MediaMetadataController implements ReactiveController {
   async hostConnected() {
     let metadata: MediaMetadata | null;
     try {
-      metadata = await this._cameraManager.getMediaMetadata(this._hass);
+      metadata = await this._cameraManager.getMediaMetadata();
     } catch (e) {
       errorToConsole(e as Error);
       return;

@@ -1,7 +1,6 @@
 import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
 import { vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { CameraManagerEngineFactory } from '../src/camera-manager/engine-factory';
 import { FrigateEvent, FrigateRecording } from '../src/camera-manager/frigate/types';
 import { CameraManager } from '../src/camera-manager/manager';
 import { CameraManagerStore } from '../src/camera-manager/store';
@@ -24,8 +23,31 @@ import {
   frigateCardConfigSchema,
   performanceConfigSchema,
 } from '../src/types';
+import { ActionsManager } from '../src/utils/card-controller/actions-manager';
+import { AutoUpdateManager } from '../src/utils/card-controller/auto-update-manager';
+import { AutomationsManager } from '../src/utils/card-controller/automations-manager';
+import { CameraURLManager } from '../src/utils/card-controller/camera-url-manager';
+import { CardElementManager } from '../src/utils/card-controller/card-element-manager';
+import { ConditionsManager } from '../src/utils/card-controller/conditions-manager';
+import { ConfigManager } from '../src/utils/card-controller/config-manager';
+import { CardController } from '../src/utils/card-controller/controller';
+import { DownloadManager } from '../src/utils/card-controller/download-manager';
+import { ExpandManager } from '../src/utils/card-controller/expand-manager';
+import { FullscreenManager } from '../src/utils/card-controller/fullscreen-manager';
+import { HASSManager } from '../src/utils/card-controller/hass-manager';
+import { InitializationManager } from '../src/utils/card-controller/initialization-manager';
+import { InteractionManager } from '../src/utils/card-controller/interaction-manager';
+import { MediaLoadedInfoManager } from '../src/utils/card-controller/media-info-manager';
+import { MediaPlayerManager } from '../src/utils/card-controller/media-player-manager';
+import { MessageManager } from '../src/utils/card-controller/message-manager';
+import { MicrophoneManager } from '../src/utils/card-controller/microphone-manager';
+import { QueryStringManager } from '../src/utils/card-controller/query-string-manager';
+import { StyleManager } from '../src/utils/card-controller/style-manager';
+import { TriggersManager } from '../src/utils/card-controller/triggers-manager';
+import { ViewManager } from '../src/utils/card-controller/view-manager';
 import { Entity } from '../src/utils/ha/entity-registry/types';
 import { ViewMedia, ViewMediaType } from '../src/view/media';
+import { MediaQueriesResults } from '../src/view/media-queries-results';
 import { View, ViewParameters } from '../src/view/view';
 
 export const createCameraConfig = (config?: unknown): CameraConfig => {
@@ -118,11 +140,22 @@ export const createView = (options?: Partial<ViewParameters>): View => {
   });
 };
 
+export const createViewWithMedia = (options?: Partial<ViewParameters>): View => {
+  const media = generateViewMediaArray({ count: 5 });
+  return createView({
+    queryResults: new MediaQueriesResults({
+      results: media,
+      selectedIndex: 0,
+    }),
+    ...options,
+  });
+};
+
 export const createCameraManager = (options?: {
   store?: CameraManagerStore;
   configs?: CameraConfigs;
 }): CameraManager => {
-  const cameraManager = new CameraManager(mock<CameraManagerEngineFactory>(), {});
+  const cameraManager = new CameraManager(createCardAPI());
   let store: CameraManagerStore | undefined = options?.store;
   if (!store) {
     store = mock<CameraManagerStore>();
@@ -130,9 +163,14 @@ export const createCameraManager = (options?: {
     vi.mocked(store.getCameras).mockReturnValue(configs);
     vi.mocked(store.getVisibleCameras).mockReturnValue(configs);
     vi.mocked(store.getVisibleCameraIDs).mockReturnValue(new Set(configs.keys()));
-    vi.mocked(store.getCameraConfig).mockImplementation((cameraID): CameraConfig => {
-      return configs.get(cameraID) ?? createCameraConfig();
-    });
+    vi.mocked(store.hasVisibleCameraID).mockImplementation((cameraID: string) =>
+      [...configs.keys()].includes(cameraID),
+    );
+    vi.mocked(store.getCameraConfig).mockImplementation(
+      (cameraID): CameraConfig | null => {
+        return configs.get(cameraID) ?? null;
+      },
+    );
   }
   vi.mocked(cameraManager.getStore).mockReturnValue(store);
   vi.mocked(cameraManager.generateDefaultEventQueries).mockReturnValue([
@@ -147,6 +185,15 @@ export const createCameraManager = (options?: {
       type: QueryType.Recording,
     },
   ]);
+  vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue({
+    canFavoriteEvents: true,
+    canFavoriteRecordings: true,
+    canSeek: true,
+    supportsClips: true,
+    supportsRecordings: true,
+    supportsSnapshots: true,
+    supportsTimeline: true,
+  });
 
   return cameraManager;
 };
@@ -210,6 +257,9 @@ export class TestViewMedia extends ViewMedia {
   protected _startTime: Date | null;
   protected _endTime: Date | null;
   protected _inProgress: boolean | null;
+  protected _contentID: string | null;
+  protected _title: string | null;
+  protected _thumbnail: string | null;
 
   constructor(options?: {
     id?: string | null;
@@ -218,12 +268,18 @@ export class TestViewMedia extends ViewMedia {
     cameraID?: string;
     endTime?: Date;
     inProgress?: boolean;
+    contentID?: string;
+    title?: string;
+    thumbnail?: string;
   }) {
     super(options?.mediaType ?? 'clip', options?.cameraID ?? 'camera');
     this._id = options?.id !== undefined ? options.id : 'id';
     this._startTime = options?.startTime ?? null;
     this._endTime = options?.endTime ?? null;
     this._inProgress = options?.inProgress !== undefined ? options.inProgress : false;
+    this._contentID = options?.contentID ?? null;
+    this._title = options?.title ?? null;
+    this._thumbnail = options?.thumbnail ?? null;
   }
   public getID(): string | null {
     return this._id;
@@ -236,6 +292,15 @@ export class TestViewMedia extends ViewMedia {
   }
   public inProgress(): boolean | null {
     return this._inProgress;
+  }
+  public getContentID(): string | null {
+    return this._contentID;
+  }
+  public getTitle(): string | null {
+    return this._title;
+  }
+  public getThumbnail(): string | null {
+    return this._thumbnail;
   }
 }
 
@@ -288,4 +353,33 @@ export const createParent = (options?: { children?: HTMLElement[] }): HTMLElemen
   const parent = document.createElement('div');
   parent.append(...(options?.children ?? []));
   return parent;
+};
+
+export const createCardAPI = (): CardController => {
+  const api = mock<CardController>();
+
+  api.getActionsManager.mockReturnValue(mock<ActionsManager>());
+  api.getAutomationsManager.mockReturnValue(mock<AutomationsManager>());
+  api.getAutoUpdateManager.mockReturnValue(mock<AutoUpdateManager>());
+  api.getCameraManager.mockReturnValue(mock<CameraManager>());
+  api.getCameraURLManager.mockReturnValue(mock<CameraURLManager>());
+  api.getCardElementManager.mockReturnValue(mock<CardElementManager>());
+  api.getConditionsManager.mockReturnValue(mock<ConditionsManager>());
+  api.getConfigManager.mockReturnValue(mock<ConfigManager>());
+  api.getDownloadManager.mockReturnValue(mock<DownloadManager>());
+  api.getExpandManager.mockReturnValue(mock<ExpandManager>());
+  api.getFullscreenManager.mockReturnValue(mock<FullscreenManager>());
+  api.getHASSManager.mockReturnValue(mock<HASSManager>());
+  api.getInitializationManager.mockReturnValue(mock<InitializationManager>());
+  api.getInteractionManager.mockReturnValue(mock<InteractionManager>());
+  api.getMediaLoadedInfoManager.mockReturnValue(mock<MediaLoadedInfoManager>());
+  api.getMediaPlayerManager.mockReturnValue(mock<MediaPlayerManager>());
+  api.getMessageManager.mockReturnValue(mock<MessageManager>());
+  api.getMicrophoneManager.mockReturnValue(mock<MicrophoneManager>());
+  api.getQueryStringManager.mockReturnValue(mock<QueryStringManager>());
+  api.getStyleManager.mockReturnValue(mock<StyleManager>());
+  api.getTriggersManager.mockReturnValue(mock<TriggersManager>());
+  api.getViewManager.mockReturnValue(mock<ViewManager>());
+
+  return api;
 };

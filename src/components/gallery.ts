@@ -82,7 +82,6 @@ export class FrigateCardGallery extends LitElement {
       if (this.view.is('recordings')) {
         changeViewToRecentRecordingForCameraAndDependents(
           this,
-          this.hass,
           this.cameraManager,
           this.cardWideConfig,
           this.view,
@@ -95,7 +94,6 @@ export class FrigateCardGallery extends LitElement {
           : null;
         changeViewToRecentEventsForCameraAndDependents(
           this,
-          this.hass,
           this.cameraManager,
           this.cardWideConfig,
           this.view,
@@ -344,7 +342,6 @@ export class FrigateCardGalleryCore extends LitElement {
     let extension: ExtendedMediaQueryResult<MediaQuery> | null;
     try {
       extension = await this.cameraManager.extendMediaQueries<MediaQuery>(
-        this.hass,
         rawQueries,
         existingMedia,
         direction,

@@ -364,3 +364,19 @@ export function canonicalizeHAURL(
   }
   return url ?? null;
 }
+
+/**
+ * Determine if HA connection state has changed.
+ * @param newHass The new HA object.
+ * @param oldHass The old HA object.
+ * @returns `true` if the connection state has changed.
+ */
+export const hasHAConnectionStateChanged = (
+  oldHass: HomeAssistant | undefined | null,
+  newHass: HomeAssistant | undefined | null,
+): boolean => {
+  return (
+    (!oldHass && !newHass?.connected) ||
+    (!!oldHass && oldHass.connected !== !!newHass?.connected)
+  );
+};

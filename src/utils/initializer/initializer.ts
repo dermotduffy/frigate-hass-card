@@ -1,16 +1,16 @@
-import { allPromises } from './basic';
+import { allPromises } from '../basic';
 
 enum InitializationState {
   INITIALIZING = 'initializing',
   INITIALIZED = 'initialized',
 }
 
-type Initializer = () => Promise<unknown>;
+type InitializationCallback = () => Promise<unknown>;
 
 /**
  * Manages initialization state & calling initializers.
  */
-export class FrigateCardInitializer {
+export class Initializer {
   protected _state: Map<string, InitializationState>;
 
   constructor() {
@@ -18,7 +18,7 @@ export class FrigateCardInitializer {
   }
 
   public async initializeMultipleIfNecessary(
-    aspects: Record<string, Initializer>,
+    aspects: Record<string, InitializationCallback>,
   ): Promise<boolean> {
     const results = await allPromises(
       Object.entries(aspects),
@@ -36,7 +36,7 @@ export class FrigateCardInitializer {
    */
   public async initializeIfNecessary(
     aspect: string,
-    initializer?: Initializer,
+    initializer?: InitializationCallback,
   ): Promise<boolean> {
     const state = this._state.get(aspect);
     if (state !== InitializationState.INITIALIZED) {
