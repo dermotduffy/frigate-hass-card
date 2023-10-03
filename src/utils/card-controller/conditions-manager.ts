@@ -6,8 +6,8 @@ import {
   frigateConditionalSchema,
   OverrideConfigurationKey,
   RawFrigateCardConfig,
-  ViewDisplayMode,
-} from '../../types';
+  ViewDisplayMode
+} from '../../config/types';
 import { CardConditionAPI } from './types';
 
 interface ConditionState {

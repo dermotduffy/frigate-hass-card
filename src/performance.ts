@@ -1,10 +1,9 @@
-import { deepRemoveDefaults } from './utils/zod.js';
-import {
-  frigateCardConfigSchema,
-  RawFrigateCardConfig,
-  PerformanceConfig,
-} from './types';
 import { getConfigValue, setConfigValue } from './config-mgmt.js';
+import {
+  PerformanceConfig,
+  RawFrigateCardConfig,
+  frigateCardConfigSchema,
+} from './config/types.js';
 import {
   CONF_CAMERAS_GLOBAL_IMAGE_REFRESH_SECONDS,
   CONF_CAMERAS_GLOBAL_TRIGGERS_OCCUPANCY,
@@ -53,6 +52,7 @@ import {
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_TIMELINE_SHOW_RECORDINGS,
 } from './const.js';
+import { deepRemoveDefaults } from './utils/zod.js';
 
 // Caution: These values are applied after parsing (since we cannot know the
 // performance profile until afterwards), so there is no validation on these

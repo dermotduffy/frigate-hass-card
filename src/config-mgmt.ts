@@ -3,6 +3,12 @@ import get from 'lodash-es/get';
 import isEqual from 'lodash-es/isEqual';
 import set from 'lodash-es/set';
 import {
+  BUTTON_SIZE_MIN,
+  RawFrigateCardConfig,
+  THUMBNAIL_WIDTH_MAX,
+  THUMBNAIL_WIDTH_MIN,
+} from './config/types';
+import {
   CONF_CAMERAS,
   CONF_CAMERAS_GLOBAL_IMAGE,
   CONF_CAMERAS_GLOBAL_JSMPEG,
@@ -28,12 +34,6 @@ import {
   CONF_MENU_STYLE,
   CONF_OVERRIDES,
 } from './const';
-import {
-  BUTTON_SIZE_MIN,
-  RawFrigateCardConfig,
-  THUMBNAIL_WIDTH_MAX,
-  THUMBNAIL_WIDTH_MIN,
-} from './types';
 import { arrayify } from './utils/basic';
 
 /**

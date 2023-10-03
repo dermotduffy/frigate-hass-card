@@ -9,8 +9,9 @@ import orderBy from 'lodash-es/orderBy';
 import throttle from 'lodash-es/throttle';
 import uniq from 'lodash-es/uniq';
 import uniqWith from 'lodash-es/uniqWith';
+import { CameraConfig } from '../../config/types';
 import { localize } from '../../localize/localize';
-import { CameraConfig, ExtendedHomeAssistant } from '../../types';
+import { ExtendedHomeAssistant } from '../../types';
 import {
   allPromises,
   formatDate,

@@ -30,17 +30,17 @@ import { CameraManager } from '../camera-manager/manager';
 import { rangesOverlap } from '../camera-manager/range';
 import { MediaQuery } from '../camera-manager/types';
 import { convertRangeToCacheFriendlyTimes } from '../camera-manager/util';
-import { localize } from '../localize/localize';
-import timelineCoreStyle from '../scss/timeline-core.scss';
 import {
   CameraConfig,
   CardWideConfig,
-  ExtendedHomeAssistant,
   frigateCardConfigDefaults,
   FrigateCardView,
   ThumbnailsControlBaseConfig,
   TimelineCoreConfig,
-} from '../types';
+} from '../config/types';
+import { localize } from '../localize/localize';
+import timelineCoreStyle from '../scss/timeline-core.scss';
+import { ExtendedHomeAssistant } from '../types';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
 import {
   contentsChanged,

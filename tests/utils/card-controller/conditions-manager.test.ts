@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { FrigateCardCondition } from '../../../src/config/types';
 import {
-  ConditionsManager,
   ConditionEvaluateRequestEvent,
+  ConditionsManager,
   evaluateConditionViaEvent,
   getOverriddenConfig,
   getOverridesByKey,
 } from '../../../src/utils/card-controller/conditions-manager';
-import { FrigateCardCondition } from '../../../src/types';
 import {
   createCardAPI,
   createCondition,

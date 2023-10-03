@@ -4,7 +4,7 @@ import { FrigateCameraManagerEngine } from '../../src/camera-manager/frigate/eng
 import { GenericCameraManagerEngine } from '../../src/camera-manager/generic/engine-generic';
 import { MotionEyeCameraManagerEngine } from '../../src/camera-manager/motioneye/engine-motioneye';
 import { Engine } from '../../src/camera-manager/types.js';
-import { CardWideConfig } from '../../src/types.js';
+import { CardWideConfig } from '../../src/config/types.js';
 import { EntityRegistryManager } from '../../src/utils/ha/entity-registry';
 import { EntityCache } from '../../src/utils/ha/entity-registry/cache';
 import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media';

@@ -8,8 +8,8 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { ViewDisplayConfig } from '../config/types';
 import mediaGridStyle from '../scss/media-grid.scss';
-import { ViewDisplayConfig } from '../types.js';
 import { MediaGridController } from '../utils/media-grid-controller.js';
 
 @customElement('frigate-card-media-grid')

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
-import { frigateCardConfigSchema } from '../../../src/types';
+import { frigateCardConfigSchema } from '../../../src/config/types';
 import { getOverriddenConfig } from '../../../src/utils/card-controller/conditions-manager';
 import { ConfigManager } from '../../../src/utils/card-controller/config-manager';
 import { InitializationAspect } from '../../../src/utils/card-controller/initialization-manager';

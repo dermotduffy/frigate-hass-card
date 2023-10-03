@@ -17,28 +17,30 @@ import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { CameraConfigs, CameraEndpoints } from '../../camera-manager/types.js';
 import {
-  ConditionsManagerEpoch,
-  getOverriddenConfig,
-} from '../../utils/card-controller/conditions-manager.js';
+  CameraConfig,
+  CardWideConfig,
+  frigateCardConfigDefaults,
+  LiveConfig,
+  LiveOverrides,
+  LiveProvider,
+  TransitionEffect,
+} from '../../config/types.js';
 import { localize } from '../../localize/localize.js';
 import basicBlockStyle from '../../scss/basic-block.scss';
 import liveCarouselStyle from '../../scss/live-carousel.scss';
 import liveProviderStyle from '../../scss/live-provider.scss';
 import {
-  CameraConfig,
-  CardWideConfig,
   ExtendedHomeAssistant,
-  frigateCardConfigDefaults,
   FrigateCardMediaPlayer,
-  LiveConfig,
-  LiveOverrides,
-  LiveProvider,
   MediaLoadedInfo,
   Message,
-  TransitionEffect,
 } from '../../types.js';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { contentsChanged } from '../../utils/basic.js';
+import {
+  ConditionsManagerEpoch,
+  getOverriddenConfig,
+} from '../../utils/card-controller/conditions-manager.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import { AutoLazyLoad } from '../../utils/embla/plugins/auto-lazy-load/auto-lazy-load.js';
 import { AutoMediaActions } from '../../utils/embla/plugins/auto-media-actions/auto-media-actions.js';

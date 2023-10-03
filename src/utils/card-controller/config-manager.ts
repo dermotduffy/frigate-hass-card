@@ -1,13 +1,13 @@
 import isEqual from 'lodash-es/isEqual';
 import { isConfigUpgradeable } from '../../config-mgmt';
-import { localize } from '../../localize/localize';
-import { setLowPerformanceProfile } from '../../performance.js';
 import {
   CardWideConfig,
   FrigateCardConfig,
   frigateCardConfigSchema,
-  RawFrigateCardConfig,
-} from '../../types';
+  RawFrigateCardConfig
+} from '../../config/types';
+import { localize } from '../../localize/localize';
+import { setLowPerformanceProfile } from '../../performance.js';
 import { getParseErrorPaths } from '../zod.js';
 import { getOverriddenConfig } from './conditions-manager';
 import { InitializationAspect } from './initialization-manager';

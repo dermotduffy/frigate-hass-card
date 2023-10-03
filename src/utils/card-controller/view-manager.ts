@@ -1,5 +1,5 @@
 import { ViewContext } from 'view';
-import { FrigateCardConfig, FrigateCardView, ViewDisplayMode } from '../../types';
+import { FrigateCardConfig, FrigateCardView, ViewDisplayMode } from '../../config/types';
 import { View } from '../../view/view';
 import { getAllDependentCameras } from '../camera';
 import { log } from '../debug';

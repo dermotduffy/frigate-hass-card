@@ -4,16 +4,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManager } from '../../src/camera-manager/manager';
 import { CameraManagerCameraMetadata } from '../../src/camera-manager/types';
-import {
-  FrigateCardConfig,
-  FrigateCardMediaPlayer,
-  MenuButton,
-  ViewDisplayMode,
-} from '../../src/types';
+import { FrigateCardConfig, MenuItem, ViewDisplayMode } from '../../src/config/types';
+import { FrigateCardMediaPlayer } from '../../src/types';
 import { createFrigateCardCustomAction } from '../../src/utils/action';
 import { MediaPlayerManager } from '../../src/utils/card-controller/media-player-manager';
 import { MicrophoneManager } from '../../src/utils/card-controller/microphone-manager';
-import { MenuButtonController, MenuButtonControllerOptions } from '../../src/utils/menu-controller';
+import {
+  MenuButtonController,
+  MenuButtonControllerOptions,
+} from '../../src/utils/menu-controller';
 import { ViewMedia } from '../../src/view/media';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
 import { View } from '../../src/view/view';
@@ -42,7 +41,7 @@ const calculateButtons = (
     cameraManager?: CameraManager;
     view?: View;
   },
-): MenuButton[] => {
+): MenuItem[] => {
   return controller.calculateButtons(
     options?.hass ?? createHASS(),
     options?.config ?? createConfig(),
@@ -61,7 +60,7 @@ const calculateButtons = (
 // @vitest-environment jsdom
 describe('MenuButtonController', () => {
   let controller: MenuButtonController;
-  const dynamicButton: MenuButton = {
+  const dynamicButton: MenuItem = {
     type: 'custom:frigate-card-menu-icon',
     icon: 'mdi:alpha-a-circle',
     title: 'Dynamic button',
@@ -1130,7 +1129,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should handle dynamic buttons', () => {
-    const button: MenuButton = {
+    const button: MenuItem = {
       ...dynamicButton,
       style: {},
     };
@@ -1152,7 +1151,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should not set style for dynamic button with stock action', () => {
-    const button: MenuButton = {
+    const button: MenuItem = {
       ...dynamicButton,
       tap_action: { action: 'navigate', navigation_path: 'foo' },
     };
@@ -1165,7 +1164,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should not set style for dynamic button with non-Frigate fire-dom-event action', () => {
-    const button: MenuButton = {
+    const button: MenuItem = {
       ...dynamicButton,
       tap_action: { action: 'fire-dom-event' },
     };
@@ -1179,7 +1178,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should set style for dynamic button with Frigate view action', () => {
-    const button: MenuButton = {
+    const button: MenuItem = {
       ...dynamicButton,
       tap_action: { action: 'fire-dom-event', frigate_card_action: 'clips' },
     };
@@ -1193,7 +1192,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should set style for dynamic button with Frigate default action', () => {
-    const button: MenuButton = {
+    const button: MenuItem = {
       ...dynamicButton,
       tap_action: { action: 'fire-dom-event', frigate_card_action: 'default' },
     };
@@ -1206,7 +1205,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should set style for dynamic button with fullscreen action', () => {
-    const button: MenuButton = {
+    const button: MenuItem = {
       ...dynamicButton,
       tap_action: { action: 'fire-dom-event', frigate_card_action: 'fullscreen' },
     };
@@ -1219,7 +1218,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should set style for dynamic button with camera_select action', () => {
-    const button: MenuButton = {
+    const button: MenuItem = {
       ...dynamicButton,
       tap_action: {
         action: 'fire-dom-event',
@@ -1237,7 +1236,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should set style for dynamic button with array of actions', () => {
-    const button: MenuButton = {
+    const button: MenuItem = {
       ...dynamicButton,
       tap_action: [
         { action: 'fire-dom-event' },

@@ -1,5 +1,6 @@
 import utcToZonedTime from 'date-fns-tz/utcToZonedTime';
-import { CameraConfig, ClipsOrSnapshots } from '../../types';
+import { CameraConfig } from '../../config/types';
+import { ClipsOrSnapshots } from '../../types';
 import { formatDateAndTime, prettifyTitle } from '../../utils/basic';
 import { FrigateEvent, FrigateRecording } from './types';
 

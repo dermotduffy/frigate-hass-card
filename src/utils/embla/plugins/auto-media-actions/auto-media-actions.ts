@@ -7,8 +7,8 @@ import {
   AutoPauseCondition,
   AutoPlayCondition,
   AutoUnmuteCondition,
-  FrigateCardMediaPlayer,
-} from '../../../../types.js';
+} from '../../../../config/types.js';
+import { FrigateCardMediaPlayer } from '../../../../types.js';
 
 declare module 'embla-carousel/components/Plugins' {
   interface EmblaPluginsType {

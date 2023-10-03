@@ -1,12 +1,7 @@
 import { handleActionConfig, hasAction } from 'custom-card-helpers';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import {
-  actionSchema,
-  FrigateCardAction,
-  FrigateCardCustomAction,
-  frigateCardCustomActionSchema,
-} from '../../src/types';
+import { actionSchema } from '../../src/config/types';
 import {
   convertActionToFrigateCardCustomAction,
   createFrigateCardCustomAction,

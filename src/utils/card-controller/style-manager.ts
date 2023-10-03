@@ -1,5 +1,5 @@
+import { FrigateCardConfig } from '../../config/types';
 import { setPerformanceCSSStyles } from '../../performance';
-import { FrigateCardConfig } from '../../types';
 import { View } from '../../view/view';
 import { setOrRemoveAttribute } from '../basic';
 import { CardStyleAPI } from './types';

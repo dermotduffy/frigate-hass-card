@@ -7,37 +7,37 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import galleryStyle from '../scss/gallery.scss';
-import galleryCoreStyle from '../scss/gallery-core.scss';
+import { classMap } from 'lit/directives/class-map.js';
+import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import throttle from 'lodash-es/throttle';
+import { CameraManager, ExtendedMediaQueryResult } from '../camera-manager/manager.js';
+import { EventQuery, MediaQuery, RecordingQuery } from '../camera-manager/types';
 import {
   CardWideConfig,
-  ExtendedHomeAssistant,
   frigateCardConfigDefaults,
   GalleryConfig,
   THUMBNAIL_WIDTH_MAX,
-} from '../types.js';
+} from '../config/types';
+import { localize } from '../localize/localize';
+import galleryCoreStyle from '../scss/gallery-core.scss';
+import galleryStyle from '../scss/gallery.scss';
+import { ExtendedHomeAssistant } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
+import { errorToConsole, sleep } from '../utils/basic';
 import {
   changeViewToRecentEventsForCameraAndDependents,
   changeViewToRecentRecordingForCameraAndDependents,
 } from '../utils/media-to-view.js';
-import { CameraManager, ExtendedMediaQueryResult } from '../camera-manager/manager.js';
+import { ViewMedia } from '../view/media';
+import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
+import { MediaQueriesClassifier } from '../view/media-queries-classifier';
+import { MediaQueriesResults } from '../view/media-queries-results';
 import { View } from '../view/view.js';
+import './media-filter';
 import { renderMessage, renderProgressIndicator } from './message.js';
+import './surround-basic';
 import './thumbnail.js';
 import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
-import { MediaQueriesClassifier } from '../view/media-queries-classifier';
-import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
-import { EventQuery, MediaQuery, RecordingQuery } from '../camera-manager/types';
-import { MediaQueriesResults } from '../view/media-queries-results';
-import { errorToConsole, sleep } from '../utils/basic';
-import './media-filter';
-import './surround-basic';
-import { ViewMedia } from '../view/media';
-import { localize } from '../localize/localize';
-import throttle from 'lodash-es/throttle';
-import { classMap } from 'lit/directives/class-map.js';
 
 const GALLERY_MEDIA_FILTER_MENU_ICONS = {
   closed: 'mdi:filter-cog-outline',

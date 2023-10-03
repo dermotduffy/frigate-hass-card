@@ -1,4 +1,4 @@
-import { CameraConfig } from '../types';
+import { CameraConfig } from '../config/types';
 import { ViewMedia } from '../view/media';
 import { CameraManagerEngine } from './engine';
 import { CameraConfigs, Engine } from './types';

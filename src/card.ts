@@ -17,16 +17,14 @@ import { renderMessage, renderProgressIndicator } from './components/message.js'
 import './components/thumbnail-carousel.js';
 import './components/views.js';
 import { FrigateCardViews } from './components/views.js';
+import { FrigateCardConfig, MenuItem, RawFrigateCardConfig } from './config/types';
 import { REPO_URL } from './const.js';
 import { localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
 import {
   ExtendedHomeAssistant,
-  FrigateCardConfig,
   MediaLoadedInfo,
-  MenuButton,
   Message,
-  RawFrigateCardConfig,
 } from './types.js';
 import { frigateCardHasAction } from './utils/action.js';
 import { ConditionEvaluateRequestEvent } from './utils/card-controller/conditions-manager.js';
@@ -325,11 +323,11 @@ class FrigateCard extends LitElement {
             .conditionsManagerEpoch=${this._controller
               .getConditionsManager()
               ?.getEpoch()}
-            @frigate-card:menu-add=${(ev: CustomEvent<MenuButton>) => {
+            @frigate-card:menu-add=${(ev: CustomEvent<MenuItem>) => {
               this._menuButtonController.addDynamicMenuButton(ev.detail);
               this.requestUpdate();
             }}
-            @frigate-card:menu-remove=${(ev: CustomEvent<MenuButton>) => {
+            @frigate-card:menu-remove=${(ev: CustomEvent<MenuItem>) => {
               this._menuButtonController.removeDynamicMenuButton(ev.detail);
               this.requestUpdate();
             }}

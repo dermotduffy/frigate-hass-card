@@ -1,4 +1,4 @@
-import { FrigateCardCustomAction, FrigateCardViewAction } from '../../types';
+import { FrigateCardCustomAction, FrigateCardViewAction } from '../../config/types';
 import { createFrigateCardCustomAction } from '../action.js';
 import { CardQueryStringAPI } from './types';
 import { ViewManagerSetViewParameters } from './view-manager';

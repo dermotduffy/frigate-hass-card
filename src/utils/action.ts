@@ -11,7 +11,7 @@ import {
   FrigateCardCustomAction,
   frigateCardCustomActionSchema,
   ViewDisplayMode,
-} from '../types.js';
+} from '../config/types.js';
 
 /**
  * Convert a generic Action to a FrigateCardCustomAction if it parses correctly.

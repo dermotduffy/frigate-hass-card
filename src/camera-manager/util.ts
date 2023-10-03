@@ -1,13 +1,13 @@
-import startOfHour from 'date-fns/startOfHour';
-import endOfHour from 'date-fns/endOfHour';
-import startOfDay from 'date-fns/startOfDay';
 import endOfDay from 'date-fns/endOfDay';
+import endOfHour from 'date-fns/endOfHour';
 import endOfMinute from 'date-fns/endOfMinute';
-import { DateRange } from './range';
+import startOfDay from 'date-fns/startOfDay';
+import startOfHour from 'date-fns/startOfHour';
 import orderBy from 'lodash-es/orderBy';
 import uniqBy from 'lodash-es/uniqBy';
+import { CameraConfig } from '../config/types';
 import { ViewMedia } from '../view/media';
-import { CameraConfig } from '../types';
+import { DateRange } from './range';
 
 export const convertRangeToCacheFriendlyTimes = (
   range: DateRange,

@@ -1,35 +1,36 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { HomeAssistant } from 'custom-card-helpers';
-import { CameraConfig, ExtendedHomeAssistant } from '../../types';
+import { CameraConfig } from '../../config/types';
+import { ExtendedHomeAssistant } from '../../types';
+import { getEntityIcon, getEntityTitle } from '../../utils/ha';
+import { EntityRegistryManager } from '../../utils/ha/entity-registry';
 import { ViewMedia } from '../../view/media';
+import { CameraManagerEngine } from '../engine';
 import {
+  CameraConfigs,
+  CameraEndpoint,
+  CameraEndpoints,
+  CameraEndpointsContext,
+  CameraManagerCameraCapabilities,
   CameraManagerCameraMetadata,
   CameraManagerMediaCapabilities,
   DataQuery,
+  Engine,
+  EngineOptions,
   EventQuery,
   EventQueryResultsMap,
+  MediaMetadataQuery,
+  MediaMetadataQueryResultsMap,
   PartialEventQuery,
   PartialRecordingQuery,
   PartialRecordingSegmentsQuery,
+  QueryReturnType,
+  RecordingQuery,
   RecordingQueryResultsMap,
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
-  CameraEndpointsContext,
-  CameraConfigs,
-  RecordingQuery,
-  QueryReturnType,
-  CameraManagerCameraCapabilities,
-  Engine,
-  CameraEndpoints,
-  MediaMetadataQuery,
-  MediaMetadataQueryResultsMap,
-  EngineOptions,
-  CameraEndpoint,
 } from '../types';
-import { getEntityIcon, getEntityTitle } from '../../utils/ha';
-import { EntityRegistryManager } from '../../utils/ha/entity-registry';
-import { CameraManagerEngine } from '../engine';
 
 export class GenericCameraManagerEngine implements CameraManagerEngine {
   public getEngineType(): Engine {

@@ -2,8 +2,9 @@ import { ViewContext } from 'view';
 import { CameraManager } from '../camera-manager/manager';
 import { MediaQuery } from '../camera-manager/types';
 import { dispatchFrigateCardErrorEvent } from '../components/message';
+import { CardWideConfig, FrigateCardView } from '../config/types';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const';
-import { CardWideConfig, ClipsOrSnapshotsOrAll, FrigateCardView } from '../types';
+import { ClipsOrSnapshotsOrAll } from '../types';
 import { ViewMedia } from '../view/media';
 import {
   EventMediaQueries,

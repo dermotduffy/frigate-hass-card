@@ -1,6 +1,6 @@
 import { HomeAssistant } from 'custom-card-helpers';
+import { CameraConfig } from '../config/types';
 import { localize } from '../localize/localize';
-import { CameraConfig } from '../types';
 import { BrowseMediaManager } from '../utils/ha/browse-media/browse-media-manager';
 import { BrowseMedia } from '../utils/ha/browse-media/types';
 import { EntityRegistryManager } from '../utils/ha/entity-registry';

@@ -1,5 +1,6 @@
 import { ViewContext } from 'view';
-import { ClipsOrSnapshots, FrigateCardView, ViewDisplayMode } from '../types.js';
+import { FrigateCardView, ViewDisplayMode } from '../config/types.js';
+import { ClipsOrSnapshots } from '../types.js';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
 import { MediaQueries } from './media-queries';
 import { MediaQueriesClassifier } from './media-queries-classifier.js';

@@ -1,23 +1,24 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map';
 import { CameraManager } from '../camera-manager/manager';
+import {
+  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
+  FrigateCardConfig,
+  FrigateCardCustomAction,
+  MenuItem
+} from '../config/types';
 import { FRIGATE_BUTTON_MENU_ICON } from '../const';
 import { localize } from '../localize/localize.js';
 import {
-  FrigateCardConfig,
-  FrigateCardCustomAction,
-  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
   MediaLoadedInfo,
-  MenuButton,
 } from '../types';
 import { View } from '../view/view';
 import { createFrigateCardCustomAction } from './action';
 import { getAllDependentCameras } from './camera';
-import { getEntityIcon, getEntityTitle } from './ha';
 import { MediaPlayerManager } from './card-controller/media-player-manager';
 import { MicrophoneManager } from './card-controller/microphone-manager';
+import { getEntityIcon, getEntityTitle } from './ha';
 import { hasSubstream } from './substream';
-
 export interface MenuButtonControllerOptions {
   currentMediaLoadedInfo?: MediaLoadedInfo | null;
   showCameraUIButton?: boolean;
@@ -29,15 +30,15 @@ export interface MenuButtonControllerOptions {
 
 export class MenuButtonController {
   // Array of dynamic menu buttons to be added to menu.
-  protected _dynamicMenuButtons: MenuButton[] = [];
+  protected _dynamicMenuButtons: MenuItem[] = [];
 
-  public addDynamicMenuButton(button: MenuButton): void {
+  public addDynamicMenuButton(button: MenuItem): void {
     if (!this._dynamicMenuButtons.includes(button)) {
       this._dynamicMenuButtons.push(button);
     }
   }
 
-  public removeDynamicMenuButton(button: MenuButton): void {
+  public removeDynamicMenuButton(button: MenuItem): void {
     this._dynamicMenuButtons = this._dynamicMenuButtons.filter(
       (existingButton) => existingButton != button,
     );
@@ -53,7 +54,7 @@ export class MenuButtonController {
     cameraManager: CameraManager,
     view: View,
     options?: MenuButtonControllerOptions,
-  ): MenuButton[] {
+  ): MenuItem[] {
     const visibleCameras = cameraManager.getStore().getVisibleCameras();
     const selectedCameraID = view.camera;
     const selectedCameraConfig = cameraManager
@@ -68,7 +69,7 @@ export class MenuButtonController {
       ? cameraManager?.getMediaCapabilities(selectedMedia)
       : null;
 
-    const buttons: MenuButton[] = [];
+    const buttons: MenuItem[] = [];
     buttons.push({
       // Use a magic icon value that the menu will use to render the custom
       // Frigate icon.
@@ -451,7 +452,7 @@ export class MenuButtonController {
   protected _getStyleFromActions(
     config: FrigateCardConfig,
     view: View,
-    button: MenuButton,
+    button: MenuItem,
     options?: MenuButtonControllerOptions,
   ): StyleInfo {
     for (const actionSet of [

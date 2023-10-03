@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { FrigateCardView } from '../../../src/config/types';
 import { setPerformanceCSSStyles } from '../../../src/performance';
-import { FrigateCardView } from '../../../src/types';
 import { StyleManager } from '../../../src/utils/card-controller/style-manager';
 import { createCardAPI, createConfig, createHASS, createView } from '../../test-utils';
 

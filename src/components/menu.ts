@@ -1,10 +1,10 @@
 import { HASSDomEvent, HomeAssistant } from 'custom-card-helpers';
 import {
   CSSResultGroup,
-  html,
   LitElement,
   PropertyValues,
   TemplateResult,
+  html,
   unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
@@ -12,26 +12,25 @@ import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../action-handler-directive.js';
-import menuStyle from '../scss/menu.scss';
+import { FRIGATE_ICON_SVG_PATH } from '../camera-manager/frigate/icon.js';
 import type {
-  ActionsConfig,
   ActionType,
-  MenuButton,
+  ActionsConfig,
   MenuConfig,
   MenuItem,
-  StateParameters,
-} from '../types.js';
+} from '../config/types.js';
+import { FRIGATE_BUTTON_MENU_ICON } from '../const.js';
+import menuStyle from '../scss/menu.scss';
+import type { StateParameters } from '../types.js';
 import {
   convertActionToFrigateCardCustomAction,
   frigateCardHandleActionConfig,
   frigateCardHasAction,
   getActionConfigGivenAction,
 } from '../utils/action.js';
-import { FRIGATE_ICON_SVG_PATH } from '../camera-manager/frigate/icon.js';
 import { refreshDynamicStateParameters } from '../utils/ha';
-import './submenu.js';
 import { EntityRegistryManager } from '../utils/ha/entity-registry/index.js';
-import { FRIGATE_BUTTON_MENU_ICON } from '../const.js';
+import './submenu.js';
 
 /**
  * A menu for the FrigateCard.
@@ -62,7 +61,7 @@ export class FrigateCardMenu extends LitElement {
   protected _menuConfig?: MenuConfig;
 
   @property({ attribute: false })
-  public buttons: MenuButton[] = [];
+  public buttons: MenuItem[] = [];
 
   @property({ attribute: false })
   public entityRegistryManager?: EntityRegistryManager;
@@ -228,7 +227,7 @@ export class FrigateCardMenu extends LitElement {
    * @param button The button configuration to render.
    * @returns A rendered template or void.
    */
-  protected _renderButton(button: MenuButton): TemplateResult | void {
+  protected _renderButton(button: MenuItem): TemplateResult | void {
     if (button.type === 'custom:frigate-card-menu-submenu') {
       return html` <frigate-card-submenu
         .hass=${this.hass}

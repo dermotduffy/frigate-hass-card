@@ -6,29 +6,25 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS
+  unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import isEqual from 'lodash-es/isEqual';
 import { CachedValueController } from '../cached-value-controller.js';
+import { CameraConfig, ImageViewConfig } from '../config/types.js';
 import defaultImage from '../images/frigate-bird-in-sky.jpg';
 import { localize } from '../localize/localize.js';
 import imageStyle from '../scss/image.scss';
-import {
-  CameraConfig,
-  FrigateCardMediaPlayer,
-  ImageViewConfig,
-  MediaLoadedInfo
-} from '../types.js';
+import { FrigateCardMediaPlayer, MediaLoadedInfo } from '../types.js';
 import { contentsChanged } from '../utils/basic.js';
 import { isHassDifferent } from '../utils/ha';
 import {
   createMediaLoadedInfo,
   dispatchExistingMediaLoadedInfoAsEvent,
   dispatchMediaPauseEvent,
-  dispatchMediaPlayEvent
+  dispatchMediaPlayEvent,
 } from '../utils/media-info.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
 import { View } from '../view/view.js';

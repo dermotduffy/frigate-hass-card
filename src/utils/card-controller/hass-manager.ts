@@ -1,5 +1,6 @@
+import { CameraConfig } from '../../config/types';
 import { localize } from '../../localize/localize';
-import { CameraConfig, ExtendedHomeAssistant } from '../../types';
+import { ExtendedHomeAssistant } from '../../types';
 import { hasHAConnectionStateChanged, isHassDifferent } from '../ha';
 import { CardHASSAPI } from './types';
 

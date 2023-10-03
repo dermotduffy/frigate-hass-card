@@ -2,10 +2,11 @@ import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { ClassInfo, classMap } from 'lit/directives/class-map.js';
 import { ref, Ref } from 'lit/directives/ref.js';
+import { CardWideConfig } from '../config/types.js';
 import { TROUBLESHOOTING_URL } from '../const.js';
 import { localize } from '../localize/localize.js';
 import messageStyle from '../scss/message.scss';
-import { CardWideConfig, FrigateCardError, Message, MessageType } from '../types.js';
+import { FrigateCardError, Message, MessageType } from '../types.js';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
 
 @customElement('frigate-card-message')

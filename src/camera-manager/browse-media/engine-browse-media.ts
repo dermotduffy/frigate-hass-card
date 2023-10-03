@@ -1,22 +1,8 @@
 import { HomeAssistant } from 'custom-card-helpers';
-import { CameraConfig, ExtendedHomeAssistant } from '../../types';
-import { ViewMedia } from '../../view/media';
-import {
-  CameraManagerMediaCapabilities,
-  DataQuery,
-  EventQuery,
-  PartialEventQuery,
-  CameraConfigs,
-  CameraManagerCameraCapabilities,
-  QueryType,
-  CameraEndpoint,
-} from '../types';
-import { EntityRegistryManager } from '../../utils/ha/entity-registry';
-import { CameraManagerEngine } from '../engine';
-import { GenericCameraManagerEngine } from '../generic/engine-generic';
-import { CameraInitializationError } from '../error';
+import { CameraConfig } from '../../config/types';
 import { localize } from '../../localize/localize';
-import { Entity } from '../../utils/ha/entity-registry/types';
+import { ExtendedHomeAssistant } from '../../types';
+import { canonicalizeHAURL } from '../../utils/ha';
 import { BrowseMediaManager } from '../../utils/ha/browse-media/browse-media-manager';
 import {
   BROWSE_MEDIA_CACHE_SECONDS,
@@ -24,12 +10,27 @@ import {
   MEDIA_CLASS_VIDEO,
   RichBrowseMedia,
 } from '../../utils/ha/browse-media/types';
-import { BrowseMediaMetadata } from './types';
-import { rangesOverlap } from '../range';
+import { EntityRegistryManager } from '../../utils/ha/entity-registry';
+import { Entity } from '../../utils/ha/entity-registry/types';
 import { ResolvedMediaCache, resolveMedia } from '../../utils/ha/resolved-media';
-import { canonicalizeHAURL } from '../../utils/ha';
+import { ViewMedia } from '../../view/media';
 import { RequestCache } from '../cache';
+import { CameraManagerEngine } from '../engine';
+import { CameraInitializationError } from '../error';
+import { GenericCameraManagerEngine } from '../generic/engine-generic';
+import { rangesOverlap } from '../range';
+import {
+  CameraConfigs,
+  CameraEndpoint,
+  CameraManagerCameraCapabilities,
+  CameraManagerMediaCapabilities,
+  DataQuery,
+  EventQuery,
+  PartialEventQuery,
+  QueryType,
+} from '../types';
 import { BrowseMediaViewMediaFactory } from './media';
+import { BrowseMediaMetadata } from './types';
 
 /**
  * A utility method to determine if a browse media object matches against a

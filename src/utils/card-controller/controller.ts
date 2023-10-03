@@ -1,10 +1,7 @@
-// TODO: executeMediaQueryForView should not need a HTMLElement host parameter see the view-manager.ts call in particular.
-// TODO: Split out zod schema and add tests for config parsing (e.g. view.scan.show_status argument was missing)
-
 import { LovelaceCardEditor } from 'custom-card-helpers';
 import { ReactiveController } from 'lit';
 import { CameraManager } from '../../camera-manager/manager';
-import { FrigateCardConfig } from '../../types';
+import { FrigateCardConfig } from '../../config/types';
 import { EntityRegistryManager } from '../ha/entity-registry';
 import { EntityCache } from '../ha/entity-registry/cache';
 import { ResolvedMediaCache } from '../ha/resolved-media';
@@ -35,8 +32,8 @@ import { StyleManager } from './style-manager';
 import { TriggersManager } from './triggers-manager';
 import {
   CardActionsManagerAPI,
-  CardAutomationsAPI,
   CardAutoRefreshAPI,
+  CardAutomationsAPI,
   CardCameraAPI,
   CardCameraURLAPI,
   CardConditionAPI,

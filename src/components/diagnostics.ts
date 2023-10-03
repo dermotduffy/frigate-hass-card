@@ -1,9 +1,9 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { CSSResultGroup, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { RawFrigateCardConfig } from '../config/types';
 import { localize } from '../localize/localize';
 import basicBlockStyle from '../scss/basic-block.scss';
-import { RawFrigateCardConfig } from '../types';
 import { Diagnostics, getDiagnostics } from '../utils/diagnostics';
 import { renderMessage } from './message';
 

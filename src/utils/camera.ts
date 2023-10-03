@@ -1,5 +1,5 @@
 import { CameraManager } from '../camera-manager/manager.js';
-import { CameraConfig, RawFrigateCardConfig } from '../types.js';
+import { CameraConfig, RawFrigateCardConfig } from '../config/types.js';
 
 /**
  * Get a camera id.

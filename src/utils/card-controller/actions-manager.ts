@@ -1,12 +1,16 @@
 import {
   Actions,
-  ActionsConfig, FrigateCardCustomAction, FRIGATE_CARD_VIEW_DEFAULT
-} from '../../types.js';
+  ActionsConfig,
+  FRIGATE_CARD_VIEW_DEFAULT,
+  FrigateCardCustomAction
+} from '../../config/types.js';
 import {
   convertActionToFrigateCardCustomAction,
   frigateCardHandleActionConfig,
   getActionConfigGivenAction
 } from '../action.js';
+import { getStreamCameraID } from '../substream.js';
+import { CardActionsManagerAPI } from './types.js';
 import { getStreamCameraID } from '../substream.js';
 import { CardActionsManagerAPI } from './types.js';
 

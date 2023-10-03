@@ -2,12 +2,13 @@ import { HomeAssistant } from 'custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
-import liveHAStyle from '../../scss/live-ha.scss';
-import { CameraConfig, FrigateCardMediaPlayer } from '../../types.js';
-import { getStateObjOrDispatchError } from './live.js';
+import { CameraConfig } from '../../config/types';
 import '../../patches/ha-camera-stream';
 import '../../patches/ha-hls-player.js';
 import '../../patches/ha-web-rtc-player.ts';
+import liveHAStyle from '../../scss/live-ha.scss';
+import { FrigateCardMediaPlayer } from '../../types.js';
+import { getStateObjOrDispatchError } from './live.js';
 
 @customElement('frigate-card-live-ha')
 export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPlayer {
@@ -55,7 +56,7 @@ export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPla
   }
 
   public async getScreenshotURL(): Promise<string | null> {
-    return await this._playerRef.value?.getScreenshotURL() ?? null;
+    return (await this._playerRef.value?.getScreenshotURL()) ?? null;
   }
 
   protected render(): TemplateResult | void {

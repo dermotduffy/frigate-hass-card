@@ -12,17 +12,16 @@ import {
 } from '../src/camera-manager/types';
 import {
   CameraConfig,
-  ExtendedHomeAssistant,
   FrigateCardCondition,
   FrigateCardConfig,
-  MediaLoadedInfo,
   PerformanceConfig,
   RawFrigateCardConfig,
   cameraConfigSchema,
   frigateCardConditionSchema,
   frigateCardConfigSchema,
   performanceConfigSchema,
-} from '../src/types';
+} from '../src/config/types';
+import { ExtendedHomeAssistant, MediaLoadedInfo } from '../src/types';
 import { ActionsManager } from '../src/utils/card-controller/actions-manager';
 import { AutoUpdateManager } from '../src/utils/card-controller/auto-update-manager';
 import { AutomationsManager } from '../src/utils/card-controller/automations-manager';

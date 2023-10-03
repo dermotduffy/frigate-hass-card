@@ -1,9 +1,5 @@
+import { Automation, AutomationActions, Automations } from '../../config/types.js';
 import { localize } from '../../localize/localize.js';
-import {
-  Automation,
-  AutomationActions,
-  Automations,
-} from '../../types.js';
 import { frigateCardHandleAction } from '../action.js';
 import { CardAutomationsAPI } from './types.js';
 

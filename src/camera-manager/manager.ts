@@ -3,9 +3,9 @@ import add from 'date-fns/add';
 import cloneDeep from 'lodash-es/cloneDeep';
 import merge from 'lodash-es/merge.js';
 import sum from 'lodash-es/sum';
+import { CameraConfig, CamerasConfig } from '../config/types.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
 import { localize } from '../localize/localize.js';
-import { CameraConfig, CamerasConfig } from '../types.js';
 import { allPromises, arrayify, setify } from '../utils/basic.js';
 import { getCameraID } from '../utils/camera.js';
 import { CardCameraAPI } from '../utils/card-controller/types.js';
@@ -17,14 +17,23 @@ import { CameraManagerEngine } from './engine.js';
 import { CameraInitializationError } from './error.js';
 import { CameraManagerReadOnlyConfigStore, CameraManagerStore } from './store.js';
 import {
-  CameraEndpoint, CameraEndpoints, CameraEndpointsContext, CameraManagerCameraCapabilities,
+  CameraEndpoint,
+  CameraEndpoints,
+  CameraEndpointsContext,
+  CameraManagerCameraCapabilities,
   CameraManagerCameraMetadata,
   CameraManagerCapabilities,
-  CameraManagerMediaCapabilities, DataQuery, Engine, EngineOptions, EventQuery,
+  CameraManagerMediaCapabilities,
+  DataQuery,
+  Engine,
+  EngineOptions,
+  EventQuery,
   EventQueryResults,
   EventQueryResultsMap,
-  MediaMetadata, MediaMetadataQuery,
-  MediaMetadataQueryResults, MediaQuery,
+  MediaMetadata,
+  MediaMetadataQuery,
+  MediaMetadataQueryResults,
+  MediaQuery,
   PartialDataQuery,
   PartialEventQuery,
   PartialQueryConcreteType,
@@ -40,7 +49,7 @@ import {
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResults,
   RecordingSegmentsQueryResultsMap,
-  ResultsMap
+  ResultsMap,
 } from './types.js';
 import { sortMedia } from './util.js';
 

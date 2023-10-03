@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { QueryType } from '../../../src/camera-manager/types';
-import { FrigateCardView } from '../../../src/types';
+import { FrigateCardView } from '../../../src/config/types';
 import { getAllDependentCameras } from '../../../src/utils/camera';
 import { ViewManager } from '../../../src/utils/card-controller/view-manager';
 import { EventMediaQueries } from '../../../src/view/media-queries';

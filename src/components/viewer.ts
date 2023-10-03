@@ -16,6 +16,12 @@ import {
   renderMessage,
   renderProgressIndicator,
 } from '../components/message.js';
+import {
+  CardWideConfig,
+  frigateCardConfigDefaults,
+  TransitionEffect,
+  ViewerConfig,
+} from '../config/types.js';
 import { localize } from '../localize/localize.js';
 import '../patches/ha-hls-player';
 import basicBlockStyle from '../scss/basic-block.scss';
@@ -23,13 +29,9 @@ import viewerCarouselStyle from '../scss/viewer-carousel.scss';
 import viewerProviderStyle from '../scss/viewer-provider.scss';
 import viewerStyle from '../scss/viewer.scss';
 import {
-  CardWideConfig,
   ExtendedHomeAssistant,
-  frigateCardConfigDefaults,
   FrigateCardMediaPlayer,
   MediaLoadedInfo,
-  TransitionEffect,
-  ViewerConfig,
 } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { mayHaveAudio } from '../utils/audio.js';

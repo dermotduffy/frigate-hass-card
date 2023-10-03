@@ -1,7 +1,7 @@
 import add from 'date-fns/add';
 import { HassEntities } from 'home-assistant-js-websocket';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ScanOptions } from '../../../src/types';
+import { ScanOptions } from '../../../src/config/types';
 import { TriggersManager } from '../../../src/utils/card-controller/triggers-manager';
 import {
   createCameraConfig,

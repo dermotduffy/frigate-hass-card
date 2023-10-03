@@ -1,7 +1,8 @@
 import isEqual from 'lodash-es/isEqual';
 import throttle from 'lodash-es/throttle';
 import Masonry from 'masonry-layout';
-import { MediaLoadedInfo, ViewDisplayConfig } from '../types';
+import { ViewDisplayConfig } from '../config/types';
+import { MediaLoadedInfo } from '../types';
 import {
   dispatchFrigateCardEvent,
   getChildrenFromElement,

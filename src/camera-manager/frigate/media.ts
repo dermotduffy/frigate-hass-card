@@ -1,12 +1,12 @@
 import fromUnixTime from 'date-fns/fromUnixTime';
 import isEqual from 'lodash-es/isEqual';
-import { CameraConfig } from '../../types';
+import { CameraConfig } from '../../config/types';
 import {
-  ViewMedia,
   EventViewMedia,
   RecordingViewMedia,
-  ViewMediaType,
   VideoContentType,
+  ViewMedia,
+  ViewMediaType,
 } from '../../view/media';
 import { FrigateEvent, FrigateRecording } from './types';
 import {

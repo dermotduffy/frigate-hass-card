@@ -3,10 +3,10 @@ import { mock } from 'vitest-mock-extended';
 import {
   ActionType,
   FrigateCardCustomAction,
-  FrigateCardMediaPlayer,
   FrigateCardView,
   frigateCardCustomActionSchema,
-} from '../../../src/types';
+} from '../../../src/config/types';
+import { FrigateCardMediaPlayer } from '../../../src/types';
 import {
   convertActionToFrigateCardCustomAction,
   frigateCardHandleActionConfig,
@@ -139,9 +139,7 @@ describe('ActionsManager.getMergedActions', () => {
       vi.mocked(api.getViewManager().getView).mockReturnValue(
         createView({ view: viewName }),
       );
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-        createConfig(config),
-      );
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig(config));
 
       const manager = new ActionsManager(api);
 

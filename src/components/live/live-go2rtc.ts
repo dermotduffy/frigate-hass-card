@@ -8,14 +8,10 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { CameraEndpoints } from '../../camera-manager/types.js';
+import { CameraConfig, MicrophoneConfig } from '../../config/types.js';
 import { localize } from '../../localize/localize';
 import liveMSEStyle from '../../scss/live-go2rtc.scss';
-import {
-  CameraConfig,
-  ExtendedHomeAssistant,
-  FrigateCardMediaPlayer,
-  MicrophoneConfig,
-} from '../../types.js';
+import { ExtendedHomeAssistant, FrigateCardMediaPlayer } from '../../types.js';
 import { getEndpointAddressOrDispatchError } from '../../utils/endpoint';
 import { setControlsOnVideo } from '../../utils/media.js';
 import { screenshotMedia } from '../../utils/screenshot.js';
