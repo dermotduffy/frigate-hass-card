@@ -195,8 +195,9 @@ class FrigateCard extends LitElement {
           this._config,
           this._controller.getCameraManager(),
           view,
-          this._controller.getExpandManager().isExpanded(),
           {
+            inExpandedMode: this._controller.getExpandManager().isExpanded(),
+            inFullscreenMode: this._controller.getFullscreenManager().isInFullscreen(),
             currentMediaLoadedInfo: this._controller.getMediaLoadedInfoManager().get(),
             showCameraUIButton: this._controller.getCameraURLManager().hasCameraURL(),
             mediaPlayerController: this._controller.getMediaPlayerManager(),

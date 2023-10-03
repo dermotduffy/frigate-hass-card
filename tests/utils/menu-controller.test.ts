@@ -1,6 +1,5 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import isEqual from 'lodash-es/isEqual';
-import screenfull from 'screenfull';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManager } from '../../src/camera-manager/manager';
@@ -8,14 +7,13 @@ import { CameraManagerCameraMetadata } from '../../src/camera-manager/types';
 import {
   FrigateCardConfig,
   FrigateCardMediaPlayer,
-  MediaLoadedInfo,
   MenuButton,
   ViewDisplayMode,
 } from '../../src/types';
 import { createFrigateCardCustomAction } from '../../src/utils/action';
 import { MediaPlayerManager } from '../../src/utils/card-controller/media-player-manager';
 import { MicrophoneManager } from '../../src/utils/card-controller/microphone-manager';
-import { MenuButtonController } from '../../src/utils/menu-controller';
+import { MenuButtonController, MenuButtonControllerOptions } from '../../src/utils/menu-controller';
 import { ViewMedia } from '../../src/view/media';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
 import { View } from '../../src/view/view';
@@ -35,20 +33,14 @@ import {
 vi.mock('../../src/camera-manager/manager.js');
 vi.mock('../../src/utils/media-player-controller.js');
 vi.mock('../../src/utils/card-controller/microphone-manager.js');
-vi.mock('screenfull');
 
 const calculateButtons = (
   controller: MenuButtonController,
-  options?: {
+  options?: MenuButtonControllerOptions & {
     hass?: HomeAssistant;
     config?: FrigateCardConfig;
     cameraManager?: CameraManager;
     view?: View;
-    expanded?: boolean;
-    currentMediaLoadedInfo?: MediaLoadedInfo | null;
-    mediaPlayerController?: MediaPlayerManager;
-    showCameraUIButton?: boolean;
-    microphoneManager?: MicrophoneManager;
   },
 ): MenuButton[] => {
   return controller.calculateButtons(
@@ -62,13 +54,7 @@ const calculateButtons = (
         ]),
       }),
     options?.view ?? createView({ camera: 'camera-1' }),
-    options?.expanded ?? false,
-    {
-      currentMediaLoadedInfo: options?.currentMediaLoadedInfo,
-      mediaPlayerController: options?.mediaPlayerController,
-      showCameraUIButton: options?.showCameraUIButton,
-      microphoneManager: options?.microphoneManager,
-    },
+    options,
   );
 };
 
@@ -863,9 +849,8 @@ describe('MenuButtonController', () => {
 
   it('should have fullscreen button', () => {
     // Need to write a readonly property.
-    Object.defineProperty(screenfull, 'isEnabled', { value: true });
     vi.stubGlobal('navigator', { userAgent: 'foo' });
-    const buttons = calculateButtons(controller);
+    const buttons = calculateButtons(controller, { inFullscreenMode: false });
 
     expect(buttons).toContainEqual({
       icon: 'mdi:fullscreen',
@@ -879,11 +864,8 @@ describe('MenuButtonController', () => {
   });
 
   it('should have unfullscreen', () => {
-    // Need to write a readonly property.
-    Object.defineProperty(screenfull, 'isEnabled', { value: true });
-    Object.defineProperty(screenfull, 'isFullscreen', { value: true });
     vi.stubGlobal('navigator', { userAgent: 'foo' });
-    const buttons = calculateButtons(controller);
+    const buttons = calculateButtons(controller, { inFullscreenMode: true });
 
     expect(buttons).toContainEqual({
       icon: 'mdi:fullscreen-exit',
@@ -897,7 +879,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should have expand button', () => {
-    const buttons = calculateButtons(controller);
+    const buttons = calculateButtons(controller, { inExpandedMode: false });
 
     expect(buttons).toContainEqual({
       icon: 'mdi:arrow-expand-all',
@@ -911,7 +893,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should have unexpand button', () => {
-    const buttons = calculateButtons(controller, { expanded: true });
+    const buttons = calculateButtons(controller, { inExpandedMode: true });
 
     expect(buttons).toContainEqual({
       icon: 'mdi:arrow-collapse-all',
@@ -1224,17 +1206,13 @@ describe('MenuButtonController', () => {
   });
 
   it('should set style for dynamic button with fullscreen action', () => {
-    // Need to write a readonly property.
-    Object.defineProperty(screenfull, 'isEnabled', { value: true });
-    Object.defineProperty(screenfull, 'isFullscreen', { value: true });
-
     const button: MenuButton = {
       ...dynamicButton,
       tap_action: { action: 'fire-dom-event', frigate_card_action: 'fullscreen' },
     };
 
     controller.addDynamicMenuButton(button);
-    expect(calculateButtons(controller)).toContainEqual({
+    expect(calculateButtons(controller, { inFullscreenMode: true })).toContainEqual({
       ...button,
       style: { color: 'var(--primary-color, white)' },
     });

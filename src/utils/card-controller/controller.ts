@@ -1,5 +1,3 @@
-// TODO: Test HA state connection/disconnect logic in real life.
-// TODO: Should not need to import screenfull anywhere except the fullscreen manager.
 // TODO: executeMediaQueryForView should not need a HTMLElement host parameter see the view-manager.ts call in particular.
 // TODO: Split out zod schema and add tests for config parsing (e.g. view.scan.show_status argument was missing)
 
