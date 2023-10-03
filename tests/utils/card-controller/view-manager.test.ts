@@ -496,7 +496,7 @@ describe('ViewManager.setViewWithNewDisplayMode', () => {
     manager.setView(originalView);
 
     // Query execution fails / returns null.
-    vi.mocked(cameraManager.executeMediaQueries).mockResolvedValue(null);
+    vi.mocked(cameraManager.executeMediaQueries).mockRejectedValue(null);
 
     await manager.setViewWithNewDisplayMode('single');
 

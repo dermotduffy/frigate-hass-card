@@ -50,7 +50,10 @@ import {
   isTruthy,
   setOrRemoveAttribute,
 } from '../utils/basic';
-import { executeMediaQueryForView, findBestMediaIndex } from '../utils/media-to-view';
+import {
+  executeMediaQueryForViewWithErrorDispatching,
+  findBestMediaIndex,
+} from '../utils/media-to-view';
 import { FrigateCardTimelineItem, TimelineDataSource } from '../utils/timeline-source';
 import { ViewMedia } from '../view/media';
 import { ViewMediaClassifier } from '../view/media-classifier';
@@ -580,7 +583,7 @@ export class FrigateCardTimelineCore extends LitElement {
     ) {
       const query = this._createMediaQueries('recording');
       if (query) {
-        view = await executeMediaQueryForView(
+        view = await executeMediaQueryForViewWithErrorDispatching(
           this,
           this.cameraManager,
           this.view,
@@ -734,7 +737,7 @@ export class FrigateCardTimelineCore extends LitElement {
     if (!this.hass || !this.cameraManager || !this.view || !query) {
       return null;
     }
-    const view = await executeMediaQueryForView(
+    const view = await executeMediaQueryForViewWithErrorDispatching(
       this,
       this.cameraManager,
       this.view,
@@ -971,12 +974,7 @@ export class FrigateCardTimelineCore extends LitElement {
    * Update the timeline from the view object.
    */
   protected async _updateTimelineFromView(): Promise<void> {
-    if (
-      !this.view ||
-      !this.timelineConfig ||
-      !this._timelineSource ||
-      !this._timeline
-    ) {
+    if (!this.view || !this.timelineConfig || !this._timelineSource || !this._timeline) {
       return;
     }
 

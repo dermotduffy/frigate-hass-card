@@ -44,10 +44,16 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
   }
 
   (
-    await executeMediaQueryForView(element, cameraManager, view, queries, {
-      targetView: options?.targetView,
-      select: options?.select,
-    })
+    await executeMediaQueryForViewWithErrorDispatching(
+      element,
+      cameraManager,
+      view,
+      queries,
+      {
+        targetView: options?.targetView,
+        select: options?.select,
+      },
+    )
   )?.dispatchChangeEvent(element);
 };
 
@@ -106,10 +112,16 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
   }
 
   (
-    await executeMediaQueryForView(element, cameraManager, view, queries, {
-      targetView: options?.targetView,
-      select: options?.select,
-    })
+    await executeMediaQueryForViewWithErrorDispatching(
+      element,
+      cameraManager,
+      view,
+      queries,
+      {
+        targetView: options?.targetView,
+        select: options?.select,
+      },
+    )
   )?.dispatchChangeEvent(element);
 };
 
@@ -127,7 +139,6 @@ const createQueriesForRecordingsView = (
 };
 
 export const executeMediaQueryForView = async (
-  element: HTMLElement,
   cameraManager: CameraManager,
   view: View,
   query: MediaQueries,
@@ -138,21 +149,12 @@ export const executeMediaQueryForView = async (
     select?: ResultSelectType;
   },
 ): Promise<View | null> => {
-  let mediaArray: ViewMedia[] | null;
-
   const queries = query.getQueries();
   if (!queries) {
     return null;
   }
 
-  try {
-    mediaArray = await cameraManager.executeMediaQueries<MediaQuery>(queries);
-  } catch (e) {
-    errorToConsole(e as Error);
-    dispatchFrigateCardErrorEvent(element, e as Error);
-    return null;
-  }
-
+  const mediaArray = await cameraManager.executeMediaQueries<MediaQuery>(queries);
   if (!mediaArray) {
     return null;
   }
@@ -180,6 +182,32 @@ export const executeMediaQueryForView = async (
       camera: cameraID,
     })
     .mergeInContext(viewerContext);
+};
+
+export const executeMediaQueryForViewWithErrorDispatching = async (
+  element: HTMLElement,
+  cameraManager: CameraManager,
+  view: View,
+  query: MediaQueries,
+  options?: {
+    targetCameraID?: string;
+    targetView?: FrigateCardView;
+    targetTime?: Date;
+    select?: ResultSelectType;
+  },
+): Promise<View | null> => {
+  try {
+    return await executeMediaQueryForView(cameraManager, view, query, {
+      targetCameraID: options?.targetCameraID,
+      targetView: options?.targetView,
+      targetTime: options?.targetTime,
+      select: options?.select,
+    });
+  } catch (e: unknown) {
+    errorToConsole(e as Error);
+    dispatchFrigateCardErrorEvent(element, e as Error);
+  }
+  return null;
 };
 
 /**

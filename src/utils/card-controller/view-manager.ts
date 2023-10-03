@@ -101,7 +101,6 @@ export class ViewManager {
   }
 
   public async setViewWithNewDisplayMode(displayMode: ViewDisplayMode): Promise<void> {
-    const host = this._api.getCardElementManager().getElement();
     const hass = this._api.getHASSManager().getHASS();
 
     if (this._view && hass) {
@@ -125,18 +124,22 @@ export class ViewManager {
         // query for more than one camera, reset the query results, change the
         // existing query to refer to all cameras and execute it to fetch new
         // results.
-        const viewWithNewQuery = await executeMediaQueryForView(
-          host,
-          this._api.getCameraManager(),
-          view,
-          view.query
-            .clone()
-            .setQueryCameraIDs(
-              view.isGrid()
-                ? this._api.getCameraManager().getStore().getVisibleCameraIDs()
-                : view.camera,
-            ),
-        );
+        let viewWithNewQuery: View | null = null;
+        try {
+          viewWithNewQuery = await executeMediaQueryForView(
+            this._api.getCameraManager(),
+            view,
+            view.query
+              .clone()
+              .setQueryCameraIDs(
+                view.isGrid()
+                  ? this._api.getCameraManager().getStore().getVisibleCameraIDs()
+                  : view.camera,
+              ),
+          );
+        } catch (e: unknown) {
+          this._api.getMessageManager().setErrorIfHigherPriority(e);
+        }
 
         if (viewWithNewQuery) {
           return this._setView(viewWithNewQuery);

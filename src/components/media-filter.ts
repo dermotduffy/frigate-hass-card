@@ -13,7 +13,7 @@ import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { DateRange } from '../camera-manager/range';
 import { localize } from '../localize/localize';
 import mediaFilterStyle from '../scss/media-filter.scss';
-import { executeMediaQueryForView } from '../utils/media-to-view.js';
+import { executeMediaQueryForViewWithErrorDispatching } from '../utils/media-to-view.js';
 import { errorToConsole, formatDate, prettifyTitle } from '../utils/basic';
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
 import './select';
@@ -228,7 +228,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
       ]);
 
       (
-        await executeMediaQueryForView(
+        await executeMediaQueryForViewWithErrorDispatching(
           this,
           this.cameraManager,
           this.view,
@@ -251,7 +251,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
       ]);
 
       (
-        await executeMediaQueryForView(
+        await executeMediaQueryForViewWithErrorDispatching(
           this,
           this.cameraManager,
           this.view,
@@ -404,7 +404,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
       ...(what && { what: what }),
       ...(where && { where: where }),
       ...(favorite !== undefined && { favorite: favorite }),
-      ...(tags && { tags: tags })
+      ...(tags && { tags: tags }),
     };
   }
 
@@ -472,18 +472,18 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
           </frigate-card-select>`
         : ''}
       ${areEvents && this._mediaMetadataController.tagsOptions.length
-          ? html` <frigate-card-select
-              ${ref(this._refTags)}
-              label=${localize('media_filter.tag')}
-              placeholder=${localize('media_filter.select_tag')}
-              clearable
-              multiple
-              .options=${this._mediaMetadataController.tagsOptions}
-              .value=${this._defaults?.tags}
-              @frigate-card:select:change=${this._valueChangedHandler.bind(this)}
-            >
-            </frigate-card-select>`
-          : ''}
+        ? html` <frigate-card-select
+            ${ref(this._refTags)}
+            label=${localize('media_filter.tag')}
+            placeholder=${localize('media_filter.select_tag')}
+            clearable
+            multiple
+            .options=${this._mediaMetadataController.tagsOptions}
+            .value=${this._defaults?.tags}
+            @frigate-card:select:change=${this._valueChangedHandler.bind(this)}
+          >
+          </frigate-card-select>`
+        : ''}
       ${areEvents && this._mediaMetadataController.whereOptions.length
         ? html` <frigate-card-select
             ${ref(this._refWhere)}
@@ -527,10 +527,7 @@ export class MediaMetadataController implements ReactiveController {
   public whatOptions: SelectOption[] = [];
   public whereOptions: SelectOption[] = [];
 
-  constructor(
-    host: ReactiveControllerHost,
-    cameraManager: CameraManager,
-  ) {
+  constructor(host: ReactiveControllerHost, cameraManager: CameraManager) {
     this._host = host;
     this._cameraManager = cameraManager;
     host.addController(this);
