@@ -779,10 +779,10 @@ const viewConfigDefault = {
   },
 };
 const scanSchema = z.object({
-  enabled: z.boolean().default(viewConfigDefault.scan.enabled).optional(),
-  show_trigger_status: z.boolean().default(viewConfigDefault.scan.show_trigger_status).optional(),
-  untrigger_seconds: z.number().default(viewConfigDefault.scan.untrigger_seconds).optional(),
-  untrigger_reset: z.boolean().default(viewConfigDefault.scan.untrigger_reset).optional(),
+  enabled: z.boolean().default(viewConfigDefault.scan.enabled),
+  show_trigger_status: z.boolean().default(viewConfigDefault.scan.show_trigger_status),
+  untrigger_seconds: z.number().default(viewConfigDefault.scan.untrigger_seconds),
+  untrigger_reset: z.boolean().default(viewConfigDefault.scan.untrigger_reset),
 });
 export type ScanOptions = z.infer<typeof scanSchema>;
 

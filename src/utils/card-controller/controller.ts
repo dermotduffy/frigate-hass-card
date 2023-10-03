@@ -2,6 +2,7 @@
 // TODO: Test HA state connection/disconnect logic in real life.
 // TODO: Should not need to import screenfull anywhere except the fullscreen manager.
 // TODO: executeMediaQueryForView should not need a HTMLElement host parameter see the view-manager.ts call in particular.
+// TODO: Split out zod schema and add tests for config parsing (e.g. view.scan.show_status argument was missing)
 
 import { LovelaceCardEditor } from 'custom-card-helpers';
 import { ReactiveController } from 'lit';
@@ -95,12 +96,12 @@ export class CardController
   protected _actionsManager = new ActionsManager(this);
   protected _automationsManager = new AutomationsManager(this);
   protected _autoUpdateManager = new AutoUpdateManager(this);
-  protected _cameraManager: CameraManager = new CameraManager(this);
+  protected _cameraManager = new CameraManager(this);
   protected _cameraURLManager = new CameraURLManager(this);
   protected _cardElementManager: CardElementManager;
   protected _conditionsManager: ConditionsManager;
   protected _configManager = new ConfigManager(this);
-  protected _downloadManager: DownloadManager = new DownloadManager(this);
+  protected _downloadManager = new DownloadManager(this);
   protected _expandManager = new ExpandManager(this);
   protected _fullscreenManager = new FullscreenManager(this);
   protected _hassManager = new HASSManager(this);
@@ -112,7 +113,7 @@ export class CardController
   protected _microphoneManager = new MicrophoneManager(this);
   protected _queryStringManager = new QueryStringManager(this);
   protected _styleManager = new StyleManager(this);
-  protected _triggersManager: TriggersManager = new TriggersManager(this);
+  protected _triggersManager = new TriggersManager(this);
   protected _viewManager = new ViewManager(this);
 
   constructor(
@@ -229,7 +230,7 @@ export class CardController
     return {
       cameras: [
         {
-          camera_entity: cameraEntity ?? 'camera.demo'
+          camera_entity: cameraEntity ?? 'camera.demo',
         },
       ],
       // Need to use 'as unknown' to convince Typescript that this really isn't a

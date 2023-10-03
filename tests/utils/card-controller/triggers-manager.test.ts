@@ -18,7 +18,7 @@ vi.mock('../../../src/camera-manager/manager.js');
 // Creating and mocking a trigger API is a lot of boilerplate, this convenience
 // function reduces it.
 const createTriggerAPI = (options?: {
-  config?: ScanOptions;
+  config?: Partial<ScanOptions>;
   hassStates?: HassEntities;
   interaction?: boolean;
 }) => {
