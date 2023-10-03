@@ -1,4 +1,3 @@
-// TODO: test errors during rendering to make sure resetMessage is no longer necessary.
 // TODO: Test HA state connection/disconnect logic in real life.
 // TODO: Should not need to import screenfull anywhere except the fullscreen manager.
 // TODO: executeMediaQueryForView should not need a HTMLElement host parameter see the view-manager.ts call in particular.

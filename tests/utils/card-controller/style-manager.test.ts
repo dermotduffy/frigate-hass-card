@@ -285,6 +285,15 @@ describe('StyleManager', () => {
       expect(manager.getAspectRatioStyle()).toBe('auto');
     });
 
+    it('should be auto when there is yet to be a view', () => {
+      const api = createCardAPI();
+      vi.mocked(api.getViewManager().getView).mockReturnValue(null);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+      const manager = new StyleManager(api);
+
+      expect(manager.getAspectRatioStyle()).toBe('auto');
+    });
+
     describe('should be auto when dynamic in certain views', () => {
       it.each([
         ['clip' as const],

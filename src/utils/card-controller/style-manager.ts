@@ -74,7 +74,10 @@ export class StyleManager {
     );
   }
 
-  protected _isAspectRatioEnforced(config: FrigateCardConfig, view: View): boolean {
+  protected _isAspectRatioEnforced(
+    config: FrigateCardConfig,
+    view?: View | null,
+  ): boolean {
     const aspectRatioMode = config.dimensions.aspect_ratio_mode;
 
     // Do not artifically constrain aspect ratio if:
@@ -88,8 +91,10 @@ export class StyleManager {
       this._api.getExpandManager().isExpanded() ||
       aspectRatioMode === 'unconstrained' ||
       (aspectRatioMode === 'dynamic' &&
-        (view.isAnyMediaView() || view.is('timeline'))) ||
-      view.is('diagnostics')
+        (!view ||
+          view?.isAnyMediaView() ||
+          view?.is('timeline') ||
+          view?.is('diagnostics')))
     );
   }
 
@@ -102,7 +107,7 @@ export class StyleManager {
     const config = this._api.getConfigManager().getConfig();
     const view = this._api.getViewManager().getView();
 
-    if (config && view) {
+    if (config) {
       if (!this._isAspectRatioEnforced(config, view)) {
         return 'auto';
       }
