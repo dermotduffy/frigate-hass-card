@@ -1340,7 +1340,7 @@ export const dimensionsConfigSchema = z
       .or(
         z
           .string()
-          .regex(/^\s*\d+\s*[:\/]\s*\d+\s*$/)
+          .regex(/^\s*\d+\s*[:/]\s*\d+\s*$/)
           .transform((input) => input.split(/[:\/]/).map((d) => Number(d))),
       )
       .default(dimensionsConfigDefault.aspect_ratio),

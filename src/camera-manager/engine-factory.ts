@@ -24,8 +24,8 @@ export class CameraManagerEngineFactory {
     this._resolvedMediaCache = resolvedMediaCache;
   }
 
-  public async createEngine(engine: Engine): Promise<CameraManagerEngine | null> {
-    let cameraManagerEngine: CameraManagerEngine | null = null;
+  public async createEngine(engine: Engine): Promise<CameraManagerEngine> {
+    let cameraManagerEngine: CameraManagerEngine;
     switch (engine) {
       case Engine.Generic:
         const { GenericCameraManagerEngine } = await import('./generic/engine-generic');

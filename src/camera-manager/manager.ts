@@ -129,6 +129,8 @@ export class CameraManager {
       return;
     }
 
+    this._store.reset();
+
     // For each camera merge the config (which has no defaults) into the camera
     // global config (which does have defaults). The merging must happen in this
     // order, to ensure that the defaults in the cameras global config do not
