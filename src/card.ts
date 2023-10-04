@@ -27,8 +27,8 @@ import {
   Message,
 } from './types.js';
 import { frigateCardHasAction } from './utils/action.js';
-import { ConditionEvaluateRequestEvent } from './utils/card-controller/conditions-manager.js';
-import { CardController } from './utils/card-controller/controller';
+import { ConditionEvaluateRequestEvent } from './card-controller/conditions-manager.js';
+import { CardController } from './card-controller/controller';
 import { MenuButtonController } from './utils/menu-controller';
 import { View } from './view/view.js';
 

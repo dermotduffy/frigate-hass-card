@@ -8,7 +8,7 @@ import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
 import { localize } from '../localize/localize.js';
 import { allPromises, arrayify, setify } from '../utils/basic.js';
 import { getCameraID } from '../utils/camera.js';
-import { CardCameraAPI } from '../utils/card-controller/types.js';
+import { CardCameraAPI } from '../card-controller/types.js';
 import { log } from '../utils/debug.js';
 import { EntityRegistryManager } from '../utils/ha/entity-registry/index.js';
 import { ViewMedia } from '../view/media.js';

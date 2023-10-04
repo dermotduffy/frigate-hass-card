@@ -7,8 +7,8 @@ import { CameraManagerCameraMetadata } from '../../src/camera-manager/types';
 import { FrigateCardConfig, MenuItem, ViewDisplayMode } from '../../src/config/types';
 import { FrigateCardMediaPlayer } from '../../src/types';
 import { createFrigateCardCustomAction } from '../../src/utils/action';
-import { MediaPlayerManager } from '../../src/utils/card-controller/media-player-manager';
-import { MicrophoneManager } from '../../src/utils/card-controller/microphone-manager';
+import { MediaPlayerManager } from '../../src/card-controller/media-player-manager';
+import { MicrophoneManager } from '../../src/card-controller/microphone-manager';
 import {
   MenuButtonController,
   MenuButtonControllerOptions,
@@ -31,7 +31,7 @@ import {
 
 vi.mock('../../src/camera-manager/manager.js');
 vi.mock('../../src/utils/media-player-controller.js');
-vi.mock('../../src/utils/card-controller/microphone-manager.js');
+vi.mock('../../src/card-controller/microphone-manager.js');
 
 const calculateButtons = (
   controller: MenuButtonController,

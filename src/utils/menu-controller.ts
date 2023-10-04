@@ -15,8 +15,8 @@ import {
 import { View } from '../view/view';
 import { createFrigateCardCustomAction } from './action';
 import { getAllDependentCameras } from './camera';
-import { MediaPlayerManager } from './card-controller/media-player-manager';
-import { MicrophoneManager } from './card-controller/microphone-manager';
+import { MediaPlayerManager } from '../card-controller/media-player-manager';
+import { MicrophoneManager } from '../card-controller/microphone-manager';
 import { getEntityIcon, getEntityTitle } from './ha';
 import { hasSubstream } from './substream';
 export interface MenuButtonControllerOptions {

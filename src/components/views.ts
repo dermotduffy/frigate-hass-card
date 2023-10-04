@@ -9,10 +9,10 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
-import { ConditionsManagerEpoch, getOverridesByKey } from '../utils/card-controller/conditions-manager';
+import { ConditionsManagerEpoch, getOverridesByKey } from '../card-controller/conditions-manager.js';
 import viewsStyle from '../scss/views.scss';
 import { ExtendedHomeAssistant } from '../types.js';
-import { ConfigManager } from '../utils/card-controller/config-manager.js';
+import { ConfigManager } from '../card-controller/config-manager.js';
 import { ResolvedMediaCache } from '../utils/ha/resolved-media.js';
 import { View } from '../view/view.js';
 import './surround.js';

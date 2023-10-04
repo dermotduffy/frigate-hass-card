@@ -35,7 +35,7 @@ import { dispatchFrigateCardEvent } from '../utils/basic.js';
 import {
   ConditionsManagerEpoch,
   evaluateConditionViaEvent,
-} from '../utils/card-controller/conditions-manager.js';
+} from '../card-controller/conditions-manager.js';
 import { dispatchFrigateCardErrorEvent } from './message.js';
 
 /* A note on picture element rendering:

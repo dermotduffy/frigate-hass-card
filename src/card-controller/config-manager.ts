@@ -25,7 +25,7 @@ export class ConfigManager {
   protected _rawConfig: RawFrigateCardConfig | null = null;
   protected _cardWideConfig: CardWideConfig | null = null;
 
-  constructor(api) {
+  constructor(api: CardConfigAPI) {
     this._api = api;
   }
 

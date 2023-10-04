@@ -40,7 +40,7 @@ import { contentsChanged } from '../../utils/basic.js';
 import {
   ConditionsManagerEpoch,
   getOverriddenConfig,
-} from '../../utils/card-controller/conditions-manager.js';
+} from '../../card-controller/conditions-manager.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import { AutoLazyLoad } from '../../utils/embla/plugins/auto-lazy-load/auto-lazy-load.js';
 import { AutoMediaActions } from '../../utils/embla/plugins/auto-media-actions/auto-media-actions.js';
