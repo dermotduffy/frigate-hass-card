@@ -1,19 +1,18 @@
-import { HomeAssistant } from 'custom-card-helpers';
 import add from 'date-fns/add';
 import sub from 'date-fns/sub';
 import { DataSet } from 'vis-data';
 import { IdType, TimelineItem, TimelineWindow } from 'vis-timeline/esnext';
-import { ClipsOrSnapshotsOrAll } from '../types';
 import { CameraManager } from '../camera-manager/manager';
-import { EventQuery, RecordingQuery, RecordingSegment } from '../camera-manager/types';
-import { capEndDate, convertRangeToCacheFriendlyTimes } from '../camera-manager/util';
-import { ViewMedia } from '../view/media';
 import {
-  compressRanges,
   ExpiringMemoryRangeSet,
   MemoryRangeSet,
+  compressRanges,
 } from '../camera-manager/range';
-import { errorToConsole, ModifyInterface } from './basic.js';
+import { EventQuery, RecordingQuery, RecordingSegment } from '../camera-manager/types';
+import { capEndDate, convertRangeToCacheFriendlyTimes } from '../camera-manager/util';
+import { ClipsOrSnapshotsOrAll } from '../types';
+import { ViewMedia } from '../view/media';
+import { ModifyInterface, errorToConsole } from './basic.js';
 
 // Allow timeline freshness to be at least this number of seconds out of date
 // (caching times in the data-engine may increase the effective delay).
@@ -82,11 +81,11 @@ export class TimelineDataSource {
     }
   }
 
-  public async refresh(hass: HomeAssistant, window: TimelineWindow): Promise<void> {
+  public async refresh(window: TimelineWindow): Promise<void> {
     try {
       await Promise.all([
-        this._refreshEvents(hass, window),
-        ...(this._showRecordings ? [this._refreshRecordings(hass, window)] : []),
+        this._refreshEvents(window),
+        ...(this._showRecordings ? [this._refreshRecordings(window)] : []),
       ]);
     } catch (e) {
       errorToConsole(e as Error);
@@ -114,10 +113,7 @@ export class TimelineDataSource {
     });
   }
 
-  protected async _refreshEvents(
-    hass: HomeAssistant,
-    window: TimelineWindow,
-  ): Promise<void> {
+  protected async _refreshEvents(window: TimelineWindow): Promise<void> {
     if (
       this._eventRanges.hasCoverage({
         start: window.start,
@@ -134,7 +130,7 @@ export class TimelineDataSource {
       return;
     }
 
-    const mediaArray = await this._cameraManager.executeMediaQueries(hass, eventQueries);
+    const mediaArray = await this._cameraManager.executeMediaQueries(eventQueries);
     const data: FrigateCardTimelineItem[] = [];
     for (const media of mediaArray ?? []) {
       const startTime = media.getStartTime();
@@ -159,10 +155,7 @@ export class TimelineDataSource {
     });
   }
 
-  protected async _refreshRecordings(
-    hass: HomeAssistant,
-    window: TimelineWindow,
-  ): Promise<void> {
+  protected async _refreshRecordings(window: TimelineWindow): Promise<void> {
     type FrigateCardTimelineItemWithEnd = ModifyInterface<
       FrigateCardTimelineItem,
       { end: number }
@@ -228,10 +221,7 @@ export class TimelineDataSource {
     if (!recordingQueries) {
       return;
     }
-    const results = await this._cameraManager.getRecordingSegments(
-      hass,
-      recordingQueries,
-    );
+    const results = await this._cameraManager.getRecordingSegments(recordingQueries);
 
     const newSegments: Map<string, RecordingSegment[]> = new Map();
     for (const [query, result] of results) {

@@ -1,13 +1,18 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { FrigateCardCondition } from '../../src/config/types';
 import {
-  ConditionController,
   ConditionEvaluateRequestEvent,
+  ConditionsManager,
   evaluateConditionViaEvent,
   getOverriddenConfig,
   getOverridesByKey,
-} from '../src/conditions';
-import { FrigateCardCondition } from '../src/types';
-import { createCondition, createConfig, createStateEntity } from './test-utils';
+} from '../../src/card-controller/conditions-manager';
+import {
+  createCardAPI,
+  createCondition,
+  createConfig,
+  createStateEntity,
+} from '../test-utils';
 
 // @vitest-environment jsdom
 describe('ConditionEvaluateRequestEvent', () => {
@@ -85,15 +90,15 @@ describe('getOverriddenConfig', () => {
   ];
 
   it('should not override config', () => {
-    const controller = new ConditionController();
-    expect(getOverriddenConfig(controller, config, overrides)).toBe(config);
+    const manager = new ConditionsManager(createCardAPI());
+    expect(getOverriddenConfig(manager, config, overrides)).toBe(config);
   });
 
   it('should override config', () => {
-    const controller = new ConditionController();
-    controller.setState({ fullscreen: true });
+    const manager = new ConditionsManager(createCardAPI());
+    manager.setState({ fullscreen: true });
 
-    expect(getOverriddenConfig(controller, config, overrides)).toEqual({
+    expect(getOverriddenConfig(manager, config, overrides)).toEqual({
       menu: {
         style: 'above',
       },
@@ -101,10 +106,10 @@ describe('getOverriddenConfig', () => {
   });
 
   it('should do nothing without overrides', () => {
-    const controller = new ConditionController();
-    controller.setState({ fullscreen: true });
+    const manager = new ConditionsManager(createCardAPI());
+    manager.setState({ fullscreen: true });
 
-    expect(getOverriddenConfig(controller, config)).toBe(config);
+    expect(getOverriddenConfig(manager, config)).toBe(config);
   });
 });
 
@@ -139,7 +144,7 @@ describe('getOverridesByKey', () => {
   });
 });
 
-describe('ConditionController', () => {
+describe('ConditionsManager', () => {
   const config = {
     type: 'custom:frigate-card',
     cameras: [],
@@ -187,40 +192,23 @@ describe('ConditionController', () => {
     vi.restoreAllMocks();
   });
 
-  it('should add listener', () => {
-    const controller = new ConditionController();
-    const handler = vi.fn();
-    controller.addStateListener(handler);
-    controller.setState({ fullscreen: true });
-    expect(handler).toBeCalled();
-  });
+  it('should get epoch', () => {
+    const manager = new ConditionsManager(createCardAPI());
+    const epoch_1 = manager.getEpoch();
+    expect(epoch_1).toEqual({ manager: manager });
 
-  it('should remove listener', () => {
-    const controller = new ConditionController();
-    const handler = vi.fn();
-    controller.addStateListener(handler);
-    controller.removeStateListener(handler);
-    controller.setState({ fullscreen: true });
-    expect(handler).not.toBeCalled();
-  });
+    manager.setState({ fullscreen: true });
 
-  it('should get wrapper', () => {
-    const controller = new ConditionController();
-    const wrapper_1 = controller.getEpoch();
-    expect(wrapper_1).toEqual({ controller: controller });
-
-    controller.setState({ fullscreen: true });
-
-    const wrapper_2 = controller.getEpoch();
-    expect(wrapper_2).toEqual({ controller: controller });
+    const epoch_2 = manager.getEpoch();
+    expect(epoch_2).toEqual({ manager: manager });
 
     // Since the state was set the wrappers should be different.
-    expect(wrapper_1).not.toBe(wrapper_2);
+    expect(epoch_1).not.toBe(epoch_2);
   });
 
   it('should not return hasHAStateConditions without HA state conditions', () => {
-    const controller = new ConditionController();
-    expect(controller.hasHAStateConditions).toBeFalsy();
+    const manager = new ConditionsManager(createCardAPI());
+    expect(manager.hasHAStateConditions()).toBeFalsy();
   });
 
   it('should return hasHAStateConditions with HA state conditions', () => {
@@ -228,50 +216,55 @@ describe('ConditionController', () => {
       matches: false,
       addEventListener: vi.fn(),
     } as unknown as MediaQueryList);
-    const controller = new ConditionController(createConfig(config));
-    expect(controller.hasHAStateConditions).toBeTruthy();
+    const api = createCardAPI();
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig(config));
+    const manager = new ConditionsManager(api);
+
+    manager.setConditionsFromConfig();
+
+    expect(manager.hasHAStateConditions()).toBeTruthy();
   });
 
   it('should evaluate conditions with a view', () => {
-    const controller = new ConditionController();
+    const manager = new ConditionsManager(createCardAPI());
     const condition = { view: ['foo'] };
-    expect(controller.evaluateCondition(condition)).toBeFalsy();
-    controller.setState({ view: 'foo' });
-    expect(controller.evaluateCondition(condition)).toBeTruthy();
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
+    manager.setState({ view: 'foo' });
+    expect(manager.evaluateCondition(condition)).toBeTruthy();
   });
 
   it('should evaluate conditions with fullscreen', () => {
-    const controller = new ConditionController();
+    const manager = new ConditionsManager(createCardAPI());
     const condition = { fullscreen: true };
-    expect(controller.evaluateCondition(condition)).toBeFalsy();
-    controller.setState({ fullscreen: true });
-    expect(controller.evaluateCondition(condition)).toBeTruthy();
-    controller.setState({ fullscreen: false });
-    expect(controller.evaluateCondition(condition)).toBeFalsy();
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
+    manager.setState({ fullscreen: true });
+    expect(manager.evaluateCondition(condition)).toBeTruthy();
+    manager.setState({ fullscreen: false });
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
   });
 
   it('should evaluate conditions with expand', () => {
-    const controller = new ConditionController();
+    const manager = new ConditionsManager(createCardAPI());
     const condition = { expand: true };
-    expect(controller.evaluateCondition(condition)).toBeFalsy();
-    controller.setState({ expand: true });
-    expect(controller.evaluateCondition(condition)).toBeTruthy();
-    controller.setState({ expand: false });
-    expect(controller.evaluateCondition(condition)).toBeFalsy();
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
+    manager.setState({ expand: true });
+    expect(manager.evaluateCondition(condition)).toBeTruthy();
+    manager.setState({ expand: false });
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
   });
 
   it('should evaluate conditions with camera', () => {
-    const controller = new ConditionController();
+    const manager = new ConditionsManager(createCardAPI());
     const condition = { camera: ['bar'] };
-    expect(controller.evaluateCondition(condition)).toBeFalsy();
-    controller.setState({ camera: 'bar' });
-    expect(controller.evaluateCondition(condition)).toBeTruthy();
-    controller.setState({ camera: 'will-not-match' });
-    expect(controller.evaluateCondition(condition)).toBeFalsy();
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
+    manager.setState({ camera: 'bar' });
+    expect(manager.evaluateCondition(condition)).toBeTruthy();
+    manager.setState({ camera: 'will-not-match' });
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
   });
 
   it('should evaluate conditions with ha state positive check', () => {
-    const controller = new ConditionController();
+    const manager = new ConditionsManager(createCardAPI());
     const condition = {
       state: [
         {
@@ -280,17 +273,17 @@ describe('ConditionController', () => {
         },
       ],
     };
-    expect(controller.evaluateCondition(condition)).toBeFalsy();
-    controller.setState({ state: { 'binary_sensor.foo': createStateEntity() } });
-    expect(controller.evaluateCondition(condition)).toBeTruthy();
-    controller.setState({
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
+    manager.setState({ state: { 'binary_sensor.foo': createStateEntity() } });
+    expect(manager.evaluateCondition(condition)).toBeTruthy();
+    manager.setState({
       state: { 'binary_sensor.foo': createStateEntity({ state: 'off' }) },
     });
-    expect(controller.evaluateCondition(condition)).toBeFalsy();
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
   });
 
   it('should evaluate conditions with ha state negative check', () => {
-    const controller = new ConditionController();
+    const manager = new ConditionsManager(createCardAPI());
     const condition = {
       state: [
         {
@@ -299,23 +292,23 @@ describe('ConditionController', () => {
         },
       ],
     };
-    expect(controller.evaluateCondition(condition)).toBeFalsy();
-    controller.setState({ state: { 'binary_sensor.foo': createStateEntity() } });
-    expect(controller.evaluateCondition(condition)).toBeFalsy();
-    controller.setState({
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
+    manager.setState({ state: { 'binary_sensor.foo': createStateEntity() } });
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
+    manager.setState({
       state: { 'binary_sensor.foo': createStateEntity({ state: 'off' }) },
     });
-    expect(controller.evaluateCondition(condition)).toBeTruthy();
+    expect(manager.evaluateCondition(condition)).toBeTruthy();
   });
 
   it('should evaluate conditions with media_loaded', () => {
-    const controller = new ConditionController();
+    const manager = new ConditionsManager(createCardAPI());
     const condition = { media_loaded: true };
-    expect(controller.evaluateCondition(condition)).toBeFalsy();
-    controller.setState({ media_loaded: true });
-    expect(controller.evaluateCondition(condition)).toBeTruthy();
-    controller.setState({ media_loaded: false });
-    expect(controller.evaluateCondition(condition)).toBeFalsy();
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
+    manager.setState({ media_loaded: true });
+    expect(manager.evaluateCondition(condition)).toBeTruthy();
+    manager.setState({ media_loaded: false });
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
   });
 
   it('should evaluate conditions with media query', () => {
@@ -323,10 +316,10 @@ describe('ConditionController', () => {
       .mockReturnValueOnce(<MediaQueryList>{ matches: true })
       .mockReturnValueOnce(<MediaQueryList>{ matches: false });
 
-    const controller = new ConditionController();
+    const manager = new ConditionsManager(createCardAPI());
     const condition = { media_query: 'whatever' };
-    expect(controller.evaluateCondition(condition)).toBeTruthy();
-    expect(controller.evaluateCondition(condition)).toBeFalsy();
+    expect(manager.evaluateCondition(condition)).toBeTruthy();
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
   });
 
   it('should trigger on changes to media query conditions', () => {
@@ -337,12 +330,14 @@ describe('ConditionController', () => {
       addEventListener: addEventListener,
       removeEventListener: removeEventListener,
     } as unknown as MediaQueryList);
-
-    const controller = new ConditionController(createConfig(config));
-    expect(addEventListener).toHaveBeenCalledWith('change', expect.anything());
-
+    const api = createCardAPI();
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig(config));
     const callback = vi.fn();
-    controller.addStateListener(callback);
+    const manager = new ConditionsManager(api, callback);
+
+    manager.setConditionsFromConfig();
+
+    expect(addEventListener).toHaveBeenCalledWith('change', expect.anything());
 
     // Call the media query callback and use it to pretend a match happened. The
     // callback is the 0th mock innvocation and the 1st argument.
@@ -351,18 +346,18 @@ describe('ConditionController', () => {
     // This should result in a callback to our state listener.
     expect(callback).toBeCalled();
 
-    // Destroy the controller, which should remove the media query listener.
-    controller.destroy();
+    // Remove the conditions, which should remove the media query listener.
+    manager.removeConditions();
     expect(removeEventListener).toBeCalled();
   });
 
   it('should evaluate conditions with display mode', () => {
-    const controller = new ConditionController();
+    const manager = new ConditionsManager(createCardAPI());
     const condition: FrigateCardCondition = { display_mode: 'grid' };
-    expect(controller.evaluateCondition(condition)).toBeFalsy();
-    controller.setState({ displayMode: 'grid' });
-    expect(controller.evaluateCondition(condition)).toBeTruthy();
-    controller.setState({ displayMode: 'single' });
-    expect(controller.evaluateCondition(condition)).toBeFalsy();
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
+    manager.setState({ displayMode: 'grid' });
+    expect(manager.evaluateCondition(condition)).toBeTruthy();
+    manager.setState({ displayMode: 'single' });
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
   });
 });

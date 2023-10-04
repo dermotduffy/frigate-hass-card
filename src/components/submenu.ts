@@ -11,13 +11,9 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../action-handler-directive.js';
+import { MenuSubmenu, MenuSubmenuItem, MenuSubmenuSelect } from '../config/types.js';
 import submenuStyle from '../scss/submenu.scss';
-import {
-  MenuSubmenu,
-  MenuSubmenuItem,
-  MenuSubmenuSelect,
-  StateParameters,
-} from '../types.js';
+import { StateParameters } from '../types.js';
 import {
   frigateCardHasAction,
   stopEventFromActivatingCardWideActions,
@@ -39,7 +35,9 @@ export class FrigateCardSubmenu extends LitElement {
     if (!this.hass) {
       return;
     }
-    const stateParameters = refreshDynamicStateParameters(this.hass, { ...item } as StateParameters);
+    const stateParameters = refreshDynamicStateParameters(this.hass, {
+      ...item,
+    } as StateParameters);
     const getIcon = (stateParameters: StateParameters): TemplateResult => {
       if (stateParameters.icon) {
         return html` <ha-icon
@@ -95,7 +93,7 @@ export class FrigateCardSubmenu extends LitElement {
         @click=${(ev) => stopEventFromActivatingCardWideActions(ev)}
       >
         <ha-icon-button
-          style="${styleMap(this.submenu.style as StyleInfo || {})}"
+          style="${styleMap((this.submenu.style as StyleInfo) || {})}"
           class="button"
           slot="trigger"
           .label=${this.submenu.title || ''}

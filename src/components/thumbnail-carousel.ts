@@ -9,8 +9,9 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
+import { ThumbnailsControlConfig } from '../config/types.js';
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
-import { ExtendedHomeAssistant, ThumbnailsControlConfig } from '../types.js';
+import { ExtendedHomeAssistant } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
 import { CarouselDirection } from '../utils/embla/carousel-controller.js';

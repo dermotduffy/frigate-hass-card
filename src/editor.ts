@@ -17,6 +17,16 @@ import {
   upgradeConfig,
 } from './config-mgmt.js';
 import {
+  BUTTON_SIZE_MIN,
+  FRIGATE_MENU_PRIORITY_MAX,
+  FrigateCardConfig,
+  frigateCardConfigDefaults,
+  RawFrigateCardConfig,
+  RawFrigateCardConfigArray,
+  THUMBNAIL_WIDTH_MAX,
+  THUMBNAIL_WIDTH_MIN,
+} from './config/types.js';
+import {
   CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
   CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS,
@@ -134,8 +144,8 @@ import {
   CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
   CONF_MEDIA_VIEWER_ZOOMABLE,
   CONF_MENU_ALIGNMENT,
-  CONF_MENU_BUTTONS,
   CONF_MENU_BUTTON_SIZE,
+  CONF_MENU_BUTTONS,
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
   CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
@@ -171,16 +181,6 @@ import {
 import { localize } from './localize/localize.js';
 import { setLowPerformanceProfile } from './performance.js';
 import frigate_card_editor_style from './scss/editor.scss';
-import {
-  BUTTON_SIZE_MIN,
-  FrigateCardConfig,
-  frigateCardConfigDefaults,
-  FRIGATE_MENU_PRIORITY_MAX,
-  RawFrigateCardConfig,
-  RawFrigateCardConfigArray,
-  THUMBNAIL_WIDTH_MAX,
-  THUMBNAIL_WIDTH_MIN,
-} from './types.js';
 import { arrayMove, prettifyTitle } from './utils/basic.js';
 import { getCameraID } from './utils/camera.js';
 import {

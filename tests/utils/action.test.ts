@@ -1,12 +1,7 @@
 import { handleActionConfig, hasAction } from 'custom-card-helpers';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import {
-  actionSchema,
-  FrigateCardAction,
-  FrigateCardCustomAction,
-  frigateCardCustomActionSchema,
-} from '../../src/types';
+import { actionSchema } from '../../src/config/types';
 import {
   convertActionToFrigateCardCustomAction,
   createFrigateCardCustomAction,
@@ -14,7 +9,6 @@ import {
   frigateCardHandleActionConfig,
   frigateCardHasAction,
   getActionConfigGivenAction,
-  isViewAction,
   stopEventFromActivatingCardWideActions,
 } from '../../src/utils/action';
 import { createHASS } from '../test-utils';
@@ -240,47 +234,5 @@ describe('stopEventFromActivatingCardWideActions', () => {
     const event = mock<Event>();
     stopEventFromActivatingCardWideActions(event);
     expect(event.stopPropagation).toBeCalled();
-  });
-});
-
-describe('isViewAction', () => {
-  const createAction = (action: FrigateCardAction): FrigateCardCustomAction => {
-    return frigateCardCustomActionSchema.parse({
-      action: 'fire-dom-event' as const,
-      frigate_card_action: action,
-    });
-  };
-  it('should return true for clip view ', () => {
-    expect(isViewAction(createAction('clip'))).toBeTruthy();
-  });
-  it('should return true for clips view ', () => {
-    expect(isViewAction(createAction('clips'))).toBeTruthy();
-  });
-  it('should return true for image view ', () => {
-    expect(isViewAction(createAction('image'))).toBeTruthy();
-  });
-  it('should return true for live view ', () => {
-    expect(isViewAction(createAction('live'))).toBeTruthy();
-  });
-  it('should return true for recording view ', () => {
-    expect(isViewAction(createAction('recording'))).toBeTruthy();
-  });
-  it('should return true for live view ', () => {
-    expect(isViewAction(createAction('live'))).toBeTruthy();
-  });
-  it('should return true for recordings view ', () => {
-    expect(isViewAction(createAction('recordings'))).toBeTruthy();
-  });
-  it('should return true for snapshot view ', () => {
-    expect(isViewAction(createAction('snapshot'))).toBeTruthy();
-  });
-  it('should return true for snapshots view ', () => {
-    expect(isViewAction(createAction('snapshots'))).toBeTruthy();
-  });
-  it('should return true for timeline view ', () => {
-    expect(isViewAction(createAction('timeline'))).toBeTruthy();
-  });
-  it('should return false for anything else', () => {
-    expect(isViewAction(createAction('diagnostics'))).toBeFalsy();
   });
 });

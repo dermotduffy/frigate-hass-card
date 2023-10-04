@@ -3,14 +3,10 @@ import { HomeAssistant } from 'custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { CameraEndpoints } from '../../camera-manager/types.js';
+import { CameraConfig, CardWideConfig } from '../../config/types.js';
 import { localize } from '../../localize/localize.js';
 import liveWebRTCCardStyle from '../../scss/live-webrtc-card.scss';
-import {
-  CameraConfig,
-  CardWideConfig,
-  FrigateCardError,
-  FrigateCardMediaPlayer,
-} from '../../types.js';
+import { FrigateCardError, FrigateCardMediaPlayer } from '../../types.js';
 import { mayHaveAudio } from '../../utils/audio.js';
 import {
   dispatchMediaLoadedEvent,

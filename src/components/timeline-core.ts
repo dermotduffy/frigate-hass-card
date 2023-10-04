@@ -30,17 +30,17 @@ import { CameraManager } from '../camera-manager/manager';
 import { rangesOverlap } from '../camera-manager/range';
 import { MediaQuery } from '../camera-manager/types';
 import { convertRangeToCacheFriendlyTimes } from '../camera-manager/util';
-import { localize } from '../localize/localize';
-import timelineCoreStyle from '../scss/timeline-core.scss';
 import {
   CameraConfig,
   CardWideConfig,
-  ExtendedHomeAssistant,
   frigateCardConfigDefaults,
   FrigateCardView,
   ThumbnailsControlBaseConfig,
   TimelineCoreConfig,
-} from '../types';
+} from '../config/types';
+import { localize } from '../localize/localize';
+import timelineCoreStyle from '../scss/timeline-core.scss';
+import { ExtendedHomeAssistant } from '../types';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
 import {
   contentsChanged,
@@ -50,7 +50,10 @@ import {
   isTruthy,
   setOrRemoveAttribute,
 } from '../utils/basic';
-import { executeMediaQueryForView, findBestMediaIndex } from '../utils/media-to-view';
+import {
+  executeMediaQueryForViewWithErrorDispatching,
+  findBestMediaIndex,
+} from '../utils/media-to-view';
 import { FrigateCardTimelineItem, TimelineDataSource } from '../utils/timeline-source';
 import { ViewMedia } from '../view/media';
 import { ViewMediaClassifier } from '../view/media-classifier';
@@ -580,9 +583,8 @@ export class FrigateCardTimelineCore extends LitElement {
     ) {
       const query = this._createMediaQueries('recording');
       if (query) {
-        view = await executeMediaQueryForView(
+        view = await executeMediaQueryForViewWithErrorDispatching(
           this,
-          this.hass,
           this.cameraManager,
           this.view,
           query,
@@ -675,11 +677,11 @@ export class FrigateCardTimelineCore extends LitElement {
     }
     this._removeTargetBar();
 
-    if (!this.hass || !this._timeline || !this.view) {
+    if (!this._timeline || !this.view) {
       return;
     }
 
-    await this._timelineSource?.refresh(this.hass, this._getPrefetchWindow(properties));
+    await this._timelineSource?.refresh(this._getPrefetchWindow(properties));
 
     const queryType = MediaQueriesClassifier.getQueriesType(this.view.query);
     if (!queryType) {
@@ -735,9 +737,8 @@ export class FrigateCardTimelineCore extends LitElement {
     if (!this.hass || !this.cameraManager || !this.view || !query) {
       return null;
     }
-    const view = await executeMediaQueryForView(
+    const view = await executeMediaQueryForViewWithErrorDispatching(
       this,
-      this.hass,
       this.cameraManager,
       this.view,
       query,
@@ -776,7 +777,7 @@ export class FrigateCardTimelineCore extends LitElement {
       if (!this.hass || !this.cameraManager) {
         return;
       }
-      const cameraMetadata = this.cameraManager.getCameraMetadata(this.hass, cameraID);
+      const cameraMetadata = this.cameraManager.getCameraMetadata(cameraID);
       const cameraCapabilities = this.cameraManager.getCameraCapabilities(cameraID);
 
       if (cameraMetadata && cameraCapabilities?.supportsTimeline) {
@@ -973,13 +974,7 @@ export class FrigateCardTimelineCore extends LitElement {
    * Update the timeline from the view object.
    */
   protected async _updateTimelineFromView(): Promise<void> {
-    if (
-      !this.hass ||
-      !this.view ||
-      !this.timelineConfig ||
-      !this._timelineSource ||
-      !this._timeline
-    ) {
+    if (!this.view || !this.timelineConfig || !this._timelineSource || !this._timeline) {
       return;
     }
 
@@ -1029,7 +1024,7 @@ export class FrigateCardTimelineCore extends LitElement {
       // (via fetchIfNecessary) may update the timeline contents which causes
       // the visjs timeline to stop dragging/panning operations which is very
       // disruptive to the user.
-      await this._timelineSource?.refresh(this.hass, prefetchedWindow);
+      await this._timelineSource?.refresh(prefetchedWindow);
     }
 
     const currentSelection = this._timeline.getSelection();

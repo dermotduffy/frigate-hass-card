@@ -1,8 +1,9 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { CameraManager } from '../camera-manager/manager';
+import { CardWideConfig, TimelineConfig } from '../config/types';
 import basicBlockStyle from '../scss/basic-block.scss';
-import { CardWideConfig, ExtendedHomeAssistant, TimelineConfig } from '../types';
+import { ExtendedHomeAssistant } from '../types';
 import { View } from '../view/view';
 import './surround.js';
 import './timeline-core.js';

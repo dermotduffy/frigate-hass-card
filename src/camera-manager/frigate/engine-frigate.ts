@@ -1,24 +1,53 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import add from 'date-fns/add';
 import endOfHour from 'date-fns/endOfHour';
+import format from 'date-fns/format';
+import fromUnixTime from 'date-fns/fromUnixTime';
 import startOfHour from 'date-fns/startOfHour';
-import { CameraConfig, CardWideConfig, ExtendedHomeAssistant } from '../../types';
+import isEqual from 'lodash-es/isEqual';
+import orderBy from 'lodash-es/orderBy';
+import throttle from 'lodash-es/throttle';
+import uniq from 'lodash-es/uniq';
+import uniqWith from 'lodash-es/uniqWith';
+import { CameraConfig } from '../../config/types';
+import { localize } from '../../localize/localize';
+import { ExtendedHomeAssistant } from '../../types';
+import {
+  allPromises,
+  formatDate,
+  prettifyTitle,
+  runWhenIdleIfSupported,
+} from '../../utils/basic';
+import { getEntityTitle } from '../../utils/ha';
+import { EntityRegistryManager } from '../../utils/ha/entity-registry';
+import { Entity } from '../../utils/ha/entity-registry/types';
 import { ViewMedia } from '../../view/media';
+import { ViewMediaClassifier } from '../../view/media-classifier';
 import { RecordingSegmentsCache, RequestCache } from '../cache';
 import {
-  CameraManagerEngine,
   CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
+  CameraManagerEngine,
 } from '../engine';
+import { CameraInitializationError } from '../error';
+import { GenericCameraManagerEngine } from '../generic/engine-generic';
 import { DateRange } from '../range';
 import {
-  CameraManagerCameraMetadata,
+  CameraConfigs,
+  CameraEndpoint,
+  CameraEndpoints,
+  CameraEndpointsContext,
   CameraManagerCameraCapabilities,
+  CameraManagerCameraMetadata,
   CameraManagerMediaCapabilities,
   DataQuery,
   Engine,
+  EngineOptions,
   EventQuery,
   EventQueryResults,
   EventQueryResultsMap,
+  MediaMetadataQuery,
+  MediaMetadataQueryResults,
+  MediaMetadataQueryResultsMap,
   PartialEventQuery,
   PartialRecordingQuery,
   PartialRecordingSegmentsQuery,
@@ -32,56 +61,26 @@ import {
   RecordingSegment,
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
-  CameraEndpointsContext,
-  CameraConfigs,
-  CameraEndpoints,
-  CameraEndpoint,
-  MediaMetadataQuery,
-  MediaMetadataQueryResults,
-  MediaMetadataQueryResultsMap,
-  EngineOptions,
 } from '../types';
+import { getCameraEntityFromConfig } from '../util';
+import frigateLogo from './assets/frigate-logo-dark.svg';
+import { FrigateViewMediaFactory } from './media';
+import { FrigateViewMediaClassifier } from './media-classifier';
 import {
-  FrigateEventQueryResults,
-  FrigateRecordingQueryResults,
-  FrigateRecordingSegmentsQueryResults,
-  FrigateRecording,
-} from './types';
-import {
-  getEvents,
-  getEventSummary,
-  getRecordingSegments,
-  getRecordingsSummary,
   NativeFrigateEventQuery,
   NativeFrigateRecordingSegmentsQuery,
+  getEventSummary,
+  getEvents,
+  getRecordingSegments,
+  getRecordingsSummary,
   retainEvent,
 } from './requests';
-import isEqual from 'lodash-es/isEqual';
-import orderBy from 'lodash-es/orderBy';
-import throttle from 'lodash-es/throttle';
-import uniqWith from 'lodash-es/uniqWith';
 import {
-  allPromises,
-  formatDate,
-  prettifyTitle,
-  runWhenIdleIfSupported,
-} from '../../utils/basic';
-import fromUnixTime from 'date-fns/fromUnixTime';
-import sum from 'lodash-es/sum';
-import { FrigateViewMediaClassifier } from './media-classifier';
-import { ViewMediaClassifier } from '../../view/media-classifier';
-import { FrigateViewMediaFactory } from './media';
-import { log } from '../../utils/debug';
-import { getEntityTitle } from '../../utils/ha';
-import { EntityRegistryManager } from '../../utils/ha/entity-registry';
-import { Entity } from '../../utils/ha/entity-registry/types';
-import { CameraInitializationError } from '../error';
-import { localize } from '../../localize/localize';
-import uniq from 'lodash-es/uniq';
-import format from 'date-fns/format';
-import { GenericCameraManagerEngine } from '../generic/engine-generic';
-import frigateLogo from './assets/frigate-logo-dark.svg';
-import { getCameraEntityFromConfig } from '../util';
+  FrigateEventQueryResults,
+  FrigateRecording,
+  FrigateRecordingQueryResults,
+  FrigateRecordingSegmentsQueryResults,
+} from './types';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
@@ -120,7 +119,6 @@ export class FrigateCameraManagerEngine
 {
   protected _recordingSegmentsCache: RecordingSegmentsCache;
   protected _requestCache: RequestCache;
-  protected _cardWideConfig: CardWideConfig;
 
   // Garbage collect segments at most once an hour.
   protected _throttledSegmentGarbageCollector = throttle(
@@ -130,12 +128,10 @@ export class FrigateCameraManagerEngine
   );
 
   constructor(
-    cardWideConfig: CardWideConfig,
     recordingSegmentsCache: RecordingSegmentsCache,
     requestCache: RequestCache,
   ) {
     super();
-    this._cardWideConfig = cardWideConfig;
     this._recordingSegmentsCache = recordingSegmentsCache;
     this._requestCache = requestCache;
   }
@@ -989,12 +985,6 @@ export class FrigateCameraManagerEngine
       type: QueryType.Recording,
     };
 
-    const countSegments = () =>
-      sum(
-        cameraIDs.map((cameraID) => this._recordingSegmentsCache.getSize(cameraID) ?? 0),
-      );
-    const segmentsStart = countSegments();
-
     // Performance: _recordingSegments is potentially very large (e.g. 10K - 1M
     // items) and each item must be examined, so care required here to stick to
     // nothing worse than O(n) performance.
@@ -1029,12 +1019,6 @@ export class FrigateCameraManagerEngine
         },
       );
     }
-
-    log(
-      this._cardWideConfig,
-      'Frigate Card recording segment garbage collection: ' +
-        `Released ${segmentsStart - countSegments()} segment(s)`,
-    );
   }
 
   /**

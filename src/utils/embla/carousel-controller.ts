@@ -2,7 +2,7 @@ import EmblaCarousel, { EmblaCarouselType } from 'embla-carousel';
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
 import { CreatePluginType, LoosePluginType } from 'embla-carousel/components/Plugins';
 import isEqual from 'lodash-es/isEqual';
-import { TransitionEffect } from '../../types';
+import { TransitionEffect } from '../../config/types';
 import { dispatchFrigateCardEvent, getChildrenFromElement } from '../basic.js';
 
 export interface CarouselSelected {

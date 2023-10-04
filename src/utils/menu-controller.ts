@@ -1,34 +1,44 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map';
-import screenfull from 'screenfull';
 import { CameraManager } from '../camera-manager/manager';
+import {
+  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
+  FrigateCardConfig,
+  FrigateCardCustomAction,
+  MenuItem
+} from '../config/types';
 import { FRIGATE_BUTTON_MENU_ICON } from '../const';
 import { localize } from '../localize/localize.js';
 import {
-  FrigateCardConfig,
-  FrigateCardCustomAction,
-  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
   MediaLoadedInfo,
-  MenuButton,
 } from '../types';
 import { View } from '../view/view';
 import { createFrigateCardCustomAction } from './action';
 import { getAllDependentCameras } from './camera';
+import { MediaPlayerManager } from '../card-controller/media-player-manager';
+import { MicrophoneManager } from '../card-controller/microphone-manager';
 import { getEntityIcon, getEntityTitle } from './ha';
-import { MicrophoneController } from './microphone';
 import { hasSubstream } from './substream';
+export interface MenuButtonControllerOptions {
+  currentMediaLoadedInfo?: MediaLoadedInfo | null;
+  showCameraUIButton?: boolean;
+  inFullscreenMode?: boolean;
+  inExpandedMode?: boolean;
+  microphoneManager?: MicrophoneManager | null;
+  mediaPlayerController?: MediaPlayerManager | null;
+}
 
 export class MenuButtonController {
   // Array of dynamic menu buttons to be added to menu.
-  protected _dynamicMenuButtons: MenuButton[] = [];
+  protected _dynamicMenuButtons: MenuItem[] = [];
 
-  public addDynamicMenuButton(button: MenuButton): void {
+  public addDynamicMenuButton(button: MenuItem): void {
     if (!this._dynamicMenuButtons.includes(button)) {
       this._dynamicMenuButtons.push(button);
     }
   }
 
-  public removeDynamicMenuButton(button: MenuButton): void {
+  public removeDynamicMenuButton(button: MenuItem): void {
     this._dynamicMenuButtons = this._dynamicMenuButtons.filter(
       (existingButton) => existingButton != button,
     );
@@ -43,14 +53,8 @@ export class MenuButtonController {
     config: FrigateCardConfig,
     cameraManager: CameraManager,
     view: View,
-    expanded: boolean,
-    options?: {
-      currentMediaLoadedInfo?: MediaLoadedInfo | null;
-      mediaPlayers?: string[];
-      cameraURL?: string | null;
-      microphoneController?: MicrophoneController;
-    },
-  ): MenuButton[] {
+    options?: MenuButtonControllerOptions,
+  ): MenuItem[] {
     const visibleCameras = cameraManager.getStore().getVisibleCameras();
     const selectedCameraID = view.camera;
     const selectedCameraConfig = cameraManager
@@ -65,7 +69,7 @@ export class MenuButtonController {
       ? cameraManager?.getMediaCapabilities(selectedMedia)
       : null;
 
-    const buttons: MenuButton[] = [];
+    const buttons: MenuItem[] = [];
     buttons.push({
       // Use a magic icon value that the menu will use to render the custom
       // Frigate icon.
@@ -87,7 +91,7 @@ export class MenuButtonController {
         const action = createFrigateCardCustomAction('camera_select', {
           camera: cameraID,
         });
-        const metadata = cameraManager.getCameraMetadata(hass, cameraID) ?? undefined;
+        const metadata = cameraManager.getCameraMetadata(cameraID) ?? undefined;
 
         return {
           enabled: true,
@@ -132,7 +136,7 @@ export class MenuButtonController {
           const action = createFrigateCardCustomAction('live_substream_select', {
             camera: cameraID,
           });
-          const metadata = cameraManager.getCameraMetadata(hass, cameraID) ?? undefined;
+          const metadata = cameraManager.getCameraMetadata(cameraID) ?? undefined;
           const cameraConfig = cameraManager.getStore().getCameraConfig(cameraID);
           return {
             enabled: true,
@@ -244,7 +248,7 @@ export class MenuButtonController {
       });
     }
 
-    if (options?.cameraURL) {
+    if (options?.showCameraUIButton) {
       buttons.push({
         icon: 'mdi:web',
         ...config.menu.buttons.camera_ui,
@@ -257,11 +261,11 @@ export class MenuButtonController {
     }
 
     if (
-      options?.microphoneController &&
+      options?.microphoneManager &&
       options?.currentMediaLoadedInfo?.capabilities?.supports2WayAudio
     ) {
-      const forbidden = options.microphoneController.isForbidden();
-      const muted = options.microphoneController.isMuted();
+      const forbidden = options.microphoneManager.isForbidden();
+      const muted = options.microphoneManager.isMuted();
       const buttonType = config.menu.buttons.microphone.type;
       buttons.push({
         icon: forbidden
@@ -285,7 +289,7 @@ export class MenuButtonController {
         ...(!forbidden &&
           buttonType === 'toggle' && {
             tap_action: createFrigateCardCustomAction(
-              options.microphoneController.isMuted()
+              options.microphoneManager.isMuted()
                 ? 'microphone_unmute'
                 : 'microphone_mute',
             ) as FrigateCardCustomAction,
@@ -293,57 +297,59 @@ export class MenuButtonController {
       });
     }
 
-    if (screenfull.isEnabled && !this._isBeingCasted()) {
+    if (!this._isBeingCasted()) {
       buttons.push({
-        icon: screenfull.isFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
+        icon: options?.inFullscreenMode ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
         ...config.menu.buttons.fullscreen,
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.menu.buttons.fullscreen'),
         tap_action: createFrigateCardCustomAction(
           'fullscreen',
         ) as FrigateCardCustomAction,
-        style: screenfull.isFullscreen ? this._getEmphasizedStyle() : {},
+        style: options?.inFullscreenMode ? this._getEmphasizedStyle() : {},
       });
     }
 
     buttons.push({
-      icon: expanded ? 'mdi:arrow-collapse-all' : 'mdi:arrow-expand-all',
+      icon: options?.inExpandedMode ? 'mdi:arrow-collapse-all' : 'mdi:arrow-expand-all',
       ...config.menu.buttons.expand,
       type: 'custom:frigate-card-menu-icon',
       title: localize('config.menu.buttons.expand'),
       tap_action: createFrigateCardCustomAction('expand') as FrigateCardCustomAction,
-      style: expanded ? this._getEmphasizedStyle() : {},
+      style: options?.inExpandedMode ? this._getEmphasizedStyle() : {},
     });
 
     if (
-      options?.mediaPlayers?.length &&
+      options?.mediaPlayerController?.hasMediaPlayers() &&
       (view?.isViewerView() || (view.is('live') && selectedCameraConfig?.camera_entity))
     ) {
-      const mediaPlayerItems = options.mediaPlayers.map((playerEntityID) => {
-        const title = getEntityTitle(hass, playerEntityID) || playerEntityID;
-        const state = hass.states[playerEntityID];
-        const playAction = createFrigateCardCustomAction('media_player', {
-          media_player: playerEntityID,
-          media_player_action: 'play',
-        });
-        const stopAction = createFrigateCardCustomAction('media_player', {
-          media_player: playerEntityID,
-          media_player_action: 'stop',
-        });
-        const disabled = !state || state.state === 'unavailable';
+      const mediaPlayerItems = options.mediaPlayerController
+        .getMediaPlayers()
+        .map((playerEntityID) => {
+          const title = getEntityTitle(hass, playerEntityID) || playerEntityID;
+          const state = hass.states[playerEntityID];
+          const playAction = createFrigateCardCustomAction('media_player', {
+            media_player: playerEntityID,
+            media_player_action: 'play',
+          });
+          const stopAction = createFrigateCardCustomAction('media_player', {
+            media_player: playerEntityID,
+            media_player_action: 'stop',
+          });
+          const disabled = !state || state.state === 'unavailable';
 
-        return {
-          enabled: true,
-          selected: false,
-          icon: getEntityIcon(hass, playerEntityID),
-          entity: playerEntityID,
-          state_color: false,
-          title: title,
-          disabled: disabled,
-          ...(!disabled && playAction && { tap_action: playAction }),
-          ...(!disabled && stopAction && { hold_action: stopAction }),
-        };
-      });
+          return {
+            enabled: true,
+            selected: false,
+            icon: getEntityIcon(hass, playerEntityID),
+            entity: playerEntityID,
+            state_color: false,
+            title: title,
+            disabled: disabled,
+            ...(!disabled && playAction && { tap_action: playAction }),
+            ...(!disabled && stopAction && { hold_action: stopAction }),
+          };
+        });
 
       buttons.push({
         icon: 'mdi:cast',
@@ -414,7 +420,7 @@ export class MenuButtonController {
     }
 
     const styledDynamicButtons = this._dynamicMenuButtons.map((button) => ({
-      style: this._getStyleFromActions(config, view, button),
+      style: this._getStyleFromActions(config, view, button, options),
       ...button,
     }));
 
@@ -446,7 +452,8 @@ export class MenuButtonController {
   protected _getStyleFromActions(
     config: FrigateCardConfig,
     view: View,
-    button: MenuButton,
+    button: MenuItem,
+    options?: MenuButtonControllerOptions,
   ): StyleInfo {
     for (const actionSet of [
       button.tap_action,
@@ -476,8 +483,7 @@ export class MenuButtonController {
           (frigateCardAction.frigate_card_action === 'default' &&
             view.is(config.view.default)) ||
           (frigateCardAction.frigate_card_action === 'fullscreen' &&
-            screenfull.isEnabled &&
-            screenfull.isFullscreen) ||
+            !!options?.inFullscreenMode) ||
           (frigateCardAction.frigate_card_action === 'camera_select' &&
             view.camera === frigateCardAction.camera)
         ) {

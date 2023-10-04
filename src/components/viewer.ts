@@ -16,6 +16,12 @@ import {
   renderMessage,
   renderProgressIndicator,
 } from '../components/message.js';
+import {
+  CardWideConfig,
+  frigateCardConfigDefaults,
+  TransitionEffect,
+  ViewerConfig,
+} from '../config/types.js';
 import { localize } from '../localize/localize.js';
 import '../patches/ha-hls-player';
 import basicBlockStyle from '../scss/basic-block.scss';
@@ -23,13 +29,9 @@ import viewerCarouselStyle from '../scss/viewer-carousel.scss';
 import viewerProviderStyle from '../scss/viewer-provider.scss';
 import viewerStyle from '../scss/viewer.scss';
 import {
-  CardWideConfig,
   ExtendedHomeAssistant,
-  frigateCardConfigDefaults,
   FrigateCardMediaPlayer,
   MediaLoadedInfo,
-  TransitionEffect,
-  ViewerConfig,
 } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { mayHaveAudio } from '../utils/audio.js';
@@ -151,7 +153,6 @@ export class FrigateCardViewer extends LitElement {
       if (mediaType === 'recordings') {
         changeViewToRecentRecordingForCameraAndDependents(
           this,
-          this.hass,
           this.cameraManager,
           this.cardWideConfig,
           this.view,
@@ -163,7 +164,6 @@ export class FrigateCardViewer extends LitElement {
       } else {
         changeViewToRecentEventsForCameraAndDependents(
           this,
-          this.hass,
           this.cameraManager,
           this.cardWideConfig,
           this.view,
@@ -447,7 +447,6 @@ export class FrigateCardViewerCarousel extends LitElement {
     };
 
     const cameraMetadata = this.cameraManager.getCameraMetadata(
-      this.hass,
       selectedMedia.getCameraID(),
     );
 
@@ -526,12 +525,7 @@ export class FrigateCardViewerCarousel extends LitElement {
    */
   protected async _seekHandler(): Promise<void> {
     const seek = this.view?.context?.mediaViewer?.seek;
-    if (
-      !this.hass ||
-      !seek ||
-      !this._media ||
-      !this._player
-    ) {
+    if (!this.hass || !seek || !this._media || !this._player) {
       return;
     }
     const selectedMedia = this._media[this._selected];
@@ -548,8 +542,7 @@ export class FrigateCardViewerCarousel extends LitElement {
     }
 
     const seekTime =
-      (await this.cameraManager?.getMediaSeekTime(this.hass, selectedMedia, seek)) ??
-      null;
+      (await this.cameraManager?.getMediaSeekTime(selectedMedia, seek)) ?? null;
 
     if (seekTime !== null) {
       this._player.seek(seekTime);
@@ -813,7 +806,7 @@ export class FrigateCardViewerProvider
 
     let mediaArray: ViewMedia[] | null;
     try {
-      mediaArray = await this.cameraManager.executeMediaQueries(this.hass, queries);
+      mediaArray = await this.cameraManager.executeMediaQueries(queries);
     } catch (e) {
       errorToConsole(e as Error);
       return;

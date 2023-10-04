@@ -5,8 +5,7 @@ import {
   getCameraEntityFromConfig,
   sortMedia,
 } from '../../src/camera-manager/util.js';
-import { CameraConfig, cameraConfigSchema } from '../../src/types.js';
-import { ViewMedia, ViewMediaType } from '../../src/view/media.js';
+import { CameraConfig, cameraConfigSchema } from '../../src/config/types.js';
 import { TestViewMedia } from '../test-utils.js';
 
 describe('convertRangeToCacheFriendlyTimes', () => {

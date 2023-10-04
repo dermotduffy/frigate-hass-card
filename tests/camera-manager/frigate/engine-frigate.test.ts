@@ -6,13 +6,12 @@ import {
   FrigateRecordingViewMedia,
 } from '../../../src/camera-manager/frigate/media';
 import { FrigateEvent, eventSchema } from '../../../src/camera-manager/frigate/types.js';
-import { CameraConfig, RawFrigateCardConfig } from '../../../src/types';
+import { CameraConfig, RawFrigateCardConfig } from '../../../src/config/types';
 import { ViewMedia } from '../../../src/view/media';
 import { createCameraConfig, createHASS } from '../../test-utils';
 
 const createEngine = (): FrigateCameraManagerEngine => {
   return new FrigateCameraManagerEngine(
-    {},
     new RecordingSegmentsCache(),
     new RequestCache(),
   );

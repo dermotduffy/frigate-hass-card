@@ -1,3 +1,15 @@
+import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
+import { HomeAssistant } from 'custom-card-helpers';
+import endOfDay from 'date-fns/endOfDay';
+import endOfMonth from 'date-fns/endOfMonth';
+import endOfYesterday from 'date-fns/endOfYesterday';
+import endOfToday from 'date-fns/esm/endOfToday';
+import startOfToday from 'date-fns/esm/startOfToday';
+import format from 'date-fns/format';
+import parse from 'date-fns/parse';
+import startOfDay from 'date-fns/startOfDay';
+import startOfYesterday from 'date-fns/startOfYesterday';
+import sub from 'date-fns/sub';
 import {
   CSSResultGroup,
   html,
@@ -10,35 +22,23 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import isEqual from 'lodash-es/isEqual';
+import orderBy from 'lodash-es/orderBy';
+import uniqWith from 'lodash-es/uniqWith';
+import { CameraManager } from '../camera-manager/manager';
 import { DateRange } from '../camera-manager/range';
+import { DataQuery, MediaMetadata, QueryType } from '../camera-manager/types';
+import { CardWideConfig } from '../config/types';
 import { localize } from '../localize/localize';
 import mediaFilterStyle from '../scss/media-filter.scss';
-import { executeMediaQueryForView } from '../utils/media-to-view.js';
 import { errorToConsole, formatDate, prettifyTitle } from '../utils/basic';
-import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
-import './select';
-import { FrigateCardSelect, SelectOption, SelectValues } from './select';
-import uniqWith from 'lodash-es/uniqWith';
-import sub from 'date-fns/sub';
-import endOfDay from 'date-fns/endOfDay';
-import endOfYesterday from 'date-fns/endOfYesterday';
-import endOfToday from 'date-fns/esm/endOfToday';
-import startOfToday from 'date-fns/esm/startOfToday';
-import startOfDay from 'date-fns/startOfDay';
-import startOfYesterday from 'date-fns/startOfYesterday';
-import parse from 'date-fns/parse';
+import { executeMediaQueryForViewWithErrorDispatching } from '../utils/media-to-view.js';
+import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
 import { View } from '../view/view';
-import { CameraManager } from '../camera-manager/manager';
-import { HomeAssistant } from 'custom-card-helpers';
-import { DataQuery, MediaMetadata, QueryType } from '../camera-manager/types';
-import format from 'date-fns/format';
-import endOfMonth from 'date-fns/endOfMonth';
-import isEqual from 'lodash-es/isEqual';
-import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
+import './select';
+import { FrigateCardSelect, SelectOption, SelectValues } from './select';
 import './select.js';
-import orderBy from 'lodash-es/orderBy';
-import { CardWideConfig } from '../types';
 
 interface MediaFilterCoreDefaults {
   cameraIDs?: string[];
@@ -228,9 +228,8 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
       ]);
 
       (
-        await executeMediaQueryForView(
+        await executeMediaQueryForViewWithErrorDispatching(
           this,
-          this.hass,
           this.cameraManager,
           this.view,
           queries,
@@ -252,9 +251,8 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
       ]);
 
       (
-        await executeMediaQueryForView(
+        await executeMediaQueryForViewWithErrorDispatching(
           this,
-          this.hass,
           this.cameraManager,
           this.view,
           queries,
@@ -275,7 +273,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
         this._cameraOptions = Array.from(cameras.keys()).map((cameraID) => ({
           value: cameraID,
           label: this.hass
-            ? this.cameraManager?.getCameraMetadata(this.hass, cameraID)?.title ?? ''
+            ? this.cameraManager?.getCameraMetadata(cameraID)?.title ?? ''
             : '',
         }));
       }
@@ -284,7 +282,6 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
     if (changedProps.has('cameraManager') && this.hass && this.cameraManager) {
       this._mediaMetadataController = new MediaMetadataController(
         this,
-        this.hass,
         this.cameraManager,
       );
     }
@@ -407,7 +404,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
       ...(what && { what: what }),
       ...(where && { where: where }),
       ...(favorite !== undefined && { favorite: favorite }),
-      ...(tags && { tags: tags })
+      ...(tags && { tags: tags }),
     };
   }
 
@@ -475,18 +472,18 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
           </frigate-card-select>`
         : ''}
       ${areEvents && this._mediaMetadataController.tagsOptions.length
-          ? html` <frigate-card-select
-              ${ref(this._refTags)}
-              label=${localize('media_filter.tag')}
-              placeholder=${localize('media_filter.select_tag')}
-              clearable
-              multiple
-              .options=${this._mediaMetadataController.tagsOptions}
-              .value=${this._defaults?.tags}
-              @frigate-card:select:change=${this._valueChangedHandler.bind(this)}
-            >
-            </frigate-card-select>`
-          : ''}
+        ? html` <frigate-card-select
+            ${ref(this._refTags)}
+            label=${localize('media_filter.tag')}
+            placeholder=${localize('media_filter.select_tag')}
+            clearable
+            multiple
+            .options=${this._mediaMetadataController.tagsOptions}
+            .value=${this._defaults?.tags}
+            @frigate-card:select:change=${this._valueChangedHandler.bind(this)}
+          >
+          </frigate-card-select>`
+        : ''}
       ${areEvents && this._mediaMetadataController.whereOptions.length
         ? html` <frigate-card-select
             ${ref(this._refWhere)}
@@ -523,7 +520,6 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
 
 export class MediaMetadataController implements ReactiveController {
   protected _host: ReactiveControllerHost;
-  protected _hass: HomeAssistant;
   protected _cameraManager: CameraManager;
 
   public tagsOptions: SelectOption[] = [];
@@ -531,13 +527,8 @@ export class MediaMetadataController implements ReactiveController {
   public whatOptions: SelectOption[] = [];
   public whereOptions: SelectOption[] = [];
 
-  constructor(
-    host: ReactiveControllerHost,
-    hass: HomeAssistant,
-    cameraManager: CameraManager,
-  ) {
+  constructor(host: ReactiveControllerHost, cameraManager: CameraManager) {
     this._host = host;
-    this._hass = hass;
     this._cameraManager = cameraManager;
     host.addController(this);
   }
@@ -549,7 +540,7 @@ export class MediaMetadataController implements ReactiveController {
   async hostConnected() {
     let metadata: MediaMetadata | null;
     try {
-      metadata = await this._cameraManager.getMediaMetadata(this._hass);
+      metadata = await this._cameraManager.getMediaMetadata();
     } catch (e) {
       errorToConsole(e as Error);
       return;

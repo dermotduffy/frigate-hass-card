@@ -1,4 +1,4 @@
-import { CameraConfig } from '../types';
+import { CameraConfig } from '../config/types';
 import { ViewMedia } from '../view/media';
 import { CameraManagerEngine } from './engine';
 import { CameraConfigs, Engine } from './types';
@@ -41,6 +41,13 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
     this._enginesByType.set(engine.getEngineType(), engine);
   }
 
+  public reset(): void {
+    this._allConfigs.clear();
+    this._visibleConfigs.clear();
+    this._enginesByCamera.clear();
+    this._enginesByType.clear();
+  }
+
   public getCameraConfig(cameraID: string): CameraConfig | null {
     return this._allConfigs.get(cameraID) ?? null;
   }
@@ -74,11 +81,7 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
   }
 
   public getCameraConfigForMedia(media: ViewMedia): CameraConfig | null {
-    const cameraID = media.getCameraID();
-    if (!cameraID) {
-      return null;
-    }
-    return this.getCameraConfig(cameraID);
+    return this.getCameraConfig(media.getCameraID());
   }
 
   public getEngineOfType(engine: Engine): CameraManagerEngine | null {
@@ -108,11 +111,7 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
   }
 
   public getEngineForMedia(media: ViewMedia): CameraManagerEngine | null {
-    const cameraID = media.getCameraID();
-    if (!cameraID) {
-      return null;
-    }
-    return this.getEngineForCameraID(cameraID);
+    return this.getEngineForCameraID(media.getCameraID());
   }
 
   public getAllEngines(): CameraManagerEngine[] {

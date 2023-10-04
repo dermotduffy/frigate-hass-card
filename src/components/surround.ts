@@ -8,14 +8,13 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { CameraManager } from '../camera-manager/manager.js';
-import basicBlockStyle from '../scss/basic-block.scss';
 import {
   CardWideConfig,
-  ClipsOrSnapshotsOrAll,
-  ExtendedHomeAssistant,
   MiniTimelineControlConfig,
   ThumbnailsControlConfig,
-} from '../types.js';
+} from '../config/types.js';
+import basicBlockStyle from '../scss/basic-block.scss';
+import { ClipsOrSnapshotsOrAll, ExtendedHomeAssistant } from '../types.js';
 import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
 import { getAllDependentCameras } from '../utils/camera.js';
 import { changeViewToRecentEventsForCameraAndDependents } from '../utils/media-to-view';
@@ -82,7 +81,6 @@ export class FrigateCardSurround extends LitElement {
     }
     await changeViewToRecentEventsForCameraAndDependents(
       this,
-      this.hass,
       this.cameraManager,
       this.cardWideConfig,
       this.view,

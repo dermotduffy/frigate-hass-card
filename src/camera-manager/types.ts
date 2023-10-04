@@ -1,4 +1,4 @@
-import { CameraConfig, FrigateCardView } from '../types';
+import { CameraConfig, FrigateCardView } from '../config/types';
 import { ViewMedia } from '../view/media';
 
 // ====

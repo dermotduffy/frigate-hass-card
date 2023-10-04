@@ -1,20 +1,18 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import isEqual from 'lodash-es/isEqual';
-import screenfull from 'screenfull';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManager } from '../../src/camera-manager/manager';
 import { CameraManagerCameraMetadata } from '../../src/camera-manager/types';
-import {
-  FrigateCardConfig,
-  FrigateCardMediaPlayer,
-  MediaLoadedInfo,
-  MenuButton,
-  ViewDisplayMode,
-} from '../../src/types';
+import { FrigateCardConfig, MenuItem, ViewDisplayMode } from '../../src/config/types';
+import { FrigateCardMediaPlayer } from '../../src/types';
 import { createFrigateCardCustomAction } from '../../src/utils/action';
-import { MenuButtonController } from '../../src/utils/menu-controller';
-import { MicrophoneController } from '../../src/utils/microphone';
+import { MediaPlayerManager } from '../../src/card-controller/media-player-manager';
+import { MicrophoneManager } from '../../src/card-controller/microphone-manager';
+import {
+  MenuButtonController,
+  MenuButtonControllerOptions,
+} from '../../src/utils/menu-controller';
 import { ViewMedia } from '../../src/view/media';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
 import { View } from '../../src/view/view';
@@ -22,6 +20,7 @@ import {
   createCameraCapabilities,
   createCameraConfig,
   createCameraManager,
+  createCardAPI,
   createConfig,
   createHASS,
   createMediaCapabilities,
@@ -31,23 +30,18 @@ import {
 } from '../test-utils';
 
 vi.mock('../../src/camera-manager/manager.js');
-vi.mock('../../src/utils/microphone');
-vi.mock('screenfull');
+vi.mock('../../src/utils/media-player-controller.js');
+vi.mock('../../src/card-controller/microphone-manager.js');
 
 const calculateButtons = (
   controller: MenuButtonController,
-  options?: {
+  options?: MenuButtonControllerOptions & {
     hass?: HomeAssistant;
     config?: FrigateCardConfig;
     cameraManager?: CameraManager;
     view?: View;
-    expanded?: boolean;
-    currentMediaLoadedInfo?: MediaLoadedInfo | null;
-    mediaPlayers?: string[];
-    cameraURL?: string | null;
-    microphoneController?: MicrophoneController;
   },
-): MenuButton[] => {
+): MenuItem[] => {
   return controller.calculateButtons(
     options?.hass ?? createHASS(),
     options?.config ?? createConfig(),
@@ -59,20 +53,14 @@ const calculateButtons = (
         ]),
       }),
     options?.view ?? createView({ camera: 'camera-1' }),
-    options?.expanded ?? false,
-    {
-      currentMediaLoadedInfo: options?.currentMediaLoadedInfo,
-      mediaPlayers: options?.mediaPlayers,
-      cameraURL: options?.cameraURL,
-      microphoneController: options?.microphoneController,
-    },
+    options,
   );
 };
 
 // @vitest-environment jsdom
 describe('MenuButtonController', () => {
   let controller: MenuButtonController;
-  const dynamicButton: MenuButton = {
+  const dynamicButton: MenuItem = {
     type: 'custom:frigate-card-menu-icon',
     icon: 'mdi:alpha-a-circle',
     title: 'Dynamic button',
@@ -265,7 +253,7 @@ describe('MenuButtonController', () => {
     // Return different metadata depending on the camera to test multiple code
     // paths.
     mock<CameraManager>(cameraManager).getCameraMetadata.mockImplementation(
-      (_hass: unknown, cameraID: string): CameraManagerCameraMetadata | null => {
+      (cameraID: string): CameraManagerCameraMetadata | null => {
         return cameraID === 'camera-1'
           ? {
               title: 'title',
@@ -685,7 +673,7 @@ describe('MenuButtonController', () => {
 
   it('should have camera UI button', () => {
     const buttons = calculateButtons(controller, {
-      cameraURL: 'http://frigate.domain',
+      showCameraUIButton: true,
     });
     expect(buttons).toContainEqual({
       icon: 'mdi:web',
@@ -698,9 +686,9 @@ describe('MenuButtonController', () => {
   });
 
   it('should have microphone button', () => {
-    const microphoneController = new MicrophoneController();
+    const microphoneManager = new MicrophoneManager(createCardAPI());
     const buttons = calculateButtons(controller, {
-      microphoneController: microphoneController,
+      microphoneManager: microphoneManager,
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
           supports2WayAudio: true,
@@ -730,9 +718,9 @@ describe('MenuButtonController', () => {
   });
 
   it('should not have microphone button when media does not support it', () => {
-    const microphoneController = new MicrophoneController();
+    const microphoneManager = new MicrophoneManager(createCardAPI());
     const buttons = calculateButtons(controller, {
-      microphoneController: microphoneController,
+      microphoneManager: microphoneManager,
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
           supports2WayAudio: false,
@@ -746,10 +734,10 @@ describe('MenuButtonController', () => {
   });
 
   it('should have microphone button when microphone forbidden', () => {
-    const microphoneController = new MicrophoneController();
-    mock<MicrophoneController>(microphoneController).isForbidden.mockReturnValue(true);
+    const microphoneManager = new MicrophoneManager(createCardAPI());
+    mock<MicrophoneManager>(microphoneManager).isForbidden.mockReturnValue(true);
     const buttons = calculateButtons(controller, {
-      microphoneController: microphoneController,
+      microphoneManager: microphoneManager,
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
           supports2WayAudio: true,
@@ -768,10 +756,10 @@ describe('MenuButtonController', () => {
   });
 
   it('should have microphone button when microphone muted', () => {
-    const microphoneController = new MicrophoneController();
-    mock<MicrophoneController>(microphoneController).isMuted.mockReturnValue(true);
+    const microphoneManager = new MicrophoneManager(createCardAPI());
+    mock<MicrophoneManager>(microphoneManager).isMuted.mockReturnValue(true);
     const buttons = calculateButtons(controller, {
-      microphoneController: microphoneController,
+      microphoneManager: microphoneManager,
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
           supports2WayAudio: true,
@@ -798,10 +786,10 @@ describe('MenuButtonController', () => {
   });
 
   it('should have microphone button when microphone muted with toggle type', () => {
-    const microphoneController = new MicrophoneController();
-    mock<MicrophoneController>(microphoneController).isMuted.mockReturnValue(true);
+    const microphoneManager = new MicrophoneManager(createCardAPI());
+    mock<MicrophoneManager>(microphoneManager).isMuted.mockReturnValue(true);
     const buttons = calculateButtons(controller, {
-      microphoneController: microphoneController,
+      microphoneManager: microphoneManager,
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
           supports2WayAudio: true,
@@ -827,10 +815,10 @@ describe('MenuButtonController', () => {
   });
 
   it('should have microphone button when microphone unmuted with toggle type', () => {
-    const microphoneController = new MicrophoneController();
-    mock<MicrophoneController>(microphoneController).isMuted.mockReturnValue(false);
+    const microphoneManager = new MicrophoneManager(createCardAPI());
+    mock<MicrophoneManager>(microphoneManager).isMuted.mockReturnValue(false);
     const buttons = calculateButtons(controller, {
-      microphoneController: microphoneController,
+      microphoneManager: microphoneManager,
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
           supports2WayAudio: true,
@@ -860,9 +848,8 @@ describe('MenuButtonController', () => {
 
   it('should have fullscreen button', () => {
     // Need to write a readonly property.
-    Object.defineProperty(screenfull, 'isEnabled', { value: true });
     vi.stubGlobal('navigator', { userAgent: 'foo' });
-    const buttons = calculateButtons(controller);
+    const buttons = calculateButtons(controller, { inFullscreenMode: false });
 
     expect(buttons).toContainEqual({
       icon: 'mdi:fullscreen',
@@ -876,11 +863,8 @@ describe('MenuButtonController', () => {
   });
 
   it('should have unfullscreen', () => {
-    // Need to write a readonly property.
-    Object.defineProperty(screenfull, 'isEnabled', { value: true });
-    Object.defineProperty(screenfull, 'isFullscreen', { value: true });
     vi.stubGlobal('navigator', { userAgent: 'foo' });
-    const buttons = calculateButtons(controller);
+    const buttons = calculateButtons(controller, { inFullscreenMode: true });
 
     expect(buttons).toContainEqual({
       icon: 'mdi:fullscreen-exit',
@@ -894,7 +878,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should have expand button', () => {
-    const buttons = calculateButtons(controller);
+    const buttons = calculateButtons(controller, { inExpandedMode: false });
 
     expect(buttons).toContainEqual({
       icon: 'mdi:arrow-expand-all',
@@ -908,7 +892,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should have unexpand button', () => {
-    const buttons = calculateButtons(controller, { expanded: true });
+    const buttons = calculateButtons(controller, { inExpandedMode: true });
 
     expect(buttons).toContainEqual({
       icon: 'mdi:arrow-collapse-all',
@@ -932,10 +916,13 @@ describe('MenuButtonController', () => {
         ],
       ]),
     });
+    const mediaPlayerController = mock<MediaPlayerManager>();
+    mediaPlayerController.hasMediaPlayers.mockReturnValue(true);
+    mediaPlayerController.getMediaPlayers.mockReturnValue(['media_player.tv']);
 
     const buttons = calculateButtons(controller, {
       cameraManager: cameraManager,
-      mediaPlayers: ['media_player.tv'],
+      mediaPlayerController: mediaPlayerController,
       hass: createHASS({
         'media_player.tv': createStateEntity({ entity_id: 'media_player.tv' }),
       }),
@@ -984,9 +971,13 @@ describe('MenuButtonController', () => {
         ],
       ]),
     });
+    const mediaPlayerController = mock<MediaPlayerManager>();
+    mediaPlayerController.hasMediaPlayers.mockReturnValue(true);
+    mediaPlayerController.getMediaPlayers.mockReturnValue(['not_a_real_player']);
+
     const buttons = calculateButtons(controller, {
       cameraManager: cameraManager,
-      mediaPlayers: ['player'],
+      mediaPlayerController: mediaPlayerController,
       hass: createHASS(),
     });
 
@@ -1001,9 +992,9 @@ describe('MenuButtonController', () => {
           enabled: true,
           selected: false,
           icon: 'mdi:bookmark',
-          entity: 'player',
+          entity: 'not_a_real_player',
           state_color: false,
-          title: 'player',
+          title: 'not_a_real_player',
           disabled: true,
         },
       ],
@@ -1138,7 +1129,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should handle dynamic buttons', () => {
-    const button: MenuButton = {
+    const button: MenuItem = {
       ...dynamicButton,
       style: {},
     };
@@ -1160,7 +1151,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should not set style for dynamic button with stock action', () => {
-    const button: MenuButton = {
+    const button: MenuItem = {
       ...dynamicButton,
       tap_action: { action: 'navigate', navigation_path: 'foo' },
     };
@@ -1173,7 +1164,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should not set style for dynamic button with non-Frigate fire-dom-event action', () => {
-    const button: MenuButton = {
+    const button: MenuItem = {
       ...dynamicButton,
       tap_action: { action: 'fire-dom-event' },
     };
@@ -1187,7 +1178,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should set style for dynamic button with Frigate view action', () => {
-    const button: MenuButton = {
+    const button: MenuItem = {
       ...dynamicButton,
       tap_action: { action: 'fire-dom-event', frigate_card_action: 'clips' },
     };
@@ -1201,7 +1192,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should set style for dynamic button with Frigate default action', () => {
-    const button: MenuButton = {
+    const button: MenuItem = {
       ...dynamicButton,
       tap_action: { action: 'fire-dom-event', frigate_card_action: 'default' },
     };
@@ -1214,24 +1205,20 @@ describe('MenuButtonController', () => {
   });
 
   it('should set style for dynamic button with fullscreen action', () => {
-    // Need to write a readonly property.
-    Object.defineProperty(screenfull, 'isEnabled', { value: true });
-    Object.defineProperty(screenfull, 'isFullscreen', { value: true });
-
-    const button: MenuButton = {
+    const button: MenuItem = {
       ...dynamicButton,
       tap_action: { action: 'fire-dom-event', frigate_card_action: 'fullscreen' },
     };
 
     controller.addDynamicMenuButton(button);
-    expect(calculateButtons(controller)).toContainEqual({
+    expect(calculateButtons(controller, { inFullscreenMode: true })).toContainEqual({
       ...button,
       style: { color: 'var(--primary-color, white)' },
     });
   });
 
   it('should set style for dynamic button with camera_select action', () => {
-    const button: MenuButton = {
+    const button: MenuItem = {
       ...dynamicButton,
       tap_action: {
         action: 'fire-dom-event',
@@ -1249,7 +1236,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should set style for dynamic button with array of actions', () => {
-    const button: MenuButton = {
+    const button: MenuItem = {
       ...dynamicButton,
       tap_action: [
         { action: 'fire-dom-event' },

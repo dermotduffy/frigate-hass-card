@@ -62,7 +62,7 @@ export function getParseErrorKeys<T>(error: z.ZodError<T>): string[] {
  * @param error The ZodError object from parsing.
  * @returns An array of string error paths.
  */
-export const getParseErrorPaths = <T>(error: z.ZodError<T>): Set<string> | null => {
+export const getParseErrorPaths = <T>(error: z.ZodError<T>): Set<string> => {
   /* Zod errors involving unions are complex, as Zod may not be able to tell
    * where the 'real' error is vs simply a union option not matching. This
    * function finds all ZodError "issues" that don't have an error with 'type'
@@ -79,16 +79,8 @@ export const getParseErrorPaths = <T>(error: z.ZodError<T>): Set<string> | null 
       if (issue.code === 'invalid_union') {
         const unionErrors = (issue as z.ZodInvalidUnionIssue).unionErrors;
         for (const unionError of unionErrors) {
-          const nestedErrors = getParseErrorPaths(unionError);
-          if (nestedErrors && nestedErrors.size) {
-            nestedErrors.forEach(contenders.add, contenders);
-          }
+          getParseErrorPaths(unionError).forEach(contenders.add, contenders);
         }
-      } else if (issue.code === 'invalid_type') {
-        if (issue.path[issue.path.length - 1] === 'type') {
-          return null;
-        }
-        contenders.add(getParseErrorPathString(issue.path));
       } else {
         contenders.add(getParseErrorPathString(issue.path));
       }

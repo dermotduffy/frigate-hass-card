@@ -6,13 +6,13 @@ import {
   changeViewToRecentEventsForCameraAndDependents,
   changeViewToRecentRecordingForCameraAndDependents,
   executeMediaQueryForView,
+  executeMediaQueryForViewWithErrorDispatching,
   findBestMediaIndex,
 } from '../../src/utils/media-to-view';
 import { ViewMedia } from '../../src/view/media';
 import { EventMediaQueries } from '../../src/view/media-queries';
 import {
   createCameraManager,
-  createHASS,
   createPerformanceConfig,
   createView,
   TestViewMedia,
@@ -70,7 +70,6 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
     await changeViewToRecentEventsForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -84,7 +83,6 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
     await changeViewToRecentEventsForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -102,7 +100,6 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
     await changeViewToRecentEventsForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -122,7 +119,6 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
     await changeViewToRecentEventsForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -144,7 +140,6 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
     await changeViewToRecentEventsForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -158,7 +153,6 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
     await changeViewToRecentEventsForCameraAndDependents(
       createElementListenForView().element,
-      createHASS(),
       cameraManager,
       {
         performance: createPerformanceConfig({
@@ -187,7 +181,6 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
       await changeViewToRecentEventsForCameraAndDependents(
         createElementListenForView().element,
-        createHASS(),
         cameraManager,
         {},
         createView(),
@@ -213,14 +206,11 @@ describe('executeMediaQueryForView', () => {
   });
 
   it('should not execute empty queries', async () => {
-    const elementHandler = createElementListenForView();
     const cameraConfigs: CameraConfigs = new Map();
     const cameraManager = createCameraManager({ configs: cameraConfigs });
 
     expect(
       await executeMediaQueryForView(
-        elementHandler.element,
-        createHASS(),
         cameraManager,
         createView(),
         new EventMediaQueries(),
@@ -228,8 +218,23 @@ describe('executeMediaQueryForView', () => {
     ).toBeNull();
   });
 
+  it('should throw on failure', async () => {
+    const cameraConfigs: CameraConfigs = new Map();
+    const cameraManager = createCameraManager({ configs: cameraConfigs });
+    vi.mocked(cameraManager.executeMediaQueries).mockRejectedValue(new Error());
+
+    await expect(
+      executeMediaQueryForView(
+        cameraManager,
+        createView(),
+        new EventMediaQueries(
+          cameraManager.generateDefaultEventQueries('camera') ?? undefined,
+        ),
+      ),
+    ).rejects.toThrowError();
+  });
+
   it('should select time-based result', async () => {
-    const elementHandler = createElementListenForView();
     const cameraConfigs: CameraConfigs = new Map();
     const cameraManager = createCameraManager({ configs: cameraConfigs });
 
@@ -242,8 +247,6 @@ describe('executeMediaQueryForView', () => {
     vi.mocked(cameraManager.executeMediaQueries).mockResolvedValue(mediaArray);
 
     const view = await executeMediaQueryForView(
-      elementHandler.element,
-      createHASS(),
       cameraManager,
       createView(),
       new EventMediaQueries(
@@ -261,7 +264,6 @@ describe('executeMediaQueryForView', () => {
   });
 
   it('should select nothing when time-based selection does not match', async () => {
-    const elementHandler = createElementListenForView();
     const cameraConfigs: CameraConfigs = new Map();
     const cameraManager = createCameraManager({ configs: cameraConfigs });
 
@@ -275,8 +277,6 @@ describe('executeMediaQueryForView', () => {
     vi.mocked(cameraManager.executeMediaQueries).mockResolvedValue(mediaArray);
 
     const view = await executeMediaQueryForView(
-      elementHandler.element,
-      createHASS(),
       cameraManager,
       createView(),
       new EventMediaQueries(
@@ -306,7 +306,6 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
 
     await changeViewToRecentRecordingForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -320,7 +319,6 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
 
     await changeViewToRecentRecordingForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -338,7 +336,6 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
 
     await changeViewToRecentRecordingForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -355,7 +352,6 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
 
     await changeViewToRecentRecordingForCameraAndDependents(
       elementHandler.element,
-      createHASS(),
       cameraManager,
       {},
       createView(),
@@ -373,7 +369,6 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
 
     await changeViewToRecentRecordingForCameraAndDependents(
       createElementListenForView().element,
-      createHASS(),
       cameraManager,
       {
         performance: createPerformanceConfig({
@@ -391,6 +386,29 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
         limit: 1000,
       }),
     );
+  });
+});
+
+// @vitest-environment jsdom
+describe('executeMediaQueryForViewWithErrorDispatching', () => {
+  it('should dispatch error message on fail', async () => {
+    vi.spyOn(global.console, 'warn').mockImplementation(() => true);
+
+    const elementHandler = createElementListenForView();
+    const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.executeMediaQueries).mockRejectedValue(new Error());
+
+    await executeMediaQueryForViewWithErrorDispatching(
+      elementHandler.element,
+      cameraManager,
+      createView(),
+      new EventMediaQueries(
+        cameraManager.generateDefaultEventQueries('camera') ?? undefined,
+      ),
+    );
+
+    expect(elementHandler.viewHandler).not.toBeCalled();
+    expect(elementHandler.messageHandler).toBeCalled();
   });
 });
 

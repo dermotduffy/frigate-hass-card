@@ -4,7 +4,7 @@ import {
   dispatchFrigateCardErrorEvent,
   renderProgressIndicator,
 } from '../components/message';
-import { CardWideConfig } from '../types';
+import { CardWideConfig } from '../config/types';
 import { errorToConsole } from './basic';
 
 /**

@@ -180,6 +180,29 @@ export const actionHandler = directive(
   },
 );
 
+export interface ActionEventTarget extends EventTarget {
+  addEventListener(
+    event: '@action',
+    listener: (this: ActionEventTarget, ev: CustomEvent<ActionHandlerDetail>) => void,
+    options?: AddEventListenerOptions | boolean,
+  ): void;
+  addEventListener(
+    type: string,
+    callback: EventListenerOrEventListenerObject,
+    options?: AddEventListenerOptions | boolean,
+  ): void;
+  removeEventListener(
+    event: '@action',
+    listener: (this: ActionEventTarget, ev: CustomEvent<ActionHandlerDetail>) => void,
+    options?: boolean | EventListenerOptions,
+  ): void;
+  removeEventListener(
+    type: string,
+    callback: EventListenerOrEventListenerObject,
+    options?: boolean | EventListenerOptions,
+  ): void;
+}
+
 declare global {
   interface HTMLElementTagNameMap {
     'action-handler-frigate-card': ActionHandler;

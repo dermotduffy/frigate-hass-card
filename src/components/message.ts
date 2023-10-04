@@ -2,10 +2,11 @@ import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { ClassInfo, classMap } from 'lit/directives/class-map.js';
 import { ref, Ref } from 'lit/directives/ref.js';
+import { CardWideConfig } from '../config/types.js';
 import { TROUBLESHOOTING_URL } from '../const.js';
 import { localize } from '../localize/localize.js';
 import messageStyle from '../scss/message.scss';
-import { CardWideConfig, FrigateCardError, Message, MessageType } from '../types.js';
+import { FrigateCardError, Message, MessageType } from '../types.js';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
 
 @customElement('frigate-card-message')
@@ -106,12 +107,12 @@ export class FrigateCardProgressIndicator extends LitElement {
   }
 }
 
-export function renderMessage(message: Message): TemplateResult {
-  if (message.type === 'error') {
+export function renderMessage(message: Message | null): TemplateResult {
+  if (message?.type === 'error') {
     return html` <frigate-card-error-message
       .message=${message}
     ></frigate-card-error-message>`;
-  } else {
+  } else if (message) {
     return html` <frigate-card-message
       .message=${message.message}
       .icon=${message.icon}
@@ -124,7 +125,7 @@ export function renderMessage(message: Message): TemplateResult {
 
 export function renderProgressIndicator(options?: {
   message?: string;
-  cardWideConfig?: CardWideConfig;
+  cardWideConfig?: CardWideConfig | null;
   componentRef?: Ref<HTMLElement>;
   classes?: ClassInfo;
   size?: FrigateCardProgressIndicatorSize;

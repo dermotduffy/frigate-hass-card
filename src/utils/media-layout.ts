@@ -1,4 +1,4 @@
-import { MediaLayoutConfig } from '../types';
+import { MediaLayoutConfig } from '../config/types';
 
 /**
  * Update element style from a media configuration.

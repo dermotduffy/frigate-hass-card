@@ -1,5 +1,6 @@
 import { ViewContext } from 'view';
-import { ClipsOrSnapshots, FrigateCardView, ViewDisplayMode } from '../types.js';
+import { FrigateCardView, ViewDisplayMode } from '../config/types.js';
+import { ClipsOrSnapshots } from '../types.js';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
 import { MediaQueries } from './media-queries';
 import { MediaQueriesClassifier } from './media-queries-classifier.js';
@@ -43,7 +44,7 @@ export class View {
    * @param curr The current view.
    * @returns True if the view change is a real media change.
    */
-  public static isMajorMediaChange(prev?: View, curr?: View): boolean {
+  public static isMajorMediaChange(prev?: View | null, curr?: View): boolean {
     return (
       !prev ||
       !curr ||
@@ -61,7 +62,7 @@ export class View {
     );
   }
 
-  public static adoptFromViewIfAppropriate(next: View, curr?: View): void {
+  public static adoptFromViewIfAppropriate(next: View, curr?: View | null): void {
     if (!curr) {
       return;
     }
@@ -229,7 +230,7 @@ export class View {
    * Determine if a view is for the media viewer.
    */
   public isViewerView(): boolean {
-    return ['clip', 'snapshot', 'media', 'recording'].includes(this.view);
+    return ['media', 'clip', 'snapshot', 'recording'].includes(this.view);
   }
 
   public supportsMultipleDisplayModes(): boolean {
