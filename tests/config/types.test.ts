@@ -4,7 +4,7 @@ import {
   customSchema,
   dimensionsConfigSchema,
   frigateCardCustomActionsBaseSchema,
-  frigateCardPTZSchema
+  frigateCardPTZSchema,
 } from '../../src/config/types';
 import { createConfig } from '../test-utils';
 
@@ -418,4 +418,20 @@ describe('should handle custom frigate elements', () => {
     });
     expect(result.success).toBeTruthy();
   });
+});
+
+// https://github.com/dermotduffy/frigate-hass-card/issues/1280
+it('should not require title controls to specify all options', () => {
+  expect(
+    createConfig({
+      cameras: [],
+      live: {
+        controls: {
+          title: {
+            mode: 'popup-top-left',
+          },
+        },
+      },
+    }),
+  ).toBeTruthy();
 });

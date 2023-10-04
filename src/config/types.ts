@@ -390,7 +390,7 @@ export const conditionalSchema = z.object({
 export const customSchema = z
   .object({
     // Insist that Frigate card custom elements are handled by other schemas.
-    type: z.string().superRefine((val, ctx) => {      
+    type: z.string().superRefine((val, ctx) => {
       if (!val.match(/^custom:(?!frigate-card).+/)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -723,14 +723,16 @@ export type NextPreviousControlConfig = z.infer<typeof nextPreviousControlConfig
 // *************************************************************************
 
 const titleControlConfigSchema = z.object({
-  mode: z.enum([
-    'none',
-    'popup-top-right',
-    'popup-top-left',
-    'popup-bottom-right',
-    'popup-bottom-left',
-  ]),
-  duration_seconds: z.number().min(0).max(60),
+  mode: z
+    .enum([
+      'none',
+      'popup-top-right',
+      'popup-top-left',
+      'popup-bottom-right',
+      'popup-bottom-left',
+    ])
+    .optional(),
+  duration_seconds: z.number().min(0).max(60).optional(),
 });
 export type TitleControlConfig = z.infer<typeof titleControlConfigSchema>;
 

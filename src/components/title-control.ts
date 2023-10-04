@@ -64,7 +64,14 @@ export class FrigateCardTitleControl extends LitElement {
   protected _toastRef: Ref<PaperToast> = createRef();
 
   protected render(): TemplateResult {
-    if (!this.text || !this.config || this.config.mode == 'none' || !this.fitInto) {
+    if (
+      !this.text ||
+      !this.config ||
+      !this.config.mode ||
+      this.config.duration_seconds === undefined ||
+      this.config.mode === 'none' ||
+      !this.fitInto
+    ) {
       return html``;
     }
 
