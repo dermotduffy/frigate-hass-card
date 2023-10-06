@@ -949,9 +949,12 @@ export class FrigateCardLiveProvider
         // receiving frames). Otherwise a single temporarily unavailable camera
         // would render a whole carousel inoperable.
         return renderMessage({
-          message: localize('error.live_camera_unavailable'),
-          type: 'error',
-          context: this.cameraConfig,
+          message: `${localize('error.live_camera_unavailable')}${
+            this.label ? `: ${this.label}` : ''
+          }`,
+          type: 'info',
+          icon: 'mdi:cctv-off',
+          dotdotdot: true,
         });
       }
     }
