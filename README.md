@@ -55,7 +55,7 @@ That's it!
 
 ### Manual Resource Management
 
-HACS should automatically add the necessary resources. Should this auto-registration does not work, you will need to complete this additional step.
+For most users, HACS should automatically add the necessary resources. Should this auto-registration does not work, you will need to complete one additional step.
 
 #### Lovelace in "Storage mode" (default)
 
@@ -70,7 +70,7 @@ Three dots menu -> "Edit Dashboard" -> Three dots menu -> "Manage resources" -> 
 
 #### Lovelace in "YAML mode" (rare)
 
-You would see`mode: yaml` under `lovelace:` in your `configuration.yaml` if this applies  to you.
+You would see`mode: yaml` under `lovelace:` in your `configuration.yaml` if this applies to you.
 
 * Add the following to `configuration.yaml`:
 
