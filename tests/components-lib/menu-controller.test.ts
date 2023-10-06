@@ -4,15 +4,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManager } from '../../src/camera-manager/manager';
 import { CameraManagerCameraMetadata } from '../../src/camera-manager/types';
-import { FrigateCardConfig, MenuItem, ViewDisplayMode } from '../../src/config/types';
-import { FrigateCardMediaPlayer } from '../../src/types';
-import { createFrigateCardCustomAction } from '../../src/utils/action';
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager';
 import { MicrophoneManager } from '../../src/card-controller/microphone-manager';
 import {
   MenuButtonController,
   MenuButtonControllerOptions,
-} from '../../src/utils/menu-controller';
+} from '../../src/components-lib/menu-controller';
+import { FrigateCardConfig, MenuItem, ViewDisplayMode } from '../../src/config/types';
+import { FrigateCardMediaPlayer } from '../../src/types';
+import { createFrigateCardCustomAction } from '../../src/utils/action';
 import { ViewMedia } from '../../src/view/media';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
 import { View } from '../../src/view/view';

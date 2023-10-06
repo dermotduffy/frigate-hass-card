@@ -5,7 +5,7 @@ import { MediaLoadedInfo } from '../../src/types';
 import {
   MediaGridConstructorOptions,
   MediaGridController,
-} from '../../src/utils/media-grid-controller';
+} from '../../src/components-lib/media-grid-controller';
 import { dispatchExistingMediaLoadedInfoAsEvent } from '../../src/utils/media-info';
 import {
   MutationObserverMock,

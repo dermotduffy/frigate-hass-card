@@ -6,7 +6,7 @@ import { CameraConfig } from '../../config/types';
 import basicBlockStyle from '../../scss/basic-block.scss';
 import { FrigateCardMediaPlayer } from '../../types.js';
 import '../image.js';
-import { getStateObjOrDispatchError } from './live.js';
+import { getStateObjOrDispatchError } from '../../utils/get-state-obj';
 
 @customElement('frigate-card-live-image')
 export class FrigateCardLiveImage extends LitElement implements FrigateCardMediaPlayer {

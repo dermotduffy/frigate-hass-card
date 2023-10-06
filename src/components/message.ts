@@ -67,7 +67,7 @@ export class FrigateCardErrorMessage extends LitElement {
     return html` <frigate-card-message
       .message=${html` ${this.message.message}.
         <a href="${TROUBLESHOOTING_URL}"> ${localize('error.troubleshooting')}</a>.`}
-      .icon=${'mdi:alert-circle'}
+      .icon=${this.message.icon ?? 'mdi:alert-circle'}
       .context=${this.message.context}
       .dotdotdot=${this.message.dotdotdot}
     >

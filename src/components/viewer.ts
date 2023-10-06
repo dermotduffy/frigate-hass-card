@@ -11,6 +11,7 @@ import { guard } from 'lit/directives/guard.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../camera-manager/manager.js';
+import { MediaGridSelected } from '../components-lib/media-grid-controller.js';
 import {
   dispatchMessageEvent,
   renderMessage,
@@ -47,7 +48,6 @@ import AutoMediaLoadedInfo from '../utils/embla/plugins/auto-media-loaded-info/a
 import AutoSize from '../utils/embla/plugins/auto-size/auto-size.js';
 import { canonicalizeHAURL } from '../utils/ha/index.js';
 import { ResolvedMediaCache, resolveMedia } from '../utils/ha/resolved-media.js';
-import { MediaGridSelected } from '../utils/media-grid-controller.js';
 import {
   dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,

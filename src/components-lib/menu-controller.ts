@@ -13,12 +13,12 @@ import {
   MediaLoadedInfo,
 } from '../types';
 import { View } from '../view/view';
-import { createFrigateCardCustomAction } from './action';
-import { getAllDependentCameras } from './camera';
+import { createFrigateCardCustomAction } from '../utils/action';
+import { getAllDependentCameras } from '../utils/camera';
 import { MediaPlayerManager } from '../card-controller/media-player-manager';
 import { MicrophoneManager } from '../card-controller/microphone-manager';
-import { getEntityIcon, getEntityTitle } from './ha';
-import { hasSubstream } from './substream';
+import { getEntityIcon, getEntityTitle } from '../utils/ha';
+import { hasSubstream } from '../utils/substream';
 export interface MenuButtonControllerOptions {
   currentMediaLoadedInfo?: MediaLoadedInfo | null;
   showCameraUIButton?: boolean;

@@ -31,6 +31,10 @@ import { rangesOverlap } from '../camera-manager/range';
 import { MediaQuery } from '../camera-manager/types';
 import { convertRangeToCacheFriendlyTimes } from '../camera-manager/util';
 import {
+  FrigateCardTimelineItem,
+  TimelineDataSource,
+} from '../components-lib/timeline-source';
+import {
   CameraConfig,
   CardWideConfig,
   frigateCardConfigDefaults,
@@ -54,7 +58,6 @@ import {
   executeMediaQueryForViewWithErrorDispatching,
   findBestMediaIndex,
 } from '../utils/media-to-view';
-import { FrigateCardTimelineItem, TimelineDataSource } from '../utils/timeline-source';
 import { ViewMedia } from '../view/media';
 import { ViewMediaClassifier } from '../view/media-classifier';
 import {
