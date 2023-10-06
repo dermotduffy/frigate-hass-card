@@ -51,10 +51,28 @@ Home Assistant > HACS > Frontend > "Explore & Add Integrations" > Frigate Card
 
 * Click `Download this repository with HACS`.
 
-#### Lovelace YAML users
-If Lovelace is in YAML mode then there's an additional step required to load the resource into your browser. (This mode is not the default -- you would see`mode: yaml` under `lovelace:` in your `configuration.yaml` if this applies  to you),
+That's it!
 
-* Add the following to `configuration.yaml` (note that `/hacsfiles/` is just an [optimized equivalent](https://hacs.xyz/docs/categories/plugins#custom-view-hacsfiles) of `/local/community/` that HACS natively supports):
+### Manual Resource Management
+
+HACS should automatically add the necessary resources. Should this auto-registration does not work, you will need to complete this additional step.
+
+#### Lovelace in "Storage mode" (default)
+
+* Navigate:
+
+```
+Three dots menu -> "Edit Dashboard" -> Three dots menu -> "Manage resources" -> "Add Resource"
+```
+
+* URL: `/hacsfiles/frigate-hass-card/frigate-hass-card.js`
+* Resource type: `JavaScript Module`
+
+#### Lovelace in "YAML mode" (rare)
+
+You would see`mode: yaml` under `lovelace:` in your `configuration.yaml` if this applies  to you.
+
+* Add the following to `configuration.yaml`:
 
 ```yaml
 lovelace:
@@ -64,7 +82,6 @@ lovelace:
 ```
 
 * Restart Home Assistant.
-* Add the new card to the Lovelace configuration!
 
 <a name="manual-installation"></a>
 
