@@ -16,7 +16,7 @@ export class HASSManager {
     return this._hass;
   }
 
-  public setHASS(hass: ExtendedHomeAssistant): void {
+  public setHASS(hass?: ExtendedHomeAssistant | null): void {
     const getSelectedCameraConfig = (): CameraConfig | null => {
       const view = this._api.getViewManager().getView();
       const cameraManager = this._api.getCameraManager();
@@ -26,13 +26,8 @@ export class HASSManager {
         : null;
     };
 
-    const oldHass = this._hass;
-    this._hass = hass;
-
-    const selectedCamera = getSelectedCameraConfig();
-
-    if (hasHAConnectionStateChanged(oldHass, hass)) {
-      if (!this._hass?.connected) {
+    if (hasHAConnectionStateChanged(this._hass, hass)) {
+      if (!hass?.connected) {
         this._api.getMessageManager().setMessageIfHigherPriority({
           message: localize('error.reconnecting'),
           icon: 'mdi:lan-disconnect',
@@ -40,9 +35,18 @@ export class HASSManager {
           dotdotdot: true,
         });
       } else {
-        this._api.getViewManager().setViewDefault();
+        this._api.getMessageManager().resetType('connection');
       }
-    } else if (
+    }
+
+    if (!hass) {
+      return;
+    }
+
+    const oldHass = this._hass;
+    this._hass = hass;
+
+    if (
       // Home Assistant pumps a lot of updates through. Re-rendering the card is
       // necessary at times (e.g. to update the 'clip' view as new clips
       // arrive), but also is a jarring experience for the user (e.g. if they
@@ -52,7 +56,7 @@ export class HASSManager {
       this._isAutomatedViewUpdateAllowed() &&
       isHassDifferent(this._hass, oldHass, [
         ...(this._api.getConfigManager().getConfig()?.view.update_entities ?? []),
-        ...(selectedCamera?.triggers.entities ?? []),
+        ...(getSelectedCameraConfig()?.triggers.entities ?? []),
       ])
     ) {
       // If entities being monitored have changed then reset the view to the

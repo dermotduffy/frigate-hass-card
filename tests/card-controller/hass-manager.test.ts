@@ -130,7 +130,29 @@ describe('HASSManager', () => {
       const reconnectedHASS = createHASS();
       manager.setHASS(reconnectedHASS);
 
-      expect(api.getViewManager().setViewDefault).toBeCalled();
+      expect(api.getMessageManager().resetType).toBeCalled();
+    });
+
+    it('hass is null', () => {
+      const api = createAPIWithoutMediaPlayers();
+      const manager = new HASSManager(api);
+      const connectedHASS = createHASS();
+      connectedHASS.connected = true;
+
+      manager.setHASS(connectedHASS);
+      manager.setHASS(null);
+
+      expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
+        expect.objectContaining({
+          message: 'Reconnecting',
+          icon: 'mdi:lan-disconnect',
+          type: 'connection',
+          dotdotdot: true,
+        }),
+      );
+
+      manager.setHASS(connectedHASS);
+      expect(api.getMessageManager().resetType).toBeCalled();
     });
   });
 

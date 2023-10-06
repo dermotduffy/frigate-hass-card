@@ -1,4 +1,4 @@
-import { FrigateCardError, MESSAGE_TYPE_PRIORITIES, Message } from '../types';
+import { FrigateCardError, MESSAGE_TYPE_PRIORITIES, Message, MessageType } from '../types';
 import { errorToConsole } from '../utils/basic';
 import { CardMessageAPI } from './types';
 
@@ -28,6 +28,12 @@ export class MessageManager {
 
     if (hadMessage) {
       this._api.getCardElementManager().update();
+    }
+  }
+
+  public resetType(type: MessageType): void {
+    if (this._message?.type === type) {
+      this.reset();
     }
   }
 
