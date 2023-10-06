@@ -71,6 +71,22 @@ describe('MessageManager', () => {
     expect(api.getCardElementManager().update).toBeCalled();
   });
 
+  it('should reset message that matches type', () => {
+    const api = createCardAPI();
+    const manager = new MessageManager(api);
+
+    const message = createMessage({ type: 'connection' });
+    manager.setMessageIfHigherPriority(message);
+    expect(manager.getMessage()).toBe(message);
+
+    manager.resetType('error');
+    expect(manager.getMessage()).toBe(message);
+
+    manager.resetType('connection');
+    expect(manager.getMessage()).toBeNull();
+    expect(manager.hasMessage()).toBeFalsy();
+  });
+
   it('should respect priority', () => {
     const api = createCardAPI();
     const manager = new MessageManager(api);

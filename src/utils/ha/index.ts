@@ -375,8 +375,5 @@ export const hasHAConnectionStateChanged = (
   oldHass: HomeAssistant | undefined | null,
   newHass: HomeAssistant | undefined | null,
 ): boolean => {
-  return (
-    (!oldHass && !newHass?.connected) ||
-    (!!oldHass && oldHass.connected !== !!newHass?.connected)
-  );
+  return oldHass?.connected !== newHass?.connected;
 };
