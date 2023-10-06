@@ -21,15 +21,15 @@ export class QueryStringManager {
     return !!this._calculateIntent().view;
   }
 
-  public executeNonViewRelated(): void {
+  public executeNonViewRelated = (): void => {
     this._executeNonViewRelated(this._calculateIntent());
   }
 
-  public executeViewRelated(): void {
+  public executeViewRelated = (): void => {
     this._executeViewRelated(this._calculateIntent());
   }
 
-  public executeAll(): void {
+  public executeAll = (): void => {
     const intent = this._calculateIntent();
     this._executeViewRelated(intent);
     this._executeNonViewRelated(intent);
