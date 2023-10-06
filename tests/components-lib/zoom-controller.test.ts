@@ -1,8 +1,7 @@
-import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
-import { Zoom } from '../../src/utils/zoom/zoom';
-import { PanzoomObject, PanzoomEventDetail } from '@dermotduffy/panzoom';
-import Panzoom from '@dermotduffy/panzoom';
+import Panzoom, { PanzoomEventDetail, PanzoomObject } from '@dermotduffy/panzoom';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+import { ZoomController } from '../../src/components-lib/zoom-controller';
 
 vi.mock('@dermotduffy/panzoom');
 
@@ -10,7 +9,7 @@ vi.mock('@dermotduffy/panzoom');
 (window as any).PointerEvent = MouseEvent;
 
 // @vitest-environment jsdom
-describe('Zoom', () => {
+describe('ZoomController', () => {
   const mediaMediSpy = vi.spyOn(window, 'matchMedia');
 
   const createMockPanZoom = (): PanzoomObject => {
@@ -19,8 +18,8 @@ describe('Zoom', () => {
     return panzoom;
   };
 
-  const createAndRegisterZoom = (element: HTMLElement): Zoom => {
-    const zoom = new Zoom(element);
+  const createAndRegisterZoom = (element: HTMLElement): ZoomController => {
+    const zoom = new ZoomController(element);
     zoom.activate();
     return zoom;
   };
@@ -52,7 +51,7 @@ describe('Zoom', () => {
 
   it('should be creatable', () => {
     const element = document.createElement('div');
-    const zoom = new Zoom(element);
+    const zoom = new ZoomController(element);
     expect(zoom).toBeTruthy();
   });
 

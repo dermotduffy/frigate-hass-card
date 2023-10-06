@@ -8,6 +8,9 @@ import { ViewContext } from 'view';
 import 'web-dialog';
 import pkg from '../package.json';
 import { actionHandler } from './action-handler-directive.js';
+import { ConditionEvaluateRequestEvent } from './card-controller/conditions-manager.js';
+import { CardController } from './card-controller/controller';
+import { MenuButtonController } from './components-lib/menu-controller';
 import './components/elements.js';
 import { FrigateCardElements } from './components/elements.js';
 import './components/menu.js';
@@ -21,15 +24,8 @@ import { FrigateCardConfig, MenuItem, RawFrigateCardConfig } from './config/type
 import { REPO_URL } from './const.js';
 import { localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
-import {
-  ExtendedHomeAssistant,
-  MediaLoadedInfo,
-  Message,
-} from './types.js';
+import { ExtendedHomeAssistant, MediaLoadedInfo, Message } from './types.js';
 import { frigateCardHasAction } from './utils/action.js';
-import { ConditionEvaluateRequestEvent } from './card-controller/conditions-manager.js';
-import { CardController } from './card-controller/controller';
-import { MenuButtonController } from './utils/menu-controller';
 import { View } from './view/view.js';
 
 // ***************************************************************************

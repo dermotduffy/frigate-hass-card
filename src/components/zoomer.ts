@@ -7,12 +7,12 @@ import {
   TemplateResult,
 } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
+import { ZoomController } from '../components-lib/zoom-controller.js';
 import { setOrRemoveAttribute } from '../utils/basic.js';
-import { Zoom } from '../utils/zoom/zoom.js';
 
 @customElement('frigate-card-zoomer')
 export class FrigateCardZoomer extends LitElement {
-  protected _zoom = new Zoom(this);
+  protected _zoom = new ZoomController(this);
 
   @state()
   protected _zoomed = false;

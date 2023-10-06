@@ -54,7 +54,7 @@ export class EmblaReInitController {
       this._shouldReInitOnScrollStop = false;
       this._emblaApi?.reInit();
     },
-    200,
+    500,
     { trailing: true },
   );
 }

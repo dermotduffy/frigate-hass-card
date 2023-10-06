@@ -8,9 +8,9 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { MediaGridController } from '../components-lib/media-grid-controller.js';
 import { ViewDisplayConfig } from '../config/types';
 import mediaGridStyle from '../scss/media-grid.scss';
-import { MediaGridController } from '../utils/media-grid-controller.js';
 
 @customElement('frigate-card-media-grid')
 export class FrigateCardMediaGrid extends LitElement {

@@ -12,7 +12,7 @@ import { EventQuery, RecordingQuery, RecordingSegment } from '../camera-manager/
 import { capEndDate, convertRangeToCacheFriendlyTimes } from '../camera-manager/util';
 import { ClipsOrSnapshotsOrAll } from '../types';
 import { ViewMedia } from '../view/media';
-import { ModifyInterface, errorToConsole } from './basic.js';
+import { ModifyInterface, errorToConsole } from '../utils/basic.js';
 
 // Allow timeline freshness to be at least this number of seconds out of date
 // (caching times in the data-engine may increase the effective delay).

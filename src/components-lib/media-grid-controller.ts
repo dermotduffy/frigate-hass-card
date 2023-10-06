@@ -7,12 +7,12 @@ import {
   dispatchFrigateCardEvent,
   getChildrenFromElement,
   setOrRemoveAttribute,
-} from './basic';
+} from '../utils/basic';
 import {
   FrigateMediaLoadedEventTarget,
   dispatchExistingMediaLoadedInfoAsEvent,
   dispatchMediaUnloadedEvent,
-} from './media-info';
+} from '../utils/media-info';
 
 // The default minimum cell width: if the columns are not specified this value
 // is used to compute the number of columns, always trying to keep each cell as

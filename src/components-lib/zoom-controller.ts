@@ -1,8 +1,8 @@
 import Panzoom, { PanzoomEventDetail, PanzoomObject } from '@dermotduffy/panzoom';
 import round from 'lodash-es/round';
-import { dispatchFrigateCardEvent, isHoverableDevice } from '../basic';
+import { dispatchFrigateCardEvent, isHoverableDevice } from '../utils/basic';
 
-export class Zoom {
+export class ZoomController {
   constructor(element: HTMLElement) {
     this._element = element;
   }

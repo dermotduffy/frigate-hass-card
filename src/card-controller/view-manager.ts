@@ -221,7 +221,7 @@ export class ViewManager {
     log(
       this._api.getConfigManager().getCardWideConfig(),
       `Frigate Card view change: `,
-      view.view,
+      view,
     );
     this._view = view;
 

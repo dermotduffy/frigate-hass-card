@@ -1,5 +1,3 @@
-import { HomeAssistant } from 'custom-card-helpers';
-import { HassEntity } from 'home-assistant-js-websocket';
 import {
   CSSResultGroup,
   html,
@@ -16,6 +14,11 @@ import { keyed } from 'lit/directives/keyed.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { CameraConfigs, CameraEndpoints } from '../../camera-manager/types.js';
+import {
+  ConditionsManagerEpoch,
+  getOverriddenConfig,
+} from '../../card-controller/conditions-manager.js';
+import { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
 import {
   CameraConfig,
   CardWideConfig,
@@ -37,16 +40,11 @@ import {
 } from '../../types.js';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { contentsChanged } from '../../utils/basic.js';
-import {
-  ConditionsManagerEpoch,
-  getOverriddenConfig,
-} from '../../card-controller/conditions-manager.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import { AutoLazyLoad } from '../../utils/embla/plugins/auto-lazy-load/auto-lazy-load.js';
 import { AutoMediaActions } from '../../utils/embla/plugins/auto-media-actions/auto-media-actions.js';
 import AutoMediaLoadedInfo from '../../utils/embla/plugins/auto-media-loaded-info/auto-media-loaded-info.js';
 import AutoSize from '../../utils/embla/plugins/auto-size/auto-size.js';
-import { MediaGridSelected } from '../../utils/media-grid-controller.js';
 import {
   dispatchExistingMediaLoadedInfoAsEvent,
   dispatchMediaUnloadedEvent,
@@ -56,7 +54,7 @@ import { playMediaMutingIfNecessary } from '../../utils/media.js';
 import { Timer } from '../../utils/timer.js';
 import { dispatchViewContextChangeEvent, View } from '../../view/view.js';
 import { EmblaCarouselPlugins } from '../carousel.js';
-import { dispatchErrorMessageEvent, dispatchMessageEvent } from '../message.js';
+import { renderMessage } from '../message.js';
 import '../next-prev-control.js';
 import '../surround.js';
 import '../title-control.js';
@@ -65,6 +63,7 @@ import {
   getDefaultTitleConfigForView,
   showTitleControlAfterDelay,
 } from '../title-control.js';
+import { getStateObjOrDispatchError } from '../../utils/get-state-obj.js';
 
 interface LiveViewContext {
   // A cameraID override (used for dependencies/substreams to force a different
@@ -84,44 +83,6 @@ interface LastMediaLoadedInfo {
 }
 
 const FRIGATE_CARD_LIVE_PROVIDER = 'frigate-card-live-provider';
-
-/**
- * Get the state object or dispatch an error. Used in `ha` and `image` live
- * providers.
- * @param element HTMLElement to dispatch errors from.
- * @param hass Home Assistant object.
- * @param cameraConfig Camera configuration.
- * @returns
- */
-export const getStateObjOrDispatchError = (
-  element: HTMLElement,
-  hass: HomeAssistant,
-  cameraConfig?: CameraConfig,
-): HassEntity | null => {
-  if (!cameraConfig?.camera_entity) {
-    dispatchErrorMessageEvent(element, localize('error.no_live_camera'), {
-      context: cameraConfig,
-    });
-    return null;
-  }
-
-  const stateObj = hass.states[cameraConfig.camera_entity];
-  if (!stateObj) {
-    dispatchErrorMessageEvent(element, localize('error.live_camera_not_found'), {
-      context: cameraConfig,
-    });
-    return null;
-  }
-
-  if (stateObj.state === 'unavailable') {
-    dispatchMessageEvent(element, localize('error.live_camera_unavailable'), 'info', {
-      icon: 'mdi:connection',
-      context: cameraConfig,
-    });
-    return null;
-  }
-  return stateObj;
-};
 
 @customElement('frigate-card-live')
 export class FrigateCardLive extends LitElement {
@@ -976,6 +937,24 @@ export class FrigateCardLiveProvider
     const providerClasses = {
       hidden: showImageDuringLoading,
     };
+
+    if (provider === 'ha' || provider === 'image') {
+      const stateObj = getStateObjOrDispatchError(this, this.hass, this.cameraConfig);
+      if (!stateObj) {
+        return;
+      }
+      if (stateObj.state === 'unavailable') {
+        // An unavailable camera gets a message rendered in place vs dispatched,
+        // as this may be a common occurrence (e.g. Frigate cameras that stop
+        // receiving frames). Otherwise a single temporarily unavailable camera
+        // would render a whole carousel inoperable.
+        return renderMessage({
+          message: localize('error.live_camera_unavailable'),
+          type: 'error',
+          context: this.cameraConfig,
+        });
+      }
+    }
 
     return this._useZoomIfRequired(html`
       ${showImageDuringLoading || provider === 'image'
