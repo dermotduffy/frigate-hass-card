@@ -60,6 +60,7 @@ export class FrigateCardCarousel extends LitElement {
     // plugins (which may have registered event handlers) to also be destroyed.
     // The carousel will automatically reconstruct if the component is re-rendered.
     this._carousel?.destroy();
+    this._carousel = null;
     super.disconnectedCallback();
   }
 

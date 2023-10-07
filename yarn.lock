@@ -2630,10 +2630,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"embla-carousel@npm:8.0.0-rc12":
-  version: 8.0.0-rc12
-  resolution: "embla-carousel@npm:8.0.0-rc12"
-  checksum: 553f33f562458d7fd0cd4eff1db96ac3a02352b620705d892eb3d9a297924fa12fedaf5a5aa03418dd41905ce80997a99f8aeca955d024d5a49a56f5c7fbe63b
+"embla-carousel@npm:8.0.0-rc14":
+  version: 8.0.0-rc14
+  resolution: "embla-carousel@npm:8.0.0-rc14"
+  checksum: 48f6b7420fbb5c6800e84fb15f37fbd9b2b951b36a3f30ff66ee6121d7e722bf6bc28bd986a83136651f216940ca8e472d569774e74bf2ed01e4f8e349f74289
   languageName: node
   linkType: hard
 
@@ -3346,7 +3346,7 @@ __metadata:
     custom-card-helpers: ^1.9.0
     date-fns: ^2.29.2
     date-fns-tz: ^1.3.7
-    embla-carousel: 8.0.0-rc12
+    embla-carousel: 8.0.0-rc14
     embla-carousel-wheel-gestures: 8.0.0-rc04
     eslint: ^8.23.0
     eslint-config-airbnb-base: ^15.0.0
