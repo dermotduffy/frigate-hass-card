@@ -774,6 +774,7 @@ const microphoneConfigSchema = z
 export type MicrophoneConfig = z.infer<typeof microphoneConfigSchema>;
 
 const go2rtcConfigSchema = z.object({
+  url: z.string().optional(),
   modes: z.enum(['webrtc', 'mse', 'mp4', 'mjpeg']).array().optional(),
   stream: z.string().optional(),
 });

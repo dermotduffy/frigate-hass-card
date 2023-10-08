@@ -1148,16 +1148,22 @@ export class FrigateCameraManagerEngine
     };
 
     const getGo2RTC = (): CameraEndpoint | null => {
-      return {
-        endpoint:
-          `/api/frigate/${cameraConfig.frigate.client_id}` +
-          // go2rtc is exposed by the integration under the (slightly
+      const stream = cameraConfig.go2rtc?.stream ?? cameraConfig.frigate.camera_name;
+      const url = cameraConfig.go2rtc?.url
+        ? cameraConfig.go2rtc.url.replace(/\/+$/, '')
+        : null;
+      const endpoint = url
+        ? `${url}/api/ws?src=${stream}`
+        : // go2rtc is exposed by the integration under the (slightly
           // misleading) 'mse' path, even though that path can serve all go2rtc
           // modes.
-          `/mse/api/ws?src=${
-            cameraConfig.go2rtc?.stream ?? cameraConfig.frigate.camera_name
-          }`,
-        sign: true,
+          `/api/frigate/${cameraConfig.frigate.client_id}/mse/api/ws?src=${stream}`;
+
+      return {
+        endpoint: endpoint,
+
+        // Only sign the endpoint if it's local to HA.
+        sign: endpoint.startsWith('/'),
       };
     };
 
