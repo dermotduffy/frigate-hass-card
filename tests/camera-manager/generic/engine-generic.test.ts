@@ -192,8 +192,20 @@ describe('GenericCameraManagerEngine', () => {
       expect(
         createEngine().getCameraMetadata(createHASS(), createGenericCameraConfig()),
       ).toEqual({
-        icon: 'mdi:bookmark',
+        icon: 'mdi:video',
         title: '',
+      });
+    });
+
+    it('with id', async () => {
+      expect(
+        createEngine().getCameraMetadata(
+          createHASS(),
+          createGenericCameraConfig({ id: 'https://go2rtc#stream' }),
+        ),
+      ).toEqual({
+        icon: 'mdi:video',
+        title: 'https://go2rtc#stream',
       });
     });
 
@@ -206,7 +218,7 @@ describe('GenericCameraManagerEngine', () => {
           }),
         ),
       ).toEqual({
-        icon: 'mdi:bookmark',
+        icon: 'mdi:video',
         title: 'My Camera',
       });
     });
@@ -225,7 +237,7 @@ describe('GenericCameraManagerEngine', () => {
             }),
           ),
         ).toEqual({
-          icon: 'mdi:bookmark',
+          icon: 'mdi:video',
           title: 'My Entity Camera',
         });
       });
@@ -245,7 +257,7 @@ describe('GenericCameraManagerEngine', () => {
             }),
           ),
         ).toEqual({
-          icon: 'mdi:bookmark',
+          icon: 'mdi:video',
           title: 'My Entity Camera',
         });
       });

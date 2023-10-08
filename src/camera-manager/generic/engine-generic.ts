@@ -31,7 +31,7 @@ import {
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
 } from '../types';
-import { getDefaultGo2RTCEndpoint } from '../utils.js';
+import { getCameraEntityFromConfig, getDefaultGo2RTCEndpoint } from '../utils.js';
 
 export class GenericCameraManagerEngine implements CameraManagerEngine {
   public getEngineType(): Engine {
@@ -159,6 +159,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     hass: HomeAssistant,
     cameraConfig: CameraConfig,
   ): CameraManagerCameraMetadata {
+    const cameraEntity = getCameraEntityFromConfig(cameraConfig);
     return {
       title:
         cameraConfig.title ??
@@ -166,7 +167,9 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
         getEntityTitle(hass, cameraConfig.webrtc_card?.entity) ??
         cameraConfig.id ??
         '',
-      icon: cameraConfig?.icon ?? getEntityIcon(hass, cameraConfig.camera_entity),
+      icon:
+        cameraConfig?.icon ??
+        (cameraEntity ? getEntityIcon(hass, cameraEntity, 'mdi:video') : 'mdi:video'),
     };
   }
 

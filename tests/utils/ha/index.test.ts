@@ -1,7 +1,10 @@
 import { HomeAssistant } from 'custom-card-helpers';
 import { describe, expect, it } from 'vitest';
-import { hasHAConnectionStateChanged } from '../../../src/utils/ha/index.js';
-import { createHASS } from '../../test-utils.js';
+import {
+  getEntityIcon,
+  hasHAConnectionStateChanged,
+} from '../../../src/utils/ha/index.js';
+import { createHASS, createStateEntity } from '../../test-utils.js';
 
 const createConnected = (connected: boolean): HomeAssistant => {
   const hass = createHASS();
@@ -41,5 +44,26 @@ describe('hasHAConnectionStateChanged', () => {
   });
   it('still absent', () => {
     expect(hasHAConnectionStateChanged(null, null)).toBeFalsy();
+  });
+});
+
+describe('getEntityIcon', () => {
+  it('should get icon from attributes', () => {
+    expect(
+      getEntityIcon(
+        createHASS({
+          'camera.test': createStateEntity({
+            attributes: {
+              icon: 'mdi:cow',
+            },
+          }),
+        }),
+        'camera.test',
+      ),
+    ).toBe('mdi:cow');
+  });
+
+  it('should get icon from domain', () => {
+    expect(getEntityIcon(createHASS(), 'camera.test')).toBe('mdi:video');
   });
 });
