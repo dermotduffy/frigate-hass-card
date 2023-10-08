@@ -177,8 +177,8 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 |Engine / Live Provider|`ha`|`image`|`jsmpeg`|`go2rtc`|`webrtc-card`|
 | - | - | - | - | - | - |
 |`frigate`| :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-|`generic`| :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | :white_check_mark: |
-|`motioneye`| :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: |
+|`generic`| :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: | :white_check_mark: | :white_check_mark: |
+|`motioneye`| :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: | :white_check_mark: | :heavy_multiplication_x: |
 
 <a name="camera-frigate-configuration"></a>
 
@@ -250,7 +250,7 @@ cameras:
 | - | - | - | - |
 | `modes` | `[webrtc, mse, mp4, mjpeg]` | :white_check_mark: | An ordered array of `go2rtc` modes to use. Valid values are `webrtc`, `mse`, `mp4` or `mjpeg` values. |
 | `stream` | Determined by camera engine (e.g. `frigate` camera name). | :white_check_mark: | A valid `go2rtc` stream name. |
-| `url` | Determined by camera engine (e.g. the `frigate` engine will automatically generate a URL for the go2rtc backend that runs in the Frigate container). | :white_check_mark: | The root `go2rtc` backend URL the card should stream the video from. This will only need to be set in advanced cases -- for the vast majority of people the default will work. Example: `http://my-custom-go2rtc:1984` |
+| `url` | Determined by camera engine (e.g. the `frigate` engine will automatically generate a URL for the go2rtc backend that runs in the Frigate container). | :white_check_mark: | The root `go2rtc` URL the card should stream the video from. This is only needed for advanced usecases. Example: `http://my-custom-go2rtc:1984` |
 
 #### Live Provider: Camera WebRTC Card configuration
 

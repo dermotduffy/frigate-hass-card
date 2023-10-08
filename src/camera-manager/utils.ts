@@ -8,6 +8,7 @@ import uniqBy from 'lodash-es/uniqBy';
 import { CameraConfig } from '../config/types';
 import { ViewMedia } from '../view/media';
 import { DateRange } from './range';
+import { CameraEndpoint } from './types';
 
 export const convertRangeToCacheFriendlyTimes = (
   range: DateRange,
@@ -57,4 +58,27 @@ export const sortMedia = (mediaArray: ViewMedia[]): ViewMedia[] => {
 
 export const getCameraEntityFromConfig = (cameraConfig: CameraConfig): string | null => {
   return cameraConfig.camera_entity ?? cameraConfig.webrtc_card?.entity ?? null;
+};
+
+export const getDefaultGo2RTCEndpoint = (
+  cameraConfig: CameraConfig,
+  options?: {
+    url?: string;
+    stream?: string;
+  },
+): CameraEndpoint | null => {
+  const url = options?.url ?? cameraConfig.go2rtc?.url;
+  const stream = options?.stream ?? cameraConfig.go2rtc?.stream;
+
+  if (!url || !stream) {
+    return null;
+  }
+  const endpoint = `${url}/api/ws?src=${stream}`;
+
+  return {
+    endpoint: endpoint,
+
+    // Only sign the endpoint if it's local to HA.
+    sign: endpoint.startsWith('/'),
+  };
 };

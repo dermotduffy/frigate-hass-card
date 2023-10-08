@@ -3,10 +3,11 @@ import {
   capEndDate,
   convertRangeToCacheFriendlyTimes,
   getCameraEntityFromConfig,
+  getDefaultGo2RTCEndpoint,
   sortMedia,
-} from '../../src/camera-manager/util.js';
+} from '../../src/camera-manager/utils.js';
 import { CameraConfig, cameraConfigSchema } from '../../src/config/types.js';
-import { TestViewMedia } from '../test-utils.js';
+import { TestViewMedia, createCameraConfig } from '../test-utils.js';
 
 describe('convertRangeToCacheFriendlyTimes', () => {
   it('should return cache friendly within hour range', () => {
@@ -132,5 +133,43 @@ describe('getCameraEntityFromConfig', () => {
   });
   it('should get no camera_entity', () => {
     expect(getCameraEntityFromConfig(createCameraConfig({}))).toBeNull();
+  });
+});
+
+describe('getDefaultGo2RTCEndpoint', () => {
+  it('with local configuration', () => {
+    expect(
+      getDefaultGo2RTCEndpoint(
+        createCameraConfig({
+          go2rtc: {
+            stream: 'stream',
+            url: '/local/path',
+          },
+        }),
+      ),
+    ).toEqual({
+      endpoint: '/local/path/api/ws?src=stream',
+      sign: true,
+    });
+  });
+
+  it('with remote configuration', () => {
+    expect(
+      getDefaultGo2RTCEndpoint(
+        createCameraConfig({
+          go2rtc: {
+            stream: 'stream',
+            url: 'https://my-custom-go2rtc',
+          },
+        }),
+      ),
+    ).toEqual({
+      endpoint: 'https://my-custom-go2rtc/api/ws?src=stream',
+      sign: false,
+    });
+  });
+
+  it('without configuration', () => {
+    expect(getDefaultGo2RTCEndpoint(createCameraConfig())).toBeNull();
   });
 });

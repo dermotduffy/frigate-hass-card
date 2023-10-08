@@ -10,7 +10,7 @@ import { MemoryRequestCache, RecordingSegmentsCache, RequestCache } from './cach
 import { CameraManagerEngine } from './engine';
 import { CameraInitializationError } from './error';
 import { Engine } from './types';
-import { getCameraEntityFromConfig } from './util';
+import { getCameraEntityFromConfig } from './utils';
 
 export class CameraManagerEngineFactory {
   protected _entityRegistryManager: EntityRegistryManager;

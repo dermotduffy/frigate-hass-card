@@ -3,12 +3,12 @@ import add from 'date-fns/add';
 import cloneDeep from 'lodash-es/cloneDeep';
 import merge from 'lodash-es/merge.js';
 import sum from 'lodash-es/sum';
+import { CardCameraAPI } from '../card-controller/types.js';
 import { CameraConfig, CamerasConfig } from '../config/types.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
 import { localize } from '../localize/localize.js';
 import { allPromises, arrayify, setify } from '../utils/basic.js';
 import { getCameraID } from '../utils/camera.js';
-import { CardCameraAPI } from '../card-controller/types.js';
 import { log } from '../utils/debug.js';
 import { EntityRegistryManager } from '../utils/ha/entity-registry/index.js';
 import { ViewMedia } from '../view/media.js';
@@ -51,7 +51,7 @@ import {
   RecordingSegmentsQueryResultsMap,
   ResultsMap,
 } from './types.js';
-import { sortMedia } from './util.js';
+import { sortMedia } from './utils.js';
 
 class QueryClassifier {
   public static isEventQuery(query: DataQuery | PartialDataQuery): query is EventQuery {

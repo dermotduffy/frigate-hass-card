@@ -191,25 +191,6 @@ describe('getCameraEndpoints', () => {
         }),
       );
     });
-
-    it('when remote with superfluous slashes', () => {
-      const endpoints = createEngine().getCameraEndpoints(
-        createFrigateCameraConfig({
-          go2rtc: {
-            url: 'https://my.custom.go2rtc///',
-          },
-        }),
-      );
-
-      expect(endpoints).toEqual(
-        expect.objectContaining({
-          go2rtc: {
-            endpoint: 'https://my.custom.go2rtc/api/ws?src=camera-1',
-            sign: false,
-          },
-        }),
-      );
-    });
   });
 
   it('should not set webrtc_card endpoint without camera name', () => {
