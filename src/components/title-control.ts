@@ -3,34 +3,10 @@ import { customElement, property } from 'lit/decorators.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { TitleControlConfig } from '../config/types';
 import titleStyle from '../scss/title-control.scss';
-import { Timer } from '../utils/timer';
 import { View } from '../view/view.js';
 
 type PaperToast = HTMLElement & {
   opened: boolean;
-};
-
-export const showTitleControlAfterDelay = (
-  control: FrigateCardTitleControl,
-  timer: Timer,
-  delay = 0.5,
-): void => {
-  const show = () => {
-    timer.stop();
-    control.show();
-  };
-
-  if (control.isVisible()) {
-    // If it's already visible, update it immediately (but also update it
-    // after the timer expires to ensure it re-positions if necessary, see
-    // comment below).
-    show();
-  }
-
-  // Allow a brief pause after the media loads, but before the title is
-  // displayed. This allows for a pleasant appearance/disappear of the title,
-  // and allows for the browser to finish rendering the carousel.
-  timer.start(delay, show);
 };
 
 export const getDefaultTitleConfigForView = (

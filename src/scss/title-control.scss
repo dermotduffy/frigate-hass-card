@@ -1,8 +1,9 @@
 :host {
-  --paper-toast-background-color: rgba(0,0,0,0.6);
+  --paper-toast-background-color: rgba(0, 0, 0, 0.6);
   --paper-toast-color: white;
 
   pointer-events: none;
+  position: relative;
 }
 
 paper-toast {
@@ -10,6 +11,16 @@ paper-toast {
   min-width: unset;
   display: flex;
   align-items: center;
+
+  // Without this the paper-toast will consume vertical space before being
+  // opened, which causes the card to render blank space needlessly. It also
+  // won't work with 'display: none', it appears to need something with
+  // width/height properties even before being opened.
+  position: absolute;
+}
+
+paper-toast.paper-toast-open {
+  position: relative;
 }
 
 paper-toast img {

@@ -4107,9 +4107,9 @@ See [screenshot above](#screenshots-card-casting).
 
 <a name="v4-troubleshooting"></a>
 
-### v4 doesn't show recordings / clips
+### Small circular logo/watermark continually shown on livestream
 
-You must be using a version of the [Frigate integration](https://github.com/blakeblackshear/frigate-hass-integration) >= 3.0.0-rc.2 to see recordings. Using an older version of the integration may also show blank thumbnails in the events viewer. Please upgrade your integration accordingly.
+If the `live.show_image_during_load` option is enabled (the default), a temporary image from Home Assistant is rendered and refreshed every `1s` while the full stream is loading. When this temporary image is being shown, a small circular icon is rendered on the top-right of the livestream to indicate to the user that this is not the true stream. If the icon persists, it means your underlying stream is not actually loading and may be misconfigured / broken.
 
 ### `Forbidden media source identifier`
 
