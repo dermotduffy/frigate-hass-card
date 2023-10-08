@@ -10,7 +10,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { CameraEndpoints } from '../../camera-manager/types.js';
 import { CameraConfig, MicrophoneConfig } from '../../config/types.js';
 import { localize } from '../../localize/localize';
-import liveMSEStyle from '../../scss/live-go2rtc.scss';
+import liveGo2RTCStyle from '../../scss/live-go2rtc.scss';
 import { ExtendedHomeAssistant, FrigateCardMediaPlayer } from '../../types.js';
 import { getEndpointAddressOrDispatchError } from '../../utils/endpoint';
 import { setControlsOnVideo } from '../../utils/media.js';
@@ -167,7 +167,7 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
   }
 
   static get styles(): CSSResultGroup {
-    return unsafeCSS(liveMSEStyle);
+    return unsafeCSS(liveGo2RTCStyle);
   }
 }
 

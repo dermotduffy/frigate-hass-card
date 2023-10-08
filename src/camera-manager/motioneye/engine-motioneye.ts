@@ -384,8 +384,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
 
   public getCameraEndpoints(
     cameraConfig: CameraConfig,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _context?: CameraEndpointsContext,
+    context?: CameraEndpointsContext,
   ): CameraEndpoints | null {
     const getUIEndpoint = (): CameraEndpoint | null => {
       return cameraConfig.motioneye?.url
@@ -394,9 +393,9 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
           }
         : null;
     };
-
     const ui = getUIEndpoint();
     return {
+      ...super.getCameraEndpoints(cameraConfig, context),
       ...(ui && { ui: ui }),
     };
   }

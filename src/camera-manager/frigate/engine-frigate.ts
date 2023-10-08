@@ -62,7 +62,7 @@ import {
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
 } from '../types';
-import { getCameraEntityFromConfig } from '../util';
+import { getCameraEntityFromConfig, getDefaultGo2RTCEndpoint } from '../utils.js';
 import frigateLogo from './assets/frigate-logo-dark.svg';
 import { FrigateViewMediaFactory } from './media';
 import { FrigateViewMediaClassifier } from './media-classifier';
@@ -1147,20 +1147,6 @@ export class FrigateCameraManagerEngine
       };
     };
 
-    const getGo2RTC = (): CameraEndpoint | null => {
-      return {
-        endpoint:
-          `/api/frigate/${cameraConfig.frigate.client_id}` +
-          // go2rtc is exposed by the integration under the (slightly
-          // misleading) 'mse' path, even though that path can serve all go2rtc
-          // modes.
-          `/mse/api/ws?src=${
-            cameraConfig.go2rtc?.stream ?? cameraConfig.frigate.camera_name
-          }`,
-        sign: true,
-      };
-    };
-
     const getJSMPEG = (): CameraEndpoint | null => {
       return {
         endpoint:
@@ -1183,11 +1169,20 @@ export class FrigateCameraManagerEngine
     };
 
     const ui = getUIEndpoint();
-    const go2rtc = getGo2RTC();
+    const go2rtc = getDefaultGo2RTCEndpoint(cameraConfig, {
+      url:
+        cameraConfig.go2rtc?.url ??
+        // go2rtc is exposed by the Frigate integration under the (slightly
+        // misleading) 'mse' path, even though that path can serve all go2rtc
+        // modes.
+        `/api/frigate/${cameraConfig.frigate.client_id}/mse`,
+      stream: cameraConfig.go2rtc?.stream ?? cameraConfig.frigate.camera_name,
+    });
     const jsmpeg = getJSMPEG();
     const webrtcCard = getWebRTCCard();
 
     return {
+      ...super.getCameraEndpoints(cameraConfig, context),
       ...(ui && { ui: ui }),
       ...(go2rtc && { go2rtc: go2rtc }),
       ...(jsmpeg && { jsmpeg: jsmpeg }),

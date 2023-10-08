@@ -29,7 +29,7 @@ import {
 import { CameraManager } from '../camera-manager/manager';
 import { rangesOverlap } from '../camera-manager/range';
 import { MediaQuery } from '../camera-manager/types';
-import { convertRangeToCacheFriendlyTimes } from '../camera-manager/util';
+import { convertRangeToCacheFriendlyTimes } from '../camera-manager/utils';
 import {
   FrigateCardTimelineItem,
   TimelineDataSource,

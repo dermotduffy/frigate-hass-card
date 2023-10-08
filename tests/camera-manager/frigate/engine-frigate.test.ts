@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { RecordingSegmentsCache, RequestCache } from '../../../src/camera-manager/cache';
 import { FrigateCameraManagerEngine } from '../../../src/camera-manager/frigate/engine-frigate';
 import {
@@ -6,9 +6,13 @@ import {
   FrigateRecordingViewMedia,
 } from '../../../src/camera-manager/frigate/media';
 import { FrigateEvent, eventSchema } from '../../../src/camera-manager/frigate/types.js';
-import { CameraConfig, RawFrigateCardConfig } from '../../../src/config/types';
+import {
+  CameraConfig,
+  FrigateCardView,
+  RawFrigateCardConfig,
+} from '../../../src/config/types';
 import { ViewMedia } from '../../../src/view/media';
-import { createCameraConfig, createHASS } from '../../test-utils';
+import { TestViewMedia, createCameraConfig, createHASS } from '../../test-utils';
 
 const createEngine = (): FrigateCameraManagerEngine => {
   return new FrigateCameraManagerEngine(
@@ -80,8 +84,6 @@ const createFrigateCameraConfig = (config?: RawFrigateCardConfig): CameraConfig 
 };
 
 describe('getMediaDownloadPath', () => {
-  afterEach(() => {});
-
   it('should get event with clip download path', async () => {
     const endpoint = await createEngine().getMediaDownloadPath(
       createHASS(),
@@ -129,5 +131,264 @@ describe('getMediaDownloadPath', () => {
       new ViewMedia('clip', 'camera-1'),
     );
     expect(endpoint).toBeNull();
+  });
+});
+
+describe('getCameraEndpoints', () => {
+  it('should get basic endpoints', () => {
+    const endpoints = createEngine().getCameraEndpoints(createFrigateCameraConfig());
+
+    expect(endpoints).toEqual({
+      go2rtc: {
+        endpoint: '/api/frigate/frigate/mse/api/ws?src=camera-1',
+        sign: true,
+      },
+      jsmpeg: {
+        endpoint: '/api/frigate/frigate/jsmpeg/camera-1',
+        sign: true,
+      },
+      webrtcCard: {
+        endpoint: 'camera-1',
+      },
+    });
+  });
+
+  describe('should get overridden go2rtc url', () => {
+    it('when local HA path', () => {
+      const endpoints = createEngine().getCameraEndpoints(
+        createFrigateCameraConfig({
+          go2rtc: {
+            url: '/local/path',
+          },
+        }),
+      );
+
+      expect(endpoints).toEqual(
+        expect.objectContaining({
+          go2rtc: {
+            endpoint: '/local/path/api/ws?src=camera-1',
+            sign: true,
+          },
+        }),
+      );
+    });
+
+    it('when remote', () => {
+      const endpoints = createEngine().getCameraEndpoints(
+        createFrigateCameraConfig({
+          go2rtc: {
+            url: 'https://my.custom.go2rtc',
+          },
+        }),
+      );
+
+      expect(endpoints).toEqual(
+        expect.objectContaining({
+          go2rtc: {
+            endpoint: 'https://my.custom.go2rtc/api/ws?src=camera-1',
+            sign: false,
+          },
+        }),
+      );
+    });
+  });
+
+  it('should not set webrtc_card endpoint without camera name', () => {
+    const endpoints = createEngine().getCameraEndpoints(createCameraConfig());
+
+    expect(endpoints).not.toEqual(
+      expect.objectContaining({
+        webrtcCard: expect.anything(),
+      }),
+    );
+  });
+
+  describe('should include UI endpoint', () => {
+    it('with basic url', () => {
+      const endpoints = createEngine().getCameraEndpoints(
+        createCameraConfig({
+          frigate: {
+            url: 'http://my.frigate',
+          },
+        }),
+      );
+
+      expect(endpoints).not.toEqual(
+        expect.objectContaining({
+          ui: {
+            url: 'http://my.frigate',
+          },
+        }),
+      );
+    });
+
+    it('with camera name', () => {
+      const endpoints = createEngine().getCameraEndpoints(
+        createCameraConfig({
+          frigate: {
+            url: 'http://my.frigate',
+            camera_name: 'my-camera',
+          },
+        }),
+      );
+
+      expect(endpoints).not.toEqual(
+        expect.objectContaining({
+          ui: {
+            url: 'http://my.frigate/cameras/my-camera',
+          },
+        }),
+      );
+    });
+
+    describe('with event media type', () => {
+      it.each([['clip' as const], ['snapshot' as const]])(
+        '%s',
+        (mediaType: 'clip' | 'snapshot') => {
+          const endpoints = createEngine().getCameraEndpoints(
+            createCameraConfig({
+              frigate: {
+                url: 'http://my.frigate',
+                camera_name: 'my-camera',
+              },
+            }),
+            {
+              media: new TestViewMedia({ mediaType: mediaType }),
+            },
+          );
+
+          expect(endpoints).not.toEqual(
+            expect.objectContaining({
+              ui: {
+                url: 'http://my.frigate/events?camera=my-camera',
+              },
+            }),
+          );
+        },
+      );
+    });
+
+    describe('with recording media type', () => {
+      it('with start time', () => {
+        const startTime = new Date('2023-10-07T16:42:00');
+        const endpoints = createEngine().getCameraEndpoints(
+          createCameraConfig({
+            frigate: {
+              url: 'http://my.frigate',
+              camera_name: 'my-camera',
+            },
+          }),
+          {
+            media: new TestViewMedia({ mediaType: 'recording', startTime: startTime }),
+          },
+        );
+
+        expect(endpoints).not.toEqual(
+          expect.objectContaining({
+            ui: {
+              url: 'http://my.frigate/recording/my-camera/2023-10-07/16',
+            },
+          }),
+        );
+      });
+
+      it('without start time', () => {
+        const endpoints = createEngine().getCameraEndpoints(
+          createCameraConfig({
+            frigate: {
+              url: 'http://my.frigate',
+              camera_name: 'my-camera',
+            },
+          }),
+          {
+            media: new TestViewMedia({ mediaType: 'recording' }),
+          },
+        );
+
+        expect(endpoints).not.toEqual(
+          expect.objectContaining({
+            ui: {
+              url: 'http://my.frigate/recording/my-camera/',
+            },
+          }),
+        );
+      });
+    });
+
+    describe('with view', () => {
+      it('live', () => {
+        const endpoints = createEngine().getCameraEndpoints(
+          createCameraConfig({
+            frigate: {
+              url: 'http://my.frigate',
+              camera_name: 'my-camera',
+            },
+          }),
+          {
+            view: 'live',
+          },
+        );
+
+        expect(endpoints).not.toEqual(
+          expect.objectContaining({
+            ui: {
+              url: 'http://my.frigate/cameras/my-camera',
+            },
+          }),
+        );
+      });
+
+      it.each([
+        ['clip' as const],
+        ['clips' as const],
+        ['snapshot' as const],
+        ['snapshots' as const],
+      ])('%s', (viewName: FrigateCardView) => {
+        const endpoints = createEngine().getCameraEndpoints(
+          createCameraConfig({
+            frigate: {
+              url: 'http://my.frigate',
+              camera_name: 'my-camera',
+            },
+          }),
+          {
+            view: viewName,
+          },
+        );
+
+        expect(endpoints).not.toEqual(
+          expect.objectContaining({
+            ui: {
+              url: 'http://my.frigate/events?camera=my-camera',
+            },
+          }),
+        );
+      });
+
+      it.each([['recording' as const], ['recordings' as const]])(
+        '%s',
+        (viewName: FrigateCardView) => {
+          const endpoints = createEngine().getCameraEndpoints(
+            createCameraConfig({
+              frigate: {
+                url: 'http://my.frigate',
+                camera_name: 'my-camera',
+              },
+            }),
+            {
+              view: viewName,
+            },
+          );
+
+          expect(endpoints).not.toEqual(
+            expect.objectContaining({
+              ui: {
+                url: 'http://my.frigate/recording/my-camera/',
+              },
+            }),
+          );
+        },
+      );
+    });
   });
 });

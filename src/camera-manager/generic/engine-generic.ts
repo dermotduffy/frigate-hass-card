@@ -31,6 +31,7 @@ import {
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
 } from '../types';
+import { getDefaultGo2RTCEndpoint } from '../utils.js';
 
 export class GenericCameraManagerEngine implements CameraManagerEngine {
   public getEngineType(): Engine {
@@ -165,10 +166,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
         getEntityTitle(hass, cameraConfig.webrtc_card?.entity) ??
         cameraConfig.id ??
         '',
-      icon:
-        cameraConfig?.icon ??
-        getEntityIcon(hass, cameraConfig.camera_entity) ??
-        'mdi:video',
+      icon: cameraConfig?.icon ?? getEntityIcon(hass, cameraConfig.camera_entity),
     };
   }
 
@@ -191,9 +189,14 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
   }
 
   public getCameraEndpoints(
-    _cameraConfig: CameraConfig,
+    cameraConfig: CameraConfig,
     _context?: CameraEndpointsContext,
   ): CameraEndpoints | null {
-    return null;
+    const go2rtc = getDefaultGo2RTCEndpoint(cameraConfig);
+    return go2rtc
+      ? {
+          go2rtc: go2rtc,
+        }
+      : null;
   }
 }

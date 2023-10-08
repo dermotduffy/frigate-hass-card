@@ -435,3 +435,17 @@ it('should not require title controls to specify all options', () => {
     }),
   ).toBeTruthy();
 });
+
+it('should strip trailing slashes from go2rtc url', () => {
+  const config = createConfig({
+    cameras: [
+      {
+        go2rtc: {
+          url: 'https://my-custom-go2rtc//',
+        },
+      },
+    ],
+  });
+  expect(config).toBeTruthy();
+  expect(config.cameras[0].go2rtc.url).toBe('https://my-custom-go2rtc');
+});
