@@ -1,4 +1,4 @@
-import { computeStateDomain, HomeAssistant } from 'custom-card-helpers';
+import { computeDomain, computeStateDomain, HomeAssistant } from 'custom-card-helpers';
 import { HassEntity, MessageBase } from 'home-assistant-js-websocket';
 import { StyleInfo } from 'lit/directives/style-map.js';
 import { ZodSchema } from 'zod';
@@ -11,7 +11,7 @@ import {
   signedPathSchema,
   StateParameters,
 } from '../../types.js';
-import { stateIcon } from '../icons/state-icon.js';
+import { domainIcon } from '../icons/domain-icon.js';
 import { getParseErrorKeys } from '../zod.js';
 
 /**
@@ -234,7 +234,7 @@ export function refreshDynamicStateParameters(
     params.style = { ...computeStyle(state), ...params.style };
   }
   params.title = params.title ?? (state?.attributes?.friendly_name || params.entity);
-  params.icon = params.icon ?? stateIcon(state);
+  params.icon = params.icon ?? getEntityIcon(hass, params.entity);
 
   const domain = state ? computeStateDomain(state) : undefined;
   params.data_domain =
@@ -262,12 +262,25 @@ export function getEntityTitle(
 
 /**
  * Get the icon of an entity.
- * @param entity The entity id.
+ * @param entityID The entity id.
  * @param hass The Home Assistant object.
  * @returns The icon or undefined.
  */
-export function getEntityIcon(hass?: HomeAssistant, entity?: string): string {
-  return stateIcon(entity ? hass?.states[entity] : null);
+export function getEntityIcon(
+  hass: HomeAssistant,
+  entityID: string,
+  defaultIcon?: string,
+): string {
+  const entityState = hass.states[entityID];
+  if (entityState && entityState.attributes.icon) {
+    return entityState.attributes.icon;
+  }
+  return domainIcon(
+    computeDomain(entityID),
+    entityState,
+    entityState?.state,
+    defaultIcon,
+  );
 }
 
 /**

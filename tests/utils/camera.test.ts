@@ -20,6 +20,14 @@ describe('getCameraID', () => {
     const config = createCameraConfig({ webrtc_card: { entity: 'foo' } });
     expect(getCameraID(config)).toBe('foo');
   });
+  it('should get camera id with webrtc url', () => {
+    const config = createCameraConfig({ webrtc_card: { url: 'foo' } });
+    expect(getCameraID(config)).toBe('foo');
+  });
+  it('should get camera id with go2rtc url and stream', () => {
+    const config = createCameraConfig({ go2rtc: { url: 'https://foo', stream: 'office' } });
+    expect(getCameraID(config)).toBe('https://foo#office');
+  });
   it('should get camera id with frigate camera_name', () => {
     const config = createCameraConfig({
       frigate: { client_id: 'bar', camera_name: 'foo' },

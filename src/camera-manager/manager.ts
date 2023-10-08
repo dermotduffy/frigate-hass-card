@@ -259,6 +259,9 @@ export class CameraManager {
         );
       }
 
+      // Always ensure the actual ID used in the card is in the configuration itself.
+      result.initializedConfig.id = id;
+
       this._store.addCamera(id, result.initializedConfig, result.engine);
     });
 

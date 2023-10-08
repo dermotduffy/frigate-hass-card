@@ -96,6 +96,11 @@ export class CameraManagerEngineFactory {
         // Frigate technically does not need an entity, if the camera name is
         // manually set the camera is assumed to be Frigate.
         engine = Engine.Frigate;
+      } else if (
+        cameraConfig.webrtc_card?.url ||
+        (cameraConfig.go2rtc?.url && cameraConfig.go2rtc?.stream)
+      ) {
+        engine = Engine.Generic;
       }
     }
 

@@ -29,81 +29,137 @@ const createFactory = (options?: {
   );
 };
 
-describe('CameraManagerEngineFactory.getEngineForCamera()', () => {
-  it('should get frigate engine from config', async () => {
-    const config = createCameraConfig({ engine: 'frigate' });
-    expect(await createFactory().getEngineForCamera(createHASS(), config)).toBe(
-      Engine.Frigate,
-    );
-  });
-  it('should get motionEye engine from config', async () => {
-    const config = createCameraConfig({ engine: 'motioneye' });
-    expect(await createFactory().getEngineForCamera(createHASS(), config)).toBe(
-      Engine.MotionEye,
-    );
-  });
-  it('should get generic engine from config', async () => {
-    const config = createCameraConfig({ engine: 'generic' });
-    expect(await createFactory().getEngineForCamera(createHASS(), config)).toBe(
-      Engine.Generic,
-    );
-  });
-  it('should get frigate engine from auto config', async () => {
-    const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
-    const entityRegistryManager = new EntityRegistryManager(new EntityCache());
-
-    entityRegistryManager.getEntity = vi
-      .fn()
-      .mockResolvedValue(
-        createRegistryEntity({ entity_id: 'camera.foo', platform: 'frigate' }),
+describe('getEngineForCamera()', () => {
+  describe('should get a frigate camera', () => {
+    it('from manually set engine', async () => {
+      const config = createCameraConfig({ engine: 'frigate' });
+      expect(await createFactory().getEngineForCamera(createHASS(), config)).toBe(
+        Engine.Frigate,
       );
-
-    expect(
-      await createFactory({
-        entityRegistryManager: entityRegistryManager,
-      }).getEngineForCamera(createHASS(), config),
-    ).toBe(Engine.Frigate);
-  });
-  it('should get motioneye engine from auto config', async () => {
-    const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
-    const entityRegistryManager = new EntityRegistryManager(new EntityCache());
-
-    entityRegistryManager.getEntity = vi
-      .fn()
-      .mockResolvedValue(
-        createRegistryEntity({ entity_id: 'camera.foo', platform: 'motioneye' }),
-      );
-
-    expect(
-      await createFactory({
-        entityRegistryManager: entityRegistryManager,
-      }).getEngineForCamera(createHASS(), config),
-    ).toBe(Engine.MotionEye);
-  });
-  it('should get generic engine from auto config', async () => {
-    const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
-    const entityRegistryManager = new EntityRegistryManager(new EntityCache());
-
-    entityRegistryManager.getEntity = vi
-      .fn()
-      .mockResolvedValue(
-        createRegistryEntity({ entity_id: 'camera.foo', platform: 'generic' }),
-      );
-
-    expect(
-      await createFactory({
-        entityRegistryManager: entityRegistryManager,
-      }).getEngineForCamera(createHASS(), config),
-    ).toBe(Engine.Generic);
-  });
-  it('should get frigate engine from config with camera_name', async () => {
-    const config = createCameraConfig({
-      frigate: { client_id: 'bar', camera_name: 'foo' },
     });
-    expect(await createFactory().getEngineForCamera(createHASS(), config)).toBe(
-      Engine.Frigate,
-    );
+
+    it('from auto detection', async () => {
+      const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
+      const entityRegistryManager = new EntityRegistryManager(new EntityCache());
+
+      entityRegistryManager.getEntity = vi
+        .fn()
+        .mockResolvedValue(
+          createRegistryEntity({ entity_id: 'camera.foo', platform: 'frigate' }),
+        );
+
+      expect(
+        await createFactory({
+          entityRegistryManager: entityRegistryManager,
+        }).getEngineForCamera(createHASS(), config),
+      ).toBe(Engine.Frigate);
+    });
+
+    it('from config with camera_name', async () => {
+      const config = createCameraConfig({
+        frigate: { client_id: 'bar', camera_name: 'foo' },
+      });
+      expect(await createFactory().getEngineForCamera(createHASS(), config)).toBe(
+        Engine.Frigate,
+      );
+    });
   });
+
+  describe('should get a motionEye camera', () => {
+    it('from manually set engine', async () => {
+      const config = createCameraConfig({ engine: 'motioneye' });
+      expect(await createFactory().getEngineForCamera(createHASS(), config)).toBe(
+        Engine.MotionEye,
+      );
+    });
+
+    it('from auto detection', async () => {
+      const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
+      const entityRegistryManager = new EntityRegistryManager(new EntityCache());
+
+      entityRegistryManager.getEntity = vi
+        .fn()
+        .mockResolvedValue(
+          createRegistryEntity({ entity_id: 'camera.foo', platform: 'motioneye' }),
+        );
+
+      expect(
+        await createFactory({
+          entityRegistryManager: entityRegistryManager,
+        }).getEngineForCamera(createHASS(), config),
+      ).toBe(Engine.MotionEye);
+    });
+  });
+
+  describe('should get a generic camera', () => {
+    it('from manually set engine', async () => {
+      const config = createCameraConfig({ engine: 'generic' });
+      expect(await createFactory().getEngineForCamera(createHASS(), config)).toBe(
+        Engine.Generic,
+      );
+    });
+
+    it('from auto detection', async () => {
+      const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
+      const entityRegistryManager = new EntityRegistryManager(new EntityCache());
+
+      entityRegistryManager.getEntity = vi
+        .fn()
+        .mockResolvedValue(
+          createRegistryEntity({ entity_id: 'camera.foo', platform: 'generic' }),
+        );
+
+      expect(
+        await createFactory({
+          entityRegistryManager: entityRegistryManager,
+        }).getEngineForCamera(createHASS(), config),
+      ).toBe(Engine.Generic);
+    });
+
+    it('from entity not in registry but with state', async () => {
+      const config = createCameraConfig({
+        engine: 'auto',
+        webrtc_card: { entity: 'camera.foo' },
+      });
+      const entityRegistryManager = new EntityRegistryManager(new EntityCache());
+
+      entityRegistryManager.getEntity = vi.fn().mockRejectedValue(new Error());
+
+      expect(
+        await createFactory({
+          entityRegistryManager: entityRegistryManager,
+        }).getEngineForCamera(
+          createHASS({
+            'camera.foo': createStateEntity(),
+          }),
+          config,
+        ),
+      ).toBe(Engine.Generic);
+    });
+
+    it('from webrtc-card url', async () => {
+      const config = createCameraConfig({
+        engine: 'auto',
+        webrtc_card: { url: 'camera.foo' },
+      });
+
+      expect(await createFactory().getEngineForCamera(createHASS(), config)).toBe(
+        Engine.Generic,
+      );
+    });
+
+    it('from go2rtc url and stream', async () => {
+      const config = createCameraConfig({
+        engine: 'auto',
+        go2rtc: { url: 'https://my-go2rtc', stream: 'office' },
+      });
+
+      expect(await createFactory().getEngineForCamera(createHASS(), config)).toBe(
+        Engine.Generic,
+      );
+    });
+  });
+
   it('should get no engine from config with insufficient details', async () => {
     const config = createCameraConfig({});
     expect(await createFactory().getEngineForCamera(createHASS(), config)).toBeNull();
@@ -121,41 +177,9 @@ describe('CameraManagerEngineFactory.getEngineForCamera()', () => {
       }).getEngineForCamera(createHASS(), config),
     ).rejects.toThrow();
   });
-  it('should treat entity not in registry but with state as generic', async () => {
-    const config = createCameraConfig({
-      engine: 'auto',
-      webrtc_card: { entity: 'camera.foo' },
-    });
-    const entityRegistryManager = new EntityRegistryManager(new EntityCache());
-
-    entityRegistryManager.getEntity = vi.fn().mockRejectedValue(new Error());
-
-    expect(
-      await createFactory({
-        entityRegistryManager: entityRegistryManager,
-      }).getEngineForCamera(
-        createHASS({
-          'camera.foo': createStateEntity(),
-        }),
-        config,
-      ),
-    ).toBe(Engine.Generic);
-  });
-  it('should get engine from webrtc-card configuration', async () => {
-    const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
-    const entityRegistryManager = new EntityRegistryManager(new EntityCache());
-
-    entityRegistryManager.getEntity = vi.fn().mockRejectedValue(new Error());
-
-    await expect(
-      createFactory({
-        entityRegistryManager: entityRegistryManager,
-      }).getEngineForCamera(createHASS(), config),
-    ).rejects.toThrow();
-  });
 });
 
-describe('CameraManagerEngineFactory.createEngine()', () => {
+describe('createEngine()', () => {
   it('should create generic engine', async () => {
     expect(await createFactory().createEngine(Engine.Generic)).toBeInstanceOf(
       GenericCameraManagerEngine,

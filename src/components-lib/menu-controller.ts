@@ -91,7 +91,7 @@ export class MenuButtonController {
         const action = createFrigateCardCustomAction('camera_select', {
           camera: cameraID,
         });
-        const metadata = cameraManager.getCameraMetadata(cameraID) ?? undefined;
+        const metadata = cameraManager.getCameraMetadata(cameraID);
 
         return {
           enabled: true,
