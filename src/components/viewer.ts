@@ -66,7 +66,6 @@ import {
   setControlsOnVideo,
 } from '../utils/media.js';
 import { screenshotMedia } from '../utils/screenshot.js';
-import { Timer } from '../utils/timer';
 import { ViewMediaClassifier } from '../view/media-classifier';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
 import { MediaQueriesResults } from '../view/media-queries-results.js';
@@ -79,7 +78,6 @@ import './title-control.js';
 import {
   FrigateCardTitleControl,
   getDefaultTitleConfigForView,
-  showTitleControlAfterDelay,
 } from './title-control.js';
 
 export interface MediaViewerViewContext {
@@ -227,7 +225,6 @@ export class FrigateCardViewerCarousel extends LitElement {
   protected _selected = 0;
 
   protected _media: ViewMedia[] | null = null;
-  protected _titleTimer = new Timer();
   protected _refTitleControl: Ref<FrigateCardTitleControl> = createRef();
   protected _player: FrigateCardMediaPlayer | null = null;
 
@@ -466,7 +463,7 @@ export class FrigateCardViewerCarousel extends LitElement {
         }}
         @frigate-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
           if (this._refTitleControl.value) {
-            showTitleControlAfterDelay(this._refTitleControl.value, this._titleTimer);
+            this._refTitleControl.value.show();
           }
           this._player = ev.detail.player ?? null;
           this._seekHandler();

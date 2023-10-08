@@ -3,7 +3,7 @@ import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { CameraConfig } from '../../config/types';
-import basicBlockStyle from '../../scss/basic-block.scss';
+import liveImageStyle from '../../scss/live-image.scss';
 import { FrigateCardMediaPlayer } from '../../types.js';
 import '../image.js';
 import { getStateObjOrDispatchError } from '../../utils/get-state-obj';
@@ -15,6 +15,9 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
 
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
+
+  @property({ attribute: true })
+  public watermark?: string;
 
   protected _refImage: Ref<Element & FrigateCardMediaPlayer> = createRef();
 
@@ -61,24 +64,27 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
 
     getStateObjOrDispatchError(this, this.hass, this.cameraConfig);
 
-    return html` <frigate-card-image
-      ${ref(this._refImage)}
-      .imageConfig=${{
-        mode: this.cameraConfig.image.url ? ('url' as const) : ('camera' as const),
-        refresh_seconds: this.cameraConfig.image.refresh_seconds,
-        url: this.cameraConfig.image.url,
+    return html`
+      <frigate-card-image
+        ${ref(this._refImage)}
+        .imageConfig=${{
+          mode: this.cameraConfig.image.url ? ('url' as const) : ('camera' as const),
+          refresh_seconds: this.cameraConfig.image.refresh_seconds,
+          url: this.cameraConfig.image.url,
 
-        // The live provider will take care of zoom and layout options.
-        zoomable: false,
-      }}
-      .hass=${this.hass}
-      .cameraConfig=${this.cameraConfig}
-    >
-    </frigate-card-image>`;
+          // The live provider will take care of zoom and layout options.
+          zoomable: false,
+        }}
+        .hass=${this.hass}
+        .cameraConfig=${this.cameraConfig}
+      >
+      </frigate-card-image>
+      ${this.watermark ? html`<ha-icon icon="${this.watermark}"></ha-icon>` : ''}
+    `;
   }
 
   static get styles(): CSSResultGroup {
-    return unsafeCSS(basicBlockStyle);
+    return unsafeCSS(liveImageStyle);
   }
 }
 

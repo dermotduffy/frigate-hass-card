@@ -51,7 +51,6 @@ import {
 } from '../../utils/media-info.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../../utils/media-layout.js';
 import { playMediaMutingIfNecessary } from '../../utils/media.js';
-import { Timer } from '../../utils/timer.js';
 import { dispatchViewContextChangeEvent, View } from '../../view/view.js';
 import { EmblaCarouselPlugins } from '../carousel.js';
 import { renderMessage } from '../message.js';
@@ -61,7 +60,6 @@ import '../title-control.js';
 import {
   FrigateCardTitleControl,
   getDefaultTitleConfigForView,
-  showTitleControlAfterDelay,
 } from '../title-control.js';
 import { getStateObjOrDispatchError } from '../../utils/get-state-obj.js';
 
@@ -388,7 +386,6 @@ export class FrigateCardLiveCarousel extends LitElement {
 
   // Index between camera name and slide number.
   protected _cameraToSlide: Record<string, number> = {};
-  protected _titleTimer = new Timer();
   protected _refTitleControl: Ref<FrigateCardTitleControl> = createRef();
 
   protected _getTransitionEffect(): TransitionEffect {
@@ -657,7 +654,7 @@ export class FrigateCardLiveCarousel extends LitElement {
         }}
         @frigate-card:media:loaded=${() => {
           if (this._refTitleControl.value) {
-            showTitleControlAfterDelay(this._refTitleControl.value, this._titleTimer);
+            this._refTitleControl.value.show();
           }
         }}
       >
@@ -698,7 +695,7 @@ export class FrigateCardLiveCarousel extends LitElement {
             .text="${cameraMetadataCurrent
               ? `${localize('common.live')}: ${cameraMetadataCurrent.title}`
               : ''}"
-            .logo="${cameraMetadataCurrent?.engineLogo}"
+            .logo="${cameraMetadataCurrent.engineLogo}"
             .fitInto=${this as HTMLElement}
           >
           </frigate-card-title-control> `
@@ -965,6 +962,9 @@ export class FrigateCardLiveProvider
             ${ref(this._refProvider)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
+            watermark=${ifDefined(
+              showImageDuringLoading ? 'mdi:progress-helper' : undefined,
+            )}
             @frigate-card:media:loaded=${(ev: Event) => {
               if (provider === 'image') {
                 // Only count the media has loaded if the required provider is
