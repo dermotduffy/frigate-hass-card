@@ -1,4 +1,4 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import add from 'date-fns/add';
 import endOfDay from 'date-fns/endOfDay';
 import parse from 'date-fns/parse';

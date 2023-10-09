@@ -1,4 +1,4 @@
-import { computeDomain, computeStateDomain, HomeAssistant } from 'custom-card-helpers';
+import { computeDomain, computeStateDomain, HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { HassEntity, MessageBase } from 'home-assistant-js-websocket';
 import { StyleInfo } from 'lit/directives/style-map.js';
 import { ZodSchema } from 'zod';

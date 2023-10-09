@@ -335,7 +335,7 @@ describe('should convert webrtc card PTZ to Frigate card PTZ', () => {
         tap_action: {
           action: 'call-service',
           service: 'foo',
-          service_data: {
+          data: {
             tap_action: {
               action: 'none',
             },

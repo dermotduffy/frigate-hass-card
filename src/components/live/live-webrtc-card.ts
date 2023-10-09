@@ -1,5 +1,5 @@
 import { Task } from '@lit-labs/task';
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { CameraEndpoints } from '../../camera-manager/types.js';

@@ -1,4 +1,4 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import add from 'date-fns/add';
 import cloneDeep from 'lodash-es/cloneDeep';
 import merge from 'lodash-es/merge.js';

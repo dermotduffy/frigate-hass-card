@@ -1,4 +1,4 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import {
   CSSResultGroup,
   html,
@@ -230,7 +230,7 @@ export class FrigateCardSubmenuSelect extends LitElement {
             service: entityID.startsWith('select.')
               ? 'select.select_option'
               : 'input_select.select_option',
-            service_data: {
+            data: {
               entity_id: entityID,
               option: option,
             },

@@ -1,4 +1,4 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { localize } from '../../localize/localize';
 import { FrigateCardError } from '../../types';
 import { homeAssistantWSRequest } from '../../utils/ha';

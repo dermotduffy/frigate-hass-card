@@ -1,4 +1,4 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { CameraConfig } from '../config/types';
 import { ExtendedHomeAssistant } from '../types';
 import { EntityRegistryManager } from '../utils/ha/entity-registry';

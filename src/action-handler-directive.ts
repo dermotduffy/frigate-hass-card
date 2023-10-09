@@ -1,8 +1,8 @@
-import { fireEvent } from 'custom-card-helpers';
+import { fireEvent } from '@dermotduffy/custom-card-helpers';
 import type {
   ActionHandlerDetail,
   ActionHandlerOptions,
-} from 'custom-card-helpers/dist/types.d.js';
+} from '@dermotduffy/custom-card-helpers';
 import { noChange } from 'lit';
 import {
   AttributePart,

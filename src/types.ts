@@ -1,4 +1,4 @@
-import { HomeAssistant, LovelaceCardConfig, Themes } from 'custom-card-helpers';
+import { HomeAssistant, LovelaceCardConfig, Themes } from '@dermotduffy/custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map.js';
 import { z } from 'zod';
 

@@ -3,7 +3,7 @@ import {
   handleActionConfig,
   hasAction,
   HomeAssistant,
-} from 'custom-card-helpers';
+} from '@dermotduffy/custom-card-helpers';
 import {
   Actions,
   ActionType,

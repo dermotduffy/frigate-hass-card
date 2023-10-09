@@ -1,4 +1,4 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import orderBy from 'lodash-es/orderBy';
 import { getHassDifferences, isTriggeredState } from '../utils/ha';
 import { Timer } from '../utils/timer';
