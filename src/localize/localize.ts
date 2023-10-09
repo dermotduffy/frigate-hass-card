@@ -1,4 +1,4 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import * as en from './languages/en.json';
 
 const DEFAULT_LANG = 'en' as const;

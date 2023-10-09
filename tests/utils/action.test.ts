@@ -1,4 +1,4 @@
-import { handleActionConfig, hasAction } from 'custom-card-helpers';
+import { handleActionConfig, hasAction } from '@dermotduffy/custom-card-helpers';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { actionSchema } from '../../src/config/types';
@@ -13,7 +13,7 @@ import {
 } from '../../src/utils/action';
 import { createHASS } from '../test-utils';
 
-vi.mock('custom-card-helpers');
+vi.mock('@dermotduffy/custom-card-helpers');
 
 describe('convertActionToFrigateCardCustomAction', () => {
   it('should skip null action', () => {

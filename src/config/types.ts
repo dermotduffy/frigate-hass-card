@@ -6,7 +6,7 @@ import {
   NoActionConfig,
   ToggleActionConfig,
   UrlActionConfig,
-} from 'custom-card-helpers';
+} from '@dermotduffy/custom-card-helpers';
 import { z } from 'zod';
 import { MEDIA_CHUNK_SIZE_DEFAULT, MEDIA_CHUNK_SIZE_MAX } from '../const.js';
 import { deepRemoveDefaults } from '../utils/zod.js';
@@ -133,7 +133,7 @@ const callServiceActionSchema = schemaForType<
   actionBaseSchema.extend({
     action: z.literal('call-service'),
     service: z.string(),
-    service_data: z.object({}).passthrough().optional(),
+    data: z.object({}).passthrough().optional(),
   }),
 );
 
@@ -498,7 +498,7 @@ export const frigateCardPTZSchema = z.preprocess(
           tap_action: {
             action: 'call-service',
             service: data['service'],
-            service_data: data[`data_${name}`],
+            data: data[`data_${name}`],
           },
         };
         delete out[`data_${name}`];

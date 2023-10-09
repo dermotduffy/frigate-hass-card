@@ -1,4 +1,4 @@
-import { LovelaceCardEditor } from 'custom-card-helpers';
+import { LovelaceCardEditor } from '@dermotduffy/custom-card-helpers';
 import { ReactiveController } from 'lit';
 import { CameraManager } from '../camera-manager/manager';
 import { FrigateCardConfig } from '../config/types';

@@ -1,4 +1,4 @@
-import { HASSDomEvent, HomeAssistant } from 'custom-card-helpers';
+import { HASSDomEvent, HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import {
   CSSResultGroup,
   LitElement,

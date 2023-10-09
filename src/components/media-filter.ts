@@ -1,5 +1,5 @@
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import endOfDay from 'date-fns/endOfDay';
 import endOfMonth from 'date-fns/endOfMonth';
 import endOfYesterday from 'date-fns/endOfYesterday';

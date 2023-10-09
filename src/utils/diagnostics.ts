@@ -1,4 +1,4 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import pkg from '../../package.json';
 import { RawFrigateCardConfig } from '../config/types';
 import { getLanguage } from '../localize/localize';

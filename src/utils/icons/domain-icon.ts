@@ -5,7 +5,7 @@ import { binarySensorIcon } from './binary-sensor-icon';
 import { coverIcon } from './cover-icon';
 import { sensorIcon } from './sensor-icon';
 
-export const DEFAULT_DOMAIN_ICON = 'mdi:bookmark';
+const DEFAULT_DOMAIN_ICON = 'mdi:bookmark';
 
 const FIXED_DOMAIN_ICONS = {
   alert: 'mdi:alert',

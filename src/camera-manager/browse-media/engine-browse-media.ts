@@ -1,4 +1,4 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { CameraConfig } from '../../config/types';
 import { localize } from '../../localize/localize';
 import { ExtendedHomeAssistant } from '../../types';

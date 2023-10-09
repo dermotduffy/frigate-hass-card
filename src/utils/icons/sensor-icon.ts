@@ -1,4 +1,4 @@
-import { UNIT_C, UNIT_F } from 'custom-card-helpers';
+import { UNIT_C, UNIT_F } from '@dermotduffy/custom-card-helpers';
 import { HassEntity } from 'home-assistant-js-websocket';
 
 const FIXED_DEVICE_CLASS_ICONS = {

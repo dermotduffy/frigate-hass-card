@@ -1,4 +1,4 @@
-import { computeDomain, HomeAssistant } from 'custom-card-helpers';
+import { computeDomain, HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { HassEntity } from 'home-assistant-js-websocket';
 import { Entity } from './entity-registry/types';
 
