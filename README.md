@@ -145,6 +145,7 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 | `dependencies` | | :white_check_mark: | Other cameras that this camera should depend upon. See [camera dependencies](#camera-dependencies-configuration) below. |
 | `triggers` | | :white_check_mark: | Define what should cause this camera to update/trigger. See [camera triggers](#camera-trigger-configuration) below. |
 | `webrtc_card` | | :white_check_mark: | The WebRTC entity/URL to use for this camera with the `webrtc-card` live provider. See below. |
+| `cast` | | :white_check_mark: | Configuration that controls how this camera is "casted" / sent to media players. See below. |
 
 <a name="live-providers"></a>
 
@@ -331,6 +332,35 @@ cameras:
 | `motion` | `false` | :white_check_mark: | Whether to not to trigger the camera by automatically detecting and using the motion `binary_sensor` for this camera. This autodetection only works for Frigate cameras, and only when the motion `binary_sensor` entity has been enabled in Home Assistant.|
 | `occupancy` | `true` | :white_check_mark: | Whether to not to trigger the camera by automatically detecting and using the occupancy `binary_sensor` for this camera and its configured zones and labels. This autodetection only works for Frigate cameras, and only when the occupancy `binary_sensor` entity has been enabled in Home Assistant. If this camera has configured zones, only occupancy sensors for those zones are used -- if the overall _camera_ occupancy sensor is also required, it can be manually added to `entities`. If this camera has configured labels, only occupancy sensors for those labels are used.|
 | `entities` | | :white_check_mark: | Whether to not to trigger the camera when the state of any Home Assistant entity becomes active (i.e. state becomes `on` or `open`). This works for Frigate or non-Frigate cameras.|
+
+#### Camera Cast Configuration
+
+The `cast` block configures what how a camera is cast / sent to media players.
+
+```yaml
+cameras:
+ - cast:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `method` | `standard` | :white_check_mark: | Whether to use `standard` media casting to send the live view to your media player, or to instead cast a `dashboard` you have manually setup. Casting a dashboard supports a much wider variety of video media, including low latency video providers (e.g. `go2rtc`). This setting has no effect on casting non-live media. |
+| `dashboard` | | :white_check_mark: | Configuration for the dashboard to cast. See below. |
+
+See the [dashboard method cast example](#cast-dashboard-example).
+
+#### Camera Cast Dashboard Configuration
+
+```yaml
+cameras:
+ - cast:
+     dashboard:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `dashboard_path` | | :white_check_mark: | A required field that specifies the name of the dashboard to cast. You can see this name in your HA URL when you visit the dashboard. |
+| `view_path` | | :white_check_mark: | A required field that specifies view/"tab" on that dashboard to cast. This is the value you have specified in the `url` field of the view configuration on the dashboard. |
 
 <a name="camera-ids"></a>
 
@@ -1673,8 +1703,6 @@ Pan around a large camera view to only show part of the video feed in the card a
 
 ## Examples
 
-## Examples
-
 ### Illustrative Expanded Configuration Reference
 
 **Caution**: 🚩 Just copying this full reference into your configuration will cause you a significant maintenance burden. Don't do it! Please only specify what you need as defaults can / do change continually as this card develops. Almost all the values shown here are the defaults (except in cases where is no default, parameters are added here for illustrative purposes).
@@ -1710,6 +1738,8 @@ cameras:
       occupancy: true
       entities:
         - binary_sensor.front_door_sensor
+    cast:
+      method: standard
   - camera_entity: camera.entrance
     live_provider: webrtc-card
     engine: auto
@@ -1747,6 +1777,11 @@ cameras:
         - mjpeg
       stream: sitting_room
       url: 'https://my.custom.go2rtc.backend'
+      cast:
+        method: dashboard
+        dashboard:
+          dashboard_path: cast
+          view_path: front-door
   - camera_entity: camera.sitting_room_webrtc_card
     live_provider: webrtc_card
     webrtc_card:
@@ -3940,6 +3975,49 @@ overrides:
           grid_columns: 5
           grid_selected_width_factor: 1
 ```
+</details>
+
+<a name="cast-dashboard-example"></a>
+
+### `dashboard` cast method
+
+<details>
+  <summary>Expand: Using the `dashboard` cast method to cast a low latency live provider</summary>
+
+This example will configure a Frigate card that can cast a dashboard view to a media player, which has a second Frigate card in panel mode with a low-latency live provider.
+
+#### Source card
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.front_door
+    cast:
+      method: dashboard
+      dashboard:
+        dashboard_path: cast
+        view_path: front-door
+```
+
+#### Dashboard configuration
+
+This dashboard is configured at the path `/cast/` (path referred to in `dashboard_path` above).
+
+```yaml
+title: Frigate Card Casting
+views:
+  - title: Casting
+    # This path is referred to in `view_path` above.
+    path: front-door
+    # Ensure the video is "maximized"
+    type: panel
+    cards:
+      - type: custom:frigate-card
+        cameras:
+          - camera_entity: camera.front_door
+            live_provider: go2rtc
+```
+
 </details>
 
 <a name="media-layout-examples"></a>
