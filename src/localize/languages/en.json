@@ -444,6 +444,7 @@
     "no_camera_entity_for_triggers": "A camera entity is required in order to autodetect triggers",
     "no_camera_id": "Could not determine camera id for the following camera, may need to set 'id' parameter manually",
     "no_camera_name": "Could not determine a Frigate camera name for camera (or one of its dependents), please specify either 'camera_entity' or 'camera_name'",
+    "no_dashboard_or_view": "Both 'dashboard_path' and 'view_path' parameters are required for the 'dashboard' cast method",
     "no_live_camera": "The camera_entity parameter must be set and valid for this live provider",
     "no_visible_cameras": "No visible cameras found, you must configure at least one non-hidden camera",
     "reconnecting": "Reconnecting",

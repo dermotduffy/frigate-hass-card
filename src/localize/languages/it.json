@@ -436,6 +436,7 @@
     "no_camera_entity_for_triggers": "È necessaria un'entità telecamera per rilevare automaticamente i trigger",
     "no_camera_id": "Impossibile determinare l'ID della telecamera , potrebbe essere necessario impostare manualmente il parametro 'ID'",
     "no_camera_name": "Impossibile determinare un nome della telecamera in Frigate, si prega di specificare 'camera_enty' o 'camera_name'",
+    "no_dashboard_or_view": "",
     "no_live_camera": "Il parametro fotocamera_enty deve essere impostato e valido per questo provider live",
     "no_visible_cameras": "Nessuna telecamera visibile trovata, è necessario configurare almeno una telecamera non nascosta",
     "reconnecting": "Riconnessione",

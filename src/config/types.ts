@@ -32,6 +32,8 @@ export const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
   'image',
   'timeline',
 ] as const;
+export type FrigateCardUserSpecifiedView =
+  (typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED)[number];
 
 const FRIGATE_CARD_VIEWS = [
   ...FRIGATE_CARD_VIEWS_USER_SPECIFIED,
@@ -213,6 +215,7 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'screenshot',
   'unmute',
 ] as const;
+export type FrigateCardGeneralAction = (typeof FRIGATE_CARD_GENERAL_ACTIONS)[number];
 
 const FRIGATE_CARD_ACTIONS = [
   ...FRIGATE_CARD_VIEWS_USER_SPECIFIED,
@@ -237,6 +240,9 @@ const frigateCardCameraSelectActionSchema = frigateCardCustomActionsBaseSchema.e
   frigate_card_action: z.literal('camera_select'),
   camera: z.string(),
 });
+export type FrigateCardCameraSelectAction = z.infer<
+  typeof frigateCardCameraSelectActionSchema
+>;
 
 const frigateCardLiveDependencySelectActionSchema =
   frigateCardCustomActionsBaseSchema.extend({
@@ -921,6 +927,24 @@ const liveOverridesSchema = z
 export type LiveOverrides = z.infer<typeof liveOverridesSchema>;
 
 // *************************************************************************
+//                       Cast Configuration
+// *************************************************************************
+
+const castConfigDefault = {
+  method: 'standard' as const,
+};
+
+export const castSchema = z.object({
+  method: z.enum(['standard', 'dashboard']).default(castConfigDefault.method).optional(),
+  dashboard: z
+    .object({
+      dashboard_path: z.string().optional(),
+      view_path: z.string().optional(),
+    })
+    .optional(),
+});
+
+// *************************************************************************
 //                     Camera Configuration
 // *************************************************************************
 
@@ -1035,6 +1059,8 @@ export const cameraConfigSchema = z
     image: liveImageConfigSchema.default(cameraConfigDefault.image),
     jsmpeg: jsmpegConfigSchema.optional(),
     webrtc_card: webrtcCardConfigSchema.optional(),
+
+    cast: castSchema.optional(),
   })
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigSchema>;

@@ -143,52 +143,10 @@ describe('MediaPlayerManager', () => {
 
   describe('should play', () => {
     describe('live', () => {
-      it('successfully', async () => {
+      it('without camera config', async () => {
         const api = createCardAPI();
         const cameraManager = createCameraManager();
-        vi.mocked(cameraManager.getStore().getCameraConfig).mockReturnValue(
-          createCameraConfig({
-            camera_entity: 'camera.foo',
-          }),
-        );
-        vi.mocked(cameraManager.getCameraMetadata).mockReturnValue({
-          title: 'camera title',
-          icon: 'icon',
-        });
-        vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
-        const hass = createHASS({
-          'camera.foo': createStateEntity({
-            attributes: {
-              entity_picture: 'http://thumbnail',
-            },
-          }),
-        });
-        vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
-        const manager = new MediaPlayerManager(api);
-
-        await manager.playLive('media_player.foo', 'camera');
-
-        expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
-          'media_player',
-          'play_media',
-          {
-            entity_id: 'media_player.foo',
-            media_content_id: 'media-source://camera/camera.foo',
-            media_content_type: 'application/vnd.apple.mpegurl',
-            extra: {
-              title: 'camera title',
-              thumb: 'http://thumbnail',
-            },
-          },
-        );
-      });
-
-      it('without camera_entity', async () => {
-        const api = createCardAPI();
-        const cameraManager = createCameraManager();
-        vi.mocked(cameraManager.getStore().getCameraConfig).mockReturnValue(
-          createCameraConfig({}),
-        );
+        vi.mocked(cameraManager.getStore().getCameraConfig).mockReturnValue(null);
         vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
         vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
         const manager = new MediaPlayerManager(api);
@@ -198,30 +156,176 @@ describe('MediaPlayerManager', () => {
         expect(api.getHASSManager().getHASS()?.callService).not.toBeCalled();
       });
 
-      it('without title and thumbnail', async () => {
+      describe('using standard method', () => {
+        it('successfully', async () => {
+          const api = createCardAPI();
+          const cameraManager = createCameraManager();
+          vi.mocked(cameraManager.getStore().getCameraConfig).mockReturnValue(
+            createCameraConfig({
+              camera_entity: 'camera.foo',
+            }),
+          );
+          vi.mocked(cameraManager.getCameraMetadata).mockReturnValue({
+            title: 'camera title',
+            icon: 'icon',
+          });
+          vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
+          const hass = createHASS({
+            'camera.foo': createStateEntity({
+              attributes: {
+                entity_picture: 'http://thumbnail',
+              },
+            }),
+          });
+          vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+          const manager = new MediaPlayerManager(api);
+
+          await manager.playLive('media_player.foo', 'camera');
+
+          expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
+            'media_player',
+            'play_media',
+            {
+              entity_id: 'media_player.foo',
+              media_content_id: 'media-source://camera/camera.foo',
+              media_content_type: 'application/vnd.apple.mpegurl',
+              extra: {
+                title: 'camera title',
+                thumb: 'http://thumbnail',
+              },
+            },
+          );
+        });
+
+        it('without camera_entity', async () => {
+          const api = createCardAPI();
+          const cameraManager = createCameraManager();
+          vi.mocked(cameraManager.getStore().getCameraConfig).mockReturnValue(
+            createCameraConfig({}),
+          );
+          vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
+          vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+          const manager = new MediaPlayerManager(api);
+
+          await manager.playLive('media_player.foo', 'camera');
+
+          expect(api.getHASSManager().getHASS()?.callService).not.toBeCalled();
+        });
+
+        it('without title and thumbnail', async () => {
+          const api = createCardAPI();
+          const cameraManager = createCameraManager();
+          vi.mocked(cameraManager.getStore().getCameraConfig).mockReturnValue(
+            createCameraConfig({
+              camera_entity: 'camera.foo',
+            }),
+          );
+          vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
+          vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+          const manager = new MediaPlayerManager(api);
+
+          await manager.playLive('media_player.foo', 'camera');
+
+          expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
+            'media_player',
+            'play_media',
+            {
+              entity_id: 'media_player.foo',
+              media_content_id: 'media-source://camera/camera.foo',
+              media_content_type: 'application/vnd.apple.mpegurl',
+              extra: {},
+            },
+          );
+        });
+      });
+
+      describe('using dashboard method', () => {
+        it('successfully', async () => {
+          const api = createCardAPI();
+          const cameraManager = createCameraManager();
+          vi.mocked(cameraManager.getStore().getCameraConfig).mockReturnValue(
+            createCameraConfig({
+              camera_entity: 'camera.foo',
+              cast: {
+                method: 'dashboard',
+                dashboard: {
+                  dashboard_path: 'dashboard_path',
+                  view_path: 'view_path',
+                },
+              },
+            }),
+          );
+          vi.mocked(api.getQueryStringManager().generateQueryString).mockReturnValue('');
+          vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
+          vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+          const manager = new MediaPlayerManager(api);
+
+          await manager.playLive('media_player.foo', 'camera');
+
+          expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
+            'cast',
+            'show_lovelace_view',
+            {
+              entity_id: 'media_player.foo',
+              dashboard_path: 'dashboard_path',
+              view_path: 'view_path',
+            },
+          );
+        });
+
+        it('without hass', async () => {
+          const api = createCardAPI();
+          const cameraManager = createCameraManager();
+          vi.mocked(cameraManager.getStore().getCameraConfig).mockReturnValue(
+            createCameraConfig({
+              camera_entity: 'camera.foo',
+              cast: {
+                method: 'dashboard',
+                dashboard: {
+                  dashboard_path: 'dashboard_path',
+                  view_path: 'view_path',
+                },
+              },
+            }),
+          );
+          vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
+          vi.mocked(api.getHASSManager().getHASS).mockReturnValue(null);
+          const manager = new MediaPlayerManager(api);
+
+          await manager.playLive('media_player.foo', 'camera');
+
+          // No actual test can be performed here as nothing observable happens.
+          // This test serves only as code-coverage long-tail.
+        });
+      });
+
+      it('without required configuration', async () => {
         const api = createCardAPI();
         const cameraManager = createCameraManager();
         vi.mocked(cameraManager.getStore().getCameraConfig).mockReturnValue(
           createCameraConfig({
             camera_entity: 'camera.foo',
+            cast: {
+              method: 'dashboard',
+            },
           }),
         );
         vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
         vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
         const manager = new MediaPlayerManager(api);
 
         await manager.playLive('media_player.foo', 'camera');
 
-        expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
-          'media_player',
-          'play_media',
-          {
-            entity_id: 'media_player.foo',
-            media_content_id: 'media-source://camera/camera.foo',
-            media_content_type: 'application/vnd.apple.mpegurl',
-            extra: {},
-          },
-        );
+        expect(
+          vi.mocked(api.getMessageManager().setMessageIfHigherPriority),
+        ).toBeCalledWith({
+          type: 'error',
+          icon: 'mdi:cast',
+          message:
+            "Both 'dashboard_path' and 'view_path' parameters are required " +
+            "for the 'dashboard' cast method",
+        });
       });
     });
 

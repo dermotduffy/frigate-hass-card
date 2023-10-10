@@ -163,6 +163,8 @@ export interface CardMediaPlayerAPI {
   getHASSManager(): HASSManager;
   getCameraManager(): CameraManager;
   getEntityRegistryManager(): EntityRegistryManager;
+  getMessageManager(): MessageManager;
+  getQueryStringManager(): QueryStringManager;
 }
 
 export interface CardMessageAPI {

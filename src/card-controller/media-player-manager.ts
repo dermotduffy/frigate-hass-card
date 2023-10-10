@@ -1,9 +1,11 @@
+import { CameraConfig } from '../config/types';
 import { MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA } from '../const';
-import { ViewMedia } from '../view/media';
-import { ViewMediaClassifier } from '../view/media-classifier';
+import { localize } from '../localize/localize';
 import { errorToConsole } from '../utils/basic';
 import { Entity } from '../utils/ha/entity-registry/types';
 import { supportsFeature } from '../utils/ha/update';
+import { ViewMedia } from '../view/media';
+import { ViewMediaClassifier } from '../view/media-classifier';
 import { CardMediaPlayerAPI } from './types';
 
 export class MediaPlayerManager {
@@ -76,11 +78,27 @@ export class MediaPlayerManager {
   }
 
   public async playLive(mediaPlayer: string, cameraID: string): Promise<void> {
-    const hass = this._api.getHASSManager().getHASS();
     const cameraConfig = this._api
       .getCameraManager()
       .getStore()
       .getCameraConfig(cameraID);
+    if (!cameraConfig) {
+      return;
+    }
+
+    if (cameraConfig.cast?.method === 'dashboard') {
+      await this._playLiveDashboard(mediaPlayer, cameraConfig);
+    } else {
+      await this._playLiveStandard(mediaPlayer, cameraID, cameraConfig);
+    }
+  }
+
+  protected async _playLiveStandard(
+    mediaPlayer: string,
+    cameraID: string,
+    cameraConfig: CameraConfig,
+  ): Promise<void> {
+    const hass = this._api.getHASSManager().getHASS();
     const cameraEntity = cameraConfig?.camera_entity ?? null;
 
     if (!hass || !cameraEntity) {
@@ -99,6 +117,34 @@ export class MediaPlayerManager {
         ...(title && { title: title }),
         ...(thumbnail && { thumb: thumbnail }),
       },
+    });
+  }
+
+  protected async _playLiveDashboard(
+    mediaPlayer: string,
+    cameraConfig: CameraConfig,
+  ): Promise<void> {
+    const hass = this._api.getHASSManager().getHASS();
+    if (!hass) {
+      return;
+    }
+
+    const dashboardConfig = cameraConfig.cast?.dashboard;
+    if (!dashboardConfig?.dashboard_path || !dashboardConfig?.view_path) {
+      this._api.getMessageManager().setMessageIfHigherPriority({
+        type: 'error',
+        icon: 'mdi:cast',
+        message: localize('error.no_dashboard_or_view'),
+      });
+      return;
+    }
+
+    // When this bug is closed, a query string could be included:
+    // https://github.com/home-assistant/core/issues/98316
+    await hass.callService('cast', 'show_lovelace_view', {
+      entity_id: mediaPlayer,
+      dashboard_path: dashboardConfig.dashboard_path,
+      view_path: dashboardConfig.view_path,
     });
   }
 

@@ -443,6 +443,7 @@
     "no_camera_entity_for_triggers": "Uma entidade de câmera é necessária para detectar automaticamente os gatilhos",
     "no_camera_id": "Não foi possível determinar o ID da câmera para a câmera a seguir, pode ser necessário definir o parâmetro 'id' manualmente",
     "no_camera_name": "Não foi possível determinar o nome da câmera da Frigate, especifique 'camera_entity' ou 'camera_name' para a câmera a seguir",
+    "no_dashboard_or_view": "",
     "no_live_camera": "O parâmetro camera_entity deve ser definido e válido para este provedor ativo",
     "no_visible_cameras": "Nenhuma câmera visível encontrada, você deve configurar pelo menos uma câmera não oculta",
     "reconnecting": "Reconectando",
