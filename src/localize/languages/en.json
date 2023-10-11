@@ -10,6 +10,18 @@
   "config": {
     "cameras": {
       "camera_entity": "Camera Entity",
+      "cast": {
+        "dashboard": {
+          "dashboard_path": "Dashboard path",
+          "view_path": "View path"
+        },
+        "editor_label": "Cast Options",
+        "method": "Cast method",
+        "methods": {
+          "standard": "Standard",
+          "dashboard": "Dashboard"
+        }
+      },
       "dependencies": {
         "all_cameras": "Show events for all cameras with this camera",
         "cameras": "Show events for specific cameras with this camera",
