@@ -1,4 +1,8 @@
-import { fireEvent, HomeAssistant, LovelaceCardEditor } from '@dermotduffy/custom-card-helpers';
+import {
+  fireEvent,
+  HomeAssistant,
+  LovelaceCardEditor,
+} from '@dermotduffy/custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -29,6 +33,9 @@ import {
 import {
   CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
+  CONF_CAMERAS_ARRAY_CAST_DASHBOARD_DASHBOARD_PATH,
+  CONF_CAMERAS_ARRAY_CAST_DASHBOARD_VIEW_PATH,
+  CONF_CAMERAS_ARRAY_CAST_METHOD,
   CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS,
   CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS,
   CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME,
@@ -191,6 +198,7 @@ import {
 
 const MENU_BUTTONS = 'buttons';
 const MENU_CAMERAS = 'cameras';
+const MENU_CAMERAS_CAST = 'cameras.cast';
 const MENU_CAMERAS_DEPENDENCIES = 'cameras.dependencies';
 const MENU_CAMERAS_ENGINE = 'cameras.engine';
 const MENU_CAMERAS_FRIGATE = 'cameras.frigate';
@@ -559,6 +567,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: '', label: '' },
     { value: 'single', label: localize('display_modes.single') },
     { value: 'grid', label: localize('display_modes.grid') },
+  ];
+
+  protected _castMethods: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'standard', label: localize('config.cameras.cast.methods.standard') },
+    { value: 'dashboard', label: localize('config.cameras.cast.methods.dashboard') },
   ];
 
   public setConfig(config: RawFrigateCardConfig): void {
@@ -1661,6 +1675,30 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     multiple: true,
                   },
                 )}`,
+              )}
+              ${this._putInSubmenu(
+                MENU_CAMERAS_CAST,
+                cameraIndex,
+                'config.cameras.cast.editor_label',
+                { name: 'mdi:cast' },
+                html`
+                  ${this._renderOptionSelector(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_CAST_METHOD, cameraIndex),
+                    this._castMethods,
+                  )}
+                  ${this._renderStringInput(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_CAST_DASHBOARD_DASHBOARD_PATH,
+                      cameraIndex,
+                    ),
+                  )}
+                  ${this._renderStringInput(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_CAST_DASHBOARD_VIEW_PATH,
+                      cameraIndex,
+                    ),
+                  )}
+                `,
               )}
             </div>`
           : ``}

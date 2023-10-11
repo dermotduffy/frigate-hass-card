@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createCardAPI } from '../test-utils';
-import { QueryStringManager } from '../../src/card-controller/query-string-manager';
 import { mock } from 'vitest-mock-extended';
+import { QueryStringManager } from '../../src/card-controller/query-string-manager';
+import {
+  FrigateCardGeneralAction,
+  FrigateCardUserSpecifiedView,
+} from '../../src/config/types';
+import { createCardAPI } from '../test-utils';
 
 const setQueryString = (qs: string): void => {
   const location: Location = mock<Location>();
@@ -293,6 +297,76 @@ describe('QueryStringManager', () => {
       manager.executeViewRelated();
 
       expect(api.getActionsManager().executeAction).not.toBeCalled();
+    });
+  });
+
+  describe('should generate query string', () => {
+    describe('that require no arguments', () => {
+      it.each([
+        ['camera_ui' as const],
+        ['clip' as const],
+        ['clips' as const],
+        ['default' as const],
+        ['diagnostics' as const],
+        ['download' as const],
+        ['expand' as const],
+        ['image' as const],
+        ['live' as const],
+        ['menu_toggle' as const],
+        ['recording' as const],
+        ['recordings' as const],
+        ['snapshot' as const],
+        ['snapshots' as const],
+        ['timeline' as const],
+      ])('%s', (actionName: FrigateCardGeneralAction | FrigateCardUserSpecifiedView) => {
+        const manager = new QueryStringManager(createCardAPI());
+        expect(
+          manager.generateQueryString({
+            action: 'fire-dom-event',
+            frigate_card_action: actionName,
+          }),
+        ).toBe(`frigate-card-action.${actionName}=`);
+      });
+    });
+
+    describe('that require camera argument', () => {
+      it.each([['camera_select' as const], ['live_substream_select' as const]])(
+        '%s',
+        (actionName: 'camera_select' | 'live_substream_select') => {
+          const manager = new QueryStringManager(createCardAPI());
+          expect(
+            manager.generateQueryString({
+              action: 'fire-dom-event',
+              frigate_card_action: actionName,
+              camera: 'camera',
+            }),
+          ).toBe(`frigate-card-action.${actionName}=camera`);
+        },
+      );
+    });
+
+    it('that include a card_id', () => {
+      const manager = new QueryStringManager(createCardAPI());
+      expect(
+        manager.generateQueryString({
+          action: 'fire-dom-event',
+          frigate_card_action: 'clips',
+          card_id: 'card-id',
+        }),
+      ).toBe(`frigate-card-action.card-id.clips=`);
+    });
+
+    it('that include an unsupported action', () => {
+      const spy = vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
+      const manager = new QueryStringManager(createCardAPI());
+
+      expect(
+        manager.generateQueryString({
+          action: 'fire-dom-event',
+          frigate_card_action: 'microphone_unmute',
+        }),
+      ).toBeNull();
+      expect(spy).toBeCalled();
     });
   });
 });

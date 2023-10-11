@@ -6,6 +6,11 @@ export const CONF_CAMERAS_ARRAY_CAMERA_ENTITY =
   `${CONF_CAMERAS}.#.camera_entity` as const;
 export const CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME =
   `${CONF_CAMERAS}.#.frigate.camera_name` as const;
+export const CONF_CAMERAS_ARRAY_CAST_METHOD = `${CONF_CAMERAS}.#.cast.method` as const;
+export const CONF_CAMERAS_ARRAY_CAST_DASHBOARD_DASHBOARD_PATH =
+  `${CONF_CAMERAS}.#.cast.dashboard.dashboard_path` as const;
+export const CONF_CAMERAS_ARRAY_CAST_DASHBOARD_VIEW_PATH =
+  `${CONF_CAMERAS}.#.cast.dashboard.view_path` as const;
 export const CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID =
   `${CONF_CAMERAS}.#.frigate.client_id` as const;
 export const CONF_CAMERAS_ARRAY_FRIGATE_LABELS =
