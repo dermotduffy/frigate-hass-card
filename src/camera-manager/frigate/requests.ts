@@ -8,6 +8,8 @@ import {
   eventSummarySchema,
   FrigateEvent,
   frigateEventsSchema,
+  PTZInfo,
+  ptzInfoSchema,
   recordingSegmentsSchema,
   RecordingSummary,
   recordingSummarySchema,
@@ -147,6 +149,23 @@ export const getEventSummary = async (
       type: 'frigate/events/summary',
       instance_id: clientID,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    },
+    true,
+  );
+};
+
+export const getPTZInfo = async (
+  hass: HomeAssistant,
+  clientID: string,
+  cameraName: string,
+): Promise<PTZInfo> => {
+  return await homeAssistantWSRequest(
+    hass,
+    ptzInfoSchema,
+    {
+      type: 'frigate/ptz/info',
+      instance_id: clientID,
+      camera: cameraName,
     },
     true,
   );

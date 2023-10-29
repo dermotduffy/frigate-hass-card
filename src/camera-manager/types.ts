@@ -1,4 +1,4 @@
-import { CameraConfig, FrigateCardView } from '../config/types';
+import { FrigateCardView } from '../config/types';
 import { ViewMedia } from '../view/media';
 
 // ====
@@ -91,6 +91,14 @@ export interface MediaMetadata {
   what?: Set<string>;
 }
 
+export type PTZMovementType = 'relative' | 'continuous';
+
+export interface PTZCapabilities {
+  panTilt?: PTZMovementType[];
+  zoom?: PTZMovementType[];
+  presets?: string[];
+}
+
 interface BaseCapabilities {
   canFavoriteEvents: boolean;
   canFavoriteRecordings: boolean;
@@ -102,8 +110,14 @@ interface BaseCapabilities {
   supportsTimeline: boolean;
 }
 
-export type CameraManagerCapabilities = BaseCapabilities;
-export type CameraManagerCameraCapabilities = BaseCapabilities;
+export interface CameraManagerCapabilities extends BaseCapabilities {
+  supportsPTZ: boolean;
+}
+
+export interface CameraManagerCameraCapabilities extends BaseCapabilities {
+  ptz?: PTZCapabilities;
+}
+
 export interface CameraManagerMediaCapabilities {
   canFavorite: boolean;
   canDownload: boolean;
@@ -131,8 +145,6 @@ export interface CameraEndpoints {
   jsmpeg?: CameraEndpoint;
   webrtcCard?: CameraEndpoint;
 }
-
-export type CameraConfigs = Map<string, CameraConfig>;
 
 export interface EngineOptions {
   useCache?: boolean;

@@ -3,7 +3,7 @@ import get from 'lodash-es/get';
 import isEqual from 'lodash-es/isEqual';
 import set from 'lodash-es/set';
 import unset from 'lodash-es/unset';
-import { RawFrigateCardConfig } from './config/types';
+import { RawFrigateCardConfig, RawFrigateCardConfigArray } from './config/types';
 import {
   CONF_CAMERAS,
   CONF_CAMERAS_GLOBAL_IMAGE,
@@ -303,7 +303,7 @@ export const deleteTransform = function (_value: unknown): number | null | undef
 };
 
 // *************************************************************************
-//              Upgrade Related Functions: Specific Transforms
+//        Upgrade Related Functions: Specific Transforms / Upgraders
 // *************************************************************************
 
 /**
@@ -360,6 +360,71 @@ const frigateUIActionTransform = (data: unknown): boolean => {
   return false;
 };
 
+/**
+ * Transform element PTZ to native live PTZ.
+ * @param data Input data.
+ * @returns `true` if the configuration was modified.
+ */
+const upgradePTZElementsToLive = function (): (data: unknown) => boolean {
+  return function (data: unknown): boolean {
+    if (
+      typeof data !== 'object' ||
+      !data ||
+      !(CONF_ELEMENTS in data) ||
+      !Array.isArray(data[CONF_ELEMENTS])
+    ) {
+      return false;
+    }
+
+    let foundPTZ = false;
+    const movePTZ = (element: RawFrigateCardConfig): void => {
+      if (!foundPTZ) {
+        if (!get(data, 'live.controls.ptz')) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { type: _, ...newPTZ } = element;
+          set(data, 'live.controls.ptz', newPTZ);
+        }
+        foundPTZ = true;
+      }
+    };
+
+    const processElements = (
+      elements: RawFrigateCardConfigArray,
+    ): RawFrigateCardConfigArray => {
+      const newElements: RawFrigateCardConfigArray = [];
+      for (const element of elements) {
+        if (element['type'] === 'custom:frigate-card-ptz') {
+          movePTZ(element);
+        } else if (
+          (element['type'] === 'conditional' ||
+            element['type'] === 'custom:frigate-card-conditional') &&
+          Array.isArray(element['elements'])
+        ) {
+          const newConditionalElements = processElements(element['elements']);
+          if (newConditionalElements.length) {
+            element['elements'] = newConditionalElements;
+            newElements.push(element);
+          }
+        } else {
+          newElements.push(element);
+        }
+      }
+      return newElements;
+    };
+
+    const newElements = processElements(data[CONF_ELEMENTS]);
+
+    if (foundPTZ) {
+      if (newElements.length) {
+        data[CONF_ELEMENTS] = newElements;
+      } else {
+        delete data[CONF_ELEMENTS];
+      }
+    }
+    return foundPTZ;
+  };
+};
+
 const UPGRADES = [
   // v4.0.0 -> v4.1.0
   upgradeArrayOfObjects(
@@ -408,4 +473,5 @@ const UPGRADES = [
       typeof data === 'object' && data ? <RawFrigateCardConfig>data : {},
     );
   },
+  upgradePTZElementsToLive(),
 ];

@@ -216,6 +216,22 @@ export class ActionsManager {
           .getViewManager()
           .setViewWithNewDisplayMode(frigateCardAction.display_mode);
         break;
+      case 'ptz':
+        const cameraID = this._api.getViewManager().getView()?.camera;
+        if (cameraID) {
+          this._api
+            .getCameraManager()
+            .executePTZAction(cameraID, frigateCardAction.ptz_action, {
+              phase: frigateCardAction.ptz_phase,
+              preset: frigateCardAction.ptz_preset,
+            });
+        }
+        break;
+      case 'show_ptz':
+        this._api
+          .getViewManager()
+          .setViewWithNewContext({ live: { ptzVisible: frigateCardAction.show_ptz } });
+        break;
       default:
         console.warn(`Frigate card received unknown card action: ${action}`);
     }

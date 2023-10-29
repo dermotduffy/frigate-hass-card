@@ -167,8 +167,8 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _ev: CustomEvent<{ value: unknown }>,
   ): Promise<void> {
-    const cameras = this.cameraManager?.getStore().getVisibleCameras();
-    if (!this.hass || !cameras || !this.cameraManager || !this.view) {
+    const visibleCameraIDs = this.cameraManager?.getStore().getVisibleCameraIDs();
+    if (!this.hass || !visibleCameraIDs || !this.cameraManager || !this.view) {
       return;
     }
 
@@ -182,7 +182,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
     };
 
     const cameraIDs =
-      getArrayValueAsSet(this._refCamera.value?.value) ?? new Set(cameras.keys());
+      getArrayValueAsSet(this._refCamera.value?.value) ?? visibleCameraIDs;
     const mediaType = this._refMediaType.value?.value as
       | MediaFilterMediaType
       | undefined;
@@ -268,9 +268,9 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('cameraManager')) {
-      const cameras = this.cameraManager?.getStore().getVisibleCameras();
+      const cameras = this.cameraManager?.getStore().getVisibleCameraIDs();
       if (cameras) {
-        this._cameraOptions = Array.from(cameras.keys()).map((cameraID) => ({
+        this._cameraOptions = [...cameras].map((cameraID) => ({
           value: cameraID,
           label: this.hass
             ? this.cameraManager?.getCameraMetadata(cameraID)?.title ?? ''
@@ -319,8 +319,8 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
 
   protected _getDefaultsFromView(): MediaFilterCoreDefaults | null {
     const queries = this.view?.query?.getQueries();
-    const cameras = this.cameraManager?.getStore().getVisibleCameras();
-    if (!this.view || !queries || !cameras) {
+    const visibleCameraIDs = this.cameraManager?.getStore().getVisibleCameraIDs();
+    if (!this.view || !queries || !visibleCameraIDs) {
       return null;
     }
 
@@ -337,7 +337,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
     );
     // Special note: If all visible cameras are selected, this is the same as no
     // selector at all.
-    if (cameraIDSets.length === 1 && !isEqual(queries[0].cameraIDs, cameras)) {
+    if (cameraIDSets.length === 1 && !isEqual(queries[0].cameraIDs, visibleCameraIDs)) {
       cameraIDs = [...queries[0].cameraIDs];
     }
 

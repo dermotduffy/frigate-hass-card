@@ -1,8 +1,9 @@
 import add from 'date-fns/add';
 import { HassEntities } from 'home-assistant-js-websocket';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ScanOptions } from '../../src/config/types';
+import { CardController } from '../../src/card-controller/controller';
 import { TriggersManager } from '../../src/card-controller/triggers-manager';
+import { ScanOptions } from '../../src/config/types';
 import {
   createCameraConfig,
   createCameraManager,
@@ -10,10 +11,9 @@ import {
   createConfig,
   createHASS,
   createStateEntity,
+  createStore,
   createView,
 } from '../test-utils';
-
-vi.mock('../../src/camera-manager/manager.js');
 
 // Creating and mocking a trigger API is a lot of boilerplate, this convenience
 // function reduces it.
@@ -21,7 +21,7 @@ const createTriggerAPI = (options?: {
   config?: Partial<ScanOptions>;
   hassStates?: HassEntities;
   interaction?: boolean;
-}) => {
+}): CardController => {
   const api = createCardAPI();
   vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
     createConfig({
@@ -37,19 +37,18 @@ const createTriggerAPI = (options?: {
   vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
     createHASS(options?.hassStates),
   );
-  vi.mocked(api.getCameraManager).mockReturnValue(
-    createCameraManager({
-      configs: new Map([
-        [
-          'camera_1',
-          createCameraConfig({
-            triggers: {
-              entities: ['binary_sensor.motion'],
-            },
-          }),
-        ],
-      ]),
-    }),
+  vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+  vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+    createStore([
+      {
+        cameraID: 'camera_1',
+        config: createCameraConfig({
+          triggers: {
+            entities: ['binary_sensor.motion'],
+          },
+        }),
+      },
+    ]),
   );
   vi.mocked(api.getInteractionManager().hasInteraction).mockReturnValue(
     options?.interaction ?? false,

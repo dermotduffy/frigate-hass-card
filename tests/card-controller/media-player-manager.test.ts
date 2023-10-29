@@ -1,20 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
+import { MediaPlayerManager } from '../../src/card-controller/media-player-manager';
+import { MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA } from '../../src/const';
+import { ExtendedHomeAssistant } from '../../src/types';
+import { EntityRegistryManager } from '../../src/utils/ha/entity-registry';
 import {
-  TestViewMedia,
   createCameraConfig,
   createCameraManager,
   createCardAPI,
   createHASS,
   createRegistryEntity,
   createStateEntity,
+  createStore,
+  TestViewMedia,
 } from '../test-utils';
-import { MediaPlayerManager } from '../../src/card-controller/media-player-manager';
-import { ExtendedHomeAssistant } from '../../src/types';
-import { MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA } from '../../src/const';
-import { EntityRegistryManager } from '../../src/utils/ha/entity-registry';
-import { mock } from 'vitest-mock-extended';
-
-vi.mock('../../src/camera-manager/manager.js');
 
 const createHASSWithMediaPlayers = (): ExtendedHomeAssistant => {
   const attributesSupported = {
@@ -145,9 +144,7 @@ describe('MediaPlayerManager', () => {
     describe('live', () => {
       it('without camera config', async () => {
         const api = createCardAPI();
-        const cameraManager = createCameraManager();
-        vi.mocked(cameraManager.getStore().getCameraConfig).mockReturnValue(null);
-        vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
+        vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
         vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
         const manager = new MediaPlayerManager(api);
 
@@ -159,28 +156,33 @@ describe('MediaPlayerManager', () => {
       describe('using standard method', () => {
         it('successfully', async () => {
           const api = createCardAPI();
-          const cameraManager = createCameraManager();
-          vi.mocked(cameraManager.getStore().getCameraConfig).mockReturnValue(
-            createCameraConfig({
-              camera_entity: 'camera.foo',
-            }),
+          vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+          vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+            createStore([
+              {
+                cameraID: 'camera.foo',
+                config: createCameraConfig({
+                  camera_entity: 'camera.foo',
+                }),
+              },
+            ]),
           );
-          vi.mocked(cameraManager.getCameraMetadata).mockReturnValue({
+          vi.mocked(api.getCameraManager().getCameraMetadata).mockReturnValue({
             title: 'camera title',
             icon: 'icon',
           });
-          vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
-          const hass = createHASS({
-            'camera.foo': createStateEntity({
-              attributes: {
-                entity_picture: 'http://thumbnail',
-              },
+          vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
+            createHASS({
+              'camera.foo': createStateEntity({
+                attributes: {
+                  entity_picture: 'http://thumbnail',
+                },
+              }),
             }),
-          });
-          vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+          );
           const manager = new MediaPlayerManager(api);
 
-          await manager.playLive('media_player.foo', 'camera');
+          await manager.playLive('media_player.foo', 'camera.foo');
 
           expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
             'media_player',
@@ -199,32 +201,41 @@ describe('MediaPlayerManager', () => {
 
         it('without camera_entity', async () => {
           const api = createCardAPI();
-          const cameraManager = createCameraManager();
-          vi.mocked(cameraManager.getStore().getCameraConfig).mockReturnValue(
-            createCameraConfig({}),
+          vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+
+          vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+            createStore([
+              {
+                cameraID: 'camera.foo',
+                config: createCameraConfig(),
+              },
+            ]),
           );
-          vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
           vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
           const manager = new MediaPlayerManager(api);
 
-          await manager.playLive('media_player.foo', 'camera');
+          await manager.playLive('media_player.foo', 'camera.foo');
 
           expect(api.getHASSManager().getHASS()?.callService).not.toBeCalled();
         });
 
         it('without title and thumbnail', async () => {
           const api = createCardAPI();
-          const cameraManager = createCameraManager();
-          vi.mocked(cameraManager.getStore().getCameraConfig).mockReturnValue(
-            createCameraConfig({
-              camera_entity: 'camera.foo',
-            }),
+          vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+          vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+            createStore([
+              {
+                cameraID: 'camera.foo',
+                config: createCameraConfig({
+                  camera_entity: 'camera.foo',
+                }),
+              },
+            ]),
           );
-          vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
           vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
           const manager = new MediaPlayerManager(api);
 
-          await manager.playLive('media_player.foo', 'camera');
+          await manager.playLive('media_player.foo', 'camera.foo');
 
           expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
             'media_player',
@@ -242,25 +253,29 @@ describe('MediaPlayerManager', () => {
       describe('using dashboard method', () => {
         it('successfully', async () => {
           const api = createCardAPI();
-          const cameraManager = createCameraManager();
-          vi.mocked(cameraManager.getStore().getCameraConfig).mockReturnValue(
-            createCameraConfig({
-              camera_entity: 'camera.foo',
-              cast: {
-                method: 'dashboard',
-                dashboard: {
-                  dashboard_path: 'dashboard_path',
-                  view_path: 'view_path',
-                },
+          vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+          vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+            createStore([
+              {
+                cameraID: 'camera.foo',
+                config: createCameraConfig({
+                  camera_entity: 'camera.foo',
+                  cast: {
+                    method: 'dashboard',
+                    dashboard: {
+                      dashboard_path: 'dashboard_path',
+                      view_path: 'view_path',
+                    },
+                  },
+                }),
               },
-            }),
+            ]),
           );
           vi.mocked(api.getQueryStringManager().generateQueryString).mockReturnValue('');
-          vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
           vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
           const manager = new MediaPlayerManager(api);
 
-          await manager.playLive('media_player.foo', 'camera');
+          await manager.playLive('media_player.foo', 'camera.foo');
 
           expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
             'cast',
@@ -275,24 +290,28 @@ describe('MediaPlayerManager', () => {
 
         it('without hass', async () => {
           const api = createCardAPI();
-          const cameraManager = createCameraManager();
-          vi.mocked(cameraManager.getStore().getCameraConfig).mockReturnValue(
-            createCameraConfig({
-              camera_entity: 'camera.foo',
-              cast: {
-                method: 'dashboard',
-                dashboard: {
-                  dashboard_path: 'dashboard_path',
-                  view_path: 'view_path',
-                },
+          vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+          vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+            createStore([
+              {
+                cameraID: 'camera.foo',
+                config: createCameraConfig({
+                  camera_entity: 'camera.foo',
+                  cast: {
+                    method: 'dashboard',
+                    dashboard: {
+                      dashboard_path: 'dashboard_path',
+                      view_path: 'view_path',
+                    },
+                  },
+                }),
               },
-            }),
+            ]),
           );
-          vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
           vi.mocked(api.getHASSManager().getHASS).mockReturnValue(null);
           const manager = new MediaPlayerManager(api);
 
-          await manager.playLive('media_player.foo', 'camera');
+          await manager.playLive('media_player.foo', 'camera.foo');
 
           // No actual test can be performed here as nothing observable happens.
           // This test serves only as code-coverage long-tail.
@@ -301,21 +320,25 @@ describe('MediaPlayerManager', () => {
 
       it('without required configuration', async () => {
         const api = createCardAPI();
-        const cameraManager = createCameraManager();
-        vi.mocked(cameraManager.getStore().getCameraConfig).mockReturnValue(
-          createCameraConfig({
-            camera_entity: 'camera.foo',
-            cast: {
-              method: 'dashboard',
+        vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+        vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+          createStore([
+            {
+              cameraID: 'camera.foo',
+              config: createCameraConfig({
+                camera_entity: 'camera.foo',
+                cast: {
+                  method: 'dashboard',
+                },
+              }),
             },
-          }),
+          ]),
         );
-        vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
         vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
 
         const manager = new MediaPlayerManager(api);
 
-        await manager.playLive('media_player.foo', 'camera');
+        await manager.playLive('media_player.foo', 'camera.foo');
 
         expect(
           vi.mocked(api.getMessageManager().setMessageIfHigherPriority),

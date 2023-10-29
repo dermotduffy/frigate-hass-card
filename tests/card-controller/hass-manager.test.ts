@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { CardController } from '../../src/card-controller/controller';
 import { HASSManager } from '../../src/card-controller/hass-manager';
-import { CardHASSAPI } from '../../src/card-controller/types';
 import {
   createCameraConfig,
   createCameraManager,
@@ -8,12 +8,11 @@ import {
   createConfig,
   createHASS,
   createStateEntity,
+  createStore,
   createView,
 } from '../test-utils';
 
-vi.mock('../../src/camera-manager/manager.js');
-
-const createAPIWithoutMediaPlayers = (): CardHASSAPI => {
+const createAPIWithoutMediaPlayers = (): CardController => {
   const api = createCardAPI();
   vi.mocked(api.getMediaPlayerManager().getMediaPlayers).mockReturnValue([]);
   return api;
@@ -158,20 +157,20 @@ describe('HASSManager', () => {
 
   describe('should set default view when', () => {
     it('selected camera trigger entity changes', () => {
-      const cameraManager = createCameraManager({
-        configs: new Map([
-          [
-            'camera.foo',
-            createCameraConfig({
+      const api = createAPIWithoutMediaPlayers();
+      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera.foo',
+            config: createCameraConfig({
               triggers: {
                 entities: ['binary_sensor.motion'],
               },
             }),
-          ],
+          },
         ]),
-      });
-      const api = createAPIWithoutMediaPlayers();
-      vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
+      );
       vi.mocked(api.getViewManager().getView).mockReturnValue(
         createView({
           camera: 'camera.foo',
@@ -189,20 +188,20 @@ describe('HASSManager', () => {
     });
 
     it('selected camera is unknown', () => {
-      const cameraManager = createCameraManager({
-        configs: new Map([
-          [
-            'camera.foo',
-            createCameraConfig({
+      const api = createAPIWithoutMediaPlayers();
+      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera.foo',
+            config: createCameraConfig({
               triggers: {
                 entities: ['binary_sensor.motion'],
               },
             }),
-          ],
+          },
         ]),
-      });
-      const api = createAPIWithoutMediaPlayers();
-      vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
+      );
       vi.mocked(api.getViewManager().getView).mockReturnValue(
         createView({
           camera: 'camera.UNKNOWN',

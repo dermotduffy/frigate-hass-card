@@ -1,7 +1,7 @@
 import add from 'date-fns/add';
 import sub from 'date-fns/sub';
 import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import { CameraConfigs } from '../../src/camera-manager/types';
+import { QueryType } from '../../src/camera-manager/types';
 import {
   changeViewToRecentEventsForCameraAndDependents,
   changeViewToRecentRecordingForCameraAndDependents,
@@ -14,11 +14,10 @@ import { EventMediaQueries } from '../../src/view/media-queries';
 import {
   createCameraManager,
   createPerformanceConfig,
+  createStore,
   createView,
   TestViewMedia,
 } from '../test-utils';
-
-vi.mock('../../src/camera-manager/manager.js');
 
 const createElementListenForView = (): {
   element: HTMLElement;
@@ -66,11 +65,10 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
   it('should do nothing without camera config for selected camera', async () => {
     const elementHandler = createElementListenForView();
-    const cameraManager = createCameraManager({ configs: new Map() });
 
     await changeViewToRecentEventsForCameraAndDependents(
       elementHandler.element,
-      cameraManager,
+      createCameraManager(),
       {},
       createView(),
     );
@@ -79,11 +77,10 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
   it('should do nothing without camera configs for all cameras', async () => {
     const elementHandler = createElementListenForView();
-    const cameraManager = createCameraManager({ configs: new Map() });
 
     await changeViewToRecentEventsForCameraAndDependents(
       elementHandler.element,
-      cameraManager,
+      createCameraManager(),
       {},
       createView(),
       {
@@ -113,6 +110,19 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
   it('should dispatch new view on success', async () => {
     const elementHandler = createElementListenForView();
     const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera',
+        },
+      ]),
+    );
+    vi.mocked(cameraManager.generateDefaultEventQueries).mockReturnValue([
+      {
+        type: QueryType.Event,
+        cameraIDs: new Set(['camera']),
+      },
+    ]);
 
     const mediaArray = [new ViewMedia('clip', 'camera')];
     vi.mocked(cameraManager.executeMediaQueries).mockResolvedValue(mediaArray);
@@ -136,6 +146,19 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
     const elementHandler = createElementListenForView();
     const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera',
+        },
+      ]),
+    );
+    vi.mocked(cameraManager.generateDefaultEventQueries).mockReturnValue([
+      {
+        type: QueryType.Event,
+        cameraIDs: new Set(['camera']),
+      },
+    ]);
     vi.mocked(cameraManager.executeMediaQueries).mockRejectedValue(new Error());
 
     await changeViewToRecentEventsForCameraAndDependents(
@@ -150,6 +173,13 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
 
   it('should respect media chunk size', async () => {
     const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera',
+        },
+      ]),
+    );
 
     await changeViewToRecentEventsForCameraAndDependents(
       createElementListenForView().element,
@@ -178,6 +208,13 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
       ['clips' as const, 'hasClip'],
     ])('%s', async (mediaType, queryParameter) => {
       const cameraManager = createCameraManager();
+      vi.mocked(cameraManager.getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera',
+          },
+        ]),
+      );
 
       await changeViewToRecentEventsForCameraAndDependents(
         createElementListenForView().element,
@@ -206,12 +243,9 @@ describe('executeMediaQueryForView', () => {
   });
 
   it('should not execute empty queries', async () => {
-    const cameraConfigs: CameraConfigs = new Map();
-    const cameraManager = createCameraManager({ configs: cameraConfigs });
-
     expect(
       await executeMediaQueryForView(
-        cameraManager,
+        createCameraManager(),
         createView(),
         new EventMediaQueries(),
       ),
@@ -219,24 +253,25 @@ describe('executeMediaQueryForView', () => {
   });
 
   it('should throw on failure', async () => {
-    const cameraConfigs: CameraConfigs = new Map();
-    const cameraManager = createCameraManager({ configs: cameraConfigs });
+    const cameraManager = createCameraManager();
     vi.mocked(cameraManager.executeMediaQueries).mockRejectedValue(new Error());
 
     await expect(
       executeMediaQueryForView(
         cameraManager,
         createView(),
-        new EventMediaQueries(
-          cameraManager.generateDefaultEventQueries('camera') ?? undefined,
-        ),
+        new EventMediaQueries([
+          {
+            type: QueryType.Event,
+            cameraIDs: new Set('camera'),
+          },
+        ]),
       ),
     ).rejects.toThrowError();
   });
 
   it('should select time-based result', async () => {
-    const cameraConfigs: CameraConfigs = new Map();
-    const cameraManager = createCameraManager({ configs: cameraConfigs });
+    const cameraManager = createCameraManager();
 
     const now = new Date();
     const mediaArray = [
@@ -249,9 +284,12 @@ describe('executeMediaQueryForView', () => {
     const view = await executeMediaQueryForView(
       cameraManager,
       createView(),
-      new EventMediaQueries(
-        cameraManager.generateDefaultEventQueries('camera') ?? undefined,
-      ),
+      new EventMediaQueries([
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set('camera'),
+        },
+      ]),
       {
         select: 'time',
         targetTime: add(now, { seconds: 30 }),
@@ -264,8 +302,7 @@ describe('executeMediaQueryForView', () => {
   });
 
   it('should select nothing when time-based selection does not match', async () => {
-    const cameraConfigs: CameraConfigs = new Map();
-    const cameraManager = createCameraManager({ configs: cameraConfigs });
+    const cameraManager = createCameraManager();
 
     const now = new Date();
     const mediaArray = [
@@ -279,9 +316,12 @@ describe('executeMediaQueryForView', () => {
     const view = await executeMediaQueryForView(
       cameraManager,
       createView(),
-      new EventMediaQueries(
-        cameraManager.generateDefaultEventQueries('camera') ?? undefined,
-      ),
+      new EventMediaQueries([
+        {
+          type: QueryType.Event,
+          cameraIDs: new Set('camera'),
+        },
+      ]),
       {
         select: 'time',
         targetTime: sub(now, { seconds: 30 }),
@@ -291,6 +331,24 @@ describe('executeMediaQueryForView', () => {
     // Should leave selection untouched (last item will remain selected).
     expect(view?.queryResults?.getSelectedIndex()).toBe(2);
     expect(view?.queryResults?.getResults()).toBe(mediaArray);
+  });
+
+  it('should select nothing when query returns null', async () => {
+    const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.executeMediaQueries).mockResolvedValue(null);
+
+    expect(
+      await executeMediaQueryForView(
+        cameraManager,
+        createView(),
+        new EventMediaQueries([
+          {
+            type: QueryType.Event,
+            cameraIDs: new Set('camera'),
+          },
+        ]),
+      ),
+    ).toBeNull();
   });
 });
 
@@ -302,11 +360,10 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
 
   it('should do nothing without camera config for selected camera', async () => {
     const elementHandler = createElementListenForView();
-    const cameraManager = createCameraManager({ configs: new Map() });
 
     await changeViewToRecentRecordingForCameraAndDependents(
       elementHandler.element,
-      cameraManager,
+      createCameraManager(),
       {},
       createView(),
     );
@@ -315,11 +372,10 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
 
   it('should do nothing without camera configs for all cameras', async () => {
     const elementHandler = createElementListenForView();
-    const cameraManager = createCameraManager({ configs: new Map() });
 
     await changeViewToRecentRecordingForCameraAndDependents(
       elementHandler.element,
-      cameraManager,
+      createCameraManager(),
       {},
       createView(),
       {
@@ -346,9 +402,22 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
   it('should dispatch new view on success', async () => {
     const elementHandler = createElementListenForView();
     const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera',
+        },
+      ]),
+    );
 
     const mediaArray = [new ViewMedia('recording', 'camera')];
     vi.mocked(cameraManager.executeMediaQueries).mockResolvedValue(mediaArray);
+    vi.mocked(cameraManager.generateDefaultRecordingQueries).mockReturnValue([
+      {
+        type: QueryType.Recording,
+        cameraIDs: new Set(['camera']),
+      },
+    ]);
 
     await changeViewToRecentRecordingForCameraAndDependents(
       elementHandler.element,
@@ -366,6 +435,13 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
 
   it('should respect media chunk size', async () => {
     const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera',
+        },
+      ]),
+    );
 
     await changeViewToRecentRecordingForCameraAndDependents(
       createElementListenForView().element,
@@ -402,9 +478,7 @@ describe('executeMediaQueryForViewWithErrorDispatching', () => {
       elementHandler.element,
       cameraManager,
       createView(),
-      new EventMediaQueries(
-        cameraManager.generateDefaultEventQueries('camera') ?? undefined,
-      ),
+      new EventMediaQueries([{ type: QueryType.Event, cameraIDs: new Set(['camera']) }]),
     );
 
     expect(elementHandler.viewHandler).not.toBeCalled();

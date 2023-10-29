@@ -16,7 +16,6 @@ import {
 import basicBlockStyle from '../scss/basic-block.scss';
 import { ClipsOrSnapshotsOrAll, ExtendedHomeAssistant } from '../types.js';
 import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
-import { getAllDependentCameras } from '../utils/camera.js';
 import { changeViewToRecentEventsForCameraAndDependents } from '../utils/media-to-view';
 import { View } from '../view/view.js';
 import './surround-basic.js';
@@ -140,7 +139,8 @@ export class FrigateCardSurround extends LitElement {
     if (this.view?.is('live')) {
       return this.view.isGrid()
         ? this.cameraManager?.getStore().getVisibleCameraIDs() ?? null
-        : getAllDependentCameras(this.cameraManager, this.view.camera);
+        : this.cameraManager?.getStore().getAllDependentCameras(this.view.camera) ??
+            null;
     }
     if (this.view.isViewerView()) {
       return this.view.query?.getQueryCameraIDs() ?? null;

@@ -163,6 +163,12 @@ class FrigateCard extends LitElement {
   }
 
   protected shouldUpdate(): boolean {
+    // Always allow messages to render, as a message may be generated during
+    // initialization.
+    if (this._controller.getMessageManager().hasMessage()) {
+      return true;
+    }
+
     if (!this._controller.getInitializationManager().isInitializedMandatory()) {
       this._controller.getInitializationManager().initializeMandatory();
       return false;
@@ -295,6 +301,12 @@ class FrigateCard extends LitElement {
               .view=${this._controller.getViewManager().getView()}
               .cameraManager=${cameraManager}
               .resolvedMediaCache=${this._controller.getResolvedMediaCache()}
+              .nonOverriddenConfig=${this._controller
+                .getConfigManager()
+                .getNonOverriddenConfig()}
+              .overriddenConfig=${this._controller.getConfigManager().getConfig()}
+              .cardWideConfig=${this._controller.getConfigManager().getCardWideConfig()}
+              .rawConfig=${this._controller.getConfigManager().getRawConfig()}
               .configManager=${this._controller.getConfigManager()}
               .conditionsManagerEpoch=${this._controller
                 .getConditionsManager()

@@ -52,7 +52,7 @@ export function getLanguage(hass?: HomeAssistant): string {
 /**
  * Load required languages.
  */
-export const loadLanguages = async (hass: HomeAssistant): Promise<void> => {
+export const loadLanguages = async (hass: HomeAssistant): Promise<boolean> => {
   const lang = getLanguage(hass);
   if (lang === 'it') {
     languages[lang] = await import('./languages/it.json');
@@ -65,6 +65,7 @@ export const loadLanguages = async (hass: HomeAssistant): Promise<void> => {
   if (lang) {
     frigateCardLanguage = lang;
   }
+  return true;
 };
 
 /**

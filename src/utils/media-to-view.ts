@@ -14,7 +14,6 @@ import {
 import { MediaQueriesResults } from '../view/media-queries-results';
 import { View } from '../view/view';
 import { errorToConsole } from './basic';
-import { getAllDependentCameras } from './camera.js';
 
 type ResultSelectType = 'latest' | 'time' | 'none';
 
@@ -32,7 +31,7 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
 ): Promise<void> => {
   const cameraIDs = options?.allCameras
     ? cameraManager.getStore().getVisibleCameraIDs()
-    : getAllDependentCameras(cameraManager, view.camera);
+    : cameraManager.getStore().getAllDependentCameras(view.camera);
   if (!cameraIDs.size) {
     return;
   }
@@ -98,7 +97,7 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
 ): Promise<void> => {
   const cameraIDs = options?.allCameras
     ? cameraManager.getStore().getVisibleCameraIDs()
-    : getAllDependentCameras(cameraManager, view.camera);
+    : cameraManager.getStore().getAllDependentCameras(view.camera);
   if (!cameraIDs.size) {
     return;
   }

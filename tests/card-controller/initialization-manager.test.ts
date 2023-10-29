@@ -18,9 +18,37 @@ describe('InitializationManager', () => {
     vi.resetAllMocks();
   });
 
-  it('should not be initialized', () => {
-    const manager = new InitializationManager(createCardAPI());
-    expect(manager.isInitializedMandatory()).toBeFalsy();
+  describe('should correctly determine when mandatory initialization is required', () => {
+    it('without aspects', () => {
+      const api = createCardAPI();
+      const initializer = mock<Initializer>();
+      const manager = new InitializationManager(api, initializer);
+
+      initializer.isInitializedMultiple.mockReturnValue(false);
+
+      expect(manager.isInitializedMandatory()).toBeFalsy();
+    });
+
+    it('without view', () => {
+      const api = createCardAPI();
+      const initializer = mock<Initializer>();
+      const manager = new InitializationManager(api, initializer);
+
+      initializer.isInitializedMultiple.mockReturnValue(true);
+
+      expect(manager.isInitializedMandatory()).toBeFalsy();
+    });
+
+    it('with aspects and view', () => {
+      const api = createCardAPI();
+      const initializer = mock<Initializer>();
+      const manager = new InitializationManager(api, initializer);
+
+      initializer.isInitializedMultiple.mockReturnValue(true);
+      vi.mocked(api.getViewManager().hasView).mockReturnValue(true);
+
+      expect(manager.isInitializedMandatory()).toBeTruthy();
+    });
   });
 
   describe('should initialize mandatory', () => {
@@ -41,7 +69,9 @@ describe('InitializationManager', () => {
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConfigManager().hasConfig).mockReturnValue(true);
       vi.mocked(api.getMessageManager().hasMessage).mockReturnValue(false);
-      vi.mocked(api.getQueryStringManager().hasViewRelatedActions).mockReturnValue(false);
+      vi.mocked(api.getQueryStringManager().hasViewRelatedActions).mockReturnValue(
+        false,
+      );
       const manager = new InitializationManager(api);
 
       expect(await manager.initializeMandatory()).toBeTruthy();
@@ -50,7 +80,6 @@ describe('InitializationManager', () => {
       expect(sideLoadHomeAssistantElements).toBeCalled();
       expect(api.getCameraManager().initializeCamerasFromConfig).toBeCalled();
       expect(api.getViewManager().setViewDefault).toBeCalled();
-      expect(api.getCardElementManager().update).toBeCalled();
     });
 
     it('successfully with querystring view', async () => {
@@ -71,7 +100,9 @@ describe('InitializationManager', () => {
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConfigManager().hasConfig).mockReturnValue(true);
       vi.mocked(api.getMessageManager().hasMessage).mockReturnValue(true);
-      vi.mocked(api.getQueryStringManager().hasViewRelatedActions).mockReturnValue(false);
+      vi.mocked(api.getQueryStringManager().hasViewRelatedActions).mockReturnValue(
+        false,
+      );
       const manager = new InitializationManager(api);
 
       expect(await manager.initializeMandatory()).toBeTruthy();
@@ -134,7 +165,6 @@ describe('InitializationManager', () => {
       expect(await manager.initializeBackgroundIfNecessary()).toBeTruthy();
       expect(api.getMediaPlayerManager().initialize).not.toBeCalled();
       expect(api.getMicrophoneManager().connect).not.toBeCalled();
-      expect(api.getCardElementManager().update).not.toBeCalled();
     });
 
     it('successfully with all inititalizers', async () => {

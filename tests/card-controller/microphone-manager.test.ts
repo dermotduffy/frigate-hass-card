@@ -63,7 +63,7 @@ describe('MicrophoneManager', () => {
     const manager = new MicrophoneManager(api);
     navigatorMock.mediaDevices.getUserMedia.mockRejectedValue(new Error());
 
-    await manager.connect();
+    expect(await manager.connect()).toBeFalsy();
 
     expect(manager.isConnected()).toBeFalsy();
     expect(manager.isForbidden()).toBeTruthy();

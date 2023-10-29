@@ -1,16 +1,14 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import add from 'date-fns/add';
 import cloneDeep from 'lodash-es/cloneDeep';
 import merge from 'lodash-es/merge.js';
 import sum from 'lodash-es/sum';
 import { CardCameraAPI } from '../card-controller/types.js';
-import { CameraConfig, CamerasConfig } from '../config/types.js';
+import { CameraConfig, CamerasConfig, PTZAction, PTZPhase } from '../config/types.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
 import { localize } from '../localize/localize.js';
 import { allPromises, arrayify, setify } from '../utils/basic.js';
 import { getCameraID } from '../utils/camera.js';
 import { log } from '../utils/debug.js';
-import { EntityRegistryManager } from '../utils/ha/entity-registry/index.js';
 import { ViewMedia } from '../view/media.js';
 import { CameraManagerEngineFactory } from './engine-factory.js';
 import { CameraManagerEngine } from './engine.js';
@@ -49,7 +47,7 @@ import {
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResults,
   RecordingSegmentsQueryResultsMap,
-  ResultsMap,
+  ResultsMap
 } from './types.js';
 import { sortMedia } from './utils.js';
 
@@ -102,31 +100,26 @@ export interface ExtendedMediaQueryResult<T extends MediaQuery> {
   results: ViewMedia[];
 }
 
-interface InitializedCamera {
-  inputConfig: CameraConfig;
-  initializedConfig: CameraConfig;
-  engine: CameraManagerEngine;
-}
-
 export class CameraManager {
   protected _api: CardCameraAPI;
   protected _engineFactory: CameraManagerEngineFactory;
-  protected _store = new CameraManagerStore();
+  protected _store: CameraManagerStore;
 
-  constructor(api: CardCameraAPI) {
+  constructor(api: CardCameraAPI, store?: CameraManagerStore) {
     this._api = api;
     this._engineFactory = new CameraManagerEngineFactory(
       this._api.getEntityRegistryManager(),
       this._api.getResolvedMediaCache(),
     );
+    this._store = store ?? new CameraManagerStore();
   }
 
-  public async initializeCamerasFromConfig(): Promise<void> {
+  public async initializeCamerasFromConfig(): Promise<boolean> {
     const config = this._api.getConfigManager().getConfig();
     const hass = this._api.getHASSManager().getHASS();
 
     if (!config || !hass) {
-      return;
+      return false;
     }
 
     this._store.reset();
@@ -143,7 +136,9 @@ export class CameraManager {
       await this._initializeCameras(cameras);
     } catch (e: unknown) {
       this._api.getMessageManager().setErrorIfHigherPriority(e);
+      return false;
     }
+    return true;
   }
 
   protected async _getEnginesForCameras(
@@ -172,34 +167,15 @@ export class CameraManager {
       if (!engine || !engineType) {
         throw new CameraInitializationError(
           localize('error.no_camera_engine'),
-          cameraConfig,
+          // Camera initialization may modify the configuration. Keep the
+          // original config unchanged.
+          cloneDeep(cameraConfig),
         );
       }
       engines.set(engineType, engine);
       output.set(cameraConfig, engine);
     }
     return output;
-  }
-
-  protected async _initializeCamera(
-    hass: HomeAssistant,
-    engine: CameraManagerEngine,
-    entityRegistryManager: EntityRegistryManager,
-    inputCameraConfig: CameraConfig,
-  ): Promise<InitializedCamera> {
-    const initializedConfig = await engine.initializeCamera(
-      hass,
-      entityRegistryManager,
-      // Camera initialization may modify the configuration. Keep the original
-      // for display in error messages to avoid user confusion.
-      cloneDeep(inputCameraConfig),
-    );
-
-    return {
-      inputConfig: inputCameraConfig,
-      initializedConfig: initializedConfig,
-      engine: engine,
-    };
   }
 
   protected async _initializeCameras(camerasConfig: CamerasConfig): Promise<void> {
@@ -229,12 +205,11 @@ export class CameraManager {
     const engineByConfig = await this._getEnginesForCameras(camerasConfig);
 
     // Configuration is initialized in parallel.
-    const results = await allPromises(
+    const cameras = await allPromises(
       engineByConfig.entries(),
       async ([cameraConfig, engine]) =>
-        await this._initializeCamera(
+        await engine.initializeCamera(
           hass,
-          engine,
           this._api.getEntityRegistryManager(),
           cameraConfig,
         ),
@@ -242,27 +217,26 @@ export class CameraManager {
 
     // Do the additions based off the result-order, to ensure the map order is
     // preserved.
-    results.forEach((result) => {
-      const id = getCameraID(result.initializedConfig);
+    cameras.forEach((camera) => {
+      const cameraID = getCameraID(camera.getConfig());
 
-      if (!id) {
+      if (!cameraID) {
         throw new CameraInitializationError(
           localize('error.no_camera_id'),
-          result.inputConfig,
+          camera.getConfig(),
         );
       }
 
-      if (this._store.hasCameraID(id)) {
+      if (this._store.hasCameraID(cameraID)) {
         throw new CameraInitializationError(
           localize('error.duplicate_camera_id'),
-          result.inputConfig,
+          camera.getConfig(),
         );
       }
 
       // Always ensure the actual ID used in the card is in the configuration itself.
-      result.initializedConfig.id = id;
-
-      this._store.addCamera(id, result.initializedConfig, result.engine);
+      camera.setID(cameraID);
+      this._store.addCamera(camera);
     });
 
     if (!this._store.getVisibleCameraCount()) {
@@ -372,20 +346,16 @@ export class CameraManager {
     for (const [engine, cameraIDs] of engines) {
       let queries: DataQuery[] | null = null;
       if (QueryClassifier.isEventQuery(partialQuery)) {
-        queries = engine.generateDefaultEventQuery(
-          this._store.getVisibleCameras(),
-          cameraIDs,
-          partialQuery,
-        );
+        queries = engine.generateDefaultEventQuery(this._store, cameraIDs, partialQuery);
       } else if (QueryClassifier.isRecordingQuery(partialQuery)) {
         queries = engine.generateDefaultRecordingQuery(
-          this._store.getVisibleCameras(),
+          this._store,
           cameraIDs,
           partialQuery,
         );
       } else if (QueryClassifier.isRecordingSegmentsQuery(partialQuery)) {
         queries = engine.generateDefaultRecordingSegmentsQuery(
-          this._store.getVisibleCameras(),
+          this._store,
           cameraIDs,
           partialQuery,
         );
@@ -596,7 +566,7 @@ export class CameraManager {
       return null;
     }
 
-    return await engine.getMediaSeekTime(hass, this._store.getCameras(), media, target);
+    return await engine.getMediaSeekTime(hass, this._store, media, target);
   }
 
   protected async _handleQuery<QT extends DataQuery>(
@@ -624,28 +594,28 @@ export class CameraManager {
       if (QueryClassifier.isEventQuery(query)) {
         engineResult = (await engine.getEvents(
           hass,
-          this._store.getCameras(),
+          this._store,
           query,
           engineOptions,
         )) as Map<QT, QueryReturnType<QT>> | null;
       } else if (QueryClassifier.isRecordingQuery(query)) {
         engineResult = (await engine.getRecordings(
           hass,
-          this._store.getCameras(),
+          this._store,
           query,
           engineOptions,
         )) as Map<QT, QueryReturnType<QT>> | null;
       } else if (QueryClassifier.isRecordingSegmentsQuery(query)) {
         engineResult = (await engine.getRecordingSegments(
           hass,
-          this._store.getCameras(),
+          this._store,
           query,
           engineOptions,
         )) as Map<QT, QueryReturnType<QT>> | null;
       } else if (QueryClassifier.isMediaMetadataQuery(query)) {
         engineResult = (await engine.getMediaMetadata(
           hass,
-          this._store.getCameras(),
+          this._store,
           query,
           engineOptions,
         )) as Map<QT, QueryReturnType<QT>> | null;
@@ -710,22 +680,12 @@ export class CameraManager {
           QueryClassifier.isEventQuery(query) &&
           QueryResultClassifier.isEventQueryResult(result)
         ) {
-          media = engine.generateMediaFromEvents(
-            hass,
-            this._store.getCameras(),
-            query,
-            result,
-          );
+          media = engine.generateMediaFromEvents(hass, this._store, query, result);
         } else if (
           QueryClassifier.isRecordingQuery(query) &&
           QueryResultClassifier.isRecordingQuery(result)
         ) {
-          media = engine.generateMediaFromRecordings(
-            hass,
-            this._store.getCameras(),
-            query,
-            result,
-          );
+          media = engine.generateMediaFromRecordings(hass, this._store, query, result);
         }
         if (media) {
           mediaArray.push(...media);
@@ -761,12 +721,7 @@ export class CameraManager {
   public getCameraCapabilities(
     cameraID: string,
   ): CameraManagerCameraCapabilities | null {
-    const cameraConfig = this._store.getCameraConfig(cameraID);
-    const engine = this._store.getEngineForCameraID(cameraID);
-    if (!cameraConfig || !engine) {
-      return null;
-    }
-    return engine.getCameraCapabilities(cameraConfig);
+    return this._store.getCamera(cameraID)?.getCapabilities() ?? null;
   }
 
   public getAggregateCameraCapabilities(
@@ -787,6 +742,26 @@ export class CameraManager {
       supportsRecordings: perCameraCapabilities.some((cap) => cap?.supportsRecordings),
       supportsSnapshots: perCameraCapabilities.some((cap) => cap?.supportsSnapshots),
       supportsTimeline: perCameraCapabilities.some((cap) => cap?.supportsTimeline),
+
+      supportsPTZ: perCameraCapabilities.some((cap) => !!cap?.ptz),
     };
+  }
+
+  public async executePTZAction(
+    cameraID: string,
+    action: PTZAction,
+    options: {
+      phase?: PTZPhase;
+      preset?: string;
+    },
+  ): Promise<void> {
+    const hass = this._api.getHASSManager().getHASS();
+    const engine = this._store.getEngineForCameraID(cameraID);
+    const cameraConfig = this._store.getCameraConfig(cameraID);
+
+    if (!engine || !cameraConfig || !hass) {
+      return;
+    }
+    return engine.executePTZAction(hass, cameraConfig, action, options);
   }
 }

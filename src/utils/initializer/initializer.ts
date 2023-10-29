@@ -5,7 +5,7 @@ enum InitializationState {
   INITIALIZED = 'initialized',
 }
 
-type InitializationCallback = () => Promise<unknown>;
+type InitializationCallback = () => Promise<boolean>;
 
 /**
  * Manages initialization state & calling initializers.
@@ -43,8 +43,11 @@ export class Initializer {
       if (state !== InitializationState.INITIALIZING) {
         if (initializer) {
           this._state.set(aspect, InitializationState.INITIALIZING);
-          await initializer();
-          this._state.set(aspect, InitializationState.INITIALIZED);
+          if (await initializer()) {
+            this._state.set(aspect, InitializationState.INITIALIZED);
+          } else {
+            this.uninitialize(aspect);
+          }
         } else {
           this._state.set(aspect, InitializationState.INITIALIZED);
         }

@@ -226,7 +226,31 @@
       "auto_play": "Reproduzir câmeras ao vivo automaticamente",
       "auto_unmute": "Ativar automaticamente o som das câmeras ao vivo",
       "controls": {
-        "editor_label": "Controles da visualização ao vivo"
+        "editor_label": "Controles da visualização ao vivo",
+        "ptz": {
+          "editor_label": "",
+          "mode": "",
+          "modes": {
+            "on": "",
+            "off": "",
+            "auto": ""
+          },
+          "orientation": "",
+          "orientations": {
+            "vertical": "",
+            "horizontal": ""
+          },
+          "position": "",
+          "positions": {
+            "top-left": "",
+            "top-right": "",
+            "bottom-left": "",
+            "bottom-right": ""
+          },
+          "hide_zoom": "",
+          "hide_pan_tilt": "",
+          "hide_home": ""
+        }
       },
       "draggable": "A visualização ao vivo das câmeras pode ser arrastada/deslizada",
       "layout": "layout",
@@ -292,6 +316,7 @@
         "mute": "",
         "play": "",
         "priority": "Prioridade",
+        "ptz": "",
         "screenshot": "",
         "snapshots": "Instantâneos",
         "substreams": "substreams",

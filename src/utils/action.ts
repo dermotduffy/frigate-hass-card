@@ -7,10 +7,10 @@ import {
 import {
   Actions,
   ActionType,
-  FrigateCardAction,
   FrigateCardCustomAction,
   frigateCardCustomActionSchema,
-  ViewDisplayMode,
+  FrigateCardGeneralAction,
+  FrigateCardUserSpecifiedView,
 } from '../config/types.js';
 
 /**
@@ -30,59 +30,75 @@ export function convertActionToFrigateCardCustomAction(
   return parseResult.success ? parseResult.data : null;
 }
 
-/**
- * Create a Frigate card custom action.
- * @param action The Frigate card action string (e.g. 'fullscreen')
- * @returns A FrigateCardCustomAction for that action string or null.
- */
-export function createFrigateCardCustomAction(
-  action: FrigateCardAction,
-  args?: {
+export function createFrigateCardSimpleAction(
+  action: FrigateCardGeneralAction | FrigateCardUserSpecifiedView,
+  options?: {
     cardID?: string;
-    camera?: string;
-    media_player?: string;
-    media_player_action?: 'play' | 'stop';
-    display_mode?: ViewDisplayMode;
   },
 ): FrigateCardCustomAction | null {
-  if (action === 'camera_select' || action === 'live_substream_select') {
-    if (!args?.camera) {
-      return null;
-    }
-    return {
-      action: 'fire-dom-event',
-      frigate_card_action: action,
-      camera: args.camera as string,
-      ...(args.cardID && { card_id: args.cardID }),
-    };
-  }
-  if (action === 'media_player') {
-    if (!args?.media_player || !args.media_player_action) {
-      return null;
-    }
-    return {
-      action: 'fire-dom-event',
-      frigate_card_action: action,
-      media_player: args.media_player,
-      media_player_action: args.media_player_action,
-      ...(args.cardID && { card_id: args.cardID }),
-    };
-  }
-  if (action === 'display_mode_select') {
-    if (!args?.display_mode) {
-      return null;
-    }
-    return {
-      action: 'fire-dom-event',
-      frigate_card_action: action,
-      display_mode: args?.display_mode,
-      ...(args.cardID && { card_id: args.cardID }),
-    };
-  }
   return {
     action: 'fire-dom-event',
     frigate_card_action: action,
-    ...(args?.cardID && { card_id: args.cardID }),
+    ...(options?.cardID && { card_id: options.cardID }),
+  };
+}
+
+export function createFrigateCardCameraAction(
+  action: 'camera_select' | 'live_substream_select',
+  camera: string,
+  options?: {
+    cardID?: string;
+  },
+): FrigateCardCustomAction {
+  return {
+    action: 'fire-dom-event',
+    frigate_card_action: action,
+    camera: camera,
+    ...(options?.cardID && { card_id: options.cardID }),
+  };
+}
+
+export function createFrigateCardMediaPlayerAction(
+  mediaPlayer: string,
+  mediaPlayerAction: 'play' | 'stop',
+  options?: {
+    cardID?: string;
+  },
+): FrigateCardCustomAction {
+  return {
+    action: 'fire-dom-event',
+    frigate_card_action: 'media_player',
+    media_player: mediaPlayer,
+    media_player_action: mediaPlayerAction,
+    ...(options?.cardID && { card_id: options.cardID }),
+  };
+}
+
+export function createFrigateCardDisplayModeAction(
+  displayMode: 'single' | 'grid',
+  options?: {
+    cardID?: string;
+  },
+): FrigateCardCustomAction {
+  return {
+    action: 'fire-dom-event',
+    frigate_card_action: 'display_mode_select',
+    display_mode: displayMode,
+    ...(options?.cardID && { card_id: options.cardID }),
+  };
+}
+
+export function createFrigateCardShowPTZAction(
+  showPTZ: boolean,
+  options?: {
+    cardID?: string;
+  },
+): FrigateCardCustomAction {
+  return {
+    action: 'fire-dom-event',
+    frigate_card_action: 'show_ptz',
+    show_ptz: showPTZ,
+    ...(options?.cardID && { card_id: options.cardID }),
   };
 }
 
@@ -94,10 +110,10 @@ export function createFrigateCardCustomAction(
  */
 export function getActionConfigGivenAction(
   interaction?: string,
-  config?: Actions,
-): ActionType | ActionType[] | undefined {
+  config?: Actions | null,
+): ActionType | ActionType[] | null {
   if (!interaction || !config) {
-    return undefined;
+    return null;
   }
   if (interaction == 'tap' && config.tap_action) {
     return config.tap_action;
@@ -110,7 +126,7 @@ export function getActionConfigGivenAction(
   } else if (interaction == 'start_tap' && config.start_tap_action) {
     return config.start_tap_action;
   }
-  return undefined;
+  return null;
 }
 
 /**
@@ -132,7 +148,7 @@ export const frigateCardHandleActionConfig = (
     entity?: string;
   },
   action: string,
-  actionConfig?: ActionType | ActionType[],
+  actionConfig?: ActionType | ActionType[] | null,
 ): boolean => {
   // Only allow a tap action to use a default non-config (the more-info config).
   if (actionConfig || action == 'tap') {
@@ -149,7 +165,7 @@ export const frigateCardHandleAction = (
     camera_image?: string;
     entity?: string;
   },
-  actionConfig: ActionType | ActionType[] | undefined,
+  actionConfig?: ActionType | ActionType[] | null,
 ): void => {
   // ActionConfig vs ActionType:
   // * There is a slight typing (but not functional) difference between
@@ -161,7 +177,12 @@ export const frigateCardHandleAction = (
       handleActionConfig(node, hass, config, action as ActionConfig | undefined),
     );
   } else {
-    handleActionConfig(node, hass, config, actionConfig as ActionConfig | undefined);
+    handleActionConfig(
+      node,
+      hass,
+      config,
+      (actionConfig ?? undefined) as ActionConfig | undefined,
+    );
   }
 };
 

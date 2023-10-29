@@ -69,7 +69,14 @@ export class FrigateCardCarousel extends LitElement {
       this.setAttribute('direction', this.direction);
     }
 
-    const destroyProperties = ['direction', 'dragFree', 'transitionEffect'] as const;
+    const destroyProperties = [
+      'direction',
+      'dragEnabled',
+      'dragFree',
+      'loop',
+      'plugins',
+      'transitionEffect',
+    ] as const;
     if (destroyProperties.some((prop) => changedProps.has(prop))) {
       this._carousel?.destroy();
       this._carousel = null;

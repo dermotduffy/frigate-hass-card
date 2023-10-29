@@ -1,27 +1,17 @@
 import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
 import { vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+import { Camera } from '../src/camera-manager/camera';
+import { CameraManagerEngine } from '../src/camera-manager/engine';
 import { FrigateEvent, FrigateRecording } from '../src/camera-manager/frigate/types';
+import { GenericCameraManagerEngine } from '../src/camera-manager/generic/engine-generic';
 import { CameraManager } from '../src/camera-manager/manager';
 import { CameraManagerStore } from '../src/camera-manager/store';
 import {
-  CameraConfigs,
   CameraManagerCameraCapabilities,
+  CameraManagerCapabilities,
   CameraManagerMediaCapabilities,
-  QueryType,
 } from '../src/camera-manager/types';
-import {
-  CameraConfig,
-  FrigateCardCondition,
-  FrigateCardConfig,
-  PerformanceConfig,
-  RawFrigateCardConfig,
-  cameraConfigSchema,
-  frigateCardConditionSchema,
-  frigateCardConfigSchema,
-  performanceConfigSchema,
-} from '../src/config/types';
-import { ExtendedHomeAssistant, MediaLoadedInfo } from '../src/types';
 import { ActionsManager } from '../src/card-controller/actions-manager';
 import { AutoUpdateManager } from '../src/card-controller/auto-update-manager';
 import { AutomationsManager } from '../src/card-controller/automations-manager';
@@ -44,6 +34,18 @@ import { QueryStringManager } from '../src/card-controller/query-string-manager'
 import { StyleManager } from '../src/card-controller/style-manager';
 import { TriggersManager } from '../src/card-controller/triggers-manager';
 import { ViewManager } from '../src/card-controller/view-manager';
+import {
+  CameraConfig,
+  cameraConfigSchema,
+  FrigateCardCondition,
+  frigateCardConditionSchema,
+  FrigateCardConfig,
+  frigateCardConfigSchema,
+  PerformanceConfig,
+  performanceConfigSchema,
+  RawFrigateCardConfig,
+} from '../src/config/types';
+import { ExtendedHomeAssistant, MediaLoadedInfo } from '../src/types';
 import { Entity } from '../src/utils/ha/entity-registry/types';
 import { ViewMedia, ViewMediaType } from '../src/view/media';
 import { MediaQueriesResults } from '../src/view/media-queries-results';
@@ -150,55 +152,51 @@ export const createViewWithMedia = (options?: Partial<ViewParameters>): View => 
   });
 };
 
-export const createCameraManager = (options?: {
-  store?: CameraManagerStore;
-  configs?: CameraConfigs;
-}): CameraManager => {
-  const cameraManager = new CameraManager(createCardAPI());
-  let store: CameraManagerStore | undefined = options?.store;
-  if (!store) {
-    store = mock<CameraManagerStore>();
-    const configs = options?.configs ?? new Map([['camera', createCameraConfig()]]);
-    vi.mocked(store.getCameras).mockReturnValue(configs);
-    vi.mocked(store.getVisibleCameras).mockReturnValue(configs);
-    vi.mocked(store.getVisibleCameraIDs).mockReturnValue(new Set(configs.keys()));
-    vi.mocked(store.hasVisibleCameraID).mockImplementation((cameraID: string) =>
-      [...configs.keys()].includes(cameraID),
+export const createStore = (
+  cameras?: {
+    cameraID: string;
+    engine?: CameraManagerEngine;
+    config?: CameraConfig;
+    capabilities?: CameraManagerCameraCapabilities;
+  }[],
+): CameraManagerStore => {
+  const store = new CameraManagerStore();
+  for (const cameraProps of cameras ?? []) {
+    const camera = new Camera(
+      cameraProps.config ?? createCameraConfig(),
+      cameraProps.engine ?? new GenericCameraManagerEngine(),
+      cameraProps.capabilities ?? createCameraCapabilities(),
     );
-    vi.mocked(store.getCameraConfig).mockImplementation(
-      (cameraID): CameraConfig | null => {
-        return configs.get(cameraID) ?? null;
-      },
-    );
+    camera.setID(cameraProps.cameraID);
+    store.addCamera(camera);
   }
-  vi.mocked(cameraManager.getStore).mockReturnValue(store);
-  vi.mocked(cameraManager.generateDefaultEventQueries).mockReturnValue([
-    {
-      cameraIDs: new Set(['camera']),
-      type: QueryType.Event,
-    },
-  ]);
-  vi.mocked(cameraManager.generateDefaultRecordingQueries).mockReturnValue([
-    {
-      cameraIDs: new Set(['camera']),
-      type: QueryType.Recording,
-    },
-  ]);
-  vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue({
-    canFavoriteEvents: true,
-    canFavoriteRecordings: true,
-    canSeek: true,
-    supportsClips: true,
-    supportsRecordings: true,
-    supportsSnapshots: true,
-    supportsTimeline: true,
-  });
+  return store;
+};
 
+export const createCameraManager = (): CameraManager => {
+  const cameraManager = mock<CameraManager>();
+  vi.mocked(cameraManager.getStore).mockReturnValue(createStore());
   return cameraManager;
 };
 
+export const createAggregateCameraCapabilities = (
+  capabilities?: Partial<CameraManagerCapabilities>,
+): CameraManagerCapabilities => {
+  return {
+    canFavoriteEvents: false,
+    canFavoriteRecordings: false,
+    canSeek: false,
+    supportsClips: false,
+    supportsRecordings: false,
+    supportsSnapshots: false,
+    supportsTimeline: false,
+    supportsPTZ: false,
+    ...capabilities,
+  };
+};
+
 export const createCameraCapabilities = (
-  options?: Partial<CameraManagerCameraCapabilities>,
+  capabilities?: Partial<CameraManagerCameraCapabilities>,
 ): CameraManagerCameraCapabilities => {
   return {
     canFavoriteEvents: false,
@@ -208,7 +206,7 @@ export const createCameraCapabilities = (
     supportsRecordings: false,
     supportsSnapshots: false,
     supportsTimeline: false,
-    ...options,
+    ...capabilities,
   };
 };
 

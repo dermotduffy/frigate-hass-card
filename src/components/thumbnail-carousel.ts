@@ -15,6 +15,7 @@ import { ExtendedHomeAssistant } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
 import { CarouselDirection } from '../utils/embla/carousel-controller.js';
+import AutoSize from '../utils/embla/plugins/auto-size/auto-size.js';
 import { MediaQueriesResults } from '../view/media-queries-results';
 import { View } from '../view/view.js';
 import './carousel.js';
@@ -136,6 +137,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
 
     return html`<frigate-card-carousel
       direction=${direction}
+      .plugins=${[AutoSize()]}
       .selected=${this._getSelectedSlide() ?? 0}
       .dragFree=${true}
     >

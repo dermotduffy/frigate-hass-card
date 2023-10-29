@@ -28,8 +28,14 @@ export class TriggersManager {
     const now = new Date();
     let triggerChanges = false;
 
-    const cameras = this._api.getCameraManager().getStore().getVisibleCameras();
-    for (const [cameraID, config] of cameras?.entries()) {
+    const visibleCameraIDs = this._api
+      .getCameraManager()
+      .getStore()
+      .getVisibleCameraIDs();
+    for (const [cameraID, config] of this._api
+      .getCameraManager()
+      .getStore()
+      .getCameraConfigEntries(visibleCameraIDs)) {
       const triggerEntities = config.triggers.entities;
       const diffs = getHassDifferences(hass, oldHass, triggerEntities, {
         stateOnly: true,

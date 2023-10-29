@@ -68,6 +68,14 @@ describe('config defaults', () => {
             size: 48,
             style: 'chevrons',
           },
+          ptz: {
+            hide_home: false,
+            hide_pan_tilt: false,
+            hide_zoom: false,
+            mode: 'on',
+            orientation: 'horizontal',
+            position: 'bottom-right',
+          },
           thumbnails: {
             media: 'all',
             mode: 'right',
@@ -208,6 +216,10 @@ describe('config defaults', () => {
             enabled: false,
             priority: 50,
           },
+          ptz: {
+            enabled: false,
+            priority: 50,
+          },
           recordings: {
             enabled: false,
             priority: 50,
@@ -343,7 +355,13 @@ describe('should convert webrtc card PTZ to Frigate card PTZ', () => {
         },
       },
       service: 'foo',
-      type: 'custom:frigate-card-ptz',
+
+      hide_home: false,
+      hide_pan_tilt: false,
+      hide_zoom: false,
+      mode: 'on',
+      orientation: 'horizontal',
+      position: 'bottom-right',
     });
   });
 });

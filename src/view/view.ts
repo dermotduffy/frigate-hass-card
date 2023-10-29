@@ -5,6 +5,7 @@ import { dispatchFrigateCardEvent } from '../utils/basic.js';
 import { MediaQueries } from './media-queries';
 import { MediaQueriesClassifier } from './media-queries-classifier.js';
 import { MediaQueriesResults } from './media-queries-results';
+import merge from 'lodash-es/merge';
 
 interface ViewEvolveParameters {
   view?: FrigateCardView;
@@ -177,7 +178,7 @@ export class View {
    * @returns This view.
    */
   public mergeInContext(context?: ViewContext): View {
-    this.context = { ...this.context, ...context };
+    this.context = merge(this.context ?? {}, this.context, context);
     return this;
   }
 

@@ -1,7 +1,6 @@
 import { ViewContext } from 'view';
 import { FrigateCardConfig, FrigateCardView, ViewDisplayMode } from '../config/types';
 import { View } from '../view/view';
-import { getAllDependentCameras } from '../utils/camera';
 import { log } from '../utils/debug';
 import { executeMediaQueryForView } from '../utils/media-to-view';
 import { CardViewAPI } from './types';
@@ -26,6 +25,10 @@ export class ViewManager {
 
   public getView(): View | null {
     return this._view;
+  }
+
+  public hasView(): boolean {
+    return !!this.getView();
   }
 
   public setView(view: View): void {
@@ -255,7 +258,7 @@ export class ViewManager {
 
   protected _createViewWithNextStream(baseView: View): View {
     const dependencies = [
-      ...getAllDependentCameras(this._api.getCameraManager(), baseView.camera),
+      ...this._api.getCameraManager().getStore().getAllDependentCameras(baseView.camera),
     ];
     if (dependencies.length <= 1) {
       return baseView.clone();

@@ -23,7 +23,6 @@ import {
 } from '../test-utils';
 
 vi.mock('../../src/utils/action.js');
-vi.mock('../../src/camera-manager/manager.js');
 
 const createAction = (
   action: Record<string, unknown>,
@@ -706,6 +705,62 @@ describe('ActionsManager.executeAction', () => {
     );
 
     expect(api.getViewManager().setViewWithNewDisplayMode).toBeCalledWith('grid');
+  });
+
+  describe('should handle ptz action', () => {
+    it('with selected camera', async () => {
+      const api = createCardAPI();
+      const manager = new ActionsManager(api);
+      vi.mocked(api.getViewManager().getView).mockReturnValue(
+        createView({ camera: 'camera.office' }),
+      );
+
+      await manager.executeAction(
+        createAction({
+          frigate_card_action: 'ptz',
+          ptz_action: 'left',
+        })!,
+      );
+
+      expect(api.getCameraManager().executePTZAction).toBeCalledWith(
+        'camera.office',
+        'left',
+        {
+          phase: undefined,
+          preset: undefined,
+        },
+      );
+    });
+
+    it('without selected camera', async () => {
+      const api = createCardAPI();
+      const manager = new ActionsManager(api);
+
+      await manager.executeAction(
+        createAction({
+          frigate_card_action: 'ptz',
+          ptz_action: 'left',
+        })!,
+      );
+
+      expect(api.getCameraManager().executePTZAction).not.toBeCalled();
+    });
+  });
+
+  it('should handle show_ptz action', async () => {
+    const api = createCardAPI();
+    const manager = new ActionsManager(api);
+
+    await manager.executeAction(
+      createAction({
+        frigate_card_action: 'show_ptz',
+        show_ptz: true,
+      })!,
+    );
+
+    expect(api.getViewManager().setViewWithNewContext).toBeCalledWith(
+      expect.objectContaining({ live: { ptzVisible: true } }),
+    );
   });
 
   it('should handle unknown action', async () => {

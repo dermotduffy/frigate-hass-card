@@ -739,4 +739,433 @@ describe('should handle version specific upgrades', () => {
       });
     });
   });
+
+  describe('should move PTZ elements to live', () => {
+    it('case with 1 element', () => {
+      const config = {
+        type: 'custom:frigate-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        elements: [
+          {
+            type: 'custom:frigate-card-ptz',
+            orientation: 'vertical',
+            style: {
+              right: '20px',
+              top: '20px',
+              color: 'white',
+            },
+            actions_up: {
+              tap_action: {
+                action: 'call-service',
+                service: 'notify.persistent_notification',
+                service_data: {
+                  message: 'Hello 1',
+                },
+              },
+            },
+          },
+        ],
+      };
+      expect(upgradeConfig(config)).toBeTruthy();
+      expect(config).toEqual({
+        cameras: [{ camera_entity: 'camera.office' }],
+        live: {
+          controls: {
+            ptz: {
+              actions_up: {
+                tap_action: {
+                  action: 'call-service',
+                  data: {
+                    message: 'Hello 1',
+                  },
+                  service: 'notify.persistent_notification',
+                },
+              },
+              orientation: 'vertical',
+              style: {
+                color: 'white',
+                right: '20px',
+                top: '20px',
+              },
+            },
+          },
+        },
+        type: 'custom:frigate-card',
+      });
+    });
+
+    it('case with >1 element', () => {
+      const config = {
+        type: 'custom:frigate-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        elements: [
+          {
+            type: 'custom:frigate-card-ptz',
+            orientation: 'vertical',
+            style: {
+              right: '20px',
+              top: '20px',
+              color: 'white',
+            },
+            actions_up: {
+              tap_action: {
+                action: 'call-service',
+                service: 'notify.persistent_notification',
+                service_data: {
+                  message: 'Hello 1',
+                },
+              },
+            },
+          },
+          {
+            type: 'service-button',
+            title: 'title',
+            service: 'service',
+            service_data: {
+              message: "It's a trick",
+            },
+          },
+        ],
+      };
+      expect(upgradeConfig(config)).toBeTruthy();
+      expect(config).toEqual({
+        cameras: [{ camera_entity: 'camera.office' }],
+        elements: [
+          {
+            service: 'service',
+            service_data: {
+              message: "It's a trick",
+            },
+            title: 'title',
+            type: 'service-button',
+          },
+        ],
+        live: {
+          controls: {
+            ptz: {
+              actions_up: {
+                tap_action: {
+                  action: 'call-service',
+                  data: {
+                    message: 'Hello 1',
+                  },
+                  service: 'notify.persistent_notification',
+                },
+              },
+              orientation: 'vertical',
+              style: {
+                color: 'white',
+                right: '20px',
+                top: '20px',
+              },
+            },
+          },
+        },
+        type: 'custom:frigate-card',
+      });
+    });
+
+    it('case with custom conditional element with 2 PTZ but nothing else', () => {
+      const config = {
+        type: 'custom:frigate-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        elements: [
+          {
+            type: 'custom:frigate-card-conditional',
+            conditions: {
+              fullscreen: true,
+              media_loaded: true,
+            },
+            elements: [
+              {
+                type: 'custom:frigate-card-ptz',
+                orientation: 'vertical',
+                style: {
+                  right: '20px',
+                  top: '20px',
+                  color: 'white',
+                },
+                actions_up: {
+                  tap_action: {
+                    action: 'call-service',
+                    service: 'notify.persistent_notification',
+                    service_data: {
+                      message: 'Hello 1',
+                    },
+                  },
+                },
+              },
+              {
+                type: 'custom:frigate-card-ptz',
+                orientation: 'vertical',
+                style: {
+                  right: '20px',
+                  top: '20px',
+                  color: 'white',
+                },
+                actions_up: {
+                  tap_action: {
+                    action: 'call-service',
+                    service: 'notify.persistent_notification',
+                    service_data: {
+                      message: 'Hello 2',
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      };
+      expect(upgradeConfig(config)).toBeTruthy();
+      expect(config).toEqual({
+        cameras: [{ camera_entity: 'camera.office' }],
+        live: {
+          controls: {
+            ptz: {
+              actions_up: {
+                tap_action: {
+                  action: 'call-service',
+                  data: {
+                    message: 'Hello 1',
+                  },
+                  service: 'notify.persistent_notification',
+                },
+              },
+              orientation: 'vertical',
+              style: {
+                color: 'white',
+                right: '20px',
+                top: '20px',
+              },
+            },
+          },
+        },
+        type: 'custom:frigate-card',
+      });
+    });
+
+    it('case with custom conditional element with 1 PTZ and another element', () => {
+      const config = {
+        type: 'custom:frigate-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        elements: [
+          {
+            type: 'custom:frigate-card-conditional',
+            conditions: {
+              fullscreen: true,
+              media_loaded: true,
+            },
+            elements: [
+              {
+                type: 'service-button',
+                title: 'title',
+                service: 'service',
+                service_data: {
+                  message: "It's a trick",
+                },
+              },
+              {
+                type: 'custom:frigate-card-ptz',
+                orientation: 'vertical',
+                style: {
+                  right: '20px',
+                  top: '20px',
+                  color: 'white',
+                },
+                actions_up: {
+                  tap_action: {
+                    action: 'call-service',
+                    service: 'notify.persistent_notification',
+                    service_data: {
+                      message: 'Hello 1',
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      };
+      expect(upgradeConfig(config)).toBeTruthy();
+      expect(config).toEqual({
+        cameras: [{ camera_entity: 'camera.office' }],
+        live: {
+          controls: {
+            ptz: {
+              actions_up: {
+                tap_action: {
+                  action: 'call-service',
+                  data: {
+                    message: 'Hello 1',
+                  },
+                  service: 'notify.persistent_notification',
+                },
+              },
+              orientation: 'vertical',
+              style: {
+                color: 'white',
+                right: '20px',
+                top: '20px',
+              },
+            },
+          },
+        },
+        elements: [
+          {
+            type: 'custom:frigate-card-conditional',
+            conditions: {
+              fullscreen: true,
+              media_loaded: true,
+            },
+            elements: [
+              {
+                type: 'service-button',
+                title: 'title',
+                service: 'service',
+                service_data: {
+                  message: "It's a trick",
+                },
+              },
+            ],
+          },
+        ],
+        type: 'custom:frigate-card',
+      });
+    });
+
+    it('case with stock conditional element with 1 PTZ', () => {
+      const config = {
+        type: 'custom:frigate-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        elements: [
+          {
+            type: 'conditional',
+            conditions: [{ entity: 'light.office', state: 'on' }],
+            elements: [
+              {
+                type: 'custom:frigate-card-ptz',
+                orientation: 'vertical',
+                style: {
+                  right: '20px',
+                  top: '20px',
+                  color: 'white',
+                },
+                actions_up: {
+                  tap_action: {
+                    action: 'call-service',
+                    service: 'notify.persistent_notification',
+                    service_data: {
+                      message: 'Hello 1',
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      };
+      expect(upgradeConfig(config)).toBeTruthy();
+      expect(config).toEqual({
+        cameras: [{ camera_entity: 'camera.office' }],
+        live: {
+          controls: {
+            ptz: {
+              actions_up: {
+                tap_action: {
+                  action: 'call-service',
+                  data: {
+                    message: 'Hello 1',
+                  },
+                  service: 'notify.persistent_notification',
+                },
+              },
+              orientation: 'vertical',
+              style: {
+                color: 'white',
+                right: '20px',
+                top: '20px',
+              },
+            },
+          },
+        },
+        type: 'custom:frigate-card',
+      });
+    });
+
+    it('case when live.controls.ptz already exists', () => {
+      const config = {
+        type: 'custom:frigate-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        live: {
+          controls: {
+            ptz: {
+              actions_up: {
+                tap_action: {
+                  action: 'call-service',
+                  data: {
+                    message: 'Original',
+                  },
+                  service: 'notify.persistent_notification',
+                },
+              },
+              orientation: 'vertical',
+              style: {
+                color: 'white',
+                right: '20px',
+                top: '20px',
+              },
+            },
+          },
+        },
+        elements: [
+          {
+            type: 'custom:frigate-card-ptz',
+            orientation: 'vertical',
+            style: {
+              right: '20px',
+              top: '20px',
+              color: 'white',
+            },
+            actions_up: {
+              tap_action: {
+                action: 'call-service',
+                service: 'notify.persistent_notification',
+                service_data: {
+                  message: 'Replacement that should be ignored',
+                },
+              },
+            },
+          },
+        ],
+      };
+      expect(upgradeConfig(config)).toBeTruthy();
+      expect(config).toEqual({
+        cameras: [{ camera_entity: 'camera.office' }],
+        live: {
+          controls: {
+            ptz: {
+              actions_up: {
+                tap_action: {
+                  action: 'call-service',
+                  data: {
+                    message: 'Original',
+                  },
+                  service: 'notify.persistent_notification',
+                },
+              },
+              orientation: 'vertical',
+              style: {
+                color: 'white',
+                right: '20px',
+                top: '20px',
+              },
+            },
+          },
+        },
+        type: 'custom:frigate-card',
+      });
+    });
+
+  });
 });

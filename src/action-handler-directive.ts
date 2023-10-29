@@ -32,6 +32,7 @@ class ActionHandler extends HTMLElement implements ActionHandler {
   protected doubleClickTimer = new Timer();
 
   protected held = false;
+  protected started = false;
 
   public connectedCallback(): void {
     [
@@ -83,7 +84,12 @@ class ActionHandler extends HTMLElement implements ActionHandler {
         this.held = true;
       });
 
-      fireEvent(element, 'action', { action: 'start_tap' });
+      // Without this check we get double start_tap events from touchstart and
+      // mousedown events (on Android).
+      if (!this.started) {
+        this.started = true;
+        fireEvent(element, 'action', { action: 'start_tap' });
+      }
     };
 
     const end = (ev: Event): void => {
@@ -105,6 +111,7 @@ class ActionHandler extends HTMLElement implements ActionHandler {
 
       this.holdTimer.stop();
 
+      this.started = false;
       fireEvent(element, 'action', { action: 'end_tap' });
 
       if (options?.hasHold && this.held) {

@@ -1,19 +1,18 @@
-import { HASSDomEvent, HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import {
   CSSResultGroup,
+  html,
   LitElement,
   PropertyValues,
   TemplateResult,
-  html,
   unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { classMap } from 'lit/directives/class-map.js';
-import { actionHandler } from '../action-handler-directive.js';
 import {
-  Actions,
-  ActionsConfig,
-  FrigateCardPTZConfig,
+  ConditionsManagerEpoch,
+  evaluateConditionViaEvent,
+} from '../card-controller/conditions-manager.js';
+import {
   FrigateConditional,
   MenuIcon,
   MenuItem,
@@ -23,19 +22,9 @@ import {
   PictureElements,
 } from '../config/types.js';
 import { localize } from '../localize/localize.js';
-import ptzStyle from '../scss/elements-ptz.scss';
 import elementsStyle from '../scss/elements.scss';
 import { FrigateCardError } from '../types.js';
-import {
-  frigateCardHandleActionConfig,
-  frigateCardHasAction,
-  getActionConfigGivenAction,
-} from '../utils/action.js';
-import { dispatchFrigateCardEvent } from '../utils/basic.js';
-import {
-  ConditionsManagerEpoch,
-  evaluateConditionViaEvent,
-} from '../card-controller/conditions-manager.js';
+import { dispatchFrigateCardEvent, errorToConsole } from '../utils/basic.js';
 import { dispatchFrigateCardErrorEvent } from './message.js';
 
 /* A note on picture element rendering:
@@ -122,7 +111,7 @@ export class FrigateCardElementsCore extends LitElement {
     try {
       element.setConfig(config);
     } catch (e) {
-      console.error(e);
+      errorToConsole(e as Error, console.error);
       throw new FrigateCardError(localize('error.invalid_elements_config'));
     }
     return element;
@@ -342,114 +331,6 @@ export class FrigateCardElementsMenuSubmenu extends FrigateCardElementsBaseMenuI
 @customElement('frigate-card-menu-submenu-select')
 export class FrigateCardElementsMenuSubmenuSelect extends FrigateCardElementsBaseMenuIcon<MenuSubmenuSelect> {}
 
-@customElement('frigate-card-ptz')
-export class FrigateCardPTZ extends LitElement {
-  @property({ attribute: false })
-  public hass?: HomeAssistant;
-
-  @state()
-  protected _config: FrigateCardPTZConfig | null = null;
-
-  /**
-   * Set the card config.
-   * @param config The configuration.
-   */
-  public setConfig(config: FrigateCardPTZConfig): void {
-    this._config = config;
-  }
-
-  /**
-   * Called before each update.
-   */
-  protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('_config')) {
-      this.setAttribute('data-orientation', this._config?.orientation ?? 'vertical');
-    }
-  }
-
-  /**
-   * Handle a PTZ action.
-   * @param ev The actionHandler event.
-   * @param config The action configuration.
-   */
-  protected _actionHandler(
-    ev: HASSDomEvent<{ action: string }>,
-    config?: ActionsConfig,
-  ): void {
-    // Nothing else has the configuration for this action, so don't let it
-    // propagate further.
-    ev.stopPropagation();
-
-    const interaction: string = ev.detail.action;
-    const action = getActionConfigGivenAction(interaction, config);
-    if (config && action && this.hass) {
-      frigateCardHandleActionConfig(this, this.hass, config, interaction, action);
-    }
-  }
-
-  /**
-   * Render the elements.
-   * @returns A rendered template or void.
-   */
-  protected render(): TemplateResult | void {
-    if (!this._config) {
-      return;
-    }
-    const renderIcon = (
-      name: string,
-      icon: string,
-      actions?: Actions,
-    ): TemplateResult => {
-      const hasHold = frigateCardHasAction(actions?.hold_action);
-      const hasDoubleClick = frigateCardHasAction(actions?.double_tap_action);
-      const classes = {
-        [name]: true,
-        disabled: !actions,
-      };
-
-      return html`<ha-icon
-        class=${classMap(classes)}
-        icon=${icon}
-        .actionHandler=${actionHandler({
-          hasHold: hasHold,
-          hasDoubleClick: hasDoubleClick,
-        })}
-        .title=${localize(`elements.ptz.${name}`)}
-        @action=${(ev) => this._actionHandler(ev, actions)}
-      ></ha-icon>`;
-    };
-
-    return html` <div class="ptz">
-      <div class="ptz-move">
-        ${renderIcon('right', 'mdi:arrow-right', this._config.actions_right)}
-        ${renderIcon('left', 'mdi:arrow-left', this._config.actions_left)}
-        ${renderIcon('up', 'mdi:arrow-up', this._config.actions_up)}
-        ${renderIcon('down', 'mdi:arrow-down', this._config.actions_down)}
-      </div>
-      ${this._config.actions_zoom_in || this._config.actions_zoom_out
-        ? html` <div class="ptz-zoom">
-            ${renderIcon('zoom_in', 'mdi:plus', this._config.actions_zoom_in)}
-            ${renderIcon('zoom_out', 'mdi:minus', this._config.actions_zoom_out)}
-          </div>`
-        : html``}
-      ${this._config.actions_home
-        ? html`
-            <div class="ptz-home">
-              ${renderIcon('home', 'mdi:home', this._config.actions_home)}
-            </div>
-          `
-        : html``}
-    </div>`;
-  }
-
-  /**
-   * Return compiled CSS styles.
-   */
-  static get styles(): CSSResultGroup {
-    return unsafeCSS(ptzStyle);
-  }
-}
-
 declare global {
   interface HTMLElementTagNameMap {
     'frigate-card-conditional': FrigateCardElementsConditional;
@@ -459,6 +340,5 @@ declare global {
     'frigate-card-menu-state-icon': FrigateCardElementsMenuStateIcon;
     'frigate-card-menu-icon': FrigateCardElementsMenuIcon;
     'frigate-card-elements-core': FrigateCardElementsCore;
-    'frigate-card-ptz': FrigateCardPTZ;
   }
 }

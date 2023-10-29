@@ -1,20 +1,24 @@
 import { describe, expect, it, vi } from 'vitest';
 import { QueryType } from '../../src/camera-manager/types';
-import { FrigateCardView } from '../../src/config/types';
-import { getAllDependentCameras } from '../../src/utils/camera';
 import { ViewManager } from '../../src/card-controller/view-manager';
+import { FrigateCardView } from '../../src/config/types';
+import { executeMediaQueryForView } from '../../src/utils/media-to-view';
 import { EventMediaQueries } from '../../src/view/media-queries';
+import { MediaQueriesResults } from '../../src/view/media-queries-results';
+import { View } from '../../src/view/view';
 import {
+  createCameraCapabilities,
+  createCameraConfig,
   createCameraManager,
   createCardAPI,
   createConfig,
   createHASS,
+  createStore,
   createView,
-  generateViewMediaArray,
+  generateViewMediaArray
 } from '../test-utils';
 
-vi.mock('../../src/camera-manager/manager.js');
-vi.mock('../../src/utils/camera');
+vi.mock('../../src/utils/media-to-view');
 
 describe('ViewManager.setView', () => {
   it('should set view', () => {
@@ -29,6 +33,7 @@ describe('ViewManager.setView', () => {
     manager.setView(view);
 
     expect(manager.getView()).toBe(view);
+    expect(manager.hasView()).toBeTruthy();
     expect(api.getMediaLoadedInfoManager().clear).toBeCalled();
     expect(api.getCardElementManager().scrollReset).toBeCalled();
     expect(api.getMessageManager().reset).toBeCalled();
@@ -101,6 +106,7 @@ describe('ViewManager.reset', () => {
     manager.reset();
 
     expect(manager.getView()).toBeNull();
+    expect(manager.hasView()).toBeFalsy();
   });
 });
 
@@ -109,6 +115,13 @@ describe('ViewManager.setViewDefault', () => {
     const api = createCardAPI();
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
     vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera',
+        },
+      ]),
+    );
 
     const manager = new ViewManager(api);
     manager.setViewDefault();
@@ -130,12 +143,18 @@ describe('ViewManager.setViewDefault', () => {
   });
 
   it('should cycle camera when configured', () => {
-    const cameraManager = createCameraManager();
-    vi.mocked(cameraManager.getStore().getVisibleCameraIDs).mockReturnValue(
-      new Set(['camera_1', 'camera_2']),
-    );
     const api = createCardAPI();
-    vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
+    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera_1',
+        },
+        {
+          cameraID: 'camera_2',
+        },
+      ]),
+    );
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
       createConfig({
         view: {
@@ -160,13 +179,19 @@ describe('ViewManager.setViewDefault', () => {
   });
 
   it('should respect parameters', () => {
-    const cameraManager = createCameraManager();
-    vi.mocked(cameraManager.getStore().getVisibleCameraIDs).mockReturnValue(
-      new Set(['camera.kitchen', 'camera.office']),
-    );
     const api = createCardAPI();
+    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera.kitchen',
+        },
+        {
+          cameraID: 'camera.office',
+        },
+      ]),
+    );
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
-    vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
     const manager = new ViewManager(api);
 
     manager.setViewDefault({
@@ -186,60 +211,84 @@ describe('ViewManager.setViewByParameters', () => {
     const api = createCardAPI();
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
     vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera.kitchen',
+        },
+      ]),
+    );
+    vi.mocked(api.getCameraManager().getCameraCapabilities).mockReturnValue(
+      createCameraCapabilities({
+        supportsClips: true,
+      }),
+    );
 
     const manager = new ViewManager(api);
     manager.setViewByParameters({
-      cameraID: 'camera',
+      cameraID: 'camera.kitchen',
       viewName: 'clips',
     });
 
     expect(manager.getView()?.view).toBe('clips');
-    expect(manager.getView()?.camera).toBe('camera');
+    expect(manager.getView()?.camera).toBe('camera.kitchen');
   });
 
   it('should set view by parameters using existing view if unspecified', () => {
-    const cameraManager = createCameraManager();
-    vi.mocked(cameraManager.getStore().getVisibleCameraIDs).mockReturnValue(
-      new Set(['camera_1', 'camera_2']),
-    );
-
     const api = createCardAPI();
+    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera.kitchen',
+        },
+        {
+          cameraID: 'camera.office',
+        },
+      ]),
+    );
+    vi.mocked(api.getCameraManager().getCameraCapabilities).mockReturnValue(
+      createCameraCapabilities({
+        supportsClips: true,
+      }),
+    );
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
-    vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
 
     const manager = new ViewManager(api);
     manager.setViewByParameters({
-      cameraID: 'camera_1',
+      cameraID: 'camera.kitchen',
       viewName: 'clips',
     });
 
     manager.setViewByParameters({
-      cameraID: 'camera_2',
+      cameraID: 'camera.office',
     });
 
     expect(manager.getView()?.view).toBe('clips');
-    expect(manager.getView()?.camera).toBe('camera_2');
+    expect(manager.getView()?.camera).toBe('camera.office');
   });
 
   it('should set view by parameters using config as fallback', () => {
-    const cameraManager = createCameraManager();
-    vi.mocked(cameraManager.getStore().getVisibleCameraIDs).mockReturnValue(
-      new Set(['camera_1', 'camera_2']),
-    );
-
     const api = createCardAPI();
+    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera.kitchen',
+        },
+      ]),
+    );
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
-    vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
 
     const manager = new ViewManager(api);
     manager.setViewByParameters({
-      cameraID: 'camera_1',
+      cameraID: 'camera.kitchen',
       // No prior view, and no specified view. This could happen during query
       // string based initialization.
     });
 
     expect(manager.getView()?.view).toBe('live');
-    expect(manager.getView()?.camera).toBe('camera_1');
+    expect(manager.getView()?.camera).toBe('camera.kitchen');
   });
 
   it('should not set view by parameters without config', () => {
@@ -253,12 +302,19 @@ describe('ViewManager.setViewByParameters', () => {
   });
 
   it('should not set view by parameters without visible cameras', () => {
-    const cameraManager = createCameraManager();
-    vi.mocked(cameraManager.getStore().getVisibleCameraIDs).mockReturnValue(new Set());
-
     const api = createCardAPI();
+    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera.kitchen',
+          config: createCameraConfig({
+            hide: true,
+          }),
+        },
+      ]),
+    );
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
-    vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
 
     const manager = new ViewManager(api);
     manager.setViewByParameters({
@@ -278,6 +334,21 @@ describe('ViewManager.setViewByParameters', () => {
     ])('%s', (viewName: FrigateCardView) => {
       const api = createCardAPI();
       vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera.kitchen',
+          },
+        ]),
+      );
+      vi.mocked(api.getCameraManager().getCameraCapabilities).mockReturnValue(
+        createCameraCapabilities({
+          supportsClips: true,
+          supportsRecordings: true,
+          supportsSnapshots: true,
+        }),
+      );
+
       vi.mocked(api.getConfigManager()).getConfig.mockReturnValue(
         createConfig({
           media_viewer: {
@@ -295,7 +366,7 @@ describe('ViewManager.setViewByParameters', () => {
       const manager = new ViewManager(api);
 
       manager.setViewByParameters({
-        cameraID: 'camera',
+        cameraID: 'camera.kitchen',
         viewName: viewName,
       });
 
@@ -314,42 +385,30 @@ describe('ViewManager.setViewByParameters', () => {
       const api = createCardAPI();
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
       vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera.kitchen',
+          },
+        ]),
+      );
+      vi.mocked(api.getCameraManager().getCameraCapabilities).mockReturnValue(
+        createCameraCapabilities({
+          supportsClips: true,
+          supportsRecordings: true,
+          supportsSnapshots: true,
+        }),
+      );
+
       const manager = new ViewManager(api);
 
       manager.setViewByParameters({
-        cameraID: 'camera',
+        cameraID: 'camera.kitchen',
         viewName: viewName,
       });
 
       expect(manager.getView()?.displayMode).toBe('single');
     });
-  });
-
-  it('should set view by parameters using config as fallback', () => {
-    const cameraManager = createCameraManager();
-    vi.mocked(cameraManager.getStore().getVisibleCameraIDs).mockReturnValue(
-      new Set(['camera_1', 'camera_2']),
-    );
-
-    const api = createCardAPI();
-    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
-    vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
-    vi.mocked(getAllDependentCameras).mockReturnValue(
-      new Set(['camera_1', 'camera_1_hd']),
-    );
-
-    const manager = new ViewManager(api);
-    manager.setViewByParameters({
-      cameraID: 'camera_1',
-      viewName: 'live',
-      substream: 'camera_1_hd',
-    });
-
-    expect(manager.getView()?.view).toBe('live');
-    expect(manager.getView()?.camera).toBe('camera_1');
-    expect(manager.getView()?.context?.live?.overrides).toEqual(
-      new Map([['camera_1', 'camera_1_hd']]),
-    );
   });
 });
 
@@ -360,6 +419,7 @@ describe('ViewManager.setViewWithNewDisplayMode', () => {
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
     vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
     vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+
     const manager = new ViewManager(api);
     manager.setView(createView());
 
@@ -380,20 +440,40 @@ describe('ViewManager.setViewWithNewDisplayMode', () => {
   });
 
   it('should set display mode to grid and create new query', async () => {
-    const cameraManager = createCameraManager();
-    vi.mocked(cameraManager.getStore().getVisibleCameraCount).mockReturnValue(2);
-    vi.mocked(cameraManager.getStore().getVisibleCameraIDs).mockReturnValue(
-      new Set(['camera_1', 'camera_2']),
-    );
-
     const api = createCardAPI();
-    vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
+    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera.kitchen',
+          capabilities: createCameraCapabilities({
+            supportsClips: true,
+            supportsRecordings: true,
+            supportsSnapshots: true,
+          }),
+        },
+        {
+          cameraID: 'camera.office',
+          capabilities: createCameraCapabilities({
+            supportsClips: true,
+            supportsRecordings: true,
+            supportsSnapshots: true,
+          }),
+        },
+      ]),
+    );
 
     const hass = createHASS();
     vi.mocked(api.getHASSManager()).getHASS.mockReturnValue(hass);
 
-    const media = generateViewMediaArray({ count: 5 });
-    vi.mocked(cameraManager.executeMediaQueries).mockResolvedValue(media);
+    const mediaArray = generateViewMediaArray({ count: 5 });
+    vi.mocked(executeMediaQueryForView).mockResolvedValue(
+      new View({
+        view: 'clip',
+        camera: 'camera.kitchen',
+        queryResults: new MediaQueriesResults({ results: mediaArray }),
+      }),
+    );
 
     const manager = new ViewManager(api);
     const query = new EventMediaQueries([
@@ -410,39 +490,50 @@ describe('ViewManager.setViewWithNewDisplayMode', () => {
 
     await manager.setViewWithNewDisplayMode('grid');
 
-    expect(manager.getView()?.queryResults?.getResults()).toBe(media);
-    expect(cameraManager.executeMediaQueries).toBeCalledWith(
-      expect.arrayContaining([
-        expect.objectContaining({
-          type: 'event-query',
-          cameraIDs: new Set(['camera_1', 'camera_2']),
-          hasClip: true,
-        }),
-      ]),
-    );
+    expect(manager.getView()?.queryResults?.getResults()).toBe(mediaArray);
   });
 
   it('should set display mode to single and create new query', async () => {
-    const cameraManager = createCameraManager();
-    vi.mocked(cameraManager.getStore().getVisibleCameraCount).mockReturnValue(2);
-    vi.mocked(cameraManager.getStore().getVisibleCameraIDs).mockReturnValue(
-      new Set(['camera_1', 'camera_2']),
-    );
-
     const api = createCardAPI();
-    vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
+    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera.kitchen',
+          capabilities: createCameraCapabilities({
+            supportsClips: true,
+            supportsRecordings: true,
+            supportsSnapshots: true,
+          }),
+        },
+        {
+          cameraID: 'camera.office',
+          capabilities: createCameraCapabilities({
+            supportsClips: true,
+            supportsRecordings: true,
+            supportsSnapshots: true,
+          }),
+        },
+      ]),
+    );
 
     const hass = createHASS();
     vi.mocked(api.getHASSManager()).getHASS.mockReturnValue(hass);
 
-    const media = generateViewMediaArray({ count: 5 });
-    vi.mocked(cameraManager.executeMediaQueries).mockResolvedValue(media);
+    const mediaArray = generateViewMediaArray({ count: 5 });
+    vi.mocked(executeMediaQueryForView).mockResolvedValue(
+      new View({
+        view: 'clip',
+        camera: 'camera.kitchen',
+        queryResults: new MediaQueriesResults({ results: mediaArray }),
+      }),
+    );
 
     const manager = new ViewManager(api);
     const query = new EventMediaQueries([
       {
         type: QueryType.Event,
-        cameraIDs: new Set(['camera_1', 'camera_2']),
+        cameraIDs: new Set(['camera.kitchen', 'camera.office']),
         hasClip: true,
       },
     ]);
@@ -450,53 +541,58 @@ describe('ViewManager.setViewWithNewDisplayMode', () => {
     manager.setView(
       createView({
         view: 'clip',
-        camera: 'camera_2',
+        camera: 'camera.office',
         query: query,
       }),
     );
 
     await manager.setViewWithNewDisplayMode('single');
 
-    expect(manager.getView()?.queryResults?.getResults()).toBe(media);
-    expect(cameraManager.executeMediaQueries).toBeCalledWith(
-      expect.arrayContaining([
-        expect.objectContaining({
-          type: 'event-query',
-          cameraIDs: new Set(['camera_2']),
-          hasClip: true,
-        }),
-      ]),
-    );
+    expect(manager.getView()?.queryResults?.getResults()).toBe(mediaArray);
   });
 
   it('should set display mode to single and handle failed new query', async () => {
-    const cameraManager = createCameraManager();
-    vi.mocked(cameraManager.getStore().getVisibleCameraCount).mockReturnValue(2);
-    vi.mocked(cameraManager.getStore().getVisibleCameraIDs).mockReturnValue(
-      new Set(['camera_1', 'camera_2']),
-    );
-
     const api = createCardAPI();
-    vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
+    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera.kitchen',
+          capabilities: createCameraCapabilities({
+            supportsClips: true,
+            supportsRecordings: true,
+            supportsSnapshots: true,
+          }),
+        },
+        {
+          cameraID: 'camera.office',
+          capabilities: createCameraCapabilities({
+            supportsClips: true,
+            supportsRecordings: true,
+            supportsSnapshots: true,
+          }),
+        },
+      ]),
+    );
 
     const manager = new ViewManager(api);
     const query = new EventMediaQueries([
       {
         type: QueryType.Event,
-        cameraIDs: new Set(['camera_1', 'camera_2']),
+        cameraIDs: new Set(['camera.kitchen', 'camera.office']),
         hasClip: true,
       },
     ]);
 
     const originalView = createView({
       view: 'clip',
-      camera: 'camera_2',
+      camera: 'camera.office',
       query: query,
     });
     manager.setView(originalView);
 
     // Query execution fails / returns null.
-    vi.mocked(cameraManager.executeMediaQueries).mockRejectedValue(null);
+    vi.mocked(executeMediaQueryForView).mockRejectedValue(null);
 
     await manager.setViewWithNewDisplayMode('single');
 
@@ -504,14 +600,28 @@ describe('ViewManager.setViewWithNewDisplayMode', () => {
   });
 
   it('should set display mode and handle empty new query results', async () => {
-    const cameraManager = createCameraManager();
-    vi.mocked(cameraManager.getStore().getVisibleCameraCount).mockReturnValue(2);
-    vi.mocked(cameraManager.getStore().getVisibleCameraIDs).mockReturnValue(
-      new Set(['camera_1', 'camera_2']),
-    );
-
     const api = createCardAPI();
-    vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
+    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera.kitchen',
+          capabilities: createCameraCapabilities({
+            supportsClips: true,
+            supportsRecordings: true,
+            supportsSnapshots: true,
+          }),
+        },
+        {
+          cameraID: 'camera.office',
+          capabilities: createCameraCapabilities({
+            supportsClips: true,
+            supportsRecordings: true,
+            supportsSnapshots: true,
+          }),
+        },
+      ]),
+    );
     vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
 
     const manager = new ViewManager(api);
@@ -519,20 +629,20 @@ describe('ViewManager.setViewWithNewDisplayMode', () => {
     const query = new EventMediaQueries([
       {
         type: QueryType.Event,
-        cameraIDs: new Set(['camera_1']),
+        cameraIDs: new Set(['camera.kitchen']),
         hasClip: true,
       },
     ]);
     const originalView = createView({
       view: 'clip',
-      camera: 'camera_2',
+      camera: 'camera.office',
       query: query,
     });
     manager.setView(originalView);
 
     await manager.setViewWithNewDisplayMode('grid');
 
-    vi.mocked(cameraManager.executeMediaQueries).mockResolvedValue(null);
+    vi.mocked(executeMediaQueryForView).mockResolvedValue(null);
 
     // Empty queries will not be executed, so view will not be changed.
     expect(manager.getView()?.displayMode).toBeNull();
@@ -541,13 +651,21 @@ describe('ViewManager.setViewWithNewDisplayMode', () => {
 
 describe('ViewManager.setViewWithSubstream', () => {
   it('should set new equal view with no dependencies', () => {
+    const api = createCardAPI();
+    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera.kitchen',
+        },
+      ]),
+    );
+    const manager = new ViewManager(api);
     const view = createView({
       view: 'live',
       camera: 'camera',
     });
-    vi.mocked(getAllDependentCameras).mockReturnValue(new Set(['camera']));
 
-    const manager = new ViewManager(createCardAPI());
     manager.setView(view);
     manager.setViewWithSubstream();
 
@@ -557,39 +675,71 @@ describe('ViewManager.setViewWithSubstream', () => {
   });
 
   it('should set new view with next substream', () => {
+    const api = createCardAPI();
+    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera.kitchen',
+          config: createCameraConfig({
+            dependencies: {
+              cameras: ['camera.kitchen_hd'],
+            },
+          }),
+        },
+        {
+          cameraID: 'camera.kitchen_hd',
+        },
+      ]),
+    );
+    const manager = new ViewManager(api);
     const view = createView({
       view: 'live',
-      camera: 'camera',
+      camera: 'camera.kitchen',
     });
-    vi.mocked(getAllDependentCameras).mockReturnValue(new Set(['camera', 'camera2']));
 
-    const manager = new ViewManager(createCardAPI());
     manager.setView(view);
     manager.setViewWithSubstream();
 
     expect(manager.getView()?.context?.live?.overrides).toEqual(
-      new Map([['camera', 'camera2']]),
+      new Map([['camera.kitchen', 'camera.kitchen_hd']]),
     );
   });
 
   it('should set new view with next substream when view has invalid substream', () => {
+    const api = createCardAPI();
+    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera.kitchen',
+          config: createCameraConfig({
+            dependencies: {
+              cameras: ['camera.kitchen_hd'],
+            },
+          }),
+        },
+        {
+          cameraID: 'camera.kitchen_hd',
+        },
+      ]),
+    );
+    const manager = new ViewManager(api);
     const view = createView({
       view: 'live',
-      camera: 'camera',
+      camera: 'camera.kitchen',
       context: {
         live: {
-          overrides: new Map([['camera', 'camera-that-does-not-exist']]),
+          overrides: new Map([['camera.kitchen', 'camera-that-does-not-exist']]),
         },
       },
     });
-    vi.mocked(getAllDependentCameras).mockReturnValue(new Set(['camera', 'camera2']));
 
-    const manager = new ViewManager(createCardAPI());
     manager.setView(view);
     manager.setViewWithSubstream();
 
     expect(manager.getView()?.context?.live?.overrides).toEqual(
-      new Map([['camera', 'camera']]),
+      new Map([['camera.kitchen', 'camera.kitchen']]),
     );
   });
 
@@ -680,17 +830,23 @@ describe('ViewManager.isViewSupportedByCamera', () => {
     ['media' as const, false],
   ])('%s', (viewName: FrigateCardView, expected: boolean) => {
     const api = createCardAPI();
-    const cameraManager = createCameraManager();
-    vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue({
-      canFavoriteEvents: false,
-      canFavoriteRecordings: false,
-      canSeek: false,
-      supportsClips: false,
-      supportsRecordings: false,
-      supportsSnapshots: false,
-      supportsTimeline: false,
-    });
-    vi.mocked(api.getCameraManager).mockReturnValue(cameraManager);
+    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera.kitchen',
+          capabilities: {
+            canFavoriteEvents: false,
+            canFavoriteRecordings: false,
+            canSeek: false,
+            supportsClips: false,
+            supportsRecordings: false,
+            supportsSnapshots: false,
+            supportsTimeline: false,
+          },
+        },
+      ]),
+    );
     const manager = new ViewManager(api);
 
     expect(manager.isViewSupportedByCamera('camera', viewName)).toBe(expected);

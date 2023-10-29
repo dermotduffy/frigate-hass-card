@@ -97,7 +97,7 @@ export class FrigateCardMenu extends LitElement {
    * @param action The action to check.
    * @returns `true` if the action toggles the menu, `false` otherwise.
    */
-  protected _isMenuToggleAction(action: ActionType | undefined): boolean {
+  protected _isMenuToggleAction(action: ActionType | null): boolean {
     // Determine if this action is a Frigate card action, if so handle it
     // internally.
     if (!action) {
