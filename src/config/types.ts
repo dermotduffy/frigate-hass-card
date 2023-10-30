@@ -832,9 +832,6 @@ export const frigateCardPTZSchema = z.preprocess(
     return out;
   },
   frigateCardPTZActions.extend({
-    // TODO strip from config update
-    // type: z.literal('custom:frigate-card-ptz'),
-
     mode: z.enum(['off', 'on']).default(livePTZControlsDefaults.mode),
     position: z
       .enum(['top-left', 'top-right', 'bottom-left', 'bottom-right'])
