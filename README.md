@@ -55,7 +55,7 @@ That's it!
 
 ### Manual Resource Management
 
-For most users, HACS should automatically add the necessary resources. Should this auto-registration does not work, you will need to complete one additional step.
+For most users, HACS should automatically add the necessary resources. Should this auto-registration not work you will need to complete one additional step.
 
 #### Lovelace in "Storage mode" (default)
 
@@ -167,11 +167,11 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 
 ##### Engine Capabilities
 
-|Engine|Live|Supports clips|Supports Snapshots|Supports Recordings|Supports Timeline|Favorite events|Favorite recordings|
-| - | - | - | - | - | - | - | - |
-|`frigate`| :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: |
-|`generic`| :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: |
-|`motioneye`| :white_check_mark: | :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: | :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: |
+|Engine|Live|Supports clips|Supports Snapshots|Supports Recordings|Supports Timeline|Supports PTZ out of the box|Supports manually configured PTZ|Favorite events|Favorite recordings|
+| - | - | - | - | - | - | - | - | - | - |
+|`frigate`| :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: |
+|`generic`| :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: |
+|`motioneye`| :white_check_mark: | :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: | :white_check_mark: | :heavy_multiplication_x: | :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | 
 
 ##### Live providers supported per Engine
 
@@ -485,6 +485,7 @@ menu:
 | `timeline` | :white_check_mark: | The `timeline` menu button: show the event timeline. |
 | `media_player` | :white_check_mark: | The `media_player` menu button: sends the visible media to a remote media player. Supports Frigate clips, snapshots and live camera (only for cameras that specify a `camera_entity` and only using the default HA stream (equivalent to the `ha` live provider). `jsmpeg` or `webrtc-card` are not supported, although live can still be played as long as `camera_entity` is specified. In the player list, a `tap` will send the media to the player, a `hold` will stop the media on the player. |
 | `microphone` | :white_check_mark: | The `microphone` button allows usage of 2-way audio in certain configurations. See [Using 2-way audio](#using-2-way-audio). |
+| `show_ptz` | :white_check_mark: | The `show_ptz` button shows or hide the PTZ controls. |
 
 ##### Configuration on each button
 
@@ -627,6 +628,30 @@ live:
 | `disconnect_seconds` | `60` | :white_check_mark: | The number of seconds after microphone usage to disconnect the microphone from the stream. `0` implies never. Not relevant if `always_connected` is `true`.|
 
 See [Using 2-way audio](#using-2-way-audio) for more information about the very particular requirements that must be followed for 2-way audio to work.
+
+<a name="frigate-card-ptz"></a>
+
+#### Live: PTZ
+
+Controls a PTZ (Pan Tilt Zoom) controller overlay. All configuration is under:
+
+```yaml
+live:
+  ptz:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - | 
+| `mode` | `on` | :white_check_mark: | When `on` will show a PTZ control if so configured (manually, or by the camera engine), if `off` will not show any control. |
+| `position` | `bottom-right` | :white_check_mark: | Whether to position the control on the `top-left`, `top-right`, `bottom-left` or `bottom-right`. This may be overridden by using the `style` parameter to precisely control placement. |
+| `actions_left`, `actions_right`, `actions_up`, `actions_down`, `actions_zoom_in`, `actions_zoom_out`, `actions_home` | Default is set by camera engine of the selected camera | :white_check_mark: | The [Home Assistant actions](https://www.home-assistant.io/dashboards/actions/) to call when this icon is interacted with. |
+| `orientation` | `horizontal` | :white_check_mark: | Whether to show a `vertical` or `horizontal` PTZ control. |
+| `hide_pan_tilt` | `false` | :white_check_mark: | When `true` the Pan & Tilt buttons of the control is hidden |
+| `hide_zoom` | `false` | :white_check_mark: | When `true` the Zoom button of the control is hidden |
+| `hide_home` | `false` | :white_check_mark: | When `true` the Home button of the control is hidden |
+| `data_left`, `data_right`, `data_up`, `data_down`, `data_zoom_in`, `data_zoom_out`, `data_home` | | :white_check_mark: | Shorthand for a `tap_action` that calls the `service` with the data provided in this argument. Internally, this is just translated into the longer-form `actions_[button]`. If both `actions_X` and `data_X` are specified, `actions_X` takes priority. This is compatible with [AlexxIT's WebRTC Card PTZ configuration](https://github.com/AlexxIT/WebRTC/wiki/PTZ-Config-Examples). |
+| `service` | | :white_check_mark: | An optional Home Assistant service to call when the `data_` parameters are used. |
+| `style` | | :white_check_mark: | Optionally position and style the element using CSS. Similar to [Picture Element styling](https://www.home-assistant.io/dashboards/picture-elements/#how-to-use-the-style-object), except without any default, e.g. `left: 42%` |
 
 <a name="live-display"></a>
 
@@ -1315,8 +1340,6 @@ elements to add special Frigate card functionality.
 | `custom:frigate-card-menu-submenu` | Add a configurable submenu dropdown. See [configuration below](#frigate-card-menu-submenu).|
 | `custom:frigate-card-menu-submenu-select` | Add a submenu based on a `select` or `input_select`. See [configuration below](#frigate-card-submenu-select).|
 | `custom:frigate-card-conditional` | Restrict a set of elements to only render when the card is showing particular a particular [view](#views). See [configuration below](#frigate-card-conditional).|
-| `custom:frigate-card-ptz` | Add a PTZ (Pan Tilt Zoom) controller overlay. See [configuration below](#frigate-card-ptz).|
-
 
 **Note**: ℹ️ Manual positioning of custom menu icons or submenus via the `style`
 parameter is not supported as the menu buttons displayed are context sensitive
@@ -1377,19 +1400,6 @@ Parameters for the `custom:frigate-card-conditional` element:
  `elements` | The elements to render. Can be any supported element, include additional condition or custom elements. |
 | `conditions` | A set of conditions that must evaluate to true in order for the elements to be rendered. See [Frigate Card Conditions](#frigate-card-conditions). |
 
-#### `custom:frigate-card-ptz`
-
-Parameters for the `custom:frigate-card-ptz` element:
-
-| Parameter | Default | Description |
-| ------------- | - | -------------------------------------------- |
-| `type` | | Must be `custom:frigate-card-ptz`. |
-| `style` | `translate(-50%, -50%)` | Position and style the element using CSS. See [Picture Element styling](https://www.home-assistant.io/dashboards/picture-elements/#how-to-use-the-style-object). |
-| `orientation` | `vertical` | Whether to show a `vertical` or `horizontal` PTZ control. |
-| `actions_left`, `actions_right`, `actions_up`, `actions_down`, `actions_zoom_in`, `actions_zoom_out`, `actions_home` | The [Home Assistant actions](https://www.home-assistant.io/dashboards/actions/) to call when this icon is interacted with. |
-| `data_left`, `data_right`, `data_up`, `data_down`, `data_zoom_in`, `data_zoom_out`, `data_home` | Shorthand for a `tap_action` that calls the `service` with the data provided in this argument. Internally, this is just translated into the longer-form `actions_[button]`. If both `actions_X` and `data_X` are specified, `actions_X` takes priority. This is compatible with [AlexxIT's WebRTC Card PTZ configuration](https://github.com/AlexxIT/WebRTC/wiki/PTZ-Config-Examples). |
-| `service` | | An optional Home Assistant service to call when the `data_` parameters are used. |
-
 <a name="frigate-card-actions"></a>
 
 ### Special Actions
@@ -1399,7 +1409,7 @@ Parameters for the `custom:frigate-card-ptz` element:
 | Parameter | Description |
 | - | - |
 | `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_on`, `live_substream_off`, `live_substream_select`, `expand`, `microphone_mute`, `microphone_unmute`, `mute`, `unmute`, `play`, `pause`, `screenshot`|
+| `frigate_card_action` | Call a Frigate Card action. Acceptable values are `default`, `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`, `download`, `timeline`, `camera_ui`, `fullscreen`, `camera_select`, `menu_toggle`, `media_player`, `live_substream_on`, `live_substream_off`, `live_substream_select`, `expand`, `microphone_mute`, `microphone_unmute`, `mute`, `unmute`, `play`, `pause`, `screenshot`, `show_ptz`, `ptz`|
 
 <a name="custom-actions"></a>
 
@@ -1421,6 +1431,8 @@ Parameters for the `custom:frigate-card-ptz` element:
 |`mute`, `unmute`| Mute or unmute the loaded media. |
 |`play`, `pause`| Play or pause the loaded media. |
 |`screenshot`| Take a screenshot of the loaded media (e.g. a still from a video). |
+|`show_ptz`| Show or hide the PTZ controls. Takes a `show_ptz` boolean parameter to indicate whether the controls show be shown or not. |
+|`ptz`| Execute a native PTZ action (only for native out-of-the-box PTZ camera engines, e.g. Frigate). Takes a required `ptz_action` parameter that is one of `left`, `right`, `up`, `down`, `zoom_in`, `zoom_out` or `preset`. Takes an optional `ptz_phase` parameter that is one of `start` or `stop` to start or stop the movement discretely. Takes an optional `ptz_preset` parameter as the preset to execute when the `ptz_action` parameter is `preset`. |
 
 <a name="views"></a>
 
@@ -1438,6 +1450,7 @@ This card supports several different views:
 |`recordings`|Shows a gallery of recent (last day) recordings for this camera and its dependents.|
 |`recording`|Shows a viewer for the most recent recording for this camera. Can also be accessed by holding down the `recordings` menu icon.|
 |`image`|Shows a static image specified by the `image` parameter, can be used as a discrete default view or a screensaver (via `view.timeout_seconds`).|
+|`timeline`|Shows an event timeline.|
 
 ### Navigating From A Snapshot To A Clip
 
@@ -2012,6 +2025,11 @@ menu:
       enabled: false
       alignment: matching
       icon: mdi:play
+    show_ptz:
+      priority: 50
+      enabled: false
+      alignment: matching
+      icon: mdi:pan
   button_size: 40
 ```
 </details>
@@ -2066,6 +2084,29 @@ live:
   microphone:
     always_connected: false
     disconnect_seconds: 60
+  ptz:
+    mode: on
+    position: bottom-right
+    orientation: horizontal
+    hide_pan_tilt: false
+    hide_zoom: false
+    hide_home: false
+    style:
+      # Optionally override the default style.
+      right: 5%
+    # Manually specifying actions.
+    actions_left:
+      tap_action:
+        action: call-service
+        service: sonoff.send_command
+        service_data:
+          device: '048123'
+          cmd: left 
+    # Equivalent short form PTZ actions (only right button shown)
+    service: sonoff.send_command
+    data_right:
+      device: '048123'
+      cmd: right
   display:
     mode: single
     grid_selected_width_factor: 2
@@ -2432,31 +2473,6 @@ elements:
           state: on
           state_not: off
       media_loaded: true
-    # Full form PTZ actions (only left button shown).
-  - type: custom:frigate-card-ptz
-    orientation: vertical
-    style:
-      transform: none
-      right: 5%
-      top: 50%
-    actions_left:
-      tap_action:
-        action: call-service
-        service: sonoff.send_command
-        service_data:
-          device: '048123'
-          cmd: left 
-    # Equivalent short form PTZ actions (only left button shown)
-  - type: custom:frigate-card-ptz
-    orientation: vertical
-    style:
-      transform: none
-      right: 20px
-      top: 180px
-    service: sonoff.send_command
-    data_left:
-      device: '048123'
-      cmd: left
 ```
 </details>
 
@@ -2562,6 +2578,21 @@ elements:
     tap_action:
       action: custom:frigate-card-action
       frigate_card_action: screenshot
+  - type: custom:frigate-card-menu-icon
+    icon: mdi:alpha-p-circle
+    title: Show PTZ
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: show_ptz
+      show_ptz: true
+  - type: custom:frigate-card-menu-icon
+    icon: mdi:alpha-q-circle
+    title: Native PTZ Preset
+    tap_action:
+      action: custom:frigate-card-action
+      frigate_card_action: ptz
+      ptz_action: preset
+      ptz_preset: 'doorway
 ```
 </details>
 
@@ -3416,44 +3447,33 @@ elements:
 ```
 </details>
 
-### Using a PTZ picture element
+### Using a PTZ control
 
-The card supports a custom PTZ element (`custom:frigate-card-ptz`) to conveniently control pan, tilt and zoom for cameras.
+The card supports using PTZ controls to conveniently control pan, tilt and zoom for cameras.
 
 <details>
-  <summary>Expand: Using the native PTZ picture element</summary>
+  <summary>Expand: Using the PTZ controls</summary>
 
-This example shows the native PTZ element when the `live` or `image` view is displayed and the stream (media) has loaded.
+This example shows the PTZ controls of the `live` view. Note that if your camera engine supports it (e.g. `frigate`) this will just work out of the box with no configuration at all.
 
 ```yaml
 [...]
-elements:
-  - type: custom:frigate-card-conditional
-    conditions:
-      media_loaded: true
-      view:
-        - live
-        - image
-    elements:
-      - type: custom:frigate-card-ptz
-        orientation: horizontal
-        style:
-          transform: none
-          right: 20px
-          top: 180px
-        service: sonoff.send_command
-        data_left:
-          device: '048123'
-          cmd: left
-        data_right:
-          device: '048123'
-          cmd: right
-        data_up:
-          device: '048123'
-          cmd: up
-        data_down:
-          device: '048123'
-          cmd: down
+live:
+  ptz:
+    orientation: horizontal
+    service: sonoff.send_command
+    data_left:
+      device: '048123'
+      cmd: left
+    data_right:
+      device: '048123'
+      cmd: right
+    data_up:
+      device: '048123'
+      cmd: up
+    data_down:
+      device: '048123'
+      cmd: down
 ```
 </details>
 

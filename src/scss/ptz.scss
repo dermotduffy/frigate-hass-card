@@ -1,12 +1,25 @@
-// Modified from / inspired by:
+// Inspired by:
 // https://github.com/AlexxIT/WebRTC/blob/master/custom_components/webrtc/www/webrtc-camera.js
 :host {
-  position: relative;
+  position: absolute;
 
   width: fit-content;
   height: fit-content;
 
   --frigate-card-ptz-icon-size: 24px;
+}
+
+:host([data-position$='-left']) {
+  left: 5%;
+}
+:host([data-position$='-right']) {
+  right: 5%;
+}
+:host([data-position^='top-']) {
+  top: 5%;
+}
+:host([data-position^='bottom-']) {
+  bottom: 5%;
 }
 
 /*****************

@@ -15,14 +15,14 @@ import { Entity } from '../../utils/ha/entity-registry/types';
 import { ResolvedMediaCache, resolveMedia } from '../../utils/ha/resolved-media';
 import { ViewMedia } from '../../view/media';
 import { RequestCache } from '../cache';
+import { Camera } from '../camera';
 import { CameraManagerEngine } from '../engine';
 import { CameraInitializationError } from '../error';
 import { GenericCameraManagerEngine } from '../generic/engine-generic';
 import { rangesOverlap } from '../range';
+import { CameraManagerReadOnlyConfigStore } from '../store';
 import {
-  CameraConfigs,
   CameraEndpoint,
-  CameraManagerCameraCapabilities,
   CameraManagerMediaCapabilities,
   DataQuery,
   EventQuery,
@@ -141,7 +141,7 @@ export class BrowseMediaCameraManagerEngine
     hass: HomeAssistant,
     entityRegistryManager: EntityRegistryManager,
     cameraConfig: CameraConfig,
-  ): Promise<CameraConfig> {
+  ): Promise<Camera> {
     const entity = cameraConfig.camera_entity
       ? await entityRegistryManager.getEntity(hass, cameraConfig.camera_entity)
       : null;
@@ -152,11 +152,20 @@ export class BrowseMediaCameraManagerEngine
       );
     }
     this._cameraEntities.set(cameraConfig.camera_entity, entity);
-    return cameraConfig;
+
+    return new Camera(cameraConfig, this, {
+      canFavoriteEvents: false,
+      canFavoriteRecordings: false,
+      canSeek: false,
+      supportsClips: true,
+      supportsRecordings: false,
+      supportsSnapshots: true,
+      supportsTimeline: true,
+    });
   }
 
   public generateDefaultEventQuery(
-    _cameras: CameraConfigs,
+    _store: CameraManagerReadOnlyConfigStore,
     cameraIDs: Set<string>,
     query: PartialEventQuery,
   ): EventQuery[] | null {
@@ -189,21 +198,6 @@ export class BrowseMediaCameraManagerEngine
       return BROWSE_MEDIA_CACHE_SECONDS;
     }
     return null;
-  }
-
-  public getCameraCapabilities(
-    cameraConfig: CameraConfig,
-  ): CameraManagerCameraCapabilities | null {
-    const parentCapabilities = super.getCameraCapabilities(cameraConfig);
-    if (!parentCapabilities) {
-      return null;
-    }
-    return {
-      ...parentCapabilities,
-      supportsClips: true,
-      supportsSnapshots: true,
-      supportsTimeline: true,
-    };
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

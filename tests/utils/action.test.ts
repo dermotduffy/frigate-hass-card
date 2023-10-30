@@ -4,7 +4,11 @@ import { mock } from 'vitest-mock-extended';
 import { actionSchema } from '../../src/config/types';
 import {
   convertActionToFrigateCardCustomAction,
-  createFrigateCardCustomAction,
+  createFrigateCardCameraAction,
+  createFrigateCardDisplayModeAction,
+  createFrigateCardMediaPlayerAction,
+  createFrigateCardShowPTZAction,
+  createFrigateCardSimpleAction,
   frigateCardHandleAction,
   frigateCardHandleActionConfig,
   frigateCardHasAction,
@@ -37,13 +41,24 @@ describe('convertActionToFrigateCardCustomAction', () => {
   });
 });
 
-describe('createFrigateCardCustomAction', () => {
-  it('should create camera_select', () => {
+describe('createFrigateCardSimpleAction', () => {
+  it('should create general action', () => {
     expect(
-      createFrigateCardCustomAction('camera_select', {
-        camera: 'camera',
+      createFrigateCardSimpleAction('clips', {
         cardID: 'card_id',
       }),
+    ).toEqual({
+      action: 'fire-dom-event',
+      frigate_card_action: 'clips',
+      card_id: 'card_id',
+    });
+  });
+});
+
+describe('createFrigateCardCameraAction', () => {
+  it('should create camera_select', () => {
+    expect(
+      createFrigateCardCameraAction('camera_select', 'camera', { cardID: 'card_id' }),
     ).toEqual({
       action: 'fire-dom-event',
       camera: 'camera',
@@ -51,16 +66,12 @@ describe('createFrigateCardCustomAction', () => {
       card_id: 'card_id',
     });
   });
+});
 
-  it('should not create camera_select without camera', () => {
-    expect(createFrigateCardCustomAction('camera_select')).toBeNull();
-  });
-
+describe('createFrigateCardMediaPlayerAction', () => {
   it('should create media_player', () => {
     expect(
-      createFrigateCardCustomAction('media_player', {
-        media_player: 'device',
-        media_player_action: 'play',
+      createFrigateCardMediaPlayerAction('device', 'play', {
         cardID: 'card_id',
       }),
     ).toEqual({
@@ -71,37 +82,12 @@ describe('createFrigateCardCustomAction', () => {
       card_id: 'card_id',
     });
   });
+});
 
-  it('should not create media_player without player or action', () => {
-    expect(
-      createFrigateCardCustomAction('media_player', {
-        media_player_action: 'play',
-      }),
-    ).toBeNull();
-
-    expect(
-      createFrigateCardCustomAction('media_player', {
-        media_player: 'device',
-      }),
-    ).toBeNull();
-  });
-
-  it('should create general action', () => {
-    expect(
-      createFrigateCardCustomAction('clips', {
-        cardID: 'card_id',
-      }),
-    ).toEqual({
-      action: 'fire-dom-event',
-      frigate_card_action: 'clips',
-      card_id: 'card_id',
-    });
-  });
-
+describe('createFrigateCardDisplayModeAction', () => {
   it('should create display mode action', () => {
     expect(
-      createFrigateCardCustomAction('display_mode_select', {
-        display_mode: 'grid',
+      createFrigateCardDisplayModeAction('grid', {
         cardID: 'card_id',
       }),
     ).toEqual({
@@ -111,9 +97,20 @@ describe('createFrigateCardCustomAction', () => {
       card_id: 'card_id',
     });
   });
+});
 
-  it('should not create display mode action without display mode', () => {
-    expect(createFrigateCardCustomAction('display_mode_select')).toBeNull();
+describe('createFrigateCardShowPTZAction', () => {
+  it('should create show PTZ action', () => {
+    expect(
+      createFrigateCardShowPTZAction(true, {
+        cardID: 'card_id',
+      }),
+    ).toEqual({
+      action: 'fire-dom-event',
+      frigate_card_action: 'show_ptz',
+      show_ptz: true,
+      card_id: 'card_id',
+    });
   });
 });
 
@@ -124,13 +121,13 @@ describe('getActionConfigGivenAction', () => {
   });
 
   it('should not handle undefined arguments', () => {
-    expect(getActionConfigGivenAction()).toBeUndefined();
+    expect(getActionConfigGivenAction()).toBeNull();
   });
 
   it('should not handle unknown interactions', () => {
     expect(
       getActionConfigGivenAction('triple_poke', { triple_poke_action: action }),
-    ).toBeUndefined();
+    ).toBeNull();
   });
 
   it('should handle tap actions', () => {
@@ -178,17 +175,23 @@ describe('frigateCardHandleActionConfig', () => {
   });
 
   it('should handle simple case', () => {
-    frigateCardHandleActionConfig(element, createHASS(), {}, 'tap', action);
+    const hass = createHASS();
+    frigateCardHandleActionConfig(element, hass, {}, 'tap', action);
     expect(handleActionConfig).toBeCalled();
+    expect(handleActionConfig).toBeCalledWith(element, hass, {}, action);
   });
 
   it('should handle array case', () => {
-    frigateCardHandleActionConfig(element, createHASS(), {}, 'tap', [
-      action,
-      action,
-      action,
-    ]);
+    const hass = createHASS();
+    frigateCardHandleActionConfig(element, hass, {}, 'tap', [action, action, action]);
     expect(handleActionConfig).toBeCalledTimes(3);
+    expect(handleActionConfig).toBeCalledWith(element, hass, {}, action);
+  });
+
+  it('should handle null case', () => {
+    const hass = createHASS();
+    frigateCardHandleActionConfig(element, hass, {}, 'tap', null);
+    expect(handleActionConfig).toBeCalledWith(element, hass, {}, undefined);
   });
 });
 

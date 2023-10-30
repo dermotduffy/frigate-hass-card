@@ -13,7 +13,7 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { keyed } from 'lit/directives/keyed.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../../camera-manager/manager.js';
-import { CameraConfigs, CameraEndpoints } from '../../camera-manager/types.js';
+import { CameraEndpoints } from '../../camera-manager/types.js';
 import {
   ConditionsManagerEpoch,
   getOverriddenConfig,
@@ -45,6 +45,7 @@ import { AutoLazyLoad } from '../../utils/embla/plugins/auto-lazy-load/auto-lazy
 import { AutoMediaActions } from '../../utils/embla/plugins/auto-media-actions/auto-media-actions.js';
 import AutoMediaLoadedInfo from '../../utils/embla/plugins/auto-media-loaded-info/auto-media-loaded-info.js';
 import AutoSize from '../../utils/embla/plugins/auto-size/auto-size.js';
+import { getStateObjOrDispatchError } from '../../utils/get-state-obj.js';
 import {
   dispatchExistingMediaLoadedInfoAsEvent,
   dispatchMediaUnloadedEvent,
@@ -55,18 +56,20 @@ import { dispatchViewContextChangeEvent, View } from '../../view/view.js';
 import { EmblaCarouselPlugins } from '../carousel.js';
 import { renderMessage } from '../message.js';
 import '../next-prev-control.js';
+import '../ptz.js';
+import { FrigateCardPTZ } from '../ptz.js';
 import '../surround.js';
 import '../title-control.js';
 import {
   FrigateCardTitleControl,
   getDefaultTitleConfigForView,
 } from '../title-control.js';
-import { getStateObjOrDispatchError } from '../../utils/get-state-obj.js';
 
 interface LiveViewContext {
   // A cameraID override (used for dependencies/substreams to force a different
   // camera to be live rather than the camera selected in the view).
   overrides?: Map<string, string>;
+  ptzVisible?: boolean;
 }
 
 declare module 'view' {
@@ -387,6 +390,10 @@ export class FrigateCardLiveCarousel extends LitElement {
   // Index between camera name and slide number.
   protected _cameraToSlide: Record<string, number> = {};
   protected _refTitleControl: Ref<FrigateCardTitleControl> = createRef();
+  protected _refPTZControl: Ref<FrigateCardPTZ> = createRef();
+
+  @state()
+  protected _mediaHasLoaded = false;
 
   protected _getTransitionEffect(): TransitionEffect {
     return (
@@ -449,25 +456,20 @@ export class FrigateCardLiveCarousel extends LitElement {
   }
 
   protected _getSlides(): [TemplateResult[], Record<string, number>] {
-    let cameras: CameraConfigs | null = null;
-    if (this.viewFilterCameraID) {
-      const config = this.cameraManager
-        ?.getStore()
-        .getCameraConfig(this.viewFilterCameraID);
-      if (config) {
-        cameras = new Map([[this.viewFilterCameraID, config]]);
-      }
-    } else {
-      cameras = this.cameraManager?.getStore().getVisibleCameras() ?? null;
-    }
-    if (!cameras) {
+    if (!this.cameraManager) {
       return [[], {}];
     }
+
+    const cameraIDs = this.viewFilterCameraID
+      ? new Set([this.viewFilterCameraID])
+      : this.cameraManager.getStore().getVisibleCameraIDs();
 
     const slides: TemplateResult[] = [];
     const cameraToSlide: Record<string, number> = {};
 
-    for (const [cameraID, cameraConfig] of cameras) {
+    for (const [cameraID, cameraConfig] of this.cameraManager
+      .getStore()
+      .getCameraConfigEntries(cameraIDs)) {
       const liveCameraID =
         this.view?.context?.live?.overrides?.get(cameraID) ?? cameraID;
       const liveCameraConfig =
@@ -487,9 +489,9 @@ export class FrigateCardLiveCarousel extends LitElement {
   }
 
   protected _setViewHandler(ev: CustomEvent<CarouselSelected>): void {
-    const cameras = this.cameraManager?.getStore().getVisibleCameras();
-    if (cameras && ev.detail.index !== this._getSelectedCameraIndex()) {
-      this._setViewCameraID(Array.from(cameras.keys())[ev.detail.index]);
+    const cameraIDs = this.cameraManager?.getStore().getVisibleCameraIDs();
+    if (cameraIDs && ev.detail.index !== this._getSelectedCameraIndex()) {
+      this._setViewCameraID([...cameraIDs][ev.detail.index]);
     }
   }
 
@@ -575,22 +577,23 @@ export class FrigateCardLiveCarousel extends LitElement {
   }
 
   protected _getCameraIDsOfNeighbors(): [string | null, string | null] {
-    const cameras = this.cameraManager?.getStore().getVisibleCameras();
-    if (this.viewFilterCameraID || !cameras || !this.view || !this.hass) {
+    const cameraIDs = this.cameraManager
+      ? [...this.cameraManager.getStore().getVisibleCameraIDs()]
+      : [];
+    if (this.viewFilterCameraID || cameraIDs.length <= 1 || !this.view || !this.hass) {
       return [null, null];
     }
 
     const cameraID = this.viewFilterCameraID ?? this.view.camera;
-    const keys = Array.from(cameras.keys());
-    const currentIndex = keys.indexOf(cameraID);
+    const currentIndex = cameraIDs.indexOf(cameraID);
 
-    if (currentIndex < 0 || cameras.size <= 1) {
+    if (currentIndex < 0) {
       return [null, null];
     }
 
     return [
-      keys[currentIndex > 0 ? currentIndex - 1 : cameras.size - 1],
-      keys[currentIndex + 1 < cameras.size ? currentIndex + 1 : 0],
+      cameraIDs[currentIndex > 0 ? currentIndex - 1 : cameraIDs.length - 1],
+      cameraIDs[currentIndex + 1 < cameraIDs.length ? currentIndex + 1 : 0],
     ];
   }
 
@@ -608,18 +611,19 @@ export class FrigateCardLiveCarousel extends LitElement {
     const hasMultipleCameras = slides.length > 1;
     const [prevID, nextID] = this._getCameraIDsOfNeighbors();
 
-    const overrideCameraID = (cameraID: string): string => {
+    const getOverrideCameraID = (cameraID: string): string => {
       return this.view?.context?.live?.overrides?.get(cameraID) ?? cameraID;
     };
 
     const cameraMetadataPrevious = prevID
-      ? this.cameraManager.getCameraMetadata(overrideCameraID(prevID))
+      ? this.cameraManager.getCameraMetadata(getOverrideCameraID(prevID))
       : null;
+    const cameraID = this.viewFilterCameraID ?? this.view.camera;
     const cameraMetadataCurrent = this.cameraManager.getCameraMetadata(
-      overrideCameraID(this.viewFilterCameraID ?? this.view.camera),
+      getOverrideCameraID(cameraID),
     );
     const cameraMetadataNext = nextID
-      ? this.cameraManager.getCameraMetadata(overrideCameraID(nextID))
+      ? this.cameraManager.getCameraMetadata(getOverrideCameraID(nextID))
       : null;
 
     const titleConfig = getDefaultTitleConfigForView(
@@ -656,6 +660,10 @@ export class FrigateCardLiveCarousel extends LitElement {
           if (this._refTitleControl.value) {
             this._refTitleControl.value.show();
           }
+          this._mediaHasLoaded = true;
+        }}
+        @frigate-card:media:unloaded=${() => {
+          this._mediaHasLoaded = false;
         }}
       >
         <frigate-card-next-previous-control
@@ -688,6 +696,14 @@ export class FrigateCardLiveCarousel extends LitElement {
         >
         </frigate-card-next-previous-control>
       </frigate-card-carousel>
+      <frigate-card-ptz
+        .hass=${this.hass}
+        .config=${this.overriddenLiveConfig.controls.ptz}
+        .cameraManager=${this.cameraManager}
+        .cameraID=${cameraID}
+        .forceVisibility=${this._mediaHasLoaded && this.view.context?.live?.ptzVisible}
+      >
+      </frigate-card-ptz>
       ${cameraMetadataCurrent && titleConfig
         ? html`<frigate-card-title-control
             ${ref(this._refTitleControl)}
@@ -846,9 +862,6 @@ export class FrigateCardLiveProvider
     );
   }
 
-  /**
-   * Component disconnected callback.
-   */
   disconnectedCallback(): void {
     this._isVideoMediaLoaded = false;
   }
@@ -860,9 +873,6 @@ export class FrigateCardLiveProvider
     this._isVideoMediaLoaded = true;
   }
 
-  /**
-   * Called before each update.
-   */
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('load')) {
       if (!this.load) {
@@ -915,10 +925,6 @@ export class FrigateCardLiveProvider
       : template;
   }
 
-  /**
-   * Master render method.
-   * @returns A rendered template.
-   */
   protected render(): TemplateResult | void {
     if (!this.load || !this.hass || !this.liveConfig || !this.cameraConfig) {
       return;
@@ -941,6 +947,8 @@ export class FrigateCardLiveProvider
         return;
       }
       if (stateObj.state === 'unavailable') {
+        dispatchMediaUnloadedEvent(this);
+
         // An unavailable camera gets a message rendered in place vs dispatched,
         // as this may be a common occurrence (e.g. Frigate cameras that stop
         // receiving frames). Otherwise a single temporarily unavailable camera

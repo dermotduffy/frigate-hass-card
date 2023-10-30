@@ -1,5 +1,5 @@
 import { FrigateCardCustomAction, FrigateCardViewAction } from '../config/types';
-import { createFrigateCardCustomAction } from '../utils/action.js';
+import { createFrigateCardCameraAction, createFrigateCardSimpleAction } from '../utils/action.js';
 import { CardQueryStringAPI } from './types';
 import { ViewManagerSetViewParameters } from './view-manager';
 
@@ -139,8 +139,7 @@ export class QueryStringManager {
         case 'camera_select':
         case 'live_substream_select':
           if (value) {
-            customAction = createFrigateCardCustomAction(action, {
-              camera: value,
+            customAction = createFrigateCardCameraAction(action, value, {
               cardID: cardID,
             });
           }
@@ -160,7 +159,7 @@ export class QueryStringManager {
         case 'snapshot':
         case 'snapshots':
         case 'timeline':
-          customAction = createFrigateCardCustomAction(action, {
+          customAction = createFrigateCardSimpleAction(action, {
             cardID: cardID,
           });
           break;

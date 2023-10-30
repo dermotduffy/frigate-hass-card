@@ -13,7 +13,6 @@ vi.mock('../../package.json', () => ({
     gitDate: 'Wed, 6 Sep 2023 21:27:28 -0700',
   },
 }));
-vi.mock('../../src/camera-manager/manager.js');
 vi.mock('../../src/utils/ha');
 vi.mock('../../src/localize/localize.js');
 vi.mock('../../src/utils/ha/device-registry');

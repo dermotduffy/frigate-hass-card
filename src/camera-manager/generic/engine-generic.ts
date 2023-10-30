@@ -1,18 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import { CameraConfig } from '../../config/types';
+import {
+  CameraConfig,
+  PTZAction,
+  PTZPhase
+} from '../../config/types';
 import { ExtendedHomeAssistant } from '../../types';
 import { getEntityIcon, getEntityTitle } from '../../utils/ha';
 import { EntityRegistryManager } from '../../utils/ha/entity-registry';
 import { ViewMedia } from '../../view/media';
+import { Camera } from '../camera';
 import { CameraManagerEngine } from '../engine';
+import { CameraManagerReadOnlyConfigStore } from '../store';
 import {
-  CameraConfigs,
   CameraEndpoint,
   CameraEndpoints,
   CameraEndpointsContext,
-  CameraManagerCameraCapabilities,
   CameraManagerCameraMetadata,
   CameraManagerMediaCapabilities,
   DataQuery,
@@ -29,7 +33,7 @@ import {
   RecordingQuery,
   RecordingQueryResultsMap,
   RecordingSegmentsQuery,
-  RecordingSegmentsQueryResultsMap,
+  RecordingSegmentsQueryResultsMap
 } from '../types';
 import { getCameraEntityFromConfig, getDefaultGo2RTCEndpoint } from '../utils.js';
 
@@ -42,12 +46,20 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     _hass: HomeAssistant,
     _entityRegistryManager: EntityRegistryManager,
     cameraConfig: CameraConfig,
-  ): Promise<CameraConfig> {
-    return cameraConfig;
+  ): Promise<Camera> {
+    return new Camera(cameraConfig, this, {
+      canFavoriteEvents: false,
+      canFavoriteRecordings: false,
+      canSeek: false,
+      supportsClips: false,
+      supportsRecordings: false,
+      supportsSnapshots: false,
+      supportsTimeline: false,
+    });
   }
 
   public generateDefaultEventQuery(
-    _cameras: CameraConfigs,
+    _store: CameraManagerReadOnlyConfigStore,
     _cameraIDs: Set<string>,
     _query: PartialEventQuery,
   ): EventQuery[] | null {
@@ -55,7 +67,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
   }
 
   public generateDefaultRecordingQuery(
-    _cameras: CameraConfigs,
+    _store: CameraManagerReadOnlyConfigStore,
     _cameraIDs: Set<string>,
     _query: PartialRecordingQuery,
   ): RecordingQuery[] | null {
@@ -63,7 +75,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
   }
 
   public generateDefaultRecordingSegmentsQuery(
-    _cameras: CameraConfigs,
+    _store: CameraManagerReadOnlyConfigStore,
     _cameraIDs: Set<string>,
     _query: PartialRecordingSegmentsQuery,
   ): RecordingSegmentsQuery[] | null {
@@ -72,7 +84,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
 
   public async getEvents(
     _hass: HomeAssistant,
-    _cameras: CameraConfigs,
+    _store: CameraManagerReadOnlyConfigStore,
     _query: EventQuery,
     _engineOptions?: EngineOptions,
   ): Promise<EventQueryResultsMap | null> {
@@ -81,7 +93,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
 
   public async getRecordings(
     _hass: HomeAssistant,
-    _cameras: CameraConfigs,
+    _store: CameraManagerReadOnlyConfigStore,
     _query: RecordingQuery,
     _engineOptions?: EngineOptions,
   ): Promise<RecordingQueryResultsMap | null> {
@@ -90,7 +102,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
 
   public async getRecordingSegments(
     _hass: HomeAssistant,
-    _cameras: CameraConfigs,
+    _store: CameraManagerReadOnlyConfigStore,
     _query: RecordingSegmentsQuery,
     _engineOptions?: EngineOptions,
   ): Promise<RecordingSegmentsQueryResultsMap | null> {
@@ -99,7 +111,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
 
   public generateMediaFromEvents(
     _hass: HomeAssistant,
-    _cameras: CameraConfigs,
+    _store: CameraManagerReadOnlyConfigStore,
     _query: EventQuery,
     _results: QueryReturnType<EventQuery>,
   ): ViewMedia[] | null {
@@ -108,7 +120,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
 
   public generateMediaFromRecordings(
     _hass: HomeAssistant,
-    _cameras: CameraConfigs,
+    _store: CameraManagerReadOnlyConfigStore,
     _query: RecordingQuery,
     _results: QueryReturnType<RecordingQuery>,
   ): ViewMedia[] | null {
@@ -138,7 +150,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
 
   public async getMediaSeekTime(
     _hass: HomeAssistant,
-    _cameras: CameraConfigs,
+    _store: CameraManagerReadOnlyConfigStore,
     _media: ViewMedia,
     _target: Date,
     _engineOptions?: EngineOptions,
@@ -148,7 +160,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
 
   public async getMediaMetadata(
     _hass: HomeAssistant,
-    _cameras: CameraConfigs,
+    _store: CameraManagerReadOnlyConfigStore,
     _query: MediaMetadataQuery,
     _engineOptions?: EngineOptions,
   ): Promise<MediaMetadataQueryResultsMap | null> {
@@ -173,20 +185,6 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     };
   }
 
-  public getCameraCapabilities(
-    _cameraConfig: CameraConfig,
-  ): CameraManagerCameraCapabilities | null {
-    return {
-      canFavoriteEvents: false,
-      canFavoriteRecordings: false,
-      canSeek: false,
-      supportsClips: false,
-      supportsRecordings: false,
-      supportsSnapshots: false,
-      supportsTimeline: false,
-    };
-  }
-
   public getMediaCapabilities(_media: ViewMedia): CameraManagerMediaCapabilities | null {
     return null;
   }
@@ -201,5 +199,17 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
           go2rtc: go2rtc,
         }
       : null;
+  }
+
+  public async executePTZAction(
+    _hass: HomeAssistant,
+    _cameraConfig: CameraConfig,
+    _action: PTZAction,
+    _options?: {
+      phase?: PTZPhase;
+      preset?: string;
+    },
+  ): Promise<void> {
+    // Pass.
   }
 }

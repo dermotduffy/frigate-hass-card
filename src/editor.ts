@@ -80,6 +80,12 @@ import {
   CONF_LIVE_CONTROLS_BUILTIN,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
+  CONF_LIVE_CONTROLS_PTZ_HIDE_HOME,
+  CONF_LIVE_CONTROLS_PTZ_HIDE_PAN_TILT,
+  CONF_LIVE_CONTROLS_PTZ_HIDE_ZOOM,
+  CONF_LIVE_CONTROLS_PTZ_MODE,
+  CONF_LIVE_CONTROLS_PTZ_ORIENTATION,
+  CONF_LIVE_CONTROLS_PTZ_POSITION,
   CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
@@ -211,6 +217,7 @@ const MENU_CAMERAS_WEBRTC_CARD = 'cameras.webrtc_card';
 const MENU_IMAGE_LAYOUT = 'image.layout';
 const MENU_LIVE_CONTROLS = 'live.controls';
 const MENU_LIVE_CONTROLS_NEXT_PREVIOUS = 'live.controls.next_previous';
+const MENU_LIVE_CONTROLS_PTZ = 'live.controls.ptz';
 const MENU_LIVE_CONTROLS_THUMBNAILS = 'live.controls.thumbnails';
 const MENU_LIVE_CONTROLS_TIMELINE = 'live.controls.timeline';
 const MENU_LIVE_CONTROLS_TITLE = 'live.controls.title';
@@ -573,6 +580,45 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: '', label: '' },
     { value: 'standard', label: localize('config.cameras.cast.methods.standard') },
     { value: 'dashboard', label: localize('config.cameras.cast.methods.dashboard') },
+  ];
+
+  protected _ptzModes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'on', label: localize('config.live.controls.ptz.modes.on') },
+    { value: 'off', label: localize('config.live.controls.ptz.modes.off') },
+    { value: 'auto', label: localize('config.live.controls.ptz.modes.auto') },
+  ];
+
+  protected _ptzOrientations: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'vertical',
+      label: localize('config.live.controls.ptz.orientations.vertical'),
+    },
+    {
+      value: 'horizontal',
+      label: localize('config.live.controls.ptz.orientations.horizontal'),
+    },
+  ];
+
+  protected _ptzPositions: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'top-left',
+      label: localize('config.live.controls.ptz.positions.top-left'),
+    },
+    {
+      value: 'top-right',
+      label: localize('config.live.controls.ptz.positions.top-right'),
+    },
+    {
+      value: 'bottom-left',
+      label: localize('config.live.controls.ptz.positions.bottom-left'),
+    },
+    {
+      value: 'bottom-right',
+      label: localize('config.live.controls.ptz.positions.bottom-right'),
+    },
   ];
 
   public setConfig(config: RawFrigateCardConfig): void {
@@ -1886,6 +1932,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderMenuButton('play') /*  */}
                 ${this._renderMenuButton('mute') /*  */}
                 ${this._renderMenuButton('screenshot')}
+                ${this._renderMenuButton('display_mode')}
+                ${this._renderMenuButton('ptz')}
               </div>
             `
           : ''}
@@ -1980,6 +2028,47 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       CONF_LIVE_CONTROLS_TIMELINE_MEDIA,
                       CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
                       this._defaults.live.controls.timeline.show_recordings,
+                    )}
+                    ${this._putInSubmenu(
+                      MENU_LIVE_CONTROLS_PTZ,
+                      true,
+                      'config.live.controls.ptz.editor_label',
+                      { name: 'mdi:pan' },
+                      html`
+                        ${this._renderOptionSelector(
+                          CONF_LIVE_CONTROLS_PTZ_MODE,
+                          this._ptzModes,
+                        )}
+                        ${this._renderOptionSelector(
+                          CONF_LIVE_CONTROLS_PTZ_POSITION,
+                          this._ptzPositions,
+                        )}
+                        ${this._renderOptionSelector(
+                          CONF_LIVE_CONTROLS_PTZ_ORIENTATION,
+                          this._ptzOrientations,
+                        )}
+                        ${this._renderSwitch(
+                          CONF_LIVE_CONTROLS_PTZ_HIDE_PAN_TILT,
+                          this._defaults.live.controls.ptz.hide_pan_tilt,
+                          {
+                            label: localize('config.live.controls.ptz.hide_pan_tilt'),
+                          },
+                        )}
+                        ${this._renderSwitch(
+                          CONF_LIVE_CONTROLS_PTZ_HIDE_ZOOM,
+                          this._defaults.live.controls.ptz.hide_pan_tilt,
+                          {
+                            label: localize('config.live.controls.ptz.hide_zoom'),
+                          },
+                        )}
+                        ${this._renderSwitch(
+                          CONF_LIVE_CONTROLS_PTZ_HIDE_HOME,
+                          this._defaults.live.controls.ptz.hide_home,
+                          {
+                            label: localize('config.live.controls.ptz.hide_home'),
+                          },
+                        )}
+                      `,
                     )}
                   `,
                 )}

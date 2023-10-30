@@ -16,7 +16,7 @@ export class MicrophoneManager {
     this._api = api;
   }
 
-  public async connect(): Promise<void> {
+  public async connect(): Promise<boolean> {
     try {
       this._stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
@@ -24,15 +24,19 @@ export class MicrophoneManager {
       });
     } catch (e: unknown) {
       errorToConsole(e as Error);
+
       this._stream = null;
+      this._api.getCardElementManager().update();
+      return false;
     }
     this._setMute();
+    return true;
   }
 
   public async disconnect(): Promise<void> {
     this._stream?.getTracks().forEach((track) => track.stop());
-    this._stream = undefined;
 
+    this._stream = undefined;
     this._api.getCardElementManager().update();
   }
 

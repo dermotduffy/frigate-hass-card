@@ -8,25 +8,23 @@ import { CameraConfig } from '../../config/types';
 import { allPromises, formatDate, isValidDate } from '../../utils/basic';
 import {
   BrowseMediaStep,
-  BrowseMediaTarget,
+  BrowseMediaTarget
 } from '../../utils/ha/browse-media/browse-media-manager';
 import {
-  BROWSE_MEDIA_CACHE_SECONDS,
-  BrowseMedia,
-  MEDIA_CLASS_IMAGE,
+  BrowseMedia, BROWSE_MEDIA_CACHE_SECONDS, MEDIA_CLASS_IMAGE,
   MEDIA_CLASS_VIDEO,
-  RichBrowseMedia,
+  RichBrowseMedia
 } from '../../utils/ha/browse-media/types';
 import { ViewMedia } from '../../view/media';
 import {
   BrowseMediaCameraManagerEngine,
   getViewMediaFromBrowseMediaArray,
-  isMediaWithinDates,
+  isMediaWithinDates
 } from '../browse-media/engine-browse-media';
 import { BrowseMediaMetadata } from '../browse-media/types';
 import { CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT } from '../engine';
+import { CameraManagerReadOnlyConfigStore } from '../store';
 import {
-  CameraConfigs,
   CameraEndpoint,
   CameraEndpoints,
   CameraEndpointsContext,
@@ -41,7 +39,7 @@ import {
   MediaMetadataQueryResultsMap,
   QueryResults,
   QueryResultsType,
-  QueryReturnType,
+  QueryReturnType
 } from '../types';
 import motioneyeLogo from './assets/motioneye-logo.svg';
 import { MotionEyeEventQueryResults } from './types';
@@ -126,7 +124,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
   // Get media directories that match a given criteria.
   protected async _getMatchingDirectories(
     hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     cameraID: string,
     matchOptions?: {
       start?: Date;
@@ -136,11 +134,11 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     } | null,
     engineOptions?: EngineOptions,
   ): Promise<RichBrowseMedia<BrowseMediaMetadata>[] | null> {
-    const cameraEntityID = cameras.get(cameraID)?.camera_entity;
+    const cameraConfig = store.getCameraConfig(cameraID);
+    const cameraEntityID = cameraConfig?.camera_entity;
     const entity = cameraEntityID ? this._cameraEntities.get(cameraEntityID) : null;
     const configID = entity?.config_entry_id;
     const deviceID = entity?.device_id;
-    const cameraConfig = cameras.get(cameraID);
 
     if (!configID || !deviceID || !cameraConfig) {
       return null;
@@ -206,7 +204,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
 
   public async getEvents(
     hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     query: EventQuery,
     engineOptions?: EngineOptions,
   ): Promise<EventQueryResultsMap | null> {
@@ -225,14 +223,14 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
         return;
       }
 
-      const cameraConfig = cameras.get(cameraID);
+      const cameraConfig = store.getCameraConfig(cameraID);
       if (!cameraConfig) {
         return;
       }
 
       const directories = await this._getMatchingDirectories(
         hass,
-        cameras,
+        store,
         cameraID,
         perCameraQuery,
         engineOptions,
@@ -309,7 +307,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
 
   public generateMediaFromEvents(
     _hass: HomeAssistant,
-    _cameras: CameraConfigs,
+    _store: CameraManagerReadOnlyConfigStore,
     _query: EventQuery,
     results: QueryReturnType<EventQuery>,
   ): ViewMedia[] | null {
@@ -321,7 +319,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
 
   public async getMediaMetadata(
     hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     query: MediaMetadataQuery,
     engineOptions?: EngineOptions,
   ): Promise<MediaMetadataQueryResultsMap | null> {
@@ -340,7 +338,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     const getDaysForCamera = async (cameraID: string): Promise<void> => {
       const directories = await this._getMatchingDirectories(
         hass,
-        cameras,
+        store,
         cameraID,
         null,
         engineOptions,

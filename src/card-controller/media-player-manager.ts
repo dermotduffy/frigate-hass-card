@@ -25,10 +25,10 @@ export class MediaPlayerManager {
     return this._mediaPlayers.length > 0;
   }
 
-  public async initialize(): Promise<void> {
+  public async initialize(): Promise<boolean> {
     const hass = this._api.getHASSManager().getHASS();
     if (!hass) {
-      return;
+      return false;
     }
 
     const isValidMediaPlayer = (entityID: string): boolean => {
@@ -66,6 +66,8 @@ export class MediaPlayerManager {
       const entity = mediaPlayerEntities?.get(entityID);
       return !entity || !entity.hidden_by;
     });
+
+    return true;
   }
 
   public async stop(mediaPlayer: string): Promise<void> {

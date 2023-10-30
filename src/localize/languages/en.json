@@ -233,7 +233,31 @@
       "auto_play": "Automatically play live cameras",
       "auto_unmute": "Automatically unmute live cameras",
       "controls": {
-        "editor_label": "Live Controls"
+        "editor_label": "Live Controls",
+        "ptz": {
+          "editor_label": "PTZ",
+          "mode": "Mode",
+          "modes": {
+            "on": "On",
+            "off": "Off",
+            "auto": "Automatic"
+          },
+          "orientation": "Orientation",
+          "orientations": {
+            "vertical": "Vertical",
+            "horizontal": "Horizontal"
+          },
+          "position": "Position",
+          "positions": {
+            "top-left": "Top left",
+            "top-right": "Top right",
+            "bottom-left": "Bottom left",
+            "bottom-right": "Bottom right"
+          },
+          "hide_zoom": "Hide zoom control",
+          "hide_pan_tilt": "Hide pan & tilt control",
+          "hide_home": "Hide home control"
+        }
       },
       "draggable": "Live cameras view can be dragged/swiped",
       "layout": "Live Layout",
@@ -301,6 +325,7 @@
         "mute": "Mute / Unmute",
         "play": "Play / Pause",
         "priority": "Priority",
+        "ptz": "Show PTZ controls",
         "recordings": "Recordings",
         "screenshot": "Screenshot",
         "snapshots": "Snapshots",

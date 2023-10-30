@@ -1,12 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { CameraManager } from '../../src/camera-manager/manager.js';
 import { downloadMedia, downloadURL } from '../../src/utils/download';
 import { homeAssistantSignPath } from '../../src/utils/ha';
 import { ViewMedia } from '../../src/view/media';
 import { createCameraManager, createHASS } from '../test-utils';
 
-vi.mock('../../src/camera-manager/manager.js');
 vi.mock('../../src/utils/ha');
 
 const media = new ViewMedia('clip', 'camera-1');
@@ -73,7 +71,7 @@ describe('downloadMedia', () => {
 
   it('should throw error when no media', () => {
     const cameraManager = createCameraManager();
-    mock<CameraManager>(cameraManager).getMediaDownloadPath.mockResolvedValue(null);
+    vi.mocked(cameraManager.getMediaDownloadPath).mockResolvedValue(null);
 
     expect(downloadMedia(createHASS(), cameraManager, media)).rejects.toThrow(
       /No media to download/,
@@ -84,7 +82,7 @@ describe('downloadMedia', () => {
     vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
 
     const cameraManager = createCameraManager();
-    mock<CameraManager>(cameraManager).getMediaDownloadPath.mockResolvedValue({
+    vi.mocked(cameraManager).getMediaDownloadPath.mockResolvedValue({
       sign: true,
       endpoint: 'foo',
     });
@@ -98,7 +96,7 @@ describe('downloadMedia', () => {
 
   it('should download media', async () => {
     const cameraManager = createCameraManager();
-    mock<CameraManager>(cameraManager).getMediaDownloadPath.mockResolvedValue({
+    vi.mocked(cameraManager).getMediaDownloadPath.mockResolvedValue({
       sign: true,
       endpoint: 'foo',
     });
@@ -111,7 +109,7 @@ describe('downloadMedia', () => {
 
   it('should download media without signing', async () => {
     const cameraManager = createCameraManager();
-    mock<CameraManager>(cameraManager).getMediaDownloadPath.mockResolvedValue({
+    vi.mocked(cameraManager).getMediaDownloadPath.mockResolvedValue({
       sign: false,
       endpoint: 'https://foo/',
     });

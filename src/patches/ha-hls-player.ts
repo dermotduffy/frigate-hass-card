@@ -12,11 +12,11 @@
 import { css, CSSResultGroup, html, TemplateResult, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
-import { screenshotMedia } from '../utils/screenshot.js';
 import { dispatchErrorMessageEvent } from '../components/message.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
 import { FrigateCardMediaPlayer } from '../types.js';
 import { mayHaveAudio } from '../utils/audio.js';
+import { errorToConsole } from '../utils/basic.js';
 import {
   dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,
@@ -26,6 +26,7 @@ import {
 import {
   hideMediaControlsTemporarily, MEDIA_LOAD_CONTROLS_HIDE_SECONDS, setControlsOnVideo
 } from '../utils/media.js';
+import { screenshotMedia } from '../utils/screenshot.js';
 
 customElements.whenDefined('ha-hls-player').then(() => {
   @customElement('frigate-card-ha-hls-player')
@@ -97,7 +98,7 @@ customElements.whenDefined('ha-hls-player').then(() => {
           // Use native Frigate card error handling for fatal errors.
           return dispatchErrorMessageEvent(this, this._error);
         } else {
-          console.error(this._error);
+          errorToConsole(this._error, console.error);
         }
       }
       return html`

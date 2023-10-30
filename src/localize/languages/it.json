@@ -233,7 +233,31 @@
       "auto_play": "Gioca automaticamente le telecamere dal vivo",
       "auto_unmute": "Riattiva automaticamente l'audio delle telecamere live",
       "controls": {
-        "editor_label": "Controlli dal vivo"
+        "editor_label": "Controlli dal vivo",
+        "ptz": {
+          "editor_label": "",
+          "mode": "",
+          "modes": {
+            "on": "",
+            "off": "",
+            "auto": ""
+          },
+          "orientation": "",
+          "orientations": {
+            "vertical": "",
+            "horizontal": ""
+          },
+          "position": "",
+          "positions": {
+            "top-left": "",
+            "top-right": "",
+            "bottom-left": "",
+            "bottom-right": ""
+          },
+          "hide_zoom": "",
+          "hide_pan_tilt": "",
+          "hide_home": ""
+        }
       },
       "draggable": "Il Visualizzatore eventi può essere trascinato oppure puoi scorrere",
       "layout": "Disposizione dal vivo",
@@ -299,6 +323,7 @@
         "mute": "",
         "play": "",
         "priority": "Priorità",
+        "ptz": "",
         "screenshot": "",
         "snapshots": "Istantanee",
         "substreams": "Flusso/i secondario/i",

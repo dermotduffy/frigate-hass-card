@@ -12,11 +12,12 @@ import {
 } from '../../src/components-lib/menu-controller';
 import { FrigateCardConfig, MenuItem, ViewDisplayMode } from '../../src/config/types';
 import { FrigateCardMediaPlayer } from '../../src/types';
-import { createFrigateCardCustomAction } from '../../src/utils/action';
+import { createFrigateCardSimpleAction } from '../../src/utils/action';
 import { ViewMedia } from '../../src/view/media';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
 import { View } from '../../src/view/view';
 import {
+  createAggregateCameraCapabilities,
   createCameraCapabilities,
   createCameraConfig,
   createCameraManager,
@@ -26,10 +27,10 @@ import {
   createMediaCapabilities,
   createMediaLoadedInfo,
   createStateEntity,
+  createStore,
   createView,
 } from '../test-utils';
 
-vi.mock('../../src/camera-manager/manager.js');
 vi.mock('../../src/utils/media-player-controller.js');
 vi.mock('../../src/card-controller/microphone-manager.js');
 
@@ -42,16 +43,15 @@ const calculateButtons = (
     view?: View;
   },
 ): MenuItem[] => {
+  let cameraManager: CameraManager | null = options?.cameraManager ?? null;
+  if (!cameraManager) {
+    cameraManager = createCameraManager();
+  }
+
   return controller.calculateButtons(
     options?.hass ?? createHASS(),
     options?.config ?? createConfig(),
-    options?.cameraManager ??
-      createCameraManager({
-        configs: new Map([
-          ['camera-1', createCameraConfig()],
-          ['camera-2', createCameraConfig()],
-        ]),
-      }),
+    cameraManager,
     options?.view ?? createView({ camera: 'camera-1' }),
     options,
   );
@@ -79,8 +79,8 @@ describe('MenuButtonController', () => {
       priority: 50,
       type: 'custom:frigate-card-menu-icon',
       title: 'Frigate menu / Default view',
-      tap_action: createFrigateCardCustomAction('menu_toggle'),
-      hold_action: createFrigateCardCustomAction('diagnostics'),
+      tap_action: createFrigateCardSimpleAction('menu_toggle'),
+      hold_action: createFrigateCardSimpleAction('diagnostics'),
     });
   });
 
@@ -94,19 +94,17 @@ describe('MenuButtonController', () => {
       priority: 50,
       type: 'custom:frigate-card-menu-icon',
       title: 'Frigate menu / Default view',
-      tap_action: createFrigateCardCustomAction('default'),
-      hold_action: createFrigateCardCustomAction('diagnostics'),
+      tap_action: createFrigateCardSimpleAction('default'),
+      hold_action: createFrigateCardSimpleAction('diagnostics'),
     });
   });
 
   it('should have cameras menu', () => {
-    const cameraManager = createCameraManager({
-      configs: new Map([
-        ['camera-1', createCameraConfig()],
-        ['camera-2', createCameraConfig()],
-      ]),
-    });
-    mock<CameraManager>(cameraManager).getCameraMetadata.mockReturnValue({
+    const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([{ cameraID: 'camera-1' }, { cameraID: 'camera-2' }]),
+    );
+    vi.mocked(cameraManager).getCameraMetadata.mockReturnValue({
       title: 'title',
       icon: 'icon',
     });
@@ -150,14 +148,12 @@ describe('MenuButtonController', () => {
   });
 
   it('should not have a cameras menu without a visible camera', () => {
-    const cameraManager = createCameraManager({
-      configs: new Map([
-        ['camera-1', createCameraConfig()],
-        ['camera-2', createCameraConfig()],
+    const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([
+        { cameraID: 'camera-1', config: createCameraConfig({ hide: true }) },
       ]),
-    });
-
-    vi.mocked(cameraManager.getStore()).getVisibleCameras.mockReturnValue(new Map());
+    );
 
     const buttons = calculateButtons(controller, { cameraManager: cameraManager });
     expect(buttons).not.toEqual(
@@ -170,12 +166,16 @@ describe('MenuButtonController', () => {
   });
 
   it('should have substream button with single dependency', () => {
-    const cameraManager = createCameraManager({
-      configs: new Map([
-        ['camera-1', createCameraConfig({ dependencies: { cameras: ['camera-2'] } })],
-        ['camera-2', createCameraConfig()],
+    const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera-1',
+          config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
+        },
+        { cameraID: 'camera-2' },
       ]),
-    });
+    );
 
     const buttons = calculateButtons(controller, { cameraManager: cameraManager });
     expect(buttons).toContainEqual({
@@ -193,12 +193,17 @@ describe('MenuButtonController', () => {
   });
 
   it('should have substream button selected with single dependency', () => {
-    const cameraManager = createCameraManager({
-      configs: new Map([
-        ['camera-1', createCameraConfig({ dependencies: { cameras: ['camera-2'] } })],
-        ['camera-2', createCameraConfig()],
+    const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera-1',
+          config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
+        },
+        { cameraID: 'camera-2' },
       ]),
-    });
+    );
+
     const view = createView({
       camera: 'camera-1',
       context: {
@@ -227,29 +232,31 @@ describe('MenuButtonController', () => {
   });
 
   it('should have substream menu without substream on with multiple dependencies', () => {
-    const cameraManager = createCameraManager({
-      configs: new Map([
-        [
-          'camera-1',
-          createCameraConfig({
+    const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera-1',
+          config: createCameraConfig({
             camera_entity: 'camera.1',
             dependencies: { cameras: ['camera-2', 'camera-3'] },
           }),
-        ],
-        [
-          'camera-2',
-          createCameraConfig({
+        },
+        {
+          cameraID: 'camera-2',
+          config: createCameraConfig({
             camera_entity: 'camera.2',
           }),
-        ],
-        [
-          'camera-3',
-          createCameraConfig({
+        },
+        {
+          cameraID: 'camera-3',
+          config: createCameraConfig({
             camera_entity: 'camera.3',
           }),
-        ],
+        },
       ]),
-    });
+    );
+
     // Return different metadata depending on the camera to test multiple code
     // paths.
     mock<CameraManager>(cameraManager).getCameraMetadata.mockImplementation(
@@ -316,29 +323,30 @@ describe('MenuButtonController', () => {
   });
 
   it('should have substream menu with substream on with multiple dependencies', () => {
-    const cameraManager = createCameraManager({
-      configs: new Map([
-        [
-          'camera-1',
-          createCameraConfig({
+    const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera-1',
+          config: createCameraConfig({
             camera_entity: 'camera.1',
             dependencies: { cameras: ['camera-2', 'camera-3'] },
           }),
-        ],
-        [
-          'camera-2',
-          createCameraConfig({
+        },
+        {
+          cameraID: 'camera-2',
+          config: createCameraConfig({
             camera_entity: 'camera.2',
           }),
-        ],
-        [
-          'camera-3',
-          createCameraConfig({
+        },
+        {
+          cameraID: 'camera-3',
+          config: createCameraConfig({
             camera_entity: 'camera.3',
           }),
-        ],
+        },
       ]),
-    });
+    );
 
     const view = createView({
       camera: 'camera-1',
@@ -436,8 +444,8 @@ describe('MenuButtonController', () => {
 
   it('should have styled clips menu button in clips view', () => {
     const cameraManager = createCameraManager();
-    mock<CameraManager>(cameraManager).getAggregateCameraCapabilities.mockReturnValue(
-      createCameraCapabilities({ supportsClips: true }),
+    vi.mocked(cameraManager.getAggregateCameraCapabilities).mockReturnValue(
+      createAggregateCameraCapabilities({ supportsClips: true }),
     );
     const buttons = calculateButtons(controller, {
       cameraManager: cameraManager,
@@ -457,8 +465,8 @@ describe('MenuButtonController', () => {
 
   it('should have unstyled clips menu button in non-clips view', () => {
     const cameraManager = createCameraManager();
-    mock<CameraManager>(cameraManager).getAggregateCameraCapabilities.mockReturnValue(
-      createCameraCapabilities({ supportsClips: true }),
+    vi.mocked(cameraManager.getAggregateCameraCapabilities).mockReturnValue(
+      createAggregateCameraCapabilities({ supportsClips: true }),
     );
     const buttons = calculateButtons(controller, { cameraManager: cameraManager });
     expect(buttons).toContainEqual({
@@ -475,8 +483,8 @@ describe('MenuButtonController', () => {
 
   it('should have styled snapshots menu button in snapshots view', () => {
     const cameraManager = createCameraManager();
-    mock<CameraManager>(cameraManager).getAggregateCameraCapabilities.mockReturnValue(
-      createCameraCapabilities({ supportsSnapshots: true }),
+    vi.mocked(cameraManager.getAggregateCameraCapabilities).mockReturnValue(
+      createAggregateCameraCapabilities({ supportsSnapshots: true }),
     );
     const buttons = calculateButtons(controller, {
       cameraManager: cameraManager,
@@ -496,8 +504,8 @@ describe('MenuButtonController', () => {
 
   it('should have unstyled snapshots menu button in non-snapshots view', () => {
     const cameraManager = createCameraManager();
-    mock<CameraManager>(cameraManager).getAggregateCameraCapabilities.mockReturnValue(
-      createCameraCapabilities({ supportsSnapshots: true }),
+    vi.mocked(cameraManager.getAggregateCameraCapabilities).mockReturnValue(
+      createAggregateCameraCapabilities({ supportsSnapshots: true }),
     );
     const buttons = calculateButtons(controller, { cameraManager: cameraManager });
     expect(buttons).toContainEqual({
@@ -514,8 +522,8 @@ describe('MenuButtonController', () => {
 
   it('should have styled recordings menu button in recordings view', () => {
     const cameraManager = createCameraManager();
-    mock<CameraManager>(cameraManager).getAggregateCameraCapabilities.mockReturnValue(
-      createCameraCapabilities({ supportsRecordings: true }),
+    vi.mocked(cameraManager.getAggregateCameraCapabilities).mockReturnValue(
+      createAggregateCameraCapabilities({ supportsRecordings: true }),
     );
     const buttons = calculateButtons(controller, {
       cameraManager: cameraManager,
@@ -535,8 +543,8 @@ describe('MenuButtonController', () => {
 
   it('should have unstyled recordings menu button in non-recordings view', () => {
     const cameraManager = createCameraManager();
-    mock<CameraManager>(cameraManager).getAggregateCameraCapabilities.mockReturnValue(
-      createCameraCapabilities({ supportsRecordings: true }),
+    vi.mocked(cameraManager.getAggregateCameraCapabilities).mockReturnValue(
+      createAggregateCameraCapabilities({ supportsRecordings: true }),
     );
     const buttons = calculateButtons(controller, { cameraManager: cameraManager });
     expect(buttons).toContainEqual({
@@ -581,8 +589,8 @@ describe('MenuButtonController', () => {
 
   it('should have styled timeline menu button in timeline view', () => {
     const cameraManager = createCameraManager();
-    mock<CameraManager>(cameraManager).getAggregateCameraCapabilities.mockReturnValue(
-      createCameraCapabilities({ supportsTimeline: true }),
+    vi.mocked(cameraManager.getAggregateCameraCapabilities).mockReturnValue(
+      createAggregateCameraCapabilities({ supportsTimeline: true }),
     );
     const buttons = calculateButtons(controller, {
       cameraManager: cameraManager,
@@ -601,8 +609,8 @@ describe('MenuButtonController', () => {
 
   it('should have unstyled timeline menu button in non-timeline view', () => {
     const cameraManager = createCameraManager();
-    mock<CameraManager>(cameraManager).getAggregateCameraCapabilities.mockReturnValue(
-      createCameraCapabilities({ supportsTimeline: true }),
+    vi.mocked(cameraManager.getAggregateCameraCapabilities).mockReturnValue(
+      createAggregateCameraCapabilities({ supportsTimeline: true }),
     );
     const buttons = calculateButtons(controller, {
       cameraManager: cameraManager,
@@ -622,15 +630,15 @@ describe('MenuButtonController', () => {
     vi.stubGlobal('navigator', { userAgent: 'foo' });
 
     const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getMediaCapabilities).mockReturnValue(
+      createMediaCapabilities({ canDownload: true }),
+    );
     const view = createView({
       queryResults: new MediaQueriesResults({
         results: [new ViewMedia('clip', 'camera-1')],
         selectedIndex: 0,
       }),
     });
-    mock<CameraManager>(cameraManager).getMediaCapabilities.mockReturnValue(
-      createMediaCapabilities({ canDownload: true }),
-    );
     const buttons = calculateButtons(controller, {
       cameraManager: cameraManager,
       view: view,
@@ -653,15 +661,15 @@ describe('MenuButtonController', () => {
     });
 
     const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getMediaCapabilities).mockReturnValue(
+      createMediaCapabilities({ canDownload: true }),
+    );
     const view = createView({
       queryResults: new MediaQueriesResults({
         results: [new ViewMedia('clip', 'camera-1')],
         selectedIndex: 0,
       }),
     });
-    mock<CameraManager>(cameraManager).getMediaCapabilities.mockReturnValue(
-      createMediaCapabilities({ canDownload: true }),
-    );
     const buttons = calculateButtons(controller, {
       cameraManager: cameraManager,
       view: view,
@@ -906,16 +914,18 @@ describe('MenuButtonController', () => {
   });
 
   it('should have media players button', () => {
-    const cameraManager = createCameraManager({
-      configs: new Map([
-        [
-          'camera-1',
-          createCameraConfig({
+    const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera-1',
+          config: createCameraConfig({
             camera_entity: 'camera.1',
           }),
-        ],
+        },
       ]),
-    });
+    );
+
     const mediaPlayerController = mock<MediaPlayerManager>();
     mediaPlayerController.hasMediaPlayers.mockReturnValue(true);
     mediaPlayerController.getMediaPlayers.mockReturnValue(['media_player.tv']);
@@ -961,16 +971,17 @@ describe('MenuButtonController', () => {
   });
 
   it('should disable media players button when entity not found', () => {
-    const cameraManager = createCameraManager({
-      configs: new Map([
-        [
-          'camera-1',
-          createCameraConfig({
+    const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera-1',
+          config: createCameraConfig({
             camera_entity: 'camera.1',
           }),
-        ],
+        },
       ]),
-    });
+    );
     const mediaPlayerController = mock<MediaPlayerManager>();
     mediaPlayerController.hasMediaPlayers.mockReturnValue(true);
     mediaPlayerController.getMediaPlayers.mockReturnValue(['not_a_real_player']);
@@ -1109,7 +1120,13 @@ describe('MenuButtonController', () => {
       '%s',
       (displayMode: ViewDisplayMode) => {
         const view = createView({ view: 'live', displayMode: displayMode });
-        expect(calculateButtons(controller, { view: view })).toContainEqual({
+        const cameraManager = createCameraManager();
+        vi.mocked(cameraManager.getStore).mockReturnValue(
+          createStore([{ cameraID: 'camera-1' }, { cameraID: 'camera-2' }]),
+        );
+        expect(
+          calculateButtons(controller, { cameraManager: cameraManager, view: view }),
+        ).toContainEqual({
           icon: displayMode === 'single' ? 'mdi:grid' : 'mdi:grid-off',
           enabled: true,
           priority: 50,
@@ -1118,6 +1135,7 @@ describe('MenuButtonController', () => {
             displayMode === 'grid'
               ? 'Show single media viewer'
               : 'Show media viewer for each camera in a grid',
+          style: displayMode === 'grid' ? { color: 'var(--primary-color, white)' } : {},
           tap_action: {
             action: 'fire-dom-event',
             frigate_card_action: 'display_mode_select',
@@ -1126,6 +1144,85 @@ describe('MenuButtonController', () => {
         });
       },
     );
+  });
+
+  describe('should have show ptz button', () => {
+    it('when the selected camera is not PTZ enabled', () => {
+      const cameraManager = createCameraManager();
+      vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue(
+        createCameraCapabilities(),
+      );
+
+      const buttons = calculateButtons(controller, { cameraManager: cameraManager });
+      expect(buttons).not.toContainEqual({
+        enabled: false,
+        icon: 'mdi:pan',
+        priority: 50,
+        style: {
+          color: 'var(--primary-color, white)',
+        },
+        tap_action: {
+          action: 'fire-dom-event',
+          frigate_card_action: 'show_ptz',
+          show_ptz: false,
+        },
+        title: 'Show PTZ controls',
+        type: 'custom:frigate-card-menu-icon',
+      });
+    });
+
+    it('when the selected camera is PTZ enabled', () => {
+      const cameraManager = createCameraManager();
+      vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue(
+        createCameraCapabilities({ ptz: {} }),
+      );
+
+      const buttons = calculateButtons(controller, { cameraManager: cameraManager });
+      expect(buttons).toContainEqual({
+        enabled: false,
+        icon: 'mdi:pan',
+        priority: 50,
+        style: {
+          color: 'var(--primary-color, white)',
+        },
+        tap_action: {
+          action: 'fire-dom-event',
+          frigate_card_action: 'show_ptz',
+          show_ptz: false,
+        },
+        title: 'Show PTZ controls',
+        type: 'custom:frigate-card-menu-icon',
+      });
+    });
+
+    it('when the context has PTZ visiblity turned off', () => {
+      const cameraManager = createCameraManager();
+      vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue(
+        createCameraCapabilities({ ptz: {} }),
+      );
+      const view = createView({
+        camera: 'camera-1',
+        context: { live: { ptzVisible: false } },
+      });
+
+      const buttons = calculateButtons(controller, {
+        cameraManager: cameraManager,
+        view: view,
+      });
+      expect(buttons).toContainEqual({
+        enabled: false,
+        icon: 'mdi:pan',
+        priority: 50,
+        style: {},
+        tap_action: {
+          action: 'fire-dom-event',
+          frigate_card_action: 'show_ptz',
+          show_ptz: true,
+        },
+        title: 'Show PTZ controls',
+        type: 'custom:frigate-card-menu-icon',
+      });
+    });
   });
 
   it('should handle dynamic buttons', () => {

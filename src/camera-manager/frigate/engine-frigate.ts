@@ -9,11 +9,12 @@ import orderBy from 'lodash-es/orderBy';
 import throttle from 'lodash-es/throttle';
 import uniq from 'lodash-es/uniq';
 import uniqWith from 'lodash-es/uniqWith';
-import { CameraConfig } from '../../config/types';
+import { CameraConfig, PTZAction, PTZPhase } from '../../config/types';
 import { localize } from '../../localize/localize';
 import { ExtendedHomeAssistant } from '../../types';
 import {
   allPromises,
+  errorToConsole,
   formatDate,
   prettifyTitle,
   runWhenIdleIfSupported,
@@ -24,6 +25,7 @@ import { Entity } from '../../utils/ha/entity-registry/types';
 import { ViewMedia } from '../../view/media';
 import { ViewMediaClassifier } from '../../view/media-classifier';
 import { RecordingSegmentsCache, RequestCache } from '../cache';
+import { Camera } from '../camera';
 import {
   CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
   CameraManagerEngine,
@@ -31,12 +33,11 @@ import {
 import { CameraInitializationError } from '../error';
 import { GenericCameraManagerEngine } from '../generic/engine-generic';
 import { DateRange } from '../range';
+import { CameraManagerReadOnlyConfigStore } from '../store';
 import {
-  CameraConfigs,
   CameraEndpoint,
   CameraEndpoints,
   CameraEndpointsContext,
-  CameraManagerCameraCapabilities,
   CameraManagerCameraMetadata,
   CameraManagerMediaCapabilities,
   DataQuery,
@@ -51,6 +52,8 @@ import {
   PartialEventQuery,
   PartialRecordingQuery,
   PartialRecordingSegmentsQuery,
+  PTZCapabilities,
+  PTZMovementType,
   QueryResults,
   QueryResultsType,
   QueryReturnType,
@@ -74,12 +77,14 @@ import {
   getRecordingSegments,
   getRecordingsSummary,
   retainEvent,
+  getPTZInfo,
 } from './requests';
 import {
   FrigateEventQueryResults,
   FrigateRecording,
   FrigateRecordingQueryResults,
   FrigateRecordingSegmentsQueryResults,
+  PTZInfo,
 } from './types';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
@@ -144,7 +149,7 @@ export class FrigateCameraManagerEngine
     hass: HomeAssistant,
     entityRegistryManager: EntityRegistryManager,
     cameraConfig: CameraConfig,
-  ): Promise<CameraConfig> {
+  ): Promise<Camera> {
     const hasCameraName = !!cameraConfig.frigate?.camera_name;
     const hasAutoTriggers =
       cameraConfig.triggers.motion || cameraConfig.triggers.occupancy;
@@ -207,7 +212,64 @@ export class FrigateCameraManagerEngine
       cameraConfig.triggers.entities = uniq(cameraConfig.triggers.entities);
     }
 
-    return cameraConfig;
+    const ptz = await this._getPTZCapabilities(hass, cameraConfig);
+
+    const isBirdseye = this._isBirdseye(cameraConfig);
+    return new Camera(cameraConfig, this, {
+      canFavoriteEvents: !isBirdseye,
+      canFavoriteRecordings: !isBirdseye,
+      canSeek: true,
+      supportsClips: !isBirdseye,
+      supportsSnapshots: !isBirdseye,
+      supportsRecordings: !isBirdseye,
+      supportsTimeline: !isBirdseye,
+
+      ...(ptz && { ptz: ptz }),
+    });
+  }
+
+  protected async _getPTZCapabilities(
+    hass: HomeAssistant,
+    cameraConfig: CameraConfig,
+  ): Promise<PTZCapabilities | null> {
+    if (!cameraConfig.frigate.camera_name) {
+      return null;
+    }
+
+    let ptzInfo: PTZInfo | null = null;
+    try {
+      ptzInfo = await getPTZInfo(
+        hass,
+        cameraConfig.frigate.client_id,
+        cameraConfig.frigate.camera_name,
+      );
+    } catch (e) {
+      errorToConsole(e as Error);
+      return null;
+    }
+
+    const panTilt: PTZMovementType[] = [
+      ...(ptzInfo.features?.includes('pt') ? ['continuous' as const] : []),
+      ...(ptzInfo.features?.includes('pt-r') ? ['relative' as const] : []),
+    ];
+    const zoom: PTZMovementType[] = [
+      ...(ptzInfo.features?.includes('zoom') ? ['continuous' as const] : []),
+      ...(ptzInfo.features?.includes('zoom-r') ? ['relative' as const] : []),
+    ];
+    const presets = ptzInfo.presets;
+
+    if (panTilt.length || zoom.length || presets?.length) {
+      return {
+        ...(panTilt && { panTilt: panTilt }),
+        ...(zoom && { zoom: zoom }),
+        ...(presets && { presets: presets }),
+      };
+    }
+    return null;
+  }
+
+  protected _isBirdseye(cameraConfig: CameraConfig): boolean {
+    return cameraConfig.frigate.camera_name === CAMERA_BIRDSEYE;
   }
 
   /**
@@ -330,13 +392,11 @@ export class FrigateCameraManagerEngine
   }
 
   public generateDefaultEventQuery(
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     cameraIDs: Set<string>,
     query?: PartialEventQuery,
   ): EventQuery[] | null {
-    const relevantCameraConfigs = Array.from(cameraIDs).map((cameraID) =>
-      cameras.get(cameraID),
-    );
+    const relevantCameraConfigs = [...store.getCameraConfigs(cameraIDs)];
 
     // If all cameras specify exactly the same zones or labels (incl. none), we
     // can use a single batch query which will be better performance wise,
@@ -365,7 +425,7 @@ export class FrigateCameraManagerEngine
 
     const output: EventQuery[] = [];
     for (const cameraID of cameraIDs) {
-      const cameraConfig = cameras.get(cameraID);
+      const cameraConfig = store.getCameraConfig(cameraID);
       if (cameraConfig) {
         output.push({
           type: QueryType.Event,
@@ -384,7 +444,7 @@ export class FrigateCameraManagerEngine
   }
 
   public generateDefaultRecordingQuery(
-    _cameras: CameraConfigs,
+    _store: CameraManagerReadOnlyConfigStore,
     cameraIDs: Set<string>,
     query?: PartialRecordingQuery,
   ): RecordingQuery[] {
@@ -398,7 +458,7 @@ export class FrigateCameraManagerEngine
   }
 
   public generateDefaultRecordingSegmentsQuery(
-    _cameras: CameraConfigs,
+    _store: CameraManagerReadOnlyConfigStore,
     cameraIDs: Set<string>,
     query: PartialRecordingSegmentsQuery,
   ): RecordingSegmentsQuery[] | null {
@@ -431,12 +491,12 @@ export class FrigateCameraManagerEngine
   }
 
   protected _buildInstanceToCameraIDMapFromQuery(
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     cameraIDs: Set<string>,
   ): Map<string, Set<string>> {
     const output: Map<string, Set<string>> = new Map();
     for (const cameraID of cameraIDs) {
-      const cameraConfig = this._getQueryableCameraConfig(cameras, cameraID);
+      const cameraConfig = this._getQueryableCameraConfig(store, cameraID);
       const clientID = cameraConfig?.frigate.client_id;
       if (clientID) {
         if (!output.has(clientID)) {
@@ -449,12 +509,12 @@ export class FrigateCameraManagerEngine
   }
 
   protected _getFrigateCameraNamesForCameraIDs(
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     cameraIDs: Set<string>,
   ): Set<string> {
     const output = new Set<string>();
     for (const cameraID of cameraIDs) {
-      const cameraConfig = this._getQueryableCameraConfig(cameras, cameraID);
+      const cameraConfig = this._getQueryableCameraConfig(store, cameraID);
       if (cameraConfig?.frigate.camera_name) {
         output.add(cameraConfig.frigate.camera_name);
       }
@@ -464,7 +524,7 @@ export class FrigateCameraManagerEngine
 
   public async getEvents(
     hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     query: EventQuery,
     engineOptions?: EngineOptions,
   ): Promise<EventQueryResultsMap | null> {
@@ -487,7 +547,7 @@ export class FrigateCameraManagerEngine
 
       const nativeQuery: NativeFrigateEventQuery = {
         instance_id: instanceID,
-        cameras: Array.from(this._getFrigateCameraNamesForCameraIDs(cameras, cameraIDs)),
+        cameras: Array.from(this._getFrigateCameraNamesForCameraIDs(store, cameraIDs)),
         ...(query.what && { labels: Array.from(query.what) }),
         ...(query.where && { zones: Array.from(query.where) }),
         ...(query.tags && { sub_labels: Array.from(query.tags) }),
@@ -518,10 +578,7 @@ export class FrigateCameraManagerEngine
     // Frigate allows multiple cameras to be searched for events in a single
     // query. Break them down into groups of cameras per Frigate instance, then
     // query once per instance for all cameras in that instance.
-    const instances = this._buildInstanceToCameraIDMapFromQuery(
-      cameras,
-      query.cameraIDs,
-    );
+    const instances = this._buildInstanceToCameraIDMapFromQuery(store, query.cameraIDs);
 
     await Promise.all(
       Array.from(instances.keys()).map((instanceID) =>
@@ -533,7 +590,7 @@ export class FrigateCameraManagerEngine
 
   public async getRecordings(
     hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     query: RecordingQuery,
     engineOptions?: EngineOptions,
   ): Promise<RecordingQueryResultsMap | null> {
@@ -551,7 +608,7 @@ export class FrigateCameraManagerEngine
         return;
       }
 
-      const cameraConfig = this._getQueryableCameraConfig(cameras, cameraID);
+      const cameraConfig = this._getQueryableCameraConfig(store, cameraID);
       if (!cameraConfig || !cameraConfig.frigate.camera_name) {
         return;
       }
@@ -619,7 +676,7 @@ export class FrigateCameraManagerEngine
 
   public async getRecordingSegments(
     hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     query: RecordingSegmentsQuery,
     engineOptions?: EngineOptions,
   ): Promise<RecordingSegmentsQueryResultsMap | null> {
@@ -630,7 +687,7 @@ export class FrigateCameraManagerEngine
       cameraID: string,
     ): Promise<void> => {
       const query = { ...baseQuery, cameraIDs: new Set([cameraID]) };
-      const cameraConfig = this._getQueryableCameraConfig(cameras, cameraID);
+      const cameraConfig = this._getQueryableCameraConfig(store, cameraID);
       if (!cameraConfig || !cameraConfig.frigate.camera_name) {
         return;
       }
@@ -687,12 +744,12 @@ export class FrigateCameraManagerEngine
       Array.from(query.cameraIDs).map((cameraID) => processQuery(query, cameraID)),
     );
 
-    runWhenIdleIfSupported(() => this._throttledSegmentGarbageCollector(hass, cameras));
+    runWhenIdleIfSupported(() => this._throttledSegmentGarbageCollector(hass, store));
     return output.size ? output : null;
   }
 
   protected _getCameraIDMatch(
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     query: DataQuery,
     instanceID: string,
     cameraName: string,
@@ -704,7 +761,7 @@ export class FrigateCameraManagerEngine
     if (query.cameraIDs.size === 1) {
       return [...query.cameraIDs][0];
     }
-    for (const [cameraID, cameraConfig] of cameras.entries()) {
+    for (const [cameraID, cameraConfig] of store.getCameraConfigEntries()) {
       if (
         cameraConfig.frigate.client_id === instanceID &&
         cameraConfig.frigate.camera_name === cameraName
@@ -717,7 +774,7 @@ export class FrigateCameraManagerEngine
 
   public generateMediaFromEvents(
     _hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     query: EventQuery,
     results: QueryReturnType<EventQuery>,
   ): ViewMedia[] | null {
@@ -728,7 +785,7 @@ export class FrigateCameraManagerEngine
     const output: ViewMedia[] = [];
     for (const event of results.events) {
       const cameraID = this._getCameraIDMatch(
-        cameras,
+        store,
         query,
         results.instanceID,
         event.camera,
@@ -736,7 +793,7 @@ export class FrigateCameraManagerEngine
       if (!cameraID) {
         continue;
       }
-      const cameraConfig = this._getQueryableCameraConfig(cameras, cameraID);
+      const cameraConfig = this._getQueryableCameraConfig(store, cameraID);
       if (!cameraConfig) {
         continue;
       }
@@ -771,7 +828,7 @@ export class FrigateCameraManagerEngine
 
   public generateMediaFromRecordings(
     hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     _query: RecordingQuery,
     results: QueryReturnType<RecordingQuery>,
   ): ViewMedia[] | null {
@@ -781,7 +838,7 @@ export class FrigateCameraManagerEngine
 
     const output: ViewMedia[] = [];
     for (const recording of results.recordings) {
-      const cameraConfig = this._getQueryableCameraConfig(cameras, recording.cameraID);
+      const cameraConfig = this._getQueryableCameraConfig(store, recording.cameraID);
       if (!cameraConfig) {
         continue;
       }
@@ -809,7 +866,7 @@ export class FrigateCameraManagerEngine
 
   public async getMediaSeekTime(
     hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     media: ViewMedia,
     target: Date,
     engineOptions?: EngineOptions,
@@ -828,7 +885,7 @@ export class FrigateCameraManagerEngine
       type: QueryType.RecordingSegments,
     };
 
-    const results = await this.getRecordingSegments(hass, cameras, query, engineOptions);
+    const results = await this.getRecordingSegments(hass, store, query, engineOptions);
 
     if (results) {
       return this._getSeekTimeInSegments(
@@ -843,11 +900,11 @@ export class FrigateCameraManagerEngine
   }
 
   protected _getQueryableCameraConfig(
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     cameraID: string,
   ): CameraConfig | null {
-    const cameraConfig = cameras.get(cameraID);
-    if (!cameraConfig || cameraConfig.frigate.camera_name == CAMERA_BIRDSEYE) {
+    const cameraConfig = store.getCameraConfig(cameraID);
+    if (!cameraConfig || this._isBirdseye(cameraConfig)) {
       return null;
     }
     return cameraConfig;
@@ -865,7 +922,7 @@ export class FrigateCameraManagerEngine
 
   public async getMediaMetadata(
     hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     query: MediaMetadataQuery,
     engineOptions?: EngineOptions,
   ): Promise<MediaMetadataQueryResultsMap | null> {
@@ -885,16 +942,13 @@ export class FrigateCameraManagerEngine
     const days: Set<string> = new Set();
     const tags: Set<string> = new Set();
 
-    const instances = this._buildInstanceToCameraIDMapFromQuery(
-      cameras,
-      query.cameraIDs,
-    );
+    const instances = this._buildInstanceToCameraIDMapFromQuery(store, query.cameraIDs);
 
     const processEventSummary = async (
       instanceID: string,
       cameraIDs: Set<string>,
     ): Promise<void> => {
-      const cameraNames = this._getFrigateCameraNamesForCameraIDs(cameras, cameraIDs);
+      const cameraNames = this._getFrigateCameraNamesForCameraIDs(store, cameraIDs);
       for (const entry of await getEventSummary(hass, instanceID)) {
         if (!cameraNames.has(entry.camera)) {
           // If this entry applies to a camera that *is* in this Frigate
@@ -919,7 +973,7 @@ export class FrigateCameraManagerEngine
     const processRecordings = async (cameraIDs: Set<string>): Promise<void> => {
       const recordings = await this.getRecordings(
         hass,
-        cameras,
+        store,
         {
           type: QueryType.Recording,
           cameraIDs: cameraIDs,
@@ -977,7 +1031,7 @@ export class FrigateCameraManagerEngine
    */
   protected async _garbageCollectSegments(
     hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
   ): Promise<void> {
     const cameraIDs = this._recordingSegmentsCache.getCameraIDs();
     const recordingQuery: RecordingQuery = {
@@ -992,7 +1046,7 @@ export class FrigateCameraManagerEngine
       return `${cameraID}/${startTime.getDate()}/${startTime.getHours()}`;
     };
 
-    const results = await this.getRecordings(hass, cameras, recordingQuery);
+    const results = await this.getRecordings(hass, store, recordingQuery);
     if (!results) {
       return;
     }
@@ -1051,21 +1105,6 @@ export class FrigateCameraManagerEngine
       seekMilliseconds += end.getTime() - start.getTime();
     }
     return seekMilliseconds / 1000;
-  }
-
-  public getCameraCapabilities(
-    cameraConfig: CameraConfig,
-  ): CameraManagerCameraCapabilities {
-    const isBirdseye = cameraConfig.frigate.camera_name === CAMERA_BIRDSEYE;
-    return {
-      canFavoriteEvents: !isBirdseye,
-      canFavoriteRecordings: !isBirdseye,
-      canSeek: true,
-      supportsClips: !isBirdseye,
-      supportsSnapshots: !isBirdseye,
-      supportsRecordings: !isBirdseye,
-      supportsTimeline: !isBirdseye,
-    };
   }
 
   public getMediaCapabilities(media: ViewMedia): CameraManagerMediaCapabilities {
@@ -1188,5 +1227,45 @@ export class FrigateCameraManagerEngine
       ...(jsmpeg && { jsmpeg: jsmpeg }),
       ...(webrtcCard && { webrtcCard: webrtcCard }),
     };
+  }
+
+  public async executePTZAction(
+    hass: HomeAssistant,
+    cameraConfig: CameraConfig,
+    action: PTZAction,
+    options?: {
+      phase?: PTZPhase;
+      preset?: string;
+    },
+  ): Promise<void> {
+    const cameraEntity = cameraConfig.camera_entity;
+
+    if (action === 'preset' && !options?.preset) {
+      return;
+    }
+
+    // Awkward translation between card action and service parameters:
+    // https://github.com/blakeblackshear/frigate-hass-integration/blob/dev/custom_components/frigate/services.yaml
+    await hass.callService('frigate', 'ptz', {
+      entity_id: cameraEntity,
+      action:
+        options?.phase === 'stop'
+          ? 'stop'
+          : action === 'zoom_in' || action === 'zoom_out'
+          ? 'zoom'
+          : action === 'preset'
+          ? 'preset'
+          : 'move',
+      ...(options?.phase !== 'stop' && {
+        argument:
+          action === 'zoom_in'
+            ? 'in'
+            : action === 'zoom_out'
+            ? 'out'
+            : action === 'preset'
+            ? options?.preset
+            : action,
+      }),
+    });
   }
 }

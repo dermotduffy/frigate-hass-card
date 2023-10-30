@@ -76,6 +76,13 @@ export const eventSummarySchema = z
   .array();
 export type EventSummary = z.infer<typeof eventSummarySchema>;
 
+export const ptzInfoSchema = z.object({
+  name: z.string().optional(),
+  features: z.string().array().optional(),
+  presets: z.string().array().optional(),
+});
+export type PTZInfo = z.infer<typeof ptzInfoSchema>;
+
 // ==============================
 // Frigate concrete query results
 // ==============================

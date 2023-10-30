@@ -98,7 +98,7 @@ export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
 export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_MEDIA_GALLERY}.controls.thumbnails.size` as const;
 
-export const CONF_MEDIA_VIEWER = 'media_viewer' as const;
+const CONF_MEDIA_VIEWER = 'media_viewer' as const;
 export const CONF_MEDIA_VIEWER_AUTO_PLAY = `${CONF_MEDIA_VIEWER}.auto_play` as const;
 export const CONF_MEDIA_VIEWER_AUTO_PAUSE = `${CONF_MEDIA_VIEWER}.auto_pause` as const;
 export const CONF_MEDIA_VIEWER_AUTO_MUTE = `${CONF_MEDIA_VIEWER}.auto_mute` as const;
@@ -169,6 +169,17 @@ export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE =
   `${CONF_LIVE}.controls.next_previous.style` as const;
 export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE =
   `${CONF_LIVE}.controls.next_previous.size` as const;
+export const CONF_LIVE_CONTROLS_PTZ_HIDE_HOME =
+  `${CONF_LIVE}.controls.ptz.hide_home` as const;
+export const CONF_LIVE_CONTROLS_PTZ_HIDE_PAN_TILT =
+  `${CONF_LIVE}.controls.ptz.hide_pan_tilt` as const;
+export const CONF_LIVE_CONTROLS_PTZ_HIDE_ZOOM =
+  `${CONF_LIVE}.controls.ptz.hide_zoom` as const;
+export const CONF_LIVE_CONTROLS_PTZ_MODE = `${CONF_LIVE}.controls.ptz.mode` as const;
+export const CONF_LIVE_CONTROLS_PTZ_ORIENTATION =
+  `${CONF_LIVE}.controls.ptz.orientation` as const;
+export const CONF_LIVE_CONTROLS_PTZ_POSITION =
+  `${CONF_LIVE}.controls.ptz.position` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA =
   `${CONF_LIVE}.controls.thumbnails.media` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_MODE =
@@ -257,17 +268,10 @@ export const CONF_MENU_STYLE = `${CONF_MENU}.style` as const;
 export const CONF_MENU_BUTTON_SIZE = `${CONF_MENU}.button_size` as const;
 export const CONF_MENU_BUTTONS = `${CONF_MENU}.buttons` as const;
 
-export const CONF_MENU_BUTTONS_CAMERAS = `${CONF_MENU}.buttons.cameras` as const;
-export const CONF_MENU_BUTTONS_CLIPS = `${CONF_MENU}.buttons.clips` as const;
-export const CONF_MENU_BUTTONS_DOWNLOAD = `${CONF_MENU}.buttons.download` as const;
 export const CONF_MENU_BUTTONS_FRIGATE = `${CONF_MENU}.buttons.frigate` as const;
 export const CONF_MENU_BUTTONS_CAMERA_UI = `${CONF_MENU}.buttons.camera_ui` as const;
-export const CONF_MENU_BUTTONS_FULLSCREEN = `${CONF_MENU}.buttons.fullscreen` as const;
-export const CONF_MENU_BUTTONS_IMAGE = `${CONF_MENU}.buttons.image` as const;
-export const CONF_MENU_BUTTONS_LIVE = `${CONF_MENU}.buttons.live` as const;
 export const CONF_MENU_BUTTONS_MEDIA_PLAYER =
   `${CONF_MENU}.buttons.media_player` as const;
-export const CONF_MENU_BUTTONS_SNAPSHOTS = `${CONF_MENU}.buttons.snapshots` as const;
 export const CONF_MENU_BUTTONS_TIMELINE = `${CONF_MENU}.buttons.timeline` as const;
 
 const CONF_DIMENSIONS = 'dimensions' as const;

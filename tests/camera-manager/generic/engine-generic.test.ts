@@ -9,6 +9,7 @@ import {
   createCameraConfig,
   createHASS,
   createStateEntity,
+  createStore,
 } from '../../test-utils';
 
 const createEngine = (): GenericCameraManagerEngine => {
@@ -26,19 +27,29 @@ describe('GenericCameraManagerEngine', () => {
 
   it('should initialize camera', async () => {
     const config = createGenericCameraConfig();
-    expect(
-      await createEngine().initializeCamera(
-        createHASS(),
-        mock<EntityRegistryManager>(),
-        config,
-      ),
-    ).toEqual(config);
+    const camera = await createEngine().initializeCamera(
+      createHASS(),
+      mock<EntityRegistryManager>(),
+      config,
+    );
+
+    expect(camera.getConfig()).toEqual(config);
+    expect(camera.getCapabilities()).toEqual({
+      canFavoriteEvents: false,
+      canFavoriteRecordings: false,
+      canSeek: false,
+      supportsClips: false,
+      supportsRecordings: false,
+      supportsSnapshots: false,
+      supportsTimeline: false,
+    });
   });
 
   it('should generate default event query', () => {
+    const engine = createEngine();
     expect(
-      createEngine().generateDefaultEventQuery(
-        new Map([['camera-1', createGenericCameraConfig()]]),
+      engine.generateDefaultEventQuery(
+        createStore([{ cameraID: 'camera-1', engine: engine }]),
         new Set(['camera-1']),
         {},
       ),
@@ -46,9 +57,10 @@ describe('GenericCameraManagerEngine', () => {
   });
 
   it('should generate default recording query', () => {
+    const engine = createEngine();
     expect(
-      createEngine().generateDefaultRecordingQuery(
-        new Map([['camera-1', createGenericCameraConfig()]]),
+      engine.generateDefaultRecordingQuery(
+        createStore([{ cameraID: 'camera-1', engine: engine }]),
         new Set(['camera-1']),
         {},
       ),
@@ -56,9 +68,10 @@ describe('GenericCameraManagerEngine', () => {
   });
 
   it('should generate default recording segments query', () => {
+    const engine = createEngine();
     expect(
-      createEngine().generateDefaultRecordingSegmentsQuery(
-        new Map([['camera-1', createGenericCameraConfig()]]),
+      engine.generateDefaultRecordingSegmentsQuery(
+        createStore([{ cameraID: 'camera-1', engine: engine }]),
         new Set(['camera-1']),
         {},
       ),
@@ -66,30 +79,33 @@ describe('GenericCameraManagerEngine', () => {
   });
 
   it('should get events', async () => {
+    const engine = createEngine();
     expect(
-      await createEngine().getEvents(
+      await engine.getEvents(
         createHASS(),
-        new Map([['camera-1', createGenericCameraConfig()]]),
+        createStore([{ cameraID: 'camera-1', engine: engine }]),
         { type: QueryType.Event, cameraIDs: new Set(['camera-1']) },
       ),
     ).toBeNull();
   });
 
   it('should get recordings', async () => {
+    const engine = createEngine();
     expect(
-      await createEngine().getRecordings(
+      await engine.getRecordings(
         createHASS(),
-        new Map([['camera-1', createGenericCameraConfig()]]),
+        createStore([{ cameraID: 'camera-1', engine: engine }]),
         { type: QueryType.Recording, cameraIDs: new Set(['camera-1']) },
       ),
     ).toBeNull();
   });
 
   it('should get recording segments', async () => {
+    const engine = createEngine();
     expect(
-      await createEngine().getRecordingSegments(
+      await engine.getRecordingSegments(
         createHASS(),
-        new Map([['camera-1', createGenericCameraConfig()]]),
+        createStore([{ cameraID: 'camera-1', engine: engine }]),
         {
           type: QueryType.RecordingSegments,
           cameraIDs: new Set(['camera-1']),
@@ -101,10 +117,11 @@ describe('GenericCameraManagerEngine', () => {
   });
 
   it('should generate media from events', async () => {
+    const engine = createEngine();
     expect(
-      createEngine().generateMediaFromEvents(
+      engine.generateMediaFromEvents(
         createHASS(),
-        new Map([['camera-1', createGenericCameraConfig()]]),
+        createStore([{ cameraID: 'camera-1', engine: engine }]),
         {
           type: QueryType.Event,
           cameraIDs: new Set(['camera-1']),
@@ -118,10 +135,11 @@ describe('GenericCameraManagerEngine', () => {
   });
 
   it('should generate media from recordings', async () => {
+    const engine = createEngine();
     expect(
-      createEngine().generateMediaFromRecordings(
+      engine.generateMediaFromRecordings(
         createHASS(),
-        new Map([['camera-1', createGenericCameraConfig()]]),
+        createStore([{ cameraID: 'camera-1', engine: engine }]),
         {
           type: QueryType.Recording,
           cameraIDs: new Set(['camera-1']),
@@ -167,10 +185,11 @@ describe('GenericCameraManagerEngine', () => {
   });
 
   it('should get media seek time', async () => {
+    const engine = createEngine();
     expect(
-      await createEngine().getMediaSeekTime(
+      await engine.getMediaSeekTime(
         createHASS(),
-        new Map([['camera-1', createGenericCameraConfig()]]),
+        createStore([{ cameraID: 'camera-1', engine: engine }]),
         new TestViewMedia(),
         new Date(),
       ),
@@ -178,10 +197,11 @@ describe('GenericCameraManagerEngine', () => {
   });
 
   it('should get media metadata', async () => {
+    const engine = createEngine();
     expect(
-      await createEngine().getMediaMetadata(
+      await engine.getMediaMetadata(
         createHASS(),
-        new Map([['camera-1', createGenericCameraConfig()]]),
+        createStore([{ cameraID: 'camera-1', engine: engine }]),
         { type: QueryType.MediaMetadata, cameraIDs: new Set(['camera-1']) },
       ),
     ).toBeNull();
@@ -264,18 +284,6 @@ describe('GenericCameraManagerEngine', () => {
     });
   });
 
-  it('should get camera capabilities metadata', async () => {
-    expect(createEngine().getCameraCapabilities(createGenericCameraConfig())).toEqual({
-      canFavoriteEvents: false,
-      canFavoriteRecordings: false,
-      canSeek: false,
-      supportsClips: false,
-      supportsRecordings: false,
-      supportsSnapshots: false,
-      supportsTimeline: false,
-    });
-  });
-
   it('should get media capabilities', () => {
     expect(createEngine().getMediaCapabilities(new TestViewMedia())).toBeNull();
   });
@@ -302,5 +310,11 @@ describe('GenericCameraManagerEngine', () => {
         },
       });
     });
+  });
+
+  it('should execute PTZ action', () => {
+    const hass = createHASS();
+    createEngine().executePTZAction(hass, createCameraConfig(), 'left');
+    expect(hass.callService).not.toBeCalled();
   });
 });

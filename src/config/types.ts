@@ -65,6 +65,19 @@ const MEDIA_ACTION_POSITIVE_CONDITIONS = [
 export type AutoUnmuteCondition = (typeof MEDIA_ACTION_POSITIVE_CONDITIONS)[number];
 export type AutoPlayCondition = (typeof MEDIA_ACTION_POSITIVE_CONDITIONS)[number];
 
+const PTZ_BASE_ACTIONS = ['left', 'right', 'up', 'down', 'zoom_in', 'zoom_out'] as const;
+
+// PTZ actions as used by the PTZ control (includes a 'home' button).
+export const PTZ_CONTROL_ACTIONS = [...PTZ_BASE_ACTIONS, 'home'] as const;
+export type PTZControlAction = (typeof PTZ_CONTROL_ACTIONS)[number];
+
+// PTZ actions as used by the camera manager (includes generic presets).
+const PTZ_ACTIONS = [...PTZ_BASE_ACTIONS, 'preset'] as const;
+export type PTZAction = (typeof PTZ_ACTIONS)[number];
+
+const PTZ_PHASES = ['start', 'stop'] as const;
+export type PTZPhase = (typeof PTZ_PHASES)[number];
+
 // *************************************************************************
 //                        View Display Mode
 // *************************************************************************
@@ -201,31 +214,21 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'camera_ui',
   'default',
   'diagnostics',
-  'expand',
   'download',
+  'expand',
   'fullscreen',
-  'menu_toggle',
-  'mute',
-  'live_substream_on',
   'live_substream_off',
+  'live_substream_on',
+  'menu_toggle',
   'microphone_mute',
   'microphone_unmute',
-  'play',
+  'mute',
   'pause',
+  'play',
   'screenshot',
   'unmute',
 ] as const;
 export type FrigateCardGeneralAction = (typeof FRIGATE_CARD_GENERAL_ACTIONS)[number];
-
-const FRIGATE_CARD_ACTIONS = [
-  ...FRIGATE_CARD_VIEWS_USER_SPECIFIED,
-  ...FRIGATE_CARD_GENERAL_ACTIONS,
-  'camera_select',
-  'live_substream_select',
-  'media_player',
-  'display_mode_select',
-] as const;
-export type FrigateCardAction = (typeof FRIGATE_CARD_ACTIONS)[number];
 
 const frigateCardViewActionSchema = frigateCardCustomActionsBaseSchema.extend({
   frigate_card_action: z.enum(FRIGATE_CARD_VIEWS_USER_SPECIFIED),
@@ -240,9 +243,6 @@ const frigateCardCameraSelectActionSchema = frigateCardCustomActionsBaseSchema.e
   frigate_card_action: z.literal('camera_select'),
   camera: z.string(),
 });
-export type FrigateCardCameraSelectAction = z.infer<
-  typeof frigateCardCameraSelectActionSchema
->;
 
 const frigateCardLiveDependencySelectActionSchema =
   frigateCardCustomActionsBaseSchema.extend({
@@ -263,6 +263,19 @@ const frigateCardViewDisplayModeActionSchema = frigateCardCustomActionsBaseSchem
   },
 );
 
+const frigateCardPTZActionSchema = frigateCardCustomActionsBaseSchema.extend({
+  frigate_card_action: z.literal('ptz'),
+  ptz_action: z.enum(PTZ_ACTIONS),
+  ptz_phase: z.enum(PTZ_PHASES).optional(),
+  ptz_preset: z.string().optional(),
+});
+export type FrigateCardPTZAction = z.infer<typeof frigateCardPTZActionSchema>;
+
+const frigateCardShowPTZActionSchema = frigateCardCustomActionsBaseSchema.extend({
+  frigate_card_action: z.literal('show_ptz'),
+  show_ptz: z.boolean(),
+});
+
 export const frigateCardCustomActionSchema = z.union([
   frigateCardViewActionSchema,
   frigateCardGeneralActionSchema,
@@ -270,6 +283,8 @@ export const frigateCardCustomActionSchema = z.union([
   frigateCardLiveDependencySelectActionSchema,
   frigateCardMediaPlayerActionSchema,
   frigateCardViewDisplayModeActionSchema,
+  frigateCardPTZActionSchema,
+  frigateCardShowPTZActionSchema,
 ]);
 export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSchema>;
 
@@ -481,52 +496,7 @@ export const frigateConditionalSchema = z.object({
   conditions: frigateCardConditionSchema,
   elements: z.lazy(() => pictureElementsSchema),
 });
-
 export type FrigateConditional = z.infer<typeof frigateConditionalSchema>;
-
-// *************************************************************************
-//                  Custom Element Configuration: PTZ
-// *************************************************************************
-
-export const frigateCardPTZSchema = z.preprocess(
-  // To avoid lots of YAML duplication, provide an easy way to just specify the
-  // service data as actions for each PTZ icon, and it will be preprocessed into
-  // the full form. This also provides compatability with the AlexIT/WebRTC PTZ
-  // configuration.
-  (data) => {
-    if (!data || typeof data !== 'object' || !data['service']) {
-      return data;
-    }
-    const out = { ...data };
-    ['left', 'right', 'up', 'down', 'zoom_in', 'zoom_out', 'home'].forEach((name) => {
-      if (`data_${name}` in data && !(`actions_${name}` in data)) {
-        out[`actions_${name}`] = {
-          tap_action: {
-            action: 'call-service',
-            service: data['service'],
-            data: data[`data_${name}`],
-          },
-        };
-        delete out[`data_${name}`];
-      }
-    });
-    return out;
-  },
-  z.object({
-    type: z.literal('custom:frigate-card-ptz'),
-    style: z.object({}).passthrough().optional(),
-    orientation: z.enum(['vertical', 'horizontal']).default('vertical').optional(),
-    service: z.string().optional(),
-    actions_left: actionsBaseSchema.optional(),
-    actions_right: actionsBaseSchema.optional(),
-    actions_up: actionsBaseSchema.optional(),
-    actions_down: actionsBaseSchema.optional(),
-    actions_zoom_in: actionsBaseSchema.optional(),
-    actions_zoom_out: actionsBaseSchema.optional(),
-    actions_home: actionsBaseSchema.optional(),
-  }),
-);
-export type FrigateCardPTZConfig = z.infer<typeof frigateCardPTZSchema>;
 
 // *************************************************************************
 //       Custom Element Configuration: Stock Picture Elements + Custom
@@ -540,7 +510,6 @@ const pictureElementSchema = z.union([
   menuSubmenuSchema,
   menuSubmenuSelectSchema,
   frigateConditionalSchema,
-  frigateCardPTZSchema,
   stateBadgeIconSchema,
   stateIconSchema,
   stateLabelSchema,
@@ -818,6 +787,70 @@ const jsmpegConfigSchema = z.object({
     .optional(),
 });
 
+const frigateCardPTZActions = z.object({
+  actions_left: actionsBaseSchema.optional(),
+  actions_right: actionsBaseSchema.optional(),
+  actions_up: actionsBaseSchema.optional(),
+  actions_down: actionsBaseSchema.optional(),
+  actions_zoom_in: actionsBaseSchema.optional(),
+  actions_zoom_out: actionsBaseSchema.optional(),
+  actions_home: actionsBaseSchema.optional(),
+});
+export type FrigateCardPTZActions = z.infer<typeof frigateCardPTZActions>;
+
+const livePTZControlsDefaults = {
+  orientation: 'horizontal' as const,
+  mode: 'on' as const,
+  hide_pan_tilt: false,
+  hide_zoom: false,
+  hide_home: false,
+  position: 'bottom-right' as const,
+};
+
+export const frigateCardPTZSchema = z.preprocess(
+  // To avoid lots of YAML duplication, provide an easy way to just specify the
+  // service data as actions for each PTZ icon, and it will be preprocessed into
+  // the full form. This also provides compatability with the AlexIT/WebRTC PTZ
+  // configuration.
+  (data) => {
+    if (!data || typeof data !== 'object' || !data['service']) {
+      return data;
+    }
+    const out = { ...data };
+    PTZ_CONTROL_ACTIONS.forEach((name) => {
+      if (`data_${name}` in data && !(`actions_${name}` in data)) {
+        out[`actions_${name}`] = {
+          tap_action: {
+            action: 'call-service',
+            service: data['service'],
+            data: data[`data_${name}`],
+          },
+        };
+        delete out[`data_${name}`];
+      }
+    });
+    return out;
+  },
+  frigateCardPTZActions.extend({
+    mode: z.enum(['off', 'on']).default(livePTZControlsDefaults.mode),
+    position: z
+      .enum(['top-left', 'top-right', 'bottom-left', 'bottom-right'])
+      .default(livePTZControlsDefaults.position),
+
+    orientation: z
+      .enum(['vertical', 'horizontal'])
+      .default(livePTZControlsDefaults.orientation),
+
+    hide_pan_tilt: z.boolean().default(livePTZControlsDefaults.hide_pan_tilt),
+    hide_zoom: z.boolean().default(livePTZControlsDefaults.hide_zoom),
+    hide_home: z.boolean().default(livePTZControlsDefaults.hide_home),
+
+    service: z.string().optional(),
+    style: z.object({}).passthrough().optional(),
+  }),
+);
+export type FrigateCardPTZConfig = z.infer<typeof frigateCardPTZSchema>;
+
 const liveThumbnailControlsDefaults = {
   ...thumbnailControlsDefaults,
   media: 'all' as const,
@@ -842,6 +875,7 @@ const liveConfigDefault = {
       size: 48,
       style: 'chevrons' as const,
     },
+    ptz: livePTZControlsDefaults,
     thumbnails: liveThumbnailControlsDefaults,
     timeline: miniTimelineConfigDefault,
   },
@@ -872,6 +906,7 @@ const liveOverridableConfigSchema = z
             ),
           })
           .default(liveConfigDefault.controls.next_previous),
+        ptz: frigateCardPTZSchema.default(liveConfigDefault.controls.ptz),
         thumbnails: livethumbnailsControlSchema.default(
           liveConfigDefault.controls.thumbnails,
         ),
@@ -934,7 +969,7 @@ const castConfigDefault = {
   method: 'standard' as const,
 };
 
-export const castSchema = z.object({
+const castSchema = z.object({
   method: z.enum(['standard', 'dashboard']).default(castConfigDefault.method).optional(),
   dashboard: z
     .object({
@@ -1170,6 +1205,7 @@ const menuConfigDefault = {
     recordings: hiddenButtonDefault,
     screenshot: hiddenButtonDefault,
     display_mode: visibleButtonDefault,
+    ptz: hiddenButtonDefault,
   },
   button_size: 40,
 };
@@ -1220,6 +1256,7 @@ const menuConfigSchema = z
         display_mode: visibleButtonSchema.default(
           menuConfigDefault.buttons.display_mode,
         ),
+        ptz: hiddenButtonSchema.default(menuConfigDefault.buttons.ptz),
       })
       .default(menuConfigDefault.buttons),
     button_size: z.number().min(BUTTON_SIZE_MIN).default(menuConfigDefault.button_size),
@@ -1411,13 +1448,13 @@ const overridesSchema = z
 //                       Automation Configuration
 // *************************************************************************
 
-const automationActionSchema = actionSchema.array().optional();
+const automationActionSchema = actionSchema.array();
 export type AutomationActions = z.infer<typeof automationActionSchema>;
 
 const automationSchema = z.object({
   conditions: frigateCardConditionSchema,
-  actions: automationActionSchema,
-  actions_not: automationActionSchema,
+  actions: automationActionSchema.optional(),
+  actions_not: automationActionSchema.optional(),
 });
 export type Automation = z.infer<typeof automationSchema>;
 

@@ -1,15 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+import { Camera } from '../../src/camera-manager/camera.js';
 import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-factory.js';
 import { CameraManagerStore } from '../../src/camera-manager/store.js';
 import { Engine } from '../../src/camera-manager/types.js';
 import { EntityRegistryManager } from '../../src/utils/ha/entity-registry/index.js';
 import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media.js';
-import { TestViewMedia, createCameraConfig } from '../test-utils.js';
+import {
+  TestViewMedia,
+  createCameraCapabilities,
+  createCameraConfig,
+} from '../test-utils.js';
 
 describe('CameraManagerStore', async () => {
-  const config_visible = createCameraConfig();
-  const config_hidden = createCameraConfig({
+  const configVisible = createCameraConfig({
+    id: 'camera-visible',
+  });
+  const configHidden = createCameraConfig({
+    id: 'camera-hidden',
     hide: true,
   });
 
@@ -21,71 +29,100 @@ describe('CameraManagerStore', async () => {
   const engineGeneric = await engineFactory.createEngine(Engine.Generic);
   const engineFrigate = await engineFactory.createEngine(Engine.Frigate);
 
-  const setupStore = async (): Promise<CameraManagerStore> => {
+  const setupStore = (): CameraManagerStore => {
     const store = new CameraManagerStore();
-    store.addCamera('camera-visible', config_visible, engineGeneric);
-    store.addCamera('camera-hidden', config_hidden, engineFrigate);
+    store.addCamera(
+      new Camera(configVisible, engineGeneric, createCameraCapabilities()),
+    );
+    store.addCamera(new Camera(configHidden, engineFrigate, createCameraCapabilities()));
     return store;
   };
 
   it('getCameraConfig', async () => {
-    const store = await setupStore();
-    expect(store.getCameraConfig('camera-visible')).toBe(config_visible);
-    expect(store.getCameraConfig('camera-hidden')).toBe(config_hidden);
+    const store = setupStore();
+    expect(store.getCameraConfig('camera-visible')).toBe(configVisible);
+    expect(store.getCameraConfig('camera-hidden')).toBe(configHidden);
     expect(store.getCameraConfig('camera-not-exist')).toBeNull();
   });
 
   it('hasCameraID', async () => {
-    const store = await setupStore();
+    const store = setupStore();
     expect(store.hasCameraID('camera-visible')).toBeTruthy();
     expect(store.hasCameraID('camera-hidden')).toBeTruthy();
   });
 
-  it('hasVisibleCameraID', async () => {
-    const store = await setupStore();
-    expect(store.hasVisibleCameraID('camera-visible')).toBeTruthy();
-    expect(store.hasVisibleCameraID('camera-hidden')).toBeFalsy();
-  });
-
   it('getCameraCount', async () => {
-    const store = await setupStore();
+    const store = setupStore();
     expect(store.getCameraCount()).toBe(2);
   });
 
   it('getVisibleCameraCount', async () => {
-    const store = await setupStore();
+    const store = setupStore();
     expect(store.getVisibleCameraCount()).toBe(1);
   });
 
-  it('getCameras', async () => {
-    const store = await setupStore();
-    expect(store.getCameras()).toEqual(
-      new Map([
-        ['camera-visible', config_visible],
-        ['camera-hidden', config_hidden],
-      ]),
-    );
+  describe('getCamera', async () => {
+    it('present', async () => {
+      const store = setupStore();
+      expect(store.getCamera('camera-visible')?.getConfig()).toEqual(configVisible);
+    });
+
+    it('absent', async () => {
+      const store = setupStore();
+      expect(store.getCamera('not-a-camera')).toBeNull();
+    });
   });
 
-  it('getVisibleCameras', async () => {
-    const store = await setupStore();
-    expect(store.getVisibleCameras()).toEqual(
-      new Map([['camera-visible', config_visible]]),
-    );
+  describe('getCameraConfigs', async () => {
+    it('all', async () => {
+      const store = setupStore();
+      expect([...store.getCameraConfigs()]).toEqual([configVisible, configHidden]);
+    });
+
+    it('named', async () => {
+      const store = setupStore();
+      expect([...store.getCameraConfigs(['camera-visible', 'not-a-camera'])]).toEqual([
+        configVisible,
+      ]);
+    });
+  });
+
+  describe('getCameraConfigEntries', async () => {
+    it('all', async () => {
+      const store = setupStore();
+      expect([...store.getCameraConfigEntries()]).toEqual([
+        ['camera-visible', configVisible],
+        ['camera-hidden', configHidden],
+      ]);
+    });
+
+    it('named', async () => {
+      const store = setupStore();
+      expect([
+        ...store.getCameraConfigEntries(['camera-visible', 'not-a-camera']),
+      ]).toEqual([['camera-visible', configVisible]]);
+    });
+  });
+
+  it('getCameras', async () => {
+    const store = setupStore();
+    expect([...store.getCameras().keys()]).toEqual(['camera-visible', 'camera-hidden']);
+    expect(store.getCameras().get('camera-visible')?.getConfig()).toEqual(configVisible);
+    expect(store.getCameras().get('camera-hidden')?.getConfig()).toEqual(configHidden);
   });
 
   it('getCameraIDs', async () => {
-    const store = await setupStore();
+    const store = setupStore();
     expect(store.getCameraIDs()).toEqual(new Set(['camera-visible', 'camera-hidden']));
   });
 
   it('getVisibleCameraIDs', async () => {
-    const store = await setupStore();
+    const store = setupStore();
     expect(store.getVisibleCameraIDs()).toEqual(new Set(['camera-visible']));
   });
 
   it('reset', async () => {
-    const store = await setupStore();
+    const store = setupStore();
 
     store.reset();
 
@@ -94,24 +131,24 @@ describe('CameraManagerStore', async () => {
   });
 
   it('getCameraConfigForMedia', async () => {
-    const store = await setupStore();
+    const store = setupStore();
 
     const media_1 = new TestViewMedia({ cameraID: 'camera-visible' });
-    expect(store.getCameraConfigForMedia(media_1)).toBe(config_visible);
+    expect(store.getCameraConfigForMedia(media_1)).toBe(configVisible);
 
     const media_2 = new TestViewMedia({ cameraID: 'camera-not-exist' });
     expect(store.getCameraConfigForMedia(media_2)).toBeNull();
   });
 
   it('getEngineOfType', async () => {
-    const store = await setupStore();
+    const store = setupStore();
     expect(store.getEngineOfType(Engine.Generic)).toBe(engineGeneric);
     expect(store.getEngineOfType(Engine.Frigate)).toBe(engineFrigate);
     expect(store.getEngineOfType(Engine.MotionEye)).toBeNull();
   });
 
   it('getEngineForCameraID', async () => {
-    const store = await setupStore();
+    const store = setupStore();
     expect(store.getEngineForCameraID('camera-visible')).toBe(engineGeneric);
     expect(store.getEngineForCameraID('camera-hidden')).toBe(engineFrigate);
     expect(store.getEngineForCameraID('camera-not-exist')).toBeNull();
@@ -119,13 +156,23 @@ describe('CameraManagerStore', async () => {
 
   describe('getEnginesForCameraIDs', async () => {
     it('empty input', async () => {
-      const store = await setupStore();
+      const store = setupStore();
       expect(store.getEnginesForCameraIDs(new Set())).toBeNull();
     });
 
     it('multiple cameras', async () => {
-      const store = await setupStore();
-      store.addCamera('camera-visible2', config_visible, engineGeneric);
+      const store = setupStore();
+      store.addCamera(
+        new Camera(
+          {
+            ...configVisible,
+            id: 'camera-visible2',
+          },
+          engineGeneric,
+          createCameraCapabilities(),
+        ),
+      );
+
       expect(
         store.getEnginesForCameraIDs(
           new Set([
@@ -145,13 +192,61 @@ describe('CameraManagerStore', async () => {
   });
 
   it('getEngineForMedia', async () => {
-    const store = await setupStore();
+    const store = setupStore();
     const media = new TestViewMedia({ cameraID: 'camera-visible' });
     expect(store.getEngineForMedia(media)).toBe(engineGeneric);
   });
 
-  it('getAllEngines', async () => {
-    const store = await setupStore();
-    expect(store.getAllEngines()).toEqual([engineGeneric, engineFrigate]);
+  describe('getAllDependentCameras', () => {
+    it('should return dependent cameras', () => {
+      const store = new CameraManagerStore();
+      store.addCamera(
+        new Camera(
+          createCameraConfig({
+            id: 'one',
+            dependencies: {
+              cameras: ['two', 'three'],
+            },
+          }),
+          engineGeneric,
+          createCameraCapabilities(),
+        ),
+      );
+      store.addCamera(
+        new Camera(
+          createCameraConfig({
+            id: 'two',
+          }),
+          engineGeneric,
+          createCameraCapabilities(),
+        ),
+      );
+      expect(store.getAllDependentCameras('one')).toEqual(new Set(['one', 'two']));
+    });
+    it('should return all cameras', () => {
+      const store = new CameraManagerStore();
+      store.addCamera(
+        new Camera(
+          createCameraConfig({
+            id: 'one',
+            dependencies: {
+              all_cameras: true,
+            },
+          }),
+          engineGeneric,
+          createCameraCapabilities(),
+        ),
+      );
+      store.addCamera(
+        new Camera(
+          createCameraConfig({
+            id: 'two',
+          }),
+          engineGeneric,
+          createCameraCapabilities(),
+        ),
+      );
+      expect(store.getAllDependentCameras('one')).toEqual(new Set(['one', 'two']));
+    });
   });
 });

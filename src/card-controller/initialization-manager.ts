@@ -13,7 +13,7 @@ export enum InitializationAspect {
 
 export class InitializationManager {
   protected _api: CardInitializerAPI;
-  protected _initializer;
+  protected _initializer: Initializer;
 
   constructor(api: CardInitializerAPI, initializer?: Initializer) {
     this._api = api;
@@ -21,11 +21,15 @@ export class InitializationManager {
   }
 
   public isInitializedMandatory(): boolean {
-    return this._initializer.isInitializedMultiple([
-      InitializationAspect.LANGUAGES,
-      InitializationAspect.SIDE_LOAD_ELEMENTS,
-      InitializationAspect.CAMERAS,
-    ]);
+    return (
+      this._initializer.isInitializedMultiple([
+        InitializationAspect.LANGUAGES,
+        InitializationAspect.SIDE_LOAD_ELEMENTS,
+        InitializationAspect.CAMERAS,
+      ]) &&
+      // If there's no view, re-initialize (e.g. config changes).
+      this._api.getViewManager().hasView()
+    );
   }
 
   /**
@@ -80,7 +84,6 @@ export class InitializationManager {
       }
     }
 
-    this._api.getCardElementManager().update();
     return true;
   }
 

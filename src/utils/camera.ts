@@ -1,4 +1,3 @@
-import { CameraManager } from '../camera-manager/manager.js';
 import { CameraConfig, RawFrigateCardConfig } from '../config/types.js';
 
 /**
@@ -29,49 +28,4 @@ export function getCameraID(
       config.frigate['camera_name']) ||
     ''
   );
-}
-
-/**
- * Get all cameras that depend on a given camera.
- * @param cameraManager The camera manager.
- * @param cameraID ID of the target camera.
- * @returns A set of dependent cameraIDs or null (since JS sets guarantee order,
- * the first item in the set is guaranteed to be the cameraID itself).
- */
-export function getAllDependentCameras(
-  cameraManager: CameraManager,
-  cameraID: string,
-): Set<string>;
-export function getAllDependentCameras(
-  cameraManager?: CameraManager,
-  cameraID?: string,
-): Set<string> | null;
-export function getAllDependentCameras(
-  cameraManager?: CameraManager,
-  cameraID?: string,
-): Set<string> | null {
-  if (!cameraManager || !cameraID) {
-    return null;
-  }
-  const cameras = cameraManager.getStore().getCameras();
-
-  const cameraIDs: Set<string> = new Set();
-  const getDependentCameras = (cameraID: string): void => {
-    const cameraConfig = cameras.get(cameraID);
-    if (cameraConfig) {
-      cameraIDs.add(cameraID);
-      const dependentCameras: Set<string> = new Set();
-      cameraConfig.dependencies.cameras.forEach((item) => dependentCameras.add(item));
-      if (cameraConfig.dependencies.all_cameras) {
-        cameras.forEach((_, key) => dependentCameras.add(key));
-      }
-      for (const eventCameraID of dependentCameras) {
-        if (!cameraIDs.has(eventCameraID)) {
-          getDependentCameras(eventCameraID);
-        }
-      }
-    }
-  };
-  getDependentCameras(cameraID);
-  return cameraIDs;
 }
