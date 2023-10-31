@@ -58,7 +58,10 @@ const plugins = [
   }),
   watch && serve(serveopts),
   !dev && terser(),
-  visualizer(),
+  visualizer({
+    filename: 'visualizations/treemap.html',
+    template: 'treemap',
+  }),
 ];
 
 /**
