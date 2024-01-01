@@ -21,6 +21,7 @@ export class FrigateCardDatePicker extends LitElement {
   protected render(): TemplateResult {
     return html` <lit-flatpickr
       ${ref(this._refInput)}
+      disableMobile
       .onChange=${(dates: Date[]) => {
         if (dates.length) {
           // This is a single date picker, there should be only a single date.
