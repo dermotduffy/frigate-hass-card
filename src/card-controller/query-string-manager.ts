@@ -1,5 +1,8 @@
 import { FrigateCardCustomAction, FrigateCardViewAction } from '../config/types';
-import { createFrigateCardCameraAction, createFrigateCardSimpleAction } from '../utils/action.js';
+import {
+  createFrigateCardCameraAction,
+  createFrigateCardSimpleAction
+} from '../utils/action.js';
 import { CardQueryStringAPI } from './types';
 import { ViewManagerSetViewParameters } from './view-manager';
 
@@ -35,43 +38,6 @@ export class QueryStringManager {
     this._executeNonViewRelated(intent);
   };
 
-  public generateQueryString(action: FrigateCardCustomAction): string | null {
-    const baseKey =
-      'frigate-card-action.' + (action.card_id ? `${action.card_id}.` : '');
-
-    switch (action.frigate_card_action) {
-      case 'camera_select':
-      case 'live_substream_select':
-        return new URLSearchParams([
-          [baseKey + action.frigate_card_action, action.camera],
-        ]).toString();
-      case 'camera_ui':
-      case 'clip':
-      case 'clips':
-      case 'default':
-      case 'diagnostics':
-      case 'download':
-      case 'expand':
-      case 'image':
-      case 'live':
-      case 'menu_toggle':
-      case 'recording':
-      case 'recordings':
-      case 'snapshot':
-      case 'snapshots':
-      case 'timeline':
-        return new URLSearchParams([
-          [baseKey + action.frigate_card_action, ''],
-        ]).toString();
-      default:
-        console.warn(
-          `Frigate card cannot convert unsupported action to query string:`,
-          action,
-        );
-    }
-    return null;
-  }
-
   protected _executeViewRelated(intent: QueryStringViewIntent): void {
     if (intent.view) {
       if (intent.view.default) {
@@ -96,7 +62,7 @@ export class QueryStringManager {
     }
 
     intent.other?.forEach((action) =>
-      this._api.getActionsManager().executeAction(action),
+      this._api.getActionsManager().executeFrigateAction(action),
     );
   }
 

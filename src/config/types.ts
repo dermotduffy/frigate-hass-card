@@ -1,3 +1,43 @@
+// TODO: Config migration
+// TODO: Editor support for scan mode changes
+// TODO: Consider this:
+
+/*
+// NOW ===>
+view:
+  scan:
+    enabled: true
+    trigger_show_status: true,
+    trigger_action:
+      - action: custom:frigate-card-action
+        frigate_card_action: camera_select
+        triggered: true
+      - action: custom:frigate-card-action
+        frigate_card_action: live
+    untrigger_action:
+      - action: custom:frigate-card-action
+    interaction_mode: inactive
+    trigger_filter_camera: all
+    untrigger_seconds: 0
+
+view:
+  scan:
+    enabled: true
+
+// TO
+
+view:
+  scan:
+    enabled: true
+    trigger_show_status: true
+    actions:
+      live | live-reset | none
+      interaction: inactive | active | all
+    trigger_filter_camera: all
+    untrigger_seconds: 0
+automations:
+*/
+
 import {
   CallServiceActionConfig,
   ConfirmationRestrictionConfig,
@@ -241,7 +281,8 @@ const frigateCardGeneralActionSchema = frigateCardCustomActionsBaseSchema.extend
 
 const frigateCardCameraSelectActionSchema = frigateCardCustomActionsBaseSchema.extend({
   frigate_card_action: z.literal('camera_select'),
-  camera: z.string(),
+  camera: z.string().optional(),
+  triggered: z.boolean().optional(),
 });
 
 const frigateCardLiveDependencySelectActionSchema =
@@ -1119,17 +1160,48 @@ const viewConfigDefault = {
   dark_mode: 'off' as const,
   scan: {
     enabled: false,
-    show_trigger_status: true,
+    trigger_show_status: true,
+    trigger_action: [
+      {
+        action: 'custom:frigate-card-action' as const,
+        frigate_card_action: 'camera_select' as const,
+        triggered: true,
+      },
+      {
+        action: 'custom:frigate-card-action' as const,
+        frigate_card_action: 'live' as const,
+      },
+    ],
+    untrigger_action: {
+      action: 'custom:frigate-card-action' as const,
+      frigate_card_action: 'default' as const,
+    },
+    interaction_mode: 'inactive' as const,
+    trigger_filter_camera: 'all' as const,
     untrigger_seconds: 0,
-    untrigger_reset: true,
   },
 };
 
 const scanSchema = z.object({
   enabled: z.boolean().default(viewConfigDefault.scan.enabled),
-  show_trigger_status: z.boolean().default(viewConfigDefault.scan.show_trigger_status),
+
+  interaction_mode: z
+    .enum(['all', 'inactive', 'active'])
+    .default(viewConfigDefault.scan.interaction_mode),
+  trigger_filter_camera: z
+    .enum(['all', 'selected'])
+    .default(viewConfigDefault.scan.trigger_filter_camera),
+  trigger_show_status: z.boolean().default(viewConfigDefault.scan.trigger_show_status),
+  trigger_action: actionSchema
+    .or(actionSchema.array())
+    .nullable()
+    .default(viewConfigDefault.scan.trigger_action),
+
+  untrigger_action: actionSchema
+    .or(actionSchema.array())
+    .nullable()
+    .default(viewConfigDefault.scan.untrigger_action),
   untrigger_seconds: z.number().default(viewConfigDefault.scan.untrigger_seconds),
-  untrigger_reset: z.boolean().default(viewConfigDefault.scan.untrigger_reset),
 });
 export type ScanOptions = z.infer<typeof scanSchema>;
 

@@ -383,7 +383,7 @@
       "scan": {
         "enabled": "Modalità di scansione abilitata",
         "scan_mode": "Modalità di scansione",
-        "show_trigger_status": "Mostra bordo pulsante quando attivato",
+        "trigger_show_status": "Mostra bordo pulsante quando attivato",
         "untrigger_reset": "Reset the view to default after untrigger",
         "untrigger_seconds": "Reimposta la vista ai valori predefiniti dopo aver annullato l'attivazione"
       },

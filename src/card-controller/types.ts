@@ -41,8 +41,9 @@ export interface CardActionsManagerAPI {
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMediaPlayerManager(): MediaPlayerManager;
   getMessageManager(): MessageManager;
-  getViewManager(): ViewManager;
   getMicrophoneManager(): MicrophoneManager;
+  getTriggersManager(): TriggersManager;
+  getViewManager(): ViewManager;
 }
 
 export interface CardAutomationsAPI {
@@ -55,17 +56,17 @@ export interface CardAutomationsAPI {
 
 export interface CardAutoRefreshAPI {
   getConfigManager(): ConfigManager;
-  getViewManager(): ViewManager;
-  getTriggersManager(): TriggersManager;
   getInteractionManager(): InteractionManager;
+  getTriggersManager(): TriggersManager;
+  getViewManager(): ViewManager;
 }
 
 export interface CardCameraAPI {
   getConfigManager(): ConfigManager;
   getEntityRegistryManager(): EntityRegistryManager;
-  getResolvedMediaCache(): ResolvedMediaCache;
   getHASSManager(): HASSManager;
   getMessageManager(): MessageManager;
+  getResolvedMediaCache(): ResolvedMediaCache;
 }
 
 export interface CardCameraURLAPI {
@@ -106,15 +107,15 @@ export interface CardElementAPI {
 }
 
 export interface CardExpandAPI {
-  getFullscreenManager(): FullscreenManager;
-  getConditionsManager(): ConditionsManager;
   getCardElementManager(): CardElementManager;
+  getConditionsManager(): ConditionsManager;
+  getFullscreenManager(): FullscreenManager;
 }
 
 export interface CardFullscreenAPI {
   getCardElementManager(): CardElementManager;
-  getExpandManager(): ExpandManager;
   getConditionsManager(): ConditionsManager;
+  getExpandManager(): ExpandManager;
   getMediaPlayerManager(): MediaPlayerManager;
 }
 
@@ -153,23 +154,23 @@ export interface CardInteractionAPI {
 }
 
 export interface CardMediaLoadedAPI {
+  getCardElementManager(): CardElementManager;
   getConditionsManager(): ConditionsManager;
   getConfigManager(): ConfigManager;
-  getCardElementManager(): CardElementManager;
   getStyleManager(): StyleManager;
 }
 
 export interface CardMediaPlayerAPI {
-  getHASSManager(): HASSManager;
   getCameraManager(): CameraManager;
   getEntityRegistryManager(): EntityRegistryManager;
+  getHASSManager(): HASSManager;
   getMessageManager(): MessageManager;
   getQueryStringManager(): QueryStringManager;
 }
 
 export interface CardMessageAPI {
-  getConditionsManager(): ConditionsManager;
   getCardElementManager(): CardElementManager;
+  getConditionsManager(): ConditionsManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
 }
 
@@ -179,9 +180,9 @@ export interface CardMicrophoneAPI {
 }
 
 export interface CardQueryStringAPI {
+  getActionsManager(): ActionsManager;
   getCardElementManager(): CardElementManager;
   getViewManager(): ViewManager;
-  getActionsManager(): ActionsManager;
 }
 
 export interface CardStyleAPI {
@@ -196,7 +197,9 @@ export interface CardStyleAPI {
 }
 
 export interface CardTriggersAPI {
+  getActionsManager(): ActionsManager;
   getCameraManager(): CameraManager;
+  getCardElementManager(): CardElementManager;
   getConfigManager(): ConfigManager;
   getHASSManager(): HASSManager;
   getInteractionManager(): InteractionManager;
@@ -206,11 +209,12 @@ export interface CardTriggersAPI {
 export interface CardViewAPI {
   getAutoUpdateManager(): AutoUpdateManager;
   getCameraManager(): CameraManager;
+  getCardElementManager(): CardElementManager;
+  getConditionsManager(): ConditionsManager;
   getConfigManager(): ConfigManager;
   getHASSManager(): HASSManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMessageManager(): MessageManager;
   getStyleManager(): StyleManager;
-  getConditionsManager(): ConditionsManager;
-  getCardElementManager(): CardElementManager;
+  getTriggersManager(): TriggersManager;
 }

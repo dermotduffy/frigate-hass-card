@@ -77,10 +77,8 @@ export const CONF_VIEW_UPDATE_FORCE = `${CONF_VIEW}.update_force` as const;
 export const CONF_VIEW_UPDATE_SECONDS = `${CONF_VIEW}.update_seconds` as const;
 export const CONF_VIEW_SCAN = `${CONF_VIEW}.scan` as const;
 export const CONF_VIEW_SCAN_ENABLED = `${CONF_VIEW_SCAN}.enabled` as const;
-export const CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS =
-  `${CONF_VIEW_SCAN}.show_trigger_status` as const;
-export const CONF_VIEW_SCAN_UNTRIGGER_RESET =
-  `${CONF_VIEW_SCAN}.untrigger_reset` as const;
+export const CONF_VIEW_SCAN_TRIGGER_SHOW_STATUS =
+  `${CONF_VIEW_SCAN}.trigger_show_status` as const;
 export const CONF_VIEW_SCAN_UNTRIGGER_SECONDS =
   `${CONF_VIEW_SCAN}.untrigger_seconds` as const;
 

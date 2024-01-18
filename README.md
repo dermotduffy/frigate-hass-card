@@ -421,20 +421,43 @@ view:
   scan:
 ```
 
-Scan mode allows the card to automatically "follow the action". In this mode the card will automatically select a camera in the `live` view when an entity changes to an active state (specifically `on` or `open`). The entities considered are defined by your camera configuration (see `triggers` parameters). An untrigger is defined as the state for all the configured entities returning to inactive (i.e. not `on` or `open`), with an optional number of seconds to wait prior to the untriggering (see `untrigger_seconds`).
+Scan mode allows the card to automatically "follow the action". In this mode the card will automatically execute an action (defined by `trigger_action`) when a camera is 'triggered', by default selecting that camera in the `live` view . The trigger entities considered are defined by your camera configuration (see `triggers` parameters). An untrigger is defined as the state for all the configured entities returning to inactive (i.e. not `on` or `open`), with an optional number of seconds to wait prior to the untriggering (see `untrigger_seconds`).
 
-When the camera untriggers, the view will either remain as-is (if `untrigger_reset` is `false`) and the card return to normal operation, or reset to the default view (if `untrigger_reset` is `true` -- the default).
+When the camera untriggers, a different action (defined by `untrigger_action`) is automatically executed, by default returning the card to the default view and camera.
 
-Triggering is only allowed when there is no ongoing human interaction with the card -- interaction will automatically untrigger and further triggering will not occur until after the card has been unattended for `view.timeout_seconds`.
+By default, triggering is only allowed when there is no ongoing human interaction with the card. This behavior can be controlled by the `interaction_mode` parameter.
 
 Scan mode tracks Home Assistant state *changes* -- when the card is first started, it takes an active change in state to trigger (i.e. an already occupied room will not trigger it, but a newly occupied room will).
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `enabled` | `false` | :white_check_mark: | Whether to enable scan mode. |
-| `show_trigger_status` | `true` | :white_check_mark: | Whether or not the card should show a visual indication that it is triggered (a pulsing border around the card edge). |
+| `interaction_mode` | `inactive` | :white_check_mark: | Whether actions should be taken when the card is being interacted with. If `all`, actions will always be taken regardless. If `inactive` actions will only be taken if the card has *not* had human interaction recently (as defined by `view.timeout_seconds`). If `active` actions will only be taken if the card *has* had human interaction recently. This does not stop triggering itself (i.e. border will still pulse if `trigger_show_status` is true) but rather just prevents the actions being performed.|
+| `trigger_filter_camera` | `all` | :white_check_mark: | If set to `all` the camera will be triggered regardless of which camera is currently selected, if set to `selected` the camera will only trigger if that camera is already selected.|
+| `trigger_show_status` | `true` | :white_check_mark: | Whether or not the card should show a visual indication that it is triggered (a pulsing border around the card edge). |
+| `trigger_action` | Selects triggered camera in `live` view (see below) | :white_check_mark: | An action or list of actions that are executed when a camera is triggered. May be set to `null` for no action.|
 | `untrigger_reset` | `true` | :white_check_mark: | Whether or not to reset the view to the default after untriggering. |
 | `untrigger_seconds` | `0` | :white_check_mark: | The number of seconds to wait after all entities are inactive before untriggering. |
+| `untrigger_action` | Selects default view and camera (see below) | :white_check_mark: | An action or list of actions that are executed when a camera is triggered. May bet to `null` for no action.|
+
+##### View: Scan Mode default actions
+
+The default `trigger_action` is:
+
+```yaml
+ - action: custom:frigate-card-action
+   frigate_card_action: camera_select
+   triggered: true
+ - action: custom:frigate-card-action
+   frigate_card_action: live
+```
+
+The default `untrigger_action` is:
+
+```yaml
+ - action: custom:frigate-card-action
+   frigate_card_action: default
+```
 
 ### Menu Options
 
@@ -1422,7 +1445,7 @@ Parameters for the `custom:frigate-card-conditional` element:
 |`download`|Download the displayed media.|
 |`camera_ui`|Open the Frigate UI at the configured URL.|
 |`fullscreen`|Toggle fullscreen.|
-|`camera_select`|Select a given camera. Takes a single additional `camera` parameter with the [camera ID](#camera-ids) of the camera to select. Respects the value of `view.camera_select` to choose the appropriate view on the new camera.|
+|`camera_select`|Select a given camera. Takes an additional `camera` parameter with the [camera ID](#camera-ids) of the camera to select. Respects the value of `view.camera_select` to choose the appropriate view on the new camera. If a `triggered` parameter is set to `true` instead of `camera` being specified then a triggered camera (if any) is selected instead. |
 |`menu_toggle` | Show/hide the menu (for the `hidden` mode style). |
 |`media_player`| Perform a media player action. Takes a `media_player` parameter with the entity ID of the media_player on which to perform the action, and a `media_player_action` parameter which should be either `play` or `stop` to play or stop the media in question. |
 |`live_substream_select`| Perform a media player action. Takes a `camera` parameter with the [camera ID](#camera-ids) of the substream camera. |
@@ -1912,7 +1935,7 @@ view:
   dark_mode: 'off'
   scan:
     enabled: false
-    show_trigger_status: true
+    trigger_show_status: true
     untrigger_reset: true
     untrigger_seconds: 0
   actions:

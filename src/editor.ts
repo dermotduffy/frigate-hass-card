@@ -182,8 +182,7 @@ import {
   CONF_VIEW_DEFAULT,
   CONF_VIEW_SCAN,
   CONF_VIEW_SCAN_ENABLED,
-  CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
-  CONF_VIEW_SCAN_UNTRIGGER_RESET,
+  CONF_VIEW_SCAN_TRIGGER_SHOW_STATUS,
   CONF_VIEW_SCAN_UNTRIGGER_SECONDS,
   CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_CYCLE_CAMERA,
@@ -902,15 +901,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 },
               )}
               ${this._renderSwitch(
-                CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
-                this._defaults.view.scan.show_trigger_status,
+                CONF_VIEW_SCAN_TRIGGER_SHOW_STATUS,
+                this._defaults.view.scan.trigger_show_status,
                 {
-                  label: localize(`config.${CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS}`),
+                  label: localize(`config.${CONF_VIEW_SCAN_TRIGGER_SHOW_STATUS}`),
                 },
-              )}
-              ${this._renderSwitch(
-                CONF_VIEW_SCAN_UNTRIGGER_RESET,
-                this._defaults.view.scan.untrigger_reset,
               )}
               ${this._renderNumberInput(CONF_VIEW_SCAN_UNTRIGGER_SECONDS, {
                 default: this._defaults.view.scan.untrigger_seconds,

@@ -1,11 +1,13 @@
 import {
   Actions,
   ActionsConfig,
+  ActionType,
   FrigateCardCustomAction,
   FRIGATE_CARD_VIEW_DEFAULT,
 } from '../config/types.js';
 import {
   convertActionToFrigateCardCustomAction,
+  frigateCardHandleAction,
   frigateCardHandleActionConfig,
   getActionConfigGivenAction,
 } from '../utils/action.js';
@@ -81,16 +83,36 @@ export class ActionsManager {
 
     const frigateCardAction = convertActionToFrigateCardCustomAction(ev.detail);
     if (frigateCardAction) {
-      this.executeAction(frigateCardAction);
+      this.executeFrigateAction(frigateCardAction);
     }
   };
+
+  /**
+   * Small convenience method to call frigateCardHandleAction without the caller
+   * needing hass or the element.
+   */
+  public executeActions(actions: ActionType | ActionType[]): void {
+    const hass = this._api.getHASSManager().getHASS();
+    if (!hass) {
+      return;
+    }
+
+    frigateCardHandleAction(
+      this._api.getCardElementManager().getElement(),
+      hass,
+      {},
+      actions,
+    );
+  }
 
   /**
    * Execute a card action.
    * @param frigateCardAction
    * @returns `true` if an action is executed.
    */
-  public async executeAction(frigateCardAction: FrigateCardCustomAction): Promise<void> {
+  public async executeFrigateAction(
+    frigateCardAction: FrigateCardCustomAction,
+  ): Promise<void> {
     const config = this._api.getConfigManager().getConfig();
     const mediaLoadedInfoManager = this._api.getMediaLoadedInfoManager();
 
@@ -146,8 +168,12 @@ export class ActionsManager {
         this._api.getCardElementManager().toggleMenu();
         break;
       case 'camera_select':
-        const selectCameraID = frigateCardAction.camera;
-        if (view) {
+        const selectCameraID =
+          frigateCardAction.camera ??
+          (frigateCardAction.triggered
+            ? this._api.getTriggersManager().getMostRecentlyTriggeredCameraID()
+            : null);
+        if (selectCameraID && view) {
           const viewOnCameraSelect = config?.view.camera_select ?? 'current';
           const targetViewName =
             viewOnCameraSelect === 'current' ? view.view : viewOnCameraSelect;

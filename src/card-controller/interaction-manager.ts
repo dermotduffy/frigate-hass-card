@@ -27,9 +27,6 @@ export class InteractionManager {
   protected _reportInteraction(): void {
     this._timer.stop();
 
-    // Interactions reset the trigger state.
-    this._api.getTriggersManager().untrigger();
-
     const timeoutSeconds = this._api.getConfigManager().getConfig()
       ?.view.timeout_seconds;
 

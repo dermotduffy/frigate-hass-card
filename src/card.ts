@@ -241,7 +241,7 @@ class FrigateCard extends LitElement {
     const cardClasses = {
       triggered:
         !!this._controller.getTriggersManager().isTriggered() &&
-        !!this._config?.view.scan.show_trigger_status,
+        !!this._config?.view.scan.trigger_show_status,
     };
     const mainClasses = {
       main: true,

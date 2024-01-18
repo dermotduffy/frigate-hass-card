@@ -74,7 +74,7 @@ export class HASSManager {
       this._api.getCardElementManager().update();
     }
 
-    this._api.getTriggersManager().updateTriggeredCameras(oldHass);
+    this._api.getTriggersManager().updateTriggerHAState(oldHass);
 
     if (this._api.getConditionsManager().hasHAStateConditions()) {
       this._api.getConditionsManager().setState({ state: this._hass.states });

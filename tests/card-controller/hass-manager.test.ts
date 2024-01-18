@@ -72,10 +72,10 @@ describe('HASSManager', () => {
 
     const originalHASS = createHASS();
     manager.setHASS(originalHASS);
-    expect(api.getTriggersManager().updateTriggeredCameras).toBeCalledWith(null);
+    expect(api.getTriggersManager().updateTriggerHAState).toBeCalledWith(null);
 
     manager.setHASS(createHASS());
-    expect(api.getTriggersManager().updateTriggeredCameras).toBeCalledWith(originalHASS);
+    expect(api.getTriggersManager().updateTriggerHAState).toBeCalledWith(originalHASS);
   });
 
   describe('should handle connection state change when', () => {

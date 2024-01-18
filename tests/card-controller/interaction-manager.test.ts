@@ -30,7 +30,6 @@ describe('InteractionManager', () => {
 
     manager.reportInteraction();
 
-    expect(api.getTriggersManager().untrigger).toBeCalled();
     expect(manager.hasInteraction()).toBeTruthy();
     expect(api.getViewManager().setViewDefault).not.toBeCalled();
 

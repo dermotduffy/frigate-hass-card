@@ -279,9 +279,25 @@ describe('config defaults', () => {
         default: 'live',
         scan: {
           enabled: false,
-          show_trigger_status: true,
-          untrigger_reset: true,
+          interaction_mode: 'inactive',
+          trigger_show_status: true,
           untrigger_seconds: 0,
+          trigger_action: [
+            {
+              action: 'fire-dom-event',
+              frigate_card_action: 'camera_select',
+              triggered: true,
+            },
+            {
+              action: 'fire-dom-event',
+              frigate_card_action: 'live',
+            },
+          ],
+          trigger_filter_camera: 'all',
+          untrigger_action: {
+            action: 'fire-dom-event',
+            frigate_card_action: 'default',
+          },
         },
         timeout_seconds: 300,
         update_cycle_camera: false,
