@@ -385,10 +385,29 @@
       },
       "default": "Default view",
       "scan": {
+        "actions": {
+          "editor_label": "Scan mode actions",
+          "interaction_mode": "How to handle actions when the card has human interaction",
+          "interaction_modes": {
+            "active": "Only trigger actions when card has human interaction",
+            "all": "Trigger actions regardless of human interaction",
+            "inactive": "Only trigger actions when card has no human interaction"
+          },
+          "trigger": "Trigger action",
+          "triggers": {
+            "live": "Change to live",
+            "none": "Take no action"
+          },
+          "untrigger": "Untrigger action",
+          "untriggers": {
+            "default": "Change to default view/camera",
+            "none": "Take no action"
+          }
+        },
+        "editor_label": "Scan mode",
+        "filter_selected_camera": "Only trigger on selected camera",
         "enabled": "Scan mode enabled",
-        "scan_mode": "Scan mode",
-        "trigger_show_status": "Show pulsing border when triggered",
-        "untrigger_reset": "Reset the view to default after untrigger",
+        "show_trigger_status": "Show pulsing border when triggered",
         "untrigger_seconds": "Seconds after inactive state change to untrigger"
       },
       "timeout_seconds": "Reset to default view X seconds after user action (0=never)",

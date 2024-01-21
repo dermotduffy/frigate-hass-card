@@ -381,10 +381,29 @@
       },
       "default": "Visualizzazione predefinita",
       "scan": {
+        "actions": {
+          "editor_label": "",
+          "interaction_mode": "",
+          "interaction_modes": {
+            "active": "",
+            "all": "",
+            "inactive": ""
+          },
+          "trigger": "",
+          "triggers": {
+            "live": "",
+            "none": ""
+          },
+          "untrigger": "",
+          "untriggers": {
+            "default": "",
+            "none": ""
+          }
+        },
+        "editor_label": "Modalità di scansione",
         "enabled": "Modalità di scansione abilitata",
-        "scan_mode": "Modalità di scansione",
-        "trigger_show_status": "Mostra bordo pulsante quando attivato",
-        "untrigger_reset": "Reset the view to default after untrigger",
+        "filter_selected_camera": "",
+        "show_trigger_status": "Mostra bordo pulsante quando attivato",
         "untrigger_seconds": "Reimposta la vista ai valori predefiniti dopo aver annullato l'attivazione"
       },
       "timeout_seconds": "Ripristina la vista predefinita x secondi dopo l'azione dell'utente (0 = mai)",

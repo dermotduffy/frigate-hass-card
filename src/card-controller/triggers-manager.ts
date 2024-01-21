@@ -75,8 +75,8 @@ export class TriggersManager {
   public updateView(oldView?: View | null): void {
     if (oldView?.camera !== this._api.getViewManager().getView()?.camera) {
       // If the view changes, a new camera may have been selected, which may
-      // mean a trigger is required (in the case that `trigger_filter_camera`
-      // has been set to `selected`).
+      // mean a trigger is required (in the case that `filter_selected_camera`
+      // is true).
       this._evaluateTriggers();
     }
   }
@@ -91,12 +91,11 @@ export class TriggersManager {
     for (const cameraID of this._triggeredState.keys()) {
       if (
         !this._triggeredCameras.has(cameraID) &&
-        (scanConfig.trigger_filter_camera === 'all' ||
-          (scanConfig.trigger_filter_camera === 'selected' &&
-            cameraID === this._api.getViewManager().getView()?.camera))
+        (!scanConfig.filter_selected_camera ||
+          cameraID === this._api.getViewManager().getView()?.camera)
       ) {
         this._triggeredCameras.set(cameraID, now);
-        this._triggerAction();
+        this._triggerAction(cameraID);
       }
     }
 
@@ -107,23 +106,26 @@ export class TriggersManager {
     }
   }
 
-  protected _hasAllowableInteractionState(): boolean {
+  protected _hasAllowableInteractionStateForAction(): boolean {
     const scanConfig = this._api.getConfigManager().getConfig()?.view.scan;
     const hasInteraction = this._api.getInteractionManager().hasInteraction();
 
     return (
       !!scanConfig &&
-      (scanConfig.interaction_mode === 'all' ||
-        (scanConfig.interaction_mode === 'active' && hasInteraction) ||
-        (scanConfig.interaction_mode === 'inactive' && !hasInteraction))
+      (scanConfig.actions.interaction_mode === 'all' ||
+        (scanConfig.actions.interaction_mode === 'active' && hasInteraction) ||
+        (scanConfig.actions.interaction_mode === 'inactive' && !hasInteraction))
     );
   }
 
-  protected _triggerAction(): void {
-    const action = this._api.getConfigManager().getConfig()?.view.scan.trigger_action;
+  protected _triggerAction(cameraID: string): void {
+    const action = this._api.getConfigManager().getConfig()?.view.scan.actions.trigger;
 
-    if (action && this._hasAllowableInteractionState()) {
-      this._api.getActionsManager().executeActions(action);
+    if (action === 'live' && this._hasAllowableInteractionStateForAction()) {
+      this._api.getViewManager().setViewByParameters({
+        viewName: 'live',
+        cameraID: cameraID,
+      });
     }
 
     // Must update master element to add border pulsing.
@@ -131,10 +133,10 @@ export class TriggersManager {
   }
 
   protected _untriggerAction(cameraID: string): void {
-    const action = this._api.getConfigManager().getConfig()?.view.scan.untrigger_action;
+    const action = this._api.getConfigManager().getConfig()?.view.scan.actions.untrigger;
 
-    if (action && this._hasAllowableInteractionState()) {
-      this._api.getActionsManager().executeActions(action);
+    if (action === 'default' && this._hasAllowableInteractionStateForAction()) {
+      this._api.getViewManager().setViewDefault();
     }
     this._triggeredCameras.delete(cameraID);
     this._deleteTimer(cameraID);

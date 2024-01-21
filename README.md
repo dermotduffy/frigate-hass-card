@@ -432,32 +432,16 @@ Scan mode tracks Home Assistant state *changes* -- when the card is first starte
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `enabled` | `false` | :white_check_mark: | Whether to enable scan mode. |
-| `interaction_mode` | `inactive` | :white_check_mark: | Whether actions should be taken when the card is being interacted with. If `all`, actions will always be taken regardless. If `inactive` actions will only be taken if the card has *not* had human interaction recently (as defined by `view.timeout_seconds`). If `active` actions will only be taken if the card *has* had human interaction recently. This does not stop triggering itself (i.e. border will still pulse if `trigger_show_status` is true) but rather just prevents the actions being performed.|
-| `trigger_filter_camera` | `all` | :white_check_mark: | If set to `all` the camera will be triggered regardless of which camera is currently selected, if set to `selected` the camera will only trigger if that camera is already selected.|
-| `trigger_show_status` | `true` | :white_check_mark: | Whether or not the card should show a visual indication that it is triggered (a pulsing border around the card edge). |
-| `trigger_action` | Selects triggered camera in `live` view (see below) | :white_check_mark: | An action or list of actions that are executed when a camera is triggered. May be set to `null` for no action.|
-| `untrigger_reset` | `true` | :white_check_mark: | Whether or not to reset the view to the default after untriggering. |
+| `filter_selected_camera` | `false` | :white_check_mark: | If set to `true` will only trigger on the currently selected camera.|
+| `show_trigger_status` | `true` | :white_check_mark: | Whether or not the card should show a visual indication that it is triggered (a pulsing border around the card edge). |
 | `untrigger_seconds` | `0` | :white_check_mark: | The number of seconds to wait after all entities are inactive before untriggering. |
-| `untrigger_action` | Selects default view and camera (see below) | :white_check_mark: | An action or list of actions that are executed when a camera is triggered. May bet to `null` for no action.|
+| `actions` | | :white_check_mark: | The actions to take when scan mode triggers (see below). |
 
-##### View: Scan Mode default actions
+#### View: Scan Mode Actions configuration
 
-The default `trigger_action` is:
-
-```yaml
- - action: custom:frigate-card-action
-   frigate_card_action: camera_select
-   triggered: true
- - action: custom:frigate-card-action
-   frigate_card_action: live
-```
-
-The default `untrigger_action` is:
-
-```yaml
- - action: custom:frigate-card-action
-   frigate_card_action: default
-```
+| `trigger` | `live` | :white_check_mark | When `live` the trigger will select the triggered camera in `live` view, when `none` will take no action. |
+| `untrigger` | `default` | :white_check_mark | When `default` the untrigger will return to the default view and camera, when `none` will take no action. |
+| `interaction_mode` | `inactive` | :white_check_mark: | Whether actions should be taken when the card is being interacted with. If `all`, actions will always be taken regardless. If `inactive` actions will only be taken if the card has *not* had human interaction recently (as defined by `view.timeout_seconds`). If `active` actions will only be taken if the card *has* had human interaction recently. This does not stop triggering itself (i.e. border will still pulse if `show_trigger_status` is true) but rather just prevents the actions being performed.|
 
 ### Menu Options
 
@@ -1935,9 +1919,13 @@ view:
   dark_mode: 'off'
   scan:
     enabled: false
-    trigger_show_status: true
-    untrigger_reset: true
+    show_trigger_status: true
+    filter_selected_camera: false
     untrigger_seconds: 0
+    actions:
+      interaction_mode: 'inactive' as const,
+      trigger: 'live' as const,
+      untrigger: 'default' as const,
   actions:
     entity: light.office_main_lights
     tap_action:

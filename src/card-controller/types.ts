@@ -197,7 +197,6 @@ export interface CardStyleAPI {
 }
 
 export interface CardTriggersAPI {
-  getActionsManager(): ActionsManager;
   getCameraManager(): CameraManager;
   getCardElementManager(): CardElementManager;
   getConfigManager(): ConfigManager;

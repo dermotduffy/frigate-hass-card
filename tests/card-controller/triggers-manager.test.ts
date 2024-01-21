@@ -3,7 +3,7 @@ import { HassEntities } from 'home-assistant-js-websocket';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CardController } from '../../src/card-controller/controller';
 import { TriggersManager } from '../../src/card-controller/triggers-manager';
-import { ScanOptions } from '../../src/config/types';
+import { ScanOptions, scanSchema } from '../../src/config/types';
 import {
   createCameraConfig,
   createCameraManager,
@@ -18,22 +18,11 @@ import {
 const baseScanConfig: Partial<ScanOptions> = {
   enabled: true,
   untrigger_seconds: 10,
-  interaction_mode: 'inactive' as const,
-  trigger_filter_camera: 'all' as const,
-  trigger_action: [
-    {
-      action: 'fire-dom-event' as const,
-      frigate_card_action: 'camera_select' as const,
-      triggered: true,
-    },
-    {
-      action: 'fire-dom-event' as const,
-      frigate_card_action: 'live' as const,
-    },
-  ],
-  untrigger_action: {
-    action: 'fire-dom-event' as const,
-    frigate_card_action: 'default' as const,
+  filter_selected_camera: false,
+  actions: {
+    trigger: 'live' as const,
+    untrigger: 'default' as const,
+    interaction_mode: 'inactive' as const,
   },
 };
 
@@ -48,7 +37,7 @@ const createTriggerAPI = (options?: {
   vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
     createConfig({
       view: {
-        scan: options?.config ?? baseScanConfig,
+        scan: options?.config ? scanSchema.parse(options.config) : baseScanConfig,
       },
     }),
   );
@@ -134,17 +123,10 @@ describe('TriggersManager', () => {
     manager.updateTriggerHAState(createHASS(hassInactiveState));
 
     expect(manager.isTriggered()).toBeTruthy();
-    expect(api.getActionsManager().executeActions).toBeCalledWith([
-      {
-        action: 'fire-dom-event' as const,
-        frigate_card_action: 'camera_select' as const,
-        triggered: true,
-      },
-      {
-        action: 'fire-dom-event' as const,
-        frigate_card_action: 'live' as const,
-      },
-    ]);
+    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+      viewName: 'live' as const,
+      cameraID: 'camera_1' as const,
+    });
 
     vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
       createHASS(hassInactiveState),
@@ -163,10 +145,7 @@ describe('TriggersManager', () => {
 
     expect(manager.isTriggered()).toBeFalsy();
 
-    expect(api.getActionsManager().executeActions).toBeCalledWith({
-      action: 'fire-dom-event' as const,
-      frigate_card_action: 'default' as const,
-    });
+    expect(api.getViewManager().setViewDefault).toBeCalled();
   });
 
   it('should trigger when entity state is active on startup', () => {
@@ -191,7 +170,7 @@ describe('TriggersManager', () => {
     manager.updateTriggerHAState(createHASS(hassInactiveState));
     expect(manager.isTriggered()).toBeTruthy();
 
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
+    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
 
     vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
       createHASS(hassInactiveState),
@@ -203,7 +182,39 @@ describe('TriggersManager', () => {
 
     expect(manager.isTriggered()).toBeFalsy();
 
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
+    expect(api.getViewManager().setViewDefault).not.toBeCalled();
+  });
+
+  it('should take no actions when actions are set to none', () => {
+    const start = new Date('2023-10-01T17:14');
+    const api = createTriggerAPI({
+      hassStates: hassActiveState,
+      config: {
+        enabled: true,
+        actions: {
+          interaction_mode: 'all',
+          trigger: 'none',
+          untrigger: 'none',
+        },
+      },
+    });
+    const manager = new TriggersManager(api);
+    manager.updateTriggerHAState(createHASS(hassInactiveState));
+    expect(manager.isTriggered()).toBeTruthy();
+
+    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+
+    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
+      createHASS(hassInactiveState),
+    );
+    manager.updateTriggerHAState(createHASS(hassActiveState));
+
+    vi.setSystemTime(add(start, { seconds: 10 }));
+    vi.runOnlyPendingTimers();
+
+    expect(manager.isTriggered()).toBeFalsy();
+
+    expect(api.getViewManager().setViewDefault).not.toBeCalled();
   });
 
   it('should take actions with human interactions when interaction mode is active', () => {
@@ -214,14 +225,21 @@ describe('TriggersManager', () => {
       interaction: true,
       config: {
         ...baseScanConfig,
-        interaction_mode: 'active',
+        actions: {
+          trigger: 'live' as const,
+          untrigger: 'default' as const,
+          interaction_mode: 'active',
+        },
       },
     });
     const manager = new TriggersManager(api);
     manager.updateTriggerHAState(createHASS(hassInactiveState));
     expect(manager.isTriggered()).toBeTruthy();
 
-    expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
+    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+      viewName: 'live' as const,
+      cameraID: 'camera_1' as const,
+    });
 
     vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
       createHASS(hassInactiveState),
@@ -233,7 +251,7 @@ describe('TriggersManager', () => {
 
     expect(manager.isTriggered()).toBeFalsy();
 
-    expect(api.getActionsManager().executeActions).toBeCalledTimes(2);
+    expect(api.getViewManager().setViewDefault).toBeCalled();
   });
 
   it('should report multiple triggered cameras', () => {
@@ -303,7 +321,7 @@ describe('TriggersManager', () => {
       config: {
         ...baseScanConfig,
         // Filter triggers to selected camera only.
-        trigger_filter_camera: 'selected' as const,
+        filter_selected_camera: true,
       },
       hassStates: hassActiveState,
     });
@@ -339,7 +357,7 @@ describe('TriggersManager', () => {
       config: {
         ...baseScanConfig,
         // Filter triggers to selected camera only.
-        trigger_filter_camera: 'selected' as const,
+        filter_selected_camera: true,
       },
       hassStates: hassActiveState,
     });

@@ -1,42 +1,3 @@
-// TODO: Config migration
-// TODO: Editor support for scan mode changes
-// TODO: Consider this:
-
-/*
-// NOW ===>
-view:
-  scan:
-    enabled: true
-    trigger_show_status: true,
-    trigger_action:
-      - action: custom:frigate-card-action
-        frigate_card_action: camera_select
-        triggered: true
-      - action: custom:frigate-card-action
-        frigate_card_action: live
-    untrigger_action:
-      - action: custom:frigate-card-action
-    interaction_mode: inactive
-    trigger_filter_camera: all
-    untrigger_seconds: 0
-
-view:
-  scan:
-    enabled: true
-
-// TO
-
-view:
-  scan:
-    enabled: true
-    trigger_show_status: true
-    actions:
-      live | live-reset | none
-      interaction: inactive | active | all
-    trigger_filter_camera: all
-    untrigger_seconds: 0
-automations:
-*/
 
 import {
   CallServiceActionConfig,
@@ -1160,47 +1121,36 @@ const viewConfigDefault = {
   dark_mode: 'off' as const,
   scan: {
     enabled: false,
-    trigger_show_status: true,
-    trigger_action: [
-      {
-        action: 'custom:frigate-card-action' as const,
-        frigate_card_action: 'camera_select' as const,
-        triggered: true,
-      },
-      {
-        action: 'custom:frigate-card-action' as const,
-        frigate_card_action: 'live' as const,
-      },
-    ],
-    untrigger_action: {
-      action: 'custom:frigate-card-action' as const,
-      frigate_card_action: 'default' as const,
+    show_trigger_status: true,
+    filter_selected_camera: false,
+    actions: {
+      interaction_mode: 'inactive' as const,
+      trigger: 'live' as const,
+      untrigger: 'default' as const,
     },
-    interaction_mode: 'inactive' as const,
-    trigger_filter_camera: 'all' as const,
     untrigger_seconds: 0,
   },
 };
 
-const scanSchema = z.object({
+export const scanSchema = z.object({
   enabled: z.boolean().default(viewConfigDefault.scan.enabled),
 
-  interaction_mode: z
-    .enum(['all', 'inactive', 'active'])
-    .default(viewConfigDefault.scan.interaction_mode),
-  trigger_filter_camera: z
-    .enum(['all', 'selected'])
-    .default(viewConfigDefault.scan.trigger_filter_camera),
-  trigger_show_status: z.boolean().default(viewConfigDefault.scan.trigger_show_status),
-  trigger_action: actionSchema
-    .or(actionSchema.array())
-    .nullable()
-    .default(viewConfigDefault.scan.trigger_action),
+  filter_selected_camera: z
+    .boolean()
+    .default(viewConfigDefault.scan.filter_selected_camera),
+  show_trigger_status: z.boolean().default(viewConfigDefault.scan.show_trigger_status),
 
-  untrigger_action: actionSchema
-    .or(actionSchema.array())
-    .nullable()
-    .default(viewConfigDefault.scan.untrigger_action),
+  actions: z
+    .object({
+      interaction_mode: z
+        .enum(['all', 'inactive', 'active'])
+        .default(viewConfigDefault.scan.actions.interaction_mode),
+      trigger: z.enum(['live', 'none']).default(viewConfigDefault.scan.actions.trigger),
+      untrigger: z
+        .enum(['default', 'none'])
+        .default(viewConfigDefault.scan.actions.untrigger),
+    })
+    .default(viewConfigDefault.scan.actions),
   untrigger_seconds: z.number().default(viewConfigDefault.scan.untrigger_seconds),
 });
 export type ScanOptions = z.infer<typeof scanSchema>;

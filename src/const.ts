@@ -77,10 +77,19 @@ export const CONF_VIEW_UPDATE_FORCE = `${CONF_VIEW}.update_force` as const;
 export const CONF_VIEW_UPDATE_SECONDS = `${CONF_VIEW}.update_seconds` as const;
 export const CONF_VIEW_SCAN = `${CONF_VIEW}.scan` as const;
 export const CONF_VIEW_SCAN_ENABLED = `${CONF_VIEW_SCAN}.enabled` as const;
-export const CONF_VIEW_SCAN_TRIGGER_SHOW_STATUS =
-  `${CONF_VIEW_SCAN}.trigger_show_status` as const;
+export const CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS =
+  `${CONF_VIEW_SCAN}.show_trigger_status` as const;
+export const CONF_VIEW_SCAN_FILTER_SELECTED_CAMERA =
+  `${CONF_VIEW_SCAN}.filter_selected_camera` as const;
 export const CONF_VIEW_SCAN_UNTRIGGER_SECONDS =
   `${CONF_VIEW_SCAN}.untrigger_seconds` as const;
+export const CONF_VIEW_SCAN_ACTIONS = `${CONF_VIEW_SCAN}.actions` as const;
+export const CONF_VIEW_SCAN_ACTIONS_TRIGGER =
+  `${CONF_VIEW_SCAN_ACTIONS}.trigger` as const;
+export const CONF_VIEW_SCAN_ACTIONS_UNTRIGGER =
+  `${CONF_VIEW_SCAN_ACTIONS}.untrigger` as const;
+export const CONF_VIEW_SCAN_ACTIONS_INTERACTION_MODE =
+  `${CONF_VIEW_SCAN_ACTIONS}.interaction_mode` as const;
 
 export const CONF_MEDIA_GALLERY = 'media_gallery' as const;
 export const CONF_MEDIA_GALLERY_CONTROLS_FILTER_MODE =

@@ -374,10 +374,29 @@
       },
       "default": "Visualização padrão",
       "scan": {
+        "actions": {
+          "editor_label": "",
+          "interaction_mode": "",
+          "interaction_modes": {
+            "active": "",
+            "all": "",
+            "inactive": ""
+          },
+          "trigger": "",
+          "triggers": {
+            "live": "",
+            "none": ""
+          },
+          "untrigger": "",
+          "untriggers": {
+            "default": "",
+            "none": ""
+          }
+        },
+        "editor_label": "Modo scan",
         "enabled": "Modo scan ativado",
-        "scan_mode": "Modo scan",
-        "trigger_show_status": "Exibir estado do gatilho",
-        "untrigger_reset": "Redefinir a visualização para o padrão após desacionar",
+        "filter_selected_camera": "",
+        "show_trigger_status": "Exibir estado do gatilho",
         "untrigger_seconds": "Segundos após a mudar para o estado inativo para desacionar"
       },
       "timeout_seconds": "Redefinir para a visualização padrão X segundos após a ação do usuário (0 = nunca)",
