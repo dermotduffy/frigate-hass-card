@@ -433,7 +433,7 @@ Scan mode tracks Home Assistant state *changes* -- when the card is first starte
 | - | - | - | - |
 | `enabled` | `false` | :white_check_mark: | Whether to enable scan mode. |
 | `filter_selected_camera` | `false` | :white_check_mark: | If set to `true` will only trigger on the currently selected camera.|
-| `show_trigger_status` | `true` | :white_check_mark: | Whether or not the card should show a visual indication that it is triggered (a pulsing border around the card edge). |
+| `show_trigger_status` | `true` | :white_check_mark: | Whether or not the `live` view should show a visual indication that it is triggered (a pulsing border around the camera edge). |
 | `untrigger_seconds` | `0` | :white_check_mark: | The number of seconds to wait after all entities are inactive before untriggering. |
 | `actions` | | :white_check_mark: | The actions to take when scan mode triggers (see below). |
 

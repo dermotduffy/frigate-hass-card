@@ -31,6 +31,7 @@ import {
 import { localize } from '../../localize/localize.js';
 import basicBlockStyle from '../../scss/basic-block.scss';
 import liveCarouselStyle from '../../scss/live-carousel.scss';
+import liveGridStyle from '../../scss/live-grid.scss';
 import liveProviderStyle from '../../scss/live-provider.scss';
 import {
   ExtendedHomeAssistant,
@@ -113,6 +114,9 @@ export class FrigateCardLive extends LitElement {
 
   @property({ attribute: false })
   public microphoneStream?: MediaStream;
+
+  @property({ attribute: false })
+  public triggeredCameraIDs?: Set<string>;
 
   // Whether or not the live view is currently in the background (i.e. preloaded
   // but not visible)
@@ -219,6 +223,7 @@ export class FrigateCardLive extends LitElement {
           .cardWideConfig=${this.cardWideConfig}
           .cameraManager=${this.cameraManager}
           .microphoneStream=${this.microphoneStream}
+          .triggeredCameraIDs=${this.triggeredCameraIDs}
           @frigate-card:message=${(ev: CustomEvent<Message>) => {
             this._renderKey++;
             this._messageReceivedPostRender = true;
@@ -283,7 +288,12 @@ export class FrigateCardLiveGrid extends LitElement {
   @property({ attribute: false })
   public microphoneStream?: MediaStream;
 
+  @property({ attribute: false })
+  public triggeredCameraIDs?: Set<string>;
+
   protected _renderCarousel(cameraID?: string): TemplateResult {
+    const triggeredCameraID = cameraID ?? this.view?.camera;
+
     return html`
       <frigate-card-live-carousel
         grid-id=${ifDefined(cameraID)}
@@ -297,6 +307,8 @@ export class FrigateCardLiveGrid extends LitElement {
         .cardWideConfig=${this.cardWideConfig}
         .cameraManager=${this.cameraManager}
         .microphoneStream=${this.microphoneStream}
+        ?triggered=${triggeredCameraID &&
+        !!this.triggeredCameraIDs?.has(triggeredCameraID)}
       >
       </frigate-card-live-carousel>
     `;
@@ -351,7 +363,7 @@ export class FrigateCardLiveGrid extends LitElement {
   }
 
   static get styles(): CSSResultGroup {
-    return unsafeCSS(basicBlockStyle);
+    return unsafeCSS(liveGridStyle);
   }
 }
 

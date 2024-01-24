@@ -21,7 +21,7 @@
   // The standard HA header is 56 pixels tall, so that much off the top (header)
   // and bottom (to maintain center), before doing the calculation of
   // max-height. This matters on small mobile devices in landscape orientation.
-  --frigate-card-expand-max-height: calc( ( 100vh - (2 * 56px) ) * 0.85 );
+  --frigate-card-expand-max-height: calc((100vh - (2 * 56px)) * 0.85);
   --frigate-card-expand-max-width: 85vw;
   --frigate-card-expand-width: none;
   --frigate-card-expand-height: none;
@@ -51,10 +51,6 @@ div.main {
 
   // Necessary to get Safari to show border-radius correctly.
   transform: translateZ(0);
-
-  // Include the borders in the sizing (to keep the triggered warning pulse
-  // visible in fullscreen).
-  box-sizing: border-box;
 
   // Hide scrollbar: Firefox
   scrollbar-width: none;
@@ -111,20 +107,6 @@ ha-card {
   height: 100%;
   position: static;
   color: var(--secondary-text-color, white);
-}
-ha-card.triggered {
-  @keyframes warning-pulse {
-    0% {
-      border: solid 2px rgba(0, 0, 0, 0);
-    }
-    50% {
-      border: solid 2px var(--warning-color);
-    }
-    100% {
-      border: solid 2px rgba(0, 0, 0, 0);
-    }
-  }
-  animation: warning-pulse 5s infinite;
 }
 
 /************
