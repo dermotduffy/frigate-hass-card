@@ -13,6 +13,7 @@ import {
   CONF_MEDIA_GALLERY,
   CONF_MENU_BUTTONS_CAMERA_UI,
   CONF_OVERRIDES,
+  CONF_VIEW_INTERACTION_SECONDS,
   CONF_VIEW_SCAN_ACTIONS_UNTRIGGER,
 } from './const';
 import { arrayify } from './utils/basic';
@@ -483,4 +484,5 @@ const UPGRADES = [
       transform: (val) => (val ? 'default' : null),
     },
   ),
+  upgradeMoveToWithOverrides('view.timeout_seconds', CONF_VIEW_INTERACTION_SECONDS),
 ];

@@ -1213,4 +1213,22 @@ describe('should handle version specific upgrades', () => {
       });
     });
   });
+
+  it('should move view.timeout_seconds', () => {
+    const config = {
+      type: 'custom:frigate-card',
+      cameras: [{ camera_entity: 'camera.office' }],
+      view: {
+        timeout_seconds: 200,
+      },
+    };
+    expect(upgradeConfig(config)).toBeTruthy();
+    expect(config).toEqual({
+      type: 'custom:frigate-card',
+      cameras: [{ camera_entity: 'camera.office' }],
+      view: {
+        interaction_seconds: 200,
+      },
+    });
+  });
 });

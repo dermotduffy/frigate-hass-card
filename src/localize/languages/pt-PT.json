@@ -18,8 +18,8 @@
         "editor_label": "",
         "method": "",
         "methods": {
-          "standard": "",
-          "dashboard": ""
+          "dashboard": "",
+          "standard": ""
         }
       },
       "dependencies": {
@@ -229,27 +229,27 @@
         "editor_label": "Controles da visualização ao vivo",
         "ptz": {
           "editor_label": "",
+          "hide_home": "",
+          "hide_pan_tilt": "",
+          "hide_zoom": "",
           "mode": "",
           "modes": {
-            "on": "",
+            "auto": "",
             "off": "",
-            "auto": ""
+            "on": ""
           },
           "orientation": "",
           "orientations": {
-            "vertical": "",
-            "horizontal": ""
+            "horizontal": "",
+            "vertical": ""
           },
           "position": "",
           "positions": {
-            "top-left": "",
-            "top-right": "",
             "bottom-left": "",
-            "bottom-right": ""
-          },
-          "hide_zoom": "",
-          "hide_pan_tilt": "",
-          "hide_home": ""
+            "bottom-right": "",
+            "top-left": "",
+            "top-right": ""
+          }
         }
       },
       "draggable": "A visualização ao vivo das câmeras pode ser arrastada/deslizada",
@@ -373,6 +373,8 @@
         "on": "Ligado"
       },
       "default": "Visualização padrão",
+      "interaction_seconds": "",
+      "reset_after_interaction": "",
       "scan": {
         "actions": {
           "editor_label": "",
@@ -399,7 +401,6 @@
         "show_trigger_status": "Exibir estado do gatilho",
         "untrigger_seconds": "Segundos após a mudar para o estado inativo para desacionar"
       },
-      "timeout_seconds": "Redefinir para a visualização padrão X segundos após a ação do usuário (0 = nunca)",
       "update_cycle_camera": "Percorrer as câmeras quando a visualização padrão for atualizada",
       "update_force": "Forçar atualizações do cartão (ignore a interação do Utilizador)",
       "update_seconds": "Atualize a visualização padrão a cada X segundos (0 = nunca)",
@@ -490,8 +491,8 @@
     "no_visible_cameras": "Sem camaras visiveis",
     "reconnecting": "A voltar a ligar",
     "timeline_no_cameras": "Nenhuma câmera do Frigate para mostrar na linha do tempo",
-    "troubleshooting": "Verifique a solução de problemas",
     "too_many_automations": "",
+    "troubleshooting": "Verifique a solução de problemas",
     "unknown": "Erro desconhecido",
     "upgrade_available": "Uma atualização automatizada da configuração do cartão está disponível, visite o editor visual do cartão",
     "webrtc_card_reported_error": "O cartão WebRTC relatou um erro",

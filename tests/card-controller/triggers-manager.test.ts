@@ -123,6 +123,10 @@ describe('TriggersManager', () => {
     manager.updateTriggerHAState(createHASS(hassInactiveState));
 
     expect(manager.isTriggered()).toBeTruthy();
+    expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith({
+      triggered: new Set(['camera_1']),
+    });
+
     expect(api.getViewManager().setViewByParameters).toBeCalledWith({
       viewName: 'live' as const,
       cameraID: 'camera_1' as const,
@@ -144,6 +148,9 @@ describe('TriggersManager', () => {
     vi.runOnlyPendingTimers();
 
     expect(manager.isTriggered()).toBeFalsy();
+    expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith({
+      triggered: undefined,
+    });
 
     expect(api.getViewManager().setViewDefault).toBeCalled();
   });

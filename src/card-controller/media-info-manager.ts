@@ -12,6 +12,10 @@ export class MediaLoadedInfoManager {
     this._api = api;
   }
 
+  public initialize(): void {
+    this.clear();
+  }
+
   public set(mediaInfo: MediaLoadedInfo): void {
     if (!isValidMediaLoadedInfo(mediaInfo)) {
       return;

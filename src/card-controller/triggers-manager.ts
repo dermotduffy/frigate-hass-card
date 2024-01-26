@@ -95,6 +95,7 @@ export class TriggersManager {
           cameraID === this._api.getViewManager().getView()?.camera)
       ) {
         this._triggeredCameras.set(cameraID, now);
+        this._setConditionState();
         this._triggerAction(cameraID);
       }
     }
@@ -132,6 +133,14 @@ export class TriggersManager {
     this._api.getCardElementManager().update();
   }
 
+  protected _setConditionState(): void {
+    this._api.getConditionsManager().setState({
+      triggered: this._triggeredCameras.size
+        ? new Set(this._triggeredCameras.keys())
+        : undefined,
+    });
+  }
+
   protected _untriggerAction(cameraID: string): void {
     const action = this._api.getConfigManager().getConfig()?.view.scan.actions.untrigger;
 
@@ -140,6 +149,7 @@ export class TriggersManager {
     }
     this._triggeredCameras.delete(cameraID);
     this._deleteTimer(cameraID);
+    this._setConditionState();
 
     // Must update master element to remove border pulsing.
     this._api.getCardElementManager().update();

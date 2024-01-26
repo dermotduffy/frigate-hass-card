@@ -22,9 +22,9 @@ import {
 } from './config-mgmt.js';
 import {
   BUTTON_SIZE_MIN,
-  FRIGATE_MENU_PRIORITY_MAX,
   FrigateCardConfig,
   frigateCardConfigDefaults,
+  FRIGATE_MENU_PRIORITY_MAX,
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
@@ -157,8 +157,8 @@ import {
   CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
   CONF_MEDIA_VIEWER_ZOOMABLE,
   CONF_MENU_ALIGNMENT,
-  CONF_MENU_BUTTON_SIZE,
   CONF_MENU_BUTTONS,
+  CONF_MENU_BUTTON_SIZE,
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
   CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
@@ -180,6 +180,8 @@ import {
   CONF_VIEW_CAMERA_SELECT,
   CONF_VIEW_DARK_MODE,
   CONF_VIEW_DEFAULT,
+  CONF_VIEW_INTERACTION_SECONDS,
+  CONF_VIEW_RESET_AFTER_INTERACTION,
   CONF_VIEW_SCAN,
   CONF_VIEW_SCAN_ACTIONS,
   CONF_VIEW_SCAN_ACTIONS_INTERACTION_MODE,
@@ -189,7 +191,6 @@ import {
   CONF_VIEW_SCAN_FILTER_SELECTED_CAMERA,
   CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
   CONF_VIEW_SCAN_UNTRIGGER_SECONDS,
-  CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_CYCLE_CAMERA,
   CONF_VIEW_UPDATE_FORCE,
   CONF_VIEW_UPDATE_SECONDS,
@@ -1948,7 +1949,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   this._cameraSelectViewModes,
                 )}
                 ${this._renderOptionSelector(CONF_VIEW_DARK_MODE, this._darkModes)}
-                ${this._renderNumberInput(CONF_VIEW_TIMEOUT_SECONDS)}
+                ${this._renderNumberInput(CONF_VIEW_INTERACTION_SECONDS)}
+                ${this._renderSwitch(
+                  CONF_VIEW_RESET_AFTER_INTERACTION,
+                  this._defaults.view.reset_after_interaction,
+                )}
                 ${this._renderNumberInput(CONF_VIEW_UPDATE_SECONDS)}
                 ${this._renderSwitch(
                   CONF_VIEW_UPDATE_FORCE,

@@ -18,8 +18,8 @@
         "editor_label": "",
         "method": "",
         "methods": {
-          "standard": "",
-          "dashboard": ""
+          "dashboard": "",
+          "standard": ""
         }
       },
       "dependencies": {
@@ -236,27 +236,27 @@
         "editor_label": "Controlli dal vivo",
         "ptz": {
           "editor_label": "",
+          "hide_home": "",
+          "hide_pan_tilt": "",
+          "hide_zoom": "",
           "mode": "",
           "modes": {
-            "on": "",
+            "auto": "",
             "off": "",
-            "auto": ""
+            "on": ""
           },
           "orientation": "",
           "orientations": {
-            "vertical": "",
-            "horizontal": ""
+            "horizontal": "",
+            "vertical": ""
           },
           "position": "",
           "positions": {
-            "top-left": "",
-            "top-right": "",
             "bottom-left": "",
-            "bottom-right": ""
-          },
-          "hide_zoom": "",
-          "hide_pan_tilt": "",
-          "hide_home": ""
+            "bottom-right": "",
+            "top-left": "",
+            "top-right": ""
+          }
         }
       },
       "draggable": "Il Visualizzatore eventi può essere trascinato oppure puoi scorrere",
@@ -380,6 +380,8 @@
         "on": "On"
       },
       "default": "Visualizzazione predefinita",
+      "interaction_seconds": "",
+      "reset_after_interaction": "",
       "scan": {
         "actions": {
           "editor_label": "",
@@ -406,7 +408,6 @@
         "show_trigger_status": "Mostra bordo pulsante quando attivato",
         "untrigger_seconds": "Reimposta la vista ai valori predefiniti dopo aver annullato l'attivazione"
       },
-      "timeout_seconds": "Ripristina la vista predefinita x secondi dopo l'azione dell'utente (0 = mai)",
       "update_cycle_camera": "Scorri le telecamere quando si aggiorna la visualizzazione predefinita",
       "update_force": "Aggiornamenti della scheda forza (ignora l'interazione dell'utente)",
       "update_seconds": "Aggiorna la visualizzazione predefinita ogni x secondi (0 = mai)",
@@ -497,8 +498,8 @@
     "no_visible_cameras": "Nessuna telecamera visibile trovata, è necessario configurare almeno una telecamera non nascosta",
     "reconnecting": "Riconnessione",
     "timeline_no_cameras": "Nessuna telecamera damostrare in Frigate nella timeline",
-    "troubleshooting": "Controllare la risoluzione dei problemi",
     "too_many_automations": "",
+    "troubleshooting": "Controllare la risoluzione dei problemi",
     "unknown": "Errore sconosciuto",
     "upgrade_available": "È disponibile un aggiornamento di configurazione della scheda automatizzato, visitare l'editor di schede visive",
     "webrtc_card_reported_error": "La scheda WebRTC ha riportato un errore",

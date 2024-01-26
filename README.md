@@ -400,8 +400,9 @@ See the [fully expanded view configuration example](#config-expanded-view) for h
 | - | - | - | - |
 | `default` | `live` | :white_check_mark: | The view to show in the card by default. The default camera is the first one listed. See [views](#views) below.|
 | `camera_select` | `current` | :white_check_mark: | The view to show when a new camera is selected (e.g. in the camera menu). If `current` the view is unchanged when a new camera is selected. Other acceptable values may be seen at [views](#views) below.|
-| `dark_mode` | `off` | :white_check_mark: | Whether or not to turn dark mode `on`, `off` or `auto` to automatically turn on if the card `timeout_seconds` has expired (i.e. card has been left unattended for that period of time) or if dark mode is enabled in the HA profile theme setting. Dark mode dims the brightness by `25%`.|
-| `timeout_seconds` | `300` | :white_check_mark: | A numbers of seconds of inactivity after user interaction, after which the card will reset to the default configured view (i.e. 'screensaver' functionality). Inactivity is defined as lack of mouse/touch interaction with the Frigate card. If the default view occurs sooner (e.g. via `update_seconds` or manually) the timer will be stopped. `0` means disable this functionality. |
+| `dark_mode` | `off` | :white_check_mark: | Whether or not to turn dark mode `on`, `off` or `auto` to automatically turn on if the card `interaction_seconds` has expired (i.e. card has been left unattended for that period of time) or if dark mode is enabled in the HA profile theme setting. Dark mode dims the brightness by `25%`.|
+| `interaction_seconds` | `300` | :white_check_mark: | After a mouse/touch interaction with the Frigate card, it will be considered "interacted with" until this number of seconds elapses without further interaction. May be used in conditions with the `interaction` parameter of a [Frigate card condition](#frigate-card-condition) or with `reset_after_interaction` (below). `0` means no interactions are reported / acted upon. |
+| `reset_after_interaction` | `true` | :white_check_mark: | If `true` the card will reset to the default configured view (i.e. 'screensaver' functionality) after `interaction_seconds` has elapsed after user interaction. |
 | `update_seconds` | `0` | :white_check_mark: | A number of seconds after which to automatically update/refresh the default view. See [card updates](#card-updates) below for behavior and usecases. If the default view occurs sooner (e.g. manually) the timer will start over. `0` disables this functionality.|
 | `update_force` | `false` | :white_check_mark: | Whether automated card updates/refreshes should ignore user interaction. See [card updates](#card-updates) below for behavior and usecases.|
 | `update_entities` | | :white_check_mark: | **YAML only**: A card-wide list of entities that should cause the view to reset to the default (if the entity only pertains to a particular camera use `triggers` for the selected camera instead, see [Trigger Configuration](#camera-triggers-configuration)). See [card updates](#card-updates) below for behavior and usecases.|
@@ -441,7 +442,7 @@ Scan mode tracks Home Assistant state *changes* -- when the card is first starte
 
 | `trigger` | `live` | :white_check_mark | When `live` the trigger will select the triggered camera in `live` view, when `none` will take no action. |
 | `untrigger` | `default` | :white_check_mark | When `default` the untrigger will return to the default view and camera, when `none` will take no action. |
-| `interaction_mode` | `inactive` | :white_check_mark: | Whether actions should be taken when the card is being interacted with. If `all`, actions will always be taken regardless. If `inactive` actions will only be taken if the card has *not* had human interaction recently (as defined by `view.timeout_seconds`). If `active` actions will only be taken if the card *has* had human interaction recently. This does not stop triggering itself (i.e. border will still pulse if `show_trigger_status` is true) but rather just prevents the actions being performed.|
+| `interaction_mode` | `inactive` | :white_check_mark: | Whether actions should be taken when the card is being interacted with. If `all`, actions will always be taken regardless. If `inactive` actions will only be taken if the card has *not* had human interaction recently (as defined by `view.interaction_seconds`). If `active` actions will only be taken if the card *has* had human interaction recently. This does not stop triggering itself (i.e. border will still pulse if `show_trigger_status` is true) but rather just prevents the actions being performed.|
 
 ### Menu Options
 
@@ -1283,12 +1284,14 @@ All variables listed are under a `conditions:` section.
 | Condition | Description |
 | ------------- | --------------------------------------------- |
 | `view` | A list of [views](#views) in which this condition is satified (e.g. `clips`) |
-| `camera` | A list of camera ids in which this condition is satisfied. See [camera IDs](#camera-ids).|
+| `camera` | A list of camera IDs in which this condition is satisfied. See [camera IDs](#camera-ids).|
 | `fullscreen` | If `true` the condition is satisfied if the card is in fullscreen mode. If `false` the condition is satisfied if the card is **NOT** in fullscreen mode.|
 | `expand` | If `true` the condition is satisfied if the card is in expanded mode (in a dialog/popup). If `false` the condition is satisfied if the card is **NOT** in expanded mode (in a dialog/popup).|
 | `state` | A list of state conditions to compare with Home Assistant state. See below. |
 | `media_loaded` | If `true` the condition is satisfied if there is media load**ED** (not load**ING**) in the card (e.g. a clip, snapshot or live view). This may be used to hide controls during media loading or when a message (not media) is being displayed. Note that if `true` this condition will never be satisfied for views that do not themselves load media directly (e.g. gallery).|
 | `media_query` | Any valid [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries) string. Media queries must start and end with parentheses. This may be used to alter card configuration based on device/media properties (e.g. viewport width, orientation). Please note that `width` and `height` refer to the entire viewport not just the card. See the [media query example](#media-query-example).|
+| `interacted` | If `true` the condition is satisfied if the card has had human interaction within `view.interaction_seconds` elapsed seconds. If `false` the condition is satisfied if the card has **NOT** had human interaction in that time. |
+| `triggered` | A list of camera IDs which, if triggered in [scan mode](#scan-mode), satisfy the condition.|
 
 See the [example below](#frigate-card-conditional-example) for a real-world example of how these conditions can be used.
 
@@ -1456,7 +1459,7 @@ This card supports several different views:
 |`clip`|Shows a viewer for the most recent clip for this camera. Can also be accessed by holding down the `clips` menu icon.|
 |`recordings`|Shows a gallery of recent (last day) recordings for this camera and its dependents.|
 |`recording`|Shows a viewer for the most recent recording for this camera. Can also be accessed by holding down the `recordings` menu icon.|
-|`image`|Shows a static image specified by the `image` parameter, can be used as a discrete default view or a screensaver (via `view.timeout_seconds`).|
+|`image`|Shows a static image specified by the `image` parameter, can be used as a discrete default view or a screensaver (via `view.interaction_seconds`).|
 |`timeline`|Shows an event timeline.|
 
 ### Navigating From A Snapshot To A Clip
@@ -1908,7 +1911,7 @@ Reference: [View Options](#view-options).
 view:
   default: live
   camera_select: current
-  timeout_seconds: 300
+  interaction_seconds: 300
   update_seconds: 0
   update_force: false
   update_cycle_camera: false
@@ -2860,7 +2863,7 @@ overrides:
       view:
         default: live
         camera_select: current
-        timeout_seconds: 300
+        interaction_seconds: 300
         update_seconds: 0
         update_force: false
         update_cycle_camera: false
@@ -3663,6 +3666,37 @@ view:
 ```
 </details>
 
+<details>
+  <summary>Expand: Showing an alarm menu button when a camera is triggered</summary>
+
+This example adds a menu button to optionally activate a siren when the camera is triggered.
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.office
+elements:
+  - type: custom:frigate-card-conditional
+    elements:
+      - type: custom:frigate-card-menu-icon
+        icon: mdi:alarm-bell
+        title: Activate alarm
+        style:
+          color: red
+        tap_action:
+          action: call-service
+          service: homeassistant.toggle
+          data:
+            entity_id: siren.siren
+    conditions:
+      triggered:
+        - camera.office
+view:
+  scan:
+    enabled: true
+```
+</details>
+
 <a name="media-layout-examples"></a>
 
 ### Changing the Media Layout
@@ -4051,6 +4085,44 @@ views:
 
 </details>
 
+### Interaction conditions
+
+The card can automatically execute actions when the card is interacted with (mouse or touch).
+
+<details>
+  <summary>Expand: Automatically show a high-bandwidth stream on interaction</summary>
+
+This example will automatically use a HD live substream when the mouse cursor interacts with the card.
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - live_provider: go2rtc
+    camera_entity: camera.office
+    triggers:
+      entities:
+        - switch.office_detect
+    dependencies:
+      cameras:
+        - camera.office_hd
+  - camera_entity: camera.office_hd
+    live_provider: go2rtc
+    hide: true
+automations:
+  - actions:
+      - action: custom:frigate-card-action
+        frigate_card_action: live_substream_on
+    actions_not:
+      - action: custom:frigate-card-action
+        frigate_card_action: live_substream_off
+    conditions:
+      interaction: true
+view:
+  scan:
+    enabled: true
+```
+</details>
+
 <a name="media-layout-examples"></a>
 
 ## Card Refreshes
@@ -4066,7 +4138,7 @@ Note that no (other) automated updates are permitted when [scan mode](#scan-mode
 
 In the below "Trigger Entities" refers to the combination of `view.update_entities` and the `triggers.entities` for the currently selected camera (which in turn will also include the occupancy and motion sensor entities for Frigate cameras if `triggers.occupancy` and `triggers.motion` options are enabled, see [Trigger Configuration](#camera-triggers-configuration)).
 
-| `view . update_seconds` | `view . timeout_seconds` | `view . update_force` | Trigger Entities | Behavior |
+| `view . update_seconds` | `view . interaction_seconds` | `view . update_force` | Trigger Entities | Behavior |
 | :-: | :-: | :-: | :-: | - |
 | `0` | `0` | *(Any value)* | Unset | Card will not automatically refresh. |
 | `0` | `0` | *(Any value)* | *(Any entity)* | Card will reload default view & camera when entity state changes. |
@@ -4108,7 +4180,7 @@ view:
 ```yaml
 view:
   default: clip
-  timeout_seconds: 30
+  interaction_seconds: 30
 ```
 
 <a name="query-string-actions"></a>

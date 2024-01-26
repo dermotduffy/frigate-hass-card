@@ -100,6 +100,7 @@ export interface CardDownloadAPI {
 
 export interface CardElementAPI {
   getActionsManager(): ActionsManager;
+  getExpandManager(): ExpandManager;
   getFullscreenManager(): FullscreenManager;
   getInteractionManager(): InteractionManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
@@ -147,6 +148,7 @@ export interface CardInitializerAPI {
 }
 
 export interface CardInteractionAPI {
+  getConditionsManager(): ConditionsManager;
   getConfigManager(): ConfigManager;
   getStyleManager(): StyleManager;
   getTriggersManager(): TriggersManager;
@@ -198,6 +200,7 @@ export interface CardStyleAPI {
 
 export interface CardTriggersAPI {
   getCameraManager(): CameraManager;
+  getConditionsManager(): ConditionsManager;
   getCardElementManager(): CardElementManager;
   getConfigManager(): ConfigManager;
   getHASSManager(): HASSManager;

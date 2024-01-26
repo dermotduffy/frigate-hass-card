@@ -8,6 +8,10 @@ export class ExpandManager {
     this._api = api;
   }
 
+  public initialize(): void {
+    this._setConditionState();
+  }
+
   public isExpanded(): boolean {
     return this._expanded;
   }
@@ -23,9 +27,13 @@ export class ExpandManager {
     }
 
     this._expanded = expanded;
-    this._api.getConditionsManager()?.setState({
-      expand: expanded,
-    });
+    this._setConditionState();
     this._api.getCardElementManager().update();
+  }
+
+  protected _setConditionState(): void {
+    this._api.getConditionsManager()?.setState({
+      expand: this._expanded,
+    });
   }
 }

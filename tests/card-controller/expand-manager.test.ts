@@ -9,6 +9,14 @@ describe('ExpandManager', () => {
     expect(manager.isExpanded()).toBeFalsy();
   });
 
+  it('should initialize', () => {
+    const api = createCardAPI();
+    const manager = new ExpandManager(api);
+
+    manager.initialize();
+    expect(api.getConditionsManager().setState).toBeCalledWith({ expand: false });
+  });
+
   it('should set expanded', () => {
     const api = createCardAPI();
     vi.mocked(api.getFullscreenManager().isInFullscreen).mockReturnValue(true);

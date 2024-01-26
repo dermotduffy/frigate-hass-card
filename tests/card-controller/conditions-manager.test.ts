@@ -360,4 +360,26 @@ describe('ConditionsManager', () => {
     manager.setState({ displayMode: 'single' });
     expect(manager.evaluateCondition(condition)).toBeFalsy();
   });
+
+  it('should evaluate conditions with triggers', () => {
+    const manager = new ConditionsManager(createCardAPI());
+    const condition: FrigateCardCondition = { triggered: ['camera_1', 'camera_2'] };
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
+    manager.setState({ triggered: new Set(['camera_1']) });
+    expect(manager.evaluateCondition(condition)).toBeTruthy();
+    manager.setState({ triggered: new Set(['camera_2', 'camera_1', 'camera_3']) });
+    expect(manager.evaluateCondition(condition)).toBeTruthy();
+    manager.setState({ triggered: new Set(['camera_3']) });
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
+  });
+
+  it('should evaluate conditions with interaction', () => {
+    const manager = new ConditionsManager(createCardAPI());
+    const condition: FrigateCardCondition = { interaction: true };
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
+    manager.setState({ interaction: true })
+    expect(manager.evaluateCondition(condition)).toBeTruthy();
+    manager.setState({ interaction: false })
+    expect(manager.evaluateCondition(condition)).toBeFalsy();
+  });
 });

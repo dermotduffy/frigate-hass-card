@@ -3,6 +3,14 @@ import { MediaLoadedInfoManager } from '../../src/card-controller/media-info-man
 import { createCardAPI, createMediaLoadedInfo } from '../test-utils.js';
 
 describe('MediaLoadedInfoManager', () => {
+  it('should initialize', () => {
+    const api = createCardAPI();
+    const manager = new MediaLoadedInfoManager(api);
+
+    manager.initialize();
+    expect(api.getConditionsManager().setState).toBeCalledWith({ media_loaded: false });
+  });
+
   it('should set', () => {
     const api = createCardAPI();
     const manager = new MediaLoadedInfoManager(api);

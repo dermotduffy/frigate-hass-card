@@ -1,4 +1,3 @@
-
 import {
   CallServiceActionConfig,
   ConfirmationRestrictionConfig,
@@ -490,6 +489,8 @@ export const frigateCardConditionSchema = z.object({
   state: stateConditions.optional(),
   media_query: z.string().optional(),
   display_mode: viewDisplayModeSchema.optional(),
+  triggered: z.string().array().optional(),
+  interaction: z.boolean().optional(),
 });
 export type FrigateCardCondition = z.infer<typeof frigateCardConditionSchema>;
 
@@ -1114,7 +1115,8 @@ export type CamerasConfig = z.infer<typeof camerasConfigSchema>;
 const viewConfigDefault = {
   default: FRIGATE_CARD_VIEW_DEFAULT,
   camera_select: 'current' as const,
-  timeout_seconds: 300,
+  interaction_seconds: 300,
+  reset_after_interaction: true,
   update_seconds: 0,
   update_force: false,
   update_cycle_camera: false,
@@ -1163,7 +1165,10 @@ const viewConfigSchema = z
     camera_select: z
       .enum([...FRIGATE_CARD_VIEWS_USER_SPECIFIED, 'current'])
       .default(viewConfigDefault.camera_select),
-    timeout_seconds: z.number().default(viewConfigDefault.timeout_seconds),
+    interaction_seconds: z.number().default(viewConfigDefault.interaction_seconds),
+    reset_after_interaction: z
+      .boolean()
+      .default(viewConfigDefault.reset_after_interaction),
     update_seconds: z.number().default(viewConfigDefault.update_seconds),
     update_force: z.boolean().default(viewConfigDefault.update_force),
     update_cycle_camera: z.boolean().default(viewConfigDefault.update_cycle_camera),
