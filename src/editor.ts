@@ -949,13 +949,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${this._renderNumberInput(CONF_VIEW_SCAN_UNTRIGGER_SECONDS, {
           default: this._defaults.view.scan.untrigger_seconds,
         })}
-        ${this._renderOptionSelector(
-          CONF_VIEW_SCAN_ACTIONS_TRIGGER,
-          this._scanActionsTrigger,
-          {
-            label: localize('config.view.scan.actions.trigger'),
-          },
-        )}
         ${this._putInSubmenu(
           MENU_VIEW_SCAN_ACTIONS,
           true,

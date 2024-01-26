@@ -396,12 +396,12 @@
           "trigger": "Trigger action",
           "triggers": {
             "live": "Change to live",
-            "none": "Take no action"
+            "none": "No action"
           },
           "untrigger": "Untrigger action",
           "untriggers": {
             "default": "Change to default view/camera",
-            "none": "Take no action"
+            "none": "No action"
           }
         },
         "editor_label": "Scan mode",
