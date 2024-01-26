@@ -469,6 +469,7 @@
     }
   },
   "error": {
+    "awaiting_live": "",
     "could_not_render_elements": "Impossibile renderizzare gli elementi dell'immagine",
     "could_not_resolve": "Impossibile risolvere l'URL dei media",
     "diagnostics": "Diagnostica delle carte.Si prega di rivedere per informazioni riservate prima di condividere",

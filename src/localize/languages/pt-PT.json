@@ -462,6 +462,7 @@
     }
   },
   "error": {
+    "awaiting_live": "",
     "could_not_render_elements": "Não foi possível renderizar os elementos da imagem",
     "could_not_resolve": "Não foi possível resolver o URL de mídia",
     "diagnostics": "Diagnósticos do cartão. Reveja as informações confidenciais antes de partilhar",
