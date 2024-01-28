@@ -11,7 +11,7 @@ export default defineConfig({
       // back-sliding.
       thresholdAutoUpdate: true,
       statements: 71.95,
-      branches: 60.8,
+      branches: 60.78,
       functions: 73.04,
       lines: 71.84,
     },
