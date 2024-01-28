@@ -178,7 +178,7 @@ export class View {
    * @returns This view.
    */
   public mergeInContext(context?: ViewContext): View {
-    this.context = merge(this.context ?? {}, this.context, context);
+    this.context = merge({}, this.context, context);
     return this;
   }
 
