@@ -16,35 +16,37 @@ export class InteractionManager {
     this._reportInteraction();
   }, 1 * 1000);
 
+  public initialize(): void {
+    this._api.getConditionsManager().setState({ interaction: false });
+  }
+
   public hasInteraction(): boolean {
     return this._timer.isRunning();
   }
 
   /**
    * Start the user interaction ('screensaver') timer to reset the view to
-   * default `view.timeout_seconds` after user interaction.
+   * default `view.interaction_seconds` after user interaction.
    */
   protected _reportInteraction(): void {
     this._timer.stop();
 
-    // Interactions reset the trigger state.
-    this._api.getTriggersManager().untrigger();
-
     const timeoutSeconds = this._api.getConfigManager().getConfig()
-      ?.view.timeout_seconds;
+      ?.view.interaction_seconds;
 
     if (timeoutSeconds) {
+      this._api.getConditionsManager().setState({ interaction: true });
+
       this._timer.start(timeoutSeconds, () => {
-        if (this._isAutomatedUpdateAllowed()) {
-          this._api.getViewManager().setViewDefault();
+        this._api.getConditionsManager().setState({ interaction: false });
+
+        if (!this._api.getTriggersManager().isTriggered()) {
+          if (this._api.getConfigManager().getConfig()?.view.reset_after_interaction) {
+            this._api.getViewManager().setViewDefault();
+          }
           this._api.getStyleManager().setLightOrDarkMode();
         }
       });
     }
-    this._api.getStyleManager().setLightOrDarkMode();
-  }
-
-  protected _isAutomatedUpdateAllowed(): boolean {
-    return !this._api.getTriggersManager().isTriggered();
   }
 }

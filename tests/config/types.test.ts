@@ -280,10 +280,16 @@ describe('config defaults', () => {
         scan: {
           enabled: false,
           show_trigger_status: true,
-          untrigger_reset: true,
           untrigger_seconds: 0,
+          actions: {
+            trigger: 'live',
+            untrigger: 'default',
+            interaction_mode: 'inactive',
+          },
+          filter_selected_camera: false,
         },
-        timeout_seconds: 300,
+        interaction_seconds: 300,
+        reset_after_interaction: true,
         update_cycle_camera: false,
         update_force: false,
         update_seconds: 0,

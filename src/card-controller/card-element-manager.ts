@@ -54,6 +54,13 @@ export class CardElementManager {
   }
 
   public elementConnected(): void {
+    // Set initial condition state. Must be done after the element is connected to
+    // allow callbacks to interact with the card.
+    this._api.getInteractionManager().initialize();
+    this._api.getFullscreenManager().initialize();
+    this._api.getExpandManager().initialize();
+    this._api.getMediaLoadedInfoManager().initialize();
+
     // Whether or not the card is in panel mode on the dashboard.
     setOrRemoveAttribute(this._element, isCardInPanel(this._element), 'panel');
 

@@ -29,6 +29,17 @@ describe('FullscreenManager', () => {
     vi.clearAllMocks();
   });
 
+  it('should initialize', () => {
+    const api = createCardAPI();
+    const manager = new FullscreenManager(api);
+
+    setScreenfulEnabled(true);
+    setScreenfulFullscreen(false);
+
+    manager.initialize();
+    expect(api.getConditionsManager().setState).toBeCalledWith({ fullscreen: false });
+  });
+
   it('should correctly determine whether in fullscreen', () => {
     const manager = new FullscreenManager(createCardAPI());
 

@@ -10,10 +10,10 @@ export default defineConfig({
       // Thresholds will automatically be updated as coverage improves to avoid
       // back-sliding.
       thresholdAutoUpdate: true,
-      statements: 71.65,
-      branches: 60.62,
-      functions: 72.78,
-      lines: 71.54,
+      statements: 71.95,
+      branches: 60.8,
+      functions: 73.04,
+      lines: 71.84,
     },
   },
 });

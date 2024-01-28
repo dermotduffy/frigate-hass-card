@@ -62,6 +62,9 @@ export class FrigateCardViews extends LitElement {
   @property({ attribute: false })
   public microphoneStream?: MediaStream;
 
+  @property({ attribute: false })
+  public triggeredCameraIDs?: Set<string>;  
+
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('view') || changedProps.has('config')) {
       if (this.view?.is('live') || this._shouldLivePreload()) {
@@ -239,6 +242,7 @@ export class FrigateCardViews extends LitElement {
                 .cameraManager=${this.cameraManager}
                 .cardWideConfig=${this.cardWideConfig}
                 .microphoneStream=${this.microphoneStream}
+                .triggeredCameraIDs=${this.triggeredCameraIDs}
                 class="${classMap(liveClasses)}"
               >
               </frigate-card-live>

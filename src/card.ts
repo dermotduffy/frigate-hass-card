@@ -238,11 +238,6 @@ class FrigateCard extends LitElement {
     const cardStyle = {
       'aspect-ratio': this._controller.getStyleManager().getAspectRatioStyle(),
     };
-    const cardClasses = {
-      triggered:
-        !!this._controller.getTriggersManager().isTriggered() &&
-        !!this._config?.view.scan.show_trigger_status,
-    };
     const mainClasses = {
       main: true,
       'curve-top':
@@ -264,7 +259,6 @@ class FrigateCard extends LitElement {
         hasHold: frigateCardHasAction(actions.hold_action),
         hasDoubleClick: frigateCardHasAction(actions.double_tap_action),
       })}
-      class="${classMap(cardClasses)}"
       style="${styleMap(cardStyle)}"
       @frigate-card:message=${(ev: CustomEvent<Message>) =>
         this._controller.getMessageManager().setMessageIfHigherPriority(ev.detail)}
@@ -313,6 +307,9 @@ class FrigateCard extends LitElement {
                 ?.getEpoch()}
               .hide=${!!this._controller.getMessageManager().hasMessage()}
               .microphoneStream=${this._controller.getMicrophoneManager()?.getStream()}
+              .triggeredCameraIDs=${this._config?.view.scan.show_trigger_status
+                ? this._controller.getTriggersManager().getTriggeredCameraIDs()
+                : undefined}
             ></frigate-card-views>`}
         ${
           // Keep message rendering to last to show messages that may have been

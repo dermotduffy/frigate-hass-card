@@ -13,6 +13,8 @@ import {
   CONF_MEDIA_GALLERY,
   CONF_MENU_BUTTONS_CAMERA_UI,
   CONF_OVERRIDES,
+  CONF_VIEW_INTERACTION_SECONDS,
+  CONF_VIEW_SCAN_ACTIONS_UNTRIGGER,
 } from './const';
 import { arrayify } from './utils/basic';
 
@@ -474,4 +476,13 @@ const UPGRADES = [
     );
   },
   upgradePTZElementsToLive(),
+  upgradeMoveToWithOverrides(
+    'view.scan.untrigger_reset',
+    CONF_VIEW_SCAN_ACTIONS_UNTRIGGER,
+    {
+      // Delete the value if it's set to the default.
+      transform: (val) => (val ? 'default' : null),
+    },
+  ),
+  upgradeMoveToWithOverrides('view.timeout_seconds', CONF_VIEW_INTERACTION_SECONDS),
 ];

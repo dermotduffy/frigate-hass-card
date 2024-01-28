@@ -9,6 +9,7 @@ import {
 import { FrigateCardMediaPlayer } from '../../src/types';
 import {
   convertActionToFrigateCardCustomAction,
+  frigateCardHandleAction,
   frigateCardHandleActionConfig,
   getActionConfigGivenAction,
 } from '../../src/utils/action.js';
@@ -245,7 +246,7 @@ describe('ActionsManager.executeAction', () => {
 
     const manager = new ActionsManager(api);
 
-    await manager.executeAction(
+    await manager.executeFrigateAction(
       createAction({
         card_id: 'NOT_foo',
         frigate_card_action: 'default',
@@ -259,7 +260,7 @@ describe('ActionsManager.executeAction', () => {
     const api = createCardAPI();
     const manager = new ActionsManager(api);
 
-    await manager.executeAction(
+    await manager.executeFrigateAction(
       createAction({
         frigate_card_action: 'default',
       })!,
@@ -283,7 +284,7 @@ describe('ActionsManager.executeAction', () => {
       const api = createCardAPI();
       const manager = new ActionsManager(api);
 
-      await manager.executeAction(
+      await manager.executeFrigateAction(
         createAction({
           frigate_card_action: viewName,
         })!,
@@ -301,7 +302,7 @@ describe('ActionsManager.executeAction', () => {
     const api = createCardAPI();
     const manager = new ActionsManager(api);
 
-    await manager.executeAction(
+    await manager.executeFrigateAction(
       createAction({
         frigate_card_action: 'download',
       })!,
@@ -314,7 +315,7 @@ describe('ActionsManager.executeAction', () => {
     const api = createCardAPI();
     const manager = new ActionsManager(api);
 
-    await manager.executeAction(
+    await manager.executeFrigateAction(
       createAction({
         frigate_card_action: 'camera_ui',
       })!,
@@ -327,7 +328,7 @@ describe('ActionsManager.executeAction', () => {
     const api = createCardAPI();
     const manager = new ActionsManager(api);
 
-    await manager.executeAction(
+    await manager.executeFrigateAction(
       createAction({
         frigate_card_action: 'expand',
       })!,
@@ -340,7 +341,7 @@ describe('ActionsManager.executeAction', () => {
     const api = createCardAPI();
     const manager = new ActionsManager(api);
 
-    await manager.executeAction(
+    await manager.executeFrigateAction(
       createAction({
         frigate_card_action: 'fullscreen',
       })!,
@@ -353,7 +354,7 @@ describe('ActionsManager.executeAction', () => {
     const api = createCardAPI();
     const manager = new ActionsManager(api);
 
-    await manager.executeAction(
+    await manager.executeFrigateAction(
       createAction({
         frigate_card_action: 'menu_toggle',
       })!,
@@ -370,7 +371,7 @@ describe('ActionsManager.executeAction', () => {
       vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
       vi.mocked(api.getViewManager().isViewSupportedByCamera).mockReturnValue(true);
 
-      await manager.executeAction(
+      await manager.executeFrigateAction(
         createAction({
           frigate_card_action: 'camera_select',
           camera: 'camera',
@@ -397,7 +398,7 @@ describe('ActionsManager.executeAction', () => {
       );
       vi.mocked(api.getViewManager().isViewSupportedByCamera).mockReturnValue(true);
 
-      await manager.executeAction(
+      await manager.executeFrigateAction(
         createAction({
           frigate_card_action: 'camera_select',
           camera: 'camera',
@@ -430,7 +431,7 @@ describe('ActionsManager.executeAction', () => {
       vi.mocked(api.getViewManager().isViewSupportedByCamera).mockReturnValue(true);
       const manager = new ActionsManager(api);
 
-      await manager.executeAction(
+      await manager.executeFrigateAction(
         createAction({
           frigate_card_action: 'camera_select',
           camera: 'camera',
@@ -445,11 +446,55 @@ describe('ActionsManager.executeAction', () => {
       );
     });
 
+    it('with triggered camera', async () => {
+      const api = createCardAPI();
+      const manager = new ActionsManager(api);
+
+      vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
+      vi.mocked(api.getViewManager().isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(
+        api.getTriggersManager().getMostRecentlyTriggeredCameraID,
+      ).mockReturnValue('camera');
+
+      await manager.executeFrigateAction(
+        createAction({
+          frigate_card_action: 'camera_select',
+          triggered: true,
+        })!,
+      );
+
+      expect(api.getViewManager().setViewByParameters).toBeCalledWith(
+        expect.objectContaining({
+          viewName: 'live',
+          cameraID: 'camera',
+        }),
+      );
+    });
+
+    it('without camera or triggered camera', async () => {
+      const api = createCardAPI();
+      const manager = new ActionsManager(api);
+
+      vi.mocked(api.getViewManager().getView).mockReturnValue(createView());
+      vi.mocked(api.getViewManager().isViewSupportedByCamera).mockReturnValue(true);
+      vi.mocked(
+        api.getTriggersManager().getMostRecentlyTriggeredCameraID,
+      ).mockReturnValue('camera');
+
+      await manager.executeFrigateAction(
+        createAction({
+          frigate_card_action: 'camera_select',
+        })!,
+      );
+
+      expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    });
+
     it('without a current view', async () => {
       const api = createCardAPI();
       const manager = new ActionsManager(api);
 
-      await manager.executeAction(
+      await manager.executeFrigateAction(
         createAction({
           frigate_card_action: 'camera_select',
           camera: 'camera',
@@ -469,7 +514,7 @@ describe('ActionsManager.executeAction', () => {
         }),
       );
 
-      await manager.executeAction(
+      await manager.executeFrigateAction(
         createAction({
           frigate_card_action: 'camera_select',
           camera: 'camera',
@@ -490,7 +535,7 @@ describe('ActionsManager.executeAction', () => {
     const api = createCardAPI();
     const manager = new ActionsManager(api);
 
-    await manager.executeAction(
+    await manager.executeFrigateAction(
       createAction({
         frigate_card_action: 'live_substream_select',
         camera: 'substream',
@@ -504,7 +549,7 @@ describe('ActionsManager.executeAction', () => {
     const api = createCardAPI();
     const manager = new ActionsManager(api);
 
-    await manager.executeAction(
+    await manager.executeFrigateAction(
       createAction({
         frigate_card_action: 'live_substream_off',
       })!,
@@ -517,7 +562,7 @@ describe('ActionsManager.executeAction', () => {
     const api = createCardAPI();
     const manager = new ActionsManager(api);
 
-    await manager.executeAction(
+    await manager.executeFrigateAction(
       createAction({
         frigate_card_action: 'live_substream_on',
       })!,
@@ -531,7 +576,7 @@ describe('ActionsManager.executeAction', () => {
       const api = createCardAPI();
       const manager = new ActionsManager(api);
 
-      await manager.executeAction(
+      await manager.executeFrigateAction(
         createAction({
           frigate_card_action: 'media_player',
           media_player_action: 'stop',
@@ -552,7 +597,7 @@ describe('ActionsManager.executeAction', () => {
       );
       const manager = new ActionsManager(api);
 
-      await manager.executeAction(
+      await manager.executeFrigateAction(
         createAction({
           frigate_card_action: 'media_player',
           media_player_action: 'play',
@@ -576,7 +621,7 @@ describe('ActionsManager.executeAction', () => {
       vi.mocked(api.getViewManager().getView).mockReturnValue(view);
       const manager = new ActionsManager(api);
 
-      await manager.executeAction(
+      await manager.executeFrigateAction(
         createAction({
           frigate_card_action: 'media_player',
           media_player_action: 'play',
@@ -599,7 +644,7 @@ describe('ActionsManager.executeAction', () => {
       );
       const manager = new ActionsManager(api);
 
-      await manager.executeAction(
+      await manager.executeFrigateAction(
         createAction({
           frigate_card_action: 'media_player',
           media_player_action: 'play',
@@ -615,7 +660,7 @@ describe('ActionsManager.executeAction', () => {
     const api = createCardAPI();
     const manager = new ActionsManager(api);
 
-    await manager.executeAction(
+    await manager.executeFrigateAction(
       createAction({
         frigate_card_action: 'diagnostics',
       })!,
@@ -632,7 +677,7 @@ describe('ActionsManager.executeAction', () => {
     const api = createCardAPI();
     const manager = new ActionsManager(api);
 
-    await manager.executeAction(
+    await manager.executeFrigateAction(
       createAction({
         frigate_card_action: 'microphone_mute',
       })!,
@@ -645,7 +690,7 @@ describe('ActionsManager.executeAction', () => {
     const api = createCardAPI();
     const manager = new ActionsManager(api);
 
-    await manager.executeAction(
+    await manager.executeFrigateAction(
       createAction({
         frigate_card_action: 'microphone_unmute',
       })!,
@@ -670,7 +715,7 @@ describe('ActionsManager.executeAction', () => {
       );
       const manager = new ActionsManager(api);
 
-      await manager.executeAction(
+      await manager.executeFrigateAction(
         createAction({
           frigate_card_action: action,
         })!,
@@ -684,7 +729,7 @@ describe('ActionsManager.executeAction', () => {
     const api = createCardAPI();
     const manager = new ActionsManager(api);
 
-    await manager.executeAction(
+    await manager.executeFrigateAction(
       createAction({
         frigate_card_action: 'screenshot',
       })!,
@@ -697,7 +742,7 @@ describe('ActionsManager.executeAction', () => {
     const api = createCardAPI();
     const manager = new ActionsManager(api);
 
-    await manager.executeAction(
+    await manager.executeFrigateAction(
       createAction({
         frigate_card_action: 'display_mode_select',
         display_mode: 'grid',
@@ -715,7 +760,7 @@ describe('ActionsManager.executeAction', () => {
         createView({ camera: 'camera.office' }),
       );
 
-      await manager.executeAction(
+      await manager.executeFrigateAction(
         createAction({
           frigate_card_action: 'ptz',
           ptz_action: 'left',
@@ -736,7 +781,7 @@ describe('ActionsManager.executeAction', () => {
       const api = createCardAPI();
       const manager = new ActionsManager(api);
 
-      await manager.executeAction(
+      await manager.executeFrigateAction(
         createAction({
           frigate_card_action: 'ptz',
           ptz_action: 'left',
@@ -751,7 +796,7 @@ describe('ActionsManager.executeAction', () => {
     const api = createCardAPI();
     const manager = new ActionsManager(api);
 
-    await manager.executeAction(
+    await manager.executeFrigateAction(
       createAction({
         frigate_card_action: 'show_ptz',
         show_ptz: true,
@@ -768,7 +813,7 @@ describe('ActionsManager.executeAction', () => {
 
     const spy = vi.spyOn(global.console, 'warn').mockImplementation(() => true);
 
-    await manager.executeAction(
+    await manager.executeFrigateAction(
       // Have to manually create the action (vs using `createAction()`) since
       // it's malformed.
       {
@@ -779,5 +824,38 @@ describe('ActionsManager.executeAction', () => {
     expect(spy).toBeCalledWith(
       'Frigate card received unknown card action: not_a_real_action',
     );
+  });
+});
+
+describe('ActionsManager.executeActions', () => {
+  it('should execute actions', async () => {
+    const api = createCardAPI();
+    const hass = createHASS();
+    const element = document.createElement('div');
+
+    vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+
+    const manager = new ActionsManager(api);
+    const action = createAction({
+      frigate_card_action: 'default',
+    })!;
+    manager.executeActions(action);
+
+    expect(frigateCardHandleAction).toBeCalledWith(element, hass, {}, action);
+  });
+
+  it('should not execute actions without hass', async () => {
+    const api = createCardAPI();
+    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(null);
+
+    const manager = new ActionsManager(api);
+    manager.executeActions(
+      createAction({
+        frigate_card_action: 'default',
+      })!,
+    );
+
+    expect(api.getViewManager().setViewDefault).not.toBeCalled();
   });
 });

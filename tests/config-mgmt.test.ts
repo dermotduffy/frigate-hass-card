@@ -1166,6 +1166,69 @@ describe('should handle version specific upgrades', () => {
         type: 'custom:frigate-card',
       });
     });
+  });
 
+  describe('should move and transform untrigger_reset', () => {
+    it('when true', () => {
+      const config = {
+        type: 'custom:frigate-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        view: {
+          scan: {
+            untrigger_reset: true,
+          },
+        },
+      };
+      expect(upgradeConfig(config)).toBeTruthy();
+      expect(config).toEqual({
+        type: 'custom:frigate-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        view: {
+          scan: {
+            actions: {
+              untrigger: 'default',
+            },
+          },
+        },
+      });
+    });
+
+    it('when false', () => {
+      const config = {
+        type: 'custom:frigate-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        view: {
+          scan: {
+            untrigger_reset: false,
+          },
+        },
+      };
+      expect(upgradeConfig(config)).toBeTruthy();
+      expect(config).toEqual({
+        type: 'custom:frigate-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        view: {
+          scan: {},
+        },
+      });
+    });
+  });
+
+  it('should move view.timeout_seconds', () => {
+    const config = {
+      type: 'custom:frigate-card',
+      cameras: [{ camera_entity: 'camera.office' }],
+      view: {
+        timeout_seconds: 200,
+      },
+    };
+    expect(upgradeConfig(config)).toBeTruthy();
+    expect(config).toEqual({
+      type: 'custom:frigate-card',
+      cameras: [{ camera_entity: 'camera.office' }],
+      view: {
+        interaction_seconds: 200,
+      },
+    });
   });
 });

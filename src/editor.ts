@@ -22,9 +22,9 @@ import {
 } from './config-mgmt.js';
 import {
   BUTTON_SIZE_MIN,
-  FRIGATE_MENU_PRIORITY_MAX,
   FrigateCardConfig,
   frigateCardConfigDefaults,
+  FRIGATE_MENU_PRIORITY_MAX,
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
@@ -157,8 +157,8 @@ import {
   CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
   CONF_MEDIA_VIEWER_ZOOMABLE,
   CONF_MENU_ALIGNMENT,
-  CONF_MENU_BUTTON_SIZE,
   CONF_MENU_BUTTONS,
+  CONF_MENU_BUTTON_SIZE,
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
   CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
@@ -180,12 +180,17 @@ import {
   CONF_VIEW_CAMERA_SELECT,
   CONF_VIEW_DARK_MODE,
   CONF_VIEW_DEFAULT,
+  CONF_VIEW_INTERACTION_SECONDS,
+  CONF_VIEW_RESET_AFTER_INTERACTION,
   CONF_VIEW_SCAN,
+  CONF_VIEW_SCAN_ACTIONS,
+  CONF_VIEW_SCAN_ACTIONS_INTERACTION_MODE,
+  CONF_VIEW_SCAN_ACTIONS_TRIGGER,
+  CONF_VIEW_SCAN_ACTIONS_UNTRIGGER,
   CONF_VIEW_SCAN_ENABLED,
+  CONF_VIEW_SCAN_FILTER_SELECTED_CAMERA,
   CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
-  CONF_VIEW_SCAN_UNTRIGGER_RESET,
   CONF_VIEW_SCAN_UNTRIGGER_SECONDS,
-  CONF_VIEW_TIMEOUT_SECONDS,
   CONF_VIEW_UPDATE_CYCLE_CAMERA,
   CONF_VIEW_UPDATE_FORCE,
   CONF_VIEW_UPDATE_SECONDS,
@@ -238,6 +243,7 @@ const MENU_PERFORMANCE_FEATURES = 'performance.features';
 const MENU_PERFORMANCE_STYLE = 'performance.style';
 const MENU_TIMELINE_CONTROLS_THUMBNAILS = 'timeline.controls.thumbnails';
 const MENU_VIEW_SCAN = 'scan';
+const MENU_VIEW_SCAN_ACTIONS = 'scan.actions';
 
 interface EditorOptionsSet {
   icon: string;
@@ -621,6 +627,46 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     },
   ];
 
+  protected _scanActionsInteractionModes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'all',
+      label: localize('config.view.scan.actions.interaction_modes.all'),
+    },
+    {
+      value: 'inactive',
+      label: localize('config.view.scan.actions.interaction_modes.inactive'),
+    },
+    {
+      value: 'active',
+      label: localize('config.view.scan.actions.interaction_modes.active'),
+    },
+  ];
+
+  protected _scanActionsTrigger: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'live',
+      label: localize('config.view.scan.actions.triggers.live'),
+    },
+    {
+      value: 'none',
+      label: localize('config.view.scan.actions.triggers.none'),
+    },
+  ];
+
+  protected _scanActionsUntrigger: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'default',
+      label: localize('config.view.scan.actions.untriggers.default'),
+    },
+    {
+      value: 'none',
+      label: localize('config.view.scan.actions.untriggers.none'),
+    },
+  ];
+
   public setConfig(config: RawFrigateCardConfig): void {
     // Note: This does not use Zod to parse the configuration, so it may be
     // partially or completely invalid. It's more useful to have a partially
@@ -877,48 +923,61 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   protected _renderViewScanMenu(): TemplateResult {
-    const submenuClasses = {
-      submenu: true,
-      selected: !!this._expandedMenus[MENU_VIEW_SCAN],
-    };
-    return html`
-      <div class="${classMap(submenuClasses)}">
-        <div
-          class="submenu-header"
-          @click=${this._toggleMenu}
-          .domain=${MENU_VIEW_SCAN}
-          .key=${true}
-        >
-          <ha-icon .icon=${'mdi:target-account'}></ha-icon>
-          <span>${localize(`config.${CONF_VIEW_SCAN}.scan_mode`)}</span>
-        </div>
-        ${this._expandedMenus[MENU_VIEW_SCAN]
-          ? html` <div class="values">
-              ${this._renderSwitch(
-                CONF_VIEW_SCAN_ENABLED,
-                this._defaults.view.scan.enabled,
-                {
-                  label: localize(`config.${CONF_VIEW_SCAN_ENABLED}`),
-                },
-              )}
-              ${this._renderSwitch(
-                CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
-                this._defaults.view.scan.show_trigger_status,
-                {
-                  label: localize(`config.${CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS}`),
-                },
-              )}
-              ${this._renderSwitch(
-                CONF_VIEW_SCAN_UNTRIGGER_RESET,
-                this._defaults.view.scan.untrigger_reset,
-              )}
-              ${this._renderNumberInput(CONF_VIEW_SCAN_UNTRIGGER_SECONDS, {
-                default: this._defaults.view.scan.untrigger_seconds,
-              })}
-            </div>`
-          : ''}
-      </div>
-    `;
+    return this._putInSubmenu(
+      MENU_VIEW_SCAN,
+      true,
+      `config.${CONF_VIEW_SCAN}.editor_label`,
+      { name: 'mdi:target-account' },
+      html`
+        ${this._renderSwitch(CONF_VIEW_SCAN_ENABLED, this._defaults.view.scan.enabled, {
+          label: localize(`config.${CONF_VIEW_SCAN_ENABLED}`),
+        })}
+        ${this._renderSwitch(
+          CONF_VIEW_SCAN_FILTER_SELECTED_CAMERA,
+          this._defaults.view.scan.filter_selected_camera,
+          {
+            label: localize(`config.${CONF_VIEW_SCAN_FILTER_SELECTED_CAMERA}`),
+          },
+        )}
+        ${this._renderSwitch(
+          CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
+          this._defaults.view.scan.show_trigger_status,
+          {
+            label: localize(`config.${CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS}`),
+          },
+        )}
+        ${this._renderNumberInput(CONF_VIEW_SCAN_UNTRIGGER_SECONDS, {
+          default: this._defaults.view.scan.untrigger_seconds,
+        })}
+        ${this._putInSubmenu(
+          MENU_VIEW_SCAN_ACTIONS,
+          true,
+          `config.${CONF_VIEW_SCAN_ACTIONS}.editor_label`,
+          { name: 'mdi:cogs' },
+          html` ${this._renderOptionSelector(
+            CONF_VIEW_SCAN_ACTIONS_TRIGGER,
+            this._scanActionsTrigger,
+            {
+              label: localize('config.view.scan.actions.trigger'),
+            },
+          )}
+          ${this._renderOptionSelector(
+            CONF_VIEW_SCAN_ACTIONS_UNTRIGGER,
+            this._scanActionsUntrigger,
+            {
+              label: localize('config.view.scan.actions.untrigger'),
+            },
+          )}
+          ${this._renderOptionSelector(
+            CONF_VIEW_SCAN_ACTIONS_INTERACTION_MODE,
+            this._scanActionsInteractionModes,
+            {
+              label: localize('config.view.scan.actions.interaction_mode'),
+            },
+          )}`,
+        )}
+      `,
+    );
   }
 
   /**
@@ -1883,7 +1942,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   this._cameraSelectViewModes,
                 )}
                 ${this._renderOptionSelector(CONF_VIEW_DARK_MODE, this._darkModes)}
-                ${this._renderNumberInput(CONF_VIEW_TIMEOUT_SECONDS)}
+                ${this._renderNumberInput(CONF_VIEW_INTERACTION_SECONDS)}
+                ${this._renderSwitch(
+                  CONF_VIEW_RESET_AFTER_INTERACTION,
+                  this._defaults.view.reset_after_interaction,
+                )}
                 ${this._renderNumberInput(CONF_VIEW_UPDATE_SECONDS)}
                 ${this._renderSwitch(
                   CONF_VIEW_UPDATE_FORCE,

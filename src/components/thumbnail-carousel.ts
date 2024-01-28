@@ -43,6 +43,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
   public fadeThumbnails = false;
 
   protected _thumbnailSlides: TemplateResult[] = [];
+  protected _plugins = [AutoSize()];
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('config')) {
@@ -137,7 +138,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
 
     return html`<frigate-card-carousel
       direction=${direction}
-      .plugins=${[AutoSize()]}
+      .plugins=${this._plugins}
       .selected=${this._getSelectedSlide() ?? 0}
       .dragFree=${true}
     >

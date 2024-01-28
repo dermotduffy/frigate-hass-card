@@ -3,10 +3,11 @@ import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { CameraConfig } from '../../config/types';
+import { localize } from '../../localize/localize';
 import liveImageStyle from '../../scss/live-image.scss';
 import { FrigateCardMediaPlayer } from '../../types.js';
-import '../image.js';
 import { getStateObjOrDispatchError } from '../../utils/get-state-obj';
+import '../image.js';
 
 @customElement('frigate-card-live-image')
 export class FrigateCardLiveImage extends LitElement implements FrigateCardMediaPlayer {
@@ -79,7 +80,12 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
         .cameraConfig=${this.cameraConfig}
       >
       </frigate-card-image>
-      ${this.watermark ? html`<ha-icon icon="${this.watermark}"></ha-icon>` : ''}
+      ${this.watermark
+        ? html`<ha-icon
+            title=${localize('error.awaiting_live')}
+            icon="${this.watermark}"
+          ></ha-icon>`
+        : ''}
     `;
   }
 

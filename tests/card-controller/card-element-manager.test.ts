@@ -136,6 +136,11 @@ describe('CardElementManager', () => {
     );
     expect(windowAddEventListener).toBeCalledWith('location-changed', expect.anything());
     expect(windowAddEventListener).toBeCalledWith('popstate', expect.anything());
+
+    expect(api.getInteractionManager().initialize).toBeCalled();
+    expect(api.getFullscreenManager().initialize).toBeCalled();
+    expect(api.getExpandManager().initialize).toBeCalled();
+    expect(api.getMediaLoadedInfoManager().initialize).toBeCalled();
   });
 
   it('should disconnect', () => {

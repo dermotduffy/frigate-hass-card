@@ -385,13 +385,33 @@
       },
       "default": "Default view",
       "scan": {
+        "actions": {
+          "editor_label": "Scan mode actions",
+          "interaction_mode": "How to handle actions when the card has human interaction",
+          "interaction_modes": {
+            "active": "Only trigger actions when card has human interaction",
+            "all": "Trigger actions regardless of human interaction",
+            "inactive": "Only trigger actions when card has no human interaction"
+          },
+          "trigger": "Trigger action",
+          "triggers": {
+            "live": "Change to live",
+            "none": "No action"
+          },
+          "untrigger": "Untrigger action",
+          "untriggers": {
+            "default": "Change to default view/camera",
+            "none": "No action"
+          }
+        },
+        "editor_label": "Scan mode",
+        "filter_selected_camera": "Only trigger on selected camera",
         "enabled": "Scan mode enabled",
-        "scan_mode": "Scan mode",
         "show_trigger_status": "Show pulsing border when triggered",
-        "untrigger_reset": "Reset the view to default after untrigger",
         "untrigger_seconds": "Seconds after inactive state change to untrigger"
       },
-      "timeout_seconds": "Reset to default view X seconds after user action (0=never)",
+      "interaction_seconds": "Seconds after user action to remain interacted with (0=never)",
+      "reset_after_interaction": "Reset to the default view after user interaction",
       "update_cycle_camera": "Cycle through cameras when default view updates",
       "update_force": "Force card updates (ignore user interaction)",
       "update_seconds": "Refresh default view every X seconds (0=never)",
@@ -457,6 +477,7 @@
     }
   },
   "error": {
+    "awaiting_live": "Waiting for live stream to load ...",
     "could_not_render_elements": "Could not render picture elements",
     "could_not_resolve": "Could not resolve media URL",
     "diagnostics": "Card diagnostics. Please review for confidential information prior to sharing",

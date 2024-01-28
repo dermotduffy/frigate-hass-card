@@ -6,7 +6,7 @@ import {
   frigateConditionalSchema,
   OverrideConfigurationKey,
   RawFrigateCardConfig,
-  ViewDisplayMode
+  ViewDisplayMode,
 } from '../config/types';
 import { CardConditionAPI } from './types';
 
@@ -18,6 +18,8 @@ interface ConditionState {
   state?: HassEntities;
   media_loaded?: boolean;
   displayMode?: ViewDisplayMode;
+  triggered?: Set<string>;
+  interaction?: boolean;
 }
 
 export class ConditionEvaluateRequestEvent extends Event {
@@ -133,7 +135,7 @@ export class ConditionsManager {
     this._listeners = [
       () => this._api.getConfigManager().computeOverrideConfig(),
       () => this._api.getAutomationsManager().execute(),
-      ...(listener ? [listener] : [])
+      ...(listener ? [listener] : []),
     ];
   }
 
@@ -242,6 +244,15 @@ export class ConditionsManager {
     }
     if (condition.display_mode) {
       result &&= !!state.displayMode && condition.display_mode === state.displayMode;
+    }
+    if (condition.triggered?.length) {
+      result &&= condition.triggered.some((triggeredCameraID) =>
+        state.triggered?.has(triggeredCameraID),
+      );
+    }
+    if (condition.interaction !== undefined) {
+      result &&=
+        state.interaction !== undefined && condition.interaction === state.interaction;
     }
     return result;
   }

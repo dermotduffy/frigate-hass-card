@@ -271,7 +271,6 @@ describe('MediaPlayerManager', () => {
               },
             ]),
           );
-          vi.mocked(api.getQueryStringManager().generateQueryString).mockReturnValue('');
           vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
           const manager = new MediaPlayerManager(api);
 
