@@ -113,6 +113,12 @@ describe('View Basics', () => {
     view.mergeInContext({ timeline: timelineContext });
     expect(view.context?.live).toEqual(liveContext);
     expect(view.context?.timeline).toEqual(timelineContext);
+
+    // Verify that merging context creates a new context object, as some
+    // downstream users may check for context equality.
+    const oldContext = view.context;
+    view.mergeInContext({ live: liveContext });
+    expect(view.context).not.toBe(oldContext);
   });
 
   it('should remove context', () => {
