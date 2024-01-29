@@ -71,7 +71,7 @@ const createPlugin = (options?: AutoMediaActionsOptionsType): AutoMediaActionsTy
   });
 };
 
-export const callMicrophoneListener = (
+const callMicrophoneListener = (
   microphoneManager: ReadonlyMicrophoneManager,
   action: MicrophoneManagerListenerChange,
   n = 0,

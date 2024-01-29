@@ -1,5 +1,3 @@
-// TODO: menu in hover mode, hold down microphone, should be momentary, appears to stick on?
-
 import {
   fireEvent,
   HomeAssistant,
