@@ -485,4 +485,35 @@ const UPGRADES = [
     },
   ),
   upgradeMoveToWithOverrides('view.timeout_seconds', CONF_VIEW_INTERACTION_SECONDS),
+  upgradeWithOverrides('live.lazy_unload', (data) =>
+    data === 'all' ? ['unselected', 'hidden'] : data === 'never' ? null : arrayify(data),
+  ),
+  upgradeWithOverrides('live.auto_play', (data) =>
+    data === 'all' ? null : data === 'never' ? [] : arrayify(data),
+  ),
+  upgradeWithOverrides('live.auto_pause', (data) =>
+    data === 'all' ? ['unselected', 'hidden'] : data === 'never' ? null : arrayify(data),
+  ),
+  upgradeWithOverrides('live.auto_mute', (data) =>
+    data === 'all' ? null : data === 'never' ? [] : arrayify(data),
+  ),
+  upgradeWithOverrides('live.auto_unmute', (data) =>
+    data === 'all'
+      ? ['selected', 'visible', 'microphone']
+      : data === 'never'
+      ? null
+      : arrayify(data),
+  ),
+  upgradeWithOverrides('media_viewer.auto_play', (data) =>
+    data === 'all' ? null : data === 'never' ? [] : arrayify(data),
+  ),
+  upgradeWithOverrides('media_viewer.auto_pause', (data) =>
+    data === 'all' ? null : data === 'never' ? [] : arrayify(data),
+  ),
+  upgradeWithOverrides('media_viewer.auto_mute', (data) =>
+    data === 'all' ? null : data === 'never' ? [] : arrayify(data),
+  ),
+  upgradeWithOverrides('media_viewer.auto_unmute', (data) =>
+    data === 'all' ? ['selected', 'visible'] : data === 'never' ? null : arrayify(data),
+  ),
 ];

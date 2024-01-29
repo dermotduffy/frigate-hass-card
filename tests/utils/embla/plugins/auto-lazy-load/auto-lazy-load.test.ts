@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { MEDIA_ACTION_NEGATIVE_CONDITIONS } from '../../../../../src/config/types';
 import { AutoLazyLoad } from '../../../../../src/utils/embla/plugins/auto-lazy-load/auto-lazy-load';
 import {
   callEmblaHandler,
@@ -91,7 +92,7 @@ describe('AutoLazyLoad', () => {
       lazyLoadCallback: vi.fn(),
       lazyLoadCount: 3,
       lazyUnloadCallback: lazyUnloadCallback,
-      lazyUnloadCondition: 'all',
+      lazyUnloadConditions: MEDIA_ACTION_NEGATIVE_CONDITIONS,
     });
 
     const children = createTestSlideNodes();
@@ -143,7 +144,7 @@ describe('AutoLazyLoad', () => {
     const plugin = AutoLazyLoad({
       lazyLoadCallback: vi.fn(),
       lazyUnloadCallback: lazyUnloadCallback,
-      lazyUnloadCondition: 'all',
+      lazyUnloadConditions: MEDIA_ACTION_NEGATIVE_CONDITIONS,
     });
 
     const children = createTestSlideNodes();
@@ -172,7 +173,7 @@ describe('AutoLazyLoad', () => {
     const lazyLoadCallback = vi.fn();
     const plugin = AutoLazyLoad({
       lazyLoadCallback: lazyLoadCallback,
-      lazyUnloadCondition: 'all',
+      lazyUnloadConditions: MEDIA_ACTION_NEGATIVE_CONDITIONS,
       // No lazy unload callback.
     });
     const children = createTestSlideNodes();
@@ -200,7 +201,7 @@ describe('AutoLazyLoad', () => {
     vi.spyOn(global.document, 'addEventListener');
 
     const plugin = AutoLazyLoad({
-      lazyUnloadCondition: 'all',
+      lazyUnloadConditions: MEDIA_ACTION_NEGATIVE_CONDITIONS,
       // No callbacks provided.
     });
 

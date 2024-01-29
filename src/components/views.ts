@@ -13,6 +13,7 @@ import {
   ConditionsManagerEpoch,
   getOverridesByKey,
 } from '../card-controller/conditions-manager.js';
+import { ReadonlyMicrophoneManager } from '../card-controller/microphone-manager.js';
 import {
   CardWideConfig,
   FrigateCardConfig,
@@ -60,7 +61,7 @@ export class FrigateCardViews extends LitElement {
   public hide?: boolean;
 
   @property({ attribute: false })
-  public microphoneStream?: MediaStream;
+  public microphoneManager?: ReadonlyMicrophoneManager;
 
   @property({ attribute: false })
   public triggeredCameraIDs?: Set<string>;  
@@ -241,7 +242,7 @@ export class FrigateCardViews extends LitElement {
                 )}
                 .cameraManager=${this.cameraManager}
                 .cardWideConfig=${this.cardWideConfig}
-                .microphoneStream=${this.microphoneStream}
+                .microphoneManager=${this.microphoneManager}
                 .triggeredCameraIDs=${this.triggeredCameraIDs}
                 class="${classMap(liveClasses)}"
               >

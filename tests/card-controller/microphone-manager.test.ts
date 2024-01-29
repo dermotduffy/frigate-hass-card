@@ -190,4 +190,35 @@ describe('MicrophoneManager', () => {
     expect(manager.isConnected()).toBeTruthy();
     expect(api.getCardElementManager().update).toBeCalledTimes(1);
   });
+
+  it('should respect listeners', async () => {
+    const api = createCardAPI();
+    const manager = new MicrophoneManager(api);
+    navigatorMock.mediaDevices.getUserMedia.mockReturnValue(createMockStream());
+
+    const listener = vi.fn();
+    manager.addListener(listener);
+
+    await manager.connect();
+    expect(listener).not.toHaveBeenCalled();
+
+    await manager.mute();
+    expect(listener).not.toHaveBeenCalled();
+
+    await manager.unmute();
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener).toHaveBeenLastCalledWith('unmuted');
+
+    await manager.unmute();
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    await manager.mute();
+    expect(listener).toHaveBeenCalledTimes(2);
+    expect(listener).toHaveBeenLastCalledWith('muted');
+
+    manager.removeListener(listener);
+
+    await manager.unmute();
+    expect(listener).toHaveBeenCalledTimes(2);
+  });
 });

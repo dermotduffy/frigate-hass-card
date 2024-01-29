@@ -75,7 +75,8 @@ export const CONF_VIEW_INTERACTION_SECONDS = `${CONF_VIEW}.interaction_seconds` 
 export const CONF_VIEW_UPDATE_CYCLE_CAMERA = `${CONF_VIEW}.update_cycle_camera` as const;
 export const CONF_VIEW_UPDATE_FORCE = `${CONF_VIEW}.update_force` as const;
 export const CONF_VIEW_UPDATE_SECONDS = `${CONF_VIEW}.update_seconds` as const;
-export const CONF_VIEW_RESET_AFTER_INTERACTION = `${CONF_VIEW}.reset_after_interaction` as const;
+export const CONF_VIEW_RESET_AFTER_INTERACTION =
+  `${CONF_VIEW}.reset_after_interaction` as const;
 export const CONF_VIEW_SCAN = `${CONF_VIEW}.scan` as const;
 export const CONF_VIEW_SCAN_ENABLED = `${CONF_VIEW_SCAN}.enabled` as const;
 export const CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS =
@@ -236,6 +237,8 @@ export const CONF_LIVE_SHOW_IMAGE_DURING_LOAD =
   `${CONF_LIVE}.show_image_during_load` as const;
 export const CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS =
   `${CONF_LIVE}.microphone.disconnect_seconds` as const;
+export const CONF_LIVE_MICROPHONE_MUTE_AFTER_MICROPHONE_MUTE_SECONDS =
+  `${CONF_LIVE}.microphone.mute_after_microphone_mute_seconds` as const;
 export const CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED =
   `${CONF_LIVE}.microphone.always_connected` as const;
 export const CONF_LIVE_ZOOMABLE = `${CONF_LIVE}.zoomable` as const;

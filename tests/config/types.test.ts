@@ -58,10 +58,10 @@ describe('config defaults', () => {
         zoomable: true,
       },
       live: {
-        auto_mute: 'all',
-        auto_pause: 'never',
-        auto_play: 'all',
-        auto_unmute: 'never',
+        auto_mute: ['unselected', 'hidden', 'microphone'],
+        auto_pause: [],
+        auto_play: ['selected', 'visible'],
+        auto_unmute: ['microphone'],
         controls: {
           builtin: true,
           next_previous: {
@@ -96,10 +96,11 @@ describe('config defaults', () => {
         },
         draggable: true,
         lazy_load: true,
-        lazy_unload: 'never',
+        lazy_unload: [],
         microphone: {
           always_connected: false,
           disconnect_seconds: 60,
+          mute_after_microphone_mute_seconds: 60,
         },
         preload: false,
         show_image_during_load: true,
@@ -122,10 +123,10 @@ describe('config defaults', () => {
         },
       },
       media_viewer: {
-        auto_mute: 'all',
-        auto_pause: 'all',
-        auto_play: 'all',
-        auto_unmute: 'never',
+        auto_mute: ['unselected', 'hidden'],
+        auto_pause: ['unselected', 'hidden'],
+        auto_play: ['selected', 'visible'],
+        auto_unmute: [],
         controls: {
           builtin: true,
           next_previous: {
@@ -472,4 +473,15 @@ it('should strip trailing slashes from go2rtc url', () => {
   });
   expect(config).toBeTruthy();
   expect(config.cameras[0].go2rtc.url).toBe('https://my-custom-go2rtc');
+});
+
+it('media viewer should not support microphone based conditions', () => {
+  expect(() =>
+    createConfig({
+      cameras: [],
+      media_viewer: {
+        auto_unmute: 'microphone' as const,
+      },
+    }),
+  ).toThrowError();
 });

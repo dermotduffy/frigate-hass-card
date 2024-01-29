@@ -517,12 +517,12 @@ See the [fully expanded live configuration example](#config-expanded-live) for h
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `preload` | `false` | :heavy_multiplication_x: | Whether or not to preload the live view. Preloading causes the live view to render in the background regardless of what view is actually shown, so it's instantly available when requested. This consumes additional network/CPU resources continually. |
-| `auto_play` | `all` | :heavy_multiplication_x: | Whether to automatically play live camera feeds. `never` will never automatically play, `selected` will automatically play when a camera is selected in the carousel, `visible` will automatically play when the browser/tab becomes visible or `all` on any opportunity to automatically play (i.e. either case). Some live providers (e.g. `webrtc-card`, `jsmpeg`) do not support the prevention of automatic play on initial load, but should still respect the value of this flag on play-after-pause.|
-| `auto_pause` | `never` | :heavy_multiplication_x: | Whether to automatically pause live camera feeds. `never` will never automatically pause, `unselected` will automatically pause when a camera is unselected in the carousel, `hidden` will automatically pause when the browser/tab becomes hidden or `all` on any opportunity to automatically pause (i.e. either case). **Caution**: Some live providers (e.g. `jsmpeg`) may not offer human-accessible means to resume play if it is paused, unless the `auto_play` option (above) is used.|
-| `auto_mute` | `all` | :heavy_multiplication_x: | Whether to automatically mute live camera feeds. `never` will never automatically mute, `unselected` will automatically mute when a camera is unselected in the carousel, `hidden` will automatically mute when the browser/tab becomes hidden or `all` on any opportunity to automatically mute (i.e. either case). Note that if `auto_play` is enabled, the stream may mute itself automatically in order to honor the `auto_play` setting, as some browsers will not auto play media that is unmuted -- that is to say, where necessary, the `auto_play` parameter will take priority over the `auto_mute` parameter.|
-| `auto_unmute` | `never` | :heavy_multiplication_x: | Whether to automatically unmute live camera feeds. `never` will never automatically unmute, `selected` will automatically unmute when a camera is unselected in the carousel, `visible` will automatically unmute when the browser/tab becomes visible or `all` on any opportunity to automatically unmute (i.e. either case).|
+| `auto_play` | `[selected, visible]` | :heavy_multiplication_x: | An array of conditions in which live camera feeds are automatically played.`selected` will automatically play when a camera is selected in the carousel and `visible` will automatically play when the browser/tab becomes visible. Use an empty list (`[]`) to never automatically play. Some live providers (e.g. `webrtc-card`, `jsmpeg`) do not support the prevention of automatic play on initial load, but should still respect the value of this flag on play-after-pause.|
+| `auto_pause` | `[]` | :heavy_multiplication_x: | An array of conditions in which live camera feeds are automatically paused. `unselected` will automatically pause when a camera is unselected in the carousel and `hidden` will automatically pause when the browser/tab becomes hidden. Use an empty list (`[]`) to never automatically pause. **Caution**: Some live providers (e.g. `jsmpeg`) may not offer human-accessible means to resume play if it is paused, unless the `auto_play` option (above) is used.|
+| `auto_mute` | `[unselected, hidden, microphone]` | :heavy_multiplication_x: | An array of conditions in which live camera feeds are muted. `unselected` will automatically mute when a camera is unselected in the carousel, `hidden` will automatically mute when the browser/tab becomes hidden or `microphone` will automatically mute after the microphone is muted as long as the camera stays selected (see the `live.microphone.mute_after_microphone_mute_seconds` to control how long after). Use an empty list (`[]`) to never automatically mute. Note that if `auto_play` is enabled, the stream may mute itself automatically in order to honor the `auto_play` setting, as some browsers will not auto play media that is unmuted -- that is to say, where necessary, the `auto_play` parameter will take priority over the `auto_mute` parameter.|
+| `auto_unmute` | `[microphone]` | :heavy_multiplication_x: | An array of conditions in which live camera feeds are unmuted. `selected` will automatically unmute when a camera is unselected in the carousel, `visible` will automatically unmute when the browser/tab becomes visible or `microphone` will automatically unmute after the microphone is unmuted. Use an empty list (`[]`) to never automatically unmute.|
 | `lazy_load` | `true` | :heavy_multiplication_x: | Whether or not to lazily load cameras in the camera carousel. Setting this will `false` will cause all cameras to load simultaneously when the `live` carousel is opened (or cause all cameras to load continually if both `lazy_load` and `preload` are `true`). This will result in a smoother carousel experience at a cost of (potentially) a substantial amount of continually streamed data. |
-| `lazy_unload` | `never` | :heavy_multiplication_x: | When to lazily **un**load lazyily-loaded cameras. `never` will never lazily-unload, `unselected` will lazy-unload a camera when it is unselected in the carousel, `hidden` will lazy-unload all cameras when the browser/tab becomes hidden or `all` on any opportunity to lazily unload (i.e. either case). This will cause a reloading delay on revisiting that camera in the carousel but will save the streaming network resources that are otherwise consumed. This option has no effect if `lazy_load` is false. Some live providers (e.g. `webrtc-card`) implement their own lazy unloading independently which may occur regardless of the value of this setting.|
+| `lazy_unload` | `[]` | :heavy_multiplication_x: | An array of conditions in which live camera feeds are unloaded. `unselected` will lazy-unload a camera when it is unselected in the carousel and `hidden` will lazy-unload all cameras when the browser/tab becomes hidden. Use an empty list (`[]`) to never automatically unload. This will cause a reloading delay on revisiting that camera in the carousel but will save the streaming network resources that are otherwise consumed. This option has no effect if `lazy_load` is false. Some live providers (e.g. `webrtc-card`) implement their own lazy unloading independently which may occur regardless of the value of this setting.|
 | `draggable` | `true` | :heavy_multiplication_x: | Whether or not the live carousel can be dragged left or right, via touch/swipe and mouse dragging. |
 | `zoomable` | `true` | :white_check_mark: | Whether or not the live carousel can be zoomed and panned, via touch/pinch and mouse scroll wheel with `ctrl` held. |
 | `transition_effect` | `slide` | :heavy_multiplication_x: | Effect to apply as a transition between live cameras. Accepted values: `slide` or `none`. |
@@ -633,7 +633,8 @@ live:
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `always_connected` | `false` | :white_check_mark: | Whether or not to keep the microphone stream continually connected while the card is running, or only when microphone is used (default). In the latter case there'll be a connection reset when the microphone is first used -- using this option can avoid that reset.|
-| `disconnect_seconds` | `60` | :white_check_mark: | The number of seconds after microphone usage to disconnect the microphone from the stream. `0` implies never. Not relevant if `always_connected` is `true`.|
+| `disconnect_seconds` | `90` | :white_check_mark: | The number of seconds after microphone usage to disconnect the microphone from the stream. `0` implies never. Not relevant if `always_connected` is `true`.|
+| `mute_after_microphone_mute_seconds` | `60` | :white_check_mark: | The number of seconds after the microphone mutes to automatically mute the inbound audio when `live.auto_mute` includes `microphone`.|
 
 See [Using 2-way audio](#using-2-way-audio) for more information about the very particular requirements that must be followed for 2-way audio to work.
 
@@ -704,10 +705,10 @@ See the [fully expanded Media viewer configuration example](#config-expanded-med
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `auto_play` | `all` | :heavy_multiplication_x: | Whether to automatically play events. `never` will never automatically play, `selected` will automatically play when an event is selected in the carousel, `visible` will automatically play when the browser/tab becomes visible or `all` on any opportunity to automatically play (i.e. either case).|
-| `auto_pause` | `all` | :heavy_multiplication_x: | Whether to automatically pause events. `never` will never automatically pause, `unselected` will automatically pause when an event is unselected in the carousel, `hidden` will automatically pause when the browser/tab becomes hidden or `all` on any opportunity to automatically pause (i.e. either case).|
-| `auto_mute` | `all` | :heavy_multiplication_x: | Whether to automatically mute events. `never` will never automatically mute, `unselected` will automatically mute when an event is unselected in the carousel, `hidden` will automatically mute when the browser/tab becomes hidden or `all` on any opportunity to automatically mute (i.e. either case).|
-| `auto_unmute` | `never` | :heavy_multiplication_x: | Whether to automatically unmute events. `never` will never automatically unmute, `selected` will automatically unmute when an event is selected in the carousel, `visible` will automatically unmute when the browser/tab becomes visible or `all` on any opportunity to automatically unmute (i.e. either case). Note that some browsers will not allow automated unmute until the user has interacted with the page in some way -- if the user has not then the browser may pause the media instead.|
+| `auto_play` | `[selected, visible]` | :heavy_multiplication_x: | An array of conditions in which media items are automatically played.`selected` will automatically play when a media item is selected in the carousel and `visible` will automatically play when the browser/tab becomes visible. Use an empty list (`[]`) to never automatically play.|
+| `auto_pause` | `[unselected, hidden]` | :heavy_multiplication_x: | An array of conditions in which media items are automatically paused. `unselected` will automatically pause when a media item is unselected in the carousel and `hidden` will automatically pause when the browser/tab becomes hidden. Use an empty list (`[]`) to never automatically pause.|
+| `auto_mute` | `[unselected, hidden]` | :heavy_multiplication_x: | An array of conditions in which media items are muted. `unselected` will automatically mute when a media item is unselected in the carousel and `hidden` will automatically mute when the browser/tab becomes hidden. Use an empty list (`[]`) to never automatically mute.|
+| `auto_unmute` | `[]` | :heavy_multiplication_x: | An array of conditions in which media items are unmuted. `selected` will automatically unmute when a media item is unselected in the carousel and `visible` will automatically unmute when the browser/tab becomes visible. Use an empty list (`[]`) to never automatically unmute. Note that some browsers will not allow automated unmute until the user has interacted with the page in some way -- if the user has not then the browser may pause the media instead.|
 | `lazy_load` | `true` | :heavy_multiplication_x: | Whether or not to lazily load media in the Media viewer carousel. Setting this will false will fetch all media immediately which may make the carousel experience smoother at a cost of (potentially) a substantial number of simultaneous media fetches on load. |
 | `draggable` | `true` | :heavy_multiplication_x: | Whether or not the Media viewer carousel can be dragged left or right, via touch/swipe and mouse dragging. |
 | `zoomable` | `true` | :heavy_multiplication_x: | Whether or not the Media Viewer can be zoomed and panned, via touch/pinch and mouse scroll wheel with `ctrl` held. |
@@ -2057,13 +2058,18 @@ Reference: [Live Options](#live-options).
 
 ```yaml
 live:
-  auto_play: all
-  auto_pause: never
-  auto_mute: all
-  auto_unmute: never
+  auto_play:
+    - selected
+    - visible
+  auto_pause: []
+  auto_mute:
+    - unselected
+    - hidden
+  auto_unmute:
+    - microphone
   preload: false
   lazy_load: true
-  lazy_unload: never
+  lazy_unload: []
   draggable: true
   zoomable: true
   transition_effect: slide
@@ -2097,7 +2103,8 @@ live:
       y: 50
   microphone:
     always_connected: false
-    disconnect_seconds: 60
+    disconnect_seconds: 90
+    mute_after_microphone_mute_seconds: 60
   ptz:
     mode: on
     position: bottom-right
@@ -2150,10 +2157,16 @@ Reference: [Media Viewer Options](#event-viewer-options).
 
 ```yaml
 media_viewer:
-  auto_play: all
-  auto_pause: all
-  auto_mute: all
-  auto_unmute: never
+  auto_play:
+    - selected
+    - visible
+  auto_pause:
+    - unselected
+    - hidden
+  auto_mute:
+    - unselected
+    - hidden
+  auto_unmute: []
   lazy_load: true
   draggable: true
   zoomable: true
@@ -4346,7 +4359,7 @@ Your browser will not allow a page/script (like this card) to pass credentials t
 
 ### Chrome autoplays when a tab becomes visible again
 
-Even if `live.auto_play` or `media_viewer.auto_play` is set to `never`, Chrome itself will still auto play a video that was previously playing prior to the tab being hidden, once that tab is visible again. This behavior cannot be influenced by the card. Other browsers (e.g. Firefox, Safari) do not exhibit this behavior.
+Even if `live.auto_play` or `media_viewer.auto_play` is set to `[]`, Chrome itself will still auto play a video that was previously playing prior to the tab being hidden, once that tab is visible again. This behavior cannot be influenced by the card. Other browsers (e.g. Firefox, Safari) do not exhibit this behavior.
 
 ### The `live` view just shows a blank white image during loading
 

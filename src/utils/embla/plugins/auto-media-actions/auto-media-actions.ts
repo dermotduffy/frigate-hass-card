@@ -3,12 +3,17 @@ import { CreateOptionsType } from 'embla-carousel/components/Options.js';
 import { OptionsHandlerType } from 'embla-carousel/components/OptionsHandler.js';
 import { CreatePluginType, LoosePluginType } from 'embla-carousel/components/Plugins.js';
 import {
+  MicrophoneManagerListenerChange,
+  ReadonlyMicrophoneManager,
+} from '../../../../card-controller/microphone-manager.js';
+import {
   AutoMuteCondition,
   AutoPauseCondition,
   AutoPlayCondition,
   AutoUnmuteCondition,
 } from '../../../../config/types.js';
 import { FrigateCardMediaPlayer } from '../../../../types.js';
+import { Timer } from '../../../timer.js';
 
 declare module 'embla-carousel/components/Plugins' {
   interface EmblaPluginsType {
@@ -19,10 +24,13 @@ declare module 'embla-carousel/components/Plugins' {
 type OptionsType = CreateOptionsType<{
   playerSelector?: string;
 
-  autoPlayCondition?: AutoPlayCondition;
-  autoUnmuteCondition?: AutoUnmuteCondition;
-  autoPauseCondition?: AutoPauseCondition;
-  autoMuteCondition?: AutoMuteCondition;
+  autoPlayConditions?: readonly AutoPlayCondition[];
+  autoUnmuteConditions?: readonly AutoUnmuteCondition[];
+  autoPauseConditions?: readonly AutoPauseCondition[];
+  autoMuteConditions?: readonly AutoMuteCondition[];
+
+  microphoneManager?: ReadonlyMicrophoneManager;
+  microphoneMuteSeconds?: number;
 }>;
 export type AutoMediaActionsOptionsType = Partial<OptionsType>;
 
@@ -43,6 +51,7 @@ export function AutoMediaActions(
   let emblaApi: EmblaCarouselType;
   let slides: HTMLElement[];
   let hadInitialIntersectionCall: boolean | null = false;
+  const microphoneMuteTimer = new Timer();
 
   const intersectionObserver: IntersectionObserver = new IntersectionObserver(
     intersectionHandler,
@@ -59,35 +68,23 @@ export function AutoMediaActions(
 
     slides = emblaApi.slideNodes();
 
-    if (
-      options.autoPlayCondition &&
-      ['all', 'selected'].includes(options.autoPlayCondition)
-    ) {
+    if (options.autoPlayConditions?.includes('selected')) {
       // Auto play when the media loads not necessarily when the slide is
       // selected (to allow for lazyloading).
       emblaApi.containerNode().addEventListener('frigate-card:media:loaded', play);
     }
 
-    if (
-      options.autoUnmuteCondition &&
-      ['all', 'selected'].includes(options.autoUnmuteCondition)
-    ) {
+    if (options.autoUnmuteConditions?.includes('selected')) {
       // Auto unmute when the media loads not necessarily when the slide is
       // selected (to allow for lazyloading).
       emblaApi.containerNode().addEventListener('frigate-card:media:loaded', unmute);
     }
 
-    if (
-      options.autoPauseCondition &&
-      ['all', 'unselected'].includes(options.autoPauseCondition)
-    ) {
+    if (options.autoPauseConditions?.includes('unselected')) {
       emblaApi.on('select', pausePrevious);
     }
 
-    if (
-      options.autoMuteCondition &&
-      ['all', 'unselected'].includes(options.autoMuteCondition)
-    ) {
+    if (options.autoMuteConditions?.includes('unselected')) {
       emblaApi.on('select', mutePrevious);
     }
 
@@ -96,34 +93,54 @@ export function AutoMediaActions(
 
     document.addEventListener('visibilitychange', visibilityHandler);
     intersectionObserver.observe(emblaApi.containerNode());
+
+    if (
+      options.autoUnmuteConditions?.includes('microphone') ||
+      options.autoMuteConditions?.includes('microphone')
+    ) {
+      // For some reason mergeOptions() appears to break mock objects passed in,
+      // so unittesting doesn't work when using options (vs userOptions where it
+      // does).
+      userOptions.microphoneManager?.addListener(microphoneChangeHandler);
+
+      // Stop the microphone mute timer if the media changes.
+      emblaApi
+        .containerNode()
+        .addEventListener('frigate-card:media:loaded', stopMicrophoneTimer);
+    }
+  }
+
+  function stopMicrophoneTimer(): void {
+    microphoneMuteTimer.stop();
+  }
+
+  function microphoneChangeHandler(change: MicrophoneManagerListenerChange): void {
+    if (change === 'unmuted' && options.autoUnmuteConditions?.includes('microphone')) {
+      unmute();
+    } else if (
+      change === 'muted' &&
+      options.autoMuteConditions?.includes('microphone')
+    ) {
+      microphoneMuteTimer.start(options.microphoneMuteSeconds ?? 60, () => {
+        mute();
+      });
+    }
   }
 
   function destroy(): void {
-    if (
-      options.autoPlayCondition &&
-      ['all', 'selected'].includes(options.autoPlayCondition)
-    ) {
+    if (options.autoPlayConditions?.includes('selected')) {
       emblaApi.containerNode().removeEventListener('frigate-card:media:loaded', play);
     }
 
-    if (
-      options.autoUnmuteCondition &&
-      ['all', 'selected'].includes(options.autoUnmuteCondition)
-    ) {
+    if (options.autoUnmuteConditions?.includes('selected')) {
       emblaApi.containerNode().removeEventListener('frigate-card:media:loaded', unmute);
     }
 
-    if (
-      options.autoPauseCondition &&
-      ['all', 'unselected'].includes(options.autoPauseCondition)
-    ) {
+    if (options.autoPauseConditions?.includes('unselected')) {
       emblaApi.off('select', pausePrevious);
     }
 
-    if (
-      options.autoMuteCondition &&
-      ['all', 'unselected'].includes(options.autoMuteCondition)
-    ) {
+    if (options.autoMuteConditions?.includes('unselected')) {
       emblaApi.off('select', mutePrevious);
     }
 
@@ -132,33 +149,31 @@ export function AutoMediaActions(
 
     document.removeEventListener('visibilitychange', visibilityHandler);
     intersectionObserver.disconnect();
+
+    if (
+      options.autoUnmuteConditions?.includes('microphone') ||
+      options.autoMuteConditions?.includes('microphone')
+    ) {
+      userOptions.microphoneManager?.removeListener(microphoneChangeHandler);
+      emblaApi
+        .containerNode()
+        .removeEventListener('frigate-card:media:loaded', stopMicrophoneTimer);
+    }
   }
 
   function actOnVisibilityChange(visible: boolean): void {
     if (visible) {
-      if (
-        options.autoPlayCondition &&
-        ['all', 'visible'].includes(options.autoPlayCondition)
-      ) {
+      if (options.autoPlayConditions?.includes('visible')) {
         play();
       }
-      if (
-        options.autoUnmuteCondition &&
-        ['all', 'visible'].includes(options.autoUnmuteCondition)
-      ) {
+      if (options.autoUnmuteConditions?.includes('visible')) {
         unmute();
       }
     } else {
-      if (
-        options.autoPauseCondition &&
-        ['all', 'hidden'].includes(options.autoPauseCondition)
-      ) {
+      if (options.autoPauseConditions?.includes('hidden')) {
         pauseAll();
       }
-      if (
-        options.autoMuteCondition &&
-        ['all', 'hidden'].includes(options.autoMuteCondition)
-      ) {
+      if (options.autoMuteConditions?.includes('hidden')) {
         muteAll();
       }
     }

@@ -113,6 +113,7 @@ import {
   CONF_LIVE_LAZY_UNLOAD,
   CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED,
   CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS,
+  CONF_LIVE_MICROPHONE_MUTE_AFTER_MICROPHONE_MUTE_SECONDS,
   CONF_LIVE_PRELOAD,
   CONF_LIVE_SHOW_IMAGE_DURING_LOAD,
   CONF_LIVE_TRANSITION_EFFECT,
@@ -519,18 +520,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
   protected _mediaActionNegativeConditions: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'all', label: localize('config.common.media_action_conditions.all') },
     {
       value: 'unselected',
       label: localize('config.common.media_action_conditions.unselected'),
     },
     { value: 'hidden', label: localize('config.common.media_action_conditions.hidden') },
-    { value: 'never', label: localize('config.common.media_action_conditions.never') },
   ];
 
   protected _mediaActionPositiveConditions: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'all', label: localize('config.common.media_action_conditions.all') },
     {
       value: 'selected',
       label: localize('config.common.media_action_conditions.selected'),
@@ -539,7 +537,22 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       value: 'visible',
       label: localize('config.common.media_action_conditions.visible'),
     },
-    { value: 'never', label: localize('config.common.media_action_conditions.never') },
+  ];
+
+  protected _mediaLiveUnmuteConditions: EditorSelectOption[] = [
+    ...this._mediaActionPositiveConditions,
+    {
+      value: 'microphone',
+      label: localize('config.common.media_action_conditions.microphone_unmute'),
+    },
+  ];
+
+  protected _mediaLiveMuteConditions: EditorSelectOption[] = [
+    ...this._mediaActionNegativeConditions,
+    {
+      value: 'microphone',
+      label: localize('config.common.media_action_conditions.microphone_mute'),
+    },
   ];
 
   protected _layoutFits: EditorSelectOption[] = [
@@ -2011,22 +2024,37 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderOptionSelector(
                   CONF_LIVE_LAZY_UNLOAD,
                   this._mediaActionNegativeConditions,
+                  {
+                    multiple: true,
+                  },
                 )}
                 ${this._renderOptionSelector(
                   CONF_LIVE_AUTO_PLAY,
                   this._mediaActionPositiveConditions,
+                  {
+                    multiple: true,
+                  },
                 )}
                 ${this._renderOptionSelector(
                   CONF_LIVE_AUTO_PAUSE,
                   this._mediaActionNegativeConditions,
+                  {
+                    multiple: true,
+                  },
                 )}
                 ${this._renderOptionSelector(
                   CONF_LIVE_AUTO_MUTE,
-                  this._mediaActionNegativeConditions,
+                  this._mediaLiveMuteConditions,
+                  {
+                    multiple: true,
+                  },
                 )}
                 ${this._renderOptionSelector(
                   CONF_LIVE_AUTO_UNMUTE,
-                  this._mediaActionPositiveConditions,
+                  this._mediaLiveUnmuteConditions,
+                  {
+                    multiple: true,
+                  },
                 )}
                 ${this._renderOptionSelector(
                   CONF_LIVE_TRANSITION_EFFECT,
@@ -2153,6 +2181,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED,
                       this._defaults.live.microphone.always_connected,
                     )}
+                    ${this._renderNumberInput(
+                      CONF_LIVE_MICROPHONE_MUTE_AFTER_MICROPHONE_MUTE_SECONDS,
+                    )}
                   `,
                 )}
               </div>
@@ -2182,18 +2213,30 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderOptionSelector(
                 CONF_MEDIA_VIEWER_AUTO_PLAY,
                 this._mediaActionPositiveConditions,
+                {
+                  multiple: true,
+                },
               )}
               ${this._renderOptionSelector(
                 CONF_MEDIA_VIEWER_AUTO_PAUSE,
                 this._mediaActionNegativeConditions,
+                {
+                  multiple: true,
+                },
               )}
               ${this._renderOptionSelector(
                 CONF_MEDIA_VIEWER_AUTO_MUTE,
                 this._mediaActionNegativeConditions,
+                {
+                  multiple: true,
+                },
               )}
               ${this._renderOptionSelector(
                 CONF_MEDIA_VIEWER_AUTO_UNMUTE,
                 this._mediaActionPositiveConditions,
+                {
+                  multiple: true,
+                },
               )}
               ${this._renderSwitch(
                 CONF_MEDIA_VIEWER_DRAGGABLE,
