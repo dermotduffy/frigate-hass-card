@@ -180,7 +180,23 @@ export class FrigateCardMenu extends LitElement {
       if (menuToggle) {
         this.expanded = !this.expanded;
       } else if (tookAction) {
-        this.expanded = false;
+        // Don't close the menu if there is another action to come.
+        const holdAction = getActionConfigGivenAction('hold', config);
+        const doubleTapAction = getActionConfigGivenAction('double_tap', config);
+        const tapAction = getActionConfigGivenAction('tap', config);
+        const endTapAction = getActionConfigGivenAction('end_tap', config);
+
+        if (
+          interaction === 'end_tap' ||
+          (interaction === 'start_tap' &&
+            !holdAction &&
+            !doubleTapAction &&
+            !tapAction &&
+            !endTapAction) ||
+          (interaction !== 'end_tap' && !endTapAction)
+        ) {
+          this.expanded = false;
+        }
       }
     }
   }
@@ -222,11 +238,6 @@ export class FrigateCardMenu extends LitElement {
     }
   }
 
-  /**
-   * Render a button.
-   * @param button The button configuration to render.
-   * @returns A rendered template or void.
-   */
   protected _renderButton(button: MenuItem): TemplateResult | void {
     if (button.type === 'custom:frigate-card-menu-submenu') {
       return html` <frigate-card-submenu
@@ -292,10 +303,6 @@ export class FrigateCardMenu extends LitElement {
     </ha-icon-button>`;
   }
 
-  /**
-   * Render the menu.
-   * @returns A rendered template or void.
-   */
   protected render(): TemplateResult | void {
     if (!this._menuConfig) {
       return;
@@ -336,9 +343,6 @@ export class FrigateCardMenu extends LitElement {
       </div>`;
   }
 
-  /**
-   * Get styles.
-   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(menuStyle);
   }
