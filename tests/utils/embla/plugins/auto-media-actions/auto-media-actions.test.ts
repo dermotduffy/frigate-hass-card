@@ -1,4 +1,16 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import add from 'date-fns/add';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
+import {
+  MicrophoneManagerListenerChange,
+  ReadonlyMicrophoneManager,
+} from '../../../../../src/card-controller/microphone-manager';
+import {
+  MEDIA_ACTION_NEGATIVE_CONDITIONS,
+  MEDIA_ACTION_POSITIVE_CONDITIONS,
+  MEDIA_MUTE_CONDITIONS,
+  MEDIA_UNMUTE_CONDITIONS,
+} from '../../../../../src/config/types';
 import { FrigateCardMediaPlayer } from '../../../../../src/types';
 import {
   AutoMediaActions,
@@ -50,18 +62,33 @@ const createPlayerSlideNodes = (n = 10): HTMLElement[] => {
 const createPlugin = (options?: AutoMediaActionsOptionsType): AutoMediaActionsType => {
   return AutoMediaActions({
     playerSelector: 'video',
-    autoPlayCondition: 'all',
-    autoUnmuteCondition: 'all',
-    autoPauseCondition: 'all',
-    autoMuteCondition: 'all',
+    autoPlayConditions: MEDIA_ACTION_POSITIVE_CONDITIONS,
+    autoUnmuteConditions: MEDIA_UNMUTE_CONDITIONS,
+    autoPauseConditions: MEDIA_ACTION_NEGATIVE_CONDITIONS,
+    autoMuteConditions: MEDIA_MUTE_CONDITIONS,
+    microphoneManager: mock<ReadonlyMicrophoneManager>(),
     ...options,
   });
+};
+
+export const callMicrophoneListener = (
+  microphoneManager: ReadonlyMicrophoneManager,
+  action: MicrophoneManagerListenerChange,
+  n = 0,
+): void => {
+  const mock = vi.mocked(microphoneManager.addListener).mock;
+  mock.calls[n][0](action);
 };
 
 // @vitest-environment jsdom
 describe('AutoMediaActions', () => {
   beforeAll(() => {
     vi.stubGlobal('IntersectionObserver', IntersectionObserverMock);
+    vi.useFakeTimers();
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
   });
 
   beforeEach(() => {
@@ -74,8 +101,14 @@ describe('AutoMediaActions', () => {
   });
 
   it('should init without any conditions', () => {
-    const plugin = AutoMediaActions();
-
+    const microphoneManager = mock<ReadonlyMicrophoneManager>();
+    const plugin = createPlugin({
+      autoPlayConditions: [],
+      autoUnmuteConditions: [],
+      autoPauseConditions: [],
+      autoMuteConditions: [],
+      microphoneManager: microphoneManager,
+    });
     const parent = createParent();
     const addEventListener = vi.fn();
     parent.addEventListener = addEventListener;
@@ -86,6 +119,7 @@ describe('AutoMediaActions', () => {
     expect(emblaApi.on).toBeCalledWith('destroy', expect.anything());
     expect(emblaApi.on).not.toBeCalledWith('select', expect.anything());
     expect(addEventListener).not.toBeCalled();
+    expect(microphoneManager.addListener).not.toBeCalled();
   });
 
   it('should destroy', () => {
@@ -105,7 +139,14 @@ describe('AutoMediaActions', () => {
   });
 
   it('should destroy without any conditions', () => {
-    const plugin = AutoMediaActions();
+    const microphoneManager = mock<ReadonlyMicrophoneManager>();
+    const plugin = createPlugin({
+      autoPlayConditions: [],
+      autoUnmuteConditions: [],
+      autoPauseConditions: [],
+      autoMuteConditions: [],
+      microphoneManager: microphoneManager,
+    });
     const parent = createParent();
     const removeEventListener = vi.fn();
     parent.removeEventListener = removeEventListener;
@@ -118,6 +159,7 @@ describe('AutoMediaActions', () => {
     expect(emblaApi.off).toBeCalledWith('destroy', expect.anything());
     expect(emblaApi.off).not.toBeCalledWith('select', expect.anything());
     expect(removeEventListener).not.toBeCalled();
+    expect(microphoneManager.removeListener).not.toBeCalled();
   });
 
   it('should mute and pause on destroy', () => {
@@ -300,5 +342,114 @@ describe('AutoMediaActions', () => {
       expect(getPlayer(child, 'video')?.pause).toBeCalled();
       expect(getPlayer(child, 'video')?.mute).toBeCalled();
     }
+  });
+
+  describe('should handle microphone triggers', () => {
+    it('should unmute on microphone unmute', () => {
+      const microphoneManager = mock<ReadonlyMicrophoneManager>();
+      const plugin = createPlugin({ microphoneManager: microphoneManager });
+      const children = createPlayerSlideNodes();
+      const emblaApi = createEmblaApiInstance({
+        slideNodes: children,
+        selectedScrollSnap: 5,
+      });
+
+      plugin.init(emblaApi, createTestEmblaOptionHandler());
+
+      callMicrophoneListener(microphoneManager, 'unmuted');
+
+      expect(getPlayer(children[5], 'video')?.unmute).toBeCalled();
+    });
+
+    it('should not unmute on microphone unmute when not configured', () => {
+      const microphoneManager = mock<ReadonlyMicrophoneManager>();
+      const plugin = createPlugin({
+        microphoneManager: microphoneManager,
+        autoUnmuteConditions: [],
+      });
+      const children = createPlayerSlideNodes();
+      const emblaApi = createEmblaApiInstance({
+        slideNodes: children,
+        selectedScrollSnap: 5,
+      });
+
+      plugin.init(emblaApi, createTestEmblaOptionHandler());
+
+      callMicrophoneListener(microphoneManager, 'unmuted');
+
+      expect(getPlayer(children[5], 'video')?.unmute).not.toBeCalled();
+    });
+
+    it('should mute on microphone mute after default delay', () => {
+      const start = new Date('2024-01-28T14:42');
+
+      const microphoneManager = mock<ReadonlyMicrophoneManager>();
+      const plugin = createPlugin({ microphoneManager: microphoneManager });
+      const children = createPlayerSlideNodes();
+      const emblaApi = createEmblaApiInstance({
+        slideNodes: children,
+        selectedScrollSnap: 5,
+      });
+
+      plugin.init(emblaApi, createTestEmblaOptionHandler());
+
+      vi.setSystemTime(start);
+      callMicrophoneListener(microphoneManager, 'muted');
+
+      expect(getPlayer(children[5], 'video')?.mute).not.toBeCalled();
+      vi.setSystemTime(add(start, { seconds: 60 }));
+      vi.runOnlyPendingTimers();
+      expect(getPlayer(children[5], 'video')?.mute).toBeCalled();
+    });
+
+    it('should mute on microphone mute after configured delay', () => {
+      const start = new Date('2024-01-28T14:42');
+
+      const microphoneManager = mock<ReadonlyMicrophoneManager>();
+      const plugin = createPlugin({
+        microphoneManager: microphoneManager,
+        microphoneMuteSeconds: 30,
+      });
+      const children = createPlayerSlideNodes();
+      const emblaApi = createEmblaApiInstance({
+        slideNodes: children,
+        selectedScrollSnap: 5,
+      });
+
+      plugin.init(emblaApi, createTestEmblaOptionHandler());
+
+      vi.setSystemTime(start);
+      callMicrophoneListener(microphoneManager, 'muted');
+
+      expect(getPlayer(children[5], 'video')?.mute).not.toBeCalled();
+      vi.setSystemTime(add(start, { seconds: 30 }));
+      vi.runOnlyPendingTimers();
+      expect(getPlayer(children[5], 'video')?.mute).toBeCalled();
+    });
+
+    it('should not mute on microphone mute after delay when not configured', () => {
+      const start = new Date('2024-01-28T14:42');
+
+      const microphoneManager = mock<ReadonlyMicrophoneManager>();
+      const plugin = createPlugin({
+        microphoneManager: microphoneManager,
+        autoMuteConditions: [],
+      });
+      const children = createPlayerSlideNodes();
+      const emblaApi = createEmblaApiInstance({
+        slideNodes: children,
+        selectedScrollSnap: 5,
+      });
+
+      plugin.init(emblaApi, createTestEmblaOptionHandler());
+
+      vi.setSystemTime(start);
+      callMicrophoneListener(microphoneManager, 'muted');
+
+      expect(getPlayer(children[5], 'video')?.mute).not.toBeCalled();
+      vi.setSystemTime(add(start, { seconds: 60 }));
+      vi.runOnlyPendingTimers();
+      expect(getPlayer(children[5], 'video')?.mute).not.toBeCalled();
+    });
   });
 });

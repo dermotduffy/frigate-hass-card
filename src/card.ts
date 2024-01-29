@@ -306,7 +306,7 @@ class FrigateCard extends LitElement {
                 .getConditionsManager()
                 ?.getEpoch()}
               .hide=${!!this._controller.getMessageManager().hasMessage()}
-              .microphoneStream=${this._controller.getMicrophoneManager()?.getStream()}
+              .microphoneManager=${this._controller.getMicrophoneManager()}
               .triggeredCameraIDs=${this._config?.view.scan.show_trigger_status
                 ? this._controller.getTriggersManager().getTriggeredCameraIDs()
                 : undefined}

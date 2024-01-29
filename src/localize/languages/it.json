@@ -182,6 +182,8 @@
       "media_action_conditions": {
         "all": "Tutte le opportunità",
         "hidden": "Sul browser/nascondere le schede",
+        "microphone_mute": "",
+        "microphone_unmute": "",
         "never": "Mai",
         "selected": "Sulla selezione",
         "unselected": "Sulla non selezione",
@@ -267,7 +269,8 @@
         "always_connected": "",
         "disconnect_seconds": "",
         "editor_label": "",
-        "enabled": ""
+        "enabled": "",
+        "mute_after_microphone_mute_seconds": ""
       },
       "preload": "Precarica Live View in background",
       "show_image_during_load": "Mostra un'immagine fissa durante il caricamento del live streaming",

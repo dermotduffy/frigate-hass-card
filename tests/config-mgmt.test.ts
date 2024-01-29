@@ -617,7 +617,7 @@ describe('should handle version specific upgrades', () => {
     });
   });
 
-  describe('v5.2.0', () => {
+  describe('v5.2.0 -> v6.0.0', () => {
     describe('should rename service_data to data', () => {
       it('positive case', () => {
         const config = {
@@ -738,445 +738,487 @@ describe('should handle version specific upgrades', () => {
         });
       });
     });
-  });
 
-  describe('should move PTZ elements to live', () => {
-    it('case with 1 element', () => {
-      const config = {
-        type: 'custom:frigate-card',
-        cameras: [{ camera_entity: 'camera.office' }],
-        elements: [
-          {
-            type: 'custom:frigate-card-ptz',
-            orientation: 'vertical',
-            style: {
-              right: '20px',
-              top: '20px',
-              color: 'white',
-            },
-            actions_up: {
-              tap_action: {
-                action: 'call-service',
-                service: 'notify.persistent_notification',
-                service_data: {
-                  message: 'Hello 1',
-                },
+    describe('should move PTZ elements to live', () => {
+      it('case with 1 element', () => {
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:frigate-card-ptz',
+              orientation: 'vertical',
+              style: {
+                right: '20px',
+                top: '20px',
+                color: 'white',
               },
-            },
-          },
-        ],
-      };
-      expect(upgradeConfig(config)).toBeTruthy();
-      expect(config).toEqual({
-        cameras: [{ camera_entity: 'camera.office' }],
-        live: {
-          controls: {
-            ptz: {
               actions_up: {
                 tap_action: {
                   action: 'call-service',
-                  data: {
+                  service: 'notify.persistent_notification',
+                  service_data: {
                     message: 'Hello 1',
                   },
-                  service: 'notify.persistent_notification',
-                },
-              },
-              orientation: 'vertical',
-              style: {
-                color: 'white',
-                right: '20px',
-                top: '20px',
-              },
-            },
-          },
-        },
-        type: 'custom:frigate-card',
-      });
-    });
-
-    it('case with >1 element', () => {
-      const config = {
-        type: 'custom:frigate-card',
-        cameras: [{ camera_entity: 'camera.office' }],
-        elements: [
-          {
-            type: 'custom:frigate-card-ptz',
-            orientation: 'vertical',
-            style: {
-              right: '20px',
-              top: '20px',
-              color: 'white',
-            },
-            actions_up: {
-              tap_action: {
-                action: 'call-service',
-                service: 'notify.persistent_notification',
-                service_data: {
-                  message: 'Hello 1',
                 },
               },
             },
-          },
-          {
-            type: 'service-button',
-            title: 'title',
-            service: 'service',
-            service_data: {
-              message: "It's a trick",
-            },
-          },
-        ],
-      };
-      expect(upgradeConfig(config)).toBeTruthy();
-      expect(config).toEqual({
-        cameras: [{ camera_entity: 'camera.office' }],
-        elements: [
-          {
-            service: 'service',
-            service_data: {
-              message: "It's a trick",
-            },
-            title: 'title',
-            type: 'service-button',
-          },
-        ],
-        live: {
-          controls: {
-            ptz: {
-              actions_up: {
-                tap_action: {
-                  action: 'call-service',
-                  data: {
-                    message: 'Hello 1',
-                  },
-                  service: 'notify.persistent_notification',
-                },
-              },
-              orientation: 'vertical',
-              style: {
-                color: 'white',
-                right: '20px',
-                top: '20px',
-              },
-            },
-          },
-        },
-        type: 'custom:frigate-card',
-      });
-    });
-
-    it('case with custom conditional element with 2 PTZ but nothing else', () => {
-      const config = {
-        type: 'custom:frigate-card',
-        cameras: [{ camera_entity: 'camera.office' }],
-        elements: [
-          {
-            type: 'custom:frigate-card-conditional',
-            conditions: {
-              fullscreen: true,
-              media_loaded: true,
-            },
-            elements: [
-              {
-                type: 'custom:frigate-card-ptz',
-                orientation: 'vertical',
-                style: {
-                  right: '20px',
-                  top: '20px',
-                  color: 'white',
-                },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          cameras: [{ camera_entity: 'camera.office' }],
+          live: {
+            controls: {
+              ptz: {
                 actions_up: {
                   tap_action: {
                     action: 'call-service',
-                    service: 'notify.persistent_notification',
-                    service_data: {
+                    data: {
                       message: 'Hello 1',
                     },
+                    service: 'notify.persistent_notification',
                   },
                 },
-              },
-              {
-                type: 'custom:frigate-card-ptz',
                 orientation: 'vertical',
                 style: {
+                  color: 'white',
                   right: '20px',
                   top: '20px',
-                  color: 'white',
-                },
-                actions_up: {
-                  tap_action: {
-                    action: 'call-service',
-                    service: 'notify.persistent_notification',
-                    service_data: {
-                      message: 'Hello 2',
-                    },
-                  },
                 },
               },
-            ],
+            },
           },
-        ],
-      };
-      expect(upgradeConfig(config)).toBeTruthy();
-      expect(config).toEqual({
-        cameras: [{ camera_entity: 'camera.office' }],
-        live: {
-          controls: {
-            ptz: {
+          type: 'custom:frigate-card',
+        });
+      });
+
+      it('case with >1 element', () => {
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:frigate-card-ptz',
+              orientation: 'vertical',
+              style: {
+                right: '20px',
+                top: '20px',
+                color: 'white',
+              },
               actions_up: {
                 tap_action: {
                   action: 'call-service',
-                  data: {
+                  service: 'notify.persistent_notification',
+                  service_data: {
                     message: 'Hello 1',
                   },
-                  service: 'notify.persistent_notification',
                 },
-              },
-              orientation: 'vertical',
-              style: {
-                color: 'white',
-                right: '20px',
-                top: '20px',
               },
             },
-          },
-        },
-        type: 'custom:frigate-card',
-      });
-    });
-
-    it('case with custom conditional element with 1 PTZ and another element', () => {
-      const config = {
-        type: 'custom:frigate-card',
-        cameras: [{ camera_entity: 'camera.office' }],
-        elements: [
-          {
-            type: 'custom:frigate-card-conditional',
-            conditions: {
-              fullscreen: true,
-              media_loaded: true,
-            },
-            elements: [
-              {
-                type: 'service-button',
-                title: 'title',
-                service: 'service',
-                service_data: {
-                  message: "It's a trick",
-                },
+            {
+              type: 'service-button',
+              title: 'title',
+              service: 'service',
+              service_data: {
+                message: "It's a trick",
               },
-              {
-                type: 'custom:frigate-card-ptz',
-                orientation: 'vertical',
-                style: {
-                  right: '20px',
-                  top: '20px',
-                  color: 'white',
-                },
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              service: 'service',
+              service_data: {
+                message: "It's a trick",
+              },
+              title: 'title',
+              type: 'service-button',
+            },
+          ],
+          live: {
+            controls: {
+              ptz: {
                 actions_up: {
                   tap_action: {
                     action: 'call-service',
-                    service: 'notify.persistent_notification',
-                    service_data: {
+                    data: {
                       message: 'Hello 1',
                     },
+                    service: 'notify.persistent_notification',
                   },
                 },
-              },
-            ],
-          },
-        ],
-      };
-      expect(upgradeConfig(config)).toBeTruthy();
-      expect(config).toEqual({
-        cameras: [{ camera_entity: 'camera.office' }],
-        live: {
-          controls: {
-            ptz: {
-              actions_up: {
-                tap_action: {
-                  action: 'call-service',
-                  data: {
-                    message: 'Hello 1',
-                  },
-                  service: 'notify.persistent_notification',
-                },
-              },
-              orientation: 'vertical',
-              style: {
-                color: 'white',
-                right: '20px',
-                top: '20px',
-              },
-            },
-          },
-        },
-        elements: [
-          {
-            type: 'custom:frigate-card-conditional',
-            conditions: {
-              fullscreen: true,
-              media_loaded: true,
-            },
-            elements: [
-              {
-                type: 'service-button',
-                title: 'title',
-                service: 'service',
-                service_data: {
-                  message: "It's a trick",
-                },
-              },
-            ],
-          },
-        ],
-        type: 'custom:frigate-card',
-      });
-    });
-
-    it('case with stock conditional element with 1 PTZ', () => {
-      const config = {
-        type: 'custom:frigate-card',
-        cameras: [{ camera_entity: 'camera.office' }],
-        elements: [
-          {
-            type: 'conditional',
-            conditions: [{ entity: 'light.office', state: 'on' }],
-            elements: [
-              {
-                type: 'custom:frigate-card-ptz',
                 orientation: 'vertical',
                 style: {
+                  color: 'white',
                   right: '20px',
                   top: '20px',
-                  color: 'white',
                 },
-                actions_up: {
-                  tap_action: {
-                    action: 'call-service',
-                    service: 'notify.persistent_notification',
-                    service_data: {
-                      message: 'Hello 1',
+              },
+            },
+          },
+          type: 'custom:frigate-card',
+        });
+      });
+
+      it('case with custom conditional element with 2 PTZ but nothing else', () => {
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:frigate-card-conditional',
+              conditions: {
+                fullscreen: true,
+                media_loaded: true,
+              },
+              elements: [
+                {
+                  type: 'custom:frigate-card-ptz',
+                  orientation: 'vertical',
+                  style: {
+                    right: '20px',
+                    top: '20px',
+                    color: 'white',
+                  },
+                  actions_up: {
+                    tap_action: {
+                      action: 'call-service',
+                      service: 'notify.persistent_notification',
+                      service_data: {
+                        message: 'Hello 1',
+                      },
                     },
                   },
                 },
+                {
+                  type: 'custom:frigate-card-ptz',
+                  orientation: 'vertical',
+                  style: {
+                    right: '20px',
+                    top: '20px',
+                    color: 'white',
+                  },
+                  actions_up: {
+                    tap_action: {
+                      action: 'call-service',
+                      service: 'notify.persistent_notification',
+                      service_data: {
+                        message: 'Hello 2',
+                      },
+                    },
+                  },
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          cameras: [{ camera_entity: 'camera.office' }],
+          live: {
+            controls: {
+              ptz: {
+                actions_up: {
+                  tap_action: {
+                    action: 'call-service',
+                    data: {
+                      message: 'Hello 1',
+                    },
+                    service: 'notify.persistent_notification',
+                  },
+                },
+                orientation: 'vertical',
+                style: {
+                  color: 'white',
+                  right: '20px',
+                  top: '20px',
+                },
               },
-            ],
+            },
           },
-        ],
-      };
-      expect(upgradeConfig(config)).toBeTruthy();
-      expect(config).toEqual({
-        cameras: [{ camera_entity: 'camera.office' }],
-        live: {
-          controls: {
-            ptz: {
+          type: 'custom:frigate-card',
+        });
+      });
+
+      it('case with custom conditional element with 1 PTZ and another element', () => {
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'custom:frigate-card-conditional',
+              conditions: {
+                fullscreen: true,
+                media_loaded: true,
+              },
+              elements: [
+                {
+                  type: 'service-button',
+                  title: 'title',
+                  service: 'service',
+                  service_data: {
+                    message: "It's a trick",
+                  },
+                },
+                {
+                  type: 'custom:frigate-card-ptz',
+                  orientation: 'vertical',
+                  style: {
+                    right: '20px',
+                    top: '20px',
+                    color: 'white',
+                  },
+                  actions_up: {
+                    tap_action: {
+                      action: 'call-service',
+                      service: 'notify.persistent_notification',
+                      service_data: {
+                        message: 'Hello 1',
+                      },
+                    },
+                  },
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          cameras: [{ camera_entity: 'camera.office' }],
+          live: {
+            controls: {
+              ptz: {
+                actions_up: {
+                  tap_action: {
+                    action: 'call-service',
+                    data: {
+                      message: 'Hello 1',
+                    },
+                    service: 'notify.persistent_notification',
+                  },
+                },
+                orientation: 'vertical',
+                style: {
+                  color: 'white',
+                  right: '20px',
+                  top: '20px',
+                },
+              },
+            },
+          },
+          elements: [
+            {
+              type: 'custom:frigate-card-conditional',
+              conditions: {
+                fullscreen: true,
+                media_loaded: true,
+              },
+              elements: [
+                {
+                  type: 'service-button',
+                  title: 'title',
+                  service: 'service',
+                  service_data: {
+                    message: "It's a trick",
+                  },
+                },
+              ],
+            },
+          ],
+          type: 'custom:frigate-card',
+        });
+      });
+
+      it('case with stock conditional element with 1 PTZ', () => {
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          elements: [
+            {
+              type: 'conditional',
+              conditions: [{ entity: 'light.office', state: 'on' }],
+              elements: [
+                {
+                  type: 'custom:frigate-card-ptz',
+                  orientation: 'vertical',
+                  style: {
+                    right: '20px',
+                    top: '20px',
+                    color: 'white',
+                  },
+                  actions_up: {
+                    tap_action: {
+                      action: 'call-service',
+                      service: 'notify.persistent_notification',
+                      service_data: {
+                        message: 'Hello 1',
+                      },
+                    },
+                  },
+                },
+              ],
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          cameras: [{ camera_entity: 'camera.office' }],
+          live: {
+            controls: {
+              ptz: {
+                actions_up: {
+                  tap_action: {
+                    action: 'call-service',
+                    data: {
+                      message: 'Hello 1',
+                    },
+                    service: 'notify.persistent_notification',
+                  },
+                },
+                orientation: 'vertical',
+                style: {
+                  color: 'white',
+                  right: '20px',
+                  top: '20px',
+                },
+              },
+            },
+          },
+          type: 'custom:frigate-card',
+        });
+      });
+
+      it('case when live.controls.ptz already exists', () => {
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          live: {
+            controls: {
+              ptz: {
+                actions_up: {
+                  tap_action: {
+                    action: 'call-service',
+                    data: {
+                      message: 'Original',
+                    },
+                    service: 'notify.persistent_notification',
+                  },
+                },
+                orientation: 'vertical',
+                style: {
+                  color: 'white',
+                  right: '20px',
+                  top: '20px',
+                },
+              },
+            },
+          },
+          elements: [
+            {
+              type: 'custom:frigate-card-ptz',
+              orientation: 'vertical',
+              style: {
+                right: '20px',
+                top: '20px',
+                color: 'white',
+              },
               actions_up: {
                 tap_action: {
                   action: 'call-service',
-                  data: {
-                    message: 'Hello 1',
-                  },
                   service: 'notify.persistent_notification',
+                  service_data: {
+                    message: 'Replacement that should be ignored',
+                  },
                 },
               },
-              orientation: 'vertical',
-              style: {
-                color: 'white',
-                right: '20px',
-                top: '20px',
+            },
+          ],
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          cameras: [{ camera_entity: 'camera.office' }],
+          live: {
+            controls: {
+              ptz: {
+                actions_up: {
+                  tap_action: {
+                    action: 'call-service',
+                    data: {
+                      message: 'Original',
+                    },
+                    service: 'notify.persistent_notification',
+                  },
+                },
+                orientation: 'vertical',
+                style: {
+                  color: 'white',
+                  right: '20px',
+                  top: '20px',
+                },
               },
             },
           },
-        },
-        type: 'custom:frigate-card',
+          type: 'custom:frigate-card',
+        });
       });
     });
 
-    it('case when live.controls.ptz already exists', () => {
-      const config = {
-        type: 'custom:frigate-card',
-        cameras: [{ camera_entity: 'camera.office' }],
-        live: {
-          controls: {
-            ptz: {
-              actions_up: {
-                tap_action: {
-                  action: 'call-service',
-                  data: {
-                    message: 'Original',
-                  },
-                  service: 'notify.persistent_notification',
-                },
-              },
-              orientation: 'vertical',
-              style: {
-                color: 'white',
-                right: '20px',
-                top: '20px',
+    describe('should move and transform untrigger_reset', () => {
+      it('when true', () => {
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          view: {
+            scan: {
+              untrigger_reset: true,
+            },
+          },
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          type: 'custom:frigate-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          view: {
+            scan: {
+              actions: {
+                untrigger: 'default',
               },
             },
           },
-        },
-        elements: [
-          {
-            type: 'custom:frigate-card-ptz',
-            orientation: 'vertical',
-            style: {
-              right: '20px',
-              top: '20px',
-              color: 'white',
-            },
-            actions_up: {
-              tap_action: {
-                action: 'call-service',
-                service: 'notify.persistent_notification',
-                service_data: {
-                  message: 'Replacement that should be ignored',
-                },
-              },
+        });
+      });
+
+      it('when false', () => {
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          view: {
+            scan: {
+              untrigger_reset: false,
             },
           },
-        ],
-      };
-      expect(upgradeConfig(config)).toBeTruthy();
-      expect(config).toEqual({
-        cameras: [{ camera_entity: 'camera.office' }],
-        live: {
-          controls: {
-            ptz: {
-              actions_up: {
-                tap_action: {
-                  action: 'call-service',
-                  data: {
-                    message: 'Original',
-                  },
-                  service: 'notify.persistent_notification',
-                },
-              },
-              orientation: 'vertical',
-              style: {
-                color: 'white',
-                right: '20px',
-                top: '20px',
-              },
-            },
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          type: 'custom:frigate-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          view: {
+            scan: {},
           },
-        },
-        type: 'custom:frigate-card',
+        });
       });
     });
-  });
 
-  describe('should move and transform untrigger_reset', () => {
-    it('when true', () => {
+    it('should move view.timeout_seconds', () => {
       const config = {
         type: 'custom:frigate-card',
         cameras: [{ camera_entity: 'camera.office' }],
         view: {
-          scan: {
-            untrigger_reset: true,
-          },
+          timeout_seconds: 200,
         },
       };
       expect(upgradeConfig(config)).toBeTruthy();
@@ -1184,51 +1226,369 @@ describe('should handle version specific upgrades', () => {
         type: 'custom:frigate-card',
         cameras: [{ camera_entity: 'camera.office' }],
         view: {
-          scan: {
-            actions: {
-              untrigger: 'default',
-            },
-          },
+          interaction_seconds: 200,
         },
       });
     });
 
-    it('when false', () => {
-      const config = {
-        type: 'custom:frigate-card',
-        cameras: [{ camera_entity: 'camera.office' }],
-        view: {
-          scan: {
-            untrigger_reset: false,
-          },
-        },
-      };
-      expect(upgradeConfig(config)).toBeTruthy();
-      expect(config).toEqual({
-        type: 'custom:frigate-card',
-        cameras: [{ camera_entity: 'camera.office' }],
-        view: {
-          scan: {},
-        },
-      });
-    });
-  });
+    describe('should handle all and never action conditions', () => {
+      describe('live', () => {
+        describe('lazy_unload', () => {
+          it('all', () => {
+            const config = {
+              live: {
+                lazy_unload: 'all',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              live: {
+                lazy_unload: ['unselected', 'hidden'],
+              },
+            });
+          });
+          it('never', () => {
+            const config = {
+              live: {
+                lazy_unload: 'never',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              live: {},
+            });
+          });
+          it('other value', () => {
+            const config = {
+              live: {
+                lazy_unload: 'unselected',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              live: {
+                lazy_unload: ['unselected'],
+              },
+            });
+          });
+        });
 
-  it('should move view.timeout_seconds', () => {
-    const config = {
-      type: 'custom:frigate-card',
-      cameras: [{ camera_entity: 'camera.office' }],
-      view: {
-        timeout_seconds: 200,
-      },
-    };
-    expect(upgradeConfig(config)).toBeTruthy();
-    expect(config).toEqual({
-      type: 'custom:frigate-card',
-      cameras: [{ camera_entity: 'camera.office' }],
-      view: {
-        interaction_seconds: 200,
-      },
+        describe('auto_play', () => {
+          it('all', () => {
+            const config = {
+              live: {
+                auto_play: 'all',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              live: {},
+            });
+          });
+          it('never', () => {
+            const config = {
+              live: {
+                auto_play: 'never',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              live: {
+                auto_play: [],
+              },
+            });
+          });
+          it('other value', () => {
+            const config = {
+              live: {
+                auto_play: 'selected',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              live: {
+                auto_play: ['selected'],
+              },
+            });
+          });
+        });
+        describe('auto_pause', () => {
+          it('all', () => {
+            const config = {
+              live: {
+                auto_pause: 'all',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              live: {
+                auto_pause: ['unselected', 'hidden'],
+              },
+            });
+          });
+          it('never', () => {
+            const config = {
+              live: {
+                auto_pause: 'never',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              live: {},
+            });
+          });
+          it('other value', () => {
+            const config = {
+              live: {
+                auto_pause: 'unselected',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              live: {
+                auto_pause: ['unselected'],
+              },
+            });
+          });
+        });
+        describe('auto_mute', () => {
+          it('all', () => {
+            const config = {
+              live: {
+                auto_mute: 'all',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              live: {},
+            });
+          });
+          it('never', () => {
+            const config = {
+              live: {
+                auto_mute: 'never',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              live: {
+                auto_mute: [],
+              },
+            });
+          });
+          it('other value', () => {
+            const config = {
+              live: {
+                auto_mute: 'unselected',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              live: {
+                auto_mute: ['unselected'],
+              },
+            });
+          });
+        });
+        describe('auto_unmute', () => {
+          it('all', () => {
+            const config = {
+              live: {
+                auto_unmute: 'all',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              live: {
+                auto_unmute: ['selected', 'visible', 'microphone'],
+              },
+            });
+          });
+          it('never', () => {
+            const config = {
+              live: {
+                auto_unmute: 'never',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              live: {},
+            });
+          });
+          it('other value', () => {
+            const config = {
+              live: {
+                auto_unmute: 'selected',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              live: {
+                auto_unmute: ['selected'],
+              },
+            });
+          });
+        });
+      });
+
+      describe('media_viewer', () => {
+        describe('auto_play', () => {
+          it('all', () => {
+            const config = {
+              media_viewer: {
+                auto_play: 'all',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              media_viewer: {},
+            });
+          });
+          it('never', () => {
+            const config = {
+              media_viewer: {
+                auto_play: 'never',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              media_viewer: {
+                auto_play: [],
+              },
+            });
+          });
+          it('other value', () => {
+            const config = {
+              media_viewer: {
+                auto_play: 'selected',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              media_viewer: {
+                auto_play: ['selected'],
+              },
+            });
+          });
+        });
+        describe('auto_pause', () => {
+          it('all', () => {
+            const config = {
+              media_viewer: {
+                auto_pause: 'all',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              media_viewer: {},
+            });
+          });
+          it('never', () => {
+            const config = {
+              media_viewer: {
+                auto_pause: 'never',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              media_viewer: {
+                auto_pause: [],
+              },
+            });
+          });
+          it('other value', () => {
+            const config = {
+              media_viewer: {
+                auto_pause: 'unselected',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              media_viewer: {
+                auto_pause: ['unselected'],
+              },
+            });
+          });
+        });
+        describe('auto_mute', () => {
+          it('all', () => {
+            const config = {
+              media_viewer: {
+                auto_mute: 'all',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              media_viewer: {},
+            });
+          });
+          it('never', () => {
+            const config = {
+              media_viewer: {
+                auto_mute: 'never',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              media_viewer: {
+                auto_mute: [],
+              },
+            });
+          });
+          it('other value', () => {
+            const config = {
+              media_viewer: {
+                auto_mute: 'unselected',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              media_viewer: {
+                auto_mute: ['unselected'],
+              },
+            });
+          });
+        });
+        describe('auto_unmute', () => {
+          it('all', () => {
+            const config = {
+              media_viewer: {
+                auto_unmute: 'all',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              media_viewer: {
+                auto_unmute: ['selected', 'visible'],
+              },
+            });
+          });
+          it('never', () => {
+            const config = {
+              media_viewer: {
+                auto_unmute: 'never',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              media_viewer: {},
+            });
+          });
+          it('other value', () => {
+            const config = {
+              media_viewer: {
+                auto_unmute: 'selected',
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              media_viewer: {
+                auto_unmute: ['selected'],
+              },
+            });
+          });
+        });
+      });
     });
   });
 });

@@ -272,16 +272,16 @@ export class FrigateCardViewerCarousel extends LitElement {
       AutoMediaActions({
         playerSelector: FRIGATE_CARD_VIEWER_PROVIDER,
         ...(this.viewerConfig?.auto_play && {
-          autoPlayCondition: this.viewerConfig.auto_play,
+          autoPlayConditions: this.viewerConfig.auto_play,
         }),
         ...(this.viewerConfig?.auto_pause && {
-          autoPauseCondition: this.viewerConfig.auto_pause,
+          autoPauseConditions: this.viewerConfig.auto_pause,
         }),
         ...(this.viewerConfig?.auto_mute && {
-          autoMuteCondition: this.viewerConfig.auto_mute,
+          autoMuteConditions: this.viewerConfig.auto_mute,
         }),
         ...(this.viewerConfig?.auto_unmute && {
-          autoUnmuteCondition: this.viewerConfig.auto_unmute,
+          autoUnmuteConditions: this.viewerConfig.auto_unmute,
         }),
       }),
       AutoSize(),

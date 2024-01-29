@@ -18,6 +18,7 @@ import {
   ConditionsManagerEpoch,
   getOverriddenConfig,
 } from '../../card-controller/conditions-manager.js';
+import { ReadonlyMicrophoneManager } from '../../card-controller/microphone-manager.js';
 import { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
 import {
   CameraConfig,
@@ -113,7 +114,7 @@ export class FrigateCardLive extends LitElement {
   public cardWideConfig?: CardWideConfig;
 
   @property({ attribute: false })
-  public microphoneStream?: MediaStream;
+  public microphoneManager?: ReadonlyMicrophoneManager;
 
   @property({ attribute: false })
   public triggeredCameraIDs?: Set<string>;
@@ -222,7 +223,7 @@ export class FrigateCardLive extends LitElement {
           .liveOverrides=${this.liveOverrides}
           .cardWideConfig=${this.cardWideConfig}
           .cameraManager=${this.cameraManager}
-          .microphoneStream=${this.microphoneStream}
+          .microphoneManager=${this.microphoneManager}
           .triggeredCameraIDs=${this.triggeredCameraIDs}
           @frigate-card:message=${(ev: CustomEvent<Message>) => {
             this._renderKey++;
@@ -286,7 +287,7 @@ export class FrigateCardLiveGrid extends LitElement {
   public cameraManager?: CameraManager;
 
   @property({ attribute: false })
-  public microphoneStream?: MediaStream;
+  public microphoneManager?: ReadonlyMicrophoneManager;
 
   @property({ attribute: false })
   public triggeredCameraIDs?: Set<string>;
@@ -306,7 +307,7 @@ export class FrigateCardLiveGrid extends LitElement {
         .liveOverrides=${this.liveOverrides}
         .cardWideConfig=${this.cardWideConfig}
         .cameraManager=${this.cameraManager}
-        .microphoneStream=${this.microphoneStream}
+        .microphoneManager=${this.microphoneManager}
         ?triggered=${triggeredCameraID &&
         !!this.triggeredCameraIDs?.has(triggeredCameraID)}
       >
@@ -394,7 +395,7 @@ export class FrigateCardLiveCarousel extends LitElement {
   public cameraManager?: CameraManager;
 
   @property({ attribute: false })
-  public microphoneStream?: MediaStream;
+  public microphoneManager?: ReadonlyMicrophoneManager;
 
   @property({ attribute: false })
   public viewFilterCameraID?: string;
@@ -431,7 +432,7 @@ export class FrigateCardLiveCarousel extends LitElement {
           lazyLoadCallback: (index, slide) =>
             this._lazyloadOrUnloadSlide('load', index, slide),
         }),
-        lazyUnloadCondition: this.overriddenLiveConfig?.lazy_unload,
+        lazyUnloadConditions: this.overriddenLiveConfig?.lazy_unload,
         lazyUnloadCallback: (index, slide) =>
           this._lazyloadOrUnloadSlide('unload', index, slide),
       }),
@@ -439,16 +440,22 @@ export class FrigateCardLiveCarousel extends LitElement {
       AutoMediaActions({
         playerSelector: FRIGATE_CARD_LIVE_PROVIDER,
         ...(this.overriddenLiveConfig?.auto_play && {
-          autoPlayCondition: this.overriddenLiveConfig.auto_play,
+          autoPlayConditions: this.overriddenLiveConfig.auto_play,
         }),
         ...(this.overriddenLiveConfig?.auto_pause && {
-          autoPauseCondition: this.overriddenLiveConfig.auto_pause,
+          autoPauseConditions: this.overriddenLiveConfig.auto_pause,
         }),
         ...(this.overriddenLiveConfig?.auto_mute && {
-          autoMuteCondition: this.overriddenLiveConfig.auto_mute,
+          autoMuteConditions: this.overriddenLiveConfig.auto_mute,
         }),
         ...(this.overriddenLiveConfig?.auto_unmute && {
-          autoUnmuteCondition: this.overriddenLiveConfig.auto_unmute,
+          autoUnmuteConditions: this.overriddenLiveConfig.auto_unmute,
+        }),
+        ...((this.overriddenLiveConfig?.auto_unmute ||
+          this.overriddenLiveConfig?.auto_mute) && {
+          microphoneManager: this.microphoneManager,
+          microphoneMuteSeconds:
+            this.overriddenLiveConfig.microphone.mute_after_microphone_mute_seconds,
         }),
       }),
       AutoSize(),
@@ -571,7 +578,7 @@ export class FrigateCardLiveCarousel extends LitElement {
         <frigate-card-live-provider
           ?load=${!config.lazy_load}
           .microphoneStream=${this.view?.camera === cameraID
-            ? this.microphoneStream
+            ? this.microphoneManager?.getStream()
             : undefined}
           .cameraConfig=${cameraConfig}
           .cameraEndpoints=${guard(
@@ -658,7 +665,7 @@ export class FrigateCardLiveCarousel extends LitElement {
         .loop=${hasMultipleCameras}
         .dragEnabled=${hasMultipleCameras && this.overriddenLiveConfig?.draggable}
         .plugins=${guard(
-          [this.cameraManager, this.overriddenLiveConfig],
+          [this.cameraManager, this.overriddenLiveConfig, this.microphoneManager],
           this._getPlugins.bind(this),
         )}
         .selected=${this._getSelectedCameraIndex()}

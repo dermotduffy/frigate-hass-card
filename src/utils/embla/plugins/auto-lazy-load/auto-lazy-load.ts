@@ -14,7 +14,7 @@ type OptionsType = CreateOptionsType<{
   // Number of slides to lazyload left/right of selected (0 == only selected
   // slide).
   lazyLoadCount: number;
-  lazyUnloadCondition?: LazyUnloadCondition;
+  lazyUnloadConditions?: readonly LazyUnloadCondition[];
 
   lazyLoadCallback?: (index: number, slide: HTMLElement) => void;
   lazyUnloadCallback?: (index: number, slide: HTMLElement) => void;
@@ -55,8 +55,7 @@ export function AutoLazyLoad(
     }
     if (
       options.lazyUnloadCallback &&
-      options.lazyUnloadCondition &&
-      ['all', 'unselected'].includes(options.lazyUnloadCondition)
+      options.lazyUnloadConditions?.includes('unselected')
     ) {
       unloadEvents.forEach((evt) => emblaApi.on(evt, lazyUnloadPreviousHandler));
     }
@@ -76,8 +75,7 @@ export function AutoLazyLoad(
   function visibilityHandler(): void {
     if (
       document.visibilityState === 'hidden' &&
-      options.lazyUnloadCondition &&
-      ['all', 'hidden'].includes(options.lazyUnloadCondition)
+      options.lazyUnloadConditions?.includes('hidden')
     ) {
       lazyUnloadAllHandler();
     } else if (document.visibilityState === 'visible' && options.lazyLoadCallback) {

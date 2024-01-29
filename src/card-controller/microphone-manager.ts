@@ -2,10 +2,23 @@ import { errorToConsole } from '../utils/basic';
 import { Timer } from '../utils/timer';
 import { CardMicrophoneAPI } from './types';
 
-export class MicrophoneManager {
+export type MicrophoneManagerListenerChange = 'muted' | 'unmuted';
+type MicrophoneManagerListener = (change: MicrophoneManagerListenerChange) => void;
+
+export interface ReadonlyMicrophoneManager {
+  getStream(): MediaStream | undefined;
+  addListener(listener: MicrophoneManagerListener): void;
+  removeListener(listener: MicrophoneManagerListener): void;
+  isConnected(): boolean;
+  isForbidden(): boolean;
+  isMuted(): boolean;
+}
+
+export class MicrophoneManager implements ReadonlyMicrophoneManager {
   protected _api: CardMicrophoneAPI;
   protected _stream?: MediaStream | null;
   protected _timer = new Timer();
+  protected _listeners: MicrophoneManagerListener[] = [];
 
   // We keep mute state separate from the stream state so that mute/unmute can
   // be expressed before the stream is created -- and when it's create it will
@@ -44,21 +57,20 @@ export class MicrophoneManager {
     return this._stream ?? undefined;
   }
 
-  protected _setMute(): void {
-    this._stream?.getTracks().forEach((track) => {
-      track.enabled = !this._mute;
-    });
-    this._startTimer();
-
-    this._api.getCardElementManager().update();
-  }
-
   public mute(): void {
+    const wasMuted = this.isMuted();
+
     this._mute = true;
     this._setMute();
+
+    if (!wasMuted) {
+      this._callListeners('muted');
+    }
   }
 
   public async unmute(): Promise<void> {
+    const wasUnmuted = !this.isMuted();
+
     const unmute = (): void => {
       this._mute = false;
       this._setMute();
@@ -76,6 +88,10 @@ export class MicrophoneManager {
     } else if (this.isConnected()) {
       unmute();
     }
+
+    if (!wasUnmuted) {
+      this._callListeners('unmuted');
+    }
   }
 
   public isConnected(): boolean {
@@ -92,9 +108,29 @@ export class MicrophoneManager {
     return !this._stream || this._stream.getTracks().every((track) => !track.enabled);
   }
 
+  public addListener(listener: MicrophoneManagerListener): void {
+    this._listeners.push(listener);
+  }
+
+  public removeListener(listener: MicrophoneManagerListener): void {
+    this._listeners = this._listeners.filter((l) => l !== listener);
+  }
+
+  protected _callListeners(change: MicrophoneManagerListenerChange): void {
+    this._listeners.forEach((listener) => listener(change));
+  }
+
+  protected _setMute(): void {
+    this._stream?.getTracks().forEach((track) => {
+      track.enabled = !this._mute;
+    });
+
+    this._startTimer();
+    this._api.getCardElementManager().update();
+  }
+
   protected _startTimer(): void {
-    const microphoneConfig = this._api.getConfigManager().getConfig()
-      ?.live.microphone;
+    const microphoneConfig = this._api.getConfigManager().getConfig()?.live.microphone;
 
     if (microphoneConfig?.always_connected) {
       return;

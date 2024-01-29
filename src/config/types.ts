@@ -46,24 +46,23 @@ const FRIGATE_CARD_VIEWS = [
 export type FrigateCardView = (typeof FRIGATE_CARD_VIEWS)[number];
 export const FRIGATE_CARD_VIEW_DEFAULT = 'live' as const;
 
-const MEDIA_ACTION_NEGATIVE_CONDITIONS = [
-  'all',
-  'unselected',
-  'hidden',
-  'never',
-] as const;
+export const MEDIA_ACTION_NEGATIVE_CONDITIONS = ['unselected', 'hidden'] as const;
 export type LazyUnloadCondition = (typeof MEDIA_ACTION_NEGATIVE_CONDITIONS)[number];
-export type AutoMuteCondition = (typeof MEDIA_ACTION_NEGATIVE_CONDITIONS)[number];
 export type AutoPauseCondition = (typeof MEDIA_ACTION_NEGATIVE_CONDITIONS)[number];
 
-const MEDIA_ACTION_POSITIVE_CONDITIONS = [
-  'all',
-  'selected',
-  'visible',
-  'never',
-] as const;
-export type AutoUnmuteCondition = (typeof MEDIA_ACTION_POSITIVE_CONDITIONS)[number];
+export const MEDIA_ACTION_POSITIVE_CONDITIONS = ['selected', 'visible'] as const;
 export type AutoPlayCondition = (typeof MEDIA_ACTION_POSITIVE_CONDITIONS)[number];
+export const MEDIA_UNMUTE_CONDITIONS = [
+  ...MEDIA_ACTION_POSITIVE_CONDITIONS,
+  'microphone',
+] as const;
+export type AutoUnmuteCondition = (typeof MEDIA_UNMUTE_CONDITIONS)[number];
+
+export const MEDIA_MUTE_CONDITIONS = [
+  ...MEDIA_ACTION_NEGATIVE_CONDITIONS,
+  'microphone',
+] as const;
+export type AutoMuteCondition = (typeof MEDIA_MUTE_CONDITIONS)[number];
 
 const PTZ_BASE_ACTIONS = ['left', 'right', 'up', 'down', 'zoom_in', 'zoom_out'] as const;
 
@@ -738,6 +737,7 @@ export type LiveProvider = (typeof LIVE_PROVIDERS)[number];
 const microphoneConfigDefault = {
   always_connected: false,
   disconnect_seconds: 60,
+  mute_after_microphone_mute_seconds: 60,
 };
 
 const microphoneConfigSchema = z
@@ -747,6 +747,10 @@ const microphoneConfigSchema = z
       .number()
       .min(0)
       .default(microphoneConfigDefault.disconnect_seconds),
+    mute_after_microphone_mute_seconds: z
+      .number()
+      .min(0)
+      .default(microphoneConfigDefault.mute_after_microphone_mute_seconds),
   })
   .default(microphoneConfigDefault);
 export type MicrophoneConfig = z.infer<typeof microphoneConfigSchema>;
@@ -860,13 +864,13 @@ const liveThumbnailControlsDefaults = {
 };
 
 const liveConfigDefault = {
-  auto_play: 'all' as const,
-  auto_pause: 'never' as const,
-  auto_mute: 'all' as const,
-  auto_unmute: 'never' as const,
+  auto_play: [...MEDIA_ACTION_POSITIVE_CONDITIONS],
+  auto_pause: [],
+  auto_mute: [...MEDIA_MUTE_CONDITIONS],
+  auto_unmute: ['microphone' as const],
   preload: false,
   lazy_load: true,
-  lazy_unload: 'never' as const,
+  lazy_unload: [],
   draggable: true,
   zoomable: true,
   transition_effect: 'slide' as const,
@@ -929,23 +933,27 @@ const liveOverridableConfigSchema = z
 
 const liveConfigSchema = liveOverridableConfigSchema
   .extend({
-    // Non-overrideable parameters.
     auto_play: z
       .enum(MEDIA_ACTION_POSITIVE_CONDITIONS)
+      .array()
       .default(liveConfigDefault.auto_play),
     auto_pause: z
       .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
+      .array()
       .default(liveConfigDefault.auto_pause),
     auto_mute: z
-      .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
+      .enum(MEDIA_MUTE_CONDITIONS)
+      .array()
       .default(liveConfigDefault.auto_mute),
     auto_unmute: z
-      .enum(MEDIA_ACTION_POSITIVE_CONDITIONS)
+      .enum(MEDIA_UNMUTE_CONDITIONS)
+      .array()
       .default(liveConfigDefault.auto_unmute),
     preload: z.boolean().default(liveConfigDefault.preload),
     lazy_load: z.boolean().default(liveConfigDefault.lazy_load),
     lazy_unload: z
       .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
+      .array()
       .default(liveConfigDefault.lazy_unload),
     draggable: z.boolean().default(liveConfigDefault.draggable),
     transition_effect: transitionEffectConfigSchema.default(
@@ -1296,10 +1304,10 @@ export type MenuConfig = z.infer<typeof menuConfigSchema>;
 // *************************************************************************
 
 const viewerConfigDefault = {
-  auto_play: 'all' as const,
-  auto_pause: 'all' as const,
-  auto_mute: 'all' as const,
-  auto_unmute: 'never' as const,
+  auto_play: [...MEDIA_ACTION_POSITIVE_CONDITIONS],
+  auto_pause: [...MEDIA_ACTION_NEGATIVE_CONDITIONS],
+  auto_mute: [...MEDIA_ACTION_NEGATIVE_CONDITIONS],
+  auto_unmute: [],
   lazy_load: true,
   draggable: true,
   zoomable: true,
@@ -1330,15 +1338,22 @@ const viewerConfigSchema = z
   .object({
     auto_play: z
       .enum(MEDIA_ACTION_POSITIVE_CONDITIONS)
+      .array()
       .default(viewerConfigDefault.auto_play),
     auto_pause: z
       .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
+      .array()
       .default(viewerConfigDefault.auto_pause),
+
+    // Don't use MEDIA_UNMUTE_CONDITIONS and MEDIA_MUTE_CONDITIONS here, since
+    // it includes 'microphone' which doesn't make sense for viewer media.
     auto_mute: z
       .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
+      .array()
       .default(viewerConfigDefault.auto_mute),
     auto_unmute: z
       .enum(MEDIA_ACTION_POSITIVE_CONDITIONS)
+      .array()
       .default(viewerConfigDefault.auto_unmute),
     lazy_load: z.boolean().default(viewerConfigDefault.lazy_load),
     draggable: z.boolean().default(viewerConfigDefault.draggable),

@@ -182,6 +182,8 @@
       "media_action_conditions": {
         "all": "All opportunities",
         "hidden": "On browser/tab hiding",
+        "microphone_mute": "On microphone mute",
+        "microphone_unmute": "On microphone unmute",
         "never": "Never",
         "selected": "On selection",
         "unselected": "On unselection",
@@ -267,7 +269,8 @@
         "always_connected": "Always keep the microphone connected",
         "disconnect_seconds": "Seconds after which to disconnect microphone (0=never)",
         "editor_label": "Microphone",
-        "enabled": "Microphone enabled"
+        "enabled": "Microphone enabled",
+        "mute_after_microphone_mute_seconds": "Seconds after microphone mute to mute inbound audio"
       },
       "preload": "Preload live view in the background",
       "show_image_during_load": "Show still image while the live stream is loading",
