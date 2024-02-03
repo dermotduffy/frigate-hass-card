@@ -14,9 +14,16 @@ import {
   ThumbnailsControlConfig,
 } from '../config/types.js';
 import basicBlockStyle from '../scss/basic-block.scss';
-import { ClipsOrSnapshotsOrAll, ExtendedHomeAssistant } from '../types.js';
+import {
+  ClipsOrSnapshotsOrAll,
+  EventsOrRecordings,
+  ExtendedHomeAssistant,
+} from '../types.js';
 import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
-import { changeViewToRecentEventsForCameraAndDependents } from '../utils/media-to-view';
+import {
+  changeViewToRecentEventsForCameraAndDependents,
+  changeViewToRecentRecordingForCameraAndDependents,
+} from '../utils/media-to-view';
 import { View } from '../view/view.js';
 import './surround-basic.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
@@ -48,7 +55,10 @@ export class FrigateCardSurround extends LitElement {
 
   // If fetchMedia is not specified, no fetching is done.
   @property({ attribute: false, hasChanged: contentsChanged })
-  public fetchMedia?: ClipsOrSnapshotsOrAll;
+  public fetchMediaType?: EventsOrRecordings;
+
+  @property({ attribute: false, hasChanged: contentsChanged })
+  public fetchEventsMediaType?: ClipsOrSnapshotsOrAll;
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
@@ -68,7 +78,8 @@ export class FrigateCardSurround extends LitElement {
     if (
       !this.cameraManager ||
       !this.cardWideConfig ||
-      !this.fetchMedia ||
+      !this.fetchMediaType ||
+      !this.fetchEventsMediaType ||
       !this.hass ||
       !this.view ||
       this.view.query ||
@@ -78,18 +89,33 @@ export class FrigateCardSurround extends LitElement {
     ) {
       return;
     }
-    await changeViewToRecentEventsForCameraAndDependents(
-      this,
-      this.cameraManager,
-      this.cardWideConfig,
-      this.view,
-      {
-        allCameras: this.view.isGrid(),
-        targetView: this.view.view,
-        mediaType: this.fetchMedia,
-        select: 'latest',
-      },
-    );
+
+    if (this.fetchMediaType === 'events') {
+      await changeViewToRecentEventsForCameraAndDependents(
+        this,
+        this.cameraManager,
+        this.cardWideConfig,
+        this.view,
+        {
+          allCameras: this.view.isGrid(),
+          targetView: this.view.view,
+          eventsMediaType: this.fetchEventsMediaType,
+          select: 'latest',
+        },
+      );
+    } else if (this.fetchMediaType === 'recordings') {
+      await changeViewToRecentRecordingForCameraAndDependents(
+        this,
+        this.cameraManager,
+        this.cardWideConfig,
+        this.view,
+        {
+          allCameras: this.view.isGrid(),
+          targetView: this.view.view,
+          select: 'latest',
+        },
+      );
+    }
   }
 
   /**

@@ -101,7 +101,7 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
       {},
       createView(),
       {
-        mediaType: 'clips',
+        eventsMediaType: 'clips',
       },
     );
     expect(elementHandler.viewHandler).not.toBeCalled();
@@ -222,7 +222,7 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
         {},
         createView(),
         {
-          mediaType: mediaType,
+          eventsMediaType: mediaType,
         },
       );
 

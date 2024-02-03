@@ -64,7 +64,7 @@ export class FrigateCardViews extends LitElement {
   public microphoneManager?: ReadonlyMicrophoneManager;
 
   @property({ attribute: false })
-  public triggeredCameraIDs?: Set<string>;  
+  public triggeredCameraIDs?: Set<string>;
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('view') || changedProps.has('config')) {
@@ -163,8 +163,11 @@ export class FrigateCardViews extends LitElement {
       class="${classMap(overallClasses)}"
       .hass=${this.hass}
       .view=${this.view}
-      .fetchMedia=${this.view?.is('live')
-        ? this.overriddenConfig.live.controls.thumbnails.media
+      .fetchMediaType=${this.view?.is('live')
+        ? this.overriddenConfig.live.controls.thumbnails.media_type
+        : undefined}
+      .fetchEventsMediaType=${this.view?.is('live')
+        ? this.overriddenConfig.live.controls.thumbnails.events_media_type
         : undefined}
       .thumbnailConfig=${!this.hide ? thumbnailConfig : undefined}
       .timelineConfig=${!this.hide ? miniTimelineConfig : undefined}

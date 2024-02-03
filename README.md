@@ -564,7 +564,8 @@ live:
 | `show_download_control` | `true` | :white_check_mark: | Whether to show the download control on each thumbnail.|
 | `show_favorite_control` | `true` | :white_check_mark: | Whether to show the favorite ('star') control on each thumbnail.|
 | `show_timeline_control` | `true` | :white_check_mark: | Whether to show the timeline ('target') control on each thumbnail.|
-| `media` | `all` | :white_check_mark: | Whether to show `clips`, `snapshots` or `all` in the thumbnail carousel in the `live` view.|
+| `media_type` | `events` | :white_check_mark: | Whether to load `events` or `recordings` media.|
+| `events_media_type` | `all` | :white_check_mark: | Whether to show `clips`, `snapshots` or `all` in the thumbnail carousel in the `live` view. This setting is only relevant when the `media_type` parameter (above) is set to `events`.|
 
 #### Live Controls: Next / Previous
 
@@ -597,7 +598,7 @@ live:
 | `style` | `ribbon` | :white_check_mark: | Whether the timeline should show events as a single flat `ribbon` or a `stack` of events that are clustered using the `clustering_threshold` (below). |
 | `window_seconds` | `3600` | :white_check_mark: | The length of the default timeline in seconds. By default, 1 hour (`3600` seconds) is shown in the timeline. |
 | `clustering_threshold` | `3` | :white_check_mark: | The minimum number of overlapping events to allow prior to clustering/grouping them. Higher numbers cause clustering to happen less frequently. Depending on the timescale/zoom of the timeline, the underlying timeline library may still allow overlaps for low values of this parameter -- for a fully "flat" timeline use the `ribbon` style. `0` disables clustering entirely. Only used in the `stack` style of timeline. |
-| `media` | `all` | :white_check_mark: | Whether to show only events with `clips`, events with `snapshots` or `all` events. When `all` is used, `clips` are favored for events that have both a clip and a snapshot.|
+| `events_media_type` | `all` | :white_check_mark: | Whether to show only events with `clips`, events with `snapshots` or `all` events. When `all` is used, `clips` are favored for events that have both a clip and a snapshot.|
 | `show_recordings` | `true` | :white_check_mark: | Whether to show recordings on the timeline (specifically: which hours have any recorded content).|
 
 **Caution**: 🚩 For optimal UX, keep the settings for the mini-timeline in the `live` and `media_viewer` identical. Dragging the timeline may cause the card to change between the `live` view and `media_viewer` based views as the user pans between the past and present -- if the settings are different the timeline must "reset".
@@ -781,7 +782,7 @@ media_viewer:
 | `style` | `ribbon` | :heavy_multiplication_x: | Whether the timeline should show events as a single flat `ribbon` or a `stack` of events that are clustered using the `clustering_threshold` (below). |
 | `window_seconds` | `3600` | :heavy_multiplication_x: | The length of the default timeline in seconds. By default, 1 hour (`3600` seconds) is shown in the timeline. |
 | `clustering_threshold` | `3` | :heavy_multiplication_x: | The minimum number of overlapping events to allow prior to clustering/grouping them. Higher numbers cause clustering to happen less frequently. Depending on the timescale/zoom of the timeline, the underlying timeline library may still allow overlaps for low values of this parameter -- for a fully "flat" timeline use the `ribbon` style. `0` disables clustering entirely. Only used in the `stack` style of timeline. |
-| `media` | `all` | :heavy_multiplication_x: | Whether to show only events with `clips`, events with `snapshots` or `all` events. When `all` is used, `clips` are favored for events that have both a clip and a snapshot.|
+| `events_media_type` | `all` | :heavy_multiplication_x: | Whether to show only events with `clips`, events with `snapshots` or `all` events. When `all` is used, `clips` are favored for events that have both a clip and a snapshot. |
 | `show_recordings` | `true` | :heavy_multiplication_x: | Whether to show recordings on the timeline (specifically: which hours have any recorded content).|
 
 **Caution**: 🚩 For optimal UX, keep the settings for the mini-timeline in the `live` and `media_viewer` identical. Dragging the timeline may cause the card to change between the `live` view and `media_viewer` based views as the user pans between the past and present -- if the settings are different the timeline must "reset".
@@ -911,7 +912,7 @@ See the [fully expanded timeline configuration example](#config-expanded-timelin
 | `style` | `stack` | :heavy_multiplication_x: | Whether the timeline should show events as a single flat `ribbon` or a `stack` of events that are clustered using the `clustering_threshold` (below). |
 | `window_seconds` | `3600` | :heavy_multiplication_x: | The length of the default timeline in seconds. By default, 1 hour (`3600` seconds) is shown in the timeline. |
 | `clustering_threshold` | `3` | :heavy_multiplication_x: | The minimum number of overlapping events to allow prior to clustering/grouping them. Higher numbers cause clustering to happen less frequently. Depending on the timescale/zoom of the timeline, the underlying timeline library may still allow overlaps for low values of this parameter -- for a fully "flat" timeline use the `ribbon` style. `0` disables clustering entirely. Only used in the `stack` style of timeline. |
-| `media` | `all` | :heavy_multiplication_x: | Whether to show only events with `clips`, events with `snapshots` or `all` events. When `all` is used, `clips` are favored for events that have both a clip and a snapshot.|
+| `events_media_type` | `all` | :heavy_multiplication_x: | Whether to show only events with `clips`, events with `snapshots` or `all` events. When `all` is used, `clips` are favored for events that have both a clip and a snapshot.|
 | `show_recordings` | `true` | :heavy_multiplication_x: | Whether to show recordings on the timeline (specifically: which hours have any recorded content).|
 | `controls` | | :heavy_multiplication_x: | Configuration for the timeline controls. See below.|
 
@@ -2092,7 +2093,8 @@ live:
       style: chevrons
       size: 48
     thumbnails:
-      media: clips
+      media_type: events
+      events_media_type: all
       size: 100
       show_details: false
       show_download_control: true
@@ -2103,7 +2105,7 @@ live:
       style: ribbon
       mode: none
       clustering_threshold: 3
-      media: all
+      events_media_type: all
       show_recordings: true
       window_seconds: 3600
     title:
@@ -2201,7 +2203,7 @@ media_viewer:
       style: ribbon
       mode: none
       clustering_threshold: 3
-      media: all
+      events_media_type: all
       show_recordings: true
       window_seconds: 3600
     title:
@@ -2663,7 +2665,7 @@ Reference: [Timeline Options](#timeline-options).
 timeline:
   style: stack
   clustering_threshold: 3
-  media: all
+  events_media_type: all
   show_recordings: true
   window_seconds: 3600
   controls:
@@ -2755,8 +2757,8 @@ overrides:
               maxAudioLag: 10
               videoBufferSize: 524288
               audioBufferSize: 131072
-  image:
-    refresh_seconds: 1
+          image:
+            refresh_seconds: 1
       live:
         webrtc_card:
           ui: true
@@ -2779,7 +2781,8 @@ overrides:
             style: chevrons
             size: 48
           thumbnails:
-            media: clips
+            media_type: events
+            events_media_type: all
             size: 100
             show_details: false
             show_download_control: true

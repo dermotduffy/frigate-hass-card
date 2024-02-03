@@ -86,7 +86,8 @@ import {
   CONF_LIVE_CONTROLS_PTZ_MODE,
   CONF_LIVE_CONTROLS_PTZ_ORIENTATION,
   CONF_LIVE_CONTROLS_PTZ_POSITION,
-  CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
+  CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
+  CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA_TYPE,
   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
@@ -94,7 +95,7 @@ import {
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
   CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
-  CONF_LIVE_CONTROLS_TIMELINE_MEDIA,
+  CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_LIVE_CONTROLS_TIMELINE_MODE,
   CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
   CONF_LIVE_CONTROLS_TIMELINE_STYLE,
@@ -138,7 +139,7 @@ import {
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
-  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA,
+  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE,
@@ -174,7 +175,7 @@ import {
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
-  CONF_TIMELINE_MEDIA,
+  CONF_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_TIMELINE_SHOW_RECORDINGS,
   CONF_TIMELINE_STYLE,
   CONF_TIMELINE_WINDOW_SECONDS,
@@ -452,15 +453,27 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     },
   ];
 
-  protected _thumbnailMedias: EditorSelectOption[] = [
+  protected _thumbnailMediaTypes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'events',
+      label: localize('config.common.controls.thumbnails.media_types.events'),
+    },
+    {
+      value: 'recordings',
+      label: localize('config.common.controls.thumbnails.media_types.recordings'),
+    },
+  ];
+
+  protected _thumbnailEventsMediaTypes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
       value: 'clips',
-      label: localize('config.common.controls.thumbnails.medias.clips'),
+      label: localize('config.common.controls.thumbnails.events_media_types.clips'),
     },
     {
       value: 'snapshots',
-      label: localize('config.common.controls.thumbnails.medias.snapshots'),
+      label: localize('config.common.controls.thumbnails.events_media_types.snapshots'),
     },
   ];
 
@@ -498,11 +511,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'url', label: localize('config.image.modes.url') },
   ];
 
-  protected _timelineMediaTypes: EditorSelectOption[] = [
+  protected _timelineEventsMediaTypes: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'all', label: localize('config.common.timeline.medias.all') },
-    { value: 'clips', label: localize('config.common.timeline.medias.clips') },
-    { value: 'snapshots', label: localize('config.common.timeline.medias.snapshots') },
+    { value: 'all', label: localize('config.common.timeline.events_media_types.all') },
+    { value: 'clips', label: localize('config.common.timeline.events_media_types.clips') },
+    { value: 'snapshots', label: localize('config.common.timeline.events_media_types.snapshots') },
   ];
 
   protected _timelineStyleTypes: EditorSelectOption[] = [
@@ -1149,7 +1162,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    * @param configPathStyle Timeline style config path.
    * @param configPathWindowSeconds Timeline window config path.
    * @param configPathClusteringThreshold Clustering threshold config path.
-   * @param configPathTimelineMedia Timeline media config path.
+   * @param configPathTimelineEventsMediaType Timeline media config path.
    * @param configPathShowRecordings Show recordings config path.
    * @param defaultShowRecordings Default value of show_recordings.
    * @returns A rendered template.
@@ -1158,7 +1171,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     configPathStyle: string,
     configPathWindowSeconds: string,
     configPathClusteringThreshold: string,
-    configPathTimelineMedia: string,
+    configPathTimelineEventsMediaType: string,
     configPathShowRecordings: string,
     defaultShowRecordings: boolean,
   ): TemplateResult {
@@ -1175,8 +1188,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     ${this._renderNumberInput(configPathClusteringThreshold, {
       label: localize(`config.common.${CONF_TIMELINE_CLUSTERING_THRESHOLD}`),
     })}
-    ${this._renderOptionSelector(configPathTimelineMedia, this._timelineMediaTypes, {
-      label: localize(`config.common.${CONF_TIMELINE_MEDIA}`),
+    ${this._renderOptionSelector(configPathTimelineEventsMediaType, this._timelineEventsMediaTypes, {
+      label: localize(`config.common.${CONF_TIMELINE_EVENTS_MEDIA_TYPE}`),
     })}
     ${this._renderSwitch(configPathShowRecordings, defaultShowRecordings, {
       label: localize(`config.common.${CONF_TIMELINE_SHOW_RECORDINGS}`),
@@ -1188,7 +1201,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    * @param domain The submenu domain.
    * @param configPathWindowSeconds Timeline window config path.
    * @param configPathClusteringThreshold Clustering threshold config path.
-   * @param configPathTimelineMedia Timeline media config path.
+   * @param configPathTimelineEventsMediaType Timeline media config path.
    * @param configPathShowRecordings Show recordings config path.
    * @returns A rendered template.
    */
@@ -1198,7 +1211,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     configPathStyle: string,
     configPathWindowSeconds: string,
     configPathClusteringThreshold: string,
-    configPathTimelineMedia: string,
+    configPathTimelineEventsMediaType: string,
     configPathShowRecordings: string,
     showRecordingsDefault: boolean,
   ): TemplateResult | void {
@@ -1214,7 +1227,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         configPathStyle,
         configPathWindowSeconds,
         configPathClusteringThreshold,
-        configPathTimelineMedia,
+        configPathTimelineEventsMediaType,
         configPathShowRecordings,
         showRecordingsDefault,
       )}`,
@@ -1330,7 +1343,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       show_download_control: boolean;
     },
     options?: {
-      configPathMedia?: string;
+      configPathMediaType?: string;
+      configPathEventsMediaType?: string;
       configPathMode?: string;
     },
   ): TemplateResult | void {
@@ -1349,12 +1363,21 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               },
             )}`
           : html``}
-        ${options?.configPathMedia
+        ${options?.configPathMediaType
           ? html`${this._renderOptionSelector(
-              options.configPathMedia,
-              this._thumbnailMedias,
+              options.configPathMediaType,
+              this._thumbnailMediaTypes,
               {
-                label: localize('config.common.controls.thumbnails.media'),
+                label: localize('config.common.controls.thumbnails.media_type'),
+              },
+            )}`
+          : html``}
+        ${options?.configPathEventsMediaType
+          ? html`${this._renderOptionSelector(
+              options.configPathEventsMediaType,
+              this._thumbnailEventsMediaTypes,
+              {
+                label: localize('config.common.controls.thumbnails.events_media_type'),
               },
             )}`
           : html``}
@@ -2101,7 +2124,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
                       this._defaults.live.controls.thumbnails,
                       {
-                        configPathMedia: CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
+                        configPathMediaType: CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA_TYPE,
+                        configPathEventsMediaType: CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
                         configPathMode: CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
                       },
                     )}
@@ -2116,7 +2140,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       CONF_LIVE_CONTROLS_TIMELINE_STYLE,
                       CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS,
                       CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
-                      CONF_LIVE_CONTROLS_TIMELINE_MEDIA,
+                      CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
                       CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
                       this._defaults.live.controls.timeline.show_recordings,
                     )}
@@ -2309,7 +2333,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
-                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA,
+                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS,
                     this._defaults.media_viewer.controls.timeline.show_recordings,
                   )}
@@ -2347,7 +2371,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 CONF_TIMELINE_STYLE,
                 CONF_TIMELINE_WINDOW_SECONDS,
                 CONF_TIMELINE_CLUSTERING_THRESHOLD,
-                CONF_TIMELINE_MEDIA,
+                CONF_TIMELINE_EVENTS_MEDIA_TYPE,
                 CONF_TIMELINE_SHOW_RECORDINGS,
                 this._defaults.timeline.show_recordings,
               )}

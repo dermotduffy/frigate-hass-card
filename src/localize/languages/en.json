@@ -18,8 +18,8 @@
         "editor_label": "Cast Options",
         "method": "Cast method",
         "methods": {
-          "standard": "Standard",
-          "dashboard": "Dashboard"
+          "dashboard": "Dashboard",
+          "standard": "Standard"
         }
       },
       "dependencies": {
@@ -119,10 +119,15 @@
         },
         "thumbnails": {
           "editor_label": "Thumbnails",
-          "media": "Whether to show thumbnails of clips or snapshots",
-          "medias": {
+          "events_media_type": "Whether to show event thumbnails of clips or snapshots",
+          "events_media_types": {
             "clips": "Clip thumbnails",
             "snapshots": "Snapshot thumbnails"
+          },
+          "media_type": "Whether to show thumnails of events or recordings",
+          "media_types": {
+            "events": "Events",
+            "recordings": "Recordings"
           },
           "mode": "Thumbnails mode",
           "modes": {
@@ -191,9 +196,9 @@
       },
       "timeline": {
         "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",
-        "media": "The media the timeline displays",
-        "medias": {
-          "all": "All media types",
+        "events_media_type": "The events media the timeline displays",
+        "events_media_types": {
+          "all": "All event media types",
           "clips": "Clips",
           "snapshots": "Snapshots"
         },
@@ -238,27 +243,27 @@
         "editor_label": "Live Controls",
         "ptz": {
           "editor_label": "PTZ",
+          "hide_home": "Hide home control",
+          "hide_pan_tilt": "Hide pan & tilt control",
+          "hide_zoom": "Hide zoom control",
           "mode": "Mode",
           "modes": {
-            "on": "On",
+            "auto": "Automatic",
             "off": "Off",
-            "auto": "Automatic"
+            "on": "On"
           },
           "orientation": "Orientation",
           "orientations": {
-            "vertical": "Vertical",
-            "horizontal": "Horizontal"
+            "horizontal": "Horizontal",
+            "vertical": "Vertical"
           },
           "position": "Position",
           "positions": {
-            "top-left": "Top left",
-            "top-right": "Top right",
             "bottom-left": "Bottom left",
-            "bottom-right": "Bottom right"
-          },
-          "hide_zoom": "Hide zoom control",
-          "hide_pan_tilt": "Hide pan & tilt control",
-          "hide_home": "Hide home control"
+            "bottom-right": "Bottom right",
+            "top-left": "Top left",
+            "top-right": "Top right"
+          }
         }
       },
       "draggable": "Live cameras view can be dragged/swiped",
@@ -314,8 +319,8 @@
         "camera_ui": "Camera user interface",
         "cameras": "Cameras",
         "clips": "Clips",
-        "download": "Download",
         "display_mode": "Display mode",
+        "download": "Download",
         "enabled": "Button enabled",
         "expand": "Expand",
         "frigate": "Frigate menu / Default view",
@@ -387,6 +392,8 @@
         "on": "On"
       },
       "default": "Default view",
+      "interaction_seconds": "Seconds after user action to remain interacted with (0=never)",
+      "reset_after_interaction": "Reset to the default view after user interaction",
       "scan": {
         "actions": {
           "editor_label": "Scan mode actions",
@@ -408,13 +415,11 @@
           }
         },
         "editor_label": "Scan mode",
-        "filter_selected_camera": "Only trigger on selected camera",
         "enabled": "Scan mode enabled",
+        "filter_selected_camera": "Only trigger on selected camera",
         "show_trigger_status": "Show pulsing border when triggered",
         "untrigger_seconds": "Seconds after inactive state change to untrigger"
       },
-      "interaction_seconds": "Seconds after user action to remain interacted with (0=never)",
-      "reset_after_interaction": "Reset to the default view after user interaction",
       "update_cycle_camera": "Cycle through cameras when default view updates",
       "update_force": "Force card updates (ignore user interaction)",
       "update_seconds": "Refresh default view every X seconds (0=never)",
@@ -433,8 +438,8 @@
     }
   },
   "display_modes": {
-    "single": "Show single media viewer",
-    "grid": "Show media viewer for each camera in a grid"
+    "grid": "Show media viewer for each camera in a grid",
+    "single": "Show single media viewer"
   },
   "editor": {
     "add_new_camera": "Add new camera",
@@ -528,9 +533,6 @@
     "what": "What",
     "where": "Where"
   },
-  "media_viewer": {
-    "unseekable": "Seek time not found in media"
-  },
   "media_filter": {
     "all": "All",
     "camera": "Camera",
@@ -559,6 +561,9 @@
       "yesterday": "Yesterday"
     },
     "where": "Where"
+  },
+  "media_viewer": {
+    "unseekable": "Seek time not found in media"
   },
   "recording": {
     "camera": "Camera",
