@@ -87,7 +87,7 @@ export class FrigateCardGallery extends LitElement {
           this.view,
         );
       } else {
-        const mediaType = this.view.is('snapshots')
+        const eventsMediaType = this.view.is('snapshots')
           ? 'snapshots'
           : this.view.is('clips')
           ? 'clips'
@@ -98,7 +98,7 @@ export class FrigateCardGallery extends LitElement {
           this.cardWideConfig,
           this.view,
           {
-            ...(mediaType && { mediaType: mediaType }),
+            ...(eventsMediaType && { eventsMediaType: eventsMediaType }),
           },
         );
       }

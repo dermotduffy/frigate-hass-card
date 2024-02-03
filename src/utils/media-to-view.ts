@@ -24,7 +24,7 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
   view: View,
   options?: {
     allCameras?: boolean;
-    mediaType?: ClipsOrSnapshotsOrAll;
+    eventsMediaType?: ClipsOrSnapshotsOrAll;
     targetView?: FrigateCardView;
     select?: ResultSelectType;
   },
@@ -37,7 +37,7 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
   }
 
   const queries = createQueriesForEventsView(cameraManager, cardWideConfig, cameraIDs, {
-    mediaType: options?.mediaType,
+    eventsMediaType: options?.eventsMediaType,
   });
   if (!queries) {
     return;
@@ -62,15 +62,15 @@ const createQueriesForEventsView = (
   cardWideConfig: CardWideConfig,
   cameraIDs: Set<string>,
   options?: {
-    mediaType?: ClipsOrSnapshotsOrAll;
+    eventsMediaType?: ClipsOrSnapshotsOrAll;
   },
 ): EventMediaQueries | null => {
   const limit =
     cardWideConfig.performance?.features.media_chunk_size ?? MEDIA_CHUNK_SIZE_DEFAULT;
   const eventQueries = cameraManager.generateDefaultEventQueries(cameraIDs, {
     limit: limit,
-    ...(options?.mediaType === 'clips' && { hasClip: true }),
-    ...(options?.mediaType === 'snapshots' && { hasSnapshot: true }),
+    ...(options?.eventsMediaType === 'clips' && { hasClip: true }),
+    ...(options?.eventsMediaType === 'snapshots' && { hasSnapshot: true }),
   });
   return eventQueries ? new EventMediaQueries(eventQueries) : null;
 };
@@ -91,7 +91,7 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
   view: View,
   options?: {
     allCameras?: boolean;
-    targetView?: 'recording' | 'recordings';
+    targetView?: FrigateCardView;
     select?: ResultSelectType;
   },
 ): Promise<void> => {

@@ -47,18 +47,18 @@ export class TimelineDataSource {
   protected _eventRanges = new ExpiringMemoryRangeSet();
 
   protected _cameraIDs: Set<string>;
-  protected _mediaType: ClipsOrSnapshotsOrAll;
+  protected _eventsMediaType: ClipsOrSnapshotsOrAll;
   protected _showRecordings: boolean;
 
   constructor(
     cameraManager: CameraManager,
     cameraIDs: Set<string>,
-    media: ClipsOrSnapshotsOrAll,
+    eventsMediaType: ClipsOrSnapshotsOrAll,
     showRecordings: boolean,
   ) {
     this._cameraManager = cameraManager;
     this._cameraIDs = cameraIDs;
-    this._mediaType = media;
+    this._eventsMediaType = eventsMediaType;
     this._showRecordings = showRecordings;
   }
 
@@ -101,8 +101,8 @@ export class TimelineDataSource {
     return this._cameraManager.generateDefaultEventQueries(this._cameraIDs, {
       start: window.start,
       end: window.end,
-      ...(this._mediaType === 'clips' && { hasClip: true }),
-      ...(this._mediaType === 'snapshots' && { hasSnapshot: true }),
+      ...(this._eventsMediaType === 'clips' && { hasClip: true }),
+      ...(this._eventsMediaType === 'snapshots' && { hasSnapshot: true }),
     });
   }
 

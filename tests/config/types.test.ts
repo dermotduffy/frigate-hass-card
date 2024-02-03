@@ -77,7 +77,8 @@ describe('config defaults', () => {
             position: 'bottom-right',
           },
           thumbnails: {
-            media: 'all',
+            media_type: 'events',
+            events_media_type: 'all',
             mode: 'right',
             show_details: true,
             show_download_control: true,
@@ -87,7 +88,7 @@ describe('config defaults', () => {
           },
           timeline: {
             clustering_threshold: 3,
-            media: 'all',
+            events_media_type: 'all',
             mode: 'none',
             show_recordings: true,
             style: 'ribbon',
@@ -143,7 +144,7 @@ describe('config defaults', () => {
           },
           timeline: {
             clustering_threshold: 3,
-            media: 'all',
+            events_media_type: 'all',
             mode: 'none',
             show_recordings: true,
             style: 'ribbon',
@@ -268,7 +269,7 @@ describe('config defaults', () => {
             size: 100,
           },
         },
-        media: 'all',
+        events_media_type: 'all',
         show_recordings: true,
         style: 'stack',
         window_seconds: 3600,

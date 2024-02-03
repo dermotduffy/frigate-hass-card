@@ -627,25 +627,30 @@ const thumbnailsControlSchema = thumbnailsControlBaseSchema.extend({
 export type ThumbnailsControlConfig = z.infer<typeof thumbnailsControlSchema>;
 
 // *************************************************************************
+//                     Event Media Type Configuration
+// *************************************************************************
+const eventsMediaTypeSchema = z.enum(['all', 'clips', 'snapshots']);
+
+// *************************************************************************
 //                     Timeline Configuration
 // *************************************************************************
 
 const timelineCoreConfigDefault = {
   clustering_threshold: 3,
-  media: 'all' as const,
+  events_media_type: 'all' as const,
   window_seconds: 60 * 60,
   show_recordings: true,
   style: 'stack' as const,
 };
-
-const timelineMediaSchema = z.enum(['all', 'clips', 'snapshots']);
 
 const timelineCoreConfigSchema = z.object({
   clustering_threshold: z
     .number()
     .optional()
     .default(timelineCoreConfigDefault.clustering_threshold),
-  media: timelineMediaSchema.optional().default(timelineCoreConfigDefault.media),
+  events_media_type: eventsMediaTypeSchema
+    .optional()
+    .default(timelineCoreConfigDefault.events_media_type),
   window_seconds: z
     .number()
     .min(1 * 60)
@@ -867,7 +872,8 @@ export type FrigateCardPTZConfig = z.infer<typeof frigateCardPTZSchema>;
 
 const liveThumbnailControlsDefaults = {
   ...thumbnailControlsDefaults,
-  media: 'all' as const,
+  media_type: 'events' as const,
+  events_media_type: 'all' as const,
 };
 
 const liveConfigDefault = {
@@ -899,9 +905,12 @@ const liveConfigDefault = {
 };
 
 const livethumbnailsControlSchema = thumbnailsControlSchema.extend({
-  media: z
-    .enum(['all', 'clips', 'snapshots'])
-    .default(liveConfigDefault.controls.thumbnails.media),
+  media_type: z
+    .enum(['events', 'recordings'])
+    .default(liveConfigDefault.controls.thumbnails.media_type),
+  events_media_type: eventsMediaTypeSchema.default(
+    liveConfigDefault.controls.thumbnails.events_media_type,
+  ),
 });
 
 const liveOverridableConfigSchema = z

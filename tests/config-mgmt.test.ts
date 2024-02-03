@@ -1590,5 +1590,105 @@ describe('should handle version specific upgrades', () => {
         });
       });
     });
+
+    describe('should rename thumbnails.media to thumbnails.events_media_type', () => {
+      it.each([['all' as const], ['clips' as const], ['snapshots' as const]])(
+        '%s',
+        (mediaEventType: string) => {
+          const config = {
+            live: {
+              controls: {
+                thumbnails: {
+                  media: mediaEventType,
+                },
+              },
+            },
+          };
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            live: {
+              controls: {
+                thumbnails: {
+                  events_media_type: mediaEventType,
+                },
+              },
+            },
+          });
+        },
+      );
+    });
+
+    describe('should rename timeline.media to timeline.events_media_type', () => {
+      it.each([['all' as const], ['clips' as const], ['snapshots' as const]])(
+        '%s',
+        (mediaEventType: string) => {
+          const config = {
+            timeline: {
+              media: mediaEventType,
+            },
+          };
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            timeline: {
+              events_media_type: mediaEventType,
+            },
+          });
+        },
+      );
+    });
+
+    describe('should rename live.controls.timeline.media to live.controls.timeline.events_media_type', () => {
+      it.each([['all' as const], ['clips' as const], ['snapshots' as const]])(
+        '%s',
+        (mediaEventType: string) => {
+          const config = {
+            live: {
+              controls: {
+                timeline: {
+                  media: mediaEventType,
+                },
+              },
+            },
+          };
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            live: {
+              controls: {
+                timeline: {
+                  events_media_type: mediaEventType,
+                },
+              },
+            },
+          });
+        },
+      );
+    });
+
+    describe('should rename media_viewer.controls.timeline.media to media_viewer.controls.timeline.events_media_type', () => {
+      it.each([['all' as const], ['clips' as const], ['snapshots' as const]])(
+        '%s',
+        (mediaEventType: string) => {
+          const config = {
+            media_viewer: {
+              controls: {
+                timeline: {
+                  media: mediaEventType,
+                },
+              },
+            },
+          };
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            media_viewer: {
+              controls: {
+                timeline: {
+                  events_media_type: mediaEventType,
+                },
+              },
+            },
+          });
+        },
+      );
+    });
   });
 });

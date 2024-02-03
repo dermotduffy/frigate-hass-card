@@ -10,9 +10,13 @@ import {
   CONF_CAMERAS_GLOBAL_JSMPEG,
   CONF_CAMERAS_GLOBAL_WEBRTC_CARD,
   CONF_ELEMENTS,
+  CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
+  CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_MEDIA_GALLERY,
+  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_MENU_BUTTONS_CAMERA_UI,
   CONF_OVERRIDES,
+  CONF_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_VIEW_INTERACTION_SECONDS,
   CONF_VIEW_SCAN_ACTIONS_UNTRIGGER,
 } from './const';
@@ -515,5 +519,21 @@ const UPGRADES = [
   ),
   upgradeWithOverrides('media_viewer.auto_unmute', (data) =>
     data === 'all' ? ['selected', 'visible'] : data === 'never' ? null : arrayify(data),
+  ),
+  upgradeMoveToWithOverrides(
+    'live.controls.thumbnails.media',
+    CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
+  ),
+  upgradeMoveToWithOverrides(
+    'timeline.media',
+    CONF_TIMELINE_EVENTS_MEDIA_TYPE,
+  ),
+  upgradeMoveToWithOverrides(
+    'live.controls.timeline.media',
+    CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
+  ),
+  upgradeMoveToWithOverrides(
+    'media_viewer.controls.timeline.media',
+    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
   ),
 ];

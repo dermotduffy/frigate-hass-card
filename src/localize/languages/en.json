@@ -119,8 +119,13 @@
         },
         "thumbnails": {
           "editor_label": "Thumbnails",
-          "media": "Whether to show thumbnails of clips or snapshots",
-          "medias": {
+          "media_type": "Whether to show thumnails of events or recordings",
+          "media_types": {
+            "events": "Events",
+            "recordings": "Recordings"
+          },
+          "events_media_type": "Whether to show event thumbnails of clips or snapshots",
+          "events_media_types": {
             "clips": "Clip thumbnails",
             "snapshots": "Snapshot thumbnails"
           },
@@ -191,9 +196,9 @@
       },
       "timeline": {
         "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",
-        "media": "The media the timeline displays",
-        "medias": {
-          "all": "All media types",
+        "events_media_type": "The events media the timeline displays",
+        "events_media_types": {
+          "all": "All event media types",
           "clips": "Clips",
           "snapshots": "Snapshots"
         },

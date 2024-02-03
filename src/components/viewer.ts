@@ -168,7 +168,7 @@ export class FrigateCardViewer extends LitElement {
           {
             allCameras: this.view.isGrid(),
             targetView: 'media',
-            mediaType: mediaType,
+            eventsMediaType: mediaType,
           },
         );
       }

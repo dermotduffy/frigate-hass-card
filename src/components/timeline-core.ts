@@ -1161,7 +1161,7 @@ export class FrigateCardTimelineCore extends LitElement {
         this._timelineSource = new TimelineDataSource(
           this.cameraManager,
           cameraIDs,
-          this.timelineConfig.media,
+          this.timelineConfig.events_media_type,
           this.timelineConfig.show_recordings,
         );
       } else {
