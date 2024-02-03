@@ -119,10 +119,15 @@
         },
         "thumbnails": {
           "editor_label": "Miniature",
-          "media": "Se mostrare miniature di clip o istantanee",
-          "medias": {
+          "events_media_type": "Se mostrare miniature di clip o istantanee",
+          "events_media_types": {
             "clips": "Miniature di clip",
             "snapshots": "Miniature istantanee"
+          },
+          "media_type": "",
+          "media_types": {
+            "events": "",
+            "recordings": ""
           },
           "mode": "Modalità miniatura",
           "modes": {
@@ -191,8 +196,8 @@
       },
       "timeline": {
         "clustering_threshold": "Il conteggio degli eventi in cui sono raggruppati (0 = nessun clustering)",
-        "media": "I media vengono visualizzati la sequenza temporale",
-        "medias": {
+        "events_media_type": "I media vengono visualizzati la sequenza temporale",
+        "events_media_types": {
           "all": "Tutti i tipi di media",
           "clips": "Clip",
           "snapshots": "Istantanee"
