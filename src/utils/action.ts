@@ -115,15 +115,15 @@ export function getActionConfigGivenAction(
   if (!interaction || !config) {
     return null;
   }
-  if (interaction == 'tap' && config.tap_action) {
+  if (interaction === 'tap' && config.tap_action) {
     return config.tap_action;
-  } else if (interaction == 'hold' && config.hold_action) {
+  } else if (interaction === 'hold' && config.hold_action) {
     return config.hold_action;
-  } else if (interaction == 'double_tap' && config.double_tap_action) {
+  } else if (interaction === 'double_tap' && config.double_tap_action) {
     return config.double_tap_action;
-  } else if (interaction == 'end_tap' && config.end_tap_action) {
+  } else if (interaction === 'end_tap' && config.end_tap_action) {
     return config.end_tap_action;
-  } else if (interaction == 'start_tap' && config.start_tap_action) {
+  } else if (interaction === 'start_tap' && config.start_tap_action) {
     return config.start_tap_action;
   }
   return null;

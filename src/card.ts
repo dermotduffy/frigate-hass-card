@@ -10,7 +10,7 @@ import pkg from '../package.json';
 import { actionHandler } from './action-handler-directive.js';
 import { ConditionEvaluateRequestEvent } from './card-controller/conditions-manager.js';
 import { CardController } from './card-controller/controller';
-import { MenuButtonController } from './components-lib/menu-controller';
+import { MenuButtonController } from './components-lib/menu-button-controller';
 import './components/elements.js';
 import { FrigateCardElements } from './components/elements.js';
 import './components/menu.js';
