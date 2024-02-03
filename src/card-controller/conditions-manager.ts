@@ -4,6 +4,7 @@ import { copyConfig } from '../config-mgmt';
 import {
   FrigateCardCondition,
   frigateConditionalSchema,
+  MicrophoneConditionState,
   OverrideConfigurationKey,
   RawFrigateCardConfig,
   ViewDisplayMode,
@@ -20,6 +21,7 @@ interface ConditionState {
   displayMode?: ViewDisplayMode;
   triggered?: Set<string>;
   interaction?: boolean;
+  microphone?: MicrophoneConditionState;
 }
 
 export class ConditionEvaluateRequestEvent extends Event {
@@ -253,6 +255,13 @@ export class ConditionsManager {
     if (condition.interaction !== undefined) {
       result &&=
         state.interaction !== undefined && condition.interaction === state.interaction;
+    }
+    if (condition.microphone) {
+      result &&=
+        (condition.microphone.connected === undefined ||
+          state.microphone?.connected === condition.microphone.connected) &&
+        (condition.microphone.muted === undefined ||
+          state.microphone?.muted === condition.microphone.muted);
     }
     return result;
   }

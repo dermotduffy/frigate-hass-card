@@ -141,6 +141,7 @@ describe('CardElementManager', () => {
     expect(api.getFullscreenManager().initialize).toBeCalled();
     expect(api.getExpandManager().initialize).toBeCalled();
     expect(api.getMediaLoadedInfoManager().initialize).toBeCalled();
+    expect(api.getMicrophoneManager().initialize).toBeCalled();
   });
 
   it('should disconnect', () => {

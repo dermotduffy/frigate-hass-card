@@ -377,9 +377,81 @@ describe('ConditionsManager', () => {
     const manager = new ConditionsManager(createCardAPI());
     const condition: FrigateCardCondition = { interaction: true };
     expect(manager.evaluateCondition(condition)).toBeFalsy();
-    manager.setState({ interaction: true })
+    manager.setState({ interaction: true });
     expect(manager.evaluateCondition(condition)).toBeTruthy();
-    manager.setState({ interaction: false })
+    manager.setState({ interaction: false });
     expect(manager.evaluateCondition(condition)).toBeFalsy();
+  });
+
+  describe('should evaluate conditions with microphone', () => {
+    it('empty', () => {
+      const manager = new ConditionsManager(createCardAPI());
+      const condition: FrigateCardCondition = { microphone: {} };
+      expect(manager.evaluateCondition(condition)).toBeTruthy();
+      manager.setState({ microphone: { connected: true } });
+      expect(manager.evaluateCondition(condition)).toBeTruthy();
+      manager.setState({ microphone: { connected: false } });
+      expect(manager.evaluateCondition(condition)).toBeTruthy();
+      manager.setState({ microphone: { muted: true } });
+      expect(manager.evaluateCondition(condition)).toBeTruthy();
+      manager.setState({ microphone: { muted: false } });
+      expect(manager.evaluateCondition(condition)).toBeTruthy();
+    });
+
+    it('connected is true', () => {
+      const manager = new ConditionsManager(createCardAPI());
+      const condition: FrigateCardCondition = { microphone: { connected: true } };
+      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      manager.setState({ microphone: { connected: true } });
+      expect(manager.evaluateCondition(condition)).toBeTruthy();
+      manager.setState({ microphone: { connected: false } });
+      expect(manager.evaluateCondition(condition)).toBeFalsy();
+    });
+
+    it('connected is false', () => {
+      const manager = new ConditionsManager(createCardAPI());
+      const condition: FrigateCardCondition = { microphone: { connected: false } };
+      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      manager.setState({ microphone: { connected: true } });
+      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      manager.setState({ microphone: { connected: false } });
+      expect(manager.evaluateCondition(condition)).toBeTruthy();
+    });
+
+    it('muted is true', () => {
+      const manager = new ConditionsManager(createCardAPI());
+      const condition: FrigateCardCondition = { microphone: { muted: true } };
+      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      manager.setState({ microphone: { muted: true } });
+      expect(manager.evaluateCondition(condition)).toBeTruthy();
+      manager.setState({ microphone: { muted: false } });
+      expect(manager.evaluateCondition(condition)).toBeFalsy();
+    });
+
+    it('muted is false', () => {
+      const manager = new ConditionsManager(createCardAPI());
+      const condition: FrigateCardCondition = { microphone: { muted: false } };
+      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      manager.setState({ microphone: { muted: true } });
+      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      manager.setState({ microphone: { muted: false } });
+      expect(manager.evaluateCondition(condition)).toBeTruthy();
+    });
+
+    it('connected and muted', () => {
+      const manager = new ConditionsManager(createCardAPI());
+      const condition: FrigateCardCondition = {
+        microphone: { muted: false, connected: true },
+      };
+      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      manager.setState({ microphone: { muted: true } });
+      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      manager.setState({ microphone: { muted: false } });
+      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      manager.setState({ microphone: { connected: false, muted: false } });
+      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      manager.setState({ microphone: { connected: true, muted: false } });
+      expect(manager.evaluateCondition(condition)).toBeTruthy();
+    });
   });
 });
