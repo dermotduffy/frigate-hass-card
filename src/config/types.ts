@@ -326,7 +326,7 @@ const actionsSchema = z.object({
 });
 
 const elementsBaseSchema = actionsBaseSchema.extend({
-  style: z.record(z.string().nullable()).optional(),
+  style: z.record(z.string().nullable().or(z.undefined())).optional(),
   title: z.string().nullable().optional(),
 });
 
