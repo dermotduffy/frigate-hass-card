@@ -104,6 +104,7 @@ export interface CardElementAPI {
   getFullscreenManager(): FullscreenManager;
   getInteractionManager(): InteractionManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
+  getMicrophoneManager(): MicrophoneManager;
   getQueryStringManager(): QueryStringManager;
 }
 
@@ -178,6 +179,7 @@ export interface CardMessageAPI {
 
 export interface CardMicrophoneAPI {
   getCardElementManager(): CardElementManager;
+  getConditionsManager(): ConditionsManager;
   getConfigManager(): ConfigManager;
 }
 

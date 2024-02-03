@@ -479,6 +479,12 @@ export type MenuItem = MenuIcon | MenuStateIcon | MenuSubmenu | MenuSubmenuSelec
 //                  Custom Element Configuration: Conditions
 // *************************************************************************
 
+const microphoneConditionSchema = z.object({
+  connected: z.boolean().optional(),
+  muted: z.boolean().optional(),
+});
+export type MicrophoneConditionState = z.infer<typeof microphoneConditionSchema>;
+
 export const frigateCardConditionSchema = z.object({
   view: z.string().array().optional(),
   fullscreen: z.boolean().optional(),
@@ -490,6 +496,7 @@ export const frigateCardConditionSchema = z.object({
   display_mode: viewDisplayModeSchema.optional(),
   triggered: z.string().array().optional(),
   interaction: z.boolean().optional(),
+  microphone: microphoneConditionSchema.optional(),
 });
 export type FrigateCardCondition = z.infer<typeof frigateCardConditionSchema>;
 
@@ -736,7 +743,7 @@ export type LiveProvider = (typeof LIVE_PROVIDERS)[number];
 
 const microphoneConfigDefault = {
   always_connected: false,
-  disconnect_seconds: 60,
+  disconnect_seconds: 90,
   mute_after_microphone_mute_seconds: 60,
 };
 

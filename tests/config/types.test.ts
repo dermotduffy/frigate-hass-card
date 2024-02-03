@@ -99,7 +99,7 @@ describe('config defaults', () => {
         lazy_unload: [],
         microphone: {
           always_connected: false,
-          disconnect_seconds: 60,
+          disconnect_seconds: 90,
           mute_after_microphone_mute_seconds: 60,
         },
         preload: false,

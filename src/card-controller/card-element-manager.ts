@@ -60,6 +60,7 @@ export class CardElementManager {
     this._api.getFullscreenManager().initialize();
     this._api.getExpandManager().initialize();
     this._api.getMediaLoadedInfoManager().initialize();
+    this._api.getMicrophoneManager().initialize();
 
     // Whether or not the card is in panel mode on the dashboard.
     setOrRemoveAttribute(this._element, isCardInPanel(this._element), 'panel');

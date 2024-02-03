@@ -29,6 +29,10 @@ export class MicrophoneManager implements ReadonlyMicrophoneManager {
     this._api = api;
   }
 
+  public initialize(): void {
+    this._setConditionState();
+  }
+
   public async connect(): Promise<boolean> {
     try {
       this._stream = await navigator.mediaDevices.getUserMedia({
@@ -43,13 +47,15 @@ export class MicrophoneManager implements ReadonlyMicrophoneManager {
       return false;
     }
     this._setMute();
+    this._setConditionState();
     return true;
   }
 
-  public async disconnect(): Promise<void> {
+  public disconnect(): void {
     this._stream?.getTracks().forEach((track) => track.stop());
 
     this._stream = undefined;
+    this._setConditionState();
     this._api.getCardElementManager().update();
   }
 
@@ -62,6 +68,7 @@ export class MicrophoneManager implements ReadonlyMicrophoneManager {
 
     this._mute = true;
     this._setMute();
+    this._setConditionState();
 
     if (!wasMuted) {
       this._callListeners('muted');
@@ -89,6 +96,7 @@ export class MicrophoneManager implements ReadonlyMicrophoneManager {
       unmute();
     }
 
+    this._setConditionState();
     if (!wasUnmuted) {
       this._callListeners('unmuted');
     }
@@ -143,5 +151,14 @@ export class MicrophoneManager implements ReadonlyMicrophoneManager {
         this.disconnect();
       });
     }
+  }
+
+  protected _setConditionState(): void {
+    this._api.getConditionsManager().setState({
+      microphone: {
+        muted: this.isMuted(),
+        connected: this.isConnected(),
+      },
+    });
   }
 }

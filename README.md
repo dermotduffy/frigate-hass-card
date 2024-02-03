@@ -1293,6 +1293,7 @@ All variables listed are under a `conditions:` section.
 | `media_query` | Any valid [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries) string. Media queries must start and end with parentheses. This may be used to alter card configuration based on device/media properties (e.g. viewport width, orientation). Please note that `width` and `height` refer to the entire viewport not just the card. See the [media query example](#media-query-example).|
 | `interacted` | If `true` the condition is satisfied if the card has had human interaction within `view.interaction_seconds` elapsed seconds. If `false` the condition is satisfied if the card has **NOT** had human interaction in that time. |
 | `triggered` | A list of camera IDs which, if triggered in [scan mode](#scan-mode), satisfy the condition.|
+| `microphone` | A object to include microphone state as part of the condition evaluation. See below.|
 
 See the [example below](#frigate-card-conditional-example) for a real-world example of how these conditions can be used.
 
@@ -1315,6 +1316,18 @@ If multiple entries are provided, the results are `AND`ed.
 | `state_not` | Condition will be met if state is unequal to this optional string. |
 
 See the [Menu override example below](#frigate-card-menu-override-example) for an illustration.
+
+### Microphone Conditions
+
+```yaml
+- conditions:
+    microphone:
+```
+
+| Parameter | Description |
+| - | - |
+| `muted` | Optional: If `true` or `false` the condition is satisfied if the microphone is muted or unmuted respectively. |
+| `connected` | Optional: If `true` or `false` the condition is satisfied if the microphone is connected or disconnected respectively. |
 
 <a name="frigate-card-elements"></a>
 
