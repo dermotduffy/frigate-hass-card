@@ -675,9 +675,6 @@ export class FrigateCardTimelineCore extends LitElement {
     byUser: boolean;
     event: Event & { additionalEvent: string };
   }): Promise<void> {
-    if (!properties.byUser) {
-      return;
-    }
     this._removeTargetBar();
 
     if (!this._timeline || !this.view) {
