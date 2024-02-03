@@ -326,7 +326,7 @@ const actionsSchema = z.object({
 });
 
 const elementsBaseSchema = actionsBaseSchema.extend({
-  style: z.object({}).passthrough().optional(),
+  style: z.record(z.string().nullable().or(z.undefined())).optional(),
   title: z.string().nullable().optional(),
 });
 
@@ -1255,7 +1255,7 @@ const hiddenButtonSchema = menuBaseSchema.extend({
   priority: menuBaseSchema.shape.priority.default(hiddenButtonDefault.priority),
 });
 
-const menuConfigSchema = z
+export const menuConfigSchema = z
   .object({
     style: z.enum(FRIGATE_MENU_STYLES).default(menuConfigDefault.style),
     position: z.enum(FRIGATE_MENU_POSITIONS).default(menuConfigDefault.position),
