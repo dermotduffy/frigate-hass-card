@@ -36,7 +36,6 @@ input {
     z-index: 1;
   }
 }
-
 @supports not (-webkit-touch-callout: none) {
   input {
     visibility: hidden;

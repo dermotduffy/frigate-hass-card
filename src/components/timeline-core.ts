@@ -1,7 +1,5 @@
 import add from 'date-fns/add';
 import differenceInSeconds from 'date-fns/differenceInSeconds';
-import endOfDay from 'date-fns/endOfDay';
-import startOfDay from 'date-fns/startOfDay';
 import sub from 'date-fns/sub';
 import {
   CSSResultGroup,
