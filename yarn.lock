@@ -3282,13 +3282,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"flatpickr@npm:^4.6.13":
-  version: 4.6.13
-  resolution: "flatpickr@npm:4.6.13"
-  checksum: 2cca1b8dc974e7673b51174ee3f0679ae3a6b79525a0c53bf49b87455ef358354e64acfd60b312e44cef208aab9750a1a48df32a0914046a53de6d9403742304
-  languageName: node
-  linkType: hard
-
 "flatted@npm:^3.1.0":
   version: 3.2.7
   resolution: "flatted@npm:3.2.7"
@@ -3357,7 +3350,6 @@ __metadata:
     jsdom: ^21.1.1
     keycharm: ^0.4.0
     lit: ^2.3.1
-    lit-flatpickr: ^0.4.0
     lodash-es: ^4.17.21
     masonry-layout: ^4.2.2
     moment: ^2.29.4
@@ -4381,17 +4373,6 @@ __metadata:
     "@lit/reactive-element": ^1.3.0
     lit-html: ^2.2.0
   checksum: e1df57c02ad5ae4c42b49a5066b3b623bccf7fa6610bbc3f65bc22cbbe1546ecd6a7f717b1f01863929262f416c4b8b7a39ff166114215f93cc22f4e5b3825c3
-  languageName: node
-  linkType: hard
-
-"lit-flatpickr@npm:^0.4.0":
-  version: 0.4.0
-  resolution: "lit-flatpickr@npm:0.4.0"
-  dependencies:
-    flatpickr: ^4.6.13
-    lit: ^2.0.0
-    tslib: ^1.11.0
-  checksum: 2141902346bf3f2d291e1c3369317bb494641da48a3f69dabb891b7d065e2505b268c584cbc1859c36763374b9880399b17d93721539b2dc7d90c58988dba471
   languageName: node
   linkType: hard
 
@@ -6571,7 +6552,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^1.11.0, tslib@npm:^1.8.1":
+"tslib@npm:^1.8.1":
   version: 1.14.1
   resolution: "tslib@npm:1.14.1"
   checksum: dbe628ef87f66691d5d2959b3e41b9ca0045c3ee3c7c7b906cc1e328b39f199bb1ad9e671c39025bd56122ac57dfbf7385a94843b1cc07c60a4db74795829acd

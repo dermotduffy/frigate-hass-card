@@ -1,9 +1,9 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
-import 'lit-flatpickr';
-import { LitFlatpickr } from 'lit-flatpickr';
 import { customElement } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { localize } from '../localize/localize';
 import datePickerStyle from '../scss/date-picker.scss';
+import { stopEventFromActivatingCardWideActions } from '../utils/action';
 import { dispatchFrigateCardEvent } from '../utils/basic';
 
 export interface DatePickerEvent {
@@ -12,24 +12,33 @@ export interface DatePickerEvent {
 
 @customElement('frigate-card-date-picker')
 export class FrigateCardDatePicker extends LitElement {
-  protected _refInput: Ref<LitFlatpickr> = createRef();
-
-  public open(): void {
-    this._refInput.value?.open();
-  }
+  protected _refInput: Ref<HTMLInputElement> = createRef();
 
   protected render(): TemplateResult {
-    return html` <lit-flatpickr
-      ${ref(this._refInput)}
-      .onChange=${(dates: Date[]) => {
-        if (dates.length) {
-          // This is a single date picker, there should be only a single date.
-          dispatchFrigateCardEvent<DatePickerEvent>(this, 'date-picker:change', {
-            date: dates[0],
-          });
-        }
-      }}
-    ></lit-flatpickr>`;
+    return html`<input
+        aria-label="${localize('timeline.select_date')}"
+        title="${localize('timeline.select_date')}"
+        ${ref(this._refInput)}
+        type="datetime-local"
+        @input=${() => {
+          const value = this._refInput.value?.value;
+          if (value) {
+            dispatchFrigateCardEvent<DatePickerEvent>(this, 'date-picker:change', {
+              date: new Date(value),
+            });
+          }
+        }}
+      />
+      <ha-icon
+        aria-label="${localize('timeline.select_date')}"
+        title="${localize('timeline.select_date')}"
+        .icon=${`mdi:calendar-search`}
+        @click=${(ev: Event) => {
+          stopEventFromActivatingCardWideActions(ev);
+          this._refInput.value?.showPicker();
+        }}
+      >
+      </ha-icon>`;
   }
 
   static get styles(): CSSResultGroup {
