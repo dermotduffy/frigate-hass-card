@@ -334,22 +334,10 @@ export class FrigateCardTimelineCore extends LitElement {
                 >
                 </ha-icon>`
               : ''}
-            <ha-icon
-              .icon=${`mdi:calendar-search`}
-              aria-label="${localize('timeline.select_date')}"
-              title="${localize('timeline.select_date')}"
-              @click=${() => {
-                this._refDatePicker.value?.open();
-              }}
-            >
-            </ha-icon>
             <frigate-card-date-picker
               ${ref(this._refDatePicker)}
               @frigate-card:date-picker:change=${(ev: CustomEvent<DatePickerEvent>) => {
-                this._timeline?.setWindow(
-                  startOfDay(ev.detail.date),
-                  endOfDay(ev.detail.date),
-                );
+                this._timeline?.moveTo(ev.detail.date);
               }}
             >
             </frigate-card-date-picker>

@@ -1,7 +1,51 @@
-// The lit-flatpickr element itself is hidden as we only want the popup
-// calender.
-lit-flatpickr {
-  visibility: hidden;
-  width: 0px;
-  height: 0px;
+:host {
+  display: inline-block;
+  position: relative;
+  width: var(--mdc-icon-size, 24px);
+  height: var(--mdc-icon-size, 24px);
+}
+
+input {
+  display: block;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+
+  padding: 0px;
+  border: 0px;
+}
+
+/**
+ * Hack warning: Safari on iOS does not support showPicker with
+ * datetime-local:
+ * https://caniuse.com/mdn-api_htmlinputelement_showpicker_datetime_local_input
+ *
+ * The hack is to render the input element in front of the icon, with an
+ * opacity of 0. This only works if the underlying input element accepts the
+ * click at the exact place the user happens to click. From trial and error,
+ * this seems to work better than expected / quite reliably, but had the user
+ * manually changed icon sizes with Safari iOS their experience may vary.
+ */
+
+// webkit-touch-callout used to "detect" Safari on iOS. See:
+//  - https://stackoverflow.com/questions/30102792/css-media-query-to-target-only-ios-devices
+@supports (-webkit-touch-callout: none) {
+  input {
+    // Need it to be in "front" but not visible to the naked eye.
+    opacity: 0;
+    z-index: 1;
+  }
+}
+
+@supports not (-webkit-touch-callout: none) {
+  input {
+    visibility: hidden;
+  }
+}
+
+ha-icon {
+  display: block;
+  height: 100%;
+  width: 100%;
+  position: absolute;
 }
