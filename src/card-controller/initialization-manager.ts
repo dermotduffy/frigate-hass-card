@@ -21,11 +21,19 @@ export class InitializationManager {
   }
 
   public isInitializedMandatory(): boolean {
+    const config = this._api.getConfigManager().getConfig();
+    if (!config) {
+      return false;
+    }
+
     return (
       this._initializer.isInitializedMultiple([
         InitializationAspect.LANGUAGES,
         InitializationAspect.SIDE_LOAD_ELEMENTS,
         InitializationAspect.CAMERAS,
+        ...(config.live.microphone.always_connected
+          ? [InitializationAspect.MICROPHONE_CONNECT]
+          : []),
       ]) &&
       // If there's no view, re-initialize (e.g. config changes).
       this._api.getViewManager().hasView()
@@ -54,15 +62,25 @@ export class InitializationManager {
       return false;
     }
 
-    if (!this._api.getConfigManager().hasConfig()) {
+    const config = this._api.getConfigManager().getConfig();
+    if (!config) {
       return false;
     }
 
     if (
-      !(await this._initializer.initializeIfNecessary(
-        InitializationAspect.CAMERAS,
-        async () => await this._api.getCameraManager().initializeCamerasFromConfig(),
-      ))
+      !(await this._initializer.initializeMultipleIfNecessary({
+        [InitializationAspect.CAMERAS]: async () =>
+          await this._api.getCameraManager().initializeCamerasFromConfig(),
+
+        // Connecting the microphone (if configured) is considered mandatory to
+        // avoid issues with some cameras that only allow 2-way audio on the
+        // first stream initialized. See:
+        // https://github.com/dermotduffy/frigate-hass-card/issues/1235
+        ...(config.live.microphone.always_connected && {
+          [InitializationAspect.MICROPHONE_CONNECT]: async () =>
+            await this._api.getMicrophoneManager().connect(),
+        }),
+      }))
     ) {
       return false;
     }
@@ -104,9 +122,6 @@ export class InitializationManager {
         ...(config.menu.buttons.media_player.enabled
           ? [InitializationAspect.MEDIA_PLAYERS]
           : []),
-        ...(config.live.microphone.always_connected
-          ? [InitializationAspect.MICROPHONE_CONNECT]
-          : []),
       ])
     ) {
       return true;
@@ -117,10 +132,6 @@ export class InitializationManager {
         ...(config.menu.buttons.media_player.enabled && {
           [InitializationAspect.MEDIA_PLAYERS]: async () =>
             await this._api.getMediaPlayerManager().initialize(),
-        }),
-        ...(config.live.microphone.always_connected && {
-          [InitializationAspect.MICROPHONE_CONNECT]: async () =>
-            await this._api.getMicrophoneManager().connect(),
         }),
       }))
     ) {
