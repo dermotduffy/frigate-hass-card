@@ -19,11 +19,20 @@ describe('InitializationManager', () => {
   });
 
   describe('should correctly determine when mandatory initialization is required', () => {
+    it('without config', () => {
+      const api = createCardAPI();
+      const initializer = mock<Initializer>();
+      const manager = new InitializationManager(api, initializer);
+
+      expect(manager.isInitializedMandatory()).toBeFalsy();
+    });
+
     it('without aspects', () => {
       const api = createCardAPI();
       const initializer = mock<Initializer>();
       const manager = new InitializationManager(api, initializer);
 
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
       initializer.isInitializedMultiple.mockReturnValue(false);
 
       expect(manager.isInitializedMandatory()).toBeFalsy();
@@ -34,6 +43,7 @@ describe('InitializationManager', () => {
       const initializer = mock<Initializer>();
       const manager = new InitializationManager(api, initializer);
 
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
       initializer.isInitializedMultiple.mockReturnValue(true);
 
       expect(manager.isInitializedMandatory()).toBeFalsy();
@@ -44,6 +54,27 @@ describe('InitializationManager', () => {
       const initializer = mock<Initializer>();
       const manager = new InitializationManager(api, initializer);
 
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+      initializer.isInitializedMultiple.mockReturnValue(true);
+      vi.mocked(api.getViewManager().hasView).mockReturnValue(true);
+
+      expect(manager.isInitializedMandatory()).toBeTruthy();
+    });
+
+    it('with microphone if configured', () => {
+      const api = createCardAPI();
+      const initializer = mock<Initializer>();
+      const manager = new InitializationManager(api, initializer);
+
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          live: {
+            microphone: {
+              always_connected: true,
+            },
+          },
+        }),
+      );
       initializer.isInitializedMultiple.mockReturnValue(true);
       vi.mocked(api.getViewManager().hasView).mockReturnValue(true);
 
@@ -67,7 +98,7 @@ describe('InitializationManager', () => {
     it('successfully', async () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-      vi.mocked(api.getConfigManager().hasConfig).mockReturnValue(true);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
       vi.mocked(api.getMessageManager().hasMessage).mockReturnValue(false);
       vi.mocked(api.getQueryStringManager().hasViewRelatedActions).mockReturnValue(
         false,
@@ -80,12 +111,31 @@ describe('InitializationManager', () => {
       expect(sideLoadHomeAssistantElements).toBeCalled();
       expect(api.getCameraManager().initializeCamerasFromConfig).toBeCalled();
       expect(api.getViewManager().setViewDefault).toBeCalled();
+      expect(api.getMicrophoneManager().connect).not.toBeCalled();
+    });
+
+    it('successfully with microphone if configured', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          live: {
+            microphone: {
+              always_connected: true,
+            },
+          },
+        }),
+      );
+      const manager = new InitializationManager(api);
+
+      expect(await manager.initializeMandatory()).toBeTruthy();
+      expect(api.getMicrophoneManager().connect).toBeCalled();
     });
 
     it('successfully with querystring view', async () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-      vi.mocked(api.getConfigManager().hasConfig).mockReturnValue(true);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
       vi.mocked(api.getMessageManager().hasMessage).mockReturnValue(false);
       vi.mocked(api.getQueryStringManager().hasViewRelatedActions).mockReturnValue(true);
       const manager = new InitializationManager(api);
@@ -98,7 +148,7 @@ describe('InitializationManager', () => {
     it('with message set during initialization', async () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-      vi.mocked(api.getConfigManager().hasConfig).mockReturnValue(true);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
       vi.mocked(api.getMessageManager().hasMessage).mockReturnValue(true);
       vi.mocked(api.getQueryStringManager().hasViewRelatedActions).mockReturnValue(
         false,
@@ -124,12 +174,13 @@ describe('InitializationManager', () => {
     it('with cameras in progress', async () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-      vi.mocked(api.getConfigManager().hasConfig).mockReturnValue(true);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
 
       const initializer = mock<Initializer>();
       const manager = new InitializationManager(api, initializer);
-      initializer.initializeMultipleIfNecessary.mockResolvedValue(true);
-      initializer.initializeIfNecessary.mockResolvedValue(false);
+      initializer.initializeMultipleIfNecessary
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
 
       expect(await manager.initializeMandatory()).toBeFalsy();
     });
@@ -154,17 +205,11 @@ describe('InitializationManager', () => {
               },
             },
           },
-          live: {
-            microphone: {
-              always_connected: false,
-            },
-          },
         }),
       );
 
       expect(await manager.initializeBackgroundIfNecessary()).toBeTruthy();
       expect(api.getMediaPlayerManager().initialize).not.toBeCalled();
-      expect(api.getMicrophoneManager().connect).not.toBeCalled();
     });
 
     it('successfully with all inititalizers', async () => {
@@ -180,21 +225,15 @@ describe('InitializationManager', () => {
               },
             },
           },
-          live: {
-            microphone: {
-              always_connected: true,
-            },
-          },
         }),
       );
 
       expect(await manager.initializeBackgroundIfNecessary()).toBeTruthy();
       expect(api.getMediaPlayerManager().initialize).toBeCalled();
-      expect(api.getMicrophoneManager().connect).toBeCalled();
       expect(api.getCardElementManager().update).toBeCalled();
     });
 
-    it('with media player and microphone connect in progress', async () => {
+    it('with media player in progress', async () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
@@ -204,11 +243,6 @@ describe('InitializationManager', () => {
               media_player: {
                 enabled: true,
               },
-            },
-          },
-          live: {
-            microphone: {
-              always_connected: true,
             },
           },
         }),
