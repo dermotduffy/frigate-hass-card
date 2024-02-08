@@ -555,6 +555,7 @@
     "what": "What",
     "when": "When",
     "whens": {
+      "custom": "Custom",
       "past_month": "Past Month",
       "past_week": "Past Week",
       "today": "Today",

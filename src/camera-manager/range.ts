@@ -6,6 +6,7 @@ interface Range<T extends Date | number> {
 }
 
 export type DateRange = Range<Date>;
+export type PartialDateRange = Partial<DateRange>;
 
 interface MemoryRangeSetInterface<T> {
   hasCoverage(range: T): boolean;

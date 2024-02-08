@@ -1,4 +1,11 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  CSSResultGroup,
+  html,
+  LitElement,
+  PropertyValues,
+  TemplateResult,
+  unsafeCSS,
+} from 'lit';
 import { property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import selectStyle from '../scss/select.scss';
@@ -26,6 +33,9 @@ export class FrigateCardSelect extends ScopedRegistryHost(LitElement) {
   @property({ attribute: false, hasChanged: contentsChanged })
   public value?: SelectValues;
 
+  @property({ attribute: false, hasChanged: contentsChanged })
+  public initialValue?: SelectValues;
+
   @property({ attribute: true })
   public label?: string;
 
@@ -45,6 +55,10 @@ export class FrigateCardSelect extends ScopedRegistryHost(LitElement) {
     ...grSelectElements,
   };
 
+  public reset(): void {
+    this.value = undefined;
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected _valueChangedHandler(_ev: CustomEvent<{ value: unknown }>): void {
     const value: SelectValues | undefined = this._refSelect.value?.value;
@@ -57,6 +71,12 @@ export class FrigateCardSelect extends ScopedRegistryHost(LitElement) {
     }
   }
 
+  protected willUpdate(changedProps: PropertyValues): void {
+    if (changedProps.has('initialValue') && this.initialValue && !this.value) {
+      this.value = this.initialValue;
+    }
+  }
+
   protected render(): TemplateResult | void {
     return html` <gr-select
       ${ref(this._refSelect)}
@@ -65,7 +85,7 @@ export class FrigateCardSelect extends ScopedRegistryHost(LitElement) {
       size="small"
       ?multiple=${this.multiple}
       ?clearable=${this.clearable}
-      .value=${this.value ?? this._refSelect.value?.value ?? []}
+      .value=${this.value ?? []}
       @gr-change=${this._valueChangedHandler.bind(this)}
     >
       ${this.options?.map(
