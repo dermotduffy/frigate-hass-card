@@ -335,7 +335,9 @@ export class FrigateCardTimelineCore extends LitElement {
             <frigate-card-date-picker
               ${ref(this._refDatePicker)}
               @frigate-card:date-picker:change=${(ev: CustomEvent<DatePickerEvent>) => {
-                this._timeline?.moveTo(ev.detail.date);
+                if (ev.detail.date) {
+                  this._timeline?.moveTo(ev.detail.date);
+                }
               }}
             >
             </frigate-card-date-picker>

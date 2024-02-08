@@ -554,6 +554,7 @@
     "what": "O que",
     "when": "Quando",
     "whens": {
+      "custom": "",
       "past_month": "Mês passado",
       "past_week": "Semana passada",
       "today": "Hoje",
