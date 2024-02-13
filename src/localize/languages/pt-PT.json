@@ -84,7 +84,6 @@
     },
     "common": {
       "controls": {
-        "builtin": "",
         "filter": {
           "editor_label": "Editor de titulos",
           "mode": "Modo",
@@ -198,8 +197,7 @@
         "url": "Imagem arbitrária especificada por URL"
       },
       "refresh_seconds": "Número de segundos após o qual atualizar (0 = nunca)",
-      "url": "Imagem arbitrária especificada por URL",
-      "zoomable": ""
+      "url": "Imagem arbitrária especificada por URL"
     },
     "live": {
       "auto_mute": "Silenciar câmeras ao vivo automaticamente",
@@ -213,16 +211,9 @@
       "layout": "layout",
       "lazy_load": "As câmeras ao vivo são carregadas lentamente",
       "lazy_unload": "As câmeras ao vivo são descarregadas preguiçosamente",
-      "microphone": {
-        "always_connected": "",
-        "disconnect_seconds": "",
-        "editor_label": "",
-        "enabled": ""
-      },
       "preload": "Pré-carregar a visualização ao vivo em segundo plano",
       "show_image_during_load": "Mostar imagem durante o carregamento",
-      "transition_effect": "Efeito de transição de câmera ao vivo",
-      "zoomable": ""
+      "transition_effect": "Efeito de transição de câmera ao vivo"
     },
     "media_viewer": {
       "auto_mute": "Silenciar mídia automaticamente",
@@ -239,8 +230,7 @@
       "transition_effects": {
         "none": "Sem transição",
         "slide": "Transição de slides"
-      },
-      "zoomable": ""
+      }
     },
     "menu": {
       "alignment": "Alinhamento do menu",
@@ -269,18 +259,10 @@
         "image": "Imagem",
         "live": "Ao vivo",
         "media_player": "Enviar para o reprodutor de mídia",
-        "mute": "",
-        "play": "",
         "priority": "Prioridade",
-        "screenshot": "",
         "snapshots": "Instantâneos",
         "substreams": "substreams",
-        "timeline": "Linha do tempo",
-        "type": "",
-        "types": {
-          "momentary": "",
-          "toggle": ""
-        }
+        "timeline": "Linha do tempo"
       },
       "position": "Posição do menu",
       "positions": {
@@ -422,7 +404,6 @@
     "reconnecting": "A voltar a ligar",
     "timeline_no_cameras": "Nenhuma câmera do Frigate para mostrar na linha do tempo",
     "troubleshooting": "Verifique a solução de problemas",
-    "too_many_automations": "",
     "unknown": "Erro desconhecido",
     "upgrade_available": "Uma atualização automatizada da configuração do cartão está disponível, visite o editor visual do cartão",
     "webrtc_card_reported_error": "O cartão WebRTC relatou um erro",
