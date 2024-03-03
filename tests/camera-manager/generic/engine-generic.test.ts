@@ -27,7 +27,7 @@ describe('GenericCameraManagerEngine', () => {
 
   it('should initialize camera', async () => {
     const config = createGenericCameraConfig();
-    const camera = await createEngine().initializeCamera(
+    const camera = await createEngine().createCamera(
       createHASS(),
       mock<EntityRegistryManager>(),
       config,

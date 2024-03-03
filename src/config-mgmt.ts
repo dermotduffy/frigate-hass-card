@@ -18,7 +18,10 @@ import {
   CONF_OVERRIDES,
   CONF_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_VIEW_INTERACTION_SECONDS,
-  CONF_VIEW_SCAN_ACTIONS_UNTRIGGER,
+  CONF_VIEW_TRIGGERS,
+  CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
+  CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
+  CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
 } from './const';
 import { arrayify } from './utils/basic';
 
@@ -211,6 +214,18 @@ export const upgradeWithOverrides = function (
   transform: (valueIn: unknown) => unknown,
 ): (obj: RawFrigateCardConfig) => boolean {
   return upgradeMoveToWithOverrides(path, path, { transform: transform });
+};
+
+/**
+ * Delete a property in place with overrides.
+ * @param path The property path.
+ * @returns A function that returns `true` if the configuration was modified.
+ */
+export const deleteWithOverrides = function (
+  path: string,
+): (obj: RawFrigateCardConfig) => boolean {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  return upgradeMoveToWithOverrides(path, path, { transform: (_) => null });
 };
 
 /**
@@ -480,14 +495,6 @@ const UPGRADES = [
     );
   },
   upgradePTZElementsToLive(),
-  upgradeMoveToWithOverrides(
-    'view.scan.untrigger_reset',
-    CONF_VIEW_SCAN_ACTIONS_UNTRIGGER,
-    {
-      // Delete the value if it's set to the default.
-      transform: (val) => (val ? 'default' : null),
-    },
-  ),
   upgradeMoveToWithOverrides('view.timeout_seconds', CONF_VIEW_INTERACTION_SECONDS),
   upgradeWithOverrides('live.lazy_unload', (data) =>
     data === 'all' ? ['unselected', 'hidden'] : data === 'never' ? null : arrayify(data),
@@ -524,10 +531,7 @@ const UPGRADES = [
     'live.controls.thumbnails.media',
     CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
   ),
-  upgradeMoveToWithOverrides(
-    'timeline.media',
-    CONF_TIMELINE_EVENTS_MEDIA_TYPE,
-  ),
+  upgradeMoveToWithOverrides('timeline.media', CONF_TIMELINE_EVENTS_MEDIA_TYPE),
   upgradeMoveToWithOverrides(
     'live.controls.timeline.media',
     CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
@@ -535,5 +539,30 @@ const UPGRADES = [
   upgradeMoveToWithOverrides(
     'media_viewer.controls.timeline.media',
     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
+  ),
+  upgradeMoveToWithOverrides('view.scan', CONF_VIEW_TRIGGERS),
+  upgradeMoveToWithOverrides(
+    'view.triggers.enabled',
+    CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
+    {
+      transform: (data) => (data === true ? 'live' : null),
+      // Keep it around, for the following transform.
+      keepOriginal: true,
+    },
+  ),
+  upgradeMoveToWithOverrides(
+    'view.triggers.enabled',
+    CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
+    {
+      transform: (data) => (data === true ? false : null),
+    },
+  ),
+  upgradeMoveToWithOverrides(
+    'view.triggers.untrigger_reset',
+    CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
+    {
+      // Delete the value if it's set to the default.
+      transform: (val) => (val ? 'default' : null),
+    },
   ),
 ];

@@ -1,27 +1,27 @@
-import { CameraManager } from '../camera-manager/manager';
-import { ConditionsManager } from './conditions-manager';
-import { EntityRegistryManager } from '../utils/ha/entity-registry';
-import { ResolvedMediaCache } from '../utils/ha/resolved-media';
-import { ActionsManager } from './actions-manager';
-import { AutoUpdateManager } from './auto-update-manager';
-import { AutomationsManager } from './automations-manager';
-import { CameraURLManager } from './camera-url-manager';
-import { CardElementManager } from './card-element-manager';
-import { ConfigManager } from './config-manager';
-import { DownloadManager } from './download-manager';
-import { ExpandManager } from './expand-manager';
-import { FullscreenManager } from './fullscreen-manager';
-import { HASSManager } from './hass-manager';
-import { InitializationManager } from './initialization-manager';
-import { InteractionManager } from './interaction-manager';
-import { MediaLoadedInfoManager } from './media-info-manager';
-import { MediaPlayerManager } from './media-player-manager';
-import { MessageManager } from './message-manager';
-import { MicrophoneManager } from './microphone-manager';
-import { StyleManager } from './style-manager';
-import { TriggersManager } from './triggers-manager';
-import { ViewManager } from './view-manager';
-import { QueryStringManager } from './query-string-manager';
+import type { CameraManager } from '../camera-manager/manager';
+import type { ConditionsManager } from './conditions-manager';
+import type { EntityRegistryManager } from '../utils/ha/entity-registry';
+import type { ResolvedMediaCache } from '../utils/ha/resolved-media';
+import type { ActionsManager } from './actions-manager';
+import type { AutoUpdateManager } from './auto-update-manager';
+import type { AutomationsManager } from './automations-manager';
+import type { CameraURLManager } from './camera-url-manager';
+import type { CardElementManager } from './card-element-manager';
+import type { ConfigManager } from './config-manager';
+import type { DownloadManager } from './download-manager';
+import type { ExpandManager } from './expand-manager';
+import type { FullscreenManager } from './fullscreen-manager';
+import type { HASSManager } from './hass-manager';
+import type { InitializationManager } from './initialization-manager';
+import type { InteractionManager } from './interaction-manager';
+import type { MediaLoadedInfoManager } from './media-info-manager';
+import type { MediaPlayerManager } from './media-player-manager';
+import type { MessageManager } from './message-manager';
+import type { MicrophoneManager } from './microphone-manager';
+import type { StyleManager } from './style-manager';
+import type { TriggersManager } from './triggers-manager';
+import type { ViewManager } from './view-manager';
+import type { QueryStringManager } from './query-string-manager';
 
 /**
  * This defines a series of limited APIs that various manager helpers use to
@@ -67,6 +67,7 @@ export interface CardCameraAPI {
   getHASSManager(): HASSManager;
   getMessageManager(): MessageManager;
   getResolvedMediaCache(): ResolvedMediaCache;
+  getTriggersManager(): TriggersManager;
 }
 
 export interface CardCameraURLAPI {
@@ -100,8 +101,10 @@ export interface CardDownloadAPI {
 
 export interface CardElementAPI {
   getActionsManager(): ActionsManager;
+  getCameraManager(): CameraManager;
   getExpandManager(): ExpandManager;
   getFullscreenManager(): FullscreenManager;
+  getInitializationManager(): InitializationManager;
   getInteractionManager(): InteractionManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMicrophoneManager(): MicrophoneManager;
@@ -205,7 +208,6 @@ export interface CardTriggersAPI {
   getConditionsManager(): ConditionsManager;
   getCardElementManager(): CardElementManager;
   getConfigManager(): ConfigManager;
-  getHASSManager(): HASSManager;
   getInteractionManager(): InteractionManager;
   getViewManager(): ViewManager;
 }

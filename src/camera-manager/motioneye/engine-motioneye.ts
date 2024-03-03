@@ -8,18 +8,21 @@ import { CameraConfig } from '../../config/types';
 import { allPromises, formatDate, isValidDate } from '../../utils/basic';
 import {
   BrowseMediaStep,
-  BrowseMediaTarget
+  BrowseMediaTarget,
 } from '../../utils/ha/browse-media/browse-media-manager';
 import {
-  BrowseMedia, BROWSE_MEDIA_CACHE_SECONDS, MEDIA_CLASS_IMAGE,
+  BrowseMedia,
+  BROWSE_MEDIA_CACHE_SECONDS,
+  MEDIA_CLASS_IMAGE,
   MEDIA_CLASS_VIDEO,
-  RichBrowseMedia
+  RichBrowseMedia,
 } from '../../utils/ha/browse-media/types';
 import { ViewMedia } from '../../view/media';
+import { BrowseMediaCamera } from '../browse-media/camera';
 import {
   BrowseMediaCameraManagerEngine,
   getViewMediaFromBrowseMediaArray,
-  isMediaWithinDates
+  isMediaWithinDates,
 } from '../browse-media/engine-browse-media';
 import { BrowseMediaMetadata } from '../browse-media/types';
 import { CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT } from '../engine';
@@ -39,7 +42,7 @@ import {
   MediaMetadataQueryResultsMap,
   QueryResults,
   QueryResultsType,
-  QueryReturnType
+  QueryReturnType,
 } from '../types';
 import motioneyeLogo from './assets/motioneye-logo.svg';
 import { MotionEyeEventQueryResults } from './types';
@@ -134,13 +137,18 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     } | null,
     engineOptions?: EngineOptions,
   ): Promise<RichBrowseMedia<BrowseMediaMetadata>[] | null> {
-    const cameraConfig = store.getCameraConfig(cameraID);
-    const cameraEntityID = cameraConfig?.camera_entity;
-    const entity = cameraEntityID ? this._cameraEntities.get(cameraEntityID) : null;
+    const camera = store.getCamera(cameraID);
+    const cameraConfig = camera?.getConfig();
+
+    if (!(camera instanceof BrowseMediaCamera) || !cameraConfig) {
+      return null;
+    }
+
+    const entity = camera.getEntity();
     const configID = entity?.config_entry_id;
     const deviceID = entity?.device_id;
 
-    if (!configID || !deviceID || !cameraConfig) {
+    if (!configID || !deviceID) {
       return null;
     }
 

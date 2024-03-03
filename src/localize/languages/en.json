@@ -85,6 +85,12 @@
       "triggers": {
         "editor_label": "Trigger Options",
         "entities": "Trigger from other entities",
+        "events": {
+          "clips": "Events with new clips",
+          "editor_label": "Trigger Events",
+          "events": "All events",
+          "snapshots": "Events with new snapshots"
+        },
         "motion": "Trigger by auto-detecting the motion sensor",
         "occupancy": "Trigger by auto-detecting the occupancy sensor"
       },
@@ -394,9 +400,9 @@
       "default": "Default view",
       "interaction_seconds": "Seconds after user action to remain interacted with (0=never)",
       "reset_after_interaction": "Reset to the default view after user interaction",
-      "scan": {
+      "triggers": {
         "actions": {
-          "editor_label": "Scan mode actions",
+          "editor_label": "Trigger actions",
           "interaction_mode": "How to handle actions when the card has human interaction",
           "interaction_modes": {
             "active": "Only trigger actions when card has human interaction",
@@ -405,7 +411,9 @@
           },
           "trigger": "Trigger action",
           "triggers": {
-            "live": "Change to live",
+            "default": "Change to or update default view",
+            "live": "Change to or update live view",
+            "media": "Change to the relevant media view for new media",
             "none": "No action"
           },
           "untrigger": "Untrigger action",
@@ -414,8 +422,7 @@
             "none": "No action"
           }
         },
-        "editor_label": "Scan mode",
-        "enabled": "Scan mode enabled",
+        "editor_label": "Behavior when a camera is triggered",
         "filter_selected_camera": "Only trigger on selected camera",
         "show_trigger_status": "Show pulsing border when triggered",
         "untrigger_seconds": "Seconds after inactive state change to untrigger"

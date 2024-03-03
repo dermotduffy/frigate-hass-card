@@ -1,4 +1,8 @@
-import { computeDomain, computeStateDomain, HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import {
+  computeDomain,
+  computeStateDomain,
+  HomeAssistant,
+} from '@dermotduffy/custom-card-helpers';
 import { HassEntity, MessageBase } from 'home-assistant-js-websocket';
 import { StyleInfo } from 'lit/directives/style-map.js';
 import { ZodSchema } from 'zod';
@@ -13,6 +17,12 @@ import {
 } from '../../types.js';
 import { domainIcon } from '../icons/domain-icon.js';
 import { getParseErrorKeys } from '../zod.js';
+import {
+  HAStateChangeFromTo,
+  haStateChangeTriggerResponseSchema,
+  SubscriptionCallback,
+  SubscriptionUnsubscribe,
+} from './types.js';
 
 /**
  * Make a HomeAssistant websocket request. May throw.
@@ -103,7 +113,7 @@ interface HassStateDifference {
  * strings only, firstOnly: whether or not to get the first difference only.
  * @returns An array of HassStateDifference objects.
  */
-export function getHassDifferences(
+function getHassDifferences(
   newHass: HomeAssistant | undefined | null,
   oldHass: HomeAssistant | undefined | null,
   entities: string[] | null,
@@ -326,11 +336,11 @@ export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
 
 /**
  * Determine if a given state qualifies as 'triggered'.
- * @param state The HASSEntity.
+ * @param state The HA entity state string.
  * @returns `true` if triggered, `false` otherwise.
  */
-export const isTriggeredState = (state?: HassEntity): boolean => {
-  return !!state && ['on', 'open'].includes(state.state);
+export const isTriggeredState = (state?: string): boolean => {
+  return !!state && ['on', 'open'].includes(state);
 };
 
 /**
@@ -389,4 +399,54 @@ export const hasHAConnectionStateChanged = (
   newHass: HomeAssistant | undefined | null,
 ): boolean => {
   return oldHass?.connected !== newHass?.connected;
+};
+
+/**
+ * Subscribe to a HA trigger
+ * @param hass The HA object.
+ * @param callback The callback to call with the data.
+ * @param options Parameters to the trigger, see:
+ *   https://www.home-assistant.io/docs/automation/trigger/#state-trigger
+ * @returns A callback to unsubscribe.
+ */
+export const subscribeToTrigger = async (
+  hass: HomeAssistant,
+  callback: SubscriptionCallback,
+  options?: {
+    entityID?: string | string[];
+    platform?: string;
+    topic?: string;
+    payload?: string;
+    valueTemplate?: string;
+    stateOnly?: boolean;
+  },
+): Promise<SubscriptionUnsubscribe> => {
+  return await hass.connection.subscribeMessage(callback, {
+    type: 'subscribe_trigger',
+    trigger: {
+      ...(options?.platform && { platform: options.platform }),
+      ...(options?.entityID && { entity_id: options.entityID }),
+      ...(options?.topic && { topic: options.topic }),
+      ...(options?.payload && { payload: options.payload }),
+      ...(options?.valueTemplate && { value_template: options.valueTemplate }),
+      ...(options?.stateOnly && {
+        from: null,
+        to: null,
+      }),
+    },
+  });
+};
+
+/**
+ * Parse a state change trigger response.
+ * @param data The raw data.
+ * @returns A HAStateChangeFromTo object.
+ */
+export const parseStateChangeTrigger = (data: unknown): HAStateChangeFromTo | null => {
+  const parseResult = haStateChangeTriggerResponseSchema.safeParse(data);
+  if (!parseResult.success) {
+    console.warn('Ignoring unparseable HA state change', data);
+    return null;
+  }
+  return parseResult.data.variables.trigger;
 };

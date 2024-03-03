@@ -202,6 +202,40 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
     );
   });
 
+  it('should respect useCache', async () => {
+    const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera',
+        },
+      ]),
+    );
+    vi.mocked(cameraManager.generateDefaultEventQueries).mockReturnValue([
+      {
+        type: QueryType.Event,
+        cameraIDs: new Set(['camera']),
+      },
+    ]);
+
+    await changeViewToRecentEventsForCameraAndDependents(
+      createElementListenForView().element,
+      cameraManager,
+      {},
+      createView(),
+      {
+        useCache: false,
+      },
+    );
+
+    expect(vi.mocked(cameraManager.executeMediaQueries)).toBeCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        useCache: false,
+      }),
+    );
+  });
+
   describe('should respect request for media type', () => {
     it.each([
       ['snapshots' as const, 'hasSnapshot'],
@@ -460,6 +494,42 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
       expect.anything(),
       expect.objectContaining({
         limit: 1000,
+      }),
+    );
+  });
+
+  it('should respect useCache', async () => {
+    const cameraManager = createCameraManager();
+    vi.mocked(cameraManager.getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera',
+        },
+      ]),
+    );
+    vi.mocked(cameraManager.generateDefaultRecordingQueries).mockReturnValue([
+      {
+        type: QueryType.Recording,
+        cameraIDs: new Set(['camera']),
+      },
+    ]);
+
+    await changeViewToRecentRecordingForCameraAndDependents(
+      createElementListenForView().element,
+      cameraManager,
+      {},
+      createView(),
+      {
+        targetView: 'recordings',
+        select: 'latest',
+        useCache: false,
+      },
+    );
+
+    expect(vi.mocked(cameraManager.executeMediaQueries)).toBeCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        useCache: false,
       }),
     );
   });

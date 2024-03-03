@@ -71,7 +71,7 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
   }
 
   public isMuted(): boolean {
-    return this._player?.video.muted ?? true;
+    return this._player?.video?.muted ?? true;
   }
 
   public async seek(seconds: number): Promise<void> {
@@ -87,11 +87,11 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
   }
 
   public isPaused(): boolean {
-    return this._player?.video.paused ?? true;
+    return this._player?.video?.paused ?? true;
   }
 
   public async getScreenshotURL(): Promise<string | null> {
-    return this._player ? screenshotMedia(this._player.video) : null;
+    return this._player?.video ? screenshotMedia(this._player.video) : null;
   }
 
   disconnectedCallback(): void {

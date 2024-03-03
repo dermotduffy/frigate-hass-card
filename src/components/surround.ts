@@ -133,7 +133,7 @@ export class FrigateCardSurround extends LitElement {
    */
   protected willUpdate(changedProperties: PropertyValues): void {
     if (this.timelineConfig?.mode && this.timelineConfig.mode !== 'none') {
-      import('./timeline.js');
+      import('./timeline-core.js');
     }
 
     // Only reset the timeline cameraIDs when the media or display mode

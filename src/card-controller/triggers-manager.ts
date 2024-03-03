@@ -1,8 +1,8 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import isEqual from 'lodash-es/isEqual';
 import orderBy from 'lodash-es/orderBy';
-import { getHassDifferences, isTriggeredState } from '../utils/ha';
+import throttle from 'lodash-es/throttle';
+import { CameraEvent } from '../camera-manager/types';
 import { Timer } from '../utils/timer';
-import { View } from '../view/view';
 import { CardTriggersAPI } from './types';
 
 export class TriggersManager {
@@ -10,7 +10,10 @@ export class TriggersManager {
 
   protected _triggeredCameras: Map<string, Date> = new Map();
   protected _triggeredCameraTimers: Map<string, Timer> = new Map();
-  protected _triggeredState: Set<string> = new Set();
+
+  protected _throttledTriggerAction = throttle(this._triggerAction.bind(this), 1000, {
+    trailing: true,
+  });
 
   constructor(api: CardTriggersAPI) {
     this._api = api;
@@ -33,125 +36,112 @@ export class TriggersManager {
     return sorted.length ? sorted[0][0] : null;
   }
 
-  public updateTriggerHAState(oldHass?: HomeAssistant | null): void {
-    const scanConfig = this._api.getConfigManager().getConfig()?.view.scan;
-    if (!scanConfig || !scanConfig.enabled) {
+  public handleCameraEvent(ev: CameraEvent): void {
+    const triggersConfig = this._api.getConfigManager().getConfig()?.view.triggers;
+    const selectedCameraID = this._api.getViewManager().getView()?.camera;
+
+    if (!triggersConfig || !selectedCameraID) {
       return;
     }
 
-    const hass = this._api.getHASSManager().getHASS();
-    let triggerChanges = false;
-
-    const visibleCameraIDs = this._api
+    const dependentCameraIDs = this._api
       .getCameraManager()
       .getStore()
-      .getVisibleCameraIDs();
-    for (const [cameraID, config] of this._api
-      .getCameraManager()
-      .getStore()
-      .getCameraConfigEntries(visibleCameraIDs)) {
-      const triggerEntities = config.triggers.entities;
-      const diffs = getHassDifferences(hass, oldHass, triggerEntities, {
-        stateOnly: true,
-      });
-      const shouldTrigger = diffs.some((diff) => isTriggeredState(diff.newState));
-      const shouldUntrigger = triggerEntities.every(
-        (entity) => !isTriggeredState(hass?.states[entity]),
-      );
-      if (shouldTrigger) {
-        this._triggeredState.add(cameraID);
-        triggerChanges = true;
-      } else if (shouldUntrigger && this._triggeredState.has(cameraID)) {
-        this._triggeredState.delete(cameraID);
-        triggerChanges = true;
-      }
-    }
+      .getAllDependentCameras(selectedCameraID);
 
-    if (triggerChanges) {
-      this._evaluateTriggers();
-    }
-  }
-
-  public updateView(oldView?: View | null): void {
-    if (oldView?.camera !== this._api.getViewManager().getView()?.camera) {
-      // If the view changes, a new camera may have been selected, which may
-      // mean a trigger is required (in the case that `filter_selected_camera`
-      // is true).
-      this._evaluateTriggers();
-    }
-  }
-
-  protected _evaluateTriggers(): void {
-    const scanConfig = this._api.getConfigManager().getConfig()?.view.scan;
-    if (!scanConfig) {
+    if (triggersConfig.filter_selected_camera && !dependentCameraIDs.has(ev.cameraID)) {
       return;
     }
 
-    const now = new Date();
-    for (const cameraID of this._triggeredState.keys()) {
-      if (
-        !this._triggeredCameras.has(cameraID) &&
-        (!scanConfig.filter_selected_camera ||
-          cameraID === this._api.getViewManager().getView()?.camera)
-      ) {
-        this._triggeredCameras.set(cameraID, now);
-        this._setConditionState();
-        this._triggerAction(cameraID);
-      }
+    if (ev.type === 'end') {
+      this._startUntriggerTimer(ev.cameraID);
+      return;
     }
 
-    for (const cameraID of this._triggeredCameras.keys()) {
-      if (!this._triggeredState.has(cameraID)) {
-        this._startUntriggerTimer(cameraID);
-      }
-    }
+    this._triggeredCameras.set(ev.cameraID, new Date());
+    this._setConditionStateIfNecessary();
+    this._throttledTriggerAction(ev);
   }
 
   protected _hasAllowableInteractionStateForAction(): boolean {
-    const scanConfig = this._api.getConfigManager().getConfig()?.view.scan;
+    const triggersConfig = this._api.getConfigManager().getConfig()?.view.triggers;
     const hasInteraction = this._api.getInteractionManager().hasInteraction();
 
     return (
-      !!scanConfig &&
-      (scanConfig.actions.interaction_mode === 'all' ||
-        (scanConfig.actions.interaction_mode === 'active' && hasInteraction) ||
-        (scanConfig.actions.interaction_mode === 'inactive' && !hasInteraction))
+      !!triggersConfig &&
+      (triggersConfig.actions.interaction_mode === 'all' ||
+        (triggersConfig.actions.interaction_mode === 'active' && hasInteraction) ||
+        (triggersConfig.actions.interaction_mode === 'inactive' && !hasInteraction))
     );
   }
 
-  protected _triggerAction(cameraID: string): void {
-    const action = this._api.getConfigManager().getConfig()?.view.scan.actions.trigger;
+  protected _triggerAction(ev: CameraEvent): void {
+    const triggerAction = this._api.getConfigManager().getConfig()?.view.triggers
+      .actions.trigger;
+    const defaultView = this._api.getConfigManager().getConfig()?.view.default;
 
-    if (action === 'live' && this._hasAllowableInteractionStateForAction()) {
-      this._api.getViewManager().setViewByParameters({
-        viewName: 'live',
-        cameraID: cameraID,
-      });
+    // If this is a high-fidelity event where we are certain about new media,
+    // don't take action unless it's to change to live (Frigate engine may pump
+    // out events where there's no new media to show).
+    if (
+      ev.fidelity === 'high' &&
+      !ev.snapshot &&
+      !ev.clip &&
+      !(
+        triggerAction === 'live' ||
+        (triggerAction === 'default' && defaultView === 'live')
+      )
+    ) {
+      return;
     }
 
-    // Must update master element to add border pulsing.
+    if (this._hasAllowableInteractionStateForAction()) {
+      if (triggerAction === 'live') {
+        this._api.getViewManager().setViewByParameters({
+          viewName: 'live',
+          cameraID: ev.cameraID,
+        });
+      } else if (triggerAction === 'default') {
+        this._api.getViewManager().setViewDefault({
+          cameraID: ev.cameraID,
+        });
+      } else if (ev.fidelity === 'high' && triggerAction === 'media') {
+        this._api.getViewManager().setViewByParameters({
+          viewName: ev.clip ? 'clip' : 'snapshot',
+          cameraID: ev.cameraID,
+        });
+      }
+    }
+
+    // Must update master element to add border pulsing to live view.
     this._api.getCardElementManager().update();
   }
 
-  protected _setConditionState(): void {
-    this._api.getConditionsManager().setState({
-      triggered: this._triggeredCameras.size
-        ? new Set(this._triggeredCameras.keys())
-        : undefined,
-    });
+  protected _setConditionStateIfNecessary(): void {
+    const triggeredCameraIDs = new Set(this._triggeredCameras.keys());
+    const triggeredState = triggeredCameraIDs.size ? triggeredCameraIDs : undefined;
+
+    if (
+      !isEqual(triggeredState, this._api.getConditionsManager().getState().triggered)
+    ) {
+      this._api.getConditionsManager().setState({
+        triggered: triggeredState,
+      });
+    }
   }
 
   protected _untriggerAction(cameraID: string): void {
-    const action = this._api.getConfigManager().getConfig()?.view.scan.actions.untrigger;
+    const action = this._api.getConfigManager().getConfig()?.view.triggers
+      .actions.untrigger;
 
     if (action === 'default' && this._hasAllowableInteractionStateForAction()) {
       this._api.getViewManager().setViewDefault();
     }
     this._triggeredCameras.delete(cameraID);
     this._deleteTimer(cameraID);
-    this._setConditionState();
+    this._setConditionStateIfNecessary();
 
-    // Must update master element to remove border pulsing.
+    // Must update master element to remove border pulsing from live view.
     this._api.getCardElementManager().update();
   }
 
@@ -164,7 +154,7 @@ export class TriggersManager {
       /* istanbul ignore next: the case of config being null here cannot be
          reached, as there's no way to have the untrigger call happen without
          a config. -- @preserve */
-      this._api.getConfigManager().getConfig()?.view.scan.untrigger_seconds ?? 0,
+      this._api.getConfigManager().getConfig()?.view.triggers.untrigger_seconds ?? 0,
       () => {
         this._untriggerAction(cameraID);
       },

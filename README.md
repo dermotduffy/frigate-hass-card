@@ -167,11 +167,11 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 
 ##### Engine Capabilities
 
-|Engine|Live|Supports clips|Supports Snapshots|Supports Recordings|Supports Timeline|Supports PTZ out of the box|Supports manually configured PTZ|Favorite events|Favorite recordings|
-| - | - | - | - | - | - | - | - | - | - |
-|`frigate`| :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: |
-|`generic`| :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: |
-|`motioneye`| :white_check_mark: | :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: | :white_check_mark: | :heavy_multiplication_x: | :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | 
+|Engine|Live|Supports clips|Supports Snapshots|Supports Recordings|Supports Timeline|Supports PTZ out of the box|Supports manually configured PTZ|Favorite events|Favorite recordings|Detect new events|Detect new snapshots|Detect new clips|
+| - | - | - | - | - | - | - | - | - | - | - | - | - |
+|`frigate`| :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+|`generic`| :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: |
+|`motioneye`| :white_check_mark: | :white_check_mark: | :white_check_mark: | :heavy_multiplication_x: | :white_check_mark: | :heavy_multiplication_x: | :white_check_mark: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_multiplication_x: |
 
 ##### Live providers supported per Engine
 
@@ -320,7 +320,7 @@ cameras:
 
 #### Camera Trigger Configuration
 
-The `triggers` block configures what triggers a camera. Triggering can be used to either reset to the default view / update the card, or active the camera in [scan mode](#scan-mode).
+The `triggers` block configures what triggers a camera. Triggering can be used to activate an action (e.g. view a camera in live, reset the card to the default view). See [`view.triggers`](#view.triggers) to control what happens when a camera is triggered.
 
 ```yaml
 cameras:
@@ -329,8 +329,9 @@ cameras:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
+| `events` | `[events, clips, snapshots]` | :white_check_mark: | Whether to trigger the camera when `events` occur (whether or not media is available) or whenever updated `clips` or `snapshots` are detected. Detection support varies by camera engine, see [engine capabilities](#engines). |
 | `motion` | `false` | :white_check_mark: | Whether to not to trigger the camera by automatically detecting and using the motion `binary_sensor` for this camera. This autodetection only works for Frigate cameras, and only when the motion `binary_sensor` entity has been enabled in Home Assistant.|
-| `occupancy` | `true` | :white_check_mark: | Whether to not to trigger the camera by automatically detecting and using the occupancy `binary_sensor` for this camera and its configured zones and labels. This autodetection only works for Frigate cameras, and only when the occupancy `binary_sensor` entity has been enabled in Home Assistant. If this camera has configured zones, only occupancy sensors for those zones are used -- if the overall _camera_ occupancy sensor is also required, it can be manually added to `entities`. If this camera has configured labels, only occupancy sensors for those labels are used.|
+| `occupancy` | `false` | :white_check_mark: | Whether to not to trigger the camera by automatically detecting and using the occupancy `binary_sensor` for this camera and its configured zones and labels. This autodetection only works for Frigate cameras, and only when the occupancy `binary_sensor` entity has been enabled in Home Assistant. If this camera has configured zones, only occupancy sensors for those zones are used -- if the overall _camera_ occupancy sensor is also required, it can be manually added to `entities`. If this camera has configured labels, only occupancy sensors for those labels are used. |
 | `entities` | | :white_check_mark: | Whether to not to trigger the camera when the state of any Home Assistant entity becomes active (i.e. state becomes `on` or `open`). This works for Frigate or non-Frigate cameras.|
 
 #### Camera Cast Configuration
@@ -403,46 +404,49 @@ See the [fully expanded view configuration example](#config-expanded-view) for h
 | `dark_mode` | `off` | :white_check_mark: | Whether or not to turn dark mode `on`, `off` or `auto` to automatically turn on if the card `interaction_seconds` has expired (i.e. card has been left unattended for that period of time) or if dark mode is enabled in the HA profile theme setting. Dark mode dims the brightness by `25%`.|
 | `interaction_seconds` | `300` | :white_check_mark: | After a mouse/touch interaction with the Frigate card, it will be considered "interacted with" until this number of seconds elapses without further interaction. May be used in conditions with the `interaction` parameter of a [Frigate card condition](#frigate-card-condition) or with `reset_after_interaction` (below). `0` means no interactions are reported / acted upon. |
 | `reset_after_interaction` | `true` | :white_check_mark: | If `true` the card will reset to the default configured view (i.e. 'screensaver' functionality) after `interaction_seconds` has elapsed after user interaction. |
-| `update_seconds` | `0` | :white_check_mark: | A number of seconds after which to automatically update/refresh the default view. See [card updates](#card-updates) below for behavior and usecases. If the default view occurs sooner (e.g. manually) the timer will start over. `0` disables this functionality.|
-| `update_force` | `false` | :white_check_mark: | Whether automated card updates/refreshes should ignore user interaction. See [card updates](#card-updates) below for behavior and usecases.|
-| `update_entities` | | :white_check_mark: | **YAML only**: A card-wide list of entities that should cause the view to reset to the default (if the entity only pertains to a particular camera use `triggers` for the selected camera instead, see [Trigger Configuration](#camera-triggers-configuration)). See [card updates](#card-updates) below for behavior and usecases.|
+| `update_seconds` | `0` | :white_check_mark: | A number of seconds after which to automatically update/refresh the default view. If the default view occurs sooner (e.g. manually) the timer will start over. `0` disables this functionality.|
+| `update_force` | `false` | :white_check_mark: | Whether automated card updates should ignore user interaction. |
+| `update_entities` | | :white_check_mark: | **YAML only**: A card-wide list of entities that should cause the view to reset to the default (if the entity only pertains to a particular camera use `triggers` for the selected camera instead, see [Trigger Configuration](#camera-triggers-configuration)). |
 | `update_cycle_camera` | `false` | :white_check_mark: | When set to `true` the selected camera is cycled on each default view change. |
 | `render_entities` | | :white_check_mark: | **YAML only**: A list of entity ids that should cause the card to re-render 'in-place'. The view/camera is not changed. `update_*` flags do not pertain/relate to the behavior of this flag. This should **very** rarely be needed, but could be useful if the card is both setting and changing HA state of the same object as could be the case for some complex `card_mod` scenarios ([example](https://github.com/dermotduffy/frigate-hass-card/issues/343)). |
-| `scan` | | :white_check_mark: | Configuration for [scan mode](#scan-mode). |
+| `triggers` | | :white_check_mark: | How to react when a camera is [triggered](#view.triggers). |
 | `actions` | | :white_check_mark: | Actions to use for all views, individual actions may be overriden by view-specific actions. See [actions](#actions) below.|
 
-<a name="scan-mode"></a>
+<a name="view.triggers"></a>
 
-#### View: Scan Mode configuration
+#### View: Triggers configuration
 
 All configuration is under:
 
 ```yaml
 view:
-  scan:
+  triggers:
 ```
 
-Scan mode allows the card to automatically "follow the action". In this mode the card will automatically execute an action (defined by `trigger_action`) when a camera is 'triggered', by default selecting that camera in the `live` view . The trigger entities considered are defined by your camera configuration (see `triggers` parameters). An untrigger is defined as the state for all the configured entities returning to inactive (i.e. not `on` or `open`), with an optional number of seconds to wait prior to the untriggering (see `untrigger_seconds`).
+The `view.triggers` block controls how the card reacts when a camera is triggered (note that _what_ triggers the camera is controlled by the `triggers` block within the config for a given camera). This can be used for a variety of purposes, such as allowing the card to automatically "follow the action" (i.e. change to `live` for a camera that triggers).
 
-When the camera untriggers, a different action (defined by `untrigger_action`) is automatically executed, by default returning the card to the default view and camera.
+When a camera untriggers (e.g. an entity state returning to something other than `on` or `open`), an action can also be taken, with an optional number of seconds to wait prior to the acting (see `untrigger_seconds`).
 
-By default, triggering is only allowed when there is no ongoing human interaction with the card. This behavior can be controlled by the `interaction_mode` parameter.
+By default, triggering is only allowed when there is no ongoing human
+interaction with the card. This behavior can be controlled by the
+`interaction_mode` parameter.
 
-Scan mode tracks Home Assistant state *changes* -- when the card is first started, it takes an active change in state to trigger (i.e. an already occupied room will not trigger it, but a newly occupied room will).
+Triggers based on Home Assistant entities require state *changes* -- when the card is first started, it takes an active change in state to trigger (i.e. an already occupied room will not trigger, but a newly occupied room will).
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `enabled` | `false` | :white_check_mark: | Whether to enable scan mode. |
 | `filter_selected_camera` | `false` | :white_check_mark: | If set to `true` will only trigger on the currently selected camera.|
-| `show_trigger_status` | `true` | :white_check_mark: | Whether or not the `live` view should show a visual indication that it is triggered (a pulsing border around the camera edge). |
-| `untrigger_seconds` | `0` | :white_check_mark: | The number of seconds to wait after all entities are inactive before untriggering. |
-| `actions` | | :white_check_mark: | The actions to take when scan mode triggers (see below). |
+| `show_trigger_status` | `false` | :white_check_mark: | Whether or not the `live` view should show a visual indication that it is triggered (a pulsing border around the camera edge). |
+| `untrigger_seconds` | `0` | :white_check_mark: | The number of seconds to wait after a camera untriggers before considering the card untriggered and taking the `untrigger` action. |
+| `actions` | | :white_check_mark: | The actions to take when a camera is triggered (see below). |
 
-#### View: Scan Mode Actions configuration
+#### View: Triggers Action configuration
 
-| `trigger` | `live` | :white_check_mark | When `live` the trigger will select the triggered camera in `live` view, when `none` will take no action. |
-| `untrigger` | `default` | :white_check_mark | When `default` the untrigger will return to the default view and camera, when `none` will take no action. |
-| `interaction_mode` | `inactive` | :white_check_mark: | Whether actions should be taken when the card is being interacted with. If `all`, actions will always be taken regardless. If `inactive` actions will only be taken if the card has *not* had human interaction recently (as defined by `view.interaction_seconds`). If `active` actions will only be taken if the card *has* had human interaction recently. This does not stop triggering itself (i.e. border will still pulse if `show_trigger_status` is true) but rather just prevents the actions being performed.|
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `trigger` | `default` | :white_check_mark | If set to `default` the default view of the card will be reloaded. If set to `live` the triggered camera will be selected in `live` view. If set to `media` the appropriate media view (e.g. `clip` or `snapshot`) will be chosen to match a newly available media item (please note that only some camera engines support new media detection, e.g. `frigate`, see [engines](#engines)). If set to `none` no action is taken. |
+| `untrigger` | `none` | :white_check_mark | If set to `default` the the default view of the card will be reloaded. If set to `none` no action will be taken. |
+| `interaction_mode` | `inactive` | :white_check_mark: | Whether actions should be taken when the card is being interacted with. If `all`, actions will always left be taken regardless. If `inactive` actions will only be taken if the card has *not* had human interaction recently (as defined by `view.interaction_seconds`). If `active` actions will only be taken if the card *has* had human interaction recently. This does not stop triggering itself (i.e. border will still pulse if `show_trigger_status` is true) but rather just prevents the actions being performed. |
 
 ### Menu Options
 
@@ -1293,7 +1297,7 @@ All variables listed are under a `conditions:` section.
 | `media_loaded` | If `true` the condition is satisfied if there is media load**ED** (not load**ING**) in the card (e.g. a clip, snapshot or live view). This may be used to hide controls during media loading or when a message (not media) is being displayed. Note that if `true` this condition will never be satisfied for views that do not themselves load media directly (e.g. gallery).|
 | `media_query` | Any valid [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries) string. Media queries must start and end with parentheses. This may be used to alter card configuration based on device/media properties (e.g. viewport width, orientation). Please note that `width` and `height` refer to the entire viewport not just the card. See the [media query example](#media-query-example).|
 | `interacted` | If `true` the condition is satisfied if the card has had human interaction within `view.interaction_seconds` elapsed seconds. If `false` the condition is satisfied if the card has **NOT** had human interaction in that time. |
-| `triggered` | A list of camera IDs which, if triggered in [scan mode](#scan-mode), satisfy the condition.|
+| `triggered` | A list of camera IDs which, if [triggered](#camera-triggers-configuration), satisfy the condition.|
 | `microphone` | A object to include microphone state as part of the condition evaluation. See below.|
 
 See the [example below](#frigate-card-conditional-example) for a real-world example of how these conditions can be used.
@@ -1619,11 +1623,11 @@ Cast media from the card to a local player.
 
 <img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/cast-your-events.gif" alt="Cast media" width="400px">
 
-### Scan Mode
+### Triggered!
 
 Automatically choose the camera with the action!
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/scan-mode.gif" alt="Cast media" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/triggered.gif" alt="Triggered!" width="400px">
 
 ### Thumbnail Drawers
 
@@ -1935,15 +1939,14 @@ view:
   render_entities:
     - switch.render_card
   dark_mode: 'off'
-  scan:
-    enabled: false
-    show_trigger_status: true
-    filter_selected_camera: false
+  triggers:
+    show_trigger_status: false
+    filter_selected_camera: true
     untrigger_seconds: 0
     actions:
-      interaction_mode: 'inactive' as const,
-      trigger: 'live' as const,
-      untrigger: 'default' as const,
+      interaction_mode: inactive
+      trigger: default
+      untrigger: none
   actions:
     entity: light.office_main_lights
     tap_action:
@@ -3580,8 +3583,6 @@ cameras:
 ```
 </details>
 
-<a name="card-updates"></a>
-
 ### Using `card-mod` to style the card
 
 This card allows the use of
@@ -3670,28 +3671,33 @@ cameras:
 ```
 </details>
 
-### Using Scan Mode
+### Taking action when a camera is triggered!
 
-Have your card follow the action with Scan Mode.
+Have your card follow the action when a camera is triggered.
 
 <details>
-  <summary>Expand: Using scan mode</summary>
+  <summary>Expand: Changing to `live` when a camera is triggered</summary>
 
 ```yaml
 type: custom:frigate-card
 cameras:
+  # This is a Frigate camera which will automatically be triggered when events occur.
   - camera_entity: camera.back_yard
-    # This camera will automatically trigger by occupancy.
+  # This is a Frigate camera which will only be triggered by motion entity changes or a door being opened.
   - camera_entity: camera.front_door
     triggers:
       occupancy: false
       motion: true
       entities:
         - binary_sensor.door_opened
+      events: []
 view:
-  scan:
-    enabled: true
-    trigger_show_border: true
+  triggers:
+    show_trigger_status: true
+    filter_selected_camera: false
+    actions:
+      trigger: live
+      untrigger: default
 ```
 </details>
 
@@ -3720,9 +3726,6 @@ elements:
     conditions:
       triggered:
         - camera.office
-view:
-  scan:
-    enabled: true
 ```
 </details>
 
@@ -4146,71 +4149,8 @@ automations:
         frigate_card_action: live_substream_off
     conditions:
       interaction: true
-view:
-  scan:
-    enabled: true
 ```
 </details>
-
-<a name="media-layout-examples"></a>
-
-## Card Refreshes
-
-Four sets of flags govern when the card will automatically refresh in the
-absence of user interaction.
-
-The following table describes the behavior these flags have.
-
-### Card Update Truth Table
-
-Note that no (other) automated updates are permitted when [scan mode](#scan-mode) is being triggered.
-
-In the below "Trigger Entities" refers to the combination of `view.update_entities` and the `triggers.entities` for the currently selected camera (which in turn will also include the occupancy and motion sensor entities for Frigate cameras if `triggers.occupancy` and `triggers.motion` options are enabled, see [Trigger Configuration](#camera-triggers-configuration)).
-
-| `view . update_seconds` | `view . interaction_seconds` | `view . update_force` | Trigger Entities | Behavior |
-| :-: | :-: | :-: | :-: | - |
-| `0` | `0` | *(Any value)* | Unset | Card will not automatically refresh. |
-| `0` | `0` | *(Any value)* | *(Any entity)* | Card will reload default view & camera when entity state changes. |
-| `0` | `X` seconds | *(Any value)* | Unset | Card will reload default view & camera `X` seconds after user interaction stops. |
-| `0` | `X` seconds | `false` | *(Any entity)* | Card will reload default view & camera `X` seconds after user interaction stops, or when entity state changes (as long as user interaction has not occurred in the last `X` seconds). |
-| `0` | `X` seconds | `true` | *(Any entity)* | Card will reload default view & camera `X` seconds after user interaction stops or when entity state changes. |
-| `Y` seconds | `0` | *(Any value)* | Unset | Card will reload default view & camera every `Y` seconds. |
-| `Y` seconds | `0` | *(Any value)* | *(Any entity)* | Card will reload default view & camera every `Y` seconds, or whenever entity state changes. |
-| `Y` seconds | `X` seconds | `false` | Unset | Card will reload default view & camera `X` seconds after user interaction stops, and every `Y` seconds (as long as there hasn't been user interaction in the last `X` seconds).  |
-| `Y` seconds | `X` seconds | `false` | *(Any entity)* | Card will reload default view & camera `X` seconds after user interaction stops, and every `Y` seconds or whenever entity state changes (in both cases -- as long as there hasn't been user interaction in the last `X` seconds).  |
-| `Y` seconds | `X` seconds | `true` | Unset | Card will reload default view & camera `X` seconds after user interaction stops, and every `Y` seconds.  |
-| `Y` seconds | `X` seconds | `true` | *(Any entity)* | Card will reload default view & camera `X` seconds after user interaction stops, and every `Y` seconds or whenever entity state changes.  |
-
-### Usecases For Automated Refreshes
-
- * Refreshing the `live` thumbnails every 30 seconds.
-```yaml
-view:
-  default: live
-  update_seconds: 30
-```
- * Using `clip` or `snapshot` as the default view (for the most recent clip or
-   snapshot respectively) and having the card automatically refresh (to fetch a
-   newer clip/snapshot) on motion.
-```yaml
-cameras:
-  - entity: camera.office
-    triggers:
-      motion: true
-```
- * Cycle the live view of the camera every 60 seconds
-```yaml
-view:
-  update_cycle_camera: true
-  update_seconds: 60
-```
- * Return to the most recent clip of the default camera 30 seconds after user
-   interaction with the card stops.
-```yaml
-view:
-  default: clip
-  interaction_seconds: 30
-```
 
 <a name="query-string-actions"></a>
 

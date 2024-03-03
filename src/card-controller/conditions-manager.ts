@@ -192,6 +192,10 @@ export class ConditionsManager {
     };
     this._triggerChange();
   }
+  
+  public getState(): ConditionState {
+    return this._state;
+  }
 
   public hasHAStateConditions(): boolean {
     return this._hasHAStateConditions;

@@ -245,7 +245,6 @@ export class ViewManager {
       displayMode: view.displayMode ?? undefined,
     });
 
-    this._api.getTriggersManager().updateView(oldView);
     this._api.getCardElementManager().update();
   }
 

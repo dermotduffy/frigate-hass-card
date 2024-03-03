@@ -29,6 +29,10 @@ export interface FrigateCardTimelineItem extends TimelineItem {
   // high-quantity recording segments).
   start: number;
   end?: number;
+
+  // DataSet requires string (not HTMLElement) content.
+  content: string;
+
   media?: ViewMedia;
 }
 

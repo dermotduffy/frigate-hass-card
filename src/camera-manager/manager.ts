@@ -47,11 +47,11 @@ import {
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResults,
   RecordingSegmentsQueryResultsMap,
-  ResultsMap
+  ResultsMap,
 } from './types.js';
 import { sortMedia } from './utils.js';
 
-class QueryClassifier {
+export class QueryClassifier {
   public static isEventQuery(query: DataQuery | PartialDataQuery): query is EventQuery {
     return query.type === QueryType.Event;
   }
@@ -72,23 +72,23 @@ class QueryClassifier {
   }
 }
 
-class QueryResultClassifier {
+export class QueryResultClassifier {
   public static isEventQueryResult(
     queryResults: QueryResults,
   ): queryResults is EventQueryResults {
     return queryResults.type === QueryResultsType.Event;
   }
-  public static isRecordingQuery(
+  public static isRecordingQueryResult(
     queryResults: QueryResults,
   ): queryResults is RecordingQueryResults {
     return queryResults.type === QueryResultsType.Recording;
   }
-  public static isRecordingSegmentsQuery(
+  public static isRecordingSegmentsQueryResult(
     queryResults: QueryResults,
   ): queryResults is RecordingSegmentsQueryResults {
     return queryResults.type === QueryResultsType.RecordingSegments;
   }
-  public static isMediaMetadataQuery(
+  public static isMediaMetadataQueryResult(
     queryResults: QueryResults,
   ): queryResults is MediaMetadataQueryResults {
     return queryResults.type === QueryResultsType.MediaMetadata;
@@ -105,13 +105,25 @@ export class CameraManager {
   protected _engineFactory: CameraManagerEngineFactory;
   protected _store: CameraManagerStore;
 
-  constructor(api: CardCameraAPI, store?: CameraManagerStore) {
+  constructor(
+    api: CardCameraAPI,
+    options?: {
+      store?: CameraManagerStore;
+      factory?: CameraManagerEngineFactory;
+    },
+  ) {
     this._api = api;
-    this._engineFactory = new CameraManagerEngineFactory(
-      this._api.getEntityRegistryManager(),
-      this._api.getResolvedMediaCache(),
-    );
-    this._store = store ?? new CameraManagerStore();
+    this._engineFactory =
+      options?.factory ??
+      new CameraManagerEngineFactory(
+        this._api.getEntityRegistryManager(),
+        this._api.getResolvedMediaCache(),
+      );
+    this._store = options?.store ?? new CameraManagerStore();
+  }
+
+  public async reset(): Promise<void> {
+    await this._store.reset();
   }
 
   public async initializeCamerasFromConfig(): Promise<boolean> {
@@ -122,7 +134,7 @@ export class CameraManager {
       return false;
     }
 
-    this._store.reset();
+    await this.reset();
 
     // For each camera merge the config (which has no defaults) into the camera
     // global config (which does have defaults). The merging must happen in this
@@ -148,6 +160,7 @@ export class CameraManager {
     const engines: Map<Engine, CameraManagerEngine> = new Map();
     const hass = this._api.getHASSManager().getHASS();
 
+    /* istanbul ignore if: the if path cannot be reached -- @preserve */
     if (!hass) {
       return output;
     }
@@ -162,7 +175,10 @@ export class CameraManager {
     for (const [index, cameraConfig] of camerasConfig.entries()) {
       const engineType = engineTypes[index];
       const engine = engineType
-        ? engines.get(engineType) ?? (await this._engineFactory.createEngine(engineType))
+        ? engines.get(engineType) ??
+          (await this._engineFactory.createEngine(engineType, (ev) =>
+            this._api.getTriggersManager().handleCameraEvent(ev),
+          ))
         : null;
       if (!engine || !engineType) {
         throw new CameraInitializationError(
@@ -182,6 +198,7 @@ export class CameraManager {
     const initializationStartTime = new Date();
     const hass = this._api.getHASSManager().getHASS();
 
+    /* istanbul ignore if: the if path cannot be reached -- @preserve */
     if (!hass) {
       return;
     }
@@ -208,7 +225,7 @@ export class CameraManager {
     const cameras = await allPromises(
       engineByConfig.entries(),
       async ([cameraConfig, engine]) =>
-        await engine.initializeCamera(
+        await engine.createCamera(
           hass,
           this._api.getEntityRegistryManager(),
           cameraConfig,
@@ -292,45 +309,6 @@ export class CameraManager {
     });
   }
 
-  public async getMediaMetadata(): Promise<MediaMetadata | null> {
-    const tags: Set<string> = new Set();
-    const what: Set<string> = new Set();
-    const where: Set<string> = new Set();
-    const days: Set<string> = new Set();
-
-    const query: MediaMetadataQuery = {
-      type: QueryType.MediaMetadata,
-      cameraIDs: this._store.getCameraIDs(),
-    };
-
-    const results = await this._handleQuery(query);
-
-    for (const result of results?.values() ?? []) {
-      if (result.metadata.tags) {
-        result.metadata.tags.forEach(tags.add, tags);
-      }
-      if (result.metadata.what) {
-        result.metadata.what.forEach(what.add, what);
-      }
-      if (result.metadata.where) {
-        result.metadata.where.forEach(where.add, where);
-      }
-      if (result.metadata.days) {
-        result.metadata.days.forEach(days.add, days);
-      }
-    }
-
-    if (!what.size && !where.size && !days.size) {
-      return null;
-    }
-    return {
-      ...(tags.size && { tags: tags }),
-      ...(what.size && { what: what }),
-      ...(where.size && { where: where }),
-      ...(days.size && { days: days }),
-    };
-  }
-
   protected _generateDefaultQueries<PQT extends PartialDataQuery>(
     cameraIDs: string | Set<string>,
     partialQuery: PQT,
@@ -338,13 +316,13 @@ export class CameraManager {
     const concreteQueries: PartialQueryConcreteType<PQT>[] = [];
     const _cameraIDs = setify(cameraIDs);
     const engines = this._store.getEnginesForCameraIDs(_cameraIDs);
-
     if (!engines) {
       return null;
     }
 
     for (const [engine, cameraIDs] of engines) {
       let queries: DataQuery[] | null = null;
+      /* istanbul ignore else: the else path cannot be reached -- @preserve */
       if (QueryClassifier.isEventQuery(partialQuery)) {
         queries = engine.generateDefaultEventQuery(this._store, cameraIDs, partialQuery);
       } else if (QueryClassifier.isRecordingQuery(partialQuery)) {
@@ -366,6 +344,45 @@ export class CameraManager {
       }
     }
     return concreteQueries.length ? concreteQueries : null;
+  }
+
+  public async getMediaMetadata(): Promise<MediaMetadata | null> {
+    const tags: Set<string> = new Set();
+    const what: Set<string> = new Set();
+    const where: Set<string> = new Set();
+    const days: Set<string> = new Set();
+
+    const query: MediaMetadataQuery = {
+      type: QueryType.MediaMetadata,
+      cameraIDs: this._store.getCameraIDs(),
+    };
+
+    const results = await this._handleQuery(query);
+
+    for (const result of results.values()) {
+      if (result.metadata.tags) {
+        result.metadata.tags.forEach(tags.add, tags);
+      }
+      if (result.metadata.what) {
+        result.metadata.what.forEach(what.add, what);
+      }
+      if (result.metadata.where) {
+        result.metadata.where.forEach(where.add, where);
+      }
+      if (result.metadata.days) {
+        result.metadata.days.forEach(days.add, days);
+      }
+    }
+
+    if (!what.size && !where.size && !days.size && !tags.size) {
+      return null;
+    }
+    return {
+      ...(tags.size && { tags: tags }),
+      ...(what.size && { what: what }),
+      ...(where.size && { where: where }),
+      ...(days.size && { days: days }),
+    };
   }
 
   public async getEvents(
@@ -438,15 +455,18 @@ export class CameraManager {
     for (const query of queries) {
       const newChunkQuery = { ...query };
 
+      /* istanbul ignore else: the else path cannot be reached -- @preserve */
       if (direction === 'later') {
         const latestResult = getTimeFromResults('latest');
         if (latestResult) {
           newChunkQuery.start = latestResult;
+          delete(newChunkQuery.end);
         }
       } else if (direction === 'earlier') {
         const earliestResult = getTimeFromResults('earliest');
         if (earliestResult) {
           newChunkQuery.end = earliestResult;
+          delete(newChunkQuery.start);
         }
       }
       newChunkQuery.limit = chunkSize;
@@ -550,13 +570,11 @@ export class CameraManager {
   public async getMediaSeekTime(media: ViewMedia, target: Date): Promise<number | null> {
     const startTime = media.getStartTime();
     const endTime = media.getEndTime();
-    const cameraConfig = this._store.getCameraConfigForMedia(media);
     const engine = this._store.getEngineForMedia(media);
     const hass = this._api.getHASSManager().getHASS();
 
     if (
       !hass ||
-      !cameraConfig ||
       !engine ||
       !startTime ||
       !endTime ||
@@ -584,13 +602,11 @@ export class CameraManager {
 
     const processEngineQuery = async (
       engine: CameraManagerEngine,
-      query?: QT,
+      query: QT,
     ): Promise<void> => {
-      if (!query) {
-        return;
-      }
-
       let engineResult: Map<QT, QueryReturnType<QT>> | null = null;
+
+      /* istanbul ignore else: the else path cannot be reached -- @preserve */
       if (QueryClassifier.isEventQuery(query)) {
         engineResult = (await engine.getEvents(
           hass,
@@ -676,6 +692,7 @@ export class CameraManager {
 
       if (engine) {
         let media: ViewMedia[] | null = null;
+        /* istanbul ignore else: the else path cannot be reached -- @preserve */
         if (
           QueryClassifier.isEventQuery(query) &&
           QueryResultClassifier.isEventQueryResult(result)
@@ -683,7 +700,7 @@ export class CameraManager {
           media = engine.generateMediaFromEvents(hass, this._store, query, result);
         } else if (
           QueryClassifier.isRecordingQuery(query) &&
-          QueryResultClassifier.isRecordingQuery(result)
+          QueryResultClassifier.isRecordingQueryResult(result)
         ) {
           media = engine.generateMediaFromRecordings(hass, this._store, query, result);
         }

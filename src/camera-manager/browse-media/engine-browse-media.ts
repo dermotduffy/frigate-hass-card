@@ -1,6 +1,5 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { CameraConfig } from '../../config/types';
-import { localize } from '../../localize/localize';
 import { ExtendedHomeAssistant } from '../../types';
 import { canonicalizeHAURL } from '../../utils/ha';
 import { BrowseMediaManager } from '../../utils/ha/browse-media/browse-media-manager';
@@ -11,24 +10,24 @@ import {
   RichBrowseMedia,
 } from '../../utils/ha/browse-media/types';
 import { EntityRegistryManager } from '../../utils/ha/entity-registry';
-import { Entity } from '../../utils/ha/entity-registry/types';
 import { ResolvedMediaCache, resolveMedia } from '../../utils/ha/resolved-media';
 import { ViewMedia } from '../../view/media';
 import { RequestCache } from '../cache';
 import { Camera } from '../camera';
 import { CameraManagerEngine } from '../engine';
-import { CameraInitializationError } from '../error';
 import { GenericCameraManagerEngine } from '../generic/engine-generic';
 import { rangesOverlap } from '../range';
 import { CameraManagerReadOnlyConfigStore } from '../store';
 import {
   CameraEndpoint,
+  CameraEventCallback,
   CameraManagerMediaCapabilities,
   DataQuery,
   EventQuery,
   PartialEventQuery,
   QueryType,
 } from '../types';
+import { BrowseMediaCamera } from './camera';
 import { BrowseMediaViewMediaFactory } from './media';
 import { BrowseMediaMetadata } from './types';
 
@@ -121,7 +120,6 @@ export class BrowseMediaCameraManagerEngine
   extends GenericCameraManagerEngine
   implements CameraManagerEngine
 {
-  protected _cameraEntities: Map<string, Entity> = new Map();
   protected _browseMediaManager: BrowseMediaManager<BrowseMediaMetadata>;
   protected _resolvedMediaCache: ResolvedMediaCache;
   protected _requestCache: RequestCache;
@@ -130,38 +128,32 @@ export class BrowseMediaCameraManagerEngine
     browseMediaManager: BrowseMediaManager<BrowseMediaMetadata>,
     resolvedMediaCache: ResolvedMediaCache,
     requestCache: RequestCache,
+    eventCallback?: CameraEventCallback,
   ) {
-    super();
+    super(eventCallback);
     this._browseMediaManager = browseMediaManager;
     this._resolvedMediaCache = resolvedMediaCache;
     this._requestCache = requestCache;
   }
 
-  public async initializeCamera(
+  public async createCamera(
     hass: HomeAssistant,
     entityRegistryManager: EntityRegistryManager,
     cameraConfig: CameraConfig,
   ): Promise<Camera> {
-    const entity = cameraConfig.camera_entity
-      ? await entityRegistryManager.getEntity(hass, cameraConfig.camera_entity)
-      : null;
-    if (!entity || !cameraConfig.camera_entity) {
-      throw new CameraInitializationError(
-        localize('error.no_camera_entity'),
-        cameraConfig,
-      );
-    }
-    this._cameraEntities.set(cameraConfig.camera_entity, entity);
-
-    return new Camera(cameraConfig, this, {
-      canFavoriteEvents: false,
-      canFavoriteRecordings: false,
-      canSeek: false,
-      supportsClips: true,
-      supportsRecordings: false,
-      supportsSnapshots: true,
-      supportsTimeline: true,
+    const camera = new BrowseMediaCamera(cameraConfig, this, {
+      capabilities: {
+        canFavoriteEvents: false,
+        canFavoriteRecordings: false,
+        canSeek: false,
+        supportsClips: true,
+        supportsRecordings: false,
+        supportsSnapshots: true,
+        supportsTimeline: true,
+      },
+      eventCallback: this._eventCallback,
     });
+    return await camera.initialize(hass, entityRegistryManager);
   }
 
   public generateDefaultEventQuery(

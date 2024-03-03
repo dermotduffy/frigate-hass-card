@@ -51,7 +51,7 @@ export const sortMedia = (mediaArray: ViewMedia[]): ViewMedia[] => {
 
     // Sort all items leading oldest -> youngest (so media is loaded in this
     // order in the viewer which matches the left-to-right timeline order).
-    (media) => media.getStartTime(),
+    (media) => media.getStartTime() ?? media.getID(),
     'asc',
   );
 };

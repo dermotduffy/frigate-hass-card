@@ -163,6 +163,13 @@ class FrigateCard extends LitElement {
   }
 
   protected shouldUpdate(): boolean {
+    // Do not allow a disconnected element to update, as it may cause cameras to
+    // reinitialize/subscribe for an element that is no longer part of the
+    // document.
+    if (!this.isConnected) {
+      return false;
+    }
+
     // Always allow messages to render, as a message may be generated during
     // initialization.
     if (this._controller.getMessageManager().hasMessage()) {
@@ -307,7 +314,7 @@ class FrigateCard extends LitElement {
                 ?.getEpoch()}
               .hide=${!!this._controller.getMessageManager().hasMessage()}
               .microphoneManager=${this._controller.getMicrophoneManager()}
-              .triggeredCameraIDs=${this._config?.view.scan.show_trigger_status
+              .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
                 ? this._controller.getTriggersManager().getTriggeredCameraIDs()
                 : undefined}
             ></frigate-card-views>`}

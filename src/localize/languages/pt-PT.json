@@ -85,6 +85,12 @@
       "triggers": {
         "editor_label": "Opções de activação",
         "entities": "Activar a partir de outras entidades",
+        "events": {
+          "editor_label": "",
+          "events": "",
+          "clips": "",
+          "snapshots": ""
+        },
         "motion": "Activar detectando automaticamente o sensor de movimento",
         "occupancy": "Activar detectando automaticamente o sensor de ocupação"
       },
@@ -383,7 +389,7 @@
       "default": "Visualização padrão",
       "interaction_seconds": "",
       "reset_after_interaction": "",
-      "scan": {
+      "triggers": {
         "actions": {
           "editor_label": "",
           "interaction_mode": "",
@@ -394,7 +400,9 @@
           },
           "trigger": "",
           "triggers": {
+            "default": "",
             "live": "",
+            "media": "",
             "none": ""
           },
           "untrigger": "",
@@ -403,8 +411,7 @@
             "none": ""
           }
         },
-        "editor_label": "Modo scan",
-        "enabled": "Modo scan ativado",
+        "editor_label": "",
         "filter_selected_camera": "",
         "show_trigger_status": "Exibir estado do gatilho",
         "untrigger_seconds": "Segundos após a mudar para o estado inativo para desacionar"

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { Camera } from '../../src/camera-manager/camera.js';
 import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-factory.js';
@@ -6,11 +6,7 @@ import { CameraManagerStore } from '../../src/camera-manager/store.js';
 import { Engine } from '../../src/camera-manager/types.js';
 import { EntityRegistryManager } from '../../src/utils/ha/entity-registry/index.js';
 import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media.js';
-import {
-  TestViewMedia,
-  createCameraCapabilities,
-  createCameraConfig,
-} from '../test-utils.js';
+import { createCameraConfig, TestViewMedia } from '../test-utils.js';
 
 describe('CameraManagerStore', async () => {
   const configVisible = createCameraConfig({
@@ -31,10 +27,14 @@ describe('CameraManagerStore', async () => {
 
   const setupStore = (): CameraManagerStore => {
     const store = new CameraManagerStore();
-    store.addCamera(
-      new Camera(configVisible, engineGeneric, createCameraCapabilities()),
-    );
-    store.addCamera(new Camera(configHidden, engineFrigate, createCameraCapabilities()));
+    const camera_1 = new Camera(configVisible, engineGeneric);
+    const camera_2 = new Camera(configHidden, engineFrigate);
+
+    camera_1.destroy = vi.fn();
+    camera_2.destroy = vi.fn();
+
+    store.addCamera(camera_1);
+    store.addCamera(camera_2);
     return store;
   };
 
@@ -123,11 +123,15 @@ describe('CameraManagerStore', async () => {
 
   it('reset', async () => {
     const store = setupStore();
+    const cameras = [...store.getCameras().values()];
 
-    store.reset();
+    await store.reset();
 
     expect(store.getCameraCount()).toBe(0);
     expect(store.getVisibleCameraCount()).toBe(0);
+    for (const camera of cameras) {
+      expect(camera.destroy).toBeCalled();
+    }
   });
 
   it('getCameraConfigForMedia', async () => {
@@ -169,7 +173,6 @@ describe('CameraManagerStore', async () => {
             id: 'camera-visible2',
           },
           engineGeneric,
-          createCameraCapabilities(),
         ),
       );
 
@@ -209,7 +212,6 @@ describe('CameraManagerStore', async () => {
             },
           }),
           engineGeneric,
-          createCameraCapabilities(),
         ),
       );
       store.addCamera(
@@ -218,7 +220,6 @@ describe('CameraManagerStore', async () => {
             id: 'two',
           }),
           engineGeneric,
-          createCameraCapabilities(),
         ),
       );
       expect(store.getAllDependentCameras('one')).toEqual(new Set(['one', 'two']));
@@ -234,7 +235,6 @@ describe('CameraManagerStore', async () => {
             },
           }),
           engineGeneric,
-          createCameraCapabilities(),
         ),
       );
       store.addCamera(
@@ -243,7 +243,6 @@ describe('CameraManagerStore', async () => {
             id: 'two',
           }),
           engineGeneric,
-          createCameraCapabilities(),
         ),
       );
       expect(store.getAllDependentCameras('one')).toEqual(new Set(['one', 'two']));

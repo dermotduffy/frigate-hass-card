@@ -206,6 +206,14 @@ describe('ConditionsManager', () => {
     expect(epoch_1).not.toBe(epoch_2);
   });
 
+  it('should get state', () => {
+    const state = { fullscreen: true };
+
+    const manager = new ConditionsManager(createCardAPI());
+    manager.setState(state);
+    expect(manager.getState()).toEqual(state);
+  });
+
   it('should not return hasHAStateConditions without HA state conditions', () => {
     const manager = new ConditionsManager(createCardAPI());
     expect(manager.hasHAStateConditions()).toBeFalsy();
