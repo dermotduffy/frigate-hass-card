@@ -624,7 +624,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: '', label: '' },
     { value: 'on', label: localize('config.live.controls.ptz.modes.on') },
     { value: 'off', label: localize('config.live.controls.ptz.modes.off') },
-    { value: 'auto', label: localize('config.live.controls.ptz.modes.auto') },
   ];
 
   protected _ptzOrientations: EditorSelectOption[] = [

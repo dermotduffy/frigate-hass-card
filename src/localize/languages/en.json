@@ -254,7 +254,6 @@
           "hide_zoom": "Hide zoom control",
           "mode": "Mode",
           "modes": {
-            "auto": "Automatic",
             "off": "Off",
             "on": "On"
           },
