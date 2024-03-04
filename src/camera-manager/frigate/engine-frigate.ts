@@ -7,30 +7,25 @@ import startOfHour from 'date-fns/startOfHour';
 import isEqual from 'lodash-es/isEqual';
 import orderBy from 'lodash-es/orderBy';
 import throttle from 'lodash-es/throttle';
-import uniq from 'lodash-es/uniq';
 import uniqWith from 'lodash-es/uniqWith';
 import { CameraConfig, PTZAction, PTZPhase } from '../../config/types';
-import { localize } from '../../localize/localize';
 import { ExtendedHomeAssistant } from '../../types';
 import {
   allPromises,
-  errorToConsole,
   formatDate,
   prettifyTitle,
   runWhenIdleIfSupported,
 } from '../../utils/basic';
 import { getEntityTitle } from '../../utils/ha';
 import { EntityRegistryManager } from '../../utils/ha/entity-registry';
-import { Entity } from '../../utils/ha/entity-registry/types';
 import { ViewMedia } from '../../view/media';
 import { ViewMediaClassifier } from '../../view/media-classifier';
 import { RecordingSegmentsCache, RequestCache } from '../cache';
 import { Camera } from '../camera';
 import {
-  CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
   CameraManagerEngine,
+  CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
 } from '../engine';
-import { CameraInitializationError } from '../error';
 import { GenericCameraManagerEngine } from '../generic/engine-generic';
 import { DateRange } from '../range';
 import { CameraManagerReadOnlyConfigStore } from '../store';
@@ -38,6 +33,7 @@ import {
   CameraEndpoint,
   CameraEndpoints,
   CameraEndpointsContext,
+  CameraEventCallback,
   CameraManagerCameraMetadata,
   CameraManagerMediaCapabilities,
   DataQuery,
@@ -52,8 +48,6 @@ import {
   PartialEventQuery,
   PartialRecordingQuery,
   PartialRecordingSegmentsQuery,
-  PTZCapabilities,
-  PTZMovementType,
   QueryResults,
   QueryResultsType,
   QueryReturnType,
@@ -65,33 +59,30 @@ import {
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
 } from '../types';
-import { getCameraEntityFromConfig, getDefaultGo2RTCEndpoint } from '../utils.js';
+import { getDefaultGo2RTCEndpoint } from '../utils.js';
 import frigateLogo from './assets/frigate-logo-dark.svg';
+import { FrigateCamera, isBirdseye } from './camera';
 import { FrigateViewMediaFactory } from './media';
 import { FrigateViewMediaClassifier } from './media-classifier';
 import {
-  NativeFrigateEventQuery,
-  NativeFrigateRecordingSegmentsQuery,
-  getEventSummary,
   getEvents,
+  getEventSummary,
   getRecordingSegments,
   getRecordingsSummary,
+  NativeFrigateEventQuery,
+  NativeFrigateRecordingSegmentsQuery,
   retainEvent,
-  getPTZInfo,
 } from './requests';
 import {
   FrigateEventQueryResults,
   FrigateRecording,
   FrigateRecordingQueryResults,
   FrigateRecordingSegmentsQueryResults,
-  PTZInfo,
 } from './types';
 
 const EVENT_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const RECORDING_SUMMARY_REQUEST_CACHE_MAX_AGE_SECONDS = 60;
 const MEDIA_METADATA_REQUEST_CACHE_AGE_SECONDS = 60;
-
-const CAMERA_BIRDSEYE = 'birdseye' as const;
 
 class FrigateQueryResultsClassifier {
   public static isFrigateEventQueryResults(
@@ -135,8 +126,9 @@ export class FrigateCameraManagerEngine
   constructor(
     recordingSegmentsCache: RecordingSegmentsCache,
     requestCache: RequestCache,
+    eventCallback?: CameraEventCallback,
   ) {
-    super();
+    super(eventCallback);
     this._recordingSegmentsCache = recordingSegmentsCache;
     this._requestCache = requestCache;
   }
@@ -145,222 +137,15 @@ export class FrigateCameraManagerEngine
     return Engine.Frigate;
   }
 
-  public async initializeCamera(
+  public async createCamera(
     hass: HomeAssistant,
     entityRegistryManager: EntityRegistryManager,
     cameraConfig: CameraConfig,
   ): Promise<Camera> {
-    const hasCameraName = !!cameraConfig.frigate?.camera_name;
-    const hasAutoTriggers =
-      cameraConfig.triggers.motion || cameraConfig.triggers.occupancy;
-
-    let entity: Entity | null = null;
-    const cameraEntity = getCameraEntityFromConfig(cameraConfig);
-
-    // Entity information is required if the Frigate camera name is missing, or
-    // if the entity requires automatic resolution of motion/occupancy sensors.
-    if (cameraEntity && (!hasCameraName || hasAutoTriggers)) {
-      try {
-        entity = await entityRegistryManager.getEntity(hass, cameraEntity);
-      } catch (e) {
-        throw new CameraInitializationError(
-          localize('error.no_camera_entity'),
-          cameraConfig,
-        );
-      }
-    }
-
-    if (entity && !hasCameraName) {
-      const resolvedName = this._getFrigateCameraNameFromEntity(entity);
-      if (resolvedName) {
-        cameraConfig.frigate.camera_name = resolvedName;
-      }
-    }
-
-    if (hasAutoTriggers) {
-      // Try to find the correct entities for the motion & occupancy sensors.
-      // We know they are binary_sensors, and that they'll have the same
-      // config entry ID as the camera. Searching via unique_id ensures this
-      // search still works if the user renames the entity_id.
-      const binarySensorEntities = await entityRegistryManager.getMatchingEntities(
-        hass,
-        (ent) =>
-          ent.config_entry_id === entity?.config_entry_id &&
-          !ent.disabled_by &&
-          ent.entity_id.startsWith('binary_sensor.'),
-      );
-
-      if (cameraConfig.triggers.motion) {
-        const motionEntity = this._getMotionSensor(cameraConfig, [
-          ...binarySensorEntities.values(),
-        ]);
-        if (motionEntity) {
-          cameraConfig.triggers.entities.push(motionEntity);
-        }
-      }
-
-      if (cameraConfig.triggers.occupancy) {
-        const occupancyEntities = this._getOccupancySensor(cameraConfig, [
-          ...binarySensorEntities.values(),
-        ]);
-        if (occupancyEntities) {
-          cameraConfig.triggers.entities.push(...occupancyEntities);
-        }
-      }
-
-      // De-duplicate triggering entities.
-      cameraConfig.triggers.entities = uniq(cameraConfig.triggers.entities);
-    }
-
-    const ptz = await this._getPTZCapabilities(hass, cameraConfig);
-
-    const isBirdseye = this._isBirdseye(cameraConfig);
-    return new Camera(cameraConfig, this, {
-      canFavoriteEvents: !isBirdseye,
-      canFavoriteRecordings: !isBirdseye,
-      canSeek: true,
-      supportsClips: !isBirdseye,
-      supportsSnapshots: !isBirdseye,
-      supportsRecordings: !isBirdseye,
-      supportsTimeline: !isBirdseye,
-
-      ...(ptz && { ptz: ptz }),
+    const camera = new FrigateCamera(cameraConfig, this, {
+      eventCallback: this._eventCallback,
     });
-  }
-
-  protected async _getPTZCapabilities(
-    hass: HomeAssistant,
-    cameraConfig: CameraConfig,
-  ): Promise<PTZCapabilities | null> {
-    if (!cameraConfig.frigate.camera_name) {
-      return null;
-    }
-
-    let ptzInfo: PTZInfo | null = null;
-    try {
-      ptzInfo = await getPTZInfo(
-        hass,
-        cameraConfig.frigate.client_id,
-        cameraConfig.frigate.camera_name,
-      );
-    } catch (e) {
-      errorToConsole(e as Error);
-      return null;
-    }
-
-    const panTilt: PTZMovementType[] = [
-      ...(ptzInfo.features?.includes('pt') ? ['continuous' as const] : []),
-      ...(ptzInfo.features?.includes('pt-r') ? ['relative' as const] : []),
-    ];
-    const zoom: PTZMovementType[] = [
-      ...(ptzInfo.features?.includes('zoom') ? ['continuous' as const] : []),
-      ...(ptzInfo.features?.includes('zoom-r') ? ['relative' as const] : []),
-    ];
-    const presets = ptzInfo.presets;
-
-    if (panTilt.length || zoom.length || presets?.length) {
-      return {
-        ...(panTilt && { panTilt: panTilt }),
-        ...(zoom && { zoom: zoom }),
-        ...(presets && { presets: presets }),
-      };
-    }
-    return null;
-  }
-
-  protected _isBirdseye(cameraConfig: CameraConfig): boolean {
-    return cameraConfig.frigate.camera_name === CAMERA_BIRDSEYE;
-  }
-
-  /**
-   * Get the Frigate camera name from an entity.
-   * @returns The Frigate camera name or null if unavailable.
-   */
-  protected _getFrigateCameraNameFromEntity(entity: Entity): string | null {
-    if (
-      entity.platform === 'frigate' &&
-      entity.unique_id &&
-      typeof entity.unique_id === 'string'
-    ) {
-      const match = entity.unique_id.match(/:camera:(?<camera>[^:]+)$/);
-      if (match && match.groups) {
-        return match.groups['camera'];
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Get the motion sensor entity for a given camera.
-   * @param cache The EntityCache of entity registry information.
-   * @param cameraConfig The camera config in question.
-   * @returns The entity id of the motion sensor or null.
-   */
-  protected _getMotionSensor(
-    cameraConfig: CameraConfig,
-    entities: Entity[],
-  ): string | null {
-    if (cameraConfig.frigate.camera_name) {
-      return (
-        entities.find(
-          (entity) =>
-            typeof entity.unique_id === 'string' &&
-            !!entity.unique_id?.match(
-              new RegExp(`:motion_sensor:${cameraConfig.frigate.camera_name}`),
-            ),
-        )?.entity_id ?? null
-      );
-    }
-    return null;
-  }
-
-  /**
-   * Get the occupancy sensor entity for a given camera.
-   * @param cache The EntityCache of entity registry information.
-   * @param cameraConfig The camera config in question.
-   * @returns The entity id of the occupancy sensor or null.
-   */
-  protected _getOccupancySensor(
-    cameraConfig: CameraConfig,
-    entities: Entity[],
-  ): string[] | null {
-    const entityIDs: string[] = [];
-    const addEntityIDIfFound = (cameraOrZone: string, label: string): void => {
-      const entityID =
-        entities.find(
-          (entity) =>
-            typeof entity.unique_id === 'string' &&
-            !!entity.unique_id?.match(
-              new RegExp(`:occupancy_sensor:${cameraOrZone}_${label}`),
-            ),
-        )?.entity_id ?? null;
-      if (entityID) {
-        entityIDs.push(entityID);
-      }
-    };
-
-    if (cameraConfig.frigate.camera_name) {
-      // If zone(s) are specified, the master occupancy sensor for the overall
-      // camera is not used by default (but could be manually added by the
-      // user).
-      const camerasAndZones = cameraConfig.frigate.zones?.length
-        ? cameraConfig.frigate.zones
-        : [cameraConfig.frigate.camera_name];
-
-      const labels = cameraConfig.frigate.labels?.length
-        ? cameraConfig.frigate.labels
-        : ['all'];
-      for (const cameraOrZone of camerasAndZones) {
-        for (const label of labels) {
-          addEntityIDIfFound(cameraOrZone, label);
-        }
-      }
-
-      if (entityIDs.length) {
-        return entityIDs;
-      }
-    }
-    return null;
+    return await camera.initialize(hass, entityRegistryManager);
   }
 
   public async getMediaDownloadPath(
@@ -904,7 +689,7 @@ export class FrigateCameraManagerEngine
     cameraID: string,
   ): CameraConfig | null {
     const cameraConfig = store.getCameraConfig(cameraID);
-    if (!cameraConfig || this._isBirdseye(cameraConfig)) {
+    if (!cameraConfig || isBirdseye(cameraConfig)) {
       return null;
     }
     return cameraConfig;

@@ -1,5 +1,6 @@
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
-import { vi } from 'vitest';
+import { expect, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { Camera } from '../src/camera-manager/camera';
 import { CameraManagerEngine } from '../src/camera-manager/engine';
@@ -8,6 +9,7 @@ import { GenericCameraManagerEngine } from '../src/camera-manager/generic/engine
 import { CameraManager } from '../src/camera-manager/manager';
 import { CameraManagerStore } from '../src/camera-manager/store';
 import {
+  CameraEventCallback,
   CameraManagerCameraCapabilities,
   CameraManagerCapabilities,
   CameraManagerMediaCapabilities,
@@ -36,16 +38,17 @@ import { TriggersManager } from '../src/card-controller/triggers-manager';
 import { ViewManager } from '../src/card-controller/view-manager';
 import {
   CameraConfig,
-  cameraConfigSchema,
   FrigateCardCondition,
-  frigateCardConditionSchema,
   FrigateCardConfig,
-  frigateCardConfigSchema,
   PerformanceConfig,
-  performanceConfigSchema,
   RawFrigateCardConfig,
+  cameraConfigSchema,
+  frigateCardConditionSchema,
+  frigateCardConfigSchema,
+  performanceConfigSchema,
 } from '../src/config/types';
 import { ExtendedHomeAssistant, MediaLoadedInfo } from '../src/types';
+import { EntityRegistryManager } from '../src/utils/ha/entity-registry';
 import { Entity } from '../src/utils/ha/entity-registry/types';
 import { ViewMedia, ViewMediaType } from '../src/view/media';
 import { MediaQueriesResults } from '../src/view/media-queries-results';
@@ -69,11 +72,20 @@ export const createConfig = (config?: RawFrigateCardConfig): FrigateCardConfig =
   });
 };
 
+export const createCamera = (
+  config: CameraConfig,
+  engine: CameraManagerEngine,
+  capabilities?: CameraManagerCameraCapabilities,
+): Camera => {
+  return new Camera(config, engine, { capabilities: capabilities });
+};
+
 export const createHASS = (states?: HassEntities): ExtendedHomeAssistant => {
   const hass = mock<ExtendedHomeAssistant>();
   if (states) {
     hass.states = states;
   }
+  hass.connection.subscribeMessage = vi.fn();
   return hass;
 };
 
@@ -158,14 +170,19 @@ export const createStore = (
     engine?: CameraManagerEngine;
     config?: CameraConfig;
     capabilities?: CameraManagerCameraCapabilities;
+    eventCallback?: CameraEventCallback;
   }[],
 ): CameraManagerStore => {
   const store = new CameraManagerStore();
   for (const cameraProps of cameras ?? []) {
+    const eventCallback = cameraProps.eventCallback ?? vi.fn();
     const camera = new Camera(
       cameraProps.config ?? createCameraConfig(),
-      cameraProps.engine ?? new GenericCameraManagerEngine(),
-      cameraProps.capabilities ?? createCameraCapabilities(),
+      cameraProps.engine ?? new GenericCameraManagerEngine(eventCallback),
+      {
+        capabilities: cameraProps.capabilities ?? createCameraCapabilities(),
+        eventCallback: eventCallback,
+      },
     );
     camera.setID(cameraProps.cameraID);
     store.addCamera(camera);
@@ -260,10 +277,10 @@ export class TestViewMedia extends ViewMedia {
 
   constructor(options?: {
     id?: string | null;
-    startTime?: Date;
+    startTime?: Date | null;
     mediaType?: ViewMediaType;
     cameraID?: string;
-    endTime?: Date;
+    endTime?: Date | null;
     inProgress?: boolean;
     contentID?: string;
     title?: string;
@@ -364,6 +381,7 @@ export const createCardAPI = (): CardController => {
   api.getConditionsManager.mockReturnValue(mock<ConditionsManager>());
   api.getConfigManager.mockReturnValue(mock<ConfigManager>());
   api.getDownloadManager.mockReturnValue(mock<DownloadManager>());
+  api.getEntityRegistryManager.mockReturnValue(mock<EntityRegistryManager>());
   api.getExpandManager.mockReturnValue(mock<ExpandManager>());
   api.getFullscreenManager.mockReturnValue(mock<FullscreenManager>());
   api.getHASSManager.mockReturnValue(mock<HASSManager>());
@@ -379,4 +397,14 @@ export const createCardAPI = (): CardController => {
   api.getViewManager.mockReturnValue(mock<ViewManager>());
 
   return api;
+};
+
+export const callHASubscribeMessageHandler = (
+  hass: HomeAssistant,
+  ev: unknown,
+  n = 0,
+): void => {
+  const mock = vi.mocked(hass.connection.subscribeMessage).mock;
+  expect(mock.calls.length).greaterThan(n);
+  mock.calls[n][0](ev);
 };

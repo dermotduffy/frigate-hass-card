@@ -3,6 +3,7 @@ import differenceInMinutes from 'date-fns/differenceInMinutes';
 import differenceInSeconds from 'date-fns/differenceInSeconds';
 import format from 'date-fns/format';
 import isEqual from 'lodash-es/isEqual';
+import mergeWith from 'lodash-es/mergeWith';
 import { FrigateCardError } from '../types';
 
 export type ModifyInterface<T, R> = Omit<T, keyof R> & R;
@@ -239,4 +240,8 @@ export const getChildrenFromElement = (parent: HTMLElement): HTMLElement[] => {
       ? parent.assignedElements({ flatten: true })
       : [...parent.children];
   return children.filter(isHTMLElement);
+};
+
+export const recursivelyMergeObjectsNotArrays = <T>(src1: T, src2: T): T => {
+  return mergeWith({}, src1, src2, (_a, b) => (Array.isArray(b) ? b : undefined));
 };

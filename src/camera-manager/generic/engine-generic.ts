@@ -1,11 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import {
-  CameraConfig,
-  PTZAction,
-  PTZPhase
-} from '../../config/types';
+import { CameraConfig, PTZAction, PTZPhase } from '../../config/types';
 import { ExtendedHomeAssistant } from '../../types';
 import { getEntityIcon, getEntityTitle } from '../../utils/ha';
 import { EntityRegistryManager } from '../../utils/ha/entity-registry';
@@ -17,6 +13,7 @@ import {
   CameraEndpoint,
   CameraEndpoints,
   CameraEndpointsContext,
+  CameraEventCallback,
   CameraManagerCameraMetadata,
   CameraManagerMediaCapabilities,
   DataQuery,
@@ -33,29 +30,38 @@ import {
   RecordingQuery,
   RecordingQueryResultsMap,
   RecordingSegmentsQuery,
-  RecordingSegmentsQueryResultsMap
+  RecordingSegmentsQueryResultsMap,
 } from '../types';
 import { getCameraEntityFromConfig, getDefaultGo2RTCEndpoint } from '../utils.js';
 
 export class GenericCameraManagerEngine implements CameraManagerEngine {
+  protected _eventCallback?: CameraEventCallback;
+
+  constructor(eventCallback?: CameraEventCallback) {
+    this._eventCallback = eventCallback;
+  }
+
   public getEngineType(): Engine {
     return Engine.Generic;
   }
 
-  public async initializeCamera(
-    _hass: HomeAssistant,
-    _entityRegistryManager: EntityRegistryManager,
+  public async createCamera(
+    hass: HomeAssistant,
+    entityRegistryManager: EntityRegistryManager,
     cameraConfig: CameraConfig,
   ): Promise<Camera> {
-    return new Camera(cameraConfig, this, {
-      canFavoriteEvents: false,
-      canFavoriteRecordings: false,
-      canSeek: false,
-      supportsClips: false,
-      supportsRecordings: false,
-      supportsSnapshots: false,
-      supportsTimeline: false,
-    });
+    return await new Camera(cameraConfig, this, {
+      capabilities: {
+        canFavoriteEvents: false,
+        canFavoriteRecordings: false,
+        canSeek: false,
+        supportsClips: false,
+        supportsRecordings: false,
+        supportsSnapshots: false,
+        supportsTimeline: false,
+      },
+      eventCallback: this._eventCallback,
+    }).initialize(hass, entityRegistryManager);
   }
 
   public generateDefaultEventQuery(

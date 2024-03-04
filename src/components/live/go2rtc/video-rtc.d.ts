@@ -9,7 +9,7 @@ export class VideoRTC extends HTMLElement {
   pcConfig: RTCConfiguration;
   wsState: number;
   pcState: number;
-  video: HTMLVideoElement;
+  video: HTMLVideoElement | null;
   ws: WebSocket | null;
   wsURL: string;
   pc: RTCPeerConnection | null;

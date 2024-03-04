@@ -22,7 +22,7 @@ export class Initializer {
   ): Promise<boolean> {
     const results = await allPromises(
       Object.entries(aspects),
-      async ([aspect, options]) => this.initializeIfNecessary(aspect, options),
+      async ([aspect, options]) => await this.initializeIfNecessary(aspect, options),
     );
     return results.every(Boolean);
   }

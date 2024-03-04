@@ -85,6 +85,12 @@
       "triggers": {
         "editor_label": "Opções de acionamento",
         "entities": "Acionar a partir de outras entidades",
+        "events": {
+          "clips": "",
+          "editor_label": "",
+          "events": "",
+          "snapshots": ""
+        },
         "motion": "Acionar detectando automaticamente o sensor de movimento",
         "occupancy": "Acionar detectando automaticamente o sensor de ocupação"
       },
@@ -393,7 +399,7 @@
       "default": "Visualização padrão",
       "interaction_seconds": "",
       "reset_after_interaction": "",
-      "scan": {
+      "triggers": {
         "actions": {
           "editor_label": "",
           "interaction_mode": "",
@@ -404,7 +410,9 @@
           },
           "trigger": "",
           "triggers": {
+            "default": "",
             "live": "",
+            "media": "",
             "none": ""
           },
           "untrigger": "",
@@ -413,8 +421,7 @@
             "none": ""
           }
         },
-        "editor_label": "Modo scan",
-        "enabled": "Modo scan ativado",
+        "editor_label": "",
         "filter_selected_camera": "",
         "show_trigger_status": "Pulsar borda quando acionado",
         "untrigger_seconds": "Segundos após a mudar para o estado inativo para desacionar"

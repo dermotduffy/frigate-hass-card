@@ -85,6 +85,12 @@
       "triggers": {
         "editor_label": "Trigger Opzioni",
         "entities": "Trigger da altre entità",
+        "events": {
+          "clips": "",
+          "editor_label": "",
+          "events": "",
+          "snapshots": ""
+        },
         "motion": "Trigger rilevando automaticamente dal sensore di movimento",
         "occupancy": "Attivare rilevando automatico tramite il sensore di presenza"
       },
@@ -390,7 +396,7 @@
       "default": "Visualizzazione predefinita",
       "interaction_seconds": "",
       "reset_after_interaction": "",
-      "scan": {
+      "triggers": {
         "actions": {
           "editor_label": "",
           "interaction_mode": "",
@@ -401,7 +407,9 @@
           },
           "trigger": "",
           "triggers": {
+            "default": "",
             "live": "",
+            "media": "",
             "none": ""
           },
           "untrigger": "",
@@ -410,8 +418,7 @@
             "none": ""
           }
         },
-        "editor_label": "Modalità di scansione",
-        "enabled": "Modalità di scansione abilitata",
+        "editor_label": "",
         "filter_selected_camera": "",
         "show_trigger_status": "Mostra bordo pulsante quando attivato",
         "untrigger_seconds": "Reimposta la vista ai valori predefiniti dopo aver annullato l'attivazione"

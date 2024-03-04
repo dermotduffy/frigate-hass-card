@@ -1,4 +1,5 @@
 import { CameraConfig } from '../config/types';
+import { allPromises } from '../utils/basic';
 import { ViewMedia } from '../view/media';
 import { Camera } from './camera';
 import { CameraManagerEngine } from './engine';
@@ -35,7 +36,9 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
     this._cameras.set(camera.getID(), camera);
     this._enginesByType.set(camera.getEngine().getEngineType(), camera.getEngine());
   }
-  public reset(): void {
+
+  public async reset(): Promise<void> {
+    await allPromises(this._cameras.values(), (camera) => camera.destroy());
     this._cameras.clear();
     this._enginesByType.clear();
   }

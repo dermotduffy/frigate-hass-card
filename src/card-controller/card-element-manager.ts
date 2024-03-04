@@ -2,6 +2,7 @@ import { LitElement, ReactiveControllerHost } from 'lit';
 import { ActionEventTarget } from '../action-handler-directive';
 import { setOrRemoveAttribute } from '../utils/basic';
 import { isCardInPanel } from '../utils/ha';
+import { InitializationAspect } from './initialization-manager';
 import { CardElementAPI } from './types';
 
 export type ScrollCallback = () => void;
@@ -102,6 +103,16 @@ export class CardElementManager {
     // When the dashboard 'tab' is changed, the media is effectively unloaded.
     this._api.getMediaLoadedInfoManager().clear();
     this._api.getFullscreenManager().disconnect();
+
+    // Reset and uninitialize cameras to cause them to reinitialize on
+    // reconnection, to ensure the state subscription/unsubscription works
+    // correctly for triggers.
+    this._api
+      .getCameraManager()
+      .reset()
+      .then(() =>
+        this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS),
+      );
 
     this._element.removeEventListener(
       'mousemove',

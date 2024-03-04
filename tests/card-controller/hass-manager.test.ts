@@ -66,18 +66,6 @@ describe('HASSManager', () => {
     });
   });
 
-  it('should update triggered cameras', () => {
-    const api = createAPIWithoutMediaPlayers();
-    const manager = new HASSManager(api);
-
-    const originalHASS = createHASS();
-    manager.setHASS(originalHASS);
-    expect(api.getTriggersManager().updateTriggerHAState).toBeCalledWith(null);
-
-    manager.setHASS(createHASS());
-    expect(api.getTriggersManager().updateTriggerHAState).toBeCalledWith(originalHASS);
-  });
-
   describe('should handle connection state change when', () => {
     it('initially disconnected', () => {
       const api = createAPIWithoutMediaPlayers();
@@ -156,37 +144,6 @@ describe('HASSManager', () => {
   });
 
   describe('should set default view when', () => {
-    it('selected camera trigger entity changes', () => {
-      const api = createAPIWithoutMediaPlayers();
-      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
-      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-        createStore([
-          {
-            cameraID: 'camera.foo',
-            config: createCameraConfig({
-              triggers: {
-                entities: ['binary_sensor.motion'],
-              },
-            }),
-          },
-        ]),
-      );
-      vi.mocked(api.getViewManager().getView).mockReturnValue(
-        createView({
-          camera: 'camera.foo',
-        }),
-      );
-
-      const manager = new HASSManager(api);
-      const hass = createHASS({
-        'binary_sensor.motion': createStateEntity(),
-      });
-
-      manager.setHASS(hass);
-
-      expect(api.getViewManager().setViewDefault).toBeCalled();
-    });
-
     it('selected camera is unknown', () => {
       const api = createAPIWithoutMediaPlayers();
       vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());

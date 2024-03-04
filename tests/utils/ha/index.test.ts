@@ -1,8 +1,10 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getEntityIcon,
   hasHAConnectionStateChanged,
+  parseStateChangeTrigger,
+  subscribeToTrigger,
 } from '../../../src/utils/ha/index.js';
 import { createHASS, createStateEntity } from '../../test-utils.js';
 
@@ -65,5 +67,107 @@ describe('getEntityIcon', () => {
 
   it('should get icon from domain', () => {
     expect(getEntityIcon(createHASS(), 'camera.test')).toBe('mdi:video');
+  });
+});
+
+describe('should subscribe to trigger', () => {
+  it('mqtt', async () => {
+    const hass = createHASS();
+    const callback = vi.fn();
+
+    await subscribeToTrigger(hass, callback, {
+      platform: 'mqtt',
+      topic: 'topic',
+      payload: 'payload',
+      valueTemplate: 'value_template',
+    });
+
+    expect(hass.connection.subscribeMessage).toBeCalledWith(callback, {
+      type: 'subscribe_trigger',
+      trigger: {
+        platform: 'mqtt',
+        topic: 'topic',
+        payload: 'payload',
+        value_template: 'value_template',
+      },
+    });
+  });
+
+  it('state and attributes', async () => {
+    const hass = createHASS();
+    const callback = vi.fn();
+
+    await subscribeToTrigger(hass, callback, {
+      platform: 'state',
+      entityID: 'camera.foo',
+    });
+
+    expect(hass.connection.subscribeMessage).toBeCalledWith(callback, {
+      type: 'subscribe_trigger',
+      trigger: {
+        platform: 'state',
+        entity_id: 'camera.foo',
+      },
+    });
+  });
+
+  it('state only', async () => {
+    const hass = createHASS();
+    const callback = vi.fn();
+
+    await subscribeToTrigger(hass, callback, {
+      platform: 'state',
+      entityID: 'camera.foo',
+      stateOnly: true,
+    });
+
+    expect(hass.connection.subscribeMessage).toBeCalledWith(callback, {
+      type: 'subscribe_trigger',
+      trigger: {
+        platform: 'state',
+        entity_id: 'camera.foo',
+        from: null,
+        to: null,
+      },
+    });
+  });
+});
+
+describe('should parse state change response', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('malformed response', async () => {
+    const consoleSpy = vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
+
+    expect(parseStateChangeTrigger('INVALID')).toBeNull();
+
+    expect(consoleSpy).toBeCalledWith('Ignoring unparseable HA state change', 'INVALID');
+  });
+
+  it('valid response', async () => {
+    const consoleSpy = vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
+
+    const stateChange = {
+      from_state: {
+        entity_id: 'camera.foo',
+        state: 'off',
+      },
+      to_state: {
+        entity_id: 'camera.foo',
+        state: 'on',
+      },
+    };
+
+    expect(
+      parseStateChangeTrigger({
+        variables: {
+          trigger: stateChange,
+        },
+      }),
+    ).toEqual(stateChange);
+
+    expect(consoleSpy).not.toBeCalled();
   });
 });

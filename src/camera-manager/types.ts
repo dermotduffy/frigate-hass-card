@@ -150,6 +150,22 @@ export interface EngineOptions {
   useCache?: boolean;
 }
 
+export interface CameraEvent {
+  cameraID: string;
+
+  type: 'new' | 'update' | 'end';
+
+  // When fidelity is `high`, the engine is assumed to provide exact details of
+  // what new media is available. Otherwise all media types are assumed to be
+  // possibly newly available.
+  fidelity?: 'high' | 'low';
+
+  // Whether a new clip/snapshot/recording may be available.
+  clip?: boolean;
+  snapshot?: boolean;
+}
+export type CameraEventCallback = (ev: CameraEvent) => void;
+
 // ===========
 // Event Query
 // ===========

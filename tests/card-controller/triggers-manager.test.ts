@@ -1,22 +1,22 @@
 import add from 'date-fns/add';
-import { HassEntities } from 'home-assistant-js-websocket';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CardController } from '../../src/card-controller/controller';
 import { TriggersManager } from '../../src/card-controller/triggers-manager';
-import { ScanOptions, scanSchema } from '../../src/config/types';
+import { TriggersOptions, triggersSchema } from '../../src/config/types';
 import {
   createCameraConfig,
   createCameraManager,
   createCardAPI,
   createConfig,
-  createHASS,
-  createStateEntity,
   createStore,
   createView,
 } from '../test-utils';
 
-const baseScanConfig: Partial<ScanOptions> = {
-  enabled: true,
+vi.mock('lodash-es/throttle', () => ({
+  default: vi.fn((fn) => fn),
+}));
+
+const baseTriggersConfig: Partial<TriggersOptions> = {
   untrigger_seconds: 10,
   filter_selected_camera: false,
   actions: {
@@ -29,21 +29,20 @@ const baseScanConfig: Partial<ScanOptions> = {
 // Creating and mocking a trigger API is a lot of boilerplate, this convenience
 // function reduces it.
 const createTriggerAPI = (options?: {
-  config?: Partial<ScanOptions>;
-  hassStates?: HassEntities;
+  config?: Partial<TriggersOptions>;
   interaction?: boolean;
 }): CardController => {
   const api = createCardAPI();
   vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
     createConfig({
       view: {
-        scan: options?.config ? scanSchema.parse(options.config) : baseScanConfig,
+        triggers: options?.config
+          ? triggersSchema.parse(options.config)
+          : baseTriggersConfig,
       },
     }),
   );
-  vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
-    createHASS(options?.hassStates),
-  );
+  vi.mocked(api.getConditionsManager().getState).mockReturnValue({});
   vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
   vi.mocked(api.getCameraManager().getStore).mockReturnValue(
     createStore([
@@ -60,22 +59,22 @@ const createTriggerAPI = (options?: {
   vi.mocked(api.getInteractionManager().hasInteraction).mockReturnValue(
     options?.interaction ?? false,
   );
+  vi.mocked(api.getViewManager().getView).mockReturnValue(
+    createView({
+      camera: 'camera_1' as const,
+    }),
+  );
 
   return api;
 };
 
 // @vitest-environment jsdom
 describe('TriggersManager', () => {
-  const hassActiveState = {
-    'binary_sensor.motion': createStateEntity({ state: 'on' }),
-  };
-  const hassInactiveState = {
-    'binary_sensor.motion': createStateEntity({ state: 'off' }),
-  };
+  const start = new Date('2023-10-01T17:14');
 
   beforeEach(() => {
-    vi.resetAllMocks();
     vi.useFakeTimers();
+    vi.setSystemTime(start);
   });
 
   it('should not be triggered by default', () => {
@@ -83,23 +82,8 @@ describe('TriggersManager', () => {
     expect(manager.isTriggered()).toBeFalsy();
   });
 
-  it('should not trigger when scan mode disabled default', () => {
-    const api = createTriggerAPI({
-      config: { enabled: false },
-      hassStates: hassActiveState,
-    });
-    const manager = new TriggersManager(api);
-
-    manager.updateTriggerHAState(null);
-
-    expect(manager.isTriggered()).toBeFalsy();
-  });
-
-  it('should not trigger without a scan config', () => {
-    const api = createTriggerAPI({
-      hassStates: hassActiveState,
-    });
-
+  it('should not trigger without a triggers config', () => {
+    const api = createTriggerAPI();
     vi.mocked(api.getViewManager().getView).mockReturnValue(
       createView({
         camera: 'camera_1' as const,
@@ -108,19 +92,23 @@ describe('TriggersManager', () => {
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(null);
 
     const manager = new TriggersManager(api);
-    manager.updateView(null);
+
+    manager.handleCameraEvent({
+      cameraID: 'camera_1',
+      type: 'new',
+    });
+
     expect(manager.isTriggered()).toBeFalsy();
   });
 
-  it('should trigger and untrigger based on entity state', () => {
-    const start = new Date('2023-10-01T17:14');
-    vi.setSystemTime(start);
-    const api = createTriggerAPI({
-      hassStates: hassActiveState,
-    });
+  it('should trigger and untrigger based on low fidelity event', () => {
+    const api = createTriggerAPI();
     const manager = new TriggersManager(api);
 
-    manager.updateTriggerHAState(createHASS(hassInactiveState));
+    manager.handleCameraEvent({
+      cameraID: 'camera_1',
+      type: 'new',
+    });
 
     expect(manager.isTriggered()).toBeTruthy();
     expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith({
@@ -132,14 +120,14 @@ describe('TriggersManager', () => {
       cameraID: 'camera_1' as const,
     });
 
-    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
-      createHASS(hassInactiveState),
-    );
+    vi.mocked(api.getConditionsManager().getState).mockReturnValue({
+      triggered: new Set(['camera_1']),
+    });
 
-    manager.updateTriggerHAState(createHASS(hassActiveState));
-
-    // Intentional state update with no change.
-    manager.updateTriggerHAState(createHASS(hassActiveState));
+    manager.handleCameraEvent({
+      cameraID: 'camera_1',
+      type: 'end',
+    });
 
     // Will still be triggered, but untrigger timer will be running.
     expect(manager.isTriggered()).toBeTruthy();
@@ -155,34 +143,141 @@ describe('TriggersManager', () => {
     expect(api.getViewManager().setViewDefault).toBeCalled();
   });
 
-  it('should trigger when entity state is active on startup', () => {
+  describe('should treat high fidelity events appropriately', () => {
+    it('with no media', () => {
+      const api = createTriggerAPI();
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          view: {
+            default: 'clips',
+          },
+        }),
+      );
+
+      const manager = new TriggersManager(api);
+      manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        type: 'new',
+        fidelity: 'high',
+
+        // Intentionally blank.
+      });
+
+      expect(manager.isTriggered()).toBeTruthy();
+      expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    });
+
+    it('with media', () => {
+      const api = createTriggerAPI();
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          view: {
+            default: 'clips',
+          },
+        }),
+      );
+
+      const manager = new TriggersManager(api);
+      manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        type: 'new',
+        fidelity: 'high',
+        clip: true,
+      });
+
+      expect(manager.isTriggered()).toBeTruthy();
+      expect(api.getViewManager().setViewDefault).toBeCalled();
+    });
+  });
+
+  it('should change to default view when suitably configured', () => {
     const api = createTriggerAPI({
-      hassStates: hassActiveState,
+      config: {
+        actions: {
+          interaction_mode: 'all',
+          trigger: 'default',
+          untrigger: 'none',
+        },
+      },
     });
     const manager = new TriggersManager(api);
-    expect(manager.isTriggered()).toBeFalsy();
 
-    manager.updateTriggerHAState(null);
+    manager.handleCameraEvent({
+      cameraID: 'camera_1',
+      type: 'new',
+    });
+
     expect(manager.isTriggered()).toBeTruthy();
+    expect(api.getViewManager().setViewDefault).toBeCalledWith({
+      cameraID: 'camera_1',
+    });
+  });
+
+  describe('should change to media view', () => {
+    it.each([
+      [false, false, null],
+      [false, true, 'clip' as const],
+      [true, false, 'snapshot' as const],
+      [true, true, 'clip' as const],
+    ])(
+      'with snapshot %s and clip %s',
+      async (
+        hasSnapshot: boolean,
+        hasClip: boolean,
+        viewName: 'clip' | 'snapshot' | null,
+      ) => {
+        const api = createTriggerAPI({
+          config: {
+            actions: {
+              interaction_mode: 'all',
+              trigger: 'media',
+              untrigger: 'none',
+            },
+          },
+        });
+        const manager = new TriggersManager(api);
+
+        manager.handleCameraEvent({
+          cameraID: 'camera_1',
+          type: 'new',
+          fidelity: 'high',
+          snapshot: hasSnapshot,
+          clip: hasClip,
+        });
+
+        if (!viewName) {
+          expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+        } else {
+          expect(manager.isTriggered()).toBeTruthy();
+          expect(api.getViewManager().setViewByParameters).toBeCalledWith({
+            cameraID: 'camera_1',
+            viewName: viewName,
+          });
+        }
+      },
+    );
   });
 
   it('should take no actions with human interactions', () => {
-    const start = new Date('2023-10-01T17:14');
     const api = createTriggerAPI({
-      hassStates: hassActiveState,
       // Interaction present.
       interaction: true,
     });
     const manager = new TriggersManager(api);
-    manager.updateTriggerHAState(createHASS(hassInactiveState));
+
+    manager.handleCameraEvent({
+      cameraID: 'camera_1',
+      type: 'new',
+    });
+
     expect(manager.isTriggered()).toBeTruthy();
 
     expect(api.getViewManager().setViewByParameters).not.toBeCalled();
 
-    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
-      createHASS(hassInactiveState),
-    );
-    manager.updateTriggerHAState(createHASS(hassActiveState));
+    manager.handleCameraEvent({
+      cameraID: 'camera_1',
+      type: 'end',
+    });
 
     vi.setSystemTime(add(start, { seconds: 10 }));
     vi.runOnlyPendingTimers();
@@ -193,11 +288,8 @@ describe('TriggersManager', () => {
   });
 
   it('should take no actions when actions are set to none', () => {
-    const start = new Date('2023-10-01T17:14');
     const api = createTriggerAPI({
-      hassStates: hassActiveState,
       config: {
-        enabled: true,
         actions: {
           interaction_mode: 'all',
           trigger: 'none',
@@ -206,32 +298,31 @@ describe('TriggersManager', () => {
       },
     });
     const manager = new TriggersManager(api);
-    manager.updateTriggerHAState(createHASS(hassInactiveState));
+    manager.handleCameraEvent({
+      cameraID: 'camera_1',
+      type: 'new',
+    });
     expect(manager.isTriggered()).toBeTruthy();
-
     expect(api.getViewManager().setViewByParameters).not.toBeCalled();
 
-    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
-      createHASS(hassInactiveState),
-    );
-    manager.updateTriggerHAState(createHASS(hassActiveState));
+    manager.handleCameraEvent({
+      cameraID: 'camera_1',
+      type: 'end',
+    });
 
     vi.setSystemTime(add(start, { seconds: 10 }));
     vi.runOnlyPendingTimers();
 
     expect(manager.isTriggered()).toBeFalsy();
-
     expect(api.getViewManager().setViewDefault).not.toBeCalled();
   });
 
   it('should take actions with human interactions when interaction mode is active', () => {
-    const start = new Date('2023-10-01T17:14');
     const api = createTriggerAPI({
-      hassStates: hassActiveState,
       // Interaction present.
       interaction: true,
       config: {
-        ...baseScanConfig,
+        ...baseTriggersConfig,
         actions: {
           trigger: 'live' as const,
           untrigger: 'default' as const,
@@ -240,18 +331,21 @@ describe('TriggersManager', () => {
       },
     });
     const manager = new TriggersManager(api);
-    manager.updateTriggerHAState(createHASS(hassInactiveState));
-    expect(manager.isTriggered()).toBeTruthy();
+    manager.handleCameraEvent({
+      cameraID: 'camera_1',
+      type: 'new',
+    });
 
+    expect(manager.isTriggered()).toBeTruthy();
     expect(api.getViewManager().setViewByParameters).toBeCalledWith({
       viewName: 'live' as const,
       cameraID: 'camera_1' as const,
     });
 
-    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
-      createHASS(hassInactiveState),
-    );
-    manager.updateTriggerHAState(createHASS(hassActiveState));
+    manager.handleCameraEvent({
+      cameraID: 'camera_1',
+      type: 'end',
+    });
 
     vi.setSystemTime(add(start, { seconds: 10 }));
     vi.runOnlyPendingTimers();
@@ -262,14 +356,7 @@ describe('TriggersManager', () => {
   });
 
   it('should report multiple triggered cameras', () => {
-    const start = new Date('2023-10-01T17:14');
-    const bothOnState = {
-      'binary_sensor.one': createStateEntity({ state: 'on' }),
-      'binary_sensor.two': createStateEntity({ state: 'on' }),
-    };
-    const api = createTriggerAPI({
-      hassStates: bothOnState,
-    });
+    const api = createTriggerAPI();
     vi.mocked(api.getCameraManager().getStore).mockReturnValue(
       createStore([
         {
@@ -297,7 +384,15 @@ describe('TriggersManager', () => {
     expect(manager.getMostRecentlyTriggeredCameraID()).toBeNull();
     expect(manager.getTriggeredCameraIDs()).toEqual(new Set());
 
-    manager.updateTriggerHAState(null);
+    manager.handleCameraEvent({
+      cameraID: 'camera_1',
+      type: 'new',
+    });
+    manager.handleCameraEvent({
+      cameraID: 'camera_2',
+      type: 'new',
+    });
+
     expect(manager.isTriggered()).toBeTruthy();
     expect(manager.getTriggeredCameraIDs()).toEqual(new Set(['camera_1', 'camera_2']));
 
@@ -306,14 +401,10 @@ describe('TriggersManager', () => {
       manager.getMostRecentlyTriggeredCameraID(),
     );
 
-    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
-      createHASS({
-        'binary_sensor.one': createStateEntity({ state: 'off' }),
-        'binary_sensor.two': createStateEntity({ state: 'on' }),
-      }),
-    );
-
-    manager.updateTriggerHAState(createHASS(bothOnState));
+    manager.handleCameraEvent({
+      cameraID: 'camera_1',
+      type: 'end',
+    });
 
     vi.setSystemTime(add(start, { seconds: 10 }));
     vi.runOnlyPendingTimers();
@@ -322,75 +413,87 @@ describe('TriggersManager', () => {
     expect(manager.getMostRecentlyTriggeredCameraID()).toBe('camera_2');
   });
 
-  it('should filter triggers by camera', () => {
-    const start = new Date('2023-10-01T17:14');
-    const api = createTriggerAPI({
-      config: {
-        ...baseScanConfig,
-        // Filter triggers to selected camera only.
-        filter_selected_camera: true,
-      },
-      hassStates: hassActiveState,
-    });
-    const manager = new TriggersManager(api);
-    manager.updateTriggerHAState(createHASS(hassInactiveState));
-    expect(manager.isTriggered()).toBeFalsy();
+  describe('should filter triggers by camera', () => {
+    it('no dependencies', () => {
+      const api = createTriggerAPI({
+        config: {
+          ...baseTriggersConfig,
+          // Filter triggers to selected camera only.
+          filter_selected_camera: true,
+        },
+      });
+      const manager = new TriggersManager(api);
+      expect(manager.isTriggered()).toBeFalsy();
 
-    const otherCameraSelected = createView({
-      camera: 'camera_SOME_OTHER_CAMERA' as const,
-    });
+      const otherCameraSelected = createView({
+        camera: 'camera_SOME_OTHER_CAMERA' as const,
+      });
+      vi.mocked(api.getViewManager().getView).mockReturnValue(otherCameraSelected);
 
-    vi.mocked(api.getViewManager().getView).mockReturnValue(otherCameraSelected);
-    manager.updateView(null);
-    expect(manager.isTriggered()).toBeFalsy();
+      manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        type: 'new',
+      });
+      expect(manager.isTriggered()).toBeFalsy();
 
-    const thisCameraSelected = createView({
-      camera: 'camera_1' as const,
-    });
+      const thisCameraSelected = createView({
+        camera: 'camera_1' as const,
+      });
+      vi.mocked(api.getViewManager().getView).mockReturnValue(thisCameraSelected);
 
-    vi.mocked(api.getViewManager().getView).mockReturnValue(thisCameraSelected);
-    manager.updateView(otherCameraSelected);
-    expect(manager.isTriggered()).toBeTruthy();
-
-    // Ensure a view change to the same camera stays triggered.
-    vi.mocked(api.getViewManager().getView).mockReturnValue(thisCameraSelected);
-    manager.updateView(thisCameraSelected);
-    expect(manager.isTriggered()).toBeTruthy();
-  });
-
-  it('should not untrigger triggers by camera', () => {
-    const start = new Date('2023-10-01T17:14');
-    const api = createTriggerAPI({
-      config: {
-        ...baseScanConfig,
-        // Filter triggers to selected camera only.
-        filter_selected_camera: true,
-      },
-      hassStates: hassActiveState,
-    });
-    const manager = new TriggersManager(api);
-    manager.updateTriggerHAState(createHASS(hassInactiveState));
-    expect(manager.isTriggered()).toBeFalsy();
-
-    const otherCameraSelected = createView({
-      camera: 'camera_SOME_OTHER_CAMERA' as const,
+      manager.handleCameraEvent({
+        cameraID: 'camera_1',
+        type: 'new',
+      });
+      expect(manager.isTriggered()).toBeTruthy();
     });
 
-    vi.mocked(api.getViewManager().getView).mockReturnValue(otherCameraSelected);
-    manager.updateView(null);
-    expect(manager.isTriggered()).toBeFalsy();
+    it('dependencies', () => {
+      const api = createTriggerAPI({
+        config: {
+          ...baseTriggersConfig,
+          // Filter triggers to selected camera only.
+          filter_selected_camera: true,
+        },
+      });
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera_primary',
+            config: createCameraConfig({
+              triggers: {
+                entities: ['binary_sensor.motion'],
+              },
+              dependencies: {
+                all_cameras: true,
+              },
+            }),
+          },
+          {
+            cameraID: 'camera_secondary',
+            config: createCameraConfig({
+              triggers: {
+                entities: ['binary_sensor.motion'],
+              },
+            }),
+          },
+        ]),
+      );
 
-    const thisCameraSelected = createView({
-      camera: 'camera_1' as const,
+      const manager = new TriggersManager(api);
+
+      const primaryCameraView = createView({
+        camera: 'camera_primary' as const,
+      });
+      vi.mocked(api.getViewManager().getView).mockReturnValue(primaryCameraView);
+
+      // Events for the secondary will still trigger when filter_selected_camera
+      // is true.
+      manager.handleCameraEvent({
+        cameraID: 'camera_secondary',
+        type: 'new',
+      });
+      expect(manager.isTriggered()).toBeTruthy();
     });
-
-    vi.mocked(api.getViewManager().getView).mockReturnValue(thisCameraSelected);
-    manager.updateView(otherCameraSelected);
-    expect(manager.isTriggered()).toBeTruthy();
-
-    // Ensure a view change to the same camera stays triggered.
-    vi.mocked(api.getViewManager().getView).mockReturnValue(thisCameraSelected);
-    manager.updateView(thisCameraSelected);
-    expect(manager.isTriggered()).toBeTruthy();
   });
 });

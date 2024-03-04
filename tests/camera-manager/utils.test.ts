@@ -107,6 +107,19 @@ describe('sortMedia', () => {
   it('should remove duplicate id', () => {
     expect(sortMedia([media_1, media_2, media_3_dup_id])).toEqual([media_1, media_2]);
   });
+  it('should sort by id when time not available', () => {
+    expect(
+      sortMedia([
+        new TestViewMedia({ id: 'snake' }),
+        new TestViewMedia({ id: 'zebra' }),
+        new TestViewMedia({ id: 'aardvark' }),
+      ]),
+    ).toEqual([
+      new TestViewMedia({ id: 'aardvark' }),
+      new TestViewMedia({ id: 'snake' }),
+      new TestViewMedia({ id: 'zebra' }),
+    ]);
+  });
   it('should remove de-duplicate by object if no id', () => {
     expect(sortMedia([media_1, media_2, media_4_no_id, media_4_no_id])).toEqual([
       media_1,

@@ -1,4 +1,3 @@
-import { CameraConfig } from '../config/types';
 import { localize } from '../localize/localize';
 import { ExtendedHomeAssistant } from '../types';
 import { hasHAConnectionStateChanged, isHassDifferent } from '../utils/ha';
@@ -17,15 +16,6 @@ export class HASSManager {
   }
 
   public setHASS(hass?: ExtendedHomeAssistant | null): void {
-    const getSelectedCameraConfig = (): CameraConfig | null => {
-      const view = this._api.getViewManager().getView();
-      const cameraManager = this._api.getCameraManager();
-
-      return view && cameraManager
-        ? cameraManager?.getStore().getCameraConfig(view.camera) ?? null
-        : null;
-    };
-
     if (hasHAConnectionStateChanged(this._hass, hass)) {
       if (!hass?.connected) {
         this._api.getMessageManager().setMessageIfHigherPriority({
@@ -54,10 +44,11 @@ export class HASSManager {
       // Assistant update if there's been recent interaction (e.g. clicks on the
       // card) or if there is media active playing.
       this._isAutomatedViewUpdateAllowed() &&
-      isHassDifferent(this._hass, oldHass, [
-        ...(this._api.getConfigManager().getConfig()?.view.update_entities ?? []),
-        ...(getSelectedCameraConfig()?.triggers.entities ?? []),
-      ])
+      isHassDifferent(
+        this._hass,
+        oldHass,
+        this._api.getConfigManager().getConfig()?.view.update_entities ?? [],
+      )
     ) {
       // If entities being monitored have changed then reset the view to the
       // default.
@@ -73,8 +64,6 @@ export class HASSManager {
     ) {
       this._api.getCardElementManager().update();
     }
-
-    this._api.getTriggersManager().updateTriggerHAState(oldHass);
 
     if (this._api.getConditionsManager().hasHAStateConditions()) {
       this._api.getConditionsManager().setState({ state: this._hass.states });

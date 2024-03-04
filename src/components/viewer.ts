@@ -139,7 +139,7 @@ export class FrigateCardViewer extends LitElement {
       const mediaType = this.view.getDefaultMediaType();
       if (!mediaType) {
         // Directly render an error message (instead of dispatching it upwards)
-        // to preserve the mini-timeline if the user scans into an area with no
+        // to preserve the mini-timeline if the user pans into an area with no
         // media.
         return renderMessage({
           type: 'info',
@@ -157,6 +157,7 @@ export class FrigateCardViewer extends LitElement {
           {
             allCameras: this.view.isGrid(),
             targetView: 'recording',
+            useCache: false,
           },
         );
       } else {
@@ -169,6 +170,7 @@ export class FrigateCardViewer extends LitElement {
             allCameras: this.view.isGrid(),
             targetView: 'media',
             eventsMediaType: mediaType,
+            useCache: false,
           },
         );
       }

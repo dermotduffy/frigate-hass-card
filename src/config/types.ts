@@ -77,6 +77,16 @@ export type PTZAction = (typeof PTZ_ACTIONS)[number];
 const PTZ_PHASES = ['start', 'stop'] as const;
 export type PTZPhase = (typeof PTZ_PHASES)[number];
 
+const CAMERA_TRIGGER_EVENT_TYPES = [
+  // An event whether or not it has any media yet associated with it.
+  'events',
+
+  // Specific media availability.
+  'clips',
+  'snapshots',
+] as const;
+export type CameraTriggerEventType = (typeof CAMERA_TRIGGER_EVENT_TYPES)[number];
+
 // *************************************************************************
 //                        View Display Mode
 // *************************************************************************
@@ -326,7 +336,7 @@ const actionsSchema = z.object({
 });
 
 const elementsBaseSchema = actionsBaseSchema.extend({
-  style: z.record(z.string().nullable().or(z.undefined())).optional(),
+  style: z.record(z.string().nullable().or(z.undefined()).or(z.number())).optional(),
   title: z.string().nullable().optional(),
 });
 
@@ -1038,7 +1048,8 @@ const cameraConfigDefault = {
   },
   triggers: {
     motion: false,
-    occupancy: true,
+    occupancy: false,
+    events: [...CAMERA_TRIGGER_EVENT_TYPES],
     entities: [],
   },
 };
@@ -1071,6 +1082,10 @@ export const cameraConfigSchema = z
         motion: z.boolean().default(cameraConfigDefault.triggers.motion),
         occupancy: z.boolean().default(cameraConfigDefault.triggers.occupancy),
         entities: z.string().array().default(cameraConfigDefault.triggers.entities),
+        events: z
+          .enum(CAMERA_TRIGGER_EVENT_TYPES)
+          .array()
+          .default(cameraConfigDefault.triggers.events),
       })
       .default(cameraConfigDefault.triggers),
 
@@ -1145,41 +1160,42 @@ const viewConfigDefault = {
   update_force: false,
   update_cycle_camera: false,
   dark_mode: 'off' as const,
-  scan: {
-    enabled: false,
-    show_trigger_status: true,
-    filter_selected_camera: false,
+  triggers: {
+    show_trigger_status: false,
+    filter_selected_camera: true,
     actions: {
       interaction_mode: 'inactive' as const,
-      trigger: 'live' as const,
-      untrigger: 'default' as const,
+      trigger: 'default' as const,
+      untrigger: 'none' as const,
     },
     untrigger_seconds: 0,
   },
 };
 
-export const scanSchema = z.object({
-  enabled: z.boolean().default(viewConfigDefault.scan.enabled),
-
+export const triggersSchema = z.object({
   filter_selected_camera: z
     .boolean()
-    .default(viewConfigDefault.scan.filter_selected_camera),
-  show_trigger_status: z.boolean().default(viewConfigDefault.scan.show_trigger_status),
+    .default(viewConfigDefault.triggers.filter_selected_camera),
+  show_trigger_status: z
+    .boolean()
+    .default(viewConfigDefault.triggers.show_trigger_status),
 
   actions: z
     .object({
       interaction_mode: z
         .enum(['all', 'inactive', 'active'])
-        .default(viewConfigDefault.scan.actions.interaction_mode),
-      trigger: z.enum(['live', 'none']).default(viewConfigDefault.scan.actions.trigger),
+        .default(viewConfigDefault.triggers.actions.interaction_mode),
+      trigger: z
+        .enum(['live', 'default', 'media', 'none'])
+        .default(viewConfigDefault.triggers.actions.trigger),
       untrigger: z
         .enum(['default', 'none'])
-        .default(viewConfigDefault.scan.actions.untrigger),
+        .default(viewConfigDefault.triggers.actions.untrigger),
     })
-    .default(viewConfigDefault.scan.actions),
-  untrigger_seconds: z.number().default(viewConfigDefault.scan.untrigger_seconds),
+    .default(viewConfigDefault.triggers.actions),
+  untrigger_seconds: z.number().default(viewConfigDefault.triggers.untrigger_seconds),
 });
-export type ScanOptions = z.infer<typeof scanSchema>;
+export type TriggersOptions = z.infer<typeof triggersSchema>;
 
 const viewConfigSchema = z
   .object({
@@ -1199,7 +1215,7 @@ const viewConfigSchema = z
     update_entities: z.string().array().optional(),
     render_entities: z.string().array().optional(),
     dark_mode: z.enum(['on', 'off', 'auto']).optional(),
-    scan: scanSchema.default(viewConfigDefault.scan),
+    triggers: triggersSchema.default(viewConfigDefault.triggers),
   })
   .merge(actionsSchema)
   .default(viewConfigDefault);

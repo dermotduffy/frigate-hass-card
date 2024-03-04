@@ -27,6 +27,7 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
     eventsMediaType?: ClipsOrSnapshotsOrAll;
     targetView?: FrigateCardView;
     select?: ResultSelectType;
+    useCache?: boolean;
   },
 ): Promise<void> => {
   const cameraIDs = options?.allCameras
@@ -52,6 +53,7 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
       {
         targetView: options?.targetView,
         select: options?.select,
+        useCache: options?.useCache,
       },
     )
   )?.dispatchChangeEvent(element);
@@ -93,6 +95,7 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
     allCameras?: boolean;
     targetView?: FrigateCardView;
     select?: ResultSelectType;
+    useCache?: boolean;
   },
 ): Promise<void> => {
   const cameraIDs = options?.allCameras
@@ -120,6 +123,7 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
       {
         targetView: options?.targetView,
         select: options?.select,
+        useCache: options?.useCache,
       },
     )
   )?.dispatchChangeEvent(element);
@@ -147,6 +151,7 @@ export const executeMediaQueryForView = async (
     targetView?: FrigateCardView;
     targetTime?: Date;
     select?: ResultSelectType;
+    useCache?: boolean;
   },
 ): Promise<View | null> => {
   const queries = query.getQueries();
@@ -154,7 +159,9 @@ export const executeMediaQueryForView = async (
     return null;
   }
 
-  const mediaArray = await cameraManager.executeMediaQueries<MediaQuery>(queries);
+  const mediaArray = await cameraManager.executeMediaQueries<MediaQuery>(queries, {
+    useCache: options?.useCache,
+  });
   if (!mediaArray) {
     return null;
   }
@@ -194,6 +201,7 @@ export const executeMediaQueryForViewWithErrorDispatching = async (
     targetView?: FrigateCardView;
     targetTime?: Date;
     select?: ResultSelectType;
+    useCache?: boolean;
   },
 ): Promise<View | null> => {
   try {
@@ -202,6 +210,7 @@ export const executeMediaQueryForViewWithErrorDispatching = async (
       targetView: options?.targetView,
       targetTime: options?.targetTime,
       select: options?.select,
+      useCache: options?.useCache,
     });
   } catch (e: unknown) {
     errorToConsole(e as Error);

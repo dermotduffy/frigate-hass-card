@@ -38,9 +38,10 @@ describe('config defaults', () => {
           },
         },
         triggers: {
+          events: ['events', 'clips', 'snapshots'],
           entities: [],
           motion: false,
-          occupancy: true,
+          occupancy: false,
         },
       },
       debug: {
@@ -279,16 +280,15 @@ describe('config defaults', () => {
         camera_select: 'current',
         dark_mode: 'off',
         default: 'live',
-        scan: {
-          enabled: false,
-          show_trigger_status: true,
+        triggers: {
+          show_trigger_status: false,
           untrigger_seconds: 0,
           actions: {
-            trigger: 'live',
-            untrigger: 'default',
+            trigger: 'default',
+            untrigger: 'none',
             interaction_mode: 'inactive',
           },
-          filter_selected_camera: false,
+          filter_selected_camera: true,
         },
         interaction_seconds: 300,
         reset_after_interaction: true,
