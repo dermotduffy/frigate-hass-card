@@ -18,6 +18,7 @@ import {
   isTruthy,
   isValidDate,
   prettifyTitle,
+  recursivelyMergeObjectsNotArrays,
   runWhenIdleIfSupported,
   setOrRemoveAttribute,
   setify,
@@ -289,5 +290,51 @@ describe('getChildrenFromElement', () => {
     const slot = createSlot();
     createSlotHost({ slot: slot, children: children });
     expect(getChildrenFromElement(slot)).toEqual(children);
+  });
+});
+
+describe('recursivelyMergeObjectsNotArrays', () => {
+  it('should recursively merge objects but replace arrays', () => {
+    expect(
+      recursivelyMergeObjectsNotArrays(
+        {
+          a: {
+            b: {
+              c: 3,
+              d: {
+                e: 4,
+              },
+              array: [1, 2, 3],
+            },
+            other: {
+              field: 7,
+            },
+          },
+        },
+        {
+          a: {
+            b: {
+              array: [4],
+              d: {
+                e: 5,
+              },
+            },
+          },
+        },
+      ),
+    ).toEqual({
+      a: {
+        b: {
+          c: 3,
+          array: [4],
+          d: {
+            e: 5,
+          },
+        },
+        other: {
+          field: 7,
+        },
+      },
+    });
   });
 });

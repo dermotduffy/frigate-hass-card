@@ -1,3 +1,4 @@
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import add from 'date-fns/add';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
@@ -29,6 +30,7 @@ import {
 import { sortMedia } from '../../src/camera-manager/utils';
 import { CardController } from '../../src/card-controller/controller';
 import { CameraConfig } from '../../src/config/types';
+import { EntityRegistryManager } from '../../src/utils/ha/entity-registry';
 import { ViewMedia } from '../../src/view/media';
 import {
   TestViewMedia,
@@ -222,7 +224,7 @@ describe('CameraManager', async () => {
     factory?: CameraManagerEngineFactory,
   ): CameraManager => {
     const camerasConfig = cameras?.map(
-      (camera) => camera.config ?? createCameraConfig({ engine: 'generic' }),
+      (camera) => camera.config ?? createCameraConfig(baseCameraConfig),
     );
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
       createConfig({
@@ -238,12 +240,17 @@ describe('CameraManager', async () => {
       const engineType =
         camera.engineType === undefined ? Engine.Generic : camera.engineType;
       if (engineType) {
-        vi.mocked(mockEngine.createCamera).mockResolvedValueOnce(
-          createCamera(
-            camera.config ?? createCameraConfig(baseCameraConfig),
-            mockEngine,
-            camera.capabilties ?? createCameraCapabilities(),
-          ),
+        vi.mocked(mockEngine.createCamera).mockImplementationOnce(
+          async (
+            _hass: HomeAssistant,
+            _entityRegistryManager: EntityRegistryManager,
+            cameraConfig: CameraConfig,
+          ): Promise<Camera> =>
+            createCamera(
+              cameraConfig,
+              mockEngine,
+              camera.capabilties ?? createCameraCapabilities(),
+            ),
         );
       }
       vi.mocked(mockFactory.getEngineForCamera).mockResolvedValueOnce(engineType);
@@ -483,6 +490,27 @@ describe('CameraManager', async () => {
         engine.generateDefaultEventQuery.mockReturnValue(null);
         expect(manager.generateDefaultEventQueries('id')).toBeNull();
       });
+    });
+
+    it('should merge defaults correctly', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+      const engine = mock<CameraManagerEngine>();
+      const manager = createCameraManager(api, engine, [
+        {
+          config: createCameraConfig({
+            ...baseCameraConfig,
+            triggers: {
+              events: ['snapshots'],
+            },
+          }),
+        },
+      ]);
+      expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
+      expect(manager.getStore().getCamera('id')?.getConfig().triggers.events).toEqual([
+        'snapshots',
+      ]);
     });
   });
 

@@ -1,12 +1,16 @@
 import add from 'date-fns/add';
 import cloneDeep from 'lodash-es/cloneDeep';
-import merge from 'lodash-es/merge.js';
 import sum from 'lodash-es/sum';
 import { CardCameraAPI } from '../card-controller/types.js';
 import { CameraConfig, CamerasConfig, PTZAction, PTZPhase } from '../config/types.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
 import { localize } from '../localize/localize.js';
-import { allPromises, arrayify, setify } from '../utils/basic.js';
+import {
+  allPromises,
+  arrayify,
+  recursivelyMergeObjectsNotArrays,
+  setify,
+} from '../utils/basic.js';
 import { getCameraID } from '../utils/camera.js';
 import { log } from '../utils/debug.js';
 import { ViewMedia } from '../view/media.js';
@@ -141,7 +145,7 @@ export class CameraManager {
     // order, to ensure that the defaults in the cameras global config do not
     // override the values specified in the per-camera config.
     const cameras = config.cameras.map((camera) =>
-      merge(cloneDeep(config?.cameras_global), camera),
+      recursivelyMergeObjectsNotArrays(cloneDeep(config?.cameras_global), camera),
     );
 
     try {
@@ -460,13 +464,13 @@ export class CameraManager {
         const latestResult = getTimeFromResults('latest');
         if (latestResult) {
           newChunkQuery.start = latestResult;
-          delete(newChunkQuery.end);
+          delete newChunkQuery.end;
         }
       } else if (direction === 'earlier') {
         const earliestResult = getTimeFromResults('earliest');
         if (earliestResult) {
           newChunkQuery.end = earliestResult;
-          delete(newChunkQuery.start);
+          delete newChunkQuery.start;
         }
       }
       newChunkQuery.limit = chunkSize;
