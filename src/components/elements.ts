@@ -70,7 +70,7 @@ interface HuiConditionalElement extends HTMLElement {
 @customElement('frigate-card-elements-core')
 export class FrigateCardElementsCore extends LitElement {
   @property({ attribute: false })
-  public elements: PictureElements;
+  public elements?: PictureElements;
 
   /**
    * Need to ensure card re-renders when conditions change, hence having it as a
@@ -275,10 +275,10 @@ export class FrigateCardElementsConditional extends LitElement {
    * Render the card.
    */
   protected render(): TemplateResult | void {
-    if (evaluateConditionViaEvent(this, this._config.conditions)) {
+    if (evaluateConditionViaEvent(this, this._config?.conditions)) {
       return html` <frigate-card-elements-core
         .hass=${this.hass}
-        .elements=${this._config.elements}
+        .elements=${this._config?.elements}
       >
       </frigate-card-elements-core>`;
     }
