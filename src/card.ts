@@ -242,9 +242,6 @@ class FrigateCard extends LitElement {
       return;
     }
 
-    const cardStyle = {
-      'aspect-ratio': this._controller.getStyleManager().getAspectRatioStyle(),
-    };
     const mainClasses = {
       main: true,
       'curve-top':
@@ -266,7 +263,7 @@ class FrigateCard extends LitElement {
         hasHold: frigateCardHasAction(actions.hold_action),
         hasDoubleClick: frigateCardHasAction(actions.double_tap_action),
       })}
-      style="${styleMap(cardStyle)}"
+      style="${styleMap(this._controller.getStyleManager().getAspectRatioStyle())}"
       @frigate-card:message=${(ev: CustomEvent<Message>) =>
         this._controller.getMessageManager().setMessageIfHigherPriority(ev.detail)}
       @frigate-card:view:change=${(ev: CustomEvent<View>) =>

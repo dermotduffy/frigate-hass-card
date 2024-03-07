@@ -41,7 +41,7 @@ import {
   Message,
 } from '../../types.js';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
-import { contentsChanged } from '../../utils/basic.js';
+import { aspectRatioToString, contentsChanged } from '../../utils/basic.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import { AutoLazyLoad } from '../../utils/embla/plugins/auto-lazy-load/auto-lazy-load.js';
 import { AutoMediaActions } from '../../utils/embla/plugins/auto-media-actions/auto-media-actions.js';
@@ -900,7 +900,6 @@ export class FrigateCardLiveProvider
       }
     }
     if (changedProps.has('liveConfig')) {
-      updateElementStyleFromMediaLayoutConfig(this, this.liveConfig?.layout);
       if (this.liveConfig?.show_image_during_load) {
         this._importPromises.push(import('./live-image.js'));
       }
@@ -908,6 +907,7 @@ export class FrigateCardLiveProvider
         this._importPromises.push(import('./../zoomer.js'));
       }
     }
+
     if (changedProps.has('cameraConfig')) {
       const provider = this._getResolvedProvider();
       if (provider === 'jsmpeg') {
@@ -921,6 +921,14 @@ export class FrigateCardLiveProvider
       } else if (provider === 'go2rtc') {
         this._importPromises.push(import('./live-go2rtc.js'));
       }
+
+      updateElementStyleFromMediaLayoutConfig(
+        this,
+        this.cameraConfig?.dimensions?.layout,
+      );
+      this.style.aspectRatio = aspectRatioToString({
+        ratio: this.cameraConfig?.dimensions?.aspect_ratio,
+      });
     }
   }
 

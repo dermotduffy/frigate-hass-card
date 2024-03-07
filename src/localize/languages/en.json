@@ -15,7 +15,7 @@
           "dashboard_path": "Dashboard path",
           "view_path": "View path"
         },
-        "editor_label": "Cast Options",
+        "editor_label": "Cast options",
         "method": "Cast method",
         "methods": {
           "dashboard": "Dashboard",
@@ -25,7 +25,24 @@
       "dependencies": {
         "all_cameras": "Show events for all cameras with this camera",
         "cameras": "Show events for specific cameras with this camera",
-        "editor_label": "Dependency Options"
+        "editor_label": "Dependency options"
+      },
+      "dimensions": {
+        "aspect_ratio": "Static aspect ratio",
+        "editor_label": "Camera dimensions",
+        "layout": {
+          "editor_label": "Camera Layout",
+          "fit": "Layout fit",
+          "fits": {
+            "contain": "Media is contained/letterboxed",
+            "cover": "Media expands proportionally to cover the card",
+            "fill": "Media is stretched to fill the card"
+          },
+          "position": {
+            "x": "Horizontal placement percentage",
+            "y": "Vertical placement percentage"
+          }
+        }
       },
       "engines": {
         "editor_label": "Camera engine options"
@@ -83,7 +100,7 @@
       },
       "title": "Title for this camera (Autodetected from entity)",
       "triggers": {
-        "editor_label": "Trigger Options",
+        "editor_label": "Trigger options",
         "entities": "Trigger from other entities",
         "events": {
           "clips": "Events with new clips",
@@ -178,18 +195,6 @@
         "grid_selected_width_factor": "Increase selected media width by this factor",
         "mode": "Mode"
       },
-      "layout": {
-        "fit": "Layout fit",
-        "fits": {
-          "contain": "Media is contained/letterboxed",
-          "cover": "Media expands proportionally to cover the card",
-          "fill": "Media is stretched to fill the card"
-        },
-        "position": {
-          "x": "Horizontal placement percentage",
-          "y": "Vertical placement percentage"
-        }
-      },
       "media_action_conditions": {
         "all": "All opportunities",
         "hidden": "On browser/tab hiding",
@@ -229,7 +234,6 @@
       "min_height": "Minimum card height in CSS units (e.g. '100px')"
     },
     "image": {
-      "layout": "Image Layout",
       "mode": "Image view mode",
       "modes": {
         "camera": "Home Assistant camera snapshot of camera entity",
@@ -272,7 +276,6 @@
         }
       },
       "draggable": "Live cameras view can be dragged/swiped",
-      "layout": "Live Layout",
       "lazy_load": "Live cameras are lazily loaded",
       "lazy_unload": "Live cameras are lazily unloaded",
       "microphone": {
@@ -296,7 +299,6 @@
         "editor_label": "Media Viewer Controls"
       },
       "draggable": "Media Viewer can be dragged/swiped",
-      "layout": "Media Viewer Layout",
       "lazy_load": "Media Viewer media is lazily loaded in carousel",
       "snapshot_click_plays_clip": "Clicking on a snapshot plays a related clip",
       "transition_effect": "Media Viewer transition effect",
@@ -454,8 +456,8 @@
     "cameras": "Cameras",
     "cameras_secondary": "What cameras to render on this card",
     "delete": "Delete",
-    "dimensions": "Dimensions",
-    "dimensions_secondary": "Dimensions & shape options",
+    "dimensions": "Card dimensions",
+    "dimensions_secondary": "Card dimensions & shape options",
     "image": "Image",
     "image_secondary": "Static image view options",
     "live": "Live",

@@ -1,7 +1,8 @@
+import { StyleInfo } from 'lit/directives/style-map';
 import { FrigateCardConfig } from '../config/types';
 import { setPerformanceCSSStyles } from '../performance';
+import { aspectRatioToStyle, setOrRemoveAttribute } from '../utils/basic';
 import { View } from '../view/view';
-import { setOrRemoveAttribute } from '../utils/basic';
 import { CardStyleAPI } from './types';
 
 export class StyleManager {
@@ -103,24 +104,23 @@ export class StyleManager {
    * required).
    * @returns A padding percentage.
    */
-  public getAspectRatioStyle(): string {
+  public getAspectRatioStyle(): StyleInfo {
     const config = this._api.getConfigManager().getConfig();
     const view = this._api.getViewManager().getView();
 
     if (config) {
       if (!this._isAspectRatioEnforced(config, view)) {
-        return 'auto';
+        return aspectRatioToStyle();
       }
 
       const aspectRatioMode = config.dimensions.aspect_ratio_mode;
 
       const lastKnown = this._api.getMediaLoadedInfoManager().getLastKnown();
       if (lastKnown && aspectRatioMode === 'dynamic') {
-        return `${lastKnown.width} / ${lastKnown.height}`;
+        return aspectRatioToStyle({ ratio: [lastKnown.width, lastKnown.height] });
       }
-
-      return `${config.dimensions.aspect_ratio[0]} / ${config.dimensions.aspect_ratio[1]}`;
+      return aspectRatioToStyle({ ratio: config.dimensions.aspect_ratio });
     }
-    return '16 / 9';
+    return aspectRatioToStyle({ defaultStatic: true });
   }
 }

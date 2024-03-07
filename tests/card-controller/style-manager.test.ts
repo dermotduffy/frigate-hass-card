@@ -245,7 +245,7 @@ describe('StyleManager', () => {
     it('without config or view', () => {
       const api = createCardAPI();
       const manager = new StyleManager(api);
-      expect(manager.getAspectRatioStyle()).toBe('16 / 9');
+      expect(manager.getAspectRatioStyle()).toEqual({ 'aspect-ratio': '16 / 9' });
     });
 
     it('should be auto with unconstrained aspect ratio', () => {
@@ -260,7 +260,7 @@ describe('StyleManager', () => {
         }),
       );
       const manager = new StyleManager(api);
-      expect(manager.getAspectRatioStyle()).toBe('auto');
+      expect(manager.getAspectRatioStyle()).toEqual({ 'aspect-ratio': 'auto' });
     });
 
     it('should be auto in fullscreen', () => {
@@ -271,7 +271,7 @@ describe('StyleManager', () => {
       vi.mocked(api.getFullscreenManager().isInFullscreen).mockReturnValue(true);
       const manager = new StyleManager(api);
 
-      expect(manager.getAspectRatioStyle()).toBe('auto');
+      expect(manager.getAspectRatioStyle()).toEqual({ 'aspect-ratio': 'auto' });
     });
 
     it('should be auto when expanded', () => {
@@ -282,7 +282,7 @@ describe('StyleManager', () => {
       vi.mocked(api.getExpandManager().isExpanded).mockReturnValue(true);
       const manager = new StyleManager(api);
 
-      expect(manager.getAspectRatioStyle()).toBe('auto');
+      expect(manager.getAspectRatioStyle()).toEqual({ 'aspect-ratio': 'auto' });
     });
 
     it('should be auto when there is yet to be a view', () => {
@@ -291,7 +291,7 @@ describe('StyleManager', () => {
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
       const manager = new StyleManager(api);
 
-      expect(manager.getAspectRatioStyle()).toBe('auto');
+      expect(manager.getAspectRatioStyle()).toEqual({ 'aspect-ratio': 'auto' });
     });
 
     describe('should be auto when dynamic in certain views', () => {
@@ -317,7 +317,7 @@ describe('StyleManager', () => {
         );
         const manager = new StyleManager(api);
 
-        expect(manager.getAspectRatioStyle()).toBe('auto');
+        expect(manager.getAspectRatioStyle()).toEqual({ 'aspect-ratio': 'auto' });
       });
     });
 
@@ -337,7 +337,7 @@ describe('StyleManager', () => {
           );
           const manager = new StyleManager(api);
 
-          expect(manager.getAspectRatioStyle()).toBe('16 / 9');
+          expect(manager.getAspectRatioStyle()).toEqual({ 'aspect-ratio': '16 / 9' });
         },
       );
     });
@@ -362,7 +362,9 @@ describe('StyleManager', () => {
           });
           const manager = new StyleManager(api);
 
-          expect(manager.getAspectRatioStyle()).toBe('800 / 600');
+          expect(manager.getAspectRatioStyle()).toEqual({
+            'aspect-ratio': '800 / 600',
+          });
         },
       );
     });
@@ -381,7 +383,7 @@ describe('StyleManager', () => {
       );
       const manager = new StyleManager(api);
 
-      expect(manager.getAspectRatioStyle()).toBe('4 / 3');
+      expect(manager.getAspectRatioStyle()).toEqual({ 'aspect-ratio': '4 / 3' });
     });
   });
 });

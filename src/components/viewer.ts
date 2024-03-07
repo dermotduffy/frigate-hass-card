@@ -37,6 +37,7 @@ import {
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { mayHaveAudio } from '../utils/audio.js';
 import {
+  aspectRatioToString,
   contentsChanged,
   errorToConsole,
   setOrRemoveAttribute,
@@ -396,10 +397,6 @@ export class FrigateCardViewerCarousel extends LitElement {
    * @param changedProps The changed properties
    */
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('viewerConfig')) {
-      updateElementStyleFromMediaLayoutConfig(this, this.viewerConfig?.layout);
-    }
-
     if (changedProps.has('view')) {
       const newMedia =
         this.view?.queryResults?.getResults(this.viewFilterCameraID) ?? null;
@@ -852,6 +849,18 @@ export class FrigateCardViewerProvider
 
     if (changedProps.has('viewerConfig') && this.viewerConfig?.zoomable) {
       import('./zoomer.js');
+    }
+
+    if (changedProps.has('media') || changedProps.has('cameraManager')) {
+      const cameraID = this.media?.getCameraID();
+      const cameraConfig = cameraID
+        ? this.cameraManager?.getStore().getCameraConfig(cameraID)
+        : null;
+      updateElementStyleFromMediaLayoutConfig(this, cameraConfig?.dimensions?.layout);
+
+      this.style.aspectRatio = aspectRatioToString({
+        ratio: cameraConfig?.dimensions?.aspect_ratio,
+      });
     }
   }
 

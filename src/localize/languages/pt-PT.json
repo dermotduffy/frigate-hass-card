@@ -27,6 +27,22 @@
         "cameras": "Mostrar eventos para câmeras específicas nesta câmera",
         "editor_label": "Opções de dependência"
       },
+      "dimensions": {
+        "editor_label": "",
+        "aspect_ratio": "",
+        "layout": {
+          "fit": "Fit",
+          "fits": {
+            "contain": "Conter",
+            "cover": "Tapar",
+            "fill": "Preencher"
+          },
+          "position": {
+            "x": "Percentagem da localização horizontal",
+            "y": "Percentagem da localização vertical"
+          }
+        }
+      },
       "engines": {
         "editor_label": "Editor de etiquetas"
       },
@@ -178,18 +194,6 @@
         "grid_selected_width_factor": "",
         "mode": ""
       },
-      "layout": {
-        "fit": "Fit",
-        "fits": {
-          "contain": "Conter",
-          "cover": "Tapar",
-          "fill": "Preencher"
-        },
-        "position": {
-          "x": "Percentagem da localização horizontal",
-          "y": "Percentagem da localização vertical"
-        }
-      },
       "media_action_conditions": {
         "all": "Todas as oportunidades",
         "hidden": "Ao ocultar o navegador/aba",
@@ -222,7 +226,6 @@
       }
     },
     "image": {
-      "layout": "Layout",
       "mode": "Modo de visualização de imagem",
       "modes": {
         "camera": "Instantâneo da câmera do Home Assistant, da entidade de câmera",
@@ -265,7 +268,6 @@
         }
       },
       "draggable": "A visualização ao vivo das câmeras pode ser arrastada/deslizada",
-      "layout": "layout",
       "lazy_load": "As câmeras ao vivo são carregadas lentamente",
       "lazy_unload": "As câmeras ao vivo são descarregadas preguiçosamente",
       "microphone": {
@@ -289,7 +291,6 @@
         "editor_label": "Controles do visualizador de mídia"
       },
       "draggable": "Visualizador de eventos pode ser arrastado/deslizado",
-      "layout": "Layout",
       "lazy_load": "A mídia do Visualizador de eventos é carregada lentamente no carrossel",
       "transition_effect": "Efeito de transição do Visualizador de eventos",
       "transition_effects": {
@@ -441,8 +442,8 @@
     "cameras": "Câmeras",
     "cameras_secondary": "Câmeras para renderizar neste cartão",
     "delete": "Excluir",
-    "dimensions": "Dimensões",
-    "dimensions_secondary": "Dimensões e opções de forma",
+    "dimensions": "",
+    "dimensions_secondary": "",
     "image": "Imagem",
     "image_secondary": "Opções de visualização de imagem estática",
     "live": "Ao vivo",

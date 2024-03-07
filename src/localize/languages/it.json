@@ -27,6 +27,22 @@
         "cameras": "Mostra eventi per telecamere specifiche con questa telecamera",
         "editor_label": "Opzioni di dipendenza"
       },
+      "dimensions": {
+        "editor_label": "",
+        "aspect_ratio": "",
+        "layout": {
+          "fit": "Adatta al layout",
+          "fits": {
+            "contain": "Il supporto è contenuto/in cassetta delle lettere",
+            "cover": "Il supporto si espande proporzionalmente per coprire la scheda",
+            "fill": "Il supporto viene allungato per riempire la scheda"
+          },
+          "position": {
+            "x": "Percentuale di posizionamento orizzontale",
+            "y": "Percentuale di posizionamento verticale"
+          }
+        }
+      },
       "engines": {
         "editor_label": "Opzioni del motore della fotocamera"
       },
@@ -178,18 +194,6 @@
         "grid_selected_width_factor": "",
         "mode": ""
       },
-      "layout": {
-        "fit": "Adatta al layout",
-        "fits": {
-          "contain": "Il supporto è contenuto/in cassetta delle lettere",
-          "cover": "Il supporto si espande proporzionalmente per coprire la scheda",
-          "fill": "Il supporto viene allungato per riempire la scheda"
-        },
-        "position": {
-          "x": "Percentuale di posizionamento orizzontale",
-          "y": "Percentuale di posizionamento verticale"
-        }
-      },
       "media_action_conditions": {
         "all": "Tutte le opportunità",
         "hidden": "Sul browser/nascondere le schede",
@@ -229,7 +233,6 @@
       "min_height": ""
     },
     "image": {
-      "layout": "Disposizione dell'immagine",
       "mode": "Modalità Visualizza immagine",
       "modes": {
         "camera": "Istantanea della telecamera di Home Assistant dell'entità telecamera",
@@ -272,7 +275,6 @@
         }
       },
       "draggable": "Il Visualizzatore eventi può essere trascinato oppure puoi scorrere",
-      "layout": "Disposizione dal vivo",
       "lazy_load": "Le telecamere dal vivo sono pigramente cariche",
       "lazy_unload": "Le telecamere dal vivo sono pigramente non caricate",
       "microphone": {
@@ -296,7 +298,6 @@
         "editor_label": "Controlli di visualizzatore multimediale"
       },
       "draggable": "Il visualizzatore multimediale può essere trascinato oppure può scorrere",
-      "layout": "Layout del visualizzatore multimediale",
       "lazy_load": "Il media Viewer viene caricato pigramente nel carosello",
       "transition_effect": "Effetto di transizione del visualizzatore multimediale",
       "transition_effects": {
@@ -448,8 +449,8 @@
     "cameras": "Telecamere",
     "cameras_secondary": "Quali telecamere visualizzare su questa card",
     "delete": "Elimina",
-    "dimensions": "Dimensioni",
-    "dimensions_secondary": "Dimensioni e opzioni di forma",
+    "dimensions": "",
+    "dimensions_secondary": "",
     "image": "Immagine",
     "image_secondary": "Opzioni di visualizzazione dell'immagine statica",
     "live": "Live",

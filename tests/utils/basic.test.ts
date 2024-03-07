@@ -2,8 +2,9 @@ import { afterAll, describe, expect, it, vi } from 'vitest';
 import { FrigateCardError } from '../../src/types';
 import {
   allPromises,
-  arrayMove,
   arrayify,
+  arrayMove,
+  aspectRatioToStyle,
   contentsChanged,
   dayToDate,
   dispatchFrigateCardEvent,
@@ -12,16 +13,16 @@ import {
   formatDateAndTime,
   getChildrenFromElement,
   getDurationString,
-  isHTMLElement,
   isHoverableDevice,
+  isHTMLElement,
   isSuperset,
   isTruthy,
   isValidDate,
   prettifyTitle,
   recursivelyMergeObjectsNotArrays,
   runWhenIdleIfSupported,
-  setOrRemoveAttribute,
   setify,
+  setOrRemoveAttribute,
   sleep,
 } from '../../src/utils/basic';
 import { createSlot, createSlotHost } from '../test-utils';
@@ -336,5 +337,22 @@ describe('recursivelyMergeObjectsNotArrays', () => {
         },
       },
     });
+  });
+});
+
+describe('aspectRatioToStyle', () => {
+  it('default', () => {
+    expect(aspectRatioToStyle()).toEqual({ 'aspect-ratio': 'auto' });
+  });
+  it('default static', () => {
+    expect(aspectRatioToStyle({ defaultStatic: true })).toEqual({
+      'aspect-ratio': '16 / 9',
+    });
+  });
+  it('valid ratio', () => {
+    expect(aspectRatioToStyle({ ratio: [4, 3] })).toEqual({ 'aspect-ratio': '4 / 3' });
+  });
+  it('invalid ratio', () => {
+    expect(aspectRatioToStyle({ ratio: [4] })).toEqual({ 'aspect-ratio': 'auto' });
   });
 });

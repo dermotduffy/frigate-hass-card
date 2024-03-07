@@ -6,6 +6,7 @@ import unset from 'lodash-es/unset';
 import { RawFrigateCardConfig, RawFrigateCardConfigArray } from './config/types';
 import {
   CONF_CAMERAS,
+  CONF_CAMERAS_GLOBAL_DIMENSIONS_LAYOUT,
   CONF_CAMERAS_GLOBAL_IMAGE,
   CONF_CAMERAS_GLOBAL_JSMPEG,
   CONF_CAMERAS_GLOBAL_WEBRTC_CARD,
@@ -565,4 +566,7 @@ const UPGRADES = [
       transform: (val) => (val ? 'default' : null),
     },
   ),
+  upgradeMoveToWithOverrides('live.layout', CONF_CAMERAS_GLOBAL_DIMENSIONS_LAYOUT),
+  deleteWithOverrides('media_viewer.layout'),
+  deleteWithOverrides('image.layout'),
 ];

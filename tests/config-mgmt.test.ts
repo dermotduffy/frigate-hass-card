@@ -1738,5 +1738,59 @@ describe('should handle version specific upgrades', () => {
         });
       });
     });
+
+    describe('should handle media layout changes', () => {
+      it('from live.layout to camera_global.dimensions', () => {
+        const config = {
+          live: {
+            layout: {
+              fit: 'cover',
+              position: {
+                x: 42,
+                y: 43,
+              },
+            },
+          },
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          live: {},
+          cameras_global: {
+            dimensions: {
+              layout: {
+                fit: 'cover',
+                position: {
+                  x: 42,
+                  y: 43,
+                },
+              },
+            },
+          },
+        });
+      });
+
+      describe('from delete old media layouts', () => {
+        it.each([['media_viewer' as const], ['image' as const]])(
+          '%s',
+          (section: string) => {
+            const config = {
+              [section]: {
+                layout: {
+                  fit: 'cover',
+                  position: {
+                    x: 42,
+                    y: 43,
+                  },
+                },
+              },
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              [section]: {},
+            });
+          },
+        );
+      });
+    });
   });
 });
