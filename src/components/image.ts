@@ -26,7 +26,6 @@ import {
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
 } from '../utils/media-info.js';
-import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
 import { View } from '../view/view.js';
 import { dispatchErrorMessageEvent } from './message.js';
 
@@ -153,7 +152,6 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
           () => dispatchMediaPauseEvent(this),
         );
       }
-      updateElementStyleFromMediaLayoutConfig(this, this.imageConfig?.layout);
 
       if (changedProps.has('imageConfig') && this.imageConfig?.zoomable) {
         import('./zoomer.js');

@@ -3,6 +3,12 @@
   --video-max-height: none;
 }
 
+// When the carousel is not part of a grid ensure its height matches its
+// container.
+:host(:not([grid-id])) {
+  height: 100%;
+}
+
 // If the carousel has an unselected attribute set on it, do not let the
 // pointer interact (e.g. hover, scroll) with underlying elements. This is used
 // when the carousel is part of a media-grid. Without this next/prev controls
@@ -13,6 +19,11 @@
 }
 
 .embla__slide {
+  // Center the content horizontally (for cases where the configured aspect
+  // ratio is a mismatch with the card).
+  display: flex;
+  justify-content: center;
+
   height: 100%;
   flex: 0 0 100%;
 }

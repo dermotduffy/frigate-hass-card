@@ -20,7 +20,6 @@ const FULL_COVERAGE_FILES_RELATIVE = [
   'config-mgmt.ts',
   'config/types.ts',
   'const.ts',
-  'src/view/*.ts',
   'types.ts',
   'utils/action.ts',
   'utils/audio.ts',
@@ -40,6 +39,7 @@ const FULL_COVERAGE_FILES_RELATIVE = [
   'utils/substream.ts',
   'utils/timer.ts',
   'utils/zod.ts',
+  'view/*.ts',
 ];
 
 interface Threshold {
@@ -80,10 +80,10 @@ export default defineConfig({
 
         // Expected thresholds for anything that does not have 100% coverage
         // yet.
-        statements: 15.54,
-        branches: 10.38,
-        functions: 16.18,
-        lines: 15.84,
+        statements: 10.67,
+        branches: 4.9,
+        functions: 7.81,
+        lines: 10.92,
 
         ...calculateFullCoverageThresholds(),
       },

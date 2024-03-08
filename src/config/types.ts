@@ -524,19 +524,19 @@ export type FrigateConditional = z.infer<typeof frigateConditionalSchema>;
 // Cannot use discriminatedUnion since customSchema uses a superRefine, which
 // causes false rejections.
 const pictureElementSchema = z.union([
-  menuStateIconSchema,
+  conditionalSchema,
+  customSchema,
+  frigateConditionalSchema,
+  iconSchema,
+  imageSchema,
   menuIconSchema,
+  menuStateIconSchema,
   menuSubmenuSchema,
   menuSubmenuSelectSchema,
-  frigateConditionalSchema,
+  serviceCallButtonSchema,
   stateBadgeIconSchema,
   stateIconSchema,
   stateLabelSchema,
-  serviceCallButtonSchema,
-  iconSchema,
-  imageSchema,
-  conditionalSchema,
-  customSchema,
 ]);
 const pictureElementsSchema = pictureElementSchema.array().optional();
 export type PictureElements = z.infer<typeof pictureElementsSchema>;
@@ -555,6 +555,21 @@ const mediaLayoutConfigSchema = z.object({
     .optional(),
 });
 export type MediaLayoutConfig = z.infer<typeof mediaLayoutConfigSchema>;
+
+// *************************************************************************
+//                     Aspect Ratio Configuration
+// *************************************************************************
+
+const aspectRatioSchema = z
+  .number()
+  .array()
+  .length(2)
+  .or(
+    z
+      .string()
+      .regex(/^\s*\d+\.?\d*\s*[:/]\s*\d+\.?\d*\s*$/)
+      .transform((input) => input.split(/[:\/]/).map((d) => Number(d))),
+  );
 
 // *************************************************************************
 //                     Image Configuration
@@ -581,7 +596,6 @@ const imageConfigDefault = {
 const imageConfigSchema = imageBaseConfigSchema
   .extend({
     mode: z.enum(IMAGE_MODES).default(imageConfigDefault.mode),
-    layout: mediaLayoutConfigSchema.optional(),
     zoomable: z.boolean().default(imageConfigDefault.zoomable),
   })
   .merge(actionsSchema)
@@ -711,6 +725,7 @@ export type TimelineConfig = z.infer<typeof timelineConfigSchema>;
 // *************************************************************************
 //                 Next/Previous Control Configuration
 // *************************************************************************
+
 const nextPreviousControlConfigSchema = z.object({
   style: z.enum(['none', 'chevrons', 'icons', 'thumbnails']),
   size: z.number().min(BUTTON_SIZE_MIN),
@@ -950,7 +965,6 @@ const liveOverridableConfigSchema = z
     show_image_during_load: z
       .boolean()
       .default(liveConfigDefault.show_image_during_load),
-    layout: mediaLayoutConfigSchema.optional(),
     microphone: microphoneConfigSchema.default(liveConfigDefault.microphone),
     zoomable: z.boolean().default(liveConfigDefault.zoomable),
     display: viewDisplaySchema,
@@ -1138,6 +1152,13 @@ export const cameraConfigSchema = z
     webrtc_card: webrtcCardConfigSchema.optional(),
 
     cast: castSchema.optional(),
+
+    dimensions: z
+      .object({
+        aspect_ratio: aspectRatioSchema.optional(),
+        layout: mediaLayoutConfigSchema.optional(),
+      })
+      .optional(),
   })
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigSchema>;
@@ -1412,7 +1433,6 @@ const viewerConfigSchema = z
         title: titleControlConfigSchema.optional(),
       })
       .default(viewerConfigDefault.controls),
-    layout: mediaLayoutConfigSchema.optional(),
   })
   .merge(actionsSchema)
   .default(viewerConfigDefault);
@@ -1477,17 +1497,7 @@ export const dimensionsConfigSchema = z
     aspect_ratio_mode: z
       .enum(['dynamic', 'static', 'unconstrained'])
       .default(dimensionsConfigDefault.aspect_ratio_mode),
-    aspect_ratio: z
-      .number()
-      .array()
-      .length(2)
-      .or(
-        z
-          .string()
-          .regex(/^\s*\d+\s*[:/]\s*\d+\s*$/)
-          .transform((input) => input.split(/[:\/]/).map((d) => Number(d))),
-      )
-      .default(dimensionsConfigDefault.aspect_ratio),
+    aspect_ratio: aspectRatioSchema.default(dimensionsConfigDefault.aspect_ratio),
     max_height: z.string().default(dimensionsConfigDefault.max_height),
     min_height: z.string().default(dimensionsConfigDefault.min_height),
   })

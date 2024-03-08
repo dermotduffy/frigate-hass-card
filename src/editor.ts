@@ -22,9 +22,9 @@ import {
 } from './config-mgmt.js';
 import {
   BUTTON_SIZE_MIN,
-  FRIGATE_MENU_PRIORITY_MAX,
   FrigateCardConfig,
   frigateCardConfigDefaults,
+  FRIGATE_MENU_PRIORITY_MAX,
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
@@ -38,6 +38,10 @@ import {
   CONF_CAMERAS_ARRAY_CAST_METHOD,
   CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS,
   CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_ASPECT_RATIO,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_FIT,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_X,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_Y,
   CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME,
   CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID,
   CONF_CAMERAS_ARRAY_FRIGATE_LABELS,
@@ -67,9 +71,6 @@ import {
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
   CONF_DIMENSIONS_MAX_HEIGHT,
   CONF_DIMENSIONS_MIN_HEIGHT,
-  CONF_IMAGE_LAYOUT_FIT,
-  CONF_IMAGE_LAYOUT_POSITION_X,
-  CONF_IMAGE_LAYOUT_POSITION_Y,
   CONF_IMAGE_MODE,
   CONF_IMAGE_REFRESH_SECONDS,
   CONF_IMAGE_URL,
@@ -108,9 +109,6 @@ import {
   CONF_LIVE_DISPLAY_GRID_SELECTED_WIDTH_FACTOR,
   CONF_LIVE_DISPLAY_MODE,
   CONF_LIVE_DRAGGABLE,
-  CONF_LIVE_LAYOUT_FIT,
-  CONF_LIVE_LAYOUT_POSITION_X,
-  CONF_LIVE_LAYOUT_POSITION_Y,
   CONF_LIVE_LAZY_LOAD,
   CONF_LIVE_LAZY_UNLOAD,
   CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED,
@@ -152,16 +150,13 @@ import {
   CONF_MEDIA_VIEWER_DISPLAY_GRID_SELECTED_WIDTH_FACTOR,
   CONF_MEDIA_VIEWER_DISPLAY_MODE,
   CONF_MEDIA_VIEWER_DRAGGABLE,
-  CONF_MEDIA_VIEWER_LAYOUT_FIT,
-  CONF_MEDIA_VIEWER_LAYOUT_POSITION_X,
-  CONF_MEDIA_VIEWER_LAYOUT_POSITION_Y,
   CONF_MEDIA_VIEWER_LAZY_LOAD,
   CONF_MEDIA_VIEWER_SNAPSHOT_CLICK_PLAYS_CLIP,
   CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
   CONF_MEDIA_VIEWER_ZOOMABLE,
   CONF_MENU_ALIGNMENT,
-  CONF_MENU_BUTTON_SIZE,
   CONF_MENU_BUTTONS,
+  CONF_MENU_BUTTON_SIZE,
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
   CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
@@ -213,6 +208,8 @@ const MENU_BUTTONS = 'buttons';
 const MENU_CAMERAS = 'cameras';
 const MENU_CAMERAS_CAST = 'cameras.cast';
 const MENU_CAMERAS_DEPENDENCIES = 'cameras.dependencies';
+const MENU_CAMERAS_DIMENSIONS = 'cameras.dimensions';
+const MENU_CAMERAS_DIMENSIONS_LAYOUT = 'cameras.dimensions.layout';
 const MENU_CAMERAS_ENGINE = 'cameras.engine';
 const MENU_CAMERAS_FRIGATE = 'cameras.frigate';
 const MENU_CAMERAS_GO2RTC = 'cameras.go2rtc';
@@ -221,7 +218,6 @@ const MENU_CAMERAS_LIVE_PROVIDER = 'cameras.live_provider';
 const MENU_CAMERAS_MOTIONEYE = 'cameras.motioneye';
 const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
 const MENU_CAMERAS_WEBRTC_CARD = 'cameras.webrtc_card';
-const MENU_IMAGE_LAYOUT = 'image.layout';
 const MENU_LIVE_CONTROLS = 'live.controls';
 const MENU_LIVE_CONTROLS_NEXT_PREVIOUS = 'live.controls.next_previous';
 const MENU_LIVE_CONTROLS_PTZ = 'live.controls.ptz';
@@ -229,7 +225,6 @@ const MENU_LIVE_CONTROLS_THUMBNAILS = 'live.controls.thumbnails';
 const MENU_LIVE_CONTROLS_TIMELINE = 'live.controls.timeline';
 const MENU_LIVE_CONTROLS_TITLE = 'live.controls.title';
 const MENU_LIVE_DISPLAY = 'live.display';
-const MENU_LIVE_LAYOUT = 'live.layout';
 const MENU_LIVE_MICROPHONE = 'live.microphone';
 const MENU_MEDIA_GALLERY_CONTROLS_FILTER = 'media_gallery.controls.filter';
 const MENU_MEDIA_GALLERY_CONTROLS_THUMBNAILS = 'media_gallery.controls.thumbnails';
@@ -239,7 +234,6 @@ const MENU_MEDIA_VIEWER_CONTROLS_THUMBNAILS = 'media_viewer.controls.thumbnails'
 const MENU_MEDIA_VIEWER_CONTROLS_TIMELINE = 'media_viewer.controls.timeline';
 const MENU_MEDIA_VIEWER_CONTROLS_TITLE = 'media_viewer.controls.title';
 const MENU_MEDIA_VIEWER_DISPLAY = 'media_viewer.display';
-const MENU_MEDIA_VIEWER_LAYOUT = 'media_viewer.layout';
 const MENU_OPTIONS = 'options';
 const MENU_PERFORMANCE_FEATURES = 'performance.features';
 const MENU_PERFORMANCE_STYLE = 'performance.style';
@@ -576,9 +570,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
   protected _layoutFits: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'contain', label: localize('config.common.layout.fits.contain') },
-    { value: 'cover', label: localize('config.common.layout.fits.cover') },
-    { value: 'fill', label: localize('config.common.layout.fits.fill') },
+    {
+      value: 'contain',
+      label: localize('config.cameras.dimensions.layout.fits.contain'),
+    },
+    { value: 'cover', label: localize('config.cameras.dimensions.layout.fits.cover') },
+    { value: 'fill', label: localize('config.cameras.dimensions.layout.fits.fill') },
   ];
 
   protected _miniTimelineModes: EditorSelectOption[] = [
@@ -1167,17 +1164,17 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       { name: 'mdi:page-layout-body' },
       html`
         ${this._renderOptionSelector(configPathFit, this._layoutFits, {
-          label: localize('config.common.layout.fit'),
+          label: localize('config.cameras.dimensions.layout.fit'),
         })}
         ${this._renderNumberInput(configPathPositionX, {
           min: 0,
           max: 100,
-          label: localize('config.common.layout.position.x'),
+          label: localize('config.cameras.dimensions.layout.position.x'),
         })}
         ${this._renderNumberInput(configPathPositionY, {
           min: 0,
           max: 100,
-          label: localize('config.common.layout.position.y'),
+          label: localize('config.cameras.dimensions.layout.position.y'),
         })}
       `,
     );
@@ -1854,10 +1851,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     },
                   )}
                   ${this._renderOptionSelector(
-                    getArrayConfigPath(
-                      CONF_CAMERAS_ARRAY_TRIGGERS_EVENTS,
-                      cameraIndex,
-                    ),
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_EVENTS, cameraIndex),
                     this._triggersEvents,
                     {
                       multiple: true,
@@ -1887,6 +1881,27 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       CONF_CAMERAS_ARRAY_CAST_DASHBOARD_VIEW_PATH,
                       cameraIndex,
                     ),
+                  )}
+                `,
+              )}
+              ${this._putInSubmenu(
+                MENU_CAMERAS_DIMENSIONS,
+                cameraIndex,
+                'config.cameras.dimensions.editor_label',
+                { name: 'mdi:aspect-ratio' },
+                html`
+                  ${this._renderStringInput(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_ASPECT_RATIO,
+                      cameraIndex,
+                    ),
+                  )}
+                  ${this._renderMediaLayout(
+                    MENU_CAMERAS_DIMENSIONS_LAYOUT,
+                    'config.cameras.dimensions.layout.editor_label',
+                    CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_FIT,
+                    CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_X,
+                    CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_Y,
                   )}
                 `,
               )}
@@ -2237,13 +2252,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     )}
                   `,
                 )}
-                ${this._renderMediaLayout(
-                  MENU_LIVE_LAYOUT,
-                  'config.live.layout',
-                  CONF_LIVE_LAYOUT_FIT,
-                  CONF_LIVE_LAYOUT_POSITION_X,
-                  CONF_LIVE_LAYOUT_POSITION_Y,
-                )}
                 ${this._putInSubmenu(
                   MENU_LIVE_MICROPHONE,
                   true,
@@ -2389,13 +2397,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   )}
                 `,
               )}
-              ${this._renderMediaLayout(
-                MENU_MEDIA_VIEWER_LAYOUT,
-                'config.media_viewer.layout',
-                CONF_MEDIA_VIEWER_LAYOUT_FIT,
-                CONF_MEDIA_VIEWER_LAYOUT_POSITION_X,
-                CONF_MEDIA_VIEWER_LAYOUT_POSITION_Y,
-              )}
             </div>`
           : ''}
         ${this._renderOptionSetHeader('image')}
@@ -2405,13 +2406,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderStringInput(CONF_IMAGE_URL)}
               ${this._renderNumberInput(CONF_IMAGE_REFRESH_SECONDS)}
               ${this._renderSwitch(CONF_IMAGE_ZOOMABLE, this._defaults.image.zoomable)}
-              ${this._renderMediaLayout(
-                MENU_IMAGE_LAYOUT,
-                'config.image.layout',
-                CONF_IMAGE_LAYOUT_FIT,
-                CONF_IMAGE_LAYOUT_POSITION_X,
-                CONF_IMAGE_LAYOUT_POSITION_Y,
-              )}
             </div>`
           : ''}
         ${this._renderOptionSetHeader('timeline')}

@@ -146,6 +146,7 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 | `triggers` | | :white_check_mark: | Define what should cause this camera to update/trigger. See [camera triggers](#camera-trigger-configuration) below. |
 | `webrtc_card` | | :white_check_mark: | The WebRTC entity/URL to use for this camera with the `webrtc-card` live provider. See below. |
 | `cast` | | :white_check_mark: | Configuration that controls how this camera is "casted" / sent to media players. See below. |
+| `dimensions` | | :white_check_mark: | Controls the dimensions and layout for media from this camera. See below. |
 
 <a name="live-providers"></a>
 
@@ -363,6 +364,39 @@ cameras:
 | `dashboard_path` | | :white_check_mark: | A required field that specifies the name of the dashboard to cast. You can see this name in your HA URL when you visit the dashboard. |
 | `view_path` | | :white_check_mark: | A required field that specifies view/"tab" on that dashboard to cast. This is the value you have specified in the `url` field of the view configuration on the dashboard. |
 
+### Camera Dimensions Configuration
+
+The `dimensions` block configures the dimensions and layout of media from a given camera. 
+
+```yaml
+cameras:
+ - dimensions:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `aspect_ratio` | | :white_check_mark: | An optional aspect ratio for media from this camera which will be used in `live` or media viewer related views (e.g. `clip`, `snapshot` and `recording`). Format is the same as the parameter of the same name under the [dimensions block](#dimensions) (which controls dimensions for the whole card), e.g. `16 / 9`. |
+| `layout` | | :white_check_mark: | How the media should be laid out *within* the camera dimensions. See below. |
+
+### Camera Dimensions Layout Configuration
+
+The `layout` block configures the dimensions and layout of media from a given camera. 
+
+```yaml
+cameras:
+ - dimensions:
+     layout:
+```
+
+This block is used to control the fit and position of the media _within_ the camera dimensions (in order to control the dimensions for the whole card see [the card dimensions parameter](#dimensions) ). As the default  behavior is to always expand to fit the media precisely, these options only make sense if the camera `dimensions.aspect_ratio` is set to a static value that forces a particular aspect ratio that does not match the camera media.
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `fit` | `contain` | :white_check_mark: | If `contain`, the media is contained within the card and letterboxed if necessary. If `cover`, the media is expanded proportionally (i.e. maintaining the media aspect ratio) until the card is fully covered. If `fill`, the media is stretched to fill the card (i.e. ignoring the media aspect ratio). See [CSS object-fit](https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit) for technical details and a visualization. |
+| `position` | | :white_check_mark: | A dictionary that contains an `x` and `y` percentage (`0` - `100`) to control the position of the media when the fit is `cover`. This can be effectively used to "pan" the media around. At any given time, only one of `x` and `y` will have an effect, depending on whether media width is larger than the card width (in which case `x` controls the position) or the media height is larger than the card height (in which case `y` controls the position). A value of `0` means maximally to the left or top of the media, a value of `100` means maximally to the right or bottom of the media. See [CSS object-position](https://developer.mozilla.org/en-US/docs/Web/CSS/object-position) for technical details and a visualization. |
+
+See [media layout examples](#media-layout-examples).
+
 <a name="camera-ids"></a>
 
 #### Camera IDs: Referring to cameras in card configuration
@@ -533,7 +567,6 @@ See the [fully expanded live configuration example](#config-expanded-live) for h
 | `show_image_during_load` | `true` | :white_check_mark: | If `true`, during the initial stream load, the `image` live provider will be shown instead of the loading video stream. This still image will auto-refresh and is replaced with the live stream once loaded. |
 | `actions` | | :white_check_mark: | Actions to use for the `live` view. See [actions](#actions) below.|
 | `controls` | | :white_check_mark: | Configuration for the `live` view controls. See below. |
-| `layout` | | :white_check_mark: | See [media layout](#media-layout) below.|
 | `microphone` | | :white_check_mark: | See [microphone](#microphone) below.|
 | `display` | | :white_check_mark: | See [display](#live-display) below.|
 
@@ -721,7 +754,6 @@ See the [fully expanded Media viewer configuration example](#config-expanded-med
 | `transition_effect` | `slide` | :heavy_multiplication_x: | Effect to apply as a transition between event media. Accepted values: `slide` or `none`. |
 | `controls` | | :heavy_multiplication_x: | Configuration for the Media viewer controls. See below. |
 | `actions` | | :heavy_multiplication_x: | Actions to use for all views that use the `media_viewer` (e.g. `clip`, `snapshot`). See [actions](#actions) below.|
-| `layout` | | :white_check_mark: | See [media layout](#media-layout) below.|
 
 #### Media Viewer Controls
 
@@ -939,8 +971,6 @@ timeline:
 | `show_favorite_control` | `true` | :heavy_multiplication_x: | Whether to show the favorite ('star') control on each thumbnail.|
 | `show_timeline_control` | `true` | :heavy_multiplication_x: | Whether to show the timeline ('target') control on each thumbnail.|
 
-<a name="dimensions"></a>
-
 #### Timeline Seek Behavior
 
 The behavior of the timeline during seeking/dragging can be controlled by means of the icon on the bottom-right of the timeline.
@@ -952,6 +982,8 @@ The behavior of the timeline during seeking/dragging can be controlled by means 
 | <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>camera-lock</title><path d="M4 4H7L9 2H15L17 4H20C21.11 4 22 4.89 22 6V12C21.16 11.37 20.13 11 19 11C18.21 11 17.46 11.18 16.79 11.5C16.18 9.22 14.27 7 12 7C9.24 7 7 9.24 7 12C7 14.76 9.24 17 12 17C12.42 17 12.84 16.95 13.23 16.85C13.08 17.2 13 17.59 13 18V20H4C2.9 20 2 19.11 2 18V6C2 4.89 2.9 4 4 4M12 9C13.66 9 15 10.34 15 12C15 13.66 13.66 15 12 15C10.34 15 9 13.66 9 12C9 10.34 10.34 9 12 9M23 18.3V21.8C23 22.4 22.4 23 21.7 23H16.2C15.6 23 15 22.4 15 21.7V18.2C15 17.6 15.6 17 16.2 17V15.5C16.2 14.1 17.6 13 19 13C20.4 13 21.8 14.1 21.8 15.5V17C22.4 17 23 17.6 23 18.3M20.5 15.5C20.5 14.7 19.8 14.2 19 14.2C18.2 14.2 17.5 14.7 17.5 15.5V17H20.5V15.5Z" /></svg> | Dragging the timeline will seek / select across all available media from the selected camera only, selecting the media item with the longest duration. |
 | <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>pan-horizontal</title><path d="M7,8L2.5,12L7,16V8M17,8V16L21.5,12L17,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10Z" /></svg> | Dragging the timeline will pan only without selected or seeking any media. |
 
+<a name="dimensions"></a>
+
 ### Dimensions Options
 
 These options control the aspect-ratio of the entire card to make placement in
@@ -960,7 +992,6 @@ to the entire card (including the menu, thumbnails, etc), not just to displayed
 media. This only applies to the card in normal render mode -- when in
 fullscreen, or when in expanded (popup/dialog mode) the aspect ratio is chosen
 dynamically to maximize the amount of content shown.
-
 
 All configuration is under:
 
@@ -1138,34 +1169,6 @@ automations:
 | `conditions` | | :heavy_multiplication_x: | A set of conditions that will trigger the automation. See [Frigate Card Conditions](#frigate-card-conditions). |
 | `actions` | | :heavy_multiplication_x: | An optional list of actions that will be run when the conditions evaluate `true`. Actions can be [stock Home Assistant actions](https://www.home-assistant.io/dashboards/actions/) or [Frigate card actions](#frigate-card-actions).|
 | `actions_not` | | :heavy_multiplication_x: | An optional list of actions that will be run when the conditions evaluate `false`. Actions can be [stock Home Assistant actions](https://www.home-assistant.io/dashboards/actions/) or [Frigate card actions](#frigate-card-actions).|
-
-<a name="media-layout"></a>
-
-### Media Layout
-
-The `live`, `media_viewer` and `image` sections all support `layout` option which is used to control the fit and position of the media _within_ the card dimensions (in order to control the card dimensions themselves see [the dimensions parameter](#dimensions) ).
-
-As the default card behavior is for the card to always expand to fit the media, these options only make sense if `dimensions.aspect_ratio_mode` is set to `static`.
-
-All configuration is under:
-
-```yaml
-live:
-  layout:
-image:
-  layout:
-media_viewer:
-  layout:
-```
-
-| Option | Default | Overridable | Description |
-| - | - | - | - |
-| `fit` | `contain` | :white_check_mark: | If `contain`, the media is contained within the card and letterboxed if necessary. If `cover`, the media is expanded proportionally (i.e. maintaining the media aspect ratio) until the card is fully covered. If `fill`, the media is stretched to fill the card (i.e. ignoring the media aspect ratio). See [CSS object-fit](https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit) for technical details and a visualization. |
-| `position` | | :white_check_mark: | A dictionary that contains an `x` and `y` percentage (`0` - `100`) to control the position of the media when the fit is `cover`. This can be effectively used to "pan" the media around. At any given time, only one of `x` and `y` will have an effect, depending on whether media width is larger than the card width (in which case `x` controls the position) or the media height is larger than the card height (in which case `y` controls the position). A value of `0` means maximally to the left or top of the media, a value of `100` means maximally to the right or bottom of the media. See [CSS object-position](https://developer.mozilla.org/en-US/docs/Web/CSS/object-position) for technical details and a visualization. |
-
-If multiple cameras are configured in the card, use [overrides](#overrides) to configure different values per camera.
-
-See [media layout examples](#media-layout-examples).
 
 <a name="other-options"></a>
 
@@ -1782,6 +1785,13 @@ cameras:
         - binary_sensor.front_door_sensor
     cast:
       method: standard
+    dimensions:
+      aspect_ratio: 16:9
+      layout:
+        fit: contain
+        position:
+          x: 50
+          y: 50
   - camera_entity: camera.entrance
     live_provider: webrtc-card
     engine: auto
@@ -2114,11 +2124,6 @@ live:
     title:
       mode: popup-bottom-right
       duration_seconds: 2
-  layout:
-    fit: contain
-    position:
-      x: 50
-      y: 50
   microphone:
     always_connected: false
     disconnect_seconds: 90
@@ -2212,11 +2217,6 @@ media_viewer:
     title:
       mode: popup-bottom-right
       duration_seconds: 2
-  layout:
-    fit: contain
-    position:
-      x: 50
-      y: 50
   display:
     mode: single
     grid_selected_width_factor: 2
@@ -2281,11 +2281,6 @@ image:
   mode: url
   refresh_seconds: 0
   zoomable: true
-  layout:
-    fit: contain
-    position:
-      x: 50
-      y: 50
   actions:
     entity: light.office_main_lights
     tap_action:
@@ -3738,20 +3733,16 @@ Change how the media fits and is positioned within the card dimensions.
 <details>
   <summary>Expand: Stretching an image</summary>
 
-Stretch the stock Frigate card image into a 4:4 square.
+Stretch a camera into a 4:4 square.
 
 ```yaml
 type: custom:frigate-card
 cameras:
   - camera_entity: camera.landing
-view:
-  default: image
-dimensions:
-  aspect_ratio_mode: static
-  aspect_ratio: '4:4'
-image:
-  layout:
-    fit: fill
+    dimensions:
+      aspect_ratio: '4:4'
+      layout:
+        fit: fill
 ```
 </details>
 
@@ -3764,56 +3755,12 @@ Take the left-hand side (position with x == `0` and use that as the basis of a `
 type: custom:frigate-card
 cameras:
   - camera_entity: camera.landing
-dimensions:
-  aspect_ratio_mode: static
-  aspect_ratio: '9:16'
-live:
-  layout:
-    fit: cover
-    position:
-      x: 0
-```
-</details>
-
-<details>
-  <summary>Expand: Complex example to vary the media layouts for different cameras</summary>
-
-Configure three cameras (all natively landscape): the first uses automatic expansion of dimensions (the default), the second uses a portrait (`9:16`) card focused on the left side (`x` == `0`) of the media, the third uses a portrait (`9:16`) card focused on the right side (`x` == `100`) of the media.
-
-```yaml
-type: custom:frigate-card
-cameras:
-  - camera_entity: camera.landing
-  - camera_entity: camera.living_room
-  - camera_entity: camera.sitting_room
-overrides:
-  - conditions:
-      camera:
-        - camera.living_room
-        - camera.sitting_room
-    overrides:
-      dimensions:
-        aspect_ratio_mode: static
-        aspect_ratio: '9:16'
-      live:
-        layout:
-          fit: cover
-  - conditions:
-      camera:
-        - camera.living_room
-    overrides:
-      live:
-        layout:
-          position:
-            x: 0
-  - conditions:
-      camera:
-        - camera.sitting_room
-    overrides:
-      live:
-        layout:
-          position:
-            x: 100
+    dimensions:
+      aspect_ratio: '9:16'
+      layout:
+        fit: cover
+        position:
+          x: 0
 ```
 </details>
 

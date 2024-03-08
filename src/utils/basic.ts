@@ -2,6 +2,7 @@ import differenceInHours from 'date-fns/differenceInHours';
 import differenceInMinutes from 'date-fns/differenceInMinutes';
 import differenceInSeconds from 'date-fns/differenceInSeconds';
 import format from 'date-fns/format';
+import { StyleInfo } from 'lit/directives/style-map';
 import isEqual from 'lodash-es/isEqual';
 import mergeWith from 'lodash-es/mergeWith';
 import { FrigateCardError } from '../types';
@@ -244,4 +245,26 @@ export const getChildrenFromElement = (parent: HTMLElement): HTMLElement[] => {
 
 export const recursivelyMergeObjectsNotArrays = <T>(src1: T, src2: T): T => {
   return mergeWith({}, src1, src2, (_a, b) => (Array.isArray(b) ? b : undefined));
+};
+
+export const aspectRatioToString = (options?: {
+  ratio?: number[];
+  defaultStatic?: boolean;
+}): string => {
+  if (options?.ratio && options.ratio.length === 2) {
+    return `${options.ratio[0]} / ${options.ratio[1]}`;
+  } else if (options?.defaultStatic) {
+    return '16 / 9';
+  } else {
+    return 'auto';
+  }
+};
+
+export const aspectRatioToStyle = (options?: {
+  ratio?: number[];
+  defaultStatic?: boolean;
+}): StyleInfo => {
+  return {
+    'aspect-ratio': aspectRatioToString(options),
+  };
 };
