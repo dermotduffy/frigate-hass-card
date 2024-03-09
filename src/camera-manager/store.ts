@@ -24,6 +24,7 @@ export interface CameraManagerReadOnlyConfigStore {
 
   getCameraIDs(): Set<string>;
   getVisibleCameraIDs(): Set<string>;
+  getDefaultCameraID(): string | null;
 
   getAllDependentCameras(cameraID: string): Set<string>;
 }
@@ -59,6 +60,10 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
   }
   public getVisibleCameraCount(): number {
     return this.getVisibleCameraIDs().size;
+  }
+
+  public getDefaultCameraID(): string | null {
+    return this._cameras.keys().next().value ?? null;
   }
 
   public getCameras(): Map<string, Camera> {

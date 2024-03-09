@@ -143,13 +143,18 @@ describe('FrigateCamera', () => {
 
     it('basic non-birdseye', async () => {
       const camera = new FrigateCamera(
-        createCameraConfig(),
+        createCameraConfig({
+          frigate: {
+            camera_name: 'front_door',
+          },
+        }),
         mock<CameraManagerEngine>(),
       );
 
       await camera.initialize(createHASS(), mock<EntityRegistryManager>());
 
       expect(camera.getCapabilities()).toEqual(nonBirdseyeBaseCapabilities);
+      expect(vi.mocked(getPTZInfo)).toBeCalled();
     });
 
     it('basic birdseye', async () => {
@@ -173,6 +178,7 @@ describe('FrigateCamera', () => {
         supportsRecordings: false,
         supportsTimeline: false,
       });
+      expect(vi.mocked(getPTZInfo)).not.toBeCalled();
     });
 
     describe('with ptz', () => {
