@@ -324,6 +324,57 @@ describe('ViewManager.setViewByParameters', () => {
     expect(manager.getView()).toBeNull();
   });
 
+  describe('should handle unsupported view', () => {
+    it('without failsafe', () => {
+      const api = createCardAPI();
+      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera.kitchen',
+          },
+        ]),
+      );
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+      vi.mocked(api.getCameraManager().getCameraCapabilities).mockReturnValue(createCameraCapabilities({
+        supportsSnapshots: false,
+      }));
+  
+      const manager = new ViewManager(api);
+      manager.setViewByParameters({
+        viewName: 'snapshots',
+      });
+
+      expect(manager.hasView()).toBeFalsy();
+      expect(manager.getView()).toBeNull();
+    });
+
+    it('with failsafe', () => {
+      const api = createCardAPI();
+      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera.kitchen',
+          },
+        ]),
+      );
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+      vi.mocked(api.getCameraManager().getCameraCapabilities).mockReturnValue(createCameraCapabilities({
+        supportsSnapshots: false,
+      }));
+  
+      const manager = new ViewManager(api);
+      manager.setViewByParameters({
+        viewName: 'snapshots',
+        failSafe: true,
+      });
+  
+      expect(manager.hasView()).toBeTruthy();
+      expect(manager.getView()?.view).toBe('live');
+    });
+  });
+
   describe('should set view by parameters and respect display mode in config for view', () => {
     it.each([
       ['media' as const],

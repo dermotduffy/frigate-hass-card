@@ -1,13 +1,23 @@
 import { ViewContext } from 'view';
-import { FrigateCardConfig, FrigateCardView, ViewDisplayMode } from '../config/types';
-import { View } from '../view/view';
+import {
+  FRIGATE_CARD_VIEW_DEFAULT,
+  FrigateCardConfig,
+  FrigateCardView,
+  ViewDisplayMode,
+} from '../config/types';
 import { log } from '../utils/debug';
 import { executeMediaQueryForView } from '../utils/media-to-view';
+import { View } from '../view/view';
 import { CardViewAPI } from './types';
 
 interface ViewManagerSetViewDefaultParameters {
   cameraID?: string;
   substream?: string;
+
+  // When failSafe is true, the view will be changed to an "always-works" view
+  // (e.g. `live`) if the proposed view is unsupported. By default the view will
+  // just not be changed.
+  failSafe?: boolean;
 }
 
 export interface ViewManagerSetViewParameters
@@ -75,8 +85,16 @@ export class ViewManager {
           cameraID = cameras.keys().next().value;
         }
       }
-      const viewName = params?.viewName ?? this._view?.view ?? config.view.default;
-      if (cameraID && viewName && this.isViewSupportedByCamera(cameraID, viewName)) {
+      let viewName = params?.viewName ?? this._view?.view ?? config.view.default;
+      if (cameraID && viewName) {
+        if (!this.isViewSupportedByCamera(cameraID, viewName)) {
+          if (params.failSafe) {
+            viewName = FRIGATE_CARD_VIEW_DEFAULT;
+          } else {
+            return;
+          }
+        }
+
         const displayMode =
           this._view?.displayMode ??
           this._getDefaultDisplayModeForView(viewName, config);

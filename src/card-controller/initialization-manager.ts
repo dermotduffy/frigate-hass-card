@@ -98,7 +98,7 @@ export class InitializationManager {
       if (hasViewRelatedActions) {
         this._api.getQueryStringManager().executeViewRelated();
       } else {
-        this._api.getViewManager().setViewDefault();
+        this._api.getViewManager().setViewDefault({ failSafe: true });
       }
     }
 

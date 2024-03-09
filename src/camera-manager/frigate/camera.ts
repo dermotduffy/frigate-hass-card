@@ -128,7 +128,7 @@ export class FrigateCamera extends Camera {
     hass: HomeAssistant,
     cameraConfig: CameraConfig,
   ): Promise<PTZCapabilities | null> {
-    if (!cameraConfig.frigate.camera_name) {
+    if (!cameraConfig.frigate.camera_name || isBirdseye(cameraConfig)) {
       return null;
     }
 

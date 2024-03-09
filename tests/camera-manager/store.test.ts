@@ -61,6 +61,17 @@ describe('CameraManagerStore', async () => {
     expect(store.getVisibleCameraCount()).toBe(1);
   });
 
+  describe('getDefaultCameraID', () => {
+    it('with camera', async () => {
+      const store = setupStore();
+      expect(store.getDefaultCameraID()).toBe('camera-visible');
+    });
+    it('without camera', async () => {
+      const store = new CameraManagerStore();
+      expect(store.getDefaultCameraID()).toBeNull();
+    });
+  });
+
   describe('getCamera', async () => {
     it('present', async () => {
       const store = setupStore();
