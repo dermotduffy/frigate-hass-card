@@ -7,6 +7,7 @@ import { EventMediaQueries } from '../../src/view/media-queries';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
 import { View } from '../../src/view/view';
 import {
+  createAggregateCameraCapabilities,
   createCameraCapabilities,
   createCameraConfig,
   createCameraManager,
@@ -15,7 +16,7 @@ import {
   createHASS,
   createStore,
   createView,
-  generateViewMediaArray
+  generateViewMediaArray,
 } from '../test-utils';
 
 vi.mock('../../src/utils/media-to-view');
@@ -218,8 +219,8 @@ describe('ViewManager.setViewByParameters', () => {
         },
       ]),
     );
-    vi.mocked(api.getCameraManager().getCameraCapabilities).mockReturnValue(
-      createCameraCapabilities({
+    vi.mocked(api.getCameraManager().getAggregateCameraCapabilities).mockReturnValue(
+      createAggregateCameraCapabilities({
         supportsClips: true,
       }),
     );
@@ -247,8 +248,8 @@ describe('ViewManager.setViewByParameters', () => {
         },
       ]),
     );
-    vi.mocked(api.getCameraManager().getCameraCapabilities).mockReturnValue(
-      createCameraCapabilities({
+    vi.mocked(api.getCameraManager().getAggregateCameraCapabilities).mockReturnValue(
+      createAggregateCameraCapabilities({
         supportsClips: true,
       }),
     );
@@ -336,10 +337,12 @@ describe('ViewManager.setViewByParameters', () => {
         ]),
       );
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
-      vi.mocked(api.getCameraManager().getCameraCapabilities).mockReturnValue(createCameraCapabilities({
-        supportsSnapshots: false,
-      }));
-  
+      vi.mocked(api.getCameraManager().getAggregateCameraCapabilities).mockReturnValue(
+        createAggregateCameraCapabilities({
+          supportsSnapshots: false,
+        }),
+      );
+
       const manager = new ViewManager(api);
       manager.setViewByParameters({
         viewName: 'snapshots',
@@ -360,16 +363,18 @@ describe('ViewManager.setViewByParameters', () => {
         ]),
       );
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
-      vi.mocked(api.getCameraManager().getCameraCapabilities).mockReturnValue(createCameraCapabilities({
-        supportsSnapshots: false,
-      }));
-  
+      vi.mocked(api.getCameraManager().getAggregateCameraCapabilities).mockReturnValue(
+        createAggregateCameraCapabilities({
+          supportsSnapshots: false,
+        }),
+      );
+
       const manager = new ViewManager(api);
       manager.setViewByParameters({
         viewName: 'snapshots',
         failSafe: true,
       });
-  
+
       expect(manager.hasView()).toBeTruthy();
       expect(manager.getView()?.view).toBe('live');
     });
@@ -392,8 +397,8 @@ describe('ViewManager.setViewByParameters', () => {
           },
         ]),
       );
-      vi.mocked(api.getCameraManager().getCameraCapabilities).mockReturnValue(
-        createCameraCapabilities({
+      vi.mocked(api.getCameraManager().getAggregateCameraCapabilities).mockReturnValue(
+        createAggregateCameraCapabilities({
           supportsClips: true,
           supportsRecordings: true,
           supportsSnapshots: true,
@@ -443,8 +448,8 @@ describe('ViewManager.setViewByParameters', () => {
           },
         ]),
       );
-      vi.mocked(api.getCameraManager().getCameraCapabilities).mockReturnValue(
-        createCameraCapabilities({
+      vi.mocked(api.getCameraManager().getAggregateCameraCapabilities).mockReturnValue(
+        createAggregateCameraCapabilities({
           supportsClips: true,
           supportsRecordings: true,
           supportsSnapshots: true,

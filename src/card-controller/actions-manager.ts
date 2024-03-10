@@ -3,7 +3,6 @@ import {
   ActionsConfig,
   ActionType,
   FrigateCardCustomAction,
-  FRIGATE_CARD_VIEW_DEFAULT,
 } from '../config/types.js';
 import {
   convertActionToFrigateCardCustomAction,
@@ -177,14 +176,10 @@ export class ActionsManager {
           const viewOnCameraSelect = config?.view.camera_select ?? 'current';
           const targetViewName =
             viewOnCameraSelect === 'current' ? view.view : viewOnCameraSelect;
-          const verifiedViewName = this._api
-            .getViewManager()
-            .isViewSupportedByCamera(selectCameraID, targetViewName)
-            ? targetViewName
-            : FRIGATE_CARD_VIEW_DEFAULT;
           this._api.getViewManager().setViewByParameters({
-            viewName: verifiedViewName,
+            viewName: targetViewName,
             cameraID: selectCameraID,
+            failSafe: true,
           });
         }
         break;

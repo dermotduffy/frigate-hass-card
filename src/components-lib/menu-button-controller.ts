@@ -3,10 +3,11 @@ import { StyleInfo } from 'lit/directives/style-map';
 import { CameraManager } from '../camera-manager/manager';
 import { MediaPlayerManager } from '../card-controller/media-player-manager';
 import { MicrophoneManager } from '../card-controller/microphone-manager';
+import { ViewManager } from '../card-controller/view-manager';
 import {
+  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
   FrigateCardConfig,
   FrigateCardCustomAction,
-  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
   MenuItem,
 } from '../config/types';
 import { FRIGATE_BUTTON_MENU_ICON } from '../const';
@@ -31,6 +32,7 @@ export interface MenuButtonControllerOptions {
   inExpandedMode?: boolean;
   microphoneManager?: MicrophoneManager | null;
   mediaPlayerController?: MediaPlayerManager | null;
+  viewManager?: ViewManager | null;
 }
 
 export class MenuButtonController {
@@ -62,18 +64,19 @@ export class MenuButtonController {
   ): MenuItem[] {
     const visibleCameraIDs = cameraManager.getStore().getVisibleCameraIDs();
     const selectedCameraID = view.camera;
+    const substreamAwareCameraID =
+      view.context?.live?.overrides?.get(selectedCameraID) ?? selectedCameraID;
     const selectedCameraConfig = cameraManager
       .getStore()
       .getCameraConfig(selectedCameraID);
     const allSelectedCameraIDs = cameraManager
       .getStore()
       .getAllDependentCameras(selectedCameraID);
-    const selectedMedia = view.queryResults?.getSelectedResult();
 
-    const selectedCameraCapabilities =
-      cameraManager.getCameraCapabilities(selectedCameraID);
-    const aggregateCapabilities =
-      cameraManager.getAggregateCameraCapabilities(allSelectedCameraIDs);
+    const substreamAwareCameraCapabilities =
+      cameraManager.getCameraCapabilities(substreamAwareCameraID);
+
+    const selectedMedia = view.queryResults?.getSelectedResult();
     const mediaCapabilities = selectedMedia
       ? cameraManager?.getMediaCapabilities(selectedMedia)
       : null;
@@ -125,7 +128,6 @@ export class MenuButtonController {
 
     if (selectedCameraID && allSelectedCameraIDs && view.is('live')) {
       const dependencies = [...allSelectedCameraIDs];
-      const override = view.context?.live?.overrides?.get(selectedCameraID);
 
       if (dependencies.length === 2) {
         // If there are only two dependencies (the main camera, and 1 other)
@@ -133,7 +135,9 @@ export class MenuButtonController {
         buttons.push({
           icon: 'mdi:video-input-component',
           style:
-            override && override !== selectedCameraID ? this._getEmphasizedStyle() : {},
+            substreamAwareCameraID !== selectedCameraID
+              ? this._getEmphasizedStyle()
+              : {},
           title: localize('config.menu.buttons.substreams'),
           ...config.menu.buttons.substreams,
           type: 'custom:frigate-card-menu-icon',
@@ -166,7 +170,9 @@ export class MenuButtonController {
           icon: 'mdi:video-input-component',
           title: localize('config.menu.buttons.substreams'),
           style:
-            override && override !== selectedCameraID ? this._getEmphasizedStyle() : {},
+            substreamAwareCameraID !== selectedCameraID
+              ? this._getEmphasizedStyle()
+              : {},
           ...config.menu.buttons.substreams,
           type: 'custom:frigate-card-menu-submenu',
           items: menuItems,
@@ -183,7 +189,7 @@ export class MenuButtonController {
       tap_action: createFrigateCardSimpleAction('live') as FrigateCardCustomAction,
     });
 
-    if (aggregateCapabilities?.supportsClips) {
+    if (options?.viewManager?.isViewSupportedByCamera(selectedCameraID, 'clips')) {
       buttons.push({
         icon: 'mdi:filmstrip',
         ...config.menu.buttons.clips,
@@ -195,7 +201,7 @@ export class MenuButtonController {
       });
     }
 
-    if (aggregateCapabilities?.supportsSnapshots) {
+    if (options?.viewManager?.isViewSupportedByCamera(selectedCameraID, 'snapshots')) {
       buttons.push({
         icon: 'mdi:camera',
         ...config.menu.buttons.snapshots,
@@ -211,7 +217,7 @@ export class MenuButtonController {
       });
     }
 
-    if (aggregateCapabilities?.supportsRecordings) {
+    if (options?.viewManager?.isViewSupportedByCamera(selectedCameraID, 'recordings')) {
       buttons.push({
         icon: 'mdi:album',
         ...config.menu.buttons.recordings,
@@ -236,9 +242,7 @@ export class MenuButtonController {
       tap_action: createFrigateCardSimpleAction('image') as FrigateCardCustomAction,
     });
 
-    // Don't show the timeline button unless there's at least one non-birdseye
-    // camera with a Frigate camera name.
-    if (aggregateCapabilities?.supportsTimeline) {
+    if (options?.viewManager?.isViewSupportedByCamera(selectedCameraID, 'timeline')) {
       buttons.push({
         icon: 'mdi:chart-gantt',
         ...config.menu.buttons.timeline,
@@ -419,7 +423,7 @@ export class MenuButtonController {
       });
     }
 
-    if (hasUsablePTZ(selectedCameraCapabilities, config.live.controls.ptz)) {
+    if (hasUsablePTZ(substreamAwareCameraCapabilities, config.live.controls.ptz)) {
       const isOn =
         view.context?.live?.ptzVisible === false
           ? false

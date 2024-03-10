@@ -209,6 +209,7 @@ class FrigateCard extends LitElement {
             showCameraUIButton: this._controller.getCameraURLManager().hasCameraURL(),
             mediaPlayerController: this._controller.getMediaPlayerManager(),
             microphoneManager: this._controller.getMicrophoneManager(),
+            viewManager: this._controller.getViewManager(),
           },
         )}
         .entityRegistryManager=${this._controller.getEntityRegistryManager()}
