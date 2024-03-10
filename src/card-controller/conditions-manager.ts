@@ -1,3 +1,4 @@
+import { CurrentUser } from '@dermotduffy/custom-card-helpers';
 import { HassEntities } from 'home-assistant-js-websocket';
 import merge from 'lodash-es/merge';
 import { copyConfig } from '../config-mgmt';
@@ -22,6 +23,7 @@ interface ConditionState {
   triggered?: Set<string>;
   interaction?: boolean;
   microphone?: MicrophoneConditionState;
+  user?: CurrentUser;
 }
 
 export class ConditionEvaluateRequestEvent extends Event {
@@ -174,7 +176,10 @@ export class ConditionsManager {
 
     const conditions = getAllConditions();
     this._hasHAStateConditions = conditions.some(
-      (condition) => !!condition.state?.length,
+      (condition) =>
+        !!condition.state?.length ||
+        !!condition.numeric_state?.length ||
+        !!condition.users?.length,
     );
     conditions.forEach((condition) => {
       if (condition.media_query) {
@@ -192,7 +197,7 @@ export class ConditionsManager {
     };
     this._triggerChange();
   }
-  
+
   public getState(): ConditionState {
     return this._state;
   }
@@ -235,10 +240,29 @@ export class ConditionsManager {
           ((!stateTest.state && !stateTest.state_not) ||
             (stateTest.entity in state.state &&
               (!stateTest.state ||
-                state.state[stateTest.entity].state === stateTest.state) &&
+                (Array.isArray(stateTest.state)
+                  ? stateTest.state.includes(state.state[stateTest.entity].state)
+                  : stateTest.state === state.state[stateTest.entity].state)) &&
               (!stateTest.state_not ||
-                state.state[stateTest.entity].state !== stateTest.state_not)));
+                (Array.isArray(stateTest.state_not)
+                  ? !stateTest.state_not.includes(state.state[stateTest.entity].state)
+                  : stateTest.state_not !== state.state[stateTest.entity].state))));
       }
+    }
+    if (condition.numeric_state?.length) {
+      for (const stateTest of condition.numeric_state) {
+        result &&=
+          !!state.state &&
+          stateTest.entity in state.state &&
+          state.state[stateTest.entity].state !== undefined &&
+          (stateTest.above === undefined ||
+            Number(state.state[stateTest.entity].state) > stateTest.above) &&
+          (stateTest.below === undefined ||
+            Number(state.state[stateTest.entity].state) < stateTest.below);
+      }
+    }
+    if (condition.users?.length) {
+      result &&= !!state.user && condition.users.includes(state.user.id);
     }
     if (condition.media_loaded !== undefined) {
       result &&=

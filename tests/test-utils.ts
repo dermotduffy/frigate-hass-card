@@ -1,4 +1,4 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { CurrentUser, HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
 import { expect, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
@@ -80,14 +80,27 @@ export const createCamera = (
   return new Camera(config, engine, { capabilities: capabilities });
 };
 
-export const createHASS = (states?: HassEntities): ExtendedHomeAssistant => {
+export const createHASS = (states?: HassEntities, user?: CurrentUser): ExtendedHomeAssistant => {
   const hass = mock<ExtendedHomeAssistant>();
   if (states) {
     hass.states = states;
   }
+  if (user) {
+    hass.user = user;
+  }
   hass.connection.subscribeMessage = vi.fn();
   return hass;
 };
+
+export const createUser = (user?: Partial<CurrentUser>): CurrentUser => ({
+  id: 'user',
+  is_owner: false,
+  is_admin: false,
+  name: 'User',
+  credentials: [],
+  mfa_modules: [],
+  ...user,
+});
 
 export const createRegistryEntity = (entity?: Partial<Entity>): Entity => {
   return {

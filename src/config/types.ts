@@ -400,20 +400,47 @@ const imageSchema = elementsBaseSchema.extend({
   aspect_ratio: z.string().optional(),
 });
 
-// This state condition is used both for the Picture elements conditional
-// schema, and also in frigateCardConditionSchema.
-const stateConditions = z
-  .object({
-    entity: z.string(),
-    state: z.string().optional(),
-    state_not: z.string().optional(),
-  })
-  .array();
+// https://www.home-assistant.io/dashboards/conditional/#state
+const stateCondition = z.object({
+  condition: z.literal('state'),
+  entity: z.string(),
+  state: z.string().or(z.string().array()).optional(),
+  state_not: z.string().or(z.string().array()).optional(),
+});
+
+// https://www.home-assistant.io/dashboards/conditional/#numeric-state
+const numericCondition = z.object({
+  condition: z.literal('numeric_state'),
+  entity: z.string(),
+  above: z.number().optional(),
+  below: z.number().optional(),
+});
+
+const mediaQuerySchema = z.string();
+
+// https://www.home-assistant.io/dashboards/conditional/#screen
+const screenCondition = z.object({
+  condition: z.literal('screen'),
+  media_query: mediaQuerySchema,
+});
+
+// https://www.home-assistant.io/dashboards/conditional/#user
+const usersCondition = z.object({
+  condition: z.literal('user'),
+  users: z.string().array().min(1),
+});
+
+const stockCondition = z.union([
+  stateCondition,
+  numericCondition,
+  screenCondition,
+  usersCondition,
+]);
 
 // https://www.home-assistant.io/lovelace/picture-elements/#image-element
 export const conditionalSchema = z.object({
   type: z.literal('conditional'),
-  conditions: stateConditions,
+  conditions: stockCondition.array(),
   elements: z.lazy(() => pictureElementsSchema),
 });
 
@@ -501,12 +528,14 @@ export const frigateCardConditionSchema = z.object({
   expand: z.boolean().optional(),
   camera: z.string().array().optional(),
   media_loaded: z.boolean().optional(),
-  state: stateConditions.optional(),
-  media_query: z.string().optional(),
+  state: stateCondition.array().optional(),
+  numeric_state: numericCondition.array().optional(),
+  media_query: mediaQuerySchema.optional(),
   display_mode: viewDisplayModeSchema.optional(),
   triggered: z.string().array().optional(),
   interaction: z.boolean().optional(),
   microphone: microphoneConditionSchema.optional(),
+  users: z.string().array().optional()
 });
 export type FrigateCardCondition = z.infer<typeof frigateCardConditionSchema>;
 
