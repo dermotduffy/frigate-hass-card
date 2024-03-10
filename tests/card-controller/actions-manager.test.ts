@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { afterAll, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import {
@@ -382,6 +383,7 @@ describe('ActionsManager.executeAction', () => {
         expect.objectContaining({
           viewName: 'live',
           cameraID: 'camera',
+          failSafe: true,
         }),
       );
     });
@@ -409,6 +411,7 @@ describe('ActionsManager.executeAction', () => {
         expect.objectContaining({
           viewName: 'timeline',
           cameraID: 'camera',
+          failSafe: true,
         }),
       );
     });
@@ -442,6 +445,7 @@ describe('ActionsManager.executeAction', () => {
         expect.objectContaining({
           viewName: 'clips',
           cameraID: 'camera',
+          failSafe: true,
         }),
       );
     });
@@ -467,6 +471,7 @@ describe('ActionsManager.executeAction', () => {
         expect.objectContaining({
           viewName: 'live',
           cameraID: 'camera',
+          failSafe: true,
         }),
       );
     });
@@ -502,32 +507,6 @@ describe('ActionsManager.executeAction', () => {
       );
 
       expect(api.getViewManager().setViewByParameters).not.toBeCalled();
-    });
-
-    it('with an unsupported view', async () => {
-      const api = createCardAPI();
-      const manager = new ActionsManager(api);
-
-      vi.mocked(api.getViewManager().getView).mockReturnValue(
-        createView({
-          view: 'timeline',
-        }),
-      );
-
-      await manager.executeFrigateAction(
-        createAction({
-          frigate_card_action: 'camera_select',
-          camera: 'camera',
-        })!,
-      );
-
-      expect(api.getViewManager().setViewByParameters).toBeCalledWith(
-        expect.objectContaining({
-          // Should have fallen back to the default view.
-          viewName: 'live',
-          cameraID: 'camera',
-        }),
-      );
     });
   });
 

@@ -190,7 +190,17 @@ export class ViewManager {
   }
 
   public isViewSupportedByCamera(cameraID: string, view: FrigateCardView): boolean {
-    const capabilities = this._api.getCameraManager().getCameraCapabilities(cameraID);
+    const dependentCamerasCapabilities = this._api
+      .getCameraManager()
+      .getAggregateCameraCapabilities(
+        this._api.getCameraManager().getStore().getAllDependentCameras(cameraID),
+      );
+    const allCamerasCapabilities = this._api
+      .getCameraManager()
+      .getAggregateCameraCapabilities(
+        this._api.getCameraManager().getStore().getCameraIDs(),
+      );
+
     switch (view) {
       case 'live':
       case 'image':
@@ -198,20 +208,22 @@ export class ViewManager {
         return true;
       case 'clip':
       case 'clips':
-        return !!capabilities?.supportsClips;
+        return !!dependentCamerasCapabilities?.supportsClips;
       case 'snapshot':
       case 'snapshots':
-        return !!capabilities?.supportsSnapshots;
+        return !!dependentCamerasCapabilities?.supportsSnapshots;
       case 'recording':
       case 'recordings':
-        return !!capabilities?.supportsRecordings;
+        return !!dependentCamerasCapabilities?.supportsRecordings;
       case 'timeline':
-        return !!capabilities?.supportsTimeline;
+        // Show the timeline if any camera supports it, even cameras unrelated
+        // to the currently selected camera.
+        return !!allCamerasCapabilities?.supportsTimeline;
       case 'media':
         return (
-          !!capabilities?.supportsClips ||
-          !!capabilities?.supportsSnapshots ||
-          !!capabilities?.supportsRecordings
+          !!dependentCamerasCapabilities?.supportsClips ||
+          !!dependentCamerasCapabilities?.supportsSnapshots ||
+          !!dependentCamerasCapabilities?.supportsRecordings
         );
     }
   }
