@@ -186,7 +186,7 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 
 #### Camera Frigate configuration
 
-The `frigate` block configures options for a Frigate camera. This configuration is included as part of a camera entry in the `cameras` array.
+The `frigate` block configures options for a Frigate camera. This configuration is included as part of a camera entry in the `cameras` list.
 
 ```yaml
 cameras:
@@ -197,13 +197,13 @@ cameras:
 | - | - | - | - |
 | `camera_name` | Autodetected from `camera_entity` if that is specified. | :white_check_mark: | The Frigate camera name to use when communicating with the Frigate server, e.g. for viewing clips/snapshots or the JSMPEG live view.|
 | `url` | | :white_check_mark: | The URL of the frigate server. If set, this value will be (exclusively) used for a `Camera UI` menu button. All other communication with Frigate goes via Home Assistant. |
-| `labels` | | :white_check_mark: | An array of Frigate labels used to filter events (clips & snapshots), e.g. [`person`, `car`].|
-| `zones` | | :white_check_mark: | An array of Frigates zones used to filter events (clips & snapshots), e.g. [`front_door`, `front_steps`].|
+| `labels` | | :white_check_mark: | A list of Frigate labels used to filter events (clips & snapshots), e.g. [`person`, `car`].|
+| `zones` | | :white_check_mark: | A list of Frigates zones used to filter events (clips & snapshots), e.g. [`front_door`, `front_steps`].|
 | `client_id` | `frigate` | :white_check_mark: | The Frigate client id to use. If this Home Assistant server has multiple Frigate server backends configured, this selects which server should be used. It should be set to the MQTT client id configured for this server, see [Frigate Integration Multiple Instance Support](https://docs.frigate.video/integrations/home-assistant/#multiple-instance-support).|
 
 #### Camera MotionEye configuration
 
-The `motioneye` block configures options for a MotionEye camera. This configuration is included as part of a camera entry in the `cameras` array.
+The `motioneye` block configures options for a MotionEye camera. This configuration is included as part of a camera entry in the `cameras` list.
 
 ```yaml
 cameras:
@@ -241,7 +241,7 @@ cameras:
 
 #### Live Provider: Camera go2rtc configuration
 
-The `go2rtc` block configures use of the `go2rtc` live provider. This configuration is included as part of a camera entry in the `cameras` array.
+The `go2rtc` block configures use of the `go2rtc` live provider. This configuration is included as part of a camera entry in the `cameras` list.
 
 ```yaml
 cameras:
@@ -250,7 +250,7 @@ cameras:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `modes` | `[webrtc, mse, mp4, mjpeg]` | :white_check_mark: | An ordered array of `go2rtc` modes to use. Valid values are `webrtc`, `mse`, `mp4` or `mjpeg` values. |
+| `modes` | `[webrtc, mse, mp4, mjpeg]` | :white_check_mark: | An ordered list of `go2rtc` modes to use. Valid values are `webrtc`, `mse`, `mp4` or `mjpeg` values. |
 | `stream` | Determined by camera engine (e.g. `frigate` camera name). | :white_check_mark: | A valid `go2rtc` stream name. |
 | `url` | Determined by camera engine (e.g. the `frigate` engine will automatically generate a URL for the go2rtc backend that runs in the Frigate container). | :white_check_mark: | The root `go2rtc` URL the card should stream the video from. This is only needed for non-Frigate usecases, or advanced Frigate usecases. Example: `http://my-custom-go2rtc:1984` |
 
@@ -314,7 +314,7 @@ cameras:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `cameras` | | :white_check_mark: | An optional array of other camera identifiers (see [camera IDs](#camera-ids)). If specified the card will fetch media for this camera and *also* recursively for the named cameras by default. Live views for the involved cameras will be available as 'substreams' of the main (depended upon) camera. All dependent cameras must themselves be a configured camera in the card. This can be useful to group events for cameras that are close together, to show multiple related live  views, to always have clips/snapshots show fully merged events across all cameras or to show events for the `birdseye` camera that otherwise would not have events itself.|
+| `cameras` | | :white_check_mark: | An optional list of other camera identifiers (see [camera IDs](#camera-ids)). If specified the card will fetch media for this camera and *also* recursively for the named cameras by default. Live views for the involved cameras will be available as 'substreams' of the main (depended upon) camera. All dependent cameras must themselves be a configured camera in the card. This can be useful to group events for cameras that are close together, to show multiple related live  views, to always have clips/snapshots show fully merged events across all cameras or to show events for the `birdseye` camera that otherwise would not have events itself.|
 | `all_cameras` | `false` | :white_check_mark: | Shortcut to specify all other cameras as dependent cameras.|
 
 <a name="camera-triggers-configuration"></a>
@@ -555,12 +555,12 @@ See the [fully expanded live configuration example](#config-expanded-live) for h
 | Option | Default | Overridable | Description |
 | - | - | - | - |
 | `preload` | `false` | :heavy_multiplication_x: | Whether or not to preload the live view. Preloading causes the live view to render in the background regardless of what view is actually shown, so it's instantly available when requested. This consumes additional network/CPU resources continually. |
-| `auto_play` | `[selected, visible]` | :heavy_multiplication_x: | An array of conditions in which live camera feeds are automatically played.`selected` will automatically play when a camera is selected in the carousel and `visible` will automatically play when the browser/tab becomes visible. Use an empty list (`[]`) to never automatically play. Some live providers (e.g. `webrtc-card`, `jsmpeg`) do not support the prevention of automatic play on initial load, but should still respect the value of this flag on play-after-pause.|
-| `auto_pause` | `[]` | :heavy_multiplication_x: | An array of conditions in which live camera feeds are automatically paused. `unselected` will automatically pause when a camera is unselected in the carousel and `hidden` will automatically pause when the browser/tab becomes hidden. Use an empty list (`[]`) to never automatically pause. **Caution**: Some live providers (e.g. `jsmpeg`) may not offer human-accessible means to resume play if it is paused, unless the `auto_play` option (above) is used.|
-| `auto_mute` | `[unselected, hidden, microphone]` | :heavy_multiplication_x: | An array of conditions in which live camera feeds are muted. `unselected` will automatically mute when a camera is unselected in the carousel, `hidden` will automatically mute when the browser/tab becomes hidden or `microphone` will automatically mute after the microphone is muted as long as the camera stays selected (see the `live.microphone.mute_after_microphone_mute_seconds` to control how long after). Use an empty list (`[]`) to never automatically mute. Note that if `auto_play` is enabled, the stream may mute itself automatically in order to honor the `auto_play` setting, as some browsers will not auto play media that is unmuted -- that is to say, where necessary, the `auto_play` parameter will take priority over the `auto_mute` parameter.|
-| `auto_unmute` | `[microphone]` | :heavy_multiplication_x: | An array of conditions in which live camera feeds are unmuted. `selected` will automatically unmute when a camera is unselected in the carousel, `visible` will automatically unmute when the browser/tab becomes visible or `microphone` will automatically unmute after the microphone is unmuted. Use an empty list (`[]`) to never automatically unmute.|
+| `auto_play` | `[selected, visible]` | :heavy_multiplication_x: | A list of conditions in which live camera feeds are automatically played.`selected` will automatically play when a camera is selected in the carousel and `visible` will automatically play when the browser/tab becomes visible. Use an empty list (`[]`) to never automatically play. Some live providers (e.g. `webrtc-card`, `jsmpeg`) do not support the prevention of automatic play on initial load, but should still respect the value of this flag on play-after-pause.|
+| `auto_pause` | `[]` | :heavy_multiplication_x: | A list of conditions in which live camera feeds are automatically paused. `unselected` will automatically pause when a camera is unselected in the carousel and `hidden` will automatically pause when the browser/tab becomes hidden. Use an empty list (`[]`) to never automatically pause. **Caution**: Some live providers (e.g. `jsmpeg`) may not offer human-accessible means to resume play if it is paused, unless the `auto_play` option (above) is used.|
+| `auto_mute` | `[unselected, hidden, microphone]` | :heavy_multiplication_x: | A list of conditions in which live camera feeds are muted. `unselected` will automatically mute when a camera is unselected in the carousel, `hidden` will automatically mute when the browser/tab becomes hidden or `microphone` will automatically mute after the microphone is muted as long as the camera stays selected (see the `live.microphone.mute_after_microphone_mute_seconds` to control how long after). Use an empty list (`[]`) to never automatically mute. Note that if `auto_play` is enabled, the stream may mute itself automatically in order to honor the `auto_play` setting, as some browsers will not auto play media that is unmuted -- that is to say, where necessary, the `auto_play` parameter will take priority over the `auto_mute` parameter.|
+| `auto_unmute` | `[microphone]` | :heavy_multiplication_x: | A list of conditions in which live camera feeds are unmuted. `selected` will automatically unmute when a camera is unselected in the carousel, `visible` will automatically unmute when the browser/tab becomes visible or `microphone` will automatically unmute after the microphone is unmuted. Use an empty list (`[]`) to never automatically unmute.|
 | `lazy_load` | `true` | :heavy_multiplication_x: | Whether or not to lazily load cameras in the camera carousel. Setting this will `false` will cause all cameras to load simultaneously when the `live` carousel is opened (or cause all cameras to load continually if both `lazy_load` and `preload` are `true`). This will result in a smoother carousel experience at a cost of (potentially) a substantial amount of continually streamed data. |
-| `lazy_unload` | `[]` | :heavy_multiplication_x: | An array of conditions in which live camera feeds are unloaded. `unselected` will lazy-unload a camera when it is unselected in the carousel and `hidden` will lazy-unload all cameras when the browser/tab becomes hidden. Use an empty list (`[]`) to never automatically unload. This will cause a reloading delay on revisiting that camera in the carousel but will save the streaming network resources that are otherwise consumed. This option has no effect if `lazy_load` is false. Some live providers (e.g. `webrtc-card`) implement their own lazy unloading independently which may occur regardless of the value of this setting.|
+| `lazy_unload` | `[]` | :heavy_multiplication_x: | A list of conditions in which live camera feeds are unloaded. `unselected` will lazy-unload a camera when it is unselected in the carousel and `hidden` will lazy-unload all cameras when the browser/tab becomes hidden. Use an empty list (`[]`) to never automatically unload. This will cause a reloading delay on revisiting that camera in the carousel but will save the streaming network resources that are otherwise consumed. This option has no effect if `lazy_load` is false. Some live providers (e.g. `webrtc-card`) implement their own lazy unloading independently which may occur regardless of the value of this setting.|
 | `draggable` | `true` | :heavy_multiplication_x: | Whether or not the live carousel can be dragged left or right, via touch/swipe and mouse dragging. |
 | `zoomable` | `true` | :white_check_mark: | Whether or not the live carousel can be zoomed and panned, via touch/pinch and mouse scroll wheel with `ctrl` held. |
 | `transition_effect` | `slide` | :heavy_multiplication_x: | Effect to apply as a transition between live cameras. Accepted values: `slide` or `none`. |
@@ -743,10 +743,10 @@ See the [fully expanded Media viewer configuration example](#config-expanded-med
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `auto_play` | `[selected, visible]` | :heavy_multiplication_x: | An array of conditions in which media items are automatically played.`selected` will automatically play when a media item is selected in the carousel and `visible` will automatically play when the browser/tab becomes visible. Use an empty list (`[]`) to never automatically play.|
-| `auto_pause` | `[unselected, hidden]` | :heavy_multiplication_x: | An array of conditions in which media items are automatically paused. `unselected` will automatically pause when a media item is unselected in the carousel and `hidden` will automatically pause when the browser/tab becomes hidden. Use an empty list (`[]`) to never automatically pause.|
-| `auto_mute` | `[unselected, hidden]` | :heavy_multiplication_x: | An array of conditions in which media items are muted. `unselected` will automatically mute when a media item is unselected in the carousel and `hidden` will automatically mute when the browser/tab becomes hidden. Use an empty list (`[]`) to never automatically mute.|
-| `auto_unmute` | `[]` | :heavy_multiplication_x: | An array of conditions in which media items are unmuted. `selected` will automatically unmute when a media item is unselected in the carousel and `visible` will automatically unmute when the browser/tab becomes visible. Use an empty list (`[]`) to never automatically unmute. Note that some browsers will not allow automated unmute until the user has interacted with the page in some way -- if the user has not then the browser may pause the media instead.|
+| `auto_play` | `[selected, visible]` | :heavy_multiplication_x: | A list of conditions in which media items are automatically played.`selected` will automatically play when a media item is selected in the carousel and `visible` will automatically play when the browser/tab becomes visible. Use an empty list (`[]`) to never automatically play.|
+| `auto_pause` | `[unselected, hidden]` | :heavy_multiplication_x: | A list of conditions in which media items are automatically paused. `unselected` will automatically pause when a media item is unselected in the carousel and `hidden` will automatically pause when the browser/tab becomes hidden. Use an empty list (`[]`) to never automatically pause.|
+| `auto_mute` | `[unselected, hidden]` | :heavy_multiplication_x: | A list of conditions in which media items are muted. `unselected` will automatically mute when a media item is unselected in the carousel and `hidden` will automatically mute when the browser/tab becomes hidden. Use an empty list (`[]`) to never automatically mute.|
+| `auto_unmute` | `[]` | :heavy_multiplication_x: | A list of conditions in which media items are unmuted. `selected` will automatically unmute when a media item is unselected in the carousel and `visible` will automatically unmute when the browser/tab becomes visible. Use an empty list (`[]`) to never automatically unmute. Note that some browsers will not allow automated unmute until the user has interacted with the page in some way -- if the user has not then the browser may pause the media instead.|
 | `lazy_load` | `true` | :heavy_multiplication_x: | Whether or not to lazily load media in the Media viewer carousel. Setting this will false will fetch all media immediately which may make the carousel experience smoother at a cost of (potentially) a substantial number of simultaneous media fetches on load. |
 | `draggable` | `true` | :heavy_multiplication_x: | Whether or not the Media viewer carousel can be dragged left or right, via touch/swipe and mouse dragging. |
 | `zoomable` | `true` | :heavy_multiplication_x: | Whether or not the Media Viewer can be zoomed and panned, via touch/pinch and mouse scroll wheel with `ctrl` held. |
@@ -1148,7 +1148,7 @@ item, that has both of the following parameters set:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `conditions` | | :heavy_multiplication_x: | A set of conditions that must evaluate to `true` in order for the overrides to be applied. See [Frigate Card Conditions](#frigate-card-conditions). |
+| `conditions` | | :heavy_multiplication_x: | A list of conditions that must evaluate to `true` in order for the overrides to be applied. See [Frigate Card Conditions](#frigate-card-conditions). |
 | `overrides` | | :heavy_multiplication_x: |Configuration overrides to be applied. Any configuration parameter described in this documentation as 'Overridable' is supported. |
 
 <a name="automation-options"></a>
@@ -1166,7 +1166,7 @@ automations:
 
 | Option | Default | Overridable | Description |
 | - | - | - | - |
-| `conditions` | | :heavy_multiplication_x: | A set of conditions that will trigger the automation. See [Frigate Card Conditions](#frigate-card-conditions). |
+| `conditions` | | :heavy_multiplication_x: | A list of conditions that must evaluate to `true` in order to trigger the automation. See [Frigate Card Conditions](#frigate-card-conditions). |
 | `actions` | | :heavy_multiplication_x: | An optional list of actions that will be run when the conditions evaluate `true`. Actions can be [stock Home Assistant actions](https://www.home-assistant.io/dashboards/actions/) or [Frigate card actions](#frigate-card-actions).|
 | `actions_not` | | :heavy_multiplication_x: | An optional list of actions that will be run when the conditions evaluate `false`. Actions can be [stock Home Assistant actions](https://www.home-assistant.io/dashboards/actions/) or [Frigate card actions](#frigate-card-actions).|
 
@@ -1286,56 +1286,78 @@ Usage:
 
 ## Frigate Card Conditions
 
-Conditions are used to apply certain configuration depending on runtime evaluations. Conditions may be used in `elements` configuration (as part of a `custom:frigate-card-conditional` element) or the `overrides` configuration (see below for both).
-
-All variables listed are under a `conditions:` section.
-
-| Condition | Description |
-| ------------- | --------------------------------------------- |
-| `view` | A list of [views](#views) in which this condition is satified (e.g. `clips`) |
-| `camera` | A list of camera IDs in which this condition is satisfied. See [camera IDs](#camera-ids).|
-| `fullscreen` | If `true` the condition is satisfied if the card is in fullscreen mode. If `false` the condition is satisfied if the card is **NOT** in fullscreen mode.|
-| `expand` | If `true` the condition is satisfied if the card is in expanded mode (in a dialog/popup). If `false` the condition is satisfied if the card is **NOT** in expanded mode (in a dialog/popup).|
-| `state` | A list of state conditions to compare with Home Assistant state. See below. |
-| `media_loaded` | If `true` the condition is satisfied if there is media load**ED** (not load**ING**) in the card (e.g. a clip, snapshot or live view). This may be used to hide controls during media loading or when a message (not media) is being displayed. Note that if `true` this condition will never be satisfied for views that do not themselves load media directly (e.g. gallery).|
-| `media_query` | Any valid [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries) string. Media queries must start and end with parentheses. This may be used to alter card configuration based on device/media properties (e.g. viewport width, orientation). Please note that `width` and `height` refer to the entire viewport not just the card. See the [media query example](#media-query-example).|
-| `interacted` | If `true` the condition is satisfied if the card has had human interaction within `view.interaction_seconds` elapsed seconds. If `false` the condition is satisfied if the card has **NOT** had human interaction in that time. |
-| `triggered` | A list of camera IDs which, if [triggered](#camera-triggers-configuration), satisfy the condition.|
-| `microphone` | A object to include microphone state as part of the condition evaluation. See below.|
+Conditions are used to apply certain configuration depending on runtime evaluations. Conditions may be used in `elements` configuration (as part of a `custom:frigate-card-conditional` element), or in `overrides` and `automations`.
 
 See the [example below](#frigate-card-conditional-example) for a real-world example of how these conditions can be used.
 
-### State Conditions
+Conditions is a list of conditions objects following the below schema:
 
-```yaml
-- conditions:
-    state:
-      - [entries]
-```
-
-The Frigate Card Condition can compare HA state against fixed string values. This is the same as the Home Assistant [Conditional Element](https://www.home-assistant.io/dashboards/picture-elements/#conditional-element) condition, but can be used outside of a Picture Element context (e.g. card configuration overrides).
-
-If multiple entries are provided, the results are `AND`ed.
+### View Condition
 
 | Parameter | Description |
 | - | - |
-| `entity` | The entity ID to check the state for |
-| `state` | Condition will be met if state is equal to this optional string. |
-| `state_not` | Condition will be met if state is unequal to this optional string. |
+| `condition` | Must be `view`. |
+| `views` | A list of [views](#views) in which this condition is satified (e.g. `clips`). |
 
-See the [Menu override example below](#frigate-card-menu-override-example) for an illustration.
+### Camera Condition
+
+| Parameter | Description |
+| - | - |
+| `condition` | Must be `camera`. |
+| `cameras` | A list of camera IDs in which this condition is satisfied. See [camera IDs](#camera-ids). |
+
+### Fullscreen Condition
+
+| Parameter | Description |
+| - | - |
+| `condition` | Must be `fullscreen`. |
+| `fullscreen` | If `true` the condition is satisfied if the card is in fullscreen mode. If `false` the condition is satisfied if the card is **NOT** in fullscreen mode. |
+
+### Expand Condition
+
+| Parameter | Description |
+| - | - |
+| `condition` | Must be `expand`. |
+| `fullscreen` | If `true` the condition is satisfied if the card is in expanded mode (in a dialog/popup). If `false` the condition is satisfied if the card is **NOT** in expanded mode (in a dialog/popup). |
+
+### Media Loaded Condition
+
+| Parameter | Description |
+| - | - |
+| `condition` | Must be `media_loaded`. |
+| `media_loaded` | If `true` the condition is satisfied if there is media load**ED** (not load**ING**) in the card (e.g. a clip, snapshot or live view). This may be used to hide controls during media loading or when a message (not media) is being displayed. Note that if `true` this  
+
+### Screen Condition
+
+| Parameter | Description |
+| - | - |
+| `condition` | Must be `screen`. |
+| `media_query` | Any valid [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries) string. Media queries must start and end with parentheses. This may be used to alter card configuration based on device/media properties (e.g. viewport width, orientation). Please note that `width` and `height` refer to the entire viewport not just the card. See the [media query example](#media-query-example). |
+
+### Interaction Condition
+
+| Parameter | Description |
+| - | - |
+| `condition` | Must be `screen`. |
+| `interaction` | If `true` the condition is satisfied if the card has had human interaction within `view.interaction_seconds` elapsed seconds. If `false` the condition is satisfied if the card has **NOT** had human interaction in that time. |
+
+### Triggered Condition
+
+| Parameter | Description |
+| - | - |
+| `condition` | Must be `screen`. |
+| `triggered` | A list of camera IDs which, if [triggered](#camera-triggers-configuration), satisfy the condition. |
 
 ### Microphone Conditions
-
-```yaml
-- conditions:
-    microphone:
-```
 
 | Parameter | Description |
 | - | - |
 | `muted` | Optional: If `true` or `false` the condition is satisfied if the microphone is muted or unmuted respectively. |
 | `connected` | Optional: If `true` or `false` the condition is satisfied if the microphone is connected or disconnected respectively. |
+
+### Stock Home Assistant Conditions
+
+The stock `state`, `numeric_state` and `user` condition from Home Assistant can also be used. See [their documentation](https://www.home-assistant.io/dashboards/conditional/#card-conditions).
 
 <a name="frigate-card-elements"></a>
 
@@ -1430,7 +1452,7 @@ Parameters for the `custom:frigate-card-conditional` element:
 | ------------- | --------------------------------------------- |
 | `type` | Must be `custom:frigate-card-conditional`. |
  `elements` | The elements to render. Can be any supported element, include additional condition or custom elements. |
-| `conditions` | A set of conditions that must evaluate to true in order for the elements to be rendered. See [Frigate Card Conditions](#frigate-card-conditions). |
+| `conditions` | A list of conditions that must evaluate to true in order for the elements to be rendered. See [Frigate Card Conditions](#frigate-card-conditions). |
 
 <a name="frigate-card-actions"></a>
 
@@ -2367,9 +2389,17 @@ elements:
       width: 100px
   - type: conditional
     conditions:
-      - entity: light.office_main_lights
+      - condition: state
+        entity: light.office_main_lights
         state: on
         state_not: off
+      - condition: numeric_state
+        entity: sensor.light_level
+        above: 20
+        below: 100
+      - condition: user
+        users:
+          - 581fca7fdc014b8b894519cc531f9a04
     elements:
     - type: icon
       icon: mdi:dog
@@ -2493,7 +2523,7 @@ elements:
       scene.kitchen_tv_scene:
         icon: mdi:television
         title: TV!
-    # Show a pig icon if the card is in the live view, in fullscreen mode, light.office_main_lights is on and the media has been loaded.
+    # Show a pig icon if a variety of conditions are met.
   - type: custom:frigate-card-conditional
     elements:
       - type: icon
@@ -2503,16 +2533,38 @@ elements:
           left: 300px
           top: 100px
     conditions:
-      view:
-        - live
-      fullscreen: true
-      camera:
-        - camera.front_door
-      state:
-        - entity: light.office_main_lights
-          state: on
-          state_not: off
-      media_loaded: true
+      - condition: view
+        views:
+          - live
+      - condition: fullscreen
+        fullscreen: true
+      - condition: expand
+        expand: true
+      - condition: camera
+        cameras: camera.front_door
+      - condition: media_loaded
+        media_loaded: true
+      - condition: display_mode
+        display_mode: single
+      - condition: triggered
+        triggered:
+          - camera.front_door
+      - condition: interaction
+        interaction: true
+      - condition: microphone
+        muted: true
+        connected: true
+      - condition: state
+        entity: light.office_main_lights
+        state: on
+        state_not: off
+      - condition: numeric_state
+        entity: sensor.light_level
+        above: 20
+        below: 100
+      - condition: user
+        users:
+          - 581fca7fdc014b8b894519cc531f9a04
 ```
 </details>
 
@@ -2685,26 +2737,20 @@ timeline:
 Reference: [Override Options](#overrides-options).
 
 Overrides allow overriding certain (many) configuration parameters when a given
-condition is met. The below is a fully expanded set of those overridable
-parameters. This is really just repeating the above expansions of the relevant
-sections, rather than indicating new or different parameters, i.e. this
-repetition is included for illustrative purposes of what is overridable.
+list of conditions are met. The below is a fully expanded set of those
+overridable parameters. This is really just repeating the above expansions of
+the relevant sections, rather than indicating new or different parameters, i.e.
+this repetition is included for illustrative purposes of what is overridable.
 
 ```yaml
 overrides:
   - conditions:
-      view:
-        - live
-      fullscreen: true
-      camera:
-        - camera.front_door
-      state:
-        - entity: light.office_main_lights
-          state: on
-          state_not: off
+      - condition: view
+        views:
+          - live
     overrides:
       cameras:
-        # As this is an array, we need to carefully ensure we are
+        # As this is a list, we need to carefully ensure we are
         # overridding the correct index. We do this by specifying
         # earlier indicies as being overridden with an empty object
         # (in YAML this is `{}`). In this example, overriddes will
@@ -2940,7 +2986,8 @@ Reference: [Automation Options](#automation-options).
 ```yaml
 automations:
   - conditions:
-      fullscreen: true
+      - condition: fullscreen
+        fullscreen: true
     actions:
       - action: custom:frigate-card-action
         frigate_card_action: live_substream_on
@@ -3111,8 +3158,9 @@ This example only adds the light entity to the menu if a light is on.
 elements:
   - type: conditional
     conditions:
-      - entity: light.kitchen
-        state: 'on'
+      - condition: state
+        entity: light.kitchen
+        state: on
     elements:
       - type: custom:frigate-card-menu-state-icon
         entity: light.kitchen
@@ -3138,8 +3186,9 @@ This example shows a car icon that calls a service but only in the `live` view.
 elements:
   - type: custom:frigate-card-conditional
     conditions:
-      view:
-        - live
+      - condition: view
+        views:
+          - live
     elements:
       - type: icon
         icon: mdi:car
@@ -3254,8 +3303,9 @@ This example shows submenus conditional on the camera selected.
 elements:
   - type: custom:frigate-card-conditional
     conditions:
-      camera:
-        - camera.front_door
+      - condition: camera
+        cameras:
+          - camera.front_door
     elements:
       - type: custom:frigate-card-menu-submenu
         icon: mdi:door
@@ -3267,8 +3317,9 @@ elements:
               action: toggle
   - type: custom:frigate-card-conditional
     conditions:
-      camera:
-        - camera.living_room
+      - condition: camera
+        cameras:
+          - camera.living_room
     elements:
       - type: custom:frigate-card-menu-submenu
         icon: mdi:sofa
@@ -3353,7 +3404,8 @@ view:
       frigate_card_action: fullscreen
 overrides:
   - conditions:
-      fullscreen: true
+      - condition: fullscreen
+        fullscreen: true
     overrides:
       menu:
         style: none
@@ -3374,8 +3426,9 @@ cameras:
 [...]
 overrides:
   - conditions:
-      camera:
-        - camera.office
+      - condition: camera
+        cameras:
+          - camera.office
     overrides:
       live:
         webrtc_card:
@@ -3390,9 +3443,9 @@ overrides:
 ```yaml
 overrides:
   - conditions:
-      state:
-        - entity: light.office_lights
-          state: 'on'
+      - condition: state
+        entity: light.office_lights
+        state: 'on'
     overrides:
       menu:
         position: bottom
@@ -3420,9 +3473,9 @@ view:
     - binary_sensor.alarm_armed
 overrides:
   - conditions:
-      state:
-        - entity: binary_sensor.alarm_armed
-          state: 'off'
+      - condition: state
+        entity: binary_sensor.alarm_armed
+        state: 'off'
     overrides:
       view:
         default: image
@@ -3441,7 +3494,8 @@ menu:
   style: hidden
 overrides:
   - conditions:
-      expand: true
+      - condition: expand
+        expand: true
     overrides:
       menu:
         style: overlay
@@ -3719,8 +3773,9 @@ elements:
           data:
             entity_id: siren.siren
     conditions:
-      triggered:
-        - camera.office
+      - condition: triggered
+        triggered:
+          - camera.office
 ```
 </details>
 
@@ -3766,7 +3821,7 @@ cameras:
 
 <a name="media-query-example"></a>
 
-### Using Media Query conditions
+### Using `screen` / Media Query conditions
 
 Alter the card configuration based on device or viewport properties.
 
@@ -3780,7 +3835,8 @@ cameras:
   - camera_entity: camera.sitting_room
 overrides:
   - conditions:
-      media_query: '(max-width: 300px)'
+      - condition: screen
+        media_query: '(max-width: 300px)'
     overrides:
       menu:
         style: none
@@ -3805,7 +3861,8 @@ menu:
   style: overlay
 overrides:
   - conditions:
-      media_query: '(orientation: landscape)'
+      - condition: screen
+        media_query: '(orientation: landscape)'
     overrides:
       menu:
         position: left
@@ -3985,7 +4042,8 @@ fullscreen mode.
 ```yaml
 automations:
   - conditions:
-      fullscreen: true
+      - condition: fullscreen
+        fullscreen: true
     actions:
       - action: custom:frigate-card-action
         frigate_card_action: live_substream_on
@@ -4007,8 +4065,10 @@ auto-layout behavior will be used outside of fullscreen mode.
 ```yaml
 overrides:
   - conditions:
-      fullscreen: true
-      display_mode: grid
+      - condition: fullscreen
+        fullscreen: true
+      - condition: display_mode
+        display_mode: grid
     overrides:
       live:
         display:
@@ -4095,7 +4155,8 @@ automations:
       - action: custom:frigate-card-action
         frigate_card_action: live_substream_off
     conditions:
-      interaction: true
+      - condition: interaction
+        interaction: true
 ```
 </details>
 

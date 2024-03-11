@@ -8,7 +8,7 @@ import { ViewContext } from 'view';
 import 'web-dialog';
 import pkg from '../package.json';
 import { actionHandler } from './action-handler-directive.js';
-import { ConditionEvaluateRequestEvent } from './card-controller/conditions-manager.js';
+import { ConditionsEvaluateRequestEvent } from './card-controller/conditions-manager.js';
 import { CardController } from './card-controller/controller';
 import { MenuButtonController } from './components-lib/menu-button-controller';
 import './components/elements.js';
@@ -341,10 +341,10 @@ class FrigateCard extends LitElement {
               this._menuButtonController.removeDynamicMenuButton(ev.detail);
               this.requestUpdate();
             }}
-            @frigate-card:condition:evaluate=${(ev: ConditionEvaluateRequestEvent) => {
+            @frigate-card:conditions:evaluate=${(ev: ConditionsEvaluateRequestEvent) => {
               ev.evaluation = this._controller
                 .getConditionsManager()
-                ?.evaluateCondition(ev.condition);
+                ?.evaluateConditions(ev.conditions);
             }}
           >
           </frigate-card-elements>`

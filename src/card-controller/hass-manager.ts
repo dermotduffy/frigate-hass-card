@@ -66,7 +66,10 @@ export class HASSManager {
     }
 
     if (this._api.getConditionsManager().hasHAStateConditions()) {
-      this._api.getConditionsManager().setState({ state: this._hass.states });
+      this._api.getConditionsManager().setState({ 
+        state: this._hass.states,
+        user: this._hass.user,
+      });
     }
 
     // Dark mode may depend on HASS.

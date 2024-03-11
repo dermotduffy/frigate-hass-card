@@ -3,8 +3,13 @@ import get from 'lodash-es/get';
 import isEqual from 'lodash-es/isEqual';
 import set from 'lodash-es/set';
 import unset from 'lodash-es/unset';
-import { RawFrigateCardConfig, RawFrigateCardConfigArray } from './config/types';
 import {
+  FrigateCardCondition,
+  RawFrigateCardConfig,
+  RawFrigateCardConfigArray,
+} from './config/types';
+import {
+  CONF_AUTOMATIONS,
   CONF_CAMERAS,
   CONF_CAMERAS_GLOBAL_DIMENSIONS_LAYOUT,
   CONF_CAMERAS_GLOBAL_IMAGE,
@@ -343,6 +348,99 @@ const conditionMediaLoadedTransform = (data: unknown): boolean => {
 };
 
 /**
+ * Transform a single object with multiple conditions to multiple objects with
+ * single conditions
+ * @param data Input data.
+ * @returns `true` if the configuration was modified.
+ */
+const conditionToConditionsTransform = (data: unknown): boolean => {
+  if (
+    typeof data !== 'object' ||
+    !data ||
+    typeof data['conditions'] !== 'object' ||
+    !data['conditions']
+  ) {
+    return false;
+  }
+
+  const oldConditions = data['conditions'];
+  const newConditions: FrigateCardCondition[] = [];
+
+  if (oldConditions['view'] !== undefined) {
+    newConditions.push({
+      condition: 'view' as const,
+      views: oldConditions['view'],
+    });
+  }
+  if (oldConditions['fullscreen'] !== undefined) {
+    newConditions.push({
+      condition: 'fullscreen' as const,
+      fullscreen: oldConditions['fullscreen'],
+    });
+  }
+  if (oldConditions['expand'] !== undefined) {
+    newConditions.push({
+      condition: 'expand' as const,
+      expand: oldConditions['expand'],
+    });
+  }
+  if (oldConditions['camera'] !== undefined) {
+    newConditions.push({
+      condition: 'camera' as const,
+      cameras: oldConditions['camera'],
+    });
+  }
+  if (oldConditions['media_loaded'] !== undefined) {
+    newConditions.push({
+      condition: 'media_loaded' as const,
+      media_loaded: oldConditions['media_loaded'],
+    });
+  }
+  if (oldConditions['state'] !== undefined && Array.isArray(oldConditions['state'])) {
+    for (const stateCondition of oldConditions['state']) {
+      if (
+        typeof stateCondition === 'object' &&
+        stateCondition &&
+        (stateCondition['state'] !== undefined ||
+          stateCondition['state_not'] !== undefined ||
+          stateCondition['entity'] !== undefined)
+      ) {
+        newConditions.push({
+          condition: 'state' as const,
+          ...(stateCondition['state'] && {
+            state: stateCondition['state'],
+          }),
+          ...(stateCondition['state_not'] && {
+            state_not: stateCondition['state_not'],
+          }),
+          ...(stateCondition['entity'] && {
+            entity: stateCondition['entity'],
+          }),
+        });
+      }
+    }
+  }
+  if (oldConditions['media_query'] !== undefined) {
+    newConditions.push({
+      condition: 'screen' as const,
+      media_query: oldConditions['media_query'],
+    });
+  }
+
+  // These conditions did not exist prior to v6.0.0 and so are not converted:
+  // - display_mode
+  // - triggered
+  // - interaction
+  // - microphone
+
+  if (newConditions.length) {
+    data['conditions'] = newConditions;
+    return true;
+  }
+  return false;
+};
+
+/**
  * Transform service_data -> data
  * See: https://github.com/dermotduffy/frigate-hass-card/issues/1103
  * @param data Input data.
@@ -569,4 +667,15 @@ const UPGRADES = [
   upgradeMoveToWithOverrides('live.layout', CONF_CAMERAS_GLOBAL_DIMENSIONS_LAYOUT),
   deleteWithOverrides('media_viewer.layout'),
   deleteWithOverrides('image.layout'),
+  upgradeArrayOfObjects(CONF_OVERRIDES, conditionToConditionsTransform),
+  (data: unknown): boolean => {
+    return upgradeObjectRecursively(conditionToConditionsTransform)(
+      typeof data === 'object' && data ? data[CONF_ELEMENTS] : {},
+    );
+  },
+  (data: unknown): boolean => {
+    return upgradeObjectRecursively(conditionToConditionsTransform)(
+      typeof data === 'object' && data ? data[CONF_AUTOMATIONS] : {},
+    );
+  },
 ];

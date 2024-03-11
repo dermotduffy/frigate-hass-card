@@ -381,6 +381,7 @@ describe('should lazy evaluate', () => {
         type: 'conditional',
         conditions: [
           {
+            condition: 'state',
             entity: 'light.office_main_lights',
             state: 'on',
             state_not: 'off',
@@ -401,6 +402,7 @@ describe('should lazy evaluate', () => {
     ).toEqual({
       conditions: [
         {
+          condition: 'state',
           entity: 'light.office_main_lights',
           state: 'on',
           state_not: 'off',

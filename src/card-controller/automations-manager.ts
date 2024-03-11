@@ -38,7 +38,7 @@ export class AutomationsManager {
     for (const automation of this._automations ?? []) {
       const shouldExecute = this._api
         .getConditionsManager()
-        .evaluateCondition(automation.conditions);
+        .evaluateConditions(automation.conditions);
       const actions = shouldExecute ? automation.actions : automation.actions_not;
       const priorEvaluation = this._priorEvaluations.get(automation);
       this._priorEvaluations.set(automation, shouldExecute);

@@ -9,6 +9,7 @@ import {
   createHASS,
   createStateEntity,
   createStore,
+  createUser,
   createView,
 } from '../test-utils';
 
@@ -44,13 +45,15 @@ describe('HASSManager', () => {
       vi.mocked(api.getConditionsManager().hasHAStateConditions).mockReturnValue(true);
 
       const states = { 'switch.foo': createStateEntity() };
-      const hass = createHASS(states);
+      const user = createUser({ id: 'user_1' });
+      const hass = createHASS(states, user);
 
       manager.setHASS(hass);
 
       expect(api.getConditionsManager().setState).toBeCalledWith(
         expect.objectContaining({
           state: states,
+          user: user,
         }),
       );
     });

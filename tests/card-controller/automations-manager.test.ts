@@ -1,8 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { AutomationsManager } from '../../src/card-controller/automations-manager.js';
 import { frigateCardHandleAction } from '../../src/utils/action.js';
-import {
-  AutomationsManager,
-} from '../../src/card-controller/automations-manager.js';
 import { createCardAPI, createConfig, createHASS } from '../test-utils.js';
 
 vi.mock('../../src/utils/action.js');
@@ -14,7 +12,7 @@ describe('AutomationsManager', () => {
       frigate_card_action: 'clips',
     },
   ];
-  const conditions = { fullscreen: true };
+  const conditions = [{ condition: 'fullscreen', fullscreen: true }];
 
   afterEach(() => {
     vi.clearAllMocks();
@@ -58,7 +56,7 @@ describe('AutomationsManager', () => {
     automationsManager.execute();
     expect(frigateCardHandleAction).not.toBeCalled();
 
-    vi.mocked(api.getConditionsManager().evaluateCondition).mockReturnValue(true);
+    vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(true);
 
     automationsManager.execute();
     expect(frigateCardHandleAction).toBeCalledTimes(1);
@@ -68,12 +66,12 @@ describe('AutomationsManager', () => {
     automationsManager.execute();
     expect(frigateCardHandleAction).toBeCalledTimes(1);
 
-    vi.mocked(api.getConditionsManager().evaluateCondition).mockReturnValue(false);
+    vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(false);
 
     automationsManager.execute();
     expect(frigateCardHandleAction).toBeCalledTimes(1);
 
-    vi.mocked(api.getConditionsManager().evaluateCondition).mockReturnValue(true);
+    vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(true);
 
     automationsManager.execute();
     expect(frigateCardHandleAction).toBeCalledTimes(2);
@@ -92,7 +90,7 @@ describe('AutomationsManager', () => {
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
     vi.mocked(api.getConfigManager().getNonOverriddenConfig).mockReturnValue(config);
-    vi.mocked(api.getConditionsManager().evaluateCondition).mockReturnValue(false);
+    vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(false);
 
     const automationsManager = new AutomationsManager(api);
     automationsManager.setAutomationsFromConfig();
@@ -106,11 +104,11 @@ describe('AutomationsManager', () => {
     const config = createConfig({
       automations: [
         {
-          conditions: { fullscreen: true },
+          conditions: [{ condition: 'fullscreen' as const, fullscreen: true }],
           actions: actions,
         },
         {
-          conditions: { fullscreen: true },
+          conditions: [{ condition: 'fullscreen' as const, fullscreen: true }],
           actions_not: actions,
         },
       ],
@@ -127,13 +125,13 @@ describe('AutomationsManager', () => {
     let evaluation = true;
     vi.mocked(frigateCardHandleAction).mockImplementation(() => {
       evaluation = !evaluation;
-      vi.mocked(api.getConditionsManager().evaluateCondition).mockReturnValue(
+      vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(
         evaluation,
       );
       automationsManager.execute();
     });
 
-    vi.mocked(api.getConditionsManager().evaluateCondition).mockReturnValue(evaluation);
+    vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(evaluation);
 
     automationsManager.execute();
 
