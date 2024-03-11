@@ -80,10 +80,10 @@ export default defineConfig({
 
         // Expected thresholds for anything that does not have 100% coverage
         // yet.
-        statements: 10.67,
+        statements: 10.69,
         branches: 4.9,
         functions: 7.81,
-        lines: 10.92,
+        lines: 10.94,
 
         ...calculateFullCoverageThresholds(),
       },

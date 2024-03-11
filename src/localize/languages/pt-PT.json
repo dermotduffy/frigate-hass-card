@@ -28,8 +28,8 @@
         "editor_label": "Opções de dependência"
       },
       "dimensions": {
-        "editor_label": "",
         "aspect_ratio": "",
+        "editor_label": "",
         "layout": {
           "fit": "Fit",
           "fits": {
@@ -102,9 +102,9 @@
         "editor_label": "Opções de activação",
         "entities": "Activar a partir de outras entidades",
         "events": {
+          "clips": "",
           "editor_label": "",
           "events": "",
-          "clips": "",
           "snapshots": ""
         },
         "motion": "Activar detectando automaticamente o sensor de movimento",
@@ -172,6 +172,13 @@
             "above": "Por cima",
             "below": "Abaixo",
             "none": "Nenhum"
+          },
+          "pan_mode": "",
+          "pan_modes": {
+            "pan": "",
+            "seek": "",
+            "seek-in-camera": "",
+            "seek-in-media": ""
           }
         },
         "title": {
@@ -569,12 +576,6 @@
     "timeline": "Ver evento na linha do tempo"
   },
   "timeline": {
-    "pan_behavior": {
-      "pan": "",
-      "seek": "",
-      "seek-in-camera": "",
-      "seek-in-media": ""
-    },
     "select_date": "Selecionar a data"
   }
 }

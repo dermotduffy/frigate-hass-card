@@ -727,7 +727,16 @@ const timelineCoreConfigDefault = {
   window_seconds: 60 * 60,
   show_recordings: true,
   style: 'stack' as const,
+  pan_mode: 'pan' as const,
 };
+
+export const timelinePanModeSchema = z.enum([
+  'pan',
+  'seek',
+  'seek-in-media',
+  'seek-in-camera',
+]);
+export type TimelinePanMode = z.infer<typeof timelinePanModeSchema>;
 
 const timelineCoreConfigSchema = z.object({
   clustering_threshold: z
@@ -748,6 +757,9 @@ const timelineCoreConfigSchema = z.object({
     .optional()
     .default(timelineCoreConfigDefault.show_recordings),
   style: z.enum(['stack', 'ribbon']).optional().default(timelineCoreConfigDefault.style),
+  pan_mode: timelinePanModeSchema
+    .optional()
+    .default(timelineCoreConfigDefault.pan_mode),
 });
 export type TimelineCoreConfig = z.infer<typeof timelineCoreConfigSchema>;
 

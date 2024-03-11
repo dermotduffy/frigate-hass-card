@@ -91,6 +91,7 @@ import {
   CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
   CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA_TYPE,
   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
+  CONF_LIVE_CONTROLS_TIMELINE_PAN_MODE,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
@@ -140,6 +141,7 @@ import {
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE,
+  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_PAN_MODE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS,
@@ -719,6 +721,26 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     },
   ];
 
+  protected _timelinePanModes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'pan',
+      label: localize('config.common.controls.timeline.pan_modes.pan'),
+    },
+    {
+      value: 'seek',
+      label: localize('config.common.controls.timeline.pan_modes.seek'),
+    },
+    {
+      value: 'seek-in-media',
+      label: localize('config.common.controls.timeline.pan_modes.seek-in-media'),
+    },
+    {
+      value: 'seek-in-camera',
+      label: localize('config.common.controls.timeline.pan_modes.seek-in-camera'),
+    },
+  ];
+
   public setConfig(config: RawFrigateCardConfig): void {
     // Note: This does not use Zod to parse the configuration, so it may be
     // partially or completely invalid. It's more useful to have a partially
@@ -1197,30 +1219,34 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     configPathTimelineEventsMediaType: string,
     configPathShowRecordings: string,
     defaultShowRecordings: boolean,
+    configPathPanMode?: string,
   ): TemplateResult {
-    return html` ${this._renderOptionSelector(
-      configPathStyle,
-      this._timelineStyleTypes,
-      {
+    return html`
+      ${this._renderOptionSelector(configPathStyle, this._timelineStyleTypes, {
         label: localize(`config.common.${CONF_TIMELINE_STYLE}`),
-      },
-    )}
-    ${this._renderNumberInput(configPathWindowSeconds, {
-      label: localize(`config.common.${CONF_TIMELINE_WINDOW_SECONDS}`),
-    })}
-    ${this._renderNumberInput(configPathClusteringThreshold, {
-      label: localize(`config.common.${CONF_TIMELINE_CLUSTERING_THRESHOLD}`),
-    })}
-    ${this._renderOptionSelector(
-      configPathTimelineEventsMediaType,
-      this._timelineEventsMediaTypes,
-      {
-        label: localize(`config.common.${CONF_TIMELINE_EVENTS_MEDIA_TYPE}`),
-      },
-    )}
-    ${this._renderSwitch(configPathShowRecordings, defaultShowRecordings, {
-      label: localize(`config.common.${CONF_TIMELINE_SHOW_RECORDINGS}`),
-    })}`;
+      })}
+      ${configPathPanMode
+        ? this._renderOptionSelector(configPathPanMode, this._timelinePanModes, {
+            label: localize(`config.common.controls.timeline.pan_mode`),
+          })
+        : ``}
+      ${this._renderNumberInput(configPathWindowSeconds, {
+        label: localize(`config.common.${CONF_TIMELINE_WINDOW_SECONDS}`),
+      })}
+      ${this._renderNumberInput(configPathClusteringThreshold, {
+        label: localize(`config.common.${CONF_TIMELINE_CLUSTERING_THRESHOLD}`),
+      })}
+      ${this._renderOptionSelector(
+        configPathTimelineEventsMediaType,
+        this._timelineEventsMediaTypes,
+        {
+          label: localize(`config.common.${CONF_TIMELINE_EVENTS_MEDIA_TYPE}`),
+        },
+      )}
+      ${this._renderSwitch(configPathShowRecordings, defaultShowRecordings, {
+        label: localize(`config.common.${CONF_TIMELINE_SHOW_RECORDINGS}`),
+      })}
+    `;
   }
 
   /**
@@ -1241,6 +1267,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     configPathTimelineEventsMediaType: string,
     configPathShowRecordings: string,
     showRecordingsDefault: boolean,
+    configPathPanMode: string,
   ): TemplateResult | void {
     return this._putInSubmenu(
       domain,
@@ -1257,6 +1284,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         configPathTimelineEventsMediaType,
         configPathShowRecordings,
         showRecordingsDefault,
+        configPathPanMode,
       )}`,
     );
   }
@@ -2208,6 +2236,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
                       CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
                       this._defaults.live.controls.timeline.show_recordings,
+                      CONF_LIVE_CONTROLS_TIMELINE_PAN_MODE,
                     )}
                     ${this._putInSubmenu(
                       MENU_LIVE_CONTROLS_PTZ,
@@ -2394,6 +2423,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS,
                     this._defaults.media_viewer.controls.timeline.show_recordings,
+                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_PAN_MODE,
                   )}
                 `,
               )}
