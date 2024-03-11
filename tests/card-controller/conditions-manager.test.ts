@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { FrigateCardCondition } from '../../src/config/types';
 import {
-  ConditionEvaluateRequestEvent,
+  ConditionsEvaluateRequestEvent,
   ConditionsManager,
   evaluateConditionViaEvent,
   getOverriddenConfig,
   getOverridesByKey,
 } from '../../src/card-controller/conditions-manager';
+import { FrigateCardCondition } from '../../src/config/types';
 import {
   createCardAPI,
   createCondition,
@@ -18,14 +18,14 @@ import {
 // @vitest-environment jsdom
 describe('ConditionEvaluateRequestEvent', () => {
   it('should construct', () => {
-    const condition = createCondition({ fullscreen: true });
-    const event = new ConditionEvaluateRequestEvent(condition, {
+    const conditions = [createCondition({ condition: 'fullscreen', fullscreen: true })];
+    const event = new ConditionsEvaluateRequestEvent(conditions, {
       bubbles: true,
       composed: true,
     });
 
-    expect(event.type).toBe('frigate-card:condition:evaluate');
-    expect(event.condition).toBe(condition);
+    expect(event.type).toBe('frigate-card:conditions:evaluate');
+    expect(event.conditions).toBe(conditions);
     expect(event.bubbles).toBeTruthy();
     expect(event.composed).toBeTruthy();
   });
@@ -38,35 +38,35 @@ describe('evaluateConditionViaEvent', () => {
   });
   it('should dispatch event with condition and evaluate true', () => {
     const element = document.createElement('div');
-    const condition = createCondition({ fullscreen: true });
-    const handler = vi.fn().mockImplementation((ev: ConditionEvaluateRequestEvent) => {
-      expect(ev.condition).toBe(condition);
+    const conditions = [createCondition({ condition: 'fullscreen', fullscreen: true })];
+    const handler = vi.fn().mockImplementation((ev: ConditionsEvaluateRequestEvent) => {
+      expect(ev.conditions).toBe(conditions);
       ev.evaluation = true;
     });
-    element.addEventListener('frigate-card:condition:evaluate', handler);
+    element.addEventListener('frigate-card:conditions:evaluate', handler);
 
-    expect(evaluateConditionViaEvent(element, condition)).toBeTruthy();
+    expect(evaluateConditionViaEvent(element, conditions)).toBeTruthy();
     expect(handler).toBeCalled();
   });
   it('should dispatch event with condition and evaluate false', () => {
     const element = document.createElement('div');
-    const condition = createCondition({ fullscreen: true });
-    const handler = vi.fn().mockImplementation((ev: ConditionEvaluateRequestEvent) => {
-      expect(ev.condition).toBe(condition);
+    const conditions = [createCondition({ condition: 'fullscreen', fullscreen: true })];
+    const handler = vi.fn().mockImplementation((ev: ConditionsEvaluateRequestEvent) => {
+      expect(ev.conditions).toBe(conditions);
       ev.evaluation = false;
     });
-    element.addEventListener('frigate-card:condition:evaluate', handler);
+    element.addEventListener('frigate-card:conditions:evaluate', handler);
 
-    expect(evaluateConditionViaEvent(element, condition)).toBeFalsy();
+    expect(evaluateConditionViaEvent(element, conditions)).toBeFalsy();
     expect(handler).toBeCalled();
   });
   it('should dispatch event evaluate false if no evaluation', () => {
     const element = document.createElement('div');
-    const condition = createCondition({ fullscreen: true });
+    const conditions = [createCondition({ condition: 'fullscreen', fullscreen: true })];
     const handler = vi.fn();
-    element.addEventListener('frigate-card:condition:evaluate', handler);
+    element.addEventListener('frigate-card:conditions:evaluate', handler);
 
-    expect(evaluateConditionViaEvent(element, condition)).toBeFalsy();
+    expect(evaluateConditionViaEvent(element, conditions)).toBeFalsy();
     expect(handler).toBeCalled();
   });
 });
@@ -84,9 +84,12 @@ describe('getOverriddenConfig', () => {
           style: 'above',
         },
       },
-      conditions: {
-        fullscreen: true,
-      },
+      conditions: [
+        {
+          condition: 'fullscreen' as const,
+          fullscreen: true,
+        },
+      ],
     },
   ];
 
@@ -115,9 +118,12 @@ describe('getOverriddenConfig', () => {
 });
 
 describe('getOverridesByKey', () => {
-  const condition = {
-    fullscreen: true,
-  };
+  const conditions = [
+    {
+      condition: 'fullscreen' as const,
+      fullscreen: true,
+    },
+  ];
   const override = {
     menu: {
       style: 'above',
@@ -126,13 +132,13 @@ describe('getOverridesByKey', () => {
   const overrides = [
     {
       overrides: override,
-      conditions: condition,
+      conditions: conditions,
     },
   ];
 
   it('should get overrides', () => {
     expect(getOverridesByKey('menu', overrides)).toEqual([
-      { conditions: condition, overrides: { style: 'above' } },
+      { conditions: conditions, overrides: { style: 'above' } },
     ]);
   });
 
@@ -184,7 +190,7 @@ describe('ConditionsManager', () => {
       vi.restoreAllMocks();
     });
 
-    const createSuitableConfig = (conditions: FrigateCardCondition) => {
+    const createSuitableConfig = (conditions: FrigateCardCondition[]) => {
       return createConfig({
         overrides: [
           {
@@ -202,15 +208,13 @@ describe('ConditionsManager', () => {
 
     it('with HA state conditions', () => {
       const api = createCardAPI();
-      const numericConfig = createSuitableConfig({
-        state: [
-          {
-            condition: 'state',
-            entity: 'binary_sensor.foo',
-            state: 'on',
-          },
-        ],
-      });
+      const numericConfig = createSuitableConfig([
+        {
+          condition: 'state' as const,
+          entity: 'binary_sensor.foo',
+          state: 'on',
+        },
+      ]);
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(numericConfig);
       const manager = new ConditionsManager(api);
       manager.setConditionsFromConfig();
@@ -220,16 +224,14 @@ describe('ConditionsManager', () => {
 
     it('with HA numeric_state conditions', () => {
       const api = createCardAPI();
-      const stateConfig = createSuitableConfig({
-        numeric_state: [
-          {
-            entity: 'sensor.foo',
-            condition: 'numeric_state' as const,
-            above: 10,
-          },
-        ],
-      });
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(stateConfig);
+      const numericStateConfig = createSuitableConfig([
+        {
+          condition: 'numeric_state' as const,
+          entity: 'sensor.foo',
+          above: 10,
+        },
+      ]);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(numericStateConfig);
       const manager = new ConditionsManager(api);
       manager.setConditionsFromConfig();
 
@@ -238,9 +240,12 @@ describe('ConditionsManager', () => {
 
     it('with HA user conditions', () => {
       const api = createCardAPI();
-      const userConfig = createSuitableConfig({
-        users: ['user_1'],
-      });
+      const userConfig = createSuitableConfig([
+        {
+          condition: 'user' as const,
+          users: ['user_1'],
+        },
+      ]);
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(userConfig);
       const manager = new ConditionsManager(api);
       manager.setConditionsFromConfig();
@@ -250,230 +255,227 @@ describe('ConditionsManager', () => {
   });
 
   describe('should evaluate conditions', () => {
-    it('with a view', () => {
+    it('with a view condition', () => {
       const manager = new ConditionsManager(createCardAPI());
-      const condition = { view: ['foo'] };
-      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      const conditions = [{ condition: 'view' as const, views: ['foo'] }];
+      expect(manager.evaluateConditions(conditions)).toBeFalsy();
       manager.setState({ view: 'foo' });
-      expect(manager.evaluateCondition(condition)).toBeTruthy();
+      expect(manager.evaluateConditions(conditions)).toBeTruthy();
     });
 
-    it('with fullscreen', () => {
+    it('with fullscreen condition', () => {
       const manager = new ConditionsManager(createCardAPI());
-      const condition = { fullscreen: true };
-      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      const conditions = [{ condition: 'fullscreen' as const, fullscreen: true }];
+      expect(manager.evaluateConditions(conditions)).toBeFalsy();
       manager.setState({ fullscreen: true });
-      expect(manager.evaluateCondition(condition)).toBeTruthy();
+      expect(manager.evaluateConditions(conditions)).toBeTruthy();
       manager.setState({ fullscreen: false });
-      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      expect(manager.evaluateConditions(conditions)).toBeFalsy();
     });
 
-    it('with expand', () => {
+    it('with expand condition', () => {
       const manager = new ConditionsManager(createCardAPI());
-      const condition = { expand: true };
-      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      const conditions = [{ condition: 'expand' as const, expand: true }];
+      expect(manager.evaluateConditions(conditions)).toBeFalsy();
       manager.setState({ expand: true });
-      expect(manager.evaluateCondition(condition)).toBeTruthy();
+      expect(manager.evaluateConditions(conditions)).toBeTruthy();
       manager.setState({ expand: false });
-      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      expect(manager.evaluateConditions(conditions)).toBeFalsy();
     });
 
-    it('camera', () => {
+    it('with camera condition', () => {
       const manager = new ConditionsManager(createCardAPI());
-      const condition = { camera: ['bar'] };
-      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      const conditions = [{ condition: 'camera' as const, cameras: ['bar'] }];
+      expect(manager.evaluateConditions(conditions)).toBeFalsy();
       manager.setState({ camera: 'bar' });
-      expect(manager.evaluateCondition(condition)).toBeTruthy();
+      expect(manager.evaluateConditions(conditions)).toBeTruthy();
       manager.setState({ camera: 'will-not-match' });
-      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      expect(manager.evaluateConditions(conditions)).toBeFalsy();
     });
 
     describe('with stock HA conditions', () => {
-      describe('state check', () => {
+      describe('with state condition', () => {
         describe('positive', () => {
           it('single', () => {
             const manager = new ConditionsManager(createCardAPI());
-            const condition = {
-              state: [
-                {
-                  condition: 'state' as const,
-                  entity: 'binary_sensor.foo',
-                  state: 'on',
-                },
-              ],
-            };
-            expect(manager.evaluateCondition(condition)).toBeFalsy();
+            const conditions = [
+              {
+                condition: 'state' as const,
+                entity: 'binary_sensor.foo',
+                state: 'on',
+              },
+            ];
+            expect(manager.evaluateConditions(conditions)).toBeFalsy();
             manager.setState({ state: { 'binary_sensor.foo': createStateEntity() } });
-            expect(manager.evaluateCondition(condition)).toBeTruthy();
+            expect(manager.evaluateConditions(conditions)).toBeTruthy();
             manager.setState({
               state: { 'binary_sensor.foo': createStateEntity({ state: 'off' }) },
             });
-            expect(manager.evaluateCondition(condition)).toBeFalsy();
+            expect(manager.evaluateConditions(conditions)).toBeFalsy();
           });
 
           it('multiple', () => {
             const manager = new ConditionsManager(createCardAPI());
-            const condition = {
-              state: [
-                {
-                  condition: 'state' as const,
-                  entity: 'binary_sensor.foo',
-                  state: ['active', 'on'],
-                },
-              ],
-            };
-            expect(manager.evaluateCondition(condition)).toBeFalsy();
+            const conditions = [
+              {
+                condition: 'state' as const,
+                entity: 'binary_sensor.foo',
+                state: ['active', 'on'],
+              },
+            ];
+            expect(manager.evaluateConditions(conditions)).toBeFalsy();
             manager.setState({ state: { 'binary_sensor.foo': createStateEntity() } });
-            expect(manager.evaluateCondition(condition)).toBeTruthy();
+            expect(manager.evaluateConditions(conditions)).toBeTruthy();
             manager.setState({
               state: { 'binary_sensor.foo': createStateEntity({ state: 'active' }) },
             });
-            expect(manager.evaluateCondition(condition)).toBeTruthy();
+            expect(manager.evaluateConditions(conditions)).toBeTruthy();
             manager.setState({
               state: { 'binary_sensor.foo': createStateEntity({ state: 'off' }) },
             });
-            expect(manager.evaluateCondition(condition)).toBeFalsy();
+            expect(manager.evaluateConditions(conditions)).toBeFalsy();
           });
         });
 
         describe('negative', () => {
           it('single', () => {
             const manager = new ConditionsManager(createCardAPI());
-            const condition = {
-              state: [
-                {
-                  condition: 'state' as const,
-                  entity: 'binary_sensor.foo',
-                  state_not: 'on',
-                },
-              ],
-            };
-            expect(manager.evaluateCondition(condition)).toBeFalsy();
+            const conditions = [
+              {
+                condition: 'state' as const,
+                entity: 'binary_sensor.foo',
+                state_not: 'on',
+              },
+            ];
+            expect(manager.evaluateConditions(conditions)).toBeFalsy();
             manager.setState({ state: { 'binary_sensor.foo': createStateEntity() } });
-            expect(manager.evaluateCondition(condition)).toBeFalsy();
+            expect(manager.evaluateConditions(conditions)).toBeFalsy();
             manager.setState({
               state: { 'binary_sensor.foo': createStateEntity({ state: 'off' }) },
             });
-            expect(manager.evaluateCondition(condition)).toBeTruthy();
+            expect(manager.evaluateConditions(conditions)).toBeTruthy();
           });
         });
 
         it('multiple', () => {
           const manager = new ConditionsManager(createCardAPI());
-          const condition = {
-            state: [
-              {
-                condition: 'state' as const,
-                entity: 'binary_sensor.foo',
-                state_not: ['active', 'on'],
-              },
-            ],
-          };
-          expect(manager.evaluateCondition(condition)).toBeFalsy();
+          const conditions = [
+            {
+              condition: 'state' as const,
+              entity: 'binary_sensor.foo',
+              state_not: ['active', 'on'],
+            },
+          ];
+          expect(manager.evaluateConditions(conditions)).toBeFalsy();
           manager.setState({ state: { 'binary_sensor.foo': createStateEntity() } });
-          expect(manager.evaluateCondition(condition)).toBeFalsy();
+          expect(manager.evaluateConditions(conditions)).toBeFalsy();
           manager.setState({
             state: { 'binary_sensor.foo': createStateEntity({ state: 'active' }) },
           });
-          expect(manager.evaluateCondition(condition)).toBeFalsy();
+          expect(manager.evaluateConditions(conditions)).toBeFalsy();
           manager.setState({
             state: { 'binary_sensor.foo': createStateEntity({ state: 'off' }) },
           });
-          expect(manager.evaluateCondition(condition)).toBeTruthy();
+          expect(manager.evaluateConditions(conditions)).toBeTruthy();
         });
       });
 
-      describe('numeric state check', () => {
+      describe('with numeric state condition', () => {
         it('above', () => {
           const manager = new ConditionsManager(createCardAPI());
-          const condition = {
-            numeric_state: [
-              {
-                condition: 'numeric_state' as const,
-                entity: 'sensor.foo',
-                above: 10,
-              },
-            ],
-          };
-          expect(manager.evaluateCondition(condition)).toBeFalsy();
+          const conditions = [
+            {
+              condition: 'numeric_state' as const,
+              entity: 'sensor.foo',
+              above: 10,
+            },
+          ];
+          expect(manager.evaluateConditions(conditions)).toBeFalsy();
           manager.setState({
             state: { 'sensor.foo': createStateEntity({ state: '11' }) },
           });
-          expect(manager.evaluateCondition(condition)).toBeTruthy();
+          expect(manager.evaluateConditions(conditions)).toBeTruthy();
           manager.setState({
             state: { 'binary_sensor.foo': createStateEntity({ state: '9' }) },
           });
-          expect(manager.evaluateCondition(condition)).toBeFalsy();
+          expect(manager.evaluateConditions(conditions)).toBeFalsy();
         });
 
         it('below', () => {
           const manager = new ConditionsManager(createCardAPI());
-          const condition = {
-            numeric_state: [
-              {
-                condition: 'numeric_state' as const,
-                entity: 'sensor.foo',
-                below: 10,
-              },
-            ],
-          };
-          expect(manager.evaluateCondition(condition)).toBeFalsy();
+          const conditions = [
+            {
+              condition: 'numeric_state' as const,
+              entity: 'sensor.foo',
+              below: 10,
+            },
+          ];
+          expect(manager.evaluateConditions(conditions)).toBeFalsy();
           manager.setState({
             state: { 'sensor.foo': createStateEntity({ state: '11' }) },
           });
-          expect(manager.evaluateCondition(condition)).toBeFalsy();
+          expect(manager.evaluateConditions(conditions)).toBeFalsy();
           manager.setState({
             state: { 'sensor.foo': createStateEntity({ state: '9' }) },
           });
-          expect(manager.evaluateCondition(condition)).toBeTruthy();
+          expect(manager.evaluateConditions(conditions)).toBeTruthy();
         });
       });
     });
 
-    it('with users', () => {
+    it('with user condition', () => {
       const manager = new ConditionsManager(createCardAPI());
-      const condition = {
-        users: ['user_1', 'user_2'],
-      };
-      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      const conditions = [
+        {
+          condition: 'user' as const,
+          users: ['user_1', 'user_2'],
+        },
+      ];
+      expect(manager.evaluateConditions(conditions)).toBeFalsy();
       manager.setState({
         user: createUser({ id: 'user_1' }),
       });
-      expect(manager.evaluateCondition(condition)).toBeTruthy();
+      expect(manager.evaluateConditions(conditions)).toBeTruthy();
       manager.setState({
         user: createUser({ id: 'user_WRONG' }),
       });
-      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      expect(manager.evaluateConditions(conditions)).toBeFalsy();
     });
 
-    it('with media_loaded', () => {
+    it('with media loaded condition', () => {
       const manager = new ConditionsManager(createCardAPI());
-      const condition = { media_loaded: true };
-      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      const conditions = [{ condition: 'media_loaded' as const, media_loaded: true }];
+      expect(manager.evaluateConditions(conditions)).toBeFalsy();
       manager.setState({ media_loaded: true });
-      expect(manager.evaluateCondition(condition)).toBeTruthy();
+      expect(manager.evaluateConditions(conditions)).toBeTruthy();
       manager.setState({ media_loaded: false });
-      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      expect(manager.evaluateConditions(conditions)).toBeFalsy();
     });
 
-    describe('with media query', () => {
+    describe('with screen condition', () => {
       const mediaQueryConfig = {
         type: 'custom:frigate-card',
         cameras: [],
         elements: [
           {
             type: 'custom:frigate-card-conditional',
-            conditions: {
-              fullscreen: true,
-            },
+            conditions: [
+              {
+                condition: 'fullscreen' as const,
+                fullscreen: true,
+              },
+            ],
             elements: [
               {
                 type: 'custom:nested-unknown-object',
                 unknown_key: {
                   type: 'custom:frigate-card-conditional',
-                  conditions: {
-                    media_query: 'media query goes here',
-                  },
+                  conditions: [
+                    {
+                      condition: 'screen' as const,
+                      media_query: 'media query goes here',
+                    },
+                  ],
                   elements: [],
                 },
               },
@@ -488,9 +490,9 @@ describe('ConditionsManager', () => {
           .mockReturnValueOnce(<MediaQueryList>{ matches: false });
 
         const manager = new ConditionsManager(createCardAPI());
-        const condition = { media_query: 'whatever' };
-        expect(manager.evaluateCondition(condition)).toBeTruthy();
-        expect(manager.evaluateCondition(condition)).toBeFalsy();
+        const conditions = [{ condition: 'screen' as const, media_query: 'whatever' }];
+        expect(manager.evaluateConditions(conditions)).toBeTruthy();
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
       });
 
       it('on trigger', () => {
@@ -525,107 +527,111 @@ describe('ConditionsManager', () => {
       });
     });
 
-    it('with display mode', () => {
+    it('with display mode condition', () => {
       const manager = new ConditionsManager(createCardAPI());
-      const condition: FrigateCardCondition = { display_mode: 'grid' };
-      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      const conditions = [
+        { condition: 'display_mode' as const, display_mode: 'grid' as const },
+      ];
+      expect(manager.evaluateConditions(conditions)).toBeFalsy();
       manager.setState({ displayMode: 'grid' });
-      expect(manager.evaluateCondition(condition)).toBeTruthy();
+      expect(manager.evaluateConditions(conditions)).toBeTruthy();
       manager.setState({ displayMode: 'single' });
-      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      expect(manager.evaluateConditions(conditions)).toBeFalsy();
     });
 
-    it('with triggers', () => {
+    it('with triggered condition', () => {
       const manager = new ConditionsManager(createCardAPI());
-      const condition: FrigateCardCondition = { triggered: ['camera_1', 'camera_2'] };
-      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      const conditions = [
+        { condition: 'triggered' as const, triggered: ['camera_1', 'camera_2'] },
+      ];
+      expect(manager.evaluateConditions(conditions)).toBeFalsy();
       manager.setState({ triggered: new Set(['camera_1']) });
-      expect(manager.evaluateCondition(condition)).toBeTruthy();
+      expect(manager.evaluateConditions(conditions)).toBeTruthy();
       manager.setState({ triggered: new Set(['camera_2', 'camera_1', 'camera_3']) });
-      expect(manager.evaluateCondition(condition)).toBeTruthy();
+      expect(manager.evaluateConditions(conditions)).toBeTruthy();
       manager.setState({ triggered: new Set(['camera_3']) });
-      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      expect(manager.evaluateConditions(conditions)).toBeFalsy();
     });
 
-    it('with interaction', () => {
+    it('with interaction condition', () => {
       const manager = new ConditionsManager(createCardAPI());
-      const condition: FrigateCardCondition = { interaction: true };
-      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      const conditions = [{ condition: 'interaction' as const, interaction: true }];
+      expect(manager.evaluateConditions(conditions)).toBeFalsy();
       manager.setState({ interaction: true });
-      expect(manager.evaluateCondition(condition)).toBeTruthy();
+      expect(manager.evaluateConditions(conditions)).toBeTruthy();
       manager.setState({ interaction: false });
-      expect(manager.evaluateCondition(condition)).toBeFalsy();
+      expect(manager.evaluateConditions(conditions)).toBeFalsy();
     });
 
-    describe('with microphone', () => {
+    describe('with microphone condition', () => {
       it('empty', () => {
         const manager = new ConditionsManager(createCardAPI());
-        const condition: FrigateCardCondition = { microphone: {} };
-        expect(manager.evaluateCondition(condition)).toBeTruthy();
+        const conditions = [{ condition: 'microphone' as const }];
+        expect(manager.evaluateConditions(conditions)).toBeTruthy();
         manager.setState({ microphone: { connected: true } });
-        expect(manager.evaluateCondition(condition)).toBeTruthy();
+        expect(manager.evaluateConditions(conditions)).toBeTruthy();
         manager.setState({ microphone: { connected: false } });
-        expect(manager.evaluateCondition(condition)).toBeTruthy();
+        expect(manager.evaluateConditions(conditions)).toBeTruthy();
         manager.setState({ microphone: { muted: true } });
-        expect(manager.evaluateCondition(condition)).toBeTruthy();
+        expect(manager.evaluateConditions(conditions)).toBeTruthy();
         manager.setState({ microphone: { muted: false } });
-        expect(manager.evaluateCondition(condition)).toBeTruthy();
+        expect(manager.evaluateConditions(conditions)).toBeTruthy();
       });
 
       it('connected is true', () => {
         const manager = new ConditionsManager(createCardAPI());
-        const condition: FrigateCardCondition = { microphone: { connected: true } };
-        expect(manager.evaluateCondition(condition)).toBeFalsy();
+        const conditions = [{ condition: 'microphone' as const, connected: true }];
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
         manager.setState({ microphone: { connected: true } });
-        expect(manager.evaluateCondition(condition)).toBeTruthy();
+        expect(manager.evaluateConditions(conditions)).toBeTruthy();
         manager.setState({ microphone: { connected: false } });
-        expect(manager.evaluateCondition(condition)).toBeFalsy();
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
       });
 
       it('connected is false', () => {
         const manager = new ConditionsManager(createCardAPI());
-        const condition: FrigateCardCondition = { microphone: { connected: false } };
-        expect(manager.evaluateCondition(condition)).toBeFalsy();
+        const conditions = [{ condition: 'microphone' as const, connected: false }];
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
         manager.setState({ microphone: { connected: true } });
-        expect(manager.evaluateCondition(condition)).toBeFalsy();
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
         manager.setState({ microphone: { connected: false } });
-        expect(manager.evaluateCondition(condition)).toBeTruthy();
+        expect(manager.evaluateConditions(conditions)).toBeTruthy();
       });
 
       it('muted is true', () => {
         const manager = new ConditionsManager(createCardAPI());
-        const condition: FrigateCardCondition = { microphone: { muted: true } };
-        expect(manager.evaluateCondition(condition)).toBeFalsy();
+        const conditions = [{ condition: 'microphone' as const, muted: true }];
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
         manager.setState({ microphone: { muted: true } });
-        expect(manager.evaluateCondition(condition)).toBeTruthy();
+        expect(manager.evaluateConditions(conditions)).toBeTruthy();
         manager.setState({ microphone: { muted: false } });
-        expect(manager.evaluateCondition(condition)).toBeFalsy();
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
       });
 
       it('muted is false', () => {
         const manager = new ConditionsManager(createCardAPI());
-        const condition: FrigateCardCondition = { microphone: { muted: false } };
-        expect(manager.evaluateCondition(condition)).toBeFalsy();
+        const conditions = [{ condition: 'microphone' as const, muted: false }];
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
         manager.setState({ microphone: { muted: true } });
-        expect(manager.evaluateCondition(condition)).toBeFalsy();
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
         manager.setState({ microphone: { muted: false } });
-        expect(manager.evaluateCondition(condition)).toBeTruthy();
+        expect(manager.evaluateConditions(conditions)).toBeTruthy();
       });
 
       it('connected and muted', () => {
         const manager = new ConditionsManager(createCardAPI());
-        const condition: FrigateCardCondition = {
-          microphone: { muted: false, connected: true },
-        };
-        expect(manager.evaluateCondition(condition)).toBeFalsy();
+        const conditions = [
+          { condition: 'microphone' as const, muted: false, connected: true },
+        ];
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
         manager.setState({ microphone: { muted: true } });
-        expect(manager.evaluateCondition(condition)).toBeFalsy();
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
         manager.setState({ microphone: { muted: false } });
-        expect(manager.evaluateCondition(condition)).toBeFalsy();
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
         manager.setState({ microphone: { connected: false, muted: false } });
-        expect(manager.evaluateCondition(condition)).toBeFalsy();
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
         manager.setState({ microphone: { connected: true, muted: false } });
-        expect(manager.evaluateCondition(condition)).toBeTruthy();
+        expect(manager.evaluateConditions(conditions)).toBeTruthy();
       });
     });
   });

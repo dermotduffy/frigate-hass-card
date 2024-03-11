@@ -80,7 +80,10 @@ export const createCamera = (
   return new Camera(config, engine, { capabilities: capabilities });
 };
 
-export const createHASS = (states?: HassEntities, user?: CurrentUser): ExtendedHomeAssistant => {
+export const createHASS = (
+  states?: HassEntities,
+  user?: CurrentUser,
+): ExtendedHomeAssistant => {
   const hass = mock<ExtendedHomeAssistant>();
   if (states) {
     hass.states = states;

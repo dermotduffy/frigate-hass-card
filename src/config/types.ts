@@ -401,7 +401,7 @@ const imageSchema = elementsBaseSchema.extend({
 });
 
 // https://www.home-assistant.io/dashboards/conditional/#state
-const stateCondition = z.object({
+const stateConditionSchema = z.object({
   condition: z.literal('state'),
   entity: z.string(),
   state: z.string().or(z.string().array()).optional(),
@@ -409,38 +409,36 @@ const stateCondition = z.object({
 });
 
 // https://www.home-assistant.io/dashboards/conditional/#numeric-state
-const numericCondition = z.object({
+const numericStateConditionSchema = z.object({
   condition: z.literal('numeric_state'),
   entity: z.string(),
   above: z.number().optional(),
   below: z.number().optional(),
 });
 
-const mediaQuerySchema = z.string();
-
 // https://www.home-assistant.io/dashboards/conditional/#screen
-const screenCondition = z.object({
+const screenConditionSchema = z.object({
   condition: z.literal('screen'),
-  media_query: mediaQuerySchema,
+  media_query: z.string(),
 });
 
 // https://www.home-assistant.io/dashboards/conditional/#user
-const usersCondition = z.object({
+const usersConditionSchema = z.object({
   condition: z.literal('user'),
   users: z.string().array().min(1),
 });
 
-const stockCondition = z.union([
-  stateCondition,
-  numericCondition,
-  screenCondition,
-  usersCondition,
+const stockConditionSchema = z.discriminatedUnion('condition', [
+  stateConditionSchema,
+  numericStateConditionSchema,
+  screenConditionSchema,
+  usersConditionSchema,
 ]);
 
 // https://www.home-assistant.io/lovelace/picture-elements/#image-element
 export const conditionalSchema = z.object({
   type: z.literal('conditional'),
-  conditions: stockCondition.array(),
+  conditions: stockConditionSchema.array(),
   elements: z.lazy(() => pictureElementsSchema),
 });
 
@@ -516,32 +514,67 @@ export type MenuItem = MenuIcon | MenuStateIcon | MenuSubmenu | MenuSubmenuSelec
 //                  Custom Element Configuration: Conditions
 // *************************************************************************
 
+const viewConditionSchema = z.object({
+  condition: z.literal('view'),
+  views: z.string().array(),
+});
+const fullscreenConditionSchema = z.object({
+  condition: z.literal('fullscreen'),
+  fullscreen: z.boolean(),
+});
+const expandConditionSchema = z.object({
+  condition: z.literal('expand'),
+  expand: z.boolean(),
+});
+const cameraConditionSchema = z.object({
+  condition: z.literal('camera'),
+  cameras: z.string().array(),
+});
+const mediaLoadedConditionSchema = z.object({
+  condition: z.literal('media_loaded'),
+  media_loaded: z.boolean(),
+});
+const displayModeConditionSchema = z.object({
+  condition: z.literal('display_mode'),
+  display_mode: viewDisplayModeSchema,
+});
+const triggeredConditionSchema = z.object({
+  condition: z.literal('triggered'),
+  triggered: z.string().array(),
+});
+const interactionConditionSchema = z.object({
+  condition: z.literal('interaction'),
+  interaction: z.boolean(),
+});
 const microphoneConditionSchema = z.object({
+  condition: z.literal('microphone'),
   connected: z.boolean().optional(),
   muted: z.boolean().optional(),
 });
-export type MicrophoneConditionState = z.infer<typeof microphoneConditionSchema>;
 
-export const frigateCardConditionSchema = z.object({
-  view: z.string().array().optional(),
-  fullscreen: z.boolean().optional(),
-  expand: z.boolean().optional(),
-  camera: z.string().array().optional(),
-  media_loaded: z.boolean().optional(),
-  state: stateCondition.array().optional(),
-  numeric_state: numericCondition.array().optional(),
-  media_query: mediaQuerySchema.optional(),
-  display_mode: viewDisplayModeSchema.optional(),
-  triggered: z.string().array().optional(),
-  interaction: z.boolean().optional(),
-  microphone: microphoneConditionSchema.optional(),
-  users: z.string().array().optional()
-});
+export const frigateCardConditionSchema = z.discriminatedUnion('condition', [
+  // Stock conditions:
+  stateConditionSchema,
+  numericStateConditionSchema,
+  screenConditionSchema,
+  usersConditionSchema,
+
+  // Custom conditions:
+  viewConditionSchema,
+  fullscreenConditionSchema,
+  expandConditionSchema,
+  cameraConditionSchema,
+  mediaLoadedConditionSchema,
+  displayModeConditionSchema,
+  triggeredConditionSchema,
+  interactionConditionSchema,
+  microphoneConditionSchema,
+]);
 export type FrigateCardCondition = z.infer<typeof frigateCardConditionSchema>;
 
 export const frigateConditionalSchema = z.object({
   type: z.literal('custom:frigate-card-conditional'),
-  conditions: frigateCardConditionSchema,
+  conditions: frigateCardConditionSchema.array(),
   elements: z.lazy(() => pictureElementsSchema),
 });
 export type FrigateConditional = z.infer<typeof frigateConditionalSchema>;
@@ -1034,7 +1067,7 @@ export type LiveConfig = z.infer<typeof liveConfigSchema>;
 
 const liveOverridesSchema = z
   .object({
-    conditions: frigateCardConditionSchema,
+    conditions: frigateCardConditionSchema.array(),
     overrides: liveOverridableConfigSchema,
   })
   .array()
@@ -1551,7 +1584,7 @@ export type OverrideConfigurationKey = keyof z.infer<typeof overrideConfiguratio
 
 const overridesSchema = z
   .object({
-    conditions: frigateCardConditionSchema,
+    conditions: frigateCardConditionSchema.array(),
     overrides: overrideConfigurationSchema,
   })
   .array()
@@ -1565,7 +1598,7 @@ const automationActionSchema = actionSchema.array();
 export type AutomationActions = z.infer<typeof automationActionSchema>;
 
 const automationSchema = z.object({
-  conditions: frigateCardConditionSchema,
+  conditions: frigateCardConditionSchema.array(),
   actions: automationActionSchema.optional(),
   actions_not: automationActionSchema.optional(),
 });

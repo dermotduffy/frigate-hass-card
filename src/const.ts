@@ -1,6 +1,8 @@
 export const REPO_URL = 'https://github.com/dermotduffy/frigate-hass-card' as const;
 export const TROUBLESHOOTING_URL = `${REPO_URL}#troubleshooting` as const;
 
+export const CONF_AUTOMATIONS = 'automations' as const;
+
 export const CONF_CAMERAS = 'cameras' as const;
 export const CONF_CAMERAS_ARRAY_CAMERA_ENTITY =
   `${CONF_CAMERAS}.#.camera_entity` as const;

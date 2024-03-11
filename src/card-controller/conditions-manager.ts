@@ -5,12 +5,16 @@ import { copyConfig } from '../config-mgmt';
 import {
   FrigateCardCondition,
   frigateConditionalSchema,
-  MicrophoneConditionState,
   OverrideConfigurationKey,
   RawFrigateCardConfig,
   ViewDisplayMode,
 } from '../config/types';
 import { CardConditionAPI } from './types';
+
+interface MicrophoneConditionState {
+  connected?: boolean;
+  muted?: boolean;
+}
 
 interface ConditionState {
   view?: string;
@@ -26,13 +30,13 @@ interface ConditionState {
   user?: CurrentUser;
 }
 
-export class ConditionEvaluateRequestEvent extends Event {
-  public condition: FrigateCardCondition;
+export class ConditionsEvaluateRequestEvent extends Event {
+  public conditions: FrigateCardCondition[];
   public evaluation?: boolean;
 
-  constructor(condition: FrigateCardCondition, eventInitDict?: EventInit) {
-    super('frigate-card:condition:evaluate', eventInitDict);
-    this.condition = condition;
+  constructor(conditions: FrigateCardCondition[], eventInitDict?: EventInit) {
+    super('frigate-card:conditions:evaluate', eventInitDict);
+    this.conditions = conditions;
   }
 }
 
@@ -42,13 +46,13 @@ export class ConditionEvaluateRequestEvent extends Event {
  */
 export function evaluateConditionViaEvent(
   element: HTMLElement,
-  condition?: FrigateCardCondition,
+  conditions?: FrigateCardCondition[],
 ): boolean {
-  if (!condition) {
+  if (!conditions) {
     return true;
   }
 
-  const evaluateEvent = new ConditionEvaluateRequestEvent(condition, {
+  const evaluateEvent = new ConditionsEvaluateRequestEvent(conditions, {
     bubbles: true,
     composed: true,
   });
@@ -70,7 +74,7 @@ export function evaluateConditionViaEvent(
 }
 
 type RawOverrides = {
-  conditions: FrigateCardCondition;
+  conditions: FrigateCardCondition[];
   overrides: RawFrigateCardConfig;
 }[];
 
@@ -84,7 +88,7 @@ export function getOverriddenConfig(
   let overridden = false;
   if (configOverrides) {
     for (const override of configOverrides) {
-      if (manager.evaluateCondition(override.conditions, stateOverrides)) {
+      if (manager.evaluateConditions(override.conditions, stateOverrides)) {
         merge(output, override.overrides);
         overridden = true;
       }
@@ -156,7 +160,7 @@ export class ConditionsManager {
     const getAllConditions = (): FrigateCardCondition[] => {
       const config = this._api.getConfigManager().getConfig();
       const conditions: FrigateCardCondition[] = [];
-      config?.overrides?.forEach((override) => conditions.push(override.conditions));
+      config?.overrides?.forEach((override) => conditions.push(...override.conditions));
 
       // Element conditions can be arbitrarily nested underneath conditionals and
       // custom elements that this card may not known. Here we recursively parse
@@ -164,7 +168,7 @@ export class ConditionsManager {
       const getElementsConditions = (data: unknown): void => {
         const parseResult = frigateConditionalSchema.safeParse(data);
         if (parseResult.success) {
-          conditions.push(parseResult.data.conditions);
+          conditions.push(...parseResult.data.conditions);
           parseResult.data.elements?.forEach(getElementsConditions);
         } else if (data && typeof data === 'object') {
           Object.keys(data).forEach((key) => getElementsConditions(data[key]));
@@ -175,15 +179,12 @@ export class ConditionsManager {
     };
 
     const conditions = getAllConditions();
-    this._hasHAStateConditions = conditions.some(
-      (condition) =>
-        !!condition.state?.length ||
-        !!condition.numeric_state?.length ||
-        !!condition.users?.length,
+    this._hasHAStateConditions = conditions.some((conditionObj) =>
+      ['state', 'numeric_state', 'user'].includes(conditionObj.condition),
     );
-    conditions.forEach((condition) => {
-      if (condition.media_query) {
-        const mql = window.matchMedia(condition.media_query);
+    conditions.forEach((conditionObj) => {
+      if (conditionObj.condition === 'screen') {
+        const mql = window.matchMedia(conditionObj.media_query);
         mql.addEventListener('change', this._mediaQueryTrigger);
         this._mediaQueries.push(mql);
       }
@@ -210,8 +211,17 @@ export class ConditionsManager {
     return this._epoch;
   }
 
-  public evaluateCondition(
-    condition: Readonly<FrigateCardCondition>,
+  public evaluateConditions(
+    conditions: Readonly<FrigateCardCondition>[],
+    stateOverrides?: Partial<ConditionState>,
+  ): boolean {
+    return conditions.every((conditionObj) =>
+      this._evaluateCondition(conditionObj, stateOverrides),
+    );
+  }
+
+  protected _evaluateCondition(
+    conditionObj: Readonly<FrigateCardCondition>,
     stateOverrides?: Partial<ConditionState>,
   ): boolean {
     const state = {
@@ -219,79 +229,71 @@ export class ConditionsManager {
       ...stateOverrides,
     };
 
-    let result = true;
-    if (condition.view?.length) {
-      result &&= !!state?.view && condition.view.includes(state.view);
-    }
-    if (condition.fullscreen !== undefined) {
-      result &&=
-        state.fullscreen !== undefined && condition.fullscreen === state.fullscreen;
-    }
-    if (condition.expand !== undefined) {
-      result &&= state.expand !== undefined && condition.expand === state.expand;
-    }
-    if (condition.camera?.length) {
-      result &&= !!state.camera && condition.camera.includes(state.camera);
-    }
-    if (condition.state?.length) {
-      for (const stateTest of condition.state) {
-        result &&=
+    switch (conditionObj.condition) {
+      case 'view':
+        return !!state?.view && conditionObj.views.includes(state.view);
+      case 'fullscreen':
+        return (
+          state.fullscreen !== undefined && conditionObj.fullscreen === state.fullscreen
+        );
+      case 'expand':
+        return state.expand !== undefined && conditionObj.expand === state.expand;
+      case 'camera':
+        return !!state.camera && conditionObj.cameras.includes(state.camera);
+      case 'state':
+        return (
           !!state.state &&
-          ((!stateTest.state && !stateTest.state_not) ||
-            (stateTest.entity in state.state &&
-              (!stateTest.state ||
-                (Array.isArray(stateTest.state)
-                  ? stateTest.state.includes(state.state[stateTest.entity].state)
-                  : stateTest.state === state.state[stateTest.entity].state)) &&
-              (!stateTest.state_not ||
-                (Array.isArray(stateTest.state_not)
-                  ? !stateTest.state_not.includes(state.state[stateTest.entity].state)
-                  : stateTest.state_not !== state.state[stateTest.entity].state))));
-      }
-    }
-    if (condition.numeric_state?.length) {
-      for (const stateTest of condition.numeric_state) {
-        result &&=
+          ((!conditionObj.state && !conditionObj.state_not) ||
+            (conditionObj.entity in state.state &&
+              (!conditionObj.state ||
+                (Array.isArray(conditionObj.state)
+                  ? conditionObj.state.includes(state.state[conditionObj.entity].state)
+                  : conditionObj.state === state.state[conditionObj.entity].state)) &&
+              (!conditionObj.state_not ||
+                (Array.isArray(conditionObj.state_not)
+                  ? !conditionObj.state_not.includes(
+                      state.state[conditionObj.entity].state,
+                    )
+                  : conditionObj.state_not !== state.state[conditionObj.entity].state))))
+        );
+      case 'numeric_state':
+        return (
           !!state.state &&
-          stateTest.entity in state.state &&
-          state.state[stateTest.entity].state !== undefined &&
-          (stateTest.above === undefined ||
-            Number(state.state[stateTest.entity].state) > stateTest.above) &&
-          (stateTest.below === undefined ||
-            Number(state.state[stateTest.entity].state) < stateTest.below);
-      }
+          conditionObj.entity in state.state &&
+          state.state[conditionObj.entity].state !== undefined &&
+          (conditionObj.above === undefined ||
+            Number(state.state[conditionObj.entity].state) > conditionObj.above) &&
+          (conditionObj.below === undefined ||
+            Number(state.state[conditionObj.entity].state) < conditionObj.below)
+        );
+      case 'user':
+        return !!state.user && conditionObj.users.includes(state.user.id);
+      case 'media_loaded':
+        return (
+          state.media_loaded !== undefined &&
+          conditionObj.media_loaded === state.media_loaded
+        );
+      case 'screen':
+        return window.matchMedia(conditionObj.media_query).matches;
+      case 'display_mode':
+        return !!state.displayMode && conditionObj.display_mode === state.displayMode;
+      case 'triggered':
+        return conditionObj.triggered.some((triggeredCameraID) =>
+          state.triggered?.has(triggeredCameraID),
+        );
+      case 'interaction':
+        return (
+          state.interaction !== undefined &&
+          conditionObj.interaction === state.interaction
+        );
+      case 'microphone':
+        return (
+          (conditionObj.connected === undefined ||
+            state.microphone?.connected === conditionObj.connected) &&
+          (conditionObj.muted === undefined ||
+            state.microphone?.muted === conditionObj.muted)
+        );
     }
-    if (condition.users?.length) {
-      result &&= !!state.user && condition.users.includes(state.user.id);
-    }
-    if (condition.media_loaded !== undefined) {
-      result &&=
-        state.media_loaded !== undefined &&
-        condition.media_loaded === state.media_loaded;
-    }
-    if (condition.media_query) {
-      result &&= window.matchMedia(condition.media_query).matches;
-    }
-    if (condition.display_mode) {
-      result &&= !!state.displayMode && condition.display_mode === state.displayMode;
-    }
-    if (condition.triggered?.length) {
-      result &&= condition.triggered.some((triggeredCameraID) =>
-        state.triggered?.has(triggeredCameraID),
-      );
-    }
-    if (condition.interaction !== undefined) {
-      result &&=
-        state.interaction !== undefined && condition.interaction === state.interaction;
-    }
-    if (condition.microphone) {
-      result &&=
-        (condition.microphone.connected === undefined ||
-          state.microphone?.connected === condition.microphone.connected) &&
-        (condition.microphone.muted === undefined ||
-          state.microphone?.muted === condition.microphone.muted);
-    }
-    return result;
   }
 
   protected _createEpoch(): ConditionsManagerEpoch {
