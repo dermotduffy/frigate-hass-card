@@ -39,6 +39,7 @@ import {
   FrigateCardView,
   ThumbnailsControlBaseConfig,
   TimelineCoreConfig,
+  TimelinePanMode,
 } from '../config/types';
 import { localize } from '../localize/localize';
 import timelineCoreStyle from '../scss/timeline-core.scss';
@@ -86,11 +87,9 @@ interface TimelineRangeChange extends TimelineWindow {
 
 interface TimelineViewContext {
   window?: TimelineWindow;
-  panBehavior?: TimelinePanBehavior;
 }
 
 type TimelineItemClickAction = 'play' | 'select';
-type TimelinePanBehavior = 'pan' | 'seek' | 'seek-in-media' | 'seek-in-camera';
 
 declare module 'view' {
   interface ViewContext {
@@ -214,7 +213,7 @@ export class FrigateCardTimelineCore extends LitElement {
   public itemClickAction?: TimelineItemClickAction;
 
   @state()
-  protected _panBehavior: TimelinePanBehavior = 'seek';
+  protected _panMode: TimelinePanMode | null = null;
 
   protected _targetBarVisible = false;
 
@@ -288,20 +287,22 @@ export class FrigateCardTimelineCore extends LitElement {
     }
 
     const capabilities = this.cameraManager?.getAggregateCameraCapabilities(cameraIDs);
+    const panMode = this._getEffectivePanMode();
+
     const panTitle =
-      this._panBehavior === 'pan'
-        ? localize('timeline.pan_behavior.pan')
-        : this._panBehavior === 'seek'
-        ? localize('timeline.pan_behavior.seek')
-        : this._panBehavior === 'seek-in-media'
-        ? localize('timeline.pan_behavior.seek-in-media')
-        : localize('timeline.pan_behavior.seek-in-camera');
+      panMode === 'pan'
+        ? localize('config.common.controls.timeline.pan_modes.pan')
+        : panMode === 'seek'
+        ? localize('config.common.controls.timeline.pan_modes.seek')
+        : panMode === 'seek-in-media'
+        ? localize('config.common.controls.timeline.pan_modes.seek-in-media')
+        : localize('config.common.controls.timeline.pan_modes.seek-in-camera');
     const panIcon =
-      this._panBehavior === 'pan'
+      panMode === 'pan'
         ? 'mdi:pan-horizontal'
-        : this._panBehavior === 'seek'
+        : panMode === 'seek'
         ? 'mdi:filmstrip-box-multiple'
-        : this._panBehavior === 'seek-in-media'
+        : panMode === 'seek-in-media'
         ? 'mdi:play-box-lock'
         : 'mdi:camera-lock';
 
@@ -318,12 +319,12 @@ export class FrigateCardTimelineCore extends LitElement {
               ? html` <ha-icon
                   .icon=${panIcon}
                   @click=${() => {
-                    this._panBehavior =
-                      this._panBehavior === 'pan'
+                    this._panMode =
+                      panMode === 'pan'
                         ? 'seek'
-                        : this._panBehavior === 'seek'
+                        : panMode === 'seek'
                         ? 'seek-in-media'
-                        : this._panBehavior === 'seek-in-media'
+                        : panMode === 'seek-in-media'
                         ? 'seek-in-camera'
                         : 'pan';
                   }}
@@ -404,15 +405,15 @@ export class FrigateCardTimelineCore extends LitElement {
       return;
     }
 
+    const panMode = this._getEffectivePanMode();
     const targetBarOn =
       this._shouldSupportSeeking() &&
-      (this._panBehavior === 'seek' ||
-        this._panBehavior === 'seek-in-camera' ||
-        (this._panBehavior === 'seek-in-media' &&
+      (panMode === 'seek' ||
+        ((panMode === 'seek-in-camera' || panMode === 'seek-in-media') &&
           this._timeline.getSelection().some((id) => {
             const item = this._timelineSource?.dataset?.get(id);
             return (
-              this._panBehavior !== 'seek-in-camera' ||
+              panMode !== 'seek-in-camera' ||
                 item?.media?.getCameraID() === this.view?.camera,
               item &&
                 item.start &&
@@ -473,6 +474,7 @@ export class FrigateCardTimelineCore extends LitElement {
   ): Promise<void> {
     const results = this.view?.queryResults;
     const media = results?.getResults();
+    const panMode = this._getEffectivePanMode();
     if (
       !media ||
       !results ||
@@ -480,7 +482,7 @@ export class FrigateCardTimelineCore extends LitElement {
       !this.view ||
       !this.hass ||
       !this.cameraManager ||
-      this._panBehavior === 'pan'
+      panMode === 'pan'
     ) {
       return;
     }
@@ -488,7 +490,7 @@ export class FrigateCardTimelineCore extends LitElement {
     const canSeek = this._shouldSupportSeeking();
     let newResults: MediaQueriesResults | null = null;
 
-    if (this._panBehavior === 'seek') {
+    if (panMode === 'seek') {
       newResults = results
         .clone()
         .resetSelectedResult()
@@ -499,7 +501,7 @@ export class FrigateCardTimelineCore extends LitElement {
             main: true,
           },
         );
-    } else if (this._panBehavior === 'seek-in-camera') {
+    } else if (panMode === 'seek-in-camera') {
       newResults = results
         .clone()
         .resetSelectedResult()
@@ -507,7 +509,7 @@ export class FrigateCardTimelineCore extends LitElement {
           cameraID: this.view.camera,
         })
         .promoteCameraSelectionToMainSelection(this.view.camera);
-    } else if (this._panBehavior === 'seek-in-media') {
+    } else if (panMode === 'seek-in-media') {
       newResults = results;
     }
 
@@ -529,6 +531,10 @@ export class FrigateCardTimelineCore extends LitElement {
         ...this._getTimelineContext({ start: properties.start, end: properties.end }),
       })
       .dispatchChangeEvent(this);
+  }
+
+  protected _getEffectivePanMode(): TimelinePanMode {
+    return this._panMode ?? this.timelineConfig?.pan_mode ?? 'pan';
   }
 
   /**
@@ -988,10 +994,6 @@ export class FrigateCardTimelineCore extends LitElement {
         : null;
     const context = this.view.context?.timeline;
 
-    if (context && context.panBehavior) {
-      this._panBehavior = context.panBehavior;
-    }
-
     if (context && context.window) {
       desiredWindow = context.window;
     } else if (mediaWindow && !rangesOverlap(mediaWindow, timelineWindow)) {
@@ -1107,7 +1109,6 @@ export class FrigateCardTimelineCore extends LitElement {
     return {
       timeline: {
         ...this.view?.context?.timeline,
-        panBehavior: this._panBehavior,
         ...(newWindow && { window: newWindow }),
       },
     };

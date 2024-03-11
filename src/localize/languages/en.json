@@ -173,6 +173,13 @@
             "above": "Above",
             "below": "Below",
             "none": "None"
+          },
+          "pan_mode": "Default pan mode",
+          "pan_modes": {
+            "pan": "Pan",
+            "seek": "Pan seeks across all media",
+            "seek-in-camera": "Pan seeks within selected camera only",
+            "seek-in-media": "Pan seeks within selected media item only"
           }
         },
         "title": {
@@ -589,12 +596,6 @@
     "timeline": "See media in timeline"
   },
   "timeline": {
-    "pan_behavior": {
-      "pan": "Pan",
-      "seek": "Pan seeks across all media",
-      "seek-in-camera": "Pan seeks within selected camera only",
-      "seek-in-media": "Pan seeks within selected media item only"
-    },
     "select_date": "Choose date"
   }
 }

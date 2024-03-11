@@ -163,6 +163,8 @@ export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE =
   `${CONF_MEDIA_VIEWER}.controls.timeline.events_media_type` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE =
   `${CONF_MEDIA_VIEWER}.controls.timeline.mode` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_PAN_MODE =
+  `${CONF_MEDIA_VIEWER}.controls.timeline.pan_mode` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS =
   `${CONF_MEDIA_VIEWER}.controls.timeline.show_recordings` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE =
@@ -219,6 +221,8 @@ export const CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE =
   `${CONF_LIVE}.controls.timeline.events_media_type` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_MODE =
   `${CONF_LIVE}.controls.timeline.mode` as const;
+export const CONF_LIVE_CONTROLS_TIMELINE_PAN_MODE =
+  `${CONF_LIVE}.controls.timeline.pan_mode` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS =
   `${CONF_LIVE}.controls.timeline.show_recordings` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_STYLE =

@@ -28,8 +28,8 @@
         "editor_label": "Opzioni di dipendenza"
       },
       "dimensions": {
-        "editor_label": "",
         "aspect_ratio": "",
+        "editor_label": "",
         "layout": {
           "fit": "Adatta al layout",
           "fits": {
@@ -172,6 +172,13 @@
             "above": "sopra",
             "below": "sotto",
             "none": "sessuna"
+          },
+          "pan_mode": "",
+          "pan_modes": {
+            "pan": "",
+            "seek": "",
+            "seek-in-camera": "",
+            "seek-in-media": ""
           }
         },
         "title": {
@@ -577,12 +584,6 @@
     "timeline": "Vedi evento nella timeline"
   },
   "timeline": {
-    "pan_behavior": {
-      "pan": "",
-      "seek": "",
-      "seek-in-camera": "",
-      "seek-in-media": ""
-    },
     "select_date": "Scegli la data"
   }
 }
