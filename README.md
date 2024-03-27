@@ -4381,6 +4381,18 @@ Unfortunately, [iOS does not support the Javascript fullscreen
 API](https://caniuse.com/fullscreen). As a result, card-level fullscreen support
 for the iPhone is not currently possible.
 
+### Large downloads don't work
+
+Downloads are assembled by the Frigate backend out of ~10s segment files. You
+must have enough cache space in your Frigate instance to allow this assembly to
+happen -- if downloads don't work, especially for recordings, check your Frigate
+backend logs to see if it's running out of space. You can increase your cache
+size with the `tmpfs` `size` argument, see [Frigate
+documentation](https://docs.frigate.video/frigate/installation#docker).
+
+Large downloads may take a few seconds to assemble, so there may be a delay
+between clicking the download button and the download starting.
+
 ### Android Will Not Render >4 JSMPEG Live Views
 
 Android Webview (as used by Android Chrome / Android Home Assistant Companion)
@@ -4524,6 +4536,6 @@ The Home Assistant container will get preconfigured during first initialization,
 1. Hit 'Publish release'.
 
 ### Translations
-[![translation badge](https://inlang.com/badge?url=github.com/dermotduffy/frigate-hass-card)](https://inlang.com/editor/github.com/dermotduffy/frigate-hass-card?ref=badge)
+[![translation badge](https://badge.inlang.com/?url=github.com/dermotduffy/frigate-hass-card)](https://fink.inlang.com/github.com/dermotduffy/frigate-hass-card?ref=badge)
 
 To add translations, you can manually edit the JSON translation files in `src/localize/languages`, use the [inlang](https://inlang.com/) online editor, or run `yarn machine-translate` to add missing translations using AI from Inlang.
