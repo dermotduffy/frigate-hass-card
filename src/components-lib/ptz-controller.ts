@@ -137,7 +137,7 @@ export class PTZController {
 
     const ptzCapabilities = this._cameraManager.getCameraCapabilities(
       this._cameraID,
-    )?.ptz;
+    )?.getPTZCapabilities();
 
     const defaultActions: FrigateCardPTZActions = {};
     const panTilt = ptzCapabilities?.panTilt;

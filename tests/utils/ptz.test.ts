@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { FrigateCardPTZConfig, frigateCardPTZSchema } from '../../src/config/types';
 import { hasUsablePTZ } from '../../src/utils/ptz';
-import { createCameraCapabilities } from '../test-utils';
+import { createCapabilities } from '../test-utils';
 
 const createPTZConfig = (
   config?: Partial<FrigateCardPTZConfig>,
@@ -13,7 +13,7 @@ describe('hasUsablePTZ', () => {
   it('should return true with manual actions', () => {
     expect(
       hasUsablePTZ(
-        createCameraCapabilities(),
+        createCapabilities(),
         createPTZConfig({
           actions_left: {},
         }),
@@ -23,14 +23,16 @@ describe('hasUsablePTZ', () => {
   it('should return true with capabilities', () => {
     expect(
       hasUsablePTZ(
-        createCameraCapabilities({
-          ptz: {},
+        createCapabilities({
+          ptz: {
+            panTilt: ['continuous'],
+          },
         }),
         createPTZConfig(),
       ),
     ).toBeTruthy();
   });
   it('should return false with manual actions or capabilities', () => {
-    expect(hasUsablePTZ(createCameraCapabilities(), createPTZConfig())).toBeFalsy();
+    expect(hasUsablePTZ(createCapabilities(), createPTZConfig())).toBeFalsy();
   });
 });

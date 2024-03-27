@@ -159,14 +159,22 @@ export class FrigateCardSurround extends LitElement {
   }
 
   protected _getCameraIDsForTimeline(): Set<string> | null {
-    if (!this.view) {
+    if (!this.view || !this.cameraManager) {
       return null;
     }
-    if (this.view?.is('live')) {
-      return this.view.isGrid()
-        ? this.cameraManager?.getStore().getVisibleCameraIDs() ?? null
-        : this.cameraManager?.getStore().getAllDependentCameras(this.view.camera) ??
-            null;
+    if (this.view.is('live')) {
+      const capabilitySearch = {
+        anyCapabilities: ['clips' as const, 'snapshots' as const, 'recordings' as const],
+      };
+      if (this.view.supportsMultipleDisplayModes() && this.view.isGrid()) {
+        return this.cameraManager
+          .getStore()
+          .getCameraIDsWithCapability(capabilitySearch);
+      } else {
+        return this.cameraManager
+          .getStore()
+          .getAllDependentCameras(this.view.camera, capabilitySearch);
+      }
     }
     if (this.view.isViewerView()) {
       return this.view.query?.getQueryCameraIDs() ?? null;

@@ -10,7 +10,7 @@ import { MemoryRequestCache, RecordingSegmentsCache, RequestCache } from './cach
 import { CameraManagerEngine } from './engine';
 import { CameraInitializationError } from './error';
 import { CameraEventCallback, Engine } from './types';
-import { getCameraEntityFromConfig } from './utils';
+import { getCameraEntityFromConfig } from './utils/camera-entity-from-config';
 
 export class CameraManagerEngineFactory {
   protected _entityRegistryManager: EntityRegistryManager;
@@ -24,7 +24,10 @@ export class CameraManagerEngineFactory {
     this._resolvedMediaCache = resolvedMediaCache;
   }
 
-  public async createEngine(engine: Engine, eventCallback?: CameraEventCallback): Promise<CameraManagerEngine> {
+  public async createEngine(
+    engine: Engine,
+    eventCallback?: CameraEventCallback,
+  ): Promise<CameraManagerEngine> {
     let cameraManagerEngine: CameraManagerEngine;
     switch (engine) {
       case Engine.Generic:

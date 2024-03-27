@@ -14,6 +14,7 @@ import { ResolvedMediaCache, resolveMedia } from '../../utils/ha/resolved-media'
 import { ViewMedia } from '../../view/media';
 import { RequestCache } from '../cache';
 import { Camera } from '../camera';
+import { Capabilities } from '../capabilities';
 import { CameraManagerEngine } from '../engine';
 import { GenericCameraManagerEngine } from '../generic/engine-generic';
 import { rangesOverlap } from '../range';
@@ -142,15 +143,23 @@ export class BrowseMediaCameraManagerEngine
     cameraConfig: CameraConfig,
   ): Promise<Camera> {
     const camera = new BrowseMediaCamera(cameraConfig, this, {
-      capabilities: {
-        canFavoriteEvents: false,
-        canFavoriteRecordings: false,
-        canSeek: false,
-        supportsClips: true,
-        supportsRecordings: false,
-        supportsSnapshots: true,
-        supportsTimeline: true,
-      },
+      capabilities: new Capabilities(
+        {
+          'favorite-events': false,
+          'favorite-recordings': false,
+          clips: true,
+          live: true,
+          menu: true,
+          recordings: false,
+          seek: false,
+          snapshots: true,
+          substream: true,
+        },
+        {
+          disable: cameraConfig.capabilities?.disable,
+          disableExcept: cameraConfig.capabilities?.disable_except,
+        },
+      ),
       eventCallback: this._eventCallback,
     });
     return await camera.initialize(hass, entityRegistryManager);

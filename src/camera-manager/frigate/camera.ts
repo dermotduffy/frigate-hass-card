@@ -2,14 +2,15 @@ import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import uniq from 'lodash-es/uniq';
 import { CameraConfig } from '../../config/types';
 import { localize } from '../../localize/localize';
+import { PTZCapabilities, PTZMovementType } from '../../types';
 import { errorToConsole } from '../../utils/basic';
 import { subscribeToTrigger } from '../../utils/ha';
 import { EntityRegistryManager } from '../../utils/ha/entity-registry';
 import { Entity } from '../../utils/ha/entity-registry/types';
 import { Camera } from '../camera';
+import { Capabilities } from '../capabilities';
 import { CameraInitializationError } from '../error';
-import { PTZCapabilities, PTZMovementType } from '../types';
-import { getCameraEntityFromConfig } from '../utils.js';
+import { getCameraEntityFromConfig } from '../utils/camera-entity-from-config';
 import { getPTZInfo } from './requests';
 import { PTZInfo, frigateEventChangeTriggerResponseSchema } from './types';
 
@@ -98,16 +99,24 @@ export class FrigateCamera extends Camera {
     const config = this.getConfig();
     const ptz = await this._getPTZCapabilities(hass, config);
     const birdseye = isBirdseye(config);
-    this._capabilities = {
-      canFavoriteEvents: !birdseye,
-      canFavoriteRecordings: !birdseye,
-      canSeek: true,
-      supportsClips: !birdseye,
-      supportsSnapshots: !birdseye,
-      supportsRecordings: !birdseye,
-      supportsTimeline: !birdseye,
-      ...(ptz && { ptz: ptz }),
-    };
+    this._capabilities = new Capabilities(
+      {
+        'favorite-events': !birdseye,
+        'favorite-recordings': false,
+        seek: !birdseye,
+        clips: !birdseye,
+        snapshots: !birdseye,
+        recordings: !birdseye,
+        live: true,
+        menu: true,
+        substream: true,
+        ...(ptz && { ptz: ptz }),
+      },
+      {
+        disable: config.capabilities?.disable,
+        disableExcept: config.capabilities?.disable_except,
+      },
+    );
   }
 
   protected _getFrigateCameraNameFromEntity(entity: Entity): string | null {

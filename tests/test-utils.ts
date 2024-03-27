@@ -3,6 +3,7 @@ import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
 import { expect, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { Camera } from '../src/camera-manager/camera';
+import { Capabilities } from '../src/camera-manager/capabilities';
 import { CameraManagerEngine } from '../src/camera-manager/engine';
 import { FrigateEvent, FrigateRecording } from '../src/camera-manager/frigate/types';
 import { GenericCameraManagerEngine } from '../src/camera-manager/generic/engine-generic';
@@ -10,10 +11,9 @@ import { CameraManager } from '../src/camera-manager/manager';
 import { CameraManagerStore } from '../src/camera-manager/store';
 import {
   CameraEventCallback,
-  CameraManagerCameraCapabilities,
-  CameraManagerCapabilities,
   CameraManagerMediaCapabilities,
 } from '../src/camera-manager/types';
+import { CapabilitiesRaw } from '../src/types';
 import { ActionsManager } from '../src/card-controller/actions-manager';
 import { AutoUpdateManager } from '../src/card-controller/auto-update-manager';
 import { AutomationsManager } from '../src/card-controller/automations-manager';
@@ -75,7 +75,7 @@ export const createConfig = (config?: RawFrigateCardConfig): FrigateCardConfig =
 export const createCamera = (
   config: CameraConfig,
   engine: CameraManagerEngine,
-  capabilities?: CameraManagerCameraCapabilities,
+  capabilities?: Capabilities,
 ): Camera => {
   return new Camera(config, engine, { capabilities: capabilities });
 };
@@ -185,7 +185,7 @@ export const createStore = (
     cameraID: string;
     engine?: CameraManagerEngine;
     config?: CameraConfig;
-    capabilities?: CameraManagerCameraCapabilities;
+    capabilities?: Capabilities | null;
     eventCallback?: CameraEventCallback;
   }[],
 ): CameraManagerStore => {
@@ -196,7 +196,10 @@ export const createStore = (
       cameraProps.config ?? createCameraConfig(),
       cameraProps.engine ?? new GenericCameraManagerEngine(eventCallback),
       {
-        capabilities: cameraProps.capabilities ?? createCameraCapabilities(),
+        capabilities:
+          cameraProps.capabilities === undefined
+            ? createCapabilities()
+            : cameraProps.capabilities ?? undefined,
         eventCallback: eventCallback,
       },
     );
@@ -212,35 +215,17 @@ export const createCameraManager = (): CameraManager => {
   return cameraManager;
 };
 
-export const createAggregateCameraCapabilities = (
-  capabilities?: Partial<CameraManagerCapabilities>,
-): CameraManagerCapabilities => {
-  return {
-    canFavoriteEvents: false,
-    canFavoriteRecordings: false,
-    canSeek: false,
-    supportsClips: false,
-    supportsRecordings: false,
-    supportsSnapshots: false,
-    supportsTimeline: false,
-    supportsPTZ: false,
+export const createCapabilities = (capabilities?: CapabilitiesRaw): Capabilities => {
+  return new Capabilities({
+    'favorite-events': false,
+    'favorite-recordings': false,
+    clips: false,
+    live: false,
+    recordings: false,
+    seek: false,
+    snapshots: false,
     ...capabilities,
-  };
-};
-
-export const createCameraCapabilities = (
-  capabilities?: Partial<CameraManagerCameraCapabilities>,
-): CameraManagerCameraCapabilities => {
-  return {
-    canFavoriteEvents: false,
-    canFavoriteRecordings: false,
-    canSeek: false,
-    supportsClips: false,
-    supportsRecordings: false,
-    supportsSnapshots: false,
-    supportsTimeline: false,
-    ...capabilities,
-  };
+  });
 };
 
 export const createMediaCapabilities = (

@@ -1,6 +1,6 @@
 import add from 'date-fns/add';
 import sub from 'date-fns/sub';
-import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import { beforeEach, describe, expect, it, Mock, MockedFunction, vi } from 'vitest';
 import { QueryType } from '../../src/camera-manager/types';
 import {
   changeViewToRecentEventsForCameraAndDependents,
@@ -13,6 +13,7 @@ import { ViewMedia } from '../../src/view/media';
 import { EventMediaQueries } from '../../src/view/media-queries';
 import {
   createCameraManager,
+  createCapabilities,
   createPerformanceConfig,
   createStore,
   createView,
@@ -21,8 +22,8 @@ import {
 
 const createElementListenForView = (): {
   element: HTMLElement;
-  viewHandler: Mock<any, any>;
-  messageHandler: Mock<any, any>;
+  viewHandler: EventListener;
+  messageHandler: EventListener;
 } => {
   const element = document.createElement('div');
 
@@ -114,6 +115,7 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
       createStore([
         {
           cameraID: 'camera',
+          capabilities: createCapabilities({ clips: true }),
         },
       ]),
     );
@@ -138,7 +140,9 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
       },
     );
     expect(elementHandler.viewHandler).toBeCalled();
-    expect(getMediaFromHandlerCall(elementHandler.viewHandler)).toBe(mediaArray);
+    expect(getMediaFromHandlerCall(vi.mocked(elementHandler.viewHandler))).toBe(
+      mediaArray,
+    );
   });
 
   it('should dispatch error message on fail', async () => {
@@ -150,6 +154,7 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
       createStore([
         {
           cameraID: 'camera',
+          capabilities: createCapabilities({ clips: true }),
         },
       ]),
     );
@@ -177,6 +182,7 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
       createStore([
         {
           cameraID: 'camera',
+          capabilities: createCapabilities({ clips: true }),
         },
       ]),
     );
@@ -208,6 +214,7 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
       createStore([
         {
           cameraID: 'camera',
+          capabilities: createCapabilities({ clips: true }),
         },
       ]),
     );
@@ -246,6 +253,7 @@ describe('changeViewToRecentEventsForCameraAndDependents', () => {
         createStore([
           {
             cameraID: 'camera',
+            capabilities: createCapabilities({ [mediaType]: true }),
           },
         ]),
       );
@@ -440,6 +448,7 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
       createStore([
         {
           cameraID: 'camera',
+          capabilities: createCapabilities({ recordings: true }),
         },
       ]),
     );
@@ -464,7 +473,9 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
       },
     );
     expect(elementHandler.viewHandler).toBeCalled();
-    expect(getMediaFromHandlerCall(elementHandler.viewHandler)).toBe(mediaArray);
+    expect(getMediaFromHandlerCall(vi.mocked(elementHandler.viewHandler))).toBe(
+      mediaArray,
+    );
   });
 
   it('should respect media chunk size', async () => {
@@ -473,6 +484,7 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
       createStore([
         {
           cameraID: 'camera',
+          capabilities: createCapabilities({ recordings: true }),
         },
       ]),
     );
@@ -504,6 +516,7 @@ describe('changeViewToRecentRecordingForCameraAndDependents', () => {
       createStore([
         {
           cameraID: 'camera',
+          capabilities: createCapabilities({ recordings: true }),
         },
       ]),
     );

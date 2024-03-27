@@ -8,6 +8,10 @@ export const CONF_CAMERAS_ARRAY_CAMERA_ENTITY =
   `${CONF_CAMERAS}.#.camera_entity` as const;
 export const CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME =
   `${CONF_CAMERAS}.#.frigate.camera_name` as const;
+export const CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE =
+  `${CONF_CAMERAS}.#.capabilities.disable` as const;
+export const CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE_EXCEPT =
+  `${CONF_CAMERAS}.#.capabilities.disable_except` as const;
 export const CONF_CAMERAS_ARRAY_CAST_METHOD = `${CONF_CAMERAS}.#.cast.method` as const;
 export const CONF_CAMERAS_ARRAY_CAST_DASHBOARD_DASHBOARD_PATH =
   `${CONF_CAMERAS}.#.cast.dashboard.dashboard_path` as const;
@@ -25,7 +29,6 @@ export const CONF_CAMERAS_ARRAY_FRIGATE_ZONES =
 export const CONF_CAMERAS_ARRAY_GO2RTC_MODES = `${CONF_CAMERAS}.#.go2rtc.modes` as const;
 export const CONF_CAMERAS_ARRAY_GO2RTC_STREAM =
   `${CONF_CAMERAS}.#.go2rtc.stream` as const;
-export const CONF_CAMERAS_ARRAY_HIDE = `${CONF_CAMERAS}.#.hide` as const;
 export const CONF_CAMERAS_ARRAY_ICON = `${CONF_CAMERAS}.#.icon` as const;
 export const CONF_CAMERAS_ARRAY_ID = `${CONF_CAMERAS}.#.id` as const;
 export const CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS =

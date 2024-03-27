@@ -23,8 +23,8 @@ import { ViewMediaClassifier } from '../../view/media-classifier';
 import { RecordingSegmentsCache, RequestCache } from '../cache';
 import { Camera } from '../camera';
 import {
-  CameraManagerEngine,
   CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
+  CameraManagerEngine,
 } from '../engine';
 import { GenericCameraManagerEngine } from '../generic/engine-generic';
 import { DateRange } from '../range';
@@ -59,18 +59,18 @@ import {
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
 } from '../types';
-import { getDefaultGo2RTCEndpoint } from '../utils.js';
+import { getDefaultGo2RTCEndpoint } from '../utils/go2rtc-endpoint';
 import frigateLogo from './assets/frigate-logo-dark.svg';
 import { FrigateCamera, isBirdseye } from './camera';
 import { FrigateViewMediaFactory } from './media';
 import { FrigateViewMediaClassifier } from './media-classifier';
 import {
-  getEvents,
-  getEventSummary,
-  getRecordingSegments,
-  getRecordingsSummary,
   NativeFrigateEventQuery,
   NativeFrigateRecordingSegmentsQuery,
+  getEventSummary,
+  getEvents,
+  getRecordingSegments,
+  getRecordingsSummary,
   retainEvent,
 } from './requests';
 import {

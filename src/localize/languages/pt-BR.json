@@ -10,6 +10,23 @@
   "config": {
     "cameras": {
       "camera_entity": "Entidade da Câmera",
+      "capabilities": {
+        "disable": "",
+        "disable_except": "",
+        "editor_label": "",
+        "capabilities": {
+          "clips": "",
+          "favorite-events": "",
+          "favorite-recordings": "",
+          "live": "",
+          "menu": "",
+          "ptz": "",
+          "recordings": "",
+          "seek": "",
+          "snapshots": "",
+          "substream": ""
+        }
+      },
       "cast": {
         "dashboard": {
           "dashboard_path": "",
@@ -525,7 +542,8 @@
     "no_camera_name": "Não foi possível determinar o nome da câmera da Frigate, especifique 'camera_entity' ou 'camera_name' para a câmera a seguir",
     "no_dashboard_or_view": "",
     "no_live_camera": "O parâmetro camera_entity deve ser definido e válido para este provedor ativo",
-    "no_visible_cameras": "Nenhuma câmera visível encontrada, você deve configurar pelo menos uma câmera não oculta",
+    "no_supported_camera": "",
+    "no_supported_cameras": "",
     "reconnecting": "Reconectando",
     "timeline_no_cameras": "Nenhuma câmera do Frigate para mostrar na linha do tempo",
     "too_many_automations": "",

@@ -1,12 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { Camera } from '../../src/camera-manager/camera.js';
+import { Capabilities } from '../../src/camera-manager/capabilities.js';
 import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-factory.js';
 import { CameraManagerStore } from '../../src/camera-manager/store.js';
 import { Engine } from '../../src/camera-manager/types.js';
 import { EntityRegistryManager } from '../../src/utils/ha/entity-registry/index.js';
 import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media.js';
-import { createCameraConfig, TestViewMedia } from '../test-utils.js';
+import { TestViewMedia, createCameraConfig } from '../test-utils.js';
 
 describe('CameraManagerStore', async () => {
   const configVisible = createCameraConfig({
@@ -54,11 +55,6 @@ describe('CameraManagerStore', async () => {
   it('getCameraCount', async () => {
     const store = setupStore();
     expect(store.getCameraCount()).toBe(2);
-  });
-
-  it('getVisibleCameraCount', async () => {
-    const store = setupStore();
-    expect(store.getVisibleCameraCount()).toBe(1);
   });
 
   describe('getDefaultCameraID', () => {
@@ -127,11 +123,6 @@ describe('CameraManagerStore', async () => {
     expect(store.getCameraIDs()).toEqual(new Set(['camera-visible', 'camera-hidden']));
   });
 
-  it('getVisibleCameraIDs', async () => {
-    const store = setupStore();
-    expect(store.getVisibleCameraIDs()).toEqual(new Set(['camera-visible']));
-  });
-
   it('reset', async () => {
     const store = setupStore();
     const cameras = [...store.getCameras().values()];
@@ -139,7 +130,6 @@ describe('CameraManagerStore', async () => {
     await store.reset();
 
     expect(store.getCameraCount()).toBe(0);
-    expect(store.getVisibleCameraCount()).toBe(0);
     for (const camera of cameras) {
       expect(camera.destroy).toBeCalled();
     }
@@ -258,5 +248,60 @@ describe('CameraManagerStore', async () => {
       );
       expect(store.getAllDependentCameras('one')).toEqual(new Set(['one', 'two']));
     });
+
+    it('should return cameras with specific capabilities', () => {
+      const store = new CameraManagerStore();
+      store.addCamera(
+        new Camera(
+          createCameraConfig({
+            id: 'one',
+            dependencies: {
+              all_cameras: true,
+            },
+          }),
+          engineGeneric,
+        ),
+      );
+      store.addCamera(
+        new Camera(
+          createCameraConfig({
+            id: 'two',
+          }),
+          engineGeneric,
+          {
+            capabilities: new Capabilities({
+              clips: true,
+            }),
+          },
+        ),
+      );
+      expect(store.getAllDependentCameras('one', 'clips')).toEqual(new Set(['two']));
+    });
+  });
+
+  it('getCameraIDsWithCapability', () => {
+    const store = new CameraManagerStore();
+    store.addCamera(
+      new Camera(
+        createCameraConfig({
+          id: 'one',
+        }),
+        engineGeneric,
+        {
+          capabilities: new Capabilities({
+            clips: true,
+          }),
+        },
+      ),
+    );
+    store.addCamera(
+      new Camera(
+        createCameraConfig({
+          id: 'two',
+        }),
+        engineGeneric,
+      ),
+    );
+    expect(store.getCameraIDsWithCapability('clips')).toEqual(new Set(['one']));
   });
 });

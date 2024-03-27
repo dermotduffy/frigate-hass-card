@@ -10,14 +10,15 @@ import {
 import { EntityRegistryManager } from '../utils/ha/entity-registry';
 import { CameraManagerEngine } from './engine';
 import { CameraNoIDError } from './error';
-import { CameraEventCallback, CameraManagerCameraCapabilities } from './types';
+import { CameraEventCallback } from './types';
+import { Capabilities } from './capabilities';
 
 type DestroyCallback = () => Promise<void>;
 
 export class Camera {
   protected _config: CameraConfig;
   protected _engine: CameraManagerEngine;
-  protected _capabilities?: CameraManagerCameraCapabilities;
+  protected _capabilities?: Capabilities;
   protected _eventCallback?: CameraEventCallback;
   protected _destroyCallbacks: DestroyCallback[] = [];
 
@@ -25,7 +26,7 @@ export class Camera {
     config: CameraConfig,
     engine: CameraManagerEngine,
     options?: {
-      capabilities?: CameraManagerCameraCapabilities;
+      capabilities?: Capabilities;
       eventCallback?: CameraEventCallback;
     },
   ) {
@@ -97,7 +98,7 @@ export class Camera {
     return this._engine;
   }
 
-  public getCapabilities(): CameraManagerCameraCapabilities | null {
+  public getCapabilities(): Capabilities | null {
     return this._capabilities ?? null;
   }
 }

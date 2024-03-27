@@ -4,14 +4,15 @@ import { DataSet } from 'vis-data';
 import { IdType, TimelineItem, TimelineWindow } from 'vis-timeline/esnext';
 import { CameraManager } from '../camera-manager/manager';
 import {
+  compressRanges,
   ExpiringMemoryRangeSet,
   MemoryRangeSet,
-  compressRanges,
 } from '../camera-manager/range';
 import { EventQuery, RecordingQuery, RecordingSegment } from '../camera-manager/types';
-import { capEndDate, convertRangeToCacheFriendlyTimes } from '../camera-manager/utils';
+import { capEndDate } from '../camera-manager/utils/cap-end-date';
+import { convertRangeToCacheFriendlyTimes } from '../camera-manager/utils/range-to-cache-friendly';
 import { ClipsOrSnapshotsOrAll } from '../types';
-import { ModifyInterface, errorToConsole } from '../utils/basic.js';
+import { errorToConsole, ModifyInterface } from '../utils/basic.js';
 import { ViewMedia } from '../view/media';
 
 // Allow timeline freshness to be at least this number of seconds out of date

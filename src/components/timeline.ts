@@ -37,6 +37,9 @@ export class FrigateCardTimeline extends LitElement {
         .timelineConfig=${this.timelineConfig}
         .thumbnailConfig=${this.timelineConfig.controls.thumbnails}
         .cameraManager=${this.cameraManager}
+        .cameraIDs=${this.cameraManager?.getStore().getCameraIDsWithCapability({
+          anyCapabilities: ['clips', 'snapshots', 'recordings'],
+        })}
         .cardWideConfig=${this.cardWideConfig}
         .itemClickAction=${this.timelineConfig.controls.thumbnails.mode === 'none'
           ? 'play'

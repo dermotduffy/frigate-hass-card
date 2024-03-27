@@ -8,12 +8,14 @@ import { localize } from '../localize/localize.js';
 import {
   allPromises,
   arrayify,
+  isTruthy,
   recursivelyMergeObjectsNotArrays,
   setify,
 } from '../utils/basic.js';
 import { getCameraID } from '../utils/camera.js';
 import { log } from '../utils/debug.js';
 import { ViewMedia } from '../view/media.js';
+import { Capabilities } from './capabilities.js';
 import { CameraManagerEngineFactory } from './engine-factory.js';
 import { CameraManagerEngine } from './engine.js';
 import { CameraInitializationError } from './error.js';
@@ -22,9 +24,7 @@ import {
   CameraEndpoint,
   CameraEndpoints,
   CameraEndpointsContext,
-  CameraManagerCameraCapabilities,
   CameraManagerCameraMetadata,
-  CameraManagerCapabilities,
   CameraManagerMediaCapabilities,
   DataQuery,
   Engine,
@@ -53,7 +53,7 @@ import {
   RecordingSegmentsQueryResultsMap,
   ResultsMap,
 } from './types.js';
-import { sortMedia } from './utils.js';
+import { sortMedia } from './utils/sort-media.js';
 
 export class QueryClassifier {
   public static isEventQuery(query: DataQuery | PartialDataQuery): query is EventQuery {
@@ -259,10 +259,6 @@ export class CameraManager {
       camera.setID(cameraID);
       this._store.addCamera(camera);
     });
-
-    if (!this._store.getVisibleCameraCount()) {
-      throw new CameraInitializationError(localize('error.no_visible_cameras'));
-    }
 
     log(
       this._api.getConfigManager().getCardWideConfig(),
@@ -739,33 +735,29 @@ export class CameraManager {
     return engine.getCameraMetadata(hass, cameraConfig);
   }
 
-  public getCameraCapabilities(
-    cameraID: string,
-  ): CameraManagerCameraCapabilities | null {
+  public getCameraCapabilities(cameraID: string): Capabilities | null {
     return this._store.getCamera(cameraID)?.getCapabilities() ?? null;
   }
 
-  public getAggregateCameraCapabilities(
-    cameraIDs?: Set<string>,
-  ): CameraManagerCapabilities | null {
-    const perCameraCapabilities = [...(cameraIDs ?? this._store.getCameraIDs())].map(
-      (cameraID) => this.getCameraCapabilities(cameraID),
-    );
+  public getAggregateCameraCapabilities(cameraIDs?: Set<string>): Capabilities {
+    const cameras = [...(cameraIDs ?? this._store.getCameraIDs())]
+      .map((cameraID) => this._store.getCamera(cameraID))
+      .filter(isTruthy);
 
-    return {
-      canFavoriteEvents: perCameraCapabilities.some((cap) => cap?.canFavoriteEvents),
-      canFavoriteRecordings: perCameraCapabilities.some(
-        (cap) => cap?.canFavoriteRecordings,
+    return new Capabilities({
+      live: cameras.some((camera) => camera.getCapabilities()?.has('live')),
+      clips: cameras.some((camera) => camera.getCapabilities()?.has('clips')),
+      recordings: cameras.some((camera) => camera.getCapabilities()?.has('recordings')),
+      snapshots: cameras.some((camera) => camera.getCapabilities()?.has('snapshots')),
+      'favorite-events': cameras.some((camera) =>
+        camera.getCapabilities()?.has('favorite-events'),
       ),
-      canSeek: perCameraCapabilities.some((cap) => cap?.canSeek),
-
-      supportsClips: perCameraCapabilities.some((cap) => cap?.supportsClips),
-      supportsRecordings: perCameraCapabilities.some((cap) => cap?.supportsRecordings),
-      supportsSnapshots: perCameraCapabilities.some((cap) => cap?.supportsSnapshots),
-      supportsTimeline: perCameraCapabilities.some((cap) => cap?.supportsTimeline),
-
-      supportsPTZ: perCameraCapabilities.some((cap) => !!cap?.ptz),
-    };
+      'favorite-recordings': cameras.some((camera) =>
+        camera.getCapabilities()?.has('favorite-recordings'),
+      ),
+      seek: cameras.some((camera) => camera.getCapabilities()?.has('seek')),
+      menu: cameras.some((camera) => camera.getCapabilities()?.has('menu')),
+    });
   }
 
   public async executePTZAction(

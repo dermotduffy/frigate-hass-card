@@ -678,4 +678,10 @@ const UPGRADES = [
       typeof data === 'object' && data ? data[CONF_AUTOMATIONS] : {},
     );
   },
+  upgradeArrayOfObjects(
+    CONF_CAMERAS,
+    upgradeMoveToWithOverrides('hide', 'capabilities', {
+      transform: (val) => (val === true ? { disable_except: 'substream' } : null),
+    }),
+  ),
 ];

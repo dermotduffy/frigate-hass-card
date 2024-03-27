@@ -10,6 +10,7 @@ const FULL_COVERAGE_FILES_RELATIVE = [
   'camera-manager/frigate/util.ts',
   'camera-manager/generic/*.ts',
   'camera-manager/motioneye/icon.ts',
+  'camera-manager/utils/*.ts',
   'card-controller/*.ts',
   'components-lib/cached-value-controller.ts',
   'components-lib/media-filter-controller.ts',
@@ -29,6 +30,7 @@ const FULL_COVERAGE_FILES_RELATIVE = [
   'utils/diagnostics.ts',
   'utils/download.ts',
   'utils/embla/**/*.ts',
+  'utils/endpoint.ts',
   'utils/ha/entity-registry/types.ts',
   'utils/ha/types.ts',
   'utils/media-info.ts',
@@ -72,19 +74,7 @@ export default defineConfig({
     coverage: {
       // Favor istanbul for coverage over v8 due to better accuracy.
       provider: 'istanbul',
-
       thresholds: {
-        // Thresholds will automatically be updated as coverage improves to avoid
-        // back-sliding.
-        autoUpdate: true,
-
-        // Expected thresholds for anything that does not have 100% coverage
-        // yet.
-        statements: 10.69,
-        branches: 4.9,
-        functions: 7.81,
-        lines: 10.94,
-
         ...calculateFullCoverageThresholds(),
       },
     },

@@ -182,11 +182,11 @@ export class MediaFilterController {
       return null;
     };
 
-    const visibleCameraIDs = cameraManager.getStore().getVisibleCameraIDs();
-    if (!visibleCameraIDs.size || !values.mediaType) {
+    const cameraIDs =
+      getArrayValueAsSet(values.camera) ?? this._getAllCameraIDs(cameraManager);
+    if (!cameraIDs.size || !values.mediaType) {
       return;
     }
-    const cameraIDs = getArrayValueAsSet(values.camera) ?? visibleCameraIDs;
 
     const when = this._getWhen(values.when);
     const favorite = values.favorite
@@ -280,10 +280,16 @@ export class MediaFilterController {
     this._host.requestUpdate();
   }
 
+  protected _getAllCameraIDs(cameraManager: CameraManager): Set<string> {
+    return cameraManager.getStore().getCameraIDsWithCapability({
+      anyCapabilities: ['clips', 'snapshots', 'recordings'],
+    });
+  }
+
   public computeInitialDefaultsFromView(cameraManager: CameraManager, view: View): void {
     const queries = view.query?.getQueries();
-    const visibleCameraIDs = cameraManager.getStore().getVisibleCameraIDs();
-    if (!queries || !visibleCameraIDs.size) {
+    const allCameraIDs = this._getAllCameraIDs(cameraManager);
+    if (!queries || !allCameraIDs.size) {
       return;
     }
 
@@ -300,7 +306,7 @@ export class MediaFilterController {
     );
     // Special note: If all visible cameras are selected, this is the same as no
     // selector at all.
-    if (cameraIDSets.length === 1 && !isEqual(queries[0].cameraIDs, visibleCameraIDs)) {
+    if (cameraIDSets.length === 1 && !isEqual(queries[0].cameraIDs, allCameraIDs)) {
       cameraIDs = [...queries[0].cameraIDs];
     }
 
@@ -375,8 +381,7 @@ export class MediaFilterController {
   }
 
   public computeCameraOptions(cameraManager: CameraManager): void {
-    const cameras = cameraManager.getStore().getVisibleCameraIDs();
-    this._cameraOptions = [...cameras].map((cameraID) => ({
+    this._cameraOptions = [...this._getAllCameraIDs(cameraManager)].map((cameraID) => ({
       value: cameraID,
       label: cameraManager.getCameraMetadata(cameraID)?.title ?? cameraID,
     }));
@@ -451,9 +456,9 @@ export class MediaFilterController {
       events: events,
       recordings: recordings,
       favorites: events
-        ? !!managerCapabilities?.canFavoriteEvents
+        ? managerCapabilities?.has('favorite-events')
         : recordings
-        ? !!managerCapabilities?.canFavoriteRecordings
+        ? managerCapabilities?.has('favorite-recordings')
         : false,
     };
   }

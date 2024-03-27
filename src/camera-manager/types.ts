@@ -1,3 +1,4 @@
+import { CapabilityKey } from '../types';
 import { FrigateCardView } from '../config/types';
 import { ViewMedia } from '../view/media';
 
@@ -91,32 +92,11 @@ export interface MediaMetadata {
   what?: Set<string>;
 }
 
-export type PTZMovementType = 'relative' | 'continuous';
-
-export interface PTZCapabilities {
-  panTilt?: PTZMovementType[];
-  zoom?: PTZMovementType[];
-  presets?: string[];
+interface CapabilitySearchAllAny {
+  allCapabilities?: CapabilityKey[];
+  anyCapabilities?: CapabilityKey[];
 }
-
-interface BaseCapabilities {
-  canFavoriteEvents: boolean;
-  canFavoriteRecordings: boolean;
-  canSeek: boolean;
-
-  supportsClips: boolean;
-  supportsRecordings: boolean;
-  supportsSnapshots: boolean;
-  supportsTimeline: boolean;
-}
-
-export interface CameraManagerCapabilities extends BaseCapabilities {
-  supportsPTZ: boolean;
-}
-
-export interface CameraManagerCameraCapabilities extends BaseCapabilities {
-  ptz?: PTZCapabilities;
-}
+export type CapabilitySearchOptions = CapabilityKey | CapabilitySearchAllAny;
 
 export interface CameraManagerMediaCapabilities {
   canFavorite: boolean;

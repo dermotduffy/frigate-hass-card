@@ -1,4 +1,8 @@
-import { HomeAssistant, LovelaceCardConfig, Themes } from '@dermotduffy/custom-card-helpers';
+import {
+  HomeAssistant,
+  LovelaceCardConfig,
+  Themes,
+} from '@dermotduffy/custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map.js';
 import { z } from 'zod';
 
@@ -86,6 +90,46 @@ export interface CardHelpers {
     };
   }>;
 }
+
+export type PTZMovementType = 'relative' | 'continuous';
+
+export interface PTZCapabilities {
+  panTilt?: PTZMovementType[];
+  zoom?: PTZMovementType[];
+  presets?: string[];
+}
+
+export interface CapabilitiesRaw {
+  live?: boolean;
+  substream?: boolean;
+
+  clips?: boolean;
+  recordings?: boolean;
+  snapshots?: boolean;
+
+  'favorite-events'?: boolean;
+  'favorite-recordings'?: boolean;
+
+  seek?: boolean;
+
+  ptz?: PTZCapabilities;
+
+  menu?: boolean;
+}
+
+export type CapabilityKey = keyof CapabilitiesRaw;
+export const capabilityKeys: readonly [CapabilityKey, ...CapabilityKey[]] = [
+  'clips',
+  'favorite-events',
+  'favorite-recordings',
+  'live',
+  'menu',
+  'ptz',
+  'recordings',
+  'seek',
+  'snapshots',
+  'substream',
+] as const;
 
 // *************************************************************************
 //                     Home Assistant API types.

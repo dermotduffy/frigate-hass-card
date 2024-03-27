@@ -3,6 +3,7 @@ import startOfDay from 'date-fns/startOfDay';
 import sub from 'date-fns/sub';
 import { LitElement } from 'lit';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Capabilities } from '../../src/camera-manager/capabilities';
 import { CameraManagerStore } from '../../src/camera-manager/store';
 import { QueryType } from '../../src/camera-manager/types';
 import {
@@ -10,21 +11,21 @@ import {
   MediaFilterCoreDefaults,
   MediaFilterCoreFavoriteSelection,
   MediaFilterCoreWhen,
-  MediaFilterMediaType
+  MediaFilterMediaType,
 } from '../../src/components-lib/media-filter-controller';
 import { executeMediaQueryForViewWithErrorDispatching } from '../../src/utils/media-to-view';
 import {
   EventMediaQueries,
   MediaQueries,
-  RecordingMediaQueries
+  RecordingMediaQueries,
 } from '../../src/view/media-queries';
 import {
-  createAggregateCameraCapabilities,
   createCameraConfig,
   createCameraManager,
+  createCapabilities,
   createPerformanceConfig,
   createStore,
-  createView
+  createView,
 } from '../test-utils';
 
 vi.mock('../../src/utils/media-to-view');
@@ -35,13 +36,22 @@ const createHost = (): LitElement => {
   return host;
 };
 
-const createCameraStore = (): CameraManagerStore => {
+const createCameraStore = (options?: {
+  capabilities: Capabilities;
+}): CameraManagerStore => {
   return createStore([
     {
       cameraID: 'camera.kitchen',
       config: createCameraConfig({
         camera_entity: 'camera.kitchen',
       }),
+      capabilities:
+        options?.capabilities ??
+        new Capabilities({
+          clips: true,
+          snapshots: true,
+          recordings: true,
+        }),
     },
   ]);
 };
@@ -150,6 +160,27 @@ describe('MediaFilterController', () => {
             value: 'camera.kitchen',
           },
         ]);
+      });
+
+      it('with camera that does not support media', () => {
+        const cameraManager = createCameraManager();
+        vi.mocked(cameraManager.getCameraMetadata).mockReturnValue({
+          title: 'Kitchen Camera',
+          icon: 'mdi:camera',
+        });
+        vi.mocked(cameraManager.getStore).mockReturnValue(
+          createCameraStore({
+            capabilities: new Capabilities({
+              clips: false,
+              snapshots: false,
+              recordings: false,
+            }),
+          }),
+        );
+
+        const controller = new MediaFilterController(createHost());
+        controller.computeCameraOptions(cameraManager);
+        expect(controller.getCameraOptions()).toEqual([]);
       });
 
       it('without camera metadata', () => {
@@ -297,7 +328,7 @@ describe('MediaFilterController', () => {
       const view = createView({ query: new EventMediaQueries() });
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getAggregateCameraCapabilities).mockReturnValue(
-        createAggregateCameraCapabilities({ canFavoriteEvents: true }),
+        createCapabilities({ 'favorite-events': true }),
       );
 
       const controller = new MediaFilterController(createHost());
@@ -310,7 +341,7 @@ describe('MediaFilterController', () => {
       const view = createView({ query: new RecordingMediaQueries() });
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getAggregateCameraCapabilities).mockReturnValue(
-        createAggregateCameraCapabilities({ canFavoriteRecordings: true }),
+        createCapabilities({ 'favorite-recordings': true }),
       );
 
       const controller = new MediaFilterController(createHost());
@@ -915,7 +946,7 @@ describe('MediaFilterController', () => {
             },
           ]),
           {
-            mediaType: MediaFilterMediaType.Recordings
+            mediaType: MediaFilterMediaType.Recordings,
           },
         ],
       ])(

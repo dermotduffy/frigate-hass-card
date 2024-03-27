@@ -10,6 +10,23 @@
   "config": {
     "cameras": {
       "camera_entity": "Entità della telecamera",
+      "capabilities": {
+        "disable": "",
+        "disable_except": "",
+        "editor_label": "",
+        "capabilities": {
+          "clips": "",
+          "favorite-events": "",
+          "favorite-recordings": "",
+          "live": "",
+          "menu": "",
+          "ptz": "",
+          "recordings": "",
+          "seek": "",
+          "snapshots": "",
+          "substream": ""
+        }
+      },
       "cast": {
         "dashboard": {
           "dashboard_path": "",
@@ -518,7 +535,8 @@
     "no_camera_name": "Impossibile determinare un nome della telecamera in Frigate, si prega di specificare 'camera_enty' o 'camera_name'",
     "no_dashboard_or_view": "",
     "no_live_camera": "Il parametro fotocamera_enty deve essere impostato e valido per questo provider live",
-    "no_visible_cameras": "Nessuna telecamera visibile trovata, è necessario configurare almeno una telecamera non nascosta",
+    "no_supported_camera": "",
+    "no_supported_cameras": "",
     "reconnecting": "Riconnessione",
     "timeline_no_cameras": "Nessuna telecamera damostrare in Frigate nella timeline",
     "too_many_automations": "",

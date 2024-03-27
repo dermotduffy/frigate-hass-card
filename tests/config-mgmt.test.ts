@@ -1804,245 +1804,9 @@ describe('should handle version specific upgrades', () => {
         );
       });
     });
-  });
 
-  describe('from condition object to condition array', () => {
-    describe('with view condition', () => {
-      it('elements', () => {
-        const config = {
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          elements: [
-            {
-              conditions: {
-                view: ['clips', 'snapshots'],
-              },
-            },
-            {
-              conditions: 'not an object',
-            },
-          ],
-        };
-        expect(upgradeConfig(config)).toBeTruthy();
-        expect(config).toEqual({
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          elements: [
-            {
-              conditions: [
-                {
-                  condition: 'view' as const,
-                  views: ['clips', 'snapshots'],
-                },
-              ],
-            },
-            {
-              conditions: 'not an object',
-            },
-          ],
-        });
-      });
-
-      it('overrides', () => {
-        const config = {
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          overrides: [
-            {
-              conditions: {
-                view: ['clips', 'snapshots'],
-              },
-              overrides: {
-                view: {
-                  default: 'clips',
-                },
-              },
-            },
-          ],
-        };
-
-        expect(upgradeConfig(config)).toBeTruthy();
-        expect(config).toEqual({
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          overrides: [
-            {
-              conditions: [
-                {
-                  condition: 'view' as const,
-                  views: ['clips', 'snapshots'],
-                },
-              ],
-              overrides: {
-                view: {
-                  default: 'clips',
-                },
-              },
-            },
-          ],
-        });
-      });
-
-      it('automations', () => {
-        const config = {
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          automations: [
-            {
-              conditions: {
-                view: ['clips', 'snapshots'],
-              },
-              actions: {
-                action: 'custom:frigate-card-action' as const,
-                frigate_card_action: 'live_substream_on' as const,
-              },
-            },
-          ],
-        };
-
-        expect(upgradeConfig(config)).toBeTruthy();
-        expect(config).toEqual({
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          automations: [
-            {
-              conditions: [
-                {
-                  condition: 'view' as const,
-                  views: ['clips', 'snapshots'],
-                },
-              ],
-              actions: {
-                action: 'custom:frigate-card-action' as const,
-                frigate_card_action: 'live_substream_on' as const,
-              },
-            },
-          ],
-        });
-      });
-    });
-
-    describe('with camera condition', () => {
-      it('elements', () => {
-        const config = {
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          elements: [
-            {
-              conditions: {
-                camera: ['camera_1', 'camera_2'],
-              },
-            },
-            {
-              conditions: 'not an object',
-            },
-          ],
-        };
-        expect(upgradeConfig(config)).toBeTruthy();
-        expect(config).toEqual({
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          elements: [
-            {
-              conditions: [
-                {
-                  condition: 'camera' as const,
-                  cameras: ['camera_1', 'camera_2'],
-                },
-              ],
-            },
-            {
-              conditions: 'not an object',
-            },
-          ],
-        });
-      });
-
-      it('overrides', () => {
-        const config = {
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          overrides: [
-            {
-              conditions: {
-                camera: ['camera_1', 'camera_2'],
-              },
-              overrides: {
-                view: {
-                  default: 'clips',
-                },
-              },
-            },
-          ],
-        };
-
-        expect(upgradeConfig(config)).toBeTruthy();
-        expect(config).toEqual({
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          overrides: [
-            {
-              conditions: [
-                {
-                  condition: 'camera' as const,
-                  cameras: ['camera_1', 'camera_2'],
-                },
-              ],
-              overrides: {
-                view: {
-                  default: 'clips',
-                },
-              },
-            },
-          ],
-        });
-      });
-
-      it('automations', () => {
-        const config = {
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          automations: [
-            {
-              conditions: {
-                camera: ['camera_1', 'camera_2'],
-              },
-              actions: {
-                action: 'custom:frigate-card-action' as const,
-                frigate_card_action: 'live_substream_on' as const,
-              },
-            },
-          ],
-        };
-
-        expect(upgradeConfig(config)).toBeTruthy();
-        expect(config).toEqual({
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          automations: [
-            {
-              conditions: [
-                {
-                  condition: 'camera' as const,
-                  cameras: ['camera_1', 'camera_2'],
-                },
-              ],
-              actions: {
-                action: 'custom:frigate-card-action' as const,
-                frigate_card_action: 'live_substream_on' as const,
-              },
-            },
-          ],
-        });
-      });
-    });
-
-    describe('with boolean conditions', () => {
-      describe.each([
-        ['fullscreen' as const],
-        ['expand' as const],
-        ['media_loaded' as const],
-      ])('%s', (condition: string) => {
+    describe('from condition object to condition array', () => {
+      describe('with view condition', () => {
         it('elements', () => {
           const config = {
             type: 'custom:frigate-card',
@@ -2050,7 +1814,7 @@ describe('should handle version specific upgrades', () => {
             elements: [
               {
                 conditions: {
-                  [condition]: true,
+                  view: ['clips', 'snapshots'],
                 },
               },
               {
@@ -2066,8 +1830,8 @@ describe('should handle version specific upgrades', () => {
               {
                 conditions: [
                   {
-                    condition: condition,
-                    [condition]: true,
+                    condition: 'view' as const,
+                    views: ['clips', 'snapshots'],
                   },
                 ],
               },
@@ -2085,7 +1849,7 @@ describe('should handle version specific upgrades', () => {
             overrides: [
               {
                 conditions: {
-                  [condition]: true,
+                  view: ['clips', 'snapshots'],
                 },
                 overrides: {
                   view: {
@@ -2104,8 +1868,8 @@ describe('should handle version specific upgrades', () => {
               {
                 conditions: [
                   {
-                    condition: condition,
-                    [condition]: true,
+                    condition: 'view' as const,
+                    views: ['clips', 'snapshots'],
                   },
                 ],
                 overrides: {
@@ -2125,7 +1889,7 @@ describe('should handle version specific upgrades', () => {
             automations: [
               {
                 conditions: {
-                  [condition]: true,
+                  view: ['clips', 'snapshots'],
                 },
                 actions: {
                   action: 'custom:frigate-card-action' as const,
@@ -2143,8 +1907,523 @@ describe('should handle version specific upgrades', () => {
               {
                 conditions: [
                   {
-                    condition: condition,
+                    condition: 'view' as const,
+                    views: ['clips', 'snapshots'],
+                  },
+                ],
+                actions: {
+                  action: 'custom:frigate-card-action' as const,
+                  frigate_card_action: 'live_substream_on' as const,
+                },
+              },
+            ],
+          });
+        });
+      });
+
+      describe('with camera condition', () => {
+        it('elements', () => {
+          const config = {
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            elements: [
+              {
+                conditions: {
+                  camera: ['camera_1', 'camera_2'],
+                },
+              },
+              {
+                conditions: 'not an object',
+              },
+            ],
+          };
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            elements: [
+              {
+                conditions: [
+                  {
+                    condition: 'camera' as const,
+                    cameras: ['camera_1', 'camera_2'],
+                  },
+                ],
+              },
+              {
+                conditions: 'not an object',
+              },
+            ],
+          });
+        });
+
+        it('overrides', () => {
+          const config = {
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            overrides: [
+              {
+                conditions: {
+                  camera: ['camera_1', 'camera_2'],
+                },
+                overrides: {
+                  view: {
+                    default: 'clips',
+                  },
+                },
+              },
+            ],
+          };
+
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            overrides: [
+              {
+                conditions: [
+                  {
+                    condition: 'camera' as const,
+                    cameras: ['camera_1', 'camera_2'],
+                  },
+                ],
+                overrides: {
+                  view: {
+                    default: 'clips',
+                  },
+                },
+              },
+            ],
+          });
+        });
+
+        it('automations', () => {
+          const config = {
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            automations: [
+              {
+                conditions: {
+                  camera: ['camera_1', 'camera_2'],
+                },
+                actions: {
+                  action: 'custom:frigate-card-action' as const,
+                  frigate_card_action: 'live_substream_on' as const,
+                },
+              },
+            ],
+          };
+
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            automations: [
+              {
+                conditions: [
+                  {
+                    condition: 'camera' as const,
+                    cameras: ['camera_1', 'camera_2'],
+                  },
+                ],
+                actions: {
+                  action: 'custom:frigate-card-action' as const,
+                  frigate_card_action: 'live_substream_on' as const,
+                },
+              },
+            ],
+          });
+        });
+      });
+
+      describe('with boolean conditions', () => {
+        describe.each([
+          ['fullscreen' as const],
+          ['expand' as const],
+          ['media_loaded' as const],
+        ])('%s', (condition: string) => {
+          it('elements', () => {
+            const config = {
+              type: 'custom:frigate-card',
+              cameras: [{ camera_entity: 'camera.office' }],
+              elements: [
+                {
+                  conditions: {
                     [condition]: true,
+                  },
+                },
+                {
+                  conditions: 'not an object',
+                },
+              ],
+            };
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{ camera_entity: 'camera.office' }],
+              elements: [
+                {
+                  conditions: [
+                    {
+                      condition: condition,
+                      [condition]: true,
+                    },
+                  ],
+                },
+                {
+                  conditions: 'not an object',
+                },
+              ],
+            });
+          });
+
+          it('overrides', () => {
+            const config = {
+              type: 'custom:frigate-card',
+              cameras: [{ camera_entity: 'camera.office' }],
+              overrides: [
+                {
+                  conditions: {
+                    [condition]: true,
+                  },
+                  overrides: {
+                    view: {
+                      default: 'clips',
+                    },
+                  },
+                },
+              ],
+            };
+
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{ camera_entity: 'camera.office' }],
+              overrides: [
+                {
+                  conditions: [
+                    {
+                      condition: condition,
+                      [condition]: true,
+                    },
+                  ],
+                  overrides: {
+                    view: {
+                      default: 'clips',
+                    },
+                  },
+                },
+              ],
+            });
+          });
+
+          it('automations', () => {
+            const config = {
+              type: 'custom:frigate-card',
+              cameras: [{ camera_entity: 'camera.office' }],
+              automations: [
+                {
+                  conditions: {
+                    [condition]: true,
+                  },
+                  actions: {
+                    action: 'custom:frigate-card-action' as const,
+                    frigate_card_action: 'live_substream_on' as const,
+                  },
+                },
+              ],
+            };
+
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{ camera_entity: 'camera.office' }],
+              automations: [
+                {
+                  conditions: [
+                    {
+                      condition: condition,
+                      [condition]: true,
+                    },
+                  ],
+                  actions: {
+                    action: 'custom:frigate-card-action' as const,
+                    frigate_card_action: 'live_substream_on' as const,
+                  },
+                },
+              ],
+            });
+          });
+        });
+      });
+
+      describe('with state condition', () => {
+        it('elements', () => {
+          const config = {
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            elements: [
+              {
+                conditions: {
+                  state: [
+                    {
+                      entity: 'binary_sensor.first',
+                      state: 'on',
+                    },
+                    {
+                      entity: 'binary_sensor.second',
+                      state_not: 'off',
+                    },
+                    {},
+                  ],
+                },
+              },
+              {
+                conditions: 'not an object',
+              },
+            ],
+          };
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            elements: [
+              {
+                conditions: [
+                  {
+                    condition: 'state' as const,
+                    entity: 'binary_sensor.first',
+                    state: 'on',
+                  },
+                  {
+                    condition: 'state' as const,
+                    entity: 'binary_sensor.second',
+                    state_not: 'off',
+                  },
+                ],
+              },
+              {
+                conditions: 'not an object',
+              },
+            ],
+          });
+        });
+
+        it('overrides', () => {
+          const config = {
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            overrides: [
+              {
+                conditions: {
+                  state: [
+                    {
+                      entity: 'binary_sensor.first',
+                      state: 'on',
+                    },
+                    {
+                      entity: 'binary_sensor.second',
+                      state_not: 'off',
+                    },
+                    {},
+                  ],
+                },
+                overrides: {
+                  view: {
+                    default: 'clips',
+                  },
+                },
+              },
+            ],
+          };
+
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            overrides: [
+              {
+                conditions: [
+                  {
+                    condition: 'state' as const,
+                    entity: 'binary_sensor.first',
+                    state: 'on',
+                  },
+                  {
+                    condition: 'state' as const,
+                    entity: 'binary_sensor.second',
+                    state_not: 'off',
+                  },
+                ],
+                overrides: {
+                  view: {
+                    default: 'clips',
+                  },
+                },
+              },
+            ],
+          });
+        });
+
+        it('automations', () => {
+          const config = {
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            automations: [
+              {
+                conditions: {
+                  state: [
+                    {
+                      entity: 'binary_sensor.first',
+                      state: 'on',
+                    },
+                    {
+                      entity: 'binary_sensor.second',
+                      state_not: 'off',
+                    },
+                    {},
+                  ],
+                },
+
+                actions: {
+                  action: 'custom:frigate-card-action' as const,
+                  frigate_card_action: 'live_substream_on' as const,
+                },
+              },
+            ],
+          };
+
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            automations: [
+              {
+                conditions: [
+                  {
+                    condition: 'state' as const,
+                    entity: 'binary_sensor.first',
+                    state: 'on',
+                  },
+                  {
+                    condition: 'state' as const,
+                    entity: 'binary_sensor.second',
+                    state_not: 'off',
+                  },
+                ],
+                actions: {
+                  action: 'custom:frigate-card-action' as const,
+                  frigate_card_action: 'live_substream_on' as const,
+                },
+              },
+            ],
+          });
+        });
+      });
+
+      describe('with media query condition', () => {
+        it('elements', () => {
+          const config = {
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            elements: [
+              {
+                conditions: {
+                  media_query: 'query',
+                },
+              },
+              {
+                conditions: 'not an object',
+              },
+            ],
+          };
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            elements: [
+              {
+                conditions: [
+                  {
+                    condition: 'screen' as const,
+                    media_query: 'query',
+                  },
+                ],
+              },
+              {
+                conditions: 'not an object',
+              },
+            ],
+          });
+        });
+
+        it('overrides', () => {
+          const config = {
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            overrides: [
+              {
+                conditions: {
+                  media_query: 'query',
+                },
+                overrides: {
+                  view: {
+                    default: 'clips',
+                  },
+                },
+              },
+            ],
+          };
+
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            overrides: [
+              {
+                conditions: [
+                  {
+                    condition: 'screen' as const,
+                    media_query: 'query',
+                  },
+                ],
+                overrides: {
+                  view: {
+                    default: 'clips',
+                  },
+                },
+              },
+            ],
+          });
+        });
+
+        it('automations', () => {
+          const config = {
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            automations: [
+              {
+                conditions: {
+                  media_query: 'query',
+                },
+                actions: {
+                  action: 'custom:frigate-card-action' as const,
+                  frigate_card_action: 'live_substream_on' as const,
+                },
+              },
+            ],
+          };
+
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [{ camera_entity: 'camera.office' }],
+            automations: [
+              {
+                conditions: [
+                  {
+                    condition: 'screen' as const,
+                    media_query: 'query',
                   },
                 ],
                 actions: {
@@ -2158,280 +2437,25 @@ describe('should handle version specific upgrades', () => {
       });
     });
 
-    describe('with state condition', () => {
-      it('elements', () => {
-        const config = {
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          elements: [
-            {
-              conditions: {
-                state: [
-                  {
-                    entity: 'binary_sensor.first',
-                    state: 'on',
-                  },
-                  {
-                    entity: 'binary_sensor.second',
-                    state_not: 'off',
-                  },
-                  {},
-                ],
-              },
-            },
-            {
-              conditions: 'not an object',
-            },
-          ],
-        };
-        expect(upgradeConfig(config)).toBeTruthy();
-        expect(config).toEqual({
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          elements: [
-            {
-              conditions: [
-                {
-                  condition: 'state' as const,
-                  entity: 'binary_sensor.first',
-                  state: 'on',
-                },
-                {
-                  condition: 'state' as const,
-                  entity: 'binary_sensor.second',
-                  state_not: 'off',
-                },
-              ],
-            },
-            {
-              conditions: 'not an object',
-            },
-          ],
-        });
-      });
-
+    describe('from hide to substream capability disable', () => {
       it('overrides', () => {
         const config = {
           type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          overrides: [
-            {
-              conditions: {
-                state: [
-                  {
-                    entity: 'binary_sensor.first',
-                    state: 'on',
-                  },
-                  {
-                    entity: 'binary_sensor.second',
-                    state_not: 'off',
-                  },
-                  {},
-                ],
-              },
-              overrides: {
-                view: {
-                  default: 'clips',
-                },
-              },
-            },
+          cameras: [
+            { camera_entity: 'camera.office', hide: true },
+            { camera_entity: 'camera.sitting_room', hide: false },
           ],
         };
 
         expect(upgradeConfig(config)).toBeTruthy();
         expect(config).toEqual({
           type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          overrides: [
+          cameras: [
             {
-              conditions: [
-                {
-                  condition: 'state' as const,
-                  entity: 'binary_sensor.first',
-                  state: 'on',
-                },
-                {
-                  condition: 'state' as const,
-                  entity: 'binary_sensor.second',
-                  state_not: 'off',
-                },
-              ],
-              overrides: {
-                view: {
-                  default: 'clips',
-                },
-              },
+              camera_entity: 'camera.office',
+              capabilities: { disable_except: 'substream' },
             },
-          ],
-        });
-      });
-
-      it('automations', () => {
-        const config = {
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          automations: [
-            {
-              conditions: {
-                state: [
-                  {
-                    entity: 'binary_sensor.first',
-                    state: 'on',
-                  },
-                  {
-                    entity: 'binary_sensor.second',
-                    state_not: 'off',
-                  },
-                  {},
-                ],
-              },
-
-              actions: {
-                action: 'custom:frigate-card-action' as const,
-                frigate_card_action: 'live_substream_on' as const,
-              },
-            },
-          ],
-        };
-
-        expect(upgradeConfig(config)).toBeTruthy();
-        expect(config).toEqual({
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          automations: [
-            {
-              conditions: [
-                {
-                  condition: 'state' as const,
-                  entity: 'binary_sensor.first',
-                  state: 'on',
-                },
-                {
-                  condition: 'state' as const,
-                  entity: 'binary_sensor.second',
-                  state_not: 'off',
-                },
-              ],
-              actions: {
-                action: 'custom:frigate-card-action' as const,
-                frigate_card_action: 'live_substream_on' as const,
-              },
-            },
-          ],
-        });
-      });
-    });
-
-    describe('with media query condition', () => {
-      it('elements', () => {
-        const config = {
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          elements: [
-            {
-              conditions: {
-                media_query: 'query',
-              },
-            },
-            {
-              conditions: 'not an object',
-            },
-          ],
-        };
-        expect(upgradeConfig(config)).toBeTruthy();
-        expect(config).toEqual({
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          elements: [
-            {
-              conditions: [
-                {
-                  condition: 'screen' as const,
-                  media_query: 'query',
-                },
-              ],
-            },
-            {
-              conditions: 'not an object',
-            },
-          ],
-        });
-      });
-
-      it('overrides', () => {
-        const config = {
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          overrides: [
-            {
-              conditions: {
-                media_query: 'query',
-              },
-              overrides: {
-                view: {
-                  default: 'clips',
-                },
-              },
-            },
-          ],
-        };
-
-        expect(upgradeConfig(config)).toBeTruthy();
-        expect(config).toEqual({
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          overrides: [
-            {
-              conditions: [
-                {
-                  condition: 'screen' as const,
-                  media_query: 'query',
-                },
-              ],
-              overrides: {
-                view: {
-                  default: 'clips',
-                },
-              },
-            },
-          ],
-        });
-      });
-
-      it('automations', () => {
-        const config = {
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          automations: [
-            {
-              conditions: {
-                media_query: 'query',
-              },
-              actions: {
-                action: 'custom:frigate-card-action' as const,
-                frigate_card_action: 'live_substream_on' as const,
-              },
-            },
-          ],
-        };
-
-        expect(upgradeConfig(config)).toBeTruthy();
-        expect(config).toEqual({
-          type: 'custom:frigate-card',
-          cameras: [{ camera_entity: 'camera.office' }],
-          automations: [
-            {
-              conditions: [
-                {
-                  condition: 'screen' as const,
-                  media_query: 'query',
-                },
-              ],
-              actions: {
-                action: 'custom:frigate-card-action' as const,
-                frigate_card_action: 'live_substream_on' as const,
-              },
-            },
+            { camera_entity: 'camera.sitting_room' },
           ],
         });
       });
