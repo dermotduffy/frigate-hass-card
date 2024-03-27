@@ -9,6 +9,7 @@
     "davidanson.vscode-markdownlint",
     "redhat.vscode-yaml",
     "lokalise.i18n-ally",
-    "vitest.explorer"
+    "vitest.explorer",
+    "inlang.vs-code-extension"
   ]
 }
