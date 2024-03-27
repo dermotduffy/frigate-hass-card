@@ -7,6 +7,7 @@ import { getEntityIcon, getEntityTitle } from '../../utils/ha';
 import { EntityRegistryManager } from '../../utils/ha/entity-registry';
 import { ViewMedia } from '../../view/media';
 import { Camera } from '../camera';
+import { Capabilities } from '../capabilities';
 import { CameraManagerEngine } from '../engine';
 import { CameraManagerReadOnlyConfigStore } from '../store';
 import {
@@ -32,7 +33,8 @@ import {
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
 } from '../types';
-import { getCameraEntityFromConfig, getDefaultGo2RTCEndpoint } from '../utils.js';
+import { getCameraEntityFromConfig } from '../utils/camera-entity-from-config';
+import { getDefaultGo2RTCEndpoint } from '../utils/go2rtc-endpoint';
 
 export class GenericCameraManagerEngine implements CameraManagerEngine {
   protected _eventCallback?: CameraEventCallback;
@@ -51,15 +53,23 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     cameraConfig: CameraConfig,
   ): Promise<Camera> {
     return await new Camera(cameraConfig, this, {
-      capabilities: {
-        canFavoriteEvents: false,
-        canFavoriteRecordings: false,
-        canSeek: false,
-        supportsClips: false,
-        supportsRecordings: false,
-        supportsSnapshots: false,
-        supportsTimeline: false,
-      },
+      capabilities: new Capabilities(
+        {
+          'favorite-events': false,
+          'favorite-recordings': false,
+          clips: false,
+          live: true,
+          menu: true,
+          recordings: false,
+          seek: false,
+          snapshots: false,
+          substream: true,
+        },
+        {
+          disable: cameraConfig.capabilities?.disable,
+          disableExcept: cameraConfig.capabilities?.disable_except,
+        },
+      ),
       eventCallback: this._eventCallback,
     }).initialize(hass, entityRegistryManager);
   }

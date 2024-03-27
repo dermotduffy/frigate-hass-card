@@ -22,7 +22,6 @@ describe('config defaults', () => {
         frigate: {
           client_id: 'frigate',
         },
-        hide: false,
         image: {
           refresh_seconds: 1,
         },

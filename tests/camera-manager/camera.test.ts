@@ -5,8 +5,8 @@ import { GenericCameraManagerEngine } from '../../src/camera-manager/generic/eng
 import { EntityRegistryManager } from '../../src/utils/ha/entity-registry/index.js';
 import {
   callHASubscribeMessageHandler,
-  createCameraCapabilities,
   createCameraConfig,
+  createCapabilities,
   createHASS,
 } from '../test-utils.js';
 
@@ -19,7 +19,7 @@ describe('Camera', () => {
 
   describe('should get capabilities', async () => {
     it('when populated', async () => {
-      const capabilities = createCameraCapabilities();
+      const capabilities = createCapabilities();
       const camera = new Camera(createCameraConfig(), new GenericCameraManagerEngine(), {
         capabilities: capabilities,
       });

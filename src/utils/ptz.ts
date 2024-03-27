@@ -1,8 +1,8 @@
-import { CameraManagerCameraCapabilities } from '../camera-manager/types';
+import { Capabilities } from '../camera-manager/capabilities';
 import { FrigateCardPTZConfig, PTZ_CONTROL_ACTIONS } from '../config/types';
 
 export const hasUsablePTZ = (
-  capabilities: CameraManagerCameraCapabilities | null,
+  capabilities: Capabilities | null,
   config: FrigateCardPTZConfig,
 ): boolean => {
   for (const actionName of PTZ_CONTROL_ACTIONS) {
@@ -10,5 +10,10 @@ export const hasUsablePTZ = (
       return true;
     }
   }
-  return !!capabilities?.ptz;
+  const ptzCapabilities = capabilities?.getPTZCapabilities();
+  return (
+    !!ptzCapabilities?.panTilt?.length ||
+    !!ptzCapabilities?.zoom?.length ||
+    !!ptzCapabilities?.presets?.length
+  );
 };

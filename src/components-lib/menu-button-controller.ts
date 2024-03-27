@@ -24,6 +24,7 @@ import { getEntityIcon, getEntityTitle } from '../utils/ha';
 import { hasUsablePTZ } from '../utils/ptz';
 import { hasSubstream } from '../utils/substream';
 import { View } from '../view/view';
+import { getCameraIDsForViewName } from '../view/view-to-cameras';
 
 export interface MenuButtonControllerOptions {
   currentMediaLoadedInfo?: MediaLoadedInfo | null;
@@ -62,16 +63,12 @@ export class MenuButtonController {
     view: View,
     options?: MenuButtonControllerOptions,
   ): MenuItem[] {
-    const visibleCameraIDs = cameraManager.getStore().getVisibleCameraIDs();
     const selectedCameraID = view.camera;
     const substreamAwareCameraID =
       view.context?.live?.overrides?.get(selectedCameraID) ?? selectedCameraID;
     const selectedCameraConfig = cameraManager
       .getStore()
       .getCameraConfig(selectedCameraID);
-    const allSelectedCameraIDs = cameraManager
-      .getStore()
-      .getAllDependentCameras(selectedCameraID);
 
     const substreamAwareCameraCapabilities =
       cameraManager.getCameraCapabilities(substreamAwareCameraID);
@@ -98,9 +95,12 @@ export class MenuButtonController {
       ) as FrigateCardCustomAction,
     });
 
-    if (visibleCameraIDs.size) {
+    // Show all cameras in the menu rather than just cameras that support the
+    // current view for a less surprising UX.
+    const menuCameraIDs = cameraManager.getStore().getCameraIDsWithCapability('menu');
+    if (menuCameraIDs.size) {
       const menuItems = Array.from(
-        cameraManager.getStore().getCameraConfigEntries(visibleCameraIDs),
+        cameraManager.getStore().getCameraConfigEntries(menuCameraIDs),
         ([cameraID, config]) => {
           const action = createFrigateCardCameraAction('camera_select', cameraID);
           const metadata = cameraManager.getCameraMetadata(cameraID);
@@ -126,10 +126,15 @@ export class MenuButtonController {
       });
     }
 
-    if (selectedCameraID && allSelectedCameraIDs && view.is('live')) {
-      const dependencies = [...allSelectedCameraIDs];
+    const substreamCameraIDs = cameraManager
+      .getStore()
+      .getAllDependentCameras(selectedCameraID, 'substream');
 
-      if (dependencies.length === 2) {
+    if (selectedCameraID && substreamCameraIDs && view.is('live')) {
+      const substreams = [...substreamCameraIDs].filter((cameraID) => cameraID !== selectedCameraID);
+      const streams = [selectedCameraID, ...substreams];
+
+      if (streams.length === 2) {
         // If there are only two dependencies (the main camera, and 1 other)
         // then use a button not a menu to toggle.
         buttons.push({
@@ -145,14 +150,14 @@ export class MenuButtonController {
             hasSubstream(view) ? 'live_substream_off' : 'live_substream_on',
           ) as FrigateCardCustomAction,
         });
-      } else if (dependencies.length > 2) {
-        const menuItems = Array.from(dependencies, (cameraID) => {
+      } else if (streams.length > 2) {
+        const menuItems = Array.from(streams, (streamID) => {
           const action = createFrigateCardCameraAction(
             'live_substream_select',
-            cameraID,
+            streamID,
           );
-          const metadata = cameraManager.getCameraMetadata(cameraID) ?? undefined;
-          const cameraConfig = cameraManager.getStore().getCameraConfig(cameraID);
+          const metadata = cameraManager.getCameraMetadata(streamID) ?? undefined;
+          const cameraConfig = cameraManager.getStore().getCameraConfig(streamID);
           return {
             enabled: true,
             icon: metadata?.icon,
@@ -161,7 +166,7 @@ export class MenuButtonController {
             title: metadata?.title,
             selected:
               (view.context?.live?.overrides?.get(selectedCameraID) ??
-                selectedCameraID) === cameraID,
+                selectedCameraID) === streamID,
             ...(action && { tap_action: action }),
           };
         });
@@ -409,7 +414,8 @@ export class MenuButtonController {
       });
     }
 
-    if (view.supportsMultipleDisplayModes() && visibleCameraIDs.size > 1) {
+    const viewCameraIDs = getCameraIDsForViewName(cameraManager, view.view);
+    if (view.supportsMultipleDisplayModes() && viewCameraIDs.size > 1) {
       const isGrid = view.isGrid();
       buttons.push({
         icon: isGrid ? 'mdi:grid-off' : 'mdi:grid',

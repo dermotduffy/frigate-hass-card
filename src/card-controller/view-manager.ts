@@ -1,3 +1,4 @@
+import isEqual from 'lodash-es/isEqual';
 import { ViewContext } from 'view';
 import {
   FRIGATE_CARD_VIEW_DEFAULT,
@@ -5,18 +6,21 @@ import {
   FrigateCardView,
   ViewDisplayMode,
 } from '../config/types';
+import { localize } from '../localize/localize';
 import { log } from '../utils/debug';
 import { executeMediaQueryForView } from '../utils/media-to-view';
 import { View } from '../view/view';
+import { getCameraIDsForViewName } from '../view/view-to-cameras';
 import { CardViewAPI } from './types';
 
 interface ViewManagerSetViewDefaultParameters {
   cameraID?: string;
   substream?: string;
 
-  // When failSafe is true, the view will be changed to an "always-works" view
-  // (e.g. `live`) if the proposed view is unsupported. By default the view will
-  // just not be changed.
+  // When failSafe is true, the view will be changed to the default view, or the
+  // `live` view if the default view is not supported, or failing that an error
+  // message is shown. Without `failSafe` the view will just not be changed if
+  // unsupported.
   failSafe?: boolean;
 }
 
@@ -49,9 +53,11 @@ export class ViewManager {
     const config = this._api.getConfigManager().getConfig();
     if (config) {
       let forceCameraID: string | null = params?.cameraID ?? null;
+      const viewName = config.view.default;
+
       if (!forceCameraID && this._view?.camera && config.view.update_cycle_camera) {
         const cameraIDs = [
-          ...this._api.getCameraManager().getStore().getVisibleCameraIDs(),
+          ...getCameraIDsForViewName(this._api.getCameraManager(), viewName),
         ];
         const currentIndex = cameraIDs.indexOf(this._view.camera);
         const targetIndex = currentIndex + 1 >= cameraIDs.length ? 0 : currentIndex + 1;
@@ -60,7 +66,7 @@ export class ViewManager {
 
       this.setViewByParameters({
         ...params,
-        viewName: config.view.default,
+        viewName: viewName,
         ...(forceCameraID && { cameraID: forceCameraID }),
       });
 
@@ -76,38 +82,82 @@ export class ViewManager {
     if (config) {
       let cameraID: string | null = null;
 
-      const cameras = this._api.getCameraManager().getStore().getVisibleCameraIDs();
-      if (cameras.size) {
-        if (params?.cameraID && cameras.has(params.cameraID)) {
-          cameraID = params.cameraID;
-        } else {
-          // Reset to the default camera.
-          cameraID = cameras.keys().next().value;
-        }
-      }
       let viewName = params?.viewName ?? this._view?.view ?? config.view.default;
-      if (cameraID && viewName) {
-        if (!this.isViewSupportedByCamera(cameraID, viewName)) {
-          if (params.failSafe) {
+      const allCameraIDs = this._api.getCameraManager().getStore().getCameraIDs();
+      if (params?.cameraID && allCameraIDs.has(params.cameraID)) {
+        cameraID = params.cameraID;
+      } else {
+        const viewCameraIDs = getCameraIDsForViewName(
+          this._api.getCameraManager(),
+          viewName,
+        );
+
+        // Reset to the default camera.
+        cameraID = viewCameraIDs.keys().next().value;
+      }
+
+      if (!cameraID) {
+        if (params.failSafe) {
+          const camerasToCapabilities = [
+            ...this._api.getCameraManager().getStore().getCameras(),
+          ].reduce((acc, [cameraID, camera]) => {
+            const capabilities = camera.getCapabilities()?.getRawCapabilities();
+            if (capabilities) {
+              acc[cameraID] = capabilities;
+            }
+            return acc;
+          }, {});
+
+          this._api.getMessageManager().setMessageIfHigherPriority({
+            type: 'error',
+            message: localize('error.no_supported_cameras'),
+            context: {
+              view: viewName,
+              cameras_capabilities: camerasToCapabilities,
+            },
+          });
+        }
+        return;
+      }
+
+      if (!this.isViewSupportedByCamera(cameraID, viewName)) {
+        if (params.failSafe) {
+          if (this.isViewSupportedByCamera(cameraID, FRIGATE_CARD_VIEW_DEFAULT)) {
             viewName = FRIGATE_CARD_VIEW_DEFAULT;
           } else {
+            const capabilities = this._api
+              .getCameraManager()
+              .getStore()
+              .getCamera(cameraID)
+              ?.getCapabilities()
+              ?.getRawCapabilities();
+            this._api.getMessageManager().setMessageIfHigherPriority({
+              type: 'error',
+              message: localize('error.no_supported_camera'),
+              context: {
+                view: viewName,
+                camera: cameraID,
+                ...(capabilities && { camera_capabilities: capabilities }),
+              },
+            });
             return;
           }
+        } else {
+          return;
         }
-
-        const displayMode =
-          this._view?.displayMode ??
-          this._getDefaultDisplayModeForView(viewName, config);
-        let view: View = new View({
-          view: viewName,
-          camera: cameraID,
-          displayMode: displayMode,
-        });
-        if (params.substream) {
-          view = this._createViewWithSelectedSubstream(view, params.substream);
-        }
-        this._setView(view);
       }
+
+      const displayMode =
+        this._view?.displayMode ?? this._getDefaultDisplayModeForView(viewName, config);
+      let view: View = new View({
+        view: viewName,
+        camera: cameraID,
+        displayMode: displayMode,
+      });
+      if (params.substream) {
+        view = this._createViewWithSelectedSubstream(view, params.substream);
+      }
+      this._setView(view);
     }
   }
 
@@ -121,6 +171,12 @@ export class ViewManager {
     this._view = null;
   }
 
+  protected _getCameraIDsInvolvedInView(view: View): Set<string> {
+    return view.supportsMultipleDisplayModes() && view.isGrid()
+      ? getCameraIDsForViewName(this._api.getCameraManager(), view.view)
+      : getCameraIDsForViewName(this._api.getCameraManager(), view.view, view.camera);
+  }
+
   public async setViewWithNewDisplayMode(displayMode: ViewDisplayMode): Promise<void> {
     const hass = this._api.getHASSManager().getHASS();
 
@@ -129,18 +185,10 @@ export class ViewManager {
         displayMode: displayMode,
       });
 
-      const cameraCount = this._api
-        .getCameraManager()
-        .getStore()
-        .getVisibleCameraCount();
-      const queryCameraCount = view.query?.getQueryCameraIDs()?.size ?? 0;
-      const generateNewQuery =
-        view?.query &&
-        queryCameraCount &&
-        ((view.isGrid() && queryCameraCount < cameraCount) ||
-          (!view.isGrid() && queryCameraCount > 1));
+      const expectedCameraIDs = this._getCameraIDsInvolvedInView(view);
+      const queryCameraIDs = view.query?.getQueryCameraIDs();
 
-      if (generateNewQuery && view && view.query) {
+      if (!isEqual(expectedCameraIDs, queryCameraIDs) && view && view.query) {
         // If the user requests a grid but the current query does not have a
         // query for more than one camera, reset the query results, change the
         // existing query to refer to all cameras and execute it to fetch new
@@ -150,13 +198,7 @@ export class ViewManager {
           viewWithNewQuery = await executeMediaQueryForView(
             this._api.getCameraManager(),
             view,
-            view.query
-              .clone()
-              .setQueryCameraIDs(
-                view.isGrid()
-                  ? this._api.getCameraManager().getStore().getVisibleCameraIDs()
-                  : view.camera,
-              ),
+            view.query.clone().setQueryCameraIDs(expectedCameraIDs),
           );
         } catch (e: unknown) {
           this._api.getMessageManager().setErrorIfHigherPriority(e);
@@ -190,42 +232,7 @@ export class ViewManager {
   }
 
   public isViewSupportedByCamera(cameraID: string, view: FrigateCardView): boolean {
-    const dependentCamerasCapabilities = this._api
-      .getCameraManager()
-      .getAggregateCameraCapabilities(
-        this._api.getCameraManager().getStore().getAllDependentCameras(cameraID),
-      );
-    const allCamerasCapabilities = this._api
-      .getCameraManager()
-      .getAggregateCameraCapabilities(
-        this._api.getCameraManager().getStore().getCameraIDs(),
-      );
-
-    switch (view) {
-      case 'live':
-      case 'image':
-      case 'diagnostics':
-        return true;
-      case 'clip':
-      case 'clips':
-        return !!dependentCamerasCapabilities?.supportsClips;
-      case 'snapshot':
-      case 'snapshots':
-        return !!dependentCamerasCapabilities?.supportsSnapshots;
-      case 'recording':
-      case 'recordings':
-        return !!dependentCamerasCapabilities?.supportsRecordings;
-      case 'timeline':
-        // Show the timeline if any camera supports it, even cameras unrelated
-        // to the currently selected camera.
-        return !!allCamerasCapabilities?.supportsTimeline;
-      case 'media':
-        return (
-          !!dependentCamerasCapabilities?.supportsClips ||
-          !!dependentCamerasCapabilities?.supportsSnapshots ||
-          !!dependentCamerasCapabilities?.supportsRecordings
-        );
-    }
+    return !!getCameraIDsForViewName(this._api.getCameraManager(), view, cameraID).size;
   }
 
   protected _getDefaultDisplayModeForView(

@@ -10,6 +10,23 @@
   "config": {
     "cameras": {
       "camera_entity": "Camera Entity",
+      "capabilities": {
+        "disable": "Disable",
+        "disable_except": "Disable except",
+        "editor_label": "Camera capabilities",
+        "capabilities": {
+          "clips": "Clips",
+          "favorite-events": "Favorite Events",
+          "favorite-recordings": "Favorite Recordings",
+          "live": "Live",
+          "menu": "Menu",
+          "ptz": "PTZ",
+          "recordings": "Recordings",
+          "seek": "Seeking",
+          "snapshots": "Snapshots",
+          "substream": "Substream"
+        }
+      },
       "cast": {
         "dashboard": {
           "dashboard_path": "Dashboard path",
@@ -50,7 +67,7 @@
       "frigate": {
         "camera_name": "Frigate camera name (Autodetected from entity)",
         "client_id": "Frigate client id (For >1 Frigate server)",
-        "editor_label": "Frigate Options",
+        "editor_label": "Frigate options",
         "labels": "Frigate labels/object filters",
         "url": "Frigate server URL",
         "zones": "Frigate zones"
@@ -87,7 +104,7 @@
         "webrtc-card": "WebRTC Card (i.e. AlexxIT's WebRTC Card)"
       },
       "motioneye": {
-        "editor_label": "MotionEye Options",
+        "editor_label": "MotionEye options",
         "images": {
           "directory_pattern": "Images directory pattern",
           "file_pattern": "Images file pattern"
@@ -527,9 +544,9 @@
     "no_camera_name": "Could not determine a Frigate camera name for camera (or one of its dependents), please specify either 'camera_entity' or 'camera_name'",
     "no_dashboard_or_view": "Both 'dashboard_path' and 'view_path' parameters are required for the 'dashboard' cast method",
     "no_live_camera": "The camera_entity parameter must be set and valid for this live provider",
-    "no_visible_cameras": "No visible cameras found, you must configure at least one non-hidden camera",
+    "no_supported_camera": "The selected camera does not support this view",
+    "no_supported_cameras": "No cameras support this view",
     "reconnecting": "Reconnecting",
-    "timeline_no_cameras": "No Frigate cameras to show in timeline",
     "too_many_automations": "Too many nested automation calls, please check your configuration for loops",
     "troubleshooting": "Check troubleshooting",
     "unknown": "Unknown error",

@@ -31,8 +31,9 @@ import {
   THUMBNAIL_WIDTH_MIN,
 } from './config/types.js';
 import {
-  CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
+  CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE_EXCEPT,
+  CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE,
   CONF_CAMERAS_ARRAY_CAST_DASHBOARD_DASHBOARD_PATH,
   CONF_CAMERAS_ARRAY_CAST_DASHBOARD_VIEW_PATH,
   CONF_CAMERAS_ARRAY_CAST_METHOD,
@@ -49,7 +50,6 @@ import {
   CONF_CAMERAS_ARRAY_FRIGATE_ZONES,
   CONF_CAMERAS_ARRAY_GO2RTC_MODES,
   CONF_CAMERAS_ARRAY_GO2RTC_STREAM,
-  CONF_CAMERAS_ARRAY_HIDE,
   CONF_CAMERAS_ARRAY_ICON,
   CONF_CAMERAS_ARRAY_ID,
   CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
@@ -67,8 +67,9 @@ import {
   CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL,
-  CONF_DIMENSIONS_ASPECT_RATIO,
+  CONF_CAMERAS,
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
+  CONF_DIMENSIONS_ASPECT_RATIO,
   CONF_DIMENSIONS_MAX_HEIGHT,
   CONF_DIMENSIONS_MIN_HEIGHT,
   CONF_IMAGE_MODE,
@@ -91,7 +92,6 @@ import {
   CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
   CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA_TYPE,
   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
-  CONF_LIVE_CONTROLS_TIMELINE_PAN_MODE,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
@@ -100,6 +100,7 @@ import {
   CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
   CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_LIVE_CONTROLS_TIMELINE_MODE,
+  CONF_LIVE_CONTROLS_TIMELINE_PAN_MODE,
   CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
   CONF_LIVE_CONTROLS_TIMELINE_STYLE,
   CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS,
@@ -157,8 +158,8 @@ import {
   CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
   CONF_MEDIA_VIEWER_ZOOMABLE,
   CONF_MENU_ALIGNMENT,
-  CONF_MENU_BUTTONS,
   CONF_MENU_BUTTON_SIZE,
+  CONF_MENU_BUTTONS,
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
   CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
@@ -182,14 +183,14 @@ import {
   CONF_VIEW_DEFAULT,
   CONF_VIEW_INTERACTION_SECONDS,
   CONF_VIEW_RESET_AFTER_INTERACTION,
-  CONF_VIEW_TRIGGERS,
-  CONF_VIEW_TRIGGERS_ACTIONS,
   CONF_VIEW_TRIGGERS_ACTIONS_INTERACTION_MODE,
   CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
   CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
+  CONF_VIEW_TRIGGERS_ACTIONS,
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
   CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS,
   CONF_VIEW_TRIGGERS_UNTRIGGER_SECONDS,
+  CONF_VIEW_TRIGGERS,
   CONF_VIEW_UPDATE_CYCLE_CAMERA,
   CONF_VIEW_UPDATE_FORCE,
   CONF_VIEW_UPDATE_SECONDS,
@@ -208,6 +209,7 @@ import {
 
 const MENU_BUTTONS = 'buttons';
 const MENU_CAMERAS = 'cameras';
+const MENU_CAMERAS_CAPABILITIES = 'cameras.capabilities';
 const MENU_CAMERAS_CAST = 'cameras.cast';
 const MENU_CAMERAS_DEPENDENCIES = 'cameras.dependencies';
 const MENU_CAMERAS_DIMENSIONS = 'cameras.dimensions';
@@ -738,6 +740,50 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     {
       value: 'seek-in-camera',
       label: localize('config.common.controls.timeline.pan_modes.seek-in-camera'),
+    },
+  ];
+
+  protected _capabilities: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'live',
+      label: localize('config.cameras.capabilities.capabilities.live'),
+    },
+    {
+      value: 'substream',
+      label: localize('config.cameras.capabilities.capabilities.substream'),
+    },
+    {
+      value: 'clips',
+      label: localize('config.cameras.capabilities.capabilities.clips'),
+    },
+    {
+      value: 'recordings',
+      label: localize('config.cameras.capabilities.capabilities.recordings'),
+    },
+    {
+      value: 'snapshots',
+      label: localize('config.cameras.capabilities.capabilities.snapshots'),
+    },
+    {
+      value: 'favorite-events',
+      label: localize('config.cameras.capabilities.capabilities.favorite-events'),
+    },
+    {
+      value: 'favorite-recordings',
+      label: localize('config.cameras.capabilities.capabilities.favorite-recordings'),
+    },
+    {
+      value: 'seek',
+      label: localize('config.cameras.capabilities.capabilities.seek'),
+    },
+    {
+      value: 'ptz',
+      label: localize('config.cameras.capabilities.capabilities.ptz'),
+    },
+    {
+      value: 'menu',
+      label: localize('config.cameras.capabilities.capabilities.menu'),
     },
   ];
 
@@ -1688,10 +1734,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderStringInput(
                 getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
               )}
-              ${this._renderSwitch(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_HIDE, cameraIndex),
-                this._defaults.cameras.hide,
-              )}
               ${this._putInSubmenu(
                 MENU_CAMERAS_ENGINE,
                 true,
@@ -1930,6 +1972,34 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_FIT,
                     CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_X,
                     CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_Y,
+                  )}
+                `,
+              )}
+              ${this._putInSubmenu(
+                MENU_CAMERAS_CAPABILITIES,
+                cameraIndex,
+                'config.cameras.capabilities.editor_label',
+                { name: 'mdi:cog-stop' },
+                html`
+                  ${this._renderOptionSelector(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE,
+                      cameraIndex,
+                    ),
+                    this._capabilities,
+                    {
+                      multiple: true,
+                    },
+                  )}
+                  ${this._renderOptionSelector(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE_EXCEPT,
+                      cameraIndex,
+                    ),
+                    this._capabilities,
+                    {
+                      multiple: true,
+                    },
                   )}
                 `,
               )}

@@ -10,6 +10,23 @@
   "config": {
     "cameras": {
       "camera_entity": "Entitat de càmera",
+      "capabilities": {
+        "disable": "",
+        "disable_except": "",
+        "editor_label": "",
+        "capabilities": {
+          "clips": "",
+          "favorite-events": "",
+          "favorite-recordings": "",
+          "live": "",
+          "menu": "",
+          "ptz": "",
+          "recordings": "",
+          "seek": "",
+          "snapshots": "",
+          "substream": ""
+        }
+      },
       "cast": {
         "dashboard": {
           "dashboard_path": "Ruta del tauler de control",
@@ -520,7 +537,8 @@
     "no_camera_name": "No s'ha pogut determinar el nom de la càmera Frigate per a la càmera (o una de les seves dependències), especifiqueu 'camera_entity' o 'camera_name'",
     "no_dashboard_or_view": "Tant els paràmetres 'dashboard_path' com 'view_path' són necessaris per al mètode d'emissió 'dashboard'",
     "no_live_camera": "El paràmetre 'camera_entity' s'ha de configurar i validar per a aquest proveïdor en directe",
-    "no_visible_cameras": "No s'han trobat càmeres visibles, heu de configurar almenys una càmera no oculta",
+    "no_supported_camera": "",
+    "no_supported_cameras": "",
     "reconnecting": "Reconnectant",
     "timeline_no_cameras": "No hi ha càmeres Frigate per mostrar a la línia de temps",
     "too_many_automations": "Hi ha massa trucades d'automatització imbricades, comproveu la vostra configuració per veure si hi ha bucles",

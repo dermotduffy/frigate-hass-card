@@ -1,9 +1,10 @@
 import { CameraConfig } from '../config/types';
+import { CapabilityKey } from '../types';
 import { allPromises } from '../utils/basic';
 import { ViewMedia } from '../view/media';
 import { Camera } from './camera';
 import { CameraManagerEngine } from './engine';
-import { Engine } from './types';
+import { CapabilitySearchOptions, Engine } from './types';
 
 type CameraManagerEngineCameraIDMap = Map<CameraManagerEngine, Set<string>>;
 
@@ -14,8 +15,8 @@ export interface CameraManagerReadOnlyConfigStore {
   hasCameraID(cameraID: string): boolean;
 
   getCamera(cameraID: string): Camera | null;
+  getCameras(): Map<string, Camera>;
   getCameraCount(): number;
-  getVisibleCameraCount(): number;
 
   getCameraConfigs(cameraIDs?: Iterable<string>): IterableIterator<CameraConfig>;
   getCameraConfigEntries(
@@ -23,10 +24,15 @@ export interface CameraManagerReadOnlyConfigStore {
   ): IterableIterator<[string, CameraConfig]>;
 
   getCameraIDs(): Set<string>;
-  getVisibleCameraIDs(): Set<string>;
   getDefaultCameraID(): string | null;
 
-  getAllDependentCameras(cameraID: string): Set<string>;
+  getCameraIDsWithCapability(
+    capability: CapabilityKey | CapabilitySearchOptions,
+  ): Set<string>;
+  getAllDependentCameras(
+    cameraID: string,
+    capability?: CapabilityKey | CapabilitySearchOptions,
+  ): Set<string>;
 }
 
 export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
@@ -47,6 +53,9 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
   public getCamera(cameraID: string): Camera | null {
     return this._cameras.get(cameraID) ?? null;
   }
+  public getCameras(): Map<string, Camera> {
+    return this._cameras;
+  }
   public getCameraConfig(cameraID: string): CameraConfig | null {
     return this._cameras.get(cameraID)?.getConfig() ?? null;
   }
@@ -58,16 +67,9 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
   public getCameraCount(): number {
     return this._cameras.size;
   }
-  public getVisibleCameraCount(): number {
-    return this.getVisibleCameraIDs().size;
-  }
 
   public getDefaultCameraID(): string | null {
     return this._cameras.keys().next().value ?? null;
-  }
-
-  public getCameras(): Map<string, Camera> {
-    return this._cameras;
   }
 
   public *getCameraConfigs(
@@ -93,8 +95,17 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
   public getCameraIDs(): Set<string> {
     return new Set(this._cameras.keys());
   }
-  public getVisibleCameraIDs(): Set<string> {
-    return this._getMatchingCameraIDs((camera) => !camera.getConfig().hide);
+
+  public getCameraIDsWithCapability(
+    capability: CapabilityKey | CapabilitySearchOptions,
+  ): Set<string> {
+    const output: Set<string> = new Set();
+    for (const camera of this._cameras.values()) {
+      if (camera.getCapabilities()?.matches(capability)) {
+        output.add(camera.getID());
+      }
+    }
+    return output;
   }
 
   public getCameraConfigForMedia(media: ViewMedia): CameraConfig | null {
@@ -138,35 +149,35 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
    * @returns A set of dependent cameraIDs or null (since JS sets guarantee order,
    * the first item in the set is guaranteed to be the cameraID itself).
    */
-  public getAllDependentCameras(cameraID: string): Set<string> {
-    const cameraIDs: Set<string> = new Set();
+  public getAllDependentCameras(
+    cameraID: string,
+    capability?: CapabilitySearchOptions,
+  ): Set<string> {
+    const visitedCameraIDs = new Set<string>();
+    const matchingCameraIDs: Set<string> = new Set();
     const getDependentCameras = (cameraID: string): void => {
-      const cameraConfig = this.getCameraConfig(cameraID);
-      if (cameraConfig) {
-        cameraIDs.add(cameraID);
+      visitedCameraIDs.add(cameraID);
+
+      const camera = this.getCamera(cameraID);
+      const cameraConfig = camera?.getConfig();
+
+      if (camera && cameraConfig) {
+        if (!capability || camera.getCapabilities()?.matches(capability)) {
+          matchingCameraIDs.add(cameraID);
+        }
         const dependentCameras: Set<string> = new Set();
         cameraConfig.dependencies.cameras.forEach((item) => dependentCameras.add(item));
         if (cameraConfig.dependencies.all_cameras) {
           this.getCameraIDs().forEach((cameraID) => dependentCameras.add(cameraID));
         }
-        for (const eventCameraID of dependentCameras) {
-          if (!cameraIDs.has(eventCameraID)) {
-            getDependentCameras(eventCameraID);
+        for (const dependentCameraID of dependentCameras) {
+          if (!visitedCameraIDs.has(dependentCameraID)) {
+            getDependentCameras(dependentCameraID);
           }
         }
       }
     };
     getDependentCameras(cameraID);
-    return cameraIDs;
-  }
-
-  protected _getMatchingCameraIDs(func: (camera: Camera) => boolean): Set<string> {
-    const output = new Set<string>();
-    for (const [cameraID, camera] of this._cameras.entries()) {
-      if (func(camera)) {
-        output.add(cameraID);
-      }
-    }
-    return output;
+    return matchingCameraIDs;
   }
 }

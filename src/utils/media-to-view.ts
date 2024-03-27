@@ -1,6 +1,6 @@
 import { ViewContext } from 'view';
 import { CameraManager } from '../camera-manager/manager';
-import { MediaQuery } from '../camera-manager/types';
+import { CapabilitySearchOptions, MediaQuery } from '../camera-manager/types';
 import { dispatchFrigateCardErrorEvent } from '../components/message';
 import { CardWideConfig, FrigateCardView } from '../config/types';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const';
@@ -30,9 +30,16 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
     useCache?: boolean;
   },
 ): Promise<void> => {
+  const capabilitySearch: CapabilitySearchOptions =
+    !options?.eventsMediaType || options?.eventsMediaType === 'all'
+      ? {
+          anyCapabilities: ['clips', 'snapshots'],
+        }
+      : options.eventsMediaType;
+
   const cameraIDs = options?.allCameras
-    ? cameraManager.getStore().getVisibleCameraIDs()
-    : cameraManager.getStore().getAllDependentCameras(view.camera);
+    ? cameraManager.getStore().getCameraIDsWithCapability(capabilitySearch)
+    : cameraManager.getStore().getAllDependentCameras(view.camera, capabilitySearch);
   if (!cameraIDs.size) {
     return;
   }
@@ -99,8 +106,8 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
   },
 ): Promise<void> => {
   const cameraIDs = options?.allCameras
-    ? cameraManager.getStore().getVisibleCameraIDs()
-    : cameraManager.getStore().getAllDependentCameras(view.camera);
+    ? cameraManager.getStore().getCameraIDsWithCapability('recordings')
+    : cameraManager.getStore().getAllDependentCameras(view.camera, 'recordings');
   if (!cameraIDs.size) {
     return;
   }

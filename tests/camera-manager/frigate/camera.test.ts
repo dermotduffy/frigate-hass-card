@@ -131,16 +131,6 @@ describe('FrigateCamera', () => {
   });
 
   describe('should detect capabilities', () => {
-    const nonBirdseyeBaseCapabilities = {
-      canFavoriteEvents: true,
-      canFavoriteRecordings: true,
-      canSeek: true,
-      supportsClips: true,
-      supportsSnapshots: true,
-      supportsRecordings: true,
-      supportsTimeline: true,
-    };
-
     it('basic non-birdseye', async () => {
       const camera = new FrigateCamera(
         createCameraConfig({
@@ -153,7 +143,13 @@ describe('FrigateCamera', () => {
 
       await camera.initialize(createHASS(), mock<EntityRegistryManager>());
 
-      expect(camera.getCapabilities()).toEqual(nonBirdseyeBaseCapabilities);
+      expect(camera.getCapabilities()?.has('favorite-events')).toBeTruthy();
+      expect(camera.getCapabilities()?.has('favorite-recordings')).toBeFalsy();
+      expect(camera.getCapabilities()?.has('seek')).toBeTruthy();
+      expect(camera.getCapabilities()?.has('clips')).toBeTruthy();
+      expect(camera.getCapabilities()?.has('live')).toBeTruthy();
+      expect(camera.getCapabilities()?.has('snapshots')).toBeTruthy();
+      expect(camera.getCapabilities()?.has('recordings')).toBeTruthy();
       expect(vi.mocked(getPTZInfo)).toBeCalled();
     });
 
@@ -169,15 +165,13 @@ describe('FrigateCamera', () => {
 
       await camera.initialize(createHASS(), mock<EntityRegistryManager>());
 
-      expect(camera.getCapabilities()).toEqual({
-        ...nonBirdseyeBaseCapabilities,
-        canFavoriteEvents: false,
-        canFavoriteRecordings: false,
-        supportsClips: false,
-        supportsSnapshots: false,
-        supportsRecordings: false,
-        supportsTimeline: false,
-      });
+      expect(camera.getCapabilities()?.has('favorite-events')).toBeFalsy();
+      expect(camera.getCapabilities()?.has('favorite-recordings')).toBeFalsy();
+      expect(camera.getCapabilities()?.has('seek')).toBeFalsy();
+      expect(camera.getCapabilities()?.has('clips')).toBeFalsy();
+      expect(camera.getCapabilities()?.has('live')).toBeTruthy();
+      expect(camera.getCapabilities()?.has('snapshots')).toBeFalsy();
+      expect(camera.getCapabilities()?.has('recordings')).toBeFalsy();
       expect(vi.mocked(getPTZInfo)).not.toBeCalled();
     });
 
@@ -196,9 +190,7 @@ describe('FrigateCamera', () => {
         vi.mocked(getPTZInfo).mockRejectedValue(new Error());
         await camera.initialize(createHASS(), mock<EntityRegistryManager>());
 
-        expect(camera.getCapabilities()).toEqual({
-          ...nonBirdseyeBaseCapabilities,
-        });
+        expect(camera.getCapabilities()?.has('ptz')).toBeFalsy();
         expect(consoleSpy).toBeCalled();
       });
 
@@ -220,13 +212,11 @@ describe('FrigateCamera', () => {
         });
         await camera.initialize(createHASS(), mock<EntityRegistryManager>());
 
-        expect(camera.getCapabilities()).toEqual({
-          ...nonBirdseyeBaseCapabilities,
-          ptz: {
-            panTilt: ['continuous'],
-            zoom: ['continuous'],
-            presets: ['preset01'],
-          },
+        expect(camera.getCapabilities()?.has('ptz')).toBeTruthy();
+        expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
+          panTilt: ['continuous'],
+          zoom: ['continuous'],
+          presets: ['preset01'],
         });
       });
 
@@ -248,13 +238,11 @@ describe('FrigateCamera', () => {
         });
         await camera.initialize(createHASS(), mock<EntityRegistryManager>());
 
-        expect(camera.getCapabilities()).toEqual({
-          ...nonBirdseyeBaseCapabilities,
-          ptz: {
-            panTilt: ['relative'],
-            zoom: ['relative'],
-            presets: ['preset01'],
-          },
+        expect(camera.getCapabilities()?.has('ptz')).toBeTruthy();
+        expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
+          panTilt: ['relative'],
+          zoom: ['relative'],
+          presets: ['preset01'],
         });
       });
     });

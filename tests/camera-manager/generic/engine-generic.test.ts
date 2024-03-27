@@ -34,15 +34,13 @@ describe('GenericCameraManagerEngine', () => {
     );
 
     expect(camera.getConfig()).toEqual(config);
-    expect(camera.getCapabilities()).toEqual({
-      canFavoriteEvents: false,
-      canFavoriteRecordings: false,
-      canSeek: false,
-      supportsClips: false,
-      supportsRecordings: false,
-      supportsSnapshots: false,
-      supportsTimeline: false,
-    });
+    expect(camera.getCapabilities()).toBeTruthy();
+    expect(camera.getCapabilities()?.has('favorite-events')).toBeFalsy();
+    expect(camera.getCapabilities()?.has('favorite-recordings')).toBeFalsy();
+    expect(camera.getCapabilities()?.has('seek')).toBeFalsy();
+    expect(camera.getCapabilities()?.has('clips')).toBeFalsy();
+    expect(camera.getCapabilities()?.has('recordings')).toBeFalsy();
+    expect(camera.getCapabilities()?.has('snapshots')).toBeFalsy();
   });
 
   it('should generate default event query', () => {

@@ -18,7 +18,7 @@ import { ViewMedia } from '../../src/view/media';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
 import { View } from '../../src/view/view';
 import {
-  createCameraCapabilities,
+  createCapabilities,
   createCameraConfig,
   createCameraManager,
   createCardAPI,
@@ -108,7 +108,11 @@ describe('MenuButtonController', () => {
     it('with multiple cameras', () => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(
-        createStore([{ cameraID: 'camera-1' }, { cameraID: 'camera-2' }]),
+        createStore([
+          { cameraID: 'camera-1', capabilities: createCapabilities({ menu: true }) },
+          { cameraID: 'camera-2', capabilities: createCapabilities({ menu: true }) },
+          { cameraID: 'camera-3', capabilities: createCapabilities({ menu: false }) },
+        ]),
       );
       vi.mocked(cameraManager).getCameraMetadata.mockReturnValue({
         title: 'title',
@@ -181,7 +185,10 @@ describe('MenuButtonController', () => {
             cameraID: 'camera-1',
             config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
           },
-          { cameraID: 'camera-2' },
+          {
+            cameraID: 'camera-2',
+            capabilities: createCapabilities({ substream: true }),
+          },
         ]),
       );
       const buttons = calculateButtons(controller, { cameraManager: cameraManager });
@@ -208,7 +215,10 @@ describe('MenuButtonController', () => {
             cameraID: 'camera-1',
             config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
           },
-          { cameraID: 'camera-2' },
+          {
+            cameraID: 'camera-2',
+            capabilities: createCapabilities({ substream: true }),
+          },
         ]),
       );
       const view = createView({
@@ -248,18 +258,21 @@ describe('MenuButtonController', () => {
               camera_entity: 'camera.1',
               dependencies: { cameras: ['camera-2', 'camera-3'] },
             }),
+            capabilities: createCapabilities({ substream: true }),
           },
           {
             cameraID: 'camera-2',
             config: createCameraConfig({
               camera_entity: 'camera.2',
             }),
+            capabilities: createCapabilities({ substream: true }),
           },
           {
             cameraID: 'camera-3',
             config: createCameraConfig({
               camera_entity: 'camera.3',
             }),
+            capabilities: createCapabilities({ substream: true }),
           },
         ]),
       );
@@ -340,18 +353,21 @@ describe('MenuButtonController', () => {
               camera_entity: 'camera.1',
               dependencies: { cameras: ['camera-2', 'camera-3'] },
             }),
+            capabilities: createCapabilities({ substream: true }),
           },
           {
             cameraID: 'camera-2',
             config: createCameraConfig({
               camera_entity: 'camera.2',
             }),
+            capabilities: createCapabilities({ substream: true }),
           },
           {
             cameraID: 'camera-3',
             config: createCameraConfig({
               camera_entity: 'camera.3',
             }),
+            capabilities: createCapabilities({ substream: true }),
           },
         ]),
       );
@@ -1207,10 +1223,17 @@ describe('MenuButtonController', () => {
     it.each([['single' as const], ['grid' as const]])(
       '%s',
       (displayMode: ViewDisplayMode) => {
-        const view = createView({ view: 'live', displayMode: displayMode });
+        const view = createView({
+          camera: 'camera-1',
+          view: 'live',
+          displayMode: displayMode,
+        });
         const cameraManager = createCameraManager();
         vi.mocked(cameraManager.getStore).mockReturnValue(
-          createStore([{ cameraID: 'camera-1' }, { cameraID: 'camera-2' }]),
+          createStore([
+            { cameraID: 'camera-1', capabilities: createCapabilities({ live: true }) },
+            { cameraID: 'camera-2', capabilities: createCapabilities({ live: true }) },
+          ]),
         );
 
         expect(
@@ -1239,7 +1262,7 @@ describe('MenuButtonController', () => {
     it('when the selected camera is not PTZ enabled', () => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue(
-        createCameraCapabilities(),
+        createCapabilities(),
       );
 
       const buttons = calculateButtons(controller, { cameraManager: cameraManager });
@@ -1264,7 +1287,7 @@ describe('MenuButtonController', () => {
     it('when the selected camera is PTZ enabled', () => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue(
-        createCameraCapabilities({ ptz: {} }),
+        createCapabilities({ ptz: { panTilt: ['relative'] } }),
       );
       const buttons = calculateButtons(controller, { cameraManager: cameraManager });
 
@@ -1288,7 +1311,7 @@ describe('MenuButtonController', () => {
     it('when the context has PTZ visiblity turned off', () => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue(
-        createCameraCapabilities({ ptz: {} }),
+        createCapabilities({ ptz: { panTilt: ['relative'] } }),
       );
       const view = createView({
         camera: 'camera-1',
@@ -1328,9 +1351,9 @@ describe('MenuButtonController', () => {
       vi.mocked(cameraManager.getCameraCapabilities).mockImplementation(
         (cameraID: string) => {
           if (cameraID === 'camera-2') {
-            return createCameraCapabilities({ ptz: {} });
+            return createCapabilities({ ptz: { panTilt: ['relative'] } });
           }
-          return createCameraCapabilities();
+          return createCapabilities();
         },
       );
       const view = createView({

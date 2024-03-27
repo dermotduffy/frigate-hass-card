@@ -10,7 +10,7 @@ import {
   getActionConfigGivenAction,
 } from '../../src/utils/action.js';
 import {
-  createCameraCapabilities,
+  createCapabilities,
   createCameraManager,
   createHASS,
 } from '../test-utils';
@@ -145,7 +145,7 @@ describe('PTZController', () => {
 
           const cameraManager = createCameraManager();
           vi.mocked(cameraManager).getCameraCapabilities.mockReturnValue(
-            createCameraCapabilities({
+            createCapabilities({
               ptz: {
                 panTilt: ['continuous'],
                 zoom: ['continuous'],
@@ -185,7 +185,7 @@ describe('PTZController', () => {
 
           const cameraManager = createCameraManager();
           vi.mocked(cameraManager).getCameraCapabilities.mockReturnValue(
-            createCameraCapabilities({
+            createCapabilities({
               ptz: {
                 panTilt: ['relative'],
                 zoom: ['relative'],
@@ -210,7 +210,7 @@ describe('PTZController', () => {
 
         const cameraManager = createCameraManager();
         vi.mocked(cameraManager).getCameraCapabilities.mockReturnValue(
-          createCameraCapabilities({
+          createCapabilities({
             ptz: {
               presets: ['preset-foo'],
             },
@@ -237,7 +237,7 @@ describe('PTZController', () => {
         ['down' as const],
         ['zoom_in' as const],
         ['zoom_out' as const],
-      ])('%s', (actionName: PTZControlAction) => {
+      ])('configured %s', (actionName: PTZControlAction) => {
         const controller = new PTZController(document.createElement('div'));
         controller.setConfig(
           createConfig({
@@ -253,7 +253,7 @@ describe('PTZController', () => {
         });
       });
 
-      it('home', () => {
+      it('configured home', () => {
         const controller = new PTZController(document.createElement('div'));
         controller.setConfig(
           createConfig({

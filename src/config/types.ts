@@ -9,6 +9,7 @@ import {
 } from '@dermotduffy/custom-card-helpers';
 import { z } from 'zod';
 import { MEDIA_CHUNK_SIZE_DEFAULT, MEDIA_CHUNK_SIZE_MAX } from '../const.js';
+import { capabilityKeys } from '../types.js';
 import { deepRemoveDefaults } from '../utils/zod.js';
 
 // *************************************************************************
@@ -44,6 +45,8 @@ const FRIGATE_CARD_VIEWS = [
 ] as const;
 
 export type FrigateCardView = (typeof FRIGATE_CARD_VIEWS)[number];
+
+// The default view (may not be supported on all cameras).
 export const FRIGATE_CARD_VIEW_DEFAULT = 'live' as const;
 
 export const MEDIA_ACTION_NEGATIVE_CONDITIONS = ['unselected', 'hidden'] as const;
@@ -730,12 +733,7 @@ const timelineCoreConfigDefault = {
   pan_mode: 'pan' as const,
 };
 
-export const timelinePanModeSchema = z.enum([
-  'pan',
-  'seek',
-  'seek-in-media',
-  'seek-in-camera',
-]);
+const timelinePanModeSchema = z.enum(['pan', 'seek', 'seek-in-media', 'seek-in-camera']);
 export type TimelinePanMode = z.infer<typeof timelinePanModeSchema>;
 
 const timelineCoreConfigSchema = z.object({
@@ -757,9 +755,7 @@ const timelineCoreConfigSchema = z.object({
     .optional()
     .default(timelineCoreConfigDefault.show_recordings),
   style: z.enum(['stack', 'ribbon']).optional().default(timelineCoreConfigDefault.style),
-  pan_mode: timelinePanModeSchema
-    .optional()
-    .default(timelineCoreConfigDefault.pan_mode),
+  pan_mode: timelinePanModeSchema.optional().default(timelineCoreConfigDefault.pan_mode),
 });
 export type TimelineCoreConfig = z.infer<typeof timelineCoreConfigSchema>;
 
@@ -1119,7 +1115,6 @@ const cameraConfigDefault = {
   frigate: {
     client_id: 'frigate' as const,
   },
-  hide: false,
   image: {
     refresh_seconds: 1,
   },
@@ -1151,8 +1146,12 @@ export const cameraConfigSchema = z
     icon: z.string().optional(),
     title: z.string().optional(),
 
-    // Used to hide the camera (e.g. when used only as a dependency).
-    hide: z.boolean().optional(),
+    capabilities: z
+      .object({
+        disable: z.enum(capabilityKeys).array().optional(),
+        disable_except: z.enum(capabilityKeys).array().optional(),
+      })
+      .optional(),
 
     // Optional identifier to separate different camera configurations used in
     // this card.

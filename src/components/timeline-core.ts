@@ -27,7 +27,7 @@ import {
 import { CameraManager } from '../camera-manager/manager';
 import { rangesOverlap } from '../camera-manager/range';
 import { MediaQuery } from '../camera-manager/types';
-import { convertRangeToCacheFriendlyTimes } from '../camera-manager/utils';
+import { convertRangeToCacheFriendlyTimes } from '../camera-manager/utils/range-to-cache-friendly';
 import {
   FrigateCardTimelineItem,
   TimelineDataSource,
@@ -72,7 +72,6 @@ import { MediaQueriesResults } from '../view/media-queries-results';
 import { View } from '../view/view';
 import './date-picker.js';
 import { DatePickerEvent, FrigateCardDatePicker } from './date-picker.js';
-import { dispatchMessageEvent } from './message.js';
 import './thumbnail.js';
 
 interface FrigateCardGroupData {
@@ -275,18 +274,11 @@ export class FrigateCardTimelineCore extends LitElement {
     request.detail.view = this.view;
   }
 
-  /**
-   * Master render method.
-   * @returns A rendered template.
-   */
   protected render(): TemplateResult | void {
-    const cameraIDs = this._getTimelineCameraIDs();
-
-    if (!this.hass || !this.view || !this.timelineConfig || !cameraIDs) {
+    if (!this.hass || !this.view || !this.timelineConfig || !this.cameraIDs?.size) {
       return;
     }
 
-    const capabilities = this.cameraManager?.getAggregateCameraCapabilities(cameraIDs);
     const panMode = this._getEffectivePanMode();
 
     const panTitle =
@@ -306,55 +298,43 @@ export class FrigateCardTimelineCore extends LitElement {
         ? 'mdi:play-box-lock'
         : 'mdi:camera-lock';
 
-    return html` ${capabilities?.supportsTimeline
-      ? html` <div
-          @frigate-card:timeline:thumbnail-data-request=${this._handleThumbnailDataRequest.bind(
-            this,
-          )}
-          class="timeline"
-          ${ref(this._refTimeline)}
-        >
-          <div class="timeline-tools">
-            ${this._shouldSupportSeeking()
-              ? html` <ha-icon
-                  .icon=${panIcon}
-                  @click=${() => {
-                    this._panMode =
-                      panMode === 'pan'
-                        ? 'seek'
-                        : panMode === 'seek'
-                        ? 'seek-in-media'
-                        : panMode === 'seek-in-media'
-                        ? 'seek-in-camera'
-                        : 'pan';
-                  }}
-                  aria-label="${panTitle}"
-                  title="${panTitle}"
-                >
-                </ha-icon>`
-              : ''}
-            <frigate-card-date-picker
-              ${ref(this._refDatePicker)}
-              @frigate-card:date-picker:change=${(ev: CustomEvent<DatePickerEvent>) => {
-                if (ev.detail.date) {
-                  this._timeline?.moveTo(ev.detail.date);
-                }
+    return html` <div
+      @frigate-card:timeline:thumbnail-data-request=${this._handleThumbnailDataRequest.bind(
+        this,
+      )}
+      class="timeline"
+      ${ref(this._refTimeline)}
+    >
+      <div class="timeline-tools">
+        ${this._shouldSupportSeeking()
+          ? html` <ha-icon
+              .icon=${panIcon}
+              @click=${() => {
+                this._panMode =
+                  panMode === 'pan'
+                    ? 'seek'
+                    : panMode === 'seek'
+                    ? 'seek-in-media'
+                    : panMode === 'seek-in-media'
+                    ? 'seek-in-camera'
+                    : 'pan';
               }}
+              aria-label="${panTitle}"
+              title="${panTitle}"
             >
-            </frigate-card-date-picker>
-          </div>
-        </div>`
-      : ''}`;
-  }
-
-  /**
-   * Get all the keys of the cameras in scope for this timeline.
-   * @returns A set of camera ids (may be empty).
-   */
-  protected _getTimelineCameraIDs(): Set<string> | null {
-    return (
-      this.cameraIDs ?? this.cameraManager?.getStore().getVisibleCameraIDs() ?? null
-    );
+            </ha-icon>`
+          : ''}
+        <frigate-card-date-picker
+          ${ref(this._refDatePicker)}
+          @frigate-card:date-picker:change=${(ev: CustomEvent<DatePickerEvent>) => {
+            if (ev.detail.date) {
+              this._timeline?.moveTo(ev.detail.date);
+            }
+          }}
+        >
+        </frigate-card-date-picker>
+      </div>
+    </div>`;
   }
 
   /**
@@ -555,7 +535,6 @@ export class FrigateCardTimelineCore extends LitElement {
       stopEventFromActivatingCardWideActions(properties.event);
     }
 
-    const timelineCameraIDs = this._getTimelineCameraIDs();
     if (
       this._ignoreClick ||
       !this.hass ||
@@ -563,7 +542,8 @@ export class FrigateCardTimelineCore extends LitElement {
       !this.view ||
       !this.cameraManager ||
       !this.cardWideConfig ||
-      !timelineCameraIDs ||
+      !this.cameraIDs ||
+      !this.cameraIDs.size ||
       !this._timelineSource ||
       !properties.what
     ) {
@@ -767,14 +747,13 @@ export class FrigateCardTimelineCore extends LitElement {
    */
   protected _getGroups(): DataGroupCollectionType {
     const groups: FrigateCardGroupData[] = [];
-    (this._getTimelineCameraIDs() ?? []).forEach((cameraID) => {
+    (this.cameraIDs ?? []).forEach((cameraID: string) => {
       if (!this.hass || !this.cameraManager) {
         return;
       }
       const cameraMetadata = this.cameraManager.getCameraMetadata(cameraID);
-      const cameraCapabilities = this.cameraManager.getCameraCapabilities(cameraID);
 
-      if (cameraMetadata && cameraCapabilities?.supportsTimeline) {
+      if (cameraMetadata) {
         groups.push({
           id: cameraID,
           content: cameraMetadata.title,
@@ -1142,11 +1121,10 @@ export class FrigateCardTimelineCore extends LitElement {
       changedProps.has('timelineConfig') ||
       changedProps.has('cameraIDs')
     ) {
-      const cameraIDs = this._getTimelineCameraIDs();
-      if (cameraIDs && this.cameraManager && this.timelineConfig) {
+      if (this.cameraIDs?.size && this.cameraManager && this.timelineConfig) {
         this._timelineSource = new TimelineDataSource(
           this.cameraManager,
-          cameraIDs,
+          this.cameraIDs,
           this.timelineConfig.events_media_type,
           this.timelineConfig.show_recordings,
         );
@@ -1191,12 +1169,6 @@ export class FrigateCardTimelineCore extends LitElement {
 
       const groups = this._getGroups();
       if (!groups.length) {
-        if (!this.mini) {
-          // Don't show an empty timeline, show a message instead.
-          dispatchMessageEvent(this, localize('error.timeline_no_cameras'), 'info', {
-            icon: 'mdi:chart-gantt',
-          });
-        }
         return;
       }
 

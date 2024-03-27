@@ -3,6 +3,7 @@ import add from 'date-fns/add';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { Camera } from '../../src/camera-manager/camera';
+import { Capabilities } from '../../src/camera-manager/capabilities';
 import { CameraManagerEngine } from '../../src/camera-manager/engine';
 import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-factory.js';
 import {
@@ -16,7 +17,6 @@ import {
   CameraEndpoints,
   CameraEndpointsContext,
   CameraEvent,
-  CameraManagerCameraCapabilities,
   CameraManagerCameraMetadata,
   CameraManagerMediaCapabilities,
   Engine,
@@ -27,7 +27,7 @@ import {
   QueryResultsType,
   QueryType,
 } from '../../src/camera-manager/types';
-import { sortMedia } from '../../src/camera-manager/utils';
+import { sortMedia } from '../../src/camera-manager/utils/sort-media';
 import { CardController } from '../../src/card-controller/controller';
 import { CameraConfig } from '../../src/config/types';
 import { EntityRegistryManager } from '../../src/utils/ha/entity-registry';
@@ -35,8 +35,8 @@ import { ViewMedia } from '../../src/view/media';
 import {
   TestViewMedia,
   createCamera,
-  createCameraCapabilities,
   createCameraConfig,
+  createCapabilities,
   createCardAPI,
   createConfig,
   createHASS,
@@ -219,7 +219,7 @@ describe('CameraManager', async () => {
     cameras: {
       config?: CameraConfig;
       engineType?: Engine | null;
-      capabilties?: CameraManagerCameraCapabilities;
+      capabilties?: Capabilities;
     }[] = [{}],
     factory?: CameraManagerEngineFactory,
   ): CameraManager => {
@@ -249,7 +249,7 @@ describe('CameraManager', async () => {
             createCamera(
               cameraConfig,
               mockEngine,
-              camera.capabilties ?? createCameraCapabilities(),
+              camera.capabilties ?? createCapabilities(),
             ),
         );
       }
@@ -364,19 +364,6 @@ describe('CameraManager', async () => {
       expect(await manager.initializeCamerasFromConfig()).toBeFalsy();
       expect(api.getMessageManager().setErrorIfHigherPriority).toBeCalledWith(
         new Error('Could not determine suitable engine for camera'),
-      );
-    });
-
-    it('with no cameras', async () => {
-      const api = createCardAPI();
-      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-
-      const manager = createCameraManager(api, mock<CameraManagerEngine>(), []);
-      expect(await manager.initializeCamerasFromConfig()).toBeFalsy();
-      expect(api.getMessageManager().setErrorIfHigherPriority).toBeCalledWith(
-        new Error(
-          'No visible cameras found, you must configure at least one non-hidden camera',
-        ),
       );
     });
 
@@ -1043,74 +1030,72 @@ describe('CameraManager', async () => {
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
 
       expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
-      expect(manager.getCameraCapabilities('id')).toEqual(createCameraCapabilities());
+      expect(manager.getCameraCapabilities('id')).toEqual(createCapabilities());
     });
   });
 
   describe('should get aggregate camera capabilities', () => {
     it('without camera', () => {
       const manager = createCameraManager(createCardAPI());
-      expect(manager.getAggregateCameraCapabilities()).toEqual({
-        canFavoriteEvents: false,
-        canFavoriteRecordings: false,
-        canSeek: false,
+      const capabilities = manager.getAggregateCameraCapabilities();
 
-        supportsClips: false,
-        supportsRecordings: false,
-        supportsSnapshots: false,
-        supportsTimeline: false,
+      expect(capabilities.has('favorite-events')).toBeFalsy();
+      expect(capabilities.has('favorite-recordings')).toBeFalsy();
+      expect(capabilities.has('seek')).toBeFalsy();
 
-        supportsPTZ: false,
-      });
+      expect(capabilities.has('live')).toBeFalsy();
+      expect(capabilities.has('clips')).toBeFalsy();
+      expect(capabilities.has('recordings')).toBeFalsy();
+      expect(capabilities.has('snapshots')).toBeFalsy();
     });
 
     it('successfully', async () => {
       const api = createCardAPI();
       const manager = createCameraManager(api, mock<CameraManagerEngine>(), [
         {
-          capabilties: {
-            canFavoriteEvents: false,
-            canFavoriteRecordings: false,
-            canSeek: false,
+          capabilties: new Capabilities({
+            'favorite-events': false,
+            'favorite-recordings': false,
+            seek: false,
 
-            supportsClips: false,
-            supportsRecordings: false,
-            supportsSnapshots: false,
-            supportsTimeline: false,
-          },
+            live: false,
+            clips: false,
+            recordings: false,
+            snapshots: false,
+          }),
         },
         {
           config: createCameraConfig({ baseCameraConfig, id: 'another' }),
-          capabilties: {
-            canFavoriteEvents: true,
-            canFavoriteRecordings: true,
-            canSeek: true,
+          capabilties: new Capabilities({
+            'favorite-events': true,
+            'favorite-recordings': true,
+            seek: true,
 
-            supportsClips: true,
-            supportsRecordings: true,
-            supportsSnapshots: true,
-            supportsTimeline: true,
+            live: true,
+            clips: true,
+            recordings: true,
+            snapshots: true,
 
-            ptz: {},
-          },
+            ptz: {
+              panTilt: ['continuous'],
+            },
+          }),
         },
       ]);
       const hass = createHASS();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
       expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
 
-      expect(manager.getAggregateCameraCapabilities()).toEqual({
-        canFavoriteEvents: true,
-        canFavoriteRecordings: true,
-        canSeek: true,
+      const capabilities = manager.getAggregateCameraCapabilities();
 
-        supportsClips: true,
-        supportsRecordings: true,
-        supportsSnapshots: true,
-        supportsTimeline: true,
+      expect(capabilities.has('favorite-events')).toBeTruthy();
+      expect(capabilities.has('favorite-recordings')).toBeTruthy();
+      expect(capabilities.has('seek')).toBeTruthy();
 
-        supportsPTZ: true,
-      });
+      expect(capabilities.has('live')).toBeTruthy();
+      expect(capabilities.has('clips')).toBeTruthy();
+      expect(capabilities.has('recordings')).toBeTruthy();
+      expect(capabilities.has('snapshots')).toBeTruthy();
     });
   });
 

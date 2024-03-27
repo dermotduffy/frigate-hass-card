@@ -7,10 +7,9 @@ import { EventMediaQueries } from '../../src/view/media-queries';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
 import { View } from '../../src/view/view';
 import {
-  createAggregateCameraCapabilities,
-  createCameraCapabilities,
   createCameraConfig,
   createCameraManager,
+  createCapabilities,
   createCardAPI,
   createConfig,
   createHASS,
@@ -120,6 +119,7 @@ describe('ViewManager.setViewDefault', () => {
       createStore([
         {
           cameraID: 'camera',
+          capabilities: createCapabilities({ live: true }),
         },
       ]),
     );
@@ -150,9 +150,11 @@ describe('ViewManager.setViewDefault', () => {
       createStore([
         {
           cameraID: 'camera_1',
+          capabilities: createCapabilities({ live: true }),
         },
         {
           cameraID: 'camera_2',
+          capabilities: createCapabilities({ live: true }),
         },
       ]),
     );
@@ -186,9 +188,11 @@ describe('ViewManager.setViewDefault', () => {
       createStore([
         {
           cameraID: 'camera.kitchen',
+          capabilities: createCapabilities({ live: true }),
         },
         {
           cameraID: 'camera.office',
+          capabilities: createCapabilities({ live: true }),
         },
       ]),
     );
@@ -216,12 +220,13 @@ describe('ViewManager.setViewByParameters', () => {
       createStore([
         {
           cameraID: 'camera.kitchen',
+          capabilities: createCapabilities({ clips: true }),
         },
       ]),
     );
     vi.mocked(api.getCameraManager().getAggregateCameraCapabilities).mockReturnValue(
-      createAggregateCameraCapabilities({
-        supportsClips: true,
+      createCapabilities({
+        clips: true,
       }),
     );
 
@@ -242,15 +247,17 @@ describe('ViewManager.setViewByParameters', () => {
       createStore([
         {
           cameraID: 'camera.kitchen',
+          capabilities: createCapabilities({ clips: true }),
         },
         {
           cameraID: 'camera.office',
+          capabilities: createCapabilities({ clips: true }),
         },
       ]),
     );
     vi.mocked(api.getCameraManager().getAggregateCameraCapabilities).mockReturnValue(
-      createAggregateCameraCapabilities({
-        supportsClips: true,
+      createCapabilities({
+        clips: true,
       }),
     );
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
@@ -276,6 +283,7 @@ describe('ViewManager.setViewByParameters', () => {
       createStore([
         {
           cameraID: 'camera.kitchen',
+          capabilities: createCapabilities({ live: true }),
         },
       ]),
     );
@@ -302,49 +310,102 @@ describe('ViewManager.setViewByParameters', () => {
     expect(manager.getView()).toBeNull();
   });
 
-  it('should not set view by parameters without visible cameras', () => {
-    const api = createCardAPI();
-    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
-    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
-      createStore([
-        {
-          cameraID: 'camera.kitchen',
-          config: createCameraConfig({
-            hide: true,
-          }),
-        },
-      ]),
-    );
-    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
-
-    const manager = new ViewManager(api);
-    manager.setViewByParameters({
-      viewName: 'live',
-    });
-
-    expect(manager.getView()).toBeNull();
-  });
-
   describe('should handle unsupported view', () => {
-    it('without failsafe', () => {
+    it('without camera without failsafe', () => {
       const api = createCardAPI();
       vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
       vi.mocked(api.getCameraManager().getStore).mockReturnValue(
         createStore([
           {
             cameraID: 'camera.kitchen',
+            capabilities: createCapabilities({ snapshots: false }),
+          },
+        ]),
+      );
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+
+      const manager = new ViewManager(api);
+      manager.setViewByParameters({
+        // Since no camera is specified, and no camera supports the capabilities
+        // necessary for this view, the view will be null.
+        viewName: 'snapshots',
+      });
+
+      expect(manager.getView()).toBeNull();
+    });
+
+    it('without camera with failsafe', () => {
+      const api = createCardAPI();
+      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera.kitchen',
+            capabilities: createCapabilities({ snapshots: false }),
+          },
+          {
+            cameraID: 'camera.office',
+            // No capabilities.
+            capabilities: null,
+          },
+        ]),
+      );
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+
+      const manager = new ViewManager(api);
+      manager.setViewByParameters({
+        // Since no camera is specified, and no camera supports the capabilities
+        // necessary for this view, and since failSafe is specified, an error
+        // will be shown.
+        viewName: 'snapshots',
+        failSafe: true,
+      });
+
+      expect(manager.getView()).toBeNull();
+      expect(manager.hasView()).toBeFalsy();
+      expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          message: 'No cameras support this view',
+          context: {
+            view: 'snapshots',
+            cameras_capabilities: {
+              'camera.kitchen': {
+                'favorite-events': false,
+                'favorite-recordings': false,
+                clips: false,
+                live: false,
+                recordings: false,
+                seek: false,
+                snapshots: false,
+              },
+            },
+          },
+        }),
+      );
+    });
+
+    it('with camera without failsafe', () => {
+      const api = createCardAPI();
+      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera.kitchen',
+            capabilities: createCapabilities({ snapshots: false }),
           },
         ]),
       );
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
       vi.mocked(api.getCameraManager().getAggregateCameraCapabilities).mockReturnValue(
-        createAggregateCameraCapabilities({
-          supportsSnapshots: false,
+        createCapabilities({
+          snapshots: false,
         }),
       );
 
       const manager = new ViewManager(api);
       manager.setViewByParameters({
+        cameraID: 'camera.kitchen',
         viewName: 'snapshots',
       });
 
@@ -352,31 +413,83 @@ describe('ViewManager.setViewByParameters', () => {
       expect(manager.getView()).toBeNull();
     });
 
-    it('with failsafe', () => {
+    it('with camera with failsafe', () => {
       const api = createCardAPI();
       vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
       vi.mocked(api.getCameraManager().getStore).mockReturnValue(
         createStore([
           {
             cameraID: 'camera.kitchen',
+            capabilities: createCapabilities({ snapshots: false, live: true }),
           },
         ]),
       );
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
       vi.mocked(api.getCameraManager().getAggregateCameraCapabilities).mockReturnValue(
-        createAggregateCameraCapabilities({
-          supportsSnapshots: false,
+        createCapabilities({
+          snapshots: false,
+          live: true,
         }),
       );
 
       const manager = new ViewManager(api);
       manager.setViewByParameters({
+        cameraID: 'camera.kitchen',
         viewName: 'snapshots',
         failSafe: true,
       });
 
       expect(manager.hasView()).toBeTruthy();
       expect(manager.getView()?.view).toBe('live');
+    });
+
+    it('with camera with failsafe when live unsupported', () => {
+      const api = createCardAPI();
+      vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+      vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera.kitchen',
+            capabilities: createCapabilities({ snapshots: false, live: false }),
+          },
+        ]),
+      );
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+      vi.mocked(api.getCameraManager().getAggregateCameraCapabilities).mockReturnValue(
+        createCapabilities({
+          snapshots: false,
+          live: false,
+        }),
+      );
+
+      const manager = new ViewManager(api);
+      manager.setViewByParameters({
+        cameraID: 'camera.kitchen',
+        viewName: 'snapshots',
+        failSafe: true,
+      });
+
+      expect(manager.hasView()).toBeFalsy();
+      expect(manager.getView()).toBeNull();
+      expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          message: 'The selected camera does not support this view',
+          context: {
+            view: 'snapshots',
+            camera: 'camera.kitchen',
+            camera_capabilities: {
+              'favorite-events': false,
+              'favorite-recordings': false,
+              clips: false,
+              live: false,
+              recordings: false,
+              seek: false,
+              snapshots: false,
+            },
+          },
+        }),
+      );
     });
   });
 
@@ -394,14 +507,21 @@ describe('ViewManager.setViewByParameters', () => {
         createStore([
           {
             cameraID: 'camera.kitchen',
+            capabilities: createCapabilities({
+              live: true,
+              clips: true,
+              recordings: true,
+              snapshots: true,
+            }),
           },
         ]),
       );
       vi.mocked(api.getCameraManager().getAggregateCameraCapabilities).mockReturnValue(
-        createAggregateCameraCapabilities({
-          supportsClips: true,
-          supportsRecordings: true,
-          supportsSnapshots: true,
+        createCapabilities({
+          live: true,
+          clips: true,
+          recordings: true,
+          snapshots: true,
         }),
       );
 
@@ -445,14 +565,21 @@ describe('ViewManager.setViewByParameters', () => {
         createStore([
           {
             cameraID: 'camera.kitchen',
+            capabilities: createCapabilities({
+              live: true,
+              clips: true,
+              recordings: true,
+              snapshots: true,
+            }),
           },
         ]),
       );
       vi.mocked(api.getCameraManager().getAggregateCameraCapabilities).mockReturnValue(
-        createAggregateCameraCapabilities({
-          supportsClips: true,
-          supportsRecordings: true,
-          supportsSnapshots: true,
+        createCapabilities({
+          live: true,
+          clips: true,
+          recordings: true,
+          snapshots: true,
         }),
       );
 
@@ -502,18 +629,18 @@ describe('ViewManager.setViewWithNewDisplayMode', () => {
       createStore([
         {
           cameraID: 'camera.kitchen',
-          capabilities: createCameraCapabilities({
-            supportsClips: true,
-            supportsRecordings: true,
-            supportsSnapshots: true,
+          capabilities: createCapabilities({
+            clips: true,
+            recordings: true,
+            snapshots: true,
           }),
         },
         {
           cameraID: 'camera.office',
-          capabilities: createCameraCapabilities({
-            supportsClips: true,
-            supportsRecordings: true,
-            supportsSnapshots: true,
+          capabilities: createCapabilities({
+            clips: true,
+            recordings: true,
+            snapshots: true,
           }),
         },
       ]),
@@ -556,18 +683,18 @@ describe('ViewManager.setViewWithNewDisplayMode', () => {
       createStore([
         {
           cameraID: 'camera.kitchen',
-          capabilities: createCameraCapabilities({
-            supportsClips: true,
-            supportsRecordings: true,
-            supportsSnapshots: true,
+          capabilities: createCapabilities({
+            clips: true,
+            recordings: true,
+            snapshots: true,
           }),
         },
         {
           cameraID: 'camera.office',
-          capabilities: createCameraCapabilities({
-            supportsClips: true,
-            supportsRecordings: true,
-            supportsSnapshots: true,
+          capabilities: createCapabilities({
+            clips: true,
+            recordings: true,
+            snapshots: true,
           }),
         },
       ]),
@@ -614,18 +741,18 @@ describe('ViewManager.setViewWithNewDisplayMode', () => {
       createStore([
         {
           cameraID: 'camera.kitchen',
-          capabilities: createCameraCapabilities({
-            supportsClips: true,
-            supportsRecordings: true,
-            supportsSnapshots: true,
+          capabilities: createCapabilities({
+            clips: true,
+            recordings: true,
+            snapshots: true,
           }),
         },
         {
           cameraID: 'camera.office',
-          capabilities: createCameraCapabilities({
-            supportsClips: true,
-            supportsRecordings: true,
-            supportsSnapshots: true,
+          capabilities: createCapabilities({
+            clips: true,
+            recordings: true,
+            snapshots: true,
           }),
         },
       ]),
@@ -662,18 +789,18 @@ describe('ViewManager.setViewWithNewDisplayMode', () => {
       createStore([
         {
           cameraID: 'camera.kitchen',
-          capabilities: createCameraCapabilities({
-            supportsClips: true,
-            supportsRecordings: true,
-            supportsSnapshots: true,
+          capabilities: createCapabilities({
+            clips: true,
+            recordings: true,
+            snapshots: true,
           }),
         },
         {
           cameraID: 'camera.office',
-          capabilities: createCameraCapabilities({
-            supportsClips: true,
-            supportsRecordings: true,
-            supportsSnapshots: true,
+          capabilities: createCapabilities({
+            clips: true,
+            recordings: true,
+            snapshots: true,
           }),
         },
       ]),
@@ -873,7 +1000,7 @@ describe('ViewManager.setViewWithSubstream', () => {
 
 describe('ViewManager.isViewSupportedByCamera', () => {
   it.each([
-    ['live' as const, true],
+    ['live' as const, false],
     ['image' as const, true],
     ['diagnostics' as const, true],
     ['clip' as const, false],
@@ -891,15 +1018,15 @@ describe('ViewManager.isViewSupportedByCamera', () => {
       createStore([
         {
           cameraID: 'camera.kitchen',
-          capabilities: {
-            canFavoriteEvents: false,
-            canFavoriteRecordings: false,
-            canSeek: false,
-            supportsClips: false,
-            supportsRecordings: false,
-            supportsSnapshots: false,
-            supportsTimeline: false,
-          },
+          capabilities: createCapabilities({
+            live: false,
+            'favorite-events': false,
+            'favorite-recordings': false,
+            seek: false,
+            clips: false,
+            recordings: false,
+            snapshots: false,
+          }),
         },
       ]),
     );

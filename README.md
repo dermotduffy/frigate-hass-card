@@ -138,7 +138,6 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 | `live_provider` | `auto` | :white_check_mark: | The choice of live stream provider. See [Live Providers](#live-providers) below.|
 | `title` | Autodetected from `camera_entity` if that is specified. | :white_check_mark: | A friendly name for this camera to use in the card. |
 | `icon` | Autodetected from `camera_entity` if that is specified. | :white_check_mark: | The icon to use for this camera in the camera menu and in the next & previous controls when using the `icon` style. |
-| `hide` | `false` | :white_check_mark: | Whether or not to hide this as an independent camera (e.g. hidden on the live carousel, media filter, camera menu, and triggers cannot trigger this camera). This may be useful if this camera is exclusively used as a dependency of another camera. |
 | `id` | `camera_entity`, `webrtc_card.entity` or `frigate.camera_name` if set (in that preference order). | :white_check_mark: | An optional identifier to use throughout the card configuration to refer unambiguously to this camera. See [camera IDs](#camera-ids). |
 | `engine` | `auto` | :white_check_mark: | Which camera engine to use for this camera. If `auto` the card will attempt to choose the correct engine from the specified options. See [engines](#engines) below for valid options.|
 | `frigate` | | :white_check_mark: | Options for a Frigate camera. See [Frigate configuration](#camera-frigate-configuration) below. |
@@ -147,6 +146,7 @@ See the [fully expanded cameras configuration example](#config-expanded-cameras)
 | `webrtc_card` | | :white_check_mark: | The WebRTC entity/URL to use for this camera with the `webrtc-card` live provider. See below. |
 | `cast` | | :white_check_mark: | Configuration that controls how this camera is "casted" / sent to media players. See below. |
 | `dimensions` | | :white_check_mark: | Controls the dimensions and layout for media from this camera. See below. |
+| `capabilities` | | :white_check_mark: | Allows selective disabling of camera capabilities. See below. |
 
 <a name="live-providers"></a>
 
@@ -396,6 +396,35 @@ This block is used to control the fit and position of the media _within_ the cam
 | `position` | | :white_check_mark: | A dictionary that contains an `x` and `y` percentage (`0` - `100`) to control the position of the media when the fit is `cover`. This can be effectively used to "pan" the media around. At any given time, only one of `x` and `y` will have an effect, depending on whether media width is larger than the card width (in which case `x` controls the position) or the media height is larger than the card height (in which case `y` controls the position). A value of `0` means maximally to the left or top of the media, a value of `100` means maximally to the right or bottom of the media. See [CSS object-position](https://developer.mozilla.org/en-US/docs/Web/CSS/object-position) for technical details and a visualization. |
 
 See [media layout examples](#media-layout-examples).
+
+### Camera Capabilities
+
+The `capabilities` block allows selected disabling of auto-detected camera capabilities. This is rarely used, with substreams being a notable exception.
+
+```yaml
+cameras:
+ - capabilities:
+```
+
+| Option | Default | Overridable | Description |
+| - | - | - | - |
+| `disable` | | :white_check_mark: | A list of camera capabilities to disable. By default all capabilities supported by the camera are enabled. |
+| `disable_except` | | :white_check_mark: | A list of camera capabilities to leave enabled if supported. Everything else will be disabled. |
+
+#### Capabilities
+
+| Capability | Purpose |
+| - | - |
+| `clips` | Clips can be fetched from the camera. |
+| `favorite-events` | Events can be favorited. |
+| `favorite-recordings` | Recordings can be favorited. |
+| `live` | Live video can be received from the camera. |
+| `menu` | The camera should show up in the card camera menu. |
+| `ptz` | The camera can be PTZ controlled. |
+| `recordings` | Recordings can be fetched from the camera. |
+| `seek` | Clips can be seeked / scrubbed by the timeline. |
+| `snapshots` | Snapshots can be fetched from the camera. |
+| `substream` | The camera can be used as a substream on another camera. |
 
 <a name="camera-ids"></a>
 
@@ -1789,7 +1818,6 @@ cameras:
   - camera_entity: camera.front_Door
     live_provider: ha
     engine: auto
-    hide: false
     frigate:
       url: http://my.frigate.local
       client_id: frigate
@@ -1832,8 +1860,6 @@ cameras:
     title: 'Front entrance'
     # Custom identifier for the camera to refer to it above.
     id: 'camera-2'
-    # Don't show this camera on the UI (will only be available as a dependent substream).
-    hide: true
     webrtc_card:
       entity: camera.entrance_rtsp
       url: 'rtsp://username:password@camera:554/av_stream/ch0'
@@ -1905,7 +1931,6 @@ Reference: [Cameras Global Options](#camera-global-options).
 cameras_global:
   live_provider: ha
   engine: auto
-  hide: false
   frigate:
     url: http://my.frigate.local
     client_id: frigate
@@ -2763,7 +2788,6 @@ overrides:
         - {}                       # No overrides for camera index 0.
         - live_provider: 'ha'      # Overrides for camera index 1.
           engine: auto
-          hide: false
           frigate:
             url: http://my.frigate.local
             client_id: frigate
@@ -3598,8 +3622,10 @@ cameras:
     title: Sitting Room HD
     live_provider: go2rtc
     id: sitting_room_hd
-    # Do not show the HD camera independently on the UI.
-    hide: true
+    # This camera serves only as a substream.
+    capabilities:
+      disable_except:
+        - substream
 menu:
   buttons:
     substreams:
@@ -3625,13 +3651,17 @@ cameras:
   - camera_entity: camera.sitting_room
     live_provider: go2rtc
     id: sitting_room_go2rtc
-    hide: true
+    capabilities:
+      disable_except:
+        - substream
     title: Sitting Room go2rtc
     icon: mdi:alpha-g
   - camera_entity: camera.sitting_room
     live_provider: ha
     id: sitting_room_ha
-    hide: true
+    capabilities:
+      disable_except:
+        - substream
     title: Sitting Room HA
     icon: mdi:home
 ```
@@ -4151,7 +4181,9 @@ cameras:
         - camera.office_hd
   - camera_entity: camera.office_hd
     live_provider: go2rtc
-    hide: true
+    capabilities:
+      disable_except:
+        - substream
 automations:
   - actions:
       - action: custom:frigate-card-action

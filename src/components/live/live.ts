@@ -324,7 +324,7 @@ export class FrigateCardLiveGrid extends LitElement {
   }
 
   protected _needsGrid(): boolean {
-    const cameraIDs = this.cameraManager?.getStore().getVisibleCameraIDs();
+    const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability('live');
     return (
       !!this.view?.isGrid() &&
       !!this.view?.supportsMultipleDisplayModes() &&
@@ -343,8 +343,8 @@ export class FrigateCardLiveGrid extends LitElement {
     if (!this.conditionsManagerEpoch || !this.nonOverriddenLiveConfig) {
       return;
     }
-    const cameraIDs = this.cameraManager?.getStore().getVisibleCameraIDs();
-    if (!cameraIDs || !this._needsGrid()) {
+    const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability('live');
+    if (!cameraIDs?.size || !this._needsGrid()) {
       return this._renderCarousel();
     }
     return html`
@@ -416,8 +416,8 @@ export class FrigateCardLiveCarousel extends LitElement {
   }
 
   protected _getSelectedCameraIndex(): number {
-    const cameraIDs = this.cameraManager?.getStore().getVisibleCameraIDs();
-    if (!cameraIDs || !this.view || this.viewFilterCameraID) {
+    const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability('live');
+    if (!cameraIDs?.size || !this.view || this.viewFilterCameraID) {
       // If the carousel is limited to a single cameraID, the first (only)
       // element is always the selected one.
       return 0;
@@ -481,7 +481,7 @@ export class FrigateCardLiveCarousel extends LitElement {
 
     const cameraIDs = this.viewFilterCameraID
       ? new Set([this.viewFilterCameraID])
-      : this.cameraManager.getStore().getVisibleCameraIDs();
+      : this.cameraManager?.getStore().getCameraIDsWithCapability('live');
 
     const slides: TemplateResult[] = [];
     const cameraToSlide: Record<string, number> = {};
@@ -508,8 +508,8 @@ export class FrigateCardLiveCarousel extends LitElement {
   }
 
   protected _setViewHandler(ev: CustomEvent<CarouselSelected>): void {
-    const cameraIDs = this.cameraManager?.getStore().getVisibleCameraIDs();
-    if (cameraIDs && ev.detail.index !== this._getSelectedCameraIndex()) {
+    const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability('live');
+    if (cameraIDs?.size && ev.detail.index !== this._getSelectedCameraIndex()) {
       this._setViewCameraID([...cameraIDs][ev.detail.index]);
     }
   }
@@ -597,7 +597,7 @@ export class FrigateCardLiveCarousel extends LitElement {
 
   protected _getCameraIDsOfNeighbors(): [string | null, string | null] {
     const cameraIDs = this.cameraManager
-      ? [...this.cameraManager.getStore().getVisibleCameraIDs()]
+      ? [...this.cameraManager?.getStore().getCameraIDsWithCapability('live')]
       : [];
     if (this.viewFilterCameraID || cameraIDs.length <= 1 || !this.view || !this.hass) {
       return [null, null];
