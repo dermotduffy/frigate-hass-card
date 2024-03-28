@@ -11,9 +11,6 @@
     "cameras": {
       "camera_entity": "Entidade da Câmera",
       "capabilities": {
-        "disable": "",
-        "disable_except": "",
-        "editor_label": "",
         "capabilities": {
           "clips": "",
           "favorite-events": "",
@@ -25,7 +22,10 @@
           "seek": "",
           "snapshots": "",
           "substream": ""
-        }
+        },
+        "disable": "",
+        "disable_except": "",
+        "editor_label": ""
       },
       "cast": {
         "dashboard": {
@@ -48,6 +48,7 @@
         "aspect_ratio": "",
         "editor_label": "",
         "layout": {
+          "editor_label": "",
           "fit": "Ajuste de layout",
           "fits": {
             "contain": "A mídia é contida no cartão",
@@ -82,7 +83,6 @@
         },
         "stream": "Nome do stream do go2rtc"
       },
-      "hide": "Ocultar câmera da interface do usuário",
       "icon": "Ícone para esta câmera (detectado automaticamente pela entidade)",
       "id": "ID exclusivo para esta câmera nesse cartão",
       "image": {
@@ -359,6 +359,7 @@
         "image": "Imagem",
         "live": "Ao vivo",
         "media_player": "Enviar para o reprodutor de mídia",
+        "microphone": "",
         "mute": "",
         "play": "",
         "priority": "Prioridade",
@@ -545,7 +546,6 @@
     "no_supported_camera": "",
     "no_supported_cameras": "",
     "reconnecting": "Reconectando",
-    "timeline_no_cameras": "Nenhuma câmera do Frigate para mostrar na linha do tempo",
     "too_many_automations": "",
     "troubleshooting": "Verifique a solução de problemas",
     "unknown": "Erro desconhecido",

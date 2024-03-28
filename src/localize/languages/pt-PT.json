@@ -11,9 +11,6 @@
     "cameras": {
       "camera_entity": "Entidade da Câmera",
       "capabilities": {
-        "disable": "",
-        "disable_except": "",
-        "editor_label": "",
         "capabilities": {
           "clips": "",
           "favorite-events": "",
@@ -25,7 +22,10 @@
           "seek": "",
           "snapshots": "",
           "substream": ""
-        }
+        },
+        "disable": "",
+        "disable_except": "",
+        "editor_label": ""
       },
       "cast": {
         "dashboard": {
@@ -48,6 +48,7 @@
         "aspect_ratio": "",
         "editor_label": "",
         "layout": {
+          "editor_label": "",
           "fit": "Fit",
           "fits": {
             "contain": "Conter",
@@ -82,7 +83,6 @@
         },
         "stream": "Stream"
       },
-      "hide": "Esconder",
       "icon": "Ícone para esta câmera (detectado automaticamente pela entidade)",
       "id": "ID exclusivo para esta câmera nesse cartão",
       "image": {
@@ -237,6 +237,11 @@
           "snapshots": "Instantâneos"
         },
         "show_recordings": "Mostrar gravações",
+        "style": "",
+        "styles": {
+          "ribbon": "",
+          "stack": ""
+        },
         "window_seconds": "A duração padrão da visualização da linha do tempo em segundos"
       }
     },
@@ -247,7 +252,9 @@
         "dynamic": "A proporção se ajusta à mídia",
         "static": "Proporção estática",
         "unconstrained": "Proporção irrestrita"
-      }
+      },
+      "max_height": "",
+      "min_height": ""
     },
     "image": {
       "mode": "Modo de visualização de imagem",
@@ -316,6 +323,7 @@
       },
       "draggable": "Visualizador de eventos pode ser arrastado/deslizado",
       "lazy_load": "A mídia do Visualizador de eventos é carregada lentamente no carrossel",
+      "snapshot_click_plays_clip": "",
       "transition_effect": "Efeito de transição do Visualizador de eventos",
       "transition_effects": {
         "none": "Sem transição",
@@ -351,10 +359,12 @@
         "image": "Imagem",
         "live": "Ao vivo",
         "media_player": "Enviar para o reprodutor de mídia",
+        "microphone": "",
         "mute": "",
         "play": "",
         "priority": "Prioridade",
         "ptz": "",
+        "recordings": "",
         "screenshot": "",
         "snapshots": "Instantâneos",
         "substreams": "substreams",
@@ -376,6 +386,7 @@
       "styles": {
         "hidden": "Menu oculto",
         "hover": "Menu suspenso",
+        "hover-card": "",
         "none": "Sem menu",
         "outside": "Menu externo",
         "overlay": "Menu sobreposto"
@@ -449,6 +460,8 @@
         "current": "Visualização atual",
         "image": "Imagem estática",
         "live": "Visualização ao vivo",
+        "recording": "",
+        "recordings": "",
         "snapshot": "Snapshot mais recente",
         "snapshots": "Galeria de Snapshots",
         "timeline": "Visualização da linha do tempo"
@@ -482,6 +495,8 @@
     "move_up": "Subir",
     "overrides": "As substituições estão ativas",
     "overrides_secondary": "Substituições de configuração dinâmica detectadas",
+    "performance": "",
+    "performance_secondary": "",
     "timeline": "Linha do tempo",
     "timeline_secondary": "Opções do evento da linha do tempo",
     "upgrade": "Actualização",
@@ -531,7 +546,6 @@
     "no_supported_camera": "",
     "no_supported_cameras": "",
     "reconnecting": "A voltar a ligar",
-    "timeline_no_cameras": "Nenhuma câmera do Frigate para mostrar na linha do tempo",
     "too_many_automations": "",
     "troubleshooting": "Verifique a solução de problemas",
     "unknown": "Erro desconhecido",
@@ -546,6 +560,7 @@
     "score": "Pontuação",
     "seek": "Procurar",
     "start": "Início",
+    "tag": "",
     "what": "O quê",
     "where": "Onde"
   },
@@ -563,9 +578,11 @@
     "select_camera": "Seleciona a camara",
     "select_favorite": "Seleciona o favorito",
     "select_media_type": "Seleciona o tipo de media",
+    "select_tag": "",
     "select_what": "Seleciona",
     "select_when": "Seleciona quando",
     "select_where": "Seleciona onde",
+    "tag": "",
     "what": "O que",
     "when": "Quando",
     "whens": {
@@ -589,6 +606,7 @@
     "start": "Começar"
   },
   "thumbnail": {
+    "download": "",
     "no_thumbnail": "Nenhuma miniatura disponível",
     "retain_indefinitely": "Evento será retido por tempo indeterminado",
     "timeline": "Ver evento na linha do tempo"

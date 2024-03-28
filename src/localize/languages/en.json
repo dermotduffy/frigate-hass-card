@@ -11,9 +11,6 @@
     "cameras": {
       "camera_entity": "Camera Entity",
       "capabilities": {
-        "disable": "Disable",
-        "disable_except": "Disable except",
-        "editor_label": "Camera capabilities",
         "capabilities": {
           "clips": "Clips",
           "favorite-events": "Favorite Events",
@@ -25,7 +22,10 @@
           "seek": "Seeking",
           "snapshots": "Snapshots",
           "substream": "Substream"
-        }
+        },
+        "disable": "Disable",
+        "disable_except": "Disable except",
+        "editor_label": "Camera capabilities"
       },
       "cast": {
         "dashboard": {
@@ -83,7 +83,6 @@
         },
         "stream": "go2rtc stream name"
       },
-      "hide": "Hide camera from UI",
       "icon": "Icon for this camera (Autodetected from entity)",
       "id": "Unique id for this camera in this card",
       "image": {

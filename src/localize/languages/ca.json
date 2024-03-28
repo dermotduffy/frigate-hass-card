@@ -11,9 +11,6 @@
     "cameras": {
       "camera_entity": "Entitat de càmera",
       "capabilities": {
-        "disable": "",
-        "disable_except": "",
-        "editor_label": "",
         "capabilities": {
           "clips": "",
           "favorite-events": "",
@@ -25,7 +22,10 @@
           "seek": "",
           "snapshots": "",
           "substream": ""
-        }
+        },
+        "disable": "",
+        "disable_except": "",
+        "editor_label": ""
       },
       "cast": {
         "dashboard": {
@@ -75,11 +75,14 @@
       "go2rtc": {
         "editor_label": "Opcions de go2rtc",
         "modes": {
-          "editor_label": "Modes de go2rtc"
+          "editor_label": "Modes de go2rtc",
+          "mjpeg": "",
+          "mp4": "",
+          "mse": "",
+          "webrtc": ""
         },
         "stream": "nom del flux de go2rtc"
       },
-      "hide": "Amaga la càmera de la interfície d'usuari",
       "icon": "Icona d'aquesta càmera (detecció automàtica des de l'entitat)",
       "id": "Identificador únic per a aquesta càmera en aquesta targeta",
       "image": {
@@ -93,8 +96,10 @@
       },
       "live_providers": {
         "auto": "Automàtic",
+        "go2rtc": "",
         "ha": "Transmissió de vídeo de Home Assistant (és a dir, HLS, LL-HLS, WebRTC mitjançant HA)",
         "image": "Imatges de Home Assistant",
+        "jsmpeg": "",
         "webrtc-card": "Targeta WebRTC (és a dir, la targeta WebRTC d'AlexxIT)"
       },
       "motioneye": {
@@ -358,6 +363,7 @@
         "mute": "Silenciar / Activar el so",
         "play": "Reproduir / Pausa",
         "priority": "Prioritat",
+        "ptz": "",
         "recordings": "Enregistraments",
         "screenshot": "Captura de pantalla",
         "snapshots": "Imatges instantànies",
@@ -540,7 +546,6 @@
     "no_supported_camera": "",
     "no_supported_cameras": "",
     "reconnecting": "Reconnectant",
-    "timeline_no_cameras": "No hi ha càmeres Frigate per mostrar a la línia de temps",
     "too_many_automations": "Hi ha massa trucades d'automatització imbricades, comproveu la vostra configuració per veure si hi ha bucles",
     "troubleshooting": "Comproveu la resolució de problemes",
     "unknown": "Error desconegut",
