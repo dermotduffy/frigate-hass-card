@@ -16,8 +16,8 @@ import {
   upgradeMoveToWithOverrides,
   upgradeObjectRecursively,
   upgradeWithOverrides,
-} from '../src/config-mgmt';
-import { RawFrigateCardConfig } from '../src/config/types';
+} from '../../src/config/management';
+import { RawFrigateCardConfig } from '../../src/config/types';
 
 describe('general functions', () => {
   it('should set value', () => {
@@ -2457,6 +2457,43 @@ describe('should handle version specific upgrades', () => {
             },
             { camera_entity: 'camera.sitting_room' },
           ],
+        });
+      });
+
+      describe('from performance profile to generic profile', () => {
+        it('low performance', () => {
+          const config = {
+            type: 'custom:frigate-card',
+            cameras: [],
+            performance: {
+              profile: 'low',
+            },
+          };
+
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [],
+            profiles: ['low-performance'],
+            performance: {},
+          });
+        });
+
+        it('high performance', () => {
+          const config = {
+            type: 'custom:frigate-card',
+            cameras: [],
+            performance: {
+              profile: 'high',
+            },
+          };
+
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [],
+            performance: {},
+          });
         });
       });
     });

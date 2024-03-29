@@ -1623,7 +1623,6 @@ export type Automations = z.infer<typeof automationsSchema>;
 // *************************************************************************
 
 const performanceConfigDefault = {
-  profile: 'high' as const,
   features: {
     animated_progress_indicator: true,
     media_chunk_size: MEDIA_CHUNK_SIZE_DEFAULT,
@@ -1636,7 +1635,6 @@ const performanceConfigDefault = {
 
 export const performanceConfigSchema = z
   .object({
-    profile: z.enum(['low', 'high']).default(performanceConfigDefault.profile),
     features: z
       .object({
         animated_progress_indicator: z
@@ -1680,6 +1678,13 @@ export interface CardWideConfig {
 }
 
 // *************************************************************************
+//                      *** Profile Configuration ***
+// *************************************************************************
+const PROFILES = ['low-performance', 'scrubbing'] as const;
+export type ProfileType = (typeof PROFILES)[number];
+export const profilesSchema = z.enum(PROFILES).array().optional();
+
+// *************************************************************************
 //                      *** Card Configuration ***
 // *************************************************************************
 
@@ -1704,6 +1709,8 @@ export const frigateCardConfigSchema = z.object({
   performance: performanceConfigSchema,
   debug: debugConfigSchema,
   automations: automationsSchema,
+
+  profiles: profilesSchema,
 
   // Configuration overrides.
   overrides: overridesSchema,

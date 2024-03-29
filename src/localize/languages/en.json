@@ -401,17 +401,17 @@
         "editor_label": "Feature Options",
         "media_chunk_size": "Media chunk size"
       },
-      "profile": "Performance profile",
-      "profiles": {
-        "high": "High/full performance",
-        "low": "Low performance"
-      },
       "style": {
         "border_radius": "Curves",
         "box_shadow": "Shadows",
         "editor_label": "Style Options"
       },
       "warning": "This card is in low profile mode so defaults have changed to optimize performance"
+    },
+    "profiles": {
+      "editor_label": "Configuration profiles",
+      "low-performance": "Low performance",
+      "scrubbing": "Video scrubbing"
     },
     "view": {
       "camera_select": "View for newly selected cameras",
@@ -497,6 +497,8 @@
     "overrides_secondary": "Dynamic configuration overrides detected",
     "performance": "Performance",
     "performance_secondary": "Card performance options",
+    "profiles": "Configuration profiles",
+    "profiles_secondary": "Choose pre-configured sets of defaults",
     "timeline": "Timeline",
     "timeline_secondary": "Event timeline options",
     "upgrade": "Upgrade",

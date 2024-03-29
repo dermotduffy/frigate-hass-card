@@ -253,7 +253,6 @@ describe('config defaults', () => {
           animated_progress_indicator: true,
           media_chunk_size: 50,
         },
-        profile: 'high',
         style: {
           border_radius: true,
           box_shadow: true,

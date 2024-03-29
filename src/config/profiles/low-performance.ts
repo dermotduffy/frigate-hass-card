@@ -1,11 +1,6 @@
-import { getConfigValue, setConfigValue } from './config-mgmt.js';
-import {
-  PerformanceConfig,
-  RawFrigateCardConfig,
-  frigateCardConfigSchema,
-} from './config/types.js';
 import {
   CONF_CAMERAS_GLOBAL_IMAGE_REFRESH_SECONDS,
+  CONF_CAMERAS_GLOBAL_LIVE_PROVIDER,
   CONF_CAMERAS_GLOBAL_TRIGGERS_OCCUPANCY,
   CONF_LIVE_AUTO_MUTE,
   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
@@ -51,13 +46,9 @@ import {
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_TIMELINE_SHOW_RECORDINGS,
-} from './const.js';
-import { deepRemoveDefaults } from './utils/zod.js';
+} from '../../const.js';
 
-// Caution: These values are applied after parsing (since we cannot know the
-// performance profile until afterwards), so there is no validation on these
-// defaults.
-const LOW_PROFILE_DEFAULTS = {
+export const LOW_PERFORMANCE_PROFILE = {
   // Disable thumbnail carousels.
   [CONF_LIVE_CONTROLS_THUMBNAILS_MODE]: 'none' as const,
   [CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE]: 'none' as const,
@@ -138,68 +129,9 @@ const LOW_PROFILE_DEFAULTS = {
   [CONF_MEDIA_VIEWER_SNAPSHOT_CLICK_PLAYS_CLIP]: false,
 
   [CONF_CAMERAS_GLOBAL_TRIGGERS_OCCUPANCY]: false,
+  [CONF_CAMERAS_GLOBAL_LIVE_PROVIDER]: 'image',
 
   // Refresh the live camera image every 10 seconds (same as stock Home
   // Assistant Picture Glance).
   [CONF_CAMERAS_GLOBAL_IMAGE_REFRESH_SECONDS]: 10,
-};
-
-/**
- * Set low performance profile mode. Sets flags as defined in
- * LOW_PROFILE_DEFAULTS unless they are explicitly overriden in the
- * configuration.
- * @param inputConfig The raw unparsed input configuration.
- * @param outputConfig The output config to write to.
- * @returns A changed (in-place) parsed input configuration.
- */
-export const setLowPerformanceProfile = <T extends RawFrigateCardConfig>(
-  inputConfig: RawFrigateCardConfig,
-  outputConfig: T,
-): T => {
-  const setIfNotSpecified = (
-    defaultLessConfig: RawFrigateCardConfig,
-    outputConfig: T,
-    key: string,
-    value: unknown,
-  ) => {
-    if (getConfigValue(defaultLessConfig, key) === undefined) {
-      setConfigValue(outputConfig, key, value);
-    }
-  };
-
-  const defaultLessParseResult = deepRemoveDefaults(frigateCardConfigSchema).safeParse(
-    inputConfig,
-  );
-  if (defaultLessParseResult.success) {
-    const defaultLessConfig = defaultLessParseResult.data;
-    Object.entries(LOW_PROFILE_DEFAULTS).forEach(([k, v]: [string, unknown]) =>
-      setIfNotSpecified(defaultLessConfig, outputConfig, k, v),
-    );
-  }
-  return outputConfig;
-};
-
-const STYLE_DISABLE_MAP = {
-  box_shadow: 'none',
-  border_radius: '0px',
-};
-
-/**
- * Set card-wide CSS variables for performance.
- * @param element The element to set the variables on.
- * @param performance The performance configuration.
- */
-export const setPerformanceCSSStyles = (
-  element: HTMLElement,
-  performance?: PerformanceConfig,
-): void => {
-  const styles = performance?.style ?? {};
-  for (const configKey of Object.keys(styles)) {
-    const CSSKey = `--frigate-card-css-${configKey.replaceAll('_', '-')}`;
-    if (styles[configKey] === false) {
-      element.style.setProperty(CSSKey, STYLE_DISABLE_MAP[configKey]);
-    } else {
-      element.style.removeProperty(CSSKey);
-    }
-  }
 };

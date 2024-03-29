@@ -1,5 +1,5 @@
 import isEqual from 'lodash-es/isEqual';
-import { isConfigUpgradeable } from '../config-mgmt';
+import { isConfigUpgradeable } from '../config/management';
 import {
   CardWideConfig,
   FrigateCardConfig,
@@ -7,7 +7,7 @@ import {
   RawFrigateCardConfig
 } from '../config/types';
 import { localize } from '../localize/localize';
-import { setLowPerformanceProfile } from '../performance.js';
+import { setProfiles } from '../config/profiles';
 import { getParseErrorPaths } from '../utils/zod.js';
 import { getOverriddenConfig } from './conditions-manager';
 import { InitializationAspect } from './initialization-manager';
@@ -70,10 +70,7 @@ export class ConfigManager {
             : localize('error.invalid_configuration_no_hint')),
       );
     }
-    const config =
-      parseResult.data.performance.profile !== 'low'
-        ? parseResult.data
-        : setLowPerformanceProfile(inputConfig, parseResult.data);
+    const config = setProfiles(inputConfig, parseResult.data, parseResult.data.profiles);
 
     this._rawConfig = inputConfig;
     if (isEqual(this._config, config)) {

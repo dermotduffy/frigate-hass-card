@@ -19,21 +19,24 @@ import {
   isConfigUpgradeable,
   setConfigValue,
   upgradeConfig,
-} from './config-mgmt.js';
+} from './config/management.js';
+import { setProfiles } from './config/profiles/index.js';
 import {
   BUTTON_SIZE_MIN,
   FrigateCardConfig,
   frigateCardConfigDefaults,
   FRIGATE_MENU_PRIORITY_MAX,
+  profilesSchema,
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
   THUMBNAIL_WIDTH_MAX,
   THUMBNAIL_WIDTH_MIN,
 } from './config/types.js';
 import {
+  CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
-  CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE_EXCEPT,
   CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE,
+  CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE_EXCEPT,
   CONF_CAMERAS_ARRAY_CAST_DASHBOARD_DASHBOARD_PATH,
   CONF_CAMERAS_ARRAY_CAST_DASHBOARD_VIEW_PATH,
   CONF_CAMERAS_ARRAY_CAST_METHOD,
@@ -67,9 +70,8 @@ import {
   CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL,
-  CONF_CAMERAS,
-  CONF_DIMENSIONS_ASPECT_RATIO_MODE,
   CONF_DIMENSIONS_ASPECT_RATIO,
+  CONF_DIMENSIONS_ASPECT_RATIO_MODE,
   CONF_DIMENSIONS_MAX_HEIGHT,
   CONF_DIMENSIONS_MIN_HEIGHT,
   CONF_IMAGE_MODE,
@@ -158,8 +160,8 @@ import {
   CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
   CONF_MEDIA_VIEWER_ZOOMABLE,
   CONF_MENU_ALIGNMENT,
-  CONF_MENU_BUTTON_SIZE,
   CONF_MENU_BUTTONS,
+  CONF_MENU_BUTTON_SIZE,
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
   CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
@@ -167,6 +169,7 @@ import {
   CONF_PERFORMANCE_PROFILE,
   CONF_PERFORMANCE_STYLE_BORDER_RADIUS,
   CONF_PERFORMANCE_STYLE_BOX_SHADOW,
+  CONF_PROFILES,
   CONF_TIMELINE_CLUSTERING_THRESHOLD,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
@@ -183,21 +186,20 @@ import {
   CONF_VIEW_DEFAULT,
   CONF_VIEW_INTERACTION_SECONDS,
   CONF_VIEW_RESET_AFTER_INTERACTION,
+  CONF_VIEW_TRIGGERS,
+  CONF_VIEW_TRIGGERS_ACTIONS,
   CONF_VIEW_TRIGGERS_ACTIONS_INTERACTION_MODE,
   CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
   CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
-  CONF_VIEW_TRIGGERS_ACTIONS,
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
   CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS,
   CONF_VIEW_TRIGGERS_UNTRIGGER_SECONDS,
-  CONF_VIEW_TRIGGERS,
   CONF_VIEW_UPDATE_CYCLE_CAMERA,
   CONF_VIEW_UPDATE_FORCE,
   CONF_VIEW_UPDATE_SECONDS,
   MEDIA_CHUNK_SIZE_MAX,
 } from './const.js';
 import { localize } from './localize/localize.js';
-import { setLowPerformanceProfile } from './performance.js';
 import frigate_card_editor_style from './scss/editor.scss';
 import { arrayMove, prettifyTitle } from './utils/basic.js';
 import { getCameraID } from './utils/camera.js';
@@ -314,6 +316,11 @@ const options: EditorOptions = {
     icon: 'speedometer',
     name: localize('editor.performance'),
     secondary: localize('editor.performance_secondary'),
+  },
+  profiles: {
+    icon: 'folder-wrench-outline',
+    name: localize('editor.profiles'),
+    secondary: localize('editor.profiles_secondary'),
   },
   overrides: {
     icon: 'file-replace',
@@ -589,10 +596,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'below', label: localize('config.common.controls.timeline.modes.below') },
   ];
 
-  protected _performanceProfiles: EditorSelectOption[] = [
+  protected _profiles: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'low', label: localize('config.performance.profiles.low') },
-    { value: 'high', label: localize('config.performance.profiles.high') },
+    { value: 'low-performance', label: localize('config.profiles.low-performance') },
+    { value: 'scrubbing', label: localize('config.profiles.scrubbing') },
   ];
 
   protected _go2rtcModes: EditorSelectOption[] = [
@@ -788,25 +795,20 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   ];
 
   public setConfig(config: RawFrigateCardConfig): void {
-    // Note: This does not use Zod to parse the configuration, so it may be
+    // Note: This does not use Zod to parse the full configuration, so it may be
     // partially or completely invalid. It's more useful to have a partially
     // valid configuration here, to allow the user to fix the broken parts. As
     // such, RawFrigateCardConfig is used as the type.
     this._config = config;
     this._configUpgradeable = isConfigUpgradeable(config);
 
-    let unvalidatedProfile: string | null = null;
-    try {
-      // this._config may not be a valid FrigateCardConfig as it has not been
-      // parsed. Attempt to pull out the performance profile.
-      unvalidatedProfile = (this._config as FrigateCardConfig).performance?.profile;
-    } catch (_) {}
+    const profiles = profilesSchema.safeParse(
+      (this._config as FrigateCardConfig).profiles,
+    );
 
-    if (unvalidatedProfile === 'high' || unvalidatedProfile === 'low') {
+    if (profiles.success) {
       const defaults = copyConfig(frigateCardConfigDefaults);
-      if (unvalidatedProfile === 'low') {
-        setLowPerformanceProfile(this._config, defaults);
-      }
+      setProfiles(this._config, defaults, profiles.data);
       this._defaults = defaults;
     }
   }
@@ -2130,6 +2132,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
             `
           : ''}
+        ${this._renderOptionSetHeader('profiles')}
+        ${this._expandedMenus[MENU_OPTIONS] === 'profiles'
+          ? html` <div class="values">
+              ${this._renderOptionSelector(CONF_PROFILES, this._profiles, {
+                multiple: true,
+                label: localize('config.profiles.editor_label'),
+              })}
+            </div>`
+          : ''}
         ${this._renderOptionSetHeader('view')}
         ${this._expandedMenus[MENU_OPTIONS] === 'view'
           ? html`
@@ -2556,10 +2567,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${getConfigValue(this._config, CONF_PERFORMANCE_PROFILE) === 'low'
                 ? this._renderInfo(localize('config.performance.warning'))
                 : html``}
-              ${this._renderOptionSelector(
-                CONF_PERFORMANCE_PROFILE,
-                this._performanceProfiles,
-              )}
               ${this._putInSubmenu(
                 MENU_PERFORMANCE_FEATURES,
                 true,

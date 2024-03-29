@@ -7,7 +7,7 @@ import {
   FrigateCardCondition,
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
-} from './config/types';
+} from './types';
 import {
   CONF_AUTOMATIONS,
   CONF_CAMERAS,
@@ -22,14 +22,15 @@ import {
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_MENU_BUTTONS_CAMERA_UI,
   CONF_OVERRIDES,
+  CONF_PROFILES,
   CONF_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_VIEW_INTERACTION_SECONDS,
   CONF_VIEW_TRIGGERS,
   CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
   CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
-} from './const';
-import { arrayify } from './utils/basic';
+} from '../const';
+import { arrayify } from '../utils/basic';
 
 // *************************************************************************
 //                  General Config Management Functions
@@ -684,4 +685,8 @@ const UPGRADES = [
       transform: (val) => (val === true ? { disable_except: 'substream' } : null),
     }),
   ),
+  upgradeMoveToWithOverrides('performance.profile', CONF_PROFILES, {
+    // Delete the value if it's set to the default.
+    transform: (val) => (val === 'low' ? ['low-performance'] : null),
+  }),
 ];
