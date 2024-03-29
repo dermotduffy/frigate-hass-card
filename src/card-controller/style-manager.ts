@@ -1,6 +1,5 @@
 import { StyleInfo } from 'lit/directives/style-map';
 import { FrigateCardConfig } from '../config/types';
-import { setPerformanceCSSStyles } from '../performance';
 import { aspectRatioToStyle, setOrRemoveAttribute } from '../utils/basic';
 import { View } from '../view/view';
 import { CardStyleAPI } from './types';
@@ -69,10 +68,22 @@ export class StyleManager {
   }
 
   public setPerformance(): void {
-    setPerformanceCSSStyles(
-      this._api.getCardElementManager().getElement(),
-      this._api.getConfigManager().getCardWideConfig()?.performance,
-    );
+    const STYLE_DISABLE_MAP = {
+      box_shadow: 'none',
+      border_radius: '0px',
+    };
+    const element = this._api.getCardElementManager().getElement();
+    const performance = this._api.getConfigManager().getCardWideConfig()?.performance;
+
+    const styles = performance?.style ?? {};
+    for (const configKey of Object.keys(styles)) {
+      const CSSKey = `--frigate-card-css-${configKey.replaceAll('_', '-')}`;
+      if (styles[configKey] === false) {
+        element.style.setProperty(CSSKey, STYLE_DISABLE_MAP[configKey]);
+      } else {
+        element.style.removeProperty(CSSKey);
+      }
+    }
   }
 
   protected _isAspectRatioEnforced(

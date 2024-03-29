@@ -855,11 +855,7 @@ export class FrigateCardLiveProvider
       ) {
         return 'webrtc-card';
       } else if (this.cameraConfig?.camera_entity) {
-        if (this.cardWideConfig?.performance?.profile === 'low') {
-          return 'image';
-        } else {
-          return 'ha';
-        }
+        return 'ha';
       } else if (this.cameraConfig?.frigate.camera_name) {
         return 'jsmpeg';
       }

@@ -72,6 +72,8 @@ export const CONF_CAMERAS_ARRAY_TRIGGERS_EVENTS =
 
 const CONF_CAMERAS_GLOBAL = 'cameras_global' as const;
 export const CONF_CAMERAS_GLOBAL_IMAGE = `${CONF_CAMERAS_GLOBAL}.image` as const;
+export const CONF_CAMERAS_GLOBAL_LIVE_PROVIDER =
+  `${CONF_CAMERAS_GLOBAL}.live_provider` as const;
 export const CONF_CAMERAS_GLOBAL_JSMPEG = `${CONF_CAMERAS_GLOBAL}.jsmpeg` as const;
 export const CONF_CAMERAS_GLOBAL_WEBRTC_CARD =
   `${CONF_CAMERAS_GLOBAL}.webrtc_card` as const;
@@ -312,6 +314,8 @@ export const CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE = `${CONF_PERFORMANCE}.f
 export const CONF_PERFORMANCE_PROFILE = `${CONF_PERFORMANCE}.profile`;
 export const CONF_PERFORMANCE_STYLE_BOX_SHADOW = `${CONF_PERFORMANCE}.style.box_shadow`;
 export const CONF_PERFORMANCE_STYLE_BORDER_RADIUS = `${CONF_PERFORMANCE}.style.border_radius`;
+
+export const CONF_PROFILES = 'profiles' as const;
 
 // Taken from https://github.dev/home-assistant/frontend/blob/b5861869e39290fd2e15737e89571dfc543b3ad3/src/data/media-player.ts#L93
 export const MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA = 131072;

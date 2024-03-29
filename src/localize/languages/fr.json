@@ -401,17 +401,17 @@
         "editor_label": "Options de fonctionnalités",
         "media_chunk_size": "Taille du morceau de média"
       },
-      "profile": "Profil de performances",
-      "profiles": {
-        "high": "Performances élevées",
-        "low": "Performances faibles"
-      },
       "style": {
         "border_radius": "Courbes",
         "box_shadow": "Ombres",
         "editor_label": "Options de style"
       },
       "warning": "Cette carte est en mode profil bas, les paramètres par défaut ont donc été modifiés pour optimiser les performances."
+    },
+    "profiles": {
+      "editor_label": "",
+      "low-performance": "",
+      "scrubbing": ""
     },
     "view": {
       "camera_select": "Afficher les caméras nouvellement sélectionnées",
@@ -497,6 +497,8 @@
     "overrides_secondary": "Remplacements de configuration dynamique détectés",
     "performance": "Performance",
     "performance_secondary": "Options de performances de la carte",
+    "profiles": "",
+    "profiles_secondary": "",
     "timeline": "Chronologie",
     "timeline_secondary": "Options de chronologie des événements",
     "upgrade": "Mise à niveau",

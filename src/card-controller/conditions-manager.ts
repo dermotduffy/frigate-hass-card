@@ -1,7 +1,7 @@
 import { CurrentUser } from '@dermotduffy/custom-card-helpers';
 import { HassEntities } from 'home-assistant-js-websocket';
 import merge from 'lodash-es/merge';
-import { copyConfig } from '../config-mgmt';
+import { copyConfig } from '../config/management';
 import {
   FrigateCardCondition,
   frigateConditionalSchema,

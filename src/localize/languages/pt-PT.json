@@ -401,17 +401,17 @@
         "editor_label": "Editor de etiquetas",
         "media_chunk_size": "Tamanho do ficheiro"
       },
-      "profile": "Perfil",
-      "profiles": {
-        "high": "Alto",
-        "low": "Baixo"
-      },
       "style": {
         "border_radius": "Tamanho do bordo",
         "box_shadow": "Caixa de Fundo",
         "editor_label": "Editor de etiquetas"
       },
       "warning": "Avisos"
+    },
+    "profiles": {
+      "editor_label": "",
+      "low-performance": "",
+      "scrubbing": ""
     },
     "view": {
       "camera_select": "Visualização de câmeras recém-selecionadas",
@@ -497,6 +497,8 @@
     "overrides_secondary": "Substituições de configuração dinâmica detectadas",
     "performance": "",
     "performance_secondary": "",
+    "profiles": "",
+    "profiles_secondary": "",
     "timeline": "Linha do tempo",
     "timeline_secondary": "Opções do evento da linha do tempo",
     "upgrade": "Actualização",

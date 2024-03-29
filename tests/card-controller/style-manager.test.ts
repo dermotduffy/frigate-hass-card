@@ -1,10 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FrigateCardView } from '../../src/config/types';
-import { setPerformanceCSSStyles } from '../../src/performance';
 import { StyleManager } from '../../src/card-controller/style-manager';
 import { createCardAPI, createConfig, createHASS, createView } from '../test-utils';
-
-vi.mock('../../src/performance');
 
 // @vitest-environment jsdom
 describe('StyleManager', () => {
@@ -226,19 +223,49 @@ describe('StyleManager', () => {
     });
   });
 
-  it('setPerformance', () => {
-    const api = createCardAPI();
-    const element = document.createElement('div');
-    vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
-    const config = createConfig();
-    vi.mocked(api.getConfigManager().getCardWideConfig).mockReturnValue({
-      performance: config.performance,
+  describe('setPerformance', () => {
+    it('no styles set', () => {
+      const api = createCardAPI();
+      const element = document.createElement('div');
+      vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+      vi.mocked(api.getConfigManager().getCardWideConfig).mockReturnValue({});
+      const manager = new StyleManager(api);
+
+      manager.setPerformance();
+
+      expect(
+        element.style.getPropertyValue('--frigate-card-css-box-shadow'),
+      ).toBeFalsy();
+      expect(
+        element.style.getPropertyValue('--frigate-card-css-border-radius'),
+      ).toBeFalsy();
     });
-    const manager = new StyleManager(api);
 
-    manager.setPerformance();
+    it('valid styles set', () => {
+      const api = createCardAPI();
+      const element = document.createElement('div');
+      vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+      vi.mocked(api.getConfigManager().getCardWideConfig).mockReturnValue(
+        createConfig({
+          performance: {
+            style: {
+              box_shadow: false,
+              border_radius: true,
+            },
+          },
+        }),
+      );
+      const manager = new StyleManager(api);
 
-    expect(setPerformanceCSSStyles).toBeCalledWith(element, config.performance);
+      manager.setPerformance();
+
+      expect(element.style.getPropertyValue('--frigate-card-css-box-shadow')).toEqual(
+        'none',
+      );
+      expect(
+        element.style.getPropertyValue('--frigate-card-css-border-radius'),
+      ).toBeFalsy();
+    });
   });
 
   describe('getAspectRatioStyle', () => {

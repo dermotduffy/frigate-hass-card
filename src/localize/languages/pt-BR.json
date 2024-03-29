@@ -401,17 +401,17 @@
         "editor_label": "Opções de recursos",
         "media_chunk_size": "Tamanho do bloco de mídia"
       },
-      "profile": "Perfil de desempenho",
-      "profiles": {
-        "high": "Alto desempenho/completo",
-        "low": "Baixo desempenho"
-      },
       "style": {
         "border_radius": "Curvas",
         "box_shadow": "Sombras",
         "editor_label": "Opções de estilo"
       },
       "warning": "Este cartão está no modo de baixo desempenho, então os padrões foram alterados para otimizar o desempenho"
+    },
+    "profiles": {
+      "editor_label": "",
+      "low-performance": "",
+      "scrubbing": ""
     },
     "view": {
       "camera_select": "Visualização de câmeras recém-selecionadas",
@@ -497,6 +497,8 @@
     "overrides_secondary": "Substituições de configuração dinâmica detectadas",
     "performance": "Desempenho",
     "performance_secondary": "Opções de desempenho do cartão",
+    "profiles": "",
+    "profiles_secondary": "",
     "timeline": "Linha do tempo",
     "timeline_secondary": "Opções do evento da linha do tempo",
     "upgrade": "Upgrade",

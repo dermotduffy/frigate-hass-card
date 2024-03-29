@@ -78,7 +78,7 @@ describe('ConfigManager', () => {
 
     manager.setConfig(config);
 
-    expect(manager.hasConfig()).toBeTruthy()
+    expect(manager.hasConfig()).toBeTruthy();
     expect(manager.getRawConfig()).toBe(config);
 
     // Verify at least the camera is set.
@@ -102,12 +102,12 @@ describe('ConfigManager', () => {
     expect(api.getCardElementManager().update).toBeCalled();
   });
 
-  it('should apply low performance defaults', () => {
+  it('should apply profiles', () => {
     const manager = new ConfigManager(createCardAPI());
     const config = {
       type: 'custom:frigate-card',
       cameras: [{ camera_entity: 'camera.office' }],
-      performance: { profile: 'low' },
+      profiles: ['low-performance'],
     };
 
     manager.setConfig(config);
@@ -143,7 +143,9 @@ describe('ConfigManager', () => {
         logging: true,
       },
       performance: {
-        profile: 'low',
+        style: {
+          box_shadow: false,
+        },
       },
     };
 
@@ -155,12 +157,11 @@ describe('ConfigManager', () => {
       },
       performance: {
         features: {
-          animated_progress_indicator: false,
-          media_chunk_size: 10,
+          animated_progress_indicator: true,
+          media_chunk_size: 50,
         },
-        profile: 'low',
         style: {
-          border_radius: false,
+          border_radius: true,
           box_shadow: false,
         },
       },
@@ -257,8 +258,8 @@ describe('ConfigManager', () => {
       const config_2 = {
         ...config_1,
         cameras_global: {
-          live_provider: 'jsmpeg'
-        }
+          live_provider: 'jsmpeg',
+        },
       };
       vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_2));
       manager.computeOverrideConfig();
@@ -276,9 +277,9 @@ describe('ConfigManager', () => {
         cameras: [{ camera_entity: 'camera.office' }],
         live: {
           microphone: {
-            always_connected: false
-          }
-        }
+            always_connected: false,
+          },
+        },
       };
       vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_1));
 
@@ -289,9 +290,9 @@ describe('ConfigManager', () => {
         ...config_1,
         live: {
           microphone: {
-            always_connected: true
-          }
-        }
+            always_connected: true,
+          },
+        },
       };
       vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_2));
       manager.computeOverrideConfig();

@@ -401,17 +401,17 @@
         "editor_label": "Opcions de característiques",
         "media_chunk_size": "Mida del fragment multimèdia"
       },
-      "profile": "Perfil de rendiment",
-      "profiles": {
-        "high": "Alt rendiment",
-        "low": "Baix rendiment"
-      },
       "style": {
         "border_radius": "Corbes",
         "box_shadow": "Ombres",
         "editor_label": "Opcions d'estil"
       },
       "warning": "Aquesta targeta està en mode de perfil baix, de manera que els valors predeterminats han canviat per optimitzar el rendiment"
+    },
+    "profiles": {
+      "editor_label": "",
+      "low-performance": "",
+      "scrubbing": ""
     },
     "view": {
       "camera_select": "Visualitza les càmeres seleccionades recentment",
@@ -497,6 +497,8 @@
     "overrides_secondary": "S'han detectat substitucions de configuració dinàmica",
     "performance": "Rendiment",
     "performance_secondary": "Opcions de rendiment de la targeta",
+    "profiles": "",
+    "profiles_secondary": "",
     "timeline": "Cronologia",
     "timeline_secondary": "Opcions de la cronologia d'esdeveniments",
     "upgrade": "Upgrade",

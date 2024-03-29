@@ -401,17 +401,17 @@
         "editor_label": "Opzioni funzionalità",
         "media_chunk_size": "Dimensione del blocco multimediale"
       },
-      "profile": "Profilo delle prestazioni",
-      "profiles": {
-        "high": "Prestazioni alte",
-        "low": "Prestazioni basse"
-      },
       "style": {
         "border_radius": "Curve",
         "box_shadow": "Ombre",
         "editor_label": "Opzione di stile"
       },
       "warning": "Questa scheda è in modalità basso profilo, quindi le impostazioni predefinite sono state modificate per ottimizzare le prestazioni"
+    },
+    "profiles": {
+      "editor_label": "",
+      "low-performance": "",
+      "scrubbing": ""
     },
     "view": {
       "camera_select": "Visualizza per le telecamere appena selezionate",
@@ -497,6 +497,8 @@
     "overrides_secondary": "Rilevate sovrascritture della configurazione dinamica",
     "performance": "",
     "performance_secondary": "",
+    "profiles": "",
+    "profiles_secondary": "",
     "timeline": "Timeline",
     "timeline_secondary": "Opzioni della timeline degli eventi",
     "upgrade": "Aggiornamento",
