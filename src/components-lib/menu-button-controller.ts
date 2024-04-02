@@ -131,7 +131,9 @@ export class MenuButtonController {
       .getAllDependentCameras(selectedCameraID, 'substream');
 
     if (selectedCameraID && substreamCameraIDs && view.is('live')) {
-      const substreams = [...substreamCameraIDs].filter((cameraID) => cameraID !== selectedCameraID);
+      const substreams = [...substreamCameraIDs].filter(
+        (cameraID) => cameraID !== selectedCameraID,
+      );
       const streams = [selectedCameraID, ...substreams];
 
       if (streams.length === 2) {
@@ -258,7 +260,11 @@ export class MenuButtonController {
       });
     }
 
-    if (mediaCapabilities?.canDownload && !this._isBeingCasted()) {
+    if (
+      view.isViewerView() &&
+      mediaCapabilities?.canDownload &&
+      !this._isBeingCasted()
+    ) {
       buttons.push({
         icon: 'mdi:download',
         ...config.menu.buttons.download,

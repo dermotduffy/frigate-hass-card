@@ -726,6 +726,7 @@ describe('MenuButtonController', () => {
         createMediaCapabilities({ canDownload: true }),
       );
       const view = createView({
+        view: 'media',
         queryResults: new MediaQueriesResults({
           results: [new ViewMedia('clip', 'camera-1')],
           selectedIndex: 0,
@@ -758,6 +759,28 @@ describe('MenuButtonController', () => {
         createMediaCapabilities({ canDownload: true }),
       );
       const view = createView({
+        queryResults: new MediaQueriesResults({
+          results: [new ViewMedia('clip', 'camera-1')],
+          selectedIndex: 0,
+        }),
+      });
+      const buttons = calculateButtons(controller, {
+        cameraManager: cameraManager,
+        view: view,
+      });
+
+      expect(buttons).not.toEqual(
+        expect.arrayContaining([expect.objectContaining({ title: 'Download' })]),
+      );
+    });
+
+    it('not in a non-media view', () => {
+      const cameraManager = createCameraManager();
+      vi.mocked(cameraManager.getMediaCapabilities).mockReturnValue(
+        createMediaCapabilities({ canDownload: true }),
+      );
+      const view = createView({
+        view: 'live',
         queryResults: new MediaQueriesResults({
           results: [new ViewMedia('clip', 'camera-1')],
           selectedIndex: 0,
