@@ -1,6 +1,6 @@
 ![logo](images/frigate-logo.svg)
 
-# Frigate Card <small>6.0.0</small>
+# Frigate Card <small>6.0.0 *DEV*</small>
 
 > A comprehensive camera card for Home Assistant.
 
