@@ -1,0 +1,73 @@
+# Developing
+
+?> Want to contribute? Development help [**welcome**](https://github.com/dermotduffy/frigate-hass-card/issues/1248)!
+
+## Building
+
+This project uses [Volta](https://github.com/volta-cli/volta) to ensure a
+consistent version of Node and Yarn are used during development. If you install
+Volta in your environment, you should not need to worry about which version of
+both to choose. **Note:** the dev container already comes with Volta installed.
+
+However, if you are not using Volta, you can check the `volta` key in the
+`package.json` to see which version of Node and Yarn should be used.
+
+```sh
+$ git clone https://github.com/dermotduffy/frigate-hass-card
+$ cd frigate-hass-card
+$ yarn install
+$ yarn run build
+```
+
+Resultant build entry file will be in `dist/frigate-hass-card.js`. This could be
+installed via the [manual installation
+instructions](advanced-installation.md?id=manual-installation).
+
+## Releasing
+
+1. Merge a PR that contains only a `package.json` and `const.ts` version number bump (see [this example](https://github.com/dermotduffy/frigate-hass-card/commit/a854187d4a354f8841ad284d75b0afbed7b634c4)).
+1. Go to the [releases page](https://github.com/dermotduffy/frigate-hass-card/releases).
+1. A release draft will automatically have been created, click 'Edit'.
+1. Use the same version number for the release title and tag.
+1. Choose 'This is a pre-release' for a beta version.
+1. Hit 'Publish release'.
+
+## Translations
+[![translation badge](https://badge.inlang.com/?url=github.com/dermotduffy/frigate-hass-card)](https://fink.inlang.com/github.com/dermotduffy/frigate-hass-card?ref=badge)
+
+To add translations, you can manually edit the JSON translation files in
+`src/localize/languages` or use the [inlang](https://inlang.com/) online editor.
+
+## Using a dev container
+
+[![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/dermotduffy/frigate-hass-card)
+
+You can use the [VS Code Dev Containers](https://code.visualstudio.com/docs/remote/containers) extension to
+speed up the development environment creation. Simply:
+
+1. Clone the repository to your machine
+2. Open VS Code on it
+3. Reopen the folder in the Dev Container
+4. Once done, press `F5` to start debugging
+
+Everything should just work without any additional configuration. Under the
+hood, the dev container setup takes care of bringing up:
+
+* Home Assistant (port `8123` or the next available one)
+* Frigate (ports `5000` or the next available one)
+* MQTT (port `1883` or the next available one)
+
+As docker-compose containers.
+
+* The Frigate Home Assistant Integration is registered as a `git submodule` at `.devcontainer/frigate-hass-integration`, and VS Code will initialize/clone it for you before opening the dev container.
+
+Some environment variables are supported in a `.env` file:
+
+* `FRIGATE_VERSION`: The version of Frigate to use. Defaults to the latest stable version.
+* `HA_VERSION`: The version of Home Assistant to use. Defaults to the latest stable version.
+
+?> When not specifying any version, it's recommended that you `docker-compose pull` the stack from time to time to ensure you have the latest versions of the images.
+
+The Home Assistant container will get preconfigured during first initialization,
+therefore, if you changed the Home Assistant configuration, you will need to
+remove the HA container and start another.
