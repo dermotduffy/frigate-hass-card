@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Frigate Card</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="description" content="Frigate Card Documentation" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no, viewport-fit=cover">
+
+    <!-- Themes (light + dark) -->
+    <link
+      rel="stylesheet"
+      media="(prefers-color-scheme: dark)"
+      href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.css"
+    />
+    <link
+      rel="stylesheet"
+      media="(prefers-color-scheme: light)"
+      href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css"
+    />
+    <style>
+      :root {
+        --content-max-width: 95vw;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      window.$docsify = {
+        // Full reference: https://docsify.js.org/#/configuration
+
+        // The repo to link to.
+        repo: 'dermotduffy/frigate-hass-card',
+
+        // The overall documentation name.
+        name: 'Frigate Card',
+
+        logo: 'images/frigate-logo.svg',
+        
+        // Automatically go to the top of a page on route change.
+        auto2top: true,
+
+        // Use a sidebar.
+        loadSidebar: true,
+
+        // Automatically use headings up to H2 for sider.
+        subMaxLevel: 2,
+
+        // Show the Frigate Card cover page.
+        coverpage: true,
+
+        // Use relative links (this way both vscode and docsify work on clicking
+        // a link).
+        relativePath: true,
+      };
+    </script>
+
+    <!-- Docsify v4 -->
+    <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+
+    <!-- Themeable -->
+    <script src="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/js/docsify-themeable.min.js"></script>
+
+    <!-- Prism Syntax Highlighting for YAML -->
+    <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
+
+    <!-- Search plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.js"></script>
+
+    <!-- Zoom in on images on click -->
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
+
+    <!-- Copy samples can copy to clipboard -->
+    <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+
+    <!-- Allow sidebar selections to collapse -->
+    <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
+  </body>
+</html>

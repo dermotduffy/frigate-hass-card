@@ -1,0 +1,65 @@
+# `performance`
+
+Configure the card performance settings to enable the card to run (more) smoothly on lower end devices.
+
+```yaml
+performance:
+   [...]
+```
+
+| Option | Default | Description |
+| - | - | - |
+| `features` | | Configure feature settings that impact performance. |
+| `style` | | Configure style settings that impact performance. |
+
+### `features`
+
+Controls card-wide functionality that may impact performance.
+
+```yaml
+performance:
+  features:
+     [...]
+```
+
+| Option | Default | Description |
+| - | - | - |
+| `animated_progress_indicator` | `true` | Will show the animated progress indicator 'spinner' when `true` or a simple loading icon when `false`.|
+| `media_chunk_size` | `50` | How many media items to fetch and render at a time (e.g. thumbnails under a live view, or number of snapshots to load in the media viewer). This may only make partial sense in some contexts (e.g. the 'infinite gallery' is still infinite, it just loads thumbnails this many items at a time) or not at all (e.g. the timeline will show the number of events dictated by the time span the user navigates to).|
+
+### `style`
+
+Style performance options request the card minimize certain expensive CSS
+stylings. This does not necessarily disable these stylings _entirely_ since that
+may break the basic expected visuals of the card (e.g. menu icons need curves),
+but rather avoids use of them in high item-count situations (e.g. avoiding
+shadows on timeline items, or curves in the media gallery items).
+
+```yaml
+performance:
+  style:
+     [...]
+```
+
+| Option | Default | Description |
+| - | - | - |
+| `border_radius` | `true` | If `false` minimizes the usage of rounded corners.|
+| `box_shadow` | `true` | If `false` minimizes the usage of shadows.|
+
+### The `low-performance` profile
+
+For low end devices, the `low-performance` profile will adjust card defaults to attempt to improve performance. See the [profiles](profiles.md) configuration option for details on how to select profiles.
+
+## Fully expanded reference
+
+[](common/expanded-warning.md ':include')
+
+```yaml
+performance:
+  features:
+    animated_progress_indicator: true
+    media_chunk_size: 50
+  style:
+    border_radius: true
+    box_shadow: true
+```
