@@ -30,3 +30,5 @@ A comprehensive camera card for Home Assistant.
 * Lovelace visual editing.
 * Full [Picture Elements](https://www.home-assistant.io/lovelace/picture-elements/) support.
 * Theme friendly.
+
+See [full documentation](https://dermotduffy.github.io/frigate-hass-card).
