@@ -177,6 +177,25 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have substream button', () => {
+    it('with no dependency', () => {
+      const cameraManager = createCameraManager();
+      vi.mocked(cameraManager.getStore).mockReturnValue(
+        createStore([
+          {
+            cameraID: 'camera-1',
+            capabilities: createCapabilities({ substream: true }),
+          },
+        ]),
+      );
+      const buttons = calculateButtons(controller, { cameraManager: cameraManager });
+
+      expect(buttons).not.toContainEqual(
+        expect.objectContaining({
+          title: 'Substream(s)',
+        }),
+      );
+    });
+
     it('with single dependency', () => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(
@@ -248,7 +267,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with substream selected and multiple dependencies', () => {
+    it('with substream unselected and multiple dependencies', () => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(
         createStore([
@@ -440,7 +459,12 @@ describe('MenuButtonController', () => {
 
   describe('should have live menu button', () => {
     it('when in live view', () => {
-      const buttons = calculateButtons(controller);
+      const viewManager = mock<ViewManager>();
+      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(true);
+      const buttons = calculateButtons(controller, {
+        view: createView({ view: 'live' }),
+        viewManager: viewManager,
+      });
 
       expect(buttons).toContainEqual({
         icon: 'mdi:cctv',
@@ -454,8 +478,12 @@ describe('MenuButtonController', () => {
     });
 
     it('when not in live view', () => {
-      const view = createView({ view: 'clips' });
-      const buttons = calculateButtons(controller, { view: view });
+      const viewManager = mock<ViewManager>();
+      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(true);
+      const buttons = calculateButtons(controller, {
+        view: createView({ view: 'clips' }),
+        viewManager: viewManager,
+      });
 
       expect(buttons).toContainEqual({
         icon: 'mdi:cctv',
@@ -466,6 +494,20 @@ describe('MenuButtonController', () => {
         style: {},
         tap_action: { action: 'fire-dom-event', frigate_card_action: 'live' },
       });
+    });
+
+    it('when not supported', () => {
+      const viewManager = mock<ViewManager>();
+      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(false);
+      const buttons = calculateButtons(controller, {
+        viewManager: viewManager,
+      });
+
+      expect(buttons).not.toContainEqual(
+        expect.objectContaining({
+          title: 'Live view',
+        }),
+      );
     });
   });
 
@@ -634,8 +676,12 @@ describe('MenuButtonController', () => {
 
   describe('should have image menu button', () => {
     it('when in image view', () => {
+      const viewManager = mock<ViewManager>();
+      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(true);
+
       const buttons = calculateButtons(controller, {
         view: createView({ view: 'image' }),
+        viewManager: viewManager,
       });
 
       expect(buttons).toContainEqual({
@@ -650,7 +696,13 @@ describe('MenuButtonController', () => {
     });
 
     it('when not in image view', () => {
-      const buttons = calculateButtons(controller);
+      const viewManager = mock<ViewManager>();
+      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(true);
+
+      const buttons = calculateButtons(controller, {
+        view: createView({ view: 'live' }),
+        viewManager: viewManager,
+      });
 
       expect(buttons).toContainEqual({
         icon: 'mdi:image',
@@ -661,6 +713,20 @@ describe('MenuButtonController', () => {
         style: {},
         tap_action: { action: 'fire-dom-event', frigate_card_action: 'image' },
       });
+    });
+
+    it('when not supported', () => {
+      const viewManager = mock<ViewManager>();
+      vi.mocked(viewManager.isViewSupportedByCamera).mockReturnValue(false);
+      const buttons = calculateButtons(controller, {
+        viewManager: viewManager,
+      });
+
+      expect(buttons).not.toContainEqual(
+        expect.objectContaining({
+          title: 'Static image',
+        }),
+      );
     });
   });
 
@@ -1288,23 +1354,34 @@ describe('MenuButtonController', () => {
         createCapabilities(),
       );
 
-      const buttons = calculateButtons(controller, { cameraManager: cameraManager });
-
-      expect(buttons).not.toContainEqual({
-        enabled: false,
-        icon: 'mdi:pan',
-        priority: 50,
-        style: {
-          color: 'var(--primary-color, white)',
-        },
-        tap_action: {
-          action: 'fire-dom-event',
-          frigate_card_action: 'show_ptz',
-          show_ptz: false,
-        },
-        title: 'Show PTZ controls',
-        type: 'custom:frigate-card-menu-icon',
+      const buttons = calculateButtons(controller, {
+        cameraManager: cameraManager,
+        view: createView({ view: 'live' }),
       });
+
+      expect(buttons).not.toContainEqual(
+        expect.objectContaining({
+          title: 'Show PTZ controls',
+        }),
+      );
+    });
+
+    it('when not in live view', () => {
+      const cameraManager = createCameraManager();
+      vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue(
+        createCapabilities({ ptz: { panTilt: ['relative'] } }),
+      );
+
+      const buttons = calculateButtons(controller, {
+        cameraManager: cameraManager,
+        view: createView({ view: 'clips' }),
+      });
+
+      expect(buttons).not.toContainEqual(
+        expect.objectContaining({
+          title: 'Show PTZ controls',
+        }),
+      );
     });
 
     it('when the selected camera is PTZ enabled', () => {
