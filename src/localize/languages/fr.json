@@ -9,34 +9,34 @@
   },
   "config": {
     "cameras": {
-      "camera_entity": "Entité caméra",
+      "camera_entity": "Camera Entity",
       "capabilities": {
         "capabilities": {
-          "clips": "",
-          "favorite-events": "",
-          "favorite-recordings": "",
-          "live": "",
-          "menu": "",
-          "ptz": "",
-          "recordings": "",
-          "seek": "",
-          "snapshots": "",
-          "substream": ""
+          "clips": "Clips",
+          "favorite-events": "Événements favoris",
+          "favorite-recordings": "Enregistrements favoris",
+          "live": "Vue en direct",
+          "menu": "Menu",
+          "ptz": "PTZ",
+          "recordings": "Enregistrements",
+          "seek": "Chercher",
+          "snapshots": "Snapshots",
+          "substream": "flux secondaire"
         },
-        "disable": "",
-        "disable_except": "",
-        "editor_label": ""
+        "disable": "Désactiver",
+        "disable_except": "Désactive sauf",
+        "editor_label": "Capacités de la caméra"
       },
       "cast": {
         "dashboard": {
-          "dashboard_path": "",
-          "view_path": ""
+          "dashboard_path": "Chemin du tableau de bord",
+          "view_path": "Voir le chemin"
         },
-        "editor_label": "",
-        "method": "",
+        "editor_label": "Cast les options",
+        "method": "Cast les méthodes",
         "methods": {
-          "dashboard": "",
-          "standard": ""
+          "dashboard": "Dashboard",
+          "standard": "Standard"
         }
       },
       "dependencies": {
@@ -45,19 +45,19 @@
         "editor_label": "Options de dépendance"
       },
       "dimensions": {
-        "aspect_ratio": "",
-        "editor_label": "",
+        "aspect_ratio": "ratio d'aspect",
+        "editor_label": "Dimensions de la caméra",
         "layout": {
-          "editor_label": "",
-          "fit": "Adatta al layout",
+          "editor_label": "Disposition de la caméra",
+          "fit": "Ajustement de la disposition",
           "fits": {
-            "contain": "Il supporto è contenuto/in cassetta delle lettere",
-            "cover": "Il supporto si espande proporzionalmente per coprire la scheda",
-            "fill": "Il supporto viene allungato per riempire la scheda"
+            "contain": "Le média est contenu",
+            "cover": "Le média s'étend proportionnellement pour couvrir la carte",
+            "fill": "Le média est étiré pour remplir la carte"
           },
           "position": {
-            "x": "Percentuale di posizionamento orizzontale",
-            "y": "Percentuale di posizionamento verticale"
+            "x": "Pourcentage de positionnement horizontal",
+            "y": "Pourcentage de positionnement vertical"
           }
         }
       },
@@ -119,10 +119,10 @@
         "editor_label": "Modèle de répertoire des films",
         "entities": "Déclencheur à partir d'autres entités",
         "events": {
-          "clips": "",
-          "editor_label": "",
-          "events": "",
-          "snapshots": ""
+          "clips": "Événements avec de nouveaux clips",
+          "editor_label": "Événements déclencheurs",
+          "events": "Tous les événements",
+          "snapshots": "Événements avec de nouveaux instantanés"
         },
         "motion": "Déclenchement par détection automatique du capteur de mouvement",
         "occupancy": "Déclenchement par détection automatique du capteur de présence"
@@ -163,10 +163,10 @@
             "clips": "Miniatures de clips",
             "snapshots": "Miniatures d'instantanés"
           },
-          "media_type": "",
+          "media_type": "Afficher ou non les vignettes des événements ou des enregistrements",
           "media_types": {
-            "events": "",
-            "recordings": ""
+            "events": "Événements",
+            "recordings": "Enregistrements"
           },
           "mode": "Mode vignettes",
           "modes": {
@@ -190,12 +190,12 @@
             "below": "En dessous",
             "none": "Aucun"
           },
-          "pan_mode": "",
+          "pan_mode": "Mode panoramique par défaut",
           "pan_modes": {
-            "pan": "",
-            "seek": "",
-            "seek-in-camera": "",
-            "seek-in-media": ""
+            "pan": "Pan",
+            "seek": "Pan cherche parmi toutes les caméras",
+            "seek-in-camera": "Pan ne cherche que parmi la caméra sélectionnée",
+            "seek-in-media": "Pan ne cherche que parmi les médias sélectionnés"
           }
         },
         "title": {
@@ -212,11 +212,11 @@
         }
       },
       "display": {
-        "editor_label": "",
-        "grid_columns": "",
-        "grid_max_columns": "",
-        "grid_selected_width_factor": "",
-        "mode": ""
+        "editor_label": "Affichage",
+        "grid_columns": "Nombre de colonnes de la grille",
+        "grid_max_columns": "Nombre maximum de colonnes de la grille",
+        "grid_selected_width_factor": "Augmenter la largeur du média sélectionnée par ce facteur",
+        "mode": "Mode"
       },
       "media_action_conditions": {
         "all": "Toutes les opportunités",
@@ -275,26 +275,26 @@
       "controls": {
         "editor_label": "Contrôles en direct",
         "ptz": {
-          "editor_label": "",
-          "hide_home": "",
-          "hide_pan_tilt": "",
-          "hide_zoom": "",
-          "mode": "",
+          "editor_label": "PTZ",
+          "hide_home": "Cacher le bouton d'origine",
+          "hide_pan_tilt": "Caher les boutons panoramiques/inclinaison",
+          "hide_zoom": "Cahger le bouton de zoom",
+          "mode": "Mode",
           "modes": {
-            "off": "",
-            "on": ""
+            "off": "Eteint",
+            "on": "Allumé"
           },
-          "orientation": "",
+          "orientation": "Orientation",
           "orientations": {
-            "horizontal": "",
-            "vertical": ""
+            "horizontal": "Horizontal",
+            "vertical": "Vertical"
           },
-          "position": "",
+          "position": "Position",
           "positions": {
-            "bottom-left": "",
-            "bottom-right": "",
-            "top-left": "",
-            "top-right": ""
+            "bottom-left": "Bas à gauche",
+            "bottom-right": "Bas à droite",
+            "top-left": "Haut à gauche",
+            "top-right": "haut à droite"
           }
         }
       },
@@ -409,9 +409,9 @@
       "warning": "Cette carte est en mode profil bas, les paramètres par défaut ont donc été modifiés pour optimiser les performances."
     },
     "profiles": {
-      "editor_label": "",
-      "low-performance": "",
-      "scrubbing": ""
+      "editor_label": "Configuration des profils",
+      "low-performance": "Basse performance",
+      "scrubbing": "Balayage vidéo"
     },
     "view": {
       "camera_select": "Afficher les caméras nouvellement sélectionnées",
@@ -422,32 +422,32 @@
         "on": "Activé"
       },
       "default": "Vue par défaut",
-      "interaction_seconds": "",
-      "reset_after_interaction": "",
+      "interaction_seconds": "Secondes après l'action de l'utilisateur pour maintenir l'interaction (0=jamais)",
+      "reset_after_interaction": "Rétablissement de la vue par défaut après l'interaction de l'utilisateur",
       "triggers": {
         "actions": {
-          "editor_label": "",
-          "interaction_mode": "",
+          "editor_label": "Actions de déclenchement",
+          "interaction_mode": "Comment gérer les actions lorsque la carte comporte une interaction humaine ?",
           "interaction_modes": {
-            "active": "",
-            "all": "",
-            "inactive": ""
+            "active": "Ne déclencher des actions que lorsque la carte a une interaction humaine",
+            "all": "Déclencher des actions sans interaction humaine",
+            "inactive": "Ne déclencher des actions que lorsque la carte n'a pas d'interaction humaine"
           },
-          "trigger": "",
+          "trigger": "Actions de déclenchement",
           "triggers": {
-            "default": "",
-            "live": "",
-            "media": "",
-            "none": ""
+            "default": "Changement ou mise à jour de la vue par défaut",
+            "live": "Change ou met a jour la vue en direct",
+            "media": "Changement d'affichage pour les nouveaux médias",
+            "none": "Pas d'acction"
           },
-          "untrigger": "",
+          "untrigger": "Action de désactivation",
           "untriggers": {
-            "default": "",
-            "none": ""
+            "default": "Passage à la vue/caméra par défaut",
+            "none": "Pas d'action"
           }
         },
-        "editor_label": "",
-        "filter_selected_camera": "",
+        "editor_label": "Comportement en cas de déclenchement d'une caméra",
+        "filter_selected_camera": "Déclenchement uniquement sur la caméra sélectionnée",
         "show_trigger_status": "Afficher la bordure clignotante lors du déclenchement",
         "untrigger_seconds": "Quelques secondes après le changement d'état inactif pour débloquer"
       },
@@ -469,14 +469,14 @@
     }
   },
   "display_modes": {
-    "grid": "",
-    "single": ""
+    "grid": "Afficher la visionneuse de médias pour chaque caméra d'une grille",
+    "single": "Affi une seule visionneuse"
   },
   "editor": {
     "add_new_camera": "Ajouter une nouvelle caméra",
     "button": "Bouton",
     "camera": "Caméra",
-    "cameras": "Appareils photo",
+    "cameras": "Caméras",
     "cameras_secondary": "Quelles caméras afficher sur cette carte",
     "delete": "Supprimer",
     "dimensions": "Dimensions",
@@ -497,7 +497,7 @@
     "overrides_secondary": "Remplacements de configuration dynamique détectés",
     "performance": "Performance",
     "performance_secondary": "Options de performances de la carte",
-    "profiles": "",
+    "profiles": "Profils de confi",
     "profiles_secondary": "",
     "timeline": "Chronologie",
     "timeline_secondary": "Options de chronologie des événements",
@@ -518,9 +518,9 @@
     }
   },
   "error": {
-    "awaiting_live": "",
+    "awaiting_live": "En attente du flux en direct...",
     "could_not_render_elements": "Impossible de restituer les éléments de l'image",
-    "could_not_resolve": "",
+    "could_not_resolve": "Impossible de résoudre l'URL du média",
     "diagnostics": "Diagnostic de la carte. Veuillez enlever les informations confidentielles avant de les partager",
     "download_no_media": "Aucun média à télécharger",
     "download_sign_failed": "Impossible de signer l'URL du média à télécharger",
@@ -597,7 +597,7 @@
     "where": "Où"
   },
   "media_viewer": {
-    "unseekable": ""
+    "unseekable": "Temps non trouvé dans les médias"
   },
   "recording": {
     "camera": "Caméra",
