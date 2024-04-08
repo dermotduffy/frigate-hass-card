@@ -122,7 +122,11 @@ describe('CardElementManager', () => {
       api.getActionsManager().handleActionEvent,
     );
     expect(addEventListener).toBeCalledWith(
-      '@action',
+      'action',
+      api.getActionsManager().handleInteractionEvent,
+    );
+    expect(addEventListener).toBeCalledWith(
+      'action',
       api.getInteractionManager().reportInteraction,
     );
     expect(windowAddEventListener).toBeCalledWith('location-changed', expect.anything());
@@ -169,7 +173,11 @@ describe('CardElementManager', () => {
       api.getActionsManager().handleActionEvent,
     );
     expect(removeEventListener).toBeCalledWith(
-      '@action',
+      'action',
+      api.getActionsManager().handleInteractionEvent,
+    );
+    expect(removeEventListener).toBeCalledWith(
+      'action',
       api.getInteractionManager().reportInteraction,
     );
     expect(windowRemoveEventListener).toBeCalledWith(
