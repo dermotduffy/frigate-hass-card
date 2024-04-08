@@ -62,8 +62,6 @@ export class ActionsManager {
   public handleInteractionEvent = (ev: Event): void => {
     const result = interactionEventSchema.safeParse(ev);
     if (!result.success) {
-      // The event may not be a CustomEvent object, see:
-      // https://github.com/custom-cards/custom-card-helpers/blob/master/src/fire-event.ts#L70
       return;
     }
     const interaction = result.data.detail.action;
