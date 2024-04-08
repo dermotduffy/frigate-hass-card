@@ -76,7 +76,7 @@ export class FrigateCardLive extends LitElement {
   @property({ attribute: false })
   public nonOverriddenLiveConfig?: LiveConfig;
 
-  @property({ attribute: false }>)
+  @property({ attribute: false })
   public overriddenLiveConfig?: LiveConfig;
 
   @property({ attribute: false, hasChanged: contentsChanged })
