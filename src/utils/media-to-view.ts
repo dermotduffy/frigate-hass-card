@@ -28,6 +28,7 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
     targetView?: FrigateCardView;
     select?: ResultSelectType;
     useCache?: boolean;
+    viewContext?: ViewContext;
   },
 ): Promise<void> => {
   const capabilitySearch: CapabilitySearchOptions =
@@ -61,6 +62,7 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
         targetView: options?.targetView,
         select: options?.select,
         useCache: options?.useCache,
+        viewContext: options?.viewContext
       },
     )
   )?.dispatchChangeEvent(element);
@@ -103,6 +105,7 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
     targetView?: FrigateCardView;
     select?: ResultSelectType;
     useCache?: boolean;
+    viewContext?: ViewContext;
   },
 ): Promise<void> => {
   const cameraIDs = options?.allCameras
@@ -131,6 +134,7 @@ export const changeViewToRecentRecordingForCameraAndDependents = async (
         targetView: options?.targetView,
         select: options?.select,
         useCache: options?.useCache,
+        viewContext: options?.viewContext,
       },
     )
   )?.dispatchChangeEvent(element);
@@ -159,6 +163,7 @@ export const executeMediaQueryForView = async (
     targetTime?: Date;
     select?: ResultSelectType;
     useCache?: boolean;
+    viewContext?: ViewContext;
   },
 ): Promise<View | null> => {
   const queries = query.getQueries();
@@ -195,7 +200,8 @@ export const executeMediaQueryForView = async (
       view: options?.targetView,
       camera: cameraID,
     })
-    .mergeInContext(viewerContext);
+    .mergeInContext(options?.viewContext)
+    .mergeInContext(viewerContext)
 };
 
 export const executeMediaQueryForViewWithErrorDispatching = async (
@@ -209,6 +215,7 @@ export const executeMediaQueryForViewWithErrorDispatching = async (
     targetTime?: Date;
     select?: ResultSelectType;
     useCache?: boolean;
+    viewContext?: ViewContext;
   },
 ): Promise<View | null> => {
   try {
@@ -218,6 +225,7 @@ export const executeMediaQueryForViewWithErrorDispatching = async (
       targetTime: options?.targetTime,
       select: options?.select,
       useCache: options?.useCache,
+      viewContext: options?.viewContext,
     });
   } catch (e: unknown) {
     errorToConsole(e as Error);

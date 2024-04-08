@@ -163,12 +163,6 @@ export class FrigateCardViews extends LitElement {
       class="${classMap(overallClasses)}"
       .hass=${this.hass}
       .view=${this.view}
-      .fetchMediaType=${this.view?.is('live')
-        ? this.overriddenConfig.live.controls.thumbnails.media_type
-        : undefined}
-      .fetchEventsMediaType=${this.view?.is('live')
-        ? this.overriddenConfig.live.controls.thumbnails.events_media_type
-        : undefined}
       .thumbnailConfig=${!this.hide ? thumbnailConfig : undefined}
       .timelineConfig=${!this.hide ? miniTimelineConfig : undefined}
       .cameraManager=${this.cameraManager}
@@ -254,6 +248,10 @@ export class FrigateCardViews extends LitElement {
           : ``
       }
     </frigate-card-surround>`;
+
+    // .fetchMediaType=${this.view?.is('live') ? this.overriddenConfig.live.controls.thumbnails.media_type : undefined}
+    // .fetchEventsMediaType=${this.view?.is('live') ? this.overriddenConfig.live.controls.thumbnails.events_media_type : undefined}
+
   }
 
   static get styles(): CSSResultGroup {
