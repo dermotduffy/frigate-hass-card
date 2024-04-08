@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import {
   Actions,
   ActionsConfig,
@@ -12,6 +13,15 @@ import {
 } from '../utils/action.js';
 import { getStreamCameraID } from '../utils/substream.js';
 import { CardActionsManagerAPI } from './types.js';
+
+const interactionSchema = z.object({
+  action: z.enum(['tap', 'double_tap', 'hold', 'start_tap', 'end_tap']),
+});
+export type Interaction = z.infer<typeof interactionSchema>;
+
+const interactionEventSchema = z.object({
+  detail: interactionSchema,
+});
 
 export class ActionsManager {
   protected _api: CardActionsManagerAPI;
@@ -49,7 +59,12 @@ export class ActionsManager {
   /**
    * Handle an human interaction called on an element (e.g. 'tap').
    */
-  public handleInteraction(interaction: string): void {
+  public handleInteractionEvent = (ev: Event): void => {
+    const result = interactionEventSchema.safeParse(ev);
+    if (!result.success) {
+      return;
+    }
+    const interaction = result.data.detail.action;
     const hass = this._api.getHASSManager().getHASS();
     const config = this.getMergedActions();
     const actionConfig = getActionConfigGivenAction(interaction, config);
@@ -70,12 +85,11 @@ export class ActionsManager {
         actionConfig,
       );
     }
-  }
+  };
 
   public handleActionEvent = (ev: Event): void => {
     if (!('detail' in ev)) {
-      // The event may not actually be a CustomEvent object, but may still have a
-      // detail field. See:
+      // The event may not be a CustomEvent object, see:
       // https://github.com/custom-cards/custom-card-helpers/blob/master/src/fire-event.ts#L70
       return;
     }

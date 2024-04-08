@@ -77,7 +77,11 @@ export class CardElementManager {
       this._api.getActionsManager().handleActionEvent,
     );
     this._element.addEventListener(
-      '@action',
+      'action',
+      this._api.getActionsManager().handleInteractionEvent,
+    );
+    this._element.addEventListener(
+      'action',
       this._api.getInteractionManager().reportInteraction,
     );
 
@@ -123,7 +127,11 @@ export class CardElementManager {
       this._api.getActionsManager().handleActionEvent,
     );
     this._element.removeEventListener(
-      '@action',
+      'action',
+      this._api.getActionsManager().handleInteractionEvent,
+    );
+    this._element.removeEventListener(
+      'action',
       this._api.getInteractionManager().reportInteraction,
     );
 
