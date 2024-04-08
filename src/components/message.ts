@@ -200,6 +200,36 @@ export function dispatchFrigateCardErrorEvent(
   }
 }
 
+// Facilitates correct typing of event handlers.
+export interface FrigateCardMessageEventTarget extends EventTarget {
+  addEventListener(
+    event: 'frigate-card:message',
+    listener: (
+      this: FrigateCardMessageEventTarget,
+      ev: CustomEvent<Message>,
+    ) => void,
+    options?: AddEventListenerOptions | boolean,
+  ): void;
+  addEventListener(
+    type: string,
+    callback: EventListenerOrEventListenerObject,
+    options?: AddEventListenerOptions | boolean,
+  ): void;
+  removeEventListener(
+    event: 'frigate-card:message',
+    listener: (
+      this: FrigateCardMessageEventTarget,
+      ev: CustomEvent<Message>,
+    ) => void,
+    options?: boolean | EventListenerOptions,
+  ): void;
+  removeEventListener(
+    type: string,
+    callback: EventListenerOrEventListenerObject,
+    options?: boolean | EventListenerOptions,
+  ): void;
+}
+
 declare global {
   interface HTMLElementTagNameMap {
     'frigate-card-progress-indicator': FrigateCardProgressIndicator;

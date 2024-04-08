@@ -1,11 +1,11 @@
 import { EmblaCarouselType } from 'embla-carousel';
+import { LooseOptionsType } from 'embla-carousel/components/Options';
 import { CreatePluginType, LoosePluginType } from 'embla-carousel/components/Plugins';
 import { MediaLoadedInfo } from '../../../../types';
 import {
+  FrigateCardMediaLoadedEventTarget,
   dispatchExistingMediaLoadedInfoAsEvent,
-  FrigateMediaLoadedEventTarget,
 } from '../../../media-info';
-import { LooseOptionsType } from 'embla-carousel/components/Options';
 
 declare module 'embla-carousel/components/Plugins' {
   interface EmblaPluginsType {
@@ -17,7 +17,7 @@ type AutoMediaLoadedInfoType = CreatePluginType<LoosePluginType, LooseOptionsTyp
 
 function AutoMediaLoadedInfo(): AutoMediaLoadedInfoType {
   let emblaApi: EmblaCarouselType;
-  let slides: (HTMLElement & FrigateMediaLoadedEventTarget)[] = [];
+  let slides: (HTMLElement & FrigateCardMediaLoadedEventTarget)[] = [];
   const mediaLoadedInfo: MediaLoadedInfo[] = [];
 
   function init(emblaApiInstance: EmblaCarouselType): void {

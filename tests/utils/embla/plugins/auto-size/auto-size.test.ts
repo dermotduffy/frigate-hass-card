@@ -3,12 +3,12 @@ import AutoSize from '../../../../../src/utils/embla/plugins/auto-size/auto-size
 import {
   IntersectionObserverMock,
   ResizeObserverMock,
+  callIntersectionHandler,
   createParent,
   requestAnimationFrameMock,
 } from '../../../../test-utils';
 import {
   callEmblaHandler,
-  callIntersectionHandler,
   callResizeHandler,
   createEmblaApiInstance,
   createTestEmblaOptionHandler,

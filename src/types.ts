@@ -8,7 +8,6 @@ import { z } from 'zod';
 
 export type ClipsOrSnapshots = 'clips' | 'snapshots';
 export type ClipsOrSnapshotsOrAll = 'clips' | 'snapshots' | 'all';
-export type EventsOrRecordings = 'events' | 'recordings';
 
 export class FrigateCardError extends Error {
   context?: unknown;

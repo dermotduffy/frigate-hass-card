@@ -13,6 +13,7 @@ const FULL_COVERAGE_FILES_RELATIVE = [
   'camera-manager/utils/*.ts',
   'card-controller/*.ts',
   'components-lib/cached-value-controller.ts',
+  'components-lib/live/live-controller.ts',
   'components-lib/media-filter-controller.ts',
   'components-lib/menu-button-controller.ts',
   'components-lib/menu-controller.ts',

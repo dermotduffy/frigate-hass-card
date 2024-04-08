@@ -651,7 +651,14 @@ export class FrigateCardTimelineCore extends LitElement {
   }): Promise<void> {
     this._removeTargetBar();
 
-    if (!this._timeline || !this.view) {
+    if (
+      !this._timeline ||
+      !this.view ||
+      // When in mini mode, something else is in charge of the primary media
+      // population (e.g. the live view), in this case only act when the user
+      // themselves are interacting with the timeline.
+      (this.mini && !properties.byUser)
+    ) {
       return;
     }
 

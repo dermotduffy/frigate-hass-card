@@ -20,12 +20,12 @@ import {
 import { dispatchExistingMediaLoadedInfoAsEvent } from '../../../../../src/utils/media-info';
 import {
   IntersectionObserverMock,
+  callIntersectionHandler,
   createMediaLoadedInfo,
   createParent,
 } from '../../../../test-utils';
 import {
   callEmblaHandler,
-  callIntersectionHandler,
   callVisibilityHandler,
   createEmblaApiInstance,
   createTestEmblaOptionHandler,
