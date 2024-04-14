@@ -67,7 +67,7 @@ export const createCondition = (
 export const createConfig = (config?: RawFrigateCardConfig): FrigateCardConfig => {
   return frigateCardConfigSchema.parse({
     type: 'frigate-hass-card',
-    cameras: [],
+    cameras: [{}],
     ...config,
   });
 };

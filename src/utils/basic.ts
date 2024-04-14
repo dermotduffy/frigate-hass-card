@@ -243,8 +243,8 @@ export const getChildrenFromElement = (parent: HTMLElement): HTMLElement[] => {
   return children.filter(isHTMLElement);
 };
 
-export const recursivelyMergeObjectsNotArrays = <T>(src1: T, src2: T): T => {
-  return mergeWith({}, src1, src2, (_a, b) => (Array.isArray(b) ? b : undefined));
+export const recursivelyMergeObjectsNotArrays = <T>(target: T, src1: T, src2: T): T => {
+  return mergeWith(target, src1, src2, (_a, b) => (Array.isArray(b) ? b : undefined));
 };
 
 export const aspectRatioToString = (options?: {
@@ -267,4 +267,22 @@ export const aspectRatioToStyle = (options?: {
   return {
     'aspect-ratio': aspectRatioToString(options),
   };
+};
+
+/**
+ * Remove empty slots from nested arrays.
+ */
+export const desparsifyArrays = <T>(data: T): T => {
+  if (Array.isArray(data)) {
+    return <T>(
+      data.filter((item) => item !== undefined).map((item) => desparsifyArrays(item))
+    );
+  } else if (typeof data === 'object' && data !== null) {
+    const result: Record<string | number | symbol, unknown> = {};
+    for (const key in data) {
+      result[key] = desparsifyArrays(data[key]);
+    }
+    return <T>result;
+  }
+  return data;
 };

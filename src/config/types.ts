@@ -1008,8 +1008,24 @@ const livethumbnailsControlSchema = thumbnailsControlSchema.extend({
   ),
 });
 
-const liveOverridableConfigSchema = z
+const liveConfigSchema = z
   .object({
+    auto_pause: z
+      .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
+      .array()
+      .default(liveConfigDefault.auto_pause),
+    auto_play: z
+      .enum(MEDIA_ACTION_POSITIVE_CONDITIONS)
+      .array()
+      .default(liveConfigDefault.auto_play),
+    auto_mute: z
+      .enum(MEDIA_MUTE_CONDITIONS)
+      .array()
+      .default(liveConfigDefault.auto_mute),
+    auto_unmute: z
+      .enum(MEDIA_UNMUTE_CONDITIONS)
+      .array()
+      .default(liveConfigDefault.auto_unmute),
     controls: z
       .object({
         builtin: z.boolean().default(liveConfigDefault.controls.builtin),
@@ -1032,55 +1048,36 @@ const liveOverridableConfigSchema = z
         title: titleControlConfigSchema.optional(),
       })
       .default(liveConfigDefault.controls),
-    show_image_during_load: z
-      .boolean()
-      .default(liveConfigDefault.show_image_during_load),
-    microphone: microphoneConfigSchema.default(liveConfigDefault.microphone),
-    zoomable: z.boolean().default(liveConfigDefault.zoomable),
     display: viewDisplaySchema,
-  })
-  .merge(actionsSchema);
-
-const liveConfigSchema = liveOverridableConfigSchema
-  .extend({
-    auto_play: z
-      .enum(MEDIA_ACTION_POSITIVE_CONDITIONS)
-      .array()
-      .default(liveConfigDefault.auto_play),
-    auto_pause: z
-      .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
-      .array()
-      .default(liveConfigDefault.auto_pause),
-    auto_mute: z
-      .enum(MEDIA_MUTE_CONDITIONS)
-      .array()
-      .default(liveConfigDefault.auto_mute),
-    auto_unmute: z
-      .enum(MEDIA_UNMUTE_CONDITIONS)
-      .array()
-      .default(liveConfigDefault.auto_unmute),
-    preload: z.boolean().default(liveConfigDefault.preload),
+    draggable: z.boolean().default(liveConfigDefault.draggable),
     lazy_load: z.boolean().default(liveConfigDefault.lazy_load),
     lazy_unload: z
       .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
       .array()
       .default(liveConfigDefault.lazy_unload),
-    draggable: z.boolean().default(liveConfigDefault.draggable),
+    microphone: microphoneConfigSchema.default(liveConfigDefault.microphone),
+    preload: z.boolean().default(liveConfigDefault.preload),
+    show_image_during_load: z
+      .boolean()
+      .default(liveConfigDefault.show_image_during_load),
     transition_effect: transitionEffectConfigSchema.default(
       liveConfigDefault.transition_effect,
     ),
+    zoomable: z.boolean().default(liveConfigDefault.zoomable),
   })
+  .merge(actionsSchema)
   .default(liveConfigDefault);
 export type LiveConfig = z.infer<typeof liveConfigSchema>;
 
-const liveOverridesSchema = z
-  .object({
-    conditions: frigateCardConditionSchema.array(),
-    overrides: liveOverridableConfigSchema,
-  })
-  .array()
-  .optional();
-export type LiveOverrides = z.infer<typeof liveOverridesSchema>;
+// This schema is used when the live config needs to be overridden (see
+// `live.ts`). Overrides will always be "relative" to the config root, so this
+// schema maintains that 'depth' from the root but without the other
+// requirements that frigateCardConfigSchema has. Without this, overrides
+// calculated in `live.ts` would fail since cameras/type are not provided (as
+// these are mandatory parameters in the full config).
+export const liveConfigAbsoluteRootSchema = z.object({
+  live: liveConfigSchema,
+});
 
 // *************************************************************************
 //                       Cast Configuration
@@ -1580,26 +1577,16 @@ export const dimensionsConfigSchema = z
 //                       Override Configuration
 // *************************************************************************
 
-// Strip all defaults from the override schemas, to ensure values are only what
-// the user has specified.
-const overrideConfigurationSchema = z.object({
-  cameras: deepRemoveDefaults(camerasConfigSchema).optional(),
-  cameras_global: deepRemoveDefaults(cameraConfigSchema).optional(),
-  live: deepRemoveDefaults(liveOverridableConfigSchema).optional(),
-  menu: deepRemoveDefaults(menuConfigSchema).optional(),
-  image: deepRemoveDefaults(imageConfigSchema).optional(),
-  view: deepRemoveDefaults(viewConfigSchema).optional(),
-  dimensions: deepRemoveDefaults(dimensionsConfigSchema).optional(),
-});
-export type OverrideConfigurationKey = keyof z.infer<typeof overrideConfigurationSchema>;
-
 const overridesSchema = z
   .object({
     conditions: frigateCardConditionSchema.array(),
-    overrides: overrideConfigurationSchema,
+    merge: z.object({}).passthrough().optional(),
+    set: z.object({}).passthrough().optional(),
+    delete: z.string().array().optional(),
   })
   .array()
   .optional();
+export type Overrides = z.infer<typeof overridesSchema>;
 
 // *************************************************************************
 //                       Automation Configuration

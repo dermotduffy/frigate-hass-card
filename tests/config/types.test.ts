@@ -12,7 +12,7 @@ import { createConfig } from '../test-utils';
 describe('config defaults', () => {
   it('should be as expected', () => {
     expect(createConfig()).toEqual({
-      cameras: [],
+      cameras: [{}],
       cameras_global: {
         dependencies: {
           all_cameras: false,
@@ -453,7 +453,7 @@ describe('should handle custom frigate elements', () => {
 it('should not require title controls to specify all options', () => {
   expect(
     createConfig({
-      cameras: [],
+      cameras: [{}],
       live: {
         controls: {
           title: {

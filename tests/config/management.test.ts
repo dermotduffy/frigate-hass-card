@@ -420,7 +420,7 @@ describe('should handle version specific upgrades', () => {
                   media_loaded: true,
                 },
               ],
-              overrides: {
+              merge: {
                 view: {
                   default: 'clips',
                 },
@@ -489,7 +489,7 @@ describe('should handle version specific upgrades', () => {
         overrides: [
           {
             conditions: {},
-            overrides: {
+            merge: {
               menu: {
                 buttons: {
                   camera_ui: {
@@ -1872,7 +1872,7 @@ describe('should handle version specific upgrades', () => {
                     views: ['clips', 'snapshots'],
                   },
                 ],
-                overrides: {
+                merge: {
                   view: {
                     default: 'clips',
                   },
@@ -1987,7 +1987,7 @@ describe('should handle version specific upgrades', () => {
                     cameras: ['camera_1', 'camera_2'],
                   },
                 ],
-                overrides: {
+                merge: {
                   view: {
                     default: 'clips',
                   },
@@ -2107,7 +2107,7 @@ describe('should handle version specific upgrades', () => {
                       [condition]: true,
                     },
                   ],
-                  overrides: {
+                  merge: {
                     view: {
                       default: 'clips',
                     },
@@ -2255,7 +2255,7 @@ describe('should handle version specific upgrades', () => {
                     state_not: 'off',
                   },
                 ],
-                overrides: {
+                merge: {
                   view: {
                     default: 'clips',
                   },
@@ -2387,7 +2387,7 @@ describe('should handle version specific upgrades', () => {
                     media_query: 'query',
                   },
                 ],
-                overrides: {
+                merge: {
                   view: {
                     default: 'clips',
                   },
@@ -2495,6 +2495,49 @@ describe('should handle version specific upgrades', () => {
             performance: {},
           });
         });
+      });
+    });
+
+    it('from overrides to merge', () => {
+      const config = {
+        type: 'custom:frigate-card',
+        cameras: [],
+        overrides: [
+          {
+            conditions: [
+              {
+                condition: 'view',
+                view: ['clips'],
+              },
+            ],
+            overrides: {
+              menu: {
+                style: 'hidden',
+              },
+            },
+          },
+        ],
+      };
+
+      expect(upgradeConfig(config)).toBeTruthy();
+      expect(config).toEqual({
+        type: 'custom:frigate-card',
+        cameras: [],
+        overrides: [
+          {
+            conditions: [
+              {
+                condition: 'view',
+                view: ['clips'],
+              },
+            ],
+            merge: {
+              menu: {
+                style: 'hidden',
+              },
+            },
+          },
+        ],
       });
     });
   });

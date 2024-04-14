@@ -7,6 +7,7 @@ import {
   aspectRatioToStyle,
   contentsChanged,
   dayToDate,
+  desparsifyArrays,
   dispatchFrigateCardEvent,
   errorToConsole,
   formatDate,
@@ -158,6 +159,7 @@ describe('runWhenIdleIfSupported', () => {
   });
 
   it('should run directly when not supported', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).requestIdleCallback = undefined;
     const func = vi.fn();
     runWhenIdleIfSupported(func);
@@ -166,7 +168,7 @@ describe('runWhenIdleIfSupported', () => {
 
   it('should run idle when supported', () => {
     const requestIdle = vi.fn();
-    (window as any).requestIdleCallback = requestIdle;
+    window.requestIdleCallback = requestIdle;
     const func = vi.fn();
     runWhenIdleIfSupported(func);
     expect(requestIdle).toBeCalledWith(func, {});
@@ -174,7 +176,7 @@ describe('runWhenIdleIfSupported', () => {
 
   it('should run idle with timeout when supported', () => {
     const requestIdle = vi.fn();
-    (window as any).requestIdleCallback = requestIdle;
+    window.requestIdleCallback = requestIdle;
     const func = vi.fn();
     runWhenIdleIfSupported(func, 10);
     expect(requestIdle).toBeCalledWith(func, { timeout: 10 });
@@ -298,6 +300,7 @@ describe('recursivelyMergeObjectsNotArrays', () => {
   it('should recursively merge objects but replace arrays', () => {
     expect(
       recursivelyMergeObjectsNotArrays(
+        {},
         {
           a: {
             b: {
@@ -354,5 +357,52 @@ describe('aspectRatioToStyle', () => {
   });
   it('invalid ratio', () => {
     expect(aspectRatioToStyle({ ratio: [4] })).toEqual({ 'aspect-ratio': 'auto' });
+  });
+});
+
+describe('desparsifyArrays', () => {
+  it('number', () => {
+    expect(desparsifyArrays(1)).toBe(1);
+  });
+  it('string', () => {
+    expect(desparsifyArrays('foo')).toBe('foo');
+  });
+  describe('array', () => {
+    it('simple', () => {
+      expect(desparsifyArrays([1, 2, undefined, 3])).toEqual([1, 2, 3]);
+    });
+    it('nested', () => {
+      expect(
+        desparsifyArrays([
+          1,
+          2,
+          undefined,
+          {
+            subArray: [undefined, 3],
+          },
+          4,
+        ]),
+      ).toEqual([1, 2, { subArray: [3] }, 4]);
+    });
+  });
+  describe('object', () => {
+    it('simple', () => {
+      expect(
+        desparsifyArrays({ foo: [1, 2, undefined, 3], bar: [undefined, 4] }),
+      ).toEqual({
+        foo: [1, 2, 3],
+        bar: [4],
+      });
+    });
+    it('nested', () => {
+      expect(
+        desparsifyArrays({ foo: { bar: [1, undefined, 2], empty: [undefined] } }),
+      ).toEqual({
+        foo: {
+          bar: [1, 2],
+          empty: [],
+        },
+      });
+    });
   });
 });
