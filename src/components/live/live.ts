@@ -26,8 +26,9 @@ import {
   CardWideConfig,
   frigateCardConfigDefaults,
   LiveConfig,
-  LiveOverrides,
+  liveConfigAbsoluteRootSchema,
   LiveProvider,
+  Overrides,
   TransitionEffect,
 } from '../../config/types.js';
 import { localize } from '../../localize/localize.js';
@@ -80,7 +81,7 @@ export class FrigateCardLive extends LitElement {
   public overriddenLiveConfig?: LiveConfig;
 
   @property({ attribute: false, hasChanged: contentsChanged })
-  public liveOverrides?: LiveOverrides;
+  public overrides?: Overrides;
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
@@ -151,7 +152,7 @@ export class FrigateCardLive extends LitElement {
           .overriddenLiveConfig=${this.overriddenLiveConfig}
           .inBackground=${this._controller.isInBackground()}
           .conditionsManagerEpoch=${this.conditionsManagerEpoch}
-          .liveOverrides=${this.liveOverrides}
+          .overrides=${this.overrides}
           .cardWideConfig=${this.cardWideConfig}
           .cameraManager=${this.cameraManager}
           .microphoneManager=${this.microphoneManager}
@@ -182,7 +183,7 @@ export class FrigateCardLiveGrid extends LitElement {
   public overriddenLiveConfig?: LiveConfig;
 
   @property({ attribute: false, hasChanged: contentsChanged })
-  public liveOverrides?: LiveOverrides;
+  public overrides?: Overrides;
 
   @property({ attribute: false })
   public conditionsManagerEpoch?: ConditionsManagerEpoch;
@@ -211,7 +212,7 @@ export class FrigateCardLiveGrid extends LitElement {
         .nonOverriddenLiveConfig=${this.nonOverriddenLiveConfig}
         .overriddenLiveConfig=${this.overriddenLiveConfig}
         .conditionsManagerEpoch=${this.conditionsManagerEpoch}
-        .liveOverrides=${this.liveOverrides}
+        .overrides=${this.overrides}
         .cardWideConfig=${this.cardWideConfig}
         .cameraManager=${this.cameraManager}
         .microphoneManager=${this.microphoneManager}
@@ -290,7 +291,7 @@ export class FrigateCardLiveCarousel extends LitElement {
   public overriddenLiveConfig?: LiveConfig;
 
   @property({ attribute: false, hasChanged: contentsChanged })
-  public liveOverrides?: LiveOverrides;
+  public overrides?: Overrides;
 
   @property({ attribute: false })
   public conditionsManagerEpoch?: ConditionsManagerEpoch;
@@ -471,19 +472,23 @@ export class FrigateCardLiveCarousel extends LitElement {
     // (in the carousel for example) is not necessarily the live camera *this*
     // <frigate-card-live-provider> is rendering right now, so we provide a
     // stateOverride to evaluate the condition in that context.
-    const config = getOverriddenConfig(
+    const liveConfig = getOverriddenConfig(
       this.conditionsManagerEpoch.manager,
-      this.nonOverriddenLiveConfig,
-      this.liveOverrides,
-      { camera: cameraID },
-    ) as LiveConfig;
+      { live: this.nonOverriddenLiveConfig },
+      {
+        configOverrides: this.overrides,
+        stateOverrides: { camera: cameraID },
+        schema: liveConfigAbsoluteRootSchema,
+        logOnParseError: !!this.cardWideConfig?.debug?.logging,
+      },
+    ).live as LiveConfig;
 
     const cameraMetadata = this.cameraManager.getCameraMetadata(cameraID);
 
     return html`
       <div class="embla__slide">
         <frigate-card-live-provider
-          ?load=${!config.lazy_load}
+          ?load=${!liveConfig.lazy_load}
           .microphoneStream=${this.view?.camera === cameraID
             ? this.microphoneManager?.getStream()
             : undefined}
@@ -493,7 +498,7 @@ export class FrigateCardLiveCarousel extends LitElement {
             () => this.cameraManager?.getCameraEndpoints(cameraID) ?? undefined,
           )}
           .label=${cameraMetadata?.title ?? ''}
-          .liveConfig=${config}
+          .liveConfig=${liveConfig}
           .hass=${this.hass}
           .cardWideConfig=${this.cardWideConfig}
         >

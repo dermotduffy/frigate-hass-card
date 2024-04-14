@@ -42,7 +42,6 @@ import { arrayify } from '../utils/basic';
  * @param keys The key to the property to set.
  * @param value The value to set.
  */
-
 export const setConfigValue = (
   obj: RawFrigateCardConfig,
   keys: string | (string | number)[],
@@ -689,4 +688,5 @@ const UPGRADES = [
     // Delete the value if it's set to the default.
     transform: (val) => (val === 'low' ? ['low-performance'] : null),
   }),
+  upgradeArrayOfObjects(CONF_OVERRIDES, upgradeMoveTo('overrides', 'merge')),
 ];

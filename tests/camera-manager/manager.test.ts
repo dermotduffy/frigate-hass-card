@@ -457,11 +457,11 @@ describe('CameraManager', async () => {
         },
       );
 
-      it('without cameras', async () => {
+      it('without camera', async () => {
         const api = createCardAPI();
         vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
 
-        const manager = createCameraManager(api, mock<CameraManagerEngine>(), []);
+        const manager = createCameraManager(api, mock<CameraManagerEngine>());
 
         expect(manager.generateDefaultEventQueries('not_a_camera')).toBeNull();
       });

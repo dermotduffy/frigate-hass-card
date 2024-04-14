@@ -49,6 +49,23 @@ describe('deepRemoveDefaults', () => {
     const result = deepRemoveDefaults(schema).parse({ string: 'moo' });
     expect(result.string).toBe('moo');
   });
+  describe('should still enforce array length', () => {
+    it('min', () => {
+      const schema = z.number().array().min(1);
+      const result = deepRemoveDefaults(schema).safeParse([]);
+      expect(result.success).toBeFalsy();
+    });
+    it('max', () => {
+      const schema = z.number().array().max(1);
+      const result = deepRemoveDefaults(schema).safeParse([1, 2]);
+      expect(result.success).toBeFalsy();
+    });
+    it('exact', () => {
+      const schema = z.number().array().length(1);
+      const result = deepRemoveDefaults(schema).safeParse([]);
+      expect(result.success).toBeFalsy();
+    });
+  });
 });
 
 describe('getParseErrorKeys', () => {

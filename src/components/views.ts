@@ -9,10 +9,7 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
-import {
-  ConditionsManagerEpoch,
-  getOverridesByKey,
-} from '../card-controller/conditions-manager.js';
+import { ConditionsManagerEpoch } from '../card-controller/conditions-manager.js';
 import { ReadonlyMicrophoneManager } from '../card-controller/microphone-manager.js';
 import {
   CardWideConfig,
@@ -233,10 +230,7 @@ export class FrigateCardViews extends LitElement {
                 .nonOverriddenLiveConfig=${this.nonOverriddenConfig.live}
                 .overriddenLiveConfig=${this.overriddenConfig.live}
                 .conditionsManagerEpoch=${this.conditionsManagerEpoch}
-                .liveOverrides=${getOverridesByKey(
-                  'live',
-                  this.overriddenConfig.overrides,
-                )}
+                .overrides=${this.overriddenConfig.overrides}
                 .cameraManager=${this.cameraManager}
                 .cardWideConfig=${this.cardWideConfig}
                 .microphoneManager=${this.microphoneManager}
@@ -248,10 +242,6 @@ export class FrigateCardViews extends LitElement {
           : ``
       }
     </frigate-card-surround>`;
-
-    // .fetchMediaType=${this.view?.is('live') ? this.overriddenConfig.live.controls.thumbnails.media_type : undefined}
-    // .fetchEventsMediaType=${this.view?.is('live') ? this.overriddenConfig.live.controls.thumbnails.events_media_type : undefined}
-
   }
 
   static get styles(): CSSResultGroup {
