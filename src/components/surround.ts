@@ -138,6 +138,7 @@ export class FrigateCardSurround extends LitElement {
                     ...(media.getCameraID() && { camera: media.getCameraID() }),
                   })
                   .removeContext('timeline')
+                  .removeContext('mediaViewer')
                   // Send the view change from the source of the tap event, so
                   // the view change will be caught by the handler above (to
                   // close the drawer).

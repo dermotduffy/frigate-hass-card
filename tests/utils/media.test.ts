@@ -51,6 +51,24 @@ describe('hideMediaControlsTemporarily', () => {
     expect(video.controls).toBeTruthy();
     expect(video._controlsHideTimer).toBeFalsy();
   });
+
+  it('should add event listener that resets controls', () => {
+    const video: FrigateCardHTMLVideoElement = document.createElement('video');
+    video.controls = true;
+
+    hideMediaControlsTemporarily(video);
+    expect(video.controls).toBeFalsy();
+
+    // After a new media starts to load, the controls should reset.
+    video.dispatchEvent(new Event('loadstart'));
+    expect(video.controls).toBeTruthy();
+
+    // ... but only once, future loadstart events without subsequent calls to
+    // hideMediaControlsTemporarily() should do nothing.
+    video.controls = false;
+    video.dispatchEvent(new Event('loadstart'));
+    expect(video._controlsHideTimer).toBeFalsy();
+  });
 });
 
 class NotAllowedError extends Error {
