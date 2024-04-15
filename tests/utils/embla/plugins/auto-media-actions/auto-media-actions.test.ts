@@ -315,7 +315,7 @@ describe('AutoMediaActions', () => {
 
     // Intersection observer always calls handler on creation (and we ignore
     // these first calls).
-    callIntersectionHandler(true);
+    callIntersectionHandler(false);
     callIntersectionHandler(true);
 
     expect(getPlayer(children[5], 'video')?.play).toBeCalled();
