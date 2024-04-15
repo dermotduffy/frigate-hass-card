@@ -56,8 +56,16 @@
             "fill": "Il supporto viene allungato per riempire la scheda"
           },
           "position": {
+            "editor_label": "",
             "x": "Percentuale di posizionamento orizzontale",
             "y": "Percentuale di posizionamento verticale"
+          },
+          "view_box": {
+            "bottom": "",
+            "editor_label": "",
+            "left": "",
+            "right": "",
+            "top": ""
           }
         }
       },

@@ -56,8 +56,16 @@
             "fill": "Media is stretched to fill the card"
           },
           "position": {
+            "editor_label": "Layout Cover Position",
             "x": "Horizontal placement percentage",
             "y": "Vertical placement percentage"
+          },
+          "view_box": {
+            "bottom": "Bottom inset percentage",
+            "editor_label": "Layout View Box",
+            "left": "Left inset percentage",
+            "right": "Right inset percentage",
+            "top": "Top inset percentage"
           }
         }
       },

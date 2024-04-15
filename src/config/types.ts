@@ -618,6 +618,14 @@ const mediaLayoutConfigSchema = z.object({
       y: z.number().min(0).max(100).optional(),
     })
     .optional(),
+  view_box: z
+    .object({
+      bottom: z.number().min(0).max(100).optional().default(0),
+      left: z.number().min(0).max(100).optional().default(0),
+      right: z.number().min(0).max(100).optional().default(0),
+      top: z.number().min(0).max(100).optional().default(0),
+    })
+    .optional(),
 });
 export type MediaLayoutConfig = z.infer<typeof mediaLayoutConfigSchema>;
 

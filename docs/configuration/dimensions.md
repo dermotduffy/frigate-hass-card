@@ -1,10 +1,12 @@
 # `dimensions`
 
-These options control the dimensions and aspect-ratio of the card. These options
-configuration applies once to the entire card (including the menu, thumbnails,
-etc), not just to displayed media. This only applies to the card in normal
-render mode -- when in fullscreen, or when in expanded (popup/dialog mode) the
-aspect ratio is chosen dynamically to maximize the amount of content shown.
+These options control the dimensions and aspect-ratio of the card (See [Camera
+Dimensions](./cameras/README.md?id=dimensions) to set the dimensions of a camera
+and not the whole card). These options configuration applies once to the entire
+card (including the menu, thumbnails, etc), not just to displayed media. This
+only applies to the card in normal render mode -- when in fullscreen, or when in
+expanded (popup/dialog mode) the aspect ratio is chosen dynamically to maximize
+the amount of content shown.
 
 ```yaml
 dimensions:

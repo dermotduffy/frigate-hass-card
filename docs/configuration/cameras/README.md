@@ -114,7 +114,8 @@ cameras:
 
 ## `dimensions`
 
-The `dimensions` block configures the dimensions and layout of media of a given camera. 
+The `dimensions` block configures the dimensions and layout of media of a given camera (see [Card Dimensions](../dimensions.md) to set the dimensions of the whole card and not just a single camera).
+
 
 ```yaml
 cameras:
@@ -130,8 +131,7 @@ cameras:
 
 ### Layout Configuration
 
-The `layout` block configures the fit and position of the media _within_ the camera dimensions (in order to control the dimensions for the whole card see [the card dimensions configuration](../dimensions.md) ). As the default behavior is to always expand to fit the media precisely, these options only make sense if the camera `dimensions.aspect_ratio` is set to a static value that forces a particular aspect ratio that does not match the camera media.
-
+The `layout` block configures the fit and position of the media _within_ the camera dimensions (in order to control the dimensions for the whole card see [the card dimensions configuration](../dimensions.md) ).
 
 ```yaml
 cameras:
@@ -143,10 +143,31 @@ cameras:
 
 | Option | Default | Description |
 | - | - | - |
-| `fit` | `contain` | If `contain`, the media is contained within the card and letterboxed if necessary. If `cover`, the media is expanded proportionally (i.e. maintaining the media aspect ratio) until the card is fully covered. If `fill`, the media is stretched to fill the card (i.e. ignoring the media aspect ratio). See [CSS object-fit](https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit) for technical details and a visualization. |
-| `position` | | A dictionary that contains an `x` and `y` percentage (`0` - `100`) to control the position of the media when the fit is `cover`. This can be effectively used to "pan" the media around. At any given time, only one of `x` and `y` will have an effect, depending on whether media width is larger than the card width (in which case `x` controls the position) or the media height is larger than the card height (in which case `y` controls the position). A value of `0` means maximally to the left or top of the media, a value of `100` means maximally to the right or bottom of the media. See [CSS object-position](https://developer.mozilla.org/en-US/docs/Web/CSS/object-position) for technical details and a visualization. |
+| `fit` | `contain` | If `contain`, the media is contained within the card and letterboxed if necessary. If `cover`, the media is expanded proportionally (i.e. maintaining the media aspect ratio) until the camera/card dimensions are fully covered. If `fill`, the media is stretched to fill the camera/card dimensions (i.e. ignoring the media aspect ratio). See [CSS object-fit](https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit) for technical details and a visualization. |
+| `position` | | A dictionary that may contain an `x` and `y` percentage (`0` - `100`) to control the position of the media when the fit is `cover` (for other values of `fit` this option has no effect). This can be effectively used to "pan"/cut the media shown. At any given time, only one of `x` and `y` will have an effect, depending on whether media width is larger than the camera/card dimensions (in which case `x` controls the position) or the media height is larger than the camera/card dimensions (in which case `y` controls the position). A value of `0` means maximally to the left or top of the media, a value of `100` means maximally to the right or bottom of the media. See [CSS object-position](https://developer.mozilla.org/en-US/docs/Web/CSS/object-position) for technicals. See visualizations below. |
+| `view_box` | | A dictionary that may contain a `top`, `bottom`, `left` and `right` percentage (`0` - `100`) to precisely crop what part of the media to show by specifying a % inset value from each side. Browsers apply this cropping after `position` and `fit` have been applied. See visualizations below. |
+
+!> The `view_box` parameter only has effect on browsers that support [`object-view-box`](https://caniuse.com/mdn-css_properties_object-view-box). As of writing this is exclusively Chromium based browsers (e.g. Google Chrome or Microsoft Edge).
 
 See [media layout examples](../../examples.md?id=media-layout).
+
+#### Layout **Visualizations**
+
+##### `fit`
+
+![](../../images/media_layout/fit.png "Media Layout Fit :size=400")
+
+##### `position`: When media is shorter than dimensions height
+
+![](../../images/media_layout/position-shorter-than-height.png "Media Layout Position: Wider than taller :size=400")
+
+##### `position`: When media is thinner than dimensions width
+
+![](../../images/media_layout/position-thinner-than-width.png "Media Layout Position: Taller than wider :size=400")
+
+#### `view_box`: Precise media cropping
+
+![](../../images/media_layout/view-box.png "Media Layout Position: Taller than wider :size=400")
 
 ## `triggers`
 
