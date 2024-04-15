@@ -8,7 +8,7 @@ import { MediaLayoutConfig } from '../config/types';
 export const updateElementStyleFromMediaLayoutConfig = (
   element: HTMLElement,
   mediaLayoutConfig?: MediaLayoutConfig,
-) => {
+): void => {
   if (mediaLayoutConfig?.fit !== undefined) {
     element.style.setProperty('--frigate-card-media-layout-fit', mediaLayoutConfig.fit);
   } else {

@@ -34,6 +34,7 @@ const FULL_COVERAGE_FILES_RELATIVE = [
   'utils/ha/entity-registry/types.ts',
   'utils/ha/types.ts',
   'utils/media-info.ts',
+  'utils/media-layout.ts',
   'utils/media-to-view.ts',
   'utils/media.ts',
   'utils/ptz.ts',
