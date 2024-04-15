@@ -67,6 +67,22 @@ describe('MenuController', () => {
     expect(host.getAttribute('data-alignment')).toBe('top');
   });
 
+  it('should expand', () => {
+    const host = createLitElement();
+    const controller = new MenuController(host);
+
+    expect(controller.isExpanded()).toBeFalsy();
+    expect(host.getAttribute('expanded')).toBeNull();
+
+    controller.setExpanded(true);
+    expect(controller.isExpanded()).toBeTruthy();
+    expect(host.getAttribute('expanded')).toBe('');
+
+    controller.setExpanded(false);
+    expect(controller.isExpanded()).toBeFalsy();
+    expect(host.getAttribute('expanded')).toBeNull();
+  });
+
   describe('should set and sort buttons', () => {
     it('by priority', () => {
       const controller = new MenuController(createLitElement());
