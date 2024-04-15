@@ -56,8 +56,16 @@
             "fill": "Preencher"
           },
           "position": {
+            "editor_label": "",
             "x": "Percentagem da localização horizontal",
             "y": "Percentagem da localização vertical"
+          },
+          "view_box": {
+            "bottom": "",
+            "editor_label": "",
+            "left": "",
+            "right": "",
+            "top": ""
           }
         }
       },

@@ -61,6 +61,14 @@ export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_X =
   `${CONF_CAMERAS}.#.dimensions.layout.position.x` as const;
 export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_Y =
   `${CONF_CAMERAS}.#.dimensions.layout.position.y` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_TOP =
+  `${CONF_CAMERAS}.#.dimensions.layout.view_box.top` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_BOTTOM =
+  `${CONF_CAMERAS}.#.dimensions.layout.view_box.bottom` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_LEFT =
+  `${CONF_CAMERAS}.#.dimensions.layout.view_box.left` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_RIGHT =
+  `${CONF_CAMERAS}.#.dimensions.layout.view_box.right` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGERS_MOTION =
   `${CONF_CAMERAS}.#.triggers.motion` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY =

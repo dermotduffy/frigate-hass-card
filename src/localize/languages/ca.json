@@ -56,8 +56,16 @@
             "fill": "El suport s'estira per omplir la targeta"
           },
           "position": {
+            "editor_label": "",
             "x": "Percentatge d'emplaçament horitzontal",
             "y": "Percentatge d'emplaçament vertical"
+          },
+          "view_box": {
+            "bottom": "",
+            "editor_label": "",
+            "left": "",
+            "right": "",
+            "top": ""
           }
         }
       },
