@@ -99,6 +99,9 @@ export class CardElementManager {
     // Manually call the location change handler as the card will be
     // disconnected/reconnected when dashboard 'tab' changes happen within HA.
     this._api.getQueryStringManager().executeAll();
+
+    // Make sure reconnections call the initialization code.
+    this._element.requestUpdate();
   }
 
   public elementDisconnected(): void {
@@ -108,15 +111,10 @@ export class CardElementManager {
     this._api.getMediaLoadedInfoManager().clear();
     this._api.getFullscreenManager().disconnect();
 
-    // Reset and uninitialize cameras to cause them to reinitialize on
+    // Uninitialize cameras to cause them to reinitialize on
     // reconnection, to ensure the state subscription/unsubscription works
     // correctly for triggers.
-    this._api
-      .getCameraManager()
-      .reset()
-      .then(() =>
-        this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS),
-      );
+    this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS),
 
     this._element.removeEventListener(
       'mousemove',

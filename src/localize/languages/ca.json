@@ -55,6 +55,10 @@
             "cover": "El suport s'expandeix proporcionalment per cobrir la targeta",
             "fill": "El suport s'estira per omplir la targeta"
           },
+          "pan": {
+            "x": "",
+            "y": ""
+          },
           "position": {
             "editor_label": "",
             "x": "Percentatge d'emplaçament horitzontal",
@@ -66,7 +70,8 @@
             "left": "",
             "right": "",
             "top": ""
-          }
+          },
+          "zoom": ""
         }
       },
       "engines": {
@@ -357,6 +362,7 @@
         "camera_ui": "Interfície d'usuari de la càmera",
         "cameras": "Càmeres",
         "clips": "Clips",
+        "default_zoom": "",
         "display_mode": "Mode de visualització",
         "download": "Descarregar",
         "enabled": "Botó habilitat",

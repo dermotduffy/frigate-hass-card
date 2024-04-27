@@ -9,10 +9,13 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { guard } from 'lit/directives/guard.js';
 import { live } from 'lit/directives/live.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import isEqual from 'lodash-es/isEqual';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
+import { ZoomDefault } from '../components-lib/zoom/types.js';
+import { handleZoomDefaultEvent } from '../components-lib/zoom/zoom-view-context.js';
 import { CameraConfig, ImageViewConfig } from '../config/types.js';
 import defaultImage from '../images/frigate-bird-in-sky.jpg';
 import { localize } from '../localize/localize.js';
@@ -277,8 +280,25 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
   }
 
   protected _useZoomIfRequired(template: TemplateResult): TemplateResult {
+    const targetID = this.cameraConfig?.id;
+    const zoomConfig = targetID ? this.view?.context?.zoom?.[targetID]?.zoom : undefined;
+
     return this.imageConfig?.zoomable
-      ? html` <frigate-card-zoomer> ${template} </frigate-card-zoomer>`
+      ? html` <frigate-card-zoomer
+          .defaultConfig=${guard([this.cameraConfig?.dimensions?.layout], () =>
+            this.cameraConfig?.dimensions?.layout
+              ? {
+                  pan: this.cameraConfig.dimensions.layout.pan,
+                  zoom: this.cameraConfig.dimensions.layout.zoom,
+                }
+              : undefined,
+          )}
+          .config=${zoomConfig}
+          @frigate-card:zoom:default=${(ev: CustomEvent<ZoomDefault>) =>
+            handleZoomDefaultEvent(this, ev, targetID)}
+        >
+          ${template}
+        </frigate-card-zoomer>`
       : template;
   }
 

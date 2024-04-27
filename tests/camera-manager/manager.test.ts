@@ -259,16 +259,9 @@ describe('CameraManager', async () => {
     return new CameraManager(api, { factory: mockFactory });
   };
 
-  it('should reset', async () => {
-    const store = new CameraManagerStore();
-    store.addCamera(
-      new Camera(createCameraConfig({ id: 'id' }), mock<CameraManagerEngine>()),
-    );
-    const manager = new CameraManager(createCardAPI(), { store: store });
-
-    expect(manager.getStore().getCameraCount()).toBe(1);
-    await manager.reset();
-    expect(manager.getStore().getCameraCount()).toBe(0);
+  it('should construct', async () => {
+    const manager = new CameraManager(createCardAPI());
+    expect(manager.getStore()).toBeTruthy();
   });
 
   describe('should initialize cameras from config', () => {

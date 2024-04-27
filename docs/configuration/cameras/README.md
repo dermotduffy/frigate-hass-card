@@ -144,10 +144,12 @@ cameras:
 | Option | Default | Description |
 | - | - | - |
 | `fit` | `contain` | If `contain`, the media is contained within the card and letterboxed if necessary. If `cover`, the media is expanded proportionally (i.e. maintaining the media aspect ratio) until the camera/card dimensions are fully covered. If `fill`, the media is stretched to fill the camera/card dimensions (i.e. ignoring the media aspect ratio). See [CSS object-fit](https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit) for technical details and a visualization. |
+| `pan` | | A dictionary that may contain an `x` and `y` percentage (`0` - `100`) to control the position of the media when "digitally zoomed in" (see `zoom` parameter). This can be effectively used to "pan"/cut the media shown. A value of `0` means maximally to the left or top of the media, a value of `100` means maximally to the right or bottom of the media. See visualizations below. |
 | `position` | | A dictionary that may contain an `x` and `y` percentage (`0` - `100`) to control the position of the media when the fit is `cover` (for other values of `fit` this option has no effect). This can be effectively used to "pan"/cut the media shown. At any given time, only one of `x` and `y` will have an effect, depending on whether media width is larger than the camera/card dimensions (in which case `x` controls the position) or the media height is larger than the camera/card dimensions (in which case `y` controls the position). A value of `0` means maximally to the left or top of the media, a value of `100` means maximally to the right or bottom of the media. See [CSS object-position](https://developer.mozilla.org/en-US/docs/Web/CSS/object-position) for technicals. See visualizations below. |
-| `view_box` | | A dictionary that may contain a `top`, `bottom`, `left` and `right` percentage (`0` - `100`) to precisely crop what part of the media to show by specifying a % inset value from each side. Browsers apply this cropping after `position` and `fit` have been applied. See visualizations below. |
+| `view_box` | | A dictionary that may contain a `top`, `bottom`, `left` and `right` percentage (`0` - `100`) to precisely crop what part of the media to show by specifying a % inset value from each side. Browsers apply this cropping after `position` and `fit` have been applied. Unlike `zoom`, the user cannot dynamically zoom back out -- however the builtin media controls will work as normal. See visualizations below. Limited [browser support](https://caniuse.com/mdn-css_properties_object-view-box): ![](../../images/browsers/chrome_16x16.png "Google Chrome :no-zoom") ![](../../images/browsers/chromium_16x16.png "Chromium :no-zoom") ![](../../images/browsers/edge_16x16.png "Microsoft Edge :no-zoom") |
+| `zoom` | `1.0` | A value between `1.0` and `10.0` inclusive that defines how much additional "digital zoom" to apply to this camera by default. Unlike with `view_box` the user can easily "zoom back out". Often used in conjuction with `pan`. When zoomed in the [builtin browser media controls](../live.md?id=controls) will automatically be disabled (as otherwise they would be enlarged also). |
 
-!> The `view_box` parameter only has effect on browsers that support [`object-view-box`](https://caniuse.com/mdn-css_properties_object-view-box). As of writing this is exclusively Chromium based browsers (e.g. Google Chrome or Microsoft Edge).
+?> Layout operations are effectively applied in this order: `fit`, `position`, `view_box`, `zoom` then `pan`.
 
 See [media layout examples](../../examples.md?id=media-layout).
 
@@ -168,6 +170,11 @@ See [media layout examples](../../examples.md?id=media-layout).
 #### `view_box`: Precise media cropping
 
 ![](../../images/media_layout/view-box.png "Media Layout Position: Taller than wider :size=400")
+
+#### `pan` and `zoom`: Predefined panning and zooming
+
+![](../../images/media_layout/pan-zoom.png "Panning and zooming :size=400")
+
 
 ## `triggers`
 
@@ -300,6 +307,13 @@ cameras:
       movies:
         directory_pattern: '%Y-%m-%d'
         file_pattern: '%H-%M-%S'
+  - camera_entity: camera.zoomed
+    dimensions:
+      layout:
+        zoom: 2.0
+        pan:
+          x: 50
+          y: 50
 cameras_global:
   live_provider: ha
 ```

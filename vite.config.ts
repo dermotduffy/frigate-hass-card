@@ -18,7 +18,7 @@ const FULL_COVERAGE_FILES_RELATIVE = [
   'components-lib/menu-button-controller.ts',
   'components-lib/menu-controller.ts',
   'components-lib/ptz-controller.ts',
-  'components-lib/zoom-controller.ts',
+  'components-lib/zoom/*.ts',
   'config/**/*.ts',
   'const.ts',
   'types.ts',

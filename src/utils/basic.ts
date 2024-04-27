@@ -3,7 +3,8 @@ import differenceInMinutes from 'date-fns/differenceInMinutes';
 import differenceInSeconds from 'date-fns/differenceInSeconds';
 import format from 'date-fns/format';
 import { StyleInfo } from 'lit/directives/style-map';
-import isEqual from 'lodash-es/isEqual';
+import { round } from 'lodash-es';
+import isEqualWith from 'lodash-es/isEqualWith';
 import mergeWith from 'lodash-es/mergeWith';
 import { FrigateCardError } from '../types';
 
@@ -87,8 +88,12 @@ export const setify = <T>(value: T | T[] | Set<T>): Set<T> => {
  * @param o The old value.
  * @returns `true` is the contents have changed.
  */
-export function contentsChanged(n: unknown, o: unknown): boolean {
-  return !isEqual(n, o);
+export function contentsChanged(
+  n: unknown,
+  o: unknown,
+  customizer?: (a: unknown, b: unknown) => boolean | undefined,
+): boolean {
+  return !isEqualWith(n, o, customizer);
 }
 
 /**
@@ -285,4 +290,25 @@ export const desparsifyArrays = <T>(data: T): T => {
     return <T>result;
   }
   return data;
+};
+
+export const arefloatsApproximatelyEqual = (
+  a: number,
+  b: number,
+  precision?: number,
+): boolean => {
+  return round(a, precision) === round(b, precision);
+};
+
+/**
+ * Create a lodash isEqualsWith customizer that can compare floats.
+ */
+export const generateFloatApproximatelyEqualsCustomizer = (
+  precision: number,
+): ((a: unknown, b: unknown) => boolean | undefined) => {
+  return (a: unknown, b: unknown) => {
+    return typeof a === 'number' && typeof b === 'number'
+      ? arefloatsApproximatelyEqual(a, b, precision)
+      : undefined;
+  };
 };

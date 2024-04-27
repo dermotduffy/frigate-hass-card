@@ -21,6 +21,8 @@ import {
 import { ReadonlyMicrophoneManager } from '../../card-controller/microphone-manager.js';
 import { LiveController } from '../../components-lib/live/live-controller.js';
 import { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
+import { ZoomConfig, ZoomDefault } from '../../components-lib/zoom/types.js';
+import { handleZoomDefaultEvent } from '../../components-lib/zoom/zoom-view-context.js';
 import {
   CameraConfig,
   CardWideConfig,
@@ -501,6 +503,9 @@ export class FrigateCardLiveCarousel extends LitElement {
           .liveConfig=${liveConfig}
           .hass=${this.hass}
           .cardWideConfig=${this.cardWideConfig}
+          .zoomConfig=${this.view?.context?.zoom?.[cameraID]?.zoom}
+          @frigate-card:zoom:default=${(ev: CustomEvent<ZoomDefault>) =>
+            handleZoomDefaultEvent(this, ev, cameraID)}
         >
         </frigate-card-live-provider>
       </div>
@@ -688,6 +693,9 @@ export class FrigateCardLiveProvider
   @property({ attribute: false })
   public microphoneStream?: MediaStream;
 
+  @property({ attribute: false })
+  public zoomConfig?: ZoomConfig | null;
+
   @state()
   protected _isVideoMediaLoaded = false;
 
@@ -793,9 +801,6 @@ export class FrigateCardLiveProvider
     this._isVideoMediaLoaded = false;
   }
 
-  /**
-   * Record that video media is being shown.
-   */
   protected _videoMediaShowHandler(): void {
     this._isVideoMediaLoaded = true;
   }
@@ -852,6 +857,15 @@ export class FrigateCardLiveProvider
   protected _useZoomIfRequired(template: TemplateResult): TemplateResult {
     return this.liveConfig?.zoomable
       ? html` <frigate-card-zoomer
+          .defaultConfig=${guard([this.cameraConfig?.dimensions?.layout], () =>
+            this.cameraConfig?.dimensions?.layout
+              ? {
+                  pan: this.cameraConfig.dimensions.layout.pan,
+                  zoom: this.cameraConfig.dimensions.layout.zoom,
+                }
+              : undefined,
+          )}
+          .config=${this.zoomConfig}
           @frigate-card:zoom:zoomed=${() => this.setControls(false)}
           @frigate-card:zoom:unzoomed=${() => this.setControls()}
         >
@@ -899,15 +913,12 @@ export class FrigateCardLiveProvider
       }
     }
 
-    return this._useZoomIfRequired(html`
+    return html`${this._useZoomIfRequired(html`
       ${showImageDuringLoading || provider === 'image'
         ? html` <frigate-card-live-image
             ${ref(this._refProvider)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
-            watermark=${ifDefined(
-              showImageDuringLoading ? 'mdi:progress-helper' : undefined,
-            )}
             @frigate-card:media:loaded=${(ev: Event) => {
               if (provider === 'image') {
                 // Only count the media has loaded if the required provider is
@@ -968,7 +979,13 @@ export class FrigateCardLiveProvider
           >
           </frigate-card-live-jsmpeg>`
         : html``}
-    `);
+    `)}
+    ${showImageDuringLoading && !this._isVideoMediaLoaded
+      ? html`<ha-icon
+          title=${localize('error.awaiting_live')}
+          icon="mdi:progress-helper"
+        ></ha-icon>`
+      : ''} `;
   }
 
   static get styles(): CSSResultGroup {

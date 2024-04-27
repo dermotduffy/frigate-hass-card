@@ -57,6 +57,10 @@ export const CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS =
   `${CONF_CAMERAS}.#.dependencies.all_cameras` as const;
 export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_FIT =
   `${CONF_CAMERAS}.#.dimensions.layout.fit` as const;
+  export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_PAN_X =
+  `${CONF_CAMERAS}.#.dimensions.layout.pan.x` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_PAN_Y =
+  `${CONF_CAMERAS}.#.dimensions.layout.pan.y` as const;
 export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_X =
   `${CONF_CAMERAS}.#.dimensions.layout.position.x` as const;
 export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_Y =
@@ -69,6 +73,8 @@ export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_LEFT =
   `${CONF_CAMERAS}.#.dimensions.layout.view_box.left` as const;
 export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_RIGHT =
   `${CONF_CAMERAS}.#.dimensions.layout.view_box.right` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_ZOOM_FACTOR =
+  `${CONF_CAMERAS}.#.dimensions.layout.zoom` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGERS_MOTION =
   `${CONF_CAMERAS}.#.triggers.motion` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY =

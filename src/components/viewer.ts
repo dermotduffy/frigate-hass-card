@@ -12,6 +12,8 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../camera-manager/manager.js';
 import { MediaGridSelected } from '../components-lib/media-grid-controller.js';
+import { ZoomDefault } from '../components-lib/zoom/types.js';
+import { handleZoomDefaultEvent } from '../components-lib/zoom/zoom-view-context.js';
 import {
   dispatchMessageEvent,
   renderMessage,
@@ -484,7 +486,7 @@ export class FrigateCardViewerCarousel extends LitElement {
             stopEventFromActivatingCardWideActions(ev);
           }}
         ></frigate-card-next-previous-control>
-        ${guard(this._media, () => this._getSlides())}
+        ${guard([this._media, this.view], () => this._getSlides())}
         <frigate-card-next-previous-control
           slot="next"
           .hass=${this.hass}
@@ -865,10 +867,28 @@ export class FrigateCardViewerProvider
   }
 
   protected _useZoomIfRequired(template: TemplateResult): TemplateResult {
+    if (!this.media) {
+      return template;
+    }
+    const cameraID = this.media.getCameraID();
+    const mediaID = this.media.getID() ?? undefined;
+    const cameraConfig = this.cameraManager?.getStore().getCameraConfig(cameraID);
+
     return this.viewerConfig?.zoomable
       ? html` <frigate-card-zoomer
+          .defaultConfig=${guard([cameraConfig?.dimensions?.layout], () =>
+            cameraConfig?.dimensions?.layout
+              ? {
+                  pan: cameraConfig.dimensions.layout.pan,
+                  zoom: cameraConfig.dimensions.layout.zoom,
+                }
+              : undefined,
+          )}
+          .config=${mediaID ? this.view?.context?.zoom?.[mediaID]?.zoom : undefined}
           @frigate-card:zoom:zoomed=${() => this.setControls(false)}
           @frigate-card:zoom:unzoomed=${() => this.setControls()}
+          @frigate-card:zoom:default=${(ev: CustomEvent<ZoomDefault>) =>
+            handleZoomDefaultEvent(this, ev, mediaID)}
         >
           ${template}
         </frigate-card-zoomer>`

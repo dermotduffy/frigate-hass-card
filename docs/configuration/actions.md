@@ -118,14 +118,23 @@ frigate_card_action: camera_ui
 
 Open the UI for the selected camera engine (e.g. the Frigate UI).
 
-### `default`
+### `change_zoom`
 
-Change to the default view.
+Zoom in and/or pan for a given camera.
 
 ```yaml
 action: custom:frigate-card-action
-frigate_card_action: default
+frigate_card_action: change_zoom
+[...]
 ```
+
+| Parameter | Description |
+| - | - |
+| `action` | Must be `custom:frigate-card-action`. |
+| `frigate_card_action` | Must be `change_zoom`. |
+| `target_id` | The [camera ID](cameras/README.md?id=cameras) to adjust the pan/zoom of, or a media ID (e.g. `frigate` event ID) to zoom in on specific media items. |
+| `zoom` | How much to zoom-in. See the [camera zoom parameter](cameras/README.md?id=layout-configuration). |
+| `pan` | How much to pan-x/y. See the [camera pan parameter](cameras/README.md?id=layout-configuration). |
 
 ### `clip`, `clips`, `image`, `live`, `recording`, `recordings`, `snapshot`, `snapshots`
 
@@ -134,6 +143,15 @@ Change to the specified view.
 ```yaml
 action: custom:frigate-card-action
 frigate_card_action: [view]
+```
+
+### `default`
+
+Change to the default view.
+
+```yaml
+action: custom:frigate-card-action
+frigate_card_action: default
 ```
 
 ### `download`

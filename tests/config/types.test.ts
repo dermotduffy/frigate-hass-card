@@ -175,6 +175,10 @@ describe('config defaults', () => {
             enabled: true,
             priority: 50,
           },
+          default_zoom: {
+            enabled: true,
+            priority: 50,
+          },
           display_mode: {
             enabled: true,
             priority: 50,

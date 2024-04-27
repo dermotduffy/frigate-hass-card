@@ -12,6 +12,7 @@ import {
   getActionConfigGivenAction,
 } from '../utils/action.js';
 import { getStreamCameraID } from '../utils/substream.js';
+import { generateViewContextForZoomChange } from '../components-lib/zoom/zoom-view-context.js';
 import { CardActionsManagerAPI } from './types.js';
 
 const interactionSchema = z.object({
@@ -263,9 +264,19 @@ export class ActionsManager {
         }
         break;
       case 'show_ptz':
-        this._api
-          .getViewManager()
-          .setViewWithNewContext({ live: { ptzVisible: frigateCardAction.show_ptz } });
+        this._api.getViewManager().setViewWithMergedContext({
+          live: { ptzVisible: frigateCardAction.show_ptz },
+        });
+        break;
+      case 'change_zoom':
+        this._api.getViewManager().setViewWithMergedContext(
+          generateViewContextForZoomChange(frigateCardAction.target_id, {
+            zoom: {
+              pan: frigateCardAction.pan,
+              zoom: frigateCardAction.zoom,
+            },
+          }),
+        );
         break;
       default:
         console.warn(`Frigate card received unknown card action: ${action}`);

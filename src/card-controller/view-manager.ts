@@ -161,7 +161,7 @@ export class ViewManager {
     }
   }
 
-  public setViewWithNewContext(context: ViewContext): void {
+  public setViewWithMergedContext(context: ViewContext | null): void {
     if (this._view) {
       return this._setView(this._view?.clone().mergeInContext(context));
     }

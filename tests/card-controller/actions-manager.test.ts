@@ -196,7 +196,6 @@ describe('ActionsManager.handleInteraction', () => {
 
     manager.handleInteractionEvent(
       new CustomEvent<Interaction>('event', {
-
         // Malformed interaction type.
         detail: { action: 'double_finger_snap' } as unknown as Interaction,
       }),
@@ -800,9 +799,66 @@ describe('ActionsManager.executeAction', () => {
       })!,
     );
 
-    expect(api.getViewManager().setViewWithNewContext).toBeCalledWith(
+    expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith(
       expect.objectContaining({ live: { ptzVisible: true } }),
     );
+  });
+
+  describe('should handle change_zoom action', () => {
+    it('default', async () => {
+      const api = createCardAPI();
+      const manager = new ActionsManager(api);
+
+      await manager.executeFrigateAction(
+        createAction({
+          frigate_card_action: 'change_zoom',
+          target_id: 'camera.office',
+        })!,
+      );
+
+      expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith(
+        expect.objectContaining({
+          zoom: {
+            'camera.office': {
+              zoom: {},
+            },
+          },
+        }),
+      );
+    });
+
+    it('non-default', async () => {
+      const api = createCardAPI();
+      const manager = new ActionsManager(api);
+
+      await manager.executeFrigateAction(
+        createAction({
+          frigate_card_action: 'change_zoom',
+          target_id: 'camera.office',
+          zoom: 2,
+          pan: {
+            x: 3,
+            y: 4,
+          },
+        })!,
+      );
+
+      expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith(
+        expect.objectContaining({
+          zoom: {
+            'camera.office': {
+              zoom: {
+                zoom: 2,
+                pan: {
+                  x: 3,
+                  y: 4,
+                },
+              },
+            },
+          },
+        }),
+      );
+    });
   });
 
   it('should handle unknown action', async () => {
