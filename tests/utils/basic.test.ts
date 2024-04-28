@@ -2,6 +2,7 @@ import { afterAll, describe, expect, it, vi } from 'vitest';
 import { FrigateCardError } from '../../src/types';
 import {
   allPromises,
+  arefloatsApproximatelyEqual,
   arrayify,
   arrayMove,
   aspectRatioToStyle,
@@ -12,6 +13,7 @@ import {
   errorToConsole,
   formatDate,
   formatDateAndTime,
+  generateFloatApproximatelyEqualsCustomizer,
   getChildrenFromElement,
   getDurationString,
   isHoverableDevice,
@@ -403,6 +405,57 @@ describe('desparsifyArrays', () => {
           empty: [],
         },
       });
+    });
+  });
+});
+
+describe('arefloatsApproximatelyEqual', () => {
+  describe('without precision', () => {
+    it('equals', () => {
+      expect(arefloatsApproximatelyEqual(1.1, 1.2)).toBeTruthy();
+    });
+    it('not equals', () => {
+      expect(arefloatsApproximatelyEqual(0.5, 1.5)).toBeFalsy();
+    });
+  });
+  describe('with precision', () => {
+    it('equals', () => {
+      expect(arefloatsApproximatelyEqual(1.00001, 1.00002, 4)).toBeTruthy();
+    });
+    it('not equals', () => {
+      expect(arefloatsApproximatelyEqual(0.5, 1.5, 4)).toBeFalsy();
+    });
+  });
+});
+
+describe('generateFloatApproximatelyEqualsCustomizer', () => {
+  describe('with incorrect types', () => {
+    it('undefined a', () => {
+      expect(
+        generateFloatApproximatelyEqualsCustomizer(4)(undefined, 1.2),
+      ).toBeUndefined();
+    });
+    it('undefined b', () => {
+      expect(
+        generateFloatApproximatelyEqualsCustomizer(4)(1.2, undefined),
+      ).toBeUndefined();
+    });
+    it('strings', () => {
+      expect(
+        generateFloatApproximatelyEqualsCustomizer(4)('foo', 'bar'),
+      ).toBeUndefined();
+    });
+  });
+  describe('with correct types', () => {
+    it('equals', () => {
+      expect(
+        generateFloatApproximatelyEqualsCustomizer(4)(1.00001, 1.00002),
+      ).toBeTruthy();
+    });
+    it('not equals', () => {
+      expect(
+        generateFloatApproximatelyEqualsCustomizer(5)(1.00001, 1.00002),
+      ).toBeFalsy();
     });
   });
 });

@@ -525,6 +525,29 @@ describe('ConditionsManager', () => {
 
       expect(manager.hasHAStateConditions()).toBeTruthy();
     });
+
+    it('with automations', () => {
+      const api = createCardAPI();
+      const userConfig = createConfig({
+        automations: [
+          {
+            conditions: [
+              {
+                condition: 'state' as const,
+                entity: 'binary_sensor.foo',
+                state: 'on',
+              },
+            ],
+          },
+        ],
+      });
+
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(userConfig);
+      const manager = new ConditionsManager(api);
+      manager.setConditionsFromConfig();
+
+      expect(manager.hasHAStateConditions()).toBeTruthy();
+    });
   });
 
   describe('should evaluate conditions', () => {

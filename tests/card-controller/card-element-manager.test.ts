@@ -149,7 +149,6 @@ describe('CardElementManager', () => {
     element.removeEventListener = removeEventListener;
 
     const api = createCardAPI();
-    vi.mocked(api.getCameraManager().reset).mockResolvedValue();
 
     const manager = new CardElementManager(
       api,
@@ -186,6 +185,6 @@ describe('CardElementManager', () => {
     );
     expect(windowRemoveEventListener).toBeCalledWith('popstate', expect.anything());
 
-    expect(api.getCameraManager().reset).toBeCalled();
+    expect(api.getInitializationManager().uninitialize).toBeCalledWith('cameras');
   });
 });

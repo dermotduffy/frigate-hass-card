@@ -55,6 +55,10 @@
             "cover": "Il supporto si espande proporzionalmente per coprire la scheda",
             "fill": "Il supporto viene allungato per riempire la scheda"
           },
+          "pan": {
+            "x": "",
+            "y": ""
+          },
           "position": {
             "editor_label": "",
             "x": "Percentuale di posizionamento orizzontale",
@@ -66,7 +70,8 @@
             "left": "",
             "right": "",
             "top": ""
-          }
+          },
+          "zoom": ""
         }
       },
       "engines": {
@@ -357,6 +362,7 @@
         "camera_ui": "Interfaccia utente della fotocamera",
         "cameras": "Telecamere",
         "clips": "Clip",
+        "default_zoom": "",
         "display_mode": "",
         "download": "Download",
         "enabled": "Pulsante abilitato",

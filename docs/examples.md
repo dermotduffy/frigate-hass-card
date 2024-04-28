@@ -997,3 +997,95 @@ cameras:
     webrtc_card:
       ui: true
 ```
+
+## Zoom
+
+### Pre-defining camera zoom and pan
+
+This example changes the default [zoom/pan settings for a camera](./configuration/cameras/README.md?id=layout-configuration) to always zoom in on a given area:
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.office
+    dimensions:
+      layout:
+        zoom: 3
+        pan:
+          x: 20
+          y: 80
+```
+
+### Disable zooming in media views
+
+This example prevents zooming on the media viewer but keeps it on in other views (e.g. `live` view):
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.office
+    dimensions:
+      layout:
+        zoom: 3
+        pan:
+          x: 20
+          y: 80
+media_viewer:
+  zoomable: false
+```
+
+### Different zoom settings in media viewer vs `live`
+
+This example uses different settings for the media viewer and `live` view, by overriding the camera configuration:
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.office
+    dimensions:
+      layout:
+        zoom: 2
+overrides:
+  - conditions:
+      - condition: view
+        views:
+          - media
+    set:
+      'cameras[0].dimensions.layout':
+        zoom: 3
+        pan:
+          x: 100
+          y: 100
+```
+
+### Automatically zoom based on state
+
+This example automatically zooms in and out based on the state of an entity:
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.living_room
+    live_provider: go2rtc
+debug:
+  logging: true
+automations:
+  - conditions:
+      - condition: state
+        entity: binary_sensor.door_contact
+        state: 'on'
+    actions:
+      - action: custom:frigate-card-action
+        frigate_card_action: change_zoom
+        target_id: camera.living_room
+        zoom: 4
+        pan:
+          x: 38
+          y: 20
+    actions_not:
+      - action: custom:frigate-card-action
+        frigate_card_action: change_zoom
+        target_id: camera.living_room
+```
+
+![](images/zoom-automation.gif 'Zoom automation example :size=400')

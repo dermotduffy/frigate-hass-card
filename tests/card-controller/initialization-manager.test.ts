@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { loadLanguages } from '../../src/localize/localize';
 import {
   InitializationAspect,
   InitializationManager,
 } from '../../src/card-controller/initialization-manager';
+import { loadLanguages } from '../../src/localize/localize';
 import { sideLoadHomeAssistantElements } from '../../src/utils/ha';
 import { Initializer } from '../../src/utils/initializer/initializer';
 import { createCardAPI, createConfig, createHASS } from '../test-utils';
@@ -183,6 +183,22 @@ describe('InitializationManager', () => {
         .mockResolvedValueOnce(false);
 
       expect(await manager.initializeMandatory()).toBeFalsy();
+    });
+
+    it('with existing view', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+      vi.mocked(api.getViewManager().hasView).mockReturnValue(true);
+
+      const initializer = mock<Initializer>();
+      const manager = new InitializationManager(api, initializer);
+      initializer.initializeMultipleIfNecessary
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true);
+
+      expect(await manager.initializeMandatory()).toBeTruthy();
+      expect(api.getCardElementManager().update).toBeCalled();
     });
   });
 

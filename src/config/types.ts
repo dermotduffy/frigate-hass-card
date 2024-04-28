@@ -91,6 +91,16 @@ const CAMERA_TRIGGER_EVENT_TYPES = [
 export type CameraTriggerEventType = (typeof CAMERA_TRIGGER_EVENT_TYPES)[number];
 
 // *************************************************************************
+//                        Pan / Zoom
+// *************************************************************************
+
+const panSchema = z.object({
+  x: z.number().min(0).max(100).optional(),
+  y: z.number().min(0).max(100).optional(),
+});
+const zoomSchema = z.number().min(1).max(10);
+
+// *************************************************************************
 //                        View Display Mode
 // *************************************************************************
 
@@ -289,15 +299,23 @@ const frigateCardShowPTZActionSchema = frigateCardCustomActionsBaseSchema.extend
   show_ptz: z.boolean(),
 });
 
+const frigateCardChangeZoomActionSchema = frigateCardCustomActionsBaseSchema.extend({
+  frigate_card_action: z.literal('change_zoom'),
+  target_id: z.string(),
+  zoom: zoomSchema.optional(),
+  pan: panSchema.optional(),
+});
+
 export const frigateCardCustomActionSchema = z.union([
-  frigateCardViewActionSchema,
-  frigateCardGeneralActionSchema,
   frigateCardCameraSelectActionSchema,
+  frigateCardChangeZoomActionSchema,
+  frigateCardGeneralActionSchema,
   frigateCardLiveDependencySelectActionSchema,
   frigateCardMediaPlayerActionSchema,
-  frigateCardViewDisplayModeActionSchema,
   frigateCardPTZActionSchema,
   frigateCardShowPTZActionSchema,
+  frigateCardViewActionSchema,
+  frigateCardViewDisplayModeActionSchema,
 ]);
 export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSchema>;
 
@@ -626,6 +644,8 @@ const mediaLayoutConfigSchema = z.object({
       top: z.number().min(0).max(100).optional().default(0),
     })
     .optional(),
+  pan: panSchema.optional(),
+  zoom: zoomSchema.optional(),
 });
 export type MediaLayoutConfig = z.infer<typeof mediaLayoutConfigSchema>;
 
@@ -1345,22 +1365,20 @@ const hiddenButtonDefault = {
 };
 
 const menuConfigDefault = {
-  style: 'hidden' as const,
-  position: 'top' as const,
   alignment: 'left' as const,
+  button_size: 40,
   buttons: {
-    frigate: visibleButtonDefault,
-    cameras: visibleButtonDefault,
-    substreams: visibleButtonDefault,
-    live: visibleButtonDefault,
-    clips: visibleButtonDefault,
-    snapshots: visibleButtonDefault,
-    image: hiddenButtonDefault,
-    timeline: visibleButtonDefault,
-    download: visibleButtonDefault,
     camera_ui: visibleButtonDefault,
-    fullscreen: visibleButtonDefault,
+    cameras: visibleButtonDefault,
+    clips: visibleButtonDefault,
+    default_zoom: visibleButtonDefault,
+    display_mode: visibleButtonDefault,
+    download: visibleButtonDefault,
     expand: hiddenButtonDefault,
+    frigate: visibleButtonDefault,
+    fullscreen: visibleButtonDefault,
+    image: hiddenButtonDefault,
+    live: visibleButtonDefault,
     media_player: visibleButtonDefault,
     microphone: {
       ...hiddenButtonDefault,
@@ -1368,12 +1386,15 @@ const menuConfigDefault = {
     },
     mute: hiddenButtonDefault,
     play: hiddenButtonDefault,
+    ptz: hiddenButtonDefault,
     recordings: hiddenButtonDefault,
     screenshot: hiddenButtonDefault,
-    display_mode: visibleButtonDefault,
-    ptz: hiddenButtonDefault,
+    snapshots: visibleButtonDefault,
+    substreams: visibleButtonDefault,
+    timeline: visibleButtonDefault,
   },
-  button_size: 40,
+  position: 'top' as const,
+  style: 'hidden' as const,
 };
 
 const visibleButtonSchema = menuBaseSchema.extend({
@@ -1393,18 +1414,21 @@ export const menuConfigSchema = z
     alignment: z.enum(FRIGATE_MENU_ALIGNMENTS).default(menuConfigDefault.alignment),
     buttons: z
       .object({
-        frigate: visibleButtonSchema.default(menuConfigDefault.buttons.frigate),
-        cameras: visibleButtonSchema.default(menuConfigDefault.buttons.cameras),
-        substreams: visibleButtonSchema.default(menuConfigDefault.buttons.substreams),
-        live: visibleButtonSchema.default(menuConfigDefault.buttons.live),
-        clips: visibleButtonSchema.default(menuConfigDefault.buttons.clips),
-        snapshots: visibleButtonSchema.default(menuConfigDefault.buttons.snapshots),
-        image: hiddenButtonSchema.default(menuConfigDefault.buttons.image),
-        timeline: visibleButtonSchema.default(menuConfigDefault.buttons.timeline),
-        download: visibleButtonSchema.default(menuConfigDefault.buttons.download),
         camera_ui: visibleButtonSchema.default(menuConfigDefault.buttons.camera_ui),
-        fullscreen: visibleButtonSchema.default(menuConfigDefault.buttons.fullscreen),
+        cameras: visibleButtonSchema.default(menuConfigDefault.buttons.cameras),
+        clips: visibleButtonSchema.default(menuConfigDefault.buttons.clips),
+        default_zoom: visibleButtonSchema.default(
+          menuConfigDefault.buttons.default_zoom,
+        ),
+        display_mode: visibleButtonSchema.default(
+          menuConfigDefault.buttons.display_mode,
+        ),
+        download: visibleButtonSchema.default(menuConfigDefault.buttons.download),
         expand: hiddenButtonSchema.default(menuConfigDefault.buttons.expand),
+        frigate: visibleButtonSchema.default(menuConfigDefault.buttons.frigate),
+        fullscreen: visibleButtonSchema.default(menuConfigDefault.buttons.fullscreen),
+        image: hiddenButtonSchema.default(menuConfigDefault.buttons.image),
+        live: visibleButtonSchema.default(menuConfigDefault.buttons.live),
         media_player: visibleButtonSchema.default(
           menuConfigDefault.buttons.media_player,
         ),
@@ -1415,14 +1439,14 @@ export const menuConfigSchema = z
               .default(menuConfigDefault.buttons.microphone.type),
           })
           .default(menuConfigDefault.buttons.microphone),
-        recordings: hiddenButtonSchema.default(menuConfigDefault.buttons.recordings),
         mute: hiddenButtonSchema.default(menuConfigDefault.buttons.mute),
         play: hiddenButtonSchema.default(menuConfigDefault.buttons.play),
-        screenshot: hiddenButtonSchema.default(menuConfigDefault.buttons.screenshot),
-        display_mode: visibleButtonSchema.default(
-          menuConfigDefault.buttons.display_mode,
-        ),
         ptz: hiddenButtonSchema.default(menuConfigDefault.buttons.ptz),
+        recordings: hiddenButtonSchema.default(menuConfigDefault.buttons.recordings),
+        screenshot: hiddenButtonSchema.default(menuConfigDefault.buttons.screenshot),
+        snapshots: visibleButtonSchema.default(menuConfigDefault.buttons.snapshots),
+        substreams: visibleButtonSchema.default(menuConfigDefault.buttons.substreams),
+        timeline: visibleButtonSchema.default(menuConfigDefault.buttons.timeline),
       })
       .default(menuConfigDefault.buttons),
     button_size: z.number().min(BUTTON_SIZE_MIN).default(menuConfigDefault.button_size),

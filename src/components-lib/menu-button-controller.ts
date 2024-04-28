@@ -5,9 +5,9 @@ import { MediaPlayerManager } from '../card-controller/media-player-manager';
 import { MicrophoneManager } from '../card-controller/microphone-manager';
 import { ViewManager } from '../card-controller/view-manager';
 import {
+  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
   FrigateCardConfig,
   FrigateCardCustomAction,
-  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
   MenuItem,
 } from '../config/types';
 import { FRIGATE_BUTTON_MENU_ICON } from '../const';
@@ -15,6 +15,7 @@ import { localize } from '../localize/localize.js';
 import { MediaLoadedInfo } from '../types';
 import {
   createFrigateCardCameraAction,
+  createFrigateCardChangeZoomAction,
   createFrigateCardDisplayModeAction,
   createFrigateCardMediaPlayerAction,
   createFrigateCardShowPTZAction,
@@ -95,6 +96,7 @@ export class MenuButtonController {
       this._getScreenshotButton(config, options?.currentMediaLoadedInfo),
       this._getDisplayModeButton(config, cameraManager, view),
       this._getPTZButton(config, cameraManager, view),
+      this._getDefaultZoomButton(config, view),
 
       ...this._dynamicMenuButtons.map((button) => ({
         style: this._getStyleFromActions(config, view, button, options),
@@ -582,7 +584,9 @@ export class MenuButtonController {
   }
 
   protected _getSubstreamAwareCameraID(view: View): string {
-    return view.context?.live?.overrides?.get(view.camera) ?? view.camera;
+    return view.is('live')
+      ? view.context?.live?.overrides?.get(view.camera) ?? view.camera
+      : view.camera;
   }
 
   protected _getPTZButton(
@@ -612,6 +616,27 @@ export class MenuButtonController {
       };
     }
     return null;
+  }
+
+  protected _getDefaultZoomButton(
+    config: FrigateCardConfig,
+    view: View,
+  ): MenuItem | null {
+    const targetID = view.isViewerView()
+      ? view.queryResults?.getSelectedResult()?.getID() ?? null
+      : this._getSubstreamAwareCameraID(view);
+
+    if (!targetID || (view.context?.zoom?.[targetID]?.isDefault ?? true)) {
+      return null;
+    }
+
+    return {
+      icon: 'mdi:magnify-close',
+      ...config.menu.buttons.default_zoom,
+      type: 'custom:frigate-card-menu-icon',
+      title: localize('config.menu.buttons.default_zoom'),
+      tap_action: createFrigateCardChangeZoomAction(targetID) as FrigateCardCustomAction,
+    };
   }
 
   /**

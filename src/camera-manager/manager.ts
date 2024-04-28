@@ -128,10 +128,6 @@ export class CameraManager {
     this._store = options?.store ?? new CameraManagerStore();
   }
 
-  public async reset(): Promise<void> {
-    await this._store.reset();
-  }
-
   public async initializeCamerasFromConfig(): Promise<boolean> {
     const config = this._api.getConfigManager().getConfig();
     const hass = this._api.getHASSManager().getHASS();
@@ -149,7 +145,7 @@ export class CameraManager {
     );
 
     const resetAndInitialize = async () => {
-      await this.reset();
+      await this._reset();
       await this._initializeCameras(cameras);
     };
 
@@ -163,6 +159,10 @@ export class CameraManager {
       return false;
     }
     return true;
+  }
+
+  protected async _reset(): Promise<void> {
+    await this._store.reset();
   }
 
   protected async _getEnginesForCameras(

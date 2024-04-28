@@ -86,19 +86,25 @@ export class InitializationManager {
     }
 
     if (!this._api.getMessageManager().hasMessage()) {
-      // Set a view on initial load. However, if the query string contains a
-      // view related action, we don't set any view here and allow that content
-      // to be triggered by the firstUpdated() call that runs query string
-      // actions. To do otherwise may cause a race condition between the default
-      // view and the querystring view, see:
-      // https://github.com/dermotduffy/frigate-hass-card/issues/1200
-      const hasViewRelatedActions = this._api
-        .getQueryStringManager()
-        .hasViewRelatedActions();
-      if (hasViewRelatedActions) {
-        this._api.getQueryStringManager().executeViewRelated();
+      if (!this._api.getViewManager().hasView()) {
+        // Set a view on initial load. However, if the query string contains a
+        // view related action, we don't set any view here and allow that content
+        // to be triggered by the firstUpdated() call that runs query string
+        // actions. To do otherwise may cause a race condition between the default
+        // view and the querystring view, see:
+        // https://github.com/dermotduffy/frigate-hass-card/issues/1200
+        const hasViewRelatedActions = this._api
+          .getQueryStringManager()
+          .hasViewRelatedActions();
+        if (hasViewRelatedActions) {
+          this._api.getQueryStringManager().executeViewRelated();
+        } else {
+          this._api.getViewManager().setViewDefault({ failSafe: true });
+        }
       } else {
-        this._api.getViewManager().setViewDefault({ failSafe: true });
+        // If we already have a view something (e.g. cameras) may have been
+        // reinitialized, be sure to ask for an update.
+        this._api.getCardElementManager().update();
       }
     }
 

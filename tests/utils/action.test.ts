@@ -5,6 +5,7 @@ import { actionSchema } from '../../src/config/types';
 import {
   convertActionToFrigateCardCustomAction,
   createFrigateCardCameraAction,
+  createFrigateCardChangeZoomAction,
   createFrigateCardDisplayModeAction,
   createFrigateCardMediaPlayerAction,
   createFrigateCardShowPTZAction,
@@ -110,6 +111,38 @@ describe('createFrigateCardShowPTZAction', () => {
       frigate_card_action: 'show_ptz',
       show_ptz: true,
       card_id: 'card_id',
+    });
+  });
+});
+
+describe('createFrigateCardChangeZoomAction', () => {
+  it('should create change zoom default action', () => {
+    expect(
+      createFrigateCardChangeZoomAction('target_id', {
+        cardID: 'card_id',
+      }),
+    ).toEqual({
+      action: 'fire-dom-event',
+      frigate_card_action: 'change_zoom',
+      card_id: 'card_id',
+      target_id: 'target_id',
+    });
+  });
+
+  it('should create change zoom specific action', () => {
+    expect(
+      createFrigateCardChangeZoomAction('target_id', {
+        cardID: 'card_id',
+        pan: { x: 1, y: 2 },
+        zoom: 3,
+      }),
+    ).toEqual({
+      action: 'fire-dom-event',
+      frigate_card_action: 'change_zoom',
+      card_id: 'card_id',
+      target_id: 'target_id',
+      pan: { x: 1, y: 2 },
+      zoom: 3,
     });
   });
 });

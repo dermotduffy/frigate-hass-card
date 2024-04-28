@@ -11,7 +11,12 @@ import {
   MenuButtonController,
   MenuButtonControllerOptions,
 } from '../../src/components-lib/menu-button-controller';
-import { FrigateCardConfig, MenuItem, ViewDisplayMode } from '../../src/config/types';
+import {
+  FrigateCardConfig,
+  FrigateCardView,
+  MenuItem,
+  ViewDisplayMode,
+} from '../../src/config/types';
 import { FrigateCardMediaPlayer } from '../../src/types';
 import { createFrigateCardSimpleAction } from '../../src/utils/action';
 import { ViewMedia } from '../../src/view/media';
@@ -29,6 +34,7 @@ import {
   createStateEntity,
   createStore,
   createView,
+  TestViewMedia,
 } from '../test-utils';
 
 vi.mock('../../src/utils/media-player-controller.js');
@@ -1485,6 +1491,69 @@ describe('MenuButtonController', () => {
         type: 'custom:frigate-card-menu-icon',
       });
     });
+  });
+
+  describe('should have change zoom button', () => {
+    it.each([
+      ['live' as const, true, false],
+      ['live' as const, undefined, false],
+      ['live' as const, false, true],
+      ['media' as const, true, false],
+      ['media' as const, undefined, false],
+      ['media' as const, false, true],
+    ])(
+      '%s view with isDefault %s',
+      (
+        viewName: FrigateCardView,
+        isDefault: boolean | undefined,
+        expectedResult: boolean,
+      ) => {
+        const cameraManager = createCameraManager();
+        vi.mocked(cameraManager.getStore).mockReturnValue(
+          createStore([{ cameraID: 'camera-1' }]),
+        );
+
+        const targetID = viewName === 'live' ? 'camera-1' : 'media-1';
+        const view = createView({
+          view: viewName,
+          camera: 'camera-1',
+          queryResults: new MediaQueriesResults({
+            results: [new TestViewMedia({ id: 'media-1' })],
+            selectedIndex: 0,
+          }),
+          context: {
+            zoom: {
+              [targetID]: {
+                isDefault: isDefault,
+              },
+            },
+          },
+        });
+        const buttons = calculateButtons(controller, {
+          cameraManager: cameraManager,
+          view: view,
+        });
+
+        if (expectedResult) {
+          expect(buttons).toContainEqual({
+            enabled: true,
+            icon: 'mdi:magnify-close',
+            priority: 50,
+            tap_action: {
+              action: 'fire-dom-event',
+              frigate_card_action: 'change_zoom',
+              target_id: targetID,
+            },
+            title: 'Zoom to default',
+            type: 'custom:frigate-card-menu-icon',
+          });
+        } else {
+          expect(buttons).not.toContainEqual(
+            expect.objectContaining({ title: 'Set zoom to default' }),
+          );
+        }
+      },
+    );
   });
 
   describe('should handle dynamic buttons', () => {

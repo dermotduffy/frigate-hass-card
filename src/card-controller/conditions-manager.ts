@@ -190,6 +190,7 @@ export class ConditionsManager {
       const config = this._api.getConfigManager().getConfig();
       const conditions: FrigateCardCondition[] = [];
       config?.overrides?.forEach((override) => conditions.push(...override.conditions));
+      config?.automations?.forEach((automation) => conditions.push(...automation.conditions));
 
       // Element conditions can be arbitrarily nested underneath conditionals and
       // custom elements that this card may not known. Here we recursively parse

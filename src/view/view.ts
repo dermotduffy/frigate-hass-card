@@ -177,7 +177,7 @@ export class View {
    * @param context The context to merge in.
    * @returns This view.
    */
-  public mergeInContext(context?: ViewContext): View {
+  public mergeInContext(context?: ViewContext | null): View {
     this.context = merge({}, this.context, context);
     return this;
   }
@@ -306,7 +306,7 @@ export interface FrigateCardViewChangeEventTarget extends EventTarget {
  */
 export const dispatchViewContextChangeEvent = (
   target: EventTarget,
-  context: ViewContext,
+  context: ViewContext | null,
 ): void => {
   dispatchFrigateCardEvent(target, 'view:change-context', context);
 };
