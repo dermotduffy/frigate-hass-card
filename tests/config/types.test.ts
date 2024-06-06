@@ -236,7 +236,7 @@ describe('config defaults', () => {
             priority: 50,
           },
           ptz_home: {
-            enabled: true,
+            enabled: false,
             priority: 50,
           },
           recordings: {

@@ -1550,7 +1550,7 @@ describe('MenuButtonController', () => {
 
         if (expectedResult) {
           expect(buttons).toContainEqual({
-            enabled: true,
+            enabled: false,
             icon: 'mdi:home',
             priority: 50,
             tap_action: {
@@ -1563,7 +1563,7 @@ describe('MenuButtonController', () => {
           });
         } else {
           expect(buttons).not.toContainEqual(
-            expect.objectContaining({ title: 'Digital zoom to default' }),
+            expect.objectContaining({ title: 'PTZ Home' }),
           );
         }
       },

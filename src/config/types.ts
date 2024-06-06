@@ -1499,7 +1499,7 @@ const menuConfigDefault = {
     camera_ui: visibleButtonDefault,
     cameras: visibleButtonDefault,
     clips: visibleButtonDefault,
-    ptz_home: visibleButtonDefault,
+    ptz_home: hiddenButtonDefault,
     display_mode: visibleButtonDefault,
     download: visibleButtonDefault,
     expand: hiddenButtonDefault,
@@ -1545,7 +1545,7 @@ export const menuConfigSchema = z
         camera_ui: visibleButtonSchema.default(menuConfigDefault.buttons.camera_ui),
         cameras: visibleButtonSchema.default(menuConfigDefault.buttons.cameras),
         clips: visibleButtonSchema.default(menuConfigDefault.buttons.clips),
-        ptz_home: visibleButtonSchema.default(
+        ptz_home: hiddenButtonSchema.default(
           menuConfigDefault.buttons.ptz_home,
         ),
         display_mode: visibleButtonSchema.default(
