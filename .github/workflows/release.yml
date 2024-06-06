@@ -24,7 +24,7 @@ jobs:
         run: yarn run build
 
       - name: Zip the files
-        uses: thedoctor0/zip-release@0.7.1
+        uses: thedoctor0/zip-release@0.7.6
         with:
           type: zip
           path: dist
