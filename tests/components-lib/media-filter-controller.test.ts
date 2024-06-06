@@ -1,6 +1,4 @@
-import endOfDay from 'date-fns/endOfDay';
-import startOfDay from 'date-fns/startOfDay';
-import sub from 'date-fns/sub';
+import { endOfDay, startOfDay, sub } from 'date-fns';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Capabilities } from '../../src/camera-manager/capabilities';
 import { CameraManagerStore } from '../../src/camera-manager/store';

@@ -1,4 +1,4 @@
-import add from 'date-fns/add';
+import { add } from 'date-fns';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { InteractionManager } from '../../src/card-controller/interaction-manager';
 import { createCardAPI, createConfig } from '../test-utils';

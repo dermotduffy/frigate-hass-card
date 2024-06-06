@@ -1,4 +1,4 @@
-import add from 'date-fns/add';
+import { add } from 'date-fns';
 import cloneDeep from 'lodash-es/cloneDeep';
 import sum from 'lodash-es/sum';
 import PQueue from 'p-queue';

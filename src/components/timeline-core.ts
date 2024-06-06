@@ -1,6 +1,4 @@
-import add from 'date-fns/add';
-import differenceInSeconds from 'date-fns/differenceInSeconds';
-import sub from 'date-fns/sub';
+import { add, differenceInSeconds, sub } from 'date-fns';
 import {
   CSSResultGroup,
   html,

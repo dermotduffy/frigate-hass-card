@@ -1,5 +1,5 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import add from 'date-fns/add';
+import { add } from 'date-fns';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { Camera } from '../../src/camera-manager/camera';

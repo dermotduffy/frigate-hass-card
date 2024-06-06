@@ -1,4 +1,4 @@
-import fromUnixTime from 'date-fns/fromUnixTime';
+import { fromUnixTime } from 'date-fns';
 import isEqual from 'lodash-es/isEqual';
 import { CameraConfig } from '../../config/types';
 import {
