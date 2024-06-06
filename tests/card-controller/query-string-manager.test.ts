@@ -1,10 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { QueryStringManager } from '../../src/card-controller/query-string-manager';
-import {
-  FrigateCardGeneralAction,
-  FrigateCardUserSpecifiedView,
-} from '../../src/config/types';
 import { createCardAPI } from '../test-utils';
 
 const setQueryString = (qs: string): void => {
@@ -28,7 +24,7 @@ describe('QueryStringManager', () => {
     manager.executeAll();
 
     expect(manager.hasViewRelatedActions()).toBeFalsy();
-    expect(api.getActionsManager().executeFrigateAction).not.toBeCalled();
+    expect(api.getActionsManager().executeActions).not.toBeCalled();
     expect(api.getViewManager().setViewByParameters).not.toBeCalled();
   });
 
@@ -76,11 +72,13 @@ describe('QueryStringManager', () => {
       manager.executeAll();
 
       expect(manager.hasViewRelatedActions()).toBeFalsy();
-      expect(api.getActionsManager().executeFrigateAction).toBeCalledWith({
-        action: 'fire-dom-event',
-        card_id: 'id',
-        frigate_card_action: action,
-      });
+      expect(api.getActionsManager().executeActions).toBeCalledWith([
+        {
+          action: 'fire-dom-event',
+          card_id: 'id',
+          frigate_card_action: action,
+        },
+      ]);
     });
   });
 
@@ -97,7 +95,7 @@ describe('QueryStringManager', () => {
     expect(api.getViewManager().setViewDefault).toBeCalled();
 
     expect(manager.hasViewRelatedActions()).toBeTruthy();
-    expect(api.getActionsManager().executeFrigateAction).not.toBeCalled();
+    expect(api.getActionsManager().executeActions).not.toBeCalled();
     expect(api.getViewManager().setViewByParameters).not.toBeCalled();
   });
 
@@ -114,7 +112,7 @@ describe('QueryStringManager', () => {
     });
 
     expect(manager.hasViewRelatedActions()).toBeTruthy();
-    expect(api.getActionsManager().executeFrigateAction).not.toBeCalled();
+    expect(api.getActionsManager().executeActions).not.toBeCalled();
     expect(api.getViewManager().setViewDefault).not.toBeCalled();
   });
 
@@ -131,7 +129,7 @@ describe('QueryStringManager', () => {
     });
 
     expect(manager.hasViewRelatedActions()).toBeTruthy();
-    expect(api.getActionsManager().executeFrigateAction).not.toBeCalled();
+    expect(api.getActionsManager().executeActions).not.toBeCalled();
     expect(api.getViewManager().setViewDefault).not.toBeCalled();
   });
 
@@ -147,7 +145,7 @@ describe('QueryStringManager', () => {
         manager.executeAll();
 
         expect(manager.hasViewRelatedActions()).toBeFalsy();
-        expect(api.getActionsManager().executeFrigateAction).not.toBeCalled();
+        expect(api.getActionsManager().executeActions).not.toBeCalled();
         expect(api.getViewManager().setViewDefault).not.toBeCalled();
         expect(api.getViewManager().setViewByParameters).not.toBeCalled();
       },
@@ -165,7 +163,7 @@ describe('QueryStringManager', () => {
     manager.executeAll();
 
     expect(manager.hasViewRelatedActions()).toBeFalsy();
-    expect(api.getActionsManager().executeFrigateAction).not.toBeCalled();
+    expect(api.getActionsManager().executeActions).not.toBeCalled();
     expect(api.getViewManager().setViewDefault).not.toBeCalled();
     expect(api.getViewManager().setViewByParameters).not.toBeCalled();
     expect(consoleSpy).toBeCalled();
@@ -212,7 +210,7 @@ describe('QueryStringManager', () => {
 
       manager.executeAll();
 
-      expect(api.getActionsManager().executeFrigateAction).not.toBeCalled();
+      expect(api.getActionsManager().executeActions).not.toBeCalled();
       expect(api.getViewManager().setViewDefault).not.toBeCalled();
       expect(api.getViewManager().setViewByParameters).not.toBeCalled();
     });
@@ -296,7 +294,7 @@ describe('QueryStringManager', () => {
 
       manager.executeViewRelated();
 
-      expect(api.getActionsManager().executeFrigateAction).not.toBeCalled();
+      expect(api.getActionsManager().executeActions).not.toBeCalled();
     });
   });
 });

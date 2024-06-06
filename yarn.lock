@@ -1477,9 +1477,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitest/coverage-istanbul@npm:^1.5.0":
-  version: 1.5.0
-  resolution: "@vitest/coverage-istanbul@npm:1.5.0"
+"@vitest/coverage-istanbul@npm:^1.6.0":
+  version: 1.6.0
+  resolution: "@vitest/coverage-istanbul@npm:1.6.0"
   dependencies:
     debug: "npm:^4.3.4"
     istanbul-lib-coverage: "npm:^3.2.2"
@@ -1491,8 +1491,8 @@ __metadata:
     picocolors: "npm:^1.0.0"
     test-exclude: "npm:^6.0.0"
   peerDependencies:
-    vitest: 1.5.0
-  checksum: 10c0/12abbaf8925c797e1fafef05c8b7d554c9fc61d13eb70c3f8532ade72db305a3cb1fec9bb7642763de27471e3f3da3d684d6533aa954756c5edf2707d2fc25cd
+    vitest: 1.6.0
+  checksum: 10c0/42524de58d24101b50da048214b8e760c46f32760e371c700704a67ace2828d9d12b6d87720139c8a7e17fbce40dfcaf47296605c85533cc78b9c9f73c50e3d2
   languageName: node
   linkType: hard
 
@@ -3843,7 +3843,7 @@ __metadata:
     "@types/masonry-layout": "npm:^4.2.5"
     "@typescript-eslint/eslint-plugin": "npm:^7.12.0"
     "@typescript-eslint/parser": "npm:^7.12.0"
-    "@vitest/coverage-istanbul": "npm:^1.5.0"
+    "@vitest/coverage-istanbul": "npm:^1.6.0"
     component-emitter: "npm:^1.3.0"
     crypto: "npm:^1.0.1"
     date-fns: "npm:^3.6.0"
@@ -3879,6 +3879,7 @@ __metadata:
     side-drawer: "npm:^3.1.0"
     ts-prune: "npm:^0.10.3"
     typescript: "npm:^5.4.5"
+    type-fest: "npm:^4.18.0"
     uuid: "npm:^8.3.2"
     vis-data: "npm:^7.1.9"
     vis-timeline: "npm:^7.7.3"
@@ -8175,6 +8176,13 @@ __metadata:
   version: 0.8.1
   resolution: "type-fest@npm:0.8.1"
   checksum: 10c0/dffbb99329da2aa840f506d376c863bd55f5636f4741ad6e65e82f5ce47e6914108f44f340a0b74009b0cb5d09d6752ae83203e53e98b1192cf80ecee5651636
+  languageName: node
+  linkType: hard
+
+"type-fest@npm:^4.18.0":
+  version: 4.18.0
+  resolution: "type-fest@npm:4.18.0"
+  checksum: 10c0/d16d9be71ceeb5341cfa7e21d9081e843e74791fb60b5e2555caa26c259c9bcbffd965e1a1c8e571856efddb317b4b1802f73938723f399f1070e9db5b182f4e
   languageName: node
   linkType: hard
 

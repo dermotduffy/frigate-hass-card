@@ -39,5 +39,5 @@ Only the `cameras` option is required, all other parameters are optional.
 
 | Option | Description |
 | - | - |
-| [`actions`](actions.md) | Configure actions. |
+| [`actions`](actions/README.md) | Configure actions. |
 | [`conditions`](conditions.md) | Configure conditions. |

@@ -18,6 +18,9 @@
   max-height: var(--frigate-card-max-height);
   min-height: var(--frigate-card-min-height);
 
+  // Ensure all clicks at the top level work.
+  pointer-events: all;
+
   // The standard HA header is 56 pixels tall, so that much off the top (header)
   // and bottom (to maintain center), before doing the calculation of
   // max-height. This matters on small mobile devices in landscape orientation.

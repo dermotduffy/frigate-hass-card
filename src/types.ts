@@ -93,8 +93,13 @@ export interface CardHelpers {
 export type PTZMovementType = 'relative' | 'continuous';
 
 export interface PTZCapabilities {
-  panTilt?: PTZMovementType[];
-  zoom?: PTZMovementType[];
+  left?: PTZMovementType[];
+  right?: PTZMovementType[];
+  up?: PTZMovementType[];
+  down?: PTZMovementType[];
+  zoomIn?: PTZMovementType[];
+  zoomOut?: PTZMovementType[];
+
   presets?: string[];
 }
 

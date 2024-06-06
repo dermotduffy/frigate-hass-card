@@ -284,6 +284,7 @@ class FrigateCard extends LitElement {
       @frigate-card:media:pause=${
         () => this.requestUpdate() /* Refresh play/pause menu button */
       }
+      @frigate-card:focus=${() => this.focus()}
     >
       ${renderMenuAbove ? this._renderMenu() : ''}
       <div ${ref(this._refMain)} class="${classMap(mainClasses)}">

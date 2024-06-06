@@ -4,7 +4,8 @@ import isEqual from 'lodash-es/isEqual';
 import orderBy from 'lodash-es/orderBy';
 import throttle from 'lodash-es/throttle';
 import uniqWith from 'lodash-es/uniqWith';
-import { CameraConfig, PTZAction, PTZPhase } from '../../config/types';
+import { PTZAction } from '../../config/ptz';
+import { ActionPhase, CameraConfig } from '../../config/types';
 import { ExtendedHomeAssistant } from '../../types';
 import {
   allPromises,
@@ -19,8 +20,8 @@ import { ViewMediaClassifier } from '../../view/media-classifier';
 import { RecordingSegmentsCache, RequestCache } from '../cache';
 import { Camera } from '../camera';
 import {
-  CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
   CameraManagerEngine,
+  CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
 } from '../engine';
 import { GenericCameraManagerEngine } from '../generic/engine-generic';
 import { DateRange } from '../range';
@@ -61,12 +62,12 @@ import { FrigateCamera, isBirdseye } from './camera';
 import { FrigateViewMediaFactory } from './media';
 import { FrigateViewMediaClassifier } from './media-classifier';
 import {
-  NativeFrigateEventQuery,
-  NativeFrigateRecordingSegmentsQuery,
-  getEventSummary,
   getEvents,
+  getEventSummary,
   getRecordingSegments,
   getRecordingsSummary,
+  NativeFrigateEventQuery,
+  NativeFrigateRecordingSegmentsQuery,
   retainEvent,
 } from './requests';
 import {
@@ -1015,7 +1016,7 @@ export class FrigateCameraManagerEngine
     cameraConfig: CameraConfig,
     action: PTZAction,
     options?: {
-      phase?: PTZPhase;
+      phase?: ActionPhase;
       preset?: string;
     },
   ): Promise<void> {

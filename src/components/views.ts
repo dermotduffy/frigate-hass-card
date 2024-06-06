@@ -171,7 +171,7 @@ export class FrigateCardViews extends LitElement {
             .view=${this.view}
             .hass=${this.hass}
             .cameraConfig=${cameraConfig}
-            .supportZoom=${true}
+            .cameraManager=${this.cameraManager}
           >
           </frigate-card-image>`
         : ``}

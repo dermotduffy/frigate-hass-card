@@ -68,17 +68,19 @@ describe('Capabilities', () => {
     it('when unset', () => {
       const capabilities = new Capabilities({});
       expect(capabilities.getPTZCapabilities()).toBeNull();
+      expect(capabilities.hasPTZCapability()).toBeFalsy();
     });
 
     it('when set', () => {
       const ptz: PTZCapabilities = {
-        panTilt: ['continuous' as const],
+        left: ['continuous' as const],
         presets: ['1', '2'],
       };
       const capabilities = new Capabilities({
         ptz: ptz,
       });
       expect(capabilities.getPTZCapabilities()).toBe(ptz);
+      expect(capabilities.hasPTZCapability()).toBeTruthy();
     });
   });
 

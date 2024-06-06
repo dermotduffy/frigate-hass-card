@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
-import { frigateCardConfigSchema } from '../../src/config/types';
-import { getOverriddenConfig } from '../../src/card-controller/conditions-manager';
-import { ConfigManager } from '../../src/card-controller/config-manager';
-import { InitializationAspect } from '../../src/card-controller/initialization-manager';
-import { createCardAPI, createConfig } from '../test-utils';
+import { frigateCardConfigSchema } from '../../../src/config/types';
+import { getOverriddenConfig } from '../../../src/card-controller/conditions-manager';
+import { ConfigManager } from '../../../src/card-controller/config/config-manager';
+import { InitializationAspect } from '../../../src/card-controller/initialization-manager';
+import { createCardAPI, createConfig } from '../../test-utils';
 
-vi.mock('../../src/card-controller/conditions-manager.js');
+vi.mock('../../../src/card-controller/conditions-manager.js');
 
 describe('ConfigManager', () => {
   beforeEach(() => {
@@ -97,7 +97,7 @@ describe('ConfigManager', () => {
     expect(api.getMediaLoadedInfoManager().clear).toBeCalled();
     expect(api.getViewManager().reset).toBeCalled();
     expect(api.getMessageManager().reset).toBeCalled();
-    expect(api.getAutomationsManager().setAutomationsFromConfig).toBeCalled();
+    expect(api.getAutomationsManager().addAutomations).toBeCalled();
     expect(api.getStyleManager().setPerformance).toBeCalled();
     expect(api.getCardElementManager().update).toBeCalled();
   });

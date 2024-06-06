@@ -3,7 +3,8 @@ import cloneDeep from 'lodash-es/cloneDeep';
 import sum from 'lodash-es/sum';
 import PQueue from 'p-queue';
 import { CardCameraAPI } from '../card-controller/types.js';
-import { CameraConfig, CamerasConfig, PTZAction, PTZPhase } from '../config/types.js';
+import { PTZAction } from '../config/ptz.js';
+import { ActionPhase, CameraConfig, CamerasConfig } from '../config/types.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
 import { localize } from '../localize/localize.js';
 import {
@@ -15,6 +16,7 @@ import {
 } from '../utils/basic.js';
 import { getCameraID } from '../utils/camera.js';
 import { log } from '../utils/debug.js';
+import { getConfiguredPTZAction } from './utils/ptz.js';
 import { ViewMedia } from '../view/media.js';
 import { Capabilities } from './capabilities.js';
 import { CameraManagerEngineFactory } from './engine-factory.js';
@@ -771,18 +773,26 @@ export class CameraManager {
   public async executePTZAction(
     cameraID: string,
     action: PTZAction,
-    options: {
-      phase?: PTZPhase;
+    options?: {
+      phase?: ActionPhase;
       preset?: string;
     },
   ): Promise<void> {
-    const hass = this._api.getHASSManager().getHASS();
-    const engine = this._store.getEngineForCameraID(cameraID);
     const cameraConfig = this._store.getCameraConfig(cameraID);
-
-    if (!engine || !cameraConfig || !hass) {
+    if (!cameraConfig) {
       return;
     }
-    return engine.executePTZAction(hass, cameraConfig, action, options);
+    const configuredAction = getConfiguredPTZAction(cameraConfig, action, options);
+    if (configuredAction) {
+      return await this._api.getActionsManager().executeActions(configuredAction);
+    }
+
+    const hass = this._api.getHASSManager().getHASS();
+    const engine = this._store.getEngineForCameraID(cameraID);
+
+    if (!engine || !hass) {
+      return;
+    }
+    return await engine.executePTZAction(hass, cameraConfig, action, options);
   }
 }

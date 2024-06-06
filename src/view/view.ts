@@ -64,7 +64,7 @@ export class View {
   }
 
   public static adoptFromViewIfAppropriate(next: View, curr?: View | null): void {
-    if (!curr) {
+  if (!curr) {
       return;
     }
 
@@ -273,10 +273,7 @@ export class View {
 export interface FrigateCardViewChangeEventTarget extends EventTarget {
   addEventListener(
     event: 'frigate-card:view:change',
-    listener: (
-      this: FrigateCardViewChangeEventTarget,
-      ev: CustomEvent<View>,
-    ) => void,
+    listener: (this: FrigateCardViewChangeEventTarget, ev: CustomEvent<View>) => void,
     options?: AddEventListenerOptions | boolean,
   ): void;
   addEventListener(
@@ -286,10 +283,7 @@ export interface FrigateCardViewChangeEventTarget extends EventTarget {
   ): void;
   removeEventListener(
     event: 'frigate-card:view:change',
-    listener: (
-      this: FrigateCardViewChangeEventTarget,
-      ev: CustomEvent<View>,
-    ) => void,
+    listener: (this: FrigateCardViewChangeEventTarget, ev: CustomEvent<View>) => void,
     options?: boolean | EventListenerOptions,
   ): void;
   removeEventListener(

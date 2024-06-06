@@ -20,7 +20,6 @@ interface LiveViewContext {
   // camera to be live rather than the camera selected in the view).
   overrides?: Map<string, string>;
 
-  ptzVisible?: boolean;
   fetchThumbnails?: boolean;
 }
 

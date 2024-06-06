@@ -5,7 +5,7 @@ import { FrigateCardConfig } from '../config/types';
 import { EntityRegistryManager } from '../utils/ha/entity-registry';
 import { EntityCache } from '../utils/ha/entity-registry/cache';
 import { ResolvedMediaCache } from '../utils/ha/resolved-media';
-import { ActionsManager } from './actions-manager';
+import { ActionsManager } from './actions/actions-manager';
 import { AutoUpdateManager } from './auto-update-manager';
 import { AutomationsManager } from './automations-manager';
 import { CameraURLManager } from './camera-url-manager';
@@ -16,7 +16,7 @@ import {
   ScrollCallback,
 } from './card-element-manager';
 import { ConditionsManager, ConditionsManagerListener } from './conditions-manager';
-import { ConfigManager } from './config-manager';
+import { ConfigManager } from './config/config-manager';
 import { DownloadManager } from './download-manager';
 import { ExpandManager } from './expand-manager';
 import { FullscreenManager } from './fullscreen-manager';
@@ -45,6 +45,7 @@ import {
   CardHASSAPI,
   CardInitializerAPI,
   CardInteractionAPI,
+  CardKeyboardStateAPI,
   CardMediaLoadedAPI,
   CardMediaPlayerAPI,
   CardMessageAPI,
@@ -55,6 +56,7 @@ import {
   CardViewAPI,
 } from './types';
 import { ViewManager } from './view-manager';
+import { KeyboardStateManager } from './keyboard-state-manager';
 
 export class CardController
   implements
@@ -72,6 +74,7 @@ export class CardController
     CardHASSAPI,
     CardInitializerAPI,
     CardInteractionAPI,
+    CardKeyboardStateAPI,
     CardMediaLoadedAPI,
     CardMediaPlayerAPI,
     CardMessageAPI,
@@ -101,6 +104,7 @@ export class CardController
   protected _hassManager = new HASSManager(this);
   protected _initializationManager = new InitializationManager(this);
   protected _interactionManager = new InteractionManager(this);
+  protected _keyboardStateManager = new KeyboardStateManager(this);
   protected _mediaLoadedInfoManager = new MediaLoadedInfoManager(this);
   protected _mediaPlayerManager = new MediaPlayerManager(this);
   protected _messageManager = new MessageManager(this);
@@ -193,6 +197,10 @@ export class CardController
 
   public getInteractionManager(): InteractionManager {
     return this._interactionManager;
+  }
+
+  public getKeyboardStateManager(): KeyboardStateManager {
+    return this._keyboardStateManager;
   }
 
   public getMediaLoadedInfoManager(): MediaLoadedInfoManager {

@@ -31,6 +31,7 @@ import {
 import { BrowseMediaCamera } from './camera';
 import { BrowseMediaViewMediaFactory } from './media';
 import { BrowseMediaMetadata } from './types';
+import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 
 /**
  * A utility method to determine if a browse media object matches against a
@@ -154,6 +155,7 @@ export class BrowseMediaCameraManagerEngine
           seek: false,
           snapshots: true,
           substream: true,
+          ptz: getPTZCapabilitiesFromCameraConfig(cameraConfig) ?? undefined,
         },
         {
           disable: cameraConfig.capabilities?.disable,

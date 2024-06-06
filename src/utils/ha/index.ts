@@ -301,17 +301,18 @@ export function getEntityIcon(
  */
 export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
   const neededElements = [
-    'ha-selector',
-    'ha-menu-button',
-    'ha-camera-stream',
-    'ha-hls-player',
-    'ha-web-rtc-player',
-    'ha-icon',
-    'ha-circular-progress',
-    'ha-icon-button',
-    'ha-card',
-    'ha-svg-icon',
     'ha-button-menu',
+    'ha-button',
+    'ha-camera-stream',
+    'ha-card',
+    'ha-circular-progress',
+    'ha-hls-player',
+    'ha-icon-button',
+    'ha-icon',
+    'ha-menu-button',
+    'ha-selector',
+    'ha-svg-icon',
+    'ha-web-rtc-player',
   ];
 
   if (neededElements.every((element) => customElements.get(element))) {

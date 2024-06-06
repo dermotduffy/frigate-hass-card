@@ -1,5 +1,5 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import { CameraConfig, PTZAction, PTZPhase } from '../config/types';
+import { CameraConfig, ActionPhase } from '../config/types';
 import { ExtendedHomeAssistant } from '../types';
 import { EntityRegistryManager } from '../utils/ha/entity-registry';
 import { ViewMedia } from '../view/media';
@@ -27,6 +27,7 @@ import {
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
 } from './types';
+import { PTZAction } from '../config/ptz';
 
 export const CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT = 10000;
 
@@ -139,7 +140,7 @@ export interface CameraManagerEngine {
     cameraConfig: CameraConfig,
     action: PTZAction,
     options?: {
-      phase?: PTZPhase;
+      phase?: ActionPhase;
       preset?: string;
     },
   ): Promise<void>;

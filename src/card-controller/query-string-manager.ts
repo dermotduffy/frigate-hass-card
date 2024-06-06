@@ -1,8 +1,5 @@
-import { FrigateCardCustomAction, FrigateCardViewAction } from '../config/types';
-import {
-  createFrigateCardCameraAction,
-  createFrigateCardSimpleAction
-} from '../utils/action.js';
+import { FrigateCardCustomAction, ViewActionConfig } from '../config/types';
+import { createCameraAction, createGeneralAction } from '../utils/action.js';
 import { CardQueryStringAPI } from './types';
 import { ViewManagerSetViewParameters } from './view-manager';
 
@@ -56,14 +53,15 @@ export class QueryStringManager {
   }
 
   protected _executeNonViewRelated(intent: QueryStringViewIntent): void {
-    // Only execute non-view actions when the card has rendered at least once.
-    if (!this._api.getCardElementManager().hasUpdated()) {
+    if (
+      // Only execute non-view actions when the card has rendered at least once.
+      !this._api.getCardElementManager().hasUpdated() ||
+      !intent.other?.length
+    ) {
       return;
     }
 
-    intent.other?.forEach((action) =>
-      this._api.getActionsManager().executeFrigateAction(action),
-    );
+    this._api.getActionsManager().executeActions(intent.other);
   }
 
   protected _calculateIntent(): QueryStringViewIntent {
@@ -105,7 +103,7 @@ export class QueryStringManager {
         case 'camera_select':
         case 'live_substream_select':
           if (value) {
-            customAction = createFrigateCardCameraAction(action, value, {
+            customAction = createCameraAction(action, value, {
               cardID: cardID,
             });
           }
@@ -125,7 +123,7 @@ export class QueryStringManager {
         case 'snapshot':
         case 'snapshots':
         case 'timeline':
-          customAction = createFrigateCardSimpleAction(action, {
+          customAction = createGeneralAction(action, {
             cardID: cardID,
           });
           break;
@@ -143,7 +141,7 @@ export class QueryStringManager {
 
   protected _isViewAction = (
     action: FrigateCardCustomAction,
-  ): action is FrigateCardViewAction => {
+  ): action is ViewActionConfig => {
     switch (action.frigate_card_action) {
       case 'clip':
       case 'clips':

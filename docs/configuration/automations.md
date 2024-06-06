@@ -1,6 +1,6 @@
 # `automations`
 
-Automatically take [actions](actions.md) based on [conditions](conditions.md) being met.
+Automatically take [actions](actions/README.md) based on [conditions](conditions.md) being met.
 
 ?> To change configuration conditionally use [overrides](overrides.md).
 
@@ -17,8 +17,8 @@ automations:
 | Option | Default | Description |
 | - | - | - |
 | `conditions` | | A list of [conditions](conditions.md) that must evaluate to `true` in order to trigger the automation. |
-| `actions` | | An optional list of [actions](actions.md) that will be run when the [conditions](conditions.md) evaluate `true`. |
-| `actions_not` | | An optional list of [actions](actions.md) that will be run when the [conditions](conditions.md) evaluate `false`. |
+| `actions` | | An optional list of [actions](actions/README.md) that will be run when the [conditions](conditions.md) evaluate `true`. |
+| `actions_not` | | An optional list of [actions](actions/README.md) that will be run when the [conditions](conditions.md) evaluate `false`. |
 
 # Fully expanded reference
 

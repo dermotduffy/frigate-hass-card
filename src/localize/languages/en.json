@@ -362,7 +362,7 @@
         "camera_ui": "Camera user interface",
         "cameras": "Cameras",
         "clips": "Clips",
-        "default_zoom": "Zoom to default",
+        "ptz_home": "PTZ Home",
         "display_mode": "Display mode",
         "download": "Download",
         "enabled": "Button enabled",
@@ -377,7 +377,7 @@
         "mute": "Mute / Unmute",
         "play": "Play / Pause",
         "priority": "Priority",
-        "ptz": "Show PTZ controls",
+        "ptz_controls": "Show PTZ controls",
         "recordings": "Recordings",
         "screenshot": "Screenshot",
         "snapshots": "Snapshots",
@@ -437,6 +437,17 @@
       },
       "default": "Default view",
       "interaction_seconds": "Seconds after user action to remain interacted with (0=never)",
+      "keyboard_shortcuts": {
+        "editor_label": "Keyboard shortcuts",
+        "enabled": "Keyboard shortcuts enabled",
+        "ptz_down": "PTZ Down",
+        "ptz_home": "PTZ Home",
+        "ptz_left": "PTZ Left",
+        "ptz_right": "PTZ Right",
+        "ptz_up": "PTZ Up",
+        "ptz_zoom_in": "PTZ Zoom In",
+        "ptz_zoom_out": "PTZ Zoom Out"
+      },
       "reset_after_interaction": "Reset to the default view after user interaction",
       "triggers": {
         "actions": {
@@ -579,6 +590,17 @@
     "tag": "Tag",
     "what": "What",
     "where": "Where"
+  },
+  "key_assigner": {
+    "assign": "Assign",
+    "assigning": "Assigning",
+    "modifiers": {
+      "alt": "Alt",
+      "ctrl": "Ctrl",
+      "meta": "Meta",
+      "shift": "Shift"
+    },
+    "unassign": "Unassign"
   },
   "media_filter": {
     "all": "All",

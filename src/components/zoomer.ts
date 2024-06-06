@@ -7,19 +7,19 @@ import {
   TemplateResult,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { ZoomConfig } from '../components-lib/zoom/types.js';
 import { ZoomController } from '../components-lib/zoom/zoom-controller.js';
 import { setOrRemoveAttribute } from '../utils/basic.js';
+import { PartialZoomSettings } from '../components-lib/zoom/types.js';
 
 @customElement('frigate-card-zoomer')
 export class FrigateCardZoomer extends LitElement {
   protected _zoom: ZoomController | null = null;
 
   @property({ attribute: false })
-  public defaultConfig?: ZoomConfig;
+  public defaultSettings?: PartialZoomSettings;
 
   @property({ attribute: false })
-  public config?: ZoomConfig | null;
+  public settings?: PartialZoomSettings | null;
 
   @state()
   protected _zoomed = false;
@@ -48,19 +48,19 @@ export class FrigateCardZoomer extends LitElement {
     }
 
     if (this._zoom) {
-      if (changedProps.has('defaultConfig')) {
-        this._zoom.setDefaultConfig(this.defaultConfig ?? null);
+      if (changedProps.has('defaultSettings')) {
+        this._zoom.setDefaultSettings(this.defaultSettings ?? null);
       }
       // If config is null, make no change to the zoom.
-      if (changedProps.has('config') && this.config) {
-        this._zoom.setConfig(this.config);
+      if (changedProps.has('settings') && this.settings) {
+        this._zoom.setSettings(this.settings);
       }
     } else {
       // Ensure that the configuration will be set before activation (vs
       // activating in `connectedCallback`).
       this._zoom = new ZoomController(this, {
-        config: this.config,
-        defaultConfig: this.defaultConfig,
+        config: this.settings,
+        defaultConfig: this.defaultSettings,
       });
       this._zoom.activate();
     }

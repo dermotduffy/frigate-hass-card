@@ -10,8 +10,8 @@ elements:
    - [element_2]
 ```
 
-?> The Frigate Card allows either a single [action](actions.md) (as in stock Home
-Assistant) or list of [actions](actions.md) to be defined for each class of user interaction
+?> The Frigate Card allows either a single [action](actions/README.md) (as in stock Home
+Assistant) or list of [actions](actions/README.md) to be defined for each class of user interaction
 (e.g. `tap`, `double_tap`, `hold`, etc). See [an example of multiple actions](../examples.md?id=multiple-actions).
 
 ## `conditional`
@@ -81,7 +81,7 @@ Parameters for this element are identical to the parameters of the [stock Home A
 | `selected` | `false` | Whether or not to show this item as selected. |
 | `state_color` | `true` | Whether or not the title and icon should be stylized based on state. |
 | `style` | | Position and style the element using CSS. |
-| `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` | | The [actions](actions.md) to take when this item is interacted with. |
+| `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` | | The [actions](actions/README.md) to take when this item is interacted with. |
 | `title` | | An optional title to display. |
 
 ## `custom:frigate-card-menu-submenu-select`
@@ -185,7 +185,7 @@ elements:
 
 ## Fully expanded reference
 
-> [Actions](actions.md) are omitted for simplicity.
+> [Actions](actions/README.md) are omitted for simplicity.
 
 [](common/expanded-warning.md ':include')
 

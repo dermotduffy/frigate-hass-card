@@ -9,11 +9,12 @@ view:
 
 | Option | Default | Description |
 | - | - | - |
-| `actions` | | [Actions](actions.md) to use for all views, individual actions may be overriden by view-specific actions. |
+| `actions` | | [Actions](actions/README.md) to use for all views, individual actions may be overriden by view-specific actions. |
 | `camera_select` | `current` | The [view](view.md?id=supported-views) to show when a new camera is selected (e.g. in the camera menu). If `current` the view is unchanged when a new camera is selected. |
 | `dark_mode` | `off` | Whether or not to turn dark mode `on`, `off` or `auto` to automatically turn on if the card `interaction_seconds` has expired (i.e. card has been left unattended for that period of time) or if dark mode is enabled in the HA profile theme setting. Dark mode dims the brightness by `25%`.|
 | `default` | `live` | The view to show in the card by default. The default camera is the first one listed. See [Supported Views](view.md?id=supported-views) below. |
 | `interaction_seconds` | `300` | After a mouse/touch interaction with the card, it will be considered "interacted with" until this number of seconds elapses without further interaction. May be used as part of an [interaction condition](conditions.md?id=interaction) or with `reset_after_interaction` to reset the view after the interaction is complete. `0` means no interactions are reported / acted upon. |
+| `keyboard_shortcuts` | See [usage](../usage/keyboard-shortcuts.md) for defaults. | Configure keyboard shortcuts. See below. |
 | `render_entities` | | **YAML only**: A list of entity ids that should cause the card to re-render 'in-place'. The view/camera is not changed. `update_*` flags do not pertain/relate to the behavior of this flag. This should **very** rarely be needed, but could be useful if the card is both setting and changing HA state of the same object as could be the case for some complex `card_mod` scenarios ([example](https://github.com/dermotduffy/frigate-hass-card/issues/343)). |
 | `reset_after_interaction` | `true` | If `true` the card will reset to the default configured view (i.e. 'screensaver' functionality) after `interaction_seconds` has elapsed after user interaction. |
 | `triggers` | | How to react when a camera is [triggered](cameras/README.md?id=triggers). |
@@ -21,6 +22,25 @@ view:
 | `update_entities` | | **YAML only**: A card-wide list of entities that should cause the view to reset to the default (if the entity only pertains to a particular camera use [`triggers`](cameras/README.md?id=triggers) for the selected camera instead. |
 | `update_force` | `false` | Whether automated card updates should ignore user interaction. |
 | `update_seconds` | `0` | A number of seconds after which to automatically update/refresh the default view. If the default view occurs sooner (e.g. manually) the timer will start over. `0` disables this functionality.|
+
+## `keyboard_shortcuts`
+
+Configure the key-bindings for the builtin keyboard shortcuts. See [usage](../usage/keyboard-shortcuts.md) information for defaults on keyboard shortcuts.
+
+| Option | Default | Description |
+| - | - | - |
+| `enabled` | `true` | If `true`, keyboard shortcuts are enabled. If `false`, they are disabled. |
+| `ptz_left`, `ptz_right`, `ptz_up`, `ptz_down`, `ptz_zoom_in`, `ptz_zoom_out`, `ptz_home` | See [usage](../usage/keyboard-shortcuts.md) for defaults. | An object that configures the key binding for a given pre-configured action. See below. |
+
+### Keyboard Shortcut Configuration
+
+| Option | Default | Description |
+| - | - | - |
+| key | | Any [keyboard key value](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values), e.g. `ArrowLeft` |
+| ctrl | `false` | If `true` requires the `ctrl` key to be held. |
+| shift | `false` | If `true` requires the `shift` key to be held. |
+| alt | `false` | If `true` requires the `alt` key to be held. |
+| meta | `false` | If `true` requires the `meta` key to be held. |
 
 ## `triggers`
 
@@ -102,6 +122,22 @@ view:
       interaction_mode: inactive
       trigger: default
       untrigger: none
+  keyboard_shortcuts:
+    enabled: true
+    ptz_left:
+      key: 'ArrowLeft'
+    ptz_right:
+      key: 'ArrowRight'
+    ptz_up:
+      key: 'ArrowUp'
+    ptz_down:
+      key: 'ArrowDown'
+    ptz_zoom_in:
+      key: '+'
+    ptz_zoom_out:
+      key: '-'
+    ptz_home: 
+      key: 'h'
   actions:
     entity: light.office_main_lights
     tap_action:

@@ -1,14 +1,13 @@
-import { Automation, AutomationActions, Automations } from '../config/types.js';
+import { Automation, AutomationActions } from '../config/types.js';
 import { localize } from '../localize/localize.js';
-import { frigateCardHandleAction } from '../utils/action.js';
-import { CardAutomationsAPI } from './types.js';
+import { CardAutomationsAPI, TaggedAutomations } from './types.js';
 
 const MAX_NESTED_AUTOMATION_EXECUTIONS = 10;
 
 export class AutomationsManager {
   protected _api: CardAutomationsAPI;
 
-  protected _automations: Automations;
+  protected _automations: TaggedAutomations = [];
   protected _priorEvaluations: Map<Automation, boolean> = new Map();
 
   // A counter to avoid infinite loops, increases every time actions are run,
@@ -19,10 +18,12 @@ export class AutomationsManager {
     this._api = api;
   }
 
-  public setAutomationsFromConfig() {
-    this._automations = this._api
-      .getConfigManager()
-      .getNonOverriddenConfig()?.automations;
+  public deleteAutomations(tag?: unknown) {
+    this._automations = this._automations.filter((automation) => automation.tag !== tag);
+  }
+
+  public addAutomations(automations: TaggedAutomations): void {
+    this._automations.push(...automations);
   }
 
   public execute(): void {
@@ -34,8 +35,8 @@ export class AutomationsManager {
       return;
     }
 
-    const actionsToRun: AutomationActions[] = [];
-    for (const automation of this._automations ?? []) {
+    const actionsToRun: AutomationActions = [];
+    for (const automation of this._automations) {
       const shouldExecute = this._api
         .getConditionsManager()
         .evaluateConditions(automation.conditions);
@@ -43,27 +44,27 @@ export class AutomationsManager {
       const priorEvaluation = this._priorEvaluations.get(automation);
       this._priorEvaluations.set(automation, shouldExecute);
       if (shouldExecute !== priorEvaluation && actions) {
-        actionsToRun.push(actions);
+        actionsToRun.push(...actions);
       }
     }
 
-    ++this._nestedAutomationExecutions;
-    if (this._nestedAutomationExecutions > MAX_NESTED_AUTOMATION_EXECUTIONS) {
-      this._api.getMessageManager().setMessageIfHigherPriority({
-        type: 'error',
-        message: localize('error.too_many_automations'),
-      });
+    if (!actionsToRun.length) {
       return;
     }
 
-    actionsToRun.forEach((actions) => {
-      frigateCardHandleAction(
-        this._api.getCardElementManager().getElement(),
-        hass,
-        {},
-        actions,
-      );
-    });
-    --this._nestedAutomationExecutions;
+    const runActions = async (actions: AutomationActions): Promise<void> => {
+      ++this._nestedAutomationExecutions;
+      if (this._nestedAutomationExecutions > MAX_NESTED_AUTOMATION_EXECUTIONS) {
+        this._api.getMessageManager().setMessageIfHigherPriority({
+          type: 'error',
+          message: localize('error.too_many_automations'),
+        });
+        return;
+      }
+
+      await this._api.getActionsManager().executeActions(actions);
+      --this._nestedAutomationExecutions;
+    };
+    runActions(actionsToRun);
   }
 }

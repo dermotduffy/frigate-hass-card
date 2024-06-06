@@ -362,7 +362,6 @@
         "camera_ui": "Camera",
         "cameras": "Selecionar câmera",
         "clips": "Clipes",
-        "default_zoom": "",
         "display_mode": "",
         "download": "Descarregar mídia do evento",
         "enabled": "Botão ativado",
@@ -377,7 +376,8 @@
         "mute": "",
         "play": "",
         "priority": "Prioridade",
-        "ptz": "",
+        "ptz_controls": "",
+        "ptz_home": "",
         "recordings": "",
         "screenshot": "",
         "snapshots": "Instantâneos",
@@ -437,6 +437,10 @@
       },
       "default": "Visualização padrão",
       "interaction_seconds": "",
+      "keyboard_shortcuts": {
+        "editor_label": "",
+        "enabled": ""
+      },
       "reset_after_interaction": "",
       "triggers": {
         "actions": {
@@ -579,6 +583,17 @@
     "tag": "",
     "what": "O quê",
     "where": "Onde"
+  },
+  "key_assigner": {
+    "assign": "",
+    "assigning": "",
+    "modifiers": {
+      "alt": "",
+      "ctrl": "",
+      "meta": "",
+      "shift": ""
+    },
+    "unassign": ""
   },
   "media_filter": {
     "all": "Todos",

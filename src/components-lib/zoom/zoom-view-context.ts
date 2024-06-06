@@ -1,15 +1,13 @@
 import { ViewContext } from 'view';
-import { ZoomConfig, ZoomDefault } from './types.js';
 import { dispatchViewContextChangeEvent } from '../../view/view.js';
+import { ZoomSettingsObserved, PartialZoomSettings } from './types.js';
 
 interface ZoomViewContext {
+  observed?: ZoomSettingsObserved;
+
   // Populate this to request zoom to a particular scale/x/y. An empty object
   // will reset to default, null will make no change.
-  zoom?: ZoomConfig | null;
-
-  // This will be populated with whether or not the current zoom is at the
-  // default level.
-  isDefault?: boolean;
+  requested?: PartialZoomSettings | null;
 }
 
 interface ZoomsViewContext {
@@ -22,36 +20,37 @@ declare module 'view' {
   }
 }
 
-export const generateViewContextForZoomChange = (
+export const generateViewContextForZoom = (
   targetID: string,
   options?: {
-    zoom?: ZoomConfig | null;
-    isDefault?: boolean;
+    observed?: ZoomSettingsObserved;
+    requested?: PartialZoomSettings | null;
   },
 ): ViewContext | null => {
   return {
     zoom: {
       [targetID]: {
-        zoom: options?.zoom ?? null,
-        ...(options?.isDefault !== undefined && { isDefault: options.isDefault }),
+        observed: options?.observed ?? undefined,
+        requested: options?.requested ?? null,
       },
     },
   };
 };
 
 /**
- * Convenience wrapper to convert a zoom default into a dispatched view context
+ * Convenience wrapper to convert zoom settings into a dispatched view context
  * change.
  */
-export const handleZoomDefaultEvent = (
+export const handleZoomSettingsObservedEvent = (
   element: EventTarget,
-  ev: CustomEvent<ZoomDefault>,
+  ev: CustomEvent<ZoomSettingsObserved>,
   targetID?: string,
 ): void => {
-  targetID && dispatchViewContextChangeEvent(
-    element,
-    generateViewContextForZoomChange(targetID, {
-      isDefault: ev.detail.isDefault,
-    }),
-  );
+  targetID &&
+    dispatchViewContextChangeEvent(
+      element,
+      generateViewContextForZoom(targetID, {
+        observed: ev.detail,
+      }),
+    );
 };

@@ -119,7 +119,7 @@ describe('CardElementManager', () => {
     );
     expect(addEventListener).toBeCalledWith(
       'll-custom',
-      api.getActionsManager().handleActionEvent,
+      api.getActionsManager().handleCustomActionEvent,
     );
     expect(addEventListener).toBeCalledWith(
       'action',
@@ -169,7 +169,7 @@ describe('CardElementManager', () => {
     );
     expect(removeEventListener).toBeCalledWith(
       'll-custom',
-      api.getActionsManager().handleActionEvent,
+      api.getActionsManager().handleCustomActionEvent,
     );
     expect(removeEventListener).toBeCalledWith(
       'action',
@@ -185,6 +185,10 @@ describe('CardElementManager', () => {
     );
     expect(windowRemoveEventListener).toBeCalledWith('popstate', expect.anything());
 
+    expect(api.getMediaLoadedInfoManager().clear).toBeCalled();
+    expect(api.getFullscreenManager().disconnect).toBeCalled();
+    expect(api.getKeyboardStateManager().uninitialize).toBeCalled();
+    expect(api.getActionsManager().uninitialize).toBeCalled();
     expect(api.getInitializationManager().uninitialize).toBeCalledWith('cameras');
   });
 });
