@@ -13,7 +13,7 @@ import {
 import { stopEventFromActivatingCardWideActions } from './utils/action.js';
 import { Timer } from './utils/timer.js';
 
-interface ActionHandler extends HTMLElement {
+interface ActionHandlerInterface extends HTMLElement {
   holdTime: number;
   bind(element: Element, options): void;
 }
@@ -25,7 +25,7 @@ interface FrigateCardActionHandlerOptions extends ActionHandlerOptions {
   allowPropagation?: boolean;
 }
 
-class ActionHandler extends HTMLElement implements ActionHandler {
+class ActionHandler extends HTMLElement implements ActionHandlerInterface {
   public holdTime = 0.4;
 
   protected holdTimer = new Timer();
@@ -56,7 +56,7 @@ class ActionHandler extends HTMLElement implements ActionHandler {
 
   public bind(
     element: ActionHandlerElement,
-    options: FrigateCardActionHandlerOptions,
+    options?: FrigateCardActionHandlerOptions,
   ): void {
     if (element.actionHandlerOptions) {
       // Reset the options on an existing actionHandler.

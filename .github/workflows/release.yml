@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node and Yarn
         uses: volta-cli/action@v4
@@ -31,7 +31,7 @@ jobs:
           filename: frigate-hass-card.zip
 
       - name: Upload JS files to release
-        uses: svenstaro/upload-release-action@2.6.1
+        uses: svenstaro/upload-release-action@2.7.0
 
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -41,7 +41,7 @@ jobs:
           overwrite: true
 
       - name: Upload Zip file to release
-        uses: svenstaro/upload-release-action@2.6.1
+        uses: svenstaro/upload-release-action@2.7.0
 
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}

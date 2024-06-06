@@ -78,10 +78,10 @@ describe('ViewManager.setView', () => {
   it('should set view with new context', () => {
     const api = createCardAPI();
     const manager = new ViewManager(api);
-    const context = { thumbnails: { fetch: false } };
+    const context = { live: { fetchThumbnails: false } };
 
     // Setting context with no existing view does nothing.
-    manager.setViewWithNewContext(context);
+    manager.setViewWithMergedContext(context);
     expect(manager.getView()).toBeNull();
 
     const view = createView({
@@ -89,7 +89,7 @@ describe('ViewManager.setView', () => {
       camera: 'camera',
     });
     manager.setView(view);
-    manager.setViewWithNewContext(context);
+    manager.setViewWithMergedContext(context);
 
     expect(manager.getView()?.camera).toBe('camera');
     expect(manager.getView()?.view).toBe('live');

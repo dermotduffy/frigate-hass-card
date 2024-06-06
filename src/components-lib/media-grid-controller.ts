@@ -9,7 +9,7 @@ import {
   setOrRemoveAttribute,
 } from '../utils/basic';
 import {
-  FrigateMediaLoadedEventTarget,
+  FrigateCardMediaLoadedEventTarget,
   dispatchExistingMediaLoadedInfoAsEvent,
   dispatchMediaUnloadedEvent,
 } from '../utils/media-info';
@@ -23,7 +23,7 @@ const MEDIA_GRID_DEFAULT_IDEAL_CELL_WIDTH = 600;
 const MEDIA_GRID_DEFAULT_SELECTED_WIDTH_FACTOR = 2.0;
 
 type GridID = string;
-type MediaGridChild = HTMLElement & FrigateMediaLoadedEventTarget;
+type MediaGridChild = HTMLElement & FrigateCardMediaLoadedEventTarget;
 type MediaGridContents = Map<GridID, MediaGridChild>;
 
 export interface MediaGridSelected {

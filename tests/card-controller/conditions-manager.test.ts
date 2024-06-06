@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { z } from 'zod';
 import {
   ConditionsEvaluateRequestEvent,
   ConditionsManager,
   evaluateConditionViaEvent,
   getOverriddenConfig,
-  getOverridesByKey,
 } from '../../src/card-controller/conditions-manager';
 import { FrigateCardCondition } from '../../src/config/types';
 import {
@@ -77,77 +77,350 @@ describe('getOverriddenConfig', () => {
       style: 'none',
     },
   };
-  const overrides = [
-    {
-      overrides: {
-        menu: {
-          style: 'above',
-        },
-      },
-      conditions: [
-        {
-          condition: 'fullscreen' as const,
-          fullscreen: true,
-        },
-      ],
-    },
-  ];
 
-  it('should not override config', () => {
-    const manager = new ConditionsManager(createCardAPI());
-    expect(getOverriddenConfig(manager, config, overrides)).toBe(config);
-  });
-
-  it('should override config', () => {
-    const manager = new ConditionsManager(createCardAPI());
-    manager.setState({ fullscreen: true });
-
-    expect(getOverriddenConfig(manager, config, overrides)).toEqual({
-      menu: {
-        style: 'above',
-      },
-    });
-  });
-
-  it('should do nothing without overrides', () => {
+  it('should not override without overrides', () => {
     const manager = new ConditionsManager(createCardAPI());
     manager.setState({ fullscreen: true });
 
     expect(getOverriddenConfig(manager, config)).toBe(config);
   });
-});
 
-describe('getOverridesByKey', () => {
-  const conditions = [
-    {
-      condition: 'fullscreen' as const,
-      fullscreen: true,
-    },
-  ];
-  const override = {
-    menu: {
-      style: 'above',
-    },
-  };
-  const overrides = [
-    {
-      overrides: override,
-      conditions: conditions,
-    },
-  ];
-
-  it('should get overrides', () => {
-    expect(getOverridesByKey('menu', overrides)).toEqual([
-      { conditions: conditions, overrides: { style: 'above' } },
-    ]);
+  it('should not override when condition does not match', () => {
+    const manager = new ConditionsManager(createCardAPI());
+    expect(
+      getOverriddenConfig(manager, config, {
+        configOverrides: [
+          {
+            merge: {
+              menu: {
+                style: 'hidden',
+              },
+            },
+            delete: ['menu.style'],
+            set: {
+              'menu.style': 'overlay',
+            },
+            conditions: [
+              {
+                condition: 'fullscreen' as const,
+                fullscreen: true,
+              },
+            ],
+          },
+        ],
+      }),
+    ).toBe(config);
   });
 
-  it('should get no overrides', () => {
-    expect(getOverridesByKey('live', overrides)).toEqual([]);
+  describe('should merge', () => {
+    it('with path', () => {
+      const manager = new ConditionsManager(createCardAPI());
+      manager.setState({ fullscreen: true });
+
+      expect(
+        getOverriddenConfig(manager, config, {
+          configOverrides: [
+            {
+              merge: {
+                'live.controls.thumbnails': {
+                  mode: 'none',
+                },
+              },
+              conditions: [
+                {
+                  condition: 'fullscreen' as const,
+                  fullscreen: true,
+                },
+              ],
+            },
+          ],
+        }),
+      ).toEqual({
+        menu: {
+          style: 'none',
+        },
+        live: {
+          controls: {
+            thumbnails: {
+              mode: 'none',
+            },
+          },
+        },
+      });
+    });
+
+    it('without path', () => {
+      const manager = new ConditionsManager(createCardAPI());
+      manager.setState({ fullscreen: true });
+
+      expect(
+        getOverriddenConfig(manager, config, {
+          configOverrides: [
+            {
+              merge: {
+                menu: {
+                  style: 'hidden',
+                },
+              },
+              conditions: [
+                {
+                  condition: 'fullscreen' as const,
+                  fullscreen: true,
+                },
+              ],
+            },
+          ],
+        }),
+      ).toEqual({
+        menu: {
+          style: 'hidden',
+        },
+      });
+    });
+
+    it('with invalid merge', () => {
+      const manager = new ConditionsManager(createCardAPI());
+      manager.setState({ fullscreen: true });
+
+      expect(
+        getOverriddenConfig(manager, config, {
+          configOverrides: [
+            {
+              merge: 6 as unknown as Record<string, unknown>,
+              conditions: [
+                {
+                  condition: 'fullscreen' as const,
+                  fullscreen: true,
+                },
+              ],
+            },
+          ],
+        }),
+      ).toEqual({
+        menu: {
+          style: 'none',
+        },
+      });
+    });
   });
 
-  it('should get no overrides when undefined', () => {
-    expect(getOverridesByKey('live')).toEqual([]);
+  describe('should set', () => {
+    it('leaf node', () => {
+      const manager = new ConditionsManager(createCardAPI());
+      manager.setState({ fullscreen: true });
+
+      expect(
+        getOverriddenConfig(manager, config, {
+          configOverrides: [
+            {
+              set: {
+                'menu.style': 'hidden',
+              },
+              conditions: [
+                {
+                  condition: 'fullscreen' as const,
+                  fullscreen: true,
+                },
+              ],
+            },
+          ],
+        }),
+      ).toEqual({
+        menu: {
+          style: 'hidden',
+        },
+      });
+    });
+
+    it('root node', () => {
+      const manager = new ConditionsManager(createCardAPI());
+      manager.setState({ fullscreen: true });
+
+      expect(
+        getOverriddenConfig(manager, config, {
+          configOverrides: [
+            {
+              set: {
+                menu: {
+                  style: 'hidden',
+                },
+              },
+              conditions: [
+                {
+                  condition: 'fullscreen' as const,
+                  fullscreen: true,
+                },
+              ],
+            },
+          ],
+        }),
+      ).toEqual({
+        menu: {
+          style: 'hidden',
+        },
+      });
+    });
+  });
+
+  describe('should delete', () => {
+    it('leaf node', () => {
+      const manager = new ConditionsManager(createCardAPI());
+      manager.setState({ fullscreen: true });
+
+      expect(
+        getOverriddenConfig(manager, config, {
+          configOverrides: [
+            {
+              delete: ['menu.style' as const],
+              conditions: [
+                {
+                  condition: 'fullscreen' as const,
+                  fullscreen: true,
+                },
+              ],
+            },
+          ],
+        }),
+      ).toEqual({
+        menu: {},
+      });
+    });
+
+    it('root node', () => {
+      const manager = new ConditionsManager(createCardAPI());
+      manager.setState({ fullscreen: true });
+
+      expect(
+        getOverriddenConfig(manager, config, {
+          configOverrides: [
+            {
+              delete: ['menu' as const],
+              conditions: [
+                {
+                  condition: 'fullscreen' as const,
+                  fullscreen: true,
+                },
+              ],
+            },
+          ],
+        }),
+      ).toEqual({});
+    });
+
+    // it('with empty value and object', () => {
+    //   const manager = new ConditionsManager(createCardAPI());
+    //   manager.setState({ fullscreen: true });
+
+    //   expect(
+    //     getOverriddenConfig(manager, config, {
+    //       configOverrides: [
+    //         {
+    //           delete: [''],
+    //           conditions: [
+    //             {
+    //               condition: 'fullscreen' as const,
+    //               fullscreen: true,
+    //             },
+    //           ],
+    //         },
+    //       ],
+    //       emptyKeyReplaces: true,
+    //     }),
+    //   ).toEqual({});
+    // });
+  });
+
+  describe('should validate schema', () => {
+    const testSchema = z.object({
+      menu: z.object({
+        style: z.enum(['none', 'hidden']),
+      }),
+    });
+
+    it('passing', () => {
+      const manager = new ConditionsManager(createCardAPI());
+      manager.setState({ fullscreen: true });
+
+      expect(
+        getOverriddenConfig(manager, config, {
+          configOverrides: [
+            {
+              conditions: [
+                {
+                  condition: 'fullscreen' as const,
+                  fullscreen: true,
+                },
+              ],
+              set: {
+                'menu.style': 'hidden',
+              },
+            },
+          ],
+          schema: testSchema,
+        }),
+      ).toEqual({
+        menu: {
+          style: 'hidden',
+        },
+      });
+    });
+
+    it('failing', () => {
+      const manager = new ConditionsManager(createCardAPI());
+      manager.setState({ fullscreen: true });
+
+      expect(
+        getOverriddenConfig(manager, config, {
+          configOverrides: [
+            {
+              conditions: [
+                {
+                  condition: 'fullscreen' as const,
+                  fullscreen: true,
+                },
+              ],
+              set: {
+                'menu.style': 'NOT_A_STYLE',
+              },
+            },
+          ],
+          schema: testSchema,
+        }),
+      ).toEqual(config);
+    });
+
+    it('failing and logging', () => {
+      const consoleSpy = vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
+
+      const manager = new ConditionsManager(createCardAPI());
+      manager.setState({ fullscreen: true });
+
+      expect(
+        getOverriddenConfig(manager, config, {
+          configOverrides: [
+            {
+              conditions: [
+                {
+                  condition: 'fullscreen' as const,
+                  fullscreen: true,
+                },
+              ],
+              set: {
+                'menu.style': 'NOT_A_STYLE',
+              },
+            },
+          ],
+          schema: testSchema,
+          logOnParseError: true,
+        }),
+      ).toEqual(config);
+
+      expect(consoleSpy).toBeCalledWith(
+        'Cannot parse overridden configuration',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
   });
 });
 
@@ -194,7 +467,7 @@ describe('ConditionsManager', () => {
       return createConfig({
         overrides: [
           {
-            overrides: {},
+            merge: {},
             conditions: conditions,
           },
         ],
@@ -246,6 +519,29 @@ describe('ConditionsManager', () => {
           users: ['user_1'],
         },
       ]);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(userConfig);
+      const manager = new ConditionsManager(api);
+      manager.setConditionsFromConfig();
+
+      expect(manager.hasHAStateConditions()).toBeTruthy();
+    });
+
+    it('with automations', () => {
+      const api = createCardAPI();
+      const userConfig = createConfig({
+        automations: [
+          {
+            conditions: [
+              {
+                condition: 'state' as const,
+                entity: 'binary_sensor.foo',
+                state: 'on',
+              },
+            ],
+          },
+        ],
+      });
+
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(userConfig);
       const manager = new ConditionsManager(api);
       manager.setConditionsFromConfig();
@@ -455,7 +751,7 @@ describe('ConditionsManager', () => {
     describe('with screen condition', () => {
       const mediaQueryConfig = {
         type: 'custom:frigate-card',
-        cameras: [],
+        cameras: [{}],
         elements: [
           {
             type: 'custom:frigate-card-conditional',

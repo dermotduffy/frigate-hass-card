@@ -14,7 +14,7 @@ import {
   frigateCardHandleActionConfig,
   getActionConfigGivenAction,
 } from '../../src/utils/action.js';
-import { ActionsManager } from '../../src/card-controller/actions-manager';
+import { ActionsManager, Interaction } from '../../src/card-controller/actions-manager';
 import {
   createCardAPI,
   createConfig,
@@ -165,7 +165,9 @@ describe('ActionsManager.handleInteraction', () => {
     };
     vi.mocked(getActionConfigGivenAction).mockReturnValue(actionForThisInteraction);
 
-    manager.handleInteraction('tap');
+    manager.handleInteractionEvent(
+      new CustomEvent<Interaction>('event', { detail: { action: 'tap' } }),
+    );
 
     expect(frigateCardHandleActionConfig).toBeCalledWith(
       element,
@@ -176,13 +178,28 @@ describe('ActionsManager.handleInteraction', () => {
     );
   });
 
-  it('should not handle interaction', () => {
+  it('should not handle interaction without hass', () => {
     const api = createCardAPI();
     const manager = new ActionsManager(api);
     vi.mocked(api.getHASSManager().getHASS).mockReturnValue(null);
 
     // No values of hass.
-    manager.handleInteraction('tap');
+    manager.handleInteractionEvent(
+      new CustomEvent<Interaction>('event', { detail: { action: 'tap' } }),
+    );
+    expect(frigateCardHandleActionConfig).not.toBeCalledWith();
+  });
+
+  it('should not handle malformed interaction', () => {
+    const api = createCardAPI();
+    const manager = new ActionsManager(api);
+
+    manager.handleInteractionEvent(
+      new CustomEvent<Interaction>('event', {
+        // Malformed interaction type.
+        detail: { action: 'double_finger_snap' } as unknown as Interaction,
+      }),
+    );
     expect(frigateCardHandleActionConfig).not.toBeCalledWith();
   });
 });
@@ -782,9 +799,66 @@ describe('ActionsManager.executeAction', () => {
       })!,
     );
 
-    expect(api.getViewManager().setViewWithNewContext).toBeCalledWith(
+    expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith(
       expect.objectContaining({ live: { ptzVisible: true } }),
     );
+  });
+
+  describe('should handle change_zoom action', () => {
+    it('default', async () => {
+      const api = createCardAPI();
+      const manager = new ActionsManager(api);
+
+      await manager.executeFrigateAction(
+        createAction({
+          frigate_card_action: 'change_zoom',
+          target_id: 'camera.office',
+        })!,
+      );
+
+      expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith(
+        expect.objectContaining({
+          zoom: {
+            'camera.office': {
+              zoom: {},
+            },
+          },
+        }),
+      );
+    });
+
+    it('non-default', async () => {
+      const api = createCardAPI();
+      const manager = new ActionsManager(api);
+
+      await manager.executeFrigateAction(
+        createAction({
+          frigate_card_action: 'change_zoom',
+          target_id: 'camera.office',
+          zoom: 2,
+          pan: {
+            x: 3,
+            y: 4,
+          },
+        })!,
+      );
+
+      expect(api.getViewManager().setViewWithMergedContext).toBeCalledWith(
+        expect.objectContaining({
+          zoom: {
+            'camera.office': {
+              zoom: {
+                zoom: 2,
+                pan: {
+                  x: 3,
+                  y: 4,
+                },
+              },
+            },
+          },
+        }),
+      );
+    });
   });
 
   it('should handle unknown action', async () => {

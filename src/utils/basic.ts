@@ -1,9 +1,12 @@
-import differenceInHours from 'date-fns/differenceInHours';
-import differenceInMinutes from 'date-fns/differenceInMinutes';
-import differenceInSeconds from 'date-fns/differenceInSeconds';
-import format from 'date-fns/format';
+import {
+  differenceInHours,
+  differenceInMinutes,
+  differenceInSeconds,
+  format,
+} from 'date-fns';
 import { StyleInfo } from 'lit/directives/style-map';
-import isEqual from 'lodash-es/isEqual';
+import { round } from 'lodash-es';
+import isEqualWith from 'lodash-es/isEqualWith';
 import mergeWith from 'lodash-es/mergeWith';
 import { FrigateCardError } from '../types';
 
@@ -87,8 +90,12 @@ export const setify = <T>(value: T | T[] | Set<T>): Set<T> => {
  * @param o The old value.
  * @returns `true` is the contents have changed.
  */
-export function contentsChanged(n: unknown, o: unknown): boolean {
-  return !isEqual(n, o);
+export function contentsChanged(
+  n: unknown,
+  o: unknown,
+  customizer?: (a: unknown, b: unknown) => boolean | undefined,
+): boolean {
+  return !isEqualWith(n, o, customizer);
 }
 
 /**
@@ -243,8 +250,8 @@ export const getChildrenFromElement = (parent: HTMLElement): HTMLElement[] => {
   return children.filter(isHTMLElement);
 };
 
-export const recursivelyMergeObjectsNotArrays = <T>(src1: T, src2: T): T => {
-  return mergeWith({}, src1, src2, (_a, b) => (Array.isArray(b) ? b : undefined));
+export const recursivelyMergeObjectsNotArrays = <T>(target: T, src1: T, src2: T): T => {
+  return mergeWith(target, src1, src2, (_a, b) => (Array.isArray(b) ? b : undefined));
 };
 
 export const aspectRatioToString = (options?: {
@@ -266,5 +273,44 @@ export const aspectRatioToStyle = (options?: {
 }): StyleInfo => {
   return {
     'aspect-ratio': aspectRatioToString(options),
+  };
+};
+
+/**
+ * Remove empty slots from nested arrays.
+ */
+export const desparsifyArrays = <T>(data: T): T => {
+  if (Array.isArray(data)) {
+    return <T>(
+      data.filter((item) => item !== undefined).map((item) => desparsifyArrays(item))
+    );
+  } else if (typeof data === 'object' && data !== null) {
+    const result: Record<string | number | symbol, unknown> = {};
+    for (const key in data) {
+      result[key] = desparsifyArrays(data[key]);
+    }
+    return <T>result;
+  }
+  return data;
+};
+
+export const arefloatsApproximatelyEqual = (
+  a: number,
+  b: number,
+  precision?: number,
+): boolean => {
+  return round(a, precision) === round(b, precision);
+};
+
+/**
+ * Create a lodash isEqualsWith customizer that can compare floats.
+ */
+export const generateFloatApproximatelyEqualsCustomizer = (
+  precision: number,
+): ((a: unknown, b: unknown) => boolean | undefined) => {
+  return (a: unknown, b: unknown) => {
+    return typeof a === 'number' && typeof b === 'number'
+      ? arefloatsApproximatelyEqual(a, b, precision)
+      : undefined;
   };
 };

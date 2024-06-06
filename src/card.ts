@@ -269,8 +269,8 @@ class FrigateCard extends LitElement {
         this._controller.getMessageManager().setMessageIfHigherPriority(ev.detail)}
       @frigate-card:view:change=${(ev: CustomEvent<View>) =>
         this._controller.getViewManager().setView(ev.detail)}
-      @frigate-card:view:change-context=${(ev: CustomEvent<ViewContext>) =>
-        this._controller.getViewManager().setViewWithNewContext(ev.detail)}
+      @frigate-card:view:change-context=${(ev: CustomEvent<ViewContext | null>) =>
+        this._controller.getViewManager().setViewWithMergedContext(ev.detail)}
       @frigate-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) =>
         this._controller.getMediaLoadedInfoManager().set(ev.detail)}
       @frigate-card:media:unloaded=${() =>

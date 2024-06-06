@@ -44,6 +44,17 @@ export const hideMediaControlsTemporarily = (
   setControlsOnVideo(video, false);
   video._controlsHideTimer ??= new Timer();
   video._controlsOriginalValue = oldValue;
+
+  // LitElement may change the src attribute of the video element during
+  // rendering, so we need to ensure that the controls are reset on the 'old'
+  // video. See:
+  // https://github.com/dermotduffy/frigate-hass-card/issues/1310
+  const resetIfReloaded = () => {
+    setControlsOnVideo(video, oldValue);
+    video.removeEventListener('loadstart', resetIfReloaded);
+  };
+  video.addEventListener('loadstart', resetIfReloaded);
+
   video._controlsHideTimer.start(seconds, () => {
     setControlsOnVideo(video, oldValue);
   });

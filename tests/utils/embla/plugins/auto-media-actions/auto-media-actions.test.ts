@@ -1,4 +1,4 @@
-import add from 'date-fns/add';
+import { add } from 'date-fns';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import {
@@ -20,12 +20,12 @@ import {
 import { dispatchExistingMediaLoadedInfoAsEvent } from '../../../../../src/utils/media-info';
 import {
   IntersectionObserverMock,
+  callIntersectionHandler,
   createMediaLoadedInfo,
   createParent,
 } from '../../../../test-utils';
 import {
   callEmblaHandler,
-  callIntersectionHandler,
   callVisibilityHandler,
   createEmblaApiInstance,
   createTestEmblaOptionHandler,
@@ -315,7 +315,7 @@ describe('AutoMediaActions', () => {
 
     // Intersection observer always calls handler on creation (and we ignore
     // these first calls).
-    callIntersectionHandler(true);
+    callIntersectionHandler(false);
     callIntersectionHandler(true);
 
     expect(getPlayer(children[5], 'video')?.play).toBeCalled();

@@ -1,4 +1,4 @@
-import format from 'date-fns/format';
+import { format } from 'date-fns';
 import { View } from '../view/view';
 
 export const screenshotMedia = (video: HTMLVideoElement): string | null => {

@@ -6,13 +6,20 @@ import {
   PropertyValues,
   TemplateResult,
 } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
-import { ZoomController } from '../components-lib/zoom-controller.js';
+import { customElement, property, state } from 'lit/decorators.js';
+import { ZoomConfig } from '../components-lib/zoom/types.js';
+import { ZoomController } from '../components-lib/zoom/zoom-controller.js';
 import { setOrRemoveAttribute } from '../utils/basic.js';
 
 @customElement('frigate-card-zoomer')
 export class FrigateCardZoomer extends LitElement {
-  protected _zoom = new ZoomController(this);
+  protected _zoom: ZoomController | null = null;
+
+  @property({ attribute: false })
+  public defaultConfig?: ZoomConfig;
+
+  @property({ attribute: false })
+  public config?: ZoomConfig | null;
 
   @state()
   protected _zoomed = false;
@@ -24,11 +31,13 @@ export class FrigateCardZoomer extends LitElement {
     super.connectedCallback();
     this.addEventListener('frigate-card:zoom:zoomed', this._zoomHandler);
     this.addEventListener('frigate-card:zoom:unzoomed', this._unzoomHandler);
-    this._zoom.activate();
+
+    // Call for an update to activate.
+    this.requestUpdate();
   }
 
   disconnectedCallback(): void {
-    this._zoom.deactivate();
+    this._zoom?.deactivate();
     this.removeEventListener('frigate-card:zoom:zoomed', this._zoomHandler);
     this.removeEventListener('frigate-card:zoom:unzoomed', this._unzoomHandler);
   }
@@ -37,7 +46,26 @@ export class FrigateCardZoomer extends LitElement {
     if (changedProps.has('_zoomed')) {
       setOrRemoveAttribute(this, this._zoomed, 'zoomed');
     }
+
+    if (this._zoom) {
+      if (changedProps.has('defaultConfig')) {
+        this._zoom.setDefaultConfig(this.defaultConfig ?? null);
+      }
+      // If config is null, make no change to the zoom.
+      if (changedProps.has('config') && this.config) {
+        this._zoom.setConfig(this.config);
+      }
+    } else {
+      // Ensure that the configuration will be set before activation (vs
+      // activating in `connectedCallback`).
+      this._zoom = new ZoomController(this, {
+        config: this.config,
+        defaultConfig: this.defaultConfig,
+      });
+      this._zoom.activate();
+    }
   }
+
   protected render(): TemplateResult | void {
     return html` <slot></slot> `;
   }

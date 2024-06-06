@@ -1,5 +1,4 @@
-import add from 'date-fns/add';
-import sub from 'date-fns/sub';
+import { add, sub } from 'date-fns';
 import sortBy from 'lodash-es/sortBy';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {

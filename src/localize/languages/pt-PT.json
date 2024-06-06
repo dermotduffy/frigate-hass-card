@@ -55,10 +55,23 @@
             "cover": "Tapar",
             "fill": "Preencher"
           },
+          "pan": {
+            "x": "",
+            "y": ""
+          },
           "position": {
+            "editor_label": "",
             "x": "Percentagem da localização horizontal",
             "y": "Percentagem da localização vertical"
-          }
+          },
+          "view_box": {
+            "bottom": "",
+            "editor_label": "",
+            "left": "",
+            "right": "",
+            "top": ""
+          },
+          "zoom": ""
         }
       },
       "engines": {
@@ -349,6 +362,7 @@
         "camera_ui": "Camera",
         "cameras": "Selecionar câmera",
         "clips": "Clipes",
+        "default_zoom": "",
         "display_mode": "",
         "download": "Descarregar mídia do evento",
         "enabled": "Botão ativado",

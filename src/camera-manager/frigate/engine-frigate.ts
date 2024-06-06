@@ -1,9 +1,5 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import add from 'date-fns/add';
-import endOfHour from 'date-fns/endOfHour';
-import format from 'date-fns/format';
-import fromUnixTime from 'date-fns/fromUnixTime';
-import startOfHour from 'date-fns/startOfHour';
+import { add, endOfHour, format, fromUnixTime, startOfHour } from 'date-fns';
 import isEqual from 'lodash-es/isEqual';
 import orderBy from 'lodash-es/orderBy';
 import throttle from 'lodash-es/throttle';

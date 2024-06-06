@@ -1,24 +1,14 @@
-import {
-  HASSDomEvent,
-  handleActionConfig,
-} from '@dermotduffy/custom-card-helpers';
-import { LitElement } from 'lit';
+import { HASSDomEvent, handleActionConfig } from '@dermotduffy/custom-card-helpers';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FRIGATE_ICON_SVG_PATH } from '../../src/camera-manager/frigate/icon';
 import { MenuController } from '../../src/components-lib/menu-controller';
 import { ActionsConfig, MenuConfig, menuConfigSchema } from '../../src/config/types';
 import { StateParameters } from '../../src/types';
 import { refreshDynamicStateParameters } from '../../src/utils/ha';
-import { createHASS } from '../test-utils';
+import { createHASS, createLitElement } from '../test-utils';
 
 vi.mock('@dermotduffy/custom-card-helpers');
 vi.mock('../../src/utils/ha');
-
-const createHost = (): LitElement => {
-  const host = document.createElement('div') as unknown as LitElement;
-  host.requestUpdate = vi.fn();
-  return host;
-};
 
 const createMenuConfig = (config: unknown): MenuConfig => {
   return menuConfigSchema.parse(config);
@@ -59,7 +49,7 @@ describe('MenuController', () => {
   });
 
   it('should set and get menu config', () => {
-    const host = createHost();
+    const host = createLitElement();
     const controller = new MenuController(host);
 
     const config = createMenuConfig({
@@ -77,9 +67,25 @@ describe('MenuController', () => {
     expect(host.getAttribute('data-alignment')).toBe('top');
   });
 
+  it('should expand', () => {
+    const host = createLitElement();
+    const controller = new MenuController(host);
+
+    expect(controller.isExpanded()).toBeFalsy();
+    expect(host.getAttribute('expanded')).toBeNull();
+
+    controller.setExpanded(true);
+    expect(controller.isExpanded()).toBeTruthy();
+    expect(host.getAttribute('expanded')).toBe('');
+
+    controller.setExpanded(false);
+    expect(controller.isExpanded()).toBeFalsy();
+    expect(host.getAttribute('expanded')).toBeNull();
+  });
+
   describe('should set and sort buttons', () => {
     it('by priority', () => {
-      const controller = new MenuController(createHost());
+      const controller = new MenuController(createLitElement());
       controller.setButtons([
         {
           type: 'custom:frigate-card-menu-icon',
@@ -146,7 +152,7 @@ describe('MenuController', () => {
     });
 
     it('with frigate button first', () => {
-      const controller = new MenuController(createHost());
+      const controller = new MenuController(createLitElement());
       controller.setMenuConfig(
         createMenuConfig({
           style: 'hidden',
@@ -197,7 +203,7 @@ describe('MenuController', () => {
 
   describe('should get buttons', () => {
     it('with matching alignment', () => {
-      const controller = new MenuController(createHost());
+      const controller = new MenuController(createLitElement());
       controller.setButtons([
         {
           type: 'custom:frigate-card-menu-icon',
@@ -229,7 +235,7 @@ describe('MenuController', () => {
     });
 
     it('with disabled buttons', () => {
-      const controller = new MenuController(createHost());
+      const controller = new MenuController(createLitElement());
       controller.setButtons([
         {
           type: 'custom:frigate-card-menu-icon',
@@ -261,7 +267,7 @@ describe('MenuController', () => {
     });
 
     it('with hidden non-expanded menu', () => {
-      const controller = new MenuController(createHost());
+      const controller = new MenuController(createLitElement());
       controller.setMenuConfig(
         createMenuConfig({
           style: 'hidden',
@@ -303,7 +309,7 @@ describe('MenuController', () => {
 
   describe('should get fresh button state', () => {
     it('on state icon', () => {
-      const controller = new MenuController(createHost());
+      const controller = new MenuController(createLitElement());
       const stateButton = {
         type: 'custom:frigate-card-menu-state-icon' as const,
         icon: 'mdi:sheep',
@@ -322,7 +328,7 @@ describe('MenuController', () => {
     });
 
     it('on non state icon', () => {
-      const controller = new MenuController(createHost());
+      const controller = new MenuController(createLitElement());
       const button = {
         type: 'custom:frigate-card-menu-icon' as const,
         icon: 'mdi:sheep',
@@ -335,7 +341,7 @@ describe('MenuController', () => {
 
   describe('should get svg path', () => {
     it('frigate icon', () => {
-      const controller = new MenuController(createHost());
+      const controller = new MenuController(createLitElement());
       const button = {
         type: 'custom:frigate-card-menu-icon' as const,
         icon: 'frigate',
@@ -344,7 +350,7 @@ describe('MenuController', () => {
     });
 
     it('non-frigate icon', () => {
-      const controller = new MenuController(createHost());
+      const controller = new MenuController(createLitElement());
       const button = {
         type: 'custom:frigate-card-menu-icon' as const,
         icon: 'mdi:cow',
@@ -355,13 +361,13 @@ describe('MenuController', () => {
 
   describe('should handle actions', () => {
     it('should bail without config', () => {
-      const controller = new MenuController(createHost());
+      const controller = new MenuController(createLitElement());
       controller.actionHandler(createHASS(), createEvent('tap'));
       expect(vi.mocked(handleActionConfig)).not.toBeCalled();
     });
 
     it('should execute simple action in non-hidden menu', () => {
-      const host = createHost();
+      const host = createLitElement();
       const hass = createHASS();
       const controller = new MenuController(host);
 
@@ -377,7 +383,7 @@ describe('MenuController', () => {
     });
 
     it('should execute simple action in with config in event', () => {
-      const host = createHost();
+      const host = createLitElement();
       const hass = createHASS();
       const controller = new MenuController(host);
 
@@ -391,7 +397,7 @@ describe('MenuController', () => {
     });
 
     it('should execute simple array of actions in non-hidden menu', () => {
-      const host = createHost();
+      const host = createLitElement();
       const hass = createHASS();
       const controller = new MenuController(host);
 
@@ -401,7 +407,7 @@ describe('MenuController', () => {
 
     describe('should close menu', () => {
       it('tap', () => {
-        const host = createHost();
+        const host = createLitElement();
         const hass = createHASS();
         const controller = new MenuController(host);
         controller.setMenuConfig(
@@ -418,7 +424,7 @@ describe('MenuController', () => {
       });
 
       it('end_tap', () => {
-        const host = createHost();
+        const host = createLitElement();
         const hass = createHASS();
         const controller = new MenuController(host);
         controller.setMenuConfig(
@@ -439,7 +445,7 @@ describe('MenuController', () => {
 
     describe('should not close menu', () => {
       it('start_tap with later action', () => {
-        const host = createHost();
+        const host = createLitElement();
         const hass = createHASS();
         const controller = new MenuController(host);
         controller.setMenuConfig(
@@ -459,7 +465,7 @@ describe('MenuController', () => {
       });
 
       it('with a menu toggle action', () => {
-        const host = createHost();
+        const host = createLitElement();
         const hass = createHASS();
         const controller = new MenuController(host);
         controller.setMenuConfig(
@@ -479,7 +485,7 @@ describe('MenuController', () => {
       });
 
       it('when no action is actually taken', () => {
-        const host = createHost();
+        const host = createLitElement();
         const hass = createHASS();
         const controller = new MenuController(host);
         controller.setMenuConfig(

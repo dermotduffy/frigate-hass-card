@@ -28,7 +28,10 @@ export function deepRemoveDefaults<T extends z.ZodTypeAny>(schema: T): any {
   }
 
   if (schema instanceof z.ZodArray) {
-    return z.ZodArray.create(deepRemoveDefaults(schema.element));
+    return z.ZodArray.create(deepRemoveDefaults(schema.element))
+      .min(schema._def.minLength?.value, schema._def.minLength?.message)
+      .max(schema._def.maxLength?.value, schema._def.maxLength?.message)
+      .length(schema._def.exactLength?.value, schema._def.exactLength?.message);
   }
 
   if (schema instanceof z.ZodOptional) {

@@ -1,5 +1,6 @@
 import { CurrentUser, HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
+import { LitElement } from 'lit';
 import { expect, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { Camera } from '../src/camera-manager/camera';
@@ -13,7 +14,6 @@ import {
   CameraEventCallback,
   CameraManagerMediaCapabilities,
 } from '../src/camera-manager/types';
-import { CapabilitiesRaw } from '../src/types';
 import { ActionsManager } from '../src/card-controller/actions-manager';
 import { AutoUpdateManager } from '../src/card-controller/auto-update-manager';
 import { AutomationsManager } from '../src/card-controller/automations-manager';
@@ -47,7 +47,7 @@ import {
   frigateCardConfigSchema,
   performanceConfigSchema,
 } from '../src/config/types';
-import { ExtendedHomeAssistant, MediaLoadedInfo } from '../src/types';
+import { CapabilitiesRaw, ExtendedHomeAssistant, MediaLoadedInfo } from '../src/types';
 import { EntityRegistryManager } from '../src/utils/ha/entity-registry';
 import { Entity } from '../src/utils/ha/entity-registry/types';
 import { ViewMedia, ViewMediaType } from '../src/view/media';
@@ -67,7 +67,7 @@ export const createCondition = (
 export const createConfig = (config?: RawFrigateCardConfig): FrigateCardConfig => {
   return frigateCardConfigSchema.parse({
     type: 'frigate-hass-card',
-    cameras: [],
+    cameras: [{}],
     ...config,
   });
 };
@@ -248,6 +248,24 @@ export const createMediaLoadedInfo = (
   };
 };
 
+export const createMediaLoadedInfoEvent = (
+  mediaLoadedInfo?: MediaLoadedInfo,
+): CustomEvent<MediaLoadedInfo> => {
+  return new CustomEvent('frigate-card:media:loaded', {
+    detail: mediaLoadedInfo ?? createMediaLoadedInfo(),
+    composed: true,
+    bubbles: true,
+  });
+};
+
+export const createViewChangeEvent = (view?: View): CustomEvent<View> => {
+  return new CustomEvent('frigate-card:view:change', {
+    detail: view ?? createView(),
+    composed: true,
+    bubbles: true,
+  });
+};
+
 export const createPerformanceConfig = (config: unknown): PerformanceConfig => {
   return performanceConfigSchema.parse(config);
 };
@@ -342,6 +360,20 @@ export const requestAnimationFrameMock = (callback: FrameRequestCallback) => {
   return 1;
 };
 
+export const callIntersectionHandler = (intersecting = true, n = 0): void => {
+  const mockResult = vi.mocked(IntersectionObserver).mock.results[n];
+  if (mockResult.type !== 'return') {
+    return;
+  }
+  const observer = mockResult.value;
+  vi.mocked(IntersectionObserver).mock.calls[n][0](
+    // Note this is a very incomplete / invalid IntersectionObserverEntry that
+    // just provides the bare basics current implementation uses.
+    intersecting ? [{ isIntersecting: true } as IntersectionObserverEntry] : [],
+    observer,
+  );
+};
+
 export const createSlotHost = (options?: {
   slot?: HTMLSlotElement;
   children?: HTMLElement[];
@@ -368,6 +400,12 @@ export const createParent = (options?: { children?: HTMLElement[] }): HTMLElemen
   const parent = document.createElement('div');
   parent.append(...(options?.children ?? []));
   return parent;
+};
+
+export const createLitElement = (): LitElement => {
+  const element = document.createElement('div') as unknown as LitElement;
+  element.requestUpdate = vi.fn();
+  return element;
 };
 
 export const createCardAPI = (): CardController => {

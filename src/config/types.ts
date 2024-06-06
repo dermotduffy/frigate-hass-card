@@ -91,6 +91,16 @@ const CAMERA_TRIGGER_EVENT_TYPES = [
 export type CameraTriggerEventType = (typeof CAMERA_TRIGGER_EVENT_TYPES)[number];
 
 // *************************************************************************
+//                        Pan / Zoom
+// *************************************************************************
+
+const panSchema = z.object({
+  x: z.number().min(0).max(100).optional(),
+  y: z.number().min(0).max(100).optional(),
+});
+const zoomSchema = z.number().min(1).max(10);
+
+// *************************************************************************
 //                        View Display Mode
 // *************************************************************************
 
@@ -289,15 +299,23 @@ const frigateCardShowPTZActionSchema = frigateCardCustomActionsBaseSchema.extend
   show_ptz: z.boolean(),
 });
 
+const frigateCardChangeZoomActionSchema = frigateCardCustomActionsBaseSchema.extend({
+  frigate_card_action: z.literal('change_zoom'),
+  target_id: z.string(),
+  zoom: zoomSchema.optional(),
+  pan: panSchema.optional(),
+});
+
 export const frigateCardCustomActionSchema = z.union([
-  frigateCardViewActionSchema,
-  frigateCardGeneralActionSchema,
   frigateCardCameraSelectActionSchema,
+  frigateCardChangeZoomActionSchema,
+  frigateCardGeneralActionSchema,
   frigateCardLiveDependencySelectActionSchema,
   frigateCardMediaPlayerActionSchema,
-  frigateCardViewDisplayModeActionSchema,
   frigateCardPTZActionSchema,
   frigateCardShowPTZActionSchema,
+  frigateCardViewActionSchema,
+  frigateCardViewDisplayModeActionSchema,
 ]);
 export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSchema>;
 
@@ -618,6 +636,16 @@ const mediaLayoutConfigSchema = z.object({
       y: z.number().min(0).max(100).optional(),
     })
     .optional(),
+  view_box: z
+    .object({
+      bottom: z.number().min(0).max(100).optional().default(0),
+      left: z.number().min(0).max(100).optional().default(0),
+      right: z.number().min(0).max(100).optional().default(0),
+      top: z.number().min(0).max(100).optional().default(0),
+    })
+    .optional(),
+  pan: panSchema.optional(),
+  zoom: zoomSchema.optional(),
 });
 export type MediaLayoutConfig = z.infer<typeof mediaLayoutConfigSchema>;
 
@@ -1008,8 +1036,24 @@ const livethumbnailsControlSchema = thumbnailsControlSchema.extend({
   ),
 });
 
-const liveOverridableConfigSchema = z
+const liveConfigSchema = z
   .object({
+    auto_pause: z
+      .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
+      .array()
+      .default(liveConfigDefault.auto_pause),
+    auto_play: z
+      .enum(MEDIA_ACTION_POSITIVE_CONDITIONS)
+      .array()
+      .default(liveConfigDefault.auto_play),
+    auto_mute: z
+      .enum(MEDIA_MUTE_CONDITIONS)
+      .array()
+      .default(liveConfigDefault.auto_mute),
+    auto_unmute: z
+      .enum(MEDIA_UNMUTE_CONDITIONS)
+      .array()
+      .default(liveConfigDefault.auto_unmute),
     controls: z
       .object({
         builtin: z.boolean().default(liveConfigDefault.controls.builtin),
@@ -1032,55 +1076,36 @@ const liveOverridableConfigSchema = z
         title: titleControlConfigSchema.optional(),
       })
       .default(liveConfigDefault.controls),
-    show_image_during_load: z
-      .boolean()
-      .default(liveConfigDefault.show_image_during_load),
-    microphone: microphoneConfigSchema.default(liveConfigDefault.microphone),
-    zoomable: z.boolean().default(liveConfigDefault.zoomable),
     display: viewDisplaySchema,
-  })
-  .merge(actionsSchema);
-
-const liveConfigSchema = liveOverridableConfigSchema
-  .extend({
-    auto_play: z
-      .enum(MEDIA_ACTION_POSITIVE_CONDITIONS)
-      .array()
-      .default(liveConfigDefault.auto_play),
-    auto_pause: z
-      .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
-      .array()
-      .default(liveConfigDefault.auto_pause),
-    auto_mute: z
-      .enum(MEDIA_MUTE_CONDITIONS)
-      .array()
-      .default(liveConfigDefault.auto_mute),
-    auto_unmute: z
-      .enum(MEDIA_UNMUTE_CONDITIONS)
-      .array()
-      .default(liveConfigDefault.auto_unmute),
-    preload: z.boolean().default(liveConfigDefault.preload),
+    draggable: z.boolean().default(liveConfigDefault.draggable),
     lazy_load: z.boolean().default(liveConfigDefault.lazy_load),
     lazy_unload: z
       .enum(MEDIA_ACTION_NEGATIVE_CONDITIONS)
       .array()
       .default(liveConfigDefault.lazy_unload),
-    draggable: z.boolean().default(liveConfigDefault.draggable),
+    microphone: microphoneConfigSchema.default(liveConfigDefault.microphone),
+    preload: z.boolean().default(liveConfigDefault.preload),
+    show_image_during_load: z
+      .boolean()
+      .default(liveConfigDefault.show_image_during_load),
     transition_effect: transitionEffectConfigSchema.default(
       liveConfigDefault.transition_effect,
     ),
+    zoomable: z.boolean().default(liveConfigDefault.zoomable),
   })
+  .merge(actionsSchema)
   .default(liveConfigDefault);
 export type LiveConfig = z.infer<typeof liveConfigSchema>;
 
-const liveOverridesSchema = z
-  .object({
-    conditions: frigateCardConditionSchema.array(),
-    overrides: liveOverridableConfigSchema,
-  })
-  .array()
-  .optional();
-export type LiveOverrides = z.infer<typeof liveOverridesSchema>;
+// This schema is used when the live config needs to be overridden (see
+// `live.ts`). Overrides will always be "relative" to the config root, so this
+// schema maintains that 'depth' from the root but without the other
+// requirements that frigateCardConfigSchema has. Without this, overrides
+// calculated in `live.ts` would fail since cameras/type are not provided (as
+// these are mandatory parameters in the full config).
+export const liveConfigAbsoluteRootSchema = z.object({
+  live: liveConfigSchema,
+});
 
 // *************************************************************************
 //                       Cast Configuration
@@ -1340,22 +1365,20 @@ const hiddenButtonDefault = {
 };
 
 const menuConfigDefault = {
-  style: 'hidden' as const,
-  position: 'top' as const,
   alignment: 'left' as const,
+  button_size: 40,
   buttons: {
-    frigate: visibleButtonDefault,
-    cameras: visibleButtonDefault,
-    substreams: visibleButtonDefault,
-    live: visibleButtonDefault,
-    clips: visibleButtonDefault,
-    snapshots: visibleButtonDefault,
-    image: hiddenButtonDefault,
-    timeline: visibleButtonDefault,
-    download: visibleButtonDefault,
     camera_ui: visibleButtonDefault,
-    fullscreen: visibleButtonDefault,
+    cameras: visibleButtonDefault,
+    clips: visibleButtonDefault,
+    default_zoom: visibleButtonDefault,
+    display_mode: visibleButtonDefault,
+    download: visibleButtonDefault,
     expand: hiddenButtonDefault,
+    frigate: visibleButtonDefault,
+    fullscreen: visibleButtonDefault,
+    image: hiddenButtonDefault,
+    live: visibleButtonDefault,
     media_player: visibleButtonDefault,
     microphone: {
       ...hiddenButtonDefault,
@@ -1363,12 +1386,15 @@ const menuConfigDefault = {
     },
     mute: hiddenButtonDefault,
     play: hiddenButtonDefault,
+    ptz: hiddenButtonDefault,
     recordings: hiddenButtonDefault,
     screenshot: hiddenButtonDefault,
-    display_mode: visibleButtonDefault,
-    ptz: hiddenButtonDefault,
+    snapshots: visibleButtonDefault,
+    substreams: visibleButtonDefault,
+    timeline: visibleButtonDefault,
   },
-  button_size: 40,
+  position: 'top' as const,
+  style: 'hidden' as const,
 };
 
 const visibleButtonSchema = menuBaseSchema.extend({
@@ -1388,18 +1414,21 @@ export const menuConfigSchema = z
     alignment: z.enum(FRIGATE_MENU_ALIGNMENTS).default(menuConfigDefault.alignment),
     buttons: z
       .object({
-        frigate: visibleButtonSchema.default(menuConfigDefault.buttons.frigate),
-        cameras: visibleButtonSchema.default(menuConfigDefault.buttons.cameras),
-        substreams: visibleButtonSchema.default(menuConfigDefault.buttons.substreams),
-        live: visibleButtonSchema.default(menuConfigDefault.buttons.live),
-        clips: visibleButtonSchema.default(menuConfigDefault.buttons.clips),
-        snapshots: visibleButtonSchema.default(menuConfigDefault.buttons.snapshots),
-        image: hiddenButtonSchema.default(menuConfigDefault.buttons.image),
-        timeline: visibleButtonSchema.default(menuConfigDefault.buttons.timeline),
-        download: visibleButtonSchema.default(menuConfigDefault.buttons.download),
         camera_ui: visibleButtonSchema.default(menuConfigDefault.buttons.camera_ui),
-        fullscreen: visibleButtonSchema.default(menuConfigDefault.buttons.fullscreen),
+        cameras: visibleButtonSchema.default(menuConfigDefault.buttons.cameras),
+        clips: visibleButtonSchema.default(menuConfigDefault.buttons.clips),
+        default_zoom: visibleButtonSchema.default(
+          menuConfigDefault.buttons.default_zoom,
+        ),
+        display_mode: visibleButtonSchema.default(
+          menuConfigDefault.buttons.display_mode,
+        ),
+        download: visibleButtonSchema.default(menuConfigDefault.buttons.download),
         expand: hiddenButtonSchema.default(menuConfigDefault.buttons.expand),
+        frigate: visibleButtonSchema.default(menuConfigDefault.buttons.frigate),
+        fullscreen: visibleButtonSchema.default(menuConfigDefault.buttons.fullscreen),
+        image: hiddenButtonSchema.default(menuConfigDefault.buttons.image),
+        live: visibleButtonSchema.default(menuConfigDefault.buttons.live),
         media_player: visibleButtonSchema.default(
           menuConfigDefault.buttons.media_player,
         ),
@@ -1410,14 +1439,14 @@ export const menuConfigSchema = z
               .default(menuConfigDefault.buttons.microphone.type),
           })
           .default(menuConfigDefault.buttons.microphone),
-        recordings: hiddenButtonSchema.default(menuConfigDefault.buttons.recordings),
         mute: hiddenButtonSchema.default(menuConfigDefault.buttons.mute),
         play: hiddenButtonSchema.default(menuConfigDefault.buttons.play),
-        screenshot: hiddenButtonSchema.default(menuConfigDefault.buttons.screenshot),
-        display_mode: visibleButtonSchema.default(
-          menuConfigDefault.buttons.display_mode,
-        ),
         ptz: hiddenButtonSchema.default(menuConfigDefault.buttons.ptz),
+        recordings: hiddenButtonSchema.default(menuConfigDefault.buttons.recordings),
+        screenshot: hiddenButtonSchema.default(menuConfigDefault.buttons.screenshot),
+        snapshots: visibleButtonSchema.default(menuConfigDefault.buttons.snapshots),
+        substreams: visibleButtonSchema.default(menuConfigDefault.buttons.substreams),
+        timeline: visibleButtonSchema.default(menuConfigDefault.buttons.timeline),
       })
       .default(menuConfigDefault.buttons),
     button_size: z.number().min(BUTTON_SIZE_MIN).default(menuConfigDefault.button_size),
@@ -1580,26 +1609,16 @@ export const dimensionsConfigSchema = z
 //                       Override Configuration
 // *************************************************************************
 
-// Strip all defaults from the override schemas, to ensure values are only what
-// the user has specified.
-const overrideConfigurationSchema = z.object({
-  cameras: deepRemoveDefaults(camerasConfigSchema).optional(),
-  cameras_global: deepRemoveDefaults(cameraConfigSchema).optional(),
-  live: deepRemoveDefaults(liveOverridableConfigSchema).optional(),
-  menu: deepRemoveDefaults(menuConfigSchema).optional(),
-  image: deepRemoveDefaults(imageConfigSchema).optional(),
-  view: deepRemoveDefaults(viewConfigSchema).optional(),
-  dimensions: deepRemoveDefaults(dimensionsConfigSchema).optional(),
-});
-export type OverrideConfigurationKey = keyof z.infer<typeof overrideConfigurationSchema>;
-
 const overridesSchema = z
   .object({
     conditions: frigateCardConditionSchema.array(),
-    overrides: overrideConfigurationSchema,
+    merge: z.object({}).passthrough().optional(),
+    set: z.object({}).passthrough().optional(),
+    delete: z.string().array().optional(),
   })
   .array()
   .optional();
+export type Overrides = z.infer<typeof overridesSchema>;
 
 // *************************************************************************
 //                       Automation Configuration

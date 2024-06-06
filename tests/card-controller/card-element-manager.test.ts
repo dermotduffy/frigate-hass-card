@@ -1,16 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import {
-  CardElementManager,
-  CardHTMLElement,
-} from '../../src/card-controller/card-element-manager';
-import { createCardAPI } from '../test-utils';
 import { mock } from 'vitest-mock-extended';
-
-const createElement = (): CardHTMLElement => {
-  const element = document.createElement('div') as unknown as CardHTMLElement;
-  element.requestUpdate = vi.fn();
-  return element as CardHTMLElement;
-};
+import { CardElementManager } from '../../src/card-controller/card-element-manager';
+import { createCardAPI, createLitElement } from '../test-utils';
 
 // @vitest-environment jsdom
 describe('CardElementManager', () => {
@@ -20,7 +11,7 @@ describe('CardElementManager', () => {
   });
 
   it('should get element', () => {
-    const element = createElement();
+    const element = createLitElement();
     const manager = new CardElementManager(
       createCardAPI(),
       element,
@@ -35,7 +26,7 @@ describe('CardElementManager', () => {
     const callback = vi.fn();
     const manager = new CardElementManager(
       createCardAPI(),
-      createElement(),
+      createLitElement(),
       callback,
       () => undefined,
     );
@@ -49,7 +40,7 @@ describe('CardElementManager', () => {
     const callback = vi.fn();
     const manager = new CardElementManager(
       createCardAPI(),
-      createElement(),
+      createLitElement(),
       () => undefined,
       callback,
     );
@@ -60,7 +51,7 @@ describe('CardElementManager', () => {
   });
 
   it('should update', () => {
-    const element = createElement();
+    const element = createLitElement();
     const manager = new CardElementManager(
       createCardAPI(),
       element,
@@ -73,7 +64,7 @@ describe('CardElementManager', () => {
   });
 
   it('should get hasUpdated', () => {
-    const element = createElement();
+    const element = createLitElement();
     element.hasUpdated = true;
     const manager = new CardElementManager(
       createCardAPI(),
@@ -86,7 +77,7 @@ describe('CardElementManager', () => {
   });
 
   it('should get height', () => {
-    const element = createElement();
+    const element = createLitElement();
     element.getBoundingClientRect = vi.fn().mockReturnValue({
       width: 200,
       height: 800,
@@ -106,7 +97,7 @@ describe('CardElementManager', () => {
     const windowAddEventListener = vi.spyOn(global.window, 'addEventListener');
 
     const addEventListener = vi.fn();
-    const element = createElement();
+    const element = createLitElement();
     element.addEventListener = addEventListener;
 
     const api = createCardAPI();
@@ -131,7 +122,11 @@ describe('CardElementManager', () => {
       api.getActionsManager().handleActionEvent,
     );
     expect(addEventListener).toBeCalledWith(
-      '@action',
+      'action',
+      api.getActionsManager().handleInteractionEvent,
+    );
+    expect(addEventListener).toBeCalledWith(
+      'action',
       api.getInteractionManager().reportInteraction,
     );
     expect(windowAddEventListener).toBeCalledWith('location-changed', expect.anything());
@@ -147,14 +142,13 @@ describe('CardElementManager', () => {
   it('should disconnect', () => {
     const windowRemoveEventListener = vi.spyOn(global.window, 'removeEventListener');
 
-    const element = createElement();
+    const element = createLitElement();
     element.setAttribute('panel', '');
 
     const removeEventListener = vi.fn();
     element.removeEventListener = removeEventListener;
 
     const api = createCardAPI();
-    vi.mocked(api.getCameraManager().reset).mockResolvedValue();
 
     const manager = new CardElementManager(
       api,
@@ -178,7 +172,11 @@ describe('CardElementManager', () => {
       api.getActionsManager().handleActionEvent,
     );
     expect(removeEventListener).toBeCalledWith(
-      '@action',
+      'action',
+      api.getActionsManager().handleInteractionEvent,
+    );
+    expect(removeEventListener).toBeCalledWith(
+      'action',
       api.getInteractionManager().reportInteraction,
     );
     expect(windowRemoveEventListener).toBeCalledWith(
@@ -187,6 +185,6 @@ describe('CardElementManager', () => {
     );
     expect(windowRemoveEventListener).toBeCalledWith('popstate', expect.anything());
 
-    expect(api.getCameraManager().reset).toBeCalled();
+    expect(api.getInitializationManager().uninitialize).toBeCalledWith('cameras');
   });
 });

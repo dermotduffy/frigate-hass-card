@@ -25,7 +25,7 @@ describe('setProfiles', () => {
   it('should handle profiles', () => {
     const input = {
       type: 'frigate-hass-card',
-      cameras: [],
+      cameras: [{}],
       live: {
         controls: {
           timeline: {

@@ -1,4 +1,4 @@
-import add from 'date-fns/add';
+import { add } from 'date-fns';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AutoUpdateManager } from '../../src/card-controller/auto-update-manager';
 import { createCardAPI, createConfig } from '../test-utils';
@@ -31,7 +31,7 @@ describe('AutoUpdateManager', () => {
     manager.startDefaultViewTimer();
 
     expect(api.getViewManager().setViewDefault).not.toBeCalled();
-    
+
     vi.setSystemTime(add(start, { seconds: 10 }));
     vi.runOnlyPendingTimers();
 
@@ -64,7 +64,7 @@ describe('AutoUpdateManager', () => {
     manager.startDefaultViewTimer();
 
     expect(api.getViewManager().setViewDefault).not.toBeCalled();
-    
+
     vi.setSystemTime(add(start, { seconds: 10 }));
     vi.runOnlyPendingTimers();
 

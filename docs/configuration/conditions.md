@@ -164,6 +164,11 @@ conditions:
 | `condition` | Must be `view`. |
 | `views` | A list of [views](view.md?id=supported-views) in which this condition is satified (e.g. `clips`). |
 
+?> Internally, views associated with the media viewer (e.g. `clip`, `snapshot`,
+`recording`) are translated to a special view called `media` after the relevant
+media is fetched. When including views as part of a [condition](conditions.md),
+you may need to refer to this special `media` view.
+
 # Fully expanded reference
 
 [](common/expanded-warning.md ':include')

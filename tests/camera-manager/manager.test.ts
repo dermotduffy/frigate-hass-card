@@ -1,5 +1,5 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import add from 'date-fns/add';
+import { add } from 'date-fns';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { Camera } from '../../src/camera-manager/camera';
@@ -259,16 +259,9 @@ describe('CameraManager', async () => {
     return new CameraManager(api, { factory: mockFactory });
   };
 
-  it('should reset', async () => {
-    const store = new CameraManagerStore();
-    store.addCamera(
-      new Camera(createCameraConfig({ id: 'id' }), mock<CameraManagerEngine>()),
-    );
-    const manager = new CameraManager(createCardAPI(), { store: store });
-
-    expect(manager.getStore().getCameraCount()).toBe(1);
-    await manager.reset();
-    expect(manager.getStore().getCameraCount()).toBe(0);
+  it('should construct', async () => {
+    const manager = new CameraManager(createCardAPI());
+    expect(manager.getStore()).toBeTruthy();
   });
 
   describe('should initialize cameras from config', () => {
@@ -457,11 +450,11 @@ describe('CameraManager', async () => {
         },
       );
 
-      it('without cameras', async () => {
+      it('without camera', async () => {
         const api = createCardAPI();
         vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
 
-        const manager = createCameraManager(api, mock<CameraManagerEngine>(), []);
+        const manager = createCameraManager(api, mock<CameraManagerEngine>());
 
         expect(manager.generateDefaultEventQueries('not_a_camera')).toBeNull();
       });

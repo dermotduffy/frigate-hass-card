@@ -6,7 +6,7 @@ import { CameraConfig } from '../../config/types';
 import { localize } from '../../localize/localize';
 import '../../patches/ha-camera-stream';
 import '../../patches/ha-hls-player.js';
-import '../../patches/ha-web-rtc-player.ts';
+import '../../patches/ha-web-rtc-player.js';
 import liveHAStyle from '../../scss/live-ha.scss';
 import { FrigateCardMediaPlayer } from '../../types.js';
 import { renderMessage } from '../message';

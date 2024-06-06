@@ -14,7 +14,7 @@ import {
   frigateCardHandleActionConfig,
   getActionConfigGivenAction,
 } from '../utils/action';
-import { arrayify, isTruthy } from '../utils/basic.js';
+import { arrayify, isTruthy, setOrRemoveAttribute } from '../utils/basic.js';
 import { refreshDynamicStateParameters } from '../utils/ha/index.js';
 
 export class MenuController {
@@ -86,7 +86,7 @@ export class MenuController {
 
   public setExpanded(expanded: boolean): void {
     this._expanded = expanded;
-    this._host.setAttribute('expanded', '');
+    setOrRemoveAttribute(this._host, expanded, 'expanded');
     this._host.requestUpdate();
   }
 

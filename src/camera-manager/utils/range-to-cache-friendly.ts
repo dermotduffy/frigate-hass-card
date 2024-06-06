@@ -1,8 +1,4 @@
-import endOfDay from 'date-fns/endOfDay';
-import endOfHour from 'date-fns/endOfHour';
-import endOfMinute from 'date-fns/endOfMinute';
-import startOfDay from 'date-fns/startOfDay';
-import startOfHour from 'date-fns/startOfHour';
+import { endOfDay, endOfHour, endOfMinute, startOfDay, startOfHour } from 'date-fns';
 import { DateRange } from '../range';
 import { capEndDate } from './cap-end-date';
 

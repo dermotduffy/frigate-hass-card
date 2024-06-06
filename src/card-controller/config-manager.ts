@@ -4,7 +4,7 @@ import {
   CardWideConfig,
   FrigateCardConfig,
   frigateCardConfigSchema,
-  RawFrigateCardConfig
+  RawFrigateCardConfig,
 } from '../config/types';
 import { localize } from '../localize/localize';
 import { setProfiles } from '../config/profiles';
@@ -104,11 +104,11 @@ export class ConfigManager {
     if (!this._config) {
       return;
     }
-    const overriddenConfig = getOverriddenConfig(
-      conditionsManager,
-      this._config,
-      this._config.overrides,
-    ) as FrigateCardConfig;
+    const overriddenConfig = getOverriddenConfig(conditionsManager, this._config, {
+      configOverrides: this._config.overrides,
+      schema: frigateCardConfigSchema,
+      logOnParseError: !!this.getCardWideConfig()?.debug?.logging,
+    }) as FrigateCardConfig;
 
     // Save on Lit re-rendering costs by only updating the configuration if it
     // actually changes.

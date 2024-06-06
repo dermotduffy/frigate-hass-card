@@ -43,20 +43,6 @@ export const callVisibilityHandler = (): void => {
   }
 };
 
-export const callIntersectionHandler = (intersecting = true, n = 0): void => {
-  const mockResult = vi.mocked(IntersectionObserver).mock.results[n];
-  if (mockResult.type !== 'return') {
-    return;
-  }
-  const observer = mockResult.value;
-  vi.mocked(IntersectionObserver).mock.calls[n][0](
-    // Note this is a very incomplete / invalid IntersectionObserverEntry that
-    // just provides the bare basics current implementation uses.
-    intersecting ? [{ isIntersecting: true } as IntersectionObserverEntry] : [],
-    observer,
-  );
-};
-
 export const callMutationHandler = (n = 0): void => {
   const mockResult = vi.mocked(MutationObserver).mock.results[n];
   if (mockResult.type !== 'return') {

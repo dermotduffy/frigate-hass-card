@@ -1,8 +1,5 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import add from 'date-fns/add';
-import endOfDay from 'date-fns/endOfDay';
-import parse from 'date-fns/parse';
-import startOfDay from 'date-fns/startOfDay';
+import { add, endOfDay, parse, startOfDay } from 'date-fns';
 import orderBy from 'lodash-es/orderBy';
 import { CameraConfig } from '../../config/types';
 import { allPromises, formatDate, isValidDate } from '../../utils/basic';

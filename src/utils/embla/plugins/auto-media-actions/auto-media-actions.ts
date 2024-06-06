@@ -50,7 +50,7 @@ export function AutoMediaActions(
   let options: OptionsType;
   let emblaApi: EmblaCarouselType;
   let slides: HTMLElement[];
-  let hadInitialIntersectionCall: boolean | null = false;
+  let containerIntersecting: boolean | null = null;
   const microphoneMuteTimer = new Timer();
 
   const intersectionObserver: IntersectionObserver = new IntersectionObserver(
@@ -184,15 +184,15 @@ export function AutoMediaActions(
   }
 
   function intersectionHandler(entries: IntersectionObserverEntry[]): void {
-    if (!hadInitialIntersectionCall) {
-      hadInitialIntersectionCall = true;
-      return;
-    }
+    const wasIntersecting = containerIntersecting;
+    containerIntersecting = entries.some((entry) => entry.isIntersecting);
 
-    // If the live view is preloaded (i.e. in the background) we may need to
-    // take media actions, e.g. muting a live stream that is now running in the
-    // background.
-    actOnVisibilityChange(entries.some((entry) => entry.isIntersecting));
+    if (wasIntersecting !== null && wasIntersecting !== containerIntersecting) {
+      // If the live view is preloaded (i.e. in the background) we may need to
+      // take media actions, e.g. muting a live stream that is now running in
+      // the background, so we act even if the new state is hidden.
+      actOnVisibilityChange(containerIntersecting);
+    }
   }
 
   function getPlayer(slide: HTMLElement | undefined): FrigateCardMediaPlayer | null {

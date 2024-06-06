@@ -177,7 +177,7 @@ export class View {
    * @param context The context to merge in.
    * @returns This view.
    */
-  public mergeInContext(context?: ViewContext): View {
+  public mergeInContext(context?: ViewContext | null): View {
     this.context = merge({}, this.context, context);
     return this;
   }
@@ -269,6 +269,36 @@ export class View {
   }
 }
 
+// Facilitates correct typing of event handlers.
+export interface FrigateCardViewChangeEventTarget extends EventTarget {
+  addEventListener(
+    event: 'frigate-card:view:change',
+    listener: (
+      this: FrigateCardViewChangeEventTarget,
+      ev: CustomEvent<View>,
+    ) => void,
+    options?: AddEventListenerOptions | boolean,
+  ): void;
+  addEventListener(
+    type: string,
+    callback: EventListenerOrEventListenerObject,
+    options?: AddEventListenerOptions | boolean,
+  ): void;
+  removeEventListener(
+    event: 'frigate-card:view:change',
+    listener: (
+      this: FrigateCardViewChangeEventTarget,
+      ev: CustomEvent<View>,
+    ) => void,
+    options?: boolean | EventListenerOptions,
+  ): void;
+  removeEventListener(
+    type: string,
+    callback: EventListenerOrEventListenerObject,
+    options?: boolean | EventListenerOptions,
+  ): void;
+}
+
 /**
  * Dispatch an event to change the view context.
  * @param target The EventTarget to send the event from.
@@ -276,7 +306,7 @@ export class View {
  */
 export const dispatchViewContextChangeEvent = (
   target: EventTarget,
-  context: ViewContext,
+  context: ViewContext | null,
 ): void => {
   dispatchFrigateCardEvent(target, 'view:change-context', context);
 };

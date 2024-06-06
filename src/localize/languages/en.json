@@ -55,10 +55,23 @@
             "cover": "Media expands proportionally to cover the card",
             "fill": "Media is stretched to fill the card"
           },
+          "pan": {
+            "x": "Pan horizontal percentage",
+            "y": "Pan vertical percentage"
+          },
           "position": {
+            "editor_label": "Layout Cover Position",
             "x": "Horizontal placement percentage",
             "y": "Vertical placement percentage"
-          }
+          },
+          "view_box": {
+            "bottom": "Bottom inset percentage",
+            "editor_label": "Layout View Box",
+            "left": "Left inset percentage",
+            "right": "Right inset percentage",
+            "top": "Top inset percentage"
+          },
+          "zoom": "Zoom factor"
         }
       },
       "engines": {
@@ -349,6 +362,7 @@
         "camera_ui": "Camera user interface",
         "cameras": "Cameras",
         "clips": "Clips",
+        "default_zoom": "Zoom to default",
         "display_mode": "Display mode",
         "download": "Download",
         "enabled": "Button enabled",

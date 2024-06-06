@@ -102,6 +102,27 @@ export function createFrigateCardShowPTZAction(
   };
 }
 
+export function createFrigateCardChangeZoomAction(
+  targetID: string,
+  options?: {
+    cardID?: string;
+    pan?: {
+      x?: number;
+      y?: number;
+    };
+    zoom?: number;
+  },
+): FrigateCardCustomAction {
+  return {
+    action: 'fire-dom-event',
+    frigate_card_action: 'change_zoom',
+    target_id: targetID,
+    ...(options?.cardID && { card_id: options.cardID }),
+    ...(options?.pan && { pan: options.pan }),
+    ...(options?.zoom && { zoom: options.zoom }),
+  };
+}
+
 /**
  * Get an action configuration given a config and an interaction (e.g. 'tap').
  * @param interaction The interaction: `tap`, `hold` or `double_tap`

@@ -55,10 +55,23 @@
             "cover": "A mídia se expande proporcionalmente para cobrir o cartão",
             "fill": "A mídia é esticada para preencher o cartão"
           },
+          "pan": {
+            "x": "",
+            "y": ""
+          },
           "position": {
+            "editor_label": "",
             "x": "Porcentagem do posicionamento horizontal",
             "y": "Porcentagem do posicionamento vertical"
-          }
+          },
+          "view_box": {
+            "bottom": "",
+            "editor_label": "",
+            "left": "",
+            "right": "",
+            "top": ""
+          },
+          "zoom": ""
         }
       },
       "engines": {
@@ -349,6 +362,7 @@
         "camera_ui": "Interface de usuário da câmera",
         "cameras": "Selecionar câmera",
         "clips": "Clipes",
+        "default_zoom": "",
         "display_mode": "",
         "download": "Baixe a mídia do evento",
         "enabled": "Botão ativado",

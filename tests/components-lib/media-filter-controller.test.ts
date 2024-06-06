@@ -1,7 +1,4 @@
-import endOfDay from 'date-fns/endOfDay';
-import startOfDay from 'date-fns/startOfDay';
-import sub from 'date-fns/sub';
-import { LitElement } from 'lit';
+import { endOfDay, startOfDay, sub } from 'date-fns';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Capabilities } from '../../src/camera-manager/capabilities';
 import { CameraManagerStore } from '../../src/camera-manager/store';
@@ -23,18 +20,13 @@ import {
   createCameraConfig,
   createCameraManager,
   createCapabilities,
+  createLitElement,
   createPerformanceConfig,
   createStore,
   createView,
 } from '../test-utils';
 
 vi.mock('../../src/utils/media-to-view');
-
-const createHost = (): LitElement => {
-  const host = document.createElement('div') as unknown as LitElement;
-  host.requestUpdate = vi.fn();
-  return host;
-};
 
 const createCameraStore = (options?: {
   capabilities: Capabilities;
@@ -64,7 +56,7 @@ describe('MediaFilterController', () => {
 
   describe('should have correct default options', () => {
     it('media type', () => {
-      const controller = new MediaFilterController(createHost());
+      const controller = new MediaFilterController(createLitElement());
       expect(controller.getMediaTypeOptions()).toEqual([
         {
           value: MediaFilterMediaType.Clips,
@@ -82,7 +74,7 @@ describe('MediaFilterController', () => {
     });
 
     it('favorite', () => {
-      const controller = new MediaFilterController(createHost());
+      const controller = new MediaFilterController(createLitElement());
       expect(controller.getFavoriteOptions()).toEqual([
         {
           value: MediaFilterCoreFavoriteSelection.Favorite,
@@ -96,7 +88,7 @@ describe('MediaFilterController', () => {
     });
 
     it('when', () => {
-      const controller = new MediaFilterController(createHost());
+      const controller = new MediaFilterController(createLitElement());
       expect(controller.getWhenOptions()).toEqual([
         {
           value: MediaFilterCoreWhen.Today,
@@ -122,22 +114,22 @@ describe('MediaFilterController', () => {
     });
 
     it('cameras', () => {
-      const controller = new MediaFilterController(createHost());
+      const controller = new MediaFilterController(createLitElement());
       expect(controller.getCameraOptions()).toEqual([]);
     });
 
     it('what', () => {
-      const controller = new MediaFilterController(createHost());
+      const controller = new MediaFilterController(createLitElement());
       expect(controller.getWhatOptions()).toEqual([]);
     });
 
     it('where', () => {
-      const controller = new MediaFilterController(createHost());
+      const controller = new MediaFilterController(createLitElement());
       expect(controller.getWhereOptions()).toEqual([]);
     });
 
     it('tags', () => {
-      const controller = new MediaFilterController(createHost());
+      const controller = new MediaFilterController(createLitElement());
       expect(controller.getTagsOptions()).toEqual([]);
     });
   });
@@ -152,7 +144,7 @@ describe('MediaFilterController', () => {
         });
         vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
 
-        const controller = new MediaFilterController(createHost());
+        const controller = new MediaFilterController(createLitElement());
         controller.computeCameraOptions(cameraManager);
         expect(controller.getCameraOptions()).toEqual([
           {
@@ -178,7 +170,7 @@ describe('MediaFilterController', () => {
           }),
         );
 
-        const controller = new MediaFilterController(createHost());
+        const controller = new MediaFilterController(createLitElement());
         controller.computeCameraOptions(cameraManager);
         expect(controller.getCameraOptions()).toEqual([]);
       });
@@ -188,7 +180,7 @@ describe('MediaFilterController', () => {
         vi.mocked(cameraManager.getCameraMetadata).mockReturnValue(null);
         vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
 
-        const controller = new MediaFilterController(createHost());
+        const controller = new MediaFilterController(createLitElement());
         controller.computeCameraOptions(cameraManager);
         expect(controller.getCameraOptions()).toEqual([
           {
@@ -206,7 +198,7 @@ describe('MediaFilterController', () => {
         const cameraManager = createCameraManager();
         vi.mocked(cameraManager.getMediaMetadata).mockRejectedValue(new Error('error'));
 
-        const host = createHost();
+        const host = createLitElement();
         const controller = new MediaFilterController(host);
         await controller.computeMetadataOptions(cameraManager);
         expect(host.requestUpdate).not.toBeCalled();
@@ -218,7 +210,7 @@ describe('MediaFilterController', () => {
           what: new Set(['person', 'car']),
         });
 
-        const host = createHost();
+        const host = createLitElement();
         const controller = new MediaFilterController(host);
         await controller.computeMetadataOptions(cameraManager);
         expect(controller.getWhatOptions()).toEqual([
@@ -240,7 +232,7 @@ describe('MediaFilterController', () => {
           where: new Set(['front_door', 'back_yard']),
         });
 
-        const host = createHost();
+        const host = createLitElement();
         const controller = new MediaFilterController(host);
         await controller.computeMetadataOptions(cameraManager);
         expect(controller.getWhereOptions()).toEqual([
@@ -262,7 +254,7 @@ describe('MediaFilterController', () => {
           tags: new Set(['tag-1', 'tag-2']),
         });
 
-        const host = createHost();
+        const host = createLitElement();
         const controller = new MediaFilterController(host);
         await controller.computeMetadataOptions(cameraManager);
         expect(controller.getTagsOptions()).toEqual([
@@ -284,7 +276,7 @@ describe('MediaFilterController', () => {
           days: new Set(['2024-02-04', '2024-02-05']),
         });
 
-        const host = createHost();
+        const host = createLitElement();
         const controller = new MediaFilterController(host);
         await controller.computeMetadataOptions(cameraManager);
 
@@ -306,7 +298,7 @@ describe('MediaFilterController', () => {
       const view = createView({ query: new EventMediaQueries() });
       const cameraManager = createCameraManager();
 
-      const controller = new MediaFilterController(createHost());
+      const controller = new MediaFilterController(createLitElement());
       expect(controller.getControlsToShow(cameraManager, view)).toMatchObject({
         events: true,
         recordings: false,
@@ -317,7 +309,7 @@ describe('MediaFilterController', () => {
       const view = createView({ query: new RecordingMediaQueries() });
       const cameraManager = createCameraManager();
 
-      const controller = new MediaFilterController(createHost());
+      const controller = new MediaFilterController(createLitElement());
       expect(controller.getControlsToShow(cameraManager, view)).toMatchObject({
         events: false,
         recordings: true,
@@ -331,7 +323,7 @@ describe('MediaFilterController', () => {
         createCapabilities({ 'favorite-events': true }),
       );
 
-      const controller = new MediaFilterController(createHost());
+      const controller = new MediaFilterController(createLitElement());
       expect(controller.getControlsToShow(cameraManager, view)).toMatchObject({
         favorites: true,
       });
@@ -344,7 +336,7 @@ describe('MediaFilterController', () => {
         createCapabilities({ 'favorite-recordings': true }),
       );
 
-      const controller = new MediaFilterController(createHost());
+      const controller = new MediaFilterController(createLitElement());
       expect(controller.getControlsToShow(cameraManager, view)).toMatchObject({
         favorites: true,
       });
@@ -354,7 +346,7 @@ describe('MediaFilterController', () => {
       const view = createView();
       const cameraManager = createCameraManager();
 
-      const controller = new MediaFilterController(createHost());
+      const controller = new MediaFilterController(createLitElement());
       expect(controller.getControlsToShow(cameraManager, view)).toMatchObject({
         favorites: false,
       });
@@ -363,7 +355,7 @@ describe('MediaFilterController', () => {
 
   describe('should handle value change', () => {
     it('must have visible cameras', async () => {
-      const host = createHost();
+      const host = createLitElement();
       const controller = new MediaFilterController(host);
       await controller.valueChangeHandler(
         createCameraManager(),
@@ -380,7 +372,7 @@ describe('MediaFilterController', () => {
         '%s',
         async (viewName: 'clips' | 'snapshots') => {
           const eventListener = vi.fn();
-          const host = createHost();
+          const host = createLitElement();
           host.addEventListener('frigate-card:view:change', eventListener);
 
           const controller = new MediaFilterController(host);
@@ -458,7 +450,7 @@ describe('MediaFilterController', () => {
 
     it('with recordings media type', async () => {
       const eventListener = vi.fn();
-      const host = createHost();
+      const host = createLitElement();
       host.addEventListener('frigate-card:view:change', eventListener);
 
       const controller = new MediaFilterController(host);
@@ -522,7 +514,7 @@ describe('MediaFilterController', () => {
     });
 
     it('without favorites', async () => {
-      const controller = new MediaFilterController(createHost());
+      const controller = new MediaFilterController(createLitElement());
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
 
@@ -583,7 +575,7 @@ describe('MediaFilterController', () => {
           new Date('2024-02-29T23:59:59.999'),
         ],
       ])('%s', async (value: MediaFilterCoreWhen | string, from: Date, to: Date) => {
-        const controller = new MediaFilterController(createHost());
+        const controller = new MediaFilterController(createLitElement());
         const cameraManager = createCameraManager();
         vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
 
@@ -614,7 +606,7 @@ describe('MediaFilterController', () => {
       });
 
       it('custom without values', async () => {
-        const controller = new MediaFilterController(createHost());
+        const controller = new MediaFilterController(createLitElement());
         const cameraManager = createCameraManager();
         vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
 
@@ -646,7 +638,7 @@ describe('MediaFilterController', () => {
 
   describe('should calculate correct defaults', () => {
     it('with no queries', () => {
-      const controller = new MediaFilterController(createHost());
+      const controller = new MediaFilterController(createLitElement());
 
       controller.computeInitialDefaultsFromView(createCameraManager(), createView());
 
@@ -654,7 +646,7 @@ describe('MediaFilterController', () => {
     });
 
     it('with no cameras', () => {
-      const controller = new MediaFilterController(createHost());
+      const controller = new MediaFilterController(createLitElement());
 
       controller.computeInitialDefaultsFromView(
         createCameraManager(),
@@ -956,7 +948,7 @@ describe('MediaFilterController', () => {
           mediaQueries: MediaQueries,
           defaults: MediaFilterCoreDefaults | null,
         ) => {
-          const controller = new MediaFilterController(createHost());
+          const controller = new MediaFilterController(createLitElement());
           const cameraManager = createCameraManager();
           vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
 

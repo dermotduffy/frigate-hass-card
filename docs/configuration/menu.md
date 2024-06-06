@@ -33,6 +33,7 @@ menu:
 | `camera_ui` | The `camera_ui` menu button: brings the user to a context-appropriate page on the UI of their camera engine (e.g. the Frigate camera homepage). Will only appear if the camera engine supports a camera UI (e.g. if `frigate.url` option is set for `frigate` engine users).|
 | `cameras` | The camera selection submenu. Will only appear if multiple cameras are configured. |
 | `clips` | The `clips` view menu button: brings the user to the `clips` view on tap and the most-recent `clip` view on hold. |
+| `default_zoom` | The `default_zoom` button allows easily returning the camera to default pan/zoom. |
 | `display_mode` | The `display_mode` button allows changing between single and grid views. |
 | `download` | The `download` menu button: allow direct download of the media being displayed.|
 | `expand` | The `expand` menu button: expand the card into a popup/dialog. |
@@ -53,7 +54,7 @@ menu:
 | Option | Default | Description |
 | - | - | - |
 | `alignment` | `matching` | Whether this button should have an alignment that is `matching` the menu alignment or `opposing` the menu. Can be used to create two separate groups of buttons on the menu. `priority` orders buttons within a given `alignment`. |
-| `enabled` | `true` for `frigate`, `cameras`, `substreams`, `live`, `clips`, `snapshots`, `timeline`, `download`, `camera_ui`, `fullscreen`, `media_player`, `display_mode`. `false` for `image`, `expand`, `microphone`, `mute`, `play`, `recordings`, `screenshot`, `ptz` | Whether or not to show the button. |
+| `enabled` | `true` for `frigate`, `cameras`, `substreams`, `live`, `clips`, `snapshots`, `timeline`, `download`, `camera_ui`, `fullscreen`, `media_player`, `display_mode` and `default_zoom`. `false` for `image`, `expand`, `microphone`, `mute`, `play`, `recordings`, `screenshot`, `ptz` | Whether or not to show the button. |
 | `icon` | | An icon to overriding the default for that button, e.g. `mdi:camera-front`. |
 | `priority` | `50` | The button priority. Higher priority buttons are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`, when the menu alignment is `left`). Minimum `0`, maximum `100`.|
 
@@ -90,9 +91,15 @@ menu:
       enabled: true
       alignment: matching
       icon: mdi:video-switch
+    default_zoom:
+      priority: 50
+      enabled: true
+      alignment: matching
+      icon: mdi:magnify-close
     substreams:
       priority: 50
       enabled: true
+      alignment: matching
       icon: mdi:video-input-component
     live:
       priority: 50

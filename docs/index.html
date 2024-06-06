@@ -40,7 +40,7 @@
         name: 'Frigate Card',
 
         logo: 'images/frigate-logo.svg',
-        
+
         // Automatically go to the top of a page on route change.
         auto2top: true,
 
@@ -56,11 +56,20 @@
         // Use relative links (this way both vscode and docsify work on clicking
         // a link).
         relativePath: true,
+
+        // Skip the link to the main content.
+        skipLink: false,
+
+        // Google tag (Google Analytics 4).
+        gtag: 'G-ZFD19QWCJP',
       };
     </script>
 
-    <!-- Docsify v4 -->
-    <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+    <!-- Docsify preview (necessary for Google Analytics 4) -->
+    <!-- Update when there's a docsify release after
+    https://github.com/docsifyjs/docsify/pull/1702  -->
+    <script src="https://docsify-preview.vercel.app/lib/docsify.min.js"></script>
+    <script src="https://docsify-preview.vercel.app/lib/plugins/gtag.min.js"></script>
 
     <!-- Themeable -->
     <script src="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/js/docsify-themeable.min.js"></script>

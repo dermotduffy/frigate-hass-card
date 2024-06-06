@@ -55,10 +55,23 @@
             "cover": "Le média s'étend proportionnellement pour couvrir la carte",
             "fill": "Le média est étiré pour remplir la carte"
           },
+          "pan": {
+            "x": "",
+            "y": ""
+          },
           "position": {
+            "editor_label": "",
             "x": "Pourcentage de positionnement horizontal",
             "y": "Pourcentage de positionnement vertical"
           }
+          "view_box": {
+            "bottom": "",
+            "editor_label": "",
+            "left": "",
+            "right": "",
+            "top": ""
+          },
+          "zoom": ""
         }
       },
       "engines": {
@@ -349,6 +362,7 @@
         "camera_ui": "Interface utilisateur de la caméra",
         "cameras": "Appareils photo",
         "clips": "Extraits",
+        "default_zoom": "",
         "display_mode": "",
         "download": "Télécharger",
         "enabled": "Bouton activé",

@@ -1,6 +1,7 @@
-import add from 'date-fns/add';
+import { add } from 'date-fns';
 import cloneDeep from 'lodash-es/cloneDeep';
 import sum from 'lodash-es/sum';
+import PQueue from 'p-queue';
 import { CardCameraAPI } from '../card-controller/types.js';
 import { CameraConfig, CamerasConfig, PTZAction, PTZPhase } from '../config/types.js';
 import { MEDIA_CHUNK_SIZE_DEFAULT } from '../const.js';
@@ -108,6 +109,7 @@ export class CameraManager {
   protected _api: CardCameraAPI;
   protected _engineFactory: CameraManagerEngineFactory;
   protected _store: CameraManagerStore;
+  protected _initializationLimit = new PQueue({ concurrency: 1 });
 
   constructor(
     api: CardCameraAPI,
@@ -126,10 +128,6 @@ export class CameraManager {
     this._store = options?.store ?? new CameraManagerStore();
   }
 
-  public async reset(): Promise<void> {
-    await this._store.reset();
-  }
-
   public async initializeCamerasFromConfig(): Promise<boolean> {
     const config = this._api.getConfigManager().getConfig();
     const hass = this._api.getHASSManager().getHASS();
@@ -138,23 +136,33 @@ export class CameraManager {
       return false;
     }
 
-    await this.reset();
-
     // For each camera merge the config (which has no defaults) into the camera
     // global config (which does have defaults). The merging must happen in this
     // order, to ensure that the defaults in the cameras global config do not
     // override the values specified in the per-camera config.
     const cameras = config.cameras.map((camera) =>
-      recursivelyMergeObjectsNotArrays(cloneDeep(config?.cameras_global), camera),
+      recursivelyMergeObjectsNotArrays({}, cloneDeep(config?.cameras_global), camera),
     );
 
-    try {
+    const resetAndInitialize = async () => {
+      await this._reset();
       await this._initializeCameras(cameras);
+    };
+
+    try {
+      // This concurrency limit prevents multiple rapidly arriving configs from
+      // generating reset-n-initialize race conditions (e.g. changing values
+      // rapidly in the config editor).
+      await this._initializationLimit.add(resetAndInitialize);
     } catch (e: unknown) {
       this._api.getMessageManager().setErrorIfHigherPriority(e);
       return false;
     }
     return true;
+  }
+
+  protected async _reset(): Promise<void> {
+    await this._store.reset();
   }
 
   protected async _getEnginesForCameras(

@@ -44,8 +44,15 @@ import {
   CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS,
   CONF_CAMERAS_ARRAY_DIMENSIONS_ASPECT_RATIO,
   CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_FIT,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_PAN_X,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_PAN_Y,
   CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_X,
   CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_Y,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_BOTTOM,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_LEFT,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_RIGHT,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_TOP,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_ZOOM_FACTOR,
   CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME,
   CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID,
   CONF_CAMERAS_ARRAY_FRIGATE_LABELS,
@@ -813,9 +820,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     }
   }
 
-  /**
-   * Called before each update.
-   */
   protected willUpdate(): void {
     if (!this._initialized) {
       sideLoadHomeAssistantElements().then((success) => {
@@ -977,6 +981,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       max?: number;
       label?: string;
       default?: number;
+      step?: number;
     },
   ): TemplateResult | void {
     if (!this._config) {
@@ -988,7 +993,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     return html`
       <ha-selector
         .hass=${this.hass}
-        .selector=${{ number: { min: params?.min || 0, max: params?.max, mode: mode } }}
+        .selector=${{
+          number: {
+            min: params?.min || 0,
+            max: params?.max,
+            mode: mode,
+            step: params?.step,
+          },
+        }}
         .label=${params?.label || this._getLabel(configPath)}
         .value=${value ?? params?.default}
         .required=${false}
@@ -1226,6 +1238,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     configPathFit: string,
     configPathPositionX: string,
     configPathPositionY: string,
+    configPathViewBoxTop: string,
+    configPathViewBoxBottom: string,
+    configPathViewBoxLeft: string,
+    configPathViewBoxRight: string,
+    configPathZoom: string,
+    configPathPanX: string,
+    configPathPanY: string,
   ): TemplateResult | void {
     return this._putInSubmenu(
       domain,
@@ -1233,19 +1252,69 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       labelPath,
       { name: 'mdi:page-layout-body' },
       html`
+        ${this._renderNumberInput(configPathZoom, {
+          min: 0,
+          max: 10,
+          label: localize('config.cameras.dimensions.layout.zoom'),
+          step: 0.1,
+        })}
+        ${this._renderNumberInput(configPathPanX, {
+          min: 0,
+          max: 100,
+          label: localize('config.cameras.dimensions.layout.pan.x'),
+        })}
+        ${this._renderNumberInput(configPathPanY, {
+          min: 0,
+          max: 100,
+          label: localize('config.cameras.dimensions.layout.pan.y'),
+        })}
         ${this._renderOptionSelector(configPathFit, this._layoutFits, {
           label: localize('config.cameras.dimensions.layout.fit'),
         })}
-        ${this._renderNumberInput(configPathPositionX, {
-          min: 0,
-          max: 100,
-          label: localize('config.cameras.dimensions.layout.position.x'),
-        })}
-        ${this._renderNumberInput(configPathPositionY, {
-          min: 0,
-          max: 100,
-          label: localize('config.cameras.dimensions.layout.position.y'),
-        })}
+        ${this._putInSubmenu(
+          `${domain}.position`,
+          true,
+          'config.cameras.dimensions.layout.position.editor_label',
+          { name: 'mdi:aspect-ratio' },
+          html` ${this._renderNumberInput(configPathPositionX, {
+            min: 0,
+            max: 100,
+            label: localize('config.cameras.dimensions.layout.position.x'),
+          })}
+          ${this._renderNumberInput(configPathPositionY, {
+            min: 0,
+            max: 100,
+            label: localize('config.cameras.dimensions.layout.position.y'),
+          })}`,
+        )}
+        ${this._putInSubmenu(
+          `${domain}.view_box`,
+          true,
+          'config.cameras.dimensions.layout.view_box.editor_label',
+          { name: 'mdi:crop' },
+          html`
+            ${this._renderNumberInput(configPathViewBoxTop, {
+              min: 0,
+              max: 100,
+              label: localize('config.cameras.dimensions.layout.view_box.top'),
+            })}
+            ${this._renderNumberInput(configPathViewBoxBottom, {
+              min: 0,
+              max: 100,
+              label: localize('config.cameras.dimensions.layout.view_box.bottom'),
+            })}
+            ${this._renderNumberInput(configPathViewBoxLeft, {
+              min: 0,
+              max: 100,
+              label: localize('config.cameras.dimensions.layout.view_box.left'),
+            })}
+            ${this._renderNumberInput(configPathViewBoxRight, {
+              min: 0,
+              max: 100,
+              label: localize('config.cameras.dimensions.layout.view_box.right'),
+            })}
+          `,
+        )}
       `,
     );
   }
@@ -1971,9 +2040,46 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   ${this._renderMediaLayout(
                     MENU_CAMERAS_DIMENSIONS_LAYOUT,
                     'config.cameras.dimensions.layout.editor_label',
-                    CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_FIT,
-                    CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_X,
-                    CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_Y,
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_FIT,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_X,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_Y,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_TOP,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_BOTTOM,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_LEFT,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_RIGHT,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_ZOOM_FACTOR,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_PAN_X,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_PAN_Y,
+                      cameraIndex,
+                    ),
                   )}
                 `,
               )}
@@ -2206,6 +2312,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderMenuButton('screenshot')}
                 ${this._renderMenuButton('display_mode')}
                 ${this._renderMenuButton('ptz')}
+                ${this._renderMenuButton('default_zoom')}
               </div>
             `
           : ''}

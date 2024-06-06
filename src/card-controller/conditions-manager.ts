@@ -1,14 +1,21 @@
 import { CurrentUser } from '@dermotduffy/custom-card-helpers';
 import { HassEntities } from 'home-assistant-js-websocket';
 import merge from 'lodash-es/merge';
-import { copyConfig } from '../config/management';
+import { ZodSchema } from 'zod';
+import {
+  copyConfig,
+  deleteConfigValue,
+  getConfigValue,
+  setConfigValue,
+} from '../config/management';
 import {
   FrigateCardCondition,
-  frigateConditionalSchema,
-  OverrideConfigurationKey,
   RawFrigateCardConfig,
   ViewDisplayMode,
+  frigateConditionalSchema,
+  Overrides,
 } from '../config/types';
+import { desparsifyArrays } from '../utils/basic';
 import { CardConditionAPI } from './types';
 
 interface MicrophoneConditionState {
@@ -73,44 +80,66 @@ export function evaluateConditionViaEvent(
   return evaluateEvent.evaluation ?? false;
 }
 
-type RawOverrides = {
-  conditions: FrigateCardCondition[];
-  overrides: RawFrigateCardConfig;
-}[];
-
 export function getOverriddenConfig(
   manager: Readonly<ConditionsManager>,
   config: Readonly<RawFrigateCardConfig>,
-  configOverrides?: Readonly<RawOverrides>,
-  stateOverrides?: Partial<ConditionState>,
+  options?: {
+    configOverrides?: Readonly<Overrides>;
+    stateOverrides?: Partial<ConditionState>;
+    schema?: ZodSchema;
+    logOnParseError?: boolean;
+  },
 ): RawFrigateCardConfig {
-  const output = copyConfig(config);
+  let output = copyConfig(config);
   let overridden = false;
-  if (configOverrides) {
-    for (const override of configOverrides) {
-      if (manager.evaluateConditions(override.conditions, stateOverrides)) {
-        merge(output, override.overrides);
+  if (options?.configOverrides) {
+    for (const override of options.configOverrides) {
+      if (manager.evaluateConditions(override.conditions, options?.stateOverrides)) {
+        override.delete?.forEach((deletionKey) => {
+          deleteConfigValue(output, deletionKey);
+        });
+
+        Object.keys(override.set ?? {}).forEach((setKey) => {
+          setConfigValue(output, setKey, override.set?.[setKey]);
+        });
+
+        Object.keys(override.merge ?? {}).forEach((mergeKey) => {
+          setConfigValue(
+            output,
+            mergeKey,
+            merge({}, getConfigValue(output, mergeKey), override.merge?.[mergeKey]),
+          );
+        });
+
         overridden = true;
       }
     }
   }
-  // Attempt to return the same configuration object if it has not been
-  // overridden (to reduce re-renders for a configuration that has not changed).
-  return overridden ? output : config;
-}
 
-export function getOverridesByKey(
-  key: OverrideConfigurationKey,
-  overrides?: Readonly<RawOverrides>,
-): RawOverrides {
-  return (
-    overrides
-      ?.filter((o) => key in o.overrides)
-      .map((o) => ({
-        conditions: o.conditions,
-        overrides: o.overrides[key] as RawFrigateCardConfig,
-      })) ?? []
-  );
+  if (!overridden) {
+    // Attempt to return the same configuration object if it has not been
+    // overridden (to reduce re-renders for a configuration that has not changed).
+    return config;
+  }
+
+  if (options?.configOverrides?.some((override) => override.delete?.length)) {
+    // If anything was deleted during this override, empty undefined slots may
+    // be left in arrays where values were unset. Desparsify them.
+    output = desparsifyArrays(output);
+  }
+
+  if (options?.schema) {
+    const parseResult = options.schema.safeParse(output);
+    if (options.logOnParseError && !parseResult.success) {
+      console.warn(
+        `Cannot parse overridden configuration`,
+        output,
+        parseResult.error.message,
+      );
+    }
+    return parseResult.success ? parseResult.data : config;
+  }
+  return output;
 }
 
 // A tiny wrapper interface to allow the same manager to be passed around
@@ -161,6 +190,7 @@ export class ConditionsManager {
       const config = this._api.getConfigManager().getConfig();
       const conditions: FrigateCardCondition[] = [];
       config?.overrides?.forEach((override) => conditions.push(...override.conditions));
+      config?.automations?.forEach((automation) => conditions.push(...automation.conditions));
 
       // Element conditions can be arbitrarily nested underneath conditionals and
       // custom elements that this card may not known. Here we recursively parse

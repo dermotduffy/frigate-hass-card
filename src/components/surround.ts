@@ -14,30 +14,11 @@ import {
   ThumbnailsControlConfig,
 } from '../config/types.js';
 import basicBlockStyle from '../scss/basic-block.scss';
-import {
-  ClipsOrSnapshotsOrAll,
-  EventsOrRecordings,
-  ExtendedHomeAssistant,
-} from '../types.js';
+import { ExtendedHomeAssistant } from '../types.js';
 import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
-import {
-  changeViewToRecentEventsForCameraAndDependents,
-  changeViewToRecentRecordingForCameraAndDependents,
-} from '../utils/media-to-view';
 import { View } from '../view/view.js';
 import './surround-basic.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
-
-interface ThumbnailViewContext {
-  // Whether or not to fetch thumbnails.
-  fetch?: boolean;
-}
-
-declare module 'view' {
-  interface ViewContext {
-    thumbnails?: ThumbnailViewContext;
-  }
-}
 
 @customElement('frigate-card-surround')
 export class FrigateCardSurround extends LitElement {
@@ -53,13 +34,6 @@ export class FrigateCardSurround extends LitElement {
   @property({ attribute: false, hasChanged: contentsChanged })
   public timelineConfig?: MiniTimelineControlConfig;
 
-  // If fetchMedia is not specified, no fetching is done.
-  @property({ attribute: false, hasChanged: contentsChanged })
-  public fetchMediaType?: EventsOrRecordings;
-
-  @property({ attribute: false, hasChanged: contentsChanged })
-  public fetchEventsMediaType?: ClipsOrSnapshotsOrAll;
-
   @property({ attribute: false })
   public cameraManager?: CameraManager;
 
@@ -67,56 +41,6 @@ export class FrigateCardSurround extends LitElement {
   public cardWideConfig?: CardWideConfig;
 
   protected _cameraIDsForTimeline?: Set<string>;
-
-  /**
-   * Fetch thumbnail media when a target is not specified in the view (e.g. for
-   * the live view).
-   * @param param Task parameters.
-   * @returns
-   */
-  protected async _fetchMedia(): Promise<void> {
-    if (
-      !this.cameraManager ||
-      !this.cardWideConfig ||
-      !this.fetchMediaType ||
-      !this.fetchEventsMediaType ||
-      !this.hass ||
-      !this.view ||
-      this.view.query ||
-      !this.thumbnailConfig ||
-      this.thumbnailConfig.mode === 'none' ||
-      !(this.view.context?.thumbnails?.fetch ?? true)
-    ) {
-      return;
-    }
-
-    if (this.fetchMediaType === 'events') {
-      await changeViewToRecentEventsForCameraAndDependents(
-        this,
-        this.cameraManager,
-        this.cardWideConfig,
-        this.view,
-        {
-          allCameras: this.view.isGrid(),
-          targetView: this.view.view,
-          eventsMediaType: this.fetchEventsMediaType,
-          select: 'latest',
-        },
-      );
-    } else if (this.fetchMediaType === 'recordings') {
-      await changeViewToRecentRecordingForCameraAndDependents(
-        this,
-        this.cameraManager,
-        this.cardWideConfig,
-        this.view,
-        {
-          allCameras: this.view.isGrid(),
-          targetView: this.view.view,
-          select: 'latest',
-        },
-      );
-    }
-  }
 
   /**
    * Determine if a drawer is being used.
@@ -128,9 +52,6 @@ export class FrigateCardSurround extends LitElement {
     );
   }
 
-  /**
-   * Called before each update.
-   */
   protected willUpdate(changedProperties: PropertyValues): void {
     if (this.timelineConfig?.mode && this.timelineConfig.mode !== 'none') {
       import('./timeline-core.js');
@@ -146,15 +67,6 @@ export class FrigateCardSurround extends LitElement {
         oldView.displayMode !== this.view?.displayMode)
     ) {
       this._cameraIDsForTimeline = this._getCameraIDsForTimeline() ?? undefined;
-    }
-
-    // Once the component will certainly update, dispatch a media request. Only
-    // do so if properties relevant to the request have changed (as per their
-    // hasChanged).
-    if (
-      ['view', 'fetch', 'browseMediaParams'].some((prop) => changedProperties.has(prop))
-    ) {
-      this._fetchMedia();
     }
   }
 
@@ -226,6 +138,7 @@ export class FrigateCardSurround extends LitElement {
                     ...(media.getCameraID() && { camera: media.getCameraID() }),
                   })
                   .removeContext('timeline')
+                  .removeContext('mediaViewer')
                   // Send the view change from the source of the tap event, so
                   // the view change will be caught by the handler above (to
                   // close the drawer).
