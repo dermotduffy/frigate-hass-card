@@ -1,5 +1,4 @@
-import add from 'date-fns/add';
-import sub from 'date-fns/sub';
+import { add, sub } from 'date-fns';
 import { DataSet } from 'vis-data';
 import { IdType, TimelineItem, TimelineWindow } from 'vis-timeline/esnext';
 import { CameraManager } from '../camera-manager/manager';

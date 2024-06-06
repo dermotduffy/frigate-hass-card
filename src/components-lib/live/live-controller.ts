@@ -1,4 +1,4 @@
-import sub from 'date-fns/sub';
+import { sub } from 'date-fns';
 import { LitElement, ReactiveController } from 'lit';
 import { ViewContext } from 'view';
 import { CameraManager } from '../../camera-manager/manager.js';

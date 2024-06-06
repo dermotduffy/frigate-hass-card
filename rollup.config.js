@@ -1,4 +1,4 @@
-import typescript from 'rollup-plugin-typescript2';
+import typescript from '@rollup/plugin-typescript';
 import commonjs from '@rollup/plugin-commonjs';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
@@ -48,7 +48,9 @@ const plugins = [
     include: 'node_modules/**',
     sourceMap: false,
   }),
-  typescript(),
+  typescript({
+    sourceMap: dev,
+  }),
   json({ exclude: 'package.json' }),
   replace({
     preventAssignment: true,
@@ -89,9 +91,7 @@ const config = {
       return '[name]-[hash].js';
     },
     format: 'es',
-    ...(dev && {
-      sourcemap: true,
-    }),
+    sourcemap: dev,
   },
   plugins: plugins,
   // These files use this at the toplevel, which causes rollup warning

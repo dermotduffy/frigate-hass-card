@@ -1,4 +1,4 @@
-import add from 'date-fns/add';
+import { add } from 'date-fns';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CardController } from '../../src/card-controller/controller';
 import { TriggersManager } from '../../src/card-controller/triggers-manager';

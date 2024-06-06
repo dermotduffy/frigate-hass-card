@@ -1,7 +1,9 @@
-import differenceInHours from 'date-fns/differenceInHours';
-import differenceInMinutes from 'date-fns/differenceInMinutes';
-import differenceInSeconds from 'date-fns/differenceInSeconds';
-import format from 'date-fns/format';
+import {
+  differenceInHours,
+  differenceInMinutes,
+  differenceInSeconds,
+  format,
+} from 'date-fns';
 import { StyleInfo } from 'lit/directives/style-map';
 import { round } from 'lodash-es';
 import isEqualWith from 'lodash-es/isEqualWith';

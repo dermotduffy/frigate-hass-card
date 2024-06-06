@@ -1,4 +1,4 @@
-import add from 'date-fns/add';
+import { add } from 'date-fns';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import {
