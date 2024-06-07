@@ -44,7 +44,7 @@ jobs:
         run: yarn run docs-check-links
 
       - name: Upload javascript
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: frigate-hass-card
           path: dist/*.js
@@ -52,7 +52,7 @@ jobs:
       # When this issue is fixed, it would be useful to upload visualizations:
       # https://github.com/actions/upload-artifact/issues/14
       # - name: Upload visualizations
-      #   uses: actions/upload-artifact@v3
+      #   uses: actions/upload-artifact@v4
       #   with:
       #     name: frigate-hass-card
       #     path: visualizations/*.html
