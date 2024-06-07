@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# This script downloads Google drawings into locally served image files.
+
 WIDTH=1200
 
 URL_FIT="https://docs.google.com/drawings/d/e/2PACX-1vTq0SVS8HWs3jGC0jjNpJoYfMbZS6P27CYyPlDhSa9OhdB_3jEb0HTLLYwu8Nv3J1TdjAJppcjTiVNy/pub?w=$WIDTH"
@@ -10,9 +12,15 @@ URL_PAN_ZOOM="https://docs.google.com/drawings/d/e/2PACX-1vTcbuMiqKo7-w0my3jaht1
 
 DIR_MEDIA_LAYOUT_IMAGES="./docs/images/media_layout"
 
-wget -q -O "$DIR_MEDIA_LAYOUT_IMAGES/fit.png" "$URL_FIT" && \
-  wget -q -O "$DIR_MEDIA_LAYOUT_IMAGES/position-thinner-than-width.png" "$URL_THINNER_THAN_WIDTH" && \
-  wget -q -O "$DIR_MEDIA_LAYOUT_IMAGES/position-shorter-than-height.png" "$URL_SHORTER_THAN_HEIGHT" && \
-  wget -q -O "$DIR_MEDIA_LAYOUT_IMAGES/view-box.png" "$URL_VIEW_BOX" && \
-  wget -q -O "$DIR_MEDIA_LAYOUT_IMAGES/pan-zoom.png" "$URL_PAN_ZOOM"
+fetch() {
+  URL="$1"
+  BASENAME="$2"
+  echo "Fetching image $BASENAME.png..."  
+  wget -q -O "$DIR_MEDIA_LAYOUT_IMAGES/$BASENAME.png" "$URL"
+}
 
+fetch "$URL_FIT" "fit"
+fetch "$URL_THINNER_THAN_WIDTH" "position-thinner-than-width"
+fetch "$URL_SHORTER_THAN_HEIGHT" "position-shorter-than-height"
+fetch "$URL_VIEW_BOX" "view-box"
+fetch "$URL_PAN_ZOOM" "pan-zoom"
