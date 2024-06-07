@@ -191,6 +191,7 @@ describe('FrigateCamera', () => {
         await camera.initialize(createHASS(), mock<EntityRegistryManager>());
 
         expect(camera.getCapabilities()?.has('ptz')).toBeFalsy();
+        expect(camera.getCapabilities()?.hasPTZCapability()).toBeFalsy();
         expect(consoleSpy).toBeCalled();
       });
 
@@ -214,10 +215,15 @@ describe('FrigateCamera', () => {
 
         expect(camera.getCapabilities()?.has('ptz')).toBeTruthy();
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
-          panTilt: ['continuous'],
-          zoom: ['continuous'],
+          left: ['continuous'],
+          right: ['continuous'],
+          up: ['continuous'],
+          down: ['continuous'],
+          zoomIn: ['continuous'],
+          zoomOut: ['continuous'],
           presets: ['preset01'],
         });
+        expect(camera.getCapabilities()?.hasPTZCapability()).toBeTruthy();
       });
 
       it('when getPTZInfo call succeeds with relative motion', async () => {
@@ -240,10 +246,15 @@ describe('FrigateCamera', () => {
 
         expect(camera.getCapabilities()?.has('ptz')).toBeTruthy();
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
-          panTilt: ['relative'],
-          zoom: ['relative'],
+          left: [],
+          right: [],
+          up: [],
+          down: [],
+          zoomIn: [],
+          zoomOut: [],
           presets: ['preset01'],
         });
+        expect(camera.getCapabilities()?.hasPTZCapability()).toBeTruthy();
       });
     });
   });

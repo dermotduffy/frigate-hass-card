@@ -8,10 +8,10 @@ import {
   subscribeToTrigger,
 } from '../utils/ha';
 import { EntityRegistryManager } from '../utils/ha/entity-registry';
+import { Capabilities } from './capabilities';
 import { CameraManagerEngine } from './engine';
 import { CameraNoIDError } from './error';
 import { CameraEventCallback } from './types';
-import { Capabilities } from './capabilities';
 
 type DestroyCallback = () => Promise<void>;
 

@@ -1,17 +1,19 @@
 import isEqual from 'lodash-es/isEqual';
-import { isConfigUpgradeable } from '../config/management';
+import { isConfigUpgradeable } from '../../config/management.js';
 import {
   CardWideConfig,
   FrigateCardConfig,
   frigateCardConfigSchema,
   RawFrigateCardConfig,
-} from '../config/types';
-import { localize } from '../localize/localize';
-import { setProfiles } from '../config/profiles';
-import { getParseErrorPaths } from '../utils/zod.js';
-import { getOverriddenConfig } from './conditions-manager';
-import { InitializationAspect } from './initialization-manager';
-import { CardConfigAPI } from './types';
+} from '../../config/types.js';
+import { localize } from '../../localize/localize.js';
+import { setProfiles } from '../../config/profiles/index.js';
+import { getParseErrorPaths } from '../../utils/zod.js';
+import { getOverriddenConfig } from '../conditions-manager.js';
+import { InitializationAspect } from '../initialization-manager.js';
+import { CardConfigAPI } from '../types.js';
+import { setAutomationsFromConfig } from './load-automations.js';
+import { setKeyboardShortcutsFromConfig } from './load-keyboard-shortcuts.js';
 
 export class ConfigManager {
   protected _api: CardConfigAPI;
@@ -92,9 +94,10 @@ export class ConfigManager {
     this._api.getMediaLoadedInfoManager().clear();
     this._api.getViewManager().reset();
     this._api.getMessageManager().reset();
-    this._api.getAutomationsManager().setAutomationsFromConfig();
     this._api.getStyleManager().setPerformance();
     this._api.getCardElementManager().update();
+    setKeyboardShortcutsFromConfig(this._api, this);
+    setAutomationsFromConfig(this._api);
 
     this.computeOverrideConfig();
   }

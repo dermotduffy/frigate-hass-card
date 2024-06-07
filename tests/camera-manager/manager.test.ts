@@ -1070,7 +1070,7 @@ describe('CameraManager', async () => {
             snapshots: true,
 
             ptz: {
-              panTilt: ['continuous'],
+              left: ['continuous'],
             },
           }),
         },
@@ -1102,7 +1102,50 @@ describe('CameraManager', async () => {
       expect(engine.executePTZAction).not.toBeCalled();
     });
 
-    it('successfully', async () => {
+    it('without hass', async () => {
+      const api = createCardAPI();
+      const engine = mock<CameraManagerEngine>();
+      const manager = createCameraManager(api, engine);
+
+      const hass = createHASS();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+      expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
+
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(null);
+      manager.executePTZAction('id', 'left');
+
+      expect(engine.executePTZAction).not.toBeCalled();
+    });
+
+    it('successfully from config', async () => {
+      const api = createCardAPI();
+      const engine = mock<CameraManagerEngine>();
+      const hass = createHASS();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+      const action = {
+        action: 'call-service' as const,
+        service: 'service',
+      }
+      const manager = createCameraManager(api, engine, [
+        {
+          config: createCameraConfig({
+            baseCameraConfig,
+            id: 'another',
+            ptz: {
+              actions_left: action,
+            },
+          }),
+        },
+      ]);
+      expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
+
+      manager.executePTZAction('another', 'left');
+
+      expect(api.getActionsManager().executeActions).toBeCalledWith(action);
+      expect(engine.executePTZAction).not.toBeCalled();
+    });
+
+    it('successfully from engine', async () => {
       const api = createCardAPI();
       const engine = mock<CameraManagerEngine>();
       const hass = createHASS();

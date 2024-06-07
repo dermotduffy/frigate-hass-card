@@ -46,7 +46,7 @@ export class FrigateCardMenu extends LitElement {
       return html` <frigate-card-submenu
         .hass=${this.hass}
         .submenu=${button}
-        @action=${(ev) => this.hass && this._controller.actionHandler(this.hass, ev)}
+        @action=${(ev) => this._controller.actionHandler(ev)}
       >
       </frigate-card-submenu>`;
     } else if (button.type === 'custom:frigate-card-menu-submenu-select') {
@@ -54,7 +54,7 @@ export class FrigateCardMenu extends LitElement {
         .hass=${this.hass}
         .submenuSelect=${button}
         .entityRegistryManager=${this.entityRegistryManager}
-        @action=${(ev) => this.hass && this._controller.actionHandler(this.hass, ev)}
+        @action=${(ev) => this._controller.actionHandler(ev)}
       >
       </frigate-card-submenu-select>`;
     }
@@ -84,8 +84,7 @@ export class FrigateCardMenu extends LitElement {
         hasDoubleClick: frigateCardHasAction(button.double_tap_action),
       })}
       .label=${buttonState.title || ''}
-      @action=${(ev) =>
-        this.hass && this._controller.actionHandler(this.hass, ev, button)}
+      @action=${(ev) => this._controller.actionHandler(ev, button)}
     >
       ${svgPath
         ? html`<ha-svg-icon .path="${svgPath}"></ha-svg-icon>`
@@ -106,17 +105,13 @@ export class FrigateCardMenu extends LitElement {
 
     return html` <div
         class="matching"
-        style="${styleMap({
-          flex: String(matchingButtons.length),
-        })}"
+        style="${styleMap({ flex: String(matchingButtons.length) })}"
       >
         ${matchingButtons.map((button) => this._renderButton(button))}
       </div>
       <div
         class="opposing"
-        style="${styleMap({
-          flex: String(opposingButtons.length),
-        })}"
+        style="${styleMap({ flex: String(opposingButtons.length) })}"
       >
         ${opposingButtons.map((button) => this._renderButton(button))}
       </div>`;

@@ -192,6 +192,15 @@ import {
   CONF_VIEW_DARK_MODE,
   CONF_VIEW_DEFAULT,
   CONF_VIEW_INTERACTION_SECONDS,
+  CONF_VIEW_KEYBOARD_SHORTCUTS,
+  CONF_VIEW_KEYBOARD_SHORTCUTS_ENABLED,
+  CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_DOWN,
+  CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_HOME,
+  CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_LEFT,
+  CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_RIGHT,
+  CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_UP,
+  CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_IN,
+  CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_OUT,
   CONF_VIEW_RESET_AFTER_INTERACTION,
   CONF_VIEW_TRIGGERS,
   CONF_VIEW_TRIGGERS_ACTIONS,
@@ -215,6 +224,8 @@ import {
   getEntityTitle,
   sideLoadHomeAssistantElements,
 } from './utils/ha';
+import './components/key-assigner.js';
+import { KeyboardShortcut } from './config/keyboard-shortcuts.js';
 
 const MENU_BUTTONS = 'buttons';
 const MENU_CAMERAS = 'cameras';
@@ -251,6 +262,7 @@ const MENU_OPTIONS = 'options';
 const MENU_PERFORMANCE_FEATURES = 'performance.features';
 const MENU_PERFORMANCE_STYLE = 'performance.style';
 const MENU_TIMELINE_CONTROLS_THUMBNAILS = 'timeline.controls.thumbnails';
+const MENU_VIEW_KEYBOARD_SHORTCUTS = 'view.keyboard_shortcuts';
 const MENU_VIEW_TRIGGERS = 'view.triggers';
 const MENU_VIEW_TRIGGERS_ACTIONS = 'view.triggers.actions';
 
@@ -1106,6 +1118,60 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               label: localize('config.view.triggers.actions.interaction_mode'),
             },
           )}`,
+        )}
+      `,
+    );
+  }
+
+  protected _renderKeyAssigner(configPath: string, defaultValue: KeyboardShortcut): TemplateResult {
+    return html` <frigate-card-key-assigner
+      .label=${localize(`config.${configPath}`)}
+      .value=${this._config ? getConfigValue(this._config, configPath, defaultValue) : null}
+      @value-changed=${(ev) => this._valueChangedHandler(configPath, ev)}
+    ></frigate-card-key-assigner>`;
+  }
+
+  protected _renderViewKeyboardShortcutMenu(): TemplateResult {
+    return this._putInSubmenu(
+      MENU_VIEW_KEYBOARD_SHORTCUTS,
+      true,
+      `config.${CONF_VIEW_KEYBOARD_SHORTCUTS}.editor_label`,
+      { name: 'mdi:keyboard' },
+      html`
+        ${this._renderSwitch(
+          CONF_VIEW_KEYBOARD_SHORTCUTS_ENABLED,
+          this._defaults.view.keyboard_shortcuts.enabled,
+          {
+            label: localize(`config.${CONF_VIEW_KEYBOARD_SHORTCUTS_ENABLED}`),
+          },
+        )}
+        ${this._renderKeyAssigner(
+          CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_LEFT,
+          this._defaults.view.keyboard_shortcuts.ptz_left,
+        )}
+        ${this._renderKeyAssigner(
+          CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_RIGHT,
+          this._defaults.view.keyboard_shortcuts.ptz_right,
+        )}
+        ${this._renderKeyAssigner(
+          CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_UP,
+          this._defaults.view.keyboard_shortcuts.ptz_up,
+        )}
+        ${this._renderKeyAssigner(
+          CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_DOWN,
+          this._defaults.view.keyboard_shortcuts.ptz_down,
+        )}
+        ${this._renderKeyAssigner(
+          CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_IN,
+          this._defaults.view.keyboard_shortcuts.ptz_zoom_in,
+        )}
+        ${this._renderKeyAssigner(
+          CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_OUT,
+          this._defaults.view.keyboard_shortcuts.ptz_zoom_out,
+        )}
+        ${this._renderKeyAssigner(
+          CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_HOME,
+          this._defaults.view.keyboard_shortcuts.ptz_home,
         )}
       `,
     );
@@ -2272,6 +2338,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   this._defaults.view.update_cycle_camera,
                 )}
                 ${this._renderViewTriggersMenu()}
+                ${this._renderViewKeyboardShortcutMenu()}
               </div>
             `
           : ''}
@@ -2311,8 +2378,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderMenuButton('mute') /*  */}
                 ${this._renderMenuButton('screenshot')}
                 ${this._renderMenuButton('display_mode')}
-                ${this._renderMenuButton('ptz')}
-                ${this._renderMenuButton('default_zoom')}
+                ${this._renderMenuButton('ptz_controls')}
+                ${this._renderMenuButton('ptz_home')}
               </div>
             `
           : ''}
@@ -2787,9 +2854,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     this._updateConfig(newConfig);
   }
 
-  /**
-   * Return compiled CSS styles.
-   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(frigate_card_editor_style);
   }

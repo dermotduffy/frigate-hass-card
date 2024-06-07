@@ -37,6 +37,8 @@ dimensions:
 
 ## Automation
 
+### Responding to fullscreen
+
 This example will automatically turn on the first configured substream when the
 card is put in fullscreen mode, and turn off the substream when exiting
 fullscreen mode.
@@ -66,6 +68,49 @@ automations:
     actions_not:
       - action: custom:frigate-card-action
         frigate_card_action: live_substream_off
+```
+
+### Responding to key input
+
+In addition to a handful of reconfigurable [built-in keyboard shortcuts](./usage/keyboard-shortcuts.md), `automations` can be used to take any action based on any keyboard input. These examples use [`key` conditions](./configuration/conditions.md?id=key) to assess keyboard state before taking action.
+
+#### Change to `live` temporarily
+
+In this example, the view will change to `live`, when `Alt+Z` is pressed, and change to the `clips` view `5` seconds later.
+
+```yaml
+automations:
+  - conditions:
+      - condition: key
+        key: z
+        alt: true
+    actions:
+      - action: custom:frigate-card-action
+        frigate_card_action: live
+      - action: custom:frigate-card-action
+        frigate_card_action: sleep
+        duration:
+          s: 5
+      - action: custom:frigate-card-action
+        frigate_card_action: clips
+```
+
+#### Change to `live` while key _held_ down
+
+In this example, the view will change to `live`, when `Alt+Z` is _held_ down, and immediately change to `clips` when _released_.
+
+```yaml
+automations:
+  - conditions:
+      - condition: key
+        key: z
+        alt: true
+    actions:
+      - action: custom:frigate-card-action
+        frigate_card_action: live
+    actions_not:
+      - action: custom:frigate-card-action
+        frigate_card_action: clips
 ```
 
 ## `card-mod`
@@ -162,7 +207,7 @@ elements:
         tap_action:
           action: call-service
           service: amcrest.ptz_control
-          service_data:
+          data:
             entity_id: camera.kitchen
             movement: up
 ```
@@ -374,7 +419,7 @@ elements:
 
 ## Multiple actions
 
-This example shows how to configure multiple actions for a single Frigate card user interaction, in this case both selecting a different camera and changing the view on `tap`. Note that multiple actions are not supported on stock Picture Elements, see [actions](configuration/actions.md) for more information.
+This example shows how to configure multiple actions for a single Frigate card user interaction, in this case both selecting a different camera and changing the view on `tap`. Note that multiple actions are not supported on stock Picture Elements, see [actions](configuration/actions/README.md) for more information.
 
 ```yaml
 type: custom:frigate-card

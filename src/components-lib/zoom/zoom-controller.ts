@@ -1,17 +1,20 @@
 import Panzoom, { PanzoomEventDetail, PanzoomObject } from '@dermotduffy/panzoom';
-import debounce from 'lodash-es/debounce';
+import throttle from 'lodash-es/throttle';
 import round from 'lodash-es/round';
 import {
   arefloatsApproximatelyEqual,
   dispatchFrigateCardEvent,
   isHoverableDevice,
 } from '../../utils/basic';
-import { ZoomConfig } from './types';
-
-const ZOOM_DEFAULT_PAN_X = 50;
-const ZOOM_DEFAULT_PAN_Y = 50;
-const ZOOM_DEFAULT_SCALE = 1;
-const ZOOM_PRECISION = 4;
+import {
+  PartialZoomSettings,
+  ZOOM_DEFAULT_PAN_X,
+  ZOOM_DEFAULT_PAN_Y,
+  ZOOM_DEFAULT_SCALE,
+  ZOOM_PRECISION,
+  ZoomSettingsObserved,
+  isZoomEmpty,
+} from './types';
 
 export class ZoomController {
   protected _element: HTMLElement;
@@ -26,15 +29,14 @@ export class ZoomController {
   // Should clicks be allowed to propagate, or consumed as a pan/zoom action?
   protected _allowClick = true;
 
-  protected _defaultConfig: ZoomConfig | null;
-  protected _config: ZoomConfig | null;
+  protected _defaultSettings: PartialZoomSettings | null;
+  protected _settings: PartialZoomSettings | null;
 
-  // When the user pans/zooms changes may be created at a very high rate.
-  protected _debouncedChangeHandler = debounce(this._changeHandler.bind(this), 200);
-
-  // Multiple calls to setConfig() or setDefaultConfig() or resizes should only
-  // update once.
-  protected _debouncedUpdater = debounce(this._updateBasedOnConfig.bind(this), 200);
+  // These values should be suitably less than the value of STEP_DELAY_SECONDS
+  // in the ptz-digital action, in order to ensure smooth movements of the
+  // digital PTZ actions.
+  protected _debouncedChangeHandler = throttle(this._changeHandler.bind(this), 50);
+  protected _debouncedUpdater = throttle(this._updateBasedOnConfig.bind(this), 50);
 
   protected _resizeObserver = new ResizeObserver(this._debouncedUpdater);
 
@@ -70,6 +72,11 @@ export class ZoomController {
     // handler in the viewer).
     if (!this._allowClick) {
       ev.stopPropagation();
+
+      // Even though the click is stopped,the card still needs to gain focus so
+      // that keyboard shortcuts will work immediately after the card is clicked
+      // upon.
+      dispatchFrigateCardEvent(this._element, 'focus');
     }
     this._allowClick = true;
   };
@@ -97,11 +104,14 @@ export class ZoomController {
 
   constructor(
     element: HTMLElement,
-    options?: { config?: ZoomConfig | null; defaultConfig?: ZoomConfig | null },
+    options?: {
+      config?: PartialZoomSettings | null;
+      defaultConfig?: PartialZoomSettings | null;
+    },
   ) {
     this._element = element;
-    this._config = options?.config ?? null;
-    this._defaultConfig = options?.defaultConfig ?? null;
+    this._settings = options?.config ?? null;
+    this._defaultSettings = options?.defaultConfig ?? null;
   }
 
   public activate(): void {
@@ -182,44 +192,47 @@ export class ZoomController {
     this._element.removeEventListener('panzoomchange', this._debouncedChangeHandler);
   }
 
-  public setDefaultConfig(config: ZoomConfig | null): void {
-    this._defaultConfig = config;
+  public setDefaultSettings(config: PartialZoomSettings | null): void {
+    this._defaultSettings = config;
     this._debouncedUpdater();
   }
 
-  public setConfig(config: ZoomConfig): void {
-    this._config = config;
+  public setSettings(config: PartialZoomSettings | null): void {
+    this._settings = config;
     this._debouncedUpdater();
   }
 
   protected _changeHandler(ev: Event): void {
     const pz = (<CustomEvent<PanzoomEventDetail>>ev).detail;
-
-    const isUnzoomed = this._isUnzoomed(pz.scale);
-    const isAtDefault = this._isAtDefaultZoomAndPan(pz.x, pz.y, pz.scale);
+    const unzoomed = this._isUnzoomed(pz.scale);
 
     // Take care here to only dispatch the zoomed/unzoomed events when the
     // absolute state changes (rather than on every single zoom adjustment).
-    if (isUnzoomed && this._zoomed) {
+    if (unzoomed && this._zoomed) {
       this._zoomed = false;
       this._setTouchAction(true);
       dispatchFrigateCardEvent(this._element, 'zoom:unzoomed');
-    } else if (!isUnzoomed && !this._zoomed) {
+    } else if (!unzoomed && !this._zoomed) {
       this._zoomed = true;
       this._setTouchAction(false);
       dispatchFrigateCardEvent(this._element, 'zoom:zoomed');
     }
 
-    if (isAtDefault && !this._default) {
-      this._default = true;
-      dispatchFrigateCardEvent(this._element, 'zoom:default', { isDefault: true });
-    } else if (!isAtDefault && this._default) {
-      this._default = false;
-      dispatchFrigateCardEvent(this._element, 'zoom:default', { isDefault: false });
-    }
+    const converted = this._convertXYPanToPercent(pz.x, pz.y, pz.scale);
+    const observed: ZoomSettingsObserved = {
+      pan: {
+        x: converted?.x ?? ZOOM_DEFAULT_PAN_X,
+        y: converted?.y ?? ZOOM_DEFAULT_PAN_Y,
+      },
+      zoom: pz.scale,
+      isDefault: this._isAtDefaultZoomAndPan(pz.x, pz.y, pz.scale),
+      unzoomed: unzoomed,
+    };
+
+    dispatchFrigateCardEvent(this._element, 'zoom:change', observed);
   }
 
-  protected _isZoomEqual(a: ZoomConfig, b: ZoomConfig): boolean {
+  protected _isZoomEqual(a: PartialZoomSettings, b: PartialZoomSettings): boolean {
     // The ?? clauses below cannot be reached since this function is only ever
     // used fully specified by this object. It's kept as-is for completeness.
     return (
@@ -247,16 +260,8 @@ export class ZoomController {
     );
   }
 
-  protected _isZoomEmpty(config?: ZoomConfig | null): boolean {
-    return (
-      config?.pan?.x === undefined &&
-      config?.pan?.y === undefined &&
-      config?.zoom === undefined
-    );
-  }
-
-  protected _getConfigToUse(): ZoomConfig | null {
-    return this._isZoomEmpty(this._config) ? this._defaultConfig : this._config;
+  protected _getConfigToUse(): PartialZoomSettings | null {
+    return isZoomEmpty(this._settings) ? this._defaultSettings : this._settings;
   }
 
   protected _updateBasedOnConfig(): void {
@@ -292,6 +297,9 @@ export class ZoomController {
     }
 
     this._panzoom.zoom(desiredScale, {
+      // Zoom is stepped, not animated. If it is animated, there is interaction
+      // between the zoom and the pan below, and the pan would need to be
+      // delayed until after the zoom is complete.
       animate: false,
     });
 
@@ -300,10 +308,12 @@ export class ZoomController {
     // situation where we need to ensure the zoom completes first. Using
     // `requestAnimationFrame` appears to reliably allow the zoom to finish
     // rendering first, before the pain is applied.
+    //
     // See: https://github.com/timmywil/panzoom?tab=readme-ov-file#a-note-on-the-async-nature-of-panzoom
     window.requestAnimationFrame(() => {
       this._panzoom?.pan(x, y, {
-        animate: false,
+        animate: true,
+        duration: 100,
       });
     });
   }
@@ -329,6 +339,28 @@ export class ZoomController {
     return {
       x: minMax.minX + (minMax.maxX - minMax.minX) * (x / 100),
       y: minMax.minY + (minMax.maxY - minMax.minY) * (y / 100),
+    };
+  }
+
+  protected _convertXYPanToPercent(
+    x: number,
+    y: number,
+    scale: number,
+  ): { x: number; y: number } | null {
+    const minMax = this._getTransformMinMax(scale, this._panzoom?.getScale());
+    if (minMax === null) {
+      return null;
+    }
+
+    return {
+      x:
+        ((-x + Math.abs(minMax.minX)) /
+          (Math.abs(minMax.maxX) + Math.abs(minMax.minX))) *
+        100,
+      y:
+        ((-y + Math.abs(minMax.minY)) /
+          (Math.abs(minMax.maxY) + Math.abs(minMax.minY))) *
+        100,
     };
   }
 
@@ -375,14 +407,14 @@ export class ZoomController {
   }
 
   protected _isAtDefaultZoomAndPan(x: number, y: number, scale: number): boolean {
-    if (!this._defaultConfig) {
+    if (!this._defaultSettings) {
       return this._isUnzoomed(scale);
     }
 
     const convertedDefault = this._convertPercentToXYPan(
-      this._defaultConfig.pan?.x ?? ZOOM_DEFAULT_PAN_X,
-      this._defaultConfig.pan?.y ?? ZOOM_DEFAULT_PAN_Y,
-      this._defaultConfig.zoom ?? ZOOM_DEFAULT_SCALE,
+      this._defaultSettings.pan?.x ?? ZOOM_DEFAULT_PAN_X,
+      this._defaultSettings.pan?.y ?? ZOOM_DEFAULT_PAN_Y,
+      this._defaultSettings.zoom ?? ZOOM_DEFAULT_SCALE,
     );
     if (!convertedDefault) {
       return true;
@@ -393,7 +425,7 @@ export class ZoomController {
       arefloatsApproximatelyEqual(y, convertedDefault.y) &&
       arefloatsApproximatelyEqual(
         scale,
-        this._defaultConfig.zoom ??
+        this._defaultSettings.zoom ??
           // The ZOOM_DEFAULT_SCALE clause below cannot be reached since when
           // this._defaultConfig.zoom is undefined, convertedDefault will end up
           // null above and this function will have already returned.

@@ -1,7 +1,7 @@
 # URL Actions
 
 It is possible to pass the Frigate card one or more
-[actions](../configuration/actions.md) from the URL (e.g. select a particular
+[actions](../configuration/actions/README.md) from the URL (e.g. select a particular
 camera, open the live view in expanded mode, etc).
 
 ### When actions are executed
@@ -44,7 +44,7 @@ unless the action is targeted with a `CARD_ID` as shown above.
 
 ## Supported Actions
 
-Only a subset of all [actions](../configuration/actions.md) are supported in URL form.
+Only a subset of all [actions](../configuration/actions/README.md) are supported in URL form.
 
 | Action | Supported in URL | Explanation |
 | - | - | - |
@@ -68,7 +68,7 @@ Only a subset of all [actions](../configuration/actions.md) are supported in URL
 | `recording` | :white_check_mark: | |
 | `recordings` | :white_check_mark: | |
 | `screenshot`| :heavy_multiplication_x: | Latest media information is not available on initial render. |
-| `show_ptz` | :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/frigate-hass-card/issues) if you need this. |
+| `ptz_controls` | :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/frigate-hass-card/issues) if you need this. |
 | `snapshot` | :white_check_mark: | |
 | `snapshots` | :white_check_mark: | |
 

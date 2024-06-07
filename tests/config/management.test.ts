@@ -1,3 +1,4 @@
+import { CallServiceActionConfig } from '@dermotduffy/custom-card-helpers';
 import { describe, expect, it } from 'vitest';
 import {
   copyConfig,
@@ -17,7 +18,13 @@ import {
   upgradeObjectRecursively,
   upgradeWithOverrides,
 } from '../../src/config/management';
-import { RawFrigateCardConfig } from '../../src/config/types';
+import { PTZControlAction } from '../../src/config/ptz';
+import {
+  Actions,
+  RawFrigateCardConfig,
+  frigateCardConfigSchema,
+} from '../../src/config/types';
+import { getParseErrorPaths } from '../../src/utils/zod';
 
 describe('general functions', () => {
   it('should set value', () => {
@@ -354,6 +361,24 @@ describe('upgrade functions', () => {
 });
 
 describe('should handle version specific upgrades', () => {
+  const postUpgradeChecks = (config: RawFrigateCardConfig): void => {
+    // Should be no additional upgrades.
+    expect(upgradeConfig(config)).toBeFalsy();
+
+    // Result should be parseable.
+    const result = frigateCardConfigSchema.safeParse(config);
+    if (!result.success) {
+      expect(
+        result.success,
+        'Post-upgrade parse error.\n\n' +
+          'Problem paths: ' +
+          [...getParseErrorPaths(result.error)] +
+          '\n\n' +
+          JSON.stringify(config, null, 2),
+      ).toBeTruthy();
+    }
+  };
+
   describe('v4.1.0', () => {
     describe('should rename mediaLoaded to media_loaded', () => {
       it('elements', () => {
@@ -362,11 +387,13 @@ describe('should handle version specific upgrades', () => {
           cameras: [{ camera_entity: 'camera.office' }],
           elements: [
             {
+              type: 'custom:random',
               conditions: {
                 mediaLoaded: true,
               },
             },
             {
+              type: 'custom:random2',
               conditions: 'not an object',
             },
           ],
@@ -377,6 +404,7 @@ describe('should handle version specific upgrades', () => {
           cameras: [{ camera_entity: 'camera.office' }],
           elements: [
             {
+              type: 'custom:random',
               conditions: [
                 {
                   condition: 'media_loaded' as const,
@@ -385,10 +413,12 @@ describe('should handle version specific upgrades', () => {
               ],
             },
             {
+              type: 'custom:random2',
               conditions: 'not an object',
             },
           ],
         });
+        postUpgradeChecks(config);
       });
 
       it('overrides', () => {
@@ -428,6 +458,7 @@ describe('should handle version specific upgrades', () => {
             },
           ],
         });
+        postUpgradeChecks(config);
       });
     });
 
@@ -447,6 +478,7 @@ describe('should handle version specific upgrades', () => {
           foo: 'bar',
         },
       });
+      postUpgradeChecks(config);
     });
 
     it('should rename menu.buttons.frigate_ui to menu.buttons.camera_ui', () => {
@@ -462,7 +494,12 @@ describe('should handle version specific upgrades', () => {
         },
         overrides: [
           {
-            conditions: {},
+            conditions: [
+              {
+                condition: 'view',
+                views: ['clips'],
+              },
+            ],
             overrides: {
               menu: {
                 buttons: {
@@ -488,7 +525,12 @@ describe('should handle version specific upgrades', () => {
         },
         overrides: [
           {
-            conditions: {},
+            conditions: [
+              {
+                condition: 'view',
+                views: ['clips'],
+              },
+            ],
             merge: {
               menu: {
                 buttons: {
@@ -501,6 +543,7 @@ describe('should handle version specific upgrades', () => {
           },
         ],
       });
+      postUpgradeChecks(config);
     });
 
     it('should rename frigate ui actions', () => {
@@ -549,6 +592,7 @@ describe('should handle version specific upgrades', () => {
           },
         },
       });
+      postUpgradeChecks(config);
     });
 
     describe('should rename frigate-jsmpeg provider to jsmpeg', () => {
@@ -562,6 +606,7 @@ describe('should handle version specific upgrades', () => {
           type: 'custom:frigate-card',
           cameras: [{ live_provider: 'ha' }, { live_provider: 'jsmpeg' }],
         });
+        postUpgradeChecks(config);
       });
     });
 
@@ -571,6 +616,7 @@ describe('should handle version specific upgrades', () => {
         (objName: string) => {
           const config = {
             type: 'custom:frigate-card',
+            cameras: [{}],
             live: {
               [objName]: {
                 foo: 'bar',
@@ -580,6 +626,7 @@ describe('should handle version specific upgrades', () => {
           expect(upgradeConfig(config)).toBeTruthy();
           expect(config).toEqual({
             type: 'custom:frigate-card',
+            cameras: [{}],
             cameras_global: {
               [objName]: {
                 foo: 'bar',
@@ -587,6 +634,7 @@ describe('should handle version specific upgrades', () => {
             },
             live: {},
           });
+          postUpgradeChecks(config);
         },
       );
     });
@@ -608,6 +656,7 @@ describe('should handle version specific upgrades', () => {
             { live_provider: 'jsmpeg' },
           ],
         });
+        postUpgradeChecks(config);
       });
     });
 
@@ -627,6 +676,7 @@ describe('should handle version specific upgrades', () => {
           { live_provider: 'jsmpeg' },
         ],
       });
+      postUpgradeChecks(config);
     });
   });
 
@@ -732,6 +782,7 @@ describe('should handle version specific upgrades', () => {
             },
           },
         });
+        postUpgradeChecks(config);
       });
       it('negative case', () => {
         const config = {
@@ -749,6 +800,7 @@ describe('should handle version specific upgrades', () => {
             default: 'live',
           },
         });
+        postUpgradeChecks(config);
       });
     });
 
@@ -781,18 +833,20 @@ describe('should handle version specific upgrades', () => {
         expect(upgradeConfig(config)).toBeTruthy();
         expect(config).toEqual({
           cameras: [{ camera_entity: 'camera.office' }],
+          cameras_global: {
+            ptz: {
+              actions_up: {
+                action: 'call-service',
+                data: {
+                  message: 'Hello 1',
+                },
+                service: 'notify.persistent_notification',
+              },
+            },
+          },
           live: {
             controls: {
               ptz: {
-                actions_up: {
-                  tap_action: {
-                    action: 'call-service',
-                    data: {
-                      message: 'Hello 1',
-                    },
-                    service: 'notify.persistent_notification',
-                  },
-                },
                 orientation: 'vertical',
                 style: {
                   color: 'white',
@@ -804,6 +858,7 @@ describe('should handle version specific upgrades', () => {
           },
           type: 'custom:frigate-card',
         });
+        postUpgradeChecks(config);
       });
 
       it('case with >1 element', () => {
@@ -842,6 +897,17 @@ describe('should handle version specific upgrades', () => {
         expect(upgradeConfig(config)).toBeTruthy();
         expect(config).toEqual({
           cameras: [{ camera_entity: 'camera.office' }],
+          cameras_global: {
+            ptz: {
+              actions_up: {
+                action: 'call-service',
+                data: {
+                  message: 'Hello 1',
+                },
+                service: 'notify.persistent_notification',
+              },
+            },
+          },
           elements: [
             {
               service: 'service',
@@ -855,15 +921,6 @@ describe('should handle version specific upgrades', () => {
           live: {
             controls: {
               ptz: {
-                actions_up: {
-                  tap_action: {
-                    action: 'call-service',
-                    data: {
-                      message: 'Hello 1',
-                    },
-                    service: 'notify.persistent_notification',
-                  },
-                },
                 orientation: 'vertical',
                 style: {
                   color: 'white',
@@ -875,6 +932,7 @@ describe('should handle version specific upgrades', () => {
           },
           type: 'custom:frigate-card',
         });
+        postUpgradeChecks(config);
       });
 
       it('case with custom conditional element with 2 PTZ but nothing else', () => {
@@ -932,18 +990,20 @@ describe('should handle version specific upgrades', () => {
         expect(upgradeConfig(config)).toBeTruthy();
         expect(config).toEqual({
           cameras: [{ camera_entity: 'camera.office' }],
+          cameras_global: {
+            ptz: {
+              actions_up: {
+                action: 'call-service',
+                data: {
+                  message: 'Hello 1',
+                },
+                service: 'notify.persistent_notification',
+              },
+            },
+          },
           live: {
             controls: {
               ptz: {
-                actions_up: {
-                  tap_action: {
-                    action: 'call-service',
-                    data: {
-                      message: 'Hello 1',
-                    },
-                    service: 'notify.persistent_notification',
-                  },
-                },
                 orientation: 'vertical',
                 style: {
                   color: 'white',
@@ -955,6 +1015,7 @@ describe('should handle version specific upgrades', () => {
           },
           type: 'custom:frigate-card',
         });
+        postUpgradeChecks(config);
       });
 
       it('case with custom conditional element with 1 PTZ and another element', () => {
@@ -1002,18 +1063,20 @@ describe('should handle version specific upgrades', () => {
         expect(upgradeConfig(config)).toBeTruthy();
         expect(config).toEqual({
           cameras: [{ camera_entity: 'camera.office' }],
+          cameras_global: {
+            ptz: {
+              actions_up: {
+                action: 'call-service',
+                data: {
+                  message: 'Hello 1',
+                },
+                service: 'notify.persistent_notification',
+              },
+            },
+          },
           live: {
             controls: {
               ptz: {
-                actions_up: {
-                  tap_action: {
-                    action: 'call-service',
-                    data: {
-                      message: 'Hello 1',
-                    },
-                    service: 'notify.persistent_notification',
-                  },
-                },
                 orientation: 'vertical',
                 style: {
                   color: 'white',
@@ -1050,6 +1113,7 @@ describe('should handle version specific upgrades', () => {
           ],
           type: 'custom:frigate-card',
         });
+        postUpgradeChecks(config);
       });
 
       it('case with stock conditional element with 1 PTZ', () => {
@@ -1086,18 +1150,20 @@ describe('should handle version specific upgrades', () => {
         expect(upgradeConfig(config)).toBeTruthy();
         expect(config).toEqual({
           cameras: [{ camera_entity: 'camera.office' }],
+          cameras_global: {
+            ptz: {
+              actions_up: {
+                action: 'call-service',
+                data: {
+                  message: 'Hello 1',
+                },
+                service: 'notify.persistent_notification',
+              },
+            },
+          },
           live: {
             controls: {
               ptz: {
-                actions_up: {
-                  tap_action: {
-                    action: 'call-service',
-                    data: {
-                      message: 'Hello 1',
-                    },
-                    service: 'notify.persistent_notification',
-                  },
-                },
                 orientation: 'vertical',
                 style: {
                   color: 'white',
@@ -1109,6 +1175,7 @@ describe('should handle version specific upgrades', () => {
           },
           type: 'custom:frigate-card',
         });
+        postUpgradeChecks(config);
       });
 
       it('case when live.controls.ptz already exists', () => {
@@ -1160,18 +1227,20 @@ describe('should handle version specific upgrades', () => {
         expect(upgradeConfig(config)).toBeTruthy();
         expect(config).toEqual({
           cameras: [{ camera_entity: 'camera.office' }],
+          cameras_global: {
+            ptz: {
+              actions_up: {
+                action: 'call-service',
+                data: {
+                  message: 'Original',
+                },
+                service: 'notify.persistent_notification',
+              },
+            },
+          },
           live: {
             controls: {
               ptz: {
-                actions_up: {
-                  tap_action: {
-                    action: 'call-service',
-                    data: {
-                      message: 'Original',
-                    },
-                    service: 'notify.persistent_notification',
-                  },
-                },
                 orientation: 'vertical',
                 style: {
                   color: 'white',
@@ -1183,6 +1252,7 @@ describe('should handle version specific upgrades', () => {
           },
           type: 'custom:frigate-card',
         });
+        postUpgradeChecks(config);
       });
     });
 
@@ -1202,6 +1272,7 @@ describe('should handle version specific upgrades', () => {
           interaction_seconds: 200,
         },
       });
+      postUpgradeChecks(config);
     });
 
     describe('should handle all and never action conditions', () => {
@@ -1209,197 +1280,272 @@ describe('should handle version specific upgrades', () => {
         describe('lazy_unload', () => {
           it('all', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 lazy_unload: 'all',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 lazy_unload: ['unselected', 'hidden'],
               },
             });
+            postUpgradeChecks(config);
           });
           it('never', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 lazy_unload: 'never',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {},
             });
+            postUpgradeChecks(config);
           });
           it('other value', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 lazy_unload: 'unselected',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 lazy_unload: ['unselected'],
               },
             });
+            postUpgradeChecks(config);
           });
         });
 
         describe('auto_play', () => {
           it('all', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_play: 'all',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {},
             });
+            postUpgradeChecks(config);
           });
           it('never', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_play: 'never',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_play: [],
               },
             });
+            postUpgradeChecks(config);
           });
           it('other value', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_play: 'selected',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_play: ['selected'],
               },
             });
+            postUpgradeChecks(config);
           });
         });
         describe('auto_pause', () => {
           it('all', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_pause: 'all',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_pause: ['unselected', 'hidden'],
               },
             });
+            postUpgradeChecks(config);
           });
           it('never', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_pause: 'never',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {},
             });
+            postUpgradeChecks(config);
           });
           it('other value', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_pause: 'unselected',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_pause: ['unselected'],
               },
             });
+            postUpgradeChecks(config);
           });
         });
         describe('auto_mute', () => {
           it('all', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_mute: 'all',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {},
             });
+            postUpgradeChecks(config);
           });
           it('never', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_mute: 'never',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_mute: [],
               },
             });
+            postUpgradeChecks(config);
           });
           it('other value', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_mute: 'unselected',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_mute: ['unselected'],
               },
             });
+            postUpgradeChecks(config);
           });
         });
         describe('auto_unmute', () => {
           it('all', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_unmute: 'all',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_unmute: ['selected', 'visible', 'microphone'],
               },
             });
+            postUpgradeChecks(config);
           });
           it('never', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_unmute: 'never',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {},
             });
+            postUpgradeChecks(config);
           });
           it('other value', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_unmute: 'selected',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               live: {
                 auto_unmute: ['selected'],
               },
             });
+            postUpgradeChecks(config);
           });
         });
       });
@@ -1408,157 +1554,217 @@ describe('should handle version specific upgrades', () => {
         describe('auto_play', () => {
           it('all', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_play: 'all',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {},
             });
+            postUpgradeChecks(config);
           });
           it('never', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_play: 'never',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_play: [],
               },
             });
+            postUpgradeChecks(config);
           });
           it('other value', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_play: 'selected',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_play: ['selected'],
               },
             });
+            postUpgradeChecks(config);
           });
         });
         describe('auto_pause', () => {
           it('all', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_pause: 'all',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {},
             });
+            postUpgradeChecks(config);
           });
           it('never', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_pause: 'never',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_pause: [],
               },
             });
+            postUpgradeChecks(config);
           });
           it('other value', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_pause: 'unselected',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_pause: ['unselected'],
               },
             });
+            postUpgradeChecks(config);
           });
         });
         describe('auto_mute', () => {
           it('all', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_mute: 'all',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {},
             });
+            postUpgradeChecks(config);
           });
           it('never', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_mute: 'never',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_mute: [],
               },
             });
+            postUpgradeChecks(config);
           });
           it('other value', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_mute: 'unselected',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_mute: ['unselected'],
               },
             });
+            postUpgradeChecks(config);
           });
         });
         describe('auto_unmute', () => {
           it('all', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_unmute: 'all',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_unmute: ['selected', 'visible'],
               },
             });
+            postUpgradeChecks(config);
           });
           it('never', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_unmute: 'never',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {},
             });
+            postUpgradeChecks(config);
           });
           it('other value', () => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_unmute: 'selected',
               },
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               media_viewer: {
                 auto_unmute: ['selected'],
               },
             });
+            postUpgradeChecks(config);
           });
         });
       });
@@ -1569,6 +1775,8 @@ describe('should handle version specific upgrades', () => {
         '%s',
         (mediaEventType: string) => {
           const config = {
+            type: 'custom:frigate-card',
+            cameras: [{}],
             live: {
               controls: {
                 thumbnails: {
@@ -1579,6 +1787,8 @@ describe('should handle version specific upgrades', () => {
           };
           expect(upgradeConfig(config)).toBeTruthy();
           expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [{}],
             live: {
               controls: {
                 thumbnails: {
@@ -1587,6 +1797,7 @@ describe('should handle version specific upgrades', () => {
               },
             },
           });
+          postUpgradeChecks(config);
         },
       );
     });
@@ -1596,16 +1807,21 @@ describe('should handle version specific upgrades', () => {
         '%s',
         (mediaEventType: string) => {
           const config = {
+            type: 'custom:frigate-card',
+            cameras: [{}],
             timeline: {
               media: mediaEventType,
             },
           };
           expect(upgradeConfig(config)).toBeTruthy();
           expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [{}],
             timeline: {
               events_media_type: mediaEventType,
             },
           });
+          postUpgradeChecks(config);
         },
       );
     });
@@ -1615,6 +1831,8 @@ describe('should handle version specific upgrades', () => {
         '%s',
         (mediaEventType: string) => {
           const config = {
+            type: 'custom:frigate-card',
+            cameras: [{}],
             live: {
               controls: {
                 timeline: {
@@ -1625,6 +1843,8 @@ describe('should handle version specific upgrades', () => {
           };
           expect(upgradeConfig(config)).toBeTruthy();
           expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [{}],
             live: {
               controls: {
                 timeline: {
@@ -1633,6 +1853,7 @@ describe('should handle version specific upgrades', () => {
               },
             },
           });
+          postUpgradeChecks(config);
         },
       );
     });
@@ -1642,6 +1863,8 @@ describe('should handle version specific upgrades', () => {
         '%s',
         (mediaEventType: string) => {
           const config = {
+            type: 'custom:frigate-card',
+            cameras: [{}],
             media_viewer: {
               controls: {
                 timeline: {
@@ -1652,6 +1875,8 @@ describe('should handle version specific upgrades', () => {
           };
           expect(upgradeConfig(config)).toBeTruthy();
           expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [{}],
             media_viewer: {
               controls: {
                 timeline: {
@@ -1660,6 +1885,7 @@ describe('should handle version specific upgrades', () => {
               },
             },
           });
+          postUpgradeChecks(config);
         },
       );
     });
@@ -1688,6 +1914,7 @@ describe('should handle version specific upgrades', () => {
               },
             },
           });
+          postUpgradeChecks(config);
         });
 
         it('when false', () => {
@@ -1708,12 +1935,15 @@ describe('should handle version specific upgrades', () => {
               triggers: {},
             },
           });
+          postUpgradeChecks(config);
         });
       });
 
       describe('should rename view.scan.enabled to a trigger action', () => {
         it('when true', () => {
           const config = {
+            type: 'custom:frigate-card',
+            cameras: [{}],
             view: {
               scan: {
                 enabled: true,
@@ -1722,6 +1952,8 @@ describe('should handle version specific upgrades', () => {
           };
           expect(upgradeConfig(config)).toBeTruthy();
           expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [{}],
             view: {
               triggers: {
                 filter_selected_camera: false,
@@ -1731,10 +1963,13 @@ describe('should handle version specific upgrades', () => {
               },
             },
           });
+          postUpgradeChecks(config);
         });
 
         it('when false', () => {
           const config = {
+            type: 'custom:frigate-card',
+            cameras: [{}],
             view: {
               scan: {
                 enabled: false,
@@ -1743,10 +1978,13 @@ describe('should handle version specific upgrades', () => {
           };
           expect(upgradeConfig(config)).toBeTruthy();
           expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [{}],
             view: {
               triggers: {},
             },
           });
+          postUpgradeChecks(config);
         });
       });
     });
@@ -1754,6 +1992,8 @@ describe('should handle version specific upgrades', () => {
     describe('should handle media layout changes', () => {
       it('from live.layout to camera_global.dimensions', () => {
         const config = {
+          type: 'custom:frigate-card',
+          cameras: [{}],
           live: {
             layout: {
               fit: 'cover',
@@ -1766,6 +2006,8 @@ describe('should handle version specific upgrades', () => {
         };
         expect(upgradeConfig(config)).toBeTruthy();
         expect(config).toEqual({
+          type: 'custom:frigate-card',
+          cameras: [{}],
           live: {},
           cameras_global: {
             dimensions: {
@@ -1779,6 +2021,7 @@ describe('should handle version specific upgrades', () => {
             },
           },
         });
+        postUpgradeChecks(config);
       });
 
       describe('from delete old media layouts', () => {
@@ -1786,6 +2029,8 @@ describe('should handle version specific upgrades', () => {
           '%s',
           (section: string) => {
             const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
               [section]: {
                 layout: {
                   fit: 'cover',
@@ -1798,8 +2043,11 @@ describe('should handle version specific upgrades', () => {
             };
             expect(upgradeConfig(config)).toBeTruthy();
             expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
               [section]: {},
             });
+            postUpgradeChecks(config);
           },
         );
       });
@@ -1813,11 +2061,13 @@ describe('should handle version specific upgrades', () => {
             cameras: [{ camera_entity: 'camera.office' }],
             elements: [
               {
+                type: 'custom:random',
                 conditions: {
                   view: ['clips', 'snapshots'],
                 },
               },
               {
+                type: 'custom:random2',
                 conditions: 'not an object',
               },
             ],
@@ -1828,6 +2078,7 @@ describe('should handle version specific upgrades', () => {
             cameras: [{ camera_entity: 'camera.office' }],
             elements: [
               {
+                type: 'custom:random',
                 conditions: [
                   {
                     condition: 'view' as const,
@@ -1836,10 +2087,12 @@ describe('should handle version specific upgrades', () => {
                 ],
               },
               {
+                type: 'custom:random2',
                 conditions: 'not an object',
               },
             ],
           });
+          postUpgradeChecks(config);
         });
 
         it('overrides', () => {
@@ -1880,6 +2133,7 @@ describe('should handle version specific upgrades', () => {
               },
             ],
           });
+          postUpgradeChecks(config);
         });
 
         it('automations', () => {
@@ -1891,10 +2145,12 @@ describe('should handle version specific upgrades', () => {
                 conditions: {
                   view: ['clips', 'snapshots'],
                 },
-                actions: {
-                  action: 'custom:frigate-card-action' as const,
-                  frigate_card_action: 'live_substream_on' as const,
-                },
+                actions: [
+                  {
+                    action: 'custom:frigate-card-action' as const,
+                    frigate_card_action: 'live_substream_on' as const,
+                  },
+                ],
               },
             ],
           };
@@ -1911,13 +2167,16 @@ describe('should handle version specific upgrades', () => {
                     views: ['clips', 'snapshots'],
                   },
                 ],
-                actions: {
-                  action: 'custom:frigate-card-action' as const,
-                  frigate_card_action: 'live_substream_on' as const,
-                },
+                actions: [
+                  {
+                    action: 'custom:frigate-card-action' as const,
+                    frigate_card_action: 'live_substream_on' as const,
+                  },
+                ],
               },
             ],
           });
+          postUpgradeChecks(config);
         });
       });
 
@@ -1928,11 +2187,13 @@ describe('should handle version specific upgrades', () => {
             cameras: [{ camera_entity: 'camera.office' }],
             elements: [
               {
+                type: 'custom:random',
                 conditions: {
                   camera: ['camera_1', 'camera_2'],
                 },
               },
               {
+                type: 'custom:random2',
                 conditions: 'not an object',
               },
             ],
@@ -1943,6 +2204,7 @@ describe('should handle version specific upgrades', () => {
             cameras: [{ camera_entity: 'camera.office' }],
             elements: [
               {
+                type: 'custom:random',
                 conditions: [
                   {
                     condition: 'camera' as const,
@@ -1951,10 +2213,12 @@ describe('should handle version specific upgrades', () => {
                 ],
               },
               {
+                type: 'custom:random2',
                 conditions: 'not an object',
               },
             ],
           });
+          postUpgradeChecks(config);
         });
 
         it('overrides', () => {
@@ -1995,6 +2259,7 @@ describe('should handle version specific upgrades', () => {
               },
             ],
           });
+          postUpgradeChecks(config);
         });
 
         it('automations', () => {
@@ -2006,10 +2271,12 @@ describe('should handle version specific upgrades', () => {
                 conditions: {
                   camera: ['camera_1', 'camera_2'],
                 },
-                actions: {
-                  action: 'custom:frigate-card-action' as const,
-                  frigate_card_action: 'live_substream_on' as const,
-                },
+                actions: [
+                  {
+                    action: 'custom:frigate-card-action' as const,
+                    frigate_card_action: 'live_substream_on' as const,
+                  },
+                ],
               },
             ],
           };
@@ -2026,13 +2293,16 @@ describe('should handle version specific upgrades', () => {
                     cameras: ['camera_1', 'camera_2'],
                   },
                 ],
-                actions: {
-                  action: 'custom:frigate-card-action' as const,
-                  frigate_card_action: 'live_substream_on' as const,
-                },
+                actions: [
+                  {
+                    action: 'custom:frigate-card-action' as const,
+                    frigate_card_action: 'live_substream_on' as const,
+                  },
+                ],
               },
             ],
           });
+          postUpgradeChecks(config);
         });
       });
 
@@ -2048,11 +2318,13 @@ describe('should handle version specific upgrades', () => {
               cameras: [{ camera_entity: 'camera.office' }],
               elements: [
                 {
+                  type: 'custom:random',
                   conditions: {
                     [condition]: true,
                   },
                 },
                 {
+                  type: 'custom:random2',
                   conditions: 'not an object',
                 },
               ],
@@ -2063,6 +2335,7 @@ describe('should handle version specific upgrades', () => {
               cameras: [{ camera_entity: 'camera.office' }],
               elements: [
                 {
+                  type: 'custom:random',
                   conditions: [
                     {
                       condition: condition,
@@ -2071,10 +2344,12 @@ describe('should handle version specific upgrades', () => {
                   ],
                 },
                 {
+                  type: 'custom:random2',
                   conditions: 'not an object',
                 },
               ],
             });
+            postUpgradeChecks(config);
           });
 
           it('overrides', () => {
@@ -2115,6 +2390,7 @@ describe('should handle version specific upgrades', () => {
                 },
               ],
             });
+            postUpgradeChecks(config);
           });
 
           it('automations', () => {
@@ -2126,10 +2402,12 @@ describe('should handle version specific upgrades', () => {
                   conditions: {
                     [condition]: true,
                   },
-                  actions: {
-                    action: 'custom:frigate-card-action' as const,
-                    frigate_card_action: 'live_substream_on' as const,
-                  },
+                  actions: [
+                    {
+                      action: 'custom:frigate-card-action' as const,
+                      frigate_card_action: 'live_substream_on' as const,
+                    },
+                  ],
                 },
               ],
             };
@@ -2146,13 +2424,16 @@ describe('should handle version specific upgrades', () => {
                       [condition]: true,
                     },
                   ],
-                  actions: {
-                    action: 'custom:frigate-card-action' as const,
-                    frigate_card_action: 'live_substream_on' as const,
-                  },
+                  actions: [
+                    {
+                      action: 'custom:frigate-card-action' as const,
+                      frigate_card_action: 'live_substream_on' as const,
+                    },
+                  ],
                 },
               ],
             });
+            postUpgradeChecks(config);
           });
         });
       });
@@ -2164,6 +2445,7 @@ describe('should handle version specific upgrades', () => {
             cameras: [{ camera_entity: 'camera.office' }],
             elements: [
               {
+                type: 'custom:random',
                 conditions: {
                   state: [
                     {
@@ -2179,6 +2461,7 @@ describe('should handle version specific upgrades', () => {
                 },
               },
               {
+                type: 'custom:random2',
                 conditions: 'not an object',
               },
             ],
@@ -2189,6 +2472,7 @@ describe('should handle version specific upgrades', () => {
             cameras: [{ camera_entity: 'camera.office' }],
             elements: [
               {
+                type: 'custom:random',
                 conditions: [
                   {
                     condition: 'state' as const,
@@ -2203,10 +2487,12 @@ describe('should handle version specific upgrades', () => {
                 ],
               },
               {
+                type: 'custom:random2',
                 conditions: 'not an object',
               },
             ],
           });
+          postUpgradeChecks(config);
         });
 
         it('overrides', () => {
@@ -2263,6 +2549,7 @@ describe('should handle version specific upgrades', () => {
               },
             ],
           });
+          postUpgradeChecks(config);
         });
 
         it('automations', () => {
@@ -2284,11 +2571,12 @@ describe('should handle version specific upgrades', () => {
                     {},
                   ],
                 },
-
-                actions: {
-                  action: 'custom:frigate-card-action' as const,
-                  frigate_card_action: 'live_substream_on' as const,
-                },
+                actions: [
+                  {
+                    action: 'custom:frigate-card-action' as const,
+                    frigate_card_action: 'live_substream_on' as const,
+                  },
+                ],
               },
             ],
           };
@@ -2311,13 +2599,16 @@ describe('should handle version specific upgrades', () => {
                     state_not: 'off',
                   },
                 ],
-                actions: {
-                  action: 'custom:frigate-card-action' as const,
-                  frigate_card_action: 'live_substream_on' as const,
-                },
+                actions: [
+                  {
+                    action: 'custom:frigate-card-action' as const,
+                    frigate_card_action: 'live_substream_on' as const,
+                  },
+                ],
               },
             ],
           });
+          postUpgradeChecks(config);
         });
       });
 
@@ -2328,11 +2619,13 @@ describe('should handle version specific upgrades', () => {
             cameras: [{ camera_entity: 'camera.office' }],
             elements: [
               {
+                type: 'custom:random',
                 conditions: {
                   media_query: 'query',
                 },
               },
               {
+                type: 'custom:random2',
                 conditions: 'not an object',
               },
             ],
@@ -2343,6 +2636,7 @@ describe('should handle version specific upgrades', () => {
             cameras: [{ camera_entity: 'camera.office' }],
             elements: [
               {
+                type: 'custom:random',
                 conditions: [
                   {
                     condition: 'screen' as const,
@@ -2351,10 +2645,12 @@ describe('should handle version specific upgrades', () => {
                 ],
               },
               {
+                type: 'custom:random2',
                 conditions: 'not an object',
               },
             ],
           });
+          postUpgradeChecks(config);
         });
 
         it('overrides', () => {
@@ -2395,6 +2691,7 @@ describe('should handle version specific upgrades', () => {
               },
             ],
           });
+          postUpgradeChecks(config);
         });
 
         it('automations', () => {
@@ -2406,10 +2703,12 @@ describe('should handle version specific upgrades', () => {
                 conditions: {
                   media_query: 'query',
                 },
-                actions: {
-                  action: 'custom:frigate-card-action' as const,
-                  frigate_card_action: 'live_substream_on' as const,
-                },
+                actions: [
+                  {
+                    action: 'custom:frigate-card-action' as const,
+                    frigate_card_action: 'live_substream_on' as const,
+                  },
+                ],
               },
             ],
           };
@@ -2426,13 +2725,16 @@ describe('should handle version specific upgrades', () => {
                     media_query: 'query',
                   },
                 ],
-                actions: {
-                  action: 'custom:frigate-card-action' as const,
-                  frigate_card_action: 'live_substream_on' as const,
-                },
+                actions: [
+                  {
+                    action: 'custom:frigate-card-action' as const,
+                    frigate_card_action: 'live_substream_on' as const,
+                  },
+                ],
               },
             ],
           });
+          postUpgradeChecks(config);
         });
       });
     });
@@ -2453,18 +2755,19 @@ describe('should handle version specific upgrades', () => {
           cameras: [
             {
               camera_entity: 'camera.office',
-              capabilities: { disable_except: 'substream' },
+              capabilities: { disable_except: ['substream'] },
             },
             { camera_entity: 'camera.sitting_room' },
           ],
         });
+        postUpgradeChecks(config);
       });
 
       describe('from performance profile to generic profile', () => {
         it('low performance', () => {
           const config = {
             type: 'custom:frigate-card',
-            cameras: [],
+            cameras: [{}],
             performance: {
               profile: 'low',
             },
@@ -2473,16 +2776,17 @@ describe('should handle version specific upgrades', () => {
           expect(upgradeConfig(config)).toBeTruthy();
           expect(config).toEqual({
             type: 'custom:frigate-card',
-            cameras: [],
+            cameras: [{}],
             profiles: ['low-performance'],
             performance: {},
           });
+          postUpgradeChecks(config);
         });
 
         it('high performance', () => {
           const config = {
             type: 'custom:frigate-card',
-            cameras: [],
+            cameras: [{}],
             performance: {
               profile: 'high',
             },
@@ -2491,9 +2795,10 @@ describe('should handle version specific upgrades', () => {
           expect(upgradeConfig(config)).toBeTruthy();
           expect(config).toEqual({
             type: 'custom:frigate-card',
-            cameras: [],
+            cameras: [{}],
             performance: {},
           });
+          postUpgradeChecks(config);
         });
       });
     });
@@ -2501,13 +2806,13 @@ describe('should handle version specific upgrades', () => {
     it('from overrides to merge', () => {
       const config = {
         type: 'custom:frigate-card',
-        cameras: [],
+        cameras: [{}],
         overrides: [
           {
             conditions: [
               {
                 condition: 'view',
-                view: ['clips'],
+                views: ['clips'],
               },
             ],
             overrides: {
@@ -2522,13 +2827,13 @@ describe('should handle version specific upgrades', () => {
       expect(upgradeConfig(config)).toBeTruthy();
       expect(config).toEqual({
         type: 'custom:frigate-card',
-        cameras: [],
+        cameras: [{}],
         overrides: [
           {
             conditions: [
               {
                 condition: 'view',
-                view: ['clips'],
+                views: ['clips'],
               },
             ],
             merge: {
@@ -2539,6 +2844,261 @@ describe('should handle version specific upgrades', () => {
           },
         ],
       });
+      postUpgradeChecks(config);
+    });
+
+    describe('split live.ptz', () => {
+      const getAction = (action: PTZControlAction): CallServiceActionConfig => ({
+        action: 'call-service',
+        service: 'service',
+        data: {
+          arg: action,
+        },
+      });
+
+      const getTapAction = (action: PTZControlAction): Actions => ({
+        tap_action: getAction(action),
+      });
+
+      it('with action_ format', () => {
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{}],
+          live: {
+            controls: {
+              ptz: {
+                actions_up: getTapAction('up'),
+                actions_down: getTapAction('down'),
+                actions_left: getTapAction('left'),
+                actions_right: getTapAction('right'),
+                actions_zoom_in: getTapAction('zoom_in'),
+                actions_zoom_out: getTapAction('zoom_out'),
+                actions_home: {
+                  ...getTapAction('home'),
+                  double_tap_action: getAction('up'),
+                },
+
+                mode: 'auto' as const,
+                position: 'bottom-right' as const,
+                orientation: 'horizontal' as const,
+                hide_pan_tilt: false,
+                hide_zoom: false,
+                hide_home: false,
+                style: {
+                  color: 'red',
+                },
+
+                something_not_related: 'very_unrelated',
+              },
+            },
+          },
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          type: 'custom:frigate-card',
+          cameras: [{}],
+          cameras_global: {
+            ptz: {
+              actions_left: getAction('left'),
+              actions_right: getAction('right'),
+              actions_up: getAction('up'),
+              actions_down: getAction('down'),
+              actions_zoom_in: getAction('zoom_in'),
+              actions_zoom_out: getAction('zoom_out'),
+              presets: {
+                home: getAction('home'),
+              },
+            },
+          },
+          live: {
+            controls: {
+              ptz: {
+                mode: 'auto' as const,
+                position: 'bottom-right' as const,
+                orientation: 'horizontal' as const,
+                hide_pan_tilt: false,
+                hide_zoom: false,
+                hide_home: false,
+                style: {
+                  color: 'red',
+                },
+              },
+            },
+          },
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('with data_ format', () => {
+        const getDataAction = (action: PTZControlAction): Actions => ({
+          action: {
+            device: '048123',
+            cmd: action,
+          },
+        });
+
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{}],
+          live: {
+            controls: {
+              ptz: {
+                service: 'service',
+                data_up: getDataAction('up'),
+                data_down: getDataAction('down'),
+                data_left: getDataAction('left'),
+                data_right: getDataAction('right'),
+                data_zoom_in: getDataAction('zoom_in'),
+                data_zoom_out: getDataAction('zoom_out'),
+                data_home: getDataAction('home'),
+
+                mode: 'auto' as const,
+                position: 'bottom-right' as const,
+                orientation: 'horizontal' as const,
+                hide_pan_tilt: false,
+                hide_zoom: false,
+                hide_home: false,
+                style: {
+                  color: 'red',
+                },
+
+                something_not_related: 'very_unrelated',
+              },
+            },
+          },
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          type: 'custom:frigate-card',
+          cameras: [{}],
+          cameras_global: {
+            ptz: {
+              service: 'service',
+              data_left: getDataAction('left'),
+              data_right: getDataAction('right'),
+              data_up: getDataAction('up'),
+              data_down: getDataAction('down'),
+              data_zoom_in: getDataAction('zoom_in'),
+              data_zoom_out: getDataAction('zoom_out'),
+              presets: {
+                service: 'service',
+                data_home: getDataAction('home'),
+              },
+            },
+          },
+          live: {
+            controls: {
+              ptz: {
+                mode: 'auto' as const,
+                position: 'bottom-right' as const,
+                orientation: 'horizontal' as const,
+                hide_pan_tilt: false,
+                hide_zoom: false,
+                hide_home: false,
+                style: {
+                  color: 'red',
+                },
+              },
+            },
+          },
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('with invalid ptz type', () => {
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{}],
+          live: {
+            controls: {
+              ptz: 3, // Not an object.
+            },
+          },
+        };
+
+        expect(upgradeConfig(config)).toBeFalsy();
+      });
+
+      it('with nothing to transform', () => {
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{}],
+          live: {
+            controls: {
+              ptz: {
+                mode: 'auto',
+              },
+            },
+          },
+        };
+
+        expect(upgradeConfig(config)).toBeFalsy();
+      });
+
+      it('without tap_action', () => {
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{}],
+          live: {
+            controls: {
+              ptz: {
+                actions_up: {
+                  double_tap_action: getAction('up'),
+                },
+                actions_down: getTapAction('down'),
+              },
+            },
+          },
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual(
+          expect.objectContaining({
+            cameras_global: {
+              ptz: {
+                actions_down: getAction('down'),
+              },
+            },
+          }),
+        );
+        postUpgradeChecks(config);
+      });
+
+      it('without pre-existing presets', () => {
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{}],
+          live: {
+            controls: {
+              ptz: {
+                presets: {
+                  home: getAction('left'),
+                  other: getAction('right'),
+                },
+                actions_home: getTapAction('home'),
+              },
+            },
+          },
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual(
+          expect.objectContaining({
+            cameras_global: {
+              ptz: {
+                presets: {
+                  other: getAction('right'),
+                  home: getAction('home'),
+                },
+              },
+            },
+          }),
+        );
+        postUpgradeChecks(config);
+      });
+
     });
   });
 });

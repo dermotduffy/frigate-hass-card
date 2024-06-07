@@ -1,24 +1,28 @@
+import { ActionConfig, hasAction } from '@dermotduffy/custom-card-helpers';
+import { ZoomSettingsBase } from '../components-lib/zoom/types.js';
+import { PTZAction } from '../config/ptz.js';
 import {
-  ActionConfig,
-  handleActionConfig,
-  hasAction,
-  HomeAssistant,
-} from '@dermotduffy/custom-card-helpers';
-import {
-  Actions,
+  ActionPhase,
   ActionType,
+  Actions,
   FrigateCardCustomAction,
-  frigateCardCustomActionSchema,
   FrigateCardGeneralAction,
   FrigateCardUserSpecifiedView,
+  LogActionConfig,
+  LogActionLevel,
+  PTZActionConfig,
+  PTZDigitialActionConfig,
+  PTZMultiActionConfig,
+  frigateCardCustomActionSchema,
 } from '../config/types.js';
+import { arrayify } from './basic.js';
 
 /**
  * Convert a generic Action to a FrigateCardCustomAction if it parses correctly.
  * @param action The generic action configuration.
  * @returns A FrigateCardCustomAction or null if it cannot be converted.
  */
-export function convertActionToFrigateCardCustomAction(
+export function convertActionToCardCustomAction(
   action: unknown,
 ): FrigateCardCustomAction | null {
   if (!action) {
@@ -30,7 +34,7 @@ export function convertActionToFrigateCardCustomAction(
   return parseResult.success ? parseResult.data : null;
 }
 
-export function createFrigateCardSimpleAction(
+export function createGeneralAction(
   action: FrigateCardGeneralAction | FrigateCardUserSpecifiedView,
   options?: {
     cardID?: string;
@@ -43,7 +47,7 @@ export function createFrigateCardSimpleAction(
   };
 }
 
-export function createFrigateCardCameraAction(
+export function createCameraAction(
   action: 'camera_select' | 'live_substream_select',
   camera: string,
   options?: {
@@ -58,7 +62,7 @@ export function createFrigateCardCameraAction(
   };
 }
 
-export function createFrigateCardMediaPlayerAction(
+export function createMediaPlayerAction(
   mediaPlayer: string,
   mediaPlayerAction: 'play' | 'stop',
   options?: {
@@ -74,7 +78,7 @@ export function createFrigateCardMediaPlayerAction(
   };
 }
 
-export function createFrigateCardDisplayModeAction(
+export function createDisplayModeAction(
   displayMode: 'single' | 'grid',
   options?: {
     cardID?: string;
@@ -88,38 +92,87 @@ export function createFrigateCardDisplayModeAction(
   };
 }
 
-export function createFrigateCardShowPTZAction(
-  showPTZ: boolean,
+export function createPTZControlsAction(
+  enabled: boolean,
   options?: {
     cardID?: string;
   },
 ): FrigateCardCustomAction {
   return {
     action: 'fire-dom-event',
-    frigate_card_action: 'show_ptz',
-    show_ptz: showPTZ,
+    frigate_card_action: 'ptz_controls',
+    enabled: enabled,
     ...(options?.cardID && { card_id: options.cardID }),
   };
 }
 
-export function createFrigateCardChangeZoomAction(
-  targetID: string,
-  options?: {
-    cardID?: string;
-    pan?: {
-      x?: number;
-      y?: number;
-    };
-    zoom?: number;
-  },
-): FrigateCardCustomAction {
+export function createPTZAction(options?: {
+  cardID?: string;
+  ptzAction?: PTZAction;
+  ptzPhase?: ActionPhase;
+  ptzPreset?: string;
+  cameraID?: string;
+}): PTZActionConfig {
   return {
     action: 'fire-dom-event',
-    frigate_card_action: 'change_zoom',
-    target_id: targetID,
+    frigate_card_action: 'ptz',
     ...(options?.cardID && { card_id: options.cardID }),
-    ...(options?.pan && { pan: options.pan }),
-    ...(options?.zoom && { zoom: options.zoom }),
+    ...(options?.ptzAction && { ptz_action: options.ptzAction }),
+    ...(options?.ptzPhase && { ptz_phase: options.ptzPhase }),
+    ...(options?.ptzPreset && { ptz_preset: options.ptzPreset }),
+    ...(options?.cameraID && { camera: options.cameraID }),
+  };
+}
+
+export function createPTZDigitalAction(options?: {
+  cardID?: string;
+  ptzPhase?: ActionPhase;
+  ptzAction?: PTZAction;
+  absolute?: ZoomSettingsBase;
+  targetID?: string;
+}): PTZDigitialActionConfig {
+  return {
+    action: 'fire-dom-event',
+    frigate_card_action: 'ptz_digital',
+    ...(options?.cardID && { card_id: options.cardID }),
+    ...(options?.ptzAction && { ptz_action: options.ptzAction }),
+    ...(options?.ptzPhase && { ptz_phase: options.ptzPhase }),
+    ...(options?.absolute && { absolute: options.absolute }),
+    ...(options?.targetID && { target_id: options.targetID }),
+  };
+}
+
+export function createPTZMultiAction(options?: {
+  cardID?: string;
+  ptzAction?: PTZAction;
+  ptzPhase?: ActionPhase;
+  ptzPreset?: string;
+  targetID?: string;
+}): PTZMultiActionConfig {
+  return {
+    action: 'fire-dom-event',
+    frigate_card_action: 'ptz_multi',
+    ...(options?.cardID && { card_id: options.cardID }),
+    ...(options?.ptzAction && { ptz_action: options.ptzAction }),
+    ...(options?.ptzPhase && { ptz_phase: options.ptzPhase }),
+    ...(options?.ptzPreset && { ptz_preset: options.ptzPreset }),
+    ...(options?.targetID && { target_id: options.targetID }),
+  };
+}
+
+export function createLogAction(
+  message: string,
+  options?: {
+    cardID?: string;
+    level?: LogActionLevel;
+  },
+): LogActionConfig {
+  return {
+    action: 'fire-dom-event',
+    frigate_card_action: 'log',
+    message: message,
+    level: options?.level ?? 'info',
+    ...(options?.cardID && { card_id: options.cardID }),
   };
 }
 
@@ -151,63 +204,6 @@ export function getActionConfigGivenAction(
 }
 
 /**
- * Frigate card custom version of handleAction
- * (https://github.com/custom-cards/custom-card-helpers/blob/master/src/handle-action.ts)
- * that handles the custom action events the card supports.
- * @param node The node that fired the event.
- * @param hass The Home Assistant object.
- * @param actionConfig A single action config, array of action configs or
- * undefined for the default action config for 'tap'.
- * @param action The action string (e.g. 'hold')
- * @returns Whether or not an action was executed.
- */
-export const frigateCardHandleActionConfig = (
-  node: HTMLElement,
-  hass: HomeAssistant,
-  config: {
-    camera_image?: string;
-    entity?: string;
-  },
-  action: string,
-  actionConfig?: ActionType | ActionType[] | null,
-): boolean => {
-  // Only allow a tap action to use a default non-config (the more-info config).
-  if (actionConfig || action == 'tap') {
-    frigateCardHandleAction(node, hass, config, actionConfig);
-    return true;
-  }
-  return false;
-};
-
-export const frigateCardHandleAction = (
-  node: HTMLElement,
-  hass: HomeAssistant,
-  config: {
-    camera_image?: string;
-    entity?: string;
-  },
-  actionConfig?: ActionType | ActionType[] | null,
-): void => {
-  // ActionConfig vs ActionType:
-  // * There is a slight typing (but not functional) difference between
-  //   ActionType in this card and ActionConfig in `custom-card-helpers`. See
-  //   `ExtendedConfirmationRestrictionConfig` in `types.ts` for the source and
-  //   reason behind this difference.
-  if (Array.isArray(actionConfig)) {
-    actionConfig.forEach((action) =>
-      handleActionConfig(node, hass, config, action as ActionConfig | undefined),
-    );
-  } else {
-    handleActionConfig(
-      node,
-      hass,
-      config,
-      (actionConfig ?? undefined) as ActionConfig | undefined,
-    );
-  }
-};
-
-/**
  * Determine if an action config has a real action. A modified version of
  * custom-card-helpers hasAction to also work with arrays of action configs.
  * @param config The action config in question.
@@ -216,10 +212,7 @@ export const frigateCardHandleAction = (
 export const frigateCardHasAction = (config?: ActionType | ActionType[]): boolean => {
   // See note above on 'ActionConfig vs ActionType' for why this cast is
   // necessary and harmless.
-  if (Array.isArray(config)) {
-    return !!config.find((item) => hasAction(item as ActionConfig | undefined));
-  }
-  return hasAction(config as ActionConfig | undefined);
+  return arrayify(config).some((item) => hasAction(item as ActionConfig | undefined));
 };
 
 /**

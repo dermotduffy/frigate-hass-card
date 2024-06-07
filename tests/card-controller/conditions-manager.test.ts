@@ -930,5 +930,60 @@ describe('ConditionsManager', () => {
         expect(manager.evaluateConditions(conditions)).toBeTruthy();
       });
     });
+
+    describe('with key condition', () => {
+      it('simple keypress', () => {
+        const manager = new ConditionsManager(createCardAPI());
+        const conditions = [{ condition: 'key' as const, key: 'a' }];
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
+        manager.setState({
+          keys: {
+            a: { state: 'down', ctrl: false, shift: false, alt: false, meta: false },
+          },
+        });
+        expect(manager.evaluateConditions(conditions)).toBeTruthy();
+        manager.setState({
+          keys: {
+            a: { state: 'up', ctrl: false, shift: false, alt: false, meta: false },
+          },
+        });
+
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
+      });
+
+      it('keypress with modifiers', () => {
+        const manager = new ConditionsManager(createCardAPI());
+        const conditions = [
+          {
+            condition: 'key' as const,
+            key: 'a',
+            state: 'down' as const,
+            ctrl: true,
+            shift: true,
+            alt: true,
+            meta: true,
+          },
+        ];
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
+        manager.setState({
+          keys: {
+            a: { state: 'down', ctrl: false, shift: false, alt: false, meta: false },
+          },
+        });
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
+        manager.setState({
+          keys: {
+            a: { state: 'down', ctrl: true, shift: true, alt: true, meta: false },
+          },
+        });
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
+        manager.setState({
+          keys: {
+            a: { state: 'down', ctrl: true, shift: true, alt: true, meta: true },
+          },
+        });
+        expect(manager.evaluateConditions(conditions)).toBeTruthy();
+      });
+    });
   });
 });

@@ -5,9 +5,10 @@ import {
   format,
 } from 'date-fns';
 import { StyleInfo } from 'lit/directives/style-map';
-import { round } from 'lodash-es';
 import isEqualWith from 'lodash-es/isEqualWith';
 import mergeWith from 'lodash-es/mergeWith';
+import round from 'lodash-es/round';
+import uniq from 'lodash-es/uniq';
 import { FrigateCardError } from '../types';
 
 export type ModifyInterface<T, R> = Omit<T, keyof R> & R;
@@ -252,6 +253,16 @@ export const getChildrenFromElement = (parent: HTMLElement): HTMLElement[] => {
 
 export const recursivelyMergeObjectsNotArrays = <T>(target: T, src1: T, src2: T): T => {
   return mergeWith(target, src1, src2, (_a, b) => (Array.isArray(b) ? b : undefined));
+};
+
+export const recursivelyMergeObjectsConcatenatingArraysUniquely = <T>(
+  target: T,
+  src1: T,
+  src2: T,
+): T => {
+  return mergeWith(target, src1, src2, (a, b) =>
+    Array.isArray(a) ? uniq(a.concat(b)) : undefined,
+  );
 };
 
 export const aspectRatioToString = (options?: {

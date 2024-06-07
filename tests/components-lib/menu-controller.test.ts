@@ -362,53 +362,60 @@ describe('MenuController', () => {
   describe('should handle actions', () => {
     it('should bail without config', () => {
       const controller = new MenuController(createLitElement());
-      controller.actionHandler(createHASS(), createEvent('tap'));
+      controller.actionHandler(createEvent('tap'));
       expect(vi.mocked(handleActionConfig)).not.toBeCalled();
     });
 
     it('should execute simple action in non-hidden menu', () => {
       const host = createLitElement();
-      const hass = createHASS();
+      const handler = vi.fn();
+      host.addEventListener('frigate-card:action:execution-request', handler);
+
       const controller = new MenuController(host);
 
-      controller.actionHandler(hass, createEvent('tap'), tapActionConfig);
-      expect(vi.mocked(handleActionConfig)).toBeCalledWith(
-        host,
-        hass,
-        tapActionConfig,
-        action,
+      controller.actionHandler(createEvent('tap'), tapActionConfig);
+      expect(handler).toBeCalledWith(
+        expect.objectContaining({
+          detail: { action: [action], config: tapActionConfig },
+        }),
       );
-
       expect(controller.isExpanded()).toBeFalsy();
     });
 
     it('should execute simple action in with config in event', () => {
       const host = createLitElement();
-      const hass = createHASS();
+      const handler = vi.fn();
+      host.addEventListener('frigate-card:action:execution-request', handler);
+
       const controller = new MenuController(host);
 
-      controller.actionHandler(hass, createEvent('tap', tapActionConfig));
-      expect(vi.mocked(handleActionConfig)).toBeCalledWith(
-        host,
-        hass,
-        tapActionConfig,
-        action,
+      controller.actionHandler(createEvent('tap', tapActionConfig));
+      expect(handler).toBeCalledWith(
+        expect.objectContaining({
+          detail: { action: [action], config: tapActionConfig },
+        }),
       );
     });
 
     it('should execute simple array of actions in non-hidden menu', () => {
       const host = createLitElement();
-      const hass = createHASS();
+      const handler = vi.fn();
+      host.addEventListener('frigate-card:action:execution-request', handler);
+
       const controller = new MenuController(host);
 
-      controller.actionHandler(hass, createEvent('tap'), tapActionConfigMulti);
-      expect(vi.mocked(handleActionConfig)).toBeCalledTimes(3);
+      controller.actionHandler(createEvent('tap'), tapActionConfigMulti);
+
+      expect(handler).toBeCalledWith(
+        expect.objectContaining({
+          detail: { action: [action, action, action], config: tapActionConfigMulti },
+        }),
+      );
     });
 
     describe('should close menu', () => {
       it('tap', () => {
         const host = createLitElement();
-        const hass = createHASS();
         const controller = new MenuController(host);
         controller.setMenuConfig(
           createMenuConfig({
@@ -419,13 +426,12 @@ describe('MenuController', () => {
         controller.setExpanded(true);
         expect(controller.isExpanded()).toBeTruthy();
 
-        controller.actionHandler(hass, createEvent('tap'), tapActionConfig);
+        controller.actionHandler(createEvent('tap'), tapActionConfig);
         expect(controller.isExpanded()).toBeFalsy();
       });
 
       it('end_tap', () => {
         const host = createLitElement();
-        const hass = createHASS();
         const controller = new MenuController(host);
         controller.setMenuConfig(
           createMenuConfig({
@@ -436,7 +442,7 @@ describe('MenuController', () => {
         controller.setExpanded(true);
         expect(controller.isExpanded()).toBeTruthy();
 
-        controller.actionHandler(hass, createEvent('end_tap'), {
+        controller.actionHandler(createEvent('end_tap'), {
           end_tap_action: action,
         });
         expect(controller.isExpanded()).toBeFalsy();
@@ -446,7 +452,6 @@ describe('MenuController', () => {
     describe('should not close menu', () => {
       it('start_tap with later action', () => {
         const host = createLitElement();
-        const hass = createHASS();
         const controller = new MenuController(host);
         controller.setMenuConfig(
           createMenuConfig({
@@ -457,7 +462,7 @@ describe('MenuController', () => {
         controller.setExpanded(true);
         expect(controller.isExpanded()).toBeTruthy();
 
-        controller.actionHandler(hass, createEvent('start_tap'), {
+        controller.actionHandler(createEvent('start_tap'), {
           start_tap_action: action,
           end_tap_action: action,
         });
@@ -466,7 +471,6 @@ describe('MenuController', () => {
 
       it('with a menu toggle action', () => {
         const host = createLitElement();
-        const hass = createHASS();
         const controller = new MenuController(host);
         controller.setMenuConfig(
           createMenuConfig({
@@ -477,7 +481,7 @@ describe('MenuController', () => {
         controller.setExpanded(false);
         expect(controller.isExpanded()).toBeFalsy();
 
-        controller.actionHandler(hass, createEvent('tap'), {
+        controller.actionHandler(createEvent('tap'), {
           camera_entity: 'foo',
           tap_action: menuToggleAction,
         });
@@ -497,7 +501,7 @@ describe('MenuController', () => {
         controller.setExpanded(true);
         expect(controller.isExpanded()).toBeTruthy();
 
-        controller.actionHandler(hass, createEvent('end_tap'), tapActionConfig);
+        controller.actionHandler(createEvent('end_tap'), tapActionConfig);
         expect(controller.isExpanded()).toBeTruthy();
       });
     });

@@ -10,12 +10,12 @@ import type {
 import { FRIGATE_BUTTON_MENU_ICON } from '../const.js';
 import { StateParameters } from '../types.js';
 import {
-  convertActionToFrigateCardCustomAction,
-  frigateCardHandleActionConfig,
+  convertActionToCardCustomAction,
   getActionConfigGivenAction,
 } from '../utils/action';
 import { arrayify, isTruthy, setOrRemoveAttribute } from '../utils/basic.js';
 import { refreshDynamicStateParameters } from '../utils/ha/index.js';
+import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request.js';
 
 export class MenuController {
   protected _host: LitElement;
@@ -95,7 +95,6 @@ export class MenuController {
   }
 
   public actionHandler(
-    hass: HomeAssistant,
     ev: HASSDomEvent<{ action: string; config?: ActionsConfig }>,
     config?: ActionsConfig,
   ): void {
@@ -134,7 +133,10 @@ export class MenuController {
     }
 
     if (toggleLessActions.length) {
-      frigateCardHandleActionConfig(this._host, hass, config, interaction, actions);
+      dispatchActionExecutionRequest(this._host, {
+        action: actions,
+        config: config,
+      });
     }
 
     if (this._isHidingMenu()) {
@@ -209,7 +211,7 @@ export class MenuController {
   }
 
   protected _isMenuToggleAction(action: ActionType): boolean {
-    const frigateCardAction = convertActionToFrigateCardCustomAction(action);
+    const frigateCardAction = convertActionToCardCustomAction(action);
     return !!frigateCardAction && frigateCardAction.frigate_card_action == 'menu_toggle';
   }
 }

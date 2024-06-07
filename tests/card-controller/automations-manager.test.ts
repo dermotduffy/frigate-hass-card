@@ -1,18 +1,25 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AutomationsManager } from '../../src/card-controller/automations-manager.js';
-import { frigateCardHandleAction } from '../../src/utils/action.js';
-import { createCardAPI, createConfig, createHASS } from '../test-utils.js';
-
-vi.mock('../../src/utils/action.js');
+import { createCardAPI, createHASS } from '../test-utils.js';
+import { ActionType } from '../../src/config/types.js';
+import { AuxillaryActionConfig } from '../../src/card-controller/actions/types.js';
 
 describe('AutomationsManager', () => {
   const actions = [
     {
-      action: 'custom:frigate-card-action',
+      action: 'fire-dom-event' as const,
       frigate_card_action: 'clips',
     },
   ];
-  const conditions = [{ condition: 'fullscreen', fullscreen: true }];
+  const conditions = [{ condition: 'fullscreen' as const, fullscreen: true }];
+  const automation = {
+    conditions: conditions,
+    actions: actions,
+  };
+  const not_automation = {
+    conditions: conditions,
+    actions_not: actions,
+  };
 
   afterEach(() => {
     vi.clearAllMocks();
@@ -23,7 +30,8 @@ describe('AutomationsManager', () => {
 
     const automationsManager = new AutomationsManager(api);
     automationsManager.execute();
-    expect(frigateCardHandleAction).not.toBeCalled();
+
+    expect(api.getActionsManager().executeActions).not.toBeCalled();
   });
 
   it('should do nothing without automations', () => {
@@ -31,105 +39,79 @@ describe('AutomationsManager', () => {
     vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
 
     const automationsManager = new AutomationsManager(api);
-    automationsManager.setAutomationsFromConfig();
     automationsManager.execute();
-    expect(frigateCardHandleAction).not.toBeCalled();
+
+    expect(api.getActionsManager().executeActions).not.toBeCalled();
   });
 
   it('should execute actions', () => {
-    const config = createConfig({
-      automations: [
-        {
-          conditions: conditions,
-          actions: actions,
-        },
-      ],
-    });
-
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-    vi.mocked(api.getConfigManager().getNonOverriddenConfig).mockReturnValue(config);
 
     const automationsManager = new AutomationsManager(api);
-    automationsManager.setAutomationsFromConfig();
+    automationsManager.addAutomations([automation]);
 
     automationsManager.execute();
-    expect(frigateCardHandleAction).not.toBeCalled();
+    expect(api.getActionsManager().executeActions).not.toBeCalled();
 
     vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(true);
 
     automationsManager.execute();
-    expect(frigateCardHandleAction).toBeCalledTimes(1);
+    expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
 
     // Automation will not re-fire when condition continues to evaluate the
     // same.
     automationsManager.execute();
-    expect(frigateCardHandleAction).toBeCalledTimes(1);
+    expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
 
     vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(false);
 
     automationsManager.execute();
-    expect(frigateCardHandleAction).toBeCalledTimes(1);
+    expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
 
     vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(true);
 
     automationsManager.execute();
-    expect(frigateCardHandleAction).toBeCalledTimes(2);
+    expect(api.getActionsManager().executeActions).toBeCalledTimes(2);
   });
 
   it('should execute actions_not', () => {
-    const config = createConfig({
-      automations: [
-        {
-          conditions: conditions,
-          actions_not: actions,
-        },
-      ],
-    });
-
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-    vi.mocked(api.getConfigManager().getNonOverriddenConfig).mockReturnValue(config);
     vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(false);
 
     const automationsManager = new AutomationsManager(api);
-    automationsManager.setAutomationsFromConfig();
+    automationsManager.addAutomations([not_automation]);
 
     automationsManager.execute();
 
-    expect(frigateCardHandleAction).toBeCalled();
+    expect(api.getActionsManager().executeActions).toBeCalled();
   });
 
   it('should prevent automation loops', () => {
-    const config = createConfig({
-      automations: [
-        {
-          conditions: [{ condition: 'fullscreen' as const, fullscreen: true }],
-          actions: actions,
-        },
-        {
-          conditions: [{ condition: 'fullscreen' as const, fullscreen: true }],
-          actions_not: actions,
-        },
-      ],
-    });
-
     const api = createCardAPI();
     vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-    vi.mocked(api.getConfigManager().getNonOverriddenConfig).mockReturnValue(config);
 
     const automationsManager = new AutomationsManager(api);
-    automationsManager.setAutomationsFromConfig();
+    automationsManager.addAutomations([automation, not_automation]);
 
     // Create a setup where one automation action causes another...
     let evaluation = true;
-    vi.mocked(frigateCardHandleAction).mockImplementation(() => {
-      evaluation = !evaluation;
-      vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(
-        evaluation,
-      );
-      automationsManager.execute();
-    });
+
+    vi.mocked(api.getActionsManager().executeActions).mockImplementation(
+      async (
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _action: ActionType | ActionType[],
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _config?: AuxillaryActionConfig,
+      ): Promise<void> => {
+        evaluation = !evaluation;
+        vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(
+          evaluation,
+        );
+        automationsManager.execute();
+      },
+    );
 
     vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(evaluation);
 
@@ -143,6 +125,24 @@ describe('AutomationsManager', () => {
       }),
     );
 
-    expect(frigateCardHandleAction).toBeCalledTimes(10);
+    expect(api.getActionsManager().executeActions).toBeCalledTimes(10);
+  });
+
+  it('should delete automations', () => {
+    const api = createCardAPI();
+    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+
+    const automationsManager = new AutomationsManager(api);
+    automationsManager.addAutomations([automation]);
+
+    vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(true);
+
+    automationsManager.execute();
+    expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
+
+    automationsManager.deleteAutomations();
+
+    automationsManager.execute();
+    expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
   });
 });

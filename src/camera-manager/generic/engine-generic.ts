@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import { CameraConfig, PTZAction, PTZPhase } from '../../config/types';
-import { ExtendedHomeAssistant } from '../../types';
+import { PTZAction, PTZ_PAN_TILT_ACTIONS, PTZ_ZOOM_ACTIONS } from '../../config/ptz';
+import { ActionPhase, CameraConfig } from '../../config/types';
+import { ExtendedHomeAssistant, PTZCapabilities, PTZMovementType } from '../../types';
 import { getEntityIcon, getEntityTitle } from '../../utils/ha';
 import { EntityRegistryManager } from '../../utils/ha/entity-registry';
 import { ViewMedia } from '../../view/media';
@@ -35,6 +36,7 @@ import {
 } from '../types';
 import { getCameraEntityFromConfig } from '../utils/camera-entity-from-config';
 import { getDefaultGo2RTCEndpoint } from '../utils/go2rtc-endpoint';
+import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 
 export class GenericCameraManagerEngine implements CameraManagerEngine {
   protected _eventCallback?: CameraEventCallback;
@@ -64,6 +66,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
           seek: false,
           snapshots: false,
           substream: true,
+          ptz: getPTZCapabilitiesFromCameraConfig(cameraConfig) ?? undefined,
         },
         {
           disable: cameraConfig.capabilities?.disable,
@@ -222,7 +225,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     _cameraConfig: CameraConfig,
     _action: PTZAction,
     _options?: {
-      phase?: PTZPhase;
+      phase?: ActionPhase;
       preset?: string;
     },
   ): Promise<void> {

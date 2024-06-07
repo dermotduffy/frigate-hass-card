@@ -362,7 +362,6 @@
         "camera_ui": "Interfície d'usuari de la càmera",
         "cameras": "Càmeres",
         "clips": "Clips",
-        "default_zoom": "",
         "display_mode": "Mode de visualització",
         "download": "Descarregar",
         "enabled": "Botó habilitat",
@@ -377,7 +376,8 @@
         "mute": "Silenciar / Activar el so",
         "play": "Reproduir / Pausa",
         "priority": "Prioritat",
-        "ptz": "",
+        "ptz_controls": "",
+        "ptz_home": "",
         "recordings": "Enregistraments",
         "screenshot": "Captura de pantalla",
         "snapshots": "Imatges instantànies",
@@ -437,6 +437,10 @@
       },
       "default": "Vista per defecte",
       "interaction_seconds": "Segons després de l'acció de l'usuari per continuar interactuant (0=mai)",
+      "keyboard_shortcuts": {
+        "editor_label": "",
+        "enabled": ""
+      },
       "reset_after_interaction": "Restableix la vista predeterminada després de la interacció de l'usuari",
       "triggers": {
         "actions": {
@@ -579,6 +583,17 @@
     "tag": "Etiqueta",
     "what": "Què",
     "where": "On"
+  },
+  "key_assigner": {
+    "assign": "",
+    "assigning": "",
+    "modifiers": {
+      "alt": "",
+      "ctrl": "",
+      "meta": "",
+      "shift": ""
+    },
+    "unassign": ""
   },
   "media_filter": {
     "all": "Tots",

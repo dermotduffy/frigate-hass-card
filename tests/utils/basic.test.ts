@@ -22,6 +22,7 @@ import {
   isTruthy,
   isValidDate,
   prettifyTitle,
+  recursivelyMergeObjectsConcatenatingArraysUniquely,
   recursivelyMergeObjectsNotArrays,
   runWhenIdleIfSupported,
   setify,
@@ -333,6 +334,53 @@ describe('recursivelyMergeObjectsNotArrays', () => {
         b: {
           c: 3,
           array: [4],
+          d: {
+            e: 5,
+          },
+        },
+        other: {
+          field: 7,
+        },
+      },
+    });
+  });
+});
+
+describe('recursivelyMergeObjectsConcatenatingArraysUniquely', () => {
+  it('should recursively merge objects but uniquely concat arrays', () => {
+    expect(
+      recursivelyMergeObjectsConcatenatingArraysUniquely(
+        {},
+        {
+          a: {
+            b: {
+              c: 3,
+              d: {
+                e: 4,
+              },
+              array: [5, 1, 2, 3, 4],
+            },
+            other: {
+              field: 7,
+            },
+          },
+        },
+        {
+          a: {
+            b: {
+              array: [4, 4, 5],
+              d: {
+                e: 5,
+              },
+            },
+          },
+        },
+      ),
+    ).toEqual({
+      a: {
+        b: {
+          c: 3,
+          array: [5, 1, 2, 3, 4],
           d: {
             e: 5,
           },

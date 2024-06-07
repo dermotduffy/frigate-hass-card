@@ -14,13 +14,13 @@ import {
   CameraEventCallback,
   CameraManagerMediaCapabilities,
 } from '../src/camera-manager/types';
-import { ActionsManager } from '../src/card-controller/actions-manager';
+import { ActionsManager } from '../src/card-controller/actions/actions-manager';
 import { AutoUpdateManager } from '../src/card-controller/auto-update-manager';
 import { AutomationsManager } from '../src/card-controller/automations-manager';
 import { CameraURLManager } from '../src/card-controller/camera-url-manager';
 import { CardElementManager } from '../src/card-controller/card-element-manager';
 import { ConditionsManager } from '../src/card-controller/conditions-manager';
-import { ConfigManager } from '../src/card-controller/config-manager';
+import { ConfigManager } from '../src/card-controller/config/config-manager';
 import { CardController } from '../src/card-controller/controller';
 import { DownloadManager } from '../src/card-controller/download-manager';
 import { ExpandManager } from '../src/card-controller/expand-manager';
@@ -40,11 +40,13 @@ import {
   CameraConfig,
   FrigateCardCondition,
   FrigateCardConfig,
+  FrigateCardCustomAction,
   PerformanceConfig,
   RawFrigateCardConfig,
   cameraConfigSchema,
   frigateCardConditionSchema,
   frigateCardConfigSchema,
+  frigateCardCustomActionSchema,
   performanceConfigSchema,
 } from '../src/config/types';
 import { CapabilitiesRaw, ExtendedHomeAssistant, MediaLoadedInfo } from '../src/types';
@@ -53,6 +55,17 @@ import { Entity } from '../src/utils/ha/entity-registry/types';
 import { ViewMedia, ViewMediaType } from '../src/view/media';
 import { MediaQueriesResults } from '../src/view/media-queries-results';
 import { View, ViewParameters } from '../src/view/view';
+import { KeyboardStateManager } from '../src/card-controller/keyboard-state-manager';
+
+export const createAction = (
+  action: Record<string, unknown>,
+): FrigateCardCustomAction | null => {
+  const result = frigateCardCustomActionSchema.safeParse({
+    action: 'custom:frigate-card-action',
+    ...action,
+  });
+  return result.success ? result.data : null;
+};
 
 export const createCameraConfig = (config?: unknown): CameraConfig => {
   return cameraConfigSchema.parse(config ?? {});
@@ -209,9 +222,16 @@ export const createStore = (
   return store;
 };
 
-export const createCameraManager = (): CameraManager => {
+export const createCameraManager = (store?: CameraManagerStore): CameraManager => {
+  const cameraStore = store ?? createStore();
   const cameraManager = mock<CameraManager>();
-  vi.mocked(cameraManager.getStore).mockReturnValue(createStore());
+  vi.mocked(cameraManager.getStore).mockReturnValue(cameraStore);
+  vi.mocked(cameraManager.getCameraCapabilities).mockImplementation(
+    (cameraID: string): Capabilities | null => {
+      return cameraStore.getCamera(cameraID)?.getCapabilities() ?? null;
+    },
+  );
+
   return cameraManager;
 };
 
@@ -404,6 +424,7 @@ export const createParent = (options?: { children?: HTMLElement[] }): HTMLElemen
 
 export const createLitElement = (): LitElement => {
   const element = document.createElement('div') as unknown as LitElement;
+  element.addController = vi.fn();
   element.requestUpdate = vi.fn();
   return element;
 };
@@ -426,6 +447,7 @@ export const createCardAPI = (): CardController => {
   api.getHASSManager.mockReturnValue(mock<HASSManager>());
   api.getInitializationManager.mockReturnValue(mock<InitializationManager>());
   api.getInteractionManager.mockReturnValue(mock<InteractionManager>());
+  api.getKeyboardStateManager.mockReturnValue(mock<KeyboardStateManager>());
   api.getMediaLoadedInfoManager.mockReturnValue(mock<MediaLoadedInfoManager>());
   api.getMediaPlayerManager.mockReturnValue(mock<MediaPlayerManager>());
   api.getMessageManager.mockReturnValue(mock<MessageManager>());

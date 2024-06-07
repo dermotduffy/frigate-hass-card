@@ -12,8 +12,8 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../camera-manager/manager.js';
 import { MediaGridSelected } from '../components-lib/media-grid-controller.js';
-import { ZoomDefault } from '../components-lib/zoom/types.js';
-import { handleZoomDefaultEvent } from '../components-lib/zoom/zoom-view-context.js';
+import { ZoomSettingsObserved } from '../components-lib/zoom/types.js';
+import { handleZoomSettingsObservedEvent } from '../components-lib/zoom/zoom-view-context.js';
 import {
   dispatchMessageEvent,
   renderMessage,
@@ -76,6 +76,7 @@ import { VideoContentType, ViewMedia } from '../view/media.js';
 import { View } from '../view/view.js';
 import type { EmblaCarouselPlugins } from './carousel.js';
 import './next-prev-control.js';
+import './ptz';
 import './surround.js';
 import './title-control.js';
 import {
@@ -501,6 +502,13 @@ export class FrigateCardViewerCarousel extends LitElement {
           }}
         ></frigate-card-next-previous-control>
       </frigate-card-carousel>
+      ${this.view
+        ? html` <frigate-card-ptz
+            .config=${this.viewerConfig?.controls.ptz}
+            .forceVisibility=${this.view?.context?.ptzControls?.enabled}
+          >
+          </frigate-card-ptz>`
+        : ''}
       <div class="seek-warning">
         <ha-icon title="${localize('media_viewer.unseekable')}" icon="mdi:clock-remove">
         </ha-icon>
@@ -876,7 +884,7 @@ export class FrigateCardViewerProvider
 
     return this.viewerConfig?.zoomable
       ? html` <frigate-card-zoomer
-          .defaultConfig=${guard([cameraConfig?.dimensions?.layout], () =>
+          .defaultSettings=${guard([cameraConfig?.dimensions?.layout], () =>
             cameraConfig?.dimensions?.layout
               ? {
                   pan: cameraConfig.dimensions.layout.pan,
@@ -884,11 +892,13 @@ export class FrigateCardViewerProvider
                 }
               : undefined,
           )}
-          .config=${mediaID ? this.view?.context?.zoom?.[mediaID]?.zoom : undefined}
+          .settings=${mediaID
+            ? this.view?.context?.zoom?.[mediaID]?.requested
+            : undefined}
           @frigate-card:zoom:zoomed=${() => this.setControls(false)}
           @frigate-card:zoom:unzoomed=${() => this.setControls()}
-          @frigate-card:zoom:default=${(ev: CustomEvent<ZoomDefault>) =>
-            handleZoomDefaultEvent(this, ev, mediaID)}
+          @frigate-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
+            handleZoomSettingsObservedEvent(this, ev, mediaID)}
         >
           ${template}
         </frigate-card-zoomer>`
@@ -995,6 +1005,6 @@ declare global {
     'frigate-card-viewer-carousel': FrigateCardViewerCarousel;
     'frigate-card-viewer': FrigateCardViewer;
     'frigate-card-viewer-grid': FrigateCardViewerGrid;
-    FRIGATE_CARD_VIEWER_PROVIDER: FrigateCardViewerProvider;
+    'frigate-card-viewer-provider': FrigateCardViewerProvider;
   }
 }

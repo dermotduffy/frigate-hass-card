@@ -11,6 +11,11 @@ import { z } from 'zod';
 import { MEDIA_CHUNK_SIZE_DEFAULT, MEDIA_CHUNK_SIZE_MAX } from '../const.js';
 import { capabilityKeys } from '../types.js';
 import { deepRemoveDefaults } from '../utils/zod.js';
+import {
+  keyboardShortcutsDefault,
+  keyboardShortcutsSchema,
+} from './keyboard-shortcuts.js';
+import { PTZ_ACTIONS } from './ptz';
 
 // *************************************************************************
 //                       Common Configuration Constants
@@ -23,6 +28,7 @@ const FRIGATE_MENU_PRIORITY_DEFAULT = 50;
 export const FRIGATE_MENU_PRIORITY_MAX = 100;
 
 export const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
+  'diagnostics',
   'live',
   'clip',
   'clips',
@@ -67,18 +73,8 @@ export const MEDIA_MUTE_CONDITIONS = [
 ] as const;
 export type AutoMuteCondition = (typeof MEDIA_MUTE_CONDITIONS)[number];
 
-const PTZ_BASE_ACTIONS = ['left', 'right', 'up', 'down', 'zoom_in', 'zoom_out'] as const;
-
-// PTZ actions as used by the PTZ control (includes a 'home' button).
-export const PTZ_CONTROL_ACTIONS = [...PTZ_BASE_ACTIONS, 'home'] as const;
-export type PTZControlAction = (typeof PTZ_CONTROL_ACTIONS)[number];
-
-// PTZ actions as used by the camera manager (includes generic presets).
-const PTZ_ACTIONS = [...PTZ_BASE_ACTIONS, 'preset'] as const;
-export type PTZAction = (typeof PTZ_ACTIONS)[number];
-
-const PTZ_PHASES = ['start', 'stop'] as const;
-export type PTZPhase = (typeof PTZ_PHASES)[number];
+const ACTION_PHASES = ['start', 'stop'] as const;
+export type ActionPhase = (typeof ACTION_PHASES)[number];
 
 const CAMERA_TRIGGER_EVENT_TYPES = [
   // An event whether or not it has any media yet associated with it.
@@ -90,15 +86,20 @@ const CAMERA_TRIGGER_EVENT_TYPES = [
 ] as const;
 export type CameraTriggerEventType = (typeof CAMERA_TRIGGER_EVENT_TYPES)[number];
 
+const cardIDRegex = /^[-\w]+$/;
+
 // *************************************************************************
 //                        Pan / Zoom
 // *************************************************************************
+
+export const ZOOM_MIN = 1;
+export const ZOOM_MAX = 10;
 
 const panSchema = z.object({
   x: z.number().min(0).max(100).optional(),
   y: z.number().min(0).max(100).optional(),
 });
-const zoomSchema = z.number().min(1).max(10);
+const zoomSchema = z.number().min(ZOOM_MIN).max(ZOOM_MAX);
 
 // *************************************************************************
 //                        View Display Mode
@@ -224,7 +225,7 @@ export const frigateCardCustomActionsBaseSchema = customActionSchema.extend({
   // Card this command is intended for.
   card_id: z
     .string()
-    .regex(/^\w+$/, 'card_id parameter can only contain [a-z][A-Z][0-9_]')
+    .regex(cardIDRegex, 'card_id parameter can only contain [a-z][A-Z][0-9_]-')
     .optional(),
 });
 
@@ -235,7 +236,6 @@ export const frigateCardCustomActionsBaseSchema = customActionSchema.extend({
 const FRIGATE_CARD_GENERAL_ACTIONS = [
   'camera_ui',
   'default',
-  'diagnostics',
   'download',
   'expand',
   'fullscreen',
@@ -252,70 +252,120 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
 ] as const;
 export type FrigateCardGeneralAction = (typeof FRIGATE_CARD_GENERAL_ACTIONS)[number];
 
-const frigateCardViewActionSchema = frigateCardCustomActionsBaseSchema.extend({
+const viewActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
   frigate_card_action: z.enum(FRIGATE_CARD_VIEWS_USER_SPECIFIED),
 });
-export type FrigateCardViewAction = z.infer<typeof frigateCardViewActionSchema>;
+export type ViewActionConfig = z.infer<typeof viewActionConfigSchema>;
 
-const frigateCardGeneralActionSchema = frigateCardCustomActionsBaseSchema.extend({
+const generalActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
   frigate_card_action: z.enum(FRIGATE_CARD_GENERAL_ACTIONS),
 });
+export type GeneralActionConfig = z.infer<typeof generalActionConfigSchema>;
 
-const frigateCardCameraSelectActionSchema = frigateCardCustomActionsBaseSchema.extend({
+const cameraSelectActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
   frigate_card_action: z.literal('camera_select'),
   camera: z.string().optional(),
   triggered: z.boolean().optional(),
 });
+export type CameraSelectActionConfig = z.infer<typeof cameraSelectActionConfigSchema>;
 
-const frigateCardLiveDependencySelectActionSchema =
-  frigateCardCustomActionsBaseSchema.extend({
-    frigate_card_action: z.literal('live_substream_select'),
-    camera: z.string(),
-  });
+const substreamSelectActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
+  frigate_card_action: z.literal('live_substream_select'),
+  camera: z.string(),
+});
+export type SubstreamSelectActionConfig = z.infer<
+  typeof substreamSelectActionConfigSchema
+>;
 
-const frigateCardMediaPlayerActionSchema = frigateCardCustomActionsBaseSchema.extend({
+const mediaPlayerActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
   frigate_card_action: z.literal('media_player'),
   media_player: z.string(),
   media_player_action: z.enum(['play', 'stop']),
 });
+export type MediaPlayerActionConfig = z.infer<typeof mediaPlayerActionConfigSchema>;
 
-const frigateCardViewDisplayModeActionSchema = frigateCardCustomActionsBaseSchema.extend(
-  {
-    frigate_card_action: z.literal('display_mode_select'),
-    display_mode: viewDisplayModeSchema,
-  },
-);
+const viewDisplayModeActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
+  frigate_card_action: z.literal('display_mode_select'),
+  display_mode: viewDisplayModeSchema,
+});
+export type DisplayModeActionConfig = z.infer<typeof viewDisplayModeActionConfigSchema>;
 
-const frigateCardPTZActionSchema = frigateCardCustomActionsBaseSchema.extend({
+const ptzActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
   frigate_card_action: z.literal('ptz'),
-  ptz_action: z.enum(PTZ_ACTIONS),
-  ptz_phase: z.enum(PTZ_PHASES).optional(),
+  camera: z.string().optional(),
+  ptz_action: z.enum(PTZ_ACTIONS).optional(),
+  ptz_phase: z.enum(ACTION_PHASES).optional(),
   ptz_preset: z.string().optional(),
 });
-export type FrigateCardPTZAction = z.infer<typeof frigateCardPTZActionSchema>;
+export type PTZActionConfig = z.infer<typeof ptzActionConfigSchema>;
 
-const frigateCardShowPTZActionSchema = frigateCardCustomActionsBaseSchema.extend({
-  frigate_card_action: z.literal('show_ptz'),
-  show_ptz: z.boolean(),
+const ptzDigitalActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
+  frigate_card_action: z.literal('ptz_digital'),
+  target_id: z.string().optional(),
+  absolute: z
+    .object({
+      zoom: zoomSchema.optional(),
+      pan: panSchema.optional(),
+    })
+    .optional(),
+  ptz_action: z.enum(PTZ_ACTIONS).optional(),
+  ptz_phase: z.enum(ACTION_PHASES).optional(),
 });
+export type PTZDigitialActionConfig = z.infer<typeof ptzDigitalActionConfigSchema>;
 
-const frigateCardChangeZoomActionSchema = frigateCardCustomActionsBaseSchema.extend({
-  frigate_card_action: z.literal('change_zoom'),
-  target_id: z.string(),
-  zoom: zoomSchema.optional(),
-  pan: panSchema.optional(),
+const ptzMultiActionSchema = frigateCardCustomActionsBaseSchema.extend({
+  frigate_card_action: z.literal('ptz_multi'),
+  target_id: z.string().optional(),
+
+  ptz_action: z.enum(PTZ_ACTIONS).optional(),
+  ptz_phase: z.enum(ACTION_PHASES).optional(),
+  ptz_preset: z.string().optional(),
 });
+export type PTZMultiActionConfig = z.infer<typeof ptzMultiActionSchema>;
+
+const ptzControlsActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
+  frigate_card_action: z.literal('ptz_controls'),
+  enabled: z.boolean(),
+});
+export type PTZControlsActionConfig = z.infer<typeof ptzControlsActionConfigSchema>;
+
+const timeDeltaSchema = z.object({
+  ms: z.number().optional(),
+  s: z.number().optional(),
+  m: z.number().optional(),
+  h: z.number().optional(),
+});
+export type TimeDelta = z.infer<typeof timeDeltaSchema>;
+
+const sleepActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
+  frigate_card_action: z.literal('sleep'),
+  duration: timeDeltaSchema.optional().default({ s: 1 }),
+});
+export type SleepActionConfig = z.infer<typeof sleepActionConfigSchema>;
+
+const LOG_ACTIONS_LEVELS = ['debug', 'info', 'warn', 'error'] as const;
+export type LogActionLevel = (typeof LOG_ACTIONS_LEVELS)[number];
+
+const logActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
+  frigate_card_action: z.literal('log'),
+  message: z.string(),
+  level: z.enum(LOG_ACTIONS_LEVELS).default('info'),
+});
+export type LogActionConfig = z.infer<typeof logActionConfigSchema>;
 
 export const frigateCardCustomActionSchema = z.union([
-  frigateCardCameraSelectActionSchema,
-  frigateCardChangeZoomActionSchema,
-  frigateCardGeneralActionSchema,
-  frigateCardLiveDependencySelectActionSchema,
-  frigateCardMediaPlayerActionSchema,
-  frigateCardPTZActionSchema,
-  frigateCardShowPTZActionSchema,
-  frigateCardViewActionSchema,
-  frigateCardViewDisplayModeActionSchema,
+  cameraSelectActionConfigSchema,
+  generalActionConfigSchema,
+  substreamSelectActionConfigSchema,
+  logActionConfigSchema,
+  mediaPlayerActionConfigSchema,
+  ptzActionConfigSchema,
+  ptzDigitalActionConfigSchema,
+  ptzMultiActionSchema,
+  ptzControlsActionConfigSchema,
+  viewActionConfigSchema,
+  viewDisplayModeActionConfigSchema,
+  sleepActionConfigSchema,
 ]);
 export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSchema>;
 
@@ -572,6 +622,15 @@ const microphoneConditionSchema = z.object({
   connected: z.boolean().optional(),
   muted: z.boolean().optional(),
 });
+const keyConditionSchema = z.object({
+  condition: z.literal('key'),
+  key: z.string(),
+  state: z.enum(['down', 'up']).optional(),
+  ctrl: z.boolean().optional(),
+  shift: z.boolean().optional(),
+  alt: z.boolean().optional(),
+  meta: z.boolean().optional(),
+});
 
 export const frigateCardConditionSchema = z.discriminatedUnion('condition', [
   // Stock conditions:
@@ -590,6 +649,7 @@ export const frigateCardConditionSchema = z.discriminatedUnion('condition', [
   triggeredConditionSchema,
   interactionConditionSchema,
   microphoneConditionSchema,
+  keyConditionSchema,
 ]);
 export type FrigateCardCondition = z.infer<typeof frigateCardConditionSchema>;
 
@@ -665,6 +725,129 @@ const aspectRatioSchema = z
   );
 
 // *************************************************************************
+//                         PTZ Configuration
+// *************************************************************************
+
+const ptzCameraConfigDefaults = {
+  r2c_delay_between_calls_seconds: 0.5,
+  c2r_delay_between_calls_seconds: 0.2,
+};
+
+// To avoid lots of YAML duplication, provide an easy way to just specify the
+// service data as actions for each PTZ action, and it will be preprocessed
+// into the full form. This also provides compatability with the AlexIT/WebRTC
+// PTZ configuration.
+const dataPTZFormatToFullFormat = function (
+  suffix: string,
+): (data: unknown) => unknown {
+  return (data) => {
+    if (!data || typeof data !== 'object' || !data['service']) {
+      return data;
+    }
+    const out = { ...data };
+    Object.keys(data).forEach((key) => {
+      const match = key.match(/^data_(.+)$/);
+      const name = match?.[1];
+      if (name && !(`${suffix}${name}` in data)) {
+        out[`${suffix}${name}`] = {
+          action: 'call-service',
+          service: data['service'],
+          data: data[key],
+        };
+        delete out[key];
+        delete out['service'];
+      }
+    });
+    return out;
+  };
+};
+
+const ptzCameraConfigSchema = z.preprocess(
+  dataPTZFormatToFullFormat('actions_'),
+  z
+    .object({
+      actions_left: callServiceActionSchema.optional(),
+      actions_left_start: callServiceActionSchema.optional(),
+      actions_left_stop: callServiceActionSchema.optional(),
+
+      actions_right: callServiceActionSchema.optional(),
+      actions_right_start: callServiceActionSchema.optional(),
+      actions_right_stop: callServiceActionSchema.optional(),
+
+      actions_up: callServiceActionSchema.optional(),
+      actions_up_start: callServiceActionSchema.optional(),
+      actions_up_stop: callServiceActionSchema.optional(),
+
+      actions_down: callServiceActionSchema.optional(),
+      actions_down_start: callServiceActionSchema.optional(),
+      actions_down_stop: callServiceActionSchema.optional(),
+
+      actions_zoom_in: callServiceActionSchema.optional(),
+      actions_zoom_in_start: callServiceActionSchema.optional(),
+      actions_zoom_in_stop: callServiceActionSchema.optional(),
+
+      actions_zoom_out: callServiceActionSchema.optional(),
+      actions_zoom_out_start: callServiceActionSchema.optional(),
+      actions_zoom_out_stop: callServiceActionSchema.optional(),
+
+      // The number of seconds between subsequent relative calls when converting a
+      // relative request into a continuous request.
+      r2c_delay_between_calls_seconds: z
+        .number()
+        .default(ptzCameraConfigDefaults.r2c_delay_between_calls_seconds),
+
+      // The number of seconds between the start/stop call when converting a
+      // continuous request into a relative request.
+      c2r_delay_between_calls_seconds: z
+        .number()
+        .default(ptzCameraConfigDefaults.c2r_delay_between_calls_seconds),
+
+      presets: z
+        .preprocess(
+          dataPTZFormatToFullFormat(''),
+          z.union([
+            z.record(callServiceActionSchema),
+
+            // This is used by the data_ style of action.
+            z.object({ service: z.string().optional() }),
+          ]),
+        )
+        .optional(),
+
+      // This is used by the data_ style of action.
+      service: z.string().optional(),
+    })
+    // We allow passthrough as there may be user-configured presets as "actions_<preset>" .
+    .passthrough(),
+);
+
+const ptzControlsDefaults = {
+  orientation: 'horizontal' as const,
+  mode: 'auto' as const,
+  hide_pan_tilt: false,
+  hide_zoom: false,
+  hide_home: false,
+  position: 'bottom-right' as const,
+};
+
+export const ptzControlsConfigSchema = z.object({
+  mode: z.enum(['off', 'auto', 'on']).default(ptzControlsDefaults.mode),
+  position: z
+    .enum(['top-left', 'top-right', 'bottom-left', 'bottom-right'])
+    .default(ptzControlsDefaults.position),
+  orientation: z
+    .enum(['vertical', 'horizontal'])
+    .default(ptzControlsDefaults.orientation),
+
+  hide_pan_tilt: z.boolean().default(ptzControlsDefaults.hide_pan_tilt),
+  hide_zoom: z.boolean().default(ptzControlsDefaults.hide_zoom),
+  hide_home: z.boolean().default(ptzControlsDefaults.hide_home),
+
+  style: z.object({}).passthrough().optional(),
+});
+export type PTZControlsConfig = z.infer<typeof ptzControlsConfigSchema>;
+
+// *************************************************************************
 //                     Image Configuration
 // Image config base options are used both for the `image` live provider and the
 // `image` card view.
@@ -683,13 +866,15 @@ const IMAGE_MODES = ['screensaver', 'camera', 'url'] as const;
 const imageConfigDefault = {
   mode: 'url' as const,
   zoomable: true,
+  controls: {
+    ptz: ptzControlsDefaults,
+  },
   ...imageBaseConfigDefault,
 };
 
 const imageConfigSchema = imageBaseConfigSchema
   .extend({
     mode: z.enum(IMAGE_MODES).default(imageConfigDefault.mode),
-    zoomable: z.boolean().default(imageConfigDefault.zoomable),
   })
   .merge(actionsSchema)
   .default(imageConfigDefault);
@@ -929,70 +1114,6 @@ const jsmpegConfigSchema = z.object({
     .optional(),
 });
 
-const frigateCardPTZActions = z.object({
-  actions_left: actionsBaseSchema.optional(),
-  actions_right: actionsBaseSchema.optional(),
-  actions_up: actionsBaseSchema.optional(),
-  actions_down: actionsBaseSchema.optional(),
-  actions_zoom_in: actionsBaseSchema.optional(),
-  actions_zoom_out: actionsBaseSchema.optional(),
-  actions_home: actionsBaseSchema.optional(),
-});
-export type FrigateCardPTZActions = z.infer<typeof frigateCardPTZActions>;
-
-const livePTZControlsDefaults = {
-  orientation: 'horizontal' as const,
-  mode: 'on' as const,
-  hide_pan_tilt: false,
-  hide_zoom: false,
-  hide_home: false,
-  position: 'bottom-right' as const,
-};
-
-export const frigateCardPTZSchema = z.preprocess(
-  // To avoid lots of YAML duplication, provide an easy way to just specify the
-  // service data as actions for each PTZ icon, and it will be preprocessed into
-  // the full form. This also provides compatability with the AlexIT/WebRTC PTZ
-  // configuration.
-  (data) => {
-    if (!data || typeof data !== 'object' || !data['service']) {
-      return data;
-    }
-    const out = { ...data };
-    PTZ_CONTROL_ACTIONS.forEach((name) => {
-      if (`data_${name}` in data && !(`actions_${name}` in data)) {
-        out[`actions_${name}`] = {
-          tap_action: {
-            action: 'call-service',
-            service: data['service'],
-            data: data[`data_${name}`],
-          },
-        };
-        delete out[`data_${name}`];
-      }
-    });
-    return out;
-  },
-  frigateCardPTZActions.extend({
-    mode: z.enum(['off', 'on']).default(livePTZControlsDefaults.mode),
-    position: z
-      .enum(['top-left', 'top-right', 'bottom-left', 'bottom-right'])
-      .default(livePTZControlsDefaults.position),
-
-    orientation: z
-      .enum(['vertical', 'horizontal'])
-      .default(livePTZControlsDefaults.orientation),
-
-    hide_pan_tilt: z.boolean().default(livePTZControlsDefaults.hide_pan_tilt),
-    hide_zoom: z.boolean().default(livePTZControlsDefaults.hide_zoom),
-    hide_home: z.boolean().default(livePTZControlsDefaults.hide_home),
-
-    service: z.string().optional(),
-    style: z.object({}).passthrough().optional(),
-  }),
-);
-export type FrigateCardPTZConfig = z.infer<typeof frigateCardPTZSchema>;
-
 const liveThumbnailControlsDefaults = {
   ...thumbnailControlsDefaults,
   media_type: 'events' as const,
@@ -1018,7 +1139,7 @@ const liveConfigDefault = {
       size: 48,
       style: 'chevrons' as const,
     },
-    ptz: livePTZControlsDefaults,
+    ptz: ptzControlsDefaults,
     thumbnails: liveThumbnailControlsDefaults,
     timeline: miniTimelineConfigDefault,
   },
@@ -1068,7 +1189,7 @@ const liveConfigSchema = z
             ),
           })
           .default(liveConfigDefault.controls.next_previous),
-        ptz: frigateCardPTZSchema.default(liveConfigDefault.controls.ptz),
+        ptz: ptzControlsConfigSchema.default(liveConfigDefault.controls.ptz),
         thumbnails: livethumbnailsControlSchema.default(
           liveConfigDefault.controls.thumbnails,
         ),
@@ -1154,6 +1275,7 @@ const cameraConfigDefault = {
       file_pattern: '%H-%M-%S' as const,
     },
   },
+  ptz: ptzCameraConfigDefaults,
   triggers: {
     motion: false,
     occupancy: false,
@@ -1251,6 +1373,8 @@ export const cameraConfigSchema = z
 
     cast: castSchema.optional(),
 
+    ptz: ptzCameraConfigSchema.default(cameraConfigDefault.ptz),
+
     dimensions: z
       .object({
         aspect_ratio: aspectRatioSchema.optional(),
@@ -1289,6 +1413,7 @@ const viewConfigDefault = {
     },
     untrigger_seconds: 0,
   },
+  keyboard_shortcuts: keyboardShortcutsDefault,
 };
 
 export const triggersSchema = z.object({
@@ -1335,6 +1460,9 @@ const viewConfigSchema = z
     render_entities: z.string().array().optional(),
     dark_mode: z.enum(['on', 'off', 'auto']).optional(),
     triggers: triggersSchema.default(viewConfigDefault.triggers),
+    keyboard_shortcuts: keyboardShortcutsSchema.default(
+      viewConfigDefault.keyboard_shortcuts,
+    ),
   })
   .merge(actionsSchema)
   .default(viewConfigDefault);
@@ -1371,7 +1499,7 @@ const menuConfigDefault = {
     camera_ui: visibleButtonDefault,
     cameras: visibleButtonDefault,
     clips: visibleButtonDefault,
-    default_zoom: visibleButtonDefault,
+    ptz_home: hiddenButtonDefault,
     display_mode: visibleButtonDefault,
     download: visibleButtonDefault,
     expand: hiddenButtonDefault,
@@ -1386,7 +1514,7 @@ const menuConfigDefault = {
     },
     mute: hiddenButtonDefault,
     play: hiddenButtonDefault,
-    ptz: hiddenButtonDefault,
+    ptz_controls: hiddenButtonDefault,
     recordings: hiddenButtonDefault,
     screenshot: hiddenButtonDefault,
     snapshots: visibleButtonDefault,
@@ -1417,8 +1545,8 @@ export const menuConfigSchema = z
         camera_ui: visibleButtonSchema.default(menuConfigDefault.buttons.camera_ui),
         cameras: visibleButtonSchema.default(menuConfigDefault.buttons.cameras),
         clips: visibleButtonSchema.default(menuConfigDefault.buttons.clips),
-        default_zoom: visibleButtonSchema.default(
-          menuConfigDefault.buttons.default_zoom,
+        ptz_home: hiddenButtonSchema.default(
+          menuConfigDefault.buttons.ptz_home,
         ),
         display_mode: visibleButtonSchema.default(
           menuConfigDefault.buttons.display_mode,
@@ -1441,7 +1569,7 @@ export const menuConfigSchema = z
           .default(menuConfigDefault.buttons.microphone),
         mute: hiddenButtonSchema.default(menuConfigDefault.buttons.mute),
         play: hiddenButtonSchema.default(menuConfigDefault.buttons.play),
-        ptz: hiddenButtonSchema.default(menuConfigDefault.buttons.ptz),
+        ptz_controls: hiddenButtonSchema.default(menuConfigDefault.buttons.ptz_controls),
         recordings: hiddenButtonSchema.default(menuConfigDefault.buttons.recordings),
         screenshot: hiddenButtonSchema.default(menuConfigDefault.buttons.screenshot),
         snapshots: visibleButtonSchema.default(menuConfigDefault.buttons.snapshots),
@@ -1477,6 +1605,10 @@ const viewerConfigDefault = {
     },
     thumbnails: thumbnailControlsDefaults,
     timeline: miniTimelineConfigDefault,
+    ptz: {
+      ...ptzControlsDefaults,
+      mode: 'off' as const,
+    }
   },
 };
 
@@ -1526,6 +1658,10 @@ const viewerConfigSchema = z
         next_previous: viewerNextPreviousControlConfigSchema.default(
           viewerConfigDefault.controls.next_previous,
         ),
+        ptz: ptzControlsConfigSchema.extend({
+          // The media_viewer ptz has no 'auto' mode.
+          mode: z.enum(['off', 'on']).default(viewerConfigDefault.controls.ptz.mode),
+        }).default(viewerConfigDefault.controls.ptz),
         thumbnails: thumbnailsControlSchema.default(
           viewerConfigDefault.controls.thumbnails,
         ),
@@ -1634,8 +1770,7 @@ const automationSchema = z.object({
 });
 export type Automation = z.infer<typeof automationSchema>;
 
-const automationsSchema = automationSchema.array().optional();
-export type Automations = z.infer<typeof automationsSchema>;
+const automationsSchema = automationSchema.array();
 
 // *************************************************************************
 //                       Performance Configuration
@@ -1727,7 +1862,7 @@ export const frigateCardConfigSchema = z.object({
   timeline: timelineConfigSchema,
   performance: performanceConfigSchema,
   debug: debugConfigSchema,
-  automations: automationsSchema,
+  automations: automationsSchema.optional(),
 
   profiles: profilesSchema,
 
@@ -1739,7 +1874,7 @@ export const frigateCardConfigSchema = z.object({
 
   // Card ID (used for query string commands). Restrict contents to only values
   // that be easily used in a URL.
-  card_id: z.string().regex(/^\w+$/).optional(),
+  card_id: z.string().regex(cardIDRegex).optional(),
 
   // Stock lovelace card config.
   type: z.string(),

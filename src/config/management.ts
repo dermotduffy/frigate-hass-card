@@ -14,6 +14,7 @@ import {
   CONF_CAMERAS_GLOBAL_DIMENSIONS_LAYOUT,
   CONF_CAMERAS_GLOBAL_IMAGE,
   CONF_CAMERAS_GLOBAL_JSMPEG,
+  CONF_CAMERAS_GLOBAL_PTZ,
   CONF_CAMERAS_GLOBAL_WEBRTC_CARD,
   CONF_ELEMENTS,
   CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
@@ -545,6 +546,116 @@ const upgradePTZElementsToLive = function (): (data: unknown) => boolean {
   };
 };
 
+const ptzActionsToCamerasGlobalTransform = (data: unknown): unknown => {
+  if (typeof data !== 'object' || !data) {
+    return undefined;
+  }
+
+  const NON_PRESET_DATA_KEYS = [
+    'data_left',
+    'data_right',
+    'data_up',
+    'data_down',
+    'data_zoom_in',
+    'data_zoom_out',
+    'service',
+  ];
+
+  const NON_PRESET_ACTION_KEYS = [
+    // 'actions_' will overwrite 'data_*' if there's duplication.
+    'actions_left',
+    'actions_right',
+    'actions_up',
+    'actions_down',
+    'actions_zoom_in',
+    'actions_zoom_out',
+  ];
+
+  const PRESET_TRANSFORM_KEYS = ['data_home', 'actions_home'];
+  const TRANSFORM_KEYS = [
+    ...NON_PRESET_DATA_KEYS,
+    ...NON_PRESET_ACTION_KEYS,
+    ...PRESET_TRANSFORM_KEYS,
+  ];
+
+  const keys = Object.keys(data);
+  const hasTransformable = keys.some((key) => TRANSFORM_KEYS.includes(key));
+  if (!hasTransformable) {
+    return undefined;
+  }
+
+  const output = {};
+
+  NON_PRESET_DATA_KEYS.filter((key) => key in data).reduce((obj, key) => {
+    obj[key] = data[key];
+    return obj;
+  }, output);
+
+  NON_PRESET_ACTION_KEYS.filter((key) => key in data).reduce((obj, key) => {
+    if (typeof data[key] === 'object' && 'tap_action' in data[key]) {
+      obj[key] = data[key]['tap_action'];
+    }
+    return obj;
+  }, output);
+
+  const createPresets = () => {
+    output['presets'] =
+      'presets' in data && typeof data['presets'] === 'object' && !!data['presets']
+        ? data['presets']
+        : {};
+  };
+
+  if (
+    'actions_home' in data &&
+    typeof data['actions_home'] === 'object' &&
+    data['actions_home'] &&
+    'tap_action' in data['actions_home']
+  ) {
+    createPresets();
+    output['presets']['home'] = data['actions_home']['tap_action'];
+  } else if (
+    'data_home' in data &&
+    typeof data['data_home'] === 'object' &&
+    data['data_home'] &&
+    typeof data['service'] === 'string'
+  ) {
+    createPresets();
+    output['presets']['service'] = data['service'];
+    output['presets']['data_home'] = data['data_home'];
+  }
+
+  return output;
+};
+
+const ptzControlSettingsTransform = (data: unknown): unknown => {
+  if (typeof data !== 'object' || !data) {
+    return data;
+  }
+
+  const TRANSFORM_KEYS = [
+    'mode',
+    'position',
+    'orientation',
+    'hide_pan_tilt',
+    'hide_zoom',
+    'hide_home',
+    'style',
+  ];
+
+  const keys = Object.keys(data);
+  const hasSomethingToFilter = keys.some((key) => !TRANSFORM_KEYS.includes(key));
+  if (!hasSomethingToFilter) {
+    return undefined;
+  }
+
+  return keys
+    .filter((key) => TRANSFORM_KEYS.includes(key))
+    .reduce((obj, key) => {
+      obj[key] = data[key];
+      return obj;
+    }, {});
+};
+
 const UPGRADES = [
   // v4.0.0 -> v4.1.0
   upgradeArrayOfObjects(
@@ -681,7 +792,7 @@ const UPGRADES = [
   upgradeArrayOfObjects(
     CONF_CAMERAS,
     upgradeMoveToWithOverrides('hide', 'capabilities', {
-      transform: (val) => (val === true ? { disable_except: 'substream' } : null),
+      transform: (val) => (val === true ? { disable_except: ['substream'] } : null),
     }),
   ),
   upgradeMoveToWithOverrides('performance.profile', CONF_PROFILES, {
@@ -689,4 +800,9 @@ const UPGRADES = [
     transform: (val) => (val === 'low' ? ['low-performance'] : null),
   }),
   upgradeArrayOfObjects(CONF_OVERRIDES, upgradeMoveTo('overrides', 'merge')),
+  upgradeMoveToWithOverrides('live.controls.ptz', CONF_CAMERAS_GLOBAL_PTZ, {
+    transform: ptzActionsToCamerasGlobalTransform,
+    keepOriginal: true,
+  }),
+  upgradeWithOverrides('live.controls.ptz', ptzControlSettingsTransform),
 ];

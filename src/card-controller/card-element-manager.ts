@@ -4,11 +4,12 @@ import { setOrRemoveAttribute } from '../utils/basic';
 import { isCardInPanel } from '../utils/ha';
 import { InitializationAspect } from './initialization-manager';
 import { CardElementAPI } from './types';
+import { ActionExecutionRequestEventTarget } from './actions/utils/execution-request';
 
 export type ScrollCallback = () => void;
 export type MenuToggleCallback = () => void;
 
-export type CardHTMLElement = LitElement & ReactiveControllerHost & ActionEventTarget;
+export type CardHTMLElement = LitElement & ReactiveControllerHost & ActionEventTarget & ActionExecutionRequestEventTarget;
 
 export class CardElementManager {
   protected _api: CardElementAPI;
@@ -62,19 +63,21 @@ export class CardElementManager {
     this._api.getExpandManager().initialize();
     this._api.getMediaLoadedInfoManager().initialize();
     this._api.getMicrophoneManager().initialize();
+    this._api.getKeyboardStateManager().initialize();
 
     // Whether or not the card is in panel mode on the dashboard.
     setOrRemoveAttribute(this._element, isCardInPanel(this._element), 'panel');
+    setOrRemoveAttribute(this._element, true, 'tabindex', '0');
 
     this._api.getFullscreenManager().connect();
-
+    
     this._element.addEventListener(
       'mousemove',
       this._api.getInteractionManager().reportInteraction,
     );
     this._element.addEventListener(
       'll-custom',
-      this._api.getActionsManager().handleActionEvent,
+      this._api.getActionsManager().handleCustomActionEvent,
     );
     this._element.addEventListener(
       'action',
@@ -83,6 +86,10 @@ export class CardElementManager {
     this._element.addEventListener(
       'action',
       this._api.getInteractionManager().reportInteraction,
+    );
+    this._element.addEventListener(
+      'frigate-card:action:execution-request',
+      this._api.getActionsManager().handleActionExecutionRequestEvent,
     );
 
     // Listen for HA `navigate` actions.
@@ -106,23 +113,25 @@ export class CardElementManager {
 
   public elementDisconnected(): void {
     setOrRemoveAttribute(this._element, false, 'panel');
+    setOrRemoveAttribute(this._element, false, 'tabindex');
 
     // When the dashboard 'tab' is changed, the media is effectively unloaded.
     this._api.getMediaLoadedInfoManager().clear();
     this._api.getFullscreenManager().disconnect();
+    this._api.getKeyboardStateManager().uninitialize();
+    this._api.getActionsManager().uninitialize();
 
     // Uninitialize cameras to cause them to reinitialize on
     // reconnection, to ensure the state subscription/unsubscription works
     // correctly for triggers.
     this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS),
-
-    this._element.removeEventListener(
-      'mousemove',
-      this._api.getInteractionManager().reportInteraction,
-    );
+      this._element.removeEventListener(
+        'mousemove',
+        this._api.getInteractionManager().reportInteraction,
+      );
     this._element.removeEventListener(
       'll-custom',
-      this._api.getActionsManager().handleActionEvent,
+      this._api.getActionsManager().handleCustomActionEvent,
     );
     this._element.removeEventListener(
       'action',
@@ -131,6 +140,10 @@ export class CardElementManager {
     this._element.removeEventListener(
       'action',
       this._api.getInteractionManager().reportInteraction,
+    );
+    this._element.removeEventListener(
+      'frigate-card:action:execution-request',
+      this._api.getActionsManager().handleActionExecutionRequestEvent,
     );
 
     window.removeEventListener(

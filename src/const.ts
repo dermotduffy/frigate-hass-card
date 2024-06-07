@@ -57,7 +57,7 @@ export const CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS =
   `${CONF_CAMERAS}.#.dependencies.all_cameras` as const;
 export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_FIT =
   `${CONF_CAMERAS}.#.dimensions.layout.fit` as const;
-  export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_PAN_X =
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_PAN_X =
   `${CONF_CAMERAS}.#.dimensions.layout.pan.x` as const;
 export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_PAN_Y =
   `${CONF_CAMERAS}.#.dimensions.layout.pan.y` as const;
@@ -97,6 +97,7 @@ export const CONF_CAMERAS_GLOBAL_IMAGE_REFRESH_SECONDS =
   `${CONF_CAMERAS_GLOBAL}.image.refresh_seconds` as const;
 export const CONF_CAMERAS_GLOBAL_DIMENSIONS_LAYOUT =
   `${CONF_CAMERAS_GLOBAL}.dimensions.layout` as const;
+export const CONF_CAMERAS_GLOBAL_PTZ = `${CONF_CAMERAS_GLOBAL}.ptz` as const;
 
 export const CONF_ELEMENTS = 'elements' as const;
 
@@ -105,6 +106,23 @@ export const CONF_VIEW_CAMERA_SELECT = `${CONF_VIEW}.camera_select` as const;
 export const CONF_VIEW_DARK_MODE = `${CONF_VIEW}.dark_mode` as const;
 export const CONF_VIEW_DEFAULT = `${CONF_VIEW}.default` as const;
 export const CONF_VIEW_INTERACTION_SECONDS = `${CONF_VIEW}.interaction_seconds` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS = `${CONF_VIEW}.keyboard_shortcuts` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS_ENABLED =
+  `${CONF_VIEW}.keyboard_shortcuts.enabled` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_LEFT =
+  `${CONF_VIEW_KEYBOARD_SHORTCUTS}.ptz_left` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_RIGHT =
+  `${CONF_VIEW_KEYBOARD_SHORTCUTS}.ptz_right` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_UP =
+  `${CONF_VIEW_KEYBOARD_SHORTCUTS}.ptz_up` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_DOWN =
+  `${CONF_VIEW_KEYBOARD_SHORTCUTS}.ptz_down` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_IN =
+  `${CONF_VIEW_KEYBOARD_SHORTCUTS}.ptz_zoom_in` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_OUT =
+  `${CONF_VIEW_KEYBOARD_SHORTCUTS}.ptz_zoom_out` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_HOME =
+  `${CONF_VIEW_KEYBOARD_SHORTCUTS}.ptz_home` as const;
 export const CONF_VIEW_UPDATE_CYCLE_CAMERA = `${CONF_VIEW}.update_cycle_camera` as const;
 export const CONF_VIEW_UPDATE_FORCE = `${CONF_VIEW}.update_force` as const;
 export const CONF_VIEW_UPDATE_SECONDS = `${CONF_VIEW}.update_seconds` as const;

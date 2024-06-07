@@ -54,6 +54,18 @@ export class Capabilities {
     return this._capabilities.ptz ?? null;
   }
 
+  public hasPTZCapability(): boolean {
+    return !!(
+      this._capabilities.ptz?.down?.length ||
+      this._capabilities.ptz?.up?.length ||
+      this._capabilities.ptz?.left?.length ||
+      this._capabilities.ptz?.right?.length ||
+      this._capabilities.ptz?.zoomIn?.length ||
+      this._capabilities.ptz?.zoomOut?.length ||
+      this._capabilities.ptz?.presets?.length
+    );
+  }
+
   public getRawCapabilities(): CapabilitiesRaw {
     return this._capabilities;
   }

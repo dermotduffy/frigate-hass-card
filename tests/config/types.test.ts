@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  cameraConfigSchema,
   conditionalSchema,
   customSchema,
   dimensionsConfigSchema,
   frigateCardCustomActionsBaseSchema,
-  frigateCardPTZSchema,
 } from '../../src/config/types';
 import { createConfig } from '../test-utils';
 
@@ -36,6 +36,10 @@ describe('config defaults', () => {
             file_pattern: '%H-%M-%S',
           },
         },
+        ptz: {
+          c2r_delay_between_calls_seconds: 0.2,
+          r2c_delay_between_calls_seconds: 0.5,
+        },
         triggers: {
           events: ['events', 'clips', 'snapshots'],
           entities: [],
@@ -55,7 +59,6 @@ describe('config defaults', () => {
       image: {
         mode: 'url',
         refresh_seconds: 1,
-        zoomable: true,
       },
       live: {
         auto_mute: ['unselected', 'hidden', 'microphone'],
@@ -72,7 +75,7 @@ describe('config defaults', () => {
             hide_home: false,
             hide_pan_tilt: false,
             hide_zoom: false,
-            mode: 'on',
+            mode: 'auto',
             orientation: 'horizontal',
             position: 'bottom-right',
           },
@@ -135,6 +138,14 @@ describe('config defaults', () => {
             size: 48,
             style: 'thumbnails',
           },
+          ptz: {
+            hide_home: false,
+            hide_pan_tilt: false,
+            hide_zoom: false,
+            mode: 'off',
+            orientation: 'horizontal',
+            position: 'bottom-right',
+          },
           thumbnails: {
             mode: 'right',
             show_details: true,
@@ -172,10 +183,6 @@ describe('config defaults', () => {
             priority: 50,
           },
           clips: {
-            enabled: true,
-            priority: 50,
-          },
-          default_zoom: {
             enabled: true,
             priority: 50,
           },
@@ -224,7 +231,11 @@ describe('config defaults', () => {
             enabled: false,
             priority: 50,
           },
-          ptz: {
+          ptz_controls: {
+            enabled: false,
+            priority: 50,
+          },
+          ptz_home: {
             enabled: false,
             priority: 50,
           },
@@ -285,6 +296,30 @@ describe('config defaults', () => {
         camera_select: 'current',
         dark_mode: 'off',
         default: 'live',
+        keyboard_shortcuts: {
+          enabled: true,
+          ptz_down: {
+            key: 'ArrowDown',
+          },
+          ptz_home: {
+            key: 'h',
+          },
+          ptz_left: {
+            key: 'ArrowLeft',
+          },
+          ptz_right: {
+            key: 'ArrowRight',
+          },
+          ptz_up: {
+            key: 'ArrowUp',
+          },
+          ptz_zoom_in: {
+            key: '+',
+          },
+          ptz_zoom_out: {
+            key: '-',
+          },
+        },
         triggers: {
           show_trigger_status: false,
           untrigger_seconds: 0,
@@ -336,46 +371,136 @@ it('should transform action', () => {
 });
 
 describe('should convert webrtc card PTZ to Frigate card PTZ', () => {
-  it.each([
-    ['left' as const],
-    ['right' as const],
-    ['up' as const],
-    ['down' as const],
-    ['zoom_in' as const],
-    ['zoom_out' as const],
-    ['home' as const],
-  ])('%s', (action: string) => {
-    expect(
-      frigateCardPTZSchema.parse({
-        type: 'custom:frigate-card-ptz',
-        service: 'foo',
-        [`data_${action}`]: {
-          tap_action: {
-            action: 'none',
+  describe('relative actions', () => {
+    it.each([
+      ['left' as const],
+      ['right' as const],
+      ['up' as const],
+      ['down' as const],
+      ['zoom_in' as const],
+      ['zoom_out' as const],
+    ])('%s', (action: string) => {
+      expect(
+        cameraConfigSchema.parse({
+          ptz: {
+            service: 'foo',
+            [`data_${action}`]: {
+              device: '048123',
+              cmd: action,
+            },
           },
-        },
-      }),
-    ).toEqual({
-      [`actions_${action}`]: {
-        tap_action: {
-          action: 'call-service',
-          service: 'foo',
-          data: {
-            tap_action: {
-              action: 'none',
+        }),
+      ).toEqual(
+        expect.objectContaining({
+          ptz: expect.objectContaining({
+            [`actions_${action}`]: {
+              action: 'call-service',
+              service: 'foo',
+              data: {
+                device: '048123',
+                cmd: action,
+              },
+            },
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('continuous actions', () => {
+    it.each([
+      ['left' as const],
+      ['right' as const],
+      ['up' as const],
+      ['down' as const],
+      ['zoom_in' as const],
+      ['zoom_out' as const],
+    ])('%s', (action: string) => {
+      expect(
+        cameraConfigSchema.parse({
+          ptz: {
+            service: 'foo',
+            [`data_${action}_start`]: {
+              device: '048123',
+              cmd: action,
+              phase: 'start',
+            },
+            [`data_${action}_stop`]: {
+              device: '048123',
+              cmd: action,
+              phase: 'stop',
+            },
+          },
+        }),
+      ).toEqual(
+        expect.objectContaining({
+          ptz: expect.objectContaining({
+            [`actions_${action}_start`]: {
+              action: 'call-service',
+              service: 'foo',
+              data: {
+                device: '048123',
+                cmd: action,
+                phase: 'start',
+              },
+            },
+            [`actions_${action}_stop`]: {
+              action: 'call-service',
+              service: 'foo',
+              data: {
+                device: '048123',
+                cmd: action,
+                phase: 'stop',
+              },
+            },
+          }),
+        }),
+      );
+    });
+  });
+
+  it('presets', () => {
+    expect(
+      cameraConfigSchema.parse({
+        ptz: {
+          service: 'service_outer',
+          presets: {
+            service: 'service_inner',
+            data_home: {
+              device: '048123',
+              cmd: 'home',
+            },
+            data_another: {
+              device: '048123',
+              cmd: 'another',
             },
           },
         },
-      },
-      service: 'foo',
-
-      hide_home: false,
-      hide_pan_tilt: false,
-      hide_zoom: false,
-      mode: 'on',
-      orientation: 'horizontal',
-      position: 'bottom-right',
-    });
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        ptz: expect.objectContaining({
+          presets: {
+            home: {
+              action: 'call-service',
+              service: 'service_inner',
+              data: {
+                device: '048123',
+                cmd: 'home',
+              },
+            },
+            another: {
+              action: 'call-service',
+              service: 'service_inner',
+              data: {
+                device: '048123',
+                cmd: 'another',
+              },
+            },
+          },
+        }),
+      }),
+    );
   });
 });
 

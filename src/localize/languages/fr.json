@@ -362,7 +362,6 @@
         "camera_ui": "Interface utilisateur de la caméra",
         "cameras": "Appareils photo",
         "clips": "Extraits",
-        "default_zoom": "",
         "display_mode": "",
         "download": "Télécharger",
         "enabled": "Bouton activé",
@@ -377,7 +376,8 @@
         "mute": "Désactiver/Réactiver le son",
         "play": "Jouer / Pause",
         "priority": "Priorité",
-        "ptz": "",
+        "ptz_controls": "",
+        "ptz_home": "",
         "recordings": "Enregistrements",
         "screenshot": "Capture d'écran",
         "snapshots": "Instantanés",
@@ -437,6 +437,10 @@
       },
       "default": "Vue par défaut",
       "interaction_seconds": "",
+      "keyboard_shortcuts": {
+        "editor_label": "",
+        "enabled": ""
+      },
       "reset_after_interaction": "",
       "triggers": {
         "actions": {
@@ -579,6 +583,17 @@
     "tag": "Étiqueter",
     "what": "Quoi",
     "where": "Où"
+  },
+  "key_assigner": {
+    "assign": "",
+    "assigning": "",
+    "modifiers": {
+      "alt": "",
+      "ctrl": "",
+      "meta": "",
+      "shift": ""
+    },
+    "unassign": ""
   },
   "media_filter": {
     "all": "Tous",

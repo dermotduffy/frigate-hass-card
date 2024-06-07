@@ -37,4 +37,17 @@ describe('hasSubstream/getStreamCameraID', () => {
     expect(hasSubstream(view)).toBeFalsy();
     expect(getStreamCameraID(view)).toBe('camera');
   });
+  it('should respect cameraID override', () => {
+    const view = new View({
+      view: 'live',
+      camera: 'camera',
+      context: {
+        live: {
+          overrides: new Map([['camera', 'camera2'], ['camera3', 'camera4']]),
+        },
+      },
+    });
+    expect(hasSubstream(view)).toBeTruthy();
+    expect(getStreamCameraID(view, 'camera3')).toBe('camera4');
+  });
 });

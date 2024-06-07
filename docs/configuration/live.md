@@ -9,7 +9,7 @@ live:
 
 | Option | Default | Description |
 | - | - | - |
-| `actions` | | [Actions](actions.md) to use for the `live` view. |
+| `actions` | | [Actions](actions/README.md) to use for the `live` view. |
 | `auto_mute` | `[unselected, hidden, microphone]` | A list of conditions in which live camera feeds are muted. `unselected` will automatically mute when a camera is unselected in the carousel, `hidden` will automatically mute when the browser/tab becomes hidden or `microphone` will automatically mute after the microphone is muted as long as the camera stays selected (see the `live.microphone.mute_after_microphone_mute_seconds` to control how long after). Use an empty list (`[]`) to never automatically mute. Note that if `auto_play` is enabled, the stream may mute itself automatically in order to honor the `auto_play` setting, as some browsers will not auto play media that is unmuted -- that is to say, where necessary, the `auto_play` parameter will take priority over the `auto_mute` parameter.|
 | `auto_pause` | `[]` | A list of conditions in which live camera feeds are automatically paused. `unselected` will automatically pause when a camera is unselected in the carousel and `hidden` will automatically pause when the browser/tab becomes hidden. Use an empty list (`[]`) to never automatically pause. **Caution**: Some live providers (e.g. `jsmpeg`) may not offer human-accessible means to resume play if it is paused, unless the `auto_play` option is used.|
 | `auto_play` | `[selected, visible]` | A list of conditions in which live camera feeds are automatically played.`selected` will automatically play when a camera is selected in the carousel and `visible` will automatically play when the browser/tab becomes visible. Use an empty list (`[]`) to never automatically play. Some live providers (e.g. `webrtc-card`, `jsmpeg`) do not support the prevention of automatic play on initial load, but should still respect the value of this flag on play-after-pause.|
@@ -39,8 +39,8 @@ live:
 | - | - | - |
 | `builtin` | `true` | Whether to show the built in (browser) video controls on live video. |
 | `next_previous` | | Configures how the "Next & Previous" controls are shown on the `live` view. See below. |
-| `thumbnails` | | | Configures how thumbnails are shown on the `live` view. See below. |
-| `timeline` | | | Configures how the mini-timeline is shown on the `live` view. See below. |
+| `thumbnails` | | Configures how thumbnails are shown on the `live` view. See below. |
+| `timeline` | | Configures how the mini-timeline is shown on the `live` view. See below. |
 | `title` | | Configures how the camera title is shown on the `live` view. See below. |
 
 ### `next_previous`
@@ -58,6 +58,29 @@ live:
 | - | - | - |
 | `size` | `48` | The size of the next/previous controls in pixels. Must be &gt;= `20`. |
 | `style` | `chevrons` | When viewing live cameras, what kind of controls to show to move to the previous/next camera. Acceptable values: `chevrons`, `icons`, `none` . |
+
+### `ptz`
+
+Configures the PTZ (Pan Tilt Zoom) controls.
+
+```yaml
+live:
+  controls:
+    ptz:
+      [...]
+```
+
+| Option | Default | Description |
+| - | - | - |
+| `hide_home` | `false` | When `true` the Home button of the control is hidden |
+| `hide_pan_tilt` | `false` | When `true` the Pan & Tilt buttons of the control is hidden |
+| `hide_zoom` | `false` | When `true` the Zoom button of the control is hidden |
+| `mode` | `auto` | If `on` or `off` will always or never show PTZ controls respectively, if `auto` will show PTZ controls only if the camera supports real PTZ. |
+| `orientation` | `horizontal` | Whether to show a `vertical` or `horizontal` PTZ control. |
+| `position` | `bottom-right` | Whether to position the control on the `top-left`, `top-right`, `bottom-left` or `bottom-right`. This may be overridden by using the `style` parameter to precisely control placement. |
+| `style` | | Optionally position and style the element using CSS. Similar to [Picture Element styling](https://www.home-assistant.io/dashboards/picture-elements/#how-to-use-the-style-object), except without any default, e.g. `left: 42%` |
+
+To configure the PTZ _actions_ taken for a particular camera, see [Camera PTZ Settings](./cameras/README.md?id=ptz).
 
 ### `thumbnails`
 
@@ -154,29 +177,6 @@ live:
 
 See [Using 2-way audio](../usage/2-way-audio.md) for more information about the very particular requirements that must be followed for 2-way audio to work.
 
-## `ptz`
-
-Controls a PTZ (Pan Tilt Zoom) overlay on the `live` view.
-
-```yaml
-live:
-  ptz:
-     [...]
-```
-
-| Option | Default | Description |
-| - | - | - |
-| `actions_left`, `actions_right`, `actions_up`, `actions_down`, `actions_zoom_in`, `actions_zoom_out`, `actions_home` | Set by camera [engine](cameras/engine.md) of the selected camera | The [actions](actions.md) to call when this icon is interacted with. |
-| `data_left`, `data_right`, `data_up`, `data_down`, `data_zoom_in`, `data_zoom_out`, `data_home` | | Shorthand for a `tap_action` that calls the `service` with the data provided in this argument. Internally, this is just translated into the longer-form `actions_[button]`. If both `actions_X` and `data_X` are specified, `actions_X` takes priority. This is compatible with [AlexxIT's WebRTC Card PTZ configuration](https://github.com/AlexxIT/WebRTC/wiki/PTZ-Config-Examples). |
-| `hide_home` | `false` | When `true` the Home button of the control is hidden |
-| `hide_pan_tilt` | `false` | When `true` the Pan & Tilt buttons of the control is hidden |
-| `hide_zoom` | `false` | When `true` the Zoom button of the control is hidden |
-| `mode` | `on` | When `on` will show a PTZ control if so configured (manually, or by the camera engine), if `off` will not show any control. |
-| `orientation` | `horizontal` | Whether to show a `vertical` or `horizontal` PTZ control. |
-| `position` | `bottom-right` | Whether to position the control on the `top-left`, `top-right`, `bottom-left` or `bottom-right`. This may be overridden by using the `style` parameter to precisely control placement. |
-| `service` | | An optional Home Assistant service to call when the `data_` parameters are used. |
-| `style` | | Optionally position and style the element using CSS. Similar to [Picture Element styling](https://www.home-assistant.io/dashboards/picture-elements/#how-to-use-the-style-object), except without any default, e.g. `left: 42%` |
-
 ## Fully expanded reference
 
 [](common/expanded-warning.md ':include')
@@ -203,6 +203,16 @@ live:
     next_previous:
       style: chevrons
       size: 48
+    ptz:
+      mode: auto
+      position: bottom-right
+      orientation: horizontal
+      hide_pan_tilt: false
+      hide_zoom: false
+      hide_home: false
+      style:
+        # Optionally override the default style.
+        right: 5%
     thumbnails:
       media_type: events
       events_media_type: all
@@ -227,29 +237,6 @@ live:
     always_connected: false
     disconnect_seconds: 90
     mute_after_microphone_mute_seconds: 60
-  ptz:
-    mode: on
-    position: bottom-right
-    orientation: horizontal
-    hide_pan_tilt: false
-    hide_zoom: false
-    hide_home: false
-    style:
-      # Optionally override the default style.
-      right: 5%
-    # Manually specifying actions.
-    actions_left:
-      tap_action:
-        action: call-service
-        service: sonoff.send_command
-        service_data:
-          device: '048123'
-          cmd: left 
-    # Equivalent short form PTZ actions (only right button shown)
-    service: sonoff.send_command
-    data_right:
-      device: '048123'
-      cmd: right
   display:
     mode: single
     grid_selected_width_factor: 2

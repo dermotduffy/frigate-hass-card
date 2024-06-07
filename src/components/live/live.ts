@@ -21,8 +21,6 @@ import {
 import { ReadonlyMicrophoneManager } from '../../card-controller/microphone-manager.js';
 import { LiveController } from '../../components-lib/live/live-controller.js';
 import { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
-import { ZoomConfig, ZoomDefault } from '../../components-lib/zoom/types.js';
-import { handleZoomDefaultEvent } from '../../components-lib/zoom/zoom-view-context.js';
 import {
   CameraConfig,
   CardWideConfig,
@@ -62,6 +60,12 @@ import {
   FrigateCardTitleControl,
   getDefaultTitleConfigForView,
 } from '../title-control.js';
+import {
+  PartialZoomSettings,
+  ZoomSettingsObserved,
+} from '../../components-lib/zoom/types.js';
+import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
+import { getStreamCameraID } from '../../utils/substream.js';
 
 const FRIGATE_CARD_LIVE_PROVIDER = 'frigate-card-live-provider';
 
@@ -503,9 +507,9 @@ export class FrigateCardLiveCarousel extends LitElement {
           .liveConfig=${liveConfig}
           .hass=${this.hass}
           .cardWideConfig=${this.cardWideConfig}
-          .zoomConfig=${this.view?.context?.zoom?.[cameraID]?.zoom}
-          @frigate-card:zoom:default=${(ev: CustomEvent<ZoomDefault>) =>
-            handleZoomDefaultEvent(this, ev, cameraID)}
+          .zoomSettings=${this.view?.context?.zoom?.[cameraID]?.requested}
+          @frigate-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
+            handleZoomSettingsObservedEvent(this, ev, cameraID)}
         >
         </frigate-card-live-provider>
       </div>
@@ -633,11 +637,11 @@ export class FrigateCardLiveCarousel extends LitElement {
         </frigate-card-next-previous-control>
       </frigate-card-carousel>
       <frigate-card-ptz
-        .hass=${this.hass}
         .config=${this.overriddenLiveConfig.controls.ptz}
         .cameraManager=${this.cameraManager}
-        .cameraID=${cameraID}
-        .forceVisibility=${this._mediaHasLoaded && this.view.context?.live?.ptzVisible}
+        .cameraID=${getStreamCameraID(this.view, cameraID)}
+        .forceVisibility=${this._mediaHasLoaded &&
+        this.view.context?.ptzControls?.enabled}
       >
       </frigate-card-ptz>
       ${cameraMetadataCurrent && titleConfig
@@ -694,7 +698,7 @@ export class FrigateCardLiveProvider
   public microphoneStream?: MediaStream;
 
   @property({ attribute: false })
-  public zoomConfig?: ZoomConfig | null;
+  public zoomSettings?: PartialZoomSettings | null;
 
   @state()
   protected _isVideoMediaLoaded = false;
@@ -857,7 +861,7 @@ export class FrigateCardLiveProvider
   protected _useZoomIfRequired(template: TemplateResult): TemplateResult {
     return this.liveConfig?.zoomable
       ? html` <frigate-card-zoomer
-          .defaultConfig=${guard([this.cameraConfig?.dimensions?.layout], () =>
+          .defaultSettings=${guard([this.cameraConfig?.dimensions?.layout], () =>
             this.cameraConfig?.dimensions?.layout
               ? {
                   pan: this.cameraConfig.dimensions.layout.pan,
@@ -865,7 +869,7 @@ export class FrigateCardLiveProvider
                 }
               : undefined,
           )}
-          .config=${this.zoomConfig}
+          .settings=${this.zoomSettings}
           @frigate-card:zoom:zoomed=${() => this.setControls(false)}
           @frigate-card:zoom:unzoomed=${() => this.setControls()}
         >
@@ -944,17 +948,17 @@ export class FrigateCardLiveProvider
           </frigate-card-live-ha>`
         : provider === 'go2rtc'
         ? html`<frigate-card-live-go2rtc
-              ${ref(this._refProvider)}
-              class=${classMap(providerClasses)}
-              .hass=${this.hass}
-              .cameraConfig=${this.cameraConfig}
-              .cameraEndpoints=${this.cameraEndpoints}
-              .microphoneStream=${this.microphoneStream}
-              .microphoneConfig=${this.liveConfig.microphone}
-              ?controls=${this.liveConfig.controls.builtin}
-              @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
-            >
-            </frigate-card-live-webrtc-card>`
+            ${ref(this._refProvider)}
+            class=${classMap(providerClasses)}
+            .hass=${this.hass}
+            .cameraConfig=${this.cameraConfig}
+            .cameraEndpoints=${this.cameraEndpoints}
+            .microphoneStream=${this.microphoneStream}
+            .microphoneConfig=${this.liveConfig.microphone}
+            ?controls=${this.liveConfig.controls.builtin}
+            @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
+          >
+          </frigate-card-live-go2rtc>`
         : provider === 'webrtc-card'
         ? html`<frigate-card-live-webrtc-card
             ${ref(this._refProvider)}
@@ -995,7 +999,7 @@ export class FrigateCardLiveProvider
 
 declare global {
   interface HTMLElementTagNameMap {
-    FRIGATE_CARD_LIVE_PROVIDER: FrigateCardLiveProvider;
+    'frigate-card-live-provider': FrigateCardLiveProvider;
     'frigate-card-live-carousel': FrigateCardLiveCarousel;
     'frigate-card-live-grid': FrigateCardLiveGrid;
     'frigate-card-live': FrigateCardLive;

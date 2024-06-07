@@ -18,7 +18,7 @@ import {
   ViewDisplayMode,
 } from '../../src/config/types';
 import { FrigateCardMediaPlayer } from '../../src/types';
-import { createFrigateCardSimpleAction } from '../../src/utils/action';
+import { createGeneralAction } from '../../src/utils/action';
 import { ViewMedia } from '../../src/view/media';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
 import { View } from '../../src/view/view';
@@ -36,6 +36,7 @@ import {
   createView,
   TestViewMedia,
 } from '../test-utils';
+import { Capabilities } from '../../src/camera-manager/capabilities';
 
 vi.mock('../../src/utils/media-player-controller.js');
 vi.mock('../../src/card-controller/microphone-manager.js');
@@ -88,8 +89,8 @@ describe('MenuButtonController', () => {
         priority: 50,
         type: 'custom:frigate-card-menu-icon',
         title: 'Frigate menu / Default view',
-        tap_action: createFrigateCardSimpleAction('menu_toggle'),
-        hold_action: createFrigateCardSimpleAction('diagnostics'),
+        tap_action: createGeneralAction('menu_toggle'),
+        hold_action: createGeneralAction('diagnostics'),
       });
     });
 
@@ -104,8 +105,8 @@ describe('MenuButtonController', () => {
         priority: 50,
         type: 'custom:frigate-card-menu-icon',
         title: 'Frigate menu / Default view',
-        tap_action: createFrigateCardSimpleAction('default'),
-        hold_action: createFrigateCardSimpleAction('diagnostics'),
+        tap_action: createGeneralAction('default'),
+        hold_action: createGeneralAction('diagnostics'),
       });
     });
   });
@@ -1355,13 +1356,14 @@ describe('MenuButtonController', () => {
 
   describe('should have show ptz button', () => {
     it('when the selected camera is not PTZ enabled', () => {
-      const cameraManager = createCameraManager();
-      vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue(
-        createCapabilities(),
-      );
+      const store = createStore([
+        {
+          cameraID: 'camera-1',
+        },
+      ]);
 
       const buttons = calculateButtons(controller, {
-        cameraManager: cameraManager,
+        cameraManager: createCameraManager(store),
         view: createView({ view: 'live' }),
       });
 
@@ -1373,13 +1375,15 @@ describe('MenuButtonController', () => {
     });
 
     it('when not in live view', () => {
-      const cameraManager = createCameraManager();
-      vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue(
-        createCapabilities({ ptz: { panTilt: ['relative'] } }),
-      );
+      const store = createStore([
+        {
+          cameraID: 'camera-1',
+          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+        },
+      ]);
 
       const buttons = calculateButtons(controller, {
-        cameraManager: cameraManager,
+        cameraManager: createCameraManager(store),
         view: createView({ view: 'clips' }),
       });
 
@@ -1391,11 +1395,16 @@ describe('MenuButtonController', () => {
     });
 
     it('when the selected camera is PTZ enabled', () => {
-      const cameraManager = createCameraManager();
-      vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue(
-        createCapabilities({ ptz: { panTilt: ['relative'] } }),
-      );
-      const buttons = calculateButtons(controller, { cameraManager: cameraManager });
+      const store = createStore([
+        {
+          cameraID: 'camera-1',
+          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+        },
+      ]);
+
+      const buttons = calculateButtons(controller, {
+        cameraManager: createCameraManager(store),
+      });
 
       expect(buttons).toContainEqual({
         enabled: false,
@@ -1406,25 +1415,28 @@ describe('MenuButtonController', () => {
         },
         tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'show_ptz',
-          show_ptz: false,
+          frigate_card_action: 'ptz_controls',
+          enabled: false,
         },
         title: 'Show PTZ controls',
         type: 'custom:frigate-card-menu-icon',
       });
     });
 
-    it('when the context has PTZ visiblity turned off', () => {
-      const cameraManager = createCameraManager();
-      vi.mocked(cameraManager.getCameraCapabilities).mockReturnValue(
-        createCapabilities({ ptz: { panTilt: ['relative'] } }),
-      );
+    it('when the context has PTZ disabled', () => {
+      const store = createStore([
+        {
+          cameraID: 'camera-1',
+          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+        },
+      ]);
+
       const view = createView({
         camera: 'camera-1',
-        context: { live: { ptzVisible: false } },
+        context: { ptzControls: { enabled: false } },
       });
       const buttons = calculateButtons(controller, {
-        cameraManager: cameraManager,
+        cameraManager: createCameraManager(store),
         view: view,
       });
 
@@ -1435,8 +1447,8 @@ describe('MenuButtonController', () => {
         style: {},
         tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'show_ptz',
-          show_ptz: true,
+          frigate_card_action: 'ptz_controls',
+          enabled: true,
         },
         title: 'Show PTZ controls',
         type: 'custom:frigate-card-menu-icon',
@@ -1444,24 +1456,16 @@ describe('MenuButtonController', () => {
     });
 
     it('when a substream is PTZ enabled', () => {
-      const cameraManager = createCameraManager();
-      vi.mocked(cameraManager.getStore).mockReturnValue(
-        createStore([
-          {
-            cameraID: 'camera-1',
-            config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
-          },
-          { cameraID: 'camera-2' },
-        ]),
-      );
-      vi.mocked(cameraManager.getCameraCapabilities).mockImplementation(
-        (cameraID: string) => {
-          if (cameraID === 'camera-2') {
-            return createCapabilities({ ptz: { panTilt: ['relative'] } });
-          }
-          return createCapabilities();
+      const store = createStore([
+        {
+          cameraID: 'camera-1',
+          config: createCameraConfig({ dependencies: { cameras: ['camera-2'] } }),
         },
-      );
+        {
+          cameraID: 'camera-2',
+          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+        },
+      ]);
       const view = createView({
         camera: 'camera-1',
         context: {
@@ -1471,7 +1475,7 @@ describe('MenuButtonController', () => {
         },
       });
       const buttons = calculateButtons(controller, {
-        cameraManager: cameraManager,
+        cameraManager: createCameraManager(store),
         view: view,
       });
 
@@ -1484,8 +1488,8 @@ describe('MenuButtonController', () => {
         },
         tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'show_ptz',
-          show_ptz: false,
+          frigate_card_action: 'ptz_controls',
+          enabled: false,
         },
         title: 'Show PTZ controls',
         type: 'custom:frigate-card-menu-icon',
@@ -1493,7 +1497,7 @@ describe('MenuButtonController', () => {
     });
   });
 
-  describe('should have change zoom button', () => {
+  describe('should have ptz home button', () => {
     it.each([
       ['live' as const, true, false],
       ['live' as const, undefined, false],
@@ -1521,13 +1525,23 @@ describe('MenuButtonController', () => {
             results: [new TestViewMedia({ id: 'media-1' })],
             selectedIndex: 0,
           }),
-          context: {
-            zoom: {
-              [targetID]: {
-                isDefault: isDefault,
+          ...(isDefault !== undefined && {
+            context: {
+              zoom: {
+                [targetID]: {
+                  observed: {
+                    isDefault: isDefault,
+                    unzoomed: false,
+                    zoom: 1,
+                    pan: {
+                      x: 50,
+                      y: 50,
+                    },
+                  },
+                },
               },
             },
-          },
+          }),
         });
         const buttons = calculateButtons(controller, {
           cameraManager: cameraManager,
@@ -1536,20 +1550,20 @@ describe('MenuButtonController', () => {
 
         if (expectedResult) {
           expect(buttons).toContainEqual({
-            enabled: true,
-            icon: 'mdi:magnify-close',
+            enabled: false,
+            icon: 'mdi:home',
             priority: 50,
             tap_action: {
               action: 'fire-dom-event',
-              frigate_card_action: 'change_zoom',
+              frigate_card_action: 'ptz_multi',
               target_id: targetID,
             },
-            title: 'Zoom to default',
+            title: 'PTZ Home',
             type: 'custom:frigate-card-menu-icon',
           });
         } else {
           expect(buttons).not.toContainEqual(
-            expect.objectContaining({ title: 'Set zoom to default' }),
+            expect.objectContaining({ title: 'PTZ Home' }),
           );
         }
       },

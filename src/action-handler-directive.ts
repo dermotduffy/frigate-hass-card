@@ -92,6 +92,16 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const endTap = (_ev: Event): void => {
+      this.holdTimer.stop();
+
+      if (this.started) {
+        this.started = false;
+        fireEvent(element, 'action', { action: 'end_tap' });
+      }
+    };
+
     const end = (ev: Event): void => {
       const options = element.actionHandlerOptions;
       if (!options?.allowPropagation) {
@@ -109,10 +119,7 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
         return;
       }
 
-      this.holdTimer.stop();
-
-      this.started = false;
-      fireEvent(element, 'action', { action: 'end_tap' });
+      endTap(ev);
 
       if (options?.hasHold && this.held) {
         fireEvent(element, 'action', { action: 'hold' });
@@ -147,6 +154,9 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
     element.addEventListener('click', end);
 
     element.addEventListener('keyup', handleEnter);
+
+    // If the mouse leaves the element, this is considered the end of the interaction.
+    element.addEventListener('mouseleave', endTap);
   }
 }
 

@@ -5,7 +5,7 @@ import { ZoomController } from '../../../src/components-lib/zoom/zoom-controller
 import { ResizeObserverMock, requestAnimationFrameMock } from '../../test-utils';
 
 vi.mock('@dermotduffy/panzoom');
-vi.mock('lodash-es/debounce', () => ({
+vi.mock('lodash-es/throttle', () => ({
   default: vi.fn((fn) => fn),
 }));
 
@@ -311,8 +311,8 @@ describe('ZoomController', () => {
         const element = document.createElement('div');
         setElementToDefaultCardSize(element);
 
-        const defaultFunc = vi.fn();
-        element.addEventListener('frigate-card:zoom:default', defaultFunc);
+        const changeFunc = vi.fn();
+        element.addEventListener('frigate-card:zoom:change', changeFunc);
 
         vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
         createAndRegisterZoom(element);
@@ -327,8 +327,11 @@ describe('ZoomController', () => {
           },
         });
         element.dispatchEvent(ev_1);
-        expect(defaultFunc).toBeCalledWith(
-          expect.objectContaining({ detail: { isDefault: false } }),
+
+        expect(changeFunc).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            detail: expect.objectContaining({ isDefault: false }),
+          }),
         );
 
         const ev_2 = new CustomEvent<PanzoomEventDetail>('panzoomchange', {
@@ -341,8 +344,11 @@ describe('ZoomController', () => {
           },
         });
         element.dispatchEvent(ev_2);
-        expect(defaultFunc).toBeCalledWith(
-          expect.objectContaining({ detail: { isDefault: true } }),
+
+        expect(changeFunc).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            detail: expect.objectContaining({ isDefault: true }),
+          }),
         );
       });
 
@@ -350,12 +356,12 @@ describe('ZoomController', () => {
         const element = document.createElement('div');
         setElementToDefaultCardSize(element);
 
-        const defaultFunc = vi.fn();
-        element.addEventListener('frigate-card:zoom:default', defaultFunc);
+        const changeFunc = vi.fn();
+        element.addEventListener('frigate-card:zoom:change', changeFunc);
 
         vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
         const controller = createAndRegisterZoom(element);
-        controller.setDefaultConfig({ zoom: 2, pan: { x: 3, y: 4 } });
+        controller.setDefaultSettings({ zoom: 2, pan: { x: 3, y: 4 } });
 
         const ev_1 = new CustomEvent<PanzoomEventDetail>('panzoomchange', {
           detail: {
@@ -367,8 +373,11 @@ describe('ZoomController', () => {
           },
         });
         element.dispatchEvent(ev_1);
-        expect(defaultFunc).toHaveBeenLastCalledWith(
-          expect.objectContaining({ detail: { isDefault: false } }),
+
+        expect(changeFunc).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            detail: expect.objectContaining({ isDefault: false }),
+          }),
         );
 
         const ev_2 = new CustomEvent<PanzoomEventDetail>('panzoomchange', {
@@ -381,8 +390,11 @@ describe('ZoomController', () => {
           },
         });
         element.dispatchEvent(ev_2);
-        expect(defaultFunc).toHaveBeenLastCalledWith(
-          expect.objectContaining({ detail: { isDefault: true } }),
+
+        expect(changeFunc).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            detail: expect.objectContaining({ isDefault: true }),
+          }),
         );
       });
 
@@ -390,8 +402,8 @@ describe('ZoomController', () => {
         const element = document.createElement('div');
         setElementToDefaultCardSize(element);
 
-        const defaultFunc = vi.fn();
-        element.addEventListener('frigate-card:zoom:default', defaultFunc);
+        const changeFunc = vi.fn();
+        element.addEventListener('frigate-card:zoom:change', changeFunc);
 
         vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
         const controller = createAndRegisterZoom(element);
@@ -406,11 +418,14 @@ describe('ZoomController', () => {
           },
         });
         element.dispatchEvent(ev_1);
-        expect(defaultFunc).toHaveBeenLastCalledWith(
-          expect.objectContaining({ detail: { isDefault: false } }),
+
+        expect(changeFunc).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            detail: expect.objectContaining({ isDefault: false }),
+          }),
         );
 
-        controller.setDefaultConfig({});
+        controller.setDefaultSettings({});
 
         const ev_2 = new CustomEvent<PanzoomEventDetail>('panzoomchange', {
           detail: {
@@ -422,8 +437,11 @@ describe('ZoomController', () => {
           },
         });
         element.dispatchEvent(ev_2);
-        expect(defaultFunc).toHaveBeenLastCalledWith(
-          expect.objectContaining({ detail: { isDefault: true } }),
+
+        expect(changeFunc).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            detail: expect.objectContaining({ isDefault: true }),
+          }),
         );
       });
     });
@@ -438,7 +456,7 @@ describe('ZoomController', () => {
       setElementToDefaultCardSize(element);
 
       const controller = new ZoomController(element);
-      controller.setDefaultConfig({ zoom: 2, pan: { x: 3, y: 4 } });
+      controller.setDefaultSettings({ zoom: 2, pan: { x: 3, y: 4 } });
 
       // Controller was not activated, config setting will not update pan/zoom.
       expect(panzoom.zoom).not.toBeCalled();
@@ -448,16 +466,16 @@ describe('ZoomController', () => {
       expect(Panzoom).toBeCalledWith(
         expect.anything(),
         expect.objectContaining({
-          contain: "outside",
+          contain: 'outside',
           cursor: undefined,
           maxScale: 10,
           minScale: 1,
           noBind: true,
-          touchAction: "",
+          touchAction: '',
           startScale: 2,
           startX: 115.62,
           startY: 63.6525,
-        })
+        }),
       );
     });
 
@@ -469,12 +487,15 @@ describe('ZoomController', () => {
       setElementToDefaultCardSize(element);
 
       const controller = createAndRegisterZoom(element);
-      controller.setDefaultConfig({ zoom: 2, pan: { x: 3, y: 4 } });
+      controller.setDefaultSettings({ zoom: 2, pan: { x: 3, y: 4 } });
 
       triggerResizeObserver();
 
       expect(panzoom.zoom).toBeCalledWith(2, { animate: false });
-      expect(panzoom.pan).toBeCalledWith(115.62, 63.6525, { animate: false });
+      expect(panzoom.pan).toBeCalledWith(115.62, 63.6525, {
+        animate: true,
+        duration: 100,
+      });
     });
 
     it('with set of config when a default is already set', () => {
@@ -487,23 +508,25 @@ describe('ZoomController', () => {
       const controller = createAndRegisterZoom(element);
 
       // This call will do nothing since this is what zoom/pan already are.
-      controller.setDefaultConfig({ zoom: 1, pan: { x: 0, y: 0 } });
+      controller.setDefaultSettings({ zoom: 1, pan: { x: 0, y: 0 } });
 
       expect(panzoom.zoom).not.toBeCalled();
       expect(panzoom.pan).not.toBeCalled();
-      
-      controller.setDefaultConfig({ zoom: 2, pan: { x: 3, y: 4 } });
+
+      controller.setDefaultSettings({ zoom: 2, pan: { x: 3, y: 4 } });
 
       expect(panzoom.zoom).toHaveBeenNthCalledWith(1, 2, { animate: false });
       expect(panzoom.pan).toHaveBeenNthCalledWith(1, 115.62, 63.6525, {
-        animate: false,
+        animate: true,
+        duration: 100,
       });
 
-      controller.setConfig({ zoom: 3, pan: { x: 5, y: 6 } });
+      controller.setSettings({ zoom: 3, pan: { x: 5, y: 6 } });
 
       expect(panzoom.zoom).toHaveBeenNthCalledWith(2, 3, { animate: false });
       expect(panzoom.pan).toHaveBeenNthCalledWith(2, 147.6, 81.18, {
-        animate: false,
+        animate: true,
+        duration: 100,
       });
     });
 
@@ -516,30 +539,31 @@ describe('ZoomController', () => {
 
       const controller = createAndRegisterZoom(element);
 
-      controller.setConfig({ zoom: 1 });
+      controller.setSettings({ zoom: 1 });
       expect(panzoom.zoom).not.toHaveBeenCalled();
 
-      controller.setConfig({ pan: { x: 50, y: 50 } });
+      controller.setSettings({ pan: { x: 50, y: 50 } });
       expect(panzoom.zoom).not.toHaveBeenCalled();
 
-      controller.setConfig({ zoom: 1, pan: { x: 50, y: 50 } });
+      controller.setSettings({ zoom: 1, pan: { x: 50, y: 50 } });
       expect(panzoom.zoom).not.toHaveBeenCalled();
 
-      controller.setConfig({});
+      controller.setSettings({});
       expect(panzoom.zoom).not.toHaveBeenCalled();
 
-      controller.setConfig({ zoom: 2 });
+      controller.setSettings({ zoom: 2 });
 
       expect(panzoom.zoom).toBeCalledTimes(1);
       expect(panzoom.pan).toBeCalledTimes(1);
       expect(panzoom.zoom).toHaveBeenNthCalledWith(1, 2, { animate: false });
       expect(panzoom.pan).toHaveBeenNthCalledWith(1, 0, 0, {
-        animate: false,
+        animate: true,
+        duration: 100,
       });
 
       vi.mocked(panzoom.getScale).mockReturnValue(2);
       vi.mocked(panzoom.getPan).mockReturnValue({ x: 0, y: 0 });
-      controller.setConfig({ zoom: 2 });
+      controller.setSettings({ zoom: 2 });
 
       expect(panzoom.zoom).toBeCalledTimes(1);
       expect(panzoom.pan).toBeCalledTimes(1);
@@ -553,15 +577,16 @@ describe('ZoomController', () => {
       setElementToDefaultCardSize(element);
 
       const controller = createAndRegisterZoom(element);
-      controller.setDefaultConfig({ zoom: 2, pan: { x: 3, y: 4 } });
+      controller.setDefaultSettings({ zoom: 2, pan: { x: 3, y: 4 } });
       mockClear(panzoom);
 
-      controller.setConfig({});
+      controller.setSettings({});
 
       // Should fall back to default.
       expect(panzoom.zoom).toBeCalledWith(2, { animate: false });
       expect(panzoom.pan).toBeCalledWith(115.62, 63.6525, {
-        animate: false,
+        animate: true,
+        duration: 100,
       });
     });
 
@@ -573,11 +598,12 @@ describe('ZoomController', () => {
       setElementToDefaultCardSize(element);
 
       const controller = createAndRegisterZoom(element);
-      controller.setConfig({ zoom: 2, pan: { x: 3, y: 4 } });
+      controller.setSettings({ zoom: 2, pan: { x: 3, y: 4 } });
 
       expect(panzoom.zoom).toHaveBeenNthCalledWith(1, 2, { animate: false });
       expect(panzoom.pan).toHaveBeenNthCalledWith(1, 115.62, 63.6525, {
-        animate: false,
+        animate: true,
+        duration: 100,
       });
 
       vi.mocked(panzoom.getScale).mockReturnValue(2);
@@ -588,7 +614,8 @@ describe('ZoomController', () => {
 
       expect(panzoom.zoom).toHaveBeenNthCalledWith(2, 2, { animate: false });
       expect(panzoom.pan).toHaveBeenNthCalledWith(2, 57.81, 31.82625, {
-        animate: false,
+        animate: true,
+        duration: 100,
       });
     });
 

@@ -2,12 +2,12 @@ import type { CameraManager } from '../camera-manager/manager';
 import type { ConditionsManager } from './conditions-manager';
 import type { EntityRegistryManager } from '../utils/ha/entity-registry';
 import type { ResolvedMediaCache } from '../utils/ha/resolved-media';
-import type { ActionsManager } from './actions-manager';
+import type { ActionsManager } from './actions/actions-manager';
 import type { AutoUpdateManager } from './auto-update-manager';
 import type { AutomationsManager } from './automations-manager';
 import type { CameraURLManager } from './camera-url-manager';
 import type { CardElementManager } from './card-element-manager';
-import type { ConfigManager } from './config-manager';
+import type { ConfigManager } from './config/config-manager';
 import type { DownloadManager } from './download-manager';
 import type { ExpandManager } from './expand-manager';
 import type { FullscreenManager } from './fullscreen-manager';
@@ -22,17 +22,22 @@ import type { StyleManager } from './style-manager';
 import type { TriggersManager } from './triggers-manager';
 import type { ViewManager } from './view-manager';
 import type { QueryStringManager } from './query-string-manager';
+import { KeyboardStateManager } from './keyboard-state-manager';
+import { Automation } from '../config/types';
 
-/**
- * This defines a series of limited APIs that various manager helpers use to
- * control the card. Explicitly specifying them helps make coupling intentional
- * and avoids cyclic importing.
- */
+// *************************************************************************
+//                             Manager APIs
+// This defines a series of limited APIs that various managers use to control
+// the card. Explicitly specifying them helps make coupling intentional and
+// reduce cyclic dependencies.
+// *************************************************************************
 
-export interface CardActionsManagerAPI {
+export interface CardActionsAPI {
+  getActionsManager(): ActionsManager;
   getCameraManager(): CameraManager;
   getCameraURLManager(): CameraURLManager;
   getCardElementManager(): CardElementManager;
+  getConditionsManager(): ConditionsManager; 
   getConfigManager(): ConfigManager;
   getDownloadManager(): DownloadManager;
   getExpandManager(): ExpandManager;
@@ -45,11 +50,12 @@ export interface CardActionsManagerAPI {
   getTriggersManager(): TriggersManager;
   getViewManager(): ViewManager;
 }
+export type CardActionsManagerAPI = CardActionsAPI;
 
 export interface CardAutomationsAPI {
+  getActionsManager(): ActionsManager;
   getCardElementManager(): CardElementManager;
   getConditionsManager(): ConditionsManager;
-  getConfigManager(): ConfigManager;
   getHASSManager(): HASSManager;
   getMessageManager(): MessageManager;
 }
@@ -62,6 +68,7 @@ export interface CardAutoRefreshAPI {
 }
 
 export interface CardCameraAPI {
+  getActionsManager(): ActionsManager;
   getConfigManager(): ConfigManager;
   getEntityRegistryManager(): EntityRegistryManager;
   getHASSManager(): HASSManager;
@@ -84,11 +91,17 @@ export interface CardConfigAPI {
   getAutomationsManager(): AutomationsManager;
   getCardElementManager(): CardElementManager;
   getConditionsManager(): ConditionsManager;
+  getConfigManager(): ConfigManager;
   getInitializationManager(): InitializationManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMessageManager(): MessageManager;
   getStyleManager(): StyleManager;
   getViewManager(): ViewManager;
+}
+
+export interface CardConfigLoaderAPI {
+  getConfigManager(): ConfigManager;
+  getAutomationsManager(): AutomationsManager;
 }
 
 export interface CardDownloadAPI {
@@ -106,6 +119,7 @@ export interface CardElementAPI {
   getFullscreenManager(): FullscreenManager;
   getInitializationManager(): InitializationManager;
   getInteractionManager(): InteractionManager;
+  getKeyboardStateManager(): KeyboardStateManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMicrophoneManager(): MicrophoneManager;
   getQueryStringManager(): QueryStringManager;
@@ -157,6 +171,12 @@ export interface CardInteractionAPI {
   getStyleManager(): StyleManager;
   getTriggersManager(): TriggersManager;
   getViewManager(): ViewManager;
+}
+
+export interface CardKeyboardStateAPI {
+  getCardElementManager(): CardElementManager;
+  getConditionsManager(): ConditionsManager;
+  getConfigManager(): ConfigManager;
 }
 
 export interface CardMediaLoadedAPI {
@@ -224,3 +244,21 @@ export interface CardViewAPI {
   getStyleManager(): StyleManager;
   getTriggersManager(): TriggersManager;
 }
+
+// *************************************************************************
+//                             Common Types
+// *************************************************************************
+
+export interface KeysState {
+  [key: string]: {
+    state: 'down' | 'up';
+    ctrl: boolean;
+    shift: boolean;
+    alt: boolean;
+    meta: boolean;
+  }
+}
+interface TaggedAutomation extends Automation {
+  tag?: unknown;
+}
+export type TaggedAutomations = TaggedAutomation[];

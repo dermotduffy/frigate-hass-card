@@ -6,10 +6,10 @@ import {
   FrigateRecordingViewMedia,
 } from '../../../src/camera-manager/frigate/media';
 import { FrigateEvent, eventSchema } from '../../../src/camera-manager/frigate/types.js';
+import { PTZAction } from '../../../src/config/ptz';
 import {
   CameraConfig,
   FrigateCardView,
-  PTZAction,
   RawFrigateCardConfig,
 } from '../../../src/config/types';
 import { ViewMedia } from '../../../src/view/media';

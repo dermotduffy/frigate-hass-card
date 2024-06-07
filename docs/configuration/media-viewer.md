@@ -9,7 +9,7 @@ media_viewer:
 
 | Option | Default | Description |
 | - | - | - |
-| `actions` | | [Actions](actions.md) to use for all views that use the `media_viewer` (e.g. `clip`, `snapshot`). |
+| `actions` | | [Actions](actions/README.md) to use for all views that use the `media_viewer` (e.g. `clip`, `snapshot`). |
 | `auto_mute` | `[unselected, hidden]` | A list of conditions in which media items are muted. `unselected` will automatically mute when a media item is unselected in the carousel and `hidden` will automatically mute when the browser/tab becomes hidden. Use an empty list (`[]`) to never automatically mute.|
 | `auto_pause` | `[unselected, hidden]` | A list of conditions in which media items are automatically paused. `unselected` will automatically pause when a media item is unselected in the carousel and `hidden` will automatically pause when the browser/tab becomes hidden. Use an empty list (`[]`) to never automatically pause.|
 | `auto_play` | `[selected, visible]` | A list of conditions in which media items are automatically played.`selected` will automatically play when a media item is selected in the carousel and `visible` will automatically play when the browser/tab becomes visible. Use an empty list (`[]`) to never automatically play.|
@@ -54,6 +54,29 @@ media_viewer:
 | - | - | - |
 | `size` | `48` | The size of the next/previous controls in pixels. Must be &gt;= `20`.|
 | `style` | `thumbnails` | When viewing media, what kind of controls to show to move to the previous/next media item. Acceptable values: `thumbnails`, `chevrons`, `none` . |
+
+### `ptz`
+
+Configures the PTZ (Pan Tilt Zoom) controls. As the media viewer is never
+viewing live view, the PTZ controls in this context always refer to digital (vs
+real) panning and zooming.
+
+```yaml
+media_viewer:
+  controls:
+    ptz:
+      [...]
+```
+
+| Option | Default | Description |
+| - | - | - |
+| `hide_home` | `false` | When `true` the Home button of the control is hidden |
+| `hide_pan_tilt` | `false` | When `true` the Pan & Tilt buttons of the control is hidden |
+| `hide_zoom` | `false` | When `true` the Zoom button of the control is hidden |
+| `mode` | `off` | If `on` or `off` will always or never show PTZ controls respectively. |
+| `orientation` | `horizontal` | Whether to show a `vertical` or `horizontal` PTZ control. |
+| `position` | `bottom-right` | Whether to position the control on the `top-left`, `top-right`, `bottom-left` or `bottom-right`. This may be overridden by using the `style` parameter to precisely control placement. |
+| `style` | | Optionally position and style the element using CSS. Similar to [Picture Element styling](https://www.home-assistant.io/dashboards/picture-elements/#how-to-use-the-style-object), except without any default, e.g. `left: 42%` |
 
 ### `thumbnails`
 
@@ -157,6 +180,16 @@ media_viewer:
     next_previous:
       size: 48
       style: thumbnails
+    ptz:
+      mode: off
+      position: bottom-right
+      orientation: horizontal
+      hide_pan_tilt: false
+      hide_zoom: false
+      hide_home: false
+      style:
+        # Optionally override the default style.
+        right: 5%
     thumbnails:
       size: 100
       mode: none

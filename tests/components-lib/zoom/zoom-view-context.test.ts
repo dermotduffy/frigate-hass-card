@@ -1,14 +1,39 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
-  generateViewContextForZoomChange,
-  handleZoomDefaultEvent,
+  generateViewContextForZoom,
+  handleZoomSettingsObservedEvent,
 } from '../../../src/components-lib/zoom/zoom-view-context';
 
-describe('generateViewContextForZoomChangeRequest', () => {
-  it('with config', () => {
+describe('generateViewContextForZoom', () => {
+  it('with observed', () => {
     expect(
-      generateViewContextForZoomChange('target', {
-        zoom: {
+      generateViewContextForZoom('target', {
+        observed: {
+          pan: { x: 1, y: 2 },
+          zoom: 3,
+          isDefault: true,
+          unzoomed: true,
+        },
+      }),
+    ).toEqual({
+      zoom: {
+        target: {
+          observed: {
+            pan: { x: 1, y: 2 },
+            zoom: 3,
+            isDefault: true,
+            unzoomed: true,
+          },
+          requested: null,
+        },
+      },
+    });
+  });
+
+  it('with requested', () => {
+    expect(
+      generateViewContextForZoom('target', {
+        requested: {
           pan: { x: 1, y: 2 },
           zoom: 3,
         },
@@ -16,7 +41,7 @@ describe('generateViewContextForZoomChangeRequest', () => {
     ).toEqual({
       zoom: {
         target: {
-          zoom: {
+          requested: {
             pan: { x: 1, y: 2 },
             zoom: 3,
           },
@@ -24,50 +49,23 @@ describe('generateViewContextForZoomChangeRequest', () => {
       },
     });
   });
-
-  it('without config', () => {
-    expect(generateViewContextForZoomChange('target')).toEqual({
-      zoom: {
-        target: {
-          zoom: null,
-        },
-      },
-    });
-  });
-});
-
-describe('generateViewContextForZoomDefault', () => {
-  it('default', () => {
-    expect(generateViewContextForZoomChange('target', { isDefault: true })).toEqual({
-      zoom: {
-        target: {
-          isDefault: true,
-          zoom: null,
-        },
-      },
-    });
-  });
-
-  it('not default', () => {
-    expect(generateViewContextForZoomChange('target', { isDefault: false })).toEqual({
-      zoom: {
-        target: {
-          isDefault: false,
-          zoom: null,
-        },
-      },
-    });
-  });
 });
 
 // @vitest-environment jsdom
-it('handleZoomDefaultEvent', () => {
+it('handleZoomSettingsObservedEvent', () => {
   const element = document.createElement('div');
   const callback = vi.fn();
   element.addEventListener('frigate-card:view:change-context', callback);
-  handleZoomDefaultEvent(
+  handleZoomSettingsObservedEvent(
     element,
-    new CustomEvent('frigate-card:zoom:default', { detail: { isDefault: true } }),
+    new CustomEvent('frigate-card:zoom:change', {
+      detail: {
+        pan: { x: 1, y: 2 },
+        zoom: 3,
+        isDefault: true,
+        unzoomed: true,
+      },
+    }),
     'target',
   );
   expect(callback).toBeCalledWith(
@@ -75,8 +73,8 @@ it('handleZoomDefaultEvent', () => {
       detail: {
         zoom: {
           target: {
-            zoom: null,
-            isDefault: true,
+            observed: { pan: { x: 1, y: 2 }, zoom: 3, isDefault: true, unzoomed: true },
+            requested: null,
           },
         },
       },

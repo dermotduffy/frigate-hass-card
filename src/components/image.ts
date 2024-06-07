@@ -9,13 +9,10 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { guard } from 'lit/directives/guard.js';
 import { live } from 'lit/directives/live.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import isEqual from 'lodash-es/isEqual';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
-import { ZoomDefault } from '../components-lib/zoom/types.js';
-import { handleZoomDefaultEvent } from '../components-lib/zoom/zoom-view-context.js';
 import { CameraConfig, ImageViewConfig } from '../config/types.js';
 import defaultImage from '../images/frigate-bird-in-sky.jpg';
 import { localize } from '../localize/localize.js';
@@ -31,6 +28,7 @@ import {
 } from '../utils/media-info.js';
 import { View } from '../view/view.js';
 import { dispatchErrorMessageEvent } from './message.js';
+import { CameraManager } from '../camera-manager/manager.js';
 
 // See TOKEN_CHANGE_INTERVAL in https://github.com/home-assistant/core/blob/dev/homeassistant/components/camera/__init__.py .
 const HASS_REJECTION_CUTOFF_MS = 5 * 60 * 1000;
@@ -45,6 +43,9 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
 
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
+
+  @property({ attribute: false })
+  public cameraManager?: CameraManager;
 
   // Using contentsChanged to ensure overridden configs (e.g. when the
   // 'show_image_during_load' option is true for live views, an overridden
@@ -154,10 +155,6 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
           () => dispatchMediaPlayEvent(this),
           () => dispatchMediaPauseEvent(this),
         );
-      }
-
-      if (changedProps.has('imageConfig') && this.imageConfig?.zoomable) {
-        import('./zoomer.js');
       }
     }
 
@@ -279,67 +276,46 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
     }
   }
 
-  protected _useZoomIfRequired(template: TemplateResult): TemplateResult {
-    const targetID = this.cameraConfig?.id;
-    const zoomConfig = targetID ? this.view?.context?.zoom?.[targetID]?.zoom : undefined;
-
-    return this.imageConfig?.zoomable
-      ? html` <frigate-card-zoomer
-          .defaultConfig=${guard([this.cameraConfig?.dimensions?.layout], () =>
-            this.cameraConfig?.dimensions?.layout
-              ? {
-                  pan: this.cameraConfig.dimensions.layout.pan,
-                  zoom: this.cameraConfig.dimensions.layout.zoom,
-                }
-              : undefined,
-          )}
-          .config=${zoomConfig}
-          @frigate-card:zoom:default=${(ev: CustomEvent<ZoomDefault>) =>
-            handleZoomDefaultEvent(this, ev, targetID)}
-        >
-          ${template}
-        </frigate-card-zoomer>`
-      : template;
-  }
-
   protected render(): TemplateResult | void {
     const src = this._cachedValueController?.value;
     // Note the use of live() below to ensure the update will restore the image
     // src if it's been changed via _forceSafeImage().
     return src
-      ? this._useZoomIfRequired(html` <img
-          ${ref(this._refImage)}
-          src=${live(src)}
-          @load=${(ev: Event) => {
-            const mediaLoadedInfo = createMediaLoadedInfo(ev, {
-              player: this,
-              capabilities: {
-                supportsPause: !!this.imageConfig?.refresh_seconds,
-              },
-            });
-            // Avoid the media being reported as repeatedly loading unless the
-            // media info changes.
-            if (mediaLoadedInfo && !isEqual(this._mediaLoadedInfo, mediaLoadedInfo)) {
-              this._mediaLoadedInfo = mediaLoadedInfo;
-              dispatchExistingMediaLoadedInfoAsEvent(this, mediaLoadedInfo);
-            }
-          }}
-          @error=${() => {
-            if (this.imageConfig?.mode === 'camera') {
-              // In camera mode, the user has likely not made an error, but HA
-              // may be unavailble, so show the stock image. Don't let the URL
-              // override the stock image in this case, as this could create an
-              // error loop if that URL subsequently failed to load.
-              this._forceSafeImage(true);
-            } else if (this.imageConfig?.mode === 'url') {
-              // In url mode, the user likely specified a URL that cannot be
-              // resolved. Show an error message.
-              dispatchErrorMessageEvent(this, localize('error.image_load_error'), {
-                context: this.imageConfig,
+      ? html`
+          <img
+            ${ref(this._refImage)}
+            src=${live(src)}
+            @load=${(ev: Event) => {
+              const mediaLoadedInfo = createMediaLoadedInfo(ev, {
+                player: this,
+                capabilities: {
+                  supportsPause: !!this.imageConfig?.refresh_seconds,
+                },
               });
-            }
-          }}
-        />`)
+              // Avoid the media being reported as repeatedly loading unless the
+              // media info changes.
+              if (mediaLoadedInfo && !isEqual(this._mediaLoadedInfo, mediaLoadedInfo)) {
+                this._mediaLoadedInfo = mediaLoadedInfo;
+                dispatchExistingMediaLoadedInfoAsEvent(this, mediaLoadedInfo);
+              }
+            }}
+            @error=${() => {
+              if (this.imageConfig?.mode === 'camera') {
+                // In camera mode, the user has likely not made an error, but HA
+                // may be unavailble, so show the stock image. Don't let the URL
+                // override the stock image in this case, as this could create an
+                // error loop if that URL subsequently failed to load.
+                this._forceSafeImage(true);
+              } else if (this.imageConfig?.mode === 'url') {
+                // In url mode, the user likely specified a URL that cannot be
+                // resolved. Show an error message.
+                dispatchErrorMessageEvent(this, localize('error.image_load_error'), {
+                  context: this.imageConfig,
+                });
+              }
+            }}
+          />
+        `
       : html``;
   }
 

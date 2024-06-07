@@ -66,6 +66,24 @@ conditions:
 | `condition` | Must be `interaction`. |
 | `interaction` | If `true` the condition is satisfied if the card has had human interaction within `view.interaction_seconds` elapsed seconds. If `false` the condition is satisfied if the card has **NOT** had human interaction in that time. |
 
+## `key`
+
+```yaml
+conditions:
+  - condition: key
+    [...]
+```
+
+| Parameter | Default | Description |
+| - | - | - |
+| `condition` | - | Must be `key`. |
+| `alt` | `false` | An optional value to match whether the `alt` key is being held. |
+| `ctrl` | `false` | An optional value to match whether the `ctrl` key is being held. |
+| `key` | | Any [keyboard key value](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values), e.g. `ArrowLeft`. |
+| `meta` | `false` | An optional value to match whether the `meta` key is being held. |
+| `shift` | `false` | An optional value to match whether the `shift` key is being held. |
+| `state` | `down` | An optional value to match the state of the. Must be one of `down` or `up`. |
+
 ## `media_loaded`
 
 ```yaml
@@ -77,7 +95,7 @@ conditions:
 | Parameter | Description |
 | - | - |
 | `condition` | Must be `media_loaded`. |
-| `media_loaded` | If `true` the condition is satisfied if there is media load**ED** (not load**ING**) in the card (e.g. a clip, snapshot or live view). This may be used to hide controls during media loading or when a message (not media) is being displayed. Note that if `true` this  
+| `media_loaded` | If `true` the condition is satisfied if there is media load**ED** (not load**ING**) in the card (e.g. a clip, snapshot or live view). This may be used to hide controls during media loading or when a message (not media) is being displayed. |
 
 ## `microphone`
 
@@ -169,7 +187,7 @@ conditions:
 media is fetched. When including views as part of a [condition](conditions.md),
 you may need to refer to this special `media` view.
 
-# Fully expanded reference
+## Fully expanded reference
 
 [](common/expanded-warning.md ':include')
 
@@ -184,6 +202,13 @@ conditions:
     fullscreen: true
   - condition: interaction
     interaction: true
+  - condition: key
+    alt: false
+    ctrl: false
+    key: F
+    meta: false
+    shift: false
+    state: down
   - condition: media_loaded
     media_loaded: true
   - condition: microphone

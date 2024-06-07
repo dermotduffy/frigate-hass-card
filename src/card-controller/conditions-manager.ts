@@ -16,7 +16,7 @@ import {
   Overrides,
 } from '../config/types';
 import { desparsifyArrays } from '../utils/basic';
-import { CardConditionAPI } from './types';
+import { CardConditionAPI, KeysState } from './types';
 
 interface MicrophoneConditionState {
   connected?: boolean;
@@ -35,6 +35,7 @@ interface ConditionState {
   interaction?: boolean;
   microphone?: MicrophoneConditionState;
   user?: CurrentUser;
+  keys?: KeysState;
 }
 
 export class ConditionsEvaluateRequestEvent extends Event {
@@ -190,7 +191,9 @@ export class ConditionsManager {
       const config = this._api.getConfigManager().getConfig();
       const conditions: FrigateCardCondition[] = [];
       config?.overrides?.forEach((override) => conditions.push(...override.conditions));
-      config?.automations?.forEach((automation) => conditions.push(...automation.conditions));
+      config?.automations?.forEach((automation) =>
+        conditions.push(...automation.conditions),
+      );
 
       // Element conditions can be arbitrarily nested underneath conditionals and
       // custom elements that this card may not known. Here we recursively parse
@@ -322,6 +325,20 @@ export class ConditionsManager {
             state.microphone?.connected === conditionObj.connected) &&
           (conditionObj.muted === undefined ||
             state.microphone?.muted === conditionObj.muted)
+        );
+      case 'key':
+        return (
+          !!state.keys &&
+          conditionObj.key in state.keys &&
+          (conditionObj.state ?? 'down') === state.keys[conditionObj.key].state &&
+          (conditionObj.ctrl === undefined ||
+            conditionObj.ctrl === !!state.keys[conditionObj.key].ctrl) &&
+          (conditionObj.alt === undefined ||
+            conditionObj.alt === !!state.keys[conditionObj.key].alt) &&
+          (conditionObj.meta === undefined ||
+            conditionObj.meta === !!state.keys[conditionObj.key].meta) &&
+          (conditionObj.shift === undefined ||
+            conditionObj.shift === !!state.keys[conditionObj.key].shift)
         );
     }
   }

@@ -3,7 +3,10 @@ import uniq from 'lodash-es/uniq';
 import { CameraConfig } from '../../config/types';
 import { localize } from '../../localize/localize';
 import { PTZCapabilities, PTZMovementType } from '../../types';
-import { errorToConsole } from '../../utils/basic';
+import {
+  errorToConsole,
+  recursivelyMergeObjectsConcatenatingArraysUniquely,
+} from '../../utils/basic';
 import { subscribeToTrigger } from '../../utils/ha';
 import { EntityRegistryManager } from '../../utils/ha/entity-registry';
 import { Entity } from '../../utils/ha/entity-registry/types';
@@ -13,6 +16,7 @@ import { CameraInitializationError } from '../error';
 import { getCameraEntityFromConfig } from '../utils/camera-entity-from-config';
 import { getPTZInfo } from './requests';
 import { PTZInfo, frigateEventChangeTriggerResponseSchema } from './types';
+import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 
 const CAMERA_BIRDSEYE = 'birdseye' as const;
 
@@ -97,7 +101,18 @@ export class FrigateCamera extends Camera {
 
   protected async _initializeCapabilities(hass: HomeAssistant): Promise<void> {
     const config = this.getConfig();
-    const ptz = await this._getPTZCapabilities(hass, config);
+
+    const configPTZCapabilities = getPTZCapabilitiesFromCameraConfig(this.getConfig());
+    const frigatePTZCapabilities = await this._getPTZCapabilities(hass, config);
+    const combinedPTZCapabilities =
+      configPTZCapabilities || frigatePTZCapabilities
+        ? recursivelyMergeObjectsConcatenatingArraysUniquely(
+            {},
+            configPTZCapabilities,
+            frigatePTZCapabilities,
+          )
+        : null;
+
     const birdseye = isBirdseye(config);
     this._capabilities = new Capabilities(
       {
@@ -110,7 +125,7 @@ export class FrigateCamera extends Camera {
         live: true,
         menu: true,
         substream: true,
-        ...(ptz && { ptz: ptz }),
+        ...(combinedPTZCapabilities && { ptz: combinedPTZCapabilities }),
       },
       {
         disable: config.capabilities?.disable,
@@ -153,20 +168,25 @@ export class FrigateCamera extends Camera {
       return null;
     }
 
+    // Note: The Frigate integration only supports continuous PTZ movements
+    // (regardless of the actual underlying camera capability).
     const panTilt: PTZMovementType[] = [
       ...(ptzInfo.features?.includes('pt') ? ['continuous' as const] : []),
-      ...(ptzInfo.features?.includes('pt-r') ? ['relative' as const] : []),
     ];
     const zoom: PTZMovementType[] = [
       ...(ptzInfo.features?.includes('zoom') ? ['continuous' as const] : []),
-      ...(ptzInfo.features?.includes('zoom-r') ? ['relative' as const] : []),
     ];
     const presets = ptzInfo.presets;
 
     if (panTilt.length || zoom.length || presets?.length) {
       return {
-        ...(panTilt && { panTilt: panTilt }),
-        ...(zoom && { zoom: zoom }),
+        ...(panTilt && {
+          left: panTilt,
+          right: panTilt,
+          up: panTilt,
+          down: panTilt,
+        }),
+        ...(zoom && { zoomIn: zoom, zoomOut: zoom }),
         ...(presets && { presets: presets }),
       };
     }
