@@ -324,7 +324,7 @@ describe('config defaults', () => {
           show_trigger_status: false,
           untrigger_seconds: 0,
           actions: {
-            trigger: 'default',
+            trigger: 'update',
             untrigger: 'none',
             interaction_mode: 'inactive',
           },

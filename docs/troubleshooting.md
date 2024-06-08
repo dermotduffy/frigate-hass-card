@@ -56,7 +56,7 @@ This could be for any number of reasons. Chromecast devices can be quite picky
 on network, DNS and certificate issues, as well as audio and video codecs. Check
 your Home Assistant log as there may be more information in there.
 
-!>: In particular, for Frigate to support casting of clips, the default ffmpeg
+!> In particular, for Frigate to support casting of clips, the default ffmpeg
 settings for Frigate must be modified, i.e. Frigate does not encode clips in a
 Chromecast compatible format out of the box (specifically: audio must be enabled
 in the AAC codec, whether your camera supports audio or not). See the [Frigate

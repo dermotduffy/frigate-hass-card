@@ -50,5 +50,6 @@ it('low performance profile', () => {
     'timeline.controls.thumbnails.show_favorite_control': false,
     'timeline.controls.thumbnails.show_timeline_control': false,
     'timeline.show_recordings': false,
+    'view.triggers.actions.trigger': 'none',
   });
 });

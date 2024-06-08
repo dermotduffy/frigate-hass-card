@@ -82,7 +82,8 @@ export class TriggersManager {
 
     // If this is a high-fidelity event where we are certain about new media,
     // don't take action unless it's to change to live (Frigate engine may pump
-    // out events where there's no new media to show).
+    // out events where there's no new media to show). Other trigger actions
+    // (e.g. media, update) do not make sense without having some new media.
     if (
       ev.fidelity === 'high' &&
       !ev.snapshot &&
@@ -96,7 +97,19 @@ export class TriggersManager {
     }
 
     if (this._hasAllowableInteractionStateForAction()) {
-      if (triggerAction === 'live') {
+      if (triggerAction === 'update') {
+        const view = this._api.getViewManager().getView()?.evolve({
+          // Reset the media queries to catch media to be refetched in the
+          // current view.
+          query: null,
+          queryResults: null,
+        });
+        /* istanbul ignore else: the else path cannot be reached, as the camera
+          cannot be triggered without a view -- @preserve */
+        if (view) {
+          this._api.getViewManager().setView(view.clone());
+        }
+      } else if (triggerAction === 'live') {
         this._api.getViewManager().setViewByParameters({
           viewName: 'live',
           cameraID: ev.cameraID,

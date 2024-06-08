@@ -1406,7 +1406,7 @@ const viewConfigDefault = {
     filter_selected_camera: true,
     actions: {
       interaction_mode: 'inactive' as const,
-      trigger: 'default' as const,
+      trigger: 'update' as const,
       untrigger: 'none' as const,
     },
     untrigger_seconds: 0,
@@ -1415,26 +1415,25 @@ const viewConfigDefault = {
 };
 
 export const triggersSchema = z.object({
-  filter_selected_camera: z
-    .boolean()
-    .default(viewConfigDefault.triggers.filter_selected_camera),
-  show_trigger_status: z
-    .boolean()
-    .default(viewConfigDefault.triggers.show_trigger_status),
-
   actions: z
     .object({
       interaction_mode: z
         .enum(['all', 'inactive', 'active'])
         .default(viewConfigDefault.triggers.actions.interaction_mode),
       trigger: z
-        .enum(['live', 'default', 'media', 'none'])
+        .enum(['default', 'live', 'media', 'none', 'update'])
         .default(viewConfigDefault.triggers.actions.trigger),
       untrigger: z
         .enum(['default', 'none'])
         .default(viewConfigDefault.triggers.actions.untrigger),
     })
     .default(viewConfigDefault.triggers.actions),
+  filter_selected_camera: z
+    .boolean()
+    .default(viewConfigDefault.triggers.filter_selected_camera),
+  show_trigger_status: z
+    .boolean()
+    .default(viewConfigDefault.triggers.show_trigger_status),
   untrigger_seconds: z.number().default(viewConfigDefault.triggers.untrigger_seconds),
 });
 export type TriggersOptions = z.infer<typeof triggersSchema>;

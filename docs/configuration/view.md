@@ -120,7 +120,7 @@ view:
     untrigger_seconds: 0
     actions:
       interaction_mode: inactive
-      trigger: default
+      trigger: update
       untrigger: none
   keyboard_shortcuts:
     enabled: true
