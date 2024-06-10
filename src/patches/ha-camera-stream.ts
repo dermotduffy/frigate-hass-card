@@ -80,7 +80,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
     public isPaused(): boolean {
       return this._player?.isPaused() ?? true;
     }
-    
+
     public async getScreenshotURL(): Promise<string | null> {
       return this._player ? await this._player.getScreenshotURL() : null;
     }

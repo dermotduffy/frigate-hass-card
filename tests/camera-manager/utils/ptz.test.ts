@@ -43,7 +43,7 @@ describe('getConfiguredPTZAction', () => {
           createCameraConfig({
             ptz: {
               presets: {
-                window: action
+                window: action,
               },
             },
           }),

@@ -39,10 +39,7 @@ export class PTZAction extends FrigateCardAction<PTZActionConfig> {
         ?.targetID ??
       null;
     const ptzCapabilities = ptzCameraID
-      ? api
-          .getCameraManager()
-          .getCameraCapabilities(ptzCameraID)
-          ?.getPTZCapabilities()
+      ? api.getCameraManager().getCameraCapabilities(ptzCameraID)?.getPTZCapabilities()
       : null;
     const ptzConfiguration = ptzCameraID
       ? api.getCameraManager().getStore().getCameraConfig(ptzCameraID)?.ptz

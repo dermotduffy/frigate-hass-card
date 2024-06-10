@@ -287,7 +287,7 @@ cameras:
 
 ### Using dependent cameras with birdseye for all cameras
 
-This example shows events for *all* other cameras when `birdseye` is selected.
+This example shows events for _all_ other cameras when `birdseye` is selected.
 This is just a shortcut for naming all other cameras.
 
 ```yaml
@@ -866,7 +866,7 @@ elements:
 
 The card cannot automatically natively trigger fullscreen mode without the user
 clicking, since Javascript (understandbly) prevents random websites from
-triggering fullscreen mode without the user having activated it. 
+triggering fullscreen mode without the user having activated it.
 
 This example uses
 [hass-browser_mod](https://github.com/thomasloven/hass-browser_mod) with an
@@ -877,17 +877,17 @@ automation to trigger a popup. Thanks to
 alias: >-
   Doorbell Pressed OR Human Detected - Firefox browser full screen video feed
   for 15 seconds
-description: ""
+description: ''
 trigger:
   - platform: state
-    from: "off"
-    to: "on"
+    from: 'off'
+    to: 'on'
     entity_id:
       - binary_sensor.frontdoor_person_occupancy
   - platform: state
     entity_id:
       - binary_sensor.front_door_dahua_button_pressed
-    to: "on"
+    to: 'on'
 condition: []
 action:
   - service: browser_mod.popup
@@ -988,7 +988,7 @@ https://ha.mydomain.org/lovelace-test/0?frigate-card-action.main.clips
 
 ### Choosing the camera from a separate picture elements card
 
-In this example, the card will select a given camera when the user navigates from a *separate* Picture Elements card:
+In this example, the card will select a given camera when the user navigates from a _separate_ Picture Elements card:
 
 Frigate Card configuration:
 
@@ -1023,8 +1023,7 @@ elements:
       navigation_path: /lovelace-test/0?frigate-card-action.camera_select=camera.kitchen
 ```
 
-![](images/navigate-picture-elements.gif "Taking card actions via the URL :size=400" )
-
+![](images/navigate-picture-elements.gif 'Taking card actions via the URL :size=400')
 
 ### Selecting a camera in expanded mode via query string
 

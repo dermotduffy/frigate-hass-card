@@ -1,4 +1,9 @@
-import { FrigateCardError, MESSAGE_TYPE_PRIORITIES, Message, MessageType } from '../types';
+import {
+  FrigateCardError,
+  MESSAGE_TYPE_PRIORITIES,
+  Message,
+  MessageType,
+} from '../types';
 import { errorToConsole } from '../utils/basic';
 import { CardMessageAPI } from './types';
 

@@ -430,15 +430,12 @@ describe('should handle ptz action', () => {
       );
 
       const context = {};
-      const startAction = new PTZAction(
-        context,
-        {
-          action: 'fire-dom-event',
-          frigate_card_action: 'ptz',
-          ptz_action: 'left',
-          ptz_phase: 'start',
-        },
-      );
+      const startAction = new PTZAction(context, {
+        action: 'fire-dom-event',
+        frigate_card_action: 'ptz',
+        ptz_action: 'left',
+        ptz_phase: 'start',
+      });
       await startAction.execute(api);
 
       expect(api.getCameraManager().executePTZAction).toBeCalledWith(
@@ -450,25 +447,22 @@ describe('should handle ptz action', () => {
       );
       expect(api.getCameraManager().executePTZAction).toBeCalledTimes(1);
 
-      await vi.runOnlyPendingTimersAsync()
+      await vi.runOnlyPendingTimersAsync();
       expect(api.getCameraManager().executePTZAction).toBeCalledTimes(2);
 
-      await vi.runOnlyPendingTimersAsync()
+      await vi.runOnlyPendingTimersAsync();
       expect(api.getCameraManager().executePTZAction).toBeCalledTimes(3);
 
-      const stopAction = new PTZAction(
-        context,
-        {
-          action: 'fire-dom-event',
-          frigate_card_action: 'ptz',
-          ptz_action: 'left',
-          ptz_phase: 'stop',
-        },
-      );
+      const stopAction = new PTZAction(context, {
+        action: 'fire-dom-event',
+        frigate_card_action: 'ptz',
+        ptz_action: 'left',
+        ptz_phase: 'stop',
+      });
       await stopAction.execute(api);
 
       // There should be no additional calls.
-      await vi.runOnlyPendingTimersAsync()
+      await vi.runOnlyPendingTimersAsync();
       expect(api.getCameraManager().executePTZAction).toBeCalledTimes(3);
     });
 
@@ -500,11 +494,11 @@ describe('should handle ptz action', () => {
       await action.execute(api);
       expect(api.getCameraManager().executePTZAction).toBeCalledTimes(1);
 
-      await vi.runOnlyPendingTimersAsync()
+      await vi.runOnlyPendingTimersAsync();
       expect(api.getCameraManager().executePTZAction).toBeCalledTimes(2);
 
       action.stop();
-      await vi.runOnlyPendingTimersAsync()
+      await vi.runOnlyPendingTimersAsync();
 
       // There should be no additional calls.
       expect(api.getCameraManager().executePTZAction).toBeCalledTimes(2);

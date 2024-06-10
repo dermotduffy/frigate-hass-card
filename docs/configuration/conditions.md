@@ -22,10 +22,10 @@ conditions:
     [...]
 ```
 
-| Parameter | Description |
-| - | - |
-| `condition` | Must be `camera`. |
-| `cameras` | A list of camera IDs in which this condition is satisfied. See the camera [id](cameras/README.md) parameter. |
+| Parameter   | Description                                                                                                  |
+| ----------- | ------------------------------------------------------------------------------------------------------------ |
+| `condition` | Must be `camera`.                                                                                            |
+| `cameras`   | A list of camera IDs in which this condition is satisfied. See the camera [id](cameras/README.md) parameter. |
 
 ## `expand`
 
@@ -35,10 +35,10 @@ conditions:
     [...]
 ```
 
-| Parameter | Description |
-| - | - |
-| `condition` | Must be `expand`. |
-| `expand` | If `true` the condition is satisfied if the card is in expanded mode (in a dialog/popup). If `false` the condition is satisfied if the card is **NOT** in expanded mode (in a dialog/popup). |
+| Parameter   | Description                                                                                                                                                                                  |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `condition` | Must be `expand`.                                                                                                                                                                            |
+| `expand`    | If `true` the condition is satisfied if the card is in expanded mode (in a dialog/popup). If `false` the condition is satisfied if the card is **NOT** in expanded mode (in a dialog/popup). |
 
 ## `fullscreen`
 
@@ -48,9 +48,9 @@ conditions:
     [...]
 ```
 
-| Parameter | Description |
-| - | - |
-| `condition` | Must be `fullscreen`. |
+| Parameter    | Description                                                                                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `condition`  | Must be `fullscreen`.                                                                                                                                    |
 | `fullscreen` | If `true` the condition is satisfied if the card is in fullscreen mode. If `false` the condition is satisfied if the card is **NOT** in fullscreen mode. |
 
 ## `interaction`
@@ -61,9 +61,9 @@ conditions:
     [...]
 ```
 
-| Parameter | Description |
-| - | - |
-| `condition` | Must be `interaction`. |
+| Parameter     | Description                                                                                                                                                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `condition`   | Must be `interaction`.                                                                                                                                                                                                          |
 | `interaction` | If `true` the condition is satisfied if the card has had human interaction within `view.interaction_seconds` elapsed seconds. If `false` the condition is satisfied if the card has **NOT** had human interaction in that time. |
 
 ## `key`
@@ -74,15 +74,15 @@ conditions:
     [...]
 ```
 
-| Parameter | Default | Description |
-| - | - | - |
-| `condition` | - | Must be `key`. |
-| `alt` | `false` | An optional value to match whether the `alt` key is being held. |
-| `ctrl` | `false` | An optional value to match whether the `ctrl` key is being held. |
-| `key` | | Any [keyboard key value](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values), e.g. `ArrowLeft`. |
-| `meta` | `false` | An optional value to match whether the `meta` key is being held. |
-| `shift` | `false` | An optional value to match whether the `shift` key is being held. |
-| `state` | `down` | An optional value to match the state of the. Must be one of `down` or `up`. |
+| Parameter   | Default | Description                                                                                                                       |
+| ----------- | ------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `condition` | -       | Must be `key`.                                                                                                                    |
+| `alt`       | `false` | An optional value to match whether the `alt` key is being held.                                                                   |
+| `ctrl`      | `false` | An optional value to match whether the `ctrl` key is being held.                                                                  |
+| `key`       |         | Any [keyboard key value](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values), e.g. `ArrowLeft`. |
+| `meta`      | `false` | An optional value to match whether the `meta` key is being held.                                                                  |
+| `shift`     | `false` | An optional value to match whether the `shift` key is being held.                                                                 |
+| `state`     | `down`  | An optional value to match the state of the. Must be one of `down` or `up`.                                                       |
 
 ## `media_loaded`
 
@@ -92,9 +92,9 @@ conditions:
     [...]
 ```
 
-| Parameter | Description |
-| - | - |
-| `condition` | Must be `media_loaded`. |
+| Parameter      | Description                                                                                                                                                                                                                                    |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `condition`    | Must be `media_loaded`.                                                                                                                                                                                                                        |
 | `media_loaded` | If `true` the condition is satisfied if there is media load**ED** (not load**ING**) in the card (e.g. a clip, snapshot or live view). This may be used to hide controls during media loading or when a message (not media) is being displayed. |
 
 ## `microphone`
@@ -105,11 +105,11 @@ conditions:
     [...]
 ```
 
-| Parameter | Description |
-| - | - |
-| `condition` | Must be `microphone`. |
+| Parameter   | Description                                                                                                            |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `condition` | Must be `microphone`.                                                                                                  |
 | `connected` | Optional: If `true` or `false` the condition is satisfied if the microphone is connected or disconnected respectively. |
-| `muted` | Optional: If `true` or `false` the condition is satisfied if the microphone is muted or unmuted respectively. |
+| `muted`     | Optional: If `true` or `false` the condition is satisfied if the microphone is muted or unmuted respectively.          |
 
 ## `numeric_state`
 
@@ -129,9 +129,9 @@ conditions:
     [...]
 ```
 
-| Parameter | Description |
-| - | - |
-| `condition` | Must be `screen`. |
+| Parameter     | Description                                                                                                                                                                                                                                                                                                                                                                    |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `condition`   | Must be `screen`.                                                                                                                                                                                                                                                                                                                                                              |
 | `media_query` | Any valid [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries) string. Media queries must start and end with parentheses. This may be used to alter card configuration based on device/media properties (e.g. viewport width, orientation). Please note that `width` and `height` refer to the entire viewport not just the card. |
 
 See the [screen conditions examples](../examples.md?id=screen-conditions).
@@ -154,9 +154,9 @@ conditions:
     [...]
 ```
 
-| Parameter | Description |
-| - | - |
-| `condition` | Must be `triggered`. |
+| Parameter   | Description                                                                                       |
+| ----------- | ------------------------------------------------------------------------------------------------- |
+| `condition` | Must be `triggered`.                                                                              |
 | `triggered` | A list of camera IDs which, if [triggered](cameras/README.md?id=triggers), satisfy the condition. |
 
 ## `user`
@@ -177,10 +177,10 @@ conditions:
     [...]
 ```
 
-| Parameter | Description |
-| - | - |
-| `condition` | Must be `view`. |
-| `views` | A list of [views](view.md?id=supported-views) in which this condition is satified (e.g. `clips`). |
+| Parameter   | Description                                                                                       |
+| ----------- | ------------------------------------------------------------------------------------------------- |
+| `condition` | Must be `view`.                                                                                   |
+| `views`     | A list of [views](view.md?id=supported-views) in which this condition is satified (e.g. `clips`). |
 
 ?> Internally, views associated with the media viewer (e.g. `clip`, `snapshot`,
 `recording`) are translated to a special view called `media` after the relevant

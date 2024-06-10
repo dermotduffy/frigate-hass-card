@@ -46,7 +46,7 @@ describe('ViewMedia', () => {
     const fakeNow = new Date('2023-08-08T17:15:00');
     vi.setSystemTime(fakeNow);
 
-    expect(media.getUsableEndTime()).toEqual(fakeNow)
+    expect(media.getUsableEndTime()).toEqual(fakeNow);
   });
 });
 

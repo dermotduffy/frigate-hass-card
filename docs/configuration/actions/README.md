@@ -43,12 +43,12 @@ experiences a `tap`, `double_tap`, `hold`, `start_tap` or `end_tap` event.
 Alternatively they can be configured on a per group-of-views basis, e.g. only
 when `live` view is tapped.
 
-| Configuration path      | Views to which it refers           |
-| ----------------------- | ---------------------------------- |
-| `image.actions`         | `image`                            |
-| `live.actions`          | `live`                             |
-| `media_gallery.actions` | `clips`, `snapshots`, `recordings` |
-| `media_viewer.actions`  | `clip`, `snapshot`, `recording`    |
+| Configuration path      | Views to which it refers               |
+| ----------------------- | -------------------------------------- |
+| `image.actions`         | `image`                                |
+| `live.actions`          | `live`                                 |
+| `media_gallery.actions` | `clips`, `snapshots`, `recordings`     |
+| `media_viewer.actions`  | `clip`, `snapshot`, `recording`        |
 | `view.actions`          | All except `timeline` and `diagnostic` |
 
 If an action is configured for both the whole card (`view.actions`) and a more

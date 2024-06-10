@@ -1,16 +1,12 @@
 import { getConfigValue, setConfigValue } from '../management.js';
-import {
-  ProfileType,
-  RawFrigateCardConfig,
-  frigateCardConfigSchema,
-} from '../types.js';
+import { ProfileType, RawFrigateCardConfig, frigateCardConfigSchema } from '../types.js';
 import { deepRemoveDefaults } from '../../utils/zod.js';
 import { LOW_PERFORMANCE_PROFILE } from './low-performance.js';
 import { SCRUBBING_PROFILE } from './scrubbing.js';
 
 const PROFILES = {
   'low-performance': LOW_PERFORMANCE_PROFILE,
-  'scrubbing': SCRUBBING_PROFILE,
+  scrubbing: SCRUBBING_PROFILE,
 };
 
 /**

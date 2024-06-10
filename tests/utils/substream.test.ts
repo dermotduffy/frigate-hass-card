@@ -43,7 +43,10 @@ describe('hasSubstream/getStreamCameraID', () => {
       camera: 'camera',
       context: {
         live: {
-          overrides: new Map([['camera', 'camera2'], ['camera3', 'camera4']]),
+          overrides: new Map([
+            ['camera', 'camera2'],
+            ['camera3', 'camera4'],
+          ]),
         },
       },
     });

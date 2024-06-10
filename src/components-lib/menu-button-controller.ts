@@ -377,8 +377,8 @@ export class MenuButtonController {
         icon: forbidden
           ? 'mdi:microphone-message-off'
           : muted
-          ? 'mdi:microphone-off'
-          : 'mdi:microphone',
+            ? 'mdi:microphone-off'
+            : 'mdi:microphone',
         ...config.menu.buttons.microphone,
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.menu.buttons.microphone'),
@@ -570,8 +570,8 @@ export class MenuButtonController {
     const ptzConfig = view.is('live')
       ? config.live.controls.ptz
       : view.isViewerView()
-      ? config.media_viewer.controls.ptz
-      : null;
+        ? config.media_viewer.controls.ptz
+        : null;
 
     if (!ptzConfig || ptzConfig.mode === 'off') {
       return null;

@@ -1,6 +1,6 @@
 {
-    "name": "Frigate Card",
-    "render_readme": true,
-    "filename": "frigate-hass-card.js",
-    "homeassistant": "2022.3.0"
+  "name": "Frigate Card",
+  "render_readme": true,
+  "filename": "frigate-hass-card.js",
+  "homeassistant": "2022.3.0"
 }

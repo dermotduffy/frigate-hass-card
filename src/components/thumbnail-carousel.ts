@@ -92,31 +92,33 @@ export class FrigateCardThumbnailCarousel extends LitElement {
         'slide-selected': selectedIndex === index,
       };
 
-      slides.push(html` <frigate-card-thumbnail
-        class="${classMap(classes)}"
-        .cameraManager=${this.cameraManager}
-        .hass=${this.hass}
-        .media=${media}
-        .view=${this.view}
-        .seek=${seekTarget && media.includesTime(seekTarget) ? seekTarget : undefined}
-        ?details=${!!this.config?.show_details}
-        ?show_favorite_control=${this.config?.show_favorite_control}
-        ?show_timeline_control=${this.config?.show_timeline_control}
-        ?show_download_control=${this.config?.show_download_control}
-        @click=${(ev: Event) => {
-          if (this.view && this.view.queryResults) {
-            dispatchFrigateCardEvent<ThumbnailCarouselTap>(
-              this,
-              'thumbnail-carousel:tap',
-              {
-                queryResults: this.view.queryResults.clone().selectIndex(index),
-              },
-            );
-          }
-          stopEventFromActivatingCardWideActions(ev);
-        }}
-      >
-      </frigate-card-thumbnail>`);
+      slides.push(
+        html` <frigate-card-thumbnail
+          class="${classMap(classes)}"
+          .cameraManager=${this.cameraManager}
+          .hass=${this.hass}
+          .media=${media}
+          .view=${this.view}
+          .seek=${seekTarget && media.includesTime(seekTarget) ? seekTarget : undefined}
+          ?details=${!!this.config?.show_details}
+          ?show_favorite_control=${this.config?.show_favorite_control}
+          ?show_timeline_control=${this.config?.show_timeline_control}
+          ?show_download_control=${this.config?.show_download_control}
+          @click=${(ev: Event) => {
+            if (this.view && this.view.queryResults) {
+              dispatchFrigateCardEvent<ThumbnailCarouselTap>(
+                this,
+                'thumbnail-carousel:tap',
+                {
+                  queryResults: this.view.queryResults.clone().selectIndex(index),
+                },
+              );
+            }
+            stopEventFromActivatingCardWideActions(ev);
+          }}
+        >
+        </frigate-card-thumbnail>`,
+      );
     }
     return slides;
   }

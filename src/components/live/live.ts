@@ -947,42 +947,42 @@ export class FrigateCardLiveProvider
           >
           </frigate-card-live-ha>`
         : provider === 'go2rtc'
-        ? html`<frigate-card-live-go2rtc
-            ${ref(this._refProvider)}
-            class=${classMap(providerClasses)}
-            .hass=${this.hass}
-            .cameraConfig=${this.cameraConfig}
-            .cameraEndpoints=${this.cameraEndpoints}
-            .microphoneStream=${this.microphoneStream}
-            .microphoneConfig=${this.liveConfig.microphone}
-            ?controls=${this.liveConfig.controls.builtin}
-            @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
-          >
-          </frigate-card-live-go2rtc>`
-        : provider === 'webrtc-card'
-        ? html`<frigate-card-live-webrtc-card
-            ${ref(this._refProvider)}
-            class=${classMap(providerClasses)}
-            .hass=${this.hass}
-            .cameraConfig=${this.cameraConfig}
-            .cameraEndpoints=${this.cameraEndpoints}
-            .cardWideConfig=${this.cardWideConfig}
-            ?controls=${this.liveConfig.controls.builtin}
-            @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
-          >
-          </frigate-card-live-webrtc-card>`
-        : provider === 'jsmpeg'
-        ? html` <frigate-card-live-jsmpeg
-            ${ref(this._refProvider)}
-            class=${classMap(providerClasses)}
-            .hass=${this.hass}
-            .cameraConfig=${this.cameraConfig}
-            .cameraEndpoints=${this.cameraEndpoints}
-            .cardWideConfig=${this.cardWideConfig}
-            @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
-          >
-          </frigate-card-live-jsmpeg>`
-        : html``}
+          ? html`<frigate-card-live-go2rtc
+              ${ref(this._refProvider)}
+              class=${classMap(providerClasses)}
+              .hass=${this.hass}
+              .cameraConfig=${this.cameraConfig}
+              .cameraEndpoints=${this.cameraEndpoints}
+              .microphoneStream=${this.microphoneStream}
+              .microphoneConfig=${this.liveConfig.microphone}
+              ?controls=${this.liveConfig.controls.builtin}
+              @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
+            >
+            </frigate-card-live-go2rtc>`
+          : provider === 'webrtc-card'
+            ? html`<frigate-card-live-webrtc-card
+                ${ref(this._refProvider)}
+                class=${classMap(providerClasses)}
+                .hass=${this.hass}
+                .cameraConfig=${this.cameraConfig}
+                .cameraEndpoints=${this.cameraEndpoints}
+                .cardWideConfig=${this.cardWideConfig}
+                ?controls=${this.liveConfig.controls.builtin}
+                @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
+              >
+              </frigate-card-live-webrtc-card>`
+            : provider === 'jsmpeg'
+              ? html` <frigate-card-live-jsmpeg
+                  ${ref(this._refProvider)}
+                  class=${classMap(providerClasses)}
+                  .hass=${this.hass}
+                  .cameraConfig=${this.cameraConfig}
+                  .cameraEndpoints=${this.cameraEndpoints}
+                  .cardWideConfig=${this.cardWideConfig}
+                  @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
+                >
+                </frigate-card-live-jsmpeg>`
+              : html``}
     `)}
     ${showImageDuringLoading && !this._isVideoMediaLoaded
       ? html`<ha-icon

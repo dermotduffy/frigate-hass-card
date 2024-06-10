@@ -96,9 +96,11 @@ export class PTZController {
     return this._forceVisibility !== undefined
       ? this._forceVisibility
       : this._config?.mode === 'auto'
-      ? !!this._cameraID &&
-        !!this._cameraManager?.getCameraCapabilities(this._cameraID)?.hasPTZCapability()
-      : this._config?.mode === 'on';
+        ? !!this._cameraID &&
+          !!this._cameraManager
+            ?.getCameraCapabilities(this._cameraID)
+            ?.hasPTZCapability()
+        : this._config?.mode === 'on';
   }
 
   public getPTZActions(): PTZActionNameToMultiAction {

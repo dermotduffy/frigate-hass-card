@@ -1,16 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CameraEndpoint } from '../../src/camera-manager/types';
 import { CameraURLManager } from '../../src/card-controller/camera-url-manager';
-import {
-  CardCameraURLAPI
-} from '../../src/card-controller/types';
+import { CardCameraURLAPI } from '../../src/card-controller/types';
 import { createCardAPI, createViewWithMedia } from '../test-utils';
 
 const createAPIWithMedia = (): CardCameraURLAPI => {
   const api = createCardAPI();
-  vi.mocked(api.getViewManager().getView).mockReturnValue(
-    createViewWithMedia()
-  )
+  vi.mocked(api.getViewManager().getView).mockReturnValue(createViewWithMedia());
   return api;
 };
 

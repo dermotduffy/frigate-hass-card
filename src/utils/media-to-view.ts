@@ -62,7 +62,7 @@ export const changeViewToRecentEventsForCameraAndDependents = async (
         targetView: options?.targetView,
         select: options?.select,
         useCache: options?.useCache,
-        viewContext: options?.viewContext
+        viewContext: options?.viewContext,
       },
     )
   )?.dispatchChangeEvent(element);
@@ -201,7 +201,7 @@ export const executeMediaQueryForView = async (
       camera: cameraID,
     })
     .mergeInContext(options?.viewContext)
-    .mergeInContext(viewerContext)
+    .mergeInContext(viewerContext);
 };
 
 export const executeMediaQueryForViewWithErrorDispatching = async (

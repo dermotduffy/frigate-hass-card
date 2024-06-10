@@ -87,8 +87,8 @@ export const getViewMediaFromBrowseMediaArray = (
       browseMediaItem.media_class === MEDIA_CLASS_VIDEO
         ? 'clip'
         : browseMediaItem.media_class === MEDIA_CLASS_IMAGE
-        ? 'snapshot'
-        : null;
+          ? 'snapshot'
+          : null;
 
     if (!mediaType) {
       continue;

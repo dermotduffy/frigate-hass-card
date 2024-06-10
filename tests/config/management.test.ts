@@ -3098,7 +3098,6 @@ describe('should handle version specific upgrades', () => {
         );
         postUpgradeChecks(config);
       });
-
     });
   });
 });

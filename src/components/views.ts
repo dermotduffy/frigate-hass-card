@@ -141,16 +141,16 @@ export class FrigateCardViews extends LitElement {
     const thumbnailConfig = this.view?.is('live')
       ? this.overriddenConfig.live.controls.thumbnails
       : this.view?.isViewerView()
-      ? this.overriddenConfig.media_viewer.controls.thumbnails
-      : this.view?.is('timeline')
-      ? this.overriddenConfig.timeline.controls.thumbnails
-      : undefined;
+        ? this.overriddenConfig.media_viewer.controls.thumbnails
+        : this.view?.is('timeline')
+          ? this.overriddenConfig.timeline.controls.thumbnails
+          : undefined;
 
     const miniTimelineConfig = this.view?.is('live')
       ? this.overriddenConfig.live.controls.timeline
       : this.view?.isViewerView()
-      ? this.overriddenConfig.media_viewer.controls.timeline
-      : undefined;
+        ? this.overriddenConfig.media_viewer.controls.timeline
+        : undefined;
 
     const cameraConfig = this.view
       ? this.cameraManager?.getStore().getCameraConfig(this.view.camera) ?? null

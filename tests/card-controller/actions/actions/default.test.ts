@@ -1,13 +1,16 @@
-import { expect, it } from "vitest";
-import { DefaultAction } from "../../../../src/card-controller/actions/actions/default";
-import { createCardAPI } from "../../../test-utils";
+import { expect, it } from 'vitest';
+import { DefaultAction } from '../../../../src/card-controller/actions/actions/default';
+import { createCardAPI } from '../../../test-utils';
 
 it('should handle default action', async () => {
   const api = createCardAPI();
-  const action = new DefaultAction({}, {
-    action: 'fire-dom-event',
-    frigate_card_action: 'default',
-  });
+  const action = new DefaultAction(
+    {},
+    {
+      action: 'fire-dom-event',
+      frigate_card_action: 'default',
+    },
+  );
 
   await action.execute(api);
 

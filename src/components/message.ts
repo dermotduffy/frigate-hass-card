@@ -204,10 +204,7 @@ export function dispatchFrigateCardErrorEvent(
 export interface FrigateCardMessageEventTarget extends EventTarget {
   addEventListener(
     event: 'frigate-card:message',
-    listener: (
-      this: FrigateCardMessageEventTarget,
-      ev: CustomEvent<Message>,
-    ) => void,
+    listener: (this: FrigateCardMessageEventTarget, ev: CustomEvent<Message>) => void,
     options?: AddEventListenerOptions | boolean,
   ): void;
   addEventListener(
@@ -217,10 +214,7 @@ export interface FrigateCardMessageEventTarget extends EventTarget {
   ): void;
   removeEventListener(
     event: 'frigate-card:message',
-    listener: (
-      this: FrigateCardMessageEventTarget,
-      ev: CustomEvent<Message>,
-    ) => void,
+    listener: (this: FrigateCardMessageEventTarget, ev: CustomEvent<Message>) => void,
     options?: boolean | EventListenerOptions,
   ): void;
   removeEventListener(

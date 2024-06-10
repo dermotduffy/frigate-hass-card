@@ -21,10 +21,12 @@ import {
   dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
-  dispatchMediaVolumeChangeEvent
+  dispatchMediaVolumeChangeEvent,
 } from '../utils/media-info.js';
 import {
-  hideMediaControlsTemporarily, MEDIA_LOAD_CONTROLS_HIDE_SECONDS, setControlsOnVideo
+  hideMediaControlsTemporarily,
+  MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
+  setControlsOnVideo,
 } from '../utils/media.js';
 import { screenshotMedia } from '../utils/screenshot.js';
 

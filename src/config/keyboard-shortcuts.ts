@@ -34,7 +34,6 @@ export const keyboardShortcutsSchema = z.object({
 });
 export type KeyboardShortcuts = z.infer<typeof keyboardShortcutsSchema>;
 
-
 const KEYBOARD_SHORTCUT_PTZ_NAMES = [
   'ptz_down',
   'ptz_home',

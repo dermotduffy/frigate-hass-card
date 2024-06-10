@@ -258,99 +258,105 @@ class FrigateCard extends LitElement {
 
     // Caution: Keep the main div and the menu next to one another in order to
     // ensure the hover menu styling continues to work.
-    return this._renderInDialogIfNecessary(html` <ha-card
-      id="ha-card"
-      .actionHandler=${actionHandler({
-        hasHold: frigateCardHasAction(actions.hold_action),
-        hasDoubleClick: frigateCardHasAction(actions.double_tap_action),
-      })}
-      style="${styleMap(this._controller.getStyleManager().getAspectRatioStyle())}"
-      @frigate-card:message=${(ev: CustomEvent<Message>) =>
-        this._controller.getMessageManager().setMessageIfHigherPriority(ev.detail)}
-      @frigate-card:view:change=${(ev: CustomEvent<View>) =>
-        this._controller.getViewManager().setView(ev.detail)}
-      @frigate-card:view:change-context=${(ev: CustomEvent<ViewContext | null>) =>
-        this._controller.getViewManager().setViewWithMergedContext(ev.detail)}
-      @frigate-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) =>
-        this._controller.getMediaLoadedInfoManager().set(ev.detail)}
-      @frigate-card:media:unloaded=${() =>
-        this._controller.getMediaLoadedInfoManager().clear()}
-      @frigate-card:media:volumechange=${
-        () => this.requestUpdate() /* Refresh mute menu button */
-      }
-      @frigate-card:media:play=${
-        () => this.requestUpdate() /* Refresh play/pause menu button */
-      }
-      @frigate-card:media:pause=${
-        () => this.requestUpdate() /* Refresh play/pause menu button */
-      }
-      @frigate-card:focus=${() => this.focus()}
-    >
-      ${renderMenuAbove ? this._renderMenu() : ''}
-      <div ${ref(this._refMain)} class="${classMap(mainClasses)}">
-        ${!cameraManager.isInitialized() &&
-        !this._controller.getMessageManager().hasMessage()
-          ? renderProgressIndicator({
-              cardWideConfig: this._controller.getConfigManager().getCardWideConfig(),
-            })
-          : // Always want to render <frigate-card-views> even if there's a message, to
-            // ensure live preload is always present (even if not displayed).
-            html`<frigate-card-views
-              ${ref(this._refViews)}
+    return this._renderInDialogIfNecessary(
+      html` <ha-card
+        id="ha-card"
+        .actionHandler=${actionHandler({
+          hasHold: frigateCardHasAction(actions.hold_action),
+          hasDoubleClick: frigateCardHasAction(actions.double_tap_action),
+        })}
+        style="${styleMap(this._controller.getStyleManager().getAspectRatioStyle())}"
+        @frigate-card:message=${(ev: CustomEvent<Message>) =>
+          this._controller.getMessageManager().setMessageIfHigherPriority(ev.detail)}
+        @frigate-card:view:change=${(ev: CustomEvent<View>) =>
+          this._controller.getViewManager().setView(ev.detail)}
+        @frigate-card:view:change-context=${(ev: CustomEvent<ViewContext | null>) =>
+          this._controller.getViewManager().setViewWithMergedContext(ev.detail)}
+        @frigate-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) =>
+          this._controller.getMediaLoadedInfoManager().set(ev.detail)}
+        @frigate-card:media:unloaded=${() =>
+          this._controller.getMediaLoadedInfoManager().clear()}
+        @frigate-card:media:volumechange=${
+          () => this.requestUpdate() /* Refresh mute menu button */
+        }
+        @frigate-card:media:play=${
+          () => this.requestUpdate() /* Refresh play/pause menu button */
+        }
+        @frigate-card:media:pause=${
+          () => this.requestUpdate() /* Refresh play/pause menu button */
+        }
+        @frigate-card:focus=${() => this.focus()}
+      >
+        ${renderMenuAbove ? this._renderMenu() : ''}
+        <div ${ref(this._refMain)} class="${classMap(mainClasses)}">
+          ${!cameraManager.isInitialized() &&
+          !this._controller.getMessageManager().hasMessage()
+            ? renderProgressIndicator({
+                cardWideConfig: this._controller.getConfigManager().getCardWideConfig(),
+              })
+            : // Always want to render <frigate-card-views> even if there's a message, to
+              // ensure live preload is always present (even if not displayed).
+              html`<frigate-card-views
+                ${ref(this._refViews)}
+                .hass=${this._hass}
+                .view=${this._controller.getViewManager().getView()}
+                .cameraManager=${cameraManager}
+                .resolvedMediaCache=${this._controller.getResolvedMediaCache()}
+                .nonOverriddenConfig=${this._controller
+                  .getConfigManager()
+                  .getNonOverriddenConfig()}
+                .overriddenConfig=${this._controller.getConfigManager().getConfig()}
+                .cardWideConfig=${this._controller
+                  .getConfigManager()
+                  .getCardWideConfig()}
+                .rawConfig=${this._controller.getConfigManager().getRawConfig()}
+                .configManager=${this._controller.getConfigManager()}
+                .conditionsManagerEpoch=${this._controller
+                  .getConditionsManager()
+                  ?.getEpoch()}
+                .hide=${!!this._controller.getMessageManager().hasMessage()}
+                .microphoneManager=${this._controller.getMicrophoneManager()}
+                .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
+                  ? this._controller.getTriggersManager().getTriggeredCameraIDs()
+                  : undefined}
+              ></frigate-card-views>`}
+          ${
+            // Keep message rendering to last to show messages that may have been
+            // generated during the render.
+            renderMessage(this._controller.getMessageManager().getMessage())
+          }
+        </div>
+        ${!renderMenuAbove ? this._renderMenu() : ''}
+        ${this._config?.elements
+          ? // Elements need to render after the main views so it can render 'on
+            // top'.
+            html` <frigate-card-elements
+              ${ref(this._refElements)}
               .hass=${this._hass}
-              .view=${this._controller.getViewManager().getView()}
-              .cameraManager=${cameraManager}
-              .resolvedMediaCache=${this._controller.getResolvedMediaCache()}
-              .nonOverriddenConfig=${this._controller
-                .getConfigManager()
-                .getNonOverriddenConfig()}
-              .overriddenConfig=${this._controller.getConfigManager().getConfig()}
-              .cardWideConfig=${this._controller.getConfigManager().getCardWideConfig()}
-              .rawConfig=${this._controller.getConfigManager().getRawConfig()}
-              .configManager=${this._controller.getConfigManager()}
+              .elements=${this._config?.elements}
               .conditionsManagerEpoch=${this._controller
                 .getConditionsManager()
                 ?.getEpoch()}
-              .hide=${!!this._controller.getMessageManager().hasMessage()}
-              .microphoneManager=${this._controller.getMicrophoneManager()}
-              .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
-                ? this._controller.getTriggersManager().getTriggeredCameraIDs()
-                : undefined}
-            ></frigate-card-views>`}
-        ${
-          // Keep message rendering to last to show messages that may have been
-          // generated during the render.
-          renderMessage(this._controller.getMessageManager().getMessage())
-        }
-      </div>
-      ${!renderMenuAbove ? this._renderMenu() : ''}
-      ${this._config?.elements
-        ? // Elements need to render after the main views so it can render 'on
-          // top'.
-          html` <frigate-card-elements
-            ${ref(this._refElements)}
-            .hass=${this._hass}
-            .elements=${this._config?.elements}
-            .conditionsManagerEpoch=${this._controller
-              .getConditionsManager()
-              ?.getEpoch()}
-            @frigate-card:menu-add=${(ev: CustomEvent<MenuItem>) => {
-              this._menuButtonController.addDynamicMenuButton(ev.detail);
-              this.requestUpdate();
-            }}
-            @frigate-card:menu-remove=${(ev: CustomEvent<MenuItem>) => {
-              this._menuButtonController.removeDynamicMenuButton(ev.detail);
-              this.requestUpdate();
-            }}
-            @frigate-card:conditions:evaluate=${(ev: ConditionsEvaluateRequestEvent) => {
-              ev.evaluation = this._controller
-                .getConditionsManager()
-                ?.evaluateConditions(ev.conditions);
-            }}
-          >
-          </frigate-card-elements>`
-        : ``}
-    </ha-card>`);
+              @frigate-card:menu-add=${(ev: CustomEvent<MenuItem>) => {
+                this._menuButtonController.addDynamicMenuButton(ev.detail);
+                this.requestUpdate();
+              }}
+              @frigate-card:menu-remove=${(ev: CustomEvent<MenuItem>) => {
+                this._menuButtonController.removeDynamicMenuButton(ev.detail);
+                this.requestUpdate();
+              }}
+              @frigate-card:conditions:evaluate=${(
+                ev: ConditionsEvaluateRequestEvent,
+              ) => {
+                ev.evaluation = this._controller
+                  .getConditionsManager()
+                  ?.evaluateConditions(ev.conditions);
+              }}
+            >
+            </frigate-card-elements>`
+          : ``}
+      </ha-card>`,
+    );
   }
 
   static get styles(): CSSResultGroup {

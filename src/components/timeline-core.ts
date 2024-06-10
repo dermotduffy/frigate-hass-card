@@ -283,18 +283,18 @@ export class FrigateCardTimelineCore extends LitElement {
       panMode === 'pan'
         ? localize('config.common.controls.timeline.pan_modes.pan')
         : panMode === 'seek'
-        ? localize('config.common.controls.timeline.pan_modes.seek')
-        : panMode === 'seek-in-media'
-        ? localize('config.common.controls.timeline.pan_modes.seek-in-media')
-        : localize('config.common.controls.timeline.pan_modes.seek-in-camera');
+          ? localize('config.common.controls.timeline.pan_modes.seek')
+          : panMode === 'seek-in-media'
+            ? localize('config.common.controls.timeline.pan_modes.seek-in-media')
+            : localize('config.common.controls.timeline.pan_modes.seek-in-camera');
     const panIcon =
       panMode === 'pan'
         ? 'mdi:pan-horizontal'
         : panMode === 'seek'
-        ? 'mdi:filmstrip-box-multiple'
-        : panMode === 'seek-in-media'
-        ? 'mdi:play-box-lock'
-        : 'mdi:camera-lock';
+          ? 'mdi:filmstrip-box-multiple'
+          : panMode === 'seek-in-media'
+            ? 'mdi:play-box-lock'
+            : 'mdi:camera-lock';
 
     return html` <div
       @frigate-card:timeline:thumbnail-data-request=${this._handleThumbnailDataRequest.bind(
@@ -312,10 +312,10 @@ export class FrigateCardTimelineCore extends LitElement {
                   panMode === 'pan'
                     ? 'seek'
                     : panMode === 'seek'
-                    ? 'seek-in-media'
-                    : panMode === 'seek-in-media'
-                    ? 'seek-in-camera'
-                    : 'pan';
+                      ? 'seek-in-media'
+                      : panMode === 'seek-in-media'
+                        ? 'seek-in-camera'
+                        : 'pan';
               }}
               aria-label="${panTitle}"
               title="${panTitle}"

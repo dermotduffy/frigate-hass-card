@@ -30,7 +30,7 @@ export class FrigateCardDatePicker extends LitElement {
   protected render(): TemplateResult {
     const changed = () => {
       const value = this._refInput.value?.value;
-      
+
       dispatchFrigateCardEvent<DatePickerEvent>(this, 'date-picker:change', {
         date: value ? new Date(value) : null,
       });

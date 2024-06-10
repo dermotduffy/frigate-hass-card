@@ -1,5 +1,5 @@
-import { ActionType } from "../../config/types";
-import { CardActionsAPI } from "../types";
+import { ActionType } from '../../config/types';
+import { CardActionsAPI } from '../types';
 
 export interface AuxillaryActionConfig {
   camera_image?: string;

@@ -154,7 +154,7 @@ div.opposing {
  ********************************************/
 
 :host([data-style='overlay']),
-:host([data-style*=hover]),
+:host([data-style*='hover']),
 :host([data-style='hidden']) {
   position: absolute;
   overflow: hidden;

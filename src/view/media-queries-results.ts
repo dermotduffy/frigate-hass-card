@@ -246,8 +246,8 @@ export class MediaQueriesResults {
     return criteria?.allCameras
       ? this.getCameraIDs()
       : criteria?.cameraID
-      ? new Set([criteria.cameraID])
-      : null;
+        ? new Set([criteria.cameraID])
+        : null;
   }
 
   public selectResultIfFound(

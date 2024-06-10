@@ -7,9 +7,9 @@ action: custom:frigate-card-action
 [...]
 ```
 
-| Parameter | Description |
-| - | - |
-| `action` | Must be `custom:frigate-card-action`. |
+| Parameter             | Description                                 |
+| --------------------- | ------------------------------------------- |
+| `action`              | Must be `custom:frigate-card-action`.       |
 | `frigate_card_action` | A supported Frigate Card action. See below. |
 
 ## `camera_select`
@@ -22,15 +22,15 @@ frigate_card_action: camera_select
 [...]
 ```
 
-| Parameter | Description |
-| - | - |
-| `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Must be `camera_select`. |
-| `camera` | The [camera ID](../../cameras/README.md?id=cameras) of the camera to select. |
-| `triggered` | If `true` instead of `camera` being specified then a triggered camera (if any) is selected instead. |
+| Parameter             | Description                                                                                         |
+| --------------------- | --------------------------------------------------------------------------------------------------- |
+| `action`              | Must be `custom:frigate-card-action`.                                                               |
+| `frigate_card_action` | Must be `camera_select`.                                                                            |
+| `camera`              | The [camera ID](../../cameras/README.md?id=cameras) of the camera to select.                        |
+| `triggered`           | If `true` instead of `camera` being specified then a triggered camera (if any) is selected instead. |
 
 This action will respect the value of the `view.camera_select` to choose the appropriate view on the new camera. See [`view` configuration](../../view.md).
-  
+
 ## `camera_ui`
 
 Download the displayed media.
@@ -52,13 +52,13 @@ frigate_card_action: change_zoom
 [...]
 ```
 
-| Parameter | Description |
-| - | - |
-| `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Must be `change_zoom`. |
-| `target_id` | The [camera ID](../../cameras/README.md?id=cameras) or a media ID (e.g. `frigate` event ID) to change zoom/pam settings for. |
-| `zoom` | Optional parameter that controls how much to zoom-in. See the [camera zoom parameter](../../cameras/README.md?id=layout-configuration). |
-| `pan` | Optional parameter that controls how much to pan-x/y. See the [camera pan parameter](../../cameras/README.md?id=layout-configuration). |
+| Parameter             | Description                                                                                                                             |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `action`              | Must be `custom:frigate-card-action`.                                                                                                   |
+| `frigate_card_action` | Must be `change_zoom`.                                                                                                                  |
+| `target_id`           | The [camera ID](../../cameras/README.md?id=cameras) or a media ID (e.g. `frigate` event ID) to change zoom/pam settings for.            |
+| `zoom`                | Optional parameter that controls how much to zoom-in. See the [camera zoom parameter](../../cameras/README.md?id=layout-configuration). |
+| `pan`                 | Optional parameter that controls how much to pan-x/y. See the [camera pan parameter](../../cameras/README.md?id=layout-configuration).  |
 
 ?> If neither `zoom` nor `pan` are specified the camera will return to its default zoom and pan settings.
 
@@ -110,11 +110,11 @@ frigate_card_action: display_mode_select
 [...]
 ```
 
-| Parameter | Description |
-| - | - |
-| `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Must be `display_mode_select`. |
-| `display_mode` | `single` to show a single camera at a time in a carousel, or `grid` to show a grid of cameras. |
+| Parameter             | Description                                                                                    |
+| --------------------- | ---------------------------------------------------------------------------------------------- |
+| `action`              | Must be `custom:frigate-card-action`.                                                          |
+| `frigate_card_action` | Must be `display_mode_select`.                                                                 |
+| `display_mode`        | `single` to show a single camera at a time in a carousel, or `grid` to show a grid of cameras. |
 
 ## `download`
 
@@ -170,10 +170,10 @@ action: custom:frigate-card-action
 frigate_card_action: live_substream_on
 ```
 
-| Parameter | Description |
-| - | - |
-| `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Must be `live_substream_on`. |
+| Parameter             | Description                           |
+| --------------------- | ------------------------------------- |
+| `action`              | Must be `custom:frigate-card-action`. |
+| `frigate_card_action` | Must be `live_substream_on`.          |
 
 ## `live_substream_on`
 
@@ -184,12 +184,10 @@ action: custom:frigate-card-action
 frigate_card_action: live_substream_on
 ```
 
-| Parameter | Description |
-| - | - |
-| `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Must be `live_substream_on`. |
-
-
+| Parameter             | Description                           |
+| --------------------- | ------------------------------------- |
+| `action`              | Must be `custom:frigate-card-action`. |
+| `frigate_card_action` | Must be `live_substream_on`.          |
 
 ## `live_substream_select`
 
@@ -201,11 +199,11 @@ frigate_card_action: live_substream_select
 [...]
 ```
 
-| Parameter | Description |
-| - | - |
-| `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Must be `live_substream_select`. |
-| `camera` | The [camera ID](../../cameras/README.md?id=cameras) of the substream to select. |
+| Parameter             | Description                                                                     |
+| --------------------- | ------------------------------------------------------------------------------- |
+| `action`              | Must be `custom:frigate-card-action`.                                           |
+| `frigate_card_action` | Must be `live_substream_select`.                                                |
+| `camera`              | The [camera ID](../../cameras/README.md?id=cameras) of the substream to select. |
 
 ## `log`
 
@@ -217,16 +215,16 @@ frigate_card_action: log
 [...]
 ```
 
-| Parameter | Default | Description |
-| - | - | - |
-| `action` | | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | | Must be `log`. |
-| `message` | | The message to log. |
-| `level` | `info` | The console logging level to use. One of `['debug', 'info', 'warn', 'error']`. |
+| Parameter             | Default | Description                                                                    |
+| --------------------- | ------- | ------------------------------------------------------------------------------ |
+| `action`              |         | Must be `custom:frigate-card-action`.                                          |
+| `frigate_card_action` |         | Must be `log`.                                                                 |
+| `message`             |         | The message to log.                                                            |
+| `level`               | `info`  | The console logging level to use. One of `['debug', 'info', 'warn', 'error']`. |
 
 ## `media_player`
 
-Perform a media player action. 
+Perform a media player action.
 
 ```yaml
 action: custom:frigate-card-action
@@ -234,12 +232,12 @@ frigate_card_action: media_player
 [...]
 ```
 
-| Parameter | Description |
-| - | - |
-| `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Must be `media_player`. |
-| `media_player` | The entity ID of the media_player on which to perform the action. |
-| `media_player_action` | Either `play` or `stop` to play or stop the media in question. |
+| Parameter             | Description                                                       |
+| --------------------- | ----------------------------------------------------------------- |
+| `action`              | Must be `custom:frigate-card-action`.                             |
+| `frigate_card_action` | Must be `media_player`.                                           |
+| `media_player`        | The entity ID of the media_player on which to perform the action. |
+| `media_player_action` | Either `play` or `stop` to play or stop the media in question.    |
 
 ## `menu_toggle`
 
@@ -305,14 +303,14 @@ frigate_card_action: ptz
 [...]
 ```
 
-| Parameter | | Description |
-| - | - | - |
-| `action` | |  Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | | Must be `ptz`. |
-| `camera` | Currently selected camera | An optional camera ID to execute the action on. |
-| `ptz_action` | | Optional action that is of `left`, `right`, `up`, `down`, `zoom_in`, `zoom_out` or `preset`. |
-| `ptz_phase` | | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
-| `ptz_preset` | | Optional preset to execute when the `ptz_action` is `preset`. |
+| Parameter             |                           | Description                                                                                   |
+| --------------------- | ------------------------- | --------------------------------------------------------------------------------------------- |
+| `action`              |                           | Must be `custom:frigate-card-action`.                                                         |
+| `frigate_card_action` |                           | Must be `ptz`.                                                                                |
+| `camera`              | Currently selected camera | An optional camera ID to execute the action on.                                               |
+| `ptz_action`          |                           | Optional action that is of `left`, `right`, `up`, `down`, `zoom_in`, `zoom_out` or `preset`.  |
+| `ptz_phase`           |                           | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
+| `ptz_preset`          |                           | Optional preset to execute when the `ptz_action` is `preset`.                                 |
 
 ?> If no `ptz_action` is specified, the camera returns to its "home" position. For a real PTZ camera, the "home" position is the first available preset. If there are no presets, there is no home position.
 
@@ -326,11 +324,11 @@ frigate_card_action: ptz_controls
 [...]
 ```
 
-| Parameter | Description |
-| - | - |
-| `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Must be `ptz_controls`. |
-| `show` | If `true` shows the PTZ controls, if `false` hides them. |
+| Parameter             | Description                                              |
+| --------------------- | -------------------------------------------------------- |
+| `action`              | Must be `custom:frigate-card-action`.                    |
+| `frigate_card_action` | Must be `ptz_controls`.                                  |
+| `show`                | If `true` shows the PTZ controls, if `false` hides them. |
 
 ## `ptz_digital`
 
@@ -342,14 +340,14 @@ frigate_card_action: ptz-digital
 [...]
 ```
 
-| Parameter | Default | Description |
-| - | - | - |
-| `action` | | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | | Must be `ptz-digital`. |
-| `target_id` | The currently selected camera or media | The target (camera or media) to execute a digital PTZ action on. Can be a camera ID, or another media ID (e.g. for Frigate, can specify a media/event ID). |
-| `ptz_action` | Optional action that is one of `left`, `right`, `up`, `down`, `zoom_in` or `zoom_out`. |
-| `ptz_phase` | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
-| `absolute` | Optional parameter to specify exact absolute pan and zoom settings. See below. |
+| Parameter             | Default                                                                                       | Description                                                                                                                                                |
+| --------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `action`              |                                                                                               | Must be `custom:frigate-card-action`.                                                                                                                      |
+| `frigate_card_action` |                                                                                               | Must be `ptz-digital`.                                                                                                                                     |
+| `target_id`           | The currently selected camera or media                                                        | The target (camera or media) to execute a digital PTZ action on. Can be a camera ID, or another media ID (e.g. for Frigate, can specify a media/event ID). |
+| `ptz_action`          | Optional action that is one of `left`, `right`, `up`, `down`, `zoom_in` or `zoom_out`.        |
+| `ptz_phase`           | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
+| `absolute`            | Optional parameter to specify exact absolute pan and zoom settings. See below.                |
 
 ?> If no `ptz_action` is specified and no `absolute` value is specified, the camera returns to its "home" position. See [Camera layout configuration](../../cameras/README.md?id=layout-configuration) to configure the default "home" position for digital PTZ.
 
@@ -357,10 +355,10 @@ frigate_card_action: ptz-digital
 
 Set exact digital PTZ pan and zoom parameters.
 
-| Parameter | Description |
-| - | - |
-| `pan` | Control camera digital pan. See the `pan` parameter in [Camera layout configuration](../../cameras/README.md?id=layout-configuration). |
-| `zoom` | Control camera digital zoom. See the `zoom` parameter in [Camera layout configuration](../../cameras/README.md?id=layout-configuration). |
+| Parameter | Description                                                                                                                              |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `pan`     | Control camera digital pan. See the `pan` parameter in [Camera layout configuration](../../cameras/README.md?id=layout-configuration).   |
+| `zoom`    | Control camera digital zoom. See the `zoom` parameter in [Camera layout configuration](../../cameras/README.md?id=layout-configuration). |
 
 ## `ptz_multi`
 
@@ -378,13 +376,13 @@ frigate_card_action: ptz-multi
 [...]
 ```
 
-| Parameter | Description |
-| - | - |
-| `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Must be `ptz-digital`. |
-| `ptz_action` | Optional action that is one of `left`, `right`, `up`, `down`, `zoom_in` or `zoom_out`. |
-| `ptz_phase` | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
-| `ptz_preset` | Optional preset to execute when the `ptz_action` is `preset`. |
+| Parameter             | Description                                                                                   |
+| --------------------- | --------------------------------------------------------------------------------------------- |
+| `action`              | Must be `custom:frigate-card-action`.                                                         |
+| `frigate_card_action` | Must be `ptz-digital`.                                                                        |
+| `ptz_action`          | Optional action that is one of `left`, `right`, `up`, `down`, `zoom_in` or `zoom_out`.        |
+| `ptz_phase`           | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
+| `ptz_preset`          | Optional preset to execute when the `ptz_action` is `preset`.                                 |
 
 ?> If no `ptz_action` is specified, the camera returns to its "home" position.
 
@@ -424,22 +422,22 @@ action: custom:frigate-card-action
 frigate_card_action: sleep
 ```
 
-| Parameter | Description |
-| - | - |
-| `action` | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Must be `sleep`. |
-| `duration` | A duration object. See below. |
+| Parameter             | Description                           |
+| --------------------- | ------------------------------------- |
+| `action`              | Must be `custom:frigate-card-action`. |
+| `frigate_card_action` | Must be `sleep`.                      |
+| `duration`            | A duration object. See below.         |
 
 ### `duration`
 
 The `duration` block configures how long the `sleep` should last.
 
-| Parameter | Description |
-| - | - |
-| `h` | Hours to sleep for. |
-| `m` | Minutes to sleep for. |
-| `s` | Seconds to sleep for. |
-| `ms` | Milliseconds to sleep for. |
+| Parameter | Description                |
+| --------- | -------------------------- |
+| `h`       | Hours to sleep for.        |
+| `m`       | Minutes to sleep for.      |
+| `s`       | Seconds to sleep for.      |
+| `ms`      | Milliseconds to sleep for. |
 
 ?> Multiple values can be combined, e.g. `{ m: 2, s: 30}` will sleep for `2.5` minutes.
 

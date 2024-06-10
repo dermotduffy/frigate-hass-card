@@ -14,7 +14,7 @@ img {
 }
 
 img,
-ha-icon { 
+ha-icon {
   // Safari will occasionally not load thumbnails correctly with display block.
   display: inline-block;
 
@@ -22,7 +22,10 @@ ha-icon {
   vertical-align: top;
   margin: 0;
 
-  border-radius: var(--frigate-card-css-border-radius, var(--ha-card-border-radius, 4px));
+  border-radius: var(
+    --frigate-card-css-border-radius,
+    var(--ha-card-border-radius, 4px)
+  );
 
   max-width: var(--frigate-card-thumbnail-size);
   max-height: 100%;

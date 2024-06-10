@@ -37,7 +37,7 @@ export interface CardActionsAPI {
   getCameraManager(): CameraManager;
   getCameraURLManager(): CameraURLManager;
   getCardElementManager(): CardElementManager;
-  getConditionsManager(): ConditionsManager; 
+  getConditionsManager(): ConditionsManager;
   getConfigManager(): ConfigManager;
   getDownloadManager(): DownloadManager;
   getExpandManager(): ExpandManager;
@@ -256,7 +256,7 @@ export interface KeysState {
     shift: boolean;
     alt: boolean;
     meta: boolean;
-  }
+  };
 }
 interface TaggedAutomation extends Automation {
   tag?: unknown;

@@ -1,8 +1,8 @@
-import { HomeAssistant } from "@dermotduffy/custom-card-helpers";
-import { HassEntity } from "home-assistant-js-websocket";
-import { CameraConfig } from "../config/types.js";
-import { dispatchErrorMessageEvent } from "../components/message.js";
-import { localize } from "../localize/localize.js";
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { HassEntity } from 'home-assistant-js-websocket';
+import { CameraConfig } from '../config/types.js';
+import { dispatchErrorMessageEvent } from '../components/message.js';
+import { localize } from '../localize/localize.js';
 
 /**
  * Get the state object or dispatch an error. Used in `ha` and `image` live

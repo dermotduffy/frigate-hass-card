@@ -343,8 +343,8 @@ export class MediaFilterController {
         mediaType = !!hasClips[0]
           ? MediaFilterMediaType.Clips
           : !!hasSnapshots[0]
-          ? MediaFilterMediaType.Snapshots
-          : undefined;
+            ? MediaFilterMediaType.Snapshots
+            : undefined;
       }
 
       const whatSets = uniqWith(
@@ -460,8 +460,8 @@ export class MediaFilterController {
       favorites: events
         ? managerCapabilities?.has('favorite-events')
         : recordings
-        ? managerCapabilities?.has('favorite-recordings')
-        : false,
+          ? managerCapabilities?.has('favorite-recordings')
+          : false,
     };
   }
 

@@ -100,20 +100,20 @@ export class PTZDigitalAction extends FrigateCardAction<PTZDigitialActionConfig>
       this._action.ptz_action === 'zoom_in'
         ? STEP_ZOOM
         : this._action.ptz_action === 'zoom_out'
-        ? -STEP_ZOOM
-        : 0;
+          ? -STEP_ZOOM
+          : 0;
     const xDelta =
       this._action.ptz_action === 'left'
         ? -STEP_PAN
         : this._action.ptz_action === 'right'
-        ? STEP_PAN
-        : 0;
+          ? STEP_PAN
+          : 0;
     const yDelta =
       this._action.ptz_action === 'up'
         ? -STEP_PAN
         : this._action.ptz_action === 'down'
-        ? STEP_PAN
-        : 0;
+          ? STEP_PAN
+          : 0;
 
     return {
       zoom: clamp(zoom + zoomDelta, ZOOM_MIN, ZOOM_MAX),

@@ -70,10 +70,7 @@ const batteryStateIcon = (
   return batteryIcon(battery, batteryCharging);
 };
 
-const batteryIcon = (
-  batteryState: number | string,
-  batteryCharging?: boolean,
-) => {
+const batteryIcon = (batteryState: number | string, batteryCharging?: boolean) => {
   const batteryValue = Number(batteryState);
   if (isNaN(batteryValue)) {
     if (batteryState === 'off') {

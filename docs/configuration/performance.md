@@ -3,14 +3,13 @@
 Configure the card performance settings to enable the card to run (more) smoothly on lower end devices.
 
 ```yaml
-performance:
-   [...]
+performance: [...]
 ```
 
-| Option | Default | Description |
-| - | - | - |
-| `features` | | Configure feature settings that impact performance. |
-| `style` | | Configure style settings that impact performance. |
+| Option     | Default | Description                                         |
+| ---------- | ------- | --------------------------------------------------- |
+| `features` |         | Configure feature settings that impact performance. |
+| `style`    |         | Configure style settings that impact performance.   |
 
 ### `features`
 
@@ -18,14 +17,13 @@ Controls card-wide functionality that may impact performance.
 
 ```yaml
 performance:
-  features:
-     [...]
+  features: [...]
 ```
 
-| Option | Default | Description |
-| - | - | - |
-| `animated_progress_indicator` | `true` | Will show the animated progress indicator 'spinner' when `true` or a simple loading icon when `false`.|
-| `media_chunk_size` | `50` | How many media items to fetch and render at a time (e.g. thumbnails under a live view, or number of snapshots to load in the media viewer). This may only make partial sense in some contexts (e.g. the 'infinite gallery' is still infinite, it just loads thumbnails this many items at a time) or not at all (e.g. the timeline will show the number of events dictated by the time span the user navigates to).|
+| Option                        | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ----------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `animated_progress_indicator` | `true`  | Will show the animated progress indicator 'spinner' when `true` or a simple loading icon when `false`.                                                                                                                                                                                                                                                                                                              |
+| `media_chunk_size`            | `50`    | How many media items to fetch and render at a time (e.g. thumbnails under a live view, or number of snapshots to load in the media viewer). This may only make partial sense in some contexts (e.g. the 'infinite gallery' is still infinite, it just loads thumbnails this many items at a time) or not at all (e.g. the timeline will show the number of events dictated by the time span the user navigates to). |
 
 ### `style`
 
@@ -37,14 +35,13 @@ shadows on timeline items, or curves in the media gallery items).
 
 ```yaml
 performance:
-  style:
-     [...]
+  style: [...]
 ```
 
-| Option | Default | Description |
-| - | - | - |
-| `border_radius` | `true` | If `false` minimizes the usage of rounded corners.|
-| `box_shadow` | `true` | If `false` minimizes the usage of shadows.|
+| Option          | Default | Description                                        |
+| --------------- | ------- | -------------------------------------------------- |
+| `border_radius` | `true`  | If `false` minimizes the usage of rounded corners. |
+| `box_shadow`    | `true`  | If `false` minimizes the usage of shadows.         |
 
 ### The `low-performance` profile
 

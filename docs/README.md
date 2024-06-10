@@ -18,12 +18,14 @@ See [Advanced Installation](advanced-installation.md) for other installation res
 
 ## Adding your card
 
- - On a Home Assistant dashboard, choose:
+- On a Home Assistant dashboard, choose:
+
 ```
 [Three dots menu] > Edit dashboard
 ```
- - Click `+ Add Card` shown on the bottom of the screen
- - Choose `Custom: Frigate card` from the list
+
+- Click `+ Add Card` shown on the bottom of the screen
+- Choose `Custom: Frigate card` from the list
 
 ## Initial configuration
 

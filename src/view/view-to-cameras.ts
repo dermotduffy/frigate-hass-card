@@ -26,10 +26,10 @@ export const getCameraIDsForViewName = (
         viewName === 'clip'
           ? 'clips'
           : viewName === 'snapshot'
-          ? 'snapshots'
-          : viewName === 'recording'
-          ? 'recordings'
-          : viewName;
+            ? 'snapshots'
+            : viewName === 'recording'
+              ? 'recordings'
+              : viewName;
       return cameraID
         ? cameraManager.getStore().getAllDependentCameras(cameraID, capability)
         : cameraManager.getStore().getCameraIDsWithCapability(capability);

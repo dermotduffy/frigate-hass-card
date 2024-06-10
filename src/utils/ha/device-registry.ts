@@ -6,7 +6,7 @@ const deviceSchema = z.object({
   model: z.string().nullable(),
   config_entries: z.string().array(),
   manufacturer: z.string().nullable(),
-})
+});
 const deviceListSchema = deviceSchema.array();
 export type DeviceList = z.infer<typeof deviceListSchema>;
 
