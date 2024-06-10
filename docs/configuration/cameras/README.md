@@ -12,7 +12,8 @@ cameras:
 The `cameras_global` block can be used to set defaults across multiple cameras.
 
 ```yaml
-cameras_global: [...]
+cameras_global:
+  # [...]
 ```
 
 | Option          | Default                                                                                           | Description                                                                                                                                                                                                                                                      |
@@ -38,7 +39,8 @@ The `capabilities` block allows selected disabling of auto-detected camera capab
 ```yaml
 cameras:
   - camera_entity: camera.office
-    capabilities: [...]
+    capabilities:
+      # [...]
 ```
 
 | Option           | Default | Description                                                                                                |
@@ -68,7 +70,8 @@ The `cast` block configures how a camera is cast / sent to media players.
 ```yaml
 cameras:
   - camera_entity: camera.office
-    cast: [...]
+    cast:
+      # [...]
 ```
 
 | Option      | Default    | Description                                                                                                                                                                                                                                                                                                                  |
@@ -84,7 +87,8 @@ See the [dashboard method cast example](../../examples.md?id=cast-a-dashboard).
 cameras:
   - camera_entity: camera.office
     cast:
-      dashboard: [...]
+      dashboard:
+        # [...]
 ```
 
 | Option           | Default | Description                                                                                                                                                               |
@@ -99,7 +103,8 @@ The `dependencies` block configures other cameras as dependents of this camera. 
 ```yaml
 cameras:
   - camera_entity: camera.office
-    dependencies: [...]
+    dependencies:
+      # [...]
 ```
 
 | Option        | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -114,7 +119,8 @@ The `dimensions` block configures the dimensions and layout of media of a given 
 ```yaml
 cameras:
   - camera_entity: camera.office
-    dimensions: [...]
+    dimensions:
+      # [...]
 ```
 
 | Option         | Default | Description                                                                                                                                                                                                                                                                                                                  |
@@ -130,7 +136,8 @@ The `layout` block configures the fit and position of the media _within_ the cam
 cameras:
   - camera_entity: camera.office
     dimensions:
-      layout: [...]
+      layout:
+        # [...]
 ```
 
 | Option     | Default   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
@@ -174,7 +181,8 @@ Configure the PTZ actions taken for a camera (not to be confused with configurat
 ```yaml
 cameras:
   - camera_entity: camera.office
-    ptz: [...]
+    ptz:
+      # [...]
 ```
 
 ### Movement types
@@ -236,7 +244,8 @@ camera is triggered.
 ```yaml
 cameras:
   - camera_entity: camera.office
-    triggers: [...]
+    triggers:
+      # [...]
 ```
 
 | Option      | Default                      | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |

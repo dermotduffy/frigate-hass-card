@@ -3,7 +3,8 @@
 Configures how the card menu behaves.
 
 ```yaml
-menu: [...]
+menu:
+  # [...]
 ```
 
 | Option        | Default  | Description                                                                                                                                                                                                                                                  |
@@ -21,7 +22,8 @@ All configuration is under:
 ```yaml
 menu:
   buttons:
-    [button]: [...]
+    [button]:
+      # [...]
 ```
 
 ### Available Buttons

@@ -3,7 +3,8 @@
 The `media_player` section configures viewing all `clip`, `snapshot` or `recording` media, in either a media carousel or grid.
 
 ```yaml
-media_viewer: [...]
+media_viewer:
+  # [...]
 ```
 
 | Option                      | Default                | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
@@ -26,7 +27,8 @@ Configure the controls for the media player views.
 
 ```yaml
 media_viewer:
-  controls: [...]
+  controls:
+    # [...]
 ```
 
 | Option          | Default | Description                                                                             |
@@ -44,7 +46,8 @@ Configures how the "Next & Previous" controls are shown on the media viewer.
 ```yaml
 media_viewer:
   controls:
-    next_previous: [...]
+    next_previous:
+      # [...]
 ```
 
 | Option  | Default      | Description                                                                                                                                      |
@@ -61,7 +64,8 @@ real) panning and zooming.
 ```yaml
 media_viewer:
   controls:
-    ptz: [...]
+    ptz:
+      # [...]
 ```
 
 | Option          | Default        | Description                                                                                                                                                                                                                     |
@@ -81,7 +85,8 @@ Configures how thumbnails are shown on the media viewer.
 ```yaml
 media_viewer:
   controls:
-    thumbnails: [...]
+    thumbnails:
+      # [...]
 ```
 
 | Option                  | Default | Description                                                                                                                                                     |
@@ -100,7 +105,8 @@ Configures how the mini-timeline is shown on the media viewer.
 ```yaml
 media_viewer:
   controls:
-    timeline: [...]
+    timeline:
+      # [...]
 ```
 
 | Option                 | Default  | Description                                                                                                                                                                                                                                                                                                                                                                                                                     |
@@ -122,7 +128,8 @@ Configures how the media title is shown on the media viewer.
 ```yaml
 media_viewer:
   controls:
-    title: [...]
+    title:
+      # [...]
 ```
 
 | Option             | Default              | Description                                                                                                                                              |
@@ -136,7 +143,8 @@ Controls whether to show a single media item or grid in the media viewer.
 
 ```yaml
 media_viewer:
-  display: [...]
+  display:
+    # [...]
 ```
 
 | Option                       | Default  | Description                                                                                                                                                                                                         |

@@ -19,7 +19,7 @@ certain configurations (in `overrides`) or to display "picture elements" (in
 ```yaml
 conditions:
   - condition: camera
-    [...]
+    # [...]
 ```
 
 | Parameter   | Description                                                                                                  |
@@ -32,7 +32,7 @@ conditions:
 ```yaml
 conditions:
   - condition: expand
-    [...]
+    # [...]
 ```
 
 | Parameter   | Description                                                                                                                                                                                  |
@@ -45,7 +45,7 @@ conditions:
 ```yaml
 conditions:
   - condition: fullscreen
-    [...]
+    # [...]
 ```
 
 | Parameter    | Description                                                                                                                                              |
@@ -58,7 +58,7 @@ conditions:
 ```yaml
 conditions:
   - condition: interaction
-    [...]
+    # [...]
 ```
 
 | Parameter     | Description                                                                                                                                                                                                                     |
@@ -71,7 +71,7 @@ conditions:
 ```yaml
 conditions:
   - condition: key
-    [...]
+    # [...]
 ```
 
 | Parameter   | Default | Description                                                                                                                       |
@@ -89,7 +89,7 @@ conditions:
 ```yaml
 conditions:
   - condition: media_loaded
-    [...]
+    # [...]
 ```
 
 | Parameter      | Description                                                                                                                                                                                                                                    |
@@ -102,7 +102,7 @@ conditions:
 ```yaml
 conditions:
   - condition: microphone
-    [...]
+    # [...]
 ```
 
 | Parameter   | Description                                                                                                            |
@@ -116,7 +116,7 @@ conditions:
 ```yaml
 conditions:
   - condition: numeric_state
-    [...]
+    # [...]
 ```
 
 This stock Home Assistant condition works out of the box. See [Home Assistant conditions documentation](https://www.home-assistant.io/dashboards/conditional/#numeric-state).
@@ -126,7 +126,7 @@ This stock Home Assistant condition works out of the box. See [Home Assistant co
 ```yaml
 conditions:
   - condition: screen
-    [...]
+    # [...]
 ```
 
 | Parameter     | Description                                                                                                                                                                                                                                                                                                                                                                    |
@@ -141,7 +141,7 @@ See the [screen conditions examples](../examples.md?id=screen-conditions).
 ```yaml
 conditions:
   - condition: state
-    [...]
+    # [...]
 ```
 
 This stock Home Assistant condition works out of the box. See [Home Assistant conditions documentation](https://www.home-assistant.io/dashboards/conditional/#state).
@@ -151,7 +151,7 @@ This stock Home Assistant condition works out of the box. See [Home Assistant co
 ```yaml
 conditions:
   - condition: triggered
-    [...]
+    # [...]
 ```
 
 | Parameter   | Description                                                                                       |
@@ -164,7 +164,7 @@ conditions:
 ```yaml
 conditions:
   - condition: user
-    [...]
+    # [...]
 ```
 
 This stock Home Assistant condition works out of the box. See [Home Assistant conditions documentation](https://www.home-assistant.io/dashboards/conditional/#user).
@@ -174,7 +174,7 @@ This stock Home Assistant condition works out of the box. See [Home Assistant co
 ```yaml
 conditions:
   - condition: view
-    [...]
+    # [...]
 ```
 
 | Parameter   | Description                                                                                       |

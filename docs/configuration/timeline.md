@@ -4,7 +4,8 @@ Configures a `timeline` view used to show the timing sequence of events and
 recordings across multiple cameras.
 
 ```yaml
-timeline: [...]
+timeline:
+  # [...]
 ```
 
 You can interact with the timeline in a number of ways:
@@ -28,7 +29,8 @@ Configure the controls for the `timeline` view.
 
 ```yaml
 timeline:
-  controls: [...]
+  controls:
+    # [...]
 ```
 
 | Option       | Default | Description                                                            |
@@ -42,7 +44,8 @@ Configures how thumbnails are shown on the timeline.
 ```yaml
 timeline:
   controls:
-    thumbnails: [...]
+    thumbnails:
+      # [...]
 ```
 
 | Option                  | Default | Description                                                                                                                                                     |

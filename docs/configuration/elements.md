@@ -20,8 +20,8 @@ This element will let you show its sub-elements based on entity states. See [Hom
 
 ```yaml
 elements:
-   - type: conditional
-     [...]
+  - type: conditional
+    # [...]
 ```
 
 ## `custom`
@@ -30,8 +30,8 @@ Custom elements provided by a card. See [Home Assistant elements documentation](
 
 ```yaml
 elements:
-   - type: custom
-     [...]
+  - type: custom
+    # [...]
 ```
 
 ## `custom:frigate-card-menu-icon`
@@ -40,8 +40,8 @@ Add an arbitrary icon to the Frigate Card menu. Configuration is ~identical to t
 
 ```yaml
 elements:
-   - type: custom:frigate-card-menu-icon
-     [...]
+  - type: custom:frigate-card-menu-icon
+    # [...]
 ```
 
 ## `custom:frigate-card-menu-state-icon`
@@ -50,8 +50,8 @@ Add a state icon to the Frigate Card menu that represents the state of a Home As
 
 ```yaml
 elements:
-   - type: custom:frigate-card-menu-icon
-     [...]
+  - type: custom:frigate-card-menu-icon
+    # [...]
 ```
 
 ## `custom:frigate-card-menu-submenu`
@@ -60,8 +60,8 @@ Add a configurable submenu dropdown.
 
 ```yaml
 elements:
-   - type: custom:frigate-card-menu-submenu
-     [...]
+  - type: custom:frigate-card-menu-submenu
+    # [...]
 ```
 
 Parameters for this element are identical to the parameters of the [stock Home Assistant Icon Element](https://www.home-assistant.io/lovelace/picture-elements/#icon-element) with the exception of these parameters which differ:
@@ -90,8 +90,8 @@ Add a submenu based on a `select` or `input_select`. This element allows you to 
 
 ```yaml
 elements:
-   - type: custom:frigate-card-menu-submenu-select
-     [...]
+  - type: custom:frigate-card-menu-submenu-select
+    # [...]
 ```
 
 Parameters for the `custom:frigate-card-menu-submenu-select` element are identical to the parameters of the [stock Home Assistant State Icon Element](https://www.home-assistant.io/dashboards/picture-elements/#state-icon) with the exception of these parameters which differ:
@@ -109,8 +109,8 @@ Restrict a set of elements to only render when the card is matches a set of [con
 
 ```yaml
 elements:
-   - type: custom:frigate-card-conditional
-     [...]
+  - type: custom:frigate-card-conditional
+    # [...]
 ```
 
 Parameters for the `custom:frigate-card-conditional` element:
@@ -129,8 +129,8 @@ This element creates a static icon that is not linked to the state of an entity.
 
 ```yaml
 elements:
-   - type: icon
-     [...]
+  - type: icon
+    # [...]
 ```
 
 ## `image`
@@ -139,8 +139,8 @@ This creates an image element that overlays the background image. See [Home Assi
 
 ```yaml
 elements:
-   - type: image
-     [...]
+  - type: image
+    # [...]
 ```
 
 ## `service-button`
@@ -149,8 +149,8 @@ This entity creates a button (with arbitrary text) that can be used to call a se
 
 ```yaml
 elements:
-   - type: service-button
-     [...]
+  - type: service-button
+    # [...]
 ```
 
 ## `state-badge`
@@ -159,8 +159,8 @@ This element creates a badge representing the state of an entity. See [Home Assi
 
 ```yaml
 elements:
-   - type: state-badge
-     [...]
+  - type: state-badge
+    # [...]
 ```
 
 ## `state-icon`
@@ -169,8 +169,8 @@ This element represents an entity state using an icon. See [Home Assistant eleme
 
 ```yaml
 elements:
-   - type: state-icon
-     [...]
+  - type: state-icon
+    # [...]
 ```
 
 ## `state-label`
@@ -179,8 +179,8 @@ This element represents an entity’s state via text. See [Home Assistant elemen
 
 ```yaml
 elements:
-   - type: state-label
-     [...]
+  - type: state-label
+    # [...]
 ```
 
 ## Fully expanded reference

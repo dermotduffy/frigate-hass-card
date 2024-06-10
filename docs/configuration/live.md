@@ -3,7 +3,8 @@
 Configures the behavior of the `live` view.
 
 ```yaml
-live: [...]
+live:
+  # [...]
 ```
 
 | Option                   | Default                            | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
@@ -30,7 +31,8 @@ Configure the controls for the `live` view.
 
 ```yaml
 live:
-  controls: [...]
+  controls:
+    # [...]
 ```
 
 | Option          | Default | Description                                                                            |
@@ -48,7 +50,8 @@ Configures how the "Next & Previous" controls are shown on the live view.
 ```yaml
 live:
   controls:
-    next_previous: [...]
+    next_previous:
+      # [...]
 ```
 
 | Option  | Default    | Description                                                                                                                                    |
@@ -63,7 +66,8 @@ Configures the PTZ (Pan Tilt Zoom) controls.
 ```yaml
 live:
   controls:
-    ptz: [...]
+    ptz:
+      # [...]
 ```
 
 | Option          | Default        | Description                                                                                                                                                                                                                     |
@@ -85,7 +89,8 @@ Configures how thumbnails are shown on the live view.
 ```yaml
 live:
   controls:
-    thumbnails: [...]
+    thumbnails:
+      # [...]
 ```
 
 | Option                  | Default  | Description                                                                                                                                                                   |
@@ -106,7 +111,8 @@ Configures how the mini-timeline is shown on the live view.
 ```yaml
 live:
   controls:
-    timeline: [...]
+    timeline:
+      # [...]
 ```
 
 | Option                 | Default  | Description                                                                                                                                                                                                                                                                                                                                                                                                                     |
@@ -128,7 +134,8 @@ Configures how the camera title is shown on the live view.
 ```yaml
 live:
   controls:
-    title: [...]
+    title:
+      # [...]
 ```
 
 | Option             | Default              | Description                                                                                                                                       |
@@ -142,7 +149,8 @@ Controls whether to show a single or grid `live` view.
 
 ```yaml
 live:
-  display: [...]
+  display:
+    # [...]
 ```
 
 | Option                       | Default  | Description                                                                                                                                                                                                         |

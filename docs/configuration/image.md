@@ -3,7 +3,8 @@
 Configure the `image` view.
 
 ```yaml
-image: [...]
+image:
+  # [...]
 ```
 
 | Option            | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |

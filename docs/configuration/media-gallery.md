@@ -3,7 +3,8 @@
 The `media_gallery` is used for providing an overview of all `clips`, `snapshots` and `recordings` in a thumbnail gallery.
 
 ```yaml
-media_gallery: [...]
+media_gallery:
+  # [...]
 ```
 
 | Option     | Default | Description                                                                                                               |
@@ -20,7 +21,8 @@ Configure the media gallery filter.
 ```yaml
 media_gallery:
   controls:
-    filter: [...]
+    filter:
+      # [...]
 ```
 
 | Option | Default | Description                                                                                           |
@@ -34,7 +36,8 @@ Configure the media gallery thumbnails.
 ```yaml
 media_gallery:
   controls:
-    thumbnails: [...]
+    thumbnails:
+      # [...]
 ```
 
 | Option                  | Default | Description                                                                                              |

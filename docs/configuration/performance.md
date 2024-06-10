@@ -3,7 +3,8 @@
 Configure the card performance settings to enable the card to run (more) smoothly on lower end devices.
 
 ```yaml
-performance: [...]
+performance:
+  # [...]
 ```
 
 | Option     | Default | Description                                         |
@@ -17,7 +18,8 @@ Controls card-wide functionality that may impact performance.
 
 ```yaml
 performance:
-  features: [...]
+  features:
+    # [...]
 ```
 
 | Option                        | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                         |
@@ -35,7 +37,8 @@ shadows on timeline items, or curves in the media gallery items).
 
 ```yaml
 performance:
-  style: [...]
+  style:
+    # [...]
 ```
 
 | Option          | Default | Description                                        |

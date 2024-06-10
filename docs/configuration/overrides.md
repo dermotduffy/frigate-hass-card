@@ -6,8 +6,8 @@ hide the menu in fullscreen mode).
 ```yaml
 overrides:
   - conditions:
-       [condition]
-    [...]
+      - [condition]
+    # [...]
 ```
 
 !> Whilst all configuration parameters are theoretically overridable, in some instances a configuration variable may only be consulted on startup or changing its value may negatively impact behavior -- override results may vary!
@@ -42,7 +42,8 @@ An array of configuration paths to delete.
 
 ```yaml
 overrides:
-  - conditions: [condition]
+  - conditions:
+      - [condition]
     delete:
       - [path_1]
       - [path_2]
@@ -54,16 +55,20 @@ Delete the 2nd camera:
 
 ```yaml
 overrides:
-  - conditions: [condition]
-    delete: 'cameras[2]'
+  - conditions:
+      - [condition]
+    delete:
+      - 'cameras[2]'
 ```
 
 Delete the menu style parameter, thus falling back to the default:
 
 ```yaml
 overrides:
-  - conditions: [condition]
-    delete: 'menu.style'
+  - conditions:
+      - [condition]
+    delete:
+      - 'menu.style'
 ```
 
 ## `merge`
@@ -80,7 +85,8 @@ Hide the menu when a given condition is met:
 
 ```yaml
 overrides:
-  - conditions: [condition]
+  - conditions:
+      - [condition]
     merge:
       menu: { style: 'hidden' }
 ```
@@ -89,7 +95,8 @@ Enable thumbnails below the `live` feed:
 
 ```yaml
 overrides:
-  - conditions: [condition]
+  - conditions:
+      - [condition]
     merge:
       'live.controls.thumbnails': { mode: 'below' }
 ```
@@ -98,7 +105,8 @@ Also enables thumbnails below the `live` feed, but without using the dot-separat
 
 ```yaml
 overrides:
-  - conditions: [condition]
+  - conditions:
+      - [condition]
     merge:
       live: { controls: { thumbnails: { mode: 'below' } } }
 ```
@@ -117,7 +125,8 @@ Set the entire menu configuration to defaults with the exception of the `style` 
 
 ```yaml
 overrides:
-  - conditions: [condition]
+  - conditions:
+      - [condition]
     set:
       menu: { style: 'overlay' }
 ```
@@ -126,7 +135,8 @@ Set the menu style but without touching the other `menu` parameters:
 
 ```yaml
 overrides:
-  - conditions: [condition]
+  - conditions:
+      - [condition]
     set:
       'menu.style': 'overlay'
 ```
@@ -135,7 +145,8 @@ That is equivalent to merging the following:
 
 ```yaml
 overrides:
-  - conditions: [condition]
+  - conditions:
+      - [condition]
     merge:
       menu: { style: 'overlay' }
 ```

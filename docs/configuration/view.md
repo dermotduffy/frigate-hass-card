@@ -3,7 +3,8 @@
 The `view` configuration options control how the default view of the card behaves.
 
 ```yaml
-view: [...]
+view:
+  # [...]
 ```
 
 | Option                    | Default                                                   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
@@ -49,7 +50,8 @@ All configuration is under:
 
 ```yaml
 view:
-  triggers: [...]
+  triggers:
+    # [...]
 ```
 
 When a camera untriggers (e.g. an entity state returning to something other than

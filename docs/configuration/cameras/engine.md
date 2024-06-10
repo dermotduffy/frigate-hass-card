@@ -27,7 +27,8 @@ The `frigate` block configures options for a Frigate camera.
 ```yaml
 cameras:
   - camera_entity: camera.office
-    frigate: [...]
+    frigate:
+      # [...]
 ```
 
 | Option        | Default                                                 | Description                                                                                                                                                                                                                                                                                                                                                       |
@@ -45,7 +46,8 @@ The `motioneye` block configures options for a MotionEye camera.
 ```yaml
 cameras:
   - camera_entity: camera.office
-    motioneye: [...]
+    motioneye:
+      # [...]
 ```
 
 | Option   | Default | Description                                                                                                   |
@@ -62,14 +64,16 @@ The `images` and `movies` block configures how images and movies respectively ar
 cameras:
   - camera_entity: camera.office
     motioneye:
-      images: [...]
+      images:
+        # [...]
 ```
 
 ```yaml
 cameras:
   - camera_entity: camera.office
     motioneye:
-      movies: [...]
+      movies:
+        # [...]
 ```
 
 | Option              | Default    | Description                                                                                                                                                                                                                                                                                                                               |

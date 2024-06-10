@@ -6,7 +6,7 @@ Call a service. See [Home Assistant actions documentation](https://www.home-assi
 
 ```yaml
 action: call-service
-[...]
+# [...]
 ```
 
 ## `more-info`
@@ -15,7 +15,7 @@ Open the "more-info" dialog for an entity. See [Home Assistant actions documenta
 
 ```yaml
 action: more-info
-[...]
+# [...]
 ```
 
 ## `navigate`
@@ -24,7 +24,7 @@ Navigate to a particular dashboard path. See [Home Assistant actions documentati
 
 ```yaml
 action: navigate
-[...]
+# [...]
 ```
 
 ## `toggle`
@@ -33,7 +33,7 @@ Toggle an entity. See [Home Assistant actions documentation](https://www.home-as
 
 ```yaml
 action: toggle
-[...]
+# [...]
 ```
 
 ## `url`
@@ -42,7 +42,7 @@ Navigate to an arbitrary URL. See [Home Assistant actions documentation](https:/
 
 ```yaml
 action: url
-[...]
+# [...]
 ```
 
 ## Fully expanded reference

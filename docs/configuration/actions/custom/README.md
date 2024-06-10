@@ -4,7 +4,7 @@ Execute a Frigate Card action.
 
 ```yaml
 action: custom:frigate-card-action
-[...]
+# [...]
 ```
 
 | Parameter             | Description                                 |
@@ -19,7 +19,7 @@ Select a given camera.
 ```yaml
 action: custom:frigate-card-action
 frigate_card_action: camera_select
-[...]
+# [...]
 ```
 
 | Parameter             | Description                                                                                         |
@@ -49,7 +49,7 @@ Zoom in and/or pan for a given camera.
 ```yaml
 action: custom:frigate-card-action
 frigate_card_action: change_zoom
-[...]
+# [...]
 ```
 
 | Parameter             | Description                                                                                                                             |
@@ -107,7 +107,7 @@ Select a display mode (e.g. view a `single` camera or a `grid` of cameras).
 ```yaml
 action: custom:frigate-card-action
 frigate_card_action: display_mode_select
-[...]
+# [...]
 ```
 
 | Parameter             | Description                                                                                    |
@@ -196,7 +196,7 @@ Select a substream. Use [Camera dependency configuration](../../cameras/README.m
 ```yaml
 action: custom:frigate-card-action
 frigate_card_action: live_substream_select
-[...]
+# [...]
 ```
 
 | Parameter             | Description                                                                     |
@@ -212,7 +212,7 @@ Log a message to the Javascript console.
 ```yaml
 action: custom:frigate-card-action
 frigate_card_action: log
-[...]
+# [...]
 ```
 
 | Parameter             | Default | Description                                                                    |
@@ -229,7 +229,7 @@ Perform a media player action.
 ```yaml
 action: custom:frigate-card-action
 frigate_card_action: media_player
-[...]
+# [...]
 ```
 
 | Parameter             | Description                                                       |
@@ -300,7 +300,7 @@ Execute a real PTZ action, whether configured manually (see [Camera PTZ configur
 ```yaml
 action: custom:frigate-card-action
 frigate_card_action: ptz
-[...]
+# [...]
 ```
 
 | Parameter             |                           | Description                                                                                   |
@@ -321,7 +321,7 @@ Show or hide the PTZ controls.
 ```yaml
 action: custom:frigate-card-action
 frigate_card_action: ptz_controls
-[...]
+# [...]
 ```
 
 | Parameter             | Description                                              |
@@ -337,7 +337,7 @@ Execute a digital PTZ action.
 ```yaml
 action: custom:frigate-card-action
 frigate_card_action: ptz-digital
-[...]
+# [...]
 ```
 
 | Parameter             | Default                                                                                       | Description                                                                                                                                                |
@@ -373,7 +373,7 @@ action), otherwise a digital PTZ action will be run (equivalent to using the
 ```yaml
 action: custom:frigate-card-action
 frigate_card_action: ptz-multi
-[...]
+# [...]
 ```
 
 | Parameter             | Description                                                                                   |

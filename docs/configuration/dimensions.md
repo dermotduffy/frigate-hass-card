@@ -9,7 +9,8 @@ expanded (popup/dialog mode) the aspect ratio is chosen dynamically to maximize
 the amount of content shown.
 
 ```yaml
-dimensions: [...]
+dimensions:
+  # [...]
 ```
 
 | Option              | Default   | Description                                                                                                                                                                                                                                                            |

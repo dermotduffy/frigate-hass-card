@@ -22,7 +22,8 @@ The `go2rtc` block configures use of the `go2rtc` live provider. This configurat
 cameras:
   - camera_entity: camera.office
     live_provider: go2rtc
-    go2rtc: [...]
+    go2rtc:
+      # [...]
 ```
 
 | Option   | Default                                                                                                                                              | Description                                                                                                                                                                      |
@@ -39,7 +40,8 @@ All configuration is under:
 cameras:
   - camera_entity: camera.office
     live_provider: image
-    image: [...]
+    image:
+      # [...]
 ```
 
 | Option            | Default | Description                                                                                                                                                                                                                                                                                                                                                          |
@@ -55,7 +57,8 @@ All configuration is under:
 cameras:
   - camera_entity: camera.office
     live_provider: jsmpeg
-    jsmpeg: [...]
+    jsmpeg:
+      # [...]
 ```
 
 | Option    | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
@@ -72,7 +75,8 @@ events/snapshots/UI. AlexxIT's WebRTC Integration/Card must be installed and con
 cameras:
   - camera_entity: camera.office
     live_provider: webrtc-card
-    webrtc_card: [...]
+    webrtc_card:
+      # [...]
 ```
 
 | Option   | Default                                                                                                                                                                                                             | Description                                                                                                                                                                                                                                                                                     |
