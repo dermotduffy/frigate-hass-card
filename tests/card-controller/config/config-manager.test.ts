@@ -301,5 +301,38 @@ describe('ConfigManager', () => {
         InitializationAspect.MICROPHONE_CONNECT,
       );
     });
+
+    it('view.default_reset', () => {
+      const api = createCardAPI();
+      const manager = new ConfigManager(api);
+      const config_1 = {
+        type: 'custom:frigate-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        view: {
+          default_reset: {
+            every_seconds: 1,
+          },
+        },
+      };
+      vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_1));
+
+      manager.setConfig(config_1);
+      expect(api.getInitializationManager().uninitialize).not.toBeCalled();
+
+      const config_2 = {
+        ...config_1,
+        view: {
+          default_reset: {
+            every_seconds: 2,
+          },
+        },
+      };
+      vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_2));
+      manager.computeOverrideConfig();
+
+      expect(api.getInitializationManager().uninitialize).toBeCalledWith(
+        InitializationAspect.DEFAULT_RESET,
+      );
+    });
   });
 });

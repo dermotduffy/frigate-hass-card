@@ -50,6 +50,7 @@ const plugins = [
   }),
   typescript({
     sourceMap: dev,
+    inlineSources: dev,
   }),
   json({ exclude: 'package.json' }),
   replace({

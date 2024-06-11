@@ -67,6 +67,7 @@ export class CardElementManager {
     this._api.getMediaLoadedInfoManager().initialize();
     this._api.getMicrophoneManager().initialize();
     this._api.getKeyboardStateManager().initialize();
+    this._api.getDefaultManager().initialize();
 
     // Whether or not the card is in panel mode on the dashboard.
     setOrRemoveAttribute(this._element, isCardInPanel(this._element), 'panel');
@@ -123,6 +124,7 @@ export class CardElementManager {
     this._api.getFullscreenManager().disconnect();
     this._api.getKeyboardStateManager().uninitialize();
     this._api.getActionsManager().uninitialize();
+    this._api.getDefaultManager().uninitialize();
 
     // Uninitialize cameras to cause them to reinitialize on
     // reconnection, to ensure the state subscription/unsubscription works

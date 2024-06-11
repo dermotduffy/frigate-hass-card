@@ -436,12 +436,31 @@
         "on": "On"
       },
       "default": "Visualizzazione predefinita",
+      "default_cycle_camera": "Scorri le telecamere quando si aggiorna la visualizzazione predefinita",
+      "default_reset": {
+        "after_interaction": "",
+        "editor_label": "",
+        "entities": "",
+        "every_seconds": "Aggiorna la visualizzazione predefinita ogni x secondi (0 = mai)",
+        "interaction_mode": "",
+        "interaction_modes": {
+          "active": "",
+          "all": "",
+          "inactive": ""
+        }
+      },
       "interaction_seconds": "",
       "keyboard_shortcuts": {
         "editor_label": "",
-        "enabled": ""
+        "enabled": "",
+        "ptz_down": "",
+        "ptz_home": "",
+        "ptz_left": "",
+        "ptz_right": "",
+        "ptz_up": "",
+        "ptz_zoom_in": "",
+        "ptz_zoom_out": ""
       },
-      "reset_after_interaction": "",
       "triggers": {
         "actions": {
           "editor_label": "",
@@ -469,9 +488,6 @@
         "show_trigger_status": "Mostra bordo pulsante quando attivato",
         "untrigger_seconds": "Reimposta la vista ai valori predefiniti dopo aver annullato l'attivazione"
       },
-      "update_cycle_camera": "Scorri le telecamere quando si aggiorna la visualizzazione predefinita",
-      "update_force": "Aggiornamenti della scheda forza (ignora l'interazione dell'utente)",
-      "update_seconds": "Aggiorna la visualizzazione predefinita ogni x secondi (0 = mai)",
       "views": {
         "clip": "Clip più recente",
         "clips": "Galleria delle clip",

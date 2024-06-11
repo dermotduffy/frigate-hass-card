@@ -6,7 +6,7 @@ import { EntityRegistryManager } from '../utils/ha/entity-registry';
 import { EntityCache } from '../utils/ha/entity-registry/cache';
 import { ResolvedMediaCache } from '../utils/ha/resolved-media';
 import { ActionsManager } from './actions/actions-manager';
-import { AutoUpdateManager } from './auto-update-manager';
+import { DefaultManager } from './default-manager';
 import { AutomationsManager } from './automations-manager';
 import { CameraURLManager } from './camera-url-manager';
 import {
@@ -32,12 +32,12 @@ import { StyleManager } from './style-manager';
 import { TriggersManager } from './triggers-manager';
 import {
   CardActionsManagerAPI,
-  CardAutoRefreshAPI,
   CardAutomationsAPI,
   CardCameraAPI,
   CardCameraURLAPI,
   CardConditionAPI,
   CardConfigAPI,
+  CardDefaultManagerAPI,
   CardDownloadAPI,
   CardElementAPI,
   CardExpandAPI,
@@ -62,11 +62,11 @@ export class CardController
   implements
     CardActionsManagerAPI,
     CardAutomationsAPI,
-    CardAutoRefreshAPI,
     CardCameraAPI,
     CardCameraURLAPI,
     CardConditionAPI,
     CardConfigAPI,
+    CardDefaultManagerAPI,
     CardDownloadAPI,
     CardElementAPI,
     CardExpandAPI,
@@ -92,12 +92,12 @@ export class CardController
 
   protected _actionsManager = new ActionsManager(this);
   protected _automationsManager = new AutomationsManager(this);
-  protected _autoUpdateManager = new AutoUpdateManager(this);
   protected _cameraManager = new CameraManager(this);
   protected _cameraURLManager = new CameraURLManager(this);
   protected _cardElementManager: CardElementManager;
   protected _conditionsManager: ConditionsManager;
   protected _configManager = new ConfigManager(this);
+  protected _defaultManager = new DefaultManager(this);
   protected _downloadManager = new DownloadManager(this);
   protected _expandManager = new ExpandManager(this);
   protected _fullscreenManager = new FullscreenManager(this);
@@ -143,10 +143,6 @@ export class CardController
     return this._automationsManager;
   }
 
-  public getAutoUpdateManager(): AutoUpdateManager {
-    return this._autoUpdateManager;
-  }
-
   public getCameraManager(): CameraManager {
     return this._cameraManager;
   }
@@ -171,6 +167,11 @@ export class CardController
   public getConfigManager(): ConfigManager {
     return this._configManager;
   }
+
+  public getDefaultManager(): DefaultManager {
+    return this._defaultManager;
+  }
+
   public getDownloadManager(): DownloadManager {
     return this._downloadManager;
   }

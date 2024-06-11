@@ -436,12 +436,31 @@
         "on": "Ligado"
       },
       "default": "Visualização padrão",
+      "default_cycle_camera": "Percorrer as câmeras quando a visualização padrão for atualizada",
+      "default_reset": {
+        "after_interaction": "",
+        "editor_label": "",
+        "entities": "",
+        "every_seconds": "Atualize a visualização padrão a cada X segundos (0 = nunca)",
+        "interaction_mode": "",
+        "interaction_modes": {
+          "active": "",
+          "all": "",
+          "inactive": ""
+        }
+      },
       "interaction_seconds": "",
       "keyboard_shortcuts": {
         "editor_label": "",
-        "enabled": ""
+        "enabled": "",
+        "ptz_down": "",
+        "ptz_home": "",
+        "ptz_left": "",
+        "ptz_right": "",
+        "ptz_up": "",
+        "ptz_zoom_in": "",
+        "ptz_zoom_out": ""
       },
-      "reset_after_interaction": "",
       "triggers": {
         "actions": {
           "editor_label": "",
@@ -469,9 +488,6 @@
         "show_trigger_status": "Exibir estado do gatilho",
         "untrigger_seconds": "Segundos após a mudar para o estado inativo para desacionar"
       },
-      "update_cycle_camera": "Percorrer as câmeras quando a visualização padrão for atualizada",
-      "update_force": "Forçar atualizações do cartão (ignore a interação do Utilizador)",
-      "update_seconds": "Atualize a visualização padrão a cada X segundos (0 = nunca)",
       "views": {
         "clip": "Clipe mais recente",
         "clips": "Galeria de clipes",

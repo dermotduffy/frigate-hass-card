@@ -146,7 +146,7 @@ describe('HASSManager', () => {
     });
   });
 
-  describe('should set default view when', () => {
+  describe('should not set default view when', () => {
     it('selected camera is unknown', () => {
       const api = createAPIWithoutMediaPlayers();
       vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
@@ -178,15 +178,18 @@ describe('HASSManager', () => {
       expect(api.getViewManager().setViewDefault).not.toBeCalled();
     });
 
-    it('view.update_entities changes', () => {
+    it('when there is card interaction', () => {
       const api = createAPIWithoutMediaPlayers();
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
           view: {
-            update_entities: ['sensor.force_default_view'],
+            default_reset: {
+              entities: ['sensor.force_default_view'],
+            },
           },
         }),
       );
+      vi.mocked(api.getInteractionManager().hasInteraction).mockReturnValue(true);
 
       const manager = new HASSManager(api);
       const hass = createHASS({
@@ -195,7 +198,7 @@ describe('HASSManager', () => {
 
       manager.setHASS(hass);
 
-      expect(api.getViewManager().setViewDefault).toBeCalled();
+      expect(api.getViewManager().setViewDefault).not.toBeCalled();
     });
   });
 
@@ -235,26 +238,5 @@ describe('HASSManager', () => {
 
       expect(api.getCardElementManager().update).toBeCalled();
     });
-  });
-
-  it('set view default is not called when there is card interaction', () => {
-    const api = createAPIWithoutMediaPlayers();
-    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-      createConfig({
-        view: {
-          update_entities: ['sensor.force_default_view'],
-        },
-      }),
-    );
-    vi.mocked(api.getInteractionManager().hasInteraction).mockReturnValue(true);
-
-    const manager = new HASSManager(api);
-    const hass = createHASS({
-      'sensor.force_default_view': createStateEntity(),
-    });
-
-    manager.setHASS(hass);
-
-    expect(api.getViewManager().setViewDefault).not.toBeCalled();
   });
 });

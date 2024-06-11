@@ -129,7 +129,6 @@ describe('ViewManager.setViewDefault', () => {
 
     expect(manager.getView()?.view).toBe('live');
     expect(manager.getView()?.camera).toBe('camera');
-    expect(api.getAutoUpdateManager().startDefaultViewTimer).toBeCalled();
   });
 
   it('should not set default view without config', () => {
@@ -140,7 +139,6 @@ describe('ViewManager.setViewDefault', () => {
     manager.setViewDefault();
 
     expect(manager.getView()).toBeNull();
-    expect(api.getAutoUpdateManager().startDefaultViewTimer).not.toBeCalled();
   });
 
   it('should cycle camera when configured', () => {
@@ -161,7 +159,7 @@ describe('ViewManager.setViewDefault', () => {
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
       createConfig({
         view: {
-          update_cycle_camera: true,
+          default_cycle_camera: true,
         },
       }),
     );

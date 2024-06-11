@@ -9,6 +9,7 @@ export enum InitializationAspect {
   MEDIA_PLAYERS = 'media-players',
   CAMERAS = 'cameras',
   MICROPHONE_CONNECT = 'microphone-connect',
+  DEFAULT_RESET = 'default-reset',
 }
 
 export class InitializationManager {
@@ -125,6 +126,7 @@ export class InitializationManager {
 
     if (
       this._initializer.isInitializedMultiple([
+        InitializationAspect.DEFAULT_RESET,
         ...(config.menu.buttons.media_player.enabled
           ? [InitializationAspect.MEDIA_PLAYERS]
           : []),
@@ -135,6 +137,8 @@ export class InitializationManager {
 
     if (
       !(await this._initializer.initializeMultipleIfNecessary({
+        [InitializationAspect.DEFAULT_RESET]: async () =>
+          await this._api.getDefaultManager().initialize(),
         ...(config.menu.buttons.media_player.enabled && {
           [InitializationAspect.MEDIA_PLAYERS]: async () =>
             await this._api.getMediaPlayerManager().initialize(),

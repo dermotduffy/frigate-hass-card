@@ -15,7 +15,7 @@ import {
   CameraManagerMediaCapabilities,
 } from '../src/camera-manager/types';
 import { ActionsManager } from '../src/card-controller/actions/actions-manager';
-import { AutoUpdateManager } from '../src/card-controller/auto-update-manager';
+import { DefaultManager } from '../src/card-controller/default-manager';
 import { AutomationsManager } from '../src/card-controller/automations-manager';
 import { CameraURLManager } from '../src/card-controller/camera-url-manager';
 import { CardElementManager } from '../src/card-controller/card-element-manager';
@@ -434,7 +434,7 @@ export const createCardAPI = (): CardController => {
 
   api.getActionsManager.mockReturnValue(mock<ActionsManager>());
   api.getAutomationsManager.mockReturnValue(mock<AutomationsManager>());
-  api.getAutoUpdateManager.mockReturnValue(mock<AutoUpdateManager>());
+  api.getDefaultManager.mockReturnValue(mock<DefaultManager>());
   api.getCameraManager.mockReturnValue(mock<CameraManager>());
   api.getCameraURLManager.mockReturnValue(mock<CameraURLManager>());
   api.getCardElementManager.mockReturnValue(mock<CardElementManager>());

@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CameraManager } from '../../src/camera-manager/manager';
 import { ActionsManager } from '../../src/card-controller/actions/actions-manager';
-import { AutoUpdateManager } from '../../src/card-controller/auto-update-manager';
 import { AutomationsManager } from '../../src/card-controller/automations-manager';
 import { CameraURLManager } from '../../src/card-controller/camera-url-manager';
 import {
@@ -11,6 +10,7 @@ import {
 import { ConditionsManager } from '../../src/card-controller/conditions-manager';
 import { ConfigManager } from '../../src/card-controller/config/config-manager';
 import { CardController } from '../../src/card-controller/controller';
+import { DefaultManager } from '../../src/card-controller/default-manager';
 import { DownloadManager } from '../../src/card-controller/download-manager';
 import { ExpandManager } from '../../src/card-controller/expand-manager';
 import { FullscreenManager } from '../../src/card-controller/fullscreen-manager';
@@ -32,12 +32,12 @@ import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media';
 
 vi.mock('../../src/camera-manager/manager');
 vi.mock('../../src/card-controller/actions/actions-manager');
-vi.mock('../../src/card-controller/auto-update-manager');
 vi.mock('../../src/card-controller/automations-manager');
 vi.mock('../../src/card-controller/camera-url-manager');
 vi.mock('../../src/card-controller/card-element-manager');
 vi.mock('../../src/card-controller/conditions-manager');
 vi.mock('../../src/card-controller/config/config-manager');
+vi.mock('../../src/card-controller/default-manager');
 vi.mock('../../src/card-controller/download-manager');
 vi.mock('../../src/card-controller/expand-manager');
 vi.mock('../../src/card-controller/fullscreen-manager');
@@ -107,9 +107,9 @@ describe('CardController', () => {
       );
     });
 
-    it('getAutoUpdateManager', () => {
-      expect(createController().getAutoUpdateManager()).toBe(
-        vi.mocked(AutoUpdateManager).mock.instances[0],
+    it('getDefaultManager', () => {
+      expect(createController().getDefaultManager()).toBe(
+        vi.mocked(DefaultManager).mock.instances[0],
       );
     });
 

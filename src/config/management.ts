@@ -25,7 +25,11 @@ import {
   CONF_OVERRIDES,
   CONF_PROFILES,
   CONF_TIMELINE_EVENTS_MEDIA_TYPE,
+  CONF_VIEW_DEFAULT_CYCLE_CAMERA,
   CONF_VIEW_INTERACTION_SECONDS,
+  CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS,
+  CONF_VIEW_DEFAULT_RESET_ENTITIES,
+  CONF_VIEW_DEFAULT_RESET_INTERACTION_MODE,
   CONF_VIEW_TRIGGERS,
   CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
   CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
@@ -805,4 +809,17 @@ const UPGRADES = [
     keepOriginal: true,
   }),
   upgradeWithOverrides('live.controls.ptz', ptzControlSettingsTransform),
+  upgradeMoveToWithOverrides('view.update_cycle_camera', CONF_VIEW_DEFAULT_CYCLE_CAMERA),
+  upgradeMoveToWithOverrides(
+    'view.update_force',
+    CONF_VIEW_DEFAULT_RESET_INTERACTION_MODE,
+    {
+      transform: (val) => (val === true ? 'all' : null),
+    },
+  ),
+  upgradeMoveToWithOverrides(
+    'view.update_seconds',
+    CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS,
+  ),
+  upgradeMoveToWithOverrides('view.update_entities', CONF_VIEW_DEFAULT_RESET_ENTITIES),
 ];

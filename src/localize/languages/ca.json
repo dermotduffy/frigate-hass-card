@@ -436,12 +436,31 @@
         "on": "Activat"
       },
       "default": "Vista per defecte",
+      "default_cycle_camera": "Passeu per les càmeres quan s'actualitzi la vista predeterminada",
+      "default_reset": {
+        "after_interaction": "Restableix la vista predeterminada després de la interacció de l'usuari",
+        "editor_label": "",
+        "entities": "",
+        "every_seconds": "Actualitza la vista predeterminada cada X segons (0=mai)",
+        "interaction_mode": "",
+        "interaction_modes": {
+          "active": "",
+          "all": "",
+          "inactive": ""
+        }
+      },
       "interaction_seconds": "Segons després de l'acció de l'usuari per continuar interactuant (0=mai)",
       "keyboard_shortcuts": {
         "editor_label": "",
-        "enabled": ""
+        "enabled": "",
+        "ptz_down": "",
+        "ptz_home": "",
+        "ptz_left": "",
+        "ptz_right": "",
+        "ptz_up": "",
+        "ptz_zoom_in": "",
+        "ptz_zoom_out": ""
       },
-      "reset_after_interaction": "Restableix la vista predeterminada després de la interacció de l'usuari",
       "triggers": {
         "actions": {
           "editor_label": "Activar accions",
@@ -469,9 +488,6 @@
         "show_trigger_status": "Mostra la vora intermitent quan s'activa",
         "untrigger_seconds": "Segons després del canvi d'estat inactiu a desactivat"
       },
-      "update_cycle_camera": "Passeu per les càmeres quan s'actualitzi la vista predeterminada",
-      "update_force": "Força les actualitzacions de la targeta (ignora la interacció de l'usuari)",
-      "update_seconds": "Actualitza la vista predeterminada cada X segons (0=mai)",
       "views": {
         "clip": "Clip més recent",
         "clips": "Galeria de clips",

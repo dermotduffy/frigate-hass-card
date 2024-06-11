@@ -123,11 +123,17 @@ export const CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_OUT =
   `${CONF_VIEW_KEYBOARD_SHORTCUTS}.ptz_zoom_out` as const;
 export const CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_HOME =
   `${CONF_VIEW_KEYBOARD_SHORTCUTS}.ptz_home` as const;
-export const CONF_VIEW_UPDATE_CYCLE_CAMERA = `${CONF_VIEW}.update_cycle_camera` as const;
-export const CONF_VIEW_UPDATE_FORCE = `${CONF_VIEW}.update_force` as const;
-export const CONF_VIEW_UPDATE_SECONDS = `${CONF_VIEW}.update_seconds` as const;
-export const CONF_VIEW_RESET_AFTER_INTERACTION =
-  `${CONF_VIEW}.reset_after_interaction` as const;
+export const CONF_VIEW_DEFAULT_CYCLE_CAMERA =
+  `${CONF_VIEW}.default_cycle_camera` as const;
+export const CONF_VIEW_DEFAULT_RESET = `${CONF_VIEW}.default_reset` as const;
+export const CONF_VIEW_DEFAULT_RESET_INTERACTION_MODE =
+  `${CONF_VIEW_DEFAULT_RESET}.interaction_mode` as const;
+export const CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS =
+  `${CONF_VIEW_DEFAULT_RESET}.every_seconds` as const;
+export const CONF_VIEW_DEFAULT_RESET_ENTITIES =
+  `${CONF_VIEW_DEFAULT_RESET}.entities` as const;
+export const CONF_VIEW_DEFAULT_RESET_AFTER_INTERACTION =
+  `${CONF_VIEW_DEFAULT_RESET}.after_interaction` as const;
 export const CONF_VIEW_TRIGGERS = `${CONF_VIEW}.triggers` as const;
 export const CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS =
   `${CONF_VIEW_TRIGGERS}.show_trigger_status` as const;

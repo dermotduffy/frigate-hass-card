@@ -331,10 +331,13 @@ describe('config defaults', () => {
           filter_selected_camera: true,
         },
         interaction_seconds: 300,
-        reset_after_interaction: true,
-        update_cycle_camera: false,
-        update_force: false,
-        update_seconds: 0,
+        default_cycle_camera: false,
+        default_reset: {
+          after_interaction: false,
+          every_seconds: 0,
+          entities: [],
+          interaction_mode: 'inactive',
+        },
       },
     });
   });

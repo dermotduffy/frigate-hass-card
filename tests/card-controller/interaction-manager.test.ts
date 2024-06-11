@@ -23,12 +23,15 @@ describe('InteractionManager', () => {
     expect(api.getConditionsManager().setState).toBeCalledWith({ interaction: false });
   });
 
-  it('should take action when interaction is reported', () => {
+  it('should take action after interaction ends', () => {
     const api = createCardAPI();
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
       createConfig({
         view: {
           interaction_seconds: 10,
+          default_reset: {
+            after_interaction: true,
+          },
         },
       }),
     );
@@ -90,12 +93,14 @@ describe('InteractionManager', () => {
     expect(api.getViewManager().setViewDefault).not.toBeCalled();
   });
 
-  it('should not take action without reset_after_interaction', () => {
+  it('should not take action without default_reset.after_interaction', () => {
     const api = createCardAPI();
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
       createConfig({
         view: {
-          reset_after_interaction: false,
+          default_reset: {
+            after_interaction: false,
+          },
           interaction_seconds: 10,
         },
       }),

@@ -201,7 +201,7 @@ import {
   CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_UP,
   CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_IN,
   CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_OUT,
-  CONF_VIEW_RESET_AFTER_INTERACTION,
+  CONF_VIEW_DEFAULT_RESET_AFTER_INTERACTION,
   CONF_VIEW_TRIGGERS,
   CONF_VIEW_TRIGGERS_ACTIONS,
   CONF_VIEW_TRIGGERS_ACTIONS_INTERACTION_MODE,
@@ -210,10 +210,12 @@ import {
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
   CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS,
   CONF_VIEW_TRIGGERS_UNTRIGGER_SECONDS,
-  CONF_VIEW_UPDATE_CYCLE_CAMERA,
-  CONF_VIEW_UPDATE_FORCE,
-  CONF_VIEW_UPDATE_SECONDS,
+  CONF_VIEW_DEFAULT_CYCLE_CAMERA,
   MEDIA_CHUNK_SIZE_MAX,
+  CONF_VIEW_DEFAULT_RESET,
+  CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS,
+  CONF_VIEW_DEFAULT_RESET_INTERACTION_MODE,
+  CONF_VIEW_DEFAULT_RESET_ENTITIES,
 } from './const.js';
 import { localize } from './localize/localize.js';
 import frigate_card_editor_style from './scss/editor.scss';
@@ -263,6 +265,7 @@ const MENU_PERFORMANCE_FEATURES = 'performance.features';
 const MENU_PERFORMANCE_STYLE = 'performance.style';
 const MENU_TIMELINE_CONTROLS_THUMBNAILS = 'timeline.controls.thumbnails';
 const MENU_VIEW_KEYBOARD_SHORTCUTS = 'view.keyboard_shortcuts';
+const MENU_VIEW_DEFAULT_RESET = 'view.default_reset';
 const MENU_VIEW_TRIGGERS = 'view.triggers';
 const MENU_VIEW_TRIGGERS_ACTIONS = 'view.triggers.actions';
 
@@ -813,6 +816,22 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     },
   ];
 
+  protected _defaultResetInteractionModes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'all',
+      label: localize('config.view.default_reset.interaction_modes.all'),
+    },
+    {
+      value: 'inactive',
+      label: localize('config.view.default_reset.interaction_modes.inactive'),
+    },
+    {
+      value: 'active',
+      label: localize('config.view.default_reset.interaction_modes.active'),
+    },
+  ];
+
   public setConfig(config: RawFrigateCardConfig): void {
     // Note: This does not use Zod to parse the full configuration, so it may be
     // partially or completely invalid. It's more useful to have a partially
@@ -1065,6 +1084,36 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         : '') ||
       (typeof cameraConfig?.id === 'string' && cameraConfig.id) ||
       localize('editor.camera') + ' #' + cameraIndex
+    );
+  }
+
+  protected _renderViewDefaultResetMenu(): TemplateResult {
+    return this._putInSubmenu(
+      MENU_VIEW_DEFAULT_RESET,
+      true,
+      `config.${CONF_VIEW_DEFAULT_RESET}.editor_label`,
+      { name: 'mdi:restart' },
+      html`
+        ${this._renderSwitch(
+          CONF_VIEW_DEFAULT_RESET_AFTER_INTERACTION,
+          this._defaults.view.default_reset.after_interaction,
+        )}
+        ${this._renderNumberInput(CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS)}
+        ${this._renderOptionSelector(
+          CONF_VIEW_DEFAULT_RESET_INTERACTION_MODE,
+          this._defaultResetInteractionModes,
+          {
+            label: localize('config.view.default_reset.interaction_mode'),
+          },
+        )},
+        ${this._renderOptionSelector(
+          CONF_VIEW_DEFAULT_RESET_ENTITIES,
+          this.hass ? getEntitiesFromHASS(this.hass) : [],
+          {
+            multiple: true,
+          },
+        )}
+      `,
     );
   }
 
@@ -2330,19 +2379,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderOptionSelector(CONF_VIEW_DARK_MODE, this._darkModes)}
                 ${this._renderNumberInput(CONF_VIEW_INTERACTION_SECONDS)}
                 ${this._renderSwitch(
-                  CONF_VIEW_RESET_AFTER_INTERACTION,
-                  this._defaults.view.reset_after_interaction,
+                  CONF_VIEW_DEFAULT_CYCLE_CAMERA,
+                  this._defaults.view.default_cycle_camera,
                 )}
-                ${this._renderNumberInput(CONF_VIEW_UPDATE_SECONDS)}
-                ${this._renderSwitch(
-                  CONF_VIEW_UPDATE_FORCE,
-                  this._defaults.view.update_force,
-                )}
-                ${this._renderSwitch(
-                  CONF_VIEW_UPDATE_CYCLE_CAMERA,
-                  this._defaults.view.update_cycle_camera,
-                )}
-                ${this._renderViewTriggersMenu()}
+                ${this._renderViewDefaultResetMenu()} ${this._renderViewTriggersMenu()}
                 ${this._renderViewKeyboardShortcutMenu()}
               </div>
             `

@@ -37,23 +37,6 @@ export class HASSManager {
     this._hass = hass;
 
     if (
-      // Home Assistant pumps a lot of updates through. Re-rendering the card is
-      // necessary at times (e.g. to update the 'clip' view as new clips
-      // arrive), but also is a jarring experience for the user (e.g. if they
-      // are browsing the mini-gallery). Do not allow re-rendering from a Home
-      // Assistant update if there's been recent interaction (e.g. clicks on the
-      // card) or if there is media active playing.
-      this._isAutomatedViewUpdateAllowed() &&
-      isHassDifferent(
-        this._hass,
-        oldHass,
-        this._api.getConfigManager().getConfig()?.view.update_entities ?? [],
-      )
-    ) {
-      // If entities being monitored have changed then reset the view to the
-      // default.
-      this._api.getViewManager().setViewDefault();
-    } else if (
       isHassDifferent(this._hass, oldHass, [
         ...(this._api.getConfigManager().getConfig()?.view.render_entities ?? []),
 
@@ -74,12 +57,5 @@ export class HASSManager {
 
     // Dark mode may depend on HASS.
     this._api.getStyleManager().setLightOrDarkMode();
-  }
-
-  protected _isAutomatedViewUpdateAllowed(): boolean {
-    return (
-      this._api.getConfigManager().getConfig()?.view.update_force ||
-      !this._api.getInteractionManager().hasInteraction()
-    );
   }
 }

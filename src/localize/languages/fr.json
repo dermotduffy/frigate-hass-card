@@ -436,12 +436,31 @@
         "on": "Activé"
       },
       "default": "Vue par défaut",
+      "default_cycle_camera": "Parcourez les caméras lorsque la vue par défaut est mise à jour",
+      "default_reset": {
+        "after_interaction": "",
+        "editor_label": "",
+        "entities": "",
+        "every_seconds": "Actualiser la vue par défaut toutes les X secondes (0=jamais)",
+        "interaction_mode": "",
+        "interaction_modes": {
+          "active": "",
+          "all": "",
+          "inactive": ""
+        }
+      },
       "interaction_seconds": "",
       "keyboard_shortcuts": {
         "editor_label": "",
-        "enabled": ""
+        "enabled": "",
+        "ptz_down": "",
+        "ptz_home": "",
+        "ptz_left": "",
+        "ptz_right": "",
+        "ptz_up": "",
+        "ptz_zoom_in": "",
+        "ptz_zoom_out": ""
       },
-      "reset_after_interaction": "",
       "triggers": {
         "actions": {
           "editor_label": "",
@@ -469,9 +488,6 @@
         "show_trigger_status": "Afficher la bordure clignotante lors du déclenchement",
         "untrigger_seconds": "Quelques secondes après le changement d'état inactif pour débloquer"
       },
-      "update_cycle_camera": "Parcourez les caméras lorsque la vue par défaut est mise à jour",
-      "update_force": "Forcer les mises à jour de la carte (ignorer l'interaction de l'utilisateur)",
-      "update_seconds": "Actualiser la vue par défaut toutes les X secondes (0=jamais)",
       "views": {
         "clip": "Clip le plus récent",
         "clips": "Galerie de clips",

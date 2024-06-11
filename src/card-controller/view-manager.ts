@@ -55,7 +55,7 @@ export class ViewManager {
       let forceCameraID: string | null = params?.cameraID ?? null;
       const viewName = config.view.default;
 
-      if (!forceCameraID && this._view?.camera && config.view.update_cycle_camera) {
+      if (!forceCameraID && this._view?.camera && config.view.default_cycle_camera) {
         const cameraIDs = [
           ...getCameraIDsForViewName(this._api.getCameraManager(), viewName),
         ];
@@ -69,10 +69,6 @@ export class ViewManager {
         viewName: viewName,
         ...(forceCameraID && { cameraID: forceCameraID }),
       });
-
-      // Restart the refresh timer, so the default view is refreshed at a fixed
-      // interval from now (if so configured).
-      this._api.getAutoUpdateManager().startDefaultViewTimer();
     }
   }
 
