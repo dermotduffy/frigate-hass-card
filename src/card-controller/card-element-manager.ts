@@ -9,7 +9,10 @@ import { ActionExecutionRequestEventTarget } from './actions/utils/execution-req
 export type ScrollCallback = () => void;
 export type MenuToggleCallback = () => void;
 
-export type CardHTMLElement = LitElement & ReactiveControllerHost & ActionEventTarget & ActionExecutionRequestEventTarget;
+export type CardHTMLElement = LitElement &
+  ReactiveControllerHost &
+  ActionEventTarget &
+  ActionExecutionRequestEventTarget;
 
 export class CardElementManager {
   protected _api: CardElementAPI;
@@ -70,7 +73,7 @@ export class CardElementManager {
     setOrRemoveAttribute(this._element, true, 'tabindex', '0');
 
     this._api.getFullscreenManager().connect();
-    
+
     this._element.addEventListener(
       'mousemove',
       this._api.getInteractionManager().reportInteraction,

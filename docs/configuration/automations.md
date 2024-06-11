@@ -14,11 +14,11 @@ automations:
       - [action]
 ```
 
-| Option | Default | Description |
-| - | - | - |
-| `conditions` | | A list of [conditions](conditions.md) that must evaluate to `true` in order to trigger the automation. |
-| `actions` | | An optional list of [actions](actions/README.md) that will be run when the [conditions](conditions.md) evaluate `true`. |
-| `actions_not` | | An optional list of [actions](actions/README.md) that will be run when the [conditions](conditions.md) evaluate `false`. |
+| Option        | Default | Description                                                                                                              |
+| ------------- | ------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `conditions`  |         | A list of [conditions](conditions.md) that must evaluate to `true` in order to trigger the automation.                   |
+| `actions`     |         | An optional list of [actions](actions/README.md) that will be run when the [conditions](conditions.md) evaluate `true`.  |
+| `actions_not` |         | An optional list of [actions](actions/README.md) that will be run when the [conditions](conditions.md) evaluate `false`. |
 
 # Fully expanded reference
 

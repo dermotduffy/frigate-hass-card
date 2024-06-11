@@ -64,7 +64,7 @@ export class View {
   }
 
   public static adoptFromViewIfAppropriate(next: View, curr?: View | null): void {
-  if (!curr) {
+    if (!curr) {
       return;
     }
 
@@ -121,8 +121,8 @@ export class View {
           currentQueriesView === 'clips'
             ? 'clip'
             : currentQueriesView === 'snapshots'
-            ? 'snapshot'
-            : 'recording';
+              ? 'snapshot'
+              : 'recording';
       }
     }
 

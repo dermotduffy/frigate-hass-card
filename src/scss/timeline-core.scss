@@ -59,7 +59,9 @@ div.timeline {
   color: var(--primary-text-color);
   background-color: var(--primary-color);
 
-  transition: background-color ease-in-out 1s, border-color ease-in-out 1s,
+  transition:
+    background-color ease-in-out 1s,
+    border-color ease-in-out 1s,
     box-shadow ease-in-out 1s;
 }
 .vis-item.vis-selected {

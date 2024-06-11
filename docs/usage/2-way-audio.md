@@ -9,16 +9,16 @@ challenging.
 
 ### Environmental requirements
 
-   * Must have a camera that supports audio out (otherwise what's the point!)
-   * Camera must be supported by `go2rtc` for 2-way audio (see [supported cameras](https://github.com/AlexxIT/go2rtc#two-way-audio)).
-   * Must be accessing your Home Assistant instance over `https`. The browser will enforce this.
+- Must have a camera that supports audio out (otherwise what's the point!)
+- Camera must be supported by `go2rtc` for 2-way audio (see [supported cameras](https://github.com/AlexxIT/go2rtc#two-way-audio)).
+- Must be accessing your Home Assistant instance over `https`. The browser will enforce this.
 
 ### Card requirements
 
-   * Only Frigate cameras are supported.
-   * Only the `go2rtc` live provider is supported.
-   * Only the `webrtc` mode supports 2-way audio:
-   * Must have microphone menu button enabled:
+- Only Frigate cameras are supported.
+- Only the `go2rtc` live provider is supported.
+- Only the `webrtc` mode supports 2-way audio:
+- Must have microphone menu button enabled:
 
 ## Example configuration
 
@@ -38,16 +38,16 @@ menu:
 
 ## Usage
 
-  * The camera will always load *without* the microphone connected, unless the
-    [`always_connected`](../configuration/live.md?id=microphone) microphone option is
-    set to `true`. 
-  * To speak, hold-down the microphone menu button.
-    * On first press, this will reset the `webrtc` connection to include 2-way
-      audio unless [`always_connected`](../configuration/live.md?id=microphone) has
-      been used.
-    * Thereafter hold the microphone button down to unmute/speak, let go to
-      mute.
-  * The video will automatically reset to remove the microphone after the number
-    of seconds specified by
-    [`disconnect_seconds`](../configuration/live.md?id=microphone) configuration have
-    elapsed since the last mute/unmute press.
+- The camera will always load _without_ the microphone connected, unless the
+  [`always_connected`](../configuration/live.md?id=microphone) microphone option is
+  set to `true`.
+- To speak, hold-down the microphone menu button.
+  - On first press, this will reset the `webrtc` connection to include 2-way
+    audio unless [`always_connected`](../configuration/live.md?id=microphone) has
+    been used.
+  - Thereafter hold the microphone button down to unmute/speak, let go to
+    mute.
+- The video will automatically reset to remove the microphone after the number
+  of seconds specified by
+  [`disconnect_seconds`](../configuration/live.md?id=microphone) configuration have
+  elapsed since the last mute/unmute press.

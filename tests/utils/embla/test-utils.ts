@@ -81,7 +81,7 @@ export const callResizeHandler = (
             height: entry.height,
             width: entry.width,
           },
-        } as unknown as ResizeObserverEntry),
+        }) as unknown as ResizeObserverEntry,
     ),
     observer,
   );
@@ -109,10 +109,6 @@ export const createEmblaApiInstance = (options?: {
   return emblaApi;
 };
 
-export const createTestSlideNodes = (options?: {
-  n?: number;
-}): HTMLElement[] => {
-  return [...Array(options?.n ?? 10).keys()].map((_) =>
-    document.createElement('div'),
-  );
+export const createTestSlideNodes = (options?: { n?: number }): HTMLElement[] => {
+  return [...Array(options?.n ?? 10).keys()].map((_) => document.createElement('div'));
 };

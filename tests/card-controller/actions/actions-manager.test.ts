@@ -145,7 +145,7 @@ describe('ActionsManager', () => {
         createConfig({
           view: {
             actions: {
-              tap_action: createLogAction("Hello, world!"),
+              tap_action: createLogAction('Hello, world!'),
             },
           },
         }),
@@ -174,7 +174,7 @@ describe('ActionsManager', () => {
             createConfig({
               view: {
                 actions: {
-                  tap_action: createLogAction("Hello, world!"),
+                  tap_action: createLogAction('Hello, world!'),
                 },
               },
             }),
@@ -202,7 +202,7 @@ describe('ActionsManager', () => {
     });
 
     it('should handle event', () => {
-      const action = createLogAction("Hello, world!");
+      const action = createLogAction('Hello, world!');
       const event = new CustomEvent('ll-custom', {
         detail: action,
       });
@@ -232,7 +232,7 @@ describe('ActionsManager', () => {
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
       await manager.handleActionExecutionRequestEvent(
         new CustomEvent('frigate-card:action:execution-request', {
-          detail: { action: createLogAction("Hello, world!") },
+          detail: { action: createLogAction('Hello, world!') },
         }),
       );
       expect(consoleSpy).toBeCalled();
@@ -245,7 +245,7 @@ describe('ActionsManager', () => {
       const manager = new ActionsManager(api);
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
-      await manager.executeActions(createLogAction("Hello, world!"));
+      await manager.executeActions(createLogAction('Hello, world!'));
       expect(consoleSpy).toBeCalled();
     });
   });
@@ -271,7 +271,7 @@ describe('ActionsManager', () => {
             m: 1,
           },
         })!,
-        createLogAction("Hello, world!"),
+        createLogAction('Hello, world!'),
       ]);
 
       // Stop inflight actions.

@@ -418,13 +418,13 @@ export class FrigateCardThumbnail extends LitElement {
             .thumbnail=${thumbnail ?? undefined}
           ></frigate-card-thumbnail-feature-event>`
         : ViewMediaClassifier.isRecording(this.media)
-        ? html`<frigate-card-thumbnail-feature-recording
-            aria-label="${title ?? ''}"
-            title="${title ?? ''}"
-            .cameraTitle=${this.details ? undefined : cameraTitle}
-            .date=${this.media.getStartTime() ?? undefined}
-          ></frigate-card-thumbnail-feature-recording>`
-        : html``}
+          ? html`<frigate-card-thumbnail-feature-recording
+              aria-label="${title ?? ''}"
+              title="${title ?? ''}"
+              .cameraTitle=${this.details ? undefined : cameraTitle}
+              .date=${this.media.getStartTime() ?? undefined}
+            ></frigate-card-thumbnail-feature-recording>`
+          : html``}
       ${shouldShowFavoriteControl
         ? html` <ha-icon
             class="${classMap(starClasses)}"
@@ -454,12 +454,12 @@ export class FrigateCardThumbnail extends LitElement {
             .seek=${this.seek}
           ></frigate-card-thumbnail-details-event>`
         : this.details && ViewMediaClassifier.isRecording(this.media)
-        ? html`<frigate-card-thumbnail-details-recording
-            .media=${this.media ?? undefined}
-            .cameraTitle=${cameraTitle}
-            .seek=${this.seek}
-          ></frigate-card-thumbnail-details-recording>`
-        : html``}
+          ? html`<frigate-card-thumbnail-details-recording
+              .media=${this.media ?? undefined}
+              .cameraTitle=${cameraTitle}
+              .seek=${this.seek}
+            ></frigate-card-thumbnail-details-recording>`
+          : html``}
       ${shouldShowTimelineControl
         ? html`<ha-icon
             class="timeline"

@@ -1123,10 +1123,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     );
   }
 
-  protected _renderKeyAssigner(configPath: string, defaultValue: KeyboardShortcut): TemplateResult {
+  protected _renderKeyAssigner(
+    configPath: string,
+    defaultValue: KeyboardShortcut,
+  ): TemplateResult {
     return html` <frigate-card-key-assigner
       .label=${localize(`config.${configPath}`)}
-      .value=${this._config ? getConfigValue(this._config, configPath, defaultValue) : null}
+      .value=${this._config
+        ? getConfigValue(this._config, configPath, defaultValue)
+        : null}
       @value-changed=${(ev) => this._valueChangedHandler(configPath, ev)}
     ></frigate-card-key-assigner>`;
   }
@@ -1279,10 +1284,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${icon.name
           ? html` <ha-icon .icon=${icon.name}></ha-icon> `
           : icon.path
-          ? html`
-              <ha-svg-icon .viewBox=${icon.viewBox} .path="${icon.path}"></ha-svg-icon>
-            `
-          : ``}
+            ? html`
+                <ha-svg-icon .viewBox=${icon.viewBox} .path="${icon.path}"></ha-svg-icon>
+              `
+            : ``}
         <span>${localize(labelPath)}</span>
       </div>
       ${selected ? html`<div class="values">${template}</div>` : ''}

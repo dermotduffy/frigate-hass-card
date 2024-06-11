@@ -737,9 +737,7 @@ const ptzCameraConfigDefaults = {
 // service data as actions for each PTZ action, and it will be preprocessed
 // into the full form. This also provides compatability with the AlexIT/WebRTC
 // PTZ configuration.
-const dataPTZFormatToFullFormat = function (
-  suffix: string,
-): (data: unknown) => unknown {
+const dataPTZFormatToFullFormat = function (suffix: string): (data: unknown) => unknown {
   return (data) => {
     if (!data || typeof data !== 'object' || !data['service']) {
       return data;
@@ -1545,9 +1543,7 @@ export const menuConfigSchema = z
         camera_ui: visibleButtonSchema.default(menuConfigDefault.buttons.camera_ui),
         cameras: visibleButtonSchema.default(menuConfigDefault.buttons.cameras),
         clips: visibleButtonSchema.default(menuConfigDefault.buttons.clips),
-        ptz_home: hiddenButtonSchema.default(
-          menuConfigDefault.buttons.ptz_home,
-        ),
+        ptz_home: hiddenButtonSchema.default(menuConfigDefault.buttons.ptz_home),
         display_mode: visibleButtonSchema.default(
           menuConfigDefault.buttons.display_mode,
         ),
@@ -1608,7 +1604,7 @@ const viewerConfigDefault = {
     ptz: {
       ...ptzControlsDefaults,
       mode: 'off' as const,
-    }
+    },
   },
 };
 
@@ -1658,10 +1654,12 @@ const viewerConfigSchema = z
         next_previous: viewerNextPreviousControlConfigSchema.default(
           viewerConfigDefault.controls.next_previous,
         ),
-        ptz: ptzControlsConfigSchema.extend({
-          // The media_viewer ptz has no 'auto' mode.
-          mode: z.enum(['off', 'on']).default(viewerConfigDefault.controls.ptz.mode),
-        }).default(viewerConfigDefault.controls.ptz),
+        ptz: ptzControlsConfigSchema
+          .extend({
+            // The media_viewer ptz has no 'auto' mode.
+            mode: z.enum(['off', 'on']).default(viewerConfigDefault.controls.ptz.mode),
+          })
+          .default(viewerConfigDefault.controls.ptz),
         thumbnails: thumbnailsControlSchema.default(
           viewerConfigDefault.controls.thumbnails,
         ),

@@ -6,8 +6,8 @@ allow the user to add custom elements to the card.
 
 ```yaml
 elements:
-   - [element_1]
-   - [element_2]
+  - [element_1]
+  - [element_2]
 ```
 
 ?> The Frigate Card allows either a single [action](actions/README.md) (as in stock Home
@@ -20,8 +20,8 @@ This element will let you show its sub-elements based on entity states. See [Hom
 
 ```yaml
 elements:
-   - type: conditional
-     [...]
+  - type: conditional
+    # [...]
 ```
 
 ## `custom`
@@ -30,8 +30,8 @@ Custom elements provided by a card. See [Home Assistant elements documentation](
 
 ```yaml
 elements:
-   - type: custom
-     [...]
+  - type: custom
+    # [...]
 ```
 
 ## `custom:frigate-card-menu-icon`
@@ -40,8 +40,8 @@ Add an arbitrary icon to the Frigate Card menu. Configuration is ~identical to t
 
 ```yaml
 elements:
-   - type: custom:frigate-card-menu-icon
-     [...]
+  - type: custom:frigate-card-menu-icon
+    # [...]
 ```
 
 ## `custom:frigate-card-menu-state-icon`
@@ -50,8 +50,8 @@ Add a state icon to the Frigate Card menu that represents the state of a Home As
 
 ```yaml
 elements:
-   - type: custom:frigate-card-menu-icon
-     [...]
+  - type: custom:frigate-card-menu-icon
+    # [...]
 ```
 
 ## `custom:frigate-card-menu-submenu`
@@ -60,45 +60,45 @@ Add a configurable submenu dropdown.
 
 ```yaml
 elements:
-   - type: custom:frigate-card-menu-submenu
-     [...]
+  - type: custom:frigate-card-menu-submenu
+    # [...]
 ```
 
 Parameters for this element are identical to the parameters of the [stock Home Assistant Icon Element](https://www.home-assistant.io/lovelace/picture-elements/#icon-element) with the exception of these parameters which differ:
 
-| Parameter | Description |
-| - | - |
-| `type` | Must be `custom:frigate-card-menu-submenu`. |
-| `items` | A list of menu items, as described below. |
+| Parameter | Description                                 |
+| --------- | ------------------------------------------- |
+| `type`    | Must be `custom:frigate-card-menu-submenu`. |
+| `items`   | A list of menu items, as described below.   |
 
 ### Submenu items
 
-| Parameter | Default | Description |
-| - | - | - |
-| `enabled` | `true` | Whether or not to show this item as enabled / selectable. |
-| `entity` | | An optional Home Assistant entity from which title, icon and style can be automatically computed. |
-| `icon` | | An optional item icon to display, e.g. `mdi:car` |
-| `selected` | `false` | Whether or not to show this item as selected. |
-| `state_color` | `true` | Whether or not the title and icon should be stylized based on state. |
-| `style` | | Position and style the element using CSS. |
-| `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` | | The [actions](actions/README.md) to take when this item is interacted with. |
-| `title` | | An optional title to display. |
+| Parameter                                                                | Default | Description                                                                                       |
+| ------------------------------------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------- |
+| `enabled`                                                                | `true`  | Whether or not to show this item as enabled / selectable.                                         |
+| `entity`                                                                 |         | An optional Home Assistant entity from which title, icon and style can be automatically computed. |
+| `icon`                                                                   |         | An optional item icon to display, e.g. `mdi:car`                                                  |
+| `selected`                                                               | `false` | Whether or not to show this item as selected.                                                     |
+| `state_color`                                                            | `true`  | Whether or not the title and icon should be stylized based on state.                              |
+| `style`                                                                  |         | Position and style the element using CSS.                                                         |
+| `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` |         | The [actions](actions/README.md) to take when this item is interacted with.                       |
+| `title`                                                                  |         | An optional title to display.                                                                     |
 
 ## `custom:frigate-card-menu-submenu-select`
 
-Add a submenu based on a `select` or `input_select`. This element allows you to convert a [Home Assistant Select Entity](https://www.home-assistant.io/integrations/select/) or [Home Assistant Input Select Entity](https://www.home-assistant.io/integrations/input_select/) (an entity either starting with `select` or `input_select`) into an overridable submenu. This *could* be done by hand using a regular submenu (above) -- this element is a convenience.
+Add a submenu based on a `select` or `input_select`. This element allows you to convert a [Home Assistant Select Entity](https://www.home-assistant.io/integrations/select/) or [Home Assistant Input Select Entity](https://www.home-assistant.io/integrations/input_select/) (an entity either starting with `select` or `input_select`) into an overridable submenu. This _could_ be done by hand using a regular submenu (above) -- this element is a convenience.
 
 ```yaml
 elements:
-   - type: custom:frigate-card-menu-submenu-select
-     [...]
+  - type: custom:frigate-card-menu-submenu-select
+    # [...]
 ```
 
 Parameters for the `custom:frigate-card-menu-submenu-select` element are identical to the parameters of the [stock Home Assistant State Icon Element](https://www.home-assistant.io/dashboards/picture-elements/#state-icon) with the exception of these parameters which differ:
 
-| Parameter | Description |
-| - | - |
-| `type` | Must be `custom:frigate-card-menu-submenu-select`. |
+| Parameter | Description                                                                                                                                                                                                                                                                        |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`    | Must be `custom:frigate-card-menu-submenu-select`.                                                                                                                                                                                                                                 |
 | `options` | An optional dictionary of overrides keyed by the option name that the given select entity supports. These options can be used to set or override submenu item parameters on a per-option basis. The format is as described in [Submenu Items](elements.md?id=submenu-items) above. |
 
 See the `select` [submenu example](../examples.md?id=select-submenu).
@@ -109,17 +109,17 @@ Restrict a set of elements to only render when the card is matches a set of [con
 
 ```yaml
 elements:
-   - type: custom:frigate-card-conditional
-     [...]
+  - type: custom:frigate-card-conditional
+    # [...]
 ```
 
 Parameters for the `custom:frigate-card-conditional` element:
 
-| Parameter | Description |
-| - | - |
-| `type` | Must be `custom:frigate-card-conditional`. |
+| Parameter    | Description                                                                                                |
+| ------------ | ---------------------------------------------------------------------------------------------------------- |
+| `type`       | Must be `custom:frigate-card-conditional`.                                                                 |
 | `conditions` | A list of [conditions](conditions.md) that must evaluate to true in order for the elements to be rendered. |
-| `elements` | The elements to render. Can be any supported element. |
+| `elements`   | The elements to render. Can be any supported element.                                                      |
 
 See the [conditional elements example](../examples.md?id=conditional-elements).
 
@@ -129,8 +129,8 @@ This element creates a static icon that is not linked to the state of an entity.
 
 ```yaml
 elements:
-   - type: icon
-     [...]
+  - type: icon
+    # [...]
 ```
 
 ## `image`
@@ -139,8 +139,8 @@ This creates an image element that overlays the background image. See [Home Assi
 
 ```yaml
 elements:
-   - type: image
-     [...]
+  - type: image
+    # [...]
 ```
 
 ## `service-button`
@@ -149,8 +149,8 @@ This entity creates a button (with arbitrary text) that can be used to call a se
 
 ```yaml
 elements:
-   - type: service-button
-     [...]
+  - type: service-button
+    # [...]
 ```
 
 ## `state-badge`
@@ -159,8 +159,8 @@ This element creates a badge representing the state of an entity. See [Home Assi
 
 ```yaml
 elements:
-   - type: state-badge
-     [...]
+  - type: state-badge
+    # [...]
 ```
 
 ## `state-icon`
@@ -169,8 +169,8 @@ This element represents an entity state using an icon. See [Home Assistant eleme
 
 ```yaml
 elements:
-   - type: state-icon
-     [...]
+  - type: state-icon
+    # [...]
 ```
 
 ## `state-label`
@@ -179,8 +179,8 @@ This element represents an entity’s state via text. See [Home Assistant elemen
 
 ```yaml
 elements:
-   - type: state-label
-     [...]
+  - type: state-label
+    # [...]
 ```
 
 ## Fully expanded reference
@@ -200,7 +200,7 @@ elements:
     style:
       left: 100px
       top: 50px
-    title: "Temperature"
+    title: 'Temperature'
   - type: state-icon
     entity: light.office_main_lights
     icon: mdi:lamp
@@ -243,11 +243,11 @@ elements:
     entity: light.office_main_lights
     title: Image
     state_image:
-      on: "https://picsum.photos/id/1003/1181/1772"
-      off: "https://picsum.photos/id/102/4320/3240"
+      on: 'https://picsum.photos/id/1003/1181/1772'
+      off: 'https://picsum.photos/id/102/4320/3240'
     state_filter:
-      "on": brightness(110%) saturate(1.2)
-      "off": brightness(50%) hue-rotate(45deg)
+      'on': brightness(110%) saturate(1.2)
+      'off': brightness(50%) hue-rotate(45deg)
     style:
       left: 100px
       top: 350px
@@ -267,12 +267,12 @@ elements:
         users:
           - 581fca7fdc014b8b894519cc531f9a04
     elements:
-    - type: icon
-      icon: mdi:dog
-      title: Woof
-      style:
-        left: 100px
-        top: 400px
+      - type: icon
+        icon: mdi:dog
+        title: Woof
+        style:
+          left: 100px
+          top: 400px
 ```
 
 ### Frigate Card elements

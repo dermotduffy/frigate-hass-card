@@ -6,21 +6,21 @@ Hub](https://store.google.com/us/product/nest_hub_2nd_gen)) through the use of
 
 ## Instructions
 
-* Visit [Home Assistant Cast](https://cast.home-assistant.io/) and click `Start Casting`
-* Enter your Home Assistant URL, and authorize your account.
-* Click `Start Casting` and choose the device to cast to from the browser menu.
-* Choose which view/dashboard to display.
-* If successful, the view will be cast to the device.
+- Visit [Home Assistant Cast](https://cast.home-assistant.io/) and click `Start Casting`
+- Enter your Home Assistant URL, and authorize your account.
+- Click `Start Casting` and choose the device to cast to from the browser menu.
+- Choose which view/dashboard to display.
+- If successful, the view will be cast to the device.
 
 ## Limitations
 
 Casting Home Assistant dashboards comes with a number of caveats:
 
-* Home Assistant Casting does not support the HA `streaming` component
+- Home Assistant Casting does not support the HA `streaming` component
   ([source](https://cast.home-assistant.io/faq.html)). This means clips playing
   and the `ha` live provider can not work. Other live providers such as `jsmpeg`
   and `webrtc-card` function correctly.
-* The Javascript fullscreen API does not work (so the fullscreen button does not
+- The Javascript fullscreen API does not work (so the fullscreen button does not
   work, but see below for an equivalent).
 
 ## Recommended configuration for Nest Hub
@@ -42,4 +42,4 @@ dimensions:
 
 ### Result
 
-![](../images/card-on-nest-hub.jpg "Casting on a Nest Hub :size=400")
+![](../images/card-on-nest-hub.jpg 'Casting on a Nest Hub :size=400')

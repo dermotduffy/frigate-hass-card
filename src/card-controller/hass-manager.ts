@@ -66,7 +66,7 @@ export class HASSManager {
     }
 
     if (this._api.getConditionsManager().hasHAStateConditions()) {
-      this._api.getConditionsManager().setState({ 
+      this._api.getConditionsManager().setState({
         state: this._hass.states,
         user: this._hass.user,
       });

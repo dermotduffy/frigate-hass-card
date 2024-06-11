@@ -53,11 +53,9 @@ describe('FullscreenManager', () => {
 
   it('should toggle fullscreen', () => {
     const toggle = vi.mocked(screenfull.toggle);
-    const element = document.createElement('div')
+    const element = document.createElement('div');
     const api = createCardAPI();
-    vi.mocked(api.getCardElementManager().getElement).mockReturnValue(
-      element,
-    );
+    vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
     const manager = new FullscreenManager(api);
 
     manager.toggleFullscreen();

@@ -1125,7 +1125,7 @@ describe('CameraManager', async () => {
       const action = {
         action: 'call-service' as const,
         service: 'service',
-      }
+      };
       const manager = createCameraManager(api, engine, [
         {
           config: createCameraConfig({

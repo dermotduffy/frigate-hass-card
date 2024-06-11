@@ -722,8 +722,8 @@ const UPGRADES = [
     data === 'all'
       ? ['selected', 'visible', 'microphone']
       : data === 'never'
-      ? null
-      : arrayify(data),
+        ? null
+        : arrayify(data),
   ),
   upgradeWithOverrides('media_viewer.auto_play', (data) =>
     data === 'all' ? null : data === 'never' ? [] : arrayify(data),

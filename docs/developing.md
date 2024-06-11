@@ -33,6 +33,7 @@ instructions](advanced-installation.md?id=manual-installation).
 1. Hit 'Publish release'.
 
 ## Translations
+
 [![translation badge](https://badge.inlang.com/?url=github.com/dermotduffy/frigate-hass-card)](https://fink.inlang.com/github.com/dermotduffy/frigate-hass-card?ref=badge)
 
 To add translations, you can manually edit the JSON translation files in
@@ -53,18 +54,18 @@ speed up the development environment creation. Simply:
 Everything should just work without any additional configuration. Under the
 hood, the dev container setup takes care of bringing up:
 
-* Home Assistant (port `8123` or the next available one)
-* Frigate (ports `5000` or the next available one)
-* MQTT (port `1883` or the next available one)
+- Home Assistant (port `8123` or the next available one)
+- Frigate (ports `5000` or the next available one)
+- MQTT (port `1883` or the next available one)
 
 As docker-compose containers.
 
-* The Frigate Home Assistant Integration is registered as a `git submodule` at `.devcontainer/frigate-hass-integration`, and VS Code will initialize/clone it for you before opening the dev container.
+- The Frigate Home Assistant Integration is registered as a `git submodule` at `.devcontainer/frigate-hass-integration`, and VS Code will initialize/clone it for you before opening the dev container.
 
 Some environment variables are supported in a `.env` file:
 
-* `FRIGATE_VERSION`: The version of Frigate to use. Defaults to the latest stable version.
-* `HA_VERSION`: The version of Home Assistant to use. Defaults to the latest stable version.
+- `FRIGATE_VERSION`: The version of Frigate to use. Defaults to the latest stable version.
+- `HA_VERSION`: The version of Home Assistant to use. Defaults to the latest stable version.
 
 ?> When not specifying any version, it's recommended that you `docker-compose pull` the stack from time to time to ensure you have the latest versions of the images.
 

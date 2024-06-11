@@ -90,8 +90,8 @@ export class FrigateCardGallery extends LitElement {
         const eventsMediaType = this.view.is('snapshots')
           ? 'snapshots'
           : this.view.is('clips')
-          ? 'clips'
-          : null;
+            ? 'clips'
+            : null;
         changeViewToRecentEventsForCameraAndDependents(
           this,
           this.cameraManager,
@@ -358,8 +358,8 @@ export class FrigateCardGalleryCore extends LitElement {
       const newMediaQueries = MediaQueriesClassifier.areEventQueries(query)
         ? new EventMediaQueries(extension.queries as EventQuery[])
         : MediaQueriesClassifier.areRecordingQueries(query)
-        ? new RecordingMediaQueries(extension.queries as RecordingQuery[])
-        : null;
+          ? new RecordingMediaQueries(extension.queries as RecordingQuery[])
+          : null;
 
       if (newMediaQueries) {
         this.view

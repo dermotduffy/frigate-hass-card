@@ -15,8 +15,7 @@ export class AutoUpdateManager {
    */
   public startDefaultViewTimer(): void {
     this._timer.stop();
-    const updateSeconds = this._api.getConfigManager().getConfig()
-      ?.view.update_seconds;
+    const updateSeconds = this._api.getConfigManager().getConfig()?.view.update_seconds;
     if (updateSeconds) {
       this._timer.start(updateSeconds, () => {
         if (this._isAutomatedUpdateAllowed()) {

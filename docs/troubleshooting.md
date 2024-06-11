@@ -77,8 +77,8 @@ hardware). In this latter case, you are out of luck.
 The Android video player swallows `double_tap` interactions in order to
 rewind or fast-forward. Workarounds:
 
-* Use `hold` instead of `double_tap` for your card-wide action.
-* Use a [Frigate Card Element](configuration/elements.md) or menu icon to trigger
+- Use `hold` instead of `double_tap` for your card-wide action.
+- Use a [Frigate Card Element](configuration/elements.md) or menu icon to trigger
   the action instead.
 
 ### Dragging in carousels broken in Firefox
@@ -118,11 +118,11 @@ between clicking the download button and the download starting.
 
 ### `Forbidden media source identifier`
 
-* If you are using a custom `client_id` setting in your `frigate.yml` file (the
+- If you are using a custom `client_id` setting in your `frigate.yml` file (the
   configuration file for the Frigate backend itself), you must tell the card
   about it. See [Frigate engine
   configuration](configuration/cameras/engine.md?id=frigate).
-* You must have the `Enable the media browser` option enabled for the Frigate
+- You must have the `Enable the media browser` option enabled for the Frigate
   integration, in order for media fetches to work for the card. Media fetches
   are used to fetch events / clips / snapshots, etc. If you just wish to use
   live streams without media fetches, you can use the following configuration:
@@ -144,7 +144,7 @@ for the iPhone is not currently possible.
 
 Try resetting the app frontend cache:
 
-* `Configuration -> Companion App -> Debugging -> Reset frontend cache`
+- `Configuration -> Companion App -> Debugging -> Reset frontend cache`
 
 ### Javascript console errors
 
@@ -168,7 +168,7 @@ must be followed.
 When upgrading the card it's recommended to reset the frontend cache. Sometimes
 clearing site data in Chrome settings isn't enough.
 
-* Press F12 to display `Dev Console` in Chrome then right click on the refresh
+- Press F12 to display `Dev Console` in Chrome then right click on the refresh
   icon and select `Empty Cache and Hard Reload`
 
 ### Static image URL with credentials doesn't load

@@ -18,7 +18,7 @@ export class MediaQueriesClassifier {
     return this.areEventQueries(queries)
       ? 'event'
       : this.areRecordingQueries(queries)
-      ? 'recording'
-      : null;
+        ? 'recording'
+        : null;
   }
 }

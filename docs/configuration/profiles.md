@@ -14,10 +14,10 @@ the user.
 
 ?> Profiles are applied top to bottom. If multiple profiles change a configuration default, then the last one "wins"
 
-| Profile name | Purpose |
-| - | - |
+| Profile name      | Purpose                    |
+| ----------------- | -------------------------- |
 | `low-performance` | Increase card performance. |
-| `scrubbing` | Allow media "scrubbing". |
+| `scrubbing`       | Allow media "scrubbing".   |
 
 ## `low-performance`
 
@@ -25,8 +25,8 @@ For low end devices, the `low-performance` profile will adjust card defaults to 
 
 Principles used in the selection of options set by `low-profile` profile mode:
 
-* Get 'out of the box' performance similar to the basic "Home Assistant Picture Glance" card.
-* Do not break the visual aesthetic of the card.
+- Get 'out of the box' performance similar to the basic "Home Assistant Picture Glance" card.
+- Do not break the visual aesthetic of the card.
 
 See the [source code](https://github.com/dermotduffy/frigate-hass-card/blob/dev/src/config/profiles/low-performance.ts) for an exhaustive list of options set by this profile.
 

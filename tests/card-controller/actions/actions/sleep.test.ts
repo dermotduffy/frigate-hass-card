@@ -18,7 +18,7 @@ it('should handle sleep action', async () => {
       frigate_card_action: 'sleep',
       duration: {
         s: 5,
-        ms: 200
+        ms: 200,
       },
     },
   );

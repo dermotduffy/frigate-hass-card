@@ -1034,19 +1034,19 @@ export class FrigateCameraManagerEngine
         options?.phase === 'stop'
           ? 'stop'
           : action === 'zoom_in' || action === 'zoom_out'
-          ? 'zoom'
-          : action === 'preset'
-          ? 'preset'
-          : 'move',
+            ? 'zoom'
+            : action === 'preset'
+              ? 'preset'
+              : 'move',
       ...(options?.phase !== 'stop' && {
         argument:
           action === 'zoom_in'
             ? 'in'
             : action === 'zoom_out'
-            ? 'out'
-            : action === 'preset'
-            ? options?.preset
-            : action,
+              ? 'out'
+              : action === 'preset'
+                ? options?.preset
+                : action,
       }),
     });
   }

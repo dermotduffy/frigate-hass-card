@@ -65,19 +65,19 @@ export interface RecordingSegment {
 export type QueryReturnType<QT> = QT extends EventQuery
   ? EventQueryResults
   : QT extends RecordingQuery
-  ? RecordingQueryResults
-  : QT extends RecordingSegmentsQuery
-  ? RecordingSegmentsQueryResults
-  : QT extends MediaMetadataQuery
-  ? MediaMetadataQueryResults
-  : never;
+    ? RecordingQueryResults
+    : QT extends RecordingSegmentsQuery
+      ? RecordingSegmentsQueryResults
+      : QT extends MediaMetadataQuery
+        ? MediaMetadataQueryResults
+        : never;
 export type PartialQueryConcreteType<PQT> = PQT extends PartialEventQuery
   ? EventQuery
   : PQT extends PartialRecordingQuery
-  ? RecordingQuery
-  : PQT extends PartialRecordingSegmentsQuery
-  ? RecordingSegmentsQuery
-  : never;
+    ? RecordingQuery
+    : PQT extends PartialRecordingSegmentsQuery
+      ? RecordingSegmentsQuery
+      : never;
 
 export type ResultsMap<QT> = Map<QT, QueryReturnType<QT>>;
 export type EventQueryResultsMap = ResultsMap<EventQuery>;

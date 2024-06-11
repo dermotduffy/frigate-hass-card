@@ -25,6 +25,12 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      - name: Lint
+        run: yarn run lint
+
+      - name: Check formatting
+        run: yarn run format-check
+
       - name: Test & Coverage
         run: yarn run coverage
 

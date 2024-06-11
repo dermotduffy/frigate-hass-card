@@ -21,12 +21,12 @@ import {
   dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
-  dispatchMediaVolumeChangeEvent
+  dispatchMediaVolumeChangeEvent,
 } from '../utils/media-info.js';
 import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
-  setControlsOnVideo
+  setControlsOnVideo,
 } from '../utils/media.js';
 
 customElements.whenDefined('ha-web-rtc-player').then(() => {
