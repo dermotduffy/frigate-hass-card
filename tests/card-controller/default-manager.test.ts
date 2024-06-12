@@ -160,4 +160,68 @@ describe('DefaultManager', () => {
       expect(mock.calls.length).toBe(0);
     });
   });
+
+  describe('interaction based', () => {
+    it('should not register automation on initialization', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          view: {
+            default_reset: {
+              after_interaction: false,
+            },
+          },
+        }),
+      );
+
+      const manager = new DefaultManager(api);
+      await manager.initialize();
+
+      expect(api.getAutomationsManager().addAutomations).not.toBeCalled();
+    });
+
+    it('should register automation on initialization', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          view: {
+            default_reset: {
+              after_interaction: true,
+            },
+          },
+        }),
+      );
+
+      const manager = new DefaultManager(api);
+      await manager.initialize();
+
+      expect(api.getAutomationsManager().addAutomations).toBeCalledWith([
+        {
+          actions: [
+            {
+              action: 'fire-dom-event',
+              frigate_card_action: 'default',
+            },
+          ],
+          conditions: [
+            {
+              condition: 'interaction',
+              interaction: false,
+            },
+          ],
+          tag: expect.anything(),
+        },
+      ]);
+    });
+
+    it('should remove automation on uninitalize', async () => {
+      const api = createCardAPI();
+      const manager = new DefaultManager(api);
+      await manager.uninitialize();
+
+      expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith(manager);
+    });
+  });
 });

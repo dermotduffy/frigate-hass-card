@@ -99,6 +99,7 @@ export interface CardConfigLoaderAPI {
 }
 
 export interface CardDefaultManagerAPI {
+  getAutomationsManager(): AutomationsManager;
   getConfigManager(): ConfigManager;
   getHASSManager(): HASSManager;
   getInteractionManager(): InteractionManager;

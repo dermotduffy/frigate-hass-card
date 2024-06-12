@@ -3,6 +3,7 @@ import { DestroyCallback, subscribeToTrigger } from '../utils/ha';
 import { isActionAllowedBasedOnInteractionState } from '../utils/interaction-mode';
 import { Timer } from '../utils/timer';
 import { CardDefaultManagerAPI } from './types';
+import { createGeneralAction } from '../utils/action';
 
 /**
  * Manages automated resetting to the default view.
@@ -25,6 +26,22 @@ export class DefaultManager {
   public async initialize(): Promise<boolean> {
     const result = await this._initializationLimit.add(() => this._reconfigure());
     this._startTimer();
+
+    if (this._api.getConfigManager().getConfig()?.view.default_reset.after_interaction) {
+      this._api.getAutomationsManager().addAutomations([
+        {
+          actions: [createGeneralAction('default')],
+          conditions: [
+            {
+              condition: 'interaction' as const,
+              interaction: false,
+            },
+          ],
+          tag: this,
+        },
+      ]);
+    }
+
     return !!result;
   }
 
@@ -32,6 +49,7 @@ export class DefaultManager {
     this._timer.stop();
     this._unsubscribeCallback?.();
     this._unsubscribeCallback = null;
+    this._api.getAutomationsManager().deleteAutomations(this);
   }
 
   protected async _reconfigure(): Promise<boolean> {

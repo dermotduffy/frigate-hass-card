@@ -80,6 +80,10 @@ export class CardElementManager {
       this._api.getInteractionManager().reportInteraction,
     );
     this._element.addEventListener(
+      'wheel',
+      this._api.getInteractionManager().reportInteraction,
+    );
+    this._element.addEventListener(
       'll-custom',
       this._api.getActionsManager().handleCustomActionEvent,
     );
@@ -129,11 +133,15 @@ export class CardElementManager {
     // Uninitialize cameras to cause them to reinitialize on
     // reconnection, to ensure the state subscription/unsubscription works
     // correctly for triggers.
-    this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS),
-      this._element.removeEventListener(
-        'mousemove',
-        this._api.getInteractionManager().reportInteraction,
-      );
+    this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS);
+    this._element.removeEventListener(
+      'mousemove',
+      this._api.getInteractionManager().reportInteraction,
+    );
+    this._element.removeEventListener(
+      'wheel',
+      this._api.getInteractionManager().reportInteraction,
+    );
     this._element.removeEventListener(
       'll-custom',
       this._api.getActionsManager().handleCustomActionEvent,
