@@ -1,10 +1,10 @@
 import typescript from '@rollup/plugin-typescript';
 import commonjs from '@rollup/plugin-commonjs';
-import nodeResolve from '@rollup/plugin-node-resolve';
-import { terser } from 'rollup-plugin-terser';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import terser from '@rollup/plugin-terser';
 import serve from 'rollup-plugin-serve';
 import json from '@rollup/plugin-json';
-import styles from 'rollup-plugin-styles';
+import styles from 'rollup-plugin-styler';
 import image from '@rollup/plugin-image';
 import replace from '@rollup/plugin-replace';
 import gitInfo from 'rollup-plugin-git-info';
@@ -30,7 +30,7 @@ const serveopts = {
  * @type {import('rollup').RollupOptions['plugins']}
  */
 const plugins = [
-  gitInfo({ enableBuildDate: true, updateVersion: false }),
+  gitInfo.default({ enableBuildDate: true, updateVersion: false }),
   styles({
     modules: false,
     // Behavior of inject mode, without actually injecting style
