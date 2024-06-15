@@ -107,7 +107,7 @@ export class TriggersManager {
         /* istanbul ignore else: the else path cannot be reached, as the camera
           cannot be triggered without a view -- @preserve */
         if (view) {
-          this._api.getViewManager().setView(view.clone());
+          this._api.getViewManager().setView(view);
         }
       } else if (triggerAction === 'live') {
         this._api.getViewManager().setViewByParameters({
