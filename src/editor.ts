@@ -55,6 +55,8 @@ import {
   CONF_IMAGE_MODE,
   CONF_IMAGE_REFRESH_SECONDS,
   CONF_IMAGE_URL,
+  CONF_IMAGE_ENTITY,
+  CONF_IMAGE_ENTITY_OPTIONS,
   CONF_IMAGE_ZOOMABLE,
   CONF_LIVE_AUTO_MUTE,
   CONF_LIVE_AUTO_PAUSE,
@@ -464,6 +466,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'camera', label: localize('config.image.modes.camera') },
     { value: 'screensaver', label: localize('config.image.modes.screensaver') },
     { value: 'url', label: localize('config.image.modes.url') },
+    { value: 'entity', label: localize('config.image.modes.entity') },
   ];
 
   protected _timelineMediaTypes: EditorSelectOption[] = [
@@ -673,13 +676,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       <ha-selector
         .hass=${this.hass}
         .selector=${{
-          select: {
-            mode: 'dropdown',
-            multiple: !!params?.multiple,
-            custom_value: !options.length,
-            options: options,
-          },
-        }}
+        select: {
+          mode: 'dropdown',
+          multiple: !!params?.multiple,
+          custom_value: !options.length,
+          options: options,
+        },
+      }}
         .label=${params?.label || this._getLabel(configPath)}
         .value=${getConfigValue(this._config, configPath, '')}
         .required=${false}
@@ -709,8 +712,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       <ha-selector
         .hass=${this.hass}
         .selector=${{
-          icon: {},
-        }}
+        icon: {},
+      }}
         .label=${params?.label || this._getLabel(configPath)}
         .value=${getConfigValue(this._config, configPath, '')}
         .required=${false}
@@ -790,9 +793,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       // the camera manager cannot be started with an unparsed and unloaded
       // config.
       (typeof cameraConfig?.frigate === 'object' &&
-      cameraConfig.frigate &&
-      typeof cameraConfig?.frigate['camera_name'] === 'string' &&
-      cameraConfig.frigate['camera_name']
+        cameraConfig.frigate &&
+        typeof cameraConfig?.frigate['camera_name'] === 'string' &&
+        cameraConfig.frigate['camera_name']
         ? prettifyTitle(cameraConfig.frigate['camera_name'])
         : '') ||
       (typeof cameraConfig?.id === 'string' && cameraConfig.id) ||
@@ -817,30 +820,30 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           <span>${localize(`config.${CONF_VIEW_SCAN}.scan_mode`)}</span>
         </div>
         ${this._expandedMenus[MENU_VIEW_SCAN]
-          ? html` <div class="values">
+        ? html` <div class="values">
               ${this._renderSwitch(
-                CONF_VIEW_SCAN_ENABLED,
-                this._defaults.view.scan.enabled,
-                {
-                  label: localize(`config.${CONF_VIEW_SCAN_ENABLED}`),
-                },
-              )}
+          CONF_VIEW_SCAN_ENABLED,
+          this._defaults.view.scan.enabled,
+          {
+            label: localize(`config.${CONF_VIEW_SCAN_ENABLED}`),
+          },
+        )}
               ${this._renderSwitch(
-                CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
-                this._defaults.view.scan.show_trigger_status,
-                {
-                  label: localize(`config.${CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS}`),
-                },
-              )}
+          CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
+          this._defaults.view.scan.show_trigger_status,
+          {
+            label: localize(`config.${CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS}`),
+          },
+        )}
               ${this._renderSwitch(
-                CONF_VIEW_SCAN_UNTRIGGER_RESET,
-                this._defaults.view.scan.untrigger_reset,
-              )}
+          CONF_VIEW_SCAN_UNTRIGGER_RESET,
+          this._defaults.view.scan.untrigger_reset,
+        )}
               ${this._renderNumberInput(CONF_VIEW_SCAN_UNTRIGGER_SECONDS, {
-                default: this._defaults.view.scan.untrigger_seconds,
-              })}
+          default: this._defaults.view.scan.untrigger_seconds,
+        })}
             </div>`
-          : ''}
+        : ''}
       </div>
     `;
   }
@@ -875,38 +878,38 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           <ha-icon .icon=${'mdi:gesture-tap-button'}></ha-icon>
           <span
             >${localize('editor.button') +
-            ': ' +
-            localize(`config.${CONF_MENU_BUTTONS}.${button}`)}</span
+      ': ' +
+      localize(`config.${CONF_MENU_BUTTONS}.${button}`)}</span
           >
         </div>
 
         ${this._expandedMenus[MENU_BUTTONS] === button
-          ? html` <div class="values">
+        ? html` <div class="values">
               ${this._renderSwitch(
-                `${CONF_MENU_BUTTONS}.${button}.enabled`,
-                this._defaults.menu.buttons[button]?.enabled ?? true,
-                {
-                  label: localize('config.menu.buttons.enabled'),
-                },
-              )}
+          `${CONF_MENU_BUTTONS}.${button}.enabled`,
+          this._defaults.menu.buttons[button]?.enabled ?? true,
+          {
+            label: localize('config.menu.buttons.enabled'),
+          },
+        )}
               ${this._renderOptionSelector(
-                `${CONF_MENU_BUTTONS}.${button}.alignment`,
-                menuButtonAlignments,
-                {
-                  label: localize('config.menu.buttons.alignment'),
-                },
-              )}
+          `${CONF_MENU_BUTTONS}.${button}.alignment`,
+          menuButtonAlignments,
+          {
+            label: localize('config.menu.buttons.alignment'),
+          },
+        )}
               ${this._renderNumberInput(`${CONF_MENU_BUTTONS}.${button}.priority`, {
-                max: FRIGATE_MENU_PRIORITY_MAX,
-                default: this._defaults.menu.buttons[button]?.priority,
-                label: localize('config.menu.buttons.priority'),
-              })}
+          max: FRIGATE_MENU_PRIORITY_MAX,
+          default: this._defaults.menu.buttons[button]?.priority,
+          label: localize('config.menu.buttons.priority'),
+        })}
               ${this._renderIconSelector(`${CONF_MENU_BUTTONS}.${button}.icon`, {
-                label: localize('config.menu.buttons.icon'),
-              })}
+          label: localize('config.menu.buttons.icon'),
+        })}
               ${additionalOptions}
             </div>`
-          : ''}
+        : ''}
       </div>
     `;
   }
@@ -945,8 +948,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         .key=${key}
       >
         ${icon.name
-          ? html` <ha-icon .icon=${icon.name}></ha-icon> `
-          : icon.path
+        ? html` <ha-icon .icon=${icon.name}></ha-icon> `
+        : icon.path
           ? html`
               <ha-svg-icon .viewBox=${icon.viewBox} .path="${icon.path}"></ha-svg-icon>
             `
@@ -981,15 +984,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       html`
         ${this._renderOptionSelector(configPathFit, this._layoutFits)}
         ${this._renderNumberInput(configPathPositionX, {
-          min: 0,
-          max: 100,
-          label: localize('config.common.layout.position.x'),
-        })}
+        min: 0,
+        max: 100,
+        label: localize('config.common.layout.position.x'),
+      })}
         ${this._renderNumberInput(configPathPositionY, {
-          min: 0,
-          max: 100,
-          label: localize('config.common.layout.position.y'),
-        })}
+        min: 0,
+        max: 100,
+        label: localize('config.common.layout.position.y'),
+      })}
       `,
     );
   }
@@ -1094,20 +1097,20 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       { name: 'mdi:arrow-right-bold-circle' },
       html`
         ${this._renderOptionSelector(
-          configPathStyle,
-          this._nextPreviousControlStyles.filter(
-            (item) =>
-              (!!options?.allowThumbnails || item.value !== 'thumbnails') &&
-              (!!options?.allowIcons || item.value !== 'icons'),
-          ),
-          {
-            label: localize('config.common.controls.next_previous.style'),
-          },
-        )}
+        configPathStyle,
+        this._nextPreviousControlStyles.filter(
+          (item) =>
+            (!!options?.allowThumbnails || item.value !== 'thumbnails') &&
+            (!!options?.allowIcons || item.value !== 'icons'),
+        ),
+        {
+          label: localize('config.common.controls.next_previous.style'),
+        },
+      )}
         ${this._renderNumberInput(configPathSize, {
-          min: BUTTON_SIZE_MIN,
-          label: localize('config.common.controls.next_previous.size'),
-        })}
+        min: BUTTON_SIZE_MIN,
+        label: localize('config.common.controls.next_previous.size'),
+      })}
       `,
     );
   }
@@ -1149,51 +1152,51 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       html`
         ${options?.configPathMode
           ? html`${this._renderOptionSelector(
-              options.configPathMode,
-              this._thumbnailModes,
-              {
-                label: localize('config.common.controls.thumbnails.mode'),
-              },
-            )}`
+            options.configPathMode,
+            this._thumbnailModes,
+            {
+              label: localize('config.common.controls.thumbnails.mode'),
+            },
+          )}`
           : html``}
         ${options?.configPathMedia
           ? html`${this._renderOptionSelector(
-              options.configPathMedia,
-              this._thumbnailMedias,
-              {
-                label: localize('config.common.controls.thumbnails.media'),
-              },
-            )}`
+            options.configPathMedia,
+            this._thumbnailMedias,
+            {
+              label: localize('config.common.controls.thumbnails.media'),
+            },
+          )}`
           : html``}
         ${this._renderNumberInput(configPathSize, {
-          min: THUMBNAIL_WIDTH_MIN,
-          max: THUMBNAIL_WIDTH_MAX,
-          label: localize('config.common.controls.thumbnails.size'),
-        })}
+            min: THUMBNAIL_WIDTH_MIN,
+            max: THUMBNAIL_WIDTH_MAX,
+            label: localize('config.common.controls.thumbnails.size'),
+          })}
         ${this._renderSwitch(configPathShowDetails, defaults.show_details, {
-          label: localize('config.common.controls.thumbnails.show_details'),
-        })}
+            label: localize('config.common.controls.thumbnails.show_details'),
+          })}
         ${this._renderSwitch(
-          configPathShowFavoriteControl,
-          defaults.show_favorite_control,
-          {
-            label: localize('config.common.controls.thumbnails.show_favorite_control'),
-          },
-        )}
+            configPathShowFavoriteControl,
+            defaults.show_favorite_control,
+            {
+              label: localize('config.common.controls.thumbnails.show_favorite_control'),
+            },
+          )}
         ${this._renderSwitch(
-          configPathShowTimelineControl,
-          defaults.show_timeline_control,
-          {
-            label: localize('config.common.controls.thumbnails.show_timeline_control'),
-          },
-        )}
+            configPathShowTimelineControl,
+            defaults.show_timeline_control,
+            {
+              label: localize('config.common.controls.thumbnails.show_timeline_control'),
+            },
+          )}
         ${this._renderSwitch(
-          configPathShowDownloadControl,
-          defaults.show_download_control,
-          {
-            label: localize('config.common.controls.thumbnails.show_download_control'),
-          },
-        )}
+            configPathShowDownloadControl,
+            defaults.show_download_control,
+            {
+              label: localize('config.common.controls.thumbnails.show_download_control'),
+            },
+          )}
       `,
     );
   }
@@ -1216,8 +1219,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       html`
         ${configPathMode
           ? html`${this._renderOptionSelector(configPathMode, this._filterModes, {
-              label: localize('config.common.controls.filter.mode'),
-            })}`
+            label: localize('config.common.controls.filter.mode'),
+          })}`
           : html``}
       `,
     );
@@ -1322,37 +1325,37 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           <ha-icon .icon=${addNewCamera ? 'mdi:video-plus' : 'mdi:video'}></ha-icon>
           <span>
             ${addNewCamera
-              ? html` <span class="new-camera">
+        ? html` <span class="new-camera">
                   [${localize('editor.add_new_camera')}...]
                 </span>`
-              : html`<span
+        : html`<span
                   >${this._getEditorCameraTitle(
-                    cameraIndex,
-                    cameras[cameraIndex] || {},
-                  )}</span
+          cameraIndex,
+          cameras[cameraIndex] || {},
+        )}</span
                 >`}
           </span>
         </div>
         ${this._expandedMenus[MENU_CAMERAS] === cameraIndex
-          ? html` <div class="values">
+        ? html` <div class="values">
               <div class="controls">
                 <ha-icon-button
                   class="button"
                   .label=${localize('editor.move_up')}
                   .disabled=${addNewCamera ||
-                  !this._config ||
-                  !Array.isArray(this._config.cameras) ||
-                  cameraIndex <= 0}
+          !this._config ||
+          !Array.isArray(this._config.cameras) ||
+          cameraIndex <= 0}
                   @click=${() =>
-                    !addNewCamera &&
-                    modifyConfig((config: RawFrigateCardConfig): boolean => {
-                      if (Array.isArray(config.cameras) && cameraIndex > 0) {
-                        arrayMove(config.cameras, cameraIndex, cameraIndex - 1);
-                        this._openMenu(MENU_CAMERAS, cameraIndex - 1);
-                        return true;
-                      }
-                      return false;
-                    })}
+            !addNewCamera &&
+            modifyConfig((config: RawFrigateCardConfig): boolean => {
+              if (Array.isArray(config.cameras) && cameraIndex > 0) {
+                arrayMove(config.cameras, cameraIndex, cameraIndex - 1);
+                this._openMenu(MENU_CAMERAS, cameraIndex - 1);
+                return true;
+              }
+              return false;
+            })}
                 >
                   <ha-icon icon="mdi:arrow-up"></ha-icon>
                 </ha-icon-button>
@@ -1360,22 +1363,22 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   class="button"
                   .label=${localize('editor.move_down')}
                   .disabled=${addNewCamera ||
-                  !this._config ||
-                  !Array.isArray(this._config.cameras) ||
-                  cameraIndex >= this._config.cameras.length - 1}
+          !this._config ||
+          !Array.isArray(this._config.cameras) ||
+          cameraIndex >= this._config.cameras.length - 1}
                   @click=${() =>
-                    !addNewCamera &&
-                    modifyConfig((config: RawFrigateCardConfig): boolean => {
-                      if (
-                        Array.isArray(config.cameras) &&
-                        cameraIndex < config.cameras.length - 1
-                      ) {
-                        arrayMove(config.cameras, cameraIndex, cameraIndex + 1);
-                        this._openMenu(MENU_CAMERAS, cameraIndex + 1);
-                        return true;
-                      }
-                      return false;
-                    })}
+            !addNewCamera &&
+            modifyConfig((config: RawFrigateCardConfig): boolean => {
+              if (
+                Array.isArray(config.cameras) &&
+                cameraIndex < config.cameras.length - 1
+              ) {
+                arrayMove(config.cameras, cameraIndex, cameraIndex + 1);
+                this._openMenu(MENU_CAMERAS, cameraIndex + 1);
+                return true;
+              }
+              return false;
+            })}
                 >
                   <ha-icon icon="mdi:arrow-down"></ha-icon>
                 </ha-icon-button>
@@ -1384,225 +1387,225 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   .label=${localize('editor.delete')}
                   .disabled=${addNewCamera}
                   @click=${() => {
-                    modifyConfig((config: RawFrigateCardConfig): boolean => {
-                      if (Array.isArray(config.cameras)) {
-                        config.cameras.splice(cameraIndex, 1);
-                        this._closeMenu(MENU_CAMERAS);
-                        return true;
-                      }
-                      return false;
-                    });
-                  }}
+            modifyConfig((config: RawFrigateCardConfig): boolean => {
+              if (Array.isArray(config.cameras)) {
+                config.cameras.splice(cameraIndex, 1);
+                this._closeMenu(MENU_CAMERAS);
+                return true;
+              }
+              return false;
+            });
+          }}
                 >
                   <ha-icon icon="mdi:delete"></ha-icon>
                 </ha-icon-button>
               </div>
               ${this._renderEntitySelector(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_CAMERA_ENTITY, cameraIndex),
-                'camera',
-              )}
+            getArrayConfigPath(CONF_CAMERAS_ARRAY_CAMERA_ENTITY, cameraIndex),
+            'camera',
+          )}
               ${this._renderOptionSelector(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_LIVE_PROVIDER, cameraIndex),
-                liveProviders,
-              )}
+            getArrayConfigPath(CONF_CAMERAS_ARRAY_LIVE_PROVIDER, cameraIndex),
+            liveProviders,
+          )}
               ${this._renderStringInput(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_TITLE, cameraIndex),
-              )}
+            getArrayConfigPath(CONF_CAMERAS_ARRAY_TITLE, cameraIndex),
+          )}
               ${this._renderIconSelector(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_ICON, cameraIndex),
+            getArrayConfigPath(CONF_CAMERAS_ARRAY_ICON, cameraIndex),
+            {
+              label: localize('config.cameras.icon'),
+            },
+          )}
+              ${this._renderStringInput(
+            getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
+          )}
+              ${this._renderSwitch(
+            getArrayConfigPath(CONF_CAMERAS_ARRAY_HIDE, cameraIndex),
+            this._defaults.cameras.hide,
+          )}
+              ${this._putInSubmenu(
+            MENU_CAMERAS_ENGINE,
+            true,
+            'config.cameras.engines.editor_label',
+            { name: 'mdi:engine' },
+            html`${this._putInSubmenu(
+              MENU_CAMERAS_FRIGATE,
+              cameraIndex,
+              'config.cameras.frigate.editor_label',
+              { path: FRIGATE_ICON_SVG_PATH },
+              html`
+                    ${this._renderStringInput(
+                getArrayConfigPath(
+                  CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME,
+                  cameraIndex,
+                ),
+              )}
+                    ${this._renderStringInput(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_URL, cameraIndex),
+              )}
+                    ${this._renderOptionSelector(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_LABELS, cameraIndex),
+                [],
                 {
-                  label: localize('config.cameras.icon'),
+                  multiple: true,
+                  label: localize('config.cameras.frigate.labels'),
                 },
               )}
-              ${this._renderStringInput(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
+                    ${this._renderOptionSelector(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_ZONES, cameraIndex),
+                [],
+                {
+                  multiple: true,
+                  label: localize('config.cameras.frigate.zones'),
+                },
               )}
-              ${this._renderSwitch(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_HIDE, cameraIndex),
-                this._defaults.cameras.hide,
-              )}
-              ${this._putInSubmenu(
-                MENU_CAMERAS_ENGINE,
-                true,
-                'config.cameras.engines.editor_label',
-                { name: 'mdi:engine' },
-                html`${this._putInSubmenu(
-                  MENU_CAMERAS_FRIGATE,
+                    ${this._renderStringInput(
+                getArrayConfigPath(
+                  CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID,
                   cameraIndex,
-                  'config.cameras.frigate.editor_label',
-                  { path: FRIGATE_ICON_SVG_PATH },
-                  html`
-                    ${this._renderStringInput(
-                      getArrayConfigPath(
-                        CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME,
-                        cameraIndex,
-                      ),
-                    )}
-                    ${this._renderStringInput(
-                      getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_URL, cameraIndex),
-                    )}
-                    ${this._renderOptionSelector(
-                      getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_LABELS, cameraIndex),
-                      [],
-                      {
-                        multiple: true,
-                        label: localize('config.cameras.frigate.labels'),
-                      },
-                    )}
-                    ${this._renderOptionSelector(
-                      getArrayConfigPath(CONF_CAMERAS_ARRAY_FRIGATE_ZONES, cameraIndex),
-                      [],
-                      {
-                        multiple: true,
-                        label: localize('config.cameras.frigate.zones'),
-                      },
-                    )}
-                    ${this._renderStringInput(
-                      getArrayConfigPath(
-                        CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID,
-                        cameraIndex,
-                      ),
-                    )}
+                ),
+              )}
                   `,
-                )}
+            )}
                 ${this._putInSubmenu(
-                  MENU_CAMERAS_MOTIONEYE,
-                  cameraIndex,
-                  'config.cameras.motioneye.editor_label',
-                  { path: MOTIONEYE_ICON_SVG_PATH, viewBox: MOTIONEYE_ICON_SVG_VIEWBOX },
-                  html`
+              MENU_CAMERAS_MOTIONEYE,
+              cameraIndex,
+              'config.cameras.motioneye.editor_label',
+              { path: MOTIONEYE_ICON_SVG_PATH, viewBox: MOTIONEYE_ICON_SVG_VIEWBOX },
+              html`
                     ${this._renderStringInput(
-                      getArrayConfigPath(CONF_CAMERAS_ARRAY_MOTIONEYE_URL, cameraIndex),
-                    )}
-                    ${this._renderStringInput(
-                      getArrayConfigPath(
-                        CONF_CAMERAS_ARRAY_MOTIONEYE_IMAGES_DIRECTORY_PATTERN,
-                        cameraIndex,
-                      ),
-                    )}
-                    ${this._renderStringInput(
-                      getArrayConfigPath(
-                        CONF_CAMERAS_ARRAY_MOTIONEYE_IMAGES_FILE_PATTERN,
-                        cameraIndex,
-                      ),
-                    )}
-                    ${this._renderStringInput(
-                      getArrayConfigPath(
-                        CONF_CAMERAS_ARRAY_MOTIONEYE_MOVIES_DIRECTORY_PATTERN,
-                        cameraIndex,
-                      ),
-                    )}
-                    ${this._renderStringInput(
-                      getArrayConfigPath(
-                        CONF_CAMERAS_ARRAY_MOTIONEYE_MOVIES_FILE_PATTERN,
-                        cameraIndex,
-                      ),
-                    )}
-                  `,
-                )} `,
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_MOTIONEYE_URL, cameraIndex),
               )}
-              ${this._putInSubmenu(
-                MENU_CAMERAS_LIVE_PROVIDER,
-                true,
-                'config.cameras.live_provider_options.editor_label',
-                { name: 'mdi:cctv' },
-                html` ${this._putInSubmenu(
-                  MENU_CAMERAS_GO2RTC,
+                    ${this._renderStringInput(
+                getArrayConfigPath(
+                  CONF_CAMERAS_ARRAY_MOTIONEYE_IMAGES_DIRECTORY_PATTERN,
                   cameraIndex,
-                  'config.cameras.go2rtc.editor_label',
-                  { name: 'mdi:alpha-g-circle' },
-                  html`${this._renderOptionSelector(
-                    getArrayConfigPath(CONF_CAMERAS_ARRAY_GO2RTC_MODES, cameraIndex),
-                    this._go2rtcModes,
-                    {
-                      multiple: true,
-                      label: localize('config.cameras.go2rtc.modes.editor_label'),
-                    },
-                  )}
+                ),
+              )}
+                    ${this._renderStringInput(
+                getArrayConfigPath(
+                  CONF_CAMERAS_ARRAY_MOTIONEYE_IMAGES_FILE_PATTERN,
+                  cameraIndex,
+                ),
+              )}
+                    ${this._renderStringInput(
+                getArrayConfigPath(
+                  CONF_CAMERAS_ARRAY_MOTIONEYE_MOVIES_DIRECTORY_PATTERN,
+                  cameraIndex,
+                ),
+              )}
+                    ${this._renderStringInput(
+                getArrayConfigPath(
+                  CONF_CAMERAS_ARRAY_MOTIONEYE_MOVIES_FILE_PATTERN,
+                  cameraIndex,
+                ),
+              )}
+                  `,
+            )} `,
+          )}
+              ${this._putInSubmenu(
+            MENU_CAMERAS_LIVE_PROVIDER,
+            true,
+            'config.cameras.live_provider_options.editor_label',
+            { name: 'mdi:cctv' },
+            html` ${this._putInSubmenu(
+              MENU_CAMERAS_GO2RTC,
+              cameraIndex,
+              'config.cameras.go2rtc.editor_label',
+              { name: 'mdi:alpha-g-circle' },
+              html`${this._renderOptionSelector(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_GO2RTC_MODES, cameraIndex),
+                this._go2rtcModes,
+                {
+                  multiple: true,
+                  label: localize('config.cameras.go2rtc.modes.editor_label'),
+                },
+              )}
                   ${this._renderStringInput(
-                    getArrayConfigPath(CONF_CAMERAS_ARRAY_GO2RTC_STREAM, cameraIndex),
-                  )}`,
-                )}
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_GO2RTC_STREAM, cameraIndex),
+              )}`,
+            )}
                 ${this._putInSubmenu(
-                  MENU_CAMERAS_IMAGE,
-                  true,
-                  'config.cameras.image.editor_label',
-                  { name: 'mdi:image' },
-                  html`
+              MENU_CAMERAS_IMAGE,
+              true,
+              'config.cameras.image.editor_label',
+              { name: 'mdi:image' },
+              html`
                     ${this._renderNumberInput(
-                      getArrayConfigPath(
-                        CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
-                        cameraIndex,
-                      ),
-                    )}
-                    ${this._renderStringInput(
-                      getArrayConfigPath(CONF_CAMERAS_ARRAY_IMAGE_URL, cameraIndex),
-                    )}
-                  `,
-                )}
-                ${this._putInSubmenu(
-                  MENU_CAMERAS_WEBRTC_CARD,
+                getArrayConfigPath(
+                  CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
                   cameraIndex,
-                  'config.cameras.webrtc_card.editor_label',
-                  { name: 'mdi:webrtc' },
-                  html`${this._renderEntitySelector(
-                    getArrayConfigPath(
-                      CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY,
-                      cameraIndex,
-                    ),
-                    'camera',
-                  )}
+                ),
+              )}
+                    ${this._renderStringInput(
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_IMAGE_URL, cameraIndex),
+              )}
+                  `,
+            )}
+                ${this._putInSubmenu(
+              MENU_CAMERAS_WEBRTC_CARD,
+              cameraIndex,
+              'config.cameras.webrtc_card.editor_label',
+              { name: 'mdi:webrtc' },
+              html`${this._renderEntitySelector(
+                getArrayConfigPath(
+                  CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY,
+                  cameraIndex,
+                ),
+                'camera',
+              )}
                   ${this._renderStringInput(
-                    getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
-                  )}`,
-                )}`,
-              )}
+                getArrayConfigPath(CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL, cameraIndex),
+              )}`,
+            )}`,
+          )}
               ${this._putInSubmenu(
-                MENU_CAMERAS_DEPENDENCIES,
+            MENU_CAMERAS_DEPENDENCIES,
+            cameraIndex,
+            'config.cameras.dependencies.editor_label',
+            { name: 'mdi:graph' },
+            html` ${this._renderSwitch(
+              getArrayConfigPath(
+                CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS,
                 cameraIndex,
-                'config.cameras.dependencies.editor_label',
-                { name: 'mdi:graph' },
-                html` ${this._renderSwitch(
-                  getArrayConfigPath(
-                    CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS,
-                    cameraIndex,
-                  ),
-                  this._defaults.cameras.dependencies.all_cameras,
-                )}
+              ),
+              this._defaults.cameras.dependencies.all_cameras,
+            )}
                 ${this._renderOptionSelector(
-                  getArrayConfigPath(
-                    CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS,
-                    cameraIndex,
-                  ),
-                  dependentCameras,
-                  {
-                    multiple: true,
-                  },
-                )}`,
-              )}
-              ${this._putInSubmenu(
-                MENU_CAMERAS_TRIGGERS,
+              getArrayConfigPath(
+                CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS,
                 cameraIndex,
-                'config.cameras.triggers.editor_label',
-                { name: 'mdi:magnify-scan' },
-                html` ${this._renderSwitch(
-                  getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY, cameraIndex),
-                  this._defaults.cameras.triggers.occupancy,
-                )}
+              ),
+              dependentCameras,
+              {
+                multiple: true,
+              },
+            )}`,
+          )}
+              ${this._putInSubmenu(
+            MENU_CAMERAS_TRIGGERS,
+            cameraIndex,
+            'config.cameras.triggers.editor_label',
+            { name: 'mdi:magnify-scan' },
+            html` ${this._renderSwitch(
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY, cameraIndex),
+              this._defaults.cameras.triggers.occupancy,
+            )}
                 ${this._renderSwitch(
-                  getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_MOTION, cameraIndex),
-                  this._defaults.cameras.triggers.motion,
-                )}
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_MOTION, cameraIndex),
+              this._defaults.cameras.triggers.motion,
+            )}
                 ${this._renderOptionSelector(
-                  getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES, cameraIndex),
-                  entities,
-                  {
-                    multiple: true,
-                  },
-                )}`,
-              )}
+              getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES, cameraIndex),
+              entities,
+              {
+                multiple: true,
+              },
+            )}`,
+          )}
             </div>`
-          : ``}
+        : ``}
       </div>
     `;
   }
@@ -1618,19 +1621,19 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     params?: {
       label?: string;
       type?:
-        | 'number'
-        | 'text'
-        | 'search'
-        | 'tel'
-        | 'url'
-        | 'email'
-        | 'password'
-        | 'date'
-        | 'month'
-        | 'week'
-        | 'time'
-        | 'datetime-local'
-        | 'color';
+      | 'number'
+      | 'text'
+      | 'search'
+      | 'tel'
+      | 'url'
+      | 'email'
+      | 'password'
+      | 'date'
+      | 'month'
+      | 'week'
+      | 'time'
+      | 'datetime-local'
+      | 'color';
     },
   ): TemplateResult | void {
     if (!this._config) {
@@ -1704,12 +1707,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   raised
                   label="${localize('editor.upgrade')}"
                   @click=${() => {
-                    if (this._config) {
-                      const upgradedConfig = copyConfig(this._config);
-                      upgradeConfig(upgradedConfig);
-                      this._updateConfig(upgradedConfig);
-                    }
-                  }}
+            if (this._config) {
+              const upgradedConfig = copyConfig(this._config);
+              upgradeConfig(upgradedConfig);
+              this._updateConfig(upgradedConfig);
+            }
+          }}
                 >
                 </mwc-button>
               </span>
@@ -1719,49 +1722,49 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       <div class="card-config">
         ${this._renderOptionSetHeader('cameras')}
         ${this._expandedMenus[MENU_OPTIONS] === 'cameras'
-          ? html`
+        ? html`
               <div class="values">
                 ${cameras.map((_, index) =>
-                  this._renderCamera(cameras, index, entities),
-                )}
+          this._renderCamera(cameras, index, entities),
+        )}
                 ${this._renderCamera(cameras, cameras.length, entities, true)}
               </div>
             `
-          : ''}
+        : ''}
         ${this._renderOptionSetHeader('view')}
         ${this._expandedMenus[MENU_OPTIONS] === 'view'
-          ? html`
+        ? html`
               <div class="values">
                 ${this._renderOptionSelector(CONF_VIEW_DEFAULT, this._viewModes)}
                 ${this._renderOptionSelector(
-                  CONF_VIEW_CAMERA_SELECT,
-                  this._cameraSelectViewModes,
-                )}
+          CONF_VIEW_CAMERA_SELECT,
+          this._cameraSelectViewModes,
+        )}
                 ${this._renderOptionSelector(CONF_VIEW_DARK_MODE, this._darkModes)}
                 ${this._renderNumberInput(CONF_VIEW_TIMEOUT_SECONDS)}
                 ${this._renderNumberInput(CONF_VIEW_UPDATE_SECONDS)}
                 ${this._renderSwitch(
-                  CONF_VIEW_UPDATE_FORCE,
-                  this._defaults.view.update_force,
-                )}
+          CONF_VIEW_UPDATE_FORCE,
+          this._defaults.view.update_force,
+        )}
                 ${this._renderSwitch(
-                  CONF_VIEW_UPDATE_CYCLE_CAMERA,
-                  this._defaults.view.update_cycle_camera,
-                )}
+          CONF_VIEW_UPDATE_CYCLE_CAMERA,
+          this._defaults.view.update_cycle_camera,
+        )}
                 ${this._renderViewScanMenu()}
               </div>
             `
-          : ''}
+        : ''}
         ${this._renderOptionSetHeader('menu')}
         ${this._expandedMenus[MENU_OPTIONS] === 'menu'
-          ? html`
+        ? html`
               <div class="values">
                 ${this._renderOptionSelector(CONF_MENU_STYLE, this._menuStyles)}
                 ${this._renderOptionSelector(CONF_MENU_POSITION, this._menuPositions)}
                 ${this._renderOptionSelector(CONF_MENU_ALIGNMENT, this._menuAlignments)}
                 ${this._renderNumberInput(CONF_MENU_BUTTON_SIZE, {
-                  min: BUTTON_SIZE_MIN,
-                })}
+          min: BUTTON_SIZE_MIN,
+        })}
                 ${this._renderMenuButton('frigate') /* */}
                 ${this._renderMenuButton('cameras') /* */}
                 ${this._renderMenuButton('substreams') /* */}
@@ -1777,298 +1780,300 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderMenuButton('timeline')}
                 ${this._renderMenuButton('media_player')}
                 ${this._renderMenuButton(
-                  'microphone',
-                  html`${this._renderOptionSelector(
-                    `${CONF_MENU_BUTTONS}.microphone.type`,
-                    this._microphoneButtonTypes,
-                    { label: localize('config.menu.buttons.type') },
-                  )}`,
-                )}
+          'microphone',
+          html`${this._renderOptionSelector(
+            `${CONF_MENU_BUTTONS}.microphone.type`,
+            this._microphoneButtonTypes,
+            { label: localize('config.menu.buttons.type') },
+          )}`,
+        )}
                 ${this._renderMenuButton('play') /*  */}
                 ${this._renderMenuButton('mute')}
                 ${this._renderMenuButton('screenshot')}
               </div>
             `
-          : ''}
+        : ''}
         ${this._renderOptionSetHeader('live')}
         ${this._expandedMenus[MENU_OPTIONS] === 'live'
-          ? html`
+        ? html`
               <div class="values">
                 ${this._renderSwitch(CONF_LIVE_PRELOAD, this._defaults.live.preload)}
                 ${this._renderSwitch(CONF_LIVE_DRAGGABLE, this._defaults.live.draggable)}
                 ${this._renderSwitch(CONF_LIVE_ZOOMABLE, this._defaults.live.zoomable)}
                 ${this._renderSwitch(CONF_LIVE_LAZY_LOAD, this._defaults.live.lazy_load)}
                 ${this._renderOptionSelector(
-                  CONF_LIVE_LAZY_UNLOAD,
-                  this._mediaActionNegativeConditions,
-                )}
+          CONF_LIVE_LAZY_UNLOAD,
+          this._mediaActionNegativeConditions,
+        )}
                 ${this._renderOptionSelector(
-                  CONF_LIVE_AUTO_PLAY,
-                  this._mediaActionPositiveConditions,
-                )}
+          CONF_LIVE_AUTO_PLAY,
+          this._mediaActionPositiveConditions,
+        )}
                 ${this._renderOptionSelector(
-                  CONF_LIVE_AUTO_PAUSE,
-                  this._mediaActionNegativeConditions,
-                )}
+          CONF_LIVE_AUTO_PAUSE,
+          this._mediaActionNegativeConditions,
+        )}
                 ${this._renderOptionSelector(
-                  CONF_LIVE_AUTO_MUTE,
-                  this._mediaActionNegativeConditions,
-                )}
+          CONF_LIVE_AUTO_MUTE,
+          this._mediaActionNegativeConditions,
+        )}
                 ${this._renderOptionSelector(
-                  CONF_LIVE_AUTO_UNMUTE,
-                  this._mediaActionPositiveConditions,
-                )}
+          CONF_LIVE_AUTO_UNMUTE,
+          this._mediaActionPositiveConditions,
+        )}
                 ${this._renderOptionSelector(
-                  CONF_LIVE_TRANSITION_EFFECT,
-                  this._transitionEffects,
-                )}
+          CONF_LIVE_TRANSITION_EFFECT,
+          this._transitionEffects,
+        )}
                 ${this._renderSwitch(
-                  CONF_LIVE_SHOW_IMAGE_DURING_LOAD,
-                  this._defaults.live.show_image_during_load,
-                )}
+          CONF_LIVE_SHOW_IMAGE_DURING_LOAD,
+          this._defaults.live.show_image_during_load,
+        )}
                 ${this._putInSubmenu(
-                  MENU_LIVE_CONTROLS,
-                  true,
-                  'config.live.controls.editor_label',
-                  { name: 'mdi:gamepad' },
-                  html`
+          MENU_LIVE_CONTROLS,
+          true,
+          'config.live.controls.editor_label',
+          { name: 'mdi:gamepad' },
+          html`
                     ${this._renderSwitch(
-                      CONF_LIVE_CONTROLS_BUILTIN,
-                      this._defaults.live.controls.builtin,
-                      {
-                        label: localize('config.common.controls.builtin'),
-                      },
-                    )}
+            CONF_LIVE_CONTROLS_BUILTIN,
+            this._defaults.live.controls.builtin,
+            {
+              label: localize('config.common.controls.builtin'),
+            },
+          )}
                     ${this._renderNextPreviousControls(
-                      MENU_LIVE_CONTROLS_NEXT_PREVIOUS,
-                      CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
-                      CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
-                      {
-                        allowIcons: true,
-                      },
-                    )}
+            MENU_LIVE_CONTROLS_NEXT_PREVIOUS,
+            CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
+            CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
+            {
+              allowIcons: true,
+            },
+          )}
                     ${this._renderThumbnailsControls(
-                      MENU_LIVE_CONTROLS_THUMBNAILS,
-                      CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
-                      CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-                      CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
-                      CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
-                      CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
-                      this._defaults.live.controls.thumbnails,
-                      {
-                        configPathMedia: CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
-                        configPathMode: CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
-                      },
-                    )}
+            MENU_LIVE_CONTROLS_THUMBNAILS,
+            CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
+            CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+            CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+            CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+            CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
+            this._defaults.live.controls.thumbnails,
+            {
+              configPathMedia: CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
+              configPathMode: CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
+            },
+          )}
                     ${this._renderTitleControls(
-                      MENU_LIVE_CONTROLS_TITLE,
-                      CONF_LIVE_CONTROLS_TITLE_MODE,
-                      CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
-                    )}
+            MENU_LIVE_CONTROLS_TITLE,
+            CONF_LIVE_CONTROLS_TITLE_MODE,
+            CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
+          )}
                     ${this._renderMiniTimeline(
-                      MENU_LIVE_CONTROLS_TIMELINE,
-                      CONF_LIVE_CONTROLS_TIMELINE_MODE,
-                      CONF_LIVE_CONTROLS_TIMELINE_STYLE,
-                      CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS,
-                      CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
-                      CONF_LIVE_CONTROLS_TIMELINE_MEDIA,
-                      CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
-                      this._defaults.live.controls.timeline.show_recordings,
-                    )}
+            MENU_LIVE_CONTROLS_TIMELINE,
+            CONF_LIVE_CONTROLS_TIMELINE_MODE,
+            CONF_LIVE_CONTROLS_TIMELINE_STYLE,
+            CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS,
+            CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
+            CONF_LIVE_CONTROLS_TIMELINE_MEDIA,
+            CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
+            this._defaults.live.controls.timeline.show_recordings,
+          )}
                   `,
-                )}
+        )}
                 ${this._renderMediaLayout(
-                  MENU_LIVE_LAYOUT,
-                  'config.live.layout',
-                  CONF_LIVE_LAYOUT_FIT,
-                  CONF_LIVE_LAYOUT_POSITION_X,
-                  CONF_LIVE_LAYOUT_POSITION_Y,
-                )}
+          MENU_LIVE_LAYOUT,
+          'config.live.layout',
+          CONF_LIVE_LAYOUT_FIT,
+          CONF_LIVE_LAYOUT_POSITION_X,
+          CONF_LIVE_LAYOUT_POSITION_Y,
+        )}
                 ${this._putInSubmenu(
-                  MENU_LIVE_MICROPHONE,
-                  true,
-                  'config.live.microphone.editor_label',
-                  { name: 'mdi:microphone' },
-                  html`
+          MENU_LIVE_MICROPHONE,
+          true,
+          'config.live.microphone.editor_label',
+          { name: 'mdi:microphone' },
+          html`
                     ${this._renderNumberInput(CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS)}
                     ${this._renderSwitch(
-                      CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED,
-                      this._defaults.live.microphone.always_connected,
-                    )}
+            CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED,
+            this._defaults.live.microphone.always_connected,
+          )}
                   `,
-                )}
+        )}
               </div>
             `
-          : ''}
+        : ''}
         ${this._renderOptionSetHeader('media_gallery')}
         ${this._expandedMenus[MENU_OPTIONS] === 'media_gallery'
-          ? html` <div class="values">
+        ? html` <div class="values">
               ${this._renderThumbnailsControls(
-                MENU_MEDIA_GALLERY_CONTROLS_THUMBNAILS,
-                CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SIZE,
-                CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-                CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
-                CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
-                CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
-                this._defaults.media_gallery.controls.thumbnails,
-              )}
+          MENU_MEDIA_GALLERY_CONTROLS_THUMBNAILS,
+          CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SIZE,
+          CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+          CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+          CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+          CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
+          this._defaults.media_gallery.controls.thumbnails,
+        )}
               ${this._renderFilterControls(
-                MENU_MEDIA_GALLERY_CONTROLS_FILTER,
-                CONF_MEDIA_GALLERY_CONTROLS_FILTER_MODE,
-              )}
+          MENU_MEDIA_GALLERY_CONTROLS_FILTER,
+          CONF_MEDIA_GALLERY_CONTROLS_FILTER_MODE,
+        )}
             </div>`
-          : ''}
+        : ''}
         ${this._renderOptionSetHeader('media_viewer')}
         ${this._expandedMenus[MENU_OPTIONS] === 'media_viewer'
-          ? html` <div class="values">
+        ? html` <div class="values">
               ${this._renderOptionSelector(
-                CONF_MEDIA_VIEWER_AUTO_PLAY,
-                this._mediaActionPositiveConditions,
-              )}
+          CONF_MEDIA_VIEWER_AUTO_PLAY,
+          this._mediaActionPositiveConditions,
+        )}
               ${this._renderOptionSelector(
-                CONF_MEDIA_VIEWER_AUTO_PAUSE,
-                this._mediaActionNegativeConditions,
-              )}
+          CONF_MEDIA_VIEWER_AUTO_PAUSE,
+          this._mediaActionNegativeConditions,
+        )}
               ${this._renderOptionSelector(
-                CONF_MEDIA_VIEWER_AUTO_MUTE,
-                this._mediaActionNegativeConditions,
-              )}
+          CONF_MEDIA_VIEWER_AUTO_MUTE,
+          this._mediaActionNegativeConditions,
+        )}
               ${this._renderOptionSelector(
-                CONF_MEDIA_VIEWER_AUTO_UNMUTE,
-                this._mediaActionPositiveConditions,
-              )}
+          CONF_MEDIA_VIEWER_AUTO_UNMUTE,
+          this._mediaActionPositiveConditions,
+        )}
               ${this._renderSwitch(
-                CONF_MEDIA_VIEWER_DRAGGABLE,
-                this._defaults.media_viewer.draggable,
-              )}
+          CONF_MEDIA_VIEWER_DRAGGABLE,
+          this._defaults.media_viewer.draggable,
+        )}
               ${this._renderSwitch(
-                CONF_MEDIA_VIEWER_ZOOMABLE,
-                this._defaults.media_viewer.zoomable,
-              )}
+          CONF_MEDIA_VIEWER_ZOOMABLE,
+          this._defaults.media_viewer.zoomable,
+        )}
               ${this._renderSwitch(
-                CONF_MEDIA_VIEWER_LAZY_LOAD,
-                this._defaults.media_viewer.lazy_load,
-              )}
+          CONF_MEDIA_VIEWER_LAZY_LOAD,
+          this._defaults.media_viewer.lazy_load,
+        )}
               ${this._renderOptionSelector(
-                CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
-                this._transitionEffects,
-              )}
+          CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
+          this._transitionEffects,
+        )}
               ${this._renderSwitch(
-                CONF_MEDIA_VIEWER_SNAPSHOT_CLICK_PLAYS_CLIP,
-                this._defaults.media_viewer.snapshot_click_plays_clip,
-              )}
+          CONF_MEDIA_VIEWER_SNAPSHOT_CLICK_PLAYS_CLIP,
+          this._defaults.media_viewer.snapshot_click_plays_clip,
+        )}
               ${this._putInSubmenu(
-                MENU_MEDIA_VIEWER_CONTROLS,
-                true,
-                'config.media_viewer.controls.editor_label',
-                { name: 'mdi:gamepad' },
-                html`
+          MENU_MEDIA_VIEWER_CONTROLS,
+          true,
+          'config.media_viewer.controls.editor_label',
+          { name: 'mdi:gamepad' },
+          html`
                   ${this._renderSwitch(
-                    CONF_MEDIA_VIEWER_CONTROLS_BUILTIN,
-                    this._defaults.media_viewer.controls.builtin,
-                    {
-                      label: localize('config.common.controls.builtin'),
-                    },
-                  )}
+            CONF_MEDIA_VIEWER_CONTROLS_BUILTIN,
+            this._defaults.media_viewer.controls.builtin,
+            {
+              label: localize('config.common.controls.builtin'),
+            },
+          )}
                   ${this._renderNextPreviousControls(
-                    MENU_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS,
-                    CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
-                    CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
-                    {
-                      allowThumbnails: true,
-                    },
-                  )}
+            MENU_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS,
+            CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_STYLE,
+            CONF_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS_SIZE,
+            {
+              allowThumbnails: true,
+            },
+          )}
                   ${this._renderThumbnailsControls(
-                    MENU_MEDIA_VIEWER_CONTROLS_THUMBNAILS,
-                    CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE,
-                    CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-                    CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
-                    CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
-                    CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
-                    this._defaults.media_viewer.controls.thumbnails,
-                    {
-                      configPathMode: CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
-                    },
-                  )}
+            MENU_MEDIA_VIEWER_CONTROLS_THUMBNAILS,
+            CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE,
+            CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+            CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+            CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+            CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
+            this._defaults.media_viewer.controls.thumbnails,
+            {
+              configPathMode: CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
+            },
+          )}
                   ${this._renderTitleControls(
-                    MENU_MEDIA_VIEWER_CONTROLS_TITLE,
-                    CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE,
-                    CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
-                  )}
+            MENU_MEDIA_VIEWER_CONTROLS_TITLE,
+            CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE,
+            CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
+          )}
                   ${this._renderMiniTimeline(
-                    MENU_MEDIA_VIEWER_CONTROLS_TIMELINE,
-                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE,
-                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE,
-                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS,
-                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
-                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA,
-                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS,
-                    this._defaults.media_viewer.controls.timeline.show_recordings,
-                  )}
+            MENU_MEDIA_VIEWER_CONTROLS_TIMELINE,
+            CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE,
+            CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE,
+            CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS,
+            CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
+            CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA,
+            CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS,
+            this._defaults.media_viewer.controls.timeline.show_recordings,
+          )}
                 `,
-              )}
+        )}
               ${this._renderMediaLayout(
-                MENU_MEDIA_VIEWER_LAYOUT,
-                'config.media_viewer.layout',
-                CONF_MEDIA_VIEWER_LAYOUT_FIT,
-                CONF_MEDIA_VIEWER_LAYOUT_POSITION_X,
-                CONF_MEDIA_VIEWER_LAYOUT_POSITION_Y,
-              )}
+          MENU_MEDIA_VIEWER_LAYOUT,
+          'config.media_viewer.layout',
+          CONF_MEDIA_VIEWER_LAYOUT_FIT,
+          CONF_MEDIA_VIEWER_LAYOUT_POSITION_X,
+          CONF_MEDIA_VIEWER_LAYOUT_POSITION_Y,
+        )}
             </div>`
-          : ''}
+        : ''}
         ${this._renderOptionSetHeader('image')}
         ${this._expandedMenus[MENU_OPTIONS] === 'image'
-          ? html` <div class="values">
+        ? html` <div class="values">
               ${this._renderOptionSelector(CONF_IMAGE_MODE, this._imageModes)}
               ${this._renderStringInput(CONF_IMAGE_URL)}
+              ${this._renderOptionSelector(CONF_IMAGE_ENTITY, entities)}
+              ${this._renderStringInput(CONF_IMAGE_ENTITY_OPTIONS)}
               ${this._renderNumberInput(CONF_IMAGE_REFRESH_SECONDS)}
               ${this._renderSwitch(CONF_IMAGE_ZOOMABLE, this._defaults.image.zoomable)}
               ${this._renderMediaLayout(
-                MENU_IMAGE_LAYOUT,
-                'config.image.layout',
-                CONF_IMAGE_LAYOUT_FIT,
-                CONF_IMAGE_LAYOUT_POSITION_X,
-                CONF_IMAGE_LAYOUT_POSITION_Y,
-              )}
+          MENU_IMAGE_LAYOUT,
+          'config.image.layout',
+          CONF_IMAGE_LAYOUT_FIT,
+          CONF_IMAGE_LAYOUT_POSITION_X,
+          CONF_IMAGE_LAYOUT_POSITION_Y,
+        )}
             </div>`
-          : ''}
+        : ''}
         ${this._renderOptionSetHeader('timeline')}
         ${this._expandedMenus[MENU_OPTIONS] === 'timeline'
-          ? html` <div class="values">
+        ? html` <div class="values">
               ${this._renderTimelineCoreControls(
-                CONF_TIMELINE_STYLE,
-                CONF_TIMELINE_WINDOW_SECONDS,
-                CONF_TIMELINE_CLUSTERING_THRESHOLD,
-                CONF_TIMELINE_MEDIA,
-                CONF_TIMELINE_SHOW_RECORDINGS,
-                this._defaults.timeline.show_recordings,
-              )}
+          CONF_TIMELINE_STYLE,
+          CONF_TIMELINE_WINDOW_SECONDS,
+          CONF_TIMELINE_CLUSTERING_THRESHOLD,
+          CONF_TIMELINE_MEDIA,
+          CONF_TIMELINE_SHOW_RECORDINGS,
+          this._defaults.timeline.show_recordings,
+        )}
               ${this._renderThumbnailsControls(
-                MENU_TIMELINE_CONTROLS_THUMBNAILS,
-                CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
-                CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
-                CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
-                CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
-                CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
-                this._defaults.timeline.controls.thumbnails,
-                {
-                  configPathMode: CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
-                },
-              )}
+          MENU_TIMELINE_CONTROLS_THUMBNAILS,
+          CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
+          CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
+          CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
+          CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
+          CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
+          this._defaults.timeline.controls.thumbnails,
+          {
+            configPathMode: CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
+          },
+        )}
             </div>`
-          : ''}
+        : ''}
         ${this._renderOptionSetHeader('dimensions')}
         ${this._expandedMenus[MENU_OPTIONS] === 'dimensions'
-          ? html` <div class="values">
+        ? html` <div class="values">
               ${this._renderOptionSelector(
-                CONF_DIMENSIONS_ASPECT_RATIO_MODE,
-                this._aspectRatioModes,
-              )}
+          CONF_DIMENSIONS_ASPECT_RATIO_MODE,
+          this._aspectRatioModes,
+        )}
               ${this._renderStringInput(CONF_DIMENSIONS_ASPECT_RATIO)}
               ${this._renderStringInput(CONF_DIMENSIONS_MAX_HEIGHT)}
               ${this._renderStringInput(CONF_DIMENSIONS_MIN_HEIGHT)}
             </div>`
-          : ''}
+        : ''}
         ${this._renderOptionSetHeader(
           'performance',
           getConfigValue(this._config, CONF_PERFORMANCE_PROFILE) === 'low'
@@ -2076,55 +2081,55 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             : undefined,
         )}
         ${this._expandedMenus[MENU_OPTIONS] === 'performance'
-          ? html` <div class="values">
+        ? html` <div class="values">
               ${getConfigValue(this._config, CONF_PERFORMANCE_PROFILE) === 'low'
-                ? this._renderInfo(localize('config.performance.warning'))
-                : html``}
+            ? this._renderInfo(localize('config.performance.warning'))
+            : html``}
               ${this._renderOptionSelector(
-                CONF_PERFORMANCE_PROFILE,
-                this._performanceProfiles,
-              )}
+              CONF_PERFORMANCE_PROFILE,
+              this._performanceProfiles,
+            )}
               ${this._putInSubmenu(
-                MENU_PERFORMANCE_FEATURES,
-                true,
-                'config.performance.features.editor_label',
-                { name: 'mdi:feature-search' },
-                html`
+              MENU_PERFORMANCE_FEATURES,
+              true,
+              'config.performance.features.editor_label',
+              { name: 'mdi:feature-search' },
+              html`
                   ${this._renderSwitch(
-                    CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
-                    this._defaults.performance.features.animated_progress_indicator,
-                  )}
+                CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
+                this._defaults.performance.features.animated_progress_indicator,
+              )}
                   ${this._renderNumberInput(CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE, {
-                    max: MEDIA_CHUNK_SIZE_MAX,
-                  })}
+                max: MEDIA_CHUNK_SIZE_MAX,
+              })}
                 `,
-              )}
+            )}
               ${this._putInSubmenu(
-                MENU_PERFORMANCE_STYLE,
-                true,
-                'config.performance.style.editor_label',
-                { name: 'mdi:palette-swatch-variant' },
-                html`
+              MENU_PERFORMANCE_STYLE,
+              true,
+              'config.performance.style.editor_label',
+              { name: 'mdi:palette-swatch-variant' },
+              html`
                   ${this._renderSwitch(
-                    CONF_PERFORMANCE_STYLE_BORDER_RADIUS,
-                    this._defaults.performance.style.border_radius,
-                  )}
-                  ${this._renderSwitch(
-                    CONF_PERFORMANCE_STYLE_BOX_SHADOW,
-                    this._defaults.performance.style.box_shadow,
-                  )}
-                `,
+                CONF_PERFORMANCE_STYLE_BORDER_RADIUS,
+                this._defaults.performance.style.border_radius,
               )}
+                  ${this._renderSwitch(
+                CONF_PERFORMANCE_STYLE_BOX_SHADOW,
+                this._defaults.performance.style.box_shadow,
+              )}
+                `,
+            )}
             </div>`
-          : ''}
+        : ''}
         ${this._config['overrides'] !== undefined
-          ? html` ${this._renderOptionSetHeader('overrides')}
+        ? html` ${this._renderOptionSetHeader('overrides')}
             ${this._expandedMenus[MENU_OPTIONS] === 'overrides'
-              ? html` <div class="values">
+            ? html` <div class="values">
                   ${this._renderInfo(localize('config.overrides.info'))}
                 </div>`
-              : ''}`
-          : html``}
+            : ''}`
+        : html``}
       </div>
     `;
   }

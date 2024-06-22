@@ -266,6 +266,17 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
         return this._buildImageURL(state.attributes.entity_picture);
       }
     }
+    if (this.hass && this.imageConfig?.mode === 'entity' && this.imageConfig?.entity) {
+      const imageEntity = this.imageConfig?.entity;
+      const state = this._getAcceptableState(imageEntity);
+      const options = this.imageConfig?.entity_options;
+      if (state?.attributes.entity_picture) {
+        let url = state?.attributes.entity_picture;
+        const querySuffix = url.indexOf('?') > 0 ? '&' : '?';
+        url += options ? (querySuffix + options) : "";
+        return this._buildImageURL(url);
+      }
+    }
     if (this.imageConfig?.mode !== 'screensaver' && this.imageConfig?.url) {
       return this._buildImageURL(this.imageConfig.url);
     }
