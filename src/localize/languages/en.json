@@ -202,10 +202,13 @@
       "modes": {
         "camera": "Home Assistant camera snapshot of camera entity",
         "screensaver": "Embedded Frigate logo",
-        "url": "Arbitrary image specified by URL"
+        "url": "Arbitrary image specified by URL",
+        "entity": "Entity with entity_picture attribute"
       },
       "refresh_seconds": "Number of seconds after which to refresh (0=never)",
       "url": "Static image URL for image view",
+      "entity": "Entity ID for entity view",
+      "entity_options": "Query options for entity API URL (e.g. width=1920&height=1080)",
       "zoomable": "Image can be zoomed/panned"
     },
     "live": {

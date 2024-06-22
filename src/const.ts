@@ -208,6 +208,8 @@ export const CONF_IMAGE_LAYOUT_POSITION_Y = `${CONF_IMAGE}.layout.position.y` as
 export const CONF_IMAGE_MODE = `${CONF_IMAGE}.mode` as const;
 export const CONF_IMAGE_REFRESH_SECONDS = `${CONF_IMAGE}.refresh_seconds` as const;
 export const CONF_IMAGE_URL = `${CONF_IMAGE}.url` as const;
+export const CONF_IMAGE_ENTITY = `${CONF_IMAGE}.entity` as const;
+export const CONF_IMAGE_ENTITY_OPTIONS = `${CONF_IMAGE}.entity_options` as const;
 export const CONF_IMAGE_ZOOMABLE = `${CONF_IMAGE}.zoomable` as const;
 
 const CONF_TIMELINE = 'timeline' as const;

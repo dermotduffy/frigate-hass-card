@@ -785,7 +785,7 @@ const viewConfigSchema = z
  * Image view configuration section.
  */
 
-const IMAGE_MODES = ['screensaver', 'camera', 'url'] as const;
+const IMAGE_MODES = ['screensaver', 'camera', 'url', 'entity'] as const;
 const imageConfigDefault = {
   mode: 'url' as const,
   zoomable: true,
@@ -794,6 +794,8 @@ const imageConfigDefault = {
 const imageConfigSchema = imageBaseConfigSchema
   .extend({
     mode: z.enum(IMAGE_MODES).default(imageConfigDefault.mode),
+    entity: z.string().optional(),
+    entity_options: z.string().optional(),
     layout: mediaLayoutConfigSchema.optional(),
     zoomable: z.boolean().default(imageConfigDefault.zoomable),
   })
