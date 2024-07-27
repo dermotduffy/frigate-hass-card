@@ -4,7 +4,6 @@ import { customElement } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import { styleMap } from 'lit/directives/style-map.js';
-import { ViewContext } from 'view';
 import 'web-dialog';
 import pkg from '../package.json';
 import { actionHandler } from './action-handler-directive.js';
@@ -26,7 +25,6 @@ import { localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
 import { ExtendedHomeAssistant, MediaLoadedInfo, Message } from './types.js';
 import { frigateCardHasAction } from './utils/action.js';
-import { View } from './view/view.js';
 
 // ***************************************************************************
 //                         General Card-Wide Notes
@@ -268,10 +266,6 @@ class FrigateCard extends LitElement {
         style="${styleMap(this._controller.getStyleManager().getAspectRatioStyle())}"
         @frigate-card:message=${(ev: CustomEvent<Message>) =>
           this._controller.getMessageManager().setMessageIfHigherPriority(ev.detail)}
-        @frigate-card:view:change=${(ev: CustomEvent<View>) =>
-          this._controller.getViewManager().setView(ev.detail)}
-        @frigate-card:view:change-context=${(ev: CustomEvent<ViewContext | null>) =>
-          this._controller.getViewManager().setViewWithMergedContext(ev.detail)}
         @frigate-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) =>
           this._controller.getMediaLoadedInfoManager().set(ev.detail)}
         @frigate-card:media:unloaded=${() =>
@@ -299,7 +293,7 @@ class FrigateCard extends LitElement {
               html`<frigate-card-views
                 ${ref(this._refViews)}
                 .hass=${this._hass}
-                .view=${this._controller.getViewManager().getView()}
+                .viewManagerEpoch=${this._controller.getViewManager().getEpoch()}
                 .cameraManager=${cameraManager}
                 .resolvedMediaCache=${this._controller.getResolvedMediaCache()}
                 .nonOverriddenConfig=${this._controller

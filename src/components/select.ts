@@ -31,7 +31,7 @@ export class FrigateCardSelect extends ScopedRegistryHost(LitElement) {
   public options?: SelectOption[];
 
   @property({ attribute: false, hasChanged: contentsChanged })
-  public value?: SelectValues;
+  public value: SelectValues | null = null;
 
   @property({ attribute: false, hasChanged: contentsChanged })
   public initialValue?: SelectValues;
@@ -56,7 +56,7 @@ export class FrigateCardSelect extends ScopedRegistryHost(LitElement) {
   };
 
   public reset(): void {
-    this.value = undefined;
+    this.value = null;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -66,8 +66,15 @@ export class FrigateCardSelect extends ScopedRegistryHost(LitElement) {
     // the change event even if the value has not actually changed. Prevent that
     // from propagating upwards.
     if (value !== undefined && !isEqual(this.value, value)) {
+      const initialValueSet = this.value === null;
       this.value = value;
-      dispatchFrigateCardEvent(this, 'select:change', value);
+
+      // The underlying gr-select element will call on the first first value set
+      // (even when the user has not interacted with the control). Do not
+      // dispatch events for this.
+      if (!initialValueSet) {
+        dispatchFrigateCardEvent(this, 'select:change', value);
+      }
     }
   }
 

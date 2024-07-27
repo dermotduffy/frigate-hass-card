@@ -17,9 +17,9 @@ import { dispatchFrigateCardEvent } from '../utils/basic.js';
 import { CarouselDirection } from '../utils/embla/carousel-controller.js';
 import AutoSize from '../utils/embla/plugins/auto-size/auto-size.js';
 import { MediaQueriesResults } from '../view/media-queries-results';
-import { View } from '../view/view.js';
 import './carousel.js';
 import './thumbnail.js';
+import { ViewManagerEpoch } from '../card-controller/view/types.js';
 
 export interface ThumbnailCarouselTap {
   queryResults: MediaQueriesResults;
@@ -31,7 +31,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
   public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  public view?: Readonly<View>;
+  public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
@@ -62,13 +62,13 @@ export class FrigateCardThumbnailCarousel extends LitElement {
       'cameraManager',
       'config',
       'transitionEffect',
-      'view',
+      'viewManagerEpoch',
     ] as const;
     if (renderProperties.some((prop) => changedProps.has(prop))) {
       this._thumbnailSlides = this._renderSlides();
     }
 
-    if (changedProps.has('view')) {
+    if (changedProps.has('viewManagerEpoch')) {
       this.style.setProperty(
         '--frigate-card-carousel-thumbnail-opacity',
         !this.fadeThumbnails || this._getSelectedSlide() === null ? '1.0' : '0.4',
@@ -76,16 +76,19 @@ export class FrigateCardThumbnailCarousel extends LitElement {
     }
   }
 
-  protected _getSelectedSlide(view?: View): number | null {
-    return (view ?? this.view)?.queryResults?.getSelectedIndex() ?? null;
+  protected _getSelectedSlide(): number | null {
+    return (
+      this.viewManagerEpoch?.manager.getView()?.queryResults?.getSelectedIndex() ?? null
+    );
   }
 
   protected _renderSlides(): TemplateResult[] {
     const slides: TemplateResult[] = [];
-    const seekTarget = this.view?.context?.mediaViewer?.seek;
+    const view = this.viewManagerEpoch?.manager.getView();
+    const seekTarget = view?.context?.mediaViewer?.seek;
     const selectedIndex = this._getSelectedSlide();
 
-    for (const media of this.view?.queryResults?.getResults() ?? []) {
+    for (const media of view?.queryResults?.getResults() ?? []) {
       const index = slides.length;
       const classes = {
         embla__slide: true,
@@ -98,19 +101,20 @@ export class FrigateCardThumbnailCarousel extends LitElement {
           .cameraManager=${this.cameraManager}
           .hass=${this.hass}
           .media=${media}
-          .view=${this.view}
+          .viewManagerEpoch=${this.viewManagerEpoch}
           .seek=${seekTarget && media.includesTime(seekTarget) ? seekTarget : undefined}
           ?details=${!!this.config?.show_details}
           ?show_favorite_control=${this.config?.show_favorite_control}
           ?show_timeline_control=${this.config?.show_timeline_control}
           ?show_download_control=${this.config?.show_download_control}
           @click=${(ev: Event) => {
-            if (this.view && this.view.queryResults) {
+            const view = this.viewManagerEpoch?.manager.getView();
+            if (view && view.queryResults) {
               dispatchFrigateCardEvent<ThumbnailCarouselTap>(
                 this,
                 'thumbnail-carousel:tap',
                 {
-                  queryResults: this.view.queryResults.clone().selectIndex(index),
+                  queryResults: view.queryResults.clone().selectIndex(index),
                 },
               );
             }

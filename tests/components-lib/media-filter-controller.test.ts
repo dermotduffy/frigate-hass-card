@@ -1,8 +1,10 @@
 import { endOfDay, startOfDay, sub } from 'date-fns';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
 import { Capabilities } from '../../src/camera-manager/capabilities';
 import { CameraManagerStore } from '../../src/camera-manager/store';
 import { QueryType } from '../../src/camera-manager/types';
+import { ViewManager } from '../../src/card-controller/view/view-manager';
 import {
   MediaFilterController,
   MediaFilterCoreDefaults,
@@ -10,7 +12,6 @@ import {
   MediaFilterCoreWhen,
   MediaFilterMediaType,
 } from '../../src/components-lib/media-filter-controller';
-import { executeMediaQueryForViewWithErrorDispatching } from '../../src/utils/media-to-view';
 import {
   EventMediaQueries,
   MediaQueries,
@@ -25,8 +26,6 @@ import {
   createStore,
   createView,
 } from '../test-utils';
-
-vi.mock('../../src/utils/media-to-view');
 
 const createCameraStore = (options?: {
   capabilities: Capabilities;
@@ -295,59 +294,82 @@ describe('MediaFilterController', () => {
 
   describe('should get correct controls to show', () => {
     it('view with events', () => {
-      const view = createView({ query: new EventMediaQueries() });
+      const viewManager = mock<ViewManager>();
+      viewManager.getView.mockReturnValue(
+        createView({ query: new EventMediaQueries() }),
+      );
       const cameraManager = createCameraManager();
 
       const controller = new MediaFilterController(createLitElement());
-      expect(controller.getControlsToShow(cameraManager, view)).toMatchObject({
+      controller.setViewManager(viewManager);
+      expect(controller.getControlsToShow(cameraManager)).toMatchObject({
         events: true,
         recordings: false,
       });
     });
 
     it('view with recordings', () => {
-      const view = createView({ query: new RecordingMediaQueries() });
+      const viewManager = mock<ViewManager>();
+      viewManager.getView.mockReturnValue(
+        createView({ query: new RecordingMediaQueries() }),
+      );
       const cameraManager = createCameraManager();
 
       const controller = new MediaFilterController(createLitElement());
-      expect(controller.getControlsToShow(cameraManager, view)).toMatchObject({
+      controller.setViewManager(viewManager);
+      expect(controller.getControlsToShow(cameraManager)).toMatchObject({
         events: false,
         recordings: true,
       });
     });
 
     it('can favorite events', () => {
-      const view = createView({ query: new EventMediaQueries() });
+      const viewManager = mock<ViewManager>();
+      viewManager.getView.mockReturnValue(
+        createView({ query: new EventMediaQueries() }),
+      );
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getAggregateCameraCapabilities).mockReturnValue(
         createCapabilities({ 'favorite-events': true }),
       );
 
       const controller = new MediaFilterController(createLitElement());
-      expect(controller.getControlsToShow(cameraManager, view)).toMatchObject({
+      controller.setViewManager(viewManager);
+
+      expect(controller.getControlsToShow(cameraManager)).toMatchObject({
         favorites: true,
       });
     });
 
     it('can favorite recordings', () => {
-      const view = createView({ query: new RecordingMediaQueries() });
+      const viewManager = mock<ViewManager>();
+      viewManager.getView.mockReturnValue(
+        createView({ query: new RecordingMediaQueries() }),
+      );
+
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getAggregateCameraCapabilities).mockReturnValue(
         createCapabilities({ 'favorite-recordings': true }),
       );
 
       const controller = new MediaFilterController(createLitElement());
-      expect(controller.getControlsToShow(cameraManager, view)).toMatchObject({
+      controller.setViewManager(viewManager);
+
+      expect(controller.getControlsToShow(cameraManager)).toMatchObject({
         favorites: true,
       });
     });
 
     it('can not favorite without a query', () => {
-      const view = createView();
+      const viewManager = mock<ViewManager>();
+      viewManager.getView.mockReturnValue(createView());
+
       const cameraManager = createCameraManager();
 
       const controller = new MediaFilterController(createLitElement());
-      expect(controller.getControlsToShow(cameraManager, view)).toMatchObject({
+      controller.setViewManager(viewManager);
+
+      expect(controller.getControlsToShow(cameraManager)).toMatchObject({
         favorites: false,
       });
     });
@@ -355,40 +377,34 @@ describe('MediaFilterController', () => {
 
   describe('should handle value change', () => {
     it('must have visible cameras', async () => {
-      const host = createLitElement();
-      const controller = new MediaFilterController(host);
-      await controller.valueChangeHandler(
-        createCameraManager(),
-        createView(),
-        {},
-        { when: {} },
-      );
+      const viewManager = mock<ViewManager>();
 
-      expect(host.requestUpdate).not.toBeCalled();
+      const controller = new MediaFilterController(createLitElement());
+      controller.setViewManager(viewManager);
+
+      await controller.valueChangeHandler(createCameraManager(), {}, { when: {} });
+
+      expect(viewManager.setViewByParametersWithExistingQuery).not.toBeCalled();
     });
 
     describe('with events media type', () => {
       it.each([['clips' as const], ['snapshots' as const]])(
         '%s',
         async (viewName: 'clips' | 'snapshots') => {
-          const eventListener = vi.fn();
           const host = createLitElement();
-          host.addEventListener('frigate-card:view:change', eventListener);
+          const viewManager = mock<ViewManager>();
+          viewManager.getView.mockReturnValue(createView());
 
           const controller = new MediaFilterController(host);
-          const cameraManager = createCameraManager();
-          const view = createView();
-          vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
-          vi.mocked(executeMediaQueryForViewWithErrorDispatching).mockResolvedValueOnce(
-            view,
-          );
+          controller.setViewManager(viewManager);
+
+          const cameraManager = createCameraManager(createCameraStore());
 
           const from = new Date('2024-02-06T21:59');
           const to = new Date('2024-02-06T22:00');
 
           await controller.valueChangeHandler(
             cameraManager,
-            view,
             {
               performance: createPerformanceConfig({
                 features: {
@@ -397,6 +413,7 @@ describe('MediaFilterController', () => {
               }),
             },
             {
+              camera: 'camera.kitchen',
               mediaType:
                 viewName === 'clips'
                   ? MediaFilterMediaType.Clips
@@ -412,20 +429,14 @@ describe('MediaFilterController', () => {
             },
           );
 
-          expect(vi.mocked(executeMediaQueryForViewWithErrorDispatching)).toBeCalledWith(
-            host,
-            cameraManager,
-            view,
-            expect.anything(),
-            {
-              targetCameraID: 'camera.kitchen',
-              targetView: viewName,
-            },
-          );
+          expect(viewManager.setViewByParametersWithExistingQuery).toBeCalledWith({
+            params: expect.objectContaining({
+              camera: 'camera.kitchen',
+              view: viewName,
+            }),
+          });
           expect(
-            vi
-              .mocked(executeMediaQueryForViewWithErrorDispatching)
-              .mock.calls[0][3].getQueries(),
+            viewManager.setViewByParametersWithExistingQuery.mock.calls[0][0]?.params?.query?.getQueries(),
           ).toEqual([
             {
               cameraIDs: new Set(['camera.kitchen']),
@@ -442,31 +453,29 @@ describe('MediaFilterController', () => {
             },
           ]);
 
-          expect(eventListener).toBeCalled();
           expect(host.requestUpdate).toBeCalled();
         },
       );
     });
 
     it('with recordings media type', async () => {
-      const eventListener = vi.fn();
       const host = createLitElement();
-      host.addEventListener('frigate-card:view:change', eventListener);
+
+      const cameraManager = createCameraManager(createCameraStore());
+
+      const viewManager = mock<ViewManager>();
+      viewManager.getView.mockReturnValue(createView());
+
+      vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
 
       const controller = new MediaFilterController(host);
-      const cameraManager = createCameraManager();
-      const view = createView();
-      vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
-      vi.mocked(executeMediaQueryForViewWithErrorDispatching).mockResolvedValueOnce(
-        view,
-      );
+      controller.setViewManager(viewManager);
 
       const from = new Date('2024-02-06T21:59');
       const to = new Date('2024-02-06T22:00');
 
       await controller.valueChangeHandler(
         cameraManager,
-        view,
         {
           performance: createPerformanceConfig({
             features: {
@@ -484,20 +493,15 @@ describe('MediaFilterController', () => {
         },
       );
 
-      expect(vi.mocked(executeMediaQueryForViewWithErrorDispatching)).toBeCalledWith(
-        host,
-        cameraManager,
-        view,
-        expect.anything(),
-        {
-          targetCameraID: 'camera.kitchen',
-          targetView: 'recordings',
-        },
-      );
+      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalledWith({
+        params: expect.objectContaining({
+          camera: 'camera.kitchen',
+          view: 'recordings',
+        }),
+      });
+
       expect(
-        vi
-          .mocked(executeMediaQueryForViewWithErrorDispatching)
-          .mock.calls[0][3].getQueries(),
+        viewManager.setViewByParametersWithExistingQuery.mock.calls[0][0]?.params?.query?.getQueries(),
       ).toEqual([
         {
           cameraIDs: new Set(['camera.kitchen']),
@@ -509,18 +513,21 @@ describe('MediaFilterController', () => {
         },
       ]);
 
-      expect(eventListener).toBeCalled();
       expect(host.requestUpdate).toBeCalled();
     });
 
     it('without favorites', async () => {
-      const controller = new MediaFilterController(createLitElement());
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
 
+      const viewManager = mock<ViewManager>();
+      viewManager.getView.mockReturnValue(createView());
+
+      const controller = new MediaFilterController(createLitElement());
+      controller.setViewManager(viewManager);
+
       await controller.valueChangeHandler(
         cameraManager,
-        createView(),
         {},
         {
           mediaType: MediaFilterMediaType.Recordings,
@@ -528,10 +535,15 @@ describe('MediaFilterController', () => {
         },
       );
 
+      expect(viewManager.setViewByParametersWithExistingQuery).toBeCalledWith({
+        params: expect.objectContaining({
+          camera: 'camera.kitchen',
+          view: 'recordings',
+        }),
+      });
+
       expect(
-        vi
-          .mocked(executeMediaQueryForViewWithErrorDispatching)
-          .mock.calls[0][3].getQueries(),
+        viewManager.setViewByParametersWithExistingQuery.mock.calls[0][0]?.params?.query?.getQueries(),
       ).toEqual([
         {
           cameraIDs: new Set(['camera.kitchen']),
@@ -575,13 +587,17 @@ describe('MediaFilterController', () => {
           new Date('2024-02-29T23:59:59.999'),
         ],
       ])('%s', async (value: MediaFilterCoreWhen | string, from: Date, to: Date) => {
-        const controller = new MediaFilterController(createLitElement());
         const cameraManager = createCameraManager();
         vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
 
+        const viewManager = mock<ViewManager>();
+        viewManager.getView.mockReturnValue(createView());
+
+        const controller = new MediaFilterController(createLitElement());
+        controller.setViewManager(viewManager);
+
         await controller.valueChangeHandler(
           cameraManager,
-          createView(),
           {},
           {
             mediaType: MediaFilterMediaType.Recordings,
@@ -590,11 +606,8 @@ describe('MediaFilterController', () => {
             },
           },
         );
-
         expect(
-          vi
-            .mocked(executeMediaQueryForViewWithErrorDispatching)
-            .mock.calls[0][3].getQueries(),
+          viewManager.setViewByParametersWithExistingQuery.mock.calls[0][0]?.params?.query?.getQueries(),
         ).toEqual([
           {
             cameraIDs: new Set(['camera.kitchen']),
@@ -606,13 +619,17 @@ describe('MediaFilterController', () => {
       });
 
       it('custom without values', async () => {
-        const controller = new MediaFilterController(createLitElement());
         const cameraManager = createCameraManager();
         vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
 
+        const viewManager = mock<ViewManager>();
+        viewManager.getView.mockReturnValue(createView());
+
+        const controller = new MediaFilterController(createLitElement());
+        controller.setViewManager(viewManager);
+
         await controller.valueChangeHandler(
           cameraManager,
-          createView(),
           {},
           {
             mediaType: MediaFilterMediaType.Recordings,
@@ -623,9 +640,7 @@ describe('MediaFilterController', () => {
         );
 
         expect(
-          vi
-            .mocked(executeMediaQueryForViewWithErrorDispatching)
-            .mock.calls[0][3].getQueries(),
+          viewManager.setViewByParametersWithExistingQuery.mock.calls[0][0]?.params?.query?.getQueries(),
         ).toEqual([
           {
             cameraIDs: new Set(['camera.kitchen']),
@@ -638,24 +653,25 @@ describe('MediaFilterController', () => {
 
   describe('should calculate correct defaults', () => {
     it('with no queries', () => {
-      const controller = new MediaFilterController(createLitElement());
+      const viewManager = mock<ViewManager>();
+      viewManager.getView.mockReturnValue(createView());
 
-      controller.computeInitialDefaultsFromView(createCameraManager(), createView());
+      const controller = new MediaFilterController(createLitElement());
+      controller.setViewManager(viewManager);
+
+      controller.computeInitialDefaultsFromView(createCameraManager());
 
       expect(controller.getDefaults()).toBeNull();
     });
 
     it('with no cameras', () => {
-      const controller = new MediaFilterController(createLitElement());
+      const viewManager = mock<ViewManager>();
+      viewManager.getView.mockReturnValue(createView());
 
-      controller.computeInitialDefaultsFromView(
-        createCameraManager(),
-        createView({
-          query: new EventMediaQueries([
-            { type: QueryType.Event, cameraIDs: new Set(['camera.kitchen']) },
-          ]),
-        }),
-      );
+      const controller = new MediaFilterController(createLitElement());
+      controller.setViewManager(viewManager);
+
+      controller.computeInitialDefaultsFromView(createCameraManager());
 
       expect(controller.getDefaults()).toBeNull();
     });
@@ -948,16 +964,20 @@ describe('MediaFilterController', () => {
           mediaQueries: MediaQueries,
           defaults: MediaFilterCoreDefaults | null,
         ) => {
-          const controller = new MediaFilterController(createLitElement());
-          const cameraManager = createCameraManager();
-          vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
-
-          controller.computeInitialDefaultsFromView(
-            cameraManager,
+          const viewManager = mock<ViewManager>();
+          viewManager.getView.mockReturnValue(
             createView({
               query: mediaQueries,
             }),
           );
+
+          const controller = new MediaFilterController(createLitElement());
+          controller.setViewManager(viewManager);
+
+          const cameraManager = createCameraManager();
+          vi.mocked(cameraManager.getStore).mockReturnValue(createCameraStore());
+
+          controller.computeInitialDefaultsFromView(cameraManager);
 
           expect(controller.getDefaults()).toEqual(defaults);
         },

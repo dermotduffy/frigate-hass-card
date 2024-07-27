@@ -37,7 +37,6 @@ const FULL_COVERAGE_FILES_RELATIVE = [
   'utils/interaction-mode.ts',
   'utils/media-info.ts',
   'utils/media-layout.ts',
-  'utils/media-to-view.ts',
   'utils/media.ts',
   'utils/ptz.ts',
   'utils/screenshot.ts',

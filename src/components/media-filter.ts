@@ -21,11 +21,11 @@ import {
 import { CardWideConfig } from '../config/types';
 import { localize } from '../localize/localize';
 import mediaFilterStyle from '../scss/media-filter.scss';
-import { View } from '../view/view';
 import { FrigateCardDatePicker } from './date-picker';
 import './date-picker.js';
 import { FrigateCardSelect } from './select';
 import './select.js';
+import { ViewManagerEpoch } from '../card-controller/view/types';
 
 @customElement('frigate-card-media-filter')
 class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
@@ -36,7 +36,7 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
   public cameraManager?: CameraManager;
 
   @property({ attribute: false })
-  public view?: View;
+  public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -59,46 +59,49 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
   protected _refTags: Ref<FrigateCardSelect> = createRef();
 
   protected willUpdate(changedProps: PropertyValues): void {
+    if (changedProps.has('viewManagerEpoch')) {
+      this._mediaFilterController.setViewManager(this.viewManagerEpoch?.manager ?? null);
+    }
+
     if (changedProps.has('cameraManager') && this.cameraManager) {
       this._mediaFilterController.computeCameraOptions(this.cameraManager);
       this._mediaFilterController.computeMetadataOptions(this.cameraManager);
     }
+
+    // The first time the viewManager is set, compute the initial default selections.
     if (
-      changedProps.has('view') &&
-      !changedProps.get('view') &&
-      this.view &&
+      !changedProps.get('viewManager') &&
+      this.viewManagerEpoch &&
       this.cameraManager
     ) {
-      this._mediaFilterController.computeInitialDefaultsFromView(
-        this.cameraManager,
-        this.view,
-      );
+      this._mediaFilterController.computeInitialDefaultsFromView(this.cameraManager);
     }
   }
 
   protected render(): TemplateResult | void {
     const valueChange = async () => {
-      if (!this.cameraManager || !this.view || !this.cardWideConfig) {
+      if (!this.cameraManager || !this.viewManagerEpoch || !this.cardWideConfig) {
         return;
       }
       await this._mediaFilterController.valueChangeHandler(
         this.cameraManager,
-        this.view,
         this.cardWideConfig,
         {
-          camera: this._refCamera.value?.value,
-          mediaType: this._refMediaType.value?.value as MediaFilterMediaType | undefined,
+          camera: this._refCamera.value?.value ?? undefined,
+          mediaType: (this._refMediaType.value?.value ?? undefined) as
+            | MediaFilterMediaType
+            | undefined,
           when: {
-            selected: this._refWhen.value?.value,
+            selected: this._refWhen.value?.value ?? undefined,
             from: this._refWhenFrom.value?.value,
             to: this._refWhenTo.value?.value,
           },
-          favorite: this._refFavorite.value?.value as
+          favorite: (this._refFavorite.value?.value ?? undefined) as
             | MediaFilterCoreFavoriteSelection
             | undefined,
-          where: this._refWhere.value?.value,
-          what: this._refWhat.value?.value,
-          tags: this._refTags.value?.value,
+          where: this._refWhere.value?.value ?? undefined,
+          what: this._refWhat.value?.value ?? undefined,
+          tags: this._refTags.value?.value ?? undefined,
         },
       );
     };
@@ -119,14 +122,11 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
       await valueChange();
     };
 
-    if (!this.cameraManager || !this.view) {
+    if (!this.cameraManager || !this.viewManagerEpoch) {
       return;
     }
 
-    const controls = this._mediaFilterController.getControlsToShow(
-      this.cameraManager,
-      this.view,
-    );
+    const controls = this._mediaFilterController.getControlsToShow(this.cameraManager);
     const defaults = this._mediaFilterController.getDefaults();
     const whatOptions = this._mediaFilterController.getWhatOptions();
     const tagsOptions = this._mediaFilterController.getTagsOptions();

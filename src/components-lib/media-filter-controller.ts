@@ -21,10 +21,9 @@ import { SelectOption, SelectValues } from '../components/select';
 import { CardWideConfig } from '../config/types';
 import { localize } from '../localize/localize';
 import { errorToConsole, formatDate, prettifyTitle } from '../utils/basic';
-import { executeMediaQueryForViewWithErrorDispatching } from '../utils/media-to-view';
 import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
-import { View } from '../view/view';
+import { ViewManagerInterface } from '../card-controller/view/types';
 
 interface MediaFilterControls {
   events: boolean;
@@ -77,6 +76,7 @@ export class MediaFilterController {
   protected _favoriteOptions: SelectOption[];
 
   protected _defaults: MediaFilterCoreDefaults | null = null;
+  protected _viewManager: ViewManagerInterface | null = null;
 
   constructor(host: LitElement) {
     this._host = host;
@@ -154,10 +154,12 @@ export class MediaFilterController {
   public getDefaults(): MediaFilterCoreDefaults | null {
     return this._defaults;
   }
+  public setViewManager(viewManager: ViewManagerInterface | null): void {
+    this._viewManager = viewManager;
+  }
 
   public async valueChangeHandler(
     cameraManager: CameraManager,
-    view: View,
     cardWideConfig: CardWideConfig,
     values: {
       camera?: string | string[];
@@ -234,20 +236,15 @@ export class MediaFilterController {
         },
       ]);
 
-      (
-        await executeMediaQueryForViewWithErrorDispatching(
-          this._host,
-          cameraManager,
-          view,
-          queries,
-          {
-            // See 'A note on views' above for these two arguments.
-            ...(cameraIDs.size === 1 && { targetCameraID: [...cameraIDs][0] }),
-            targetView:
-              values.mediaType === MediaFilterMediaType.Clips ? 'clips' : 'snapshots',
-          },
-        )
-      )?.dispatchChangeEvent(this._host);
+      this._viewManager?.setViewByParametersWithExistingQuery({
+        params: {
+          query: queries,
+
+          // See 'A note on views' above for these two arguments
+          ...(cameraIDs.size === 1 && { camera: [...cameraIDs][0] }),
+          view: values.mediaType === MediaFilterMediaType.Clips ? 'clips' : 'snapshots',
+        },
+      });
     } else {
       const queries = new RecordingMediaQueries([
         {
@@ -262,19 +259,15 @@ export class MediaFilterController {
         },
       ]);
 
-      (
-        await executeMediaQueryForViewWithErrorDispatching(
-          this._host,
-          cameraManager,
-          view,
-          queries,
-          {
-            // See 'A note on views' above for these two arguments.
-            ...(cameraIDs.size === 1 && { targetCameraID: [...cameraIDs][0] }),
-            targetView: 'recordings',
-          },
-        )
-      )?.dispatchChangeEvent(this._host);
+      this._viewManager?.setViewByParametersWithExistingQuery({
+        params: {
+          query: queries,
+
+          // See 'A note on views' above for these two arguments
+          ...(cameraIDs.size === 1 && { camera: [...cameraIDs][0] }),
+          view: 'recordings',
+        },
+      });
     }
 
     // Need to ensure we update the element as the date-picker selections may
@@ -288,10 +281,11 @@ export class MediaFilterController {
     });
   }
 
-  public computeInitialDefaultsFromView(cameraManager: CameraManager, view: View): void {
-    const queries = view.query?.getQueries();
+  public computeInitialDefaultsFromView(cameraManager: CameraManager): void {
+    const view = this._viewManager?.getView();
+    const queries = view?.query?.getQueries();
     const allCameraIDs = this._getAllCameraIDs(cameraManager);
-    if (!queries || !allCameraIDs.size) {
+    if (!view || !queries || !allCameraIDs.size) {
       return;
     }
 
@@ -444,14 +438,10 @@ export class MediaFilterController {
     this._host.requestUpdate();
   }
 
-  public getControlsToShow(
-    cameraManager: CameraManager,
-    view: View,
-  ): MediaFilterControls {
-    const events = !!(view.query && MediaQueriesClassifier.areEventQueries(view.query));
-    const recordings = !!(
-      view.query && MediaQueriesClassifier.areRecordingQueries(view.query)
-    );
+  public getControlsToShow(cameraManager: CameraManager): MediaFilterControls {
+    const view = this._viewManager?.getView();
+    const events = MediaQueriesClassifier.areEventQueries(view?.query);
+    const recordings = MediaQueriesClassifier.areRecordingQueries(view?.query);
     const managerCapabilities = cameraManager.getAggregateCameraCapabilities();
 
     return {

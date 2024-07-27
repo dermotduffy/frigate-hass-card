@@ -110,7 +110,7 @@ describe('InitializationManager', () => {
       expect(loadLanguages).toBeCalled();
       expect(sideLoadHomeAssistantElements).toBeCalled();
       expect(api.getCameraManager().initializeCamerasFromConfig).toBeCalled();
-      expect(api.getViewManager().setViewDefault).toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
       expect(api.getMicrophoneManager().connect).not.toBeCalled();
     });
 

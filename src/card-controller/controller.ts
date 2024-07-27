@@ -55,7 +55,7 @@ import {
   CardTriggersAPI,
   CardViewAPI,
 } from './types';
-import { ViewManager } from './view-manager';
+import { ViewManager } from './view/view-manager';
 import { KeyboardStateManager } from './keyboard-state-manager';
 
 export class CardController

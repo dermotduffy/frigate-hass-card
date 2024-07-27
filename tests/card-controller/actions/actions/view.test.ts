@@ -27,9 +27,11 @@ describe('should handle view action', () => {
 
     await action.execute(api);
 
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith(
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith(
       expect.objectContaining({
-        viewName: viewName,
+        params: {
+          view: viewName,
+        },
       }),
     );
   });

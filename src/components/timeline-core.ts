@@ -1,14 +1,14 @@
 import { add, differenceInSeconds, sub } from 'date-fns';
 import {
   CSSResultGroup,
-  html,
   LitElement,
   PropertyValues,
   TemplateResult,
+  html,
   unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import isEqual from 'lodash-es/isEqual';
 import throttle from 'lodash-es/throttle';
 import { ViewContext } from 'view';
@@ -26,6 +26,8 @@ import { CameraManager } from '../camera-manager/manager';
 import { rangesOverlap } from '../camera-manager/range';
 import { MediaQuery } from '../camera-manager/types';
 import { convertRangeToCacheFriendlyTimes } from '../camera-manager/utils/range-to-cache-friendly';
+import { MergeContextViewModifier } from '../card-controller/view/modifiers/merge-context';
+import { ViewManagerEpoch } from '../card-controller/view/types';
 import {
   FrigateCardTimelineItem,
   TimelineDataSource,
@@ -33,11 +35,11 @@ import {
 import {
   CameraConfig,
   CardWideConfig,
-  frigateCardConfigDefaults,
   FrigateCardView,
   ThumbnailsControlBaseConfig,
   TimelineCoreConfig,
   TimelinePanMode,
+  frigateCardConfigDefaults,
 } from '../config/types';
 import { localize } from '../localize/localize';
 import timelineCoreStyle from '../scss/timeline-core.scss';
@@ -51,10 +53,7 @@ import {
   isTruthy,
   setOrRemoveAttribute,
 } from '../utils/basic';
-import {
-  executeMediaQueryForViewWithErrorDispatching,
-  findBestMediaIndex,
-} from '../utils/media-to-view';
+import { findBestMediaIndex } from '../utils/find-best-media-index';
 import { ViewMedia } from '../view/media';
 import { ViewMediaClassifier } from '../view/media-classifier';
 import {
@@ -67,7 +66,7 @@ import {
   MediaQueriesType,
 } from '../view/media-queries-classifier';
 import { MediaQueriesResults } from '../view/media-queries-results';
-import { View } from '../view/view';
+import { mergeViewContext } from '../view/view';
 import './date-picker.js';
 import { DatePickerEvent, FrigateCardDatePicker } from './date-picker.js';
 import './thumbnail.js';
@@ -107,7 +106,7 @@ interface ThumbnailDataRequest {
   cameraManager?: CameraManager;
   cameraConfig?: CameraConfig;
   media?: ViewMedia;
-  view?: View;
+  viewManagerEpoch?: ViewManagerEpoch;
 }
 
 class ThumbnailDataRequestEvent extends CustomEvent<ThumbnailDataRequest> {}
@@ -115,7 +114,7 @@ class ThumbnailDataRequestEvent extends CustomEvent<ThumbnailDataRequest> {}
 const TIMELINE_TARGET_BAR_ID = 'target_bar';
 
 /**
- * A simgple thumbnail wrapper class for use in the timeline where LIT data
+ * A simgple thumbnail wrapper class for use in the timeline where Lit data
  * bindings are not available.
  */
 @customElement('frigate-card-timeline-thumbnail')
@@ -160,7 +159,7 @@ export class FrigateCardTimelineThumbnail extends LitElement {
       !dataRequest.cameraManager ||
       !dataRequest.cameraConfig ||
       !dataRequest.media ||
-      !dataRequest.view
+      !dataRequest.viewManagerEpoch
     ) {
       return html``;
     }
@@ -169,7 +168,7 @@ export class FrigateCardTimelineThumbnail extends LitElement {
       .hass=${dataRequest.hass}
       .cameraManager=${dataRequest.cameraManager}
       .media=${dataRequest.media}
-      .view=${dataRequest.view}
+      .viewManagerEpoch=${dataRequest.viewManagerEpoch}
       ?details=${this.details}
     >
     </frigate-card-thumbnail>`;
@@ -182,12 +181,12 @@ export class FrigateCardTimelineCore extends LitElement {
   public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  public view?: Readonly<View>;
+  public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false, hasChanged: contentsChanged })
   public timelineConfig?: TimelineCoreConfig;
 
-  @property({ attribute: true, type: Boolean })
+  @property({ attribute: false })
   public thumbnailConfig?: ThumbnailsControlBaseConfig;
 
   // Whether or not this is a mini-timeline (in mini-mode the component takes a
@@ -269,11 +268,11 @@ export class FrigateCardTimelineCore extends LitElement {
     request.detail.cameraConfig = cameraConfig;
     request.detail.cameraManager = this.cameraManager;
     request.detail.media = media;
-    request.detail.view = this.view;
+    request.detail.viewManagerEpoch = this.viewManagerEpoch;
   }
 
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.view || !this.timelineConfig || !this.cameraIDs?.size) {
+    if (!this.hass || !this.timelineConfig || !this.cameraIDs?.size) {
       return;
     }
 
@@ -383,6 +382,7 @@ export class FrigateCardTimelineCore extends LitElement {
       return;
     }
 
+    const view = this.viewManagerEpoch?.manager.getView();
     const panMode = this._getEffectivePanMode();
     const targetBarOn =
       this._shouldSupportSeeking() &&
@@ -392,7 +392,7 @@ export class FrigateCardTimelineCore extends LitElement {
             const item = this._timelineSource?.dataset?.get(id);
             return (
               panMode !== 'seek-in-camera' ||
-                item?.media?.getCameraID() === this.view?.camera,
+                item?.media?.getCameraID() === view?.camera,
               item &&
                 item.start &&
                 item.end &&
@@ -450,14 +450,15 @@ export class FrigateCardTimelineCore extends LitElement {
     targetTime: Date,
     properties: TimelineRangeChange,
   ): Promise<void> {
-    const results = this.view?.queryResults;
+    const view = this.viewManagerEpoch?.manager.getView();
+    const results = view?.queryResults;
     const media = results?.getResults();
     const panMode = this._getEffectivePanMode();
     if (
       !media ||
       !results ||
       !this._timeline ||
-      !this.view ||
+      !view ||
       !this.hass ||
       !this.cameraManager ||
       panMode === 'pan'
@@ -473,7 +474,7 @@ export class FrigateCardTimelineCore extends LitElement {
         .clone()
         .resetSelectedResult()
         .selectBestResult(
-          (mediaArray) => findBestMediaIndex(mediaArray, targetTime, this.view?.camera),
+          (mediaArray) => findBestMediaIndex(mediaArray, targetTime, view?.camera),
           {
             allCameras: true,
             main: true,
@@ -484,9 +485,9 @@ export class FrigateCardTimelineCore extends LitElement {
         .clone()
         .resetSelectedResult()
         .selectBestResult((mediaArray) => findBestMediaIndex(mediaArray, targetTime), {
-          cameraID: this.view.camera,
+          cameraID: view.camera,
         })
-        .promoteCameraSelectionToMainSelection(this.view.camera);
+        .promoteCameraSelectionToMainSelection(view.camera);
     } else if (panMode === 'seek-in-media') {
       newResults = results;
     }
@@ -495,20 +496,23 @@ export class FrigateCardTimelineCore extends LitElement {
       ? targetTime >= new Date()
         ? 'live'
         : 'media'
-      : this.view.view;
+      : view.view;
 
     const selectedCamera = newResults?.getSelectedResult()?.getCameraID();
-    this.view
-      .evolve({
+
+    this.viewManagerEpoch?.manager.setViewByParameters({
+      params: {
         ...(selectedCamera && { camera: selectedCamera }),
         view: desiredView,
         queryResults: newResults,
-      }) // Whether or not to set the timeline window.
-      .mergeInContext({
-        ...(canSeek && { mediaViewer: { seek: targetTime } }),
-        ...this._getTimelineContext({ start: properties.start, end: properties.end }),
-      })
-      .dispatchChangeEvent(this);
+      },
+      modifiers: [
+        new MergeContextViewModifier({
+          ...(canSeek && { mediaViewer: { seek: targetTime } }),
+          ...this._getTimelineContext({ start: properties.start, end: properties.end }),
+        }),
+      ],
+    });
   }
 
   protected _getEffectivePanMode(): TimelinePanMode {
@@ -533,22 +537,18 @@ export class FrigateCardTimelineCore extends LitElement {
       stopEventFromActivatingCardWideActions(properties.event);
     }
 
+    const view = this.viewManagerEpoch?.manager.getView();
+
     if (
       this._ignoreClick ||
-      !this.hass ||
-      !this._timeline ||
-      !this.view ||
-      !this.cameraManager ||
-      !this.cardWideConfig ||
-      !this.cameraIDs ||
-      !this.cameraIDs.size ||
+      !view ||
+      !this.viewManagerEpoch ||
       !this._timelineSource ||
       !properties.what
     ) {
       return;
     }
 
-    let view: View | null = null;
     let drawerAction: 'open' | 'close' = 'close';
 
     if (
@@ -558,28 +558,34 @@ export class FrigateCardTimelineCore extends LitElement {
     ) {
       const query = this._createMediaQueries('recording');
       if (query) {
-        view = await executeMediaQueryForViewWithErrorDispatching(
-          this,
-          this.cameraManager,
-          this.view,
-          query,
-          {
-            targetView: 'recording',
-            targetTime: properties.time,
-            select: 'time',
+        await this.viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
+          baseView: view,
+          params: { view: 'recording', query: query },
+          queryExecutorOptions: {
+            selectResult: {
+              time: {
+                time: properties.time,
+              },
+            },
           },
-        );
+        });
       }
     } else if (properties.item && properties.what === 'item') {
       const cameraID = String(properties.group);
+      const id = String(properties.item);
+
       const criteria = {
         main: true,
-        ...(cameraID && this.view.isGrid() && { cameraID: cameraID }),
+        ...(cameraID && view.isGrid() && { cameraID: cameraID }),
       };
-      const newResults = this.view.queryResults
+      const newResults = view.queryResults
         ?.clone()
         .resetSelectedResult()
         .selectResultIfFound((media) => media.getID() === properties.item, criteria);
+
+      const context: ViewContext = mergeViewContext(this._getTimelineContext(), {
+        mediaViewer: { seek: properties.time },
+      });
 
       if (!newResults || !newResults.hasSelectedResult()) {
         // This can happen in a few situations:
@@ -589,36 +595,34 @@ export class FrigateCardTimelineCore extends LitElement {
         //   gallery (i.e. any case where the thumbnails may not be match the
         //   events on the timeline, e.g. in the snapshots viewer but
         //   mini-timeline showing all media).
-        const fullEventView = await this._createViewWithMediaQueries(
-          this._createMediaQueries('event'),
-          {
-            selectedItem: properties.item,
-            targetView: 'media',
-          },
-        );
-        if (fullEventView?.queryResults?.hasResults()) {
-          view = fullEventView;
+        const query = this._createMediaQueries('event');
+        if (query) {
+          await this.viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
+            params: { view: 'media', query: query },
+            queryExecutorOptions: {
+              selectResult: {
+                id: id,
+              },
+              rejectResults: (results) => !results.hasResults(),
+            },
+            modifiers: [new MergeContextViewModifier(context)],
+          });
         }
       } else {
-        view = this.view.evolve({
-          queryResults: newResults,
-          view: this.itemClickAction === 'play' ? 'media' : this.view.view,
+        this.viewManagerEpoch.manager.setViewByParameters({
+          params: {
+            queryResults: newResults,
+            view: this.itemClickAction === 'play' ? 'media' : view.view,
+          },
+          modifiers: [new MergeContextViewModifier(context)],
         });
       }
 
-      if (view?.queryResults?.hasResults()) {
-        view.mergeInContext({ mediaViewer: { seek: properties.time } });
-      }
-      view?.mergeInContext(this._getTimelineContext());
-
-      if (this.itemClickAction === 'select' && view) {
+      if (this.itemClickAction === 'select') {
         drawerAction = 'open';
       }
     }
 
-    if (view) {
-      view.dispatchChangeEvent(this);
-    }
     dispatchFrigateCardEvent(this, `thumbnails:${drawerAction}`);
 
     this._ignoreClick = false;
@@ -648,10 +652,11 @@ export class FrigateCardTimelineCore extends LitElement {
     event: Event & { additionalEvent: string };
   }): Promise<void> {
     this._removeTargetBar();
+    const view = this.viewManagerEpoch?.manager.getView();
 
     if (
       !this._timeline ||
-      !this.view ||
+      !view ||
       // When in mini mode, something else is in charge of the primary media
       // population (e.g. the live view), in this case only act when the user
       // themselves are interacting with the timeline.
@@ -662,23 +667,34 @@ export class FrigateCardTimelineCore extends LitElement {
 
     await this._timelineSource?.refresh(this._getPrefetchWindow(properties));
 
-    const queryType = MediaQueriesClassifier.getQueriesType(this.view.query);
+    const queryType = MediaQueriesClassifier.getQueriesType(view.query);
     if (!queryType) {
       return;
     }
     const mediaQuery = this._createMediaQueries(queryType);
-    const newView = await this._createViewWithMediaQueries(mediaQuery);
 
-    // Specifically avoid dispatching new results on range change unless there
-    // is something to be gained by doing so. Example usecase: On initial view
-    // load in mini timeline mode, the first 50 events are fetched -- the
-    // first drag of the timeline should not dispatch new results unless
-    // something is actually useful (as otherwise it creates a visible
-    // 'flicker' for the user as the viewer reloads all the media).
-    const newResults = newView?.queryResults;
-    if (newView && newResults && !this.view.queryResults?.isSupersetOf(newResults)) {
-      newView?.mergeInContext(this._getTimelineContext())?.dispatchChangeEvent(this);
-    }
+    await this.viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
+      params: {
+        query: mediaQuery,
+      },
+      queryExecutorOptions: {
+        // Reject the new results unless there is something to be gained (i.e. they
+        // are not a subset of the existing results). Example usecase: On initial
+        // view load in mini timeline mode, the first 50 events are fetched -- the
+        // first drag of the timeline should not dispatch new results unless
+        // something is actually useful (as otherwise it creates a visible 'flicker'
+        // for the user as the viewer reloads all the media).
+        rejectResults: (results) => !!view.queryResults?.isSupersetOf(results),
+        selectResult: {
+          id:
+            this.viewManagerEpoch?.manager
+              .getView()
+              ?.queryResults?.getSelectedResult()
+              ?.getID() ?? undefined,
+        },
+      },
+      modifiers: [new MergeContextViewModifier(this._getTimelineContext())],
+    });
   }
 
   protected _createMediaQueries(
@@ -704,46 +720,6 @@ export class FrigateCardTimelineCore extends LitElement {
       return queries ? new RecordingMediaQueries(queries) : null;
     }
     return null;
-  }
-
-  protected async _createViewWithMediaQueries(
-    query: MediaQueries | null,
-    options?: {
-      targetView?: FrigateCardView;
-      selectedItem?: IdType;
-    },
-  ): Promise<View | null> {
-    if (!this.hass || !this.cameraManager || !this.view || !query) {
-      return null;
-    }
-    const view = await executeMediaQueryForViewWithErrorDispatching(
-      this,
-      this.cameraManager,
-      this.view,
-      query,
-      {
-        targetView: options?.targetView,
-        select: 'latest',
-      },
-    );
-    if (!view) {
-      return null;
-    }
-    if (options?.selectedItem) {
-      view.queryResults?.selectResultIfFound(
-        (media) => media.getID() === options.selectedItem,
-      );
-    } else {
-      // If not asked to select a new item, persist the currently selected item
-      // if possible.
-      const currentlySelectedResult = this.view.queryResults?.getSelectedResult();
-      if (currentlySelectedResult) {
-        view.queryResults?.selectResultIfFound(
-          (media) => media.getID() === currentlySelectedResult.getID(),
-        );
-      }
-    }
-    return view;
   }
 
   /**
@@ -937,10 +913,11 @@ export class FrigateCardTimelineCore extends LitElement {
   }
 
   protected _getAllSelectedMediaIDsFromView(): IdType[] {
+    const view = this.viewManagerEpoch?.manager.getView();
     return (
-      this.view?.queryResults?.getMultipleSelectedResults({
+      view?.queryResults?.getMultipleSelectedResults({
         main: true,
-        ...(this.view.isGrid() && { allCameras: true }),
+        ...(view.isGrid() && { allCameras: true }),
       }) ?? []
     )
       .filter((media) => ViewMediaClassifier.isEvent(media))
@@ -952,7 +929,8 @@ export class FrigateCardTimelineCore extends LitElement {
    * Update the timeline from the view object.
    */
   protected async _updateTimelineFromView(): Promise<void> {
-    if (!this.view || !this.timelineConfig || !this._timelineSource || !this._timeline) {
+    const view = this.viewManagerEpoch?.manager.getView();
+    if (!view || !this.timelineConfig || !this._timelineSource || !this._timeline) {
       return;
     }
 
@@ -965,7 +943,7 @@ export class FrigateCardTimelineCore extends LitElement {
     // perfectly center on the media.
 
     let desiredWindow = timelineWindow;
-    const media = this.view.queryResults?.getSelectedResult();
+    const media = view.queryResults?.getSelectedResult();
     const mediaStartTime = media?.getStartTime() ?? null;
     const mediaEndTime = media?.getEndTime() ?? null;
     const mediaIsEvent = media ? ViewMediaClassifier.isEvent(media) : false;
@@ -976,7 +954,7 @@ export class FrigateCardTimelineCore extends LitElement {
           // range effectively starts/ends at the same time.
           { start: mediaStartTime, end: mediaEndTime ?? mediaStartTime }
         : null;
-    const context = this.view.context?.timeline;
+    const context = view.context?.timeline;
 
     if (context && context.window) {
       desiredWindow = context.window;
@@ -1048,7 +1026,7 @@ export class FrigateCardTimelineCore extends LitElement {
     // Also don't generate thumbnails in mini-timelines (they will already have
     // been generated).
 
-    const queryType = MediaQueriesClassifier.getQueriesType(this.view.query);
+    const queryType = MediaQueriesClassifier.getQueriesType(view.query);
     if (!queryType) {
       return;
     }
@@ -1062,15 +1040,31 @@ export class FrigateCardTimelineCore extends LitElement {
       freshMediaQuery &&
       !this._alreadyHasAcceptableMediaQuery(freshMediaQuery)
     ) {
-      (await this._createViewWithMediaQueries(freshMediaQuery))
-        ?.mergeInContext(this._getTimelineContext(desiredWindow))
-        .dispatchChangeEvent(this);
+      const currentlySelectedResult = this.viewManagerEpoch?.manager
+        .getView()
+        ?.queryResults?.getSelectedResult();
+
+      await this.viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
+        params: {
+          query: freshMediaQuery,
+        },
+        queryExecutorOptions: {
+          selectResult: {
+            id: currentlySelectedResult?.getID() ?? undefined,
+          },
+        },
+        modifiers: [
+          new MergeContextViewModifier(this._getTimelineContext(desiredWindow)),
+        ],
+      });
     }
   }
 
   protected _alreadyHasAcceptableMediaQuery(freshMediaQuery: MediaQueries): boolean {
-    const currentQueries = this.view?.query?.getQueries();
-    const currentResultTimestamp = this.view?.queryResults?.getResultsTimestamp();
+    const view = this.viewManagerEpoch?.manager.getView();
+
+    const currentQueries = view?.query?.getQueries();
+    const currentResultTimestamp = view?.queryResults?.getResultsTimestamp();
 
     return (
       !!this.cameraManager &&
@@ -1089,10 +1083,11 @@ export class FrigateCardTimelineCore extends LitElement {
    * @returns The TimelineViewContext object.
    */
   protected _getTimelineContext(window?: TimelineWindow): ViewContext {
+    const view = this.viewManagerEpoch?.manager.getView();
     const newWindow = window ?? this._timeline?.getWindow();
     return {
       timeline: {
-        ...this.view?.context?.timeline,
+        ...view?.context?.timeline,
         ...(newWindow && { window: newWindow }),
       },
     };
@@ -1225,7 +1220,7 @@ export class FrigateCardTimelineCore extends LitElement {
       // `this._timeline.setwindow()` being entirely ignored. Example case:
       // Clicking the timeline control on a recording thumbnail.
       window.requestAnimationFrame(this._updateTimelineFromView.bind(this));
-    } else if (changedProperties.has('view')) {
+    } else if (changedProperties.has('viewManagerEpoch')) {
       this._updateTimelineFromView();
     }
   }

@@ -20,7 +20,7 @@ import type { MessageManager } from './message-manager';
 import type { MicrophoneManager } from './microphone-manager';
 import type { StyleManager } from './style-manager';
 import type { TriggersManager } from './triggers-manager';
-import type { ViewManager } from './view-manager';
+import type { ViewManager } from './view/view-manager';
 import type { QueryStringManager } from './query-string-manager';
 import { KeyboardStateManager } from './keyboard-state-manager';
 import { Automation } from '../config/types';

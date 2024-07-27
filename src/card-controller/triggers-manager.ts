@@ -36,7 +36,7 @@ export class TriggersManager {
     return sorted.length ? sorted[0][0] : null;
   }
 
-  public handleCameraEvent(ev: CameraEvent): void {
+  public async handleCameraEvent(ev: CameraEvent): Promise<void> {
     const triggersConfig = this._api.getConfigManager().getConfig()?.view.triggers;
     const selectedCameraID = this._api.getViewManager().getView()?.camera;
 
@@ -60,7 +60,7 @@ export class TriggersManager {
 
     this._triggeredCameras.set(ev.cameraID, new Date());
     this._setConditionStateIfNecessary();
-    this._throttledTriggerAction(ev);
+    await this._throttledTriggerAction(ev);
   }
 
   protected _hasAllowableInteractionStateForAction(): boolean {
@@ -75,7 +75,7 @@ export class TriggersManager {
     );
   }
 
-  protected _triggerAction(ev: CameraEvent): void {
+  protected async _triggerAction(ev: CameraEvent): Promise<void> {
     const triggerAction = this._api.getConfigManager().getConfig()?.view.triggers
       .actions.trigger;
     const defaultView = this._api.getConfigManager().getConfig()?.view.default;
@@ -98,30 +98,30 @@ export class TriggersManager {
 
     if (this._hasAllowableInteractionStateForAction()) {
       if (triggerAction === 'update') {
-        const view = this._api.getViewManager().getView()?.evolve({
-          // Reset the media queries to catch media to be refetched in the
-          // current view.
-          query: null,
-          queryResults: null,
-        });
-        /* istanbul ignore else: the else path cannot be reached, as the camera
-          cannot be triggered without a view -- @preserve */
-        if (view) {
-          this._api.getViewManager().setView(view);
-        }
+        await this._api
+          .getViewManager()
+          .setViewByParametersWithNewQuery({
+            queryExecutorOptions: { useCache: false },
+          });
       } else if (triggerAction === 'live') {
-        this._api.getViewManager().setViewByParameters({
-          viewName: 'live',
-          cameraID: ev.cameraID,
+        await this._api.getViewManager().setViewByParametersWithNewQuery({
+          params: {
+            view: 'live',
+            camera: ev.cameraID,
+          },
         });
       } else if (triggerAction === 'default') {
-        this._api.getViewManager().setViewDefault({
-          cameraID: ev.cameraID,
+        await this._api.getViewManager().setViewDefaultWithNewQuery({
+          params: {
+            camera: ev.cameraID,
+          },
         });
       } else if (ev.fidelity === 'high' && triggerAction === 'media') {
-        this._api.getViewManager().setViewByParameters({
-          viewName: ev.clip ? 'clip' : 'snapshot',
-          cameraID: ev.cameraID,
+        await this._api.getViewManager().setViewByParametersWithNewQuery({
+          params: {
+            view: ev.clip ? 'clip' : 'snapshot',
+            camera: ev.cameraID,
+          },
         });
       }
     }
@@ -143,12 +143,12 @@ export class TriggersManager {
     }
   }
 
-  protected _untriggerAction(cameraID: string): void {
+  protected async _untriggerAction(cameraID: string): Promise<void> {
     const action = this._api.getConfigManager().getConfig()?.view.triggers
       .actions.untrigger;
 
     if (action === 'default' && this._hasAllowableInteractionStateForAction()) {
-      this._api.getViewManager().setViewDefault();
+      await this._api.getViewManager().setViewDefaultWithNewQuery();
     }
     this._triggeredCameras.delete(cameraID);
     this._deleteTimer(cameraID);
@@ -168,8 +168,8 @@ export class TriggersManager {
          reached, as there's no way to have the untrigger call happen without
          a config. -- @preserve */
       this._api.getConfigManager().getConfig()?.view.triggers.untrigger_seconds ?? 0,
-      () => {
-        this._untriggerAction(cameraID);
+      async () => {
+        await this._untriggerAction(cameraID);
       },
     );
   }

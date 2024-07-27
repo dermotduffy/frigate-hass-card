@@ -1,8 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
+import { MergeContextViewModifier } from '../../../src/card-controller/view/modifiers/merge-context';
+import { ViewManager } from '../../../src/card-controller/view/view-manager';
 import {
   generateViewContextForZoom,
   handleZoomSettingsObservedEvent,
 } from '../../../src/components-lib/zoom/zoom-view-context';
+
+vi.mock('../../../src/card-controller/view/modifiers/merge-context');
 
 describe('generateViewContextForZoom', () => {
   it('with observed', () => {
@@ -53,11 +58,9 @@ describe('generateViewContextForZoom', () => {
 
 // @vitest-environment jsdom
 it('handleZoomSettingsObservedEvent', () => {
-  const element = document.createElement('div');
-  const callback = vi.fn();
-  element.addEventListener('frigate-card:view:change-context', callback);
+  const viewManager = mock<ViewManager>();
+
   handleZoomSettingsObservedEvent(
-    element,
     new CustomEvent('frigate-card:zoom:change', {
       detail: {
         pan: { x: 1, y: 2 },
@@ -66,18 +69,21 @@ it('handleZoomSettingsObservedEvent', () => {
         unzoomed: true,
       },
     }),
+    viewManager,
     'target',
   );
-  expect(callback).toBeCalledWith(
+  expect(viewManager.setViewByParameters).toBeCalledWith(
     expect.objectContaining({
-      detail: {
-        zoom: {
-          target: {
-            observed: { pan: { x: 1, y: 2 }, zoom: 3, isDefault: true, unzoomed: true },
-            requested: null,
-          },
-        },
-      },
+      modifiers: [expect.any(MergeContextViewModifier)],
     }),
   );
+
+  expect(MergeContextViewModifier).toBeCalledWith({
+    zoom: {
+      target: {
+        observed: { pan: { x: 1, y: 2 }, zoom: 3, isDefault: true, unzoomed: true },
+        requested: null,
+      },
+    },
+  });
 });

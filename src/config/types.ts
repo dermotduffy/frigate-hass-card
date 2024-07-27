@@ -863,10 +863,6 @@ const imageBaseConfigSchema = z.object({
 const IMAGE_MODES = ['screensaver', 'camera', 'url'] as const;
 const imageConfigDefault = {
   mode: 'url' as const,
-  zoomable: true,
-  controls: {
-    ptz: ptzControlsDefaults,
-  },
   ...imageBaseConfigDefault,
 };
 

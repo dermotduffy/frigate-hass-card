@@ -11,6 +11,8 @@ import { guard } from 'lit/directives/guard.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../camera-manager/manager.js';
+import { RemoveContextPropertyViewModifier } from '../card-controller/view/modifiers/remove-context-property.js';
+import { ViewManagerEpoch } from '../card-controller/view/types.js';
 import { MediaGridSelected } from '../components-lib/media-grid-controller.js';
 import { ZoomSettingsObserved } from '../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../components-lib/zoom/zoom-view-context.js';
@@ -41,7 +43,6 @@ import { mayHaveAudio } from '../utils/audio.js';
 import {
   aspectRatioToString,
   contentsChanged,
-  errorToConsole,
   setOrRemoveAttribute,
 } from '../utils/basic.js';
 import { CarouselSelected } from '../utils/embla/carousel-controller.js';
@@ -59,10 +60,6 @@ import {
 } from '../utils/media-info.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
 import {
-  changeViewToRecentEventsForCameraAndDependents,
-  changeViewToRecentRecordingForCameraAndDependents,
-} from '../utils/media-to-view.js';
-import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
   playMediaMutingIfNecessary,
@@ -71,9 +68,7 @@ import {
 import { screenshotMedia } from '../utils/screenshot.js';
 import { ViewMediaClassifier } from '../view/media-classifier';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
-import { MediaQueriesResults } from '../view/media-queries-results.js';
 import { VideoContentType, ViewMedia } from '../view/media.js';
-import { View } from '../view/view.js';
 import type { EmblaCarouselPlugins } from './carousel.js';
 import './next-prev-control.js';
 import './ptz';
@@ -110,7 +105,7 @@ export class FrigateCardViewer extends LitElement {
   public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  public view?: Readonly<View>;
+  public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
   public viewerConfig?: ViewerConfig;
@@ -127,7 +122,7 @@ export class FrigateCardViewer extends LitElement {
   protected render(): TemplateResult | void {
     if (
       !this.hass ||
-      !this.view ||
+      !this.viewManagerEpoch ||
       !this.viewerConfig ||
       !this.cameraManager ||
       !this.cardWideConfig
@@ -135,55 +130,20 @@ export class FrigateCardViewer extends LitElement {
       return;
     }
 
-    if (!this.view.queryResults?.hasResults()) {
-      // If the query is not specified, the view must tell us which mediaType to
-      // search for. When the query *is* specified, the view is not required to
-      // indicate the media type (e.g. the mixed 'media' view from the
-      // timeline).
-      const mediaType = this.view.getDefaultMediaType();
-      if (!mediaType) {
-        // Directly render an error message (instead of dispatching it upwards)
-        // to preserve the mini-timeline if the user pans into an area with no
-        // media.
-        return renderMessage({
-          type: 'info',
-          message: localize('common.no_media'),
-          icon: 'mdi:multimedia',
-        });
-      }
-
-      if (mediaType === 'recordings') {
-        changeViewToRecentRecordingForCameraAndDependents(
-          this,
-          this.cameraManager,
-          this.cardWideConfig,
-          this.view,
-          {
-            allCameras: this.view.isGrid(),
-            targetView: 'recording',
-            useCache: false,
-          },
-        );
-      } else {
-        changeViewToRecentEventsForCameraAndDependents(
-          this,
-          this.cameraManager,
-          this.cardWideConfig,
-          this.view,
-          {
-            allCameras: this.view.isGrid(),
-            targetView: 'media',
-            eventsMediaType: mediaType,
-            useCache: false,
-          },
-        );
-      }
-      return renderProgressIndicator({ cardWideConfig: this.cardWideConfig });
+    if (!this.viewManagerEpoch.manager.getView()?.queryResults?.hasResults()) {
+      // Directly render an error message (instead of dispatching it upwards)
+      // to preserve the mini-timeline if the user pans into an area with no
+      // media.
+      return renderMessage({
+        type: 'info',
+        message: localize('common.no_media'),
+        icon: 'mdi:multimedia',
+      });
     }
 
     return html` <frigate-card-viewer-grid
       .hass=${this.hass}
-      .view=${this.view}
+      .viewManagerEpoch=${this.viewManagerEpoch}
       .viewerConfig=${this.viewerConfig}
       .resolvedMediaCache=${this.resolvedMediaCache}
       .cameraManager=${this.cameraManager}
@@ -205,7 +165,7 @@ export class FrigateCardViewerCarousel extends LitElement {
   public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  public view?: Readonly<View>;
+  public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
   public viewFilterCameraID?: string;
@@ -227,6 +187,9 @@ export class FrigateCardViewerCarousel extends LitElement {
   @property({ attribute: false })
   public cameraManager?: CameraManager;
 
+  @property({ attribute: false })
+  public showControls = true;
+
   @state()
   protected _selected = 0;
 
@@ -241,12 +204,14 @@ export class FrigateCardViewerCarousel extends LitElement {
   updated(changedProperties: PropertyValues): void {
     super.updated(changedProperties);
 
-    if (changedProperties.has('view')) {
-      const oldView = changedProperties.get('view') as View | undefined;
+    if (changedProperties.has('viewManagerEpoch')) {
       // Seek into the video if the seek time has changed (this is also called
       // on media load, since the media may or may not have been loaded at
       // this point).
-      if (this.view?.context?.mediaViewer !== oldView?.context?.mediaViewer) {
+      if (
+        this.viewManagerEpoch?.manager.getView()?.context?.mediaViewer !==
+        this.viewManagerEpoch?.oldView?.context?.mediaViewer
+      ) {
         this._seekHandler();
       }
     }
@@ -324,7 +289,9 @@ export class FrigateCardViewerCarousel extends LitElement {
   }
 
   protected _setViewSelectedIndex(index: number): void {
-    if (!this._media) {
+    const view = this.viewManagerEpoch?.manager.getView();
+
+    if (!this._media || !view) {
       return;
     }
 
@@ -335,7 +302,7 @@ export class FrigateCardViewerCarousel extends LitElement {
       return;
     }
 
-    const newResults = this.view?.queryResults
+    const newResults = view?.queryResults
       ?.clone()
       .selectIndex(index, this.viewFilterCameraID);
     if (!newResults) {
@@ -345,15 +312,14 @@ export class FrigateCardViewerCarousel extends LitElement {
       .getSelectedResult(this.viewFilterCameraID)
       ?.getCameraID();
 
-    this.view
-      ?.evolve({
+    this.viewManagerEpoch?.manager.setViewByParameters({
+      params: {
         queryResults: newResults,
-
         // Always change the camera to the owner of the selected media.
         ...(cameraID && { camera: cameraID }),
-      })
-      .removeContextProperty('mediaViewer', 'seek')
-      .dispatchChangeEvent(this);
+      },
+      modifiers: [new RemoveContextPropertyViewModifier('mediaViewer', 'seek')],
+    });
   }
 
   /**
@@ -395,17 +361,13 @@ export class FrigateCardViewerCarousel extends LitElement {
     return slides;
   }
 
-  /**
-   * Called when an update will occur.
-   * @param changedProps The changed properties
-   */
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('view')) {
-      const newMedia =
-        this.view?.queryResults?.getResults(this.viewFilterCameraID) ?? null;
+    if (changedProps.has('viewManagerEpoch')) {
+      const view = this.viewManagerEpoch?.manager.getView();
+      const newMedia = view?.queryResults?.getResults(this.viewFilterCameraID) ?? null;
       const newSelected =
-        this.view?.queryResults?.getSelectedIndex(this.viewFilterCameraID) ?? 0;
-      const newSeek = this.view?.context?.mediaViewer?.seek;
+        view?.queryResults?.getSelectedIndex(this.viewFilterCameraID) ?? 0;
+      const newSeek = view?.context?.mediaViewer?.seek;
 
       if (newMedia !== this._media || newSelected !== this._selected || !newSeek) {
         setOrRemoveAttribute(this, false, 'unseekable');
@@ -449,8 +411,9 @@ export class FrigateCardViewerCarousel extends LitElement {
       selectedMedia.getCameraID(),
     );
 
+    const view = this.viewManagerEpoch?.manager.getView();
     const titleConfig = getDefaultTitleConfigForView(
-      this.view,
+      view,
       this.viewerConfig?.controls.title,
     );
 
@@ -474,38 +437,42 @@ export class FrigateCardViewerCarousel extends LitElement {
           this._player = null;
         }}
       >
-        <frigate-card-next-previous-control
-          slot="previous"
-          .hass=${this.hass}
-          .direction=${'previous'}
-          .controlConfig=${this.viewerConfig?.controls.next_previous}
-          .thumbnail=${neighbors?.previous?.media.getThumbnail() ?? undefined}
-          .label=${neighbors?.previous?.media.getTitle() ?? ''}
-          ?disabled=${!neighbors?.previous}
-          @click=${(ev: Event) => {
-            scroll('previous');
-            stopEventFromActivatingCardWideActions(ev);
-          }}
-        ></frigate-card-next-previous-control>
-        ${guard([this._media, this.view], () => this._getSlides())}
-        <frigate-card-next-previous-control
-          slot="next"
-          .hass=${this.hass}
-          .direction=${'next'}
-          .controlConfig=${this.viewerConfig?.controls.next_previous}
-          .thumbnail=${neighbors?.next?.media.getThumbnail() ?? undefined}
-          .label=${neighbors?.next?.media.getTitle() ?? ''}
-          ?disabled=${!neighbors?.next}
-          @click=${(ev: Event) => {
-            scroll('next');
-            stopEventFromActivatingCardWideActions(ev);
-          }}
-        ></frigate-card-next-previous-control>
+        ${this.showControls
+          ? html` <frigate-card-next-previous-control
+              slot="previous"
+              .hass=${this.hass}
+              .direction=${'previous'}
+              .controlConfig=${this.viewerConfig?.controls.next_previous}
+              .thumbnail=${neighbors?.previous?.media.getThumbnail() ?? undefined}
+              .label=${neighbors?.previous?.media.getTitle() ?? ''}
+              ?disabled=${!neighbors?.previous}
+              @click=${(ev: Event) => {
+                scroll('previous');
+                stopEventFromActivatingCardWideActions(ev);
+              }}
+            ></frigate-card-next-previous-control>`
+          : ''}
+        ${guard([this._media, view], () => this._getSlides())}
+        ${this.showControls
+          ? html` <frigate-card-next-previous-control
+              slot="next"
+              .hass=${this.hass}
+              .direction=${'next'}
+              .controlConfig=${this.viewerConfig?.controls.next_previous}
+              .thumbnail=${neighbors?.next?.media.getThumbnail() ?? undefined}
+              .label=${neighbors?.next?.media.getTitle() ?? ''}
+              ?disabled=${!neighbors?.next}
+              @click=${(ev: Event) => {
+                scroll('next');
+                stopEventFromActivatingCardWideActions(ev);
+              }}
+            ></frigate-card-next-previous-control>`
+          : ''}
       </frigate-card-carousel>
-      ${this.view
+      ${view
         ? html` <frigate-card-ptz
             .config=${this.viewerConfig?.controls.ptz}
-            .forceVisibility=${this.view?.context?.ptzControls?.enabled}
+            .forceVisibility=${view?.context?.ptzControls?.enabled}
           >
           </frigate-card-ptz>`
         : ''}
@@ -530,7 +497,8 @@ export class FrigateCardViewerCarousel extends LitElement {
    * Fire a media show event when a slide is selected.
    */
   protected async _seekHandler(): Promise<void> {
-    const seek = this.view?.context?.mediaViewer?.seek;
+    const view = this.viewManagerEpoch?.manager.getView();
+    const seek = view?.context?.mediaViewer?.seek;
     if (!this.hass || !seek || !this._media || !this._player) {
       return;
     }
@@ -556,14 +524,15 @@ export class FrigateCardViewerCarousel extends LitElement {
   }
 
   protected _renderMediaItem(media: ViewMedia): TemplateResult | null {
-    if (!this.hass || !this.view || !this.viewerConfig) {
+    const view = this.viewManagerEpoch?.manager.getView();
+    if (!this.hass || !view || !this.viewerConfig) {
       return null;
     }
 
     return html` <div class="embla__slide">
       <frigate-card-viewer-provider
         .hass=${this.hass}
-        .view=${this.view}
+        .view=${view}
         .media=${media}
         .viewerConfig=${this.viewerConfig}
         .resolvedMediaCache=${this.resolvedMediaCache}
@@ -585,7 +554,7 @@ export class FrigateCardViewerGrid extends LitElement {
   public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  public view?: Readonly<View>;
+  public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
   public viewerConfig?: ViewerConfig;
@@ -600,66 +569,64 @@ export class FrigateCardViewerGrid extends LitElement {
   public cameraManager?: CameraManager;
 
   protected _renderCarousel(filterCamera?: string): TemplateResult {
+    const selectedCameraID = this.viewManagerEpoch?.manager.getView()?.camera;
     return html`
       <frigate-card-viewer-carousel
         grid-id=${ifDefined(filterCamera)}
         .hass=${this.hass}
-        .view=${this.view}
+        .viewManagerEpoch=${this.viewManagerEpoch}
         .viewFilterCameraID=${filterCamera}
         .viewerConfig=${this.viewerConfig}
         .resolvedMediaCache=${this.resolvedMediaCache}
         .cameraManager=${this.cameraManager}
         .cardWideConfig=${this.cardWideConfig}
+        .showControls=${!filterCamera || selectedCameraID === filterCamera}
       >
       </frigate-card-viewer-carousel>
     `;
   }
 
-  protected _gridSelectCamera(cameraID: string, view?: View): void {
-    const newView = view ?? this.view;
-    const promotedQueryResults = newView?.queryResults
-      ?.clone()
-      .promoteCameraSelectionToMainSelection(cameraID);
-    newView
-      ?.evolve({
-        camera: cameraID,
-        queryResults: promotedQueryResults,
-      })
-      .dispatchChangeEvent(this);
-  }
-
   protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('view') && this._needsGrid()) {
+    if (changedProps.has('viewManagerEpoch') && this._needsGrid()) {
       import('./media-grid.js');
     }
   }
 
   protected _needsGrid(): boolean {
-    const cameraIDs = this.view?.queryResults?.getCameraIDs();
+    const view = this.viewManagerEpoch?.manager.getView();
+    const cameraIDs = view?.queryResults?.getCameraIDs();
     return (
-      !!this.view?.isGrid() &&
-      !!this.view?.supportsMultipleDisplayModes() &&
+      !!view?.isGrid() &&
+      !!view?.supportsMultipleDisplayModes() &&
       (cameraIDs?.size ?? 0) > 1
     );
   }
 
+  protected _gridSelectCamera(cameraID: string): void {
+    const view = this.viewManagerEpoch?.manager.getView();
+    this.viewManagerEpoch?.manager.setViewByParameters({
+      params: {
+        camera: cameraID,
+        queryResults: view?.queryResults
+          ?.clone()
+          .promoteCameraSelectionToMainSelection(cameraID),
+      },
+    });
+  }
+
   protected render(): TemplateResult {
-    const cameraIDs = this.view?.queryResults?.getCameraIDs();
+    const view = this.viewManagerEpoch?.manager.getView();
+    const cameraIDs = view?.queryResults?.getCameraIDs();
     if (!cameraIDs || !this._needsGrid()) {
       return this._renderCarousel();
     }
 
     return html`
       <frigate-card-media-grid
-        .selected=${this.view?.camera}
+        .selected=${view?.camera}
         .displayConfig=${this.viewerConfig?.display}
         @frigate-card:media-grid:selected=${(ev: CustomEvent<MediaGridSelected>) =>
           this._gridSelectCamera(ev.detail.selected)}
-        @frigate-card:view:change=${(ev: CustomEvent<View>) => {
-          ev.stopPropagation();
-          const childView = ev.detail;
-          this._gridSelectCamera(childView.camera, childView);
-        }}
       >
         ${[...cameraIDs].map((cameraID) => this._renderCarousel(cameraID))}
       </frigate-card-media-grid>
@@ -680,7 +647,7 @@ export class FrigateCardViewerProvider
   public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  public view?: Readonly<View>;
+  public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
   public media?: ViewMedia;
@@ -788,21 +755,22 @@ export class FrigateCardViewerProvider
    * Dispatch a clip view that matches the current (snapshot) query.
    */
   protected async _dispatchRelatedClipView(): Promise<void> {
+    const view = this.viewManagerEpoch?.manager.getView();
     if (
       !this.hass ||
-      !this.view ||
+      !view ||
       !this.cameraManager ||
       !this.media ||
       // If this specific media item has no clip, then do nothing (even if all
       // the other media items do).
       !ViewMediaClassifier.isEvent(this.media) ||
-      !MediaQueriesClassifier.areEventQueries(this.view.query)
+      !MediaQueriesClassifier.areEventQueries(view.query)
     ) {
       return;
     }
 
     // Convert the query to a clips equivalent.
-    const clipQuery = this.view.query.clone();
+    const clipQuery = view.query.clone();
     clipQuery.convertToClipsQueries();
 
     const queries = clipQuery.getQueries();
@@ -810,32 +778,18 @@ export class FrigateCardViewerProvider
       return;
     }
 
-    let mediaArray: ViewMedia[] | null;
-    try {
-      mediaArray = await this.cameraManager.executeMediaQueries(queries);
-    } catch (e) {
-      errorToConsole(e as Error);
-      return;
-    }
-    if (!mediaArray) {
-      return;
-    }
-
-    const results = new MediaQueriesResults({ results: mediaArray });
-    results.selectResultIfFound(
-      (clipMedia) => clipMedia.getID() === this.media?.getID(),
-    );
-    if (!results.hasSelectedResult()) {
-      return;
-    }
-
-    this.view
-      .evolve({
+    await this.viewManagerEpoch?.manager.setViewByParametersWithExistingQuery({
+      params: {
         view: 'media',
         query: clipQuery,
-        queryResults: results,
-      })
-      .dispatchChangeEvent(this);
+      },
+      queryExecutorOptions: {
+        selectResult: {
+          id: this.media.getID() ?? undefined,
+        },
+        rejectResults: (results) => !results.hasSelectedResult(),
+      },
+    });
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
@@ -881,6 +835,7 @@ export class FrigateCardViewerProvider
     const cameraID = this.media.getCameraID();
     const mediaID = this.media.getID() ?? undefined;
     const cameraConfig = this.cameraManager?.getStore().getCameraConfig(cameraID);
+    const view = this.viewManagerEpoch?.manager.getView();
 
     return this.viewerConfig?.zoomable
       ? html` <frigate-card-zoomer
@@ -892,13 +847,11 @@ export class FrigateCardViewerProvider
                 }
               : undefined,
           )}
-          .settings=${mediaID
-            ? this.view?.context?.zoom?.[mediaID]?.requested
-            : undefined}
+          .settings=${mediaID ? view?.context?.zoom?.[mediaID]?.requested : undefined}
           @frigate-card:zoom:zoomed=${() => this.setControls(false)}
           @frigate-card:zoom:unzoomed=${() => this.setControls()}
           @frigate-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
-            handleZoomSettingsObservedEvent(this, ev, mediaID)}
+            handleZoomSettingsObservedEvent(ev, this.viewManagerEpoch?.manager, mediaID)}
         >
           ${template}
         </frigate-card-zoomer>`
@@ -906,7 +859,7 @@ export class FrigateCardViewerProvider
   }
 
   protected render(): TemplateResult | void {
-    if (!this.load || !this.media || !this.hass || !this.view || !this.viewerConfig) {
+    if (!this.load || !this.media || !this.hass || !this.viewerConfig) {
       return;
     }
 

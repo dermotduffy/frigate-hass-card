@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { getStreamCameraID, hasSubstream } from '../../src/utils/substream';
+import {
+  getStreamCameraID,
+  hasSubstream,
+  removeSubstream,
+} from '../../src/utils/substream';
 import { View } from '../../src/view/view';
 
 describe('hasSubstream/getStreamCameraID', () => {
@@ -52,5 +56,43 @@ describe('hasSubstream/getStreamCameraID', () => {
     });
     expect(hasSubstream(view)).toBeTruthy();
     expect(getStreamCameraID(view, 'camera3')).toBe('camera4');
+  });
+});
+
+describe('removeSubstream', () => {
+  it('should remove substream that exists', () => {
+    const view = new View({
+      view: 'live',
+      camera: 'camera',
+      context: {
+        live: {
+          overrides: new Map([['camera', 'camera2']]),
+        },
+      },
+    });
+    removeSubstream(view);
+    expect(view.context).toEqual({
+      live: {
+        overrides: new Map(),
+      },
+    });
+  });
+
+  it('should not remove substream that does not exists', () => {
+    const view = new View({
+      view: 'live',
+      camera: 'camera-has-no-overrides',
+      context: {
+        live: {
+          overrides: new Map([['camera', 'camera2']]),
+        },
+      },
+    });
+    removeSubstream(view);
+    expect(view.context).toEqual({
+      live: {
+        overrides: new Map([['camera', 'camera2']]),
+      },
+    });
   });
 });

@@ -35,7 +35,7 @@ import { MicrophoneManager } from '../src/card-controller/microphone-manager';
 import { QueryStringManager } from '../src/card-controller/query-string-manager';
 import { StyleManager } from '../src/card-controller/style-manager';
 import { TriggersManager } from '../src/card-controller/triggers-manager';
-import { ViewManager } from '../src/card-controller/view-manager';
+import { ViewManager } from '../src/card-controller/view/view-manager';
 import {
   CameraConfig,
   FrigateCardCondition,
@@ -278,14 +278,6 @@ export const createMediaLoadedInfoEvent = (
   });
 };
 
-export const createViewChangeEvent = (view?: View): CustomEvent<View> => {
-  return new CustomEvent('frigate-card:view:change', {
-    detail: view ?? createView(),
-    composed: true,
-    bubbles: true,
-  });
-};
-
 export const createPerformanceConfig = (config: unknown): PerformanceConfig => {
   return performanceConfigSchema.parse(config);
 };
@@ -297,7 +289,12 @@ export const generateViewMediaArray = (options?: {
   const media: ViewMedia[] = [];
   for (let i = 0; i < (options?.count ?? 100); ++i) {
     for (const cameraID of options?.cameraIDs ?? ['kitchen', 'office']) {
-      media.push(new TestViewMedia({ cameraID: cameraID, id: `id-${cameraID}-${i}` }));
+      media.push(
+        new TestViewMedia({
+          cameraID: cameraID,
+          id: `id-${cameraID}-${i}`,
+        }),
+      );
     }
   }
   return media;
@@ -468,4 +465,11 @@ export const callHASubscribeMessageHandler = (
   const mock = vi.mocked(hass.connection.subscribeMessage).mock;
   expect(mock.calls.length).greaterThan(n);
   mock.calls[n][0](ev);
+};
+
+/**
+ * Flush resolved promises.
+ */
+export const flushPromises = async (): Promise<void> => {
+  await new Promise(process.nextTick);
 };

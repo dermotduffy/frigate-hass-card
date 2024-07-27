@@ -100,10 +100,10 @@ export class InitializationManager {
         if (hasViewRelatedActions) {
           this._api.getQueryStringManager().executeViewRelated();
         } else {
-          this._api.getViewManager().setViewDefault({ failSafe: true });
+          this._api.getViewManager().setViewDefaultWithNewQuery({ failSafe: true });
         }
       } else {
-        // If we already have a view something (e.g. cameras) may have been
+        // If we already have a view, something (e.g. cameras) may have been
         // reinitialized, be sure to ask for an update.
         this._api.getCardElementManager().update();
       }

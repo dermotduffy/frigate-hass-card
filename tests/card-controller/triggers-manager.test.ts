@@ -14,6 +14,7 @@ import {
   createConfig,
   createStore,
   createView,
+  flushPromises,
 } from '../test-utils';
 
 vi.mock('lodash-es/throttle', () => ({
@@ -109,7 +110,7 @@ describe('TriggersManager', () => {
   });
 
   describe('trigger actions', () => {
-    it('update', () => {
+    it('update', async () => {
       const api = createTriggerAPI({
         config: {
           ...baseTriggersConfig,
@@ -122,16 +123,18 @@ describe('TriggersManager', () => {
 
       const manager = new TriggersManager(api);
 
-      manager.handleCameraEvent({
+      await manager.handleCameraEvent({
         cameraID: 'camera_1',
         type: 'new',
       });
 
       expect(manager.isTriggered()).toBeTruthy();
-      expect(api.getViewManager().setView).toBeCalled();
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+        queryExecutorOptions: { useCache: false },
+      });
     });
 
-    it('default', () => {
+    it('default', async () => {
       const api = createTriggerAPI({
         config: {
           ...baseTriggersConfig,
@@ -144,11 +147,13 @@ describe('TriggersManager', () => {
 
       const manager = new TriggersManager(api);
 
-      manager.handleCameraEvent({ cameraID: 'camera_1', type: 'new' });
+      await manager.handleCameraEvent({ cameraID: 'camera_1', type: 'new' });
 
       expect(manager.isTriggered()).toBeTruthy();
-      expect(api.getViewManager().setViewDefault).toBeCalledWith({
-        cameraID: 'camera_1',
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledWith({
+        params: {
+          camera: 'camera_1',
+        },
       });
     });
 
@@ -168,9 +173,11 @@ describe('TriggersManager', () => {
       manager.handleCameraEvent({ cameraID: 'camera_1', type: 'new' });
 
       expect(manager.isTriggered()).toBeTruthy();
-      expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-        viewName: 'live',
-        cameraID: 'camera_1',
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+        params: {
+          view: 'live',
+          camera: 'camera_1',
+        },
       });
     });
 
@@ -207,12 +214,16 @@ describe('TriggersManager', () => {
           });
 
           if (!viewName) {
-            expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+            expect(
+              api.getViewManager().setViewByParametersWithNewQuery,
+            ).not.toBeCalled();
           } else {
             expect(manager.isTriggered()).toBeTruthy();
-            expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-              cameraID: 'camera_1',
-              viewName: viewName,
+            expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+              params: {
+                camera: 'camera_1',
+                view: viewName,
+              },
             });
           }
         },
@@ -235,9 +246,8 @@ describe('TriggersManager', () => {
       manager.handleCameraEvent({ cameraID: 'camera_1', type: 'new' });
 
       expect(manager.isTriggered()).toBeTruthy();
-      expect(api.getViewManager().setView).not.toBeCalled();
-      expect(api.getViewManager().setViewDefault).not.toBeCalled();
-      expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
     });
   });
 
@@ -263,12 +273,11 @@ describe('TriggersManager', () => {
 
       expect(manager.isTriggered()).toBeFalsy();
 
-      expect(api.getViewManager().setView).not.toBeCalled();
-      expect(api.getViewManager().setViewDefault).not.toBeCalled();
-      expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
     });
 
-    it('default', () => {
+    it('default', async () => {
       const api = createTriggerAPI({
         config: {
           ...baseTriggersConfig,
@@ -281,15 +290,16 @@ describe('TriggersManager', () => {
       });
 
       const manager = new TriggersManager(api);
-      manager.handleCameraEvent({ cameraID: 'camera_1', type: 'new' });
-      manager.handleCameraEvent({ cameraID: 'camera_1', type: 'end' });
+      await manager.handleCameraEvent({ cameraID: 'camera_1', type: 'new' });
+      await manager.handleCameraEvent({ cameraID: 'camera_1', type: 'end' });
 
       vi.setSystemTime(add(start, { seconds: 10 }));
       vi.runOnlyPendingTimers();
+      await flushPromises();
 
       expect(manager.isTriggered()).toBeFalsy();
 
-      expect(api.getViewManager().setViewDefault).toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
     });
   });
 
@@ -343,9 +353,8 @@ describe('TriggersManager', () => {
 
       manager.handleCameraEvent({ cameraID: 'camera_1', type: 'new', fidelity: 'high' });
 
-      expect(api.getViewManager().setView).not.toBeCalled();
-      expect(api.getViewManager().setViewDefault).not.toBeCalled();
-      expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
     });
 
     it('with non-live default', () => {
@@ -364,9 +373,8 @@ describe('TriggersManager', () => {
 
       manager.handleCameraEvent({ cameraID: 'camera_1', type: 'new', fidelity: 'high' });
 
-      expect(api.getViewManager().setView).not.toBeCalled();
-      expect(api.getViewManager().setViewDefault).not.toBeCalled();
-      expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
     });
   });
 
@@ -384,7 +392,8 @@ describe('TriggersManager', () => {
 
     expect(manager.isTriggered()).toBeTruthy();
 
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
 
     manager.handleCameraEvent({
       cameraID: 'camera_1',
@@ -396,7 +405,8 @@ describe('TriggersManager', () => {
 
     expect(manager.isTriggered()).toBeFalsy();
 
-    expect(api.getViewManager().setViewDefault).not.toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
   });
 
   it('should take no actions when actions are set to none', () => {
@@ -415,7 +425,8 @@ describe('TriggersManager', () => {
       type: 'new',
     });
     expect(manager.isTriggered()).toBeTruthy();
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
 
     manager.handleCameraEvent({
       cameraID: 'camera_1',
@@ -426,10 +437,11 @@ describe('TriggersManager', () => {
     vi.runOnlyPendingTimers();
 
     expect(manager.isTriggered()).toBeFalsy();
-    expect(api.getViewManager().setViewDefault).not.toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
   });
 
-  it('should take actions with human interactions when interaction mode is active', () => {
+  it('should take actions with human interactions when interaction mode is active', async () => {
     const api = createTriggerAPI({
       // Interaction present.
       interaction: true,
@@ -443,31 +455,34 @@ describe('TriggersManager', () => {
       },
     });
     const manager = new TriggersManager(api);
-    manager.handleCameraEvent({
+    await manager.handleCameraEvent({
       cameraID: 'camera_1',
       type: 'new',
     });
 
     expect(manager.isTriggered()).toBeTruthy();
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-      viewName: 'live' as const,
-      cameraID: 'camera_1' as const,
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+      params: {
+        view: 'live' as const,
+        camera: 'camera_1' as const,
+      }
     });
 
-    manager.handleCameraEvent({
+    await manager.handleCameraEvent({
       cameraID: 'camera_1',
       type: 'end',
     });
 
     vi.setSystemTime(add(start, { seconds: 10 }));
     vi.runOnlyPendingTimers();
+    await flushPromises();
 
     expect(manager.isTriggered()).toBeFalsy();
 
-    expect(api.getViewManager().setViewDefault).toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
   });
 
-  it('should report multiple triggered cameras', () => {
+  it('should report multiple triggered cameras', async () => {
     const api = createTriggerAPI();
     vi.mocked(api.getCameraManager().getStore).mockReturnValue(
       createStore([
@@ -496,11 +511,11 @@ describe('TriggersManager', () => {
     expect(manager.getMostRecentlyTriggeredCameraID()).toBeNull();
     expect(manager.getTriggeredCameraIDs()).toEqual(new Set());
 
-    manager.handleCameraEvent({
+    await manager.handleCameraEvent({
       cameraID: 'camera_1',
       type: 'new',
     });
-    manager.handleCameraEvent({
+    await manager.handleCameraEvent({
       cameraID: 'camera_2',
       type: 'new',
     });
@@ -513,13 +528,15 @@ describe('TriggersManager', () => {
       manager.getMostRecentlyTriggeredCameraID(),
     );
 
-    manager.handleCameraEvent({
+    await manager.handleCameraEvent({
       cameraID: 'camera_1',
       type: 'end',
     });
 
     vi.setSystemTime(add(start, { seconds: 10 }));
     vi.runOnlyPendingTimers();
+
+    await flushPromises();
 
     expect(manager.getTriggeredCameraIDs()).toEqual(new Set(['camera_2']));
     expect(manager.getMostRecentlyTriggeredCameraID()).toBe('camera_2');

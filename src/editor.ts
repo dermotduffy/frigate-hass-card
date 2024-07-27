@@ -84,7 +84,6 @@ import {
   CONF_IMAGE_MODE,
   CONF_IMAGE_REFRESH_SECONDS,
   CONF_IMAGE_URL,
-  CONF_IMAGE_ZOOMABLE,
   CONF_LIVE_AUTO_MUTE,
   CONF_LIVE_AUTO_PAUSE,
   CONF_LIVE_AUTO_PLAY,
@@ -2735,7 +2734,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderOptionSelector(CONF_IMAGE_MODE, this._imageModes)}
               ${this._renderStringInput(CONF_IMAGE_URL)}
               ${this._renderNumberInput(CONF_IMAGE_REFRESH_SECONDS)}
-              ${this._renderSwitch(CONF_IMAGE_ZOOMABLE, this._defaults.image.zoomable)}
             </div>`
           : ''}
         ${this._renderOptionSetHeader('timeline')}

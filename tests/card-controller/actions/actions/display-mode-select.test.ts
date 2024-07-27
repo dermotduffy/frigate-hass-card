@@ -15,5 +15,9 @@ it('should handle default action', async () => {
 
   await action.execute(api);
 
-  expect(api.getViewManager().setViewWithNewDisplayMode).toBeCalledWith('grid');
+  expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+    params: {
+      displayMode: 'grid',
+    },
+  });
 });

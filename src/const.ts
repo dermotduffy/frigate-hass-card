@@ -301,7 +301,6 @@ const CONF_IMAGE = 'image' as const;
 export const CONF_IMAGE_MODE = `${CONF_IMAGE}.mode` as const;
 export const CONF_IMAGE_REFRESH_SECONDS = `${CONF_IMAGE}.refresh_seconds` as const;
 export const CONF_IMAGE_URL = `${CONF_IMAGE}.url` as const;
-export const CONF_IMAGE_ZOOMABLE = `${CONF_IMAGE}.zoomable` as const;
 
 const CONF_TIMELINE = 'timeline' as const;
 export const CONF_TIMELINE_WINDOW_SECONDS = `${CONF_TIMELINE}.window_seconds` as const;

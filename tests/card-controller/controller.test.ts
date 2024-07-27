@@ -25,7 +25,7 @@ import { MicrophoneManager } from '../../src/card-controller/microphone-manager'
 import { QueryStringManager } from '../../src/card-controller/query-string-manager';
 import { StyleManager } from '../../src/card-controller/style-manager';
 import { TriggersManager } from '../../src/card-controller/triggers-manager';
-import { ViewManager } from '../../src/card-controller/view-manager';
+import { ViewManager } from '../../src/card-controller/view/view-manager';
 import { FrigateCardEditor } from '../../src/editor';
 import { EntityRegistryManager } from '../../src/utils/ha/entity-registry';
 import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media';
@@ -52,7 +52,7 @@ vi.mock('../../src/card-controller/microphone-manager');
 vi.mock('../../src/card-controller/query-string-manager');
 vi.mock('../../src/card-controller/style-manager');
 vi.mock('../../src/card-controller/triggers-manager');
-vi.mock('../../src/card-controller/view-manager');
+vi.mock('../../src/card-controller/view/view-manager');
 vi.mock('../../src/utils/ha/entity-registry');
 vi.mock('../../src/utils/ha/resolved-media');
 

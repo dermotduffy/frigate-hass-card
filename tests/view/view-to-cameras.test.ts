@@ -50,6 +50,9 @@ describe('getCameraIDsForViewName', () => {
       ['media' as const, 'clips' as const],
       ['media' as const, 'snapshots' as const],
       ['media' as const, 'recordings' as const],
+      ['timeline' as const, 'clips' as const],
+      ['timeline' as const, 'snapshots' as const],
+      ['timeline' as const, 'recordings' as const],
     ])('%s', (viewName: FrigateCardView, capabilityKey: CapabilityKey) => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(

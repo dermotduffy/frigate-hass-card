@@ -10,7 +10,7 @@ type PaperToast = HTMLElement & {
 };
 
 export const getDefaultTitleConfigForView = (
-  view?: Readonly<View>,
+  view?: Readonly<View> | null,
   baseConfig?: TitleControlConfig,
 ): TitleControlConfig | null => {
   if (!baseConfig && view?.isGrid()) {
