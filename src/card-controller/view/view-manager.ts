@@ -42,19 +42,22 @@ export class ViewManager implements ViewManagerInterface {
   }
 
   setViewDefault = (options?: ViewFactoryOptions): void =>
-    this._setViewGeneric(this._factory.getViewDefault, options);
+    this._setViewGeneric(this._factory.getViewDefault.bind(this._factory), options);
 
   setViewByParameters = (options?: ViewFactoryOptions): void =>
-    this._setViewGeneric(this._factory.getViewByParameters, options);
+    this._setViewGeneric(this._factory.getViewByParameters.bind(this._factory), options);
 
   setViewDefaultWithNewQuery = async (options?: ViewFactoryOptions): Promise<void> =>
-    await this._setViewGenericAsync(this._factory.getViewDefaultWithNewQuery, options);
+    await this._setViewGenericAsync(
+      this._factory.getViewDefaultWithNewQuery.bind(this._factory),
+      options,
+    );
 
   setViewByParametersWithNewQuery = async (
     options?: ViewFactoryOptions,
   ): Promise<void> =>
     await this._setViewGenericAsync(
-      this._factory.getViewByParametersWithNewQuery,
+      this._factory.getViewByParametersWithNewQuery.bind(this._factory),
       options,
     );
 
@@ -62,7 +65,7 @@ export class ViewManager implements ViewManagerInterface {
     options?: ViewFactoryOptions,
   ): Promise<void> =>
     await this._setViewGenericAsync(
-      this._factory.getViewByParametersWithExistingQuery,
+      this._factory.getViewByParametersWithExistingQuery.bind(this._factory),
       options,
     );
 
