@@ -483,7 +483,7 @@
             "none": "No action"
           }
         },
-        "editor_label": "Behavior when a camera is triggered",
+        "editor_label": "Trigger behavior",
         "filter_selected_camera": "Only trigger on selected camera",
         "show_trigger_status": "Show pulsing border when triggered",
         "untrigger_seconds": "Seconds after inactive state change to untrigger"
