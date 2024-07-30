@@ -142,6 +142,18 @@ export class ConfigManager {
         .uninitialize(InitializationAspect.MICROPHONE_CONNECT);
     }
 
+    if (
+      previousConfig &&
+      !isEqual(
+        previousConfig?.view.default_reset,
+        this._overriddenConfig?.view.default_reset,
+      )
+    ) {
+      this._api
+        .getInitializationManager()
+        .uninitialize(InitializationAspect.DEFAULT_RESET);
+    }
+
     this._api.getCardElementManager().update();
   }
 }

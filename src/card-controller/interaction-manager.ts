@@ -39,13 +39,7 @@ export class InteractionManager {
 
       this._timer.start(timeoutSeconds, () => {
         this._api.getConditionsManager().setState({ interaction: false });
-
-        if (!this._api.getTriggersManager().isTriggered()) {
-          if (this._api.getConfigManager().getConfig()?.view.reset_after_interaction) {
-            this._api.getViewManager().setViewDefault();
-          }
-          this._api.getStyleManager().setLightOrDarkMode();
-        }
+        this._api.getStyleManager().setLightOrDarkMode();
       });
     }
   }

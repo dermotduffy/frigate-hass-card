@@ -1,26 +1,15 @@
-import { sub } from 'date-fns';
 import { LitElement, ReactiveController } from 'lit';
-import { ViewContext } from 'view';
-import { CameraManager } from '../../camera-manager/manager.js';
 import { FrigateCardMessageEventTarget } from '../../components/message.js';
-import { CardWideConfig, LiveConfig } from '../../config/types.js';
 import { MediaLoadedInfo, Message } from '../../types.js';
 import {
   FrigateCardMediaLoadedEventTarget,
   dispatchExistingMediaLoadedInfoAsEvent,
 } from '../../utils/media-info.js';
-import {
-  changeViewToRecentEventsForCameraAndDependents,
-  changeViewToRecentRecordingForCameraAndDependents,
-} from '../../utils/media-to-view.js';
-import { FrigateCardViewChangeEventTarget, View } from '../../view/view.js';
 
 interface LiveViewContext {
   // A cameraID override (used for dependencies/substreams to force a different
   // camera to be live rather than the camera selected in the view).
   overrides?: Map<string, string>;
-
-  fetchThumbnails?: boolean;
 }
 
 declare module 'view' {
@@ -36,8 +25,7 @@ interface LastMediaLoadedInfo {
 
 type LiveControllerHost = LitElement &
   FrigateCardMediaLoadedEventTarget &
-  FrigateCardMessageEventTarget &
-  FrigateCardViewChangeEventTarget;
+  FrigateCardMessageEventTarget;
 
 export class LiveController implements ReactiveController {
   protected _host: LiveControllerHost;
@@ -71,7 +59,7 @@ export class LiveController implements ReactiveController {
     // Don't process updates if it's in the background and a message was
     // received (otherwise an error message thrown by the background live
     // component may continually be re-spammed hitting performance).
-    return !this._inBackground || !this._messageReceived;
+    return !(this._inBackground && this._messageReceived);
   }
 
   public hostConnected(): void {
@@ -79,7 +67,6 @@ export class LiveController implements ReactiveController {
 
     this._host.addEventListener('frigate-card:media:loaded', this._handleMediaLoaded);
     this._host.addEventListener('frigate-card:message', this._handleMessage);
-    this._host.addEventListener('frigate-card:view:change', this._handleViewChange);
   }
 
   public hostDisconnected(): void {
@@ -87,7 +74,6 @@ export class LiveController implements ReactiveController {
 
     this._host.removeEventListener('frigate-card:media:loaded', this._handleMediaLoaded);
     this._host.removeEventListener('frigate-card:message', this._handleMessage);
-    this._host.removeEventListener('frigate-card:view:change', this._handleViewChange);
   }
 
   public clearMessageReceived(): void {
@@ -124,12 +110,6 @@ export class LiveController implements ReactiveController {
     }
   };
 
-  protected _handleViewChange = (ev: CustomEvent<View>): void => {
-    if (this._inBackground) {
-      ev.stopPropagation();
-    }
-  };
-
   protected _intersectionHandler(entries: IntersectionObserverEntry[]): void {
     const wasInBackground = this._inBackground;
     this._inBackground = !entries.some((entry) => entry.isIntersecting);
@@ -148,76 +128,6 @@ export class LiveController implements ReactiveController {
 
     if (wasInBackground !== this._inBackground) {
       this._host.requestUpdate();
-    }
-  }
-
-  /**
-   * Fetch thumbnail media when a target is not already specified in the view
-   * (e.g. first time live is visited).
-   */
-  public async fetchMediaInBackgroundIfNecessary(
-    view: View,
-    cameraManager: CameraManager,
-    cardWideConfig: CardWideConfig,
-    overriddenLiveConfig: LiveConfig,
-  ): Promise<void> {
-    if (
-      this._inBackground ||
-      // Only fetch media if there isn't any already.
-      view.query ||
-      overriddenLiveConfig.controls.thumbnails.mode === 'none' ||
-      view.context?.live?.fetchThumbnails === false
-    ) {
-      return;
-    }
-
-    const mediaType = overriddenLiveConfig.controls.thumbnails.media_type;
-    const now = new Date();
-    const viewContext: ViewContext = {
-      // Force the window to start at the most recent time, not
-      // necessarily when the most recent event/recording was:
-      // https://github.com/dermotduffy/frigate-hass-card/issues/1301
-      timeline: {
-        window: {
-          start: sub(now, {
-            seconds: overriddenLiveConfig.controls.timeline.window_seconds,
-          }),
-          end: now,
-        },
-      },
-    };
-
-    /* istanbul ignore else: the else path cannot be reached -- @preserve */
-    if (mediaType === 'events') {
-      await changeViewToRecentEventsForCameraAndDependents(
-        this._host,
-        cameraManager,
-        cardWideConfig,
-        view,
-        {
-          allCameras: view.isGrid(),
-          targetView: view.view,
-          eventsMediaType: overriddenLiveConfig.controls.thumbnails.events_media_type,
-          select: 'latest',
-          // Force the window to start at the most recent time, not
-          // necessarily when the most recent event was:
-          // https://github.com/dermotduffy/frigate-hass-card/issues/1301
-          viewContext: viewContext,
-        },
-      );
-    } else if (mediaType === 'recordings') {
-      await changeViewToRecentRecordingForCameraAndDependents(
-        this._host,
-        cameraManager,
-        cardWideConfig,
-        view,
-        {
-          allCameras: view.isGrid(),
-          targetView: view.view,
-          select: 'latest',
-          viewContext: viewContext,
-        },
-      );
     }
   }
 }

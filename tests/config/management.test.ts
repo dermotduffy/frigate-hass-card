@@ -25,6 +25,7 @@ import {
   frigateCardConfigSchema,
 } from '../../src/config/types';
 import { getParseErrorPaths } from '../../src/utils/zod';
+import { update } from 'lodash-es';
 
 describe('general functions', () => {
   it('should set value', () => {
@@ -134,6 +135,7 @@ describe('upgrade functions', () => {
       });
     });
     it('with non-number', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       expect(createRangedTransform((_val) => 'foo')(1)).toBe('foo');
     });
   });
@@ -220,6 +222,7 @@ describe('upgrade functions', () => {
           c: 10,
         };
         expect(
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           moveConfigValue(config, 'c', 'd', { transform: (_val) => null }),
         ).toBeTruthy();
         expect(config).toEqual({});
@@ -231,6 +234,7 @@ describe('upgrade functions', () => {
         };
         expect(
           moveConfigValue(config, 'c', 'd', {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             transform: (_val) => null,
             keepOriginal: true,
           }),
@@ -244,6 +248,7 @@ describe('upgrade functions', () => {
         c: 10,
       };
       expect(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         moveConfigValue(config, 'c', 'd', { transform: (_val) => undefined }),
       ).toBeFalsy();
       expect(config).toEqual({ c: 10 });
@@ -294,11 +299,13 @@ describe('upgrade functions', () => {
   describe('should upgrade array', () => {
     it('in case of non-array', () => {
       const config = { c: 10 };
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       expect(upgradeArrayOfObjects('c', (_val) => false)(config)).toBeFalsy();
     });
 
     it('in case of non-object items', () => {
       const config = { c: [10, 11] };
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       expect(upgradeArrayOfObjects('c', (_val) => false)(config)).toBeFalsy();
     });
 
@@ -328,6 +335,7 @@ describe('upgrade functions', () => {
   describe('should recursively upgrade', () => {
     it('ignoring simple objects', () => {
       const config = { c: 10, d: 10 };
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       expect(upgradeObjectRecursively((_val) => false)(config)).toBeFalsy();
       expect(config).toEqual({ c: 10, d: 10 });
     });
@@ -3098,6 +3106,92 @@ describe('should handle version specific upgrades', () => {
         );
         postUpgradeChecks(config);
       });
+    });
+
+    it('view.update_cycle_camera -> view.default_cycle_camera', () => {
+      const config = {
+        type: 'custom:frigate-card',
+        cameras: [{}],
+        view: {
+          update_cycle_camera: true,
+        },
+      };
+
+      expect(upgradeConfig(config)).toBeTruthy();
+      expect(config.view).toEqual({
+        default_cycle_camera: true,
+      });
+      postUpgradeChecks(config);
+    });
+
+    describe('view.update_force -> view.default_reset.interaction_mode', () => {
+      it('should convert to all when true', () => {
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{}],
+          view: {
+            update_force: true,
+          },
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.view).toEqual({
+          default_reset: {
+            interaction_mode: 'all',
+          },
+        });
+        postUpgradeChecks(config);
+      });
+
+      it('should remove when false', () => {
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{}],
+          view: {
+            update_force: false,
+          },
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config.view).toEqual({});
+        postUpgradeChecks(config);
+      });
+    });
+
+    it('view.update_seconds', () => {
+      const config = {
+        type: 'custom:frigate-card',
+        cameras: [{}],
+        view: {
+          update_seconds: 42,
+        },
+      };
+
+      expect(upgradeConfig(config)).toBeTruthy();
+      expect(config.view).toEqual({
+        default_reset: {
+          every_seconds: 42,
+        },
+      });
+      postUpgradeChecks(config);
+    });
+
+    it('view.update_entities', () => {
+      const config = {
+        type: 'custom:frigate-card',
+        cameras: [{}],
+        view: {
+          update_entities: ['binary_sensor.foo', 'camera.bar'],
+        },
+      };
+
+      expect(upgradeConfig(config)).toBeTruthy();
+      expect(config.view).toEqual({
+        default_reset: {
+          entities: ['binary_sensor.foo', 'camera.bar'],
+        },
+      });
+      postUpgradeChecks(config);
     });
   });
 });

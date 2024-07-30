@@ -3,7 +3,7 @@ import { StyleInfo } from 'lit/directives/style-map';
 import { CameraManager } from '../camera-manager/manager';
 import { MediaPlayerManager } from '../card-controller/media-player-manager';
 import { MicrophoneManager } from '../card-controller/microphone-manager';
-import { ViewManager } from '../card-controller/view-manager';
+import { ViewManager } from '../card-controller/view/view-manager';
 import {
   FRIGATE_CARD_VIEWS_USER_SPECIFIED,
   FrigateCardConfig,

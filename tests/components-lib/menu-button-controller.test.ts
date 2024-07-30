@@ -6,7 +6,7 @@ import { CameraManager } from '../../src/camera-manager/manager';
 import { CameraManagerCameraMetadata } from '../../src/camera-manager/types';
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager';
 import { MicrophoneManager } from '../../src/card-controller/microphone-manager';
-import { ViewManager } from '../../src/card-controller/view-manager';
+import { ViewManager } from '../../src/card-controller/view/view-manager';
 import {
   MenuButtonController,
   MenuButtonControllerOptions,

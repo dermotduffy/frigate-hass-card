@@ -1,3 +1,4 @@
+import { Task, TaskStatus } from '@lit-labs/task';
 import { format } from 'date-fns';
 import {
   CSSResult,
@@ -9,11 +10,14 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { CameraManager } from '../camera-manager/manager.js';
+import { ViewManagerEpoch } from '../card-controller/view/types.js';
 import { localize } from '../localize/localize.js';
 import thumbnailDetailsStyle from '../scss/thumbnail-details.scss';
 import thumbnailFeatureEventStyle from '../scss/thumbnail-feature-event.scss';
 import thumbnailFeatureRecordingStyle from '../scss/thumbnail-feature-recording.scss';
 import thumbnailStyle from '../scss/thumbnail.scss';
+import type { ExtendedHomeAssistant } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import {
   errorToConsole,
@@ -21,17 +25,13 @@ import {
   getDurationString,
   prettifyTitle,
 } from '../utils/basic.js';
+import { downloadMedia } from '../utils/download.js';
 import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask, FetchThumbnailTaskArgs } from '../utils/thumbnail.js';
-import { View } from '../view/view.js';
-import { Task, TaskStatus } from '@lit-labs/task';
-
-import type { ExtendedHomeAssistant } from '../types.js';
-import { EventViewMedia, RecordingViewMedia, ViewMedia } from '../view/media.js';
-import { CameraManager } from '../camera-manager/manager.js';
 import { ViewMediaClassifier } from '../view/media-classifier.js';
-import { downloadMedia } from '../utils/download.js';
+import { EventViewMedia, RecordingViewMedia, ViewMedia } from '../view/media.js';
 import { dispatchFrigateCardErrorEvent } from './message.js';
+import { RemoveContextViewModifier } from '../card-controller/view/modifiers/remove-context.js';
 
 // The minimum width of a thumbnail with details enabled.
 export const THUMBNAIL_DETAILS_WIDTH_MIN = 300;
@@ -335,22 +335,22 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
 
 @customElement('frigate-card-thumbnail')
 export class FrigateCardThumbnail extends LitElement {
-  // Performance: During timeline scrubbing, hass may be updated
-  // continuously. As it is not needed for the thumbnail rendering itself, it
-  // does not trigger a re-render. The HomeAssistant object may be required for
-  // thumbnail signing (after initial signing the thumbnail is stored in a data
-  // URL, so the signing will not expire).
+  // Performance: During timeline scrubbing, hass may be updated continuously.
+  // As it is not needed for the thumbnail rendering itself, it does not trigger
+  // a re-render. The HomeAssistant object may be required for thumbnail signing
+  // (after initial signing the thumbnail is stored in a data URL, so the
+  // signing will not expire).
   public hass?: ExtendedHomeAssistant;
 
   // Performance: During timeline scrubbing, the view will be updated
   // continuously. As it is not needed for the thumbnail rendering itself, it
   // does not trigger a re-render.
-  public view?: Readonly<View>;
+  public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
 
-  @property({ attribute: true })
+  @property({ attribute: false })
   public media?: ViewMedia;
 
   @property({ attribute: true, type: Boolean })
@@ -467,18 +467,19 @@ export class FrigateCardThumbnail extends LitElement {
             title=${localize('thumbnail.timeline')}
             @click=${(ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
-              if (!this.view || !this.media) {
+              if (!this.viewManagerEpoch || !this.media) {
                 return;
               }
-              this.view
-                .evolve({
+              this.viewManagerEpoch.manager.setViewByParameters({
+                params: {
                   view: 'timeline',
-                  queryResults: this.view.queryResults
-                    ?.clone()
+                  queryResults: this.viewManagerEpoch?.manager
+                    .getView()
+                    ?.queryResults?.clone()
                     .selectResultIfFound((media) => media === this.media),
-                })
-                .removeContext('timeline')
-                .dispatchChangeEvent(this);
+                },
+                modifiers: [new RemoveContextViewModifier(['timeline'])],
+              });
             }}
           ></ha-icon>`
         : ''}

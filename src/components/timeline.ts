@@ -1,10 +1,10 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { CameraManager } from '../camera-manager/manager';
+import { ViewManagerEpoch } from '../card-controller/view/types';
 import { CardWideConfig, TimelineConfig } from '../config/types';
 import basicBlockStyle from '../scss/basic-block.scss';
 import { ExtendedHomeAssistant } from '../types';
-import { View } from '../view/view';
 import './surround.js';
 import './timeline-core.js';
 
@@ -14,7 +14,7 @@ export class FrigateCardTimeline extends LitElement {
   public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  public view?: Readonly<View>;
+  public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
   public timelineConfig?: TimelineConfig;
@@ -33,7 +33,7 @@ export class FrigateCardTimeline extends LitElement {
     return html`
       <frigate-card-timeline-core
         .hass=${this.hass}
-        .view=${this.view}
+        .viewManagerEpoch=${this.viewManagerEpoch}
         .timelineConfig=${this.timelineConfig}
         .thumbnailConfig=${this.timelineConfig.controls.thumbnails}
         .cameraManager=${this.cameraManager}

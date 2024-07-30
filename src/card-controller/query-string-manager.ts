@@ -1,11 +1,13 @@
 import { FrigateCardCustomAction, ViewActionConfig } from '../config/types';
 import { createCameraAction, createGeneralAction } from '../utils/action.js';
+import { ViewParameters } from '../view/view';
 import { CardQueryStringAPI } from './types';
-import { ViewManagerSetViewParameters } from './view-manager';
+import { SubstreamSelectViewModifier } from './view/modifiers/substream-select';
 
 interface QueryStringViewIntent {
-  view?: ViewManagerSetViewParameters & {
+  view?: Partial<ViewParameters> & {
     default?: boolean;
+    substream?: string;
   };
   other?: FrigateCardCustomAction[];
 }
@@ -35,18 +37,26 @@ export class QueryStringManager {
     this._executeNonViewRelated(intent);
   };
 
-  protected _executeViewRelated(intent: QueryStringViewIntent): void {
+  protected async _executeViewRelated(intent: QueryStringViewIntent): Promise<void> {
     if (intent.view) {
       if (intent.view.default) {
-        this._api.getViewManager().setViewDefault({
-          ...(intent.view.cameraID && { cameraID: intent.view.cameraID }),
-          ...(intent.view.substream && { substream: intent.view.substream }),
+        await this._api.getViewManager().setViewDefaultWithNewQuery({
+          params: {
+            camera: intent.view.camera,
+          },
+          ...(intent.view.substream && {
+            modifiers: [new SubstreamSelectViewModifier(intent.view.substream)],
+          }),
         });
       } else {
-        this._api.getViewManager().setViewByParameters({
-          ...(intent.view.viewName && { viewName: intent.view.viewName }),
-          ...(intent.view.cameraID && { cameraID: intent.view.cameraID }),
-          ...(intent.view.substream && { substream: intent.view.substream }),
+        await this._api.getViewManager().setViewByParametersWithNewQuery({
+          params: {
+            ...(intent.view.view && { view: intent.view.view }),
+            ...(intent.view.camera && { camera: intent.view.camera }),
+          },
+          ...(intent.view.substream && {
+            modifiers: [new SubstreamSelectViewModifier(intent.view.substream)],
+          }),
         });
       }
     }
@@ -68,13 +78,13 @@ export class QueryStringManager {
     const result: QueryStringViewIntent = {};
     for (const action of this._getActions()) {
       if (this._isViewAction(action)) {
-        (result.view ??= {}).viewName = action.frigate_card_action;
+        (result.view ??= {}).view = action.frigate_card_action;
         (result.view ??= {}).default = undefined;
       } else if (action.frigate_card_action === 'default') {
         (result.view ??= {}).default = true;
-        (result.view ??= {}).viewName = undefined;
+        (result.view ??= {}).view = undefined;
       } else if (action.frigate_card_action === 'camera_select') {
-        (result.view ??= {}).cameraID = action.camera;
+        (result.view ??= {}).camera = action.camera;
       } else if (action.frigate_card_action === 'live_substream_select') {
         (result.view ??= {}).substream = action.camera;
       } else {

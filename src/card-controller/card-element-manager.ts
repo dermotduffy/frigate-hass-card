@@ -67,6 +67,7 @@ export class CardElementManager {
     this._api.getMediaLoadedInfoManager().initialize();
     this._api.getMicrophoneManager().initialize();
     this._api.getKeyboardStateManager().initialize();
+    this._api.getDefaultManager().initialize();
 
     // Whether or not the card is in panel mode on the dashboard.
     setOrRemoveAttribute(this._element, isCardInPanel(this._element), 'panel');
@@ -76,6 +77,10 @@ export class CardElementManager {
 
     this._element.addEventListener(
       'mousemove',
+      this._api.getInteractionManager().reportInteraction,
+    );
+    this._element.addEventListener(
+      'wheel',
       this._api.getInteractionManager().reportInteraction,
     );
     this._element.addEventListener(
@@ -123,15 +128,20 @@ export class CardElementManager {
     this._api.getFullscreenManager().disconnect();
     this._api.getKeyboardStateManager().uninitialize();
     this._api.getActionsManager().uninitialize();
+    this._api.getDefaultManager().uninitialize();
 
     // Uninitialize cameras to cause them to reinitialize on
     // reconnection, to ensure the state subscription/unsubscription works
     // correctly for triggers.
-    this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS),
-      this._element.removeEventListener(
-        'mousemove',
-        this._api.getInteractionManager().reportInteraction,
-      );
+    this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS);
+    this._element.removeEventListener(
+      'mousemove',
+      this._api.getInteractionManager().reportInteraction,
+    );
+    this._element.removeEventListener(
+      'wheel',
+      this._api.getInteractionManager().reportInteraction,
+    );
     this._element.removeEventListener(
       'll-custom',
       this._api.getActionsManager().handleCustomActionEvent,

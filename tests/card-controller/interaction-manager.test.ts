@@ -23,55 +23,6 @@ describe('InteractionManager', () => {
     expect(api.getConditionsManager().setState).toBeCalledWith({ interaction: false });
   });
 
-  it('should take action when interaction is reported', () => {
-    const api = createCardAPI();
-    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-      createConfig({
-        view: {
-          interaction_seconds: 10,
-        },
-      }),
-    );
-    const manager = new InteractionManager(api);
-    vi.useFakeTimers();
-    vi.setSystemTime(start);
-
-    manager.reportInteraction();
-
-    expect(manager.hasInteraction()).toBeTruthy();
-    expect(api.getViewManager().setViewDefault).not.toBeCalled();
-
-    vi.mocked(api.getTriggersManager().isTriggered).mockReturnValue(false);
-    vi.setSystemTime(add(start, { seconds: 10 }));
-    vi.runOnlyPendingTimers();
-
-    expect(api.getViewManager().setViewDefault).toBeCalled();
-  });
-
-  it('should not take action when triggered', () => {
-    const api = createCardAPI();
-    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-      createConfig({
-        view: {
-          interaction_seconds: 10,
-        },
-      }),
-    );
-    const manager = new InteractionManager(api);
-    vi.useFakeTimers();
-    vi.setSystemTime(start);
-
-    manager.reportInteraction();
-
-    vi.mocked(api.getTriggersManager().isTriggered).mockReturnValue(true);
-    vi.setSystemTime(add(start, { seconds: 10 }));
-    vi.runOnlyPendingTimers();
-
-    // First call is blocked by triggers (above), so interaction will report
-    // true but the default view will not have been set.
-    expect(api.getViewManager().setViewDefault).not.toBeCalled();
-  });
-
   it('should not take action without an interaction timeout', () => {
     const api = createCardAPI();
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
@@ -85,33 +36,7 @@ describe('InteractionManager', () => {
 
     manager.reportInteraction();
 
-    // First call is blocked by triggers (above), so interaction will report
-    // true but the default view will not have been set.
-    expect(api.getViewManager().setViewDefault).not.toBeCalled();
-  });
-
-  it('should not take action without reset_after_interaction', () => {
-    const api = createCardAPI();
-    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-      createConfig({
-        view: {
-          reset_after_interaction: false,
-          interaction_seconds: 10,
-        },
-      }),
-    );
-    const manager = new InteractionManager(api);
-    vi.useFakeTimers();
-    vi.setSystemTime(start);
-
-    manager.reportInteraction();
-
-    vi.setSystemTime(add(start, { seconds: 10 }));
-    vi.runOnlyPendingTimers();
-
-    // First call is blocked by triggers (above), so interaction will report
-    // true but the default view will not have been set.
-    expect(api.getViewManager().setViewDefault).not.toBeCalled();
+    expect(manager.hasInteraction()).toBeFalsy();
   });
 
   it('should set condition state', () => {
@@ -135,6 +60,7 @@ describe('InteractionManager', () => {
         interaction: true,
       }),
     );
+    expect(manager.hasInteraction()).toBeTruthy();
 
     vi.setSystemTime(add(start, { seconds: 10 }));
     vi.runOnlyPendingTimers();
@@ -144,5 +70,6 @@ describe('InteractionManager', () => {
         interaction: false,
       }),
     );
+    expect(manager.hasInteraction()).toBeFalsy();
   });
 });

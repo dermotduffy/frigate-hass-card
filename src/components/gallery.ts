@@ -24,20 +24,16 @@ import galleryStyle from '../scss/gallery.scss';
 import { ExtendedHomeAssistant } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { errorToConsole, sleep } from '../utils/basic';
-import {
-  changeViewToRecentEventsForCameraAndDependents,
-  changeViewToRecentRecordingForCameraAndDependents,
-} from '../utils/media-to-view.js';
 import { ViewMedia } from '../view/media';
 import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
 import { MediaQueriesResults } from '../view/media-queries-results';
-import { View } from '../view/view.js';
 import './media-filter';
 import { renderMessage, renderProgressIndicator } from './message.js';
 import './surround-basic';
 import './thumbnail.js';
 import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
+import { ViewManagerEpoch } from '../card-controller/view/types.js';
 
 const GALLERY_MEDIA_FILTER_MENU_ICONS = {
   closed: 'mdi:filter-cog-outline',
@@ -52,7 +48,7 @@ export class FrigateCardGallery extends LitElement {
   public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  public view?: Readonly<View>;
+  public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
   public galleryConfig?: GalleryConfig;
@@ -68,41 +64,14 @@ export class FrigateCardGallery extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
+    const view = this.viewManagerEpoch?.manager.getView();
     if (
       !this.hass ||
-      !this.view ||
-      !this.view.isGalleryView() ||
+      !view?.isGalleryView() ||
       !this.cameraManager ||
       !this.cardWideConfig
     ) {
       return;
-    }
-
-    if (!this.view.query) {
-      if (this.view.is('recordings')) {
-        changeViewToRecentRecordingForCameraAndDependents(
-          this,
-          this.cameraManager,
-          this.cardWideConfig,
-          this.view,
-        );
-      } else {
-        const eventsMediaType = this.view.is('snapshots')
-          ? 'snapshots'
-          : this.view.is('clips')
-            ? 'clips'
-            : null;
-        changeViewToRecentEventsForCameraAndDependents(
-          this,
-          this.cameraManager,
-          this.cardWideConfig,
-          this.view,
-          {
-            ...(eventsMediaType && { eventsMediaType: eventsMediaType }),
-          },
-        );
-      }
-      return renderProgressIndicator({ cardWideConfig: this.cardWideConfig });
     }
 
     return html`
@@ -118,7 +87,7 @@ export class FrigateCardGallery extends LitElement {
           ? html` <frigate-card-media-filter
               .hass=${this.hass}
               .cameraManager=${this.cameraManager}
-              .view=${this.view}
+              .viewManagerEpoch=${this.viewManagerEpoch}
               .cardWideConfig=${this.cardWideConfig}
               slot=${this.galleryConfig.controls.filter.mode}
             >
@@ -126,7 +95,7 @@ export class FrigateCardGallery extends LitElement {
           : ''}
         <frigate-card-gallery-core
           .hass=${this.hass}
-          .view=${this.view}
+          .viewManagerEpoch=${this.viewManagerEpoch}
           .galleryConfig=${this.galleryConfig}
           .cameraManager=${this.cameraManager}
           .cardWideConfig=${this.cardWideConfig}
@@ -147,7 +116,7 @@ export class FrigateCardGalleryCore extends LitElement {
   public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  public view?: Readonly<View>;
+  public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
   public galleryConfig?: GalleryConfig;
@@ -328,13 +297,15 @@ export class FrigateCardGalleryCore extends LitElement {
     direction: 'earlier' | 'later',
     useCache = true,
   ): Promise<void> {
-    if (!this.cameraManager || !this.hass || !this.view) {
+    const view = this.viewManagerEpoch?.manager.getView();
+
+    if (!this.cameraManager || !this.hass || !view) {
       return;
     }
 
-    const query = this.view?.query;
+    const query = view.query;
     const rawQueries = query?.getQueries() ?? null;
-    const existingMedia = this.view.queryResults?.getResults();
+    const existingMedia = view.queryResults?.getResults();
     if (!query || !rawQueries || !existingMedia) {
       return;
     }
@@ -362,16 +333,17 @@ export class FrigateCardGalleryCore extends LitElement {
           : null;
 
       if (newMediaQueries) {
-        this.view
-          ?.evolve({
+        this.viewManagerEpoch?.manager.setViewByParameters({
+          baseView: view,
+          params: {
             query: newMediaQueries,
             queryResults: new MediaQueriesResults({
               results: extension.results,
             }).selectResultIfFound(
-              (media) => media === this.view?.queryResults?.getSelectedResult(),
+              (media) => media === view.queryResults?.getSelectedResult(),
             ),
-          })
-          .dispatchChangeEvent(this);
+          },
+        });
       }
     }
   }
@@ -395,19 +367,21 @@ export class FrigateCardGalleryCore extends LitElement {
         );
       }
     }
-    if (changedProps.has('view')) {
+    if (changedProps.has('viewManagerEpoch')) {
       // If the view changes, always render the bottom loader to allow for the
       // view to be extended once the bottom loader becomes visible.
       this._showLoaderBottom = true;
-      const oldView: View | undefined = changedProps.get('view');
 
+      const view = this.viewManagerEpoch?.manager.getView();
+      const oldView = this.viewManagerEpoch?.oldView;
       if (
-        oldView?.queryResults?.getResults() !== this.view?.queryResults?.getResults()
+        !this._media ||
+        oldView?.queryResults?.getResults() !== view?.queryResults?.getResults()
       ) {
         // Gallery places the most recent media at the top (the query results place
         // the most recent media at the end for use in the viewer). This is copied
         // to a new array to avoid reversing the query results in place.
-        this._media = [...(this.view?.queryResults?.getResults() ?? [])].reverse();
+        this._media = [...(view?.queryResults?.getResults() ?? [])].reverse();
       }
     }
   }
@@ -417,11 +391,12 @@ export class FrigateCardGalleryCore extends LitElement {
    * @returns A rendered template.
    */
   protected render(): TemplateResult | void {
-    if (!this._media || !this.hass || !this.view || !this.view.isGalleryView()) {
+    if (!this._media || !this.hass) {
       return html``;
     }
 
-    if ((this.view?.queryResults?.getResultsCount() ?? 0) === 0) {
+    const view = this.viewManagerEpoch?.manager.getView();
+    if (!view?.queryResults || view.queryResults.getResultsCount() === 0) {
       // Note that this is not throwing up an error message for the card to
       // handle (as typical), but rather directly rendering the message into the
       // gallery. This is to allow the filter to still be available when a given
@@ -433,7 +408,7 @@ export class FrigateCardGalleryCore extends LitElement {
       });
     }
 
-    const selected = this.view?.queryResults?.getSelectedResult();
+    const selected = view.queryResults.getSelectedResult();
     return html` <div class="grid">
       ${this._showLoaderTop
         ? html`${renderProgressIndicator({
@@ -454,7 +429,7 @@ export class FrigateCardGalleryCore extends LitElement {
             .hass=${this.hass}
             .cameraManager=${this.cameraManager}
             .media=${media}
-            .view=${this.view}
+            .viewManagerEpoch=${this.viewManagerEpoch}
             ?details=${!!this.galleryConfig?.controls.thumbnails.show_details}
             ?show_favorite_control=${!!this.galleryConfig?.controls.thumbnails
               .show_favorite_control}
@@ -463,17 +438,17 @@ export class FrigateCardGalleryCore extends LitElement {
             ?show_download_control=${!!this.galleryConfig?.controls.thumbnails
               .show_download_control}
             @click=${(ev: Event) => {
-              if (this.view && this._media) {
-                this.view
-                  .evolve({
+              if (this._media) {
+                this.viewManagerEpoch?.manager.setViewByParameters({
+                  params: {
                     view: 'media',
-                    queryResults: this.view.queryResults?.clone().selectIndex(
+                    queryResults: view.queryResults?.clone().selectIndex(
                       // Media in the gallery is reversed vs the queryResults (see
                       // note above).
                       this._media.length - index - 1,
                     ),
-                  })
-                  .dispatchChangeEvent(this);
+                  },
+                });
               }
               stopEventFromActivatingCardWideActions(ev);
             }}
@@ -504,9 +479,9 @@ export class FrigateCardGalleryCore extends LitElement {
       // See: https://github.com/dermotduffy/frigate-hass-card/issues/885
       if (
         // If this update cycle updated the view ...
-        changedProps.has('view') &&
+        changedProps.has('viewManagerEpoch') &&
         // ... and it wasn't set at all prior ...
-        !changedProps.get('view') &&
+        !changedProps.get('viewManagerEpoch') &&
         // ... and there is a thumbnail rendered that is selected.
         this._refSelected.value
       ) {

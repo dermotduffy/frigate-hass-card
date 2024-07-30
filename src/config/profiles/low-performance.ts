@@ -46,6 +46,7 @@ import {
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_TIMELINE_SHOW_RECORDINGS,
+  CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
 } from '../../const.js';
 
 export const LOW_PERFORMANCE_PROFILE = {
@@ -134,4 +135,7 @@ export const LOW_PERFORMANCE_PROFILE = {
   // Refresh the live camera image every 10 seconds (same as stock Home
   // Assistant Picture Glance).
   [CONF_CAMERAS_GLOBAL_IMAGE_REFRESH_SECONDS]: 10,
+
+  // No trigger actions.
+  [CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER]: 'none',
 };

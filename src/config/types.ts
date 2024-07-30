@@ -863,10 +863,6 @@ const imageBaseConfigSchema = z.object({
 const IMAGE_MODES = ['screensaver', 'camera', 'url'] as const;
 const imageConfigDefault = {
   mode: 'url' as const,
-  zoomable: true,
-  controls: {
-    ptz: ptzControlsDefaults,
-  },
   ...imageBaseConfigDefault,
 };
 
@@ -1396,17 +1392,19 @@ const viewConfigDefault = {
   default: FRIGATE_CARD_VIEW_DEFAULT,
   camera_select: 'current' as const,
   interaction_seconds: 300,
-  reset_after_interaction: true,
-  update_seconds: 0,
-  update_force: false,
-  update_cycle_camera: false,
+  default_reset: {
+    every_seconds: 0,
+    after_interaction: false,
+    entities: [],
+    interaction_mode: 'inactive' as const,
+  },
+  default_cycle_camera: false,
   dark_mode: 'off' as const,
   triggers: {
     show_trigger_status: false,
     filter_selected_camera: true,
     actions: {
-      interaction_mode: 'inactive' as const,
-      trigger: 'default' as const,
+      trigger: 'update' as const,
       untrigger: 'none' as const,
     },
     untrigger_seconds: 0,
@@ -1414,27 +1412,27 @@ const viewConfigDefault = {
   keyboard_shortcuts: keyboardShortcutsDefault,
 };
 
-export const triggersSchema = z.object({
-  filter_selected_camera: z
-    .boolean()
-    .default(viewConfigDefault.triggers.filter_selected_camera),
-  show_trigger_status: z
-    .boolean()
-    .default(viewConfigDefault.triggers.show_trigger_status),
+const interactionModeSchema = z.enum(['all', 'inactive', 'active']).default('inactive');
+export type InteractionMode = z.infer<typeof interactionModeSchema>;
 
+export const triggersSchema = z.object({
   actions: z
     .object({
-      interaction_mode: z
-        .enum(['all', 'inactive', 'active'])
-        .default(viewConfigDefault.triggers.actions.interaction_mode),
+      interaction_mode: interactionModeSchema,
       trigger: z
-        .enum(['live', 'default', 'media', 'none'])
+        .enum(['default', 'live', 'media', 'none', 'update'])
         .default(viewConfigDefault.triggers.actions.trigger),
       untrigger: z
         .enum(['default', 'none'])
         .default(viewConfigDefault.triggers.actions.untrigger),
     })
     .default(viewConfigDefault.triggers.actions),
+  filter_selected_camera: z
+    .boolean()
+    .default(viewConfigDefault.triggers.filter_selected_camera),
+  show_trigger_status: z
+    .boolean()
+    .default(viewConfigDefault.triggers.show_trigger_status),
   untrigger_seconds: z.number().default(viewConfigDefault.triggers.untrigger_seconds),
 });
 export type TriggersOptions = z.infer<typeof triggersSchema>;
@@ -1448,13 +1446,21 @@ const viewConfigSchema = z
       .enum([...FRIGATE_CARD_VIEWS_USER_SPECIFIED, 'current'])
       .default(viewConfigDefault.camera_select),
     interaction_seconds: z.number().default(viewConfigDefault.interaction_seconds),
-    reset_after_interaction: z
-      .boolean()
-      .default(viewConfigDefault.reset_after_interaction),
-    update_seconds: z.number().default(viewConfigDefault.update_seconds),
-    update_force: z.boolean().default(viewConfigDefault.update_force),
-    update_cycle_camera: z.boolean().default(viewConfigDefault.update_cycle_camera),
-    update_entities: z.string().array().optional(),
+    default_cycle_camera: z.boolean().default(viewConfigDefault.default_cycle_camera),
+
+    default_reset: z
+      .object({
+        after_interaction: z
+          .boolean()
+          .default(viewConfigDefault.default_reset.after_interaction),
+        every_seconds: z.number().default(viewConfigDefault.default_reset.every_seconds),
+        entities: z.string().array().default(viewConfigDefault.default_reset.entities),
+        interaction_mode: interactionModeSchema.default(
+          viewConfigDefault.default_reset.interaction_mode,
+        ),
+      })
+      .default(viewConfigDefault.default_reset),
+
     render_entities: z.string().array().optional(),
     dark_mode: z.enum(['on', 'off', 'auto']).optional(),
     triggers: triggersSchema.default(viewConfigDefault.triggers),

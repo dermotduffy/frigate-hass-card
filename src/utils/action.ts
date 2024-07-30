@@ -39,7 +39,7 @@ export function createGeneralAction(
   options?: {
     cardID?: string;
   },
-): FrigateCardCustomAction | null {
+): FrigateCardCustomAction {
   return {
     action: 'fire-dom-event',
     frigate_card_action: action,

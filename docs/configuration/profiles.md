@@ -28,7 +28,7 @@ Principles used in the selection of options set by `low-profile` profile mode:
 - Get 'out of the box' performance similar to the basic "Home Assistant Picture Glance" card.
 - Do not break the visual aesthetic of the card.
 
-See the [source code](https://github.com/dermotduffy/frigate-hass-card/blob/dev/src/config/profiles/low-performance.ts) for an exhaustive list of options set by this profile.
+See the [source code](https://github.com/dermotduffy/frigate-hass-card/blob/dev/src/config/profiles/low-performance.ts) for an exhaustive list of defaults set by this profile.
 
 ## `scrubbing`
 

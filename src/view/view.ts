@@ -1,11 +1,8 @@
+import merge from 'lodash-es/merge';
 import { ViewContext } from 'view';
 import { FrigateCardView, ViewDisplayMode } from '../config/types.js';
-import { ClipsOrSnapshots } from '../types.js';
-import { dispatchFrigateCardEvent } from '../utils/basic.js';
 import { MediaQueries } from './media-queries';
-import { MediaQueriesClassifier } from './media-queries-classifier.js';
 import { MediaQueriesResults } from './media-queries-results';
-import merge from 'lodash-es/merge';
 
 interface ViewEvolveParameters {
   view?: FrigateCardView;
@@ -20,6 +17,13 @@ export interface ViewParameters extends ViewEvolveParameters {
   view: FrigateCardView;
   camera: string;
 }
+
+export const mergeViewContext = (
+  a?: ViewContext | null,
+  b?: ViewContext | null,
+): ViewContext => {
+  return merge({}, a, b);
+};
 
 export class View {
   public view: FrigateCardView;
@@ -38,109 +42,6 @@ export class View {
     this.displayMode = params.displayMode ?? null;
   }
 
-  /**
-   * Detect if a view change represents a major "media change" for the given
-   * view.
-   * @param prev The previous view.
-   * @param curr The current view.
-   * @returns True if the view change is a real media change.
-   */
-  public static isMajorMediaChange(prev?: View | null, curr?: View): boolean {
-    return (
-      !prev ||
-      !curr ||
-      prev.view !== curr.view ||
-      prev.camera !== curr.camera ||
-      // When in live mode, take overrides (substreams) into account in deciding
-      // if this is a major media change.
-      (curr.view === 'live' &&
-        prev.context?.live?.overrides?.get(prev.camera) !==
-          curr.context?.live?.overrides?.get(curr.camera)) ||
-      // When in the live view, the queryResults contain the events that
-      // happened in the past -- not reflective of the actual live media viewer
-      // the user is seeing.
-      (curr.view !== 'live' && prev.queryResults !== curr.queryResults)
-    );
-  }
-
-  public static adoptFromViewIfAppropriate(next: View, curr?: View | null): void {
-    if (!curr) {
-      return;
-    }
-
-    // In certain cases it may make sense to adopt parameters from a prior view.
-    //
-    // * Case #1: If the user is currently using the viewer, and then switches
-    //   to the gallery we make an attempt to keep the query/queryResults the
-    //   same so the gallery can be used to click back and forth to the viewer,
-    //   and the selected media can be centered in the gallery. See the matching
-    //   code in `updated()` in `gallery.ts`. We specifically must ensure that
-    //   the new target media of the gallery (e.g. clips, snapshots or
-    //   recordings) is equal to the queries that are currently used in the
-    //   viewer. See:
-    //   https://github.com/dermotduffy/frigate-hass-card/issues/885
-    //
-    // * Case #2: If the user is looking at media in the `media` view and then
-    //   changes camera to the *current* camera (via the menu) it will cause a
-    //   new view to issue without a query and just the 'media' view, which
-    //   means the viewer cannot know what kind of media to fetch.
-    //
-    // * Case #3: Staying within the live view in order to preserve substreams
-    //   turned on. See:
-    //   https://github.com/dermotduffy/frigate-hass-card/issues/1122
-    //
-
-    let currentQueriesView: ClipsOrSnapshots | 'recordings' | null = null;
-    if (MediaQueriesClassifier.areEventQueries(curr.query)) {
-      const queries = curr.query.getQueries();
-      if (
-        queries?.every((query) => query.hasClip) ||
-        queries?.every(
-          (query) => query.hasClip === undefined && query.hasSnapshot === undefined,
-        )
-      ) {
-        currentQueriesView = 'clips';
-      } else if (queries?.every((query) => query.hasSnapshot)) {
-        currentQueriesView = 'snapshots';
-      }
-    } else if (MediaQueriesClassifier.areRecordingQueries(curr.query)) {
-      currentQueriesView = 'recordings';
-    }
-
-    const hasNoQueryOrResults = !next.query || !next.queryResults;
-    const switchingToGalleryFromViewer =
-      curr.isViewerView() && next.isGalleryView() && next.view === currentQueriesView;
-    const switchingToMediaFromMedia = curr?.is('media') && next.is('media');
-
-    if (hasNoQueryOrResults) {
-      if (switchingToGalleryFromViewer && curr.query && curr.queryResults) {
-        next.query = curr.query;
-        next.queryResults = curr.queryResults;
-      } else if (switchingToMediaFromMedia && currentQueriesView) {
-        next.view =
-          currentQueriesView === 'clips'
-            ? 'clip'
-            : currentQueriesView === 'snapshots'
-              ? 'snapshot'
-              : 'recording';
-      }
-    }
-
-    if (
-      curr.is('live') &&
-      next.is('live') &&
-      curr.context?.live?.overrides &&
-      !next.context?.live?.overrides
-    ) {
-      const nextLiveContext = next.context?.live ?? {};
-      nextLiveContext.overrides = curr.context.live.overrides;
-      next.mergeInContext({ live: nextLiveContext });
-    }
-  }
-
-  /**
-   * Clone a view.
-   */
   public clone(): View {
     return new View({
       view: this.view,
@@ -178,7 +79,7 @@ export class View {
    * @returns This view.
    */
   public mergeInContext(context?: ViewContext | null): View {
-    this.context = merge({}, this.context, context);
+    this.context = mergeViewContext(this.context, context);
     return this;
   }
 
@@ -259,48 +160,4 @@ export class View {
   public isGrid(): boolean {
     return this.displayMode === 'grid';
   }
-
-  /**
-   * Dispatch an event to request a view change.
-   * @param target The target dispatching the event.
-   */
-  public dispatchChangeEvent(target: EventTarget): void {
-    dispatchFrigateCardEvent(target, 'view:change', this);
-  }
 }
-
-// Facilitates correct typing of event handlers.
-export interface FrigateCardViewChangeEventTarget extends EventTarget {
-  addEventListener(
-    event: 'frigate-card:view:change',
-    listener: (this: FrigateCardViewChangeEventTarget, ev: CustomEvent<View>) => void,
-    options?: AddEventListenerOptions | boolean,
-  ): void;
-  addEventListener(
-    type: string,
-    callback: EventListenerOrEventListenerObject,
-    options?: AddEventListenerOptions | boolean,
-  ): void;
-  removeEventListener(
-    event: 'frigate-card:view:change',
-    listener: (this: FrigateCardViewChangeEventTarget, ev: CustomEvent<View>) => void,
-    options?: boolean | EventListenerOptions,
-  ): void;
-  removeEventListener(
-    type: string,
-    callback: EventListenerOrEventListenerObject,
-    options?: boolean | EventListenerOptions,
-  ): void;
-}
-
-/**
- * Dispatch an event to change the view context.
- * @param target The EventTarget to send the event from.
- * @param context The context to change.
- */
-export const dispatchViewContextChangeEvent = (
-  target: EventTarget,
-  context: ViewContext | null,
-): void => {
-  dispatchFrigateCardEvent(target, 'view:change-context', context);
-};

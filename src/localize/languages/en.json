@@ -362,7 +362,6 @@
         "camera_ui": "Camera user interface",
         "cameras": "Cameras",
         "clips": "Clips",
-        "ptz_home": "PTZ Home",
         "display_mode": "Display mode",
         "download": "Download",
         "enabled": "Button enabled",
@@ -378,6 +377,7 @@
         "play": "Play / Pause",
         "priority": "Priority",
         "ptz_controls": "Show PTZ controls",
+        "ptz_home": "PTZ Home",
         "recordings": "Recordings",
         "screenshot": "Screenshot",
         "snapshots": "Snapshots",
@@ -436,6 +436,19 @@
         "on": "On"
       },
       "default": "Default view",
+      "default_cycle_camera": "Cycle through cameras when default view updates",
+      "default_reset": {
+        "after_interaction": "Reset to the default view after user interaction ends",
+        "editor_label": "Default view reset behavior",
+        "entities": "Reset to the default view on entity state change",
+        "every_seconds": "Reset to default view every X seconds (0=never)",
+        "interaction_mode": "How default reset behaves when the card has human interaction",
+        "interaction_modes": {
+          "active": "Only allow reset when card has active human interaction",
+          "all": "Reset regardless of human interaction",
+          "inactive": "Only reset when card has no human interaction"
+        }
+      },
       "interaction_seconds": "Seconds after user action to remain interacted with (0=never)",
       "keyboard_shortcuts": {
         "editor_label": "Keyboard shortcuts",
@@ -448,7 +461,6 @@
         "ptz_zoom_in": "PTZ Zoom In",
         "ptz_zoom_out": "PTZ Zoom Out"
       },
-      "reset_after_interaction": "Reset to the default view after user interaction",
       "triggers": {
         "actions": {
           "editor_label": "Trigger actions",
@@ -471,14 +483,11 @@
             "none": "No action"
           }
         },
-        "editor_label": "Behavior when a camera is triggered",
+        "editor_label": "Trigger behavior",
         "filter_selected_camera": "Only trigger on selected camera",
         "show_trigger_status": "Show pulsing border when triggered",
         "untrigger_seconds": "Seconds after inactive state change to untrigger"
       },
-      "update_cycle_camera": "Cycle through cameras when default view updates",
-      "update_force": "Force card updates (ignore user interaction)",
-      "update_seconds": "Refresh default view every X seconds (0=never)",
       "views": {
         "clip": "Most recent clip",
         "clips": "Clips gallery",

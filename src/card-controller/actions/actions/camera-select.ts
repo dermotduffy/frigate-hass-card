@@ -16,9 +16,11 @@ export class CameraSelectAction extends FrigateCardAction<CameraSelectActionConf
       const viewOnCameraSelect = config?.view.camera_select ?? 'current';
       const targetViewName =
         viewOnCameraSelect === 'current' ? view.view : viewOnCameraSelect;
-      api.getViewManager().setViewByParameters({
-        viewName: targetViewName,
-        cameraID: selectCameraID,
+      await api.getViewManager().setViewByParametersWithNewQuery({
+        params: {
+          view: targetViewName,
+          camera: selectCameraID,
+        },
         failSafe: true,
       });
     }

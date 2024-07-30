@@ -3,6 +3,7 @@ import { CameraConfig } from '../config/types';
 import { localize } from '../localize/localize';
 import { allPromises } from '../utils/basic';
 import {
+  DestroyCallback,
   isTriggeredState,
   parseStateChangeTrigger,
   subscribeToTrigger,
@@ -12,8 +13,6 @@ import { Capabilities } from './capabilities';
 import { CameraManagerEngine } from './engine';
 import { CameraNoIDError } from './error';
 import { CameraEventCallback } from './types';
-
-type DestroyCallback = () => Promise<void>;
 
 export class Camera {
   protected _config: CameraConfig;

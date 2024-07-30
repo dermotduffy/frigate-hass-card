@@ -24,6 +24,8 @@ import {
   SubscriptionUnsubscribe,
 } from './types.js';
 
+export type DestroyCallback = () => Promise<void>;
+
 /**
  * Make a HomeAssistant websocket request. May throw.
  * @param hass The HomeAssistant object to send the request with.

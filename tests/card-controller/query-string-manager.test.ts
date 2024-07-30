@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { QueryStringManager } from '../../src/card-controller/query-string-manager';
+import { SubstreamSelectViewModifier } from '../../src/card-controller/view/modifiers/substream-select';
 import { createCardAPI } from '../test-utils';
 
 const setQueryString = (qs: string): void => {
@@ -51,8 +52,10 @@ describe('QueryStringManager', () => {
       manager.executeAll();
 
       expect(manager.hasViewRelatedActions()).toBeTruthy();
-      expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-        viewName: viewName,
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+        params: {
+          view: viewName,
+        },
       });
     });
   });
@@ -92,7 +95,7 @@ describe('QueryStringManager', () => {
 
     manager.executeAll();
 
-    expect(api.getViewManager().setViewDefault).toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
 
     expect(manager.hasViewRelatedActions()).toBeTruthy();
     expect(api.getActionsManager().executeActions).not.toBeCalled();
@@ -107,8 +110,10 @@ describe('QueryStringManager', () => {
 
     manager.executeAll();
 
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-      cameraID: 'camera.office',
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+      params: {
+        camera: 'camera.office',
+      },
     });
 
     expect(manager.hasViewRelatedActions()).toBeTruthy();
@@ -124,8 +129,9 @@ describe('QueryStringManager', () => {
 
     manager.executeAll();
 
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-      substream: 'camera.office_hd',
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+      modifiers: [expect.any(SubstreamSelectViewModifier)],
+      params: {},
     });
 
     expect(manager.hasViewRelatedActions()).toBeTruthy();
@@ -190,8 +196,10 @@ describe('QueryStringManager', () => {
       manager.executeAll();
 
       expect(manager.hasViewRelatedActions()).toBeTruthy();
-      expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-        viewName: viewName,
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+        params: {
+          view: viewName,
+        },
       });
     });
   });
@@ -230,11 +238,13 @@ describe('QueryStringManager', () => {
 
       manager.executeAll();
 
-      expect(api.getViewManager().setViewDefault).toBeCalledWith({
-        cameraID: 'camera.kitchen',
-        substream: 'camera.kitchen_hd',
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledWith({
+        params: {
+          camera: 'camera.kitchen',
+        },
+        modifiers: [expect.any(SubstreamSelectViewModifier)],
       });
-      expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
     });
 
     it('multiple cameras specified', () => {
@@ -248,8 +258,10 @@ describe('QueryStringManager', () => {
 
       manager.executeAll();
 
-      expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-        cameraID: 'camera.office',
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+        params: {
+          camera: 'camera.office',
+        },
       });
     });
   });

@@ -110,7 +110,7 @@ describe('InitializationManager', () => {
       expect(loadLanguages).toBeCalled();
       expect(sideLoadHomeAssistantElements).toBeCalled();
       expect(api.getCameraManager().initializeCamerasFromConfig).toBeCalled();
-      expect(api.getViewManager().setViewDefault).toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
       expect(api.getMicrophoneManager().connect).not.toBeCalled();
     });
 
@@ -208,9 +208,13 @@ describe('InitializationManager', () => {
       expect(await manager.initializeBackgroundIfNecessary()).toBeFalsy();
     });
 
-    it('successfully with minimal initializers', async () => {
+    it('successfully when already initialized', async () => {
       const api = createCardAPI();
-      const manager = new InitializationManager(api);
+
+      const initializer = mock<Initializer>();
+      initializer.isInitializedMultiple.mockReturnValue(true);
+
+      const manager = new InitializationManager(api, initializer);
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
@@ -226,6 +230,8 @@ describe('InitializationManager', () => {
 
       expect(await manager.initializeBackgroundIfNecessary()).toBeTruthy();
       expect(api.getMediaPlayerManager().initialize).not.toBeCalled();
+      expect(api.getDefaultManager().initialize).not.toBeCalled();
+      expect(api.getCardElementManager().update).not.toBeCalled();
     });
 
     it('successfully with all inititalizers', async () => {
@@ -246,10 +252,11 @@ describe('InitializationManager', () => {
 
       expect(await manager.initializeBackgroundIfNecessary()).toBeTruthy();
       expect(api.getMediaPlayerManager().initialize).toBeCalled();
+      expect(api.getDefaultManager().initialize).toBeCalled();
       expect(api.getCardElementManager().update).toBeCalled();
     });
 
-    it('with media player in progress', async () => {
+    it('with initializers in progress', async () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(

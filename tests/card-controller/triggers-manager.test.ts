@@ -2,7 +2,11 @@ import { add } from 'date-fns';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CardController } from '../../src/card-controller/controller';
 import { TriggersManager } from '../../src/card-controller/triggers-manager';
-import { TriggersOptions, triggersSchema } from '../../src/config/types';
+import {
+  FrigateCardView,
+  TriggersOptions,
+  triggersSchema,
+} from '../../src/config/types';
 import {
   createCameraConfig,
   createCameraManager,
@@ -10,17 +14,19 @@ import {
   createConfig,
   createStore,
   createView,
+  flushPromises,
 } from '../test-utils';
 
 vi.mock('lodash-es/throttle', () => ({
   default: vi.fn((fn) => fn),
 }));
 
-const baseTriggersConfig: Partial<TriggersOptions> = {
+const baseTriggersConfig: TriggersOptions = {
   untrigger_seconds: 10,
   filter_selected_camera: false,
+  show_trigger_status: false,
   actions: {
-    trigger: 'live' as const,
+    trigger: 'update' as const,
     untrigger: 'default' as const,
     interaction_mode: 'inactive' as const,
   },
@@ -30,6 +36,7 @@ const baseTriggersConfig: Partial<TriggersOptions> = {
 // function reduces it.
 const createTriggerAPI = (options?: {
   config?: Partial<TriggersOptions>;
+  default?: FrigateCardView;
   interaction?: boolean;
 }): CardController => {
   const api = createCardAPI();
@@ -39,6 +46,7 @@ const createTriggerAPI = (options?: {
         triggers: options?.config
           ? triggersSchema.parse(options.config)
           : baseTriggersConfig,
+        ...(options?.default && { default: options.default }),
       },
     }),
   );
@@ -101,161 +109,273 @@ describe('TriggersManager', () => {
     expect(manager.isTriggered()).toBeFalsy();
   });
 
-  it('should trigger and untrigger based on low fidelity event', () => {
-    const api = createTriggerAPI();
-    const manager = new TriggersManager(api);
-
-    manager.handleCameraEvent({
-      cameraID: 'camera_1',
-      type: 'new',
-    });
-
-    expect(manager.isTriggered()).toBeTruthy();
-    expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith({
-      triggered: new Set(['camera_1']),
-    });
-
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-      viewName: 'live' as const,
-      cameraID: 'camera_1' as const,
-    });
-
-    vi.mocked(api.getConditionsManager().getState).mockReturnValue({
-      triggered: new Set(['camera_1']),
-    });
-
-    manager.handleCameraEvent({
-      cameraID: 'camera_1',
-      type: 'end',
-    });
-
-    // Will still be triggered, but untrigger timer will be running.
-    expect(manager.isTriggered()).toBeTruthy();
-
-    vi.setSystemTime(add(start, { seconds: 10 }));
-    vi.runOnlyPendingTimers();
-
-    expect(manager.isTriggered()).toBeFalsy();
-    expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith({
-      triggered: undefined,
-    });
-
-    expect(api.getViewManager().setViewDefault).toBeCalled();
-  });
-
-  describe('should treat high fidelity events appropriately', () => {
-    it('with no media', () => {
-      const api = createTriggerAPI();
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-        createConfig({
-          view: {
-            default: 'clips',
+  describe('trigger actions', () => {
+    it('update', async () => {
+      const api = createTriggerAPI({
+        config: {
+          ...baseTriggersConfig,
+          actions: {
+            ...baseTriggersConfig.actions,
+            trigger: 'update',
           },
-        }),
-      );
+        },
+      });
 
       const manager = new TriggersManager(api);
-      manager.handleCameraEvent({
+
+      await manager.handleCameraEvent({
         cameraID: 'camera_1',
         type: 'new',
-        fidelity: 'high',
-
-        // Intentionally blank.
       });
 
       expect(manager.isTriggered()).toBeTruthy();
-      expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+        queryExecutorOptions: { useCache: false },
+      });
     });
 
-    it('with media', () => {
-      const api = createTriggerAPI();
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-        createConfig({
-          view: {
-            default: 'clips',
+    it('default', async () => {
+      const api = createTriggerAPI({
+        config: {
+          ...baseTriggersConfig,
+          actions: {
+            ...baseTriggersConfig.actions,
+            trigger: 'default',
           },
-        }),
-      );
-
-      const manager = new TriggersManager(api);
-      manager.handleCameraEvent({
-        cameraID: 'camera_1',
-        type: 'new',
-        fidelity: 'high',
-        clip: true,
+        },
       });
 
+      const manager = new TriggersManager(api);
+
+      await manager.handleCameraEvent({ cameraID: 'camera_1', type: 'new' });
+
       expect(manager.isTriggered()).toBeTruthy();
-      expect(api.getViewManager().setViewDefault).toBeCalled();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledWith({
+        params: {
+          camera: 'camera_1',
+        },
+      });
+    });
+
+    it('live', () => {
+      const api = createTriggerAPI({
+        config: {
+          ...baseTriggersConfig,
+          actions: {
+            ...baseTriggersConfig.actions,
+            trigger: 'live',
+          },
+        },
+      });
+
+      const manager = new TriggersManager(api);
+
+      manager.handleCameraEvent({ cameraID: 'camera_1', type: 'new' });
+
+      expect(manager.isTriggered()).toBeTruthy();
+      expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+        params: {
+          view: 'live',
+          camera: 'camera_1',
+        },
+      });
+    });
+
+    describe('media', () => {
+      it.each([
+        [false, false, null],
+        [false, true, 'clip' as const],
+        [true, false, 'snapshot' as const],
+        [true, true, 'clip' as const],
+      ])(
+        'with snapshot %s and clip %s',
+        async (
+          hasSnapshot: boolean,
+          hasClip: boolean,
+          viewName: 'clip' | 'snapshot' | null,
+        ) => {
+          const api = createTriggerAPI({
+            config: {
+              actions: {
+                interaction_mode: 'all',
+                trigger: 'media',
+                untrigger: 'none',
+              },
+            },
+          });
+          const manager = new TriggersManager(api);
+
+          manager.handleCameraEvent({
+            cameraID: 'camera_1',
+            type: 'new',
+            fidelity: 'high',
+            snapshot: hasSnapshot,
+            clip: hasClip,
+          });
+
+          if (!viewName) {
+            expect(
+              api.getViewManager().setViewByParametersWithNewQuery,
+            ).not.toBeCalled();
+          } else {
+            expect(manager.isTriggered()).toBeTruthy();
+            expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+              params: {
+                camera: 'camera_1',
+                view: viewName,
+              },
+            });
+          }
+        },
+      );
+    });
+
+    it('none', () => {
+      const api = createTriggerAPI({
+        config: {
+          ...baseTriggersConfig,
+          actions: {
+            ...baseTriggersConfig.actions,
+            trigger: 'none',
+          },
+        },
+      });
+
+      const manager = new TriggersManager(api);
+
+      manager.handleCameraEvent({ cameraID: 'camera_1', type: 'new' });
+
+      expect(manager.isTriggered()).toBeTruthy();
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
     });
   });
 
-  it('should change to default view when suitably configured', () => {
+  describe('untrigger actions', () => {
+    it('none', () => {
+      const api = createTriggerAPI({
+        config: {
+          ...baseTriggersConfig,
+          actions: {
+            ...baseTriggersConfig.actions,
+            trigger: 'none',
+            untrigger: 'none',
+          },
+        },
+      });
+
+      const manager = new TriggersManager(api);
+      manager.handleCameraEvent({ cameraID: 'camera_1', type: 'new' });
+      manager.handleCameraEvent({ cameraID: 'camera_1', type: 'end' });
+
+      vi.setSystemTime(add(start, { seconds: 10 }));
+      vi.runOnlyPendingTimers();
+
+      expect(manager.isTriggered()).toBeFalsy();
+
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+    });
+
+    it('default', async () => {
+      const api = createTriggerAPI({
+        config: {
+          ...baseTriggersConfig,
+          actions: {
+            ...baseTriggersConfig.actions,
+            trigger: 'none',
+            untrigger: 'default',
+          },
+        },
+      });
+
+      const manager = new TriggersManager(api);
+      await manager.handleCameraEvent({ cameraID: 'camera_1', type: 'new' });
+      await manager.handleCameraEvent({ cameraID: 'camera_1', type: 'end' });
+
+      vi.setSystemTime(add(start, { seconds: 10 }));
+      vi.runOnlyPendingTimers();
+      await flushPromises();
+
+      expect(manager.isTriggered()).toBeFalsy();
+
+      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
+    });
+  });
+
+  it('should manage condition state', () => {
     const api = createTriggerAPI({
       config: {
+        ...baseTriggersConfig,
         actions: {
-          interaction_mode: 'all',
-          trigger: 'default',
+          ...baseTriggersConfig.actions,
+          trigger: 'none',
           untrigger: 'none',
         },
       },
     });
+
     const manager = new TriggersManager(api);
 
-    manager.handleCameraEvent({
-      cameraID: 'camera_1',
-      type: 'new',
+    manager.handleCameraEvent({ cameraID: 'camera_1', type: 'new' });
+
+    expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith({
+      triggered: new Set(['camera_1']),
+    });
+    vi.mocked(api.getConditionsManager().getState).mockReturnValue({
+      triggered: new Set(['camera_1']),
     });
 
-    expect(manager.isTriggered()).toBeTruthy();
-    expect(api.getViewManager().setViewDefault).toBeCalledWith({
-      cameraID: 'camera_1',
+    manager.handleCameraEvent({ cameraID: 'camera_1', type: 'end' });
+
+    vi.setSystemTime(add(start, { seconds: 10 }));
+    vi.runOnlyPendingTimers();
+
+    expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith({
+      triggered: undefined,
     });
   });
 
-  describe('should change to media view', () => {
-    it.each([
-      [false, false, null],
-      [false, true, 'clip' as const],
-      [true, false, 'snapshot' as const],
-      [true, true, 'clip' as const],
-    ])(
-      'with snapshot %s and clip %s',
-      async (
-        hasSnapshot: boolean,
-        hasClip: boolean,
-        viewName: 'clip' | 'snapshot' | null,
-      ) => {
-        const api = createTriggerAPI({
-          config: {
-            actions: {
-              interaction_mode: 'all',
-              trigger: 'media',
-              untrigger: 'none',
-            },
+  describe('should take no actions with high-fidelity event', () => {
+    it('with non-live action', () => {
+      const api = createTriggerAPI({
+        config: {
+          ...baseTriggersConfig,
+          actions: {
+            ...baseTriggersConfig.actions,
+            trigger: 'media',
           },
-        });
-        const manager = new TriggersManager(api);
+        },
+        default: 'live',
+      });
 
-        manager.handleCameraEvent({
-          cameraID: 'camera_1',
-          type: 'new',
-          fidelity: 'high',
-          snapshot: hasSnapshot,
-          clip: hasClip,
-        });
+      const manager = new TriggersManager(api);
 
-        if (!viewName) {
-          expect(api.getViewManager().setViewByParameters).not.toBeCalled();
-        } else {
-          expect(manager.isTriggered()).toBeTruthy();
-          expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-            cameraID: 'camera_1',
-            viewName: viewName,
-          });
-        }
-      },
-    );
+      manager.handleCameraEvent({ cameraID: 'camera_1', type: 'new', fidelity: 'high' });
+
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+    });
+
+    it('with non-live default', () => {
+      const api = createTriggerAPI({
+        config: {
+          ...baseTriggersConfig,
+          actions: {
+            ...baseTriggersConfig.actions,
+            trigger: 'default',
+          },
+        },
+        default: 'clips',
+      });
+
+      const manager = new TriggersManager(api);
+
+      manager.handleCameraEvent({ cameraID: 'camera_1', type: 'new', fidelity: 'high' });
+
+      expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+      expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
+    });
   });
 
   it('should take no actions with human interactions', () => {
@@ -272,7 +392,8 @@ describe('TriggersManager', () => {
 
     expect(manager.isTriggered()).toBeTruthy();
 
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
 
     manager.handleCameraEvent({
       cameraID: 'camera_1',
@@ -284,7 +405,8 @@ describe('TriggersManager', () => {
 
     expect(manager.isTriggered()).toBeFalsy();
 
-    expect(api.getViewManager().setViewDefault).not.toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
   });
 
   it('should take no actions when actions are set to none', () => {
@@ -303,7 +425,8 @@ describe('TriggersManager', () => {
       type: 'new',
     });
     expect(manager.isTriggered()).toBeTruthy();
-    expect(api.getViewManager().setViewByParameters).not.toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
 
     manager.handleCameraEvent({
       cameraID: 'camera_1',
@@ -314,10 +437,11 @@ describe('TriggersManager', () => {
     vi.runOnlyPendingTimers();
 
     expect(manager.isTriggered()).toBeFalsy();
-    expect(api.getViewManager().setViewDefault).not.toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).not.toBeCalled();
+    expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
   });
 
-  it('should take actions with human interactions when interaction mode is active', () => {
+  it('should take actions with human interactions when interaction mode is active', async () => {
     const api = createTriggerAPI({
       // Interaction present.
       interaction: true,
@@ -331,31 +455,34 @@ describe('TriggersManager', () => {
       },
     });
     const manager = new TriggersManager(api);
-    manager.handleCameraEvent({
+    await manager.handleCameraEvent({
       cameraID: 'camera_1',
       type: 'new',
     });
 
     expect(manager.isTriggered()).toBeTruthy();
-    expect(api.getViewManager().setViewByParameters).toBeCalledWith({
-      viewName: 'live' as const,
-      cameraID: 'camera_1' as const,
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+      params: {
+        view: 'live' as const,
+        camera: 'camera_1' as const,
+      },
     });
 
-    manager.handleCameraEvent({
+    await manager.handleCameraEvent({
       cameraID: 'camera_1',
       type: 'end',
     });
 
     vi.setSystemTime(add(start, { seconds: 10 }));
     vi.runOnlyPendingTimers();
+    await flushPromises();
 
     expect(manager.isTriggered()).toBeFalsy();
 
-    expect(api.getViewManager().setViewDefault).toBeCalled();
+    expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
   });
 
-  it('should report multiple triggered cameras', () => {
+  it('should report multiple triggered cameras', async () => {
     const api = createTriggerAPI();
     vi.mocked(api.getCameraManager().getStore).mockReturnValue(
       createStore([
@@ -384,11 +511,11 @@ describe('TriggersManager', () => {
     expect(manager.getMostRecentlyTriggeredCameraID()).toBeNull();
     expect(manager.getTriggeredCameraIDs()).toEqual(new Set());
 
-    manager.handleCameraEvent({
+    await manager.handleCameraEvent({
       cameraID: 'camera_1',
       type: 'new',
     });
-    manager.handleCameraEvent({
+    await manager.handleCameraEvent({
       cameraID: 'camera_2',
       type: 'new',
     });
@@ -401,13 +528,15 @@ describe('TriggersManager', () => {
       manager.getMostRecentlyTriggeredCameraID(),
     );
 
-    manager.handleCameraEvent({
+    await manager.handleCameraEvent({
       cameraID: 'camera_1',
       type: 'end',
     });
 
     vi.setSystemTime(add(start, { seconds: 10 }));
     vi.runOnlyPendingTimers();
+
+    await flushPromises();
 
     expect(manager.getTriggeredCameraIDs()).toEqual(new Set(['camera_2']));
     expect(manager.getMostRecentlyTriggeredCameraID()).toBe('camera_2');

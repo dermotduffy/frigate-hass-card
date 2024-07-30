@@ -1,6 +1,7 @@
 import { ViewContext } from 'view';
-import { dispatchViewContextChangeEvent } from '../../view/view.js';
-import { ZoomSettingsObserved, PartialZoomSettings } from './types.js';
+import { MergeContextViewModifier } from '../../card-controller/view/modifiers/merge-context.js';
+import { ViewManagerInterface } from '../../card-controller/view/types.js';
+import { PartialZoomSettings, ZoomSettingsObserved } from './types.js';
 
 interface ZoomViewContext {
   observed?: ZoomSettingsObserved;
@@ -38,19 +39,22 @@ export const generateViewContextForZoom = (
 };
 
 /**
- * Convenience wrapper to convert zoom settings into a dispatched view context
- * change.
+ * Convenience wrapper to convert zoom settings into a view change
  */
 export const handleZoomSettingsObservedEvent = (
-  element: EventTarget,
   ev: CustomEvent<ZoomSettingsObserved>,
+  viewManager?: ViewManagerInterface,
   targetID?: string,
 ): void => {
-  targetID &&
-    dispatchViewContextChangeEvent(
-      element,
-      generateViewContextForZoom(targetID, {
-        observed: ev.detail,
-      }),
-    );
+  viewManager &&
+    targetID &&
+    viewManager.setViewByParameters({
+      modifiers: [
+        new MergeContextViewModifier(
+          generateViewContextForZoom(targetID, {
+            observed: ev.detail,
+          }),
+        ),
+      ],
+    });
 };

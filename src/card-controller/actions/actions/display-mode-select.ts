@@ -4,6 +4,10 @@ import { FrigateCardAction } from './base';
 
 export class DisplayModeSelectAction extends FrigateCardAction<DisplayModeActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
-    await api.getViewManager().setViewWithNewDisplayMode(this._action.display_mode);
+    await api.getViewManager().setViewByParametersWithNewQuery({
+      params: {
+        displayMode: this._action.display_mode,
+      },
+    });
   }
 }
