@@ -479,9 +479,9 @@ overrides:
 This example changes the default card view from `live` to `image` depending on
 the value of the `binary_sensor.alarm_armed` sensor. The override alone will
 only change the _default_ when the card next is requested to change to the
-default view. By also including the `update_entities` parameter, we ask the card
-to trigger a card update based on that entity -- which causes it to use the new
-overriden default immediately.
+default view. By also including the `view.default_reset.entities` parameter, we
+ask the card to trigger a card update based on that entity -- which causes it to
+use the new overriden default immediately.
 
 ```yaml
 type: custom:frigate-card
@@ -489,8 +489,9 @@ cameras:
   - camera_entity: camera.office
 view:
   default: live
-  update_entities:
-    - binary_sensor.alarm_armed
+  default_reset:
+    entities:
+      - binary_sensor.alarm_armed
 overrides:
   - conditions:
       - condition: state
