@@ -374,7 +374,10 @@ export class FrigateCardGalleryCore extends LitElement {
 
       const view = this.viewManagerEpoch?.manager.getView();
       const oldView = this.viewManagerEpoch?.oldView;
-      if (!this._media || oldView?.queryResults?.getResults() !== view?.queryResults?.getResults()) {
+      if (
+        !this._media ||
+        oldView?.queryResults?.getResults() !== view?.queryResults?.getResults()
+      ) {
         // Gallery places the most recent media at the top (the query results place
         // the most recent media at the end for use in the viewer). This is copied
         // to a new array to avoid reversing the query results in place.

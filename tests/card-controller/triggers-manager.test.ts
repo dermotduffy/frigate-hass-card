@@ -465,7 +465,7 @@ describe('TriggersManager', () => {
       params: {
         view: 'live' as const,
         camera: 'camera_1' as const,
-      }
+      },
     });
 
     await manager.handleCameraEvent({

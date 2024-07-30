@@ -98,11 +98,9 @@ export class TriggersManager {
 
     if (this._hasAllowableInteractionStateForAction()) {
       if (triggerAction === 'update') {
-        await this._api
-          .getViewManager()
-          .setViewByParametersWithNewQuery({
-            queryExecutorOptions: { useCache: false },
-          });
+        await this._api.getViewManager().setViewByParametersWithNewQuery({
+          queryExecutorOptions: { useCache: false },
+        });
       } else if (triggerAction === 'live') {
         await this._api.getViewManager().setViewByParametersWithNewQuery({
           params: {

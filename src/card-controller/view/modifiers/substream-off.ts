@@ -7,4 +7,3 @@ export class SubstreamOffViewModifier implements ViewModifier {
     removeSubstream(view);
   }
 }
-

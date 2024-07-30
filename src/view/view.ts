@@ -18,9 +18,12 @@ export interface ViewParameters extends ViewEvolveParameters {
   camera: string;
 }
 
-export const mergeViewContext = (a?: ViewContext | null, b?: ViewContext | null): ViewContext => {
+export const mergeViewContext = (
+  a?: ViewContext | null,
+  b?: ViewContext | null,
+): ViewContext => {
   return merge({}, a, b);
-}
+};
 
 export class View {
   public view: FrigateCardView;

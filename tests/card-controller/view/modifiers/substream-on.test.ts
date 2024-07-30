@@ -2,7 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { CardController } from '../../../../src/card-controller/controller';
 import { SubstreamOnViewModifier } from '../../../../src/card-controller/view/modifiers/substream-on';
 import { RawFrigateCardConfig } from '../../../../src/config/types';
-import { getStreamCameraID, hasSubstream, setSubstream } from '../../../../src/utils/substream';
+import {
+  getStreamCameraID,
+  hasSubstream,
+  setSubstream,
+} from '../../../../src/utils/substream';
 import {
   createCameraConfig,
   createCameraManager,

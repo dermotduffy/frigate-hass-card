@@ -51,7 +51,7 @@ const plugins = [
   typescript({
     sourceMap: dev,
     inlineSources: dev,
-    exclude: ["tests/**/*.test.ts"],
+    exclude: ['tests/**/*.test.ts'],
   }),
   json({ exclude: 'package.json' }),
   replace({

@@ -1,6 +1,6 @@
-import { ViewContext } from "view";
-import { View } from "../../../view/view";
-import { ViewModifier } from "../types";
+import { ViewContext } from 'view';
+import { View } from '../../../view/view';
+import { ViewModifier } from '../types';
 
 export class RemoveContextViewModifier implements ViewModifier {
   protected _keys: (keyof ViewContext)[];
