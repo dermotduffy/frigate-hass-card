@@ -306,28 +306,6 @@ describe('getOverriddenConfig', () => {
         }),
       ).toEqual({});
     });
-
-    // it('with empty value and object', () => {
-    //   const manager = new ConditionsManager(createCardAPI());
-    //   manager.setState({ fullscreen: true });
-
-    //   expect(
-    //     getOverriddenConfig(manager, config, {
-    //       configOverrides: [
-    //         {
-    //           delete: [''],
-    //           conditions: [
-    //             {
-    //               condition: 'fullscreen' as const,
-    //               fullscreen: true,
-    //             },
-    //           ],
-    //         },
-    //       ],
-    //       emptyKeyReplaces: true,
-    //     }),
-    //   ).toEqual({});
-    // });
   });
 
   describe('should validate schema', () => {
@@ -536,6 +514,11 @@ describe('ConditionsManager', () => {
                 condition: 'state' as const,
                 entity: 'binary_sensor.foo',
                 state: 'on',
+              },
+            ],
+            actions: [
+              {
+                action: 'fire-dom-event',
               },
             ],
           },

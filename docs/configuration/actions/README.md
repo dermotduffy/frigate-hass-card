@@ -7,7 +7,7 @@ multiple other blocks.
 
 Actions are pre-configured activities that can be triggered in response to a
 variety of circumstances (e.g. tapping on a menu icon, double tapping on an
-[element](../elements.md) or holding the mouse/tap down on a particular
+[element](../elements/README.md) or holding the mouse/tap down on a particular
 [view](../view.md?id=supported-views)).
 
 ### Differences in actions between Frigate Card and Home Assistant

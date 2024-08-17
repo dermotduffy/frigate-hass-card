@@ -5,9 +5,7 @@
   --mdc-icon-button-size: var(--frigate-card-menu-button-size);
   --mdc-icon-size: calc(var(--mdc-icon-button-size) / 2);
 
-  // Menu itself does not handle click events. Without this, in overlay mode the
-  // menu component prevents clicking on gallery items 'behind' the overlay.
-  pointer-events: none;
+  pointer-events: auto;
 
   display: flex;
   flex-direction: row;
@@ -43,52 +41,6 @@ div.opposing {
 :host([data-style='outside']) {
   width: 100%;
   background: var(--secondary-background-color);
-}
-
-/************************************
- * Match menu rounded corners to card
- ************************************/
-
-:host([data-position='top']),
-:host([data-position='left']) {
-  border-top-left-radius: var(--ha-card-border-radius, 4px);
-}
-:host([data-position='top']),
-:host([data-position='right']) {
-  border-top-right-radius: var(--ha-card-border-radius, 4px);
-}
-:host([data-position='bottom']),
-:host([data-position='left']) {
-  border-bottom-left-radius: var(--ha-card-border-radius, 4px);
-}
-:host([data-position='bottom']),
-:host([data-position='right']) {
-  border-bottom-right-radius: var(--ha-card-border-radius, 4px);
-}
-
-/**************************************
- * Positioning for absolute menu styles
- **************************************/
-
-:host(:not([data-style='outside'])[data-position='top']),
-:host(:not([data-style='outside'])[data-position='left'][data-alignment='top']),
-:host(:not([data-style='outside'])[data-position='right'][data-alignment='top']) {
-  top: 0px;
-}
-:host(:not([data-style='outside'])[data-position='bottom']),
-:host(:not([data-style='outside'])[data-position='left'][data-alignment='bottom']),
-:host(:not([data-style='outside'])[data-position='right'][data-alignment='bottom']) {
-  bottom: 0px;
-}
-:host(:not([data-style='outside'])[data-position='left']),
-:host(:not([data-style='outside'])[data-position='top'][data-alignment='left']),
-:host(:not([data-style='outside'])[data-position='bottom'][data-alignment='left']) {
-  left: 0px;
-}
-:host(:not([data-style='outside'])[data-position='right']),
-:host(:not([data-style='outside'])[data-position='top'][data-alignment='right']),
-:host(:not([data-style='outside'])[data-position='bottom'][data-alignment='right']) {
-  right: 0px;
 }
 
 /********************************************************
@@ -156,10 +108,16 @@ div.opposing {
 :host([data-style='overlay']),
 :host([data-style*='hover']),
 :host([data-style='hidden']) {
-  position: absolute;
   overflow: hidden;
   width: calc(var(--frigate-card-menu-button-size) + 6px);
   height: calc(var(--frigate-card-menu-button-size) + 6px);
+}
+
+:host([data-style='overlay']),
+:host([data-style*='hover']),
+:host([data-style='hidden'][expanded]) {
+  overflow: visible;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
 }
 
 :host([data-style='overlay'][data-position='top']),
@@ -170,8 +128,6 @@ div.opposing {
 :host([data-style='hidden'][data-position='bottom'][expanded]) {
   width: 100%;
   height: auto;
-  overflow: visible;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0));
 }
 
 :host([data-style='overlay'][data-position='left']),
@@ -180,8 +136,6 @@ div.opposing {
 :host([data-style*='hover'][data-position='right']),
 :host([data-style='hidden'][data-position='left'][expanded]),
 :host([data-style='hidden'][data-position='right'][expanded]) {
-  height: 100%;
   width: auto;
-  overflow: visible;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0));
+  height: 100%;
 }

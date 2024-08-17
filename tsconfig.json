@@ -33,8 +33,7 @@
           "ha-selector",
           "ha-svg-icon",
           "mwc-button",
-          "mwc-list-item",
-          "paper-toast"
+          "mwc-list-item"
         ],
         "rules": {
           "no-unknown-tag-name": "error",

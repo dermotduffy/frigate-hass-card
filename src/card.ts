@@ -2,6 +2,7 @@ import { HomeAssistant, LovelaceCardEditor } from '@dermotduffy/custom-card-help
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import 'web-dialog';
@@ -16,10 +17,18 @@ import './components/menu.js';
 import { FrigateCardMenu } from './components/menu.js';
 import './components/message.js';
 import { renderMessage, renderProgressIndicator } from './components/message.js';
+import './components/overlay.js';
+import { FrigateCardOverlay } from './components/overlay.js';
+import './components/status-bar';
 import './components/thumbnail-carousel.js';
 import './components/views.js';
 import { FrigateCardViews } from './components/views.js';
-import { FrigateCardConfig, MenuItem, RawFrigateCardConfig } from './config/types';
+import {
+  FrigateCardConfig,
+  MenuItem,
+  RawFrigateCardConfig,
+  StatusBarItem,
+} from './config/types';
 import { REPO_URL } from './const.js';
 import { localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
@@ -103,6 +112,7 @@ class FrigateCard extends LitElement {
   protected _menuButtonController = new MenuButtonController();
 
   protected _refMenu: Ref<FrigateCardMenu> = createRef();
+  protected _refOverlay: Ref<FrigateCardOverlay> = createRef();
   protected _refMain: Ref<HTMLElement> = createRef();
   protected _refElements: Ref<FrigateCardElements> = createRef();
   protected _refViews: Ref<FrigateCardViews> = createRef();
@@ -185,7 +195,71 @@ class FrigateCard extends LitElement {
     this._controller.getInitializationManager().initializeBackgroundIfNecessary();
   }
 
-  protected _renderMenu(): TemplateResult | void {
+  protected _renderMenuStatusContainer(
+    position: 'top' | 'bottom' | 'overlay',
+  ): TemplateResult | void {
+    if (!this._config) {
+      return;
+    }
+
+    const menuStyle = this._config.menu.style;
+    const menuPosition = this._config.menu.position;
+    const statusBarStyle = this._config.status_bar.style;
+    const statusBarPosition = this._config.status_bar.position;
+
+    if (
+      // If there's nothing to render...
+      (menuStyle === 'none' && statusBarStyle === 'none') ||
+      // ... or the position I'm rendering does not contain the menu/status bar
+      (position === 'overlay' &&
+        menuStyle === 'outside' &&
+        statusBarStyle === 'outside') ||
+      (position !== 'overlay' &&
+        (menuStyle !== 'outside' || menuPosition !== position) &&
+        (statusBarStyle !== 'outside' || statusBarPosition !== position))
+    ) {
+      // ... then there's nothing to do.
+      return;
+    }
+
+    const getContents = (kind: 'overlay' | 'outerlay'): TemplateResult => {
+      const shouldRenderMenu =
+        menuStyle !== 'none' &&
+        ((menuStyle === 'outside' && kind === 'outerlay') ||
+          (menuStyle !== 'outside' && kind === 'overlay'));
+
+      const shouldRenderStatusBar =
+        statusBarStyle !== 'none' &&
+        ((statusBarStyle === 'outside' && kind === 'outerlay') ||
+          (statusBarStyle !== 'outside' && kind === 'overlay'));
+
+      // Complex logic to try to always put the menu in the right-looking place.
+      const renderMenuFirst =
+        menuPosition === 'left' ||
+        menuPosition === 'right' ||
+        (menuPosition === 'bottom' &&
+          menuStyle === 'hidden' &&
+          statusBarStyle !== 'popup') ||
+        (menuPosition === 'top' &&
+          (menuStyle !== 'hidden' || statusBarStyle === 'popup'));
+
+      return html`
+        ${shouldRenderMenu && renderMenuFirst ? this._renderMenu(menuPosition) : ''}
+        ${shouldRenderStatusBar ? this._renderStatusBar(statusBarPosition) : ''}
+        ${shouldRenderMenu && !renderMenuFirst ? this._renderMenu(menuPosition) : ''}
+      `;
+    };
+
+    return html`
+      ${position === 'overlay'
+        ? html`<frigate-card-overlay>${getContents('overlay')}</frigate-card-overlay>`
+        : html`<div class="outerlay" data-position="${position}">
+            ${getContents('outerlay')}
+          </div>`}
+    `;
+  }
+
+  protected _renderMenu(slot?: string): TemplateResult | void {
     const view = this._controller.getViewManager().getView();
     if (!this._hass || !this._config || !view) {
       return;
@@ -193,6 +267,7 @@ class FrigateCard extends LitElement {
     return html`
       <frigate-card-menu
         ${ref(this._refMenu)}
+        slot=${ifDefined(slot)}
         .hass=${this._hass}
         .menuConfig=${this._config.menu}
         .buttons=${this._menuButtonController.calculateButtons(
@@ -212,6 +287,25 @@ class FrigateCard extends LitElement {
         )}
         .entityRegistryManager=${this._controller.getEntityRegistryManager()}
       ></frigate-card-menu>
+    `;
+  }
+
+  protected _renderStatusBar(slot?: string): TemplateResult | void {
+    if (!this._config) {
+      return;
+    }
+
+    return html`
+      <frigate-card-status-bar
+        slot=${ifDefined(slot)}
+        .items=${this._controller.getStatusBarItemManager().calculateItems({
+          statusConfig: this._config.status_bar,
+          cameraManager: this._controller.getCameraManager(),
+          view: this._controller.getViewManager().getView(),
+          mediaLoadedInfo: this._controller.getMediaLoadedInfoManager().get(),
+        })}
+        .config=${this._config.status_bar}
+      ></frigate-card-status-bar>
     `;
   }
 
@@ -250,8 +344,6 @@ class FrigateCard extends LitElement {
     };
 
     const actions = this._controller.getActionsManager().getMergedActions();
-    const renderMenuAbove =
-      this._config?.menu.style === 'outside' && this._config?.menu.position === 'top';
     const cameraManager = this._controller.getCameraManager();
 
     // Caution: Keep the main div and the menu next to one another in order to
@@ -281,8 +373,9 @@ class FrigateCard extends LitElement {
         }
         @frigate-card:focus=${() => this.focus()}
       >
-        ${renderMenuAbove ? this._renderMenu() : ''}
+        ${this._renderMenuStatusContainer('top')}
         <div ${ref(this._refMain)} class="${classMap(mainClasses)}">
+          ${this._renderMenuStatusContainer('overlay')}
           ${!cameraManager.isInitialized() &&
           !this._controller.getMessageManager().hasMessage()
             ? renderProgressIndicator({
@@ -320,7 +413,7 @@ class FrigateCard extends LitElement {
             renderMessage(this._controller.getMessageManager().getMessage())
           }
         </div>
-        ${!renderMenuAbove ? this._renderMenu() : ''}
+        ${this._renderMenuStatusContainer('bottom')}
         ${this._config?.elements
           ? // Elements need to render after the main views so it can render 'on
             // top'.
@@ -331,13 +424,23 @@ class FrigateCard extends LitElement {
               .conditionsManagerEpoch=${this._controller
                 .getConditionsManager()
                 ?.getEpoch()}
-              @frigate-card:menu-add=${(ev: CustomEvent<MenuItem>) => {
+              @frigate-card:menu:add=${(ev: CustomEvent<MenuItem>) => {
                 this._menuButtonController.addDynamicMenuButton(ev.detail);
                 this.requestUpdate();
               }}
-              @frigate-card:menu-remove=${(ev: CustomEvent<MenuItem>) => {
+              @frigate-card:menu:remove=${(ev: CustomEvent<MenuItem>) => {
                 this._menuButtonController.removeDynamicMenuButton(ev.detail);
                 this.requestUpdate();
+              }}
+              @frigate-card:status-bar:add=${(ev: CustomEvent<StatusBarItem>) => {
+                this._controller
+                  .getStatusBarItemManager()
+                  .addDynamicStatusBarItem(ev.detail);
+              }}
+              @frigate-card:status-bar:remove=${(ev: CustomEvent<StatusBarItem>) => {
+                this._controller
+                  .getStatusBarItemManager()
+                  .removeDynamicStatusBarItem(ev.detail);
               }}
               @frigate-card:conditions:evaluate=${(
                 ev: ConditionsEvaluateRequestEvent,

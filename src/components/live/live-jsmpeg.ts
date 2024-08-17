@@ -141,6 +141,7 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
         capabilities: {
           supportsPause: true,
         },
+        technology: ['jsmpeg'],
       });
     }
   }

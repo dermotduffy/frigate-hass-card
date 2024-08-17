@@ -125,6 +125,7 @@ customElements.whenDefined('ha-hls-player').then(() => {
                 supportsPause: true,
                 hasAudio: mayHaveAudio(this._video),
               },
+              technology: ['hls'],
             });
           }}
           @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}

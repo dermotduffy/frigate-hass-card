@@ -62,11 +62,6 @@ import '../next-prev-control.js';
 import '../ptz.js';
 import { FrigateCardPTZ } from '../ptz.js';
 import '../surround.js';
-import '../title-control.js';
-import {
-  FrigateCardTitleControl,
-  getDefaultTitleConfigForView,
-} from '../title-control.js';
 
 const FRIGATE_CARD_LIVE_PROVIDER = 'frigate-card-live-provider';
 
@@ -294,7 +289,6 @@ export class FrigateCardLiveCarousel extends LitElement {
 
   // Index between camera name and slide number.
   protected _cameraToSlide: Record<string, number> = {};
-  protected _refTitleControl: Ref<FrigateCardTitleControl> = createRef();
   protected _refPTZControl: Ref<FrigateCardPTZ> = createRef();
 
   @state()
@@ -540,17 +534,9 @@ export class FrigateCardLiveCarousel extends LitElement {
       ? this.cameraManager.getCameraMetadata(this._getSubstreamCameraID(prevID, view))
       : null;
     const cameraID = this.viewFilterCameraID ?? view.camera;
-    const cameraMetadataCurrent = this.cameraManager.getCameraMetadata(
-      this._getSubstreamCameraID(cameraID, view),
-    );
     const cameraMetadataNext = nextID
       ? this.cameraManager.getCameraMetadata(this._getSubstreamCameraID(nextID, view))
       : null;
-
-    const titleConfig = getDefaultTitleConfigForView(
-      view,
-      this.overriddenLiveConfig?.controls.title,
-    );
 
     // Notes on the below:
     // - guard() is used to avoid reseting the carousel unless the
@@ -574,9 +560,6 @@ export class FrigateCardLiveCarousel extends LitElement {
         transitionEffect=${this._getTransitionEffect()}
         @frigate-card:carousel:select=${this._setViewHandler.bind(this)}
         @frigate-card:media:loaded=${() => {
-          if (this._refTitleControl.value) {
-            this._refTitleControl.value.show();
-          }
           this._mediaHasLoaded = true;
         }}
         @frigate-card:media:unloaded=${() => {
@@ -620,18 +603,6 @@ export class FrigateCardLiveCarousel extends LitElement {
         .forceVisibility=${this._mediaHasLoaded && view.context?.ptzControls?.enabled}
       >
       </frigate-card-ptz>
-      ${cameraMetadataCurrent && titleConfig
-        ? html`<frigate-card-title-control
-            ${ref(this._refTitleControl)}
-            .config=${titleConfig}
-            .text="${cameraMetadataCurrent
-              ? `${localize('common.live')}: ${cameraMetadataCurrent.title}`
-              : ''}"
-            .logo="${cameraMetadataCurrent.engineLogo}"
-            .fitInto=${this as HTMLElement}
-          >
-          </frigate-card-title-control> `
-        : ``}
     `;
   }
 

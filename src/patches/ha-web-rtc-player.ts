@@ -120,6 +120,7 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
                 supportsPause: true,
                 hasAudio: mayHaveAudio(this._video),
               },
+              technology: ['webrtc'],
             });
           }}
           @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}

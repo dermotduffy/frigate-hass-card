@@ -37,7 +37,6 @@ media_viewer:
 | `next_previous` |         | Configures how the "Next & Previous" controls are shown on the media viewer. See below. |
 | `thumbnails`    |         | Configures how thumbnails are shown on the media viewer. See below.                     |
 | `timeline`      |         | Configures how the mini-timeline is shown on the media viewer. See below.               |
-| `title`         |         | Configures how the media title is shown on the media viewer. See below.                 |
 
 ### `next_previous`
 
@@ -121,22 +120,6 @@ media_viewer:
 
 [](common/timeline-seek-info.md ':include')
 
-### `title`
-
-Configures how the media title is shown on the media viewer.
-
-```yaml
-media_viewer:
-  controls:
-    title:
-      # [...]
-```
-
-| Option             | Default              | Description                                                                                                                                              |
-| ------------------ | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `duration_seconds` | `2`                  | The number of seconds to display the title popup. `0` implies forever.                                                                                   |
-| `mode`             | `popup-bottom-right` | How to display the Media viewer media title. Acceptable values: `none`, `popup-top-left`, `popup-top-right`, `popup-bottom-left`, `popup-bottom-right` . |
-
 ## `display`
 
 Controls whether to show a single media item or grid in the media viewer.
@@ -205,9 +188,6 @@ media_viewer:
       events_media_type: all
       show_recordings: true
       window_seconds: 3600
-    title:
-      mode: popup-bottom-right
-      duration_seconds: 2
   display:
     mode: single
     grid_selected_width_factor: 2

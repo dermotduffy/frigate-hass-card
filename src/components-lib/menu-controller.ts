@@ -165,7 +165,7 @@ export class MenuController {
   }
 
   public getFreshButtonState(hass: HomeAssistant, button: MenuItem): StateParameters {
-    const stateParameters = { ...button };
+    const stateParameters = { ...button } as StateParameters;
     return hass && button.type === 'custom:frigate-card-menu-state-icon'
       ? refreshDynamicStateParameters(hass, stateParameters)
       : stateParameters;

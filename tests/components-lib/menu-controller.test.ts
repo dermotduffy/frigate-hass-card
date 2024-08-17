@@ -1,29 +1,17 @@
-import { HASSDomEvent, handleActionConfig } from '@dermotduffy/custom-card-helpers';
+import { handleActionConfig } from '@dermotduffy/custom-card-helpers';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FRIGATE_ICON_SVG_PATH } from '../../src/camera-manager/frigate/icon';
 import { MenuController } from '../../src/components-lib/menu-controller';
-import { ActionsConfig, MenuConfig, menuConfigSchema } from '../../src/config/types';
+import { MenuConfig, menuConfigSchema } from '../../src/config/types';
 import { StateParameters } from '../../src/types';
 import { refreshDynamicStateParameters } from '../../src/utils/ha';
-import { createHASS, createLitElement } from '../test-utils';
+import { createInteractionEvent, createHASS, createLitElement } from '../test-utils';
 
 vi.mock('@dermotduffy/custom-card-helpers');
 vi.mock('../../src/utils/ha');
 
 const createMenuConfig = (config: unknown): MenuConfig => {
   return menuConfigSchema.parse(config);
-};
-
-const createEvent = (
-  action: string,
-  config?: ActionsConfig,
-): HASSDomEvent<{ action: string; config?: ActionsConfig }> => {
-  return new CustomEvent<{ action: string; config?: ActionsConfig }>('@action', {
-    detail: {
-      action: action,
-      config: config,
-    },
-  });
 };
 
 // @vitest-environment jsdom
@@ -362,7 +350,7 @@ describe('MenuController', () => {
   describe('should handle actions', () => {
     it('should bail without config', () => {
       const controller = new MenuController(createLitElement());
-      controller.actionHandler(createEvent('tap'));
+      controller.actionHandler(createInteractionEvent('tap'));
       expect(vi.mocked(handleActionConfig)).not.toBeCalled();
     });
 
@@ -373,7 +361,7 @@ describe('MenuController', () => {
 
       const controller = new MenuController(host);
 
-      controller.actionHandler(createEvent('tap'), tapActionConfig);
+      controller.actionHandler(createInteractionEvent('tap'), tapActionConfig);
       expect(handler).toBeCalledWith(
         expect.objectContaining({
           detail: { action: [action], config: tapActionConfig },
@@ -389,7 +377,7 @@ describe('MenuController', () => {
 
       const controller = new MenuController(host);
 
-      controller.actionHandler(createEvent('tap', tapActionConfig));
+      controller.actionHandler(createInteractionEvent('tap', tapActionConfig));
       expect(handler).toBeCalledWith(
         expect.objectContaining({
           detail: { action: [action], config: tapActionConfig },
@@ -404,7 +392,7 @@ describe('MenuController', () => {
 
       const controller = new MenuController(host);
 
-      controller.actionHandler(createEvent('tap'), tapActionConfigMulti);
+      controller.actionHandler(createInteractionEvent('tap'), tapActionConfigMulti);
 
       expect(handler).toBeCalledWith(
         expect.objectContaining({
@@ -426,7 +414,7 @@ describe('MenuController', () => {
         controller.setExpanded(true);
         expect(controller.isExpanded()).toBeTruthy();
 
-        controller.actionHandler(createEvent('tap'), tapActionConfig);
+        controller.actionHandler(createInteractionEvent('tap'), tapActionConfig);
         expect(controller.isExpanded()).toBeFalsy();
       });
 
@@ -442,7 +430,7 @@ describe('MenuController', () => {
         controller.setExpanded(true);
         expect(controller.isExpanded()).toBeTruthy();
 
-        controller.actionHandler(createEvent('end_tap'), {
+        controller.actionHandler(createInteractionEvent('end_tap'), {
           end_tap_action: action,
         });
         expect(controller.isExpanded()).toBeFalsy();
@@ -462,7 +450,7 @@ describe('MenuController', () => {
         controller.setExpanded(true);
         expect(controller.isExpanded()).toBeTruthy();
 
-        controller.actionHandler(createEvent('start_tap'), {
+        controller.actionHandler(createInteractionEvent('start_tap'), {
           start_tap_action: action,
           end_tap_action: action,
         });
@@ -481,7 +469,7 @@ describe('MenuController', () => {
         controller.setExpanded(false);
         expect(controller.isExpanded()).toBeFalsy();
 
-        controller.actionHandler(createEvent('tap'), {
+        controller.actionHandler(createInteractionEvent('tap'), {
           camera_entity: 'foo',
           tap_action: menuToggleAction,
         });
@@ -490,7 +478,6 @@ describe('MenuController', () => {
 
       it('when no action is actually taken', () => {
         const host = createLitElement();
-        const hass = createHASS();
         const controller = new MenuController(host);
         controller.setMenuConfig(
           createMenuConfig({
@@ -501,7 +488,7 @@ describe('MenuController', () => {
         controller.setExpanded(true);
         expect(controller.isExpanded()).toBeTruthy();
 
-        controller.actionHandler(createEvent('end_tap'), tapActionConfig);
+        controller.actionHandler(createInteractionEvent('end_tap'), tapActionConfig);
         expect(controller.isExpanded()).toBeTruthy();
       });
     });

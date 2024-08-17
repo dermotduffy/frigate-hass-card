@@ -19,11 +19,12 @@ import { MuteAction } from './actions/mute';
 import { PauseAction } from './actions/pause';
 import { PlayAction } from './actions/play';
 import { PTZAction } from './actions/ptz';
+import { PTZControlsAction } from './actions/ptz-controls';
 import { PTZDigitalAction } from './actions/ptz-digital';
 import { PTZMultiAction } from './actions/ptz-multi';
 import { ScreenshotAction } from './actions/screenshot';
-import { PTZControlsAction } from './actions/ptz-controls';
 import { SleepAction } from './actions/sleep';
+import { StatusBarAction } from './actions/status-bar';
 import { SubstreamOffAction } from './actions/substream-off';
 import { SubstreamOnAction } from './actions/substream-on';
 import { SubstreamSelectAction } from './actions/substream-select';
@@ -121,6 +122,8 @@ export class ActionFactory {
         return new PTZControlsAction(context, frigateCardAction, options?.config);
       case 'log':
         return new LogAction(context, frigateCardAction, options?.config);
+      case 'status_bar':
+        return new StatusBarAction(context, frigateCardAction, options?.config);
     }
 
     /* istanbul ignore next: this path cannot be reached -- @preserve */

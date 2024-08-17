@@ -25,7 +25,6 @@ import {
   frigateCardConfigSchema,
 } from '../../src/config/types';
 import { getParseErrorPaths } from '../../src/utils/zod';
-import { update } from 'lodash-es';
 
 describe('general functions', () => {
   it('should set value', () => {
@@ -3192,6 +3191,117 @@ describe('should handle version specific upgrades', () => {
         },
       });
       postUpgradeChecks(config);
+    });
+
+    describe('title controls to status bar', () => {
+      it('when mode is none', () => {
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{}],
+          live: {
+            controls: {
+              title: {
+                mode: 'none',
+              },
+            },
+          },
+          media_viewer: {
+            controls: {
+              title: {
+                mode: 'none',
+              },
+            },
+          },
+        };
+
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          type: 'custom:frigate-card',
+          cameras: [{}],
+          live: { controls: {} },
+          media_viewer: { controls: {} },
+          status_bar: {
+            style: 'none',
+          },
+        });
+
+        postUpgradeChecks(config);
+      });
+
+      describe('when mode is invalid type', () => {
+        it.each([[{ mode: { should_not_be: 'an object' } }], ['sideways']])(
+          '%s',
+          (mode: unknown) => {
+            const config = {
+              type: 'custom:frigate-card',
+              cameras: [{}],
+              live: {
+                controls: {
+                  title: {
+                    mode,
+                  },
+                },
+              },
+              media_viewer: {
+                controls: {
+                  title: {
+                    mode,
+                  },
+                },
+              },
+            };
+
+            expect(upgradeConfig(config)).toBeTruthy();
+            expect(config).toEqual({
+              type: 'custom:frigate-card',
+              cameras: [{}],
+              live: { controls: {} },
+              media_viewer: { controls: {} },
+            });
+
+            postUpgradeChecks(config);
+          },
+        );
+      });
+
+      describe.each([['bottom'], ['top']])('on the %s', (position: string) => {
+        it.each([
+          [`popup-${position}-left` as const],
+          [`popup-${position}-right` as const],
+        ])('%s', (mode: string) => {
+          const config = {
+            type: 'custom:frigate-card',
+            cameras: [{}],
+            live: {
+              controls: {
+                title: {
+                  mode,
+                },
+              },
+            },
+            media_viewer: {
+              controls: {
+                title: {
+                  mode,
+                },
+              },
+            },
+          };
+
+          expect(upgradeConfig(config)).toBeTruthy();
+          expect(config).toEqual({
+            type: 'custom:frigate-card',
+            cameras: [{}],
+            live: { controls: {} },
+            media_viewer: { controls: {} },
+            status_bar: {
+              position,
+            },
+          });
+
+          postUpgradeChecks(config);
+        });
+      });
     });
   });
 });

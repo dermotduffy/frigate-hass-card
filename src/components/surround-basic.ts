@@ -51,10 +51,6 @@ export class FrigateCardSurroundBasic extends LitElement {
     }
   }
 
-  /**
-   * Master render method.
-   * @returns A rendered template.
-   */
   protected render(): TemplateResult | void {
     return html` <slot name="above"></slot>
       <slot></slot>

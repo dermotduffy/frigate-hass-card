@@ -14,10 +14,11 @@ const FULL_COVERAGE_FILES_RELATIVE = [
   'card-controller/**/*.ts',
   'components-lib/cached-value-controller.ts',
   'components-lib/key-assigner-controller.ts',
-  'components-lib/live/live-controller.ts',
+  'components-lib/live/**/*.ts',
   'components-lib/media-filter-controller.ts',
   'components-lib/menu-button-controller.ts',
   'components-lib/menu-controller.ts',
+  'components-lib/status-bar-controller.ts',
   'components-lib/ptz/*.ts',
   'components-lib/zoom/*.ts',
   'config/**/*.ts',
@@ -74,6 +75,8 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
     coverage: {
+      exclude: ['docs/**', 'tests/**', '.eslintrc.cjs'],
+
       // Favor istanbul for coverage over v8 due to better accuracy.
       provider: 'istanbul',
       thresholds: {

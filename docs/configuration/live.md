@@ -41,7 +41,6 @@ live:
 | `next_previous` |         | Configures how the "Next & Previous" controls are shown on the `live` view. See below. |
 | `thumbnails`    |         | Configures how thumbnails are shown on the `live` view. See below.                     |
 | `timeline`      |         | Configures how the mini-timeline is shown on the `live` view. See below.               |
-| `title`         |         | Configures how the camera title is shown on the `live` view. See below.                |
 
 ### `next_previous`
 
@@ -126,22 +125,6 @@ live:
 | `window_seconds`       | `3600`   | The length of the default timeline in seconds. By default, 1 hour (`3600` seconds) is shown in the timeline.                                                                                                                                                                                                                                                                                                                    |
 
 [](common/timeline-seek-info.md ':include')
-
-### `title`
-
-Configures how the camera title is shown on the live view.
-
-```yaml
-live:
-  controls:
-    title:
-      # [...]
-```
-
-| Option             | Default              | Description                                                                                                                                       |
-| ------------------ | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `duration_seconds` | `2`                  | The number of seconds to display the title popup. `0` implies forever.                                                                            |
-| `mode`             | `popup-bottom-right` | How to display the live camera title. Acceptable values: `none`, `popup-top-left`, `popup-top-right`, `popup-bottom-left`, `popup-bottom-right` . |
 
 ## `display`
 
@@ -230,9 +213,6 @@ live:
       events_media_type: all
       show_recordings: true
       window_seconds: 3600
-    title:
-      mode: popup-bottom-right
-      duration_seconds: 2
   microphone:
     always_connected: false
     disconnect_seconds: 90

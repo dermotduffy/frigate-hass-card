@@ -210,18 +210,6 @@
             "seek-in-camera": "",
             "seek-in-media": ""
           }
-        },
-        "title": {
-          "duration_seconds": "Secondi per visualizzare il titolo popup (0 = per sempre)",
-          "editor_label": "Controlli titolo popup",
-          "mode": "Modalità di visualizzazione del titolo",
-          "modes": {
-            "none": "Nessuna visualizzazione del titolo",
-            "popup-bottom-left": "Popup in basso a sinistra",
-            "popup-bottom-right": "Popup in basso a destra",
-            "popup-top-left": "Popup in alto a sinistra",
-            "popup-top-right": "Popup in alto a destra"
-          }
         }
       },
       "display": {
@@ -427,6 +415,33 @@
       "low-performance": "",
       "scrubbing": ""
     },
+    "status_bar": {
+      "height": "",
+      "items": {
+        "enabled": "",
+        "engine": "",
+        "live_provider": "",
+        "priority": "",
+        "resolution": "",
+        "technology": "",
+        "title": ""
+      },
+      "popup_seconds": "",
+      "position": "",
+      "positions": {
+        "bottom": "",
+        "top": ""
+      },
+      "style": "",
+      "styles": {
+        "hover": "",
+        "hover-card": "",
+        "none": "",
+        "outside": "",
+        "overlay": "",
+        "popup": ""
+      }
+    },
     "view": {
       "camera_select": "Visualizza per le telecamere appena selezionate",
       "dark_mode": "Tema scuro",
@@ -533,6 +548,8 @@
     "performance_secondary": "",
     "profiles": "",
     "profiles_secondary": "",
+    "status_bar": "",
+    "status_bar_secondary": "",
     "timeline": "Timeline",
     "timeline_secondary": "Opzioni della timeline degli eventi",
     "upgrade": "Aggiornamento",

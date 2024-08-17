@@ -210,18 +210,6 @@
             "seek-in-camera": "",
             "seek-in-media": ""
           }
-        },
-        "title": {
-          "duration_seconds": "Secondes pour afficher le titre de la fenêtre contextuelle (0 = toujours)",
-          "editor_label": "Contrôles de titre contextuel",
-          "mode": "Mode d'affichage du titre contextuel",
-          "modes": {
-            "none": "Pas d'affichage du titre",
-            "popup-bottom-left": "Popup en bas à gauche",
-            "popup-bottom-right": "Popup en bas à droite",
-            "popup-top-left": "Popup en haut à gauche",
-            "popup-top-right": "Popup en haut à droite"
-          }
         }
       },
       "display": {
@@ -427,6 +415,33 @@
       "low-performance": "",
       "scrubbing": ""
     },
+    "status_bar": {
+      "height": "",
+      "items": {
+        "enabled": "",
+        "engine": "",
+        "live_provider": "",
+        "priority": "",
+        "resolution": "",
+        "technology": "",
+        "title": ""
+      },
+      "popup_seconds": "",
+      "position": "",
+      "positions": {
+        "bottom": "",
+        "top": ""
+      },
+      "style": "",
+      "styles": {
+        "hover": "",
+        "hover-card": "",
+        "none": "",
+        "outside": "",
+        "overlay": "",
+        "popup": ""
+      }
+    },
     "view": {
       "camera_select": "Afficher les caméras nouvellement sélectionnées",
       "dark_mode": "Mode sombre",
@@ -533,6 +548,8 @@
     "performance_secondary": "Options de performances de la carte",
     "profiles": "",
     "profiles_secondary": "",
+    "status_bar": "",
+    "status_bar_secondary": "",
     "timeline": "Chronologie",
     "timeline_secondary": "Options de chronologie des événements",
     "upgrade": "Mise à niveau",

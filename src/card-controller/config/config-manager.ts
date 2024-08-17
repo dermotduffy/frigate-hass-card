@@ -96,6 +96,8 @@ export class ConfigManager {
     this._api.getMessageManager().reset();
     this._api.getStyleManager().setPerformance();
     this._api.getCardElementManager().update();
+    this._api.getStatusBarItemManager().removeAllDynamicStatusBarItems();
+
     setKeyboardShortcutsFromConfig(this._api, this);
     setAutomationsFromConfig(this._api);
 

@@ -21,11 +21,14 @@ import { PTZ_ACTIONS } from './ptz';
 //                       Common Configuration Constants
 // *************************************************************************
 
-// The min allowed size of buttons.
 export const BUTTON_SIZE_MIN = 20;
+export const STATUS_BAR_HEIGHT_MIN = BUTTON_SIZE_MIN;
 
 const FRIGATE_MENU_PRIORITY_DEFAULT = 50;
 export const FRIGATE_MENU_PRIORITY_MAX = 100;
+
+export const FRIGATE_STATUS_BAR_PRIORITY_DEFAULT = FRIGATE_MENU_PRIORITY_DEFAULT;
+export const FRIGATE_STATUS_BAR_PRIORITY_MAX = FRIGATE_MENU_PRIORITY_MAX;
 
 export const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
   'diagnostics',
@@ -343,6 +346,19 @@ const sleepActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
 });
 export type SleepActionConfig = z.infer<typeof sleepActionConfigSchema>;
 
+const statusBarActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
+  frigate_card_action: z.literal('status_bar'),
+  status_bar_action: z.enum(['add', 'remove', 'reset']),
+
+  // This needs to be lazily evaluated since statusBarItemSchema may itself
+  // contain actions.
+  items: z
+    .lazy(() => statusBarItemSchema)
+    .array()
+    .optional(),
+});
+export type StatusBarActionConfig = z.infer<typeof statusBarActionConfigSchema>;
+
 const LOG_ACTIONS_LEVELS = ['debug', 'info', 'warn', 'error'] as const;
 export type LogActionLevel = (typeof LOG_ACTIONS_LEVELS)[number];
 
@@ -366,6 +382,7 @@ export const frigateCardCustomActionSchema = z.union([
   viewActionConfigSchema,
   viewDisplayModeActionConfigSchema,
   sleepActionConfigSchema,
+  statusBarActionConfigSchema,
 ]);
 export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSchema>;
 
@@ -582,6 +599,52 @@ export type MenuSubmenuSelect = z.infer<typeof menuSubmenuSelectSchema>;
 export type MenuItem = MenuIcon | MenuStateIcon | MenuSubmenu | MenuSubmenuSelect;
 
 // *************************************************************************
+//               Custom Element Configuration: Status bar
+// *************************************************************************
+
+const statusBarItemBaseSchema = z.object({
+  enabled: z.boolean().default(true).optional(),
+  priority: z
+    .number()
+    .min(0)
+    .max(FRIGATE_STATUS_BAR_PRIORITY_MAX)
+    .default(FRIGATE_STATUS_BAR_PRIORITY_DEFAULT)
+    .optional(),
+});
+
+const statusBarItemElementsBaseSchema = statusBarItemBaseSchema.extend({
+  sufficient: z.boolean().default(false).optional(),
+  exclusive: z.boolean().default(false).optional(),
+  expand: z.boolean().default(false).optional(),
+  actions: actionsBaseSchema.optional(),
+});
+
+const statusBarIconItemSchema = statusBarItemElementsBaseSchema.extend({
+  type: z.literal('custom:frigate-card-status-bar-icon'),
+  icon: z.string(),
+});
+export type StatusBarIcon = z.infer<typeof statusBarIconItemSchema>;
+
+const statusBarImageItemSchema = statusBarItemElementsBaseSchema.extend({
+  type: z.literal('custom:frigate-card-status-bar-image'),
+  image: z.string(),
+});
+export type StatusBarImage = z.infer<typeof statusBarImageItemSchema>;
+
+const statusBarStringItemSchema = statusBarItemElementsBaseSchema.extend({
+  type: z.literal('custom:frigate-card-status-bar-string'),
+  string: z.string(),
+});
+export type StatusBarString = z.infer<typeof statusBarStringItemSchema>;
+
+const statusBarItemSchema = z.union([
+  statusBarIconItemSchema,
+  statusBarImageItemSchema,
+  statusBarStringItemSchema,
+]);
+export type StatusBarItem = z.infer<typeof statusBarItemSchema>;
+
+// *************************************************************************
 //                  Custom Element Configuration: Conditions
 // *************************************************************************
 
@@ -680,6 +743,9 @@ const pictureElementSchema = z.union([
   stateBadgeIconSchema,
   stateIconSchema,
   stateLabelSchema,
+  statusBarIconItemSchema,
+  statusBarImageItemSchema,
+  statusBarStringItemSchema,
 ]);
 const pictureElementsSchema = pictureElementSchema.array().optional();
 export type PictureElements = z.infer<typeof pictureElementsSchema>;
@@ -1010,24 +1076,6 @@ const nextPreviousControlConfigSchema = z.object({
 export type NextPreviousControlConfig = z.infer<typeof nextPreviousControlConfigSchema>;
 
 // *************************************************************************
-//                 Title Control Configuration
-// *************************************************************************
-
-const titleControlConfigSchema = z.object({
-  mode: z
-    .enum([
-      'none',
-      'popup-top-right',
-      'popup-top-left',
-      'popup-bottom-right',
-      'popup-bottom-left',
-    ])
-    .optional(),
-  duration_seconds: z.number().min(0).max(60).optional(),
-});
-export type TitleControlConfig = z.infer<typeof titleControlConfigSchema>;
-
-// *************************************************************************
 //                 Carousel Transition Configuration
 // *************************************************************************
 
@@ -1188,7 +1236,6 @@ const liveConfigSchema = z
           liveConfigDefault.controls.thumbnails,
         ),
         timeline: miniTimelineConfigSchema.default(liveConfigDefault.controls.timeline),
-        title: titleControlConfigSchema.optional(),
       })
       .default(liveConfigDefault.controls),
     display: viewDisplaySchema,
@@ -1585,6 +1632,65 @@ export const menuConfigSchema = z
 export type MenuConfig = z.infer<typeof menuConfigSchema>;
 
 // *************************************************************************
+//                       Status Bar Configuration
+// *************************************************************************
+
+const STATUS_BAR_STYLES = [
+  'none',
+  'overlay',
+  'hover',
+  'hover-card',
+  'outside',
+  'popup',
+] as const;
+
+const STATUS_BAR_POSITIONS = ['top', 'bottom'] as const;
+
+const statusBarItemDefault = {
+  priority: FRIGATE_STATUS_BAR_PRIORITY_DEFAULT,
+  enabled: true,
+};
+
+const statusBarConfigDefault = {
+  height: 46,
+  items: {
+    engine: statusBarItemDefault,
+    resolution: statusBarItemDefault,
+    technology: statusBarItemDefault,
+    title: statusBarItemDefault,
+  },
+  position: 'bottom' as const,
+  style: 'popup' as const,
+  popup_seconds: 3,
+};
+
+export const statusBarConfigSchema = z
+  .object({
+    position: z.enum(STATUS_BAR_POSITIONS).default(statusBarConfigDefault.position),
+    style: z.enum(STATUS_BAR_STYLES).default(statusBarConfigDefault.style),
+    popup_seconds: z
+      .number()
+      .min(0)
+      .max(60)
+      .default(statusBarConfigDefault.popup_seconds),
+    height: z.number().min(STATUS_BAR_HEIGHT_MIN).default(statusBarConfigDefault.height),
+    items: z
+      .object({
+        engine: statusBarItemBaseSchema.default(statusBarConfigDefault.items.engine),
+        technology: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.technology,
+        ),
+        resolution: statusBarItemBaseSchema.default(
+          statusBarConfigDefault.items.resolution,
+        ),
+        title: statusBarItemBaseSchema.default(statusBarConfigDefault.items.title),
+      })
+      .default(statusBarConfigDefault.items),
+  })
+  .default(statusBarConfigDefault);
+export type StatusBarConfig = z.infer<typeof statusBarConfigSchema>;
+
+// *************************************************************************
 //                       Event Viewer Configuration
 // *************************************************************************
 
@@ -1672,7 +1778,6 @@ const viewerConfigSchema = z
         timeline: miniTimelineConfigSchema.default(
           viewerConfigDefault.controls.timeline,
         ),
-        title: titleControlConfigSchema.optional(),
       })
       .default(viewerConfigDefault.controls),
   })
@@ -1767,11 +1872,16 @@ export type Overrides = z.infer<typeof overridesSchema>;
 const automationActionSchema = actionSchema.array();
 export type AutomationActions = z.infer<typeof automationActionSchema>;
 
-const automationSchema = z.object({
-  conditions: frigateCardConditionSchema.array(),
-  actions: automationActionSchema.optional(),
-  actions_not: automationActionSchema.optional(),
-});
+const automationSchema = z
+  .object({
+    conditions: frigateCardConditionSchema.array(),
+    actions: automationActionSchema.optional(),
+    actions_not: automationActionSchema.optional(),
+  })
+  .refine(
+    (data) => data.actions?.length || data.actions_not?.length,
+    'Automations must include at least one action',
+  );
 export type Automation = z.infer<typeof automationSchema>;
 
 const automationsSchema = automationSchema.array();
@@ -1857,6 +1967,7 @@ export const frigateCardConfigSchema = z.object({
 
   view: viewConfigSchema,
   menu: menuConfigSchema,
+  status_bar: statusBarConfigSchema,
   live: liveConfigSchema,
   media_gallery: galleryConfigSchema,
   media_viewer: viewerConfigSchema,
@@ -1892,6 +2003,7 @@ export const frigateCardConfigDefaults = {
   cameras: cameraConfigDefault,
   view: viewConfigDefault,
   menu: menuConfigDefault,
+  status_bar: statusBarConfigDefault,
   live: liveConfigDefault,
   media_gallery: galleryConfigDefault,
   media_viewer: viewerConfigDefault,

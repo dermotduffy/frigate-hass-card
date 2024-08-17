@@ -10,6 +10,7 @@ import {
   dispatchMediaPlayEvent,
   dispatchMediaVolumeChangeEvent,
 } from '../../../utils/media-info';
+import { getTechnologyForVideoRTC } from '../../../components-lib/live/utils/get-technology-for-video-rtc.js';
 
 /**
  * Video player for go2rtc streaming application.
@@ -325,6 +326,7 @@ export class VideoRTC extends HTMLElement {
           supportsPause: true,
           hasAudio: mayHaveAudio(this.video),
         },
+        technology: getTechnologyForVideoRTC(this),
       });
     };
     this.video.onvolumechange = () => dispatchMediaVolumeChangeEvent(this);
@@ -641,6 +643,7 @@ export class VideoRTC extends HTMLElement {
         receivedFirstFrame = true;
         dispatchMediaLoadedEvent(this, this.video, {
           player: this.containingPlayer,
+          technology: ['mjpeg'],
         });
       }
     };
@@ -668,6 +671,7 @@ export class VideoRTC extends HTMLElement {
 
         dispatchMediaLoadedEvent(this, video2, {
           player: this.containingPlayer,
+          technology: ['mp4'],
         });
       }
 
